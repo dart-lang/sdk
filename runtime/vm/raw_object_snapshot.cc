@@ -2612,6 +2612,13 @@ void RawTypedData::WriteTo(SnapshotWriter* writer,
 }
 
 
+#define EXT_TYPED_DATA_WRITE(cid, type)                                        \
+  writer->WriteIndexedObject(cid);                                             \
+  writer->WriteIntptrValue(RawObject::ClassIdTag::update(cid, tags));          \
+  writer->Write<RawObject*>(ptr()->length_);                                   \
+  TYPED_DATA_WRITE(type)                                                       \
+
+
 void RawExternalTypedData::WriteTo(SnapshotWriter* writer,
                                    intptr_t object_id,
                                    Snapshot::Kind kind) {
@@ -2623,52 +2630,46 @@ void RawExternalTypedData::WriteTo(SnapshotWriter* writer,
   // Write out the serialization header value for this object.
   writer->WriteInlinedObjectHeader(object_id);
 
-  // Write out the class and tags information.
-  writer->WriteIndexedObject(cid);
-  writer->WriteIntptrValue(tags);
-
-  // Write out the length field.
-  writer->Write<RawObject*>(ptr()->length_);
-
   switch (cid) {
     case kExternalTypedDataInt8ArrayCid:
-      TYPED_DATA_WRITE(int8_t);
+      EXT_TYPED_DATA_WRITE(kTypedDataInt8ArrayCid, int8_t);
       break;
     case kExternalTypedDataUint8ArrayCid:
-      TYPED_DATA_WRITE(uint8_t);
+      EXT_TYPED_DATA_WRITE(kTypedDataUint8ArrayCid, uint8_t);
       break;
     case kExternalTypedDataUint8ClampedArrayCid:
-      TYPED_DATA_WRITE(uint8_t);
+      EXT_TYPED_DATA_WRITE(kTypedDataUint8ClampedArrayCid, uint8_t);
       break;
     case kExternalTypedDataInt16ArrayCid:
-      TYPED_DATA_WRITE(int16_t);
+      EXT_TYPED_DATA_WRITE(kTypedDataInt16ArrayCid, int16_t);
       break;
     case kExternalTypedDataUint16ArrayCid:
-      TYPED_DATA_WRITE(uint16_t);
+      EXT_TYPED_DATA_WRITE(kTypedDataUint16ArrayCid, uint16_t);
       break;
     case kExternalTypedDataInt32ArrayCid:
-      TYPED_DATA_WRITE(int32_t);
+      EXT_TYPED_DATA_WRITE(kTypedDataInt32ArrayCid, int32_t);
       break;
     case kExternalTypedDataUint32ArrayCid:
-      TYPED_DATA_WRITE(uint32_t);
+      EXT_TYPED_DATA_WRITE(kTypedDataUint32ArrayCid, uint32_t);
       break;
     case kExternalTypedDataInt64ArrayCid:
-      TYPED_DATA_WRITE(int64_t);
+      EXT_TYPED_DATA_WRITE(kTypedDataInt64ArrayCid, int64_t);
       break;
     case kExternalTypedDataUint64ArrayCid:
-      TYPED_DATA_WRITE(uint64_t);
+      EXT_TYPED_DATA_WRITE(kTypedDataUint64ArrayCid, uint64_t);
       break;
     case kExternalTypedDataFloat32ArrayCid:
-      TYPED_DATA_WRITE(float);  // NOLINT.
+      EXT_TYPED_DATA_WRITE(kTypedDataFloat32ArrayCid, float);  // NOLINT.
       break;
     case kExternalTypedDataFloat64ArrayCid:
-      TYPED_DATA_WRITE(double);  // NOLINT.
+      EXT_TYPED_DATA_WRITE(kTypedDataFloat64ArrayCid, double);  // NOLINT.
       break;
     default:
       UNREACHABLE();
   }
 }
 #undef TYPED_DATA_WRITE
+#undef EXT_TYPED_DATA_WRITE
 
 
 RawDartFunction* DartFunction::ReadFrom(SnapshotReader* reader,
