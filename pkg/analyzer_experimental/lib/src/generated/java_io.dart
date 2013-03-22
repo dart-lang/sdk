@@ -81,6 +81,9 @@ class JavaFile {
     }
     return false;
   }
+  bool isDirectory() {
+    return _newDirectory().existsSync();
+  }
   Uri toURI() => new Uri.fromComponents(path: _path.toString());
   String readAsStringSync() => _newFile().readAsStringSync();
   int lastModified() => _newFile().lastModifiedSync().millisecondsSinceEpoch;

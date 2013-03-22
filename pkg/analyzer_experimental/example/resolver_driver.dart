@@ -32,10 +32,10 @@ main() {
   ChangeSet changeSet = new ChangeSet();
   changeSet.added(source);
   context.applyChanges(changeSet);
-  LibraryElement libElement = context.getLibraryElement(source);
+  LibraryElement libElement = context.computeLibraryElement(source);
   print("libElement: $libElement");
 
-  CompilationUnit resolvedUnit = context.resolve(source, libElement);
+  CompilationUnit resolvedUnit = context.resolveCompilationUnit(source, libElement);
   var visitor = new _ASTVisitor();
   resolvedUnit.accept(visitor);
 }

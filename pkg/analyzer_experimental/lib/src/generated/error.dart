@@ -122,8 +122,8 @@ class ErrorReporter {
    * the default source to be used.
    * @param source the source to be used when reporting errors
    */
-  void set source(Source source9) {
-    this._source = source9 == null ? _defaultSource : source9;
+  void set source(Source source7) {
+    this._source = source7 == null ? _defaultSource : source7;
   }
 }
 /**
@@ -165,11 +165,11 @@ class AnalysisError {
    * @param errorCode the error code to be associated with this error
    * @param arguments the arguments used to build the error message
    */
-  AnalysisError.con1(Source source4, ErrorCode errorCode2, List<Object> arguments) {
-    _jtd_constructor_131_impl(source4, errorCode2, arguments);
+  AnalysisError.con1(Source source2, ErrorCode errorCode2, List<Object> arguments) {
+    _jtd_constructor_130_impl(source2, errorCode2, arguments);
   }
-  _jtd_constructor_131_impl(Source source4, ErrorCode errorCode2, List<Object> arguments) {
-    this._source = source4;
+  _jtd_constructor_130_impl(Source source2, ErrorCode errorCode2, List<Object> arguments) {
+    this._source = source2;
     this._errorCode = errorCode2;
     this._message = JavaString.format(errorCode2.message, arguments);
   }
@@ -181,11 +181,11 @@ class AnalysisError {
    * @param errorCode the error code to be associated with this error
    * @param arguments the arguments used to build the error message
    */
-  AnalysisError.con2(Source source5, int offset2, int length11, ErrorCode errorCode3, List<Object> arguments) {
-    _jtd_constructor_132_impl(source5, offset2, length11, errorCode3, arguments);
+  AnalysisError.con2(Source source3, int offset2, int length11, ErrorCode errorCode3, List<Object> arguments) {
+    _jtd_constructor_131_impl(source3, offset2, length11, errorCode3, arguments);
   }
-  _jtd_constructor_132_impl(Source source5, int offset2, int length11, ErrorCode errorCode3, List<Object> arguments) {
-    this._source = source5;
+  _jtd_constructor_131_impl(Source source3, int offset2, int length11, ErrorCode errorCode3, List<Object> arguments) {
+    this._source = source3;
     this._offset = offset2;
     this._length = length11;
     this._errorCode = errorCode3;
@@ -228,8 +228,8 @@ class AnalysisError {
    * Set the source in which the error occurred to the given source.
    * @param source the source in which the error occurred
    */
-  void set source(Source source6) {
-    this._source = source6;
+  void set source(Source source4) {
+    this._source = source4;
   }
   String toString() {
     JavaStringBuilder builder = new JavaStringBuilder();
@@ -540,18 +540,18 @@ class CompileTimeErrorCode implements ErrorCode {
    * error if <i>k</i>‚Äôs initializer list contains an initializer for a final variable <i>f</i>
    * whose declaration includes an initialization expression.
    */
-  static final CompileTimeErrorCode FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION = new CompileTimeErrorCode('FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION', 32, "");
+  static final CompileTimeErrorCode FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION = new CompileTimeErrorCode('FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION', 32, "Values cannot be set in the constructor if they are final, and have already been set");
   /**
    * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It is a compile time
    * error if <i>k</i>‚Äôs initializer list contains an initializer for a variable that is initialized
    * by means of an initializing formal of <i>k</i>.
    */
-  static final CompileTimeErrorCode FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER = new CompileTimeErrorCode('FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER', 33, "");
+  static final CompileTimeErrorCode FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER = new CompileTimeErrorCode('FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER', 33, "Fields cannot be initialized in both the parameter list and the initializers");
   /**
    * 7.6.1 Generative Constructors: It is a compile-time error if an initializing formal is used by
    * a function other than a non-redirecting generative constructor.
    */
-  static final CompileTimeErrorCode FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR = new CompileTimeErrorCode('FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR', 34, "");
+  static final CompileTimeErrorCode FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR = new CompileTimeErrorCode('FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR', 34, "Initializing formal fields can only be used in constructors");
   /**
    * 5 Variables: It is a compile-time error if a final instance variable that has been initialized
    * at its point of declaration is also initialized in a constructor.
@@ -775,7 +775,7 @@ class CompileTimeErrorCode implements ErrorCode {
    * 12.7 Maps: It is a compile time error if either a key or a value of an entry in a constant map
    * literal is not a compile-time constant.
    */
-  static final CompileTimeErrorCode NON_CONSTANT_MAP_KEY = new CompileTimeErrorCode('NON_CONSTANT_MAP_KEY', 74, "The keys in a 'const' map must be constant");
+  static final CompileTimeErrorCode NON_CONSTANT_MAP_KEY = new CompileTimeErrorCode('NON_CONSTANT_MAP_KEY', 74, "The keys in a map must be constant");
   /**
    * 12.7 Maps: It is a compile time error if either a key or a value of an entry in a constant map
    * literal is not a compile-time constant.
@@ -856,20 +856,25 @@ class CompileTimeErrorCode implements ErrorCode {
    */
   static final CompileTimeErrorCode RESERVED_WORD_AS_IDENTIFIER = new CompileTimeErrorCode('RESERVED_WORD_AS_IDENTIFIER', 90, "");
   /**
+   * 12.8.1 Rethrow: It is a compile-time error if an expression of the form <i>rethrow;</i> is not
+   * enclosed within a on-catch clause.
+   */
+  static final CompileTimeErrorCode RETHROW_OUTSIDE_CATCH = new CompileTimeErrorCode('RETHROW_OUTSIDE_CATCH', 91, "rethrow must be inside of a catch clause");
+  /**
    * 13.11 Return: It is a compile-time error if a return statement of the form <i>return e;</i>
    * appears in a generative constructor.
    */
-  static final CompileTimeErrorCode RETURN_IN_GENERATIVE_CONSTRUCTOR = new CompileTimeErrorCode('RETURN_IN_GENERATIVE_CONSTRUCTOR', 91, "");
+  static final CompileTimeErrorCode RETURN_IN_GENERATIVE_CONSTRUCTOR = new CompileTimeErrorCode('RETURN_IN_GENERATIVE_CONSTRUCTOR', 92, "");
   /**
    * 6.1 Function Declarations: It is a compile-time error to preface a function declaration with
    * the built-in identifier static.
    */
-  static final CompileTimeErrorCode STATIC_TOP_LEVEL_FUNCTION = new CompileTimeErrorCode('STATIC_TOP_LEVEL_FUNCTION', 92, "");
+  static final CompileTimeErrorCode STATIC_TOP_LEVEL_FUNCTION = new CompileTimeErrorCode('STATIC_TOP_LEVEL_FUNCTION', 93, "");
   /**
    * 5 Variables: It is a compile-time error to preface a top level variable declaration with the
    * built-in identifier static.
    */
-  static final CompileTimeErrorCode STATIC_TOP_LEVEL_VARIABLE = new CompileTimeErrorCode('STATIC_TOP_LEVEL_VARIABLE', 93, "");
+  static final CompileTimeErrorCode STATIC_TOP_LEVEL_VARIABLE = new CompileTimeErrorCode('STATIC_TOP_LEVEL_VARIABLE', 94, "");
   /**
    * 12.15.4 Super Invocation: A super method invocation <i>i</i> has the form
    * <i>super.m(a<sub>1</sub>, &hellip;, a<sub>n</sub>, x<sub>n+1</sub>: a<sub>n+1</sub>, &hellip;
@@ -878,17 +883,12 @@ class CompileTimeErrorCode implements ErrorCode {
    * initializer list, in class Object, in a factory constructor, or in a static method or variable
    * initializer.
    */
-  static final CompileTimeErrorCode SUPER_IN_INVALID_CONTEXT = new CompileTimeErrorCode('SUPER_IN_INVALID_CONTEXT', 94, "");
+  static final CompileTimeErrorCode SUPER_IN_INVALID_CONTEXT = new CompileTimeErrorCode('SUPER_IN_INVALID_CONTEXT', 95, "");
   /**
    * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It is a compile-time
    * error if a generative constructor of class Object includes a superinitializer.
    */
-  static final CompileTimeErrorCode SUPER_INITIALIZER_IN_OBJECT = new CompileTimeErrorCode('SUPER_INITIALIZER_IN_OBJECT', 95, "");
-  /**
-   * 12.8 Throw: It is a compile-time error if an expression of the form throw; is not enclosed
-   * within a on-catch clause.
-   */
-  static final CompileTimeErrorCode THROW_WITHOUT_VALUE_OUTSIDE_ON = new CompileTimeErrorCode('THROW_WITHOUT_VALUE_OUTSIDE_ON', 96, "");
+  static final CompileTimeErrorCode SUPER_INITIALIZER_IN_OBJECT = new CompileTimeErrorCode('SUPER_INITIALIZER_IN_OBJECT', 96, "");
   /**
    * 12.11 Instance Creation: It is a compile-time error if a constructor of a non-generic type
    * invoked by a new expression or a constant object expression is passed any type arguments.
@@ -951,7 +951,7 @@ class CompileTimeErrorCode implements ErrorCode {
    * <i>n</i> type parameters.
    */
   static final CompileTimeErrorCode WRONG_NUMBER_OF_TYPE_ARGUMENTS = new CompileTimeErrorCode('WRONG_NUMBER_OF_TYPE_ARGUMENTS', 103, "");
-  static final List<CompileTimeErrorCode> values = [AMBIGUOUS_EXPORT, AMBIGUOUS_IMPORT, ARGUMENT_DEFINITION_TEST_NON_PARAMETER, BUILT_IN_IDENTIFIER_AS_TYPE, BUILT_IN_IDENTIFIER_AS_TYPE_NAME, BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS, COMPILE_TIME_CONSTANT_RAISES_EXCEPTION, COMPILE_TIME_CONSTANT_RAISES_EXCEPTION_DIVIDE_BY_ZERO, CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD, CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD, CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD, CONST_FORMAL_PARAMETER, CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, CONST_EVAL_THROWS_EXCEPTION, CONST_WITH_INVALID_TYPE_PARAMETERS, CONST_WITH_NON_CONST, CONST_WITH_NON_CONSTANT_ARGUMENT, CONST_WITH_NON_TYPE, CONST_WITH_TYPE_PARAMETERS, CONST_WITH_UNDEFINED_CONSTRUCTOR, DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS, DUPLICATE_DEFINITION, DUPLICATE_MEMBER_NAME, DUPLICATE_MEMBER_NAME_INSTANCE_STATIC, DUPLICATE_NAMED_ARGUMENT, EXPORT_OF_NON_LIBRARY, EXTENDS_NON_CLASS, EXTENDS_DISALLOWED_CLASS, IMPLEMENTS_DISALLOWED_CLASS, FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS, FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION, FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER, FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR, FINAL_INITIALIZED_MULTIPLE_TIMES, FINAL_NOT_INITIALIZED, GETTER_AND_METHOD_WITH_SAME_NAME, IMPLEMENTS_DYNAMIC, IMPLEMENTS_NON_CLASS, IMPLEMENTS_REPEATED, IMPLEMENTS_SELF, IMPORT_DUPLICATED_LIBRARY_NAME, IMPORT_OF_NON_LIBRARY, INCONSITENT_CASE_EXPRESSION_TYPES, INITIALIZER_FOR_NON_EXISTANT_FIELD, INVALID_CONSTANT, INVALID_CONSTRUCTOR_NAME, INVALID_FACTORY_NAME_NOT_A_CLASS, INVALID_OVERRIDE_DEFAULT_VALUE, INVALID_OVERRIDE_NAMED, INVALID_OVERRIDE_POSITIONAL, INVALID_OVERRIDE_REQUIRED, INVALID_REFERENCE_TO_THIS, INVALID_TYPE_ARGUMENT_FOR_KEY, INVALID_TYPE_ARGUMENT_IN_CONST_LIST, INVALID_TYPE_ARGUMENT_IN_CONST_MAP, INVALID_VARIABLE_IN_INITIALIZER, LABEL_IN_OUTER_SCOPE, LABEL_UNDEFINED, MEMBER_WITH_CLASS_NAME, MIXIN_DECLARES_CONSTRUCTOR, MIXIN_INHERITS_FROM_NOT_OBJECT, MIXIN_OF_NON_CLASS, MIXIN_OF_NON_MIXIN, MIXIN_REFERENCES_SUPER, MIXIN_WITH_NON_CLASS_SUPERCLASS, MULTIPLE_SUPER_INITIALIZERS, NEW_WITH_INVALID_TYPE_PARAMETERS, NON_CONST_MAP_AS_EXPRESSION_STATEMENT, NON_CONSTANT_CASE_EXPRESSION, NON_CONSTANT_DEFAULT_VALUE, NON_CONSTANT_LIST_ELEMENT, NON_CONSTANT_MAP_KEY, NON_CONSTANT_MAP_VALUE, NON_CONSTANT_VALUE_IN_INITIALIZER, OBJECT_CANNOT_EXTEND_ANOTHER_CLASS, OPTIONAL_PARAMETER_IN_OPERATOR, OVERRIDE_MISSING_NAMED_PARAMETERS, OVERRIDE_MISSING_REQUIRED_PARAMETERS, PART_OF_NON_PART, PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER, PRIVATE_OPTIONAL_PARAMETER, RECURSIVE_COMPILE_TIME_CONSTANT, RECURSIVE_FACTORY_REDIRECT, RECURSIVE_FUNCTION_TYPE_ALIAS, RECURSIVE_INTERFACE_INHERITANCE, REDIRECT_TO_NON_CONST_CONSTRUCTOR, REFERENCE_TO_DECLARED_VARIABLE_IN_INITIALIZER, RESERVED_WORD_AS_IDENTIFIER, RETURN_IN_GENERATIVE_CONSTRUCTOR, STATIC_TOP_LEVEL_FUNCTION, STATIC_TOP_LEVEL_VARIABLE, SUPER_IN_INVALID_CONTEXT, SUPER_INITIALIZER_IN_OBJECT, THROW_WITHOUT_VALUE_OUTSIDE_ON, TYPE_ARGUMENTS_FOR_NON_GENERIC_CLASS, UNDEFINED_CONSTRUCTOR_IN_INITIALIZER, UNINITIALIZED_FINAL_FIELD, URI_WITH_INTERPOLATION, WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR, WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER, WRONG_NUMBER_OF_TYPE_ARGUMENTS];
+  static final List<CompileTimeErrorCode> values = [AMBIGUOUS_EXPORT, AMBIGUOUS_IMPORT, ARGUMENT_DEFINITION_TEST_NON_PARAMETER, BUILT_IN_IDENTIFIER_AS_TYPE, BUILT_IN_IDENTIFIER_AS_TYPE_NAME, BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME, BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME, CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS, COMPILE_TIME_CONSTANT_RAISES_EXCEPTION, COMPILE_TIME_CONSTANT_RAISES_EXCEPTION_DIVIDE_BY_ZERO, CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD, CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD, CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD, CONST_FORMAL_PARAMETER, CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, CONST_EVAL_THROWS_EXCEPTION, CONST_WITH_INVALID_TYPE_PARAMETERS, CONST_WITH_NON_CONST, CONST_WITH_NON_CONSTANT_ARGUMENT, CONST_WITH_NON_TYPE, CONST_WITH_TYPE_PARAMETERS, CONST_WITH_UNDEFINED_CONSTRUCTOR, DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS, DUPLICATE_DEFINITION, DUPLICATE_MEMBER_NAME, DUPLICATE_MEMBER_NAME_INSTANCE_STATIC, DUPLICATE_NAMED_ARGUMENT, EXPORT_OF_NON_LIBRARY, EXTENDS_NON_CLASS, EXTENDS_DISALLOWED_CLASS, IMPLEMENTS_DISALLOWED_CLASS, FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS, FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION, FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER, FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR, FINAL_INITIALIZED_MULTIPLE_TIMES, FINAL_NOT_INITIALIZED, GETTER_AND_METHOD_WITH_SAME_NAME, IMPLEMENTS_DYNAMIC, IMPLEMENTS_NON_CLASS, IMPLEMENTS_REPEATED, IMPLEMENTS_SELF, IMPORT_DUPLICATED_LIBRARY_NAME, IMPORT_OF_NON_LIBRARY, INCONSITENT_CASE_EXPRESSION_TYPES, INITIALIZER_FOR_NON_EXISTANT_FIELD, INVALID_CONSTANT, INVALID_CONSTRUCTOR_NAME, INVALID_FACTORY_NAME_NOT_A_CLASS, INVALID_OVERRIDE_DEFAULT_VALUE, INVALID_OVERRIDE_NAMED, INVALID_OVERRIDE_POSITIONAL, INVALID_OVERRIDE_REQUIRED, INVALID_REFERENCE_TO_THIS, INVALID_TYPE_ARGUMENT_FOR_KEY, INVALID_TYPE_ARGUMENT_IN_CONST_LIST, INVALID_TYPE_ARGUMENT_IN_CONST_MAP, INVALID_VARIABLE_IN_INITIALIZER, LABEL_IN_OUTER_SCOPE, LABEL_UNDEFINED, MEMBER_WITH_CLASS_NAME, MIXIN_DECLARES_CONSTRUCTOR, MIXIN_INHERITS_FROM_NOT_OBJECT, MIXIN_OF_NON_CLASS, MIXIN_OF_NON_MIXIN, MIXIN_REFERENCES_SUPER, MIXIN_WITH_NON_CLASS_SUPERCLASS, MULTIPLE_SUPER_INITIALIZERS, NEW_WITH_INVALID_TYPE_PARAMETERS, NON_CONST_MAP_AS_EXPRESSION_STATEMENT, NON_CONSTANT_CASE_EXPRESSION, NON_CONSTANT_DEFAULT_VALUE, NON_CONSTANT_LIST_ELEMENT, NON_CONSTANT_MAP_KEY, NON_CONSTANT_MAP_VALUE, NON_CONSTANT_VALUE_IN_INITIALIZER, OBJECT_CANNOT_EXTEND_ANOTHER_CLASS, OPTIONAL_PARAMETER_IN_OPERATOR, OVERRIDE_MISSING_NAMED_PARAMETERS, OVERRIDE_MISSING_REQUIRED_PARAMETERS, PART_OF_NON_PART, PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER, PRIVATE_OPTIONAL_PARAMETER, RECURSIVE_COMPILE_TIME_CONSTANT, RECURSIVE_FACTORY_REDIRECT, RECURSIVE_FUNCTION_TYPE_ALIAS, RECURSIVE_INTERFACE_INHERITANCE, REDIRECT_TO_NON_CONST_CONSTRUCTOR, REFERENCE_TO_DECLARED_VARIABLE_IN_INITIALIZER, RESERVED_WORD_AS_IDENTIFIER, RETHROW_OUTSIDE_CATCH, RETURN_IN_GENERATIVE_CONSTRUCTOR, STATIC_TOP_LEVEL_FUNCTION, STATIC_TOP_LEVEL_VARIABLE, SUPER_IN_INVALID_CONTEXT, SUPER_INITIALIZER_IN_OBJECT, TYPE_ARGUMENTS_FOR_NON_GENERIC_CLASS, UNDEFINED_CONSTRUCTOR_IN_INITIALIZER, UNINITIALIZED_FINAL_FIELD, URI_WITH_INTERPOLATION, WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR, WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER, WRONG_NUMBER_OF_TYPE_ARGUMENTS];
   final String __name;
   final int __ordinal;
   int get ordinal => __ordinal;

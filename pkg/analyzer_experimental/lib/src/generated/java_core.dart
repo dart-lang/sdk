@@ -108,13 +108,18 @@ class Character {
   }
 }
 
-class CharBuffer {
+class CharSequence {
   final String _content;
-  CharBuffer(this._content);
-  static CharBuffer wrap(String content) => new CharBuffer(content);
+  CharSequence(this._content);
+  static CharSequence wrap(String content) => new CharBuffer(content);
   int charAt(int index) => _content.codeUnitAt(index);
   int length() => _content.length;
   String subSequence(int start, int end) => _content.substring(start, end);
+}
+
+class CharBuffer extends CharSequence {
+  CharBuffer(String content) : super(content);
+  static CharBuffer wrap(String content) => new CharBuffer(content);
 }
 
 class JavaString {

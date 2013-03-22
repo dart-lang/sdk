@@ -34,12 +34,12 @@ class Instrumentation {
   /**
    * A builder that will silently ignore all data and logging requests.
    */
-  static InstrumentationBuilder _NULL_INSTRUMENTATION_BUILDER = new InstrumentationBuilder_8();
+  static InstrumentationBuilder _NULL_INSTRUMENTATION_BUILDER = new InstrumentationBuilder_9();
   /**
    * An instrumentation logger that can be used when no other instrumentation logger has been
    * configured. This logger will silently ignore all data and logging requests.
    */
-  static InstrumentationLogger _NULL_LOGGER = new InstrumentationLogger_9();
+  static InstrumentationLogger _NULL_LOGGER = new InstrumentationLogger_10();
   /**
    * The current instrumentation logger.
    */
@@ -74,7 +74,7 @@ class Instrumentation {
   Instrumentation() {
   }
 }
-class InstrumentationBuilder_8 implements InstrumentationBuilder {
+class InstrumentationBuilder_9 implements InstrumentationBuilder {
   InstrumentationBuilder data(String name, bool value) => this;
   InstrumentationBuilder data2(String name, int value) => this;
   InstrumentationBuilder data3(String name, String value) => this;
@@ -87,7 +87,7 @@ class InstrumentationBuilder_8 implements InstrumentationBuilder {
   InstrumentationBuilder metric3(String name, String value) => this;
   InstrumentationBuilder metric4(String name, List<String> value) => this;
 }
-class InstrumentationLogger_9 implements InstrumentationLogger {
+class InstrumentationLogger_10 implements InstrumentationLogger {
   InstrumentationBuilder createBuilder(String name) => Instrumentation._NULL_INSTRUMENTATION_BUILDER;
 }
 /**

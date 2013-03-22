@@ -185,43 +185,45 @@ class Keyword {
   static final Keyword DEFAULT = new Keyword.con1('DEFAULT', 7, "default");
   static final Keyword DO = new Keyword.con1('DO', 8, "do");
   static final Keyword ELSE = new Keyword.con1('ELSE', 9, "else");
-  static final Keyword EXTENDS = new Keyword.con1('EXTENDS', 10, "extends");
-  static final Keyword FALSE = new Keyword.con1('FALSE', 11, "false");
-  static final Keyword FINAL = new Keyword.con1('FINAL', 12, "final");
-  static final Keyword FINALLY = new Keyword.con1('FINALLY', 13, "finally");
-  static final Keyword FOR = new Keyword.con1('FOR', 14, "for");
-  static final Keyword IF = new Keyword.con1('IF', 15, "if");
-  static final Keyword IN = new Keyword.con1('IN', 16, "in");
-  static final Keyword IS = new Keyword.con1('IS', 17, "is");
-  static final Keyword NEW = new Keyword.con1('NEW', 18, "new");
-  static final Keyword NULL = new Keyword.con1('NULL', 19, "null");
-  static final Keyword RETURN = new Keyword.con1('RETURN', 20, "return");
-  static final Keyword SUPER = new Keyword.con1('SUPER', 21, "super");
-  static final Keyword SWITCH = new Keyword.con1('SWITCH', 22, "switch");
-  static final Keyword THIS = new Keyword.con1('THIS', 23, "this");
-  static final Keyword THROW = new Keyword.con1('THROW', 24, "throw");
-  static final Keyword TRUE = new Keyword.con1('TRUE', 25, "true");
-  static final Keyword TRY = new Keyword.con1('TRY', 26, "try");
-  static final Keyword VAR = new Keyword.con1('VAR', 27, "var");
-  static final Keyword VOID = new Keyword.con1('VOID', 28, "void");
-  static final Keyword WHILE = new Keyword.con1('WHILE', 29, "while");
-  static final Keyword WITH = new Keyword.con1('WITH', 30, "with");
-  static final Keyword ABSTRACT = new Keyword.con2('ABSTRACT', 31, "abstract", true);
-  static final Keyword AS = new Keyword.con2('AS', 32, "as", true);
-  static final Keyword DYNAMIC = new Keyword.con2('DYNAMIC', 33, "dynamic", true);
-  static final Keyword EXPORT = new Keyword.con2('EXPORT', 34, "export", true);
-  static final Keyword EXTERNAL = new Keyword.con2('EXTERNAL', 35, "external", true);
-  static final Keyword FACTORY = new Keyword.con2('FACTORY', 36, "factory", true);
-  static final Keyword GET = new Keyword.con2('GET', 37, "get", true);
-  static final Keyword IMPLEMENTS = new Keyword.con2('IMPLEMENTS', 38, "implements", true);
-  static final Keyword IMPORT = new Keyword.con2('IMPORT', 39, "import", true);
-  static final Keyword LIBRARY = new Keyword.con2('LIBRARY', 40, "library", true);
-  static final Keyword OPERATOR = new Keyword.con2('OPERATOR', 41, "operator", true);
-  static final Keyword PART = new Keyword.con2('PART', 42, "part", true);
-  static final Keyword SET = new Keyword.con2('SET', 43, "set", true);
-  static final Keyword STATIC = new Keyword.con2('STATIC', 44, "static", true);
-  static final Keyword TYPEDEF = new Keyword.con2('TYPEDEF', 45, "typedef", true);
-  static final List<Keyword> values = [ASSERT, BREAK, CASE, CATCH, CLASS, CONST, CONTINUE, DEFAULT, DO, ELSE, EXTENDS, FALSE, FINAL, FINALLY, FOR, IF, IN, IS, NEW, NULL, RETURN, SUPER, SWITCH, THIS, THROW, TRUE, TRY, VAR, VOID, WHILE, WITH, ABSTRACT, AS, DYNAMIC, EXPORT, EXTERNAL, FACTORY, GET, IMPLEMENTS, IMPORT, LIBRARY, OPERATOR, PART, SET, STATIC, TYPEDEF];
+  static final Keyword ENUM = new Keyword.con1('ENUM', 10, "enum");
+  static final Keyword EXTENDS = new Keyword.con1('EXTENDS', 11, "extends");
+  static final Keyword FALSE = new Keyword.con1('FALSE', 12, "false");
+  static final Keyword FINAL = new Keyword.con1('FINAL', 13, "final");
+  static final Keyword FINALLY = new Keyword.con1('FINALLY', 14, "finally");
+  static final Keyword FOR = new Keyword.con1('FOR', 15, "for");
+  static final Keyword IF = new Keyword.con1('IF', 16, "if");
+  static final Keyword IN = new Keyword.con1('IN', 17, "in");
+  static final Keyword IS = new Keyword.con1('IS', 18, "is");
+  static final Keyword NEW = new Keyword.con1('NEW', 19, "new");
+  static final Keyword NULL = new Keyword.con1('NULL', 20, "null");
+  static final Keyword RETHROW = new Keyword.con1('RETHROW', 21, "rethrow");
+  static final Keyword RETURN = new Keyword.con1('RETURN', 22, "return");
+  static final Keyword SUPER = new Keyword.con1('SUPER', 23, "super");
+  static final Keyword SWITCH = new Keyword.con1('SWITCH', 24, "switch");
+  static final Keyword THIS = new Keyword.con1('THIS', 25, "this");
+  static final Keyword THROW = new Keyword.con1('THROW', 26, "throw");
+  static final Keyword TRUE = new Keyword.con1('TRUE', 27, "true");
+  static final Keyword TRY = new Keyword.con1('TRY', 28, "try");
+  static final Keyword VAR = new Keyword.con1('VAR', 29, "var");
+  static final Keyword VOID = new Keyword.con1('VOID', 30, "void");
+  static final Keyword WHILE = new Keyword.con1('WHILE', 31, "while");
+  static final Keyword WITH = new Keyword.con1('WITH', 32, "with");
+  static final Keyword ABSTRACT = new Keyword.con2('ABSTRACT', 33, "abstract", true);
+  static final Keyword AS = new Keyword.con2('AS', 34, "as", true);
+  static final Keyword DYNAMIC = new Keyword.con2('DYNAMIC', 35, "dynamic", true);
+  static final Keyword EXPORT = new Keyword.con2('EXPORT', 36, "export", true);
+  static final Keyword EXTERNAL = new Keyword.con2('EXTERNAL', 37, "external", true);
+  static final Keyword FACTORY = new Keyword.con2('FACTORY', 38, "factory", true);
+  static final Keyword GET = new Keyword.con2('GET', 39, "get", true);
+  static final Keyword IMPLEMENTS = new Keyword.con2('IMPLEMENTS', 40, "implements", true);
+  static final Keyword IMPORT = new Keyword.con2('IMPORT', 41, "import", true);
+  static final Keyword LIBRARY = new Keyword.con2('LIBRARY', 42, "library", true);
+  static final Keyword OPERATOR = new Keyword.con2('OPERATOR', 43, "operator", true);
+  static final Keyword PART = new Keyword.con2('PART', 44, "part", true);
+  static final Keyword SET = new Keyword.con2('SET', 45, "set", true);
+  static final Keyword STATIC = new Keyword.con2('STATIC', 46, "static", true);
+  static final Keyword TYPEDEF = new Keyword.con2('TYPEDEF', 47, "typedef", true);
+  static final List<Keyword> values = [ASSERT, BREAK, CASE, CATCH, CLASS, CONST, CONTINUE, DEFAULT, DO, ELSE, ENUM, EXTENDS, FALSE, FINAL, FINALLY, FOR, IF, IN, IS, NEW, NULL, RETHROW, RETURN, SUPER, SWITCH, THIS, THROW, TRUE, TRY, VAR, VOID, WHILE, WITH, ABSTRACT, AS, DYNAMIC, EXPORT, EXTERNAL, FACTORY, GET, IMPLEMENTS, IMPORT, LIBRARY, OPERATOR, PART, SET, STATIC, TYPEDEF];
   String __name;
   int __ordinal = 0;
   int get ordinal => __ordinal;
@@ -255,10 +257,10 @@ class Keyword {
    * @param syntax the lexeme for the keyword
    */
   Keyword.con1(String ___name, int ___ordinal, String syntax) {
-    _jtd_constructor_278_impl(___name, ___ordinal, syntax);
+    _jtd_constructor_282_impl(___name, ___ordinal, syntax);
   }
-  _jtd_constructor_278_impl(String ___name, int ___ordinal, String syntax) {
-    _jtd_constructor_279_impl(___name, ___ordinal, syntax, false);
+  _jtd_constructor_282_impl(String ___name, int ___ordinal, String syntax) {
+    _jtd_constructor_283_impl(___name, ___ordinal, syntax, false);
   }
   /**
    * Initialize a newly created keyword to have the given syntax. The keyword is a pseudo-keyword if
@@ -267,9 +269,9 @@ class Keyword {
    * @param isPseudoKeyword {@code true} if this keyword is a pseudo-keyword
    */
   Keyword.con2(String ___name, int ___ordinal, String syntax2, bool isPseudoKeyword) {
-    _jtd_constructor_279_impl(___name, ___ordinal, syntax2, isPseudoKeyword);
+    _jtd_constructor_283_impl(___name, ___ordinal, syntax2, isPseudoKeyword);
   }
-  _jtd_constructor_279_impl(String ___name, int ___ordinal, String syntax2, bool isPseudoKeyword) {
+  _jtd_constructor_283_impl(String ___name, int ___ordinal, String syntax2, bool isPseudoKeyword) {
     __name = ___name;
     __ordinal = ___ordinal;
     this._syntax = syntax2;
@@ -1258,7 +1260,7 @@ class CharBufferScanner extends AbstractScanner {
     }
     return _buffer.charAt(++_charOffset);
   }
-  String getString(int start, int endDelta) => _buffer.subSequence(start, _charOffset + 1 + endDelta).toString();
+  String getString(int start, int endDelta) => ((_buffer as CharSequence)).subSequence(start, _charOffset + 1 + endDelta).toString();
   int peek() {
     if (_charOffset + 1 >= _buffer.length()) {
       return -1;
@@ -1654,15 +1656,15 @@ class TokenClass {
    */
   int _precedence = 0;
   TokenClass.con1(String ___name, int ___ordinal) {
-    _jtd_constructor_288_impl(___name, ___ordinal);
+    _jtd_constructor_292_impl(___name, ___ordinal);
   }
-  _jtd_constructor_288_impl(String ___name, int ___ordinal) {
-    _jtd_constructor_289_impl(___name, ___ordinal, 0);
+  _jtd_constructor_292_impl(String ___name, int ___ordinal) {
+    _jtd_constructor_293_impl(___name, ___ordinal, 0);
   }
   TokenClass.con2(String ___name, int ___ordinal, int precedence2) {
-    _jtd_constructor_289_impl(___name, ___ordinal, precedence2);
+    _jtd_constructor_293_impl(___name, ___ordinal, precedence2);
   }
-  _jtd_constructor_289_impl(String ___name, int ___ordinal, int precedence2) {
+  _jtd_constructor_293_impl(String ___name, int ___ordinal, int precedence2) {
     __name = ___name;
     __ordinal = ___ordinal;
     this._precedence = precedence2;
@@ -1788,15 +1790,15 @@ class TokenType {
    */
   String _lexeme;
   TokenType.con1(String ___name, int ___ordinal) {
-    _jtd_constructor_290_impl(___name, ___ordinal);
+    _jtd_constructor_294_impl(___name, ___ordinal);
   }
-  _jtd_constructor_290_impl(String ___name, int ___ordinal) {
-    _jtd_constructor_291_impl(___name, ___ordinal, TokenClass.NO_CLASS, null);
+  _jtd_constructor_294_impl(String ___name, int ___ordinal) {
+    _jtd_constructor_295_impl(___name, ___ordinal, TokenClass.NO_CLASS, null);
   }
   TokenType.con2(String ___name, int ___ordinal, TokenClass tokenClass2, String lexeme2) {
-    _jtd_constructor_291_impl(___name, ___ordinal, tokenClass2, lexeme2);
+    _jtd_constructor_295_impl(___name, ___ordinal, tokenClass2, lexeme2);
   }
-  _jtd_constructor_291_impl(String ___name, int ___ordinal, TokenClass tokenClass2, String lexeme2) {
+  _jtd_constructor_295_impl(String ___name, int ___ordinal, TokenClass tokenClass2, String lexeme2) {
     __name = ___name;
     __ordinal = ___ordinal;
     this._tokenClass = tokenClass2 == null ? TokenClass.NO_CLASS : tokenClass2;
