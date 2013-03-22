@@ -117,6 +117,9 @@ void FUNCTION_NAME(Directory_List)(Dart_NativeArguments args) {
   Dart_Handle recursive = Dart_GetNativeArgument(args, 1);
   // Create the list to hold the directory listing here, and pass it to the
   // SyncDirectoryListing object, which adds elements to it.
+  Dart_Handle follow_links = Dart_GetNativeArgument(args, 2);
+  // Create the list to hold the directory listing here, and pass it to the
+  // SyncDirectoryListing object, which adds elements to it.
   Dart_Handle results =
       Dart_New(DartUtils::GetDartClass(DartUtils::kCoreLibURL, "List"),
                Dart_Null(),
@@ -125,6 +128,7 @@ void FUNCTION_NAME(Directory_List)(Dart_NativeArguments args) {
   SyncDirectoryListing sync_listing(results);
   Directory::List(DartUtils::GetStringValue(path),
                   DartUtils::GetBooleanValue(recursive),
+                  DartUtils::GetBooleanValue(follow_links),
                   &sync_listing);
   Dart_SetReturnValue(args, results);
   Dart_ExitScope();
@@ -194,13 +198,17 @@ static CObject* DirectoryCreateTempRequest(const CObjectArray& request) {
 
 static CObject* DirectoryListRequest(const CObjectArray& request,
                                      Dart_Port response_port) {
-  if (request.Length() == 3 && request[1]->IsString() && request[2]->IsBool()) {
+  if (request.Length() == 4 &&
+      request[1]->IsString() &&
+      request[2]->IsBool() &&
+      request[3]->IsBool()) {
     AsyncDirectoryListing* dir_listing =
         new AsyncDirectoryListing(response_port);
     CObjectString path(request[1]);
     CObjectBool recursive(request[2]);
+    CObjectBool follow_links(request[3]);
     bool completed = Directory::List(
-        path.CString(), recursive.Value(), dir_listing);
+        path.CString(), recursive.Value(), follow_links.Value(), dir_listing);
     delete dir_listing;
     CObjectArray* response = new CObjectArray(CObject::NewArray(2));
     response->SetAt(
@@ -315,6 +323,12 @@ bool AsyncDirectoryListing::HandleFile(char* file_name) {
 }
 
 
+bool AsyncDirectoryListing::HandleLink(char* link_name) {
+  CObjectArray* response = NewResponse(kListLink, link_name);
+  return Dart_PostCObject(response_port_, response->AsApiCObject());
+}
+
+
 bool AsyncDirectoryListing::HandleError(const char* dir_name) {
   CObject* err = CObject::NewOSError();
   CObjectArray* response = new CObjectArray(CObject::NewArray(3));
@@ -329,6 +343,14 @@ bool SyncDirectoryListing::HandleDirectory(char* dir_name) {
   Dart_Handle dir =
       Dart_New(directory_class_, Dart_Null(), 1, &dir_name_dart);
   Dart_Invoke(results_, add_string_, 1, &dir);
+  return true;
+}
+
+bool SyncDirectoryListing::HandleLink(char* link_name) {
+  Dart_Handle link_name_dart = DartUtils::NewString(link_name);
+  Dart_Handle link =
+      Dart_New(link_class_, Dart_Null(), 1, &link_name_dart);
+  Dart_Invoke(results_, add_string_, 1, &link);
   return true;
 }
 

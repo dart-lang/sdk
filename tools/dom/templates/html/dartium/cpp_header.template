@@ -8,6 +8,7 @@
 #define Dart$(INTERFACE)_h
 
 #include "DartDOMWrapper.h"
+#include "DartWrapperTypeInfo.h"
 $WEBCORE_INCLUDES
 #include <dart_api.h>
 
@@ -20,6 +21,7 @@ struct Dart$INTERFACE {
     static const bool isNode = $IS_NODE;
     static const bool isActive = $IS_ACTIVE;
     static const bool isEventTarget = $IS_EVENT_TARGET;
+    static DartWrapperTypeInfo info;
 
 $TO_NATIVE
 $TO_DART
@@ -29,6 +31,12 @@ $TO_DART
     }
 
     static Dart_NativeFunction resolver(Dart_Handle name, int argumentCount);
+};
+
+template<>
+class DartWrapperTypeTraits<$WEBCORE_CLASS_NAME > {
+public:
+    static DartWrapperTypeInfo* info() { return &Dart$INTERFACE::info; }
 };
 
 namespace Dart$(INTERFACE)Internal {

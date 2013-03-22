@@ -18,6 +18,7 @@ _js_custom_members = monitored.Set('systemhtml._js_custom_members', [
     'AudioBufferSourceNode.stop',
     'AudioContext.createGain',
     'AudioContext.createScriptProcessor',
+    'CanvasRenderingContext2D.drawImage',
     'CanvasRenderingContext2D.lineDashOffset',
     'Console.memory',
     'Console.profiles',
@@ -56,6 +57,7 @@ _js_custom_members = monitored.Set('systemhtml._js_custom_members', [
     'MouseEvent.offsetY',
     'Navigator.language',
     'Navigator.webkitGetUserMedia',
+    'ScriptProcessorNode._setEventListener',
     'URL.createObjectURL',
     'URL.revokeObjectURL',
     'WheelEvent.deltaMode',
@@ -75,7 +77,6 @@ _js_custom_constructors = monitored.Set('systemhtml._js_custom_constructors', [
     'AudioContext',
     'Blob',
     'MutationObserver',
-    'Notification',
     'RTCIceCandidate',
     'RTCPeerConnection',
     'RTCSessionDescription',
@@ -358,6 +359,8 @@ _js_support_checks_additional_element = [
 ]
 
 js_support_checks = dict({
+    'AudioContext': "JS('bool', '!!(window.AudioContext ||"
+        " window.webkitAudioContext)')",
     'ArrayBuffer': "JS('bool', 'typeof window.ArrayBuffer != \"undefined\"')",
     'Crypto':
         "JS('bool', '!!(window.crypto && window.crypto.getRandomValues)')",

@@ -7415,7 +7415,7 @@ class MethodDeclaration extends ClassMember {
    * Return {@code true} if this method is declared to be an abstract method.
    * @return {@code true} if this method is declared to be an abstract method
    */
-  bool isAbstract() => _modifierKeyword != null && identical(((_modifierKeyword as KeywordToken)).keyword, Keyword.ABSTRACT);
+  bool isAbstract() => _externalKeyword == null && (_body is EmptyFunctionBody);
   /**
    * Return {@code true} if this method declares a getter.
    * @return {@code true} if this method declares a getter

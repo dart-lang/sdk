@@ -10,11 +10,11 @@ part of ssa;
  * optimizers may look at its declared type.
  */
 class InterceptedElement extends ElementX {
-  final HType ssaType;
-  InterceptedElement(this.ssaType, SourceString name, Element enclosing)
+  final DartType type;
+  InterceptedElement(this.type, SourceString name, Element enclosing)
       : super(name, ElementKind.PARAMETER, enclosing);
 
-  DartType computeType(Compiler compiler) => ssaType.computeType(compiler);
+  DartType computeType(Compiler compiler) => type;
 }
 
 class SsaBuilderTask extends CompilerTask {
@@ -51,15 +51,8 @@ class SsaBuilderTask extends CompilerTask {
       }
       assert(graph.isValid());
       if (!identical(kind, ElementKind.FIELD)) {
-        Set<Selector> selectors = backend.selectorsCalledInLoop[element.name];
-        graph.calledInLoop = selectors != null &&
-            selectors.any((selector) => selector.applies(element, compiler));
-
-        // If there is an estimate of the parameter types assume these types
-        // when compiling.
-        // TODO(karlklose,ngeoffray): add a check to make sure that element is
-        // of type FunctionElement.
         FunctionElement function = element;
+        graph.calledInLoop = compiler.world.isCalledInLoop(function);
         OptionalParameterTypes defaultValueTypes = null;
         FunctionSignature signature = function.computeSignature(compiler);
         if (signature.optionalParameterCount > 0) {
@@ -300,41 +293,23 @@ class LocalsHandler {
     // parameter to it, that is the actual receiver for intercepted
     // classes, or the same as [:this:] for non-intercepted classes.
     ClassElement cls = element.getEnclosingClass();
-    if (builder.backend.isInterceptedMethod(element)) {
-      HType type = builder.getTypeOfThis();
-      SourceString name = const SourceString('receiver');
-      if (cls == builder.backend.jsArrayClass) {
-        type = HType.READABLE_ARRAY;
-      } else if (cls == builder.backend.jsStringClass) {
-        type = HType.STRING;
-      } else if (cls == builder.backend.jsNumberClass) {
-        type = HType.NUMBER;
-      } else if (cls == builder.backend.jsIntClass) {
-        type = HType.INTEGER;
-      } else if (cls == builder.backend.jsDoubleClass) {
-        type = HType.DOUBLE;
-      } else if (cls == builder.backend.jsNullClass) {
-        type = HType.NULL;
-      } else if (cls == builder.backend.jsBoolClass) {
-        type = HType.BOOLEAN;
-      } else if (cls == builder.backend.jsFunctionClass) {
-        type = HType.UNKNOWN;
-      } else if (cls != compiler.objectClass) {
-        JavaScriptBackend backend = compiler.backend;
-        if (!backend.isInterceptorClass(cls)) {
-          name = const SourceString('_');
-        }
-      }
-      Element parameter = new InterceptedElement(type, name, element);
+    JavaScriptBackend backend = compiler.backend;
+    if (backend.isInterceptedMethod(element)) {
+      bool isInterceptorClass = backend.isInterceptorClass(cls.declaration);
+      SourceString name = (cls == compiler.objectClass || isInterceptorClass)
+          ? const SourceString('receiver')
+          : const SourceString('_');
+      Element parameter = new InterceptedElement(
+          cls.computeType(compiler), name, element);
       HParameterValue value = new HParameterValue(parameter);
       builder.graph.explicitReceiverParameter = value;
       builder.graph.entry.addAfter(
           directLocals[closureData.thisElement], value);
-      if (builder.backend.isInterceptorClass(cls.declaration)) {
+      if (isInterceptorClass) {
         // Only use the extra parameter in intercepted classes.
         directLocals[closureData.thisElement] = value;
       }
-      value.instructionType = type;
+      value.instructionType = builder.getTypeOfThis();
     }
   }
 
@@ -2667,76 +2642,76 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   void visitIsSend(Send node) {
-      Node argument = node.arguments.head;
-      visit(node.receiver);
-      HInstruction expression = pop();
-      TypeAnnotation typeAnnotation = argument.asTypeAnnotation();
-      bool isNot = false;
-      // TODO(ngeoffray): Duplicating pattern in resolver. We should
-      // add a new kind of node.
-      if (typeAnnotation == null) {
-        typeAnnotation = argument.asSend().receiver;
-        isNot = true;
-      }
-      DartType type = elements.getType(typeAnnotation);
-      if (type.isMalformed) {
-        String reasons = Types.fetchReasonsFromMalformedType(type);
-        if (compiler.enableTypeAssertions) {
-          generateMalformedSubtypeError(node, expression, type, reasons);
-        } else {
-          generateRuntimeError(node, '$type is malformed: $reasons');
-        }
-        return;
-      }
-
-      HInstruction instruction;
-      if (type.kind == TypeKind.TYPE_VARIABLE) {
-        HInstruction runtimeType = addTypeVariableReference(type);
-        Element helper = backend.getGetObjectIsSubtype();
-        HInstruction helperCall = new HStatic(helper);
-        add(helperCall);
-        List<HInstruction> inputs = <HInstruction>[helperCall, expression,
-                                                   runtimeType];
-        HInstruction call = new HInvokeStatic(inputs, HType.BOOLEAN);
-        add(call);
-        instruction = new HIs(type, <HInstruction>[expression, call],
-                              HIs.VARIABLE_CHECK);
-      } else if (RuntimeTypes.hasTypeArguments(type)) {
-        Element element = type.element;
-        bool needsNativeCheck =
-            backend.emitter.nativeEmitter.requiresNativeIsCheck(element);
-        Element helper = backend.getCheckSubtype();
-        HInstruction helperCall = new HStatic(helper);
-        add(helperCall);
-        HInstruction representations =
-          buildTypeArgumentRepresentations(type);
-        add(representations);
-        HInstruction isFieldName =
-            addConstantString(node, backend.namer.operatorIs(element));
-        // TODO(karlklose): use [:null:] for [asField] if [element] does not
-        // have a subclass.
-        HInstruction asFieldName =
-            addConstantString(node, backend.namer.substitutionName(element));
-        HInstruction native =
-            graph.addConstantBool(needsNativeCheck, constantSystem);
-        List<HInstruction> inputs = <HInstruction>[helperCall,
-                                                   expression,
-                                                   isFieldName,
-                                                   representations,
-                                                   asFieldName,
-                                                   native];
-        HInstruction call = new HInvokeStatic(inputs, HType.BOOLEAN);
-        add(call);
-        instruction = new HIs(type, <HInstruction>[expression, call],
-                              HIs.COMPOUND_CHECK);
+    Node argument = node.arguments.head;
+    visit(node.receiver);
+    HInstruction expression = pop();
+    TypeAnnotation typeAnnotation = argument.asTypeAnnotation();
+    bool isNot = false;
+    // TODO(ngeoffray): Duplicating pattern in resolver. We should
+    // add a new kind of node.
+    if (typeAnnotation == null) {
+      typeAnnotation = argument.asSend().receiver;
+      isNot = true;
+    }
+    DartType type = elements.getType(typeAnnotation);
+    if (type.isMalformed) {
+      String reasons = Types.fetchReasonsFromMalformedType(type);
+      if (compiler.enableTypeAssertions) {
+        generateMalformedSubtypeError(node, expression, type, reasons);
       } else {
-        instruction = new HIs(type, <HInstruction>[expression], HIs.RAW_CHECK);
+        generateRuntimeError(node, '$type is malformed: $reasons');
       }
-      if (isNot) {
-        add(instruction);
-        instruction = new HNot(instruction);
-      }
-      push(instruction);
+      return;
+    }
+
+    HInstruction instruction;
+    if (type.kind == TypeKind.TYPE_VARIABLE) {
+      HInstruction runtimeType = addTypeVariableReference(type);
+      Element helper = backend.getGetObjectIsSubtype();
+      HInstruction helperCall = new HStatic(helper);
+      add(helperCall);
+      List<HInstruction> inputs = <HInstruction>[helperCall, expression,
+                                                 runtimeType];
+      HInstruction call = new HInvokeStatic(inputs, HType.BOOLEAN);
+      add(call);
+      instruction = new HIs(type, <HInstruction>[expression, call],
+                            HIs.VARIABLE_CHECK);
+    } else if (RuntimeTypes.hasTypeArguments(type)) {
+      Element element = type.element;
+      bool needsNativeCheck =
+          backend.emitter.nativeEmitter.requiresNativeIsCheck(element);
+      Element helper = backend.getCheckSubtype();
+      HInstruction helperCall = new HStatic(helper);
+      add(helperCall);
+      HInstruction representations =
+        buildTypeArgumentRepresentations(type);
+      add(representations);
+      HInstruction isFieldName =
+          addConstantString(node, backend.namer.operatorIs(element));
+      // TODO(karlklose): use [:null:] for [asField] if [element] does not
+      // have a subclass.
+      HInstruction asFieldName =
+          addConstantString(node, backend.namer.substitutionName(element));
+      HInstruction native =
+          graph.addConstantBool(needsNativeCheck, constantSystem);
+      List<HInstruction> inputs = <HInstruction>[helperCall,
+                                                 expression,
+                                                 isFieldName,
+                                                 representations,
+                                                 asFieldName,
+                                                 native];
+      HInstruction call = new HInvokeStatic(inputs, HType.BOOLEAN);
+      add(call);
+      instruction = new HIs(type, <HInstruction>[expression, call],
+                            HIs.COMPOUND_CHECK);
+    } else {
+      instruction = new HIs(type, <HInstruction>[expression], HIs.RAW_CHECK);
+    }
+    if (isNot) {
+      add(instruction);
+      instruction = new HNot(instruction);
+    }
+    push(instruction);
   }
 
   void addDynamicSendArgumentsToList(Send node, List<HInstruction> list) {
@@ -3150,7 +3125,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     List<HInstruction> inputs = buildSuperAccessorInputs(element);
     if (node.isPropertyAccess) {
-      push(new HInvokeSuper(inputs));
+      HInstruction invokeSuper = new HInvokeSuper(inputs);
+      invokeSuper.instructionType =
+          new HType.inferredTypeForElement(element, compiler);
+      push(invokeSuper);
     } else if (element.isFunction() || element.isGenerativeConstructor()) {
       // TODO(5347): Try to avoid the need for calling [implementation] before
       // calling [addStaticSendArgumentsToList].
@@ -3160,10 +3138,15 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       if (!succeeded) {
         generateWrongArgumentCountError(node, element, node.arguments);
       } else {
-        push(new HInvokeSuper(inputs));
+        HInstruction invokeSuper = new HInvokeSuper(inputs);
+        invokeSuper.instructionType =
+            new HType.inferredReturnTypeForElement(element, compiler);
+        push(invokeSuper);
       }
     } else {
       HInstruction target = new HInvokeSuper(inputs);
+      target.instructionType =
+          new HType.inferredTypeForElement(element, compiler);
       add(target);
       inputs = <HInstruction>[target];
       addDynamicSendArgumentsToList(node, inputs);

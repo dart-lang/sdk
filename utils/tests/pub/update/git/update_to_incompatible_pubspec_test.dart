@@ -6,42 +6,43 @@ library pub_tests;
 
 import 'dart:io';
 
+import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
   integration("updates Git packages to an incompatible pubspec", () {
     ensureGit();
 
-    git('foo.git', [
-      libDir('foo'),
-      libPubspec('foo', '1.0.0')
-    ]).scheduleCreate();
+    d.git('foo.git', [
+      d.libDir('foo'),
+      d.libPubspec('foo', '1.0.0')
+    ]).create();
 
-    appDir([{"git": "../foo.git"}]).scheduleCreate();
+    d.appDir([{"git": "../foo.git"}]).create();
 
     schedulePub(args: ['install'],
         output: new RegExp(r"Dependencies installed!$"));
 
-    dir(packagesPath, [
-      dir('foo', [
-        file('foo.dart', 'main() => "foo";')
+    d.dir(packagesPath, [
+      d.dir('foo', [
+        d.file('foo.dart', 'main() => "foo";')
       ])
-    ]).scheduleValidate();
+    ]).validate();
 
-    git('foo.git', [
-      libDir('zoo'),
-      libPubspec('zoo', '1.0.0')
-    ]).scheduleCommit();
+    d.git('foo.git', [
+      d.libDir('zoo'),
+      d.libPubspec('zoo', '1.0.0')
+    ]).commit();
 
     schedulePub(args: ['update'],
         error: new RegExp(r'The name you specified for your dependency, '
             r'"foo", doesn' "'" r't match the name "zoo" in its pubspec.'),
         exitCode: 1);
 
-    dir(packagesPath, [
-      dir('foo', [
-        file('foo.dart', 'main() => "foo";')
+    d.dir(packagesPath, [
+      d.dir('foo', [
+        d.file('foo.dart', 'main() => "foo";')
       ])
-    ]).scheduleValidate();
+    ]).validate();
   });
 }

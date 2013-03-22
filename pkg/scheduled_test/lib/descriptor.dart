@@ -6,9 +6,9 @@
 /// the purpose of creating or validating it as part of a scheduled test.
 ///
 /// You can use [dir] and [file] to define a filesystem structure. Then, you can
-/// call [Entry.create] to schedule a task that will create that structure on
-/// the physical filesystem, or [Entry.validate] to schedule an assertion that
-/// that structure exists. For example:
+/// call [Descriptor.create] to schedule a task that will create that structure
+/// on the physical filesystem, or [Descriptor.validate] to schedule an
+/// assertion that that structure exists. For example:
 ///
 ///     import 'package:scheduled_test/descriptor.dart' as d;
 ///     import 'package:scheduled_test/scheduled_test.dart';
@@ -67,17 +67,19 @@ import 'dart:async';
 import '../../../pkg/pathos/lib/path.dart' as path;
 
 import 'scheduled_test.dart';
-import 'src/descriptor/async.dart';
-import 'src/descriptor/directory.dart';
-import 'src/descriptor/entry.dart';
-import 'src/descriptor/file.dart';
-import 'src/descriptor/nothing.dart';
+import 'src/descriptor/async_descriptor.dart';
+import 'src/descriptor/descriptor.dart';
+import 'src/descriptor/directory_descriptor.dart';
+import 'src/descriptor/file_descriptor.dart';
+import 'src/descriptor/nothing_descriptor.dart';
+import 'src/descriptor/pattern_descriptor.dart';
 
-export 'src/descriptor/async.dart';
-export 'src/descriptor/directory.dart';
-export 'src/descriptor/entry.dart';
-export 'src/descriptor/file.dart';
-export 'src/descriptor/nothing.dart';
+export 'src/descriptor/async_descriptor.dart';
+export 'src/descriptor/descriptor.dart';
+export 'src/descriptor/directory_descriptor.dart';
+export 'src/descriptor/file_descriptor.dart';
+export 'src/descriptor/nothing_descriptor.dart';
+export 'src/descriptor/pattern_descriptor.dart';
 
 /// The root path for descriptors. Top-level descriptors will be created and
 /// validated at this path. Defaults to the current working directory.
@@ -90,21 +92,39 @@ set defaultRoot(String value) {
 }
 String _defaultRoot;
 
-/// Creates a new text [File] descriptor with [name] and [contents].
-File file(Pattern name, [String contents='']) => new File(name, contents);
+/// Creates a new text [FileDescriptor] with [name] and [contents].
+FileDescriptor file(String name, [String contents='']) =>
+  new FileDescriptor(name, contents);
 
-/// Creates a new binary [File] descriptor with [name] and [contents].
-File binaryFile(Pattern name, List<int> contents) =>
-    new File.binary(name, contents);
+/// Creates a new binary [FileDescriptor] descriptor with [name] and [contents].
+FileDescriptor binaryFile(String name, List<int> contents) =>
+  new FileDescriptor.binary(name, contents);
 
-/// Creates a new [Directory] descriptor with [name] and [contents].
-Directory dir(Pattern name, [Iterable<Entry> contents]) =>
-    new Directory(name, contents == null ? <Entry>[] : contents);
+/// Creates a new [DirectoryDescriptor] descriptor with [name] and [contents].
+DirectoryDescriptor dir(String name, [Iterable<Descriptor> contents]) =>
+   new DirectoryDescriptor(name, contents == null? <Descriptor>[] : contents);
 
 /// Creates a new descriptor wrapping a [Future]. This descriptor forwards all
 /// asynchronous operations to the result of [future].
-Async async(Future<Entry> future) => new Async(future);
+AsyncDescriptor async(Future<Descriptor> future) =>
+  new AsyncDescriptor(future);
 
-/// Creates a new [Nothing] descriptor that asserts that no entry named [name]
-/// exists.
-Nothing nothing(Pattern name) => new Nothing(name);
+/// Creates a new [NothingDescriptor] descriptor that asserts that no entry
+/// named [name] exists.
+NothingDescriptor nothing(String name) => new NothingDescriptor(name);
+
+/// Creates a new [PatternDescriptor] descriptor that asserts than an entry with
+/// a name matching [pattern] exists, and matches the [Descriptor] returned
+/// by [fn].
+PatternDescriptor pattern(Pattern name, EntryCreator fn) =>
+  new PatternDescriptor(name, fn);
+
+/// A convenience method for creating a [PatternDescriptor] descriptor that
+/// constructs a [FileDescriptor] descriptor.
+PatternDescriptor filePattern(Pattern name, [String contents='']) =>
+  pattern(name, (realName) => file(realName, contents));
+
+/// A convenience method for creating a [PatternDescriptor] descriptor that
+/// constructs a [DirectoryDescriptor] descriptor.
+PatternDescriptor dirPattern(Pattern name, [Iterable<Descriptor> contents]) =>
+  pattern(name, (realName) => dir(realName, contents));

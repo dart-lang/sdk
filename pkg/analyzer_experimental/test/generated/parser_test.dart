@@ -263,10 +263,10 @@ class SimpleParserTest extends ParserTestCase {
   }
   void test_parseArgument_named() {
     NamedExpression expression = ParserTestCase.parse6("parseArgument", "n: x", []);
-    Label name22 = expression.name;
-    JUnitTestCase.assertNotNull(name22);
-    JUnitTestCase.assertNotNull(name22.label);
-    JUnitTestCase.assertNotNull(name22.colon);
+    Label name23 = expression.name;
+    JUnitTestCase.assertNotNull(name23);
+    JUnitTestCase.assertNotNull(name23.label);
+    JUnitTestCase.assertNotNull(name23.colon);
     JUnitTestCase.assertNotNull(expression.expression);
   }
   void test_parseArgument_unnamed() {
@@ -1356,6 +1356,28 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNull(statement.label);
     JUnitTestCase.assertNotNull(statement.semicolon);
   }
+  void test_parseDeclaredIdentifier_const() {
+    DeclaredIdentifier declaredIdentifier = ParserTestCase.parse("parseDeclaredIdentifier", <Object> [emptyCommentAndMetadata()], "const A a");
+    JUnitTestCase.assertNotNull(declaredIdentifier.keyword);
+    JUnitTestCase.assertTrue(declaredIdentifier.isConst());
+    JUnitTestCase.assertNotNull(declaredIdentifier.type);
+  }
+  void test_parseDeclaredIdentifier_final() {
+    DeclaredIdentifier declaredIdentifier = ParserTestCase.parse("parseDeclaredIdentifier", <Object> [emptyCommentAndMetadata()], "final A a");
+    JUnitTestCase.assertNotNull(declaredIdentifier.keyword);
+    JUnitTestCase.assertTrue(declaredIdentifier.isFinal());
+    JUnitTestCase.assertNotNull(declaredIdentifier.type);
+  }
+  void test_parseDeclaredIdentifier_type() {
+    DeclaredIdentifier declaredIdentifier = ParserTestCase.parse("parseDeclaredIdentifier", <Object> [emptyCommentAndMetadata()], "A a");
+    JUnitTestCase.assertNull(declaredIdentifier.keyword);
+    JUnitTestCase.assertNotNull(declaredIdentifier.type);
+  }
+  void test_parseDeclaredIdentifier_var() {
+    DeclaredIdentifier declaredIdentifier = ParserTestCase.parse("parseDeclaredIdentifier", <Object> [emptyCommentAndMetadata()], "var a");
+    JUnitTestCase.assertNotNull(declaredIdentifier.keyword);
+    JUnitTestCase.assertNull(declaredIdentifier.type);
+  }
   void test_parseDirective_export() {
     ExportDirective directive = ParserTestCase.parse("parseDirective", <Object> [emptyCommentAndMetadata()], "export 'lib/lib.dart';");
     JUnitTestCase.assertNotNull(directive.keyword);
@@ -1779,11 +1801,12 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(statement.rightParenthesis);
     JUnitTestCase.assertNotNull(statement.body);
   }
-  void test_parseForStatement_each_noType() {
-    ForEachStatement statement = ParserTestCase.parse6("parseForStatement", "for (element in list) {}", []);
+  void test_parseForStatement_each_noType_metadata() {
+    ForEachStatement statement = ParserTestCase.parse6("parseForStatement", "for (@A var element in list) {}", []);
     JUnitTestCase.assertNotNull(statement.forKeyword);
     JUnitTestCase.assertNotNull(statement.leftParenthesis);
     JUnitTestCase.assertNotNull(statement.loopVariable);
+    EngineTestCase.assertSize(1, statement.loopVariable.metadata);
     JUnitTestCase.assertNotNull(statement.inKeyword);
     JUnitTestCase.assertNotNull(statement.iterator);
     JUnitTestCase.assertNotNull(statement.rightParenthesis);
@@ -4393,6 +4416,22 @@ class SimpleParserTest extends ParserTestCase {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseContinueStatement_noLabel);
       });
+      _ut.test('test_parseDeclaredIdentifier_const', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseDeclaredIdentifier_const);
+      });
+      _ut.test('test_parseDeclaredIdentifier_final', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseDeclaredIdentifier_final);
+      });
+      _ut.test('test_parseDeclaredIdentifier_type', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseDeclaredIdentifier_type);
+      });
+      _ut.test('test_parseDeclaredIdentifier_var', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseDeclaredIdentifier_var);
+      });
       _ut.test('test_parseDirective_export', () {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseDirective_export);
@@ -4541,9 +4580,9 @@ class SimpleParserTest extends ParserTestCase {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseForStatement_each_identifier);
       });
-      _ut.test('test_parseForStatement_each_noType', () {
+      _ut.test('test_parseForStatement_each_noType_metadata', () {
         final __test = new SimpleParserTest();
-        runJUnitTest(__test, __test.test_parseForStatement_each_noType);
+        runJUnitTest(__test, __test.test_parseForStatement_each_noType_metadata);
       });
       _ut.test('test_parseForStatement_each_type', () {
         final __test = new SimpleParserTest();
@@ -8229,6 +8268,7 @@ Map<String, MethodTrampoline> _methodTable_Parser = <String, MethodTrampoline> {
   'parseConstructorFieldInitializer_0': new MethodTrampoline(0, (Parser target) => target.parseConstructorFieldInitializer()),
   'parseConstructorName_0': new MethodTrampoline(0, (Parser target) => target.parseConstructorName()),
   'parseContinueStatement_0': new MethodTrampoline(0, (Parser target) => target.parseContinueStatement()),
+  'parseDeclaredIdentifier_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseDeclaredIdentifier(arg0)),
   'parseDirective_1': new MethodTrampoline(1, (Parser target, arg0) => target.parseDirective(arg0)),
   'parseDocumentationComment_0': new MethodTrampoline(0, (Parser target) => target.parseDocumentationComment()),
   'parseDoStatement_0': new MethodTrampoline(0, (Parser target) => target.parseDoStatement()),

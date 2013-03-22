@@ -135,7 +135,7 @@ abstract class File extends FileSystemEntity {
    * [FileMode.APPEND]: same as [FileMode.WRITE] except that the file is
    * not truncated.
    */
-  Future<RandomAccessFile> open([FileMode mode = FileMode.READ]);
+  Future<RandomAccessFile> open({FileMode mode: FileMode.READ});
 
   /**
    * Synchronously open the file for random access operations. The
@@ -145,7 +145,7 @@ abstract class File extends FileSystemEntity {
    *
    * See [open] for information on the [mode] argument.
    */
-  RandomAccessFile openSync([FileMode mode = FileMode.READ]);
+  RandomAccessFile openSync({FileMode mode: FileMode.READ});
 
   /**
    * Get the canonical full path corresponding to the file path.
@@ -207,13 +207,13 @@ abstract class File extends FileSystemEntity {
    * Returns a [:Future<String>:] that completes with the string once
    * the file contents has been read.
    */
-  Future<String> readAsString([Encoding encoding = Encoding.UTF_8]);
+  Future<String> readAsString({Encoding encoding: Encoding.UTF_8});
 
   /**
    * Synchronously read the entire file contents as a string using the
    * given [Encoding].
    */
-  String readAsStringSync([Encoding encoding = Encoding.UTF_8]);
+  String readAsStringSync({Encoding encoding: Encoding.UTF_8});
 
   /**
    * Read the entire file contents as lines of text using the given
@@ -222,13 +222,13 @@ abstract class File extends FileSystemEntity {
    * Returns a [:Future<List<String>>:] that completes with the lines
    * once the file contents has been read.
    */
-  Future<List<String>> readAsLines([Encoding encoding = Encoding.UTF_8]);
+  Future<List<String>> readAsLines({Encoding encoding: Encoding.UTF_8});
 
   /**
    * Synchronously read the entire file contents as lines of text
    * using the given [Encoding].
    */
-  List<String> readAsLinesSync([Encoding encoding = Encoding.UTF_8]);
+  List<String> readAsLinesSync({Encoding encoding: Encoding.UTF_8});
 
   /**
    * Write a list of bytes to a file.
@@ -241,7 +241,7 @@ abstract class File extends FileSystemEntity {
    * file if it already exists. In order to append the bytes to an existing
    * file, pass [FileMode.APPEND] as the optional mode parameter.
    */
-  Future<File> writeAsBytes(List<int> bytes, [FileMode mode = FileMode.WRITE]);
+  Future<File> writeAsBytes(List<int> bytes, {FileMode mode: FileMode.WRITE});
 
   /**
    * Synchronously write a list of bytes to a file.
@@ -252,7 +252,7 @@ abstract class File extends FileSystemEntity {
    * the file if it already exists. In order to append the bytes to an existing
    * file, pass [FileMode.APPEND] as the optional mode parameter.
    */
-  void writeAsBytesSync(List<int> bytes, [FileMode mode = FileMode.WRITE]);
+  void writeAsBytesSync(List<int> bytes, {FileMode mode: FileMode.WRITE});
 
   /**
    * Write a string to a file.
@@ -381,7 +381,7 @@ abstract class RandomAccessFile {
    * RandomAccessFile when the write completes.
    */
   Future<RandomAccessFile> writeString(String string,
-                                       [Encoding encoding = Encoding.UTF_8]);
+                                       {Encoding encoding: Encoding.UTF_8});
 
   /**
    * Synchronously writes a single string to the file using the given
@@ -389,7 +389,7 @@ abstract class RandomAccessFile {
    * written.
    */
   int writeStringSync(String string,
-                      [Encoding encoding = Encoding.UTF_8]);
+                      {Encoding encoding: Encoding.UTF_8});
 
   /**
    * Gets the current byte position in the file. Returns a

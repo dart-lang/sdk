@@ -2589,8 +2589,20 @@ void EffectGraphVisitor::VisitStoreInstanceFieldNode(
                                        type,
                                        dst_name);
   }
-  StoreInstanceFieldInstr* store = new StoreInstanceFieldInstr(
-      node->field(), for_instance.value(), store_value, kEmitStoreBarrier);
+
+  store_value = Bind(BuildStoreExprTemp(store_value));
+  GuardFieldInstr* guard =
+      new GuardFieldInstr(store_value,
+                          node->field(),
+                          Isolate::Current()->GetNextDeoptId());
+  AddInstruction(guard);
+
+  store_value = Bind(BuildLoadExprTemp());
+  StoreInstanceFieldInstr* store =
+      new StoreInstanceFieldInstr(node->field(),
+                                  for_instance.value(),
+                                  store_value,
+                                  kEmitStoreBarrier);
   ReturnDefinition(store);
 }
 

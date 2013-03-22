@@ -30,6 +30,7 @@ class MessageHandler;
 class Mutex;
 class ObjectPointerVisitor;
 class ObjectStore;
+class RawInstance;
 class RawArray;
 class RawContext;
 class RawDouble;
@@ -40,44 +41,95 @@ class Simulator;
 class StackResource;
 class StackZone;
 class StubCode;
+class RawFloat32x4;
+class RawUint32x4;
 
 
-// Used by the deoptimization infrastructure to defer allocation of Double
+// Used by the deoptimization infrastructure to defer allocation of unboxed
 // objects until frame is fully rewritten and GC is safe.
-// See callers of Isolate::DeferDoubleMaterialization.
-class DeferredDouble {
+// See callers of Isolate::DeferObjectMaterialization.
+class DeferredObject {
  public:
-  DeferredDouble(double value, RawDouble** slot, DeferredDouble* next)
-      : value_(value), slot_(slot), next_(next) { }
+  DeferredObject(RawInstance** slot, DeferredObject* next)
+      : slot_(slot), next_(next) { }
+  virtual ~DeferredObject() { }
+
+  RawInstance** slot() const { return slot_; }
+  DeferredObject* next() const { return next_; }
+
+  virtual void Materialize() = 0;
+
+ private:
+  RawInstance** const slot_;
+  DeferredObject* const next_;
+
+  DISALLOW_COPY_AND_ASSIGN(DeferredObject);
+};
+
+
+class DeferredDouble : public DeferredObject {
+ public:
+  DeferredDouble(double value, RawInstance** slot, DeferredObject* next)
+      : DeferredObject(slot, next), value_(value) { }
+
+  virtual void Materialize();
 
   double value() const { return value_; }
-  RawDouble** slot() const { return slot_; }
-  DeferredDouble* next() const { return next_; }
 
  private:
   const double value_;
-  RawDouble** const slot_;
-  DeferredDouble* const next_;
 
   DISALLOW_COPY_AND_ASSIGN(DeferredDouble);
 };
 
 
-class DeferredMint {
+class DeferredMint : public DeferredObject {
  public:
-  DeferredMint(int64_t value, RawMint** slot, DeferredMint* next)
-      : value_(value), slot_(slot), next_(next) { }
+  DeferredMint(int64_t value, RawInstance** slot, DeferredObject* next)
+      : DeferredObject(slot, next), value_(value) { }
+
+  virtual void Materialize();
 
   int64_t value() const { return value_; }
-  RawMint** slot() const { return slot_; }
-  DeferredMint* next() const { return next_; }
 
  private:
   const int64_t value_;
-  RawMint** const slot_;
-  DeferredMint* const next_;
 
   DISALLOW_COPY_AND_ASSIGN(DeferredMint);
+};
+
+
+class DeferredFloat32x4 : public DeferredObject {
+ public:
+  DeferredFloat32x4(simd128_value_t value, RawInstance** slot,
+                    DeferredObject* next)
+      : DeferredObject(slot, next), value_(value) { }
+
+  virtual void Materialize();
+
+  simd128_value_t value() const { return value_; }
+
+ private:
+  const simd128_value_t value_;
+
+  DISALLOW_COPY_AND_ASSIGN(DeferredFloat32x4);
+};
+
+
+class DeferredUint32x4 : public DeferredObject {
+ public:
+  DeferredUint32x4(simd128_value_t value, RawInstance** slot,
+                   DeferredObject* next)
+      : DeferredObject(slot, next), value_(value) { }
+
+  virtual void Materialize();
+
+  simd128_value_t value() const { return value_; }
+
+ private:
+  const simd128_value_t value_;
+
+  DISALLOW_COPY_AND_ASSIGN(DeferredUint32x4);
 };
 
 
@@ -308,10 +360,10 @@ class Isolate : public BaseIsolate {
     ASSERT((value == NULL) || (deopt_cpu_registers_copy_ == NULL));
     deopt_cpu_registers_copy_ = value;
   }
-  double* deopt_fpu_registers_copy() const {
+  fpu_register_t* deopt_fpu_registers_copy() const {
     return deopt_fpu_registers_copy_;
   }
-  void set_deopt_fpu_registers_copy(double* value) {
+  void set_deopt_fpu_registers_copy(fpu_register_t* value) {
     ASSERT((value == NULL) || (deopt_fpu_registers_copy_ == NULL));
     deopt_fpu_registers_copy_ = value;
   }
@@ -325,22 +377,37 @@ class Isolate : public BaseIsolate {
   intptr_t deopt_frame_copy_size() const { return deopt_frame_copy_size_; }
 
   void DeferDoubleMaterialization(double value, RawDouble** slot) {
-    deferred_doubles_ = new DeferredDouble(value, slot, deferred_doubles_);
+    deferred_objects_ = new DeferredDouble(
+        value,
+        reinterpret_cast<RawInstance**>(slot),
+        deferred_objects_);
   }
 
   void DeferMintMaterialization(int64_t value, RawMint** slot) {
-    deferred_mints_ = new DeferredMint(value, slot, deferred_mints_);
+    deferred_objects_ = new DeferredMint(value,
+                                         reinterpret_cast<RawInstance**>(slot),
+                                         deferred_objects_);
   }
 
-  DeferredDouble* DetachDeferredDoubles() {
-    DeferredDouble* list = deferred_doubles_;
-    deferred_doubles_ = NULL;
-    return list;
+  void DeferFloat32x4Materialization(simd128_value_t value,
+                                     RawFloat32x4** slot) {
+    deferred_objects_ = new DeferredFloat32x4(
+        value,
+        reinterpret_cast<RawInstance**>(slot),
+        deferred_objects_);
   }
 
-  DeferredMint* DetachDeferredMints() {
-    DeferredMint* list = deferred_mints_;
-    deferred_mints_ = NULL;
+  void DeferUint32x4Materialization(simd128_value_t value,
+                                    RawUint32x4** slot) {
+    deferred_objects_ = new DeferredUint32x4(
+        value,
+        reinterpret_cast<RawInstance**>(slot),
+        deferred_objects_);
+  }
+
+  DeferredObject* DetachDeferredObjects() {
+    DeferredObject* list = deferred_objects_;
+    deferred_objects_ = NULL;
     return list;
   }
 
@@ -385,11 +452,10 @@ class Isolate : public BaseIsolate {
 
   // Deoptimization support.
   intptr_t* deopt_cpu_registers_copy_;
-  double* deopt_fpu_registers_copy_;
+  fpu_register_t* deopt_fpu_registers_copy_;
   intptr_t* deopt_frame_copy_;
   intptr_t deopt_frame_copy_size_;
-  DeferredDouble* deferred_doubles_;
-  DeferredMint* deferred_mints_;
+  DeferredObject* deferred_objects_;
 
   static Dart_IsolateCreateCallback create_callback_;
   static Dart_IsolateInterruptCallback interrupt_callback_;

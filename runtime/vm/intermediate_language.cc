@@ -69,7 +69,8 @@ bool Value::Equals(Value* other) const {
 CheckClassInstr::CheckClassInstr(Value* value,
                                  intptr_t deopt_id,
                                  const ICData& unary_checks)
-    : unary_checks_(unary_checks) {
+    : unary_checks_(unary_checks),
+      null_check_(false) {
   ASSERT(unary_checks.IsZoneHandle());
   // Expected useful check data.
   ASSERT(!unary_checks_.IsNull());
@@ -106,6 +107,16 @@ bool CheckClassInstr::AffectedBySideEffect() const {
   // via the API can change the class-id.
   return unary_checks().HasReceiverClassId(kOneByteStringCid)
       || unary_checks().HasReceiverClassId(kTwoByteStringCid);
+}
+
+
+bool GuardFieldInstr::AttributesEqual(Instruction* other) const {
+  return field().raw() == other->AsGuardField()->field().raw();
+}
+
+
+bool GuardFieldInstr::AffectedBySideEffect() const {
+  return false;
 }
 
 
@@ -271,8 +282,7 @@ static bool IsRecognizedLibrary(const Library& library) {
   // List of libraries where methods can be recognized.
   return (library.raw() == Library::CoreLibrary())
       || (library.raw() == Library::MathLibrary())
-      || (library.raw() == Library::TypedDataLibrary())
-      || (library.raw() == Library::ScalarlistLibrary());
+      || (library.raw() == Library::TypedDataLibrary());
 }
 
 
@@ -591,7 +601,9 @@ void Definition::ReplaceWith(Definition* other,
 
 
 BranchInstr::BranchInstr(ComparisonInstr* comparison, bool is_checked)
-    : comparison_(comparison), is_checked_(is_checked) {
+    : comparison_(comparison),
+      is_checked_(is_checked),
+      constrained_type_(NULL) {
   for (intptr_t i = comparison->InputCount() - 1; i >= 0; --i) {
     comparison->InputAt(i)->set_instruction(this);
   }
@@ -1112,7 +1124,6 @@ bool LoadFieldInstr::IsImmutableLengthLoad() const {
   switch (recognized_kind()) {
     case MethodRecognizer::kObjectArrayLength:
     case MethodRecognizer::kImmutableArrayLength:
-    case MethodRecognizer::kByteArrayBaseLength:
     case MethodRecognizer::kTypedDataLength:
     case MethodRecognizer::kStringBaseLength:
       return true;
@@ -1135,20 +1146,6 @@ MethodRecognizer::Kind LoadFieldInstr::RecognizedKindFromArrayCid(
       return MethodRecognizer::kImmutableArrayLength;
     case kGrowableObjectArrayCid:
       return MethodRecognizer::kGrowableArrayLength;
-    case kInt8ArrayCid:
-    case kUint8ArrayCid:
-    case kUint8ClampedArrayCid:
-    case kExternalUint8ArrayCid:
-    case kExternalUint8ClampedArrayCid:
-    case kInt16ArrayCid:
-    case kUint16ArrayCid:
-    case kInt32ArrayCid:
-    case kUint32ArrayCid:
-    case kInt64ArrayCid:
-    case kUint64ArrayCid:
-    case kFloat32ArrayCid:
-    case kFloat64ArrayCid:
-      return MethodRecognizer::kByteArrayBaseLength;
     default:
       UNREACHABLE();
       return MethodRecognizer::kUnknown;
@@ -1160,17 +1157,17 @@ bool LoadFieldInstr::IsFixedLengthArrayCid(intptr_t cid) {
   switch (cid) {
     case kArrayCid:
     case kImmutableArrayCid:
-    case kInt8ArrayCid:
-    case kUint8ArrayCid:
-    case kUint8ClampedArrayCid:
-    case kInt16ArrayCid:
-    case kUint16ArrayCid:
-    case kInt32ArrayCid:
-    case kUint32ArrayCid:
-    case kInt64ArrayCid:
-    case kUint64ArrayCid:
-    case kFloat32ArrayCid:
-    case kFloat64ArrayCid:
+    case kTypedDataInt8ArrayCid:
+    case kTypedDataUint8ArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
+    case kTypedDataInt16ArrayCid:
+    case kTypedDataUint16ArrayCid:
+    case kTypedDataInt32ArrayCid:
+    case kTypedDataUint32ArrayCid:
+    case kTypedDataInt64ArrayCid:
+    case kTypedDataUint64ArrayCid:
+    case kTypedDataFloat32ArrayCid:
+    case kTypedDataFloat64ArrayCid:
       return true;
     default:
       return false;
@@ -1308,6 +1305,25 @@ Instruction* CheckClassInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
       // No checks needed.
       return NULL;
     }
+  }
+
+  return this;
+}
+
+
+Instruction* GuardFieldInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
+  if (field().guarded_cid() == kDynamicCid) {
+    return NULL;  // Nothing to guard.
+  }
+
+  if (field().is_nullable() && value()->Type()->IsNull()) {
+    return NULL;
+  }
+
+  const intptr_t cid = field().is_nullable() ? value()->Type()->ToNullableCid()
+                                             : value()->Type()->ToCid();
+  if (field().guarded_cid() == cid) {
+    return NULL;  // Value is guaranteed to have this cid.
   }
 
   return this;
@@ -1930,8 +1946,7 @@ void LoadFieldInstr::InferRange() {
     return;
   }
   if ((range_ == NULL) &&
-      (recognized_kind() == MethodRecognizer::kByteArrayBaseLength ||
-       recognized_kind() == MethodRecognizer::kTypedDataLength)) {
+      (recognized_kind() == MethodRecognizer::kTypedDataLength)) {
     range_ = new Range(RangeBoundary::FromConstant(0), RangeBoundary::MaxSmi());
     return;
   }

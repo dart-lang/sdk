@@ -6,56 +6,57 @@ library pub_tests;
 
 import 'dart:io';
 
+import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
   integration("updates one locked Git package but no others", () {
     ensureGit();
 
-    git('foo.git', [
-      libDir('foo'),
-      libPubspec('foo', '1.0.0')
-    ]).scheduleCreate();
+    d.git('foo.git', [
+      d.libDir('foo'),
+      d.libPubspec('foo', '1.0.0')
+    ]).create();
 
-    git('bar.git', [
-      libDir('bar'),
-      libPubspec('bar', '1.0.0')
-    ]).scheduleCreate();
+    d.git('bar.git', [
+      d.libDir('bar'),
+      d.libPubspec('bar', '1.0.0')
+    ]).create();
 
-    appDir([{"git": "../foo.git"}, {"git": "../bar.git"}]).scheduleCreate();
+    d.appDir([{"git": "../foo.git"}, {"git": "../bar.git"}]).create();
 
     schedulePub(args: ['install'],
         output: new RegExp(r"Dependencies installed!$"));
 
-    dir(packagesPath, [
-      dir('foo', [
-        file('foo.dart', 'main() => "foo";')
+    d.dir(packagesPath, [
+      d.dir('foo', [
+        d.file('foo.dart', 'main() => "foo";')
       ]),
-      dir('bar', [
-        file('bar.dart', 'main() => "bar";')
+      d.dir('bar', [
+        d.file('bar.dart', 'main() => "bar";')
       ])
-    ]).scheduleValidate();
+    ]).validate();
 
-    git('foo.git', [
-      libDir('foo', 'foo 2'),
-      libPubspec('foo', '1.0.0')
-    ]).scheduleCommit();
+    d.git('foo.git', [
+      d.libDir('foo', 'foo 2'),
+      d.libPubspec('foo', '1.0.0')
+    ]).commit();
 
-    git('bar.git', [
-      libDir('bar', 'bar 2'),
-      libPubspec('bar', '1.0.0')
-    ]).scheduleCommit();
+    d.git('bar.git', [
+      d.libDir('bar', 'bar 2'),
+      d.libPubspec('bar', '1.0.0')
+    ]).commit();
 
     schedulePub(args: ['update', 'foo'],
         output: new RegExp(r"Dependencies updated!$"));
 
-    dir(packagesPath, [
-      dir('foo', [
-        file('foo.dart', 'main() => "foo 2";')
+    d.dir(packagesPath, [
+      d.dir('foo', [
+        d.file('foo.dart', 'main() => "foo 2";')
       ]),
-      dir('bar', [
-        file('bar.dart', 'main() => "bar";')
+      d.dir('bar', [
+        d.file('bar.dart', 'main() => "bar";')
       ])
-    ]).scheduleValidate();
+    ]).validate();
   });
 }

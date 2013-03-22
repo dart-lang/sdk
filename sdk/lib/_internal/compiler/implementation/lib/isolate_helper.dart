@@ -18,6 +18,38 @@ import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
 
 ReceivePort lazyPort;
 
+class CloseToken {
+  /// This token is sent from [IsolateSink]s to [IsolateStream]s to ask them to
+  /// close themselves.
+  const CloseToken();
+}
+
+class JsIsolateSink extends StreamSink<dynamic> implements IsolateSink {
+  bool _isClosed = false;
+  final SendPort _port;
+  JsIsolateSink.fromPort(this._port);
+
+  void add(dynamic message) {
+    _port.send(message);
+  }
+
+  void addError(AsyncError errorEvent) {
+    throw new UnimplementedError("signalError on isolate streams");
+  }
+
+  void close() {
+    if (_isClosed) return;
+    add(const CloseToken());
+    _isClosed = true;
+  }
+
+  bool operator==(var other) {
+    return other is IsolateSink && _port == other._port;
+  }
+
+  int get hashCode => _port.hashCode + 499;
+}
+
 /**
  * Called by the compiler to support switching
  * between isolates when we get a callback from the DOM.
@@ -906,6 +938,14 @@ class _PendingSendPortFinder extends _MessageTraverser {
       ports.add(port._futurePort);
     }
   }
+
+  visitIsolateSink(IsolateSink sink) {
+    visitSendPort(sink._port);
+  }
+
+  visitCloseToken(CloseToken token) {
+    // Do nothing.
+  }
 }
 
 /********************************************************
@@ -964,6 +1004,15 @@ class _JsSerializer extends _Serializer {
     }
   }
 
+  visitIsolateSink(IsolateSink sink) {
+    SendPort port = sink._port;
+    bool isClosed = sink._isClosed;
+    return ['isolateSink', visitSendPort(port), isClosed];
+  }
+
+  visitCloseToken(CloseToken token) {
+    return ['closeToken'];
+  }
 }
 
 
@@ -998,14 +1047,25 @@ class _JsCopier extends _Copier {
     }
   }
 
+  IsolateSink visitIsolateSink(IsolateSink sink) {
+    SendPort port = sink._port;
+    bool isClosed = sink._isClosed;
+    IsolateSink result = new JsIsolateSink.fromPort(visitSendPort(port));
+    result._isClosed = isClosed;
+    return result;
+  }
+
+  CloseToken visitCloseToken(CloseToken token) {
+    return token;  // Can be shared.
+  }
 }
 
 class _JsDeserializer extends _Deserializer {
 
-  SendPort deserializeSendPort(List x) {
-    int managerId = x[1];
-    int isolateId = x[2];
-    int receivePortId = x[3];
+  SendPort deserializeSendPort(List list) {
+    int managerId = list[1];
+    int isolateId = list[2];
+    int receivePortId = list[3];
     // If two isolates are in the same manager, we use NativeJsSendPorts to
     // deliver messages directly without using postMessage.
     if (managerId == _globalState.currentManagerId) {
@@ -1019,6 +1079,17 @@ class _JsDeserializer extends _Deserializer {
     }
   }
 
+  IsolateSink deserializeIsolateSink(List list) {
+    SendPort port = deserializeSendPort(list[1]);
+    bool isClosed = list[2];
+    IsolateSink result = new JsIsolateSink.fromPort(port);
+    result._isClosed = isClosed;
+    return result;
+  }
+
+  CloseToken deserializeCloseToken(List list) {
+    return const CloseToken();
+  }
 }
 
 class _JsVisitedMap implements _MessageTraverserVisitedMap {
@@ -1116,6 +1187,8 @@ class _MessageTraverser {
     if (x is Map) return visitMap(x);
     if (x is SendPort) return visitSendPort(x);
     if (x is SendPortSync) return visitSendPortSync(x);
+    if (x is JsIsolateSink) return visitIsolateSink(x);
+    if (x is CloseToken) return visitCloseToken(x);
 
     // Overridable fallback.
     return visitObject(x);
@@ -1126,6 +1199,8 @@ class _MessageTraverser {
   visitMap(Map x);
   visitSendPort(SendPort x);
   visitSendPortSync(SendPortSync x);
+  visitIsolateSink(IsolateSink x);
+  visitCloseToken(CloseToken x);
 
   visitObject(Object x) {
     // TODO(floitsch): make this a real exception. (which one)?
@@ -1237,6 +1312,8 @@ class _Deserializer {
       case 'list': return _deserializeList(x);
       case 'map': return _deserializeMap(x);
       case 'sendport': return deserializeSendPort(x);
+      case 'isolateSink': return deserializeIsolateSink(x);
+      case 'closeToken': return deserializeCloseToken(x);
       default: return deserializeObject(x);
     }
   }
@@ -1277,6 +1354,10 @@ class _Deserializer {
   }
 
   deserializeSendPort(List x);
+
+  deserializeIsolateSink(List x);
+
+  deserializeCloseToken(List x);
 
   deserializeObject(List x) {
     // TODO(floitsch): Use real exception (which one?).

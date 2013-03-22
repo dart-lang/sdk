@@ -38,47 +38,22 @@ class Range;
   V(_ObjectArray, get:length, ObjectArrayLength, 405297088)                    \
   V(_ImmutableArray, get:length, ImmutableArrayLength, 433698233)              \
   V(_TypedList, get:length, TypedDataLength, 231908172)                        \
-  V(_ByteArrayBase, get:length, ByteArrayBaseLength, 1098081765)               \
-  V(_ByteArrayBase, _getInt8, ByteArrayBaseGetInt8, 261365835)                 \
-  V(_ByteArrayBase, _getUint8, ByteArrayBaseGetUint8, 261365835)               \
-  V(_ByteArrayBase, _getInt16, ByteArrayBaseGetInt16, 261365835)               \
-  V(_ByteArrayBase, _getUint16, ByteArrayBaseGetUint16, 261365835)             \
-  V(_ByteArrayBase, _getInt32, ByteArrayBaseGetInt32, 261365835)               \
-  V(_ByteArrayBase, _getUint32, ByteArrayBaseGetUint32, 261365835)             \
-  V(_ByteArrayBase, _getFloat32, ByteArrayBaseGetFloat32, 434247298)           \
-  V(_ByteArrayBase, _getFloat64, ByteArrayBaseGetFloat64, 434247298)           \
-  V(_ByteArrayBase, _setInt8, ByteArrayBaseSetInt8, 501962848)                 \
-  V(_ByteArrayBase, _setUint8, ByteArrayBaseSetUint8, 501962848)               \
-  V(_ByteArrayBase, _setInt16, ByteArrayBaseSetInt16, 501962848)               \
-  V(_ByteArrayBase, _setUint16, ByteArrayBaseSetUint16, 501962848)             \
-  V(_ByteArrayBase, _setInt32, ByteArrayBaseSetInt32, 501962848)               \
-  V(_ByteArrayBase, _setUint32, ByteArrayBaseSetUint32, 501962848)             \
-  V(_ByteArrayBase, _setFloat32, ByteArrayBaseSetFloat32, 864506525)           \
-  V(_ByteArrayBase, _setFloat64, ByteArrayBaseSetFloat64, 864506525)           \
-  V(_Float32Array, _getIndexed, Float32ArrayGetIndexed, 734006846)             \
-  V(_Float64Array, _getIndexed, Float64ArrayGetIndexed, 498074772)             \
-  V(_Int8Array, _getIndexed, Int8ArrayGetIndexed, 712069760)                   \
-  V(_Uint8Array, _getIndexed, Uint8ArrayGetIndexed, 535849990)                 \
-  V(_Uint8ClampedArray, _getIndexed, Uint8ClampedArrayGetIndexed, 873344956)   \
-  V(_ExternalUint8Array, _getIndexed, ExternalUint8ArrayGetIndexed, 402720239) \
-  V(_ExternalUint8ClampedArray, _getIndexed,                                   \
-    ExternalUint8ClampedArrayGetIndexed, 682839007)                            \
-  V(_Int16Array, _getIndexed, Int16ArrayGetIndexed, 313999108)                 \
-  V(_Uint16Array, _getIndexed, Uint16ArrayGetIndexed, 539701175)               \
-  V(_Int32Array, _getIndexed, Int32ArrayGetIndexed, 655321526)                 \
-  V(_Uint32Array, _getIndexed, Uint32ArrayGetIndexed, 1060443550)              \
-  V(_Float32Array, _setIndexed, Float32ArraySetIndexed, 1040992157)            \
-  V(_Float64Array, _setIndexed, Float64ArraySetIndexed, 330158324)             \
-  V(_Int8Array, _setIndexed, Int8ArraySetIndexed, 680713569)                   \
-  V(_Uint8Array, _setIndexed, Uint8ArraySetIndexed, 785627791)                 \
-  V(_Uint8ClampedArray, _setIndexed, Uint8ClampedArraySetIndexed, 464766374)   \
-  V(_ExternalUint8Array, _setIndexed, ExternalUint8ArraySetIndexed, 159706697) \
-  V(_ExternalUint8ClampedArray, _setIndexed,                                   \
-    ExternalUint8ClampedArraySetIndexed, 335716123)                            \
-  V(_Int16Array, _setIndexed, Int16ArraySetIndexed, 12169534)                  \
-  V(_Uint16Array, _setIndexed, Uint16ArraySetIndexed, 36054302)                \
-  V(_Int32Array, _setIndexed, Int32ArraySetIndexed, 306194131)                 \
-  V(_Uint32Array, _setIndexed, Uint32ArraySetIndexed, 410753485)               \
+  V(_TypedList, _getInt8, ByteArrayBaseGetInt8, 380843687)                     \
+  V(_TypedList, _getUint8, ByteArrayBaseGetUint8, 380843687)                   \
+  V(_TypedList, _getInt16, ByteArrayBaseGetInt16, 380843687)                   \
+  V(_TypedList, _getUint16, ByteArrayBaseGetUint16, 380843687)                 \
+  V(_TypedList, _getInt32, ByteArrayBaseGetInt32, 380843687)                   \
+  V(_TypedList, _getUint32, ByteArrayBaseGetUint32, 380843687)                 \
+  V(_TypedList, _getFloat32, ByteArrayBaseGetFloat32, 979971573)               \
+  V(_TypedList, _getFloat64, ByteArrayBaseGetFloat64, 979971573)               \
+  V(_TypedList, _setInt8, ByteArrayBaseSetInt8, 287047804)                     \
+  V(_TypedList, _setUint8, ByteArrayBaseSetUint8, 287047804)                   \
+  V(_TypedList, _setInt16, ByteArrayBaseSetInt16, 287047804)                   \
+  V(_TypedList, _setUint16, ByteArrayBaseSetUint16, 287047804)                 \
+  V(_TypedList, _setInt32, ByteArrayBaseSetInt32, 287047804)                   \
+  V(_TypedList, _setUint32, ByteArrayBaseSetUint32, 287047804)                 \
+  V(_TypedList, _setFloat32, ByteArrayBaseSetFloat32, 1032541114)              \
+  V(_TypedList, _setFloat64, ByteArrayBaseSetFloat64, 1032541114)              \
   V(_GrowableObjectArray, get:length, GrowableArrayLength, 725548050)          \
   V(_GrowableObjectArray, get:_capacity, GrowableArrayCapacity, 725548050)     \
   V(_StringBase, get:length, StringBaseLength, 320803993)                      \
@@ -144,6 +119,8 @@ class CompileType : public ValueObject {
     return *this;
   }
 
+  bool is_nullable() const { return is_nullable_; }
+
   // Return type such that concrete value's type in runtime is guaranteed to
   // be subtype of it.
   const AbstractType* ToAbstractType();
@@ -177,6 +154,14 @@ class CompileType : public ValueObject {
   // Create a new CompileType representing given combination of class id and
   // abstract type. The pair is assumed to be coherent.
   static CompileType Create(intptr_t cid, const AbstractType& type);
+
+  CompileType CopyNonNullable() const {
+    return CompileType(kNonNullable, cid_, type_);
+  }
+
+  static CompileType CreateNullable(bool is_nullable, intptr_t cid) {
+    return CompileType(is_nullable, cid, NULL);
+  }
 
   // Create a new CompileType representing given abstract type. By default
   // values as assumed to be nullable.
@@ -238,13 +223,48 @@ class ZoneCompileType : public ZoneAllocated {
  public:
   static CompileType* Wrap(const CompileType& type) {
     ZoneCompileType* zone_type = new ZoneCompileType(type);
-    return &zone_type->type_;
+    return zone_type->ToCompileType();
   }
 
- private:
+  CompileType* ToCompileType() {
+    return &type_;
+  }
+
+ protected:
   explicit ZoneCompileType(const CompileType& type) : type_(type) { }
 
   CompileType type_;
+};
+
+
+// ConstrainedCompileType represents a compile type that is computed from
+// another compile type.
+class ConstrainedCompileType : public ZoneCompileType {
+ public:
+  // Recompute compile type.
+  virtual void Update() = 0;
+
+ protected:
+  explicit ConstrainedCompileType(const CompileType& type)
+      : ZoneCompileType(type) { }
+};
+
+
+// NotNullConstrainedCompileType represents not-null constraint applied to
+// the source compile type. Result is non-nullable version of the incomming
+// compile type. It is used to represent compile type propagated downwards
+// from strict comparison with the null constant.
+class NotNullConstrainedCompileType : public ConstrainedCompileType {
+ public:
+  explicit NotNullConstrainedCompileType(CompileType* source)
+      : ConstrainedCompileType(source->CopyNonNullable()), source_(source) { }
+
+  virtual void Update() {
+    type_ = source_->CopyNonNullable();
+  }
+
+ private:
+  CompileType* source_;
 };
 
 
@@ -350,13 +370,6 @@ class Value : public ZoneAllocated {
 };
 
 
-enum Representation {
-  kTagged,
-  kUnboxedDouble,
-  kUnboxedMint
-};
-
-
 // An embedded container with N elements of type T.  Used (with partial
 // specialization for N=0) because embedded arrays cannot have size 0.
 template<typename T, intptr_t N>
@@ -453,6 +466,7 @@ class EmbeddedArray<T, 0> {
   M(AllocateObjectWithBoundsCheck)                                             \
   M(LoadField)                                                                 \
   M(StoreVMField)                                                              \
+  M(LoadUntagged)                                                          \
   M(InstantiateTypeArguments)                                                  \
   M(ExtractConstructorTypeArguments)                                           \
   M(ExtractConstructorInstantiator)                                            \
@@ -484,6 +498,7 @@ class EmbeddedArray<T, 0> {
   M(Constraint)                                                                \
   M(StringFromCharCode)                                                        \
   M(InvokeMathCFunction)                                                       \
+  M(GuardField)                                                                \
 
 
 #define FORWARD_DECLARATION(type) class type##Instr;
@@ -733,6 +748,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class UnaryMintOpInstr;
   friend class MathSqrtInstr;
   friend class CheckClassInstr;
+  friend class GuardFieldInstr;
   friend class CheckSmiInstr;
   friend class CheckArrayBoundInstr;
   friend class CheckEitherNonSmiInstr;
@@ -743,6 +759,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class FlowGraphOptimizer;
   friend class LoadIndexedInstr;
   friend class StoreIndexedInstr;
+  friend class StoreInstanceFieldInstr;
 
   virtual void RawSetInputAt(intptr_t i, Value* value) = 0;
 
@@ -1796,11 +1813,25 @@ class BranchInstr : public ControlInstruction {
 
   virtual void PrintTo(BufferFormatter* f) const;
 
+  // Set compile type constrained by the comparison of this branch.
+  // FlowGraphPropagator propagates it downwards into either true or false
+  // successor.
+  void set_constrained_type(ConstrainedCompileType* type) {
+    constrained_type_ = type;
+  }
+
+  // Return compile type constrained by the comparison of this branch.
+  ConstrainedCompileType* constrained_type() const {
+    return constrained_type_;
+  }
+
  private:
   virtual void RawSetInputAt(intptr_t i, Value* value);
 
   ComparisonInstr* comparison_;
   const bool is_checked_;
+
+  ConstrainedCompileType* constrained_type_;
 
   DISALLOW_COPY_AND_ASSIGN(BranchInstr);
 };
@@ -2776,9 +2807,15 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2> {
                           Value* instance,
                           Value* value,
                           StoreBarrierType emit_store_barrier)
-      : field_(field), emit_store_barrier_(emit_store_barrier) {
+      : field_(field),
+        emit_store_barrier_(emit_store_barrier) {
     SetInputAt(0, instance);
     SetInputAt(1, value);
+  }
+
+  void SetDeoptId(intptr_t deopt_id) {
+    ASSERT(CanDeoptimize());
+    deopt_id_ = deopt_id;
   }
 
   DECLARE_INSTRUCTION(StoreInstanceField)
@@ -2800,10 +2837,54 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2> {
   virtual bool HasSideEffect() const { return true; }
 
  private:
+  bool CanValueBeSmi() const {
+    const intptr_t cid = value()->Type()->ToNullableCid();
+    // Write barrier is skipped for nullable and non-nullable smis.
+    ASSERT(cid != kSmiCid);
+    return (cid == kDynamicCid);
+  }
+
   const Field& field_;
   const StoreBarrierType emit_store_barrier_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreInstanceFieldInstr);
+};
+
+
+class GuardFieldInstr : public TemplateInstruction<1> {
+ public:
+  GuardFieldInstr(Value* value,
+                  const Field& field,
+                  intptr_t deopt_id)
+    : field_(field) {
+    deopt_id_ = deopt_id;
+    SetInputAt(0, value);
+  }
+
+  DECLARE_INSTRUCTION(GuardField)
+
+  virtual intptr_t ArgumentCount() const { return 0; }
+
+  virtual bool CanDeoptimize() const { return true; }
+
+  virtual bool HasSideEffect() const { return false; }
+
+  virtual bool AttributesEqual(Instruction* other) const;
+
+  virtual bool AffectedBySideEffect() const;
+
+  Value* value() const { return inputs_[0]; }
+
+  virtual Instruction* Canonicalize(FlowGraphOptimizer* optimizer);
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  const Field& field() const { return field_; }
+
+ private:
+  const Field& field_;
+
+  DISALLOW_COPY_AND_ASSIGN(GuardFieldInstr);
 };
 
 
@@ -2874,6 +2955,17 @@ class LoadIndexedInstr : public TemplateDefinition<2> {
 
   DECLARE_INSTRUCTION(LoadIndexed)
   virtual CompileType ComputeType() const;
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0 || idx == 1);
+    // The array may be tagged or untagged (for external arrays).
+    if (idx == 0) return kNoRepresentation;
+    return kTagged;
+  }
+
+  bool IsExternal() const {
+    return array()->definition()->representation() == kUntagged;
+  }
 
   Value* array() const { return inputs_[0]; }
   Value* index() const { return inputs_[1]; }
@@ -2968,6 +3060,10 @@ class StoreIndexedInstr : public TemplateDefinition<3> {
   virtual bool HasSideEffect() const { return true; }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const;
+
+  bool IsExternal() const {
+    return array()->definition()->representation() == kUntagged;
+  }
 
   virtual intptr_t DeoptimizationTarget() const {
     // Direct access since this instruction cannot deoptimize, and the deopt-id
@@ -3190,6 +3286,39 @@ class CreateClosureInstr : public TemplateDefinition<0> {
 };
 
 
+class LoadUntaggedInstr : public TemplateDefinition<1> {
+ public:
+  explicit LoadUntaggedInstr(Value* object, intptr_t offset) : offset_(offset) {
+    SetInputAt(0, object);
+  }
+
+  virtual Representation representation() const {
+    return kUntagged;
+  }
+  DECLARE_INSTRUCTION(LoadUntagged)
+  virtual CompileType ComputeType() const;
+
+  Value* object() const { return inputs_[0]; }
+  intptr_t offset() const { return offset_; }
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
+
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  // This instruction must not be moved without the indexed access that
+  // depends on it (e.g. out of loops). GC may cause collect
+  // the array while the external data-array is still accessed.
+  virtual bool AffectedBySideEffect() const { return true; }
+
+ private:
+  intptr_t offset_;
+
+  DISALLOW_COPY_AND_ASSIGN(LoadUntaggedInstr);
+};
+
+
 class LoadFieldInstr : public TemplateDefinition<1> {
  public:
   LoadFieldInstr(Value* value,
@@ -3200,7 +3329,9 @@ class LoadFieldInstr : public TemplateDefinition<1> {
         type_(type),
         result_cid_(kDynamicCid),
         immutable_(immutable),
-        recognized_kind_(MethodRecognizer::kUnknown) {
+        recognized_kind_(MethodRecognizer::kUnknown),
+        field_name_(NULL),
+        field_(NULL) {
     ASSERT(type.IsZoneHandle());  // May be null if field is not an instance.
     SetInputAt(0, value);
   }
@@ -3241,6 +3372,12 @@ class LoadFieldInstr : public TemplateDefinition<1> {
 
   static bool IsFixedLengthArrayCid(intptr_t cid);
 
+  void set_field_name(const char* name) { field_name_ = name; }
+  const char* field_name() const { return field_name_; }
+
+  Field* field() const { return field_; }
+  void set_field(Field* field) { field_ = field; }
+
  private:
   const intptr_t offset_in_bytes_;
   const AbstractType& type_;
@@ -3248,6 +3385,9 @@ class LoadFieldInstr : public TemplateDefinition<1> {
   const bool immutable_;
 
   MethodRecognizer::Kind recognized_kind_;
+
+  const char* field_name_;
+  Field* field_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadFieldInstr);
 };
@@ -4233,8 +4373,14 @@ class CheckClassInstr : public TemplateInstruction<1> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
+  void set_null_check(bool flag) { null_check_ = flag; }
+
+  bool null_check() const { return null_check_; }
+
  private:
   const ICData& unary_checks_;
+
+  bool null_check_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckClassInstr);
 };
@@ -4443,11 +4589,6 @@ class Environment : public ZoneAllocated {
   Location LocationAt(intptr_t index) const {
     ASSERT((index >= 0) && (index < values_.length()));
     return locations_[index];
-  }
-
-  Location* LocationSlotAt(intptr_t index) const {
-    ASSERT((index >= 0) && (index < values_.length()));
-    return &locations_[index];
   }
 
   // The use index is the index in the flattened environment.

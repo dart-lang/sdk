@@ -4,6 +4,7 @@ description: Contains code to deal with internationalized/localized messages, da
 homepage: http://www.dartlang.org
 documentation: http://api.dartlang.org/docs/pkg/intl
 dependencies:
-  unittest: any
   analyzer_experimental: any
   pathos: any
+dev_dependencies:
+  unittest: any

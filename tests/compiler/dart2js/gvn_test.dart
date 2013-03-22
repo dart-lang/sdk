@@ -26,6 +26,7 @@ void foo(a) {
 // Check that is checks get GVN'ed.
 const String TEST_THREE = r"""
 void foo(a) {
+  print(42);  // Make sure numbers are used.
   print(a is num);
   print(a is num);
 }

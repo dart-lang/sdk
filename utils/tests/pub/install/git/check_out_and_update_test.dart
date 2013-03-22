@@ -6,61 +6,58 @@ library pub_tests;
 
 import 'dart:io';
 
+import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
   integration('checks out and updates a package from Git', () {
     ensureGit();
 
-    git('foo.git', [
-      libDir('foo'),
-      libPubspec('foo', '1.0.0')
-    ]).scheduleCreate();
+    d.git('foo.git', [
+      d.libDir('foo'),
+      d.libPubspec('foo', '1.0.0')
+    ]).create();
 
-    appDir([{"git": "../foo.git"}]).scheduleCreate();
-
-    schedulePub(args: ['install'],
-        output: new RegExp(r"Dependencies installed!$"));
-
-    dir(cachePath, [
-      dir('git', [
-        dir('cache', [gitPackageRepoCacheDir('foo')]),
-        gitPackageRevisionCacheDir('foo')
-      ])
-    ]).scheduleValidate();
-
-    dir(packagesPath, [
-      dir('foo', [
-        file('foo.dart', 'main() => "foo";')
-      ])
-    ]).scheduleValidate();
-
-    // TODO(nweiz): remove this once we support pub update
-    dir(packagesPath).scheduleDelete();
-    file('$appPath/pubspec.lock', '').scheduleDelete();
-
-    git('foo.git', [
-      libDir('foo', 'foo 2'),
-      libPubspec('foo', '1.0.0')
-    ]).scheduleCommit();
+    d.appDir([{"git": "../foo.git"}]).create();
 
     schedulePub(args: ['install'],
         output: new RegExp(r"Dependencies installed!$"));
+
+    d.dir(cachePath, [
+      d.dir('git', [
+        d.dir('cache', [d.gitPackageRepoCacheDir('foo')]),
+        d.gitPackageRevisionCacheDir('foo')
+      ])
+    ]).validate();
+
+    d.dir(packagesPath, [
+      d.dir('foo', [
+        d.file('foo.dart', 'main() => "foo";')
+      ])
+    ]).validate();
+
+    d.git('foo.git', [
+      d.libDir('foo', 'foo 2'),
+      d.libPubspec('foo', '1.0.0')
+    ]).commit();
+
+    schedulePub(args: ['update'],
+        output: new RegExp(r"Dependencies updated!$"));
 
     // When we download a new version of the git package, we should re-use the
     // git/cache directory but create a new git/ directory.
-    dir(cachePath, [
-      dir('git', [
-        dir('cache', [gitPackageRepoCacheDir('foo')]),
-        gitPackageRevisionCacheDir('foo'),
-        gitPackageRevisionCacheDir('foo', 2)
+    d.dir(cachePath, [
+      d.dir('git', [
+        d.dir('cache', [d.gitPackageRepoCacheDir('foo')]),
+        d.gitPackageRevisionCacheDir('foo'),
+        d.gitPackageRevisionCacheDir('foo', 2)
       ])
-    ]).scheduleValidate();
+    ]).validate();
 
-    dir(packagesPath, [
-      dir('foo', [
-        file('foo.dart', 'main() => "foo 2";')
+    d.dir(packagesPath, [
+      d.dir('foo', [
+        d.file('foo.dart', 'main() => "foo 2";')
       ])
-    ]).scheduleValidate();
+    ]).validate();
   });
 }

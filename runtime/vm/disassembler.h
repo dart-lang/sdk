@@ -60,51 +60,50 @@ class Disassembler : public AllStatic {
   // Disassemble instructions between start and end.
   // (The assumption is that start is at a valid instruction).
   // Return true if all instructions were successfully decoded, false otherwise.
-  static bool Disassemble(uword start,
+  static void Disassemble(uword start,
                           uword end,
                           DisassemblyFormatter* formatter,
                           const Code::Comments& comments);
 
-  static bool Disassemble(uword start,
+  static void Disassemble(uword start,
                           uword end,
                           DisassemblyFormatter* formatter) {
-    return Disassemble(start, end, formatter, Code::Comments::New(0));
+    Disassemble(start, end, formatter, Code::Comments::New(0));
   }
 
-  static bool Disassemble(uword start,
+  static void Disassemble(uword start,
                           uword end,
                           const Code::Comments& comments) {
     DisassembleToStdout stdout_formatter;
-    return Disassemble(start, end, &stdout_formatter, comments);
+    Disassemble(start, end, &stdout_formatter, comments);
   }
 
-  static bool Disassemble(uword start, uword end) {
+  static void Disassemble(uword start, uword end) {
     DisassembleToStdout stdout_formatter;
-    return Disassemble(start, end, &stdout_formatter);
+    Disassemble(start, end, &stdout_formatter);
   }
 
   // Disassemble instructions in a memory region.
-  static bool DisassembleMemoryRegion(const MemoryRegion& instructions,
+  static void DisassembleMemoryRegion(const MemoryRegion& instructions,
                                       DisassemblyFormatter* formatter) {
     uword start = instructions.start();
     uword end = instructions.end();
-    return Disassemble(start, end, formatter);
+    Disassemble(start, end, formatter);
   }
 
-  static bool DisassembleMemoryRegion(const MemoryRegion& instructions) {
+  static void DisassembleMemoryRegion(const MemoryRegion& instructions) {
     uword start = instructions.start();
     uword end = instructions.end();
-    return Disassemble(start, end);
+    Disassemble(start, end);
   }
 
   // Decodes one instruction.
   // Writes a hexadecimal representation into the hex_buffer and a
   // human-readable representation into the human_buffer.
   // Writes the length of the decoded instruction in bytes in out_instr_len.
-  // Returns false if the instruction could not be decoded.
-  static bool DecodeInstruction(char* hex_buffer, intptr_t hex_size,
+  static void DecodeInstruction(char* hex_buffer, intptr_t hex_size,
                                 char* human_buffer, intptr_t human_size,
-                                int *out_instr_len, uword pc);
+                                int* out_instr_len, uword pc);
 
  private:
   static const int kHexadecimalBufferSize = 32;

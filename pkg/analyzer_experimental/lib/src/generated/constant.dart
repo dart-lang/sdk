@@ -363,9 +363,9 @@ class ErrorResult extends EvaluationResultImpl {
    * @param errorCode the error code for the error to be generated
    */
   ErrorResult.con1(ASTNode node, ErrorCode errorCode) {
-    _jtd_constructor_156_impl(node, errorCode);
+    _jtd_constructor_158_impl(node, errorCode);
   }
-  _jtd_constructor_156_impl(ASTNode node, ErrorCode errorCode) {
+  _jtd_constructor_158_impl(ASTNode node, ErrorCode errorCode) {
     _errors.add(new ErrorResult_ErrorData(node, errorCode));
   }
   /**
@@ -375,9 +375,9 @@ class ErrorResult extends EvaluationResultImpl {
    * @param secondResult the second set of results being merged
    */
   ErrorResult.con2(ErrorResult firstResult, ErrorResult secondResult) {
-    _jtd_constructor_157_impl(firstResult, secondResult);
+    _jtd_constructor_159_impl(firstResult, secondResult);
   }
-  _jtd_constructor_157_impl(ErrorResult firstResult, ErrorResult secondResult) {
+  _jtd_constructor_159_impl(ErrorResult firstResult, ErrorResult secondResult) {
     _errors.addAll(firstResult._errors);
     _errors.addAll(secondResult._errors);
   }

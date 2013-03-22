@@ -26,6 +26,7 @@ testFileExistsCreate() {
                   FileSystemEntity.typeSync(y, followLinks: false));
     Expect.equals(FileSystemEntityType.NOT_FOUND,
                   FileSystemEntity.typeSync(x, followLinks: false));
+    Expect.equals(x, new Link(y).targetSync());
 
     new File(y).createSync();
     Expect.isTrue(new File(y).existsSync());
@@ -40,6 +41,8 @@ testFileExistsCreate() {
                   FileSystemEntity.typeSync(y, followLinks: false));
     Expect.equals(FileSystemEntityType.FILE,
                   FileSystemEntity.typeSync(x, followLinks: false));
+    Expect.equals(x, new Link(y).targetSync());
+
     new File(x).deleteSync();
     new Directory(x).createSync();
     Expect.isTrue(FileSystemEntity.isLinkSync(y));
@@ -52,11 +55,14 @@ testFileExistsCreate() {
                   FileSystemEntity.typeSync(y, followLinks: false));
     Expect.equals(FileSystemEntityType.DIRECTORY,
                   FileSystemEntity.typeSync(x, followLinks: false));
+    Expect.equals(x, new Link(y).targetSync());
+
     new File(y).deleteSync();
     Expect.isFalse(FileSystemEntity.isLinkSync(y));
     Expect.isFalse(FileSystemEntity.isLinkSync(x));
     Expect.equals(FileSystemEntityType.NOT_FOUND, FileSystemEntity.typeSync(y));
     Expect.equals(FileSystemEntityType.DIRECTORY, FileSystemEntity.typeSync(x));
+    Expect.throws(() => new Link(y).targetSync());
 
     temp.deleteSync(recursive: true);
   });

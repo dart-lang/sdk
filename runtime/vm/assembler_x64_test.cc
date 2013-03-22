@@ -2025,6 +2025,20 @@ ASSEMBLER_TEST_RUN(TestNot, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(TestNotInt32, assembler) {
+  __ movq(RAX, Immediate(0x0));
+  __ notl(RAX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(TestNotInt32, test) {
+  typedef int (*TestNot)();
+  unsigned int res = reinterpret_cast<TestNot>(test->entry())();
+  EXPECT_EQ(0xFFFFFFFF, res);
+}
+
+
 ASSEMBLER_TEST_GENERATE(XorpdZeroing, assembler) {
   __ pushq(RAX);
   __ movsd(Address(RSP, 0), XMM0);

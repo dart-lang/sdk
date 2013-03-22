@@ -2074,8 +2074,7 @@ static RawObject* ThrowArgumentError(const char* exception_message) {
   Isolate* isolate = Isolate::Current();
   // Lookup the class ArgumentError in dart:core.
   const String& lib_url = String::Handle(String::New("dart:core"));
-  const String& class_name =
-      String::Handle(String::New("ArgumentError"));
+  const String& class_name = String::Handle(String::New("ArgumentError"));
   const Library& lib =
       Library::Handle(isolate, Library::LookupLibrary(lib_url));
   if (lib.IsNull()) {
@@ -2093,9 +2092,10 @@ static RawObject* ThrowArgumentError(const char* exception_message) {
                              lib_url.ToCString()));
     return ApiError::New(message);
   }
-  String& dot_name = String::Handle(String::New("."));
   Object& result = Object::Handle(isolate);
-  result = ResolveConstructor(CURRENT_FUNC, cls, class_name, dot_name, 1);
+  String& dot_name = String::Handle(String::New("."));
+  String& constr_name = String::Handle(String::Concat(class_name, dot_name));
+  result = ResolveConstructor(CURRENT_FUNC, cls, class_name, constr_name, 1);
   if (result.IsError()) return result.raw();
   ASSERT(result.IsFunction());
   Function& constructor = Function::Handle(isolate);
@@ -2329,9 +2329,6 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
 static Dart_TypedData_Type GetType(intptr_t class_id) {
   Dart_TypedData_Type type;
   switch (class_id) {
-    case kByteArrayCid :
-      type = kByteData;
-      break;
     case kTypedDataInt8ArrayCid :
     case kExternalTypedDataInt8ArrayCid :
       type = kInt8;
@@ -2386,20 +2383,77 @@ static Dart_TypedData_Type GetType(intptr_t class_id) {
 
 DART_EXPORT Dart_TypedData_Type Dart_GetTypeOfTypedData(Dart_Handle object) {
   intptr_t class_id = Api::ClassId(object);
-  if (!RawObject::IsTypedDataClassId(class_id)) {
-    return kInvalid;
+  if (RawObject::IsTypedDataClassId(class_id)) {
+    return GetType(class_id);
   }
-  return GetType(class_id);
+  Isolate* isolate = Isolate::Current();
+  const Library& lib =
+      Library::Handle(isolate->object_store()->typeddata_library());
+  const Class& cls =
+      Class::Handle(isolate,
+                    lib.LookupClassAllowPrivate(Symbols::_ByteDataView()));
+  if (isolate->class_table()->At(class_id) == cls.raw()) {
+    return kByteData;
+  }
+  return kInvalid;
 }
 
 
 DART_EXPORT Dart_TypedData_Type Dart_GetTypeOfExternalTypedData(
     Dart_Handle object) {
   intptr_t class_id = Api::ClassId(object);
-  if (!RawObject::IsExternalTypedDataClassId(class_id)) {
-    return kInvalid;
+  if (RawObject::IsExternalTypedDataClassId(class_id)) {
+    return GetType(class_id);
   }
-  return GetType(class_id);
+  Isolate* isolate = Isolate::Current();
+  const Library& lib =
+      Library::Handle(isolate->object_store()->typeddata_library());
+  const Class& cls =
+      Class::Handle(isolate,
+                    lib.LookupClassAllowPrivate(Symbols::_ByteDataView()));
+  if (isolate->class_table()->At(class_id) == cls.raw()) {
+    return kByteData;
+  }
+  return kInvalid;
+}
+
+
+static RawObject* GetByteDataConstructor(Isolate* isolate,
+                                         const String& constructor_name,
+                                         intptr_t num_args) {
+  const Library& lib =
+      Library::Handle(isolate->object_store()->typeddata_library());
+  ASSERT(!lib.IsNull());
+  const Class& cls =
+      Class::Handle(isolate, lib.LookupClassAllowPrivate(Symbols::ByteData()));
+  ASSERT(!cls.IsNull());
+  return ResolveConstructor(CURRENT_FUNC,
+                            cls,
+                            Symbols::ByteData(),
+                            constructor_name,
+                            num_args);
+}
+
+
+static Dart_Handle NewByteData(Isolate* isolate, intptr_t length) {
+  CHECK_LENGTH(length, TypedData::MaxElements(kTypedDataInt8ArrayCid));
+  Object& result = Object::Handle(isolate);
+  result = GetByteDataConstructor(isolate, Symbols::ByteDataDot(), 1);
+  ASSERT(!result.IsNull());
+  ASSERT(result.IsFunction());
+  const Function& factory = Function::Cast(result);
+  ASSERT(!factory.IsConstructor());
+
+  // Create the argument list.
+  const Array& args = Array::Handle(isolate, Array::New(2));
+  // Factories get type arguments.
+  args.SetAt(0, TypeArguments::Handle(isolate));
+  args.SetAt(1, Smi::Handle(isolate, Smi::New(length)));
+
+  // Invoke the constructor and return the new object.
+  result = DartEntry::InvokeFunction(factory, args);
+  ASSERT(result.IsInstance() || result.IsNull() || result.IsError());
+  return Api::NewHandle(isolate, result.raw());
 }
 
 
@@ -2426,6 +2480,47 @@ static Dart_Handle NewExternalTypedData(
 }
 
 
+static Dart_Handle NewExternalByteData(Isolate* isolate,
+                                       void* data,
+                                       intptr_t length,
+                                       void* peer,
+                                       Dart_WeakPersistentHandleFinalizer cb) {
+  Dart_Handle ext_data = NewExternalTypedData(kExternalTypedDataUint8ArrayCid,
+                                              data,
+                                              length,
+                                              peer,
+                                              cb);
+  if (::Dart_IsError(ext_data)) {
+    return ext_data;
+  }
+  Object& result = Object::Handle(isolate);
+  result = GetByteDataConstructor(isolate, Symbols::ByteDataDotview(), 3);
+  ASSERT(!result.IsNull());
+  ASSERT(result.IsFunction());
+  const Function& factory = Function::Cast(result);
+  ASSERT(!factory.IsConstructor());
+
+  // Create the argument list.
+  const intptr_t num_args = 3;
+  const Array& args = Array::Handle(isolate, Array::New(num_args + 1));
+  // Factories get type arguments.
+  args.SetAt(0, TypeArguments::Handle(isolate));
+  const ExternalTypedData& array =
+      Api::UnwrapExternalTypedDataHandle(isolate, ext_data);
+  args.SetAt(1, array);
+  Smi& smi = Smi::Handle(isolate);
+  smi = Smi::New(0);
+  args.SetAt(2, smi);
+  smi = Smi::New(length);
+  args.SetAt(3, smi);
+
+  // Invoke the constructor and return the new object.
+  result = DartEntry::InvokeFunction(factory, args);
+  ASSERT(result.IsNull() || result.IsInstance() || result.IsError());
+  return Api::NewHandle(isolate, result.raw());
+}
+
+
 DART_EXPORT Dart_Handle Dart_NewTypedData(Dart_TypedData_Type type,
                                           intptr_t length) {
   Isolate* isolate = Isolate::Current();
@@ -2433,8 +2528,7 @@ DART_EXPORT Dart_Handle Dart_NewTypedData(Dart_TypedData_Type type,
   CHECK_CALLBACK_STATE(isolate);
   switch (type) {
     case kByteData :
-      // TODO(asiva): Add a new ByteArray::New() method.
-      break;
+      return NewByteData(isolate, length);
     case kInt8 :
       return NewTypedData(isolate, kTypedDataInt8ArrayCid, length);
     case kUint8 :
@@ -2480,8 +2574,7 @@ DART_EXPORT Dart_Handle Dart_NewExternalTypedData(
   CHECK_CALLBACK_STATE(isolate);
   switch (type) {
     case kByteData :
-      // TODO(asiva): Allocate external ByteData object.
-      break;
+      return NewExternalByteData(isolate, data, length, peer, callback);
     case kInt8 :
       return NewExternalTypedData(kExternalTypedDataInt8ArrayCid,
                                   data,
@@ -3462,10 +3555,9 @@ DART_EXPORT Dart_Handle Dart_TypeVariableUpperBound(Dart_Handle type_variable) {
 static RawObject* ResolveConstructor(const char* current_func,
                                      const Class& cls,
                                      const String& class_name,
-                                     const String& dotted_name,
+                                     const String& constr_name,
                                      int num_args) {
   // The constructor must be present in the interface.
-  String& constr_name = String::Handle(String::Concat(class_name, dotted_name));
   const Function& constructor =
       Function::Handle(cls.LookupFunctionAllowPrivate(constr_name));
   if (constructor.IsNull() ||
@@ -3550,17 +3642,26 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle clazz,
   }
 
   // Resolve the constructor.
-  result = ResolveConstructor(
-      "Dart_New", cls, base_constructor_name, dot_name, number_of_arguments);
+  String& constr_name =
+      String::Handle(String::Concat(base_constructor_name, dot_name));
+  result = ResolveConstructor("Dart_New",
+                              cls,
+                              base_constructor_name,
+                              constr_name,
+                              number_of_arguments);
   if (result.IsError()) {
     return Api::NewHandle(isolate, result.raw());
   }
-  // TODO(turnidge): Support redirecting factories.
   ASSERT(result.IsFunction());
   Function& constructor = Function::Handle(isolate);
   constructor ^= result.raw();
 
   Instance& new_object = Instance::Handle(isolate);
+  if (constructor.IsRedirectingFactory()) {
+    Type& type = Type::Handle(constructor.RedirectionType());
+    cls = type.type_class();
+    constructor = constructor.RedirectionTarget();
+  }
   if (constructor.IsConstructor()) {
     // Create the new object.
     new_object = Instance::New(cls);
@@ -4247,44 +4348,9 @@ static void CompileSource(Isolate* isolate,
 
 
 DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
-                                        Dart_Handle source) {
-  TIMERSCOPE(time_script_loading);
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  const String& url_str = Api::UnwrapStringHandle(isolate, url);
-  if (url_str.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, url, String);
-  }
-  const String& source_str = Api::UnwrapStringHandle(isolate, source);
-  if (source_str.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, source, String);
-  }
-  Library& library =
-      Library::Handle(isolate, isolate->object_store()->root_library());
-  if (!library.IsNull()) {
-    const String& library_url = String::Handle(isolate, library.url());
-    return Api::NewError("%s: A script has already been loaded from '%s'.",
-                         CURRENT_FUNC, library_url.ToCString());
-  }
-  CHECK_CALLBACK_STATE(isolate);
-
-  library = Library::New(url_str);
-  library.set_debuggable(true);
-  library.Register();
-  isolate->object_store()->set_root_library(library);
-
-  const Script& script = Script::Handle(
-      isolate, Script::New(url_str, source_str, RawScript::kScriptTag));
-  Dart_Handle result;
-  CompileSource(isolate, library, script, &result);
-  return result;
-}
-
-
-DART_EXPORT Dart_Handle Dart_LoadEmbeddedScript(Dart_Handle url,
-                                                Dart_Handle source,
-                                                intptr_t line_offset,
-                                                intptr_t col_offset) {
+                                        Dart_Handle source,
+                                        intptr_t line_offset,
+                                        intptr_t col_offset) {
   TIMERSCOPE(time_script_loading);
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
@@ -4327,7 +4393,8 @@ DART_EXPORT Dart_Handle Dart_LoadEmbeddedScript(Dart_Handle url,
 }
 
 
-DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer) {
+DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer,
+                                                    intptr_t buffer_len) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   TIMERSCOPE(time_script_loading);
@@ -4338,6 +4405,11 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer) {
   if (!snapshot->IsScriptSnapshot()) {
     return Api::NewError("%s expects parameter 'buffer' to be a script type"
                          " snapshot.", CURRENT_FUNC);
+  }
+  if (snapshot->length() != buffer_len) {
+    return Api::NewError("%s: 'buffer_len' of %"Pd" is not equal to %d which"
+                         " is the expected length in the snapshot.",
+                         CURRENT_FUNC, buffer_len, snapshot->length());
   }
   Library& library =
       Library::Handle(isolate, isolate->object_store()->root_library());

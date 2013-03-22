@@ -82,8 +82,9 @@ class HostedSource extends Source {
         // Now that the install has succeeded, move it to the real location in
         // the cache. This ensures that we don't leave half-busted ghost
         // directories in the user's pub cache if an install fails.
-        return renameDir(tempDir, destPath);
-      }).then((_) => true);
+        renameDir(tempDir, destPath);
+        return true;
+      });
     });
   }
 

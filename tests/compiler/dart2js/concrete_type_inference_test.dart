@@ -48,28 +48,28 @@ void checkPrintType(String expression, checkType(compiler, type)) {
 
 void testBasicTypes() {
   checkPrintType('true', (compiler, type) {
-    var backend = compiler.backend;
-    Expect.identical(backend.boolImplementation, type.exactType.element);
+    var inferrer = compiler.typesTask.typesInferrer;
+    Expect.identical(inferrer.boolType, type);
   });
   checkPrintType('1.0', (compiler, type) {
-    var backend = compiler.backend;
-    Expect.identical(backend.doubleImplementation, type.exactType.element);
+    var inferrer = compiler.typesTask.typesInferrer;
+    Expect.identical(inferrer.doubleType, type);
   });
   checkPrintType('1', (compiler, type) {
-    var backend = compiler.backend;
-    Expect.identical(backend.intImplementation, type.exactType.element);
+    var inferrer = compiler.typesTask.typesInferrer;
+    Expect.identical(inferrer.intType, type);
   });
   checkPrintType('[]', (compiler, type) {
-    var backend = compiler.backend;
-    Expect.identical(backend.listImplementation, type.exactType.element);
+    var inferrer = compiler.typesTask.typesInferrer;
+    Expect.identical(inferrer.growableListType, type);
   });
   checkPrintType('null', (compiler, type) {
-    var backend = compiler.backend;
-    Expect.identical(backend.nullImplementation, type.exactType.element);
+    var inferrer = compiler.typesTask.typesInferrer;
+    Expect.identical(inferrer.nullType, type);
   });
   checkPrintType('"foo"', (compiler, type) {
-    var backend = compiler.backend;
-    Expect.identical(backend.stringImplementation, type.exactType.element);
+    var inferrer = compiler.typesTask.typesInferrer;
+    Expect.identical(inferrer.stringType, type);
   });
 }
 
@@ -84,14 +84,17 @@ void testOptionalParameters() {
           fiskElement.computeSignature(compiler).optionalParameters.head;
         var thirdParameter =
           fiskElement.computeSignature(compiler).optionalParameters.tail.head;
+        var typesTask = compiler.typesTask;
+        var inferrer = typesTask.typesInferrer;
         Expect.identical(
-            compiler.backend.intImplementation,
-            compiler.typesTask.getGuaranteedTypeOfElement(firstParameter)
-                .exactType.element);
-        Expect.isNull(
-            compiler.typesTask.getGuaranteedTypeOfElement(secondParameter));
-        Expect.isNull(
-            compiler.typesTask.getGuaranteedTypeOfElement(thirdParameter));
+            inferrer.intType,
+            typesTask.getGuaranteedTypeOfElement(firstParameter));
+        Expect.identical(
+            inferrer.nullType,
+            typesTask.getGuaranteedTypeOfElement(secondParameter));
+        Expect.identical(
+            inferrer.nullType,
+            typesTask.getGuaranteedTypeOfElement(thirdParameter));
       });
 }
 

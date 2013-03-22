@@ -626,6 +626,11 @@ void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
       AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
                            assert->deopt_id(),
                            assert->token_pos());
+    } else if (instr->IsGuardField()) {
+      GuardFieldInstr* guard = instr->AsGuardField();
+      AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
+                           guard->deopt_id(),
+                           Scanner::kDummyTokenIndex);
     }
     AllocateRegistersLocally(instr);
   }
@@ -729,13 +734,15 @@ void FlowGraphCompiler::CopyParameters() {
     __ movq(RCX,
             FieldAddress(R10, ArgumentsDescriptor::positional_count_offset()));
     __ SmiUntag(RCX);
-    // Let RBX point to the first passed argument, i.e. to fp[1 + argc - 0].
-    __ leaq(RBX, Address(RBP, RBX, TIMES_4, kWordSize));  // RBX is Smi.
+    // Let RBX point to the first passed argument, i.e. to
+    // fp[kLastParamSlotIndex + num_args - 1]; num_args (RBX) is Smi.
+    __ leaq(RBX,
+            Address(RBP, RBX, TIMES_4, (kLastParamSlotIndex - 1) * kWordSize));
     // Let RDI point to the entry of the first named argument.
     __ leaq(RDI,
             FieldAddress(R10, ArgumentsDescriptor::first_named_entry_offset()));
     for (int i = 0; i < num_opt_named_params; i++) {
-      Label load_default_value, assign_optional_parameter, next_parameter;
+      Label load_default_value, assign_optional_parameter;
       const int param_pos = opt_param_position[i];
       // Check if this named parameter was passed in.
       // Load RAX with the name of the argument.
@@ -744,7 +751,7 @@ void FlowGraphCompiler::CopyParameters() {
       __ CompareObject(RAX, opt_param[i]->name());
       __ j(NOT_EQUAL, &load_default_value, Assembler::kNearJump);
       // Load RAX with passed-in argument at provided arg_pos, i.e. at
-      // fp[1 + argc - arg_pos].
+      // fp[kLastParamSlotIndex + num_args - 1 - arg_pos].
       __ movq(RAX, Address(RDI, ArgumentsDescriptor::position_offset()));
       // RAX is arg_pos as Smi.
       // Point to next named entry.
@@ -765,9 +772,8 @@ void FlowGraphCompiler::CopyParameters() {
       // scope->VariableAt(i)->index(), because captured variables still need
       // to be copied to the context that is not yet allocated.
       const intptr_t computed_param_pos = kFirstLocalSlotIndex - param_pos;
-      const Address param_addr(RBP, (computed_param_pos * kWordSize));
+      const Address param_addr(RBP, computed_param_pos * kWordSize);
       __ movq(param_addr, RAX);
-      __ Bind(&next_parameter);
     }
     delete[] opt_param;
     delete[] opt_param_position;
@@ -781,7 +787,7 @@ void FlowGraphCompiler::CopyParameters() {
     __ SmiUntag(RCX);
     for (int i = 0; i < num_opt_pos_params; i++) {
       Label next_parameter;
-      // Handle this optional positonal parameter only if k or fewer positional
+      // Handle this optional positional parameter only if k or fewer positional
       // arguments have been passed, where k is param_pos, the position of this
       // optional parameter in the formal parameter list.
       const int param_pos = num_fixed_params + i;
@@ -796,7 +802,7 @@ void FlowGraphCompiler::CopyParameters() {
       // scope->VariableAt(i)->index(), because captured variables still need
       // to be copied to the context that is not yet allocated.
       const intptr_t computed_param_pos = kFirstLocalSlotIndex - param_pos;
-      const Address param_addr(RBP, (computed_param_pos * kWordSize));
+      const Address param_addr(RBP, computed_param_pos * kWordSize);
       __ movq(param_addr, RAX);
       __ Bind(&next_parameter);
     }
@@ -855,7 +861,8 @@ void FlowGraphCompiler::CopyParameters() {
   __ SmiUntag(RCX);
   Label null_args_loop, null_args_loop_condition;
   __ jmp(&null_args_loop_condition, Assembler::kNearJump);
-  const Address original_argument_addr(RBP, RCX, TIMES_8, 2 * kWordSize);
+  const Address original_argument_addr(
+      RBP, RCX, TIMES_8, kLastParamSlotIndex * kWordSize);
   __ Bind(&null_args_loop);
   __ movq(original_argument_addr, raw_null);
   __ Bind(&null_args_loop_condition);
@@ -941,15 +948,6 @@ void FlowGraphCompiler::CompileGraph() {
   const int num_fixed_params = function.num_fixed_parameters();
   const int num_copied_params = parsed_function().num_copied_params();
   const int num_locals = parsed_function().num_stack_locals();
-
-  // For optimized code, keep a bitmap of the frame in order to build
-  // stackmaps for GC safepoints in the prologue.
-  LocationSummary* prologue_locs = NULL;
-  if (is_optimizing()) {
-    // Spill slots are allocated but not initialized.
-    prologue_locs = new LocationSummary(0, 0, LocationSummary::kCall);
-    prologue_locs->stack_bitmap()->SetLength(StackSize());
-  }
 
   // We check the number of passed arguments when we have to copy them due to
   // the presence of optional parameters.
@@ -1332,22 +1330,23 @@ void FlowGraphCompiler::EmitSuperEqualityCallPrologue(Register result,
 }
 
 
+// This function must be in sync with FlowGraphCompiler::RecordSafepoint.
 void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
   // TODO(vegorov): consider saving only caller save (volatile) registers.
   const intptr_t xmm_regs_count = locs->live_registers()->fpu_regs_count();
   if (xmm_regs_count > 0) {
-    __ subq(RSP, Immediate(xmm_regs_count * kDoubleSize));
+    __ subq(RSP, Immediate(xmm_regs_count * kFpuRegisterSize));
     // Store XMM registers with the lowest register number at the lowest
     // address.
     intptr_t offset = 0;
     for (intptr_t reg_idx = 0; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
       XmmRegister xmm_reg = static_cast<XmmRegister>(reg_idx);
       if (locs->live_registers()->ContainsFpuRegister(xmm_reg)) {
-        __ movsd(Address(RSP, offset), xmm_reg);
-        offset += kDoubleSize;
+        __ movups(Address(RSP, offset), xmm_reg);
+        offset += kFpuRegisterSize;
       }
     }
-    ASSERT(offset == (xmm_regs_count * kDoubleSize));
+    ASSERT(offset == (xmm_regs_count * kFpuRegisterSize));
   }
 
   // Store general purpose registers with the highest register number at the
@@ -1378,11 +1377,11 @@ void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
     for (intptr_t reg_idx = 0; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
       XmmRegister xmm_reg = static_cast<XmmRegister>(reg_idx);
       if (locs->live_registers()->ContainsFpuRegister(xmm_reg)) {
-        __ movsd(xmm_reg, Address(RSP, offset));
-        offset += kDoubleSize;
+        __ movups(xmm_reg, Address(RSP, offset));
+        offset += kFpuRegisterSize;
       }
     }
-    ASSERT(offset == (xmm_regs_count * kDoubleSize));
+    ASSERT(offset == (xmm_regs_count * kFpuRegisterSize));
     __ addq(RSP, Immediate(offset));
   }
 }
@@ -1390,8 +1389,8 @@ void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
 
 void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
                                         Register class_id_reg,
-                                        intptr_t arg_count,
-                                        const Array& arg_names,
+                                        intptr_t argument_count,
+                                        const Array& argument_names,
                                         Label* deopt,
                                         intptr_t deopt_id,
                                         intptr_t token_index,
@@ -1401,6 +1400,12 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
   const intptr_t len = ic_data.NumberOfChecks();
   GrowableArray<CidTarget> sorted(len);
   SortICDataByCount(ic_data, &sorted);
+  ASSERT(class_id_reg != R10);
+  ASSERT(len > 0);  // Why bother otherwise.
+  const Array& arguments_descriptor =
+      Array::ZoneHandle(ArgumentsDescriptor::New(argument_count,
+                                                 argument_names));
+  __ LoadObject(R10, arguments_descriptor);
   for (intptr_t i = 0; i < len; i++) {
     const bool is_last_check = (i == (len - 1));
     Label next_test;
@@ -1410,12 +1415,16 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
     } else {
       assembler()->j(NOT_EQUAL, &next_test);
     }
-    GenerateStaticCall(deopt_id,
-                       token_index,
-                       *sorted[i].target,
-                       arg_count,
-                       arg_names,
-                       locs);
+    // Do not use the code from the function, but let the code be patched so
+    // that we can record the outgoing edges to other code.
+    GenerateDartCall(deopt_id,
+                     token_index,
+                     &StubCode::CallStaticFunctionLabel(),
+                     PcDescriptors::kFuncCall,
+                     locs);
+    const Function& function = *sorted[i].target;
+    AddStaticCallTarget(function);
+    __ Drop(argument_count);
     if (!is_last_check) {
       assembler()->jmp(&match_found);
     }

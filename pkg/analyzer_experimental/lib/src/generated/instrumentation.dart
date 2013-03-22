@@ -75,15 +75,17 @@ class Instrumentation {
   }
 }
 class InstrumentationBuilder_8 implements InstrumentationBuilder {
-  InstrumentationBuilder data(String name, int value) => this;
-  InstrumentationBuilder data2(String name, String value) => this;
-  InstrumentationBuilder data3(String name, List<String> value) => this;
+  InstrumentationBuilder data(String name, bool value) => this;
+  InstrumentationBuilder data2(String name, int value) => this;
+  InstrumentationBuilder data3(String name, String value) => this;
+  InstrumentationBuilder data4(String name, List<String> value) => this;
   InstrumentationLevel get instrumentationLevel => InstrumentationLevel.OFF;
   void log() {
   }
-  InstrumentationBuilder metric(String name, int value) => this;
-  InstrumentationBuilder metric2(String name, String value) => this;
-  InstrumentationBuilder metric3(String name, List<String> value) => this;
+  InstrumentationBuilder metric(String name, bool value) => this;
+  InstrumentationBuilder metric2(String name, int value) => this;
+  InstrumentationBuilder metric3(String name, String value) => this;
+  InstrumentationBuilder metric4(String name, List<String> value) => this;
 }
 class InstrumentationLogger_9 implements InstrumentationLogger {
   InstrumentationBuilder createBuilder(String name) => Instrumentation._NULL_INSTRUMENTATION_BUILDER;
@@ -104,7 +106,7 @@ abstract class InstrumentationBuilder {
    * @param value the value of the data to be collected
    * @return this builder
    */
-  InstrumentationBuilder data(String name, int value);
+  InstrumentationBuilder data(String name, bool value);
   /**
    * Append the given data to the data being collected by this builder. The information is declared
    * to potentially contain data that is either user identifiable or contains user intellectual
@@ -113,7 +115,7 @@ abstract class InstrumentationBuilder {
    * @param value the value of the data to be collected
    * @return this builder
    */
-  InstrumentationBuilder data2(String name, String value);
+  InstrumentationBuilder data2(String name, int value);
   /**
    * Append the given data to the data being collected by this builder. The information is declared
    * to potentially contain data that is either user identifiable or contains user intellectual
@@ -122,7 +124,16 @@ abstract class InstrumentationBuilder {
    * @param value the value of the data to be collected
    * @return this builder
    */
-  InstrumentationBuilder data3(String name, List<String> value);
+  InstrumentationBuilder data3(String name, String value);
+  /**
+   * Append the given data to the data being collected by this builder. The information is declared
+   * to potentially contain data that is either user identifiable or contains user intellectual
+   * property (but is not guaranteed to contain either).
+   * @param name the name used to identify the data
+   * @param value the value of the data to be collected
+   * @return this builder
+   */
+  InstrumentationBuilder data4(String name, List<String> value);
   /**
    * Answer the {@link InstrumentationLevel} of this {@code InstrumentationBuilder}.
    * @return one of {@link InstrumentationLevel#EVERYTHING}, {@link InstrumentationLevel#METRICS},{@link InstrumentationLevel#OFF}
@@ -142,7 +153,7 @@ abstract class InstrumentationBuilder {
    * @param value the value of the data to be collected
    * @return this builder
    */
-  InstrumentationBuilder metric(String name, int value);
+  InstrumentationBuilder metric(String name, bool value);
   /**
    * Append the given metric to the data being collected by this builder. The information is
    * declared to contain only metrics data (data that is not user identifiable and does not contain
@@ -151,7 +162,7 @@ abstract class InstrumentationBuilder {
    * @param value the value of the data to be collected
    * @return this builder
    */
-  InstrumentationBuilder metric2(String name, String value);
+  InstrumentationBuilder metric2(String name, int value);
   /**
    * Append the given metric to the data being collected by this builder. The information is
    * declared to contain only metrics data (data that is not user identifiable and does not contain
@@ -160,7 +171,16 @@ abstract class InstrumentationBuilder {
    * @param value the value of the data to be collected
    * @return this builder
    */
-  InstrumentationBuilder metric3(String name, List<String> value);
+  InstrumentationBuilder metric3(String name, String value);
+  /**
+   * Append the given metric to the data being collected by this builder. The information is
+   * declared to contain only metrics data (data that is not user identifiable and does not contain
+   * user intellectual property).
+   * @param name the name used to identify the data
+   * @param value the value of the data to be collected
+   * @return this builder
+   */
+  InstrumentationBuilder metric4(String name, List<String> value);
 }
 /**
  * The instrumentation recording level representing (1) recording {@link #EVERYTHING} recording of

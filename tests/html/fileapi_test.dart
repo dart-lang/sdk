@@ -22,7 +22,7 @@ main() {
   });
 
   getFileSystem() {
-    return window.requestFileSystem(Window.TEMPORARY, 100)
+    return window.requestFileSystem(100)
       .then((FileSystem fileSystem) {
         fs = fileSystem;
       });
@@ -32,7 +32,7 @@ main() {
     test('requestFileSystem', () {
       var expectation = FileSystem.supported ? returnsNormally : throws;
       expect(() {
-        window.requestFileSystem(Window.TEMPORARY, 100);
+        window.requestFileSystem(100);
       }, expectation);
     });
   });
@@ -43,17 +43,15 @@ main() {
 
       test('directoryDoesntExist', () {
         return fs.root.getDirectory(
-            'directory2',
-            options: {})
+            'directory2')
               .catchError((e) {
                 expect(e.error.code, equals(FileError.NOT_FOUND_ERR));
               }, test: (e) => e is FileError);
         });
 
       test('directoryCreate', () {
-        return fs.root.getDirectory(
-            'directory3',
-            options: {'create': true})
+        return fs.root.createDirectory(
+            'directory3')
               .then((DirectoryEntry e) {
                 expect(e.name, equals('directory3'));
               });
@@ -67,17 +65,15 @@ main() {
 
       test('fileDoesntExist', () {
         return fs.root.getFile(
-            'file2',
-            options: {})
+            'file2')
           .catchError((e) {
             expect(e.error.code, equals(FileError.NOT_FOUND_ERR));
           }, test: (e) => e is FileError);
       });
 
       test('fileCreate', () {
-        return fs.root.getFile(
-            'file4',
-            options: {'create': true})
+        return fs.root.createFile(
+            'file4')
           .then((FileEntry e) {
             expect(e.name, equals('file4'));
             expect(e.isFile, isTrue);
@@ -97,13 +93,11 @@ main() {
   // Do the boilerplate to get several files and directories created to then
   // test the functions that use those items.
   Future doDirSetup() {
-    return fs.root.getFile(
-      'file4',
-      options: {'create': true})
+    return fs.root.createFile(
+      'file4')
         .then((FileEntry file) {
-          return fs.root.getDirectory(
-              'directory3',
-              options: {'create': true})
+          return fs.root.createDirectory(
+              'directory3')
             .then((DirectoryEntry dir) {
               return new Future.immediate(new FileAndDir(file, dir));
             });
@@ -157,7 +151,7 @@ main() {
           }).then((entry) {
             expect(entry.name, 'movedFile');
             expect(entry.fullPath, '/directory3/movedFile');
-            return fs.root.getFile('file4', options: {'create': false});
+            return fs.root.getFile('file4');
           }).catchError((e) {
             expect(e.error.code, equals(FileError.NOT_FOUND_ERR));
           }, test: (e) => e is FileError);

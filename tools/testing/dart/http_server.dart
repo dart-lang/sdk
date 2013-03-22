@@ -277,10 +277,20 @@ class TestingServers {
                         Path path,
                         File file) {
     if (allowedPort != -1) {
-      var origin = new Uri(request.headers.value('Origin'));
-      // Allow loading from http://*:$allowedPort in browsers.
-      var allowedOrigin =
+      var headerOrigin = request.headers.value('Origin');
+      var allowedOrigin;
+      if (headerOrigin != null) {
+        var origin = new Uri(headerOrigin);
+        // Allow loading from http://*:$allowedPort in browsers.
+        allowedOrigin =
           '${origin.scheme}://${origin.domain}:${allowedPort}';
+      } else {
+        // IE10 appears to be bugged and is not sending the Origin header
+        // when making CORS requests to the same domain but different port.
+        allowedOrigin = '*';
+      }
+
+
       response.headers.set("Access-Control-Allow-Origin", allowedOrigin);
       response.headers.set('Access-Control-Allow-Credentials', 'true');
     } else {

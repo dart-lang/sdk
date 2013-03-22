@@ -192,6 +192,25 @@ time_t File::LastModified(const char* name) {
 }
 
 
+char* File::LinkTarget(const char* pathname) {
+  struct stat link_stats;
+  if (lstat(pathname, &link_stats) != 0) return NULL;
+  if (!S_ISLNK(link_stats.st_mode)) {
+    errno = ENOENT;
+    return NULL;
+  }
+  size_t target_size = link_stats.st_size;
+  char* target_name = reinterpret_cast<char*>(malloc(target_size + 1));
+  size_t read_size = readlink(pathname, target_name, target_size + 1);
+  if (read_size != target_size) {
+    free(target_name);
+    return NULL;
+  }
+  target_name[target_size] = '\0';
+  return target_name;
+}
+
+
 bool File::IsAbsolutePath(const char* pathname) {
   return (pathname != NULL && pathname[0] == '/');
 }
@@ -266,6 +285,20 @@ File::Type File::GetType(const char* pathname, bool follow_links) {
   if (S_ISREG(entry_info.st_mode)) return File::kIsFile;
   if (S_ISLNK(entry_info.st_mode)) return File::kIsLink;
   return File::kDoesNotExist;
+}
+
+
+File::Identical File::AreIdentical(const char* file_1, const char* file_2) {
+  struct stat file_1_info;
+  struct stat file_2_info;
+  if (TEMP_FAILURE_RETRY(lstat(file_1, &file_1_info)) == -1 ||
+      TEMP_FAILURE_RETRY(lstat(file_2, &file_2_info)) == -1) {
+    return File::kError;
+  }
+  return (file_1_info.st_ino == file_2_info.st_ino &&
+          file_1_info.st_dev == file_2_info.st_dev) ?
+      File::kIdentical :
+      File::kDifferent;
 }
 
 #endif  // defined(TARGET_OS_ANDROID)

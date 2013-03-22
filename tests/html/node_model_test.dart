@@ -8,8 +8,9 @@ import 'dart:html';
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_config.dart';
 
+var stepDuration;
 Future get nextStep {
-  return new Future.delayed(new Duration());
+  return new Future.delayed(stepDuration);
 }
 
 class ModelTracker {
@@ -34,10 +35,23 @@ class ModelTracker {
   void clearModel() {
     element.clearModel();
   }
+
+  void remove() {
+    element.remove();
+  }
 }
 
 main() {
   useHtmlConfiguration();
+
+  if (MutationObserver.supported) {
+    stepDuration = new Duration();
+  } else {
+    // Need to step after the tree update notifications, but on IE9 these may
+    // get polyfilled to use setTimeout(0). So use a longer timer to try to
+    // get a later callback.
+    stepDuration = new Duration(milliseconds: 15);
+  }
 
   test('basic top down', () {
     var a = new DivElement();
@@ -99,6 +113,9 @@ main() {
 
       c.clearModel();
       expect(d.model, model2);
+
+      a.remove();
+      return nextStep;
     });
   });
 
@@ -140,6 +157,9 @@ main() {
       c.clearModel();
       expect(c.models, [model, cModel, model]);
       expect(d.models, [model, cModel, model]);
+
+      a.remove();
+      return nextStep;
     });
   });
 
@@ -164,6 +184,9 @@ main() {
       expect(b.models, [aModel]);
       expect(c.models, [cModel]);
       expect(d.models, [cModel]);
+
+      a.remove();
+      return nextStep;
     });
   });
 }

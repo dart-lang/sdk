@@ -227,7 +227,7 @@ class FlowGraphAllocator : public ValueObject {
 
   MoveOperands* AddMoveAt(intptr_t pos, Location to, Location from);
 
-  Location MakeRegisterLocation(intptr_t reg, Location::Representation rep) {
+  Location MakeRegisterLocation(intptr_t reg, Representation rep) {
     return Location::MachineRegisterLocation(register_kind_, reg, rep);
   }
 
@@ -237,9 +237,8 @@ class FlowGraphAllocator : public ValueObject {
 
   ReachingDefs reaching_defs_;
 
-  // Set of SSA values that have unboxed mint representation. Indexed
-  // by SSA temp index.
-  BitVector* mint_values_;
+  // Representation for SSA values indexed by SSA temp index.
+  GrowableArray<Representation> value_representations_;
 
   const GrowableArray<BlockEntryInstr*>& block_order_;
   const GrowableArray<BlockEntryInstr*>& postorder_;
@@ -527,7 +526,7 @@ class SafepointPosition : public ZoneAllocated {
 // LiveRange represents a sequence of UseIntervals for a given SSA value.
 class LiveRange : public ZoneAllocated {
  public:
-  explicit LiveRange(intptr_t vreg, Location::Representation rep)
+  explicit LiveRange(intptr_t vreg, Representation rep)
     : vreg_(vreg),
       representation_(rep),
       assigned_location_(),
@@ -546,7 +545,7 @@ class LiveRange : public ZoneAllocated {
   static LiveRange* MakeTemp(intptr_t pos, Location* location_slot);
 
   intptr_t vreg() const { return vreg_; }
-  Location::Representation representation() const { return representation_; }
+  Representation representation() const { return representation_; }
   LiveRange* next_sibling() const { return next_sibling_; }
   UsePosition* first_use() const { return uses_; }
   void set_first_use(UsePosition* use) { uses_ = use; }
@@ -618,7 +617,7 @@ class LiveRange : public ZoneAllocated {
 
  private:
   LiveRange(intptr_t vreg,
-            Location::Representation rep,
+            Representation rep,
             UsePosition* uses,
             UseInterval* first_use_interval,
             UseInterval* last_use_interval,
@@ -639,7 +638,7 @@ class LiveRange : public ZoneAllocated {
   }
 
   const intptr_t vreg_;
-  Location::Representation representation_;
+  Representation representation_;
   Location assigned_location_;
   Location spill_slot_;
 

@@ -93,7 +93,7 @@ class InstanceCall : public DartCallPattern {
 
 
 // The expected pattern of a dart static call:
-//  mov EDX, arguments_descriptor_array
+//  mov EDX, arguments_descriptor_array (optional in polymorphic calls)
 //  call target_address
 //  <- return address
 class StaticCall : public ValueObject {
@@ -108,8 +108,7 @@ class StaticCall : public ValueObject {
     uint8_t* code_bytes =
         reinterpret_cast<uint8_t*>(
             return_address - (kNumInstructions * kInstructionSize));
-    return (code_bytes[0] == 0xBA) &&
-           (code_bytes[1 * kInstructionSize] == 0xE8);
+    return (code_bytes[0] == 0xE8);
   }
 
   uword target() const {
@@ -124,7 +123,7 @@ class StaticCall : public ValueObject {
     CPU::FlushICache(call_address(), kInstructionSize);
   }
 
-  static const int kNumInstructions = 2;
+  static const int kNumInstructions = 1;
   static const int kInstructionSize = 5;  // All instructions have same length.
 
  private:
@@ -133,7 +132,7 @@ class StaticCall : public ValueObject {
   }
 
   uword call_address() const {
-    return start_ + 1 * kInstructionSize;
+    return start_;
   }
 
   uword start_;

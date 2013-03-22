@@ -8,12 +8,14 @@ isolate3_negative_test: Skip  # test depends on isolate error exiting process.
 serialization_test: Skip  # tests dart2js-specific serialization code
 spawn_uri_test: Fail, OK # test uses a ".js" suffix that is bogus on vm.
 compute_this_script_browser_test: Skip # browser specific test
+compute_this_script_browser_stream_test: Skip # browser specific test
 ports_compilation_browser_test: Skip # browser specific test
-timer_not_available_test: Fail, OK # only meant to test when there is no way to
-                                   # implement timer (currently only in d8)
-timer_isolate_test: Skip # See Issue 4997
 unresolved_ports_negative_test: Skip # See Issue 6839
 global_error_handler_test: Fail # See Issue 9013.
+global_error_handler_stream_test: Fail # See Issue 9013.
+
+[ $runtime == vm && $system == windows ]
+timer_test: Pass, Fail # See Issue 5133
 
 [ $compiler == none && $runtime == drt ]
 isolate2_negative_test: Skip  # Inherited from VM.
@@ -23,10 +25,6 @@ spawn_uri_test: Skip # uses a .js extension (not for dartium)
 spawn_uri_negative_test: Skip # ditto
 spawn_uri_vm_test: Skip # not implemented in dartium yet.
 spawn_uri_vm_negative_test: Skip
-timer_isolate_test: Skip # See Issue 4997
-timer_not_available_test: Skip # only meant to test when there is no way to
-                               # implement timer (currently only in d8)
-global_error_handler_test: Fail # See Issue 9013.
 
 [ $compiler == dartc ]
 isolate_negative_test: Fail    # status change with --check-only
@@ -41,24 +39,27 @@ isolate2_negative_test: Pass
 compute_this_script_browser_test: Pass
 
 
+[ $compiler == dart2js && ($runtime == d8 || $jscl) ]
+illegal_msg_stream_test: Fail # Issue 6750
+
+[ $compiler == dart2js && $browser ]
+illegal_msg_stream_test: Fail, Pass # Issue 6750
+
 [ $compiler == dart2js ]
 serialization_test: Fail # Tries to access class TestingOnly declared in isolate_patch.dart
 illegal_msg_test: Fail # Issue 6750
+stream_mangling_test: Fail # Issue 9245
 
-[ $compiler == dart2js ]
 global_error_handler_test: Pass, Fail # http://dartbug.com/9012 and http://dartbug.com/9024
+global_error_handler_stream_test: Pass, Fail # http://dartbug.com/9012 and http://dartbug.com/9024
+global_error_handler2_test: Pass, Fail # http://dartbug.com/9012 and http://dartbug.com/9024
+global_error_handler_stream2_test: Pass, Fail # http://dartbug.com/9012 and http://dartbug.com/9024
 
 [ $runtime == safari ]
 cross_isolate_message_test: Skip      # Depends on 32/64 bit Safari. See Issue 1120
 mixed_test: Pass,Fail               # Depends on 32/64 bit Safari. See Issue 1120
 mixed2_test: Pass,Fail              # Depends on 32/64 bit Safari. See Issue 1120
 message_test: Skip
-
-[ $runtime == ff ]
-# FF setTimeout can fire early: https://bugzilla.mozilla.org/show_bug.cgi?id=291386
-multiple_timer_test: Pass, Fail
-timer_isolate_test: Pass, Fail
-timer_test: Pass, Fail
 
 # TODO(ager): Update these.
 [ $runtime == ie9 && $system == windows ]
@@ -74,35 +75,21 @@ v2*: Skip
 *: Skip
 
 [ $runtime == opera ]
-multiple_timer_test: Pass, Fail
 isolate2_negative_test: Skip # Timeout.
 unresolved_ports_negative_test: Skip # See Issue 6839
-
-[ $runtime == opera && $system == windows]
-# TODO(efortuna): Investigate.
-timer_test: Fail, Pass
 
 [ $compiler == dart2js && $browser ]
 spawn_uri_test: Skip # dart2js does not support spawnUri yet
 spawn_uri_negative_test: Skip # ditto
 spawn_uri_vm_test: Skip # test uses a ".dart" suffix that only works in vm.
 spawn_uri_vm_negative_test: Skip # ditto above.
-timer_not_available_test: Fail, OK # only meant to test when there is no way to
-                                   # implement timer (currently only in d8)
 isolate2_negative_test: Fail, Pass # Issue 7769
 
 [ $compiler == dart2js && $jscl ]
-multiple_timer_test: Fail,OK # Needs Timer to run.
 spawn_uri_negative_test: Pass # for the wrong reasons (not supported in d8)
 spawn_uri_test: Fail, OK # loading another file is not supported in d8
 spawn_uri_vm_negative_test: Skip # ditto above.
 spawn_uri_vm_test: Skip # test uses a ".dart" suffix that only works in vm.
-timer_cancel_test: Fail,OK # Needs Timer to run.
-timer_cancel1_test: Fail,OK # Needs Timer to run.
-timer_cancel2_test: Fail,OK # Needs Timer to run.
-timer_isolate_test: Fail, OK # Needs Timer to run.
-timer_repeat_test: Fail,OK # Needs Timer to run.
-timer_test: Fail,OK # Needs Timer to run.
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.

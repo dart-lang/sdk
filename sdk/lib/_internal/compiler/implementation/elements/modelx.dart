@@ -1068,6 +1068,8 @@ class FunctionSignatureX implements FunctionSignature {
     return list;
   }
 
+  Element get firstOptionalParameter => optionalParameters.head;
+
   void forEachParameter(void function(Element parameter)) {
     forEachRequiredParameter(function);
     forEachOptionalParameter(function);

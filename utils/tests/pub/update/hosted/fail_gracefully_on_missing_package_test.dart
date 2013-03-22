@@ -6,13 +6,14 @@ library pub_tests;
 
 import 'dart:io';
 
+import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
   integration('fails gracefully if the package does not exist', () {
     servePackages([]);
 
-    appDir([dependency("foo", "1.2.3")]).scheduleCreate();
+    d.appDir([dependencyMap("foo", "1.2.3")]).create();
 
     schedulePub(args: ['update'],
         error: new RegExp('Could not find package "foo" at '

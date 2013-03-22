@@ -6,6 +6,7 @@ library pub_tests;
 
 import 'dart:io';
 
+import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
@@ -13,12 +14,12 @@ main() {
       'field', () {
     ensureGit();
 
-    git('foo.git', [
-      libDir('foo'),
-      pubspec({})
-    ]).scheduleCreate();
+    d.git('foo.git', [
+      d.libDir('foo'),
+      d.pubspec({})
+    ]).create();
 
-    appDir([{"git": "../foo.git"}]).scheduleCreate();
+    d.appDir([{"git": "../foo.git"}]).create();
 
     // TODO(nweiz): clean up this RegExp when either issue 4706 or 4707 is
     // fixed.

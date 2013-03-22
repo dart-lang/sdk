@@ -962,6 +962,8 @@ class RunningProcess {
                                                 command.arguments,
                                                 processOptions);
         processFuture.then((io.Process process) {
+          // Close stdin so that tests that try to block on input will fail.
+          process.stdin.close();
           void timeoutHandler() {
             timedOut = true;
             if (process != null) {

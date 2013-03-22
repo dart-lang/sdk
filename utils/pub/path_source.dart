@@ -106,14 +106,16 @@ class PathSource extends Source {
   void _validatePath(String name, description) {
     var dir = description["path"];
 
+    if (dirExists(dir)) return;
+
+    // Check this after dirExists() so that symlinks to directories don't get
+    // confused as files.
     if (fileExists(dir)) {
       throw new FormatException(
           "Path dependency for package '$name' must refer to a "
           "directory, not a file. Was '$dir'.");
     }
 
-    if (!dirExists(dir)) {
-      throw new FormatException("Could not find package '$name' at '$dir'.");
-    }
+    throw new FormatException("Could not find package '$name' at '$dir'.");
   }
 }

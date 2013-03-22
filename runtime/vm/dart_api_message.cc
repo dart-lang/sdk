@@ -267,7 +267,10 @@ Dart_CObject* ApiMessageReader::ReadObjectRef() {
 
   // Reading of regular dart instances is not supported.
   if (SerializedHeaderData::decode(class_header) == kInstanceObjectId) {
-    return AllocateDartCObjectUnsupported();
+    intptr_t object_id = SerializedHeaderData::decode(value);
+    Dart_CObject* object = AllocateDartCObjectUnsupported();
+    AddBackRef(object_id, object, kIsNotDeserialized);
+    return object;
   }
   ASSERT((class_header & kSmiTagMask) != 0);
   intptr_t object_id = SerializedHeaderData::decode(value);
@@ -310,7 +313,9 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
                                                      intptr_t object_id) {
   switch (class_id) {
     case kClassCid: {
-      return AllocateDartCObjectUnsupported();
+      Dart_CObject* object = AllocateDartCObjectUnsupported();
+      AddBackRef(object_id, object, kIsDeserialized);
+      return object;
     }
     case kTypeArgumentsCid: {
       // TODO(sjesse): Remove this when message serialization format is
@@ -467,7 +472,9 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
     }
     default:
       // Everything else not supported.
-      return AllocateDartCObjectUnsupported();
+      Dart_CObject* value = AllocateDartCObjectUnsupported();
+      AddBackRef(object_id, value, kIsDeserialized);
+      return value;
   }
 }
 

@@ -18,12 +18,16 @@ class FlowGraphTypePropagator : public FlowGraphVisitor {
 
  private:
   void PropagateRecursive(BlockEntryInstr* block);
+  void HandleBranchOnNull(BlockEntryInstr* block);
+
+  void RollbackTo(intptr_t rollback_point);
 
   void VisitValue(Value* value);
 
   virtual void VisitJoinEntry(JoinEntryInstr* instr);
   virtual void VisitCheckSmi(CheckSmiInstr* instr);
   virtual void VisitCheckClass(CheckClassInstr* instr);
+  virtual void VisitGuardField(GuardFieldInstr* instr);
 
   // Current reaching type of the definition. Valid only during dominator tree
   // traversal.
@@ -35,6 +39,8 @@ class FlowGraphTypePropagator : public FlowGraphVisitor {
   // Mark definition as having given class id in all dominated instructions.
   void SetCid(Definition* value, intptr_t cid);
 
+  ConstrainedCompileType* MarkNonNullable(Definition* value);
+
   void AddToWorklist(Definition* defn);
   Definition* RemoveLastFromWorklist();
 
@@ -43,6 +49,8 @@ class FlowGraphTypePropagator : public FlowGraphVisitor {
   void StrengthenAssertWith(Instruction* check);
 
   FlowGraph* flow_graph_;
+
+  BitVector* visited_blocks_;
 
   // Mapping between SSA values and their current reaching types. Valid
   // only during dominator tree traversal.

@@ -6,7 +6,6 @@ description: >
   behalf of a user, and making authorized HTTP requests with the user's
   OAuth2 credentials.
 dependencies:
-  unittest:
-    sdk: unittest
-  http:
-    sdk: http
+  http: any
+dev_dependencies:
+  unittest: any

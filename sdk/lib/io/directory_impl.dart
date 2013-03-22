@@ -26,7 +26,7 @@ class _Directory implements Directory {
   external static _create(String path);
   external static _delete(String path, bool recursive);
   external static _rename(String path, String newPath);
-  external static List _list(String path, bool recursive);
+  external static List _list(String path, bool recursive, bool followLinks);
   external static SendPort _newServicePort();
 
   Future<bool> exists() {
@@ -226,11 +226,13 @@ class _Directory implements Directory {
     return new Directory(newPath);
   }
 
-  Stream<FileSystemEntity> list({bool recursive: false}) {
+  Stream<FileSystemEntity> list({bool recursive: false,
+                                 bool followLinks: true}) {
     const int LIST_FILE = 0;
     const int LIST_DIRECTORY = 1;
-    const int LIST_ERROR = 2;
-    const int LIST_DONE = 3;
+    const int LIST_LINK = 2;
+    const int LIST_ERROR = 3;
+    const int LIST_DONE = 4;
 
     const int RESPONSE_TYPE = 0;
     const int RESPONSE_PATH = 1;
@@ -239,7 +241,7 @@ class _Directory implements Directory {
 
     var controller = new StreamController<FileSystemEntity>();
 
-    List request = [ _Directory.LIST_REQUEST, path, recursive ];
+    List request = [ _Directory.LIST_REQUEST, path, recursive, followLinks ];
     ReceivePort responsePort = new ReceivePort();
     // Use a separate directory service port for each listing as
     // listing operations on the same directory can run in parallel.
@@ -256,6 +258,9 @@ class _Directory implements Directory {
           break;
         case LIST_DIRECTORY:
           controller.add(new Directory(message[RESPONSE_PATH]));
+          break;
+        case LIST_LINK:
+          controller.add(new Link(message[RESPONSE_PATH]));
           break;
         case LIST_ERROR:
           var errorType =
@@ -287,11 +292,11 @@ class _Directory implements Directory {
     return controller.stream;
   }
 
-  List listSync({bool recursive: false}) {
+  List listSync({bool recursive: false, bool followLinks: true}) {
     if (_path is! String || recursive is! bool) {
       throw new ArgumentError();
     }
-    return _list(_path, recursive);
+    return _list(_path, recursive, followLinks);
   }
 
   String get path => _path;

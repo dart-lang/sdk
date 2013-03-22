@@ -23,7 +23,7 @@
   V(Directory_CreateTemp, 1)                                                   \
   V(Directory_Delete, 2)                                                       \
   V(Directory_Rename, 2)                                                       \
-  V(Directory_List, 2)                                                         \
+  V(Directory_List, 3)                                                         \
   V(Directory_NewServicePort, 0)                                               \
   V(File_Open, 2)                                                              \
   V(File_Exists, 1)                                                            \
@@ -42,12 +42,14 @@
   V(File_Flush, 1)                                                             \
   V(File_Create, 1)                                                            \
   V(File_CreateLink, 2)                                                        \
+  V(File_LinkTarget, 1)                                                        \
   V(File_Delete, 1)                                                            \
   V(File_Directory, 1)                                                         \
   V(File_FullPath, 1)                                                          \
   V(File_OpenStdio, 1)                                                         \
   V(File_GetStdioHandleType, 1)                                                \
   V(File_GetType, 2)                                                           \
+  V(File_AreIdentical, 2)                                                      \
   V(File_NewServicePort, 0)                                                    \
   V(Logger_PrintString, 1)
 

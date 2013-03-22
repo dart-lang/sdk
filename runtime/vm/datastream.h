@@ -29,6 +29,12 @@ class ReadStream : public ValueObject {
                                                      current_(buffer),
                                                      end_(buffer + size)  {}
 
+  void SetStream(const uint8_t* buffer, intptr_t size) {
+    buffer_ = buffer;
+    current_ = buffer;
+    end_ = buffer + size;
+  }
+
   template<int N, typename T>
   class Raw { };
 

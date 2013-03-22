@@ -152,7 +152,8 @@ void testEarlyClose3() {
           socket.write("\r\n");
           socket.write("data");
           socket.close();
-          socket.listen((_) {});
+          socket.listen((_) {}, onError: (_) {});
+          socket.done.catchError((_) {});
         });
   });
 }

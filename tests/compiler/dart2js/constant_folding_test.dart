@@ -30,6 +30,30 @@ foo(a, b, c, d) {
 }
 """;
 
+const String LIST_LENGTH_FOLDING = """
+foo() {
+  return const [1, 2, 3].length;
+}
+""";
+
+const String STRING_LENGTH_FOLDING = """
+foo() {
+  return '123'.length;
+}
+""";
+
+const String LIST_INDEX_FOLDING = """
+foo() {
+  return const [1, 2, 3][0];
+}
+""";
+
+const String RANGE_ERROR_INDEX_FOLDING = """
+foo() {
+  return [1][1];
+}
+""";
+
 main() {
   compileAndMatch(
       NUMBER_FOLDING, 'main', new RegExp(r"print\(7\)"));
@@ -48,4 +72,19 @@ main() {
 
   regexp = new RegExp('"foo" === d');
   Expect.isTrue(regexp.hasMatch(generated));
+
+  compileAndMatch(
+      LIST_LENGTH_FOLDING, 'foo', new RegExp(r"return 3"));
+
+  compileAndMatch(
+      LIST_INDEX_FOLDING, 'foo', new RegExp(r"return 1"));
+
+  compileAndDoNotMatch(
+      LIST_INDEX_FOLDING, 'foo', new RegExp(r"throw"));
+
+  compileAndMatch(
+      STRING_LENGTH_FOLDING, 'foo', new RegExp(r"return 3"));
+
+  compileAndMatch(
+      RANGE_ERROR_INDEX_FOLDING, 'foo', new RegExp(r"throw"));
 }

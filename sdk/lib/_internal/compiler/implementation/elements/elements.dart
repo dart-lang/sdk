@@ -656,6 +656,7 @@ abstract class FunctionSignature {
   int get requiredParameterCount;
   int get optionalParameterCount;
   bool get optionalParametersAreNamed;
+  Element get firstOptionalParameter;
 
   int get parameterCount;
   List<Element> get orderedOptionalParameters;

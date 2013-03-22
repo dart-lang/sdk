@@ -7,7 +7,7 @@ import 'dart:indexed_db';
 
 // Test for KeyRange and Cursor.
 
-const String DB_NAME = 'Test';
+const String DB_NAME = 'Test4';
 const String STORE_NAME = 'TEST';
 const int VERSION = 1;
 

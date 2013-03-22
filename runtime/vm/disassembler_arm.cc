@@ -15,8 +15,7 @@ class ARMDecoder : public ValueObject {
   ARMDecoder(char* buffer, size_t buffer_size)
       : buffer_(buffer),
         buffer_size_(buffer_size),
-        buffer_pos_(0),
-        decode_failure_(false) {
+        buffer_pos_(0) {
     buffer_[buffer_pos_] = '\0';
   }
 
@@ -25,9 +24,6 @@ class ARMDecoder : public ValueObject {
   // Writes one disassembled instruction into 'buffer' (0-terminated).
   // Returns true if the instruction was successfully decoded, false otherwise.
   void InstructionDecode(uword pc);
-
-  void set_decode_failure(bool b) { decode_failure_ = b; }
-  bool decode_failure() const { return decode_failure_; }
 
  private:
   // Bottleneck functions to print into the out_buffer.
@@ -70,8 +66,6 @@ class ARMDecoder : public ValueObject {
   char* buffer_;  // Decode instructions into this buffer.
   size_t buffer_size_;  // The size of the character buffer.
   size_t buffer_pos_;  // Current character position in buffer.
-
-  bool decode_failure_;  // Set to true when a failure to decode is detected.
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(ARMDecoder);
@@ -579,7 +573,6 @@ void ARMDecoder::Format(Instr* instr, const char* format) {
 // which will just print "unknown" of the instruction bits.
 void ARMDecoder::Unknown(Instr* instr) {
   Format(instr, "unknown");
-  set_decode_failure(true);
 }
 
 
@@ -1267,9 +1260,9 @@ void ARMDecoder::InstructionDecode(uword pc) {
 }
 
 
-bool Disassembler::DecodeInstruction(char* hex_buffer, intptr_t hex_size,
-                                    char* human_buffer, intptr_t human_size,
-                                    int* out_instr_size, uword pc) {
+void Disassembler::DecodeInstruction(char* hex_buffer, intptr_t hex_size,
+                                     char* human_buffer, intptr_t human_size,
+                                     int* out_instr_size, uword pc) {
   ARMDecoder decoder(human_buffer, human_size);
   decoder.InstructionDecode(pc);
   int32_t instruction_bits = Instr::At(pc)->InstructionBits();
@@ -1277,16 +1270,14 @@ bool Disassembler::DecodeInstruction(char* hex_buffer, intptr_t hex_size,
   if (out_instr_size) {
     *out_instr_size = Instr::kInstrSize;
   }
-  return !decoder.decode_failure();
 }
 
 
-bool Disassembler::Disassemble(uword start,
+void Disassembler::Disassemble(uword start,
                                uword end,
                                DisassemblyFormatter* formatter,
                                const Code::Comments& comments) {
   ASSERT(formatter != NULL);
-  bool success = true;
   char hex_buffer[kHexadecimalBufferSize];  // Instruction in hexadecimal form.
   char human_buffer[kUserReadableBufferSize];  // Human-readable instruction.
   uword pc = start;
@@ -1301,12 +1292,10 @@ bool Disassembler::Disassemble(uword start,
       comment_finger++;
     }
     int instruction_length;
-    bool res = DecodeInstruction(hex_buffer, sizeof(hex_buffer),
-                                 human_buffer, sizeof(human_buffer),
-                                 &instruction_length, pc);
-    if (!res) {
-      success = false;
-    }
+    DecodeInstruction(hex_buffer, sizeof(hex_buffer),
+                      human_buffer, sizeof(human_buffer),
+                      &instruction_length, pc);
+
     formatter->ConsumeInstruction(hex_buffer,
                                   sizeof(hex_buffer),
                                   human_buffer,
@@ -1314,8 +1303,6 @@ bool Disassembler::Disassemble(uword start,
                                   pc);
     pc += instruction_length;
   }
-
-  return success;
 }
 
 }  // namespace dart

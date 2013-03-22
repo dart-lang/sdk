@@ -267,6 +267,9 @@ void DynamicAssertionHelper::NotNull(const T p) {
 
 #define DEBUG_ASSERT(cond)
 
+#endif  // if defined(DEBUG)
+
+
 // The COMPILE_ASSERT macro can be used to verify that a compile time
 // expression is true. For example, you could use it to verify the
 // size of a static array:
@@ -289,8 +292,6 @@ struct CompileAssert {
 #define COMPILE_ASSERT(expr, msg)                       \
   typedef CompileAssert<(static_cast<bool>(expr))>      \
   msg[static_cast<bool>(expr) ? 1 : -1]
-
-#endif  // if defined(DEBUG)
 
 
 #if defined(TESTING)

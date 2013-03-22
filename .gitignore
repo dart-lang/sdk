@@ -42,7 +42,6 @@ client/tests/drt
 
 # Compiled python binaries
 *.pyc
-third_party/gsutil/*/gsutilc
 
 # From the Mac OS X Finder
 .DS_Store

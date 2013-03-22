@@ -19,6 +19,7 @@ import '../lib/intl.dart';
 import 'dart:io';
 import 'dart:json' as json;
 import '../test/data_directory.dart';
+import 'package:pathos/path.dart' as path;
 
 main() {
   initializeDateFormatting("en_IGNORED", null);
@@ -28,22 +29,23 @@ main() {
 }
 
 void writeLocaleList() {
-  var file = new File('${dataDirectory}localeList.dart');
+  var file = new File(path.join(dataDirectory, 'localeList.dart'));
   var output = file.openWrite();
-  output.addString(
+  output.write(
       '// Copyright (c) 2012, the Dart project authors.  Please see the '
       'AUTHORS file\n// for details. All rights reserved. Use of this source'
       'code is governed by a\n// BSD-style license that can be found in the'
       ' LICENSE file.\n\n'
+      'part of date_symbol_data_json;\n\n'
       '/// Hard-coded list of all available locales for dates.\n');
-  output.addString('final availableLocalesForDateFormatting = const [');
+  output.write('final availableLocalesForDateFormatting = const [');
   List<String> allLocales = DateFormat.allLocalesWithSymbols();
   allLocales.forEach((locale) {
-    output.addString('"$locale"');
+    output.write('"$locale"');
     if (locale == allLocales.last) {
-      output.addString('];');
+      output.write('];');
     } else {
-      output.addString(',\n    ');
+      output.write(',\n    ');
     }
   });
   output.close();
@@ -60,19 +62,19 @@ void writePatternData() {
 }
 
 void writeSymbols(locale, symbols) {
-  var file = new File('${dataDirectory}symbols/${locale}.json');
+  var file = new File(path.join(dataDirectory, 'symbols', '${locale}.json'));
   var output = file.openWrite();
   writeToJSON(symbols, output);
   output.close();
 }
 
 void writePatterns(locale, patterns) {
-  var file = new File('${dataDirectory}patterns/${locale}.json');
+  var file = new File(path.join(dataDirectory, 'patterns', '${locale}.json'));
   var output = file.openWrite();
-  output.addString(json.stringify(patterns));
+  output.write(json.stringify(patterns));
   output.close();
 }
 
 void writeToJSON(dynamic data, IOSink out) {
-  out.addString(json.stringify(data.serializeToMap()));
+  out.write(json.stringify(data.serializeToMap()));
 }

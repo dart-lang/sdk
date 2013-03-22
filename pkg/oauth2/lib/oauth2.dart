@@ -56,7 +56,7 @@
 ///       // If the OAuth2 credentials have already been saved from a previous
 ///       // run, we just want to reload them.
 ///       if (exists) {
-///         return credentialsFile.readAsText().then((json) {
+///         return credentialsFile.readAsString().then((json) {
 ///           var credentials = new oauth2.Credentials.fromJson(json);
 ///           return new oauth2.Client(identifier, secret, credentials);
 ///         });

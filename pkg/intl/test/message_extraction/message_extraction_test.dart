@@ -55,20 +55,21 @@ main() {
   test("Test round trip message extraction, translation, code generation, "
       "and printing", () {
     deleteGeneratedFiles();
-    extractMessages(null).then((result) {
+    return extractMessages(null).then((result) {
       return generateTranslationFiles(result);
     }).then((result) {
       return generateCodeFromTranslation(result);
     }).then((result) {
       return runGeneratedCode(result);
-    }).then(verifyResult);
+    }).then(verifyResult)
+    .whenComplete(deleteGeneratedFiles);
   });
 }
 
 void deleteGeneratedFiles() {
   var files = [dir('intl_messages.json'), dir('translation_fr.json'),
-      dir('messages_fr.dart'), dir('message_de_DE.dart'),
-      dir('messages_all.dart')];
+      dir('messages_fr.dart'), dir('messages_de_DE.dart'),
+      dir('translation_de_DE.json'), dir('messages_all.dart')];
   files.map((name) => new File(name)).forEach((x) {
     if (x.existsSync()) x.deleteSync();});
 }
@@ -124,7 +125,7 @@ Future<ProcessResult> generateCodeFromTranslation(ProcessResult previousResult)
 Future<ProcessResult> runGeneratedCode(ProcessResult previousResult) =>
     run(previousResult, ['sample_with_messages.dart']);
 
-void verifyResult(results) {
+verifyResult(results) {
   var lineIterator;
   verify(String s) {
     lineIterator.moveNext();

@@ -256,7 +256,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     return null;
   }
 
-  HInstruction handleInterceptorCall(HInvokeDynamic node) {
+  HInstruction handleInterceptedCall(HInvokeDynamic node) {
     // Try constant folding the instruction.
     Operation operation = node.specializer.operation(constantSystem);
     if (operation != null) {
@@ -268,11 +268,10 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
     // Try converting the instruction to a builtin instruction.
     HInstruction instruction =
-        node.specializer.tryConvertToBuiltin(node);
+        node.specializer.tryConvertToBuiltin(node, compiler);
     if (instruction != null) return instruction;
 
     Selector selector = node.selector;
-    var interceptor = node.inputs[0];
     HInstruction input = node.inputs[1];
 
     if (selector.isCall()) {
@@ -321,24 +320,16 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       }
     }
 
-    // If the intercepted call is through a constant interceptor, we
-    // know which element to call.
-    if (node is !HOneShotInterceptor
-        && interceptor.isConstant()
-        && selector.isCall()) {
-      assert(interceptor.constant.isInterceptor());
-      ClassElement cls = interceptor.constant.dispatchedType.element;
-      Element target = cls.lookupSelector(selector);
-      if (target != null && selector.applies(target, compiler)) {
-        node.element = target;
-      }
-    }
     return node;
   }
 
   HInstruction visitInvokeDynamicMethod(HInvokeDynamicMethod node) {
-    if (node.isCallOnInterceptor) return handleInterceptorCall(node);
-    HType receiverType = node.receiver.instructionType;
+    if (node.isInterceptedCall) {
+      HInstruction folded = handleInterceptedCall(node);
+      if (folded != node) return folded;
+    }
+
+    HType receiverType = node.dartReceiver.instructionType;
     Selector selector = receiverType.refine(node.selector, compiler);
     Element element = compiler.world.locateSingleElement(selector);
     // TODO(ngeoffray): Also fold if it's a getter or variable.
@@ -466,13 +457,16 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       return node;
     } else if (element.isTypedef()) {
       return node;
+    } else if (element == compiler.functionClass) {
+      return node;
+    }
+
+    if (element == compiler.objectClass || element == compiler.dynamicClass) {
+      return graph.addConstantBool(true, constantSystem);
     }
 
     HType expressionType = node.expression.instructionType;
-    if (identical(element, compiler.objectClass)
-        || identical(element, compiler.dynamicClass)) {
-      return graph.addConstantBool(true, constantSystem);
-    } else if (expressionType.isInteger()) {
+    if (expressionType.isInteger()) {
       if (identical(element, compiler.intClass)
           || identical(element, compiler.numClass)
           || Elements.isNumberOrStringSupertype(element, compiler)) {
@@ -518,22 +512,17 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       } else {
         return graph.addConstantBool(false, constantSystem);
       }
-    // Wee need the [:hasTypeArguments:] check because we don't have
+    // We need the [:hasTypeArguments:] check because we don't have
     // the notion of generics in the backend. For example, [:this:] in
     // a class [:A<T>:], is currently always considered to have the
     // raw type.
-    } else if (expressionType.isUseful()
-               && !expressionType.canBeNull()
-               && !RuntimeTypes.hasTypeArguments(type)) {
-      var receiverType = expressionType.computeType(compiler);
-      if (receiverType != null) {
-        if (!receiverType.isMalformed &&
-            !type.isMalformed &&
-            compiler.types.isSubtype(receiverType.element.rawType, type)) {
-          return graph.addConstantBool(true, constantSystem);
-        } else if (expressionType.isExact()) {
-          return graph.addConstantBool(false, constantSystem);
-        }
+    } else if (!RuntimeTypes.hasTypeArguments(type) && !type.isMalformed) {
+      TypeMask expressionMask = expressionType.computeMask(compiler);
+      TypeMask typeMask = new TypeMask.nonNullSubtype(type);
+      if (expressionMask.union(typeMask, compiler) == typeMask) {
+        return graph.addConstantBool(true, constantSystem);
+      } else if (expressionMask.intersection(typeMask, compiler).isEmpty) {
+        return graph.addConstantBool(false, constantSystem);
       }
     }
     return node;
@@ -573,18 +562,45 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
             && call.inputs[1].isInteger()) {
           return call.inputs[1];
         }
+      } else if (node.receiver.isConstantList()) {
+        var instruction = node.receiver;
+        return graph.addConstantInt(
+            instruction.constant.length, backend.constantSystem);
+      }
+    } else if (node.element == backend.jsStringLength
+               && node.receiver.isConstantString()) {
+        var instruction = node.receiver;
+        return graph.addConstantInt(
+            instruction.constant.length, backend.constantSystem);
+    }
+    return node;
+  }
+
+  HInstruction visitIndex(HIndex node) {
+    if (node.receiver.isConstantList() && node.index.isConstantInteger()) {
+      var instruction = node.receiver;
+      List<Constant> entries = instruction.constant.entries;
+      instruction = node.index;
+      int index = instruction.constant.value;
+      if (index >= 0 && index < entries.length) {
+        return graph.addConstant(entries[index]);
       }
     }
     return node;
   }
 
   HInstruction visitInvokeDynamicGetter(HInvokeDynamicGetter node) {
-    if (node.isCallOnInterceptor) return handleInterceptorCall(node);
-
-    Element field =
-        findConcreteFieldForDynamicAccess(node.receiver, node.selector);
+    if (node.isInterceptedCall) {
+      HInstruction folded = handleInterceptedCall(node);
+      if (folded != node) return folded;
+    }
+    Element field = findConcreteFieldForDynamicAccess(
+        node.dartReceiver, node.selector);
     if (field == null) return node;
+    return directFieldGet(node.dartReceiver, field);
+  }
 
+  HInstruction directFieldGet(HInstruction receiver, Element field) {
     Modifiers modifiers = field.modifiers;
     bool isAssignable = !(modifiers.isFinal() || modifiers.isConst());
     if (!compiler.resolverWorld.hasInvokedSetter(field, compiler)) {
@@ -600,7 +616,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       isAssignable = true;
     }
     HFieldGet result = new HFieldGet(
-        field, node.inputs[0], isAssignable: isAssignable);
+        field, receiver, isAssignable: isAssignable);
 
     if (field.getEnclosingClass().isNative()) {
       result.instructionType =
@@ -622,10 +638,13 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   }
 
   HInstruction visitInvokeDynamicSetter(HInvokeDynamicSetter node) {
-    if (node.isCallOnInterceptor) return handleInterceptorCall(node);
+    if (node.isInterceptedCall) {
+      HInstruction folded = handleInterceptedCall(node);
+      if (folded != node) return folded;
+    }
 
-    Element field =
-        findConcreteFieldForDynamicAccess(node.receiver, node.selector);
+    Element field = findConcreteFieldForDynamicAccess(
+        node.dartReceiver, node.selector);
     if (field == null || !field.isAssignable()) return node;
     // Use [:node.inputs.last:] in case the call follows the
     // interceptor calling convention, but is not a call on an
@@ -698,6 +717,13 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
   HInstruction tryComputeConstantInterceptor(HInstruction input,
                                              Set<ClassElement> intercepted) {
+    if (input == graph.explicitReceiverParameter) {
+      // If `explicitReceiverParameter` is set it means the current method is an
+      // interceptor method, and `this` is the interceptor.  The caller just did
+      // `getInterceptor(foo).currentMethod(foo)` to enter the current method.
+      return graph.thisInstruction;
+    }
+
     HType type = input.instructionType;
     ClassElement constantInterceptor;
     if (type.isInteger()) {
@@ -733,7 +759,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   }
 
   HInstruction visitOneShotInterceptor(HOneShotInterceptor node) {
-    HInstruction newInstruction = handleInterceptorCall(node);
+    HInstruction newInstruction = handleInterceptedCall(node);
     if (newInstruction != node) return newInstruction;
 
     HInstruction constant = tryComputeConstantInterceptor(
@@ -790,9 +816,12 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
   HBoundsCheck insertBoundsCheck(HInstruction node,
                                  HInstruction receiver,
                                  HInstruction index) {
-    bool isAssignable = !receiver.isFixedArray();
+    bool isAssignable = !receiver.isFixedArray() && !receiver.isString();
+    Element element = receiver.isString()
+        ? backend.jsStringLength
+        : backend.jsArrayLength;
     HFieldGet length = new HFieldGet(
-        backend.jsArrayLength, receiver, isAssignable: isAssignable);
+        element, receiver, isAssignable: isAssignable);
     length.instructionType = HType.INTEGER;
     length.instructionType = HType.INTEGER;
     node.block.addBefore(node, length);
@@ -836,7 +865,7 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
 
   void visitInvokeDynamicMethod(HInvokeDynamicMethod node) {
     Element element = node.element;
-    if (node.isInterceptorCall) return;
+    if (node.isInterceptedCall) return;
     if (element != backend.jsArrayRemoveLast) return;
     if (boundsChecked.contains(node)) return;
     insertBoundsCheck(

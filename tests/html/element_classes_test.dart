@@ -142,6 +142,14 @@ main() {
     expect(classes, orderedEquals(['foo']));
   });
 
+  test('toggleAll', () {
+    final classes = makeClassSet();
+    classes.toggleAll(['bar', 'foo']);
+    expect(classes, orderedEquals(['baz']));
+    classes.toggleAll(['qux', 'quux']);
+    expect(classes, orderedEquals(['baz', 'qux', 'quux']));
+  });
+
   test('isSubsetOf', () {
     final classes = makeClassSet();
     expect(classes.isSubsetOf(['foo', 'bar', 'baz'].toSet()), isTrue);

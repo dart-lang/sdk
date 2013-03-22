@@ -19,8 +19,8 @@ var expected; // array of test expected results (from buildStatusString)
 var actual; // actual test results (from buildStatusString in config.onDone)
 var _testconfig; // test configuration to capture onDone
 
-_defer(void fn()) {
-  return (new Future.immediate(null)).then((_) => guardAsync(fn));
+Future _defer(void fn()) {
+  return new Future.of(fn);
 }
 
 String buildStatusString(int passed, int failed, int errors,
@@ -154,80 +154,42 @@ runTest() {
       });
     } else if (testName == 'async setup/teardown test') {
       group('good setup/good teardown', () {
-        setUp(() { 
-          var completer = new Completer();
-          _defer(() {
-            completer.complete(0);
-          });
-          return completer.future;
+        setUp(() {
+          return new Future.immediate(0);
         });
         tearDown(() {
-          var completer = new Completer();
-          _defer(() {
-            completer.complete(0);
-          });
-          return completer.future;
+          return new Future.immediate(0);
         });
         test('foo1', (){});
       });
       group('good setup/bad teardown', () {
-        setUp(() { 
-          var completer = new Completer();
-          _defer(() {
-            completer.complete(0);
-          });
-          return completer.future;
+        setUp(() {
+          return new Future.immediate(0);
         });
         tearDown(() {
-          var completer = new Completer();
-          _defer(() {
-            //throw "Failed to complete tearDown";
-            completer.completeError(
-                new AsyncError("Failed to complete tearDown"));
-          });
-          return completer.future;
+          return new Future.immediateError("Failed to complete tearDown");
         });
         test('foo2', (){});
       });
       group('bad setup/good teardown', () {
-        setUp(() { 
-          var completer = new Completer();
-          _defer(() {
-            //throw "Failed to complete setUp";
-            completer.completeError(new AsyncError("Failed to complete setUp"));
-          });
-          return completer.future;
+        setUp(() {
+          return new Future.immediateError("Failed to complete setUp");
         });
         tearDown(() {
-          var completer = new Completer();
-          _defer(() {
-            completer.complete(0);
-          });
-          return completer.future;
+          return new Future.immediate(0);
         });
         test('foo3', (){});
       });
       group('bad setup/bad teardown', () {
-        setUp(() { 
-          var completer = new Completer();
-          _defer(() {
-            //throw "Failed to complete setUp";
-            completer.completeError(new AsyncError("Failed to complete setUp"));
-          });
-          return completer.future;
+        setUp(() {
+          return new Future.immediateError("Failed to complete setUp");
         });
         tearDown(() {
-          var completer = new Completer();
-          _defer(() {
-            //throw "Failed to complete tearDown";
-            completer.completeError(
-                new AsyncError("Failed to complete tearDown"));
-          });
-          return completer.future;
+          return new Future.immediateError("Failed to complete tearDown");
         });
         test('foo4', (){});
       });
-      // The next test is just to make sure we make steady progress 
+      // The next test is just to make sure we make steady progress
       // through the tests.
       test('post groups', () {});
     } else if (testName == 'test returning future') {
@@ -390,7 +352,7 @@ main() {
                  'been marked as pass.:testTwo:'),
     buildStatusString(2, 1, 0,
         'testOne::testTwo:Expected: false but: was <true>.:testThree'),
-    buildStatusString(2, 0, 3, 
+    buildStatusString(2, 0, 3,
         'good setup/good teardown foo1::'
         'good setup/bad teardown foo2:good setup/bad teardown '
         'foo2: Test teardown failed: Failed to complete tearDown:'

@@ -7,17 +7,17 @@ main() {
   CanvasElement canvas;
 
   canvas = new Element.tag('canvas');
-  canvas.attributes['width'] = 100;
-  canvas.attributes['height'] = 100;
+  canvas.attributes['width'] = '100';
+  canvas.attributes['height'] = '100';
   document.body.nodes.add(canvas);
 
   var isCanvasRenderingContext = predicate((x) => x is CanvasRenderingContext,
       'is a CanvasRenderingContext');
-  var isCanvasRenderingContext2D = 
+  var isCanvasRenderingContext2D =
       predicate((x) => x is CanvasRenderingContext2D,
       'is a CanvasRenderingContext2D');
   var isElement = predicate((x) => x is Element, 'is an Element');
-  var isCanvasElement = 
+  var isCanvasElement =
       predicate((x) => x is CanvasElement, 'is a CanvasElement');
   var isImageData = predicate((x) => x is ImageData, 'is an ImageData');
   //var isUint8ClampedArray =

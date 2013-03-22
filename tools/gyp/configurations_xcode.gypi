@@ -13,15 +13,7 @@
 
 {
   'variables': {
-    # To switch to the LLVM based backend create a ~/.gyp/include.gypi
-    # including:
-    #
-    # {
-    #   'variables': {
-    #     'xcode_gcc_version': 'com.apple.compilers.llvmgcc42',
-    #   }
-    # }
-    'xcode_gcc_version%': '4.2',
+    'xcode_gcc_version%': '<!(python <(DEPTH)/tools/gyp/find_mac_gcc_version.py)',
   },
   'target_defaults': {
     'configurations': {

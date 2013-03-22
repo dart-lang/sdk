@@ -15,6 +15,9 @@ VirtualMemory* VirtualMemory::ReserveAligned(intptr_t size,
   ASSERT(Utils::IsPowerOfTwo(alignment));
   ASSERT(alignment >= PageSize());
   VirtualMemory* result = VirtualMemory::Reserve(size + alignment);
+  if (result == NULL) {
+    FATAL("Out of memory.\n");
+  }
   uword start = result->start();
   uword real_start = (start + alignment - 1) & ~(alignment - 1);
   result->Truncate(real_start, size);

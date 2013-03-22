@@ -1130,7 +1130,7 @@ UNIT_TEST_CASE(ScriptSnapshot) {
 
     // Load the test library from the snapshot.
     EXPECT(script_snapshot != NULL);
-    result = Dart_LoadScriptFromSnapshot(script_snapshot);
+    result = Dart_LoadScriptFromSnapshot(script_snapshot, size);
     EXPECT_VALID(result);
 
     // Get list of library URLs loaded and compare with expected count.
@@ -1204,7 +1204,7 @@ UNIT_TEST_CASE(ScriptSnapshot1) {
 
     // Load the test library from the snapshot.
     EXPECT(script_snapshot != NULL);
-    result = Dart_LoadScriptFromSnapshot(script_snapshot);
+    result = Dart_LoadScriptFromSnapshot(script_snapshot, size);
     EXPECT_VALID(result);
   }
   Dart_ShutdownIsolate();

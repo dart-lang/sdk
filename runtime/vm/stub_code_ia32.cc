@@ -345,12 +345,12 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; i--) {
     __ pushl(static_cast<Register>(i));
   }
-  __ subl(ESP, Immediate(kNumberOfXmmRegisters * kDoubleSize));
+  __ subl(ESP, Immediate(kNumberOfXmmRegisters * kFpuRegisterSize));
   intptr_t offset = 0;
   for (intptr_t reg_idx = 0; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
     XmmRegister xmm_reg = static_cast<XmmRegister>(reg_idx);
-    __ movsd(Address(ESP, offset), xmm_reg);
-    offset += kDoubleSize;
+    __ movups(Address(ESP, offset), xmm_reg);
+    offset += kFpuRegisterSize;
   }
 
   __ movl(ECX, ESP);  // Saved saved registers block.

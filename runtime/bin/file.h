@@ -43,6 +43,12 @@ class File {
     kDoesNotExist = 3
   };
 
+  enum Identical {
+    kIdentical = 0,
+    kDifferent = 1,
+    kError = 2
+  };
+
   enum StdioHandleType {
     kTerminal = 0,
     kPipe = 1,
@@ -127,12 +133,14 @@ class File {
   static bool Delete(const char* path);
   static off_t LengthFromPath(const char* path);
   static time_t LastModified(const char* path);
+  static char* LinkTarget(const char* pathname);
   static bool IsAbsolutePath(const char* path);
   static char* GetCanonicalPath(const char* path);
   static char* GetContainingDirectory(char* path);
   static const char* PathSeparator();
   static const char* StringEscapedPathSeparator();
   static Type GetType(const char* path, bool follow_links);
+  static Identical AreIdentical(const char* file_1, const char* file_2);
   static StdioHandleType GetStdioHandleType(int fd);
 
   static FileOpenMode DartModeToFileMode(DartFileOpenMode mode);

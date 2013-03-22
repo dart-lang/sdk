@@ -4,6 +4,5 @@ homepage: http://www.dartlang.org
 documentation: http://api.dartlang.org/docs/pkg/serialization
 description: >
   Provide a serialization facility for Dart objects.
-dependencies:
-  unittest:
-    sdk: unittest
+dev_dependencies:
+  unittest: any

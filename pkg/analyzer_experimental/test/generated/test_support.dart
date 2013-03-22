@@ -12,6 +12,7 @@ import 'package:analyzer_experimental/src/generated/source.dart';
 import 'package:analyzer_experimental/src/generated/error.dart';
 import 'package:analyzer_experimental/src/generated/scanner.dart';
 import 'package:analyzer_experimental/src/generated/element.dart' show InterfaceType, MethodElement, PropertyAccessorElement;
+import 'package:analyzer_experimental/src/generated/engine.dart' show AnalysisContext;
 import 'package:unittest/unittest.dart' as _ut;
 
 /**
@@ -44,17 +45,17 @@ class GatheringErrorListener implements AnalysisErrorListener {
    * Initialize a newly created error listener to collect errors.
    */
   GatheringErrorListener() : super() {
-    _jtd_constructor_315_impl();
+    _jtd_constructor_317_impl();
   }
-  _jtd_constructor_315_impl() {
+  _jtd_constructor_317_impl() {
   }
   /**
    * Initialize a newly created error listener to collect errors.
    */
   GatheringErrorListener.con1(String rawSource2) {
-    _jtd_constructor_316_impl(rawSource2);
+    _jtd_constructor_318_impl(rawSource2);
   }
-  _jtd_constructor_316_impl(String rawSource2) {
+  _jtd_constructor_318_impl(String rawSource2) {
     this._rawSource = rawSource2;
     this._markedSource = rawSource2;
   }
@@ -274,15 +275,15 @@ class GatheringErrorListener implements AnalysisErrorListener {
     writer.print(expectedErrors.length);
     writer.print(" errors:");
     for (AnalysisError error in expectedErrors) {
-      Source source11 = error.source;
-      LineInfo lineInfo = _lineInfoMap[source11];
+      Source source13 = error.source;
+      LineInfo lineInfo = _lineInfoMap[source13];
       writer.println();
       if (lineInfo == null) {
         int offset10 = error.offset;
-        writer.printf("  %s %s (%d..%d)", [source11 == null ? "" : source11.shortName, error.errorCode, offset10, offset10 + error.length]);
+        writer.printf("  %s %s (%d..%d)", [source13 == null ? "" : source13.shortName, error.errorCode, offset10, offset10 + error.length]);
       } else {
         LineInfo_Location location = lineInfo.getLocation(error.offset);
-        writer.printf("  %s %s (%d, %d/%d)", [source11 == null ? "" : source11.shortName, error.errorCode, location.lineNumber, location.columnNumber, error.length]);
+        writer.printf("  %s %s (%d, %d/%d)", [source13 == null ? "" : source13.shortName, error.errorCode, location.lineNumber, location.columnNumber, error.length]);
       }
     }
     writer.println();
@@ -290,15 +291,15 @@ class GatheringErrorListener implements AnalysisErrorListener {
     writer.print(_errors.length);
     writer.print(" errors:");
     for (AnalysisError error in _errors) {
-      Source source12 = error.source;
-      LineInfo lineInfo = _lineInfoMap[source12];
+      Source source14 = error.source;
+      LineInfo lineInfo = _lineInfoMap[source14];
       writer.println();
       if (lineInfo == null) {
         int offset11 = error.offset;
-        writer.printf("  %s %s (%d..%d): %s", [source12 == null ? "" : source12.shortName, error.errorCode, offset11, offset11 + error.length, error.message]);
+        writer.printf("  %s %s (%d..%d): %s", [source14 == null ? "" : source14.shortName, error.errorCode, offset11, offset11 + error.length, error.message]);
       } else {
         LineInfo_Location location = lineInfo.getLocation(error.offset);
-        writer.printf("  %s %s (%d, %d/%d): %s", [source12 == null ? "" : source12.shortName, error.errorCode, location.lineNumber, location.columnNumber, error.length, error.message]);
+        writer.printf("  %s %s (%d, %d/%d): %s", [source14 == null ? "" : source14.shortName, error.errorCode, location.lineNumber, location.columnNumber, error.length, error.message]);
       }
     }
     JUnitTestCase.fail(writer.toString());
@@ -607,6 +608,9 @@ main() {
 class TestSource implements Source {
   bool operator ==(Object object) {
     return this == object;
+  }
+  AnalysisContext get context {
+    throw new UnsupportedOperationException();
   }
   void getContents(Source_ContentReceiver receiver) {
     throw new UnsupportedOperationException();

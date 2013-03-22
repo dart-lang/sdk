@@ -257,6 +257,9 @@ Language/13_Libraries_and_Scripts/3_Parts_A02_t03: Fail # http://dartbug.com/502
 Language/13_Libraries_and_Scripts/3_Parts_A03_t01: Fail # http://dartbug.com/5022
 Language/14_Types/3_Type_Declarations/1_Typedef_A01_t01: Fail # http://dartbug.com/5022
 
+LibTest/core/List/operator_subscript_A03_t01: Fail # http://dartbug.com/9228
+LibTest/core/List/operator_subscripted_assignment_A03_t01: Fail # http://dartbug.com/9228
+
 [ $compiler == dart2js ]
 LibTest/core/int/operator_GT_A01_t01: Fail, OK # co19 issue 200
 LibTest/core/int/operator_LT_A01_t01: Fail, OK # co19 issue 200

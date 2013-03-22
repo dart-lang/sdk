@@ -533,6 +533,7 @@ class Assembler : public ValueObject {
 
   void negl(Register reg);
   void negq(Register reg);
+  void notl(Register reg);
   void notq(Register reg);
 
   void enter(const Immediate& imm);
@@ -632,7 +633,8 @@ class Assembler : public ValueObject {
   // Destroys value.
   void StoreIntoObject(Register object,  // Object we are storing into.
                        const Address& dest,  // Where we are storing into.
-                       Register value);  // Value we are storing.
+                       Register value,  // Value we are storing.
+                       bool can_value_be_smi = true);
 
   void StoreIntoObjectNoBarrier(Register object,
                                 const Address& dest,
@@ -820,6 +822,11 @@ class Assembler : public ValueObject {
   void EmitGenericShift(bool wide, int rm, Register operand, Register shifter);
 
   void StoreIntoObjectFilter(Register object, Register value, Label* no_update);
+
+  // Shorter filtering sequence that assumes that value is not a smi.
+  void StoreIntoObjectFilterNoSmi(Register object,
+                                  Register value,
+                                  Label* no_update);
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Assembler);

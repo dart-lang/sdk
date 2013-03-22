@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Testing file input stream, VM-only, standalone test.
@@ -77,7 +77,7 @@ void testInputStreamTruncate() {
         if (streamedBytes == 0) {
           subscription.pause();
           // Truncate the file by opening it for writing.
-          file.open(FileMode.WRITE).then((opened) {
+          file.open(mode: FileMode.WRITE).then((opened) {
             opened.close().then((_) {
                 Expect.equals(0, file.lengthSync());
                 subscription.resume();
@@ -150,7 +150,7 @@ void testInputStreamAppend() {
           subscription.pause();
           // Double the length of the underlying file.
           file.readAsBytes().then((bytes) {
-            file.writeAsBytes(bytes, FileMode.APPEND).then((_) {
+            file.writeAsBytes(bytes, mode: FileMode.APPEND).then((_) {
               Expect.equals(2 * originalLength, file.lengthSync());
               subscription.resume();
             });

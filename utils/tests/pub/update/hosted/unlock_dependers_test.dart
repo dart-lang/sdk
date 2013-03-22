@@ -6,37 +6,38 @@ library pub_tests;
 
 import 'dart:io';
 
+import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
   integration("updates a locked package's dependers in order to get it to max "
       "version", () {
     servePackages([
-      package("foo", "1.0.0", [dependency("bar", "<2.0.0")]),
-      package("bar", "1.0.0")
+      packageMap("foo", "1.0.0", [dependencyMap("bar", "<2.0.0")]),
+      packageMap("bar", "1.0.0")
     ]);
 
-    appDir([dependency("foo"), dependency("bar")]).scheduleCreate();
+    d.appDir([dependencyMap("foo"), dependencyMap("bar")]).create();
 
     schedulePub(args: ['install'],
         output: new RegExp(r"Dependencies installed!$"));
 
-    packagesDir({
+    d.packagesDir({
       "foo": "1.0.0",
       "bar": "1.0.0"
-    }).scheduleValidate();
+    }).validate();
 
     servePackages([
-      package("foo", "2.0.0", [dependency("bar", "<3.0.0")]),
-      package("bar", "2.0.0")
+      packageMap("foo", "2.0.0", [dependencyMap("bar", "<3.0.0")]),
+      packageMap("bar", "2.0.0")
     ]);
 
     schedulePub(args: ['update', 'bar'],
         output: new RegExp(r"Dependencies updated!$"));
 
-    packagesDir({
+    d.packagesDir({
       "foo": "2.0.0",
       "bar": "2.0.0"
-    }).scheduleValidate();
+    }).validate();
   });
 }

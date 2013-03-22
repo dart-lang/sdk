@@ -251,7 +251,9 @@ static bool IsSpecialCharacter(type value) {
           (value == '\b') ||
           (value == '\t') ||
           (value == '\v') ||
-          (value == '\r'));
+          (value == '\r') ||
+          (value == '\\') ||
+          (value == '$'));
 }
 
 
@@ -271,6 +273,10 @@ static type SpecialCharacter(type value) {
     return 'v';
   } else if (value == '\r') {
     return 'r';
+  } else if (value == '\\') {
+    return '\\';
+  } else if (value == '$') {
+    return '$';
   }
   UNREACHABLE();
   return '\0';
@@ -3236,7 +3242,18 @@ void Function::SetCode(const Code& value) const {
 
 void Function::SwitchToUnoptimizedCode() const {
   ASSERT(HasOptimizedCode());
+
   const Code& current_code = Code::Handle(CurrentCode());
+
+  // Optimized code object might have been actually fully produced by the
+  // intrinsifier in this case nothing has to be done. In fact an attempt to
+  // patch such code will cause crash.
+  // TODO(vegorov): if intrisifier can fully intrisify the function then we
+  // should not later try to optimize it.
+  if (PcDescriptors::Handle(current_code.pc_descriptors()).Length() == 0) {
+    return;
+  }
+
   if (FLAG_trace_disabling_optimized_code) {
     OS::Print("Disabling optimized code: '%s' entry: %#"Px"\n",
       ToFullyQualifiedCString(),
@@ -4696,6 +4713,9 @@ RawField* Field::New(const String& name,
   result.set_owner(owner);
   result.set_token_pos(token_pos);
   result.set_has_initializer(false);
+  result.set_guarded_cid(kIllegalCid);
+  result.set_is_nullable(false);
+  result.set_dependent_code(Array::Handle());
   return result.raw();
 }
 
@@ -4708,6 +4728,7 @@ RawField* Field::Clone(const Class& new_owner) const {
   const PatchClass& clone_owner =
       PatchClass::Handle(PatchClass::New(new_owner, owner));
   clone.set_owner(clone_owner);
+  clone.set_dependent_code(Array::Handle());
   if (!clone.is_static()) {
     clone.SetOffset(0);
   }
@@ -4734,6 +4755,137 @@ const char* Field::ToCString() const {
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, kFormat, cls_name, field_name, kF0, kF1, kF2);
   return chars;
+}
+
+
+RawArray* Field::dependent_code() const {
+  return raw_ptr()->dependent_code_;
+}
+
+
+void Field::set_dependent_code(const Array& array) const {
+  raw_ptr()->dependent_code_ = array.raw();
+}
+
+
+void Field::RegisterDependentCode(const Code& code) const {
+  const Array& dependent = Array::Handle(dependent_code());
+
+  if (!dependent.IsNull()) {
+    // Try to find and reuse cleared WeakProperty to avoid allocating new one.
+    WeakProperty& weak_property = WeakProperty::Handle();
+    for (intptr_t i = 0; i < dependent.Length(); i++) {
+      weak_property ^= dependent.At(i);
+      if (weak_property.key() == Code::null()) {
+        // Empty property found. Reuse it.
+        weak_property.set_key(code);
+        return;
+      }
+    }
+  }
+
+  const WeakProperty& weak_property = WeakProperty::Handle(
+      WeakProperty::New(Heap::kOld));
+  weak_property.set_key(code);
+
+  intptr_t length = dependent.IsNull() ? 0 : dependent.Length();
+  const Array& new_dependent = Array::Handle(
+      Array::Grow(dependent, length + 1, Heap::kOld));
+  new_dependent.SetAt(length, weak_property);
+  set_dependent_code(new_dependent);
+}
+
+
+static bool IsDependentCode(const Array& dependent_code, const Code& code) {
+  if (!code.is_optimized()) {
+    return false;
+  }
+
+  WeakProperty& weak_property = WeakProperty::Handle();
+  for (intptr_t i = 0; i < dependent_code.Length(); i++) {
+    weak_property ^= dependent_code.At(i);
+    if (code.raw() == weak_property.key()) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+
+void Field::DeoptimizeDependentCode() const {
+  const Array& code_objects = Array::Handle(dependent_code());
+
+  if (code_objects.IsNull()) {
+    return;
+  }
+  set_dependent_code(Array::Handle());
+
+  // Deoptimize all dependent code on the stack.
+  Code& code = Code::Handle();
+  {
+    DartFrameIterator iterator;
+    StackFrame* frame = iterator.NextFrame();
+    while (frame != NULL) {
+      code = frame->LookupDartCode();
+      if (IsDependentCode(code_objects, code)) {
+        DeoptimizeAt(code, frame->pc());
+      }
+      frame = iterator.NextFrame();
+    }
+  }
+
+  // Switch functions that use dependent code to unoptimized code.
+  WeakProperty& weak_property = WeakProperty::Handle();
+  Function& function = Function::Handle();
+  for (intptr_t i = 0; i < code_objects.Length(); i++) {
+    weak_property ^= code_objects.At(i);
+    code ^= weak_property.key();
+    if (code.IsNull()) {
+      // Code was garbage collected already.
+      continue;
+    }
+
+    function ^= code.function();
+    // If function uses dependent code switch it to unoptimized.
+    if (function.CurrentCode() == code.raw()) {
+      ASSERT(function.HasOptimizedCode());
+      function.SwitchToUnoptimizedCode();
+    }
+  }
+}
+
+
+void Field::UpdateCid(intptr_t cid) const {
+  if (guarded_cid() == kIllegalCid) {
+    // Field is assigned first time.
+    set_guarded_cid(cid);
+    set_is_nullable(cid == kNullCid);
+    return;
+  }
+
+  if ((cid == guarded_cid()) || ((cid == kNullCid) && is_nullable())) {
+    // Class id of the assigned value matches expected class id and nullability.
+    return;
+  }
+
+  if ((cid == kNullCid) && !is_nullable()) {
+    // Assigning null value to a non-nullable field makes it nullable.
+    set_is_nullable(true);
+  } else if ((cid != kNullCid) && (guarded_cid() == kNullCid)) {
+    // Assigning non-null value to a field that previously contained only null
+    // turns it into a nullable field with the given class id.
+    ASSERT(is_nullable());
+    set_guarded_cid(cid);
+  } else {
+    // Give up on tracking class id of values contained in this field.
+    ASSERT(guarded_cid() != cid);
+    set_guarded_cid(kDynamicCid);
+    set_is_nullable(true);
+  }
+
+  // Expected class id or nullability of the field changed.
+  DeoptimizeDependentCode();
 }
 
 
@@ -4844,37 +4996,17 @@ RawString* TokenStream::GenerateSource() const {
 
     // Handle the current token.
     if (curr == Token::kSTRING) {
-      bool is_raw_string = false;
       bool escape_characters = false;
       for (intptr_t i = 0; i < literal.Length(); i++) {
         if (IsSpecialCharacter(literal.CharAt(i))) {
           escape_characters = true;
         }
-        // TODO(4995): Temp solution for raw strings, this will break
-        // if we saw a string that is not a raw string but has back slashes
-        // in it.
-        if ((literal.CharAt(i) == '\\')) {
-          if ((next != Token::kINTERPOL_VAR) &&
-              (next != Token::kINTERPOL_START) &&
-              (prev != Token::kINTERPOL_VAR) &&
-              (prev != Token::kINTERPOL_END)) {
-            is_raw_string = true;
-          } else {
-            escape_characters = true;
-          }
-        }
-        if ((literal.CharAt(i) == '$')) {
-          escape_characters = true;
-        }
       }
       if ((prev != Token::kINTERPOL_VAR) && (prev != Token::kINTERPOL_END)) {
-        if (is_raw_string) {
-          literals.Add(Symbols::LowercaseR());
-        }
         literals.Add(Symbols::DoubleQuotes());
       }
       if (escape_characters) {
-        literal = String::EscapeSpecialCharacters(literal, is_raw_string);
+        literal = String::EscapeSpecialCharacters(literal);
         literals.Add(literal);
       } else {
         literals.Add(literal);
@@ -5217,7 +5349,7 @@ const char* TokenStream::ToCString() const {
 
 
 TokenStream::Iterator::Iterator(const TokenStream& tokens, intptr_t token_pos)
-    : tokens_(tokens),
+    : tokens_(TokenStream::Handle(tokens.raw())),
       data_(ExternalUint8Array::Handle(tokens.GetStream())),
       stream_(data_.ByteAddr(0), data_.Length()),
       token_objects_(Array::Handle(tokens.TokenObjects())),
@@ -5225,6 +5357,20 @@ TokenStream::Iterator::Iterator(const TokenStream& tokens, intptr_t token_pos)
       cur_token_pos_(token_pos),
       cur_token_kind_(Token::kILLEGAL),
       cur_token_obj_index_(-1) {
+  SetCurrentPosition(token_pos);
+}
+
+
+void TokenStream::Iterator::SetStream(const TokenStream& tokens,
+                                      intptr_t token_pos) {
+  tokens_ = tokens.raw();
+  data_ = tokens.GetStream();
+  stream_.SetStream(data_.ByteAddr(0), data_.Length());
+  token_objects_ = tokens.TokenObjects();
+  obj_ = Object::null();
+  cur_token_pos_ = token_pos;
+  cur_token_kind_ = Token::kILLEGAL;
+  cur_token_obj_index_ = -1;
   SetCurrentPosition(token_pos);
 }
 
@@ -7528,6 +7674,13 @@ RawCode* Code::FinalizeCode(const char* name,
 
   // Allocate the code object.
   Code& code = Code::ZoneHandle(Code::New(pointer_offsets.length()));
+
+  // Clone the object pool in the old space, if necessary.
+  Array& object_pool = Array::Handle(
+      Array::MakeArray(assembler->object_pool()));
+  if (!object_pool.IsOld()) {
+    object_pool ^= Object::Clone(object_pool, Heap::kOld);
+  }
   {
     NoGCScope no_gc;
 
@@ -7546,7 +7699,7 @@ RawCode* Code::FinalizeCode(const char* name,
     code.set_instructions(instrs.raw());
 
     // Set object pool in Instructions object.
-    instrs.set_object_pool(Array::MakeArray(assembler->object_pool()));
+    instrs.set_object_pool(object_pool.raw());
   }
   return code.raw();
 }
@@ -11136,12 +11289,12 @@ void String::Copy(const String& dst, intptr_t dst_offset,
 }
 
 
-RawString* String::EscapeSpecialCharacters(const String& str, bool raw_str) {
+RawString* String::EscapeSpecialCharacters(const String& str) {
   if (str.IsOneByteString()) {
-    return OneByteString::EscapeSpecialCharacters(str, raw_str);
+    return OneByteString::EscapeSpecialCharacters(str);
   }
   ASSERT(str.IsTwoByteString());
-  return TwoByteString::EscapeSpecialCharacters(str, raw_str);
+  return TwoByteString::EscapeSpecialCharacters(str);
 }
 
 
@@ -11529,16 +11682,13 @@ bool String::CodePointIterator::Next() {
 }
 
 
-RawOneByteString* OneByteString::EscapeSpecialCharacters(const String& str,
-                                                         bool raw_str) {
+RawOneByteString* OneByteString::EscapeSpecialCharacters(const String& str) {
   intptr_t len = str.Length();
   if (len > 0) {
     intptr_t num_escapes = 0;
     intptr_t index = 0;
     for (intptr_t i = 0; i < len; i++) {
-      if (IsSpecialCharacter(*CharAddr(str, i)) ||
-          (!raw_str && (*CharAddr(str, i) == '$')) ||
-          (!raw_str && (*CharAddr(str, i) == '\\'))) {
+      if (IsSpecialCharacter(*CharAddr(str, i))) {
         num_escapes += 1;
       }
     }
@@ -11548,14 +11698,6 @@ RawOneByteString* OneByteString::EscapeSpecialCharacters(const String& str,
       if (IsSpecialCharacter(*CharAddr(str, i))) {
         *(CharAddr(dststr, index)) = '\\';
         *(CharAddr(dststr, index + 1)) = SpecialCharacter(*CharAddr(str, i));
-        index += 2;
-      } else if (!raw_str && (*CharAddr(str, i) == '$')) {
-        *(CharAddr(dststr, index)) = '\\';
-        *(CharAddr(dststr, index + 1)) = '$';
-        index += 2;
-      } else if (!raw_str && (*CharAddr(str, i) == '\\')) {
-        *(CharAddr(dststr, index)) = '\\';
-        *(CharAddr(dststr, index + 1)) = '\\';
         index += 2;
       } else {
         *(CharAddr(dststr, index)) = *CharAddr(str, i);
@@ -11718,15 +11860,13 @@ RawOneByteString* OneByteString::SubStringUnchecked(const String& str,
 }
 
 
-RawTwoByteString* TwoByteString::EscapeSpecialCharacters(const String& str,
-                                                         bool raw_str) {
+RawTwoByteString* TwoByteString::EscapeSpecialCharacters(const String& str) {
   intptr_t len = str.Length();
   if (len > 0) {
     intptr_t num_escapes = 0;
     intptr_t index = 0;
     for (intptr_t i = 0; i < len; i++) {
-      if (IsSpecialCharacter(*CharAddr(str, i)) ||
-          (!raw_str && (*CharAddr(str, i) == '\\'))) {
+      if (IsSpecialCharacter(*CharAddr(str, i))) {
         num_escapes += 1;
       }
     }
@@ -11736,10 +11876,6 @@ RawTwoByteString* TwoByteString::EscapeSpecialCharacters(const String& str,
       if (IsSpecialCharacter(*CharAddr(str, i))) {
         *(CharAddr(dststr, index)) = '\\';
         *(CharAddr(dststr, index + 1)) = SpecialCharacter(*CharAddr(str, i));
-        index += 2;
-      } else if (!raw_str && (*CharAddr(str, i) == '\\')) {
-        *(CharAddr(dststr, index)) = '\\';
-        *(CharAddr(dststr, index + 1)) = '\\';
         index += 2;
       } else {
         *(CharAddr(dststr, index)) = *CharAddr(str, i);
@@ -12218,7 +12354,7 @@ const char* GrowableObjectArray::ToCString() const {
 
 
 RawFloat32x4* Float32x4::New(float v0, float v1, float v2, float v3,
-                                       Heap::Space space) {
+                             Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->float32x4_class() !=
          Class::null());
   Float32x4& result = Float32x4::Handle();
@@ -12237,7 +12373,7 @@ RawFloat32x4* Float32x4::New(float v0, float v1, float v2, float v3,
 }
 
 
-RawFloat32x4* Float32x4::New(simd_value_t value, Heap::Space space) {
+RawFloat32x4* Float32x4::New(simd128_value_t value, Heap::Space space) {
 ASSERT(Isolate::Current()->object_store()->float32x4_class() !=
          Class::null());
   Float32x4& result = Float32x4::Handle();
@@ -12253,13 +12389,13 @@ ASSERT(Isolate::Current()->object_store()->float32x4_class() !=
 }
 
 
-simd_value_t Float32x4::value() const {
-  return simd_value_safe_load(&raw_ptr()->value_[0]);
+simd128_value_t Float32x4::value() const {
+  return simd128_value_t().readFrom(&raw_ptr()->value_[0]);
 }
 
 
-void Float32x4::set_value(simd_value_t value) const {
-  simd_value_safe_store(&raw_ptr()->value_[0], value);
+void Float32x4::set_value(simd128_value_t value) const {
+  value.writeTo(&raw_ptr()->value_[0]);
 }
 
 
@@ -12337,7 +12473,7 @@ RawUint32x4* Uint32x4::New(uint32_t v0, uint32_t v1, uint32_t v2, uint32_t v3,
 }
 
 
-RawUint32x4* Uint32x4::New(simd_value_t value, Heap::Space space) {
+RawUint32x4* Uint32x4::New(simd128_value_t value, Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->float32x4_class() !=
          Class::null());
   Uint32x4& result = Uint32x4::Handle();
@@ -12393,13 +12529,13 @@ uint32_t Uint32x4::w() const {
 }
 
 
-simd_value_t Uint32x4::value() const {
-  return simd_value_safe_load(&raw_ptr()->value_[0]);
+simd128_value_t Uint32x4::value() const {
+  return simd128_value_t().readFrom(&raw_ptr()->value_[0]);
 }
 
 
-void Uint32x4::set_value(simd_value_t value) const {
-  simd_value_safe_store(&raw_ptr()->value_[0], value);
+void Uint32x4::set_value(simd128_value_t value) const {
+  value.writeTo(&raw_ptr()->value_[0]);
 }
 
 
@@ -12869,7 +13005,7 @@ const char* Uint64Array::ToCString() const {
 
 
 RawFloat32x4Array* Float32x4Array::New(intptr_t len,
-                                                 Heap::Space space) {
+                                       Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->float32x4_array_class() !=
          Class::null());
   return NewImpl<Float32x4Array, RawFloat32x4Array>(kClassId, len,
@@ -12877,9 +13013,9 @@ RawFloat32x4Array* Float32x4Array::New(intptr_t len,
 }
 
 
-RawFloat32x4Array* Float32x4Array::New(const simd_value_t* data,
-                                                 intptr_t len,
-                                                 Heap::Space space) {
+RawFloat32x4Array* Float32x4Array::New(const simd128_value_t* data,
+                                       intptr_t len,
+                                       Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->float32_array_class() !=
          Class::null());
   return NewImpl<Float32x4Array, RawFloat32x4Array>(kClassId, data,
@@ -13072,16 +13208,15 @@ const char* ExternalUint64Array::ToCString() const {
 }
 
 
-RawExternalFloat32x4Array* ExternalFloat32x4Array::New(
-    simd_value_t* data,
-    intptr_t len,
-    Heap::Space space) {
+RawExternalFloat32x4Array* ExternalFloat32x4Array::New(simd128_value_t* data,
+                                                       intptr_t len,
+                                                       Heap::Space space) {
   RawClass* cls =
      Isolate::Current()->object_store()->external_float32x4_array_class();
   ASSERT(cls != Class::null());
   return NewExternalImpl<ExternalFloat32x4Array,
                          RawExternalFloat32x4Array>(kClassId, data, len,
-                                                         space);
+                                                    space);
 }
 
 

@@ -105,6 +105,8 @@ const char* Location::Name() const {
     case kFpuRegister: return Assembler::FpuRegisterName(fpu_reg());
     case kStackSlot: return "S";
     case kDoubleStackSlot: return "DS";
+    case kFloat32x4StackSlot: return "F32x4S";
+    case kUint32x4StackSlot: return "UI32x4S";
     case kUnallocated:
       switch (policy()) {
         case kAny:

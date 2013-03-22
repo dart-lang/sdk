@@ -22,6 +22,40 @@ void Assembler::InitializeMemoryWithBreakpoints(uword data, int length) {
   }
 }
 
+
+void Assembler::Bind(Label* label) {
+  ASSERT(!label->IsBound());
+  int bound_pc = buffer_.Size();
+  while (label->IsLinked()) {
+    int32_t position = label->Position();
+    int32_t next = buffer_.Load<int32_t>(position);
+    // Reletive destination from an instruction after the branch.
+    int32_t dest = bound_pc - (position + Instr::kInstrSize);
+    int32_t encoded = Assembler::EncodeBranchOffset(dest, next);
+    buffer_.Store<int32_t>(position, encoded);
+    label->position_ = Assembler::DecodeBranchOffset(next);
+  }
+  label->BindTo(bound_pc);
+  delay_slot_available_ = false;
+}
+
+
+int32_t Assembler::EncodeBranchOffset(int32_t offset, int32_t instr) {
+  ASSERT(Utils::IsAligned(offset, 4));
+  ASSERT(Utils::IsInt(18, offset));
+
+  // Properly preserve only the bits supported in the instruction.
+  offset >>= 2;
+  offset &= kBranchOffsetMask;
+  return (instr & ~kBranchOffsetMask) | offset;
+}
+
+
+int Assembler::DecodeBranchOffset(int32_t instr) {
+  // Sign-extend, left-shift by 2.
+  return (((instr & kBranchOffsetMask) << 16) >> 14);
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_MIPS

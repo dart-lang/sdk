@@ -60,12 +60,17 @@ returnInt3(a) {
   throw 42;
 }
 
+returnInt4() {
+  return (42);
+}
+
 get topLevelGetter => 42;
 returnDynamic() => topLevelGetter(42);
 
 class A {
   factory A() = A.generative;
   A.generative();
+  operator==(other) => 42;
 
   get myField => 42;
   set myField(a) {}
@@ -97,12 +102,14 @@ main() {
   returnInt1(true);
   returnInt2(true);
   returnInt3(true);
+  returnInt4();
   returnDouble(true);
   returnGiveUp(true);
   returnNum3();
   returnNum4();
   returnIntOrNull(true);
   returnDynamic();
+  new A() == null;
   new A()..returnNum1()
          ..returnNum2()
          ..returnNum3()
@@ -136,12 +143,13 @@ void main() {
   checkReturn('returnInt1', typesInferrer.intType);
   checkReturn('returnInt2', typesInferrer.intType);
   checkReturn('returnDouble', typesInferrer.doubleType);
-  checkReturn('returnGiveUp', typesInferrer.giveUpType);
+  checkReturn('returnGiveUp', typesInferrer.dynamicType);
   checkReturn('returnNum3', typesInferrer.numType);
   checkReturn('returnNum4', typesInferrer.numType);
   checkReturn('returnIntOrNull', typesInferrer.intType.nullable());
   checkReturn('returnInt3', typesInferrer.intType);
   checkReturn('returnDynamic', typesInferrer.dynamicType);
+  checkReturn('returnInt4', typesInferrer.intType);
 
   checkReturnInClass(String className, String methodName, type) {
     var cls = findElement(compiler, className);
@@ -155,6 +163,7 @@ void main() {
   checkReturnInClass('A', 'returnNum4', typesInferrer.numType);
   checkReturnInClass('A', 'returnNum5', typesInferrer.numType);
   checkReturnInClass('A', 'returnNum6', typesInferrer.numType);
+  checkReturnInClass('A', '==', typesInferrer.dynamicType);
 
   checkReturnInClass('B', 'returnNum1', typesInferrer.numType);
   checkReturnInClass('B', 'returnNum2', typesInferrer.numType);

@@ -8,4 +8,3 @@ import "dart:async";
 
 part "base.dart";
 part "isolate_stream.dart";
-part "mangler.dart";

@@ -15,8 +15,7 @@ class MIPSDecoder : public ValueObject {
   MIPSDecoder(char* buffer, size_t buffer_size)
       : buffer_(buffer),
         buffer_size_(buffer_size),
-        buffer_pos_(0),
-        decode_failure_(false) {
+        buffer_pos_(0) {
     buffer_[buffer_pos_] = '\0';
   }
 
@@ -25,9 +24,6 @@ class MIPSDecoder : public ValueObject {
   // Writes one disassembled instruction into 'buffer' (0-terminated).
   // Returns true if the instruction was successfully decoded, false otherwise.
   void InstructionDecode(Instr* instr);
-
-  void set_decode_failure(bool b) { decode_failure_ = b; }
-  bool decode_failure() const { return decode_failure_; }
 
  private:
   // Bottleneck functions to print into the out_buffer.
@@ -43,6 +39,7 @@ class MIPSDecoder : public ValueObject {
 
   void DecodeSpecial(Instr* instr);
   void DecodeSpecial2(Instr* instr);
+  void DecodeRegImm(Instr* instr);
 
   // Convenience functions.
   char* get_buffer() const { return buffer_; }
@@ -52,8 +49,6 @@ class MIPSDecoder : public ValueObject {
   char* buffer_;  // Decode instructions into this buffer.
   size_t buffer_size_;  // The size of the character buffer.
   size_t buffer_pos_;  // Current character position in buffer.
-
-  bool decode_failure_;  // Set to true when a failure to decode is detected.
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(MIPSDecoder);
@@ -143,6 +138,16 @@ int MIPSDecoder::FormatOption(Instr* instr, const char* format) {
       }
       return 4;
     }
+    case 'd': {
+      ASSERT(STRING_STARTS_WITH(format, "dest"));
+      int off = instr->SImmField() << 2;
+      uword destination = reinterpret_cast<uword>(instr) + off;
+      buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
+                                 remaining_size_in_buffer(),
+                                 "%#"Px"",
+                                 destination);
+      return 4;
+    }
     case 'i': {
       ASSERT(STRING_STARTS_WITH(format, "imm"));
       if (format[3] == 'u') {
@@ -202,7 +207,6 @@ void MIPSDecoder::Format(Instr* instr, const char* format) {
 // which will just print "unknown" of the instruction bits.
 void MIPSDecoder::Unknown(Instr* instr) {
   Format(instr, "unknown");
-  set_decode_failure(true);
 }
 
 
@@ -229,12 +233,52 @@ void MIPSDecoder::DecodeSpecial(Instr* instr) {
       Format(instr, "divu 'rs, 'rt");
       break;
     }
+    case JALR: {
+      Format(instr, "jalr'hint 'rd, 'rs");
+      break;
+    }
+    case JR: {
+      Format(instr, "jr'hint 'rs");
+      break;
+    }
     case MFHI: {
       Format(instr, "mfhi 'rd");
       break;
     }
     case MFLO: {
       Format(instr, "mflo 'rd");
+      break;
+    }
+    case MOVN: {
+      Format(instr, "movn 'rd, 'rs, 'rt");
+      break;
+    }
+    case MOVZ: {
+      Format(instr, "movz 'rd, 'rs, 'rt");
+      break;
+    }
+    case MULT: {
+      Format(instr, "mult 'rs, 'rt");
+      break;
+    }
+    case MULTU: {
+      Format(instr, "multu 'rs, 'rt");
+      break;
+    }
+    case NOR: {
+      Format(instr, "nor 'rd, 'rs, 'rt");
+      break;
+    }
+    case OR: {
+      if (instr->RsField() == 0 && instr->RtField() == 0) {
+        Format(instr, "mov 'rd, 0");
+      } else if (instr->RsField() == R0) {
+        Format(instr, "mov 'rd, 'rt");
+      } else if (instr->RtField() == R0) {
+        Format(instr, "mov 'rd, 'rs");
+      } else {
+        Format(instr, "or 'rd, 'rs, 'rt");
+      }
       break;
     }
     case SLL: {
@@ -247,8 +291,56 @@ void MIPSDecoder::DecodeSpecial(Instr* instr) {
       }
       break;
     }
-    case JR: {
-      Format(instr, "jr'hint 'rs");
+    case SLLV: {
+      Format(instr, "sllv 'rd, 'rt, 'rs");
+      break;
+    }
+    case SLT: {
+      Format(instr, "slt 'rd, 'rs, 'rt");
+      break;
+    }
+    case SLTU: {
+      Format(instr, "sltu 'rd, 'rs, 'rt");
+      break;
+    }
+    case SRA: {
+      if (instr->RsField() == 0) {
+        Format(instr, "sra 'rd, 'rt, 'sa");
+      } else {
+        Unknown(instr);
+      }
+      break;
+    }
+    case SRAV: {
+      Format(instr, "srav 'rd, 'rt, 'rs");
+      break;
+    }
+    case SRL: {
+      if (instr->RsField() == 0) {
+        Format(instr, "srl 'rd, 'rt, 'sa");
+      } else {
+        Unknown(instr);
+      }
+      break;
+    }
+    case SRLV: {
+      if (instr->SaField() == 0) {
+        Format(instr, "srlv 'rd, 'rt, 'rs");
+      } else {
+        Unknown(instr);
+      }
+      break;
+    }
+    case SUB: {
+      Format(instr, "sub 'rd, 'rs, 'rt");
+      break;
+    }
+    case SUBU: {
+      Format(instr, "subu 'rd, 'rs, 'rt");
+      break;
+    }
+    case XOR: {
+      Format(instr, "xor 'rd, 'rs, 'rt");
       break;
     }
     default: {
@@ -278,6 +370,33 @@ void MIPSDecoder::DecodeSpecial2(Instr* instr) {
 }
 
 
+void MIPSDecoder::DecodeRegImm(Instr* instr) {
+  ASSERT(instr->OpcodeField() == REGIMM);
+  switch (instr->RegImmFnField()) {
+    case BGEZ: {
+      Format(instr, "bgez 'rs, 'dest");
+      break;
+    }
+    case BGEZL: {
+      Format(instr, "bgezl 'rs, 'dest");
+      break;
+    }
+    case BLTZ: {
+      Format(instr, "bltz 'rs, 'dest");
+      break;
+    }
+    case BLTZL: {
+      Format(instr, "bltzl 'rs, 'dest");
+      break;
+    }
+    default: {
+      Unknown(instr);
+      break;
+    }
+  }
+}
+
+
 void MIPSDecoder::InstructionDecode(Instr* instr) {
   switch (instr->OpcodeField()) {
     case SPECIAL: {
@@ -288,12 +407,48 @@ void MIPSDecoder::InstructionDecode(Instr* instr) {
       DecodeSpecial2(instr);
       break;
     }
+    case REGIMM: {
+      DecodeRegImm(instr);
+      break;
+    }
     case ADDIU: {
       Format(instr, "addiu 'rt, 'rs, 'imms");
       break;
     }
     case ANDI: {
       Format(instr, "andi 'rt, 'rs, 'immu");
+      break;
+    }
+    case BEQ: {
+      Format(instr, "beq 'rs, 'rt, 'dest");
+      break;
+    }
+    case BEQL: {
+      Format(instr, "beql 'rs, 'rt, 'dest");
+      break;
+    }
+    case BGTZ: {
+      Format(instr, "bgtz 'rs, 'dest");
+      break;
+    }
+    case BGTZL: {
+      Format(instr, "bgtzl 'rs, 'dest");
+      break;
+    }
+    case BLEZ: {
+      Format(instr, "blez 'rs, 'dest");
+      break;
+    }
+    case BLEZL: {
+      Format(instr, "blezl 'rs, 'dest");
+      break;
+    }
+    case BNE: {
+      Format(instr, "bne 'rs, 'rt, 'dest");
+      break;
+    }
+    case BNEL: {
+      Format(instr, "bnel 'rs, 'rt, 'dest");
       break;
     }
     case LB: {
@@ -340,9 +495,9 @@ void MIPSDecoder::InstructionDecode(Instr* instr) {
 }
 
 
-bool Disassembler::DecodeInstruction(char* hex_buffer, intptr_t hex_size,
-                                    char* human_buffer, intptr_t human_size,
-                                    int *out_instr_len, uword pc) {
+void Disassembler::DecodeInstruction(char* hex_buffer, intptr_t hex_size,
+                                     char* human_buffer, intptr_t human_size,
+                                     int* out_instr_len, uword pc) {
   MIPSDecoder decoder(human_buffer, human_size);
   Instr* instr = Instr::At(pc);
   decoder.InstructionDecode(instr);
@@ -350,16 +505,14 @@ bool Disassembler::DecodeInstruction(char* hex_buffer, intptr_t hex_size,
   if (out_instr_len) {
     *out_instr_len = Instr::kInstrSize;
   }
-  return !decoder.decode_failure();
 }
 
 
-bool Disassembler::Disassemble(uword start,
+void Disassembler::Disassemble(uword start,
                                uword end,
                                DisassemblyFormatter* formatter,
                                const Code::Comments& comments) {
   ASSERT(formatter != NULL);
-  bool success = true;
   char hex_buffer[kHexadecimalBufferSize];  // Instruction in hexadecimal form.
   char human_buffer[kUserReadableBufferSize];  // Human-readable instruction.
   uword pc = start;
@@ -374,12 +527,10 @@ bool Disassembler::Disassemble(uword start,
       comment_finger++;
     }
     int instruction_length;
-    bool res = DecodeInstruction(hex_buffer, sizeof(hex_buffer),
-                                 human_buffer, sizeof(human_buffer),
-                                 &instruction_length, pc);
-    if (!res) {
-      success = false;
-    }
+    DecodeInstruction(hex_buffer, sizeof(hex_buffer),
+                      human_buffer, sizeof(human_buffer),
+                      &instruction_length, pc);
+
     formatter->ConsumeInstruction(hex_buffer,
                                   sizeof(hex_buffer),
                                   human_buffer,
@@ -388,7 +539,7 @@ bool Disassembler::Disassemble(uword start,
     pc += instruction_length;
   }
 
-  return success;
+  return;
 }
 
 }  // namespace dart

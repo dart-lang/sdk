@@ -1515,7 +1515,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // seen selectors.
       if (target.isGenerativeConstructorBody()) {
         methodName = name.slowToString();
-      } else if (!node.isInterceptorCall) {
+      } else if (!node.isInterceptedCall) {
         if (target == backend.jsArrayAdd) {
           methodName = 'push';
         } else if (target == backend.jsArrayRemoveLast) {
@@ -1586,20 +1586,12 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         backend.compiler.enabledInvokeOn) {
       return selector;
     }
-    int receiverIndex = node.isInterceptorCall ? 1 : 0;
-    HType receiverType = node.inputs[receiverIndex].instructionType;
+    HType receiverType = node.dartReceiver.instructionType;
     return receiverType.refine(selector, compiler);
   }
 
   void registerInvoke(HInvokeDynamic node, Selector selector) {
-    bool inLoop = node.block.enclosingLoopHeader != null;
-    if (inLoop) {
-      Set<Selector> selectors = backend.selectorsCalledInLoop.putIfAbsent(
-          selector.name, () => new Set<Selector>());
-      selectors.add(selector);
-    }
-
-    if (node.isInterceptorCall) {
+    if (node.isInterceptedCall) {
       backend.addInterceptedSelector(selector);
     }
   }
@@ -1635,7 +1627,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void registerSetter(HInvokeDynamic node) {
     Selector selector = getOptimizedSelectorFor(node, node.selector);
     world.registerDynamicSetter(selector.name, selector);
-    HType valueType = node.isInterceptorCall
+    HType valueType = node.isInterceptedCall
         ? node.inputs[2].instructionType
         : node.inputs[1].instructionType;
     backend.addedDynamicSetter(selector, valueType);
@@ -1728,10 +1720,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     } else {
       String name = _fieldPropertyName(element);
       push(new js.PropertyAccess.field(pop(), name), node);
-      DartType type = node.receiver.instructionType.computeType(compiler);
-      if (type != null && !identical(type.kind, TypeKind.MALFORMED_TYPE)) {
-        world.registerFieldGetter(element);
-      }
+      world.registerFieldGetter(element);
     }
   }
 
@@ -1773,8 +1762,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // instantiated. We should find a way of using something along the
     // lines of the NativeEnqueuerBase.processNativeBehavior method.
     if (type.isUnknown()) return;
-    DartType dartType = type.computeType(compiler);
-    world.registerInstantiatedClass(dartType.element, work.resolutionTree);
+    TypeMask mask = type.computeMask(compiler);
+    world.registerInstantiatedClass(mask.base.element, work.resolutionTree);
   }
 
   visitForeign(HForeign node) {

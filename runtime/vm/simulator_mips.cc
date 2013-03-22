@@ -219,7 +219,6 @@ void SimulatorDebugger::RedoBreakpoints() {
 void SimulatorDebugger::Debug() {
   intptr_t last_pc = -1;
   bool done = false;
-  bool decoded = true;
 
 #define COMMAND_SIZE 63
 #define ARG_SIZE 255
@@ -243,11 +242,11 @@ void SimulatorDebugger::Debug() {
   while (!done) {
     if (last_pc != sim_->get_pc()) {
       last_pc = sim_->get_pc();
-      decoded = Disassembler::Disassemble(last_pc, last_pc + Instr::kInstrSize);
+      Disassembler::Disassemble(last_pc, last_pc + Instr::kInstrSize);
     }
     char* line = ReadLine("sim> ");
     if (line == NULL) {
-      break;
+      FATAL("ReadLine failed");
     } else {
       // Use sscanf to parse the individual parts of the command line. At the
       // moment no command expects more than two parameters.
@@ -277,20 +276,12 @@ void SimulatorDebugger::Debug() {
         OS::Print("Quitting\n");
         OS::Exit(0);
       } else if ((strcmp(cmd, "si") == 0) || (strcmp(cmd, "stepi") == 0)) {
-        if (decoded) {
-          sim_->InstructionDecode(reinterpret_cast<Instr*>(sim_->get_pc()));
-        } else {
-          OS::Print("Instruction could not be decoded. Stepping disabled.\n");
-        }
+        sim_->InstructionDecode(reinterpret_cast<Instr*>(sim_->get_pc()));
       } else if ((strcmp(cmd, "c") == 0) || (strcmp(cmd, "cont") == 0)) {
-        if (decoded) {
-          // Execute the one instruction we broke at with breakpoints disabled.
-          sim_->InstructionDecode(reinterpret_cast<Instr*>(sim_->get_pc()));
-          // Leave the debugger shell.
-          done = true;
-        } else {
-          OS::Print("Instruction could not be decoded. Cannot continue.\n");
-        }
+        // Execute the one instruction we broke at with breakpoints disabled.
+        sim_->InstructionDecode(reinterpret_cast<Instr*>(sim_->get_pc()));
+        // Leave the debugger shell.
+        done = true;
       } else if ((strcmp(cmd, "p") == 0) || (strcmp(cmd, "print") == 0)) {
         if (args == 2) {
           uint32_t value;
@@ -561,6 +552,15 @@ double Simulator::get_fregister(FRegister reg) const {
 }
 
 
+void Simulator::UnimplementedInstruction(Instr* instr) {
+  char buffer[64];
+  snprintf(buffer, sizeof(buffer), "Unimplemented instruction: pc=%p\n", instr);
+  SimulatorDebugger dbg(this);
+  dbg.Stop(instr, buffer);
+  FATAL("Cannot continue execution after unimplemented instruction.");
+}
+
+
 void Simulator::HandleIllegalAccess(uword addr, Instr* instr) {
   uword fault_pc = get_pc();
   // The debugger will not be able to single step past this instruction, but
@@ -757,6 +757,28 @@ void Simulator::DecodeSpecial(Instr* instr) {
       set_hi_register(rs_val % rt_val);
       break;
     }
+    case JALR: {
+      ASSERT(instr->RtField() == R0);
+      ASSERT(instr->RsField() != instr->RdField());
+      ASSERT(!delay_slot_);
+      // Format(instr, "jalr'hint 'rd, rs");
+      uword next_pc = get_register(instr->RsField());
+      ExecuteDelaySlot();
+      // Set return address to be the instruction after the delay slot.
+      set_register(instr->RdField(), pc_ + Instr::kInstrSize);
+      pc_ = next_pc - Instr::kInstrSize;  // Account for regular PC increment.
+      break;
+    }
+    case JR: {
+      ASSERT(instr->RtField() == R0);
+      ASSERT(instr->RdField() == R0);
+      ASSERT(!delay_slot_);
+      // Format(instr, "jr'hint 'rs");
+      uword next_pc = get_register(instr->RsField());
+      ExecuteDelaySlot();
+      pc_ = next_pc - Instr::kInstrSize;  // Account for regular PC increment.
+      break;
+    }
     case MFHI: {
       ASSERT(instr->RsField() == 0);
       ASSERT(instr->RtField() == 0);
@@ -773,6 +795,64 @@ void Simulator::DecodeSpecial(Instr* instr) {
       set_register(instr->RdField(), get_lo_register());
       break;
     }
+    case MOVN: {
+      ASSERT(instr->SaField() == 0);
+      // Format(instr, "movn 'rd, 'rs, 'rt");
+      int32_t rt_val = get_register(instr->RtField());
+      int32_t rs_val = get_register(instr->RsField());
+      if (rt_val != 0) {
+        set_register(instr->RdField(), rs_val);
+      }
+      break;
+    }
+    case MOVZ: {
+      ASSERT(instr->SaField() == 0);
+      // Format(instr, "movz 'rd, 'rs, 'rt");
+      int32_t rt_val = get_register(instr->RtField());
+      int32_t rs_val = get_register(instr->RsField());
+      if (rt_val == 0) {
+        set_register(instr->RdField(), rs_val);
+      }
+      break;
+    }
+    case MULT: {
+      ASSERT(instr->RdField() == 0);
+      ASSERT(instr->SaField() == 0);
+      // Format(instr, "mult 'rs, 'rt");
+      int64_t rs = static_cast<int64_t>(get_register(instr->RsField()));
+      int64_t rt = static_cast<int64_t>(get_register(instr->RtField()));
+      int64_t res = rs * rt;
+      set_hi_register(Utils::High32Bits(res));
+      set_lo_register(Utils::Low32Bits(res));
+      break;
+    }
+    case MULTU: {
+      ASSERT(instr->RdField() == 0);
+      ASSERT(instr->SaField() == 0);
+      // Format(instr, "multu 'rs, 'rt");
+      uint64_t rs = static_cast<uint64_t>(get_register(instr->RsField()));
+      uint64_t rt = static_cast<uint64_t>(get_register(instr->RtField()));
+      uint64_t res = rs * rt;
+      set_hi_register(Utils::High32Bits(res));
+      set_lo_register(Utils::Low32Bits(res));
+      break;
+    }
+    case NOR: {
+      ASSERT(instr->SaField() == 0);
+      // Format(instr, "nor 'rd, 'rs, 'rt");
+      int32_t rs_val = get_register(instr->RsField());
+      int32_t rt_val = get_register(instr->RtField());
+      set_register(instr->RdField(), ~(rs_val | rt_val));
+      break;
+    }
+    case OR: {
+      ASSERT(instr->SaField() == 0);
+      // Format(instr, "or 'rd, 'rs, 'rt");
+      int32_t rs_val = get_register(instr->RsField());
+      int32_t rt_val = get_register(instr->RtField());
+      set_register(instr->RdField(), rs_val | rt_val);
+      break;
+    }
     case SLL: {
       ASSERT(instr->RsField() == 0);
       if ((instr->RdField() == R0) &&
@@ -787,19 +867,81 @@ void Simulator::DecodeSpecial(Instr* instr) {
       }
       break;
     }
-    case JR: {
-      ASSERT(instr->RtField() == R0);
-      ASSERT(instr->RdField() == R0);
-      ASSERT(!delay_slot_);
-      // Format(instr, "jr'hint 'rs");
-      uword next_pc = get_register(instr->RsField());
-      ExecuteDelaySlot();
-      pc_ = next_pc - Instr::kInstrSize;  // Account for regular PC increment.
+    case SLLV: {
+      ASSERT(instr->SaField() == 0);
+      // Format(instr, "sllv 'rd, 'rt, 'rs");
+      int32_t rt_val = get_register(instr->RtField());
+      int32_t rs_val = get_register(instr->RsField());
+      set_register(instr->RdField(), rt_val << (rs_val & 0x1f));
+      break;
+    }
+    case SLT: {
+      ASSERT(instr->SaField() == 0);
+      // Format(instr, "slt 'rd, 'rs, 'rt");
+      int32_t rs_val = get_register(instr->RsField());
+      int32_t rt_val = get_register(instr->RtField());
+      set_register(instr->RdField(), rs_val < rt_val ? 1 : 0);
+      break;
+    }
+    case SLTU: {
+      ASSERT(instr->SaField() == 0);
+      // Format(instr, "sltu 'rd, 'rs, 'rt");
+      uint32_t rs_val = static_cast<uint32_t>(get_register(instr->RsField()));
+      uint32_t rt_val = static_cast<uint32_t>(get_register(instr->RtField()));
+      set_register(instr->RdField(), rs_val < rt_val ? 1 : 0);
+      break;
+    }
+    case SRA: {
+      ASSERT(instr->RsField() == 0);
+      // Format(instr, "sra 'rd, 'rt, 'sa");
+      int32_t rt_val = get_register(instr->RtField());
+      int32_t sa = instr->SaField();
+      set_register(instr->RdField(), rt_val >> sa);
+      break;
+    }
+    case SRAV: {
+      ASSERT(instr->SaField() == 0);
+      // Format(instr, "srav 'rd, 'rt, 'rs");
+      int32_t rt_val = get_register(instr->RtField());
+      int32_t rs_val = get_register(instr->RsField());
+      set_register(instr->RdField(), rt_val >> (rs_val & 0x1f));
+      break;
+    }
+    case SRL: {
+      ASSERT(instr->RsField() == 0);
+      // Format(instr, "srl 'rd, 'rt, 'sa");
+      uint32_t rt_val = get_register(instr->RtField());
+      uint32_t sa = instr->SaField();
+      set_register(instr->RdField(), rt_val >> sa);
+      break;
+    }
+    case SRLV: {
+      ASSERT(instr->SaField() == 0);
+      // Format(instr, "srlv 'rd, 'rt, 'rs");
+      uint32_t rt_val = get_register(instr->RtField());
+      uint32_t rs_val = get_register(instr->RsField());
+      set_register(instr->RdField(), rt_val >> (rs_val & 0x1f));
+      break;
+    }
+    case SUBU: {
+      ASSERT(instr->SaField() == 0);
+      // Format(instr, "subu 'rd, 'rs, 'rt");
+      int32_t rs_val = get_register(instr->RsField());
+      int32_t rt_val = get_register(instr->RtField());
+      set_register(instr->RdField(), rs_val - rt_val);
+      break;
+    }
+    case XOR: {
+      ASSERT(instr->SaField() == 0);
+      // Format(instr, "xor 'rd, 'rs, 'rt");
+      int32_t rs_val = get_register(instr->RsField());
+      int32_t rt_val = get_register(instr->RtField());
+      set_register(instr->RdField(), rs_val ^ rt_val);
       break;
     }
     default: {
       OS::PrintErr("DecodeSpecial: 0x%x\n", instr->InstructionBits());
-      UNIMPLEMENTED();
+      UnimplementedInstruction(instr);
       break;
     }
   }
@@ -841,7 +983,66 @@ void Simulator::DecodeSpecial2(Instr* instr) {
     }
     default: {
       OS::PrintErr("DecodeSpecial2: 0x%x\n", instr->InstructionBits());
-      UNIMPLEMENTED();
+      UnimplementedInstruction(instr);
+      break;
+    }
+  }
+}
+
+
+void Simulator::DoBranch(Instr* instr, bool taken, bool likely) {
+  ASSERT(!delay_slot_);
+  int32_t imm_val = instr->SImmField() << 2;
+
+  uword next_pc;
+  if (taken) {
+    // imm_val is added to the address of the instruction following the branch.
+    next_pc = pc_ + imm_val + Instr::kInstrSize;
+    if (likely) {
+      ExecuteDelaySlot();
+    }
+  } else {
+    next_pc = pc_ + (2 * Instr::kInstrSize);  // Next after delay slot.
+  }
+  if (!likely) {
+    ExecuteDelaySlot();
+  }
+  pc_ = next_pc - Instr::kInstrSize;
+
+  return;
+}
+
+
+void Simulator::DecodeRegImm(Instr* instr) {
+  ASSERT(instr->OpcodeField() == REGIMM);
+  switch (instr->RegImmFnField()) {
+    case BGEZ: {
+      // Format(instr, "bgez 'rs, 'dest");
+      int32_t rs_val = get_register(instr->RsField());
+      DoBranch(instr, rs_val >= 0, false);
+      break;
+    }
+    case BGEZL: {
+      // Format(instr, "bgezl 'rs, 'dest");
+      int32_t rs_val = get_register(instr->RsField());
+      DoBranch(instr, rs_val >= 0, true);
+      break;
+    }
+    case BLTZ: {
+      // Format(instr, "bltz 'rs, 'dest");
+      int32_t rs_val = get_register(instr->RsField());
+      DoBranch(instr, rs_val < 0, false);
+      break;
+    }
+    case BLTZL: {
+      // Format(instr, "bltzl 'rs, 'dest");
+      int32_t rs_val = get_register(instr->RsField());
+      DoBranch(instr, rs_val < 0, true);
+      break;
+    }
+    default: {
+      OS::PrintErr("DecodeRegImm: 0x%x\n", instr->InstructionBits());
+      UnimplementedInstruction(instr);
       break;
     }
   }
@@ -858,6 +1059,10 @@ void Simulator::InstructionDecode(Instr* instr) {
       DecodeSpecial2(instr);
       break;
     }
+    case REGIMM: {
+      DecodeRegImm(instr);
+      break;
+    }
     case ADDIU: {
       // Format(instr, "addiu 'rt, 'rs, 'imms");
       int32_t rs_val = get_register(instr->RsField());
@@ -871,6 +1076,62 @@ void Simulator::InstructionDecode(Instr* instr) {
       // Format(instr, "andi 'rt, 'rs, 'immu");
       int32_t rs_val = get_register(instr->RsField());
       set_register(instr->RtField(), rs_val & instr->UImmField());
+      break;
+    }
+    case BEQ: {
+      // Format(instr, "beq 'rs, 'rt, 'dest");
+      int32_t rs_val = get_register(instr->RsField());
+      int32_t rt_val = get_register(instr->RtField());
+      DoBranch(instr, rs_val == rt_val, false);
+      break;
+    }
+    case BEQL: {
+      // Format(instr, "beql 'rs, 'rt, 'dest");
+      int32_t rs_val = get_register(instr->RsField());
+      int32_t rt_val = get_register(instr->RtField());
+      DoBranch(instr, rs_val == rt_val, true);
+      break;
+    }
+    case BGTZ: {
+      ASSERT(instr->RtField() == R0);
+      // Format(instr, "bgtz 'rs, 'dest");
+      int32_t rs_val = get_register(instr->RsField());
+      DoBranch(instr, rs_val > 0, false);
+      break;
+    }
+    case BGTZL: {
+      ASSERT(instr->RtField() == R0);
+      // Format(instr, "bgtzl 'rs, 'dest");
+      int32_t rs_val = get_register(instr->RsField());
+      DoBranch(instr, rs_val > 0, true);
+      break;
+    }
+    case BLEZ: {
+      ASSERT(instr->RtField() == R0);
+      // Format(instr, "blez 'rs, 'dest");
+      int32_t rs_val = get_register(instr->RsField());
+      DoBranch(instr, rs_val <= 0, false);
+      break;
+    }
+    case BLEZL: {
+      ASSERT(instr->RtField() == R0);
+      // Format(instr, "blezl 'rs, 'dest");
+      int32_t rs_val = get_register(instr->RsField());
+      DoBranch(instr, rs_val <= 0, true);
+      break;
+    }
+    case BNE: {
+      // Format(instr, "bne 'rs, 'rt, 'dest");
+      int32_t rs_val = get_register(instr->RsField());
+      int32_t rt_val = get_register(instr->RtField());
+      DoBranch(instr, rs_val != rt_val, false);
+      break;
+    }
+    case BNEL: {
+      // Format(instr, "bnel 'rs, 'rt, 'dest");
+      int32_t rs_val = get_register(instr->RsField());
+      int32_t rt_val = get_register(instr->RtField());
+      DoBranch(instr, rs_val != rt_val, true);
       break;
     }
     case LB: {
@@ -991,7 +1252,7 @@ void Simulator::InstructionDecode(Instr* instr) {
     default: {
       OS::PrintErr("Undecoded instruction: 0x%x at %p\n",
                     instr->InstructionBits(), instr);
-      UNIMPLEMENTED();
+      UnimplementedInstruction(instr);
       break;
     }
   }
@@ -1003,10 +1264,11 @@ void Simulator::ExecuteDelaySlot() {
   ASSERT(pc_ != kEndSimulatingPC);
   delay_slot_ = true;
   icount_++;
-  if (icount_ == FLAG_stop_sim_at) {
-    UNIMPLEMENTED();
-  }
   Instr* instr = Instr::At(pc_ + Instr::kInstrSize);
+  if (icount_ == FLAG_stop_sim_at) {
+    SimulatorDebugger dbg(this);
+    dbg.Stop(instr, "Instruction count reached");
+  }
   InstructionDecode(instr);
   delay_slot_ = false;
 }
@@ -1019,18 +1281,27 @@ void Simulator::Execute() {
     while (pc_ != kEndSimulatingPC) {
       icount_++;
       Instr* instr = Instr::At(pc_);
-      InstructionDecode(instr);
+      if (IsIllegalAddress(pc_)) {
+        HandleIllegalAccess(pc_, instr);
+      } else {
+        InstructionDecode(instr);
+      }
     }
   } else {
     // FLAG_stop_sim_at is at the non-default value. Stop in the debugger when
     // we reach the particular instruction count.
     while (pc_ != kEndSimulatingPC) {
       icount_++;
+      Instr* instr = Instr::At(pc_);
       if (icount_ == FLAG_stop_sim_at) {
-        UNIMPLEMENTED();
+        SimulatorDebugger dbg(this);
+        dbg.Stop(instr, "Instruction count reached");
       } else {
-        Instr* instr = Instr::At(pc_);
-        InstructionDecode(instr);
+        if (IsIllegalAddress(pc_)) {
+          HandleIllegalAccess(pc_, instr);
+        } else {
+          InstructionDecode(instr);
+        }
       }
     }
   }

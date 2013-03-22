@@ -1191,14 +1191,6 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
   @Experimental
   bool imageSmoothingEnabled;
 
-  @JSName('webkitLineDash')
-  @DomName('CanvasRenderingContext2D.webkitLineDash')
-  @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  List lineDash;
-
   @JSName('arc')
   @DomName('CanvasRenderingContext2D.arc')
   @DocsEditable
@@ -1231,26 +1223,27 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
   @DomName('CanvasRenderingContext2D.createImageData')
   @DocsEditable
   @Creates('ImageData|=Object')
-  ImageData createImageData(imagedata_OR_sw, [num sh]) {
-    if ((imagedata_OR_sw is ImageData || imagedata_OR_sw == null) && !?sh) {
-      var imagedata_1 = _convertDartToNative_ImageData(imagedata_OR_sw);
-      return _convertNativeToDart_ImageData(_createImageData_1(imagedata_1));
-    }
-    if ((imagedata_OR_sw is num || imagedata_OR_sw == null)) {
-      return _convertNativeToDart_ImageData(_createImageData_2(imagedata_OR_sw, sh));
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
+  ImageData createImageData(num sw, num sh) {
+    return _convertNativeToDart_ImageData(_createImageData_1(sw, sh));
   }
   @JSName('createImageData')
   @DomName('CanvasRenderingContext2D.createImageData')
   @DocsEditable
   @Creates('ImageData|=Object')
-  _createImageData_1(imagedata) native;
+  _createImageData_1(sw, sh) native;
+
+  @DomName('CanvasRenderingContext2D.createImageData')
+  @DocsEditable
+  @Creates('ImageData|=Object')
+  ImageData createImageDataFromImageData(ImageData imagedata) {
+    var imagedata_1 = _convertDartToNative_ImageData(imagedata);
+    return _convertNativeToDart_ImageData(_createImageDataFromImageData_1(imagedata_1));
+  }
   @JSName('createImageData')
   @DomName('CanvasRenderingContext2D.createImageData')
   @DocsEditable
   @Creates('ImageData|=Object')
-  _createImageData_2(num sw, sh) native;
+  _createImageDataFromImageData_1(imagedata) native;
 
   @DomName('CanvasRenderingContext2D.createLinearGradient')
   @DocsEditable
@@ -1263,11 +1256,6 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
   @DomName('CanvasRenderingContext2D.createRadialGradient')
   @DocsEditable
   CanvasGradient createRadialGradient(num x0, num y0, num r0, num x1, num y1, num r1) native;
-
-  @JSName('drawImage')
-  @DomName('CanvasRenderingContext2D.drawImage')
-  @DocsEditable
-  void $dom_drawImage(canvas_OR_image_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width, num height_OR_sh, num dx, num dy, num dw, num dh]) native;
 
   @DomName('CanvasRenderingContext2D.fill')
   @DocsEditable
@@ -1484,11 +1472,73 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
   }
 
   /**
+   * Draws an image from a CanvasImageSource to an area of this canvas.
+   *
+   * The image will be drawn to an area of this canvas defined by
+   * [destRect]. [sourceRect] defines the region of the source image that is
+   * drawn.
+   * If [sourceRect] is not provided, then
+   * the entire rectangular image from [source] will be drawn to this context.
+   *
+   * If the image is larger than canvas
+   * will allow, the image will be clipped to fit the available space.
+   *
+   *     CanvasElement canvas = new CanvasElement(width: 600, height: 600);
+   *     CanvasRenderingContext2D ctx = canvas.context2d;
+   *     ImageElement img = document.query('img');
+   *     img.width = 100;
+   *     img.height = 100;
+   *
+   *     // Scale the image to 20x20.
+   *     ctx.drawImageToRect(img, new Rect(50, 50, 20, 20));
+   *
+   *     VideoElement video = document.query('video');
+   *     video.width = 100;
+   *     video.height = 100;
+   *     // Take the middle 20x20 pixels from the video and stretch them.
+   *     ctx.drawImageToRect(video, new Rect(50, 50, 100, 100),
+   *         sourceRect: new Rect(40, 40, 20, 20));
+   *
+   *     // Draw the top 100x20 pixels from the otherCanvas.
+   *     CanvasElement otherCanvas = document.query('canvas');
+   *     ctx.drawImageToRect(otherCanvas, new Rect(0, 0, 100, 20),
+   *         sourceRect: new Rect(0, 0, 100, 20));
+   *
+   * See also:
+   *
+   *   * [CanvasImageSource] for more information on what data is retrieved
+   * from [source].
+   *   * [drawImage](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#dom-context-2d-drawimage)
+   * from the WHATWG.
+   */
+  @DomName('CanvasRenderingContext2D.drawImage')
+  void drawImageToRect(CanvasImageSource source, Rect destRect,
+      {Rect sourceRect}) {
+    if (sourceRect == null) {
+      drawImageScaled(source,
+          destRect.left,
+          destRect.top,
+          destRect.width,
+          destRect.height);
+    } else {
+      drawImageScaledFromSource(source,
+          sourceRect.left,
+          sourceRect.top,
+          sourceRect.width,
+          sourceRect.height,
+          destRect.left,
+          destRect.top,
+          destRect.width,
+          destRect.height);
+    }
+  }
+
+  /**
    * Draws an image from a CanvasImageSource to this canvas.
    *
    * The entire image from [source] will be drawn to this context with its top
-   * left corner at the point ([destinationX], [destinationY]). If the image is
-   * larger than canvas will allow, the image will be cropped to fit the
+   * left corner at the point ([destX], [destY]). If the image is
+   * larger than canvas will allow, the image will be clipped to fit the
    * available space.
    *
    *     CanvasElement canvas = new CanvasElement(width: 600, height: 600);
@@ -1503,7 +1553,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
    *     CanvasElement otherCanvas = document.query('canvas');
    *     otherCanvas.width = 100;
    *     otherCanvas.height = 100;
-   *     ctx.drawImage(otherCanvas, 590, 590); // will get cropped
+   *     ctx.drawImage(otherCanvas, 590, 590); // will get clipped
    *
    * See also:
    *
@@ -1513,20 +1563,18 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
    * from the WHATWG.
    */
   @DomName('CanvasRenderingContext2D.drawImage')
-  void drawImage(CanvasImageSource source, num destinationX, num destinationY) {
-    $dom_drawImage(source, destinationX, destinationY);
-  }
+  @JSName('drawImage')
+  void drawImage(CanvasImageSource source, num destX, num destY) native;
 
   /**
    * Draws an image from a CanvasImageSource to an area of this canvas.
    *
-   * The image will be drawn to an area of this canvas defined by
-   * [destinationRect]. If [sourceRect] is not provided, then
-   * the entire rectangular image from [source] will be drawn to this context.
-   * If the dimensions of [source] or [sourceRect]
-   * differ from [destinationRect], then the image will be scaled to fit.
+   * The image will be drawn to this context with its top left corner at the
+   * point ([destX], [destY]) and will be scaled to be [destWidth] wide and
+   * [destHeight] tall.
+   *
    * If the image is larger than canvas
-   * will allow, the image will be cropped to fit the available space.
+   * will allow, the image will be clipped to fit the available space.
    *
    *     CanvasElement canvas = new CanvasElement(width: 600, height: 600);
    *     CanvasRenderingContext2D ctx = canvas.context2d;
@@ -1534,20 +1582,8 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
    *     img.width = 100;
    *     img.height = 100;
    *
-   *     // Scale the image to 20x20.
-   *     ctx.drawImageAtScale(img, new Rect(50, 50, 20, 20));
-   *
-   *     VideoElement video = document.query('video');
-   *     video.width = 100;
-   *     video.height = 100;
-   *     // Take the middle 20x20 pixels from the video and stretch them.
-   *     ctx.drawImageAtScale(video, new Rect(50, 50, 100, 100),
-   *         sourceRect: new Rect(40, 40, 20, 20));
-   *
-   *     // Draw the top 100x20 pixels from the otherCanvas.
-   *     CanvasElement otherCanvas = document.query('canvas');
-   *     ctx.drawImageAtScale(otherCanvas, new Rect(0, 0, 100, 20),
-   *         sourceRect: new Rect(0, 0, 100, 20));
+   *     // Scale the image to 300x50 at the point (20, 20)
+   *     ctx.drawImageScaled(img, 20, 20, 300, 50);
    *
    * See also:
    *
@@ -1557,26 +1593,44 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
    * from the WHATWG.
    */
   @DomName('CanvasRenderingContext2D.drawImage')
-  void drawImageAtScale(CanvasImageSource source, Rect destinationRect,
-      {Rect sourceRect}) {
-    if (sourceRect == null) {
-      $dom_drawImage(source,
-          destinationRect.left,
-          destinationRect.top,
-          destinationRect.width,
-          destinationRect.height);
-    } else {
-      $dom_drawImage(source,
-          sourceRect.left,
-          sourceRect.top,
-          sourceRect.width,
-          sourceRect.height,
-          destinationRect.left,
-          destinationRect.top,
-          destinationRect.width,
-          destinationRect.height);
-    }
-  }
+  @JSName('drawImage')
+  void drawImageScaled(CanvasImageSource source,
+      num destX, num destY, num destWidth, num destHeight) native;
+
+  /**
+   * Draws an image from a CanvasImageSource to an area of this canvas.
+   *
+   * The image is a region of [source] that is [sourceWidth] wide and
+   * [destHeight] tall with top left corner at ([sourceX], [sourceY]).
+   * The image will be drawn to this context with its top left corner at the
+   * point ([destX], [destY]) and will be scaled to be [destWidth] wide and
+   * [destHeight] tall.
+   *
+   * If the image is larger than canvas
+   * will allow, the image will be clipped to fit the available space.
+   *
+   *     VideoElement video = document.query('video');
+   *     video.width = 100;
+   *     video.height = 100;
+   *     // Take the middle 20x20 pixels from the video and stretch them.
+   *     ctx.drawImageScaledFromSource(video, 40, 40, 20, 20, 50, 50, 100, 100);
+   *
+   *     // Draw the top 100x20 pixels from the otherCanvas to this one.
+   *     CanvasElement otherCanvas = document.query('canvas');
+   *     ctx.drawImageScaledFromSource(otherCanvas, 0, 0, 100, 20, 0, 0, 100, 20);
+   *
+   * See also:
+   *
+   *   * [CanvasImageSource] for more information on what data is retrieved
+   * from [source].
+   *   * [drawImage](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#dom-context-2d-drawimage)
+   * from the WHATWG.
+   */
+  @DomName('CanvasRenderingContext2D.drawImage')
+  @JSName('drawImage')
+  void drawImageScaledFromSource(CanvasImageSource source,
+      num sourceX, num sourceY, num sourceWidth, num sourceHeight,
+      num destX, num destY, num destWidth, num destHeight) native;
 
   @DomName('CanvasRenderingContext2D.lineDashOffset')
   num get lineDashOffset => JS('num',
@@ -1587,6 +1641,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
       'typeof #.lineDashOffset != "undefined" ? #.lineDashOffset = # : '
       '#.webkitLineDashOffset = #', this, this, value, this, value);
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -2437,6 +2492,11 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
   @DocsEditable
   final CssRule parentRule;
 
+  @JSName('getPropertyValue')
+  @DomName('CSSStyleDeclaration.getPropertyValue')
+  @DocsEditable
+  String _getPropertyValue(String propertyName) native;
+
   @JSName('getPropertyCSSValue')
   @DomName('CSSStyleDeclaration.getPropertyCSSValue')
   @DocsEditable
@@ -2449,11 +2509,6 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
   @DomName('CSSStyleDeclaration.getPropertyShorthand')
   @DocsEditable
   String getPropertyShorthand(String propertyName) native;
-
-  @JSName('getPropertyValue')
-  @DomName('CSSStyleDeclaration.getPropertyValue')
-  @DocsEditable
-  String _getPropertyValue(String propertyName) native;
 
   @DomName('CSSStyleDeclaration.isPropertyImplicit')
   @DocsEditable
@@ -6184,14 +6239,50 @@ class DeviceOrientationEvent extends Event native "*DeviceOrientationEvent" {
   void $dom_initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma, bool absolute) native;
 
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('DirectoryEntry')
 class DirectoryEntry extends Entry native "*DirectoryEntry" {
+  
+  /**
+   * Create a new directory with the specified `path`. If `exclusive` is true,
+   * the returned Future will complete with an error if a directory already
+   * exists with the specified `path`.
+   */
+  Future<Entry> createDirectory(String path, {bool exclusive: false}) {
+    return _getDirectory(path, options: 
+        {'create': true, 'exclusive': exclusive});
+  }
+
+  /**
+   * Retrieve an already existing directory entry. The returned future will
+   * result in an error if a directory at `path` does not exist or if the item
+   * at `path` is not a directory.
+   */
+  Future<Entry> getDirectory(String path) {
+    return _getDirectory(path);
+  }
+
+  /**
+   * Create a new file with the specified `path`. If `exclusive` is true,
+   * the returned Future will complete with an error if a file already
+   * exists at the specified `path`.
+   */
+  Future<Entry> createFile(String path, {bool exclusive: false}) {
+    return _getFile(path, options: {'create': true, 'exclusive': exclusive});
+  }
+  
+  /**
+   * Retrieve an already existing file entry. The returned future will
+   * result in an error if a file at `path` does not exist or if the item at
+   * `path` is not a file.
+   */
+  Future<Entry> getFile(String path) {
+    return _getFile(path);
+  }
 
   @DomName('DirectoryEntry.createReader')
   @DocsEditable
@@ -6199,48 +6290,48 @@ class DirectoryEntry extends Entry native "*DirectoryEntry" {
 
   @DomName('DirectoryEntry.getDirectory')
   @DocsEditable
-  void _getDirectory(String path, {Map options, _EntryCallback successCallback, _ErrorCallback errorCallback}) {
+  void __getDirectory(String path, {Map options, _EntryCallback successCallback, _ErrorCallback errorCallback}) {
     if (?errorCallback) {
       var options_1 = convertDartToNative_Dictionary(options);
-      __getDirectory_1(path, options_1, successCallback, errorCallback);
+      ___getDirectory_1(path, options_1, successCallback, errorCallback);
       return;
     }
     if (?successCallback) {
       var options_2 = convertDartToNative_Dictionary(options);
-      __getDirectory_2(path, options_2, successCallback);
+      ___getDirectory_2(path, options_2, successCallback);
       return;
     }
     if (?options) {
       var options_3 = convertDartToNative_Dictionary(options);
-      __getDirectory_3(path, options_3);
+      ___getDirectory_3(path, options_3);
       return;
     }
-    __getDirectory_4(path);
+    ___getDirectory_4(path);
     return;
   }
   @JSName('getDirectory')
   @DomName('DirectoryEntry.getDirectory')
   @DocsEditable
-  void __getDirectory_1(path, options, _EntryCallback successCallback, _ErrorCallback errorCallback) native;
+  void ___getDirectory_1(path, options, _EntryCallback successCallback, _ErrorCallback errorCallback) native;
   @JSName('getDirectory')
   @DomName('DirectoryEntry.getDirectory')
   @DocsEditable
-  void __getDirectory_2(path, options, _EntryCallback successCallback) native;
+  void ___getDirectory_2(path, options, _EntryCallback successCallback) native;
   @JSName('getDirectory')
   @DomName('DirectoryEntry.getDirectory')
   @DocsEditable
-  void __getDirectory_3(path, options) native;
+  void ___getDirectory_3(path, options) native;
   @JSName('getDirectory')
   @DomName('DirectoryEntry.getDirectory')
   @DocsEditable
-  void __getDirectory_4(path) native;
+  void ___getDirectory_4(path) native;
 
   @JSName('getDirectory')
   @DomName('DirectoryEntry.getDirectory')
   @DocsEditable
-  Future<Entry> getDirectory(String path, {Map options}) {
+  Future<Entry> _getDirectory(String path, {Map options}) {
     var completer = new Completer<Entry>();
-    _getDirectory(path, options : options,
+    __getDirectory(path, options : options,
         successCallback : (value) { completer.complete(value); },
         errorCallback : (error) { completer.completeError(error); });
     return completer.future;
@@ -6248,48 +6339,48 @@ class DirectoryEntry extends Entry native "*DirectoryEntry" {
 
   @DomName('DirectoryEntry.getFile')
   @DocsEditable
-  void _getFile(String path, {Map options, _EntryCallback successCallback, _ErrorCallback errorCallback}) {
+  void __getFile(String path, {Map options, _EntryCallback successCallback, _ErrorCallback errorCallback}) {
     if (?errorCallback) {
       var options_1 = convertDartToNative_Dictionary(options);
-      __getFile_1(path, options_1, successCallback, errorCallback);
+      ___getFile_1(path, options_1, successCallback, errorCallback);
       return;
     }
     if (?successCallback) {
       var options_2 = convertDartToNative_Dictionary(options);
-      __getFile_2(path, options_2, successCallback);
+      ___getFile_2(path, options_2, successCallback);
       return;
     }
     if (?options) {
       var options_3 = convertDartToNative_Dictionary(options);
-      __getFile_3(path, options_3);
+      ___getFile_3(path, options_3);
       return;
     }
-    __getFile_4(path);
+    ___getFile_4(path);
     return;
   }
   @JSName('getFile')
   @DomName('DirectoryEntry.getFile')
   @DocsEditable
-  void __getFile_1(path, options, _EntryCallback successCallback, _ErrorCallback errorCallback) native;
+  void ___getFile_1(path, options, _EntryCallback successCallback, _ErrorCallback errorCallback) native;
   @JSName('getFile')
   @DomName('DirectoryEntry.getFile')
   @DocsEditable
-  void __getFile_2(path, options, _EntryCallback successCallback) native;
+  void ___getFile_2(path, options, _EntryCallback successCallback) native;
   @JSName('getFile')
   @DomName('DirectoryEntry.getFile')
   @DocsEditable
-  void __getFile_3(path, options) native;
+  void ___getFile_3(path, options) native;
   @JSName('getFile')
   @DomName('DirectoryEntry.getFile')
   @DocsEditable
-  void __getFile_4(path) native;
+  void ___getFile_4(path) native;
 
   @JSName('getFile')
   @DomName('DirectoryEntry.getFile')
   @DocsEditable
-  Future<Entry> getFile(String path, {Map options}) {
+  Future<Entry> _getFile(String path, {Map options}) {
     var completer = new Completer<Entry>();
-    _getFile(path, options : options,
+    __getFile(path, options : options,
         successCallback : (value) { completer.complete(value); },
         errorCallback : (error) { completer.completeError(error); });
     return completer.future;
@@ -6310,7 +6401,9 @@ class DirectoryEntry extends Entry native "*DirectoryEntry" {
         (error) { completer.completeError(error); });
     return completer.future;
   }
+
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -8322,7 +8415,7 @@ class _ChildrenElementList implements List {
     if (index == length) {
       _element.append(element);
     } else {
-      throw new UnimplementedError("insert on ElementLists");
+      _element.insertBefore(element, this[index]);
     }
   }
 
@@ -8829,37 +8922,15 @@ abstract class Element extends Node implements ElementTraversal native "*Element
     return window.$dom_getComputedStyle(this, pseudoElement);
   }
 
-  @deprecated
-  int get clientHeight => client.height;
-  @deprecated
-  int get clientLeft => client.left;
-  @deprecated
-  int get clientTop => client.top;
-  @deprecated
-  int get clientWidth => client.width;
+  /**
+   * Gets the position of this element relative to the client area of the page.
+   */
+  Rect get client => new Rect(clientLeft, clientTop, clientWidth, clientHeight);
 
-  @DomName('Element.clientHeight')
-  @DomName('Element.clientLeft')
-  @DomName('Element.clientTop')
-  @DomName('Element.clientWidth')
-  Rect get client => new Rect($dom_clientLeft, $dom_clientTop, $dom_clientWidth,
-      $dom_clientHeight);
-
-  @deprecated
-  int get offsetHeight => offset.height;
-  @deprecated
-  int get offsetLeft => offset.left;
-  @deprecated
-  int get offsetTop => offset.top;
-  @deprecated
-  int get offsetWidth => offset.width;
-
-  @DomName('Element.offsetHeight')
-  @DomName('Element.offsetLeft')
-  @DomName('Element.offsetTop')
-  @DomName('Element.offsetWidth')
-  Rect get offset => new Rect($dom_offsetLeft, $dom_offsetTop, $dom_offsetWidth,
-      $dom_offsetHeight);
+  /**
+   * Gets the offset of this element relative to its offsetParent.
+   */
+  Rect get offset => new Rect(offsetLeft, offsetTop, offsetWidth, offsetHeight);
 
   /**
    * Adds the specified text as a text node after the last child of this
@@ -9367,25 +9438,21 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   @DocsEditable
   String $dom_className;
 
-  @JSName('clientHeight')
   @DomName('Element.clientHeight')
   @DocsEditable
-  final int $dom_clientHeight;
+  final int clientHeight;
 
-  @JSName('clientLeft')
   @DomName('Element.clientLeft')
   @DocsEditable
-  final int $dom_clientLeft;
+  final int clientLeft;
 
-  @JSName('clientTop')
   @DomName('Element.clientTop')
   @DocsEditable
-  final int $dom_clientTop;
+  final int clientTop;
 
-  @JSName('clientWidth')
   @DomName('Element.clientWidth')
   @DocsEditable
-  final int $dom_clientWidth;
+  final int clientWidth;
 
   @JSName('firstElementChild')
   @DomName('Element.firstElementChild')
@@ -9401,29 +9468,25 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   @DocsEditable
   final Element nextElementSibling;
 
-  @JSName('offsetHeight')
   @DomName('Element.offsetHeight')
   @DocsEditable
-  final int $dom_offsetHeight;
+  final int offsetHeight;
 
-  @JSName('offsetLeft')
   @DomName('Element.offsetLeft')
   @DocsEditable
-  final int $dom_offsetLeft;
+  final int offsetLeft;
 
   @DomName('Element.offsetParent')
   @DocsEditable
   final Element offsetParent;
 
-  @JSName('offsetTop')
   @DomName('Element.offsetTop')
   @DocsEditable
-  final int $dom_offsetTop;
+  final int offsetTop;
 
-  @JSName('offsetWidth')
   @DomName('Element.offsetWidth')
   @DocsEditable
-  final int $dom_offsetWidth;
+  final int offsetWidth;
 
   @DomName('Element.previousElementSibling')
   @DocsEditable
@@ -10340,6 +10403,9 @@ class Event native "*Event" {
 
   @DomName('Event.clipboardData')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
   final DataTransfer clipboardData;
 
   EventTarget get currentTarget => _convertNativeToDart_EventTarget(this._get_currentTarget);
@@ -10425,14 +10491,19 @@ class EventException native "*EventException" {
   @DocsEditable
   String toString() native;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('EventSource')
 class EventSource extends EventTarget native "*EventSource" {
+  factory EventSource(String title, {withCredentials: false}) {
+    var parsedOptions = {
+      'withCredentials': withCredentials,
+    };
+    return EventSource._factoryEventSource(title, parsedOptions);
+  }
 
   @DomName('EventSource.errorEvent')
   @DocsEditable
@@ -10448,7 +10519,7 @@ class EventSource extends EventTarget native "*EventSource" {
 
   @DomName('EventSource.EventSource')
   @DocsEditable
-  factory EventSource(String url, [Map eventSourceInit]) {
+  static EventSource _factoryEventSource(String url, [Map eventSourceInit]) {
     if (?eventSourceInit) {
       return EventSource._create_1(url, eventSourceInit);
     }
@@ -10504,6 +10575,7 @@ class EventSource extends EventTarget native "*EventSource" {
   @DomName('EventSource.onopen')
   @DocsEditable
   Stream<Event> get onOpen => openEvent.forTarget(this);
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12905,38 +12977,65 @@ class HtmlDocument extends Document native "*HTMLDocument" {
   }
 
   @DomName('Document.webkitCancelFullScreen')
-  void webkitCancelFullScreen() {
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  void cancelFullScreen() {
     document.$dom_webkitCancelFullScreen();
   }
 
   @DomName('Document.webkitExitFullscreen')
-  void webkitExitFullscreen() {
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  void exitFullscreen() {
     document.$dom_webkitExitFullscreen();
   }
 
   @DomName('Document.webkitExitPointerLock')
-  void webkitExitPointerLock() {
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  void exitPointerLock() {
     document.$dom_webkitExitPointerLock();
   }
 
   @DomName('Document.webkitFullscreenElement')
-  Element get webkitFullscreenElement => document.$dom_webkitFullscreenElement;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  Element get fullscreenElement => document.$dom_webkitFullscreenElement;
 
   @DomName('Document.webkitFullscreenEnabled')
-  bool get webkitFullscreenEnabled => document.$dom_webkitFullscreenEnabled;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  bool get fullscreenEnabled => document.$dom_webkitFullscreenEnabled;
 
   @DomName('Document.webkitHidden')
-  bool get webkitHidden => document.$dom_webkitHidden;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  bool get hidden => document.$dom_webkitHidden;
 
   @DomName('Document.webkitIsFullScreen')
-  bool get webkitIsFullScreen => document.$dom_webkitIsFullScreen;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  bool get isFullScreen => document.$dom_webkitIsFullScreen;
 
   @DomName('Document.webkitPointerLockElement')
-  Element get webkitPointerLockElement =>
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  Element get pointerLockElement =>
       document.$dom_webkitPointerLockElement;
 
   @DomName('Document.webkitVisibilityState')
-  String get webkitVisibilityState => document.$dom_webkitVisibilityState;
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  String get visibilityState => document.$dom_webkitVisibilityState;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12988,8 +13087,9 @@ class HtmlOptionsCollection extends HtmlCollection native "*HTMLOptionsCollectio
  * wish to retrieve the HTML of the top-level page and print it out.
  * The easiest way to do that would be:
  *
- *     var httpRequest = HttpRequest.get('http://api.dartlang.org',
- *         (request) => print(request.responseText));
+ *     HttpRequest.getString('http://api.dartlang.org').then((response) {
+ *       print(response);
+ *     });
  *
  * **Important**: With the default behavior of this class, your
  * code making the request should be served from the same origin (domain name,
@@ -13102,7 +13202,19 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
    */
   static bool get supportsProgressEvent {
     var xhr = new HttpRequest();
-    return JS('bool', '"onprogress" in #', xhr);
+    return JS('bool', '("onprogress" in #)', xhr);
+  }
+
+  /**
+   * Checks to see if the current platform supports making cross origin
+   * requests.
+   *
+   * Note that even if cross origin requests are supported, they still may fail
+   * if the destination server does not support CORS requests.
+   */
+  static bool get supportsCrossOrigin {
+    var xhr = new HttpRequest();
+    return JS('bool', '("withCredentials" in #)', xhr);
   }
 
   /**
@@ -13110,7 +13222,7 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
    */
   static bool get supportsLoadEndEvent {
     var xhr = new HttpRequest();
-    return JS('bool', '"onloadend" in #', xhr);
+    return JS('bool', '("onloadend" in #)', xhr);
   }
 
 
@@ -17190,10 +17302,6 @@ class MutationEvent extends Event native "*MutationEvent" {
 @Experimental
 class MutationObserver native "*MutationObserver" {
 
-  @DomName('MutationObserver.disconnect')
-  @DocsEditable
-  void disconnect() native;
-
   @DomName('MutationObserver.observe')
   @DocsEditable
   void _observe(Node target, Map options) {
@@ -17205,6 +17313,10 @@ class MutationObserver native "*MutationObserver" {
   @DomName('MutationObserver.observe')
   @DocsEditable
   void __observe_1(Node target, options) native;
+
+  @DomName('MutationObserver.disconnect')
+  @DocsEditable
+  void disconnect() native;
 
   @DomName('MutationObserver.takeRecords')
   @DocsEditable
@@ -17220,8 +17332,7 @@ class MutationObserver native "*MutationObserver" {
   }
 
   void observe(Node target,
-               {Map options,
-                bool childList,
+               {bool childList,
                 bool attributes,
                 bool characterData,
                 bool subtree,
@@ -17231,19 +17342,6 @@ class MutationObserver native "*MutationObserver" {
 
     // Parse options into map of known type.
     var parsedOptions = _createDict();
-
-    if (options != null) {
-      options.forEach((k, v) {
-          if (_boolKeys.containsKey(k)) {
-            _add(parsedOptions, k, true == v);
-          } else if (k == 'attributeFilter') {
-            _add(parsedOptions, k, _fixupList(v));
-          } else {
-            throw new ArgumentError(
-                "Illegal MutationObserver.observe option '$k'");
-          }
-        });
-    }
 
     // Override options passed in the map with named optional arguments.
     override(key, value) {
@@ -17356,15 +17454,32 @@ class Navigator native "*Navigator" {
    * Gets a stream (video and or audio) from the local computer.
    *
    * Use [MediaStream.supported] to check if this is supported by the current
-   * platform.
+   * platform. The arguments `audio` and `video` default to `false` (stream does
+   * not use audio or video, respectively).
    *
-   * Example use:
+   * Simple example usage:
    *
-   *     window.navigator.getUserMedia(audio:true, video: true).then((stream) {
+   *     window.navigator.getUserMedia(audio: true, video: true).then((stream) {
    *       var video = new VideoElement()
    *         ..autoplay = true
    *         ..src = Url.createObjectUrl(stream);
    *       document.body.append(video);
+   *     });
+   *
+   * The user can also pass in Maps to the audio or video parameters to specify 
+   * mandatory and optional constraints for the media stream. Not passing in a 
+   * map, but passing in `true` will provide a LocalMediaStream with audio or 
+   * video capabilities, but without any additional constraints. The particular
+   * constraint names for audio and video are still in flux, but as of this 
+   * writing, here is an example providing more constraints.
+   *
+   *     window.navigator.getUserMedia(
+   *         audio: true, 
+   *         video: {'mandatory': 
+   *                    { 'minAspectRatio': 1.333, 'maxAspectRatio': 1.334 },
+   *                 'optional': 
+   *                    [{ 'minFrameRate': 60 },
+   *                     { 'maxWidth': 640 }]
    *     });
    *
    * See also:
@@ -17373,15 +17488,14 @@ class Navigator native "*Navigator" {
   @DomName('Navigator.webkitGetUserMedia')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental
-  Future<LocalMediaStream> getUserMedia({bool audio: false,
-      bool video: false}) {
+  Future<LocalMediaStream> getUserMedia({audio: false, video: false}) {
     var completer = new Completer<LocalMediaStream>();
     var options = {
       'audio': audio,
       'video': video
     };
     _ensureGetUserMedia();
-    this._getUserMedia(convertDartToNative_Dictionary(options),
+    this._getUserMedia(convertDartToNative_SerializedScriptValue(options),
       (stream) {
         completer.complete(stream);
       },
@@ -17467,6 +17581,22 @@ class Navigator native "*Navigator" {
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
   final BatteryManager battery;
+
+  @JSName('webkitPersistentStorage')
+  @DomName('Navigator.webkitPersistentStorage')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  final StorageQuota persistentStorage;
+
+  @JSName('webkitTemporaryStorage')
+  @DomName('Navigator.webkitTemporaryStorage')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  final StorageQuota temporaryStorage;
 
   @DomName('Navigator.getStorageUpdates')
   @DocsEditable
@@ -17591,7 +17721,7 @@ class _ChildNodeListLazy implements List {
     if (index == length) {
       _this.append(node);
     } else {
-      this_.insertBefore(node, this[index]);
+      _this.insertBefore(node, this[index]);
     }
   }
 
@@ -18355,13 +18485,18 @@ class Notation extends Node native "*Notation" {
 
 @DomName('Notification')
 class Notification extends EventTarget native "*Notification" {
-  factory Notification(String title, [Map options]) {
-    if (?options) {
-      return JS('Notification', 'new Notification(#,#)', title,
-          convertDartToNative_SerializedScriptValue(options));
-    } else {
-      return JS('Notification', 'new Notification(#)', title);
-    }
+
+  factory Notification(String title, {String titleDir: null, String body: null, 
+      String bodyDir: null, String tag: null, String iconUrl: null}) {
+
+    var parsedOptions = {};
+    if (titleDir != null) parsedOptions['titleDir'] = titleDir;
+    if (body != null) parsedOptions['body'] = body;
+    if (bodyDir != null) parsedOptions['bodyDir'] = bodyDir;
+    if (tag != null) parsedOptions['tag'] = tag;
+    if (iconUrl != null) parsedOptions['iconUrl'] = iconUrl;
+
+    return Notification._factoryNotification(title, parsedOptions);
   }
 
   @DomName('Notification.clickEvent')
@@ -18383,6 +18518,17 @@ class Notification extends EventTarget native "*Notification" {
   @DomName('Notification.showEvent')
   @DocsEditable
   static const EventStreamProvider<Event> showEvent = const EventStreamProvider<Event>('show');
+
+  @DomName('Notification.Notification')
+  @DocsEditable
+  static Notification _factoryNotification(String title, [Map options]) {
+    if (?options) {
+      return Notification._create_1(title, options);
+    }
+    return Notification._create_2(title);
+  }
+  static Notification _create_1(title, options) => JS('Notification', 'new Notification(#,#)', title, options);
+  static Notification _create_2(title) => JS('Notification', 'new Notification(#)', title);
 
   @DomName('Notification.dir')
   @DocsEditable
@@ -19583,6 +19729,68 @@ class RtcDataChannelEvent extends Event native "*RTCDataChannelEvent" {
   @DocsEditable
   final RtcDataChannel channel;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('RTCDTMFSender')
+class RtcDtmfSender extends EventTarget native "*RTCDTMFSender" {
+
+  @JSName('canInsertDTMF')
+  @DomName('RTCDTMFSender.canInsertDTMF')
+  @DocsEditable
+  final bool canInsertDtmf;
+
+  @DomName('RTCDTMFSender.duration')
+  @DocsEditable
+  final int duration;
+
+  @DomName('RTCDTMFSender.interToneGap')
+  @DocsEditable
+  final int interToneGap;
+
+  @DomName('RTCDTMFSender.toneBuffer')
+  @DocsEditable
+  final String toneBuffer;
+
+  @DomName('RTCDTMFSender.track')
+  @DocsEditable
+  final MediaStreamTrack track;
+
+  @JSName('addEventListener')
+  @DomName('RTCDTMFSender.addEventListener')
+  @DocsEditable
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  @DomName('RTCDTMFSender.dispatchEvent')
+  @DocsEditable
+  bool dispatchEvent(Event event) native;
+
+  @JSName('insertDTMF')
+  @DomName('RTCDTMFSender.insertDTMF')
+  @DocsEditable
+  void insertDtmf(String tones, [int duration, int interToneGap]) native;
+
+  @JSName('removeEventListener')
+  @DomName('RTCDTMFSender.removeEventListener')
+  @DocsEditable
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('RTCDTMFToneChangeEvent')
+class RtcDtmfToneChangeEvent extends Event native "*RTCDTMFToneChangeEvent" {
+
+  @DomName('RTCDTMFToneChangeEvent.tone')
+  @DocsEditable
+  final String tone;
+}
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -19659,6 +19867,21 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
       return c is RtcPeerConnection;
     } catch (_) {}
     return false;
+  }
+  Future<RtcSessionDescription> createOffer([Map mediaConstraints]) {
+    var completer = new Completer<RtcSessionDescription>();
+    _createOffer(
+        (value) { completer.complete(value); },
+        (error) { completer.completeError(error); }, mediaConstraints);
+    return completer.future;
+  }
+
+  Future<RtcSessionDescription> createAnswer([Map mediaConstraints]) {
+    var completer = new Completer<RtcSessionDescription>();
+    _createAnswer(
+        (value) { completer.complete(value); },
+        (error) { completer.completeError(error); }, mediaConstraints);
+    return completer.future;
   }
 
   @DomName('RTCPeerConnection.addstreamEvent')
@@ -19770,21 +19993,10 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   @DocsEditable
   void __createAnswer_2(_RtcSessionDescriptionCallback successCallback, _RtcErrorCallback failureCallback) native;
 
-  @JSName('createAnswer')
-  @DomName('RTCPeerConnection.createAnswer')
-  @DocsEditable
-  Future<RtcSessionDescription> createAnswer([Map mediaConstraints]) {
-    var completer = new Completer<RtcSessionDescription>();
-    _createAnswer(mediaConstraints,
-        (value) { completer.complete(value); },
-        (error) { completer.completeError(error); });
-    return completer.future;
-  }
-
   @JSName('createDTMFSender')
   @DomName('RTCPeerConnection.createDTMFSender')
   @DocsEditable
-  RtcdtmfSender createDtmfSender(MediaStreamTrack track) native;
+  RtcDtmfSender createDtmfSender(MediaStreamTrack track) native;
 
   @DomName('RTCPeerConnection.createDataChannel')
   @DocsEditable
@@ -19824,17 +20036,6 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   @DocsEditable
   void __createOffer_2(_RtcSessionDescriptionCallback successCallback, _RtcErrorCallback failureCallback) native;
 
-  @JSName('createOffer')
-  @DomName('RTCPeerConnection.createOffer')
-  @DocsEditable
-  Future<RtcSessionDescription> createOffer([Map mediaConstraints]) {
-    var completer = new Completer<RtcSessionDescription>();
-    _createOffer(mediaConstraints,
-        (value) { completer.complete(value); },
-        (error) { completer.completeError(error); });
-    return completer.future;
-  }
-
   @DomName('RTCPeerConnection.dispatchEvent')
   @DocsEditable
   bool dispatchEvent(Event event) native;
@@ -19850,6 +20051,10 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   @DomName('RTCPeerConnection.getStats')
   @DocsEditable
   void getStats(RtcStatsCallback successCallback, MediaStreamTrack selector) native;
+
+  @DomName('RTCPeerConnection.getStreamById')
+  @DocsEditable
+  MediaStream getStreamById(String streamId) native;
 
   @JSName('removeEventListener')
   @DomName('RTCPeerConnection.removeEventListener')
@@ -19986,39 +20191,34 @@ class RtcSessionDescription native "*RTCSessionDescription" {
 
 
 @DocsEditable
-@DomName('RTCStatsElement')
-class RtcStatsElement native "*RTCStatsElement" {
-
-  DateTime get timestamp => _convertNativeToDart_DateTime(this._get_timestamp);
-  @JSName('timestamp')
-  @DomName('RTCStatsElement.timestamp')
-  @DocsEditable
-  final dynamic _get_timestamp;
-
-  @DomName('RTCStatsElement.names')
-  @DocsEditable
-  List<String> names() native;
-
-  @DomName('RTCStatsElement.stat')
-  @DocsEditable
-  String stat(String name) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
 @DomName('RTCStatsReport')
 class RtcStatsReport native "*RTCStatsReport" {
 
+  @DomName('RTCStatsReport.id')
+  @DocsEditable
+  final String id;
+
   @DomName('RTCStatsReport.local')
   @DocsEditable
-  final RtcStatsElement local;
+  final RtcStatsReport local;
 
   @DomName('RTCStatsReport.remote')
   @DocsEditable
-  final RtcStatsElement remote;
+  final RtcStatsReport remote;
+
+  DateTime get timestamp => _convertNativeToDart_DateTime(this._get_timestamp);
+  @JSName('timestamp')
+  @DomName('RTCStatsReport.timestamp')
+  @DocsEditable
+  final dynamic _get_timestamp;
+
+  @DomName('RTCStatsReport.names')
+  @DocsEditable
+  List<String> names() native;
+
+  @DomName('RTCStatsReport.stat')
+  @DocsEditable
+  String stat(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20029,71 +20229,13 @@ class RtcStatsReport native "*RTCStatsReport" {
 @DomName('RTCStatsResponse')
 class RtcStatsResponse native "*RTCStatsResponse" {
 
+  @DomName('RTCStatsResponse.namedItem')
+  @DocsEditable
+  RtcStatsReport namedItem(String name) native;
+
   @DomName('RTCStatsResponse.result')
   @DocsEditable
   List<RtcStatsReport> result() native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('RTCDTMFSender')
-class RtcdtmfSender extends EventTarget native "*RTCDTMFSender" {
-
-  @JSName('canInsertDTMF')
-  @DomName('RTCDTMFSender.canInsertDTMF')
-  @DocsEditable
-  final bool canInsertDtmf;
-
-  @DomName('RTCDTMFSender.duration')
-  @DocsEditable
-  final int duration;
-
-  @DomName('RTCDTMFSender.interToneGap')
-  @DocsEditable
-  final int interToneGap;
-
-  @DomName('RTCDTMFSender.toneBuffer')
-  @DocsEditable
-  final String toneBuffer;
-
-  @DomName('RTCDTMFSender.track')
-  @DocsEditable
-  final MediaStreamTrack track;
-
-  @JSName('addEventListener')
-  @DomName('RTCDTMFSender.addEventListener')
-  @DocsEditable
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
-
-  @DomName('RTCDTMFSender.dispatchEvent')
-  @DocsEditable
-  bool dispatchEvent(Event event) native;
-
-  @JSName('insertDTMF')
-  @DomName('RTCDTMFSender.insertDTMF')
-  @DocsEditable
-  void insertDtmf(String tones, [int duration, int interToneGap]) native;
-
-  @JSName('removeEventListener')
-  @DomName('RTCDTMFSender.removeEventListener')
-  @DocsEditable
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('RTCDTMFToneChangeEvent')
-class RtcdtmfToneChangeEvent extends Event native "*RTCDTMFToneChangeEvent" {
-
-  @DomName('RTCDTMFToneChangeEvent.tone')
-  @DocsEditable
-  final String tone;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21425,6 +21567,14 @@ class Storage implements Map<String, String>
   void $dom_setItem(String key, String data) native;
 
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+typedef void StorageErrorCallback(DomException error);
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -21470,12 +21620,11 @@ class StorageEvent extends Event native "*StorageEvent" {
   void $dom_initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, Storage storageAreaArg) native;
 
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('StorageInfo')
 class StorageInfo native "*StorageInfo" {
 
@@ -21486,23 +21635,12 @@ class StorageInfo native "*StorageInfo" {
   @JSName('queryUsageAndQuota')
   @DomName('StorageInfo.queryUsageAndQuota')
   @DocsEditable
-  void _queryUsageAndQuota(int storageType, [_StorageInfoUsageCallback usageCallback, _StorageInfoErrorCallback errorCallback]) native;
-
-  @JSName('queryUsageAndQuota')
-  @DomName('StorageInfo.queryUsageAndQuota')
-  @DocsEditable
-  Future<int> queryUsageAndQuota(int storageType) {
-    var completer = new Completer<int>();
-    _queryUsageAndQuota(storageType,
-        (value) { completer.complete(value); },
-        (error) { completer.completeError(error); });
-    return completer.future;
-  }
+  void _queryUsageAndQuota(int storageType, [StorageUsageCallback usageCallback, StorageErrorCallback errorCallback]) native;
 
   @JSName('requestQuota')
   @DomName('StorageInfo.requestQuota')
   @DocsEditable
-  void _requestQuota(int storageType, int newQuotaInBytes, [StorageInfoQuotaCallback quotaCallback, _StorageInfoErrorCallback errorCallback]) native;
+  void _requestQuota(int storageType, int newQuotaInBytes, [StorageQuotaCallback quotaCallback, StorageErrorCallback errorCallback]) native;
 
   @JSName('requestQuota')
   @DomName('StorageInfo.requestQuota')
@@ -21514,6 +21652,44 @@ class StorageInfo native "*StorageInfo" {
         (error) { completer.completeError(error); });
     return completer.future;
   }
+
+  Future<StorageInfoUsage> queryUsageAndQuota(int storageType) {
+    var completer = new Completer<StorageInfoUsage>();
+    _queryUsageAndQuota(storageType,
+        (currentUsageInBytes, currentQuotaInBytes) { 
+          completer.complete(new StorageInfoUsage(currentUsageInBytes, 
+              currentQuotaInBytes));
+        },
+        (error) { completer.completeError(error); });
+    return completer.future;
+  }
+}
+
+/** 
+ * A simple container class for the two values that are returned from the
+ * futures in requestQuota and queryUsageAndQuota.
+ */
+class StorageInfoUsage {
+  final int currentUsageInBytes;
+  final int currentQuotaInBytes;
+  const StorageInfoUsage(this.currentUsageInBytes, this.currentQuotaInBytes);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('StorageQuota')
+class StorageQuota native "*StorageQuota" {
+
+  @DomName('StorageQuota.queryUsageAndQuota')
+  @DocsEditable
+  void queryUsageAndQuota(StorageUsageCallback usageCallback, [StorageErrorCallback errorCallback]) native;
+
+  @DomName('StorageQuota.requestQuota')
+  @DocsEditable
+  void requestQuota(int newQuotaInBytes, [StorageQuotaCallback quotaCallback, StorageErrorCallback errorCallback]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21522,7 +21698,7 @@ class StorageInfo native "*StorageInfo" {
 // WARNING: Do not edit - generated code.
 
 
-typedef void _StorageInfoErrorCallback(DomException error);
+typedef void StorageQuotaCallback(int grantedQuotaInBytes);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -21530,15 +21706,7 @@ typedef void _StorageInfoErrorCallback(DomException error);
 // WARNING: Do not edit - generated code.
 
 
-typedef void StorageInfoQuotaCallback(int grantedQuotaInBytes);
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-typedef void _StorageInfoUsageCallback(int currentUsageInBytes, int currentQuotaInBytes);
+typedef void StorageUsageCallback(int currentUsageInBytes, int currentQuotaInBytes);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -24508,6 +24676,21 @@ class WebGLBuffer native "*WebGLBuffer" {
 
 
 @DocsEditable
+@DomName('WebGLCompressedTextureATC')
+class WebGLCompressedTextureAtc native "*WebGLCompressedTextureATC" {
+
+  static const int COMPRESSED_RGBA_ATC_EXPLICIT_ALPHA_WEBGL = 0x8C93;
+
+  static const int COMPRESSED_RGBA_ATC_INTERPOLATED_ALPHA_WEBGL = 0x87EE;
+
+  static const int COMPRESSED_RGB_ATC_WEBGL = 0x8C92;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
 @DomName('WebGLCompressedTextureS3TC')
 class WebGLCompressedTextureS3TC native "*WebGLCompressedTextureS3TC" {
 
@@ -26647,6 +26830,17 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
     JS('void', '#.setImmediate(#)', this, convertDartClosureToJS(callback, 0));
   }
 
+  /**
+   * Access a sandboxed file system of the specified `size`. If `persistent` is
+   * true, the application will request permission from the user to create
+   * lasting storage. This storage cannot be freed without the user's
+   * permission. Returns a [Future] whose value stores a reference to the
+   * sandboxed file system for use. Because the file system is sandboxed,
+   * applications cannot access file systems created in other web pages. 
+   */
+  Future<FileSystem> requestFileSystem(int size, {bool persistent: false}) {
+    return _requestFileSystem(persistent? 1 : 0, size);
+  }
 
   @DomName('DOMWindow.DOMContentLoadedEvent')
   @DocsEditable
@@ -27109,16 +27303,16 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental
-  void _requestFileSystem(int type, int size, _FileSystemCallback successCallback, [_ErrorCallback errorCallback]) native;
+  void __requestFileSystem(int type, int size, _FileSystemCallback successCallback, [_ErrorCallback errorCallback]) native;
 
   @JSName('webkitRequestFileSystem')
   @DomName('DOMWindow.webkitRequestFileSystem')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental
-  Future<FileSystem> requestFileSystem(int type, int size) {
+  Future<FileSystem> _requestFileSystem(int type, int size) {
     var completer = new Completer<FileSystem>();
-    _requestFileSystem(type, size,
+    __requestFileSystem(type, size,
         (value) { completer.complete(value); },
         (error) { completer.completeError(error); });
     return completer.future;
@@ -27410,13 +27604,59 @@ class Worker extends AbstractWorker native "*Worker" {
   @DocsEditable
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
 @DomName('WorkerContext')
 class WorkerContext extends EventTarget native "*WorkerContext" {
+  /**
+   * Gets an instance of the Indexed DB factory to being using Indexed DB.
+   *
+   * Use [IdbFactory.supported] to check if Indexed DB is supported on the
+   * current platform.
+   */
+  @SupportedBrowser(SupportedBrowser.CHROME, '23.0')
+  @SupportedBrowser(SupportedBrowser.FIREFOX, '15.0')
+  @SupportedBrowser(SupportedBrowser.IE, '10.0')
+  @Experimental
+  IdbFactory get indexedDB =>
+      JS('IdbFactory',
+         '#.indexedDB || #.webkitIndexedDB || #.mozIndexedDB',
+         this, this, this);
+
+  /**
+   * Access a sandboxed file system of the specified `size`. If `persistent` is
+   * true, the application will request permission from the user to create
+   * lasting storage. This storage cannot be freed without the user's
+   * permission. Returns a [Future] whose value stores a reference to the
+   * sandboxed file system for use. Because the file system is sandboxed,
+   * applications cannot access file systems created in other web pages. 
+   */
+  @DomName('WorkerContext.webkitRequestFileSystem')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @Experimental
+  Future<FileSystem> requestFileSystem(int size, {bool persistent: false}) {
+    return _requestFileSystem(persistent? 1 : 0, size);
+  }
+
+  /**
+   * Access a sandboxed file system of the specified `size`. If `persistent` is
+   * true, the application will request permission from the user to create
+   * lasting storage. This storage cannot be freed without the user's
+   * permission. This call will block until a reference to the synchronous file 
+   * system API has been obtained. Because the file system is sandboxed,
+   * applications cannot access file systems created in other web pages. 
+   */
+  @DomName('WorkerContext.webkitRequestFileSystemSync')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @Experimental
+  FileSystemSync requestFileSystemSync(int size, {bool persistent: false}) {
+    return _requestFileSystemSync(persistent? 1 : 0, size);
+  }
 
   @DomName('WorkerContext.errorEvent')
   @DocsEditable
@@ -27503,16 +27743,16 @@ class WorkerContext extends EventTarget native "*WorkerContext" {
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental
-  void _requestFileSystem(int type, int size, [_FileSystemCallback successCallback, _ErrorCallback errorCallback]) native;
+  void __requestFileSystem(int type, int size, [_FileSystemCallback successCallback, _ErrorCallback errorCallback]) native;
 
   @JSName('webkitRequestFileSystem')
   @DomName('WorkerContext.webkitRequestFileSystem')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental
-  Future<FileSystem> requestFileSystem(int type, int size) {
+  Future<FileSystem> _requestFileSystem(int type, int size) {
     var completer = new Completer<FileSystem>();
-    _requestFileSystem(type, size,
+    __requestFileSystem(type, size,
         (value) { completer.complete(value); },
         (error) { completer.completeError(error); });
     return completer.future;
@@ -27523,7 +27763,7 @@ class WorkerContext extends EventTarget native "*WorkerContext" {
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental
-  FileSystemSync requestFileSystemSync(int type, int size) native;
+  FileSystemSync _requestFileSystemSync(int type, int size) native;
 
   @JSName('webkitResolveLocalFileSystemSyncURL')
   @DomName('WorkerContext.webkitResolveLocalFileSystemSyncURL')
@@ -27556,21 +27796,6 @@ class WorkerContext extends EventTarget native "*WorkerContext" {
   @DocsEditable
   Stream<Event> get onError => errorEvent.forTarget(this);
 
-
-  /**
-   * Gets an instance of the Indexed DB factory to being using Indexed DB.
-   *
-   * Use [IdbFactory.supported] to check if Indexed DB is supported on the
-   * current platform.
-   */
-  @SupportedBrowser(SupportedBrowser.CHROME, '23.0')
-  @SupportedBrowser(SupportedBrowser.FIREFOX, '15.0')
-  @SupportedBrowser(SupportedBrowser.IE, '10.0')
-  @Experimental
-  IdbFactory get indexedDB =>
-      JS('IdbFactory',
-         '#.indexedDB || #.webkitIndexedDB || #.mozIndexedDB',
-         this, this, this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30304,8 +30529,8 @@ class _ElementAttributeMap extends _AttributeMap {
     return _element.$dom_getAttribute(key);
   }
 
-  void operator []=(String key, value) {
-    _element.$dom_setAttribute(key, '$value');
+  void operator []=(String key, String value) {
+    _element.$dom_setAttribute(key, value);
   }
 
   String remove(String key) {
@@ -30341,8 +30566,8 @@ class _NamespacedAttributeMap extends _AttributeMap {
     return _element.$dom_getAttributeNS(_namespace, key);
   }
 
-  void operator []=(String key, value) {
-    _element.$dom_setAttributeNS(_namespace, key, '$value');
+  void operator []=(String key, String value) {
+    _element.$dom_setAttributeNS(_namespace, key, value);
   }
 
   String remove(String key) {
@@ -30381,8 +30606,8 @@ class _DataAttributeMap implements Map<String, String> {
 
   String operator [](String key) => $dom_attributes[_attr(key)];
 
-  void operator []=(String key, value) {
-    $dom_attributes[_attr(key)] = '$value';
+  void operator []=(String key, String value) {
+    $dom_attributes[_attr(key)] = value;
   }
 
   String putIfAbsent(String key, String ifAbsent()) =>
@@ -30442,8 +30667,10 @@ class _DataAttributeMap implements Map<String, String> {
 
 /**
  * An object that can be drawn to a [CanvasRenderingContext2D] object with
- * [CanvasRenderingContext2D.drawImage] or
- * [CanvasRenderingContext2D.drawImageAtScale].
+ * [CanvasRenderingContext2D.drawImage],
+ * [CanvasRenderingContext2D.drawImageRect],
+ * [CanvasRenderingContext2D.drawImageScaled], or
+ * [CanvasRenderingContext2D.drawImageScaledFromSource].
  *
  * If the CanvasImageSource is an [ImageElement] then the element's image is
  * used. If the [ImageElement] is an animated image, then the poster frame is
@@ -30455,9 +30682,15 @@ class _DataAttributeMap implements Map<String, String> {
  * If the CanvasImageSource is a [CanvasElement] then the element's bitmap is
  * used.
  *
+ * ** Note: ** Currently, all versions of Internet Explorer do not support
+ * drawing a VideoElement to a canvas. Also, you may experience problems drawing
+ * a video to a canvas in Firefox if the source of the video is a data URL.
+ *
  * See also:
  *
  *  * [CanvasImageSource](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#image-sources-for-2d-rendering-contexts)
+ * from the WHATWG.
+ *  * [drawImage](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#dom-context-2d-drawimage)
  * from the WHATWG.
  */
 abstract class CanvasImageSource {}
@@ -30601,7 +30834,7 @@ abstract class CssClassSet implements Set<String> {
   }
 
   /**
-   * Adds the class [token] to the element if it is not on it, removes it if it
+   * Adds the class [value] to the element if it is not on it, removes it if it
    * is.
    */
   bool toggle(String value) {
@@ -30655,14 +30888,33 @@ abstract class CssClassSet implements Set<String> {
   // interface Collection - END
 
   // interface Set - BEGIN
+  /**
+   * Determine if this element contains the class [value].
+   *
+   * This is the Dart equivalent of jQuery's
+   * [hasClass](http://api.jquery.com/hasClass/).
+   */
   bool contains(String value) => readClasses().contains(value);
 
+  /**
+   * Add the class [value] to element.
+   *
+   * This is the Dart equivalent of jQuery's
+   * [addClass](http://api.jquery.com/addClass/).
+   */
   void add(String value) {
     // TODO - figure out if we need to do any validation here
     // or if the browser natively does enough.
     _modify((s) => s.add(value));
   }
 
+  /**
+   * Remove the class [value] from element, and return true on successful
+   * removal.
+   *
+   * This is the Dart equivalent of jQuery's
+   * [removeClass](http://api.jquery.com/removeClass/).
+   */
   bool remove(Object value) {
     if (value is! String) return false;
     Set<String> s = readClasses();
@@ -30671,13 +30923,36 @@ abstract class CssClassSet implements Set<String> {
     return result;
   }
 
+  /**
+   * Add all classes specified in [iterable] to element.
+   *
+   * This is the Dart equivalent of jQuery's
+   * [addClass](http://api.jquery.com/addClass/).
+   */
   void addAll(Iterable<String> iterable) {
     // TODO - see comment above about validation.
     _modify((s) => s.addAll(iterable));
   }
 
+  /**
+   * Remove all classes specified in [iterable] from element.
+   *
+   * This is the Dart equivalent of jQuery's
+   * [removeClass](http://api.jquery.com/removeClass/).
+   */
   void removeAll(Iterable<String> iterable) {
     _modify((s) => s.removeAll(iterable));
+  }
+
+  /**
+   * Toggles all classes specified in [iterable] on element.
+   *
+   * Iterate through [iterable]'s items, and add it if it is not on it, or
+   * remove it if it is. This is the Dart equivalent of jQuery's
+   * [toggleClass](http://api.jquery.com/toggleClass/).
+   */
+  void toggleAll(Iterable<String> iterable) {
+    iterable.forEach(toggle);
   }
 
   void retainAll(Iterable<String> iterable) {
@@ -32476,7 +32751,7 @@ class _HttpRequestUtils {
                             onComplete(HttpRequest request),
                             bool withCredentials) {
     final request = new HttpRequest();
-    request.open('GET', url, true);
+    request.open('GET', url, async: true);
 
     request.withCredentials = withCredentials;
 

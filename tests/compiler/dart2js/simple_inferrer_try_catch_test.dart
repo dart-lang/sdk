@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../../../sdk/lib/_internal/compiler/implementation/types/types.dart'
+    show TypeMask;
+
 import 'compiler_helper.dart';
 
 const String TEST = """
@@ -114,6 +117,23 @@ returnDyn5() {
   return a;
 }
 
+returnInt6() {
+  try {
+    throw 42;
+  } on int catch (e) {
+    return e;
+  }
+  return 42;
+}
+
+returnDyn6() {
+  try {
+    throw 42;
+  } catch (e) {
+    return e;
+  }
+}
+
 
 main() {
   returnInt1();
@@ -125,6 +145,9 @@ main() {
   returnInt4();
   returnDyn4();
   returnInt5();
+  returnDyn5();
+  returnInt6();
+  returnDyn6();
 }
 """;
 
@@ -145,9 +168,13 @@ void main() {
   checkReturn('returnInt3', typesInferrer.intType);
   checkReturn('returnInt4', typesInferrer.intType);
   checkReturn('returnInt5', typesInferrer.intType);
+  checkReturn('returnInt6',
+      new TypeMask.nonNullSubtype(compiler.intClass.rawType));
 
   checkReturn('returnDyn1', typesInferrer.dynamicType);
   checkReturn('returnDyn2', typesInferrer.dynamicType);
   checkReturn('returnDyn3', typesInferrer.dynamicType);
   checkReturn('returnDyn4', typesInferrer.dynamicType);
+  checkReturn('returnDyn5', typesInferrer.dynamicType);
+  checkReturn('returnDyn6', typesInferrer.dynamicType);
 }

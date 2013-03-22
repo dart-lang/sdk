@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20,8 +20,9 @@ class HTracer extends HGraphVisitor implements Tracer {
   bool traceActive = false;
 
   HTracer([String path = "dart.cfg"])
-      : output = GENERATE_SSA_TRACE ? new File(path).openSync(FileMode.WRITE)
-                                    : null;
+      : output = GENERATE_SSA_TRACE
+          ? new File(path).openSync(mode: FileMode.WRITE)
+          : null;
 
   void close() {
     if (enabled) output.closeSync();

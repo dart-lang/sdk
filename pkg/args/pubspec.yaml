@@ -6,7 +6,5 @@ description: >
  Libraries for defining parsers for parsing raw command-line arguments into
  a set of options and values using GNU and POSIX style options.
 
-
-dependencies:
-  unittest:
-    sdk: unittest
+dev_dependencies:
+  unittest: any

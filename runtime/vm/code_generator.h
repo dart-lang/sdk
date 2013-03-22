@@ -50,6 +50,8 @@ DECLARE_RUNTIME_ENTRY(TraceFunctionEntry);
 DECLARE_RUNTIME_ENTRY(TraceFunctionExit);
 DECLARE_RUNTIME_ENTRY(DeoptimizeMaterializeDoubles);
 DECLARE_RUNTIME_ENTRY(UpdateICDataTwoArgs);
+DECLARE_RUNTIME_ENTRY(UpdateFieldCid);
+
 
 #define DEOPT_REASONS(V)                                                       \
   V(Unknown)                                                                   \
@@ -75,6 +77,7 @@ DECLARE_RUNTIME_ENTRY(UpdateICDataTwoArgs);
   V(DoubleToSmi)                                                               \
   V(Int32Load)                                                                 \
   V(Uint32Load)                                                                \
+  V(GuardField)                                                                \
   V(NumReasons)                                                                \
 
 enum DeoptReasonId {
@@ -92,6 +95,7 @@ RawCode* ResolveCompileInstanceCallTarget(
     const ICData& ic_data,
     const Array& arguments_descriptor);
 
+void DeoptimizeAt(const Code& optimized_code, uword pc);
 void DeoptimizeAll();
 void DeoptimizeIfOwner(const GrowableArray<intptr_t>& classes);
 

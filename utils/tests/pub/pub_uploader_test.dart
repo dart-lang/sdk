@@ -7,10 +7,14 @@ library pub_uploader_test;
 import 'dart:io';
 import 'dart:json' as json;
 
-import 'test_pub.dart';
-import '../../../pkg/unittest/lib/unittest.dart';
-import '../../pub/utils.dart';
+import '../../../pkg/scheduled_test/lib/scheduled_process.dart';
+import '../../../pkg/scheduled_test/lib/scheduled_server.dart';
+import '../../../pkg/scheduled_test/lib/scheduled_test.dart';
+
 import '../../pub/io.dart';
+import '../../pub/utils.dart';
+import 'descriptor.dart' as d;
+import 'test_pub.dart';
 
 final USAGE_STRING = '''
     Manage uploaders for a package on pub.dartlang.org.
@@ -50,129 +54,130 @@ main() {
 
   integration('adds an uploader', () {
     var server = new ScheduledServer();
-    credentialsFile(server, 'access token').scheduleCreate();
+    d.credentialsFile(server, 'access token').create();
     var pub = startPubUploader(server, ['--package', 'pkg', 'add', 'email']);
 
-    server.handle('POST', '/packages/pkg/uploaders.json', (request, response) {
+    server.handle('POST', '/packages/pkg/uploaders.json', (request) {
       expect(new ByteStream(request).toBytes().then((bodyBytes) {
         expect(new String.fromCharCodes(bodyBytes), equals('email=email'));
 
-        response.headers.contentType = new ContentType("application", "json");
-        response.write(json.stringify({
+        request.response.headers.contentType =
+            new ContentType("application", "json");
+        request.response.write(json.stringify({
           'success': {'message': 'Good job!'}
         }));
-        response.close();
+        request.response.close();
       }), completes);
     });
 
-    expectLater(pub.nextLine(), equals('Good job!'));
+    expect(pub.nextLine(), completion(equals('Good job!')));
     pub.shouldExit(0);
   });
 
   integration('removes an uploader', () {
     var server = new ScheduledServer();
-    credentialsFile(server, 'access token').scheduleCreate();
+    d.credentialsFile(server, 'access token').create();
     var pub = startPubUploader(server, ['--package', 'pkg', 'remove', 'email']);
 
-    server.handle('DELETE', '/packages/pkg/uploaders/email.json',
-        (request, response) {
-      response.headers.contentType = new ContentType("application", "json");
-      response.write(json.stringify({
+    server.handle('DELETE', '/packages/pkg/uploaders/email.json', (request) {
+      request.response.headers.contentType =
+          new ContentType("application", "json");
+      request.response.write(json.stringify({
         'success': {'message': 'Good job!'}
       }));
-      response.close();
+      request.response.close();
     });
 
-    expectLater(pub.nextLine(), equals('Good job!'));
+    expect(pub.nextLine(), completion(equals('Good job!')));
     pub.shouldExit(0);
   });
 
   integration('defaults to the current package', () {
-    normalPackage.scheduleCreate();
+    d.validPackage.create();
 
     var server = new ScheduledServer();
-    credentialsFile(server, 'access token').scheduleCreate();
+    d.credentialsFile(server, 'access token').create();
     var pub = startPubUploader(server, ['add', 'email']);
 
-    server.handle('POST', '/packages/test_pkg/uploaders.json',
-        (request, response) {
-      response.headers.contentType = new ContentType("application", "json");
-      response.write(json.stringify({
+    server.handle('POST', '/packages/test_pkg/uploaders.json', (request) {
+      request.response.headers.contentType =
+          new ContentType("application", "json");
+      request.response.write(json.stringify({
         'success': {'message': 'Good job!'}
       }));
-      response.close();
+      request.response.close();
     });
 
-    expectLater(pub.nextLine(), equals('Good job!'));
+    expect(pub.nextLine(), completion(equals('Good job!')));
     pub.shouldExit(0);
   });
 
   integration('add provides an error', () {
     var server = new ScheduledServer();
-    credentialsFile(server, 'access token').scheduleCreate();
+    d.credentialsFile(server, 'access token').create();
     var pub = startPubUploader(server, ['--package', 'pkg', 'add', 'email']);
 
-    server.handle('POST', '/packages/pkg/uploaders.json', (request, response) {
-      response.statusCode = 400;
-      response.headers.contentType = new ContentType("application", "json");
-      response.write(json.stringify({
+    server.handle('POST', '/packages/pkg/uploaders.json', (request) {
+      request.response.statusCode = 400;
+      request.response.headers.contentType =
+          new ContentType("application", "json");
+      request.response.write(json.stringify({
         'error': {'message': 'Bad job!'}
       }));
-      response.close();
+      request.response.close();
     });
 
-    expectLater(pub.nextErrLine(), equals('Bad job!'));
+    expect(pub.nextErrLine(), completion(equals('Bad job!')));
     pub.shouldExit(1);
   });
 
   integration('remove provides an error', () {
     var server = new ScheduledServer();
-    credentialsFile(server, 'access token').scheduleCreate();
+    d.credentialsFile(server, 'access token').create();
     var pub = startPubUploader(server,
         ['--package', 'pkg', 'remove', 'e/mail']);
 
-    server.handle('DELETE', '/packages/pkg/uploaders/e%2Fmail.json',
-        (request, response) {
-      response.statusCode = 400;
-      response.headers.contentType = new ContentType("application", "json");
-      response.write(json.stringify({
+    server.handle('DELETE', '/packages/pkg/uploaders/e%2Fmail.json', (request) {
+      request.response.statusCode = 400;
+      request.response.headers.contentType =
+          new ContentType("application", "json");
+      request.response.write(json.stringify({
         'error': {'message': 'Bad job!'}
       }));
-      response.close();
+      request.response.close();
     });
 
-    expectLater(pub.nextErrLine(), equals('Bad job!'));
+    expect(pub.nextErrLine(), completion(equals('Bad job!')));
     pub.shouldExit(1);
   });
 
   integration('add provides invalid JSON', () {
     var server = new ScheduledServer();
-    credentialsFile(server, 'access token').scheduleCreate();
+    d.credentialsFile(server, 'access token').create();
     var pub = startPubUploader(server, ['--package', 'pkg', 'add', 'email']);
 
-    server.handle('POST', '/packages/pkg/uploaders.json', (request, response) {
-      response.write("{not json");
-      response.close();
+    server.handle('POST', '/packages/pkg/uploaders.json', (request) {
+      request.response.write("{not json");
+      request.response.close();
     });
 
-    expectLater(pub.nextErrLine(), equals('Invalid server response:'));
-    expectLater(pub.nextErrLine(), equals('{not json'));
+    expect(pub.nextErrLine(), completion(equals('Invalid server response:')));
+    expect(pub.nextErrLine(), completion(equals('{not json')));
     pub.shouldExit(1);
   });
 
   integration('remove provides invalid JSON', () {
     var server = new ScheduledServer();
-    credentialsFile(server, 'access token').scheduleCreate();
+    d.credentialsFile(server, 'access token').create();
     var pub = startPubUploader(server, ['--package', 'pkg', 'remove', 'email']);
 
-    server.handle('DELETE', '/packages/pkg/uploaders/email.json',
-        (request, response) {
-      response.write("{not json");
-      response.close();
+    server.handle('DELETE', '/packages/pkg/uploaders/email.json', (request) {
+      request.response.write("{not json");
+      request.response.close();
     });
 
-    expectLater(pub.nextErrLine(), equals('Invalid server response:'));
-    expectLater(pub.nextErrLine(), equals('{not json'));
+    expect(pub.nextErrLine(), completion(equals('Invalid server response:')));
+    expect(pub.nextErrLine(), completion(equals('{not json')));
     pub.shouldExit(1);
   });
 }

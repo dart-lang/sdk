@@ -45,26 +45,6 @@ void main() {
     });
   });
 
-  expectTestsPass('file().create() with a RegExp name fails', () {
-    var errors;
-    test('test 1', () {
-      scheduleSandbox();
-
-      currentSchedule.onException.schedule(() {
-        errors = currentSchedule.errors;
-      });
-
-      d.file(new RegExp(r'name\.txt'), 'contents').create();
-    });
-
-    test('test 2', () {
-      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
-      expect(errors.map((e) => e.error), equals([
-        r"Pattern /name\.txt/ must be a string."
-      ]), verbose: true);
-    });
-  }, passing: ['test 2']);
-
   expectTestsPass('file().validate() completes successfully if the filesystem '
       'matches the descriptor', () {
     test('test', () {
@@ -128,107 +108,6 @@ void main() {
     });
   }, passing: ['test 2']);
 
-  expectTestsPass('file().validate() with a RegExp completes successfully if '
-      'the filesystem matches the descriptor', () {
-    test('test', () {
-      scheduleSandbox();
-
-      schedule(() {
-        return new File(path.join(sandbox, 'name.txt'))
-            .writeAsString('contents');
-      });
-
-      d.file(new RegExp(r'na..\.txt'), 'contents').validate();
-    });
-  });
-
-  expectTestsPass("file().validate() with a RegExp fails if there's a file "
-      "with the wrong contents", () {
-    var errors;
-    test('test 1', () {
-      scheduleSandbox();
-
-      currentSchedule.onException.schedule(() {
-        errors = currentSchedule.errors;
-      });
-
-      schedule(() {
-        return new File(path.join(sandbox, 'name.txt'))
-            .writeAsString('some\nwrongtents');
-      });
-
-      d.file(new RegExp(r'na..\.txt'), 'some\ncontents\nand stuff').validate();
-    });
-
-    test('test 2', () {
-      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
-      expect(errors.map((e) => e.error), equals([
-        "File 'name.txt' (matching /na..\\.txt/) should contain:\n"
-        "| some\n"
-        "| contents\n"
-        "| and stuff\n"
-        "but actually contained:\n"
-        "| some\n"
-        "X wrongtents\n"
-        "? and stuff"
-      ]), verbose: true);
-    });
-  }, passing: ['test 2']);
-
-  expectTestsPass("file().validate() with a RegExp fails if there's no "
-      "file", () {
-    var errors;
-    test('test 1', () {
-      scheduleSandbox();
-
-      currentSchedule.onException.schedule(() {
-        errors = currentSchedule.errors;
-      });
-
-      d.file(new RegExp(r'na..\.txt'), 'contents').validate();
-    });
-
-    test('test 2', () {
-      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
-      expect(errors.length, equals(1));
-      expect(errors.first.error,
-          matches(r"^No entry found in '[^']+' matching /na\.\.\\\.txt/\.$"));
-    });
-  }, passing: ['test 2']);
-
-  expectTestsPass("file().validate() with a RegExp fails if there are multiple "
-      "matching files", () {
-    var errors;
-    test('test 1', () {
-      scheduleSandbox();
-
-      currentSchedule.onException.schedule(() {
-        errors = currentSchedule.errors;
-      });
-
-      schedule(() {
-        return Future.wait([
-          new File(path.join(sandbox, 'name.txt')).writeAsString('contents'),
-          new File(path.join(sandbox, 'nape.txt')).writeAsString('contents'),
-          new File(path.join(sandbox, 'nail.txt')).writeAsString('contents')
-        ]);
-      });
-
-      d.file(new RegExp(r'na..\.txt'), 'contents').validate();
-    });
-
-    test('test 2', () {
-      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
-      expect(errors.length, equals(1));
-      expect(errors.first.error,
-          matches(
-              r"^Multiple entries found in '[^']+' matching /na\.\.\\\.txt/:\n"
-              r"\* .*[\\/]nail\.txt\n"
-              r"\* .*[\\/]name\.txt\n"
-              r"\* .*[\\/]nape\.txt"));
-    });
-  }, passing: ['test 2']);
-
   expectTestsPass("file().read() returns the contents of the file as a stream",
       () {
     test('test', () {
@@ -248,13 +127,6 @@ void main() {
   expectTestsPass("file().describe() returns the filename", () {
     test('test', () {
       expect(d.file('name.txt', 'contents').describe(), equals('name.txt'));
-    });
-  });
-
-  expectTestsPass("file().describe() with a RegExp describes the file", () {
-    test('test', () {
-      expect(d.file(new RegExp(r'na..\.txt'), 'contents').describe(),
-          equals(r'file matching /na..\.txt/'));
     });
   });
 
@@ -355,26 +227,6 @@ void main() {
     });
   });
 
-  expectTestsPass("directory().create() with a RegExp name fails", () {
-    var errors;
-    test('test 1', () {
-      scheduleSandbox();
-
-      currentSchedule.onException.schedule(() {
-        errors = currentSchedule.errors;
-      });
-
-      d.dir(new RegExp('dir')).create();
-    });
-
-    test('test 2', () {
-      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
-      expect(errors.map((e) => e.error), equals([
-        "Pattern /dir/ must be a string."
-      ]), verbose: true);
-    });
-  }, passing: ['test 2']);
-
   expectTestsPass("directory().validate() completes successfully if the "
       "filesystem matches the descriptor", () {
     test('test', () {
@@ -443,7 +295,7 @@ void main() {
     test('test 2', () {
       expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
       expect(errors.length, equals(1));
-      expect(errors.first.error,
+      expect(errors.first.error.toString(),
           matches(r"^Directory not found: '[^']+[\\/]dir[\\/]subdir'\.$"));
     });
   }, passing: ['test 2']);
@@ -485,8 +337,55 @@ void main() {
     test('test 2', () {
       expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
       expect(errors.length, equals(1));
-      expect(errors.first.error,
+      expect(errors.first.error.toString(),
           matches(r"^File not found: '[^']+[\\/]dir[\\/]file2\.txt'\.$"));
+    });
+  }, passing: ['test 2']);
+
+  expectTestsPass("directory().validate() fails if multiple children aren't "
+      "found or have the wrong contents", () {
+    var errors;
+    test('test 1', () {
+      scheduleSandbox();
+
+      currentSchedule.onException.schedule(() {
+        errors = currentSchedule.errors;
+      });
+
+      schedule(() {
+        var dirPath = path.join(sandbox, 'dir');
+        var subdirPath = path.join(dirPath, 'subdir');
+        return new Directory(subdirPath).create(recursive: true).then((_) {
+          return Future.wait([
+            new File(path.join(dirPath, 'file1.txt'))
+                .writeAsString('contents1'),
+            new File(path.join(subdirPath, 'subfile2.txt'))
+                .writeAsString('subwrongtents2')
+          ]);
+        });
+      });
+
+      d.dir('dir', [
+        d.dir('subdir', [
+          d.file('subfile1.txt', 'subcontents1'),
+          d.file('subfile2.txt', 'subcontents2')
+        ]),
+        d.file('file1.txt', 'contents1'),
+        d.file('file2.txt', 'contents2')
+      ]).validate();
+    });
+
+    test('test 2', () {
+      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
+      expect(errors.length, equals(1));
+      expect(errors.first.error.toString(), matches(
+          r"^\* File not found: '[^']+[\\/]dir[\\/]subdir[\\/]subfile1\.txt'\."
+              r"\n"
+          r"\* File 'subfile2\.txt' should contain:\n"
+          r"  \| subcontents2\n"
+          r"  but actually contained:\n"
+          r"  X subwrongtents2\n"
+          r"\* File not found: '[^']+[\\/]dir[\\/]file2\.txt'\.$"));
     });
   }, passing: ['test 2']);
 
@@ -529,167 +428,12 @@ void main() {
 
     test('test 2', () {
       expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
-      expect(errors.map((e) => e.error), equals([
+      expect(errors.map((e) => e.error.toString()), equals([
         "File 'subfile1.txt' should contain:\n"
         "| subcontents1\n"
         "but actually contained:\n"
         "X wrongtents1"
       ]));
-    });
-  }, passing: ['test 2']);
-
-  expectTestsPass("directory().validate() with a RegExp completes successfully "
-      "if the filesystem matches the descriptor", () {
-    test('test', () {
-      scheduleSandbox();
-
-      schedule(() {
-        var dirPath = path.join(sandbox, 'dir');
-        var subdirPath = path.join(dirPath, 'subdir');
-        return new Directory(subdirPath).create(recursive: true).then((_) {
-          return Future.wait([
-            new File(path.join(dirPath, 'file1.txt'))
-                .writeAsString('contents1'),
-            new File(path.join(dirPath, 'file2.txt'))
-                .writeAsString('contents2'),
-            new File(path.join(subdirPath, 'subfile1.txt'))
-                .writeAsString('subcontents1'),
-            new File(path.join(subdirPath, 'subfile2.txt'))
-                .writeAsString('subcontents2')
-          ]);
-        });
-      });
-
-      d.dir(new RegExp('d.r'), [
-        d.dir('subdir', [
-          d.file('subfile1.txt', 'subcontents1'),
-          d.file('subfile2.txt', 'subcontents2')
-        ]),
-        d.file('file1.txt', 'contents1'),
-        d.file('file2.txt', 'contents2')
-      ]).validate();
-    });
-  });
-
-  expectTestsPass("directory().validate() with a RegExp fails if there's a dir "
-      "with the wrong contents", () {
-    var errors;
-    test('test 1', () {
-      scheduleSandbox();
-
-      currentSchedule.onException.schedule(() {
-        errors = currentSchedule.errors;
-      });
-
-      schedule(() {
-        var dirPath = path.join(sandbox, 'dir');
-        var subdirPath = path.join(dirPath, 'subdir');
-        return new Directory(subdirPath).create(recursive: true).then((_) {
-          return Future.wait([
-            new File(path.join(dirPath, 'file1.txt'))
-                .writeAsString('contents1'),
-            new File(path.join(subdirPath, 'subfile1.txt'))
-                .writeAsString('subcontents1'),
-            new File(path.join(subdirPath, 'subfile2.txt'))
-                .writeAsString('subcontents2')
-          ]);
-        });
-      });
-
-      d.dir(new RegExp('d.r'), [
-        d.dir('subdir', [
-          d.file('subfile1.txt', 'subcontents1'),
-          d.file('subfile2.txt', 'subcontents2')
-        ]),
-        d.file('file1.txt', 'contents1'),
-        d.file('file2.txt', 'contents2')
-      ]).validate();
-    });
-
-    test('test 2', () {
-      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
-      expect(errors.length, equals(1));
-      expect(errors.first.error,
-          matches(r"^File not found: '[^']+[\\/]dir[\\/]file2\.txt'\.$"));
-    });
-  }, passing: ['test 2']);
-
-  expectTestsPass("directory().validate() with a RegExp fails if there's no "
-      "dir", () {
-    var errors;
-    test('test 1', () {
-      scheduleSandbox();
-
-      currentSchedule.onException.schedule(() {
-        errors = currentSchedule.errors;
-      });
-
-      d.dir(new RegExp('d.r'), [
-        d.dir('subdir', [
-          d.file('subfile1.txt', 'subcontents1'),
-          d.file('subfile2.txt', 'subcontents2')
-        ]),
-        d.file('file1.txt', 'contents1'),
-        d.file('file2.txt', 'contents2')
-      ]).validate();
-    });
-
-    test('test 2', () {
-      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
-      expect(errors.length, equals(1));
-      expect(errors.first.error,
-          matches(r"^No entry found in '[^']+' matching /d\.r/\.$"));
-    });
-  }, passing: ['test 2']);
-
-  expectTestsPass("directory().validate() with a RegExp fails if there are "
-      "multiple matching dirs", () {
-    var errors;
-    test('test 1', () {
-      scheduleSandbox();
-
-      currentSchedule.onException.schedule(() {
-        errors = currentSchedule.errors;
-      });
-
-      schedule(() {
-        return Future.wait(['dir', 'dar', 'dor'].map((dir) {
-          var dirPath = path.join(sandbox, dir);
-          var subdirPath = path.join(dirPath, 'subdir');
-          return new Directory(subdirPath).create(recursive: true).then((_) {
-            return Future.wait([
-              new File(path.join(dirPath, 'file1.txt'))
-                  .writeAsString('contents1'),
-              new File(path.join(dirPath, 'file2.txt'))
-                  .writeAsString('contents2'),
-              new File(path.join(subdirPath, 'subfile1.txt'))
-                  .writeAsString('subcontents1'),
-              new File(path.join(subdirPath, 'subfile2.txt'))
-                  .writeAsString('subcontents2')
-            ]);
-          });
-        }));
-      });
-
-      d.dir(new RegExp('d.r'), [
-        d.dir('subdir', [
-          d.file('subfile1.txt', 'subcontents1'),
-          d.file('subfile2.txt', 'subcontents2')
-        ]),
-        d.file('file1.txt', 'contents1'),
-        d.file('file2.txt', 'contents2')
-      ]).validate();
-    });
-
-    test('test 2', () {
-      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
-      expect(errors.length, equals(1));
-      expect(errors.first.error,
-          matches(
-              r"^Multiple entries found in '[^']+' matching /d\.r/:\n"
-              r"\* .*[\\/]dar\n"
-              r"\* .*[\\/]dir\n"
-              r"\* .*[\\/]dor"));
     });
   }, passing: ['test 2']);
 
@@ -762,16 +506,6 @@ void main() {
     });
   });
 
-  expectTestsPass("directory().load() fails to load a file with a RegExp name",
-      () {
-    test('test', () {
-      var dir = d.dir('dir', [d.file(new RegExp(r'name\.txt'), 'contents')]);
-
-      expect(dir.load('name.txt').toList(),
-          throwsA(equals(r"Pattern /name\.txt/ must be a string.")));
-    });
-  });
-
   expectTestsPass("directory().load() fails to load a file that doesn't exist",
       () {
     test('test', () {
@@ -802,15 +536,13 @@ void main() {
     test('test', () {
       var dir = d.dir('dir', [
         d.file('file1.txt', 'contents1'),
-        d.file('file2.txt', 'contents2'),
-        d.file(new RegExp(r're\.txt'), 're-contents')
+        d.file('file2.txt', 'contents2')
       ]);
 
       expect(dir.describe(), equals(
           "dir\n"
           "|-- file1.txt\n"
-          "|-- file2.txt\n"
-          "'-- file matching /re\\.txt/"));
+          "'-- file2.txt"));
     });
   });
 
@@ -837,21 +569,6 @@ void main() {
           "|   |-- subfile2.txt\n"
           "|   '-- subsubdir\n"
           "|       '-- subsubfile.txt\n"
-          "'-- file2.txt"));
-    });
-  });
-
-  expectTestsPass("directory().describe() with a RegExp describes the "
-      "directory", () {
-    test('test', () {
-      var dir = d.dir(new RegExp(r'd.r'), [
-        d.file('file1.txt', 'contents1'),
-        d.file('file2.txt', 'contents2')
-      ]);
-
-      expect(dir.describe(), equals(
-          "directory matching /d.r/\n"
-          "|-- file1.txt\n"
           "'-- file2.txt"));
     });
   });
@@ -976,7 +693,7 @@ void main() {
 
       expect(d.async(new Future.immediate(d.file('name.txt')))
               .load('path').toList(),
-          throwsA(equals("Async descriptors don't support load().")));
+          throwsA(equals("AsyncDescriptors don't support load().")));
     });
   });
 
@@ -985,7 +702,7 @@ void main() {
       scheduleSandbox();
 
       expect(d.async(new Future.immediate(d.file('name.txt'))).read().toList(),
-          throwsA(equals("Async descriptors don't support read().")));
+          throwsA(equals("AsyncDescriptors don't support read().")));
     });
   });
 
@@ -1012,15 +729,6 @@ void main() {
       scheduleSandbox();
 
       d.nothing('foo').validate();
-    });
-  });
-
-  expectTestsPass("nothing().validate() with a RegExp succeeds if nothing's "
-      "there", () {
-    test('test', () {
-      scheduleSandbox();
-
-      d.nothing(new RegExp('f.o')).validate();
     });
   });
 
@@ -1068,33 +776,6 @@ void main() {
     });
   }, passing: ['test 2']);
 
-  expectTestsPass("nothing().validate() with a RegExp fails if there are "
-      "multiple entries", () {
-    var errors;
-    test('test 1', () {
-      scheduleSandbox();
-
-      currentSchedule.onException.schedule(() {
-        errors = currentSchedule.errors;
-      });
-
-      d.dir('foo').create();
-      d.file('faa', 'contents').create();
-      d.file('not-foo', 'contents').create();
-      d.nothing(new RegExp(r'^f..$')).validate();
-    });
-
-    test('test 2', () {
-      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
-      expect(errors.length, equals(1));
-      expect(errors.first.error,
-          matches(r"^Expected nothing to exist in '[^']+' matching "
-                  r"/\^f\.\.\$/, but found:\n"
-              r"\* .*[\\/]faa\n"
-              r"\* .*[\\/]foo$"));
-    });
-  }, passing: ['test 2']);
-
   expectTestsPass("nothing().load() fails", () {
     test('test', () {
       scheduleSandbox();
@@ -1112,6 +793,156 @@ void main() {
           throwsA(equals("Nothing descriptors don't support read().")));
     });
   });
+
+  expectTestsPass("pattern().validate() succeeds if there's a file matching "
+      "the pattern and the child entry", () {
+    test('test', () {
+      scheduleSandbox();
+
+      d.file('foo', 'blap').create();
+
+      d.filePattern(new RegExp(r'f..'), 'blap').validate();
+    });
+  });
+
+  expectTestsPass("pattern().validate() succeeds if there's a dir matching "
+      "the pattern and the child entry", () {
+    test('test', () {
+      scheduleSandbox();
+
+      d.dir('foo', [
+        d.file('bar', 'baz')
+      ]).create();
+
+      d.dirPattern(new RegExp(r'f..'), [
+        d.file('bar', 'baz')
+      ]).validate();
+    });
+  });
+
+  expectTestsPass("pattern().validate() succeeds if there's multiple files "
+      "matching the pattern but only one matching the child entry", () {
+    test('test', () {
+      scheduleSandbox();
+
+      d.file('foo', 'blap').create();
+      d.file('fee', 'blak').create();
+      d.file('faa', 'blut').create();
+
+      d.filePattern(new RegExp(r'f..'), 'blap').validate();
+    });
+  });
+
+  expectTestsPass("pattern().validate() fails if there's no file matching the "
+      "pattern", () {
+    var errors;
+    test('test 1', () {
+      scheduleSandbox();
+
+      currentSchedule.onException.schedule(() {
+        errors = currentSchedule.errors;
+      });
+
+      d.filePattern(new RegExp(r'f..'), 'bar').validate();
+    });
+
+    test('test 2', () {
+      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
+      expect(errors.length, equals(1));
+      expect(errors.first.error,
+          matches(r"^No entry found in '[^']+' matching /f\.\./\.$"));
+    });
+  }, passing: ['test 2']);
+
+  expectTestsPass("pattern().validate() fails if there's a file matching the "
+      "pattern but not the entry", () {
+    var errors;
+    test('test 1', () {
+      scheduleSandbox();
+
+      currentSchedule.onException.schedule(() {
+        errors = currentSchedule.errors;
+      });
+
+      d.file('foo', 'bap').create();
+      d.filePattern(new RegExp(r'f..'), 'bar').validate();
+    });
+
+    test('test 2', () {
+      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
+      expect(errors.length, equals(1));
+      expect(errors.first.error,
+          matches(r"^Caught error\n"
+              r"| File 'foo' should contain:\n"
+              r"| | bar\n"
+              r"| but actually contained:\n"
+              r"| X bap\n"
+              r"while validating\n"
+              r"| foo$"));
+    });
+  }, passing: ['test 2']);
+
+  expectTestsPass("pattern().validate() fails if there's a dir matching the "
+      "pattern but not the entry", () {
+    var errors;
+    test('test 1', () {
+      scheduleSandbox();
+
+      currentSchedule.onException.schedule(() {
+        errors = currentSchedule.errors;
+      });
+
+      d.dir('foo', [
+        d.file('bar', 'bap')
+      ]).create();
+
+      d.dirPattern(new RegExp(r'f..'), [
+        d.file('bar', 'baz')
+      ]).validate();
+    });
+
+    test('test 2', () {
+      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
+      expect(errors.length, equals(1));
+      expect(errors.first.error,
+          matches(r"^Caught error\n"
+              r"| File 'bar' should contain:\n"
+              r"| | baz\n"
+              r"| but actually contained:\n"
+              r"| X bap"
+              r"while validating\n"
+              r"| foo\n"
+              r"| '-- bar$"));
+    });
+  }, passing: ['test 2']);
+
+  expectTestsPass("pattern().validate() fails if there's multiple files "
+      "matching the pattern and the child entry", () {
+    var errors;
+    test('test 1', () {
+      scheduleSandbox();
+
+      currentSchedule.onException.schedule(() {
+        errors = currentSchedule.errors;
+      });
+
+      d.file('foo', 'bar').create();
+      d.file('fee', 'bar').create();
+      d.file('faa', 'bar').create();
+      d.filePattern(new RegExp(r'f..'), 'bar').validate();
+    });
+
+    test('test 2', () {
+      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
+      expect(errors.length, equals(1));
+      expect(errors.first.error, matches(
+              r"^Multiple valid entries found in '[^']+' matching "
+                  r"\/f\.\./:\n"
+              r"\* faa\n"
+              r"\* fee\n"
+              r"\* foo$"));
+    });
+  }, passing: ['test 2']);
 }
 
 void scheduleSandbox() {

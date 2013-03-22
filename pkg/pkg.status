@@ -12,10 +12,18 @@ fixnum/test/int_64_vm_test: Skip
 # Skip non-test files ending with "_test".
 scheduled_test/lib/*: Skip
 
+scheduled_test/test/scheduled_test_test: Pass, Slow # Issue 9231
+
 # WebDriver tests have 3rd party dependencies (we need to run
 # selenium_standalone.jar), so we skip these in our automated
 # testing.
 webdriver/test/webdriver_test: Skip
+
+[$compiler == none && $runtime == vm]
+intl/test/date_time_format_file_even_test: Pass, Crash # Issue 9342
+intl/test/date_time_format_file_odd_test: Pass, Crash # Issue 9342
+intl/test/date_time_format_local_even_test: Pass, Crash # Issue 9342
+intl/test/date_time_format_local_odd_test: Pass, Crash # Issue 9342
 
 [$compiler == dart2dart]
 *: Skip
@@ -29,6 +37,9 @@ pathos/test/*: Skip
 # Issue 8440 forces us to use pathos in the scheduled_test tests, which would
 # otherwise be dart2js-compatible.
 scheduled_test/test/*: Skip
+source_maps/test/vlq_test: Fail # A VLQ test checks for large numbers that
+                                # overflow in JS (numbers slightly larger than
+                                # 32 bits where we do bitwise operations).
 
 # Skip tests that use local file access if we're running in any browser
 [ $runtime == opera || $runtime == ff || $runtime == ie9 || $runtime == dartium || $runtime == chrome || $runtime == safari || $runtime == drt  || $runtime == jsshell]
@@ -57,6 +68,9 @@ intl/test/date_time_format_http_request_test: Skip # Timeout.
 [ $runtime == ie9 ]
 intl/test/date_time_format_http_request_test: Fail # Issue 8983
 
+[ $runtime == safari ]
+fixnum/test/int_64_test: Pass, Fail # Bug in JSC.
+
 # Skip browser-specific Intl tests on VM
 [ $runtime == vm ]
 intl/test/find_default_locale_browser_test: Skip
@@ -74,7 +88,8 @@ intl/test/date_time_format_http_request_test: Skip
 [ $compiler == dart2js ]
 # Skip intl_message tests that use mirrors on dart2js until it's been
 # implemented there.
-serialization/test/serialization_test: Skip
+serialization/test/serialization_test: Skip # Issue 6490
+serialization/test/no_library_test: Skip # Issue 6490
 analyzer_experimental/test/generated/ast_test: Skip
 analyzer_experimental/test/generated/element_test: Skip
 analyzer_experimental/test/generated/parser_test: Skip
@@ -112,3 +127,8 @@ dartdoc/test/dartdoc_test: Skip # See dartbug.com/4541.
 
 [ $arch == simmips ]
 *: Skip
+
+# Skip serialization test that explicitly has no library declaration in the
+# test on Dartium, which requires all tests to have a library.
+[ $runtime == dartium || $runtime == drt ]
+serialization/test/no_library_test: Skip # Expected Failure

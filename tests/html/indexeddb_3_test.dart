@@ -7,7 +7,7 @@ import 'dart:indexed_db';
 
 // Read with cursor.
 
-const String DB_NAME = 'Test';
+const String DB_NAME = 'Test3';
 const String STORE_NAME = 'TEST';
 const int VERSION = 1;
 

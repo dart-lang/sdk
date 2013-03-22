@@ -31,7 +31,7 @@ DEFINE_FLAG(bool, report_usage_count, false,
             "Track function usage and report.");
 DEFINE_FLAG(bool, trace_isolates, false,
             "Trace isolate creation and shut down.");
-
+DECLARE_FLAG(bool, trace_deoptimization_verbose);
 
 class IsolateMessageHandler : public MessageHandler {
  public:
@@ -255,6 +255,61 @@ void BaseIsolate::AssertCurrent(BaseIsolate* isolate) {
 #endif
 
 
+void DeferredDouble::Materialize() {
+  RawDouble** double_slot = reinterpret_cast<RawDouble**>(slot());
+  *double_slot = Double::New(value());
+
+  if (FLAG_trace_deoptimization_verbose) {
+    OS::PrintErr("materializing double at %"Px": %g\n",
+                 reinterpret_cast<uword>(slot()), value());
+  }
+}
+
+
+void DeferredMint::Materialize() {
+  RawMint** mint_slot = reinterpret_cast<RawMint**>(slot());
+  ASSERT(!Smi::IsValid64(value()));
+  *mint_slot = Mint::New(value());
+
+  if (FLAG_trace_deoptimization_verbose) {
+    OS::PrintErr("materializing mint at %"Px": %"Pd64"\n",
+                 reinterpret_cast<uword>(slot()), value());
+  }
+}
+
+
+void DeferredFloat32x4::Materialize() {
+  RawFloat32x4** float32x4_slot = reinterpret_cast<RawFloat32x4**>(slot());
+  RawFloat32x4* raw_float32x4 = Float32x4::New(value());
+  *float32x4_slot = raw_float32x4;
+
+  if (FLAG_trace_deoptimization_verbose) {
+    float x = raw_float32x4->x();
+    float y = raw_float32x4->y();
+    float z = raw_float32x4->z();
+    float w = raw_float32x4->w();
+    OS::PrintErr("materializing Float32x4 at %"Px": %g,%g,%g,%g\n",
+                 reinterpret_cast<uword>(slot()), x, y, z, w);
+  }
+}
+
+
+void DeferredUint32x4::Materialize() {
+  RawUint32x4** uint32x4_slot = reinterpret_cast<RawUint32x4**>(slot());
+  RawUint32x4* raw_uint32x4 = Uint32x4::New(value());
+  *uint32x4_slot = raw_uint32x4;
+
+  if (FLAG_trace_deoptimization_verbose) {
+    uint32_t x = raw_uint32x4->x();
+    uint32_t y = raw_uint32x4->y();
+    uint32_t z = raw_uint32x4->z();
+    uint32_t w = raw_uint32x4->w();
+    OS::PrintErr("materializing Uint32x4 at %"Px": %x,%x,%x,%x\n",
+                 reinterpret_cast<uword>(slot()), x, y, z, w);
+  }
+}
+
+
 Isolate::Isolate()
     : store_buffer_block_(),
       store_buffer_(),
@@ -287,8 +342,7 @@ Isolate::Isolate()
       deopt_fpu_registers_copy_(NULL),
       deopt_frame_copy_(NULL),
       deopt_frame_copy_size_(0),
-      deferred_doubles_(NULL),
-      deferred_mints_(NULL) {
+      deferred_objects_(NULL) {
 }
 
 

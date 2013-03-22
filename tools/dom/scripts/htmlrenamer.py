@@ -34,6 +34,8 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames', {
     'PositionErrorCallback': '_PositionErrorCallback',
     'Rect': 'CssRect',
     'RGBColor': 'CssRgbColor',
+    'RTCDTMFSender': 'RtcDtmfSender',
+    'RTCDTMFToneChangeEvent': 'RtcDtmfToneChangeEvent',
     'RTCErrorCallback': '_RtcErrorCallback',
     'RTCSessionDescriptionCallback': '_RtcSessionDescriptionCallback',
     'StorageInfoErrorCallback': '_StorageInfoErrorCallback',
@@ -111,11 +113,8 @@ convert_to_future_members = monitored.Set(
   'FileEntry.file',
   'Notification.requestPermission',
   'NotificationCenter.requestPermission',
-  'RTCPeerConnection.createAnswer',
-  'RTCPeerConnection.createOffer',
   'RTCPeerConnection.setLocalDescription',
   'RTCPeerConnection.setRemoteDescription',
-  'StorageInfo.queryUsageAndQuota',
   'StorageInfo.requestQuota',
   'WorkerContext.webkitResolveLocalFileSystemURL',
   'WorkerContext.webkitRequestFileSystem',
@@ -166,10 +165,6 @@ _private_html_members = monitored.Set('htmlrenamer._private_html_members', [
   'Element.childElementCount',
   'Element.children',
   'Element.className',
-  'Element.clientHeight',
-  'Element.clientLeft',
-  'Element.clientTop',
-  'Element.clientWidth',
   'Element.firstElementChild',
   'Element.getAttribute',
   'Element.getAttributeNS',
@@ -177,10 +172,6 @@ _private_html_members = monitored.Set('htmlrenamer._private_html_members', [
   'Element.hasAttribute',
   'Element.hasAttributeNS',
   'Element.lastElementChild',
-  'Element.offsetHeight',
-  'Element.offsetLeft',
-  'Element.offsetTop',
-  'Element.offsetWidth',
   'Element.querySelectorAll',
   'Element.removeAttribute',
   'Element.removeAttributeNS',
@@ -226,7 +217,7 @@ _private_html_members = monitored.Set('htmlrenamer._private_html_members', [
   'IDBObjectStore.count',
   'IDBObjectStore.createIndex',
   'IDBObjectStore.delete',
-  'IDBObjectStore.getObject',
+  'IDBObjectStore.get',
   'IDBObjectStore.openCursor',
   'IDBObjectStore.put',
   'KeyboardEvent.initKeyboardEvent',
@@ -285,6 +276,8 @@ _private_html_members = monitored.Set('htmlrenamer._private_html_members', [
 # Members from the standard dom that exist in the dart:html library with
 # identical functionality but with cleaner names.
 renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
+    'DirectoryEntry.getDirectory': '_getDirectory',
+    'DirectoryEntry.getFile': '_getFile',
     'Document.createCDATASection': 'createCDataSection',
     'Document.defaultView': 'window',
     'Document.querySelector': 'query',
@@ -297,7 +290,7 @@ renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
     'DOMWindow.webkitConvertPointFromNodeToPage': 'convertPointFromNodeToPage',
     'DOMWindow.webkitConvertPointFromPageToNode': 'convertPointFromPageToNode',
     'DOMWindow.webkitNotifications': 'notifications',
-    'DOMWindow.webkitRequestFileSystem': 'requestFileSystem',
+    'DOMWindow.webkitRequestFileSystem': '_requestFileSystem',
     'DOMWindow.webkitResolveLocalFileSystemURL': 'resolveLocalFileSystemUrl',
     'Element.querySelector': 'query',
     'Element.webkitCreateShadowRoot': 'createShadowRoot',
@@ -310,11 +303,14 @@ renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
     'Node.parentElement': 'parent',
     'Node.previousSibling': 'previousNode',
     'Node.textContent': 'text',
+    'RTCPeerConnection.createAnswer': '_createAnswer',
+    'RTCPeerConnection.createOffer': '_createOffer',
+    'StorageInfo.queryUsageAndQuota': '_queryUsageAndQuota',
     'SVGComponentTransferFunctionElement.offset': 'gradientOffset',
     'SVGElement.className': '$dom_svgClassName',
     'SVGStopElement.offset': 'gradientOffset',
-    'WorkerContext.webkitRequestFileSystem': 'requestFileSystem',
-    'WorkerContext.webkitRequestFileSystemSync': 'requestFileSystemSync',
+    'WorkerContext.webkitRequestFileSystem': '_requestFileSystem',
+    'WorkerContext.webkitRequestFileSystemSync': '_requestFileSystemSync',
     'WorkerContext.webkitResolveLocalFileSystemSyncURL':
         'resolveLocalFileSystemSyncUrl',
     'WorkerContext.webkitResolveLocalFileSystemURL':
@@ -347,6 +343,7 @@ _removed_html_members = monitored.Set('htmlrenamer._removed_html_members', [
     'CanvasRenderingContext2D.setMiterLimit',
     'CanvasRenderingContext2D.setShadow',
     'CanvasRenderingContext2D.setStrokeColor',
+    'CanvasRenderingContext2D.webkitLineDash',
     'CanvasRenderingContext2D.webkitLineDashOffset',
     'CharacterData.remove',
     'DOMWindow.call:blur',
@@ -602,6 +599,13 @@ _removed_html_members = monitored.Set('htmlrenamer._removed_html_members', [
     'Document.hasFocus',
     ])
 
+# Manual dart: library name lookup.
+_library_names = monitored.Dict('htmlrenamer._library_names', {
+  'DOMWindow': 'html',
+  'Navigator': 'html',
+  'WorkerContext': 'html',
+})
+
 class HtmlRenamer(object):
   def __init__(self, database):
     self._database = database
@@ -666,6 +670,10 @@ class HtmlRenamer(object):
         return member_name
 
   def GetLibraryName(self, interface):
+    # Some types have attributes merged in from many other interfaces.
+    if interface.id in _library_names:
+      return _library_names[interface.id]
+
     if 'Conditional' in interface.ext_attrs:
       if 'WEB_AUDIO' in interface.ext_attrs['Conditional']:
         return 'web_audio'
@@ -674,9 +682,7 @@ class HtmlRenamer(object):
       if 'INDEXED_DATABASE' in interface.ext_attrs['Conditional']:
         return 'indexed_db'
       if 'SQL_DATABASE' in interface.ext_attrs['Conditional']:
-        # WorkerContext has attributes merged in from many other interfaces.
-        if interface.id != 'WorkerContext':
-          return 'web_sql'
+        return 'web_sql'
 
     return 'html'
 

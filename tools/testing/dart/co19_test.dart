@@ -21,6 +21,7 @@ import "test_runner.dart";
 import "test_options.dart";
 import "test_suite.dart";
 import "test_progress.dart";
+import "../../test.dart" as test_dart;
 
 import "../../../tests/co19/test_config.dart";
 
@@ -41,7 +42,6 @@ void main() {
       new Path(scriptFile.fullPathSync())
       .directoryPath.directoryPath.directoryPath.append('test.dart');
   TestUtils.testScriptPath = scriptPath.toNativePath();
-  var startTime = new DateTime.now();
   var optionsParser = new TestOptionsParser();
   List<Map> configurations = <Map>[];
   for (var commandLine in COMMAND_LINES) {
@@ -50,36 +50,12 @@ void main() {
     arguments.addAll(options.arguments);
     arguments.addAll(commandLine);
     arguments.add('co19');
+    arguments.add('--progress=diff');
     configurations.addAll(optionsParser.parse(arguments));
   }
-  if (configurations == null || configurations.isEmpty) return;
 
-  var firstConfiguration = configurations[0];
-  Map<String, RegExp> selectors = firstConfiguration['selectors'];
-  var maxProcesses = firstConfiguration['tasks'];
-  var verbose = firstConfiguration['verbose'];
-  var listTests = firstConfiguration['list'];
-
-  var configurationIterator = configurations.iterator;
-  void enqueueConfiguration(ProcessQueue queue) {
-    if (!configurationIterator.moveNext()) return;
-    var configuration = configurationIterator.current;
-    for (String selector in selectors.keys) {
-      if (selector == 'co19') {
-        queue.addTestSuite(new Co19TestSuite(configuration));
-      } else {
-        throw 'Error: unexpected selector: "$selector".';
-      }
-    }
+  if (configurations != null || configurations.length > 0) {
+    test_dart.testConfigurations(configurations);
   }
-
-  // Start process queue.
-  var queue = new ProcessQueue(maxProcesses,
-                               'diff',
-                               startTime,
-                               false,
-                               enqueueConfiguration,
-                               () {},
-                               verbose,
-                               listTests);
 }
+

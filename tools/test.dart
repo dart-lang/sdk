@@ -71,17 +71,14 @@ final TEST_SUITE_DIRECTORIES = [
     new Path('sdk/lib/_internal/dartdoc'),
 ];
 
-main() {
+void testConfigurations(List<Map> configurations) {
   var startTime = new DateTime.now();
-  var optionsParser = new TestOptionsParser();
-  List<Map> configurations = optionsParser.parse(new Options().arguments);
-  if (configurations == null || configurations.length == 0) return;
-
   // Extract global options from first configuration.
   var firstConf = configurations[0];
   Map<String, RegExp> selectors = firstConf['selectors'];
   var maxProcesses = firstConf['tasks'];
   var progressIndicator = firstConf['progress'];
+  var failureSummary = firstConf['failure-summary'];
   BuildbotProgressIndicator.stepName = firstConf['step_name'];
   var verbose = firstConf['verbose'];
   var printTiming = firstConf['time'];
@@ -195,7 +192,11 @@ main() {
     eventListener.add(new SummaryPrinter());
     eventListener.add(new FlakyLogWriter());
     if (printFailures) {
-      eventListener.add(new TestFailurePrinter(formatter));
+      // The buildbot has it's own failure summary since it needs to wrap it
+      // into'@@@'-annotated sections.
+      var printFaiureSummary =
+          failureSummary && progressIndicator != 'buildbot';
+      eventListener.add(new TestFailurePrinter(printFaiureSummary, formatter));
     }
     eventListener.add(new ProgressIndicator.fromName(progressIndicator,
                                                      startTime,
@@ -227,3 +228,12 @@ main() {
     Future.wait(serverFutures).then((_) => startProcessQueue());
   }
 }
+
+void main() {
+  var optionsParser = new TestOptionsParser();
+  var configurations = optionsParser.parse(new Options().arguments);
+  if (configurations != null && configurations.length > 0) {
+    testConfigurations(configurations);
+  }
+}
+

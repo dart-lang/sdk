@@ -99,7 +99,7 @@ Dart_Handle TestCase::LoadTestScript(const char* script,
   Dart_Handle result = Dart_SetLibraryTagHandler(LibraryTagHandler);
   EXPECT_VALID(result);
   EXPECT_VALID(result);
-  Dart_Handle lib = Dart_LoadScript(url, source);
+  Dart_Handle lib = Dart_LoadScript(url, source, 0, 0);
   DART_CHECK_VALID(lib);
   result = Dart_SetNativeResolver(lib, resolver);
   DART_CHECK_VALID(result);

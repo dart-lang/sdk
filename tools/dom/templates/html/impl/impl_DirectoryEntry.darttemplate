@@ -1,0 +1,47 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+$(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+  
+  /**
+   * Create a new directory with the specified `path`. If `exclusive` is true,
+   * the returned Future will complete with an error if a directory already
+   * exists with the specified `path`.
+   */
+  Future<Entry> createDirectory(String path, {bool exclusive: false}) {
+    return _getDirectory(path, options: 
+        {'create': true, 'exclusive': exclusive});
+  }
+
+  /**
+   * Retrieve an already existing directory entry. The returned future will
+   * result in an error if a directory at `path` does not exist or if the item
+   * at `path` is not a directory.
+   */
+  Future<Entry> getDirectory(String path) {
+    return _getDirectory(path);
+  }
+
+  /**
+   * Create a new file with the specified `path`. If `exclusive` is true,
+   * the returned Future will complete with an error if a file already
+   * exists at the specified `path`.
+   */
+  Future<Entry> createFile(String path, {bool exclusive: false}) {
+    return _getFile(path, options: {'create': true, 'exclusive': exclusive});
+  }
+  
+  /**
+   * Retrieve an already existing file entry. The returned future will
+   * result in an error if a file at `path` does not exist or if the item at
+   * `path` is not a file.
+   */
+  Future<Entry> getFile(String path) {
+    return _getFile(path);
+  }
+$!MEMBERS
+}
+

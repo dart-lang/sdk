@@ -1,0 +1,153 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+library MandelIsolateTest;
+import 'dart:async';
+import 'dart:isolate';
+import 'dart:math';
+import '../../pkg/unittest/lib/unittest.dart';
+
+const TERMINATION_MESSAGE = -1;
+const N = 100;
+const ISOLATES = 20;
+
+main() {
+  test("Render Mandelbrot in parallel", () {
+    final state = new MandelbrotState();
+    state._validated.future.then(expectAsync1((result) {
+      expect(result, isTrue);
+    }));
+    for (int i = 0; i < min(ISOLATES, N); i++) state.startClient(i);
+  });
+}
+
+
+class MandelbrotState {
+
+  MandelbrotState() {
+    _result = new List<List<int>>(N);
+    _lineProcessedBy = new List<LineProcessorClient>(N);
+    _sent = 0;
+    _missing = N;
+    _validated = new Completer<bool>();
+  }
+
+  void startClient(int id) {
+    assert(_sent < N);
+    final client = new LineProcessorClient(this, id);
+    client.processLine(_sent++);
+  }
+
+  void notifyProcessedLine(LineProcessorClient client, int y, List<int> line) {
+    assert(_result[y] == null);
+    _result[y] = line;
+    _lineProcessedBy[y] = client;
+
+    if (_sent != N) {
+      client.processLine(_sent++);
+    } else {
+      client.shutdown();
+    }
+
+    // If all lines have been computed, validate the result.
+    if (--_missing == 0) {
+      _printResult();
+      _validateResult();
+    }
+  }
+
+  void _validateResult() {
+    // TODO(ngeoffray): Implement this.
+    _validated.complete(true);
+  }
+
+  void _printResult() {
+    var output = new StringBuffer();
+    for (int i = 0; i < _result.length; i++) {
+      List<int> line = _result[i];
+      for (int j = 0; j < line.length; j++) {
+        if (line[j] < 10) output.write("0");
+        output.write(line[j]);
+      }
+      output.write("\n");
+    }
+    // print(output);
+  }
+
+  List<List<int>> _result;
+  List<LineProcessorClient> _lineProcessedBy;
+  int _sent;
+  int _missing;
+  Completer<bool> _validated;
+}
+
+
+class LineProcessorClient {
+
+  LineProcessorClient(MandelbrotState this._state, int this._id) {
+    _sink = streamSpawnFunction(processLines);
+    _box = new MessageBox();
+    _sink.add(_box.sink);
+    _box.stream.listen((List<int> message) {
+      _state.notifyProcessedLine(this, _currentLine, message);
+    });
+  }
+
+  void processLine(int y) {
+    _currentLine = y;
+    _sink.add(y);
+  }
+
+  void shutdown() {
+    _sink.close();
+    _box.stream.close();
+  }
+
+  MandelbrotState _state;
+  int _id;
+  IsolateSink _sink;
+  int _currentLine;
+  MessageBox _box;
+}
+
+List<int> processLine(int y) {
+  double inverseN = 2.0 / N;
+  double Civ = y * inverseN - 1.0;
+  List<int> result = new List<int>(N);
+  for (int x = 0; x < N; x++) {
+    double Crv = x * inverseN - 1.5;
+
+    double Zrv = Crv;
+    double Ziv = Civ;
+
+    double Trv = Crv * Crv;
+    double Tiv = Civ * Civ;
+
+    int i = 49;
+    do {
+      Ziv = (Zrv * Ziv) + (Zrv * Ziv) + Civ;
+      Zrv = Trv - Tiv + Crv;
+
+      Trv = Zrv * Zrv;
+      Tiv = Ziv * Ziv;
+    } while (((Trv + Tiv) <= 4.0) && (--i > 0));
+
+    result[x] = i;
+  }
+  return result;
+}
+
+void processLines() {
+  bool isFirst = true;
+  IsolateSink replyTo;
+
+  stream.listen((message) {
+    if (isFirst) {
+      isFirst = false;
+      replyTo = message;
+      return;
+    }
+    replyTo.add(processLine(message));
+  });
+}

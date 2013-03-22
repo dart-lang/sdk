@@ -1865,9 +1865,9 @@ int DisassemblerX64::InstructionDecode(uword pc) {
 }
 
 
-bool Disassembler::DecodeInstruction(char* hex_buffer, intptr_t hex_size,
-                                    char* human_buffer, intptr_t human_size,
-                                    int* out_instr_len, uword pc) {
+void Disassembler::DecodeInstruction(char* hex_buffer, intptr_t hex_size,
+                                     char* human_buffer, intptr_t human_size,
+                                     int* out_instr_len, uword pc) {
   ASSERT(hex_size > 0);
   ASSERT(human_size > 0);
   DisassemblerX64 decoder(human_buffer, human_size);
@@ -1884,11 +1884,10 @@ bool Disassembler::DecodeInstruction(char* hex_buffer, intptr_t hex_size,
   if (out_instr_len) {
     *out_instr_len = instruction_length;
   }
-  return true;
 }
 
 
-bool Disassembler::Disassemble(uword start,
+void Disassembler::Disassemble(uword start,
                                uword end,
                                DisassemblyFormatter* formatter,
                                const Code::Comments& comments) {
@@ -1920,7 +1919,7 @@ bool Disassembler::Disassemble(uword start,
     pc += instruction_length;
   }
 
-  return true;
+  return;
 }
 
 }  // namespace dart

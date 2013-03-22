@@ -38,9 +38,7 @@ main() {
           watch.start();
           subscription.resume();
         });
-      } else {
-        expect(ms, lessThan(100));
-      }
+      } 
     }, onDone: expectAsync0(() { }));
   });
 }

@@ -6,45 +6,46 @@ library pub_tests;
 
 import 'dart:io';
 
+import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
   integration("doesn't unlock dependencies if a new dependency is already "
       "satisfied", () {
     servePackages([
-      package("foo", "1.0.0", [dependency("bar", "<2.0.0")]),
-      package("bar", "1.0.0", [dependency("baz", "<2.0.0")]),
-      package("baz", "1.0.0")
+      packageMap("foo", "1.0.0", [dependencyMap("bar", "<2.0.0")]),
+      packageMap("bar", "1.0.0", [dependencyMap("baz", "<2.0.0")]),
+      packageMap("baz", "1.0.0")
     ]);
 
-    appDir([dependency("foo")]).scheduleCreate();
+    d.appDir([dependencyMap("foo")]).create();
 
     schedulePub(args: ['install'],
         output: new RegExp(r"Dependencies installed!$"));
 
-    packagesDir({
+    d.packagesDir({
       "foo": "1.0.0",
       "bar": "1.0.0",
       "baz": "1.0.0"
-    }).scheduleValidate();
+    }).validate();
 
     servePackages([
-      package("foo", "2.0.0", [dependency("bar", "<3.0.0")]),
-      package("bar", "2.0.0", [dependency("baz", "<3.0.0")]),
-      package("baz", "2.0.0"),
-      package("newdep", "2.0.0", [dependency("baz", ">=1.0.0")])
+      packageMap("foo", "2.0.0", [dependencyMap("bar", "<3.0.0")]),
+      packageMap("bar", "2.0.0", [dependencyMap("baz", "<3.0.0")]),
+      packageMap("baz", "2.0.0"),
+      packageMap("newdep", "2.0.0", [dependencyMap("baz", ">=1.0.0")])
     ]);
 
-    appDir([dependency("foo"), dependency("newdep")]).scheduleCreate();
+    d.appDir([dependencyMap("foo"), dependencyMap("newdep")]).create();
 
     schedulePub(args: ['install'],
         output: new RegExp(r"Dependencies installed!$"));
 
-    packagesDir({
+    d.packagesDir({
       "foo": "1.0.0",
       "bar": "1.0.0",
       "baz": "1.0.0",
       "newdep": "2.0.0"
-    }).scheduleValidate();
+    }).validate();
   });
 }

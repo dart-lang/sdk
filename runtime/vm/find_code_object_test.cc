@@ -13,19 +13,23 @@
 
 namespace dart {
 
-// Compiler only implemented on IA32 and x64 now.
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+// Compiler only implemented on IA32, X64, and ARM.
+#if defined(TARGET_ARCH_IA32) ||                                               \
+    defined(TARGET_ARCH_X64) ||                                                \
+    defined(TARGET_ARCH_ARM)
 
 TEST_CASE(FindCodeObject) {
 #if defined(TARGET_ARCH_IA32)
   const int kLoopCount = 50000;
-#else
+#elif defined(TARGET_ARCH_X64)
   const int kLoopCount = 25000;
+#else
+  const int kLoopCount = 20000;
 #endif
   const int kScriptSize = 512 * KB;
   const int kNumFunctions = 1024;
   char scriptChars[kScriptSize];
-  String& url = String::Handle(String::New("dart-test:FincCodeObject"));
+  String& url = String::Handle(String::New("dart-test:FindCodeObject"));
   String& source = String::Handle();
   Script& script = Script::Handle();
   Library& lib = Library::Handle();
@@ -152,6 +156,6 @@ TEST_CASE(FindCodeObject) {
   EXPECT(Code::LookupCode(pc) == code.raw());
 }
 
-#endif  // TARGET_ARCH_IA32 || TARGET_ARCH_X64
+#endif  // TARGET_ARCH_IA32 || TARGET_ARCH_X64 || TARGET_ARCH_ARM
 
 }  // namespace dart

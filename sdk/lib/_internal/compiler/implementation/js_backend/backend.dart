@@ -101,7 +101,7 @@ class HTypeList {
     int argumentsCount = node.inputs.length - 1;
     int startInvokeIndex = HInvoke.ARGUMENTS_OFFSET;
 
-    if (node.isInterceptorCall) {
+    if (node.isInterceptedCall) {
       argumentsCount--;
       startInvokeIndex++;
     }
@@ -655,6 +655,7 @@ class JavaScriptBackend extends Backend {
   Element jsStringSplit;
   Element jsStringConcat;
   Element jsStringToString;
+  Element objectEquals;
 
   ClassElement typeLiteralClass;
   ClassElement mapLiteralClass;
@@ -729,14 +730,6 @@ class JavaScriptBackend extends Backend {
    * Set of classes whose `operator ==` methods handle `null` themselves.
    */
   final Set<ClassElement> specialOperatorEqClasses = new Set<ClassElement>();
-
-  /**
-   * Set of selectors that are used from within loops. Used by the
-   * builder to allow speculative optimizations for functions without
-   * loops themselves.
-   */
-  final Map<SourceString, Set<Selector>> selectorsCalledInLoop =
-      new Map<SourceString, Set<Selector>>();
 
   List<CompilerTask> get tasks {
     return <CompilerTask>[builder, optimizer, generator, emitter];
@@ -904,6 +897,9 @@ class JavaScriptBackend extends Backend {
         compiler.coreLibrary.find(const SourceString('LinkedHashMap'));
     constMapLiteralClass =
         compiler.findHelper(const SourceString('ConstantMap'));
+
+    objectEquals = compiler.lookupElementIn(
+        compiler.objectClass, const SourceString('=='));
 
     specialOperatorEqClasses
         ..add(jsNullClass)

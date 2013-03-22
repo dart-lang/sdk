@@ -805,6 +805,7 @@ dart_annotations = monitored.Dict('generator.dart_annotations', {
     "@SupportedBrowser(SupportedBrowser.CHROME, '25')",
     "@Experimental",
   ],
+  'Event.clipboardData': _webkit_experimental_annotations,
   'FormData': _all_but_ie9_annotations,
   'HashChangeEvent': [
     "@SupportedBrowser(SupportedBrowser.CHROME)",

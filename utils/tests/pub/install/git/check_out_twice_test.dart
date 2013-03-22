@@ -6,41 +6,39 @@ library pub_tests;
 
 import 'dart:io';
 
+import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
   integration('checks out a package from Git twice', () {
     ensureGit();
 
-    git('foo.git', [
-      libDir('foo'),
-      libPubspec('foo', '1.0.0')
-    ]).scheduleCreate();
+    d.git('foo.git', [
+      d.libDir('foo'),
+      d.libPubspec('foo', '1.0.0')
+    ]).create();
 
-    appDir([{"git": "../foo.git"}]).scheduleCreate();
+    d.appDir([{"git": "../foo.git"}]).create();
 
     schedulePub(args: ['install'],
         output: new RegExp(r"Dependencies installed!$"));
 
-    dir(cachePath, [
-      dir('git', [
-        dir('cache', [gitPackageRepoCacheDir('foo')]),
-        gitPackageRevisionCacheDir('foo')
+    d.dir(cachePath, [
+      d.dir('git', [
+        d.dir('cache', [d.gitPackageRepoCacheDir('foo')]),
+        d.gitPackageRevisionCacheDir('foo')
       ])
-    ]).scheduleValidate();
+    ]).validate();
 
-    dir(packagesPath, [
-      dir('foo', [
-        file('foo.dart', 'main() => "foo";')
+    d.dir(packagesPath, [
+      d.dir('foo', [
+        d.file('foo.dart', 'main() => "foo";')
       ])
-    ]).scheduleValidate();
-
-    // TODO(nweiz): remove this once we support pub update
-    dir(packagesPath).scheduleDelete();
+    ]).validate();
 
     // Verify that nothing breaks if we install a Git revision that's already
     // in the cache.
-    schedulePub(args: ['install'],
-        output: new RegExp(r"Dependencies installed!$"));
+    schedulePub(args: ['update'],
+        output: new RegExp(r"Dependencies updated!$"));
   });
 }

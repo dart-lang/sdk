@@ -13,6 +13,7 @@
  */
 library data_directory;
 
+import "dart:io";
 import "package:pathos/path.dart" as path;
 
 String get dataDirectory {
@@ -40,8 +41,16 @@ String get intlDirectory {
   if (foundIntlDir) {
     return path.joinAll(pathUpToIntl);
   } else {
-    return path.join(path.current, 'pkg', 'intl');
+    if (new Directory(path.join(path.current, 'pkg', 'intl')).existsSync()) {
+      return path.join(path.current, 'pkg', 'intl');
+    }
+    if (new Directory(
+        path.join(path.current, '..', 'pkg', 'intl')).existsSync()) {
+      return path.join(path.current, '..', 'pkg', 'intl');
+    }
   }
+  throw new UnsupportedError(
+      'Cannot find ${path.join('pkg','intl')} directory.');
 }
 
 String get datesRelativeToIntl => path.join('lib', 'src', 'data', 'dates');

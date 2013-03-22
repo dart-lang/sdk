@@ -57,6 +57,7 @@ class PathBuffer {
 // Forward declarations.
 static bool ListRecursively(PathBuffer* path,
                             bool recursive,
+                            bool follow_links,
                             DirectoryListing* listing);
 static bool DeleteRecursively(PathBuffer* path);
 
@@ -70,6 +71,7 @@ static void PostError(DirectoryListing *listing,
 static bool HandleDir(char* dir_name,
                       PathBuffer* path,
                       bool recursive,
+                      bool follow_links,
                       DirectoryListing *listing) {
   if (strcmp(dir_name, ".") == 0) return true;
   if (strcmp(dir_name, "..") == 0) return true;
@@ -78,7 +80,7 @@ static bool HandleDir(char* dir_name,
     return false;
   }
   return listing->HandleDirectory(path->data) &&
-      (!recursive || ListRecursively(path, recursive, listing));
+      (!recursive || ListRecursively(path, recursive, follow_links, listing));
 }
 
 
@@ -93,8 +95,20 @@ static bool HandleFile(char* file_name,
 }
 
 
+static bool HandleLink(char* link_name,
+                       PathBuffer* path,
+                       DirectoryListing *listing) {
+  if (!path->Add(link_name)) {
+    PostError(listing, path->data);
+    return false;
+  }
+  return listing->HandleLink(path->data);
+}
+
+
 static bool ListRecursively(PathBuffer* path,
                             bool recursive,
+                            bool follow_links,
                             DirectoryListing *listing) {
   if (!path->Add(File::PathSeparator())) {
     PostError(listing, path->data);
@@ -125,6 +139,7 @@ static bool ListRecursively(PathBuffer* path,
         success = HandleDir(entry.d_name,
                             path,
                             recursive,
+                            follow_links,
                             listing) && success;
         break;
       case DT_REG:
@@ -133,6 +148,14 @@ static bool ListRecursively(PathBuffer* path,
                              listing) && success;
         break;
       case DT_LNK:
+        if (!follow_links) {
+          success = HandleLink(entry.d_name,
+                               path,
+                               listing) && success;
+          break;
+        }
+        // Else fall through to next case.
+        // Fall through.
       case DT_UNKNOWN: {
         // On some file systems the entry type is not determined by
         // readdir_r. For those and for links we use stat to determine
@@ -143,7 +166,12 @@ static bool ListRecursively(PathBuffer* path,
           success = false;
           break;
         }
-        int stat_success = TEMP_FAILURE_RETRY(stat(path->data, &entry_info));
+        int stat_success;
+        if (follow_links) {
+          stat_success = TEMP_FAILURE_RETRY(stat(path->data, &entry_info));
+        } else {
+          stat_success = TEMP_FAILURE_RETRY(lstat(path->data, &entry_info));
+        }
         if (stat_success == -1) {
           success = false;
           PostError(listing, path->data);
@@ -154,13 +182,18 @@ static bool ListRecursively(PathBuffer* path,
           success = HandleDir(entry.d_name,
                               path,
                               recursive,
+                              follow_links,
                               listing) && success;
         } else if (S_ISREG(entry_info.st_mode)) {
           success = HandleFile(entry.d_name,
                                path,
                                listing) && success;
+        } else if (S_ISLNK(entry_info.st_mode)) {
+          ASSERT(!follow_links);
+          success = HandleLink(entry.d_name,
+                               path,
+                               listing) && success;
         }
-        ASSERT(!S_ISLNK(entry_info.st_mode));
         break;
       }
       default:
@@ -283,13 +316,14 @@ static bool DeleteRecursively(PathBuffer* path) {
 
 bool Directory::List(const char* dir_name,
                      bool recursive,
+                     bool follow_links,
                      DirectoryListing *listing) {
   PathBuffer path;
   if (!path.Add(dir_name)) {
     PostError(listing, dir_name);
     return false;
   }
-  return ListRecursively(&path, recursive, listing);
+  return ListRecursively(&path, recursive, follow_links, listing);
 }
 
 

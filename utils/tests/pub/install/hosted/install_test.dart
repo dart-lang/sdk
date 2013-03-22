@@ -6,26 +6,27 @@ library pub_tests;
 
 import 'dart:io';
 
+import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
   initConfig();
   integration('installs a package from a pub server', () {
-    servePackages([package("foo", "1.2.3")]);
+    servePackages([packageMap("foo", "1.2.3")]);
 
-    appDir([dependency("foo", "1.2.3")]).scheduleCreate();
+    d.appDir([dependencyMap("foo", "1.2.3")]).create();
 
     schedulePub(args: ['install'],
         output: new RegExp("Dependencies installed!\$"));
 
-    cacheDir({"foo": "1.2.3"}).scheduleValidate();
-    packagesDir({"foo": "1.2.3"}).scheduleValidate();
+    d.cacheDir({"foo": "1.2.3"}).validate();
+    d.packagesDir({"foo": "1.2.3"}).validate();
   });
 
   integration('URL encodes the package name', () {
     servePackages([]);
 
-    appDir([dependency("bad name!", "1.2.3")]).scheduleCreate();
+    d.appDir([dependencyMap("bad name!", "1.2.3")]).create();
 
     schedulePub(args: ['install'],
         error: new RegExp('Could not find package "bad name!" at '

@@ -27,7 +27,7 @@ patch class _Directory {
   patch static _rename(String path, String newPath) {
     throw new UnsupportedError("Directory._rename");
   }
-  patch static List _list(String path, bool recursive) {
+  patch static List _list(String path, bool recursive, bool followLinks) {
     throw new UnsupportedError("Directory._list");
   }
   patch static SendPort _newServicePort() {
@@ -57,6 +57,9 @@ patch class FileSystemEntity {
   patch static int _getType(String path, bool followLinks) {
     throw new UnsupportedError("FileSystemEntity._getType");
   }
+  patch static bool _identical(String path1, String path2) {
+    throw new UnsupportedError("FileSystemEntity._identical");
+  }
 }
 
 patch class _File {
@@ -68,6 +71,9 @@ patch class _File {
   }
   patch static _createLink(String path, String target) {
     throw new UnsupportedError("File._createLink");
+  }
+  patch static _linkTarget(String path) {
+    throw new UnsupportedError("File._linkTarget");
   }
   patch static _delete(String path) {
     throw new UnsupportedError("File._delete");

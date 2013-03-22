@@ -28,6 +28,7 @@ static void SwapCode(intptr_t num_bytes, char* code, char* buffer) {
 void CodePatcher::PatchEntry(const Code& code) {
   const uword patch_addr = code.GetPcForDeoptId(Isolate::kNoDeoptId,
                                                 PcDescriptors::kEntryPatch);
+  ASSERT(patch_addr != 0);
   JumpPattern jmp_entry(patch_addr);
   ASSERT(!jmp_entry.IsValid());
   const uword patch_buffer = code.GetPatchCodePc();
@@ -47,6 +48,7 @@ void CodePatcher::PatchEntry(const Code& code) {
 void CodePatcher::RestoreEntry(const Code& code) {
   const uword patch_addr = code.GetPcForDeoptId(Isolate::kNoDeoptId,
                                                 PcDescriptors::kEntryPatch);
+  ASSERT(patch_addr != 0);
   JumpPattern jmp_entry(patch_addr);
   ASSERT(jmp_entry.IsValid());
   const uword jump_target = jmp_entry.TargetAddress();

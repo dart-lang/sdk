@@ -174,6 +174,8 @@ enum InstructionFields {
   kInstrBits = 26,
   kBreakCodeShift = 5,
   kBreakCodeBits = 20,
+
+  kBranchOffsetMask = 0x0000ffff,
 };
 
 
@@ -253,7 +255,7 @@ enum SpecialFunction {
   MFLO = 18,
   MTLO = 19,
   MULT = 24,
-  MUTLU = 25,
+  MULTU = 25,
   DIV = 26,
   DIVU = 27,
   ADD = 32,
@@ -364,6 +366,10 @@ class Instr {
 
   inline SpecialFunction FunctionField() const {
     return static_cast<SpecialFunction>(Bits(kFunctionShift, kFunctionBits));
+  }
+
+  inline RtRegImm RegImmFnField() const {
+    return static_cast<RtRegImm>(Bits(kRtShift, kRtBits));
   }
 
   inline bool IsBreakPoint() {

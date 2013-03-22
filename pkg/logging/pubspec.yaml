@@ -8,7 +8,6 @@ description: >
  Logger and java.util.logging.Logger.
 
 dependencies:
-  meta:
-    sdk: meta
-  unittest:
-    sdk: unittest
+  meta: any
+dev_dependencies:
+  unittest: any

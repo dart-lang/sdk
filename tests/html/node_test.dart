@@ -227,6 +227,18 @@ main() {
       expect(a.nodes.length, nodesLength);
     });
 
+    test('insert', () {
+      var node = new DivElement();
+      node.nodes.insert(0, new BRElement());
+      expect(node.nodes[0], isBRElement);
+      node.nodes.insert(0, new HRElement());
+      expect(node.nodes[0], isHRElement);
+      node.nodes.insert(1, new ImageElement());
+      expect(node.nodes[1], isImageElement);
+      node.nodes.insert(node.nodes.length, new InputElement());
+      expect(node.nodes.last, isInputElement);
+    });
+
     test('clear', () {
       var node = makeNodeWithChildren();
       node.nodes.clear();

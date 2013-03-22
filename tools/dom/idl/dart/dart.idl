@@ -12,8 +12,8 @@ interface Document {
 
 [Supplemental]
 interface ScriptProcessorNode {
-  // FIXME(antonm): provide proper support.
   [Suppressed] attribute EventListener onaudioprocess;
+  [Custom] void _setEventListener(EventListener eventListener);
 };
 
 // Force ElementTraversal. WebKit defines these directly.
@@ -29,6 +29,11 @@ Element implements ElementTraversal;
 [Callback]
 interface TimeoutHandler {
   void handleEvent();
+};
+
+[Supplemental]
+interface CanvasRenderingContext2D {
+  [DartName=createImageDataFromImageData] ImageData createImageData(in ImageData imagedata) raises (DOMException);
 };
 
 [Supplemental]
@@ -240,15 +245,6 @@ interface IDBDatabase {
       raises (IDBDatabaseException);
   [Suppressed, CallWith=ScriptExecutionContext] IDBTransaction transaction(in DOMString storeName, in unsigned short mode)
       raises (IDBDatabaseException);
-};
-[Supplemental]
-interface IDBIndex {
-  [DartName=getObject] IDBRequest get(in any key);
-};
-[Supplemental]
-interface IDBObjectStore {
-  [DartName=getObject] IDBRequest get(in any key);
-  [DartName=getObject] IDBRequest get(in IDBKeyRange key);
 };
 
 [Supplemental]

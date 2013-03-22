@@ -37,6 +37,8 @@ DEFINE_FLAG(int, inlining_constant_arguments_size_threshold, 60,
 DEFINE_FLAG(int, inlining_hotness, 10,
     "Inline only hotter calls, in percents (0 .. 100); "
     "default 10%: calls above-equal 10% of max-count are inlined.");
+DEFINE_FLAG(bool, inline_recursive, true,
+    "Inline recursive calls.");
 
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, print_flow_graph_optimized);
@@ -393,7 +395,7 @@ class CallSiteInliner : public ValueObject {
     }
 
     // Abort if this is a recursive occurrence.
-    if (IsCallRecursive(function, call)) {
+    if (!FLAG_inline_recursive && IsCallRecursive(function, call)) {
       function.set_is_inlinable(false);
       TRACE_INLINING(OS::Print("     Bailout: recursive function\n"));
       return false;

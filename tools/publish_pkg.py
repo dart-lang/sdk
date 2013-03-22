@@ -96,6 +96,9 @@ def Main(argv):
           pubspecFile.write(line)
       if not foundVersion:
         pubspecFile.write('\nversion: ' + version + '\n')
+      pubspecFile.write('environment:\n')
+      pubspecFile.write('  sdk: ">=' + version + '"\n')
+
   else:
     #
     # If there's a lib/ directory in the package, copy the package.
@@ -120,6 +123,8 @@ def Main(argv):
       pubspecFile.write('  ' + argv[1] + ' . This package will change in\n')
       pubspecFile.write('  unpredictable/incompatible ways without warning.\n')
       pubspecFile.write('dependencies:\n')
+      pubspecFile.write('environment:\n')
+      pubspecFile.write('  sdk: ">=' + version + '"\n')
 
     libpath = os.path.join(HOME, argv[1], '../libraries.dart')
     if os.path.exists(libpath):
@@ -133,11 +138,12 @@ def Main(argv):
 
   if not os.path.exists(os.path.join(tmpDir, pkgName, 'LICENSE')):
     with open(os.path.join(tmpDir, pkgName, 'LICENSE'), 'w') as licenseFile:
-      licenseFile.write('''
-Copyright 2012, the Dart project authors. All rights reserved.
+      licenseFile.write(
+'''Copyright 2012, the Dart project authors. All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
 met:
+
     * Redistributions of source code must retain the above copyright
       notice, this list of conditions and the following disclaimer.
     * Redistributions in binary form must reproduce the above
@@ -147,6 +153,7 @@ met:
     * Neither the name of Google Inc. nor the names of its
       contributors may be used to endorse or promote products derived
       from this software without specific prior written permission.
+
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR

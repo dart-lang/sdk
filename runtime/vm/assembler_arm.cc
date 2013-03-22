@@ -1262,6 +1262,9 @@ void Assembler::LoadWordFromPoolOffset(Register rd, int32_t offset) {
 
 
 void Assembler::LoadObject(Register rd, const Object& object) {
+  // Since objects in the VM heap are never relocated, test instead
+  // if (object.IsSmi() || object.InVMHeap()) {
+  // and modify the decoding code in CallPattern to understand movt, movw.
   if (object.IsNull() ||
       object.IsSmi() ||
       (object.raw() == Bool::True().raw()) ||
@@ -1279,6 +1282,13 @@ void Assembler::LoadObject(Register rd, const Object& object) {
 void Assembler::PushObject(const Object& object) {
   LoadObject(IP, object);
   Push(IP);
+}
+
+
+void Assembler::CompareObject(Register rn, const Object& object) {
+  ASSERT(rn != IP);
+  LoadObject(IP, object);
+  cmp(rn, ShifterOperand(IP));
 }
 
 
@@ -1919,6 +1929,8 @@ int Assembler::DecodeBranchOffset(int32_t inst) {
 
 
 int32_t Assembler::AddObject(const Object& obj) {
+  ASSERT(obj.IsNotTemporaryScopedHandle());
+  ASSERT(obj.IsOld());
   if (object_pool_.IsNull()) {
     // The object pool cannot be used in the vm isolate.
     ASSERT(Isolate::Current() != Dart::vm_isolate());

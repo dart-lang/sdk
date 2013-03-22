@@ -261,7 +261,7 @@ void Parser::TryBlocks::AddNodeForFinallyInlining(AstNode* node) {
 
 // For parsing a compilation unit.
 Parser::Parser(const Script& script, const Library& library)
-    : script_(script),
+    : script_(Script::Handle(script.raw())),
       tokens_iterator_(TokenStream::Handle(script.tokens()), 0),
       token_kind_(Token::kILLEGAL),
       current_block_(NULL),
@@ -271,7 +271,7 @@ Parser::Parser(const Script& script, const Library& library)
       parsed_function_(NULL),
       innermost_function_(Function::Handle()),
       current_class_(Class::Handle()),
-      library_(library),
+      library_(Library::Handle(library.raw())),
       try_blocks_list_(NULL) {
   ASSERT(tokens_iterator_.IsValid());
   ASSERT(!library.IsNull());
@@ -282,7 +282,7 @@ Parser::Parser(const Script& script, const Library& library)
 Parser::Parser(const Script& script,
                ParsedFunction* parsed_function,
                intptr_t token_position)
-    : script_(script),
+    : script_(Script::Handle(script.raw())),
       tokens_iterator_(TokenStream::Handle(script.tokens()), token_position),
       token_kind_(Token::kILLEGAL),
       current_block_(NULL),
@@ -300,6 +300,13 @@ Parser::Parser(const Script& script,
   if (FLAG_enable_type_checks) {
     EnsureExpressionTemp();
   }
+}
+
+
+void Parser::SetScript(const Script & script, intptr_t token_pos) {
+  script_ = script.raw();
+  tokens_iterator_.SetStream(TokenStream::Handle(script.tokens()), token_pos);
+  token_kind_ = Token::kILLEGAL;
 }
 
 
@@ -987,9 +994,9 @@ SequenceNode* Parser::ParseInstanceSetter(const Function& func) {
   LoadLocalNode* value =
       new LoadLocalNode(ident_pos, current_block_->scope->VariableAt(1));
 
+  EnsureExpressionTemp();
   StoreInstanceFieldNode* store_field =
       new StoreInstanceFieldNode(ident_pos, receiver, field, value);
-
   current_block_->statements->Add(store_field);
   current_block_->statements->Add(new ReturnNode(ident_pos));
   return CloseBlock();
@@ -1791,6 +1798,7 @@ AstNode* Parser::ParseInitializer(const Class& cls,
   }
   CheckDuplicateFieldInit(field_pos, initialized_fields, &field);
   AstNode* instance = new LoadLocalNode(field_pos, receiver);
+  EnsureExpressionTemp();
   return new StoreInstanceFieldNode(field_pos, instance, field, init_expr);
 }
 
@@ -1801,9 +1809,10 @@ void Parser::CheckConstFieldsInitialized(const Class& cls) {
   SequenceNode* initializers = current_block_->statements;
   for (int field_num = 0; field_num < fields.Length(); field_num++) {
     field ^= fields.At(field_num);
-    if (field.is_static() || !field.is_final()) {
+    if (field.is_static()) {
       continue;
     }
+
     bool found = false;
     for (int i = 0; i < initializers->length(); i++) {
       found = false;
@@ -1816,11 +1825,50 @@ void Parser::CheckConstFieldsInitialized(const Class& cls) {
         }
       }
     }
-    if (!found) {
+
+    if (found) continue;
+
+    if (field.is_final()) {
       ErrorMsg("final field '%s' not initialized",
                String::Handle(field.name()).ToCString());
+    } else {
+      field.UpdateCid(kNullCid);
     }
   }
+}
+
+
+AstNode* Parser::ParseExternalInitializedField(const Field& field) {
+  // Only use this function if the initialized field originates
+  // from a different class. We need to save and restore current
+  // class, library, and token stream (script).
+  ASSERT(current_class().raw() != field.origin());
+  const Class& saved_class = Class::Handle(current_class().raw());
+  const Library& saved_library = Library::Handle(library().raw());
+  const Script& saved_script = Script::Handle(script().raw());
+  const intptr_t saved_token_pos = TokenPos();
+
+  set_current_class(Class::Handle(field.origin()));
+  set_library(Library::Handle(current_class().library()));
+  SetScript(Script::Handle(current_class().script()), field.token_pos());
+
+  ASSERT(IsIdentifier());
+  ConsumeToken();
+  ExpectToken(Token::kASSIGN);
+  AstNode* init_expr = NULL;
+  if (field.is_const()) {
+    init_expr = ParseConstExpr();
+  } else {
+    init_expr = ParseExpr(kAllowConst, kConsumeCascades);
+    if (init_expr->EvalConstExpr() != NULL) {
+      init_expr =
+          new LiteralNode(field.token_pos(), EvaluateConstExpr(init_expr));
+    }
+  }
+  set_current_class(saved_class);
+  set_library(saved_library);
+  SetScript(saved_script, saved_token_pos);
+  return init_expr;
 }
 
 
@@ -1842,30 +1890,27 @@ void Parser::ParseInitializedInstanceFields(const Class& cls,
         // initialized.
         initialized_fields->Add(&field);
       }
-      intptr_t field_pos = field.token_pos();
-      if (current_class().raw() != field.origin()) {
-        const Class& origin_class = Class::Handle(field.origin());
-        if (origin_class.library() != library_.raw()) {
-          ErrorMsg("Cannot handle initialized mixin field '%s'"
-                   "from imported library\n", field.ToCString());
-        }
-      }
-      SetPosition(field_pos);
-      ASSERT(IsIdentifier());
-      ConsumeToken();
-      ExpectToken(Token::kASSIGN);
-
       AstNode* init_expr = NULL;
-      if (field.is_const()) {
-        init_expr = ParseConstExpr();
+      if (current_class().raw() != field.origin()) {
+        init_expr = ParseExternalInitializedField(field);
       } else {
-        init_expr = ParseExpr(kAllowConst, kConsumeCascades);
-        if (init_expr->EvalConstExpr() != NULL) {
-          init_expr = new LiteralNode(field_pos, EvaluateConstExpr(init_expr));
+        SetPosition(field.token_pos());
+        ASSERT(IsIdentifier());
+        ConsumeToken();
+        ExpectToken(Token::kASSIGN);
+        if (field.is_const()) {
+          init_expr = ParseConstExpr();
+        } else {
+          init_expr = ParseExpr(kAllowConst, kConsumeCascades);
+          if (init_expr->EvalConstExpr() != NULL) {
+            init_expr = new LiteralNode(field.token_pos(),
+                                        EvaluateConstExpr(init_expr));
+          }
         }
       }
       ASSERT(init_expr != NULL);
       AstNode* instance = new LoadLocalNode(field.token_pos(), receiver);
+      EnsureExpressionTemp();
       AstNode* field_init =
           new StoreInstanceFieldNode(field.token_pos(),
                                      instance,
@@ -2118,6 +2163,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
         // Thus, make the parameter invisible.
         p->set_invisible(true);
         AstNode* value = new LoadLocalNode(param.name_pos, p);
+        EnsureExpressionTemp();
         AstNode* initializer = new StoreInstanceFieldNode(
             param.name_pos, instance, field, value);
         current_block_->statements->Add(initializer);
@@ -3266,10 +3312,7 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
   cls.set_super_type(super_type);
 
   if (CurrentToken() == Token::kIMPLEMENTS) {
-    Array& interfaces = Array::Handle();
-    const intptr_t interfaces_pos = TokenPos();
-    interfaces = ParseInterfaceList(super_type);
-    AddInterfaces(interfaces_pos, cls, interfaces);
+    ParseInterfaceList(cls);
   }
 
   ExpectToken(Token::kLBRACE);
@@ -3442,10 +3485,7 @@ void Parser::ParseMixinTypedef(const GrowableObjectArray& pending_classes) {
 
   AddImplicitConstructor(mixin_application);
   if (CurrentToken() == Token::kIMPLEMENTS) {
-    Array& interfaces = Array::Handle();
-    const intptr_t interfaces_pos = TokenPos();
-    interfaces = ParseInterfaceList(type);
-    AddInterfaces(interfaces_pos, mixin_application, interfaces);
+    ParseInterfaceList(mixin_application);
   }
   ExpectSemicolon();
   pending_classes.Add(mixin_application, Heap::kOld);
@@ -3779,40 +3819,33 @@ RawAbstractTypeArguments* Parser::ParseTypeArguments(
 }
 
 
-// Parse and return an array of interface types.
-RawArray* Parser::ParseInterfaceList(const AbstractType& super_type) {
+// Parse interface list and add to class cls.
+void Parser::ParseInterfaceList(const Class& cls) {
   TRACE_PARSER("ParseInterfaceList");
   ASSERT(CurrentToken() == Token::kIMPLEMENTS);
-  const GrowableObjectArray& interfaces =
+  const GrowableObjectArray& all_interfaces =
       GrowableObjectArray::Handle(GrowableObjectArray::New());
-  String& interface_name = String::Handle();
   AbstractType& interface = AbstractType::Handle();
-  String& other_name = String::Handle();
-  AbstractType& other_interface = AbstractType::Handle();
-  const String& super_type_name = String::Handle(super_type.Name());
+  // First get all the interfaces already implemented by class.
+  Array& cls_interfaces = Array::Handle(cls.interfaces());
+  for (intptr_t i = 0; i < cls_interfaces.Length(); i++) {
+    interface ^= cls_interfaces.At(i);
+    all_interfaces.Add(interface);
+  }
+  // Now parse and add the new interfaces.
   do {
     ConsumeToken();
     intptr_t interface_pos = TokenPos();
     interface = ParseType(ClassFinalizer::kTryResolve);
-    interface_name = interface.UserVisibleName();
-    if (interface_name.Equals(super_type_name)) {
-      // TODO(hausner): I think this check is not necessary. There is
-      // no such restriction. If the check is removed, the 'super_type'
-      // parameter to this function can be eliminated.
-      ErrorMsg(interface_pos, "class may not extend and implement '%s'",
-               interface_name.ToCString());
+    if (interface.IsTypeParameter()) {
+      ErrorMsg(interface_pos,
+               "type parameter '%s' may not be used in interface list",
+               String::Handle(interface.UserVisibleName()).ToCString());
     }
-    for (int i = 0; i < interfaces.Length(); i++) {
-      other_interface ^= interfaces.At(i);
-      other_name = other_interface.Name();
-      if (interface_name.Equals(other_name)) {
-        ErrorMsg(interface_pos, "duplicate interface '%s'",
-                 interface_name.ToCString());
-      }
-    }
-    interfaces.Add(interface);
+    all_interfaces.Add(interface);
   } while (CurrentToken() == Token::kCOMMA);
-  return Array::MakeArray(interfaces);
+  cls_interfaces = Array::MakeArray(all_interfaces);
+  cls.set_interfaces(cls_interfaces);
 }
 
 
@@ -3877,55 +3910,6 @@ RawAbstractType* Parser::ParseMixins(const AbstractType& super_type) {
   } while (CurrentToken() == Token::kCOMMA);
   return MixinAppType::New(super_type,
                            Array::Handle(Array::MakeArray(mixin_apps)));
-}
-
-
-// Add 'interface' to 'interface_list' if it is not already in the list.
-// An error is reported if the interface conflicts with an interface already in
-// the list with the same class and same type arguments.
-void Parser::AddInterfaceIfUnique(intptr_t interfaces_pos,
-                                  const GrowableObjectArray& interface_list,
-                                  const AbstractType& interface) {
-  String& interface_name = String::Handle(interface.Name());
-  String& existing_interface_name = String::Handle();
-  AbstractType& other_interface = AbstractType::Handle();
-  for (intptr_t i = 0; i < interface_list.Length(); i++) {
-    other_interface ^= interface_list.At(i);
-    existing_interface_name = other_interface.Name();
-    if (interface_name.Equals(existing_interface_name)) {
-      return;
-    }
-  }
-  interface_list.Add(interface);
-}
-
-
-void Parser::AddInterfaces(intptr_t interfaces_pos,
-                           const Class& cls,
-                           const Array& interfaces) {
-  const GrowableObjectArray& all_interfaces =
-      GrowableObjectArray::Handle(GrowableObjectArray::New());
-  AbstractType& interface = AbstractType::Handle();
-  // First get all the interfaces already implemented by class.
-  Array& cls_interfaces = Array::Handle(cls.interfaces());
-  for (intptr_t i = 0; i < cls_interfaces.Length(); i++) {
-    interface ^= cls_interfaces.At(i);
-    all_interfaces.Add(interface);
-  }
-  // Now add the new interfaces.
-  for (intptr_t i = 0; i < interfaces.Length(); i++) {
-    AbstractType& interface = AbstractType::ZoneHandle();
-    interface ^= interfaces.At(i);
-    if (interface.IsTypeParameter()) {
-      ErrorMsg(interfaces_pos,
-               "class '%s' may not implement type parameter '%s'",
-               String::Handle(cls.Name()).ToCString(),
-               String::Handle(interface.UserVisibleName()).ToCString());
-    }
-    AddInterfaceIfUnique(interfaces_pos, all_interfaces, interface);
-  }
-  cls_interfaces = Array::MakeArray(all_interfaces);
-  cls.set_interfaces(cls_interfaces);
 }
 
 
@@ -9944,8 +9928,14 @@ void Parser::SkipPrimary() {
 
 void Parser::SkipSelectors() {
   while (true) {
-    if ((CurrentToken() == Token::kPERIOD) ||
-        (CurrentToken() == Token::kCASCADE)) {
+    if (CurrentToken() == Token::kCASCADE) {
+      ConsumeToken();
+      if (CurrentToken() == Token::kLBRACK) {
+        continue;  // Consume [ in next loop iteration.
+      } else {
+        ExpectIdentifier("identifier or [ expected after ..");
+      }
+    } else if (CurrentToken() == Token::kPERIOD) {
       ConsumeToken();
       ExpectIdentifier("identifier expected");
     } else if (CurrentToken() == Token::kLBRACK) {

@@ -1083,6 +1083,8 @@ abstract class HInstruction implements Spannable {
   bool isConstantTrue() => false;
   bool isConstantSentinel() => false;
 
+  bool isInterceptor() => false;
+
   bool isValid() {
     HValidator validator = new HValidator();
     validator.currentBlock = block;
@@ -1314,11 +1316,12 @@ abstract class HInvokeDynamic extends HInvoke {
           : const InvokeDynamicSpecializer();
   toString() => 'invoke dynamic: $selector';
   HInstruction get receiver => inputs[0];
+  HInstruction get dartReceiver => isCallOnInterceptor ? inputs[1] : inputs[0];
 
   /**
    * Returns whether this call is on an intercepted method.
    */
-  bool get isInterceptorCall {
+  bool get isInterceptedCall {
     // We know it's a selector call if it follows the interceptor
     // calling convention, which adds the actual receiver as a
     // parameter to the call.
@@ -1329,12 +1332,7 @@ abstract class HInvokeDynamic extends HInvoke {
    * Returns whether this call is on an interceptor object.
    */
   bool get isCallOnInterceptor {
-    // When the optimizers know this call does not need an
-    // interceptor, they udpate the receiver of the call to be the
-    // actual receiver.
-    // TODO(ngeoffray): This is very fragile and we should inspect the
-    // receiver instead.
-    return isInterceptorCall && inputs[0] != inputs[1];
+    return isInterceptedCall && receiver.isInterceptor();
   }
 
   int typeCode() => HInstruction.INVOKE_DYNAMIC_TYPECODE;
@@ -1362,7 +1360,7 @@ class HInvokeDynamicMethod extends HInvokeDynamic {
   accept(HVisitor visitor) => visitor.visitInvokeDynamicMethod(this);
 
   bool isIndexOperatorOnIndexablePrimitive() {
-    return isInterceptorCall
+    return isInterceptedCall
         && selector.kind == SelectorKind.INDEX
         && selector.name == const SourceString('[]')
         && inputs[1].isIndexablePrimitive();
@@ -1844,6 +1842,8 @@ class HConstant extends HInstruction {
   bool isConstantTrue() => constant.isTrue();
   bool isConstantSentinel() => constant.isSentinel();
 
+  bool isInterceptor() => constant.isInterceptor();
+
   // Maybe avoid this if the literal is big?
   bool isCodeMotionInvariant() => true;
 }
@@ -2034,6 +2034,7 @@ class HInterceptor extends HInstruction {
   String toString() => 'interceptor on $interceptedClasses';
   accept(HVisitor visitor) => visitor.visitInterceptor(this);
   HInstruction get receiver => inputs[0];
+  bool isInterceptor() => true;
 
   int typeCode() => HInstruction.INTERCEPTOR_TYPECODE;
   bool typeEquals(other) => other is HInterceptor;
@@ -2062,6 +2063,7 @@ class HOneShotInterceptor extends HInvokeDynamic {
     assert(inputs[0] is HConstant);
     assert(inputs[0].instructionType == HType.NULL);
   }
+  bool get isCallOnInterceptor => true;
 
   String toString() => 'one shot interceptor on $selector';
   accept(HVisitor visitor) => visitor.visitOneShotInterceptor(this);

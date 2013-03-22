@@ -895,7 +895,6 @@ abstract class Compiler implements DiagnosticListener {
     if (elements != null) {
       // Only analyze nodes with a corresponding [TreeElements].
       checker.check(tree, elements);
-      typesTask.analyze(tree, elements);
     }
     return elements;
   }

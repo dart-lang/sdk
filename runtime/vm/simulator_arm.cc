@@ -95,6 +95,7 @@ class SimulatorDebugger {
 
   void Stop(Instr* instr, const char* message);
   void Debug();
+
   char* ReadLine(const char* prompt);
 
  private:
@@ -293,7 +294,6 @@ void SimulatorDebugger::RedoBreakpoints() {
 void SimulatorDebugger::Debug() {
   intptr_t last_pc = -1;
   bool done = false;
-  bool decoded = true;
 
 #define COMMAND_SIZE 63
 #define ARG_SIZE 255
@@ -317,11 +317,11 @@ void SimulatorDebugger::Debug() {
   while (!done) {
     if (last_pc != sim_->get_pc()) {
       last_pc = sim_->get_pc();
-      decoded = Disassembler::Disassemble(last_pc, last_pc + Instr::kInstrSize);
+      Disassembler::Disassemble(last_pc, last_pc + Instr::kInstrSize);
     }
     char* line = ReadLine("sim> ");
     if (line == NULL) {
-      break;
+      FATAL("ReadLine failed");
     } else {
       // Use sscanf to parse the individual parts of the command line. At the
       // moment no command expects more than two parameters.
@@ -353,20 +353,12 @@ void SimulatorDebugger::Debug() {
         OS::Print("Quitting\n");
         OS::Exit(0);
       } else if ((strcmp(cmd, "si") == 0) || (strcmp(cmd, "stepi") == 0)) {
-        if (decoded) {
-          sim_->InstructionDecode(reinterpret_cast<Instr*>(sim_->get_pc()));
-        } else {
-          OS::Print("Instruction could not be decoded. Stepping disabled.\n");
-        }
+        sim_->InstructionDecode(reinterpret_cast<Instr*>(sim_->get_pc()));
       } else if ((strcmp(cmd, "c") == 0) || (strcmp(cmd, "cont") == 0)) {
-        if (decoded) {
-          // Execute the one instruction we broke at with breakpoints disabled.
-          sim_->InstructionDecode(reinterpret_cast<Instr*>(sim_->get_pc()));
-          // Leave the debugger shell.
-          done = true;
-        } else {
-          OS::Print("Instruction could not be decoded. Cannot continue.\n");
-        }
+        // Execute the one instruction we broke at with breakpoints disabled.
+        sim_->InstructionDecode(reinterpret_cast<Instr*>(sim_->get_pc()));
+        // Leave the debugger shell.
+        done = true;
       } else if ((strcmp(cmd, "p") == 0) || (strcmp(cmd, "print") == 0)) {
         if (args == 2) {
           uint32_t value;
@@ -845,6 +837,15 @@ void Simulator::UnalignedAccess(const char* msg, uword addr, Instr* instr) {
 }
 
 
+void Simulator::UnimplementedInstruction(Instr* instr) {
+  char buffer[64];
+  snprintf(buffer, sizeof(buffer), "Unimplemented instruction: pc=%p\n", instr);
+  SimulatorDebugger dbg(this);
+  dbg.Stop(instr, buffer);
+  FATAL("Cannot continue execution after unimplemented instruction.");
+}
+
+
 int Simulator::ReadW(uword addr, Instr* instr) {
   static StatsCounter counter_read_w("Simulated word reads");
   counter_read_w.Increment();
@@ -1086,8 +1087,7 @@ int32_t Simulator::GetShiftRm(Instr* instr, bool* carry_out) {
   if (instr->Bit(4) == 0) {
     // by immediate
     if ((shift == ROR) && (shift_amount == 0)) {
-      UNIMPLEMENTED();
-      return result;
+      UnimplementedInstruction(instr);
     } else if (((shift == LSR) || (shift == ASR)) && (shift_amount == 0)) {
       shift_amount = 32;
     }
@@ -1135,7 +1135,7 @@ int32_t Simulator::GetShiftRm(Instr* instr, bool* carry_out) {
       }
 
       case ROR: {
-        UNIMPLEMENTED();
+        UnimplementedInstruction(instr);
         break;
       }
 
@@ -1207,7 +1207,7 @@ int32_t Simulator::GetShiftRm(Instr* instr, bool* carry_out) {
       }
 
       case ROR: {
-        UNIMPLEMENTED();
+        UnimplementedInstruction(instr);
         break;
       }
 
@@ -1474,12 +1474,12 @@ void Simulator::DecodeType01(Instr* instr) {
             dbg.Stop(instr, buffer);
           } else {
              // Format(instr, "smc'cond");
-            UNIMPLEMENTED();
+            UnimplementedInstruction(instr);
           }
           break;
         }
         default: {
-          UNIMPLEMENTED();
+          UnimplementedInstruction(instr);
           break;
         }
       }
@@ -1539,7 +1539,7 @@ void Simulator::DecodeType01(Instr* instr) {
             break;
           }
           default: {
-            UNIMPLEMENTED();
+            UnimplementedInstruction(instr);
             break;
           }
         }
@@ -1569,7 +1569,7 @@ void Simulator::DecodeType01(Instr* instr) {
             break;
           }
           default: {
-            UNIMPLEMENTED();
+            UnimplementedInstruction(instr);
             break;
           }
         }
@@ -1594,12 +1594,12 @@ void Simulator::DecodeType01(Instr* instr) {
           if ((instr->Bits(16, 4) == 0) && (instr->Bits(0, 8) == 0)) {
             // Format(instr, "nop'cond");
           } else {
-            UNIMPLEMENTED();
+            UnimplementedInstruction(instr);
           }
           break;
         }
         default: {
-          UNIMPLEMENTED();
+          UnimplementedInstruction(instr);
           break;
         }
       }
@@ -1727,7 +1727,7 @@ void Simulator::DecodeType01(Instr* instr) {
             set_register(rd1, val_high);
           }
         } else {
-          UNIMPLEMENTED();
+          UnimplementedInstruction(instr);
         }
       }
     }
@@ -1856,7 +1856,7 @@ void Simulator::DecodeType01(Instr* instr) {
           SetNZFlags(alu_out);
           SetCFlag(shifter_carry_out);
         } else {
-          UNIMPLEMENTED();
+          UnimplementedInstruction(instr);
         }
         break;
       }
@@ -1869,7 +1869,7 @@ void Simulator::DecodeType01(Instr* instr) {
           SetNZFlags(alu_out);
           SetCFlag(shifter_carry_out);
         } else {
-          UNIMPLEMENTED();
+          UnimplementedInstruction(instr);
         }
         break;
       }
@@ -1883,7 +1883,7 @@ void Simulator::DecodeType01(Instr* instr) {
           SetCFlag(!BorrowFrom(rn_val, shifter_operand));
           SetVFlag(OverflowFrom(alu_out, rn_val, shifter_operand, false));
         } else {
-          UNIMPLEMENTED();
+          UnimplementedInstruction(instr);
         }
         break;
       }
@@ -1897,7 +1897,7 @@ void Simulator::DecodeType01(Instr* instr) {
           SetCFlag(CarryFrom(rn_val, shifter_operand));
           SetVFlag(OverflowFrom(alu_out, rn_val, shifter_operand, true));
         } else {
-          UNIMPLEMENTED();
+          UnimplementedInstruction(instr);
         }
         break;
       }
@@ -2281,7 +2281,7 @@ void Simulator::DecodeType6(Instr* instr) {
       }
     }
   } else {
-    UNIMPLEMENTED();
+    UnimplementedInstruction(instr);
   }
 }
 
@@ -2317,7 +2317,7 @@ void Simulator::DecodeType7(Instr* instr) {
       switch (instr->Bits(20, 4) & 0xb) {
         case 1:  // vnmla, vnmls, vnmul
         default: {
-          UNIMPLEMENTED();
+          UnimplementedInstruction(instr);
           break;
         }
         case 0: {  // vmla, vmls floating-point
@@ -2419,7 +2419,7 @@ void Simulator::DecodeType7(Instr* instr) {
                   break;
                 }
                 default: {
-                  UNIMPLEMENTED();
+                  UnimplementedInstruction(instr);
                   break;
                 }
               }
@@ -2448,7 +2448,7 @@ void Simulator::DecodeType7(Instr* instr) {
                   break;
                 }
                 default: {
-                  UNIMPLEMENTED();
+                  UnimplementedInstruction(instr);
                   break;
                 }
               }
@@ -2457,7 +2457,7 @@ void Simulator::DecodeType7(Instr* instr) {
             case 4:  // vcmp, vcmpe
             case 5: {  // vcmp #0.0, vcmpe #0.0
               if (instr->Bit(7) == 1) {  // vcmpe
-                UNIMPLEMENTED();
+                UnimplementedInstruction(instr);
               } else {
                 fp_n_flag_ = false;
                 fp_z_flag_ = false;
@@ -2560,7 +2560,7 @@ void Simulator::DecodeType7(Instr* instr) {
               // flags, because we do not use them.
               if (instr->Bit(7) == 0) {
                 // We only support round-to-zero mode
-                UNIMPLEMENTED();
+                UnimplementedInstruction(instr);
                 break;
               }
               int32_t id_val = 0;
@@ -2624,7 +2624,7 @@ void Simulator::DecodeType7(Instr* instr) {
             case 14:  // vcvt between floating-point and fixed-point
             case 15:  // vcvt between floating-point and fixed-point
             default: {
-              UNIMPLEMENTED();
+              UnimplementedInstruction(instr);
               break;
             }
           }
@@ -2651,7 +2651,7 @@ void Simulator::DecodeType7(Instr* instr) {
         c_flag_ = fp_c_flag_;
         v_flag_ = fp_v_flag_;
       } else {
-        UNIMPLEMENTED();
+        UnimplementedInstruction(instr);
       }
     }
   } else if (instr->IsMrcIdIsar0()) {
@@ -2663,7 +2663,7 @@ void Simulator::DecodeType7(Instr* instr) {
       set_register(rd, 0x00100010);  // simulator has only bkpt and clz.
     }
   } else {
-    UNIMPLEMENTED();
+    UnimplementedInstruction(instr);
   }
 }
 
@@ -2681,7 +2681,7 @@ void Simulator::InstructionDecode(Instr* instr) {
       // Format(instr, "clrex");
       ClearExclusive();
     } else {
-      UNIMPLEMENTED();
+      UnimplementedInstruction(instr);
     }
   } else if (ConditionallyExecute(instr)) {
     switch (instr->TypeField()) {
@@ -2715,7 +2715,8 @@ void Simulator::InstructionDecode(Instr* instr) {
         break;
       }
       default: {
-        UNIMPLEMENTED();
+        // Type field is three bits.
+        UNREACHABLE();
         break;
       }
     }
@@ -2756,7 +2757,7 @@ void Simulator::Execute() {
       counter_instructions.Increment();
       if (icount_ == FLAG_stop_sim_at) {
         SimulatorDebugger dbg(this);
-        dbg.Debug();
+        dbg.Stop(instr, "Instruction count reached");
       } else if (IsIllegalAddress(program_counter)) {
         HandleIllegalAccess(program_counter, instr);
       } else {

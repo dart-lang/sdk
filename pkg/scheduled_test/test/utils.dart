@@ -4,6 +4,7 @@
 
 library test_utils;
 
+import 'dart:io';
 import 'dart:async';
 
 import '../lib/src/utils.dart';

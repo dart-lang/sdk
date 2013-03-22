@@ -1775,6 +1775,49 @@ class Field : public Object {
                                             raw_ptr()->kind_bits_));
   }
 
+  // Return class id that any non-null value read from this field is guaranteed
+  // to have or kDynamicCid if such class id is not known.
+  // Stores to this field must update this information hence the name.
+  intptr_t guarded_cid() const { return raw_ptr()->guarded_cid_; }
+  void set_guarded_cid(intptr_t cid) const {
+    raw_ptr()->guarded_cid_ = cid;
+  }
+  static intptr_t guarded_cid_offset() {
+    return OFFSET_OF(RawField, guarded_cid_);
+  }
+
+  // Returns false if any value read from this field is guaranteed to be
+  // not null.
+  // Internally we is_nullable_ field contains either kNullCid (nullable) or
+  // any other value (non-nullable) instead of boolean. This is done to simplify
+  // guarding sequence in the generated code.
+  bool is_nullable() const {
+    return raw_ptr()->is_nullable_ == kNullCid;
+  }
+  void set_is_nullable(bool val) const {
+    raw_ptr()->is_nullable_ = val ? kNullCid : kIllegalCid;
+  }
+  static intptr_t is_nullable_offset() {
+    return OFFSET_OF(RawField, is_nullable_);
+  }
+
+  // Update guarded class id and nullability of the field to reflect assignment
+  // of the value with the given class id to this field.
+  void UpdateCid(intptr_t cid) const;
+
+  // Return the list of optimized code objects that were optimized under
+  // assumptions about guarded class id and nullability of this field.
+  // These code objects must be deoptimized when field's properties change.
+  // Code objects are held weakly via an indirection through WeakProperty.
+  RawArray* dependent_code() const;
+  void set_dependent_code(const Array& array) const;
+
+  // Add the given code object to the list of dependent ones.
+  void RegisterDependentCode(const Code& code) const;
+
+  // Deoptimize all dependent code objects.
+  void DeoptimizeDependentCode() const;
+
   // Constructs getter and setter names for fields and vice versa.
   static RawString* GetterName(const String& field_name);
   static RawString* GetterSymbol(const String& field_name);
@@ -1878,6 +1921,7 @@ class TokenStream : public Object {
    public:
     Iterator(const TokenStream& tokens, intptr_t token_pos);
 
+    void SetStream(const TokenStream& tokens, intptr_t token_pos);
     bool IsValid() const;
 
     inline Token::Kind CurrentTokenKind() const {
@@ -1904,8 +1948,8 @@ class TokenStream : public Object {
       return static_cast<intptr_t>(value);
     }
 
-    const TokenStream& tokens_;
-    const ExternalUint8Array& data_;
+    TokenStream& tokens_;
+    ExternalUint8Array& data_;
     ReadStream stream_;
     Array& token_objects_;
     Object& obj_;
@@ -2281,6 +2325,7 @@ class Instructions : public Object {
     raw_ptr()->code_ = code;
   }
   void set_object_pool(RawArray* object_pool) const {
+    ASSERT(object_pool->IsOldObject());
     raw_ptr()->object_pool_ = object_pool;
   }
 
@@ -4263,7 +4308,7 @@ class String : public Instance {
                    intptr_t src_offset,
                    intptr_t len);
 
-  static RawString* EscapeSpecialCharacters(const String& str, bool raw_str);
+  static RawString* EscapeSpecialCharacters(const String& str);
 
   static RawString* Concat(const String& str1,
                            const String& str2,
@@ -4338,8 +4383,7 @@ class OneByteString : public AllStatic {
     return *CharAddr(str, index);
   }
 
-  static RawOneByteString* EscapeSpecialCharacters(const String& str,
-                                                   bool raw_str);
+  static RawOneByteString* EscapeSpecialCharacters(const String& str);
 
   // We use the same maximum elements for all strings.
   static const intptr_t kBytesPerElement = 1;
@@ -4441,8 +4485,7 @@ class TwoByteString : public AllStatic {
     return *CharAddr(str, index);
   }
 
-  static RawTwoByteString* EscapeSpecialCharacters(const String& str,
-                                                   bool raw_str);
+  static RawTwoByteString* EscapeSpecialCharacters(const String& str);
 
   // We use the same maximum elements for all strings.
   static const intptr_t kBytesPerElement = 2;
@@ -4694,6 +4737,9 @@ class Array : public Instance {
   }
   static intptr_t length_offset() { return OFFSET_OF(RawArray, length_); }
   static intptr_t data_offset() { return length_offset() + kWordSize; }
+  static intptr_t element_offset(intptr_t index) {
+    return data_offset() + kWordSize * index;
+  }
 
   RawObject* At(intptr_t index) const {
     return *ObjectAddr(index);
@@ -4900,7 +4946,8 @@ class Float32x4 : public Instance {
  public:
   static RawFloat32x4* New(float value0, float value1, float value2,
                            float value3, Heap::Space space = Heap::kNew);
-  static RawFloat32x4* New(simd_value_t value, Heap::Space space = Heap::kNew);
+  static RawFloat32x4* New(simd128_value_t value,
+                           Heap::Space space = Heap::kNew);
 
   float x() const;
   float y() const;
@@ -4912,8 +4959,8 @@ class Float32x4 : public Instance {
   void set_z(float z) const;
   void set_w(float w) const;
 
-  simd_value_t value() const;
-  void set_value(simd_value_t value) const;
+  simd128_value_t value() const;
+  void set_value(simd128_value_t value) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawFloat32x4));
@@ -4933,7 +4980,8 @@ class Uint32x4 : public Instance {
  public:
   static RawUint32x4* New(uint32_t value0, uint32_t value1, uint32_t value2,
                           uint32_t value3, Heap::Space space = Heap::kNew);
-  static RawUint32x4* New(simd_value_t value, Heap::Space space = Heap::kNew);
+  static RawUint32x4* New(simd128_value_t value,
+                          Heap::Space space = Heap::kNew);
 
   uint32_t x() const;
   uint32_t y() const;
@@ -4945,8 +4993,8 @@ class Uint32x4 : public Instance {
   void set_z(uint32_t z) const;
   void set_w(uint32_t w) const;
 
-  simd_value_t value() const;
-  void set_value(simd_value_t value) const;
+  simd128_value_t value() const;
+  void set_value(simd128_value_t value) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawUint32x4));
@@ -5699,16 +5747,14 @@ class Float32x4Array : public ByteArray {
     return Length() * kBytesPerElement;
   }
 
-  simd_value_t At(intptr_t index) const {
+  simd128_value_t At(intptr_t index) const {
     ASSERT((index >= 0) && (index < Length()));
-    simd_value_t* load_ptr = &raw_ptr()->data_[index];
-    return simd_value_safe_load(load_ptr);
+    return raw_ptr()->data_[index];
   }
 
-  void SetAt(intptr_t index, simd_value_t value) const {
+  void SetAt(intptr_t index, simd128_value_t value) const {
     ASSERT((index >= 0) && (index < Length()));
-    simd_value_t* store_ptr = &raw_ptr()->data_[index];
-    simd_value_safe_store(store_ptr, value);
+    raw_ptr()->data_[index] = value;
   }
 
   static const intptr_t kBytesPerElement = 16;
@@ -5732,7 +5778,7 @@ class Float32x4Array : public ByteArray {
 
   static RawFloat32x4Array* New(intptr_t len,
                                      Heap::Space space = Heap::kNew);
-  static RawFloat32x4Array* New(const simd_value_t* data,
+  static RawFloat32x4Array* New(const simd128_value_t* data,
                                      intptr_t len,
                                      Heap::Space space = Heap::kNew);
 
@@ -6353,20 +6399,18 @@ class ExternalFloat32x4Array : public ByteArray {
     return Length() * kBytesPerElement;
   }
 
-  simd_value_t At(intptr_t index) const {
+  simd128_value_t At(intptr_t index) const {
     ASSERT((index >= 0) && (index < Length()));
-    simd_value_t* load_ptr = &raw_ptr()->data_[index];
-    return simd_value_safe_load(load_ptr);
+    return raw_ptr()->data_[index];
   }
 
-  void SetAt(intptr_t index, simd_value_t value) const {
+  void SetAt(intptr_t index, simd128_value_t value) const {
     ASSERT((index >= 0) && (index < Length()));
-    simd_value_t* store_ptr = &raw_ptr()->data_[index];
-    simd_value_safe_store(store_ptr, value);
+    raw_ptr()->data_[index] = value;
   }
 
 
-  simd_value_t* GetData() const {
+  simd128_value_t* GetData() const {
     return raw_ptr()->data_;
   }
 
@@ -6384,9 +6428,8 @@ class ExternalFloat32x4Array : public ByteArray {
     return RoundedAllocationSize(sizeof(RawExternalFloat32x4Array));
   }
 
-  static RawExternalFloat32x4Array* New(simd_value_t* data,
-                                             intptr_t len,
-                                             Heap::Space space = Heap::kNew);
+  static RawExternalFloat32x4Array* New(simd128_value_t* data, intptr_t len,
+                                        Heap::Space space = Heap::kNew);
 
  private:
   uint8_t* ByteAddr(intptr_t byte_offset) const {
@@ -6395,7 +6438,7 @@ class ExternalFloat32x4Array : public ByteArray {
     return data + byte_offset;
   }
 
-  void SetData(simd_value_t* data) const {
+  void SetData(simd128_value_t* data) const {
     raw_ptr()->data_ = data;
   }
 

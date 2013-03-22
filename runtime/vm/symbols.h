@@ -175,6 +175,10 @@ class ObjectPointerVisitor;
   V(_ExternalFloat32x4Array, "_ExternalFloat32x4Array")                        \
   V(_ExternalFloat32Array, "_ExternalFloat32Array")                            \
   V(_ExternalFloat64Array, "_ExternalFloat64Array")                            \
+  V(ByteData, "ByteData")                                                      \
+  V(ByteDataDot, "ByteData.")                                                  \
+  V(ByteDataDotview, "ByteData.view")                                          \
+  V(_ByteDataView, "_ByteDataView")                                            \
   V(_WeakProperty, "_WeakProperty")                                            \
   V(InvocationMirror, "_InvocationMirror")                                     \
   V(AllocateInvocationMirror, "_allocateInvocationMirror")                     \

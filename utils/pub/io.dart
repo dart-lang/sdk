@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -20,8 +20,6 @@ import 'utils.dart';
 
 export '../../pkg/http/lib/http.dart' show ByteStream;
 
-final NEWLINE_PATTERN = new RegExp("\r\n?|\n\r?");
-
 /// Returns whether or not [entry] is nested somewhere within [dir]. This just
 /// performs a path comparison; it doesn't look at the actual filesystem.
 bool isBeneath(String entry, String dir) {
@@ -29,15 +27,17 @@ bool isBeneath(String entry, String dir) {
   return !path.isAbsolute(relative) && path.split(relative)[0] != '..';
 }
 
-/// Determines if a file or directory at [path] exists.
-bool entryExists(String path) => fileExists(path) || dirExists(path);
+/// Determines if a file or directory exists at [path].
+bool entryExists(String path) => dirExists(path) || fileExists(path);
 
-/// Determines if [file] exists on the file system.
-bool fileExists(String file) => new File(file).existsSync();
+/// Determines if [file] exists on the file system. Will also return `true` if
+/// [file] points to a symlink, even a directory symlink.
+bool fileExists(String file) =>
+    new File(file).existsSync() || new Link(file).existsSync();
 
 /// Reads the contents of the text file [file].
 String readTextFile(String file) =>
-    new File(file).readAsStringSync(Encoding.UTF_8);
+    new File(file).readAsStringSync(encoding: Encoding.UTF_8);
 
 /// Reads the contents of the binary file [file].
 List<int> readBinaryFile(String file) {
@@ -69,7 +69,7 @@ void deleteFile(String file) {
 /// Creates [file] and writes [contents] to it.
 String writeBinaryFile(String file, List<int> contents) {
   log.io("Writing ${contents.length} bytes to binary file $file.");
-  new File(file).openSync(FileMode.WRITE)
+  new File(file).openSync(mode: FileMode.WRITE)
       ..writeListSync(contents, 0, contents.length)
       ..closeSync();
   log.fine("Wrote text file $file.");
@@ -126,11 +126,10 @@ String createTempDir([dir = '']) {
   return tempDir.path;
 }
 
-/// Asynchronously recursively deletes [dir]. Returns a [Future] that completes
-/// when the deletion is done.
-Future<String> deleteDir(String dir) {
-  return _attemptRetryable(() => log.ioAsync("delete directory $dir",
-      new Directory(dir).delete(recursive: true).then((_) => dir)));
+/// Recursively deletes [dir].
+void deleteDir(String dir) {
+  log.io("Deleting directory $dir.");
+  new Directory(dir).deleteSync(recursive: true);
 }
 
 /// Asynchronously lists the contents of [dir]. If [recursive] is `true`, lists
@@ -165,15 +164,14 @@ Future<List<String>> listDir(String dir,
             if (!includeHiddenFiles && path.basename(file).startsWith('.')) {
               return;
             }
-            contents.add(path.join(dir, path.basename(file)));
+            contents.add(file);
           } else if (entity is Directory) {
             var file = entity.path;
             if (!includeHiddenFiles && path.basename(file).startsWith('.')) {
               return;
             }
-            file = path.join(dir, path.basename(file));
             contents.add(file);
-            // TODO(nweiz): don't manually recurse once issue 7358 is fixed.
+            // TODO(nweiz): don't manually recurse once issue 4794 is fixed.
             // Note that once we remove the manual recursion, we'll need to
             // explicitly filter out files in hidden directories.
             if (recursive) {
@@ -205,59 +203,24 @@ Future<List<String>> listDir(String dir,
 bool dirExists(String dir) => new Directory(dir).existsSync();
 
 /// "Cleans" [dir]. If that directory already exists, it will be deleted. Then a
-/// new empty directory will be created. Returns a [Future] that completes when
-/// the new clean directory is created.
-Future<String> cleanDir(String dir) {
-  return defer(() {
-    if (dirExists(dir)) {
-      // Delete it first.
-      return deleteDir(dir).then((_) => createDir(dir));
-    } else {
-      // Just create it.
-      return createDir(dir);
-    }
-  });
-}
-
-/// Renames (i.e. moves) the directory [from] to [to]. Returns a [Future] with
-/// the destination directory.
-Future<String> renameDir(String from, String to) {
-  log.io("Renaming directory $from to $to.");
-
-  return _attemptRetryable(() => new Directory(from).rename(to)).then((dir) {
-    log.fine("Renamed directory $from to $to.");
-    return to;
-  });
-}
-
-/// On Windows, we sometimes get failures where the directory is still in use
-/// when we try to do something with it. This is usually because the OS hasn't
-/// noticed yet that a process using that directory has closed. To be a bit
-/// more resilient, we wait and retry a few times.
-///
-/// Takes a [callback] which returns a future for the operation being attempted.
-/// If that future completes with an error, it will slepp and then [callback]
-/// will be invoked again to retry the operation. It will try a few times before
-/// giving up.
-Future _attemptRetryable(Future callback()) {
-  // Only do lame retry logic on Windows.
-  if (Platform.operatingSystem != 'windows') return callback();
-
-  var attempts = 0;
-  makeAttempt(_) {
-    attempts++;
-    return callback().catchError((e) {
-      if (attempts >= 10) {
-        throw 'Could not complete operation. Gave up after $attempts attempts.';
-      }
-
-      // Wait a bit and try again.
-      log.fine("Operation failed, retrying (attempt $attempts).");
-      return sleep(500).then(makeAttempt);
-    });
+/// new empty directory will be created.
+void cleanDir(String dir) {
+  if (dirExists(dir)) {
+    // Delete it first.
+    deleteDir(dir);
+  } else if (fileExists(dir)) {
+    // If there is a non-directory there (file or symlink), delete it.
+    deleteFile(dir);
   }
 
-  return makeAttempt(null);
+  // Just create it.
+  createDir(dir);
+}
+
+/// Renames (i.e. moves) the directory [from] to [to].
+void renameDir(String from, String to) {
+  log.io("Renaming directory $from to $to.");
+  new Directory(from).renameSync(to);
 }
 
 /// Creates a new symlink at path [symlink] that points to [target]. Returns a
@@ -444,7 +407,7 @@ Future<PubProcessResult> runProcess(String executable, List<String> args,
       .then((result) {
     // TODO(rnystrom): Remove this and change to returning one string.
     List<String> toLines(String output) {
-      var lines = output.split(NEWLINE_PATTERN);
+      var lines = splitLines(output);
       if (!lines.isEmpty && lines.last == "") lines.removeLast();
       return lines;
     }
@@ -610,16 +573,16 @@ Future timeout(Future input, int milliseconds, String description) {
 
 /// Creates a temporary directory and passes its path to [fn]. Once the [Future]
 /// returned by [fn] completes, the temporary directory and all its contents
-/// will be deleted.
+/// will be deleted. [fn] can also return `null`, in which case the temporary
+/// directory is deleted immediately afterwards.
 ///
 /// Returns a future that completes to the value that the future returned from
 /// [fn] completes to.
 Future withTempDir(Future fn(String path)) {
   return defer(() {
     var tempDir = createTempDir();
-    return fn(tempDir).whenComplete(() {
-      return deleteDir(tempDir);
-    });
+    return new Future.of(() => fn(tempDir))
+        .whenComplete(() => deleteDir(tempDir));
   });
 }
 

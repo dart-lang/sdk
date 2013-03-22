@@ -27,7 +27,7 @@ fuzzSyncMethods() {
       doItSync(f.readAsStringSync);
       doItSync(f.readAsLinesSync);
       typeMapping.forEach((k2, v2) {
-        doItSync(() => f.openSync(v2));
+        doItSync(() => f.openSync(mode: v2));
         doItSync(() => f.openWrite(mode: v2));
         doItSync(() => f.readAsStringSync(v2));
         doItSync(() => f.readAsLinesSync(v2));
@@ -70,7 +70,7 @@ fuzzSyncRandomAccessMethods() {
   file.createSync();
   var modes = [ FileMode.READ, FileMode.WRITE, FileMode.APPEND ];
   for (var m in modes) {
-    var opened = file.openSync(m);
+    var opened = file.openSync(mode: m);
     typeMapping.forEach((k, v) {
       doItSync(() => opened.setPositionSync(v));
       doItSync(() => opened.truncateSync(v));
@@ -97,7 +97,7 @@ fuzzAsyncRandomAccessMethods() {
   var futures = [];
   var openedFiles = [];
   for (var m in modes) {
-    var opened = file.openSync(m);
+    var opened = file.openSync(mode: m);
     openedFiles.add(opened);
     typeMapping.forEach((k, v) {
         futures.add(doItAsync(() => opened.setPosition(v)));

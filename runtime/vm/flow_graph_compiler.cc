@@ -79,7 +79,7 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   for (intptr_t i = current->Length() - 1;
        i >= current->fixed_parameter_count();
        i--) {
-    builder->AddCopy(current->LocationAt(i), *current->ValueAt(i), slot_ix++);
+    builder->AddCopy(current->LocationAt(i), slot_ix++);
   }
 
   // PC marker and caller FP.
@@ -98,15 +98,14 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
     // The values of outgoing arguments can be changed from the inlined call so
     // we must read them from the previous environment.
     for (intptr_t i = previous->fixed_parameter_count() - 1; i >= 0; i--) {
-      builder->AddCopy(previous->LocationAt(i), *previous->ValueAt(i),
-                       slot_ix++);
+      builder->AddCopy(previous->LocationAt(i), slot_ix++);
     }
 
     // Set the locals, note that outgoing arguments are not in the environment.
     for (intptr_t i = current->Length() - 1;
          i >= current->fixed_parameter_count();
          i--) {
-      builder->AddCopy(current->LocationAt(i), *current->ValueAt(i), slot_ix++);
+      builder->AddCopy(current->LocationAt(i), slot_ix++);
     }
 
     // PC marker and caller FP.
@@ -125,7 +124,7 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
 
   // For the outermost environment, set the incoming arguments.
   for (intptr_t i = previous->fixed_parameter_count() - 1; i >= 0; i--) {
-    builder->AddCopy(previous->LocationAt(i), *previous->ValueAt(i), slot_ix++);
+    builder->AddCopy(previous->LocationAt(i), slot_ix++);
   }
 
   const DeoptInfo& deopt_info = DeoptInfo::Handle(builder->CreateDeoptInfo());
@@ -237,7 +236,10 @@ void FlowGraphCompiler::CompactBlocks() {
   for (intptr_t i = block_order().length() - 1; i >= 1; --i) {
     BlockEntryInstr* block = block_order()[i];
 
-    CompactBlock(block);
+    // Unoptimized code must emit all possible deoptimization points.
+    if (is_optimizing()) {
+      CompactBlock(block);
+    }
 
     if (!WasCompacted(block)) {
       BlockInfo* block_info = block_info_[block->postorder_number()];
@@ -413,12 +415,11 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs) {
         //
         // FPU registers have the highest register number at the highest
         // address (i.e., first in the stackmap).
+        const intptr_t kFpuRegisterSpillFactor = kFpuRegisterSize / kWordSize;
         for (intptr_t i = kNumberOfFpuRegisters - 1; i >= 0; --i) {
           FpuRegister reg = static_cast<FpuRegister>(i);
           if (regs->ContainsFpuRegister(reg)) {
-            for (intptr_t j = 0;
-                 j < FlowGraphAllocator::kDoubleSpillSlotFactor;
-                 ++j) {
+            for (intptr_t j = 0; j < kFpuRegisterSpillFactor; ++j) {
               bitmap->Set(bitmap->Length(), false);
             }
           }
@@ -560,8 +561,10 @@ bool FlowGraphCompiler::TryIntrinsify() {
       ASSERT(sequence_node.NodeAt(1)->IsReturnNode());
       const StoreInstanceFieldNode& store_node =
           *sequence_node.NodeAt(0)->AsStoreInstanceFieldNode();
-      GenerateInlinedSetter(store_node.field().Offset());
-      return true;
+      if (store_node.field().guarded_cid() == kDynamicCid) {
+        GenerateInlinedSetter(store_node.field().Offset());
+        return true;
+      }
     }
   }
   // Even if an intrinsified version of the function was successfully

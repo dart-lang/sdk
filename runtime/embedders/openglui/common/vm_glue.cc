@@ -191,7 +191,7 @@ int VMGlue::StartMainIsolate() {
 
   Dart_Handle url = CheckError(Dart_NewStringFromCString(main_script_));
   Dart_Handle source = LoadSourceFromFile(main_script_);
-  CheckError(Dart_LoadScript(url, source));
+  CheckError(Dart_LoadScript(url, source, 0, 0));
 
   Dart_ExitScope();
   Dart_ExitIsolate();

@@ -41,6 +41,7 @@ mixin_type_parameters_super_test: Fail # http://dartbug.com/8116
 mixin_type_parameters_mixin_extends_test: Fail # http://dartbug.com/8116
 mixin_type_parameters_mixin_test: Fail # http://dartbug.com/8116
 
+
 prefix16_test: Fail # dartbug.com/7354
 default_factory2_test/01: Pass # For the wrong reasons.
 type_variable_scope_test/none: Fail
@@ -63,6 +64,7 @@ factory1_test/01: Fail
 type_annotation_test/09: Fail # Named constructors interpreted as a type.
 prefix15_test: Fail # Issue 5022
 local_function2_test: Fail # Issue 5022
+number_identity_test: Fail # Issue 9249
 
 [ $compiler == dart2js && $unchecked ]
 default_factory2_test/01: Fail # type arguments on redirecting factory not implemented
@@ -124,7 +126,6 @@ bad_constructor_test/05: Fail # http://dartbug.com/5519
 bad_constructor_test/06: Fail # http://dartbug.com/5519
 call_nonexistent_constructor_test: Fail
 constructor_named_arguments_test/01: Fail # http://dartbug.com/5519
-getter_no_setter2_test/01: Fail # http://dartbug.com/5519
 getter_no_setter_test/01: Fail # http://dartbug.com/5519
 isnot_malformed_type_test/01: Fail # http://dartbug.com/5519
 not_enough_positional_arguments_test/01: Fail # http://dartbug.com/5519
@@ -199,6 +200,14 @@ super_implicit_closure_test: Fail # internal error: super property read not impl
 switch_label_test: Fail # error: target of continue is not a loop or switch case
 on_catch_malformed_type_test: Fail # Malformed types cause compile-time errors.
 
+# Missing compilation error for wrong number of type arguments.
+mixin_type_parameters_errors_test/01: Fail
+mixin_type_parameters_errors_test/02: Fail
+mixin_type_parameters_errors_test/05: Fail
+
+# new with wrong number of type arguments should be a runtime error.
+mixin_type_parameters_errors_test/03: Fail
+mixin_type_parameters_errors_test/04: Fail
 
 # External tests.
 external_test/01: Fail

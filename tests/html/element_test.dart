@@ -280,13 +280,6 @@ main() {
   });
 
   group('attributes', () {
-      test('coercion', () {
-        final element = new Element.tag('div');
-        element.attributes['foo'] = 42;
-        element.attributes['bar'] = 3.1;
-        expect(element.attributes['foo'], '42');
-        expect(element.attributes['bar'], '3.1');
-      });
       test('manipulation', () {
         final element = new Element.html(
             '''<div class="foo" style="overflow: hidden" data-foo="bar"
@@ -463,6 +456,18 @@ main() {
       expect(el.children[3], isSpanElement);
       expect(el.children[4], isAnchorElement);
       expect(el.children[5], isHeadingElement);
+    });
+
+    test('insert', () {
+      var element = new DivElement();
+      element.children.insert(0, new BRElement());
+      expect(element.children[0], isBRElement);
+      element.children.insert(0, new HRElement());
+      expect(element.children[0], isHRElement);
+      element.children.insert(1, new ImageElement());
+      expect(element.children[1], isImageElement);
+      element.children.insert(element.children.length, new InputElement());
+      expect(element.children.last, isInputElement);
     });
 
     test('clear', () {

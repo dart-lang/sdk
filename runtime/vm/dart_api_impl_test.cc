@@ -885,6 +885,117 @@ TEST_CASE(TypedDataAccess) {
 }
 
 
+static int kLength = 16;
+
+static void ByteDataNativeFunction(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  Dart_Handle byte_data = Dart_NewTypedData(kByteData, kLength);
+  EXPECT_VALID(byte_data);
+  EXPECT_EQ(kByteData, Dart_GetTypeOfTypedData(byte_data));
+  Dart_SetReturnValue(args, byte_data);
+  Dart_ExitScope();
+}
+
+
+static Dart_NativeFunction ByteDataNativeResolver(Dart_Handle name,
+                                                  int arg_count) {
+  return &ByteDataNativeFunction;
+}
+
+
+TEST_CASE(ByteDataAccess) {
+  const char* kScriptChars =
+      "import 'dart:typeddata';\n"
+      "ByteData createByteData() native 'CreateByteData';"
+      "ByteData main() {"
+      "  var length = 16;"
+      "  var a = createByteData();"
+      "  Expect.equals(length, a.lengthInBytes);"
+      "  for (int i = 0; i < length; i+=1) {"
+      "    a.setInt8(i, 0x42);"
+      "  }"
+      "  for (int i = 0; i < length; i+=2) {"
+      "    Expect.equals(0x4242, a.getInt16(i));"
+      "  }"
+      "  return a;"
+      "}\n";
+  // Create a test library and Load up a test script in it.
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+
+  Dart_Handle result = Dart_SetNativeResolver(lib, &ByteDataNativeResolver);
+  EXPECT_VALID(result);
+
+  // Invoke 'main' function.
+  result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+}
+
+
+static const intptr_t kExtLength = 16;
+static int8_t data[kExtLength] = { 0x41, 0x42, 0x41, 0x42,
+                                   0x41, 0x42, 0x41, 0x42,
+                                   0x41, 0x42, 0x41, 0x42,
+                                   0x41, 0x42, 0x41, 0x42, };
+
+static void ExternalByteDataNativeFunction(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  Dart_Handle external_byte_data = Dart_NewExternalTypedData(kByteData,
+                                                             data,
+                                                             16,
+                                                             NULL, NULL);
+  EXPECT_VALID(external_byte_data);
+  EXPECT_EQ(kByteData, Dart_GetTypeOfTypedData(external_byte_data));
+  Dart_SetReturnValue(args, external_byte_data);
+  Dart_ExitScope();
+}
+
+
+static Dart_NativeFunction ExternalByteDataNativeResolver(Dart_Handle name,
+                                                          int arg_count) {
+  return &ExternalByteDataNativeFunction;
+}
+
+
+TEST_CASE(ExternalByteDataAccess) {
+  // TODO(asiva): Once we have getInt16LE and getInt16BE support use the
+  // appropriate getter instead of the host endian format used now.
+  const char* kScriptChars =
+      "import 'dart:typeddata';\n"
+      "ByteData createExternalByteData() native 'CreateExternalByteData';"
+      "ByteData main() {"
+      "  var length = 16;"
+      "  var a = createExternalByteData();"
+      "  Expect.equals(length, a.lengthInBytes);"
+      "  for (int i = 0; i < length; i+=2) {"
+      "    Expect.equals(0x4241, a.getInt16(i));"
+      "  }"
+      "  for (int i = 0; i < length; i+=2) {"
+      "    a.setInt8(i, 0x24);"
+      "    a.setInt8(i + 1, 0x28);"
+      "  }"
+      "  for (int i = 0; i < length; i+=2) {"
+      "    Expect.equals(0x2824, a.getInt16(i));"
+      "  }"
+      "  return a;"
+      "}\n";
+  // Create a test library and Load up a test script in it.
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+
+  Dart_Handle result = Dart_SetNativeResolver(lib,
+                                              &ExternalByteDataNativeResolver);
+  EXPECT_VALID(result);
+
+  // Invoke 'main' function.
+  result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+
+  for (intptr_t i = 0; i < kExtLength; i+=2) {
+    EXPECT_EQ(0x24, data[i]);
+    EXPECT_EQ(0x28, data[i+1]);
+  }
+}
+
+
 TEST_CASE(TypedDataDirectAccess) {
   Dart_Handle str = Dart_NewStringFromCString("junk");
   Dart_Handle byte_array = Dart_NewTypedData(kUint8, 10);
@@ -3281,7 +3392,7 @@ TEST_CASE(GetStaticField_RunsInitializer) {
 
 TEST_CASE(New) {
   const char* kScriptChars =
-      "class MyClass implements MyInterface {\n"
+      "class MyClass {\n"
       "  MyClass() : foo = 7 {}\n"
       "  MyClass.named(value) : foo = value {}\n"
       "  MyClass._hidden(value) : foo = -value {}\n"
@@ -3294,43 +3405,24 @@ TEST_CASE(New) {
       "  factory MyClass.nullo() {\n"
       "    return null;\n"
       "  }\n"
-      "  factory MyInterface.multiply(value) {  // won't get called.\n"
-      "    return new MyClass.named(value * 1000);\n"
-      "  }\n"
-      "  factory MyInterface2.unused(value) {\n"
-      "    return new MyClass2(-value);\n"
-      "  }\n"
-      "  factory MyInterface2.multiply(value) {\n"
-      "    return new MyClass2(value * 10000);\n"
-      "  }\n"
       "  var foo;\n"
       "}\n"
       "\n"
-      "class MyClass2 implements MyInterface2 {\n"
-      "  MyClass2(value) : bar = value {}\n"
-      "  var bar;\n"
+      "abstract class MyExtraHop {\n"
+      "  factory MyExtraHop.hop(value) = MyClass.named;\n"
       "}\n"
       "\n"
-      "interface MyInterface default MyClass {\n"
-      "  MyInterface.named(value);\n"
-      "  MyInterface.multiply(value);\n"
+      "abstract class MyInterface {\n"
+      "  factory MyInterface.named(value) = MyExtraHop.hop;\n"
+      "  factory MyInterface.multiply(value) = MyClass.multiply;\n"
       "  MyInterface.notfound(value);\n"
-      "}\n"
-      "\n"
-      "interface MyInterface2 default MyClass {\n"
-      "  MyInterface2.multiply(value);\n"
-      "  MyInterface2.notfound(value);\n"
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   Dart_Handle cls = Dart_GetClass(lib, NewString("MyClass"));
   EXPECT_VALID(cls);
-  Dart_Handle cls2 = Dart_GetClass(lib, NewString("MyClass2"));
-  EXPECT_VALID(cls2);
   Dart_Handle intf = Dart_GetClass(lib, NewString("MyInterface"));
   EXPECT_VALID(intf);
-  Dart_Handle intf2 = Dart_GetClass(lib, NewString("MyInterface2"));
-  EXPECT_VALID(intf2);
   Dart_Handle args[1];
   args[0] = Dart_NewInteger(11);
   Dart_Handle bad_args[1];
@@ -3433,19 +3525,7 @@ TEST_CASE(New) {
   result = Dart_New(cls, NewString("exception"), 1, args);
   EXPECT_ERROR(result, "ConstructorDeath");
 
-  // MyInterface has default class MyClass.
-  //
-  // MyClass *implements* MyInterface.
-  //
-  // Therefore the constructor call:
-  //
-  //   MyInterface.foo()
-  //
-  // Becomes:
-  //
-  //   MyClass.foo() from the class MyClass.
-
-  // Invoke an interface constructor.
+  // Invoke two-hop redirecting factory constructor.
   result = Dart_New(intf, NewString("named"), 1, args);
   EXPECT_VALID(result);
   EXPECT_VALID(Dart_ObjectIsType(result, cls, &instanceof));
@@ -3455,8 +3535,7 @@ TEST_CASE(New) {
   EXPECT_VALID(Dart_IntegerToInt64(foo, &int_value));
   EXPECT_EQ(11, int_value);
 
-  // Invoke an interface constructor which in turn calls a factory
-  // constructor.
+  // Invoke one-hop redirecting factory constructor.
   result = Dart_New(intf, NewString("multiply"), 1, args);
   EXPECT_VALID(result);
   EXPECT_VALID(Dart_ObjectIsType(result, cls, &instanceof));
@@ -3466,53 +3545,16 @@ TEST_CASE(New) {
   EXPECT_VALID(Dart_IntegerToInt64(foo, &int_value));
   EXPECT_EQ(1100, int_value);
 
-  // Invoke a constructor that is missing in the interface but present
-  // in the default class.
+  // Invoke a constructor that is missing in the interface.
   result = Dart_New(intf, Dart_Null(), 0, NULL);
   EXPECT_ERROR(result,
                "Dart_New: could not find constructor 'MyInterface.'.");
 
-  // Invoke a constructor that is present in the interface but missing
-  // in the default class.
+  // Invoke abstract constructor that is present in the interface.
   result = Dart_New(intf, NewString("notfound"), 1, args);
-  EXPECT_ERROR(result,
-               "Dart_New: could not find constructor 'MyClass.notfound'.");
-
-  // MyInterface2 has default class MyClass.
-  //
-  // MyClass *does not implement* MyInterface2.
-  //
-  // Therefore the constructor call:
-  //
-  //   new MyInterface2.foo()
-  //
-  // Becomes:
-  //
-  //   new MyInterface2.foo() from the class MyClass.
-
-  // Invoke an interface constructor which in turn calls a factory
-  // constructor.
-  result = Dart_New(intf2, NewString("multiply"), 1, args);
   EXPECT_VALID(result);
-  EXPECT_VALID(Dart_ObjectIsType(result, cls2, &instanceof));
-  EXPECT(instanceof);
-  int_value = 0;
-  Dart_Handle bar = Dart_GetField(result, NewString("bar"));
-  EXPECT_VALID(Dart_IntegerToInt64(bar, &int_value));
-  EXPECT_EQ(110000, int_value);
-
-  // Invoke a constructor that is missing in the interface but present
-  // in the default class.
-  result = Dart_New(intf2, NewString("unused"), 1, args);
-  EXPECT_ERROR(result,
-               "Dart_New: could not find constructor 'MyInterface2.unused'.");
-
-  // Invoke a constructor that is present in the interface but missing
-  // in the default class.
-  result = Dart_New(intf2, NewString("notfound"), 1, args);
-  EXPECT_ERROR(result,
-               "Dart_New: could not find factory 'MyInterface2.notfound' "
-               "in class 'MyClass'.");
+  EXPECT_VALID(Dart_ObjectIsType(result, cls, &instanceof));
+  EXPECT(!instanceof);
 }
 
 
@@ -4769,7 +4811,7 @@ TEST_CASE(VariableReflection) {
 
 TEST_CASE(TypeVariableReflection) {
   const char* kScriptChars =
-      "interface UpperBound {}\n"
+      "abstract class UpperBound {}\n"
       "class GenericClass<U, T extends UpperBound> {\n"
       "  T func1() { return null; }\n"
       "  U func2() { return null; }\n"
@@ -4915,37 +4957,37 @@ TEST_CASE(LoadScript) {
   result = Dart_SetLibraryTagHandler(library_handler);
   EXPECT_VALID(result);
 
-  result = Dart_LoadScript(Dart_Null(), source);
+  result = Dart_LoadScript(Dart_Null(), source, 0, 0);
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ("Dart_LoadScript expects argument 'url' to be non-null.",
                Dart_GetError(result));
 
-  result = Dart_LoadScript(Dart_True(), source);
+  result = Dart_LoadScript(Dart_True(), source, 0, 0);
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ("Dart_LoadScript expects argument 'url' to be of type String.",
                Dart_GetError(result));
 
-  result = Dart_LoadScript(error, source);
+  result = Dart_LoadScript(error, source, 0, 0);
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ("incoming error", Dart_GetError(result));
 
-  result = Dart_LoadScript(url, Dart_Null());
+  result = Dart_LoadScript(url, Dart_Null(), 0, 0);
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ("Dart_LoadScript expects argument 'source' to be non-null.",
                Dart_GetError(result));
 
-  result = Dart_LoadScript(url, Dart_True());
+  result = Dart_LoadScript(url, Dart_True(), 0, 0);
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ(
       "Dart_LoadScript expects argument 'source' to be of type String.",
       Dart_GetError(result));
 
-  result = Dart_LoadScript(url, error);
+  result = Dart_LoadScript(url, error, 0, 0);
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ("incoming error", Dart_GetError(result));
 
   // Load a script successfully.
-  result = Dart_LoadScript(url, source);
+  result = Dart_LoadScript(url, source, 0, 0);
   EXPECT_VALID(result);
 
   result = Dart_Invoke(result, NewString("main"), 0, NULL);
@@ -4956,7 +4998,7 @@ TEST_CASE(LoadScript) {
   EXPECT_EQ(12345, value);
 
   // Further calls to LoadScript are errors.
-  result = Dart_LoadScript(url, source);
+  result = Dart_LoadScript(url, source, 0, 0);
   EXPECT(Dart_IsError(result));
   EXPECT_STREQ("Dart_LoadScript: "
                "A script has already been loaded from 'dart:test-lib'.",
@@ -4977,7 +5019,7 @@ TEST_CASE(RootLibrary) {
   // Load a script.
   Dart_Handle url = NewString(TestCase::url());
   Dart_Handle source = NewString(kScriptChars);
-  EXPECT_VALID(Dart_LoadScript(url, source));
+  EXPECT_VALID(Dart_LoadScript(url, source, 0, 0));
 
   root_lib = Dart_RootLibrary();
   Dart_Handle lib_name = Dart_LibraryName(root_lib);
@@ -5033,7 +5075,7 @@ TEST_CASE(LoadScript_CompileError) {
   Dart_Handle source = NewString(kScriptChars);
   Dart_Handle result = Dart_SetLibraryTagHandler(import_library_handler);
   EXPECT_VALID(result);
-  result = Dart_LoadScript(url, source);
+  result = Dart_LoadScript(url, source, 0, 0);
   EXPECT(Dart_IsError(result));
   EXPECT(strstr(Dart_GetError(result), "unexpected token ')'"));
 }
@@ -5052,7 +5094,7 @@ TEST_CASE(LookupLibrary) {
   Dart_Handle source = NewString(kScriptChars);
   Dart_Handle result = Dart_SetLibraryTagHandler(library_handler);
   EXPECT_VALID(result);
-  result = Dart_LoadScript(url, source);
+  result = Dart_LoadScript(url, source, 0, 0);
   EXPECT_VALID(result);
 
   url = NewString("library1_dart");
@@ -5158,10 +5200,10 @@ TEST_CASE(LibraryGetClassNames) {
       "\n"
       "class A {}\n"
       "class B {}\n"
-      "interface C {}\n"
+      "abstract class C {}\n"
       "class _A {}\n"
       "class _B {}\n"
-      "interface _C {}\n"
+      "abstract class _C {}\n"
       "\n"
       "_compare(String a, String b) => a.compareTo(b);\n"
       "sort(list) => list.sort(_compare);\n";
@@ -5750,7 +5792,7 @@ TEST_CASE(ParsePatchLibrary) {
 
   Dart_Handle script_url = NewString("theScript");
   source = NewString(kScriptChars);
-  Dart_Handle test_script = Dart_LoadScript(script_url, source);
+  Dart_Handle test_script = Dart_LoadScript(script_url, source, 0, 0);
   EXPECT_VALID(test_script);
 
   // Make sure that we can compile all of the patched code.
@@ -5842,7 +5884,7 @@ TEST_CASE(SetNativeResolver) {
   Dart_Handle source = NewString(kScriptChars);
   result = Dart_SetLibraryTagHandler(library_handler);
   EXPECT_VALID(result);
-  Dart_Handle lib = Dart_LoadScript(url, source);
+  Dart_Handle lib = Dart_LoadScript(url, source, 0, 0);
   EXPECT_VALID(lib);
   EXPECT(Dart_IsLibrary(lib));
   Dart_Handle cls = Dart_GetClass(lib, NewString("Test"));
@@ -5925,7 +5967,7 @@ TEST_CASE(ImportLibrary2) {
   Dart_Handle source = NewString(kScriptChars);
   result = Dart_SetLibraryTagHandler(library_handler);
   EXPECT_VALID(result);
-  result = Dart_LoadScript(url, source);
+  result = Dart_LoadScript(url, source, 0, 0);
 
   url = NewString("library1_dart");
   source = NewString(kLibrary1Chars);
@@ -5961,7 +6003,7 @@ TEST_CASE(ImportLibrary3) {
   Dart_Handle source = NewString(kScriptChars);
   result = Dart_SetLibraryTagHandler(library_handler);
   EXPECT_VALID(result);
-  result = Dart_LoadScript(url, source);
+  result = Dart_LoadScript(url, source, 0, 0);
   EXPECT_VALID(result);
 
   url = NewString("library2_dart");
@@ -5998,7 +6040,7 @@ TEST_CASE(ImportLibrary4) {
   Dart_Handle source = NewString(kScriptChars);
   result = Dart_SetLibraryTagHandler(library_handler);
   EXPECT_VALID(result);
-  result = Dart_LoadScript(url, source);
+  result = Dart_LoadScript(url, source, 0, 0);
   EXPECT_VALID(result);
 
   url = NewString("library2_dart");
@@ -6017,13 +6059,13 @@ TEST_CASE(ImportLibrary4) {
 TEST_CASE(ImportLibrary5) {
   const char* kScriptChars =
       "import 'lib.dart';\n"
-      "interface Y {\n"
+      "abstract class Y {\n"
       "  void set handler(void callback(List<int> x));\n"
       "}\n"
       "void main() {}\n";
   const char* kLibraryChars =
       "library lib.dart;\n"
-      "interface X {\n"
+      "abstract class X {\n"
       "  void set handler(void callback(List<int> x));\n"
       "}\n";
   Dart_Handle result;
@@ -6033,7 +6075,7 @@ TEST_CASE(ImportLibrary5) {
   Dart_Handle source = NewString(kScriptChars);
   result = Dart_SetLibraryTagHandler(library_handler);
   EXPECT_VALID(result);
-  result = Dart_LoadScript(url, source);
+  result = Dart_LoadScript(url, source, 0, 0);
 
   url = NewString("lib.dart");
   source = NewString(kLibraryChars);
@@ -6169,7 +6211,7 @@ static bool RunLoopTestCallback(const char* script_name,
   Dart_Handle source = NewString(kScriptChars);
   Dart_Handle result = Dart_SetLibraryTagHandler(TestCase::library_handler);
   EXPECT_VALID(result);
-  Dart_Handle lib = Dart_LoadScript(url, source);
+  Dart_Handle lib = Dart_LoadScript(url, source, 0, 0);
   EXPECT_VALID(lib);
   Dart_ExitScope();
   return true;
@@ -6302,7 +6344,7 @@ void BusyLoop_start(uword unused) {
     Dart_Handle source = NewString(kScriptChars);
     Dart_Handle result = Dart_SetLibraryTagHandler(TestCase::library_handler);
     EXPECT_VALID(result);
-    lib = Dart_LoadScript(url, source);
+    lib = Dart_LoadScript(url, source, 0, 0);
     EXPECT_VALID(lib);
     result = Dart_SetNativeResolver(lib, &IsolateInterruptTestNativeLookup);
     DART_CHECK_VALID(result);
@@ -6570,7 +6612,7 @@ TEST_CASE(NativeFunctionClosure) {
   Dart_Handle source = NewString(kScriptChars);
   result = Dart_SetLibraryTagHandler(library_handler);
   EXPECT_VALID(result);
-  Dart_Handle lib = Dart_LoadScript(url, source);
+  Dart_Handle lib = Dart_LoadScript(url, source, 0, 0);
   EXPECT_VALID(lib);
   EXPECT(Dart_IsLibrary(lib));
   result = Dart_SetNativeResolver(lib, &MyNativeClosureResolver);
@@ -6708,7 +6750,7 @@ TEST_CASE(NativeStaticFunctionClosure) {
   Dart_Handle source = NewString(kScriptChars);
   result = Dart_SetLibraryTagHandler(library_handler);
   EXPECT_VALID(result);
-  Dart_Handle lib = Dart_LoadScript(url, source);
+  Dart_Handle lib = Dart_LoadScript(url, source, 0, 0);
   EXPECT_VALID(lib);
   EXPECT(Dart_IsLibrary(lib));
   result = Dart_SetNativeResolver(lib, &MyStaticNativeClosureResolver);
