@@ -232,7 +232,7 @@ void testConfigurations(List<Map> configurations) {
 void main() {
   var optionsParser = new TestOptionsParser();
   var configurations = optionsParser.parse(new Options().arguments);
-  if (configurations != null || configurations.length > 0) {
+  if (configurations != null && configurations.length > 0) {
     testConfigurations(configurations);
   }
 }
