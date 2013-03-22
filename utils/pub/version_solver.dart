@@ -183,7 +183,8 @@ class VersionSolver {
     for (var dependerName in dependency.dependers) {
       var depender = getDependency(dependerName);
       var locked = lockFile.packages[dependerName];
-      if (locked != null && depender.version == locked.version) {
+      if (locked != null && depender.version == locked.version &&
+          depender.source.name == locked.source.name) {
         enqueue(new UnlockPackage(depender));
         return true;
       }
@@ -360,7 +361,7 @@ abstract class ChangeConstraint implements WorkItem {
     // If the dependency is on a package in the lockfile, use the lockfile's
     // version for that package if it's valid given the other constraints.
     var lockedPackage = solver.lockFile.packages[name];
-    if (lockedPackage != null) {
+    if (lockedPackage != null && newDependency.source == lockedPackage.source) {
       var lockedVersion = lockedPackage.version;
       if (newConstraint.allows(lockedVersion)) {
         solver.enqueue(
