@@ -19023,6 +19023,20 @@ class Navigator extends NativeFieldWrapperClass1 {
   @Experimental
   BatteryManager get battery native "Navigator_webkitBattery_Getter";
 
+  @DomName('Navigator.webkitPersistentStorage')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  StorageQuota get persistentStorage native "Navigator_webkitPersistentStorage_Getter";
+
+  @DomName('Navigator.webkitTemporaryStorage')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  StorageQuota get temporaryStorage native "Navigator_webkitTemporaryStorage_Getter";
+
   @DomName('Navigator.getStorageUpdates')
   @DocsEditable
   void getStorageUpdates() native "Navigator_getStorageUpdates_Callback";
@@ -21684,6 +21698,10 @@ class RtcPeerConnection extends EventTarget {
   @DocsEditable
   void getStats(RtcStatsCallback successCallback, MediaStreamTrack selector) native "RTCPeerConnection_getStats_Callback";
 
+  @DomName('RTCPeerConnection.getStreamById')
+  @DocsEditable
+  MediaStream getStreamById(String streamId) native "RTCPeerConnection_getStreamById_Callback";
+
   @DomName('RTCPeerConnection.removeEventListener')
   @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "RTCPeerConnection_removeEventListener_Callback";
@@ -21803,42 +21821,33 @@ class RtcSessionDescription extends NativeFieldWrapperClass1 {
 
 
 @DocsEditable
-@DomName('RTCStatsElement')
-class RtcStatsElement extends NativeFieldWrapperClass1 {
-  RtcStatsElement.internal();
-
-  @DomName('RTCStatsElement.timestamp')
-  @DocsEditable
-  DateTime get timestamp native "RTCStatsElement_timestamp_Getter";
-
-  @DomName('RTCStatsElement.names')
-  @DocsEditable
-  List<String> names() native "RTCStatsElement_names_Callback";
-
-  @DomName('RTCStatsElement.stat')
-  @DocsEditable
-  String stat(String name) native "RTCStatsElement_stat_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
 @DomName('RTCStatsReport')
 class RtcStatsReport extends NativeFieldWrapperClass1 {
   RtcStatsReport.internal();
 
+  @DomName('RTCStatsReport.id')
+  @DocsEditable
+  String get id native "RTCStatsReport_id_Getter";
+
   @DomName('RTCStatsReport.local')
   @DocsEditable
-  RtcStatsElement get local native "RTCStatsReport_local_Getter";
+  RtcStatsReport get local native "RTCStatsReport_local_Getter";
 
   @DomName('RTCStatsReport.remote')
   @DocsEditable
-  RtcStatsElement get remote native "RTCStatsReport_remote_Getter";
+  RtcStatsReport get remote native "RTCStatsReport_remote_Getter";
+
+  @DomName('RTCStatsReport.timestamp')
+  @DocsEditable
+  DateTime get timestamp native "RTCStatsReport_timestamp_Getter";
+
+  @DomName('RTCStatsReport.names')
+  @DocsEditable
+  List<String> names() native "RTCStatsReport_names_Callback";
+
+  @DomName('RTCStatsReport.stat')
+  @DocsEditable
+  String stat(String name) native "RTCStatsReport_stat_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21852,6 +21861,10 @@ class RtcStatsReport extends NativeFieldWrapperClass1 {
 @DomName('RTCStatsResponse')
 class RtcStatsResponse extends NativeFieldWrapperClass1 {
   RtcStatsResponse.internal();
+
+  @DomName('RTCStatsResponse.namedItem')
+  @DocsEditable
+  RtcStatsReport namedItem(String name) native "RTCStatsResponse_namedItem_Callback";
 
   @DomName('RTCStatsResponse.result')
   @DocsEditable
@@ -23399,6 +23412,14 @@ class Storage extends NativeFieldWrapperClass1 implements Map<String, String>
   void $dom_setItem(String key, String data) native "Storage_setItem_Callback";
 
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+typedef void StorageErrorCallback(DomException error);
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -23459,11 +23480,11 @@ class StorageInfo extends NativeFieldWrapperClass1 {
 
   @DomName('StorageInfo.queryUsageAndQuota')
   @DocsEditable
-  void _queryUsageAndQuota(int storageType, [_StorageInfoUsageCallback usageCallback, _StorageInfoErrorCallback errorCallback]) native "StorageInfo_queryUsageAndQuota_Callback";
+  void _queryUsageAndQuota(int storageType, [StorageUsageCallback usageCallback, StorageErrorCallback errorCallback]) native "StorageInfo_queryUsageAndQuota_Callback";
 
   @DomName('StorageInfo.requestQuota')
   @DocsEditable
-  void _requestQuota(int storageType, int newQuotaInBytes, [StorageInfoQuotaCallback quotaCallback, _StorageInfoErrorCallback errorCallback]) native "StorageInfo_requestQuota_Callback";
+  void _requestQuota(int storageType, int newQuotaInBytes, [StorageQuotaCallback quotaCallback, StorageErrorCallback errorCallback]) native "StorageInfo_requestQuota_Callback";
 
   Future<int> requestQuota(int storageType, int newQuotaInBytes) {
     var completer = new Completer<int>();
@@ -23501,7 +23522,20 @@ class StorageInfoUsage {
 // WARNING: Do not edit - generated code.
 
 
-typedef void _StorageInfoErrorCallback(DomException error);
+@DocsEditable
+@DomName('StorageQuota')
+class StorageQuota extends NativeFieldWrapperClass1 {
+  StorageQuota.internal();
+
+  @DomName('StorageQuota.queryUsageAndQuota')
+  @DocsEditable
+  void queryUsageAndQuota(StorageUsageCallback usageCallback, [StorageErrorCallback errorCallback]) native "StorageQuota_queryUsageAndQuota_Callback";
+
+  @DomName('StorageQuota.requestQuota')
+  @DocsEditable
+  void requestQuota(int newQuotaInBytes, [StorageQuotaCallback quotaCallback, StorageErrorCallback errorCallback]) native "StorageQuota_requestQuota_Callback";
+
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -23509,7 +23543,7 @@ typedef void _StorageInfoErrorCallback(DomException error);
 // WARNING: Do not edit - generated code.
 
 
-typedef void StorageInfoQuotaCallback(int grantedQuotaInBytes);
+typedef void StorageQuotaCallback(int grantedQuotaInBytes);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -23517,7 +23551,7 @@ typedef void StorageInfoQuotaCallback(int grantedQuotaInBytes);
 // WARNING: Do not edit - generated code.
 
 
-typedef void _StorageInfoUsageCallback(int currentUsageInBytes, int currentQuotaInBytes);
+typedef void StorageUsageCallback(int currentUsageInBytes, int currentQuotaInBytes);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -26843,6 +26877,25 @@ class WebGLActiveInfo extends NativeFieldWrapperClass1 {
 @DomName('WebGLBuffer')
 class WebGLBuffer extends NativeFieldWrapperClass1 {
   WebGLBuffer.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('WebGLCompressedTextureATC')
+class WebGLCompressedTextureAtc extends NativeFieldWrapperClass1 {
+  WebGLCompressedTextureAtc.internal();
+
+  static const int COMPRESSED_RGBA_ATC_EXPLICIT_ALPHA_WEBGL = 0x8C93;
+
+  static const int COMPRESSED_RGBA_ATC_INTERPOLATED_ALPHA_WEBGL = 0x87EE;
+
+  static const int COMPRESSED_RGB_ATC_WEBGL = 0x8C92;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

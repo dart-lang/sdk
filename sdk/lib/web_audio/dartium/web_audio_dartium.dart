@@ -421,9 +421,9 @@ class AudioContext extends EventTarget {
 class AudioDestinationNode extends AudioNode {
   AudioDestinationNode.internal() : super.internal();
 
-  @DomName('AudioDestinationNode.numberOfChannels')
+  @DomName('AudioDestinationNode.maxChannelCount')
   @DocsEditable
-  int get numberOfChannels native "AudioDestinationNode_numberOfChannels_Getter";
+  int get maxChannelCount native "AudioDestinationNode_maxChannelCount_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

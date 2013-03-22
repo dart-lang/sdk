@@ -10,6 +10,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 
 SCRIPT_PATH = os.path.abspath(os.path.dirname(__file__))
 DART_PATH = os.path.abspath(os.path.join(SCRIPT_PATH, '..', '..', '..'))
@@ -176,6 +177,26 @@ def GenerateReadme(local_path, template, url, revision):
   out.write(readme)
   out.close()
 
+def SaveVersionControlDir(local_path):
+  version_control_dir = os.path.join(local_path, '.git')
+  if not os.path.isdir(version_control_dir):
+    version_control_dir = os.path.join(local_path, '.svn')
+    if not os.path.isdir(version_control_dir):
+      raise '%s is not a git or svn directory' % local_path
+  temp_dir = tempfile.mkdtemp()
+  shutil.move(version_control_dir, temp_dir)
+  return temp_dir
+
+
+def RestoreVersionControlDir(local_path, saved_version_control_dir):
+  version_control_dir = os.path.join(saved_version_control_dir, '.git')
+  if not os.path.isdir(version_control_dir):
+    version_control_dir = os.path.join(saved_version_control_dir, '.svn')
+    if not os.path.isdir(version_control_dir):
+      raise 'Failed restoring version control directory'
+  shutil.move(version_control_dir, local_path)
+  shutil.rmtree(saved_version_control_dir)
+
 
 def ParseOptions():
   parser = optparse.OptionParser()
@@ -204,10 +225,11 @@ def main():
       url, latest = GetSvnRevision(deps, component)
       if revision is None:
         revision = latest
+      saved_version_control_dir = SaveVersionControlDir(local_path);
       RefreshFiles(url, revision, remote_path, local_path, depth)
       PruneExtraFiles(local_path)
       GenerateReadme(local_path, readme, url, revision)
-
+      RestoreVersionControlDir(local_path, saved_version_control_dir);
 
 if __name__ == '__main__':
   main()

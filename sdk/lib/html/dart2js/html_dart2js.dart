@@ -17582,6 +17582,22 @@ class Navigator native "*Navigator" {
   @Experimental
   final BatteryManager battery;
 
+  @JSName('webkitPersistentStorage')
+  @DomName('Navigator.webkitPersistentStorage')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  final StorageQuota persistentStorage;
+
+  @JSName('webkitTemporaryStorage')
+  @DomName('Navigator.webkitTemporaryStorage')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  final StorageQuota temporaryStorage;
+
   @DomName('Navigator.getStorageUpdates')
   @DocsEditable
   void getStorageUpdates() native;
@@ -20036,6 +20052,10 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
   @DocsEditable
   void getStats(RtcStatsCallback successCallback, MediaStreamTrack selector) native;
 
+  @DomName('RTCPeerConnection.getStreamById')
+  @DocsEditable
+  MediaStream getStreamById(String streamId) native;
+
   @JSName('removeEventListener')
   @DomName('RTCPeerConnection.removeEventListener')
   @DocsEditable
@@ -20171,20 +20191,32 @@ class RtcSessionDescription native "*RTCSessionDescription" {
 
 
 @DocsEditable
-@DomName('RTCStatsElement')
-class RtcStatsElement native "*RTCStatsElement" {
+@DomName('RTCStatsReport')
+class RtcStatsReport native "*RTCStatsReport" {
+
+  @DomName('RTCStatsReport.id')
+  @DocsEditable
+  final String id;
+
+  @DomName('RTCStatsReport.local')
+  @DocsEditable
+  final RtcStatsReport local;
+
+  @DomName('RTCStatsReport.remote')
+  @DocsEditable
+  final RtcStatsReport remote;
 
   DateTime get timestamp => _convertNativeToDart_DateTime(this._get_timestamp);
   @JSName('timestamp')
-  @DomName('RTCStatsElement.timestamp')
+  @DomName('RTCStatsReport.timestamp')
   @DocsEditable
   final dynamic _get_timestamp;
 
-  @DomName('RTCStatsElement.names')
+  @DomName('RTCStatsReport.names')
   @DocsEditable
   List<String> names() native;
 
-  @DomName('RTCStatsElement.stat')
+  @DomName('RTCStatsReport.stat')
   @DocsEditable
   String stat(String name) native;
 }
@@ -20194,25 +20226,12 @@ class RtcStatsElement native "*RTCStatsElement" {
 
 
 @DocsEditable
-@DomName('RTCStatsReport')
-class RtcStatsReport native "*RTCStatsReport" {
-
-  @DomName('RTCStatsReport.local')
-  @DocsEditable
-  final RtcStatsElement local;
-
-  @DomName('RTCStatsReport.remote')
-  @DocsEditable
-  final RtcStatsElement remote;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
 @DomName('RTCStatsResponse')
 class RtcStatsResponse native "*RTCStatsResponse" {
+
+  @DomName('RTCStatsResponse.namedItem')
+  @DocsEditable
+  RtcStatsReport namedItem(String name) native;
 
   @DomName('RTCStatsResponse.result')
   @DocsEditable
@@ -21548,6 +21567,14 @@ class Storage implements Map<String, String>
   void $dom_setItem(String key, String data) native;
 
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+typedef void StorageErrorCallback(DomException error);
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -21608,12 +21635,12 @@ class StorageInfo native "*StorageInfo" {
   @JSName('queryUsageAndQuota')
   @DomName('StorageInfo.queryUsageAndQuota')
   @DocsEditable
-  void _queryUsageAndQuota(int storageType, [_StorageInfoUsageCallback usageCallback, _StorageInfoErrorCallback errorCallback]) native;
+  void _queryUsageAndQuota(int storageType, [StorageUsageCallback usageCallback, StorageErrorCallback errorCallback]) native;
 
   @JSName('requestQuota')
   @DomName('StorageInfo.requestQuota')
   @DocsEditable
-  void _requestQuota(int storageType, int newQuotaInBytes, [StorageInfoQuotaCallback quotaCallback, _StorageInfoErrorCallback errorCallback]) native;
+  void _requestQuota(int storageType, int newQuotaInBytes, [StorageQuotaCallback quotaCallback, StorageErrorCallback errorCallback]) native;
 
   @JSName('requestQuota')
   @DomName('StorageInfo.requestQuota')
@@ -21651,10 +21678,19 @@ class StorageInfoUsage {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
 
+@DocsEditable
+@DomName('StorageQuota')
+class StorageQuota native "*StorageQuota" {
 
-typedef void _StorageInfoErrorCallback(DomException error);
+  @DomName('StorageQuota.queryUsageAndQuota')
+  @DocsEditable
+  void queryUsageAndQuota(StorageUsageCallback usageCallback, [StorageErrorCallback errorCallback]) native;
+
+  @DomName('StorageQuota.requestQuota')
+  @DocsEditable
+  void requestQuota(int newQuotaInBytes, [StorageQuotaCallback quotaCallback, StorageErrorCallback errorCallback]) native;
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -21662,7 +21698,7 @@ typedef void _StorageInfoErrorCallback(DomException error);
 // WARNING: Do not edit - generated code.
 
 
-typedef void StorageInfoQuotaCallback(int grantedQuotaInBytes);
+typedef void StorageQuotaCallback(int grantedQuotaInBytes);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -21670,7 +21706,7 @@ typedef void StorageInfoQuotaCallback(int grantedQuotaInBytes);
 // WARNING: Do not edit - generated code.
 
 
-typedef void _StorageInfoUsageCallback(int currentUsageInBytes, int currentQuotaInBytes);
+typedef void StorageUsageCallback(int currentUsageInBytes, int currentQuotaInBytes);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -24633,6 +24669,21 @@ class WebGLActiveInfo native "*WebGLActiveInfo" {
 @DocsEditable
 @DomName('WebGLBuffer')
 class WebGLBuffer native "*WebGLBuffer" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('WebGLCompressedTextureATC')
+class WebGLCompressedTextureAtc native "*WebGLCompressedTextureATC" {
+
+  static const int COMPRESSED_RGBA_ATC_EXPLICIT_ALPHA_WEBGL = 0x8C93;
+
+  static const int COMPRESSED_RGBA_ATC_INTERPOLATED_ALPHA_WEBGL = 0x87EE;
+
+  static const int COMPRESSED_RGB_ATC_WEBGL = 0x8C92;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
