@@ -212,8 +212,16 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
       optimizer.Canonicalize();
       DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
+      if (FLAG_print_flow_graph || FLAG_print_flow_graph_optimized) {
+        FlowGraphPrinter::PrintGraph("Before BranchSimplifier", flow_graph);
+      }
+
       BranchSimplifier::Simplify(flow_graph);
       DEBUG_ASSERT(flow_graph->VerifyUseLists());
+
+      if (FLAG_print_flow_graph || FLAG_print_flow_graph_optimized) {
+        FlowGraphPrinter::PrintGraph("Before CP", flow_graph);
+      }
 
       if (FLAG_constant_propagation) {
         ConstantPropagator::Optimize(flow_graph);
@@ -274,6 +282,10 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
       }
       optimizer.Canonicalize();
       DEBUG_ASSERT(flow_graph->VerifyUseLists());
+
+      if (FLAG_print_flow_graph || FLAG_print_flow_graph_optimized) {
+        FlowGraphPrinter::PrintGraph("Before register allocation", flow_graph);
+      }
 
       // Perform register allocation on the SSA graph.
       FlowGraphAllocator allocator(*flow_graph);

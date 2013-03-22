@@ -458,27 +458,6 @@ intptr_t JoinEntryInstr::IndexOfPredecessor(BlockEntryInstr* pred) const {
 }
 
 
-// ==== Recording assigned variables.
-void Definition::RecordAssignedVars(BitVector* assigned_vars,
-                                    intptr_t fixed_parameter_count) {
-  // Nothing to do for the base class.
-}
-
-
-void StoreLocalInstr::RecordAssignedVars(BitVector* assigned_vars,
-                                         intptr_t fixed_parameter_count) {
-  if (!local().is_captured()) {
-    assigned_vars->Add(local().BitIndexIn(fixed_parameter_count));
-  }
-}
-
-
-void Instruction::RecordAssignedVars(BitVector* assigned_vars,
-                                     intptr_t fixed_parameter_count) {
-  // Nothing to do for the base class.
-}
-
-
 void Value::AddToList(Value* value, Value** list) {
   Value* next = *list;
   *list = value;
@@ -658,7 +637,6 @@ void BlockEntryInstr::DiscoverBlocks(
     GrowableArray<BlockEntryInstr*>* preorder,
     GrowableArray<BlockEntryInstr*>* postorder,
     GrowableArray<intptr_t>* parent,
-    GrowableArray<BitVector*>* assigned_vars,
     intptr_t variable_count,
     intptr_t fixed_parameter_count) {
   // If this block has a predecessor (i.e., is not the graph entry) we can
@@ -687,16 +665,12 @@ void BlockEntryInstr::DiscoverBlocks(
   parent->Add(parent_number);
 
   // 4. Assign the preorder number and add the block entry to the list.
-  // Allocate an empty set of assigned variables for the block.
   set_preorder_number(preorder->length());
   preorder->Add(this);
-  BitVector* vars =
-      (variable_count == 0) ? NULL : new BitVector(variable_count);
-  assigned_vars->Add(vars);
-  // The preorder, parent, and assigned_vars arrays are all indexed by
+
+  // The preorder and parent arrays are indexed by
   // preorder block number, so they should stay in lockstep.
   ASSERT(preorder->length() == parent->length());
-  ASSERT(preorder->length() == assigned_vars->length());
 
   // 5. Iterate straight-line successors to record assigned variables and
   // find the last instruction in the block.  The graph entry block consists
@@ -705,18 +679,18 @@ void BlockEntryInstr::DiscoverBlocks(
   Instruction* last = this;
   for (ForwardInstructionIterator it(this); !it.Done(); it.Advance()) {
     last = it.Current();
-    if (vars != NULL) {
-      last->RecordAssignedVars(vars, fixed_parameter_count);
-    }
   }
   set_last_instruction(last);
 
   // Visit the block's successors in reverse so that they appear forwards
   // the reverse postorder block ordering.
   for (intptr_t i = last->SuccessorCount() - 1; i >= 0; --i) {
-    last->SuccessorAt(i)->DiscoverBlocks(this, preorder, postorder,
-                                         parent, assigned_vars,
-                                         variable_count, fixed_parameter_count);
+    last->SuccessorAt(i)->DiscoverBlocks(this,
+                                         preorder,
+                                         postorder,
+                                         parent,
+                                         variable_count,
+                                         fixed_parameter_count);
   }
 
   // 6. Assign postorder number and add the block entry to the list.

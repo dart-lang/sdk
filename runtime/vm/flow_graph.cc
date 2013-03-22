@@ -19,7 +19,6 @@ FlowGraph::FlowGraph(const FlowGraphBuilder& builder,
                      GraphEntryInstr* graph_entry,
                      intptr_t max_block_id)
   : parent_(),
-    assigned_vars_(),
     current_ssa_temp_index_(0),
     max_block_id_(max_block_id),
     parsed_function_(builder.parsed_function()),
@@ -88,14 +87,12 @@ void FlowGraph::DiscoverBlocks() {
   postorder_.Clear();
   reverse_postorder_.Clear();
   parent_.Clear();
-  assigned_vars_.Clear();
   // Perform a depth-first traversal of the graph to build preorder and
   // postorder block orders.
   graph_entry_->DiscoverBlocks(NULL,  // Entry block predecessor.
                                &preorder_,
                                &postorder_,
                                &parent_,
-                               &assigned_vars_,
                                variable_count(),
                                num_non_copied_params());
   // Create an array of blocks in reverse postorder.
@@ -205,17 +202,233 @@ bool FlowGraph::VerifyUseLists() {
 #endif  // DEBUG
 
 
+LivenessAnalysis::LivenessAnalysis(
+  intptr_t variable_count,
+  const GrowableArray<BlockEntryInstr*>& postorder)
+    : variable_count_(variable_count),
+      postorder_(postorder),
+      live_out_(postorder.length()),
+      kill_(postorder.length()),
+      live_in_(postorder.length()) {
+}
+
+
+bool LivenessAnalysis::UpdateLiveOut(const BlockEntryInstr& block) {
+  BitVector* live_out = live_out_[block.postorder_number()];
+  bool changed = false;
+  Instruction* last = block.last_instruction();
+  ASSERT(last != NULL);
+  for (intptr_t i = 0; i < last->SuccessorCount(); i++) {
+    BlockEntryInstr* succ = last->SuccessorAt(i);
+    ASSERT(succ != NULL);
+    if (live_out->AddAll(live_in_[succ->postorder_number()])) {
+      changed = true;
+    }
+  }
+  return changed;
+}
+
+
+bool LivenessAnalysis::UpdateLiveIn(const BlockEntryInstr& block) {
+  BitVector* live_out = live_out_[block.postorder_number()];
+  BitVector* kill = kill_[block.postorder_number()];
+  BitVector* live_in = live_in_[block.postorder_number()];
+  return live_in->KillAndAdd(kill, live_out);
+}
+
+
+void LivenessAnalysis::ComputeLiveInAndLiveOutSets() {
+  const intptr_t block_count = postorder_.length();
+  bool changed;
+  do {
+    changed = false;
+
+    for (intptr_t i = 0; i < block_count; i++) {
+      const BlockEntryInstr& block = *postorder_[i];
+
+      // Live-in set depends only on kill set which does not
+      // change in this loop and live-out set.  If live-out
+      // set does not change there is no need to recompute
+      // live-in set.
+      if (UpdateLiveOut(block) && UpdateLiveIn(block)) {
+        changed = true;
+      }
+    }
+  } while (changed);
+}
+
+
+void LivenessAnalysis::Analyze() {
+  const intptr_t block_count = postorder_.length();
+  for (intptr_t i = 0; i < block_count; i++) {
+    live_out_.Add(new BitVector(variable_count_));
+    kill_.Add(new BitVector(variable_count_));
+    live_in_.Add(new BitVector(variable_count_));
+  }
+
+  ComputeInitialSets();
+  ComputeLiveInAndLiveOutSets();
+}
+
+
+static void PrintBitVector(const char* tag, BitVector* v) {
+  OS::Print("%s:", tag);
+  for (BitVector::Iterator it(v); !it.Done(); it.Advance()) {
+    OS::Print(" %"Pd"", it.Current());
+  }
+  OS::Print("\n");
+}
+
+
+void LivenessAnalysis::Dump() {
+  const intptr_t block_count = postorder_.length();
+  for (intptr_t i = 0; i < block_count; i++) {
+    BlockEntryInstr* block = postorder_[i];
+    OS::Print("block @%"Pd" -> ", block->block_id());
+
+    Instruction* last = block->last_instruction();
+    for (intptr_t j = 0; j < last->SuccessorCount(); j++) {
+      BlockEntryInstr* succ = last->SuccessorAt(j);
+      OS::Print(" @%"Pd"", succ->block_id());
+    }
+    OS::Print("\n");
+
+    PrintBitVector("  live out", live_out_[i]);
+    PrintBitVector("  kill", kill_[i]);
+    PrintBitVector("  live in", live_in_[i]);
+  }
+}
+
+
+// Computes liveness information for local variables.
+class VariableLivenessAnalysis : public LivenessAnalysis {
+ public:
+  explicit VariableLivenessAnalysis(FlowGraph* flow_graph)
+      : LivenessAnalysis(flow_graph->variable_count(), flow_graph->postorder()),
+        flow_graph_(flow_graph),
+        num_non_copied_params_(flow_graph->num_non_copied_params()),
+        assigned_vars_() { }
+
+  // For every block (in preorder) compute and return set of variables that
+  // have new assigned values flowing out of that block.
+  const GrowableArray<BitVector*>& ComputeAssignedVars() {
+    // We can't directly return kill_ because it uses postorder numbering while
+    // SSA construction uses preorder numbering internally.
+    // We have to permute postorder into preorder.
+    assigned_vars_.Clear();
+
+    const intptr_t block_count = flow_graph_->preorder().length();
+    for (intptr_t i = 0; i < block_count; i++) {
+      BlockEntryInstr* block = flow_graph_->preorder()[i];
+      BitVector* kill = GetKillSet(block);
+      kill->Intersect(GetLiveOutSet(block));
+      assigned_vars_.Add(kill);
+    }
+
+    return assigned_vars_;
+  }
+
+  // Returns true if the value set by the given store reaches any load from the
+  // same local variable.
+  bool IsStoreAlive(BlockEntryInstr* block, StoreLocalInstr* store) {
+    if (store->is_dead()) {
+      return false;
+    }
+
+    if (store->is_last()) {
+      const intptr_t index = store->local().BitIndexIn(num_non_copied_params_);
+      return GetLiveOutSet(block)->Contains(index);
+    }
+
+    return true;
+  }
+
+  // Returns true if the given load is the last for the local and the value
+  // of the local will not flow into another one.
+  bool IsLastLoad(BlockEntryInstr* block, LoadLocalInstr* load) {
+    const intptr_t index = load->local().BitIndexIn(num_non_copied_params_);
+    return load->is_last() && !GetLiveOutSet(block)->Contains(index);
+  }
+
+ private:
+  virtual void ComputeInitialSets();
+
+  const FlowGraph* flow_graph_;
+  const intptr_t num_non_copied_params_;
+  GrowableArray<BitVector*> assigned_vars_;
+};
+
+
+void VariableLivenessAnalysis::ComputeInitialSets() {
+  const intptr_t block_count = postorder_.length();
+
+  BitVector* last_loads = new BitVector(variable_count_);
+  for (intptr_t i = 0; i < block_count; i++) {
+    BlockEntryInstr* block = postorder_[i];
+
+    BitVector* kill = kill_[i];
+    BitVector* live_in = live_in_[i];
+    last_loads->Clear();
+
+    // Iterate backwards starting at the last instruction.
+    for (BackwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+      Instruction* current = it.Current();
+
+      LoadLocalInstr* load = current->AsLoadLocal();
+      if (load != NULL) {
+        const intptr_t index = load->local().BitIndexIn(num_non_copied_params_);
+        live_in->Add(index);
+
+        if (!last_loads->Contains(index)) {
+          last_loads->Add(index);
+          load->mark_last();
+        }
+
+        continue;
+      }
+
+      StoreLocalInstr* store = current->AsStoreLocal();
+      if (store != NULL) {
+        const intptr_t index =
+            store->local().BitIndexIn(num_non_copied_params_);
+        if (kill->Contains(index)) {
+          if (!live_in->Contains(index)) {
+            store->mark_dead();
+          }
+        } else {
+          if (!live_in->Contains(index)) {
+            store->mark_last();
+          }
+          kill->Add(index);
+        }
+        live_in->Remove(index);
+        continue;
+      }
+    }
+  }
+}
+
+
 void FlowGraph::ComputeSSA(intptr_t next_virtual_register_number,
                            GrowableArray<Definition*>* inlining_parameters) {
   ASSERT((next_virtual_register_number == 0) || (inlining_parameters != NULL));
   current_ssa_temp_index_ = next_virtual_register_number;
   GrowableArray<BitVector*> dominance_frontier;
   ComputeDominators(&dominance_frontier);
-  InsertPhis(preorder_, assigned_vars_, dominance_frontier);
+
+  VariableLivenessAnalysis variable_liveness(this);
+  variable_liveness.Analyze();
+
+  InsertPhis(preorder_,
+             variable_liveness.ComputeAssignedVars(),
+             dominance_frontier);
+
   GrowableArray<PhiInstr*> live_phis;
+
   // Rename uses to reference inserted phis where appropriate.
   // Collect phis that reach a non-environment use.
-  Rename(&live_phis, inlining_parameters);
+  Rename(&live_phis, &variable_liveness, inlining_parameters);
+
   // Propagate alive mark transitively from alive phis and then remove
   // non-live ones.
   RemoveDeadPhis(&live_phis);
@@ -397,6 +610,7 @@ void FlowGraph::InsertPhis(
 
 
 void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
+                       VariableLivenessAnalysis* variable_liveness,
                        GrowableArray<Definition*>* inlining_parameters) {
   // TODO(fschneider): Support catch-entry.
   if (graph_entry_->SuccessorCount() > 1) {
@@ -437,13 +651,14 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
 
   BlockEntryInstr* normal_entry = graph_entry_->SuccessorAt(0);
   ASSERT(normal_entry != NULL);  // Must have entry.
-  RenameRecursive(normal_entry, &env, live_phis);
+  RenameRecursive(normal_entry, &env, live_phis, variable_liveness);
 }
 
 
 void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
                                 GrowableArray<Definition*>* env,
-                                GrowableArray<PhiInstr*>* live_phis) {
+                                GrowableArray<PhiInstr*>* live_phis,
+                                VariableLivenessAnalysis* variable_liveness) {
   // 1. Process phis first.
   if (block_entry->IsJoinEntry()) {
     JoinEntryInstr* join = block_entry->AsJoinEntry();
@@ -464,7 +679,10 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
     // Attach current environment to the instructions that can deoptimize and
     // at goto instructions. Optimizations like LICM expect an environment at
     // gotos.
-    if (current->CanDeoptimize() || current->IsGoto()) {
+    if (current->CanDeoptimize() ||
+        current->IsGoto() ||
+        (current->IsBranch() &&
+         current->AsBranch()->comparison()->IsStrictCompare())) {
       Environment* deopt_env =
           Environment::From(*env,
                             num_non_copied_params_,
@@ -516,25 +734,37 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
       StoreLocalInstr* store = definition->AsStoreLocal();
       if ((load != NULL) || (store != NULL)) {
         intptr_t index;
+        Definition* result;
         if (store != NULL) {
-          index = store->local().BitIndexIn(num_non_copied_params_);
           // Update renaming environment.
-          (*env)[index] = store->value()->definition();
+          index = store->local().BitIndexIn(num_non_copied_params_);
+          result = store->value()->definition();
+
+          if (variable_liveness->IsStoreAlive(block_entry, store)) {
+            (*env)[index] = result;
+          } else {
+            (*env)[index] = constant_null();
+          }
         } else {
           // The graph construction ensures we do not have an unused LoadLocal
           // computation.
           ASSERT(definition->is_used());
           index = load->local().BitIndexIn(num_non_copied_params_);
+          result = (*env)[index];
 
-          PhiInstr* phi = (*env)[index]->AsPhi();
+          PhiInstr* phi = result->AsPhi();
           if ((phi != NULL) && !phi->is_alive()) {
             phi->mark_alive();
             live_phis->Add(phi);
           }
+
+          if (variable_liveness->IsLastLoad(block_entry, load)) {
+            (*env)[index] = constant_null();
+          }
         }
         // Update expression stack or remove from graph.
         if (definition->is_used()) {
-          env->Add((*env)[index]);
+          env->Add(result);
           // We remove load/store instructions when we find their use in 2a.
         } else {
           it.RemoveCurrentFromGraph();
@@ -561,7 +791,7 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
     BlockEntryInstr* block = block_entry->dominated_blocks()[i];
     GrowableArray<Definition*> new_env(env->length());
     new_env.AddArray(*env);
-    RenameRecursive(block, &new_env, live_phis);
+    RenameRecursive(block, &new_env, live_phis, variable_liveness);
   }
 
   // 4. Process successor block. We have edge-split form, so that only blocks
