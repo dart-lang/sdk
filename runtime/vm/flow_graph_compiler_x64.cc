@@ -1328,6 +1328,7 @@ void FlowGraphCompiler::EmitSuperEqualityCallPrologue(Register result,
 }
 
 
+// This function must be in sync with FlowGraphCompiler::RecordSafepoint.
 void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
   // TODO(vegorov): consider saving only caller save (volatile) registers.
   const intptr_t xmm_regs_count = locs->live_registers()->fpu_regs_count();

@@ -415,12 +415,11 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs) {
         //
         // FPU registers have the highest register number at the highest
         // address (i.e., first in the stackmap).
+        const intptr_t kFpuRegisterSpillFactor = kFpuRegisterSize / kWordSize;
         for (intptr_t i = kNumberOfFpuRegisters - 1; i >= 0; --i) {
           FpuRegister reg = static_cast<FpuRegister>(i);
           if (regs->ContainsFpuRegister(reg)) {
-            for (intptr_t j = 0;
-                 j < FlowGraphAllocator::kDoubleSpillSlotFactor;
-                 ++j) {
+            for (intptr_t j = 0; j < kFpuRegisterSpillFactor; ++j) {
               bitmap->Set(bitmap->Length(), false);
             }
           }
