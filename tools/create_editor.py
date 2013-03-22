@@ -47,11 +47,16 @@ def AntPath():
 
 def ProcessEditorArchive(archive, outDir):
   tempDir = join(GetEditorTemp(), 'editor.out')
-  os.makedirs(tempDir)
+  try:
+    os.makedirs(tempDir)
+  except OSError:
+    # Directory already exists.
+    pass
 
   if utils.IsWindows():
     f = zipfile.ZipFile(archive)
     f.extractall(tempDir)
+    f.close()
   else:
     subprocess.call(['unzip', '-q', archive, '-d', tempDir])
 
