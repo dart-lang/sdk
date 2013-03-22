@@ -10,11 +10,11 @@ class Example {
     {
       bool flag_exception = false;
       try {
-        nextVar++;
+        nextVar++;  /// 03: static type warning
       } catch (excpt) {
         flag_exception = true;
       }
-      Expect.isTrue(flag_exception);
+      Expect.isTrue(flag_exception);  /// 03: continued
     }
     {
       bool flag_exception = false;
@@ -27,7 +27,7 @@ class Example {
     }
   }
   static test() {
-    nextVar++;  /// 01: compile-time error
+    nextVar++;  /// 01: runtime error
     this.nextVar++;  /// 02: compile-time error
   }
 }
