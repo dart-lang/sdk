@@ -228,12 +228,12 @@ patch class Float64List {
 patch class ByteData {
   /* patch */ factory ByteData(int length) {
     var list = new _Uint8Array(length);
-    return new _ByteDataView(list.buffer);
+    return new _ByteDataView(list.buffer, 0, length);
   }
 
   /* patch */ factory ByteData.transferable(int length) {
     var list = new _Uint8Array.transferable(length);
-    return new _ByteDataView(list.buffer);
+    return new _ByteDataView(list.buffer, 0, length);
   }
 
   /* patch */ factory ByteData.view(ByteBuffer buffer,

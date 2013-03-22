@@ -885,6 +885,117 @@ TEST_CASE(TypedDataAccess) {
 }
 
 
+static int kLength = 16;
+
+static void ByteDataNativeFunction(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  Dart_Handle byte_data = Dart_NewTypedData(kByteData, kLength);
+  EXPECT_VALID(byte_data);
+  EXPECT_EQ(kByteData, Dart_GetTypeOfTypedData(byte_data));
+  Dart_SetReturnValue(args, byte_data);
+  Dart_ExitScope();
+}
+
+
+static Dart_NativeFunction ByteDataNativeResolver(Dart_Handle name,
+                                                  int arg_count) {
+  return &ByteDataNativeFunction;
+}
+
+
+TEST_CASE(ByteDataAccess) {
+  const char* kScriptChars =
+      "import 'dart:typeddata';\n"
+      "ByteData createByteData() native 'CreateByteData';"
+      "ByteData main() {"
+      "  var length = 16;"
+      "  var a = createByteData();"
+      "  Expect.equals(length, a.lengthInBytes);"
+      "  for (int i = 0; i < length; i+=1) {"
+      "    a.setInt8(i, 0x42);"
+      "  }"
+      "  for (int i = 0; i < length; i+=2) {"
+      "    Expect.equals(0x4242, a.getInt16(i));"
+      "  }"
+      "  return a;"
+      "}\n";
+  // Create a test library and Load up a test script in it.
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+
+  Dart_Handle result = Dart_SetNativeResolver(lib, &ByteDataNativeResolver);
+  EXPECT_VALID(result);
+
+  // Invoke 'main' function.
+  result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+}
+
+
+static const intptr_t kExtLength = 16;
+static int8_t data[kExtLength] = { 0x41, 0x42, 0x41, 0x42,
+                                   0x41, 0x42, 0x41, 0x42,
+                                   0x41, 0x42, 0x41, 0x42,
+                                   0x41, 0x42, 0x41, 0x42, };
+
+static void ExternalByteDataNativeFunction(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  Dart_Handle external_byte_data = Dart_NewExternalTypedData(kByteData,
+                                                             data,
+                                                             16,
+                                                             NULL, NULL);
+  EXPECT_VALID(external_byte_data);
+  EXPECT_EQ(kByteData, Dart_GetTypeOfTypedData(external_byte_data));
+  Dart_SetReturnValue(args, external_byte_data);
+  Dart_ExitScope();
+}
+
+
+static Dart_NativeFunction ExternalByteDataNativeResolver(Dart_Handle name,
+                                                          int arg_count) {
+  return &ExternalByteDataNativeFunction;
+}
+
+
+TEST_CASE(ExternalByteDataAccess) {
+  // TODO(asiva): Once we have getInt16LE and getInt16BE support use the
+  // appropriate getter instead of the host endian format used now.
+  const char* kScriptChars =
+      "import 'dart:typeddata';\n"
+      "ByteData createExternalByteData() native 'CreateExternalByteData';"
+      "ByteData main() {"
+      "  var length = 16;"
+      "  var a = createExternalByteData();"
+      "  Expect.equals(length, a.lengthInBytes);"
+      "  for (int i = 0; i < length; i+=2) {"
+      "    Expect.equals(0x4241, a.getInt16(i));"
+      "  }"
+      "  for (int i = 0; i < length; i+=2) {"
+      "    a.setInt8(i, 0x24);"
+      "    a.setInt8(i + 1, 0x28);"
+      "  }"
+      "  for (int i = 0; i < length; i+=2) {"
+      "    Expect.equals(0x2824, a.getInt16(i));"
+      "  }"
+      "  return a;"
+      "}\n";
+  // Create a test library and Load up a test script in it.
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+
+  Dart_Handle result = Dart_SetNativeResolver(lib,
+                                              &ExternalByteDataNativeResolver);
+  EXPECT_VALID(result);
+
+  // Invoke 'main' function.
+  result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+
+  for (intptr_t i = 0; i < kExtLength; i+=2) {
+    EXPECT_EQ(0x24, data[i]);
+    EXPECT_EQ(0x28, data[i+1]);
+  }
+}
+
+
 TEST_CASE(TypedDataDirectAccess) {
   Dart_Handle str = Dart_NewStringFromCString("junk");
   Dart_Handle byte_array = Dart_NewTypedData(kUint8, 10);
