@@ -261,7 +261,7 @@ void Parser::TryBlocks::AddNodeForFinallyInlining(AstNode* node) {
 
 // For parsing a compilation unit.
 Parser::Parser(const Script& script, const Library& library)
-    : script_(script),
+    : script_(Script::Handle(script.raw())),
       tokens_iterator_(TokenStream::Handle(script.tokens()), 0),
       token_kind_(Token::kILLEGAL),
       current_block_(NULL),
@@ -271,7 +271,7 @@ Parser::Parser(const Script& script, const Library& library)
       parsed_function_(NULL),
       innermost_function_(Function::Handle()),
       current_class_(Class::Handle()),
-      library_(library),
+      library_(Library::Handle(library.raw())),
       try_blocks_list_(NULL) {
   ASSERT(tokens_iterator_.IsValid());
   ASSERT(!library.IsNull());
@@ -282,7 +282,7 @@ Parser::Parser(const Script& script, const Library& library)
 Parser::Parser(const Script& script,
                ParsedFunction* parsed_function,
                intptr_t token_position)
-    : script_(script),
+    : script_(Script::Handle(script.raw())),
       tokens_iterator_(TokenStream::Handle(script.tokens()), token_position),
       token_kind_(Token::kILLEGAL),
       current_block_(NULL),
@@ -300,6 +300,13 @@ Parser::Parser(const Script& script,
   if (FLAG_enable_type_checks) {
     EnsureExpressionTemp();
   }
+}
+
+
+void Parser::SetScript(const Script & script, intptr_t token_pos) {
+  script_ = script.raw();
+  tokens_iterator_.SetStream(TokenStream::Handle(script.tokens()), token_pos);
+  token_kind_ = Token::kILLEGAL;
 }
 
 
@@ -1831,6 +1838,40 @@ void Parser::CheckConstFieldsInitialized(const Class& cls) {
 }
 
 
+AstNode* Parser::ParseExternalInitializedField(const Field& field) {
+  // Only use this function if the initialized field originates
+  // from a different class. We need to save and restore current
+  // class, library, and token stream (script).
+  ASSERT(current_class().raw() != field.origin());
+  const Class& saved_class = Class::Handle(current_class().raw());
+  const Library& saved_library = Library::Handle(library().raw());
+  const Script& saved_script = Script::Handle(script().raw());
+  const intptr_t saved_token_pos = TokenPos();
+
+  set_current_class(Class::Handle(field.origin()));
+  set_library(Library::Handle(current_class().library()));
+  SetScript(Script::Handle(current_class().script()), field.token_pos());
+
+  ASSERT(IsIdentifier());
+  ConsumeToken();
+  ExpectToken(Token::kASSIGN);
+  AstNode* init_expr = NULL;
+  if (field.is_const()) {
+    init_expr = ParseConstExpr();
+  } else {
+    init_expr = ParseExpr(kAllowConst, kConsumeCascades);
+    if (init_expr->EvalConstExpr() != NULL) {
+      init_expr =
+          new LiteralNode(field.token_pos(), EvaluateConstExpr(init_expr));
+    }
+  }
+  set_current_class(saved_class);
+  set_library(saved_library);
+  SetScript(saved_script, saved_token_pos);
+  return init_expr;
+}
+
+
 void Parser::ParseInitializedInstanceFields(const Class& cls,
                  LocalVariable* receiver,
                  GrowableArray<Field*>* initialized_fields) {
@@ -1849,26 +1890,22 @@ void Parser::ParseInitializedInstanceFields(const Class& cls,
         // initialized.
         initialized_fields->Add(&field);
       }
-      intptr_t field_pos = field.token_pos();
-      if (current_class().raw() != field.origin()) {
-        const Class& origin_class = Class::Handle(field.origin());
-        if (origin_class.library() != library_.raw()) {
-          ErrorMsg("Cannot handle initialized mixin field '%s'"
-                   "from imported library\n", field.ToCString());
-        }
-      }
-      SetPosition(field_pos);
-      ASSERT(IsIdentifier());
-      ConsumeToken();
-      ExpectToken(Token::kASSIGN);
-
       AstNode* init_expr = NULL;
-      if (field.is_const()) {
-        init_expr = ParseConstExpr();
+      if (current_class().raw() != field.origin()) {
+        init_expr = ParseExternalInitializedField(field);
       } else {
-        init_expr = ParseExpr(kAllowConst, kConsumeCascades);
-        if (init_expr->EvalConstExpr() != NULL) {
-          init_expr = new LiteralNode(field_pos, EvaluateConstExpr(init_expr));
+        SetPosition(field.token_pos());
+        ASSERT(IsIdentifier());
+        ConsumeToken();
+        ExpectToken(Token::kASSIGN);
+        if (field.is_const()) {
+          init_expr = ParseConstExpr();
+        } else {
+          init_expr = ParseExpr(kAllowConst, kConsumeCascades);
+          if (init_expr->EvalConstExpr() != NULL) {
+            init_expr = new LiteralNode(field.token_pos(),
+                                        EvaluateConstExpr(init_expr));
+          }
         }
       }
       ASSERT(init_expr != NULL);

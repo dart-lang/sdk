@@ -221,6 +221,12 @@ class Parser : public ValueObject {
     return parsed_function_;
   }
 
+  const Script& script() const { return script_; }
+  void SetScript(const Script& script, intptr_t token_pos);
+
+  const Library& library() const { return library_; }
+  void set_library(const Library& value) const { library_ = value.raw(); }
+
   // Parsing a library or a regular source script.
   bool is_library_source() const {
     return (script_.kind() == RawScript::kScriptTag) ||
@@ -368,6 +374,7 @@ class Parser : public ValueObject {
   void CheckConstFieldsInitialized(const Class& cls);
   void AddImplicitConstructor(const Class& cls);
   void CheckConstructors(ClassDesc* members);
+  AstNode* ParseExternalInitializedField(const Field& field);
   void ParseInitializedInstanceFields(
       const Class& cls,
       LocalVariable* receiver,
@@ -627,7 +634,7 @@ class Parser : public ValueObject {
 
   LocalVariable* BuildArrayTempLocal(intptr_t token_pos);
 
-  const Script& script_;
+  Script& script_;
   TokenStream::Iterator tokens_iterator_;
   Token::Kind token_kind_;  // Cached token kind for current token.
   Block* current_block_;
@@ -659,7 +666,7 @@ class Parser : public ValueObject {
   // When parsing a function, this is the library in which the function
   // is defined. This can be the library in which the current_class_ is
   // defined, or the library of a mixin class where the function originates.
-  const Library& library_;
+  Library& library_;
 
   // List of try blocks seen so far, this is used to generate inlined finally
   // code at all points in the try block where an exit from the block is

@@ -5349,7 +5349,7 @@ const char* TokenStream::ToCString() const {
 
 
 TokenStream::Iterator::Iterator(const TokenStream& tokens, intptr_t token_pos)
-    : tokens_(tokens),
+    : tokens_(TokenStream::Handle(tokens.raw())),
       data_(ExternalUint8Array::Handle(tokens.GetStream())),
       stream_(data_.ByteAddr(0), data_.Length()),
       token_objects_(Array::Handle(tokens.TokenObjects())),
@@ -5357,6 +5357,20 @@ TokenStream::Iterator::Iterator(const TokenStream& tokens, intptr_t token_pos)
       cur_token_pos_(token_pos),
       cur_token_kind_(Token::kILLEGAL),
       cur_token_obj_index_(-1) {
+  SetCurrentPosition(token_pos);
+}
+
+
+void TokenStream::Iterator::SetStream(const TokenStream& tokens,
+                                      intptr_t token_pos) {
+  tokens_ = tokens.raw();
+  data_ = tokens.GetStream();
+  stream_.SetStream(data_.ByteAddr(0), data_.Length());
+  token_objects_ = tokens.TokenObjects();
+  obj_ = Object::null();
+  cur_token_pos_ = token_pos;
+  cur_token_kind_ = Token::kILLEGAL;
+  cur_token_obj_index_ = -1;
   SetCurrentPosition(token_pos);
 }
 

@@ -59,7 +59,6 @@ type_parameter_literal_test: Fail # Issue 7551
 on_catch_malformed_type_test: Fail # Issue 8601
 
 mixin_mixin_test: Fail
-mixin_lib_extends_field_test: Fail
 
 type_variable_field_initializer_closure_test: Crash # issue 8847
 

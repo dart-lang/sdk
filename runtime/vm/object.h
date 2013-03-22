@@ -1921,6 +1921,7 @@ class TokenStream : public Object {
    public:
     Iterator(const TokenStream& tokens, intptr_t token_pos);
 
+    void SetStream(const TokenStream& tokens, intptr_t token_pos);
     bool IsValid() const;
 
     inline Token::Kind CurrentTokenKind() const {
@@ -1947,8 +1948,8 @@ class TokenStream : public Object {
       return static_cast<intptr_t>(value);
     }
 
-    const TokenStream& tokens_;
-    const ExternalUint8Array& data_;
+    TokenStream& tokens_;
+    ExternalUint8Array& data_;
     ReadStream stream_;
     Array& token_objects_;
     Object& obj_;
