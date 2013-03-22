@@ -4,7 +4,7 @@
 
 library XHRCrossOriginTest;
 import '../../pkg/unittest/lib/unittest.dart';
-import '../../pkg/unittest/lib/html_individual_config.dart';
+import '../../pkg/unittest/lib/html_config.dart';
 import 'dart:html';
 import 'dart:json' as json;
 
@@ -25,69 +25,47 @@ int get crossOriginPort {
 }
 
 main() {
-  useHtmlIndividualConfiguration();
+  useHtmlConfiguration();
 
-  group('supported', () {
-    test('supported', () {
-      expect(HttpRequest.supportsCrossOrigin, isTrue);
+  var port = crossOriginPort;
+  var host = '${window.location.protocol}//${window.location.hostname}:$port';
+
+  test('XHR Cross-domain', () {
+    var url =  '$host/root_dart/tests/html/xhr_cross_origin_data.txt';
+    var xhr = new HttpRequest();
+    xhr.open('GET', url, async: true);
+    var validate = expectAsync1((data) {
+      expect(data, contains('feed'));
+      expect(data['feed'], contains('entry'));
+      expect(data, isMap);
     });
+    xhr.onReadyStateChange.listen((e) {
+      guardAsync(() {
+        if (xhr.readyState == HttpRequest.DONE) {
+          validate(json.parse(xhr.response));
+        }
+      });
+    });
+    xhr.send();
   });
 
-  group('functional', () {
+  test('XHR.get Cross-domain', () {
+    var url = '$host/root_dart/tests/html/xhr_cross_origin_data.txt';
+    HttpRequest.request(url).then(expectAsync1((xhr) {
+      var data = json.parse(xhr.response);
+      expect(data, contains('feed'));
+      expect(data['feed'], contains('entry'));
+      expect(data, isMap);
+    }));
+  });
 
-    var port = crossOriginPort;
-    var host = '${window.location.protocol}//${window.location.hostname}:$port';
-
-    test('XHR.get Cross-domain', () {
-      var gotError = false;
-      var url = '$host/root_dart/tests/html/xhr_cross_origin_data.txt';
-      return HttpRequest.request(url).then((xhr) {
-        var data = json.parse(xhr.response);
-        expect(data, contains('feed'));
-        expect(data['feed'], contains('entry'));
-        expect(data, isMap);
-      }).catchError((error) {}, test: (error) {
-        gotError = true;
-        // Consume errors when not supporting cross origin.
-        return !HttpRequest.supportsCrossOrigin;
-      }).whenComplete(() {
-        // Expect that we got an error when cross origin is not supported.
-        expect(gotError, !HttpRequest.supportsCrossOrigin);
-      });
-    });
-
-    // Skip the rest if not supported.
-    if (!HttpRequest.supportsCrossOrigin) {
-      return;
-    }
-
-    test('XHR Cross-domain', () {
-      var url =  '$host/root_dart/tests/html/xhr_cross_origin_data.txt';
-      var xhr = new HttpRequest();
-      xhr.open('GET', url, async: true);
-      var validate = expectAsync1((data) {
-        expect(data, contains('feed'));
-        expect(data['feed'], contains('entry'));
-        expect(data, isMap);
-      });
-      xhr.onReadyStateChange.listen((e) {
-        guardAsync(() {
-          if (xhr.readyState == HttpRequest.DONE) {
-            validate(json.parse(xhr.response));
-          }
-        });
-      });
-      xhr.send();
-    });
-
-    test('XHR.getWithCredentials Cross-domain', () {
-      var url = '$host/root_dart/tests/html/xhr_cross_origin_data.txt';
-      return HttpRequest.request(url, withCredentials: true).then((xhr) {
-        var data = json.parse(xhr.response);
-        expect(data, contains('feed'));
-        expect(data['feed'], contains('entry'));
-        expect(data, isMap);
-      });
-    });
+  test('XHR.getWithCredentials Cross-domain', () {
+    var url = '$host/root_dart/tests/html/xhr_cross_origin_data.txt';
+    HttpRequest.request(url, withCredentials: true).then(expectAsync1((xhr) {
+      var data = json.parse(xhr.response);
+      expect(data, contains('feed'));
+      expect(data['feed'], contains('entry'));
+      expect(data, isMap);
+    }));
   });
 }

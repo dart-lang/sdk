@@ -14012,17 +14012,6 @@ class HttpRequest extends EventTarget {
   }
 
   /**
-   * Checks to see if the current platform supports making cross origin
-   * requests.
-   *
-   * Note that even if cross origin requests are supported, they still may fail
-   * if the destination server does not support CORS requests.
-   */
-  static bool get supportsCrossOrigin {
-    return true;
-  }
-
-  /**
    * Checks to see if the LoadEnd event is supported on the current platform.
    */
   static bool get supportsLoadEndEvent {
