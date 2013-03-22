@@ -1690,6 +1690,14 @@ void Assembler::negq(Register reg) {
 }
 
 
+void Assembler::notl(Register reg) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitRegisterREX(reg, REX_NONE);
+  EmitUint8(0xF7);
+  EmitUint8(0xD0 | (reg & 7));
+}
+
+
 void Assembler::notq(Register reg) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitRegisterREX(reg, REX_W);
@@ -2008,6 +2016,26 @@ void Assembler::CompareObject(Register reg, const Object& object) {
 
 
 // Destroys the value register.
+void Assembler::StoreIntoObjectFilterNoSmi(Register object,
+                                           Register value,
+                                           Label* no_update) {
+  COMPILE_ASSERT((kNewObjectAlignmentOffset == kWordSize) &&
+                 (kOldObjectAlignmentOffset == 0), young_alignment);
+
+  // Write-barrier triggers if the value is in the new space (has bit set) and
+  // the object is in the old space (has bit cleared).
+  // To check that we could compute value & ~object and skip the write barrier
+  // if the bit is not set. However we can't destroy the object.
+  // However to preserve the object we compute negated expression
+  // ~value | object instead and skip the write barrier if the bit is set.
+  notl(value);
+  orl(value, object);
+  testl(value, Immediate(kNewObjectAlignmentOffset));
+  j(NOT_ZERO, no_update, Assembler::kNearJump);
+}
+
+
+// Destroys the value register.
 void Assembler::StoreIntoObjectFilter(Register object,
                                       Register value,
                                       Label* no_update) {
@@ -2030,11 +2058,16 @@ void Assembler::StoreIntoObjectFilter(Register object,
 
 void Assembler::StoreIntoObject(Register object,
                                 const Address& dest,
-                                Register value) {
+                                Register value,
+                                bool can_value_be_smi) {
   ASSERT(object != value);
   movq(dest, value);
   Label done;
-  StoreIntoObjectFilter(object, value, &done);
+  if (can_value_be_smi) {
+    StoreIntoObjectFilter(object, value, &done);
+  } else {
+    StoreIntoObjectFilterNoSmi(object, value, &done);
+  }
   // A store buffer update is required.
   if (value != RAX) pushq(RAX);
   leaq(RAX, dest);

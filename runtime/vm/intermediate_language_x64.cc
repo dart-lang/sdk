@@ -1512,7 +1512,9 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (ShouldEmitStoreBarrier()) {
     Register value_reg = locs()->in(1).reg();
     __ StoreIntoObject(instance_reg,
-        FieldAddress(instance_reg, field().Offset()), value_reg);
+                       FieldAddress(instance_reg, field().Offset()),
+                       value_reg,
+                       CanValueBeSmi());
   } else {
     if (locs()->in(1).IsConstant()) {
       __ StoreObject(FieldAddress(instance_reg, field().Offset()),

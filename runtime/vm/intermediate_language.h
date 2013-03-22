@@ -2837,6 +2837,13 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2> {
   virtual bool HasSideEffect() const { return true; }
 
  private:
+  bool CanValueBeSmi() const {
+    const intptr_t cid = value()->Type()->ToNullableCid();
+    // Write barrier is skipped for nullable and non-nullable smis.
+    ASSERT(cid != kSmiCid);
+    return (cid == kDynamicCid);
+  }
+
   const Field& field_;
   const StoreBarrierType emit_store_barrier_;
 
