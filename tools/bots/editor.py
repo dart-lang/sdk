@@ -35,6 +35,9 @@ def main():
   build_py = os.path.join('tools', 'build.py')
   architectures = ['ia32', 'x64']
   test_architectures = ['x64']
+  if sys.platform == 'win32':
+    # Our windows bots pull in only a 32 bit JVM.
+    test_architectures = ['ia32']
 
   for arch in architectures:
     with bot.BuildStep('Build Editor %s' % arch):

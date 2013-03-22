@@ -133,9 +133,11 @@ def FixJavaHome():
   if buildbot_javahome:
     current_pwd = os.getenv('PWD')
     java_home = os.path.join(current_pwd, buildbot_javahome)
+    java_bin = os.path.join(java_home, 'bin')
     os.environ['JAVA_HOME'] = java_home
-    print 'Setting java home to'
-    print java_home
+    os.environ['PATH'] = '%s;%s' % (java_bin, os.environ['PATH'])
+
+    print 'Setting java home to ', java_home
     sys.stdout.flush()
 
 def ClobberBuilder():
