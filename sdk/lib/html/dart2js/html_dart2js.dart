@@ -13202,7 +13202,19 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
    */
   static bool get supportsProgressEvent {
     var xhr = new HttpRequest();
-    return JS('bool', '"onprogress" in #', xhr);
+    return JS('bool', '("onprogress" in #)', xhr);
+  }
+
+  /**
+   * Checks to see if the current platform supports making cross origin
+   * requests.
+   *
+   * Note that even if cross origin requests are supported, they still may fail
+   * if the destination server does not support CORS requests.
+   */
+  static bool get supportsCrossOrigin {
+    var xhr = new HttpRequest();
+    return JS('bool', '("withCredentials" in #)', xhr);
   }
 
   /**
@@ -13210,7 +13222,7 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
    */
   static bool get supportsLoadEndEvent {
     var xhr = new HttpRequest();
-    return JS('bool', '"onloadend" in #', xhr);
+    return JS('bool', '("onloadend" in #)', xhr);
   }
 
 

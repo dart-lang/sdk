@@ -106,7 +106,6 @@ postmessage_structured_test: Skip   # BUG(5685): times out.
 serialized_script_value_test: Fail
 url_test: Fail              # IE9 does not support createObjectURL (it is supported in IE10)
 window_open_test: Skip      # BUG(4016)
-xhr_cross_origin_test: Fail # Issue 6016.
 canvasrenderingcontext2d_test/drawImage_video_element: Fail # IE does not support drawImage w/ video element
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # IE does not support drawImage w/ video element
 
@@ -189,6 +188,7 @@ typed_arrays_1_test/supported: Fail
 webgl_1_test/supported: Fail
 websocket_test/supported: Fail
 websql_test/supported: Fail
+xhr_cross_origin_test/supported: Fail
 xhr_test/supported_HttpRequestProgressEvent: Fail
 xhr_test/supported_onLoadEnd: Fail
 xhr_test/supported_onProgress: Fail
