@@ -1372,6 +1372,7 @@ void ClassFinalizer::ApplyMixin(const Class& cls) {
 
 
 void ClassFinalizer::FinalizeClass(const Class& cls) {
+  HANDLESCOPE(Isolate::Current());
   if (cls.is_finalized()) {
     return;
   }
