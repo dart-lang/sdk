@@ -91,7 +91,7 @@ TEST_CASE(BitVector) {
     b->Add(1);
     b->Add(31);
     b->Add(32);
-    a->Intersect(b);
+    a->Intersect(*b);
     EXPECT_EQ(true, a->Equals(*b));
   }
 

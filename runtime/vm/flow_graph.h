@@ -13,7 +13,6 @@ namespace dart {
 
 class FlowGraphBuilder;
 class ValueInliningContext;
-class VariableLivenessAnalysis;
 
 class BlockIterator : public ValueObject {
  public:
@@ -163,14 +162,11 @@ class FlowGraph : public ZoneAllocated {
       GrowableArray<intptr_t>* label);
 
   void Rename(GrowableArray<PhiInstr*>* live_phis,
-              VariableLivenessAnalysis* variable_liveness,
               GrowableArray<Definition*>* inlining_parameters);
-
   void RenameRecursive(
       BlockEntryInstr* block_entry,
       GrowableArray<Definition*>* env,
-      GrowableArray<PhiInstr*>* live_phis,
-      VariableLivenessAnalysis* variable_liveness);
+      GrowableArray<PhiInstr*>* live_phis);
 
   void InsertPhis(
       const GrowableArray<BlockEntryInstr*>& preorder,
@@ -201,77 +197,6 @@ class FlowGraph : public ZoneAllocated {
   GrowableArray<BlockEntryInstr*> reverse_postorder_;
   bool invalid_dominator_tree_;
   ConstantInstr* constant_null_;
-};
-
-
-class LivenessAnalysis : public ValueObject {
- public:
-  LivenessAnalysis(intptr_t variable_count,
-                   const GrowableArray<BlockEntryInstr*>& postorder);
-
-  void Analyze();
-
-  virtual ~LivenessAnalysis() { }
-
-  BitVector* GetLiveInSetAt(intptr_t postorder_number) const {
-    return live_in_[postorder_number];
-  }
-
-  BitVector* GetLiveOutSetAt(intptr_t postorder_number) const {
-    return live_out_[postorder_number];
-  }
-
-  BitVector* GetLiveInSet(BlockEntryInstr* block) const {
-    return GetLiveInSetAt(block->postorder_number());
-  }
-
-  BitVector* GetKillSet(BlockEntryInstr* block) const {
-    return kill_[block->postorder_number()];
-  }
-
-  BitVector* GetLiveOutSet(BlockEntryInstr* block) const {
-    return GetLiveOutSetAt(block->postorder_number());
-  }
-
-  // Print results of liveness analysis.
-  void Dump();
-
- protected:
-  // Compute initial values for live-out, kill and live-in sets.
-  virtual void ComputeInitialSets() = 0;
-
-  // Update live-out set for the given block: live-out should contain
-  // all values that are live-in for block's successors.
-  // Returns true if live-out set was changed.
-  bool UpdateLiveOut(const BlockEntryInstr& instr);
-
-  // Update live-in set for the given block: live-in should contain
-  // all values that are live-out from the block and are not defined
-  // by this block.
-  // Returns true if live-in set was changed.
-  bool UpdateLiveIn(const BlockEntryInstr& instr);
-
-  // Perform fix-point iteration updating live-out and live-in sets
-  // for blocks until they stop changing.
-  void ComputeLiveInAndLiveOutSets();
-
-  const intptr_t variable_count_;
-
-  const GrowableArray<BlockEntryInstr*>& postorder_;
-
-  // Live-out sets for each block.  They contain indices of variables
-  // that are live out from this block: that is values that were either
-  // defined in this block or live into it and that are used in some
-  // successor block.
-  GrowableArray<BitVector*> live_out_;
-
-  // Kill sets for each block.  They contain indices of variables that
-  // are defined by this block.
-  GrowableArray<BitVector*> kill_;
-
-  // Live-in sets for each block.  They contain indices of variables
-  // that are used by this block or its successors.
-  GrowableArray<BitVector*> live_in_;
 };
 
 }  // namespace dart

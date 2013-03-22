@@ -3252,7 +3252,7 @@ class LoadOptimizer : public ValueObject {
           for (intptr_t i = 0; i < block->PredecessorCount(); i++) {
             BlockEntryInstr* pred = block->PredecessorAt(i);
             BitVector* pred_out = out_[pred->preorder_number()];
-            temp->Intersect(pred_out);
+            temp->Intersect(*pred_out);
           }
         }
 
@@ -4435,8 +4435,6 @@ void ConstantPropagator::Transform() {
         // Replace the false target entry with the new join entry. We will
         // recompute the dominators after this pass.
         join->LinkTo(next);
-        jump->SetEnvironment(branch->env());
-        branch->SetEnvironment(NULL);
         branch->UnuseAllInputs();
       }
     }

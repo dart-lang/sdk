@@ -66,7 +66,9 @@ FlowGraphAllocator::FlowGraphAllocator(const FlowGraph& flow_graph)
     value_representations_(flow_graph.max_virtual_register_number()),
     block_order_(flow_graph.reverse_postorder()),
     postorder_(flow_graph.postorder()),
-    liveness_(flow_graph),
+    live_out_(block_order_.length()),
+    kill_(block_order_.length()),
+    live_in_(block_order_.length()),
     vreg_count_(flow_graph.max_virtual_register_number()),
     live_ranges_(flow_graph.max_virtual_register_number()),
     cpu_regs_(),
@@ -114,7 +116,7 @@ void FlowGraphAllocator::EliminateEnvironments() {
 }
 
 
-void SSALivenessAnalysis::ComputeInitialSets() {
+void FlowGraphAllocator::ComputeInitialSets() {
   const intptr_t block_count = postorder_.length();
   for (intptr_t i = 0; i < block_count; i++) {
     BlockEntryInstr* block = postorder_[i];
@@ -187,16 +189,104 @@ void SSALivenessAnalysis::ComputeInitialSets() {
   }
 
   // Process initial definitions, ie, constants and incoming parameters.
-  for (intptr_t i = 0; i < graph_entry_->initial_definitions()->length(); i++) {
-    intptr_t vreg = (*graph_entry_->initial_definitions())[i]->ssa_temp_index();
-    kill_[graph_entry_->postorder_number()]->Add(vreg);
-    live_in_[graph_entry_->postorder_number()]->Remove(vreg);
+  GraphEntryInstr* graph_entry = flow_graph_.graph_entry();
+  for (intptr_t i = 0; i < graph_entry->initial_definitions()->length(); i++) {
+    intptr_t vreg = (*graph_entry->initial_definitions())[i]->ssa_temp_index();
+    kill_[graph_entry->postorder_number()]->Add(vreg);
+    live_in_[graph_entry->postorder_number()]->Remove(vreg);
   }
 
   // Update initial live_in sets to match live_out sets. Has to be
   // done in a separate path because of backwards branches.
   for (intptr_t i = 0; i < block_count; i++) {
     UpdateLiveIn(*postorder_[i]);
+  }
+}
+
+
+bool FlowGraphAllocator::UpdateLiveOut(const BlockEntryInstr& instr) {
+  BitVector* live_out = live_out_[instr.postorder_number()];
+  bool changed = false;
+  Instruction* last = instr.last_instruction();
+  ASSERT(last != NULL);
+  for (intptr_t i = 0; i < last->SuccessorCount(); i++) {
+    BlockEntryInstr* succ = last->SuccessorAt(i);
+    ASSERT(succ != NULL);
+    if (live_out->AddAll(live_in_[succ->postorder_number()])) {
+      changed = true;
+    }
+  }
+  return changed;
+}
+
+
+bool FlowGraphAllocator::UpdateLiveIn(const BlockEntryInstr& instr) {
+  BitVector* live_out = live_out_[instr.postorder_number()];
+  BitVector* kill = kill_[instr.postorder_number()];
+  BitVector* live_in = live_in_[instr.postorder_number()];
+  return live_in->KillAndAdd(kill, live_out);
+}
+
+
+void FlowGraphAllocator::ComputeLiveInAndLiveOutSets() {
+  const intptr_t block_count = postorder_.length();
+  bool changed;
+  do {
+    changed = false;
+
+    for (intptr_t i = 0; i < block_count; i++) {
+      const BlockEntryInstr& block = *postorder_[i];
+
+      // Live-in set depends only on kill set which does not
+      // change in this loop and live-out set.  If live-out
+      // set does not change there is no need to recompute
+      // live-in set.
+      if (UpdateLiveOut(block) && UpdateLiveIn(block)) {
+        changed = true;
+      }
+    }
+  } while (changed);
+}
+
+
+void FlowGraphAllocator::AnalyzeLiveness() {
+  const intptr_t block_count = postorder_.length();
+  for (intptr_t i = 0; i < block_count; i++) {
+    live_out_.Add(new BitVector(vreg_count_));
+    kill_.Add(new BitVector(vreg_count_));
+    live_in_.Add(new BitVector(vreg_count_));
+  }
+
+  ComputeInitialSets();
+  ComputeLiveInAndLiveOutSets();
+}
+
+
+static void PrintBitVector(const char* tag, BitVector* v) {
+  OS::Print("%s:", tag);
+  for (BitVector::Iterator it(v); !it.Done(); it.Advance()) {
+    OS::Print(" %"Pd"", it.Current());
+  }
+  OS::Print("\n");
+}
+
+
+void FlowGraphAllocator::DumpLiveness() {
+  const intptr_t block_count = postorder_.length();
+  for (intptr_t i = 0; i < block_count; i++) {
+    BlockEntryInstr* block = postorder_[i];
+    OS::Print("block @%"Pd" -> ", block->block_id());
+
+    Instruction* last = block->last_instruction();
+    for (intptr_t j = 0; j < last->SuccessorCount(); j++) {
+      BlockEntryInstr* succ = last->SuccessorAt(j);
+      OS::Print(" @%"Pd"", succ->block_id());
+    }
+    OS::Print("\n");
+
+    PrintBitVector("  live out", live_out_[i]);
+    PrintBitVector("  kill", kill_[i]);
+    PrintBitVector("  live in", live_in_[i]);
   }
 }
 
@@ -445,9 +535,7 @@ void FlowGraphAllocator::BuildLiveRanges() {
     // For every SSA value that is live out of this block, create an interval
     // that covers the whole block.  It will be shortened if we encounter a
     // definition of this value in this block.
-    for (BitVector::Iterator it(liveness_.GetLiveOutSetAt(i));
-         !it.Done();
-         it.Advance()) {
+    for (BitVector::Iterator it(live_out_[i]); !it.Done(); it.Advance()) {
       LiveRange* range = GetLiveRange(it.Current());
       range->AddUseInterval(block->start_pos(), block->end_pos());
     }
@@ -460,7 +548,7 @@ void FlowGraphAllocator::BuildLiveRanges() {
       // All values flowing into the loop header are live at the back-edge and
       // can interfere with phi moves.
       current_interference_set->AddAll(
-          liveness_.GetLiveInSet(loop_header->entry()));
+          live_in_[loop_header->entry()->postorder_number()]);
       loop_header->set_backedge_interference(
           current_interference_set);
     }
@@ -483,9 +571,7 @@ void FlowGraphAllocator::BuildLiveRanges() {
     // Check if any values live into the loop can be spilled for free.
     if (block_info->is_loop_header()) {
       current_interference_set = NULL;
-      for (BitVector::Iterator it(liveness_.GetLiveInSetAt(i));
-           !it.Done();
-           it.Advance()) {
+      for (BitVector::Iterator it(live_in_[i]); !it.Done(); it.Advance()) {
         LiveRange* range = GetLiveRange(it.Current());
         if (HasOnlyUnconstrainedUsesInLoop(range, block_info)) {
           range->MarkHasOnlyUnconstrainedUsesInLoop(block_info->loop_id());
@@ -2321,7 +2407,7 @@ void FlowGraphAllocator::ResolveControlFlow() {
   // Resolve non-linear control flow across branches.
   for (intptr_t i = 1; i < block_order_.length(); i++) {
     BlockEntryInstr* block = block_order_[i];
-    BitVector* live = liveness_.GetLiveInSet(block);
+    BitVector* live = live_in_[block->postorder_number()];
     for (BitVector::Iterator it(live); !it.Done(); it.Advance()) {
       LiveRange* range = GetLiveRange(it.Current());
       for (intptr_t j = 0; j < block->PredecessorCount(); j++) {
@@ -2388,7 +2474,7 @@ void FlowGraphAllocator::AllocateRegisters() {
 
   EliminateEnvironments();
 
-  liveness_.Analyze();
+  AnalyzeLiveness();
 
   NumberInstructions();
 
@@ -2397,7 +2483,7 @@ void FlowGraphAllocator::AllocateRegisters() {
   BuildLiveRanges();
 
   if (FLAG_print_ssa_liveness) {
-    liveness_.Dump();
+    DumpLiveness();
   }
 
   if (FLAG_print_ssa_liveranges) {
