@@ -23,7 +23,7 @@
   V(Directory_CreateTemp, 1)                                                   \
   V(Directory_Delete, 2)                                                       \
   V(Directory_Rename, 2)                                                       \
-  V(Directory_List, 2)                                                         \
+  V(Directory_List, 3)                                                         \
   V(Directory_NewServicePort, 0)                                               \
   V(File_Open, 2)                                                              \
   V(File_Exists, 1)                                                            \

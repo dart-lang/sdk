@@ -134,19 +134,29 @@ abstract class Directory extends FileSystemEntity {
    * Lists the sub-directories and files of this [Directory].
    * Optionally recurses into sub-directories.
    *
+   * If [followLinks] is false, then any symbolic links found
+   * are reported as links, rather than as directories or files,
+   * and are not recursed into.
+   *
    * The result is a stream of [FileSystemEntity] objects
-   * for the directories and files.
+   * for the directories, files, and links.
    */
-  Stream<FileSystemEntity> list({bool recursive: false});
+  Stream<FileSystemEntity> list({bool recursive: false,
+                                 bool followLinks: true});
 
   /**
    * Lists the sub-directories and files of this [Directory].
    * Optionally recurses into sub-directories.
    *
+   * If [followLinks] is false, then any symbolic links found
+   * are reported as links, rather than as directories or files,
+   * and are not recursed into.
+   *
    * Returns a [List] containing [FileSystemEntity] objects for the
-   * directories and files.
+   * directories, files, and links.
    */
-  List<FileSystemEntity> listSync({bool recursive: false});
+  List<FileSystemEntity> listSync({bool recursive: false,
+                                   bool followLinks: true});
 
   /**
    * Returns a human readable string for this Directory instance.

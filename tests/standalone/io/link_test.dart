@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:async";
 import "dart:io";
 import "dart:isolate";
 
@@ -76,7 +77,63 @@ testCreateSync() {
   Expect.throws(() => FileSystemEntity.identicalSync(createdFile,
       base.append('link/foo').toNativePath()));
 
-  new Directory.fromPath(base).deleteSync(recursive: true);
+  var baseDir = new Directory.fromPath(base);
+
+  Map makeExpected(bool recursive, bool followLinks) {
+    Map expected = new Map();
+    expected['target'] = 'Directory';
+    expected['link'] = followLinks ? 'Directory' : 'Link';
+    if (recursive) {
+      expected['target/createdDirectly'] = 'Directory';
+      expected['target/createdThroughLink'] = 'Directory';
+      expected['target/createdFile'] = 'File';
+      if (followLinks) {
+        expected['link/createdDirectly'] = 'Directory';
+        expected['link/createdThroughLink'] = 'Directory';
+        expected['link/createdFile'] = 'File';
+      }
+    }
+    return expected;
+  }
+
+  void checkEntity(FileSystemEntity x, Map expected) {
+    String ending = new Path(x.path).relativeTo(base).toString();
+    Expect.isNotNull(expected[ending]);
+    Expect.isTrue(x.toString().startsWith(expected[ending]));
+    expected[ending] = 'Found';
+  }
+
+  List futures = [];
+  for (bool recursive in [true, false]) {
+    for (bool followLinks in [true, false]) {
+      Map expected = makeExpected(recursive, followLinks);
+      for (var x in baseDir.listSync(recursive: recursive,
+                                     followLinks: followLinks)) {
+        checkEntity(x, expected);
+      }
+      for (var v in expected.values) {
+        Expect.equals('Found', v);
+      }
+      expected = makeExpected(recursive, followLinks);
+      // We use Stream.reduce to run a function on each entry, and return
+      // a future that completes when done.
+      var f = new Completer();
+      futures.add(f.future);
+      baseDir.list(recursive: recursive, followLinks: followLinks).listen(
+          (entity) {
+            checkEntity(entity, expected);
+          },
+          onDone: () {
+            for (var v in expected.values) {
+              Expect.equals('Found', v);
+            }
+            f.complete(null);
+          });
+    }
+  }
+  Future.wait(futures).then((_) {
+    baseDir.deleteSync(recursive: true);
+  });
 }
 
 

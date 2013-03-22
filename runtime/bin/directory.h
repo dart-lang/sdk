@@ -16,6 +16,7 @@ class DirectoryListing {
   virtual ~DirectoryListing() {}
   virtual bool HandleDirectory(char* dir_name) = 0;
   virtual bool HandleFile(char* file_name) = 0;
+  virtual bool HandleLink(char* file_name) = 0;
   virtual bool HandleError(const char* dir_name) = 0;
 };
 
@@ -25,8 +26,9 @@ class AsyncDirectoryListing : public DirectoryListing {
   enum Response {
     kListFile = 0,
     kListDirectory = 1,
-    kListError = 2,
-    kListDone = 3
+    kListLink = 2,
+    kListError = 3,
+    kListDone = 4
   };
 
   explicit AsyncDirectoryListing(Dart_Port response_port)
@@ -34,6 +36,7 @@ class AsyncDirectoryListing : public DirectoryListing {
   virtual ~AsyncDirectoryListing() {}
   virtual bool HandleDirectory(char* dir_name);
   virtual bool HandleFile(char* file_name);
+  virtual bool HandleLink(char* file_name);
   virtual bool HandleError(const char* dir_name);
 
  private:
@@ -53,10 +56,13 @@ class SyncDirectoryListing: public DirectoryListing {
         DartUtils::GetDartClass(DartUtils::kIOLibURL, "Directory");
     file_class_ =
         DartUtils::GetDartClass(DartUtils::kIOLibURL, "File");
+    link_class_ =
+        DartUtils::GetDartClass(DartUtils::kIOLibURL, "Link");
   }
   virtual ~SyncDirectoryListing() {}
   virtual bool HandleDirectory(char* dir_name);
   virtual bool HandleFile(char* file_name);
+  virtual bool HandleLink(char* file_name);
   virtual bool HandleError(const char* dir_name);
 
  private:
@@ -64,6 +70,7 @@ class SyncDirectoryListing: public DirectoryListing {
   Dart_Handle add_string_;
   Dart_Handle directory_class_;
   Dart_Handle file_class_;
+  Dart_Handle link_class_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(SyncDirectoryListing);
 };
@@ -90,6 +97,7 @@ class Directory {
 
   static bool List(const char* path,
                    bool recursive,
+                   bool follow_links,
                    DirectoryListing* listing);
   static ExistsResult Exists(const char* path);
   static char* Current();

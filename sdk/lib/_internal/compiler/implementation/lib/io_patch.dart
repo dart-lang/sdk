@@ -27,7 +27,7 @@ patch class _Directory {
   patch static _rename(String path, String newPath) {
     throw new UnsupportedError("Directory._rename");
   }
-  patch static List _list(String path, bool recursive) {
+  patch static List _list(String path, bool recursive, bool followLinks) {
     throw new UnsupportedError("Directory._list");
   }
   patch static SendPort _newServicePort() {

@@ -52,6 +52,7 @@ class PathBuffer {
 // Forward declarations.
 static bool ListRecursively(PathBuffer* path,
                             bool recursive,
+                            bool follow_links,
                             DirectoryListing* listing);
 static bool DeleteRecursively(PathBuffer* path);
 
@@ -67,6 +68,7 @@ static void PostError(DirectoryListing* listing,
 static bool HandleDir(wchar_t* dir_name,
                       PathBuffer* path,
                       bool recursive,
+                      bool follow_links,
                       DirectoryListing* listing) {
   if (wcscmp(dir_name, L".") == 0) return true;
   if (wcscmp(dir_name, L"..") == 0) return true;
@@ -77,7 +79,8 @@ static bool HandleDir(wchar_t* dir_name,
   char* utf8_path = StringUtils::WideToUtf8(path->data);
   bool ok = listing->HandleDirectory(utf8_path);
   free(utf8_path);
-  return ok && (!recursive || ListRecursively(path, recursive, listing));
+  return ok &&
+      (!recursive || ListRecursively(path, recursive, follow_links, listing));
 }
 
 
@@ -95,15 +98,33 @@ static bool HandleFile(wchar_t* file_name,
 }
 
 
+static bool HandleLink(wchar_t* link_name,
+                       PathBuffer* path,
+                       DirectoryListing* listing) {
+  if (!path->Add(link_name)) {
+    PostError(listing, path->data);
+    return false;
+  }
+  char* utf8_path = StringUtils::WideToUtf8(path->data);
+  bool ok = listing->HandleLink(utf8_path);
+  free(utf8_path);
+  return ok;
+}
+
+
 static bool HandleEntry(LPWIN32_FIND_DATAW find_file_data,
                         PathBuffer* path,
                         bool recursive,
+                        bool follow_links,
                         DirectoryListing* listing) {
   DWORD attributes = find_file_data->dwFileAttributes;
-  if ((attributes & FILE_ATTRIBUTE_DIRECTORY) != 0) {
+  if (!follow_links && (attributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0) {
+    return HandleLink(find_file_data->cFileName, path, listing);
+  } else if ((attributes & FILE_ATTRIBUTE_DIRECTORY) != 0) {
     return HandleDir(find_file_data->cFileName,
                      path,
                      recursive,
+                     follow_links,
                      listing);
   } else {
     return HandleFile(find_file_data->cFileName, path, listing);
@@ -113,6 +134,7 @@ static bool HandleEntry(LPWIN32_FIND_DATAW find_file_data,
 
 static bool ListRecursively(PathBuffer* path,
                             bool recursive,
+                            bool follow_links,
                             DirectoryListing* listing) {
   if (!path->Add(L"\\*")) {
     PostError(listing, path->data);
@@ -134,6 +156,7 @@ static bool ListRecursively(PathBuffer* path,
   bool success = HandleEntry(&find_file_data,
                              path,
                              recursive,
+                             follow_links,
                              listing);
 
   while ((FindNextFileW(find_handle, &find_file_data) != 0)) {
@@ -141,6 +164,7 @@ static bool ListRecursively(PathBuffer* path,
     success = HandleEntry(&find_file_data,
                           path,
                           recursive,
+                          follow_links,
                           listing) && success;
   }
 
@@ -250,6 +274,7 @@ static bool DeleteRecursively(PathBuffer* path) {
 
 bool Directory::List(const char* dir_name,
                      bool recursive,
+                     bool follow_links,
                      DirectoryListing* listing) {
   const wchar_t* system_name = StringUtils::Utf8ToWide(dir_name);
   PathBuffer path;
@@ -258,7 +283,7 @@ bool Directory::List(const char* dir_name,
     return false;
   }
   free(const_cast<wchar_t*>(system_name));
-  return ListRecursively(&path, recursive, listing);
+  return ListRecursively(&path, recursive, follow_links, listing);
 }
 
 

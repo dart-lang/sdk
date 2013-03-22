@@ -112,6 +112,8 @@ class _Link extends FileSystemEntity implements Link {
 
   _Link.fromPath(Path inputPath) : path = inputPath.toNativePath();
 
+  String toString() => "Link: '$path'";
+
   Future<bool> exists() {
     // TODO(whesse): Replace with asynchronous version.
     return new Future.immediate(existsSync());
