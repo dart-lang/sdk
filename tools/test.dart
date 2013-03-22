@@ -78,6 +78,7 @@ void testConfigurations(List<Map> configurations) {
   Map<String, RegExp> selectors = firstConf['selectors'];
   var maxProcesses = firstConf['tasks'];
   var progressIndicator = firstConf['progress'];
+  var failureSummary = firstConf['failure-summary'];
   BuildbotProgressIndicator.stepName = firstConf['step_name'];
   var verbose = firstConf['verbose'];
   var printTiming = firstConf['time'];
@@ -191,7 +192,11 @@ void testConfigurations(List<Map> configurations) {
     eventListener.add(new SummaryPrinter());
     eventListener.add(new FlakyLogWriter());
     if (printFailures) {
-      eventListener.add(new TestFailurePrinter(formatter));
+      // The buildbot has it's own failure summary since it needs to wrap it
+      // into'@@@'-annotated sections.
+      var printFaiureSummary =
+          failureSummary && progressIndicator != 'buildbot';
+      eventListener.add(new TestFailurePrinter(printFaiureSummary, formatter));
     }
     eventListener.add(new ProgressIndicator.fromName(progressIndicator,
                                                      startTime,

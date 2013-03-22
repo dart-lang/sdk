@@ -314,16 +314,36 @@ class LineProgressIndicator extends EventListener {
 }
 
 class TestFailurePrinter extends EventListener {
+  bool _printSummary;
   var _formatter;
+  var _failureSummary = <String>[];
 
-  TestFailurePrinter([this._formatter = const Formatter()]);
+  TestFailurePrinter(this._printSummary,
+                     [this._formatter = const Formatter()]);
 
   void done(TestCase test) {
     if (test.lastCommandOutput.unexpectedOutput) {
-      for (var line in _buildFailureOutput(test, _formatter)) {
+      var lines = _buildFailureOutput(test, _formatter);
+      for (var line in lines) {
         print(line);
       }
       print('');
+      if (_printSummary) {
+        _failureSummary.addAll(lines);
+        _failureSummary.add('');
+      }
+    }
+  }
+
+  void allDone() {
+    if (_printSummary) {
+      print('\n=== Failure summary:\n');
+      if (!_failureSummary.isEmpty) {
+        for (String line in _failureSummary) {
+          print(line);
+        }
+        print('');
+      }
     }
   }
 }
@@ -406,7 +426,6 @@ abstract class CompactIndicator extends ProgressIndicator {
       : super(startTime);
 
   void allDone() {
-    stdout.writeln('');
     if (_failedTests > 0) {
       // We may have printed many failure logs, so reprint the summary data.
       _printProgress();
