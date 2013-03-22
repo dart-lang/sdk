@@ -34,13 +34,30 @@ LocationSummary* Instruction::MakeCallSummary() {
 
 
 LocationSummary* PushArgumentInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps= 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  locs->set_in(0, Location::AnyOrConstant(value()));
+  return locs;
 }
 
 
 void PushArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  // In SSA mode, we need an explicit push. Nothing to do in non-SSA mode
+  // where PushArgument is handled by BindInstr::EmitNativeCode.
+  if (compiler->is_optimizing()) {
+    Location value = locs()->in(0);
+    if (value.IsRegister()) {
+      __ Push(value.reg());
+    } else if (value.IsConstant()) {
+      __ PushObject(value.constant());
+    } else {
+      ASSERT(value.IsStackSlot());
+      __ ldr(IP, value.ToStackSlotAddress());
+      __ Push(IP);
+    }
+  }
 }
 
 
@@ -106,13 +123,17 @@ void LoadLocalInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* StoreLocalInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  return LocationSummary::Make(1,
+                               Location::SameAsFirstInput(),
+                               LocationSummary::kNoCall);
 }
 
 
 void StoreLocalInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register value = locs()->in(0).reg();
+  Register result = locs()->out().reg();
+  ASSERT(result == value);  // Assert that register assignment is correct.
+  __ str(value, Address(FP, local().index() * kWordSize));
 }
 
 
@@ -133,8 +154,15 @@ void ConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* AssertAssignableInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 3;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+  summary->set_in(0, Location::RegisterLocation(R0));  // Value.
+  summary->set_in(1, Location::RegisterLocation(R1));  // Instantiator.
+  summary->set_in(2, Location::RegisterLocation(R2));  // Type arguments.
+  summary->set_out(Location::RegisterLocation(R0));
+  return summary;
 }
 
 

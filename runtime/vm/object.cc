@@ -7674,6 +7674,13 @@ RawCode* Code::FinalizeCode(const char* name,
 
   // Allocate the code object.
   Code& code = Code::ZoneHandle(Code::New(pointer_offsets.length()));
+
+  // Clone the object pool in the old space, if necessary.
+  Array& object_pool = Array::Handle(
+      Array::MakeArray(assembler->object_pool()));
+  if (!object_pool.IsOld()) {
+    object_pool ^= Object::Clone(object_pool, Heap::kOld);
+  }
   {
     NoGCScope no_gc;
 
@@ -7692,7 +7699,7 @@ RawCode* Code::FinalizeCode(const char* name,
     code.set_instructions(instrs.raw());
 
     // Set object pool in Instructions object.
-    instrs.set_object_pool(Array::MakeArray(assembler->object_pool()));
+    instrs.set_object_pool(object_pool.raw());
   }
   return code.raw();
 }

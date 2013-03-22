@@ -555,6 +555,7 @@ class Assembler : public ValueObject {
   void Drop(intptr_t stack_elements);
   void LoadObject(Register rd, const Object& object);
   void PushObject(const Object& object);
+  void CompareObject(Register rn, const Object& object);
   void LoadWordFromPoolOffset(Register rd, int32_t offset);
   void LoadFromOffset(LoadOperandType type,
                       Register reg,

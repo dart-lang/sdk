@@ -69,6 +69,7 @@ dart/*: Skip
 # Tests needing type check support.
 cc/DartStaticResolve: Crash
 cc/DartDynamicResolve: Crash
+cc/FindCodeObject: Crash
 
 [ $arch == mips ]
 *: Skip
