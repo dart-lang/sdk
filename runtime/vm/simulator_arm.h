@@ -130,6 +130,9 @@ class Simulator {
   }
   void HandleIllegalAccess(uword addr, Instr* instr);
 
+  // Handles a legal instruction that the simulator does not implement.
+  void UnimplementedInstruction(Instr* instr);
+
   // Unsupported instructions use Format to print an error and stop execution.
   void Format(Instr* instr, const char* format);
 

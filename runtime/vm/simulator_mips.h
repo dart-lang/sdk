@@ -96,6 +96,9 @@ class Simulator {
   // Read and write memory.
   void UnalignedAccess(const char* msg, uword addr, Instr* instr);
 
+  // Handles a legal instruction that the simulator does not implement.
+  void UnimplementedInstruction(Instr* instr);
+
   bool OverflowFrom(int32_t alu_out,
                     int32_t left,
                     int32_t right,

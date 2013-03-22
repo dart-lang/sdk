@@ -219,7 +219,6 @@ void SimulatorDebugger::RedoBreakpoints() {
 void SimulatorDebugger::Debug() {
   intptr_t last_pc = -1;
   bool done = false;
-  bool decoded = true;
 
 #define COMMAND_SIZE 63
 #define ARG_SIZE 255
@@ -243,11 +242,11 @@ void SimulatorDebugger::Debug() {
   while (!done) {
     if (last_pc != sim_->get_pc()) {
       last_pc = sim_->get_pc();
-      decoded = Disassembler::Disassemble(last_pc, last_pc + Instr::kInstrSize);
+      Disassembler::Disassemble(last_pc, last_pc + Instr::kInstrSize);
     }
     char* line = ReadLine("sim> ");
     if (line == NULL) {
-      break;
+      FATAL("ReadLine failed");
     } else {
       // Use sscanf to parse the individual parts of the command line. At the
       // moment no command expects more than two parameters.
@@ -277,20 +276,12 @@ void SimulatorDebugger::Debug() {
         OS::Print("Quitting\n");
         OS::Exit(0);
       } else if ((strcmp(cmd, "si") == 0) || (strcmp(cmd, "stepi") == 0)) {
-        if (decoded) {
-          sim_->InstructionDecode(reinterpret_cast<Instr*>(sim_->get_pc()));
-        } else {
-          OS::Print("Instruction could not be decoded. Stepping disabled.\n");
-        }
+        sim_->InstructionDecode(reinterpret_cast<Instr*>(sim_->get_pc()));
       } else if ((strcmp(cmd, "c") == 0) || (strcmp(cmd, "cont") == 0)) {
-        if (decoded) {
-          // Execute the one instruction we broke at with breakpoints disabled.
-          sim_->InstructionDecode(reinterpret_cast<Instr*>(sim_->get_pc()));
-          // Leave the debugger shell.
-          done = true;
-        } else {
-          OS::Print("Instruction could not be decoded. Cannot continue.\n");
-        }
+        // Execute the one instruction we broke at with breakpoints disabled.
+        sim_->InstructionDecode(reinterpret_cast<Instr*>(sim_->get_pc()));
+        // Leave the debugger shell.
+        done = true;
       } else if ((strcmp(cmd, "p") == 0) || (strcmp(cmd, "print") == 0)) {
         if (args == 2) {
           uint32_t value;
@@ -558,6 +549,15 @@ void Simulator::set_fregister(FRegister reg, double value) {
 double Simulator::get_fregister(FRegister reg) const {
   ASSERT((reg >= 0) && (reg < kNumberOfFRegisters));
   return fregisters_[reg];
+}
+
+
+void Simulator::UnimplementedInstruction(Instr* instr) {
+  char buffer[64];
+  snprintf(buffer, sizeof(buffer), "Unimplemented instruction: pc=%p\n", instr);
+  SimulatorDebugger dbg(this);
+  dbg.Stop(instr, buffer);
+  FATAL("Cannot continue execution after unimplemented instruction.");
 }
 
 
@@ -941,7 +941,7 @@ void Simulator::DecodeSpecial(Instr* instr) {
     }
     default: {
       OS::PrintErr("DecodeSpecial: 0x%x\n", instr->InstructionBits());
-      UNIMPLEMENTED();
+      UnimplementedInstruction(instr);
       break;
     }
   }
@@ -983,7 +983,7 @@ void Simulator::DecodeSpecial2(Instr* instr) {
     }
     default: {
       OS::PrintErr("DecodeSpecial2: 0x%x\n", instr->InstructionBits());
-      UNIMPLEMENTED();
+      UnimplementedInstruction(instr);
       break;
     }
   }
@@ -1133,7 +1133,7 @@ void Simulator::InstructionDecode(Instr* instr) {
     default: {
       OS::PrintErr("Undecoded instruction: 0x%x at %p\n",
                     instr->InstructionBits(), instr);
-      UNIMPLEMENTED();
+      UnimplementedInstruction(instr);
       break;
     }
   }
@@ -1145,10 +1145,11 @@ void Simulator::ExecuteDelaySlot() {
   ASSERT(pc_ != kEndSimulatingPC);
   delay_slot_ = true;
   icount_++;
-  if (icount_ == FLAG_stop_sim_at) {
-    UNIMPLEMENTED();
-  }
   Instr* instr = Instr::At(pc_ + Instr::kInstrSize);
+  if (icount_ == FLAG_stop_sim_at) {
+    SimulatorDebugger dbg(this);
+    dbg.Stop(instr, "Instruction count reached");
+  }
   InstructionDecode(instr);
   delay_slot_ = false;
 }
@@ -1161,18 +1162,27 @@ void Simulator::Execute() {
     while (pc_ != kEndSimulatingPC) {
       icount_++;
       Instr* instr = Instr::At(pc_);
-      InstructionDecode(instr);
+      if (IsIllegalAddress(pc_)) {
+        HandleIllegalAccess(pc_, instr);
+      } else {
+        InstructionDecode(instr);
+      }
     }
   } else {
     // FLAG_stop_sim_at is at the non-default value. Stop in the debugger when
     // we reach the particular instruction count.
     while (pc_ != kEndSimulatingPC) {
       icount_++;
+      Instr* instr = Instr::At(pc_);
       if (icount_ == FLAG_stop_sim_at) {
-        UNIMPLEMENTED();
+        SimulatorDebugger dbg(this);
+        dbg.Stop(instr, "Instruction count reached");
       } else {
-        Instr* instr = Instr::At(pc_);
-        InstructionDecode(instr);
+        if (IsIllegalAddress(pc_)) {
+          HandleIllegalAccess(pc_, instr);
+        } else {
+          InstructionDecode(instr);
+        }
       }
     }
   }
