@@ -205,7 +205,16 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
   }
 
   // If object needs to be a canonical object, Canonicalize it.
-  if ((kind != Snapshot::kFull) && RawObject::IsCanonical(tags)) {
+  // When reading a full snapshot we don't need to canonicalize the object
+  // as it would already be a canonical object.
+  // When reading a script snapshot we need to canonicalize only those object
+  // references that are objects from the core library (loaded from a
+  // full snapshot). Objects that are only in the script need not be
+  // canonicalized as they are already canonical.
+  // When reading a message snapshot we always have to canonicalize the object.
+  if ((kind != Snapshot::kFull) && RawObject::IsCanonical(tags) &&
+      (RawObject::IsCreatedFromSnapshot(tags) ||
+       (kind == Snapshot::kMessage))) {
     type ^= type.Canonicalize();
   }
 
@@ -458,7 +467,16 @@ RawTypeArguments* TypeArguments::ReadFrom(SnapshotReader* reader,
   }
 
   // If object needs to be a canonical object, Canonicalize it.
-  if ((kind != Snapshot::kFull) && RawObject::IsCanonical(tags)) {
+  // When reading a full snapshot we don't need to canonicalize the object
+  // as it would already be a canonical object.
+  // When reading a script snapshot we need to canonicalize only those object
+  // references that are objects from the core library (loaded from a
+  // full snapshot). Objects that are only in the script need not be
+  // canonicalized as they are already canonical.
+  // When reading a message snapshot we always have to canonicalize the object.
+  if ((kind != Snapshot::kFull) && RawObject::IsCanonical(tags) &&
+      (RawObject::IsCreatedFromSnapshot(tags) ||
+       (kind == Snapshot::kMessage))) {
     type_arguments ^= type_arguments.Canonicalize();
   }
 
@@ -1597,7 +1615,14 @@ RawMint* Mint::ReadFrom(SnapshotReader* reader,
   if (kind == Snapshot::kFull) {
     mint = reader->NewMint(value);
   } else {
-    if (RawObject::IsCanonical(tags)) {
+    // When reading a script snapshot we need to canonicalize only those object
+    // references that are objects from the core library (loaded from a
+    // full snapshot). Objects that are only in the script need not be
+    // canonicalized as they are already canonical.
+    // When reading a message snapshot we always have to canonicalize.
+    if (RawObject::IsCanonical(tags) &&
+        (RawObject::IsCreatedFromSnapshot(tags) ||
+         (kind == Snapshot::kMessage))) {
       mint = Mint::NewCanonical(value);
     } else {
       mint = Mint::New(value, HEAP_SPACE(kind));
@@ -1648,7 +1673,16 @@ RawBigint* Bigint::ReadFrom(SnapshotReader* reader,
        BigintOperations::FromHexCString(str, HEAP_SPACE(kind))));
 
   // If it is a canonical constant make it one.
-  if ((kind != Snapshot::kFull) && RawObject::IsCanonical(tags)) {
+  // When reading a full snapshot we don't need to canonicalize the object
+  // as it would already be a canonical object.
+  // When reading a script snapshot we need to canonicalize only those object
+  // references that are objects from the core library (loaded from a
+  // full snapshot). Objects that are only in the script need not be
+  // canonicalized as they are already canonical.
+  // When reading a message snapshot we always have to canonicalize the object.
+  if ((kind != Snapshot::kFull) && RawObject::IsCanonical(tags) &&
+      (RawObject::IsCreatedFromSnapshot(tags) ||
+       (kind == Snapshot::kMessage))) {
     obj ^= obj.Canonicalize();
   }
   reader->AddBackRef(object_id, &obj, kIsDeserialized);
@@ -1715,7 +1749,14 @@ RawDouble* Double::ReadFrom(SnapshotReader* reader,
   if (kind == Snapshot::kFull) {
     dbl = reader->NewDouble(value);
   } else {
-    if (RawObject::IsCanonical(tags)) {
+    // When reading a script snapshot we need to canonicalize only those object
+    // references that are objects from the core library (loaded from a
+    // full snapshot). Objects that are only in the script need not be
+    // canonicalized as they are already canonical.
+    // When reading a message snapshot we always have to canonicalize.
+    if (RawObject::IsCanonical(tags) &&
+        (RawObject::IsCreatedFromSnapshot(tags) ||
+         (kind == Snapshot::kMessage))) {
       dbl = Double::NewCanonical(value);
     } else {
       dbl = Double::New(value, HEAP_SPACE(kind));

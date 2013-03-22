@@ -5166,10 +5166,10 @@ RawTokenStream* TokenStream::New(intptr_t len) {
 // Helper class for creation of compressed token stream data.
 class CompressedTokenStreamData : public ValueObject {
  public:
-  static const intptr_t kIncrementSize = 16 * KB;
+  static const intptr_t kInitialSize = 16 * KB;
   CompressedTokenStreamData() :
       buffer_(NULL),
-      stream_(&buffer_, Reallocate, kIncrementSize),
+      stream_(&buffer_, Reallocate, kInitialSize),
       token_objects_(GrowableObjectArray::Handle(
           GrowableObjectArray::New(kInitialTokenCount, Heap::kOld))),
       token_obj_(Object::Handle()),

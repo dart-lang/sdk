@@ -19,7 +19,7 @@
 namespace dart {
 
 static const int kNumInitialReferencesInFullSnapshot = 160 * KB;
-static const int kNumInitialReferences = 4;
+static const int kNumInitialReferences = 64;
 
 
 static bool IsSingletonClassId(intptr_t class_id) {
@@ -840,10 +840,10 @@ void SnapshotReader::ArrayReadFrom(const Array& result,
 
 
 SnapshotWriter::SnapshotWriter(Snapshot::Kind kind,
-               uint8_t** buffer,
-               ReAlloc alloc,
-               intptr_t increment_size)
-    : BaseWriter(buffer, alloc, increment_size),
+                               uint8_t** buffer,
+                               ReAlloc alloc,
+                               intptr_t initial_size)
+    : BaseWriter(buffer, alloc, initial_size),
       kind_(kind),
       object_store_(Isolate::Current()->object_store()),
       class_table_(Isolate::Current()->class_table()),
