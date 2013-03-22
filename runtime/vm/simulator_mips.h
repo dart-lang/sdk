@@ -118,8 +118,10 @@ class Simulator {
   inline void WriteH(uword addr, uint16_t value, Instr* isntr);
   inline void WriteW(uword addr, int value, Instr* instr);
 
+  void DoBranch(Instr* instr, bool taken, bool likely);
   void DecodeSpecial(Instr* instr);
   void DecodeSpecial2(Instr* instr);
+  void DecodeRegImm(Instr* instr);
   void InstructionDecode(Instr* instr);
 
   void Execute();

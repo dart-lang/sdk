@@ -147,9 +147,7 @@ class Assembler : public ValueObject {
     UNIMPLEMENTED();
   }
 
-  void Bind(Label* label) {
-    UNIMPLEMENTED();
-  }
+  void Bind(Label* label);
 
   // Misc. functionality
   int CodeSize() const { return buffer_.Size(); }
@@ -245,6 +243,101 @@ class Assembler : public ValueObject {
     EmitIType(ANDI, rs, rt, imm_value);
   }
 
+  // Unconditional branch.
+  void b(Label* l) {
+    beq(R0, R0, l);
+  }
+
+  // Branch if equal.
+  void beq(Register rs, Register rt, Label* l) {
+    ASSERT(!in_delay_slot_);
+    EmitBranch(BEQ, rs, rt, l);
+    EmitBranchDelayNop();
+  }
+
+  // Branch if equal, likely taken.
+  // Delay slot executed only when branch taken.
+  void beql(Register rs, Register rt, Label* l) {
+    ASSERT(!in_delay_slot_);
+    EmitBranch(BEQL, rs, rt, l);
+    EmitBranchDelayNop();
+  }
+
+  // Branch if rs >= 0.
+  void bgez(Register rs, Label* l) {
+    ASSERT(!in_delay_slot_);
+    EmitRegImmBranch(BGEZ, rs, l);
+    EmitBranchDelayNop();
+  }
+
+  // Branch if rs >= 0, likely taken.
+  // Delay slot executed only when branch taken.
+  void bgezl(Register rs, Label* l) {
+    ASSERT(!in_delay_slot_);
+    EmitRegImmBranch(BGEZL, rs, l);
+    EmitBranchDelayNop();
+  }
+
+  // Branch if rs > 0.
+  void bgtz(Register rs, Label* l) {
+    ASSERT(!in_delay_slot_);
+    EmitBranch(BGTZ, rs, R0, l);
+    EmitBranchDelayNop();
+  }
+
+  // Branch if rs > 0, likely taken.
+  // Delay slot executed only when branch taken.
+  void bgtzl(Register rs, Label* l) {
+    ASSERT(!in_delay_slot_);
+    EmitBranch(BGTZL, rs, R0, l);
+    EmitBranchDelayNop();
+  }
+
+  // Branch if rs <= 0.
+  void blez(Register rs, Label* l) {
+    ASSERT(!in_delay_slot_);
+    EmitBranch(BLEZ, rs, R0, l);
+    EmitBranchDelayNop();
+  }
+
+  // Branch if rs <= 0, likely taken.
+  // Delay slot executed only when branch taken.
+  void blezl(Register rs, Label* l) {
+    ASSERT(!in_delay_slot_);
+    EmitBranch(BLEZL, rs, R0, l);
+    EmitBranchDelayNop();
+  }
+
+  // Branch if rs < 0.
+  void bltz(Register rs, Label* l) {
+    ASSERT(!in_delay_slot_);
+    EmitRegImmBranch(BLTZ, rs, l);
+    EmitBranchDelayNop();
+  }
+
+  // Branch if rs < 0, likely taken.
+  // Delay slot executed only when branch taken.
+  void bltzl(Register rs, Label* l) {
+    ASSERT(!in_delay_slot_);
+    EmitRegImmBranch(BLTZL, rs, l);
+    EmitBranchDelayNop();
+  }
+
+  // Branch if not equal.
+  void bne(Register rs, Register rt, Label* l) {
+    ASSERT(!in_delay_slot_);  // Jump within a delay slot is not supported.
+    EmitBranch(BNE, rs, rt, l);
+    EmitBranchDelayNop();
+  }
+
+  // Branch if not equal, likely taken.
+  // Delay slot executed only when branch taken.
+  void bnel(Register rs, Register rt, Label* l) {
+    ASSERT(!in_delay_slot_);  // Jump within a delay slot is not supported.
+    EmitBranch(BNEL, rs, rt, l);
+    EmitBranchDelayNop();
+  }
+
   void break_(int32_t code) {
     ASSERT(Utils::IsUint(20, code));
     Emit(SPECIAL << kOpcodeShift |
@@ -315,6 +408,10 @@ class Assembler : public ValueObject {
     EmitRType(SPECIAL, R0, R0, rd, 0, MFLO);
   }
 
+  void mov(Register rd, Register rs) {
+    or_(rd, rs, ZR);
+  }
+
   void movn(Register rd, Register rs, Register rt) {
     EmitRType(SPECIAL, rs, rt, rd, 0, MOVN);
   }
@@ -329,6 +426,10 @@ class Assembler : public ValueObject {
 
   void multu(Register rs, Register rt) {
     EmitRType(SPECIAL, rs, rt, R0, 0, MULTU);
+  }
+
+  void nop() {
+    Emit(Instr::kNopInstruction);
   }
 
   void nor(Register rd, Register rs, Register rt) {
@@ -411,10 +512,6 @@ class Assembler : public ValueObject {
     }
   }
 
-  void Move(Register rd, Register rs) {
-    or_(rd, rs, ZR);
-  }
-
  private:
   AssemblerBuffer buffer_;
   GrowableObjectArray& object_pool_;  // Objects and patchable jump targets.
@@ -495,6 +592,35 @@ class Assembler : public ValueObject {
          sa << kSaShift |
          func << kFunctionShift);
   }
+
+  void EmitBranch(Opcode b, Register rs, Register rt, Label* label) {
+    if (label->IsBound()) {
+      // Reletive destination from an instruction after the branch.
+      int32_t dest = label->Position() - (buffer_.Size() + Instr::kInstrSize);
+      uint16_t dest_off = EncodeBranchOffset(dest, 0);
+      EmitIType(b, rs, rt, dest_off);
+    } else {
+      int position = buffer_.Size();
+      EmitIType(b, rs, rt, label->position_);
+      label->LinkTo(position);
+    }
+  }
+
+  void EmitRegImmBranch(RtRegImm b, Register rs, Label* label) {
+    if (label->IsBound()) {
+      // Reletive destination from an instruction after the branch.
+      int32_t dest = label->Position() - (buffer_.Size() + Instr::kInstrSize);
+      uint16_t dest_off = EncodeBranchOffset(dest, 0);
+      EmitRegImmType(REGIMM, rs, b, dest_off);
+    } else {
+      int position = buffer_.Size();
+      EmitRegImmType(REGIMM, rs, b, label->position_);
+      label->LinkTo(position);
+    }
+  }
+
+  static int32_t EncodeBranchOffset(int32_t offset, int32_t instr);
+  static int DecodeBranchOffset(int32_t instr);
 
   void EmitBranchDelayNop() {
     Emit(Instr::kNopInstruction);  // Branch delay NOP.

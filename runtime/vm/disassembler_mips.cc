@@ -39,6 +39,7 @@ class MIPSDecoder : public ValueObject {
 
   void DecodeSpecial(Instr* instr);
   void DecodeSpecial2(Instr* instr);
+  void DecodeRegImm(Instr* instr);
 
   // Convenience functions.
   char* get_buffer() const { return buffer_; }
@@ -135,6 +136,16 @@ int MIPSDecoder::FormatOption(Instr* instr, const char* format) {
                            remaining_size_in_buffer(),
                            ".unknown");
       }
+      return 4;
+    }
+    case 'd': {
+      ASSERT(STRING_STARTS_WITH(format, "dest"));
+      int off = instr->SImmField() << 2;
+      uword destination = reinterpret_cast<uword>(instr) + off;
+      buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
+                                 remaining_size_in_buffer(),
+                                 "%#"Px"",
+                                 destination);
       return 4;
     }
     case 'i': {
@@ -359,6 +370,33 @@ void MIPSDecoder::DecodeSpecial2(Instr* instr) {
 }
 
 
+void MIPSDecoder::DecodeRegImm(Instr* instr) {
+  ASSERT(instr->OpcodeField() == REGIMM);
+  switch (instr->RegImmFnField()) {
+    case BGEZ: {
+      Format(instr, "bgez 'rs, 'dest");
+      break;
+    }
+    case BGEZL: {
+      Format(instr, "bgezl 'rs, 'dest");
+      break;
+    }
+    case BLTZ: {
+      Format(instr, "bltz 'rs, 'dest");
+      break;
+    }
+    case BLTZL: {
+      Format(instr, "bltzl 'rs, 'dest");
+      break;
+    }
+    default: {
+      Unknown(instr);
+      break;
+    }
+  }
+}
+
+
 void MIPSDecoder::InstructionDecode(Instr* instr) {
   switch (instr->OpcodeField()) {
     case SPECIAL: {
@@ -369,12 +407,48 @@ void MIPSDecoder::InstructionDecode(Instr* instr) {
       DecodeSpecial2(instr);
       break;
     }
+    case REGIMM: {
+      DecodeRegImm(instr);
+      break;
+    }
     case ADDIU: {
       Format(instr, "addiu 'rt, 'rs, 'imms");
       break;
     }
     case ANDI: {
       Format(instr, "andi 'rt, 'rs, 'immu");
+      break;
+    }
+    case BEQ: {
+      Format(instr, "beq 'rs, 'rt, 'dest");
+      break;
+    }
+    case BEQL: {
+      Format(instr, "beql 'rs, 'rt, 'dest");
+      break;
+    }
+    case BGTZ: {
+      Format(instr, "bgtz 'rs, 'dest");
+      break;
+    }
+    case BGTZL: {
+      Format(instr, "bgtzl 'rs, 'dest");
+      break;
+    }
+    case BLEZ: {
+      Format(instr, "blez 'rs, 'dest");
+      break;
+    }
+    case BLEZL: {
+      Format(instr, "blezl 'rs, 'dest");
+      break;
+    }
+    case BNE: {
+      Format(instr, "bne 'rs, 'rt, 'dest");
+      break;
+    }
+    case BNEL: {
+      Format(instr, "bnel 'rs, 'rt, 'dest");
       break;
     }
     case LB: {

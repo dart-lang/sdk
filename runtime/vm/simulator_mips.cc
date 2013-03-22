@@ -990,6 +990,65 @@ void Simulator::DecodeSpecial2(Instr* instr) {
 }
 
 
+void Simulator::DoBranch(Instr* instr, bool taken, bool likely) {
+  ASSERT(!delay_slot_);
+  int32_t imm_val = instr->SImmField() << 2;
+
+  uword next_pc;
+  if (taken) {
+    // imm_val is added to the address of the instruction following the branch.
+    next_pc = pc_ + imm_val + Instr::kInstrSize;
+    if (likely) {
+      ExecuteDelaySlot();
+    }
+  } else {
+    next_pc = pc_ + (2 * Instr::kInstrSize);  // Next after delay slot.
+  }
+  if (!likely) {
+    ExecuteDelaySlot();
+  }
+  pc_ = next_pc - Instr::kInstrSize;
+
+  return;
+}
+
+
+void Simulator::DecodeRegImm(Instr* instr) {
+  ASSERT(instr->OpcodeField() == REGIMM);
+  switch (instr->RegImmFnField()) {
+    case BGEZ: {
+      // Format(instr, "bgez 'rs, 'dest");
+      int32_t rs_val = get_register(instr->RsField());
+      DoBranch(instr, rs_val >= 0, false);
+      break;
+    }
+    case BGEZL: {
+      // Format(instr, "bgezl 'rs, 'dest");
+      int32_t rs_val = get_register(instr->RsField());
+      DoBranch(instr, rs_val >= 0, true);
+      break;
+    }
+    case BLTZ: {
+      // Format(instr, "bltz 'rs, 'dest");
+      int32_t rs_val = get_register(instr->RsField());
+      DoBranch(instr, rs_val < 0, false);
+      break;
+    }
+    case BLTZL: {
+      // Format(instr, "bltzl 'rs, 'dest");
+      int32_t rs_val = get_register(instr->RsField());
+      DoBranch(instr, rs_val < 0, true);
+      break;
+    }
+    default: {
+      OS::PrintErr("DecodeRegImm: 0x%x\n", instr->InstructionBits());
+      UnimplementedInstruction(instr);
+      break;
+    }
+  }
+}
+
+
 void Simulator::InstructionDecode(Instr* instr) {
   switch (instr->OpcodeField()) {
     case SPECIAL: {
@@ -998,6 +1057,10 @@ void Simulator::InstructionDecode(Instr* instr) {
     }
     case SPECIAL2: {
       DecodeSpecial2(instr);
+      break;
+    }
+    case REGIMM: {
+      DecodeRegImm(instr);
       break;
     }
     case ADDIU: {
@@ -1013,6 +1076,62 @@ void Simulator::InstructionDecode(Instr* instr) {
       // Format(instr, "andi 'rt, 'rs, 'immu");
       int32_t rs_val = get_register(instr->RsField());
       set_register(instr->RtField(), rs_val & instr->UImmField());
+      break;
+    }
+    case BEQ: {
+      // Format(instr, "beq 'rs, 'rt, 'dest");
+      int32_t rs_val = get_register(instr->RsField());
+      int32_t rt_val = get_register(instr->RtField());
+      DoBranch(instr, rs_val == rt_val, false);
+      break;
+    }
+    case BEQL: {
+      // Format(instr, "beql 'rs, 'rt, 'dest");
+      int32_t rs_val = get_register(instr->RsField());
+      int32_t rt_val = get_register(instr->RtField());
+      DoBranch(instr, rs_val == rt_val, true);
+      break;
+    }
+    case BGTZ: {
+      ASSERT(instr->RtField() == R0);
+      // Format(instr, "bgtz 'rs, 'dest");
+      int32_t rs_val = get_register(instr->RsField());
+      DoBranch(instr, rs_val > 0, false);
+      break;
+    }
+    case BGTZL: {
+      ASSERT(instr->RtField() == R0);
+      // Format(instr, "bgtzl 'rs, 'dest");
+      int32_t rs_val = get_register(instr->RsField());
+      DoBranch(instr, rs_val > 0, true);
+      break;
+    }
+    case BLEZ: {
+      ASSERT(instr->RtField() == R0);
+      // Format(instr, "blez 'rs, 'dest");
+      int32_t rs_val = get_register(instr->RsField());
+      DoBranch(instr, rs_val <= 0, false);
+      break;
+    }
+    case BLEZL: {
+      ASSERT(instr->RtField() == R0);
+      // Format(instr, "blezl 'rs, 'dest");
+      int32_t rs_val = get_register(instr->RsField());
+      DoBranch(instr, rs_val <= 0, true);
+      break;
+    }
+    case BNE: {
+      // Format(instr, "bne 'rs, 'rt, 'dest");
+      int32_t rs_val = get_register(instr->RsField());
+      int32_t rt_val = get_register(instr->RtField());
+      DoBranch(instr, rs_val != rt_val, false);
+      break;
+    }
+    case BNEL: {
+      // Format(instr, "bnel 'rs, 'rt, 'dest");
+      int32_t rs_val = get_register(instr->RsField());
+      int32_t rt_val = get_register(instr->RtField());
+      DoBranch(instr, rs_val != rt_val, true);
       break;
     }
     case LB: {
