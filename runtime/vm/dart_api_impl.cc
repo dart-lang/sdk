@@ -3555,12 +3555,16 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle clazz,
   if (result.IsError()) {
     return Api::NewHandle(isolate, result.raw());
   }
-  // TODO(turnidge): Support redirecting factories.
   ASSERT(result.IsFunction());
   Function& constructor = Function::Handle(isolate);
   constructor ^= result.raw();
 
   Instance& new_object = Instance::Handle(isolate);
+  if (constructor.IsRedirectingFactory()) {
+    Type& type = Type::Handle(constructor.RedirectionType());
+    cls = type.type_class();
+    constructor = constructor.RedirectionTarget();
+  }
   if (constructor.IsConstructor()) {
     // Create the new object.
     new_object = Instance::New(cls);

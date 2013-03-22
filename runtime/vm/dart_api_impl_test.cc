@@ -3281,7 +3281,7 @@ TEST_CASE(GetStaticField_RunsInitializer) {
 
 TEST_CASE(New) {
   const char* kScriptChars =
-      "class MyClass implements MyInterface {\n"
+      "class MyClass {\n"
       "  MyClass() : foo = 7 {}\n"
       "  MyClass.named(value) : foo = value {}\n"
       "  MyClass._hidden(value) : foo = -value {}\n"
@@ -3294,43 +3294,24 @@ TEST_CASE(New) {
       "  factory MyClass.nullo() {\n"
       "    return null;\n"
       "  }\n"
-      "  factory MyInterface.multiply(value) {  // won't get called.\n"
-      "    return new MyClass.named(value * 1000);\n"
-      "  }\n"
-      "  factory MyInterface2.unused(value) {\n"
-      "    return new MyClass2(-value);\n"
-      "  }\n"
-      "  factory MyInterface2.multiply(value) {\n"
-      "    return new MyClass2(value * 10000);\n"
-      "  }\n"
       "  var foo;\n"
       "}\n"
       "\n"
-      "class MyClass2 implements MyInterface2 {\n"
-      "  MyClass2(value) : bar = value {}\n"
-      "  var bar;\n"
+      "abstract class MyExtraHop {\n"
+      "  factory MyExtraHop.hop(value) = MyClass.named;\n"
       "}\n"
       "\n"
-      "interface MyInterface default MyClass {\n"
-      "  MyInterface.named(value);\n"
-      "  MyInterface.multiply(value);\n"
+      "abstract class MyInterface {\n"
+      "  factory MyInterface.named(value) = MyExtraHop.hop;\n"
+      "  factory MyInterface.multiply(value) = MyClass.multiply;\n"
       "  MyInterface.notfound(value);\n"
-      "}\n"
-      "\n"
-      "interface MyInterface2 default MyClass {\n"
-      "  MyInterface2.multiply(value);\n"
-      "  MyInterface2.notfound(value);\n"
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   Dart_Handle cls = Dart_GetClass(lib, NewString("MyClass"));
   EXPECT_VALID(cls);
-  Dart_Handle cls2 = Dart_GetClass(lib, NewString("MyClass2"));
-  EXPECT_VALID(cls2);
   Dart_Handle intf = Dart_GetClass(lib, NewString("MyInterface"));
   EXPECT_VALID(intf);
-  Dart_Handle intf2 = Dart_GetClass(lib, NewString("MyInterface2"));
-  EXPECT_VALID(intf2);
   Dart_Handle args[1];
   args[0] = Dart_NewInteger(11);
   Dart_Handle bad_args[1];
@@ -3433,19 +3414,7 @@ TEST_CASE(New) {
   result = Dart_New(cls, NewString("exception"), 1, args);
   EXPECT_ERROR(result, "ConstructorDeath");
 
-  // MyInterface has default class MyClass.
-  //
-  // MyClass *implements* MyInterface.
-  //
-  // Therefore the constructor call:
-  //
-  //   MyInterface.foo()
-  //
-  // Becomes:
-  //
-  //   MyClass.foo() from the class MyClass.
-
-  // Invoke an interface constructor.
+  // Invoke two-hop redirecting factory constructor.
   result = Dart_New(intf, NewString("named"), 1, args);
   EXPECT_VALID(result);
   EXPECT_VALID(Dart_ObjectIsType(result, cls, &instanceof));
@@ -3455,8 +3424,7 @@ TEST_CASE(New) {
   EXPECT_VALID(Dart_IntegerToInt64(foo, &int_value));
   EXPECT_EQ(11, int_value);
 
-  // Invoke an interface constructor which in turn calls a factory
-  // constructor.
+  // Invoke one-hop redirecting factory constructor.
   result = Dart_New(intf, NewString("multiply"), 1, args);
   EXPECT_VALID(result);
   EXPECT_VALID(Dart_ObjectIsType(result, cls, &instanceof));
@@ -3466,53 +3434,16 @@ TEST_CASE(New) {
   EXPECT_VALID(Dart_IntegerToInt64(foo, &int_value));
   EXPECT_EQ(1100, int_value);
 
-  // Invoke a constructor that is missing in the interface but present
-  // in the default class.
+  // Invoke a constructor that is missing in the interface.
   result = Dart_New(intf, Dart_Null(), 0, NULL);
   EXPECT_ERROR(result,
                "Dart_New: could not find constructor 'MyInterface.'.");
 
-  // Invoke a constructor that is present in the interface but missing
-  // in the default class.
+  // Invoke abstract constructor that is present in the interface.
   result = Dart_New(intf, NewString("notfound"), 1, args);
-  EXPECT_ERROR(result,
-               "Dart_New: could not find constructor 'MyClass.notfound'.");
-
-  // MyInterface2 has default class MyClass.
-  //
-  // MyClass *does not implement* MyInterface2.
-  //
-  // Therefore the constructor call:
-  //
-  //   new MyInterface2.foo()
-  //
-  // Becomes:
-  //
-  //   new MyInterface2.foo() from the class MyClass.
-
-  // Invoke an interface constructor which in turn calls a factory
-  // constructor.
-  result = Dart_New(intf2, NewString("multiply"), 1, args);
   EXPECT_VALID(result);
-  EXPECT_VALID(Dart_ObjectIsType(result, cls2, &instanceof));
-  EXPECT(instanceof);
-  int_value = 0;
-  Dart_Handle bar = Dart_GetField(result, NewString("bar"));
-  EXPECT_VALID(Dart_IntegerToInt64(bar, &int_value));
-  EXPECT_EQ(110000, int_value);
-
-  // Invoke a constructor that is missing in the interface but present
-  // in the default class.
-  result = Dart_New(intf2, NewString("unused"), 1, args);
-  EXPECT_ERROR(result,
-               "Dart_New: could not find constructor 'MyInterface2.unused'.");
-
-  // Invoke a constructor that is present in the interface but missing
-  // in the default class.
-  result = Dart_New(intf2, NewString("notfound"), 1, args);
-  EXPECT_ERROR(result,
-               "Dart_New: could not find factory 'MyInterface2.notfound' "
-               "in class 'MyClass'.");
+  EXPECT_VALID(Dart_ObjectIsType(result, cls, &instanceof));
+  EXPECT(!instanceof);
 }
 
 
@@ -4769,7 +4700,7 @@ TEST_CASE(VariableReflection) {
 
 TEST_CASE(TypeVariableReflection) {
   const char* kScriptChars =
-      "interface UpperBound {}\n"
+      "abstract class UpperBound {}\n"
       "class GenericClass<U, T extends UpperBound> {\n"
       "  T func1() { return null; }\n"
       "  U func2() { return null; }\n"
@@ -5158,10 +5089,10 @@ TEST_CASE(LibraryGetClassNames) {
       "\n"
       "class A {}\n"
       "class B {}\n"
-      "interface C {}\n"
+      "abstract class C {}\n"
       "class _A {}\n"
       "class _B {}\n"
-      "interface _C {}\n"
+      "abstract class _C {}\n"
       "\n"
       "_compare(String a, String b) => a.compareTo(b);\n"
       "sort(list) => list.sort(_compare);\n";
@@ -6017,13 +5948,13 @@ TEST_CASE(ImportLibrary4) {
 TEST_CASE(ImportLibrary5) {
   const char* kScriptChars =
       "import 'lib.dart';\n"
-      "interface Y {\n"
+      "abstract class Y {\n"
       "  void set handler(void callback(List<int> x));\n"
       "}\n"
       "void main() {}\n";
   const char* kLibraryChars =
       "library lib.dart;\n"
-      "interface X {\n"
+      "abstract class X {\n"
       "  void set handler(void callback(List<int> x));\n"
       "}\n";
   Dart_Handle result;
