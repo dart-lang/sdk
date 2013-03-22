@@ -166,15 +166,14 @@ Future<List<String>> listDir(String dir,
             if (!includeHiddenFiles && path.basename(file).startsWith('.')) {
               return;
             }
-            contents.add(path.join(dir, path.basename(file)));
+            contents.add(file);
           } else if (entity is Directory) {
             var file = entity.path;
             if (!includeHiddenFiles && path.basename(file).startsWith('.')) {
               return;
             }
-            file = path.join(dir, path.basename(file));
             contents.add(file);
-            // TODO(nweiz): don't manually recurse once issue 7358 is fixed.
+            // TODO(nweiz): don't manually recurse once issue 4794 is fixed.
             // Note that once we remove the manual recursion, we'll need to
             // explicitly filter out files in hidden directories.
             if (recursive) {
