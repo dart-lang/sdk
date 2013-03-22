@@ -16,9 +16,6 @@ io/raw_server_socket_cancel_test: Pass, Fail, Timeout # Issue 8675
 # Issue 8232.
 debugger/basic_debugger_test: Pass, Fail
 
-# Crashing on Linux and Mac
-io/directory_fuzz_test: Pass, Crash # Issue 9369
-
 [ $runtime == vm && $checked ]
 # These tests have type errors on purpose.
 io/process_invalid_arguments_test: Fail, OK
