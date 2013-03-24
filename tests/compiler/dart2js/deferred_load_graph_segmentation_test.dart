@@ -17,7 +17,7 @@ import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
        as dart2js;
 
 import '../../../sdk/lib/_internal/compiler/implementation/filenames.dart'
-       show getCurrentDirectory;
+       show getCurrentDirectory, nativeToUriPath;
 
 import '../../../sdk/lib/_internal/compiler/implementation/source_file.dart'
        show SourceFile;
@@ -42,7 +42,7 @@ class MemorySourceFileProvider extends SourceFileProvider {
 
 void main() {
   Uri cwd = getCurrentDirectory();
-  Uri script = cwd.resolve(new Options().script);
+  Uri script = cwd.resolve(nativeToUriPath(new Options().script));
   Uri libraryRoot = script.resolve('../../../sdk/');
   Uri packageRoot = script.resolve('./packages/');
 
