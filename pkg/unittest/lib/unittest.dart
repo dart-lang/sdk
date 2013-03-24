@@ -198,12 +198,6 @@ List<TestCase> _tests;
 /** Get the list of tests. */
 List<TestCase> get testCases => _tests;
 
-/**
- * Callback used to run tests. Entrypoints can replace this with their own
- * if they want.
- */
-Function _testRunner;
-
 /** Setup function called before each test in a group */
 Function _testSetup;
 
@@ -638,7 +632,7 @@ void tearDown(Function teardownTest) {
 void _nextTestCase() {
   _defer(() {
     _currentTest++;
-    _testRunner();
+    _nextBatch();
   });
 }
 
@@ -705,7 +699,7 @@ void runTests() {
   _config.onStart();
 
   _defer(() {
-    _testRunner();
+    _nextBatch();
   });
 }
 
@@ -740,7 +734,7 @@ void registerException(e, [trace]) {
 /**
  * Registers that an exception was caught for the current test.
  */
-_registerException(testNum, e, [trace]) {
+void _registerException(testNum, e, [trace]) {
   trace = trace == null ? '' : trace.toString();
   String message = (e is TestFailure) ? e.message : 'Caught $e';
   if (_tests[testNum].result == null) {
@@ -755,7 +749,7 @@ _registerException(testNum, e, [trace]) {
  * running. Tests will resume executing when such asynchronous test calls
  * [done] or if it fails with an exception.
  */
-_nextBatch() {
+void _nextBatch() {
   while (true) {
     if (_currentTest >= _tests.length) {
       _completeTests();
@@ -774,7 +768,7 @@ _nextBatch() {
 }
 
 /** Publish results on the page and notify controller. */
-_completeTests() {
+void _completeTests() {
   if (!_initialized) return;
   int passed = 0;
   int failed = 0;
@@ -810,7 +804,6 @@ void ensureInitialized() {
   wrapAsync = (f, [id]) => expectAsync1(f, id: id);
 
   _tests = <TestCase>[];
-  _testRunner = _nextBatch;
   _uncaughtErrorMessage = null;
 
   if (_config == null) {
