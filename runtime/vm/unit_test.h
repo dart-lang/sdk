@@ -360,6 +360,22 @@ class CompilerTest : public AllStatic {
     }                                                                          \
   } while (0)
 
+#define EXPECT_TRUE(handle)                                                    \
+  do {                                                                         \
+    Dart_Handle tmp_handle = (handle);                                         \
+    if (Dart_IsBoolean(tmp_handle)) {                                          \
+      bool value;                                                              \
+      Dart_BooleanValue(tmp_handle, &value);                                   \
+      if (!value) {                                                            \
+        dart::Expect(__FILE__, __LINE__).Fail("expected True, but was '%s'\n", \
+            #handle);                                                          \
+      }                                                                        \
+    } else {                                                                   \
+      dart::Expect(__FILE__, __LINE__).Fail("expected True, but was '%s'\n",   \
+          #handle);                                                            \
+    }                                                                          \
+  } while (0)
+
 }  // namespace dart
 
 #endif  // VM_UNIT_TEST_H_
