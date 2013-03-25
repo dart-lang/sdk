@@ -46,7 +46,6 @@ class Exceptions : AllStatic {
                                       const String& dst_type_name,
                                       const String& dst_name,
                                       const String& malformed_error);
-  static const char* CreateStackTrace();
 
   enum ExceptionType {
     kNone,

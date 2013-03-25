@@ -457,11 +457,6 @@ class Isolate : public BaseIsolate {
   intptr_t deopt_frame_copy_size_;
   DeferredObject* deferred_objects_;
 
-  // Status support.
-  const char* stacktrace_;
-  static bool FetchStacktrace();
-  const char* GetStatusStacktrace();
-
   static Dart_IsolateCreateCallback create_callback_;
   static Dart_IsolateInterruptCallback interrupt_callback_;
   static Dart_IsolateUnhandledExceptionCallback unhandled_exception_callback_;
