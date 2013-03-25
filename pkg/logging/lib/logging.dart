@@ -11,7 +11,9 @@ library logging;
 
 import 'dart:async';
 
-import '../../meta/lib/meta.dart';
+// Please leave the pkg in place here, as the publish_pkg.py script
+// needs it to rewrite imports correctly.
+import '../../../pkg/meta/lib/meta.dart';
 
 /**
  * Whether to allow fine-grain logging and configuration of loggers in a
