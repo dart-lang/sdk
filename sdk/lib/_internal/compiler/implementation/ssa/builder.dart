@@ -296,7 +296,7 @@ class LocalsHandler {
     JavaScriptBackend backend = compiler.backend;
     if (backend.isInterceptedMethod(element)) {
       bool isInterceptorClass = backend.isInterceptorClass(cls.declaration);
-      SourceString name = (cls == compiler.objectClass || isInterceptorClass)
+      SourceString name = isInterceptorClass
           ? const SourceString('receiver')
           : const SourceString('_');
       Element parameter = new InterceptedElement(
@@ -886,27 +886,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     assert(elements[function] != null);
     openFunction(functionElement, function);
     SourceString name = functionElement.name;
-    // If [functionElement] is operator== we explicitely add a null
-    // check at the beginning of the method. This is to avoid having
-    // call sites do the null check.
+    // If [functionElement] is `operator==` we explicitely add a null check at
+    // the beginning of the method. This is to avoid having call sites do the
+    // null check.
     if (name == const SourceString('==')) {
-      if (functionElement.getEnclosingClass() == compiler.objectClass) {
-        // We special case [Object.operator==] because we know the receiver is
-        // not null (that case goes via a call site check or the JSNull
-        // interceptor) and therefore can just do an identity check on `this`.
-
-        // TODO(sra): This method uses the explicit receiver calling convention
-        // so that interceptors may inherit it.  If we make all interceptors
-        // inherit from a common Interceptor class, we can switch back to the
-        // 'ignored receiver' convention.
-        HInstruction parameter = parameters.values.first;
-        HIdentity identity =
-            new HIdentity(graph.explicitReceiverParameter, parameter);
-        add(identity);
-        HReturn ret = new HReturn(identity);
-        close(ret).addSuccessor(graph.exit);
-        return closeFunction();
-      }
       if (!backend.operatorEqHandlesNullArgument(functionElement)) {
         handleIf(
             function,

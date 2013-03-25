@@ -546,10 +546,12 @@ class Namer implements ClosureNamer {
       if (cls == backend.jsStringClass) return "s";
       if (cls == backend.jsArrayClass) return "a";
       if (cls == backend.jsDoubleClass) return "d";
+      if (cls == backend.jsIntClass) return "i";
       if (cls == backend.jsNumberClass) return "n";
       if (cls == backend.jsNullClass) return "u";
       if (cls == backend.jsFunctionClass) return "f";
       if (cls == backend.jsBoolClass) return "b";
+      if (cls == backend.jsInterceptorClass) return "I";
       return cls.name.slowToString();
     }
     List<String> names = classes
@@ -567,9 +569,10 @@ class Namer implements ClosureNamer {
   }
 
   String getInterceptorName(Element element, Collection<ClassElement> classes) {
-    if (classes.contains(compiler.objectClass)) {
-      // If the object class is in the set of intercepted classes, we
-      // need to go through the generic getInterceptorMethod.
+    if (classes.contains(compiler.backend.jsInterceptorClass)) {
+      // If the base Interceptor class is in the set of intercepted classes, we
+      // need to go through the generic getInterceptorMethod, since any subclass
+      // of the base Interceptor could match.
       return getName(element);
     }
     String suffix = getInterceptorSuffix(classes);
@@ -584,11 +587,12 @@ class Namer implements ClosureNamer {
 
     String root = invocationName(selector);  // Is already safe.
 
-    if (classes.contains(compiler.objectClass)) {
-      // If the object class is in the set of intercepted classes, this is the
-      // most general specialization which uses the generic getInterceptor
-      // method.  To keep the name short, we add '$' only to distinguish from
-      // global getters or setters; operators and methods can't clash.
+    if (classes.contains(compiler.backend.jsInterceptorClass)) {
+      // If the base Interceptor class is in the set of intercepted classes,
+      // this is the most general specialization which uses the generic
+      // getInterceptor method.  To keep the name short, we add '$' only to
+      // distinguish from global getters or setters; operators and methods can't
+      // clash.
       // TODO(sra): Find a way to get the simple name when Object is not in the
       // set of classes for most general variant, e.g. "$lt$n" could be "$lt".
       if (selector.isGetter() || selector.isSetter()) root = '$root\$';

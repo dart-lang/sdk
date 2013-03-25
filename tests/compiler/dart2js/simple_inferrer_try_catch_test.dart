@@ -171,10 +171,13 @@ void main() {
   checkReturn('returnInt6',
       new TypeMask.nonNullSubtype(compiler.intClass.rawType));
 
-  checkReturn('returnDyn1', typesInferrer.dynamicType);
-  checkReturn('returnDyn2', typesInferrer.dynamicType);
-  checkReturn('returnDyn3', typesInferrer.dynamicType);
-  checkReturn('returnDyn4', typesInferrer.dynamicType);
-  checkReturn('returnDyn5', typesInferrer.dynamicType);
+  var subclassOfInterceptor =
+      findTypeMask(compiler, 'Interceptor', 'nonNullSubclass');
+
+  checkReturn('returnDyn1', subclassOfInterceptor);
+  checkReturn('returnDyn2', subclassOfInterceptor);
+  checkReturn('returnDyn3', subclassOfInterceptor);
+  checkReturn('returnDyn4', subclassOfInterceptor);
+  checkReturn('returnDyn5', subclassOfInterceptor);
   checkReturn('returnDyn6', typesInferrer.dynamicType);
 }

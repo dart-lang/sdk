@@ -70,8 +70,12 @@ const String FOREIGN_LIBRARY = r'''
      var arg7, var arg8, var arg9, var arg10, var arg11]) {}''';
 
 const String DEFAULT_INTERCEPTORSLIB = r'''
+  class Interceptor {
+    toString() {}
+    bool operator==(other) => identical(this, other);
+  }
   class JSIndexable {}
-  class JSArray implements List, JSIndexable {
+  class JSArray extends Interceptor implements List, JSIndexable {
     var length;
     operator[](index) {}
     operator[]=(index, value) {}
@@ -80,12 +84,12 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
   class JSMutableArray extends JSArray {}
   class JSFixedArray extends JSMutableArray {}
   class JSExtendableArray extends JSMutableArray {}
-  class JSString implements String, JSIndexable {
+  class JSString extends Interceptor implements String, JSIndexable {
     var length;
     operator[](index) {}
     toString() {}
   }
-  class JSNumber implements num {
+  class JSNumber extends Interceptor implements num {
     // All these methods return a number to please type inferencing.
     operator-() => (this is JSInt) ? 42 : 42.0;
     operator +(other) => (this is JSInt) ? 42 : 42.0;
@@ -110,11 +114,12 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
   }
   class JSDouble extends JSNumber implements double {
   }
-  class JSNull {
+  class JSNull extends Interceptor {
+    bool operator==(other) => identical(null, other);
   }
-  class JSBool implements bool {
+  class JSBool extends Interceptor implements bool {
   }
-  class JSFunction implements Function {
+  class JSFunction extends Interceptor implements Function {
   }
   class ObjectInterceptor {
   }

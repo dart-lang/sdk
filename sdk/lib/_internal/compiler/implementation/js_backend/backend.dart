@@ -634,6 +634,7 @@ class JavaScriptBackend extends Backend {
   final Map<Element, jsAst.Expression> generatedBailoutCode =
       new Map<Element, jsAst.Expression>();
 
+  ClassElement jsInterceptorClass;
   ClassElement jsStringClass;
   ClassElement jsArrayClass;
   ClassElement jsNumberClass;
@@ -838,7 +839,8 @@ class JavaScriptBackend extends Backend {
     interceptedNames =
         compiler.findInterceptor(const SourceString('interceptedNames'));
     List<ClassElement> classes = [
-      compiler.objectClass,
+      jsInterceptorClass =
+          compiler.findInterceptor(const SourceString('Interceptor')),
       jsStringClass = compiler.findInterceptor(const SourceString('JSString')),
       jsArrayClass = compiler.findInterceptor(const SourceString('JSArray')),
       // The int class must be before the double class, because the
@@ -902,20 +904,30 @@ class JavaScriptBackend extends Backend {
         compiler.objectClass, const SourceString('=='));
 
     specialOperatorEqClasses
-        ..add(jsNullClass)
-        ..add(jsNumberClass);
+        ..add(compiler.objectClass)
+        ..add(jsInterceptorClass)
+        ..add(jsNullClass);
+
+    validateInterceptorImplementsAllObjectMethods(jsInterceptorClass);
+  }
+
+  void validateInterceptorImplementsAllObjectMethods(
+      ClassElement interceptorClass) {
+    if (interceptorClass == null) return;
+    compiler.objectClass.forEachMember((_, Element member) {
+      if (member.isGenerativeConstructor()) return;
+      Element interceptorMember = interceptorClass.lookupMember(member.name);
+      // Interceptors must override all Object methods due to calling convention
+      // differences.
+      assert(interceptorMember.getEnclosingClass() != compiler.objectClass);
+    });
   }
 
   void addInterceptorsForNativeClassMembers(
       ClassElement cls, Enqueuer enqueuer) {
     if (enqueuer.isResolutionQueue) {
       cls.ensureResolved(compiler);
-      cls.forEachMember((ClassElement classElement, Element member) {
-          Set<Element> set = interceptedElements.putIfAbsent(
-              member.name, () => new Set<Element>());
-          set.add(member);
-        },
-        includeSuperMembers: true);
+      addInterceptorMembers(cls);
     }
   }
 
@@ -924,19 +936,25 @@ class JavaScriptBackend extends Backend {
                        TreeElements elements) {
     if (enqueuer.isResolutionQueue) {
       cls.ensureResolved(compiler);
-      cls.forEachMember((ClassElement classElement, Element member) {
-          Set<Element> set = interceptedElements.putIfAbsent(
-              member.name, () => new Set<Element>());
-          set.add(member);
-        },
-        includeSuperMembers: true);
+      addInterceptorMembers(cls);
     }
     enqueuer.registerInstantiatedClass(cls, elements);
   }
 
+  void addInterceptorMembers(ClassElement cls) {
+    cls.forEachMember((ClassElement classElement, Element member) {
+        // All methods on [Object] are shadowed by [Interceptor].
+        if (classElement == compiler.objectClass) return;
+        Set<Element> set = interceptedElements.putIfAbsent(
+            member.name, () => new Set<Element>());
+        set.add(member);
+      },
+      includeSuperMembers: true);
+  }
+
   void registerSpecializedGetInterceptor(Set<ClassElement> classes) {
     String name = namer.getInterceptorName(getInterceptorMethod, classes);
-    if (classes.contains(compiler.objectClass)) {
+    if (classes.contains(jsInterceptorClass)) {
       // We can't use a specialized [getInterceptorMethod], so we make
       // sure we emit the one with all checks.
       specializedGetInterceptors[name] = interceptedClasses;
@@ -1203,6 +1221,13 @@ class JavaScriptBackend extends Backend {
 
   bool needsRti(ClassElement cls) {
     return rti.classesNeedingRti.contains(cls) || compiler.enabledRuntimeType;
+  }
+
+  bool isDefaultNoSuchMethodImplementation(Element element) {
+    assert(element.name == Compiler.NO_SUCH_METHOD);
+    ClassElement classElement = element.getEnclosingClass();
+    return classElement == compiler.objectClass
+        || classElement == jsInterceptorClass;
   }
 
   void enqueueInResolution(Element e, TreeElements elements) {

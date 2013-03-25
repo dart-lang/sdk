@@ -19,7 +19,7 @@ void compileAndFind(String code,
   compiler.runCompiler(uri);
   var cls = findElement(compiler, className);
   var member = cls.lookupLocalMember(buildSourceString(memberName));
-  return check(compiler.backend, member);
+  return check(compiler, member);
 }
 
 const String TEST_1 = r"""
@@ -70,7 +70,7 @@ const String TEST_6 = r"""
   }
 """;
 
-const String TEST_7 = r"""
+const String TEST_7a = r"""
   class A {
     x(p) => x("x");
   }
@@ -79,12 +79,21 @@ const String TEST_7 = r"""
   }
 """;
 
-const String TEST_8 = r"""
+const String TEST_7b = r"""
   class A {
-    x(p1, p2) => x(p1, "x");
+    x(p) => x("x");
   }
   main() {
-    new A().x(1, 2);
+    new A().x({});
+  }
+""";
+
+const String TEST_8 = r"""
+  class A {
+    x(p1, p2, p3) => x(p1, "x", {});
+  }
+  main() {
+    new A().x(1, 2, 3);
   }
 """;
 
@@ -202,17 +211,22 @@ const String TEST_18 = r"""
 
 void doTest(String test,
             bool enableInlining,
-            List<HType> expectedTypes,
+            List expectedTypes,  // HTypes, or functions constructing HTypes.
             OptionalParameterTypes defaultTypes) {
   compileAndFind(
     test,
     'A',
     'x',
     enableInlining,
-    (backend, x) {
-      HTypeList types = backend.optimisticParameterTypes(x, defaultTypes);
+    (compiler, x) {
+      HTypeList types =
+          compiler.backend.optimisticParameterTypes(x, defaultTypes);
       if (expectedTypes != null) {
+        expectedTypes = expectedTypes
+            .map((e) => e is HType ? e : e(compiler))
+            .toList();
         Expect.isFalse(types.allUnknown);
+        Expect.equals(expectedTypes.length, types.types.length);
         Expect.listEquals(expectedTypes, types.types);
       } else {
         Expect.isTrue(types.allUnknown);
@@ -230,17 +244,21 @@ void runTest(String test,
 void test() {
   OptionalParameterTypes defaultTypes;
 
+  subclassOfInterceptor(compiler) =>
+      findHType(compiler, 'Interceptor', 'nonNullSubclass');
+
   runTest(TEST_1, [HType.STRING]);
   runTest(TEST_2, [HType.INTEGER]);
   runTest(TEST_3, [HType.INTEGER]);
   runTest(TEST_4, [HType.DOUBLE]);
   runTest(TEST_5, [HType.NUMBER]);
   runTest(TEST_6, [HType.NUMBER]);
-  runTest(TEST_7, [HType.NON_NULL]);
-  runTest(TEST_8, [HType.INTEGER, HType.NON_NULL]);
+  runTest(TEST_7a, [subclassOfInterceptor]);
+  runTest(TEST_7b, [HType.NON_NULL]);
+  runTest(TEST_8, [HType.INTEGER, subclassOfInterceptor, HType.NON_NULL]);
   runTest(TEST_9, [HType.INTEGER, HType.INTEGER]);
   runTest(TEST_10, [HType.INTEGER, HType.INTEGER]);
-  runTest(TEST_11, [HType.NON_NULL, HType.NON_NULL]);
+  runTest(TEST_11, [subclassOfInterceptor, subclassOfInterceptor]);
 
   defaultTypes = new OptionalParameterTypes(1);
   defaultTypes.update(0, const SourceString("p2"), HType.INTEGER);
@@ -266,7 +284,7 @@ void test() {
   defaultTypes.update(1, const SourceString("p3"), HType.STRING);
   runTest(TEST_17, [HType.INTEGER, HType.BOOLEAN, HType.DOUBLE], defaultTypes);
 
-  runTest(TEST_18, [HType.NON_NULL, HType.NON_NULL]);
+  runTest(TEST_18, [subclassOfInterceptor, subclassOfInterceptor]);
 }
 
 void main() {
