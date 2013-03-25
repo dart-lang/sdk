@@ -35,8 +35,6 @@ ReceivePort get port => _Isolate.port;
  * exception inside the isolate is unhandled. It can be seen as a big
  * `try/catch` around everything that is executed inside the isolate. The
  * callback should return `true` when it was able to handled the exception.
- *
- * See comments at the top of this library for more details.
  */
 SendPort spawnFunction(void topLevelFunction(),
     [bool unhandledExceptionCallback(IsolateUnhandledException e)])
@@ -46,8 +44,6 @@ SendPort spawnFunction(void topLevelFunction(),
  * Creates and spawns an isolate whose code is available at [uri].  Like with
  * [spawnFunction], the child isolate will have a default [ReceivePort], and a
  * this function returns a [SendPort] derived from it.
- *
- * See comments at the top of this library for more details.
  */
 SendPort spawnUri(String uri) => _Isolate.spawnUri(uri);
 
