@@ -62,7 +62,6 @@ debugger/*: Skip # Do not run standalone debugger tests in browser.
 
 # package test issue 7392
 package/package1_test: Fail
-package/package_isolate_test: Fail
 package/package_test: Fail
 
 
