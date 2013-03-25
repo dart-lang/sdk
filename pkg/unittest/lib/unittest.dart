@@ -165,20 +165,23 @@ import 'mock.dart';
 part 'src/config.dart';
 part 'src/test_case.dart';
 
-/** [Configuration] used by the unittest library. */
-Configuration _config = null;
+Configuration _config;
 
-Configuration get config => _config;
+/** [Configuration] used by the unittest library. */
+Configuration get unittestConfiguration => _config;
 
 /**
- * Set the [Configuration] used by the unittest library. Returns any
- * previous configuration.
- * TODO: consider deprecating in favor of a setter now we have a getter.
+ * Sets the [Configuration] used by the unittest library.
+ *
+ * Throws a [StateError] if there is an existing, incompatible value.
  */
-Configuration configure(Configuration config) {
-  Configuration _oldConfig = _config;
-  _config = config;
-  return _oldConfig;
+void set unittestConfiguration(Configuration value) {
+  if(!identical(_config, value)) {
+    if(_config != null) {
+      throw new StateError('unittestConfiguration has already been set');
+    }
+    _config = value;
+  }
 }
 
 void logMessage(String message) => _config.logMessage(message);
@@ -807,7 +810,7 @@ void ensureInitialized() {
   _uncaughtErrorMessage = null;
 
   if (_config == null) {
-    _config = new Configuration();
+    unittestConfiguration = new Configuration();
   }
   _config.onInit();
 

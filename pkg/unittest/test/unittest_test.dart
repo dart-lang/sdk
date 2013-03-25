@@ -17,7 +17,6 @@ import 'package:unittest/unittest.dart';
 var tests; // array of test names
 var expected; // array of test expected results (from buildStatusString)
 var actual; // actual test results (from buildStatusString in config.onDone)
-var _testconfig; // test configuration to capture onDone
 
 Future _defer(void fn()) {
   return new Future.of(fn);
@@ -54,7 +53,7 @@ class TestConfiguration extends Configuration {
   String teardown = ''; // the name of the test group teardown function, if any
 
   // The port to communicate with the parent isolate
-  SendPort _port;
+  final SendPort _port;
   String _result;
 
   TestConfiguration(this._port);
@@ -73,7 +72,9 @@ class TestConfiguration extends Configuration {
 
 runTest() {
   port.receive((testName, sendport) {
-    configure(_testconfig = new TestConfiguration(sendport));
+    var _testconfig= new TestConfiguration(sendport);
+    unittestConfiguration = _testconfig;
+
     if (testName == 'single correct test') {
       test(testName, () => expect(2 + 3, equals(5)));
     } else if (testName == 'single failing test') {

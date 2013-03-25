@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -9,7 +9,6 @@ library unittest_vm_config;
 
 import 'dart:io';
 import 'unittest.dart';
-import 'package:meta/meta.dart';
 
 class VMConfiguration extends Configuration {
   void onDone(bool success) {
@@ -25,9 +24,7 @@ class VMConfiguration extends Configuration {
 }
 
 void useVMConfiguration() {
-  if (config != null) return;
-  configure(new VMConfiguration());
+  unittestConfiguration = _singleton;
 }
 
-@deprecated
-void useVmConfiguration() => useVMConfiguration();
+final _singleton = new VMConfiguration();

@@ -171,6 +171,7 @@ class CompactVMConfiguration extends VMConfiguration {
 }
 
 void useCompactVMConfiguration() {
-  if (config != null) return;
-  configure(new CompactVMConfiguration());
+  unittestConfiguration = _singleton;
 }
+
+final _singleton = new CompactVMConfiguration();

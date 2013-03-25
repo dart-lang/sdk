@@ -184,8 +184,10 @@ String _indent(String str) {
 
 /// Ensure that the metatest configuration is loaded.
 void _ensureInitialized() {
-  if (config is! _MetaConfiguration) configure(new _MetaConfiguration());
+  unittestConfiguration = _singleton;
 }
+
+final _singleton = new _MetaConfiguration();
 
 /// Special test configuration for use within the child isolates. This hides all
 /// output and reports data back to the parent isolate.
