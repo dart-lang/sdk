@@ -93,4 +93,46 @@ main() {
       });
     }
   });
+
+  group('KeyEvent', () {
+    keydownHandlerTest(KeyEvent e) {
+      document.body.innerHtml =
+          '${document.body.innerHtml}KeyDOWN: CharCode: ${e.charCode}, KeyCode:'
+          ' ${e.keyCode}<br />';
+      expect(e.charCode, 0);
+    }
+    keypressHandlerTest(KeyEvent e) {
+      document.body.innerHtml =
+          '${document.body.innerHtml}KeyPRESS: CharCode: ${e.charCode}, '
+          'KeyCode: ${e.keyCode}<br />';
+    }
+    keyupHandlerTest(KeyEvent e) {
+      document.body.innerHtml =
+          '${document.body.innerHtml}KeyUP: CharCode: ${e.charCode}, KeyCode:'
+          ' ${e.keyCode}<br />';
+      expect(e.charCode, 0);
+    }
+    keyupHandlerTest2(KeyEvent e) {
+      document.body.innerHtml =
+          '${document.body.innerHtml}A second KeyUP handler: CharCode: '
+          '${e.charCode}, KeyCode: ${e.keyCode}<br />';
+      expect(e.charCode, 0);
+    }
+    test('keys', () {
+      document.body.innerHtml =
+          '${document.body.innerHtml}To test keyboard event values, press some '
+          'keys on your keyboard.<br /><br />The charcode for keydown and keyup'
+          ' should be 0, and the keycode should (generally) be populated with a'
+          ' value. Keycode and charcode should both have values for the '
+          'keypress event.';
+      new KeyboardEventStream.onKeyDown(document.body).listen(
+          keydownHandlerTest);
+      new KeyboardEventStream.onKeyPress(document.body).listen(
+          keypressHandlerTest);
+      new KeyboardEventStream.onKeyUp(document.body).listen(
+          keyupHandlerTest);
+      new KeyboardEventStream.onKeyUp(document.body).listen(
+          keyupHandlerTest2);
+    });
+  });
 }

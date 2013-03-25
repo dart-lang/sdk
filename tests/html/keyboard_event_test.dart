@@ -23,9 +23,9 @@ main() {
     // values (a KeyboardEvent can be "init"-ed but not all the information can
     // be programmatically populated. It exists as an example for how to use
     // KeyboardEventController more than anything else.
-    var controller = new KeyboardEventController.keydown(document.body);
-    var func = keydownHandlerTest;
-    controller.add(func);
+    new KeyboardEventStream.onKeyDown(document.body).listen(
+        keydownHandlerTest);
+    KeyEvent.keyDownEvent.forTarget(document.body).listen(keydownHandlerTest);
     document.body.onKeyDown.listen((e) => print('regular listener'));
   });
 }

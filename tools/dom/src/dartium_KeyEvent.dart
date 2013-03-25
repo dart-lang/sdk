@@ -3,6 +3,9 @@
  * inconsistencies, and also provide both keyCode and charCode information
  * for all key events (when such information can be determined).
  *
+ * KeyEvent tries to provide a higher level, more polished keyboard event
+ * information on top of the "raw" [KeyboardEvent].
+ *
  * This class is very much a work in progress, and we'd love to get information
  * on how we can make this class work with as many international keyboards as
  * possible. Bugs welcome!
@@ -41,13 +44,23 @@ class KeyEvent implements KeyboardEvent {
   /** Accessor to the underlying altKey value is the parent event. */
   bool get _realAltKey => _parent.altKey;
 
-  /** Construct a KeyEvent with [parent] as event we're emulating. */
+  /** Construct a KeyEvent with [parent] as the event we're emulating. */
   KeyEvent(KeyboardEvent parent) {
     _parent = parent;
     _shadowAltKey = _realAltKey;
     _shadowCharCode = _realCharCode;
     _shadowKeyCode = _realKeyCode;
   }
+
+  /** Accessor to provide a stream of KeyEvents on the desired target. */
+  static EventStreamProvider<KeyEvent> keyDownEvent =
+    _KeyboardEventHandler('keydown');
+  /** Accessor to provide a stream of KeyEvents on the desired target. */
+  static EventStreamProvider<KeyEvent> keyUpEvent =
+    _KeyboardEventHandler('keyup');
+  /** Accessor to provide a stream of KeyEvents on the desired target. */
+  static EventStreamProvider<KeyEvent> keyPressEvent =
+    _KeyboardEventHandler('keypress');
 
   /** True if the altGraphKey is pressed during this event. */
   bool get altGraphKey => _parent.altGraphKey;

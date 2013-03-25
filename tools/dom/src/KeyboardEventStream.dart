@@ -5,17 +5,10 @@
 part of html;
 
 /**
- * Works with KeyboardEvent and KeyEvent to determine how to expose information
- * about Key(board)Events. This class functions like an EventListenerList, and
- * provides a consistent interface for the Dart
- * user, despite the fact that a multitude of browsers that have varying
- * keyboard default behavior.
- *
- * This class is very much a work in progress, and we'd love to get information
- * on how we can make this class work with as many international keyboards as
- * possible. Bugs welcome!
+ * Internal class that does the actual calculations to determine keyCode and
+ * charCode for keydown, keypress, and keyup events for all browsers.
  */
-class KeyboardEventController {
+class _KeyboardEventHandler implements EventStreamProvider<KeyEvent> {
   // This code inspired by Closure's KeyHandling library.
   // http://closure-library.googlecode.com/svn/docs/closure_goog_events_keyhandler.js.source.html
 
@@ -37,8 +30,8 @@ class KeyboardEventController {
   // The distance to shift from upper case alphabet Roman letters to lower case.
   final int _ROMAN_ALPHABET_OFFSET = "a".codeUnits[0] - "A".codeUnits[0];
 
-  StreamSubscription _keyUpSubscription, _keyDownSubscription,
-      _keyPressSubscription;
+  /** Controller to produce KeyEvents for the stream. */
+  StreamController _controller;
 
   /**
    * An enumeration of key identifiers currently part of the W3C draft for DOM3
@@ -71,53 +64,41 @@ class KeyboardEventController {
     'Insert': KeyCode.INSERT
   };
 
-  /** Named constructor to add an onKeyPress event listener to our handler. */
-  KeyboardEventController.keypress(EventTarget target) {
-    _KeyboardEventController(target, 'keypress');
-  }
+  /**
+   * Gets the type of the event which this would listen for on the specified
+   * event target.
+   */
+  String getEventType(EventTarget target) => 'KeyEvent';
 
-  /** Named constructor to add an onKeyUp event listener to our handler. */
-  KeyboardEventController.keyup(EventTarget target) {
-    _KeyboardEventController(target, 'keyup');
-  }
-
-  /** Named constructor to add an onKeyDown event listener to our handler. */
-  KeyboardEventController.keydown(EventTarget target) {
-    _KeyboardEventController(target, 'keydown');
+  /** Return a stream for KeyEvents for the specified target. */
+  Stream<KeyEvent> forTarget(EventTarget e, {bool useCapture: false}) {
+    _initializeAllEventListeners(e);
+    return _controller.stream;
   }
 
   /**
    * General constructor, performs basic initialization for our improved
    * KeyboardEvent controller.
    */
-  _KeyboardEventController(EventTarget target, String type) {
-    _callbacks = [];
+  _KeyboardEventHandler(String type) {
     _type = type;
-    _target = target;
+    _controller = new StreamController.broadcast();
+    _callbacks = [];
   }
 
   /**
    * Hook up all event listeners under the covers so we can estimate keycodes
    * and charcodes when they are not provided.
    */
-  void _initializeAllEventListeners() {
+  _initializeAllEventListeners(EventTarget target) {
+    _target = target;
     _keyDownList = [];
-    if (_keyDownSubscription == null) {
-      _keyDownSubscription = Element.keyDownEvent.forTarget(
-          _target, useCapture: true).listen(processKeyDown);
-      _keyPressSubscription = Element.keyPressEvent.forTarget(
-          _target, useCapture: true).listen(processKeyUp);
-      _keyUpSubscription = Element.keyUpEvent.forTarget(
-          _target, useCapture: true).listen(processKeyPress);
-    }
-  }
-
-  /** Add a callback that wishes to be notified when a KeyEvent occurs. */
-  void add(void callback(KeyEvent)) {
-    if (_callbacks.length == 0) {
-      _initializeAllEventListeners();
-    }
-    _callbacks.add(callback);
+    Element.keyDownEvent.forTarget(_target, useCapture: true).listen(
+        processKeyDown);
+    Element.keyPressEvent.forTarget(_target, useCapture: true).listen(
+        processKeyPress);
+    Element.keyUpEvent.forTarget(_target, useCapture: true).listen(
+        processKeyUp);
   }
 
   /**
@@ -125,31 +106,8 @@ class KeyboardEventController {
    * occurred.
    */
   bool _dispatch(KeyEvent event) {
-    if (event.type == _type) {
-      // Make a copy of the listeners in case a callback gets removed while
-      // dispatching from the list.
-      List callbacksCopy = new List.from(_callbacks);
-      for(var callback in callbacksCopy) {
-        callback(event);
-      }
-    }
-  }
-
-  /** Remove the given callback from the listeners list. */
-  void remove(void callback(KeyEvent)) {
-    var index = _callbacks.indexOf(callback);
-    if (index != -1) {
-      _callbacks.removeAt(index);
-    }
-    if (_callbacks.length == 0) {
-      // If we have no listeners, don't bother keeping track of keypresses.
-      _keyDownSubscription.cancel();
-      _keyDownSubscription = null;
-      _keyPressSubscription.cancel();
-      _keyPressSubscription = null;
-      _keyUpSubscription.cancel();
-      _keyUpSubscription = null;
-    }
+    if (event.type == _type)
+      _controller.add(event);
   }
 
   /** Determine if caps lock is one of the currently depressed keys. */
@@ -407,4 +365,35 @@ class KeyboardEventController {
     }
     _dispatch(e);
   }
+}
+
+
+/**
+ * Records KeyboardEvents that occur on a particular element, and provides a
+ * stream of outgoing KeyEvents with cross-browser consistent keyCode and
+ * charCode values despite the fact that a multitude of browsers that have
+ * varying keyboard default behavior.
+ *
+ * Example usage:
+ *
+ *     new KeyboardEventStream.onKeyDown(document.body).listen(
+ *         keydownHandlerTest);
+ *
+ * This class is very much a work in progress, and we'd love to get information
+ * on how we can make this class work with as many international keyboards as
+ * possible. Bugs welcome!
+ */
+class KeyboardEventStream extends Stream<KeyEvent> {
+
+  /** Named constructor to produce a stream for onKeyPress events. */
+  factory KeyboardEventStream.onKeyPress(EventTarget target) =>
+      new _KeyboardEventHandler('keypress').forTarget(target);
+
+  /** Named constructor to produce a stream for onKeyUp events. */
+  factory KeyboardEventStream.onKeyUp(EventTarget target) =>
+      new _KeyboardEventHandler('keyup').forTarget(target);
+
+  /** Named constructor to produce a stream for onKeyDown events. */
+  factory KeyboardEventStream.onKeyDown(EventTarget target) =>
+    new _KeyboardEventHandler('keydown').forTarget(target);
 }
