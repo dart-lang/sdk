@@ -2329,47 +2329,61 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
 static Dart_TypedData_Type GetType(intptr_t class_id) {
   Dart_TypedData_Type type;
   switch (class_id) {
+    case kByteDataViewCid :
+      type = kByteData;
+      break;
     case kTypedDataInt8ArrayCid :
+    case kTypedDataInt8ArrayViewCid :
     case kExternalTypedDataInt8ArrayCid :
       type = kInt8;
       break;
     case kTypedDataUint8ArrayCid :
+    case kTypedDataUint8ArrayViewCid :
     case kExternalTypedDataUint8ArrayCid :
       type = kUint8;
       break;
     case kTypedDataUint8ClampedArrayCid :
+    case kTypedDataUint8ClampedArrayViewCid :
     case kExternalTypedDataUint8ClampedArrayCid :
       type = kUint8Clamped;
       break;
     case kTypedDataInt16ArrayCid :
+    case kTypedDataInt16ArrayViewCid :
     case kExternalTypedDataInt16ArrayCid :
       type = kInt16;
       break;
     case kTypedDataUint16ArrayCid :
+    case kTypedDataUint16ArrayViewCid :
     case kExternalTypedDataUint16ArrayCid :
       type = kUint16;
       break;
     case kTypedDataInt32ArrayCid :
+    case kTypedDataInt32ArrayViewCid :
     case kExternalTypedDataInt32ArrayCid :
       type = kInt32;
       break;
     case kTypedDataUint32ArrayCid :
+    case kTypedDataUint32ArrayViewCid :
     case kExternalTypedDataUint32ArrayCid :
       type = kUint32;
       break;
     case kTypedDataInt64ArrayCid :
+    case kTypedDataInt64ArrayViewCid :
     case kExternalTypedDataInt64ArrayCid :
       type = kInt64;
       break;
     case kTypedDataUint64ArrayCid :
+    case kTypedDataUint64ArrayViewCid :
     case kExternalTypedDataUint64ArrayCid :
       type = kUint64;
       break;
     case kTypedDataFloat32ArrayCid :
+    case kTypedDataFloat32ArrayViewCid :
     case kExternalTypedDataFloat32ArrayCid :
       type = kFloat32;
       break;
     case kTypedDataFloat64ArrayCid :
+    case kTypedDataFloat64ArrayViewCid :
     case kExternalTypedDataFloat64ArrayCid :
       type = kFloat64;
       break;
@@ -2383,17 +2397,9 @@ static Dart_TypedData_Type GetType(intptr_t class_id) {
 
 DART_EXPORT Dart_TypedData_Type Dart_GetTypeOfTypedData(Dart_Handle object) {
   intptr_t class_id = Api::ClassId(object);
-  if (RawObject::IsTypedDataClassId(class_id)) {
+  if (RawObject::IsTypedDataClassId(class_id) ||
+      RawObject::IsTypedDataViewClassId(class_id)) {
     return GetType(class_id);
-  }
-  Isolate* isolate = Isolate::Current();
-  const Library& lib =
-      Library::Handle(isolate->object_store()->typeddata_library());
-  const Class& cls =
-      Class::Handle(isolate,
-                    lib.LookupClassAllowPrivate(Symbols::_ByteDataView()));
-  if (isolate->class_table()->At(class_id) == cls.raw()) {
-    return kByteData;
   }
   return kInvalid;
 }
@@ -2402,17 +2408,9 @@ DART_EXPORT Dart_TypedData_Type Dart_GetTypeOfTypedData(Dart_Handle object) {
 DART_EXPORT Dart_TypedData_Type Dart_GetTypeOfExternalTypedData(
     Dart_Handle object) {
   intptr_t class_id = Api::ClassId(object);
-  if (RawObject::IsExternalTypedDataClassId(class_id)) {
+  if (RawObject::IsExternalTypedDataClassId(class_id) ||
+      RawObject::IsTypedDataViewClassId(class_id)) {
     return GetType(class_id);
-  }
-  Isolate* isolate = Isolate::Current();
-  const Library& lib =
-      Library::Handle(isolate->object_store()->typeddata_library());
-  const Class& cls =
-      Class::Handle(isolate,
-                    lib.LookupClassAllowPrivate(Symbols::_ByteDataView()));
-  if (isolate->class_table()->At(class_id) == cls.raw()) {
-    return kByteData;
   }
   return kInvalid;
 }
@@ -2675,6 +2673,7 @@ DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
   DARTSCOPE(isolate);
   intptr_t class_id = Api::ClassId(object);
   if (!RawObject::IsExternalTypedDataClassId(class_id) &&
+      !RawObject::IsTypedDataViewClassId(class_id) &&
       !RawObject::IsTypedDataClassId(class_id)) {
     RETURN_TYPE_ERROR(isolate, object, 'TypedData');
   }
@@ -2695,15 +2694,33 @@ DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
         Api::UnwrapExternalTypedDataHandle(isolate, object);
     ASSERT(!obj.IsNull());
     *len = obj.Length();
-    *data = reinterpret_cast<void*>(obj.DataAddr(0));
-  } else {
+    *data = obj.DataAddr(0);
+  } else if (RawObject::IsTypedDataClassId(class_id)) {
     // Regular typed data object, set up some GC and API callback guards.
     const TypedData& obj = Api::UnwrapTypedDataHandle(isolate, object);
     ASSERT(!obj.IsNull());
     *len = obj.Length();
     isolate->IncrementNoGCScopeDepth();
     START_NO_CALLBACK_SCOPE(isolate);
-    *data = reinterpret_cast<void*>(obj.DataAddr(0));
+    *data = obj.DataAddr(0);
+  } else {
+    // typed data view object, set up some GC and API callback guards.
+    // TODO(asiva): Have to come up with a scheme to directly access
+    // the fields using offsets for a more efficient implementation.
+    Dart_Handle field_name = Dart_NewStringFromCString("length");
+    Dart_Handle field_value = Dart_GetField(object, field_name);
+    ASSERT(Api::IsSmi(field_value));
+    *len = Api::SmiValue(field_value);
+    field_name = Dart_NewStringFromCString("offsetInBytes");
+    field_value = Dart_GetField(object, field_name);
+    ASSERT(Api::IsSmi(field_value));
+    intptr_t offset_in_bytes = Api::SmiValue(field_value);
+    field_name = Dart_NewStringFromCString("_typeddata");
+    field_value = Dart_GetField(object, field_name);
+    const TypedData& obj = Api::UnwrapTypedDataHandle(isolate, field_value);
+    isolate->IncrementNoGCScopeDepth();
+    START_NO_CALLBACK_SCOPE(isolate);
+    *data = obj.DataAddr(offset_in_bytes);
   }
   return Api::Success(isolate);
 }
@@ -2714,6 +2731,7 @@ DART_EXPORT Dart_Handle Dart_TypedDataReleaseData(Dart_Handle object) {
   DARTSCOPE(isolate);
   intptr_t class_id = Api::ClassId(object);
   if (!RawObject::IsExternalTypedDataClassId(class_id) &&
+      !RawObject::IsTypedDataViewClassId(class_id) &&
       !RawObject::IsTypedDataClassId(class_id)) {
     RETURN_TYPE_ERROR(isolate, object, 'TypedData');
   }

@@ -321,6 +321,15 @@ intptr_t RawObject::VisitPointers(ObjectPointerVisitor* visitor) {
         break;
       }
 #undef RAW_VISITPOINTERS
+#define RAW_VISITPOINTERS(clazz)                                               \
+      case kTypedData##clazz##ViewCid:
+      CLASS_LIST_TYPED_DATA(RAW_VISITPOINTERS)
+      case kByteDataViewCid: {
+        RawInstance* raw_obj = reinterpret_cast<RawInstance*>(this);
+        size = RawInstance::VisitInstancePointers(raw_obj, visitor);
+        break;
+      }
+#undef RAW_VISITPOINTERS
       case kFreeListElement: {
         ASSERT(FreeBit::decode(ptr()->tags_));
         uword addr = RawObject::ToAddr(const_cast<RawObject*>(this));

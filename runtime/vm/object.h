@@ -836,6 +836,9 @@ class Class : public Object {
   // Allocate the raw TypedData classes.
   static RawClass* NewTypedDataClass(intptr_t class_id);
 
+  // Allocate the raw TypedDataView classes.
+  static RawClass* NewTypedDataViewClass(intptr_t class_id);
+
   // Allocate the raw ExternalTypedData classes.
   static RawClass* NewExternalTypedDataClass(intptr_t class_id);
 

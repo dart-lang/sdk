@@ -504,6 +504,12 @@ class SnapshotWriter : public BaseWriter {
                     RawSmi* length,
                     RawAbstractTypeArguments* type_arguments,
                     RawObject* data[]);
+  void CheckIfSerializable(RawClass* cls);
+  void WriteInstance(intptr_t object_id,
+                     RawObject* raw,
+                     RawClass* cls,
+                     intptr_t tags);
+  void WriteInstanceRef(RawObject* raw, RawClass* cls);
 
   ObjectStore* object_store() const { return object_store_; }
 

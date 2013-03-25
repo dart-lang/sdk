@@ -915,6 +915,20 @@ RawError* Object::Init(Isolate* isolate) {
 
   CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_CLASS);
 #undef REGISTER_TYPED_DATA_CLASS
+#define REGISTER_TYPED_DATA_VIEW_CLASS(clazz)                                  \
+  cls = Class::NewTypedDataViewClass(kTypedData##clazz##ViewCid);              \
+  index = kTypedData##clazz##ViewCid - kTypedDataInt8ArrayCid;                 \
+  typeddata_classes.SetAt(index, cls);                                         \
+  RegisterPrivateClass(cls, Symbols::_##clazz##View(), lib);                   \
+  pending_classes.Add(cls, Heap::kOld);                                        \
+
+  CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_VIEW_CLASS);
+  cls = Class::NewTypedDataViewClass(kByteDataViewCid);
+  index = kByteDataViewCid - kTypedDataInt8ArrayCid;
+  typeddata_classes.SetAt(index, cls);
+  RegisterPrivateClass(cls, Symbols::_ByteDataView(), lib);
+  pending_classes.Add(cls, Heap::kOld);
+#undef REGISTER_TYPED_DATA_VIEW_CLASS
 #define REGISTER_EXT_TYPED_DATA_CLASS(clazz)                                   \
   cls = Class::NewExternalTypedDataClass(kExternalTypedData##clazz##Cid);      \
   index = kExternalTypedData##clazz##Cid - kTypedDataInt8ArrayCid;             \
@@ -1108,6 +1122,11 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   cls = Class::NewTypedDataClass(kTypedData##clazz##Cid);
   CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_CLASS);
 #undef REGISTER_TYPED_DATA_CLASS
+#define REGISTER_TYPED_DATA_VIEW_CLASS(clazz)                                  \
+  cls = Class::NewTypedDataViewClass(kTypedData##clazz##ViewCid);
+  CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_VIEW_CLASS);
+  cls = Class::NewTypedDataViewClass(kByteDataViewCid);
+#undef REGISTER_TYPED_DATA_VIEW_CLASS
 #define REGISTER_EXT_TYPED_DATA_CLASS(clazz)                                   \
   cls = Class::NewExternalTypedDataClass(kExternalTypedData##clazz##Cid);
   CLASS_LIST_TYPED_DATA(REGISTER_EXT_TYPED_DATA_CLASS);
@@ -1948,6 +1967,15 @@ RawClass* Class::NewTypedDataClass(intptr_t class_id) {
   result.set_instance_size(instance_size);
   result.set_next_field_offset(instance_size);
   result.set_is_prefinalized();
+  return result.raw();
+}
+
+
+RawClass* Class::NewTypedDataViewClass(intptr_t class_id) {
+  ASSERT(RawObject::IsTypedDataViewClassId(class_id));
+  Class& result = Class::Handle(New<Instance>(class_id));
+  result.set_instance_size(0);
+  result.set_next_field_offset(0);
   return result.raw();
 }
 

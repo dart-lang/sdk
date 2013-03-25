@@ -1982,7 +1982,7 @@ class _Int8ArrayView extends _TypedListView implements Int8List {
       String message = "$index must be in the range [0..$length)";
       throw new RangeError(message);
     }
-    _typeddata. setInt8(offsetInBytes + (index * Int8List.BYTES_PER_ELEMENT),
+    _typeddata._setInt8(offsetInBytes + (index * Int8List.BYTES_PER_ELEMENT),
                         _toInt8(value));
   }
 
@@ -2464,8 +2464,8 @@ class _ByteDataView implements ByteData {
   _ByteDataView(ByteBuffer _buffer, int _offsetInBytes, int _lengthInBytes)
     : _typeddata = _buffer as TypedData,
       _offset = _offsetInBytes,
-      _length = _lengthInBytes {
-    _rangeCheck(_buffer.lengthInBytes, _offset, _length);
+      length = _lengthInBytes {
+    _rangeCheck(_buffer.lengthInBytes, _offset, length);
   }
 
 
@@ -2476,10 +2476,10 @@ class _ByteDataView implements ByteData {
   }
 
   int get lengthInBytes {
-    return _length;
+    return length;
   }
 
-  int offsetInBytes() {
+  int get offsetInBytes {
     return _offset;
   }
 
@@ -2557,7 +2557,7 @@ class _ByteDataView implements ByteData {
 
   final TypedData _typeddata;
   final int _offset;
-  final int _length;
+  final int length;
 }
 
 

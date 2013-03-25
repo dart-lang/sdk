@@ -155,6 +155,12 @@ CLASS_LIST_TYPED_DATA(DEFINE_OBJECT_KIND)
 #undef DEFINE_OBJECT_KIND
 
 #define DEFINE_OBJECT_KIND(clazz)                                              \
+  kTypedData##clazz##ViewCid,
+CLASS_LIST_TYPED_DATA(DEFINE_OBJECT_KIND)
+  kByteDataViewCid,
+#undef DEFINE_OBJECT_KIND
+
+#define DEFINE_OBJECT_KIND(clazz)                                              \
   kExternalTypedData##clazz##Cid,
 CLASS_LIST_TYPED_DATA(DEFINE_OBJECT_KIND)
 #undef DEFINE_OBJECT_KIND
@@ -392,6 +398,7 @@ class RawObject {
   static bool IsByteArrayClassId(intptr_t index);
   static bool IsExternalByteArrayClassId(intptr_t index);
   static bool IsTypedDataClassId(intptr_t index);
+  static bool IsTypedDataViewClassId(intptr_t index);
   static bool IsExternalTypedDataClassId(intptr_t index);
 
   static intptr_t NumberOfTypedDataClasses();
@@ -1874,9 +1881,28 @@ inline bool RawObject::IsTypedDataClassId(intptr_t index) {
          kTypedDataUint64ArrayCid == kTypedDataInt8ArrayCid + 8 &&
          kTypedDataFloat32ArrayCid == kTypedDataInt8ArrayCid + 9 &&
          kTypedDataFloat64ArrayCid == kTypedDataInt8ArrayCid + 10 &&
-         kExternalTypedDataInt8ArrayCid == kTypedDataInt8ArrayCid + 11);
+         kTypedDataInt8ArrayViewCid == kTypedDataInt8ArrayCid + 11);
   return (index >= kTypedDataInt8ArrayCid &&
           index <= kTypedDataFloat64ArrayCid);
+}
+
+
+inline bool RawObject::IsTypedDataViewClassId(intptr_t index) {
+  // Make sure this is updated when new TypedData types are added.
+  ASSERT(kTypedDataUint8ArrayViewCid == kTypedDataInt8ArrayViewCid + 1 &&
+         kTypedDataUint8ClampedArrayViewCid == kTypedDataInt8ArrayViewCid + 2 &&
+         kTypedDataInt16ArrayViewCid == kTypedDataInt8ArrayViewCid + 3 &&
+         kTypedDataUint16ArrayViewCid == kTypedDataInt8ArrayViewCid + 4 &&
+         kTypedDataInt32ArrayViewCid == kTypedDataInt8ArrayViewCid + 5 &&
+         kTypedDataUint32ArrayViewCid == kTypedDataInt8ArrayViewCid + 6 &&
+         kTypedDataInt64ArrayViewCid == kTypedDataInt8ArrayViewCid + 7 &&
+         kTypedDataUint64ArrayViewCid == kTypedDataInt8ArrayViewCid + 8 &&
+         kTypedDataFloat32ArrayViewCid == kTypedDataInt8ArrayViewCid + 9 &&
+         kTypedDataFloat64ArrayViewCid == kTypedDataInt8ArrayViewCid + 10 &&
+         kByteDataViewCid == kTypedDataInt8ArrayViewCid + 11 &&
+         kExternalTypedDataInt8ArrayCid == kTypedDataInt8ArrayViewCid + 12);
+  return (index >= kTypedDataInt8ArrayViewCid &&
+          index <= kByteDataViewCid);
 }
 
 
@@ -1910,7 +1936,8 @@ inline bool RawObject::IsExternalTypedDataClassId(intptr_t index) {
 
 inline intptr_t RawObject::NumberOfTypedDataClasses() {
   // Make sure this is updated when new TypedData types are added.
-  ASSERT(kExternalTypedDataInt8ArrayCid == kTypedDataInt8ArrayCid + 11);
+  ASSERT(kTypedDataInt8ArrayViewCid == kTypedDataInt8ArrayCid + 11);
+  ASSERT(kExternalTypedDataInt8ArrayCid == kTypedDataInt8ArrayViewCid + 12);
   ASSERT(kNullCid == kExternalTypedDataInt8ArrayCid + 11);
   return (kNullCid - kTypedDataInt8ArrayCid);
 }
