@@ -365,6 +365,30 @@ static void ThrowExceptionHelper(const Instance& incoming_exception,
 }
 
 
+const char* Exceptions::CreateStackTrace() {
+  Isolate* isolate = Isolate::Current();
+  Stacktrace& stacktrace = Stacktrace::Handle(isolate);
+  stacktrace ^= isolate->object_store()->preallocated_stack_trace();
+  RegularStacktraceBuilder frame_builder;
+  uword handler_pc = 0;
+  uword handler_sp = 0;
+  uword handler_fp = 0;
+  FindExceptionHandler(&handler_pc,
+                       &handler_sp,
+                       &handler_fp,
+                       &frame_builder);
+  const Array& func_array =
+      Array::Handle(isolate, Array::MakeArray(frame_builder.func_list()));
+  const Array& code_array =
+      Array::Handle(isolate, Array::MakeArray(frame_builder.code_list()));
+  const Array& pc_offset_array =
+      Array::Handle(isolate,
+                    Array::MakeArray(frame_builder.pc_offset_list()));
+  stacktrace = Stacktrace::New(func_array, code_array, pc_offset_array);
+  return stacktrace.ToCString();
+}
+
+
 // Static helpers for allocating, initializing, and throwing an error instance.
 
 // Return the script of the Dart function that called the native entry or the

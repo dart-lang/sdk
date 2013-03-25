@@ -6,6 +6,7 @@
 
 #include "include/dart_api.h"
 #include "platform/assert.h"
+#include "platform/json.h"
 #include "lib/mirrors.h"
 #include "vm/code_observers.h"
 #include "vm/compiler_stats.h"
@@ -342,7 +343,8 @@ Isolate::Isolate()
       deopt_fpu_registers_copy_(NULL),
       deopt_frame_copy_(NULL),
       deopt_frame_copy_size_(0),
-      deferred_objects_(NULL) {
+      deferred_objects_(NULL),
+      stacktrace_(NULL) {
 }
 
 
@@ -689,60 +691,87 @@ void Isolate::VisitWeakPersistentHandles(HandleVisitor* visitor,
 }
 
 
+static Monitor* status_sync;
+
+bool Isolate::FetchStacktrace() {
+  Isolate* isolate = reinterpret_cast<Isolate*>(Dart_CurrentIsolate());
+  MonitorLocker ml(status_sync);
+  isolate->stacktrace_ = strdup(Exceptions::CreateStackTrace());
+  ml.Notify();
+  return true;
+}
+
+
+const char* Isolate::GetStatusStacktrace() {
+  Dart_IsolateInterruptCallback saved_callback = InterruptCallback();
+  SetInterruptCallback(&FetchStacktrace);
+  status_sync = new Monitor();
+  ScheduleInterrupts(Isolate::kApiInterrupt);
+  {
+    MonitorLocker ml(status_sync);
+    ml.Wait();
+  }
+  SetInterruptCallback(saved_callback);
+  delete status_sync;
+  status_sync = NULL;
+  ASSERT(stacktrace_ != NULL);
+
+  const char* json_format = "{ \"handle\": \"0x%"Px64"\", \"stacktrace\": \"";
+  TextBuffer buffer(strlen(json_format) + strlen(stacktrace_));
+  buffer.Printf(json_format, reinterpret_cast<int64_t>(this));
+  buffer.AddEscapedString(stacktrace_);
+  free(const_cast<char*>(stacktrace_));
+  stacktrace_ = NULL;
+  buffer.Printf("\" }");
+  return strndup(buffer.buf(), buffer.length());
+}
+
+
 char* Isolate::GetStatus(const char* request) {
   char* p = const_cast<char*>(request);
   const char* service_type = "/isolate/";
-  ASSERT(strncmp(p, service_type, strlen(service_type)) == 0);
+  ASSERT(!strncmp(p, service_type, strlen(service_type)));
   p += strlen(service_type);
 
   // Extract isolate handle.
   int64_t addr;
   OS::StringToInt64(p, &addr);
   Isolate* isolate = reinterpret_cast<Isolate*>(addr);
-  Heap* heap = isolate->heap();
+  p += strcspn(p, "/");
 
-  char buffer[256];
-  int64_t port = isolate->main_port();
-  int64_t start_time = (isolate->start_time() / 1000L);
-#if defined(TARGET_ARCH_X64)
-  const char* format = "{\n"
-      "  \"name\": \"%s\",\n"
-      "  \"port\": %ld,\n"
-      "  \"starttime\": %ld,\n"
-      "  \"stacklimit\": %ld,\n"
-      "  \"newspace\": {\n"
-      "    \"used\": %ld,\n"
-      "    \"capacity\": %ld\n"
-      "  },\n"
-      "  \"oldspace\": {\n"
-      "    \"used\": %ld,\n"
-      "    \"capacity\": %ld\n"
-      "  }\n"
-      "}";
-#else
-  const char* format = "{\n"
-      "  \"name\": \"%s\",\n"
-      "  \"port\": %lld,\n"
-      "  \"starttime\": %lld,\n"
-      "  \"stacklimit\": %d,\n"
-      "  \"newspace\": {\n"
-      "    \"used\": %d,\n"
-      "    \"capacity\": %d\n"
-      "  },\n"
-      "  \"oldspace\": {\n"
-      "    \"used\": %d,\n"
-      "    \"capacity\": %d\n"
-      "  }\n"
-      "}";
-#endif
-  int n = OS::SNPrint(buffer, 256, format, isolate->name(), port, start_time,
-                      isolate->saved_stack_limit(),
-                      heap->Used(Heap::kNew) / KB,
-                      heap->Capacity(Heap::kNew) / KB,
-                      heap->Used(Heap::kOld) / KB,
-                      heap->Capacity(Heap::kOld) / KB);
-  ASSERT(n < 256);
-  return strdup(buffer);
+  const char* trace_request = "/stacktrace";
+  if (!strncmp(p, trace_request, strlen(trace_request))) {
+    return const_cast<char*>(isolate->GetStatusStacktrace());
+  } else {
+    const char* name = isolate->name();
+    int64_t port = isolate->main_port();
+    int64_t start_time = (isolate->start_time() / 1000L);
+    Heap* heap = isolate->heap();
+    const char* format = "{\n"
+        "  \"handle\": \"0x%"Px64"\",\n"
+        "  \"name\": \"%s\",\n"
+        "  \"port\": %"Pd",\n"
+        "  \"starttime\": %"Pd",\n"
+        "  \"stacklimit\": %"Pd",\n"
+        "  \"newspace\": {\n"
+        "    \"used\": %"Pd",\n"
+        "    \"capacity\": %"Pd"\n"
+        "  },\n"
+        "  \"oldspace\": {\n"
+        "    \"used\": %"Pd",\n"
+        "    \"capacity\": %"Pd"\n"
+        "  }\n"
+        "}";
+    char buffer[300];
+    int n = OS::SNPrint(buffer, 300, format, addr, name, port, start_time,
+                        isolate->saved_stack_limit(),
+                        heap->Used(Heap::kNew) / KB,
+                        heap->Capacity(Heap::kNew) / KB,
+                        heap->Used(Heap::kOld) / KB,
+                        heap->Capacity(Heap::kOld) / KB);
+    ASSERT(n < 300);
+    return strdup(buffer);
+  }
 }
 
 }  // namespace dart
