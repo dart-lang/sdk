@@ -16,9 +16,9 @@ CallPattern::CallPattern(uword pc, const Code& code)
     : end_(reinterpret_cast<uword*>(pc)),
       target_address_pool_index_(-1),
       args_desc_load_end_(-1),
-      args_desc_pool_index_(-1),
+      args_desc_(Array::Handle()),
       ic_data_load_end_(-1),
-      ic_data_pool_index_(-1),
+      ic_data_(ICData::Handle()),
       object_pool_(Array::Handle(code.ObjectPool())) {
   ASSERT(code.ContainsInstructionAt(pc));
   ASSERT(Back(1) == 0xe12fff3e);  // Last instruction: blx lr
@@ -32,6 +32,48 @@ CallPattern::CallPattern(uword pc, const Code& code)
 uword CallPattern::Back(int n) const {
   ASSERT(n > 0);
   return *(end_ - n);
+}
+
+
+// Decodes a load sequence ending at end. Returns the register being loaded and
+// the loaded object.
+// Returns the location of the load sequence, counting the number of
+// instructions back from the end of the call pattern.
+int CallPattern::DecodeLoadObject(int end, Register* reg, Object* obj) {
+  ASSERT(end > 0);
+  uword instr = Back(end + 1);
+  if ((instr & 0xfff00000) == 0xe5900000) {  // ldr reg, [reg, #+offset]
+    int index = 0;
+    end = DecodeLoadWordFromPool(end, reg, &index);
+    *obj = object_pool_.At(index);
+  } else {
+    int value = 0;
+    end = DecodeLoadWordImmediate(end, reg, &value);
+    *obj = reinterpret_cast<RawObject*>(value);
+  }
+  return end;
+}
+
+
+// Decodes a load sequence ending at end. Returns the register being loaded and
+// the loaded immediate value.
+// Returns the location of the load sequence, counting the number of
+// instructions back from the end of the call pattern.
+int CallPattern::DecodeLoadWordImmediate(int end, Register* reg, int* value) {
+  ASSERT(end > 0);
+  uword instr = Back(++end);
+  int imm = 0;
+  if ((instr & 0xfff00000) == 0xe3400000) {  // movt reg, #imm_hi
+    imm |= (instr & 0xf0000) << 12;
+    imm |= (instr & 0xfff) << 16;
+    instr = Back(++end);
+  }
+  ASSERT((instr & 0xfff00000) == 0xe3000000);  // movw reg, #imm_lo
+  imm |= (instr & 0xf0000) >> 4;
+  imm |= instr & 0xfff;
+  *reg = static_cast<Register>((instr & 0xf000) >> 12);
+  *value = imm;
+  return end;
 }
 
 
@@ -57,17 +99,7 @@ int CallPattern::DecodeLoadWordFromPool(int end, Register* reg, int* index) {
       *reg = static_cast<Register>((instr & 0xf000) >> 12);
     } else {
       ASSERT((instr & 0xffff0000) == 0xe08a0000);  // add reg, pp, reg
-      instr = Back(++end);
-      if ((instr & 0xfff00000) == 0xe3400000) {  // movt reg, offset_hi
-        offset |= (instr & 0xf0000) << 12;
-        offset |= (instr & 0xfff) << 16;
-        instr = Back(++end);
-      }
-      ASSERT((instr & 0xfff00000) == 0xe3000000);  // movw reg, offset_lo
-      ASSERT((offset & 0xffff) == 0);
-      offset |= (instr & 0xf0000) >> 4;
-      offset |= instr & 0xfff;
-      *reg = static_cast<Register>((instr & 0xf000) >> 12);
+      end = DecodeLoadWordImmediate(end, reg, &offset);
     }
   }
   offset += kHeapObjectTag;
@@ -78,33 +110,29 @@ int CallPattern::DecodeLoadWordFromPool(int end, Register* reg, int* index) {
 
 
 RawICData* CallPattern::IcData() {
-  if (ic_data_pool_index_ < 0) {
+  if (ic_data_.IsNull()) {
     Register reg;
     // Loading of the argument descriptor must be decoded first, if not already.
-    if (args_desc_pool_index_ < 0) {
-      ic_data_load_end_ = DecodeLoadWordFromPool(
-          args_desc_load_end_, &reg, &args_desc_pool_index_);
+    if (args_desc_.IsNull()) {
+      ic_data_load_end_ = DecodeLoadObject(
+          args_desc_load_end_, &reg, &args_desc_);
       ASSERT(reg == R4);
     }
-    DecodeLoadWordFromPool(ic_data_load_end_, &reg, &ic_data_pool_index_);
+    DecodeLoadObject(ic_data_load_end_, &reg, &ic_data_);
     ASSERT(reg == R5);
   }
-  ICData& ic_data = ICData::Handle();
-  ic_data ^= object_pool_.At(ic_data_pool_index_);
-  return ic_data.raw();
+  return ic_data_.raw();
 }
 
 
 RawArray* CallPattern::ArgumentsDescriptor() {
-  if (args_desc_pool_index_ < 0) {
+  if (args_desc_.IsNull()) {
     Register reg;
-    ic_data_load_end_ = DecodeLoadWordFromPool(
-        args_desc_load_end_, &reg, &args_desc_pool_index_);
+    ic_data_load_end_ = DecodeLoadObject(
+        args_desc_load_end_, &reg, &args_desc_);
     ASSERT(reg == R4);
   }
-  Array& args_desc = Array::Handle();
-  args_desc ^= object_pool_.At(args_desc_pool_index_);
-  return args_desc.raw();
+  return args_desc_.raw();
 }
 
 

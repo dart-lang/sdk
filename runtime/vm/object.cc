@@ -7702,13 +7702,6 @@ RawCode* Code::FinalizeCode(const char* name,
 
   // Allocate the code object.
   Code& code = Code::ZoneHandle(Code::New(pointer_offsets.length()));
-
-  // Clone the object pool in the old space, if necessary.
-  Array& object_pool = Array::Handle(
-      Array::MakeArray(assembler->object_pool()));
-  if (!object_pool.IsOld()) {
-    object_pool ^= Object::Clone(object_pool, Heap::kOld);
-  }
   {
     NoGCScope no_gc;
 
@@ -7727,7 +7720,15 @@ RawCode* Code::FinalizeCode(const char* name,
     code.set_instructions(instrs.raw());
 
     // Set object pool in Instructions object.
-    instrs.set_object_pool(object_pool.raw());
+    const GrowableObjectArray& object_pool = assembler->object_pool();
+    if (object_pool.IsNull()) {
+      instrs.set_object_pool(Object::empty_array().raw());
+    } else {
+      // TODO(regis): Once MakeArray takes a Heap::Space argument, call it here
+      // with Heap::kOld and change the ARM and MIPS assemblers to work with a
+      // GrowableObjectArray in new space.
+      instrs.set_object_pool(Array::MakeArray(object_pool));
+    }
   }
   return code.raw();
 }
@@ -12226,10 +12227,11 @@ RawArray* Array::Grow(const Array& source, int new_length, Heap::Space space) {
 
 
 RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
-  if (growable_array.IsNull()) {
-    return Array::null();
-  }
+  ASSERT(!growable_array.IsNull());
   intptr_t used_len = growable_array.Length();
+  if (used_len == 0) {
+    return Object::empty_array().raw();
+  }
   intptr_t capacity_len = growable_array.Capacity();
   Isolate* isolate = Isolate::Current();
   const Array& array = Array::Handle(isolate, growable_array.data());

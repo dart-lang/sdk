@@ -2328,8 +2328,7 @@ class Instructions : public Object {
     raw_ptr()->code_ = code;
   }
   void set_object_pool(RawArray* object_pool) const {
-    ASSERT(object_pool->IsOldObject());
-    raw_ptr()->object_pool_ = object_pool;
+    StorePointer(&raw_ptr()->object_pool_, object_pool);
   }
 
   // New is a private method as RawInstruction and RawCode objects should
