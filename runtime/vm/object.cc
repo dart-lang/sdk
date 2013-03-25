@@ -3901,8 +3901,11 @@ bool Function::HasCompatibleParametersWith(const Function& other) const {
   const intptr_t num_ignored_params =
       (other.IsRedirectingFactory() && IsConstructor()) ? 1 : 0;
   // The default values of optional parameters can differ.
-  if (((num_fixed_params - num_ignored_params) != other_num_fixed_params) ||
-      (num_opt_pos_params < other_num_opt_pos_params) ||
+  // This function requires the same arguments or less and accepts the same
+  // arguments or more.
+  if (((num_fixed_params - num_ignored_params) > other_num_fixed_params) ||
+      ((num_fixed_params - num_ignored_params) + num_opt_pos_params <
+       other_num_fixed_params + other_num_opt_pos_params) ||
       (num_opt_named_params < other_num_opt_named_params)) {
     return false;
   }
@@ -3999,8 +4002,11 @@ bool Function::TypeTest(TypeTestKind test_kind,
       other.NumOptionalPositionalParameters();
   const intptr_t other_num_opt_named_params =
       other.NumOptionalNamedParameters();
-  if ((num_fixed_params != other_num_fixed_params) ||
-      (num_opt_pos_params < other_num_opt_pos_params) ||
+  // This function requires the same arguments or less and accepts the same
+  // arguments or more.
+  if ((num_fixed_params > other_num_fixed_params) ||
+      (num_fixed_params + num_opt_pos_params <
+       other_num_fixed_params + other_num_opt_pos_params) ||
       (num_opt_named_params < other_num_opt_named_params)) {
     return false;
   }
@@ -4033,7 +4039,8 @@ bool Function::TypeTest(TypeTestKind test_kind,
     }
   }
   // Check the types of fixed and optional positional parameters.
-  for (intptr_t i = 0; i < num_fixed_params + other_num_opt_pos_params; i++) {
+  for (intptr_t i = 0;
+       i < other_num_fixed_params + other_num_opt_pos_params; i++) {
     if (!TestParameterType(test_kind,
                            i, i, type_arguments, other, other_type_arguments,
                            malformed_error)) {

@@ -87,11 +87,11 @@ class FunctionTypeAliasTest {
     Expect.equals(99, test(minus, 100, 1));
 
     int plus (int a, [int b = 1]) { return a + b; };
-    Expect.isTrue(plus is !Fun);
-    Expect.isTrue(plus is !IntFun);
+    Expect.isTrue(plus is Fun);
+    Expect.isTrue(plus is IntFun);
     Expect.isTrue(plus is !BoolFun);
-    Expect.isTrue(plus is !CompareObj);
-    Expect.isTrue(plus is !CompareInt);
+    Expect.isTrue(plus is CompareObj);
+    Expect.isTrue(plus is CompareInt);
     Expect.isTrue(plus is !CompareString);
 
     Expect.equals(0, bar());

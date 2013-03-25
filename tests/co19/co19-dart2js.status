@@ -111,6 +111,8 @@ Language/13_Libraries_and_Scripts/5_URIs_A01_t11: Fail # TODO(ahe): Please triag
 Language/13_Libraries_and_Scripts/5_URIs_A01_t21: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/5_URIs_A01_t24: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/5_URIs_A01_t25: Fail # TODO(ahe): Please triage this failure.
+Language/14_Types/5_Function_Types_A01_t10: Pass # co19 issue 392, issue 9058
+Language/14_Types/5_Function_Types_A02_t06: Pass # co19 issue 392, issue 9058
 Language/14_Types/5_Function_Types_A04_t01: Fail # TODO(ahe): Please triage this failure.
 Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A40_t04: Fail # TODO(ahe): Please triage this failure.
 Language/15_Reference/1_Lexical_Rules_A01_t09: Fail # TODO(ahe): Please triage this failure.
