@@ -6,13 +6,13 @@
 // the dart:io library for the VM because it cannot use the actual library
 // file which is in lib/io/io.dart.
 
-#library("dart:io");
-#import("dart:async");
-#import("dart:collection");
-#import("dart:crypto");
-#import("dart:isolate");
-#import("dart:math");
-#import("dart:nativewrappers");
-#import("dart:typeddata");
-#import("dart:uri");
-#import("dart:utf");
+library dart.io;
+import "dart:async";
+import "dart:collection";
+import "dart:crypto";
+import "dart:isolate";
+import "dart:math";
+import "dart:nativewrappers";
+import "dart:typeddata";
+import "dart:uri";
+import "dart:utf";

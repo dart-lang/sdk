@@ -134,9 +134,6 @@ namespace dart {
                                                                                \
   /* Support for Dart scripts. */                                              \
   TOK(kSCRIPTTAG, "#!", 0, kNoAttribute)                                       \
-  TOK(kLEGACY_LIBRARY, "#library", 0, kNoAttribute)                            \
-  TOK(kLEGACY_IMPORT, "#import", 0, kNoAttribute)                              \
-  TOK(kLEGACY_SOURCE, "#source", 0, kNoAttribute)                              \
 
 // List of keywords. The list must be alphabetically ordered. The
 // keyword recognition code depends on the ordering.

@@ -412,7 +412,7 @@ void Scanner::SkipLine() {
 }
 
 
-void Scanner::ScanLibraryTag() {
+void Scanner::ScanScriptTag() {
   ReadChar();
   if (c0_ == '!') {
     Recognize(Token::kSCRIPTTAG);
@@ -420,27 +420,11 @@ void Scanner::ScanLibraryTag() {
     // similar to a line comment.
     SkipLine();
     return;
-  }
-  if (!IsLetter(c0_)) {
-    ErrorMsg("Unrecognized library tag");
+  } else {
+    ErrorMsg("unexpected character: '#'");
     SkipLine();
     return;
   }
-  const String& ident = String::Handle(ConsumeIdentChars(false));
-  if (ident.Equals(Symbols::Library())) {
-    current_token_.kind = Token::kLEGACY_LIBRARY;
-    return;
-  }
-  if (ident.Equals(Symbols::Import())) {
-    current_token_.kind = Token::kLEGACY_IMPORT;
-    return;
-  }
-  if (ident.Equals(Symbols::Source())) {
-    current_token_.kind = Token::kLEGACY_SOURCE;
-    return;
-  }
-  ErrorMsg("Unrecognized library token");
-  SkipLine();
 }
 
 
@@ -870,7 +854,7 @@ void Scanner::Scan() {
         break;
 
       case '#':
-        ScanLibraryTag();
+        ScanScriptTag();
         break;
 
       default:

@@ -57,7 +57,7 @@ class Range;
   V(_GrowableObjectArray, get:length, GrowableArrayLength, 725548050)          \
   V(_GrowableObjectArray, get:_capacity, GrowableArrayCapacity, 725548050)     \
   V(_StringBase, get:length, StringBaseLength, 320803993)                      \
-  V(_StringBase, get:isEmpty, StringBaseIsEmpty, 711547329)                    \
+  V(_StringBase, get:isEmpty, StringBaseIsEmpty, 110632481)                    \
   V(_StringBase, codeUnitAt, StringBaseCodeUnitAt, 984449525)                  \
   V(_StringBase, [], StringBaseCharAt, 1062366987)                             \
   V(_IntegerImplementation, toDouble, IntegerToDouble, 733149324)              \

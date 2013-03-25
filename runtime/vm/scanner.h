@@ -199,7 +199,7 @@ class Scanner : ValueObject {
   // Reads a number literal.
   void ScanNumber(bool dec_point_seen);
 
-  void ScanLibraryTag();
+  void ScanScriptTag();
 
   static void PrintTokens(const GrowableTokenStream& ts);
 
