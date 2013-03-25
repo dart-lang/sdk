@@ -992,29 +992,31 @@ class JavaScriptBackend extends Backend {
       }
     }
     ClassElement result = null;
-    if (cls == compiler.stringClass) {
+    if (cls == compiler.stringClass || cls == jsStringClass) {
       addInterceptors(jsStringClass, enqueuer, elements);
-    } else if (cls == compiler.listClass) {
+    } else if (cls == compiler.listClass
+               || cls == jsArrayClass
+               || cls == jsFixedArrayClass
+               || cls == jsExtendableArrayClass) {
       addInterceptors(jsArrayClass, enqueuer, elements);
       enqueuer.registerInstantiatedClass(jsFixedArrayClass, elements);
       enqueuer.registerInstantiatedClass(jsExtendableArrayClass, elements);
-    } else if (cls == compiler.intClass) {
+    } else if (cls == compiler.intClass || cls == jsIntClass) {
       addInterceptors(jsIntClass, enqueuer, elements);
       addInterceptors(jsNumberClass, enqueuer, elements);
-    } else if (cls == compiler.doubleClass) {
+    } else if (cls == compiler.doubleClass || cls == jsDoubleClass) {
       addInterceptors(jsDoubleClass, enqueuer, elements);
       addInterceptors(jsNumberClass, enqueuer, elements);
-    } else if (cls == compiler.functionClass) {
+    } else if (cls == compiler.functionClass || cls == jsFunctionClass) {
       addInterceptors(jsFunctionClass, enqueuer, elements);
-    } else if (cls == compiler.boolClass) {
+    } else if (cls == compiler.boolClass || cls == jsBoolClass) {
       addInterceptors(jsBoolClass, enqueuer, elements);
-    } else if (cls == compiler.nullClass) {
+    } else if (cls == compiler.nullClass || cls == jsNullClass) {
       addInterceptors(jsNullClass, enqueuer, elements);
-    } else if (cls == compiler.numClass) {
+    } else if (cls == compiler.numClass || cls == jsNumberClass) {
       addInterceptors(jsIntClass, enqueuer, elements);
       addInterceptors(jsDoubleClass, enqueuer, elements);
       addInterceptors(jsNumberClass, enqueuer, elements);
-    } else if (cls == compiler.mapClass) {
     } else if (cls.isNative()) {
       addInterceptorsForNativeClassMembers(cls, enqueuer);
     }
