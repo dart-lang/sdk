@@ -23,7 +23,7 @@ CallPattern::CallPattern(uword pc, const Code& code)
   ASSERT(code.ContainsInstructionAt(pc));
   ASSERT(Back(1) == 0xe12fff3e);  // Last instruction: blx lr
   Register reg;
-  args_desc_load_end_ =
+  ic_data_load_end_ =
       DecodeLoadWordFromPool(1, &reg, &target_address_pool_index_);
   ASSERT(reg == LR);
 }
@@ -112,13 +112,7 @@ int CallPattern::DecodeLoadWordFromPool(int end, Register* reg, int* index) {
 RawICData* CallPattern::IcData() {
   if (ic_data_.IsNull()) {
     Register reg;
-    // Loading of the argument descriptor must be decoded first, if not already.
-    if (args_desc_.IsNull()) {
-      ic_data_load_end_ = DecodeLoadObject(
-          args_desc_load_end_, &reg, &args_desc_);
-      ASSERT(reg == R4);
-    }
-    DecodeLoadObject(ic_data_load_end_, &reg, &ic_data_);
+    args_desc_load_end_ = DecodeLoadObject(ic_data_load_end_, &reg, &ic_data_);
     ASSERT(reg == R5);
   }
   return ic_data_.raw();
@@ -127,9 +121,9 @@ RawICData* CallPattern::IcData() {
 
 RawArray* CallPattern::ArgumentsDescriptor() {
   if (args_desc_.IsNull()) {
+    IcData();  // Loading of the ic_data must be decoded first, if not already.
     Register reg;
-    ic_data_load_end_ = DecodeLoadObject(
-        args_desc_load_end_, &reg, &args_desc_);
+    DecodeLoadObject(args_desc_load_end_, &reg, &args_desc_);
     ASSERT(reg == R4);
   }
   return args_desc_.raw();
