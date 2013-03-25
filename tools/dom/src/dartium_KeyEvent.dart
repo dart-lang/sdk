@@ -54,13 +54,13 @@ class KeyEvent implements KeyboardEvent {
 
   /** Accessor to provide a stream of KeyEvents on the desired target. */
   static EventStreamProvider<KeyEvent> keyDownEvent =
-    _KeyboardEventHandler('keydown');
+    new _KeyboardEventHandler('keydown');
   /** Accessor to provide a stream of KeyEvents on the desired target. */
   static EventStreamProvider<KeyEvent> keyUpEvent =
-    _KeyboardEventHandler('keyup');
+    new _KeyboardEventHandler('keyup');
   /** Accessor to provide a stream of KeyEvents on the desired target. */
   static EventStreamProvider<KeyEvent> keyPressEvent =
-    _KeyboardEventHandler('keypress');
+    new _KeyboardEventHandler('keypress');
 
   /** True if the altGraphKey is pressed during this event. */
   bool get altGraphKey => _parent.altGraphKey;
