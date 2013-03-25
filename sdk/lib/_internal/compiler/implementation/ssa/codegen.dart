@@ -1586,7 +1586,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         backend.compiler.enabledInvokeOn) {
       return selector;
     }
-    HType receiverType = node.dartReceiver.instructionType;
+    HType receiverType = node.getDartReceiver(compiler).instructionType;
     return receiverType.refine(selector, compiler);
   }
 

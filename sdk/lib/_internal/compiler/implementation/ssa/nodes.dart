@@ -1083,7 +1083,7 @@ abstract class HInstruction implements Spannable {
   bool isConstantTrue() => false;
   bool isConstantSentinel() => false;
 
-  bool isInterceptor() => false;
+  bool isInterceptor(Compiler compiler) => false;
 
   bool isValid() {
     HValidator validator = new HValidator();
@@ -1316,7 +1316,9 @@ abstract class HInvokeDynamic extends HInvoke {
           : const InvokeDynamicSpecializer();
   toString() => 'invoke dynamic: $selector';
   HInstruction get receiver => inputs[0];
-  HInstruction get dartReceiver => isCallOnInterceptor ? inputs[1] : inputs[0];
+  HInstruction getDartReceiver(Compiler compiler) {
+    return isCallOnInterceptor(compiler) ? inputs[1] : inputs[0];
+  }
 
   /**
    * Returns whether this call is on an intercepted method.
@@ -1331,8 +1333,8 @@ abstract class HInvokeDynamic extends HInvoke {
   /**
    * Returns whether this call is on an interceptor object.
    */
-  bool get isCallOnInterceptor {
-    return isInterceptedCall && receiver.isInterceptor();
+  bool isCallOnInterceptor(Compiler compiler) {
+    return isInterceptedCall && receiver.isInterceptor(compiler);
   }
 
   int typeCode() => HInstruction.INVOKE_DYNAMIC_TYPECODE;
@@ -1455,6 +1457,17 @@ class HFieldGet extends HFieldAccess {
     if (this.isAssignable) {
       setDependsOnInstancePropertyStore();
     }
+  }
+
+  bool isInterceptor(Compiler compiler) {
+    if (sourceElement == null) return false;
+    // In case of a closure inside an interceptor class, [:this:] is
+    // stored in the generated closure class, and accessed through a
+    // [HFieldGet].
+    JavaScriptBackend backend = compiler.backend;
+    bool interceptor =
+        backend.isInterceptorClass(sourceElement.getEnclosingClass());
+    return interceptor && sourceElement is ThisElement;
   }
 
   bool canThrow() => receiver.canBeNull();
@@ -1842,7 +1855,7 @@ class HConstant extends HInstruction {
   bool isConstantTrue() => constant.isTrue();
   bool isConstantSentinel() => constant.isSentinel();
 
-  bool isInterceptor() => constant.isInterceptor();
+  bool isInterceptor(Compiler compiler) => constant.isInterceptor();
 
   // Maybe avoid this if the literal is big?
   bool isCodeMotionInvariant() => true;
@@ -1888,6 +1901,10 @@ class HThis extends HParameterValue {
   toString() => 'this';
   accept(HVisitor visitor) => visitor.visitThis(this);
   bool isCodeMotionInvariant() => true;
+  bool isInterceptor(Compiler compiler) {
+    JavaScriptBackend backend = compiler.backend;
+    return backend.isInterceptorClass(sourceElement.getEnclosingClass());
+  }
 }
 
 class HPhi extends HInstruction {
@@ -2034,7 +2051,7 @@ class HInterceptor extends HInstruction {
   String toString() => 'interceptor on $interceptedClasses';
   accept(HVisitor visitor) => visitor.visitInterceptor(this);
   HInstruction get receiver => inputs[0];
-  bool isInterceptor() => true;
+  bool isInterceptor(Compiler compiler) => true;
 
   int typeCode() => HInstruction.INTERCEPTOR_TYPECODE;
   bool typeEquals(other) => other is HInterceptor;
@@ -2063,7 +2080,7 @@ class HOneShotInterceptor extends HInvokeDynamic {
     assert(inputs[0] is HConstant);
     assert(inputs[0].instructionType == HType.NULL);
   }
-  bool get isCallOnInterceptor => true;
+  bool isCallOnInterceptor(Compiler compiler) => true;
 
   String toString() => 'one shot interceptor on $selector';
   accept(HVisitor visitor) => visitor.visitOneShotInterceptor(this);

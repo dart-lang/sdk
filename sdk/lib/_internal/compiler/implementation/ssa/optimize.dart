@@ -329,7 +329,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       if (folded != node) return folded;
     }
 
-    HType receiverType = node.dartReceiver.instructionType;
+    HType receiverType = node.getDartReceiver(compiler).instructionType;
     Selector selector = receiverType.refine(node.selector, compiler);
     Element element = compiler.world.locateSingleElement(selector);
     // TODO(ngeoffray): Also fold if it's a getter or variable.
@@ -594,10 +594,10 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       HInstruction folded = handleInterceptedCall(node);
       if (folded != node) return folded;
     }
-    Element field = findConcreteFieldForDynamicAccess(
-        node.dartReceiver, node.selector);
+    HInstruction receiver = node.getDartReceiver(compiler);
+    Element field = findConcreteFieldForDynamicAccess(receiver, node.selector);
     if (field == null) return node;
-    return directFieldGet(node.dartReceiver, field);
+    return directFieldGet(receiver, field);
   }
 
   HInstruction directFieldGet(HInstruction receiver, Element field) {
@@ -643,8 +643,8 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       if (folded != node) return folded;
     }
 
-    Element field = findConcreteFieldForDynamicAccess(
-        node.dartReceiver, node.selector);
+    HInstruction receiver = node.getDartReceiver(compiler);
+    Element field = findConcreteFieldForDynamicAccess(receiver, node.selector);
     if (field == null || !field.isAssignable()) return node;
     // Use [:node.inputs.last:] in case the call follows the
     // interceptor calling convention, but is not a call on an
@@ -660,7 +660,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         value = other;
       }
     }
-    return new HFieldSet(field, node.inputs[0], value);
+    return new HFieldSet(field, receiver, value);
   }
 
   HInstruction visitStringConcat(HStringConcat node) {
