@@ -19,23 +19,29 @@ import 'unittest.dart' as unittest;
 import 'html_config.dart' as htmlconfig;
 
 class HtmlIndividualConfiguration extends htmlconfig.HtmlConfiguration {
-
-  String _noSuchTest = '';
-  HtmlIndividualConfiguration(isLayoutTest): super(isLayoutTest);
+  HtmlIndividualConfiguration(bool isLayoutTest): super(isLayoutTest);
 
   void onStart() {
     var search = window.location.search;
     if (search != '') {
-      try {
-        for (var parameter in search.substring(1).split('&')) {
-          if (parameter.startsWith('group=')) {
-            var testGroupName = parameter.split('=')[1];
-            unittest.filterTests('^$testGroupName${unittest.groupSep}');
-          }
+      var groups = search.substring(1).split('&')
+          .where((p) => p.startsWith('group='))
+          .toList();
+
+      if(!groups.isEmpty) {
+        if(groups.length > 1) {
+          throw 'More than one "group" parameter provided.';
         }
-      } catch (e) {
-        print('tried to match "$testGroupName"');
-        print('NO_SUCH_TEST');
+
+        var testGroupName = groups.single.split('=')[1];
+        var startsWith = "$testGroupName${unittest.groupSep}";
+        unittest.filterTests((unittest.TestCase tc) =>
+            tc.description.startsWith(startsWith));
+
+
+        /*if(unittest.testCases.isEmpty) {
+          throw 'No tests match group "$testGroupName".';
+        }*/
       }
     }
     super.onStart();
