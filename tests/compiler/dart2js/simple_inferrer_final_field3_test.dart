@@ -33,6 +33,5 @@ void main() {
     Expect.equals(type, typesInferrer.typeOf[element]);
   }
 
-  checkFieldTypeInClass('A', 'dynamicField',
-      findTypeMask(compiler, 'Interceptor', 'nonNullSubclass'));
+  checkFieldTypeInClass('A', 'dynamicField', typesInferrer.dynamicType);
 }

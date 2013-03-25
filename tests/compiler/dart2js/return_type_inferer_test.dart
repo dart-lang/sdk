@@ -63,7 +63,7 @@ const String TEST_TEN = r"""
   main() { f(1); g(f); }
 """;
 
-void runTest(String test, Function findExpectedType) {
+void runTest(String test, [HType expectedType = HType.UNKNOWN]) {
   compileAndCheck(
     test,
     'f',
@@ -71,24 +71,21 @@ void runTest(String test, Function findExpectedType) {
       var backend = compiler.backend;
       HType type =
           backend.optimisticReturnTypesWithRecompilationOnTypeChange(null, x);
-      Expect.equals(findExpectedType(compiler), type);
+      Expect.equals(expectedType, type);
   });
 }
 
 void test() {
-  subclassOfInterceptor(compiler) =>
-      findHType(compiler, 'Interceptor', 'nonNullSubclass');
-
-  runTest(TEST_ONE, (compiler) => HType.STRING);
-  runTest(TEST_TWO, (compiler) => HType.INTEGER);
-  runTest(TEST_THREE, (compiler) => HType.INTEGER);
-  runTest(TEST_FOUR, (compiler) => HType.DOUBLE);
-  runTest(TEST_FIVE, (compiler) => HType.NUMBER);
-  runTest(TEST_SIX, (compiler) => HType.NUMBER);
-  runTest(TEST_SEVEN, subclassOfInterceptor);
-  runTest(TEST_EIGHT, (compiler) => HType.INTEGER);
-  runTest(TEST_NINE, subclassOfInterceptor);
-  runTest(TEST_TEN, (compiler) => HType.UNKNOWN);
+  runTest(TEST_ONE, HType.STRING);
+  runTest(TEST_TWO, HType.INTEGER);
+  runTest(TEST_THREE, HType.INTEGER);
+  runTest(TEST_FOUR, HType.DOUBLE);
+  runTest(TEST_FIVE, HType.NUMBER);
+  runTest(TEST_SIX, HType.NUMBER);
+  runTest(TEST_SEVEN, HType.NON_NULL);
+  runTest(TEST_EIGHT, HType.INTEGER);
+  runTest(TEST_NINE, HType.NON_NULL);
+  runTest(TEST_TEN);
 }
 
 void main() {

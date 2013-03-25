@@ -70,7 +70,7 @@ const String TEST_6 = r"""
   }
 """;
 
-const String TEST_7a = r"""
+const String TEST_7 = r"""
   class A {
     x(p) => x("x");
   }
@@ -79,21 +79,12 @@ const String TEST_7a = r"""
   }
 """;
 
-const String TEST_7b = r"""
-  class A {
-    x(p) => x("x");
-  }
-  main() {
-    new A().x({});
-  }
-""";
-
 const String TEST_8 = r"""
   class A {
-    x(p1, p2, p3) => x(p1, "x", {});
+    x(p1, p2) => x(p1, "x");
   }
   main() {
-    new A().x(1, 2, 3);
+    new A().x(1, 2);
   }
 """;
 
@@ -231,10 +222,6 @@ void runTest(String test, Function f) {
   doTest(test, true, f);
 }
 
-subclassOfInterceptor(inferrer) {
-  return findTypeMask(inferrer.compiler, 'Interceptor', 'nonNullSubclass');
-}
-
 void test() {
   runTest(TEST_1, (inferrer) => [inferrer.stringType]);
   runTest(TEST_2, (inferrer) => [inferrer.intType]);
@@ -242,19 +229,15 @@ void test() {
   runTest(TEST_4, (inferrer) => [inferrer.numType]);
   runTest(TEST_5, (inferrer) => [inferrer.numType]);
   runTest(TEST_6, (inferrer) => [inferrer.numType]);
-  runTest(TEST_7a, (inferrer) => [subclassOfInterceptor(inferrer)]);
-  runTest(TEST_7b, (inferrer) => [inferrer.dynamicType]);
+  runTest(TEST_7, (inferrer) => [inferrer.dynamicType]);
 
   // In the following tests, we can't infer the right types because we
   // have recursive calls with the same parameters. We should build a
   // constraint system for those, to find the types.
-  runTest(TEST_8, (inferrer) => [inferrer.dynamicType,
-                                 subclassOfInterceptor(inferrer),
-                                 inferrer.dynamicType]);
+  runTest(TEST_8, (inferrer) => [inferrer.dynamicType, inferrer.dynamicType]);
   runTest(TEST_9, (inferrer) => [inferrer.dynamicType, inferrer.dynamicType]);
   runTest(TEST_10, (inferrer) => [inferrer.dynamicType, inferrer.dynamicType]);
-  runTest(TEST_11, (inferrer) => [subclassOfInterceptor(inferrer),
-                                  subclassOfInterceptor(inferrer)]);
+  runTest(TEST_11, (inferrer) => [inferrer.dynamicType, inferrer.dynamicType]);
 
   runTest(TEST_12, (inferrer) => [inferrer.stringType, inferrer.intType]);
 

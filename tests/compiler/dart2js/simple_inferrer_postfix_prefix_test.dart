@@ -71,17 +71,14 @@ void main() {
     Expect.equals(type, typesInferrer.returnTypeOf[element]);
   }
 
-  var subclassOfInterceptor =
-      findTypeMask(compiler, 'Interceptor', 'nonNullSubclass');
-
   checkReturnInClass('A', 'returnNum1', typesInferrer.numType);
   checkReturnInClass('A', 'returnNum2', typesInferrer.numType);
   checkReturnInClass('A', 'returnNum3', typesInferrer.numType);
   checkReturnInClass('A', 'returnNum4', typesInferrer.numType);
   checkReturnInClass('A', 'returnNum5', typesInferrer.numType);
   checkReturnInClass('A', 'returnNum6', typesInferrer.numType);
-  checkReturnInClass('A', 'returnDynamic1', subclassOfInterceptor);
-  checkReturnInClass('A', 'returnDynamic2', subclassOfInterceptor);
+  checkReturnInClass('A', 'returnDynamic1', typesInferrer.dynamicType);
+  checkReturnInClass('A', 'returnDynamic2', typesInferrer.dynamicType);
   checkReturnInClass('A', 'returnDynamic3', typesInferrer.dynamicType);
 
   checkReturnInClass('B', 'returnString1', typesInferrer.stringType);

@@ -48,79 +48,12 @@ getInterceptor(object) {
 var interceptedNames;
 
 /**
- * The base interceptor class.
- *
- * The code `r.foo(a)` is compiled to `getInterceptor(r).foo$1(r, a)`.  The
- * value returned by [getInterceptor] holds the methods separately from the
- * state of the instance.  The compiler converts the methods on an interceptor
- * to take the Dart `this` argument as an explicit `receiver` argument.  The
- * JavaScript `this` parameter is bound to the interceptor.
- *
- * In order to have uniform call sites, if a method is defined on an
- * interceptor, methods of that name on plain unintercepted classes also use the
- * interceptor calling convention.  The plain classes are _self-interceptors_,
- * and for them, `getInterceptor(r)` returns `r`.  Methods on plain
- * unintercepted classes have a redundant `receiver` argument and should ignore
- * it in favour of `this`.
- *
- * In the case of mixins, a method may be placed on both an intercepted class
- * and an unintercepted class.  In this case, the method must use the `receiver`
- * parameter.
- *
- *
- * There are various optimizations of the general call pattern.
- *
- * When the interceptor can be statically determined, it can be used directly:
- *
- *     CONSTANT_INTERCEPTOR.foo$1(r, a)
- *
- * If there are only a few classes, [getInterceptor] can be specialized with a
- * more efficient dispatch:
- *
- *     getInterceptor$specialized(r).foo$1(r, a)
- *
- * If it can be determined that the receiver is an unintercepted class, it can
- * be called directly:
- *
- *     r.foo$1(r, a)
- *
- * If, further, it is known that the call site cannot call a foo that is
- * mixed-in to a native class, then it is known that the explicit receiver is
- * ignored, and space-saving dummy value can be passed instead:
- *
- *     r.foo$1(0, a)
- *
- * This class defines implementations of *all* methods on [Object] so no
- * interceptor inherits an implementation from [Object].  This enables the
- * implementations on Object to ignore the explicit receiver argument, which
- * allows dummy receiver optimization.
- */
-abstract class Interceptor {
-  const Interceptor();
-
-  bool operator ==(other) => identical(this, other);
-
-  int get hashCode => Primitives.objectHashCode(this);
-
-  String toString() => Primitives.objectToString(this);
-
-  dynamic noSuchMethod(InvocationMirror invocation) {
-    throw new NoSuchMethodError(this,
-                                invocation.memberName,
-                                invocation.positionalArguments,
-                                invocation.namedArguments);
-  }
-
-  Type get runtimeType;
-}
-
-/**
  * The interceptor class for tear-off static methods. Unlike
  * tear-off instance methods, tear-off static methods are just the JS
  * function, and methods inherited from Object must therefore be
  * intercepted.
  */
-class JSFunction extends Interceptor implements Function {
+class JSFunction implements Function {
   const JSFunction();
   String toString() => 'Closure';
 }
@@ -128,7 +61,7 @@ class JSFunction extends Interceptor implements Function {
 /**
  * The interceptor class for [bool].
  */
-class JSBool extends Interceptor implements bool {
+class JSBool implements bool {
   const JSBool();
 
   // Note: if you change this, also change the function [S].
@@ -148,7 +81,7 @@ class JSBool extends Interceptor implements bool {
  * the methods on Object assume the receiver is non-null.  This means that
  * JSNull will always be in the interceptor set for methods defined on Object.
  */
-class JSNull extends Interceptor implements Null {
+class JSNull implements Null {
   const JSNull();
 
   bool operator ==(other) => identical(null, other);

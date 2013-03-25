@@ -26,9 +26,6 @@ export '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
 
 import '../../../sdk/lib/_internal/compiler/implementation/ssa/ssa.dart' as ssa;
 
-import '../../../sdk/lib/_internal/compiler/implementation/types/types.dart'
-       as types;
-
 import '../../../sdk/lib/_internal/compiler/implementation/util/util.dart';
 export '../../../sdk/lib/_internal/compiler/implementation/util/util.dart';
 
@@ -124,33 +121,6 @@ lego.Element findElement(compiler, String name) {
   var element = compiler.mainApp.find(buildSourceString(name));
   Expect.isNotNull(element, 'Could not locate $name.');
   return element;
-}
-
-types.TypeMask findTypeMask(compiler, String name,
-                            [String how = 'nonNullExact']) {
-  var sourceName = buildSourceString(name);
-  var element = compiler.mainApp.find(sourceName);
-  if (element == null) {
-    element = compiler.interceptorsLibrary.find(sourceName);
-  }
-  if (element == null) {
-    element = compiler.coreLibrary.find(sourceName);
-  }
-  Expect.isNotNull(element, 'Could not locate $name');
-  var dartType = element.computeType(compiler);
-  switch (how) {
-    case 'exact': return new types.TypeMask.exact(dartType);
-    case 'nonNullExact': return new types.TypeMask.nonNullExact(dartType);
-    case 'subclass': return new types.TypeMask.subclass(dartType);
-    case 'nonNullSubclass': return new types.TypeMask.nonNullSubclass(dartType);
-    case 'subtype': return new types.TypeMask.subtype(dartType);
-    case 'nonNullSubtype': return new types.TypeMask.nonNullSubtype(dartType);
-  }
-  Expect.fail('Unknown HType constructor $how');
-}
-
-ssa.HType findHType(compiler, String name, [String how = 'nonNullExact']) {
-  return new ssa.HType.fromMask(findTypeMask(compiler, name, how), compiler);
 }
 
 String anyIdentifier = "[a-zA-Z][a-zA-Z0-9]*";

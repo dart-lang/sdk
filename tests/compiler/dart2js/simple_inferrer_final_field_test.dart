@@ -9,11 +9,10 @@ const String TEST = """
 
 class A {
   final intField;
-  final giveUpField1;
-  final giveUpField2;
+  final giveUpField;
   final fieldParameter;
-  A() : intField = 42, giveUpField1 = 'foo', giveUpField2 = 'foo';
-  A.bar() : intField = 54, giveUpField1 = 42, giveUpField2 = new A();
+  A() : intField = 42, giveUpField = 'foo';
+  A.bar() : intField = 54, giveUpField = 42;
   A.foo(this.fieldParameter);
 }
 
@@ -37,8 +36,6 @@ void main() {
   }
 
   checkFieldTypeInClass('A', 'intField', typesInferrer.intType);
-  checkFieldTypeInClass('A', 'giveUpField1',
-      findTypeMask(compiler, 'Interceptor', 'nonNullSubclass'));
-  checkFieldTypeInClass('A', 'giveUpField2', typesInferrer.dynamicType);
+  checkFieldTypeInClass('A', 'giveUpField', typesInferrer.dynamicType);
   checkFieldTypeInClass('A', 'fieldParameter', typesInferrer.intType);
 }

@@ -5,7 +5,6 @@
 import 'compiler_helper.dart';
 
 const String TEST = """
-class X {}
 returnDyn1() {
   var a;
   ((a = 52) == true) || ((a = 'foo') == true);
@@ -24,31 +23,10 @@ returnDyn3() {
   return a;
 }
 
-returnDyn4() {
-  var a;
-  ((a = 52) == true) || ((a = new X()) == true);
-  return a;
-}
-
-returnDyn5() {
-  var a;
-  ((a = 52) == true) && ((a = new X()) == true);
-  return a;
-}
-
-returnDyn6() {
-  var a;
-  a = a == 54 ? 'foo' : new X();
-  return a;
-}
-
 main() {
   returnDyn1();
   returnDyn2();
   returnDyn3();
-  returnDyn4();
-  returnDyn5();
-  returnDyn6();
 }
 """;
 
@@ -64,13 +42,7 @@ void main() {
     Expect.equals(type, typesInferrer.returnTypeOf[element]);
   }
 
-  var subclassOfInterceptor =
-      findTypeMask(compiler, 'Interceptor', 'nonNullSubclass');
-
-  checkReturn('returnDyn1', subclassOfInterceptor);
-  checkReturn('returnDyn2', subclassOfInterceptor);
-  checkReturn('returnDyn3', subclassOfInterceptor);
-  checkReturn('returnDyn4', typesInferrer.dynamicType);
-  checkReturn('returnDyn5', typesInferrer.dynamicType);
-  checkReturn('returnDyn6', typesInferrer.dynamicType);
+  checkReturn('returnDyn1', typesInferrer.dynamicType);
+  checkReturn('returnDyn2', typesInferrer.dynamicType);
+  checkReturn('returnDyn3', typesInferrer.dynamicType);
 }
