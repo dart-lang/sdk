@@ -1230,6 +1230,14 @@ class JavaScriptBackend extends Backend {
         || classElement == jsInterceptorClass;
   }
 
+  bool isDefaultEqualityImplementation(Element element) {
+    assert(element.name == const SourceString('=='));
+    ClassElement classElement = element.getEnclosingClass();
+    return classElement == compiler.objectClass
+        || classElement == jsInterceptorClass
+        || classElement == jsNullClass;
+  }
+
   void enqueueInResolution(Element e, TreeElements elements) {
     if (e == null) return;
     ResolutionEnqueuer enqueuer = compiler.enqueuer.resolution;

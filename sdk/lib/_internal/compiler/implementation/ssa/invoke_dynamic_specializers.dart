@@ -544,13 +544,15 @@ class EqualsSpecializer extends RelationalSpecializer {
     if (right.isConstantNull() || instructionType.isPrimitiveOrNull()) {
       return newBuiltinVariant(left, right);
     }
-    // Make the mask non-nullable to avoid finding a potential
-    // JSNull::operator==.
-    TypeMask mask = instructionType.computeMask(compiler).nonNullable();
+    TypeMask mask = instructionType.computeMask(compiler);
     Selector selector = new TypedSelector(mask, instruction.selector);
     World world = compiler.world;
     JavaScriptBackend backend = compiler.backend;
-    if (world.locateSingleElement(selector) == backend.objectEquals) {
+    Iterable<Element> matches = world.allFunctions.filter(selector);
+    // This test relies the on `Object.==` and `Interceptor.==` always being
+    // implemented because if the selector matches by subtype, it still will be
+    // a regular object or an interceptor.
+    if (matches.every(backend.isDefaultEqualityImplementation)) {
       return newBuiltinVariant(left, right);
     }
     return null;
