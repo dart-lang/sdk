@@ -37,11 +37,6 @@ class HtmlIndividualConfiguration extends htmlconfig.HtmlConfiguration {
         var startsWith = "$testGroupName${unittest.groupSep}";
         unittest.filterTests((unittest.TestCase tc) =>
             tc.description.startsWith(startsWith));
-
-
-        /*if(unittest.testCases.isEmpty) {
-          throw 'No tests match group "$testGroupName".';
-        }*/
       }
     }
     super.onStart();
