@@ -112,63 +112,6 @@ namespace dart {
   V(Stacktrace_setupFullStacktrace, 1)                                         \
   V(Stopwatch_now, 0)                                                          \
   V(Stopwatch_frequency, 0)                                                    \
-  V(Float32x4_fromDoubles, 5)                                                  \
-  V(Float32x4_zero, 1)                                                         \
-  V(Float32x4_add, 2)                                                          \
-  V(Float32x4_negate, 1)                                                       \
-  V(Float32x4_sub, 2)                                                          \
-  V(Float32x4_mul, 2)                                                          \
-  V(Float32x4_div, 2)                                                          \
-  V(Float32x4_cmplt, 2)                                                        \
-  V(Float32x4_cmplte, 2)                                                       \
-  V(Float32x4_cmpgt, 2)                                                        \
-  V(Float32x4_cmpgte, 2)                                                       \
-  V(Float32x4_cmpequal, 2)                                                     \
-  V(Float32x4_cmpnequal, 2)                                                    \
-  V(Float32x4_scale, 2)                                                        \
-  V(Float32x4_abs, 1)                                                          \
-  V(Float32x4_clamp, 3)                                                        \
-  V(Float32x4_getX, 1)                                                         \
-  V(Float32x4_getY, 1)                                                         \
-  V(Float32x4_getZ, 1)                                                         \
-  V(Float32x4_getW, 1)                                                         \
-  V(Float32x4_getXXXX, 1)                                                      \
-  V(Float32x4_getYYYY, 1)                                                      \
-  V(Float32x4_getZZZZ, 1)                                                      \
-  V(Float32x4_getWWWW, 1)                                                      \
-  V(Float32x4_setX, 2)                                                         \
-  V(Float32x4_setY, 2)                                                         \
-  V(Float32x4_setZ, 2)                                                         \
-  V(Float32x4_setW, 2)                                                         \
-  V(Float32x4_min, 2)                                                          \
-  V(Float32x4_max, 2)                                                          \
-  V(Float32x4_sqrt, 1)                                                         \
-  V(Float32x4_reciprocal, 1)                                                   \
-  V(Float32x4_reciprocalSqrt, 1)                                               \
-  V(Float32x4_toUint32x4, 1)                                                   \
-  V(Uint32x4_fromInts, 5)                                                      \
-  V(Uint32x4_fromBools, 5)                                                     \
-  V(Uint32x4_or, 2)                                                            \
-  V(Uint32x4_and, 2)                                                           \
-  V(Uint32x4_xor, 2)                                                           \
-  V(Uint32x4_getX, 1)                                                          \
-  V(Uint32x4_getY, 1)                                                          \
-  V(Uint32x4_getZ, 1)                                                          \
-  V(Uint32x4_getW, 1)                                                          \
-  V(Uint32x4_setX, 2)                                                          \
-  V(Uint32x4_setY, 2)                                                          \
-  V(Uint32x4_setZ, 2)                                                          \
-  V(Uint32x4_setW, 2)                                                          \
-  V(Uint32x4_getFlagX, 1)                                                      \
-  V(Uint32x4_getFlagY, 1)                                                      \
-  V(Uint32x4_getFlagZ, 1)                                                      \
-  V(Uint32x4_getFlagW, 1)                                                      \
-  V(Uint32x4_setFlagX, 2)                                                      \
-  V(Uint32x4_setFlagY, 2)                                                      \
-  V(Uint32x4_setFlagZ, 2)                                                      \
-  V(Uint32x4_setFlagW, 2)                                                      \
-  V(Uint32x4_select, 3)                                                        \
-  V(Uint32x4_toFloat32x4, 1)                                                   \
   V(ByteArray_getLength, 1)                                                    \
   V(ByteArray_getInt8, 2)                                                      \
   V(ByteArray_setInt8, 3)                                                      \
@@ -276,6 +219,7 @@ namespace dart {
   V(TypedData_Uint64Array_new, 1)                                              \
   V(TypedData_Float32Array_new, 1)                                             \
   V(TypedData_Float64Array_new, 1)                                             \
+  V(TypedData_Float32x4Array_new, 1)                                           \
   V(ExternalTypedData_Int8Array_new, 1)                                        \
   V(ExternalTypedData_Uint8Array_new, 1)                                       \
   V(ExternalTypedData_Uint8ClampedArray_new, 1)                                \
@@ -287,6 +231,7 @@ namespace dart {
   V(ExternalTypedData_Uint64Array_new, 1)                                      \
   V(ExternalTypedData_Float32Array_new, 1)                                     \
   V(ExternalTypedData_Float64Array_new, 1)                                     \
+  V(ExternalTypedData_Float32x4Array_new, 1)                                   \
   V(TypedData_length, 1)                                                       \
   V(TypedData_setRange, 5)                                                     \
   V(TypedData_GetInt8, 2)                                                      \
@@ -309,6 +254,65 @@ namespace dart {
   V(TypedData_SetFloat32, 3)                                                   \
   V(TypedData_GetFloat64, 2)                                                   \
   V(TypedData_SetFloat64, 3)                                                   \
+  V(TypedData_GetFloat32x4, 2)                                                 \
+  V(TypedData_SetFloat32x4, 3)                                                 \
+  V(Float32x4_fromDoubles, 5)                                                  \
+  V(Float32x4_zero, 1)                                                         \
+  V(Float32x4_add, 2)                                                          \
+  V(Float32x4_negate, 1)                                                       \
+  V(Float32x4_sub, 2)                                                          \
+  V(Float32x4_mul, 2)                                                          \
+  V(Float32x4_div, 2)                                                          \
+  V(Float32x4_cmplt, 2)                                                        \
+  V(Float32x4_cmplte, 2)                                                       \
+  V(Float32x4_cmpgt, 2)                                                        \
+  V(Float32x4_cmpgte, 2)                                                       \
+  V(Float32x4_cmpequal, 2)                                                     \
+  V(Float32x4_cmpnequal, 2)                                                    \
+  V(Float32x4_scale, 2)                                                        \
+  V(Float32x4_abs, 1)                                                          \
+  V(Float32x4_clamp, 3)                                                        \
+  V(Float32x4_getX, 1)                                                         \
+  V(Float32x4_getY, 1)                                                         \
+  V(Float32x4_getZ, 1)                                                         \
+  V(Float32x4_getW, 1)                                                         \
+  V(Float32x4_getXXXX, 1)                                                      \
+  V(Float32x4_getYYYY, 1)                                                      \
+  V(Float32x4_getZZZZ, 1)                                                      \
+  V(Float32x4_getWWWW, 1)                                                      \
+  V(Float32x4_setX, 2)                                                         \
+  V(Float32x4_setY, 2)                                                         \
+  V(Float32x4_setZ, 2)                                                         \
+  V(Float32x4_setW, 2)                                                         \
+  V(Float32x4_min, 2)                                                          \
+  V(Float32x4_max, 2)                                                          \
+  V(Float32x4_sqrt, 1)                                                         \
+  V(Float32x4_reciprocal, 1)                                                   \
+  V(Float32x4_reciprocalSqrt, 1)                                               \
+  V(Float32x4_toUint32x4, 1)                                                   \
+  V(Uint32x4_fromInts, 5)                                                      \
+  V(Uint32x4_fromBools, 5)                                                     \
+  V(Uint32x4_or, 2)                                                            \
+  V(Uint32x4_and, 2)                                                           \
+  V(Uint32x4_xor, 2)                                                           \
+  V(Uint32x4_getX, 1)                                                          \
+  V(Uint32x4_getY, 1)                                                          \
+  V(Uint32x4_getZ, 1)                                                          \
+  V(Uint32x4_getW, 1)                                                          \
+  V(Uint32x4_setX, 2)                                                          \
+  V(Uint32x4_setY, 2)                                                          \
+  V(Uint32x4_setZ, 2)                                                          \
+  V(Uint32x4_setW, 2)                                                          \
+  V(Uint32x4_getFlagX, 1)                                                      \
+  V(Uint32x4_getFlagY, 1)                                                      \
+  V(Uint32x4_getFlagZ, 1)                                                      \
+  V(Uint32x4_getFlagW, 1)                                                      \
+  V(Uint32x4_setFlagX, 2)                                                      \
+  V(Uint32x4_setFlagY, 2)                                                      \
+  V(Uint32x4_setFlagZ, 2)                                                      \
+  V(Uint32x4_setFlagW, 2)                                                      \
+  V(Uint32x4_select, 3)                                                        \
+  V(Uint32x4_toFloat32x4, 1)                                                   \
   V(isolate_getPortInternal, 0)                                                \
   V(isolate_spawnFunction, 2)                                                  \
   V(isolate_spawnUri, 1)                                                       \

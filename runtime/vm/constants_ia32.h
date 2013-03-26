@@ -84,6 +84,7 @@ enum ScaleFactor {
   TIMES_2 = 1,
   TIMES_4 = 2,
   TIMES_8 = 3,
+  TIMES_16 = 4,
   TIMES_HALF_WORD_SIZE = kWordSizeLog2 - 1
 };
 
