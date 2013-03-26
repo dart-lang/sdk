@@ -3,13 +3,13 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2js && $csp && $runtime == drt && $unchecked ]
-mandel_isolate_stream_test: Fail # Bug in v8, http://dartbug.com/9407
-message_test: Fail # Bug in v8, http://dartbug.com/9407
-nested_spawn_stream2_test: Fail # Bug in v8, http://dartbug.com/9407
-count_test: Fail # Bug in v8, http://dartbug.com/9407
-count_stream_test: Fail # Bug in v8, http://dartbug.com/9407
-mandel_isolate_test: Fail # Bug in v8, http://dartbug.com/9407
-mint_maker_test: Fail # Bug in v8, http://dartbug.com/9407
+mandel_isolate_stream_test: Fail, Crash # Bug in v8, http://dartbug.com/9407
+message_test: Fail, Crash # Bug in v8, http://dartbug.com/9407
+nested_spawn_stream2_test: Fail, Crash # Bug in v8, http://dartbug.com/9407
+count_test: Fail, Crash # Bug in v8, http://dartbug.com/9407
+count_stream_test: Fail, Crash # Bug in v8, http://dartbug.com/9407
+mandel_isolate_test: Fail, Crash # Bug in v8, http://dartbug.com/9407
+mint_maker_test: Fail, Crash # Bug in v8, http://dartbug.com/9407
 
 
 [ $runtime == vm ]
