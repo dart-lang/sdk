@@ -324,6 +324,7 @@ class Debugger {
   int isolateId = 0;
 
   Debugger(this.targetProcess, this.portNumber) {
+    stdin.listen((_) {});
     var stdoutStringStream = targetProcess.stdout
         .transform(new StringDecoder())
         .transform(new LineTransformer());
