@@ -89,8 +89,10 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
     intptr_t cid = call->PushArgumentAt(i)->value()->Type()->ToCid();
     class_ids.Add(cid);
   }
-  // TODO(srdjan): Test for other class_ids > 1.
-  if (class_ids.length() != 1) return false;
+  // TODO(srdjan): Test for number of arguments checked greater than 1.
+  if (class_ids.length() != 1) {
+    return false;
+  }
   if (class_ids[0] != kDynamicCid) {
     const intptr_t num_named_arguments = call->argument_names().IsNull() ?
         0 : call->argument_names().Length();

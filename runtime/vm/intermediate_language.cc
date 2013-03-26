@@ -528,6 +528,10 @@ void Definition::ReplaceUsesWith(Definition* other) {
     while (next != NULL) {
       current = next;
       current->set_definition(other);
+      // Do not discard some useful inferred types.
+      if (current->Type() == this->Type()) {
+        current->SetReachingType(NULL);
+      }
       next = current->next_use();
     }
 
