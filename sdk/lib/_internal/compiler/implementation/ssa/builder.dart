@@ -4743,6 +4743,10 @@ class StringBuilderVisitor extends Visitor {
   void visitExpression(Node node) {
     node.accept(builder);
     HInstruction expression = builder.pop();
+    if (!expression.isConstantString()) {
+      expression = new HStringify(expression, node);
+      builder.add(expression);
+    }
     result = (result == null) ? expression : concat(result, expression);
   }
 
