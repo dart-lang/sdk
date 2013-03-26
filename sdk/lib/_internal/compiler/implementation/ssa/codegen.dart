@@ -2074,34 +2074,34 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void visitStringConcat(HStringConcat node) {
-    use(node.left);
-    js.Expression jsLeft = pop();
-    use(node.right);
-    push(new js.Binary('+', jsLeft, pop()), node);
+    if (isEmptyString(node.left)) {
+      useStringified(node.right);
+   } else if (isEmptyString(node.right)) {
+      useStringified(node.left);
+    } else {
+      useStringified(node.left);
+      js.Expression left = pop();
+      useStringified(node.right);
+      push(new js.Binary("+", left, pop()), node);
+    }
   }
 
-  void visitStringify(HStringify node) {
-    HInstruction input = node.inputs.first;
-    if (input.isString()) {
-      use(input);
-    } else if (input.isInteger() || input.isBoolean()) {
-      // JavaScript's + operator with a string for the left operand will convert
-      // the right operand to a string, and the conversion result is correct.
-      use(input);
-      if (node.usedBy.length == 1
-          && node.usedBy[0] is HStringConcat
-          && node.usedBy[0].inputs[1] == node) {
-        // The context is already <string> + value.
-      } else {
-        // Force an empty string for the first operand.
-        push(new js.Binary('+', js.string(""), pop()), node);
-      }
+  bool isEmptyString(HInstruction node) {
+    if (!node.isConstantString()) return false;
+    HConstant constant = node;
+    StringConstant string = constant.constant;
+    return string.value.length == 0;
+  }
+
+  void useStringified(HInstruction node) {
+    if (node.isString()) {
+      use(node);
     } else {
       Element convertToString = backend.getStringInterpolationHelper();
       world.registerStaticUse(convertToString);
       js.VariableUse variableUse =
           new js.VariableUse(backend.namer.isolateAccess(convertToString));
-      use(input);
+      use(node);
       push(new js.Call(variableUse, <js.Expression>[pop()]), node);
     }
   }

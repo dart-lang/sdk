@@ -59,7 +59,6 @@ abstract class HVisitor<R> {
   R visitStatic(HStatic node);
   R visitStaticStore(HStaticStore node);
   R visitStringConcat(HStringConcat node);
-  R visitStringify(HStringify node);
   R visitSubtract(HSubtract node);
   R visitSwitch(HSwitch node);
   R visitThis(HThis node);
@@ -336,7 +335,6 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitStatic(HStatic node) => visitInstruction(node);
   visitStaticStore(HStaticStore node) => visitInstruction(node);
   visitStringConcat(HStringConcat node) => visitInstruction(node);
-  visitStringify(HStringify node) => visitInstruction(node);
   visitThis(HThis node) => visitParameterValue(node);
   visitThrow(HThrow node) => visitControlFlow(node);
   visitTry(HTry node) => visitControlFlow(node);
@@ -2275,9 +2273,7 @@ class HStringConcat extends HInstruction {
   final Node node;
   HStringConcat(HInstruction left, HInstruction right, this.node)
       : super(<HInstruction>[left, right]) {
-    // TODO(sra): Until Issue 9293 is fixed, this false dependency keeps the
-    // concats bunched with stringified inputs for much better looking code with
-    // fewer temps.
+    setAllSideEffects();
     setDependsOnSomething();
     instructionType = HType.STRING;
   }
@@ -2287,22 +2283,6 @@ class HStringConcat extends HInstruction {
 
   accept(HVisitor visitor) => visitor.visitStringConcat(this);
   toString() => "string concat";
-}
-
-/**
- * The part of string interpolation which converts and interpolated expression
- * into a String value.
- */
-class HStringify extends HInstruction {
-  final Node node;
-  HStringify(HInstruction input, this.node) : super(<HInstruction>[input]) {
-    setAllSideEffects();
-    setDependsOnSomething();
-    instructionType = HType.STRING;
-  }
-
-  accept(HVisitor visitor) => visitor.visitStringify(this);
-  toString() => "stringify";
 }
 
 /** Non-block-based (aka. traditional) loop information. */
