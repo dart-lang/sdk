@@ -714,7 +714,7 @@ class RawTokenStream : public RawObject {
   }
   RawString* private_key_;  // Key used for private identifiers.
   RawArray* token_objects_;
-  RawExternalUint8Array* stream_;
+  RawExternalTypedData* stream_;
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->stream_);
   }
@@ -1455,6 +1455,9 @@ class RawExternalTypedData : public RawInstance {
 
   uint8_t* data_;
   void* peer_;
+
+  friend class TokenStream;
+  friend class RawTokenStream;
 };
 
 
@@ -1581,8 +1584,6 @@ class RawExternalUint8Array : public RawByteArray {
   uint8_t* data_;
   void* peer_;
 
-  friend class TokenStream;
-  friend class RawTokenStream;
   friend class RawExternalUint8ClampedArray;
 };
 

@@ -4978,12 +4978,12 @@ void TokenStream::SetTokenObjects(const Array& value) const {
 }
 
 
-RawExternalUint8Array* TokenStream::GetStream() const {
+RawExternalTypedData* TokenStream::GetStream() const {
   return raw_ptr()->stream_;
 }
 
 
-void TokenStream::SetStream(const ExternalUint8Array& value) const {
+void TokenStream::SetStream(const ExternalTypedData& value) const {
   StorePointer(&raw_ptr()->stream_, value.raw());
 }
 
@@ -5007,7 +5007,7 @@ void TokenStream::SetPrivateKey(const String& value) const {
 
 RawString* TokenStream::GenerateSource() const {
   Iterator iterator(*this, 0);
-  const ExternalUint8Array& data = ExternalUint8Array::Handle(GetStream());
+  const ExternalTypedData& data = ExternalTypedData::Handle(GetStream());
   const GrowableObjectArray& literals =
       GrowableObjectArray::Handle(GrowableObjectArray::New(data.Length()));
   const String& private_key = String::Handle(PrivateKey());
@@ -5189,8 +5189,9 @@ RawTokenStream* TokenStream::New(intptr_t len) {
   }
   uint8_t* data = reinterpret_cast<uint8_t*>(::malloc(len));
   ASSERT(data != NULL);
-  const ExternalUint8Array& stream = ExternalUint8Array::Handle(
-      ExternalUint8Array::New(data, len, Heap::kOld));
+  const ExternalTypedData& stream = ExternalTypedData::Handle(
+      ExternalTypedData::New(kExternalTypedDataUint8ArrayCid,
+                             data, len, Heap::kOld));
   stream.AddFinalizer(data, DataFinalizer);
   const TokenStream& result = TokenStream::Handle(TokenStream::New());
   result.SetStream(stream);
@@ -5363,8 +5364,9 @@ RawTokenStream* TokenStream::New(const Scanner::GrowableTokenStream& tokens,
   data.AddSimpleToken(Token::kEOS);  // End of stream.
 
   // Create and setup the token stream object.
-  const ExternalUint8Array& stream = ExternalUint8Array::Handle(
-      ExternalUint8Array::New(data.GetStream(), data.Length(), Heap::kOld));
+  const ExternalTypedData& stream = ExternalTypedData::Handle(
+      ExternalTypedData::New(kExternalTypedDataUint8ArrayCid,
+                             data.GetStream(), data.Length(), Heap::kOld));
   stream.AddFinalizer(data.GetStream(), DataFinalizer);
   const TokenStream& result = TokenStream::Handle(New());
   result.SetPrivateKey(private_key);
@@ -5385,8 +5387,8 @@ const char* TokenStream::ToCString() const {
 
 TokenStream::Iterator::Iterator(const TokenStream& tokens, intptr_t token_pos)
     : tokens_(TokenStream::Handle(tokens.raw())),
-      data_(ExternalUint8Array::Handle(tokens.GetStream())),
-      stream_(data_.ByteAddr(0), data_.Length()),
+      data_(ExternalTypedData::Handle(tokens.GetStream())),
+      stream_(reinterpret_cast<uint8_t*>(data_.DataAddr(0)), data_.Length()),
       token_objects_(Array::Handle(tokens.TokenObjects())),
       obj_(Object::Handle()),
       cur_token_pos_(token_pos),
@@ -5400,7 +5402,8 @@ void TokenStream::Iterator::SetStream(const TokenStream& tokens,
                                       intptr_t token_pos) {
   tokens_ = tokens.raw();
   data_ = tokens.GetStream();
-  stream_.SetStream(data_.ByteAddr(0), data_.Length());
+  stream_.SetStream(reinterpret_cast<uint8_t*>(data_.DataAddr(0)),
+                    data_.Length());
   token_objects_ = tokens.TokenObjects();
   obj_ = Object::null();
   cur_token_pos_ = token_pos;

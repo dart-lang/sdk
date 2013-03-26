@@ -160,7 +160,7 @@ SnapshotReader::SnapshotReader(const uint8_t* buffer,
       type_arguments_(AbstractTypeArguments::Handle()),
       tokens_(Array::Handle()),
       stream_(TokenStream::Handle()),
-      data_(ExternalUint8Array::Handle()),
+      data_(ExternalTypedData::Handle()),
       error_(UnhandledException::Handle()),
       backward_references_((kind == Snapshot::kFull) ?
                            kNumInitialReferencesInFullSnapshot :
@@ -438,12 +438,12 @@ RawTokenStream* SnapshotReader::NewTokenStream(intptr_t len) {
   cls_ = Object::token_stream_class();
   stream_ = reinterpret_cast<RawTokenStream*>(
       AllocateUninitialized(cls_, TokenStream::InstanceSize()));
-  cls_ = object_store()->external_uint8_array_class();
+  cls_ = isolate()->class_table()->At(kExternalTypedDataUint8ArrayCid);
   uint8_t* array = const_cast<uint8_t*>(CurrentBufferAddress());
   ASSERT(array != NULL);
   Advance(len);
-  data_ = reinterpret_cast<RawExternalUint8Array*>(
-      AllocateUninitialized(cls_, ExternalUint8Array::InstanceSize()));
+  data_ = reinterpret_cast<RawExternalTypedData*>(
+      AllocateUninitialized(cls_, ExternalTypedData::InstanceSize()));
   data_.SetData(array);
   data_.SetLength(len);
   stream_.SetStream(data_);

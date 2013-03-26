@@ -1898,8 +1898,8 @@ class TokenStream : public Object {
   RawArray* TokenObjects() const;
   void SetTokenObjects(const Array& value) const;
 
-  RawExternalUint8Array* GetStream() const;
-  void SetStream(const ExternalUint8Array& stream) const;
+  RawExternalTypedData* GetStream() const;
+  void SetStream(const ExternalTypedData& stream) const;
 
   RawString* GenerateSource() const;
   intptr_t ComputeSourcePosition(intptr_t tok_pos) const;
@@ -1952,7 +1952,7 @@ class TokenStream : public Object {
     }
 
     TokenStream& tokens_;
-    ExternalUint8Array& data_;
+    ExternalTypedData& data_;
     ReadStream stream_;
     Array& token_objects_;
     Object& obj_;

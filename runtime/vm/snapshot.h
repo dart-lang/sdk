@@ -23,7 +23,7 @@ class AbstractTypeArguments;
 class Array;
 class Class;
 class ClassTable;
-class ExternalUint8Array;
+class ExternalTypedData;
 class GrowableObjectArray;
 class Heap;
 class LanguageError;
@@ -225,7 +225,7 @@ class SnapshotReader : public BaseReader {
   AbstractTypeArguments* TypeArgumentsHandle() { return &type_arguments_; }
   Array* TokensHandle() { return &tokens_; }
   TokenStream* StreamHandle() { return &stream_; }
-  ExternalUint8Array* DataHandle() { return &data_; }
+  ExternalTypedData* DataHandle() { return &data_; }
   UnhandledException* ErrorHandle() { return &error_; }
 
   // Reads an object.
@@ -326,7 +326,7 @@ class SnapshotReader : public BaseReader {
   AbstractTypeArguments& type_arguments_;  // Temporary type argument handle.
   Array& tokens_;  // Temporary tokens handle.
   TokenStream& stream_;  // Temporary token stream handle.
-  ExternalUint8Array& data_;  // Temporary stream data handle.
+  ExternalTypedData& data_;  // Temporary stream data handle.
   UnhandledException& error_;  // Error handle.
   GrowableArray<BackRefNode*> backward_references_;
 
