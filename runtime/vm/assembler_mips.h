@@ -672,7 +672,7 @@ class Assembler : public ValueObject {
 
   void EmitBranch(Opcode b, Register rs, Register rt, Label* label) {
     if (label->IsBound()) {
-      // Reletive destination from an instruction after the branch.
+      // Relative destination from an instruction after the branch.
       const int32_t dest =
           label->Position() - (buffer_.Size() + Instr::kInstrSize);
       const uint16_t dest_off = EncodeBranchOffset(dest, 0);
@@ -686,7 +686,7 @@ class Assembler : public ValueObject {
 
   void EmitRegImmBranch(RtRegImm b, Register rs, Label* label) {
     if (label->IsBound()) {
-      // Reletive destination from an instruction after the branch.
+      // Relative destination from an instruction after the branch.
       const int32_t dest =
           label->Position() - (buffer_.Size() + Instr::kInstrSize);
       const uint16_t dest_off = EncodeBranchOffset(dest, 0);

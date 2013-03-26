@@ -58,23 +58,9 @@ int CallPattern::DecodeLoadWordFromPool(int end, Register* reg, int* index) {
 
     i = Back(++end);
     instr = Instr::At(reinterpret_cast<uword>(&i));
-    if (instr->OpcodeField() == LUI) {
-      ASSERT(instr->RtField() == *reg);
-      offset |= (instr->UImmField() << 16);
-    } else {
-      ASSERT(instr->OpcodeField() == ORI);
-      ASSERT(instr->RtField() == *reg);
-      offset |= instr->UImmField();
-
-      if (instr->RsField() != ZR) {
-        ASSERT(instr->RsField() == *reg);
-        i = Back(++end);
-        instr = Instr::At(reinterpret_cast<uword>(&i));
-        ASSERT(instr->OpcodeField() == LUI);
-        ASSERT(instr->RtField() == *reg);
-        offset |= (instr->UImmField() << 16);
-      }
-    }
+    ASSERT(instr->RtField() == *reg);
+    // Offset is signed, so add the upper 16 bits.
+    offset += (instr->UImmField() << 16);
   }
   offset += kHeapObjectTag;
   ASSERT(Utils::IsAligned(offset, 4));

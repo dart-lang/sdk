@@ -29,7 +29,7 @@ void Assembler::Bind(Label* label) {
   while (label->IsLinked()) {
     const int32_t position = label->Position();
     const int32_t next = buffer_.Load<int32_t>(position);
-    // Reletive destination from an instruction after the branch.
+    // Relative destination from an instruction after the branch.
     const int32_t dest = bound_pc - (position + Instr::kInstrSize);
     const int32_t encoded = Assembler::EncodeBranchOffset(dest, next);
     buffer_.Store<int32_t>(position, encoded);
@@ -62,22 +62,15 @@ void Assembler::LoadWordFromPoolOffset(Register rd, int32_t offset) {
   if (Address::CanHoldOffset(offset)) {
     lw(rd, Address(PP, offset));
   } else {
-    const uint16_t offset_low = Utils::Low16Bits(offset);
-    const uint16_t offset_high = Utils::High16Bits(offset);
+    const int16_t offset_low = Utils::Low16Bits(offset);  // Signed.
+    offset -= offset_low;
+    const uint16_t offset_high = Utils::High16Bits(offset);  // Unsigned.
     if (offset_high != 0) {
       lui(rd, Immediate(offset_high));
-      if (Address::CanHoldOffset(offset_low)) {
-        addu(rd, rd, PP);
-        lw(rd, Address(rd, offset_low));
-      } else {
-        ori(rd, rd, Immediate(offset_low));
-        addu(rd, rd, PP);
-        lw(rd, Address(rd));
-      }
-    } else {
-      ori(rd, ZR, Immediate(offset_low));
       addu(rd, rd, PP);
-      lw(rd, Address(rd));
+      lw(rd, Address(rd, offset_low));
+    } else {
+      lw(rd, Address(PP, offset_low));
     }
   }
 }
