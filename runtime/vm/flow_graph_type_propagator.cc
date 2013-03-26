@@ -407,14 +407,18 @@ void CompileType::Union(CompileType* other) {
     cid_ = kDynamicCid;
   }
 
-  if (ToAbstractType()->IsMoreSpecificThan(*other->ToAbstractType(), NULL)) {
+  Error& malformed_error = Error::Handle();
+  if (ToAbstractType()->IsMoreSpecificThan(*other->ToAbstractType(),
+                                           &malformed_error)) {
     type_ = other->ToAbstractType();
-  } else if (ToAbstractType()->IsMoreSpecificThan(*ToAbstractType(), NULL)) {
+  } else if (ToAbstractType()->IsMoreSpecificThan(*ToAbstractType(),
+                                                  &malformed_error)) {
     // Nothing to do.
   } else {
     // Can't unify.
     type_ = &Type::ZoneHandle(Type::DynamicType());
   }
+  ASSERT(malformed_error.IsNull());
 }
 
 
@@ -597,7 +601,10 @@ bool CompileType::IsMoreSpecificThan(const AbstractType& other) {
     return IsNull();
   }
 
-  return ToAbstractType()->IsMoreSpecificThan(other, NULL);
+  Error& malformed_error = Error::Handle();
+  const bool is_more_specific =
+      ToAbstractType()->IsMoreSpecificThan(other, &malformed_error);
+  return malformed_error.IsNull() && is_more_specific;
 }
 
 
