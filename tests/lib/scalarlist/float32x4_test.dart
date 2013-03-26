@@ -351,13 +351,13 @@ testGetters() {
 
 main() {
   for (int i = 0; i < 3000; i++) {
-    testAdd();
     testGetters();
     testSetters();
     testBitOperators();
     testConversions();
     testSelect();
     testShuffle();
+    testAdd();
     testSub();
     testNegate();
     testMul();

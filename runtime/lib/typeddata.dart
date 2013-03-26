@@ -224,45 +224,6 @@ patch class Float64List {
   }
 }
 
-patch class Float32x4List {
-  /* patch */ factory Float32x4List(int length) {
-    return new _Float32x4Array(length);
-  }
-
-  /* patch */ factory Float32x4List.transferable(int length) {
-    return _newTransferable(length);
-  }
-
-  /* patch */ factory Float32x4List.view(ByteBuffer buffer,
-                                         [int offsetInBytes = 0, int length]) {
-    return new _Float32x4ArrayView(buffer, offsetInBytes, length);
-  }
-
-  static _ExternalFloat32x4Array _newTransferable(int length) {
-    return new _ExternalFloat32x4Array(length);
-  }
-}
-
-
-patch class Float32x4 {
-  /* patch */ factory Float32x4(double x, double y, double z, double w) {
-    return new _Float32x4(x, y, z, w);
-  }
-  /* patch */ factory Float32x4.zero() {
-    return new _Float32x4.zero();
-  }
-}
-
-
-patch class Uint32x4 {
-  /* patch */ factory Uint32x4(int x, int y, int z, int w) {
-    return new _Uint32x4(x, y, z, w);
-  }
-  /* patch */ factory Uint32x4.bool(bool x, bool y, bool z, bool w) {
-    return new _Uint32x4.bool(x, y, z, w);
-  }
-}
-
 
 patch class ByteData {
   /* patch */ factory ByteData(int length) {
@@ -562,10 +523,6 @@ abstract class _TypedList extends _TypedListBase implements ByteBuffer {
   double _getFloat64(int offsetInBytes) native "TypedData_GetFloat64";
   void _setFloat64(int offsetInBytes, double value)
       native "TypedData_SetFloat64";
-
-  Float32x4 _getFloat32x4(int offsetInBytes) native "TypedData_GetFloat32x4";
-  void _setFloat32x4(int offsetInBytes, Float32x4 value)
-      native "TypedData_SetFloat32x4";
 }
 
 
@@ -1298,72 +1255,6 @@ class _Float64Array extends _TypedList implements Float64List {
   static _Float64Array _new(int length) native "TypedData_Float64Array_new";
 }
 
-class _Float32x4Array extends _TypedList implements Float32x4List {
-  // Factory constructors.
-
-  factory _Float32x4Array(int length) {
-    if (length < 0) {
-      String message = "$length must be greater than 0";
-      throw new ArgumentError(message);
-    }
-    return _new(length);
-  }
-
-  factory _Float32x4Array.view(ByteBuffer buffer,
-                               [int offsetInBytes = 0, int length]) {
-    if (length == null) {
-      length = (buffer.lengthInBytes - offsetInBytes) ~/
-               Float32x4List.BYTES_PER_ELEMENT;
-    }
-    return new _Float32x4ArrayView(buffer, offsetInBytes, length);
-  }
-
-
-  Float32x4 operator[](int index) {
-    if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
-    }
-    return _getIndexedFloat32x4(index);
-  }
-
-  void operator[]=(int index, Float32x4 value) {
-    if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
-    }
-    _setIndexedFloat32x4(index, value);
-  }
-
-  Iterator<Float32x4> get iterator {
-    return new _TypedListIterator<Float32x4>(this);
-  }
-
-
-  // Method(s) implementing the TypedData interface.
-
-  int get elementSizeInBytes {
-    return Float32x4List.BYTES_PER_ELEMENT;
-  }
-
-
-  // Internal utility methods.
-
-  _Float32x4Array _createList(int length) {
-    return _new(length);
-  }
-
-  Float32x4 _getIndexedFloat32x4(int index) {
-    return _getFloat32x4(index * Float32x4List.BYTES_PER_ELEMENT);
-  }
-
-  void _setIndexedFloat32x4(int index, Float32x4 value) {
-    _setFloat32x4(index * Float32x4List.BYTES_PER_ELEMENT, value);
-  }
-
-  static _Float32x4Array _new(int length) native "TypedData_Float32x4Array_new";
-}
-
 
 class _ExternalInt8Array extends _TypedList implements Int8List {
   // Factory constructors.
@@ -2011,217 +1902,6 @@ class _ExternalFloat64Array extends _TypedList implements Float64List {
 }
 
 
-class _ExternalFloat32x4Array extends _TypedList implements Float32x4List {
-  // Factory constructors.
-
-  factory _ExternalFloat32x4Array(int length) {
-    if (length < 0) {
-      String message = "$length must be greater than 0";
-      throw new ArgumentError(message);
-    }
-    return _new(length);
-  }
-
-
-  // Method(s) implementing the List interface.
-
-  Float32x4 operator[](int index) {
-    if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
-    }
-    return _getIndexedFloat32x4(index);
-  }
-
-  void operator[]=(int index, Float32x4 value) {
-    if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
-    }
-    _setIndexedFloat32x4(index, value);
-  }
-
-  Iterator<Float32x4> get iterator {
-    return new _TypedListIterator<Float32x4>(this);
-  }
-
-
-  // Method(s) implementing the TypedData interface.
-
-  int get elementSizeInBytes {
-    return Float32x4List.BYTES_PER_ELEMENT;
-  }
-
-
-  // Internal utility methods.
-
-  Float32x4List _createList(int length) {
-    return new Float32x4List(length);
-  }
-
-  Float32x4 _getIndexedFloat32x4(int index) {
-    return _getFloat32x4(index * Float32x4List.BYTES_PER_ELEMENT);
-  }
-
-  void _setIndexedFloat32x4(int index, Float32x4 value) {
-    _setFloat32x4(index * Float32x4List.BYTES_PER_ELEMENT, value);
-  }
-
-  static _ExternalFloat32x4Array _new(int length) native
-      "ExternalTypedData_Float32x4Array_new";
-}
-
-
-class _Float32x4 implements Float32x4 {
-  factory _Float32x4(double x, double y, double z, double w)
-      native "Float32x4_fromDoubles";
-  factory _Float32x4.zero() native "Float32x4_zero";
-  Float32x4 operator +(Float32x4 other) {
-    return _add(other);
-  }
-  Float32x4 _add(Float32x4 other) native "Float32x4_add";
-  Float32x4 operator -() {
-    return _negate();
-  }
-  Float32x4 _negate() native "Float32x4_negate";
-  Float32x4 operator -(Float32x4 other) {
-    return _sub(other);
-  }
-  Float32x4 _sub(Float32x4 other) native "Float32x4_sub";
-  Float32x4 operator *(Float32x4 other) {
-    return _mul(other);
-  }
-  Float32x4 _mul(Float32x4 other) native "Float32x4_mul";
-  Float32x4 operator /(Float32x4 other) {
-    return _div(other);
-  }
-  Float32x4 _div(Float32x4 other) native "Float32x4_div";
-  Uint32x4 lessThan(Float32x4 other) {
-    return _cmplt(other);
-  }
-  Uint32x4 _cmplt(Float32x4 other) native "Float32x4_cmplt";
-  Uint32x4 lessThanOrEqual(Float32x4 other) {
-    return _cmplte(other);
-  }
-  Uint32x4 _cmplte(Float32x4 other) native "Float32x4_cmplte";
-  Uint32x4 greaterThan(Float32x4 other) {
-    return _cmpgt(other);
-  }
-  Uint32x4 _cmpgt(Float32x4 other) native "Float32x4_cmpgt";
-  Uint32x4 greaterThanOrEqual(Float32x4 other) {
-    return _cmpgte(other);
-  }
-  Uint32x4 _cmpgte(Float32x4 other) native "Float32x4_cmpgte";
-  Uint32x4 equal(Float32x4 other) {
-    return _cmpequal(other);
-  }
-  Uint32x4 _cmpequal(Float32x4 other)
-      native "Float32x4_cmpequal";
-  Uint32x4 notEqual(Float32x4 other) {
-    return _cmpnequal(other);
-  }
-  Uint32x4 _cmpnequal(Float32x4 other)
-      native "Float32x4_cmpnequal";
-  Float32x4 scale(double s) {
-    return _scale(s);
-  }
-  Float32x4 _scale(double s) native "Float32x4_scale";
-  Float32x4 abs() {
-    return _abs();
-  }
-  Float32x4 _abs() native "Float32x4_abs";
-  Float32x4 clamp(Float32x4 lowerLimit,
-                         Float32x4 upperLimit) {
-    return _clamp(lowerLimit, upperLimit);
-  }
-  Float32x4 _clamp(Float32x4 lowerLimit,
-                          Float32x4 upperLimit)
-      native "Float32x4_clamp";
-  double get x native "Float32x4_getX";
-  double get y native "Float32x4_getY";
-  double get z native "Float32x4_getZ";
-  double get w native "Float32x4_getW";
-  Float32x4 get xxxx native "Float32x4_getXXXX";
-  Float32x4 get yyyy native "Float32x4_getYYYY";
-  Float32x4 get zzzz native "Float32x4_getZZZZ";
-  Float32x4 get wwww native "Float32x4_getWWWW";
-  Float32x4 withX(double x) native "Float32x4_setX";
-  Float32x4 withY(double y) native "Float32x4_setY";
-  Float32x4 withZ(double z) native "Float32x4_setZ";
-  Float32x4 withW(double w) native "Float32x4_setW";
-  Float32x4 min(Float32x4 other) {
-    return _min(other);
-  }
-  Float32x4 _min(Float32x4 other) native "Float32x4_min";
-  Float32x4 max(Float32x4 other) {
-    return _max(other);
-  }
-  Float32x4 _max(Float32x4 other) native "Float32x4_max";
-  Float32x4 sqrt() {
-    return _sqrt();
-  }
-  Float32x4 _sqrt() native "Float32x4_sqrt";
-  Float32x4 reciprocal() {
-    return _reciprocal();
-  }
-  Float32x4 _reciprocal() native "Float32x4_reciprocal";
-  Float32x4 reciprocalSqrt() {
-    return _reciprocalSqrt();
-  }
-  Float32x4 _reciprocalSqrt() native "Float32x4_reciprocalSqrt";
-  Uint32x4 toUint32x4() {
-      return _toUint32x4();
-  }
-  Uint32x4 _toUint32x4() native "Float32x4_toUint32x4";
-}
-
-
-class _Uint32x4 implements Uint32x4 {
-  factory _Uint32x4(int x, int y, int z, int w)
-      native "Uint32x4_fromInts";
-  factory _Uint32x4.bool(bool x, bool y, bool z, bool w)
-      native "Uint32x4_fromBools";
-  Uint32x4 operator |(Uint32x4 other) {
-    return _or(other);
-  }
-  Uint32x4 _or(Uint32x4 other) native "Uint32x4_or";
-  Uint32x4 operator &(Uint32x4 other) {
-    return _and(other);
-  }
-  Uint32x4 _and(Uint32x4 other) native "Uint32x4_and";
-  Uint32x4 operator ^(Uint32x4 other) {
-    return _xor(other);
-  }
-  Uint32x4 _xor(Uint32x4 other) native "Uint32x4_xor";
-  int get x native "Uint32x4_getX";
-  int get y native "Uint32x4_getY";
-  int get z native "Uint32x4_getZ";
-  int get w native "Uint32x4_getW";
-  Uint32x4 withX(int x) native "Uint32x4_setX";
-  Uint32x4 withY(int y) native "Uint32x4_setY";
-  Uint32x4 withZ(int z) native "Uint32x4_setZ";
-  Uint32x4 withW(int w) native "Uint32x4_setW";
-  bool get flagX native "Uint32x4_getFlagX";
-  bool get flagY native "Uint32x4_getFlagY";
-  bool get flagZ native "Uint32x4_getFlagZ";
-  bool get flagW native "Uint32x4_getFlagW";
-  Uint32x4 withFlagX(bool x) native "Uint32x4_setFlagX";
-  Uint32x4 withFlagY(bool y) native "Uint32x4_setFlagY";
-  Uint32x4 withFlagZ(bool z) native "Uint32x4_setFlagZ";
-  Uint32x4 withFlagW(bool w) native "Uint32x4_setFlagW";
-  Float32x4 select(Float32x4 trueValue,
-                          Float32x4 falseValue) {
-    return _select(trueValue, falseValue);
-  }
-  Float32x4 _select(Float32x4 trueValue,
-                           Float32x4 falseValue)
-      native "Uint32x4_select";
-  Float32x4 toFloat32x4() {
-      return _toFloat32x4();
-  }
-  Float32x4 _toFloat32x4() native "Uint32x4_toFloat32x4";
-}
-
 class _TypedListIterator<E> implements Iterator<E> {
   final List<E> _array;
   final int _length;
@@ -2780,52 +2460,6 @@ class _Float64ArrayView extends _TypedListView implements Float64List {
 }
 
 
-class _Float32x4ArrayView extends _TypedListView implements Float32x4List {
-  // Constructor.
-  _Float32x4ArrayView(ByteBuffer buffer, [int _offsetInBytes = 0, int _length])
-    : super(buffer, _offsetInBytes,
-            _defaultIfNull(_length,
-                           ((buffer.lengthInBytes - _offsetInBytes) ~/
-                            Float32x4List.BYTES_PER_ELEMENT))) {
-    _rangeCheck(buffer.lengthInBytes,
-                offsetInBytes,
-                length * Float32x4List.BYTES_PER_ELEMENT);
-  }
-
-
-  // Method(s) implementing List interface.
-
-  Float32x4 operator[](int index) {
-    if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
-    }
-    return _typeddata._getFloat32x4(offsetInBytes +
-                                  (index * Float32x4List.BYTES_PER_ELEMENT));
-  }
-
-  void operator[]=(int index, Float32x4 value) {
-    if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
-    }
-    _typeddata._setFloat32x4(offsetInBytes +
-                             (index * Float32x4List.BYTES_PER_ELEMENT), value);
-  }
-
-  Iterator<Float32x4> get iterator {
-    return new _TypedListIterator<Float32x4>(this);
-  }
-
-
-  // Method(s) implementing TypedData interface.
-
-  int get elementSizeInBytes {
-    return Float32x4List.BYTES_PER_ELEMENT;
-  }
-}
-
-
 class _ByteDataView implements ByteData {
   _ByteDataView(ByteBuffer _buffer, int _offsetInBytes, int _lengthInBytes)
     : _typeddata = _buffer as TypedData,
@@ -2919,14 +2553,6 @@ class _ByteDataView implements ByteData {
   }
   void setFloat64(int byteOffset, double value) {
     _typeddata._setFloat64(_offset + byteOffset, value);
-  }
-
-  Float32x4 getFloat32x4(int byteOffset) {
-    return _typeddata._getFloat32x4(_offset + byteOffset);
-  }
-  void setFloat32x4(int byteOffset, Float32x4 value) {
-    _typeddata._setFloat32x4(_offset + byteOffset, value);
-
   }
 
   final TypedData _typeddata;

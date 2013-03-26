@@ -5,7 +5,7 @@
 // Library tag to be able to run in html test framework.
 library float32x4_list_test;
 
-import 'dart:typeddata';
+import 'dart:scalarlist';
 
 testLoadStore(array) {
   Expect.equals(8, array.length);
@@ -56,7 +56,7 @@ main() {
   for (int i = 0; i < floatList.length; i++) {
     floatList[i] = i.toDouble();
   }
-  list = new Float32x4List.view(floatList);
+  list = new Float32x4List.view(floatList.asByteArray());
   for (int i = 0; i < 3000; i++) {
     testView(list);
   }

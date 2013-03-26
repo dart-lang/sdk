@@ -870,6 +870,8 @@ RawError* Object::Init(Isolate* isolate) {
   object_store->set_##object_store_name##_class(cls);                          \
   RegisterPrivateClass(cls, Symbols::_##name(), lib);                          \
 
+  REGISTER_SCALARLIST_CLASS(Float32x4, float32x4);
+  REGISTER_SCALARLIST_CLASS(Uint32x4, uint32x4);
   REGISTER_SCALARLIST_CLASS(Int8Array, int8_array);
   REGISTER_SCALARLIST_CLASS(Uint8Array, uint8_array);
   REGISTER_SCALARLIST_CLASS(Uint8ClampedArray, uint8_clamped_array);
@@ -896,25 +898,14 @@ RawError* Object::Init(Isolate* isolate) {
   REGISTER_SCALARLIST_CLASS(ExternalFloat32Array, external_float32_array);
   REGISTER_SCALARLIST_CLASS(ExternalFloat64Array, external_float64_array);
 #undef REGISTER_SCALARLIST_CLASS
-  // Add Float32x4 and Uint32x4 to dart:scalarlist and register them in
-  // object_store.
-  cls = Class::New<Float32x4>();
-  object_store->set_float32x4_class(cls);
-  RegisterPrivateClass(cls, Symbols::_Float32x4(), lib);
-  cls = Class::New<Uint32x4>();
-  object_store->set_uint32x4_class(cls);
-  RegisterPrivateClass(cls, Symbols::_Uint32x4(), lib);
-
 
   // Pre-register the typeddata library so the native class implementations
   // can be hooked up before compiling it.
   LOAD_LIBRARY(TypedData, typeddata);
   ASSERT(!lib.IsNull());
   ASSERT(lib.raw() == Library::TypedDataLibrary());
-  const intptr_t typeddata_class_array_length =
-      RawObject::NumberOfTypedDataClasses() + 2;  // +2 for Float32x4 & Uint32x4
   Array& typeddata_classes =
-      Array::Handle(Array::New(typeddata_class_array_length));
+      Array::Handle(Array::New(RawObject::NumberOfTypedDataClasses()));
   int index = 0;
 #define REGISTER_TYPED_DATA_CLASS(clazz)                                       \
   cls = Class::NewTypedDataClass(kTypedData##clazz##Cid);                      \
@@ -946,14 +937,6 @@ RawError* Object::Init(Isolate* isolate) {
 
   CLASS_LIST_TYPED_DATA(REGISTER_EXT_TYPED_DATA_CLASS);
 #undef REGISTER_EXT_TYPED_DATA_CLASS
-  // Add Float32x4 and Uint32x4 to dart:typeddata.
-  cls = object_store->float32x4_class();
-  typeddata_classes.SetAt(typeddata_class_array_length-2, cls);
-  RegisterPrivateClass(cls, Symbols::_Float32x4(), lib);
-  cls = object_store->uint32x4_class();
-  typeddata_classes.SetAt(typeddata_class_array_length-1, cls);
-  RegisterPrivateClass(cls, Symbols::_Uint32x4(), lib);
-
   object_store->set_typeddata_classes(typeddata_classes);
 
   // Set the super type of class Stacktrace to Object type so that the
@@ -12608,18 +12591,17 @@ const char* Uint32x4::ToCString() const {
 
 
 const intptr_t TypedData::element_size[] = {
-  1,   // kTypedDataInt8ArrayCid.
-  1,   // kTypedDataUint8ArrayCid.
-  1,   // kTypedDataUint8ClampedArrayCid.
-  2,   // kTypedDataInt16ArrayCid.
-  2,   // kTypedDataUint16ArrayCid.
-  4,   // kTypedDataInt32ArrayCid.
-  4,   // kTypedDataUint32ArrayCid.
-  8,   // kTypedDataInt64ArrayCid.
-  8,   // kTypedDataUint64ArrayCid.
-  4,   // kTypedDataFloat32ArrayCid.
-  8,   // kTypedDataFloat64ArrayCid.
-  16,  // kTypedDataFloat32x4ArrayCid.
+  1,  // kTypedDataInt8ArrayCid.
+  1,  // kTypedDataUint8ArrayCid.
+  1,  // kTypedDataUint8ClampedArrayCid.
+  2,  // kTypedDataInt16ArrayCid.
+  2,  // kTypedDataUint16ArrayCid.
+  4,  // kTypedDataInt32ArrayCid.
+  4,  // kTypedDataUint32ArrayCid.
+  8,  // kTypedDataInt64ArrayCid.
+  8,  // kTypedDataUint64ArrayCid.
+  4,  // kTypedDataFloat32ArrayCid.
+  8,  // kTypedDataFloat64ArrayCid.
 };
 
 

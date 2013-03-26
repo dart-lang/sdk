@@ -5051,7 +5051,6 @@ class TypedData : public Instance {
   TYPED_GETTER_SETTER(Uint64, uint64_t)
   TYPED_GETTER_SETTER(Float32, float)
   TYPED_GETTER_SETTER(Float64, double)
-  TYPED_GETTER_SETTER(Float32x4, simd128_value_t)
 
   static intptr_t length_offset() {
     return OFFSET_OF(RawTypedData, length_);
@@ -5148,7 +5147,6 @@ class ExternalTypedData : public Instance {
   TYPED_GETTER_SETTER(Uint64, uint64_t)
   TYPED_GETTER_SETTER(Float32, float)
   TYPED_GETTER_SETTER(Float64, double)
-  TYPED_GETTER_SETTER(Float32x4, simd128_value_t);
 
   FinalizablePersistentHandle* AddFinalizer(
       void* peer, Dart_WeakPersistentHandleFinalizer callback) const;

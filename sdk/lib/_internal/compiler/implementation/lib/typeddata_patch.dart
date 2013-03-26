@@ -139,38 +139,6 @@ patch class Float64List {
 }
 
 
-patch class Float32x4List {
-  patch factory Float32x4List(int length) {
-    throw new UnsupportedError('Float32x4List');
-  }
-
-  patch factory Float32x4List.view(ByteBuffer buffer,
-                                      [int offsetInBytes = 0, int length]) {
-    throw new UnsupportedError('Float32x4List.view');
-  }
-}
-
-
-patch class Float32x4 {
-  patch factory Float32x4(double x, double y, double z, double w) {
-    throw new UnsupportedError('Float32x4');
-  }
-  patch factory Float32x4.zero() {
-    throw new UnsupportedError('Float32x4.zero');
-  }
-}
-
-
-patch class Uint32x4 {
-  patch factory Uint32x4(int x, int y, int z, int w) {
-    throw new UnsupportedError('Uint32x4');
-  }
-  patch factory Uint32x4.bool(bool x, bool y, bool z, bool w) {
-    throw new UnsupportedError('Uint32x4.bool');
-  }
-}
-
-
 patch class ByteData {
   patch factory ByteData(int length) {
     throw new UnsupportedError('ByteData');

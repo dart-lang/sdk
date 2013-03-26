@@ -174,7 +174,6 @@ class ObjectPointerVisitor;
   V(_Uint64ArrayView, "_Uint64ArrayView")                                      \
   V(_Float32ArrayView, "_Float32ArrayView")                                    \
   V(_Float64ArrayView, "_Float64ArrayView")                                    \
-  V(_Float32x4ArrayView, "_Float32x4ArrayView")                                \
   V(_ExternalInt8Array, "_ExternalInt8Array")                                  \
   V(_ExternalUint8Array, "_ExternalUint8Array")                                \
   V(_ExternalUint8ClampedArray, "_ExternalUint8ClampedArray")                  \

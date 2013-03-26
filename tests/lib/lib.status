@@ -8,6 +8,11 @@ async/stream_periodic4_test: Pass, Fail # Issue http://dartbug.com/9367
 [ $compiler == dart2js  || $compiler == dart2dart ]
 scalarlist/*: Skip
 
+# The typeddata library is not supported by dart2js or dart2dart yet.
+[ $compiler == dart2js  || $compiler == dart2dart ]
+typeddata/*: Skip
+
+
 [ $compiler == dart2js ]
 math/*: Skip
 mirrors/*: Skip
