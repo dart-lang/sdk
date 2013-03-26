@@ -6,7 +6,6 @@
   'sources': [
     'isolate.dart',
     # The above file needs to be first as it lists the parts below.
-    'base.dart',
     'isolate_stream.dart',
   ],
 }

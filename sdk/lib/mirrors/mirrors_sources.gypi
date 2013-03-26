@@ -5,7 +5,6 @@
 {
   'sources': [
     'mirrors.dart',
-    # The above file needs to be first as it lists the parts below.
-    'mirrors_impl.dart',
+    # The above file needs to be first if additional parts are added to the lib.
   ],
 }

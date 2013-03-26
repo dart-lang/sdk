@@ -7,7 +7,6 @@
   'sources': [
     'crypto.dart',
     # The above file needs to be first as it lists the parts below.
-    'crypto_base.dart',
     'crypto_utils.dart',
     'hash_utils.dart',
     'hmac.dart',

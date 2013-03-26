@@ -6,7 +6,6 @@
   'sources': [
     'math.dart',
     # The above file needs to be first as it lists the parts below.
-    'base.dart',
     'random.dart',
   ],
 }

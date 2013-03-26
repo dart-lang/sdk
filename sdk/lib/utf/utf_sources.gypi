@@ -7,7 +7,6 @@
   'sources': [
     'utf.dart',
     # The above file needs to be first as it lists the parts below.
-    'utf_core.dart',
     'utf_stream.dart',
     'utf8.dart',
     'utf16.dart',
