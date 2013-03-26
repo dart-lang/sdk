@@ -335,8 +335,8 @@ const String TEST_19 = r"""
   }
 """;
 
-void doTest(String test, bool disableInlining, Map<String, HType> fields) {
-  fields.forEach((String name, HType type) {
+void doTest(String test, bool disableInlining, Map<String, dynamic> fields) {
+  fields.forEach((String name, type) {
     compileAndFind(
       test,
       'A',
@@ -344,6 +344,7 @@ void doTest(String test, bool disableInlining, Map<String, HType> fields) {
       disableInlining,
       (backend, field) {
         HType inferredType = backend.optimisticFieldType(field);
+        if (type is Function) type = type(backend.compiler);
         Expect.equals(type, inferredType);
     });
   });
@@ -355,10 +356,13 @@ void runTest(String test, Map<String, HType> fields) {
 }
 
 void test() {
+  HType interceptorType(compiler) =>
+      findHType(compiler, 'Interceptor', 'nonNullSubclass');
+
   runTest(TEST_1, {'f': HType.NULL});
   runTest(TEST_2, {'f1': HType.NULL, 'f2': HType.INTEGER});
   runTest(TEST_3, {'f1': HType.INTEGER, 'f2': HType.INTEGER_OR_NULL});
-  runTest(TEST_4, {'f1': HType.NON_NULL, 'f2': HType.STRING_OR_NULL});
+  runTest(TEST_4, {'f1': interceptorType, 'f2': HType.STRING_OR_NULL});
   runTest(TEST_5, {'f1': HType.STRING, 'f2': HType.STRING});
   runTest(TEST_6, {'f1': HType.STRING, 'f2': HType.EXTENDABLE_ARRAY});
   runTest(TEST_7, {'f1': HType.INDEXABLE_PRIMITIVE,
