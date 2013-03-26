@@ -58,6 +58,10 @@ class Address : public ValueObject {
     return (base_ << kRsShift) | imm_value;
   }
 
+  static bool CanHoldOffset(int32_t offset) {
+    return Utils::IsInt(16, offset);
+  }
+
  private:
   Register base_;
   int32_t offset_;
@@ -143,9 +147,7 @@ class Assembler : public ValueObject {
         comments_() { }
   ~Assembler() { }
 
-  void PopRegister(Register r) {
-    UNIMPLEMENTED();
-  }
+  void PopRegister(Register r) { Pop(r); }
 
   void Bind(Label* label);
 
@@ -190,7 +192,7 @@ class Assembler : public ValueObject {
   }
 
   // Debugging and bringup support.
-  void Stop(const char* message) { UNIMPLEMENTED(); }
+  void Stop(const char* message);
   void Unimplemented(const char* message);
   void Untested(const char* message);
   void Unreachable(const char* message);
@@ -225,7 +227,7 @@ class Assembler : public ValueObject {
   // CPU instructions in alphabetical order.
   void addiu(Register rt, Register rs, const Immediate& imm) {
     ASSERT(Utils::IsInt(16, imm.value()));
-    uint16_t imm_value = static_cast<uint16_t>(imm.value());
+    const uint16_t imm_value = static_cast<uint16_t>(imm.value());
     EmitIType(ADDIU, rs, rt, imm_value);
   }
 
@@ -239,7 +241,7 @@ class Assembler : public ValueObject {
 
   void andi(Register rt, Register rs, const Immediate& imm) {
     ASSERT(Utils::IsUint(16, imm.value()));
-    uint16_t imm_value = static_cast<uint16_t>(imm.value());
+    const uint16_t imm_value = static_cast<uint16_t>(imm.value());
     EmitIType(ANDI, rs, rt, imm_value);
   }
 
@@ -503,14 +505,86 @@ class Assembler : public ValueObject {
   }
 
   // Macros in alphabetical order.
+
+  void Branch(const ExternalLabel* label) {
+    // Doesn't need to be patchable, so use the delay slot.
+    if (Utils::IsInt(16, label->address())) {
+      jr(TMP);
+      delay_slot()->addiu(TMP, ZR, Immediate(label->address()));
+    } else {
+      const uint16_t low = Utils::Low16Bits(label->address());
+      const uint16_t high = Utils::High16Bits(label->address());
+      lui(TMP, Immediate(high));
+      jr(TMP);
+      delay_slot()->ori(TMP, TMP, Immediate(low));
+    }
+  }
+
+  void BranchLink(const ExternalLabel* label) {
+    // Doesn't need to be patchable, so use the delay slot.
+    if (Utils::IsInt(16, label->address())) {
+      jalr(TMP);
+      delay_slot()->addiu(TMP, ZR, Immediate(label->address()));
+    } else {
+      const uint16_t low = Utils::Low16Bits(label->address());
+      const uint16_t high = Utils::High16Bits(label->address());
+      lui(TMP, Immediate(high));
+      jalr(TMP);
+      delay_slot()->ori(TMP, TMP, Immediate(low));
+    }
+  }
+
+  void BranchLinkPatchable(const ExternalLabel* label) {
+    const int32_t offset =
+        Array::data_offset() + 4*AddExternalLabel(label) - kHeapObjectTag;
+    LoadWordFromPoolOffset(TMP, offset);
+    jalr(TMP);
+  }
+
+  void BranchPatchable(const ExternalLabel* label) {
+    LoadImmediate(TMP, label->address());
+    jr(TMP);
+  }
+
+  void Drop(intptr_t stack_elements) {
+    ASSERT(stack_elements >= 0);
+    if (stack_elements > 0) {
+      addiu(SP, SP, Immediate(stack_elements * kWordSize));
+    }
+  }
+
   void LoadImmediate(Register rd, int32_t value) {
     if (Utils::IsInt(16, value)) {
       addiu(rd, ZR, Immediate(value));
     } else {
-      lui(rd, Immediate((value >> 16) & 0xffff));
-      ori(rd, rd, Immediate(value & 0xffff));
+      const uint16_t low = Utils::Low16Bits(value);
+      const uint16_t high = Utils::High16Bits(value);
+      lui(rd, Immediate(high));
+      ori(rd, rd, Immediate(low));
     }
   }
+
+  void Push(Register rt) {
+    addiu(SP, SP, Immediate(-kWordSize));
+    sw(rt, Address(SP));
+  }
+
+  void Pop(Register rt) {
+    lw(rt, Address(SP));
+    addiu(SP, SP, Immediate(kWordSize));
+  }
+
+  void Ret() {
+    jr(RA);
+  }
+
+  void LoadWordFromPoolOffset(Register rd, int32_t offset);
+  void LoadObject(Register rd, const Object& object);
+  void PushObject(const Object& object);
+
+  // Sets register rd to zero if the object is equal to register rn,
+  // set to non-zero otherwise.
+  void CompareObject(Register rd, Register rn, const Object& object);
 
  private:
   AssemblerBuffer buffer_;
@@ -519,6 +593,9 @@ class Assembler : public ValueObject {
 
   bool delay_slot_available_;
   bool in_delay_slot_;
+
+  int32_t AddObject(const Object& obj);
+  int32_t AddExternalLabel(const ExternalLabel* label);
 
   class CodeComment : public ZoneAllocated {
    public:
@@ -596,11 +673,12 @@ class Assembler : public ValueObject {
   void EmitBranch(Opcode b, Register rs, Register rt, Label* label) {
     if (label->IsBound()) {
       // Reletive destination from an instruction after the branch.
-      int32_t dest = label->Position() - (buffer_.Size() + Instr::kInstrSize);
-      uint16_t dest_off = EncodeBranchOffset(dest, 0);
+      const int32_t dest =
+          label->Position() - (buffer_.Size() + Instr::kInstrSize);
+      const uint16_t dest_off = EncodeBranchOffset(dest, 0);
       EmitIType(b, rs, rt, dest_off);
     } else {
-      int position = buffer_.Size();
+      const int position = buffer_.Size();
       EmitIType(b, rs, rt, label->position_);
       label->LinkTo(position);
     }
@@ -609,11 +687,12 @@ class Assembler : public ValueObject {
   void EmitRegImmBranch(RtRegImm b, Register rs, Label* label) {
     if (label->IsBound()) {
       // Reletive destination from an instruction after the branch.
-      int32_t dest = label->Position() - (buffer_.Size() + Instr::kInstrSize);
-      uint16_t dest_off = EncodeBranchOffset(dest, 0);
+      const int32_t dest =
+          label->Position() - (buffer_.Size() + Instr::kInstrSize);
+      const uint16_t dest_off = EncodeBranchOffset(dest, 0);
       EmitRegImmType(REGIMM, rs, b, dest_off);
     } else {
-      int position = buffer_.Size();
+      const int position = buffer_.Size();
       EmitRegImmType(REGIMM, rs, b, label->position_);
       label->LinkTo(position);
     }

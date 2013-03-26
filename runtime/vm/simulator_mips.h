@@ -40,6 +40,7 @@ class Simulator {
   double get_fregister(FRegister) const;
 
   // Accessor for the pc.
+  void set_pc(int32_t value) { pc_ = value; }
   int32_t get_pc() const { return pc_; }
 
   // Accessors for hi, lo registers.

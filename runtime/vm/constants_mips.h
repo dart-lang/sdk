@@ -172,7 +172,7 @@ enum InstructionFields {
   kImmBits = 16,
   kInstrShift = 0,
   kInstrBits = 26,
-  kBreakCodeShift = 5,
+  kBreakCodeShift = 6,
   kBreakCodeBits = 20,
 
   kBranchOffsetMask = 0x0000ffff,
@@ -309,6 +309,7 @@ class Instr {
   static const int32_t kBreakPointInstruction =
       (SPECIAL << kOpcodeShift) | (BREAK << kFunctionShift);
   static const int32_t kNopInstruction = 0;
+  static const int32_t kStopMessageCode = 1;
 
   // Get the raw instruction bits.
   inline int32_t InstructionBits() const {

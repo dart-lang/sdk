@@ -76,7 +76,6 @@ cc/FindCodeObject: Crash
 
 [ $arch == simmips ]
 # Tests needing an assembler.
-cc/Call: Skip
 cc/CallLeafRuntimeStubCode: Skip
 cc/CallRuntimeStubCode: Skip
 cc/Dart2JSCompileAll: Skip
@@ -84,7 +83,6 @@ cc/FrameLookup: Skip
 cc/IcDataAccess: Skip
 cc/Jump: Skip
 cc/PatchStaticCall: Skip
-cc/Simple: Skip
 cc/UseDartApi: Skip
 # Tests needing Dart execution.
 dart/*: Skip
