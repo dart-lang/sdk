@@ -664,16 +664,56 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   }
 
   HInstruction visitStringConcat(HStringConcat node) {
-    DartString folded = const LiteralDartString("");
-    for (int i = 0; i < node.inputs.length; i++) {
-      HInstruction part = node.inputs[i];
-      if (!part.isConstant()) return node;
-      HConstant constant = part;
+    // Simplify string concat:
+    //
+    //     "" + R                ->  R
+    //     L + ""                ->  L
+    //     "L" + "R"             ->  "LR"
+    //     (prefix + "L") + "R"  ->  prefix + "LR"
+    //
+    StringConstant getString(HInstruction instruction) {
+      if (!instruction.isConstantString()) return null;
+      HConstant constant = instruction;
+      return constant.constant;
+    }
+
+    StringConstant leftString = getString(node.left);
+    if (leftString != null && leftString.value.length == 0) return node.right;
+
+    StringConstant rightString = getString(node.right);
+    if (rightString == null) return node;
+    if (rightString.value.length == 0) return node.left;
+
+    HInstruction prefix = null;
+    if (leftString == null) {
+      if (node.left is! HStringConcat) return node;
+      HStringConcat leftConcat = node.left;
+      // Don't undo CSE.
+      if (leftConcat.usedBy.length != 1) return node;
+      prefix = leftConcat.left;
+      leftString = getString(leftConcat.right);
+      if (leftString == null) return node;
+    }
+
+    HInstruction folded =
+        graph.addConstant(constantSystem.createString(
+            new DartString.concat(leftString.value, rightString.value),
+            node.node));
+    if (prefix == null) return folded;
+    return new HStringConcat(prefix, folded, node.node);
+  }
+
+  HInstruction visitStringify(HStringify node) {
+    HInstruction input = node.inputs[0];
+    if (input.isString()) return input;
+    if (input.isConstant()) {
+      HConstant constant = input;
       if (!constant.constant.isPrimitive()) return node;
       PrimitiveConstant primitive = constant.constant;
-      folded = new DartString.concat(folded, primitive.toDartString());
+      return graph.addConstant(constantSystem.createString(
+          primitive.toDartString(), node.node));
     }
-    return graph.addConstant(constantSystem.createString(folded, node.node));
+    return node;
   }
 
   HInstruction visitInterceptor(HInterceptor node) {
