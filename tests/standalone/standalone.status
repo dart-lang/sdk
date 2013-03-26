@@ -14,7 +14,7 @@ io/raw_server_socket_cancel_test: Pass, Fail, Timeout # Issue 8675
 
 # Fails with a connection refused error on the buildbot.
 # Issue 8232.
-debugger/basic_debugger_test: Skip
+debugger/basic_debugger_test: Pass, Fail, Timeout
 
 [ $runtime == vm && $checked ]
 # These tests have type errors on purpose.

@@ -323,15 +323,7 @@ class Debugger {
   bool shutdownEventSeen = false;
   int isolateId = 0;
 
-  // stdin subscription to allow terminating the test via command-line.
-  var stdinSubscription;
-
   Debugger(this.targetProcess, this.portNumber) {
-    stdinSubscription =
-        stdin.listen((d) {},
-                     onError: (error) => close(killDebugee: true),
-                     onDone: () => close(killDebugee: true));
-
     var stdoutStringStream = targetProcess.stdout
         .transform(new StringDecoder())
         .transform(new LineTransformer());
@@ -500,7 +492,6 @@ class Debugger {
       for (int i = 0; i < errors.length; i++) print(errors[i]);
     }
     socket.close();
-    stdinSubscription.cancel();
     if (killDebugee) {
       targetProcess.kill();
       print("Target process killed");
@@ -518,7 +509,8 @@ bool RunScript(List script) {
   if (options.arguments.contains("--debuggee")) {
     return false;
   }
-  showDebuggeeOutput = options.arguments.contains("--verbose");
+  // The default is to show debugging output.
+  showDebuggeeOutput = !options.arguments.contains("--non-verbose");
   verboseWire = options.arguments.contains("--wire");
 
   var targetOpts = [ "--debug:$debugPort" ];
@@ -530,7 +522,6 @@ bool RunScript(List script) {
     print("Debug target process started");
     process.stdin.close();
     process.exitCode.then((int exitCode) {
-      Expect.equals(0, exitCode);
       Expect.equals(0, exitCode);
       print("Debug target process exited with exit code $exitCode");
     });
