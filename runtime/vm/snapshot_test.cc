@@ -647,18 +647,21 @@ TEST_CASE(SerializeByteArray) {
     uint8_t* buffer;                                                          \
     MessageWriter writer(&buffer, &zone_allocator);                           \
     const int kArrayLength = 127;                                             \
-    darttype& array = darttype::Handle(darttype::New(kArrayLength));          \
+    TypedData& array = TypedData::Handle(                                     \
+        TypedData::New(kTypedData##darttype##ArrayCid, kArrayLength));        \
+    intptr_t scale = array.ElementSizeInBytes();                              \
     for (int i = 0; i < kArrayLength; i++) {                                  \
-      array.SetAt(i, i);                                                      \
+      array.Set##darttype((i * scale), i);                                    \
     }                                                                         \
     writer.WriteMessage(array);                                               \
     intptr_t buffer_len = writer.BytesWritten();                              \
     SnapshotReader reader(buffer, buffer_len,                                 \
                           Snapshot::kMessage, Isolate::Current());            \
-    darttype& serialized_array = darttype::Handle();                          \
+    TypedData& serialized_array = TypedData::Handle();                        \
     serialized_array ^= reader.ReadObject();                                  \
     for (int i = 0; i < kArrayLength; i++) {                                  \
-      EXPECT_EQ(static_cast<ctype>(i), serialized_array.At(i));               \
+      EXPECT_EQ(static_cast<ctype>(i),                                        \
+                serialized_array.Get##darttype(i*scale));                     \
     }                                                                         \
   }
 
@@ -668,47 +671,50 @@ TEST_CASE(SerializeByteArray) {
     StackZone zone(Isolate::Current());                                       \
     ctype data[] = { 0, 11, 22, 33, 44, 55, 66, 77 };                         \
     intptr_t length = ARRAY_SIZE(data);                                       \
-    External##darttype& array = External##darttype::Handle(                   \
-        External##darttype::New(data, length));                               \
+    ExternalTypedData& array = ExternalTypedData::Handle(                     \
+        ExternalTypedData::New(kExternalTypedData##darttype##ArrayCid,        \
+                               reinterpret_cast<uint8_t*>(data), length));    \
+    intptr_t scale = array.ElementSizeInBytes();                              \
     uint8_t* buffer;                                                          \
     MessageWriter writer(&buffer, &zone_allocator);                           \
     writer.WriteMessage(array);                                               \
     intptr_t buffer_len = writer.BytesWritten();                              \
     SnapshotReader reader(buffer, buffer_len,                                 \
                           Snapshot::kMessage, Isolate::Current());            \
-    darttype& serialized_array = darttype::Handle();                          \
+    TypedData& serialized_array = TypedData::Handle();                        \
     serialized_array ^= reader.ReadObject();                                  \
     for (int i = 0; i < length; i++) {                                        \
-      EXPECT_EQ(static_cast<ctype>(data[i]), serialized_array.At(i));         \
+      EXPECT_EQ(static_cast<ctype>(data[i]),                                  \
+                serialized_array.Get##darttype(i*scale));                     \
     }                                                                         \
   }
 
 
 TEST_CASE(SerializeTypedArray) {
-  TEST_TYPED_ARRAY(Int8Array, int8_t);
-  TEST_TYPED_ARRAY(Uint8Array, uint8_t);
-  TEST_TYPED_ARRAY(Int16Array, int16_t);
-  TEST_TYPED_ARRAY(Uint16Array, uint16_t);
-  TEST_TYPED_ARRAY(Int32Array, int32_t);
-  TEST_TYPED_ARRAY(Uint32Array, uint32_t);
-  TEST_TYPED_ARRAY(Int64Array, int64_t);
-  TEST_TYPED_ARRAY(Uint64Array, uint64_t);
-  TEST_TYPED_ARRAY(Float32Array, float);
-  TEST_TYPED_ARRAY(Float64Array, double);
+  TEST_TYPED_ARRAY(Int8, int8_t);
+  TEST_TYPED_ARRAY(Uint8, uint8_t);
+  TEST_TYPED_ARRAY(Int16, int16_t);
+  TEST_TYPED_ARRAY(Uint16, uint16_t);
+  TEST_TYPED_ARRAY(Int32, int32_t);
+  TEST_TYPED_ARRAY(Uint32, uint32_t);
+  TEST_TYPED_ARRAY(Int64, int64_t);
+  TEST_TYPED_ARRAY(Uint64, uint64_t);
+  TEST_TYPED_ARRAY(Float32, float);
+  TEST_TYPED_ARRAY(Float64, double);
 }
 
 
 TEST_CASE(SerializeExternalTypedArray) {
-  TEST_EXTERNAL_TYPED_ARRAY(Int8Array, int8_t);
-  TEST_EXTERNAL_TYPED_ARRAY(Uint8Array, uint8_t);
-  TEST_EXTERNAL_TYPED_ARRAY(Int16Array, int16_t);
-  TEST_EXTERNAL_TYPED_ARRAY(Uint16Array, uint16_t);
-  TEST_EXTERNAL_TYPED_ARRAY(Int32Array, int32_t);
-  TEST_EXTERNAL_TYPED_ARRAY(Uint32Array, uint32_t);
-  TEST_EXTERNAL_TYPED_ARRAY(Int64Array, int64_t);
-  TEST_EXTERNAL_TYPED_ARRAY(Uint64Array, uint64_t);
-  TEST_EXTERNAL_TYPED_ARRAY(Float32Array, float);
-  TEST_EXTERNAL_TYPED_ARRAY(Float64Array, double);
+  TEST_EXTERNAL_TYPED_ARRAY(Int8, int8_t);
+  TEST_EXTERNAL_TYPED_ARRAY(Uint8, uint8_t);
+  TEST_EXTERNAL_TYPED_ARRAY(Int16, int16_t);
+  TEST_EXTERNAL_TYPED_ARRAY(Uint16, uint16_t);
+  TEST_EXTERNAL_TYPED_ARRAY(Int32, int32_t);
+  TEST_EXTERNAL_TYPED_ARRAY(Uint32, uint32_t);
+  TEST_EXTERNAL_TYPED_ARRAY(Int64, int64_t);
+  TEST_EXTERNAL_TYPED_ARRAY(Uint64, uint64_t);
+  TEST_EXTERNAL_TYPED_ARRAY(Float32, float);
+  TEST_EXTERNAL_TYPED_ARRAY(Float64, double);
 }
 
 

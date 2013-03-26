@@ -1440,6 +1440,8 @@ class RawTypedData : public RawInstance {
 
   // Variable length data follows here.
   uint8_t data_[0];
+
+  friend class Object;
 };
 
 
@@ -1471,8 +1473,6 @@ class RawInt8Array : public RawByteArray {
 
   // Variable length data follows here.
   int8_t data_[0];
-
-  friend class Object;
 };
 
 
