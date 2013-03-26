@@ -298,10 +298,16 @@ class Entrypoint {
   Future _linkSecondaryPackageDir(String dir) {
     return defer(() {
       var symlink = path.join(dir, 'packages');
-      if (fileExists(symlink)) {
-        deleteFile(symlink);
-      } else if (dirExists(symlink)) {
+      // The order of if tests is significant here. fileExists() will return
+      // true for a symlink (broken or not) but deleteFile() cannot be used
+      // to delete a broken symlink on Windows. So we test for the directory
+      // first since deleteDir() does work on symlinks.
+      // TODO(rnystrom): Make deleteFile() work for symlinks on Windows so this
+      // doesn't matter.
+      if (dirExists(symlink)) {
         deleteDir(symlink);
+      } else if (fileExists(symlink)) {
+        deleteFile(symlink);
       }
       return createSymlink(packagesDir, symlink, relative: true);
     });
