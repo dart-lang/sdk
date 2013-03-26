@@ -19,22 +19,23 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, eliminate_type_checks);
-DECLARE_FLAG(bool, enable_type_checks);
-DEFINE_FLAG(bool, trace_optimization, false, "Print optimization details.");
-DECLARE_FLAG(bool, trace_type_check_elimination);
-DEFINE_FLAG(bool, use_cha, true, "Use class hierarchy analysis.");
-DEFINE_FLAG(bool, load_cse, true, "Use redundant load elimination.");
-DEFINE_FLAG(bool, trace_range_analysis, false, "Trace range analysis progress");
-DEFINE_FLAG(bool, trace_constant_propagation, false,
-    "Print constant propagation and useless code elimination.");
 DEFINE_FLAG(bool, array_bounds_check_elimination, true,
     "Eliminate redundant bounds checks.");
+DEFINE_FLAG(bool, load_cse, true, "Use redundant load elimination.");
 DEFINE_FLAG(int, max_polymorphic_checks, 4,
     "Maximum number of polymorphic check, otherwise it is megamorphic.");
 DEFINE_FLAG(bool, remove_redundant_phis, true, "Remove redundant phis.");
+DEFINE_FLAG(bool, trace_constant_propagation, false,
+    "Print constant propagation and useless code elimination.");
+DEFINE_FLAG(bool, trace_optimization, false, "Print optimization details.");
+DEFINE_FLAG(bool, trace_range_analysis, false, "Trace range analysis progress");
 DEFINE_FLAG(bool, truncating_left_shift, true,
     "Optimize left shift to truncate if possible");
+DEFINE_FLAG(bool, use_cha, true, "Use class hierarchy analysis.");
+DECLARE_FLAG(bool, eliminate_type_checks);
+DECLARE_FLAG(bool, enable_type_checks);
+DECLARE_FLAG(bool, trace_type_check_elimination);
+
 
 
 void FlowGraphOptimizer::ApplyICData() {
@@ -2347,22 +2348,6 @@ static Token::Kind FlipComparison(Token::Kind op) {
   }
 }
 
-// For a comparison operation return an operation for the negated comparison:
-// !(a (op) b) === a (op') b
-static Token::Kind NegateComparison(Token::Kind op) {
-  switch (op) {
-    case Token::kEQ: return Token::kNE;
-    case Token::kNE: return Token::kEQ;
-    case Token::kLT: return Token::kGTE;
-    case Token::kGT: return Token::kLTE;
-    case Token::kLTE: return Token::kGT;
-    case Token::kGTE: return Token::kLT;
-    default:
-      UNREACHABLE();
-      return Token::kILLEGAL;
-  }
-}
-
 
 // Given a boundary (right operand) and a comparison operation return
 // a symbolic range constraint for the left operand of the comparison assuming
@@ -2442,7 +2427,7 @@ void RangeAnalysis::ConstrainValueAfterBranch(Definition* defn, Value* use) {
     ConstraintInstr* false_constraint =
         InsertConstraintFor(
             defn,
-            ConstraintRange(NegateComparison(op_kind), boundary),
+            ConstraintRange(Token::NegateComparison(op_kind), boundary),
             branch->false_successor());
     // Mark false_constraint an artificial use of boundary. This ensures
     // that constraint's range is recalculated if boundary's range changes.

@@ -1244,9 +1244,13 @@ Instruction* BranchInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
   // Only handle strict-compares.
   if (comparison()->IsStrictCompare()) {
     Definition* replacement = comparison()->Canonicalize(optimizer);
-    if (replacement == comparison() || replacement == NULL) return this;
+    if ((replacement == comparison()) || (replacement == NULL)) {
+      return this;
+    }
     ComparisonInstr* comp = replacement->AsComparison();
-    if ((comp == NULL) || comp->CanDeoptimize()) return this;
+    if ((comp == NULL) || comp->CanDeoptimize()) {
+      return this;
+    }
 
     // Check that comparison is not serving as a pending deoptimization target
     // for conversions.
@@ -1279,7 +1283,9 @@ Instruction* BranchInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
 
 
 Definition* StrictCompareInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
-  if (!right()->BindsToConstant()) return this;
+  if (!right()->BindsToConstant()) {
+    return this;
+  }
   const Object& right_constant = right()->BoundConstant();
   Definition* left_defn = left()->definition();
   // TODO(fschneider): Handle other cases: e === false and e !== true/false.
@@ -1290,6 +1296,18 @@ Definition* StrictCompareInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
     // Return left subexpression as the replacement for this instruction.
     return left_defn;
   }
+  // x = (a === b);  y = x !== true; -> y = a !== b.
+  // In order to merge two strict comares, 'left_strict' must have only one use.
+  // Do not check left's cid as it is required to be a strict compare.
+  StrictCompareInstr* left_strict = left_defn->AsStrictCompare();
+  if ((kind() == Token::kNE_STRICT) &&
+      (right_constant.raw() == Bool::True().raw()) &&
+      (left_strict != NULL) &&
+      (left_strict->HasOnlyUse(left()))) {
+    left_strict->set_kind(Token::NegateComparison(left_strict->kind()));
+    return left_strict;
+  }
+
   return this;
 }
 

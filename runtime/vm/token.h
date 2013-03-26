@@ -290,6 +290,24 @@ class Token {
   static bool IsBinaryOperator(Token::Kind token);
   static bool IsPrefixOperator(Token::Kind token);
 
+  // For a comparison operation return an operation for the negated comparison:
+  // !(a (op) b) === a (op') b
+  static Token::Kind NegateComparison(Token::Kind op) {
+    switch (op) {
+      case Token::kEQ: return Token::kNE;
+      case Token::kNE: return Token::kEQ;
+      case Token::kLT: return Token::kGTE;
+      case Token::kGT: return Token::kLTE;
+      case Token::kLTE: return Token::kGT;
+      case Token::kGTE: return Token::kLT;
+      case Token::kEQ_STRICT: return Token::kNE_STRICT;
+      case Token::kNE_STRICT: return Token::kEQ_STRICT;
+      default:
+        UNREACHABLE();
+        return Token::kILLEGAL;
+    }
+  }
+
  private:
   static const char* name_[];
   static const char* tok_str_[];

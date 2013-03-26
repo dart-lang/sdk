@@ -2421,7 +2421,7 @@ class ComparisonInstr : public TemplateDefinition<2> {
   virtual void EmitBranchCode(FlowGraphCompiler* compiler,
                               BranchInstr* branch) = 0;
 
- private:
+ protected:
   Token::Kind kind_;
 };
 
@@ -2499,6 +2499,7 @@ class StrictCompareInstr : public ComparisonInstr {
 
   bool needs_number_check() const { return needs_number_check_; }
   void set_needs_number_check(bool value) { needs_number_check_ = value; }
+  void set_kind(Token::Kind value) { kind_ = value; }
 
  private:
   // True if the comparison must check for double, Mint or Bigint and
