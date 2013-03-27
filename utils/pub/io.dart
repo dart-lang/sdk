@@ -201,7 +201,12 @@ bool dirExists(String dir) => new Directory(dir).existsSync();
 void deleteEntry(String path) {
   if (linkExists(path)) {
     log.io("Deleting link $path.");
-    new Link(path).deleteSync();
+    if (Platform.operatingSystem == 'windows') {
+      // TODO(nweiz): remove this when issue 9278 is fixed.
+      new Directory(path).deleteSync();
+    } else {
+      new Link(path).deleteSync();
+    }
   } else if (dirExists(path)) {
     log.io("Deleting directory $path.");
     new Directory(path).deleteSync(recursive: true);
