@@ -7,6 +7,5 @@
     'scalarlist.dart',
     # The above file needs to be first as it lists the parts below.
     'byte_arrays.dart',
-    'simd128.dart',
   ],
 }

@@ -15,4 +15,3 @@ library dart.scalarlist;
 import 'dart:collection';
 
 part 'byte_arrays.dart';
-part 'simd128.dart';

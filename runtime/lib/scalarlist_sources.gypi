@@ -8,8 +8,6 @@
   'sources': [
     'byte_array.cc',
     'byte_array.dart',
-    'simd128.cc',
-    'simd128.dart',
   ],
 }
 

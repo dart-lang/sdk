@@ -454,6 +454,13 @@ void TestByteArrayGetIndex(Assembler* assembler, Label* fall_through) {
   /* RDI: untagged array length. */                                            \
   __ cmpq(RDI, Immediate(max_len));                                            \
   __ j(GREATER, &fall_through);                                                \
+  /* Special case for scaling by 16. */                                        \
+  if (scale_factor == TIMES_16) {                                              \
+    /* double length of array. */                                              \
+    __ addq(RDI, RDI);                                                         \
+    /* only scale by 8. */                                                     \
+    scale_factor = TIMES_8;                                                    \
+  }                                                                            \
   const intptr_t fixed_size = sizeof(Raw##type_name) + kObjectAlignment - 1;   \
   __ leaq(RDI, Address(RDI, scale_factor, fixed_size));                        \
   __ andq(RDI, Immediate(-kObjectAlignment));                                  \
@@ -532,11 +539,13 @@ void TestByteArrayGetIndex(Assembler* assembler, Label* fall_through) {
 
 #define SCALARLIST_ALLOCATOR(clazz, scale)                                     \
 bool Intrinsifier::clazz##_new(Assembler* assembler) {                         \
-  TYPED_ARRAY_ALLOCATION(clazz, k##clazz##Cid, clazz::kMaxElements, scale);    \
+  ScaleFactor scale_fac = scale;                                               \
+  TYPED_ARRAY_ALLOCATION(clazz, k##clazz##Cid, clazz::kMaxElements, scale_fac);\
   return false;                                                                \
 }                                                                              \
 bool Intrinsifier::clazz##_factory(Assembler* assembler) {                     \
-  TYPED_ARRAY_ALLOCATION(clazz, k##clazz##Cid, clazz::kMaxElements, scale);    \
+  ScaleFactor scale_fac = scale;                                               \
+  TYPED_ARRAY_ALLOCATION(clazz, k##clazz##Cid, clazz::kMaxElements, scale_fac);\
   return false;                                                                \
 }
 
@@ -617,6 +626,7 @@ static ScaleFactor GetScaleFactor(intptr_t size) {
     case 2: return TIMES_2;
     case 4: return TIMES_4;
     case 8: return TIMES_8;
+    case 16: return TIMES_16;
   }
   UNREACHABLE();
   return static_cast<ScaleFactor>(0);

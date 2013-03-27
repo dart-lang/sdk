@@ -8,6 +8,7 @@
   'sources': [
     'typeddata.cc',
     'typeddata.dart',
+    'simd128.cc',
   ],
 }
 

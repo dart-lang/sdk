@@ -467,7 +467,7 @@ RawClass* SnapshotReader::NewClass(intptr_t class_id) {
   ASSERT(isolate()->no_gc_scope_depth() != 0);
   if (class_id < kNumPredefinedCids) {
     ASSERT((class_id >= kInstanceCid) &&
-           (class_id <= kExternalTypedDataFloat64ArrayCid));
+           (class_id <= kExternalTypedDataFloat32x4ArrayCid));
     return isolate()->class_table()->At(class_id);
   }
   cls_ = Object::class_class();
