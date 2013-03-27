@@ -31222,7 +31222,7 @@ class _CustomEventStreamProvider<T extends Event>
  * Internal class that does the actual calculations to determine keyCode and
  * charCode for keydown, keypress, and keyup events for all browsers.
  */
-class _KeyboardEventHandler implements EventStreamProvider<KeyEvent> {
+class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
   // This code inspired by Closure's KeyHandling library.
   // http://closure-library.googlecode.com/svn/docs/closure_goog_events_keyhandler.js.source.html
 
@@ -31230,31 +31230,28 @@ class _KeyboardEventHandler implements EventStreamProvider<KeyEvent> {
    * The set of keys that have been pressed down without seeing their
    * corresponding keyup event.
    */
-  List<KeyboardEvent> _keyDownList;
-
-  /** The set of functions that wish to be notified when a KeyEvent happens. */
-  List<Function> _callbacks;
+  final List<KeyboardEvent> _keyDownList = <KeyboardEvent>[];
 
   /** The type of KeyEvent we are tracking (keyup, keydown, keypress). */
-  String _type;
+  final String _type;
 
   /** The element we are watching for events to happen on. */
-  EventTarget _target;
+  final EventTarget _target;
 
   // The distance to shift from upper case alphabet Roman letters to lower case.
-  final int _ROMAN_ALPHABET_OFFSET = "a".codeUnits[0] - "A".codeUnits[0];
+  static final int _ROMAN_ALPHABET_OFFSET = "a".codeUnits[0] - "A".codeUnits[0];
 
   /** Controller to produce KeyEvents for the stream. */
-  StreamController _controller;
+  final StreamController _controller = new StreamController.broadcast();
 
-  String _eventType = 'KeyEvent';
+  static const _EVENT_TYPE = 'KeyEvent';
 
   /**
    * An enumeration of key identifiers currently part of the W3C draft for DOM3
    * and their mappings to keyCodes.
    * http://www.w3.org/TR/DOM-Level-3-Events/keyset.html#KeySet-Set
    */
-  static Map<String, int> _keyIdentifier = {
+  static const Map<String, int> _keyIdentifier = const {
     'Up': KeyCode.UP,
     'Down': KeyCode.DOWN,
     'Left': KeyCode.LEFT,
@@ -31279,12 +31276,6 @@ class _KeyboardEventHandler implements EventStreamProvider<KeyEvent> {
     'PageDown': KeyCode.PAGE_DOWN,
     'Insert': KeyCode.INSERT
   };
-
-  /**
-   * Gets the type of the event which this would listen for on the specified
-   * event target.
-   */
-  String getEventType(EventTarget target) => _eventType;
 
   /** Return a stream for KeyEvents for the specified target. */
   Stream<KeyEvent> forTarget(EventTarget e, {bool useCapture: false}) {
@@ -31312,26 +31303,16 @@ class _KeyboardEventHandler implements EventStreamProvider<KeyEvent> {
    * General constructor, performs basic initialization for our improved
    * KeyboardEvent controller.
    */
-  _KeyboardEventHandler(String type) {
-    _commonInit(type);
-  }
-
-  void _commonInit(String type) {
-    _type = type;
-    _controller = new StreamController.broadcast();
-    _callbacks = [];
-    _target = null;
+  _KeyboardEventHandler(this._type) :
+    _target = null, super(_EVENT_TYPE) {
   }
 
   /**
    * Hook up all event listeners under the covers so we can estimate keycodes
    * and charcodes when they are not provided.
    */
-  _KeyboardEventHandler.initializeAllEventListeners(String type,
-      EventTarget target) {
-    _commonInit(type);
-    _target = target;
-    _keyDownList = [];
+  _KeyboardEventHandler.initializeAllEventListeners(this._type, this._target) : 
+    super(_EVENT_TYPE) {
     Element.keyDownEvent.forTarget(_target, useCapture: true).listen(
         processKeyDown);
     Element.keyPressEvent.forTarget(_target, useCapture: true).listen(
@@ -31534,7 +31515,7 @@ class _KeyboardEventHandler implements EventStreamProvider<KeyEvent> {
          _keyDownList.last.keyCode == KeyCode.ALT && !e.altKey ||
          Device.userAgent.contains('Mac') &&
          _keyDownList.last.keyCode == KeyCode.META && !e.metaKey)) {
-      _keyDownList = [];
+      _keyDownList.clear();
     }
 
     var event = new KeyEvent(e);
@@ -31594,8 +31575,7 @@ class _KeyboardEventHandler implements EventStreamProvider<KeyEvent> {
       }
     }
     if (toRemove != null) {
-      _keyDownList =
-          _keyDownList.where((element) => element != toRemove).toList();
+      _keyDownList.removeWhere((element) => element == toRemove);
     } else if (_keyDownList.length > 0) {
       // This happens when we've reached some international keyboard case we
       // haven't accounted for or we haven't correctly eliminated all browser
