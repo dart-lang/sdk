@@ -48,7 +48,7 @@ class _Utils {
   static window() native "Utils_window";
   static print(String message) native "Utils_print";
   static forwardingPrint(String message) native "Utils_forwardingPrint";
-  static SendPort spawnDomFunctionImpl(Function topLevelFunction) native "Utils_spawnDomFunction";
+  static void spawnDomFunction(Function topLevelFunction, int replyTo) native "Utils_spawnDomFunction";
   static int _getNewIsolateId() native "Utils_getNewIsolateId";
   static bool shadowRootSupported(Document document) native "Utils_shadowRootSupported";
 }

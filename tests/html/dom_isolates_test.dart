@@ -19,11 +19,13 @@ isolateMain() {
 }
 
 isolateMainTrampoline() {
-  final childPort = spawnDomFunction(isolateMain);
+  final future = spawnDomFunction(isolateMain);
   port.receive((msg, parentPort) {
-    childPort.call(msg).then((response) {
-      parentPort.send(response);
-      port.close();
+    future.then((childPort) {
+      childPort.call(msg).then((response) {
+        parentPort.send(response);
+        port.close();
+      });
     });
   });
 }
@@ -34,17 +36,21 @@ main() {
   useHtmlConfiguration();
 
   test('Simple DOM isolate test', () {
-    spawnDomFunction(isolateMain).call('check').then(
-      expectAsync1((msg) {
-        expect(msg, equals('${window.location}'));
-      }));
+    spawnDomFunction(isolateMain).then((sendPort) {
+      sendPort.call('check').then(
+        expectAsync1((msg) {
+          expect(msg, equals('${window.location}'));
+        }));
+    });
   });
 
   test('Nested DOM isolates test', () {
-    spawnDomFunction(isolateMainTrampoline).call('check').then(
-      expectAsync1((msg) {
-        expect(msg, equals('${window.location}'));
-      }));
+    spawnDomFunction(isolateMainTrampoline).then((sendPort) {
+      sendPort.call('check').then(
+        expectAsync1((msg) {
+          expect(msg, equals('${window.location}'));
+        }));
+    });
   });
 
   test('Not function', () {

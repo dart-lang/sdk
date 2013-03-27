@@ -36106,7 +36106,17 @@ class _VariableSizeListIterator<T> implements Iterator<T> {
 
 
 // This API is exploratory.
-spawnDomFunction(Function topLevelFunction) => _Utils.spawnDomFunctionImpl(topLevelFunction);
+Future<SendPort> spawnDomFunction(Function topLevelFunction) {
+  final completer = new Completer<SendPort>();
+  final port = new ReceivePort();
+  port.receive((result, _) {
+    completer.complete(result);
+    port.close();
+  });
+  // TODO: SendPort.hashCode is ugly way to access port id.
+  _Utils.spawnDomFunction(topLevelFunction, port.toSendPort().hashCode);
+  return completer.future;
+}
 
 // testRunner implementation.
 // FIXME: provide a separate lib for testRunner.
@@ -36179,7 +36189,7 @@ class _Utils {
   static window() native "Utils_window";
   static print(String message) native "Utils_print";
   static forwardingPrint(String message) native "Utils_forwardingPrint";
-  static SendPort spawnDomFunctionImpl(Function topLevelFunction) native "Utils_spawnDomFunction";
+  static void spawnDomFunction(Function topLevelFunction, int replyTo) native "Utils_spawnDomFunction";
   static int _getNewIsolateId() native "Utils_getNewIsolateId";
   static bool shadowRootSupported(Document document) native "Utils_shadowRootSupported";
 }
