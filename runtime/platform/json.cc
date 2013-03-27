@@ -545,6 +545,19 @@ void TextBuffer::AddEscapedChar(uint32_t cp) {
 }
 
 
+void TextBuffer::AddString(const char* s) {
+  Printf("%s", s);
+}
+
+
+void TextBuffer::AddEscapedString(const char* s) {
+  intptr_t len = strlen(s);
+  for (int i = 0; i < len; i++) {
+    AddEscapedChar(s[i]);
+  }
+}
+
+
 void TextBuffer::EnsureCapacity(intptr_t len) {
   intptr_t remaining = buf_size_ - msg_len_;
   if (remaining <= len) {

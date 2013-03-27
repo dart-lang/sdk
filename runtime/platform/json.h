@@ -127,6 +127,8 @@ class TextBuffer : ValueObject {
   void AddChar(char ch);
   void AddUTF8(uint32_t ch);
   void AddEscapedChar(uint32_t ch);
+  void AddString(const char* s);
+  void AddEscapedString(const char* s);
 
   void Clear();
 

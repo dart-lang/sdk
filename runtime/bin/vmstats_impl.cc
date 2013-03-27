@@ -4,8 +4,6 @@
 
 #include "bin/vmstats_impl.h"
 
-#include <sstream>
-
 #include "bin/file.h"
 #include "bin/log.h"
 #include "bin/platform.h"
@@ -252,21 +250,22 @@ void VmStats::WebServer(uword bind_address) {
       free(content);
     } else {
       // No status content with this URL, return file or resource content.
-      std::string path(instance_->root_directory_);
-      path.append(url);
+      dart::TextBuffer path(strlen(instance_->root_directory_) + strlen(url));
+      path.AddString(instance_->root_directory_);
+      path.AddString(url);
 
       // Expand directory URLs.
       if (strcmp(url, "/") == 0) {
-        path.append(VMSTATS_HTML);
+        path.AddString(VMSTATS_HTML);
       } else if (url[strlen(url) - 1] == '/') {
-        path.append(INDEX_HTML);
+        path.AddString(INDEX_HTML);
       }
 
       bool success = false;
       char* text_buffer = NULL;
-      const char* content_type = ContentType(path.c_str());
-      if (File::Exists(path.c_str())) {
-        File* f = File::Open(path.c_str(), File::kRead);
+      const char* content_type = ContentType(path.buf());
+      if (File::Exists(path.buf())) {
+        File* f = File::Open(path.buf(), File::kRead);
         if (f != NULL) {
           intptr_t len = f->Length();
           text_buffer = reinterpret_cast<char*>(malloc(len));
@@ -279,7 +278,7 @@ void VmStats::WebServer(uword bind_address) {
         }
       } else {
         const char* resource;
-        intptr_t len = Resources::ResourceLookup(path.c_str(), &resource);
+        intptr_t len = Resources::ResourceLookup(path.buf(), &resource);
         if (len != Resources::kNoSuchInstance) {
           ASSERT(len >= 0);
           writeResponse(socket, content_type, resource, len);
@@ -303,9 +302,8 @@ void VmStats::WebServer(uword bind_address) {
 
 
 char* VmStats::IsolatesStatus() {
-  std::ostringstream stream;
-  stream << '{' << std::endl;
-  stream << "\"isolates\": [" << std::endl;
+  dart::TextBuffer text(64);
+  text.Printf("{\n\"isolates\": [\n");
   IsolateTable::iterator itr;
   bool first = true;
   for (itr = isolate_table_.begin(); itr != isolate_table_.end(); ++itr) {
@@ -316,17 +314,16 @@ char* VmStats::IsolatesStatus() {
              reinterpret_cast<intptr_t>(isolate));
     char* status = VmStatusService::GetVmStatus(request);
     if (status != NULL) {
-      stream << status;
+      text.AddString(status);
       if (!first) {
-        stream << "," << std::endl;
+        text.AddString(",\n");
       }
       first = false;
+      free(status);
     }
-    free(status);
   }
-  stream << std::endl << "]";
-  stream << std::endl << '}' << std::endl;
-  return strdup(stream.str().c_str());
+  text.AddString("\n]\n}\n");
+  return strdup(text.buf());
 }
 
 
