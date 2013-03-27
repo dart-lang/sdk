@@ -5745,59 +5745,6 @@ class Uint64Array : public ByteArray {
 };
 
 
-class Float32x4Array : public ByteArray {
- public:
-  intptr_t ByteLength() const {
-    return Length() * kBytesPerElement;
-  }
-
-  simd128_value_t At(intptr_t index) const {
-    ASSERT((index >= 0) && (index < Length()));
-    return raw_ptr()->data_[index];
-  }
-
-  void SetAt(intptr_t index, simd128_value_t value) const {
-    ASSERT((index >= 0) && (index < Length()));
-    raw_ptr()->data_[index] = value;
-  }
-
-  static const intptr_t kBytesPerElement = 16;
-  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
-
-  static intptr_t data_offset() {
-    return OFFSET_OF(RawFloat32x4Array, data_);
-  }
-
-  static intptr_t InstanceSize() {
-    ASSERT(sizeof(RawFloat32x4Array) ==
-           OFFSET_OF(RawFloat32x4Array, data_));
-    return 0;
-  }
-
-  static intptr_t InstanceSize(intptr_t len) {
-    ASSERT(0 <= len && len <= kMaxElements);
-    return RoundedAllocationSize(
-        sizeof(RawFloat32x4Array) + (len * kBytesPerElement));
-  }
-
-  static RawFloat32x4Array* New(intptr_t len,
-                                     Heap::Space space = Heap::kNew);
-  static RawFloat32x4Array* New(const simd128_value_t* data,
-                                     intptr_t len,
-                                     Heap::Space space = Heap::kNew);
-
- private:
-  uint8_t* ByteAddr(intptr_t byte_offset) const {
-    ASSERT((byte_offset >= 0) && (byte_offset < ByteLength()));
-    return reinterpret_cast<uint8_t*>(&raw_ptr()->data_) + byte_offset;
-  }
-
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(Float32x4Array, ByteArray);
-  friend class ByteArray;
-  friend class Class;
-};
-
-
 class Float32Array : public ByteArray {
  public:
   intptr_t ByteLength() const {
@@ -6392,65 +6339,6 @@ class ExternalUint64Array : public ByteArray {
   }
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ExternalUint64Array, ByteArray);
-  friend class ByteArray;
-  friend class Class;
-};
-
-
-class ExternalFloat32x4Array : public ByteArray {
- public:
-  intptr_t ByteLength() const {
-    return Length() * kBytesPerElement;
-  }
-
-  simd128_value_t At(intptr_t index) const {
-    ASSERT((index >= 0) && (index < Length()));
-    return raw_ptr()->data_[index];
-  }
-
-  void SetAt(intptr_t index, simd128_value_t value) const {
-    ASSERT((index >= 0) && (index < Length()));
-    raw_ptr()->data_[index] = value;
-  }
-
-
-  simd128_value_t* GetData() const {
-    return raw_ptr()->data_;
-  }
-
-  void* GetPeer() const {
-    return raw_ptr()->peer_;
-  }
-
-  static const intptr_t kBytesPerElement = 16;
-
-  // Since external arrays may be serialized to non-external ones,
-  // enforce the same maximum element count.
-  static const intptr_t kMaxElements = Float32x4Array::kMaxElements;
-
-  static intptr_t InstanceSize() {
-    return RoundedAllocationSize(sizeof(RawExternalFloat32x4Array));
-  }
-
-  static RawExternalFloat32x4Array* New(simd128_value_t* data, intptr_t len,
-                                        Heap::Space space = Heap::kNew);
-
- private:
-  uint8_t* ByteAddr(intptr_t byte_offset) const {
-    ASSERT((byte_offset >= 0) && (byte_offset < ByteLength()));
-    uint8_t* data = reinterpret_cast<uint8_t*>(raw_ptr()->data_);
-    return data + byte_offset;
-  }
-
-  void SetData(simd128_value_t* data) const {
-    raw_ptr()->data_ = data;
-  }
-
-  void SetPeer(void* peer) const {
-    raw_ptr()->peer_ = peer;
-  }
-
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(ExternalFloat32x4Array, ByteArray);
   friend class ByteArray;
   friend class Class;
 };

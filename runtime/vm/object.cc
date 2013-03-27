@@ -1099,8 +1099,6 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   cls = Class::New<name>();                                                    \
   object_store->set_##object_store_name##_class(cls);                          \
 
-  REGISTER_SCALARLIST_CLASS(Float32x4, float32x4);
-  REGISTER_SCALARLIST_CLASS(Uint32x4, uint32x4);
   REGISTER_SCALARLIST_CLASS(Int8Array, int8_array);
   REGISTER_SCALARLIST_CLASS(Uint8Array, uint8_array);
   REGISTER_SCALARLIST_CLASS(Uint8ClampedArray, uint8_clamped_array);
@@ -1110,7 +1108,6 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   REGISTER_SCALARLIST_CLASS(Uint32Array, uint32_array);
   REGISTER_SCALARLIST_CLASS(Int64Array, int64_array);
   REGISTER_SCALARLIST_CLASS(Uint64Array, uint64_array);
-  REGISTER_SCALARLIST_CLASS(Float32x4Array, float32x4_array);
   REGISTER_SCALARLIST_CLASS(Float32Array, float32_array);
   REGISTER_SCALARLIST_CLASS(Float64Array, float64_array);
   REGISTER_SCALARLIST_CLASS(ExternalInt8Array, external_int8_array);
@@ -1123,7 +1120,6 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   REGISTER_SCALARLIST_CLASS(ExternalUint32Array, external_uint32_array);
   REGISTER_SCALARLIST_CLASS(ExternalInt64Array, external_int64_array);
   REGISTER_SCALARLIST_CLASS(ExternalUint64Array, external_uint64_array);
-  REGISTER_SCALARLIST_CLASS(ExternalFloat32x4Array, external_float32x4_array);
   REGISTER_SCALARLIST_CLASS(ExternalFloat32Array, external_float32_array);
   REGISTER_SCALARLIST_CLASS(ExternalFloat64Array, external_float64_array);
 #undef REGISTER_SCALARLIST_CLASS
@@ -1141,6 +1137,11 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   cls = Class::NewExternalTypedDataClass(kExternalTypedData##clazz##Cid);
   CLASS_LIST_TYPED_DATA(REGISTER_EXT_TYPED_DATA_CLASS);
 #undef REGISTER_EXT_TYPED_DATA_CLASS
+  // Add Float32x4 and Uint32x4 to the object store.
+  cls = Class::New<Float32x4>();
+  object_store->set_float32x4_class(cls);
+  cls = Class::New<Uint32x4>();
+  object_store->set_uint32x4_class(cls);
 
   cls = Class::New<Integer>();
   object_store->set_integer_implementation_class(cls);
@@ -1369,9 +1370,6 @@ RawString* Class::UserVisibleName() const {
     case kUint64ArrayCid:
     case kExternalUint64ArrayCid:
       return Symbols::Uint64List().raw();
-    case kFloat32x4ArrayCid:
-    case kExternalFloat32x4ArrayCid:
-      return Symbols::Float32x4List().raw();
     case kFloat32ArrayCid:
     case kExternalFloat32ArrayCid:
       return Symbols::Float32List().raw();
@@ -13055,30 +13053,6 @@ const char* Uint64Array::ToCString() const {
 }
 
 
-RawFloat32x4Array* Float32x4Array::New(intptr_t len,
-                                       Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->float32x4_array_class() !=
-         Class::null());
-  return NewImpl<Float32x4Array, RawFloat32x4Array>(kClassId, len,
-                                                              space);
-}
-
-
-RawFloat32x4Array* Float32x4Array::New(const simd128_value_t* data,
-                                       intptr_t len,
-                                       Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->float32_array_class() !=
-         Class::null());
-  return NewImpl<Float32x4Array, RawFloat32x4Array>(kClassId, data,
-                                                              len, space);
-}
-
-
-const char* Float32x4Array::ToCString() const {
-  return "_Float32x4Array";
-}
-
-
 RawFloat32Array* Float32Array::New(intptr_t len, Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->float32_array_class() !=
          Class::null());
@@ -13256,23 +13230,6 @@ RawExternalUint64Array* ExternalUint64Array::New(uint64_t* data,
 
 const char* ExternalUint64Array::ToCString() const {
   return "_ExternalUint64Array";
-}
-
-
-RawExternalFloat32x4Array* ExternalFloat32x4Array::New(simd128_value_t* data,
-                                                       intptr_t len,
-                                                       Heap::Space space) {
-  RawClass* cls =
-     Isolate::Current()->object_store()->external_float32x4_array_class();
-  ASSERT(cls != Class::null());
-  return NewExternalImpl<ExternalFloat32x4Array,
-                         RawExternalFloat32x4Array>(kClassId, data, len,
-                                                    space);
-}
-
-
-const char* ExternalFloat32x4Array::ToCString() const {
-  return "_ExternalFloat32x4Array";
 }
 
 

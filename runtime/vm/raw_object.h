@@ -73,7 +73,6 @@ namespace dart {
       V(Uint32Array)                                                           \
       V(Int64Array)                                                            \
       V(Uint64Array)                                                           \
-      V(Float32x4Array)                                                        \
       V(Float32Array)                                                          \
       V(Float64Array)                                                          \
       V(ExternalInt8Array)                                                     \
@@ -85,7 +84,6 @@ namespace dart {
       V(ExternalUint32Array)                                                   \
       V(ExternalInt64Array)                                                    \
       V(ExternalUint64Array)                                                   \
-      V(ExternalFloat32x4Array)                                                \
       V(ExternalFloat32Array)                                                  \
       V(ExternalFloat64Array)                                                  \
     V(TypedData)                                                               \
@@ -1548,13 +1546,6 @@ class RawUint64Array : public RawByteArray {
 };
 
 
-class RawFloat32x4Array : public RawByteArray {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(Float32x4Array);
-
-  // Variable length data follows here.
-  simd128_value_t data_[0];
-};
-
 class RawFloat32Array : public RawByteArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Float32Array);
 
@@ -1638,14 +1629,6 @@ class RawExternalUint64Array : public RawByteArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalUint64Array);
 
   uint64_t* data_;
-  void* peer_;
-};
-
-
-class RawExternalFloat32x4Array : public RawByteArray {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalFloat32x4Array);
-
-  simd128_value_t* data_;
   void* peer_;
 };
 
@@ -1833,22 +1816,20 @@ inline bool RawObject::IsByteArrayClassId(intptr_t index) {
          kUint32ArrayCid == kByteArrayCid + 7 &&
          kInt64ArrayCid == kByteArrayCid + 8 &&
          kUint64ArrayCid == kByteArrayCid + 9 &&
-         kFloat32x4ArrayCid == kByteArrayCid + 10 &&
-         kFloat32ArrayCid == kByteArrayCid + 11 &&
-         kFloat64ArrayCid == kByteArrayCid + 12 &&
-         kExternalInt8ArrayCid == kByteArrayCid + 13 &&
-         kExternalUint8ArrayCid == kByteArrayCid + 14 &&
-         kExternalUint8ClampedArrayCid == kByteArrayCid + 15 &&
-         kExternalInt16ArrayCid == kByteArrayCid + 16 &&
-         kExternalUint16ArrayCid == kByteArrayCid + 17 &&
-         kExternalInt32ArrayCid == kByteArrayCid + 18 &&
-         kExternalUint32ArrayCid == kByteArrayCid + 19 &&
-         kExternalInt64ArrayCid == kByteArrayCid + 20 &&
-         kExternalUint64ArrayCid == kByteArrayCid + 21 &&
-         kExternalFloat32x4ArrayCid == kByteArrayCid + 22 &&
-         kExternalFloat32ArrayCid == kByteArrayCid + 23 &&
-         kExternalFloat64ArrayCid == kByteArrayCid + 24 &&
-         kTypedDataCid == kByteArrayCid + 25);
+         kFloat32ArrayCid == kByteArrayCid + 10 &&
+         kFloat64ArrayCid == kByteArrayCid + 11 &&
+         kExternalInt8ArrayCid == kByteArrayCid + 12 &&
+         kExternalUint8ArrayCid == kByteArrayCid + 13 &&
+         kExternalUint8ClampedArrayCid == kByteArrayCid + 14 &&
+         kExternalInt16ArrayCid == kByteArrayCid + 15 &&
+         kExternalUint16ArrayCid == kByteArrayCid + 16 &&
+         kExternalInt32ArrayCid == kByteArrayCid + 17 &&
+         kExternalUint32ArrayCid == kByteArrayCid + 18 &&
+         kExternalInt64ArrayCid == kByteArrayCid + 19 &&
+         kExternalUint64ArrayCid == kByteArrayCid + 20 &&
+         kExternalFloat32ArrayCid == kByteArrayCid + 21 &&
+         kExternalFloat64ArrayCid == kByteArrayCid + 22 &&
+         kTypedDataCid == kByteArrayCid + 23);
   return (index >= kByteArrayCid && index <= kExternalFloat64ArrayCid);
 }
 
@@ -1863,10 +1844,9 @@ inline bool RawObject::IsExternalByteArrayClassId(intptr_t index) {
          kExternalUint32ArrayCid == kExternalInt8ArrayCid + 6 &&
          kExternalInt64ArrayCid == kExternalInt8ArrayCid + 7 &&
          kExternalUint64ArrayCid == kExternalInt8ArrayCid + 8 &&
-         kExternalFloat32x4ArrayCid == kExternalInt8ArrayCid + 9 &&
-         kExternalFloat32ArrayCid == kExternalInt8ArrayCid + 10 &&
-         kExternalFloat64ArrayCid == kExternalInt8ArrayCid + 11 &&
-         kTypedDataCid == kExternalInt8ArrayCid + 12);
+         kExternalFloat32ArrayCid == kExternalInt8ArrayCid + 9 &&
+         kExternalFloat64ArrayCid == kExternalInt8ArrayCid + 10 &&
+         kTypedDataCid == kExternalInt8ArrayCid + 11);
   return (index >= kExternalInt8ArrayCid && index <= kExternalFloat64ArrayCid);
 }
 
