@@ -45,6 +45,7 @@
 #include "core/SkTypeface.h"
 #include "effects/SkBlurDrawLooper.h"
 #include "effects/SkDashPathEffect.h"
+#include "effects/SkGradientShader.h"
 #include "gpu/SkGpuDevice.h"
 #include "gpu/GrContext.h"
 #include "gpu/GrRenderTarget.h"

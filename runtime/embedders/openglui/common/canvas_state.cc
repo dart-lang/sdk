@@ -47,6 +47,22 @@ int ParseInt(const char* s, int& pos) {
   return rtn;
 }
 
+CanvasState* CanvasState::Restore() {
+  if (next_ != NULL) {
+    // If the state we are popping has a non-empty path,
+    // apply the state's transform to the path, then
+    // add the path to the previous state's path.
+    if (path_->countPoints() > 0) {
+      path_->transform(canvas_->getTotalMatrix());
+      next_->path_->addPath(*path_);
+    }
+    canvas_->restore();
+    return next_;
+  }
+  canvas_->restore();
+  return next_;  // TODO(gram): Should we assert/throw?
+}
+
 void CanvasState::setLineCap(const char* lc) {
   if (strcmp(lc, "round") == 0) {
     paint_.setStrokeCap(SkPaint::kRound_Cap);
@@ -135,6 +151,29 @@ const char* CanvasState::setTextBaseline(const char* baseline) {
 const char* CanvasState::setTextDirection(const char* direction) {
     // TODO(gram): Add support for this if Skia does.
   return direction;
+}
+
+void CanvasState::setMode(SkPaint::Style style, ColorRGBA color,
+    SkShader* shader) {
+  paint_.setStyle(style);
+  paint_.setColor(color.v);
+  paint_.setShader(shader);
+  uint8_t alpha = static_cast<uint8_t>(
+      globalAlpha_ * static_cast<float>(color.alpha()));
+  paint_.setAlpha(alpha);
+  bool drawShadow = (shadowOffsetX_ != 0 ||
+                     shadowOffsetY_ != 0 ||
+                     shadowBlur_ != 0) &&
+                     shadowColor_.alpha() > 0;
+  if (drawShadow) {
+    // TODO(gram): should we mult shadowColor by globalAlpha?
+    paint_.setLooper(new SkBlurDrawLooper(SkFloatToScalar(shadowBlur_),
+                                          SkFloatToScalar(shadowOffsetX_),
+                                          SkFloatToScalar(shadowOffsetY_),
+                                          shadowColor_.v))->unref();
+  } else {
+    paint_.setLooper(NULL);
+  }
 }
 
 void CanvasState::setGlobalCompositeOperation(const char* op) {
@@ -294,5 +333,79 @@ void CanvasState::DrawImage(const SkBitmap& bm,
   SkRect dst = SkRect::MakeXYWH(dx, dy, dw, dh);
   LOGI("DrawImage(_,%d,%d,%d,%d,%d,%d,%d,%d)", sx, sy, sw, sh, dx, dy, dw, dh);
   canvas_->drawBitmapRect(bm, &src, dst);
+}
+
+void CanvasState::SetFillGradient(bool is_radial,
+    double x0, double y0, double r0,
+    double x1, double y1, double r1,
+    int stops, float* positions, char** colors) {
+  if (fillShader_ != NULL) {
+    fillShader_->unref();
+  }
+  if (is_radial) {
+    fillShader_ = CreateRadialGradient(x0, y0, r0, x1, y1, r1,
+        stops, positions, colors);
+  } else {
+    fillShader_ = CreateLinearGradient(x0, y0, x1, y1,
+        stops, positions, colors);
+  }
+  fillShader_->validate();
+}
+
+void CanvasState::SetStrokeGradient(bool is_radial,
+    double x0, double y0, double r0,
+    double x1, double y1, double r1,
+    int stops, float* positions, char** colors) {
+  if (strokeShader_ != NULL) {
+    strokeShader_->unref();
+  }
+  if (is_radial) {
+    strokeShader_ = CreateRadialGradient(x0, y0, r0, x1, y1, r1,
+        stops, positions, colors);
+  } else {
+    strokeShader_ = CreateLinearGradient(x0, y0, x1, y1,
+        stops, positions, colors);
+  }
+  strokeShader_->validate();
+}
+
+SkShader* CanvasState::CreateRadialGradient(
+      double x0, double y0, double r0,
+      double x1, double y1, double r1,
+      int stops, float* positions, char** colors) {
+  SkScalar* p = new SkScalar[stops];
+  SkColor* c = new SkColor[stops];
+  for (int i = 0; i < stops; i++) {
+    p[i] = positions[i];
+    c[i] = GetColor(colors[i]).v;
+  }
+  LOGI("CreateRadialGradient(%f,%f,%f,%f,%f,%f,%d,[%f,%f],[%s,%s]",
+    x0, y0, r0, x1, y1, r1, stops, positions[0], positions[1],
+    colors[0], colors[1]);
+  SkShader* shader = SkGradientShader::CreateTwoPointRadial(
+      SkPoint::Make(x0, y0), r0, SkPoint::Make(x1, y1), r1,
+      c, p, stops, SkShader::kClamp_TileMode);
+  delete[] c;
+  delete[] p;
+  return shader;
+}
+
+SkShader* CanvasState::CreateLinearGradient(
+      double x0, double y0, double x1, double y1,
+      int stops, float* positions, char** colors) {
+  SkScalar* p = new SkScalar[stops];
+  SkColor* c = new SkColor[stops];
+  for (int i = 0; i < stops; i++) {
+    p[i] = positions[i];
+    c[i] = GetColor(colors[i]).v;
+  }
+  SkPoint pts[2];
+  pts[0] = SkPoint::Make(x0, y0);
+  pts[1] = SkPoint::Make(x1, y1);
+  SkShader* shader =  SkGradientShader::CreateLinear(pts, c, p, stops,
+      SkShader::kClamp_TileMode);
+  delete[] c;
+  delete[] p;
+  return shader;
 }
 

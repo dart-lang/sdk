@@ -4,6 +4,7 @@
 
 #include "embedders/openglui/android/eventloop.h"
 
+#include <time.h>
 #include "embedders/openglui/common/log.h"
 
 /*
@@ -154,10 +155,19 @@ EventLoop::EventLoop(android_app* application)
       hasFocus_(false),
       application_(application),
       lifecycle_handler_(NULL),
-      input_handler_(NULL) {
+      input_handler_(NULL),
+      sensor_manager_(NULL),
+      sensor_event_queue_(NULL),
+      sensor_poll_source_() {
   application_->onAppCmd = ActivityCallback;
   application_->onInputEvent = InputCallback;
   application_->userData = this;
+}
+
+static int64_t getTimeInMillis() {
+  struct timespec res;
+  clock_gettime(CLOCK_REALTIME, &res);
+  return 1000 * res.tv_sec + res.tv_nsec / 1000000;
 }
 
 void EventLoop::Run(LifeCycleHandler* lifecycle_handler,
@@ -168,14 +178,17 @@ void EventLoop::Run(LifeCycleHandler* lifecycle_handler,
 
   lifecycle_handler_ = lifecycle_handler;
   input_handler_ = input_handler;
+  int64_t last_frame_time = getTimeInMillis();
   if (lifecycle_handler_->OnStart() == 0) {
     LOGI("Starting event loop");
     while (!quit_) {
       // If not enabled, block indefinitely on events. If enabled, block
-      // briefly so we can do useful work in onStep. Ultimately this is
-      // where we would want to look at elapsed time since the last call
-      // to onStep completed and use a delay that gives us ~60fps.
-      while ((result = ALooper_pollAll(enabled_ ? (1000/60) : -1, NULL,
+      // briefly so we can do useful work in onStep, but only long
+      // enough that we can still do work at 60fps if possible.
+      int64_t next_frame_time = last_frame_time + (1000/60);
+      int64_t next_frame_delay = next_frame_time - getTimeInMillis();
+      if (next_frame_delay < 0) next_frame_delay = 0;
+      while ((result = ALooper_pollAll(enabled_ ? next_frame_delay : -1, NULL,
           &events, reinterpret_cast<void**>(&source))) >= 0) {
         if (source != NULL) {
           source->process(application_, source);
@@ -185,14 +198,65 @@ void EventLoop::Run(LifeCycleHandler* lifecycle_handler,
         }
       }
       if (enabled_ && !quit_) {
-        LOGI("step");
-        if (lifecycle_handler_->OnStep() != 0) {
-          quit_ = true;
+        int64_t now = getTimeInMillis();
+        if (now >= next_frame_time) {
+          LOGI("step");
+          last_frame_time = now;
+          if (lifecycle_handler_->OnStep() != 0) {
+            quit_ = true;
+          }
         }
       }
     }
   }
   ANativeActivity_finish(application_->activity);
+}
+
+void EventLoop::EnableSensorEvents() {
+  sensor_poll_source_.id = LOOPER_ID_USER;
+  sensor_poll_source_.app = application_;
+  sensor_poll_source_.process = SensorCallback;
+  sensor_manager_ = ASensorManager_getInstance();
+  if (sensor_manager_ != NULL) {
+    sensor_event_queue_ = ASensorManager_createEventQueue(
+        sensor_manager_, application_->looper,
+        LOOPER_ID_USER, NULL, &sensor_poll_source_);
+
+    sensor_ = ASensorManager_getDefaultSensor(sensor_manager_,
+        ASENSOR_TYPE_ACCELEROMETER);
+    if (sensor_ != NULL) {
+      int32_t min_delay = ASensor_getMinDelay(sensor_);
+      if (ASensorEventQueue_enableSensor(sensor_event_queue_, sensor_) < 0 ||
+          ASensorEventQueue_setEventRate(sensor_event_queue_, sensor_,
+              min_delay) < 0) {
+        LOGE("Error while activating sensor.");
+        DisableSensorEvents();
+        return;
+      }
+      LOGI("Activating sensor:");
+      LOGI("Name       : %s", ASensor_getName(sensor_));
+      LOGI("Vendor     : %s", ASensor_getVendor(sensor_));
+      LOGI("Resolution : %f", ASensor_getResolution(sensor_));
+      LOGI("Min Delay  : %d", min_delay);
+    } else {
+      LOGI("No sensor");
+    }
+  }
+}
+
+void EventLoop::DisableSensorEvents() {
+  if (sensor_ != NULL) {
+    if (ASensorEventQueue_disableSensor(sensor_event_queue_, sensor_) < 0) {
+      LOGE("Error while deactivating sensor.");
+    }
+    sensor_ = NULL;
+  }
+  if (sensor_event_queue_ != NULL) {
+    ASensorManager_destroyEventQueue(sensor_manager_,
+                    sensor_event_queue_);
+    sensor_event_queue_ = NULL;
+  }
+  sensor_manager_ = NULL;
 }
 
 void EventLoop::ProcessActivityEvent(int32_t command) {
@@ -215,11 +279,15 @@ void EventLoop::ProcessActivityEvent(int32_t command) {
       hasFocus_ = true;
       if (hasSurface_ && isResumed_ && hasFocus_) {
         enabled_ = (lifecycle_handler_->Resume() == 0);
+        if (enabled_) {
+          EnableSensorEvents();
+        }
       }
       break;
     case APP_CMD_LOST_FOCUS:
       hasFocus_ = false;
       enabled_ = false;
+      DisableSensorEvents();
       lifecycle_handler_->Pause();
       break;
     case APP_CMD_LOW_MEMORY:
@@ -228,6 +296,7 @@ void EventLoop::ProcessActivityEvent(int32_t command) {
     case APP_CMD_PAUSE:
       isResumed_ = false;
       enabled_ = false;
+      DisableSensorEvents();
       lifecycle_handler_->Pause();
       break;
     case APP_CMD_RESUME:
@@ -247,10 +316,23 @@ void EventLoop::ProcessActivityEvent(int32_t command) {
       hasFocus_ = false;
       hasSurface_ = false;
       enabled_ = false;
+      DisableSensorEvents();
       lifecycle_handler_->Pause();
       break;
     default:
       break;
+  }
+}
+
+void EventLoop::ProcessSensorEvent() {
+  ASensorEvent event;
+  while (ASensorEventQueue_getEvents(sensor_event_queue_, &event, 1) > 0) {
+    switch (event.type) {
+      case ASENSOR_TYPE_ACCELEROMETER:
+        input_handler_->OnAccelerometerEvent(event.vector.x,
+            event.vector.y, event.vector.z);
+        break;
+    }
   }
 }
 
@@ -310,7 +392,6 @@ bool EventLoop::OnKeyEvent(AInputEvent* event) {
     default:
       return false;
   }
-  int32_t flags = AKeyEvent_getFlags(event);
   /* Get the key code of the key event.
    * This is the physical key that was pressed, not the Unicode character. */
   int32_t key_code = AKeyEvent_getKeyCode(event);
@@ -373,5 +454,11 @@ int32_t EventLoop::InputCallback(android_app* application,
                                  AInputEvent* event) {
   EventLoop* event_loop = reinterpret_cast<EventLoop*>(application->userData);
   return event_loop->ProcessInputEvent(event);
+}
+
+void EventLoop::SensorCallback(android_app* application,
+    android_poll_source* source) {
+  EventLoop* event_loop = reinterpret_cast<EventLoop*>(application->userData);
+  event_loop->ProcessSensorEvent();
 }
 

@@ -45,11 +45,8 @@ class SoundHandler {
     }
 
     virtual int32_t PlaySample(const char* path) {
-      return 0;
-    }
-
-    static SoundHandler* instance() {
-      return instance_;
+      // Just do a load so we can get logging.
+      return (GetSample(path) == NULL) ? -1 : 0;
     }
 
   protected:
@@ -58,8 +55,6 @@ class SoundHandler {
     Sample* GetSample(const char* path);
 
     samples_t samples_;
-
-    static SoundHandler* instance_;
 };
 
 int32_t PlayBackgroundSound(const char* path);

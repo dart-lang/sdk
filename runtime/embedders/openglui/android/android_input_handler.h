@@ -5,6 +5,7 @@
 #ifndef EMBEDDERS_OPENGLUI_ANDROID_ANDROID_INPUT_HANDLER_H_
 #define EMBEDDERS_OPENGLUI_ANDROID_ANDROID_INPUT_HANDLER_H_
 
+#include "embedders/openglui/android/android_sensor.h"
 #include "embedders/openglui/common/graphics_handler.h"
 #include "embedders/openglui/common/input_handler.h"
 
@@ -23,6 +24,9 @@ class AndroidInputHandler : public InputHandler {
         return -1;
       }
       return 0;
+    }
+
+    void Stop() {
     }
 
   private:

@@ -19,39 +19,57 @@ typedef void RequestAnimationFrameCallback(num highResTime);
 
 class Window {
   static int _nextId = 0;
-  Map<int, RequestAnimationFrameCallback> _callbacks;
+  List _callbacks;
+  List _arguments;
 
-  Window._internal() : _callbacks = new Map();
+  Window._internal() : _callbacks = [], _arguments = [];
+
+  int _scheduleCallback(callback, [argument]) {
+    _callbacks.add(callback);
+    _arguments.add(argument);
+    return _callbacks.length - 1;
+  }
 
   int requestAnimationFrame(RequestAnimationFrameCallback callback) {
-    _callbacks[_nextId++] = callback;
+    return _scheduleCallback(callback,
+        (new DateTime.now()).millisecondsSinceEpoch);
   }
+
   void cancelAnimationFrame(id) {
-    if (_callbacks.containsKey(id)) {
-      _callbacks.remove(id);
-    }
+    _callbacks[id] = null;
+    _arguments[id] = null;
   }
+
   get animationFrame {
     // TODO(gram)
     return null;
   }
 
   void _dispatch() {
-    var when = (new DateTime.now()).millisecondsSinceEpoch;
     // We clear out the callbacks map before calling any callbacks,
     // as they may schedule new callbacks.
     var oldcallbacks = _callbacks;
-    _callbacks = new Map();
-    for (var c in oldcallbacks.values) {
-      c(when);
+    var oldarguments = _arguments;
+    _callbacks = [];
+    _arguments = [];
+    for (var i = 0; i < oldcallbacks.length; i++) {
+      if (oldcallbacks[i] != null) {
+        oldcallbacks[i](oldarguments[i]);
+      }
     }
+    // We could loop around here to handle any callbacks
+    // scheduled in processing the prior ones, but then we
+    // need some other mechanism for trying to get requestAnimationFrame
+    // callbacks at 60fps.
   }
+
+  Map localStorage = {};  // TODO(gram) - Make this persistent.
 }
 
 Window window = new Window._internal();
 
 // The OpenGLUI "equivalent" of HtmlDocument.
-class Document {
+class Document extends Node {
   BodyElement _body;
   get body => _body;
   Document._internal() : _body = new BodyElement();
@@ -61,6 +79,7 @@ Document document = new Document._internal();
 
 // TODO(gram): make private and call from within library context.
 update_() {
+  log("in update");
   window._dispatch();
 }
 
@@ -76,6 +95,7 @@ class EventTarget {
   static get listeners => _listeners;
 
   bool dispatchEvent(Event event) {
+    var rtn = false;
     if (!_listeners.containsKey(this)) return false;
     var listeners = _listeners[this];
     if (!listeners.containsKey(event.type)) return false;
@@ -83,9 +103,10 @@ class EventTarget {
     for (var eventListener in eventListeners) {
       if (eventListener != null) {
         eventListener(event);
+        rtn = true;
       }
     }
-    return true;
+    return rtn;
   }
 
   void addListener(String eventType, EventListener handler) {
@@ -126,15 +147,17 @@ class Event {
   final String type;
   EventTarget target;
   Event(String type) : this.type = type;
+  preventDefault() {}
+  stopPropagation() {}
 }
 
-class KeyEvent extends Event {
+class KeyboardEvent extends Event {
   final bool altKey;
   final bool ctrlKey;
   final bool shiftKey;
   final int keyCode;
 
-  KeyEvent(String type, int keycode, bool alt, bool ctrl, bool shift) 
+  KeyboardEvent(String type, int keycode, bool alt, bool ctrl, bool shift) 
     : super(type),
       keyCode = keycode,
       altKey = alt,
@@ -155,7 +178,6 @@ class MouseEvent extends Event {
       clientY = y {
   }
 }
-
 
 class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   int _pauseCount = 0;
@@ -256,8 +278,8 @@ class _EventStream<T extends Event> extends Stream<T> {
 }
 
 class Node extends EventTarget {
-  Stream<KeyEvent> get onKeyDown => new _EventStream(this, 'keydown');
-  Stream<KeyEvent> get onKeyUp => new _EventStream(this, 'keyup');
+  Stream<KeyboardEvent> get onKeyDown => new _EventStream(this, 'keydown');
+  Stream<KeyboardEvent> get onKeyUp => new _EventStream(this, 'keyup');
   Stream<MouseEvent> get onMouseDown => new _EventStream(this, 'mousedown');
   Stream<MouseEvent> get onMouseMove => new _EventStream(this, 'mousemove');
   Stream<MouseEvent> get onMouseUp => new _EventStream(this, 'mouseup');
@@ -272,13 +294,14 @@ _dispatchEvent(Event event) {
   for (var target in document.body.nodes) {
     event.target = target;
     if (target.dispatchEvent(event)) {
-      break;
+      return;
     }
   }
+  document.dispatchEvent(event);
 }
 
 _dispatchKeyEvent(String type, int keyCode, bool alt, bool ctrl, bool shift) {
-  _dispatchEvent(new KeyEvent(type, keyCode, alt, ctrl, shift));
+  _dispatchEvent(new KeyboardEvent(type, keyCode, alt, ctrl, shift));
 }
 
 _dispatchMouseEvent(String type, double x, double y) {
@@ -302,11 +325,8 @@ onMouseUp_(int when, double x, double y) =>
     _dispatchMouseEvent('mouseup', x, y);
 
 class CanvasElement extends Node {
-  int _height;
-  int _width;
-
-  get height => _height;
-  get width => _width;
+  int height;
+  int width;
 
   CanvasRenderingContext2D _context2d;
   WebGLRenderingContext _context3d;
@@ -318,14 +338,15 @@ class CanvasElement extends Node {
 
   CanvasElement({int width, int height})
     : super() {
-    _width = (width == null) ? getDeviceScreenWidth() : width;
-    _height = (height == null) ? getDeviceScreenHeight() : height;
+    this.width = (width == null) ? getDeviceScreenWidth() : width;
+    this.height = (height == null) ? getDeviceScreenHeight() : height;
+    getContext('2d');
   }
 
   CanvasRenderingContext getContext(String contextId) {
     if (contextId == "2d") {
       if (_context2d == null) {
-        _context2d = new CanvasRenderingContext2D(this, _width, _height);
+        _context2d = new CanvasRenderingContext2D(this, width, height);
       }
       return _context2d;
     } else if (contextId == "webgl" || 
@@ -336,12 +357,39 @@ class CanvasElement extends Node {
       return _context3d;
     }
   }
+ 
+  String toDataUrl(String type) {
+    // This needs to take the contents of the underlying
+    // canvas painted by the 2d context, give that a unique
+    // URL, and return that. The canvas element should be
+    // reuable afterwards without destroying the previously
+    // rendered data associated with this URL.
+    assert(_context2d != null);
+    var rtn = src;
+    _context2d = null;
+    return rtn;
+  }
 }
 
 class CanvasRenderingContext {
   final CanvasElement canvas;
 
   CanvasRenderingContext(this.canvas);
+}
+
+class AudioElement {
+  double volume;
+  String _src;
+  get src => _src;
+  set src(String v) {
+    _src = v;
+    _loadSample(v);
+  }
+
+  AudioElement([this._src]);
+  void play() {
+    _playSample(_src);
+  }
 }
 
 // The simplest way to call native code: top-level functions.
@@ -528,123 +576,176 @@ class Float32Array extends List<double> {
 //------------------------------------------------------------------
 // 2D canvas support
 
-int C2DSetWidth(int handle, int width)
-    native "C2DSetWidth";
-int C2DSetHeight(int handle, int height)
-    native "C2DSetHeight";
+int SetWidth(int handle, int width)
+    native "CanvasSetWidth";
+int SetHeight(int handle, int height)
+    native "CanvasSetHeight";
 
-double C2DSetGlobalAlpha(int handle, double globalAlpha)
-    native "C2DSetGlobalAlpha";
-void C2DSetFillStyle(int handle, fs)
-    native "C2DSetFillStyle";
-String C2DSetFont(int handle, String font)
-    native "C2DSetFont";
-void C2DSetGlobalCompositeOperation(int handle, String op)
-    native "C2DSetGlobalCompositeOperation";
-C2DSetLineCap(int handle, String lc)
-    native "C2DSetLineCap";
-C2DSetLineJoin(int handle, String lj)
-    native "C2DSetLineJoin";
-C2DSetLineWidth(int handle, double w)
-    native "C2DSetLineWidth";
-C2DSetMiterLimit(int handle, double limit)
-    native "C2DSetMiterLimit";
-C2DSetShadowBlur(int handle, double blur)
-    native "C2DSetShadowBlur";
-C2DSetShadowColor(int handle, String color)
-    native "C2DSetShadowColor";
-C2DSetShadowOffsetX(int handle, double offset)
-    native "C2DSetShadowOffsetX";
-C2DSetShadowOffsetY(int handle, double offset)
-    native "C2DSetShadowOffsetY";
-void C2DSetStrokeStyle(int handle, ss)
-    native "C2DSetStrokeStyle";
-String C2DSetTextAlign(int handle, String align)
-    native "C2DSetTextAlign";
-String C2DSetTextBaseline(int handle, String baseline)
-    native "C2DSetTextBaseline";
-C2DGetBackingStorePixelRatio(int handle)
-    native "C2DGetBackingStorePixelRatio";
-void C2DSetImageSmoothingEnabled(int handle, bool ise)
-    native "C2DSetImageSmoothingEnabled";    
-void C2DSetLineDash(int handle, List v)
-    native "C2DSetLineDash";
-C2DSetLineDashOffset(int handle, int v)
-    native "C2DSetLineDashOffset";
-void C2DArc(int handle, double x, double y, double radius,
+double SetGlobalAlpha(int handle, double globalAlpha)
+    native "CanvasSetGlobalAlpha";
+void SetFillStyle(int handle, fs)
+    native "CanvasSetFillStyle";
+String SetFont(int handle, String font)
+    native "CanvasSetFont";
+void SetGlobalCompositeOperation(int handle, String op)
+    native "CanvasSetGlobalCompositeOperation";
+SetLineCap(int handle, String lc)
+    native "CanvasSetLineCap";
+SetLineJoin(int handle, String lj)
+    native "CanvasSetLineJoin";
+SetLineWidth(int handle, double w)
+    native "CanvasSetLineWidth";
+SetMiterLimit(int handle, double limit)
+    native "CanvasSetMiterLimit";
+SetShadowBlur(int handle, double blur)
+    native "CanvasSetShadowBlur";
+SetShadowColor(int handle, String color)
+    native "CanvasSetShadowColor";
+SetShadowOffsetX(int handle, double offset)
+    native "CanvasSetShadowOffsetX";
+SetShadowOffsetY(int handle, double offset)
+    native "CanvasSetShadowOffsetY";
+void SetStrokeStyle(int handle, ss)
+    native "CanvasSetStrokeStyle";
+String SetTextAlign(int handle, String align)
+    native "CanvasSetTextAlign";
+String SetTextBaseline(int handle, String baseline)
+    native "CanvasSetTextBaseline";
+GetBackingStorePixelRatio(int handle)
+    native "CanvasGetBackingStorePixelRatio";
+void SetImageSmoothingEnabled(int handle, bool ise)
+    native "CanvasSetImageSmoothingEnabled";    
+void SetLineDash(int handle, List v)
+    native "CanvasSetLineDash";
+SetLineDashOffset(int handle, int v)
+    native "CanvasSetLineDashOffset";
+void Arc(int handle, double x, double y, double radius,
     double startAngle, double endAngle, [bool anticlockwise = false])
-    native "C2DArc";
-void C2DArcTo(int handle, double x1, double y1,
+    native "CanvasArc";
+void ArcTo(int handle, double x1, double y1,
               double x2, double y2, double radius)
-    native "C2DArcTo"; 
-void C2DArcTo2(int handle, double x1, double y1,
+    native "CanvasArcTo"; 
+void ArcTo2(int handle, double x1, double y1,
                double x2, double y2, double radiusX,
     double radiusY, double rotation)
-    native "C2DArcTo2"; 
-void C2DBeginPath(int handle)
-    native "C2DBeginPath";
-void C2DBezierCurveTo(int handle, double cp1x, double cp1y,
+    native "CanvasArcTo2"; 
+void BeginPath(int handle)
+    native "CanvasBeginPath";
+void BezierCurveTo(int handle, double cp1x, double cp1y,
                       double cp2x, double cp2y, double x, double y)
-    native "C2DBezierCurveTo";
-void C2DClearRect(int handle, double x, double y, double w, double h)
-    native "C2DClearRect";
-void C2DClip(int handle)
-    native "C2DClip";
-void C2DClosePath(int handle)
-    native "C2DClosePath";
-ImageData C2DCreateImageDataFromDimensions(int handle, num w, num h)
-    native "C2DCreateImageDataFromDimensions";
-void C2DDrawImage(int handle, String src_url,
+    native "CanvasBezierCurveTo";
+void ClearRect(int handle, double x, double y, double w, double h)
+    native "CanvasClearRect";
+void Clip(int handle)
+    native "CanvasClip";
+void ClosePath(int handle)
+    native "CanvasClosePath";
+ImageData CreateImageDataFromDimensions(int handle, num w, num h)
+    native "CanvasCreateImageDataFromDimensions";
+void DrawImage(int handle, String src_url,
                   int sx, int sy,
                   bool has_src_dimensions, int sw, int sh,
                   int dx, int dy,
                   bool has_dst_dimensions, int dw, int dh)
-    native "C2DDrawImage";
-void C2DFill(int handle)
-    native "C2DFill";
-void C2DFillRect(int handle, double x, double y, double w, double h)
-    native "C2DFillRect";
-void C2DFillText(int handle, String text, double x, double y, double maxWidth)
-    native "C2DFillText";
-ImageData C2DGetImageData(num sx, num sy, num sw, num sh)
-    native "C2DGetImageData";    
-void C2DLineTo(int handle, double x, double y)
-    native "C2DLineTo";
-double C2DMeasureText(int handle, String text)
-    native "C2DMeasureText";
-void C2DMoveTo(int handle, double x, double y)
-    native "C2DMoveTo";
-void C2DPutImageData(int handle, ImageData imagedata, double dx, double dy)
-    native "C2DPutImageData";    
-void C2DQuadraticCurveTo(int handle, double cpx, double cpy, double x, double y)
-    native "C2DQuadraticCurveTo";
-void C2DRect(int handle, double x, double y, double w, double h)
-    native "C2DRect";
-void C2DRestore(int handle)
-    native "C2DRestore";
-void C2DRotate(int handle, double a)
-    native "C2DRotate";
-void C2DSave(int handle)
-    native "C2DSave";
-void C2DScale(int handle, double sx, double sy)
-    native "C2DScale";
-void C2DSetTransform(int handle, double m11, double m12,
+    native "CanvasDrawImage";
+void Fill(int handle)
+    native "CanvasFill";
+void FillRect(int handle, double x, double y, double w, double h)
+    native "CanvasFillRect";
+void FillText(int handle, String text, double x, double y, double maxWidth)
+    native "CanvasFillText";
+ImageData GetImageData(num sx, num sy, num sw, num sh)
+    native "CanvasGetImageData";    
+void LineTo(int handle, double x, double y)
+    native "CanvasLineTo";
+double MeasureText(int handle, String text)
+    native "CanvasMeasureText";
+void MoveTo(int handle, double x, double y)
+    native "CanvasMoveTo";
+void PutImageData(int handle, ImageData imagedata, double dx, double dy)
+    native "CanvasPutImageData";    
+void QuadraticCurveTo(int handle, double cpx, double cpy,
+    double x, double y)
+        native "CanvasQuadraticCurveTo";
+void Rect(int handle, double x, double y, double w, double h)
+    native "CanvasRect";
+void Restore(int handle)
+    native "CanvasRestore";
+void Rotate(int handle, double a)
+    native "CanvasRotate";
+void Save(int handle)
+    native "CanvasSave";
+void Scale(int handle, double sx, double sy)
+    native "CanvasScale";
+void SetTransform(int handle, double m11, double m12,
                      double m21, double m22, double dx, double dy)
-    native "C2DSetTransform";
-void C2DStroke(int handle)
-    native "C2DStroke";
-void C2DStrokeRect(int handle, double x, double y, double w, double h)
-    native "C2DStrokeRect";    
-void C2DStrokeText(int handle, String text, double x, double y, double maxWidth)
-    native "C2DStrokeText";
-void C2DTransform(int handle, double m11, double m12,
+    native "CanvasSetTransform";
+void Stroke(int handle)
+    native "CanvasStroke";
+void StrokeRect(int handle, double x, double y, double w, double h)
+    native "CanvasStrokeRect";    
+void StrokeText(int handle, String text, double x, double y,
+    double maxWidth)
+        native "CanvasStrokeText";
+void Transform(int handle, double m11, double m12,
                   double m21, double m22, double dx, double dy)
-    native "C2DTransform";
-void C2DTranslate(int handle, double x, double y)
-    native "C2DTranslate";
+    native "CanvasTransform";
+void Translate(int handle, double x, double y)
+    native "CanvasTranslate";
 
-void C2DCreateNativeContext(int handle, int width, int height)
-    native "C2DCreateNativeContext";
+void CreateNativeContext(int handle, int width, int height)
+    native "CanvasCreateNativeContext";
+
+void SetFillGradient(int handle, bool isRadial,
+        double x0, double y0, double r0,
+        double x1, double y1, double r1,
+        List<double> positions, List<String> colors)
+    native "CanvasSetFillGradient";
+
+void SetStrokeGradient(int handle, bool isRadial,
+        double x0, double y0, double r0,
+        double x1, double y1, double r1,
+        List<double> positions, List<String> colors)
+    native "CanvasSetStrokeGradient";
+
+int GetImageWidth(String url)
+    native "CanvasGetImageWidth";
+
+int GetImageHeight(String url)
+    native "CanvasGetImageHeight";
+
+class CanvasGradient {
+  num _x0, _y0, _r0 = 0, _x1, _y1, _r1 = 0;
+  bool _isRadial;
+  List<double> _colorStopPositions = [];
+  List<String> _colorStopColors = [];
+
+  void addColorStop(num offset, String color) {
+    _colorStopPositions.add(offset.toDouble());
+    _colorStopColors.add(color);
+  }
+
+  CanvasGradient.linear(this._x0, this._y0, this._x1, this._y1)
+      : _isRadial = false;
+  
+  CanvasGradient.radial(this._x0, this._y0, this._r0,
+                        this._x1, this._y1, this._r1)
+      : _isRadial = true;
+
+  void setAsFillStyle(_handle) {
+    SetFillGradient(_handle, _isRadial,
+        _x0.toDouble(), _y0.toDouble(), _r0.toDouble(),
+        _x1.toDouble(), _y1.toDouble(), _r1.toDouble(),
+        _colorStopPositions, _colorStopColors);
+  }
+
+  void setAsStrokeStyle(_handle) {
+    SetStrokeGradient(_handle, _isRadial,
+        _x0.toDouble(), _y0.toDouble(), _r0.toDouble(),
+        _x1.toDouble(), _y1.toDouble(), _r1.toDouble(),
+        _colorStopPositions, _colorStopColors);
+  }
+}
 
 class ImageElement extends Node {
   Stream<Event> get onLoad => new _EventStream(this, 'load');
@@ -654,23 +755,36 @@ class ImageElement extends Node {
   int _height;
 
   get src => _src;
+
   set src(String v) {
+    log("Set ImageElement src to $v");
     _src = v;
-    var e = new Event('load');
-    e.target = this;
-    dispatchEvent(e);
   }
 
-  get width => _width;
-  set width(int widthp) => _width = widthp;
+  // The onLoad handler may be set after the src, so
+  // we hook into that here...
+  void addListener(String eventType, EventListener handler) {
+    super.addListener(eventType, handler);
+    if (eventType == 'load') {
+      var e = new Event('load');
+      e.target = this;
+      window._scheduleCallback(handler, e);
+    }
+  }
 
-  get height => _height;
+  get width => _width == null ? _width = GetImageWidth(_src) : _width;
+  get height => _height == null ? _height = GetImageHeight(_src) : _height;
+  set width(int widthp) => _width = widthp;
   set height(int heightp) => _height = heightp;
 
   ImageElement({String srcp, int widthp, int heightp})
     : _src = srcp,
       _width = widthp,
       _height = heightp {
+    if (_src != null) {
+      if (_width == null) _width = GetImageWidth(_src);
+      if (_height == null) _height = GetImageHeight(_src);
+    }
   }
 }
 
@@ -690,6 +804,11 @@ void shutdown() {
   CanvasRenderingContext2D.next_handle = 0;
 }
 
+class Rect {
+  final num top, left, width, height;
+  const Rect(this.left, this.top, this.width, this.height);
+}
+
 class CanvasRenderingContext2D extends CanvasRenderingContext {
   // TODO(gram): We need to support multiple contexts, for cached content
   // prerendered to an offscreen buffer. For this we will use handles, with
@@ -699,20 +818,20 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   get handle => _handle;
 
   int _width, _height;
-  set width(int w) { _width = C2DSetWidth(_handle, w); }
+  set width(int w) { _width = SetWidth(_handle, w); }
   get width => _width;
-  set height(int h) { _height = C2DSetHeight(_handle, h); }
+  set height(int h) { _height = SetHeight(_handle, h); }
   get height => _height;
 
   CanvasRenderingContext2D(canvas, width, height) : super(canvas) {
     _width = width;
     _height = height;
-    C2DCreateNativeContext(_handle = next_handle++, width, height);
+    CreateNativeContext(_handle = next_handle++, width, height);
   }
 
   double _alpha = 1.0;
   set globalAlpha(num a) {
-    _alpha = C2DSetGlobalAlpha(_handle, a.toDouble());
+    _alpha = SetGlobalAlpha(_handle, a.toDouble());
   }
   get globalAlpha => _alpha;
 
@@ -720,45 +839,51 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   // fillStyle = strokeStyle = "red"
   var _fillStyle = "#000";
   set fillStyle(fs) {
-    C2DSetFillStyle(_handle, _fillStyle = fs);
+    _fillStyle = fs;
+    // TODO(gram): Support for CanvasPattern.
+    if (fs is CanvasGradient) {
+      fs.setAsFillStyle(_handle);
+    } else {
+      SetFillStyle(_handle, fs);
+    }
   }
   get fillStyle => _fillStyle;
 
   String _font = "10px sans-serif";
-  set font(String f) { _font = C2DSetFont(_handle, f); }
+  set font(String f) { _font = SetFont(_handle, f); }
   get font => _font;
 
   String _globalCompositeOperation = "source-over";
   set globalCompositeOperation(String o) =>
-      C2DSetGlobalCompositeOperation(_handle, _globalCompositeOperation = o);
+      SetGlobalCompositeOperation(_handle, _globalCompositeOperation = o);
   get globalCompositeOperation => _globalCompositeOperation;
 
   String _lineCap = "butt"; // "butt", "round", "square"
   get lineCap => _lineCap;
-  set lineCap(String lc) => C2DSetLineCap(_handle, _lineCap = lc);
+  set lineCap(String lc) => SetLineCap(_handle, _lineCap = lc);
 
   int _lineDashOffset = 0;
   get lineDashOffset => _lineDashOffset;
   set lineDashOffset(num v) {
     _lineDashOffset = v.toInt();
-    C2DSetLineDashOffset(_handle, _lineDashOffset);
+    SetLineDashOffset(_handle, _lineDashOffset);
   }
 
   String _lineJoin = "miter"; // "round", "bevel", "miter"
   get lineJoin => _lineJoin;
-  set lineJoin(String lj) =>  C2DSetLineJoin(_handle, _lineJoin = lj);
+  set lineJoin(String lj) =>  SetLineJoin(_handle, _lineJoin = lj);
 
   num _lineWidth = 1.0;
   get lineWidth => _lineWidth;
   set lineWidth(num w) {
-    C2DSetLineWidth(_handle, w.toDouble());
+    SetLineWidth(_handle, w.toDouble());
     _lineWidth = w;
   }
 
   num _miterLimit = 10.0; // (default 10)
   get miterLimit => _miterLimit;
   set miterLimit(num limit) {
-    C2DSetMiterLimit(_handle, limit.toDouble());
+    SetMiterLimit(_handle, limit.toDouble());
     _miterLimit = limit;
   }
 
@@ -766,48 +891,54 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   get shadowBlur =>  _shadowBlur;
   set shadowBlur(num blur) {
     _shadowBlur = blur;
-    C2DSetShadowBlur(_handle, blur.toDouble());
+    SetShadowBlur(_handle, blur.toDouble());
   }
 
   String _shadowColor;
   get shadowColor => _shadowColor;
   set shadowColor(String color) =>
-      C2DSetShadowColor(_handle, _shadowColor = color);
+      SetShadowColor(_handle, _shadowColor = color);
   
   num _shadowOffsetX;
   get shadowOffsetX => _shadowOffsetX;
   set shadowOffsetX(num offset) {
     _shadowOffsetX = offset;
-    C2DSetShadowOffsetX(_handle, offset.toDouble());
+    SetShadowOffsetX(_handle, offset.toDouble());
   }
 
   num _shadowOffsetY;
   get shadowOffsetY => _shadowOffsetY;
   set shadowOffsetY(num offset) {
     _shadowOffsetY = offset;
-    C2DSetShadowOffsetY(_handle, offset.toDouble());
+    SetShadowOffsetY(_handle, offset.toDouble());
   }
 
   var _strokeStyle = "#000";
   get strokeStyle => _strokeStyle;
   set strokeStyle(ss) {
-    C2DSetStrokeStyle(_handle, _strokeStyle = ss);
+    _strokeStyle = ss;
+    // TODO(gram): Support for CanvasPattern.
+    if (ss is CanvasGradient) {
+      ss.setAsStrokeStyle(_handle);
+    } else {
+      SetStrokeStyle(_handle, ss);
+    }
   }
 
   String _textAlign = "start";
   get textAlign => _textAlign;
-  set textAlign(String a) { _textAlign = C2DSetTextAlign(_handle, a); }
+  set textAlign(String a) { _textAlign = SetTextAlign(_handle, a); }
 
   String _textBaseline = "alphabetic";
   get textBaseline => _textBaseline;
-  set textBaseline(String b) { _textBaseline = C2DSetTextBaseline(_handle, b); }
+  set textBaseline(String b) { _textBaseline = SetTextBaseline(_handle, b); }
 
-  get webkitBackingStorePixelRatio => C2DGetBackingStorePixelRatio(_handle);
+  get webkitBackingStorePixelRatio => GetBackingStorePixelRatio(_handle);
 
   bool _webkitImageSmoothingEnabled;
   get webkitImageSmoothingEnabled => _webkitImageSmoothingEnabled;
   set webkitImageSmoothingEnabled(bool v) =>
-     C2DSetImageSmoothingEnabled(_webkitImageSmoothingEnabled = v);
+     SetImageSmoothingEnabled(_webkitImageSmoothingEnabled = v);
 
   get webkitLineDash => lineDash;
   set webkitLineDash(List v) => lineDash = v;
@@ -821,7 +952,8 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
     if (radius < 0) {
       // throw IndexSizeError
     } else {
-      C2DArc(_handle, x.toDouble(), y.toDouble(), radius.toDouble(), a1.toDouble(), a2.toDouble(), anticlockwise);
+      Arc(_handle, x.toDouble(), y.toDouble(), radius.toDouble(),
+          a1.toDouble(), a2.toDouble(), anticlockwise);
     }
   }
 
@@ -830,80 +962,97 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   void arcTo(num x1, num y1, num x2, num y2,
     num radiusX, [num radiusY, num rotation]) {
     if (radiusY == null) {
-      C2DArcTo(_handle, x1.toDouble(), y1.toDouble(),
+      ArcTo(_handle, x1.toDouble(), y1.toDouble(),
                         x2.toDouble(), y2.toDouble(), radiusX.toDouble());
     } else {
-      C2DArcTo2(_handle, x1.toDouble(), y1.toDouble(),
+      ArcTo2(_handle, x1.toDouble(), y1.toDouble(),
                          x2.toDouble(), y2.toDouble(),
                          radiusX.toDouble(), radiusY.toDouble(),
                          rotation.toDouble());
     }
   }
 
-  void beginPath() => C2DBeginPath(_handle);
+  void beginPath() => BeginPath(_handle);
 
   void bezierCurveTo(num cp1x, num cp1y, num cp2x, num cp2y,
     num x, num y) =>
-    C2DBezierCurveTo(_handle, cp1x.toDouble(), cp1y.toDouble(),
+    BezierCurveTo(_handle, cp1x.toDouble(), cp1y.toDouble(),
                               cp2x.toDouble(), cp2y.toDouble(),
                               x.toDouble(), y.toDouble());
 
   void clearRect(num x, num y, num w, num h) =>
-    C2DClearRect(_handle, x.toDouble(), y.toDouble(), w.toDouble(), h.toDouble());
+    ClearRect(_handle, x.toDouble(), y.toDouble(),
+        w.toDouble(), h.toDouble());
 
-  void clip() => C2DClip(_handle);
+  void clip() => Clip(_handle);
 
-  void closePath() => C2DClosePath(_handle);
+  void closePath() => ClosePath(_handle);
 
   ImageData createImageData(var imagedata_OR_sw, [num sh = null]) {
     if (sh == null) {
       throw new Exception('Unimplemented createImageData(imagedata)');
     } else {
-      return C2DCreateImageDataFromDimensions(_handle, imagedata_OR_sw, sh);
+      return CreateImageDataFromDimensions(_handle, imagedata_OR_sw, sh);
     }
   }
 
   CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1) {
-    throw new Exception('Unimplemented createLinearGradient');
+    return new CanvasGradient.linear(x0, y0, x1, y1);
   }
 
   CanvasPattern createPattern(canvas_OR_image, String repetitionType) {
     throw new Exception('Unimplemented createPattern');
   }
 
-  CanvasGradient createRadialGradient(num x0, num y0, num x1, num y1, num r1) {
-    throw new Exception('Unimplemented createRadialGradient');
+  CanvasGradient createRadialGradient(num x0, num y0, num r0,
+                                      num x1, num y1, num r1) {
+    return new CanvasGradient.radial(x0, y0, r0, x1, y1, r1);
   }
 
   void drawImage(element, num x1, num y1,
                 [num w1, num h1, num x2, num y2, num w2, num h2]) {
+    if (element == null || element.src == null || element.src.length == 0) {
+      throw "drawImage called with no valid src";
+    } else {
+      log("drawImage ${element.src}");
+    }
     var w = (element.width == null) ? 0 : element.width;
     var h = (element.height == null) ?  0 : element.height;
     if (!?w1) { // drawImage(element, dx, dy)
-      C2DDrawImage(_handle, element.src, 0, 0, false, w, h,
+      DrawImage(_handle, element.src, 0, 0, false, w, h,
                    x1.toInt(), y1.toInt(), false, 0, 0);
     } else if (!?x2) {  // drawImage(element, dx, dy, dw, dh)
-      C2DDrawImage(_handle, element.src, 0, 0, false, w, h,
+      DrawImage(_handle, element.src, 0, 0, false, w, h,
                    x1.toInt(), y1.toInt(), true, w1.toInt(), h1.toInt());
     } else {  // drawImage(image, sx, sy, sw, sh, dx, dy, dw, dh)
-      C2DDrawImage(_handle, element.src, 
+      DrawImage(_handle, element.src, 
                    x1.toInt(), y1.toInt(), true, w1.toInt(), h1.toInt(),
                    x2.toInt(), y2.toInt(), true, w2.toInt(), h2.toInt());
     }
   }
 
-  void fill() => C2DFill(_handle);
+  void drawImageAtScale(element, Rect dest, {Rect sourceRect}) {
+    if (sourceRect == null) {
+      drawImage(element, dest.left, dest.top, dest.width, dest.height);
+    } else {
+      drawImage(element,
+         sourceRect.left, sourceRect.top, sourceRect.width, sourceRect.height,
+         dest.left, dest.top, dest.width, dest.height);
+    }
+  }
+
+  void fill() => Fill(_handle);
 
   void fillRect(num x, num y, num w, num h) =>
-    C2DFillRect(_handle, x.toDouble(), y.toDouble(),
+    FillRect(_handle, x.toDouble(), y.toDouble(),
                          w.toDouble(), h.toDouble());
 
   void fillText(String text, num x, num y, [num maxWidth = -1]) =>
-      C2DFillText(_handle, text, x.toDouble(), y.toDouble(),
+      FillText(_handle, text, x.toDouble(), y.toDouble(),
                                  maxWidth.toDouble());
 
   ImageData getImageData(num sx, num sy, num sw, num sh) =>
-    C2DGetImageData(sx, sy, sw, sh);
+    GetImageData(sx, sy, sw, sh);
 
   List<double> _lineDash = null;
   List<num> getLineDash() {
@@ -916,40 +1065,40 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   }
 
   void lineTo(num x, num y) {
-    C2DLineTo(_handle, x.toDouble(), y.toDouble());
+    LineTo(_handle, x.toDouble(), y.toDouble());
   }
 
   TextMetrics measureText(String text) {
-    double w = C2DMeasureText(_handle, text);
+    double w = MeasureText(_handle, text);
     return new TextMetrics(w);
   }
 
   void moveTo(num x, num y) =>
-    C2DMoveTo(_handle, x.toDouble(), y.toDouble());
+    MoveTo(_handle, x.toDouble(), y.toDouble());
 
   void putImageData(ImageData imagedata, num dx, num dy,
                    [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) {
     if (dirtyX != null || dirtyY != null) {
       throw new Exception('Unimplemented putImageData');
     } else {
-      C2DPutImageData(_handle, imagedata, dx, dy);
+      PutImageData(_handle, imagedata, dx, dy);
     }
   }
 
   void quadraticCurveTo(num cpx, num cpy, num x, num y) =>
-    C2DQuadraticCurveTo(_handle, cpx.toDouble(), cpy.toDouble(),
+    QuadraticCurveTo(_handle, cpx.toDouble(), cpy.toDouble(),
                         x.toDouble(), y.toDouble());
 
   void rect(num x, num y, num w, num h) =>
-    C2DRect(_handle, x.toDouble(), y.toDouble(), w.toDouble(), h.toDouble());
+    Rect(_handle, x.toDouble(), y.toDouble(), w.toDouble(), h.toDouble());
 
-  void restore() => C2DRestore(_handle);
+  void restore() => Restore(_handle);
 
-  void rotate(num angle) => C2DRotate(_handle, angle.toDouble());
+  void rotate(num angle) => Rotate(_handle, angle.toDouble());
 
-  void save() => C2DSave(_handle);
+  void save() => Save(_handle);
 
-  void scale(num x, num y) => C2DScale(_handle, x.toDouble(), y.toDouble());
+  void scale(num x, num y) => Scale(_handle, x.toDouble(), y.toDouble());
 
   void setFillColorHsl(int h, num s, num l, [num a = 1]) {
     throw new Exception('Unimplemented setFillColorHsl');
@@ -984,7 +1133,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
       }
     }
     if (valid) {
-      C2DSetLineDash(_handle, _lineDash = new_dash);
+      SetLineDash(_handle, _lineDash = new_dash);
     }
   }
 
@@ -997,26 +1146,27 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   }
 
   void setTransform(num m11, num m12, num m21, num m22, num dx, num dy) =>
-          C2DSetTransform(_handle, m11.toDouble(), m12.toDouble(),
+          SetTransform(_handle, m11.toDouble(), m12.toDouble(),
                                    m21.toDouble(), m22.toDouble(),
                                    dx.toDouble(), dy.toDouble());
 
-  void stroke() => C2DStroke(_handle);
+  void stroke() => Stroke(_handle);
 
   void strokeRect(num x, num y, num w, num h, [num lineWidth]) =>
-    C2DStrokeRect(_handle, x.toDouble(), y.toDouble(), w.toDouble(), h.toDouble());
+    StrokeRect(_handle, x.toDouble(), y.toDouble(),
+        w.toDouble(), h.toDouble());
 
   void strokeText(String text, num x, num y, [num maxWidth = -1]) =>
-      C2DStrokeText(_handle, text, x.toDouble(), y.toDouble(),
+      StrokeText(_handle, text, x.toDouble(), y.toDouble(),
                                  maxWidth.toDouble());
 
   void transform(num m11, num m12, num m21, num m22, num dx, num dy) =>
-          C2DTransform(_handle, m11.toDouble(), m12.toDouble(),
+          Transform(_handle, m11.toDouble(), m12.toDouble(),
                        m21.toDouble(), m22.toDouble(),
                        dx.toDouble(), dy.toDouble());
 
   void translate(num x, num y) =>
-      C2DTranslate(_handle, x.toDouble(), y.toDouble());
+      Translate(_handle, x.toDouble(), y.toDouble());
 
   ImageData webkitGetImageDataHD(num sx, num sy, num sw, num sh) {
     throw new Exception('Unimplemented webkitGetImageDataHD');
@@ -1034,3 +1184,5 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   }
 }
 
+int _loadSample(String s) native "LoadSample";
+int _playSample(String s) native "PlaySample";

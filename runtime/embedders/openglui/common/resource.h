@@ -6,14 +6,15 @@
 #define EMBEDDERS_OPENGLUI_COMMON_RESOURCE_H_
 
 #include <stdlib.h>
+#include <string.h>
 
 class Resource {
   public:
     explicit Resource(const char* path)
-        :  path_(path),
-           descriptor_(-1),
+        :  descriptor_(-1),
            start_(0),
            length_(-1) {
+      path_ = strdup(path);
     }
 
     const char* path() {
@@ -44,10 +45,11 @@ class Resource {
     }
 
     virtual ~Resource() {
+      free(path_);
     }
 
   protected:
-    const char* path_;
+    char* path_;
     int32_t descriptor_;
     off_t start_;
     off_t length_;

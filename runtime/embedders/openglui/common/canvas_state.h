@@ -23,6 +23,8 @@ typedef struct CanvasState {
   float* lineDash_;
   int lineDashCount_;
   int lineDashOffset_;
+  SkShader* fillShader_;
+  SkShader* strokeShader_;
 
   SkPath* path_;
   SkCanvas* canvas_;
@@ -41,6 +43,8 @@ typedef struct CanvasState {
       lineDash_(NULL),
       lineDashCount_(0),
       lineDashOffset_(0),
+      fillShader_(NULL),
+      strokeShader_(NULL),
       path_(new SkPath()),
       canvas_(canvas),
       next_(NULL) {
@@ -66,13 +70,19 @@ typedef struct CanvasState {
       lineDash_(NULL),
       lineDashCount_(state.lineDashCount_),
       lineDashOffset_(state.lineDashOffset_),
+      fillShader_(state.fillShader_),
+      strokeShader_(state.strokeShader_),
       path_(new SkPath()),
       canvas_(state.canvas_),
       next_(NULL) {
     setLineDash(state.lineDash_, lineDashCount_);
+    if (fillShader_ != NULL) fillShader_->ref();
+    if (strokeShader_ != NULL) strokeShader_->ref();
   }
 
   ~CanvasState() {
+    if (fillShader_ != NULL) fillShader_->unref();
+    if (strokeShader_ != NULL) strokeShader_->unref();
     delete path_;
     delete[] lineDash_;
   }
@@ -92,21 +102,7 @@ typedef struct CanvasState {
     return new_state;
   }
 
-  inline CanvasState* Restore() {
-    if (next_ != NULL) {
-      // If the state we are popping has a non-empty path,
-      // apply the state's transform to the path, then
-      // add the path to the previous state's path.
-      if (path_->countPoints() > 0) {
-        path_->transform(canvas_->getTotalMatrix());
-        next_->path_->addPath(*path_);
-      }
-      canvas_->restore();
-      return next_;
-    }
-    canvas_->restore();
-    return next_;  // TODO(gram): Should we assert/throw?
-  }
+  CanvasState* Restore();
 
   inline float Radians2Degrees(float angle) {
     return 180.0 * angle / M_PI;
@@ -117,10 +113,18 @@ typedef struct CanvasState {
   }
 
   inline void setFillColor(const char* color) {
+    if (fillShader_ != NULL) {
+      fillShader_->unref();
+      fillShader_ = NULL;
+    }
     fillColor_ = GetColor(color);
   }
 
   inline void setStrokeColor(const char* color) {
+    if (strokeShader_ != NULL) {
+      strokeShader_->unref();
+      strokeShader_ = NULL;
+    }
     strokeColor_ = GetColor(color);
   }
 
@@ -156,26 +160,7 @@ typedef struct CanvasState {
     paint_.setStrokeWidth(w);
   }
 
-  inline void setMode(SkPaint::Style style, ColorRGBA color) {
-    paint_.setStyle(style);
-    paint_.setColor(color.v);
-    uint8_t alpha = static_cast<uint8_t>(
-        globalAlpha_ * static_cast<float>(color.alpha()));
-    paint_.setAlpha(alpha);
-    bool drawShadow = (shadowOffsetX_ != 0 ||
-                       shadowOffsetY_ != 0 ||
-                       shadowBlur_ != 0) &&
-                       shadowColor_.alpha() > 0;
-    if (drawShadow) {
-      // TODO(gram): should we mult shadowColor by globalAlpha?
-      paint_.setLooper(new SkBlurDrawLooper(SkFloatToScalar(shadowBlur_),
-                                            SkFloatToScalar(shadowOffsetX_),
-                                            SkFloatToScalar(shadowOffsetY_),
-                                            shadowColor_.v))->unref();
-    } else {
-      paint_.setLooper(NULL);
-    }
-  }
+  void setMode(SkPaint::Style style, ColorRGBA color, SkShader* shader);
 
   inline void setLineDashEffect() {
     if (lineDashCount_ > 0) {
@@ -225,11 +210,11 @@ typedef struct CanvasState {
   }
 
   inline void setFillMode() {
-    setMode(SkPaint::kFill_Style, fillColor_);
+    setMode(SkPaint::kFill_Style, fillColor_, fillShader_);
   }
 
   inline void setStrokeMode() {
-    setMode(SkPaint::kStroke_Style, strokeColor_);
+    setMode(SkPaint::kStroke_Style, strokeColor_, strokeShader_);
   }
 
   inline void FillRect(float left, float top,
@@ -303,6 +288,24 @@ typedef struct CanvasState {
   inline void Clip() {
     canvas_->clipPath(*path_);
   }
+
+  void SetFillGradient(bool is_radial, double x0, double y0, double r0,
+      double x1, double y1, double r1,
+      int stops, float* positions, char** colors);
+
+  void SetStrokeGradient(bool is_radial, double x0, double y0, double r0,
+      double x1, double y1, double r1,
+      int stops, float* positions, char** colors);
+
+ private:
+  SkShader* CreateRadialGradient(
+      double x0, double y0, double r0,
+      double x1, double y1, double r1,
+      int stops, float* positions, char** colors);
+
+  SkShader* CreateLinearGradient(
+      double x0, double y0, double x1, double y1,
+      int stops, float* positions, char** colors);
 } CanvasState;
 
 #endif  // EMBEDDERS_OPENGLUI_COMMON_CANVAS_STATE_H_

@@ -3,6 +3,13 @@
 # BSD-style license that can be found in the LICENSE file.
 
 {
+  # TODO(gram) : figure out how to make this be autoconfigured. 
+  # I've tried a bunch of things with no success yet.
+  'variables': {
+    'skia_build_flag' : '--release',
+    'skia_libs_location_android': '-Lthird_party/skia/trunk/out/config/android-x86/Release/obj.target/gyp', 
+    'skia_libs_location_desktop': '-Lthird_party/skia/trunk/out/Release', 
+  },
   'conditions': [
     ['OS=="android"',
       {
@@ -66,6 +73,8 @@
               'common/extension.h',
               'common/graphics_handler.cc',
               'common/graphics_handler.h',
+              'common/image_cache.cc',
+              'common/image_cache.h',
               'common/input_handler.cc',
               'common/input_handler.h',
               'common/isized.h',
@@ -92,10 +101,9 @@
                 # real libraries we'll just point to the location of the 'thin'
                 # libraries used by the Skia build for now.
                 # TODO(gram): We need to support debug vs release modes.
-                '-Lthird_party/skia/trunk/out/config/android-x86/Debug/obj.target/gyp', 
+                '<(skia_libs_location_android)',
                 '-z',
                 'muldefs',
-                '-g'
               ],
               'ldflags!': [
                 '-Wl,--exclude-libs=ALL,-shared',
@@ -153,6 +161,7 @@
                 'action': [
                   'embedders/openglui/build_skia.sh',
                   '--android',
+                  '<(skia_build_flag)',
                   '..'
                 ],
                 'message': 'Building Skia.'
@@ -207,6 +216,8 @@
               'common/extension.h',
               'common/graphics_handler.cc',
               'common/graphics_handler.h',
+              'common/image_cache.cc',
+              'common/image_cache.h',
               'common/input_handler.cc',
               'common/input_handler.h',
               'common/isized.h',
@@ -234,8 +245,7 @@
             'link_settings': {
               'ldflags': [
                 '-Wall',
-                '-g',
-                '-Lthird_party/skia/trunk/out/Debug', 
+                '<(skia_libs_location_desktop)',
                 '-Wl,--start-group',
                 '-lskia_effects',
                 '-lskia_images',
@@ -279,6 +289,7 @@
                 ],
                 'action': [
                   'embedders/openglui/build_skia.sh',
+                  '<(skia_build_flag)',
                   '..'
                 ],
                 'message': 'Building Skia.'

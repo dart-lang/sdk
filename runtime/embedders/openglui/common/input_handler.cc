@@ -70,3 +70,7 @@ int InputHandler::OnKeyEvent(KeyEvent event,
                               repeat);
 }
 
+void InputHandler::OnAccelerometerEvent(float x, float y, float z) {
+  vm_glue_->OnAccelerometerEvent(x, y, z);
+}
+

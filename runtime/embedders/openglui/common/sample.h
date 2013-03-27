@@ -7,20 +7,23 @@
 
 #include "embedders/openglui/common/resource.h"
 
+extern Resource* MakePlatformResource(const char *path);
+
 class Sample {
   public:
     explicit Sample(const char* path)
-        : resource_(path),
-          buffer_(NULL),
+        : buffer_(NULL),
           length_(0) {
+      resource_ = MakePlatformResource(path);
     }
 
     ~Sample() {
       Unload();
+      delete resource_;
     }
 
     const char* path() {
-      return resource_.path();
+      return resource_->path();
     }
 
     uint8_t* buffer() {
@@ -33,10 +36,10 @@ class Sample {
 
     int32_t Load() {
       int32_t rtn = -1;
-      if (resource_.Open() == 0) {
-        buffer_ = new uint8_t[length_ = resource_.length()];
-        rtn = resource_.Read(buffer_, length_);
-        resource_.Close();
+      if (resource_->Open() == 0) {
+        buffer_ = new uint8_t[length_ = resource_->length()];
+        rtn = resource_->Read(buffer_, length_);
+        resource_->Close();
       }
       return rtn;
     }
@@ -51,7 +54,7 @@ class Sample {
 
   private:
     friend class SoundService;
-    Resource resource_;
+    Resource* resource_;
     uint8_t* buffer_;
     off_t length_;
 };

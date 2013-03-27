@@ -264,6 +264,8 @@ int32_t AndroidSoundHandler::PlaySample(const char* path) {
         res = (*sample_player_queue_)->Enqueue(sample_player_queue_,
                                                buffer, len);
         if (res == SL_RESULT_SUCCESS) {
+          LOGE("Enqueued sample %s of length %d", path,
+            static_cast<int>(len));
           return 0;
         }
         LOGE("Enqueueing sample failed");

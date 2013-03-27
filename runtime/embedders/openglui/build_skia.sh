@@ -1,19 +1,21 @@
 #!/bin/bash
 
 function usage {
-  echo "usage: $0 [ --help ] [ --android ] [ --arm | --x86] [--clean] [<Dart directory>]"
+  echo "usage: $0 [ --help ] [ --android ] [ --arm | --x86] [ --debug ] [--clean] [<Dart directory>]"
   echo
   echo "Sync up Skia and build"
   echo
   echo " --android: Build for Android"
   echo " --x86 : Build for Intel"
   echo " --arm : Cross-compile for ARM (implies --android)"
+  echo " --debug : Build a debug version"
   echo
 }
 
 DO_ANDROID=0
 TARGET_ARCH=x86
 CLEAN=0
+BUILD=Release
 DART_DIR=../../..
 
 while [ ! -z "$1" ] ; do
@@ -34,6 +36,12 @@ while [ ! -z "$1" ] ; do
     ;;
     "--clean")
       CLEAN=1
+    ;;
+    "--debug")
+      BUILD=Debug
+    ;;
+    "--release")
+      BUILD=Release
     ;;
     *)
       if [ ! -d "$1" ]
@@ -64,10 +72,7 @@ if [ ${DO_ANDROID} != 0 ] ; then
   if [ ${CLEAN} != 0 ] ; then
     ../android/bin/android_make -d $TARGET_ARCH -j clean
   else
-    env -i BUILDTYPE=Debug ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT}" ../android/bin/android_make BUILDTYPE=Debug -d $TARGET_ARCH -j --debug=j
-    #../android/bin/android_make ANDROID_NDK= BUILDTYPE=Debug ANDROID_SDK_ROOT= -d $TARGET_ARCH -j
-    #../android/bin/android_make ANDROID_NDK= BUILDTYPE=Debug ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT}" -d $TARGET_ARCH -j
-    #../android/bin/android_make BUILDTYPE=Debug ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT}" -d $TARGET_ARCH -j png
+    env -i BUILDTYPE=$BUILD ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT}" ../android/bin/android_make BUILDTYPE=$BUILD -d $TARGET_ARCH -j --debug=j
   fi
 
 else
@@ -92,7 +97,7 @@ else
     make clean
   else
     # Dart sets BUILDTYPE to DebugX64 which breaks Skia build.
-    make BUILDTYPE=Debug
+    make BUILDTYPE=$BUILD
   fi
   cd ..
 

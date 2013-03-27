@@ -109,6 +109,9 @@ void GraphicsHandler::SetViewport(int left, int top, int width, int height) {
 }
 
 int32_t GraphicsHandler::Update() {
+  LOGI("In GraphicsHandler::Update, display_context dirty %s",
+    (display_context == NULL ? "NULL" :
+        (display_context->isDirty() ? "yes":"no")));
   if (display_context != NULL && display_context->isDirty()) {
     LOGI("Flushing display context\n");
     display_context->Flush();
