@@ -4,7 +4,6 @@
 
 [ $compiler == dart2js && $csp && $runtime == drt && $unchecked ]
 mandel_isolate_stream_test: Fail, Crash # Bug in v8, http://dartbug.com/9407
-message_test: Fail, Crash # Bug in v8, http://dartbug.com/9407
 nested_spawn_stream2_test: Fail, Crash # Bug in v8, http://dartbug.com/9407
 count_test: Fail, Crash # Bug in v8, http://dartbug.com/9407
 count_stream_test: Fail, Crash # Bug in v8, http://dartbug.com/9407
