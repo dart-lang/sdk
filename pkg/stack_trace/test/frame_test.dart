@@ -4,6 +4,7 @@
 
 library frame_test;
 
+import 'dart:io';
 import 'dart:uri';
 
 import 'package:pathos/path.dart' as path;
@@ -41,7 +42,7 @@ void main() {
     // TODO(nweiz): use URL-style paths when such a thing exists.
     var builder = new path.Builder(style: path.Style.posix);
     expect(builder.basename(frame.uri.path), equals('frame_test.dart'));
-    expect(frame.line, equals(15));
+    expect(frame.line, equals(16));
     expect(frame.column, equals(5));
     expect(frame.member, equals('getStackFrame'));
   });
@@ -112,8 +113,8 @@ void main() {
     });
 
     test('returns the relative path for file URIs', () {
-      var absolute = path.absolute(path.join('foo', 'bar.dart'));
-      expect(new Frame.parse('#0 Foo (file://$absolute:0:0)').library,
+      var uri = _pathToFileUri(path.join('foo', 'bar.dart'));
+      expect(new Frame.parse('#0 Foo ($uri:0:0)').library,
           equals(path.join('foo', 'bar.dart')));
     });
   });
@@ -124,8 +125,8 @@ void main() {
       expect(new Frame.parse('#0 Foo '
               '(http://dartlang.org/thing.dart:5:10)').location,
           equals('http://dartlang.org/thing.dart 5:10'));
-      var absolute = path.absolute(path.join('foo', 'bar.dart'));
-      expect(new Frame.parse('#0 Foo (file://$absolute:1:2)').location,
+      var uri = _pathToFileUri(path.join('foo', 'bar.dart'));
+      expect(new Frame.parse('#0 Foo ($uri:1:2)').location,
           equals('${path.join('foo', 'bar.dart')} 1:2'));
     });
 
@@ -156,4 +157,10 @@ void main() {
           equals('dart:core in Foo.<fn>'));
     });
   });
+}
+
+String _pathToFileUri(String pathString) {
+  pathString = path.absolute(pathString);
+  if (Platform.operatingSystem != 'windows') return 'file://$pathString';
+  return 'file:///${pathString.replaceAll("\\", "/")}';
 }
