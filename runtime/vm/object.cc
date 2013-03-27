@@ -9226,7 +9226,13 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
         num_type_params = 0;
       }
     } else {
-      first_type_param_index = num_args - num_type_params;
+      // The actual type argument vector can be longer than necessary, because
+      // of type optimizations.
+      if (IsFinalized() && cls.is_finalized()) {
+        first_type_param_index = cls.NumTypeArguments() - num_type_params;
+      } else {
+        first_type_param_index = num_args - num_type_params;
+      }
     }
     if (cls.IsSignatureClass()) {
       // We may be reporting an error about a malformed function type. In that
@@ -9239,8 +9245,10 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
       if (cls.IsCanonicalSignatureClass()) {
         const Function& signature_function = Function::Handle(
             cls.signature_function());
-        // Signature classes have no super type.
-        ASSERT(first_type_param_index == 0);
+        // Signature classes have no super type, however, they take as many
+        // type arguments as the owner class of their signature function (if it
+        // is non static and generic, see Class::NumTypeArguments()). Therefore,
+        // first_type_param_index may be greater than 0 here.
         return signature_function.InstantiatedSignatureFrom(args,
                                                             name_visibility);
       }
@@ -9595,8 +9603,9 @@ RawAbstractType* Type::InstantiateFrom(
       AbstractTypeArguments::Handle(arguments());
   type_arguments = type_arguments.InstantiateFrom(instantiator_type_arguments,
                                                   malformed_error);
+  // Note that the type class has to be resolved at this time, but not
+  // necessarily finalized yet. We may be checking bounds at compile time.
   const Class& cls = Class::Handle(type_class());
-  ASSERT(cls.is_finalized());
   // This uninstantiated type is not modified, as it can be instantiated
   // with different instantiators.
   Type& instantiated_type = Type::Handle(
@@ -9781,7 +9790,6 @@ void TypeParameter::set_is_finalized() const {
 
 
 bool TypeParameter::Equals(const Instance& other) const {
-  ASSERT(IsFinalized());
   if (raw() == other.raw()) {
     return true;
   }
@@ -9791,6 +9799,9 @@ bool TypeParameter::Equals(const Instance& other) const {
   const TypeParameter& other_type_param = TypeParameter::Cast(other);
   ASSERT(other_type_param.IsFinalized());
   if (parameterized_class() != other_type_param.parameterized_class()) {
+    return false;
+  }
+  if (IsFinalized() != other_type_param.IsFinalized()) {
     return false;
   }
   if (index() != other_type_param.index()) {
