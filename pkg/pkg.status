@@ -37,6 +37,11 @@ pathos/test/*: Skip
 # Issue 8440 forces us to use pathos in the scheduled_test tests, which would
 # otherwise be dart2js-compatible.
 scheduled_test/test/*: Skip
+
+# We use pathos in the stack_trace tests. We can run them on dart2js when issue
+# 6943 is fixed.
+stack_trace/test/*: Skip
+
 source_maps/test/vlq_test: Fail # A VLQ test checks for large numbers that
                                 # overflow in JS (numbers slightly larger than
                                 # 32 bits where we do bitwise operations).
