@@ -9,6 +9,9 @@ event_test: Skip  # Issue 1996
 custom_elements_test: Skip # Not yet implemented.
 interactive_test: Skip # Must be run manually.
 
+[ $compiler == dart2js]
+dom_isolates_test: Fail # Need to migrate to new spawnDomFunction.
+
 [ $compiler == dart2js && $runtime == ie10 ]
 indexeddb_3_test: Pass, Timeout, Slow # Issue: http://dartbug.com/9437
 indexeddb_4_test: Pass, Timeout, Slow # Issue: http://dartbug.com/9437
