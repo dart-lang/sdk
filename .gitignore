@@ -55,3 +55,4 @@ pubspec.lock
 
 # Generated files.
 tools/out
+tools/xcodebuild
