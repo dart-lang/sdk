@@ -31247,6 +31247,8 @@ class _KeyboardEventHandler implements EventStreamProvider<KeyEvent> {
   /** Controller to produce KeyEvents for the stream. */
   StreamController _controller;
 
+  String _eventType = 'KeyEvent';
+
   /**
    * An enumeration of key identifiers currently part of the W3C draft for DOM3
    * and their mappings to keyCodes.
@@ -31282,12 +31284,28 @@ class _KeyboardEventHandler implements EventStreamProvider<KeyEvent> {
    * Gets the type of the event which this would listen for on the specified
    * event target.
    */
-  String getEventType(EventTarget target) => 'KeyEvent';
+  String getEventType(EventTarget target) => _eventType;
 
   /** Return a stream for KeyEvents for the specified target. */
   Stream<KeyEvent> forTarget(EventTarget e, {bool useCapture: false}) {
-    _initializeAllEventListeners(e);
-    return _controller.stream;
+    return new _KeyboardEventHandler.initializeAllEventListeners(
+        _type, e).stream;
+  }
+
+  /**
+   * Accessor to the stream associated with a particular KeyboardEvent
+   * EventTarget.
+   *
+   * [forTarget] must be called to initialize this stream to listen to a
+   * particular EventTarget.
+   */
+  Stream<KeyEvent> get stream {
+    if(_target != null) {
+      return _controller.stream;
+    } else {
+      throw new StateError("Not initialized. Call forTarget to access a stream "
+          "initialized with a particular EventTarget.");
+    }
   }
 
   /**
@@ -31295,16 +31313,23 @@ class _KeyboardEventHandler implements EventStreamProvider<KeyEvent> {
    * KeyboardEvent controller.
    */
   _KeyboardEventHandler(String type) {
+    _commonInit(type);
+  }
+
+  void _commonInit(String type) {
     _type = type;
     _controller = new StreamController.broadcast();
     _callbacks = [];
+    _target = null;
   }
 
   /**
    * Hook up all event listeners under the covers so we can estimate keycodes
    * and charcodes when they are not provided.
    */
-  _initializeAllEventListeners(EventTarget target) {
+  _KeyboardEventHandler.initializeAllEventListeners(String type,
+      EventTarget target) {
+    _commonInit(type);
     _target = target;
     _keyDownList = [];
     Element.keyDownEvent.forTarget(_target, useCapture: true).listen(
@@ -31590,25 +31615,25 @@ class _KeyboardEventHandler implements EventStreamProvider<KeyEvent> {
  *
  * Example usage:
  *
- *     new KeyboardEventStream.onKeyDown(document.body).listen(
+ *     KeyboardEventStream.onKeyDown(document.body).listen(
  *         keydownHandlerTest);
  *
  * This class is very much a work in progress, and we'd love to get information
  * on how we can make this class work with as many international keyboards as
  * possible. Bugs welcome!
  */
-class KeyboardEventStream extends Stream<KeyEvent> {
+class KeyboardEventStream {
 
   /** Named constructor to produce a stream for onKeyPress events. */
-  factory KeyboardEventStream.onKeyPress(EventTarget target) =>
+  static Stream<KeyEvent> onKeyPress(EventTarget target) =>
       new _KeyboardEventHandler('keypress').forTarget(target);
 
   /** Named constructor to produce a stream for onKeyUp events. */
-  factory KeyboardEventStream.onKeyUp(EventTarget target) =>
+  static Stream<KeyEvent> onKeyUp(EventTarget target) =>
       new _KeyboardEventHandler('keyup').forTarget(target);
 
   /** Named constructor to produce a stream for onKeyDown events. */
-  factory KeyboardEventStream.onKeyDown(EventTarget target) =>
+  static Stream<KeyEvent> onKeyDown(EventTarget target) =>
     new _KeyboardEventHandler('keydown').forTarget(target);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

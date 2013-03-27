@@ -125,13 +125,13 @@ main() {
           ' should be 0, and the keycode should (generally) be populated with a'
           ' value. Keycode and charcode should both have values for the '
           'keypress event.';
-      new KeyboardEventStream.onKeyDown(document.body).listen(
+      KeyboardEventStream.onKeyDown(document.body).listen(
           keydownHandlerTest);
-      new KeyboardEventStream.onKeyPress(document.body).listen(
+      KeyboardEventStream.onKeyPress(document.body).listen(
           keypressHandlerTest);
-      new KeyboardEventStream.onKeyUp(document.body).listen(
+      KeyboardEventStream.onKeyUp(document.body).listen(
           keyupHandlerTest);
-      new KeyboardEventStream.onKeyUp(document.body).listen(
+      KeyboardEventStream.onKeyUp(document.body).listen(
           keyupHandlerTest2);
     });
   });
