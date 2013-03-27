@@ -29,9 +29,8 @@ touchevent_test/supported: Fail
 [$runtime == drt || $runtime == dartium || $runtime == chrome]
 webgl_1_test: Pass, Fail # Issue 8219
 
-[ $runtime == drt || ($runtime == chrome && $system == windows) ]
-audiobuffersourcenode_test: Pass, Fail, Timeout, Crash # AudiobufferSourceNode is flaky on Chrome and Dartium - filed issue 8021 for the timeout.
-audiocontext_test: Pass, Timeout, Crash  # Issue 8021.
+[ $runtime == drt ]
+audiocontext_test: Skip # Issue 9322
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not implemented
