@@ -18,10 +18,11 @@ final Path lib_path = scriptDir.append('../../../../sdk/').canonicalize();
 main() {
   print('Converting HTML docs from $lib_path to $json_path.');
 
-  var anyErrors = convert(lib_path, json_path);
-
-  print('Converted HTML docs ${anyErrors ? "with $anyErrors" : "without"}'
-    ' errors.');
+  convert(lib_path, json_path)
+    .then((bool anyErrors) {
+      print('Converted HTML docs ${anyErrors ? "with": "without"}'
+        ' errors.');
+    });
 }
 
 /**

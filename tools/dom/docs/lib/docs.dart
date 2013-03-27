@@ -6,9 +6,10 @@
 
 library docs;
 
+import '../../../../sdk/lib/_internal/compiler/implementation/mirrors/dart2js_mirror.dart';
 import '../../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors.dart';
-import '../../../../sdk/lib/_internal/dartdoc/lib/src/json_serializer.dart';
 import '../../../../sdk/lib/_internal/dartdoc/lib/dartdoc.dart';
+import '../../../../sdk/lib/_internal/dartdoc/lib/src/json_serializer.dart';
 import '../../../../utils/apidoc/lib/metadata.dart';
 import 'dart:async';
 import 'dart:io';
@@ -43,41 +44,37 @@ const List<String> HTML_LIBRARY_NAMES = const ['dart:html',
  *       ...
  *     }
  *
- * Returns `true` if any errors were encountered, `false` otherwise.
+ * Completes to `true` if any errors were encountered, `false` otherwise.
  */
-bool convert(Path libPath, Path jsonPath) {
+Future<bool> convert(Path libPath, Path jsonPath) {
   var paths = <Path>[];
   for (var libraryName in HTML_LIBRARY_NAMES) {
     paths.add(new Path(libraryName));
   }
 
-  // TODO(amouravski): Account for errors in compilation.
-  final compilation = new Compilation.library(paths, libPath, null,
-      ['--preserve-comments']);
-
-  var convertedJson = _generateJsonFromLibraries(compilation);
-
-  var anyErrors = _exportJsonToFile(convertedJson, jsonPath);
-
-  return anyErrors;
+  return analyze(paths, libPath, options: ['--preserve-comments'])
+    .then((MirrorSystem mirrors) {
+      var convertedJson = _generateJsonFromLibraries(mirrors);
+      return new Future.immediate(_exportJsonToFile(convertedJson, jsonPath));
+    });
 }
 
 bool _exportJsonToFile(Map convertedJson, Path jsonPath) {
   final jsonFile = new File.fromPath(jsonPath);
   var writeJson = prettySerialize(convertedJson);
 
-  var outputStream = jsonFile.openOutputStream();
-  outputStream.writeString(writeJson);
+  var outputStream = jsonFile.openWrite();
+  outputStream.writeln(writeJson);
 
   return false;
 }
 
-Map _generateJsonFromLibraries(Compilation compilation) {
+Map _generateJsonFromLibraries(MirrorSystem mirrors) {
   var convertedJson = {};
 
   // Sort the libraries by name (not key).
   var sortedLibraries = new List<LibraryMirror>.from(
-      compilation.mirrors.libraries.values.where(
+      mirrors.libraries.values.where(
           (e) => HTML_LIBRARY_NAMES.indexOf(e.uri.toString()) >= 0))
       ..sort((x, y) =>
         x.uri.toString().toUpperCase().compareTo(

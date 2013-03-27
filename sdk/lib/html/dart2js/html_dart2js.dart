@@ -27739,6 +27739,14 @@ class WorkerContext extends EventTarget native "*WorkerContext" {
   int setTimeout(Object handler, int timeout) native;
 
   @JSName('webkitRequestFileSystem')
+  /**
+   * Access a sandboxed file system of the specified `size`. If `persistent` is
+   * true, the application will request permission from the user to create
+   * lasting storage. This storage cannot be freed without the user's
+   * permission. Returns a [Future] whose value stores a reference to the
+   * sandboxed file system for use. Because the file system is sandboxed,
+   * applications cannot access file systems created in other web pages. 
+   */
   @DomName('WorkerContext.webkitRequestFileSystem')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -27746,6 +27754,14 @@ class WorkerContext extends EventTarget native "*WorkerContext" {
   void __requestFileSystem(int type, int size, [_FileSystemCallback successCallback, _ErrorCallback errorCallback]) native;
 
   @JSName('webkitRequestFileSystem')
+  /**
+   * Access a sandboxed file system of the specified `size`. If `persistent` is
+   * true, the application will request permission from the user to create
+   * lasting storage. This storage cannot be freed without the user's
+   * permission. Returns a [Future] whose value stores a reference to the
+   * sandboxed file system for use. Because the file system is sandboxed,
+   * applications cannot access file systems created in other web pages. 
+   */
   @DomName('WorkerContext.webkitRequestFileSystem')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -27759,6 +27775,14 @@ class WorkerContext extends EventTarget native "*WorkerContext" {
   }
 
   @JSName('webkitRequestFileSystemSync')
+  /**
+   * Access a sandboxed file system of the specified `size`. If `persistent` is
+   * true, the application will request permission from the user to create
+   * lasting storage. This storage cannot be freed without the user's
+   * permission. This call will block until a reference to the synchronous file 
+   * system API has been obtained. Because the file system is sandboxed,
+   * applications cannot access file systems created in other web pages. 
+   */
   @DomName('WorkerContext.webkitRequestFileSystemSync')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
