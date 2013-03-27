@@ -42,6 +42,16 @@ interface Console {
   [CallWith=ScriptArguments|ScriptState] void assertCondition(boolean condition);
 };
 
+// TODO(antonm): remove those overrides and corresponding custom methods.
+[Supplemental]
+interface Coordinates {
+    [Custom] readonly attribute double altitude;
+    [Custom] readonly attribute double altitudeAccuracy;
+    [Custom] readonly attribute double heading;
+    [Custom] readonly attribute double speed;
+};
+
+
 interface HTMLCanvasElement {
   [Suppressed] DOMString toDataURL([TreatNullAs=NullString, TreatUndefinedAs=NullString,Optional=DefaultIsUndefined] in DOMString type) raises(DOMException);
   [Custom] DOMString toDataURL([TreatNullAs=NullString, TreatUndefinedAs=NullString,Optional=DefaultIsUndefined] in DOMString type, [Optional] in float quality) raises(DOMException);
