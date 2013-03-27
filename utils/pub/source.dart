@@ -119,7 +119,7 @@ abstract class Source {
         if (!isCorrupted) return true;
 
         // Busted, so wipe out the package and reinstall.
-        deleteDir(packageDir);
+        deleteEntry(packageDir);
         return false;
       });
     }).then((isInstalled) {

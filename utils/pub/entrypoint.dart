@@ -74,11 +74,11 @@ class Entrypoint {
     var future = defer(() {
       ensureDir(path.dirname(packageDir));
 
-      if (dirExists(packageDir)) {
+      if (entryExists(packageDir)) {
         // TODO(nweiz): figure out when to actually delete the directory, and
         // when we can just re-use the existing symlink.
         log.fine("Deleting package directory for ${id.name} before install.");
-        deleteDir(packageDir);
+        deleteEntry(packageDir);
       }
 
       if (id.source.shouldCache) {
@@ -210,7 +210,7 @@ class Entrypoint {
   /// exists. If it doesn't, this completes to an empty [LockFile].
   LockFile loadLockFile() {
     var lockFilePath = path.join(root.dir, 'pubspec.lock');
-    if (!fileExists(lockFilePath)) return new LockFile.empty();
+    if (!entryExists(lockFilePath)) return new LockFile.empty();
     return new LockFile.load(lockFilePath, cache.sources);
   }
 
@@ -298,17 +298,7 @@ class Entrypoint {
   Future _linkSecondaryPackageDir(String dir) {
     return defer(() {
       var symlink = path.join(dir, 'packages');
-      // The order of if tests is significant here. fileExists() will return
-      // true for a symlink (broken or not) but deleteFile() cannot be used
-      // to delete a broken symlink on Windows. So we test for the directory
-      // first since deleteDir() does work on symlinks.
-      // TODO(rnystrom): Make deleteFile() work for symlinks on Windows so this
-      // doesn't matter.
-      if (dirExists(symlink)) {
-        deleteDir(symlink);
-      } else if (fileExists(symlink)) {
-        deleteFile(symlink);
-      }
+      if (entryExists(symlink)) deleteEntry(symlink);
       return createSymlink(packagesDir, symlink, relative: true);
     });
   }

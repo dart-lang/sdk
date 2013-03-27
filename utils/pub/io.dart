@@ -28,12 +28,16 @@ bool isBeneath(String entry, String dir) {
 }
 
 /// Determines if a file or directory exists at [path].
-bool entryExists(String path) => dirExists(path) || fileExists(path);
+bool entryExists(String path) =>
+  dirExists(path) || fileExists(path) || linkExists(path);
 
-/// Determines if [file] exists on the file system. Will also return `true` if
-/// [file] points to a symlink, even a directory symlink.
-bool fileExists(String file) =>
-    new File(file).existsSync() || new Link(file).existsSync();
+/// Returns whether [link] exists on the file system. This will return `true`
+/// for any symlink, regardless of what it points at or whether it's broken.
+bool linkExists(String path) => new Link(path).existsSync();
+
+/// Returns whether [file] exists on the file system. This will return `true`
+/// for a symlink only if that symlink is unbroken and points to a file.
+bool fileExists(String file) => new File(file).existsSync();
 
 /// Reads the contents of the text file [file].
 String readTextFile(String file) =>
@@ -59,11 +63,6 @@ String writeTextFile(String file, String contents, {dontLogContents: false}) {
 
   new File(file).writeAsStringSync(contents);
   return file;
-}
-
-/// Deletes [file].
-void deleteFile(String file) {
-  new File(file).deleteSync();
 }
 
 /// Creates [file] and writes [contents] to it.
@@ -124,12 +123,6 @@ String createTempDir([dir = '']) {
   var tempDir = new Directory(dir).createTempSync();
   log.io("Created temp directory ${tempDir.path}");
   return tempDir.path;
-}
-
-/// Recursively deletes [dir].
-void deleteDir(String dir) {
-  log.io("Deleting directory $dir.");
-  new Directory(dir).deleteSync(recursive: true);
 }
 
 /// Asynchronously lists the contents of [dir]. If [recursive] is `true`, lists
@@ -199,21 +192,29 @@ Future<List<String>> listDir(String dir,
   return doList(dir, new Set<String>());
 }
 
-/// Determines if [dir] exists on the file system.
+/// Returns whether [dir] exists on the file system. This will return `true` for
+/// a symlink only if that symlink is unbroken and points to a directory.
 bool dirExists(String dir) => new Directory(dir).existsSync();
+
+/// Deletes whatever's at [path], whether it's a file, directory, or symlink. If
+/// it's a directory, it will be deleted recursively.
+void deleteEntry(String path) {
+  if (linkExists(path)) {
+    log.io("Deleting link $path.");
+    new Link(path).deleteSync();
+  } else if (dirExists(path)) {
+    log.io("Deleting directory $path.");
+    new Directory(path).deleteSync(recursive: true);
+  } else {
+    log.io("Deleting file $path.");
+    new File(path).deleteSync();
+  }
+}
 
 /// "Cleans" [dir]. If that directory already exists, it will be deleted. Then a
 /// new empty directory will be created.
 void cleanDir(String dir) {
-  if (dirExists(dir)) {
-    // Delete it first.
-    deleteDir(dir);
-  } else if (fileExists(dir)) {
-    // If there is a non-directory there (file or symlink), delete it.
-    deleteFile(dir);
-  }
-
-  // Just create it.
+  if (entryExists(dir)) deleteEntry(dir);
   createDir(dir);
 }
 
@@ -582,7 +583,7 @@ Future withTempDir(Future fn(String path)) {
   return defer(() {
     var tempDir = createTempDir();
     return new Future.of(() => fn(tempDir))
-        .whenComplete(() => deleteDir(tempDir));
+        .whenComplete(() => deleteEntry(tempDir));
   });
 }
 

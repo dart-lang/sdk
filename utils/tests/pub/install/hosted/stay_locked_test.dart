@@ -27,7 +27,7 @@ main() {
     d.packagesDir({"foo": "1.0.0"}).validate();
 
     // Delete the packages path to simulate a new checkout of the application.
-    schedule(() => deleteDir(path.join(sandboxDir, packagesPath)));
+    schedule(() => deleteEntry(path.join(sandboxDir, packagesPath)));
 
     // Start serving a newer package as well.
     servePackages([packageMap("foo", "1.0.1")]);

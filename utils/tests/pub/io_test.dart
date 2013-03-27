@@ -4,6 +4,8 @@
 
 library io_test;
 
+import 'dart:io';
+
 import '../../../pkg/pathos/lib/path.dart' as path;
 import '../../../pkg/unittest/lib/unittest.dart';
 
@@ -133,5 +135,157 @@ main() {
         return future;
       }), completes);
     });
+  });
+
+  testExistencePredicate("entryExists", entryExists,
+      forFile: true,
+      forFileSymlink: true,
+      forMultiLevelFileSymlink: true,
+      forDirectory: true,
+      forDirectorySymlink: true,
+      forMultiLevelDirectorySymlink: true,
+      forBrokenSymlink: true,
+      forMultiLevelBrokenSymlink: true);
+
+  testExistencePredicate("linkExists", linkExists,
+      forFile: false,
+      forFileSymlink: true,
+      forMultiLevelFileSymlink: true,
+      forDirectory: false,
+      forDirectorySymlink: true,
+      forMultiLevelDirectorySymlink: true,
+      forBrokenSymlink: true,
+      forMultiLevelBrokenSymlink: true);
+
+  testExistencePredicate("fileExists", fileExists,
+      forFile: true,
+      forFileSymlink: true,
+      forMultiLevelFileSymlink: true,
+      forDirectory: false,
+      forDirectorySymlink: false,
+      forMultiLevelDirectorySymlink: false,
+      forBrokenSymlink: false,
+      forMultiLevelBrokenSymlink: false);
+
+  testExistencePredicate("dirExists", dirExists,
+      forFile: false,
+      forFileSymlink: false,
+      forMultiLevelFileSymlink: false,
+      forDirectory: true,
+      forDirectorySymlink: true,
+      forMultiLevelDirectorySymlink: true,
+      forBrokenSymlink: false,
+      forMultiLevelBrokenSymlink: false);
+}
+
+void testExistencePredicate(String name, bool predicate(String path),
+    {bool forFile,
+     bool forFileSymlink,
+     bool forMultiLevelFileSymlink,
+     bool forDirectory,
+     bool forDirectorySymlink,
+     bool forMultiLevelDirectorySymlink,
+     bool forBrokenSymlink,
+     bool forMultiLevelBrokenSymlink}) {
+  group(name, () {
+    test('returns $forFile for a file', () {
+      expect(withTempDir((temp) {
+        var path = path.join(temp, "test.txt");
+        writeTextFile(path, "contents");
+        expect(predicate(path), equals(forFile));
+      }), completes);
+    });
+
+    test('returns $forDirectory for a directory', () {
+      expect(withTempDir((temp) {
+        var path = path.join(temp, "dir");
+        createDir(path);
+        expect(predicate(path), equals(forDirectory));
+      }), completes);
+    });
+
+    test('returns $forDirectorySymlink for a symlink to a directory', () {
+      expect(withTempDir((temp) {
+        var targetPath = path.join(temp, "dir");
+        var symlinkPath = path.join(temp, "linkdir");
+        createDir(targetPath);
+        return createSymlink(targetPath, symlinkPath).then((_) {
+          expect(predicate(symlinkPath), equals(forDirectorySymlink));
+        });
+      }), completes);
+    });
+
+    test('returns $forMultiLevelDirectorySymlink for a multi-level symlink to '
+        'a directory', () {
+      expect(withTempDir((temp) {
+        var targetPath = path.join(temp, "dir");
+        var symlink1Path = path.join(temp, "link1dir");
+        var symlink2Path = path.join(temp, "link2dir");
+        createDir(targetPath);
+        return createSymlink(targetPath, symlink1Path)
+            .then((_) => createSymlink(symlink1Path, symlink2Path))
+            .then((_) {
+          expect(predicate(symlink2Path),
+              equals(forMultiLevelDirectorySymlink));
+        });
+      }), completes);
+    });
+
+    test('returns $forBrokenSymlink for a broken symlink', () {
+      expect(withTempDir((temp) {
+        var targetPath = path.join(temp, "dir");
+        var symlinkPath = path.join(temp, "linkdir");
+        createDir(targetPath);
+        return createSymlink(targetPath, symlinkPath).then((_) {
+          deleteEntry(targetPath);
+          expect(predicate(symlinkPath), equals(forBrokenSymlink));
+        });
+      }), completes);
+    });
+
+    test('returns $forMultiLevelBrokenSymlink for a multi-level broken symlink',
+        () {
+      expect(withTempDir((temp) {
+        var targetPath = path.join(temp, "dir");
+        var symlink1Path = path.join(temp, "link1dir");
+        var symlink2Path = path.join(temp, "link2dir");
+        createDir(targetPath);
+        return createSymlink(targetPath, symlink1Path)
+            .then((_) => createSymlink(symlink1Path, symlink2Path))
+            .then((_) {
+          deleteEntry(targetPath);
+          expect(predicate(symlink2Path), equals(forMultiLevelBrokenSymlink));
+        });
+      }), completes);
+    });
+
+    // Windows doesn't support symlinking to files.
+    if (Platform.operatingSystem != 'windows') {
+      test('returns $forFileSymlink for a symlink to a file', () {
+        expect(withTempDir((temp) {
+          var targetPath = path.join(temp, "test.txt");
+          var symlinkPath = path.join(temp, "link.txt");
+          writeTextFile(targetPath, "contents");
+          return createSymlink(targetPath, symlinkPath).then((_) {
+            expect(predicate(symlinkPath), equals(forFileSymlink));
+          });
+        }), completes);
+      });
+
+      test('returns $forMultiLevelFileSymlink for a multi-level symlink to a '
+          'file', () {
+        expect(withTempDir((temp) {
+          var targetPath = path.join(temp, "test.txt");
+          var symlink1Path = path.join(temp, "link1.txt");
+          var symlink2Path = path.join(temp, "link2.txt");
+          writeTextFile(targetPath, "contents");
+          return createSymlink(targetPath, symlink1Path)
+              .then((_) => createSymlink(symlink1Path, symlink2Path))
+              .then((_) {
+            expect(predicate(symlink2Path), equals(forMultiLevelFileSymlink));
+          });
+        }), completes);
+      });
+    }
   });
 }

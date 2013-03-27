@@ -258,6 +258,8 @@ abstract class PubCommand {
       if (globalOptions['trace'] && trace != null) {
         log.error(trace);
         log.dumpTranscript();
+      } else {
+        log.fine(trace);
       }
 
       exit(_chooseExitCode(error));

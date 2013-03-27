@@ -6,8 +6,10 @@ library pub_tests;
 
 import 'dart:io';
 
+import '../../../../pkg/pathos/lib/path.dart' as path;
 import '../../../../pkg/scheduled_test/lib/scheduled_test.dart';
 
+import '../../../pub/io.dart';
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
 
@@ -104,6 +106,29 @@ main() {
       ]),
       d.libDir('myapp')
     ]).create();
+
+    schedulePub(args: ['install'],
+        output: new RegExp(r"Dependencies installed!$"));
+
+    d.dir(packagesPath, [
+      d.nothing('foo'),
+      d.dir('myapp', [d.file('myapp.dart', 'main() => "myapp";')])
+    ]).validate();
+  });
+
+  integration('overwrites a broken packages directory symlink', () {
+    d.dir(appPath, [
+      d.appPubspec([]),
+      d.dir('packages'),
+      d.libDir('myapp'),
+      d.dir('bin')
+    ]).create();
+
+    scheduleSymlink(
+        path.join(appPath, 'packages'),
+        path.join(appPath, 'bin', 'packages'));
+
+    schedule(() => deleteEntry(path.join(sandboxDir, appPath, 'packages')));
 
     schedulePub(args: ['install'],
         output: new RegExp(r"Dependencies installed!$"));

@@ -108,8 +108,6 @@ class PathSource extends Source {
 
     if (dirExists(dir)) return;
 
-    // Check this after dirExists() so that symlinks to directories don't get
-    // confused as files.
     if (fileExists(dir)) {
       throw new FormatException(
           "Path dependency for package '$name' must refer to a "
