@@ -66,6 +66,10 @@ analyzer_experimental/test/generated/scanner_test: Skip # Imports dart:io.
 # otherwise be dart2js-compatible.
 scheduled_test/test/*: Skip
 
+# We use pathos in the stack_trace tests. We can run them on dart2js when issue
+# 6943 is fixed.
+stack_trace/test/*: Skip
+
 [ $runtime == opera && $compiler == dart2js ]
 intl/test/find_default_locale_browser_test: Fail
 intl/test/date_time_format_http_request_test: Skip # Timeout.
