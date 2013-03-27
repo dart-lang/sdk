@@ -1136,7 +1136,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ SmiTag(result);
       break;
     case kTypedDataInt32ArrayCid:
-      __ movsxl(result, element_address);
+      __ movsxd(result, element_address);
       __ SmiTag(result);
       break;
     case kTypedDataUint32ArrayCid:
@@ -2328,13 +2328,40 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kTRUNCDIV: {
+      Label not_32bit, done;
+
+      Register temp = locs()->temp(0).reg();
+      ASSERT(left == RAX);
+      ASSERT((right != RDX) && (right != RAX));
+      ASSERT(temp == RDX);
+      ASSERT(result == RAX);
+
       // Handle divide by zero in runtime.
       __ testq(right, right);
       __ j(ZERO, deopt);
-      ASSERT(left == RAX);
-      ASSERT((right != RDX) && (right != RAX));
-      ASSERT(locs()->temp(0).reg() == RDX);
-      ASSERT(result == RAX);
+
+      // Check if both operands fit into 32bits as idiv with 64bit operands
+      // requires twice as many cycles and has much higher latency.
+      // We are checking this before untagging them to avoid corner case
+      // dividing INT_MAX by -1 that raises exception because quotient is
+      // too large for 32bit register.
+      __ movsxd(temp, left);
+      __ cmpq(temp, left);
+      __ j(NOT_EQUAL, &not_32bit);
+      __ movsxd(temp, right);
+      __ cmpq(temp, right);
+      __ j(NOT_EQUAL, &not_32bit);
+
+      // Both operands are 31bit smis. Divide using 32bit idiv.
+      __ SmiUntag(left);
+      __ SmiUntag(right);
+      __ cdq();
+      __ idivl(right);
+      __ movsxd(result, result);
+      __ jmp(&done);
+
+      // Divide using 64bit idiv.
+      __ Bind(&not_32bit);
       __ SmiUntag(left);
       __ SmiUntag(right);
       __ cqo();  // Sign extend RAX -> RDX:RAX.
@@ -2343,6 +2370,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       // case we cannot tag the result.
       __ cmpq(result, Immediate(0x4000000000000000));
       __ j(EQUAL, deopt);
+      __ Bind(&done);
       __ SmiTag(result);
       break;
     }

@@ -515,6 +515,22 @@ ASSEMBLER_TEST_RUN(MoveExtend, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(MoveExtend32, assembler) {
+  __ movq(RDX, Immediate(0xffffffff));
+  __ movsxd(RDX, RDX);
+  __ movq(RAX, Immediate(0x7fffffff));
+  __ movsxd(RAX, RAX);
+  __ addq(RAX, RDX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(MoveExtend32, test) {
+  typedef intptr_t (*MoveExtend)();
+  EXPECT_EQ(0x7ffffffe, reinterpret_cast<MoveExtend>(test->entry())());
+}
+
+
 ASSEMBLER_TEST_GENERATE(MoveExtendMemory, assembler) {
   __ movq(RDX, Immediate(0x123456781234ffff));
 
@@ -534,6 +550,24 @@ ASSEMBLER_TEST_RUN(MoveExtendMemory, test) {
   typedef int (*MoveExtendMemory)();
   EXPECT_EQ(0xff - 1 + 0xffff,
             reinterpret_cast<MoveExtendMemory>(test->entry())());
+}
+
+
+ASSEMBLER_TEST_GENERATE(MoveExtend32Memory, assembler) {
+  __ pushq(Immediate(0xffffffff));
+  __ pushq(Immediate(0x7fffffff));
+  __ movsxd(RDX, Address(RSP, kWordSize));
+  __ movsxd(RAX, Address(RSP, 0));
+  __ addq(RSP, Immediate(kWordSize * 2));
+
+  __ addq(RAX, RDX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(MoveExtend32Memory, test) {
+  typedef intptr_t (*MoveExtend)();
+  EXPECT_EQ(0x7ffffffe, reinterpret_cast<MoveExtend>(test->entry())());
 }
 
 

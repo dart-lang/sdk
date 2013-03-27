@@ -731,7 +731,7 @@ bool Intrinsifier::Integer_mul(Assembler* assembler) {
 
 
 bool Intrinsifier::Integer_modulo(Assembler* assembler) {
-  Label fall_through, return_zero, try_modulo;
+  Label fall_through, return_zero, try_modulo, not_32bit;
   TestBothArgumentsSmis(assembler, &fall_through);
   // RAX: right argument (divisor)
   // Check if modulo by zero -> exception thrown in main function.
@@ -745,35 +745,84 @@ bool Intrinsifier::Integer_modulo(Assembler* assembler) {
   __ j(GREATER, &try_modulo, Assembler::kNearJump);
   __ movq(RAX, RCX);  // Return dividend as it is smaller than divisor.
   __ ret();
+
   __ Bind(&return_zero);
   __ xorq(RAX, RAX);  // Return zero.
   __ ret();
+
   __ Bind(&try_modulo);
   // RAX: right (non-null divisor).
   __ movq(RCX, RAX);
-  __ SmiUntag(RCX);
   __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Left argument (dividend).
+
+  // Check if both operands fit into 32bits as idiv with 64bit operands
+  // requires twice as many cycles and has much higher latency. We are checking
+  // this before untagging them to avoid corner case dividing INT_MAX by -1 that
+  // raises exception because quotient is too large for 32bit register.
+  __ movsxd(RBX, RAX);
+  __ cmpq(RBX, RAX);
+  __ j(NOT_EQUAL, &not_32bit);
+  __ movsxd(RBX, RCX);
+  __ cmpq(RBX, RCX);
+  __ j(NOT_EQUAL, &not_32bit);
+
+  // Both operands are 31bit smis. Divide using 32bit idiv.
   __ SmiUntag(RAX);
+  __ SmiUntag(RCX);
+  __ cdq();
+  __ idivl(RCX);
+  __ movsxd(RAX, RDX);
+  __ SmiTag(RAX);
+  __ ret();
+
+  // Divide using 64bit idiv.
+  __ Bind(&not_32bit);
+  __ SmiUntag(RAX);
+  __ SmiUntag(RCX);
   __ cqo();
   __ idivq(RCX);
   __ movq(RAX, RDX);
   __ SmiTag(RAX);
   __ ret();
+
   __ Bind(&fall_through);
   return false;
 }
 
 
 bool Intrinsifier::Integer_truncDivide(Assembler* assembler) {
-  Label fall_through;
+  Label fall_through, not_32bit;
   TestBothArgumentsSmis(assembler, &fall_through);
   // RAX: right argument (divisor)
   __ cmpq(RAX, Immediate(0));
   __ j(EQUAL, &fall_through, Assembler::kNearJump);
   __ movq(RCX, RAX);
-  __ SmiUntag(RCX);
   __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Left argument (dividend).
+
+  // Check if both operands fit into 32bits as idiv with 64bit operands
+  // requires twice as many cycles and has much higher latency. We are checking
+  // this before untagging them to avoid corner case dividing INT_MAX by -1 that
+  // raises exception because quotient is too large for 32bit register.
+  __ movsxd(RBX, RAX);
+  __ cmpq(RBX, RAX);
+  __ j(NOT_EQUAL, &not_32bit);
+  __ movsxd(RBX, RCX);
+  __ cmpq(RBX, RCX);
+  __ j(NOT_EQUAL, &not_32bit);
+
+  // Both operands are 31bit smis. Divide using 32bit idiv.
   __ SmiUntag(RAX);
+  __ SmiUntag(RCX);
+  __ cdq();
+  __ idivl(RCX);
+  __ movsxd(RAX, RAX);
+  __ SmiTag(RAX);  // Result is guaranteed to fit into a smi.
+  __ ret();
+
+  // Divide using 64bit idiv.
+  __ Bind(&not_32bit);
+  __ SmiUntag(RAX);
+  __ SmiUntag(RCX);
   __ pushq(RDX);  // Preserve RDX in case of 'fall_through'.
   __ cqo();
   __ idivq(RCX);
