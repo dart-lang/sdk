@@ -123,10 +123,6 @@ void Intrinsifier::InitializeState() {
   lib = Library::MathLibrary();
   MATH_LIB_INTRINSIC_LIST(SETUP_FUNCTION);
 
-  // Set up all scalar list lib functions that can be intrisified.
-  lib = Library::ScalarlistLibrary();
-  SCALARLIST_LIB_INTRINSIC_LIST(SETUP_FUNCTION);
-
   // Set up all dart:typeddata lib functions that can be intrisified.
   lib = Library::TypedDataLibrary();
   TYPEDDATA_LIB_INTRINSIC_LIST(SETUP_FUNCTION);
@@ -155,8 +151,6 @@ bool Intrinsifier::Intrinsify(const Function& function, Assembler* assembler) {
     CORE_LIB_INTRINSIC_LIST(FIND_INTRINSICS);
   } else if (lib.raw() == Library::TypedDataLibrary()) {
     TYPEDDATA_LIB_INTRINSIC_LIST(FIND_INTRINSICS);
-  } else if (lib.raw() == Library::ScalarlistLibrary()) {
-    SCALARLIST_LIB_INTRINSIC_LIST(FIND_INTRINSICS);
   } else if (lib.raw() == Library::MathLibrary()) {
     MATH_LIB_INTRINSIC_LIST(FIND_INTRINSICS);
   }

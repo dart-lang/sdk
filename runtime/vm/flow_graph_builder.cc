@@ -1802,23 +1802,23 @@ void EffectGraphVisitor::VisitInstanceCallNode(InstanceCallNode* node) {
 
 static intptr_t GetResultCidOfNative(const Function& function) {
   const Class& function_class = Class::Handle(function.Owner());
-  if (function_class.library() == Library::ScalarlistLibrary()) {
+  if (function_class.library() == Library::TypedDataLibrary()) {
     const String& function_name = String::Handle(function.name());
     if (!String::EqualsIgnoringPrivateKey(function_name, Symbols::_New())) {
       return kDynamicCid;
     }
     switch (function_class.id()) {
-      case kInt8ArrayCid:
-      case kUint8ArrayCid:
-      case kUint8ClampedArrayCid:
-      case kInt16ArrayCid:
-      case kUint16ArrayCid:
-      case kInt32ArrayCid:
-      case kUint32ArrayCid:
-      case kInt64ArrayCid:
-      case kUint64ArrayCid:
-      case kFloat32ArrayCid:
-      case kFloat64ArrayCid:
+      case kTypedDataInt8ArrayCid:
+      case kTypedDataUint8ArrayCid:
+      case kTypedDataUint8ClampedArrayCid:
+      case kTypedDataInt16ArrayCid:
+      case kTypedDataUint16ArrayCid:
+      case kTypedDataInt32ArrayCid:
+      case kTypedDataUint32ArrayCid:
+      case kTypedDataInt64ArrayCid:
+      case kTypedDataUint64ArrayCid:
+      case kTypedDataFloat32ArrayCid:
+      case kTypedDataFloat64ArrayCid:
         return function_class.id();
       default:
         return kDynamicCid;  // Unknown.
@@ -1979,17 +1979,17 @@ void EffectGraphVisitor::BuildConstructorCall(
   V(ObjectArrayFactory, kArrayCid, 97987288)                                   \
   V(GrowableObjectArrayWithData, kGrowableObjectArrayCid, 816132033)           \
   V(GrowableObjectArrayFactory, kGrowableObjectArrayCid, 224791427)            \
-  V(Int8ListFactory, kInt8ArrayCid, 216496111)                                 \
-  V(Uint8ListFactory, kUint8ArrayCid, 1767464978)                              \
-  V(Uint8ClampedListFactory, kUint8ClampedArrayCid, 1968602860)                \
-  V(Int16ListFactory, kInt16ArrayCid, 1760814825)                              \
-  V(Uint16ListFactory, kUint16ArrayCid, 1684498763)                            \
-  V(Int32ListFactory, kInt32ArrayCid, 1376656162)                              \
-  V(Uint32ListFactory, kUint32ArrayCid, 1954207744)                            \
-  V(Int64ListFactory, kInt64ArrayCid, 284215425)                               \
-  V(Uint64ListFactory, kUint64ArrayCid, 870102373)                             \
-  V(Float64ListFactory, kFloat64ArrayCid, 436526211)                           \
-  V(Float32ListFactory, kFloat32ArrayCid, 1434337247)                          \
+  V(Int8ListFactory, kTypedDataInt8ArrayCid, 1178498933)                       \
+  V(Uint8ListFactory, kTypedDataUint8ArrayCid, 996047641)                      \
+  V(Uint8ClampedListFactory, kTypedDataUint8ClampedArrayCid, 1504313643)       \
+  V(Int16ListFactory, kTypedDataInt16ArrayCid, 1595869856)                     \
+  V(Uint16ListFactory, kTypedDataUint16ArrayCid, 665298027)                    \
+  V(Int32ListFactory, kTypedDataInt32ArrayCid, 728173538)                      \
+  V(Uint32ListFactory, kTypedDataUint32ArrayCid, 352036624)                    \
+  V(Int64ListFactory, kTypedDataInt64ArrayCid, 105935265)                      \
+  V(Uint64ListFactory, kTypedDataUint64ArrayCid, 943403644)                    \
+  V(Float64ListFactory, kTypedDataFloat64ArrayCid, 348533743)                  \
+  V(Float32ListFactory, kTypedDataFloat32ArrayCid, 1830794379)                 \
 
 
 // Class that recognizes factories and returns corresponding result cid.
@@ -2001,7 +2001,7 @@ class FactoryRecognizer : public AllStatic {
     const Class& function_class = Class::Handle(factory.Owner());
     const Library& lib = Library::Handle(function_class.library());
     ASSERT((lib.raw() == Library::CoreLibrary()) ||
-        (lib.raw() == Library::ScalarlistLibrary()));
+        (lib.raw() == Library::TypedDataLibrary()));
     const String& factory_name = String::Handle(factory.name());
 #define RECOGNIZE_FACTORY(test_factory_symbol, cid, fp)                        \
     if (String::EqualsIgnoringPrivateKey(                                      \
@@ -2023,7 +2023,7 @@ static intptr_t GetResultCidOfListFactory(ConstructorCallNode* node) {
   const Class& function_class = Class::Handle(function.Owner());
 
   if ((function_class.library() != Library::CoreLibrary()) &&
-      (function_class.library() != Library::ScalarlistLibrary())) {
+      (function_class.library() != Library::TypedDataLibrary())) {
     return kDynamicCid;
   }
 

@@ -953,32 +953,10 @@ intptr_t FlowGraphCompiler::ElementSizeFor(intptr_t cid) {
     case kArrayCid:
     case kImmutableArrayCid:
       return Array::kBytesPerElement;
-    case kFloat32ArrayCid:
-      return Float32Array::kBytesPerElement;
-    case kFloat64ArrayCid:
-      return Float64Array::kBytesPerElement;
-    case kInt8ArrayCid:
-      return Int8Array::kBytesPerElement;
-    case kUint8ArrayCid:
-      return Uint8Array::kBytesPerElement;
-    case kUint8ClampedArrayCid:
-      return Uint8ClampedArray::kBytesPerElement;
-    case kInt16ArrayCid:
-      return Int16Array::kBytesPerElement;
-    case kUint16ArrayCid:
-      return Uint16Array::kBytesPerElement;
-    case kInt32ArrayCid:
-      return Int32Array::kBytesPerElement;
-    case kUint32ArrayCid:
-      return Uint32Array::kBytesPerElement;
     case kOneByteStringCid:
       return OneByteString::kBytesPerElement;
     case kTwoByteStringCid:
       return TwoByteString::kBytesPerElement;
-    case kExternalUint8ArrayCid:
-      return ExternalUint8Array::kBytesPerElement;
-    case kExternalUint8ClampedArrayCid:
-      return ExternalUint8ClampedArray::kBytesPerElement;
     default:
       UNIMPLEMENTED();
       return 0;
@@ -998,32 +976,10 @@ intptr_t FlowGraphCompiler::DataOffsetFor(intptr_t cid) {
     case kArrayCid:
     case kImmutableArrayCid:
       return Array::data_offset();
-    case kFloat32ArrayCid:
-      return Float32Array::data_offset();
-    case kFloat64ArrayCid:
-      return Float64Array::data_offset();
-    case kInt8ArrayCid:
-      return Int8Array::data_offset();
-    case kUint8ArrayCid:
-      return Uint8Array::data_offset();
-    case kUint8ClampedArrayCid:
-      return Uint8ClampedArray::data_offset();
-    case kInt16ArrayCid:
-      return Int16Array::data_offset();
-    case kUint16ArrayCid:
-      return Uint16Array::data_offset();
-    case kInt32ArrayCid:
-      return Int32Array::data_offset();
-    case kUint32ArrayCid:
-      return Uint32Array::data_offset();
     case kOneByteStringCid:
       return OneByteString::data_offset();
     case kTwoByteStringCid:
       return TwoByteString::data_offset();
-    case kExternalUint8ArrayCid:
-    case kExternalUint8ClampedArrayCid:
-      // Elements start at offset 0 of the external data.
-      return 0;
     default:
       UNIMPLEMENTED();
       return Array::data_offset();

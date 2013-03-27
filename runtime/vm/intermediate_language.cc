@@ -1986,15 +1986,10 @@ void LoadFieldInstr::InferRange() {
 
 void LoadIndexedInstr::InferRange() {
   switch (class_id()) {
-    case kInt8ArrayCid:
     case kTypedDataInt8ArrayCid:
       range_ = new Range(RangeBoundary::FromConstant(-128),
                          RangeBoundary::FromConstant(127));
       break;
-    case kUint8ArrayCid:
-    case kUint8ClampedArrayCid:
-    case kExternalUint8ArrayCid:
-    case kExternalUint8ClampedArrayCid:
     case kTypedDataUint8ArrayCid:
     case kTypedDataUint8ClampedArrayCid:
     case kExternalTypedDataUint8ArrayCid:
@@ -2002,12 +1997,10 @@ void LoadIndexedInstr::InferRange() {
       range_ = new Range(RangeBoundary::FromConstant(0),
                          RangeBoundary::FromConstant(255));
       break;
-    case kInt16ArrayCid:
     case kTypedDataInt16ArrayCid:
       range_ = new Range(RangeBoundary::FromConstant(-32768),
                          RangeBoundary::FromConstant(32767));
       break;
-    case kUint16ArrayCid:
     case kTypedDataUint16ArrayCid:
       range_ = new Range(RangeBoundary::FromConstant(0),
                          RangeBoundary::FromConstant(65535));
@@ -2257,20 +2250,6 @@ intptr_t CheckArrayBoundInstr::LengthOffsetFor(intptr_t class_id) {
     case kArrayCid:
     case kImmutableArrayCid:
       return Array::length_offset();
-    case kInt8ArrayCid:
-    case kUint8ArrayCid:
-    case kUint8ClampedArrayCid:
-    case kInt16ArrayCid:
-    case kUint16ArrayCid:
-    case kInt32ArrayCid:
-    case kUint32ArrayCid:
-    case kInt64ArrayCid:
-    case kUint64ArrayCid:
-    case kFloat64ArrayCid:
-    case kFloat32ArrayCid:
-    case kExternalUint8ArrayCid:
-    case kExternalUint8ClampedArrayCid:
-      return ByteArray::length_offset();
     default:
       UNREACHABLE();
       return -1;

@@ -458,15 +458,6 @@ bool Intrinsifier::GrowableArray_add(Assembler* assembler) {
 }
 
 
-// Gets the length of a ByteArray.
-bool Intrinsifier::ByteArrayBase_getLength(Assembler* assembler) {
-  __ movl(EAX, Address(ESP, + 1 * kWordSize));
-  __ movl(EAX, FieldAddress(EAX, ByteArray::length_offset()));
-  __ ret();
-  return true;
-}
-
-
 #define TYPED_ARRAY_ALLOCATION(type_name, cid, max_len, scale_factor)          \
   Label fall_through;                                                          \
   const intptr_t kArrayLengthStackOffset = 1 * kWordSize;                      \
@@ -559,41 +550,6 @@ bool Intrinsifier::ByteArrayBase_getLength(Assembler* assembler) {
   __ ret();                                                                    \
   __ Bind(&fall_through);                                                      \
 
-
-#define SCALARLIST_ALLOCATOR(clazz, scale)                                     \
-bool Intrinsifier::clazz##_new(Assembler* assembler) {                         \
-  ScaleFactor scale_fac = scale;                                               \
-  TYPED_ARRAY_ALLOCATION(clazz, k##clazz##Cid, clazz::kMaxElements, scale_fac);\
-  return false;                                                                \
-}                                                                              \
-bool Intrinsifier::clazz##_factory(Assembler* assembler) {                     \
-  ScaleFactor scale_fac = scale;                                               \
-  TYPED_ARRAY_ALLOCATION(clazz, k##clazz##Cid, clazz::kMaxElements, scale_fac);\
-  return false;                                                                \
-}
-
-
-SCALARLIST_ALLOCATOR(Int8Array, TIMES_1)
-SCALARLIST_ALLOCATOR(Uint8Array, TIMES_1)
-SCALARLIST_ALLOCATOR(Uint8ClampedArray, TIMES_1)
-SCALARLIST_ALLOCATOR(Int16Array, TIMES_2)
-SCALARLIST_ALLOCATOR(Uint16Array, TIMES_2)
-SCALARLIST_ALLOCATOR(Int32Array, TIMES_4)
-SCALARLIST_ALLOCATOR(Uint32Array, TIMES_4)
-SCALARLIST_ALLOCATOR(Int64Array, TIMES_8)
-SCALARLIST_ALLOCATOR(Uint64Array, TIMES_8)
-SCALARLIST_ALLOCATOR(Float32Array, TIMES_4)
-SCALARLIST_ALLOCATOR(Float64Array, TIMES_8)
-
-
-bool Intrinsifier::Int64Array_getIndexed(Assembler* assembler) {
-  return false;
-}
-
-
-bool Intrinsifier::Uint64Array_getIndexed(Assembler* assembler) {
-  return false;
-}
 
 
 // Gets the length of a TypedData.

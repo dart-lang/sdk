@@ -411,17 +411,6 @@ bool Intrinsifier::GrowableArray_add(Assembler* assembler) {
 }
 
 
-bool Intrinsifier::ByteArrayBase_getLength(Assembler* assembler) {
-  __ movq(RAX, Address(RSP, + 1 * kWordSize));
-  __ movq(RAX, FieldAddress(RAX, ByteArray::length_offset()));
-  __ ret();
-  // Generate enough code to satisfy patchability constraint.
-  intptr_t offset = __ CodeSize();
-  __ nop(JumpPattern::InstructionLength() - offset);
-  return true;
-}
-
-
 
 // Tests if index is a valid length (Smi and within valid index range),
 // jumps to fall_through if it is not.
@@ -535,77 +524,6 @@ void TestByteArrayGetIndex(Assembler* assembler, Label* fall_through) {
                                                                                \
   __ ret();                                                                    \
   __ Bind(&fall_through);                                                      \
-
-
-#define SCALARLIST_ALLOCATOR(clazz, scale)                                     \
-bool Intrinsifier::clazz##_new(Assembler* assembler) {                         \
-  ScaleFactor scale_fac = scale;                                               \
-  TYPED_ARRAY_ALLOCATION(clazz, k##clazz##Cid, clazz::kMaxElements, scale_fac);\
-  return false;                                                                \
-}                                                                              \
-bool Intrinsifier::clazz##_factory(Assembler* assembler) {                     \
-  ScaleFactor scale_fac = scale;                                               \
-  TYPED_ARRAY_ALLOCATION(clazz, k##clazz##Cid, clazz::kMaxElements, scale_fac);\
-  return false;                                                                \
-}
-
-
-SCALARLIST_ALLOCATOR(Int8Array, TIMES_1)
-SCALARLIST_ALLOCATOR(Uint8Array, TIMES_1)
-SCALARLIST_ALLOCATOR(Uint8ClampedArray, TIMES_1)
-SCALARLIST_ALLOCATOR(Int16Array, TIMES_2)
-SCALARLIST_ALLOCATOR(Uint16Array, TIMES_2)
-SCALARLIST_ALLOCATOR(Int32Array, TIMES_4)
-SCALARLIST_ALLOCATOR(Uint32Array, TIMES_4)
-SCALARLIST_ALLOCATOR(Int64Array, TIMES_8)
-SCALARLIST_ALLOCATOR(Uint64Array, TIMES_8)
-SCALARLIST_ALLOCATOR(Float32Array, TIMES_4)
-SCALARLIST_ALLOCATOR(Float64Array, TIMES_8)
-
-
-bool Intrinsifier::Int64Array_getIndexed(Assembler* assembler) {
-  Label fall_through;
-  TestByteArrayGetIndex(assembler, &fall_through);
-  // R12: index as Smi.
-  // RAX: array.
-  __ movq(RAX, FieldAddress(RAX,
-                            R12,
-                            TIMES_4,
-                            Int64Array::data_offset()));
-  // Copy RAX into R12.
-  // We destroy R12 while testing if RAX can fit inside a Smi.
-  __ movq(R12, RAX);
-  // Verify that the signed value in RAX can fit inside a Smi.
-  __ shlq(R12, Immediate(0x1));
-  // Jump to fall_through if it can not.
-  __ j(OVERFLOW, &fall_through, Assembler::kNearJump);
-  __ SmiTag(RAX);
-  __ ret();
-  __ Bind(&fall_through);
-  return false;
-}
-
-
-bool Intrinsifier::Uint64Array_getIndexed(Assembler* assembler) {
-  Label fall_through;
-  TestByteArrayGetIndex(assembler, &fall_through);
-  // R12: index as Smi.
-  // RAX: array.
-  __ movq(RAX, FieldAddress(RAX,
-                            R12,
-                            TIMES_4,
-                            Uint64Array::data_offset()));
-  // Copy RAX into R12.
-  // We destroy R12 while testing if RAX can fit inside a Smi.
-  __ movq(R12, RAX);
-  // Verify that the unsigned value in RAX can be stored in a Smi.
-  __ shrq(R12, Immediate(kSmiBits));
-  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Won't fit Smi.
-  __ SmiTag(RAX);
-  __ ret();
-  __ Bind(&fall_through);
-  return false;
-}
 
 
 // Gets the length of a TypedData.

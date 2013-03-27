@@ -816,9 +816,7 @@ void FlowGraphOptimizer::BuildStoreIndexed(InstanceCallInstr* call,
       case kTypedDataFloat32ArrayCid:
       case kTypedDataFloat64ArrayCid: {
         type_args = instantiator = flow_graph_->constant_null();
-        ASSERT((class_id != kFloat32ArrayCid &&
-                class_id != kFloat64ArrayCid &&
-                class_id != kTypedDataFloat32ArrayCid &&
+        ASSERT((class_id != kTypedDataFloat32ArrayCid &&
                 class_id != kTypedDataFloat64ArrayCid) ||
                value_type.IsDoubleType());
         ASSERT(value_type.IsInstantiated());
@@ -845,9 +843,10 @@ void FlowGraphOptimizer::BuildStoreIndexed(InstanceCallInstr* call,
   intptr_t array_cid = PrepareIndexedOp(call, class_id, &array, &index);
   // Check if store barrier is needed. Byte arrays don't need a store barrier.
   StoreBarrierType needs_store_barrier =
-      RawObject::IsByteArrayClassId(array_cid)
-          ? kNoStoreBarrier
-          : kEmitStoreBarrier;
+      (RawObject::IsTypedDataClassId(array_cid) ||
+       RawObject::IsTypedDataViewClassId(array_cid) ||
+       RawObject::IsExternalTypedDataClassId(array_cid)) ? kNoStoreBarrier
+                                                         : kEmitStoreBarrier;
   if (!value_check.IsNull()) {
     // No store barrier needed because checked value is a smi, an unboxed mint
     // or unboxed double.
@@ -1623,7 +1622,8 @@ bool FlowGraphOptimizer::BuildByteArrayViewLoad(
   // loads on ia32 like we do for normal array loads, and only revert to
   // mint case after deoptimizing here.
   intptr_t deopt_id = Isolate::kNoDeoptId;
-  if ((view_cid == kInt32ArrayCid || view_cid == kUint32ArrayCid) &&
+  if ((view_cid == kTypedDataInt32ArrayCid ||
+       view_cid == kTypedDataUint32ArrayCid) &&
       call->ic_data()->deopt_reason() == kDeoptUnknown) {
     deopt_id = call->deopt_id();
   }
@@ -3115,7 +3115,7 @@ class LoadOptimizer : public ValueObject {
             StoreIndexedInstr* array_store = instr->AsStoreIndexed();
             if (array_store == NULL ||
                 array_store->class_id() == kArrayCid ||
-                array_store->class_id() == kFloat64ArrayCid) {
+                array_store->class_id() == kTypedDataFloat64ArrayCid) {
               Definition* load = map_->Lookup(instr->AsDefinition());
               if (load != NULL) {
                 // Store has a corresponding numbered load. Try forwarding
