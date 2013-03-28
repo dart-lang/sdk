@@ -200,9 +200,11 @@ class Namer implements ClosureNamer {
   final Map<Element, String> bailoutNames;
 
   final Map<Constant, String> constantNames;
+  ConstantCanonicalHasher constantHasher;
 
-  Namer(this.compiler)
-      : globals = new Map<Element, String>(),
+  Namer(Compiler compiler)
+      : compiler = compiler,
+        globals = new Map<Element, String>(),
         shortPrivateNameOwners = new Map<String, LibraryElement>(),
         bailoutNames = new Map<Element, String>(),
         usedGlobalNames = new Set<String>(),
@@ -213,7 +215,8 @@ class Namer implements ClosureNamer {
         suggestedGlobalNames = new Map<String, String>(),
         suggestedInstanceNames = new Map<String, String>(),
         constantNames = new Map<Constant, String>(),
-        popularNameCounters = new Map<String, int>();
+        popularNameCounters = new Map<String, int>(),
+        constantHasher = new ConstantCanonicalHasher(compiler);
 
   String get isolateName => 'Isolate';
   String get isolatePropertiesName => r'$isolateProperties';
@@ -246,14 +249,8 @@ class Namer implements ClosureNamer {
           longName = "C";
         }
       } else {
-        if (constant.isInterceptor()) {
-          InterceptorConstant interceptorConstant = constant;
-          String typeName =
-              interceptorConstant.dispatchedType.element.name.slowToString();
-          longName = typeName + '_methods';
-        } else {
-          longName = "CONSTANT";
-        }
+        longName = new ConstantNamingVisitor(compiler, constantHasher)
+            .getName(constant);
       }
       result = getFreshName(longName, usedGlobalNames, suggestedGlobalNames,
                             ensureSafe: true);
@@ -801,5 +798,324 @@ class Namer implements ClosureNamer {
     } else {
       return name;
     }
+  }
+}
+
+
+/**
+ * Generator of names for [Constant] values.
+ *
+ * The names are stable under perturbations of the source.  The name is either a
+ * short sequence of words, if this can be found from the constant, or a type
+ * followed by a hash tag.
+ *
+ *     List_imX                // A List, with hash tag.
+ *     C_Sentinel              // const Sentinel(),  "C_" added to avoid clash
+ *                             //   with class name.
+ *     JSInt_methods           // an interceptor.
+ *     Duration_16000          // const Duration(milliseconds: 16)
+ *     EventKeyProvider_keyup  // const EventKeyProvider('keyup')
+ *
+ */
+class ConstantNamingVisitor implements ConstantVisitor {
+
+  static final RegExp IDENTIFIER = new RegExp(r'^[A-Za-z_$][A-Za-z0-9_$]*$');
+  static const MAX_FRAGMENTS = 5;
+  static const MAX_EXTRA_LENGTH = 30;
+  static const DEFAULT_TAG_LENGTH = 3;
+
+  final Compiler compiler;
+  final ConstantCanonicalHasher hasher;
+
+  String root = null;     // First word, usually a type name.
+  bool failed = false;    // Failed to generate something pretty.
+  List<String> fragments = <String>[];
+  int length = 0;
+
+  ConstantNamingVisitor(this.compiler, this.hasher);
+
+  String getName(Constant constant) {
+    _visit(constant);
+    if (root == null) return 'CONSTANT';
+    if (failed) return '${root}_${getHashTag(constant, DEFAULT_TAG_LENGTH)}';
+    if (fragments.length == 1) return 'C_${root}';
+    return fragments.join('_');
+  }
+
+  String getHashTag(Constant constant, int width) =>
+      hashWord(hasher.getHash(constant), width);
+
+  String hashWord(int hash, int length) {
+    hash &= 0x1fffffff;
+    StringBuffer sb = new StringBuffer();
+    for (int i = 0; i < length; i++) {
+      int digit = hash % 62;
+      sb.write('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+          [digit]);
+      hash ~/= 62;
+      if (hash == 0) break;
+    }
+    return sb.toString();
+  }
+
+  void addRoot(String fragment) {
+    if (root == null && fragments.isEmpty) {
+      root = fragment;
+    }
+    add(fragment);
+  }
+
+  void add(String fragment) {
+    assert(fragment.length > 0);
+    fragments.add(fragment);
+    length += fragment.length;
+    if (fragments.length > MAX_FRAGMENTS) failed = true;
+    if (root != null && length > root.length + 1 + MAX_EXTRA_LENGTH) {
+      failed = true;
+    }
+  }
+
+  void addIdentifier(String fragment) {
+    if (fragment.length <= MAX_EXTRA_LENGTH && IDENTIFIER.hasMatch(fragment)) {
+      add(fragment);
+    } else {
+      failed = true;
+    }
+  }
+
+  _visit(Constant constant) {
+    return constant.accept(this);
+  }
+
+  visitSentinel(SentinelConstant constant) {
+    add(r'$');
+  }
+
+  visitFunction(FunctionConstant constant) {
+    add(constant.element.name.slowToString());
+  }
+
+  visitNull(NullConstant constant) {
+    add('null');
+  }
+
+  visitInt(IntConstant constant) {
+    // No `addRoot` since IntConstants are always inlined.
+    if (constant.value < 0) {
+      add('m${-constant.value}');
+    } else {
+      add('${constant.value}');
+    }
+  }
+
+  visitDouble(DoubleConstant constant) {
+    failed = true;
+  }
+
+  visitTrue(TrueConstant constant) {
+    add('true');
+  }
+
+  visitFalse(FalseConstant constant) {
+    add('false');
+  }
+
+  visitString(StringConstant constant) {
+    // No `addRoot` since string constants are always inlined.
+    addIdentifier(constant.value.slowToString());
+  }
+
+  visitList(ListConstant constant) {
+    // TODO(9476): Incorporate type parameters into name.
+    addRoot('List');
+    int length = constant.length;
+    if (constant.length == 0) {
+      add('empty');
+    } else if (length >= MAX_FRAGMENTS) {
+      failed = true;
+    } else {
+      for (int i = 0; i < length; i++) {
+        _visit(constant.entries[i]);
+        if (failed) break;
+      }
+    }
+  }
+
+  visitMap(MapConstant constant) {
+    // TODO(9476): Incorporate type parameters into name.
+    addRoot('Map');
+    if (constant.length == 0) {
+      add('empty');
+    } else {
+      // Using some bits from the keys hash tag groups the names Maps with the
+      // same structure.
+      add(getHashTag(constant.keys, 2) + getHashTag(constant, 3));
+    }
+  }
+
+  visitConstructed(ConstructedConstant constant) {
+    addRoot(constant.type.element.name.slowToString());
+    for (int i = 0; i < constant.fields.length; i++) {
+      _visit(constant.fields[i]);
+      if (failed) return;
+    }
+  }
+
+  visitType(TypeConstant constant) {
+    addRoot('Type');
+    DartType type = constant.representedType;
+    String name = compiler.backend.rti.getRawTypeRepresentation(type);
+    addIdentifier(name);
+  }
+
+  visitInterceptor(InterceptorConstant constant) {
+    addRoot(constant.dispatchedType.element.name.slowToString());
+    add('methods');
+  }
+}
+
+
+/**
+ * Generates canonical hash values for [Constant]s.
+ *
+ * Unfortunately, [Constant.hashCode] is not stable under minor perturbations,
+ * so it can't be used for generating names.  This hasher keeps consistency
+ * between runs by basing hash values of the names of elements, rather than
+ * their hashCodes.
+ */
+class ConstantCanonicalHasher implements ConstantVisitor<int> {
+
+  static const _MASK = 0x1fffffff;
+  static const _UINT32_LIMIT = 4 * 1024 * 1024 * 1024;
+
+
+  final Compiler compiler;
+  final Map<Constant, int> hashes = new Map<Constant, int>();
+
+  ConstantCanonicalHasher(this.compiler);
+
+  int getHash(Constant constant) => _visit(constant);
+
+  int _visit(Constant constant) {
+    int hash = hashes[constant];
+    if (hash == null) {
+      hash = _finish(constant.accept(this));
+      hashes[constant] = hash;
+    }
+    return hash;
+  }
+
+  int visitSentinel(SentinelConstant constant) => 1;
+  int visitNull(NullConstant constant) => 2;
+  int visitTrue(TrueConstant constant) => 3;
+  int visitFalse(FalseConstant constant) => 4;
+
+  int visitFunction(FunctionConstant constant) {
+    return _hashString(1, constant.element.name.slowToString());
+  }
+
+  int visitInt(IntConstant constant) => _hashInt(constant.value);
+
+  int visitDouble(DoubleConstant constant) => _hashDouble(constant.value);
+
+  int visitString(StringConstant constant) {
+    return _hashString(2, constant.value.slowToString());
+  }
+
+  int visitList(ListConstant constant) {
+    return _hashList(constant.length, constant.entries);
+  }
+
+  int visitMap(MapConstant constant) {
+    int hash = _visit(constant.keys);
+    return _hashList(hash, constant.values);
+  }
+
+  int visitConstructed(ConstructedConstant constant) {
+    int hash = _hashString(3, constant.type.element.name.slowToString());
+    for (int i = 0; i < constant.fields.length; i++) {
+      hash = _combine(hash, _visit(constant.fields[i]));
+    }
+    return hash;
+  }
+
+  int visitType(TypeConstant constant) {
+    DartType type = constant.representedType;
+    String name = compiler.backend.rti.getRawTypeRepresentation(type);
+    return _hashString(4, name);
+  }
+
+  visitInterceptor(InterceptorConstant constant) {
+    String typeName = constant.dispatchedType.element.name.slowToString();
+    return _hashString(5, typeName);
+  }
+
+  int _hashString(int hash, String s) {
+    int length = s.length;
+    hash = _combine(hash, length);
+    // Increasing stride is O(log N) on large strings which are unlikely to have
+    // many collisions.
+    for (int i = 0; i < length; i += 1 + (i >> 2)) {
+      hash = _combine(hash, s.codeUnitAt(i));
+    }
+    return hash;
+  }
+
+  int _hashList(int hash, List<Constant> constants) {
+    for (Constant constant in constants) {
+      hash = _combine(hash, _visit(constant));
+    }
+    return hash;
+  }
+
+  static int _hashInt(int value) {
+    if (value.abs() < _UINT32_LIMIT) return _MASK & value;
+    return _hashDouble(value.toDouble());
+  }
+
+  static int _hashDouble(double value) {
+    double magnitude = value.abs();
+    int sign = value < 0 ? 1 : 0;
+    if (magnitude < _UINT32_LIMIT) {  // 2^32
+      int intValue = value.toInt();
+      // Integer valued doubles in 32-bit range hash to the same values as ints.
+      int hash = _hashInt(intValue);
+      if (value == intValue) return hash;
+      hash = _combine(hash, sign);
+      int fraction = ((magnitude - intValue.abs()) * (_MASK + 1)).toInt();
+      hash = _combine(hash, fraction);
+      return hash;
+    } else if (value.isInfinite) {
+      return _combine(6, sign);
+    } else if (value.isNaN) {
+      return 7;
+    } else {
+      int hash = 0;
+      while (magnitude >= _UINT32_LIMIT) {
+        magnitude = magnitude / _UINT32_LIMIT;
+        hash++;
+      }
+      hash = _combine(hash, sign);
+      return _combine(hash, _hashDouble(magnitude));
+    }
+  }
+
+  /**
+   * [_combine] and [_finish] are parts of the [Jenkins hash function][1],
+   * modified by using masking to keep values in SMI range.
+   *
+   * [1]: http://en.wikipedia.org/wiki/Jenkins_hash_function
+   */
+  static int _combine(int hash, int value) {
+    hash = _MASK & (hash + value);
+    hash = _MASK & (hash + (((_MASK >> 10) & hash) << 10));
+    hash = hash ^ (hash >> 6);
+    return hash;
+  }
+
+  static int _finish(int hash) {
+    hash = _MASK & (hash + (((_MASK >> 3) & hash) <<  3));
+    hash = hash & (hash >> 11);
+    return _MASK & (hash + (((_MASK >> 15) & hash) << 15));
   }
 }
