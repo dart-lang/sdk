@@ -7,7 +7,7 @@ library system_cache;
 import 'dart:io';
 import 'dart:async';
 
-import '../../pkg/pathos/lib/path.dart' as path;
+import 'package:pathos/path.dart' as path;
 
 import 'git_source.dart';
 import 'hosted_source.dart';

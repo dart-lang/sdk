@@ -6,8 +6,8 @@ library io_test;
 
 import 'dart:io';
 
-import '../../../pkg/pathos/lib/path.dart' as path;
-import '../../../pkg/unittest/lib/unittest.dart';
+import 'package:pathos/path.dart' as path;
+import 'package:unittest/unittest.dart';
 
 import '../../pub/io.dart';
 import '../../pub/utils.dart';

@@ -5,12 +5,14 @@
 library lock_file;
 
 import 'dart:json' as json;
+
+import 'package:yaml/yaml.dart';
+
 import 'io.dart';
 import 'package.dart';
 import 'source_registry.dart';
 import 'utils.dart';
 import 'version.dart';
-import '../../pkg/yaml/lib/yaml.dart';
 
 /// A parsed and validated `pubspec.lock` file.
 class LockFile {

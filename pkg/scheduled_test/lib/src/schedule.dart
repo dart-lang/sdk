@@ -7,7 +7,7 @@ library schedule;
 import 'dart:async';
 import 'dart:collection';
 
-import '../../../../pkg/unittest/lib/unittest.dart' as unittest;
+import 'package:unittest/unittest.dart' as unittest;
 
 import 'mock_clock.dart' as mock_clock;
 import 'schedule_error.dart';

@@ -6,7 +6,7 @@ library git_source;
 
 import 'dart:async';
 
-import '../../pkg/pathos/lib/path.dart' as path;
+import 'package:pathos/path.dart' as path;
 
 import 'git.dart' as git;
 import 'io.dart';

@@ -8,4 +8,4 @@
 BIN_DIR="$(cd "${0%/*}" ; pwd -P)"
 DART_SDK="$(cd "${BIN_DIR%/*}" ; pwd -P)"
 
-exec "$BIN_DIR"/dart "$DART_SDK"/util/pub/pub.dart $@
+exec "$BIN_DIR"/dart --package-root="$DART_SDK"/packages/ "$DART_SDK"/util/pub/pub.dart $@

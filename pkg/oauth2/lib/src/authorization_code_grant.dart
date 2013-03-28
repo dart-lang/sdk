@@ -7,8 +7,7 @@ library authorization_code_grant;
 import 'dart:async';
 import 'dart:uri';
 
-// TODO(nweiz): This should be a "package:" import. See issue 6745.
-import '../../../../pkg/http/lib/http.dart' as http;
+import 'package:http/http.dart' as http;
 
 import 'client.dart';
 import 'authorization_exception.dart';

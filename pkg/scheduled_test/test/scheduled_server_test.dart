@@ -7,10 +7,10 @@ library scheduled_server_test;
 import 'dart:async';
 import 'dart:io';
 
-import '../../../pkg/http/lib/http.dart' as http;
-import '../lib/scheduled_server.dart';
-import '../lib/scheduled_test.dart';
-import '../lib/src/mock_clock.dart' as mock_clock;
+import 'package:http/http.dart' as http;
+import 'package:scheduled_test/scheduled_server.dart';
+import 'package:scheduled_test/scheduled_test.dart';
+import 'package:scheduled_test/src/mock_clock.dart' as mock_clock;
 
 import 'metatest.dart';
 import 'utils.dart';

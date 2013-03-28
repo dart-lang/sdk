@@ -7,15 +7,14 @@ library dartdocTests;
 
 import 'dart:async';
 import 'dart:io';
-import '../../../../../pkg/pathos/lib/path.dart' as path;
+
+import 'package:pathos/path.dart' as path;
+import 'package:unittest/unittest.dart';
 
 // TODO(rnystrom): Use "package:" URL (#4968).
 import '../lib/dartdoc.dart' as dd;
 import '../lib/markdown.dart';
 import 'markdown_test.dart';
-
-// TODO(rnystrom): Better path to unittest.
-import '../../../../../pkg/unittest/lib/unittest.dart';
 
 // Pretty test config with --human
 import '../../../../../utils/tests/pub/command_line_config.dart';
@@ -237,11 +236,8 @@ void _testRunDartDoc(List<String> libraryPaths, void eval(ProcessResult)) {
   expect(_runDartdoc(libraryPaths).then(eval), completes);
 }
 
-/// Runs dartdoc with the libraryPaths provided, and completes to dartdoc's
-/// ProcessResult.
-Future<ProcessResult> _runDartdoc(List<String> libraryPaths) {
-  var dartBin = new Options().executable;
-
+/// The path to the root directory of the dartdoc entrypoint.
+String get _dartdocDir {
   var dir = path.absolute(new Options().script);
   while (path.basename(dir) != 'dartdoc') {
     if (!path.absolute(dir).contains('dartdoc') || dir == path.dirname(dir)) {
@@ -249,9 +245,40 @@ Future<ProcessResult> _runDartdoc(List<String> libraryPaths) {
     }
     dir = path.dirname(dir);
   }
-  var dartdoc = path.join(path.absolute(dir), 'bin/dartdoc.dart');
+  return path.absolute(dir);
+}
 
-  final runArgs = [dartdoc];
+/// The path to use for the package root for subprocesses.
+String get _packageRoot {
+  var sdkVersionPath = path.join(_dartdocDir, '..', '..', '..', 'version');
+  if (new File(sdkVersionPath).existsSync()) {
+    // It looks like dartdoc is being run from the SDK, so we should set the
+    // package root to the SDK's packages directory.
+    return path.absolute(path.join(_dartdocDir, '..', '..', '..', 'packages'));
+  }
+
+  // It looks like Dartdoc is being run from the Dart repo, so the package root
+  // is in the build output directory. We can find that directory relative to
+  // the Dart executable, but that could be in one of two places: in
+  // "$BUILD/dart" or "$BUILD/dart-sdk/bin/dart".
+  var executableDir = path.dirname(new Options().executable);
+  if (new Directory(path.join(executableDir, 'dart-sdk')).existsSync()) {
+    // The executable is in "$BUILD/dart".
+    return path.absolute(path.join(executableDir, 'packages'));
+  } else {
+    // The executable is in "$BUILD/dart-sdk/bin/dart".
+    return path.absolute(path.join(executableDir, '..', '..', 'packages'));
+  }
+}
+
+/// Runs dartdoc with the libraryPaths provided, and completes to dartdoc's
+/// ProcessResult.
+Future<ProcessResult> _runDartdoc(List<String> libraryPaths) {
+  var dartBin = new Options().executable;
+
+  var dartdoc = path.join(_dartdocDir, 'bin/dartdoc.dart');
+
+  final runArgs = ['--package-root=$_packageRoot/', dartdoc];
 
   // Turn relative libraryPaths to absolute ones.
   runArgs.addAll(libraryPaths

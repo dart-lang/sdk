@@ -13,8 +13,8 @@ import 'dart:io';
 import 'dart:async';
 import 'dart:isolate';
 
-import '../../../pkg/pathos/lib/path.dart' as path;
-import '../../../pkg/unittest/lib/unittest.dart';
+import 'package:pathos/path.dart' as path;
+import 'package:unittest/unittest.dart';
 
 import 'utils.dart';
 

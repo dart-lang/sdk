@@ -11,4 +11,4 @@ set SCRIPTPATH=%~dp0
 :: Does the string have a trailing slash? If so, remove it.
 if %SCRIPTPATH:~-1%==\ set SCRIPTPATH=%SCRIPTPATH:~0,-1%
 
-"%SCRIPTPATH%\dart.exe" "%SCRIPTPATH%\..\util\pub\pub.dart" %*
+"%SCRIPTPATH%\dart.exe" --package-root="%SCRIPTPATH%\..\packages\" "%SCRIPTPATH%\..\util\pub\pub.dart" %*

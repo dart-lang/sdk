@@ -8,10 +8,11 @@ import 'dart:io';
 import 'dart:json' as JSON;
 import 'dart:uri';
 
-import '../../../pkg/unittest/lib/unittest.dart';
-import '../../../pkg/http/lib/http.dart' as http;
-import '../lib/oauth2.dart' as oauth2;
-import '../lib/src/handle_access_token_response.dart';
+import 'package:http/http.dart' as http;
+import 'package:oauth2/oauth2.dart' as oauth2;
+import 'package:oauth2/src/handle_access_token_response.dart';
+import 'package:unittest/unittest.dart';
+
 import 'utils.dart';
 
 final Uri tokenEndpoint = Uri.parse("https://example.com/token");

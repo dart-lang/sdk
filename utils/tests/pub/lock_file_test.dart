@@ -4,8 +4,9 @@
 
 library lock_file_test;
 
-import '../../../pkg/unittest/lib/unittest.dart';
-import '../../../pkg/yaml/lib/yaml.dart';
+import 'package:unittest/unittest.dart';
+import 'package:yaml/yaml.dart';
+
 import '../../pub/lock_file.dart';
 import '../../pub/package.dart';
 import '../../pub/source.dart';

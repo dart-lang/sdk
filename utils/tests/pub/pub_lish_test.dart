@@ -7,8 +7,8 @@ library pub_lish_test;
 import 'dart:io';
 import 'dart:json' as json;
 
-import '../../../pkg/scheduled_test/lib/scheduled_test.dart';
-import '../../../pkg/scheduled_test/lib/scheduled_server.dart';
+import 'package:scheduled_test/scheduled_test.dart';
+import 'package:scheduled_test/scheduled_server.dart';
 
 import '../../pub/exit_codes.dart' as exit_codes;
 import '../../pub/io.dart';

@@ -4,8 +4,8 @@
 
 library pubspec;
 
-import '../../pkg/yaml/lib/yaml.dart';
-import '../../pkg/pathos/lib/path.dart' as path;
+import 'package:yaml/yaml.dart';
+import 'package:pathos/path.dart' as path;
 
 import 'io.dart';
 import 'package.dart';

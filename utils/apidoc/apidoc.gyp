@@ -47,6 +47,7 @@
           ],
           'action': [
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
+            '--package-root=<(PRODUCT_DIR)/packages/',
             'apidoc.dart',
             '--out=<(PRODUCT_DIR)/api_docs',
             '--version=<!@(["python", "../../tools/print_version.py"])',

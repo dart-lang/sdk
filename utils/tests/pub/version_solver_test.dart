@@ -7,7 +7,7 @@ library pub_update_test;
 import 'dart:async';
 import 'dart:io';
 
-import '../../../pkg/unittest/lib/unittest.dart';
+import 'package:unittest/unittest.dart';
 
 import '../../pub/lock_file.dart';
 import '../../pub/package.dart';

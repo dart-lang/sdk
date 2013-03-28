@@ -9,8 +9,8 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:json' as json;
 
-// TODO(nweiz): Make this import better.
-import '../../pkg/http/lib/http.dart' as http;
+import 'package:http/http.dart' as http;
+
 import 'io.dart';
 import 'log.dart' as log;
 import 'oauth2.dart' as oauth2;
