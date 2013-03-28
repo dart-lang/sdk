@@ -5,7 +5,7 @@
 // Library tag to be able to run in html test framework.
 library byte_array_test;
 
-import 'dart:scalarlist';
+import 'dart:typeddata';
 
 // This test exercises optimized [] and []= operators
 // on byte array views.
@@ -13,8 +13,8 @@ class OptimizedByteArrayTest {
   static testInt8ListImpl(Int8List array) {
     Expect.isTrue(array is List<int>);
     Expect.equals(10, array.length);
-    Expect.equals(1, array.bytesPerElement());
-    Expect.equals(10, array.lengthInBytes());
+    Expect.equals(1, array.elementSizeInBytes);
+    Expect.equals(10, array.lengthInBytes);
     Expect.listEquals([0, 0, 0, 0, 0,
                        0, 0, 0, 0, 0],
                       array);
@@ -100,8 +100,8 @@ class OptimizedByteArrayTest {
   static testUint8ListImpl(Uint8List array) {
     Expect.isTrue(array is List<int>);
     Expect.equals(10, array.length);
-    Expect.equals(1, array.bytesPerElement());
-    Expect.equals(10, array.lengthInBytes());
+    Expect.equals(1, array.elementSizeInBytes);
+    Expect.equals(10, array.lengthInBytes);
     Expect.listEquals([0, 0, 0, 0, 0,
                        0, 0, 0, 0, 0],
                       array);
@@ -176,8 +176,8 @@ class OptimizedByteArrayTest {
   static testInt16ListImpl(Int16List array) {
     Expect.isTrue(array is List<int>);
     Expect.equals(10, array.length);
-    Expect.equals(2, array.bytesPerElement());
-    Expect.equals(20, array.lengthInBytes());
+    Expect.equals(2, array.elementSizeInBytes);
+    Expect.equals(20, array.lengthInBytes);
     Expect.listEquals([0, 0, 0, 0, 0,
                        0, 0, 0, 0, 0],
                       array);
@@ -264,8 +264,8 @@ class OptimizedByteArrayTest {
   static testUint16ListImpl(Uint16List array) {
     Expect.isTrue(array is List<int>);
     Expect.equals(10, array.length);
-    Expect.equals(2, array.bytesPerElement());
-    Expect.equals(20, array.lengthInBytes());
+    Expect.equals(2, array.elementSizeInBytes);
+    Expect.equals(20, array.lengthInBytes);
     Expect.listEquals([0, 0, 0, 0, 0,
                        0, 0, 0, 0, 0],
                       array);
@@ -340,8 +340,8 @@ class OptimizedByteArrayTest {
   static testInt32ListImpl(Int32List array) {
     Expect.isTrue(array is List<int>);
     Expect.equals(10, array.length);
-    Expect.equals(4, array.bytesPerElement());
-    Expect.equals(40, array.lengthInBytes());
+    Expect.equals(4, array.elementSizeInBytes);
+    Expect.equals(40, array.lengthInBytes);
     Expect.listEquals([0, 0, 0, 0, 0,
                        0, 0, 0, 0, 0],
                       array);
@@ -434,8 +434,8 @@ class OptimizedByteArrayTest {
   static testUint32ListImpl(Uint32List array) {
     Expect.isTrue(array is List<int>);
     Expect.equals(10, array.length);
-    Expect.equals(4, array.bytesPerElement());
-    Expect.equals(40, array.lengthInBytes());
+    Expect.equals(4, array.elementSizeInBytes);
+    Expect.equals(40, array.lengthInBytes);
     Expect.listEquals([0, 0, 0, 0, 0,
                        0, 0, 0, 0, 0],
                       array);
@@ -516,8 +516,8 @@ class OptimizedByteArrayTest {
   static testInt64ListImpl(Int64List array) {
     Expect.isTrue(array is List<int>);
     Expect.equals(10, array.length);
-    Expect.equals(8, array.bytesPerElement());
-    Expect.equals(80, array.lengthInBytes());
+    Expect.equals(8, array.elementSizeInBytes);
+    Expect.equals(80, array.lengthInBytes);
     Expect.listEquals([0, 0, 0, 0, 0,
                        0, 0, 0, 0, 0],
                       array);
@@ -611,8 +611,8 @@ class OptimizedByteArrayTest {
   static testUint64ListImpl(Uint64List array) {
     Expect.isTrue(array is List<int>);
     Expect.equals(10, array.length);
-    Expect.equals(8, array.bytesPerElement());
-    Expect.equals(80, array.lengthInBytes());
+    Expect.equals(8, array.elementSizeInBytes);
+    Expect.equals(80, array.lengthInBytes);
     Expect.listEquals([0, 0, 0, 0, 0,
                        0, 0, 0, 0, 0],
                       array);
@@ -690,8 +690,8 @@ class OptimizedByteArrayTest {
   static testFloat32ListImpl(Float32List array) {
     Expect.isTrue(array is List<double>);
     Expect.equals(10, array.length);
-    Expect.equals(4, array.bytesPerElement());
-    Expect.equals(40, array.lengthInBytes());
+    Expect.equals(4, array.elementSizeInBytes);
+    Expect.equals(40, array.lengthInBytes);
     Expect.listEquals([0.0, 0.0, 0.0, 0.0, 0.0,
                        0.0, 0.0, 0.0, 0.0, 0.0],
                       array);
@@ -756,8 +756,8 @@ class OptimizedByteArrayTest {
   static testFloat64ListImpl(Float64List array) {
     Expect.isTrue(array is List<double>);
     Expect.equals(10, array.length);
-    Expect.equals(8, array.bytesPerElement());
-    Expect.equals(80, array.lengthInBytes());
+    Expect.equals(8, array.elementSizeInBytes);
+    Expect.equals(80, array.lengthInBytes);
     Expect.listEquals([0.0, 0.0, 0.0, 0.0, 0.0,
                        0.0, 0.0, 0.0, 0.0, 0.0],
                       array);
@@ -821,39 +821,39 @@ class OptimizedByteArrayTest {
 
   static testInt8ListViewImpl(var array) {
     Expect.equals(12, array.length);
-    Expect.equals(1, array.bytesPerElement());
-    Expect.equals(12, array.lengthInBytes());
+    Expect.equals(1, array.elementSizeInBytes);
+    Expect.equals(12, array.lengthInBytes);
     for (int i = 0; i < array.length; ++i) {
       array[i] = 0xFF;
     }
-    Expect.throws(() { new Int8List.view(array.asByteArray(), -1); },
+    Expect.throws(() { new Int8List.view(array.buffer, -1); },
                   (e) { return e is RangeError; });
-    Expect.throws(() { new Int8List.view(array.asByteArray(), 0, -1); },
+    Expect.throws(() { new Int8List.view(array.buffer, 0, -1); },
                   (e) { return e is RangeError; });
-    Expect.throws(() { new Int8List.view(array.asByteArray(),
-                                         array.lengthInBytes() + 1); },
+    Expect.throws(() { new Int8List.view(array.buffer,
+                                         array.lengthInBytes + 1); },
                   (e) { return e is RangeError; });
-    Expect.throws(() { new Int8List.view(array.asByteArray(),
+    Expect.throws(() { new Int8List.view(array.buffer,
                                          0, array.length + 1); },
                   (e) { return e is RangeError; });
-    Expect.throws(() { new Int8List.view(array.asByteArray(),
+    Expect.throws(() { new Int8List.view(array.buffer,
                                          array.length - 1, 2); },
                   (e) { return e is RangeError; });
-    var empty = new Int8List.view(array.asByteArray(),
-                                  array.lengthInBytes());
+    var empty = new Int8List.view(array.buffer,
+                                  array.lengthInBytes);
     Expect.isTrue(empty is List<int>);
     Expect.isTrue(empty is Int8List);
     Expect.equals(0, empty.length);
-    var whole = new Int8List.view(array.asByteArray());
+    var whole = new Int8List.view(array.buffer);
     Expect.isTrue(whole is List<int>);
     Expect.isTrue(whole is Int8List);
     Expect.equals(12, whole.length);
-    var view = new Int8List.view(array.asByteArray(), 1, array.length - 2);
+    var view = new Int8List.view(array.buffer, 1, array.length - 2);
     Expect.isTrue(view is List<int>);
     Expect.isTrue(view is Int8List);
     Expect.equals(10, view.length);
-    Expect.equals(1, view.bytesPerElement());
-    Expect.equals(10, view.lengthInBytes());
+    Expect.equals(1, view.elementSizeInBytes);
+    Expect.equals(10, view.lengthInBytes);
     Expect.listEquals([-1, -1, -1, -1, -1,
                        -1, -1, -1, -1, -1],
                       view);
@@ -952,39 +952,39 @@ class OptimizedByteArrayTest {
   static testUint8ListViewImpl(var array) {
     Expect.isTrue(array is List<int>);
     Expect.equals(12, array.length);
-    Expect.equals(1, array.bytesPerElement());
-    Expect.equals(12, array.lengthInBytes());
+    Expect.equals(1, array.elementSizeInBytes);
+    Expect.equals(12, array.lengthInBytes);
     for (int i = 0; i < array.length; ++i) {
       array[i] = -1;
     }
-    Expect.throws(() { new Uint8List.view(array.asByteArray(), -1); },
+    Expect.throws(() { new Uint8List.view(array.buffer, -1); },
                   (e) { return e is RangeError; });
-    Expect.throws(() { new Uint8List.view(array.asByteArray(), 0, -1); },
+    Expect.throws(() { new Uint8List.view(array.buffer, 0, -1); },
                   (e) { return e is RangeError; });
-    Expect.throws(() { new Uint8List.view(array.asByteArray(),
-                                          array.lengthInBytes() + 1); },
+    Expect.throws(() { new Uint8List.view(array.buffer,
+                                          array.lengthInBytes + 1); },
                   (e) { return e is RangeError; });
-    Expect.throws(() { new Uint8List.view(array.asByteArray(),
+    Expect.throws(() { new Uint8List.view(array.buffer,
                                           0, array.length + 1); },
                   (e) { return e is RangeError; });
-    Expect.throws(() { new Uint8List.view(array.asByteArray(),
+    Expect.throws(() { new Uint8List.view(array.buffer,
                                           array.length - 1, 2); },
                   (e) { return e is RangeError; });
-    var empty = new Uint8List.view(array.asByteArray(),
-                                   array.lengthInBytes());
+    var empty = new Uint8List.view(array.buffer,
+                                   array.lengthInBytes);
     Expect.isTrue(empty is List<int>);
     Expect.isTrue(empty is Uint8List);
     Expect.equals(0, empty.length);
-    var whole = new Uint8List.view(array.asByteArray());
+    var whole = new Uint8List.view(array.buffer);
     Expect.isTrue(whole is List<int>);
     Expect.isTrue(whole is Uint8List);
     Expect.equals(12, whole.length);
-    var view = new Uint8List.view(array.asByteArray(), 1, array.length - 2);
+    var view = new Uint8List.view(array.buffer, 1, array.length - 2);
     Expect.isTrue(view is List<int>);
     Expect.isTrue(view is Uint8List);
     Expect.equals(10, view.length);
-    Expect.equals(1, view.bytesPerElement());
-    Expect.equals(10, view.lengthInBytes());
+    Expect.equals(1, view.elementSizeInBytes);
+    Expect.equals(10, view.lengthInBytes);
     Expect.listEquals([0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
                        0xFF, 0xFF, 0xFF, 0xFF, 0xFF],
                       view);
@@ -1063,39 +1063,39 @@ class OptimizedByteArrayTest {
 
   static testInt16ListViewImpl(var array) {
     Expect.equals(24, array.length);
-    Expect.equals(1, array.bytesPerElement());
-    Expect.equals(24, array.lengthInBytes());
+    Expect.equals(1, array.elementSizeInBytes);
+    Expect.equals(24, array.lengthInBytes);
     for (int i = 0; i < array.length; ++i) {
       array[i] = 0xFF;
     }
-    Expect.throws(() { new Int16List.view(array.asByteArray(), -1); },
+    Expect.throws(() { new Int16List.view(array.buffer, -1); },
                   (e) { return e is RangeError; });
-    Expect.throws(() { new Int16List.view(array.asByteArray(), 0, -1); },
+    Expect.throws(() { new Int16List.view(array.buffer, 0, -1); },
                   (e) { return e is RangeError; });
-    Expect.throws(() { new Int16List.view(array.asByteArray(),
-                                          array.lengthInBytes() + 1); },
+    Expect.throws(() { new Int16List.view(array.buffer,
+                                          array.lengthInBytes + 1); },
                   (e) { return e is RangeError; });
-    Expect.throws(() { new Int16List.view(array.asByteArray(),
+    Expect.throws(() { new Int16List.view(array.buffer,
                                            0, array.length + 1); },
                   (e) { return e is RangeError; });
-    Expect.throws(() { new Int16List.view(array.asByteArray(),
+    Expect.throws(() { new Int16List.view(array.buffer,
                                            array.length - 1, 2); },
                   (e) { return e is RangeError; });
-    var empty = new Int16List.view(array.asByteArray(),
-                                   array.lengthInBytes());
+    var empty = new Int16List.view(array.buffer,
+                                   array.lengthInBytes);
     Expect.isTrue(empty is List<int>);
     Expect.isTrue(empty is Int16List);
     Expect.equals(0, empty.length);
-    var whole = new Int16List.view(array.asByteArray());
+    var whole = new Int16List.view(array.buffer);
     Expect.isTrue(whole is List<int>);
     Expect.isTrue(whole is Int16List);
     Expect.equals(12, whole.length);
-    var view = new Int16List.view(array.asByteArray(), 2, 10);
+    var view = new Int16List.view(array.buffer, 2, 10);
     Expect.isTrue(view is List<int>);
     Expect.isTrue(view is Int16List);
     Expect.equals(10, view.length);
-    Expect.equals(2, view.bytesPerElement());
-    Expect.equals(20, view.lengthInBytes());
+    Expect.equals(2, view.elementSizeInBytes);
+    Expect.equals(20, view.lengthInBytes);
     Expect.listEquals([-1, -1, -1, -1, -1,
                        -1, -1, -1, -1, -1],
                       view);
@@ -1202,39 +1202,39 @@ class OptimizedByteArrayTest {
   static testUint16ListViewImpl(var array) {
     Expect.isTrue(array is List<int>);
     Expect.equals(24, array.length);
-    Expect.equals(1, array.bytesPerElement());
-    Expect.equals(24, array.lengthInBytes());
+    Expect.equals(1, array.elementSizeInBytes);
+    Expect.equals(24, array.lengthInBytes);
     for (int i = 0; i < array.length; ++i) {
       array[i] = -1;
     }
-    Expect.throws(() { new Uint16List.view(array.asByteArray(), -1); },
+    Expect.throws(() { new Uint16List.view(array.buffer, -1); },
                   (e) { return e is RangeError; });
-    Expect.throws(() { new Uint16List.view(array.asByteArray(), 0, -1); },
+    Expect.throws(() { new Uint16List.view(array.buffer, 0, -1); },
                   (e) { return e is RangeError; });
-    Expect.throws(() { new Uint16List.view(array.asByteArray(),
-                                           array.lengthInBytes() + 1); },
+    Expect.throws(() { new Uint16List.view(array.buffer,
+                                           array.lengthInBytes + 1); },
                   (e) { return e is RangeError; });
-    Expect.throws(() { new Uint16List.view(array.asByteArray(),
+    Expect.throws(() { new Uint16List.view(array.buffer,
                                            0, array.length + 1); },
                   (e) { return e is RangeError; });
-    Expect.throws(() { new Uint16List.view(array.asByteArray(),
+    Expect.throws(() { new Uint16List.view(array.buffer,
                                            array.length - 1, 2); },
                   (e) { return e is RangeError; });
-    var empty = new Uint16List.view(array.asByteArray(),
-                                    array.lengthInBytes());
+    var empty = new Uint16List.view(array.buffer,
+                                    array.lengthInBytes);
     Expect.isTrue(empty is List<int>);
     Expect.isTrue(empty is Uint16List);
     Expect.equals(0, empty.length);
-    var whole = new Uint16List.view(array.asByteArray());
+    var whole = new Uint16List.view(array.buffer);
     Expect.isTrue(whole is List<int>);
     Expect.isTrue(whole is Uint16List);
     Expect.equals(12, whole.length);
-    var view = new Uint16List.view(array.asByteArray(), 2, 10);
+    var view = new Uint16List.view(array.buffer, 2, 10);
     Expect.isTrue(view is List<int>);
     Expect.isTrue(view is Uint16List);
     Expect.equals(10, view.length);
-    Expect.equals(2, view.bytesPerElement());
-    Expect.equals(20, view.lengthInBytes());
+    Expect.equals(2, view.elementSizeInBytes);
+    Expect.equals(20, view.lengthInBytes);
     Expect.listEquals([0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF,
                        0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF],
                       view);
@@ -1319,39 +1319,39 @@ class OptimizedByteArrayTest {
   static testInt32ListView() {
     var array = new Uint8List(48);
     Expect.equals(48, array.length);
-    Expect.equals(1, array.bytesPerElement());
-    Expect.equals(48, array.lengthInBytes());
+    Expect.equals(1, array.elementSizeInBytes);
+    Expect.equals(48, array.lengthInBytes);
     for (int i = 0; i < array.length; ++i) {
       array[i] = 0xFF;
     }
-    Expect.throws(() { new Int32List.view(array.asByteArray(), -1); },
+    Expect.throws(() { new Int32List.view(array.buffer, -1); },
                   (e) { return e is RangeError; });
-    Expect.throws(() { new Int32List.view(array.asByteArray(), 0, -1); },
+    Expect.throws(() { new Int32List.view(array.buffer, 0, -1); },
                   (e) { return e is RangeError; });
-    Expect.throws(() { new Int32List.view(array.asByteArray(),
-                                          array.lengthInBytes() + 1); },
+    Expect.throws(() { new Int32List.view(array.buffer,
+                                          array.lengthInBytes + 1); },
                   (e) { return e is RangeError; });
-    Expect.throws(() { new Int32List.view(array.asByteArray(),
+    Expect.throws(() { new Int32List.view(array.buffer,
                                           0, array.length + 1); },
                   (e) { return e is RangeError; });
-    Expect.throws(() { new Int32List.view(array.asByteArray(),
+    Expect.throws(() { new Int32List.view(array.buffer,
                                           array.length - 1, 2); },
                   (e) { return e is RangeError; });
-    var empty = new Int32List.view(array.asByteArray(),
-                                   array.lengthInBytes());
+    var empty = new Int32List.view(array.buffer,
+                                   array.lengthInBytes);
     Expect.isTrue(empty is List<int>);
     Expect.isTrue(empty is Int32List);
     Expect.equals(0, empty.length);
-    var whole = new Int32List.view(array.asByteArray());
+    var whole = new Int32List.view(array.buffer);
     Expect.isTrue(whole is List<int>);
     Expect.isTrue(whole is Int32List);
     Expect.equals(12, whole.length);
-    var view = new Int32List.view(array.asByteArray(), 4, 10);
+    var view = new Int32List.view(array.buffer, 4, 10);
     Expect.isTrue(view is List<int>);
     Expect.isTrue(view is Int32List);
     Expect.equals(10, view.length);
-    Expect.equals(4, view.bytesPerElement());
-    Expect.equals(40, view.lengthInBytes());
+    Expect.equals(4, view.elementSizeInBytes);
+    Expect.equals(40, view.lengthInBytes);
     Expect.listEquals([-1, -1, -1, -1, -1,
                        -1, -1, -1, -1, -1],
                       view);
@@ -1477,39 +1477,39 @@ class OptimizedByteArrayTest {
   static testUint32ListViewImpl(var array) {
     Expect.isTrue(array is List<int>);
     Expect.equals(48, array.length);
-    Expect.equals(1, array.bytesPerElement());
-    Expect.equals(48, array.lengthInBytes());
+    Expect.equals(1, array.elementSizeInBytes);
+    Expect.equals(48, array.lengthInBytes);
     for (int i = 0; i < array.length; ++i) {
       array[i] = -1;
     }
-    Expect.throws(() { new Uint32List.view(array.asByteArray(), -1); },
+    Expect.throws(() { new Uint32List.view(array.buffer, -1); },
                   (e) { return e is RangeError; });
-    Expect.throws(() { new Uint32List.view(array.asByteArray(), 0, -1); },
+    Expect.throws(() { new Uint32List.view(array.buffer, 0, -1); },
                   (e) { return e is RangeError; });
-    Expect.throws(() { new Uint32List.view(array.asByteArray(),
-                                           array.lengthInBytes() + 1); },
+    Expect.throws(() { new Uint32List.view(array.buffer,
+                                           array.lengthInBytes + 1); },
                   (e) { return e is RangeError; });
-    Expect.throws(() { new Uint32List.view(array.asByteArray(),
+    Expect.throws(() { new Uint32List.view(array.buffer,
                                            0, array.length + 1); },
                   (e) { return e is RangeError; });
-    Expect.throws(() { new Uint32List.view(array.asByteArray(),
+    Expect.throws(() { new Uint32List.view(array.buffer,
                                            array.length - 1, 2); },
                   (e) { return e is RangeError; });
-    var empty = new Uint32List.view(array.asByteArray(),
-                                    array.lengthInBytes());
+    var empty = new Uint32List.view(array.buffer,
+                                    array.lengthInBytes);
     Expect.isTrue(empty is List<int>);
     Expect.isTrue(empty is Uint32List);
     Expect.equals(0, empty.length);
-    var whole = new Uint32List.view(array.asByteArray());
+    var whole = new Uint32List.view(array.buffer);
     Expect.isTrue(whole is List<int>);
     Expect.isTrue(whole is Uint32List);
     Expect.equals(12, whole.length);
-    var view = new Uint32List.view(array.asByteArray(), 4, 10);
+    var view = new Uint32List.view(array.buffer, 4, 10);
     Expect.isTrue(view is List<int>);
     Expect.isTrue(view is Uint32List);
     Expect.equals(10, view.length);
-    Expect.equals(4, view.bytesPerElement());
-    Expect.equals(40, view.lengthInBytes());
+    Expect.equals(4, view.elementSizeInBytes);
+    Expect.equals(40, view.lengthInBytes);
     Expect.listEquals([0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF,
                        0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF],
                       view);
@@ -1610,39 +1610,39 @@ class OptimizedByteArrayTest {
 
   static testInt64ListViewImpl(var array) {
     Expect.equals(96, array.length);
-    Expect.equals(1, array.bytesPerElement());
-    Expect.equals(96, array.lengthInBytes());
+    Expect.equals(1, array.elementSizeInBytes);
+    Expect.equals(96, array.lengthInBytes);
     for (int i = 0; i < array.length; ++i) {
       array[i] = 0xFF;
     }
-    Expect.throws(() { new Int64List.view(array.asByteArray(), -1); },
+    Expect.throws(() { new Int64List.view(array.buffer, -1); },
                   (e) { return e is RangeError; });
-    Expect.throws(() { new Int64List.view(array.asByteArray(), 0, -1); },
+    Expect.throws(() { new Int64List.view(array.buffer, 0, -1); },
                   (e) { return e is RangeError; });
-    Expect.throws(() { new Int64List.view(array.asByteArray(),
-                                          array.lengthInBytes() + 1); },
+    Expect.throws(() { new Int64List.view(array.buffer,
+                                          array.lengthInBytes + 1); },
                   (e) { return e is RangeError; });
-    Expect.throws(() { new Int64List.view(array.asByteArray(),
+    Expect.throws(() { new Int64List.view(array.buffer,
                                           0, array.length + 1); },
                   (e) { return e is RangeError; });
-    Expect.throws(() { new Int64List.view(array.asByteArray(),
+    Expect.throws(() { new Int64List.view(array.buffer,
                                           array.length - 1, 2); },
                   (e) { return e is RangeError; });
-    var empty = new Int64List.view(array.asByteArray(),
-                                   array.lengthInBytes());
+    var empty = new Int64List.view(array.buffer,
+                                   array.lengthInBytes);
     Expect.isTrue(empty is List<int>);
     Expect.isTrue(empty is Int64List);
     Expect.equals(0, empty.length);
-    var whole = new Int64List.view(array.asByteArray());
+    var whole = new Int64List.view(array.buffer);
     Expect.isTrue(whole is List<int>);
     Expect.isTrue(whole is Int64List);
     Expect.equals(12, whole.length);
-    var view = new Int64List.view(array.asByteArray(), 8, 10);
+    var view = new Int64List.view(array.buffer, 8, 10);
     Expect.isTrue(view is List<int>);
     Expect.isTrue(view is Int64List);
     Expect.equals(10, view.length);
-    Expect.equals(8, view.bytesPerElement());
-    Expect.equals(80, view.lengthInBytes());
+    Expect.equals(8, view.elementSizeInBytes);
+    Expect.equals(80, view.lengthInBytes);
     Expect.listEquals([-1, -1, -1, -1, -1,
                        -1, -1, -1, -1, -1],
                       view);
@@ -1810,39 +1810,39 @@ class OptimizedByteArrayTest {
   static testUint64ListViewImpl(var array) {
     Expect.isTrue(array is List<int>);
     Expect.equals(96, array.length);
-    Expect.equals(1, array.bytesPerElement());
-    Expect.equals(96, array.lengthInBytes());
+    Expect.equals(1, array.elementSizeInBytes);
+    Expect.equals(96, array.lengthInBytes);
     for (int i = 0; i < array.length; ++i) {
       array[i] = -1;
     }
-    Expect.throws(() { new Uint64List.view(array.asByteArray(), -1); },
+    Expect.throws(() { new Uint64List.view(array.buffer, -1); },
                   (e) { return e is RangeError; });
-    Expect.throws(() { new Uint64List.view(array.asByteArray(), 0, -1); },
+    Expect.throws(() { new Uint64List.view(array.buffer, 0, -1); },
                   (e) { return e is RangeError; });
-    Expect.throws(() { new Uint64List.view(array.asByteArray(),
-                                           array.lengthInBytes() + 1); },
+    Expect.throws(() { new Uint64List.view(array.buffer,
+                                           array.lengthInBytes + 1); },
                   (e) { return e is RangeError; });
-    Expect.throws(() { new Uint64List.view(array.asByteArray(),
+    Expect.throws(() { new Uint64List.view(array.buffer,
                                            0, array.length + 1); },
                   (e) { return e is RangeError; });
-    Expect.throws(() { new Uint64List.view(array.asByteArray(),
+    Expect.throws(() { new Uint64List.view(array.buffer,
                                            array.length - 1, 2); },
                   (e) { return e is RangeError; });
-    var empty = new Uint64List.view(array.asByteArray(),
-                                    array.lengthInBytes());
+    var empty = new Uint64List.view(array.buffer,
+                                    array.lengthInBytes);
     Expect.isTrue(empty is List<int>);
     Expect.isTrue(empty is Uint64List);
     Expect.equals(0, empty.length);
-    var whole = new Uint64List.view(array.asByteArray());
+    var whole = new Uint64List.view(array.buffer);
     Expect.isTrue(whole is List<int>);
     Expect.isTrue(whole is Uint64List);
     Expect.equals(12, whole.length);
-    var view = new Uint64List.view(array.asByteArray(), 8, 10);
+    var view = new Uint64List.view(array.buffer, 8, 10);
     Expect.isTrue(view is List<int>);
     Expect.isTrue(view is Uint64List);
     Expect.equals(10, view.length);
-    Expect.equals(8, view.bytesPerElement());
-    Expect.equals(80, view.lengthInBytes());
+    Expect.equals(8, view.elementSizeInBytes);
+    Expect.equals(80, view.lengthInBytes);
     Expect.listEquals([0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF,
                        0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF,
                        0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF,
@@ -1971,39 +1971,39 @@ class OptimizedByteArrayTest {
   static testFloat32ListViewImpl(var array) {
     Expect.isTrue(array is List<int>);
     Expect.equals(12, array.length);
-    Expect.equals(4, array.bytesPerElement());
-    Expect.equals(48, array.lengthInBytes());
+    Expect.equals(4, array.elementSizeInBytes);
+    Expect.equals(48, array.lengthInBytes);
     for (int i = 0; i < array.length; ++i) {
       array[i] = 0xBF800000;
     }
-    Expect.throws(() { new Float32List.view(array.asByteArray(), -1); },
+    Expect.throws(() { new Float32List.view(array.buffer, -1); },
                   (e) { return e is RangeError; });
-    Expect.throws(() { new Float32List.view(array.asByteArray(), 0, -1); },
+    Expect.throws(() { new Float32List.view(array.buffer, 0, -1); },
                   (e) { return e is RangeError; });
-    Expect.throws(() { new Float32List.view(array.asByteArray(),
-                                            array.lengthInBytes() + 1); },
+    Expect.throws(() { new Float32List.view(array.buffer,
+                                            array.lengthInBytes + 1); },
                   (e) { return e is RangeError; });
-    Expect.throws(() { new Float32List.view(array.asByteArray(),
-                                            0, array.lengthInBytes() + 1); },
+    Expect.throws(() { new Float32List.view(array.buffer,
+                                            0, array.lengthInBytes + 1); },
                   (e) { return e is RangeError; });
-    Expect.throws(() { new Float32List.view(array.asByteArray(),
-                                            array.lengthInBytes() - 1, 2); },
+    Expect.throws(() { new Float32List.view(array.buffer,
+                                            array.lengthInBytes - 1, 2); },
                   (e) { return e is RangeError; });
-    var empty = new Float32List.view(array.asByteArray(),
-                                     array.lengthInBytes());
+    var empty = new Float32List.view(array.buffer,
+                                     array.lengthInBytes);
     Expect.isTrue(empty is List<double>);
     Expect.isTrue(empty is Float32List);
     Expect.equals(0, empty.length);
-    var whole = new Float32List.view(array.asByteArray());
+    var whole = new Float32List.view(array.buffer);
     Expect.isTrue(whole is List<double>);
     Expect.isTrue(whole is Float32List);
     Expect.equals(12, whole.length);
-    var view = new Float32List.view(array.asByteArray(), 4, 10);
+    var view = new Float32List.view(array.buffer, 4, 10);
     Expect.isTrue(view is List<double>);
     Expect.isTrue(view is Float32List);
     Expect.equals(10, view.length);
-    Expect.equals(4, view.bytesPerElement());
-    Expect.equals(40, view.lengthInBytes());
+    Expect.equals(4, view.elementSizeInBytes);
+    Expect.equals(40, view.lengthInBytes);
     Expect.listEquals([-1.0, -1.0, -1.0, -1.0, -1.0,
                        -1.0, -1.0, -1.0, -1.0, -1.0],
                       view);
@@ -2078,39 +2078,39 @@ class OptimizedByteArrayTest {
   static testFloat64ListViewImpl(var array) {
     Expect.isTrue(array is List<int>);
     Expect.equals(12, array.length);
-    Expect.equals(8, array.bytesPerElement());
-    Expect.equals(96, array.lengthInBytes());
+    Expect.equals(8, array.elementSizeInBytes);
+    Expect.equals(96, array.lengthInBytes);
     for (int i = 0; i < array.length; ++i) {
       array[i] = 0xBFF0000000000000;
     }
-    Expect.throws(() { new Float64List.view(array.asByteArray(), -1); },
+    Expect.throws(() { new Float64List.view(array.buffer, -1); },
                   (e) { return e is RangeError; });
-    Expect.throws(() { new Float64List.view(array.asByteArray(), 0, -1); },
+    Expect.throws(() { new Float64List.view(array.buffer, 0, -1); },
                   (e) { return e is RangeError; });
-    Expect.throws(() { new Float64List.view(array.asByteArray(),
-                                            array.lengthInBytes() + 1); },
+    Expect.throws(() { new Float64List.view(array.buffer,
+                                            array.lengthInBytes + 1); },
                   (e) { return e is RangeError; });
-    Expect.throws(() { new Float64List.view(array.asByteArray(),
-                                            0, array.lengthInBytes() + 1); },
+    Expect.throws(() { new Float64List.view(array.buffer,
+                                            0, array.lengthInBytes + 1); },
                   (e) { return e is RangeError; });
-    Expect.throws(() { new Float64List.view(array.asByteArray(),
-                                            array.lengthInBytes() - 1, 2); },
+    Expect.throws(() { new Float64List.view(array.buffer,
+                                            array.lengthInBytes - 1, 2); },
                   (e) { return e is RangeError; });
-    var empty = new Float64List.view(array.asByteArray(),
-                                     array.lengthInBytes());
+    var empty = new Float64List.view(array.buffer,
+                                     array.lengthInBytes);
     Expect.isTrue(empty is List<double>);
     Expect.isTrue(empty is Float64List);
     Expect.equals(0, empty.length);
-    var whole = new Float64List.view(array.asByteArray());
+    var whole = new Float64List.view(array.buffer);
     Expect.isTrue(whole is List<double>);
     Expect.isTrue(whole is Float64List);
     Expect.equals(12, whole.length);
-    var view = new Float64List.view(array.asByteArray(), 8, 10);
+    var view = new Float64List.view(array.buffer, 8, 10);
     Expect.isTrue(view is List<double>);
     Expect.isTrue(view is Float64List);
     Expect.equals(10, view.length);
-    Expect.equals(8, view.bytesPerElement());
-    Expect.equals(80, view.lengthInBytes());
+    Expect.equals(8, view.elementSizeInBytes);
+    Expect.equals(80, view.lengthInBytes);
     Expect.listEquals([-1.0, -1.0, -1.0, -1.0, -1.0,
                        -1.0, -1.0, -1.0, -1.0, -1.0],
                       view);

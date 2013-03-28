@@ -593,16 +593,14 @@ class _Int8Array extends _TypedList implements Int8List {
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     return _getInt8(index);
   }
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     _setInt8(index, _toInt8(value));
   }
@@ -652,16 +650,14 @@ class _Uint8Array extends _TypedList implements Uint8List {
   // Methods implementing List interface.
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     return _getUint8(index);
   }
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     _setUint8(index, _toUint8(value));
   }
@@ -711,16 +707,14 @@ class _Uint8ClampedArray extends _TypedList implements Uint8ClampedList {
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     return _getUint8(index);
   }
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     _setUint8(index, _toClampedUint8(value));
   }
@@ -772,16 +766,14 @@ class _Int16Array extends _TypedList implements Int16List {
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     return _getIndexedInt16(index);
   }
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     _setIndexedInt16(index, _toInt16(value));
   }
@@ -841,16 +833,14 @@ class _Uint16Array extends _TypedList implements Uint16List {
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     return _getIndexedUint16(index);
   }
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     _setIndexedUint16(index, _toUint16(value));
   }
@@ -910,16 +900,14 @@ class _Int32Array extends _TypedList implements Int32List {
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     return _getIndexedInt32(index);
   }
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     _setIndexedInt32(index, _toInt32(value));
   }
@@ -979,16 +967,14 @@ class _Uint32Array extends _TypedList implements Uint32List {
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     return _getIndexedUint32(index);
   }
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     _setIndexedUint32(index, _toUint32(value));
   }
@@ -1048,16 +1034,14 @@ class _Int64Array extends _TypedList implements Int64List {
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     return _getIndexedInt64(index);
   }
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     _setIndexedInt64(index, _toInt64(value));
   }
@@ -1117,16 +1101,14 @@ class _Uint64Array extends _TypedList implements Uint64List {
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     return _getIndexedUint64(index);
   }
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     _setIndexedUint64(index, _toUint64(value));
   }
@@ -1186,16 +1168,14 @@ class _Float32Array extends _TypedList implements Float32List {
 
   double operator[](int index) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     return _getIndexedFloat32(index);
   }
 
   void operator[]=(int index, double value) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     _setIndexedFloat32(index, value);
   }
@@ -1255,16 +1235,14 @@ class _Float64Array extends _TypedList implements Float64List {
 
   double operator[](int index) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     return _getIndexedFloat64(index);
   }
 
   void operator[]=(int index, double value) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     _setIndexedFloat64(index, value);
   }
@@ -1321,16 +1299,14 @@ class _Float32x4Array extends _TypedList implements Float32x4List {
 
   Float32x4 operator[](int index) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     return _getIndexedFloat32x4(index);
   }
 
   void operator[]=(int index, Float32x4 value) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     _setIndexedFloat32x4(index, value);
   }
@@ -1380,16 +1356,14 @@ class _ExternalInt8Array extends _TypedList implements Int8List {
   // Method(s) implementing the List interface.
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     return _getInt8(index);
   }
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     _setInt8(index, value);
   }
@@ -1433,16 +1407,14 @@ class _ExternalUint8Array extends _TypedList implements Uint8List {
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     return _getUint8(index);
   }
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     _setUint8(index, _toUint8(value));
   }
@@ -1486,16 +1458,14 @@ class _ExternalUint8ClampedArray extends _TypedList implements Uint8ClampedList 
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     return _getUint8(index);
   }
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     _setUint8(index, _toClampedUint8(value));
   }
@@ -1539,16 +1509,14 @@ class _ExternalInt16Array extends _TypedList implements Int16List {
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     return _getIndexedInt16(index);
   }
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     _setIndexedInt16(index, _toInt16(value));
   }
@@ -1600,16 +1568,14 @@ class _ExternalUint16Array extends _TypedList implements Uint16List {
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     return _getIndexedUint16(index);
   }
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     _setIndexedUint16(index, _toUint16(value));
   }
@@ -1661,16 +1627,14 @@ class _ExternalInt32Array extends _TypedList implements Int32List {
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     return _getIndexedInt32(index);
   }
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     _setIndexedInt32(index, _toInt32(value));
   }
@@ -1722,16 +1686,14 @@ class _ExternalUint32Array extends _TypedList implements Uint32List {
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     return _getIndexedUint32(index);
   }
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     _setIndexedUint32(index, _toUint32(value));
   }
@@ -1783,16 +1745,14 @@ class _ExternalInt64Array extends _TypedList implements Int64List {
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     return _getIndexedInt64(index);
   }
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     _setIndexedInt64(index, _toInt64(value));
   }
@@ -1844,16 +1804,14 @@ class _ExternalUint64Array extends _TypedList implements Uint64List {
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     return _getIndexedUint64(index);
   }
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     _setIndexedUint64(index, _toUint64(value));
   }
@@ -1905,16 +1863,14 @@ class _ExternalFloat32Array extends _TypedList implements Float32List {
 
   double operator[](int index) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     return _getIndexedFloat32(index);
   }
 
   void operator[]=(int index, double value) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     _setIndexedFloat32(index, value);
   }
@@ -1966,16 +1922,14 @@ class _ExternalFloat64Array extends _TypedList implements Float64List {
 
   double operator[](int index) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     return _getIndexedFloat64(index);
   }
 
   void operator[]=(int index, double value) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     _setIndexedFloat64(index, value);
   }
@@ -2027,16 +1981,14 @@ class _ExternalFloat32x4Array extends _TypedList implements Float32x4List {
 
   Float32x4 operator[](int index) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     return _getIndexedFloat32x4(index);
   }
 
   void operator[]=(int index, Float32x4 value) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     _setIndexedFloat32x4(index, value);
   }
@@ -2282,7 +2234,7 @@ class _Int8ArrayView extends _TypedListView implements Int8List {
                             Int8List.BYTES_PER_ELEMENT))) {
     _rangeCheck(buffer.lengthInBytes,
                 _offsetInBytes,
-                _length * Int8List.BYTES_PER_ELEMENT);
+                length * Int8List.BYTES_PER_ELEMENT);
   }
 
 
@@ -2290,8 +2242,7 @@ class _Int8ArrayView extends _TypedListView implements Int8List {
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     return _typeddata._getInt8(offsetInBytes +
                                (index * Int8List.BYTES_PER_ELEMENT));
@@ -2299,8 +2250,7 @@ class _Int8ArrayView extends _TypedListView implements Int8List {
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     _typeddata._setInt8(offsetInBytes + (index * Int8List.BYTES_PER_ELEMENT),
                         _toInt8(value));
@@ -2316,6 +2266,13 @@ class _Int8ArrayView extends _TypedListView implements Int8List {
   int get elementSizeInBytes {
     return Int8List.BYTES_PER_ELEMENT;
   }
+
+
+  // Internal utility methods.
+
+  Int8List _createList(int length) {
+    return new Int8List(length);
+  }
 }
 
 
@@ -2328,7 +2285,7 @@ class _Uint8ArrayView extends _TypedListView implements Uint8List {
                             Uint8List.BYTES_PER_ELEMENT))) {
     _rangeCheck(buffer.lengthInBytes,
                 _offsetInBytes,
-                _length * Uint8List.BYTES_PER_ELEMENT);
+                length * Uint8List.BYTES_PER_ELEMENT);
   }
 
 
@@ -2336,8 +2293,7 @@ class _Uint8ArrayView extends _TypedListView implements Uint8List {
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     return _typeddata._getUint8(offsetInBytes +
                                 (index * Uint8List.BYTES_PER_ELEMENT));
@@ -2345,8 +2301,7 @@ class _Uint8ArrayView extends _TypedListView implements Uint8List {
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     _typeddata._setUint8(offsetInBytes + (index * Uint8List.BYTES_PER_ELEMENT),
                          _toUint8(value));
@@ -2361,6 +2316,13 @@ class _Uint8ArrayView extends _TypedListView implements Uint8List {
 
   int get elementSizeInBytes {
     return Uint8List.BYTES_PER_ELEMENT;
+  }
+
+
+  // Internal utility methods.
+
+  Uint8List _createList(int length) {
+    return new Uint8List(length);
   }
 }
 
@@ -2383,8 +2345,7 @@ class _Uint8ClampedArrayView extends _TypedListView implements Uint8List {
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     return _typeddata._getUint8(offsetInBytes +
                                 (index * Uint8List.BYTES_PER_ELEMENT));
@@ -2392,8 +2353,7 @@ class _Uint8ClampedArrayView extends _TypedListView implements Uint8List {
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     _typeddata._setUint8(offsetInBytes + (index * Uint8List.BYTES_PER_ELEMENT),
                          _toClampedUint8(value));
@@ -2408,6 +2368,13 @@ class _Uint8ClampedArrayView extends _TypedListView implements Uint8List {
 
   int get elementSizeInBytes {
     return Uint8List.BYTES_PER_ELEMENT;
+  }
+
+
+  // Internal utility methods.
+
+  Uint8ClampedList _createList(int length) {
+    return new Uint8ClampedList(length);
   }
 }
 
@@ -2429,8 +2396,7 @@ class _Int16ArrayView extends _TypedListView implements Int16List {
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     return _typeddata._getInt16(offsetInBytes +
                                 (index * Int16List.BYTES_PER_ELEMENT));
@@ -2438,8 +2404,7 @@ class _Int16ArrayView extends _TypedListView implements Int16List {
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     _typeddata._setInt16(offsetInBytes + (index * Int16List.BYTES_PER_ELEMENT),
                          _toInt16(value));
@@ -2454,6 +2419,13 @@ class _Int16ArrayView extends _TypedListView implements Int16List {
 
   int get elementSizeInBytes {
     return Int16List.BYTES_PER_ELEMENT;
+  }
+
+
+  // Internal utility methods.
+
+  Int16List _createList(int length) {
+    return new Int16List(length);
   }
 }
 
@@ -2475,8 +2447,7 @@ class _Uint16ArrayView extends _TypedListView implements Uint16List {
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     return _typeddata._getUint16(offsetInBytes +
                                  (index * Uint16List.BYTES_PER_ELEMENT));
@@ -2484,8 +2455,7 @@ class _Uint16ArrayView extends _TypedListView implements Uint16List {
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     _typeddata._setUint16(offsetInBytes + (index * Uint16List.BYTES_PER_ELEMENT),
                           _toUint16(value));
@@ -2500,6 +2470,13 @@ class _Uint16ArrayView extends _TypedListView implements Uint16List {
 
   int get elementSizeInBytes {
     return Uint16List.BYTES_PER_ELEMENT;
+  }
+
+
+  // Internal utility methods.
+
+  Uint16List _createList(int length) {
+    return new Uint16List(length);
   }
 }
 
@@ -2521,8 +2498,7 @@ class _Int32ArrayView extends _TypedListView implements Int32List {
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     return _typeddata._getInt32(offsetInBytes +
                                 (index * Int32List.BYTES_PER_ELEMENT));
@@ -2530,8 +2506,7 @@ class _Int32ArrayView extends _TypedListView implements Int32List {
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     _typeddata._setInt32(offsetInBytes + (index * Int32List.BYTES_PER_ELEMENT),
                          _toInt32(value));
@@ -2546,6 +2521,13 @@ class _Int32ArrayView extends _TypedListView implements Int32List {
 
   int get elementSizeInBytes {
     return Int32List.BYTES_PER_ELEMENT;
+  }
+
+
+  // Internal utility methods.
+
+  Int32List _createList(int length) {
+    return new Int32List(length);
   }
 }
 
@@ -2567,8 +2549,7 @@ class _Uint32ArrayView extends _TypedListView implements Uint32List {
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     return _typeddata._getUint32(offsetInBytes +
                                  (index * Uint32List.BYTES_PER_ELEMENT));
@@ -2576,8 +2557,7 @@ class _Uint32ArrayView extends _TypedListView implements Uint32List {
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     _typeddata._setUint32(offsetInBytes + (index * Uint32List.BYTES_PER_ELEMENT),
                           _toUint32(value));
@@ -2592,6 +2572,13 @@ class _Uint32ArrayView extends _TypedListView implements Uint32List {
 
   int get elementSizeInBytes {
     return Uint32List.BYTES_PER_ELEMENT;
+  }
+
+
+  // Internal utility methods.
+
+  Uint32List _createList(int length) {
+    return new Uint32List(length);
   }
 }
 
@@ -2613,8 +2600,7 @@ class _Int64ArrayView extends _TypedListView implements Int64List {
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     return _typeddata._getInt64(offsetInBytes +
                                 (index * Int64List.BYTES_PER_ELEMENT));
@@ -2622,8 +2608,7 @@ class _Int64ArrayView extends _TypedListView implements Int64List {
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     _typeddata._setInt64(offsetInBytes + (index * Int64List.BYTES_PER_ELEMENT),
                          _toInt64(value));
@@ -2638,6 +2623,13 @@ class _Int64ArrayView extends _TypedListView implements Int64List {
 
   int get elementSizeInBytes {
     return Int64List.BYTES_PER_ELEMENT;
+  }
+
+
+  // Internal utility methods.
+
+  Int64List _createList(int length) {
+    return new Int64List(length);
   }
 }
 
@@ -2659,8 +2651,7 @@ class _Uint64ArrayView extends _TypedListView implements Uint64List {
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     return _typeddata._getUint64(offsetInBytes +
                                  (index * Uint64List.BYTES_PER_ELEMENT));
@@ -2668,8 +2659,7 @@ class _Uint64ArrayView extends _TypedListView implements Uint64List {
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     _typeddata._setUint64(offsetInBytes + (index * Uint64List.BYTES_PER_ELEMENT),
                           _toUint64(value));
@@ -2684,6 +2674,13 @@ class _Uint64ArrayView extends _TypedListView implements Uint64List {
 
   int get elementSizeInBytes {
     return Uint64List.BYTES_PER_ELEMENT;
+  }
+
+
+  // Internal utility methods.
+
+  Uint64List _createList(int length) {
+    return new Uint64List(length);
   }
 }
 
@@ -2705,8 +2702,7 @@ class _Float32ArrayView extends _TypedListView implements Float32List {
 
   double operator[](int index) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     return _typeddata._getFloat32(offsetInBytes +
                                   (index * Float32List.BYTES_PER_ELEMENT));
@@ -2714,8 +2710,7 @@ class _Float32ArrayView extends _TypedListView implements Float32List {
 
   void operator[]=(int index, double value) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     _typeddata._setFloat32(offsetInBytes +
                            (index * Float32List.BYTES_PER_ELEMENT), value);
@@ -2730,6 +2725,13 @@ class _Float32ArrayView extends _TypedListView implements Float32List {
 
   int get elementSizeInBytes {
     return Float32List.BYTES_PER_ELEMENT;
+  }
+
+
+  // Internal utility methods.
+
+  Float32List _createList(int length) {
+    return new Float32List(length);
   }
 }
 
@@ -2751,8 +2753,7 @@ class _Float64ArrayView extends _TypedListView implements Float64List {
 
   double operator[](int index) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     return _typeddata._getFloat64(offsetInBytes +
                                   (index * Float64List.BYTES_PER_ELEMENT));
@@ -2760,8 +2761,7 @@ class _Float64ArrayView extends _TypedListView implements Float64List {
 
   void operator[]=(int index, double value) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     _typeddata._setFloat64(offsetInBytes +
                           (index * Float64List.BYTES_PER_ELEMENT), value);
@@ -2776,6 +2776,13 @@ class _Float64ArrayView extends _TypedListView implements Float64List {
 
   int get elementSizeInBytes {
     return Float64List.BYTES_PER_ELEMENT;
+  }
+
+
+  // Internal utility methods.
+
+  Float64List _createList(int length) {
+    return new Float64List(length);
   }
 }
 
@@ -2797,8 +2804,7 @@ class _Float32x4ArrayView extends _TypedListView implements Float32x4List {
 
   Float32x4 operator[](int index) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     return _typeddata._getFloat32x4(offsetInBytes +
                                   (index * Float32x4List.BYTES_PER_ELEMENT));
@@ -2806,8 +2812,7 @@ class _Float32x4ArrayView extends _TypedListView implements Float32x4List {
 
   void operator[]=(int index, Float32x4 value) {
     if (index < 0 || index >= length) {
-      String message = "$index must be in the range [0..$length)";
-      throw new RangeError(message);
+      _throwRangeError(index, length);
     }
     _typeddata._setFloat32x4(offsetInBytes +
                              (index * Float32x4List.BYTES_PER_ELEMENT), value);
@@ -2823,12 +2828,19 @@ class _Float32x4ArrayView extends _TypedListView implements Float32x4List {
   int get elementSizeInBytes {
     return Float32x4List.BYTES_PER_ELEMENT;
   }
+
+
+  // Internal utility methods.
+
+  Float32x4List _createList(int length) {
+    return new Float32x4List(length);
+  }
 }
 
 
 class _ByteDataView implements ByteData {
   _ByteDataView(ByteBuffer _buffer, int _offsetInBytes, int _lengthInBytes)
-    : _typeddata = _buffer as TypedData,
+    : _typeddata = _buffer,  // _buffer is guaranteed to be a TypedData here.
       _offset = _offsetInBytes,
       length = _lengthInBytes {
     _rangeCheck(_buffer.lengthInBytes, _offset, length);
@@ -2852,79 +2864,145 @@ class _ByteDataView implements ByteData {
   // Method(s) implementing ByteData interface.
 
   int getInt8(int byteOffset) {
+    if (byteOffset < 0 || byteOffset >= length) {
+      _throwRangeError(byteOffset, length);
+    }
     return _typeddata._getInt8(_offset + byteOffset);
   }
   void setInt8(int byteOffset, int value) {
+    if (byteOffset < 0 || byteOffset >= length) {
+      _throwRangeError(byteOffset, length);
+    }
     _typeddata._setInt8(_offset + byteOffset, value);
   }
 
   int getUint8(int byteOffset) {
+    if (byteOffset < 0 || byteOffset >= length) {
+      _throwRangeError(byteOffset, length);
+    }
     return _typeddata._getUint8(_offset + byteOffset);
   }
   void setUint8(int byteOffset, int value) {
+    if (byteOffset < 0 || byteOffset >= length) {
+      _throwRangeError(byteOffset, length);
+    }
     _typeddata._setUint8(_offset + byteOffset, value);
   }
 
   int getInt16(int byteOffset) {
+    if (byteOffset < 0 || byteOffset >= length) {
+      _throwRangeError(byteOffset, length);
+    }
     return _typeddata._getInt16(_offset + byteOffset);
   }
   void setInt16(int byteOffset, int value) {
+    if (byteOffset < 0 || byteOffset >= length) {
+      _throwRangeError(byteOffset, length);
+    }
     _typeddata._setInt16(_offset + byteOffset, value);
   }
 
   int getUint16(int byteOffset) {
+    if (byteOffset < 0 || byteOffset >= length) {
+      _throwRangeError(byteOffset, length);
+    }
     return _typeddata._getUint16(_offset + byteOffset);
   }
   void setUint16(int byteOffset, int value) {
+    if (byteOffset < 0 || byteOffset >= length) {
+      _throwRangeError(byteOffset, length);
+    }
     _typeddata._setUint16(_offset + byteOffset, value);
   }
 
   int getInt32(int byteOffset) {
+    if (byteOffset < 0 || byteOffset >= length) {
+      _throwRangeError(byteOffset, length);
+    }
     return _typeddata._getInt32(_offset + byteOffset);
   }
   void setInt32(int byteOffset, int value) {
+    if (byteOffset < 0 || byteOffset >= length) {
+      _throwRangeError(byteOffset, length);
+    }
     _typeddata._setInt32(_offset + byteOffset, value);
   }
 
   int getUint32(int byteOffset) {
+    if (byteOffset < 0 || byteOffset >= length) {
+      _throwRangeError(byteOffset, length);
+    }
     return _typeddata._getUint32(_offset + byteOffset);
   }
   void setUint32(int byteOffset, int value) {
+    if (byteOffset < 0 || byteOffset >= length) {
+      _throwRangeError(byteOffset, length);
+    }
     _typeddata._setUint32(_offset + byteOffset, value);
   }
 
   int getInt64(int byteOffset) {
+    if (byteOffset < 0 || byteOffset >= length) {
+      _throwRangeError(byteOffset, length);
+    }
     return _typeddata._getInt64(_offset + byteOffset);
   }
   void setInt64(int byteOffset, int value) {
+    if (byteOffset < 0 || byteOffset >= length) {
+      _throwRangeError(byteOffset, length);
+    }
     _typeddata._setInt64(_offset + byteOffset, value);
   }
 
   int getUint64(int byteOffset) {
+    if (byteOffset < 0 || byteOffset >= length) {
+      _throwRangeError(byteOffset, length);
+    }
     return _typeddata._getUint64(_offset + byteOffset);
   }
   void setUint64(int byteOffset, int value) {
+    if (byteOffset < 0 || byteOffset >= length) {
+      _throwRangeError(byteOffset, length);
+    }
     _typeddata._setUint64(_offset + byteOffset, value);
   }
 
   double getFloat32(int byteOffset) {
+    if (byteOffset < 0 || byteOffset >= length) {
+      _throwRangeError(byteOffset, length);
+    }
     return _typeddata._getFloat32(_offset + byteOffset);
   }
   void setFloat32(int byteOffset, double value) {
+    if (byteOffset < 0 || byteOffset >= length) {
+      _throwRangeError(byteOffset, length);
+    }
     _typeddata._setFloat32(_offset + byteOffset, value);
   }
 
   double getFloat64(int byteOffset) {
+    if (byteOffset < 0 || byteOffset >= length) {
+      _throwRangeError(byteOffset, length);
+    }
     return _typeddata._getFloat64(_offset + byteOffset);
   }
   void setFloat64(int byteOffset, double value) {
+    if (byteOffset < 0 || byteOffset >= length) {
+      _throwRangeError(byteOffset, length);
+    }
     _typeddata._setFloat64(_offset + byteOffset, value);
   }
 
   Float32x4 getFloat32x4(int byteOffset) {
+    if (byteOffset < 0 || byteOffset >= length) {
+      _throwRangeError(byteOffset, length);
+    }
     return _typeddata._getFloat32x4(_offset + byteOffset);
   }
   void setFloat32x4(int byteOffset, Float32x4 value) {
+    if (byteOffset < 0 || byteOffset >= length) {
+      _throwRangeError(byteOffset, length);
+    }
     _typeddata._setFloat32x4(_offset + byteOffset, value);
 
   }
@@ -3008,4 +3086,10 @@ int _defaultIfNull(object, value) {
     return value;
   }
   return object;
+}
+
+
+void _throwRangeError(int index, int length) {
+  String message = "$index must be in the range [0..$length)";
+  throw new RangeError(message);
 }
