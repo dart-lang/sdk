@@ -7,18 +7,18 @@
 library DartDebugger;
 
 import "dart:io";
+import "dart:math";
 import "dart:utf";
 import "dart:json" as JSON;
-
-// TODO(hausner): need to select a different port number for each
-// test that runs in parallel.
-var debugPort = 5860;
 
 // Whether or not to print debug target process on the console.
 var showDebuggeeOutput = true;
 
 // Whether or not to print the debugger wire messages on the console.
 var verboseWire = false;
+
+// The number of attempts made to find an unused debugger port.
+var retries = 0;
 
 // Class to buffer wire protocol data from debug target and
 // break it down to individual json messages.
@@ -498,9 +498,7 @@ class Debugger {
       print("Target process killed");
     }
     Expect.isTrue(!errorsDetected);
-    stdin.close();
-    stdout.close();
-    stderr.close();
+    exit(errors.length);
   }
 }
 
@@ -513,21 +511,38 @@ bool RunScript(List script) {
   // The default is to show debugging output.
   showDebuggeeOutput = !options.arguments.contains("--non-verbose");
   verboseWire = options.arguments.contains("--wire");
+  
+  // Pick a port in the upper half of the port number range.
+  var seed = new DateTime.now().millisecondsSinceEpoch;
+  Random random = new Random(seed);
+  var debugPort = random.nextInt(32000) + 32000;
+  print('using debug port $debugPort ...');
+  ServerSocket.bind('127.0.0.1', debugPort).then((ServerSocket s) {
+      s.close();
+      var targetOpts = [ "--debug:$debugPort" ];
+      if (showDebuggeeOutput) targetOpts.add("--verbose_debug");
+      targetOpts.add(options.script);
+      targetOpts.add("--debuggee");
 
-  var targetOpts = [ "--debug:$debugPort" ];
-  if (showDebuggeeOutput) targetOpts.add("--verbose_debug");
-  targetOpts.add(options.script);
-  targetOpts.add("--debuggee");
-
-  Process.start(options.executable, targetOpts).then((Process process) {
-    print("Debug target process started");
-    process.stdin.close();
-    process.exitCode.then((int exitCode) {
-      Expect.equals(0, exitCode);
-      print("Debug target process exited with exit code $exitCode");
+      Process.start(options.executable, targetOpts).then((Process process) {
+        print("Debug target process started");
+        process.stdin.close();
+        process.exitCode.then((int exitCode) {
+          Expect.equals(0, exitCode);
+          print("Debug target process exited with exit code $exitCode");
+        });
+        var debugger = new Debugger(process, debugPort);
+        debugger.runScript(script);
+      });
+    },
+    onError: (e) {
+      if (++retries >= 3) { 
+        print('unable to find unused port: $e');
+        return -1; 
+      } else {
+        // Retry with another random port.
+        RunScript(script);
+      }
     });
-    var debugger = new Debugger(process, debugPort);
-    debugger.runScript(script);
-  });
   return true;
 }
