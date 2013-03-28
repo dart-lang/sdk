@@ -627,7 +627,8 @@ void ClassFinalizer::CheckTypeArgumentBounds(
   const intptr_t offset = cls.NumTypeArguments() - num_type_params;
   AbstractType& type_arg = AbstractType::Handle();
   AbstractType& cls_type_param = AbstractType::Handle();
-  AbstractType& bound = AbstractType::Handle();
+  AbstractType& declared_bound = AbstractType::Handle();
+  AbstractType& instantiated_bound = AbstractType::Handle();
   const TypeArguments& cls_type_params =
       TypeArguments::Handle(cls.type_parameters());
   ASSERT((cls_type_params.IsNull() && (num_type_params == 0)) ||
@@ -640,33 +641,41 @@ void ClassFinalizer::CheckTypeArgumentBounds(
     cls_type_param = cls_type_params.TypeAt(i);
     const TypeParameter& type_param = TypeParameter::Cast(cls_type_param);
     ASSERT(type_param.IsFinalized());
-    bound = type_param.bound();
-    if (!bound.IsObjectType() && !bound.IsDynamicType()) {
+    declared_bound = type_param.bound();
+    if (!declared_bound.IsObjectType() && !declared_bound.IsDynamicType()) {
       Error& malformed_error = Error::Handle();
       // Note that the bound may be malformed, in which case the bound check
       // will return an error and the bound check will be postponed to run time.
       // Note also that the bound may still be unfinalized.
-      if (!bound.IsFinalized()) {
-        ASSERT(bound.IsBeingFinalized());
+      if (!declared_bound.IsFinalized()) {
+        ASSERT(declared_bound.IsBeingFinalized());
         // The bound refers to type parameters, creating a cycle; postpone
         // bound check to run time, when the bound will be finalized.
         // TODO(regis): Do we need to instantiate an uninstantiated bound here?
-        type_arg = BoundedType::New(type_arg, bound, type_param);
+        type_arg = BoundedType::New(type_arg, declared_bound, type_param);
         arguments.SetTypeAt(offset + i, type_arg);
         continue;
       }
-      if (!bound.IsInstantiated()) {
-        bound = bound.InstantiateFrom(arguments, &malformed_error);
+      if (declared_bound.IsInstantiated()) {
+        instantiated_bound = declared_bound.raw();
+      } else {
+        instantiated_bound =
+            declared_bound.InstantiateFrom(arguments, &malformed_error);
       }
       // TODO(regis): We could simplify this code if we could differentiate
       // between a failed bound check and a bound check that is undecidable at
       // compile time.
-      if (malformed_error.IsNull()) {
-        type_param.CheckBound(type_arg, bound, &malformed_error);
+      // Shortcut the special case where we check a type parameter against its
+      // declared upper bound.
+      if (malformed_error.IsNull() &&
+          (!type_arg.Equals(type_param) ||
+           !instantiated_bound.Equals(declared_bound))) {
+        type_param.CheckBound(type_arg, instantiated_bound, &malformed_error);
       }
       if (!malformed_error.IsNull()) {
-        if (!type_arg.IsInstantiated() || !bound.IsInstantiated()) {
-          type_arg = BoundedType::New(type_arg, bound, type_param);
+        if (!type_arg.IsInstantiated() ||
+            !instantiated_bound.IsInstantiated()) {
+          type_arg = BoundedType::New(type_arg, instantiated_bound, type_param);
           arguments.SetTypeAt(offset + i, type_arg);
         } else if (bound_error->IsNull()) {
           *bound_error = malformed_error.raw();
@@ -1021,7 +1030,8 @@ void ClassFinalizer::ResolveAndFinalizeUpperBounds(const Class& cls) {
   for (intptr_t i = 0; i < num_type_params; i++) {
     type_param ^= type_params.TypeAt(i);
     bound = type_param.bound();
-    if (bound.IsFinalized()) {
+    if (bound.IsFinalized() || bound.IsBeingFinalized()) {
+      // A bound involved in F-bounded quantification may form a cycle.
       continue;
     }
     ResolveType(cls, bound, kCanonicalize);

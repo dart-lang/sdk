@@ -121,19 +121,19 @@ main() {
     });
 
     integration('has a COPYING file', () {
-      schedule(() => deleteFile(path.join(sandboxDir, appPath, 'LICENSE')));
+      schedule(() => deleteEntry(path.join(sandboxDir, appPath, 'LICENSE')));
       d.file(path.join(appPath, 'COPYING'), '').create();
       expectNoValidationError(license);
     });
 
     integration('has a prefixed LICENSE file', () {
-      schedule(() => deleteFile(path.join(sandboxDir, appPath, 'LICENSE')));
+      schedule(() => deleteEntry(path.join(sandboxDir, appPath, 'LICENSE')));
       d.file(path.join(appPath, 'MIT_LICENSE'), '').create();
       expectNoValidationError(license);
     });
 
     integration('has a suffixed LICENSE file', () {
-      schedule(() => deleteFile(path.join(sandboxDir, appPath, 'LICENSE')));
+      schedule(() => deleteEntry(path.join(sandboxDir, appPath, 'LICENSE')));
       d.file(path.join(appPath, 'LICENSE.md'), '').create();
       expectNoValidationError(license);
     });
@@ -269,7 +269,7 @@ main() {
     });
 
     integration('has no LICENSE file', () {
-      schedule(() => deleteFile(path.join(sandboxDir, appPath, 'LICENSE')));
+      schedule(() => deleteEntry(path.join(sandboxDir, appPath, 'LICENSE')));
       expectValidationError(license);
     });
 
@@ -332,7 +332,7 @@ main() {
 
     integration('has a single library named differently than the package', () {
       schedule(() =>
-          deleteFile(path.join(sandboxDir, appPath, "lib", "test_pkg.dart")));
+          deleteEntry(path.join(sandboxDir, appPath, "lib", "test_pkg.dart")));
       d.dir(appPath, [
         d.dir("lib", [d.file("best_pkg.dart", "int i = 0;")])
       ]).create();
@@ -340,19 +340,19 @@ main() {
     });
 
     integration('has no lib directory', () {
-      schedule(() => deleteDir(path.join(sandboxDir, appPath, "lib")));
+      schedule(() => deleteEntry(path.join(sandboxDir, appPath, "lib")));
       expectValidationError(lib);
     });
 
     integration('has an empty lib directory', () {
       schedule(() =>
-          deleteFile(path.join(sandboxDir, appPath, "lib", "test_pkg.dart")));
+          deleteEntry(path.join(sandboxDir, appPath, "lib", "test_pkg.dart")));
       expectValidationError(lib);
     });
 
     integration('has a lib directory containing only src', () {
       schedule(() =>
-          deleteFile(path.join(sandboxDir, appPath, "lib", "test_pkg.dart")));
+          deleteEntry(path.join(sandboxDir, appPath, "lib", "test_pkg.dart")));
       d.dir(appPath, [
         d.dir("lib", [
           d.dir("src", [d.file("test_pkg.dart", "int i = 0;")])

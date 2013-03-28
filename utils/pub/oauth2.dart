@@ -66,9 +66,7 @@ Credentials _credentials;
 void clearCredentials(SystemCache cache) {
   _credentials = null;
   var credentialsFile = _credentialsFile(cache);
-  if (!fileExists(credentialsFile)) return;
-
-  deleteFile(credentialsFile);
+  if (entryExists(credentialsFile)) deleteEntry(credentialsFile);
 }
 
 /// Asynchronously passes an OAuth2 [Client] to [fn], and closes the client when

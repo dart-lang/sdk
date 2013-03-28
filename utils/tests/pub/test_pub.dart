@@ -235,7 +235,7 @@ void _integration(String description, void body(), [Function testFn]) {
 
     _sandboxDir = createTempDir();
     d.defaultRoot = sandboxDir;
-    currentSchedule.onComplete.schedule(() => deleteDir(_sandboxDir),
+    currentSchedule.onComplete.schedule(() => deleteEntry(_sandboxDir),
         'deleting the sandbox directory');
 
     // Schedule the test.

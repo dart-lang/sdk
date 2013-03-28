@@ -147,7 +147,7 @@ class LishCommand extends PubCommand {
 
       return listDir(rootDir, recursive: true).then((entries) {
         return entries
-            .where(fileExists) // Skip directories.
+            .where(fileExists) // Skip directories and broken symlinks.
             .map((entry) => path.relative(entry, from: rootDir));
       });
     }).then((files) => files.where(_shouldPublish).toList());

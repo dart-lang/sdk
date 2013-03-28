@@ -35,7 +35,7 @@ main() {
     ]).validate();
 
     // Delete the packages path to simulate a new checkout of the application.
-    schedule(() => deleteDir(path.join(sandboxDir, packagesPath)));
+    schedule(() => deleteEntry(path.join(sandboxDir, packagesPath)));
 
     d.git('foo.git', [
       d.libDir('foo', 'foo 2'),

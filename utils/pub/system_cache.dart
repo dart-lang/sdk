@@ -111,7 +111,6 @@ class SystemCache {
   /// Deletes the system cache's internal temp directory.
   void deleteTempDir() {
     log.fine('Clean up system cache temp directory $tempDir.');
-    if (!dirExists(tempDir)) return;
-    deleteDir(tempDir);
+    if (dirExists(tempDir)) deleteEntry(tempDir);
   }
 }
