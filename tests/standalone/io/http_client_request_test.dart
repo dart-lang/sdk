@@ -4,7 +4,7 @@
 
 import "dart:io";
 import "dart:isolate";
-import "dart:scalarlist";
+import "dart:typeddata";
 
 void testClientRequest(void handler(request)) {
   HttpServer.bind().then((server) {

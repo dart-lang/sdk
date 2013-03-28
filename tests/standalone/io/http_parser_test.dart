@@ -4,7 +4,7 @@
 
 import 'dart:async';
 import 'dart:math';
-import 'dart:scalarlist';
+import 'dart:typeddata';
 import 'dart:isolate';
 import 'dart:uri';
 

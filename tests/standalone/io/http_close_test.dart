@@ -9,7 +9,7 @@
 
 import "dart:async";
 import "dart:io";
-import "dart:scalarlist";
+import "dart:typeddata";
 
 
 void testClientAndServerCloseNoListen(int connections) {
