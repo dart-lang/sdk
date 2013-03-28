@@ -7,7 +7,7 @@ library utils;
 import 'dart:async';
 import 'dart:crypto';
 import 'dart:io';
-import 'dart:scalarlist';
+import 'dart:typeddata';
 import 'dart:uri';
 import 'dart:utf';
 
@@ -116,8 +116,7 @@ bool isPlainAscii(String string) => _ASCII_ONLY.hasMatch(string);
 /// [ByteArrayViewable], this just returns a view on [input].
 Uint8List toUint8List(List<int> input) {
   if (input is Uint8List) return input;
-  if (input is ByteArrayViewable) input = input.asByteArray();
-  if (input is ByteArray) return new Uint8List.view(input);
+  if (input is ByteData) return new Uint8List.view(input.buffer);
   var output = new Uint8List(input.length);
   output.setRange(0, input.length, input);
   return output;

@@ -6,7 +6,7 @@ library response;
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:scalarlist';
+import 'dart:typeddata';
 
 import 'base_request.dart';
 import 'base_response.dart';
