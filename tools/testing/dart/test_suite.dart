@@ -1298,9 +1298,13 @@ class StandardTestSuite extends TestSuite {
    *     // OtherScripts=file1.dart file2.dart
    *
    *   - You can indicate whether a test is treated as a web-only test by
-   *   using an explicit import to the dart:html library:
+   *   using an explicit import to a part of the the dart:html library:
    *
-   *     #import('dart:html');
+   *     import 'dart:html';
+   *     import 'dart:web_audio';
+   *     import 'dart:indexed_db';
+   *     import 'dart:svg';
+   *     import 'dart:web_sql';
    *
    *   Most tests are not web tests, but can (and will be) wrapped within
    *   another script file to test them also on browser environments (e.g.
@@ -1349,7 +1353,8 @@ class StandardTestSuite extends TestSuite {
     RegExp isolateStubsRegExp = new RegExp(r"// IsolateStubs=(.*)");
     // TODO(gram) Clean these up once the old directives are not supported.
     RegExp domImportRegExp =
-        new RegExp(r"^[#]?import.*dart:html", multiLine: true);
+        new RegExp(r"^[#]?import.*dart:[html|web_audio|indexed_db|svg|web_sql]",
+        multiLine: true);
     RegExp libraryDefinitionRegExp =
         new RegExp(r"^[#]?library[\( ]", multiLine: true);
     RegExp sourceOrImportRegExp =

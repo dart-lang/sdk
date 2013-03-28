@@ -176,7 +176,12 @@ Configuration get unittestConfiguration => _config;
  * Throws a [StateError] if there is an existing, incompatible value.
  */
 void set unittestConfiguration(Configuration value) {
-  _config = value;
+  if(!identical(_config, value)) {
+    if(_config != null) {
+      throw new StateError('unittestConfiguration has already been set');
+    }
+    _config = value;
+  }
 }
 
 void logMessage(String message) => _config.logMessage(message);
