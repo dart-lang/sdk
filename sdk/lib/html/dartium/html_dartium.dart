@@ -10082,6 +10082,13 @@ abstract class Element extends Node implements ElementTraversal {
   @DocsEditable
   String get tagName native "Element_tagName_Getter";
 
+  @DomName('Element.webkitInsertionParent')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  Node get insertionParent native "Element_webkitInsertionParent_Getter";
+
   @DomName('Element.webkitPseudo')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -17964,6 +17971,10 @@ class MediaSource extends EventTarget {
   @DocsEditable
   void endOfStream(String error) native "MediaSource_endOfStream_Callback";
 
+  @DomName('MediaSource.isTypeSupported')
+  @DocsEditable
+  static bool isTypeSupported(String type) native "MediaSource_isTypeSupported_Callback";
+
   @DomName('MediaSource.removeEventListener')
   @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaSource_removeEventListener_Callback";
@@ -21593,17 +21604,9 @@ class RtcPeerConnection extends EventTarget {
   @DocsEditable
   static const EventStreamProvider<RtcDataChannelEvent> dataChannelEvent = const EventStreamProvider<RtcDataChannelEvent>('datachannel');
 
-  @DomName('RTCPeerConnection.gatheringchangeEvent')
-  @DocsEditable
-  static const EventStreamProvider<Event> gatheringChangeEvent = const EventStreamProvider<Event>('gatheringchange');
-
   @DomName('RTCPeerConnection.icecandidateEvent')
   @DocsEditable
   static const EventStreamProvider<RtcIceCandidateEvent> iceCandidateEvent = const EventStreamProvider<RtcIceCandidateEvent>('icecandidate');
-
-  @DomName('RTCPeerConnection.icechangeEvent')
-  @DocsEditable
-  static const EventStreamProvider<Event> iceChangeEvent = const EventStreamProvider<Event>('icechange');
 
   @DomName('RTCPeerConnection.negotiationneededEvent')
   @DocsEditable
@@ -21612,10 +21615,6 @@ class RtcPeerConnection extends EventTarget {
   @DomName('RTCPeerConnection.removestreamEvent')
   @DocsEditable
   static const EventStreamProvider<MediaStreamEvent> removeStreamEvent = const EventStreamProvider<MediaStreamEvent>('removestream');
-
-  @DomName('RTCPeerConnection.statechangeEvent')
-  @DocsEditable
-  static const EventStreamProvider<Event> stateChangeEvent = const EventStreamProvider<Event>('statechange');
 
   @DomName('RTCPeerConnection.RTCPeerConnection')
   @DocsEditable
@@ -21637,10 +21636,6 @@ class RtcPeerConnection extends EventTarget {
   @DomName('RTCPeerConnection.localDescription')
   @DocsEditable
   RtcSessionDescription get localDescription native "RTCPeerConnection_localDescription_Getter";
-
-  @DomName('RTCPeerConnection.readyState')
-  @DocsEditable
-  String get readyState native "RTCPeerConnection_readyState_Getter";
 
   @DomName('RTCPeerConnection.remoteDescription')
   @DocsEditable
@@ -21746,17 +21741,9 @@ class RtcPeerConnection extends EventTarget {
   @DocsEditable
   Stream<RtcDataChannelEvent> get onDataChannel => dataChannelEvent.forTarget(this);
 
-  @DomName('RTCPeerConnection.ongatheringchange')
-  @DocsEditable
-  Stream<Event> get onGatheringChange => gatheringChangeEvent.forTarget(this);
-
   @DomName('RTCPeerConnection.onicecandidate')
   @DocsEditable
   Stream<RtcIceCandidateEvent> get onIceCandidate => iceCandidateEvent.forTarget(this);
-
-  @DomName('RTCPeerConnection.onicechange')
-  @DocsEditable
-  Stream<Event> get onIceChange => iceChangeEvent.forTarget(this);
 
   @DomName('RTCPeerConnection.onnegotiationneeded')
   @DocsEditable
@@ -21765,10 +21752,6 @@ class RtcPeerConnection extends EventTarget {
   @DomName('RTCPeerConnection.onremovestream')
   @DocsEditable
   Stream<MediaStreamEvent> get onRemoveStream => removeStreamEvent.forTarget(this);
-
-  @DomName('RTCPeerConnection.onstatechange')
-  @DocsEditable
-  Stream<Event> get onStateChange => stateChangeEvent.forTarget(this);
 
 }
 
@@ -21840,6 +21823,10 @@ class RtcStatsReport extends NativeFieldWrapperClass1 {
   @DomName('RTCStatsReport.timestamp')
   @DocsEditable
   DateTime get timestamp native "RTCStatsReport_timestamp_Getter";
+
+  @DomName('RTCStatsReport.type')
+  @DocsEditable
+  String get type native "RTCStatsReport_type_Getter";
 
   @DomName('RTCStatsReport.names')
   @DocsEditable
@@ -23261,13 +23248,9 @@ class SpeechRecognitionError extends Event {
 class SpeechRecognitionEvent extends Event {
   SpeechRecognitionEvent.internal() : super.internal();
 
-  @DomName('SpeechRecognitionEvent.result')
+  @DomName('SpeechRecognitionEvent.emma')
   @DocsEditable
-  SpeechRecognitionResult get result native "SpeechRecognitionEvent_result_Getter";
-
-  @DomName('SpeechRecognitionEvent.resultHistory')
-  @DocsEditable
-  List<SpeechRecognitionResult> get resultHistory native "SpeechRecognitionEvent_resultHistory_Getter";
+  Document get emma native "SpeechRecognitionEvent_emma_Getter";
 
   @DomName('SpeechRecognitionEvent.resultIndex')
   @DocsEditable
@@ -23965,6 +23948,13 @@ class TableSectionElement extends _Element_Merged {
 class Text extends CharacterData {
   factory Text(String data) => _TextFactoryProvider.createText(data);
   Text.internal() : super.internal();
+
+  @DomName('Text.webkitInsertionParent')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  Node get insertionParent native "Text_webkitInsertionParent_Getter";
 
   @DomName('Text.wholeText')
   @DocsEditable
@@ -26896,6 +26886,27 @@ class WebGLCompressedTextureAtc extends NativeFieldWrapperClass1 {
   static const int COMPRESSED_RGBA_ATC_INTERPOLATED_ALPHA_WEBGL = 0x87EE;
 
   static const int COMPRESSED_RGB_ATC_WEBGL = 0x8C92;
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('WebGLCompressedTexturePVRTC')
+class WebGLCompressedTexturePvrtc extends NativeFieldWrapperClass1 {
+  WebGLCompressedTexturePvrtc.internal();
+
+  static const int COMPRESSED_RGBA_PVRTC_2BPPV1_IMG = 0x8C03;
+
+  static const int COMPRESSED_RGBA_PVRTC_4BPPV1_IMG = 0x8C02;
+
+  static const int COMPRESSED_RGB_PVRTC_2BPPV1_IMG = 0x8C01;
+
+  static const int COMPRESSED_RGB_PVRTC_4BPPV1_IMG = 0x8C00;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29942,6 +29953,20 @@ class WorkerNavigator extends NativeFieldWrapperClass1 {
   @DomName('WorkerNavigator.userAgent')
   @DocsEditable
   String get userAgent native "WorkerNavigator_userAgent_Getter";
+
+  @DomName('WorkerNavigator.webkitPersistentStorage')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  StorageQuota get persistentStorage native "WorkerNavigator_webkitPersistentStorage_Getter";
+
+  @DomName('WorkerNavigator.webkitTemporaryStorage')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  StorageQuota get temporaryStorage native "WorkerNavigator_webkitTemporaryStorage_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
