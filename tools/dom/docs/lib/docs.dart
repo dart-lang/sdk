@@ -1,3 +1,7 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 /**
  * A library for extracting the documentation from the various HTML libraries
  * ([dart:html], [dart:svg], [dart:web_audio], [dart:indexed_db]) and saving
@@ -55,18 +59,20 @@ Future<bool> convert(Path libPath, Path jsonPath) {
   return analyze(paths, libPath, options: ['--preserve-comments'])
     .then((MirrorSystem mirrors) {
       var convertedJson = _generateJsonFromLibraries(mirrors);
-      return new Future.immediate(_exportJsonToFile(convertedJson, jsonPath));
+      return _exportJsonToFile(convertedJson, jsonPath);
     });
 }
 
-bool _exportJsonToFile(Map convertedJson, Path jsonPath) {
-  final jsonFile = new File.fromPath(jsonPath);
-  var writeJson = prettySerialize(convertedJson);
+Future<bool> _exportJsonToFile(Map convertedJson, Path jsonPath) {
+  return new Future.of(() {
+    final jsonFile = new File.fromPath(jsonPath);
+    var writeJson = prettySerialize(convertedJson);
 
-  var outputStream = jsonFile.openWrite();
-  outputStream.writeln(writeJson);
-
-  return false;
+    var outputStream = jsonFile.openWrite();
+    outputStream.writeln(writeJson);
+    outputStream.close();
+    return outputStream.done.then((_) => false);
+  });
 }
 
 Map _generateJsonFromLibraries(MirrorSystem mirrors) {
