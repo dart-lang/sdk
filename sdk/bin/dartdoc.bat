@@ -12,4 +12,6 @@ set arguments=%*
 rem set SNAPSHOTNAME="%SCRIPTPATH%dartdoc.snapshot"
 rem if exist %SNAPSHOTNAME% set SNAPSHOT=--use-script-snapshot=%SNAPSHOTNAME%
 
-"%SCRIPTPATH%dart" --heap_growth_rate=32 "--package-root=%SCRIPTPATH%..\packages\" %SNAPSHOT% "%SCRIPTPATH%..\lib\_internal\dartdoc\bin\dartdoc.dart" %arguments%
+:: The trailing forward slash in --package-root is required because of issue
+:: 9499.
+"%SCRIPTPATH%dart" --heap_growth_rate=32 "--package-root=%SCRIPTPATH%..\packages/" %SNAPSHOT% "%SCRIPTPATH%..\lib\_internal\dartdoc\bin\dartdoc.dart" %arguments%
