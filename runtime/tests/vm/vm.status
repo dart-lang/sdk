@@ -65,12 +65,6 @@ cc/UseDartApi: Skip
 # Tests needing Dart execution.
 dart/*: Skip
 
-[ $arch == simarm && $checked]
-# Tests needing type check support.
-cc/DartStaticResolve: Crash
-cc/DartDynamicResolve: Crash
-cc/FindCodeObject: Crash
-
 [ $arch == mips ]
 *: Skip
 
