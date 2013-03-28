@@ -1353,7 +1353,7 @@ class StandardTestSuite extends TestSuite {
     RegExp isolateStubsRegExp = new RegExp(r"// IsolateStubs=(.*)");
     // TODO(gram) Clean these up once the old directives are not supported.
     RegExp domImportRegExp =
-        new RegExp(r"^[#]?import.*dart:[html|web_audio|indexed_db|svg|web_sql]",
+        new RegExp(r"^[#]?import.*dart:(html|web_audio|indexed_db|svg|web_sql)",
         multiLine: true);
     RegExp libraryDefinitionRegExp =
         new RegExp(r"^[#]?library[\( ]", multiLine: true);
