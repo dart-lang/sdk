@@ -36168,6 +36168,18 @@ class _Utils {
     return result;
   }
 
+  static int convertCanvasElementGetContextMap(Map map) {
+    int result = 0;
+    if (map['alpha'] == true) result |= 0x01;
+    if (map['depth'] == true) result |= 0x02;
+    if (map['stencil'] == true) result |= 0x4;
+    if (map['antialias'] == true) result |= 0x08;
+    if (map['premultipliedAlpha'] == true) result |= 0x10;
+    if (map['preserveDrawingBuffer'] == true) result |= 0x20;
+
+    return result;
+  }
+
   static void populateMap(Map result, List list) {
     for (int i = 0; i < list.length; i += 2) {
       result[list[i]] = list[i + 1];
