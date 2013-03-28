@@ -43,10 +43,18 @@ checkGrowable(list, reason) {
 
 String S(value) {
   if (value is String) return value;
-  if ((value is num && value != 0) || value is bool) {
-    return JS('String', r'String(#)', value);
+  if (value is num) {
+    if (value != 0) {
+      // ""+x is faster than String(x) for integers on most browsers.
+      return JS('String', r'"" + (#)', value);
+    }
+  } else if (true == value) {
+    return 'true';
+  } else if (false == value) {
+    return 'false';
+  } else if (value == null) {
+    return 'null';
   }
-  if (value == null) return 'null';
   var res = value.toString();
   if (res is !String) throw new ArgumentError(value);
   return res;

@@ -146,7 +146,7 @@ class JSNumber extends Interceptor implements num {
     if (this == 0 && JS('bool', '(1 / #) < 0', this)) {
       return '-0.0';
     } else {
-      return JS('String', r'String(#)', this);
+      return JS('String', r'"" + (#)', this);
     }
   }
 
