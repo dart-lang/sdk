@@ -32781,7 +32781,9 @@ class _PureIsolateTimer implements Timer {
 
   void cancel() {
     _cancel();
-    _HELPER_ISOLATE_PORT.send([_CANCEL_TIMER], _sendPort);
+    _HELPER_ISOLATE_PORT.then((port) {
+      port.send([_CANCEL_TIMER], _sendPort);
+    });
   }
 
   void _cancel() {
