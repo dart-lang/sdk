@@ -63,7 +63,7 @@ class _JsDeserializer extends _Deserializer {
 // The receiver is JS.
 class _JsSendPortSync implements SendPortSync {
 
-  num _id;
+  final num _id;
   _JsSendPortSync(this._id);
 
   callSync(var message) {

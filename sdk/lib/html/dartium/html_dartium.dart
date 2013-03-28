@@ -35632,7 +35632,7 @@ class _JsDeserializer extends _Deserializer {
 // The receiver is JS.
 class _JsSendPortSync implements SendPortSync {
 
-  num _id;
+  final num _id;
   _JsSendPortSync(this._id);
 
   callSync(var message) {
@@ -35802,7 +35802,7 @@ typedef void _MicrotaskCallback();
  */
 abstract class _MicrotaskScheduler {
   bool _nextMicrotaskFrameScheduled = false;
-  _MicrotaskCallback _callback;
+  final _MicrotaskCallback _callback;
 
   _MicrotaskScheduler(this._callback);
 

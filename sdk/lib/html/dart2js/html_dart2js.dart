@@ -32929,7 +32929,7 @@ class _JsDeserializer extends _Deserializer {
 // The receiver is JS.
 class _JsSendPortSync implements SendPortSync {
 
-  num _id;
+  final num _id;
   _JsSendPortSync(this._id);
 
   callSync(var message) {
@@ -33099,7 +33099,7 @@ typedef void _MicrotaskCallback();
  */
 abstract class _MicrotaskScheduler {
   bool _nextMicrotaskFrameScheduled = false;
-  _MicrotaskCallback _callback;
+  final _MicrotaskCallback _callback;
 
   _MicrotaskScheduler(this._callback);
 
@@ -33713,7 +33713,7 @@ class _DOMWindowCrossFrame implements WindowBase {
   // Private window.  Note, this is a window in another frame, so it
   // cannot be typed as "Window" as its prototype is not patched
   // properly.  Its fields and methods can only be accessed via JavaScript.
-  var _window;
+  final _window;
 
   // Fields.
   HistoryBase get history =>

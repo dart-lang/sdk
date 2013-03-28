@@ -33,7 +33,7 @@ abstract class ChromeObject {
   /*
    * JS Object Representation
    */
-  Object _jsObject;
+  final Object _jsObject;
 }
 
 /**
@@ -170,12 +170,12 @@ class Event {
   /*
    * JS Object Representation
    */
-  Object _jsObject;
+  final Object _jsObject;
 
   /*
    * Number of arguments the callback takes.
    */
-  int _callbackArity;
+  final int _callbackArity;
 
   /*
    * Private constructor
