@@ -2440,7 +2440,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     stack.add(value);
   }
 
-  void generateSetter(SendSet send, Element element, HInstruction value) {
+  void generateNonInstanceSetter(SendSet send,
+                                 Element element,
+                                 HInstruction value) {
+    assert(!Elements.isInstanceSend(send, elements));
     if (Elements.isStaticOrTopLevelField(element)) {
       if (element.isSetter()) {
         HStatic target = new HStatic(element);
@@ -2453,9 +2456,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         addWithPosition(new HStaticStore(element, value), send);
       }
       stack.add(value);
-    } else if (element == null || Elements.isInstanceField(element)) {
-      HInstruction receiver = generateInstanceSendReceiver(send);
-      generateInstanceSetterWithCompiledReceiver(send, receiver, value);
     } else if (Elements.isErroneousElement(element)) {
       // An erroneous element indicates an unresolved static setter.
       generateThrowNoSuchMethod(send,
@@ -3715,9 +3715,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     } else if (const SourceString("=") == op.source) {
       Link<Node> link = node.arguments;
       assert(!link.isEmpty && link.tail.isEmpty);
-      visit(link.head);
-      HInstruction value = pop();
-      generateSetter(node, element, value);
+      if (Elements.isInstanceSend(node, elements)) {
+        HInstruction receiver = generateInstanceSendReceiver(node);
+        visit(link.head);
+        generateInstanceSetterWithCompiledReceiver(node, receiver, pop());
+      } else {
+        visit(link.head);
+        generateNonInstanceSetter(node, element, pop());
+      }
     } else if (identical(op.source.stringValue, "is")) {
       compiler.internalError("is-operator as SendSet", node: op);
     } else {
@@ -3743,7 +3748,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         generateInstanceSetterWithCompiledReceiver(node, receiver, value);
       } else {
         assert(receiver == null);
-        generateSetter(node, element, value);
+        generateNonInstanceSetter(node, element, value);
       }
       if (node.isPostfix) {
         pop();
