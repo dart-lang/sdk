@@ -5,6 +5,8 @@ import 'dart:web_audio';
 
 main() {
 
+  useHtmlIndividualConfiguration();
+
   group('supported', () {
     test('supported', () {
       expect(AudioContext.supported, true);
