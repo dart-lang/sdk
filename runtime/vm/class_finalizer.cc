@@ -222,46 +222,6 @@ void ClassFinalizer::VerifyBootstrapClasses() {
   ASSERT(Array::InstanceSize() == cls.instance_size());
   cls = object_store->immutable_array_class();
   ASSERT(ImmutableArray::InstanceSize() == cls.instance_size());
-  cls = object_store->uint8_array_class();
-  ASSERT(Uint8Array::InstanceSize() == cls.instance_size());
-  cls = object_store->uint8_clamped_array_class();
-  ASSERT(Uint8ClampedArray::InstanceSize() == cls.instance_size());
-  cls = object_store->int16_array_class();
-  ASSERT(Int16Array::InstanceSize() == cls.instance_size());
-  cls = object_store->uint16_array_class();
-  ASSERT(Uint16Array::InstanceSize() == cls.instance_size());
-  cls = object_store->int32_array_class();
-  ASSERT(Int32Array::InstanceSize() == cls.instance_size());
-  cls = object_store->uint32_array_class();
-  ASSERT(Uint32Array::InstanceSize() == cls.instance_size());
-  cls = object_store->int64_array_class();
-  ASSERT(Int64Array::InstanceSize() == cls.instance_size());
-  cls = object_store->uint64_array_class();
-  ASSERT(Uint64Array::InstanceSize() == cls.instance_size());
-  cls = object_store->float32_array_class();
-  ASSERT(Float32Array::InstanceSize() == cls.instance_size());
-  cls = object_store->float64_array_class();
-  ASSERT(Float64Array::InstanceSize() == cls.instance_size());
-  cls = object_store->external_int8_array_class();
-  ASSERT(ExternalInt8Array::InstanceSize() == cls.instance_size());
-  cls = object_store->external_uint8_clamped_array_class();
-  ASSERT(ExternalUint8ClampedArray::InstanceSize() == cls.instance_size());
-  cls = object_store->external_int16_array_class();
-  ASSERT(ExternalInt16Array::InstanceSize() == cls.instance_size());
-  cls = object_store->external_uint16_array_class();
-  ASSERT(ExternalUint16Array::InstanceSize() == cls.instance_size());
-  cls = object_store->external_int32_array_class();
-  ASSERT(ExternalInt32Array::InstanceSize() == cls.instance_size());
-  cls = object_store->external_uint32_array_class();
-  ASSERT(ExternalUint32Array::InstanceSize() == cls.instance_size());
-  cls = object_store->external_int64_array_class();
-  ASSERT(ExternalInt64Array::InstanceSize() == cls.instance_size());
-  cls = object_store->external_uint64_array_class();
-  ASSERT(ExternalUint64Array::InstanceSize() == cls.instance_size());
-  cls = object_store->external_float32_array_class();
-  ASSERT(ExternalFloat32Array::InstanceSize() == cls.instance_size());
-  cls = object_store->external_float64_array_class();
-  ASSERT(ExternalFloat64Array::InstanceSize() == cls.instance_size());
   cls = object_store->weak_property_class();
   ASSERT(WeakProperty::InstanceSize() == cls.instance_size());
 #endif  // defined(DEBUG)
@@ -1722,33 +1682,13 @@ void ClassFinalizer::ResolveSuperTypeAndInterfaces(
       case kArrayCid:
       case kImmutableArrayCid:
       case kGrowableObjectArrayCid:
-      case kInt8ArrayCid:
-      case kExternalInt8ArrayCid:
-      case kUint8ArrayCid:
-      case kUint8ClampedArrayCid:
-      case kExternalUint8ArrayCid:
-      case kExternalUint8ClampedArrayCid:
-      case kInt16ArrayCid:
-      case kExternalInt16ArrayCid:
-      case kUint16ArrayCid:
-      case kExternalUint16ArrayCid:
-      case kInt32ArrayCid:
-      case kExternalInt32ArrayCid:
-      case kUint32ArrayCid:
-      case kExternalUint32ArrayCid:
-      case kInt64ArrayCid:
-      case kExternalInt64ArrayCid:
-      case kUint64ArrayCid:
-      case kExternalUint64ArrayCid:
-      case kFloat32ArrayCid:
-      case kExternalFloat32ArrayCid:
-      case kFloat64ArrayCid:
-      case kExternalFloat64ArrayCid:
-#define DO_NOT_EXTEND_TYPED_DATA_CLASSES(clazz)                               \
-      case kTypedData##clazz##Cid:                                            \
+#define DO_NOT_EXTEND_TYPED_DATA_CLASSES(clazz)                                \
+      case kTypedData##clazz##Cid:                                             \
+      case kTypedData##clazz##ViewCid:                                         \
       case kExternalTypedData##clazz##Cid:
       CLASS_LIST_TYPED_DATA(DO_NOT_EXTEND_TYPED_DATA_CLASSES)
 #undef DO_NOT_EXTEND_TYPED_DATA_CLASSES
+      case kByteDataViewCid:
       case kDartFunctionCid:
       case kWeakPropertyCid:
         is_error = true;

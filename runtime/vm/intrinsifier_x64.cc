@@ -411,23 +411,6 @@ bool Intrinsifier::GrowableArray_add(Assembler* assembler) {
 }
 
 
-
-// Tests if index is a valid length (Smi and within valid index range),
-// jumps to fall_through if it is not.
-// Returns index in R12, array in RAX.
-// This should be used only on getIndexed intrinsics.
-void TestByteArrayGetIndex(Assembler* assembler, Label* fall_through) {
-  __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Array.
-  __ movq(R12, Address(RSP, + 1 * kWordSize));  // Index.
-  __ testq(R12, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, fall_through, Assembler::kNearJump);  // Non-smi index.
-  // Range check.
-  __ cmpq(R12, FieldAddress(RAX, ByteArray::length_offset()));
-  // Runtime throws exception.
-  __ j(ABOVE_EQUAL, fall_through, Assembler::kNearJump);
-}
-
-
 #define TYPED_ARRAY_ALLOCATION(type_name, cid, max_len, scale_factor)          \
   Label fall_through;                                                          \
   const intptr_t kArrayLengthStackOffset = 1 * kWordSize;                      \

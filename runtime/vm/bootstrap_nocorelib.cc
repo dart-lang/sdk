@@ -69,12 +69,6 @@ RawScript* Bootstrap::LoadMirrorsScript(bool is_patch) {
 }
 
 
-RawScript* Bootstrap::LoadScalarlistScript(bool is_patch) {
-  UNREACHABLE();
-  return Script::null();
-}
-
-
 RawScript* Bootstrap::LoadTypedDataScript(bool is_patch) {
   UNREACHABLE();
   return Script::null();

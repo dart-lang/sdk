@@ -252,54 +252,54 @@ void HeapProfiler::WriteObject(const RawObject* raw_obj) {
       WriteObjectArrayDump(reinterpret_cast<const RawArray*>(raw_obj));
       break;
     }
-    case kInt8ArrayCid:
-    case kUint8ArrayCid:
-    case kUint8ClampedArrayCid: {
-      const RawInt8Array* raw_int8_array =
-          reinterpret_cast<const RawInt8Array*>(raw_obj);
+    case kTypedDataInt8ArrayCid:
+    case kTypedDataUint8ArrayCid:
+    case kTypedDataUint8ClampedArrayCid: {
+      const RawTypedData* raw_int8_array =
+          reinterpret_cast<const RawTypedData*>(raw_obj);
       WritePrimitiveArrayDump(raw_int8_array,
                               kByte,
                               &raw_int8_array->data_[0]);
       break;
     }
-    case kInt16ArrayCid:
-    case kUint16ArrayCid: {
-      const RawInt16Array* raw_int16_array =
-          reinterpret_cast<const RawInt16Array*>(raw_obj);
+    case kTypedDataInt16ArrayCid:
+    case kTypedDataUint16ArrayCid: {
+      const RawTypedData* raw_int16_array =
+          reinterpret_cast<const RawTypedData*>(raw_obj);
       WritePrimitiveArrayDump(raw_int16_array,
                               kShort,
                               &raw_int16_array->data_[0]);
       break;
     }
-    case kInt32ArrayCid:
-    case kUint32ArrayCid: {
-      const RawInt32Array* raw_int32_array =
-          reinterpret_cast<const RawInt32Array*>(raw_obj);
+    case kTypedDataInt32ArrayCid:
+    case kTypedDataUint32ArrayCid: {
+      const RawTypedData* raw_int32_array =
+          reinterpret_cast<const RawTypedData*>(raw_obj);
       WritePrimitiveArrayDump(raw_int32_array,
                               kInt,
                               &raw_int32_array->data_[0]);
       break;
     }
-    case kInt64ArrayCid:
-    case kUint64ArrayCid: {
-      const RawInt64Array* raw_int64_array =
-          reinterpret_cast<const RawInt64Array*>(raw_obj);
+    case kTypedDataInt64ArrayCid:
+    case kTypedDataUint64ArrayCid: {
+      const RawTypedData* raw_int64_array =
+          reinterpret_cast<const RawTypedData*>(raw_obj);
       WritePrimitiveArrayDump(raw_int64_array,
                               kLong,
                               &raw_int64_array->data_[0]);
       break;
     }
-    case kFloat32ArrayCid: {
-      const RawFloat32Array* raw_float32_array =
-          reinterpret_cast<const RawFloat32Array*>(raw_obj);
+    case kTypedDataFloat32ArrayCid: {
+      const RawTypedData* raw_float32_array =
+          reinterpret_cast<const RawTypedData*>(raw_obj);
       WritePrimitiveArrayDump(raw_float32_array,
                               kFloat,
                               &raw_float32_array->data_[0]);
       break;
     }
-    case kFloat64ArrayCid: {
-      const RawFloat64Array* raw_float64_array =
-          reinterpret_cast<const RawFloat64Array*>(raw_obj);
+    case kTypedDataFloat64ArrayCid: {
+      const RawTypedData* raw_float64_array =
+          reinterpret_cast<const RawTypedData*>(raw_obj);
       WritePrimitiveArrayDump(raw_float64_array,
                               kDouble,
                               &raw_float64_array->data_[0]);
@@ -749,7 +749,7 @@ void HeapProfiler::WriteObjectArrayDump(const RawArray* raw_array) {
 //  u4 - number of elements
 //  u1 - element type
 //  [u1]* - elements
-void HeapProfiler::WritePrimitiveArrayDump(const RawByteArray* raw_byte_array,
+void HeapProfiler::WritePrimitiveArrayDump(const RawTypedData* raw_byte_array,
                                            uint8_t tag,
                                            const void* data) {
   SubRecord sub(kPrimitiveArrayDump, this);

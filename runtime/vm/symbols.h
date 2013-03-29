@@ -237,7 +237,6 @@ class ObjectPointerVisitor;
   V(DartMath, "dart:math")                                                     \
   V(DartIsolate, "dart:isolate")                                               \
   V(DartMirrors, "dart:mirrors")                                               \
-  V(DartScalarlist, "dart:scalarlist")                                         \
   V(DartTypedData, "dart:typeddata")                                           \
   V(DartNativeWrappers, "dart:nativewrappers")                                 \
   V(DartAsync, "dart:async")                                                   \
