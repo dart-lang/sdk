@@ -91,13 +91,6 @@ RawScript* Bootstrap::LoadMirrorsScript(bool patch)  {
 }
 
 
-RawScript* Bootstrap::LoadScalarlistScript(bool patch) {
-  const char* url = patch ? "dart:scalarlist_patch" : "dart:scalarlist";
-  const char* source = patch ? scalarlist_patch_ : scalarlist_source_;
-  return LoadScript(url, source, patch);
-}
-
-
 RawScript* Bootstrap::LoadTypedDataScript(bool patch) {
   const char* url = patch ? "dart:typeddata_patch" : "dart:typeddata";
   const char* source = patch ? typeddata_patch_ : typeddata_source_;

@@ -26,7 +26,6 @@ class Bootstrap : public AllStatic {
   static RawScript* LoadJsonScript(bool patch);
   static RawScript* LoadMathScript(bool patch);
   static RawScript* LoadMirrorsScript(bool patch);
-  static RawScript* LoadScalarlistScript(bool patch);
   static RawScript* LoadTypedDataScript(bool patch);
   static RawScript* LoadUriScript(bool patch);
   static RawScript* LoadUtfScript(bool patch);
@@ -51,8 +50,6 @@ class Bootstrap : public AllStatic {
   static const char math_patch_[];
   static const char mirrors_source_[];
   static const char mirrors_patch_[];
-  static const char scalarlist_source_[];
-  static const char scalarlist_patch_[];
   static const char typeddata_source_[];
   static const char typeddata_patch_[];
   static const char uri_source_[];

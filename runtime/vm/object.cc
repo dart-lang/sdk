@@ -860,49 +860,13 @@ RawError* Object::Init(Isolate* isolate) {
   Library::InitNativeWrappersLibrary(isolate);
   ASSERT(isolate->object_store()->native_wrappers_library() != Library::null());
 
-  // Pre-register the scalarlist library so the native class implementations
-  // can be hooked up before compiling it.
-  LOAD_LIBRARY(Scalarlist, scalarlist);
-  ASSERT(!lib.IsNull());
-  ASSERT(lib.raw() == Library::ScalarlistLibrary());
-#define REGISTER_SCALARLIST_CLASS(name, object_store_name)                     \
-  cls = Class::New<name>();                                                    \
-  object_store->set_##object_store_name##_class(cls);                          \
-  RegisterPrivateClass(cls, Symbols::_##name(), lib);                          \
-
-  REGISTER_SCALARLIST_CLASS(Int8Array, int8_array);
-  REGISTER_SCALARLIST_CLASS(Uint8Array, uint8_array);
-  REGISTER_SCALARLIST_CLASS(Uint8ClampedArray, uint8_clamped_array);
-  REGISTER_SCALARLIST_CLASS(Int16Array, int16_array);
-  REGISTER_SCALARLIST_CLASS(Uint16Array, uint16_array);
-  REGISTER_SCALARLIST_CLASS(Int32Array, int32_array);
-  REGISTER_SCALARLIST_CLASS(Uint32Array, uint32_array);
-  REGISTER_SCALARLIST_CLASS(Int64Array, int64_array);
-  REGISTER_SCALARLIST_CLASS(Uint64Array, uint64_array);
-  REGISTER_SCALARLIST_CLASS(Float32Array, float32_array);
-  REGISTER_SCALARLIST_CLASS(Float64Array, float64_array);
-  REGISTER_SCALARLIST_CLASS(ExternalInt8Array, external_int8_array);
-  REGISTER_SCALARLIST_CLASS(ExternalUint8Array, external_uint8_array);
-  REGISTER_SCALARLIST_CLASS(ExternalUint8ClampedArray,
-                            external_uint8_clamped_array);
-  REGISTER_SCALARLIST_CLASS(ExternalInt16Array, external_int16_array);
-  REGISTER_SCALARLIST_CLASS(ExternalUint16Array, external_uint16_array);
-  REGISTER_SCALARLIST_CLASS(ExternalInt32Array, external_int32_array);
-  REGISTER_SCALARLIST_CLASS(ExternalUint32Array, external_uint32_array);
-  REGISTER_SCALARLIST_CLASS(ExternalInt64Array, external_int64_array);
-  REGISTER_SCALARLIST_CLASS(ExternalUint64Array, external_uint64_array);
-  REGISTER_SCALARLIST_CLASS(ExternalFloat32Array, external_float32_array);
-  REGISTER_SCALARLIST_CLASS(ExternalFloat64Array, external_float64_array);
-#undef REGISTER_SCALARLIST_CLASS
-
-
   // Pre-register the typeddata library so the native class implementations
   // can be hooked up before compiling it.
   LOAD_LIBRARY(TypedData, typeddata);
   ASSERT(!lib.IsNull());
   ASSERT(lib.raw() == Library::TypedDataLibrary());
   const intptr_t typeddata_class_array_length =
-      RawObject::NumberOfTypedDataClasses() + 2;  // +2 for Float32x4 & Uint32x4
+      RawObject::NumberOfTypedDataClasses();
   Array& typeddata_classes =
       Array::Handle(Array::New(typeddata_class_array_length));
   int index = 0;
@@ -936,15 +900,12 @@ RawError* Object::Init(Isolate* isolate) {
 
   CLASS_LIST_TYPED_DATA(REGISTER_EXT_TYPED_DATA_CLASS);
 #undef REGISTER_EXT_TYPED_DATA_CLASS
-  // Add Float32x4 and Uint32x4 to dart:typeddata and register them in the
-  // object store.
+  // Register Float32x4 and Uint32x4 in the object store.
   cls = Class::New<Float32x4>();
   object_store->set_float32x4_class(cls);
-  typeddata_classes.SetAt(typeddata_class_array_length-2, cls);
   RegisterPrivateClass(cls, Symbols::_Float32x4(), lib);
   cls = Class::New<Uint32x4>();
   object_store->set_uint32x4_class(cls);
-  typeddata_classes.SetAt(typeddata_class_array_length-1, cls);
   RegisterPrivateClass(cls, Symbols::_Uint32x4(), lib);
 
   object_store->set_typeddata_classes(typeddata_classes);
@@ -1040,7 +1001,6 @@ RawError* Object::Init(Isolate* isolate) {
   INIT_LIBRARY(Json, json, true);
   INIT_LIBRARY(Math, math, true);
   INIT_LIBRARY(Mirrors, mirrors, true);
-  INIT_LIBRARY(Scalarlist, scalarlist, true);
   INIT_LIBRARY(TypedData, typeddata, true);
   INIT_LIBRARY(Utf, utf, false);
   INIT_LIBRARY(Uri, uri, false);
@@ -1095,34 +1055,11 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   cls = Class::New<GrowableObjectArray>();
   object_store->set_growable_object_array_class(cls);
 
-#define REGISTER_SCALARLIST_CLASS(name, object_store_name)                     \
-  cls = Class::New<name>();                                                    \
-  object_store->set_##object_store_name##_class(cls);                          \
+  cls = Class::New<Float32x4>();
+  object_store->set_float32x4_class(cls);
 
-  REGISTER_SCALARLIST_CLASS(Int8Array, int8_array);
-  REGISTER_SCALARLIST_CLASS(Uint8Array, uint8_array);
-  REGISTER_SCALARLIST_CLASS(Uint8ClampedArray, uint8_clamped_array);
-  REGISTER_SCALARLIST_CLASS(Int16Array, int16_array);
-  REGISTER_SCALARLIST_CLASS(Uint16Array, uint16_array);
-  REGISTER_SCALARLIST_CLASS(Int32Array, int32_array);
-  REGISTER_SCALARLIST_CLASS(Uint32Array, uint32_array);
-  REGISTER_SCALARLIST_CLASS(Int64Array, int64_array);
-  REGISTER_SCALARLIST_CLASS(Uint64Array, uint64_array);
-  REGISTER_SCALARLIST_CLASS(Float32Array, float32_array);
-  REGISTER_SCALARLIST_CLASS(Float64Array, float64_array);
-  REGISTER_SCALARLIST_CLASS(ExternalInt8Array, external_int8_array);
-  REGISTER_SCALARLIST_CLASS(ExternalUint8Array, external_uint8_array);
-  REGISTER_SCALARLIST_CLASS(ExternalUint8ClampedArray,
-                            external_uint8_clamped_array);
-  REGISTER_SCALARLIST_CLASS(ExternalInt16Array, external_int16_array);
-  REGISTER_SCALARLIST_CLASS(ExternalUint16Array, external_uint16_array);
-  REGISTER_SCALARLIST_CLASS(ExternalInt32Array, external_int32_array);
-  REGISTER_SCALARLIST_CLASS(ExternalUint32Array, external_uint32_array);
-  REGISTER_SCALARLIST_CLASS(ExternalInt64Array, external_int64_array);
-  REGISTER_SCALARLIST_CLASS(ExternalUint64Array, external_uint64_array);
-  REGISTER_SCALARLIST_CLASS(ExternalFloat32Array, external_float32_array);
-  REGISTER_SCALARLIST_CLASS(ExternalFloat64Array, external_float64_array);
-#undef REGISTER_SCALARLIST_CLASS
+  cls = Class::New<Uint32x4>();
+  object_store->set_uint32x4_class(cls);
 
 #define REGISTER_TYPED_DATA_CLASS(clazz)                                       \
   cls = Class::NewTypedDataClass(kTypedData##clazz##Cid);
@@ -1137,11 +1074,6 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   cls = Class::NewExternalTypedDataClass(kExternalTypedData##clazz##Cid);
   CLASS_LIST_TYPED_DATA(REGISTER_EXT_TYPED_DATA_CLASS);
 #undef REGISTER_EXT_TYPED_DATA_CLASS
-  // Add Float32x4 and Uint32x4 to the object store.
-  cls = Class::New<Float32x4>();
-  object_store->set_float32x4_class(cls);
-  cls = Class::New<Uint32x4>();
-  object_store->set_uint32x4_class(cls);
 
   cls = Class::New<Integer>();
   object_store->set_integer_implementation_class(cls);
@@ -1343,38 +1275,41 @@ RawString* Class::UserVisibleName() const {
       return Symbols::Float32x4().raw();
     case kUint32x4Cid:
       return Symbols::Uint32x4().raw();
-    case kInt8ArrayCid:
-    case kExternalInt8ArrayCid:
+    case kTypedDataInt8ArrayCid:
+    case kExternalTypedDataInt8ArrayCid:
       return Symbols::Int8List().raw();
-    case kUint8ArrayCid:
-    case kExternalUint8ArrayCid:
+    case kTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ArrayCid:
       return Symbols::Uint8List().raw();
-    case kUint8ClampedArrayCid:
-    case kExternalUint8ClampedArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid:
       return Symbols::Uint8ClampedList().raw();
-    case kInt16ArrayCid:
-    case kExternalInt16ArrayCid:
+    case kTypedDataInt16ArrayCid:
+    case kExternalTypedDataInt16ArrayCid:
       return Symbols::Int16List().raw();
-    case kUint16ArrayCid:
-    case kExternalUint16ArrayCid:
+    case kTypedDataUint16ArrayCid:
+    case kExternalTypedDataUint16ArrayCid:
       return Symbols::Uint16List().raw();
-    case kInt32ArrayCid:
-    case kExternalInt32ArrayCid:
+    case kTypedDataInt32ArrayCid:
+    case kExternalTypedDataInt32ArrayCid:
       return Symbols::Int32List().raw();
-    case kUint32ArrayCid:
-    case kExternalUint32ArrayCid:
+    case kTypedDataUint32ArrayCid:
+    case kExternalTypedDataUint32ArrayCid:
       return Symbols::Uint32List().raw();
-    case kInt64ArrayCid:
-    case kExternalInt64ArrayCid:
+    case kTypedDataInt64ArrayCid:
+    case kExternalTypedDataInt64ArrayCid:
       return Symbols::Int64List().raw();
-    case kUint64ArrayCid:
-    case kExternalUint64ArrayCid:
+    case kTypedDataUint64ArrayCid:
+    case kExternalTypedDataUint64ArrayCid:
       return Symbols::Uint64List().raw();
-    case kFloat32ArrayCid:
-    case kExternalFloat32ArrayCid:
+    case kTypedDataFloat32x4ArrayCid:
+    case kExternalTypedDataFloat32x4ArrayCid:
+      return Symbols::Float32x4List().raw();
+    case kTypedDataFloat32ArrayCid:
+    case kExternalTypedDataFloat32ArrayCid:
       return Symbols::Float32List().raw();
-    case kFloat64ArrayCid:
-    case kExternalFloat64ArrayCid:
+    case kTypedDataFloat64ArrayCid:
+    case kExternalTypedDataFloat64ArrayCid:
       return Symbols::Float64List().raw();
     default:
       if (!IsSignatureClass()) {
@@ -6625,11 +6560,6 @@ RawLibrary* Library::NativeWrappersLibrary() {
 }
 
 
-RawLibrary* Library::ScalarlistLibrary() {
-  return Isolate::Current()->object_store()->scalarlist_library();
-}
-
-
 RawLibrary* Library::TypedDataLibrary() {
   return Isolate::Current()->object_store()->typeddata_library();
 }
@@ -8984,10 +8914,11 @@ void Instance::SetNativeField(int index, intptr_t value) const {
     // Allocate backing storage for the native fields.
     const Class& cls = Class::Handle(clazz());
     int num_native_fields = cls.num_native_fields();
-    native_fields = IntPtrArray::New(num_native_fields);
+    native_fields = TypedData::New(kIntPtrCid, num_native_fields);
     StorePointer(NativeFieldsAddr(), native_fields.raw());
   }
-  IntPtrArray::Cast(native_fields).SetAt(index, value);
+  intptr_t byte_offset = index * sizeof(intptr_t);
+  TypedData::Cast(native_fields).SetIntPtr(byte_offset, value);
 }
 
 
@@ -12729,548 +12660,6 @@ RawExternalTypedData* ExternalTypedData::New(intptr_t class_id,
 
 const char* ExternalTypedData::ToCString() const {
   return "ExternalTypedData";
-}
-
-
-void ByteArray::Copy(void* dst,
-                     const ByteArray& src,
-                     intptr_t src_offset,
-                     intptr_t length) {
-  ASSERT(Utils::RangeCheck(src_offset, length, src.ByteLength()));
-  {
-    NoGCScope no_gc;
-    if (length > 0) {
-      memmove(dst, src.ByteAddr(src_offset), length);
-    }
-  }
-}
-
-
-void ByteArray::Copy(const ByteArray& dst,
-                     intptr_t dst_offset,
-                     const void* src,
-                     intptr_t length) {
-  ASSERT(Utils::RangeCheck(dst_offset, length, dst.ByteLength()));
-  {
-    NoGCScope no_gc;
-    if (length > 0) {
-      memmove(dst.ByteAddr(dst_offset), src, length);
-    }
-  }
-}
-
-
-void ByteArray::Copy(const ByteArray& dst,
-                     intptr_t dst_offset,
-                     const ByteArray& src,
-                     intptr_t src_offset,
-                     intptr_t length) {
-  ASSERT(Utils::RangeCheck(src_offset, length, src.ByteLength()));
-  ASSERT(Utils::RangeCheck(dst_offset, length, dst.ByteLength()));
-  {
-    NoGCScope no_gc;
-    if (length > 0) {
-      memmove(dst.ByteAddr(dst_offset), src.ByteAddr(src_offset), length);
-    }
-  }
-}
-
-
-template<typename HandleT, typename RawT, typename ElementT>
-RawT* ByteArray::NewExternalImpl(intptr_t class_id,
-                                 ElementT* data,
-                                 intptr_t len,
-                                 Heap::Space space) {
-  if (len < 0 || len > HandleT::kMaxElements) {
-    // This should be caught before we reach here.
-    FATAL1("Fatal error in ByteArray::NewExternalImpl: invalid len %"Pd"\n",
-           len);
-  }
-  HandleT& result = HandleT::Handle();
-  {
-    RawObject* raw = Object::Allocate(class_id, HandleT::InstanceSize(), space);
-    NoGCScope no_gc;
-    result ^= raw;
-    result.SetLength(len);
-    result.SetData(data);
-  }
-  return result.raw();
-}
-
-
-intptr_t ByteArray::ByteLength() const {
-  // ByteArray is an abstract class.
-  UNREACHABLE();
-  return 0;
-}
-
-
-FinalizablePersistentHandle* ByteArray::AddFinalizer(
-    void* peer,
-    Dart_WeakPersistentHandleFinalizer callback) const {
-  SetPeer(peer);
-  return dart::AddFinalizer(*this, peer, callback);
-}
-
-
-uint8_t* ByteArray::ByteAddr(intptr_t byte_offset) const {
-  // ByteArray is an abstract class.
-  UNREACHABLE();
-  return NULL;
-}
-
-
-const char* ByteArray::ToCString() const {
-  // ByteArray is an abstract class.
-  UNREACHABLE();
-  return "ByteArray";
-}
-
-
-template<typename HandleT, typename RawT>
-RawT* ByteArray::NewImpl(intptr_t class_id, intptr_t len, Heap::Space space) {
-  if (len < 0 || len > HandleT::kMaxElements) {
-    // This should be caught before we reach here.
-    FATAL1("Fatal error in ByteArray::NewImpl: invalid len %"Pd"\n", len);
-  }
-  HandleT& result = HandleT::Handle();
-  {
-    RawObject* raw = Object::Allocate(class_id,
-                                      HandleT::InstanceSize(len),
-                                      space);
-    NoGCScope no_gc;
-    result ^= raw;
-    result.SetLength(len);
-    if (len > 0) {
-      memset(result.ByteAddr(0), 0, result.ByteLength());
-    }
-  }
-  return result.raw();
-}
-
-
-template<typename HandleT, typename RawT, typename ElementT>
-RawT* ByteArray::NewImpl(intptr_t class_id,
-                         const ElementT* data,
-                         intptr_t len,
-                         Heap::Space space) {
-  if (len < 0 || len > HandleT::kMaxElements) {
-    // This should be caught before we reach here.
-    FATAL1("Fatal error in ByteArray::NewImpl: invalid len %"Pd"\n", len);
-  }
-  HandleT& result = HandleT::Handle();
-  {
-    RawObject* raw = Object::Allocate(class_id,
-                                      HandleT::InstanceSize(len),
-                                      space);
-    NoGCScope no_gc;
-    result ^= raw;
-    result.SetLength(len);
-    if (len > 0) {
-      memmove(result.ByteAddr(0), data, result.ByteLength());
-    }
-  }
-  return result.raw();
-}
-
-
-RawInt8Array* Int8Array::New(intptr_t len, Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->int8_array_class() !=
-         Class::null());
-  return NewImpl<Int8Array, RawInt8Array>(kClassId, len, space);
-}
-
-
-RawInt8Array* Int8Array::New(const int8_t* data,
-                             intptr_t len,
-                             Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->int8_array_class() !=
-         Class::null());
-  return NewImpl<Int8Array, RawInt8Array>(kClassId, data, len, space);
-}
-
-
-const char* Int8Array::ToCString() const {
-  return "_Int8Array";
-}
-
-
-RawUint8Array* Uint8Array::New(intptr_t len, Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->uint8_array_class() !=
-         Class::null());
-  return NewImpl<Uint8Array, RawUint8Array>(kClassId, len, space);
-}
-
-
-RawUint8Array* Uint8Array::New(const uint8_t* data,
-                               intptr_t len,
-                               Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->uint8_array_class() !=
-         Class::null());
-  return NewImpl<Uint8Array, RawUint8Array>(kClassId, data, len, space);
-}
-
-
-const char* Uint8Array::ToCString() const {
-  return "_Uint8Array";
-}
-
-
-RawUint8ClampedArray* Uint8ClampedArray::New(intptr_t len, Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->uint8_clamped_array_class() !=
-         Class::null());
-  return NewImpl<Uint8ClampedArray, RawUint8ClampedArray>(kClassId, len, space);
-}
-
-
-RawUint8ClampedArray* Uint8ClampedArray::New(const uint8_t* data,
-                                             intptr_t len,
-                                             Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->uint8_clamped_array_class() !=
-         Class::null());
-  return NewImpl<Uint8ClampedArray,
-      RawUint8ClampedArray>(kClassId, data, len, space);
-}
-
-
-const char* Uint8ClampedArray::ToCString() const {
-  return "_Uint8ClampedArray";
-}
-
-
-RawInt16Array* Int16Array::New(intptr_t len, Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->int16_array_class() !=
-         Class::null());
-  return NewImpl<Int16Array, RawInt16Array>(kClassId, len, space);
-}
-
-
-RawInt16Array* Int16Array::New(const int16_t* data,
-                               intptr_t len,
-                               Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->int16_array_class() !=
-         Class::null());
-  return NewImpl<Int16Array, RawInt16Array>(kClassId, data, len, space);
-}
-
-
-const char* Int16Array::ToCString() const {
-  return "_Int16Array";
-}
-
-
-RawUint16Array* Uint16Array::New(intptr_t len, Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->uint16_array_class() !=
-         Class::null());
-  return NewImpl<Uint16Array, RawUint16Array>(kClassId, len, space);
-}
-
-
-RawUint16Array* Uint16Array::New(const uint16_t* data,
-                                 intptr_t len,
-                                 Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->uint16_array_class() !=
-         Class::null());
-  return NewImpl<Uint16Array, RawUint16Array>(kClassId, data, len, space);
-}
-
-
-const char* Uint16Array::ToCString() const {
-  return "_Uint16Array";
-}
-
-
-RawInt32Array* Int32Array::New(intptr_t len, Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->int32_array_class() !=
-         Class::null());
-  return NewImpl<Int32Array, RawInt32Array>(kClassId, len, space);
-}
-
-
-RawInt32Array* Int32Array::New(const int32_t* data,
-                               intptr_t len,
-                               Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->int32_array_class() !=
-         Class::null());
-  return NewImpl<Int32Array, RawInt32Array>(kClassId, data, len, space);
-}
-
-
-const char* Int32Array::ToCString() const {
-  return "_Int32Array";
-}
-
-
-RawUint32Array* Uint32Array::New(intptr_t len, Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->uint32_array_class() !=
-         Class::null());
-  return NewImpl<Uint32Array, RawUint32Array>(kClassId, len, space);
-}
-
-
-RawUint32Array* Uint32Array::New(const uint32_t* data,
-                                 intptr_t len,
-                                 Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->uint32_array_class() !=
-         Class::null());
-  return NewImpl<Uint32Array, RawUint32Array>(kClassId, data, len, space);
-}
-
-
-const char* Uint32Array::ToCString() const {
-  return "_Uint32Array";
-}
-
-
-RawInt64Array* Int64Array::New(intptr_t len, Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->int64_array_class() !=
-         Class::null());
-  return NewImpl<Int64Array, RawInt64Array>(kClassId, len, space);
-}
-
-
-RawInt64Array* Int64Array::New(const int64_t* data,
-                               intptr_t len,
-                               Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->int64_array_class() !=
-         Class::null());
-  return NewImpl<Int64Array, RawInt64Array>(kClassId, data, len, space);
-}
-
-
-const char* Int64Array::ToCString() const {
-  return "_Int64Array";
-}
-
-
-RawUint64Array* Uint64Array::New(intptr_t len, Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->uint64_array_class() !=
-         Class::null());
-  return NewImpl<Uint64Array, RawUint64Array>(kClassId, len, space);
-}
-
-
-RawUint64Array* Uint64Array::New(const uint64_t* data,
-                                 intptr_t len,
-                                 Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->uint64_array_class() !=
-         Class::null());
-  return NewImpl<Uint64Array, RawUint64Array>(kClassId, data, len, space);
-}
-
-
-const char* Uint64Array::ToCString() const {
-  return "_Uint64Array";
-}
-
-
-RawFloat32Array* Float32Array::New(intptr_t len, Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->float32_array_class() !=
-         Class::null());
-  return NewImpl<Float32Array, RawFloat32Array>(kClassId, len, space);
-}
-
-
-RawFloat32Array* Float32Array::New(const float* data,
-                                   intptr_t len,
-                                   Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->float32_array_class() !=
-         Class::null());
-  return NewImpl<Float32Array, RawFloat32Array>(kClassId, data, len, space);
-}
-
-
-const char* Float32Array::ToCString() const {
-  return "_Float32Array";
-}
-
-
-RawFloat64Array* Float64Array::New(intptr_t len, Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->float64_array_class() !=
-         Class::null());
-  return NewImpl<Float64Array, RawFloat64Array>(kClassId, len, space);
-}
-
-
-RawFloat64Array* Float64Array::New(const double* data,
-                                   intptr_t len,
-                                   Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->float64_array_class() !=
-         Class::null());
-  return NewImpl<Float64Array, RawFloat64Array>(kClassId, data, len, space);
-}
-
-
-const char* Float64Array::ToCString() const {
-  return "_Float64Array";
-}
-
-
-RawExternalInt8Array* ExternalInt8Array::New(int8_t* data,
-                                             intptr_t len,
-                                             Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->external_int8_array_class() !=
-         Class::null());
-  return NewExternalImpl<ExternalInt8Array,
-                         RawExternalInt8Array>(kClassId, data, len, space);
-}
-
-
-const char* ExternalInt8Array::ToCString() const {
-  return "_ExternalInt8Array";
-}
-
-
-RawExternalUint8Array* ExternalUint8Array::New(uint8_t* data,
-                                               intptr_t len,
-                                               Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->external_uint8_array_class() !=
-         Class::null());
-  return NewExternalImpl<ExternalUint8Array,
-                         RawExternalUint8Array>(kClassId, data, len, space);
-}
-
-
-const char* ExternalUint8Array::ToCString() const {
-  return "_ExternalUint8Array";
-}
-
-
-RawExternalUint8ClampedArray* ExternalUint8ClampedArray::New(
-    uint8_t* data,
-    intptr_t len,
-    Heap::Space space) {
-  ASSERT(Isolate::Current()->
-         object_store()->external_uint8_clamped_array_class() !=
-         Class::null());
-  return NewExternalImpl<ExternalUint8ClampedArray,
-                         RawExternalUint8ClampedArray>(kClassId, data,
-                                                       len, space);
-}
-
-
-const char* ExternalUint8ClampedArray::ToCString() const {
-  return "_ExternalUint8ClampedArray";
-}
-
-
-RawExternalInt16Array* ExternalInt16Array::New(int16_t* data,
-                                               intptr_t len,
-                                               Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->external_int16_array_class() !=
-         Class::null());
-  return NewExternalImpl<ExternalInt16Array,
-                         RawExternalInt16Array>(kClassId, data, len, space);
-}
-
-
-const char* ExternalInt16Array::ToCString() const {
-  return "_ExternalInt16Array";
-}
-
-
-RawExternalUint16Array* ExternalUint16Array::New(uint16_t* data,
-                                                 intptr_t len,
-                                                 Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->external_uint16_array_class() !=
-         Class::null());
-  return NewExternalImpl<ExternalUint16Array,
-                         RawExternalUint16Array>(kClassId, data, len, space);
-}
-
-
-const char* ExternalUint16Array::ToCString() const {
-  return "_ExternalUint16Array";
-}
-
-
-RawExternalInt32Array* ExternalInt32Array::New(int32_t* data,
-                                               intptr_t len,
-                                               Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->external_int32_array_class() !=
-         Class::null());
-  return NewExternalImpl<ExternalInt32Array,
-                         RawExternalInt32Array>(kClassId, data, len, space);
-}
-
-
-const char* ExternalInt32Array::ToCString() const {
-  return "_ExternalInt32Array";
-}
-
-
-RawExternalUint32Array* ExternalUint32Array::New(uint32_t* data,
-                                                 intptr_t len,
-                                                 Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->external_uint32_array_class() !=
-         Class::null());
-  return NewExternalImpl<ExternalUint32Array,
-                         RawExternalUint32Array>(kClassId, data, len, space);
-}
-
-
-const char* ExternalUint32Array::ToCString() const {
-  return "_ExternalUint32Array";
-}
-
-
-RawExternalInt64Array* ExternalInt64Array::New(int64_t* data,
-                                               intptr_t len,
-                                               Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->external_int64_array_class() !=
-         Class::null());
-  return NewExternalImpl<ExternalInt64Array,
-                         RawExternalInt64Array>(kClassId, data, len, space);
-}
-
-
-const char* ExternalInt64Array::ToCString() const {
-  return "_ExternalInt64Array";
-}
-
-
-RawExternalUint64Array* ExternalUint64Array::New(uint64_t* data,
-                                                 intptr_t len,
-                                                 Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->external_uint64_array_class() !=
-         Class::null());
-  return NewExternalImpl<ExternalUint64Array,
-                         RawExternalUint64Array>(kClassId, data, len, space);
-}
-
-
-const char* ExternalUint64Array::ToCString() const {
-  return "_ExternalUint64Array";
-}
-
-
-RawExternalFloat32Array* ExternalFloat32Array::New(float* data,
-                                                   intptr_t len,
-                                                   Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->external_float32_array_class() !=
-         Class::null());
-  return NewExternalImpl<ExternalFloat32Array,
-                         RawExternalFloat32Array>(kClassId, data, len, space);
-}
-
-
-const char* ExternalFloat32Array::ToCString() const {
-  return "_ExternalFloat32Array";
-}
-
-
-RawExternalFloat64Array* ExternalFloat64Array::New(double* data,
-                                                   intptr_t len,
-                                                   Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->external_float64_array_class() !=
-         Class::null());
-  return NewExternalImpl<ExternalFloat64Array,
-                         RawExternalFloat64Array>(kClassId, data, len, space);
-}
-
-
-const char* ExternalFloat64Array::ToCString() const {
-  return "_ExternalFloat64Array";
 }
 
 

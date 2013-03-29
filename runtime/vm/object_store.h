@@ -188,161 +188,6 @@ class ObjectStore {
     uint32x4_class_ = value.raw();
   }
 
-  RawClass* int8_array_class() const {
-    return int8_array_class_;
-  }
-  void set_int8_array_class(const Class& value) {
-    int8_array_class_ = value.raw();
-  }
-
-  RawClass* uint8_array_class() const {
-    return uint8_array_class_;
-  }
-  void set_uint8_array_class(const Class& value) {
-    uint8_array_class_ = value.raw();
-  }
-
-  RawClass* uint8_clamped_array_class() const {
-    return uint8_clamped_array_class_;
-  }
-  void set_uint8_clamped_array_class(const Class& value) {
-    uint8_clamped_array_class_ = value.raw();
-  }
-
-  RawClass* int16_array_class() const {
-    return int16_array_class_;
-  }
-  void set_int16_array_class(const Class& value) {
-    int16_array_class_ = value.raw();
-  }
-
-  RawClass* uint16_array_class() const {
-    return uint16_array_class_;
-  }
-  void set_uint16_array_class(const Class& value) {
-    uint16_array_class_ = value.raw();
-  }
-
-  RawClass* int32_array_class() const {
-    return int32_array_class_;
-  }
-  void set_int32_array_class(const Class& value) {
-    int32_array_class_ = value.raw();
-  }
-
-  RawClass* uint32_array_class() const {
-    return uint32_array_class_;
-  }
-  void set_uint32_array_class(const Class& value) {
-    uint32_array_class_ = value.raw();
-  }
-
-  RawClass* int64_array_class() const {
-    return int64_array_class_;
-  }
-  void set_int64_array_class(const Class& value) {
-    int64_array_class_ = value.raw();
-  }
-
-  RawClass* uint64_array_class() const {
-    return uint64_array_class_;
-  }
-  void set_uint64_array_class(const Class& value) {
-    uint64_array_class_ = value.raw();
-  }
-
-  RawClass* float32_array_class() const {
-    return float32_array_class_;
-  }
-  void set_float32_array_class(const Class& value) {
-    float32_array_class_ = value.raw();
-  }
-
-  RawClass* float64_array_class() const {
-    return float64_array_class_;
-  }
-  void set_float64_array_class(const Class& value) {
-    float64_array_class_ = value.raw();
-  }
-
-  RawClass* external_int8_array_class() const {
-    return external_int8_array_class_;
-  }
-  void set_external_int8_array_class(const Class& value) {
-    external_int8_array_class_ = value.raw();
-  }
-
-  RawClass* external_uint8_array_class() const {
-    return external_uint8_array_class_;
-  }
-  void set_external_uint8_array_class(const Class& value) {
-    external_uint8_array_class_ = value.raw();
-  }
-
-  RawClass* external_uint8_clamped_array_class() const {
-    return external_uint8_clamped_array_class_;
-  }
-  void set_external_uint8_clamped_array_class(const Class& value) {
-    external_uint8_clamped_array_class_ = value.raw();
-  }
-
-  RawClass* external_int16_array_class() const {
-    return external_int16_array_class_;
-  }
-  void set_external_int16_array_class(const Class& value) {
-    external_int16_array_class_ = value.raw();
-  }
-
-  RawClass* external_uint16_array_class() const {
-    return external_uint16_array_class_;
-  }
-  void set_external_uint16_array_class(const Class& value) {
-    external_uint16_array_class_ = value.raw();
-  }
-
-  RawClass* external_int32_array_class() const {
-    return external_int32_array_class_;
-  }
-  void set_external_int32_array_class(const Class& value) {
-    external_int32_array_class_ = value.raw();
-  }
-
-  RawClass* external_uint32_array_class() const {
-    return external_uint32_array_class_;
-  }
-  void set_external_uint32_array_class(const Class& value) {
-    external_uint32_array_class_ = value.raw();
-  }
-
-  RawClass* external_int64_array_class() const {
-    return external_int64_array_class_;
-  }
-  void set_external_int64_array_class(const Class& value) {
-    external_int64_array_class_ = value.raw();
-  }
-
-  RawClass* external_uint64_array_class() const {
-    return external_uint64_array_class_;
-  }
-  void set_external_uint64_array_class(const Class& value) {
-    external_uint64_array_class_ = value.raw();
-  }
-
-
-  RawClass* external_float32_array_class() const {
-    return external_float32_array_class_;
-  }
-  void set_external_float32_array_class(const Class& value) {
-    external_float32_array_class_ = value.raw();
-  }
-
-  RawClass* external_float64_array_class() const {
-    return external_float64_array_class_;
-  }
-  void set_external_float64_array_class(const Class& value) {
-    external_float64_array_class_ = value.raw();
-  }
-
   RawArray* typeddata_classes() const {
     return typeddata_classes_;
   }
@@ -466,13 +311,6 @@ class ObjectStore {
   RawLibrary* root_library() const { return root_library_; }
   void set_root_library(const Library& value) {
     root_library_ = value.raw();
-  }
-
-  RawLibrary* scalarlist_library() const {
-    return scalarlist_library_;
-  }
-  void set_scalarlist_library(const Library& value) {
-    scalarlist_library_ = value.raw();
   }
 
   RawLibrary* typeddata_library() const {
@@ -618,28 +456,6 @@ class ObjectStore {
   RawClass* growable_object_array_class_;
   RawClass* float32x4_class_;
   RawClass* uint32x4_class_;
-  RawClass* int8_array_class_;
-  RawClass* uint8_array_class_;
-  RawClass* uint8_clamped_array_class_;
-  RawClass* int16_array_class_;
-  RawClass* uint16_array_class_;
-  RawClass* int32_array_class_;
-  RawClass* uint32_array_class_;
-  RawClass* int64_array_class_;
-  RawClass* uint64_array_class_;
-  RawClass* float32_array_class_;
-  RawClass* float64_array_class_;
-  RawClass* external_int8_array_class_;
-  RawClass* external_uint8_array_class_;
-  RawClass* external_uint8_clamped_array_class_;
-  RawClass* external_int16_array_class_;
-  RawClass* external_uint16_array_class_;
-  RawClass* external_int32_array_class_;
-  RawClass* external_uint32_array_class_;
-  RawClass* external_int64_array_class_;
-  RawClass* external_uint64_array_class_;
-  RawClass* external_float32_array_class_;
-  RawClass* external_float64_array_class_;
   RawArray* typeddata_classes_;
   RawClass* stacktrace_class_;
   RawClass* jsregexp_class_;
@@ -659,7 +475,6 @@ class ObjectStore {
   RawLibrary* mirrors_library_;
   RawLibrary* native_wrappers_library_;
   RawLibrary* root_library_;
-  RawLibrary* scalarlist_library_;
   RawLibrary* typeddata_library_;
   RawLibrary* uri_library_;
   RawLibrary* utf_library_;

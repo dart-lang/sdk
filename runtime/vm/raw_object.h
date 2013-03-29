@@ -63,29 +63,6 @@ namespace dart {
     V(Array)                                                                   \
       V(ImmutableArray)                                                        \
     V(GrowableObjectArray)                                                     \
-    V(ByteArray)                                                               \
-      V(Int8Array)                                                             \
-      V(Uint8Array)                                                            \
-      V(Uint8ClampedArray)                                                     \
-      V(Int16Array)                                                            \
-      V(Uint16Array)                                                           \
-      V(Int32Array)                                                            \
-      V(Uint32Array)                                                           \
-      V(Int64Array)                                                            \
-      V(Uint64Array)                                                           \
-      V(Float32Array)                                                          \
-      V(Float64Array)                                                          \
-      V(ExternalInt8Array)                                                     \
-      V(ExternalUint8Array)                                                    \
-      V(ExternalUint8ClampedArray)                                             \
-      V(ExternalInt16Array)                                                    \
-      V(ExternalUint16Array)                                                   \
-      V(ExternalInt32Array)                                                    \
-      V(ExternalUint32Array)                                                   \
-      V(ExternalInt64Array)                                                    \
-      V(ExternalUint64Array)                                                   \
-      V(ExternalFloat32Array)                                                  \
-      V(ExternalFloat64Array)                                                  \
     V(TypedData)                                                               \
     V(ExternalTypedData)                                                       \
     V(Stacktrace)                                                              \
@@ -394,8 +371,6 @@ class RawObject {
   static bool IsTwoByteStringClassId(intptr_t index);
   static bool IsExternalStringClassId(intptr_t index);
   static bool IsBuiltinListClassId(intptr_t index);
-  static bool IsByteArrayClassId(intptr_t index);
-  static bool IsExternalByteArrayClassId(intptr_t index);
   static bool IsTypedDataClassId(intptr_t index);
   static bool IsTypedDataViewClassId(intptr_t index);
   static bool IsExternalTypedDataClassId(intptr_t index);
@@ -1419,11 +1394,11 @@ class RawUint32x4 : public RawInstance {
 
 // Define an aliases for intptr_t.
 #if defined(ARCH_IS_32_BIT)
-#define RawIntPtrArray RawInt32Array
-#define IntPtrArray Int32Array
+#define kIntPtrCid kTypedDataInt32ArrayCid
+#define SetIntPtr SetInt32
 #elif defined(ARCH_IS_64_BIT)
-#define RawIntPtrArray RawInt64Array
-#define IntPtrArray Int64Array
+#define kIntPtrCid kTypedDataInt64ArrayCid
+#define SetIntPtr SetInt64
 #else
 #error Architecture is not 32-bit or 64-bit.
 #endif  // ARCH_IS_32_BIT
@@ -1441,6 +1416,7 @@ class RawTypedData : public RawInstance {
   uint8_t data_[0];
 
   friend class Object;
+  friend class Instance;
 };
 
 
@@ -1457,195 +1433,6 @@ class RawExternalTypedData : public RawInstance {
 
   friend class TokenStream;
   friend class RawTokenStream;
-};
-
-
-class RawByteArray : public RawInstance {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(ByteArray);
-
- protected:
-  RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->length_); }
-  RawSmi* length_;
-  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->length_); }
-};
-
-
-class RawInt8Array : public RawByteArray {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(Int8Array);
-
-  // Variable length data follows here.
-  int8_t data_[0];
-};
-
-
-class RawUint8Array : public RawByteArray {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(Uint8Array);
-
-  // Variable length data follows here.
-  uint8_t data_[0];
-};
-
-
-class RawUint8ClampedArray : public RawByteArray {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(Uint8ClampedArray);
-
-  // Variable length data follows here.
-  uint8_t data_[0];
-};
-
-
-class RawInt16Array : public RawByteArray {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(Int16Array);
-
-  // Variable length data follows here.
-  int16_t data_[0];
-};
-
-
-class RawUint16Array : public RawByteArray {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(Uint16Array);
-
-  // Variable length data follows here.
-  uint16_t data_[0];
-};
-
-
-class RawInt32Array : public RawByteArray {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(Int32Array);
-
-  // Variable length data follows here.
-  int32_t data_[0];
-
-  friend class Instance;
-};
-
-
-class RawUint32Array : public RawByteArray {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(Uint32Array);
-
-  // Variable length data follows here.
-  uint32_t data_[0];
-};
-
-
-class RawInt64Array : public RawByteArray {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(Int64Array);
-
-  // Variable length data follows here.
-  int64_t data_[0];
-
-  friend class Instance;
-};
-
-
-class RawUint64Array : public RawByteArray {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(Uint64Array);
-
-  // Variable length data follows here.
-  uint64_t data_[0];
-};
-
-
-class RawFloat32Array : public RawByteArray {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(Float32Array);
-
-  // Variable length data follows here.
-  float data_[0];
-};
-
-
-class RawFloat64Array : public RawByteArray {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(Float64Array);
-
-  // Variable length data follows here.
-  double data_[0];
-};
-
-
-class RawExternalInt8Array : public RawByteArray {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalInt8Array);
-
-  int8_t* data_;
-  void* peer_;
-};
-
-
-class RawExternalUint8Array : public RawByteArray {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalUint8Array);
-
-  uint8_t* data_;
-  void* peer_;
-
-  friend class RawExternalUint8ClampedArray;
-};
-
-
-class RawExternalUint8ClampedArray : public RawExternalUint8Array {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalUint8ClampedArray);
-};
-
-
-class RawExternalInt16Array : public RawByteArray {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalInt16Array);
-
-  int16_t* data_;
-  void* peer_;
-};
-
-
-class RawExternalUint16Array : public RawByteArray {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalUint16Array);
-
-  uint16_t* data_;
-  void* peer_;
-};
-
-
-class RawExternalInt32Array : public RawByteArray {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalInt32Array);
-
-  int32_t* data_;
-  void* peer_;
-};
-
-
-class RawExternalUint32Array : public RawByteArray {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalUint32Array);
-
-  uint32_t* data_;
-  void* peer_;
-};
-
-
-class RawExternalInt64Array : public RawByteArray {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalInt64Array);
-
-  int64_t* data_;
-  void* peer_;
-};
-
-
-class RawExternalUint64Array : public RawByteArray {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalUint64Array);
-
-  uint64_t* data_;
-  void* peer_;
-};
-
-
-class RawExternalFloat32Array : public RawByteArray {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalFloat32Array);
-
-  float* data_;
-  void* peer_;
-};
-
-
-class RawExternalFloat64Array : public RawByteArray {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalFloat64Array);
-
-  double* data_;
-  void* peer_;
 };
 
 
@@ -1799,55 +1586,11 @@ inline bool RawObject::IsBuiltinListClassId(intptr_t index) {
   // Make sure this function is updated when new builtin List types are added.
   ASSERT(kImmutableArrayCid == kArrayCid + 1 &&
          kGrowableObjectArrayCid == kArrayCid + 2 &&
-         kByteArrayCid == kArrayCid + 3);
-  return (index >= kArrayCid && index < kByteArrayCid) ||
-      IsByteArrayClassId(index);
-}
-
-
-inline bool RawObject::IsByteArrayClassId(intptr_t index) {
-  // Make sure this function is updated when new ByteArray types are added.
-  ASSERT(kInt8ArrayCid == kByteArrayCid + 1 &&
-         kUint8ArrayCid == kByteArrayCid + 2 &&
-         kUint8ClampedArrayCid == kByteArrayCid + 3 &&
-         kInt16ArrayCid == kByteArrayCid + 4 &&
-         kUint16ArrayCid == kByteArrayCid + 5 &&
-         kInt32ArrayCid == kByteArrayCid + 6 &&
-         kUint32ArrayCid == kByteArrayCid + 7 &&
-         kInt64ArrayCid == kByteArrayCid + 8 &&
-         kUint64ArrayCid == kByteArrayCid + 9 &&
-         kFloat32ArrayCid == kByteArrayCid + 10 &&
-         kFloat64ArrayCid == kByteArrayCid + 11 &&
-         kExternalInt8ArrayCid == kByteArrayCid + 12 &&
-         kExternalUint8ArrayCid == kByteArrayCid + 13 &&
-         kExternalUint8ClampedArrayCid == kByteArrayCid + 14 &&
-         kExternalInt16ArrayCid == kByteArrayCid + 15 &&
-         kExternalUint16ArrayCid == kByteArrayCid + 16 &&
-         kExternalInt32ArrayCid == kByteArrayCid + 17 &&
-         kExternalUint32ArrayCid == kByteArrayCid + 18 &&
-         kExternalInt64ArrayCid == kByteArrayCid + 19 &&
-         kExternalUint64ArrayCid == kByteArrayCid + 20 &&
-         kExternalFloat32ArrayCid == kByteArrayCid + 21 &&
-         kExternalFloat64ArrayCid == kByteArrayCid + 22 &&
-         kTypedDataCid == kByteArrayCid + 23);
-  return (index >= kByteArrayCid && index <= kExternalFloat64ArrayCid);
-}
-
-
-inline bool RawObject::IsExternalByteArrayClassId(intptr_t index) {
-  // Make sure this function is updated when new ByteArray types are added.
-  ASSERT(kExternalUint8ArrayCid == kExternalInt8ArrayCid + 1 &&
-         kExternalUint8ClampedArrayCid == kExternalInt8ArrayCid + 2 &&
-         kExternalInt16ArrayCid == kExternalInt8ArrayCid + 3 &&
-         kExternalUint16ArrayCid == kExternalInt8ArrayCid + 4 &&
-         kExternalInt32ArrayCid == kExternalInt8ArrayCid + 5 &&
-         kExternalUint32ArrayCid == kExternalInt8ArrayCid + 6 &&
-         kExternalInt64ArrayCid == kExternalInt8ArrayCid + 7 &&
-         kExternalUint64ArrayCid == kExternalInt8ArrayCid + 8 &&
-         kExternalFloat32ArrayCid == kExternalInt8ArrayCid + 9 &&
-         kExternalFloat64ArrayCid == kExternalInt8ArrayCid + 10 &&
-         kTypedDataCid == kExternalInt8ArrayCid + 11);
-  return (index >= kExternalInt8ArrayCid && index <= kExternalFloat64ArrayCid);
+         kTypedDataCid == kArrayCid + 3);
+  return ((index >= kArrayCid && index < kTypedDataCid) ||
+          IsTypedDataClassId(index) ||
+          IsTypedDataViewClassId(index) ||
+          IsExternalTypedDataClassId(index));
 }
 
 

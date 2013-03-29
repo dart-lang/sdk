@@ -1899,14 +1899,17 @@ DART_EXPORT Dart_Handle Dart_ListLength(Dart_Handle list, intptr_t* len) {
     // Pass through errors.
     return list;
   }
-  if (obj.IsByteArray()) {
-    GET_LIST_LENGTH(isolate, ByteArray, obj, len);
+  if (obj.IsTypedData()) {
+    GET_LIST_LENGTH(isolate, TypedData, obj, len);
   }
   if (obj.IsArray()) {
     GET_LIST_LENGTH(isolate, Array, obj, len);
   }
   if (obj.IsGrowableObjectArray()) {
     GET_LIST_LENGTH(isolate, GrowableObjectArray, obj, len);
+  }
+  if (obj.IsExternalTypedData()) {
+    GET_LIST_LENGTH(isolate, ExternalTypedData, obj, len);
   }
   CHECK_CALLBACK_STATE(isolate);
 
@@ -2170,70 +2173,75 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(list));
-  if (obj.IsUint8Array() || obj.IsExternalUint8Array() ||
-      obj.IsUint8ClampedArray() || obj.IsExternalUint8ClampedArray() ||
-      obj.IsInt8Array() || obj.IsExternalInt8Array()) {
-    const ByteArray& byte_array = ByteArray::Cast(obj);
-    if (Utils::RangeCheck(offset, length, byte_array.Length())) {
-      ByteArray::Copy(native_array, byte_array, offset, length);
-      return Api::Success(isolate);
+  if (obj.IsTypedData()) {
+    const TypedData& array = TypedData::Cast(obj);
+    if (array.ElementSizeInBytes() == 1) {
+      if (Utils::RangeCheck(offset, length, array.Length())) {
+        NoGCScope no_gc;
+        memmove(native_array,
+                reinterpret_cast<uint8_t*>(array.DataAddr(offset)),
+                length);
+        return Api::Success(isolate);
+      }
+      return Api::NewError("Invalid length passed in to access list elements");
     }
-    return Api::NewError("Invalid length passed in to access list elements");
-  } else if (obj.IsArray()) {
+  }
+  if (obj.IsArray()) {
     GET_LIST_ELEMENT_AS_BYTES(isolate,
                               Array,
                               obj,
                               native_array,
                               offset,
                               length);
-  } else if (obj.IsGrowableObjectArray()) {
+  }
+  if (obj.IsGrowableObjectArray()) {
     GET_LIST_ELEMENT_AS_BYTES(isolate,
                               GrowableObjectArray,
                               obj,
                               native_array,
                               offset,
                               length);
-  } else if (obj.IsError()) {
-    return list;
-  } else {
-    CHECK_CALLBACK_STATE(isolate);
-
-    // Check and handle a dart object that implements the List interface.
-    const Instance& instance =
-        Instance::Handle(isolate, GetListInstance(isolate, obj));
-    if (!instance.IsNull()) {
-      const Function& function = Function::Handle(
-          isolate,
-          Resolver::ResolveDynamic(instance, Symbols::IndexToken(), 2, 0));
-      if (!function.IsNull()) {
-        Object& result = Object::Handle(isolate);
-        Integer& intobj = Integer::Handle(isolate);
-        const int kNumArgs = 2;
-        const Array& args = Array::Handle(isolate, Array::New(kNumArgs));
-        args.SetAt(0, instance);  // Set up the receiver as the first argument.
-        for (int i = 0; i < length; i++) {
-          intobj = Integer::New(offset + i);
-          args.SetAt(1, intobj);
-          result = DartEntry::InvokeFunction(function, args);
-          if (result.IsError()) {
-            return Api::NewHandle(isolate, result.raw());
-          }
-          if (!result.IsInteger()) {
-            return Api::NewError("%s expects the argument 'list' to be "
-                                 "a List of int", CURRENT_FUNC);
-          }
-          const Integer& integer_result = Integer::Cast(result);
-          ASSERT(integer_result.AsInt64Value() <= 0xff);
-          // TODO(hpayer): value should always be smaller then 0xff. Add error
-          // handling.
-          native_array[i] =
-              static_cast<uint8_t>(integer_result.AsInt64Value() & 0xff);
-        }
-        return Api::Success(isolate);
-      }
-    }
-    return Api::NewError("Object does not implement the 'List' interface");
   }
+  if (obj.IsError()) {
+    return list;
+  }
+  CHECK_CALLBACK_STATE(isolate);
+
+  // Check and handle a dart object that implements the List interface.
+  const Instance& instance =
+      Instance::Handle(isolate, GetListInstance(isolate, obj));
+  if (!instance.IsNull()) {
+    const Function& function = Function::Handle(
+        isolate,
+        Resolver::ResolveDynamic(instance, Symbols::IndexToken(), 2, 0));
+    if (!function.IsNull()) {
+      Object& result = Object::Handle(isolate);
+      Integer& intobj = Integer::Handle(isolate);
+      const int kNumArgs = 2;
+      const Array& args = Array::Handle(isolate, Array::New(kNumArgs));
+      args.SetAt(0, instance);  // Set up the receiver as the first argument.
+      for (int i = 0; i < length; i++) {
+        intobj = Integer::New(offset + i);
+        args.SetAt(1, intobj);
+        result = DartEntry::InvokeFunction(function, args);
+        if (result.IsError()) {
+          return Api::NewHandle(isolate, result.raw());
+        }
+        if (!result.IsInteger()) {
+          return Api::NewError("%s expects the argument 'list' to be "
+                               "a List of int", CURRENT_FUNC);
+        }
+        const Integer& integer_result = Integer::Cast(result);
+        ASSERT(integer_result.AsInt64Value() <= 0xff);
+        // TODO(hpayer): value should always be smaller then 0xff. Add error
+        // handling.
+        native_array[i] =
+            static_cast<uint8_t>(integer_result.AsInt64Value() & 0xff);
+      }
+      return Api::Success(isolate);
+    }
+  }
+  return Api::NewError("Object does not implement the 'List' interface");
 }
 
 
@@ -2258,15 +2266,20 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(list));
-  if (obj.IsUint8Array() || obj.IsExternalUint8Array() ||
-      obj.IsUint8ClampedArray() || obj.IsExternalUint8ClampedArray()) {
-    const ByteArray& byte_array = ByteArray::Cast(obj);
-    if (Utils::RangeCheck(offset, length, byte_array.Length())) {
-      ByteArray::Copy(byte_array, offset, native_array, length);
-      return Api::Success(isolate);
+  if (obj.IsTypedData()) {
+    const TypedData& array = TypedData::Cast(obj);
+    if (array.ElementSizeInBytes() == 1) {
+      if (Utils::RangeCheck(offset, length, array.Length())) {
+        NoGCScope no_gc;
+        memmove(reinterpret_cast<uint8_t*>(array.DataAddr(offset)),
+                native_array,
+                length);
+        return Api::Success(isolate);
+      }
+      return Api::NewError("Invalid length passed in to access list elements");
     }
-    return Api::NewError("Invalid length passed in to set list elements");
-  } else if (obj.IsArray() && !obj.IsImmutableArray()) {
+  }
+  if (obj.IsArray() && !obj.IsImmutableArray()) {
     // If the list is immutable we call into Dart for the indexed setter to
     // get the unsupported operation exception as the result.
     SET_LIST_ELEMENT_AS_BYTES(isolate,
@@ -2275,50 +2288,51 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
                               native_array,
                               offset,
                               length);
-  } else if (obj.IsGrowableObjectArray()) {
+  }
+  if (obj.IsGrowableObjectArray()) {
     SET_LIST_ELEMENT_AS_BYTES(isolate,
                               GrowableObjectArray,
                               obj,
                               native_array,
                               offset,
                               length);
-  } else if (obj.IsError()) {
-    return list;
-  } else {
-    CHECK_CALLBACK_STATE(isolate);
-
-    // Check and handle a dart object that implements the List interface.
-    const Instance& instance =
-        Instance::Handle(isolate, GetListInstance(isolate, obj));
-    if (!instance.IsNull()) {
-      const Function& function = Function::Handle(
-          isolate,
-          Resolver::ResolveDynamic(instance,
-                                   Symbols::AssignIndexToken(),
-                                   3,
-                                   0));
-      if (!function.IsNull()) {
-        Integer& indexobj = Integer::Handle(isolate);
-        Integer& valueobj = Integer::Handle(isolate);
-        const int kNumArgs = 3;
-        const Array& args = Array::Handle(isolate, Array::New(kNumArgs));
-        args.SetAt(0, instance);  // Set up the receiver as the first argument.
-        for (int i = 0; i < length; i++) {
-          indexobj = Integer::New(offset + i);
-          valueobj = Integer::New(native_array[i]);
-          args.SetAt(1, indexobj);
-          args.SetAt(2, valueobj);
-          const Object& result = Object::Handle(
-              isolate, DartEntry::InvokeFunction(function, args));
-          if (result.IsError()) {
-            return Api::NewHandle(isolate, result.raw());
-          }
-        }
-        return Api::Success(isolate);
-      }
-    }
-    return Api::NewError("Object does not implement the 'List' interface");
   }
+  if (obj.IsError()) {
+    return list;
+  }
+  CHECK_CALLBACK_STATE(isolate);
+
+  // Check and handle a dart object that implements the List interface.
+  const Instance& instance =
+      Instance::Handle(isolate, GetListInstance(isolate, obj));
+  if (!instance.IsNull()) {
+    const Function& function = Function::Handle(
+        isolate,
+        Resolver::ResolveDynamic(instance,
+                                 Symbols::AssignIndexToken(),
+                                 3,
+                                 0));
+    if (!function.IsNull()) {
+      Integer& indexobj = Integer::Handle(isolate);
+      Integer& valueobj = Integer::Handle(isolate);
+      const int kNumArgs = 3;
+      const Array& args = Array::Handle(isolate, Array::New(kNumArgs));
+      args.SetAt(0, instance);  // Set up the receiver as the first argument.
+      for (int i = 0; i < length; i++) {
+        indexobj = Integer::New(offset + i);
+        valueobj = Integer::New(native_array[i]);
+        args.SetAt(1, indexobj);
+        args.SetAt(2, valueobj);
+        const Object& result = Object::Handle(
+            isolate, DartEntry::InvokeFunction(function, args));
+        if (result.IsError()) {
+          return Api::NewHandle(isolate, result.raw());
+        }
+      }
+      return Api::Success(isolate);
+    }
+  }
+  return Api::NewError("Object does not implement the 'List' interface");
 }
 
 
