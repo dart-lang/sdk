@@ -36,7 +36,6 @@
 # ......mirrors/
 # ......uri/
 # ......utf/
-# ......scalarlist/
 # ......typeddata/
 # ....packages/
 # ......args/
@@ -206,7 +205,7 @@ def Main(argv):
                   join('html', 'dart2js'), join('html', 'dartium'),
                   join('html', 'html_common'),
                   join('indexed_db', 'dart2js'), join('indexed_db', 'dartium'),
-                  'json', 'math', 'mirrors', 'scalarlist', 'typeddata',
+                  'json', 'math', 'mirrors', 'typeddata',
                   join('svg', 'dart2js'), join('svg', 'dartium'),
                   'uri', 'utf',
                   join('web_audio', 'dart2js'), join('web_audio', 'dartium'),
