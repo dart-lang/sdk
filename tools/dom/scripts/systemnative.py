@@ -227,6 +227,7 @@ class DartiumBackend(HtmlDartGenerator):
         self._interface,
         arguments,
         self._interface.id,
+        False,
         'ConstructorRaisesException' in ext_attrs)
 
   def HasSupportCheck(self):
@@ -352,6 +353,7 @@ class DartiumBackend(HtmlDartGenerator):
         attr,
         [],
         attr.type.id,
+        attr.type.nullable,
         attr.get_raises)
 
   def _AddSetter(self, attr, html_name):
@@ -381,6 +383,7 @@ class DartiumBackend(HtmlDartGenerator):
         attr,
         [attr],
         'void',
+        False,
         attr.set_raises)
 
   def AddIndexer(self, element_type):
@@ -524,6 +527,7 @@ class DartiumBackend(HtmlDartGenerator):
         operation,
         arguments,
         operation.type.id,
+        operation.type.nullable,
         operation.raises)
 
   def _GenerateNativeCallback(self,
@@ -533,6 +537,7 @@ class DartiumBackend(HtmlDartGenerator):
       node,
       arguments,
       return_type,
+      return_type_is_nullable,
       raises_dom_exception):
     ext_attrs = node.ext_attrs
 
@@ -580,6 +585,9 @@ class DartiumBackend(HtmlDartGenerator):
 
     if 'Reflect' in ext_attrs:
       cpp_arguments = [self._GenerateWebCoreReflectionAttributeName(node)]
+
+    if return_type_is_nullable:
+      cpp_arguments = ['isNull']
 
     v8EnabledPerContext = ext_attrs.get('synthesizedV8EnabledPerContext', ext_attrs.get('V8EnabledPerContext'))
     v8EnabledAtRuntime = ext_attrs.get('synthesizedV8EnabledAtRuntime', ext_attrs.get('V8EnabledAtRuntime'))
@@ -758,8 +766,20 @@ class DartiumBackend(HtmlDartGenerator):
       return_type_info = self._TypeInfo(return_type)
       self._cpp_impl_includes |= set(return_type_info.conversion_includes())
 
+      if return_type_is_nullable:
+        invocation_emitter.Emit(
+          '        bool isNull = false;\n'
+          '        $NATIVE_TYPE result = $FUNCTION_CALL;\n'
+          '        if (isNull)\n'
+          '            return;\n',
+          NATIVE_TYPE=return_type_info.native_type(),
+          FUNCTION_CALL=function_call)
+        value_expression = 'result'
+      else:
+        value_expression = function_call
+
       # Generate to Dart conversion of C++ value.
-      to_dart_conversion = return_type_info.to_dart_conversion(function_call, self._interface.id, ext_attrs)
+      to_dart_conversion = return_type_info.to_dart_conversion(value_expression, self._interface.id, ext_attrs)
       invocation_emitter.Emit(
         '        Dart_Handle returnValue = $TO_DART_CONVERSION;\n'
         '        if (returnValue)\n'
