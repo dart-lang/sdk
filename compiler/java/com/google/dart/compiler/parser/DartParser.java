@@ -5620,15 +5620,15 @@ public class DartParser extends CompletionHooksParserBase {
     // TODO(scheglov) remove after http://code.google.com/p/dart/issues/detail?id=6508
     if (
         true
-        &&!Elements.isCoreLibrarySource(source)
+        && !Elements.isCoreLibrarySource(source)
         && !Elements.isLibrarySource(source, "/isolate/isolate.dart")
-      &&  !Elements.isLibrarySource(source, "/json/json.dart")
-      &&  !Elements.isLibrarySource(source, "/math/math.dart")
-      &&  !Elements.isLibrarySource(source, "/io/io.dart")
-      &&  !Elements.isLibrarySource(source, "/crypto/crypto.dart")
-      &&  !Elements.isLibrarySource(source, "/uri/uri.dart")
-      &&  !Elements.isLibrarySource(source, "/utf/utf.dart")
-      &&  !Elements.isLibrarySource(source, "/scalarlist/scalarlist.dart")
+        && !Elements.isLibrarySource(source, "/json/json.dart")
+        && !Elements.isLibrarySource(source, "/math/math.dart")
+        && !Elements.isLibrarySource(source, "/io/io.dart")
+        && !Elements.isLibrarySource(source, "/crypto/crypto.dart")
+        && !Elements.isLibrarySource(source, "/uri/uri.dart")
+        && !Elements.isLibrarySource(source, "/utf/utf.dart")
+        && !Elements.isLibrarySource(source, "/typeddata/typeddata.dart")
         ) {
       super.reportError(position, errorCode);
     }
