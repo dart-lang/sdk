@@ -7,14 +7,14 @@
 // Library tag to be able to run in html test framework.
 library ByteArrayViewOptimizedTest;
 
-import "dart:scalarlist";
+import "dart:typeddata";
 
 li16(v) => v[0];
 
 main() {
   var a = new Uint8List.transferable(2);
   a[0] = a[1] = 0xff;
-  var b = new Int16List.view(a.asByteArray());
+  var b = new Int16List.view(a.buffer);
   Expect.equals(-1, li16(b));
   for (var i=0; i<10000; i++) li16(b);
   Expect.equals(-1, li16(b));

@@ -4197,27 +4197,6 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level) {
 }
 
 
-// TODO(hausner): Remove support for old library definition syntax.
-void Parser::ParseLibraryNameObsoleteSyntax() {
-  if ((script_.kind() == RawScript::kLibraryTag) &&
-      (CurrentToken() != Token::kLEGACY_LIBRARY)) {
-    // Handle error case early to get consistent error message.
-    ExpectToken(Token::kLEGACY_LIBRARY);
-  }
-  if (CurrentToken() == Token::kLEGACY_LIBRARY) {
-    ConsumeToken();
-    ExpectToken(Token::kLPAREN);
-    if (CurrentToken() != Token::kSTRING) {
-      ErrorMsg("library name expected");
-    }
-    const String& name = *CurrentLiteral();
-    ConsumeToken();
-    ExpectToken(Token::kRPAREN);
-    ExpectToken(Token::kSEMICOLON);
-    library_.SetName(name);
-  }
-}
-
 
 RawObject* Parser::CallLibraryTagHandler(Dart_LibraryTag tag,
                                           intptr_t token_pos,
@@ -4249,91 +4228,6 @@ RawObject* Parser::CallLibraryTagHandler(Dart_LibraryTag tag,
     }
   }
   return Api::UnwrapHandle(result);
-}
-
-
-// TODO(hausner): Remove support for old library definition syntax.
-void Parser::ParseLibraryImportObsoleteSyntax() {
-  while (CurrentToken() == Token::kLEGACY_IMPORT) {
-    const intptr_t import_pos = TokenPos();
-    ConsumeToken();
-    ExpectToken(Token::kLPAREN);
-    if (CurrentToken() != Token::kSTRING) {
-      ErrorMsg("library url expected");
-    }
-    const String& url = *CurrentLiteral();
-    ConsumeToken();
-    String& prefix = String::Handle();
-    if (CurrentToken() == Token::kCOMMA) {
-      ConsumeToken();
-      if (!IsLiteral("prefix")) {
-        ErrorMsg("prefix: expected");
-      }
-      ConsumeToken();
-      ExpectToken(Token::kCOLON);
-      if (CurrentToken() != Token::kSTRING) {
-        ErrorMsg("prefix expected");
-      }
-      prefix = CurrentLiteral()->raw();
-      // TODO(asiva): Need to also check that prefix is not a reserved keyword.
-      if (!Scanner::IsIdent(prefix)) {
-        ErrorMsg("prefix should be an identifier");
-      }
-      ConsumeToken();
-    }
-    ExpectToken(Token::kRPAREN);
-    ExpectToken(Token::kSEMICOLON);
-    const String& canon_url = String::CheckedHandle(
-        CallLibraryTagHandler(kCanonicalizeUrl, import_pos, url));
-    // Lookup the library URL.
-    Library& library = Library::Handle(Library::LookupLibrary(canon_url));
-    if (library.IsNull()) {
-      // Call the library tag handler to load the library.
-      CallLibraryTagHandler(kImportTag, import_pos, canon_url);
-      // If the library tag handler succeded without registering the
-      // library we create an empty library to import.
-      library = Library::LookupLibrary(canon_url);
-      if (library.IsNull()) {
-        library = Library::New(canon_url);
-        library.Register();
-      }
-    }
-    // Add the import to the library.
-    const Namespace& import = Namespace::Handle(
-        Namespace::New(library, Array::Handle(), Array::Handle()));
-    if (prefix.IsNull() || (prefix.Length() == 0)) {
-      library_.AddImport(import);
-    } else {
-      LibraryPrefix& library_prefix = LibraryPrefix::Handle();
-      library_prefix = library_.LookupLocalLibraryPrefix(prefix);
-      if (!library_prefix.IsNull()) {
-        library_prefix.AddImport(import);
-      } else {
-        library_prefix = LibraryPrefix::New(prefix, import);
-        library_.AddObject(library_prefix, prefix);
-      }
-    }
-  }
-}
-
-
-// TODO(hausner): Remove support for old library definition syntax.
-void Parser::ParseLibraryIncludeObsoleteSyntax() {
-  while (CurrentToken() == Token::kLEGACY_SOURCE) {
-    const intptr_t source_pos = TokenPos();
-    ConsumeToken();
-    ExpectToken(Token::kLPAREN);
-    if (CurrentToken() != Token::kSTRING) {
-      ErrorMsg("source url expected");
-    }
-    const String& url = *CurrentLiteral();
-    ConsumeToken();
-    ExpectToken(Token::kRPAREN);
-    ExpectToken(Token::kSEMICOLON);
-    const String& canon_url = String::CheckedHandle(
-        CallLibraryTagHandler(kCanonicalizeUrl, source_pos, url));
-    CallLibraryTagHandler(kSourceTag, source_pos, canon_url);
-  }
 }
 
 
@@ -4484,25 +4378,6 @@ void Parser::ParseLibraryDefinition() {
   if (CurrentToken() == Token::kSCRIPTTAG) {
     // Nothing to do for script tags except to skip them.
     ConsumeToken();
-  }
-
-  // TODO(hausner): Remove support for old library definition syntax.
-  if ((CurrentToken() == Token::kLEGACY_LIBRARY) ||
-      (CurrentToken() == Token::kLEGACY_IMPORT) ||
-      (CurrentToken() == Token::kLEGACY_SOURCE)) {
-    ParseLibraryNameObsoleteSyntax();
-    ParseLibraryImportObsoleteSyntax();
-    ParseLibraryIncludeObsoleteSyntax();
-    // Core lib has not been explicitly imported, so we implicitly
-    // import it here.
-    if (!library_.ImportsCorelib()) {
-      Library& core_lib = Library::Handle(Library::CoreLibrary());
-      ASSERT(!core_lib.IsNull());
-      const Namespace& core_ns = Namespace::Handle(
-          Namespace::New(core_lib, Array::Handle(), Array::Handle()));
-      library_.AddImport(core_ns);
-    }
-    return;
   }
 
   ASSERT(script_.kind() != RawScript::kSourceTag);

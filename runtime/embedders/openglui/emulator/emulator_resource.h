@@ -8,6 +8,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <unistd.h>
 
 #include "embedders/openglui/common/log.h"
 #include "embedders/openglui/common/resource.h"
@@ -15,7 +16,7 @@
 class EmulatorResource : public Resource {
   public:
     explicit EmulatorResource(const char* path)
-      : base(path),
+      : Resource(path),
         fd_(-1) {
     }
 
@@ -28,8 +29,8 @@ class EmulatorResource : public Resource {
 
     off_t length() {
       if (length_ < 0) {
-        length_ = lseek(fd), 0, SEEK_END);
-        lseek(fd), 0, SEEK_START);
+        length_ = lseek(fd_, 0, SEEK_END);
+        lseek(fd_, 0, SEEK_SET);
       }
       return length_;
     }
@@ -51,7 +52,7 @@ class EmulatorResource : public Resource {
     }
 
     int32_t Read(void* buffer, size_t count) {
-      size_t actual = read(asset_, buffer, count);
+      size_t actual = read(fd_, buffer, count);
       return (actual == count) ? 0 : -1;
     }
 

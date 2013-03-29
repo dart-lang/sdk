@@ -7,7 +7,7 @@ library lib_validator;
 import 'dart:async';
 import 'dart:io';
 
-import '../../../pkg/pathos/lib/path.dart' as path;
+import 'package:pathos/path.dart' as path;
 
 import '../entrypoint.dart';
 import '../io.dart';

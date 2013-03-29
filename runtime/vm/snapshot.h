@@ -23,7 +23,7 @@ class AbstractTypeArguments;
 class Array;
 class Class;
 class ClassTable;
-class ExternalUint8Array;
+class ExternalTypedData;
 class GrowableObjectArray;
 class Heap;
 class LanguageError;
@@ -225,7 +225,7 @@ class SnapshotReader : public BaseReader {
   AbstractTypeArguments* TypeArgumentsHandle() { return &type_arguments_; }
   Array* TokensHandle() { return &tokens_; }
   TokenStream* StreamHandle() { return &stream_; }
-  ExternalUint8Array* DataHandle() { return &data_; }
+  ExternalTypedData* DataHandle() { return &data_; }
   UnhandledException* ErrorHandle() { return &error_; }
 
   // Reads an object.
@@ -326,7 +326,7 @@ class SnapshotReader : public BaseReader {
   AbstractTypeArguments& type_arguments_;  // Temporary type argument handle.
   Array& tokens_;  // Temporary tokens handle.
   TokenStream& stream_;  // Temporary token stream handle.
-  ExternalUint8Array& data_;  // Temporary stream data handle.
+  ExternalTypedData& data_;  // Temporary stream data handle.
   UnhandledException& error_;  // Error handle.
   GrowableArray<BackRefNode*> backward_references_;
 
@@ -416,7 +416,7 @@ class BaseWriter {
  protected:
   BaseWriter(uint8_t** buffer,
              ReAlloc alloc,
-             intptr_t increment_size) : stream_(buffer, alloc, increment_size) {
+             intptr_t initial_size) : stream_(buffer, alloc, initial_size) {
     ASSERT(buffer != NULL);
     ASSERT(alloc != NULL);
   }
@@ -445,7 +445,7 @@ class SnapshotWriter : public BaseWriter {
   SnapshotWriter(Snapshot::Kind kind,
                  uint8_t** buffer,
                  ReAlloc alloc,
-                 intptr_t increment_size);
+                 intptr_t initial_size);
 
  public:
   // Snapshot kind.
@@ -504,6 +504,12 @@ class SnapshotWriter : public BaseWriter {
                     RawSmi* length,
                     RawAbstractTypeArguments* type_arguments,
                     RawObject* data[]);
+  void CheckIfSerializable(RawClass* cls);
+  void WriteInstance(intptr_t object_id,
+                     RawObject* raw,
+                     RawClass* cls,
+                     intptr_t tags);
+  void WriteInstanceRef(RawObject* raw, RawClass* cls);
 
   ObjectStore* object_store() const { return object_store_; }
 
@@ -534,9 +540,9 @@ class SnapshotWriter : public BaseWriter {
 
 class FullSnapshotWriter : public SnapshotWriter {
  public:
-  static const intptr_t kIncrementSize = 64 * KB;
+  static const intptr_t kInitialSize = 64 * KB;
   FullSnapshotWriter(uint8_t** buffer, ReAlloc alloc)
-      : SnapshotWriter(Snapshot::kFull, buffer, alloc, kIncrementSize) {
+      : SnapshotWriter(Snapshot::kFull, buffer, alloc, kInitialSize) {
     ASSERT(buffer != NULL);
     ASSERT(alloc != NULL);
   }
@@ -552,9 +558,9 @@ class FullSnapshotWriter : public SnapshotWriter {
 
 class ScriptSnapshotWriter : public SnapshotWriter {
  public:
-  static const intptr_t kIncrementSize = 64 * KB;
+  static const intptr_t kInitialSize = 64 * KB;
   ScriptSnapshotWriter(uint8_t** buffer, ReAlloc alloc)
-      : SnapshotWriter(Snapshot::kScript, buffer, alloc, kIncrementSize) {
+      : SnapshotWriter(Snapshot::kScript, buffer, alloc, kInitialSize) {
     ASSERT(buffer != NULL);
     ASSERT(alloc != NULL);
   }
@@ -570,9 +576,9 @@ class ScriptSnapshotWriter : public SnapshotWriter {
 
 class MessageWriter : public SnapshotWriter {
  public:
-  static const intptr_t kIncrementSize = 512;
+  static const intptr_t kInitialSize = 512;
   MessageWriter(uint8_t** buffer, ReAlloc alloc)
-      : SnapshotWriter(Snapshot::kMessage, buffer, alloc, kIncrementSize) {
+      : SnapshotWriter(Snapshot::kMessage, buffer, alloc, kInitialSize) {
     ASSERT(buffer != NULL);
     ASSERT(alloc != NULL);
   }

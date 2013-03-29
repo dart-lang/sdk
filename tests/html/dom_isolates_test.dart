@@ -8,7 +8,7 @@ import '../../pkg/unittest/lib/html_config.dart';
 import 'dart:html';
 import 'dart:isolate';
 
-isolateMain() {
+childDomIsolate() {
   port.receive((msg, replyTo) {
     if (msg != 'check') {
       replyTo.send('wrong msg: $msg');
@@ -18,33 +18,38 @@ isolateMain() {
   });
 }
 
-isolateMainTrampoline() {
-  final childPort = spawnDomFunction(isolateMain);
+trampolineIsolate() {
+  final future = spawnDomFunction(childDomIsolate);
   port.receive((msg, parentPort) {
-    childPort.call(msg).then((response) {
-      parentPort.send(response);
-      port.close();
+    future.then((childPort) {
+      childPort.call(msg).then((response) {
+        parentPort.send(response);
+        port.close();
+      });
     });
   });
 }
 
-dummy() => print("Bad invocation of top-level function");
+dummy() => print('Bad invocation of top-level function');
 
 main() {
   useHtmlConfiguration();
 
   test('Simple DOM isolate test', () {
-    spawnDomFunction(isolateMain).call('check').then(
-      expectAsync1((msg) {
-        expect(msg, equals('${window.location}'));
-      }));
+    spawnDomFunction(childDomIsolate).then((sendPort) {
+      expect(sendPort.call('check'), completion('${window.location}'));
+    });
   });
 
   test('Nested DOM isolates test', () {
-    spawnDomFunction(isolateMainTrampoline).call('check').then(
-      expectAsync1((msg) {
-        expect(msg, equals('${window.location}'));
-      }));
+    spawnDomFunction(trampolineIsolate).then((sendPort) {
+      expect(sendPort.call('check'), completion('${window.location}'));
+    });
+  });
+
+  test('Spawn DOM isolate from pure', () {
+    expect(spawnFunction(trampolineIsolate).call('check'),
+           completion('${window.location}'));
   });
 
   test('Not function', () {
@@ -58,7 +63,7 @@ main() {
 
   test('Masked local function', () {
     var local = 42;
-    dummy() => print("Bad invocation of local function: $local");
+    dummy() => print('Bad invocation of local function: $local');
     expect(() => spawnDomFunction(dummy), throws);
   });
 }

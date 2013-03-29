@@ -356,11 +356,11 @@ class ASTFactory {
    * @param element the element defining the type represented by the type name
    * @return the type name that was created
    */
-  static TypeName typeName(ClassElement element55, List<TypeName> arguments) {
-    SimpleIdentifier name22 = identifier2(element55.name);
-    name22.element = element55;
+  static TypeName typeName(ClassElement element61, List<TypeName> arguments) {
+    SimpleIdentifier name22 = identifier2(element61.name);
+    name22.element = element61;
     TypeName typeName = typeName2(name22, arguments);
-    typeName.type = element55.type;
+    typeName.type = element61.type;
     return typeName;
   }
   static TypeName typeName2(Identifier name, List<TypeName> arguments) {
@@ -386,7 +386,7 @@ class ASTFactory {
   }
   static VariableDeclaration variableDeclaration(String name) => new VariableDeclaration.full(null, null, identifier2(name), null, null);
   static VariableDeclaration variableDeclaration2(String name, Expression initializer) => new VariableDeclaration.full(null, null, identifier2(name), TokenFactory.token3(TokenType.EQ), initializer);
-  static VariableDeclarationList variableDeclarationList(Keyword keyword, TypeName type, List<VariableDeclaration> variables) => new VariableDeclarationList.full(keyword == null ? null : TokenFactory.token(keyword), type, list(variables));
+  static VariableDeclarationList variableDeclarationList(Keyword keyword, TypeName type, List<VariableDeclaration> variables) => new VariableDeclarationList.full(null, null, keyword == null ? null : TokenFactory.token(keyword), type, list(variables));
   static VariableDeclarationList variableDeclarationList2(Keyword keyword, List<VariableDeclaration> variables) => variableDeclarationList(keyword, null, variables);
   static VariableDeclarationStatement variableDeclarationStatement(Keyword keyword, TypeName type, List<VariableDeclaration> variables) => new VariableDeclarationStatement.full(variableDeclarationList(keyword, type, variables), TokenFactory.token3(TokenType.SEMICOLON));
   static VariableDeclarationStatement variableDeclarationStatement2(Keyword keyword, List<VariableDeclaration> variables) => variableDeclarationStatement(keyword, null, variables);
@@ -542,10 +542,10 @@ class SimpleIdentifierTest extends ParserTestCase {
    */
   ASTNode topMostNode(SimpleIdentifier identifier) {
     ASTNode child = identifier;
-    ASTNode parent18 = identifier.parent;
-    while (parent18 != null) {
-      child = parent18;
-      parent18 = parent18.parent;
+    ASTNode parent20 = identifier.parent;
+    while (parent20 != null) {
+      child = parent20;
+      parent20 = parent20.parent;
     }
     return child;
   }

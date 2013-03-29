@@ -7,10 +7,10 @@ library utils;
 import 'dart:async';
 import 'dart:collection' show Queue;
 
-import '../../../pkg/unittest/lib/unittest.dart';
-import '../../../pkg/http/lib/http.dart' as http;
-import '../../../pkg/http/lib/testing.dart';
-import '../lib/oauth2.dart' as oauth2;
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
+import 'package:oauth2/oauth2.dart' as oauth2;
+import 'package:unittest/unittest.dart';
 
 class ExpectClient extends MockClient {
   final Queue<MockClientHandler> _handlers;

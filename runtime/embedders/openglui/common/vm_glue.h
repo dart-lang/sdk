@@ -32,6 +32,15 @@ class VMGlue {
   int OnKeyEvent(const char* funtion, int64_t when, int32_t key_code,
                  bool isAltKeyDown, bool isCtrlKeyDown, bool isShiftKeyDown,
                  int32_t repeat);
+  inline void OnAccelerometerEvent(float x, float y, float z) {
+    if (x != x_ || y != y_ || z != z_) {
+      x_ = x;
+      y_ = y;
+      z_ = z;
+      accelerometer_changed_ = true;
+    }
+  }
+
   void FinishMainIsolate();
 
  private:
@@ -54,11 +63,13 @@ class VMGlue {
   static void ShutdownIsolate(void* callback_data);
 
   static bool initialized_vm_;
+  static char* extension_script_;
   ISized* surface_;
   Dart_Isolate isolate_;
   bool initialized_script_;
   char* main_script_;
-  static char* extension_script_;
+  float x_, y_, z_;  // Last values from accelerometer.
+  bool accelerometer_changed_;
 };
 
 #endif  // EMBEDDERS_OPENGLUI_COMMON_VM_GLUE_H_

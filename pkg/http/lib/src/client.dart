@@ -6,7 +6,7 @@ library client;
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:scalarlist';
+import 'dart:typeddata';
 
 import 'base_client.dart';
 import 'base_request.dart';

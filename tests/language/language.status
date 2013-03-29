@@ -27,6 +27,8 @@ method_override2_test/03: Fail # Issue 7076.
 # These bugs refer currently ongoing language discussions.
 constructor5_test: Fail           # (Discussion ongoing)
 
+constructor_initializer_test: Fail # Side effects in constructor parameters
+
 constructor6_test: Fail           # Issue 6422
 closure_in_initializer_test: Fail # Issue 6422
 
@@ -336,6 +338,7 @@ built_in_identifier_prefix_test: Fail # Inherited from dart2js.
 const_factory_redirection_test: Fail # http://dartbug.com/6894
 compile_time_constant_h_test: Fail
 constructor_redirect2_test/03: Fail
+constructor_initializer_test: Fail # VM issue
 factory_implementation_test/none: Fail
 factory_implementation_test/00:Fail
 factory2_test: Fail

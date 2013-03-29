@@ -296,7 +296,7 @@ class LocalsHandler {
     JavaScriptBackend backend = compiler.backend;
     if (backend.isInterceptedMethod(element)) {
       bool isInterceptorClass = backend.isInterceptorClass(cls.declaration);
-      SourceString name = (cls == compiler.objectClass || isInterceptorClass)
+      SourceString name = isInterceptorClass
           ? const SourceString('receiver')
           : const SourceString('_');
       Element parameter = new InterceptedElement(
@@ -886,27 +886,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     assert(elements[function] != null);
     openFunction(functionElement, function);
     SourceString name = functionElement.name;
-    // If [functionElement] is operator== we explicitely add a null
-    // check at the beginning of the method. This is to avoid having
-    // call sites do the null check.
+    // If [functionElement] is `operator==` we explicitely add a null check at
+    // the beginning of the method. This is to avoid having call sites do the
+    // null check.
     if (name == const SourceString('==')) {
-      if (functionElement.getEnclosingClass() == compiler.objectClass) {
-        // We special case [Object.operator==] because we know the receiver is
-        // not null (that case goes via a call site check or the JSNull
-        // interceptor) and therefore can just do an identity check on `this`.
-
-        // TODO(sra): This method uses the explicit receiver calling convention
-        // so that interceptors may inherit it.  If we make all interceptors
-        // inherit from a common Interceptor class, we can switch back to the
-        // 'ignored receiver' convention.
-        HInstruction parameter = parameters.values.first;
-        HIdentity identity =
-            new HIdentity(graph.explicitReceiverParameter, parameter);
-        add(identity);
-        HReturn ret = new HReturn(identity);
-        close(ret).addSuccessor(graph.exit);
-        return closeFunction();
-      }
       if (!backend.operatorEqHandlesNullArgument(functionElement)) {
         handleIf(
             function,
@@ -2457,7 +2440,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     stack.add(value);
   }
 
-  void generateSetter(SendSet send, Element element, HInstruction value) {
+  void generateNonInstanceSetter(SendSet send,
+                                 Element element,
+                                 HInstruction value) {
+    assert(!Elements.isInstanceSend(send, elements));
     if (Elements.isStaticOrTopLevelField(element)) {
       if (element.isSetter()) {
         HStatic target = new HStatic(element);
@@ -2470,9 +2456,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         addWithPosition(new HStaticStore(element, value), send);
       }
       stack.add(value);
-    } else if (element == null || Elements.isInstanceField(element)) {
-      HInstruction receiver = generateInstanceSendReceiver(send);
-      generateInstanceSetterWithCompiledReceiver(send, receiver, value);
     } else if (Elements.isErroneousElement(element)) {
       // An erroneous element indicates an unresolved static setter.
       generateThrowNoSuchMethod(send,
@@ -3732,9 +3715,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     } else if (const SourceString("=") == op.source) {
       Link<Node> link = node.arguments;
       assert(!link.isEmpty && link.tail.isEmpty);
-      visit(link.head);
-      HInstruction value = pop();
-      generateSetter(node, element, value);
+      if (Elements.isInstanceSend(node, elements)) {
+        HInstruction receiver = generateInstanceSendReceiver(node);
+        visit(link.head);
+        generateInstanceSetterWithCompiledReceiver(node, receiver, pop());
+      } else {
+        visit(link.head);
+        generateNonInstanceSetter(node, element, pop());
+      }
     } else if (identical(op.source.stringValue, "is")) {
       compiler.internalError("is-operator as SendSet", node: op);
     } else {
@@ -3760,7 +3748,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         generateInstanceSetterWithCompiledReceiver(node, receiver, value);
       } else {
         assert(receiver == null);
-        generateSetter(node, element, value);
+        generateNonInstanceSetter(node, element, value);
       }
       if (node.isPostfix) {
         pop();
@@ -4760,6 +4748,10 @@ class StringBuilderVisitor extends Visitor {
   void visitExpression(Node node) {
     node.accept(builder);
     HInstruction expression = builder.pop();
+    if (!expression.isConstantString()) {
+      expression = new HStringify(expression, node);
+      builder.add(expression);
+    }
     result = (result == null) ? expression : concat(result, expression);
   }
 

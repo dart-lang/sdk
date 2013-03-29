@@ -8,7 +8,7 @@ import 'dart:io';
 import 'dart:json' as JSON;
 import 'dart:uri';
 
-import '../../../../pkg/http/lib/http.dart' as http;
+import 'package:http/http.dart' as http;
 
 import 'credentials.dart';
 import 'authorization_exception.dart';

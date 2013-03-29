@@ -251,13 +251,6 @@ class ObjectStore {
     uint64_array_class_ = value.raw();
   }
 
-  RawClass* float32x4_array_class() const {
-    return float32x4_array_class_;
-  }
-  void set_float32x4_array_class(const Class& value) {
-    float32x4_array_class_ = value.raw();
-  }
-
   RawClass* float32_array_class() const {
     return float32_array_class_;
   }
@@ -335,12 +328,6 @@ class ObjectStore {
     external_uint64_array_class_ = value.raw();
   }
 
-  RawClass* external_float32x4_array_class() const {
-    return external_float32x4_array_class_;
-  }
-  void set_external_float32x4_array_class(const Class& value) {
-    external_float32x4_array_class_ = value.raw();
-  }
 
   RawClass* external_float32_array_class() const {
     return external_float32_array_class_;
@@ -640,7 +627,6 @@ class ObjectStore {
   RawClass* uint32_array_class_;
   RawClass* int64_array_class_;
   RawClass* uint64_array_class_;
-  RawClass* float32x4_array_class_;
   RawClass* float32_array_class_;
   RawClass* float64_array_class_;
   RawClass* external_int8_array_class_;
@@ -652,7 +638,6 @@ class ObjectStore {
   RawClass* external_uint32_array_class_;
   RawClass* external_int64_array_class_;
   RawClass* external_uint64_array_class_;
-  RawClass* external_float32x4_array_class_;
   RawClass* external_float32_array_class_;
   RawClass* external_float64_array_class_;
   RawArray* typeddata_classes_;

@@ -1262,20 +1262,24 @@ void Assembler::LoadWordFromPoolOffset(Register rd, int32_t offset) {
 
 
 void Assembler::LoadObject(Register rd, const Object& object) {
-  // Since objects in the VM heap are never relocated, test instead
-  // if (object.IsSmi() || object.InVMHeap()) {
-  // and modify the decoding code in CallPattern to understand movt, movw.
-  if (object.IsNull() ||
-      object.IsSmi() ||
-      (object.raw() == Bool::True().raw()) ||
-      (object.raw() == Bool::False().raw())) {
-    // This object is never relocated; do not use object pool.
+  // Smi's and VM heap objects are never relocated; do not use object pool.
+  if (object.IsSmi()) {
     LoadImmediate(rd, reinterpret_cast<int32_t>(object.raw()));
-    return;
+  } else if (object.InVMHeap()) {
+    // Make sure that class CallPattern is able to decode this load immediate.
+    const int32_t object_raw = reinterpret_cast<int32_t>(object.raw());
+    movw(rd, Utils::Low16Bits(object_raw));
+    const uint16_t value_high = Utils::High16Bits(object_raw);
+    if (value_high != 0) {
+      movt(rd, value_high);
+    }
+  } else {
+    // Make sure that class CallPattern is able to decode this load from the
+    // object pool.
+    const int32_t offset =
+        Array::data_offset() + 4*AddObject(object) - kHeapObjectTag;
+    LoadWordFromPoolOffset(rd, offset);
   }
-  const int32_t offset =
-      Array::data_offset() + 4*AddObject(object) - kHeapObjectTag;
-  LoadWordFromPoolOffset(rd, offset);
 }
 
 
@@ -1289,6 +1293,45 @@ void Assembler::CompareObject(Register rn, const Object& object) {
   ASSERT(rn != IP);
   LoadObject(IP, object);
   cmp(rn, ShifterOperand(IP));
+}
+
+
+void Assembler::LoadClassId(Register result, Register object) {
+  ASSERT(RawObject::kClassIdTagBit == 16);
+  ASSERT(RawObject::kClassIdTagSize == 16);
+  const intptr_t class_id_offset = Object::tags_offset() +
+      RawObject::kClassIdTagBit / kBitsPerByte;
+  ldrh(result, FieldAddress(object, class_id_offset));
+}
+
+
+void Assembler::LoadClassById(Register result, Register class_id) {
+  ASSERT(result != class_id);
+  ldr(result, FieldAddress(CTX, Context::isolate_offset()));
+  const intptr_t table_offset_in_isolate =
+      Isolate::class_table_offset() + ClassTable::table_offset();
+  ldr(result, Address(result, table_offset_in_isolate));
+  ldr(result, Address(result, class_id, LSL, 2));
+}
+
+
+void Assembler::LoadClass(Register result, Register object, Register scratch) {
+  ASSERT(scratch != result);
+  LoadClassId(scratch, object);
+
+  ldr(result, FieldAddress(CTX, Context::isolate_offset()));
+  const intptr_t table_offset_in_isolate =
+      Isolate::class_table_offset() + ClassTable::table_offset();
+  ldr(result, Address(result, table_offset_in_isolate));
+  ldr(result, Address(result, scratch, LSL, 2));
+}
+
+
+void Assembler::CompareClassId(Register object,
+                               intptr_t class_id,
+                               Register scratch) {
+  LoadClassId(scratch, object);
+  CompareImmediate(scratch, class_id);
 }
 
 
@@ -1483,7 +1526,7 @@ void Assembler::LoadImmediate(Register rd, int32_t value, Condition cond) {
     mvn(rd, shifter_op, cond);
   } else {
     movw(rd, Utils::Low16Bits(value), cond);
-    uint16_t value_high = Utils::High16Bits(value);
+    const uint16_t value_high = Utils::High16Bits(value);
     if (value_high != 0) {
       movt(rd, value_high, cond);
     }
@@ -1677,7 +1720,7 @@ void Assembler::AddImmediate(Register rd, Register rn, int32_t value,
       sub(rd, rn, ShifterOperand(IP), cond);
     } else {
       movw(IP, Utils::Low16Bits(value), cond);
-      uint16_t value_high = Utils::High16Bits(value);
+      const uint16_t value_high = Utils::High16Bits(value);
       if (value_high != 0) {
         movt(IP, value_high, cond);
       }
@@ -1704,7 +1747,7 @@ void Assembler::AddImmediateSetFlags(Register rd, Register rn, int32_t value,
       subs(rd, rn, ShifterOperand(IP), cond);
     } else {
       movw(IP, Utils::Low16Bits(value), cond);
-      uint16_t value_high = Utils::High16Bits(value);
+      const uint16_t value_high = Utils::High16Bits(value);
       if (value_high != 0) {
         movt(IP, value_high, cond);
       }
@@ -1731,7 +1774,7 @@ void Assembler::AddImmediateWithCarry(Register rd, Register rn, int32_t value,
       sbc(rd, rn, ShifterOperand(IP), cond);
     } else {
       movw(IP, Utils::Low16Bits(value), cond);
-      uint16_t value_high = Utils::High16Bits(value);
+      const uint16_t value_high = Utils::High16Bits(value);
       if (value_high != 0) {
         movt(IP, value_high, cond);
       }
@@ -1934,14 +1977,14 @@ int32_t Assembler::AddObject(const Object& obj) {
   if (object_pool_.IsNull()) {
     // The object pool cannot be used in the vm isolate.
     ASSERT(Isolate::Current() != Dart::vm_isolate());
-    object_pool_ = GrowableObjectArray::New();
+    object_pool_ = GrowableObjectArray::New(Heap::kOld);
   }
   for (int i = 0; i < object_pool_.Length(); i++) {
     if (object_pool_.At(i) == obj.raw()) {
       return i;
     }
   }
-  object_pool_.Add(obj);
+  object_pool_.Add(obj, Heap::kOld);
   return object_pool_.Length() - 1;
 }
 
@@ -1950,7 +1993,7 @@ int32_t Assembler::AddExternalLabel(const ExternalLabel* label) {
   if (object_pool_.IsNull()) {
     // The object pool cannot be used in the vm isolate.
     ASSERT(Isolate::Current() != Dart::vm_isolate());
-    object_pool_ = GrowableObjectArray::New();
+    object_pool_ = GrowableObjectArray::New(Heap::kOld);
   }
   const word address = label->address();
   ASSERT(Utils::IsAligned(address, 4));
@@ -1958,7 +2001,7 @@ int32_t Assembler::AddExternalLabel(const ExternalLabel* label) {
   const Smi& smi = Smi::Handle(Smi::New(address >> kSmiTagShift));
   // Do not reuse an existing entry, since each reference may be patched
   // independently.
-  object_pool_.Add(smi);
+  object_pool_.Add(smi, Heap::kOld);
   return object_pool_.Length() - 1;
 }
 

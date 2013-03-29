@@ -12,7 +12,7 @@ typedef void _MicrotaskCallback();
  */
 abstract class _MicrotaskScheduler {
   bool _nextMicrotaskFrameScheduled = false;
-  _MicrotaskCallback _callback;
+  final _MicrotaskCallback _callback;
 
   _MicrotaskScheduler(this._callback);
 

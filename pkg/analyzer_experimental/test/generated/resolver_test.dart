@@ -21,6 +21,322 @@ import 'test_support.dart';
 import 'ast_test.dart' show ASTFactory;
 import 'element_test.dart' show ElementFactory;
 
+class NonErrorResolverTest extends ResolverTestCase {
+  void test_argumentDefinitionTestNonParameter_formalParameter() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["f(var v) {", "  return ?v;", "}"]));
+    resolve(source, []);
+    assertNoErrors();
+    verify([source]);
+  }
+  void test_argumentDefinitionTestNonParameter_namedParameter() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["f({var v : 0}) {", "  return ?v;", "}"]));
+    resolve(source, []);
+    assertNoErrors();
+    verify([source]);
+  }
+  void test_argumentDefinitionTestNonParameter_optionalParameter() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["f([var v]) {", "  return ?v;", "}"]));
+    resolve(source, []);
+    assertNoErrors();
+    verify([source]);
+  }
+  void test_breakWithoutLabelInSwitch() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A {", "  void m(int i) {", "    switch (i) {", "      case 0:", "        break;", "    }", "  }", "}"]));
+    resolve(source, []);
+    assertNoErrors();
+    verify([source]);
+  }
+  void test_builtInIdentifierAsType_dynamic() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["f() {", "  dynamic x;", "}"]));
+    resolve(source, []);
+    assertNoErrors();
+    verify([source]);
+  }
+  void test_caseExpressionTypeImplementsEquals_int() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["f(int i) {", "  switch(i) {", "    case(1) : return 1;", "    default: return 0;", "  }", "}"]));
+    resolve(source, []);
+    assertNoErrors();
+    verify([source]);
+  }
+  void test_caseExpressionTypeImplementsEquals_Object() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["class IntWrapper {", "  final int value;", "  const IntWrapper(this.value);", "}", "", "f(IntWrapper intWrapper) {", "  switch(intWrapper) {", "    case(const IntWrapper(1)) : return 1;", "    default: return 0;", "  }", "}"]));
+    resolve(source, []);
+    assertNoErrors();
+    verify([source]);
+  }
+  void test_caseExpressionTypeImplementsEquals_String() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["f(String s) {", "  switch(s) {", "    case('1') : return 1;", "    default: return 0;", "  }", "}"]));
+    resolve(source, []);
+    assertNoErrors();
+    verify([source]);
+  }
+  void test_constConstructorWithNonFinalField_const() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A {", "  const int x;", "  const A() {}", "}"]));
+    resolve(source, []);
+    assertNoErrors();
+    verify([source]);
+  }
+  void test_constConstructorWithNonFinalField_final() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A {", "  final int x;", "  const A() {}", "}"]));
+    resolve(source, []);
+    assertNoErrors();
+    verify([source]);
+  }
+  void test_constConstructorWithNonFinalField_syntheticField() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A {", "  const A();", "  set x(value) {}", "  get x {return 0;}", "}"]));
+    resolve(source, []);
+    assertNoErrors();
+    verify([source]);
+  }
+  void test_defaultValueInFunctionTypeAlias() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["typedef F([x]);"]));
+    resolve(source, []);
+    assertErrors([]);
+    verify([source]);
+  }
+  void test_duplicateDefinition_getter() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["bool get a => true;"]));
+    resolve(source, []);
+    assertNoErrors();
+    verify([source]);
+  }
+  void test_fieldInitializedInInitializerAndDeclaration_fieldNotFinal() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A {", "  int x = 0;", "  A() : x = 1 {}", "}"]));
+    resolve(source, []);
+    assertNoErrors();
+    verify([source]);
+  }
+  void test_fieldInitializedInInitializerAndDeclaration_finalFieldNotSet() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A {", "  final int x;", "  A() : x = 1 {}", "}"]));
+    resolve(source, []);
+    assertNoErrors();
+    verify([source]);
+  }
+  void test_fieldInitializerOutsideConstructor() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A {", "  int x;", "  A(this.x) {}", "}"]));
+    resolve(source, []);
+    assertNoErrors();
+    verify([source]);
+  }
+  void test_fieldInitializerOutsideConstructor_defaultParameters() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A {", "  int x;", "  A([this.x]) {}", "}"]));
+    resolve(source, []);
+    assertNoErrors();
+    verify([source]);
+  }
+  void test_invalidAssignment() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["f() {", "  var x;", "  var y;", "  x = y;", "}"]));
+    resolve(source, []);
+    assertNoErrors();
+    verify([source]);
+  }
+  void test_invalidAssignment_toDynamic() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["f() {", "  var g;", "  g = () => 0;", "}"]));
+    resolve(source, []);
+    assertNoErrors();
+    verify([source]);
+  }
+  void test_invocationOfNonFunction_dynamic() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A {", "  var f;", "}", "class B extends A {", "  g() {", "    f();", "  }", "}"]));
+    resolve(source, []);
+    assertNoErrors();
+    verify([source]);
+  }
+  void test_invocationOfNonFunction_getter() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A {", "  var g;", "}", "f() {", "  A a;", "  a.g();", "}"]));
+    resolve(source, []);
+    assertNoErrors();
+    verify([source]);
+  }
+  void test_invocationOfNonFunction_localVariable() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["f() {", "  var g;", "  g();", "}"]));
+    resolve(source, []);
+    assertNoErrors();
+    verify([source]);
+  }
+  void test_newWithAbstractClass_factory() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["abstract class A {", "  factory A() { return new B(); }", "}", "class B implements A {", "  B() {}", "}", "A f() {", "  return new A();", "}"]));
+    resolve(source, []);
+    assertNoErrors();
+    verify([source]);
+  }
+  void test_nonBoolExpression_assert_bool() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["f() {", "  assert(true);", "}"]));
+    resolve(source, []);
+    assertNoErrors();
+    verify([source]);
+  }
+  void test_nonBoolExpression_assert_functionType() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["bool makeAssertion() => true;", "f() {", "  assert(makeAssertion);", "}"]));
+    resolve(source, []);
+    assertNoErrors();
+    verify([source]);
+  }
+  void test_rethrowOutsideCatch() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A {", "  void m() {", "    try {} catch (e) {rethrow;}", "  }", "}"]));
+    resolve(source, []);
+    assertNoErrors();
+    verify([source]);
+  }
+  void test_returnOfInvalidType_dynamic() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A {", "  static void testLogicalOp() {", "    testOr(a, b, onTypeError) {", "      try {", "        return a || b;", "      } on TypeError catch (t) {", "        return onTypeError;", "      }", "    }", "  }", "}"]));
+    resolve(source, []);
+    assertNoErrors();
+    verify([source]);
+  }
+  void test_returnOfInvalidType_subtype() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A {}", "class B extends A {}", "A f(B b) { return b; }"]));
+    resolve(source, []);
+    assertNoErrors();
+    verify([source]);
+  }
+  void test_returnOfInvalidType_supertype() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A {}", "class B extends A {}", "B f(A a) { return a; }"]));
+    resolve(source, []);
+    assertNoErrors();
+    verify([source]);
+  }
+  void test_typeArgumentNotMatchingBounds_const() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A {}", "class B extends A {}", "class G<E extends A> {", "  const G() {}", "}", "f() { return const G<B>(); }"]));
+    resolve(source, []);
+    assertNoErrors();
+    verify([source]);
+  }
+  void test_typeArgumentNotMatchingBounds_new() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A {}", "class B extends A {}", "class G<E extends A> {}", "f() { return new G<B>(); }"]));
+    resolve(source, []);
+    assertNoErrors();
+    verify([source]);
+  }
+  static dartSuite() {
+    _ut.group('NonErrorResolverTest', () {
+      _ut.test('test_argumentDefinitionTestNonParameter_formalParameter', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_argumentDefinitionTestNonParameter_formalParameter);
+      });
+      _ut.test('test_argumentDefinitionTestNonParameter_namedParameter', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_argumentDefinitionTestNonParameter_namedParameter);
+      });
+      _ut.test('test_argumentDefinitionTestNonParameter_optionalParameter', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_argumentDefinitionTestNonParameter_optionalParameter);
+      });
+      _ut.test('test_breakWithoutLabelInSwitch', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_breakWithoutLabelInSwitch);
+      });
+      _ut.test('test_builtInIdentifierAsType_dynamic', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_builtInIdentifierAsType_dynamic);
+      });
+      _ut.test('test_caseExpressionTypeImplementsEquals_Object', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_caseExpressionTypeImplementsEquals_Object);
+      });
+      _ut.test('test_caseExpressionTypeImplementsEquals_String', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_caseExpressionTypeImplementsEquals_String);
+      });
+      _ut.test('test_caseExpressionTypeImplementsEquals_int', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_caseExpressionTypeImplementsEquals_int);
+      });
+      _ut.test('test_constConstructorWithNonFinalField_const', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_constConstructorWithNonFinalField_const);
+      });
+      _ut.test('test_constConstructorWithNonFinalField_final', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_constConstructorWithNonFinalField_final);
+      });
+      _ut.test('test_constConstructorWithNonFinalField_syntheticField', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_constConstructorWithNonFinalField_syntheticField);
+      });
+      _ut.test('test_defaultValueInFunctionTypeAlias', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_defaultValueInFunctionTypeAlias);
+      });
+      _ut.test('test_duplicateDefinition_getter', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_duplicateDefinition_getter);
+      });
+      _ut.test('test_fieldInitializedInInitializerAndDeclaration_fieldNotFinal', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_fieldInitializedInInitializerAndDeclaration_fieldNotFinal);
+      });
+      _ut.test('test_fieldInitializedInInitializerAndDeclaration_finalFieldNotSet', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_fieldInitializedInInitializerAndDeclaration_finalFieldNotSet);
+      });
+      _ut.test('test_fieldInitializerOutsideConstructor', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_fieldInitializerOutsideConstructor);
+      });
+      _ut.test('test_fieldInitializerOutsideConstructor_defaultParameters', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_fieldInitializerOutsideConstructor_defaultParameters);
+      });
+      _ut.test('test_invalidAssignment', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_invalidAssignment);
+      });
+      _ut.test('test_invalidAssignment_toDynamic', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_invalidAssignment_toDynamic);
+      });
+      _ut.test('test_invocationOfNonFunction_dynamic', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_invocationOfNonFunction_dynamic);
+      });
+      _ut.test('test_invocationOfNonFunction_getter', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_invocationOfNonFunction_getter);
+      });
+      _ut.test('test_invocationOfNonFunction_localVariable', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_invocationOfNonFunction_localVariable);
+      });
+      _ut.test('test_newWithAbstractClass_factory', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_newWithAbstractClass_factory);
+      });
+      _ut.test('test_nonBoolExpression_assert_bool', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_nonBoolExpression_assert_bool);
+      });
+      _ut.test('test_nonBoolExpression_assert_functionType', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_nonBoolExpression_assert_functionType);
+      });
+      _ut.test('test_rethrowOutsideCatch', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_rethrowOutsideCatch);
+      });
+      _ut.test('test_returnOfInvalidType_dynamic', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_returnOfInvalidType_dynamic);
+      });
+      _ut.test('test_returnOfInvalidType_subtype', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_returnOfInvalidType_subtype);
+      });
+      _ut.test('test_returnOfInvalidType_supertype', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_returnOfInvalidType_supertype);
+      });
+      _ut.test('test_typeArgumentNotMatchingBounds_const', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_typeArgumentNotMatchingBounds_const);
+      });
+      _ut.test('test_typeArgumentNotMatchingBounds_new', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_typeArgumentNotMatchingBounds_new);
+      });
+    });
+  }
+}
 class LibraryTest extends EngineTestCase {
   /**
    * The error listener to which all errors will be reported.
@@ -753,6 +1069,9 @@ class ResolverTestCase extends EngineTestCase {
   Source addSource(String filePath, String contents) {
     Source source = new FileBasedSource.con1(_sourceFactory, FileUtilities2.createFile(filePath));
     _sourceFactory.setContents(source, contents);
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.added(source);
+    _analysisContext.applyChanges(changeSet);
     return source;
   }
   /**
@@ -782,13 +1101,13 @@ class ResolverTestCase extends EngineTestCase {
       ClassElementImpl type = new ClassElementImpl(ASTFactory.identifier2(typeName));
       String fileName = "${typeName}.dart";
       CompilationUnitElementImpl compilationUnit = new CompilationUnitElementImpl(fileName);
-      compilationUnit.source = new FileBasedSource.con1(_sourceFactory, FileUtilities2.createFile(fileName));
+      compilationUnit.source = createSource2(fileName);
       compilationUnit.types = <ClassElement> [type];
       sourcedCompilationUnits[i] = compilationUnit;
     }
     String fileName = "${libraryName}.dart";
     CompilationUnitElementImpl compilationUnit = new CompilationUnitElementImpl(fileName);
-    compilationUnit.source = new FileBasedSource.con1(_sourceFactory, FileUtilities2.createFile(fileName));
+    compilationUnit.source = createSource2(fileName);
     LibraryElementImpl library = new LibraryElementImpl(context, ASTFactory.libraryIdentifier2([libraryName]));
     library.definingCompilationUnit = compilationUnit;
     library.parts = sourcedCompilationUnits;
@@ -821,9 +1140,19 @@ class ResolverTestCase extends EngineTestCase {
   void verify(List<Source> sources) {
     ResolutionVerifier verifier = new ResolutionVerifier();
     for (Source source in sources) {
-      _analysisContext.parse3(source, _errorListener).accept(verifier);
+      _analysisContext.parseCompilationUnit(source).accept(verifier);
     }
     verifier.assertResolved();
+  }
+  /**
+   * Create a source object representing a file with the given name and give it an empty content.
+   * @param fileName the name of the file for which a source is to be created
+   * @return the source that was created
+   */
+  FileBasedSource createSource2(String fileName) {
+    FileBasedSource source = new FileBasedSource.con1(_sourceFactory, FileUtilities2.createFile(fileName));
+    _sourceFactory.setContents(source, "");
+    return source;
   }
   static dartSuite() {
     _ut.group('ResolverTestCase', () {
@@ -992,24 +1321,6 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource("/test.dart", EngineTestCase.createSource(["class A {", "  int x;", "  A() : x = 0, x = 1 {}", "}"]));
     resolve(source, []);
     assertErrors([CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS]);
-    verify([source]);
-  }
-  void fail_fieldInitializedInInitializerAndDeclaration() {
-    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A {", "  final int x = 0;", "  A() : x = 1 {}", "}"]));
-    resolve(source, []);
-    assertErrors([CompileTimeErrorCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION]);
-    verify([source]);
-  }
-  void fail_fieldInitializeInParameterAndInitializer() {
-    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A {", "  int x;", "  A(this.x) : x = 1 {}", "}"]));
-    resolve(source, []);
-    assertErrors([CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER]);
-    verify([source]);
-  }
-  void fail_fieldInitializerOutsideConstructor() {
-    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A {", "  int x;", "  m(this.x) {}", "}"]));
-    resolve(source, []);
-    assertErrors([CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR]);
     verify([source]);
   }
   void fail_finalInitializedInDeclarationAndConstructor_assignment() {
@@ -1424,12 +1735,6 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     assertErrors([CompileTimeErrorCode.SUPER_INITIALIZER_IN_OBJECT]);
     verify([source]);
   }
-  void fail_throwWithoutValueOutsideOn() {
-    Source source = addSource("/test.dart", EngineTestCase.createSource(["f() {", "  throw;", "}"]));
-    resolve(source, []);
-    assertErrors([CompileTimeErrorCode.THROW_WITHOUT_VALUE_OUTSIDE_ON]);
-    verify([source]);
-  }
   void fail_typeArgumentsForNonGenericClass_creation_const() {
     Source source = addSource("/test.dart", EngineTestCase.createSource(["class A {}", "f(p) {", "  return const A<int>();", "}"]));
     resolve(source, []);
@@ -1696,6 +2001,36 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     assertErrors([CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
     verify([source]);
   }
+  void test_fieldInitializedInInitializerAndDeclaration_const() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A {", "  const int x = 0;", "  A() : x = 1 {}", "}"]));
+    resolve(source, []);
+    assertErrors([CompileTimeErrorCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION]);
+    verify([source]);
+  }
+  void test_fieldInitializedInInitializerAndDeclaration_final() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A {", "  final int x = 0;", "  A() : x = 1 {}", "}"]));
+    resolve(source, []);
+    assertErrors([CompileTimeErrorCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION]);
+    verify([source]);
+  }
+  void test_fieldInitializeInParameterAndInitializer() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A {", "  int x;", "  A(this.x) : x = 1 {}", "}"]));
+    resolve(source, []);
+    assertErrors([CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER]);
+    verify([source]);
+  }
+  void test_fieldInitializerOutsideConstructor() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A {", "  int x;", "  m(this.x) {}", "}"]));
+    resolve(source, []);
+    assertErrors([CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR]);
+    verify([source]);
+  }
+  void test_fieldInitializerOutsideConstructor_defaultParameters() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A {", "  int x;", "  m([this.x]) {}", "}"]));
+    resolve(source, []);
+    assertErrors([CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR]);
+    verify([source]);
+  }
   void test_implementsNonClass() {
     Source source = addSource("/test.dart", EngineTestCase.createSource(["int A;", "class B implements A {}"]));
     resolve(source, []);
@@ -1739,6 +2074,12 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource("/test.dart", EngineTestCase.createSource(["f(a) {", "  return const {'a' : a};", "}"]));
     resolve(source, []);
     assertErrors([CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE]);
+    verify([source]);
+  }
+  void test_rethrowOutsideCatch() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["f() {", "  rethrow;", "}"]));
+    resolve(source, []);
+    assertErrors([CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH]);
     verify([source]);
   }
   void test_uriWithInterpolation_constant() {
@@ -1873,6 +2214,26 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_extendsOrImplementsDisallowedClass_implements_num);
       });
+      _ut.test('test_fieldInitializeInParameterAndInitializer', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_fieldInitializeInParameterAndInitializer);
+      });
+      _ut.test('test_fieldInitializedInInitializerAndDeclaration_const', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_fieldInitializedInInitializerAndDeclaration_const);
+      });
+      _ut.test('test_fieldInitializedInInitializerAndDeclaration_final', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_fieldInitializedInInitializerAndDeclaration_final);
+      });
+      _ut.test('test_fieldInitializerOutsideConstructor', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_fieldInitializerOutsideConstructor);
+      });
+      _ut.test('test_fieldInitializerOutsideConstructor_defaultParameters', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_fieldInitializerOutsideConstructor_defaultParameters);
+      });
       _ut.test('test_implementsNonClass', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_implementsNonClass);
@@ -1904,6 +2265,10 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
       _ut.test('test_nonConstMapValue', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_nonConstMapValue);
+      });
+      _ut.test('test_rethrowOutsideCatch', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_rethrowOutsideCatch);
       });
       _ut.test('test_uriWithInterpolation_constant', () {
         final __test = new CompileTimeErrorCodeTest();
@@ -2005,18 +2370,18 @@ class StaticTypeVerifier extends GeneralizingASTVisitor<Object> {
     return super.visitPrefixedIdentifier(node);
   }
   Object visitSimpleIdentifier(SimpleIdentifier node) {
-    ASTNode parent19 = node.parent;
-    if (parent19 is MethodInvocation && identical(node, ((parent19 as MethodInvocation)).methodName)) {
+    ASTNode parent21 = node.parent;
+    if (parent21 is MethodInvocation && identical(node, ((parent21 as MethodInvocation)).methodName)) {
       return null;
-    } else if (parent19 is RedirectingConstructorInvocation && identical(node, ((parent19 as RedirectingConstructorInvocation)).constructorName)) {
+    } else if (parent21 is RedirectingConstructorInvocation && identical(node, ((parent21 as RedirectingConstructorInvocation)).constructorName)) {
       return null;
-    } else if (parent19 is SuperConstructorInvocation && identical(node, ((parent19 as SuperConstructorInvocation)).constructorName)) {
+    } else if (parent21 is SuperConstructorInvocation && identical(node, ((parent21 as SuperConstructorInvocation)).constructorName)) {
       return null;
-    } else if (parent19 is ConstructorName && identical(node, ((parent19 as ConstructorName)).name)) {
+    } else if (parent21 is ConstructorName && identical(node, ((parent21 as ConstructorName)).name)) {
       return null;
-    } else if (parent19 is Label && identical(node, ((parent19 as Label)).label)) {
+    } else if (parent21 is Label && identical(node, ((parent21 as Label)).label)) {
       return null;
-    } else if (parent19 is ImportDirective && identical(node, ((parent19 as ImportDirective)).prefix)) {
+    } else if (parent21 is ImportDirective && identical(node, ((parent21 as ImportDirective)).prefix)) {
       return null;
     } else if (node.element is PrefixElement) {
       return null;
@@ -2388,9 +2753,9 @@ class ElementResolverTest extends EngineTestCase {
     SimpleIdentifier node = ASTFactory.identifier2(fieldName);
     ASTFactory.assignmentExpression(node, TokenType.EQ, ASTFactory.integer(0));
     resolveInClass(node, classA);
-    Element element50 = node.element;
-    EngineTestCase.assertInstanceOf(PropertyAccessorElement, element50);
-    JUnitTestCase.assertTrue(((element50 as PropertyAccessorElement)).isSetter());
+    Element element56 = node.element;
+    EngineTestCase.assertInstanceOf(PropertyAccessorElement, element56);
+    JUnitTestCase.assertTrue(((element56 as PropertyAccessorElement)).isSetter());
     _listener.assertNoErrors();
   }
   void test_visitSuperConstructorInvocation() {
@@ -2429,16 +2794,17 @@ class ElementResolverTest extends EngineTestCase {
     AnalysisContextImpl context = new AnalysisContextImpl();
     SourceFactory sourceFactory = new SourceFactory.con2([new DartUriResolver(DartSdk.defaultSdk)]);
     context.sourceFactory = sourceFactory;
+    FileBasedSource source = new FileBasedSource.con1(sourceFactory, FileUtilities2.createFile("/test.dart"));
     CompilationUnitElementImpl definingCompilationUnit = new CompilationUnitElementImpl("test.dart");
-    definingCompilationUnit.source = new FileBasedSource.con1(sourceFactory, FileUtilities2.createFile("/test.dart"));
+    definingCompilationUnit.source = source;
     _definingLibrary = ElementFactory.library(context, "test");
     _definingLibrary.definingCompilationUnit = definingCompilationUnit;
-    Library library = new Library(context, _listener, null);
+    Library library = new Library(context, _listener, source);
     library.libraryElement = _definingLibrary;
-    _visitor = new ResolverVisitor(library, null, _typeProvider);
+    _visitor = new ResolverVisitor(library, source, _typeProvider);
     try {
       return _visitor.elementResolver_J2DAccessor as ElementResolver;
-    } on JavaException catch (exception) {
+    } catch (exception) {
       throw new IllegalArgumentException("Could not create resolver", exception);
     }
   }
@@ -2507,7 +2873,7 @@ class ElementResolverTest extends EngineTestCase {
         _visitor.enclosingClass_J2DAccessor = null;
         _visitor.nameScope_J2DAccessor = outerScope;
       }
-    } on JavaException catch (exception) {
+    } catch (exception) {
       throw new IllegalArgumentException("Could not resolve node", exception);
     }
   }
@@ -2532,7 +2898,7 @@ class ElementResolverTest extends EngineTestCase {
       } finally {
         _visitor.nameScope_J2DAccessor = outerScope;
       }
-    } on JavaException catch (exception) {
+    } catch (exception) {
       throw new IllegalArgumentException("Could not resolve node", exception);
     }
   }
@@ -2558,7 +2924,7 @@ class ElementResolverTest extends EngineTestCase {
       } finally {
         _visitor.labelScope_J2DAccessor = outerScope;
       }
-    } on JavaException catch (exception) {
+    } catch (exception) {
       throw new IllegalArgumentException("Could not resolve node", exception);
     }
   }
@@ -3041,37 +3407,6 @@ class ErrorResolverTest extends ResolverTestCase {
   }
 }
 /**
- * The class {@code AnalysisContextFactory} defines utility methods used to create analysis contexts
- * for testing purposes.
- */
-class AnalysisContextFactory {
-  /**
-   * Create an analysis context that has a fake core library already resolved.
-   * @return the analysis context that was created
-   */
-  static AnalysisContextImpl contextWithCore() {
-    AnalysisContextImpl context = new AnalysisContextImpl();
-    SourceFactory sourceFactory = new SourceFactory.con2([new DartUriResolver(DartSdk.defaultSdk), new FileUriResolver()]);
-    context.sourceFactory = sourceFactory;
-    TestTypeProvider provider = new TestTypeProvider();
-    CompilationUnitElementImpl unit = new CompilationUnitElementImpl("core.dart");
-    unit.types = <ClassElement> [provider.boolType.element, provider.doubleType.element, provider.functionType.element, provider.intType.element, provider.listType.element, provider.mapType.element, provider.numType.element, provider.objectType.element, provider.stackTraceType.element, provider.stringType.element, provider.typeType.element];
-    LibraryElementImpl library = new LibraryElementImpl(context, ASTFactory.libraryIdentifier2(["dart", "core"]));
-    library.definingCompilationUnit = unit;
-    Map<Source, LibraryElement> elementMap = new Map<Source, LibraryElement>();
-    Source coreSource = sourceFactory.forUri(DartSdk.DART_CORE);
-    elementMap[coreSource] = library;
-    context.recordLibraryElements(elementMap);
-    unit.source = coreSource;
-    return context;
-  }
-  /**
-   * Prevent the creation of instances of this class.
-   */
-  AnalysisContextFactory() {
-  }
-}
-/**
  * Instances of the class {@code TestTypeProvider} implement a type provider that can be used by
  * tests without creating the element model for the core library.
  */
@@ -3249,6 +3584,45 @@ class TestTypeProvider implements TypeProvider {
     doubleElement.methods = <MethodElement> [ElementFactory.methodElement("remainder", _doubleType, [_numType]), ElementFactory.methodElement("+", _doubleType, [_numType]), ElementFactory.methodElement("-", _doubleType, [_numType]), ElementFactory.methodElement("*", _doubleType, [_numType]), ElementFactory.methodElement("%", _doubleType, [_numType]), ElementFactory.methodElement("/", _doubleType, [_numType]), ElementFactory.methodElement("~/", _doubleType, [_numType]), ElementFactory.methodElement("-", _doubleType, []), ElementFactory.methodElement("abs", _doubleType, []), ElementFactory.methodElement("round", _doubleType, []), ElementFactory.methodElement("floor", _doubleType, []), ElementFactory.methodElement("ceil", _doubleType, []), ElementFactory.methodElement("truncate", _doubleType, []), ElementFactory.methodElement("toString", _stringType, [])];
   }
 }
+/**
+ * The class {@code AnalysisContextFactory} defines utility methods used to create analysis contexts
+ * for testing purposes.
+ */
+class AnalysisContextFactory {
+  /**
+   * Create an analysis context that has a fake core library already resolved.
+   * @return the analysis context that was created
+   */
+  static AnalysisContextImpl contextWithCore() {
+    AnalysisContextImpl context = new AnalysisContextImpl();
+    SourceFactory sourceFactory = new SourceFactory.con2([new DartUriResolver(DartSdk.defaultSdk), new FileUriResolver()]);
+    context.sourceFactory = sourceFactory;
+    TestTypeProvider provider = new TestTypeProvider();
+    CompilationUnitElementImpl coreUnit = new CompilationUnitElementImpl("core.dart");
+    Source coreSource = sourceFactory.forUri(DartSdk.DART_CORE);
+    coreUnit.source = coreSource;
+    coreUnit.types = <ClassElement> [provider.boolType.element, provider.doubleType.element, provider.functionType.element, provider.intType.element, provider.listType.element, provider.mapType.element, provider.numType.element, provider.objectType.element, provider.stackTraceType.element, provider.stringType.element, provider.typeType.element];
+    LibraryElementImpl coreLibrary = new LibraryElementImpl(context, ASTFactory.libraryIdentifier2(["dart", "core"]));
+    coreLibrary.definingCompilationUnit = coreUnit;
+    CompilationUnitElementImpl htmlUnit = new CompilationUnitElementImpl("html_dartium.dart");
+    Source htmlSource = sourceFactory.forUri(DartSdk.DART_HTML);
+    htmlUnit.source = htmlSource;
+    LibraryElementImpl htmlLibrary = new LibraryElementImpl(context, ASTFactory.libraryIdentifier2(["dart", "dom", "html"]));
+    htmlLibrary.definingCompilationUnit = htmlUnit;
+    Map<Source, LibraryElement> elementMap = new Map<Source, LibraryElement>();
+    elementMap[coreSource] = coreLibrary;
+    elementMap[htmlSource] = htmlLibrary;
+    context.setContents(coreSource, "");
+    context.setContents(htmlSource, "");
+    context.recordLibraryElements(elementMap);
+    return context;
+  }
+  /**
+   * Prevent the creation of instances of this class.
+   */
+  AnalysisContextFactory() {
+  }
+}
 class LibraryImportScopeTest extends ResolverTestCase {
   void test_conflictingImports() {
     AnalysisContext context = new AnalysisContextImpl();
@@ -3362,10 +3736,10 @@ class ResolutionVerifier extends RecursiveASTVisitor<Object> {
    * structures that are expected to have been resolved have an element associated with them.
    */
   ResolutionVerifier() {
-    _jtd_constructor_319_impl();
+    _jtd_constructor_323_impl();
   }
-  _jtd_constructor_319_impl() {
-    _jtd_constructor_320_impl(null);
+  _jtd_constructor_323_impl() {
+    _jtd_constructor_324_impl(null);
   }
   /**
    * Initialize a newly created verifier to verify that all of the identifiers in the visited AST
@@ -3376,9 +3750,9 @@ class ResolutionVerifier extends RecursiveASTVisitor<Object> {
    * therefore not cause the test to fail
    */
   ResolutionVerifier.con1(Set<ASTNode> knownExceptions2) {
-    _jtd_constructor_320_impl(knownExceptions2);
+    _jtd_constructor_324_impl(knownExceptions2);
   }
-  _jtd_constructor_320_impl(Set<ASTNode> knownExceptions2) {
+  _jtd_constructor_324_impl(Set<ASTNode> knownExceptions2) {
     this._knownExceptions = knownExceptions2;
   }
   /**
@@ -4074,7 +4448,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
   Type2 analyze2(Expression node, InterfaceType thisType) {
     try {
       _analyzer.thisType_J2DAccessor = thisType;
-    } on JavaException catch (exception) {
+    } catch (exception) {
       throw new IllegalArgumentException("Could not set type of 'this'", exception);
     }
     node.accept(_analyzer);
@@ -4155,16 +4529,19 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
    */
   StaticTypeAnalyzer createAnalyzer() {
     AnalysisContextImpl context = new AnalysisContextImpl();
-    context.sourceFactory = new SourceFactory.con2([new DartUriResolver(DartSdk.defaultSdk)]);
+    SourceFactory sourceFactory = new SourceFactory.con2([new DartUriResolver(DartSdk.defaultSdk)]);
+    context.sourceFactory = sourceFactory;
+    FileBasedSource source = new FileBasedSource.con1(sourceFactory, FileUtilities2.createFile("/lib.dart"));
     CompilationUnitElementImpl definingCompilationUnit = new CompilationUnitElementImpl("lib.dart");
+    definingCompilationUnit.source = source;
     LibraryElementImpl definingLibrary = new LibraryElementImpl(context, null);
     definingLibrary.definingCompilationUnit = definingCompilationUnit;
-    Library library = new Library(context, _listener, null);
+    Library library = new Library(context, _listener, source);
     library.libraryElement = definingLibrary;
-    ResolverVisitor visitor = new ResolverVisitor(library, null, _typeProvider);
+    ResolverVisitor visitor = new ResolverVisitor(library, source, _typeProvider);
     try {
       return visitor.typeAnalyzer_J2DAccessor as StaticTypeAnalyzer;
-    } on JavaException catch (exception) {
+    } catch (exception) {
       throw new IllegalArgumentException("Could not create analyzer", exception);
     }
   }
@@ -4240,12 +4617,12 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
    */
   void setType(FormalParameter parameter, Type2 type38) {
     SimpleIdentifier identifier17 = parameter.identifier;
-    Element element51 = identifier17.element;
-    if (element51 is! ParameterElement) {
-      element51 = new ParameterElementImpl(identifier17);
-      identifier17.element = element51;
+    Element element57 = identifier17.element;
+    if (element57 is! ParameterElement) {
+      element57 = new ParameterElementImpl(identifier17);
+      identifier17.element = element57;
     }
-    ((element51 as ParameterElementImpl)).type = type38;
+    ((element57 as ParameterElementImpl)).type = type38;
   }
   static dartSuite() {
     _ut.group('StaticTypeAnalyzerTest', () {
@@ -4504,7 +4881,7 @@ class EnclosedScopeTest extends ResolverTestCase {
   void test_define_duplicate() {
     LibraryElement definingLibrary2 = createTestLibrary();
     GatheringErrorListener errorListener2 = new GatheringErrorListener();
-    Scope rootScope = new Scope_10(definingLibrary2, errorListener2);
+    Scope rootScope = new Scope_12(definingLibrary2, errorListener2);
     EnclosedScope scope = new EnclosedScope(rootScope);
     VariableElement element1 = ElementFactory.localVariableElement(ASTFactory.identifier2("v1"));
     VariableElement element2 = ElementFactory.localVariableElement(ASTFactory.identifier2("v1"));
@@ -4515,7 +4892,7 @@ class EnclosedScopeTest extends ResolverTestCase {
   void test_define_normal() {
     LibraryElement definingLibrary3 = createTestLibrary();
     GatheringErrorListener errorListener3 = new GatheringErrorListener();
-    Scope rootScope = new Scope_11(definingLibrary3, errorListener3);
+    Scope rootScope = new Scope_13(definingLibrary3, errorListener3);
     EnclosedScope outerScope = new EnclosedScope(rootScope);
     EnclosedScope innerScope = new EnclosedScope(outerScope);
     VariableElement element1 = ElementFactory.localVariableElement(ASTFactory.identifier2("v1"));
@@ -4537,18 +4914,18 @@ class EnclosedScopeTest extends ResolverTestCase {
     });
   }
 }
-class Scope_10 extends Scope {
+class Scope_12 extends Scope {
   LibraryElement definingLibrary2;
   GatheringErrorListener errorListener2;
-  Scope_10(this.definingLibrary2, this.errorListener2) : super();
+  Scope_12(this.definingLibrary2, this.errorListener2) : super();
   LibraryElement get definingLibrary => definingLibrary2;
   AnalysisErrorListener get errorListener => errorListener2;
   Element lookup3(String name, LibraryElement referencingLibrary) => null;
 }
-class Scope_11 extends Scope {
+class Scope_13 extends Scope {
   LibraryElement definingLibrary3;
   GatheringErrorListener errorListener3;
-  Scope_11(this.definingLibrary3, this.errorListener3) : super();
+  Scope_13(this.definingLibrary3, this.errorListener3) : super();
   LibraryElement get definingLibrary => definingLibrary3;
   AnalysisErrorListener get errorListener => errorListener3;
   Element lookup3(String name, LibraryElement referencingLibrary) => null;
@@ -4798,86 +5175,8 @@ class SimpleResolverTest extends ResolverTestCase {
     assertNoErrors();
     verify([source]);
   }
-  void test_argumentDefinitionTestNonParameter_formalParameter() {
-    Source source = addSource("/test.dart", EngineTestCase.createSource(["f(var v) {", "  return ?v;", "}"]));
-    resolve(source, []);
-    assertNoErrors();
-    verify([source]);
-  }
-  void test_argumentDefinitionTestNonParameter_namedParameter() {
-    Source source = addSource("/test.dart", EngineTestCase.createSource(["f({var v : 0}) {", "  return ?v;", "}"]));
-    resolve(source, []);
-    assertNoErrors();
-    verify([source]);
-  }
-  void test_argumentDefinitionTestNonParameter_optionalParameter() {
-    Source source = addSource("/test.dart", EngineTestCase.createSource(["f([var v]) {", "  return ?v;", "}"]));
-    resolve(source, []);
-    assertNoErrors();
-    verify([source]);
-  }
-  void test_breakWithoutLabelInSwitch() {
-    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A {", "  void m(int i) {", "    switch (i) {", "      case 0:", "        break;", "    }", "  }", "}"]));
-    resolve(source, []);
-    assertNoErrors();
-    verify([source]);
-  }
-  void test_builtInIdentifierAsType_dynamic() {
-    Source source = addSource("/test.dart", EngineTestCase.createSource(["f() {", "  dynamic x;", "}"]));
-    resolve(source, []);
-    assertNoErrors();
-    verify([source]);
-  }
-  void test_caseExpressionTypeImplementsEquals_int() {
-    Source source = addSource("/test.dart", EngineTestCase.createSource(["f(int i) {", "  switch(i) {", "    case(1) : return 1;", "    default: return 0;", "  }", "}"]));
-    resolve(source, []);
-    assertNoErrors();
-    verify([source]);
-  }
-  void test_caseExpressionTypeImplementsEquals_Object() {
-    Source source = addSource("/test.dart", EngineTestCase.createSource(["class IntWrapper {", "  final int value;", "  const IntWrapper(this.value);", "}", "", "f(IntWrapper intWrapper) {", "  switch(intWrapper) {", "    case(const IntWrapper(1)) : return 1;", "    default: return 0;", "  }", "}"]));
-    resolve(source, []);
-    assertNoErrors();
-    verify([source]);
-  }
-  void test_caseExpressionTypeImplementsEquals_String() {
-    Source source = addSource("/test.dart", EngineTestCase.createSource(["f(String s) {", "  switch(s) {", "    case('1') : return 1;", "    default: return 0;", "  }", "}"]));
-    resolve(source, []);
-    assertNoErrors();
-    verify([source]);
-  }
   void test_class_extends_implements() {
     Source source = addSource("/test.dart", EngineTestCase.createSource(["class A extends B implements C {}", "class B {}", "class C {}"]));
-    resolve(source, []);
-    assertNoErrors();
-    verify([source]);
-  }
-  void test_constConstructorWithNonFinalField_const() {
-    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A {", "  const int x;", "  const A() {}", "}"]));
-    resolve(source, []);
-    assertNoErrors();
-    verify([source]);
-  }
-  void test_constConstructorWithNonFinalField_final() {
-    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A {", "  final int x;", "  const A() {}", "}"]));
-    resolve(source, []);
-    assertNoErrors();
-    verify([source]);
-  }
-  void test_constConstructorWithNonFinalField_syntheticField() {
-    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A {", "  const A();", "  set x(value) {}", "  get x {return 0;}", "}"]));
-    resolve(source, []);
-    assertNoErrors();
-    verify([source]);
-  }
-  void test_defaultValueInFunctionTypeAlias() {
-    Source source = addSource("/test.dart", EngineTestCase.createSource(["typedef F([x]);"]));
-    resolve(source, []);
-    assertErrors([]);
-    verify([source]);
-  }
-  void test_duplicateDefinition_getter() {
-    Source source = addSource("/test.dart", EngineTestCase.createSource(["bool get a => true;"]));
     resolve(source, []);
     assertNoErrors();
     verify([source]);
@@ -4922,36 +5221,6 @@ class SimpleResolverTest extends ResolverTestCase {
     Source source = addSource("/test.dart", EngineTestCase.createSource(["f() {", "  List<List<int>> b;", "  b[0][0] = 'hi';", "}"]));
     resolve(source, []);
     assertErrors([StaticTypeWarningCode.INVALID_ASSIGNMENT]);
-    verify([source]);
-  }
-  void test_invalidAssignment() {
-    Source source = addSource("/test.dart", EngineTestCase.createSource(["f() {", "  var x;", "  var y;", "  x = y;", "}"]));
-    resolve(source, []);
-    assertNoErrors();
-    verify([source]);
-  }
-  void test_invalidAssignment_toDynamic() {
-    Source source = addSource("/test.dart", EngineTestCase.createSource(["f() {", "  var g;", "  g = () => 0;", "}"]));
-    resolve(source, []);
-    assertNoErrors();
-    verify([source]);
-  }
-  void test_invocationOfNonFunction_dynamic() {
-    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A {", "  var f;", "}", "class B extends A {", "  g() {", "    f();", "  }", "}"]));
-    resolve(source, []);
-    assertNoErrors();
-    verify([source]);
-  }
-  void test_invocationOfNonFunction_getter() {
-    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A {", "  var g;", "}", "f() {", "  A a;", "  a.g();", "}"]));
-    resolve(source, []);
-    assertNoErrors();
-    verify([source]);
-  }
-  void test_invocationOfNonFunction_localVariable() {
-    Source source = addSource("/test.dart", EngineTestCase.createSource(["f() {", "  var g;", "  g();", "}"]));
-    resolve(source, []);
-    assertNoErrors();
     verify([source]);
   }
   void test_invoke_dynamicThroughGetter() {
@@ -5020,117 +5289,17 @@ class SimpleResolverTest extends ResolverTestCase {
     assertNoErrors();
     verify([source]);
   }
-  void test_newWithAbstractClass_factory() {
-    Source source = addSource("/test.dart", EngineTestCase.createSource(["abstract class A {", "  factory A() { return new B(); }", "}", "class B implements A {", "  B() {}", "}", "A f() {", "  return new A();", "}"]));
-    resolve(source, []);
-    assertNoErrors();
-    verify([source]);
-  }
-  void test_nonBoolExpression_assert_bool() {
-    Source source = addSource("/test.dart", EngineTestCase.createSource(["f() {", "  assert(true);", "}"]));
-    resolve(source, []);
-    assertNoErrors();
-    verify([source]);
-  }
-  void test_nonBoolExpression_assert_functionType() {
-    Source source = addSource("/test.dart", EngineTestCase.createSource(["bool makeAssertion() => true;", "f() {", "  assert(makeAssertion);", "}"]));
-    resolve(source, []);
-    assertNoErrors();
-    verify([source]);
-  }
   void test_resolveAgainstNull() {
     Source source = addSource("/test.dart", EngineTestCase.createSource(["f(var p) {", "  return null == p;", "}"]));
     resolve(source, []);
     assertNoErrors();
     verify([source]);
   }
-  void test_returnOfInvalidType_dynamic() {
-    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A {", "  static void testLogicalOp() {", "    testOr(a, b, onTypeError) {", "      try {", "        return a || b;", "      } on TypeError catch (t) {", "        return onTypeError;", "      }", "    }", "  }", "}"]));
-    resolve(source, []);
-    assertNoErrors();
-    verify([source]);
-  }
-  void test_returnOfInvalidType_subtype() {
-    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A {}", "class B extends A {}", "A f(B b) { return b; }"]));
-    resolve(source, []);
-    assertNoErrors();
-    verify([source]);
-  }
-  void test_returnOfInvalidType_supertype() {
-    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A {}", "class B extends A {}", "B f(A a) { return a; }"]));
-    resolve(source, []);
-    assertNoErrors();
-    verify([source]);
-  }
-  void test_typeArgumentNotMatchingBounds_const() {
-    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A {}", "class B extends A {}", "class G<E extends A> {", "  const G() {}", "}", "f() { return const G<B>(); }"]));
-    resolve(source, []);
-    assertNoErrors();
-    verify([source]);
-  }
-  void test_typeArgumentNotMatchingBounds_new() {
-    Source source = addSource("/test.dart", EngineTestCase.createSource(["class A {}", "class B extends A {}", "class G<E extends A> {}", "f() { return new G<B>(); }"]));
-    resolve(source, []);
-    assertNoErrors();
-    verify([source]);
-  }
   static dartSuite() {
     _ut.group('SimpleResolverTest', () {
-      _ut.test('test_argumentDefinitionTestNonParameter_formalParameter', () {
-        final __test = new SimpleResolverTest();
-        runJUnitTest(__test, __test.test_argumentDefinitionTestNonParameter_formalParameter);
-      });
-      _ut.test('test_argumentDefinitionTestNonParameter_namedParameter', () {
-        final __test = new SimpleResolverTest();
-        runJUnitTest(__test, __test.test_argumentDefinitionTestNonParameter_namedParameter);
-      });
-      _ut.test('test_argumentDefinitionTestNonParameter_optionalParameter', () {
-        final __test = new SimpleResolverTest();
-        runJUnitTest(__test, __test.test_argumentDefinitionTestNonParameter_optionalParameter);
-      });
-      _ut.test('test_breakWithoutLabelInSwitch', () {
-        final __test = new SimpleResolverTest();
-        runJUnitTest(__test, __test.test_breakWithoutLabelInSwitch);
-      });
-      _ut.test('test_builtInIdentifierAsType_dynamic', () {
-        final __test = new SimpleResolverTest();
-        runJUnitTest(__test, __test.test_builtInIdentifierAsType_dynamic);
-      });
-      _ut.test('test_caseExpressionTypeImplementsEquals_Object', () {
-        final __test = new SimpleResolverTest();
-        runJUnitTest(__test, __test.test_caseExpressionTypeImplementsEquals_Object);
-      });
-      _ut.test('test_caseExpressionTypeImplementsEquals_String', () {
-        final __test = new SimpleResolverTest();
-        runJUnitTest(__test, __test.test_caseExpressionTypeImplementsEquals_String);
-      });
-      _ut.test('test_caseExpressionTypeImplementsEquals_int', () {
-        final __test = new SimpleResolverTest();
-        runJUnitTest(__test, __test.test_caseExpressionTypeImplementsEquals_int);
-      });
       _ut.test('test_class_extends_implements', () {
         final __test = new SimpleResolverTest();
         runJUnitTest(__test, __test.test_class_extends_implements);
-      });
-      _ut.test('test_constConstructorWithNonFinalField_const', () {
-        final __test = new SimpleResolverTest();
-        runJUnitTest(__test, __test.test_constConstructorWithNonFinalField_const);
-      });
-      _ut.test('test_constConstructorWithNonFinalField_final', () {
-        final __test = new SimpleResolverTest();
-        runJUnitTest(__test, __test.test_constConstructorWithNonFinalField_final);
-      });
-      _ut.test('test_constConstructorWithNonFinalField_syntheticField', () {
-        final __test = new SimpleResolverTest();
-        runJUnitTest(__test, __test.test_constConstructorWithNonFinalField_syntheticField);
-      });
-      _ut.test('test_defaultValueInFunctionTypeAlias', () {
-        final __test = new SimpleResolverTest();
-        runJUnitTest(__test, __test.test_defaultValueInFunctionTypeAlias);
-      });
-      _ut.test('test_duplicateDefinition_getter', () {
-        final __test = new SimpleResolverTest();
-        runJUnitTest(__test, __test.test_duplicateDefinition_getter);
       });
       _ut.test('test_empty', () {
         final __test = new SimpleResolverTest();
@@ -5160,26 +5329,6 @@ class SimpleResolverTest extends ResolverTestCase {
         final __test = new SimpleResolverTest();
         runJUnitTest(__test, __test.test_indexExpression_typeParameters_invalidAssignmentWarning);
       });
-      _ut.test('test_invalidAssignment', () {
-        final __test = new SimpleResolverTest();
-        runJUnitTest(__test, __test.test_invalidAssignment);
-      });
-      _ut.test('test_invalidAssignment_toDynamic', () {
-        final __test = new SimpleResolverTest();
-        runJUnitTest(__test, __test.test_invalidAssignment_toDynamic);
-      });
-      _ut.test('test_invocationOfNonFunction_dynamic', () {
-        final __test = new SimpleResolverTest();
-        runJUnitTest(__test, __test.test_invocationOfNonFunction_dynamic);
-      });
-      _ut.test('test_invocationOfNonFunction_getter', () {
-        final __test = new SimpleResolverTest();
-        runJUnitTest(__test, __test.test_invocationOfNonFunction_getter);
-      });
-      _ut.test('test_invocationOfNonFunction_localVariable', () {
-        final __test = new SimpleResolverTest();
-        runJUnitTest(__test, __test.test_invocationOfNonFunction_localVariable);
-      });
       _ut.test('test_invoke_dynamicThroughGetter', () {
         final __test = new SimpleResolverTest();
         runJUnitTest(__test, __test.test_invoke_dynamicThroughGetter);
@@ -5208,41 +5357,9 @@ class SimpleResolverTest extends ResolverTestCase {
         final __test = new SimpleResolverTest();
         runJUnitTest(__test, __test.test_methodCascades_withSetter);
       });
-      _ut.test('test_newWithAbstractClass_factory', () {
-        final __test = new SimpleResolverTest();
-        runJUnitTest(__test, __test.test_newWithAbstractClass_factory);
-      });
-      _ut.test('test_nonBoolExpression_assert_bool', () {
-        final __test = new SimpleResolverTest();
-        runJUnitTest(__test, __test.test_nonBoolExpression_assert_bool);
-      });
-      _ut.test('test_nonBoolExpression_assert_functionType', () {
-        final __test = new SimpleResolverTest();
-        runJUnitTest(__test, __test.test_nonBoolExpression_assert_functionType);
-      });
       _ut.test('test_resolveAgainstNull', () {
         final __test = new SimpleResolverTest();
         runJUnitTest(__test, __test.test_resolveAgainstNull);
-      });
-      _ut.test('test_returnOfInvalidType_dynamic', () {
-        final __test = new SimpleResolverTest();
-        runJUnitTest(__test, __test.test_returnOfInvalidType_dynamic);
-      });
-      _ut.test('test_returnOfInvalidType_subtype', () {
-        final __test = new SimpleResolverTest();
-        runJUnitTest(__test, __test.test_returnOfInvalidType_subtype);
-      });
-      _ut.test('test_returnOfInvalidType_supertype', () {
-        final __test = new SimpleResolverTest();
-        runJUnitTest(__test, __test.test_returnOfInvalidType_supertype);
-      });
-      _ut.test('test_typeArgumentNotMatchingBounds_const', () {
-        final __test = new SimpleResolverTest();
-        runJUnitTest(__test, __test.test_typeArgumentNotMatchingBounds_const);
-      });
-      _ut.test('test_typeArgumentNotMatchingBounds_new', () {
-        final __test = new SimpleResolverTest();
-        runJUnitTest(__test, __test.test_typeArgumentNotMatchingBounds_new);
       });
     });
   }
@@ -5260,6 +5377,7 @@ main() {
 //  ScopeTest.dartSuite();
 //  CompileTimeErrorCodeTest.dartSuite();
 //  ErrorResolverTest.dartSuite();
+//  NonErrorResolverTest.dartSuite();
 //  SimpleResolverTest.dartSuite();
 //  StaticTypeWarningCodeTest.dartSuite();
 //  StaticWarningCodeTest.dartSuite();

@@ -127,8 +127,11 @@ class PageSpaceController {
   void EvaluateGarbageCollection(intptr_t in_use_before, intptr_t in_use_after,
                                  int64_t start, int64_t end);
 
-  void Enable() {
-    is_enabled_ = true;
+  void set_is_enabled(bool state) {
+    is_enabled_ = state;
+  }
+  bool is_enabled() {
+    return is_enabled_;
   }
 
  private:
@@ -204,8 +207,12 @@ class PageSpace {
 
   void StartEndAddress(uword* start, uword* end) const;
 
-  void EnableGrowthControl() {
-    page_space_controller_.Enable();
+  void SetGrowthControlState(bool state) {
+    page_space_controller_.set_is_enabled(state);
+  }
+
+  bool GrowthControlState() {
+    return page_space_controller_.is_enabled();
   }
 
   void WriteProtect(bool read_only);

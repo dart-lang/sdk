@@ -4,13 +4,14 @@
 
 library pubspec_test;
 
-import '../../../pkg/unittest/lib/unittest.dart';
-import 'test_pub.dart';
+import 'package:unittest/unittest.dart';
+
 import '../../pub/pubspec.dart';
 import '../../pub/source.dart';
 import '../../pub/source_registry.dart';
 import '../../pub/utils.dart';
 import '../../pub/version.dart';
+import 'test_pub.dart';
 
 class MockSource extends Source {
   final String name = "mock";

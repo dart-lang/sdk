@@ -42,10 +42,10 @@ class Token {
    * @param offset the offset from the beginning of the file to the first character in the token
    */
   Token.con1(TokenType type, int offset) {
-    _jtd_constructor_149_impl(type, offset);
+    _jtd_constructor_148_impl(type, offset);
   }
-  _jtd_constructor_149_impl(TokenType type, int offset) {
-    _jtd_constructor_150_impl(type, offset, type.lexeme);
+  _jtd_constructor_148_impl(TokenType type, int offset) {
+    _jtd_constructor_149_impl(type, offset, type.lexeme);
   }
   /**
    * Initialize a newly created token.
@@ -54,9 +54,9 @@ class Token {
    * @param value the lexeme represented by this token (not {@code null})
    */
   Token.con2(TokenType type4, int offset3, String value7) {
-    _jtd_constructor_150_impl(type4, offset3, value7);
+    _jtd_constructor_149_impl(type4, offset3, value7);
   }
-  _jtd_constructor_150_impl(TokenType type4, int offset3, String value7) {
+  _jtd_constructor_149_impl(TokenType type4, int offset3, String value7) {
     this._type = type4;
     this._value = value7;
     this._offset = offset3;
@@ -626,7 +626,7 @@ class CharBufferScanner extends AbstractScanner {
   /**
    * The buffer from which characters will be read.
    */
-  CharBuffer _buffer;
+  CharSequence _buffer;
   /**
    * The number of characters in the buffer.
    */
@@ -640,7 +640,7 @@ class CharBufferScanner extends AbstractScanner {
    * @param source the source being scanned
    * @param buffer the buffer from which characters will be read
    */
-  CharBufferScanner(Source source, CharBuffer buffer) : super(source) {
+  CharBufferScanner(Source source, CharSequence buffer) : super(source) {
     this._buffer = buffer;
     this._bufferLength = buffer.length();
     this._charOffset = -1;

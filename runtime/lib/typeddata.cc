@@ -171,7 +171,6 @@ DEFINE_NATIVE_ENTRY(ExternalTypedData_##name##_new, 1) {                       \
 
 CLASS_LIST_TYPED_DATA(TYPED_DATA_NEW_NATIVE)
 
-
 #define TYPED_DATA_GETTER(getter, object)                                      \
 DEFINE_NATIVE_ENTRY(TypedData_##getter, 2) {                                   \
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, instance, arguments->NativeArgAt(0)); \
@@ -306,5 +305,6 @@ TYPED_DATA_NATIVES(Int64Array, GetInt64, SetInt64, Integer, AsInt64Value)
 TYPED_DATA_UINT64_NATIVES(Uint64Array, GetUint64, SetUint64, Integer)
 TYPED_DATA_NATIVES(Float32Array, GetFloat32, SetFloat32, Double, value)
 TYPED_DATA_NATIVES(Float64Array, GetFloat64, SetFloat64, Double, value)
+TYPED_DATA_NATIVES(Float32x4Array, GetFloat32x4, SetFloat32x4, Float32x4, value)
 
 }  // namespace dart

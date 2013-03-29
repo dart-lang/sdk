@@ -4,7 +4,8 @@
 
 library lock_file_test;
 
-import '../../../pkg/unittest/lib/unittest.dart';
+import 'package:unittest/unittest.dart';
+
 import '../../pub/directory_tree.dart';
 
 main() {

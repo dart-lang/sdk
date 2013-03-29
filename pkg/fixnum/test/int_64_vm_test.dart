@@ -5,11 +5,12 @@
 // A test to compare the results of the fixnum library with the Dart VM
 
 library int64vmtest;
+
 import 'dart:math' as math;
 
-part '../lib/src/int32.dart';
-part '../lib/src/int64.dart';
-part '../lib/src/intx.dart';
+part 'package:fixnum/src/int32.dart';
+part 'package:fixnum/src/int64.dart';
+part 'package:fixnum/src/intx.dart';
 
 final random = new math.Random();
 

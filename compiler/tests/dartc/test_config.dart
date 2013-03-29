@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("junit_dartc_test_config");
+library junit_dartc_test_config;
 
-#import("../../../tools/testing/dart/test_suite.dart");
+import "../../../tools/testing/dart/test_suite.dart";
 
 class JUnitDartcTestSuite extends JUnitTestSuite {
   JUnitDartcTestSuite(Map configuration)

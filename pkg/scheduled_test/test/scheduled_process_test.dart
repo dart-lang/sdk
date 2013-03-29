@@ -7,10 +7,10 @@ library scheduled_process_test;
 import 'dart:async';
 import 'dart:io';
 
-import '../../../pkg/pathos/lib/path.dart' as path;
-import '../lib/scheduled_process.dart';
-import '../lib/scheduled_test.dart';
-import '../lib/src/mock_clock.dart' as mock_clock;
+import 'package:pathos/path.dart' as path;
+import 'package:scheduled_test/scheduled_process.dart';
+import 'package:scheduled_test/scheduled_test.dart';
+import 'package:scheduled_test/src/mock_clock.dart' as mock_clock;
 
 import 'metatest.dart';
 import 'utils.dart';

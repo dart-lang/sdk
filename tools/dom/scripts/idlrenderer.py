@@ -141,7 +141,12 @@ def render(idl_node, indent_str='  '):
       wsp(node.ext_attrs)
       if node.is_read_only:
         w('readonly ')
-      w('attribute %s %s' % (node.type.id, node.id))
+      w('attribute ')
+      w(node.type.id)
+      if (node.type.nullable):
+        w('?')
+      w(' ')
+      w(node.id)
       if node.raises:
         w(' raises (%s)' % node.raises.id)
       else:
@@ -162,7 +167,10 @@ def render(idl_node, indent_str='  '):
       if node.specials:
         w(node.specials, ' ')
         w(' ')
-      w('%s ' % node.type.id)
+      w(node.type.id)
+      if (node.type.nullable):
+        w('?')
+      w(' ')
       w(node.id)
       w('(')
       w(node.arguments, ', ')

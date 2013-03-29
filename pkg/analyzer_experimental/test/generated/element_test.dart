@@ -50,11 +50,11 @@ class ElementLocationImplTest extends EngineTestCase {
   void test_getComponents() {
     String encoding = "a;b;c";
     ElementLocationImpl location = new ElementLocationImpl.con2(encoding);
-    List<String> components2 = location.components;
-    EngineTestCase.assertLength(3, components2);
-    JUnitTestCase.assertEquals("a", components2[0]);
-    JUnitTestCase.assertEquals("b", components2[1]);
-    JUnitTestCase.assertEquals("c", components2[2]);
+    List<String> components3 = location.components;
+    EngineTestCase.assertLength(3, components3);
+    JUnitTestCase.assertEquals("a", components3[0]);
+    JUnitTestCase.assertEquals("b", components3[1]);
+    JUnitTestCase.assertEquals("c", components3[2]);
   }
   void test_getEncoding() {
     String encoding = "a;b;c;;d";
@@ -1484,7 +1484,7 @@ class FunctionTypeImplTest extends EngineTestCase {
   }
   void test_isSubtypeOf_baseCase_classFunction() {
     ClassElementImpl functionElement = ElementFactory.classElement2("Function", []);
-    InterfaceTypeImpl functionType = new InterfaceTypeImpl_12(functionElement);
+    InterfaceTypeImpl functionType = new InterfaceTypeImpl_14(functionElement);
     FunctionType f = ElementFactory.functionElement("f").type;
     JUnitTestCase.assertTrue(f.isSubtypeOf(functionType));
   }
@@ -1896,8 +1896,8 @@ class FunctionTypeImplTest extends EngineTestCase {
     });
   }
 }
-class InterfaceTypeImpl_12 extends InterfaceTypeImpl {
-  InterfaceTypeImpl_12(ClassElement arg0) : super.con1(arg0);
+class InterfaceTypeImpl_14 extends InterfaceTypeImpl {
+  InterfaceTypeImpl_14(ClassElement arg0) : super.con1(arg0);
   bool isDartCoreFunction() => true;
 }
 main() {

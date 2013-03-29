@@ -28,3 +28,36 @@ get _timerFactoryClosure => (int milliSeconds, void callback(Timer timer), bool 
   timer = new _Timer(() { canceller(id); });
   return timer;
 };
+
+class _PureIsolateTimer implements Timer {
+  final ReceivePort _port = new ReceivePort();
+  SendPort _sendPort; // Effectively final.
+
+  _PureIsolateTimer(int milliSeconds, callback, repeating) {
+    _sendPort = _port.toSendPort();
+    _port.receive((msg, replyTo) {
+      assert(msg == _TIMER_PING);
+      assert(replyTo == _HELPER_ISOLATE_PORT);
+      callback(this);
+      if (!repeating) _cancel();
+    });
+    _HELPER_ISOLATE_PORT.then((port) {
+      port.send([_NEW_TIMER, milliSeconds, repeating], _sendPort);
+    });
+  }
+
+  void cancel() {
+    _cancel();
+    _HELPER_ISOLATE_PORT.then((port) {
+      port.send([_CANCEL_TIMER], _sendPort);
+    });
+  }
+
+  void _cancel() {
+    _port.close();
+  }
+}
+
+get _pureIsolateTimerFactoryClosure =>
+    ((int milliSeconds, void callback(Timer time), bool repeating) =>
+        new _PureIsolateTimer(milliSeconds, callback, repeating));

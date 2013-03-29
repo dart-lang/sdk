@@ -6,6 +6,7 @@
 
 #include <string.h>
 #include <sys/time.h>
+#include <time.h>
 #include "embedders/openglui/common/canvas_context.h"
 #include "embedders/openglui/common/context.h"
 #include "embedders/openglui/common/dart_host.h"
@@ -15,6 +16,7 @@
 #include "embedders/openglui/common/sound_handler.h"
 #include "embedders/openglui/common/vm_glue.h"
 #include "embedders/openglui/emulator/emulator_graphics_handler.h"
+#include "embedders/openglui/emulator/emulator_resource.h"
 
 InputHandler* input_handler_ptr;
 LifeCycleHandler* lifecycle_handler_ptr;
@@ -22,17 +24,21 @@ LifeCycleHandler* lifecycle_handler_ptr;
 struct timeval tvStart;
 void tick(int data);
 
+Resource* MakePlatformResource(const char *path) {
+  return new EmulatorResource(path);
+}
+
 void display() {
   // Get number of msecs since last call.
   struct timeval tvEnd;
   gettimeofday(&tvEnd, NULL);
-  uint64_t elapsed = (tvEnd.tv_usec + 1000000 * tvEnd.tv_sec) -
-                 (tvStart.tv_usec + 1000000 * tvStart.tv_sec);
+  uint64_t now = (tvEnd.tv_usec + 1000000 * tvEnd.tv_sec);
 
   if (lifecycle_handler_ptr->OnStep() != 0) {
     exit(-1);
   }
   // Schedule next call, trying to aim for 60fps.
+  uint64_t elapsed = now - (tvStart.tv_usec + 1000000 * tvStart.tv_sec);
   int delay = 1000 / 60 - (elapsed / 1000);
   if (delay < 0) delay = 0;
   tvStart = tvEnd;
@@ -55,16 +61,16 @@ void reshape(int width, int height) {
 void keyboard(unsigned char key, int x, int y) {
   input_handler_ptr->OnKeyEvent(kKeyDown, time(0), key, false, false, false, 0);
   input_handler_ptr->OnKeyEvent(kKeyUp, time(0), key, false, false, false, 0);
-  if (key == 27) {
+  if (key == 'Q') {
     lifecycle_handler_ptr->Pause();
     lifecycle_handler_ptr->Deactivate();
     lifecycle_handler_ptr->FreeAllResources();
     exit(0);
-  } else if (key == '0') {
+  } else if (key == 'S') {
     LOGI("Simulating suspend");
     lifecycle_handler_ptr->Pause();
     lifecycle_handler_ptr->Deactivate();
-  } else if (key == '1') {
+  } else if (key == 'R') {
     LOGI("Simulating resume");
     lifecycle_handler_ptr->Activate();
     lifecycle_handler_ptr->Resume();

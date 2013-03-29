@@ -182,13 +182,6 @@ intptr_t RawObject::SizeFromClass() const {
         instance_size = Uint64Array::InstanceSize(byte_array_length);
         break;
       }
-      case kFloat32x4ArrayCid: {
-        const RawFloat32x4Array* raw_byte_array =
-            reinterpret_cast<const RawFloat32x4Array*>(this);
-        intptr_t byte_array_length = Smi::Value(raw_byte_array->ptr()->length_);
-        instance_size = Float32x4Array::InstanceSize(byte_array_length);
-        break;
-      }
       case kFloat32ArrayCid: {
         const RawFloat32Array* raw_byte_array =
             reinterpret_cast<const RawFloat32Array*>(this);
@@ -318,6 +311,15 @@ intptr_t RawObject::VisitPointers(ObjectPointerVisitor* visitor) {
             reinterpret_cast<RawExternalTypedData*>(this);
         size = RawExternalTypedData::VisitExternalTypedDataPointers(raw_obj,
                                                                     visitor);
+        break;
+      }
+#undef RAW_VISITPOINTERS
+#define RAW_VISITPOINTERS(clazz)                                               \
+      case kTypedData##clazz##ViewCid:
+      CLASS_LIST_TYPED_DATA(RAW_VISITPOINTERS)
+      case kByteDataViewCid: {
+        RawInstance* raw_obj = reinterpret_cast<RawInstance*>(this);
+        size = RawInstance::VisitInstancePointers(raw_obj, visitor);
         break;
       }
 #undef RAW_VISITPOINTERS
@@ -925,16 +927,6 @@ intptr_t RawUint64Array::VisitUint64ArrayPointers(
   return Uint64Array::InstanceSize(length);
 }
 
-
-intptr_t RawFloat32x4Array::VisitFloat32x4ArrayPointers(
-    RawFloat32x4Array *raw_obj, ObjectPointerVisitor* visitor) {
-  // Make sure that we got here with the tagged pointer as this.
-  ASSERT(raw_obj->IsHeapObject());
-  intptr_t length = Smi::Value(raw_obj->ptr()->length_);
-  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
-  return Float32x4Array::InstanceSize(length);
-}
-
 intptr_t RawFloat32Array::VisitFloat32ArrayPointers(
     RawFloat32Array *raw_obj, ObjectPointerVisitor* visitor) {
   // Make sure that we got here with the tagged pointer as this.
@@ -1033,15 +1025,6 @@ intptr_t RawExternalUint64Array::VisitExternalUint64ArrayPointers(
   ASSERT(raw_obj->IsHeapObject());
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
   return ExternalUint64Array::InstanceSize();
-}
-
-
-intptr_t RawExternalFloat32x4Array::VisitExternalFloat32x4ArrayPointers(
-    RawExternalFloat32x4Array* raw_obj, ObjectPointerVisitor* visitor) {
-  // Make sure that we got here with the tagged pointer as this.
-  ASSERT(raw_obj->IsHeapObject());
-  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
-  return ExternalFloat32x4Array::InstanceSize();
 }
 
 

@@ -11,7 +11,8 @@ EmulatorGraphicsHandler::EmulatorGraphicsHandler(int argc,
                                                  char** argv)
   : GraphicsHandler(".") {
   glutInit(&argc, argv);
-  SetViewport(0, 0, 480, 800);
+  width_ = 800;
+  height_ = 480;
   for (int i = 1; i < argc; i++) {
     if (argv[i][0] == '-') {
       int next_arg = i + 1;
@@ -22,6 +23,7 @@ EmulatorGraphicsHandler::EmulatorGraphicsHandler(int argc,
       }
     }
   }
+  SetViewport(0, 0, width_, height_);
   glutInitWindowSize(width_, height_);
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH | GLUT_STENCIL);
   glutCreateWindow("Dart");

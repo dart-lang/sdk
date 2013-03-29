@@ -9,10 +9,11 @@ import 'dart:io';
 import 'dart:json' as JSON;
 import 'dart:uri';
 
-import '../../../pkg/unittest/lib/unittest.dart';
-import '../../../pkg/http/lib/http.dart' as http;
-import '../../../pkg/http/lib/testing.dart';
-import '../lib/oauth2.dart' as oauth2;
+import 'package:unittest/unittest.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
+import 'package:oauth2/oauth2.dart' as oauth2;
+
 import 'utils.dart';
 
 final redirectUrl = Uri.parse('http://example.com/redirect');

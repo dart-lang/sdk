@@ -711,8 +711,16 @@ void Simulator::DecodeSpecial(Instr* instr) {
       break;
     }
     case BREAK: {
-      SimulatorDebugger dbg(this);
-      dbg.Stop(instr, "breakpoint");
+      if (instr->BreakCodeField() == Instr::kStopMessageCode) {
+        SimulatorDebugger dbg(this);
+        const char* message = *reinterpret_cast<const char**>(
+            reinterpret_cast<intptr_t>(instr) - Instr::kInstrSize);
+        set_pc(get_pc() + Instr::kInstrSize);
+        dbg.Stop(instr, message);
+      } else {
+        SimulatorDebugger dbg(this);
+        dbg.Stop(instr, "breakpoint");
+      }
       break;
     }
     case DIV: {

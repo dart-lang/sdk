@@ -218,7 +218,7 @@ void testIndexOf() {
 }
 
 void testGetAtIndex(TypedData list, num initial_value) {
-  var bdata = new ByteData.view(list);
+  var bdata = new ByteData.view(list.buffer);
   for (int i = 0; i < bdata.lengthInBytes; i++) {
     Expect.equals(42, bdata.getUint8(i));
     Expect.equals(42, bdata.getInt8(i));
@@ -247,7 +247,7 @@ void testSetAtIndex(TypedData list,
       if (reinit) list[i] = use_double? 0.0 : 0;
     }
   }
-  var bdata = new ByteData.view(list);
+  var bdata = new ByteData.view(list.buffer);
   for (int i = 0; i < bdata.lengthInBytes; i++) bdata.setUint8(i, 42);
   validate();
   for (int i = 0; i < bdata.lengthInBytes; i++) bdata.setInt8(i, 42);

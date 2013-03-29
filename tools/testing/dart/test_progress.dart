@@ -429,10 +429,8 @@ abstract class CompactIndicator extends ProgressIndicator {
     if (_failedTests > 0) {
       // We may have printed many failure logs, so reprint the summary data.
       _printProgress();
-      print('');
     }
-    stdout.close();
-    stderr.close();
+    print('');
   }
 
   void _printStartProgress(TestCase test) => _printProgress();

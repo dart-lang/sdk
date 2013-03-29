@@ -5,17 +5,17 @@
 /// Pub-specific scheduled_test descriptors.
 library descriptor;
 
-import '../../../pkg/oauth2/lib/oauth2.dart' as oauth2;
-import '../../../pkg/scheduled_test/lib/scheduled_server.dart';
-import '../../../pkg/scheduled_test/lib/scheduled_test.dart';
-import '../../../pkg/scheduled_test/lib/descriptor.dart';
+import 'package:oauth2/oauth2.dart' as oauth2;
+import 'package:scheduled_test/scheduled_server.dart';
+import 'package:scheduled_test/scheduled_test.dart';
+import 'package:scheduled_test/descriptor.dart';
 
 import '../../pub/utils.dart';
 import 'descriptor/git.dart';
 import 'descriptor/tar.dart';
 import 'test_pub.dart';
 
-export '../../../pkg/scheduled_test/lib/descriptor.dart';
+export 'package:scheduled_test/descriptor.dart';
 export 'descriptor/git.dart';
 export 'descriptor/tar.dart';
 

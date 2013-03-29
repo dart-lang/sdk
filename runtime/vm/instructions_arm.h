@@ -27,13 +27,15 @@ class CallPattern : public ValueObject {
 
  private:
   uword Back(int n) const;
+  int DecodeLoadObject(int end, Register* reg, Object* obj);
+  int DecodeLoadWordImmediate(int end, Register* reg, int* value);
   int DecodeLoadWordFromPool(int end, Register* reg, int* index);
   const uword* end_;
   int target_address_pool_index_;
   int args_desc_load_end_;
-  int args_desc_pool_index_;
+  Array& args_desc_;
   int ic_data_load_end_;
-  int ic_data_pool_index_;
+  ICData& ic_data_;
   const Array& object_pool_;
 
   DISALLOW_COPY_AND_ASSIGN(CallPattern);

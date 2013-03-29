@@ -8,10 +8,10 @@ import 'dart:io';
 import 'dart:json' as json;
 import 'dart:uri';
 
-import '../../../pkg/http/lib/http.dart' as http;
-import '../../../pkg/scheduled_test/lib/scheduled_process.dart';
-import '../../../pkg/scheduled_test/lib/scheduled_test.dart';
-import '../../../pkg/scheduled_test/lib/scheduled_server.dart';
+import 'package:http/http.dart' as http;
+import 'package:scheduled_test/scheduled_process.dart';
+import 'package:scheduled_test/scheduled_test.dart';
+import 'package:scheduled_test/scheduled_server.dart';
 
 import '../../pub/io.dart';
 import '../../pub/utils.dart';

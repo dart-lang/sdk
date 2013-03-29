@@ -18,6 +18,8 @@ class InputHandler {
     virtual int OnKeyEvent(KeyEvent event, int64_t when, int32_t key_code,
                            bool isAltKeyDown, bool isCtrlKeyDown,
                            bool isShiftKeyDown, int32_t repeat);
+    virtual void OnAccelerometerEvent(float x, float y, float z);
+
     virtual ~InputHandler() {}
 
   protected:

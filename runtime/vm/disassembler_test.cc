@@ -9,10 +9,6 @@
 
 namespace dart {
 
-// Disassembler only supported on IA32, X64, and ARM.
-#if defined(TARGET_ARCH_IA32) ||                                               \
-    defined(TARGET_ARCH_X64) ||                                                \
-    defined(TARGET_ARCH_ARM)
 TEST_CASE(Disassembler) {
   Assembler assembler;
   // The used instructions work on all platforms.
@@ -25,6 +21,5 @@ TEST_CASE(Disassembler) {
   test.Assemble();
   Disassembler::Disassemble(test.entry(), test.entry() + assembler.CodeSize());
 }
-#endif
 
 }  // namespace dart

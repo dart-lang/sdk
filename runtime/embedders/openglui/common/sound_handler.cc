@@ -8,10 +8,15 @@
 
 #include "embedders/openglui/common/log.h"
 
-SoundHandler* SoundHandler::instance_ = NULL;
+// TODO(gram): Clean up this instance pointer; either make the class
+// a proper singleton or provide a cleaner way for the static functions
+// at the end to access it (those functions are the hooks into the Dart
+// native extension).
+SoundHandler* instance_ = NULL;
 
 SoundHandler::SoundHandler()
     : samples_() {
+  instance_ = this;
 }
 
 Sample* SoundHandler::GetSample(const char* path) {
@@ -20,6 +25,7 @@ Sample* SoundHandler::GetSample(const char* path) {
        ++sp) {
     Sample* sample = (*sp);
     if (strcmp(sample->path(), path) == 0) {
+      LOGI("Returning cached sample %s", path);
       return sample;
     }
   }
@@ -30,22 +36,23 @@ Sample* SoundHandler::GetSample(const char* path) {
     return NULL;
   }
   samples_.push_back(sample);
+  LOGI("Adding sample %s to cache", path);
   return sample;
 }
 
 int32_t PlayBackgroundSound(const char* path) {
-  return SoundHandler::instance()->PlayBackground(path);
+  return instance_->PlayBackground(path);
 }
 
 void StopBackgroundSound() {
-  SoundHandler::instance()->StopBackground();
+  instance_->StopBackground();
 }
 
 int32_t LoadSoundSample(const char* path) {
-  return SoundHandler::instance()->LoadSample(path);
+  return instance_->LoadSample(path);
 }
 
 int32_t PlaySoundSample(const char* path) {
-  return SoundHandler::instance()->PlaySample(path);
+  return instance_->PlaySample(path);
 }
 

@@ -551,11 +551,20 @@ class Assembler : public ValueObject {
   void LoadSImmediate(SRegister sd, float value, Condition cond = AL);
   void LoadDImmediate(DRegister dd, double value,
                       Register scratch, Condition cond = AL);
+
   void MarkExceptionHandler(Label* label);
+
   void Drop(intptr_t stack_elements);
+
   void LoadObject(Register rd, const Object& object);
   void PushObject(const Object& object);
   void CompareObject(Register rn, const Object& object);
+
+  void LoadClassId(Register result, Register object);
+  void LoadClassById(Register result, Register class_id);
+  void LoadClass(Register result, Register object, Register scratch);
+  void CompareClassId(Register object, intptr_t class_id, Register scratch);
+
   void LoadWordFromPoolOffset(Register rd, int32_t offset);
   void LoadFromOffset(LoadOperandType type,
                       Register reg,

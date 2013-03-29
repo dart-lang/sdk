@@ -15,12 +15,18 @@ namespace dart {
 #define __ assembler->
 
 ASSEMBLER_TEST_GENERATE(Call, assembler) {
-  UNIMPLEMENTED();
+  __ BranchLinkPatchable(&StubCode::InstanceFunctionLookupLabel());
+  __ Ret();
 }
 
 
 ASSEMBLER_TEST_RUN(Call, test) {
-  CallPattern call(test->entry(), test->code());
+  // The return address, which must be the address of an instruction contained
+  // in the code, points to the Ret instruction above, i.e. two instructions
+  // before the end of the code buffer, including the delay slot for the
+  // return jump.
+  CallPattern call(test->entry() + test->code().Size() - (2*Instr::kInstrSize),
+                   test->code());
   EXPECT_EQ(StubCode::InstanceFunctionLookupLabel().address(),
             call.TargetAddress());
 }

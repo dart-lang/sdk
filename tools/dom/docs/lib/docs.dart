@@ -1,3 +1,7 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 /**
  * A library for extracting the documentation from the various HTML libraries
  * ([dart:html], [dart:svg], [dart:web_audio], [dart:indexed_db]) and saving
@@ -6,9 +10,10 @@
 
 library docs;
 
+import '../../../../sdk/lib/_internal/compiler/implementation/mirrors/dart2js_mirror.dart';
 import '../../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors.dart';
-import '../../../../sdk/lib/_internal/dartdoc/lib/src/json_serializer.dart';
 import '../../../../sdk/lib/_internal/dartdoc/lib/dartdoc.dart';
+import '../../../../sdk/lib/_internal/dartdoc/lib/src/json_serializer.dart';
 import '../../../../utils/apidoc/lib/metadata.dart';
 import 'dart:async';
 import 'dart:io';
@@ -43,41 +48,39 @@ const List<String> HTML_LIBRARY_NAMES = const ['dart:html',
  *       ...
  *     }
  *
- * Returns `true` if any errors were encountered, `false` otherwise.
+ * Completes to `true` if any errors were encountered, `false` otherwise.
  */
-bool convert(Path libPath, Path jsonPath) {
+Future<bool> convert(Path libPath, Path jsonPath) {
   var paths = <Path>[];
   for (var libraryName in HTML_LIBRARY_NAMES) {
     paths.add(new Path(libraryName));
   }
 
-  // TODO(amouravski): Account for errors in compilation.
-  final compilation = new Compilation.library(paths, libPath, null,
-      ['--preserve-comments']);
-
-  var convertedJson = _generateJsonFromLibraries(compilation);
-
-  var anyErrors = _exportJsonToFile(convertedJson, jsonPath);
-
-  return anyErrors;
+  return analyze(paths, libPath, options: ['--preserve-comments'])
+    .then((MirrorSystem mirrors) {
+      var convertedJson = _generateJsonFromLibraries(mirrors);
+      return _exportJsonToFile(convertedJson, jsonPath);
+    });
 }
 
-bool _exportJsonToFile(Map convertedJson, Path jsonPath) {
-  final jsonFile = new File.fromPath(jsonPath);
-  var writeJson = prettySerialize(convertedJson);
+Future<bool> _exportJsonToFile(Map convertedJson, Path jsonPath) {
+  return new Future.of(() {
+    final jsonFile = new File.fromPath(jsonPath);
+    var writeJson = prettySerialize(convertedJson);
 
-  var outputStream = jsonFile.openOutputStream();
-  outputStream.writeString(writeJson);
-
-  return false;
+    var outputStream = jsonFile.openWrite();
+    outputStream.writeln(writeJson);
+    outputStream.close();
+    return outputStream.done.then((_) => false);
+  });
 }
 
-Map _generateJsonFromLibraries(Compilation compilation) {
+Map _generateJsonFromLibraries(MirrorSystem mirrors) {
   var convertedJson = {};
 
   // Sort the libraries by name (not key).
   var sortedLibraries = new List<LibraryMirror>.from(
-      compilation.mirrors.libraries.values.where(
+      mirrors.libraries.values.where(
           (e) => HTML_LIBRARY_NAMES.indexOf(e.uri.toString()) >= 0))
       ..sort((x, y) =>
         x.uri.toString().toUpperCase().compareTo(

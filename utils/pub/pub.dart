@@ -9,8 +9,8 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
-import '../../pkg/args/lib/args.dart';
-import '../../pkg/pathos/lib/path.dart' as path;
+import 'package:args/args.dart';
+import 'package:pathos/path.dart' as path;
 
 import 'command_help.dart';
 import 'command_install.dart';

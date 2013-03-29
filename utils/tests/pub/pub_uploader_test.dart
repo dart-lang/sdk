@@ -7,9 +7,9 @@ library pub_uploader_test;
 import 'dart:io';
 import 'dart:json' as json;
 
-import '../../../pkg/scheduled_test/lib/scheduled_process.dart';
-import '../../../pkg/scheduled_test/lib/scheduled_server.dart';
-import '../../../pkg/scheduled_test/lib/scheduled_test.dart';
+import 'package:scheduled_test/scheduled_process.dart';
+import 'package:scheduled_test/scheduled_server.dart';
+import 'package:scheduled_test/scheduled_test.dart';
 
 import '../../pub/io.dart';
 import '../../pub/utils.dart';

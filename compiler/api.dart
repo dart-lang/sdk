@@ -1,5 +1,5 @@
-#library("api");
+library api;
 // dart:core is implicit
-#import("dart:html");
-#import("dart:json");
-#import("dart:isolate");
+import "dart:html";
+import "dart:json";
+import "dart:isolate";

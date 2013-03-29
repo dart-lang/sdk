@@ -14,3 +14,4 @@ pub_uploader_test: Pass, Fail # Issue 9357
 
 [ $system == windows ]
 io_test: Fail # Issue 7505
+install/hosted/fail_gracefully_on_url_resolve_test: Pass, Fail # Issue 9503

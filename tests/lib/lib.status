@@ -4,15 +4,24 @@
 
 async/stream_periodic4_test: Pass, Fail # Issue http://dartbug.com/9367
 
-# The scalarlist library is not supported by dart2js or dart2dart yet.
+# The typeddata library is not supported by dart2js or dart2dart yet.
 [ $compiler == dart2js  || $compiler == dart2dart ]
-scalarlist/*: Skip
+typeddata/*: Fail
+
+
+# The typeddata library is not supported by dart2js or dart2dart yet.
+[ $compiler == dart2js  || $compiler == dart2dart ]
+typeddata/*: Skip
+
 
 [ $compiler == dart2js ]
 math/*: Skip
 mirrors/*: Skip
 async/run_async3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug.com/9002
 async/run_async4_test: Pass, Fail # no global exception handler in isolates. http://dartbug.com/9012
+
+[ $compiler == dart2js && $runtime == chrome && $system == macos]
+crypto/hmac_sha1_test: Fail # Issue 9471
 
 [ $compiler == dart2js && $checked ]
 async/stream_event_transform_test: Fail # Issue 7733.

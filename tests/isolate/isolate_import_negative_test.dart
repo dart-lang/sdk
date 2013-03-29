@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library IsolateImportNegativeTest;
-// Ommiting the following import is an error:
-// #import('dart:isolate');
+// Omitting the following import is an error:
+// import 'dart:isolate';
 
 void entry() {}
 

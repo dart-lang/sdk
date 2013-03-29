@@ -8,9 +8,8 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:uri';
 
-// TODO(nweiz): Make this a "package:" URL, or something nicer than this.
-import '../../pkg/oauth2/lib/oauth2.dart';
-import '../../pkg/pathos/lib/path.dart' as path;
+import 'package:oauth2/oauth2.dart';
+import 'package:pathos/path.dart' as path;
 
 import 'http.dart';
 import 'io.dart';
@@ -19,7 +18,7 @@ import 'safe_http_server.dart';
 import 'system_cache.dart';
 import 'utils.dart';
 
-export '../../pkg/oauth2/lib/oauth2.dart';
+export 'package:oauth2/oauth2.dart';
 
 /// The pub client's OAuth2 identifier.
 final _identifier = '818368855108-8grd2eg9tj9f38os6f1urbcvsq399u8n.apps.'

@@ -10082,6 +10082,13 @@ abstract class Element extends Node implements ElementTraversal {
   @DocsEditable
   String get tagName native "Element_tagName_Getter";
 
+  @DomName('Element.webkitInsertionParent')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  Node get insertionParent native "Element_webkitInsertionParent_Getter";
+
   @DomName('Element.webkitPseudo')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -17964,6 +17971,10 @@ class MediaSource extends EventTarget {
   @DocsEditable
   void endOfStream(String error) native "MediaSource_endOfStream_Callback";
 
+  @DomName('MediaSource.isTypeSupported')
+  @DocsEditable
+  static bool isTypeSupported(String type) native "MediaSource_isTypeSupported_Callback";
+
   @DomName('MediaSource.removeEventListener')
   @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaSource_removeEventListener_Callback";
@@ -21593,17 +21604,9 @@ class RtcPeerConnection extends EventTarget {
   @DocsEditable
   static const EventStreamProvider<RtcDataChannelEvent> dataChannelEvent = const EventStreamProvider<RtcDataChannelEvent>('datachannel');
 
-  @DomName('RTCPeerConnection.gatheringchangeEvent')
-  @DocsEditable
-  static const EventStreamProvider<Event> gatheringChangeEvent = const EventStreamProvider<Event>('gatheringchange');
-
   @DomName('RTCPeerConnection.icecandidateEvent')
   @DocsEditable
   static const EventStreamProvider<RtcIceCandidateEvent> iceCandidateEvent = const EventStreamProvider<RtcIceCandidateEvent>('icecandidate');
-
-  @DomName('RTCPeerConnection.icechangeEvent')
-  @DocsEditable
-  static const EventStreamProvider<Event> iceChangeEvent = const EventStreamProvider<Event>('icechange');
 
   @DomName('RTCPeerConnection.negotiationneededEvent')
   @DocsEditable
@@ -21612,10 +21615,6 @@ class RtcPeerConnection extends EventTarget {
   @DomName('RTCPeerConnection.removestreamEvent')
   @DocsEditable
   static const EventStreamProvider<MediaStreamEvent> removeStreamEvent = const EventStreamProvider<MediaStreamEvent>('removestream');
-
-  @DomName('RTCPeerConnection.statechangeEvent')
-  @DocsEditable
-  static const EventStreamProvider<Event> stateChangeEvent = const EventStreamProvider<Event>('statechange');
 
   @DomName('RTCPeerConnection.RTCPeerConnection')
   @DocsEditable
@@ -21637,10 +21636,6 @@ class RtcPeerConnection extends EventTarget {
   @DomName('RTCPeerConnection.localDescription')
   @DocsEditable
   RtcSessionDescription get localDescription native "RTCPeerConnection_localDescription_Getter";
-
-  @DomName('RTCPeerConnection.readyState')
-  @DocsEditable
-  String get readyState native "RTCPeerConnection_readyState_Getter";
 
   @DomName('RTCPeerConnection.remoteDescription')
   @DocsEditable
@@ -21746,17 +21741,9 @@ class RtcPeerConnection extends EventTarget {
   @DocsEditable
   Stream<RtcDataChannelEvent> get onDataChannel => dataChannelEvent.forTarget(this);
 
-  @DomName('RTCPeerConnection.ongatheringchange')
-  @DocsEditable
-  Stream<Event> get onGatheringChange => gatheringChangeEvent.forTarget(this);
-
   @DomName('RTCPeerConnection.onicecandidate')
   @DocsEditable
   Stream<RtcIceCandidateEvent> get onIceCandidate => iceCandidateEvent.forTarget(this);
-
-  @DomName('RTCPeerConnection.onicechange')
-  @DocsEditable
-  Stream<Event> get onIceChange => iceChangeEvent.forTarget(this);
 
   @DomName('RTCPeerConnection.onnegotiationneeded')
   @DocsEditable
@@ -21765,10 +21752,6 @@ class RtcPeerConnection extends EventTarget {
   @DomName('RTCPeerConnection.onremovestream')
   @DocsEditable
   Stream<MediaStreamEvent> get onRemoveStream => removeStreamEvent.forTarget(this);
-
-  @DomName('RTCPeerConnection.onstatechange')
-  @DocsEditable
-  Stream<Event> get onStateChange => stateChangeEvent.forTarget(this);
 
 }
 
@@ -21840,6 +21823,10 @@ class RtcStatsReport extends NativeFieldWrapperClass1 {
   @DomName('RTCStatsReport.timestamp')
   @DocsEditable
   DateTime get timestamp native "RTCStatsReport_timestamp_Getter";
+
+  @DomName('RTCStatsReport.type')
+  @DocsEditable
+  String get type native "RTCStatsReport_type_Getter";
 
   @DomName('RTCStatsReport.names')
   @DocsEditable
@@ -23261,13 +23248,9 @@ class SpeechRecognitionError extends Event {
 class SpeechRecognitionEvent extends Event {
   SpeechRecognitionEvent.internal() : super.internal();
 
-  @DomName('SpeechRecognitionEvent.result')
+  @DomName('SpeechRecognitionEvent.emma')
   @DocsEditable
-  SpeechRecognitionResult get result native "SpeechRecognitionEvent_result_Getter";
-
-  @DomName('SpeechRecognitionEvent.resultHistory')
-  @DocsEditable
-  List<SpeechRecognitionResult> get resultHistory native "SpeechRecognitionEvent_resultHistory_Getter";
+  Document get emma native "SpeechRecognitionEvent_emma_Getter";
 
   @DomName('SpeechRecognitionEvent.resultIndex')
   @DocsEditable
@@ -23965,6 +23948,13 @@ class TableSectionElement extends _Element_Merged {
 class Text extends CharacterData {
   factory Text(String data) => _TextFactoryProvider.createText(data);
   Text.internal() : super.internal();
+
+  @DomName('Text.webkitInsertionParent')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  Node get insertionParent native "Text_webkitInsertionParent_Getter";
 
   @DomName('Text.wholeText')
   @DocsEditable
@@ -26906,6 +26896,27 @@ class WebGLCompressedTextureAtc extends NativeFieldWrapperClass1 {
 
 
 @DocsEditable
+@DomName('WebGLCompressedTexturePVRTC')
+class WebGLCompressedTexturePvrtc extends NativeFieldWrapperClass1 {
+  WebGLCompressedTexturePvrtc.internal();
+
+  static const int COMPRESSED_RGBA_PVRTC_2BPPV1_IMG = 0x8C03;
+
+  static const int COMPRESSED_RGBA_PVRTC_4BPPV1_IMG = 0x8C02;
+
+  static const int COMPRESSED_RGB_PVRTC_2BPPV1_IMG = 0x8C01;
+
+  static const int COMPRESSED_RGB_PVRTC_4BPPV1_IMG = 0x8C00;
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
 @DomName('WebGLCompressedTextureS3TC')
 class WebGLCompressedTextureS3TC extends NativeFieldWrapperClass1 {
   WebGLCompressedTextureS3TC.internal();
@@ -29801,6 +29812,14 @@ class WorkerContext extends EventTarget {
   @DocsEditable
   int setTimeout(Object handler, int timeout) native "WorkerContext_setTimeout_Callback";
 
+  /**
+   * Access a sandboxed file system of the specified `size`. If `persistent` is
+   * true, the application will request permission from the user to create
+   * lasting storage. This storage cannot be freed without the user's
+   * permission. Returns a [Future] whose value stores a reference to the
+   * sandboxed file system for use. Because the file system is sandboxed,
+   * applications cannot access file systems created in other web pages. 
+   */
   @DomName('WorkerContext.webkitRequestFileSystem')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -29815,6 +29834,14 @@ class WorkerContext extends EventTarget {
     return completer.future;
   }
 
+  /**
+   * Access a sandboxed file system of the specified `size`. If `persistent` is
+   * true, the application will request permission from the user to create
+   * lasting storage. This storage cannot be freed without the user's
+   * permission. This call will block until a reference to the synchronous file 
+   * system API has been obtained. Because the file system is sandboxed,
+   * applications cannot access file systems created in other web pages. 
+   */
   @DomName('WorkerContext.webkitRequestFileSystemSync')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -29926,6 +29953,20 @@ class WorkerNavigator extends NativeFieldWrapperClass1 {
   @DomName('WorkerNavigator.userAgent')
   @DocsEditable
   String get userAgent native "WorkerNavigator_userAgent_Getter";
+
+  @DomName('WorkerNavigator.webkitPersistentStorage')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  StorageQuota get persistentStorage native "WorkerNavigator_webkitPersistentStorage_Getter";
+
+  @DomName('WorkerNavigator.webkitTemporaryStorage')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  StorageQuota get temporaryStorage native "WorkerNavigator_webkitTemporaryStorage_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33522,17 +33563,10 @@ class _CustomEventStreamProvider<T extends Event>
 
 
 /**
- * Works with KeyboardEvent and KeyEvent to determine how to expose information
- * about Key(board)Events. This class functions like an EventListenerList, and
- * provides a consistent interface for the Dart
- * user, despite the fact that a multitude of browsers that have varying
- * keyboard default behavior.
- *
- * This class is very much a work in progress, and we'd love to get information
- * on how we can make this class work with as many international keyboards as
- * possible. Bugs welcome!
+ * Internal class that does the actual calculations to determine keyCode and
+ * charCode for keydown, keypress, and keyup events for all browsers.
  */
-class KeyboardEventController {
+class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
   // This code inspired by Closure's KeyHandling library.
   // http://closure-library.googlecode.com/svn/docs/closure_goog_events_keyhandler.js.source.html
 
@@ -33540,29 +33574,28 @@ class KeyboardEventController {
    * The set of keys that have been pressed down without seeing their
    * corresponding keyup event.
    */
-  List<KeyboardEvent> _keyDownList;
-
-  /** The set of functions that wish to be notified when a KeyEvent happens. */
-  List<Function> _callbacks;
+  final List<KeyboardEvent> _keyDownList = <KeyboardEvent>[];
 
   /** The type of KeyEvent we are tracking (keyup, keydown, keypress). */
-  String _type;
+  final String _type;
 
   /** The element we are watching for events to happen on. */
-  EventTarget _target;
+  final EventTarget _target;
 
   // The distance to shift from upper case alphabet Roman letters to lower case.
-  final int _ROMAN_ALPHABET_OFFSET = "a".codeUnits[0] - "A".codeUnits[0];
+  static final int _ROMAN_ALPHABET_OFFSET = "a".codeUnits[0] - "A".codeUnits[0];
 
-  StreamSubscription _keyUpSubscription, _keyDownSubscription,
-      _keyPressSubscription;
+  /** Controller to produce KeyEvents for the stream. */
+  final StreamController _controller = new StreamController.broadcast();
+
+  static const _EVENT_TYPE = 'KeyEvent';
 
   /**
    * An enumeration of key identifiers currently part of the W3C draft for DOM3
    * and their mappings to keyCodes.
    * http://www.w3.org/TR/DOM-Level-3-Events/keyset.html#KeySet-Set
    */
-  static Map<String, int> _keyIdentifier = {
+  static const Map<String, int> _keyIdentifier = const {
     'Up': KeyCode.UP,
     'Down': KeyCode.DOWN,
     'Left': KeyCode.LEFT,
@@ -33588,53 +33621,48 @@ class KeyboardEventController {
     'Insert': KeyCode.INSERT
   };
 
-  /** Named constructor to add an onKeyPress event listener to our handler. */
-  KeyboardEventController.keypress(EventTarget target) {
-    _KeyboardEventController(target, 'keypress');
+  /** Return a stream for KeyEvents for the specified target. */
+  Stream<KeyEvent> forTarget(EventTarget e, {bool useCapture: false}) {
+    return new _KeyboardEventHandler.initializeAllEventListeners(
+        _type, e).stream;
   }
 
-  /** Named constructor to add an onKeyUp event listener to our handler. */
-  KeyboardEventController.keyup(EventTarget target) {
-    _KeyboardEventController(target, 'keyup');
-  }
-
-  /** Named constructor to add an onKeyDown event listener to our handler. */
-  KeyboardEventController.keydown(EventTarget target) {
-    _KeyboardEventController(target, 'keydown');
+  /**
+   * Accessor to the stream associated with a particular KeyboardEvent
+   * EventTarget.
+   *
+   * [forTarget] must be called to initialize this stream to listen to a
+   * particular EventTarget.
+   */
+  Stream<KeyEvent> get stream {
+    if(_target != null) {
+      return _controller.stream;
+    } else {
+      throw new StateError("Not initialized. Call forTarget to access a stream "
+          "initialized with a particular EventTarget.");
+    }
   }
 
   /**
    * General constructor, performs basic initialization for our improved
    * KeyboardEvent controller.
    */
-  _KeyboardEventController(EventTarget target, String type) {
-    _callbacks = [];
-    _type = type;
-    _target = target;
+  _KeyboardEventHandler(this._type) :
+    _target = null, super(_EVENT_TYPE) {
   }
 
   /**
    * Hook up all event listeners under the covers so we can estimate keycodes
    * and charcodes when they are not provided.
    */
-  void _initializeAllEventListeners() {
-    _keyDownList = [];
-    if (_keyDownSubscription == null) {
-      _keyDownSubscription = Element.keyDownEvent.forTarget(
-          _target, useCapture: true).listen(processKeyDown);
-      _keyPressSubscription = Element.keyPressEvent.forTarget(
-          _target, useCapture: true).listen(processKeyUp);
-      _keyUpSubscription = Element.keyUpEvent.forTarget(
-          _target, useCapture: true).listen(processKeyPress);
-    }
-  }
-
-  /** Add a callback that wishes to be notified when a KeyEvent occurs. */
-  void add(void callback(KeyEvent)) {
-    if (_callbacks.length == 0) {
-      _initializeAllEventListeners();
-    }
-    _callbacks.add(callback);
+  _KeyboardEventHandler.initializeAllEventListeners(this._type, this._target) : 
+    super(_EVENT_TYPE) {
+    Element.keyDownEvent.forTarget(_target, useCapture: true).listen(
+        processKeyDown);
+    Element.keyPressEvent.forTarget(_target, useCapture: true).listen(
+        processKeyPress);
+    Element.keyUpEvent.forTarget(_target, useCapture: true).listen(
+        processKeyUp);
   }
 
   /**
@@ -33642,31 +33670,8 @@ class KeyboardEventController {
    * occurred.
    */
   bool _dispatch(KeyEvent event) {
-    if (event.type == _type) {
-      // Make a copy of the listeners in case a callback gets removed while
-      // dispatching from the list.
-      List callbacksCopy = new List.from(_callbacks);
-      for(var callback in callbacksCopy) {
-        callback(event);
-      }
-    }
-  }
-
-  /** Remove the given callback from the listeners list. */
-  void remove(void callback(KeyEvent)) {
-    var index = _callbacks.indexOf(callback);
-    if (index != -1) {
-      _callbacks.removeAt(index);
-    }
-    if (_callbacks.length == 0) {
-      // If we have no listeners, don't bother keeping track of keypresses.
-      _keyDownSubscription.cancel();
-      _keyDownSubscription = null;
-      _keyPressSubscription.cancel();
-      _keyPressSubscription = null;
-      _keyUpSubscription.cancel();
-      _keyUpSubscription = null;
-    }
+    if (event.type == _type)
+      _controller.add(event);
   }
 
   /** Determine if caps lock is one of the currently depressed keys. */
@@ -33854,7 +33859,7 @@ class KeyboardEventController {
          _keyDownList.last.keyCode == KeyCode.ALT && !e.altKey ||
          Device.userAgent.contains('Mac') &&
          _keyDownList.last.keyCode == KeyCode.META && !e.metaKey)) {
-      _keyDownList = [];
+      _keyDownList.clear();
     }
 
     var event = new KeyEvent(e);
@@ -33914,8 +33919,7 @@ class KeyboardEventController {
       }
     }
     if (toRemove != null) {
-      _keyDownList =
-          _keyDownList.where((element) => element != toRemove).toList();
+      _keyDownList.removeWhere((element) => element == toRemove);
     } else if (_keyDownList.length > 0) {
       // This happens when we've reached some international keyboard case we
       // haven't accounted for or we haven't correctly eliminated all browser
@@ -33924,6 +33928,37 @@ class KeyboardEventController {
     }
     _dispatch(e);
   }
+}
+
+
+/**
+ * Records KeyboardEvents that occur on a particular element, and provides a
+ * stream of outgoing KeyEvents with cross-browser consistent keyCode and
+ * charCode values despite the fact that a multitude of browsers that have
+ * varying keyboard default behavior.
+ *
+ * Example usage:
+ *
+ *     KeyboardEventStream.onKeyDown(document.body).listen(
+ *         keydownHandlerTest);
+ *
+ * This class is very much a work in progress, and we'd love to get information
+ * on how we can make this class work with as many international keyboards as
+ * possible. Bugs welcome!
+ */
+class KeyboardEventStream {
+
+  /** Named constructor to produce a stream for onKeyPress events. */
+  static Stream<KeyEvent> onKeyPress(EventTarget target) =>
+      new _KeyboardEventHandler('keypress').forTarget(target);
+
+  /** Named constructor to produce a stream for onKeyUp events. */
+  static Stream<KeyEvent> onKeyUp(EventTarget target) =>
+      new _KeyboardEventHandler('keyup').forTarget(target);
+
+  /** Named constructor to produce a stream for onKeyDown events. */
+  static Stream<KeyEvent> onKeyDown(EventTarget target) =>
+    new _KeyboardEventHandler('keydown').forTarget(target);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35042,6 +35077,39 @@ get _timerFactoryClosure => (int milliSeconds, void callback(Timer timer), bool 
   timer = new _Timer(() { canceller(id); });
   return timer;
 };
+
+class _PureIsolateTimer implements Timer {
+  final ReceivePort _port = new ReceivePort();
+  SendPort _sendPort; // Effectively final.
+
+  _PureIsolateTimer(int milliSeconds, callback, repeating) {
+    _sendPort = _port.toSendPort();
+    _port.receive((msg, replyTo) {
+      assert(msg == _TIMER_PING);
+      assert(replyTo == _HELPER_ISOLATE_PORT);
+      callback(this);
+      if (!repeating) _cancel();
+    });
+    _HELPER_ISOLATE_PORT.then((port) {
+      port.send([_NEW_TIMER, milliSeconds, repeating], _sendPort);
+    });
+  }
+
+  void cancel() {
+    _cancel();
+    _HELPER_ISOLATE_PORT.then((port) {
+      port.send([_CANCEL_TIMER], _sendPort);
+    });
+  }
+
+  void _cancel() {
+    _port.close();
+  }
+}
+
+get _pureIsolateTimerFactoryClosure =>
+    ((int milliSeconds, void callback(Timer time), bool repeating) =>
+        new _PureIsolateTimer(milliSeconds, callback, repeating));
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -35272,6 +35340,9 @@ class _DocumentFragmentFactoryProvider {
  * inconsistencies, and also provide both keyCode and charCode information
  * for all key events (when such information can be determined).
  *
+ * KeyEvent tries to provide a higher level, more polished keyboard event
+ * information on top of the "raw" [KeyboardEvent].
+ *
  * This class is very much a work in progress, and we'd love to get information
  * on how we can make this class work with as many international keyboards as
  * possible. Bugs welcome!
@@ -35310,13 +35381,23 @@ class KeyEvent implements KeyboardEvent {
   /** Accessor to the underlying altKey value is the parent event. */
   bool get _realAltKey => _parent.altKey;
 
-  /** Construct a KeyEvent with [parent] as event we're emulating. */
+  /** Construct a KeyEvent with [parent] as the event we're emulating. */
   KeyEvent(KeyboardEvent parent) {
     _parent = parent;
     _shadowAltKey = _realAltKey;
     _shadowCharCode = _realCharCode;
     _shadowKeyCode = _realKeyCode;
   }
+
+  /** Accessor to provide a stream of KeyEvents on the desired target. */
+  static EventStreamProvider<KeyEvent> keyDownEvent =
+    new _KeyboardEventHandler('keydown');
+  /** Accessor to provide a stream of KeyEvents on the desired target. */
+  static EventStreamProvider<KeyEvent> keyUpEvent =
+    new _KeyboardEventHandler('keyup');
+  /** Accessor to provide a stream of KeyEvents on the desired target. */
+  static EventStreamProvider<KeyEvent> keyPressEvent =
+    new _KeyboardEventHandler('keypress');
 
   /** True if the altGraphKey is pressed during this event. */
   bool get altGraphKey => _parent.altGraphKey;
@@ -35526,7 +35607,7 @@ class _JsDeserializer extends _Deserializer {
 // The receiver is JS.
 class _JsSendPortSync implements SendPortSync {
 
-  num _id;
+  final num _id;
   _JsSendPortSync(this._id);
 
   callSync(var message) {
@@ -35696,7 +35777,7 @@ typedef void _MicrotaskCallback();
  */
 abstract class _MicrotaskScheduler {
   bool _nextMicrotaskFrameScheduled = false;
-  _MicrotaskCallback _callback;
+  final _MicrotaskCallback _callback;
 
   _MicrotaskScheduler(this._callback);
 
@@ -36079,7 +36160,17 @@ class _VariableSizeListIterator<T> implements Iterator<T> {
 
 
 // This API is exploratory.
-spawnDomFunction(Function topLevelFunction) => _Utils.spawnDomFunctionImpl(topLevelFunction);
+Future<SendPort> spawnDomFunction(Function topLevelFunction) {
+  final completer = new Completer<SendPort>();
+  final port = new ReceivePort();
+  port.receive((result, _) {
+    completer.complete(result);
+    port.close();
+  });
+  // TODO: SendPort.hashCode is ugly way to access port id.
+  _Utils.spawnDomFunction(topLevelFunction, port.toSendPort().hashCode);
+  return completer.future;
+}
 
 // testRunner implementation.
 // FIXME: provide a separate lib for testRunner.
@@ -36135,6 +36226,18 @@ class _Utils {
     return result;
   }
 
+  static int convertCanvasElementGetContextMap(Map map) {
+    int result = 0;
+    if (map['alpha'] == true) result |= 0x01;
+    if (map['depth'] == true) result |= 0x02;
+    if (map['stencil'] == true) result |= 0x4;
+    if (map['antialias'] == true) result |= 0x08;
+    if (map['premultipliedAlpha'] == true) result |= 0x10;
+    if (map['preserveDrawingBuffer'] == true) result |= 0x20;
+
+    return result;
+  }
+
   static void populateMap(Map result, List list) {
     for (int i = 0; i < list.length; i += 2) {
       result[list[i]] = list[i + 1];
@@ -36150,9 +36253,8 @@ class _Utils {
   }
 
   static window() native "Utils_window";
-  static print(String message) native "Utils_print";
   static forwardingPrint(String message) native "Utils_forwardingPrint";
-  static SendPort spawnDomFunctionImpl(Function topLevelFunction) native "Utils_spawnDomFunction";
+  static void spawnDomFunction(Function topLevelFunction, int replyTo) native "Utils_spawnDomFunction";
   static int _getNewIsolateId() native "Utils_getNewIsolateId";
   static bool shadowRootSupported(Document document) native "Utils_shadowRootSupported";
 }
@@ -36224,12 +36326,41 @@ class _DOMStringMap extends NativeFieldWrapperClass1 implements Map<String, Stri
   bool get isEmpty => Maps.isEmpty(this);
 }
 
-get _printClosure => (s) {
-  try {
-    window.console.log(s);
-  } catch (_) {
-    _Utils.print(s);
-  }
+final Future<SendPort> _HELPER_ISOLATE_PORT =
+    spawnDomFunction(_helperIsolateMain);
+
+final _TIMER_REGISTRY = new Map<SendPort, Timer>();
+
+const _NEW_TIMER = 'NEW_TIMER';
+const _CANCEL_TIMER = 'CANCEL_TIMER';
+const _TIMER_PING = 'TIMER_PING';
+const _PRINT = 'PRINT';
+
+_helperIsolateMain() {
+  port.receive((msg, replyTo) {
+    final cmd = msg[0];
+    if (cmd == _NEW_TIMER) {
+      final duration = new Duration(milliseconds: msg[1]);
+      bool periodic = msg[2];
+      final callback = () { replyTo.send(_TIMER_PING); };
+      _TIMER_REGISTRY[replyTo] = periodic ?
+          new Timer.periodic(duration, callback) :
+          new Timer(duration, callback);
+    } else if (cmd == _CANCEL_TIMER) {
+      _TIMER_REGISTRY.remove(replyTo).cancel();
+    } else if (cmd == _PRINT) {
+      final message = msg[1];
+      // TODO(antonm): we need somehow identify those isolates.
+      print('[From isolate] $message');
+    }
+  });
+}
+
+final _printClosure = window.console.log;
+final _pureIsolatePrintClosure = (s) {
+  _HELPER_ISOLATE_PORT.then((sendPort) {
+    sendPort.send([_PRINT, s]);
+  });
 };
 
 final _forwardingPrintClosure = _Utils.forwardingPrint;

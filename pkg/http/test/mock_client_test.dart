@@ -9,10 +9,11 @@ import 'dart:io';
 import 'dart:json' as json;
 import 'dart:uri';
 
+import 'package:http/http.dart' as http;
+import 'package:http/src/utils.dart';
+import 'package:http/testing.dart';
 import 'package:unittest/unittest.dart';
-import '../lib/http.dart' as http;
-import '../lib/testing.dart';
-import '../lib/src/utils.dart';
+
 import 'utils.dart';
 
 void main() {

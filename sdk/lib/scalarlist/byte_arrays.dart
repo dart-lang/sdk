@@ -269,30 +269,6 @@ abstract class ByteArray {
   int setUint64(int byteOffset, int value);
 
   /**
-   * Returns the Float32x4 number represented by the 16 bytes at
-   * the specified [byteOffset] in this byte array.
-   *
-   * Throws [RangeError] if [byteOffset] is negative, or
-   * `byteOffset + 16` is greater than the length of this byte array.
-   */
-  Float32x4 getFloat32x4(int byteOffset);
-
-  /**
-   * Sets the sixteen bytes starting at the specified [byteOffset] in this
-   * byte array to the Float32x4 representation of the specified [value].
-   *
-   *
-   * Returns `byteOffset + 16`, which is the offset of the first byte in the
-   * array after the last byte that was set by this call. This return value can
-   * be passed as the [byteOffset] parameter to a subsequent `setXxx` call.
-   *
-   * Throws [RangeError] if [byteOffset] is negative, or
-   * `byteOffset + 16` is greater than the length of this byte array.
-   */
-  int setFloat32x4(int byteOffset, Float32x4 value);
-
-
-  /**
    * Returns the floating point number represented by the four bytes at
    * the specified [byteOffset] in this byte array, in IEEE 754
    * single-precision binary floating-point format (binary32).

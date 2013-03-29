@@ -455,6 +455,10 @@ class HInstructionStringifier implements HVisitor<String> {
     return "StringConcat: $leftId + $rightId";
   }
 
+  String visitStringify(HStringify node) {
+    return "Stringify: ${node.inputs[0]}";
+  }
+
   String visitSubtract(HSubtract node) => handleInvokeBinary(node, '-');
 
   String visitSwitch(HSwitch node) {

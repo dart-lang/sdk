@@ -4,9 +4,19 @@
 # BSD-style license that can be found in the LICENSE file.
 
 import os
+import shutil
 import sys
+import tempfile
 
 import bot
+
+class TempDir(object):
+  def __enter__(self):
+    self._temp_dir = tempfile.mkdtemp('eclipse-workspace')
+    return self._temp_dir
+
+  def __exit__(self, *_):
+    shutil.rmtree(self._temp_dir, ignore_errors = True)
 
 def GetEditorExecutable(mode, arch):
   configuration_dir = mode + arch.upper()
@@ -50,10 +60,11 @@ def main():
   for arch in test_architectures:
     editor_executable = GetEditorExecutable('Release', arch)
     with bot.BuildStep('Test Editor %s' % arch):
-      args = [editor_executable, '--test', '--auto-exit']
-      print 'Running: %s' % (' '.join(args))
-      sys.stdout.flush()
-      bot.RunProcess(args)
+      with TempDir() as temp_dir:
+        args = [editor_executable, '--test', '--auto-exit', '-data', temp_dir]
+        print 'Running: %s' % (' '.join(args))
+        sys.stdout.flush()
+        bot.RunProcess(args)
   return 0
 
 if __name__ == '__main__':

@@ -528,6 +528,11 @@ void Definition::ReplaceUsesWith(Definition* other) {
     while (next != NULL) {
       current = next;
       current->set_definition(other);
+      // Do not discard some useful inferred types.
+      // TODO(srdjan): Enable once checked mode issues investigated.
+      // if (current->Type() == this->Type()) {
+      //   current->SetReachingType(NULL);
+      // }
       next = current->next_use();
     }
 
@@ -1239,9 +1244,13 @@ Instruction* BranchInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
   // Only handle strict-compares.
   if (comparison()->IsStrictCompare()) {
     Definition* replacement = comparison()->Canonicalize(optimizer);
-    if (replacement == comparison() || replacement == NULL) return this;
+    if ((replacement == comparison()) || (replacement == NULL)) {
+      return this;
+    }
     ComparisonInstr* comp = replacement->AsComparison();
-    if ((comp == NULL) || comp->CanDeoptimize()) return this;
+    if ((comp == NULL) || comp->CanDeoptimize()) {
+      return this;
+    }
 
     // Check that comparison is not serving as a pending deoptimization target
     // for conversions.
@@ -1274,7 +1283,9 @@ Instruction* BranchInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
 
 
 Definition* StrictCompareInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
-  if (!right()->BindsToConstant()) return this;
+  if (!right()->BindsToConstant()) {
+    return this;
+  }
   const Object& right_constant = right()->BoundConstant();
   Definition* left_defn = left()->definition();
   // TODO(fschneider): Handle other cases: e === false and e !== true/false.
@@ -1285,6 +1296,18 @@ Definition* StrictCompareInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
     // Return left subexpression as the replacement for this instruction.
     return left_defn;
   }
+  // x = (a === b);  y = x !== true; -> y = a !== b.
+  // In order to merge two strict comares, 'left_strict' must have only one use.
+  // Do not check left's cid as it is required to be a strict compare.
+  StrictCompareInstr* left_strict = left_defn->AsStrictCompare();
+  if ((kind() == Token::kNE_STRICT) &&
+      (right_constant.raw() == Bool::True().raw()) &&
+      (left_strict != NULL) &&
+      (left_strict->HasOnlyUse(left()))) {
+    left_strict->set_kind(Token::NegateComparison(left_strict->kind()));
+    return left_strict;
+  }
+
   return this;
 }
 
@@ -1963,15 +1986,10 @@ void LoadFieldInstr::InferRange() {
 
 void LoadIndexedInstr::InferRange() {
   switch (class_id()) {
-    case kInt8ArrayCid:
     case kTypedDataInt8ArrayCid:
       range_ = new Range(RangeBoundary::FromConstant(-128),
                          RangeBoundary::FromConstant(127));
       break;
-    case kUint8ArrayCid:
-    case kUint8ClampedArrayCid:
-    case kExternalUint8ArrayCid:
-    case kExternalUint8ClampedArrayCid:
     case kTypedDataUint8ArrayCid:
     case kTypedDataUint8ClampedArrayCid:
     case kExternalTypedDataUint8ArrayCid:
@@ -1979,12 +1997,10 @@ void LoadIndexedInstr::InferRange() {
       range_ = new Range(RangeBoundary::FromConstant(0),
                          RangeBoundary::FromConstant(255));
       break;
-    case kInt16ArrayCid:
     case kTypedDataInt16ArrayCid:
       range_ = new Range(RangeBoundary::FromConstant(-32768),
                          RangeBoundary::FromConstant(32767));
       break;
-    case kUint16ArrayCid:
     case kTypedDataUint16ArrayCid:
       range_ = new Range(RangeBoundary::FromConstant(0),
                          RangeBoundary::FromConstant(65535));
@@ -2234,20 +2250,6 @@ intptr_t CheckArrayBoundInstr::LengthOffsetFor(intptr_t class_id) {
     case kArrayCid:
     case kImmutableArrayCid:
       return Array::length_offset();
-    case kInt8ArrayCid:
-    case kUint8ArrayCid:
-    case kUint8ClampedArrayCid:
-    case kInt16ArrayCid:
-    case kUint16ArrayCid:
-    case kInt32ArrayCid:
-    case kUint32ArrayCid:
-    case kInt64ArrayCid:
-    case kUint64ArrayCid:
-    case kFloat64ArrayCid:
-    case kFloat32ArrayCid:
-    case kExternalUint8ArrayCid:
-    case kExternalUint8ClampedArrayCid:
-      return ByteArray::length_offset();
     default:
       UNREACHABLE();
       return -1;

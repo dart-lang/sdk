@@ -13,7 +13,7 @@ part of _interceptors;
  * Note that none of the methods here delegate to a method defined on JSInt or
  * JSDouble.  This is exploited in [tryComputeConstantInterceptor].
  */
-class JSNumber implements num {
+class JSNumber extends Interceptor implements num {
   const JSNumber();
 
   int compareTo(num b) {
@@ -146,7 +146,7 @@ class JSNumber implements num {
     if (this == 0 && JS('bool', '(1 / #) < 0', this)) {
       return '-0.0';
     } else {
-      return JS('String', r'String(#)', this);
+      return JS('String', r'"" + (#)', this);
     }
   }
 

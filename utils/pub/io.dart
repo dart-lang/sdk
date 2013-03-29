@@ -11,14 +11,14 @@ import 'dart:isolate';
 import 'dart:json';
 import 'dart:uri';
 
-import '../../pkg/pathos/lib/path.dart' as path;
-import '../../pkg/http/lib/http.dart' show ByteStream;
+import 'package:pathos/path.dart' as path;
+import 'package:http/http.dart' show ByteStream;
 import 'error_group.dart';
 import 'exit_codes.dart' as exit_codes;
 import 'log.dart' as log;
 import 'utils.dart';
 
-export '../../pkg/http/lib/http.dart' show ByteStream;
+export 'package:http/http.dart' show ByteStream;
 
 /// Returns whether or not [entry] is nested somewhere within [dir]. This just
 /// performs a path comparison; it doesn't look at the actual filesystem.

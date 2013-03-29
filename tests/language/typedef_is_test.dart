@@ -59,9 +59,9 @@ void main() {
   Expect.isFalse(func5 is Func7);
 
   int func6([int i, int j, int k]) {}
-  Expect.isFalse(func6 is Func1);
-  Expect.isFalse(func6 is Func2);
-  Expect.isFalse(func6 is Func3);
+  Expect.isTrue(func6 is Func1);
+  Expect.isTrue(func6 is Func2);
+  Expect.isTrue(func6 is Func3);
   Expect.isTrue(func6 is Func4);
   Expect.isFalse(func6 is Func5);
   Expect.isFalse(func6 is Func6);

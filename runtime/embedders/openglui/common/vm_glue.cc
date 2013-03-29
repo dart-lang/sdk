@@ -27,7 +27,11 @@ VMGlue::VMGlue(ISized* surface,
                const char* main_script)
     : surface_(surface),
       isolate_(NULL),
-      initialized_script_(false) {
+      initialized_script_(false),
+      x_(0.0),
+      y_(0.0),
+      z_(0.0),
+      accelerometer_changed_(false) {
   LOGI("Creating VMGlue");
   if (main_script == NULL) {
     main_script = "main.dart";
@@ -235,11 +239,25 @@ int VMGlue::CallSetup(bool force) {
 
 int VMGlue::CallUpdate() {
   if (initialized_script_) {
+    // If the accelerometer has changed, first do that
+    // event.
     Dart_EnterIsolate(isolate_);
+    if (accelerometer_changed_) {
+      Dart_Handle args[3];
+      LOGI("Invoking onAccelerometer(%f,%f,%f)", x_, y_, z_);
+      Dart_EnterScope();
+      args[0] = CheckError(Dart_NewDouble(x_));
+      args[1] = CheckError(Dart_NewDouble(y_));
+      args[2] = CheckError(Dart_NewDouble(z_));
+      Invoke("onAccelerometer", 3, args, false);
+      Dart_ExitScope();
+      accelerometer_changed_ = false;
+    }
     Dart_EnterScope();
     int rtn = Invoke("update_", 0, 0);
     Dart_ExitScope();
     Dart_ExitIsolate();
+    LOGI("Invoke update_ returns %d", rtn);
     return rtn;
   }
   return -1;
@@ -280,7 +298,7 @@ int VMGlue::OnKeyEvent(const char* function, int64_t when, int32_t key_code,
                        bool isAltKeyDown, bool isCtrlKeyDown,
                        bool isShiftKeyDown, int32_t repeat) {
   if (initialized_script_) {
-    LOGI("Invoking %s", function);
+    LOGI("Invoking %s(_,%d,...)", function, key_code);
     Dart_EnterIsolate(isolate_);
     Dart_EnterScope();
     Dart_Handle args[6];

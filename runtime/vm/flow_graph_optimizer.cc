@@ -19,22 +19,23 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, eliminate_type_checks);
-DECLARE_FLAG(bool, enable_type_checks);
-DEFINE_FLAG(bool, trace_optimization, false, "Print optimization details.");
-DECLARE_FLAG(bool, trace_type_check_elimination);
-DEFINE_FLAG(bool, use_cha, true, "Use class hierarchy analysis.");
-DEFINE_FLAG(bool, load_cse, true, "Use redundant load elimination.");
-DEFINE_FLAG(bool, trace_range_analysis, false, "Trace range analysis progress");
-DEFINE_FLAG(bool, trace_constant_propagation, false,
-    "Print constant propagation and useless code elimination.");
 DEFINE_FLAG(bool, array_bounds_check_elimination, true,
     "Eliminate redundant bounds checks.");
+DEFINE_FLAG(bool, load_cse, true, "Use redundant load elimination.");
 DEFINE_FLAG(int, max_polymorphic_checks, 4,
     "Maximum number of polymorphic check, otherwise it is megamorphic.");
 DEFINE_FLAG(bool, remove_redundant_phis, true, "Remove redundant phis.");
+DEFINE_FLAG(bool, trace_constant_propagation, false,
+    "Print constant propagation and useless code elimination.");
+DEFINE_FLAG(bool, trace_optimization, false, "Print optimization details.");
+DEFINE_FLAG(bool, trace_range_analysis, false, "Trace range analysis progress");
 DEFINE_FLAG(bool, truncating_left_shift, true,
     "Optimize left shift to truncate if possible");
+DEFINE_FLAG(bool, use_cha, true, "Use class hierarchy analysis.");
+DECLARE_FLAG(bool, eliminate_type_checks);
+DECLARE_FLAG(bool, enable_type_checks);
+DECLARE_FLAG(bool, trace_type_check_elimination);
+
 
 
 void FlowGraphOptimizer::ApplyICData() {
@@ -89,8 +90,10 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
     intptr_t cid = call->PushArgumentAt(i)->value()->Type()->ToCid();
     class_ids.Add(cid);
   }
-  // TODO(srdjan): Test for other class_ids > 1.
-  if (class_ids.length() != 1) return false;
+  // TODO(srdjan): Test for number of arguments checked greater than 1.
+  if (class_ids.length() != 1) {
+    return false;
+  }
   if (class_ids[0] != kDynamicCid) {
     const intptr_t num_named_arguments = call->argument_names().IsNull() ?
         0 : call->argument_names().Length();
@@ -813,9 +816,7 @@ void FlowGraphOptimizer::BuildStoreIndexed(InstanceCallInstr* call,
       case kTypedDataFloat32ArrayCid:
       case kTypedDataFloat64ArrayCid: {
         type_args = instantiator = flow_graph_->constant_null();
-        ASSERT((class_id != kFloat32ArrayCid &&
-                class_id != kFloat64ArrayCid &&
-                class_id != kTypedDataFloat32ArrayCid &&
+        ASSERT((class_id != kTypedDataFloat32ArrayCid &&
                 class_id != kTypedDataFloat64ArrayCid) ||
                value_type.IsDoubleType());
         ASSERT(value_type.IsInstantiated());
@@ -842,9 +843,10 @@ void FlowGraphOptimizer::BuildStoreIndexed(InstanceCallInstr* call,
   intptr_t array_cid = PrepareIndexedOp(call, class_id, &array, &index);
   // Check if store barrier is needed. Byte arrays don't need a store barrier.
   StoreBarrierType needs_store_barrier =
-      RawObject::IsByteArrayClassId(array_cid)
-          ? kNoStoreBarrier
-          : kEmitStoreBarrier;
+      (RawObject::IsTypedDataClassId(array_cid) ||
+       RawObject::IsTypedDataViewClassId(array_cid) ||
+       RawObject::IsExternalTypedDataClassId(array_cid)) ? kNoStoreBarrier
+                                                         : kEmitStoreBarrier;
   if (!value_check.IsNull()) {
     // No store barrier needed because checked value is a smi, an unboxed mint
     // or unboxed double.
@@ -1620,7 +1622,8 @@ bool FlowGraphOptimizer::BuildByteArrayViewLoad(
   // loads on ia32 like we do for normal array loads, and only revert to
   // mint case after deoptimizing here.
   intptr_t deopt_id = Isolate::kNoDeoptId;
-  if ((view_cid == kInt32ArrayCid || view_cid == kUint32ArrayCid) &&
+  if ((view_cid == kTypedDataInt32ArrayCid ||
+       view_cid == kTypedDataUint32ArrayCid) &&
       call->ic_data()->deopt_reason() == kDeoptUnknown) {
     deopt_id = call->deopt_id();
   }
@@ -2345,22 +2348,6 @@ static Token::Kind FlipComparison(Token::Kind op) {
   }
 }
 
-// For a comparison operation return an operation for the negated comparison:
-// !(a (op) b) === a (op') b
-static Token::Kind NegateComparison(Token::Kind op) {
-  switch (op) {
-    case Token::kEQ: return Token::kNE;
-    case Token::kNE: return Token::kEQ;
-    case Token::kLT: return Token::kGTE;
-    case Token::kGT: return Token::kLTE;
-    case Token::kLTE: return Token::kGT;
-    case Token::kGTE: return Token::kLT;
-    default:
-      UNREACHABLE();
-      return Token::kILLEGAL;
-  }
-}
-
 
 // Given a boundary (right operand) and a comparison operation return
 // a symbolic range constraint for the left operand of the comparison assuming
@@ -2440,7 +2427,7 @@ void RangeAnalysis::ConstrainValueAfterBranch(Definition* defn, Value* use) {
     ConstraintInstr* false_constraint =
         InsertConstraintFor(
             defn,
-            ConstraintRange(NegateComparison(op_kind), boundary),
+            ConstraintRange(Token::NegateComparison(op_kind), boundary),
             branch->false_successor());
     // Mark false_constraint an artificial use of boundary. This ensures
     // that constraint's range is recalculated if boundary's range changes.
@@ -3128,7 +3115,7 @@ class LoadOptimizer : public ValueObject {
             StoreIndexedInstr* array_store = instr->AsStoreIndexed();
             if (array_store == NULL ||
                 array_store->class_id() == kArrayCid ||
-                array_store->class_id() == kFloat64ArrayCid) {
+                array_store->class_id() == kTypedDataFloat64ArrayCid) {
               Definition* load = map_->Lookup(instr->AsDefinition());
               if (load != NULL) {
                 // Store has a corresponding numbered load. Try forwarding

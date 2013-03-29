@@ -5,7 +5,8 @@
 /// A simple library for rendering a list of files as a directory tree.
 library directory_tree;
 
-import '../../pkg/pathos/lib/path.dart' as path;
+import 'package:pathos/path.dart' as path;
+
 import 'log.dart' as log;
 
 /// Draws a directory tree for the given list of files. Given a list of files

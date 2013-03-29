@@ -132,7 +132,10 @@ class Heap {
 
   // Enables growth control on the page space heaps.  This should be
   // called before any user code is executed.
-  void EnableGrowthControl();
+  void EnableGrowthControl() { SetGrowthControlState(true); }
+  void DisableGrowthControl() { SetGrowthControlState(false); }
+  void SetGrowthControlState(bool state);
+  bool GrowthControlState();
 
   // Protect access to the heap.
   void WriteProtect(bool read_only);
@@ -273,6 +276,16 @@ class NoGCScope : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(NoGCScope);
 };
 #endif  // defined(DEBUG)
+
+
+class NoHeapGrowthControlScope : public StackResource {
+ public:
+  NoHeapGrowthControlScope();
+  ~NoHeapGrowthControlScope();
+ private:
+  bool current_growth_controller_state_;
+  DISALLOW_COPY_AND_ASSIGN(NoHeapGrowthControlScope);
+};
 
 }  // namespace dart
 

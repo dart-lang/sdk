@@ -38,7 +38,7 @@
 # ......utf/
 # ......scalarlist/
 # ......typeddata/
-# ....pkg/
+# ....packages/
 # ......args/
 # ......intl/
 # ......logging/
@@ -215,20 +215,19 @@ def Main(argv):
              ignore=ignore_patterns('*.svn', 'doc', '*.py', '*.gypi', '*.sh'))
 
 
-  # Create and copy pkg.
-  PKG = join(SDK_tmp, 'pkg')
-  os.makedirs(PKG)
+  # Create and copy packages.
+  PACKAGES = join(SDK_tmp, 'packages')
+  os.makedirs(PACKAGES)
 
   #
-  # Create and populate pkg/{args, intl, logging, meta, unittest, ...}
+  # Create and populate packages/{args, intl, logging, meta, unittest, ...}
   #
 
   for library in ['args', 'http', 'intl', 'logging', 'meta', 'oauth2', 'pathos',
                   'serialization', 'unittest', 'yaml']:
 
-    copytree(join(HOME, 'pkg', library), join(PKG, library),
-             ignore=ignore_patterns('*.svn', 'doc', 'docs',
-                                    '*.py', '*.gypi', '*.sh', 'packages'))
+    copytree(join(HOME, 'pkg', library, 'lib'), join(PACKAGES, library),
+             ignore=ignore_patterns('*.svn'))
 
   # Create and copy tools.
   UTIL = join(SDK_tmp, 'util')
@@ -274,18 +273,6 @@ def Main(argv):
 
   # Copy dart2js/dartdoc/pub.
   CopyDartScripts(HOME, build_dir, SDK_tmp, version)
-
-  # Fix up dartdoc.
-  # TODO(dgrove): Remove this once issue 6619 is fixed.
-  ReplaceInFiles([join(SDK_tmp, 'lib', '_internal', 'dartdoc',
-                       'bin', 'dartdoc.dart'),
-                  join(SDK_tmp, 'lib', '_internal', 'dartdoc',
-                       'lib', 'universe_serializer.dart')], [
-                  ("../../../../../pkg/args/lib/args.dart",
-                   "../../../../pkg/args/lib/args.dart"),
-                  ("../../../../../pkg/pathos/lib/path.dart",
-                   "../../../../pkg/pathos/lib/path.dart"),
-                 ])
 
   # Write the 'version' file
   versionFile = open(os.path.join(SDK_tmp, 'version'), 'w')

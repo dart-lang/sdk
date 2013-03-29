@@ -136,14 +136,17 @@ void main() {
 
   checkReturn(String name, type) {
     var element = findElement(compiler, name);
-    Expect.equals(type, typesInferrer.returnTypeOf[element]);
+    Expect.equals(type, typesInferrer.returnTypeOf[element], name);
   }
+  var interceptorType =
+      findTypeMask(compiler, 'Interceptor', 'nonNullSubclass');
+
   checkReturn('returnNum1', typesInferrer.numType);
   checkReturn('returnNum2', typesInferrer.numType);
   checkReturn('returnInt1', typesInferrer.intType);
   checkReturn('returnInt2', typesInferrer.intType);
   checkReturn('returnDouble', typesInferrer.doubleType);
-  checkReturn('returnGiveUp', typesInferrer.dynamicType);
+  checkReturn('returnGiveUp', interceptorType);
   checkReturn('returnNum3', typesInferrer.numType);
   checkReturn('returnNum4', typesInferrer.numType);
   checkReturn('returnIntOrNull', typesInferrer.intType.nullable());
@@ -163,7 +166,7 @@ void main() {
   checkReturnInClass('A', 'returnNum4', typesInferrer.numType);
   checkReturnInClass('A', 'returnNum5', typesInferrer.numType);
   checkReturnInClass('A', 'returnNum6', typesInferrer.numType);
-  checkReturnInClass('A', '==', typesInferrer.dynamicType);
+  checkReturnInClass('A', '==', interceptorType);
 
   checkReturnInClass('B', 'returnNum1', typesInferrer.numType);
   checkReturnInClass('B', 'returnNum2', typesInferrer.numType);

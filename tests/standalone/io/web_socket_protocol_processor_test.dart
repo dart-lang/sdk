@@ -6,7 +6,7 @@ import "dart:utf";
 import "dart:math";
 import "dart:async";
 import "dart:collection";
-import "dart:scalarlist";
+import "dart:typeddata";
 
 part "../../../sdk/lib/io/http.dart";
 part "../../../sdk/lib/io/buffer_list.dart";

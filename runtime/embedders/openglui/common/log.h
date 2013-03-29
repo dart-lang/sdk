@@ -21,5 +21,10 @@
 #include "embedders/openglui/android/android_log.h"
 #endif
 
+#ifndef DEBUG
+#undef LOGI
+#define LOGI(...)
+#endif
+
 #endif  // EMBEDDERS_OPENGLUI_COMMON_LOG_H_
 

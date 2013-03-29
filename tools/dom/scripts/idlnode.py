@@ -333,6 +333,7 @@ class IDLType(IDLNode):
 
   def __init__(self, ast):
     IDLNode.__init__(self, ast)
+    self.nullable = self._has(ast, 'Nullable')
     # Search for a 'ScopedName' or any label ending with 'Type'.
     if isinstance(ast, list):
       self.id = self._find_first(ast, 'ScopedName')

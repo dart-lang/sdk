@@ -4,7 +4,7 @@
 
 library version_test;
 
-import '../../../pkg/unittest/lib/unittest.dart';
+import 'package:unittest/unittest.dart';
 import 'test_pub.dart';
 import '../../pub/utils.dart';
 import '../../pub/version.dart';

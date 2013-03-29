@@ -201,8 +201,13 @@ void Heap::CollectAllGarbage() {
 }
 
 
-void Heap::EnableGrowthControl() {
-  old_space_->EnableGrowthControl();
+void Heap::SetGrowthControlState(bool state) {
+  old_space_->SetGrowthControlState(state);
+}
+
+
+bool Heap::GrowthControlState() {
+  return old_space_->GrowthControlState();
 }
 
 
@@ -481,5 +486,19 @@ NoGCScope::~NoGCScope() {
   isolate()->DecrementNoGCScopeDepth();
 }
 #endif  // defined(DEBUG)
+
+
+NoHeapGrowthControlScope::NoHeapGrowthControlScope()
+    : StackResource(Isolate::Current()) {
+    Heap* heap = reinterpret_cast<Isolate*>(isolate())->heap();
+    current_growth_controller_state_ = heap->GrowthControlState();
+    heap->DisableGrowthControl();
+}
+
+
+NoHeapGrowthControlScope::~NoHeapGrowthControlScope() {
+    Heap* heap = reinterpret_cast<Isolate*>(isolate())->heap();
+    heap->SetGrowthControlState(current_growth_controller_state_);
+}
 
 }  // namespace dart

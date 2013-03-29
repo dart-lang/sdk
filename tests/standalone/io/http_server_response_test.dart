@@ -9,7 +9,7 @@
 
 import "dart:async";
 import "dart:io";
-import "dart:scalarlist";
+import "dart:typeddata";
 
 void testServerRequest(void handler(server, request), {int bytes}) {
   HttpServer.bind().then((server) {

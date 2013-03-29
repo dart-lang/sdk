@@ -48,7 +48,6 @@
     'stopwatch_patch.dart',
     'stopwatch.cc',
     'string.cc',
-    'string_base.dart',
     'string_patch.dart',
     'string_buffer_patch.dart',
     'type_patch.dart',

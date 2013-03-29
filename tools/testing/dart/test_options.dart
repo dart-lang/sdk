@@ -452,8 +452,9 @@ Note: currently only implemented for dart2js.''',
     }
     if (!validRuntimes.contains(config['runtime'])) {
       isValid = false;
-      print("Warning: combination of ${config['compiler']} and "
-          "${config['runtime']} is invalid. Skipping this combination.");
+      print("Warning: combination of compiler '${config['compiler']}' and "
+          "runtime '${config['runtime']}' is invalid. "
+          "Skipping this combination.");
     }
     if ((config['runtime'] == 'ie9' || config['runtime'] == 'ie10') &&
         Platform.operatingSystem != 'windows') {

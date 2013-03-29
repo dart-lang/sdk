@@ -284,6 +284,7 @@ abstract class ASTVisitor<R> {
   R visitPrefixExpression(PrefixExpression node);
   R visitPropertyAccess(PropertyAccess node);
   R visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node);
+  R visitRethrowExpression(RethrowExpression node);
   R visitReturnStatement(ReturnStatement node);
   R visitScriptTag(ScriptTag node);
   R visitShowCombinator(ShowCombinator node);
@@ -411,11 +412,19 @@ abstract class AnnotatedNode extends ASTNode {
    */
   NodeList<Annotation> get metadata => _metadata;
   /**
-   * Set the documentation comment associated with this node to the given comment
+   * Set the documentation comment associated with this node to the given comment.
    * @param comment the documentation comment to be associated with this node
    */
   void set documentationComment(Comment comment2) {
     this._comment = becomeParentOf(comment2);
+  }
+  /**
+   * Set the metadata associated with this node to the given metadata.
+   * @param metadata the metadata to be associated with this node
+   */
+  void set metadata(List<Annotation> metadata2) {
+    this._metadata.clear();
+    this._metadata.addAll(metadata2);
   }
   void visitChildren(ASTVisitor<Object> visitor) {
     if (commentIsBeforeAnnotations()) {
@@ -7695,9 +7704,9 @@ class NamedExpression extends Expression {
    * @return the element representing the parameter being named by this expression
    */
   ParameterElement get element {
-    Element element20 = _name.label.element;
-    if (element20 is ParameterElement) {
-      return element20 as ParameterElement;
+    Element element22 = _name.label.element;
+    if (element22 is ParameterElement) {
+      return element22 as ParameterElement;
     }
     return null;
   }
@@ -8719,6 +8728,49 @@ class RedirectingConstructorInvocation extends ConstructorInitializer {
   }
 }
 /**
+ * Instances of the class {@code RethrowExpression} represent a rethrow expression.
+ * <pre>
+ * rethrowExpression ::=
+ * 'rethrow'
+ * </pre>
+ * @coverage dart.engine.ast
+ */
+class RethrowExpression extends Expression {
+  /**
+   * The token representing the 'rethrow' keyword.
+   */
+  Token _keyword;
+  /**
+   * Initialize a newly created rethrow expression.
+   * @param keyword the token representing the 'rethrow' keyword
+   */
+  RethrowExpression.full(Token keyword) {
+    this._keyword = keyword;
+  }
+  /**
+   * Initialize a newly created rethrow expression.
+   * @param keyword the token representing the 'rethrow' keyword
+   */
+  RethrowExpression({Token keyword}) : this.full(keyword);
+  accept(ASTVisitor visitor) => visitor.visitRethrowExpression(this);
+  Token get beginToken => _keyword;
+  Token get endToken => _keyword;
+  /**
+   * Return the token representing the 'rethrow' keyword.
+   * @return the token representing the 'rethrow' keyword
+   */
+  Token get keyword => _keyword;
+  /**
+   * Set the token representing the 'rethrow' keyword to the given token.
+   * @param keyword the token representing the 'rethrow' keyword
+   */
+  void set keyword(Token keyword15) {
+    this._keyword = keyword15;
+  }
+  void visitChildren(ASTVisitor<Object> visitor) {
+  }
+}
+/**
  * Instances of the class {@code ReturnStatement} represent a return statement.
  * <pre>
  * returnStatement ::=
@@ -8788,8 +8840,8 @@ class ReturnStatement extends Statement {
    * Set the token representing the 'return' keyword to the given token.
    * @param keyword the token representing the 'return' keyword
    */
-  void set keyword(Token keyword15) {
-    this._keyword = keyword15;
+  void set keyword(Token keyword16) {
+    this._keyword = keyword16;
   }
   /**
    * Set the semicolon terminating the statement to the given token.
@@ -8952,8 +9004,8 @@ class SimpleFormalParameter extends NormalFormalParameter {
    * Set the token representing either the 'final', 'const' or 'var' keyword to the given token.
    * @param keyword the token representing either the 'final', 'const' or 'var' keyword
    */
-  void set keyword(Token keyword16) {
-    this._keyword = keyword16;
+  void set keyword(Token keyword17) {
+    this._keyword = keyword17;
   }
   /**
    * Set the name of the declared type of the parameter to the given type name.
@@ -9383,8 +9435,8 @@ class SuperConstructorInvocation extends ConstructorInitializer {
    * Set the token for the 'super' keyword to the given token.
    * @param keyword the token for the 'super' keyword
    */
-  void set keyword(Token keyword17) {
-    this._keyword = keyword17;
+  void set keyword(Token keyword18) {
+    this._keyword = keyword18;
   }
   /**
    * Set the token for the period before the name of the constructor that is being invoked to the
@@ -9436,8 +9488,8 @@ class SuperExpression extends Expression {
    * Set the token representing the keyword to the given token.
    * @param keyword the token representing the keyword
    */
-  void set keyword(Token keyword18) {
-    this._keyword = keyword18;
+  void set keyword(Token keyword19) {
+    this._keyword = keyword19;
   }
   void visitChildren(ASTVisitor<Object> visitor) {
   }
@@ -9615,8 +9667,8 @@ abstract class SwitchMember extends ASTNode {
    * Set the token representing the 'case' or 'default' keyword to the given token.
    * @param keyword the token representing the 'case' or 'default' keyword
    */
-  void set keyword(Token keyword19) {
-    this._keyword = keyword19;
+  void set keyword(Token keyword20) {
+    this._keyword = keyword20;
   }
 }
 /**
@@ -9737,8 +9789,8 @@ class SwitchStatement extends Statement {
    * Set the token representing the 'switch' keyword to the given token.
    * @param keyword the token representing the 'switch' keyword
    */
-  void set keyword(Token keyword20) {
-    this._keyword = keyword20;
+  void set keyword(Token keyword21) {
+    this._keyword = keyword21;
   }
   /**
    * Set the left curly bracket to the given token.
@@ -9810,8 +9862,8 @@ class ThisExpression extends Expression {
    * Set the token representing the keyword to the given token.
    * @param keyword the token representing the keyword
    */
-  void set keyword(Token keyword21) {
-    this._keyword = keyword21;
+  void set keyword(Token keyword22) {
+    this._keyword = keyword22;
   }
   void visitChildren(ASTVisitor<Object> visitor) {
   }
@@ -9820,8 +9872,7 @@ class ThisExpression extends Expression {
  * Instances of the class {@code ThrowExpression} represent a throw expression.
  * <pre>
  * throwExpression ::=
- * 'throw' {@link Expression expression}? ';'
- * </pre>
+ * 'throw' {@link Expression expression}</pre>
  * @coverage dart.engine.ast
  */
 class ThrowExpression extends Expression {
@@ -9830,9 +9881,7 @@ class ThrowExpression extends Expression {
    */
   Token _keyword;
   /**
-   * The expression computing the exception to be thrown, or {@code null} if the current exception
-   * is to be re-thrown. (The latter case can only occur if the throw statement is inside a catch
-   * clause.)
+   * The expression computing the exception to be thrown.
    */
   Expression _expression;
   /**
@@ -9859,9 +9908,7 @@ class ThrowExpression extends Expression {
     return _keyword;
   }
   /**
-   * Return the expression computing the exception to be thrown, or {@code null} if the current
-   * exception is to be re-thrown. (The latter case can only occur if the throw statement is inside
-   * a catch clause.)
+   * Return the expression computing the exception to be thrown.
    * @return the expression computing the exception to be thrown
    */
   Expression get expression => _expression;
@@ -9881,8 +9928,8 @@ class ThrowExpression extends Expression {
    * Set the token representing the 'throw' keyword to the given token.
    * @param keyword the token representing the 'throw' keyword
    */
-  void set keyword(Token keyword22) {
-    this._keyword = keyword22;
+  void set keyword(Token keyword23) {
+    this._keyword = keyword23;
   }
   void visitChildren(ASTVisitor<Object> visitor) {
     safelyVisitChild(_expression, visitor);
@@ -10143,8 +10190,8 @@ abstract class TypeAlias extends CompilationUnitMember {
    * Set the token representing the 'typedef' keyword to the given token.
    * @param keyword the token representing the 'typedef' keyword
    */
-  void set keyword(Token keyword23) {
-    this._keyword = keyword23;
+  void set keyword(Token keyword24) {
+    this._keyword = keyword24;
   }
   /**
    * Set the semicolon terminating the declaration to the given token.
@@ -10399,8 +10446,8 @@ class TypeParameter extends Declaration {
    * Set the token representing the 'assert' keyword to the given token.
    * @param keyword the token representing the 'assert' keyword
    */
-  void set keyword(Token keyword24) {
-    this._keyword = keyword24;
+  void set keyword(Token keyword25) {
+    this._keyword = keyword25;
   }
   /**
    * Set the name of the type parameter to the given identifier.
@@ -10716,7 +10763,7 @@ class VariableDeclaration extends Declaration {
  * | {@link TypeName type}</pre>
  * @coverage dart.engine.ast
  */
-class VariableDeclarationList extends ASTNode {
+class VariableDeclarationList extends AnnotatedNode {
   /**
    * The token representing the 'final', 'const' or 'var' keyword, or {@code null} if no keyword was
    * included.
@@ -10732,11 +10779,13 @@ class VariableDeclarationList extends ASTNode {
   NodeList<VariableDeclaration> _variables;
   /**
    * Initialize a newly created variable declaration list.
+   * @param comment the documentation comment associated with this declaration list
+   * @param metadata the annotations associated with this declaration list
    * @param keyword the token representing the 'final', 'const' or 'var' keyword
    * @param type the type of the variables being declared
    * @param variables a list containing the individual variables being declared
    */
-  VariableDeclarationList.full(Token keyword, TypeName type, List<VariableDeclaration> variables) {
+  VariableDeclarationList.full(Comment comment, List<Annotation> metadata, Token keyword, TypeName type, List<VariableDeclaration> variables) : super.full(comment, metadata) {
     this._variables = new NodeList<VariableDeclaration>(this);
     this._keyword = keyword;
     this._type = becomeParentOf(type);
@@ -10744,20 +10793,14 @@ class VariableDeclarationList extends ASTNode {
   }
   /**
    * Initialize a newly created variable declaration list.
+   * @param comment the documentation comment associated with this declaration list
+   * @param metadata the annotations associated with this declaration list
    * @param keyword the token representing the 'final', 'const' or 'var' keyword
    * @param type the type of the variables being declared
    * @param variables a list containing the individual variables being declared
    */
-  VariableDeclarationList({Token keyword, TypeName type, List<VariableDeclaration> variables}) : this.full(keyword, type, variables);
+  VariableDeclarationList({Comment comment, List<Annotation> metadata, Token keyword, TypeName type, List<VariableDeclaration> variables}) : this.full(comment, metadata, keyword, type, variables);
   accept(ASTVisitor visitor) => visitor.visitVariableDeclarationList(this);
-  Token get beginToken {
-    if (_keyword != null) {
-      return _keyword;
-    } else if (_type != null) {
-      return _type.beginToken;
-    }
-    return _variables.beginToken;
-  }
   Token get endToken => _variables.endToken;
   /**
    * Return the token representing the 'final', 'const' or 'var' keyword, or {@code null} if no
@@ -10791,8 +10834,8 @@ class VariableDeclarationList extends ASTNode {
    * Set the token representing the 'final', 'const' or 'var' keyword to the given token.
    * @param keyword the token representing the 'final', 'const' or 'var' keyword
    */
-  void set keyword(Token keyword25) {
-    this._keyword = keyword25;
+  void set keyword(Token keyword26) {
+    this._keyword = keyword26;
   }
   /**
    * Set the type of the variables being declared to the given type name.
@@ -10804,6 +10847,14 @@ class VariableDeclarationList extends ASTNode {
   void visitChildren(ASTVisitor<Object> visitor) {
     safelyVisitChild(_type, visitor);
     _variables.accept(visitor);
+  }
+  Token get firstTokenAfterCommentAndMetadata {
+    if (_keyword != null) {
+      return _keyword;
+    } else if (_type != null) {
+      return _type.beginToken;
+    }
+    return _variables.beginToken;
   }
 }
 /**
@@ -10968,8 +11019,8 @@ class WhileStatement extends Statement {
    * Set the token representing the 'while' keyword to the given token.
    * @param keyword the token representing the 'while' keyword
    */
-  void set keyword(Token keyword26) {
-    this._keyword = keyword26;
+  void set keyword(Token keyword27) {
+    this._keyword = keyword27;
   }
   /**
    * Set the left parenthesis to the given token.
@@ -11375,10 +11426,13 @@ class ElementLocator {
  */
 class ElementLocator_ElementMapper extends GeneralizingASTVisitor<Element> {
   Element visitBinaryExpression(BinaryExpression node) => node.element;
+  Element visitClassDeclaration(ClassDeclaration node) => node.element;
+  Element visitFunctionDeclaration(FunctionDeclaration node) => node.element;
   Element visitIdentifier(Identifier node) => node.element;
   Element visitImportDirective(ImportDirective node) => node.element;
   Element visitIndexExpression(IndexExpression node) => node.element;
   Element visitLibraryDirective(LibraryDirective node) => node.element;
+  Element visitMethodDeclaration(MethodDeclaration node) => node.element;
   Element visitPostfixExpression(PostfixExpression node) => node.element;
   Element visitPrefixedIdentifier(PrefixedIdentifier node) => node.element;
   Element visitPrefixExpression(PrefixExpression node) => node.element;
@@ -11389,6 +11443,7 @@ class ElementLocator_ElementMapper extends GeneralizingASTVisitor<Element> {
     }
     return null;
   }
+  Element visitVariableDeclaration(VariableDeclaration node) => node.element;
 }
 /**
  * Instances of the class {@code GeneralizingASTVisitor} implement an AST visitor that will
@@ -11500,6 +11555,7 @@ class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
   R visitPrefixExpression(PrefixExpression node) => visitExpression(node);
   R visitPropertyAccess(PropertyAccess node) => visitExpression(node);
   R visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) => visitConstructorInitializer(node);
+  R visitRethrowExpression(RethrowExpression node) => visitExpression(node);
   R visitReturnStatement(ReturnStatement node) => visitStatement(node);
   R visitScriptTag(ScriptTag scriptTag) => visitNode(scriptTag);
   R visitShowCombinator(ShowCombinator node) => visitCombinator(node);
@@ -11559,10 +11615,10 @@ class NodeLocator extends GeneralizingASTVisitor<Object> {
    * @param offset the offset used to identify the node
    */
   NodeLocator.con1(int offset) {
-    _jtd_constructor_118_impl(offset);
+    _jtd_constructor_119_impl(offset);
   }
-  _jtd_constructor_118_impl(int offset) {
-    _jtd_constructor_119_impl(offset, offset);
+  _jtd_constructor_119_impl(int offset) {
+    _jtd_constructor_120_impl(offset, offset);
   }
   /**
    * Initialize a newly created locator to locate one or more {@link ASTNode AST nodes} by locating
@@ -11572,9 +11628,9 @@ class NodeLocator extends GeneralizingASTVisitor<Object> {
    * @param end the end offset of the range used to identify the node
    */
   NodeLocator.con2(int start, int end) {
-    _jtd_constructor_119_impl(start, end);
+    _jtd_constructor_120_impl(start, end);
   }
-  _jtd_constructor_119_impl(int start, int end) {
+  _jtd_constructor_120_impl(int start, int end) {
     this._startOffset = start;
     this._endOffset = end;
   }
@@ -11595,7 +11651,7 @@ class NodeLocator extends GeneralizingASTVisitor<Object> {
     try {
       node.accept(this);
     } on NodeLocator_NodeFoundException catch (exception) {
-    } on JavaException catch (exception) {
+    } catch (exception) {
       AnalysisEngine.instance.logger.logInformation2("Unable to locate element at offset (${_startOffset} - ${_endOffset})", exception);
       return null;
     }
@@ -11606,7 +11662,7 @@ class NodeLocator extends GeneralizingASTVisitor<Object> {
       node.visitChildren(this);
     } on NodeLocator_NodeFoundException catch (exception) {
       throw exception;
-    } on JavaException catch (exception) {
+    } catch (exception) {
       AnalysisEngine.instance.logger.logInformation2("Exception caught while traversing an AST structure.", exception);
     }
     int start = node.offset;
@@ -11932,6 +11988,10 @@ class RecursiveASTVisitor<R> implements ASTVisitor<R> {
     node.visitChildren(this);
     return null;
   }
+  R visitRethrowExpression(RethrowExpression node) {
+    node.visitChildren(this);
+    return null;
+  }
   R visitReturnStatement(ReturnStatement node) {
     node.visitChildren(this);
     return null;
@@ -12115,6 +12175,7 @@ class SimpleASTVisitor<R> implements ASTVisitor<R> {
   R visitPrefixExpression(PrefixExpression node) => null;
   R visitPropertyAccess(PropertyAccess node) => null;
   R visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) => null;
+  R visitRethrowExpression(RethrowExpression node) => null;
   R visitReturnStatement(ReturnStatement node) => null;
   R visitScriptTag(ScriptTag node) => null;
   R visitShowCombinator(ShowCombinator node) => null;
@@ -12690,6 +12751,10 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     _writer.print("this");
     visit3(".", node.constructorName);
     visit(node.argumentList);
+    return null;
+  }
+  Object visitRethrowExpression(RethrowExpression node) {
+    _writer.print("rethrow");
     return null;
   }
   Object visitReturnStatement(ReturnStatement node) {

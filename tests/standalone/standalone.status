@@ -14,7 +14,7 @@ io/raw_server_socket_cancel_test: Pass, Fail, Timeout # Issue 8675
 
 # Fails with a connection refused error on the buildbot.
 # Issue 8232.
-debugger/basic_debugger_test: Pass, Fail
+debugger/basic_debugger_test: Skip
 
 [ $runtime == vm && $checked ]
 # These tests have type errors on purpose.
@@ -27,6 +27,7 @@ io/stdout_bad_argument_test: Fail, OK
 # checked mode with no benefit. Skip.
 io/file_fuzz_test: Skip
 io/directory_fuzz_test: Skip
+io/process_exit_negative_test: Pass, Crash # Issue 9403
 
 [ $runtime == vm && $system == macos ]
 io/regress_7191_test: Pass, Timeout # http://dartbug.com/8091
@@ -61,7 +62,6 @@ debugger/*: Skip # Do not run standalone debugger tests in browser.
 
 # package test issue 7392
 package/package1_test: Fail
-package/package_isolate_test: Fail
 package/package_test: Fail
 
 

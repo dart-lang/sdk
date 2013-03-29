@@ -4,8 +4,8 @@
 
 import 'dart:io';
 
-import '../../../../../pkg/pathos/lib/path.dart' as path;
-import '../../../../../pkg/scheduled_test/lib/scheduled_test.dart';
+import 'package:pathos/path.dart' as path;
+import 'package:scheduled_test/scheduled_test.dart';
 
 import '../../../../pub/exit_codes.dart' as exit_codes;
 import '../../descriptor.dart' as d;

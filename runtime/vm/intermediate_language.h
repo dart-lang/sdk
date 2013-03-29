@@ -57,16 +57,16 @@ class Range;
   V(_GrowableObjectArray, get:length, GrowableArrayLength, 725548050)          \
   V(_GrowableObjectArray, get:_capacity, GrowableArrayCapacity, 725548050)     \
   V(_StringBase, get:length, StringBaseLength, 320803993)                      \
-  V(_StringBase, get:isEmpty, StringBaseIsEmpty, 711547329)                    \
+  V(_StringBase, get:isEmpty, StringBaseIsEmpty, 110632481)                    \
   V(_StringBase, codeUnitAt, StringBaseCodeUnitAt, 984449525)                  \
   V(_StringBase, [], StringBaseCharAt, 1062366987)                             \
-  V(_IntegerImplementation, toDouble, IntegerToDouble, 733149324)              \
+  V(_IntegerImplementation, toDouble, IntegerToDouble, 927078825)              \
   V(_Double, toInt, DoubleToInteger, 362666636)                                \
   V(_Double, truncateToDouble, DoubleTruncate, 620870996)                      \
   V(_Double, roundToDouble, DoubleRound, 620870996)                            \
   V(_Double, floorToDouble, DoubleFloor, 620870996)                            \
   V(_Double, ceilToDouble, DoubleCeil, 620870996)                              \
-  V(_Double, pow, DoublePow, 1131958048)                                       \
+  V(_Double, pow, DoublePow, 1229411686)                                       \
   V(_Double, _modulo, DoubleMod, 437099337)                                    \
   V(::, sqrt, MathSqrt, 1662640002)                                            \
 
@@ -2421,7 +2421,7 @@ class ComparisonInstr : public TemplateDefinition<2> {
   virtual void EmitBranchCode(FlowGraphCompiler* compiler,
                               BranchInstr* branch) = 0;
 
- private:
+ protected:
   Token::Kind kind_;
 };
 
@@ -2499,6 +2499,7 @@ class StrictCompareInstr : public ComparisonInstr {
 
   bool needs_number_check() const { return needs_number_check_; }
   void set_needs_number_check(bool value) { needs_number_check_ = value; }
+  void set_kind(Token::Kind value) { kind_ = value; }
 
  private:
   // True if the comparison must check for double, Mint or Bigint and

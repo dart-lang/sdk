@@ -4,10 +4,10 @@
 
 // PackageRoot=none
 
-#library('package_test');
+library package_test;
 
-#import('package:lib1.dart');
-#import('package:shared.dart');
+import 'package:lib1.dart';
+import 'package:shared.dart';
 
 void main() {
   output = 'main';

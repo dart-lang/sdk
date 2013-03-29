@@ -54,7 +54,7 @@
 library http;
 
 import 'dart:async';
-import 'dart:scalarlist';
+import 'dart:typeddata';
 import 'dart:uri';
 
 import 'src/client.dart';

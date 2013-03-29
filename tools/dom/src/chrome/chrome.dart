@@ -9,7 +9,7 @@ class API_ChromeApp {
   /*
    * JS Variable
    */
-  Object _jsObject;
+  final Object _jsObject;
 
   /*
    * Members

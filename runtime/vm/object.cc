@@ -575,7 +575,7 @@ void Object::CreateInternalMetaData() {
 
 // Make unused space in an object whose type has been transformed safe
 // for traversing during GC.
-// The unused part of the transformed object is marked as an Int8Array
+// The unused part of the transformed object is marked as an TypedDataInt8Array
 // object.
 void Object::MakeUnusedSpaceTraversable(const Object& obj,
                                         intptr_t original_size,
@@ -587,16 +587,16 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
     intptr_t leftover_size = original_size - used_size;
 
     uword addr = RawObject::ToAddr(obj.raw()) + used_size;
-    ASSERT(Int8Array::InstanceSize(0) == Object::InstanceSize());
-    // Update the leftover space as an Int8Array object.
-    RawInt8Array* raw =
-        reinterpret_cast<RawInt8Array*>(RawObject::FromAddr(addr));
+    ASSERT(TypedData::InstanceSize(0) == Object::InstanceSize());
+    // Update the leftover space as an TypedDataInt8Array object.
+    RawTypedData* raw =
+        reinterpret_cast<RawTypedData*>(RawObject::FromAddr(addr));
     uword tags = 0;
     tags = RawObject::SizeTag::update(leftover_size, tags);
-    tags = RawObject::ClassIdTag::update(kInt8ArrayCid, tags);
+    tags = RawObject::ClassIdTag::update(kTypedDataInt8ArrayCid, tags);
     raw->ptr()->tags_ = tags;
-    intptr_t leftover_len = (leftover_size - Int8Array::InstanceSize(0));
-    ASSERT(Int8Array::InstanceSize(leftover_len) == leftover_size);
+    intptr_t leftover_len = (leftover_size - TypedData::InstanceSize(0));
+    ASSERT(TypedData::InstanceSize(leftover_len) == leftover_size);
     raw->ptr()->length_ = Smi::New(leftover_len);
   }
 }
@@ -870,8 +870,6 @@ RawError* Object::Init(Isolate* isolate) {
   object_store->set_##object_store_name##_class(cls);                          \
   RegisterPrivateClass(cls, Symbols::_##name(), lib);                          \
 
-  REGISTER_SCALARLIST_CLASS(Float32x4, float32x4);
-  REGISTER_SCALARLIST_CLASS(Uint32x4, uint32x4);
   REGISTER_SCALARLIST_CLASS(Int8Array, int8_array);
   REGISTER_SCALARLIST_CLASS(Uint8Array, uint8_array);
   REGISTER_SCALARLIST_CLASS(Uint8ClampedArray, uint8_clamped_array);
@@ -881,7 +879,6 @@ RawError* Object::Init(Isolate* isolate) {
   REGISTER_SCALARLIST_CLASS(Uint32Array, uint32_array);
   REGISTER_SCALARLIST_CLASS(Int64Array, int64_array);
   REGISTER_SCALARLIST_CLASS(Uint64Array, uint64_array);
-  REGISTER_SCALARLIST_CLASS(Float32x4Array, float32x4_array);
   REGISTER_SCALARLIST_CLASS(Float32Array, float32_array);
   REGISTER_SCALARLIST_CLASS(Float64Array, float64_array);
   REGISTER_SCALARLIST_CLASS(ExternalInt8Array, external_int8_array);
@@ -894,18 +891,20 @@ RawError* Object::Init(Isolate* isolate) {
   REGISTER_SCALARLIST_CLASS(ExternalUint32Array, external_uint32_array);
   REGISTER_SCALARLIST_CLASS(ExternalInt64Array, external_int64_array);
   REGISTER_SCALARLIST_CLASS(ExternalUint64Array, external_uint64_array);
-  REGISTER_SCALARLIST_CLASS(ExternalFloat32x4Array, external_float32x4_array);
   REGISTER_SCALARLIST_CLASS(ExternalFloat32Array, external_float32_array);
   REGISTER_SCALARLIST_CLASS(ExternalFloat64Array, external_float64_array);
 #undef REGISTER_SCALARLIST_CLASS
+
 
   // Pre-register the typeddata library so the native class implementations
   // can be hooked up before compiling it.
   LOAD_LIBRARY(TypedData, typeddata);
   ASSERT(!lib.IsNull());
   ASSERT(lib.raw() == Library::TypedDataLibrary());
+  const intptr_t typeddata_class_array_length =
+      RawObject::NumberOfTypedDataClasses() + 2;  // +2 for Float32x4 & Uint32x4
   Array& typeddata_classes =
-      Array::Handle(Array::New(RawObject::NumberOfTypedDataClasses()));
+      Array::Handle(Array::New(typeddata_class_array_length));
   int index = 0;
 #define REGISTER_TYPED_DATA_CLASS(clazz)                                       \
   cls = Class::NewTypedDataClass(kTypedData##clazz##Cid);                      \
@@ -915,6 +914,20 @@ RawError* Object::Init(Isolate* isolate) {
 
   CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_CLASS);
 #undef REGISTER_TYPED_DATA_CLASS
+#define REGISTER_TYPED_DATA_VIEW_CLASS(clazz)                                  \
+  cls = Class::NewTypedDataViewClass(kTypedData##clazz##ViewCid);              \
+  index = kTypedData##clazz##ViewCid - kTypedDataInt8ArrayCid;                 \
+  typeddata_classes.SetAt(index, cls);                                         \
+  RegisterPrivateClass(cls, Symbols::_##clazz##View(), lib);                   \
+  pending_classes.Add(cls, Heap::kOld);                                        \
+
+  CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_VIEW_CLASS);
+  cls = Class::NewTypedDataViewClass(kByteDataViewCid);
+  index = kByteDataViewCid - kTypedDataInt8ArrayCid;
+  typeddata_classes.SetAt(index, cls);
+  RegisterPrivateClass(cls, Symbols::_ByteDataView(), lib);
+  pending_classes.Add(cls, Heap::kOld);
+#undef REGISTER_TYPED_DATA_VIEW_CLASS
 #define REGISTER_EXT_TYPED_DATA_CLASS(clazz)                                   \
   cls = Class::NewExternalTypedDataClass(kExternalTypedData##clazz##Cid);      \
   index = kExternalTypedData##clazz##Cid - kTypedDataInt8ArrayCid;             \
@@ -923,6 +936,17 @@ RawError* Object::Init(Isolate* isolate) {
 
   CLASS_LIST_TYPED_DATA(REGISTER_EXT_TYPED_DATA_CLASS);
 #undef REGISTER_EXT_TYPED_DATA_CLASS
+  // Add Float32x4 and Uint32x4 to dart:typeddata and register them in the
+  // object store.
+  cls = Class::New<Float32x4>();
+  object_store->set_float32x4_class(cls);
+  typeddata_classes.SetAt(typeddata_class_array_length-2, cls);
+  RegisterPrivateClass(cls, Symbols::_Float32x4(), lib);
+  cls = Class::New<Uint32x4>();
+  object_store->set_uint32x4_class(cls);
+  typeddata_classes.SetAt(typeddata_class_array_length-1, cls);
+  RegisterPrivateClass(cls, Symbols::_Uint32x4(), lib);
+
   object_store->set_typeddata_classes(typeddata_classes);
 
   // Set the super type of class Stacktrace to Object type so that the
@@ -1075,8 +1099,6 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   cls = Class::New<name>();                                                    \
   object_store->set_##object_store_name##_class(cls);                          \
 
-  REGISTER_SCALARLIST_CLASS(Float32x4, float32x4);
-  REGISTER_SCALARLIST_CLASS(Uint32x4, uint32x4);
   REGISTER_SCALARLIST_CLASS(Int8Array, int8_array);
   REGISTER_SCALARLIST_CLASS(Uint8Array, uint8_array);
   REGISTER_SCALARLIST_CLASS(Uint8ClampedArray, uint8_clamped_array);
@@ -1086,7 +1108,6 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   REGISTER_SCALARLIST_CLASS(Uint32Array, uint32_array);
   REGISTER_SCALARLIST_CLASS(Int64Array, int64_array);
   REGISTER_SCALARLIST_CLASS(Uint64Array, uint64_array);
-  REGISTER_SCALARLIST_CLASS(Float32x4Array, float32x4_array);
   REGISTER_SCALARLIST_CLASS(Float32Array, float32_array);
   REGISTER_SCALARLIST_CLASS(Float64Array, float64_array);
   REGISTER_SCALARLIST_CLASS(ExternalInt8Array, external_int8_array);
@@ -1099,7 +1120,6 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   REGISTER_SCALARLIST_CLASS(ExternalUint32Array, external_uint32_array);
   REGISTER_SCALARLIST_CLASS(ExternalInt64Array, external_int64_array);
   REGISTER_SCALARLIST_CLASS(ExternalUint64Array, external_uint64_array);
-  REGISTER_SCALARLIST_CLASS(ExternalFloat32x4Array, external_float32x4_array);
   REGISTER_SCALARLIST_CLASS(ExternalFloat32Array, external_float32_array);
   REGISTER_SCALARLIST_CLASS(ExternalFloat64Array, external_float64_array);
 #undef REGISTER_SCALARLIST_CLASS
@@ -1108,10 +1128,20 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   cls = Class::NewTypedDataClass(kTypedData##clazz##Cid);
   CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_CLASS);
 #undef REGISTER_TYPED_DATA_CLASS
+#define REGISTER_TYPED_DATA_VIEW_CLASS(clazz)                                  \
+  cls = Class::NewTypedDataViewClass(kTypedData##clazz##ViewCid);
+  CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_VIEW_CLASS);
+  cls = Class::NewTypedDataViewClass(kByteDataViewCid);
+#undef REGISTER_TYPED_DATA_VIEW_CLASS
 #define REGISTER_EXT_TYPED_DATA_CLASS(clazz)                                   \
   cls = Class::NewExternalTypedDataClass(kExternalTypedData##clazz##Cid);
   CLASS_LIST_TYPED_DATA(REGISTER_EXT_TYPED_DATA_CLASS);
 #undef REGISTER_EXT_TYPED_DATA_CLASS
+  // Add Float32x4 and Uint32x4 to the object store.
+  cls = Class::New<Float32x4>();
+  object_store->set_float32x4_class(cls);
+  cls = Class::New<Uint32x4>();
+  object_store->set_uint32x4_class(cls);
 
   cls = Class::New<Integer>();
   object_store->set_integer_implementation_class(cls);
@@ -1340,9 +1370,6 @@ RawString* Class::UserVisibleName() const {
     case kUint64ArrayCid:
     case kExternalUint64ArrayCid:
       return Symbols::Uint64List().raw();
-    case kFloat32x4ArrayCid:
-    case kExternalFloat32x4ArrayCid:
-      return Symbols::Float32x4List().raw();
     case kFloat32ArrayCid:
     case kExternalFloat32ArrayCid:
       return Symbols::Float32List().raw();
@@ -1948,6 +1975,15 @@ RawClass* Class::NewTypedDataClass(intptr_t class_id) {
   result.set_instance_size(instance_size);
   result.set_next_field_offset(instance_size);
   result.set_is_prefinalized();
+  return result.raw();
+}
+
+
+RawClass* Class::NewTypedDataViewClass(intptr_t class_id) {
+  ASSERT(RawObject::IsTypedDataViewClassId(class_id));
+  Class& result = Class::Handle(New<Instance>(class_id));
+  result.set_instance_size(0);
+  result.set_next_field_offset(0);
   return result.raw();
 }
 
@@ -3873,8 +3909,11 @@ bool Function::HasCompatibleParametersWith(const Function& other) const {
   const intptr_t num_ignored_params =
       (other.IsRedirectingFactory() && IsConstructor()) ? 1 : 0;
   // The default values of optional parameters can differ.
-  if (((num_fixed_params - num_ignored_params) != other_num_fixed_params) ||
-      (num_opt_pos_params < other_num_opt_pos_params) ||
+  // This function requires the same arguments or less and accepts the same
+  // arguments or more.
+  if (((num_fixed_params - num_ignored_params) > other_num_fixed_params) ||
+      ((num_fixed_params - num_ignored_params) + num_opt_pos_params <
+       other_num_fixed_params + other_num_opt_pos_params) ||
       (num_opt_named_params < other_num_opt_named_params)) {
     return false;
   }
@@ -3971,8 +4010,11 @@ bool Function::TypeTest(TypeTestKind test_kind,
       other.NumOptionalPositionalParameters();
   const intptr_t other_num_opt_named_params =
       other.NumOptionalNamedParameters();
-  if ((num_fixed_params != other_num_fixed_params) ||
-      (num_opt_pos_params < other_num_opt_pos_params) ||
+  // This function requires the same arguments or less and accepts the same
+  // arguments or more.
+  if ((num_fixed_params > other_num_fixed_params) ||
+      (num_fixed_params + num_opt_pos_params <
+       other_num_fixed_params + other_num_opt_pos_params) ||
       (num_opt_named_params < other_num_opt_named_params)) {
     return false;
   }
@@ -4005,7 +4047,8 @@ bool Function::TypeTest(TypeTestKind test_kind,
     }
   }
   // Check the types of fixed and optional positional parameters.
-  for (intptr_t i = 0; i < num_fixed_params + other_num_opt_pos_params; i++) {
+  for (intptr_t i = 0;
+       i < other_num_fixed_params + other_num_opt_pos_params; i++) {
     if (!TestParameterType(test_kind,
                            i, i, type_arguments, other, other_type_arguments,
                            malformed_error)) {
@@ -4943,12 +4986,12 @@ void TokenStream::SetTokenObjects(const Array& value) const {
 }
 
 
-RawExternalUint8Array* TokenStream::GetStream() const {
+RawExternalTypedData* TokenStream::GetStream() const {
   return raw_ptr()->stream_;
 }
 
 
-void TokenStream::SetStream(const ExternalUint8Array& value) const {
+void TokenStream::SetStream(const ExternalTypedData& value) const {
   StorePointer(&raw_ptr()->stream_, value.raw());
 }
 
@@ -4972,7 +5015,7 @@ void TokenStream::SetPrivateKey(const String& value) const {
 
 RawString* TokenStream::GenerateSource() const {
   Iterator iterator(*this, 0);
-  const ExternalUint8Array& data = ExternalUint8Array::Handle(GetStream());
+  const ExternalTypedData& data = ExternalTypedData::Handle(GetStream());
   const GrowableObjectArray& literals =
       GrowableObjectArray::Handle(GrowableObjectArray::New(data.Length()));
   const String& private_key = String::Handle(PrivateKey());
@@ -5154,8 +5197,9 @@ RawTokenStream* TokenStream::New(intptr_t len) {
   }
   uint8_t* data = reinterpret_cast<uint8_t*>(::malloc(len));
   ASSERT(data != NULL);
-  const ExternalUint8Array& stream = ExternalUint8Array::Handle(
-      ExternalUint8Array::New(data, len, Heap::kOld));
+  const ExternalTypedData& stream = ExternalTypedData::Handle(
+      ExternalTypedData::New(kExternalTypedDataUint8ArrayCid,
+                             data, len, Heap::kOld));
   stream.AddFinalizer(data, DataFinalizer);
   const TokenStream& result = TokenStream::Handle(TokenStream::New());
   result.SetStream(stream);
@@ -5166,10 +5210,10 @@ RawTokenStream* TokenStream::New(intptr_t len) {
 // Helper class for creation of compressed token stream data.
 class CompressedTokenStreamData : public ValueObject {
  public:
-  static const intptr_t kIncrementSize = 16 * KB;
+  static const intptr_t kInitialSize = 16 * KB;
   CompressedTokenStreamData() :
       buffer_(NULL),
-      stream_(&buffer_, Reallocate, kIncrementSize),
+      stream_(&buffer_, Reallocate, kInitialSize),
       token_objects_(GrowableObjectArray::Handle(
           GrowableObjectArray::New(kInitialTokenCount, Heap::kOld))),
       token_obj_(Object::Handle()),
@@ -5328,8 +5372,9 @@ RawTokenStream* TokenStream::New(const Scanner::GrowableTokenStream& tokens,
   data.AddSimpleToken(Token::kEOS);  // End of stream.
 
   // Create and setup the token stream object.
-  const ExternalUint8Array& stream = ExternalUint8Array::Handle(
-      ExternalUint8Array::New(data.GetStream(), data.Length(), Heap::kOld));
+  const ExternalTypedData& stream = ExternalTypedData::Handle(
+      ExternalTypedData::New(kExternalTypedDataUint8ArrayCid,
+                             data.GetStream(), data.Length(), Heap::kOld));
   stream.AddFinalizer(data.GetStream(), DataFinalizer);
   const TokenStream& result = TokenStream::Handle(New());
   result.SetPrivateKey(private_key);
@@ -5350,8 +5395,8 @@ const char* TokenStream::ToCString() const {
 
 TokenStream::Iterator::Iterator(const TokenStream& tokens, intptr_t token_pos)
     : tokens_(TokenStream::Handle(tokens.raw())),
-      data_(ExternalUint8Array::Handle(tokens.GetStream())),
-      stream_(data_.ByteAddr(0), data_.Length()),
+      data_(ExternalTypedData::Handle(tokens.GetStream())),
+      stream_(reinterpret_cast<uint8_t*>(data_.DataAddr(0)), data_.Length()),
       token_objects_(Array::Handle(tokens.TokenObjects())),
       obj_(Object::Handle()),
       cur_token_pos_(token_pos),
@@ -5365,7 +5410,8 @@ void TokenStream::Iterator::SetStream(const TokenStream& tokens,
                                       intptr_t token_pos) {
   tokens_ = tokens.raw();
   data_ = tokens.GetStream();
-  stream_.SetStream(data_.ByteAddr(0), data_.Length());
+  stream_.SetStream(reinterpret_cast<uint8_t*>(data_.DataAddr(0)),
+                    data_.Length());
   token_objects_ = tokens.TokenObjects();
   obj_ = Object::null();
   cur_token_pos_ = token_pos;
@@ -7674,13 +7720,6 @@ RawCode* Code::FinalizeCode(const char* name,
 
   // Allocate the code object.
   Code& code = Code::ZoneHandle(Code::New(pointer_offsets.length()));
-
-  // Clone the object pool in the old space, if necessary.
-  Array& object_pool = Array::Handle(
-      Array::MakeArray(assembler->object_pool()));
-  if (!object_pool.IsOld()) {
-    object_pool ^= Object::Clone(object_pool, Heap::kOld);
-  }
   {
     NoGCScope no_gc;
 
@@ -7699,7 +7738,15 @@ RawCode* Code::FinalizeCode(const char* name,
     code.set_instructions(instrs.raw());
 
     // Set object pool in Instructions object.
-    instrs.set_object_pool(object_pool.raw());
+    const GrowableObjectArray& object_pool = assembler->object_pool();
+    if (object_pool.IsNull()) {
+      instrs.set_object_pool(Object::empty_array().raw());
+    } else {
+      // TODO(regis): Once MakeArray takes a Heap::Space argument, call it here
+      // with Heap::kOld and change the ARM and MIPS assemblers to work with a
+      // GrowableObjectArray in new space.
+      instrs.set_object_pool(Array::MakeArray(object_pool));
+    }
   }
   return code.raw();
 }
@@ -12209,10 +12256,11 @@ RawArray* Array::Grow(const Array& source, int new_length, Heap::Space space) {
 
 
 RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
-  if (growable_array.IsNull()) {
-    return Array::null();
-  }
+  ASSERT(!growable_array.IsNull());
   intptr_t used_len = growable_array.Length();
+  if (used_len == 0) {
+    return Object::empty_array().raw();
+  }
   intptr_t capacity_len = growable_array.Capacity();
   Isolate* isolate = Isolate::Current();
   const Array& array = Array::Handle(isolate, growable_array.data());
@@ -12565,17 +12613,18 @@ const char* Uint32x4::ToCString() const {
 
 
 const intptr_t TypedData::element_size[] = {
-  1,  // kTypedDataInt8ArrayCid.
-  1,  // kTypedDataUint8ArrayCid.
-  1,  // kTypedDataUint8ClampedArrayCid.
-  2,  // kTypedDataInt16ArrayCid.
-  2,  // kTypedDataUint16ArrayCid.
-  4,  // kTypedDataInt32ArrayCid.
-  4,  // kTypedDataUint32ArrayCid.
-  8,  // kTypedDataInt64ArrayCid.
-  8,  // kTypedDataUint64ArrayCid.
-  4,  // kTypedDataFloat32ArrayCid.
-  8,  // kTypedDataFloat64ArrayCid.
+  1,   // kTypedDataInt8ArrayCid.
+  1,   // kTypedDataUint8ArrayCid.
+  1,   // kTypedDataUint8ClampedArrayCid.
+  2,   // kTypedDataInt16ArrayCid.
+  2,   // kTypedDataUint16ArrayCid.
+  4,   // kTypedDataInt32ArrayCid.
+  4,   // kTypedDataUint32ArrayCid.
+  8,   // kTypedDataInt64ArrayCid.
+  8,   // kTypedDataUint64ArrayCid.
+  4,   // kTypedDataFloat32ArrayCid.
+  8,   // kTypedDataFloat64ArrayCid.
+  16,  // kTypedDataFloat32x4ArrayCid.
 };
 
 
@@ -13015,30 +13064,6 @@ const char* Uint64Array::ToCString() const {
 }
 
 
-RawFloat32x4Array* Float32x4Array::New(intptr_t len,
-                                       Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->float32x4_array_class() !=
-         Class::null());
-  return NewImpl<Float32x4Array, RawFloat32x4Array>(kClassId, len,
-                                                              space);
-}
-
-
-RawFloat32x4Array* Float32x4Array::New(const simd128_value_t* data,
-                                       intptr_t len,
-                                       Heap::Space space) {
-  ASSERT(Isolate::Current()->object_store()->float32_array_class() !=
-         Class::null());
-  return NewImpl<Float32x4Array, RawFloat32x4Array>(kClassId, data,
-                                                              len, space);
-}
-
-
-const char* Float32x4Array::ToCString() const {
-  return "_Float32x4Array";
-}
-
-
 RawFloat32Array* Float32Array::New(intptr_t len, Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->float32_array_class() !=
          Class::null());
@@ -13216,23 +13241,6 @@ RawExternalUint64Array* ExternalUint64Array::New(uint64_t* data,
 
 const char* ExternalUint64Array::ToCString() const {
   return "_ExternalUint64Array";
-}
-
-
-RawExternalFloat32x4Array* ExternalFloat32x4Array::New(simd128_value_t* data,
-                                                       intptr_t len,
-                                                       Heap::Space space) {
-  RawClass* cls =
-     Isolate::Current()->object_store()->external_float32x4_array_class();
-  ASSERT(cls != Class::null());
-  return NewExternalImpl<ExternalFloat32x4Array,
-                         RawExternalFloat32x4Array>(kClassId, data, len,
-                                                    space);
-}
-
-
-const char* ExternalFloat32x4Array::ToCString() const {
-  return "_ExternalFloat32x4Array";
 }
 
 

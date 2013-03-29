@@ -32,10 +32,10 @@ main() {
   ChangeSet changeSet = new ChangeSet();
   changeSet.added(source);
   context.applyChanges(changeSet);
-  LibraryElement libElement = context.getLibraryElement(source);
+  LibraryElement libElement = context.computeLibraryElement(source);
   print("libElement: $libElement");
 
-  CompilationUnit resolvedUnit = context.resolve(source, libElement);
+  CompilationUnit resolvedUnit = context.resolveCompilationUnit(source, libElement);
   var visitor = new _ASTVisitor();
   resolvedUnit.accept(visitor);
 }
@@ -44,7 +44,7 @@ class _ASTVisitor extends GeneralizingASTVisitor {
   visitNode(ASTNode node) {
     String text = '${node.runtimeType} : <"${node.toString()}">';
     if (node is SimpleIdentifier) {
-      Element element = node.element;
+      Element element = (node as SimpleIdentifier).element;
       if (element != null) {
         text += " element: ${element.runtimeType}";
         LibraryElement library = element.library;

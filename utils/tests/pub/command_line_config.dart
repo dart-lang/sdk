@@ -6,8 +6,8 @@ library command_line_config;
 
 import 'dart:io';
 
-import '../../../pkg/pathos/lib/path.dart' as path;
-import '../../../pkg/unittest/lib/unittest.dart';
+import 'package:pathos/path.dart' as path;
+import 'package:unittest/unittest.dart';
 import '../../pub/utils.dart';
 
 /// Gets a "special" string (ANSI escape or Unicode). On Windows, returns

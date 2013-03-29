@@ -16,15 +16,14 @@ import 'dart:math';
 import 'dart:uri';
 import 'dart:utf';
 
-import '../../../pkg/http/lib/testing.dart';
-import '../../../pkg/oauth2/lib/oauth2.dart' as oauth2;
-import '../../../pkg/pathos/lib/path.dart' as path;
-import '../../../pkg/scheduled_test/lib/scheduled_process.dart';
-import '../../../pkg/scheduled_test/lib/scheduled_server.dart';
-import '../../../pkg/scheduled_test/lib/scheduled_test.dart';
-import '../../../pkg/yaml/lib/yaml.dart';
+import 'package:http/testing.dart';
+import 'package:oauth2/oauth2.dart' as oauth2;
+import 'package:pathos/path.dart' as path;
+import 'package:scheduled_test/scheduled_process.dart';
+import 'package:scheduled_test/scheduled_server.dart';
+import 'package:scheduled_test/scheduled_test.dart';
+import 'package:yaml/yaml.dart';
 
-import '../../lib/file_system.dart' as fs;
 import '../../pub/entrypoint.dart';
 // TODO(rnystrom): Using "gitlib" as the prefix here is ugly, but "git" collides
 // with the git descriptor method. Maybe we should try to clean up the top level
@@ -341,9 +340,10 @@ ScheduledProcess startPub({List args, Future<Uri> tokenEndpoint}) {
   }
 
   // Find the main pub entrypoint.
-  var pubPath = fs.joinPaths(testDirectory, '../../pub/pub.dart');
+  var pubPath = path.join(testDirectory, '..', '..', 'pub', 'pub.dart');
 
-  var dartArgs = ['--checked', pubPath, '--trace'];
+  var dartArgs = ['--package-root=$_packageRoot/', '--checked', pubPath,
+      '--trace'];
   dartArgs.addAll(args);
 
   if (tokenEndpoint == null) tokenEndpoint = new Future.immediate(null);
@@ -363,6 +363,22 @@ ScheduledProcess startPub({List args, Future<Uri> tokenEndpoint}) {
 
   return new ScheduledProcess.start(dartBin, dartArgs, options: optionsFuture,
       description: args.isEmpty ? 'pub' : 'pub ${args.first}');
+}
+
+/// Whether pub is running from within the Dart SDK, as opposed to from the Dart
+/// source repository.
+bool get _runningFromSdk => path.dirname(relativeToPub('..')) == 'util';
+
+// TODO(nweiz): use the built-in mechanism for accessing this once it exists
+// (issue 9119).
+/// The path to the `packages` directory from which pub loads its dependencies.
+String get _packageRoot {
+  if (_runningFromSdk) {
+    return path.absolute(relativeToPub(path.join('..', '..', 'packages')));
+  } else {
+    return path.absolute(path.join(
+        path.dirname(new Options().executable), '..', '..', 'packages'));
+  }
 }
 
 /// Skips the current test if Git is not installed. This validates that the

@@ -251,9 +251,9 @@ class ConstantVisitor extends GeneralizingASTVisitor<EvaluationResultImpl> {
     return ValidResult.RESULT_OBJECT;
   }
   EvaluationResultImpl visitMethodInvocation(MethodInvocation node) {
-    Element element21 = node.methodName.element;
-    if (element21 is FunctionElement) {
-      FunctionElement function = element21 as FunctionElement;
+    Element element23 = node.methodName.element;
+    if (element23 is FunctionElement) {
+      FunctionElement function = element23 as FunctionElement;
       if (function.name == "identical") {
         NodeList<Expression> arguments3 = node.argumentList.arguments;
         if (arguments3.length == 2) {
@@ -363,9 +363,9 @@ class ErrorResult extends EvaluationResultImpl {
    * @param errorCode the error code for the error to be generated
    */
   ErrorResult.con1(ASTNode node, ErrorCode errorCode) {
-    _jtd_constructor_158_impl(node, errorCode);
+    _jtd_constructor_157_impl(node, errorCode);
   }
-  _jtd_constructor_158_impl(ASTNode node, ErrorCode errorCode) {
+  _jtd_constructor_157_impl(ASTNode node, ErrorCode errorCode) {
     _errors.add(new ErrorResult_ErrorData(node, errorCode));
   }
   /**
@@ -375,9 +375,9 @@ class ErrorResult extends EvaluationResultImpl {
    * @param secondResult the second set of results being merged
    */
   ErrorResult.con2(ErrorResult firstResult, ErrorResult secondResult) {
-    _jtd_constructor_159_impl(firstResult, secondResult);
+    _jtd_constructor_158_impl(firstResult, secondResult);
   }
-  _jtd_constructor_159_impl(ErrorResult firstResult, ErrorResult secondResult) {
+  _jtd_constructor_158_impl(ErrorResult firstResult, ErrorResult secondResult) {
     _errors.addAll(firstResult._errors);
     _errors.addAll(secondResult._errors);
   }

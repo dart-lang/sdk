@@ -7,6 +7,7 @@
 #include <math.h>
 #include <unistd.h>
 
+#include "embedders/openglui/common/image_cache.h"
 #include "embedders/openglui/common/log.h"
 
 DartHost::DartHost(Context *context)
@@ -18,6 +19,7 @@ DartHost::DartHost(Context *context)
       has_context_(false),
       started_(false),
       active_(false) {
+  ImageCache::Init(graphics_handler_->resource_path());
 }
 
 DartHost::~DartHost() {

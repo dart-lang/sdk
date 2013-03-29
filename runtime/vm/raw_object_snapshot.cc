@@ -205,7 +205,16 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
   }
 
   // If object needs to be a canonical object, Canonicalize it.
-  if ((kind != Snapshot::kFull) && RawObject::IsCanonical(tags)) {
+  // When reading a full snapshot we don't need to canonicalize the object
+  // as it would already be a canonical object.
+  // When reading a script snapshot we need to canonicalize only those object
+  // references that are objects from the core library (loaded from a
+  // full snapshot). Objects that are only in the script need not be
+  // canonicalized as they are already canonical.
+  // When reading a message snapshot we always have to canonicalize the object.
+  if ((kind != Snapshot::kFull) && RawObject::IsCanonical(tags) &&
+      (RawObject::IsCreatedFromSnapshot(tags) ||
+       (kind == Snapshot::kMessage))) {
     type ^= type.Canonicalize();
   }
 
@@ -458,7 +467,16 @@ RawTypeArguments* TypeArguments::ReadFrom(SnapshotReader* reader,
   }
 
   // If object needs to be a canonical object, Canonicalize it.
-  if ((kind != Snapshot::kFull) && RawObject::IsCanonical(tags)) {
+  // When reading a full snapshot we don't need to canonicalize the object
+  // as it would already be a canonical object.
+  // When reading a script snapshot we need to canonicalize only those object
+  // references that are objects from the core library (loaded from a
+  // full snapshot). Objects that are only in the script need not be
+  // canonicalized as they are already canonical.
+  // When reading a message snapshot we always have to canonicalize the object.
+  if ((kind != Snapshot::kFull) && RawObject::IsCanonical(tags) &&
+      (RawObject::IsCreatedFromSnapshot(tags) ||
+       (kind == Snapshot::kMessage))) {
     type_arguments ^= type_arguments.Canonicalize();
   }
 
@@ -899,7 +917,7 @@ RawTokenStream* TokenStream::ReadFrom(SnapshotReader* reader,
   // snapshots as we made a copy of token stream.
   if (kind == Snapshot::kScript) {
     NoGCScope no_gc;
-    RawExternalUint8Array* stream = token_stream.GetStream();
+    RawExternalTypedData* stream = token_stream.GetStream();
     reader->ReadBytes(stream->ptr()->data_, len);
   }
 
@@ -929,7 +947,7 @@ void RawTokenStream::WriteTo(SnapshotWriter* writer,
   writer->WriteIntptrValue(writer->GetObjectTags(this));
 
   // Write out the length field and the token stream.
-  RawExternalUint8Array* stream = ptr()->stream_;
+  RawExternalTypedData* stream = ptr()->stream_;
   intptr_t len = Smi::Value(stream->ptr()->length_);
   writer->Write<RawObject*>(stream->ptr()->length_);
   writer->WriteBytes(stream->ptr()->data_, len);
@@ -1597,7 +1615,14 @@ RawMint* Mint::ReadFrom(SnapshotReader* reader,
   if (kind == Snapshot::kFull) {
     mint = reader->NewMint(value);
   } else {
-    if (RawObject::IsCanonical(tags)) {
+    // When reading a script snapshot we need to canonicalize only those object
+    // references that are objects from the core library (loaded from a
+    // full snapshot). Objects that are only in the script need not be
+    // canonicalized as they are already canonical.
+    // When reading a message snapshot we always have to canonicalize.
+    if (RawObject::IsCanonical(tags) &&
+        (RawObject::IsCreatedFromSnapshot(tags) ||
+         (kind == Snapshot::kMessage))) {
       mint = Mint::NewCanonical(value);
     } else {
       mint = Mint::New(value, HEAP_SPACE(kind));
@@ -1648,7 +1673,16 @@ RawBigint* Bigint::ReadFrom(SnapshotReader* reader,
        BigintOperations::FromHexCString(str, HEAP_SPACE(kind))));
 
   // If it is a canonical constant make it one.
-  if ((kind != Snapshot::kFull) && RawObject::IsCanonical(tags)) {
+  // When reading a full snapshot we don't need to canonicalize the object
+  // as it would already be a canonical object.
+  // When reading a script snapshot we need to canonicalize only those object
+  // references that are objects from the core library (loaded from a
+  // full snapshot). Objects that are only in the script need not be
+  // canonicalized as they are already canonical.
+  // When reading a message snapshot we always have to canonicalize the object.
+  if ((kind != Snapshot::kFull) && RawObject::IsCanonical(tags) &&
+      (RawObject::IsCreatedFromSnapshot(tags) ||
+       (kind == Snapshot::kMessage))) {
     obj ^= obj.Canonicalize();
   }
   reader->AddBackRef(object_id, &obj, kIsDeserialized);
@@ -1715,7 +1749,14 @@ RawDouble* Double::ReadFrom(SnapshotReader* reader,
   if (kind == Snapshot::kFull) {
     dbl = reader->NewDouble(value);
   } else {
-    if (RawObject::IsCanonical(tags)) {
+    // When reading a script snapshot we need to canonicalize only those object
+    // references that are objects from the core library (loaded from a
+    // full snapshot). Objects that are only in the script need not be
+    // canonicalized as they are already canonical.
+    // When reading a message snapshot we always have to canonicalize.
+    if (RawObject::IsCanonical(tags) &&
+        (RawObject::IsCreatedFromSnapshot(tags) ||
+         (kind == Snapshot::kMessage))) {
       dbl = Double::NewCanonical(value);
     } else {
       dbl = Double::New(value, HEAP_SPACE(kind));
@@ -2250,32 +2291,6 @@ Raw##name##Array* name##Array::ReadFrom(SnapshotReader* reader,                \
 BYTEARRAY_TYPE_LIST(BYTEARRAY_READ_FROM)
 #undef BYTEARRAY_READ_FROM
 
-RawFloat32x4Array* Float32x4Array::ReadFrom(SnapshotReader* reader,
-                                                      intptr_t object_id,
-                                                      intptr_t tags,
-                                                      Snapshot::Kind kind) {
-  ASSERT(reader != NULL);
-
-  intptr_t len = reader->ReadSmiValue();
-  Float32x4Array& result = Float32x4Array::ZoneHandle(
-      reader->isolate(), Float32x4Array::New(len, HEAP_SPACE(kind)));
-  reader->AddBackRef(object_id, &result, kIsDeserialized);
-
-  // Set the object tags.
-  result.set_tags(tags);
-
-  // Setup the array elements.
-  simd128_value_t v;
-  for (intptr_t i = 0; i < len; ++i) {
-    v.storage[0] = reader->Read<float>();
-    v.storage[1] = reader->Read<float>();
-    v.storage[2] = reader->Read<float>();
-    v.storage[3] = reader->Read<float>();
-    result.SetAt(i, v);
-  }
-  return result.raw();
-}
-
 
 #define EXTERNALARRAY_READ_FROM(name, lname, type)                             \
 RawExternal##name##Array* External##name##Array::ReadFrom(                     \
@@ -2297,7 +2312,6 @@ RawExternal##name##Array* External##name##Array::ReadFrom(                     \
 }                                                                              \
 
 BYTEARRAY_TYPE_LIST(EXTERNALARRAY_READ_FROM)
-EXTERNALARRAY_READ_FROM(Float32x4, Float32x4, simd128_value_t)
 #undef EXTERNALARRAY_READ_FROM
 
 
@@ -2353,28 +2367,6 @@ void Raw##name##Array::WriteTo(SnapshotWriter* writer,                         \
 BYTEARRAY_TYPE_LIST(BYTEARRAY_WRITE_TO)
 #undef BYTEARRAY_WRITE_TO
 
-void RawFloat32x4Array::WriteTo(SnapshotWriter* writer, intptr_t object_id,
-                                     Snapshot::Kind kind) {
-  ASSERT(writer != NULL);
-  RawSmi* length = ptr()->length_;
-  float* data = reinterpret_cast<float*>(&ptr()->data_[0]);
-
-  // Write out the serialization header value for this object.
-  writer->WriteInlinedObjectHeader(object_id);
-
-  // Write out the class and tags information.
-  writer->WriteIndexedObject(kFloat32x4ArrayCid);
-  writer->WriteIntptrValue(writer->GetObjectTags(this));
-
-  // Write out the length field.
-  writer->Write<RawObject*>(length);
-
-  // Write out the array elements as floats.
-  intptr_t len = Smi::Value(length)*4;
-  for (intptr_t i = 0; i < len; i++) {
-    writer->Write(data[i]);
-  }
-}
 
 #define EXTERNALARRAY_WRITE_TO(name, lname, type)                              \
 void RawExternal##name##Array::WriteTo(SnapshotWriter* writer,                 \
@@ -2392,29 +2384,6 @@ void RawExternal##name##Array::WriteTo(SnapshotWriter* writer,                 \
 
 BYTEARRAY_TYPE_LIST(EXTERNALARRAY_WRITE_TO)
 #undef BYTEARRAY_WRITE_TO
-void RawExternalFloat32x4Array::WriteTo(SnapshotWriter* writer,
-                                             intptr_t object_id,
-                                             Snapshot::Kind kind) {
-  ASSERT(writer != NULL);
-  RawSmi* length = ptr()->length_;
-  float* data = reinterpret_cast<float*>(&ptr()->data_[0]);
-
-  // Write out the serialization header value for this object.
-  writer->WriteInlinedObjectHeader(object_id);
-
-  // Write out the class and tags information.
-  writer->WriteIndexedObject(kExternalFloat32x4ArrayCid);
-  writer->WriteIntptrValue(writer->GetObjectTags(this));
-
-  // Write out the length field.
-  writer->Write<RawObject*>(length);
-
-  // Write out the array elements as floats.
-  intptr_t len = Smi::Value(length)*4;
-  for (intptr_t i = 0; i < len; i++) {
-    writer->Write(data[i]);
-  }
-}
 
 #undef BYTEARRAY_TYPE_LIST
 

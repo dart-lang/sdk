@@ -11,8 +11,6 @@ library logging;
 
 import 'dart:async';
 
-import '../../meta/lib/meta.dart';
-
 /**
  * Whether to allow fine-grain logging and configuration of loggers in a
  * hierarchy. When false, all logging is merged in the root logger.
@@ -49,9 +47,6 @@ class Logger {
 
   /** Controller used to notify when log entries are added to this logger. */
   StreamController<LogRecord> _controller;
-
-  // TODO(sigmund): remove together with the deprecated [on] API.
-  Map<LoggerHandler, StreamSubscription> _deprecatedSubscriptions;
 
   /**
    * Singleton constructor. Calling `new Logger(name)` will return the same
@@ -110,17 +105,6 @@ class Logger {
       _rootLevel = value;
     }
   }
-
-  /**
-   * Returns an event manager for this [Logger]. You can listen for log messages
-   * by adding a [LoggerHandler] to an event from the event manager, for
-   * instance:
-   *    logger.on.record.add((record) { ... });
-   *
-   * This API is Deprecated. Use [onRecord] instead.
-   */
-  @deprecated
-  LoggerEvents get on => new LoggerEvents(this);
 
   /**
    * Returns an stream of messages added to this [Logger]. You can listen for
@@ -201,27 +185,6 @@ class Logger {
     }
   }
 
-  /** Adds a handler to listen whenever a log record is added to this logger. */
-  void _addHandler(LoggerHandler handler) {
-    if (_deprecatedSubscriptions == null) {
-      _deprecatedSubscriptions = new Map<LoggerHandler, StreamSubscription>();
-    }
-
-    _deprecatedSubscriptions[handler] = onRecord.listen(handler);
-  }
-
-  void _removeHandler(LoggerHandler handler) {
-    if (_deprecatedSubscriptions != null) {
-      var sub = _deprecatedSubscriptions.remove(handler);
-      if (sub != null) {
-        sub.cancel();
-      }
-      if (_deprecatedSubscriptions.isEmpty) {
-        _deprecatedSubscriptions = null;
-      }
-    }
-  }
-
   void _publish(LogRecord record) {
     if (_controller != null) {
       _controller.add(record);
@@ -238,30 +201,6 @@ class Logger {
 
 /** Handler callback to process log entries as they are added to a [Logger]. */
 typedef void LoggerHandler(LogRecord);
-
-
-/** Event manager for a [Logger] (holds events that a [Logger] can fire). */
-class LoggerEvents {
-  final Logger _logger;
-
-  LoggerEvents(this._logger);
-
-  /** Event fired when a log record is added to a [Logger]. */
-  LoggerHandlerList get record => new LoggerHandlerList(_logger);
-}
-
-
-/** List of handlers that will be called on a logger event. */
-class LoggerHandlerList {
-  Logger _logger;
-
-  LoggerHandlerList(this._logger);
-
-  void add(LoggerHandler handler) => _logger._addHandler(handler);
-  void remove(LoggerHandler handler) => _logger._removeHandler(handler);
-  void clear() => _logger.clearListeners();
-}
-
 
 /**
  * [Level]s to control logging output. Logging can be enabled to include all

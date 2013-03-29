@@ -57,7 +57,6 @@ final TEST_SUITE_DIRECTORIES = [
     new Path('tests/compiler/dart2js_foreign'),
     new Path('tests/compiler/dart2js_native'),
     new Path('tests/corelib'),
-    new Path('tests/dom'),
     new Path('tests/html'),
     new Path('tests/isolate'),
     new Path('tests/json'),
@@ -68,7 +67,10 @@ final TEST_SUITE_DIRECTORIES = [
     new Path('utils/tests/css'),
     new Path('utils/tests/peg'),
     new Path('utils/tests/pub'),
+    // TODO(amouravski): move these to tests/ once they no longer rely on weird
+    // dependencies.
     new Path('sdk/lib/_internal/dartdoc'),
+    new Path('tools/dom/docs'),
 ];
 
 void testConfigurations(List<Map> configurations) {

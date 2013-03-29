@@ -329,7 +329,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       if (folded != node) return folded;
     }
 
-    HType receiverType = node.dartReceiver.instructionType;
+    HType receiverType = node.getDartReceiver(compiler).instructionType;
     Selector selector = receiverType.refine(node.selector, compiler);
     Element element = compiler.world.locateSingleElement(selector);
     // TODO(ngeoffray): Also fold if it's a getter or variable.
@@ -594,10 +594,10 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       HInstruction folded = handleInterceptedCall(node);
       if (folded != node) return folded;
     }
-    Element field = findConcreteFieldForDynamicAccess(
-        node.dartReceiver, node.selector);
+    HInstruction receiver = node.getDartReceiver(compiler);
+    Element field = findConcreteFieldForDynamicAccess(receiver, node.selector);
     if (field == null) return node;
-    return directFieldGet(node.dartReceiver, field);
+    return directFieldGet(receiver, field);
   }
 
   HInstruction directFieldGet(HInstruction receiver, Element field) {
@@ -643,8 +643,8 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       if (folded != node) return folded;
     }
 
-    Element field = findConcreteFieldForDynamicAccess(
-        node.dartReceiver, node.selector);
+    HInstruction receiver = node.getDartReceiver(compiler);
+    Element field = findConcreteFieldForDynamicAccess(receiver, node.selector);
     if (field == null || !field.isAssignable()) return node;
     // Use [:node.inputs.last:] in case the call follows the
     // interceptor calling convention, but is not a call on an
@@ -660,20 +660,60 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         value = other;
       }
     }
-    return new HFieldSet(field, node.inputs[0], value);
+    return new HFieldSet(field, receiver, value);
   }
 
   HInstruction visitStringConcat(HStringConcat node) {
-    DartString folded = const LiteralDartString("");
-    for (int i = 0; i < node.inputs.length; i++) {
-      HInstruction part = node.inputs[i];
-      if (!part.isConstant()) return node;
-      HConstant constant = part;
+    // Simplify string concat:
+    //
+    //     "" + R                ->  R
+    //     L + ""                ->  L
+    //     "L" + "R"             ->  "LR"
+    //     (prefix + "L") + "R"  ->  prefix + "LR"
+    //
+    StringConstant getString(HInstruction instruction) {
+      if (!instruction.isConstantString()) return null;
+      HConstant constant = instruction;
+      return constant.constant;
+    }
+
+    StringConstant leftString = getString(node.left);
+    if (leftString != null && leftString.value.length == 0) return node.right;
+
+    StringConstant rightString = getString(node.right);
+    if (rightString == null) return node;
+    if (rightString.value.length == 0) return node.left;
+
+    HInstruction prefix = null;
+    if (leftString == null) {
+      if (node.left is! HStringConcat) return node;
+      HStringConcat leftConcat = node.left;
+      // Don't undo CSE.
+      if (leftConcat.usedBy.length != 1) return node;
+      prefix = leftConcat.left;
+      leftString = getString(leftConcat.right);
+      if (leftString == null) return node;
+    }
+
+    HInstruction folded =
+        graph.addConstant(constantSystem.createString(
+            new DartString.concat(leftString.value, rightString.value),
+            node.node));
+    if (prefix == null) return folded;
+    return new HStringConcat(prefix, folded, node.node);
+  }
+
+  HInstruction visitStringify(HStringify node) {
+    HInstruction input = node.inputs[0];
+    if (input.isString()) return input;
+    if (input.isConstant()) {
+      HConstant constant = input;
       if (!constant.constant.isPrimitive()) return node;
       PrimitiveConstant primitive = constant.constant;
-      folded = new DartString.concat(folded, primitive.toDartString());
+      return graph.addConstant(constantSystem.createString(
+          primitive.toDartString(), node.node));
     }
-    return graph.addConstant(constantSystem.createString(folded, node.node));
+    return node;
   }
 
   HInstruction visitInterceptor(HInterceptor node) {

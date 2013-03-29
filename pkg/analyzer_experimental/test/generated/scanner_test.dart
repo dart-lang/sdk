@@ -419,6 +419,10 @@ class CharBufferScannerTest extends AbstractScannerTest {
         final __test = new CharBufferScannerTest();
         runJUnitTest(__test, __test.test_keyword_else);
       });
+      _ut.test('test_keyword_enum', () {
+        final __test = new CharBufferScannerTest();
+        runJUnitTest(__test, __test.test_keyword_enum);
+      });
       _ut.test('test_keyword_export', () {
         final __test = new CharBufferScannerTest();
         runJUnitTest(__test, __test.test_keyword_export);
@@ -490,6 +494,10 @@ class CharBufferScannerTest extends AbstractScannerTest {
       _ut.test('test_keyword_part', () {
         final __test = new CharBufferScannerTest();
         runJUnitTest(__test, __test.test_keyword_part);
+      });
+      _ut.test('test_keyword_rethrow', () {
+        final __test = new CharBufferScannerTest();
+        runJUnitTest(__test, __test.test_keyword_rethrow);
       });
       _ut.test('test_keyword_return', () {
         final __test = new CharBufferScannerTest();
@@ -1058,6 +1066,10 @@ class StringScannerTest extends AbstractScannerTest {
         final __test = new StringScannerTest();
         runJUnitTest(__test, __test.test_keyword_else);
       });
+      _ut.test('test_keyword_enum', () {
+        final __test = new StringScannerTest();
+        runJUnitTest(__test, __test.test_keyword_enum);
+      });
       _ut.test('test_keyword_export', () {
         final __test = new StringScannerTest();
         runJUnitTest(__test, __test.test_keyword_export);
@@ -1129,6 +1141,10 @@ class StringScannerTest extends AbstractScannerTest {
       _ut.test('test_keyword_part', () {
         final __test = new StringScannerTest();
         runJUnitTest(__test, __test.test_keyword_part);
+      });
+      _ut.test('test_keyword_rethrow', () {
+        final __test = new StringScannerTest();
+        runJUnitTest(__test, __test.test_keyword_rethrow);
       });
       _ut.test('test_keyword_return', () {
         final __test = new StringScannerTest();
@@ -1676,6 +1692,9 @@ abstract class AbstractScannerTest extends JUnitTestCase {
   void test_keyword_else() {
     assertKeywordToken("else");
   }
+  void test_keyword_enum() {
+    assertKeywordToken("enum");
+  }
   void test_keyword_export() {
     assertKeywordToken("export");
   }
@@ -1729,6 +1748,9 @@ abstract class AbstractScannerTest extends JUnitTestCase {
   }
   void test_keyword_part() {
     assertKeywordToken("part");
+  }
+  void test_keyword_rethrow() {
+    assertKeywordToken("rethrow");
   }
   void test_keyword_return() {
     assertKeywordToken("return");

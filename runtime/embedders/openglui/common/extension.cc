@@ -9,6 +9,7 @@
 #include <string.h>
 
 #include "embedders/openglui/common/canvas_context.h"
+#include "embedders/openglui/common/image_cache.h"
 #include "embedders/openglui/common/graphics_handler.h"
 #include "embedders/openglui/common/log.h"
 #include "embedders/openglui/common/opengl.h"
@@ -42,11 +43,11 @@ void CheckGLError(const char *function) {
 }
 
 const char* GetArgAsString(Dart_NativeArguments arguments, int idx) {
-  Dart_Handle whatHandle = HandleError(Dart_GetNativeArgument(arguments, idx));
+  Dart_Handle handle = HandleError(Dart_GetNativeArgument(arguments, idx));
   uint8_t* str;
   intptr_t length;
-  HandleError(Dart_StringLength(whatHandle, &length));
-  HandleError(Dart_StringToUTF8(whatHandle, &str, &length));
+  HandleError(Dart_StringLength(handle, &length));
+  HandleError(Dart_StringToUTF8(handle, &str, &length));
   str[length] = 0;
   return  const_cast<const char*>(reinterpret_cast<char*>(str));
 }
@@ -97,52 +98,68 @@ bool GetArgAsBool(Dart_NativeArguments arguments, int index) {
   return false;
 }
 
-GLint* GetArgsAsGLintList(Dart_NativeArguments arguments, int index,
-                          int* len_out) {
-  Dart_Handle argHandle = HandleError(Dart_GetNativeArgument(arguments, index));
+int GetListLength(Dart_NativeArguments arguments, int index,
+    Dart_Handle& argHandle) {
+  argHandle = HandleError(Dart_GetNativeArgument(arguments, index));
   if (Dart_IsList(argHandle)) {
     intptr_t len;
     HandleError(Dart_ListLength(argHandle, &len));
-    GLint* list = new GLint[len];
-    for (int i = 0; i < len; i++) {
-      Dart_Handle vHandle = Dart_ListGetAt(argHandle, i);
-      int64_t v;
-      HandleError(Dart_IntegerToInt64(vHandle, &v));
-      list[i] = v;
-    }
-    *len_out = len;
-    return list;
+    return len;
   }
   LOGI("Argument at index %d has non-List type", index);
   Dart_ThrowException(Dart_NewStringFromCString("List argument expected."));
-  return NULL;
+  return -1;
+}
+
+GLint* GetArgsAsGLintList(Dart_NativeArguments arguments, int index,
+                          int* len_out) {
+  Dart_Handle argHandle;
+  int len = GetListLength(arguments, index, argHandle);
+  if (len < 0) return NULL;
+  GLint* list = new GLint[len];
+  for (int i = 0; i < len; i++) {
+    Dart_Handle vHandle = Dart_ListGetAt(argHandle, i);
+    int64_t v;
+    HandleError(Dart_IntegerToInt64(vHandle, &v));
+    list[i] = v;
+  }
+  *len_out = len;
+  return list;
 }
 
 GLfloat* GetArgsAsFloatList(Dart_NativeArguments arguments, int index,
                             int* len_out) {
-  Dart_Handle locationHandle =
-      HandleError(Dart_GetNativeArgument(arguments, 0));
-  int64_t location;
-  HandleError(Dart_IntegerToInt64(locationHandle, &location));
-
-  Dart_Handle argHandle = HandleError(Dart_GetNativeArgument(arguments, 1));
-
-  if (Dart_IsList(argHandle)) {
-    intptr_t len;
-    HandleError(Dart_ListLength(argHandle, &len));
-    GLfloat* list = new GLfloat[len];
-    for (int i = 0; i < len; i++) {
-      Dart_Handle vHandle = Dart_ListGetAt(argHandle, i);
-      double v;
-      HandleError(Dart_DoubleValue(vHandle, &v));
-      list[i] = v;
-    }
-    *len_out = len;
-    return list;
+  Dart_Handle argHandle;
+  int len = GetListLength(arguments, index, argHandle);
+  if (len < 0) return NULL;
+  GLfloat* list = new GLfloat[len];
+  for (int i = 0; i < len; i++) {
+    Dart_Handle vHandle = Dart_ListGetAt(argHandle, i);
+    double v;
+    HandleError(Dart_DoubleValue(vHandle, &v));
+    list[i] = v;
   }
-  LOGI("Argument at index %d has non-List type", index);
-  Dart_ThrowException(Dart_NewStringFromCString("List argument expected."));
-  return NULL;
+  *len_out = len;
+  return list;
+}
+
+char** GetArgsAsStringList(Dart_NativeArguments arguments, int index,
+                            int* len_out) {
+  Dart_Handle argHandle;
+  int len = GetListLength(arguments, index, argHandle);
+  if (len < 0) return NULL;
+  char** list = new char*[len];
+  for (int i = 0; i < len; i++) {
+    Dart_Handle vHandle = Dart_ListGetAt(argHandle, i);
+    uint8_t* str;
+    intptr_t length;
+    HandleError(Dart_StringLength(vHandle, &length));
+    HandleError(Dart_StringToUTF8(vHandle, &str, &length));
+    str[length] = 0;
+    list[i] = reinterpret_cast<char*>(str);
+  }
+  *len_out = len;
+  return list;
 }
 
 void SetBoolReturnValue(Dart_NativeArguments arguments, bool b) {
@@ -479,9 +496,8 @@ void GLShaderSource(Dart_NativeArguments arguments) {
   LOGI("Converted length is %d", static_cast<int>(length[0]));
   str[0][*length] = 0;
 
-  const GLchar* source =
-      const_cast<const GLchar*>(reinterpret_cast<GLchar*>(str[0]));
-  LOGI("Source: %s", source);
+  LOGI("Source: %s",
+      const_cast<const GLchar*>(reinterpret_cast<GLchar*>(str[0])));
   glShaderSource(shader, 1,
       const_cast<const GLchar**>(reinterpret_cast<GLchar**>(str)), NULL);
   CheckGLError("glShaderSource");
@@ -978,12 +994,8 @@ void C2DSetFillStyle(Dart_NativeArguments arguments) {
   LOGI("In C2DSetFillStyle");
   Dart_EnterScope();
   int handle = GetArgAsInt(arguments, 0);
-  Dart_Handle whatHandle = HandleError(Dart_GetNativeArgument(arguments, 1));
-  if (Dart_IsString(whatHandle)) {
-    const char* color = GetArgAsString(arguments, 1);
-    Context2D(handle)->setFillColor(color);
-  } else {  // Texture from gradient or image.
-  }
+  const char* color = GetArgAsString(arguments, 1);
+  Context2D(handle)->setFillColor(color);
   Dart_ExitScope();
   LOGI("Out C2DSetFillStyle");
 }
@@ -1371,7 +1383,8 @@ void C2DRestore(Dart_NativeArguments arguments) {
   LOGI("In C2DRestore");
   Dart_EnterScope();
   int handle = GetArgAsInt(arguments, 0);
-  Context2D(handle)->Restore();
+  CanvasContext* context = Context2D(handle);
+  context->Restore();
   Dart_ExitScope();
   LOGI("Out C2DRestore");
 }
@@ -1506,6 +1519,66 @@ void C2DTranslate(Dart_NativeArguments arguments) {
   LOGI("Out C2DTranslate");
 }
 
+void C2DSetFillGradient(Dart_NativeArguments arguments) {
+  LOGI("In C2DSetFillGradient");
+  Dart_EnterScope();
+  int handle = GetArgAsInt(arguments, 0);
+  bool is_radial = GetArgAsBool(arguments, 1);
+  double x0 = GetArgAsDouble(arguments, 2);
+  double y0 = GetArgAsDouble(arguments, 3);
+  double r0 = GetArgAsDouble(arguments, 4);
+  double x1 = GetArgAsDouble(arguments, 5);
+  double y1 = GetArgAsDouble(arguments, 6);
+  double r1 = GetArgAsDouble(arguments, 7);
+  int num_positions, num_colors;
+  float* positions = GetArgsAsFloatList(arguments, 8, &num_positions);
+  char** colors = GetArgsAsStringList(arguments, 9, &num_colors);
+  Context2D(handle)->SetFillGradient(is_radial, x0, y0, r0, x1, y1, r1,
+    num_positions, positions, colors);
+  Dart_ExitScope();
+  LOGI("Out C2DSetFillGradient");
+}
+
+void C2DSetStrokeGradient(Dart_NativeArguments arguments) {
+  LOGI("In C2DSetStrokeGradient");
+  Dart_EnterScope();
+  int handle = GetArgAsInt(arguments, 0);
+  bool is_radial = GetArgAsBool(arguments, 1);
+  double x0 = GetArgAsDouble(arguments, 2);
+  double y0 = GetArgAsDouble(arguments, 3);
+  double r0 = GetArgAsDouble(arguments, 4);
+  double x1 = GetArgAsDouble(arguments, 5);
+  double y1 = GetArgAsDouble(arguments, 6);
+  double r1 = GetArgAsDouble(arguments, 7);
+  int num_positions, num_colors;
+  float* positions = GetArgsAsFloatList(arguments, 8, &num_positions);
+  char** colors = GetArgsAsStringList(arguments, 9, &num_colors);
+  Context2D(handle)->SetStrokeGradient(is_radial, x0, y0, r0, x1, y1, r1,
+    num_positions, positions, colors);
+  Dart_ExitScope();
+  LOGI("Out C2DSetStrokeGradient");
+}
+
+void C2DGetImageWidth(Dart_NativeArguments arguments) {
+  LOGI("In C2DGetImageWidth");
+  Dart_EnterScope();
+  const char* src_url = GetArgAsString(arguments, 0);
+  int w = ImageCache::GetWidth(src_url);
+  SetIntReturnValue(arguments, w);
+  Dart_ExitScope();
+  LOGI("Out C2DGetImageWidth");
+}
+
+void C2DGetImageHeight(Dart_NativeArguments arguments) {
+  LOGI("In C2DGetImageHeight");
+  Dart_EnterScope();
+  const char* src_url = GetArgAsString(arguments, 0);
+  int h = ImageCache::GetHeight(src_url);
+  SetIntReturnValue(arguments, h);
+  Dart_ExitScope();
+  LOGI("Out C2DGetImageHeight");
+}
+
 struct FunctionLookup {
   const char* name;
   Dart_NativeFunction function;
@@ -1638,6 +1711,11 @@ FunctionLookup function_list[] = {
     { "C2DStrokeText", C2DStrokeText},
     { "C2DTransform", C2DTransform},
     { "C2DTranslate", C2DTranslate},
+    { "C2DSetFillGradient", C2DSetFillGradient},
+    { "C2DSetStrokeGradient", C2DSetStrokeGradient},
+    { "C2DGetImageWidth", C2DGetImageWidth},
+    { "C2DGetImageHeight", C2DGetImageHeight},
+
     {NULL, NULL}};
 
 Dart_NativeFunction ResolveName(Dart_Handle name, int argc) {

@@ -466,14 +466,16 @@ void _prepareDom() {
  * child, depending on whether the URL has a search part.
  */
 void useInteractiveHtmlConfiguration() {
-  if (config != null) return;
   if (window.location.search == '') { // This is the parent.
     _prepareDom();
-    configure(new ParentInteractiveHtmlConfiguration());
+    unittestConfiguration = _singletonParent;
   } else {
-    configure(new ChildInteractiveHtmlConfiguration());
+    unittestConfiguration = _singletonChild;
   }
 }
+
+final _singletonParent = new ParentInteractiveHtmlConfiguration();
+final _singletonChild = new ChildInteractiveHtmlConfiguration();
 
 String _CSS = """
 body {

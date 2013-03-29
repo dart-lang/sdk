@@ -9,9 +9,8 @@ import 'dart:io' as io;
 import 'dart:json' as json;
 import 'dart:uri';
 
-// TODO(nweiz): Make this import better.
-import '../../pkg/http/lib/http.dart' as http;
-import '../../pkg/pathos/lib/path.dart' as path;
+import 'package:http/http.dart' as http;
+import 'package:pathos/path.dart' as path;
 
 import 'http.dart';
 import 'io.dart';

@@ -1032,14 +1032,16 @@ TEST_CASE(TypedDataDirectAccess) {
 static void TestDirectAccess(Dart_Handle lib,
                              Dart_Handle array,
                              Dart_TypedData_Type expected_type) {
+  Dart_Handle result;
+
   // Invoke the dart function that sets initial values.
   Dart_Handle dart_args[1];
   dart_args[0] = array;
-  Dart_Invoke(lib, NewString("setMain"), 1, dart_args);
+  result = Dart_Invoke(lib, NewString("setMain"), 1, dart_args);
+  EXPECT_VALID(result);
 
   // Now Get a direct access to this typed data object and check it's contents.
   const int kLength = 10;
-  Dart_Handle result;
   Dart_TypedData_Type type;
   void* data;
   intptr_t len;
@@ -1063,7 +1065,8 @@ static void TestDirectAccess(Dart_Handle lib,
   EXPECT_VALID(result);
 
   // Invoke the dart function in order to check the modified values.
-  Dart_Invoke(lib, NewString("testMain"), 1, dart_args);
+  result = Dart_Invoke(lib, NewString("testMain"), 1, dart_args);
+  EXPECT_VALID(result);
 }
 
 
@@ -1075,10 +1078,11 @@ TEST_CASE(TypedDataDirectAccess1) {
       "    a[i] = i;"
       "  }"
       "}\n"
-      "void testMain(var list) {"
+      "bool testMain(var list) {"
       "  for (var i = 0; i < 10; i++) {"
       "    Expect.equals((10 + i), list[i]);"
       "  }\n"
+      "  return true;"
       "}\n"
       "List main() {"
       "  var a = new Int8List(10);"
@@ -1103,6 +1107,70 @@ TEST_CASE(TypedDataDirectAccess1) {
                                                        NULL, NULL);
   EXPECT_VALID(ext_list_access_test_obj);
   TestDirectAccess(lib, ext_list_access_test_obj, kUint8);
+}
+
+
+TEST_CASE(TypedDataViewDirectAccess) {
+  const char* kScriptChars =
+      "import 'dart:typeddata';\n"
+      "void setMain(var list) {"
+      "  Expect.equals(10, list.length);"
+      "  for (var i = 0; i < 10; i++) {"
+      "    list[i] = i;"
+      "  }"
+      "}\n"
+      "bool testMain(var list) {"
+      "  Expect.equals(10, list.length);"
+      "  for (var i = 0; i < 10; i++) {"
+      "    Expect.equals((10 + i), list[i]);"
+      "  }"
+      "  return true;"
+      "}\n"
+      "List main() {"
+      "  var a = new Int8List(100);"
+      "  var view = new Int8List.view(a.buffer, 50, 10);"
+      "  return view;"
+      "}\n";
+  // Create a test library and Load up a test script in it.
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+
+  // Test with a typed data view object.
+  Dart_Handle list_access_test_obj;
+  list_access_test_obj = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(list_access_test_obj);
+  TestDirectAccess(lib, list_access_test_obj, kInt8);
+}
+
+
+TEST_CASE(ByteDataDirectAccess) {
+  const char* kScriptChars =
+      "import 'dart:typeddata';\n"
+      "void setMain(var list) {"
+      "  Expect.equals(10, list.length);"
+      "  for (var i = 0; i < 10; i++) {"
+      "    list.setInt8(i, i);"
+      "  }"
+      "}\n"
+      "bool testMain(var list) {"
+      "  Expect.equals(10, list.length);"
+      "  for (var i = 0; i < 10; i++) {"
+      "    Expect.equals((10 + i), list.getInt8(i));"
+      "  }"
+      "  return true;"
+      "}\n"
+      "ByteData main() {"
+      "  var a = new Int8List(100);"
+      "  var view = new ByteData.view(a.buffer, 50, 10);"
+      "  return view;"
+      "}\n";
+  // Create a test library and Load up a test script in it.
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+
+  // Test with a typed data view object.
+  Dart_Handle list_access_test_obj;
+  list_access_test_obj = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(list_access_test_obj);
+  TestDirectAccess(lib, list_access_test_obj, kByteData);
 }
 
 

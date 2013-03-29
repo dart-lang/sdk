@@ -9,11 +9,11 @@ import 'java_core.dart';
 import 'java_io.dart';
 import 'java_engine.dart';
 import 'java_engine_io.dart';
-import 'package:analyzer_experimental/src/generated/source_io.dart';
-import 'package:analyzer_experimental/src/generated/error.dart';
-import 'package:analyzer_experimental/src/generated/scanner.dart';
-import 'package:analyzer_experimental/src/generated/parser.dart';
-import 'package:analyzer_experimental/src/generated/ast.dart';
+import 'source_io.dart';
+import 'error.dart';
+import 'scanner.dart';
+import 'parser.dart';
+import 'ast.dart';
 import 'package:analyzer_experimental/src/generated/engine.dart' show AnalysisEngine;
 
 /**
@@ -195,7 +195,7 @@ class SdkLibrariesReader {
    */
   LibraryMap readFrom(JavaFile librariesFile, String libraryFileContents) {
     List<bool> foundError = [false];
-    AnalysisErrorListener errorListener = new AnalysisErrorListener_6(foundError);
+    AnalysisErrorListener errorListener = new AnalysisErrorListener_7(foundError);
     Source source = new FileBasedSource.con2(null, librariesFile, false);
     StringScanner scanner = new StringScanner(source, libraryFileContents, errorListener);
     Parser parser = new Parser(source, errorListener);
@@ -286,9 +286,9 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveASTVisitor<Object> {
     return null;
   }
 }
-class AnalysisErrorListener_6 implements AnalysisErrorListener {
+class AnalysisErrorListener_7 implements AnalysisErrorListener {
   List<bool> foundError;
-  AnalysisErrorListener_6(this.foundError);
+  AnalysisErrorListener_7(this.foundError);
   void onError(AnalysisError error) {
     foundError[0] = true;
   }
@@ -656,7 +656,7 @@ class DartSdk {
       JavaFile librariesFile = new JavaFile.relative(new JavaFile.relative(libraryDirectory, _INTERNAL_DIR), _LIBRARIES_FILE);
       String contents = librariesFile.readAsStringSync();
       _libraryMap = new SdkLibrariesReader().readFrom(librariesFile, contents);
-    } on JavaException catch (exception) {
+    } catch (exception) {
       AnalysisEngine.instance.logger.logError3(exception);
       _libraryMap = new LibraryMap();
     }

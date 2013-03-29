@@ -73,7 +73,6 @@ namespace dart {
       V(Uint32Array)                                                           \
       V(Int64Array)                                                            \
       V(Uint64Array)                                                           \
-      V(Float32x4Array)                                                        \
       V(Float32Array)                                                          \
       V(Float64Array)                                                          \
       V(ExternalInt8Array)                                                     \
@@ -85,7 +84,6 @@ namespace dart {
       V(ExternalUint32Array)                                                   \
       V(ExternalInt64Array)                                                    \
       V(ExternalUint64Array)                                                   \
-      V(ExternalFloat32x4Array)                                                \
       V(ExternalFloat32Array)                                                  \
       V(ExternalFloat64Array)                                                  \
     V(TypedData)                                                               \
@@ -117,6 +115,7 @@ namespace dart {
   V(Uint64Array)                                                               \
   V(Float32Array)                                                              \
   V(Float64Array)                                                              \
+  V(Float32x4Array)                                                            \
 
 #define CLASS_LIST_FOR_HANDLES(V)                                              \
   CLASS_LIST_NO_OBJECT_OR_STRING(V)                                            \
@@ -152,6 +151,12 @@ CLASS_LIST(DEFINE_OBJECT_KIND)
 #define DEFINE_OBJECT_KIND(clazz)                                              \
   kTypedData##clazz##Cid,
 CLASS_LIST_TYPED_DATA(DEFINE_OBJECT_KIND)
+#undef DEFINE_OBJECT_KIND
+
+#define DEFINE_OBJECT_KIND(clazz)                                              \
+  kTypedData##clazz##ViewCid,
+CLASS_LIST_TYPED_DATA(DEFINE_OBJECT_KIND)
+  kByteDataViewCid,
 #undef DEFINE_OBJECT_KIND
 
 #define DEFINE_OBJECT_KIND(clazz)                                              \
@@ -392,6 +397,7 @@ class RawObject {
   static bool IsByteArrayClassId(intptr_t index);
   static bool IsExternalByteArrayClassId(intptr_t index);
   static bool IsTypedDataClassId(intptr_t index);
+  static bool IsTypedDataViewClassId(intptr_t index);
   static bool IsExternalTypedDataClassId(intptr_t index);
 
   static intptr_t NumberOfTypedDataClasses();
@@ -707,7 +713,7 @@ class RawTokenStream : public RawObject {
   }
   RawString* private_key_;  // Key used for private identifiers.
   RawArray* token_objects_;
-  RawExternalUint8Array* stream_;
+  RawExternalTypedData* stream_;
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->stream_);
   }
@@ -1433,6 +1439,8 @@ class RawTypedData : public RawInstance {
 
   // Variable length data follows here.
   uint8_t data_[0];
+
+  friend class Object;
 };
 
 
@@ -1446,6 +1454,9 @@ class RawExternalTypedData : public RawInstance {
 
   uint8_t* data_;
   void* peer_;
+
+  friend class TokenStream;
+  friend class RawTokenStream;
 };
 
 
@@ -1464,8 +1475,6 @@ class RawInt8Array : public RawByteArray {
 
   // Variable length data follows here.
   int8_t data_[0];
-
-  friend class Object;
 };
 
 
@@ -1537,13 +1546,6 @@ class RawUint64Array : public RawByteArray {
 };
 
 
-class RawFloat32x4Array : public RawByteArray {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(Float32x4Array);
-
-  // Variable length data follows here.
-  simd128_value_t data_[0];
-};
-
 class RawFloat32Array : public RawByteArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Float32Array);
 
@@ -1574,8 +1576,6 @@ class RawExternalUint8Array : public RawByteArray {
   uint8_t* data_;
   void* peer_;
 
-  friend class TokenStream;
-  friend class RawTokenStream;
   friend class RawExternalUint8ClampedArray;
 };
 
@@ -1629,14 +1629,6 @@ class RawExternalUint64Array : public RawByteArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalUint64Array);
 
   uint64_t* data_;
-  void* peer_;
-};
-
-
-class RawExternalFloat32x4Array : public RawByteArray {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalFloat32x4Array);
-
-  simd128_value_t* data_;
   void* peer_;
 };
 
@@ -1824,22 +1816,20 @@ inline bool RawObject::IsByteArrayClassId(intptr_t index) {
          kUint32ArrayCid == kByteArrayCid + 7 &&
          kInt64ArrayCid == kByteArrayCid + 8 &&
          kUint64ArrayCid == kByteArrayCid + 9 &&
-         kFloat32x4ArrayCid == kByteArrayCid + 10 &&
-         kFloat32ArrayCid == kByteArrayCid + 11 &&
-         kFloat64ArrayCid == kByteArrayCid + 12 &&
-         kExternalInt8ArrayCid == kByteArrayCid + 13 &&
-         kExternalUint8ArrayCid == kByteArrayCid + 14 &&
-         kExternalUint8ClampedArrayCid == kByteArrayCid + 15 &&
-         kExternalInt16ArrayCid == kByteArrayCid + 16 &&
-         kExternalUint16ArrayCid == kByteArrayCid + 17 &&
-         kExternalInt32ArrayCid == kByteArrayCid + 18 &&
-         kExternalUint32ArrayCid == kByteArrayCid + 19 &&
-         kExternalInt64ArrayCid == kByteArrayCid + 20 &&
-         kExternalUint64ArrayCid == kByteArrayCid + 21 &&
-         kExternalFloat32x4ArrayCid == kByteArrayCid + 22 &&
-         kExternalFloat32ArrayCid == kByteArrayCid + 23 &&
-         kExternalFloat64ArrayCid == kByteArrayCid + 24 &&
-         kTypedDataCid == kByteArrayCid + 25);
+         kFloat32ArrayCid == kByteArrayCid + 10 &&
+         kFloat64ArrayCid == kByteArrayCid + 11 &&
+         kExternalInt8ArrayCid == kByteArrayCid + 12 &&
+         kExternalUint8ArrayCid == kByteArrayCid + 13 &&
+         kExternalUint8ClampedArrayCid == kByteArrayCid + 14 &&
+         kExternalInt16ArrayCid == kByteArrayCid + 15 &&
+         kExternalUint16ArrayCid == kByteArrayCid + 16 &&
+         kExternalInt32ArrayCid == kByteArrayCid + 17 &&
+         kExternalUint32ArrayCid == kByteArrayCid + 18 &&
+         kExternalInt64ArrayCid == kByteArrayCid + 19 &&
+         kExternalUint64ArrayCid == kByteArrayCid + 20 &&
+         kExternalFloat32ArrayCid == kByteArrayCid + 21 &&
+         kExternalFloat64ArrayCid == kByteArrayCid + 22 &&
+         kTypedDataCid == kByteArrayCid + 23);
   return (index >= kByteArrayCid && index <= kExternalFloat64ArrayCid);
 }
 
@@ -1854,10 +1844,9 @@ inline bool RawObject::IsExternalByteArrayClassId(intptr_t index) {
          kExternalUint32ArrayCid == kExternalInt8ArrayCid + 6 &&
          kExternalInt64ArrayCid == kExternalInt8ArrayCid + 7 &&
          kExternalUint64ArrayCid == kExternalInt8ArrayCid + 8 &&
-         kExternalFloat32x4ArrayCid == kExternalInt8ArrayCid + 9 &&
-         kExternalFloat32ArrayCid == kExternalInt8ArrayCid + 10 &&
-         kExternalFloat64ArrayCid == kExternalInt8ArrayCid + 11 &&
-         kTypedDataCid == kExternalInt8ArrayCid + 12);
+         kExternalFloat32ArrayCid == kExternalInt8ArrayCid + 9 &&
+         kExternalFloat64ArrayCid == kExternalInt8ArrayCid + 10 &&
+         kTypedDataCid == kExternalInt8ArrayCid + 11);
   return (index >= kExternalInt8ArrayCid && index <= kExternalFloat64ArrayCid);
 }
 
@@ -1874,9 +1863,30 @@ inline bool RawObject::IsTypedDataClassId(intptr_t index) {
          kTypedDataUint64ArrayCid == kTypedDataInt8ArrayCid + 8 &&
          kTypedDataFloat32ArrayCid == kTypedDataInt8ArrayCid + 9 &&
          kTypedDataFloat64ArrayCid == kTypedDataInt8ArrayCid + 10 &&
-         kExternalTypedDataInt8ArrayCid == kTypedDataInt8ArrayCid + 11);
+         kTypedDataFloat32x4ArrayCid == kTypedDataInt8ArrayCid + 11 &&
+         kTypedDataInt8ArrayViewCid == kTypedDataInt8ArrayCid + 12);
   return (index >= kTypedDataInt8ArrayCid &&
-          index <= kTypedDataFloat64ArrayCid);
+          index <= kTypedDataFloat32x4ArrayCid);
+}
+
+
+inline bool RawObject::IsTypedDataViewClassId(intptr_t index) {
+  // Make sure this is updated when new TypedData types are added.
+  ASSERT(kTypedDataUint8ArrayViewCid == kTypedDataInt8ArrayViewCid + 1 &&
+         kTypedDataUint8ClampedArrayViewCid == kTypedDataInt8ArrayViewCid + 2 &&
+         kTypedDataInt16ArrayViewCid == kTypedDataInt8ArrayViewCid + 3 &&
+         kTypedDataUint16ArrayViewCid == kTypedDataInt8ArrayViewCid + 4 &&
+         kTypedDataInt32ArrayViewCid == kTypedDataInt8ArrayViewCid + 5 &&
+         kTypedDataUint32ArrayViewCid == kTypedDataInt8ArrayViewCid + 6 &&
+         kTypedDataInt64ArrayViewCid == kTypedDataInt8ArrayViewCid + 7 &&
+         kTypedDataUint64ArrayViewCid == kTypedDataInt8ArrayViewCid + 8 &&
+         kTypedDataFloat32ArrayViewCid == kTypedDataInt8ArrayViewCid + 9 &&
+         kTypedDataFloat64ArrayViewCid == kTypedDataInt8ArrayViewCid + 10 &&
+         kTypedDataFloat32x4ArrayViewCid == kTypedDataInt8ArrayViewCid + 11 &&
+         kByteDataViewCid == kTypedDataInt8ArrayViewCid + 12 &&
+         kExternalTypedDataInt8ArrayCid == kTypedDataInt8ArrayViewCid + 13);
+  return (index >= kTypedDataInt8ArrayViewCid &&
+          index <= kByteDataViewCid);
 }
 
 
@@ -1902,16 +1912,19 @@ inline bool RawObject::IsExternalTypedDataClassId(intptr_t index) {
           kExternalTypedDataInt8ArrayCid + 9) &&
          (kExternalTypedDataFloat64ArrayCid ==
           kExternalTypedDataInt8ArrayCid + 10) &&
-         (kNullCid == kExternalTypedDataInt8ArrayCid + 11));
+         (kExternalTypedDataFloat32x4ArrayCid ==
+          kExternalTypedDataInt8ArrayCid + 11) &&
+         (kNullCid == kExternalTypedDataInt8ArrayCid + 12));
   return (index >= kExternalTypedDataInt8ArrayCid &&
-          index <= kExternalTypedDataFloat64ArrayCid);
+          index <= kExternalTypedDataFloat32x4ArrayCid);
 }
 
 
 inline intptr_t RawObject::NumberOfTypedDataClasses() {
   // Make sure this is updated when new TypedData types are added.
-  ASSERT(kExternalTypedDataInt8ArrayCid == kTypedDataInt8ArrayCid + 11);
-  ASSERT(kNullCid == kExternalTypedDataInt8ArrayCid + 11);
+  ASSERT(kTypedDataInt8ArrayViewCid == kTypedDataInt8ArrayCid + 12);
+  ASSERT(kExternalTypedDataInt8ArrayCid == kTypedDataInt8ArrayViewCid + 13);
+  ASSERT(kNullCid == kExternalTypedDataInt8ArrayCid + 12);
   return (kNullCid - kTypedDataInt8ArrayCid);
 }
 

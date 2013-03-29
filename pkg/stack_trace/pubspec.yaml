@@ -1,0 +1,11 @@
+name: stack_trace
+author: "Dart Team <misc@dartlang.org>"
+homepage: http://www.dartlang.org
+description: >
+  A package for manipulating stack traces and printing them readably.
+
+dependencies:
+  pathos: any
+
+dev_dependencies:
+  unittest: any

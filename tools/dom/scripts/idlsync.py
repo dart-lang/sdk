@@ -177,26 +177,19 @@ def GenerateReadme(local_path, template, url, revision):
   out.write(readme)
   out.close()
 
+ZIP_ARCHIVE = 'version-control-dirs.zip'
+
 def SaveVersionControlDir(local_path):
-  version_control_dir = os.path.join(local_path, '.git')
-  if not os.path.isdir(version_control_dir):
-    version_control_dir = os.path.join(local_path, '.svn')
-    if not os.path.isdir(version_control_dir):
-      raise '%s is not a git or svn directory' % local_path
-  temp_dir = tempfile.mkdtemp()
-  shutil.move(version_control_dir, temp_dir)
-  return temp_dir
+  RunCommand([
+    'sh', '-c',
+    'find %s -name .svn -or -name .git | zip -r %s -@' % (
+        os.path.relpath(local_path), ZIP_ARCHIVE)
+  ])
 
 
-def RestoreVersionControlDir(local_path, saved_version_control_dir):
-  version_control_dir = os.path.join(saved_version_control_dir, '.git')
-  if not os.path.isdir(version_control_dir):
-    version_control_dir = os.path.join(saved_version_control_dir, '.svn')
-    if not os.path.isdir(version_control_dir):
-      raise 'Failed restoring version control directory'
-  shutil.move(version_control_dir, local_path)
-  shutil.rmtree(saved_version_control_dir)
-
+def RestoreVersionControlDir():
+  RunCommand(['unzip', ZIP_ARCHIVE, '-d', '.'])
+  RunCommand(['rm', ZIP_ARCHIVE])
 
 def ParseOptions():
   parser = optparse.OptionParser()
@@ -225,11 +218,11 @@ def main():
       url, latest = GetSvnRevision(deps, component)
       if revision is None:
         revision = latest
-      saved_version_control_dir = SaveVersionControlDir(local_path);
+      SaveVersionControlDir(local_path);
       RefreshFiles(url, revision, remote_path, local_path, depth)
       PruneExtraFiles(local_path)
       GenerateReadme(local_path, readme, url, revision)
-      RestoreVersionControlDir(local_path, saved_version_control_dir);
+      RestoreVersionControlDir();
 
 if __name__ == '__main__':
   main()

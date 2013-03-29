@@ -634,6 +634,7 @@ class JavaScriptBackend extends Backend {
   final Map<Element, jsAst.Expression> generatedBailoutCode =
       new Map<Element, jsAst.Expression>();
 
+  ClassElement jsInterceptorClass;
   ClassElement jsStringClass;
   ClassElement jsArrayClass;
   ClassElement jsNumberClass;
@@ -838,7 +839,8 @@ class JavaScriptBackend extends Backend {
     interceptedNames =
         compiler.findInterceptor(const SourceString('interceptedNames'));
     List<ClassElement> classes = [
-      compiler.objectClass,
+      jsInterceptorClass =
+          compiler.findInterceptor(const SourceString('Interceptor')),
       jsStringClass = compiler.findInterceptor(const SourceString('JSString')),
       jsArrayClass = compiler.findInterceptor(const SourceString('JSArray')),
       // The int class must be before the double class, because the
@@ -902,20 +904,30 @@ class JavaScriptBackend extends Backend {
         compiler.objectClass, const SourceString('=='));
 
     specialOperatorEqClasses
-        ..add(jsNullClass)
-        ..add(jsNumberClass);
+        ..add(compiler.objectClass)
+        ..add(jsInterceptorClass)
+        ..add(jsNullClass);
+
+    validateInterceptorImplementsAllObjectMethods(jsInterceptorClass);
+  }
+
+  void validateInterceptorImplementsAllObjectMethods(
+      ClassElement interceptorClass) {
+    if (interceptorClass == null) return;
+    compiler.objectClass.forEachMember((_, Element member) {
+      if (member.isGenerativeConstructor()) return;
+      Element interceptorMember = interceptorClass.lookupMember(member.name);
+      // Interceptors must override all Object methods due to calling convention
+      // differences.
+      assert(interceptorMember.getEnclosingClass() != compiler.objectClass);
+    });
   }
 
   void addInterceptorsForNativeClassMembers(
       ClassElement cls, Enqueuer enqueuer) {
     if (enqueuer.isResolutionQueue) {
       cls.ensureResolved(compiler);
-      cls.forEachMember((ClassElement classElement, Element member) {
-          Set<Element> set = interceptedElements.putIfAbsent(
-              member.name, () => new Set<Element>());
-          set.add(member);
-        },
-        includeSuperMembers: true);
+      addInterceptorMembers(cls);
     }
   }
 
@@ -924,19 +936,25 @@ class JavaScriptBackend extends Backend {
                        TreeElements elements) {
     if (enqueuer.isResolutionQueue) {
       cls.ensureResolved(compiler);
-      cls.forEachMember((ClassElement classElement, Element member) {
-          Set<Element> set = interceptedElements.putIfAbsent(
-              member.name, () => new Set<Element>());
-          set.add(member);
-        },
-        includeSuperMembers: true);
+      addInterceptorMembers(cls);
     }
     enqueuer.registerInstantiatedClass(cls, elements);
   }
 
+  void addInterceptorMembers(ClassElement cls) {
+    cls.forEachMember((ClassElement classElement, Element member) {
+        // All methods on [Object] are shadowed by [Interceptor].
+        if (classElement == compiler.objectClass) return;
+        Set<Element> set = interceptedElements.putIfAbsent(
+            member.name, () => new Set<Element>());
+        set.add(member);
+      },
+      includeSuperMembers: true);
+  }
+
   void registerSpecializedGetInterceptor(Set<ClassElement> classes) {
     String name = namer.getInterceptorName(getInterceptorMethod, classes);
-    if (classes.contains(compiler.objectClass)) {
+    if (classes.contains(jsInterceptorClass)) {
       // We can't use a specialized [getInterceptorMethod], so we make
       // sure we emit the one with all checks.
       specializedGetInterceptors[name] = interceptedClasses;
@@ -992,29 +1010,31 @@ class JavaScriptBackend extends Backend {
       }
     }
     ClassElement result = null;
-    if (cls == compiler.stringClass) {
+    if (cls == compiler.stringClass || cls == jsStringClass) {
       addInterceptors(jsStringClass, enqueuer, elements);
-    } else if (cls == compiler.listClass) {
+    } else if (cls == compiler.listClass
+               || cls == jsArrayClass
+               || cls == jsFixedArrayClass
+               || cls == jsExtendableArrayClass) {
       addInterceptors(jsArrayClass, enqueuer, elements);
       enqueuer.registerInstantiatedClass(jsFixedArrayClass, elements);
       enqueuer.registerInstantiatedClass(jsExtendableArrayClass, elements);
-    } else if (cls == compiler.intClass) {
+    } else if (cls == compiler.intClass || cls == jsIntClass) {
       addInterceptors(jsIntClass, enqueuer, elements);
       addInterceptors(jsNumberClass, enqueuer, elements);
-    } else if (cls == compiler.doubleClass) {
+    } else if (cls == compiler.doubleClass || cls == jsDoubleClass) {
       addInterceptors(jsDoubleClass, enqueuer, elements);
       addInterceptors(jsNumberClass, enqueuer, elements);
-    } else if (cls == compiler.functionClass) {
+    } else if (cls == compiler.functionClass || cls == jsFunctionClass) {
       addInterceptors(jsFunctionClass, enqueuer, elements);
-    } else if (cls == compiler.boolClass) {
+    } else if (cls == compiler.boolClass || cls == jsBoolClass) {
       addInterceptors(jsBoolClass, enqueuer, elements);
-    } else if (cls == compiler.nullClass) {
+    } else if (cls == compiler.nullClass || cls == jsNullClass) {
       addInterceptors(jsNullClass, enqueuer, elements);
-    } else if (cls == compiler.numClass) {
+    } else if (cls == compiler.numClass || cls == jsNumberClass) {
       addInterceptors(jsIntClass, enqueuer, elements);
       addInterceptors(jsDoubleClass, enqueuer, elements);
       addInterceptors(jsNumberClass, enqueuer, elements);
-    } else if (cls == compiler.mapClass) {
     } else if (cls.isNative()) {
       addInterceptorsForNativeClassMembers(cls, enqueuer);
     }
@@ -1201,6 +1221,21 @@ class JavaScriptBackend extends Backend {
 
   bool needsRti(ClassElement cls) {
     return rti.classesNeedingRti.contains(cls) || compiler.enabledRuntimeType;
+  }
+
+  bool isDefaultNoSuchMethodImplementation(Element element) {
+    assert(element.name == Compiler.NO_SUCH_METHOD);
+    ClassElement classElement = element.getEnclosingClass();
+    return classElement == compiler.objectClass
+        || classElement == jsInterceptorClass;
+  }
+
+  bool isDefaultEqualityImplementation(Element element) {
+    assert(element.name == const SourceString('=='));
+    ClassElement classElement = element.getEnclosingClass();
+    return classElement == compiler.objectClass
+        || classElement == jsInterceptorClass
+        || classElement == jsNullClass;
   }
 
   void enqueueInResolution(Element e, TreeElements elements) {

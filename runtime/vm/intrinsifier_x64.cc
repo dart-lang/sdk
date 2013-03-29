@@ -411,17 +411,6 @@ bool Intrinsifier::GrowableArray_add(Assembler* assembler) {
 }
 
 
-bool Intrinsifier::ByteArrayBase_getLength(Assembler* assembler) {
-  __ movq(RAX, Address(RSP, + 1 * kWordSize));
-  __ movq(RAX, FieldAddress(RAX, ByteArray::length_offset()));
-  __ ret();
-  // Generate enough code to satisfy patchability constraint.
-  intptr_t offset = __ CodeSize();
-  __ nop(JumpPattern::InstructionLength() - offset);
-  return true;
-}
-
-
 
 // Tests if index is a valid length (Smi and within valid index range),
 // jumps to fall_through if it is not.
@@ -454,6 +443,13 @@ void TestByteArrayGetIndex(Assembler* assembler, Label* fall_through) {
   /* RDI: untagged array length. */                                            \
   __ cmpq(RDI, Immediate(max_len));                                            \
   __ j(GREATER, &fall_through);                                                \
+  /* Special case for scaling by 16. */                                        \
+  if (scale_factor == TIMES_16) {                                              \
+    /* double length of array. */                                              \
+    __ addq(RDI, RDI);                                                         \
+    /* only scale by 8. */                                                     \
+    scale_factor = TIMES_8;                                                    \
+  }                                                                            \
   const intptr_t fixed_size = sizeof(Raw##type_name) + kObjectAlignment - 1;   \
   __ leaq(RDI, Address(RDI, scale_factor, fixed_size));                        \
   __ andq(RDI, Immediate(-kObjectAlignment));                                  \
@@ -530,75 +526,6 @@ void TestByteArrayGetIndex(Assembler* assembler, Label* fall_through) {
   __ Bind(&fall_through);                                                      \
 
 
-#define SCALARLIST_ALLOCATOR(clazz, scale)                                     \
-bool Intrinsifier::clazz##_new(Assembler* assembler) {                         \
-  TYPED_ARRAY_ALLOCATION(clazz, k##clazz##Cid, clazz::kMaxElements, scale);    \
-  return false;                                                                \
-}                                                                              \
-bool Intrinsifier::clazz##_factory(Assembler* assembler) {                     \
-  TYPED_ARRAY_ALLOCATION(clazz, k##clazz##Cid, clazz::kMaxElements, scale);    \
-  return false;                                                                \
-}
-
-
-SCALARLIST_ALLOCATOR(Int8Array, TIMES_1)
-SCALARLIST_ALLOCATOR(Uint8Array, TIMES_1)
-SCALARLIST_ALLOCATOR(Uint8ClampedArray, TIMES_1)
-SCALARLIST_ALLOCATOR(Int16Array, TIMES_2)
-SCALARLIST_ALLOCATOR(Uint16Array, TIMES_2)
-SCALARLIST_ALLOCATOR(Int32Array, TIMES_4)
-SCALARLIST_ALLOCATOR(Uint32Array, TIMES_4)
-SCALARLIST_ALLOCATOR(Int64Array, TIMES_8)
-SCALARLIST_ALLOCATOR(Uint64Array, TIMES_8)
-SCALARLIST_ALLOCATOR(Float32Array, TIMES_4)
-SCALARLIST_ALLOCATOR(Float64Array, TIMES_8)
-
-
-bool Intrinsifier::Int64Array_getIndexed(Assembler* assembler) {
-  Label fall_through;
-  TestByteArrayGetIndex(assembler, &fall_through);
-  // R12: index as Smi.
-  // RAX: array.
-  __ movq(RAX, FieldAddress(RAX,
-                            R12,
-                            TIMES_4,
-                            Int64Array::data_offset()));
-  // Copy RAX into R12.
-  // We destroy R12 while testing if RAX can fit inside a Smi.
-  __ movq(R12, RAX);
-  // Verify that the signed value in RAX can fit inside a Smi.
-  __ shlq(R12, Immediate(0x1));
-  // Jump to fall_through if it can not.
-  __ j(OVERFLOW, &fall_through, Assembler::kNearJump);
-  __ SmiTag(RAX);
-  __ ret();
-  __ Bind(&fall_through);
-  return false;
-}
-
-
-bool Intrinsifier::Uint64Array_getIndexed(Assembler* assembler) {
-  Label fall_through;
-  TestByteArrayGetIndex(assembler, &fall_through);
-  // R12: index as Smi.
-  // RAX: array.
-  __ movq(RAX, FieldAddress(RAX,
-                            R12,
-                            TIMES_4,
-                            Uint64Array::data_offset()));
-  // Copy RAX into R12.
-  // We destroy R12 while testing if RAX can fit inside a Smi.
-  __ movq(R12, RAX);
-  // Verify that the unsigned value in RAX can be stored in a Smi.
-  __ shrq(R12, Immediate(kSmiBits));
-  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Won't fit Smi.
-  __ SmiTag(RAX);
-  __ ret();
-  __ Bind(&fall_through);
-  return false;
-}
-
-
 // Gets the length of a TypedData.
 bool Intrinsifier::TypedData_getLength(Assembler* assembler) {
   __ movq(RAX, Address(RSP, + 1 * kWordSize));
@@ -617,6 +544,7 @@ static ScaleFactor GetScaleFactor(intptr_t size) {
     case 2: return TIMES_2;
     case 4: return TIMES_4;
     case 8: return TIMES_8;
+    case 16: return TIMES_16;
   }
   UNREACHABLE();
   return static_cast<ScaleFactor>(0);
@@ -721,7 +649,7 @@ bool Intrinsifier::Integer_mul(Assembler* assembler) {
 
 
 bool Intrinsifier::Integer_modulo(Assembler* assembler) {
-  Label fall_through, return_zero, try_modulo;
+  Label fall_through, return_zero, try_modulo, not_32bit;
   TestBothArgumentsSmis(assembler, &fall_through);
   // RAX: right argument (divisor)
   // Check if modulo by zero -> exception thrown in main function.
@@ -735,35 +663,84 @@ bool Intrinsifier::Integer_modulo(Assembler* assembler) {
   __ j(GREATER, &try_modulo, Assembler::kNearJump);
   __ movq(RAX, RCX);  // Return dividend as it is smaller than divisor.
   __ ret();
+
   __ Bind(&return_zero);
   __ xorq(RAX, RAX);  // Return zero.
   __ ret();
+
   __ Bind(&try_modulo);
   // RAX: right (non-null divisor).
   __ movq(RCX, RAX);
-  __ SmiUntag(RCX);
   __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Left argument (dividend).
+
+  // Check if both operands fit into 32bits as idiv with 64bit operands
+  // requires twice as many cycles and has much higher latency. We are checking
+  // this before untagging them to avoid corner case dividing INT_MAX by -1 that
+  // raises exception because quotient is too large for 32bit register.
+  __ movsxd(RBX, RAX);
+  __ cmpq(RBX, RAX);
+  __ j(NOT_EQUAL, &not_32bit);
+  __ movsxd(RBX, RCX);
+  __ cmpq(RBX, RCX);
+  __ j(NOT_EQUAL, &not_32bit);
+
+  // Both operands are 31bit smis. Divide using 32bit idiv.
   __ SmiUntag(RAX);
+  __ SmiUntag(RCX);
+  __ cdq();
+  __ idivl(RCX);
+  __ movsxd(RAX, RDX);
+  __ SmiTag(RAX);
+  __ ret();
+
+  // Divide using 64bit idiv.
+  __ Bind(&not_32bit);
+  __ SmiUntag(RAX);
+  __ SmiUntag(RCX);
   __ cqo();
   __ idivq(RCX);
   __ movq(RAX, RDX);
   __ SmiTag(RAX);
   __ ret();
+
   __ Bind(&fall_through);
   return false;
 }
 
 
 bool Intrinsifier::Integer_truncDivide(Assembler* assembler) {
-  Label fall_through;
+  Label fall_through, not_32bit;
   TestBothArgumentsSmis(assembler, &fall_through);
   // RAX: right argument (divisor)
   __ cmpq(RAX, Immediate(0));
   __ j(EQUAL, &fall_through, Assembler::kNearJump);
   __ movq(RCX, RAX);
-  __ SmiUntag(RCX);
   __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Left argument (dividend).
+
+  // Check if both operands fit into 32bits as idiv with 64bit operands
+  // requires twice as many cycles and has much higher latency. We are checking
+  // this before untagging them to avoid corner case dividing INT_MAX by -1 that
+  // raises exception because quotient is too large for 32bit register.
+  __ movsxd(RBX, RAX);
+  __ cmpq(RBX, RAX);
+  __ j(NOT_EQUAL, &not_32bit);
+  __ movsxd(RBX, RCX);
+  __ cmpq(RBX, RCX);
+  __ j(NOT_EQUAL, &not_32bit);
+
+  // Both operands are 31bit smis. Divide using 32bit idiv.
   __ SmiUntag(RAX);
+  __ SmiUntag(RCX);
+  __ cdq();
+  __ idivl(RCX);
+  __ movsxd(RAX, RAX);
+  __ SmiTag(RAX);  // Result is guaranteed to fit into a smi.
+  __ ret();
+
+  // Divide using 64bit idiv.
+  __ Bind(&not_32bit);
+  __ SmiUntag(RAX);
+  __ SmiUntag(RCX);
   __ pushq(RDX);  // Preserve RDX in case of 'fall_through'.
   __ cqo();
   __ idivq(RCX);

@@ -149,7 +149,7 @@ class AudioBufferSourceNode extends AudioSourceNode native "*AudioBufferSourceNo
 
   @DomName('AudioBufferSourceNode.gain')
   @DocsEditable
-  final AudioGain gain;
+  final AudioParam gain;
 
   @DomName('AudioBufferSourceNode.loop')
   @DocsEditable
@@ -322,15 +322,6 @@ class AudioDestinationNode extends AudioNode native "*AudioDestinationNode" {
   @DomName('AudioDestinationNode.maxChannelCount')
   @DocsEditable
   final int maxChannelCount;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('AudioGain')
-class AudioGain extends AudioParam native "*AudioGain" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -626,7 +617,7 @@ class GainNode extends AudioNode native "*GainNode" {
 
   @DomName('GainNode.gain')
   @DocsEditable
-  final AudioGain gain;
+  final AudioParam gain;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

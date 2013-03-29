@@ -7,7 +7,7 @@ library pub_cache_test;
 import 'dart:io';
 import 'dart:json' as json;
 
-import '../../../pkg/scheduled_test/lib/scheduled_test.dart';
+import 'package:scheduled_test/scheduled_test.dart';
 
 import '../../pub/io.dart';
 import 'descriptor.dart' as d;

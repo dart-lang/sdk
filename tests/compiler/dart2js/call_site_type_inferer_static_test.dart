@@ -17,7 +17,7 @@ void compileAndFind(String code,
   compiler.disableInlining = disableInlining;
   compiler.runCompiler(uri);
   var fun = findElement(compiler, functionName);
-  return check(compiler.backend, fun);
+  return check(compiler, fun);
 }
 
 // The 'f' function has an 'if' to make it non-inlinable.
@@ -74,37 +74,41 @@ const String TEST_TEN = r"""
 
 void doTest(String test,
             bool enableInlining,
-            List<HType> expectedTypes) {
+            List<Function> expectedTypes) {
   compileAndFind(
     test,
     'f',
     enableInlining,
-    (backend, x) {
-      HTypeList types = backend.optimisticParameterTypes(x, null);
+    (compiler, x) {
+      HTypeList types = compiler.backend.optimisticParameterTypes(x, null);
       if (expectedTypes != null) {
         Expect.isFalse(types.allUnknown);
-        Expect.listEquals(expectedTypes, types.types);
+        Expect.listEquals(expectedTypes.map((f) => f(compiler)).toList(),
+                          types.types);
       } else {
         Expect.isTrue(types.allUnknown);
       }
   });
 }
 
-void runTest(String test, [List<HType> expectedTypes]) {
+void runTest(String test, [List<Function> expectedTypes]) {
   doTest(test, false, expectedTypes);
   doTest(test, true, expectedTypes);
 }
 
 void test() {
-  runTest(TEST_ONE, [HType.STRING]);
-  runTest(TEST_TWO, [HType.INTEGER]);
-  runTest(TEST_THREE, [HType.INTEGER]);
-  runTest(TEST_FOUR, [HType.DOUBLE]);
-  runTest(TEST_FIVE, [HType.NUMBER]);
-  runTest(TEST_SIX, [HType.NUMBER]);
-  runTest(TEST_SEVEN, [HType.NON_NULL]);
-  runTest(TEST_EIGHT, [HType.INTEGER, HType.NON_NULL]);
-  runTest(TEST_NINE, [HType.NON_NULL, HType.NON_NULL]);
+  subclassOfInterceptor(compiler) =>
+      findHType(compiler, 'Interceptor', 'nonNullSubclass');
+
+  runTest(TEST_ONE, [(compiler) => HType.STRING]);
+  runTest(TEST_TWO, [(compiler) => HType.INTEGER]);
+  runTest(TEST_THREE, [(compiler) => HType.INTEGER]);
+  runTest(TEST_FOUR, [(compiler) => HType.DOUBLE]);
+  runTest(TEST_FIVE, [(compiler) => HType.NUMBER]);
+  runTest(TEST_SIX, [(compiler) => HType.NUMBER]);
+  runTest(TEST_SEVEN, [subclassOfInterceptor]);
+  runTest(TEST_EIGHT, [(compiler) => HType.INTEGER, subclassOfInterceptor]);
+  runTest(TEST_NINE, [subclassOfInterceptor, subclassOfInterceptor]);
   runTest(TEST_TEN);
 }
 

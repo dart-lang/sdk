@@ -5,7 +5,6 @@
 {
   'sources': [
     'typeddata.dart',
-    # The above file needs to be first as it lists the parts below.
-    'typeddata_base.dart',
+    # The above file needs to be first if additional parts are added to the lib.
   ],
 }

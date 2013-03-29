@@ -134,9 +134,6 @@ namespace dart {
                                                                                \
   /* Support for Dart scripts. */                                              \
   TOK(kSCRIPTTAG, "#!", 0, kNoAttribute)                                       \
-  TOK(kLEGACY_LIBRARY, "#library", 0, kNoAttribute)                            \
-  TOK(kLEGACY_IMPORT, "#import", 0, kNoAttribute)                              \
-  TOK(kLEGACY_SOURCE, "#source", 0, kNoAttribute)                              \
 
 // List of keywords. The list must be alphabetically ordered. The
 // keyword recognition code depends on the ordering.
@@ -292,6 +289,24 @@ class Token {
 
   static bool IsBinaryOperator(Token::Kind token);
   static bool IsPrefixOperator(Token::Kind token);
+
+  // For a comparison operation return an operation for the negated comparison:
+  // !(a (op) b) === a (op') b
+  static Token::Kind NegateComparison(Token::Kind op) {
+    switch (op) {
+      case Token::kEQ: return Token::kNE;
+      case Token::kNE: return Token::kEQ;
+      case Token::kLT: return Token::kGTE;
+      case Token::kGT: return Token::kLTE;
+      case Token::kLTE: return Token::kGT;
+      case Token::kGTE: return Token::kLT;
+      case Token::kEQ_STRICT: return Token::kNE_STRICT;
+      case Token::kNE_STRICT: return Token::kEQ_STRICT;
+      default:
+        UNREACHABLE();
+        return Token::kILLEGAL;
+    }
+  }
 
  private:
   static const char* name_[];

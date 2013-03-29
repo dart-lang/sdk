@@ -4,9 +4,8 @@
 
 library utils_test;
 
-import '../../../pkg/unittest/lib/unittest.dart';
-import '../lib/src/utils.dart';
-
+import 'package:oauth2/src/utils.dart';
+import 'package:unittest/unittest.dart';
 
 void main() {
   group('AuthenticateHeader', () {

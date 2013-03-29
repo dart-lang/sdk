@@ -7,7 +7,6 @@
   'sources': [
     'uri.dart',
     # The above file needs to be first as it lists the parts below.
-    'uri_base.dart',
     'helpers.dart',
     'encode_decode.dart',
   ],

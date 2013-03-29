@@ -6,7 +6,8 @@ library error_group_test;
 
 import 'dart:async';
 
-import '../../../pkg/unittest/lib/unittest.dart';
+import 'package:unittest/unittest.dart';
+
 import '../../pub/error_group.dart';
 import '../../pub/utils.dart';
 

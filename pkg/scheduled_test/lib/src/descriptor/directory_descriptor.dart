@@ -7,7 +7,7 @@ library descriptor.file;
 import 'dart:async';
 import 'dart:io';
 
-import '../../../../../pkg/pathos/lib/path.dart' as path;
+import 'package:pathos/path.dart' as path;
 
 import '../../descriptor.dart';
 import '../../scheduled_test.dart';

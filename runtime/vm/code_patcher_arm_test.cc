@@ -61,8 +61,8 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
   const Array& arg_descriptor =
       Array::ZoneHandle(ArgumentsDescriptor::New(1, Array::Handle()));
 
-  __ LoadObject(R5, ic_data);
   __ LoadObject(R4, arg_descriptor);
+  __ LoadObject(R5, ic_data);
   ExternalLabel target_label(
       "InlineCache", StubCode::OneArgCheckInlineCacheEntryPoint());
   __ BranchLinkPatchable(&target_label);

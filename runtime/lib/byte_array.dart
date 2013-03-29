@@ -445,10 +445,6 @@ abstract class _ByteArrayBase {
   int _getUint64(int byteOffset) native "ByteArray_getUint64";
   int _setUint64(int byteOffset, int value) native "ByteArray_setUint64";
 
-  Float32x4 _getFloat32x4(int byteOffset) native "ByteArray_getFloat32x4";
-  int _setFloat32x4(int byteOffset, Float32x4 value)
-      native "ByteArray_setFloat32x4";
-
   double _getFloat32(int byteOffset) native "ByteArray_getFloat32";
   int _setFloat32(int byteOffset, double value) native "ByteArray_setFloat32";
 
@@ -2008,13 +2004,6 @@ class _ByteArrayView implements ByteArray {
   }
   int setUint64(int byteOffset, int value) {
     return _array._setUint64(_offset + byteOffset, value);
-  }
-
-  Float32x4 getFloat32x4(int byteOffset) {
-    return _array._getFloat32x4(_offset + byteOffset);
-  }
-  int setFloat32x4(int byteOffset, Float32x4 value) {
-    return _array._setFloat32x4(_offset + byteOffset, value);
   }
 
   double getFloat32(int byteOffset) {

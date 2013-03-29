@@ -8,8 +8,6 @@
 #include "bin/vmstats.h"
 
 #include <map>
-#include <sstream>
-#include <string>
 
 #include "bin/isolate_data.h"
 #include "platform/thread.h"
@@ -27,7 +25,7 @@ class VmStats {
   static void RemoveIsolate(IsolateData* isolate_data);
 
  private:
-  VmStats() : running_(false), bind_address_(0) {}
+  VmStats() : root_directory_(NULL), running_(false), bind_address_(0) {}
 
   static void WebServer(uword bind_address);
   static void Shutdown();
@@ -37,7 +35,7 @@ class VmStats {
 
   typedef std::map<IsolateData*, Dart_Isolate> IsolateTable;
 
-  std::string root_directory_;
+  const char* root_directory_;
   IsolateTable isolate_table_;
   bool running_;
   int64_t bind_address_;

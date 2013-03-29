@@ -19,7 +19,7 @@
 namespace dart {
 
 static const int kNumInitialReferencesInFullSnapshot = 160 * KB;
-static const int kNumInitialReferences = 4;
+static const int kNumInitialReferences = 64;
 
 
 static bool IsSingletonClassId(intptr_t class_id) {
@@ -54,6 +54,7 @@ static intptr_t ClassIdFromObjectId(intptr_t object_id) {
 
 static intptr_t ObjectIdFromClassId(intptr_t class_id) {
   ASSERT((class_id > kIllegalCid) && (class_id < kNumPredefinedCids));
+  ASSERT(!RawObject::IsTypedDataViewClassId(class_id));
   return (class_id + kClassIdsOffset);
 }
 
@@ -159,7 +160,7 @@ SnapshotReader::SnapshotReader(const uint8_t* buffer,
       type_arguments_(AbstractTypeArguments::Handle()),
       tokens_(Array::Handle()),
       stream_(TokenStream::Handle()),
-      data_(ExternalUint8Array::Handle()),
+      data_(ExternalTypedData::Handle()),
       error_(UnhandledException::Handle()),
       backward_references_((kind == Snapshot::kFull) ?
                            kNumInitialReferencesInFullSnapshot :
@@ -315,15 +316,20 @@ RawObject* SnapshotReader::ReadObjectRef() {
     CLASS_LIST_NO_OBJECT(SNAPSHOT_READ)
 #undef SNAPSHOT_READ
 #define SNAPSHOT_READ(clazz)                                                   \
-    case kTypedData##clazz##Cid: {                                             \
-      obj_ = TypedData::ReadFrom(this, object_id, tags, kind_);                \
-      break;                                                                   \
-    }                                                                          \
-    case kExternalTypedData##clazz##Cid: {                                     \
-      obj_ = ExternalTypedData::ReadFrom(this, object_id, tags, kind_);        \
-      break;                                                                   \
+    case kTypedData##clazz##Cid:                                               \
+
+    CLASS_LIST_TYPED_DATA(SNAPSHOT_READ) {
+      obj_ = TypedData::ReadFrom(this, object_id, tags, kind_);
+      break;
     }
-    CLASS_LIST_TYPED_DATA(SNAPSHOT_READ)
+#undef SNAPSHOT_READ
+#define SNAPSHOT_READ(clazz)                                                   \
+    case kExternalTypedData##clazz##Cid:                                       \
+
+    CLASS_LIST_TYPED_DATA(SNAPSHOT_READ) {
+      obj_ = ExternalTypedData::ReadFrom(this, object_id, tags, kind_);
+      break;
+    }
 #undef SNAPSHOT_READ
     default: UNREACHABLE(); break;
   }
@@ -432,12 +438,12 @@ RawTokenStream* SnapshotReader::NewTokenStream(intptr_t len) {
   cls_ = Object::token_stream_class();
   stream_ = reinterpret_cast<RawTokenStream*>(
       AllocateUninitialized(cls_, TokenStream::InstanceSize()));
-  cls_ = object_store()->external_uint8_array_class();
+  cls_ = isolate()->class_table()->At(kExternalTypedDataUint8ArrayCid);
   uint8_t* array = const_cast<uint8_t*>(CurrentBufferAddress());
   ASSERT(array != NULL);
   Advance(len);
-  data_ = reinterpret_cast<RawExternalUint8Array*>(
-      AllocateUninitialized(cls_, ExternalUint8Array::InstanceSize()));
+  data_ = reinterpret_cast<RawExternalTypedData*>(
+      AllocateUninitialized(cls_, ExternalTypedData::InstanceSize()));
   data_.SetData(array);
   data_.SetLength(len);
   stream_.SetStream(data_);
@@ -461,7 +467,7 @@ RawClass* SnapshotReader::NewClass(intptr_t class_id) {
   ASSERT(isolate()->no_gc_scope_depth() != 0);
   if (class_id < kNumPredefinedCids) {
     ASSERT((class_id >= kInstanceCid) &&
-           (class_id <= kExternalTypedDataFloat64ArrayCid));
+           (class_id <= kExternalTypedDataFloat32x4ArrayCid));
     return isolate()->class_table()->At(class_id);
   }
   cls_ = Object::class_class();
@@ -803,15 +809,20 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
     CLASS_LIST_NO_OBJECT(SNAPSHOT_READ)
 #undef SNAPSHOT_READ
 #define SNAPSHOT_READ(clazz)                                                   \
-    case kTypedData##clazz##Cid: {                                             \
-      obj_ = TypedData::ReadFrom(this, object_id, tags, kind_);                \
-      break;                                                                   \
-    }                                                                          \
-    case kExternalTypedData##clazz##Cid: {                                     \
-      obj_ = ExternalTypedData::ReadFrom(this, object_id, tags, kind_);        \
-      break;                                                                   \
+    case kTypedData##clazz##Cid:                                               \
+
+    CLASS_LIST_TYPED_DATA(SNAPSHOT_READ) {
+      obj_ = TypedData::ReadFrom(this, object_id, tags, kind_);
+      break;
     }
-    CLASS_LIST_TYPED_DATA(SNAPSHOT_READ)
+#undef SNAPSHOT_READ
+#define SNAPSHOT_READ(clazz)                                                   \
+    case kExternalTypedData##clazz##Cid:                                       \
+
+    CLASS_LIST_TYPED_DATA(SNAPSHOT_READ) {
+      obj_ = ExternalTypedData::ReadFrom(this, object_id, tags, kind_);
+      break;
+    }
 #undef SNAPSHOT_READ
     default: UNREACHABLE(); break;
   }
@@ -840,10 +851,10 @@ void SnapshotReader::ArrayReadFrom(const Array& result,
 
 
 SnapshotWriter::SnapshotWriter(Snapshot::Kind kind,
-               uint8_t** buffer,
-               ReAlloc alloc,
-               intptr_t increment_size)
-    : BaseWriter(buffer, alloc, increment_size),
+                               uint8_t** buffer,
+                               ReAlloc alloc,
+                               intptr_t initial_size)
+    : BaseWriter(buffer, alloc, initial_size),
       kind_(kind),
       object_store_(Isolate::Current()->object_store()),
       class_table_(Isolate::Current()->class_table()),
@@ -926,29 +937,7 @@ void SnapshotWriter::WriteObjectRef(RawObject* raw) {
   intptr_t class_id = cls->ptr()->id_;
   ASSERT(class_id == raw->GetClassId());
   if (class_id >= kNumPredefinedCids) {
-    if (Class::IsSignatureClass(cls)) {
-      // We do not allow closure objects in an isolate message.
-      set_exception_type(Exceptions::kArgument);
-      // TODO(6726): Allocate these constant strings once in the VM isolate.
-      set_exception_msg("Illegal argument in isolate message"
-                        " : (object is a closure)");
-      Isolate::Current()->long_jump_base()->Jump(1, *ErrorHandle());
-    }
-    // Object is being referenced, add it to the forward ref list and mark
-    // it so that future references to this object in the snapshot will use
-    // this object id. Mark it as not having been serialized yet so that we
-    // will serialize the object when we go through the forward list.
-    intptr_t object_id = MarkObject(raw, kIsNotSerialized);
-
-    // Write out the serialization header value for this object.
-    WriteInlinedObjectHeader(object_id);
-
-    // Indicate this is an instance object.
-    WriteIntptrValue(SerializedHeaderData::encode(kInstanceObjectId));
-
-    // Write out the class information for this object.
-    WriteObjectImpl(cls);
-
+    WriteInstanceRef(raw, cls);
     return;
   }
   if (class_id == kArrayCid) {
@@ -1007,19 +996,32 @@ void SnapshotWriter::WriteObjectRef(RawObject* raw) {
     CLASS_LIST_NO_OBJECT(SNAPSHOT_WRITE)
 #undef SNAPSHOT_WRITE
 #define SNAPSHOT_WRITE(clazz)                                                  \
-    case kTypedData##clazz##Cid: {                                             \
-      RawTypedData* raw_obj = reinterpret_cast<RawTypedData*>(raw);            \
-      raw_obj->WriteTo(this, object_id, kind_);                                \
-      return;                                                                  \
-    }                                                                          \
-    case kExternalTypedData##clazz##Cid: {                                     \
-      RawExternalTypedData* raw_obj =                                          \
-        reinterpret_cast<RawExternalTypedData*>(raw);                          \
-      raw_obj->WriteTo(this, object_id, kind_);                                \
-      return;                                                                  \
-    }                                                                          \
+    case kTypedData##clazz##Cid:                                               \
+
+    CLASS_LIST_TYPED_DATA(SNAPSHOT_WRITE) {
+      RawTypedData* raw_obj = reinterpret_cast<RawTypedData*>(raw);
+      raw_obj->WriteTo(this, object_id, kind_);
+      return;
+    }
+#undef SNAPSHOT_WRITE
+#define SNAPSHOT_WRITE(clazz)                                                  \
+    case kExternalTypedData##clazz##Cid:                                       \
+
+    CLASS_LIST_TYPED_DATA(SNAPSHOT_WRITE) {
+      RawExternalTypedData* raw_obj =
+        reinterpret_cast<RawExternalTypedData*>(raw);
+      raw_obj->WriteTo(this, object_id, kind_);
+      return;
+    }
+#undef SNAPSHOT_WRITE
+#define SNAPSHOT_WRITE(clazz)                                                  \
+    case kTypedData##clazz##ViewCid:                                           \
 
     CLASS_LIST_TYPED_DATA(SNAPSHOT_WRITE)
+    case kByteDataViewCid: {
+      WriteInstanceRef(raw, cls);
+      return;
+    }
 #undef SNAPSHOT_WRITE
     default: break;
   }
@@ -1198,47 +1200,7 @@ void SnapshotWriter::WriteInlinedObject(RawObject* raw) {
   intptr_t class_id = cls->ptr()->id_;
 
   if (class_id >= kNumPredefinedCids) {
-    if (Class::IsSignatureClass(cls)) {
-      // We do not allow closure objects in an isolate message.
-      set_exception_type(Exceptions::kArgument);
-      // TODO(6726): Allocate these constant strings once in the VM isolate.
-      set_exception_msg("Illegal argument in isolate message"
-                        " : (object is a closure)");
-      Isolate::Current()->long_jump_base()->Jump(1, *ErrorHandle());
-    }
-    if (cls->ptr()->num_native_fields_ != 0) {
-      // We do not allow objects with native fields in an isolate message.
-      set_exception_type(Exceptions::kArgument);
-      // TODO(6726): Allocate these constant strings once in the VM isolate.
-      set_exception_msg("Illegal argument in isolate message"
-                        " : (object extends NativeWrapper)");
-
-      Isolate::Current()->long_jump_base()->Jump(1, *ErrorHandle());
-    }
-    // Object is regular dart instance.
-    intptr_t instance_size =
-        cls->ptr()->instance_size_in_words_ << kWordSizeLog2;
-    ASSERT(instance_size != 0);
-
-    // Write out the serialization header value for this object.
-    WriteInlinedObjectHeader(object_id);
-
-    // Indicate this is an instance object.
-    WriteIntptrValue(SerializedHeaderData::encode(kInstanceObjectId));
-
-    // Write out the tags.
-    WriteIntptrValue(tags);
-
-    // Write out the class information for this object.
-    WriteObjectImpl(cls);
-
-    // Write out all the fields for the object.
-    intptr_t offset = Object::InstanceSize();
-    while (offset < instance_size) {
-      WriteObjectRef(*reinterpret_cast<RawObject**>(
-          reinterpret_cast<uword>(raw->ptr()) + offset));
-      offset += kWordSize;
-    }
+    WriteInstance(object_id, raw, cls, tags);
     return;
   }
   switch (class_id) {
@@ -1252,19 +1214,32 @@ void SnapshotWriter::WriteInlinedObject(RawObject* raw) {
     CLASS_LIST_NO_OBJECT(SNAPSHOT_WRITE)
 #undef SNAPSHOT_WRITE
 #define SNAPSHOT_WRITE(clazz)                                                  \
-    case kTypedData##clazz##Cid: {                                             \
-      RawTypedData* raw_obj = reinterpret_cast<RawTypedData*>(raw);            \
-      raw_obj->WriteTo(this, object_id, kind_);                                \
-      return;                                                                  \
-    }                                                                          \
-    case kExternalTypedData##clazz##Cid: {                                     \
-      RawExternalTypedData* raw_obj =                                          \
-        reinterpret_cast<RawExternalTypedData*>(raw);                          \
-      raw_obj->WriteTo(this, object_id, kind_);                                \
-      return;                                                                  \
-    }                                                                          \
+    case kTypedData##clazz##Cid:                                               \
+
+    CLASS_LIST_TYPED_DATA(SNAPSHOT_WRITE) {
+      RawTypedData* raw_obj = reinterpret_cast<RawTypedData*>(raw);
+      raw_obj->WriteTo(this, object_id, kind_);
+      return;
+    }
+#undef SNAPSHOT_WRITE
+#define SNAPSHOT_WRITE(clazz)                                                  \
+    case kExternalTypedData##clazz##Cid:                                       \
+
+    CLASS_LIST_TYPED_DATA(SNAPSHOT_WRITE) {
+      RawExternalTypedData* raw_obj =
+        reinterpret_cast<RawExternalTypedData*>(raw);
+      raw_obj->WriteTo(this, object_id, kind_);
+      return;
+    }
+#undef SNAPSHOT_WRITE
+#define SNAPSHOT_WRITE(clazz)                                                  \
+    case kTypedData##clazz##ViewCid:                                           \
 
     CLASS_LIST_TYPED_DATA(SNAPSHOT_WRITE)
+    case kByteDataViewCid: {
+      WriteInstance(object_id, raw, cls, tags);
+      return;
+    }
 #undef SNAPSHOT_WRITE
     default: break;
   }
@@ -1341,6 +1316,83 @@ void SnapshotWriter::ArrayWriteTo(intptr_t object_id,
   for (intptr_t i = 0; i < len; i++) {
     WriteObjectRef(data[i]);
   }
+}
+
+
+void SnapshotWriter::CheckIfSerializable(RawClass* cls) {
+  if (Class::IsSignatureClass(cls)) {
+    // We do not allow closure objects in an isolate message.
+    set_exception_type(Exceptions::kArgument);
+    // TODO(6726): Allocate these constant strings once in the VM isolate.
+    set_exception_msg("Illegal argument in isolate message"
+                      " : (object is a closure)");
+    Isolate::Current()->long_jump_base()->Jump(1, *ErrorHandle());
+  }
+  if (cls->ptr()->num_native_fields_ != 0) {
+    // We do not allow objects with native fields in an isolate message.
+    set_exception_type(Exceptions::kArgument);
+    // TODO(6726): Allocate these constant strings once in the VM isolate.
+    set_exception_msg("Illegal argument in isolate message"
+                      " : (object extends NativeWrapper)");
+
+    Isolate::Current()->long_jump_base()->Jump(1, *ErrorHandle());
+  }
+}
+
+
+void SnapshotWriter::WriteInstance(intptr_t object_id,
+                                   RawObject* raw,
+                                   RawClass* cls,
+                                   intptr_t tags) {
+  // First check if object is a closure or has native fields.
+  CheckIfSerializable(cls);
+
+  // Object is regular dart instance.
+  intptr_t instance_size =
+      cls->ptr()->instance_size_in_words_ << kWordSizeLog2;
+  ASSERT(instance_size != 0);
+
+  // Write out the serialization header value for this object.
+  WriteInlinedObjectHeader(object_id);
+
+  // Indicate this is an instance object.
+  WriteIntptrValue(SerializedHeaderData::encode(kInstanceObjectId));
+
+  // Write out the tags.
+  WriteIntptrValue(tags);
+
+  // Write out the class information for this object.
+  WriteObjectImpl(cls);
+
+  // Write out all the fields for the object.
+  intptr_t offset = Object::InstanceSize();
+  while (offset < instance_size) {
+    WriteObjectRef(*reinterpret_cast<RawObject**>(
+        reinterpret_cast<uword>(raw->ptr()) + offset));
+    offset += kWordSize;
+  }
+  return;
+}
+
+
+void SnapshotWriter::WriteInstanceRef(RawObject* raw, RawClass* cls) {
+  // First check if object is a closure or has native fields.
+  CheckIfSerializable(cls);
+
+  // Object is being referenced, add it to the forward ref list and mark
+  // it so that future references to this object in the snapshot will use
+  // this object id. Mark it as not having been serialized yet so that we
+  // will serialize the object when we go through the forward list.
+  intptr_t object_id = MarkObject(raw, kIsNotSerialized);
+
+  // Write out the serialization header value for this object.
+  WriteInlinedObjectHeader(object_id);
+
+  // Indicate this is an instance object.
+  WriteIntptrValue(SerializedHeaderData::encode(kInstanceObjectId));
+
+  // Write out the class information for this object.
+  WriteObjectImpl(cls);
 }
 
 

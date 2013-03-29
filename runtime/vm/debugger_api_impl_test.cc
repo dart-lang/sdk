@@ -34,7 +34,7 @@ static void SetBreakpointAtEntry(const char* cname, const char* fname) {
                         NewString(cname),
                         NewString(fname),
                         &bpt);
-  EXPECT_VALID(res);
+  EXPECT_TRUE(res);
 }
 
 
@@ -58,14 +58,14 @@ static char const* BreakpointInfo(Dart_StackTrace trace) {
   static char info_str[128];
   Dart_ActivationFrame frame;
   Dart_Handle res = Dart_GetActivationFrame(trace, 0, &frame);
-  EXPECT_VALID(res);
+  EXPECT_TRUE(res);
   Dart_Handle func_name;
   Dart_Handle url;
   intptr_t line_number = 0;
   intptr_t library_id = 0;
   res = Dart_ActivationFrameInfo(
             frame, &func_name, &url, &line_number, &library_id);
-  EXPECT_VALID(res);
+  EXPECT_TRUE(res);
   OS::SNPrint(info_str, sizeof(info_str), "function %s (%s:%"Pd")",
               ToCString(func_name), ToCString(url), line_number);
   return info_str;
@@ -133,7 +133,7 @@ static void PrintActivationFrame(Dart_ActivationFrame frame) {
   Dart_Handle func_name;
   Dart_Handle res;
   res = Dart_ActivationFrameInfo(frame, &func_name, NULL, NULL, NULL);
-  EXPECT_VALID(res);
+  EXPECT_TRUE(res);
   EXPECT(Dart_IsString(func_name));
   const char* func_name_chars;
   Dart_StringToCString(func_name, &func_name_chars);
@@ -159,11 +159,11 @@ static void PrintActivationFrame(Dart_ActivationFrame frame) {
 static void PrintStackTrace(Dart_StackTrace trace) {
   intptr_t trace_len;
   Dart_Handle res = Dart_StackTraceLength(trace, &trace_len);
-  EXPECT_VALID(res);
+  EXPECT_TRUE(res);
   for (int i = 0; i < trace_len; i++) {
     Dart_ActivationFrame frame;
     res = Dart_GetActivationFrame(trace, i, &frame);
-    EXPECT_VALID(res);
+    EXPECT_TRUE(res);
     PrintActivationFrame(frame);
   }
 }
@@ -202,7 +202,7 @@ static void VerifyStackFrame(Dart_ActivationFrame frame,
   Dart_Handle func_name;
   Dart_Handle res;
   res = Dart_ActivationFrameInfo(frame, &func_name, NULL, NULL, NULL);
-  EXPECT_VALID(res);
+  EXPECT_TRUE(res);
   EXPECT(Dart_IsString(func_name));
   const char* func_name_chars;
   Dart_StringToCString(func_name, &func_name_chars);
@@ -225,11 +225,11 @@ static void VerifyStackTrace(Dart_StackTrace trace,
                              bool skip_null_expects) {
   intptr_t trace_len;
   Dart_Handle res = Dart_StackTraceLength(trace, &trace_len);
-  EXPECT_VALID(res);
+  EXPECT_TRUE(res);
   for (int i = 0; i < trace_len; i++) {
     Dart_ActivationFrame frame;
     res = Dart_GetActivationFrame(trace, i, &frame);
-    EXPECT_VALID(res);
+    EXPECT_TRUE(res);
     if (i < expected_frames) {
       VerifyStackFrame(frame, func_names[i], local_vars[i], skip_null_expects);
     } else {

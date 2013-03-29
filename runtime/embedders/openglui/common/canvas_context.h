@@ -103,18 +103,8 @@ class CanvasContext {
     state_->setGlobalCompositeOperation(op);
   }
 
-  inline void Save() {
-    state_ = state_->Save();
-  }
-
-  inline void Restore() {
-    CanvasState* popped_state = state_;
-    state_ = state_->Restore();
-    if (state_ != popped_state) {
-      // Only delete if the pop was successful.
-      delete popped_state;
-    }
-  }
+  void Save();
+  void Restore();
 
   inline void Rotate(float angle) {
     canvas_->rotate(Radians2Degrees(angle));
@@ -305,6 +295,25 @@ class CanvasContext {
 
   virtual void Flush() {
     canvas_->flush();
+  }
+
+  inline void SetFillGradient(bool is_radial, double x0, double y0, double r0,
+      double x1, double y1, double r1,
+      int stops, float* positions, char** colors) {
+    state_->SetFillGradient(is_radial, x0, y0, r0, x1, y1, r1,
+        stops, positions, colors);
+  }
+
+  inline void SetStrokeGradient(bool is_radial, double x0, double y0, double r0,
+      double x1, double y1, double r1,
+      int stops, float* positions, char** colors) {
+    state_->SetStrokeGradient(is_radial, x0, y0, r0, x1, y1, r1,
+        stops, positions, colors);
+  }
+
+  inline const SkBitmap* GetBitmap() {
+    SkDevice* device = canvas_->getDevice();
+    return &device->accessBitmap(false);
   }
 };
 

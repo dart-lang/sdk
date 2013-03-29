@@ -19,14 +19,21 @@ class CallPattern : public ValueObject {
  public:
   CallPattern(uword pc, const Code& code);
 
+  RawICData* IcData();
+  RawArray* ArgumentsDescriptor();
+
   uword TargetAddress() const;
   void SetTargetAddress(uword target_address) const;
 
  private:
   uword Back(int n) const;
-  int DecodePoolIndex();
+  int DecodeLoadWordFromPool(int end, Register* reg, int* index);
   const uword* end_;
-  const int pool_index_;
+  int target_address_pool_index_;
+  int args_desc_load_end_;
+  int args_desc_pool_index_;
+  int ic_data_load_end_;
+  int ic_data_pool_index_;
   const Array& object_pool_;
 
   DISALLOW_COPY_AND_ASSIGN(CallPattern);

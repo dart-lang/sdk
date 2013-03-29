@@ -145,8 +145,6 @@ abstract class IsolateSink extends StreamSink<dynamic> {
  * exception inside the isolate is unhandled. It can be seen as a big
  * `try/catch` around everything that is executed inside the isolate. The
  * callback should return `true` when it was able to handled the exception.
- *
- * See comments at the top of this library for more details.
  */
 external IsolateSink streamSpawnFunction(
     void topLevelFunction(),

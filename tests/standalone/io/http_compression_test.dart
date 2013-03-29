@@ -8,7 +8,7 @@
 // VMOptions=--short_socket_read --short_socket_write
 
 import 'dart:io';
-import 'dart:scalarlist';
+import 'dart:typeddata';
 
 void testServerCompress() {
   void test(List<int> data) {

@@ -458,15 +458,6 @@ bool Intrinsifier::GrowableArray_add(Assembler* assembler) {
 }
 
 
-// Gets the length of a ByteArray.
-bool Intrinsifier::ByteArrayBase_getLength(Assembler* assembler) {
-  __ movl(EAX, Address(ESP, + 1 * kWordSize));
-  __ movl(EAX, FieldAddress(EAX, ByteArray::length_offset()));
-  __ ret();
-  return true;
-}
-
-
 #define TYPED_ARRAY_ALLOCATION(type_name, cid, max_len, scale_factor)          \
   Label fall_through;                                                          \
   const intptr_t kArrayLengthStackOffset = 1 * kWordSize;                      \
@@ -482,6 +473,13 @@ bool Intrinsifier::ByteArrayBase_getLength(Assembler* assembler) {
   /* EDI: untagged array length. */                                            \
   __ cmpl(EDI, Immediate(max_len));                                            \
   __ j(GREATER, &fall_through);                                                \
+  /* Special case for scaling by 16. */                                        \
+  if (scale_factor == TIMES_16) {                                              \
+    /* double length of array. */                                              \
+    __ addl(EDI, EDI);                                                         \
+    /* only scale by 8. */                                                     \
+    scale_factor = TIMES_8;                                                    \
+  }                                                                            \
   const intptr_t fixed_size = sizeof(Raw##type_name) + kObjectAlignment - 1;   \
   __ leal(EDI, Address(EDI, scale_factor, fixed_size));                        \
   __ andl(EDI, Immediate(-kObjectAlignment));                                  \
@@ -553,39 +551,6 @@ bool Intrinsifier::ByteArrayBase_getLength(Assembler* assembler) {
   __ Bind(&fall_through);                                                      \
 
 
-#define SCALARLIST_ALLOCATOR(clazz, scale)                                     \
-bool Intrinsifier::clazz##_new(Assembler* assembler) {                         \
-  TYPED_ARRAY_ALLOCATION(clazz, k##clazz##Cid, clazz::kMaxElements, scale);    \
-  return false;                                                                \
-}                                                                              \
-bool Intrinsifier::clazz##_factory(Assembler* assembler) {                     \
-  TYPED_ARRAY_ALLOCATION(clazz, k##clazz##Cid, clazz::kMaxElements, scale);    \
-  return false;                                                                \
-}
-
-
-SCALARLIST_ALLOCATOR(Int8Array, TIMES_1)
-SCALARLIST_ALLOCATOR(Uint8Array, TIMES_1)
-SCALARLIST_ALLOCATOR(Uint8ClampedArray, TIMES_1)
-SCALARLIST_ALLOCATOR(Int16Array, TIMES_2)
-SCALARLIST_ALLOCATOR(Uint16Array, TIMES_2)
-SCALARLIST_ALLOCATOR(Int32Array, TIMES_4)
-SCALARLIST_ALLOCATOR(Uint32Array, TIMES_4)
-SCALARLIST_ALLOCATOR(Int64Array, TIMES_8)
-SCALARLIST_ALLOCATOR(Uint64Array, TIMES_8)
-SCALARLIST_ALLOCATOR(Float32Array, TIMES_4)
-SCALARLIST_ALLOCATOR(Float64Array, TIMES_8)
-
-
-bool Intrinsifier::Int64Array_getIndexed(Assembler* assembler) {
-  return false;
-}
-
-
-bool Intrinsifier::Uint64Array_getIndexed(Assembler* assembler) {
-  return false;
-}
-
 
 // Gets the length of a TypedData.
 bool Intrinsifier::TypedData_getLength(Assembler* assembler) {
@@ -602,6 +567,7 @@ static ScaleFactor GetScaleFactor(intptr_t size) {
     case 2: return TIMES_2;
     case 4: return TIMES_4;
     case 8: return TIMES_8;
+    case 16: return TIMES_16;
   }
   UNREACHABLE();
   return static_cast<ScaleFactor>(0);

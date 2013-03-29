@@ -49,7 +49,7 @@ class Configuration {
    * a test suite.
    */
   void onTestStart(TestCase testCase) {
-    assert(testCase != null);	
+    assert(testCase != null);
   }
 
   /**
@@ -57,7 +57,7 @@ class Configuration {
    * progress on a test suite.
    */
   void onTestResult(TestCase testCase) {
-    assert(testCase != null);	
+    assert(testCase != null);
   }
 
   /**
@@ -103,7 +103,7 @@ class Configuration {
   void onSummary(int passed, int failed, int errors, List<TestCase> results,
       String uncaughtError) {
     // Print each test's result.
-    for (final t in _tests) {
+    for (final t in testCases) {
       var resultString = "${t.result}".toUpperCase();
       print('$resultString: ${t.description}');
 
