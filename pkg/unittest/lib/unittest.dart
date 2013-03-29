@@ -155,6 +155,7 @@ library unittest;
 
 import 'dart:async';
 import 'dart:isolate';
+import 'dart:collection';
 import 'matcher.dart';
 export 'matcher.dart';
 
@@ -196,10 +197,10 @@ String _currentGroup = '';
 String groupSep = ' ';
 
 /** Tests executed in this suite. */
-List<TestCase> _tests;
+final List<TestCase> _testCases = new List<TestCase>();
 
 /** Get the list of tests. */
-List<TestCase> get testCases => _tests;
+final List<TestCase> testCases = new UnmodifiableListView(_testCases);
 
 /** Setup function called before each test in a group */
 Function _testSetup;
@@ -207,13 +208,12 @@ Function _testSetup;
 /** Teardown function called after each test in a group */
 Function _testTeardown;
 
-/** Current test being executed. */
-int _currentTest = 0;
-TestCase _currentTestCase;
+int _currentTestCaseIndex = 0;
 
+/** [TestCase] currently being executed. */
 TestCase get currentTestCase =>
-    (_currentTest >= 0 && _currentTest < _tests.length)
-        ? _tests[_currentTest]
+    (_currentTestCaseIndex >= 0 && _currentTestCaseIndex < _testCases.length)
+        ? _testCases[_currentTestCaseIndex]
         : null;
 
 /** Whether the framework is in an initialized state. */
@@ -249,7 +249,8 @@ Map testState = {};
  */
 void test(String spec, TestFunction body) {
   ensureInitialized();
-  _tests.add(new TestCase._internal(_tests.length + 1, _fullSpec(spec), body));
+  _testCases.add(new TestCase._internal(_testCases.length + 1, _fullSpec(spec),
+                                        body));
 }
 
 /**
@@ -271,8 +272,8 @@ void solo_test(String spec, TestFunction body) {
 
   ensureInitialized();
 
-  _soloTest = new TestCase._internal(_tests.length + 1, _fullSpec(spec), body);
-  _tests.add(_soloTest);
+  _soloTest = new TestCase._internal(_testCases.length + 1, _fullSpec(spec), body);
+  _testCases.add(_soloTest);
 }
 
 /** Sentinel value for [_SpreadArgsHelper]. */
@@ -303,19 +304,19 @@ class _SpreadArgsHelper {
             ? minExpected
             : maxExpected,
         this.isDone = isDone,
-        testNum = _currentTest,
+        testNum = _currentTestCaseIndex,
         this.id = _makeCallbackId(id, callback) {
     ensureInitialized();
-    if (!(_currentTest >= 0 &&
-           _currentTest < _tests.length &&
-           _tests[_currentTest] != null)) {
+    if (!(_currentTestCaseIndex >= 0 &&
+           _currentTestCaseIndex < _testCases.length &&
+           _testCases[_currentTestCaseIndex] != null)) {
       print("No valid test, did you forget to run your test inside a call "
           "to test()?");
     }
-    assert(_currentTest >= 0 &&
-           _currentTest < _tests.length &&
-           _tests[_currentTest] != null);
-    testCase = _tests[_currentTest];
+    assert(_currentTestCaseIndex >= 0 &&
+           _currentTestCaseIndex < _testCases.length &&
+           _testCases[_currentTestCaseIndex] != null);
+    testCase = _testCases[_currentTestCaseIndex];
     if (isDone != null || minExpected > 0) {
       testCase._callbackFunctionsOutstanding++;
       complete = false;
@@ -634,7 +635,7 @@ void tearDown(Function teardownTest) {
 /** Advance to the next test case. */
 void _nextTestCase() {
   _defer(() {
-    _currentTest++;
+    _currentTestCaseIndex++;
     _nextBatch();
   });
 }
@@ -644,8 +645,8 @@ void _nextTestCase() {
  *  error was caught outside of this library.
  */
 void _reportTestError(String msg, String trace) {
- if (_currentTest < _tests.length) {
-    final testCase = _tests[_currentTest];
+ if (_currentTestCaseIndex < _testCases.length) {
+    final testCase = _testCases[_currentTestCaseIndex];
     testCase.error(msg, trace);
   } else {
     _uncaughtErrorMessage = "$msg: $trace";
@@ -686,12 +687,12 @@ void filterTests(testFilter) {
   } else if (testFilter is Function) {
     filterFunction = testFilter;
   }
-  _tests.retainWhere(filterFunction);
+  _testCases.retainWhere(filterFunction);
 }
 
 /** Runs all queued tests, one at a time. */
 void runTests() {
-  _currentTest = 0;
+  _currentTestCaseIndex = 0;
   _currentGroup = '';
 
   // If we are soloing a test, remove all the others.
@@ -713,7 +714,7 @@ void runTests() {
  * The value returned by [tryBody] (if any) is returned by [guardAsync].
  */
 guardAsync(Function tryBody) {
-  return _guardAsync(tryBody, null, _currentTest);
+  return _guardAsync(tryBody, null, _currentTestCaseIndex);
 }
 
 _guardAsync(Function tryBody, Function finallyBody, int testNum) {
@@ -731,7 +732,7 @@ _guardAsync(Function tryBody, Function finallyBody, int testNum) {
  * Registers that an exception was caught for the current test.
  */
 void registerException(e, [trace]) {
-  _registerException(_currentTest, e, trace);
+  _registerException(_currentTestCaseIndex, e, trace);
 }
 
 /**
@@ -740,10 +741,10 @@ void registerException(e, [trace]) {
 void _registerException(testNum, e, [trace]) {
   trace = trace == null ? '' : trace.toString();
   String message = (e is TestFailure) ? e.message : 'Caught $e';
-  if (_tests[testNum].result == null) {
-    _tests[testNum].fail(message, trace);
+  if (_testCases[testNum].result == null) {
+    _testCases[testNum].fail(message, trace);
   } else {
-    _tests[testNum].error(message, trace);
+    _testCases[testNum].error(message, trace);
   }
 }
 
@@ -754,19 +755,19 @@ void _registerException(testNum, e, [trace]) {
  */
 void _nextBatch() {
   while (true) {
-    if (_currentTest >= _tests.length) {
+    if (_currentTestCaseIndex >= _testCases.length) {
       _completeTests();
       break;
     }
-    final testCase = _tests[_currentTest];
-    var f = _guardAsync(testCase._run, null, _currentTest);
+    final testCase = _testCases[_currentTestCaseIndex];
+    var f = _guardAsync(testCase._run, null, _currentTestCaseIndex);
     if (f != null) {
       f.whenComplete(() {
         _nextTestCase(); // Schedule the next test.
       });
       break;
     }
-    _currentTest++;
+    _currentTestCaseIndex++;
   }
 }
 
@@ -777,14 +778,14 @@ void _completeTests() {
   int failed = 0;
   int errors = 0;
 
-  for (TestCase t in _tests) {
+  for (TestCase t in _testCases) {
     switch (t.result) {
       case PASS:  passed++; break;
       case FAIL:  failed++; break;
       case ERROR: errors++; break;
     }
   }
-  _config.onSummary(passed, failed, errors, _tests, _uncaughtErrorMessage);
+  _config.onSummary(passed, failed, errors, _testCases, _uncaughtErrorMessage);
   _config.onDone(passed > 0 && failed == 0 && errors == 0 &&
       _uncaughtErrorMessage == null);
   _initialized = false;
@@ -806,7 +807,6 @@ void ensureInitialized() {
   // Hook our async guard into the matcher library.
   wrapAsync = (f, [id]) => expectAsync1(f, id: id);
 
-  _tests = <TestCase>[];
   _uncaughtErrorMessage = null;
 
   if (_config == null) {
@@ -823,9 +823,9 @@ void ensureInitialized() {
 
 /** Select a solo test by ID. */
 void setSoloTest(int id) {
-  for (var i = 0; i < _tests.length; i++) {
-    if (_tests[i].id == id) {
-      _soloTest = _tests[i];
+  for (var i = 0; i < _testCases.length; i++) {
+    if (_testCases[i].id == id) {
+      _soloTest = _testCases[i];
       break;
     }
   }
@@ -834,12 +834,12 @@ void setSoloTest(int id) {
 /** Enable/disable a test by ID. */
 void _setTestEnabledState(int testId, bool state) {
   // Try fast path first.
-  if (_tests.length > testId && _tests[testId].id == testId) {
-    _tests[testId].enabled = state;
+  if (_testCases.length > testId && _testCases[testId].id == testId) {
+    _testCases[testId].enabled = state;
   } else {
-    for (var i = 0; i < _tests.length; i++) {
-      if (_tests[i].id == testId) {
-        _tests[i].enabled = state;
+    for (var i = 0; i < _testCases.length; i++) {
+      if (_testCases[i].id == testId) {
+        _testCases[i].enabled = state;
         break;
       }
     }

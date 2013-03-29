@@ -294,6 +294,11 @@ runTest() {
       });
       test('foo6', () {
       });
+    } else if (testName == 'testCases immutable') {
+      test(testName, () {
+        expect(() => testCases.clear(), throwsUnsupportedError);
+        expect(() => testCases.removeLast(), throwsUnsupportedError);
+      });
     }
   });
 }
@@ -329,7 +334,8 @@ main() {
     'middle exception test',
     'async setup/teardown test',
     'test returning future',
-    'test returning future using Timer'
+    'test returning future using Timer',
+    'testCases immutable'
   ];
 
   expected = [
@@ -376,6 +382,7 @@ main() {
         'fail2:failure:'
         'error2:Callback called more times than expected (1).:'
         'foo6'),
+    buildStatusString(1, 0, 0, 'testCases immutable'),
   ];
 
   actual = [];
