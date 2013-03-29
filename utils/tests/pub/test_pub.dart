@@ -212,10 +212,6 @@ final String packagesPath = "$appPath/packages";
 /// Set to true when the current batch of scheduled events should be aborted.
 bool _abortScheduled = false;
 
-/// The time (in milliseconds) to wait for the entire scheduled test to
-/// complete.
-final _TIMEOUT = 30000;
-
 /// Defines an integration test. The [body] should schedule a series of
 /// operations which will be run asynchronously.
 void integration(String description, void body()) =>
@@ -227,6 +223,11 @@ void solo_integration(String description, void body()) =>
 
 void _integration(String description, void body(), [Function testFn]) {
   testFn(description, () {
+    // The windows bots are very slow, so we increase the default timeout.
+    if (Platform.operatingSystem == "windows") {
+      currentSchedule.timeout = new Duration(seconds: 10);
+    }
+
     // Ensure the SDK version is always available.
     d.dir(sdkPath, [
       d.file('version', '0.1.2.3')

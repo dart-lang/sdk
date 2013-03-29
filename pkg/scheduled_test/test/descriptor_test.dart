@@ -17,6 +17,12 @@ import 'utils.dart';
 String sandbox;
 
 void main() {
+  metaSetUp(() {
+    // The windows bots are very slow, so we increase the default timeout.
+    if (Platform.operatingSystem != "windows") return;
+    currentSchedule.timeout = new Duration(seconds: 10);
+  });
+
   expectTestsPass('file().create() creates a file', () {
     test('test', () {
       scheduleSandbox();

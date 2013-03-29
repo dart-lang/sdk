@@ -5,6 +5,7 @@
 library scheduled_test_test;
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:scheduled_test/scheduled_test.dart';
 import 'package:scheduled_test/src/mock_clock.dart' as mock_clock;
@@ -13,6 +14,12 @@ import 'metatest.dart';
 import 'utils.dart';
 
 void main() {
+  metaSetUp(() {
+    // The windows bots are very slow, so we increase the default timeout.
+    if (Platform.operatingSystem != "windows") return;
+    currentSchedule.timeout = new Duration(seconds: 10);
+  });
+
   expectTestsPass('a scheduled test with a correct synchronous expectation '
       'should pass', () {
     test('test', () {
