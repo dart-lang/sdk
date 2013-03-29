@@ -47,9 +47,10 @@ class PathSource extends Source {
         return false;
       }
 
-      return createPackageSymlink(id.name, id.description["path"], destination,
+      createPackageSymlink(id.name, id.description["path"], destination,
           relative: id.description["relative"]);
-    }).then((_) => true);
+      return true;
+    });
   }
 
   /// Parses a path dependency. This takes in a path string and returns a map.

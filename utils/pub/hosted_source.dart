@@ -118,17 +118,13 @@ class HostedSource extends Source {
     return description;
   }
 
-  Future<List<Package>> getCachedPackages() {
-    return defer(() {
-      var cacheDir = path.join(systemCacheRoot, 
-                               _getSourceDirectory(_defaultUrl)); 
-      if (!dirExists(cacheDir)) return [];
-    
-      return listDir(path.join(cacheDir)).then((entries) {
-        return entries.map((entry) => 
-          new Package.load(null, entry, systemCache.sources));
-      });  
-    });
+  List<Package> getCachedPackages() {
+    var cacheDir = path.join(systemCacheRoot,
+                             _getSourceDirectory(_defaultUrl));
+    if (!dirExists(cacheDir)) return [];
+  
+    return listDir(path.join(cacheDir)).map((entry) =>
+        new Package.load(null, entry, systemCache.sources)).toList();
   }
   
   /// When an error occurs trying to read something about [package] from [url],

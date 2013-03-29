@@ -145,6 +145,8 @@ String sha1(String source) {
   return CryptoUtils.bytesToHex(sha.close());
 }
 
+// TODO(nweiz): Use Future.of instead of this wherever we don't actually need
+// asynchrony.
 /// Invokes the given callback asynchronously. Returns a [Future] that completes
 /// to the result of [callback].
 ///

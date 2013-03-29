@@ -33,18 +33,17 @@ class CacheCommand extends PubCommand {
     }
     
     // TODO(keertip): Add flag to list packages from non default sources
-    return cache.sources.defaultSource.getCachedPackages().then((packages){
-      var packagesObj = <String, Map>{};
-      for (var package in packages){
-        packagesObj[package.name] = {
-          'version': package.version.toString(),
-          'location': package.dir
-        };
-      }
-      // TODO(keertip): Add support for non-JSON format 
-      // and check for --format flag
-      log.message( json.stringify({'packages': packagesObj}));
-    });
+    var packagesObj = <String, Map>{};
+    for (var package in cache.sources.defaultSource.getCachedPackages()) {
+      packagesObj[package.name] = {
+        'version': package.version.toString(),
+        'location': package.dir
+      };
+    }
+
+    // TODO(keertip): Add support for non-JSON format
+    // and check for --format flag
+    log.message(json.stringify({'packages': packagesObj}));
   }  
 }
 

@@ -125,68 +125,52 @@ String createTempDir([dir = '']) {
   return tempDir.path;
 }
 
-/// Asynchronously lists the contents of [dir]. If [recursive] is `true`, lists
-/// subdirectory contents (defaults to `false`). If [includeHiddenFiles] is
-/// `true`, includes files and directories beginning with `.` (defaults to
-/// `false`).
+// TODO(nweiz): rename includeHiddenFiles to includeHidden.
+/// Lists the contents of [dir]. If [recursive] is `true`, lists subdirectory
+/// contents (defaults to `false`). If [includeHiddenFiles] is `true`, includes
+/// files and directories beginning with `.` (defaults to `false`).
 ///
-/// If [dir] is a string, the returned paths are guaranteed to begin with it.
-Future<List<String>> listDir(String dir,
-    {bool recursive: false, bool includeHiddenFiles: false}) {
-  Future<List<String>> doList(String dir, Set<String> listedDirectories) {
+/// The returned paths are guaranteed to begin with [dir].
+List<String> listDir(String dir, {bool recursive: false,
+    bool includeHiddenFiles: false}) {
+  List<String> doList(String dir, Set<String> listedDirectories) {
     var contents = <String>[];
-    var completer = new Completer<List<String>>();
 
     // Avoid recursive symlinks.
     var resolvedPath = new File(dir).fullPathSync();
-    if (listedDirectories.contains(resolvedPath)) {
-      return new Future.immediate([]);
-    }
+    if (listedDirectories.contains(resolvedPath)) return [];
 
     listedDirectories = new Set<String>.from(listedDirectories);
     listedDirectories.add(resolvedPath);
 
     log.io("Listing directory $dir.");
-    var lister = new Directory(dir).list();
 
     var children = [];
-    lister.listen(
-        (entity) {
-          if (entity is File) {
-            var file = entity.path;
-            if (!includeHiddenFiles && path.basename(file).startsWith('.')) {
-              return;
-            }
-            contents.add(file);
-          } else if (entity is Directory) {
-            var file = entity.path;
-            if (!includeHiddenFiles && path.basename(file).startsWith('.')) {
-              return;
-            }
-            contents.add(file);
-            // TODO(nweiz): don't manually recurse once issue 4794 is fixed.
-            // Note that once we remove the manual recursion, we'll need to
-            // explicitly filter out files in hidden directories.
-            if (recursive) {
-              children.add(doList(file, listedDirectories));
-            }
-          }
-        },
-        onDone: () {
-          // TODO(rnystrom): May need to sort here if it turns out
-          // onDir and onFile aren't guaranteed to be called in a
-          // certain order. So far, they seem to.
-          log.fine("Listed directory $dir:\n${contents.join('\n')}");
-          completer.complete(contents);
-        },
-        onError: (error) => completer.completeError(error));
+    for (var entity in new Directory(dir).listSync()) {
+      if (entity is File) {
+        var file = entity.path;
+        if (!includeHiddenFiles && path.basename(file).startsWith('.')) {
+          continue;
+        }
+        contents.add(file);
+      } else if (entity is Directory) {
+        var file = entity.path;
+        if (!includeHiddenFiles && path.basename(file).startsWith('.')) {
+          continue;
+        }
+        contents.add(file);
+        // TODO(nweiz): don't manually recurse once issue 4794 is fixed.
+        // Note that once we remove the manual recursion, we'll need to
+        // explicitly filter out files in hidden directories.
+        if (recursive) {
+          children.addAll(doList(file, listedDirectories));
+        }
+      }
+    }
 
-    return completer.future.then((contents) {
-      return Future.wait(children).then((childContents) {
-        contents.addAll(flatten(childContents));
-        return contents;
-      });
-    });
+    log.fine("Listed directory $dir:\n${contents.join('\n')}");
+    contents.addAll(children);
+    return contents;
   }
 
   return doList(dir, new Set<String>());
@@ -210,7 +194,7 @@ void deleteEntry(String path) {
   } else if (dirExists(path)) {
     log.io("Deleting directory $path.");
     new Directory(path).deleteSync(recursive: true);
-  } else {
+  } else if (fileExists(path)) {
     log.io("Deleting file $path.");
     new File(path).deleteSync();
   }
@@ -236,7 +220,7 @@ void renameDir(String from, String to) {
 /// symlink to the target. Otherwise, uses the [target] path unmodified.
 ///
 /// Note that on Windows, only directories may be symlinked to.
-Future<String> createSymlink(String target, String symlink,
+void createSymlink(String target, String symlink,
     {bool relative: false}) {
   if (relative) {
     // Relative junction points are not supported on Windows. Instead, just
@@ -252,51 +236,32 @@ Future<String> createSymlink(String target, String symlink,
   }
 
   log.fine("Creating $symlink pointing to $target");
-
-  var command = 'ln';
-  var args = ['-s', target, symlink];
-
-  if (Platform.operatingSystem == 'windows') {
-    // Call mklink on Windows to create an NTFS junction point. Only works on
-    // Vista or later. (Junction points are available earlier, but the "mklink"
-    // command is not.) I'm using a junction point (/j) here instead of a soft
-    // link (/d) because the latter requires some privilege shenanigans that
-    // I'm not sure how to specify from the command line.
-    command = 'mklink';
-    args = ['/j', symlink, target];
-  }
-
-  // TODO(rnystrom): Check exit code and output?
-  return runProcess(command, args).then((result) => symlink);
+  new Link(symlink).createSync(target);
 }
 
 /// Creates a new symlink that creates an alias at [symlink] that points to the
-/// `lib` directory of package [target]. Returns a [Future] which completes to
-/// the path to the symlink file. If [target] does not have a `lib` directory,
-/// this shows a warning if appropriate and then does nothing.
+/// `lib` directory of package [target]. If [target] does not have a `lib`
+/// directory, this shows a warning if appropriate and then does nothing.
 ///
 /// If [relative] is true, creates a symlink with a relative path from the
 /// symlink to the target. Otherwise, uses the [target] path unmodified.
-Future<String> createPackageSymlink(String name, String target, String symlink,
+void createPackageSymlink(String name, String target, String symlink,
     {bool isSelfLink: false, bool relative: false}) {
-  return defer(() {
-    // See if the package has a "lib" directory.
-    target = path.join(target, 'lib');
-    log.fine("Creating ${isSelfLink ? "self" : ""}link for package '$name'.");
-    if (dirExists(target)) {
-      return createSymlink(target, symlink, relative: relative);
-    }
+  // See if the package has a "lib" directory.
+  target = path.join(target, 'lib');
+  log.fine("Creating ${isSelfLink ? "self" : ""}link for package '$name'.");
+  if (dirExists(target)) {
+    createSymlink(target, symlink, relative: relative);
+    return;
+  }
 
-    // It's OK for the self link (i.e. the root package) to not have a lib
-    // directory since it may just be a leaf application that only has
-    // code in bin or web.
-    if (!isSelfLink) {
-      log.warning('Warning: Package "$name" does not have a "lib" directory so '
-                  'you will not be able to import any libraries from it.');
-    }
-
-    return symlink;
-  });
+  // It's OK for the self link (i.e. the root package) to not have a lib
+  // directory since it may just be a leaf application that only has
+  // code in bin or web.
+  if (!isSelfLink) {
+    log.warning('Warning: Package "$name" does not have a "lib" directory so '
+                'you will not be able to import any libraries from it.');
+  }
 }
 
 /// Resolves [target] relative to the location of pub.dart.
@@ -651,18 +616,13 @@ Future<bool> _extractTarGzWindows(Stream<List<int>> stream,
             '${result.stdout.join("\n")}\n'
             '${result.stderr.join("\n")}';
       }
-      // Find the tar file we just created since we don't know its name.
-      return listDir(tempDir);
-    }).then((files) {
-      var tarFile;
-      for (var file in files) {
-        if (path.extension(file) == '.tar') {
-          tarFile = file;
-          break;
-        }
-      }
 
-      if (tarFile == null) throw 'The gzip file did not contain a tar file.';
+      // Find the tar file we just created since we don't know its name.
+      var tarFile = listDir(tempDir).firstWhere(
+          (file) => path.extension(file) == '.tar',
+          orElse: () {
+        throw 'The gzip file did not contain a tar file.';
+      });
 
       // Untar the archive into the destination directory.
       return runProcess(command, ['x', tarFile], workingDir: destination);

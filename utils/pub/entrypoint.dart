@@ -137,9 +137,11 @@ class Entrypoint {
         if (id.isRoot) return new Future.immediate(id);
         return install(id);
       }).toList());
-    }).then(_saveLockFile)
-      .then(_installSelfReference)
-      .then(_linkSecondaryPackageDirs);
+    }).then((ids) {
+      _saveLockFile(ids);
+      _installSelfReference();
+      _linkSecondaryPackageDirs();
+    });
   }
 
   /// Traverses the root's package dependency graph and loads each of the
@@ -227,79 +229,59 @@ class Entrypoint {
 
   /// Installs a self-referential symlink in the `packages` directory that will
   /// allow a package to import its own files using `package:`.
-  Future _installSelfReference(_) {
-    return defer(() {
-      var linkPath = path.join(packagesDir, root.name);
-      // Create the symlink if it doesn't exist.
-      if (entryExists(linkPath)) return;
-      ensureDir(packagesDir);
-      return createPackageSymlink(root.name, root.dir, linkPath,
-          isSelfLink: true, relative: true);
-    });
+  void _installSelfReference() {
+    var linkPath = path.join(packagesDir, root.name);
+    // Create the symlink if it doesn't exist.
+    if (entryExists(linkPath)) return;
+    ensureDir(packagesDir);
+    createPackageSymlink(root.name, root.dir, linkPath,
+        isSelfLink: true, relative: true);
   }
 
   /// If `bin/`, `test/`, or `example/` directories exist, symlink `packages/`
   /// into them so that their entrypoints can be run. Do the same for any
   /// subdirectories of `test/` and `example/`.
-  Future _linkSecondaryPackageDirs(_) {
+  void _linkSecondaryPackageDirs() {
     var binDir = path.join(root.dir, 'bin');
     var exampleDir = path.join(root.dir, 'example');
     var testDir = path.join(root.dir, 'test');
     var toolDir = path.join(root.dir, 'tool');
     var webDir = path.join(root.dir, 'web');
-    return defer(() {
-      if (!dirExists(binDir)) return;
-      return _linkSecondaryPackageDir(binDir);
-    }).then((_) => _linkSecondaryPackageDirsRecursively(exampleDir))
-      .then((_) => _linkSecondaryPackageDirsRecursively(testDir))
-      .then((_) => _linkSecondaryPackageDirsRecursively(toolDir))
-      .then((_) => _linkSecondaryPackageDirsRecursively(webDir));
-  }
+
+    if (dirExists(binDir)) _linkSecondaryPackageDir(binDir);
+    for (var dir in ['example', 'test', 'tool', 'web']) {
+      _linkSecondaryPackageDirsRecursively(path.join(root.dir, dir));
+    }
+ }
 
   /// Creates a symlink to the `packages` directory in [dir] and all its
   /// subdirectories.
-  Future _linkSecondaryPackageDirsRecursively(String dir) {
-    return defer(() {
-      if (!dirExists(dir)) return;
-      return _linkSecondaryPackageDir(dir)
-          .then((_) => _listDirWithoutPackages(dir))
-          .then((files) {
-        return Future.wait(files.map((file) {
-          return defer(() {
-            if (!dirExists(file)) return;
-            return _linkSecondaryPackageDir(file);
-          });
-        }).toList());
-      });
-    });
+  void _linkSecondaryPackageDirsRecursively(String dir) {
+    if (!dirExists(dir)) return;
+    _linkSecondaryPackageDir(dir);
+    _listDirWithoutPackages(dir)
+        .where(dirExists)
+        .forEach(_linkSecondaryPackageDir);
   }
 
   // TODO(nweiz): roll this into [listDir] in io.dart once issue 4775 is fixed.
   /// Recursively lists the contents of [dir], excluding hidden `.DS_Store`
   /// files and `package` files.
-  Future<List<String>> _listDirWithoutPackages(dir) {
-    return listDir(dir).then((files) {
-      return Future.wait(files.map((file) {
-        if (path.basename(file) == 'packages') return new Future.immediate([]);
-        return defer(() {
-          if (!dirExists(file)) return [];
-          return _listDirWithoutPackages(file);
-        }).then((subfiles) {
-          var fileAndSubfiles = [file];
-          fileAndSubfiles.addAll(subfiles);
-          return fileAndSubfiles;
-        });
-      }).toList());
-    }).then(flatten);
+  List<String> _listDirWithoutPackages(dir) {
+    return flatten(listDir(dir).map((file) {
+      if (path.basename(file) == 'packages') return [];
+      if (!dirExists(file)) return [];
+      var fileAndSubfiles = [file];
+      fileAndSubfiles.addAll(_listDirWithoutPackages(file));
+      return fileAndSubfiles;
+    }));
   }
 
   /// Creates a symlink to the `packages` directory in [dir]. Will replace one
   /// if already there.
-  Future _linkSecondaryPackageDir(String dir) {
-    return defer(() {
-      var symlink = path.join(dir, 'packages');
-      if (entryExists(symlink)) deleteEntry(symlink);
-      return createSymlink(packagesDir, symlink, relative: true);
-    });
+  void _linkSecondaryPackageDir(String dir) {
+    var symlink = path.join(dir, 'packages');
+    if (entryExists(symlink)) deleteEntry(symlink);
+    createSymlink(packagesDir, symlink, relative: true);
   }
 }

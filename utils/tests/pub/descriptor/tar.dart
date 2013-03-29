@@ -27,8 +27,9 @@ class TarFileDescriptor extends DirectoryDescriptor {
       return Future.wait(contents.map((entry) {
         return entry.create(tempDir);
       })).then((_) {
-        return listDir(tempDir, recursive: true, includeHiddenFiles: true);
-      }).then((createdContents) {
+        var createdContents = listDir(tempDir,
+            recursive: true,
+            includeHiddenFiles: true);
         return createTarGz(createdContents, baseDir: tempDir).toBytes();
       }).then((bytes) {
         var file = path.join(parent, name);

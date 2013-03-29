@@ -146,11 +146,9 @@ class LishCommand extends PubCommand {
                         "--exclude-standard"]);
       }
 
-      return listDir(rootDir, recursive: true).then((entries) {
-        return entries
-            .where(fileExists) // Skip directories and broken symlinks.
-            .map((entry) => path.relative(entry, from: rootDir));
-      });
+      return listDir(rootDir, recursive: true)
+          .where(fileExists) // Skip directories and broken symlinks.
+          .map((entry) => path.relative(entry, from: rootDir));
     }).then((files) => files.where(_shouldPublish).toList());
   }
 

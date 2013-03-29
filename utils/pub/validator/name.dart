@@ -28,10 +28,11 @@ class NameValidator extends Validator {
     : super(entrypoint);
 
   Future validate() {
-    _checkName(entrypoint.root.name, 'Package name "${entrypoint.root.name}"',
-        isPackage: true);
+    return new Future.of(() {
+      _checkName(entrypoint.root.name, 'Package name "${entrypoint.root.name}"',
+          isPackage: true);
 
-    return _libraries.then((libraries) {
+      var libraries = _libraries;
       for (var library in libraries) {
         var libName = path.basenameWithoutExtension(library);
         _checkName(libName, 'The name of "$library", "$libName",',
@@ -50,18 +51,14 @@ class NameValidator extends Validator {
 
   /// Returns a list of all libraries in the current package as paths relative
   /// to the package's root directory.
-  Future<List<String>> get _libraries {
+  List<String> get _libraries {
     var libDir = path.join(entrypoint.root.dir, "lib");
-    return defer(() {
-      if (!dirExists(libDir)) return [];
-      return listDir(libDir, recursive: true);
-    }).then((files) {
-      return files
-          .map((file) => path.relative(file, from: path.dirname(libDir)))
-          .where((file) => !path.split(file).contains("src") &&
-                           path.extension(file) == '.dart')
-          .toList();
-    });
+    if (!dirExists(libDir)) return [];
+    return listDir(libDir, recursive: true)
+        .map((file) => path.relative(file, from: path.dirname(libDir)))
+        .where((file) => !path.split(file).contains("src") &&
+                         path.extension(file) == '.dart')
+        .toList();
   }
 
   void _checkName(String name, String description, {bool isPackage}) {

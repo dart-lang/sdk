@@ -43,20 +43,18 @@ class Package {
   /// same conventions as pub.dartlang.org for choosing the primary one: the
   /// README with the fewest extensions that is lexically ordered first is
   /// chosen.
-  Future<String> get readmePath {
-    return listDir(dir).then((entries) {
-      var readmes = entries.map(path.basename).
-          where((entry) => entry.contains(_README_REGEXP));
-      if (readmes.isEmpty) return;
+  String get readmePath {
+    var readmes = listDir(dir).map(path.basename).
+        where((entry) => entry.contains(_README_REGEXP));
+    if (readmes.isEmpty) return;
 
-      return path.join(dir, readmes.min((readme1, readme2) {
-        var extensions1 = ".".allMatches(readme1).length;
-        var extensions2 = ".".allMatches(readme2).length;
-        var comparison = extensions1.compareTo(extensions2);
-        if (comparison != 0) return comparison;
-        return readme1.compareTo(readme2);
-      }));
-    });
+    return path.join(dir, readmes.min((readme1, readme2) {
+      var extensions1 = ".".allMatches(readme1).length;
+      var extensions2 = ".".allMatches(readme2).length;
+      var comparison = extensions1.compareTo(extensions2);
+      if (comparison != 0) return comparison;
+      return readme1.compareTo(readme2);
+    }));
   }
 
   /// Loads the package whose root directory is [packageDir]. [name] is the
