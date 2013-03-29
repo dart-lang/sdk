@@ -37,7 +37,6 @@ class _PureIsolateTimer implements Timer {
     _sendPort = _port.toSendPort();
     _port.receive((msg, replyTo) {
       assert(msg == _TIMER_PING);
-      assert(replyTo == _HELPER_ISOLATE_PORT);
       callback(this);
       if (!repeating) _cancel();
     });
