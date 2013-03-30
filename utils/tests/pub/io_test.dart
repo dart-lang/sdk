@@ -119,6 +119,20 @@ main() {
         ]));
       }), completes);
     });
+
+    test('treats a broken symlink as a file', () {
+      expect(withTempDir((temp) {
+        writeTextFile(path.join(temp, 'file1.txt'), '');
+        createDir(path.join(temp, 'dir'));
+        createSymlink(path.join(temp, 'dir'), path.join(temp, 'linkdir'));
+        deleteEntry(path.join(temp, 'dir'));
+
+        expect(listDir(temp, recursive: true), unorderedEquals([
+          path.join(temp, 'file1.txt'),
+          path.join(temp, 'linkdir')
+        ]));
+      }), completes);
+    });
   });
 
   testExistencePredicate("entryExists", entryExists,

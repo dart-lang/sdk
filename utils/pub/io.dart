@@ -33,7 +33,7 @@ bool entryExists(String path) =>
 
 /// Returns whether [link] exists on the file system. This will return `true`
 /// for any symlink, regardless of what it points at or whether it's broken.
-bool linkExists(String path) => new Link(path).existsSync();
+bool linkExists(String link) => new Link(link).existsSync();
 
 /// Returns whether [file] exists on the file system. This will return `true`
 /// for a symlink only if that symlink is unbroken and points to a file.
@@ -146,7 +146,15 @@ List<String> listDir(String dir, {bool recursive: false,
     log.io("Listing directory $dir.");
 
     var children = [];
-    for (var entity in new Directory(dir).listSync()) {
+    for (var entity in new Directory(dir).listSync(followLinks: false)) {
+      // TODO(nweiz): remove this when issue 4928 is fixed.
+      if (entity is Link) {
+        var link = entity.path;
+        // We treat broken symlinks as files, in that we don't want to recurse
+        // into them.
+        entity = dirExists(link) ? new Directory(link) : new File(link);
+      }
+
       if (entity is File) {
         var file = entity.path;
         if (!includeHiddenFiles && path.basename(file).startsWith('.')) {
