@@ -132,7 +132,7 @@ String createTempDir([dir = '']) {
 ///
 /// The returned paths are guaranteed to begin with [dir].
 List<String> listDir(String dir, {bool recursive: false,
-    bool includeHiddenFiles: false}) {
+    bool includeHidden: false}) {
   List<String> doList(String dir, Set<String> listedDirectories) {
     var contents = <String>[];
 
@@ -147,31 +147,27 @@ List<String> listDir(String dir, {bool recursive: false,
 
     var children = [];
     for (var entity in new Directory(dir).listSync(followLinks: false)) {
+      var entityPath = entity.path;
+      if (!includeHidden && path.basename(entityPath).startsWith('.')) continue;
+
       // TODO(nweiz): remove this when issue 4928 is fixed.
       if (entity is Link) {
-        var link = entity.path;
         // We treat broken symlinks as files, in that we don't want to recurse
         // into them.
-        entity = dirExists(link) ? new Directory(link) : new File(link);
+        entity = dirExists(entityPath)
+            ? new Directory(entityPath)
+            : new File(entityPath);
       }
 
       if (entity is File) {
-        var file = entity.path;
-        if (!includeHiddenFiles && path.basename(file).startsWith('.')) {
-          continue;
-        }
-        contents.add(file);
+        contents.add(entityPath);
       } else if (entity is Directory) {
-        var file = entity.path;
-        if (!includeHiddenFiles && path.basename(file).startsWith('.')) {
-          continue;
-        }
-        contents.add(file);
+        contents.add(entityPath);
         // TODO(nweiz): don't manually recurse once issue 4794 is fixed.
         // Note that once we remove the manual recursion, we'll need to
         // explicitly filter out files in hidden directories.
         if (recursive) {
-          children.addAll(doList(file, listedDirectories));
+          children.addAll(doList(entityPath, listedDirectories));
         }
       }
     }
