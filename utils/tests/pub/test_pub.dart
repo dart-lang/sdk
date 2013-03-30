@@ -45,10 +45,14 @@ import 'descriptor.dart' as d;
 /// test configuration for the machine running the tests.
 initConfig() {
   // If we aren't running on the bots, use the human-friendly config.
-  if (new Options().arguments.contains('--human')) {
+  if (!runningOnBuildbot) {
     unittestConfiguration = new CommandLineConfiguration();
   }
 }
+
+/// Returns whether we're running on a Dart build bot.
+bool runningOnBuildbot =>
+  Platform.environment.containsKey('BUILDBOT_BUILDERNAME');
 
 /// The current [HttpServer] created using [serve].
 var _server;
@@ -399,7 +403,7 @@ void ensureGit() {
   schedule(() {
     return gitlib.isInstalled.then((installed) {
       if (installed) return;
-      if (Platform.environment.containsKey('BUILDBOT_BUILDERNAME')) return;
+      if (runningOnBuildbot) return;
       currentSchedule.abort();
     });
   }, 'ensuring that Git is installed');
