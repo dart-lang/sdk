@@ -174,17 +174,17 @@ void testExistencePredicate(String name, bool predicate(String path),
   group(name, () {
     test('returns $forFile for a file', () {
       expect(withTempDir((temp) {
-        var path = path.join(temp, "test.txt");
-        writeTextFile(path, "contents");
-        expect(predicate(path), equals(forFile));
+        var file = path.join(temp, "test.txt");
+        writeTextFile(file, "contents");
+        expect(predicate(file), equals(forFile));
       }), completes);
     });
 
     test('returns $forDirectory for a directory', () {
       expect(withTempDir((temp) {
-        var path = path.join(temp, "dir");
-        createDir(path);
-        expect(predicate(path), equals(forDirectory));
+        var file = path.join(temp, "dir");
+        createDir(file);
+        expect(predicate(file), equals(forDirectory));
       }), completes);
     });
 

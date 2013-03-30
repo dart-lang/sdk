@@ -46,7 +46,7 @@ import 'descriptor.dart' as d;
 initConfig() {
   // If we aren't running on the bots, use the human-friendly config.
   if (new Options().arguments.contains('--human')) {
-    configure(new CommandLineConfiguration());
+    unittestConfiguration = new CommandLineConfiguration();
   }
 }
 
