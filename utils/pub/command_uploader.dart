@@ -59,7 +59,7 @@ class UploaderCommand extends PubCommand {
       exit(exit_codes.USAGE);
     }
 
-    return defer(() {
+    return new Future.of(() {
       var package = commandOptions['package'];
       if (package != null) return package;
       return new Entrypoint(path.current, cache).root.name;

@@ -550,7 +550,7 @@ Future timeout(Future input, int milliseconds, String description) {
 /// Returns a future that completes to the value that the future returned from
 /// [fn] completes to.
 Future withTempDir(Future fn(String path)) {
-  return defer(() {
+  return new Future.of(() {
     var tempDir = createTempDir();
     return new Future.of(() => fn(tempDir))
         .whenComplete(() => deleteEntry(tempDir));

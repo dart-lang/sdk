@@ -71,7 +71,7 @@ class Entrypoint {
     if (pendingOrCompleted != null) return pendingOrCompleted;
 
     var packageDir = path.join(packagesDir, id.name);
-    var future = defer(() {
+    var future = new Future.of(() {
       ensureDir(path.dirname(packageDir));
 
       if (entryExists(packageDir)) {
@@ -102,7 +102,7 @@ class Entrypoint {
   /// directory, respecting the [LockFile] if present. Returns a [Future] that
   /// completes when all dependencies are installed.
   Future installDependencies() {
-    return defer(() {
+    return new Future.of(() {
       return resolveVersions(cache.sources, root, loadLockFile());
     }).then(_installDependencies);
   }
@@ -119,7 +119,7 @@ class Entrypoint {
   /// other dependencies as specified by the [LockFile] if possible. Returns a
   /// [Future] that completes when all dependencies are installed.
   Future updateDependencies(List<String> dependencies) {
-    return defer(() {
+    return new Future.of(() {
       var solver = new VersionSolver(cache.sources, root, loadLockFile());
       for (var dependency in dependencies) {
         solver.useLatestVersion(dependency);
@@ -148,7 +148,7 @@ class Entrypoint {
   /// reached packages. This should only be called after the lockfile has been
   /// successfully generated.
   Future<List<Pubspec>> walkDependencies() {
-    return defer(() {
+    return new Future.of(() {
       var lockFile = loadLockFile();
       var group = new FutureGroup<Pubspec>();
       var visited = new Set<String>();
