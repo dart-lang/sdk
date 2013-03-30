@@ -125,10 +125,9 @@ String createTempDir([dir = '']) {
   return tempDir.path;
 }
 
-// TODO(nweiz): rename includeHiddenFiles to includeHidden.
 /// Lists the contents of [dir]. If [recursive] is `true`, lists subdirectory
-/// contents (defaults to `false`). If [includeHiddenFiles] is `true`, includes
-/// files and directories beginning with `.` (defaults to `false`).
+/// contents (defaults to `false`). If [includeHidden] is `true`, includes files
+/// and directories beginning with `.` (defaults to `false`).
 ///
 /// The returned paths are guaranteed to begin with [dir].
 List<String> listDir(String dir, {bool recursive: false,

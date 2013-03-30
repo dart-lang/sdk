@@ -29,7 +29,7 @@ class TarFileDescriptor extends DirectoryDescriptor {
       })).then((_) {
         var createdContents = listDir(tempDir,
             recursive: true,
-            includeHiddenFiles: true);
+            includeHidden: true);
         return createTarGz(createdContents, baseDir: tempDir).toBytes();
       }).then((bytes) {
         var file = path.join(parent, name);

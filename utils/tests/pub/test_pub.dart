@@ -51,7 +51,7 @@ initConfig() {
 }
 
 /// Returns whether we're running on a Dart build bot.
-bool runningOnBuildbot =>
+bool get runningOnBuildbot =>
   Platform.environment.containsKey('BUILDBOT_BUILDERNAME');
 
 /// The current [HttpServer] created using [serve].

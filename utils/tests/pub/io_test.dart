@@ -71,7 +71,7 @@ main() {
         createDir(path.join(temp, '.subdir'));
         writeTextFile(path.join(temp, '.subdir', 'file3.txt'), '');
 
-        expect(listDir(temp, recursive: true, includeHiddenFiles: true),
+        expect(listDir(temp, recursive: true, includeHidden: true),
             unorderedEquals([
           path.join(temp, 'file1.txt'),
           path.join(temp, 'file2.txt'),
