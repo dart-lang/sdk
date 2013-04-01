@@ -576,143 +576,143 @@ class Float32Array extends List<double> {
 //------------------------------------------------------------------
 // 2D canvas support
 
-int SetWidth(int handle, int width)
-    native "CanvasSetWidth";
-int SetHeight(int handle, int height)
-    native "CanvasSetHeight";
+int _SetWidth(int handle, int width)
+    native "C2DSetWidth";
+int _SetHeight(int handle, int height)
+    native "C2DSetHeight";
 
-double SetGlobalAlpha(int handle, double globalAlpha)
-    native "CanvasSetGlobalAlpha";
-void SetFillStyle(int handle, fs)
-    native "CanvasSetFillStyle";
-String SetFont(int handle, String font)
-    native "CanvasSetFont";
-void SetGlobalCompositeOperation(int handle, String op)
-    native "CanvasSetGlobalCompositeOperation";
-SetLineCap(int handle, String lc)
-    native "CanvasSetLineCap";
-SetLineJoin(int handle, String lj)
-    native "CanvasSetLineJoin";
-SetLineWidth(int handle, double w)
-    native "CanvasSetLineWidth";
-SetMiterLimit(int handle, double limit)
-    native "CanvasSetMiterLimit";
-SetShadowBlur(int handle, double blur)
-    native "CanvasSetShadowBlur";
-SetShadowColor(int handle, String color)
-    native "CanvasSetShadowColor";
-SetShadowOffsetX(int handle, double offset)
-    native "CanvasSetShadowOffsetX";
-SetShadowOffsetY(int handle, double offset)
-    native "CanvasSetShadowOffsetY";
-void SetStrokeStyle(int handle, ss)
-    native "CanvasSetStrokeStyle";
-String SetTextAlign(int handle, String align)
-    native "CanvasSetTextAlign";
-String SetTextBaseline(int handle, String baseline)
-    native "CanvasSetTextBaseline";
-GetBackingStorePixelRatio(int handle)
-    native "CanvasGetBackingStorePixelRatio";
-void SetImageSmoothingEnabled(int handle, bool ise)
-    native "CanvasSetImageSmoothingEnabled";    
-void SetLineDash(int handle, List v)
-    native "CanvasSetLineDash";
-SetLineDashOffset(int handle, int v)
-    native "CanvasSetLineDashOffset";
-void Arc(int handle, double x, double y, double radius,
+double _SetGlobalAlpha(int handle, double globalAlpha)
+    native "C2DSetGlobalAlpha";
+void _SetFillStyle(int handle, fs)
+    native "C2DSetFillStyle";
+String _SetFont(int handle, String font)
+    native "C2DSetFont";
+void _SetGlobalCompositeOperation(int handle, String op)
+    native "C2DSetGlobalCompositeOperation";
+_SetLineCap(int handle, String lc)
+    native "C2DSetLineCap";
+_SetLineJoin(int handle, String lj)
+    native "C2DSetLineJoin";
+_SetLineWidth(int handle, double w)
+    native "C2DSetLineWidth";
+_SetMiterLimit(int handle, double limit)
+    native "C2DSetMiterLimit";
+_SetShadowBlur(int handle, double blur)
+    native "C2DSetShadowBlur";
+_SetShadowColor(int handle, String color)
+    native "C2DSetShadowColor";
+_SetShadowOffsetX(int handle, double offset)
+    native "C2DSetShadowOffsetX";
+_SetShadowOffsetY(int handle, double offset)
+    native "C2DSetShadowOffsetY";
+void _SetStrokeStyle(int handle, ss)
+    native "C2DSetStrokeStyle";
+String _SetTextAlign(int handle, String align)
+    native "C2DSetTextAlign";
+String _SetTextBaseline(int handle, String baseline)
+    native "C2DSetTextBaseline";
+_GetBackingStorePixelRatio(int handle)
+    native "C2DGetBackingStorePixelRatio";
+void _SetImageSmoothingEnabled(int handle, bool ise)
+    native "C2DSetImageSmoothingEnabled";    
+void _SetLineDash(int handle, List v)
+    native "C2DSetLineDash";
+_SetLineDashOffset(int handle, int v)
+    native "C2DSetLineDashOffset";
+void _Arc(int handle, double x, double y, double radius,
     double startAngle, double endAngle, [bool anticlockwise = false])
-    native "CanvasArc";
-void ArcTo(int handle, double x1, double y1,
+    native "C2DArc";
+void _ArcTo(int handle, double x1, double y1,
               double x2, double y2, double radius)
-    native "CanvasArcTo"; 
-void ArcTo2(int handle, double x1, double y1,
+    native "C2DArcTo"; 
+void _ArcTo2(int handle, double x1, double y1,
                double x2, double y2, double radiusX,
     double radiusY, double rotation)
-    native "CanvasArcTo2"; 
-void BeginPath(int handle)
-    native "CanvasBeginPath";
-void BezierCurveTo(int handle, double cp1x, double cp1y,
+    native "C2DArcTo2"; 
+void _BeginPath(int handle)
+    native "C2DBeginPath";
+void _BezierCurveTo(int handle, double cp1x, double cp1y,
                       double cp2x, double cp2y, double x, double y)
-    native "CanvasBezierCurveTo";
-void ClearRect(int handle, double x, double y, double w, double h)
-    native "CanvasClearRect";
-void Clip(int handle)
-    native "CanvasClip";
-void ClosePath(int handle)
-    native "CanvasClosePath";
-ImageData CreateImageDataFromDimensions(int handle, num w, num h)
-    native "CanvasCreateImageDataFromDimensions";
-void DrawImage(int handle, String src_url,
+    native "C2DBezierCurveTo";
+void _ClearRect(int handle, double x, double y, double w, double h)
+    native "C2DClearRect";
+void _Clip(int handle)
+    native "C2DClip";
+void _ClosePath(int handle)
+    native "C2DClosePath";
+ImageData _CreateImageDataFromDimensions(int handle, num w, num h)
+    native "C2DCreateImageDataFromDimensions";
+void _DrawImage(int handle, String src_url,
                   int sx, int sy,
                   bool has_src_dimensions, int sw, int sh,
                   int dx, int dy,
                   bool has_dst_dimensions, int dw, int dh)
-    native "CanvasDrawImage";
-void Fill(int handle)
-    native "CanvasFill";
-void FillRect(int handle, double x, double y, double w, double h)
-    native "CanvasFillRect";
-void FillText(int handle, String text, double x, double y, double maxWidth)
-    native "CanvasFillText";
-ImageData GetImageData(num sx, num sy, num sw, num sh)
-    native "CanvasGetImageData";    
-void LineTo(int handle, double x, double y)
-    native "CanvasLineTo";
-double MeasureText(int handle, String text)
-    native "CanvasMeasureText";
-void MoveTo(int handle, double x, double y)
-    native "CanvasMoveTo";
-void PutImageData(int handle, ImageData imagedata, double dx, double dy)
-    native "CanvasPutImageData";    
-void QuadraticCurveTo(int handle, double cpx, double cpy,
+    native "C2DDrawImage";
+void _Fill(int handle)
+    native "C2DFill";
+void _FillRect(int handle, double x, double y, double w, double h)
+    native "C2DFillRect";
+void _FillText(int handle, String text, double x, double y, double maxWidth)
+    native "C2DFillText";
+ImageData _GetImageData(num sx, num sy, num sw, num sh)
+    native "C2DGetImageData";    
+void _LineTo(int handle, double x, double y)
+    native "C2DLineTo";
+double _MeasureText(int handle, String text)
+    native "C2DMeasureText";
+void _MoveTo(int handle, double x, double y)
+    native "C2DMoveTo";
+void _PutImageData(int handle, ImageData imagedata, double dx, double dy)
+    native "C2DPutImageData";    
+void _QuadraticCurveTo(int handle, double cpx, double cpy,
     double x, double y)
-        native "CanvasQuadraticCurveTo";
-void Rect(int handle, double x, double y, double w, double h)
-    native "CanvasRect";
-void Restore(int handle)
-    native "CanvasRestore";
-void Rotate(int handle, double a)
-    native "CanvasRotate";
-void Save(int handle)
-    native "CanvasSave";
-void Scale(int handle, double sx, double sy)
-    native "CanvasScale";
-void SetTransform(int handle, double m11, double m12,
+        native "C2DQuadraticCurveTo";
+void _Rect(int handle, double x, double y, double w, double h)
+    native "C2DRect";
+void _Restore(int handle)
+    native "C2DRestore";
+void _Rotate(int handle, double a)
+    native "C2DRotate";
+void _Save(int handle)
+    native "C2DSave";
+void _Scale(int handle, double sx, double sy)
+    native "C2DScale";
+void _SetTransform(int handle, double m11, double m12,
                      double m21, double m22, double dx, double dy)
-    native "CanvasSetTransform";
-void Stroke(int handle)
-    native "CanvasStroke";
-void StrokeRect(int handle, double x, double y, double w, double h)
-    native "CanvasStrokeRect";    
-void StrokeText(int handle, String text, double x, double y,
+    native "C2DSetTransform";
+void _Stroke(int handle)
+    native "C2DStroke";
+void _StrokeRect(int handle, double x, double y, double w, double h)
+    native "C2DStrokeRect";    
+void _StrokeText(int handle, String text, double x, double y,
     double maxWidth)
-        native "CanvasStrokeText";
-void Transform(int handle, double m11, double m12,
+        native "C2DStrokeText";
+void _Transform(int handle, double m11, double m12,
                   double m21, double m22, double dx, double dy)
-    native "CanvasTransform";
-void Translate(int handle, double x, double y)
-    native "CanvasTranslate";
+    native "C2DTransform";
+void _Translate(int handle, double x, double y)
+    native "C2DTranslate";
 
-void CreateNativeContext(int handle, int width, int height)
-    native "CanvasCreateNativeContext";
+void _CreateNativeContext(int handle, int width, int height)
+    native "C2DCreateNativeContext";
 
-void SetFillGradient(int handle, bool isRadial,
+void _SetFillGradient(int handle, bool isRadial,
         double x0, double y0, double r0,
         double x1, double y1, double r1,
         List<double> positions, List<String> colors)
-    native "CanvasSetFillGradient";
+    native "C2DSetFillGradient";
 
-void SetStrokeGradient(int handle, bool isRadial,
+void _SetStrokeGradient(int handle, bool isRadial,
         double x0, double y0, double r0,
         double x1, double y1, double r1,
         List<double> positions, List<String> colors)
-    native "CanvasSetStrokeGradient";
+    native "C2DSetStrokeGradient";
 
-int GetImageWidth(String url)
-    native "CanvasGetImageWidth";
+int _GetImageWidth(String url)
+    native "C2DGetImageWidth";
 
-int GetImageHeight(String url)
-    native "CanvasGetImageHeight";
+int _GetImageHeight(String url)
+    native "C2DGetImageHeight";
 
 class CanvasGradient {
   num _x0, _y0, _r0 = 0, _x1, _y1, _r1 = 0;
@@ -733,14 +733,14 @@ class CanvasGradient {
       : _isRadial = true;
 
   void setAsFillStyle(_handle) {
-    SetFillGradient(_handle, _isRadial,
+    _SetFillGradient(_handle, _isRadial,
         _x0.toDouble(), _y0.toDouble(), _r0.toDouble(),
         _x1.toDouble(), _y1.toDouble(), _r1.toDouble(),
         _colorStopPositions, _colorStopColors);
   }
 
   void setAsStrokeStyle(_handle) {
-    SetStrokeGradient(_handle, _isRadial,
+    _SetStrokeGradient(_handle, _isRadial,
         _x0.toDouble(), _y0.toDouble(), _r0.toDouble(),
         _x1.toDouble(), _y1.toDouble(), _r1.toDouble(),
         _colorStopPositions, _colorStopColors);
@@ -772,8 +772,8 @@ class ImageElement extends Node {
     }
   }
 
-  get width => _width == null ? _width = GetImageWidth(_src) : _width;
-  get height => _height == null ? _height = GetImageHeight(_src) : _height;
+  get width => _width == null ? _width = _GetImageWidth(_src) : _width;
+  get height => _height == null ? _height = _GetImageHeight(_src) : _height;
   set width(int widthp) => _width = widthp;
   set height(int heightp) => _height = heightp;
 
@@ -782,8 +782,8 @@ class ImageElement extends Node {
       _width = widthp,
       _height = heightp {
     if (_src != null) {
-      if (_width == null) _width = GetImageWidth(_src);
-      if (_height == null) _height = GetImageHeight(_src);
+      if (_width == null) _width = _GetImageWidth(_src);
+      if (_height == null) _height = _GetImageHeight(_src);
     }
   }
 }
@@ -826,12 +826,12 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   CanvasRenderingContext2D(canvas, width, height) : super(canvas) {
     _width = width;
     _height = height;
-    CreateNativeContext(_handle = next_handle++, width, height);
+    _CreateNativeContext(_handle = next_handle++, width, height);
   }
 
   double _alpha = 1.0;
   set globalAlpha(num a) {
-    _alpha = SetGlobalAlpha(_handle, a.toDouble());
+    _alpha = _SetGlobalAlpha(_handle, a.toDouble());
   }
   get globalAlpha => _alpha;
 
@@ -844,46 +844,46 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
     if (fs is CanvasGradient) {
       fs.setAsFillStyle(_handle);
     } else {
-      SetFillStyle(_handle, fs);
+      _SetFillStyle(_handle, fs);
     }
   }
   get fillStyle => _fillStyle;
 
   String _font = "10px sans-serif";
-  set font(String f) { _font = SetFont(_handle, f); }
+  set font(String f) { _font = _SetFont(_handle, f); }
   get font => _font;
 
   String _globalCompositeOperation = "source-over";
   set globalCompositeOperation(String o) =>
-      SetGlobalCompositeOperation(_handle, _globalCompositeOperation = o);
+      _SetGlobalCompositeOperation(_handle, _globalCompositeOperation = o);
   get globalCompositeOperation => _globalCompositeOperation;
 
   String _lineCap = "butt"; // "butt", "round", "square"
   get lineCap => _lineCap;
-  set lineCap(String lc) => SetLineCap(_handle, _lineCap = lc);
+  set lineCap(String lc) => _SetLineCap(_handle, _lineCap = lc);
 
   int _lineDashOffset = 0;
   get lineDashOffset => _lineDashOffset;
   set lineDashOffset(num v) {
     _lineDashOffset = v.toInt();
-    SetLineDashOffset(_handle, _lineDashOffset);
+    _SetLineDashOffset(_handle, _lineDashOffset);
   }
 
   String _lineJoin = "miter"; // "round", "bevel", "miter"
   get lineJoin => _lineJoin;
-  set lineJoin(String lj) =>  SetLineJoin(_handle, _lineJoin = lj);
+  set lineJoin(String lj) =>  _SetLineJoin(_handle, _lineJoin = lj);
 
   num _lineWidth = 1.0;
   get lineWidth => _lineWidth;
   set lineWidth(num w) {
-    SetLineWidth(_handle, w.toDouble());
+    _SetLineWidth(_handle, w.toDouble());
     _lineWidth = w;
   }
 
   num _miterLimit = 10.0; // (default 10)
   get miterLimit => _miterLimit;
   set miterLimit(num limit) {
-    SetMiterLimit(_handle, limit.toDouble());
+    _SetMiterLimit(_handle, limit.toDouble());
     _miterLimit = limit;
   }
 
@@ -891,26 +891,26 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   get shadowBlur =>  _shadowBlur;
   set shadowBlur(num blur) {
     _shadowBlur = blur;
-    SetShadowBlur(_handle, blur.toDouble());
+    _SetShadowBlur(_handle, blur.toDouble());
   }
 
   String _shadowColor;
   get shadowColor => _shadowColor;
   set shadowColor(String color) =>
-      SetShadowColor(_handle, _shadowColor = color);
+      _SetShadowColor(_handle, _shadowColor = color);
   
   num _shadowOffsetX;
   get shadowOffsetX => _shadowOffsetX;
   set shadowOffsetX(num offset) {
     _shadowOffsetX = offset;
-    SetShadowOffsetX(_handle, offset.toDouble());
+    _SetShadowOffsetX(_handle, offset.toDouble());
   }
 
   num _shadowOffsetY;
   get shadowOffsetY => _shadowOffsetY;
   set shadowOffsetY(num offset) {
     _shadowOffsetY = offset;
-    SetShadowOffsetY(_handle, offset.toDouble());
+    _SetShadowOffsetY(_handle, offset.toDouble());
   }
 
   var _strokeStyle = "#000";
@@ -921,24 +921,24 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
     if (ss is CanvasGradient) {
       ss.setAsStrokeStyle(_handle);
     } else {
-      SetStrokeStyle(_handle, ss);
+      _SetStrokeStyle(_handle, ss);
     }
   }
 
   String _textAlign = "start";
   get textAlign => _textAlign;
-  set textAlign(String a) { _textAlign = SetTextAlign(_handle, a); }
+  set textAlign(String a) { _textAlign = _SetTextAlign(_handle, a); }
 
   String _textBaseline = "alphabetic";
   get textBaseline => _textBaseline;
-  set textBaseline(String b) { _textBaseline = SetTextBaseline(_handle, b); }
+  set textBaseline(String b) { _textBaseline = _SetTextBaseline(_handle, b); }
 
-  get webkitBackingStorePixelRatio => GetBackingStorePixelRatio(_handle);
+  get webkitBackingStorePixelRatio => _GetBackingStorePixelRatio(_handle);
 
   bool _webkitImageSmoothingEnabled;
   get webkitImageSmoothingEnabled => _webkitImageSmoothingEnabled;
   set webkitImageSmoothingEnabled(bool v) =>
-     SetImageSmoothingEnabled(_webkitImageSmoothingEnabled = v);
+     _SetImageSmoothingEnabled(_webkitImageSmoothingEnabled = v);
 
   get webkitLineDash => lineDash;
   set webkitLineDash(List v) => lineDash = v;
@@ -952,7 +952,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
     if (radius < 0) {
       // throw IndexSizeError
     } else {
-      Arc(_handle, x.toDouble(), y.toDouble(), radius.toDouble(),
+      _Arc(_handle, x.toDouble(), y.toDouble(), radius.toDouble(),
           a1.toDouble(), a2.toDouble(), anticlockwise);
     }
   }
@@ -962,37 +962,37 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   void arcTo(num x1, num y1, num x2, num y2,
     num radiusX, [num radiusY, num rotation]) {
     if (radiusY == null) {
-      ArcTo(_handle, x1.toDouble(), y1.toDouble(),
+      _ArcTo(_handle, x1.toDouble(), y1.toDouble(),
                         x2.toDouble(), y2.toDouble(), radiusX.toDouble());
     } else {
-      ArcTo2(_handle, x1.toDouble(), y1.toDouble(),
+      _ArcTo2(_handle, x1.toDouble(), y1.toDouble(),
                          x2.toDouble(), y2.toDouble(),
                          radiusX.toDouble(), radiusY.toDouble(),
                          rotation.toDouble());
     }
   }
 
-  void beginPath() => BeginPath(_handle);
+  void beginPath() => _BeginPath(_handle);
 
   void bezierCurveTo(num cp1x, num cp1y, num cp2x, num cp2y,
     num x, num y) =>
-    BezierCurveTo(_handle, cp1x.toDouble(), cp1y.toDouble(),
+    _BezierCurveTo(_handle, cp1x.toDouble(), cp1y.toDouble(),
                               cp2x.toDouble(), cp2y.toDouble(),
                               x.toDouble(), y.toDouble());
 
   void clearRect(num x, num y, num w, num h) =>
-    ClearRect(_handle, x.toDouble(), y.toDouble(),
+    _ClearRect(_handle, x.toDouble(), y.toDouble(),
         w.toDouble(), h.toDouble());
 
-  void clip() => Clip(_handle);
+  void clip() => _Clip(_handle);
 
-  void closePath() => ClosePath(_handle);
+  void closePath() => _ClosePath(_handle);
 
   ImageData createImageData(var imagedata_OR_sw, [num sh = null]) {
     if (sh == null) {
       throw new Exception('Unimplemented createImageData(imagedata)');
     } else {
-      return CreateImageDataFromDimensions(_handle, imagedata_OR_sw, sh);
+      return _CreateImageDataFromDimensions(_handle, imagedata_OR_sw, sh);
     }
   }
 
@@ -1009,7 +1009,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
     return new CanvasGradient.radial(x0, y0, r0, x1, y1, r1);
   }
 
-  void drawImage(element, num x1, num y1,
+  void _drawImage(element, num x1, num y1,
                 [num w1, num h1, num x2, num y2, num w2, num h2]) {
     if (element == null || element.src == null || element.src.length == 0) {
       throw "drawImage called with no valid src";
@@ -1019,40 +1019,56 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
     var w = (element.width == null) ? 0 : element.width;
     var h = (element.height == null) ?  0 : element.height;
     if (!?w1) { // drawImage(element, dx, dy)
-      DrawImage(_handle, element.src, 0, 0, false, w, h,
+      _DrawImage(_handle, element.src, 0, 0, false, w, h,
                    x1.toInt(), y1.toInt(), false, 0, 0);
     } else if (!?x2) {  // drawImage(element, dx, dy, dw, dh)
-      DrawImage(_handle, element.src, 0, 0, false, w, h,
+      _DrawImage(_handle, element.src, 0, 0, false, w, h,
                    x1.toInt(), y1.toInt(), true, w1.toInt(), h1.toInt());
     } else {  // drawImage(image, sx, sy, sw, sh, dx, dy, dw, dh)
-      DrawImage(_handle, element.src, 
+      _DrawImage(_handle, element.src, 
                    x1.toInt(), y1.toInt(), true, w1.toInt(), h1.toInt(),
                    x2.toInt(), y2.toInt(), true, w2.toInt(), h2.toInt());
     }
   }
 
-  void drawImageAtScale(element, Rect dest, {Rect sourceRect}) {
+  void drawImage(source, num destX, num destY) {
+    _drawImage(source, destX, destY);
+  }
+
+  void drawImageScaled(source,
+      num destX, num destY, num destWidth, num destHeight) {
+    _drawImage(source, destX,  destY, destWidth, destHeight);
+  }
+
+  void drawImageScaledFromSource(source,
+      num sourceX, num sourceY, num sourceWidth, num sourceHeight,
+      num destX, num destY, num destWidth, num destHeight) {
+    _drawImage(source, sourceX, sourceY, sourceWidth, sourceHeight,
+        destX, destY, destWidth, destHeight);
+  }
+
+  void drawImageToRect(source, Rect dest, {Rect sourceRect}) {
     if (sourceRect == null) {
-      drawImage(element, dest.left, dest.top, dest.width, dest.height);
+      _drawImage(source, dest.left, dest.top, dest.width, dest.height);
     } else {
-      drawImage(element,
+      _drawImage(source,
          sourceRect.left, sourceRect.top, sourceRect.width, sourceRect.height,
          dest.left, dest.top, dest.width, dest.height);
     }
   }
 
-  void fill() => Fill(_handle);
+  void fill() => _Fill(_handle);
 
   void fillRect(num x, num y, num w, num h) =>
-    FillRect(_handle, x.toDouble(), y.toDouble(),
+    _FillRect(_handle, x.toDouble(), y.toDouble(),
                          w.toDouble(), h.toDouble());
 
   void fillText(String text, num x, num y, [num maxWidth = -1]) =>
-      FillText(_handle, text, x.toDouble(), y.toDouble(),
+    _FillText(_handle, text, x.toDouble(), y.toDouble(),
                                  maxWidth.toDouble());
 
   ImageData getImageData(num sx, num sy, num sw, num sh) =>
-    GetImageData(sx, sy, sw, sh);
+    _GetImageData(sx, sy, sw, sh);
 
   List<double> _lineDash = null;
   List<num> getLineDash() {
@@ -1065,40 +1081,40 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   }
 
   void lineTo(num x, num y) {
-    LineTo(_handle, x.toDouble(), y.toDouble());
+    _LineTo(_handle, x.toDouble(), y.toDouble());
   }
 
   TextMetrics measureText(String text) {
-    double w = MeasureText(_handle, text);
+    double w = _MeasureText(_handle, text);
     return new TextMetrics(w);
   }
 
   void moveTo(num x, num y) =>
-    MoveTo(_handle, x.toDouble(), y.toDouble());
+    _MoveTo(_handle, x.toDouble(), y.toDouble());
 
   void putImageData(ImageData imagedata, num dx, num dy,
                    [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) {
     if (dirtyX != null || dirtyY != null) {
       throw new Exception('Unimplemented putImageData');
     } else {
-      PutImageData(_handle, imagedata, dx, dy);
+      _PutImageData(_handle, imagedata, dx, dy);
     }
   }
 
   void quadraticCurveTo(num cpx, num cpy, num x, num y) =>
-    QuadraticCurveTo(_handle, cpx.toDouble(), cpy.toDouble(),
+    _QuadraticCurveTo(_handle, cpx.toDouble(), cpy.toDouble(),
                         x.toDouble(), y.toDouble());
 
   void rect(num x, num y, num w, num h) =>
-    Rect(_handle, x.toDouble(), y.toDouble(), w.toDouble(), h.toDouble());
+    _Rect(_handle, x.toDouble(), y.toDouble(), w.toDouble(), h.toDouble());
 
-  void restore() => Restore(_handle);
+  void restore() => _Restore(_handle);
 
-  void rotate(num angle) => Rotate(_handle, angle.toDouble());
+  void rotate(num angle) => _Rotate(_handle, angle.toDouble());
 
-  void save() => Save(_handle);
+  void save() => _Save(_handle);
 
-  void scale(num x, num y) => Scale(_handle, x.toDouble(), y.toDouble());
+  void scale(num x, num y) => _Scale(_handle, x.toDouble(), y.toDouble());
 
   void setFillColorHsl(int h, num s, num l, [num a = 1]) {
     throw new Exception('Unimplemented setFillColorHsl');
@@ -1133,7 +1149,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
       }
     }
     if (valid) {
-      SetLineDash(_handle, _lineDash = new_dash);
+      _SetLineDash(_handle, _lineDash = new_dash);
     }
   }
 
@@ -1146,27 +1162,27 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   }
 
   void setTransform(num m11, num m12, num m21, num m22, num dx, num dy) =>
-          SetTransform(_handle, m11.toDouble(), m12.toDouble(),
-                                   m21.toDouble(), m22.toDouble(),
-                                   dx.toDouble(), dy.toDouble());
+    _SetTransform(_handle, m11.toDouble(), m12.toDouble(),
+                           m21.toDouble(), m22.toDouble(),
+                           dx.toDouble(), dy.toDouble());
 
-  void stroke() => Stroke(_handle);
+  void stroke() => _Stroke(_handle);
 
   void strokeRect(num x, num y, num w, num h, [num lineWidth]) =>
-    StrokeRect(_handle, x.toDouble(), y.toDouble(),
+    _StrokeRect(_handle, x.toDouble(), y.toDouble(),
         w.toDouble(), h.toDouble());
 
   void strokeText(String text, num x, num y, [num maxWidth = -1]) =>
-      StrokeText(_handle, text, x.toDouble(), y.toDouble(),
-                                 maxWidth.toDouble());
+    _StrokeText(_handle, text, x.toDouble(), y.toDouble(),
+        maxWidth.toDouble());
 
   void transform(num m11, num m12, num m21, num m22, num dx, num dy) =>
-          Transform(_handle, m11.toDouble(), m12.toDouble(),
-                       m21.toDouble(), m22.toDouble(),
-                       dx.toDouble(), dy.toDouble());
+    _Transform(_handle, m11.toDouble(), m12.toDouble(),
+                        m21.toDouble(), m22.toDouble(),
+                        dx.toDouble(), dy.toDouble());
 
   void translate(num x, num y) =>
-      Translate(_handle, x.toDouble(), y.toDouble());
+    _Translate(_handle, x.toDouble(), y.toDouble());
 
   ImageData webkitGetImageDataHD(num sx, num sy, num sw, num sh) {
     throw new Exception('Unimplemented webkitGetImageDataHD');
@@ -1184,5 +1200,6 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   }
 }
 
+var sfx_extension = 'raw';
 int _loadSample(String s) native "LoadSample";
 int _playSample(String s) native "PlaySample";

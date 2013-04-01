@@ -104,7 +104,7 @@ DART_EXPORT void emulator_main(int argc, char** argv, const char* script) {
       script = argv[i];
     }
   }
-  VMGlue vm_glue(&graphics_handler, ".", "gl.dart", script);
+  VMGlue vm_glue(&graphics_handler, ".", "gl.dart", script, 1);
   InputHandler input_handler(&vm_glue);
   input_handler_ptr = &input_handler;
   SoundHandler sound_handler;

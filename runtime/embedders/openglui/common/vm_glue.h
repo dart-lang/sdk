@@ -16,7 +16,8 @@ class VMGlue {
   explicit VMGlue(ISized* surface,
                   const char* script_path,
                   const char* extension_script = NULL,
-                  const char* main_script = NULL);
+                  const char* main_script = NULL,
+                  int setup_flag = 0);
   ~VMGlue() {
     delete[] main_script_;
     delete[] extension_script_;
@@ -70,6 +71,7 @@ class VMGlue {
   char* main_script_;
   float x_, y_, z_;  // Last values from accelerometer.
   bool accelerometer_changed_;
+  int setup_flag_;
 };
 
 #endif  // EMBEDDERS_OPENGLUI_COMMON_VM_GLUE_H_

@@ -5,7 +5,6 @@
 #include "embedders/openglui/android/android_graphics_handler.h"
 #include "embedders/openglui/android/android_input_handler.h"
 #include "embedders/openglui/android/android_resource.h"
-#include "embedders/openglui/android/android_sensor.h"
 #include "embedders/openglui/android/android_sound_handler.h"
 #include "embedders/openglui/android/eventloop.h"
 #include "embedders/openglui/common/context.h"
