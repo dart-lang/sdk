@@ -20,7 +20,7 @@ mirrors/*: Skip
 async/run_async3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug.com/9002
 async/run_async4_test: Pass, Fail # no global exception handler in isolates. http://dartbug.com/9012
 
-[ $compiler == dart2js && $runtime == chrome && $system == macos]
+[ $compiler == dart2js && $runtime == chrome && ($system == macos || $system == windows)]
 crypto/hmac_sha1_test: Fail # Issue 9471
 
 [ $compiler == dart2js && $checked ]
