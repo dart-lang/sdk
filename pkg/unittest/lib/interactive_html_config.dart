@@ -131,7 +131,7 @@ class ChildInteractiveHtmlConfiguration extends HtmlConfiguration {
    * messages in turn get passed to this method, which adds
    * a timestamp and posts them back to the parent window.
    */
-  void logTestCaseMessage(TestCase testCase, String message) {
+  void onLogMessage(TestCase testCase, String message) {
     int elapsed;
     if (testCase == null) {
       elapsed = -1;
@@ -359,7 +359,7 @@ class ParentInteractiveHtmlConfiguration extends HtmlConfiguration {
   // Actually test logging is handled by the child, then posted
   // back to the parent. So here we know that the [message] argument
   // is in the format used by [_Message].
-  void logTestCaseMessage(TestCase testCase, String message) {
+  void onLogMessage(TestCase testCase, String message) {
     var msg = new _Message.fromString(message);
     if (msg.elapsed < 0) { // No associated test case.
       document.query('#otherlogs').nodes.add(
@@ -380,7 +380,7 @@ class ParentInteractiveHtmlConfiguration extends HtmlConfiguration {
     if (!testCase.enabled) return;
     super.onTestResult(testCase);
     if (testCase.message != '') {
-      logTestCaseMessage(testCase,
+      onLogMessage(testCase,
           _Message.text(_Message.LOG, -1, testCase.message));
     }
     int id = testCase.id;

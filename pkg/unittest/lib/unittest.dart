@@ -185,7 +185,12 @@ void set unittestConfiguration(Configuration value) {
   }
 }
 
-void logMessage(String message) => _config.logMessage(message);
+/**
+ * Can be called by tests to log status. Tests should use this
+ * instead of [print].
+ */
+void logMessage(String message) =>
+    _config.onLogMessage(currentTestCase, message);
 
 /**
  * Description text of the current test group. If multiple groups are nested,
@@ -785,7 +790,7 @@ void _completeTests() {
       case ERROR: errors++; break;
     }
   }
-  _config.onSummary(passed, failed, errors, _testCases, _uncaughtErrorMessage);
+  _config.onSummary(passed, failed, errors, testCases, _uncaughtErrorMessage);
   _config.onDone(passed > 0 && failed == 0 && errors == 0 &&
       _uncaughtErrorMessage == null);
   _initialized = false;

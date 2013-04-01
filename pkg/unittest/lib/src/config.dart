@@ -21,13 +21,13 @@ class Configuration {
    * Particularly useful in cases where we have parent/child configurations
    * such as layout tests.
    */
-  String get name => 'Configuration';
+  final String name = 'Configuration';
 
   /**
    * If true, then tests are started automatically (otherwise [runTests]
    * must be called explicitly after the tests are set up.
    */
-  bool get autoStart => true;
+  final bool autoStart = true;
 
   /**
    * Called as soon as the unittest framework becomes initialized. This is done
@@ -70,25 +70,10 @@ class Configuration {
   }
 
   /**
-   * Can be called by tests to log status. Tests should use this
-   * instead of print. Subclasses should not override this; they
-   * should instead override logMessage which is passed the test case.
-   */
-  void logMessage(String message) {
-    if (currentTestCase == null) {
-      // Before or after tests run. In this case we pass null for the test
-      // case reference and let the config decide what to do with this.
-      logTestCaseMessage(null, message);
-    } else {
-      logTestCaseMessage(currentTestCase, message);
-    }
-  }
-
-  /**
    * Handles the logging of messages by a test case. The default in
    * this base configuration is to call print();
    */
-  void logTestCaseMessage(TestCase testCase, String message) {
+  void onLogMessage(TestCase testCase, String message) {
     print(message);
   }
 
@@ -103,7 +88,7 @@ class Configuration {
   void onSummary(int passed, int failed, int errors, List<TestCase> results,
       String uncaughtError) {
     // Print each test's result.
-    for (final t in testCases) {
+    for (final t in results) {
       var resultString = "${t.result}".toUpperCase();
       print('$resultString: ${t.description}');
 
@@ -119,13 +104,11 @@ class Configuration {
     // Show the summary.
     print('');
 
-    var success = false;
     if (passed == 0 && failed == 0 && errors == 0 && uncaughtError == null) {
       print('No tests found.');
       // This is considered a failure too.
     } else if (failed == 0 && errors == 0 && uncaughtError == null) {
       print('All $passed tests passed.');
-      success = true;
     } else {
       if (uncaughtError != null) {
         print('Top-level uncaught error: $uncaughtError');
