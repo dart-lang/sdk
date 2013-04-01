@@ -55,6 +55,17 @@ foo() {
 }
 """;
 
+const String TEST_FIVE = r"""
+void main() {
+  var hash = 0;
+  for (var i = 0; i == 0; i = i + 1) {
+    hash = hash + 10;
+    hash = hash + 42;
+  }
+  print(t);
+}
+""";
+
 main() {
   compileAndMatchFuzzy(TEST_ONE, 'foo', "var x = x === true \\? 2 : 3;");
   compileAndMatchFuzzy(TEST_ONE, 'foo', "print\\(x\\);");
@@ -69,6 +80,7 @@ main() {
   // only generates one instruction.
   compileAndMatchFuzzy(TEST_THREE, 'foo', 'x = 42');
 
-  var generated = compile(TEST_FOUR, entry: 'foo');
   compileAndDoNotMatchFuzzy(TEST_FOUR, 'foo', '(x) = \1;');
+
+  compileAndDoNotMatch(TEST_FIVE, 'main', new RegExp('hash0'));
 }

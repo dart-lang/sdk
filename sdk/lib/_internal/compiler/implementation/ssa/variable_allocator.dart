@@ -626,7 +626,9 @@ class SsaVariableAllocator extends HBaseVisitor {
     return instructionInterval.diesAt(start);
   }
 
-  void handleInstruction(HInstruction instruction, VariableNamer namer) {
+  void freeUsedNamesAt(HInstruction instruction,
+                       HInstruction at,
+                       VariableNamer namer) {
     // TODO(ager): We cannot perform this check to free names for
     // HCheck instructions because they are special cased to have the
     // same live intervals as the instruction they are checking. This
@@ -635,15 +637,25 @@ class SsaVariableAllocator extends HBaseVisitor {
     // end up checking that otherInput dies not here, but at the
     // location of checkedInput. We should preserve the start id for
     // the check instruction.
-    if (instruction is! HCheck) {
+    if (at is HCheck) return;
+    if (needsName(instruction)) {
+      if (diesAt(instruction, at)) {
+        namer.freeName(instruction);
+      }
+    } else if (generateAtUseSite.contains(instruction)) {
+      // If the instruction is generated at use site, then all its
+      // inputs may also die at [at].
       for (int i = 0, len = instruction.inputs.length; i < len; i++) {
         HInstruction input = instruction.inputs[i];
-        // If [input] has a name, and its use here is the last use, free
-        // its name.
-        if (needsName(input) && diesAt(input, instruction)) {
-          namer.freeName(input);
-        }
+        freeUsedNamesAt(input, at, namer);
       }
+    }
+  }
+
+  void handleInstruction(HInstruction instruction, VariableNamer namer) {
+    for (int i = 0, len = instruction.inputs.length; i < len; i++) {
+      HInstruction input = instruction.inputs[i];
+      freeUsedNamesAt(input, instruction, namer);
     }
 
     if (needsName(instruction)) {
