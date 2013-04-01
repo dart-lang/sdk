@@ -35078,10 +35078,6 @@ get _timerFactoryClosure => (int milliSeconds, void callback(Timer timer), bool 
   return timer;
 };
 
-const _NEW_TIMER = 'NEW_TIMER';
-const _CANCEL_TIMER = 'CANCEL_TIMER';
-const _TIMER_PING = 'TIMER_PING';
-
 class _PureIsolateTimer implements Timer {
   final ReceivePort _port = new ReceivePort();
   SendPort _sendPort; // Effectively final.
@@ -35109,27 +35105,6 @@ class _PureIsolateTimer implements Timer {
   void _cancel() {
     _port.close();
   }
-
-  static final Future<SendPort> _HELPER_ISOLATE_PORT =
-      spawnDomFunction(_helperIsolateMain);
-}
-
-final _TIMER_REGISTRY = new Map<SendPort, Timer>();
-
-_helperIsolateMain() {
-  port.receive((msg, replyTo) {
-    final cmd = msg[0];
-    if (cmd == _NEW_TIMER) {
-      final duration = new Duration(milliseconds: msg[1]);
-      bool periodic = msg[2];
-      final callback = () { replyTo.send(_TIMER_PING); };
-      _TIMER_REGISTRY[replyTo] = periodic ?
-          new Timer.periodic(duration, callback) :
-          new Timer(duration, callback);
-    } else if (cmd == _CANCEL_TIMER) {
-      _TIMER_REGISTRY.remove(replyTo).cancel();
-    }
-  });
 }
 
 get _pureIsolateTimerFactoryClosure =>
@@ -36278,7 +36253,6 @@ class _Utils {
   }
 
   static window() native "Utils_window";
-  static print(String message) native "Utils_print";
   static forwardingPrint(String message) native "Utils_forwardingPrint";
   static void spawnDomFunction(Function topLevelFunction, int replyTo) native "Utils_spawnDomFunction";
   static int _getNewIsolateId() native "Utils_getNewIsolateId";
@@ -36352,12 +36326,41 @@ class _DOMStringMap extends NativeFieldWrapperClass1 implements Map<String, Stri
   bool get isEmpty => Maps.isEmpty(this);
 }
 
-get _printClosure => (s) {
-  try {
-    window.console.log(s);
-  } catch (_) {
-    _Utils.print(s);
-  }
+final Future<SendPort> _HELPER_ISOLATE_PORT =
+    spawnDomFunction(_helperIsolateMain);
+
+final _TIMER_REGISTRY = new Map<SendPort, Timer>();
+
+const _NEW_TIMER = 'NEW_TIMER';
+const _CANCEL_TIMER = 'CANCEL_TIMER';
+const _TIMER_PING = 'TIMER_PING';
+const _PRINT = 'PRINT';
+
+_helperIsolateMain() {
+  port.receive((msg, replyTo) {
+    final cmd = msg[0];
+    if (cmd == _NEW_TIMER) {
+      final duration = new Duration(milliseconds: msg[1]);
+      bool periodic = msg[2];
+      final callback = () { replyTo.send(_TIMER_PING); };
+      _TIMER_REGISTRY[replyTo] = periodic ?
+          new Timer.periodic(duration, callback) :
+          new Timer(duration, callback);
+    } else if (cmd == _CANCEL_TIMER) {
+      _TIMER_REGISTRY.remove(replyTo).cancel();
+    } else if (cmd == _PRINT) {
+      final message = msg[1];
+      // TODO(antonm): we need somehow identify those isolates.
+      print('[From isolate] $message');
+    }
+  });
+}
+
+final _printClosure = window.console.log;
+final _pureIsolatePrintClosure = (s) {
+  _HELPER_ISOLATE_PORT.then((sendPort) {
+    sendPort.send([_PRINT, s]);
+  });
 };
 
 final _forwardingPrintClosure = _Utils.forwardingPrint;

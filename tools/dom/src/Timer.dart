@@ -29,10 +29,6 @@ get _timerFactoryClosure => (int milliSeconds, void callback(Timer timer), bool 
   return timer;
 };
 
-const _NEW_TIMER = 'NEW_TIMER';
-const _CANCEL_TIMER = 'CANCEL_TIMER';
-const _TIMER_PING = 'TIMER_PING';
-
 class _PureIsolateTimer implements Timer {
   final ReceivePort _port = new ReceivePort();
   SendPort _sendPort; // Effectively final.
@@ -59,27 +55,6 @@ class _PureIsolateTimer implements Timer {
   void _cancel() {
     _port.close();
   }
-
-  static final Future<SendPort> _HELPER_ISOLATE_PORT =
-      spawnDomFunction(_helperIsolateMain);
-}
-
-final _TIMER_REGISTRY = new Map<SendPort, Timer>();
-
-_helperIsolateMain() {
-  port.receive((msg, replyTo) {
-    final cmd = msg[0];
-    if (cmd == _NEW_TIMER) {
-      final duration = new Duration(milliseconds: msg[1]);
-      bool periodic = msg[2];
-      final callback = () { replyTo.send(_TIMER_PING); };
-      _TIMER_REGISTRY[replyTo] = periodic ?
-          new Timer.periodic(duration, callback) :
-          new Timer(duration, callback);
-    } else if (cmd == _CANCEL_TIMER) {
-      _TIMER_REGISTRY.remove(replyTo).cancel();
-    }
-  });
 }
 
 get _pureIsolateTimerFactoryClosure =>
