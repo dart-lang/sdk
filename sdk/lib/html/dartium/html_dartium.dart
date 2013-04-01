@@ -10522,13 +10522,12 @@ class _ElementFactoryProvider {
 
     Element element;
     if (temp.children.length == 1) {
-      element = temp.$dom_firstChild;
+      element = temp.children[0];
     } else if (parentTag == 'html' && temp.children.length == 2) {
       // In html5 the root <html> tag will always have a <body> and a <head>,
       // even though the inner html only contains one of them.
       element = temp.children[tag == 'head' ? 0 : 1];
     } else {
-      // Throw an exception because too many children.
       _singleNode(temp.children);
     }
     element.remove();
@@ -35087,6 +35086,7 @@ class _PureIsolateTimer implements Timer {
     _sendPort = _port.toSendPort();
     _port.receive((msg, replyTo) {
       assert(msg == _TIMER_PING);
+      assert(replyTo == _HELPER_ISOLATE_PORT);
       callback(this);
       if (!repeating) _cancel();
     });
