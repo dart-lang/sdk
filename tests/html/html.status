@@ -25,7 +25,9 @@ indexeddb_2_test: Fail, Crash, Pass # Bug in v8, http://dartbug.com/9407
 
 [ $runtime == chrome ]
 touchevent_test/supported: Fail
-audiocontext_test/functional: Skip # Issue 9566
+
+[ $runtime == chrome && $system == windows ]
+audiocontext_test: Skip # Issue 9566
 
 [$runtime == drt || $runtime == dartium || $runtime == chrome]
 webgl_1_test: Pass, Fail # Issue 8219
