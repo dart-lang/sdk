@@ -4,10 +4,6 @@
 
 #include "platform/assert.h"
 #include "vm/globals.h"
-#if defined(TARGET_ARCH_IA32) ||                                               \
-    defined(TARGET_ARCH_X64) ||                                                \
-    defined(TARGET_ARCH_ARM)
-
 #include "vm/ast.h"
 #include "vm/assembler.h"
 #include "vm/class_finalizer.h"
@@ -36,6 +32,11 @@ CODEGEN_TEST_GENERATE(SmiReturnCodegen, test) {
   test->node_sequence()->Add(new ReturnNode(kPos, l));
 }
 CODEGEN_TEST_RUN(SmiReturnCodegen, Smi::New(3))
+
+
+#if defined(TARGET_ARCH_IA32) ||                                               \
+    defined(TARGET_ARCH_X64) ||                                                \
+    defined(TARGET_ARCH_ARM)
 
 
 CODEGEN_TEST2_GENERATE(SimpleStaticCallCodegen, function, test) {
@@ -567,6 +568,6 @@ CODEGEN_TEST_RAW_RUN(AllocateNewObjectCodegen, function) {
 
 #endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 
-}  // namespace dart
-
 #endif  // defined(TARGET_ARCH_IA32) || ..._ARCH_X64) || ..._ARCH_ARM)
+
+}  // namespace dart

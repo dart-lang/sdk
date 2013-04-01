@@ -162,18 +162,10 @@ class Assembler : public ValueObject {
     buffer_.FinalizeInstructions(region);
   }
 
-  // Set up a Dart frame on entry with a frame pointer and PC information to
-  // enable easy access to the RawInstruction object of code corresponding
-  // to this frame.
-  void EnterDartFrame(intptr_t frame_size) {
-    UNIMPLEMENTED();
-  }
-
   // Set up a stub frame so that the stack traversal code can easily identify
   // a stub frame.
-  void EnterStubFrame() {
-    UNIMPLEMENTED();
-  }
+  void EnterStubFrame();
+  void LeaveStubFrame();
 
   // Instruction pattern from entrypoint is used in dart frame prologs
   // to set up the frame and save a PC which can be used to figure out the
@@ -248,6 +240,12 @@ class Assembler : public ValueObject {
   // Unconditional branch.
   void b(Label* l) {
     beq(R0, R0, l);
+  }
+
+  void bal(Label *l) {
+    ASSERT(!in_delay_slot_);
+    EmitRegImmBranch(BGEZAL, R0, l);
+    EmitBranchDelayNop();
   }
 
   // Branch if equal.
@@ -546,6 +544,18 @@ class Assembler : public ValueObject {
     jr(TMP);
   }
 
+  // If the signed value in rs is less than value, rd is 1, and 0 otherwise.
+  void LessThanSImmediate(Register rd, Register rs, int32_t value) {
+    LoadImmediate(TMP, value);
+    slt(rd, rs, TMP);
+  }
+
+  // If the unsigned value in rs is less than value, rd is 1, and 0 otherwise.
+  void LessThanUImmediate(Register rd, Register rs, uint32_t value) {
+    LoadImmediate(TMP, value);
+    sltu(rd, rs, TMP);
+  }
+
   void Drop(intptr_t stack_elements) {
     ASSERT(stack_elements >= 0);
     if (stack_elements > 0) {
@@ -578,6 +588,14 @@ class Assembler : public ValueObject {
     jr(RA);
   }
 
+  void SmiTag(Register reg) {
+    sll(reg, reg, kSmiTagSize);
+  }
+
+  void SmiUntag(Register reg) {
+    sra(reg, reg, kSmiTagSize);
+  }
+
   void LoadWordFromPoolOffset(Register rd, int32_t offset);
   void LoadObject(Register rd, const Object& object);
   void PushObject(const Object& object);
@@ -585,6 +603,12 @@ class Assembler : public ValueObject {
   // Sets register rd to zero if the object is equal to register rn,
   // set to non-zero otherwise.
   void CompareObject(Register rd, Register rn, const Object& object);
+
+  // Set up a Dart frame on entry with a frame pointer and PC information to
+  // enable easy access to the RawInstruction object of code corresponding
+  // to this frame.
+  void EnterDartFrame(intptr_t frame_size);
+  void LeaveDartFrame();
 
  private:
   AssemblerBuffer buffer_;

@@ -379,8 +379,8 @@ class Location : public ValueObject {
 class RegisterSet : public ValueObject {
  public:
   RegisterSet() : cpu_registers_(0), fpu_registers_(0) {
-    ASSERT(kNumberOfCpuRegisters < (kWordSize * kBitsPerByte));
-    ASSERT(kNumberOfFpuRegisters < (kWordSize * kBitsPerByte));
+    ASSERT(kNumberOfCpuRegisters <= (kWordSize * kBitsPerByte));
+    ASSERT(kNumberOfFpuRegisters <= (kWordSize * kBitsPerByte));
   }
 
 
