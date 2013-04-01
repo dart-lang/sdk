@@ -79,19 +79,32 @@ class Trace implements StackTrace {
   String get fullStackTrace => toString();
 
   /// Returns a terser version of [this]. This is accomplished by folding
-  /// together multiple stack frames from the core library. If multiple such
-  /// frames appear in a row, only the last (the one directly called by user
-  /// code) is kept. Core library patches are also renamed to remove their
-  /// `-patch` suffix.
+  /// together multiple stack frames from the core library, as in [foldFrames].
+  /// Core library patches are also renamed to remove their `-patch` suffix.
   Trace get terse {
+    return new Trace(foldFrames((frame) => frame.isCore).frames.map((frame) {
+      if (!frame.isCore) return frame;
+      var library = frame.library.replaceAll(_patchRegExp, '');
+      return new Frame(
+          Uri.parse(library), frame.line, frame.column, frame.member);
+    }));
+  }
+
+  /// Returns a new [Trace] based on [this] where multiple stack frames matching
+  /// [predicate] are folded together. This means that whenever there are
+  /// multiple frames in a row that match [predicate], only the last one is
+  /// kept.
+  ///
+  /// This is useful for limiting the amount of library code that appears in a
+  /// stack trace by only showing user code and code that's called by user code.
+  Trace foldFrames(bool predicate(frame)) {
     var newFrames = <Frame>[];
     for (var frame in frames.reversed) {
-      if (!frame.isCore) {
+      if (!predicate(frame)) {
         newFrames.add(frame);
-      } else if (newFrames.isEmpty || !newFrames.last.isCore) {
-        var library = frame.library.replaceAll(_patchRegExp, '');
+      } else if (newFrames.isEmpty || !predicate(newFrames.last)) {
         newFrames.add(new Frame(
-            Uri.parse(library), frame.line, frame.column, frame.member));
+            frame.uri, frame.line, frame.column, frame.member));
       }
     }
 

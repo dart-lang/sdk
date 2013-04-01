@@ -6,6 +6,8 @@ library scheduled_future_matchers;
 
 import 'dart:async';
 
+import 'package:stack_trace/stack_trace.dart';
+
 import '../scheduled_test.dart';
 
 /// Matches a [Future] that completes successfully with a value. Note that this
@@ -60,8 +62,15 @@ class _ScheduledCompletes extends BaseMatcher {
       }
     }
 
+    var outerTrace = new Trace.current();
     currentSchedule.wrapFuture(item.then((value) {
-      if (_matcher != null) expect(value, _matcher);
+      if (_matcher == null) return;
+
+      try {
+        expect(value, _matcher);
+      } catch (e, stackTrace) {
+        throw new AsyncError(e, outerTrace);
+      }
     }), description);
 
     return true;

@@ -6,6 +6,8 @@ library utils;
 
 import 'dart:async';
 
+import 'package:stack_trace/stack_trace.dart';
+
 /// A pair of values.
 class Pair<E, F> {
   E first;
@@ -181,4 +183,13 @@ bool fullMatch(String string, Pattern pattern) {
   var matches = pattern.allMatches(string);
   if (matches.isEmpty) return false;
   return matches.first.start == 0 && matches.first.end == string.length;
+}
+
+/// Returns a string representation of [trace] that has the core and test frames
+/// folded together.
+String terseTraceString(StackTrace trace) {
+  return new Trace.from(trace).terse.foldFrames((frame) {
+    return frame.package == 'scheduled_test' || frame.package == 'unittest' ||
+        frame.isCore;
+  }).toString().trim();
 }

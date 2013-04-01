@@ -9,6 +9,7 @@ description: >
   read like synchronous, linear code, despite executing asynchronously.
 
 dependencies:
-  unittest: any
   http: ">=0.4.1 <1.0.0"
   pathos: ">=0.3.2 <1.0.0"
+  stack_trace: ">=0.4.3 <1.0.0"
+  unittest: ">=0.4.3 <1.0.0"
