@@ -1397,12 +1397,12 @@ class Dartdoc {
       }
 
       if (!member.isConstructor) {
-        annotateType(host, member.returnType);
+        annotateDynamicType(host, member.returnType);
       }
     } else {
       assert(member is VariableMirror);
       if (asGetter) {
-        annotateType(host, member.type);
+        annotateDynamicType(host, member.type);
       } else {
         write('void ');
       }
@@ -1698,6 +1698,17 @@ class Dartdoc {
     final rel = isAbsolute(href) ? ' ref="external"' : '';
     final cssClass = css == null ? '' : ' class="$css"';
     return '<a href="${relativePath(href)}"$cssClass$rel>$contents</a>';
+  }
+
+  /**
+   * Writes a type annotation, preferring to print dynamic.
+   */
+  annotateDynamicType(ContainerMirror enclosingType,
+                      TypeMirror type) {
+    if (type.isDynamic) {
+      paramName = 'dynamic ';
+    }
+    annotateType(enclosingType, type, paramName);
   }
 
   /**
