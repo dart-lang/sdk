@@ -150,7 +150,11 @@ uword CallPattern::TargetAddress() const {
 
 
 void CallPattern::SetTargetAddress(uword target_address) const {
-  UNIMPLEMENTED();
+  ASSERT(Utils::IsAligned(target_address, 4));
+  // The address is stored in the object array as a RawSmi.
+  const Smi& smi = Smi::Handle(reinterpret_cast<RawSmi*>(target_address));
+  object_pool_.SetAt(target_address_pool_index_, smi);
+  // No need to flush the instruction cache, since the code is not modified.
 }
 
 

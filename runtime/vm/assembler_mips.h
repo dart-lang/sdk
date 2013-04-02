@@ -10,7 +10,9 @@
 #endif
 
 #include "platform/assert.h"
+#include "platform/utils.h"
 #include "vm/constants_mips.h"
+#include "vm/simulator.h"
 
 // References to documentation in this file refer to:
 // "MIPS® Architecture For Programmers Volume I-A:
@@ -19,6 +21,9 @@
 // "MIPS® Architecture For Programmers Volume II-A:
 //   The MIPS32® Instruction Set" in short "VolII-A"
 namespace dart {
+
+// Forward declarations.
+class RuntimeEntry;
 
 class Immediate : public ValueObject {
  public:
@@ -170,7 +175,8 @@ class Assembler : public ValueObject {
   // Instruction pattern from entrypoint is used in dart frame prologs
   // to set up the frame and save a PC which can be used to figure out the
   // RawInstruction object corresponding to the code running in the frame.
-  static const intptr_t kOffsetOfSavedPCfromEntrypoint = -1;  // UNIMPLEMENTED.
+  // See EnterDartFrame. There are 6 instructions before we know the PC.
+  static const intptr_t kOffsetOfSavedPCfromEntrypoint = 6 * Instr::kInstrSize;
 
   // Inlined allocation of an instance of class 'cls', code has no runtime
   // calls. Jump to 'failure' if the instance cannot be allocated here.
@@ -505,31 +511,13 @@ class Assembler : public ValueObject {
   // Macros in alphabetical order.
 
   void Branch(const ExternalLabel* label) {
-    // Doesn't need to be patchable, so use the delay slot.
-    if (Utils::IsInt(16, label->address())) {
-      jr(TMP);
-      delay_slot()->addiu(TMP, ZR, Immediate(label->address()));
-    } else {
-      const uint16_t low = Utils::Low16Bits(label->address());
-      const uint16_t high = Utils::High16Bits(label->address());
-      lui(TMP, Immediate(high));
-      jr(TMP);
-      delay_slot()->ori(TMP, TMP, Immediate(low));
-    }
+    LoadImmediate(TMP, label->address());
+    jr(TMP);
   }
 
   void BranchLink(const ExternalLabel* label) {
-    // Doesn't need to be patchable, so use the delay slot.
-    if (Utils::IsInt(16, label->address())) {
-      jalr(TMP);
-      delay_slot()->addiu(TMP, ZR, Immediate(label->address()));
-    } else {
-      const uint16_t low = Utils::Low16Bits(label->address());
-      const uint16_t high = Utils::High16Bits(label->address());
-      lui(TMP, Immediate(high));
-      jalr(TMP);
-      delay_slot()->ori(TMP, TMP, Immediate(low));
-    }
+    LoadImmediate(TMP, label->address());
+    jalr(TMP);
   }
 
   void BranchLinkPatchable(const ExternalLabel* label) {
@@ -537,11 +525,6 @@ class Assembler : public ValueObject {
         Array::data_offset() + 4*AddExternalLabel(label) - kHeapObjectTag;
     LoadWordFromPoolOffset(TMP, offset);
     jalr(TMP);
-  }
-
-  void BranchPatchable(const ExternalLabel* label) {
-    LoadImmediate(TMP, label->address());
-    jr(TMP);
   }
 
   // If the signed value in rs is less than value, rd is 1, and 0 otherwise.
@@ -596,6 +579,8 @@ class Assembler : public ValueObject {
     sra(reg, reg, kSmiTagSize);
   }
 
+  void ReserveAlignedFrameSpace(intptr_t frame_space);
+
   void LoadWordFromPoolOffset(Register rd, int32_t offset);
   void LoadObject(Register rd, const Object& object);
   void PushObject(const Object& object);
@@ -603,6 +588,8 @@ class Assembler : public ValueObject {
   // Sets register rd to zero if the object is equal to register rn,
   // set to non-zero otherwise.
   void CompareObject(Register rd, Register rn, const Object& object);
+
+  void CallRuntime(const RuntimeEntry& entry);
 
   // Set up a Dart frame on entry with a frame pointer and PC information to
   // enable easy access to the RawInstruction object of code corresponding

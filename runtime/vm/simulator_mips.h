@@ -20,6 +20,9 @@
 
 namespace dart {
 
+class Isolate;
+class SimulatorSetjmpBuffer;
+
 class Simulator {
  public:
   static const uword kSimulatorStackUnderflowSize = 64;
@@ -64,6 +67,14 @@ class Simulator {
                int32_t parameter2,
                int32_t parameter3);
 
+  // Runtime and native call support.
+  enum CallKind {
+    kRuntimeCall,
+    kLeafRuntimeCall,
+    kNativeCall
+  };
+  static uword RedirectExternalReference(uword function, CallKind call_kind);
+
  private:
   // A pc value used to signal the simulator to stop execution.  Generally
   // the ra is set to this value on transition from native C code to
@@ -83,6 +94,7 @@ class Simulator {
   char* stack_;
   int icount_;
   bool delay_slot_;
+  SimulatorSetjmpBuffer* last_setjmp_buffer_;
 
   // Registered breakpoints.
   Instr* break_pc_;
@@ -120,6 +132,8 @@ class Simulator {
   inline void WriteW(uword addr, int value, Instr* instr);
 
   void DoBranch(Instr* instr, bool taken, bool likely);
+  void DoBreak(Instr *instr);
+
   void DecodeSpecial(Instr* instr);
   void DecodeSpecial2(Instr* instr);
   void DecodeRegImm(Instr* instr);
@@ -128,7 +142,16 @@ class Simulator {
   void Execute();
   void ExecuteDelaySlot();
 
+  // Longjmp support for exceptions.
+  SimulatorSetjmpBuffer* last_setjmp_buffer() {
+    return last_setjmp_buffer_;
+  }
+  void set_last_setjmp_buffer(SimulatorSetjmpBuffer* buffer) {
+    last_setjmp_buffer_ = buffer;
+  }
+
   friend class SimulatorDebugger;
+  friend class SimulatorSetjmpBuffer;
 };
 
 }  // namespace dart

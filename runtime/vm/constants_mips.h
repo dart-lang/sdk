@@ -322,6 +322,7 @@ class Instr {
       (SPECIAL << kOpcodeShift) | (BREAK << kFunctionShift);
   static const int32_t kNopInstruction = 0;
   static const int32_t kStopMessageCode = 1;
+  static const int32_t kRedirectCode = 2;
 
   // Get the raw instruction bits.
   inline int32_t InstructionBits() const {

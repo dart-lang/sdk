@@ -6,6 +6,9 @@
 #if defined(TARGET_ARCH_MIPS)
 
 #include "vm/assembler.h"
+#include "vm/runtime_entry.h"
+#include "vm/simulator.h"
+#include "vm/stub_code.h"
 
 namespace dart {
 
@@ -145,6 +148,11 @@ void Assembler::LeaveStubFrame() {
 }
 
 
+void Assembler::CallRuntime(const RuntimeEntry& entry) {
+  entry.Call(this);
+}
+
+
 void Assembler::EnterDartFrame(intptr_t frame_size) {
   const intptr_t offset = CodeSize();
 
@@ -198,6 +206,17 @@ void Assembler::LeaveDartFrame() {
 
   // Adjust SP for PC pushed in EnterDartFrame.
   addiu(SP, SP, Immediate(4 * kWordSize));
+}
+
+
+void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
+  // Reserve space for arguments and align frame before entering
+  // the C++ world.
+  addiu(SP, SP, Immediate(-frame_space));
+  if (OS::ActivationFrameAlignment() > 0) {
+    LoadImmediate(TMP, ~(OS::ActivationFrameAlignment() - 1));
+    and_(SP, SP, TMP);
+  }
 }
 
 

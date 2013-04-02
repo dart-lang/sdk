@@ -16,8 +16,82 @@
 
 namespace dart {
 
+// Input parameters:
+//   RA : return address.
+//   SP : address of last argument in argument array.
+//   SP + 4*S4 - 4 : address of first argument in argument array.
+//   SP + 4*S4 : address of return value.
+//   S5 : address of the runtime function to call.
+//   S4 : number of arguments to the call.
 void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
-  __ Unimplemented("CallToRuntime stub");
+  const intptr_t isolate_offset = NativeArguments::isolate_offset();
+  const intptr_t argc_tag_offset = NativeArguments::argc_tag_offset();
+  const intptr_t argv_offset = NativeArguments::argv_offset();
+  const intptr_t retval_offset = NativeArguments::retval_offset();
+
+  __ addiu(SP, SP, Immediate(-2 * kWordSize));
+  __ sw(RA, Address(SP, 1 * kWordSize));
+  __ sw(FP, Address(SP, 0 * kWordSize));
+  __ mov(FP, SP);
+
+  // Load current Isolate pointer from Context structure into R0.
+  __ lw(A0, FieldAddress(CTX, Context::isolate_offset()));
+
+  // Save exit frame information to enable stack walking as we are about
+  // to transition to Dart VM C++ code.
+  __ sw(SP, Address(A0, Isolate::top_exit_frame_info_offset()));
+
+  // Save current Context pointer into Isolate structure.
+  __ sw(CTX, Address(A0, Isolate::top_context_offset()));
+
+  // Cache Isolate pointer into CTX while executing runtime code.
+  __ mov(CTX, A0);
+
+  // Reserve space for arguments and align frame before entering C++ world.
+  // NativeArguments are passed in registers.
+  ASSERT(sizeof(NativeArguments) == 4 * kWordSize);
+  __ ReserveAlignedFrameSpace(0);
+
+  // Pass NativeArguments structure by value and call runtime.
+  // Registers A0, A1, A2, and A3 are used.
+
+  ASSERT(isolate_offset == 0 * kWordSize);
+  // Set isolate in NativeArgs: A0 already contains CTX.
+
+  // There are no runtime calls to closures, so we do not need to set the tag
+  // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
+  ASSERT(argc_tag_offset == 1 * kWordSize);
+  __ mov(A1, S4);  // Set argc in NativeArguments.
+
+  ASSERT(argv_offset == 2 * kWordSize);
+  __ sll(A2, S4, 2);
+  __ addu(A2, FP, A2);  // Compute argv.
+  __ addiu(A2, A2, Immediate(kWordSize));  // Set argv in NativeArguments.
+
+  ASSERT(retval_offset == 3 * kWordSize);
+  __ addiu(A3, A2, Immediate(kWordSize));  // Retval is next to 1st argument.
+
+  // Call runtime or redirection via simulator.
+  __ jalr(S5);
+
+  // Reset exit frame information in Isolate structure.
+  __ sw(ZR, Address(CTX, Isolate::top_exit_frame_info_offset()));
+
+  // Load Context pointer from Isolate structure into A2.
+  __ lw(A2, Address(CTX, Isolate::top_context_offset()));
+
+  // Reset Context pointer in Isolate structure.
+  __ LoadImmediate(A3, reinterpret_cast<intptr_t>(Object::null()));
+  __ sw(A3, Address(CTX, Isolate::top_context_offset()));
+
+  // Cache Context pointer into CTX while executing Dart code.
+  __ mov(CTX, A2);
+
+  __ mov(SP, FP);
+  __ lw(RA, Address(SP, 1 * kWordSize));
+  __ lw(FP, Address(SP, 0 * kWordSize));
+  __ addiu(SP, SP, Immediate(2 * kWordSize));
+  __ Ret();
 }
 
 
@@ -31,8 +105,30 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 }
 
 
+// Input parameters:
+//   S4: arguments descriptor array.
 void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
-  __ Unimplemented("CallStaticFunction stub");
+  __ EnterStubFrame();
+  // Setup space on stack for return value and preserve arguments descriptor.
+  __ LoadImmediate(V0, reinterpret_cast<intptr_t>(Object::null()));
+
+  __ addiu(SP, SP, Immediate(-2 * kWordSize));
+  __ sw(S4, Address(SP, 1 * kWordSize));
+  __ sw(V0, Address(SP, 0 * kWordSize));
+
+  __ CallRuntime(kPatchStaticCallRuntimeEntry);
+
+  // Get Code object result and restore arguments descriptor array.
+  __ lw(V0, Address(SP, 0 * kWordSize));
+  __ lw(S4, Address(SP, 1 * kWordSize));
+  __ addiu(SP, SP, Immediate(2 * kWordSize));
+
+  // Remove the stub frame as we are about to jump to the dart function.
+  __ LeaveStubFrame();
+
+  __ lw(V0, FieldAddress(V0, Code::instructions_offset()));
+  __ addiu(V0, V0, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ jr(V0);
 }
 
 
@@ -153,7 +249,6 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ bltz(T0, &push_arguments);
 
   __ Bind(&done_push_arguments);
-
 
   // Call the Dart code entrypoint.
   __ jalr(A0);  // S4 is the arguments descriptor array.

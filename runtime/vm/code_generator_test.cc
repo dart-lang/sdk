@@ -34,11 +34,6 @@ CODEGEN_TEST_GENERATE(SmiReturnCodegen, test) {
 CODEGEN_TEST_RUN(SmiReturnCodegen, Smi::New(3))
 
 
-#if defined(TARGET_ARCH_IA32) ||                                               \
-    defined(TARGET_ARCH_X64) ||                                                \
-    defined(TARGET_ARCH_ARM)
-
-
 CODEGEN_TEST2_GENERATE(SimpleStaticCallCodegen, function, test) {
   // Wrap the SmiReturnCodegen test above as a static function and call it.
   ArgumentListNode* no_arguments = new ArgumentListNode(kPos);
@@ -567,7 +562,5 @@ CODEGEN_TEST_RAW_RUN(AllocateNewObjectCodegen, function) {
 }
 
 #endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
-
-#endif  // defined(TARGET_ARCH_IA32) || ..._ARCH_X64) || ..._ARCH_ARM)
 
 }  // namespace dart

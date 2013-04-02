@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include <math.h>  // for isnan.
+#include <setjmp.h>
+#include <stdlib.h>
+
 #include "vm/globals.h"
 #if defined(TARGET_ARCH_MIPS)
 
@@ -13,9 +17,12 @@
 #include "vm/assembler.h"
 #include "vm/constants_mips.h"
 #include "vm/disassembler.h"
+#include "vm/native_arguments.h"
+#include "vm/thread.h"
 
 namespace dart {
 
+DEFINE_FLAG(bool, trace_sim, false, "Trace simulator execution.");
 DEFINE_FLAG(int, stop_sim_at, 0, "Address to stop simulator at.");
 
 
@@ -24,6 +31,46 @@ DEFINE_FLAG(int, stop_sim_at, 0, "Address to stop simulator at.");
 // OS in the same way as SNPrint is that the Windows C Run-Time
 // Library does not provide vsscanf.
 #define SScanF sscanf  // NOLINT
+
+
+// SimulatorSetjmpBuffer are linked together, and the last created one
+// is referenced by the Simulator. When an exception is thrown, the exception
+// runtime looks at where to jump and finds the corresponding
+// SimulatorSetjmpBuffer based on the stack pointer of the exception handler.
+// The runtime then does a Longjmp on that buffer to return to the simulator.
+class SimulatorSetjmpBuffer {
+ public:
+  int Setjmp() { return setjmp(buffer_); }
+  void Longjmp() {
+    // "This" is now the last setjmp buffer.
+    simulator_->set_last_setjmp_buffer(this);
+    longjmp(buffer_, 1);
+  }
+
+  explicit SimulatorSetjmpBuffer(Simulator* sim) {
+    simulator_ = sim;
+    link_ = sim->last_setjmp_buffer();
+    sim->set_last_setjmp_buffer(this);
+    sp_ = sim->get_register(SP);
+  }
+
+  ~SimulatorSetjmpBuffer() {
+    ASSERT(simulator_->last_setjmp_buffer() == this);
+    simulator_->set_last_setjmp_buffer(link_);
+  }
+
+  SimulatorSetjmpBuffer* link() { return link_; }
+
+  int32_t sp() { return sp_; }
+
+ private:
+  int32_t sp_;
+  Simulator* simulator_;
+  SimulatorSetjmpBuffer* link_;
+  jmp_buf buffer_;
+
+  friend class Simulator;
+};
 
 
 // The SimulatorDebugger class is used by the simulator while debugging
@@ -510,6 +557,68 @@ Simulator::~Simulator() {
 }
 
 
+// When the generated code calls an external reference we need to catch that in
+// the simulator.  The external reference will be a function compiled for the
+// host architecture.  We need to call that function instead of trying to
+// execute it with the simulator.  We do that by redirecting the external
+// reference to a break instruction with code 2 that is handled by
+// the simulator.  We write the original destination of the jump just at a known
+// offset from the break instruction so the simulator knows what to call.
+class Redirection {
+ public:
+  uword address_of_break_instruction() {
+    return reinterpret_cast<uword>(&break_instruction_);
+  }
+
+  uword external_function() const { return external_function_; }
+
+  Simulator::CallKind call_kind() const { return call_kind_; }
+
+  static Redirection* Get(uword external_function,
+                          Simulator::CallKind call_kind) {
+    Redirection* current;
+    for (current = list_; current != NULL; current = current->next_) {
+      if (current->external_function_ == external_function) return current;
+    }
+    return new Redirection(external_function, call_kind);
+  }
+
+  static Redirection* FromBreakInstruction(Instr* break_instruction) {
+    char* addr_of_break = reinterpret_cast<char*>(break_instruction);
+    char* addr_of_redirection =
+        addr_of_break - OFFSET_OF(Redirection, break_instruction_);
+    return reinterpret_cast<Redirection*>(addr_of_redirection);
+  }
+
+ private:
+  static const int32_t kRedirectInstruction =
+    Instr::kBreakPointInstruction | (Instr::kRedirectCode << kBreakCodeShift);
+
+  Redirection(uword external_function, Simulator::CallKind call_kind)
+      : external_function_(external_function),
+        call_kind_(call_kind),
+        break_instruction_(kRedirectInstruction),
+        next_(list_) {
+    list_ = this;
+  }
+
+  uword external_function_;
+  Simulator::CallKind call_kind_;
+  uint32_t break_instruction_;
+  Redirection* next_;
+  static Redirection* list_;
+};
+
+
+Redirection* Redirection::list_ = NULL;
+
+
+uword Simulator::RedirectExternalReference(uword function, CallKind call_kind) {
+  Redirection* redirection = Redirection::Get(function, call_kind);
+  return redirection->address_of_break_instruction();
+}
+
+
 // Get the active Simulator for the current isolate.
 Simulator* Simulator::Current() {
   Simulator* simulator = Isolate::Current()->simulator();
@@ -691,6 +800,102 @@ bool Simulator::OverflowFrom(int32_t alu_out,
 }
 
 
+// Calls into the Dart runtime are based on this interface.
+typedef void (*SimulatorRuntimeCall)(NativeArguments arguments);
+
+// Calls to leaf Dart runtime functions are based on this interface.
+typedef int32_t (*SimulatorLeafRuntimeCall)(
+    int32_t r0, int32_t r1, int32_t r2, int32_t r3);
+
+// Calls to native Dart functions are based on this interface.
+typedef void (*SimulatorNativeCall)(NativeArguments* arguments);
+
+
+void Simulator::DoBreak(Instr *instr) {
+  ASSERT(instr->OpcodeField() == SPECIAL);
+  ASSERT(instr->FunctionField() == BREAK);
+  if (instr->BreakCodeField() == Instr::kStopMessageCode) {
+    SimulatorDebugger dbg(this);
+    const char* message = *reinterpret_cast<const char**>(
+        reinterpret_cast<intptr_t>(instr) - Instr::kInstrSize);
+    set_pc(get_pc() + Instr::kInstrSize);
+    dbg.Stop(instr, message);
+  } else if (instr->BreakCodeField() == Instr::kRedirectCode) {
+    SimulatorSetjmpBuffer buffer(this);
+
+    if (!setjmp(buffer.buffer_)) {
+      int32_t saved_ra = get_register(RA);
+      Redirection* redirection = Redirection::FromBreakInstruction(instr);
+      uword external = redirection->external_function();
+      if (FLAG_trace_sim) {
+        OS::Print("Call to host function at 0x%"Pd"\n", external);
+      }
+      if (redirection->call_kind() == kRuntimeCall) {
+        NativeArguments arguments;
+        ASSERT(sizeof(NativeArguments) == 4*kWordSize);
+        arguments.isolate_ = reinterpret_cast<Isolate*>(get_register(A0));
+        arguments.argc_tag_ = get_register(A1);
+        arguments.argv_ = reinterpret_cast<RawObject*(*)[]>(get_register(A2));
+        arguments.retval_ = reinterpret_cast<RawObject**>(get_register(A3));
+        SimulatorRuntimeCall target =
+            reinterpret_cast<SimulatorRuntimeCall>(external);
+        target(arguments);
+        set_register(V0, icount_);  // Zap result register from void function.
+      } else if (redirection->call_kind() == kLeafRuntimeCall) {
+        int32_t a0 = get_register(A0);
+        int32_t a1 = get_register(A1);
+        int32_t a2 = get_register(A2);
+        int32_t a3 = get_register(A3);
+        SimulatorLeafRuntimeCall target =
+            reinterpret_cast<SimulatorLeafRuntimeCall>(external);
+        a0 = target(a0, a1, a2, a3);
+        set_register(V0, a0);  // Set returned result from function.
+      } else {
+        ASSERT(redirection->call_kind() == kNativeCall);
+        NativeArguments* arguments;
+        arguments = reinterpret_cast<NativeArguments*>(get_register(A0));
+        SimulatorNativeCall target =
+            reinterpret_cast<SimulatorNativeCall>(external);
+        target(arguments);
+        set_register(V0, icount_);  // Zap result register from void function.
+      }
+
+      // Zap caller-saved registers, since the actual runtime call could have
+      // used them.
+      set_register(T0, icount_);
+      set_register(T1, icount_);
+      set_register(T2, icount_);
+      set_register(T3, icount_);
+      set_register(T4, icount_);
+      set_register(T5, icount_);
+      set_register(T6, icount_);
+      set_register(T7, icount_);
+      set_register(T8, icount_);
+      set_register(T9, icount_);
+
+      set_register(A0, icount_);
+      set_register(A1, icount_);
+      set_register(A2, icount_);
+      set_register(A3, icount_);
+      set_register(TMP, icount_);
+      set_register(RA, icount_);
+
+      // Zap floating point registers.
+      double zap_dvalue = static_cast<double>(icount_);
+      for (int i = F0; i <= F31; i++) {
+        set_fregister(static_cast<FRegister>(i), zap_dvalue);
+      }
+
+      // Return.
+      set_pc(saved_ra);
+    }
+  } else {
+    SimulatorDebugger dbg(this);
+    dbg.Stop(instr, "breakpoint");
+  }
+}
+
+
 void Simulator::DecodeSpecial(Instr* instr) {
   ASSERT(instr->OpcodeField() == SPECIAL);
   switch (instr->FunctionField()) {
@@ -711,16 +916,7 @@ void Simulator::DecodeSpecial(Instr* instr) {
       break;
     }
     case BREAK: {
-      if (instr->BreakCodeField() == Instr::kStopMessageCode) {
-        SimulatorDebugger dbg(this);
-        const char* message = *reinterpret_cast<const char**>(
-            reinterpret_cast<intptr_t>(instr) - Instr::kInstrSize);
-        set_pc(get_pc() + Instr::kInstrSize);
-        dbg.Stop(instr, message);
-      } else {
-        SimulatorDebugger dbg(this);
-        dbg.Stop(instr, "breakpoint");
-      }
+      DoBreak(instr);
       break;
     }
     case DIV: {
