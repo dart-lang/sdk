@@ -1508,11 +1508,8 @@ class StandardTestSuite extends TestSuite {
 
       // Using stderr.writeString to avoid breaking dartc/junit_tests
       // which parses the output of the --list option.
-
-      // Removed the print below. Tracking of this should be done in the bug
-      // and not in the developer's terminals.
-      // stderr.writeln(
-      //    "Warning: deprecated @dynamic-type-error tag used in $filePath");
+      stderr.writeln(
+          "Warning: deprecated @dynamic-type-error tag used in $filePath");
     }
 
     return {
