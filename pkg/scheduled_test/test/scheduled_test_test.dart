@@ -15,8 +15,10 @@ import 'utils.dart';
 
 void main() {
   metaSetUp(() {
-    // The windows bots are very slow, so we increase the default timeout.
-    if (Platform.operatingSystem != "windows") return;
+    // TODO(nweiz): We used to only increase the timeout to 10s for the Windows
+    // bots, but the Linux and Mac bots have started taking upwards of 5s when
+    // running pumpEventQueue, so we're increasing the timeout across the board
+    // (see issue 9248).
     currentSchedule.timeout = new Duration(seconds: 10);
   });
 
