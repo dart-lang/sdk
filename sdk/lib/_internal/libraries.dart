@@ -30,7 +30,9 @@ const Map<String, LibraryInfo> LIBRARIES = const {
       "chrome/dart2js/chrome_dart2js.dart",
       category: "Client"),
 
-  "collection": const LibraryInfo("collection/collection.dart"),
+  "collection": const LibraryInfo(
+      "collection/collection.dart",
+      dart2jsPatchPath: "_internal/compiler/implementation/lib/collection_patch.dart"),
 
   "core": const LibraryInfo(
       "core/core.dart",

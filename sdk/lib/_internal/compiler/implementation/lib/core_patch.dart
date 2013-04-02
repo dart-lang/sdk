@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Patch file for dart:core classes.
-
 import 'dart:_interceptors';
 import 'dart:_js_helper' show checkNull,
                               getRuntimeTypeString,

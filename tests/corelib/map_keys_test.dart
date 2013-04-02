@@ -36,7 +36,7 @@ main() {
   Expect.isFalse(map5.keys is List);
   Expect.equals(2, map5.keys.length);
   Expect.isTrue(map5.keys.first == "foo" || map5.keys.first == "bar");
-  Expect.isTrue(map5.keys.last == "foo" || map5.keys.first == "bar");
+  Expect.isTrue(map5.keys.last == "foo" || map5.keys.last == "bar");
   Expect.notEquals(map5.keys.first, map5.keys.last);
 
   Expect.isTrue(map6.keys is Iterable);

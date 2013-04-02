@@ -40,6 +40,7 @@ class Bootstrap : public AllStatic {
   static const char corelib_source_[];
   static const char corelib_patch_[];
   static const char collection_source_[];
+  static const char collection_patch_[];
   static const char collection_dev_source_[];
   static const char crypto_source_[];
   static const char isolate_source_[];

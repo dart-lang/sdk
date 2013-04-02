@@ -5,6 +5,7 @@
 library unittestTests;
 import 'package:unittest/unittest.dart';
 import 'dart:async';
+import 'dart:collection';
 part 'test_utils.dart';
 
 doesNotThrow() {}
@@ -542,16 +543,16 @@ void main() {
     });
 
     test('equals with different lengths', () {
-      var a = new Map();
+      var a = new LinkedHashMap();
       a['foo'] = 'bar';
-      var b = new Map();
+      var b = new LinkedHashMap();
       b['foo'] = 'bar';
       b['bar'] = 'foo';
-      var c = new Map();
+      var c = new LinkedHashMap();
       c['bar'] = 'foo';
       c['barrista'] = 'caffeine';
       shouldFail(a, equals(b),
-          "Expected: <{bar: foo, foo: bar}> "
+          "Expected: <{foo: bar, bar: foo}> "
           "but: different map lengths; missing map key 'bar'.");
       shouldFail(b, equals(a),
           "Expected: <{foo: bar}> "
@@ -560,7 +561,7 @@ void main() {
           "Expected: <{bar: foo, barrista: caffeine}> "
           "but: missing map key 'barrista'.");
       shouldFail(c, equals(b),
-          "Expected: <{bar: foo, foo: bar}> "
+          "Expected: <{foo: bar, bar: foo}> "
           "but: missing map key 'foo'.");
       shouldFail(a, equals(c),
           "Expected: <{bar: foo, barrista: caffeine}> "

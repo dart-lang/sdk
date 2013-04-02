@@ -21,116 +21,32 @@ class _HashMapTable<K, V> extends _HashTable<K> {
 }
 
 class HashMap<K, V> implements Map<K, V> {
-  final _HashMapTable<K, V> _hashTable;
-
-  HashMap() : _hashTable = new _HashMapTable<K, V>() {
-    _hashTable._container = this;
-  }
+  external HashMap();
 
   factory HashMap.from(Map<K, V> other) {
     return new HashMap<K, V>()..addAll(other);
   }
 
-  bool containsKey(K key) {
-    return _hashTable._get(key) >= 0;
-  }
+  external int get length;
+  external bool get isEmpty;
 
-  bool containsValue(V value) {
-    List table = _hashTable._table;
-    int entrySize = _hashTable._entrySize;
-    for (int offset = 0; offset < table.length; offset += entrySize) {
-      if (!_hashTable._isFree(table[offset]) &&
-          _hashTable._value(offset) == value) {
-        return true;
-      }
-    }
-    return false;
-  }
+  external Iterable<K> get keys;
+  external Iterable<V> get values;
 
-  void addAll(Map<K, V> other) {
-    other.forEach((K key, V value) {
-      int offset = _hashTable._put(key);
-      _hashTable._setValue(offset, value);
-      _hashTable._checkCapacity();
-    });
-  }
+  external bool containsKey(K key);
+  external bool containsValue(V value);
 
-  V operator [](K key) {
-    int offset = _hashTable._get(key);
-    if (offset >= 0) return _hashTable._value(offset);
-    return null;
-  }
+  external void addAll(Map<K, V> other);
 
-  void operator []=(K key, V value) {
-    int offset = _hashTable._put(key);
-    _hashTable._setValue(offset, value);
-    _hashTable._checkCapacity();
-  }
+  external V operator [](K key);
+  external void operator []=(K key, V value);
 
-  V putIfAbsent(K key, V ifAbsent()) {
-    int offset = _hashTable._probeForAdd(_hashTable._hashCodeOf(key), key);
-    Object entry = _hashTable._table[offset];
-    if (!_hashTable._isFree(entry)) {
-      return _hashTable._value(offset);
-    }
-    int modificationCount = _hashTable._modificationCount;
-    V value = ifAbsent();
-    if (modificationCount == _hashTable._modificationCount) {
-      _hashTable._setKey(offset, key);
-      _hashTable._setValue(offset, value);
-      if (entry == null) {
-        _hashTable._entryCount++;
-        _hashTable._checkCapacity();
-      } else {
-        assert(identical(entry, _TOMBSTONE));
-        _hashTable._deletedCount--;
-      }
-      _hashTable._recordModification();
-    } else {
-      // The table might have changed, so we can't trust [offset] any more.
-      // Do another lookup before setting the value.
-      offset = _hashTable._put(key);
-      _hashTable._setValue(offset, value);
-      _hashTable._checkCapacity();
-    }
-    return value;
-  }
+  external V putIfAbsent(K key, V ifAbsent());
 
-  V remove(K key) {
-    int offset = _hashTable._remove(key);
-    if (offset < 0) return null;
-    V oldValue = _hashTable._value(offset);
-    _hashTable._setValue(offset, null);
-    _hashTable._checkCapacity();
-    return oldValue;
-  }
+  external V remove(K key);
+  external void clear();
 
-  void clear() {
-    _hashTable._clear();
-  }
-
-  void forEach(void action (K key, V value)) {
-    int modificationCount = _hashTable._modificationCount;
-    List table = _hashTable._table;
-    int entrySize = _hashTable._entrySize;
-    for (int offset = 0; offset < table.length; offset += entrySize) {
-      Object entry = table[offset];
-      if (!_hashTable._isFree(entry)) {
-        K key = entry;
-        V value = _hashTable._value(offset);
-        action(key, value);
-        _hashTable._checkModification(modificationCount);
-      }
-    }
-  }
-
-  Iterable<K> get keys => new _HashTableKeyIterable<K>(_hashTable);
-  Iterable<V> get values =>
-      new _HashTableValueIterable<V>(_hashTable, _HashMapTable._VALUE_INDEX);
-
-  int get length => _hashTable._elementCount;
-
-  bool get isEmpty => _hashTable._elementCount == 0;
+  external void forEach(void action(K key, V value));
 
   String toString() => Maps.mapToString(this);
 }
