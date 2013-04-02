@@ -127,8 +127,6 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A01_t01: F
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A02_t01: Fail # co19 issue 353
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A06_t01: Fail # co19 issue 353
 LibTest/core/double/parse_A02_t01: Fail # Dart issue 1929
-LibTest/isolate/isolate_api/spawnUri_A01_t03: Fail # Dart issue 5222
-LibTest/isolate/isolate_api/spawnUri_A01_t04: Fail # Dart issue 5222
 LibTest/math/pow_A01_t01: Fail # Dart issue 7318
 LibTest/math/pow_A11_t01: Fail # Dart issue 449
 LibTest/math/pow_A13_t01: Fail # Dart issue 449
@@ -385,8 +383,6 @@ Language/07_Classes/07_Classes_A02_t29: Fail
 Language/07_Classes/07_Classes_A02_t31: Fail
 Language/11_Expressions/05_Strings_A20_t01: Fail
 LibTest/isolate/ReceivePort/receive_A01_t02: Fail
-LibTest/isolate/isolate_api/spawnUri_A01_t03: Crash
-LibTest/isolate/isolate_api/spawnUri_A01_t04: Crash
 
 LibTest/core/StringBuffer/addAll_A02_t01:  Fail, OK # co19 issue 355
 LibTest/core/StringBuffer/add_A02_t01:  Fail, OK # co19 issue 355

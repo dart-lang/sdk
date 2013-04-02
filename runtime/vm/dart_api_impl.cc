@@ -80,12 +80,6 @@ const char* CanonicalFunction(const char* func) {
   } while (0)
 
 
-void SetupErrorResult(Isolate* isolate, Dart_Handle* handle) {
-  *handle = Api::NewHandle(
-      isolate, Isolate::Current()->object_store()->sticky_error());
-}
-
-
 Dart_Handle Api::NewHandle(Isolate* isolate, RawObject* raw) {
   LocalHandles* local_handles = Api::TopScope(isolate)->local_handles();
   ASSERT(local_handles != NULL);
@@ -159,9 +153,8 @@ Dart_Handle Api::CheckIsolateState(Isolate* isolate) {
       isolate->object_store()->PreallocateObjects()) {
     return Api::Success(isolate);
   }
-  const Object& obj = Object::Handle(isolate->object_store()->sticky_error());
-  ASSERT(obj.IsError());
-  return Api::NewHandle(isolate, obj.raw());
+  ASSERT(isolate->object_store()->sticky_error() != Object::null());
+  return Api::NewHandle(isolate, isolate->object_store()->sticky_error());
 }
 
 
@@ -972,8 +965,7 @@ static void RunLoopDone(uword param) {
 
 DART_EXPORT Dart_Handle Dart_RunLoop() {
   Isolate* isolate = Isolate::Current();
-
-  DARTSCOPE(isolate);
+  CHECK_ISOLATE_SCOPE(isolate);
   CHECK_CALLBACK_STATE(isolate);
   Monitor monitor;
   MonitorLocker ml(&monitor);
@@ -990,12 +982,12 @@ DART_EXPORT Dart_Handle Dart_RunLoop() {
       ml.Wait();
     }
   }
-  const Object& obj = Object::Handle(isolate->object_store()->sticky_error());
-  isolate->object_store()->clear_sticky_error();
-  if (obj.IsError()) {
-    return Api::NewHandle(isolate, obj.raw());
+  if (isolate->object_store()->sticky_error() != Object::null()) {
+    Dart_Handle error = Api::NewHandle(isolate,
+                                       isolate->object_store()->sticky_error());
+    isolate->object_store()->clear_sticky_error();
+    return error;
   }
-  ASSERT(obj.IsNull());
   if (FLAG_print_class_table) {
     isolate->class_table()->Print();
   }
@@ -1005,10 +997,11 @@ DART_EXPORT Dart_Handle Dart_RunLoop() {
 
 DART_EXPORT Dart_Handle Dart_HandleMessage() {
   Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
+  CHECK_ISOLATE_SCOPE(isolate);
+  CHECK_CALLBACK_STATE(isolate);
   if (!isolate->message_handler()->HandleNextMessage()) {
-    Dart_Handle error =
-        Api::NewHandle(isolate, isolate->object_store()->sticky_error());
+    Dart_Handle error = Api::NewHandle(isolate,
+                                       isolate->object_store()->sticky_error());
     isolate->object_store()->clear_sticky_error();
     return error;
   }
