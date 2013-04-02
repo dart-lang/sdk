@@ -12,10 +12,6 @@ io/http_shutdown_test: Pass, Fail # Issue  9101
 package/package_isolate_test: Fail # http://dartbug.com/7520.
 io/raw_server_socket_cancel_test: Pass, Fail, Timeout # Issue 8675
 
-# Fails with a connection refused error on the buildbot.
-# Issue 8232.
-debugger/basic_debugger_test: Skip
-
 [ $runtime == vm && $checked ]
 # These tests have type errors on purpose.
 io/process_invalid_arguments_test: Fail, OK
