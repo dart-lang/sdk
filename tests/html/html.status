@@ -349,7 +349,7 @@ isolates_test: Skip   # Timeout because leg does not support web workers.
 [ $compiler == dart2js && $runtime == drt && $unchecked ]
 #indexeddb_5_test/functional: Fail, Pass # http://dartbug.com/8851
 
-[ $compiler == dart2js && $csp && $runtime == drt && $checked ]
+[ $compiler == dart2js && ($runtime == drt || $runtime == ie9) && $checked ]
 async_test: Fail
 
 [ $compiler == dart2js && $csp && ($runtime == drt || $runtime == safari || $runtime == ff || $runtime == chrome) ]
