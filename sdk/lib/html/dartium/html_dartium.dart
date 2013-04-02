@@ -35082,28 +35082,44 @@ class _PureIsolateTimer implements Timer {
   final ReceivePort _port = new ReceivePort();
   SendPort _sendPort; // Effectively final.
 
+  static SendPort _SEND_PORT;
+
   _PureIsolateTimer(int milliSeconds, callback, repeating) {
     _sendPort = _port.toSendPort();
     _port.receive((msg, replyTo) {
       assert(msg == _TIMER_PING);
-      assert(replyTo == _HELPER_ISOLATE_PORT);
       callback(this);
       if (!repeating) _cancel();
     });
-    _HELPER_ISOLATE_PORT.then((port) {
-      port.send([_NEW_TIMER, milliSeconds, repeating], _sendPort);
-    });
+
+    _send([_NEW_TIMER, milliSeconds, repeating]);
   }
 
   void cancel() {
     _cancel();
-    _HELPER_ISOLATE_PORT.then((port) {
-      port.send([_CANCEL_TIMER], _sendPort);
-    });
+    _send([_CANCEL_TIMER]);
   }
 
   void _cancel() {
     _port.close();
+  }
+
+  // Tricky part.
+  // Once _HELPER_ISOLATE_PORT gets resolved, it will still delay in .then
+  // and to delay Timer.run is used. However, Timer.run will try to register
+  // another Timer and here we got stuck: event cannot be posted as then
+  // callback is not executed because it's delayed with timer.
+  // Therefore once future is resolved, it's unsafe to call .then on it
+  // in Timer code.
+  _send(msg) {
+    if (_SEND_PORT != null) {
+      _SEND_PORT.send(msg, _sendPort);
+    } else {
+      _HELPER_ISOLATE_PORT.then((port) {
+        _SEND_PORT = port;
+        _SEND_PORT.send(msg, _sendPort);
+      });
+    }
   }
 }
 
@@ -36342,10 +36358,10 @@ _helperIsolateMain() {
     if (cmd == _NEW_TIMER) {
       final duration = new Duration(milliseconds: msg[1]);
       bool periodic = msg[2];
-      final callback = () { replyTo.send(_TIMER_PING); };
+      ping() { replyTo.send(_TIMER_PING); };
       _TIMER_REGISTRY[replyTo] = periodic ?
-          new Timer.periodic(duration, callback) :
-          new Timer(duration, callback);
+          new Timer.periodic(duration, (_) { ping(); }) :
+          new Timer(duration, ping);
     } else if (cmd == _CANCEL_TIMER) {
       _TIMER_REGISTRY.remove(replyTo).cancel();
     } else if (cmd == _PRINT) {

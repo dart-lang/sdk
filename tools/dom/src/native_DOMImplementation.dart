@@ -147,10 +147,10 @@ _helperIsolateMain() {
     if (cmd == _NEW_TIMER) {
       final duration = new Duration(milliseconds: msg[1]);
       bool periodic = msg[2];
-      final callback = () { replyTo.send(_TIMER_PING); };
+      ping() { replyTo.send(_TIMER_PING); };
       _TIMER_REGISTRY[replyTo] = periodic ?
-          new Timer.periodic(duration, callback) :
-          new Timer(duration, callback);
+          new Timer.periodic(duration, (_) { ping(); }) :
+          new Timer(duration, ping);
     } else if (cmd == _CANCEL_TIMER) {
       _TIMER_REGISTRY.remove(replyTo).cancel();
     } else if (cmd == _PRINT) {
