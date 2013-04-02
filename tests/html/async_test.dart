@@ -29,6 +29,7 @@ periodicTimerIsolate() {
         new Timer(const Duration(milliseconds: 30), () {
           replyTo.send('DONE');
         });
+        return;
       }
       assert(counter < 3);
       counter++;
