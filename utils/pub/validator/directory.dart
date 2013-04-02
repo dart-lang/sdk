@@ -21,8 +21,8 @@ class DirectoryValidator extends Validator {
   static final _PLURAL_NAMES = ["tools", "tests", "docs", "examples"];
 
   Future validate() {
-    return listDir(entrypoint.root.dir).then((dirs) {
-      for (var dir in dirs) {
+    return new Future.of(() {
+      for (var dir in listDir(entrypoint.root.dir)) {
         if (!dirExists(dir)) continue;
 
         dir = path.basename(dir);

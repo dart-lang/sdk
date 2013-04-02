@@ -141,6 +141,18 @@ const Register SPREG = SP;  // Stack pointer register.
 const Register FPREG = FP;  // Frame pointer register.
 
 
+typedef uint32_t RegList;
+const RegList kAllCpuRegistersList = 0xFFFFFFFF;
+
+
+const RegList kAbiArgumentCpuRegs =
+    (1 << A0) | (1 << A1) | (1 << A2) | (1 << A3);
+const RegList kAbiPreservedCpuRegs =
+    (1 << S0) | (1 << S1) | (1 << S2) | (1 << S3) |
+    (1 << S4) | (1 << S5) | (1 << S6) | (1 << S7);
+const int kAbiPreservedCpuRegCount = 8;
+
+
 // Dart stack frame layout.
 static const int kLastParamSlotIndex = 3;
 static const int kFirstLocalSlotIndex = -2;

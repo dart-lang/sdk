@@ -8,6 +8,7 @@ import 'dart:io';
 import 'dart:uri';
 
 import 'package:pathos/path.dart' as path;
+import 'package:stack_trace/src/utils.dart';
 import 'package:stack_trace/stack_trace.dart';
 import 'package:unittest/unittest.dart';
 
@@ -91,7 +92,7 @@ void main() {
   });
 
   test('.toString() nicely formats the stack trace', () {
-    var uri = _pathToFileUri(path.join('foo', 'bar.dart'));
+    var uri = pathToFileUri(path.join('foo', 'bar.dart'));
     var trace = new Trace.parse('''
 #0      Foo._bar ($uri:42:21)
 #1      zip.<anonymous closure>.zap (dart:async:0:2)
@@ -132,10 +133,4 @@ bar.dart 10:20  alsoNotCore
 dart:async      bottom
 '''));
   });
-}
-
-String _pathToFileUri(String pathString) {
-  pathString = path.absolute(pathString);
-  if (Platform.operatingSystem != 'windows') return 'file://$pathString';
-  return 'file:///${pathString.replaceAll("\\", "/")}';
 }

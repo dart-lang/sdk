@@ -15,16 +15,16 @@ CallPattern::CallPattern(uword pc, const Code& code)
     : end_(reinterpret_cast<uword*>(pc)),
       target_address_pool_index_(-1),
       args_desc_load_end_(-1),
-      args_desc_pool_index_(-1),
+      args_desc_(Array::Handle()),
       ic_data_load_end_(-1),
-      ic_data_pool_index_(-1),
+      ic_data_(ICData::Handle()),
       object_pool_(Array::Handle(code.ObjectPool())) {
   ASSERT(code.ContainsInstructionAt(pc));
   ASSERT(Back(2) == 0x0020f809);  // Last instruction: jalr RA, TMP(=R1)
   Register reg;
   // First end is 0 so that we begin from the delay slot of the jalr.
-  args_desc_load_end_ =
-     DecodeLoadWordFromPool(2, &reg, &target_address_pool_index_);
+  ic_data_load_end_ =
+      DecodeLoadWordFromPool(2, &reg, &target_address_pool_index_);
   ASSERT(reg == TMP);
 }
 
@@ -35,6 +35,54 @@ uword CallPattern::Back(int n) const {
 }
 
 
+// Decodes a load sequence ending at end. Returns the register being loaded and
+// the loaded object.
+// Returns the location of the load sequence, counting the number of
+// instructions back from the end of the call pattern.
+int CallPattern::DecodeLoadObject(int end, Register* reg, Object* obj) {
+  ASSERT(end > 0);
+  uword i = Back(end + 1);
+  Instr* instr = Instr::At(reinterpret_cast<uword>(&i));
+  if (instr->OpcodeField() == LW) {
+    int index = 0;
+    end = DecodeLoadWordFromPool(end, reg, &index);
+    *obj = object_pool_.At(index);
+  } else {
+    int value = 0;
+    end = DecodeLoadWordImmediate(end, reg, &value);
+    *obj = reinterpret_cast<RawObject*>(value);
+  }
+  return end;
+}
+
+
+// Decodes a load sequence ending at end. Returns the register being loaded and
+// the loaded immediate value.
+// Returns the location of the load sequence, counting the number of
+// instructions back from the end of the call pattern.
+int CallPattern::DecodeLoadWordImmediate(int end, Register* reg, int* value) {
+  ASSERT(end > 0);
+  int imm = 0;
+  uword i = Back(++end);
+  Instr* instr = Instr::At(reinterpret_cast<uword>(&i));
+  ASSERT(instr->OpcodeField() == ORI);
+  imm = instr->UImmField();
+  *reg = instr->RtField();
+
+  i = Back(++end);
+  instr = Instr::At(reinterpret_cast<uword>(&i));
+  ASSERT(instr->OpcodeField() == LUI);
+  ASSERT(instr->RtField() == *reg);
+  imm |= instr->UImmField();
+  *value = imm;
+  return end;
+}
+
+
+// Decodes a load sequence ending at end. Returns the register being loaded and
+// the index in the pool being read from.
+// Returns the location of the load sequence, counting the number of
+// instructions back from the end of the call pattern.
 int CallPattern::DecodeLoadWordFromPool(int end, Register* reg, int* index) {
   ASSERT(end > 0);
   uword i = Back(++end);
@@ -58,6 +106,7 @@ int CallPattern::DecodeLoadWordFromPool(int end, Register* reg, int* index) {
 
     i = Back(++end);
     instr = Instr::At(reinterpret_cast<uword>(&i));
+    ASSERT(instr->OpcodeField() == LUI);
     ASSERT(instr->RtField() == *reg);
     // Offset is signed, so add the upper 16 bits.
     offset += (instr->UImmField() << 16);
@@ -70,14 +119,23 @@ int CallPattern::DecodeLoadWordFromPool(int end, Register* reg, int* index) {
 
 
 RawICData* CallPattern::IcData() {
-  UNIMPLEMENTED();
-  return NULL;
+  if (ic_data_.IsNull()) {
+    Register reg;
+    args_desc_load_end_ = DecodeLoadObject(ic_data_load_end_, &reg, &ic_data_);
+    ASSERT(reg == S5);
+  }
+  return ic_data_.raw();
 }
 
 
 RawArray* CallPattern::ArgumentsDescriptor() {
-  UNIMPLEMENTED();
-  return NULL;
+  if (args_desc_.IsNull()) {
+    IcData();  // Loading of the ic_data must be decoded first, if not already.
+    Register reg;
+    DecodeLoadObject(args_desc_load_end_, &reg, &args_desc_);
+    ASSERT(reg == S4);
+  }
+  return args_desc_.raw();
 }
 
 

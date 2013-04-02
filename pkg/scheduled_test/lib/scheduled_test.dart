@@ -183,7 +183,7 @@ import 'src/utils.dart';
 
 export 'package:unittest/matcher.dart' hide completes, completion;
 export 'package:unittest/unittest.dart' show
-    config, configure, Configuration, logMessage, expectThrow;
+    Configuration, logMessage, expectThrow;
 
 export 'src/schedule.dart';
 export 'src/schedule_error.dart';
@@ -343,4 +343,11 @@ Future wrapFuture(Future future, [String description]) {
   }
 
   return currentSchedule.wrapFuture(future, description);
+}
+
+// TODO(nweiz): re-export these once issue 9535 is fixed.
+unittest.Configuration get unittestConfiguration =>
+  unittest.unittestConfiguration;
+void set unittestConfiguration(unittest.Configuration value) {
+  unittest.unittestConfiguration = value;
 }

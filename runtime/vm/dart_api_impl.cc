@@ -200,20 +200,20 @@ Dart_Handle Api::NewError(const char* format, ...) {
 }
 
 
-void Api::SetupCallbackError(Isolate* isolate) {
+void Api::SetupAcquiredError(Isolate* isolate) {
   ASSERT(isolate != NULL);
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
-  state->SetupCallbackError();
+  state->SetupAcquiredError();
 }
 
 
-Dart_Handle Api::CallbackError(Isolate* isolate) {
+Dart_Handle Api::AcquiredError(Isolate* isolate) {
   ASSERT(isolate != NULL);
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
-  PersistentHandle* callback_error_handle = state->CallbackError();
-  return reinterpret_cast<Dart_Handle>(callback_error_handle);
+  PersistentHandle* acquired_error_handle = state->AcquiredError();
+  return reinterpret_cast<Dart_Handle>(acquired_error_handle);
 }
 
 

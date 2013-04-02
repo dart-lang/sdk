@@ -123,7 +123,7 @@ class GitSource extends Source {
   /// future that completes once this is finished and throws an exception if it
   /// fails.
   Future _ensureRepoCache(PackageId id) {
-    return defer(() {
+    return new Future.of(() {
       var path = _repoCachePath(id);
       if (!entryExists(path)) return _clone(_getUrl(id), path, mirror: true);
       return git.run(["fetch"], workingDir: path).then((result) => null);
@@ -143,7 +143,7 @@ class GitSource extends Source {
   /// the working tree, but instead makes the repository a local mirror of the
   /// remote repository. See the manpage for `git clone` for more information.
   Future _clone(String from, String to, {bool mirror: false}) {
-    return defer(() {
+    return new Future.of(() {
       // Git on Windows does not seem to automatically create the destination
       // directory.
       ensureDir(to);

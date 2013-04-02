@@ -24,14 +24,16 @@ bool VMGlue::initialized_vm_ = false;
 VMGlue::VMGlue(ISized* surface,
                const char* script_path,
                const char* extension_script,
-               const char* main_script)
+               const char* main_script,
+               int setup_flag)
     : surface_(surface),
       isolate_(NULL),
       initialized_script_(false),
       x_(0.0),
       y_(0.0),
       z_(0.0),
-      accelerometer_changed_(false) {
+      accelerometer_changed_(false),
+      setup_flag_(setup_flag) {
   LOGI("Creating VMGlue");
   if (main_script == NULL) {
     main_script = "main.dart";
@@ -207,14 +209,16 @@ int VMGlue::CallSetup(bool force) {
   // we can eliminate it along with the need for the force parameter.
   if (!initialized_script_ || force) {
     initialized_script_ = true;
-    LOGI("Invoking setup(NULL, %d,%d)", surface_->width(), surface_->height());
+    LOGI("Invoking setup(null, %d,%d,%d)",
+        surface_->width(), surface_->height(), setup_flag_);
     Dart_EnterIsolate(isolate_);
     Dart_EnterScope();
-    Dart_Handle args[3];
+    Dart_Handle args[4];
     args[0] = CheckError(Dart_Null());
     args[1] = CheckError(Dart_NewInteger(surface_->width()));
     args[2] = CheckError(Dart_NewInteger(surface_->height()));
-    int rtn = Invoke("setup", 3, args);
+    args[3] = CheckError(Dart_NewInteger(setup_flag_));
+    int rtn = Invoke("setup", 4, args);
 
     if (rtn == 0) {
       // Plug in the print handler. It would be nice if we could do this

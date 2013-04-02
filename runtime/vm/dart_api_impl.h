@@ -106,15 +106,15 @@ class Api : AllStatic {
   // Gets the handle used to designate successful return.
   static Dart_Handle Success(Isolate* isolate);
 
-  // Sets up the callback error object after initializing an Isolate. This
+  // Sets up the acquired error object after initializing an Isolate. This
   // object is pre-created because we will not be able to allocate this
   // object when the error actually occurs. When the error occurs there will
   // be outstanding acquires to internal data pointers making it unsafe to
   // allocate objects on the dart heap.
-  static void SetupCallbackError(Isolate* isolate);
+  static void SetupAcquiredError(Isolate* isolate);
 
-  // Gets the handle which holds the pre-created callback error object.
-  static Dart_Handle CallbackError(Isolate* isolate);
+  // Gets the handle which holds the pre-created acquired error object.
+  static Dart_Handle AcquiredError(Isolate* isolate);
 
   // Returns true if the handle holds a Smi.
   static bool IsSmi(Dart_Handle handle) {
@@ -192,7 +192,7 @@ class IsolateSaver {
 
 #define CHECK_CALLBACK_STATE(isolate)                                          \
   if (isolate->no_callback_scope_depth() != 0) {                               \
-    return reinterpret_cast<Dart_Handle>(Api::CallbackError(isolate));         \
+    return reinterpret_cast<Dart_Handle>(Api::AcquiredError(isolate));         \
   }                                                                            \
 
 }  // namespace dart.

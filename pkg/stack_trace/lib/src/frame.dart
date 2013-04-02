@@ -9,6 +9,7 @@ import 'dart:uri';
 import 'package:pathos/path.dart' as path;
 
 import 'trace.dart';
+import 'utils.dart';
 
 final _nativeFrameRegExp = new RegExp(
     r'^#\d+\s+([^\s].*) \((.+):(\d+):(\d+)\)$');
@@ -42,7 +43,7 @@ class Frame {
   String get library {
     // TODO(nweiz): handle relative URIs here as well once pathos supports that.
     if (uri.scheme != 'file') return uri.toString();
-    return path.relative(uri.path);
+    return path.relative(fileUriToPath(uri));
   }
 
   /// A human-friendly description of the code location.

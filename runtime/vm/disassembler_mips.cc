@@ -141,7 +141,8 @@ int MIPSDecoder::FormatOption(Instr* instr, const char* format) {
     case 'd': {
       ASSERT(STRING_STARTS_WITH(format, "dest"));
       int off = instr->SImmField() << 2;
-      uword destination = reinterpret_cast<uword>(instr) + off;
+      uword destination =
+          reinterpret_cast<uword>(instr) + off + Instr::kInstrSize;
       buffer_pos_ += OS::SNPrint(current_position_in_buffer(),
                                  remaining_size_in_buffer(),
                                  "%#"Px"",
@@ -375,6 +376,10 @@ void MIPSDecoder::DecodeRegImm(Instr* instr) {
   switch (instr->RegImmFnField()) {
     case BGEZ: {
       Format(instr, "bgez 'rs, 'dest");
+      break;
+    }
+    case BGEZAL: {
+      Format(instr, "bgezal 'rs, 'dest");
       break;
     }
     case BGEZL: {

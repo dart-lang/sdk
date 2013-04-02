@@ -113,17 +113,12 @@ abstract class Source {
       packageDir = p;
 
       // See if it's already cached.
-      if (!dirExists(packageDir)) return false;
-
-      return _isCachedPackageCorrupted(packageDir).then((isCorrupted) {
-        if (!isCorrupted) return true;
-
+      if (dirExists(packageDir)) {
+        if (!_isCachedPackageCorrupted(packageDir)) return true;
         // Busted, so wipe out the package and reinstall.
         deleteEntry(packageDir);
-        return false;
-      });
-    }).then((isInstalled) {
-      if (isInstalled) return true;
+      }
+
       ensureDir(path.dirname(packageDir));
       return install(id, packageDir);
     }).then((found) {
@@ -143,18 +138,14 @@ abstract class Source {
   ///
   ///   * It has an empty "lib" directory.
   ///   * It has no pubspec.
-  Future<bool> _isCachedPackageCorrupted(String packageDir) {
-    return defer(() {
-      if (!fileExists(path.join(packageDir, "pubspec.yaml"))) return true;
+  bool _isCachedPackageCorrupted(String packageDir) {
+    if (!fileExists(path.join(packageDir, "pubspec.yaml"))) return true;
 
-      var libDir = path.join(packageDir, "lib");
-      if (dirExists(libDir)) {
-        return listDir(libDir).then((contents) => contents.length == 0);
-      }
+    var libDir = path.join(packageDir, "lib");
+    if (dirExists(libDir)) return listDir(libDir).length == 0;
 
-      // If we got here, it's OK.
-      return false;
-    });
+    // If we got here, it's OK.
+    return false;
   }
 
   /// Returns the directory in the system cache that the package identified by
@@ -218,7 +209,7 @@ abstract class Source {
   Future<PackageId> resolveId(PackageId id) => new Future.immediate(id);
   
   /// Returns the [Package]s that have been installed in the system cache.
-  Future<List<Package>> getCachedPackages() {
+  List<Package> getCachedPackages() {
     if (shouldCache) throw "Source $name must implement this.";
   }
 

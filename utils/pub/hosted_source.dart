@@ -63,7 +63,7 @@ class HostedSource extends Source {
 
   /// Downloads a package from the site and unpacks it.
   Future<bool> install(PackageId id, String destPath) {
-    return defer(() {
+    return new Future.of(() {
       var url = _makeVersionUrl(id, (server, package, version) =>
           "$server/packages/$package/versions/$version.tar.gz");
       log.io("Install package from $url.");
@@ -118,17 +118,13 @@ class HostedSource extends Source {
     return description;
   }
 
-  Future<List<Package>> getCachedPackages() {
-    return defer(() {
-      var cacheDir = path.join(systemCacheRoot, 
-                               _getSourceDirectory(_defaultUrl)); 
-      if (!dirExists(cacheDir)) return [];
-    
-      return listDir(path.join(cacheDir)).then((entries) {
-        return entries.map((entry) => 
-          new Package.load(null, entry, systemCache.sources));
-      });  
-    });
+  List<Package> getCachedPackages() {
+    var cacheDir = path.join(systemCacheRoot,
+                             _getSourceDirectory(_defaultUrl));
+    if (!dirExists(cacheDir)) return [];
+  
+    return listDir(path.join(cacheDir)).map((entry) =>
+        new Package.load(null, entry, systemCache.sources)).toList();
   }
   
   /// When an error occurs trying to read something about [package] from [url],

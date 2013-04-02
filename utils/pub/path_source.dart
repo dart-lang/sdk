@@ -25,7 +25,7 @@ class PathSource extends Source {
   final shouldCache = false;
 
   Future<Pubspec> describe(PackageId id) {
-    return defer(() {
+    return new Future.of(() {
       _validatePath(id.name, id.description);
       return new Pubspec.load(id.name, id.description["path"],
           systemCache.sources);
@@ -40,16 +40,17 @@ class PathSource extends Source {
   }
 
   Future<bool> install(PackageId id, String destination) {
-    return defer(() {
+    return new Future.of(() {
       try {
         _validatePath(id.name, id.description);
       } on FormatException catch(err) {
         return false;
       }
 
-      return createPackageSymlink(id.name, id.description["path"], destination,
+      createPackageSymlink(id.name, id.description["path"], destination,
           relative: id.description["relative"]);
-    }).then((_) => true);
+      return true;
+    });
   }
 
   /// Parses a path dependency. This takes in a path string and returns a map.

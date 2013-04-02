@@ -15,6 +15,7 @@ import 'dart:isolate';
 
 import 'package:pathos/path.dart' as path;
 import 'package:unittest/unittest.dart';
+import 'package:scheduled_test/scheduled_test.dart' as scheduled_test;
 
 import 'utils.dart';
 
@@ -68,6 +69,14 @@ void expectTestsFail(String description, void body()) {
       throw 'Expected all tests to fail, but some passed:\n'
           '${_summarizeTests(results)}';
     }
+  });
+}
+
+/// Runs [setUpFn] before every metatest. Note that [setUpFn] will be
+/// overwritten if the test itself calls [setUp].
+void metaSetUp(void setUpFn()) {
+  _inChildIsolate.then((inIsolate) {
+    if (inIsolate) scheduled_test.setUp(setUpFn);
   });
 }
 

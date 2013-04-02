@@ -45,10 +45,14 @@ import 'descriptor.dart' as d;
 /// test configuration for the machine running the tests.
 initConfig() {
   // If we aren't running on the bots, use the human-friendly config.
-  if (new Options().arguments.contains('--human')) {
-    configure(new CommandLineConfiguration());
+  if (!runningOnBuildbot) {
+    unittestConfiguration = new CommandLineConfiguration();
   }
 }
+
+/// Returns whether we're running on a Dart build bot.
+bool get runningOnBuildbot =>
+  Platform.environment.containsKey('BUILDBOT_BUILDERNAME');
 
 /// The current [HttpServer] created using [serve].
 var _server;
@@ -212,10 +216,6 @@ final String packagesPath = "$appPath/packages";
 /// Set to true when the current batch of scheduled events should be aborted.
 bool _abortScheduled = false;
 
-/// The time (in milliseconds) to wait for the entire scheduled test to
-/// complete.
-final _TIMEOUT = 30000;
-
 /// Defines an integration test. The [body] should schedule a series of
 /// operations which will be run asynchronously.
 void integration(String description, void body()) =>
@@ -227,6 +227,11 @@ void solo_integration(String description, void body()) =>
 
 void _integration(String description, void body(), [Function testFn]) {
   testFn(description, () {
+    // The windows bots are very slow, so we increase the default timeout.
+    if (Platform.operatingSystem == "windows") {
+      currentSchedule.timeout = new Duration(seconds: 10);
+    }
+
     // Ensure the SDK version is always available.
     d.dir(sdkPath, [
       d.file('version', '0.1.2.3')
@@ -398,7 +403,7 @@ void ensureGit() {
   schedule(() {
     return gitlib.isInstalled.then((installed) {
       if (installed) return;
-      if (Platform.environment.containsKey('BUILDBOT_BUILDERNAME')) return;
+      if (runningOnBuildbot) return;
       currentSchedule.abort();
     });
   }, 'ensuring that Git is installed');
@@ -578,7 +583,7 @@ Future<Pair<List<String>, List<String>>> schedulePackageValidation(
   return schedule(() {
     var cache = new SystemCache.withSources(path.join(sandboxDir, cachePath));
 
-    return defer(() {
+    return new Future.of(() {
       var validator = fn(new Entrypoint(path.join(sandboxDir, appPath), cache));
       return validator.validate().then((_) {
         return new Pair(validator.errors, validator.warnings);

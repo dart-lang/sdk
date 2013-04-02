@@ -527,7 +527,7 @@ class ApiState {
  public:
   ApiState() : top_scope_(NULL), delayed_weak_reference_sets_(NULL),
                null_(NULL), true_(NULL), false_(NULL),
-               callback_error_(NULL) {}
+               acquired_error_(NULL) {}
   ~ApiState() {
     while (top_scope_ != NULL) {
       ApiLocalScope* scope = top_scope_;
@@ -545,6 +545,10 @@ class ApiState {
     if (false_ != NULL) {
       persistent_handles().FreeHandle(false_);
       false_ = NULL;
+    }
+    if (acquired_error_ != NULL) {
+      persistent_handles().FreeHandle(acquired_error_);
+      acquired_error_ = NULL;
     }
   }
 
@@ -651,18 +655,13 @@ class ApiState {
   }
   PersistentHandle* Null() {
     if (null_ == NULL) {
-      DARTSCOPE(Isolate::Current());
-
-      Object& null_object = Object::Handle();
       null_ = persistent_handles().AllocateHandle();
-      null_->set_raw(null_object);
+      null_->set_raw(Object::null());
     }
     return null_;
   }
   PersistentHandle* True() {
     if (true_ == NULL) {
-      DARTSCOPE(Isolate::Current());
-
       true_ = persistent_handles().AllocateHandle();
       true_->set_raw(Bool::True());
     }
@@ -670,25 +669,23 @@ class ApiState {
   }
   PersistentHandle* False() {
     if (false_ == NULL) {
-      DARTSCOPE(Isolate::Current());
-
       false_ = persistent_handles().AllocateHandle();
       false_->set_raw(Bool::False());
     }
     return false_;
   }
 
-  void SetupCallbackError() {
-    ASSERT(callback_error_ == NULL);
-    callback_error_ = persistent_handles().AllocateHandle();
-    callback_error_->set_raw(
+  void SetupAcquiredError() {
+    ASSERT(acquired_error_ == NULL);
+    acquired_error_ = persistent_handles().AllocateHandle();
+    acquired_error_->set_raw(
         String::New("Internal Dart data pointers have been acquired, "
-                    "please release them using Dart_ByteArrayReleaseData."));
+                    "please release them using Dart_TypedDataReleaseData."));
   }
 
-  PersistentHandle* CallbackError() const {
-    ASSERT(callback_error_ != NULL);
-    return callback_error_;
+  PersistentHandle* AcquiredError() const {
+    ASSERT(acquired_error_ != NULL);
+    return acquired_error_;
   }
 
   void DelayWeakReferenceSet(WeakReferenceSet* reference_set) {
@@ -706,7 +703,7 @@ class ApiState {
   PersistentHandle* null_;
   PersistentHandle* true_;
   PersistentHandle* false_;
-  PersistentHandle* callback_error_;
+  PersistentHandle* acquired_error_;
 
   DISALLOW_COPY_AND_ASSIGN(ApiState);
 };

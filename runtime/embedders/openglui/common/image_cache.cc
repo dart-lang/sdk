@@ -18,7 +18,6 @@ ImageCache::ImageCache(const char* resource_path)
 }
 
 const SkBitmap* ImageCache::GetImage_(const char* src_url) {
-fprintf(stderr, "ImageCache::GetImage(%s)\n", src_url);
   if (strncmp(src_url, "context2d://", 12) == 0) {
     int handle = atoi(src_url + 12);
     CanvasContext* otherContext = Context2D(handle);
@@ -35,21 +34,18 @@ fprintf(stderr, "ImageCache::GetImage(%s)\n", src_url);
 }
 
 int ImageCache::GetWidth_(const char* src_url) {
-fprintf(stderr, "ImageCache::GetWidth(%s)\n", src_url);
   const SkBitmap* image = GetImage(src_url);
   if (image == NULL) return 0;
   return image->width();
 }
 
 int ImageCache::GetHeight_(const char* src_url) {
-fprintf(stderr, "ImageCache::GetHeight(%s)\n", src_url);
   const SkBitmap* image = GetImage(src_url);
   if (image == NULL) return 0;
   return image->height();
 }
 
 SkBitmap* ImageCache::Load(const char* src_url) {
-fprintf(stderr, "ImageCache::Load(%s)\n", src_url);
   SkBitmap *bm = NULL;
   const char* filepath;
   if (strncmp(src_url, "file://", 7) == 0) {

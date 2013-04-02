@@ -23,26 +23,26 @@ class LibValidator extends Validator {
     : super(entrypoint);
 
   Future validate() {
-    var libDir = path.join(entrypoint.root.dir, "lib");
+    return new Future.of(() {
+      var libDir = path.join(entrypoint.root.dir, "lib");
 
-    return defer(() {
       if (!dirExists(libDir)) {
         errors.add('You must have a "lib" directory.\n'
             "Without that, users cannot import any code from your package.");
         return;
       }
 
-      return listDir(libDir).then((files) {
-        files = files.map((file) => path.relative(file, from: libDir)).toList();
-        if (files.isEmpty) {
-          errors.add('You must have a non-empty "lib" directory.\n'
-              "Without that, users cannot import any code from your package.");
-        } else if (files.length == 1 && files.first == "src") {
-          errors.add('The "lib" directory must contain something other than '
-              '"src".\n'
-              "Otherwise, users cannot import any code from your package.");
-        }
-      });
+      var files = listDir(libDir)
+          .map((file) => path.relative(file, from: libDir))
+          .toList();
+      if (files.isEmpty) {
+        errors.add('You must have a non-empty "lib" directory.\n'
+            "Without that, users cannot import any code from your package.");
+      } else if (files.length == 1 && files.first == "src") {
+        errors.add('The "lib" directory must contain something other than '
+            '"src".\n'
+            "Otherwise, users cannot import any code from your package.");
+      }
     });
   }
 }

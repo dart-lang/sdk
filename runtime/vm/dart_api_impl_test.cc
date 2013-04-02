@@ -1413,7 +1413,7 @@ UNIT_TEST_CASE(PersistentHandles) {
     }
   }
   EXPECT(scope == state->top_scope());
-  EXPECT_EQ(2000, state->CountPersistentHandles());
+  EXPECT_EQ(2001, state->CountPersistentHandles());
   Dart_ShutdownIsolate();
 }
 

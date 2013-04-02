@@ -19,7 +19,6 @@ AndroidSoundHandler::AndroidSoundHandler(android_app* application)
       sample_player_(NULL),
       sample_player_if_(NULL),
       sample_player_queue_(NULL) {
-  SoundHandler::instance_ = this;
 }
 
 int32_t AndroidSoundHandler::Start() {

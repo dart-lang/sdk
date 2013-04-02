@@ -16,6 +16,8 @@
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
 
+#define __ compiler->assembler()->
+
 namespace dart {
 
 DECLARE_FLAG(int, optimization_counter_threshold);
@@ -39,13 +41,49 @@ void PushArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* ReturnInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+  locs->set_in(0, Location::RegisterLocation(V0));
+  return locs;
 }
 
 
+// Attempt optimized compilation at return instruction instead of at the entry.
+// The entry needs to be patchable, no inlined objects are allowed in the area
+// that will be overwritten by the patch instructions: a branch macro sequence.
 void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register result = locs()->in(0).reg();
+  ASSERT(result == V0);
+#if defined(DEBUG)
+  // TODO(srdjan): Fix for functions with finally clause.
+  // A finally clause may leave a previously pushed return value if it
+  // has its own return instruction. Method that have finally are currently
+  // not optimized.
+  if (!compiler->HasFinally()) {
+    Label stack_ok;
+    __ Comment("Stack Check");
+    const int sp_fp_dist = compiler->StackSize() + (-kFirstLocalSlotIndex - 1);
+    __ subu(T2, FP, SP);
+
+    __ addiu(T2, T2, Immediate(-sp_fp_dist * kWordSize));
+    __ beq(T2, ZR, &stack_ok);
+    __ break_(0);
+
+    __ Bind(&stack_ok);
+  }
+#endif
+  __ LeaveDartFrame();
+  __ Ret();
+
+  // Generate 2 NOP instructions so that the debugger can patch the return
+  // pattern (1 instruction) with a call to the debug stub (3 instructions).
+  __ nop();
+  __ nop();
+  compiler->AddCurrentDescriptor(PcDescriptors::kReturn,
+                                 Isolate::kNoDeoptId,
+                                 token_pos());
 }
 
 
@@ -78,13 +116,18 @@ void StoreLocalInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* ConstantInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  return LocationSummary::Make(0,
+                               Location::RequiresRegister(),
+                               LocationSummary::kNoCall);
 }
 
 
 void ConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  // The register allocator drops constant definitions that have no uses.
+  if (!locs()->out().IsInvalid()) {
+    Register result = locs()->out().reg();
+    __ LoadObject(result, value());
+  }
 }
 
 
@@ -386,13 +429,54 @@ void CatchEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* CheckStackOverflowInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 0;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs,
+                          kNumTemps,
+                          LocationSummary::kCallOnSlowPath);
+  return summary;
 }
 
 
+class CheckStackOverflowSlowPath : public SlowPathCode {
+ public:
+  explicit CheckStackOverflowSlowPath(CheckStackOverflowInstr* instruction)
+      : instruction_(instruction) { }
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
+    __ Comment("CheckStackOverflowSlowPath");
+    __ Bind(entry_label());
+    compiler->SaveLiveRegisters(instruction_->locs());
+    // pending_deoptimization_env_ is needed to generate a runtime call that
+    // may throw an exception.
+    ASSERT(compiler->pending_deoptimization_env_ == NULL);
+    compiler->pending_deoptimization_env_ = instruction_->env();
+    compiler->GenerateCallRuntime(instruction_->token_pos(),
+                                  instruction_->deopt_id(),
+                                  kStackOverflowRuntimeEntry,
+                                  instruction_->locs());
+    compiler->pending_deoptimization_env_ = NULL;
+    compiler->RestoreLiveRegisters(instruction_->locs());
+    __ b(exit_label());
+  }
+
+ private:
+  CheckStackOverflowInstr* instruction_;
+};
+
+
 void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  CheckStackOverflowSlowPath* slow_path = new CheckStackOverflowSlowPath(this);
+  compiler->AddSlowPathCode(slow_path);
+
+  __ LoadImmediate(TMP, Isolate::Current()->stack_limit_address());
+
+  __ lw(TMP, Address(TMP));
+  __ subu(TMP, SP, TMP);
+  __ blez(TMP, slow_path->entry_label());
+
+  __ Bind(slow_path->exit_label());
 }
 
 
