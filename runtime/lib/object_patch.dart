@@ -41,13 +41,17 @@ patch class Object {
                          invocation.namedArguments);
   }
 
+  /* patch */ Type get runtimeType native "Object_runtimeType";
+
   // Call this function instead of inlining instanceof, thus collecting
   // type feedback and reducing code size of unoptimized code.
-  _instanceOf(instantiator,
-              instantiator_type_arguments,
-              type,
-              bool negate)
+  bool _instanceOf(instantiator,
+                   instantiator_type_arguments,
+                   type,
+                   bool negate)
       native "Object_instanceOf";
 
-  /* patch */ Type get runtimeType native "Object_runtimeType";
+  // Call this function instead of inlining 'as', thus collecting type
+  // feedback. Returns receiver.
+  _as(instantiator, instantiator_type_arguments, type) native "Object_as";
 }

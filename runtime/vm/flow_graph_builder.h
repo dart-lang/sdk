@@ -318,12 +318,14 @@ class EffectGraphVisitor : public AstNodeVisitor {
     Do(definition);
   }
 
+ protected:
   // Returns true if the run-time type check can be eliminated.
   bool CanSkipTypeCheck(intptr_t token_pos,
                         Value* value,
                         const AbstractType& dst_type,
                         const String& dst_name);
 
+ private:
   // Shared global state.
   FlowGraphBuilder* owner_;
 

@@ -17,6 +17,7 @@ namespace dart {
   V(Object_noSuchMethod, 6)                                                    \
   V(Object_runtimeType, 1)                                                     \
   V(Object_instanceOf, 5)                                                      \
+  V(Object_as, 4)                                                              \
   V(Function_apply, 2)                                                         \
   V(InvocationMirror_invoke, 4)                                                \
   V(AbstractType_toString, 1)                                                  \

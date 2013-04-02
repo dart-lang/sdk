@@ -1011,22 +1011,6 @@ void EffectGraphVisitor::BuildTypeTest(ComparisonNode* node) {
 }
 
 
-void EffectGraphVisitor::BuildTypeCast(ComparisonNode* node) {
-  ASSERT(Token::IsTypeCastOperator(node->kind()));
-  const AbstractType& type = node->right()->AsTypeNode()->type();
-  ASSERT(type.IsFinalized());  // The type in a type cast may be malformed.
-  ValueGraphVisitor for_value(owner(), temp_index());
-  node->left()->Visit(&for_value);
-  const String& dst_name = String::ZoneHandle(
-      Symbols::New(Exceptions::kCastErrorDstName));
-  if (!CanSkipTypeCheck(node->token_pos(), for_value.value(), type, dst_name)) {
-    Append(for_value);
-    Do(BuildAssertAssignable(
-        node->token_pos(), for_value.value(), type, dst_name));
-  }
-}
-
-
 void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
   ASSERT(Token::IsTypeTestOperator(node->kind()));
   const AbstractType& type = node->right()->AsTypeNode()->type();
@@ -1107,14 +1091,31 @@ void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
       PrivateCoreLibName(Symbols::_instanceOf()),
       node->kind(),
       arguments,
-      Array::ZoneHandle(),
+      Array::ZoneHandle(),  // No argument names.
       kNumArgsChecked);
   ReturnDefinition(call);
 }
 
 
+void EffectGraphVisitor::BuildTypeCast(ComparisonNode* node) {
+  ASSERT(Token::IsTypeCastOperator(node->kind()));
+  const AbstractType& type = node->right()->AsTypeNode()->type();
+  ASSERT(type.IsFinalized());  // The type in a type cast may be malformed.
+  ValueGraphVisitor for_value(owner(), temp_index());
+  node->left()->Visit(&for_value);
+  const String& dst_name = String::ZoneHandle(
+      Symbols::New(Exceptions::kCastErrorDstName));
+  if (!CanSkipTypeCheck(node->token_pos(), for_value.value(), type, dst_name)) {
+    Append(for_value);
+    Do(BuildAssertAssignable(
+        node->token_pos(), for_value.value(), type, dst_name));
+  }
+}
+
+
 void ValueGraphVisitor::BuildTypeCast(ComparisonNode* node) {
   ASSERT(Token::IsTypeCastOperator(node->kind()));
+  ASSERT(!node->right()->AsTypeNode()->type().IsNull());
   const AbstractType& type = node->right()->AsTypeNode()->type();
   ASSERT(type.IsFinalized());  // The type in a type cast may be malformed.
   ValueGraphVisitor for_value(owner(), temp_index());
@@ -1122,10 +1123,47 @@ void ValueGraphVisitor::BuildTypeCast(ComparisonNode* node) {
   Append(for_value);
   const String& dst_name = String::ZoneHandle(
       Symbols::New(Exceptions::kCastErrorDstName));
-  ReturnValue(BuildAssignableValue(node->token_pos(),
-                                   for_value.value(),
-                                   type,
-                                   dst_name));
+  if (type.IsMalformed()) {
+    ReturnValue(BuildAssignableValue(node->token_pos(),
+                                     for_value.value(),
+                                     type,
+                                     dst_name));
+  } else {
+    if (CanSkipTypeCheck(node->token_pos(),
+                         for_value.value(),
+                         type,
+                         dst_name)) {
+      ReturnValue(for_value.value());
+      return;
+    }
+    PushArgumentInstr* push_left = PushArgument(for_value.value());
+    PushArgumentInstr* push_instantiator = NULL;
+    PushArgumentInstr* push_type_args = NULL;
+    if (type.IsInstantiated()) {
+      push_instantiator = PushArgument(BuildNullValue());
+      push_type_args = PushArgument(BuildNullValue());
+    } else {
+      BuildTypecheckPushArguments(node->token_pos(),
+                                  &push_instantiator,
+                                  &push_type_args);
+    }
+    ZoneGrowableArray<PushArgumentInstr*>* arguments =
+        new ZoneGrowableArray<PushArgumentInstr*>(4);
+    arguments->Add(push_left);
+    arguments->Add(push_instantiator);
+    arguments->Add(push_type_args);
+    Value* type_arg = Bind(new ConstantInstr(type));
+    arguments->Add(PushArgument(type_arg));
+    const intptr_t kNumArgsChecked = 1;
+    InstanceCallInstr* call = new InstanceCallInstr(
+        node->token_pos(),
+        PrivateCoreLibName(Symbols::_as()),
+        node->kind(),
+        arguments,
+        Array::ZoneHandle(),  // No argument names.
+        kNumArgsChecked);
+    ReturnDefinition(call);
+  }
 }
 
 

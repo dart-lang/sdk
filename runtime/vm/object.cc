@@ -125,6 +125,8 @@ const double MegamorphicCache::kLoadFactor = 0.75;
 // (Library, class name, method name)
 #define INVISIBLE_LIST(V)                                                      \
   V(CoreLibrary, Object, _noSuchMethod)                                        \
+  V(CoreLibrary, Object, _as)                                                  \
+  V(CoreLibrary, Object, _instanceOf)                                          \
   V(CoreLibrary, _ObjectArray, _ObjectArray.)                                  \
   V(CoreLibrary, AssertionErrorImplementation, _throwNew)                      \
   V(CoreLibrary, TypeErrorImplementation, _throwNew)                           \

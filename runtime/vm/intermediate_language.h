@@ -466,7 +466,7 @@ class EmbeddedArray<T, 0> {
   M(AllocateObjectWithBoundsCheck)                                             \
   M(LoadField)                                                                 \
   M(StoreVMField)                                                              \
-  M(LoadUntagged)                                                          \
+  M(LoadUntagged)                                                              \
   M(InstantiateTypeArguments)                                                  \
   M(ExtractConstructorTypeArguments)                                           \
   M(ExtractConstructorInstantiator)                                            \
@@ -2315,6 +2315,7 @@ class InstanceCallInstr : public TemplateDefinition<0> {
            Token::IsPrefixOperator(token_kind) ||
            Token::IsIndexOperator(token_kind) ||
            Token::IsTypeTestOperator(token_kind) ||
+           Token::IsTypeCastOperator(token_kind) ||
            token_kind == Token::kGET ||
            token_kind == Token::kSET ||
            token_kind == Token::kILLEGAL);

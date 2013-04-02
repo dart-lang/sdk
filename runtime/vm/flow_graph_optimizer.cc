@@ -1835,6 +1835,45 @@ void FlowGraphOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
 }
 
 
+void FlowGraphOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
+  ASSERT(Token::IsTypeCastOperator(call->token_kind()));
+  Definition* left = call->ArgumentAt(0);
+  Definition* instantiator = call->ArgumentAt(1);
+  Definition* type_args = call->ArgumentAt(2);
+  const AbstractType& type =
+      AbstractType::Cast(call->ArgumentAt(3)->AsConstant()->value());
+  ASSERT(!type.IsMalformed());
+  const ICData& unary_checks =
+      ICData::ZoneHandle(call->ic_data()->AsUnaryClassChecks());
+  if (unary_checks.NumberOfChecks() <= FLAG_max_polymorphic_checks) {
+    Bool& as_bool = Bool::ZoneHandle(InstanceOfAsBool(unary_checks, type));
+    if (as_bool.raw() == Bool::True().raw()) {
+      AddReceiverCheck(call);
+      // Remove the original push arguments.
+      for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
+        PushArgumentInstr* push = call->PushArgumentAt(i);
+        push->ReplaceUsesWith(push->value()->definition());
+        push->RemoveFromGraph();
+      }
+      // Remove call, replace it with 'left'.
+      call->ReplaceUsesWith(left);
+      call->RemoveFromGraph();
+      return;
+    }
+  }
+  const String& dst_name = String::ZoneHandle(
+      Symbols::New(Exceptions::kCastErrorDstName));
+  AssertAssignableInstr* assert_as =
+      new AssertAssignableInstr(call->token_pos(),
+                                new Value(left),
+                                new Value(instantiator),
+                                new Value(type_args),
+                                type,
+                                dst_name);
+  ReplaceCall(call, assert_as);
+}
+
+
 // Tries to optimize instance call by replacing it with a faster instruction
 // (e.g, binary op, field load, ..).
 void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
@@ -1846,6 +1885,11 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
   // Type test is special as it always gets converted into inlined code.
   if (Token::IsTypeTestOperator(op_kind)) {
     ReplaceWithInstanceOf(instr);
+    return;
+  }
+
+  if (Token::IsTypeCastOperator(op_kind)) {
+    ReplaceWithTypeCast(instr);
     return;
   }
 
