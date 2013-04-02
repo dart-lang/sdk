@@ -2,20 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Test that parameters in native methods are not mangled. This test is needed
-// until we change all libraries to using the JS foreign element.
+// Test for values of some basic types.
 
 class A native "*A" {
-  returnNull() native "return null;";
-  returnUndefined() native "return undefined;";
-  returnEmptyString() native "return '';";
-  returnZero() native "return 0;";
+  returnNull() native;
+  returnUndefined() native;
+  returnEmptyString() native;
+  returnZero() native;
 }
 
 A makeA() native;
 
 void setup() native """
 function A() {}
+A.prototype.returnNull = function() { return null; };
+A.prototype.returnUndefined = function() { return void 0; };
+A.prototype.returnEmptyString = function() { return ""; };
+A.prototype.returnZero = function() { return 0; };
 makeA = function(){return new A;};
 """;
 
