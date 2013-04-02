@@ -1196,7 +1196,7 @@ class JavaScriptBackend extends Backend {
       if (argument == null) return;
       if (argument.element.isTypeVariable()) {
         ClassElement enclosing = argument.element.getEnclosingClass();
-        assert(enclosing == enclosingElement.getEnclosingClass());
+        assert(enclosing == enclosingElement.getEnclosingClass().declaration);
         rti.registerRtiDependency(annotation.element, enclosing);
       } else if (argument is InterfaceType) {
         InterfaceType type = argument;
