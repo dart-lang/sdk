@@ -5,6 +5,36 @@
 {
   'targets': [
     {
+      # Contains all dependencies.
+      'target_name': 'everything',
+      'type': 'none',
+      'dependencies': [
+        # Most dependencies.
+        'default',
+        # All other targets.
+        'api_docs',
+        'dartc_bot',
+        'dart2js_bot',
+      ],
+    },
+    {
+      # Contains all the dependencies that will run by default.
+      # Excludes api_docs.
+      'target_name': 'default',
+      'type': 'none',
+      'dependencies': [
+        'analyzer',
+        'compiler',
+        'create_sdk',
+        'dart2js',
+        'editor',
+        'packages',
+        'runtime',
+        'samples',
+        'upload_sdk',
+      ],
+    },
+    {
       'target_name': 'compiler',
       'type': 'none',
       'dependencies': [
