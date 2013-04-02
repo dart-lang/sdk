@@ -27,7 +27,6 @@ io/stdout_bad_argument_test: Fail, OK
 # checked mode with no benefit. Skip.
 io/file_fuzz_test: Skip
 io/directory_fuzz_test: Skip
-io/process_exit_negative_test: Pass, Crash # Issue 9403
 
 [ $runtime == vm && $system == macos ]
 io/regress_7191_test: Pass, Timeout # http://dartbug.com/8091
