@@ -67,7 +67,7 @@ main() {
            completion('DONE'));
   });
   test('periodic timer in pure isolate', () {
-    expect(spawnFunction(oneshotTimerIsolate).call('START'),
+    expect(spawnFunction(periodicTimerIsolate).call('START'),
            completion('DONE'));
   });
   test('cancellation in pure isolate', () {
