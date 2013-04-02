@@ -132,8 +132,28 @@ class _DOMStringMap extends NativeFieldWrapperClass1 implements Map<String, Stri
   bool get isEmpty => Maps.isEmpty(this);
 }
 
-final Future<SendPort> _HELPER_ISOLATE_PORT =
+final Future<SendPort> __HELPER_ISOLATE_PORT =
     spawnDomFunction(_helperIsolateMain);
+
+// Tricky part.
+// Once __HELPER_ISOLATE_PORT gets resolved, it will still delay in .then
+// and to delay Timer.run is used. However, Timer.run will try to register
+// another Timer and here we got stuck: event cannot be posted as then
+// callback is not executed because it's delayed with timer.
+// Therefore once future is resolved, it's unsafe to call .then on it
+// in Timer code.
+SendPort __SEND_PORT;
+
+_sendToHelperIsolate(msg, SendPort replyTo) {
+  if (__SEND_PORT != null) {
+    __SEND_PORT.send(msg, replyTo);
+  } else {
+    __HELPER_ISOLATE_PORT.then((port) {
+      __SEND_PORT = port;
+      __SEND_PORT.send(msg, replyTo);
+    });
+  }
+}
 
 final _TIMER_REGISTRY = new Map<SendPort, Timer>();
 
@@ -164,9 +184,7 @@ _helperIsolateMain() {
 
 final _printClosure = window.console.log;
 final _pureIsolatePrintClosure = (s) {
-  _HELPER_ISOLATE_PORT.then((sendPort) {
-    sendPort.send([_PRINT, s]);
-  });
+  _sendToHelperIsolate([_PRINT, s]);
 };
 
 final _forwardingPrintClosure = _Utils.forwardingPrint;

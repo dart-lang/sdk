@@ -32756,7 +32756,6 @@ class Rect {
 // BSD-style license that can be found in the LICENSE file.
 
 
-// TODO(antonm): support not DOM isolates too.
 class _Timer implements Timer {
   final canceller;
 
@@ -32807,22 +32806,8 @@ class _PureIsolateTimer implements Timer {
     _port.close();
   }
 
-  // Tricky part.
-  // Once _HELPER_ISOLATE_PORT gets resolved, it will still delay in .then
-  // and to delay Timer.run is used. However, Timer.run will try to register
-  // another Timer and here we got stuck: event cannot be posted as then
-  // callback is not executed because it's delayed with timer.
-  // Therefore once future is resolved, it's unsafe to call .then on it
-  // in Timer code.
   _send(msg) {
-    if (_SEND_PORT != null) {
-      _SEND_PORT.send(msg, _sendPort);
-    } else {
-      _HELPER_ISOLATE_PORT.then((port) {
-        _SEND_PORT = port;
-        _SEND_PORT.send(msg, _sendPort);
-      });
-    }
+    _sendToHelperIsolate(msg, _sendPort);
   }
 }
 
