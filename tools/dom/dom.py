@@ -34,7 +34,7 @@ def help():
 
 def analyze():
   ''' Runs the dart analyzer. '''
-  call([
+  return call([
     os.path.join(dart_out_dir, 'dart-sdk', 'bin', 'dart_analyzer'),
     os.path.join('tests', 'html', 'element_test.dart'),
     '--dart-sdk', 'sdk',
@@ -43,7 +43,7 @@ def analyze():
 
 def build():
   ''' Builds the Dart binary '''
-  call([
+  return call([
     os.path.join('tools', 'build.py'),
     '--mode=release',
     '--arch=ia32',
@@ -54,7 +54,7 @@ def dart2js():
   compile_dart2js(argv.pop(0), True)
 
 def dartc():
-  call([
+  return call([
     os.path.join('tools', 'test.py'),
     '-m',
     'release',
@@ -62,6 +62,21 @@ def dartc():
     'dartc',
     '-r',
     'none'
+  ])
+
+def docs():
+  return call([
+    os.path.join(dart_out_dir, 'dart-sdk', 'bin', 'dart'),
+    '--package-root=%s' % os.path.join(dart_out_dir, 'packages/'),
+    os.path.join('tools', 'dom', 'docs', 'bin', 'docs.dart'),
+  ])
+
+def test_docs():
+  return call([
+    os.path.join('tools', 'test.py'),
+    '--mode=release',
+    '--checked',
+    'docs'
   ])
 
 def compile_dart2js(dart_file, checked):
@@ -82,14 +97,12 @@ def compile_dart2js(dart_file, checked):
 
 def gen():
   os.chdir(os.path.join('tools', 'dom', 'scripts'))
-  call([
-    'go.sh',
-  ])
+  return call(os.path.join(os.getcwd(), 'go.sh'))
 
 def http_server():
   print('Browse tests at '
       '\033[94mhttp://localhost:5400/root_build/generated_tests/\033[0m')
-  call([
+  return call([
     utils.DartBinary(),
     os.path.join('tools', 'testing', 'dart', 'http_server.dart'),
     '--port=5400',
@@ -103,7 +116,7 @@ def size_check():
   dart_file = os.path.join('samples', 'swarm', 'swarm.dart')
   out_file = compile_dart2js(dart_file, False)
 
-  subprocess.call([
+  return call([
     'du',
     '-kh',
     '--apparent-size',
@@ -139,11 +152,13 @@ def test_dart2js(browser, argv):
     print(
         'Test commands should be followed by tests to run. Defaulting to html')
     cmd.append('html')
-  call(cmd)
+  return call(cmd)
 
 def call(args):
-  print (' '.join(args))
-  subprocess.call(args)
+  print ' '.join(args)
+  return subprocess.call(args,
+                         stdout=subprocess.STDOUT,
+                         stderr=subprocess.STDERR)
 
 def init_dir():
   ''' Makes sure that we're always rooted in the dart root folder.'''
@@ -157,8 +172,10 @@ commands = {
   'build': [build, 'Build dart in release mode'],
   'dart2js': [dart2js, 'Run dart2js on the .dart file specified'],
   'dartc': [dartc, 'Runs dartc in release mode'],
+  'docs': [docs, 'Generates docs.json'],
   'gen': [gen, 'Re-generate DOM generated files (run go.sh)'],
   'size_check': [size_check, 'Check the size of dart2js compiled Swarm'],
+  'test_docs': [test_docs, 'Tests docs.dart'],
   'test_chrome': [test_chrome, 'Run tests in checked mode in Chrome.\n'
       '\t\tOptionally provide name of test to run.'],
   'test_drt': [test_drt, 'Run tests in checked mode in DumpRenderTree.\n'
@@ -170,10 +187,12 @@ commands = {
 }
 
 def main(argv):
+  success = True
   argv.pop(0)
 
   if not argv:
     help()
+    success = False
 
   while (argv):
     init_dir()
@@ -181,8 +200,11 @@ def main(argv):
 
     if not command in commands:
       help();
-      return
-    commands[command][0]()
+      success = False
+      break
+    success = success and bool(commands[command][0]())
+
+  sys.exit(not success)
 
 if __name__ == '__main__':
   main(sys.argv)
