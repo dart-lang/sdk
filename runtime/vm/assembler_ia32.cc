@@ -1890,6 +1890,7 @@ void Assembler::StoreIntoObjectFilter(Register object,
 }
 
 
+// Destroys the value register.
 void Assembler::StoreIntoObject(Register object,
                                 const Address& dest,
                                 Register value,
@@ -1905,7 +1906,9 @@ void Assembler::StoreIntoObject(Register object,
   }
   // A store buffer update is required.
   if (value != EAX) pushl(EAX);  // Preserve EAX.
-  leal(EAX, dest);
+  if (object != EAX) {
+    movl(EAX, object);
+  }
   call(&StubCode::UpdateStoreBufferLabel());
   if (value != EAX) popl(EAX);  // Restore EAX.
   Bind(&done);

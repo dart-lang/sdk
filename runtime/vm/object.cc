@@ -1203,20 +1203,26 @@ RawObject* Object::Allocate(intptr_t cls_id,
 
 class StoreBufferUpdateVisitor : public ObjectPointerVisitor {
  public:
-  explicit StoreBufferUpdateVisitor(Isolate* isolate) :
-      ObjectPointerVisitor(isolate) { }
+  explicit StoreBufferUpdateVisitor(Isolate* isolate, RawObject* obj) :
+      ObjectPointerVisitor(isolate), old_obj_(obj) {
+    ASSERT(old_obj_->IsOldObject());
+  }
 
   void VisitPointers(RawObject** first, RawObject** last) {
     for (RawObject** curr = first; curr <= last; ++curr) {
       RawObject* raw_obj = *curr;
       if (raw_obj->IsHeapObject() && raw_obj->IsNewObject()) {
-        uword ptr = reinterpret_cast<uword>(curr);
+        uword ptr = reinterpret_cast<uword>(old_obj_);
         isolate()->store_buffer()->AddPointer(ptr);
+        // Remembered this object. There is no need to continue searching.
+        return;
       }
     }
   }
 
  private:
+  RawObject* old_obj_;
+
   DISALLOW_COPY_AND_ASSIGN(StoreBufferUpdateVisitor);
 };
 
@@ -1239,7 +1245,7 @@ RawObject* Object::Clone(const Object& src, Heap::Space space) {
   NoGCScope no_gc;
   memmove(raw_obj->ptr(), src.raw()->ptr(), size);
   if (space == Heap::kOld) {
-    StoreBufferUpdateVisitor visitor(Isolate::Current());
+    StoreBufferUpdateVisitor visitor(Isolate::Current(), raw_obj);
     raw_obj->VisitPointers(&visitor);
   }
   return raw_obj;

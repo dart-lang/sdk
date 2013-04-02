@@ -105,9 +105,7 @@ class Scavenger {
     kIterateWeaks = 3,
     // Data
     kStoreBufferEntries = 0,
-    kStoreBufferDuplicates = 1,
-    kStoreBufferBlockEntries = 2,
-    kStoreBufferBlockDuplicates = 3
+    kStoreBufferBlockEntries = 1
   };
 
   uword FirstObjectStart() const { return to_->start() | object_alignment_; }

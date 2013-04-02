@@ -128,7 +128,7 @@ class MarkingVisitor : public ObjectPointerVisitor {
         vm_heap_(Dart::vm_isolate()->heap()),
         page_space_(page_space),
         marking_stack_(marking_stack),
-        update_store_buffers_(false) {
+        visiting_old_object_(NULL) {
     ASSERT(heap_ != vm_heap_);
   }
 
@@ -159,7 +159,10 @@ class MarkingVisitor : public ObjectPointerVisitor {
     }
   }
 
-  void set_update_store_buffers(bool val) { update_store_buffers_ = val; }
+  void VisitingOldObject(RawObject* obj) {
+    ASSERT((obj == NULL) || obj->IsOldObject());
+    visiting_old_object_ = obj;
+  }
 
  private:
   void MarkAndPush(RawObject* raw_obj) {
@@ -202,9 +205,10 @@ class MarkingVisitor : public ObjectPointerVisitor {
     // Skip over new objects, but verify consistency of heap while at it.
     if (raw_obj->IsNewObject()) {
       // TODO(iposva): Add consistency check.
-      if (update_store_buffers_) {
+      if (visiting_old_object_ != NULL) {
         ASSERT(p != NULL);
-        isolate()->store_buffer()->AddPointer(reinterpret_cast<uword>(p));
+        isolate()->store_buffer()->AddPointer(
+            reinterpret_cast<uword>(visiting_old_object_));
       }
       return;
     }
@@ -216,9 +220,9 @@ class MarkingVisitor : public ObjectPointerVisitor {
   Heap* vm_heap_;
   PageSpace* page_space_;
   MarkingStack* marking_stack_;
+  RawObject* visiting_old_object_;
   typedef std::multimap<RawObject*, RawWeakProperty*> DelaySet;
   DelaySet delay_set_;
-  bool update_store_buffers_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(MarkingVisitor);
 };
@@ -348,9 +352,9 @@ void GCMarker::IterateWeakReferences(Isolate* isolate,
 
 void GCMarker::DrainMarkingStack(Isolate* isolate,
                                  MarkingVisitor* visitor) {
-  visitor->set_update_store_buffers(true);
   while (!visitor->marking_stack()->IsEmpty()) {
     RawObject* raw_obj = visitor->marking_stack()->Pop();
+    visitor->VisitingOldObject(raw_obj);
     if (raw_obj->GetClassId() != kWeakPropertyCid) {
       raw_obj->VisitPointers(visitor);
     } else {
@@ -358,7 +362,7 @@ void GCMarker::DrainMarkingStack(Isolate* isolate,
       ProcessWeakProperty(raw_weak, visitor);
     }
   }
-  visitor->set_update_store_buffers(false);
+  visitor->VisitingOldObject(NULL);
 }
 
 

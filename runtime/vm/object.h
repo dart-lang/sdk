@@ -432,7 +432,7 @@ class Object {
     // Filter stores based on source and target.
     if (!value->IsHeapObject()) return;
     if (value->IsNewObject() && raw()->IsOldObject()) {
-      uword ptr = reinterpret_cast<uword>(addr);
+      uword ptr = reinterpret_cast<uword>(raw());
       Isolate::Current()->store_buffer()->AddPointer(ptr);
     }
   }
@@ -4930,7 +4930,7 @@ class GrowableObjectArray : public Instance {
     // Filter stores based on source and target.
     if (!value->IsHeapObject()) return;
     if (value->IsNewObject() && data()->IsOldObject()) {
-      uword ptr = reinterpret_cast<uword>(addr);
+      uword ptr = reinterpret_cast<uword>(data());
       Isolate::Current()->store_buffer()->AddPointer(ptr);
     }
   }
