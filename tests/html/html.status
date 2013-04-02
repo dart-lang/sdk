@@ -15,6 +15,7 @@ dom_isolates_test: Skip # Need to migrate to new spawnDomFunction.
 [ $compiler == dart2js && $runtime == ie10 ]
 indexeddb_3_test: Pass, Timeout, Slow # Issue: http://dartbug.com/9437
 indexeddb_4_test: Pass, Timeout, Slow # Issue: http://dartbug.com/9437
+async_test: Fail # timers test failes on ie10.
 
 [ $compiler == dart2js && $csp && $runtime == drt && $unchecked ]
 indexeddb_2_test: Fail, Crash, Pass # Bug in v8, http://dartbug.com/9407
