@@ -16,15 +16,7 @@ import '../lib/dartdoc.dart' as dd;
 import '../lib/markdown.dart';
 import 'markdown_test.dart';
 
-// Pretty test config with --human
-import '../../../../../utils/tests/pub/command_line_config.dart';
-
 main() {
-  // Use the human-friendly config.
-  if (new Options().arguments.contains('--human')) {
-    configure(new CommandLineConfiguration());
-  }
-
   group('countOccurrences', () {
     test('empty text returns 0', () {
       expect(dd.countOccurrences('', 'needle'), equals(0));
