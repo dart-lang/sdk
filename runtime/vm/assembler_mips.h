@@ -515,6 +515,15 @@ class Assembler : public ValueObject {
     jr(TMP);
   }
 
+  void BranchPatchable(const ExternalLabel* label) {
+    const uint16_t low = Utils::Low16Bits(label->address());
+    const uint16_t high = Utils::High16Bits(label->address());
+    lui(TMP, Immediate(high));
+    ori(TMP, TMP, Immediate(low));
+    jr(TMP);
+    delay_slot()->nop();
+  }
+
   void BranchLink(const ExternalLabel* label) {
     LoadImmediate(TMP, label->address());
     jalr(TMP);
@@ -525,6 +534,7 @@ class Assembler : public ValueObject {
         Array::data_offset() + 4*AddExternalLabel(label) - kHeapObjectTag;
     LoadWordFromPoolOffset(TMP, offset);
     jalr(TMP);
+    delay_slot()->nop();
   }
 
   // If the signed value in rs is less than value, rd is 1, and 0 otherwise.

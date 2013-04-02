@@ -162,19 +162,37 @@ JumpPattern::JumpPattern(uword pc) : pc_(pc) { }
 
 
 bool JumpPattern::IsValid() const {
-  UNIMPLEMENTED();
-  return false;
+  Instr* lui = Instr::At(pc_ + (0 * Instr::kInstrSize));
+  Instr* ori = Instr::At(pc_ + (1 * Instr::kInstrSize));
+  Instr* jr = Instr::At(pc_ + (2 * Instr::kInstrSize));
+  Instr* nop = Instr::At(pc_ + (3 * Instr::kInstrSize));
+  return (lui->OpcodeField() == LUI) &&
+         (ori->OpcodeField() == ORI) &&
+         (jr->OpcodeField() == SPECIAL) &&
+         (jr->FunctionField() == JR) &&
+         (nop->InstructionBits() == Instr::kNopInstruction);
 }
 
 
 uword JumpPattern::TargetAddress() const {
-  UNIMPLEMENTED();
-  return 0;
+  Instr* lui = Instr::At(pc_ + (0 * Instr::kInstrSize));
+  Instr* ori = Instr::At(pc_ + (1 * Instr::kInstrSize));
+  const uint16_t target_lo = ori->UImmField();
+  const uint16_t target_hi = lui->UImmField();
+  return (target_hi << 16) | target_lo;
 }
 
 
 void JumpPattern::SetTargetAddress(uword target_address) const {
-  UNIMPLEMENTED();
+  Instr* lui = Instr::At(pc_ + (0 * Instr::kInstrSize));
+  Instr* ori = Instr::At(pc_ + (1 * Instr::kInstrSize));
+  const int32_t lui_bits = lui->InstructionBits();
+  const int32_t ori_bits = ori->InstructionBits();
+  const uint16_t target_lo = target_address & 0xffff;
+  const uint16_t target_hi = target_address >> 16;
+
+  lui->SetInstructionBits((lui_bits & 0xffff0000) | target_hi);
+  ori->SetInstructionBits((ori_bits & 0xffff0000) | target_lo);
 }
 
 }  // namespace dart

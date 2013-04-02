@@ -46,7 +46,8 @@ class JumpPattern : public ValueObject {
  public:
   explicit JumpPattern(uword pc);
 
-  static const int kLengthInBytes = 3*Instr::kInstrSize;
+  // lui; ori; jr; nop (in delay slot) = 4.
+  static const int kLengthInBytes = 4*Instr::kInstrSize;
 
   int pattern_length_in_bytes() const {
     return kLengthInBytes;

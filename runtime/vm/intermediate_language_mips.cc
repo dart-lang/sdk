@@ -197,13 +197,47 @@ void RelationalOpInstr::EmitBranchCode(FlowGraphCompiler* compiler,
 
 
 LocationSummary* NativeCallInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 0;
+  const intptr_t kNumTemps = 3;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+  locs->set_temp(0, Location::RegisterLocation(A1));
+  locs->set_temp(1, Location::RegisterLocation(A2));
+  locs->set_temp(2, Location::RegisterLocation(T5));
+  locs->set_out(Location::RegisterLocation(V0));
+  return locs;
 }
 
 
 void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  ASSERT(locs()->temp(0).reg() == A1);
+  ASSERT(locs()->temp(1).reg() == A2);
+  ASSERT(locs()->temp(2).reg() == T5);
+  Register result = locs()->out().reg();
+
+  // Push the result place holder initialized to NULL.
+  __ PushObject(Object::ZoneHandle());
+  // Pass a pointer to the first argument in A2.
+  if (!function().HasOptionalParameters()) {
+    __ addiu(A2, FP, Immediate((kLastParamSlotIndex +
+                                function().NumParameters() - 1) * kWordSize));
+  } else {
+    __ addiu(A2, FP, Immediate(kFirstLocalSlotIndex * kWordSize));
+  }
+  // Compute the effective address. When running under the simulator,
+  // this is a redirection address that forces the simulator to call
+  // into the runtime system.
+  uword entry = reinterpret_cast<uword>(native_c_function());
+#if defined(USING_SIMULATOR)
+  entry = Simulator::RedirectExternalReference(entry, Simulator::kNativeCall);
+#endif
+  __ LoadImmediate(T5, entry);
+  __ LoadImmediate(A1, NativeArguments::ComputeArgcTag(function()));
+  compiler->GenerateCall(token_pos(),
+                         &StubCode::CallNativeCFunctionLabel(),
+                         PcDescriptors::kOther,
+                         locs());
+  __ Pop(result);
 }
 
 

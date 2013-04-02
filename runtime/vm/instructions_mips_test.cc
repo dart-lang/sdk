@@ -33,7 +33,8 @@ ASSEMBLER_TEST_RUN(Call, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Jump, assembler) {
-  UNIMPLEMENTED();
+  __ BranchPatchable(&StubCode::InstanceFunctionLookupLabel());
+  __ BranchPatchable(&StubCode::AllocateArrayLabel());
 }
 
 

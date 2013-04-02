@@ -252,6 +252,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
   __ EnterDartFrame((StackSize() * kWordSize));
 }
 
+
 // Input parameters:
 //   RA: return address.
 //   SP: address of last argument.
@@ -404,7 +405,9 @@ void FlowGraphCompiler::GenerateCall(intptr_t token_pos,
                                      const ExternalLabel* label,
                                      PcDescriptors::Kind kind,
                                      LocationSummary* locs) {
-  UNIMPLEMENTED();
+  __ BranchLinkPatchable(label);
+  AddCurrentDescriptor(kind, Isolate::kNoDeoptId, token_pos);
+  RecordSafepoint(locs);
 }
 
 
