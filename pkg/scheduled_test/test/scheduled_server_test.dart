@@ -16,11 +16,7 @@ import 'metatest.dart';
 import 'utils.dart';
 
 void main() {
-  metaSetUp(() {
-    // TODO(nweiz): Only increase the timeout length for the Windows bots once
-    // we track down the cause of >5s HTTP requests on the Linux and Mac bots.
-    currentSchedule.timeout = new Duration(seconds: 10);
-  });
+  setUpTimeout();
 
   expectTestsPass("a server with no handlers does nothing", () {
     test('test', () => new ScheduledServer());

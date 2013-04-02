@@ -7,8 +7,11 @@ library test_utils;
 import 'dart:io';
 import 'dart:async';
 
+import 'package:scheduled_test/scheduled_test.dart';
 import 'package:scheduled_test/src/utils.dart';
 import 'package:scheduled_test/src/mock_clock.dart' as mock_clock;
+
+import 'metatest.dart';
 
 export 'package:scheduled_test/src/utils.dart';
 
@@ -44,4 +47,15 @@ Future sleep(int milliseconds) {
     completer.complete();
   });
   return completer.future;
+}
+
+/// Sets up a timeout for every metatest in this file.
+void setUpTimeout() {
+  metaSetUp(() {
+    // TODO(nweiz): We used to only increase the timeout to 10s for the Windows
+    // bots, but the Linux and Mac bots have started taking upwards of 5s when
+    // running pumpEventQueue, so we're increasing the timeout across the board
+    // (see issue 9248).
+    currentSchedule.timeout = new Duration(seconds: 10);
+  });
 }
