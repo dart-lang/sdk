@@ -5,7 +5,7 @@
 //
 // Dart test program testing type casts.
 
-checkTopFunction(String expected, Stacktrace stacktrace) {
+checkTopFunction(String expected, StackTrace stacktrace) {
   var topLine = stacktrace.toString().split("\n")[0];
   int startPos = topLine.lastIndexOf("/");
   int endPos = topLine.lastIndexOf(")");
