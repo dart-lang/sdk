@@ -37,7 +37,7 @@ void main() {
 
   List<String> excludedLibraries = <String>[];
   List<String> includedLibraries = <String>[];
-  Path pkgPath;
+  Path packageRoot;
   String version;
 
   // Parse the command-line arguments.
@@ -64,8 +64,8 @@ void main() {
           includedLibraries.add(arg.substring('--include-lib='.length));
         } else if (arg.startsWith('--out=')) {
           outputDir = new Path(arg.substring('--out='.length));
-        } else if (arg.startsWith('--pkg=')) {
-          pkgPath = new Path(arg.substring('--pkg='.length));
+        } else if (arg.startsWith('--package-root=')) {
+          packageRoot = new Path(arg.substring('--package-root='.length));
         } else if (arg.startsWith('--version=')) {
           version = arg.substring('--version='.length);
         } else {
@@ -147,7 +147,8 @@ void main() {
 
     // TODO(amouravski): make apidoc use roughly the same flow as bin/dartdoc.
     Future.wait([copiedStatic, copiedApiDocStatic, htmlDiff])
-      .then((_) => apidoc.documentLibraries(apidocLibraries, libPath, pkgPath))
+      .then((_) => apidoc.documentLibraries( apidocLibraries, libPath,
+            packageRoot))
       .then((_) => compileScript(mode, outputDir, libPath))
       .then((_) => print(apidoc.status))
       .catchError((e) => print('Error: generation failed: ${e.error}'))

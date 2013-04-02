@@ -39,7 +39,7 @@ main() {
 
   final Path libPath = scriptDir.append('../../../../');
 
-  Path pkgPath;
+  Path packageRoot;
 
   argParser.addFlag('no-code',
       help: 'Do not include source code in the documentation.',
@@ -160,12 +160,22 @@ main() {
         }
       }, allowMultiple: true);
 
-  argParser.addOption('pkg',
+  argParser.addOption('package-root',
       help: 'Sets the package directory to the specified directory.\n'
-        'If omitted the package directory is the SDK pkg/ dir',
-      callback: (pkgDir) {
-        if(pkgDir != null) {
-          pkgPath = new Path(pkgDir);
+        'If omitted the package directory is the closest packages directory to'
+        ' the entrypoint.',
+      callback: (packageDir) {
+        if(packageDir != null) {
+          packageRoot = new Path(packageDir);
+        }
+      });
+
+  // TODO(amouravski): This method is deprecated. Remove on April 22.
+  argParser.addOption('pkg',
+      help: 'Deprecated: same as --package-root.',
+      callback: (packageDir) {
+        if(packageDir != null) {
+          packageRoot = new Path(packageDir);
         }
       });
 
@@ -210,13 +220,13 @@ main() {
     exit(1);
   }
 
-  if (pkgPath == null) {
+  if (packageRoot == null) {
     // Check if there's a `packages` directory in the entry point directory.
     var script = path.normalize(path.absolute(entrypoints[0].toNativePath()));
     var dir = path.join(path.dirname(script), 'packages/');
     if (new Directory(dir).existsSync()) {
       // TODO(amouravski): convert all of dartdoc to use pathos.
-      pkgPath = new Path(dir);
+      packageRoot = new Path(dir);
     } else {
       // If there is not, then check if the entrypoint is somewhere in a `lib`
       // directory.
@@ -224,7 +234,7 @@ main() {
       var parts = path.split(dir);
       var libDir = parts.lastIndexOf('lib');
       if (libDir > 0) {
-        pkgPath = new Path(path.join(path.joinAll(parts.take(libDir)),
+        packageRoot = new Path(path.join(path.joinAll(parts.take(libDir)),
               'packages'));
       }
     }
@@ -233,7 +243,7 @@ main() {
   cleanOutputDirectory(dartdoc.outputDir);
 
   // Start the analysis and documentation.
-  dartdoc.documentLibraries(entrypoints, libPath, pkgPath)
+  dartdoc.documentLibraries(entrypoints, libPath, packageRoot)
     .then((_) {
       print('Copying static files...');
       Future.wait([

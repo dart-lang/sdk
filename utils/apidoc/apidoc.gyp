@@ -51,7 +51,7 @@
             'apidoc.dart',
             '--out=<(PRODUCT_DIR)/api_docs',
             '--version=<!@(["python", "../../tools/print_version.py"])',
-            '--pkg=<(PRODUCT_DIR)/packages',
+            '--package-root=<(PRODUCT_DIR)/packages',
             '--mode=static',
             '--exclude-lib=analyzer_experimental',
             '--exclude-lib=browser',
