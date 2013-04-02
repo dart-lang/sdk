@@ -36,20 +36,32 @@ main() {
   useHtmlConfiguration();
 
   test('Simple DOM isolate test', () {
-    spawnDomFunction(childDomIsolate).then((sendPort) {
-      expect(sendPort.call('check'), completion('${window.location}'));
-    });
+    spawnDomFunction(childDomIsolate).then(expectAsync1(
+        (sendPort) {
+            expect(sendPort.call('check'), completion('${window.location}'));
+        }
+    ));
   });
 
   test('Nested DOM isolates test', () {
-    spawnDomFunction(trampolineIsolate).then((sendPort) {
-      expect(sendPort.call('check'), completion('${window.location}'));
-    });
+    spawnDomFunction(trampolineIsolate).then(expectAsync1(
+        (sendPort) {
+            expect(sendPort.call('check'), completion('${window.location}'));
+        }
+    ));
   });
 
   test('Spawn DOM isolate from pure', () {
     expect(spawnFunction(trampolineIsolate).call('check'),
            completion('${window.location}'));
+  });
+
+  test('Spawn DOM by uri', () {
+    spawnDomUri('dom_isolates_test.dart.child_isolate.dart').then(expectAsync1(
+        (sendPort) {
+            expect(sendPort.call('check'), completion('${window.location}'));
+        }
+    ));
   });
 
   test('Not function', () {

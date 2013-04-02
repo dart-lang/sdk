@@ -59,7 +59,8 @@ class _Utils {
 
   static window() native "Utils_window";
   static forwardingPrint(String message) native "Utils_forwardingPrint";
-  static void spawnDomFunction(Function topLevelFunction, int replyTo) native "Utils_spawnDomFunction";
+  static void spawnDomFunction(Function f, int replyTo) native "Utils_spawnDomFunction";
+  static void spawnDomUri(String uri, int replyTo) native "Utils_spawnDomUri";
   static int _getNewIsolateId() native "Utils_getNewIsolateId";
   static bool shadowRootSupported(Document document) native "Utils_shadowRootSupported";
 }

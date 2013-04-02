@@ -36175,8 +36175,7 @@ class _VariableSizeListIterator<T> implements Iterator<T> {
 // BSD-style license that can be found in the LICENSE file.
 
 
-// This API is exploratory.
-Future<SendPort> spawnDomFunction(Function topLevelFunction) {
+_makeSendPortFuture(spawnRequest) {
   final completer = new Completer<SendPort>();
   final port = new ReceivePort();
   port.receive((result, _) {
@@ -36184,9 +36183,16 @@ Future<SendPort> spawnDomFunction(Function topLevelFunction) {
     port.close();
   });
   // TODO: SendPort.hashCode is ugly way to access port id.
-  _Utils.spawnDomFunction(topLevelFunction, port.toSendPort().hashCode);
+  spawnRequest(port.toSendPort().hashCode);
   return completer.future;
 }
+
+// This API is exploratory.
+Future<SendPort> spawnDomFunction(Function f) =>
+    _makeSendPortFuture((portId) { _Utils.spawnDomFunction(f, portId); });
+
+Future<SendPort> spawnDomUri(String uri) =>
+    _makeSendPortFuture((portId) { _Utils.spawnDomUri(uri, portId); });
 
 // testRunner implementation.
 // FIXME: provide a separate lib for testRunner.
@@ -36270,7 +36276,8 @@ class _Utils {
 
   static window() native "Utils_window";
   static forwardingPrint(String message) native "Utils_forwardingPrint";
-  static void spawnDomFunction(Function topLevelFunction, int replyTo) native "Utils_spawnDomFunction";
+  static void spawnDomFunction(Function f, int replyTo) native "Utils_spawnDomFunction";
+  static void spawnDomUri(String uri, int replyTo) native "Utils_spawnDomUri";
   static int _getNewIsolateId() native "Utils_getNewIsolateId";
   static bool shadowRootSupported(Document document) native "Utils_shadowRootSupported";
 }

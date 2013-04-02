@@ -4,8 +4,7 @@
 
 part of html;
 
-// This API is exploratory.
-Future<SendPort> spawnDomFunction(Function topLevelFunction) {
+_makeSendPortFuture(spawnRequest) {
   final completer = new Completer<SendPort>();
   final port = new ReceivePort();
   port.receive((result, _) {
@@ -13,9 +12,16 @@ Future<SendPort> spawnDomFunction(Function topLevelFunction) {
     port.close();
   });
   // TODO: SendPort.hashCode is ugly way to access port id.
-  _Utils.spawnDomFunction(topLevelFunction, port.toSendPort().hashCode);
+  spawnRequest(port.toSendPort().hashCode);
   return completer.future;
 }
+
+// This API is exploratory.
+Future<SendPort> spawnDomFunction(Function f) =>
+    _makeSendPortFuture((portId) { _Utils.spawnDomFunction(f, portId); });
+
+Future<SendPort> spawnDomUri(String uri) =>
+    _makeSendPortFuture((portId) { _Utils.spawnDomUri(uri, portId); });
 
 // testRunner implementation.
 // FIXME: provide a separate lib for testRunner.
