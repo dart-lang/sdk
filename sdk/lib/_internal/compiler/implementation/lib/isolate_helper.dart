@@ -506,7 +506,7 @@ class IsolateNatives {
         Function entryPoint = _getJSFunctionFromName(msg['functionName']);
         var replyTo = _deserializeMessage(msg['replyTo']);
         var context = new _IsolateContext();
-        _globalState.topEventLoop.enqueue(context, function() {
+        _globalState.topEventLoop.enqueue(context, () {
           _startIsolate(entryPoint, replyTo);
         }, 'worker-start');
         // Make sure we always have a current context in this worker.
@@ -650,7 +650,7 @@ class IsolateNatives {
     // TODO(eub): support IE9 using an iframe -- Dart issue 1702.
     if (uri != null) throw new UnsupportedError(
             "Currently spawnUri is not supported without web workers.");
-    _globalState.topEventLoop.enqueue(new _IsolateContext(), function() {
+    _globalState.topEventLoop.enqueue(new _IsolateContext(), () {
       final func = _getJSFunctionFromName(functionName);
       _startIsolate(func, replyPort);
     }, 'nonworker start');

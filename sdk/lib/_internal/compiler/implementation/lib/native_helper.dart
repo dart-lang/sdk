@@ -309,7 +309,7 @@ dynamicBindLookup(var hasOwnPropertyFunction, String tag, var methods) {
 // in native_emitter.dart (see dynamicName).  In order to avoid the class names
 // clashing with the method names on Object.prototype (needed for native
 // objects) we must always use hasOwnProperty.
-var lookupDynamicClass(var hasOwnPropertyFunction,
+lookupDynamicClass(var hasOwnPropertyFunction,
                        var methods,
                        String className) {
   return callHasOwnProperty(hasOwnPropertyFunction, methods, className) ?

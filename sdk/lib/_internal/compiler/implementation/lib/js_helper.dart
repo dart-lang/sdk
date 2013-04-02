@@ -12,9 +12,7 @@ import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
                                    JS_DART_OBJECT_CONSTRUCTOR,
                                    JS_OPERATOR_IS_PREFIX,
                                    JS_OPERATOR_AS_PREFIX,
-                                   JS_HAS_EQUALS,
-                                   RAW_DART_FUNCTION_REF,
-                                   UNINTERCEPTED;
+                                   RAW_DART_FUNCTION_REF;
 import 'dart:_interceptors' show getInterceptor,
                                  interceptedNames,
                                  JSIndexable;
