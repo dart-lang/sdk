@@ -36338,7 +36338,7 @@ final Future<SendPort> __HELPER_ISOLATE_PORT =
     spawnDomFunction(_helperIsolateMain);
 
 // Tricky part.
-// Once _HELPER_ISOLATE_PORT gets resolved, it will still delay in .then
+// Once __HELPER_ISOLATE_PORT gets resolved, it will still delay in .then
 // and to delay Timer.run is used. However, Timer.run will try to register
 // another Timer and here we got stuck: event cannot be posted as then
 // callback is not executed because it's delayed with timer.
@@ -36386,7 +36386,7 @@ _helperIsolateMain() {
 
 final _printClosure = window.console.log;
 final _pureIsolatePrintClosure = (s) {
-  _sendToHelperIsolate([_PRINT, s]);
+  _sendToHelperIsolate([_PRINT, s], null);
 };
 
 final _forwardingPrintClosure = _Utils.forwardingPrint;

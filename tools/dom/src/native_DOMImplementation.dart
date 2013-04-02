@@ -184,7 +184,7 @@ _helperIsolateMain() {
 
 final _printClosure = window.console.log;
 final _pureIsolatePrintClosure = (s) {
-  _sendToHelperIsolate([_PRINT, s]);
+  _sendToHelperIsolate([_PRINT, s], null);
 };
 
 final _forwardingPrintClosure = _Utils.forwardingPrint;
