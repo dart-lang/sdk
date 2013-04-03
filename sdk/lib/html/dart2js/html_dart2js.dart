@@ -31802,6 +31802,9 @@ WindowBase _convertNativeToDart_Window(win) {
 }
 
 EventTarget _convertNativeToDart_EventTarget(e) {
+  if (e == null) {
+    return null;
+  }
   // Assume it's a Window if it contains the setInterval property.  It may be
   // from a different frame - without a patched prototype - so we cannot
   // rely on Dart type checking.
