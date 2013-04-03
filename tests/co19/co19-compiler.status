@@ -3,117 +3,58 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartc ]
+Language/03_Overview/1_Scoping_A02_t28: Fail # TODO(dartc-team): Please triage this failure.
+Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t01: Fail # TODO(dartc-team): Please triage this failure.
+Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t04: Fail # TODO(dartc-team): Please triage this failure.
+Language/07_Classes/07_Classes_A07_t10: Fail # TODO(dartc-team): Please triage this failure.
+Language/11_Expressions/11_Instance_Creation_A05_t02: Fail # TODO(dartc-team): Please triage this failure.
+Language/11_Expressions/33_Argument_Definition_Test_A01_t06: Fail # TODO(dartc-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/4_Scripts_A01_t20: Fail # TODO(dartc-team): Please triage this failure.
+Language/13_Libraries_and_Scripts/4_Scripts_A01_t22: Fail # TODO(dartc-team): Please triage this failure.
+Language/14_Types/8_Parameterized_Types_A03_t03: Fail # TODO(dartc-team): Please triage this failure.
+Language/14_Types/8_Parameterized_Types_A03_t05: Fail # TODO(dartc-team): Please triage this failure.
+Language/15_Reference/1_Lexical_Rules_A01_t09: Fail # TODO(dartc-team): Please triage this failure.
+Language/15_Reference/1_Lexical_Rules_A01_t11: Fail # TODO(dartc-team): Please triage this failure.
+LibTest/async/Future/asStream_A01_t02: Fail # TODO(dartc-team): Please triage this failure.
+LibTest/async/Future/asStream_A02_t01: Fail # TODO(dartc-team): Please triage this failure.
+LibTest/async/Future/catchError_A03_t01: Fail # TODO(dartc-team): Please triage this failure.
+LibTest/async/Future/catchError_A03_t02: Fail # TODO(dartc-team): Please triage this failure.
+LibTest/async/Future/catchError_A03_t03: Fail # TODO(dartc-team): Please triage this failure.
+LibTest/async/Future/forEach_A01_t01: Fail # TODO(dartc-team): Please triage this failure.
+LibTest/async/Future/forEach_A02_t01: Fail # TODO(dartc-team): Please triage this failure.
+LibTest/async/Future/forEach_A03_t01: Fail # TODO(dartc-team): Please triage this failure.
+LibTest/async/Future/then_A01_t03: Fail # TODO(dartc-team): Please triage this failure.
+LibTest/async/Future/then_A02_t01: Fail # TODO(dartc-team): Please triage this failure.
+LibTest/async/Future/then_A02_t02: Fail # TODO(dartc-team): Please triage this failure.
+LibTest/async/Future/then_A03_t01: Fail # TODO(dartc-team): Please triage this failure.
+LibTest/async/Future/then_A04_t01: Fail # TODO(dartc-team): Please triage this failure.
+LibTest/async/Future/wait_A01_t01: Fail # TODO(dartc-team): Please triage this failure.
+LibTest/async/Future/wait_A01_t04: Fail # TODO(dartc-team): Please triage this failure.
+LibTest/async/Future/wait_A01_t05: Fail # TODO(dartc-team): Please triage this failure.
+LibTest/async/Future/wait_A01_t06: Fail # TODO(dartc-team): Please triage this failure.
+LibTest/async/Future/whenComplete_A01_t01: Fail # TODO(dartc-team): Please triage this failure.
+LibTest/async/Future/whenComplete_A02_t01: Fail # TODO(dartc-team): Please triage this failure.
+LibTest/async/Future/whenComplete_A03_t01: Fail # TODO(dartc-team): Please triage this failure.
+LibTest/async/Future/whenComplete_A04_t01: Fail # TODO(dartc-team): Please triage this failure.
+LibTest/async/Future/whenComplete_A04_t02: Fail # TODO(dartc-team): Please triage this failure.
+LibTest/collection/Queue/Queue.from_A01_t02: Fail # TODO(dartc-team): Please triage this failure.
+LibTest/core/Set/intersection_A03_t01: Fail # TODO(dartc-team): Please triage this failure.
 
-Language/12_Statements/06_For/2_For_in_A01_t05: Fail # co19 issue 365 # co19 issue 365 (iterator changes)
 LibTest/core/Set/Set.from_A01_t02: Fail # co19 issue 365 # co19 issue 365 (iterator changes)
-LibTest/core/Queue/Queue.from_A01_t02: Fail # co19 issue 365 # co19 issue 365 (iterator changes)
-
-Language/13_Libraries_and_Scripts/1_Imports_A02_t29: Fail # co19 issue 336 (allow use same prefix for several imports)
-
-
-Language/13_Libraries_and_Scripts/4_Scripts_A01_t21: Fail # co19 issue 337 (export in scripts is allowed in 0.13)
-Language/13_Libraries_and_Scripts/4_Scripts_A01_t23: Fail # co19 issue 337 (export in scripts is allowed in 0.13)
-
-
-Language/05_Variables/05_Variables_A07_t01: Fail # co19 issue 335 (assignment to final is warning, not error)
-Language/05_Variables/05_Variables_A07_t02: Fail # co19 issue 335 (assignment to final is warning, not error)
-Language/05_Variables/05_Variables_A07_t03: Fail # co19 issue 335 (assignment to final is warning, not error)
-Language/05_Variables/05_Variables_A07_t04: Fail # co19 issue 335 (assignment to final is warning, not error)
-Language/05_Variables/05_Variables_A07_t10: Fail # co19 issue 335 (assignment to final is warning, not error)
-Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t05: Fail # co19 issue 335 (assignment to final is warning, not error)
-Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A01_t06: Fail # co19 issue 335 (assignment to final is warning, not error)
-
-Language/12_Statements/09_Switch_A02_t03: Fail # co19 issue 344 ('null' is constant, so can be used in 'case')
 
 Language/15_Reference/1_Lexical_Rules_A01_t10: Fail # co19 343 (invalid unicode NFC)
 
-
-Language/11_Expressions/01_Constants_A20_t03: Fail # co19 issue 339 (type variable is not constant)
-
-
-Language/11_Expressions/08_Throw_A05_t01: Fail # co19 issue 340 (deprecated catch syntax)
-Language/12_Statements/10_Try_A03_t02: Fail # co19 issue 340 (deprecated catch syntax)
-Language/12_Statements/10_Try_A03_t03: Fail # co19 issue 340 (deprecated catch syntax)
-
-
-Language/11_Expressions/31_Type_Test_A01_t02: Fail # co19 issue 341 (class Type has no type parameters)
-Language/11_Expressions/31_Type_Test_A01_t04: Fail # co19 issue 341 (class Type has no type parameters)
-
-
-Language/11_Expressions/32_Type_Cast_A01_t04: Fail # co19 issue 342 (class can be used anywhere, including left side of "as")
-
-
 Language/14_Types/5_Function_Types_A01_t10: Pass # co19 issue 392, issue 9058
 Language/14_Types/5_Function_Types_A02_t06: Pass # co19 issue 392, issue 9058
-Language/14_Types/5_Function_Types_A04_t01: Fail # co19 issue 345 (optional parameters list cannot by empty)
 
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t15: Fail # co19 issue 346 (invalid 'one ugly cascade')
 
-Language/08_Interfaces/5_Superinterfaces_A01_t02: Fail # co19 issue 347 (duplicate class in implements clause)
-
-Language/13_Libraries_and_Scripts/1_Imports_A02_t12: Fail, OK # co19 issue 320
-Language/13_Libraries_and_Scripts/1_Imports_A02_t15: Fail, OK # co19 issue 320
-Language/13_Libraries_and_Scripts/1_Imports_A02_t18: Fail, OK # co19 issue 320
-Language/13_Libraries_and_Scripts/1_Imports_A02_t19: Fail, OK # co19 issue 320
-
-
-Language/13_Libraries_and_Scripts/1_Imports_A02_t16: Fail, OK # co19 issue 298
-Language/13_Libraries_and_Scripts/1_Imports_A02_t17: Fail, OK # co19 issue 298
-
-
-LibTest/core/Expect/approxEquals_A04_t01: Fail # co19 issue 351 (use deprecated === and !==)
-LibTest/core/Expect/equals_A02_t01: Fail # co19 issue 351 (use deprecated === and !==)
-LibTest/core/Expect/identical_A02_t01: Fail # co19 issue 351 (use deprecated === and !==)
-LibTest/core/Expect/isFalse_A02_t01: Fail # co19 issue 351 (use deprecated === and !==)
-LibTest/core/Expect/isNotNull_A02_t01: Fail # co19 issue 351 (use deprecated === and !==)
-LibTest/core/Expect/isNull_A02_t01: Fail # co19 issue 351 (use deprecated === and !==)
-LibTest/core/Expect/isTrue_A02_t01: Fail # co19 issue 351 (use deprecated === and !==)
-LibTest/core/Expect/listEquals_A03_t01: Fail # co19 issue 351 (use deprecated === and !==)
-LibTest/core/Expect/notEquals_A02_t01: Fail # co19 issue 351 (use deprecated === and !==)
-LibTest/core/Expect/setEquals_A03_t01: Fail # co19 issue 351 (use deprecated === and !==)
-LibTest/core/Expect/stringEquals_A02_t01: Fail # co19 issue 351 (use deprecated === and !==)
-LibTest/core/Expect/throws_A01_t04: Fail # co19 issue 351 (use deprecated === and !==)
-LibTest/core/Future/chain_A02_t04: Fail # co19 issue 351 (use deprecated === and !==)
-LibTest/core/Future/chain_A02_t05: Fail # co19 issue 351 (use deprecated === and !==)
-LibTest/core/Future/transform_A02_t03: Fail # co19 issue 351 (use deprecated === and !==)
-LibTest/core/Future/transform_A02_t04: Fail # co19 issue 351 (use deprecated === and !==)
-LibTest/core/List/every_A04_t01: Fail # co19 issue 351 (use deprecated === and !==)
-LibTest/core/List/filter_A04_t01: Fail # co19 issue 351 (use deprecated === and !==)
-LibTest/core/List/forEach_A03_t01: Fail # co19 issue 351 (use deprecated === and !==)
-LibTest/core/List/List.from_A01_t01: Fail # co19 issue 351 (use deprecated === and !==)
-LibTest/core/List/operator_subscript_A01_t01: Fail # co19 issue 351 (use deprecated === and !==)
-LibTest/core/List/operator_subscript_A01_t02: Fail # co19 issue 351 (use deprecated === and !==)
-LibTest/core/List/operator_subscripted_assignment_A01_t02: Fail # co19 issue 351 (use deprecated === and !==)
-LibTest/core/List/operator_subscripted_assignment_A01_t01: Fail # co19 issue 351 (use deprecated === and !==)
-LibTest/core/List/setRange_A01_t01: Fail # co19 issue 351 (use deprecated === and !==)
-LibTest/core/Queue/addFirst_A01_t01: Fail # co19 issue 351 (use deprecated === and !==)
 LibTest/core/Set/intersection_A01_t03: Fail # co19 issue 351 (use deprecated === and !==)
-LibTest/core/String/toLowerCase_A01_t02: Fail # co19 issue 351 (use deprecated === and !==)
-LibTest/core/String/toUpperCase_A01_t02: Fail # co19 issue 351 (use deprecated === and !==)
-LibTest/core/String/trim_A01_t02: Fail # co19 issue 351 (use deprecated === and !==)
-LibTest/core/StringBuffer/add_A02_t01: Fail # co19 issue 351 (use deprecated === and !==)
-LibTest/core/StringBuffer/addAll_A02_t01: Fail # co19 issue 351 (use deprecated === and !==)
-LibTest/core/StringBuffer/clear_A02_t01: Fail # co19 issue 351 (use deprecated === and !==)
-
-LibTest/isolate/SendPort/send_A01_t01: Fail # co19 issue 352 (use function expression with return type and name)
-
-Language/07_Classes/6_Constructors/2_Factories_A01_t02: Fail # co19 issue 354
-
-
-Language/07_Classes/6_Constructors_A03_t03: Fail # co19 issue 372 (@static-clean where type warnings are expected)
-Language/11_Expressions/11_Instance_Creation/1_New_A06_t04: Fail # co19 issue 372 (@static-clean where type warnings are expected)
-Language/11_Expressions/11_Instance_Creation/1_New_A06_t05: Fail # co19 issue 372 (@static-clean where type warnings are expected)
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A01_t01: Fail # co19 issue 372 (@static-clean where type warnings are expected)
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A02_t01: Fail # co19 issue 372 (@static-clean where type warnings are expected)
-LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A06_t01: Fail # co19 issue 372 (@static-clean where type warnings are expected)
 
 LibTest/core/Set/intersection_A01_t01: Fail # issue 390
 LibTest/core/Set/intersection_A01_t02: Pass # issue 390
 
 Language/11_Expressions/30_Identifier_Reference_A01_t08: Skip # testing framework or VM issue 7388 (dies on Turkish character)
-
-
-Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t02: Fail, OK # deprecated parameter syntax
 
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A15_t07: Fail # Issue 3323
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t01: Fail # Issue 2477
@@ -123,351 +64,18 @@ Language/11_Expressions/01_Constants_A16_t01: Fail # Issue 1473
 Language/11_Expressions/01_Constants_A16_t02: Fail # Issue 1473
 Language/11_Expressions/01_Constants_A16_t03: Fail # Issue 1473
 Language/11_Expressions/01_Constants_A17_t03: Fail # Issue 1473
-Language/11_Expressions/22_Equality_A01_t19: Fail # language change 3368
-Language/11_Expressions/22_Equality_A01_t20: Fail # language change 3368
-Language/11_Expressions/22_Equality_A02_t03: Fail, OK # co19 issue 169
 
-
-
-LibTest/math/parseDouble_A01_t01: Fail, OK # co19 issue 317
-LibTest/math/parseDouble_A02_t01: Fail, OK # co19 issue 317
-LibTest/math/parseInt_A01_t01: Fail, OK # co19 issue 317
-LibTest/math/parseInt_A02_t01: Fail, OK # co19 issue 317
-
-
-Language/03_Overview/1_Scoping_A02_t30: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/03_Overview/2_Privacy_A01_t06: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/05_Variables/05_Variables_A11_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t05: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
 Language/07_Classes/07_Classes_A01_t20: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/07_Classes/07_Classes_A02_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/07_Classes/07_Classes_A02_t34: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/07_Classes/07_Classes_A03_t03: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/07_Classes/07_Classes_A03_t04: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/07_Classes/07_Classes_A03_t05: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/07_Classes/07_Classes_A03_t06: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/07_Classes/1_Instance_Methods/2_Operators_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/07_Classes/3_Setters_A04_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/07_Classes/3_Setters_A04_t04: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/07_Classes/3_Setters_A04_t05: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/07_Classes/4_Abstract_Instance_Members_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/07_Classes/4_Abstract_Instance_Members_A02_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/07_Classes/4_Abstract_Instance_Members_A04_t04: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/07_Classes/4_Abstract_Instance_Members_A07_t07: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/07_Classes/4_Abstract_Instance_Members_A07_t09: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A17_t02: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A18_t03: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/08_Interfaces/5_Superinterfaces/1_Inheritance_and_Overriding_A02_t05: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/05_Strings/1_String_Interpolation_A01_t13: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/11_Instance_Creation/1_New_A06_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/11_Instance_Creation/1_New_A06_t02: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/11_Instance_Creation/1_New_A06_t03: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/11_Instance_Creation/1_New_A06_t07: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/11_Instance_Creation/1_New_A06_t08: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/11_Instance_Creation/1_New_A06_t09: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/11_Instance_Creation/1_New_A11_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/11_Instance_Creation/1_New_A12_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
 Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A05_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A05_t02: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
 Language/11_Expressions/15_Method_Invocation/2_Cascaded_Invocation_A01_t19: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/17_Getter_Invocation_A02_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/18_Assignment_A08_t03: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/18_Assignment_A08_t04: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/19_Conditional_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/19_Conditional_A01_t10: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/19_Conditional_A01_t12: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/19_Conditional_A01_t14: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/20_Logical_Boolean_Expressions_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/20_Logical_Boolean_Expressions_A01_t10: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/20_Logical_Boolean_Expressions_A01_t11: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/20_Logical_Boolean_Expressions_A01_t12: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/20_Logical_Boolean_Expressions_A01_t13: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/20_Logical_Boolean_Expressions_A01_t14: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/20_Logical_Boolean_Expressions_A01_t15: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/21_Bitwise_Expressions_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/21_Bitwise_Expressions_A01_t12: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/21_Bitwise_Expressions_A01_t13: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/21_Bitwise_Expressions_A01_t14: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/21_Bitwise_Expressions_A01_t15: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/21_Bitwise_Expressions_A01_t16: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/21_Bitwise_Expressions_A01_t17: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/22_Equality_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/23_Relational_Expressions_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/23_Relational_Expressions_A01_t18: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/23_Relational_Expressions_A01_t19: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/23_Relational_Expressions_A01_t20: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/23_Relational_Expressions_A01_t21: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/23_Relational_Expressions_A01_t22: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/23_Relational_Expressions_A01_t23: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/24_Shift_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/24_Shift_A01_t09: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/24_Shift_A01_t10: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/24_Shift_A01_t11: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/24_Shift_A01_t12: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/24_Shift_A01_t13: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/24_Shift_A01_t14: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/25_Additive_Expressions_A01_t07: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/25_Additive_Expressions_A01_t08: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/25_Additive_Expressions_A01_t11: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/25_Additive_Expressions_A01_t12: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/25_Additive_Expressions_A01_t13: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/25_Additive_Expressions_A01_t14: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/26_Multiplicative_Expressions_A01_t10: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/26_Multiplicative_Expressions_A01_t11: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/26_Multiplicative_Expressions_A01_t14: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/26_Multiplicative_Expressions_A01_t15: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/26_Multiplicative_Expressions_A01_t16: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/26_Multiplicative_Expressions_A01_t17: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/27_Unary_Expressions_A01_t02: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/27_Unary_Expressions_A01_t04: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/27_Unary_Expressions_A01_t05: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/27_Unary_Expressions_A01_t11: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/27_Unary_Expressions_A01_t12: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/27_Unary_Expressions_A01_t13: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/27_Unary_Expressions_A01_t17: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/27_Unary_Expressions_A01_t18: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/27_Unary_Expressions_A01_t19: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/27_Unary_Expressions_A01_t20: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/27_Unary_Expressions_A01_t21: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/27_Unary_Expressions_A01_t22: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/27_Unary_Expressions_A01_t27: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/28_Postfix_Expressions_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/28_Postfix_Expressions_A01_t03: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/28_Postfix_Expressions_A01_t05: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/29_Assignable_Expressions_A01_t06: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
 Language/11_Expressions/29_Assignable_Expressions_A01_t08: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/29_Assignable_Expressions_A01_t09: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/29_Assignable_Expressions_A01_t26: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/30_Identifier_Reference_A02_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/11_Expressions/30_Identifier_Reference_A08_t02: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/12_Statements/04_Local_Function_Declaration_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/12_Statements/06_For/1_For_Loop_A01_t07: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/12_Statements/06_For/2_For_in_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/12_Statements/07_While_A02_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/12_Statements/08_Do_A02_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/12_Statements/09_Switch_A02_t04: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t03: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/13_Libraries_and_Scripts/1_Imports_A01_t51: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/13_Libraries_and_Scripts/1_Imports_A01_t52: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/13_Libraries_and_Scripts/1_Imports_A02_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/13_Libraries_and_Scripts/1_Imports_A02_t02: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/13_Libraries_and_Scripts/1_Imports_A02_t03: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/13_Libraries_and_Scripts/1_Imports_A02_t04: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/13_Libraries_and_Scripts/1_Imports_A02_t05: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/13_Libraries_and_Scripts/1_Imports_A02_t06: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/13_Libraries_and_Scripts/1_Imports_A02_t11: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/13_Libraries_and_Scripts/1_Imports_A02_t13: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/13_Libraries_and_Scripts/1_Imports_A02_t14: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/13_Libraries_and_Scripts/1_Imports_A02_t20: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/13_Libraries_and_Scripts/2_Exports_A01_t02: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/13_Libraries_and_Scripts/2_Exports_A01_t03: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/13_Libraries_and_Scripts/2_Exports_A03_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/13_Libraries_and_Scripts/2_Exports_A03_t02: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/13_Libraries_and_Scripts/3_Parts_A03_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/14_Types/1_Static_Types_A02_t09: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/14_Types/2_Dynamic_Type_System_A02_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
 Language/14_Types/4_Interface_Types_A08_t03: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-Language/14_Types/5_Function_Types_A06_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
 LibTest/core/AssertionError/column_A01_t02: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
 LibTest/core/AssertionError/failedAssertion_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
 LibTest/core/AssertionError/line_A01_t02: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
 LibTest/core/AssertionError/url_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Completer/Completer_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Completer/completeException_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Completer/completeException_A02_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Completer/completeException_A03_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Completer/completeException_A03_t02: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Completer/complete_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Completer/complete_A02_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Completer/complete_A02_t02: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Completer/future_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A03_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Date/subtract_A06_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Future/Future.immediate_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Future/chain_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Future/chain_A01_t02: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Future/chain_A01_t03: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Future/chain_A01_t04: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Future/chain_A01_t05: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Future/chain_A01_t06: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Future/chain_A01_t07: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Future/chain_A01_t08: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Future/chain_A01_t09: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Future/chain_A02_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Future/chain_A02_t02: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Future/chain_A02_t03: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Future/chain_A03_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Future/exception_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Future/exception_A01_t02: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Future/exception_A02_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Future/handleException_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Future/handleException_A01_t02: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Future/handleException_A01_t03: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Future/handleException_A01_t04: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Future/handleException_A01_t05: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Future/handleException_A01_t06: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Future/handleException_A01_t07: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Future/hasValue_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Future/isComplete_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Future/then_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Future/then_A01_t02: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Future/then_A01_t03: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Future/then_A01_t04: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Future/then_A01_t05: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Future/transform_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Future/transform_A01_t02: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Future/transform_A01_t03: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Future/transform_A01_t04: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Future/transform_A01_t05: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Future/transform_A01_t06: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Future/transform_A01_t07: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Future/transform_A02_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Future/transform_A02_t02: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Future/transform_A03_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Future/value_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Future/value_A01_t02: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Future/value_A01_t03: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Futures/wait_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Futures/wait_A01_t03: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Futures/wait_A01_t04: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Futures/wait_A01_t05: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Futures/wait_A01_t06: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Futures/wait_A02_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Futures/wait_A02_t02: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Futures/wait_A03_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/LinkedHashMap/LinkedHashMap_class_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/List/every_A03_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/List/filter_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/List/filter_A01_t02: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/List/filter_A02_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/List/filter_A03_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/List/iterator_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/List/iterator_hasNext_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/List/iterator_next_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/List/iterator_next_A02_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/List/setRange_A05_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/List/some_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/List/some_A01_t02: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/List/some_A02_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/List/some_A03_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Map/getKeys_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Map/getKeys_A01_t02: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Map/getValues_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Map/getValues_A01_t02: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Match/end_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Match/groupCount_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Match/group_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Match/group_A02_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Match/groups_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Match/groups_A02_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Match/operator_subscript_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Match/operator_subscript_A02_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Match/pattern_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Match/start_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Match/str_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Queue/filter_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Queue/filter_A01_t02: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Queue/filter_A01_t04: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Queue/filter_A01_t05: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Queue/filter_A01_t06: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Queue/iterator_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Queue/iterator_A01_t02: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Queue/iterator_hasNext_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Queue/iterator_hasNext_A01_t02: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Queue/iterator_next_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Queue/iterator_next_A01_t02: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Queue/iterator_next_A02_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Queue/some_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Queue/some_A01_t02: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Queue/some_A01_t04: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Queue/some_A01_t05: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Queue/some_A01_t06: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Assertion_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Assertion_A02_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Assertion_A03_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Assertion_A04_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A03_t03: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A06_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Disjunction_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/RegExp/RegExp_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/RegExp/RegExp_A01_t02: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/RegExp/allMatches_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/RegExp/allMatches_A02_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/RegExp/firstMatch_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/RegExp/firstMatch_A03_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/RegExp/hasMatch_A01_t02: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/RegExp/hasMatch_A02_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/RegExp/ignoreCase_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/RegExp/multiLine_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/RegExp/pattern_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/RegExp/stringMatch_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/RegExp/stringMatch_A02_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Set/filter_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Set/filter_A01_t02: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Set/filter_A01_t03: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Set/some_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Set/some_A01_t02: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/Set/some_A01_t03: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/String/contains_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/String/contains_A01_t02: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/String/replaceAll_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/String/replaceFirst_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/String/split_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/core/String/split_A01_t02: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
 LibTest/core/StringBuffer/isEmpty_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/isolate/SendPort/call_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-LibTest/math/Random/nextDouble_A01_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
-
-Language/14_Types/4_Interface_Types_A08_t06: Fail # Moved collection classes from core to collection. co19 issue 371.
-LibTest/core/Expect/setEquals_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
-LibTest/core/Expect/setEquals_A01_t02: Fail # Moved collection classes from core to collection. co19 issue 371.
-LibTest/core/HashMap/HashMap.from_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
-LibTest/core/HashMap/HashMap.from_A02_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
-LibTest/core/HashMap/HashMap_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
-LibTest/core/HashSet/HashSet.from_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
-LibTest/core/HashSet/HashSet.from_A02_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
-LibTest/core/HashSet/HashSet_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
-LibTest/core/LinkedHashMap/LinkedHashMap.from_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
-LibTest/core/LinkedHashMap/LinkedHashMap.from_A02_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
-LibTest/core/LinkedHashMap/LinkedHashMap_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
-LibTest/core/LinkedHashMap/LinkedHashMap_A02_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
-LibTest/core/List/List.from_A02_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
-LibTest/core/List/addAll_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
-LibTest/core/Queue/Queue.from_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
-LibTest/core/Queue/Queue.from_A02_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
-LibTest/core/Queue/Queue_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
-LibTest/core/Queue/addAll_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
-LibTest/core/Queue/addAll_A01_t02: Fail # Moved collection classes from core to collection. co19 issue 371.
-LibTest/core/Queue/addAll_A02_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
-LibTest/core/Queue/addFirst_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
-LibTest/core/Queue/addFirst_A01_t02: Fail # Moved collection classes from core to collection. co19 issue 371.
-LibTest/core/Queue/addLast_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
-LibTest/core/Queue/addLast_A01_t02: Fail # Moved collection classes from core to collection. co19 issue 371.
-LibTest/core/Queue/add_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
-LibTest/core/Queue/add_A01_t02: Fail # Moved collection classes from core to collection. co19 issue 371.
-LibTest/core/Queue/clear_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
-LibTest/core/Queue/every_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
-LibTest/core/Queue/every_A01_t02: Fail # Moved collection classes from core to collection. co19 issue 371.
-LibTest/core/Queue/every_A01_t04: Fail # Moved collection classes from core to collection. co19 issue 371.
-LibTest/core/Queue/every_A01_t05: Fail # Moved collection classes from core to collection. co19 issue 371.
-LibTest/core/Queue/every_A01_t06: Fail # Moved collection classes from core to collection. co19 issue 371.
-LibTest/core/Queue/first_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
-LibTest/core/Queue/first_A02_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
-LibTest/core/Queue/forEach_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
-LibTest/core/Queue/forEach_A01_t02: Fail # Moved collection classes from core to collection. co19 issue 371.
-LibTest/core/Queue/forEach_A01_t05: Fail # Moved collection classes from core to collection. co19 issue 371.
-LibTest/core/Queue/forEach_A01_t04: Fail # Moved collection classes from core to collection. co19 issue 371.
-LibTest/core/Queue/isEmpty_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
-LibTest/core/Queue/last_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
-LibTest/core/Queue/last_A02_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
-LibTest/core/Queue/length_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
-LibTest/core/Queue/removeFirst_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
-LibTest/core/Queue/removeFirst_A02_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
-LibTest/core/Queue/removeLast_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
-LibTest/core/Queue/removeLast_A02_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
-LibTest/core/Set/Set.from_A01_t01: Fail # Moved collection classes from core to collection. co19 issue 371.
 
 LibTest/core/Date/compareTo_A03_t01: Fail # Comparable<T>.compareTo now statically accepts type T arguments.
 
@@ -481,12 +89,6 @@ LibTest/core/Strings/concatAll_A01_t01: Fail # Strings class has been removed. c
 LibTest/core/Strings/concatAll_A02_t01: Fail # Strings class has been removed. co19 issue 380
 LibTest/core/Strings/concatAll_A03_t01: Fail # Strings class has been removed. co19 issue 380
 LibTest/core/Strings/concatAll_A04_t01: Fail # Strings class has been removed. co19 issue 380
-
-LibTest/core/RegExp/RegExp_A01_t03: Fail # IllegalJSRegExpException has been removed. co19 issue 375.
-LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: Fail # IllegalJSRegExpException has been removed. co19 issue 375.
-LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t03: Fail # IllegalJSRegExpException has been removed. co19 issue 375.
-LibTest/core/IllegalJSRegExpException/toString_A01_t01: Fail # IllegalJSRegExpException has been removed. co19 issue 375.
-LibTest/core/IllegalJSRegExpException/IllegalJSRegExpException_A01_t01: Fail # IllegalJSRegExpException has been removed. co19 issue 375.
 
 LibTest/core/String/charCodeAt_A01_t01: Fail # Deprecated string members removed (issue 382).
 LibTest/core/String/charCodeAt_A02_t01: Fail # Deprecated string members removed (issue 382).
