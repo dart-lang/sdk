@@ -1870,6 +1870,7 @@ void FlowGraphOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
                                 new Value(type_args),
                                 type,
                                 dst_name);
+  assert_as->deopt_id_ = call->deopt_id();
   ReplaceCall(call, assert_as);
 }
 

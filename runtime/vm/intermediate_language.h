@@ -2815,11 +2815,6 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2> {
     SetInputAt(1, value);
   }
 
-  void SetDeoptId(intptr_t deopt_id) {
-    ASSERT(CanDeoptimize());
-    deopt_id_ = deopt_id;
-  }
-
   DECLARE_INSTRUCTION(StoreInstanceField)
   virtual CompileType* ComputeInitialType() const;
 

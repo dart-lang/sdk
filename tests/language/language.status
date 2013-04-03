@@ -321,9 +321,6 @@ import_combinators_test: Fail
 first_class_types_literals_test: Fail # issue 6282
 call_test: Fail # Issue 1604
 
-[ $runtime == vm && $checked && $mode == debug ]
-issue7525_test:Crash # Issue 7525.
-
 [ $runtime == chrome ]
 
 
