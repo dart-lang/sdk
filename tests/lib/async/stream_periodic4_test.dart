@@ -8,32 +8,43 @@ library dart.test.stream_from_iterable;
 import "dart:async";
 import '../../../pkg/unittest/lib/unittest.dart';
 
-watchMs(Stopwatch watch) {
-  int microsecs = watch.elapsedMicroseconds;
-  // Give it some slack. The Stopwatch is more precise than the timers. This
-  // means that we sometimes get 3995 microseconds instead of 4+ milliseconds.
-  // 200 microseconds should largely account for this discrepancy.
-  return (microsecs + 200) ~/ 1000;
+void runTest(period, maxElapsed, pauseDuration) {
+  Function done = expectAsync0(() { });
+
+  Stopwatch watch = new Stopwatch()..start();
+  Stream stream = new Stream.periodic(period, (x) => x);
+  var subscription;
+  subscription = stream.take(5).listen((i) {
+    if (watch.elapsed > maxElapsed) {
+      // Test failed in this configuration. Try with more time (or give up
+      // if we reached an unreasonable maxElapsed).
+      if (maxElapsed > const Duration(seconds: 2)) {
+        // Give up.
+        expect(true, false);
+      } else {
+        subscription.cancel();
+        // Call 'done' ourself, since it won't be invoked in the onDone handler.
+        runTest(period * 2, maxElapsed * 2, pauseDuration * 2);
+        done();
+        return;
+      }
+    }
+    watch.reset();
+    if (i == 2) {
+      subscription.pause();
+      watch.stop();
+      new Timer(pauseDuration, () {
+        watch.start();
+        subscription.resume();
+      });
+    }
+  }, onDone: done);
 }
 
 main() {
   test("stream-periodic4", () {
-    Stopwatch watch = new Stopwatch()..start();
-    Stream stream = new Stream.periodic(const Duration(milliseconds: 5),
-                                        (x) => x);
-    var subscription;
-    subscription = stream.take(10).listen((i) {
-      int ms = watchMs(watch);
-      expect(ms, lessThan(100));
-      watch.reset();
-      if (i == 2) {
-        subscription.pause();
-        watch.stop();
-        new Timer(const Duration(milliseconds: 150), () {
-          watch.start();
-          subscription.resume();
-        });
-      }
-    }, onDone: expectAsync0(() { }));
+    runTest(const Duration(milliseconds: 2),
+            const Duration(milliseconds: 8),
+            const Duration(milliseconds: 10));
   });
 }
