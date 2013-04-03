@@ -22,20 +22,13 @@ class TypeTest {
     int result = 0;
     try {
       var i = "hello" as int;  // Throws a CastError
-    } on TypeError catch (error) {
+    } on TypeError catch (error, stacktrace) {
       result = 1;
       Expect.isTrue(error is CastError);
       Expect.equals("int", error.dstType);
       Expect.equals("String", error.srcType);
       Expect.equals("type cast", error.dstName);
-      int pos = error.url.lastIndexOf("/", error.url.length);
-      if (pos == -1) {
-        pos = error.url.lastIndexOf("\\", error.url.length);
-      }
-      String subs = error.url.substring(pos + 1, error.url.length);
-      Expect.equals("dart:core-patch", subs);
-      Expect.equals(1880, error.line);
-      Expect.equals(1, error.column);
+      checkTopFunction("type_cast_vm_test.dart:24:23", stacktrace);
     }
     return result;
   }
@@ -64,20 +57,13 @@ class TypeTest {
     }
     try {
       int i = f("hello" as int);  // Throws a CastError
-    } on TypeError catch (error) {
+    } on TypeError catch (error, stacktrace) {
       result = 1;
       Expect.isTrue(error is CastError);
       Expect.equals("int", error.dstType);
       Expect.equals("String", error.srcType);
       Expect.equals("type cast", error.dstName);
-      int pos = error.url.lastIndexOf("/", error.url.length);
-      if (pos == -1) {
-        pos = error.url.lastIndexOf("\\", error.url.length);
-      }
-      String subs = error.url.substring(pos + 1, error.url.length);
-      Expect.equals("dart:core-patch", subs);
-      Expect.equals(1880, error.line);
-      Expect.equals(1, error.column);
+      checkTopFunction("type_cast_vm_test.dart:59:25", stacktrace);
     }
     return result;
   }
@@ -95,7 +81,7 @@ class TypeTest {
       Expect.equals("int", error.dstType);
       Expect.equals("String", error.srcType);
       Expect.equals("type cast", error.dstName);
-      checkTopFunction("type_cast_vm_test.dart:88:16", stacktrace);
+      checkTopFunction("type_cast_vm_test.dart:74:16", stacktrace);
     }
     return result;
   }
@@ -112,7 +98,7 @@ class TypeTest {
       Expect.equals("int", error.dstType);
       Expect.equals("String", error.srcType);
       Expect.equals("type cast", error.dstName);
-      checkTopFunction("type_cast_vm_test.dart:109:13", stacktrace);
+      checkTopFunction("type_cast_vm_test.dart:95:13", stacktrace);
     }
     return result;
   }
@@ -130,7 +116,7 @@ class TypeTest {
       Expect.equals("int", error.dstType);
       Expect.equals("() => dynamic", error.srcType);
       Expect.equals("type cast", error.dstName);
-      checkTopFunction("type_cast_vm_test.dart:127:17", stacktrace);
+      checkTopFunction("type_cast_vm_test.dart:113:17", stacktrace);
     }
     return result;
   }
