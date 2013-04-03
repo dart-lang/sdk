@@ -132,12 +132,44 @@ abstract class CryptoUtils {
   }
 
   /**
-   * Converts a list of bytes (for example a message digest) into a
-   * base64 encoded string optionally broken up in to lines of
-   * [lineLength] chars separated by '\r\n'.
+   * Converts a list of bytes into a Base 64 encoded string.
+   *
+   * The list can be any list of integers in the range 0..255,
+   * for example a message digest.
+   *
+   * If [addLineSeparator] is true, the resulting string will  be
+   * broken into lines of 76 characters, separated by "\r\n".
+   *
+   * If [urlSafe] is true, the result is URL and filename safe.
+   *
+   * If [usePadding] is false, No extra padding characters ('=') are
+   * appended to the output.
+   *
+   * Based on [RFC 4648](http://tools.ietf.org/html/rfc4648)
+   *
    */
-  static String bytesToBase64(List<int> bytes, [int lineLength]) {
-    return _CryptoUtils.bytesToBase64(bytes, lineLength);
+  static String bytesToBase64(List<int> bytes,
+                              {bool urlSafe : false,
+                               bool addLineSeparator : false}) {
+    return _CryptoUtils.bytesToBase64(bytes,
+                                      urlSafe,
+                                      addLineSeparator);
+  }
+
+
+  /**
+   * Converts a Base 64 encoded String into list of bytes.
+   *
+   * Decoder ignores "\r\n" sequences from input. By default it also ignores
+   * all illegal characters unless [ignoreInvalidCharacters] is false.
+   *
+   * Accepts both URL safe and unsafe Base 64 encoded strings.
+   *
+   * Based on [RFC 4648](http://tools.ietf.org/html/rfc4648)
+   */
+  static List<int> base64StringToBytes(String input,
+                                       {bool ignoreInvalidCharacters : true}) {
+    return _CryptoUtils.base64StringToBytes(input, ignoreInvalidCharacters);
   }
 }
 
