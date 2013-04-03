@@ -124,7 +124,7 @@ unittest/test/mock_test: Fail
 unittest/test/mock_regexp_negative_test: Fail
 
 [ $compiler == dart2js && $csp && $runtime == drt ]
-unittest/test/unittest_test: Fail, Crash # Bug in v8, http://dartbug.com/9407
+unittest/test/unittest_test: Pass, Fail, Crash # Bug in v8, http://dartbug.com/9407
 
 [ $compiler == none && $runtime == drt ]
 dartdoc/test/dartdoc_test: Skip # See dartbug.com/4541.
