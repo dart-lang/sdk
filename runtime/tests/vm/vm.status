@@ -74,6 +74,10 @@ cc/Dart2JSCompileAll: Skip
 cc/FrameLookup: Skip
 cc/IcDataAccess: Skip
 cc/UseDartApi: Skip
+
+[ $arch == simmips && $system == macos ]
+cc/CallLeafRuntimeStubCode: Crash  # Fails on Mac OS X
+
 # Tests needing Dart execution.
 dart/*: Skip
 

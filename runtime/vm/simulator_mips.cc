@@ -536,6 +536,7 @@ Simulator::Simulator() {
   delay_slot_ = false;
   break_pc_ = NULL;
   break_instr_ = 0;
+  last_setjmp_buffer_ = NULL;
 
   // Setup architecture state.
   // All registers are initialized to zero to start with.
@@ -546,10 +547,16 @@ Simulator::Simulator() {
   // The sp is initialized to point to the bottom (high address) of the
   // allocated stack area.
   registers_[SP] = StackTop();
+
+  // All double-precision registers are initialized to zero.
+  for (int i = 0; i < kNumberOfFRegisters; i++) {
+    fregisters_[i] = 0.0;
+  }
 }
 
 
 Simulator::~Simulator() {
+  delete[] stack_;
   Isolate* isolate = Isolate::Current();
   if (isolate != NULL) {
     isolate->set_simulator(NULL);
@@ -1261,6 +1268,12 @@ void Simulator::DecodeRegImm(Instr* instr) {
 
 
 void Simulator::InstructionDecode(Instr* instr) {
+  if (FLAG_trace_sim) {
+    const uword start = reinterpret_cast<uword>(instr);
+    const uword end = start + Instr::kInstrSize;
+    Disassembler::Disassemble(start, end);
+  }
+
   switch (instr->OpcodeField()) {
     case SPECIAL: {
       DecodeSpecial(instr);
