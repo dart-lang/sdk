@@ -68,24 +68,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
       codegen.visitGraph(graph);
 
       FunctionElement element = work.element;
-      js.Block body;
-      ClassElement enclosingClass = element.getEnclosingClass();
-
-      if (element.isInstanceMember()
-          && enclosingClass.isNative()
-          && native.isOverriddenMethod(
-              element, enclosingClass, nativeEmitter)) {
-        // Record that this method is overridden. In case of optional
-        // arguments, the emitter will generate stubs to handle them,
-        // and needs to know if the method is overridden.
-        nativeEmitter.overriddenMethods.add(element);
-        body = nativeEmitter.generateMethodBodyWithPrototypeCheckForElement(
-                  element, codegen.body, codegen.parameters);
-      } else {
-        body = codegen.body;
-      }
-
-      return buildJavaScriptFunction(element, codegen.parameters, body);
+      return buildJavaScriptFunction(element, codegen.parameters, codegen.body);
     });
   }
 
@@ -1500,6 +1483,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     use(node.receiver);
     List<js.Expression> arguments = <js.Expression>[pop()];
     push(jsPropertyCall(isolate, name, arguments), node);
+    backend.registerUseInterceptor(world);
   }
 
   visitInvokeDynamicMethod(HInvokeDynamicMethod node) {
@@ -1559,6 +1543,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     } else {
       registerMethodInvoke(node);
     }
+    backend.registerUseInterceptor(world);
   }
 
   Selector getOptimizedSelectorFor(HInvokeDynamic node, Selector selector) {
@@ -2227,6 +2212,36 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     world.registerIsCheck(type, work.resolutionTree);
     Element element = type.element;
     use(input);
+
+    // Hack in interceptor.  Ideally the interceptor would occur at the
+    // instruction level to allow optimizations, and checks would be broken into
+    // several smaller tests.
+    String interceptorName =
+        backend.namer.getName(backend.getInterceptorMethod);
+
+    var isolate = new js.VariableUse(backend.namer.CURRENT_ISOLATE);
+    List<js.Expression> arguments = <js.Expression>[pop()];
+    push(jsPropertyCall(isolate, interceptorName, arguments));
+    backend.registerUseInterceptor(world);
+
+    // TODO(9586): If a static function can have the type, the type info is
+    // sitting on the function.  So generate:
+    //
+    //   (typeof x == "function" ? x : getInterceptor(x)).$isFoo
+    //
+    if (type.unalias(compiler) is FunctionType) {
+      js.Expression whenNotFunction = pop();
+      use(input);
+      js.Expression whenFunction = pop();
+      use(input);
+      push(new js.Conditional(
+          new js.Binary('==',
+              new js.Prefix("typeof", pop()),
+              js.string('function')),
+          whenFunction,
+          whenNotFunction));
+    }
+
     js.PropertyAccess field =
         new js.PropertyAccess.field(pop(), backend.namer.operatorIs(element));
     if (backend.emitter.nativeEmitter.requiresNativeIsCheck(element)) {
@@ -2238,6 +2253,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // If the result is not negated, put another '!' in front.
       if (!negative) push(new js.Prefix('!', pop()));
     }
+
   }
 
   void handleNumberOrStringSupertypeCheck(HInstruction input, DartType type) {

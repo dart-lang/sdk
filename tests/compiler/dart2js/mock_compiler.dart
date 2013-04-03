@@ -123,7 +123,8 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
   }
   class ObjectInterceptor {
   }
-  getInterceptor(x) {}''';
+  getInterceptor(x) {}
+  getNativeInterceptor(x) {}''';
 
 const String DEFAULT_CORELIB = r'''
   print(var obj) {}
