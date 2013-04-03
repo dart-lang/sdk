@@ -11,7 +11,7 @@ $!MEMBERS
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @Experimental
-  WebGLRenderingContext getContext3d({alpha: true, depth: true, stencil: false,
+  gl.RenderingContext getContext3d({alpha: true, depth: true, stencil: false,
     antialias: true, premultipliedAlpha: true, preserveDrawingBuffer: false}) {
 
     var options = {

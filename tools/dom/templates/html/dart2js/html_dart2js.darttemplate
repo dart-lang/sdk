@@ -20,6 +20,7 @@ import 'dart:web_sql';
 // Not actually used, but imported since dart:html can generate these objects.
 import 'dart:svg' as svg;
 import 'dart:web_audio' as web_audio;
+import 'dart:web_gl' as gl;
 import 'dart:_js_helper' show convertDartClosureToJS, Creates, JavaScriptIndexingBehavior, JSName, Null, Returns;
 import 'dart:_isolate_helper' show IsolateNatives;
 import 'dart:_foreign_helper' show JS;

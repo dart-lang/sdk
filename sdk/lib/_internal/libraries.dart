@@ -106,6 +106,11 @@ const Map<String, LibraryInfo> LIBRARIES = const {
         category: "Client",
         dart2jsPath: "web_audio/dart2js/web_audio_dart2js.dart"),
 
+  "web_gl": const LibraryInfo(
+        "web_gl/dartium/web_gl_dartium.dart",
+        category: "Client",
+        dart2jsPath: "web_gl/dart2js/web_gl_dart2js.dart"),
+
   "web_sql": const LibraryInfo(
         "web_sql/dartium/web_sql_dartium.dart",
         category: "Client",

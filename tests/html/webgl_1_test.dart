@@ -6,52 +6,54 @@ library web_gl_test;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_individual_config.dart';
 import 'dart:html';
+import 'dart:web_gl';
+import 'dart:web_gl' as gl;
 
-// Test that WebGL is present in dart:html API
+// Test that WebGL is present in dart:web_gl API
 
 main() {
   useHtmlIndividualConfiguration();
 
   group('supported', () {
     test('supported', () {
-      expect(WebGLRenderingContext.supported, isTrue);
+      expect(RenderingContext.supported, isTrue);
     });
   });
 
   group('functional', () {
     test('unsupported fails', () {
       var canvas = new CanvasElement();
-      var gl = canvas.getContext3d();
-      if (WebGLRenderingContext.supported) {
-        expect(gl, isNotNull);
-        expect(gl, new isInstanceOf<WebGLRenderingContext>());
+      var context = canvas.getContext3d();
+      if (RenderingContext.supported) {
+        expect(context, isNotNull);
+        expect(context, new isInstanceOf<RenderingContext>());
       } else {
-        expect(gl, isNull);
+        expect(context, isNull);
       }
     });
 
-    if (WebGLRenderingContext.supported) {
+    if (RenderingContext.supported) {
       test('simple', () {
         var canvas = new CanvasElement();
-        var gl = canvas.getContext('experimental-webgl');
-        var shader = gl.createShader(WebGLRenderingContext.VERTEX_SHADER);
-        gl.shaderSource(shader, 'void main() { }');
-        gl.compileShader(shader);
-        var success =
-            gl.getShaderParameter(shader, WebGLRenderingContext.COMPILE_STATUS);
+        var context = canvas.getContext('experimental-webgl');
+        var shader = context.createShader(gl.VERTEX_SHADER);
+        context.shaderSource(shader, 'void main() { }');
+        context.compileShader(shader);
+        var success = context.getShaderParameter(shader, gl.COMPILE_STATUS);
         expect(success, isTrue);
       });
 
       test('getContext3d', () {
         var canvas = new CanvasElement();
-        var gl = canvas.getContext3d();
-        expect(gl, isNotNull);
-        expect(gl, new isInstanceOf<WebGLRenderingContext>());
+        var context = canvas.getContext3d();
+        expect(context, isNotNull);
+        expect(context, new isInstanceOf<RenderingContext>());
 
-        gl = canvas.getContext3d(depth: false);
-        expect(gl, isNotNull);
-        expect(gl, new isInstanceOf<WebGLRenderingContext>());
+        context = canvas.getContext3d(depth: false);
+        expect(context, isNotNull);
+        expect(context, new isInstanceOf<RenderingContext>());
       });
     }
   });
 }
+
