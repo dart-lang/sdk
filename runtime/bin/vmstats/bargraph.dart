@@ -16,6 +16,7 @@ class BarGraph {
   static const int LEGEND_WIDTH = 130;
   static const int LEGEND_Y = 20;
   static const int INSIDE_MARGIN = 2;
+  static const int LINE_WIDTH = 2;
 
   static const int NUM_DIVIDERS = 5;
   static const String FONT = "14px sans-serif";
@@ -49,7 +50,7 @@ class BarGraph {
     var x = _canvas.width - LEGEND_WIDTH;
     var y = LEGEND_Y;
     context.font = FONT;
-    for (var i = 0; i < _elements.length; i++) {
+    for (var i = _elements.length - 1; i >= 0; i--) {
       context.fillStyle = _elements[i].color;
       context.fillRect(x, y, 20, 20);
       context.fillStyle = 'black';
@@ -81,6 +82,7 @@ class BarGraph {
     var scaledY = dividerHeight * scale;
 
     // Draw the vertical axis values and lines.
+    context.clearRect(0, 0, LEFT_MARGIN - INSIDE_MARGIN, maxHeight);
     for (var i = 1; i < NUM_DIVIDERS; i++) {
       height -= (dividerHeight ~/ 100) * 100;
       context.font = FONT;
@@ -88,7 +90,7 @@ class BarGraph {
       context.textAlign = 'right';
       context.textBaseline = 'middle';
       context.fillText(height.toString(), LEFT_MARGIN - 10, scaledY);
-      context.moveTo(LEFT_MARGIN - 2, scaledY);
+      context.moveTo(LEFT_MARGIN - INSIDE_MARGIN, scaledY);
       context.strokeStyle = 'grey';
       context.lineWidth = 0.5;
       context.lineTo(_canvas.width - RIGHT_MARGIN, scaledY);
@@ -100,6 +102,10 @@ class BarGraph {
   void drawValues(int maxHeight, num scale) {
     Iterator<Sample> iterator = _model.iterator;
     var x = LEFT_MARGIN + INSIDE_MARGIN;
+    var y = INSIDE_MARGIN;
+    var w = _canvas.width - LEFT_MARGIN - RIGHT_MARGIN - INSIDE_MARGIN;
+    var h = (maxHeight * scale).ceil() - (2 * INSIDE_MARGIN);
+    _canvas.context2d.clearRect(x, y, w, h);
 
     while (iterator.moveNext()) {
       Sample s = iterator.current;
@@ -136,11 +142,7 @@ class BarGraph {
     if (y < INSIDE_MARGIN) {
       y = INSIDE_MARGIN;
     }
-    var max = _canvas.width - INSIDE_MARGIN;
-    if ((x + w) > max) {
-      w = max - x;
-    }
-    max = _canvas.height - INSIDE_MARGIN;
+    var max = _canvas.height - INSIDE_MARGIN;
     if ((y + h) > max) {
       h = max - y;
     }
