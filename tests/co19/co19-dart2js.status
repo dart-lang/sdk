@@ -157,17 +157,20 @@ LibTest/math/pow_A13_t01: Fail # TODO(ahe): Please triage this failure.
 
 
 [ $compiler == dart2js && $runtime == jsshell ]
-Language/11_Expressions/12_Spawning_an_Isolate_A01_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/isolate/SendPort/send_A02_t05: Fail # TODO(ahe): Please triage this failure.
-LibTest/isolate/SendPort/send_A02_t06: Fail # TODO(ahe): Please triage this failure.
-LibTest/isolate/isolate_api/spawnFunction_A01_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/isolate/isolate_api/spawnFunction_A01_t02: Fail # TODO(ahe): Please triage this failure.
-LibTest/isolate/isolate_api/spawnFunction_A01_t03: Fail # TODO(ahe): Please triage this failure.
-LibTest/isolate/isolate_api/spawnFunction_A01_t04: Fail # TODO(ahe): Please triage this failure.
-LibTest/isolate/isolate_api/spawnFunction_A01_t05: Fail # TODO(ahe): Please triage this failure.
-LibTest/isolate/isolate_api/spawnFunction_A03_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/isolate/isolate_api/spawnUri_A02_t02: Fail # TODO(ahe): Please triage this failure.
-LibTest/isolate/isolate_api/spawnUri_A02_t03: Fail # TODO(ahe): Please triage this failure.
+Language/11_Expressions/12_Spawning_an_Isolate_A01_t01: Fail, Pass # TODO(ahe): Please triage this failure.
+LibTest/isolate/SendPort/send_A02_t05: Fail, Pass # TODO(ahe): Please triage this failure.
+LibTest/isolate/SendPort/send_A02_t06: Fail, Pass # TODO(ahe): Please triage this failure.
+LibTest/isolate/isolate_api/spawnFunction_A01_t01: Fail, Pass # TODO(ahe): Please triage this failure.
+LibTest/isolate/isolate_api/spawnFunction_A01_t02: Fail, Pass # TODO(ahe): Please triage this failure.
+LibTest/isolate/isolate_api/spawnFunction_A01_t03: Fail, Pass # TODO(ahe): Please triage this failure.
+LibTest/isolate/isolate_api/spawnFunction_A01_t04: Fail, Pass # TODO(ahe): Please triage this failure.
+LibTest/isolate/isolate_api/spawnFunction_A01_t05: Fail, Pass # TODO(ahe): Please triage this failure.
+LibTest/isolate/isolate_api/spawnFunction_A03_t01: Fail, Pass # TODO(ahe): Please triage this failure.
+LibTest/isolate/isolate_api/spawnUri_A02_t02: Fail, Pass # TODO(ahe): Please triage this failure.
+LibTest/isolate/isolate_api/spawnUri_A02_t03: Fail, Pass # TODO(ahe): Please triage this failure.
+
+
+[ $compiler == dart2js && $runtime == jsshell && $system == macos ]
 LibTest/math/cos_A01_t01: Fail # TODO(ahe): Please triage this failure.
 
 
@@ -476,6 +479,16 @@ LibTest/core/List/getRange_A02_t01: Fail # issue 391
 LibTest/core/Set/intersection_A01_t01: Fail # issue 390
 LibTest/core/Set/intersection_A01_t02: Fail # issue 390
 LibTest/core/Set/intersection_A01_t03: Fail # issue 390
+
+# Issues with co19 test suite in browsers.
+[ $compiler == dart2js && $browser ]
+Language/15_Reference/1_Lexical_Rules_A01_t10: Fail, OK # co19 issue 395
+
+# Issues with co19 test suite in minified mode.
+[ $compiler == dart2js && $minified ]
+Language/11_Expressions/18_Assignment_A05_t04: Fail, OK # co19 issue 396
+Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A01_t02: Fail, OK # co19 issue 396
+
 
 [ $compiler == dart2js && $jscl ]
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail, Pass # issue 3333

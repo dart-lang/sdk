@@ -2,8 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $compiler == none && $runtime == vm && $mode == debug ]
-Language/11_Expressions/33_Argument_Definition_Test_A02_t02: Crash # http://dartbug.com/9597
+
+[ $runtime == vm ]
+Language/11_Expressions/33_Argument_Definition_Test_A02_t02: Crash, Pass # http://dartbug.com/9597
 
 
 [ $compiler == none && $runtime == vm && $unchecked ]
