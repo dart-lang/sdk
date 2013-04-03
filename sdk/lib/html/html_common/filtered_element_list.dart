@@ -61,10 +61,6 @@ class FilteredElementList implements List {
     }
   }
 
-  void addLast(Element value) {
-    add(value);
-  }
-
   bool contains(Element element) {
     return element is Element && _childNodes.contains(element);
   }

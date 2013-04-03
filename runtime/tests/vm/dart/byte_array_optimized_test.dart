@@ -30,8 +30,6 @@ class OptimizedByteArrayTest {
                   (e) { return e is UnsupportedError; });
     Expect.throws(() { array.addAll([0]); },
                   (e) { return e is UnsupportedError; });
-    Expect.throws(() { array.addLast(0); },
-                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.clear(); },
                   (e) { return e is UnsupportedError; });
     Expect.throws(() { array.insertRange(0, array.length, 0); },
@@ -117,8 +115,6 @@ class OptimizedByteArrayTest {
                   (e) { return e is UnsupportedError; });
     Expect.throws(() { array.addAll([0]); },
                   (e) { return e is UnsupportedError; });
-    Expect.throws(() { array.addLast(0); },
-                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.clear(); },
                   (e) { return e is UnsupportedError; });
     Expect.throws(() { array.insertRange(0, array.length, 0); },
@@ -192,8 +188,6 @@ class OptimizedByteArrayTest {
     Expect.throws(() { array.add(0); },
                   (e) { return e is UnsupportedError; });
     Expect.throws(() { array.addAll([0]); },
-                  (e) { return e is UnsupportedError; });
-    Expect.throws(() { array.addLast(0); },
                   (e) { return e is UnsupportedError; });
     Expect.throws(() { array.clear(); },
                   (e) { return e is UnsupportedError; });
@@ -281,8 +275,6 @@ class OptimizedByteArrayTest {
                   (e) { return e is UnsupportedError; });
     Expect.throws(() { array.addAll([0]); },
                   (e) { return e is UnsupportedError; });
-    Expect.throws(() { array.addLast(0); },
-                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.clear(); },
                   (e) { return e is UnsupportedError; });
     Expect.throws(() { array.insertRange(0, array.length, 0); },
@@ -356,8 +348,6 @@ class OptimizedByteArrayTest {
     Expect.throws(() { array.add(0); },
                   (e) { return e is UnsupportedError; });
     Expect.throws(() { array.addAll([0]); },
-                  (e) { return e is UnsupportedError; });
-    Expect.throws(() { array.addLast(0); },
                   (e) { return e is UnsupportedError; });
     Expect.throws(() { array.clear(); },
                   (e) { return e is UnsupportedError; });
@@ -451,8 +441,6 @@ class OptimizedByteArrayTest {
                   (e) { return e is UnsupportedError; });
     Expect.throws(() { array.addAll([0]); },
                   (e) { return e is UnsupportedError; });
-    Expect.throws(() { array.addLast(0); },
-                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.clear(); },
                   (e) { return e is UnsupportedError; });
     Expect.throws(() { array.insertRange(0, array.length, 0); },
@@ -532,8 +520,6 @@ class OptimizedByteArrayTest {
     Expect.throws(() { array.add(0); },
                   (e) { return e is UnsupportedError; });
     Expect.throws(() { array.addAll([0]); },
-                  (e) { return e is UnsupportedError; });
-    Expect.throws(() { array.addLast(0); },
                   (e) { return e is UnsupportedError; });
     Expect.throws(() { array.clear(); },
                   (e) { return e is UnsupportedError; });
@@ -628,8 +614,6 @@ class OptimizedByteArrayTest {
                   (e) { return e is UnsupportedError; });
     Expect.throws(() { array.addAll([0]); },
                   (e) { return e is UnsupportedError; });
-    Expect.throws(() { array.addLast(0); },
-                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.clear(); },
                   (e) { return e is UnsupportedError; });
     Expect.throws(() { array.insertRange(0, array.length, 0); },
@@ -707,8 +691,6 @@ class OptimizedByteArrayTest {
                   (e) { return e is UnsupportedError; });
     Expect.throws(() { array.addAll([0]); },
                   (e) { return e is UnsupportedError; });
-    Expect.throws(() { array.addLast(0.0); },
-                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.clear(); },
                   (e) { return e is UnsupportedError; });
     Expect.throws(() { array.insertRange(0, array.length, 0.0); },
@@ -772,8 +754,6 @@ class OptimizedByteArrayTest {
     Expect.throws(() { array.add(0.0); },
                   (e) { return e is UnsupportedError; });
     Expect.throws(() { array.addAll([0]); },
-                  (e) { return e is UnsupportedError; });
-    Expect.throws(() { array.addLast(0.0); },
                   (e) { return e is UnsupportedError; });
     Expect.throws(() { array.clear(); },
                   (e) { return e is UnsupportedError; });
@@ -868,8 +848,6 @@ class OptimizedByteArrayTest {
     Expect.throws(() { view.add(0); },
                   (e) { return e is UnsupportedError; });
     Expect.throws(() { view.addAll([0]); },
-                  (e) { return e is UnsupportedError; });
-    Expect.throws(() { view.addLast(0); },
                   (e) { return e is UnsupportedError; });
     Expect.throws(() { view.clear(); },
                   (e) { return e is UnsupportedError; });
@@ -1000,8 +978,6 @@ class OptimizedByteArrayTest {
                   (e) { return e is UnsupportedError; });
     Expect.throws(() { view.addAll([0]); },
                   (e) { return e is UnsupportedError; });
-    Expect.throws(() { view.addLast(0); },
-                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.clear(); },
                   (e) { return e is UnsupportedError; });
     Expect.throws(() { view.insertRange(0, view.length, 0); },
@@ -1110,8 +1086,6 @@ class OptimizedByteArrayTest {
     Expect.throws(() { view.add(0); },
                   (e) { return e is UnsupportedError; });
     Expect.throws(() { view.addAll([0]); },
-                  (e) { return e is UnsupportedError; });
-    Expect.throws(() { view.addLast(0); },
                   (e) { return e is UnsupportedError; });
     Expect.throws(() { view.clear(); },
                   (e) { return e is UnsupportedError; });
@@ -1250,8 +1224,6 @@ class OptimizedByteArrayTest {
                   (e) { return e is UnsupportedError; });
     Expect.throws(() { view.addAll([0]); },
                   (e) { return e is UnsupportedError; });
-    Expect.throws(() { view.addLast(0); },
-                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.clear(); },
                   (e) { return e is UnsupportedError; });
     Expect.throws(() { view.insertRange(0, view.length, 0); },
@@ -1366,8 +1338,6 @@ class OptimizedByteArrayTest {
     Expect.throws(() { view.add(0); },
                   (e) { return e is UnsupportedError; });
     Expect.throws(() { view.addAll([0]); },
-                  (e) { return e is UnsupportedError; });
-    Expect.throws(() { view.addLast(0); },
                   (e) { return e is UnsupportedError; });
     Expect.throws(() { view.clear(); },
                   (e) { return e is UnsupportedError; });
@@ -1525,8 +1495,6 @@ class OptimizedByteArrayTest {
                   (e) { return e is UnsupportedError; });
     Expect.throws(() { view.addAll([0]); },
                   (e) { return e is UnsupportedError; });
-    Expect.throws(() { view.addLast(0); },
-                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.clear(); },
                   (e) { return e is UnsupportedError; });
     Expect.throws(() { view.insertRange(0, view.length, 0); },
@@ -1657,8 +1625,6 @@ class OptimizedByteArrayTest {
     Expect.throws(() { view.add(0); },
                   (e) { return e is UnsupportedError; });
     Expect.throws(() { view.addAll([0]); },
-                  (e) { return e is UnsupportedError; });
-    Expect.throws(() { view.addLast(0); },
                   (e) { return e is UnsupportedError; });
     Expect.throws(() { view.clear(); },
                   (e) { return e is UnsupportedError; });
@@ -1861,8 +1827,6 @@ class OptimizedByteArrayTest {
                   (e) { return e is UnsupportedError; });
     Expect.throws(() { view.addAll([0]); },
                   (e) { return e is UnsupportedError; });
-    Expect.throws(() { view.addLast(0); },
-                  (e) { return e is UnsupportedError; });
     Expect.throws(() { view.clear(); },
                   (e) { return e is UnsupportedError; });
     Expect.throws(() { view.insertRange(0, view.length, 0); },
@@ -2019,8 +1983,6 @@ class OptimizedByteArrayTest {
                   (e) { return e is UnsupportedError; });
     Expect.throws(() { array.addAll([0]); },
                   (e) { return e is UnsupportedError; });
-    Expect.throws(() { array.addLast(0.0); },
-                  (e) { return e is UnsupportedError; });
     Expect.throws(() { array.clear(); },
                   (e) { return e is UnsupportedError; });
     Expect.throws(() { array.insertRange(0, array.length, 0.0); },
@@ -2125,8 +2087,6 @@ class OptimizedByteArrayTest {
     Expect.throws(() { array.add(0.0); },
                   (e) { return e is UnsupportedError; });
     Expect.throws(() { array.addAll([0]); },
-                  (e) { return e is UnsupportedError; });
-    Expect.throws(() { array.addLast(0.0); },
                   (e) { return e is UnsupportedError; });
     Expect.throws(() { array.clear(); },
                   (e) { return e is UnsupportedError; });

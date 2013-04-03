@@ -328,10 +328,6 @@ class SqlResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(Map value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
   void addAll(Iterable<Map> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }

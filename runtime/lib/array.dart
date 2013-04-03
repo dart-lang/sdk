@@ -194,10 +194,6 @@ class _ObjectArray<E> implements List<E> {
         "Cannot add to a non-extendable array");
   }
 
-  void addLast(E element) {
-    add(element);
-  }
-
   void addAll(Iterable<E> iterable) {
     throw new UnsupportedError(
         "Cannot add to a non-extendable array");
@@ -444,10 +440,6 @@ class _ImmutableArray<E> implements List<E> {
   void add(E element) {
     throw new UnsupportedError(
         "Cannot add to an immutable array");
-  }
-
-  void addLast(E element) {
-    add(element);
   }
 
   void addAll(Iterable<E> elements) {

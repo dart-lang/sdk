@@ -137,8 +137,6 @@ class _ChildrenElementList implements List {
     return value;
   }
 
-  Element addLast(Element value) => add(value);
-
   Iterator<Element> get iterator => toList().iterator;
 
   void addAll(Iterable<Element> iterable) {
@@ -388,10 +386,6 @@ class _FrozenElementList implements List {
   }
 
   void add(Element value) {
-    throw new UnsupportedError('');
-  }
-
-  void addLast(Element value) {
     throw new UnsupportedError('');
   }
 

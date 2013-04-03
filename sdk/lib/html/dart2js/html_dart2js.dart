@@ -7390,10 +7390,6 @@ class DomMimeTypeArray implements JavaScriptIndexingBehavior, List<DomMimeType> 
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(DomMimeType value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
   void addAll(Iterable<DomMimeType> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -7655,10 +7651,6 @@ class DomPluginArray implements JavaScriptIndexingBehavior, List<DomPlugin> nati
   // From Collection<DomPlugin>:
 
   void add(DomPlugin value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(DomPlugin value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
@@ -8033,10 +8025,6 @@ class DomStringList implements JavaScriptIndexingBehavior, List<String> native "
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(String value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
   void addAll(Iterable<String> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -8328,8 +8316,6 @@ class _ChildrenElementList implements List {
     return value;
   }
 
-  Element addLast(Element value) => add(value);
-
   Iterator<Element> get iterator => toList().iterator;
 
   void addAll(Iterable<Element> iterable) {
@@ -8579,10 +8565,6 @@ class _FrozenElementList implements List {
   }
 
   void add(Element value) {
-    throw new UnsupportedError('');
-  }
-
-  void addLast(Element value) {
     throw new UnsupportedError('');
   }
 
@@ -10996,10 +10978,6 @@ class FileList implements JavaScriptIndexingBehavior, List<File> native "*FileLi
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(File value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
   void addAll(Iterable<File> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -11569,10 +11547,6 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(num value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
   void addAll(Iterable<num> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -11798,10 +11772,6 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
   // From Collection<num>:
 
   void add(num value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(num value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
@@ -12453,10 +12423,6 @@ class HtmlAllCollection implements JavaScriptIndexingBehavior, List<Node> native
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(Node value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
   void addAll(Iterable<Node> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -12671,10 +12637,6 @@ class HtmlCollection implements JavaScriptIndexingBehavior, List<Node> native "*
   // From Collection<Node>:
 
   void add(Node value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(Node value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
@@ -14718,10 +14680,6 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(int value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
   void addAll(Iterable<int> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -14950,10 +14908,6 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(int value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
   void addAll(Iterable<int> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -15179,10 +15133,6 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
   // From Collection<int>:
 
   void add(int value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(int value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
@@ -17616,11 +17566,6 @@ class _ChildNodeListLazy implements List {
     _this.append(value);
   }
 
-  void addLast(Node value) {
-    _this.append(value);
-  }
-
-
   void addAll(Iterable<Node> iterable) {
     if (iterable is _ChildNodeListLazy) {
       if (!identical(iterable._this, _this)) {
@@ -18264,10 +18209,6 @@ class NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeLi
   // From Collection<Node>:
 
   void add(Node value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(Node value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
@@ -20591,10 +20532,6 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(SourceBuffer value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
   void addAll(Iterable<SourceBuffer> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -20882,10 +20819,6 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
   // From Collection<SpeechGrammar>:
 
   void add(SpeechGrammar value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(SpeechGrammar value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
@@ -22329,10 +22262,6 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(TextTrackCue value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
   void addAll(Iterable<TextTrackCue> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -22545,10 +22474,6 @@ class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, L
   // From Collection<TextTrack>:
 
   void add(TextTrack value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(TextTrack value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
@@ -22990,10 +22915,6 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
   // From Collection<Touch>:
 
   void add(Touch value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(Touch value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
@@ -23475,10 +23396,6 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(int value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
   void addAll(Iterable<int> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -23704,10 +23621,6 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
   // From Collection<int>:
 
   void add(int value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(int value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
@@ -23939,10 +23852,6 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(int value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
   void addAll(Iterable<int> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -24165,10 +24074,6 @@ class Uint8ClampedArray extends Uint8Array implements JavaScriptIndexingBehavior
   // From Collection<int>:
 
   void add(int value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(int value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
@@ -26689,10 +26594,6 @@ class _ClientRectList implements JavaScriptIndexingBehavior, List<Rect> native "
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(Rect value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
   void addAll(Iterable<Rect> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -26897,10 +26798,6 @@ class _CssRuleList implements JavaScriptIndexingBehavior, List<CssRule> native "
   // From Collection<CssRule>:
 
   void add(CssRule value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(CssRule value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
@@ -27111,10 +27008,6 @@ class _CssValueList extends CssValue implements List<CssValue>, JavaScriptIndexi
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(CssValue value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
   void addAll(Iterable<CssValue> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -27319,10 +27212,6 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*En
   // From Collection<Entry>:
 
   void add(Entry value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(Entry value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
@@ -27533,10 +27422,6 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> nat
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(EntrySync value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
   void addAll(Iterable<EntrySync> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -27741,10 +27626,6 @@ class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "
   // From Collection<Gamepad>:
 
   void add(Gamepad value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(Gamepad value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
@@ -28018,10 +27899,6 @@ class _NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*N
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(Node value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
   void addAll(Iterable<Node> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -28253,10 +28130,6 @@ class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechI
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(SpeechInputResult value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
   void addAll(Iterable<SpeechInputResult> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -28464,10 +28337,6 @@ class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<S
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(SpeechRecognitionResult value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
   void addAll(Iterable<SpeechRecognitionResult> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -28672,10 +28541,6 @@ class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> na
   // From Collection<StyleSheet>:
 
   void add(StyleSheet value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(StyleSheet value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
@@ -31814,8 +31679,6 @@ class _WrappedList<E> implements List<E> {
   void operator []=(int index, E value) { _list[index] = value; }
 
   void set length(int newLength) { _list.length = newLength; }
-
-  void addLast(E value) { _list.add(value); }
 
   Iterable<E> get reversed => _list.reversed;
 

@@ -3134,10 +3134,6 @@ class LengthList implements JavaScriptIndexingBehavior, List<Length> native "*SV
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(Length value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
   void addAll(Iterable<Length> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -3769,10 +3765,6 @@ class NumberList implements JavaScriptIndexingBehavior, List<Number> native "*SV
   // From Collection<Number>:
 
   void add(Number value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(Number value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
@@ -4686,10 +4678,6 @@ class PathSegList implements JavaScriptIndexingBehavior, List<PathSeg> native "*
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(PathSeg value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
   void addAll(Iterable<PathSeg> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -5582,10 +5570,6 @@ class StringList implements JavaScriptIndexingBehavior, List<String> native "*SV
   // From Collection<String>:
 
   void add(String value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(String value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
@@ -6761,10 +6745,6 @@ class TransformList implements List<Transform>, JavaScriptIndexingBehavior nativ
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(Transform value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
   void addAll(Iterable<Transform> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -7289,10 +7269,6 @@ class _ElementInstanceList implements JavaScriptIndexingBehavior, List<ElementIn
   // From Collection<ElementInstance>:
 
   void add(ElementInstance value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(ElementInstance value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 

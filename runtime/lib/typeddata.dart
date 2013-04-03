@@ -377,11 +377,6 @@ abstract class _TypedListBase {
         "Cannot add to a non-extendable array");
   }
 
-  void addLast(value) {
-    throw new UnsupportedError(
-        "Cannot add to a non-extendable array");
-  }
-
   void addAll(Iterable value) {
     throw new UnsupportedError(
         "Cannot add to a non-extendable array");

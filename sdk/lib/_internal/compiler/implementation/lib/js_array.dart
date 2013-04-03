@@ -84,11 +84,6 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     }
   }
 
-  void addLast(E value) {
-    checkGrowable(this, 'addLast');
-    JS('void', r'#.push(#)', this, value);
-  }
-
   void clear() {
     length = 0;
   }

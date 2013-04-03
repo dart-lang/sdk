@@ -459,11 +459,6 @@ abstract class FixedLengthListMixin<E>  {
         "Cannot add to a fixed-length list");
   }
 
-  void addLast(E value) {
-    throw new UnsupportedError(
-        "Cannot add to a fixed-length list");
-  }
-
   void insert(int index, E value) {
     throw new UnsupportedError(
         "Cannot add to a fixed-length list");
@@ -545,11 +540,6 @@ abstract class UnmodifiableListMixin<E> {
   }
 
   void add(E value) {
-    throw new UnsupportedError(
-        "Cannot add to an unmodifiable list");
-  }
-
-  void addLast(E value) {
     throw new UnsupportedError(
         "Cannot add to an unmodifiable list");
   }

@@ -99,8 +99,6 @@ class _WrappedList<E> implements List<E> {
 
   void set length(int newLength) { _list.length = newLength; }
 
-  void addLast(E value) { _list.add(value); }
-
   Iterable<E> get reversed => _list.reversed;
 
   void sort([int compare(E a, E b)]) { _list.sort(compare); }

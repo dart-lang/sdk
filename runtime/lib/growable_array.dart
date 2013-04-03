@@ -178,10 +178,6 @@ class _GrowableObjectArray<T> implements List<T> {
     this[len] = value;
   }
 
-  void addLast(T element) {
-    add(element);
-  }
-
   void addAll(Iterable<T> iterable) {
     for (T elem in iterable) {
       add(elem);

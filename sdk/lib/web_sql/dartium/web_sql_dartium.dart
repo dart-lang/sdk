@@ -350,10 +350,6 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(Map value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
   void addAll(Iterable<Map> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }

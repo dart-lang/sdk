@@ -474,6 +474,17 @@ LibTest/core/double/truncate_A01_t04: Fail # truncate/ceil/floor/round returns i
 
 LibTest/core/List/getRange_A02_t01: Fail # issue 391
 
+Language/11_Expressions/05_Strings/1_String_Interpolation_A03_t02: Fail # Issue 397
+Language/11_Expressions/05_Strings/1_String_Interpolation_A04_t02: Fail # Issue 397
+Language/11_Expressions/11_Instance_Creation/1_New_A08_t01: Fail # Issue 397
+Language/11_Expressions/11_Instance_Creation/1_New_A08_t02: Fail # Issue 397
+Language/11_Expressions/11_Instance_Creation/1_New_A08_t03: Fail # Issue 397
+LibTest/core/Iterable/where_A01_t07: Fail # Issue 397
+LibTest/core/List/addLast_A01_t01: Fail # Issue 397
+LibTest/core/List/addLast_A01_t03: Fail # Issue 397
+LibTest/core/List/addLast_A02_t01: Fail # Issue 397
+
+
 # Issues with co19 test suite in checked mode.
 [ $compiler == dart2js && $checked ]
 LibTest/core/Set/intersection_A01_t01: Fail # issue 390

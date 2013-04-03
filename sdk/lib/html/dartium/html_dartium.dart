@@ -8057,10 +8057,6 @@ class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeT
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(DomMimeType value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
   void addAll(Iterable<DomMimeType> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -8336,10 +8332,6 @@ class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin>
   // From Collection<DomPlugin>:
 
   void add(DomPlugin value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(DomPlugin value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
@@ -8739,10 +8731,6 @@ class DomStringList extends NativeFieldWrapperClass1 implements List<String> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(String value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
   void addAll(Iterable<String> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -9055,8 +9043,6 @@ class _ChildrenElementList implements List {
     return value;
   }
 
-  Element addLast(Element value) => add(value);
-
   Iterator<Element> get iterator => toList().iterator;
 
   void addAll(Iterable<Element> iterable) {
@@ -9306,10 +9292,6 @@ class _FrozenElementList implements List {
   }
 
   void add(Element value) {
-    throw new UnsupportedError('');
-  }
-
-  void addLast(Element value) {
     throw new UnsupportedError('');
   }
 
@@ -11660,10 +11642,6 @@ class FileList extends NativeFieldWrapperClass1 implements List<File> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(File value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
   void addAll(Iterable<File> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -12285,10 +12263,6 @@ class Float32Array extends ArrayBufferView implements List<double> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(num value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
   void addAll(Iterable<num> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -12531,10 +12505,6 @@ class Float64Array extends ArrayBufferView implements List<double> {
   // From Collection<num>:
 
   void add(num value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(num value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
@@ -13232,10 +13202,6 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(Node value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
   void addAll(Iterable<Node> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -13452,10 +13418,6 @@ class HtmlCollection extends NativeFieldWrapperClass1 implements List<Node> {
   // From Collection<Node>:
 
   void add(Node value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(Node value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
@@ -15825,10 +15787,6 @@ class Int16Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(int value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
   void addAll(Iterable<int> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -16074,10 +16032,6 @@ class Int32Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(int value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
   void addAll(Iterable<int> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -16320,10 +16274,6 @@ class Int8Array extends ArrayBufferView implements List<int> {
   // From Collection<int>:
 
   void add(int value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(int value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
@@ -19051,11 +19001,6 @@ class _ChildNodeListLazy implements List {
     _this.append(value);
   }
 
-  void addLast(Node value) {
-    _this.append(value);
-  }
-
-
   void addAll(Iterable<Node> iterable) {
     if (iterable is _ChildNodeListLazy) {
       if (!identical(iterable._this, _this)) {
@@ -19696,10 +19641,6 @@ class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
   // From Collection<Node>:
 
   void add(Node value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(Node value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
@@ -22306,10 +22247,6 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(SourceBuffer value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
   void addAll(Iterable<SourceBuffer> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -22635,10 +22572,6 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
   // From Collection<SpeechGrammar>:
 
   void add(SpeechGrammar value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(SpeechGrammar value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
@@ -24368,10 +24301,6 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(TextTrackCue value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
   void addAll(Iterable<TextTrackCue> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -24588,10 +24517,6 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
   // From Collection<TextTrack>:
 
   void add(TextTrack value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(TextTrack value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
@@ -25028,10 +24953,6 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
   // From Collection<Touch>:
 
   void add(Touch value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(Touch value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
@@ -25554,10 +25475,6 @@ class Uint16Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(int value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
   void addAll(Iterable<int> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -25800,10 +25717,6 @@ class Uint32Array extends ArrayBufferView implements List<int> {
   // From Collection<int>:
 
   void add(int value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(int value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
@@ -26052,10 +25965,6 @@ class Uint8Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(int value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
   void addAll(Iterable<int> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -26296,10 +26205,6 @@ class Uint8ClampedArray extends Uint8Array implements List<int> {
   // From Collection<int>:
 
   void add(int value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(int value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
@@ -28617,10 +28522,6 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<Rect> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(Rect value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
   void addAll(Iterable<Rect> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -28832,10 +28733,6 @@ class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(CssRule value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
   void addAll(Iterable<CssRule> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -29044,10 +28941,6 @@ class _CssValueList extends CssValue implements List<CssValue> {
   // From Collection<CssValue>:
 
   void add(CssValue value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(CssValue value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
@@ -29405,10 +29298,6 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(Entry value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
   void addAll(Iterable<Entry> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -29620,10 +29509,6 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(EntrySync value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
   void addAll(Iterable<EntrySync> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -29832,10 +29717,6 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
   // From Collection<Gamepad>:
 
   void add(Gamepad value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(Gamepad value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
@@ -30141,10 +30022,6 @@ class _NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(Node value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
   void addAll(Iterable<Node> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -30380,10 +30257,6 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(SpeechInputResult value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
   void addAll(Iterable<SpeechInputResult> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -30595,10 +30468,6 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addLast(SpeechRecognitionResult value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
   void addAll(Iterable<SpeechRecognitionResult> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -30807,10 +30676,6 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
   // From Collection<StyleSheet>:
 
   void add(StyleSheet value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(StyleSheet value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
@@ -33369,8 +33234,6 @@ class _WrappedList<E> implements List<E> {
   void operator []=(int index, E value) { _list[index] = value; }
 
   void set length(int newLength) { _list.length = newLength; }
-
-  void addLast(E value) { _list.add(value); }
 
   Iterable<E> get reversed => _list.reversed;
 
