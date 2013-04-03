@@ -504,9 +504,11 @@ class BuildbotProgressIndicator extends ProgressIndicator {
   }
 
   void allDone() {
-    if (!_failureSummary.isEmpty && stepName != null) {
+    if (!_failureSummary.isEmpty) {
       print('@@@STEP_FAILURE@@@');
-      print('@@@BUILD_STEP $stepName failures@@@');
+      if (stepName != null) {
+        print('@@@BUILD_STEP $stepName failures@@@');
+      }
       for (String line in _failureSummary) {
         print(line);
       }
