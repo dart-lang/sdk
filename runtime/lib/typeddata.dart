@@ -2868,7 +2868,7 @@ class _ByteDataView implements ByteData {
     if (byteOffset < 0 || byteOffset >= length) {
       _throwRangeError(byteOffset, length);
     }
-    _typeddata._setInt8(_offset + byteOffset, value);
+    _typeddata._setInt8(_offset + byteOffset, _toInt8(value));
   }
 
   int getUint8(int byteOffset) {
@@ -2881,7 +2881,7 @@ class _ByteDataView implements ByteData {
     if (byteOffset < 0 || byteOffset >= length) {
       _throwRangeError(byteOffset, length);
     }
-    _typeddata._setUint8(_offset + byteOffset, value);
+    _typeddata._setUint8(_offset + byteOffset,_toUint8( value));
   }
 
   int getInt16(int byteOffset) {
@@ -2894,7 +2894,7 @@ class _ByteDataView implements ByteData {
     if (byteOffset < 0 || byteOffset >= length) {
       _throwRangeError(byteOffset, length);
     }
-    _typeddata._setInt16(_offset + byteOffset, value);
+    _typeddata._setInt16(_offset + byteOffset, _toInt16(value));
   }
 
   int getUint16(int byteOffset) {
@@ -2907,7 +2907,7 @@ class _ByteDataView implements ByteData {
     if (byteOffset < 0 || byteOffset >= length) {
       _throwRangeError(byteOffset, length);
     }
-    _typeddata._setUint16(_offset + byteOffset, value);
+    _typeddata._setUint16(_offset + byteOffset, _toUint16(value));
   }
 
   int getInt32(int byteOffset) {
@@ -2920,7 +2920,7 @@ class _ByteDataView implements ByteData {
     if (byteOffset < 0 || byteOffset >= length) {
       _throwRangeError(byteOffset, length);
     }
-    _typeddata._setInt32(_offset + byteOffset, value);
+    _typeddata._setInt32(_offset + byteOffset, _toInt32(value));
   }
 
   int getUint32(int byteOffset) {
@@ -2933,7 +2933,7 @@ class _ByteDataView implements ByteData {
     if (byteOffset < 0 || byteOffset >= length) {
       _throwRangeError(byteOffset, length);
     }
-    _typeddata._setUint32(_offset + byteOffset, value);
+    _typeddata._setUint32(_offset + byteOffset, _toUint32(value));
   }
 
   int getInt64(int byteOffset) {
@@ -2946,7 +2946,7 @@ class _ByteDataView implements ByteData {
     if (byteOffset < 0 || byteOffset >= length) {
       _throwRangeError(byteOffset, length);
     }
-    _typeddata._setInt64(_offset + byteOffset, value);
+    _typeddata._setInt64(_offset + byteOffset, _toInt64(value));
   }
 
   int getUint64(int byteOffset) {
@@ -2959,7 +2959,7 @@ class _ByteDataView implements ByteData {
     if (byteOffset < 0 || byteOffset >= length) {
       _throwRangeError(byteOffset, length);
     }
-    _typeddata._setUint64(_offset + byteOffset, value);
+    _typeddata._setUint64(_offset + byteOffset, _toUint64(value));
   }
 
   double getFloat32(int byteOffset) {
