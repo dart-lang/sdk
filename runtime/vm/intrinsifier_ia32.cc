@@ -209,29 +209,29 @@ bool Intrinsifier::Array_setIndexed(Assembler* assembler) {
     // Check if it's dynamic.
     // For now handle only TypeArguments and bail out if InstantiatedTypeArgs.
     __ CompareClassId(EBX, kTypeArgumentsCid, EAX);
-    __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
+    __ j(NOT_EQUAL, &fall_through);
     // Get type at index 0.
     __ movl(EAX, FieldAddress(EBX, TypeArguments::type_at_offset(0)));
     __ CompareObject(EAX, Type::ZoneHandle(Type::DynamicType()));
     __ j(EQUAL,  &checked_ok, Assembler::kNearJump);
     // Check for int and num.
     __ testl(EDI, Immediate(kSmiTagMask));  // Value is Smi?
-    __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi value.
+    __ j(NOT_ZERO, &fall_through);  // Non-smi value.
     __ CompareObject(EAX, Type::ZoneHandle(Type::IntType()));
     __ j(EQUAL,  &checked_ok, Assembler::kNearJump);
     __ CompareObject(EAX, Type::ZoneHandle(Type::Number()));
-    __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
+    __ j(NOT_EQUAL, &fall_through);
     __ Bind(&checked_ok);
   }
   __ movl(EBX, Address(ESP, + 2 * kWordSize));  // Index.
   __ testl(EBX, Immediate(kSmiTagMask));
   // Index not Smi.
-  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);
+  __ j(NOT_ZERO, &fall_through);
   __ movl(EAX, Address(ESP, + 3 * kWordSize));  // Array.
   // Range check.
   __ cmpl(EBX, FieldAddress(EAX, Array::length_offset()));
   // Runtime throws exception.
-  __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
+  __ j(ABOVE_EQUAL, &fall_through);
   // Note that EBX is Smi, i.e, times 2.
   ASSERT(kSmiTagShift == 1);
   // Destroy ECX as we will not continue in the function.
@@ -271,7 +271,7 @@ bool Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
   // EAX: potential new backing array object start.
   // EBX: potential next object start.
   __ cmpl(EBX, Address::Absolute(heap->EndAddress()));
-  __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
+  __ j(ABOVE_EQUAL, &fall_through);
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
@@ -366,11 +366,11 @@ bool Intrinsifier::GrowableArray_setIndexed(Assembler* assembler) {
   __ movl(EBX, Address(ESP, + 2 * kWordSize));  // Index.
   __ movl(EAX, Address(ESP, + 3 * kWordSize));  // GrowableArray.
   __ testl(EBX, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi index.
+  __ j(NOT_ZERO, &fall_through);  // Non-smi index.
   // Range check using _length field.
   __ cmpl(EBX, FieldAddress(EAX, GrowableObjectArray::length_offset()));
   // Runtime throws exception.
-  __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
+  __ j(ABOVE_EQUAL, &fall_through);
   __ movl(EAX, FieldAddress(EAX, GrowableObjectArray::data_offset()));  // data.
   __ movl(EDI, Address(ESP, + 1 * kWordSize));  // Value.
   // Note that EBX is Smi, i.e, times 2.
@@ -412,9 +412,9 @@ bool Intrinsifier::GrowableArray_setData(Assembler* assembler) {
   __ movl(EBX, Address(ESP, + 1 * kWordSize));  // Data.
   // Check that data is an ObjectArray.
   __ testl(EBX, Immediate(kSmiTagMask));
-  __ j(ZERO, &fall_through, Assembler::kNearJump);  // Data is Smi.
+  __ j(ZERO, &fall_through);  // Data is Smi.
   __ CompareClassId(EBX, kArrayCid, EAX);
-  __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
+  __ j(NOT_EQUAL, &fall_through);
   __ movl(EAX, Address(ESP, + 2 * kWordSize));  // Growable array.
   __ StoreIntoObject(EAX,
                      FieldAddress(EAX, GrowableObjectArray::data_offset()),
@@ -439,7 +439,7 @@ bool Intrinsifier::GrowableArray_add(Assembler* assembler) {
   // EDI: data.
   // Compare length with capacity.
   __ cmpl(EBX, FieldAddress(EDI, Array::length_offset()));
-  __ j(EQUAL, &fall_through, Assembler::kNearJump);  // Must grow data.
+  __ j(EQUAL, &fall_through);  // Must grow data.
   const Immediate& value_one =
       Immediate(reinterpret_cast<int32_t>(Smi::New(1)));
   // len = len + 1;
