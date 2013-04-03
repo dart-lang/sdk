@@ -75,11 +75,11 @@ cc/FrameLookup: Skip
 cc/IcDataAccess: Skip
 cc/UseDartApi: Skip
 
-[ $arch == simmips && $system == macos ]
-cc/CallLeafRuntimeStubCode: Crash  # Fails on Mac OS X
-
 # Tests needing Dart execution.
 dart/*: Skip
+
+[ $arch == simmips && $system == macos ]
+cc/CallLeafRuntimeStubCode: Crash  # Fails on Mac OS X
 
 # TODO(ajohnsen): Fix this as part of library changes.
 [ $compiler == none ]
