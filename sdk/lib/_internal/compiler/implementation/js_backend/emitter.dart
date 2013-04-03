@@ -1247,8 +1247,17 @@ class CodeEmitterTask extends CompilerTask {
     /// Classes that are not instantiated and native classes need a holder
     /// object for their checks, because there will be no class defined for
     /// them.
+
+    // TODO(9556): Get rid of holders.
+    //
+    //  - For primitive classes, use the interceptors (e.g JSInt).
+    //
+    //  - For uninstantiated classes, define the class anyway.  It will not need
+    //    fields or a constructor, or any methods, so the class definition will
+    //    be smaller than a holder.
+
     bool needsHolder(ClassElement cls) {
-      return !neededClasses.contains(cls) || cls.isNative() ||
+      return !neededClasses.contains(cls) ||
         rti.isJsNative(cls);
     }
 
@@ -1468,15 +1477,18 @@ class CodeEmitterTask extends CompilerTask {
     /* Do nothing. */
   }
 
-  void emitClassFields(ClassElement classElement,
+  /// Returns `true` if fields added.
+  bool emitClassFields(ClassElement classElement,
                        ClassBuilder builder,
-                       { String superClass: "",
+                       { String superClass,
                          bool classIsNative: false }) {
     String separator = '';
     StringBuffer buffer = new StringBuffer();
-    if (!classIsNative) {
+    if (superClass != null) {
       buffer.write('$superClass;');
     }
+    int bufferClassLength = buffer.length;
+
     visitClassFields(classElement, (Element member,
                                     String name,
                                     String accessorName,
@@ -1533,10 +1545,10 @@ class CodeEmitterTask extends CompilerTask {
       }
     });
 
+    bool fieldsAdded = buffer.length > bufferClassLength;
     String compactClassData = buffer.toString();
-    if (compactClassData.length > 0) {
-      builder.addProperty('', js.string(compactClassData));
-    }
+    builder.addProperty('', js.string(compactClassData));
+    return fieldsAdded;
   }
 
   void emitClassGettersSetters(ClassElement classElement,
@@ -2503,6 +2515,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
     bool hasNull = false;
     bool hasNumber = false;
     bool hasString = false;
+    bool hasNative = false;
     for (ClassElement cls in classes) {
       if (cls == backend.jsArrayClass ||
           cls == backend.jsMutableArrayClass ||
@@ -2519,12 +2532,20 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
         // TODO(sra): The set of classes includes classes mixed-in to
         // interceptor classes.
         // assert(cls == compiler.objectClass || cls.isNative());
+        if (cls.isNative()) hasNative = true;
       }
     }
     if (hasDouble) {
       hasNumber = true;
     }
     if (hasInt) hasNumber = true;
+
+    if (classes == backend.interceptedClasses) {
+      // I.e. this is the general interceptor.
+      // TODO(9556): Remove 'holders'.  The general interceptor is used on type
+      // checks and needs to handle 'native' classes for 'holders'.
+      hasNative = true;
+    }
 
     jsAst.Block block = new jsAst.Block.empty();
 
@@ -2557,11 +2578,11 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
     if (hasNull) {
       block.statements.add(buildInterceptorCheck(backend.jsNullClass));
     } else {
-      // Returning "undefined" here will provoke a JavaScript
+      // Returning "undefined" or "null" here will provoke a JavaScript
       // TypeError which is later identified as a null-error by
       // [unwrapException] in js_helper.dart.
       block.statements.add(js.if_('receiver == null',
-                                  js.return_(js.undefined())));
+                                  js.return_(js['receiver'])));
     }
     if (hasFunction) {
       block.statements.add(buildInterceptorCheck(backend.jsFunctionClass));
@@ -2574,7 +2595,40 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
     if (hasArray) {
       block.statements.add(buildInterceptorCheck(backend.jsArrayClass));
     }
-    block.statements.add(js.return_(js['receiver']));
+
+    if (hasNative) {
+      block.statements.add(
+          js.if_(
+              js['(typeof receiver) != "object"'],
+              js.return_(js['receiver'])));
+
+      // if (receiver instanceof $.Object) return receiver;
+      // return $.getNativeInterceptor(receiver);
+      block.statements.add(
+          js.if_(
+              new jsAst.Binary(
+                  "instanceof",
+                  js['receiver'],
+                  js[namer.isolateAccess(compiler.objectClass)]),
+              js.return_(js['receiver'])));
+
+      // TODO(sra): Fold this 'Object' check into the `getNativeInterceptor`
+      // check by patching `Object.prototype` with a special hook function.
+      // TODO(9556): This test is needed in plain non-browser code because
+      // 'holders' are not Dart classes.
+      block.statements.add(
+          js.if_(
+              js['Object.getPrototypeOf(receiver) === Object.prototype'],
+              buildReturnInterceptor(backend.jsInterceptorClass)));
+
+      block.statements.add(
+          js.return_(
+              js[namer.isolateAccess(backend.getNativeInterceptorMethod)](
+                  ['receiver'])));
+
+    } else {
+      block.statements.add(js.return_(js['receiver']));
+    }
 
     buffer.write(jsAst.prettyPrint(
         js[isolateProperties][key].assign(js.fun(['receiver'], block)),
@@ -2899,21 +2953,12 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
         mainBuffer.add('var $classesCollector$_=$_{}$N$n');
       }
 
-      // Emit native classes on [nativeBuffer].  As a side-effect,
-      // this will produce "bound closures" in [boundClosures].  The
-      // bound closures are JS AST nodes that add properties to $$
-      // [classesCollector].  The bound closures are not emitted until
-      // we have emitted all other classes (native or not).
-      final CodeBuffer nativeBuffer = new CodeBuffer();
-      if (!nativeClasses.isEmpty) {
-        addComment('Native classes', nativeBuffer);
-        for (ClassElement element in nativeClasses) {
-          nativeEmitter.generateNativeClass(element);
-        }
-      }
-      nativeEmitter.assembleCode(nativeBuffer);
+      // As a side-effect, emitting classes will produce "bound closures" in
+      // [boundClosures].  The bound closures are JS AST nodes that add
+      // properties to $$ [classesCollector].  The bound closures are not
+      // emitted until we have emitted all other classes (native or not).
 
-      // Might also create boundClosures.
+      // Might create boundClosures.
       if (!regularClasses.isEmpty) {
         addComment('Classes', mainBuffer);
         for (ClassElement element in regularClasses) {
@@ -2921,7 +2966,19 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
         }
       }
 
-      // Might also create boundClosures.
+      // Emit native classes on [nativeBuffer].
+      // Might create boundClosures.
+      final CodeBuffer nativeBuffer = new CodeBuffer();
+      if (!nativeClasses.isEmpty) {
+        addComment('Native classes', nativeBuffer);
+        for (ClassElement element in nativeClasses) {
+          nativeEmitter.generateNativeClass(element, mainBuffer);
+        }
+      }
+      nativeEmitter.finishGenerateNativeClasses();
+      nativeEmitter.assembleCode(nativeBuffer);
+
+      // Might create boundClosures.
       if (!deferredClasses.isEmpty) {
         emitDeferredPreambleWhenEmpty(deferredBuffer);
         deferredBuffer.add('\$\$$_=$_{}$N');
@@ -2967,6 +3024,9 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
       emitGetInterceptorMethods(mainBuffer);
       emitLazilyInitializedStaticFields(mainBuffer);
 
+      mainBuffer.add(nativeBuffer);
+
+
       isolateProperties = isolatePropertiesName;
       // The following code should not use the short-hand for the
       // initialStatics.
@@ -2975,8 +3035,6 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
       emitFinishIsolateConstructorInvocation(mainBuffer);
       mainBuffer.add('var ${namer.CURRENT_ISOLATE}$_='
                      '${_}new ${namer.isolateName}()$N');
-
-      mainBuffer.add(nativeBuffer);
 
       emitMain(mainBuffer);
       emitInitFunction(mainBuffer);

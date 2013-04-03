@@ -68,24 +68,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
       codegen.visitGraph(graph);
 
       FunctionElement element = work.element;
-      js.Block body;
-      ClassElement enclosingClass = element.getEnclosingClass();
-
-      if (element.isInstanceMember()
-          && enclosingClass.isNative()
-          && native.isOverriddenMethod(
-              element, enclosingClass, nativeEmitter)) {
-        // Record that this method is overridden. In case of optional
-        // arguments, the emitter will generate stubs to handle them,
-        // and needs to know if the method is overridden.
-        nativeEmitter.overriddenMethods.add(element);
-        body = nativeEmitter.generateMethodBodyWithPrototypeCheckForElement(
-                  element, codegen.body, codegen.parameters);
-      } else {
-        body = codegen.body;
-      }
-
-      return buildJavaScriptFunction(element, codegen.parameters, body);
+      return buildJavaScriptFunction(element, codegen.parameters, codegen.body);
     });
   }
 
@@ -1500,6 +1483,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     use(node.receiver);
     List<js.Expression> arguments = <js.Expression>[pop()];
     push(jsPropertyCall(isolate, name, arguments), node);
+    backend.registerUseInterceptor(world);
   }
 
   visitInvokeDynamicMethod(HInvokeDynamicMethod node) {
@@ -1559,6 +1543,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     } else {
       registerMethodInvoke(node);
     }
+    backend.registerUseInterceptor(world);
   }
 
   Selector getOptimizedSelectorFor(HInvokeDynamic node, Selector selector) {
@@ -2227,6 +2212,18 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     world.registerIsCheck(type, work.resolutionTree);
     Element element = type.element;
     use(input);
+
+    // Hack in interceptor.  Ideally the interceptor would occur at the
+    // instruction level to allow optimizations, and checks would be broken into
+    // several smaller tests.
+    String interceptorName =
+        backend.namer.getName(backend.getInterceptorMethod);
+
+    var isolate = new js.VariableUse(backend.namer.CURRENT_ISOLATE);
+    List<js.Expression> arguments = <js.Expression>[pop()];
+    push(jsPropertyCall(isolate, interceptorName, arguments));
+    backend.registerUseInterceptor(world);
+
     js.PropertyAccess field =
         new js.PropertyAccess.field(pop(), backend.namer.operatorIs(element));
     if (backend.emitter.nativeEmitter.requiresNativeIsCheck(element)) {

@@ -112,13 +112,19 @@ bool checkSubtype(Object object, String isField, List checks, String asField,
                   bool native) {
   if (object == null) return false;
   var arguments = getRuntimeTypeInfo(object);
-  if (isJsArray(object)) {
-    object = getInterceptor(object);
-  }
-  bool isSubclass = native ? call(object, isField) : getField(object, isField);
+  // Interceptor is needed for JSArray and native classes.
+  // TODO(sra): It could be a more specialized interceptor since [object] is not
+  // `null` or a primitive.
+  var interceptor = getInterceptor(object);
+  bool isSubclass = native
+      ? call(interceptor, isField)
+      : getField(interceptor, isField);
   // When we read the field and it is not there, [isSubclass] will be [:null:].
   if (isSubclass == null || !isSubclass) return false;
-  var substitution = native ? call(object, asField) : getField(object, asField);
+  // Should the asField function be passed the receiver?
+  var substitution = native
+      ? call(interceptor, asField)
+      : getField(interceptor, asField);
   return checkArguments(substitution, arguments, checks);
 }
 

@@ -22,12 +22,6 @@ class NativeEmitter {
   // Caches the direct native subtypes of a native class.
   Map<ClassElement, List<ClassElement>> directSubtypes;
 
-  // Caches the native methods that are overridden by a native class.
-  // Note that the method that overrides does not have to be native:
-  // it's the overridden method that must make sure it will dispatch
-  // to its subclass if it sees an instance whose class is a subclass.
-  Set<FunctionElement> overriddenMethods;
-
   // Caches the methods that have a native body.
   Set<FunctionElement> nativeMethods;
 
@@ -41,7 +35,6 @@ class NativeEmitter {
         nativeClasses = new Set<ClassElement>(),
         subtypes = new Map<ClassElement, List<ClassElement>>(),
         directSubtypes = new Map<ClassElement, List<ClassElement>>(),
-        overriddenMethods = new Set<FunctionElement>(),
         nativeMethods = new Set<FunctionElement>(),
         nativeBuffer = new CodeBuffer();
 
@@ -55,6 +48,12 @@ class NativeEmitter {
   String get dynamicName {
     Element element = compiler.findHelper(
         const SourceString('dynamicFunction'));
+    return backend.namer.isolateAccess(element);
+  }
+
+  String get dynamicFunctionTableName {
+    Element element = compiler.findHelper(
+        const SourceString('dynamicFunctionTable'));
     return backend.namer.isolateAccess(element);
   }
 
@@ -88,26 +87,28 @@ class NativeEmitter {
     return backend.namer.isolateAccess(element);
   }
 
-  String get defineNativeClassName
-      => '${backend.namer.CURRENT_ISOLATE}.\$defineNativeClass';
+  String get dispatchPropertyNameVariable {
+    Element element = compiler.findInterceptor(
+        const SourceString('dispatchPropertyName'));
+    return backend.namer.isolateAccess(element);
+  }
 
-  String get defineNativeClassFunction {
-    return """
-function(cls, desc) {
-  var fields = desc[''];
-  var fields_array = fields ? fields.split(',') : [];
-  for (var i = 0; i < fields_array.length; i++) {
-    ${emitter.currentGenerateAccessorName}(fields_array[i], desc);
+  String get defineNativeMethodsName {
+    Element element = compiler.findHelper(
+        const SourceString('defineNativeMethods'));
+    return backend.namer.isolateAccess(element);
   }
-  var hasOwnProperty = Object.prototype.hasOwnProperty;
-  for (var method in desc) {
-    if (method) {
-      if (hasOwnProperty.call(desc, method)) {
-        $dynamicName(method)[cls] = desc[method];
-      }
-    }
+
+  String get defineNativeMethodsNonleafName {
+    Element element = compiler.findHelper(
+        const SourceString('defineNativeMethodsNonleaf'));
+    return backend.namer.isolateAccess(element);
   }
-}""";
+
+  String get defineNativeMethodsFinishName {
+    Element element = compiler.findHelper(
+        const SourceString('defineNativeMethodsFinish'));
+    return backend.namer.isolateAccess(element);
   }
 
   bool isNativeGlobal(String quotedName) {
@@ -124,28 +125,74 @@ function(cls, desc) {
     }
   }
 
-  void generateNativeClass(ClassElement classElement) {
+  void generateNativeClass(ClassElement classElement, CodeBuffer mainBuffer) {
     assert(!classElement.hasBackendMembers);
     nativeClasses.add(classElement);
 
+    ClassElement superclass = classElement.superclass;
+    assert(superclass != null);
+    // Fix superclass.  TODO(sra): make native classes inherit from Interceptor.
+    if (superclass == compiler.objectClass) {
+      superclass = backend.jsInterceptorClass;
+    }
+
+    String superName = backend.namer.getName(superclass);
+
     ClassBuilder builder = new ClassBuilder();
-    emitter.emitClassFields(classElement, builder, classIsNative: true);
+    emitter.emitClassConstructor(classElement, builder);
+    emitter.emitSuper(superName, builder);
+    bool hasFields = emitter.emitClassFields(classElement, builder,
+        classIsNative: true,
+        superClass: superName);
     emitter.emitClassGettersSetters(classElement, builder);
     emitter.emitInstanceMembers(classElement, builder);
 
     // An empty native class may be omitted since the superclass methods can be
     // located via the dispatch metadata.
-    if (builder.properties.isEmpty) return;
+    // TODO(sra): Also need to check there are no subclasses that will reference
+    // this class.
+    // bool hasOnlyGeneratedFields = builder.properties.length == 1;
+    // if (hasOnlyGeneratedFields == 1 && !hasFields) return;
 
+    // Define interceptor class for [classElement].
+    String className = backend.namer.getName(classElement);
+    jsAst.Expression init =
+        js[emitter.classesCollector][className].assign(
+            builder.toObjectInitializer());
+    mainBuffer.write(jsAst.prettyPrint(init, compiler));
+    mainBuffer.write('$N$n');
+
+    emitter.needsDefineClass = true;
+
+    // Define dispatch for [classElement].
     String nativeTag = toNativeTag(classElement);
+    String definer = directSubtypes[classElement] == null
+        ? defineNativeMethodsName
+        : defineNativeMethodsNonleafName;
+
+    // TODO(sra): Fix DOM generation.  There is a missing proto in the picture
+    // the DOM gives of the proto chain.  We might need an annotation.
+    if (nativeTag == 'HTMLElement') definer = defineNativeMethodsNonleafName;
+
     jsAst.Expression definition =
-        js[defineNativeClassName](
-            [js.string(nativeTag), builder.toObjectInitializer()]);
+        js[definer](
+            [js.string(nativeTag),
+             js[backend.namer.isolateAccess(classElement)]]);
 
     nativeBuffer.add(jsAst.prettyPrint(definition, compiler));
     nativeBuffer.add('$N$n');
 
     classesWithDynamicDispatch.add(classElement);
+  }
+
+  void finishGenerateNativeClasses() {
+    // TODO(sra): Put specialized version of getNativeMethods on
+    // `Object.prototype` to avoid checking in `getInterceptor` and
+    // specializations.
+
+    // jsAst.Expression call = js[defineNativeMethodsFinishName]([]);
+    // nativeBuffer.add(jsAst.prettyPrint(call, compiler));
+    // nativeBuffer.add('$N$n');
   }
 
   List<ClassElement> getDirectSubclasses(ClassElement cls) {
@@ -237,50 +284,8 @@ function(cls, desc) {
     }
     statements.add(new jsAst.Return(receiver[target](arguments)));
 
-    if (!overriddenMethods.contains(member)) {
-      // Call the method directly.
-      return statements;
-    } else {
-      return <jsAst.Statement>[
-          generateMethodBodyWithPrototypeCheck(
-              invocationName, new jsAst.Block(statements), stubParameters)];
-    }
+    return statements;
   }
-
-  // If a method is overridden, we must check if the prototype of 'this' has the
-  // method available. Otherwise, we may end up calling the method from the
-  // super class. If the method is not available, we make a direct call to
-  // Object.prototype.$methodName.  This method will patch the prototype of
-  // 'this' to the real method.
-  jsAst.Statement generateMethodBodyWithPrototypeCheck(
-      String methodName,
-      jsAst.Statement body,
-      List<jsAst.Parameter> parameters) {
-    return js.if_(
-        js['(Object.getPrototypeOf(this)).hasOwnProperty("$methodName")'],
-        body,
-        js.return_(
-            js['Object.prototype.$methodName.call'](
-                <jsAst.Expression>[js['this']]..addAll(
-                    parameters.map((param) => js[param.name])))));
-  }
-
-  jsAst.Block generateMethodBodyWithPrototypeCheckForElement(
-      FunctionElement element,
-      jsAst.Block body,
-      List<jsAst.Parameter> parameters) {
-    ElementKind kind = element.kind;
-    if (kind != ElementKind.FUNCTION &&
-        kind != ElementKind.GETTER &&
-        kind != ElementKind.SETTER) {
-      compiler.internalError("unexpected kind: '$kind'", element: element);
-    }
-
-    String methodName = backend.namer.getName(element);
-    return new jsAst.Block(
-        [generateMethodBodyWithPrototypeCheck(methodName, body, parameters)]);
-  }
-
 
   void emitDynamicDispatchMetadata() {
     if (classesWithDynamicDispatch.isEmpty) return;
@@ -499,8 +504,6 @@ function(cls, desc) {
 
     if (!nativeClasses.isEmpty) {
       emitDynamicDispatchMetadata();
-      targetBuffer.add('$defineNativeClassName = '
-                       '$defineNativeClassFunction$N$n');
 
       // In order to have the toString method on every native class,
       // we must patch the JS Object prototype with a helper method.
