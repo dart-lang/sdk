@@ -11,6 +11,7 @@
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/os.h"
+#include "vm/simulator.h"
 
 namespace dart {
 
@@ -25,8 +26,12 @@ bool LongJump::IsSafeToJump() {
   // assumes the stack grows from high to low.
   Isolate* isolate = Isolate::Current();
   uword jumpbuf_addr = reinterpret_cast<uword>(this);
-  return (isolate->top_exit_frame_info() == 0 ||
-          jumpbuf_addr < isolate->top_exit_frame_info());
+#if defined(USING_SIMULATOR)
+  uword top_exit_frame_info = isolate->simulator()->top_exit_frame_info();
+#else
+  uword top_exit_frame_info = isolate->top_exit_frame_info();
+#endif
+  return ((top_exit_frame_info == 0) || (jumpbuf_addr < top_exit_frame_info));
 }
 
 

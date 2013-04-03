@@ -408,11 +408,10 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
   }
   __ Bind(&check_ne);
   if (kind == Token::kNE) {
-    Label false_label, true_label, done;
+    Label true_label, done;
     // Negate the condition: true label returns false and vice versa.
     __ CompareObject(EAX, Bool::True());
     __ j(EQUAL, &true_label, Assembler::kNearJump);
-    __ Bind(&false_label);
     __ LoadObject(EAX, Bool::True());
     __ jmp(&done, Assembler::kNearJump);
     __ Bind(&true_label);

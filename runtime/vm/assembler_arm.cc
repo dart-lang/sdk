@@ -1310,7 +1310,7 @@ void Assembler::LoadClassById(Register result, Register class_id) {
   ldr(result, FieldAddress(CTX, Context::isolate_offset()));
   const intptr_t table_offset_in_isolate =
       Isolate::class_table_offset() + ClassTable::table_offset();
-  ldr(result, Address(result, table_offset_in_isolate));
+  LoadFromOffset(kLoadWord, result, result, table_offset_in_isolate);
   ldr(result, Address(result, class_id, LSL, 2));
 }
 
@@ -1322,7 +1322,7 @@ void Assembler::LoadClass(Register result, Register object, Register scratch) {
   ldr(result, FieldAddress(CTX, Context::isolate_offset()));
   const intptr_t table_offset_in_isolate =
       Isolate::class_table_offset() + ClassTable::table_offset();
-  ldr(result, Address(result, table_offset_in_isolate));
+  LoadFromOffset(kLoadWord, result, result, table_offset_in_isolate);
   ldr(result, Address(result, scratch, LSL, 2));
 }
 
@@ -1790,7 +1790,7 @@ void Assembler::CompareImmediate(Register rn, int32_t value, Condition cond) {
     cmp(rn, shifter_op, cond);
   } else {
     ASSERT(rn != IP);
-    LoadImmediate(IP, cond);
+    LoadImmediate(IP, value, cond);
     cmp(rn, ShifterOperand(IP), cond);
   }
 }
@@ -1910,16 +1910,31 @@ void Assembler::LeaveDartFrame() {
 }
 
 
-void Assembler::EnterStubFrame() {
+void Assembler::EnterStubFrame(bool uses_pp) {
   // Push 0 as saved PC for stub frames.
   mov(IP, ShifterOperand(LR));
   mov(LR, ShifterOperand(0));
-  EnterFrame((1 << FP) | (1 << IP) | (1 << LR), 0);
+  RegList regs = (1 << FP) | (1 << IP) | (1 << LR);
+  if (uses_pp) {
+    regs |= (1 << PP);
+  }
+  EnterFrame(regs, 0);
+  if (uses_pp) {
+    // Setup pool pointer for this stub.
+    const intptr_t object_pool_pc_dist =
+       Instructions::HeaderSize() - Instructions::object_pool_offset() +
+       CodeSize() + Instr::kPCReadOffset;
+    ldr(PP, Address(PC, -object_pool_pc_dist));
+  }
 }
 
 
-void Assembler::LeaveStubFrame() {
-  LeaveFrame((1 << FP) | (1 << LR));
+void Assembler::LeaveStubFrame(bool uses_pp) {
+  RegList regs = (1 << FP) | (1 << LR);
+  if (uses_pp) {
+    regs |= (1 << PP);
+  }
+  LeaveFrame(regs);
   // Adjust SP for null PC pushed in EnterStubFrame.
   AddImmediate(SP, kWordSize);
 }

@@ -8,6 +8,7 @@
 #include "vm/assembler.h"
 #include "vm/code_generator.h"
 #include "vm/dart_entry.h"
+#include "vm/flow_graph_compiler.h"
 #include "vm/instructions.h"
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
@@ -15,6 +16,13 @@
 #define __ assembler->
 
 namespace dart {
+
+DEFINE_FLAG(bool, inline_alloc, true, "Inline allocation of objects.");
+DEFINE_FLAG(bool, use_slow_path, false,
+    "Set to true for debugging & verifying the slow paths.");
+DECLARE_FLAG(int, optimization_counter_threshold);
+DECLARE_FLAG(bool, trace_optimized_ic_calls);
+
 
 // Input parameters:
 //   LR : return address.
@@ -353,9 +361,168 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
 }
 
 
+// Called for inline allocation of objects.
+// Input parameters:
+//   LR : return address.
+//   SP + 4 : type arguments object (only if class is parameterized).
+//   SP + 0 : type arguments of instantiator (only if class is parameterized).
 void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
                                               const Class& cls) {
-  __ Unimplemented("AllocateObject stub");
+  // The generated code is different if the class is parameterized.
+  const bool is_cls_parameterized =
+      cls.type_arguments_field_offset() != Class::kNoTypeArguments;
+  // kInlineInstanceSize is a constant used as a threshold for determining
+  // when the object initialization should be done as a loop or as
+  // straight line code.
+  const int kInlineInstanceSize = 12;
+  const intptr_t instance_size = cls.instance_size();
+  ASSERT(instance_size > 0);
+  const intptr_t type_args_size = InstantiatedTypeArguments::InstanceSize();
+  if (FLAG_inline_alloc &&
+      PageSpace::IsPageAllocatableSize(instance_size + type_args_size)) {
+    Label slow_case;
+    Heap* heap = Isolate::Current()->heap();
+    __ LoadImmediate(R5, heap->TopAddress());
+    __ ldr(R2, Address(R5, 0));
+    __ AddImmediate(R3, R2, instance_size);
+    if (is_cls_parameterized) {
+      __ ldm(IA, SP, (1 << R0) | (1 << R1));
+      __ mov(R4, ShifterOperand(R3));
+      // A new InstantiatedTypeArguments object only needs to be allocated if
+      // the instantiator is provided (not kNoInstantiator, but may be null).
+      __ CompareImmediate(R0, Smi::RawValue(StubCode::kNoInstantiator));
+      __ AddImmediate(R3, type_args_size, NE);
+      // R4: potential new object end and, if R4 != R3, potential new
+      // InstantiatedTypeArguments object start.
+    }
+    // Check if the allocation fits into the remaining space.
+    // R2: potential new object start.
+    // R3: potential next object start.
+    if (FLAG_use_slow_path) {
+      __ b(&slow_case);
+    } else {
+      __ LoadImmediate(IP, heap->EndAddress());
+      __ cmp(R3, ShifterOperand(IP));
+      __ b(&slow_case, CS);  // Branch if unsigned higher or equal.
+    }
+
+    // Successfully allocated the object(s), now update top to point to
+    // next object start and initialize the object.
+    __ str(R3, Address(R5, 0));
+
+    if (is_cls_parameterized) {
+      // Initialize the type arguments field in the object.
+      // R2: new object start.
+      // R4: potential new object end and, if R4 != R3, potential new
+      // InstantiatedTypeArguments object start.
+      // R3: next object start.
+      Label type_arguments_ready;
+      __ cmp(R4, ShifterOperand(R3));
+      __ b(&type_arguments_ready, EQ);
+      // Initialize InstantiatedTypeArguments object at R4.
+      __ str(R1, Address(R4,
+          InstantiatedTypeArguments::uninstantiated_type_arguments_offset()));
+      __ str(R0, Address(R4,
+          InstantiatedTypeArguments::instantiator_type_arguments_offset()));
+      const Class& ita_cls =
+          Class::ZoneHandle(Object::instantiated_type_arguments_class());
+      // Set the tags.
+      uword tags = 0;
+      tags = RawObject::SizeTag::update(type_args_size, tags);
+      tags = RawObject::ClassIdTag::update(ita_cls.id(), tags);
+      __ LoadImmediate(R0, tags);
+      __ str(R0, Address(R4, Instance::tags_offset()));
+      // Set the new InstantiatedTypeArguments object (R4) as the type
+      // arguments (R1) of the new object (R2).
+      __ add(R1, R4, ShifterOperand(kHeapObjectTag));
+      // Set R3 to new object end.
+      __ mov(R3, ShifterOperand(R4));
+      __ Bind(&type_arguments_ready);
+      // R2: new object.
+      // R1: new object type arguments.
+    }
+
+    // R2: new object start.
+    // R3: next object start.
+    // R1: new object type arguments (if is_cls_parameterized).
+    // Set the tags.
+    uword tags = 0;
+    tags = RawObject::SizeTag::update(instance_size, tags);
+    ASSERT(cls.id() != kIllegalCid);
+    tags = RawObject::ClassIdTag::update(cls.id(), tags);
+    __ LoadImmediate(R0, tags);
+    __ str(R0, Address(R2, Instance::tags_offset()));
+
+    // Initialize the remaining words of the object.
+    __ LoadImmediate(R0, reinterpret_cast<intptr_t>(Object::null()));
+
+    // R0: raw null.
+    // R2: new object start.
+    // R3: next object start.
+    // R1: new object type arguments (if is_cls_parameterized).
+    // First try inlining the initialization without a loop.
+    if (instance_size < (kInlineInstanceSize * kWordSize)) {
+      // Check if the object contains any non-header fields.
+      // Small objects are initialized using a consecutive set of writes.
+      for (intptr_t current_offset = sizeof(RawObject);
+           current_offset < instance_size;
+           current_offset += kWordSize) {
+        __ StoreToOffset(kStoreWord, R0, R2, current_offset);
+      }
+    } else {
+      __ add(R4, R2, ShifterOperand(sizeof(RawObject)));
+      // Loop until the whole object is initialized.
+      // R0: raw null.
+      // R2: new object.
+      // R3: next object start.
+      // R4: next word to be initialized.
+      // R1: new object type arguments (if is_cls_parameterized).
+      Label init_loop;
+      Label done;
+      __ Bind(&init_loop);
+      __ cmp(R4, ShifterOperand(R3));
+      __ b(&done, CS);
+      __ str(R0, Address(R4, 0));
+      __ AddImmediate(R4, kWordSize);
+      __ b(&init_loop);
+      __ Bind(&done);
+    }
+    if (is_cls_parameterized) {
+      // R1: new object type arguments.
+      // Set the type arguments in the new object.
+      __ StoreToOffset(kStoreWord, R1, R2, cls.type_arguments_field_offset());
+    }
+    // Done allocating and initializing the instance.
+    // R2: new object still missing its heap tag.
+    __ add(R0, R2, ShifterOperand(kHeapObjectTag));
+    __ Ret();
+
+    __ Bind(&slow_case);
+  }
+  if (is_cls_parameterized) {
+    __ ldm(IA, SP, (1 << R0) | (1 << R1));
+  }
+  // Create a stub frame as we are pushing some objects on the stack before
+  // calling into the runtime.
+  __ EnterStubFrame(true);  // Uses pool pointer to pass cls to runtime.
+  __ LoadImmediate(R2, reinterpret_cast<intptr_t>(Object::null()));
+  __ Push(R2);  // Setup space on stack for return value.
+  __ PushObject(cls);  // Push class of object to be allocated.
+  if (is_cls_parameterized) {
+    // Push type arguments of object to be allocated and of instantiator.
+    __ PushList((1 << R0) | (1 << R1));
+  } else {
+    // Push null type arguments and kNoInstantiator.
+    __ LoadImmediate(R1, Smi::RawValue(StubCode::kNoInstantiator));
+    __ PushList((1 << R1) | (1 << R2));
+  }
+  __ CallRuntime(kAllocateObjectRuntimeEntry);  // Allocate object.
+  __ Drop(3);  // Pop arguments.
+  __ Pop(R0);  // Pop result (newly allocated object).
+  // R0: new object
+  // Restore the frame pointer.
+  __ LeaveStubFrame(true);
+  __ Ret();
 }
 
 
@@ -375,30 +542,221 @@ void StubCode::GenerateOptimizedUsageCounterIncrement(Assembler* assembler) {
 }
 
 
+// Loads function into 'temp_reg'.
 void StubCode::GenerateUsageCounterIncrement(Assembler* assembler,
                                              Register temp_reg) {
-  __ Unimplemented("UsageCounterIncrement stub");
+  Register ic_reg = R5;
+  Register func_reg = temp_reg;
+  ASSERT(temp_reg == R6);
+  __ ldr(func_reg, FieldAddress(ic_reg, ICData::function_offset()));
+  __ ldr(R7, FieldAddress(func_reg, Function::usage_counter_offset()));
+  Label is_hot;
+  if (FlowGraphCompiler::CanOptimize()) {
+    ASSERT(FLAG_optimization_counter_threshold > 1);
+    // The usage_counter is always less than FLAG_optimization_counter_threshold
+    // except when the function gets optimized.
+    __ CompareImmediate(R7, FLAG_optimization_counter_threshold);
+    __ b(&is_hot, EQ);
+    // As long as VM has no OSR do not optimize in the middle of the function
+    // but only at exit so that we have collected all type feedback before
+    // optimizing.
+  }
+  __ add(R7, R7, ShifterOperand(1));
+  __ str(R7, FieldAddress(func_reg, Function::usage_counter_offset()));
+  __ Bind(&is_hot);
 }
 
 
+// Generate inline cache check for 'num_args'.
+//  LR: return address
+//  R5: Inline cache data object.
+//  R4: Arguments descriptor array.
+// Control flow:
+// - If receiver is null -> jump to IC miss.
+// - If receiver is Smi -> load Smi class.
+// - If receiver is not-Smi -> load receiver's class.
+// - Check if 'num_args' (including receiver) match any IC data group.
+// - Match found -> jump to target.
+// - Match not found -> jump to IC miss.
 void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
                                                  intptr_t num_args) {
-  __ Unimplemented("NArgsCheckInlineCache stub");
+  ASSERT(num_args > 0);
+#if defined(DEBUG)
+  { Label ok;
+    // Check that the IC data array has NumberOfArgumentsChecked() == num_args.
+    // 'num_args_tested' is stored as an untagged int.
+    __ ldr(R6, FieldAddress(R5, ICData::num_args_tested_offset()));
+    __ CompareImmediate(R6, num_args);
+    __ b(&ok, EQ);
+    __ Stop("Incorrect stub for IC data");
+    __ Bind(&ok);
+  }
+#endif  // DEBUG
+
+  // Preserve return address, since LR is needed for subroutine call.
+  __ mov(R8, ShifterOperand(LR));
+  // Loop that checks if there is an IC data match.
+  Label loop, update, test, found, get_class_id_as_smi;
+  // R5: IC data object (preserved).
+  __ ldr(R6, FieldAddress(R5, ICData::ic_data_offset()));
+  // R6: ic_data_array with check entries: classes and target functions.
+  __ AddImmediate(R6, R6, Array::data_offset() - kHeapObjectTag);
+  // R6: points directly to the first ic data array element.
+
+  // Get the receiver's class ID (first read number of arguments from
+  // arguments descriptor array and then access the receiver from the stack).
+  __ ldr(R7, FieldAddress(R4, ArgumentsDescriptor::count_offset()));
+  __ sub(R7, R7, ShifterOperand(Smi::RawValue(1)));
+  __ ldr(R0, Address(SP, R7, LSL, 1));  // R7 (argument_count - 1) is smi.
+  __ bl(&get_class_id_as_smi);
+  // R7: argument_count - 1 (smi).
+  // R0: receiver's class ID (smi).
+  __ ldr(R1, Address(R6, 0));  // First class id (smi) to check.
+  __ b(&test);
+
+  __ Bind(&loop);
+  for (int i = 0; i < num_args; i++) {
+    if (i > 0) {
+      // If not the first, load the next argument's class ID.
+      __ AddImmediate(R0, R7, Smi::RawValue(-i));
+      __ ldr(R0, Address(SP, R0, LSL, 1));
+      __ bl(&get_class_id_as_smi);
+      // R0: next argument class ID (smi).
+      __ LoadFromOffset(kLoadWord, R1, R6, i * kWordSize);
+      // R1: next class ID to check (smi).
+    }
+    __ cmp(R0, ShifterOperand(R1));  // Class id match?
+    if (i < (num_args - 1)) {
+      __ b(&update, NE);  // Continue.
+    } else {
+      // Last check, all checks before matched.
+      __ mov(LR, ShifterOperand(R8), EQ);  // Restore return address if found.
+      __ b(&found, EQ);  // Break.
+    }
+  }
+  __ Bind(&update);
+  // Reload receiver class ID.  It has not been destroyed when num_args == 1.
+  if (num_args > 1) {
+    __ ldr(R0, Address(SP, R7, LSL, 1));
+    __ bl(&get_class_id_as_smi);
+  }
+
+  const intptr_t entry_size = ICData::TestEntryLengthFor(num_args) * kWordSize;
+  __ AddImmediate(R6, entry_size);  // Next entry.
+  __ ldr(R1, Address(R6, 0));  // Next class ID.
+
+  __ Bind(&test);
+  __ CompareImmediate(R1, Smi::RawValue(kIllegalCid));  // Done?
+  __ b(&loop, NE);
+
+  // IC miss.
+  // Restore return address.
+  __ mov(LR, ShifterOperand(R8));
+
+  // Compute address of arguments (first read number of arguments from
+  // arguments descriptor array and then compute address on the stack).
+  // R7: argument_count - 1 (smi).
+  __ add(R7, SP, ShifterOperand(R7, LSL, 1));  // R7 is Smi.
+  // R7: address of receiver.
+  // Create a stub frame as we are pushing some objects on the stack before
+  // calling into the runtime.
+  __ EnterStubFrame();
+  __ LoadImmediate(R0, reinterpret_cast<intptr_t>(Object::null()));
+  // Preserve IC data object and arguments descriptor array and
+  // setup space on stack for result (target code object).
+  __ PushList((1 << R0) | (1 << R4) | (1 << R5));
+  // Push call arguments.
+  for (intptr_t i = 0; i < num_args; i++) {
+    __ LoadFromOffset(kLoadWord, IP, R7, -i * kWordSize);
+    __ Push(IP);
+  }
+  // Pass IC data object and arguments descriptor array.
+  __ PushList((1 << R4) | (1 << R5));
+
+  if (num_args == 1) {
+    __ CallRuntime(kInlineCacheMissHandlerOneArgRuntimeEntry);
+  } else if (num_args == 2) {
+    __ CallRuntime(kInlineCacheMissHandlerTwoArgsRuntimeEntry);
+  } else if (num_args == 3) {
+    __ CallRuntime(kInlineCacheMissHandlerThreeArgsRuntimeEntry);
+  } else {
+    UNIMPLEMENTED();
+  }
+  // Remove the call arguments pushed earlier, including the IC data object
+  // and the arguments descriptor array.
+  __ Drop(num_args + 2);
+  // Pop returned code object into R0 (null if not found).
+  // Restore arguments descriptor array and IC data array.
+  __ PopList((1 << R0) | (1 << R4) | (1 << R5));
+  __ LeaveStubFrame();
+  Label call_target_function;
+  __ CompareImmediate(R0, reinterpret_cast<intptr_t>(Object::null()));
+  __ b(&call_target_function, NE);
+  // NoSuchMethod or closure.
+  // Mark IC call that it may be a closure call that does not collect
+  // type feedback.
+  __ mov(IP, ShifterOperand(1));
+  __ strb(IP, FieldAddress(R5, ICData::is_closure_call_offset()));
+  __ Branch(&StubCode::InstanceFunctionLookupLabel());
+
+  __ Bind(&found);
+  // R6: Pointer to an IC data check group.
+  const intptr_t target_offset = ICData::TargetIndexFor(num_args) * kWordSize;
+  const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
+  __ LoadFromOffset(kLoadWord, R0, R6, target_offset);
+  __ LoadFromOffset(kLoadWord, R1, R6, count_offset);
+  __ adds(R1, R1, ShifterOperand(Smi::RawValue(1)));
+  __ StoreToOffset(kStoreWord, R1, R6, count_offset);
+  __ b(&call_target_function, VC);  // No overflow.
+  __ LoadImmediate(R1, Smi::RawValue(Smi::kMaxValue));
+  __ StoreToOffset(kStoreWord, R1, R6, count_offset);
+
+  __ Bind(&call_target_function);
+  // R0: Target function.
+  __ ldr(R0, FieldAddress(R0, Function::code_offset()));
+  __ ldr(R0, FieldAddress(R0, Code::instructions_offset()));
+  __ AddImmediate(R0, Instructions::HeaderSize() - kHeapObjectTag);
+  __ bx(R0);
+
+  // Instance in R0, return its class-id in R0 as Smi.
+  __ Bind(&get_class_id_as_smi);
+  Label not_smi;
+  // Test if Smi -> load Smi class for comparison.
+  __ tst(R0, ShifterOperand(kSmiTagMask));
+  __ mov(R0, ShifterOperand(Smi::RawValue(kSmiCid)), EQ);
+  __ bx(LR, EQ);
+  __ LoadClassId(R0, R0);
+  __ SmiTag(R0);
+  __ bx(LR);
 }
 
 
+// Use inline cache data array to invoke the target or continue in inline
+// cache miss handler. Stub for 1-argument check (receiver class).
+//  LR: Return address.
+//  R5: Inline cache data object.
+//  R4: Arguments descriptor array.
+// Inline cache data object structure:
+// 0: function-name
+// 1: N, number of arguments checked.
+// 2 .. (length - 1): group of checks, each check containing:
+//   - N classes.
+//   - 1 target function.
 void StubCode::GenerateOneArgCheckInlineCacheStub(Assembler* assembler) {
-  __ Unimplemented("GenerateOneArgCheckInlineCacheStub stub");
+  GenerateUsageCounterIncrement(assembler, R6);
+  GenerateNArgsCheckInlineCacheStub(assembler, 1);
 }
 
 
 void StubCode::GenerateTwoArgsCheckInlineCacheStub(Assembler* assembler) {
-  __ Unimplemented("GenerateTwoArgsCheckInlineCacheStub stub");
+  GenerateUsageCounterIncrement(assembler, R6);
+  GenerateNArgsCheckInlineCacheStub(assembler, 2);
 }
 
 
 void StubCode::GenerateThreeArgsCheckInlineCacheStub(Assembler* assembler) {
-  __ Unimplemented("GenerateThreeArgsCheckInlineCacheStub stub");
+  GenerateUsageCounterIncrement(assembler, R6);
+  GenerateNArgsCheckInlineCacheStub(assembler, 3);
 }
 
 
@@ -448,18 +806,108 @@ void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
 }
 
 
+// Used to check class and type arguments. Arguments passed in registers:
+// LR: return address.
+// R0: instance (must be preserved).
+// R1: instantiator type arguments or NULL.
+// R2: cache array.
+// Result in R1: null -> not found, otherwise result (true or false).
+static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
+  ASSERT((1 <= n) && (n <= 3));
+  if (n > 1) {
+    // Get instance type arguments.
+    __ LoadClass(R3, R0, R4);
+    // Compute instance type arguments into R4.
+    Label has_no_type_arguments;
+    __ LoadImmediate(R4, reinterpret_cast<intptr_t>(Object::null()));
+    __ ldr(R5, FieldAddress(R3,
+        Class::type_arguments_field_offset_in_words_offset()));
+    __ CompareImmediate(R5, Class::kNoTypeArguments);
+    __ b(&has_no_type_arguments, EQ);
+    __ add(R5, R0, ShifterOperand(R5, LSL, 2));
+    __ ldr(R4, FieldAddress(R5, 0));
+    __ Bind(&has_no_type_arguments);
+  }
+  __ LoadClassId(R3, R0);
+  // R0: instance.
+  // R1: instantiator type arguments or NULL.
+  // R2: SubtypeTestCache.
+  // R3: instance class id.
+  // R4: instance type arguments (null if none), used only if n > 1.
+  __ ldr(R2, FieldAddress(R2, SubtypeTestCache::cache_offset()));
+  __ AddImmediate(R2, Array::data_offset() - kHeapObjectTag);
+
+  Label loop, found, not_found, next_iteration;
+  // R2: Entry start.
+  // R3: instance class id.
+  // R4: instance type arguments.
+  __ SmiTag(R3);
+  __ Bind(&loop);
+  __ ldr(R5, Address(R2, kWordSize * SubtypeTestCache::kInstanceClassId));
+  __ CompareImmediate(R5, reinterpret_cast<intptr_t>(Object::null()));
+  __ b(&not_found, EQ);
+  __ cmp(R5, ShifterOperand(R3));
+  if (n == 1) {
+    __ b(&found, EQ);
+  } else {
+    __ b(&next_iteration, NE);
+    __ ldr(R5,
+           Address(R2, kWordSize * SubtypeTestCache::kInstanceTypeArguments));
+    __ cmp(R5, ShifterOperand(R4));
+    if (n == 2) {
+      __ b(&found, EQ);
+    } else {
+      __ b(&next_iteration, NE);
+      __ ldr(R5, Address(R2, kWordSize *
+                             SubtypeTestCache::kInstantiatorTypeArguments));
+      __ cmp(R5, ShifterOperand(R1));
+      __ b(&found, EQ);
+    }
+  }
+  __ Bind(&next_iteration);
+  __ AddImmediate(R2, kWordSize * SubtypeTestCache::kTestEntryLength);
+  __ b(&loop);
+  // Fall through to not found.
+  __ Bind(&not_found);
+  __ LoadImmediate(R1, reinterpret_cast<intptr_t>(Object::null()));
+  __ Ret();
+
+  __ Bind(&found);
+  __ ldr(R1, Address(R2, kWordSize * SubtypeTestCache::kTestResult));
+  __ Ret();
+}
+
+
+// Used to check class and type arguments. Arguments passed in registers:
+// LR: return address.
+// R0: instance (must be preserved).
+// R1: instantiator type arguments or NULL.
+// R2: cache array.
+// Result in R1: null -> not found, otherwise result (true or false).
 void StubCode::GenerateSubtype1TestCacheStub(Assembler* assembler) {
-  __ Unimplemented("Subtype1TestCache Stub");
+  GenerateSubtypeNTestCacheStub(assembler, 1);
 }
 
 
+// Used to check class and type arguments. Arguments passed in registers:
+// LR: return address.
+// R0: instance (must be preserved).
+// R1: instantiator type arguments or NULL.
+// R2: cache array.
+// Result in R1: null -> not found, otherwise result (true or false).
 void StubCode::GenerateSubtype2TestCacheStub(Assembler* assembler) {
-  __ Unimplemented("Subtype2TestCache Stub");
+  GenerateSubtypeNTestCacheStub(assembler, 2);
 }
 
 
+// Used to check class and type arguments. Arguments passed in registers:
+// LR: return address.
+// R0: instance (must be preserved).
+// R1: instantiator type arguments or NULL.
+// R2: cache array.
+// Result in R1: null -> not found, otherwise result (true or false).
 void StubCode::GenerateSubtype3TestCacheStub(Assembler* assembler) {
-  __ Unimplemented("Subtype3TestCache Stub");
+  GenerateSubtypeNTestCacheStub(assembler, 3);
 }
 
 
@@ -485,7 +933,7 @@ void StubCode::GenerateJumpToErrorHandlerStub(Assembler* assembler) {
 
 
 void StubCode::GenerateEqualityWithNullArgStub(Assembler* assembler) {
-  __ Unimplemented("EqualityWithNullArg stub");
+  __ Unimplemented("EqualityWithNullArg Stub");
 }
 
 
@@ -494,8 +942,89 @@ void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
 }
 
 
+DECLARE_LEAF_RUNTIME_ENTRY(intptr_t,
+                           BigintCompare,
+                           RawBigint* left,
+                           RawBigint* right);
+
+
+// Does identical check (object references are equal or not equal) with special
+// checks for boxed numbers.
+// LR: return address.
+// SP + 4: left operand.
+// SP + 0: right operand.
+// Return Zero condition flag set if equal.
+// Note: A Mint cannot contain a value that would fit in Smi, a Bigint
+// cannot contain a value that fits in Mint or Smi.
 void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler) {
-  __ Unimplemented("IdenticalWithNumberCheck stub");
+  const Register temp = R2;
+  const Register left = R1;
+  const Register right = R0;
+  // Preserve left, right and temp.
+  __ PushList((1 << R0) | (1 << R1) | (1 << R2));
+  // TOS + 4: left argument.
+  // TOS + 3: right argument.
+  // TOS + 2: saved temp
+  // TOS + 1: saved left
+  // TOS + 0: saved right
+  __ ldr(left, Address(SP, 4 * kWordSize));
+  __ ldr(right, Address(SP, 3 * kWordSize));
+  Label reference_compare, done, check_mint, check_bigint;
+  // If any of the arguments is Smi do reference compare.
+  __ tst(left, ShifterOperand(kSmiTagMask));
+  __ b(&reference_compare, EQ);
+  __ tst(right, ShifterOperand(kSmiTagMask));
+  __ b(&reference_compare, EQ);
+
+  // Value compare for two doubles.
+  __ CompareClassId(left, kDoubleCid, temp);
+  __ b(&check_mint, NE);
+  __ CompareClassId(right, kDoubleCid, temp);
+  __ b(&done, NE);
+
+  // Double values bitwise compare.
+  __ ldr(temp, FieldAddress(left, Double::value_offset() + 0 * kWordSize));
+  __ ldr(IP, FieldAddress(right, Double::value_offset() + 0 * kWordSize));
+  __ cmp(temp, ShifterOperand(IP));
+  __ b(&done, NE);
+  __ ldr(temp, FieldAddress(left, Double::value_offset() + 1 * kWordSize));
+  __ ldr(IP, FieldAddress(right, Double::value_offset() + 1 * kWordSize));
+  __ cmp(temp, ShifterOperand(IP));
+  __ b(&done);
+
+  __ Bind(&check_mint);
+  __ CompareClassId(left, kMintCid, temp);
+  __ b(&check_bigint, NE);
+  __ CompareClassId(right, kMintCid, temp);
+  __ b(&done, NE);
+  __ ldr(temp, FieldAddress(left, Mint::value_offset() + 0 * kWordSize));
+  __ ldr(IP, FieldAddress(right, Mint::value_offset() + 0 * kWordSize));
+  __ cmp(temp, ShifterOperand(IP));
+  __ b(&done, NE);
+  __ ldr(temp, FieldAddress(left, Mint::value_offset() + 1 * kWordSize));
+  __ ldr(IP, FieldAddress(right, Mint::value_offset() + 1 * kWordSize));
+  __ cmp(temp, ShifterOperand(IP));
+  __ b(&done);
+
+  __ Bind(&check_bigint);
+  __ CompareClassId(left, kBigintCid, temp);
+  __ b(&reference_compare, NE);
+  __ CompareClassId(right, kBigintCid, temp);
+  __ b(&done, NE);
+  __ EnterStubFrame(0);
+  __ ReserveAlignedFrameSpace(2 * kWordSize);
+  __ stm(IA, SP,  (1 << R0) | (1 << R1));
+  __ CallRuntime(kBigintCompareRuntimeEntry);
+  // Result in R0, 0 means equal.
+  __ LeaveStubFrame();
+  __ cmp(R0, ShifterOperand(0));
+  __ b(&done);
+
+  __ Bind(&reference_compare);
+  __ cmp(left, ShifterOperand(right));
+  __ Bind(&done);
+  __ PopList((1 << R0) | (1 << R1) | (1 << R2));
+  __ Ret();
 }
 
 }  // namespace dart

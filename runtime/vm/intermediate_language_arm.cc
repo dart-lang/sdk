@@ -167,13 +167,47 @@ LocationSummary* AssertAssignableInstr::MakeLocationSummary() const {
 
 
 LocationSummary* AssertBooleanInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+  locs->set_in(0, Location::RegisterLocation(R0));
+  locs->set_out(Location::RegisterLocation(R0));
+  return locs;
+}
+
+
+static void EmitAssertBoolean(Register reg,
+                              intptr_t token_pos,
+                              intptr_t deopt_id,
+                              LocationSummary* locs,
+                              FlowGraphCompiler* compiler) {
+  // Check that the type of the value is allowed in conditional context.
+  // Call the runtime if the object is not bool::true or bool::false.
+  ASSERT(locs->always_calls());
+  Label done;
+  __ CompareObject(reg, Bool::True());
+  __ b(&done, EQ);
+  __ CompareObject(reg, Bool::False());
+  __ b(&done, EQ);
+
+  __ Push(reg);  // Push the source object.
+  compiler->GenerateCallRuntime(token_pos,
+                                deopt_id,
+                                kConditionTypeErrorRuntimeEntry,
+                                locs);
+  // We should never return here.
+  __ bkpt(0);
+  __ Bind(&done);
 }
 
 
 void AssertBooleanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register obj = locs()->in(0).reg();
+  Register result = locs()->out().reg();
+
+  EmitAssertBoolean(obj, token_pos(), deopt_id(), locs(), compiler);
+  ASSERT(obj == result);
 }
 
 
@@ -189,19 +223,297 @@ void ArgumentDefinitionTestInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* EqualityCompareInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 2;
+  const bool is_checked_strict_equal =
+      HasICData() && ic_data()->AllTargetsHaveSameOwner(kInstanceCid);
+  if (receiver_class_id() == kMintCid) {
+    const intptr_t kNumTemps = 1;
+    LocationSummary* locs =
+        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+    locs->set_in(0, Location::RequiresFpuRegister());
+    locs->set_in(1, Location::RequiresFpuRegister());
+    locs->set_temp(0, Location::RequiresRegister());
+    locs->set_out(Location::RequiresRegister());
+    return locs;
+  }
+  if (receiver_class_id() == kDoubleCid) {
+    const intptr_t kNumTemps = 0;
+    LocationSummary* locs =
+        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+    locs->set_in(0, Location::RequiresFpuRegister());
+    locs->set_in(1, Location::RequiresFpuRegister());
+    locs->set_out(Location::RequiresRegister());
+    return locs;
+  }
+  if (receiver_class_id() == kSmiCid) {
+    const intptr_t kNumTemps = 0;
+    LocationSummary* locs =
+        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+    locs->set_in(0, Location::RegisterOrConstant(left()));
+    // Only one input can be a constant operand. The case of two constant
+    // operands should be handled by constant propagation.
+    locs->set_in(1, locs->in(0).IsConstant()
+                        ? Location::RequiresRegister()
+                        : Location::RegisterOrConstant(right()));
+    locs->set_out(Location::RequiresRegister());
+    return locs;
+  }
+  if (is_checked_strict_equal) {
+    const intptr_t kNumTemps = 1;
+    LocationSummary* locs =
+        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+    locs->set_in(0, Location::RequiresRegister());
+    locs->set_in(1, Location::RequiresRegister());
+    locs->set_temp(0, Location::RequiresRegister());
+    locs->set_out(Location::RequiresRegister());
+    return locs;
+  }
+  if (IsPolymorphic()) {
+    const intptr_t kNumTemps = 1;
+    LocationSummary* locs =
+        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+    UNIMPLEMENTED();  // TODO(regis): Verify register allocation.
+    return locs;
+  }
+  const intptr_t kNumTemps = 1;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+  locs->set_in(0, Location::RegisterLocation(R1));
+  locs->set_in(1, Location::RegisterLocation(R0));
+  locs->set_temp(0, Location::RegisterLocation(R6));
+  locs->set_out(Location::RegisterLocation(R0));
+  return locs;
+}
+
+
+// R1: left.
+// R0: right.
+// Uses R6 to load ic_call_data.
+static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
+                                       intptr_t deopt_id,
+                                       intptr_t token_pos,
+                                       Token::Kind kind,
+                                       LocationSummary* locs,
+                                       const ICData& original_ic_data) {
+  if (!compiler->is_optimizing()) {
+    compiler->AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
+                                   deopt_id,
+                                   token_pos);
+  }
+  const int kNumberOfArguments = 2;
+  const Array& kNoArgumentNames = Array::Handle();
+  const int kNumArgumentsChecked = 2;
+
+  Label check_identity;
+  __ LoadImmediate(IP, reinterpret_cast<intptr_t>(Object::null()));
+  __ cmp(R1, ShifterOperand(IP));
+  __ b(&check_identity, EQ);
+  __ cmp(R0, ShifterOperand(IP));
+  __ b(&check_identity, EQ);
+
+  ICData& equality_ic_data = ICData::ZoneHandle();
+  if (compiler->is_optimizing() && FLAG_propagate_ic_data) {
+    ASSERT(!original_ic_data.IsNull());
+    if (original_ic_data.NumberOfChecks() == 0) {
+      // IC call for reoptimization populates original ICData.
+      equality_ic_data = original_ic_data.raw();
+    } else {
+      // Megamorphic call.
+      equality_ic_data = original_ic_data.AsUnaryClassChecks();
+    }
+  } else {
+    equality_ic_data = ICData::New(compiler->parsed_function().function(),
+                                   Symbols::EqualOperator(),
+                                   deopt_id,
+                                   kNumArgumentsChecked);
+  }
+  __ PushList((1 << R0) | (1 << R1));
+  compiler->GenerateInstanceCall(deopt_id,
+                                 token_pos,
+                                 kNumberOfArguments,
+                                 kNoArgumentNames,
+                                 locs,
+                                 equality_ic_data);
+  Label check_ne;
+  __ b(&check_ne);
+
+  __ Bind(&check_identity);
+  Label equality_done;
+  if (compiler->is_optimizing()) {
+    // No need to update IC data.
+    Label is_true;
+    __ cmp(R0, ShifterOperand(R1));
+    __ b(&is_true, EQ);
+    __ LoadObject(R0, (kind == Token::kEQ) ? Bool::False() : Bool::True());
+    __ b(&equality_done);
+    __ Bind(&is_true);
+    __ LoadObject(R0, (kind == Token::kEQ) ? Bool::True() : Bool::False());
+    if (kind == Token::kNE) {
+      // Skip not-equal result conversion.
+      __ b(&equality_done);
+    }
+  } else {
+    // Call stub, load IC data in register. The stub will update ICData if
+    // necessary.
+    Register ic_data_reg = locs->temp(0).reg();
+    ASSERT(ic_data_reg == R6);  // Stub depends on it.
+    __ LoadObject(ic_data_reg, equality_ic_data);
+    // Pass left in R1 and right in R0.
+    compiler->GenerateCall(token_pos,
+                           &StubCode::EqualityWithNullArgLabel(),
+                           PcDescriptors::kOther,
+                           locs);
+  }
+  __ Bind(&check_ne);
+  if (kind == Token::kNE) {
+    Label true_label, done;
+    // Negate the condition: true label returns false and vice versa.
+    __ CompareObject(R0, Bool::True());
+    __ b(&true_label, EQ);
+    __ LoadObject(R0, Bool::True());
+    __ b(&done);
+    __ Bind(&true_label);
+    __ LoadObject(R0, Bool::False());
+    __ Bind(&done);
+  }
+  __ Bind(&equality_done);
+}
+
+
+// Emit code when ICData's targets are all Object == (which is ===).
+static void EmitCheckedStrictEqual(FlowGraphCompiler* compiler,
+                                   const ICData& ic_data,
+                                   const LocationSummary& locs,
+                                   Token::Kind kind,
+                                   BranchInstr* branch,
+                                   intptr_t deopt_id) {
   UNIMPLEMENTED();
-  return NULL;
+}
+
+
+// First test if receiver is NULL, in which case === is applied.
+// If type feedback was provided (lists of <class-id, target>), do a
+// type by type check (either === or static call to the operator.
+static void EmitGenericEqualityCompare(FlowGraphCompiler* compiler,
+                                       LocationSummary* locs,
+                                       Token::Kind kind,
+                                       BranchInstr* branch,
+                                       const ICData& ic_data,
+                                       intptr_t deopt_id,
+                                       intptr_t token_pos) {
+  UNIMPLEMENTED();
+}
+
+
+static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
+                                const LocationSummary& locs,
+                                Token::Kind kind,
+                                BranchInstr* branch) {
+  UNIMPLEMENTED();
+}
+
+
+static void EmitUnboxedMintEqualityOp(FlowGraphCompiler* compiler,
+                                      const LocationSummary& locs,
+                                      Token::Kind kind,
+                                      BranchInstr* branch) {
+  UNIMPLEMENTED();
+}
+
+
+static void EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
+                                   const LocationSummary& locs,
+                                   Token::Kind kind,
+                                   BranchInstr* branch) {
+  UNIMPLEMENTED();
 }
 
 
 void EqualityCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  ASSERT((kind() == Token::kNE) || (kind() == Token::kEQ));
+  BranchInstr* kNoBranch = NULL;
+  if (receiver_class_id() == kSmiCid) {
+    EmitSmiComparisonOp(compiler, *locs(), kind(), kNoBranch);
+    return;
+  }
+  if (receiver_class_id() == kMintCid) {
+    EmitUnboxedMintEqualityOp(compiler, *locs(), kind(), kNoBranch);
+    return;
+  }
+  if (receiver_class_id() == kDoubleCid) {
+    EmitDoubleComparisonOp(compiler, *locs(), kind(), kNoBranch);
+    return;
+  }
+  const bool is_checked_strict_equal =
+      HasICData() && ic_data()->AllTargetsHaveSameOwner(kInstanceCid);
+  if (is_checked_strict_equal) {
+    EmitCheckedStrictEqual(compiler, *ic_data(), *locs(), kind(), kNoBranch,
+                           deopt_id());
+    return;
+  }
+  if (IsPolymorphic()) {
+    EmitGenericEqualityCompare(compiler, locs(), kind(), kNoBranch, *ic_data(),
+                               deopt_id(), token_pos());
+    return;
+  }
+  Register left = locs()->in(0).reg();
+  Register right = locs()->in(1).reg();
+  ASSERT(left == R1);
+  ASSERT(right == R0);
+  EmitEqualityAsInstanceCall(compiler,
+                             deopt_id(),
+                             token_pos(),
+                             kind(),
+                             locs(),
+                             *ic_data());
+  ASSERT(locs()->out().reg() == R0);
 }
 
 
 void EqualityCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
                                           BranchInstr* branch) {
-  UNIMPLEMENTED();
+  ASSERT((kind() == Token::kNE) || (kind() == Token::kEQ));
+  if (receiver_class_id() == kSmiCid) {
+    // Deoptimizes if both arguments not Smi.
+    EmitSmiComparisonOp(compiler, *locs(), kind(), branch);
+    return;
+  }
+  if (receiver_class_id() == kMintCid) {
+    EmitUnboxedMintEqualityOp(compiler, *locs(), kind(), branch);
+    return;
+  }
+  if (receiver_class_id() == kDoubleCid) {
+    EmitDoubleComparisonOp(compiler, *locs(), kind(), branch);
+    return;
+  }
+  const bool is_checked_strict_equal =
+      HasICData() && ic_data()->AllTargetsHaveSameOwner(kInstanceCid);
+  if (is_checked_strict_equal) {
+    EmitCheckedStrictEqual(compiler, *ic_data(), *locs(), kind(), branch,
+                           deopt_id());
+    return;
+  }
+  if (IsPolymorphic()) {
+    EmitGenericEqualityCompare(compiler, locs(), kind(), branch, *ic_data(),
+                               deopt_id(), token_pos());
+    return;
+  }
+  Register left = locs()->in(0).reg();
+  Register right = locs()->in(1).reg();
+  ASSERT(left == R1);
+  ASSERT(right == R0);
+  EmitEqualityAsInstanceCall(compiler,
+                             deopt_id(),
+                             token_pos(),
+                             Token::kEQ,  // kNE reverse occurs at branch.
+                             locs(),
+                             *ic_data());
+  if (branch->is_checked()) {
+    EmitAssertBoolean(R0, token_pos(), deopt_id(), locs(), compiler);
+  }
+  Condition branch_condition = (kind() == Token::kNE) ? NE : EQ;
+  __ CompareObject(R0, Bool::True());
+  branch->EmitBranchOnCondition(compiler, branch_condition);
 }
 
 
@@ -691,7 +1003,7 @@ LocationSummary* BranchInstr::MakeLocationSummary() const {
 
 
 void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  comparison()->EmitBranchCode(compiler, this);
 }
 
 
@@ -807,25 +1119,77 @@ void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* GotoInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  return new LocationSummary(0, 0, LocationSummary::kNoCall);
 }
 
 
 void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  // Add deoptimization descriptor for deoptimizing instructions
+  // that may be inserted before this instruction.
+  if (!compiler->is_optimizing()) {
+    compiler->AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
+                                   GetDeoptId(),
+                                   0);  // No token position.
+  }
+
+  if (HasParallelMove()) {
+    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
+  }
+
+  // We can fall through if the successor is the next block in the list.
+  // Otherwise, we need a jump.
+  if (!compiler->CanFallThroughTo(successor())) {
+    __ b(compiler->GetJumpLabel(successor()));
+  }
+}
+
+
+static Condition NegateCondition(Condition condition) {
+  switch (condition) {
+    case EQ: return NE;
+    case NE: return EQ;
+    case LT: return GE;
+    case LE: return GT;
+    case GT: return LE;
+    case GE: return LT;
+    case CC: return CS;
+    case LS: return HI;
+    case HI: return LS;
+    case CS: return CC;
+    default:
+      OS::Print("Error %d\n", condition);
+      UNIMPLEMENTED();
+      return EQ;
+  }
 }
 
 
 void ControlInstruction::EmitBranchOnValue(FlowGraphCompiler* compiler,
                                            bool value) {
-  UNIMPLEMENTED();
+  if (value && !compiler->CanFallThroughTo(true_successor())) {
+    __ b(compiler->GetJumpLabel(true_successor()));
+  } else if (!value && !compiler->CanFallThroughTo(false_successor())) {
+    __ b(compiler->GetJumpLabel(false_successor()));
+  }
 }
 
 
 void ControlInstruction::EmitBranchOnCondition(FlowGraphCompiler* compiler,
                                                Condition true_condition) {
-  UNIMPLEMENTED();
+  if (compiler->CanFallThroughTo(false_successor())) {
+    // If the next block is the false successor we will fall through to it.
+    __ b(compiler->GetJumpLabel(true_successor()), true_condition);
+  } else {
+    // If the next block is the true successor we negate comparison and fall
+    // through to it.
+    Condition false_condition = NegateCondition(true_condition);
+    __ b(compiler->GetJumpLabel(false_successor()), false_condition);
+
+    // Fall through or jump to the true successor.
+    if (!compiler->CanFallThroughTo(true_successor())) {
+      __ b(compiler->GetJumpLabel(true_successor()));
+    }
+  }
 }
 
 
@@ -841,19 +1205,85 @@ void CurrentContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* StrictCompareInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  locs->set_in(0, Location::RegisterOrConstant(left()));
+  locs->set_in(1, Location::RegisterOrConstant(right()));
+  locs->set_out(Location::RequiresRegister());
+  return locs;
 }
 
 
+// Special code for numbers (compare values instead of references.)
 void StrictCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  ASSERT(kind() == Token::kEQ_STRICT || kind() == Token::kNE_STRICT);
+  Location left = locs()->in(0);
+  Location right = locs()->in(1);
+  if (left.IsConstant() && right.IsConstant()) {
+    // TODO(vegorov): should be eliminated earlier by constant propagation.
+    const bool result = (kind() == Token::kEQ_STRICT) ?
+        left.constant().raw() == right.constant().raw() :
+        left.constant().raw() != right.constant().raw();
+    __ LoadObject(locs()->out().reg(), result ? Bool::True() : Bool::False());
+    return;
+  }
+  if (left.IsConstant()) {
+    compiler->EmitEqualityRegConstCompare(right.reg(),
+                                          left.constant(),
+                                          needs_number_check());
+  } else if (right.IsConstant()) {
+    compiler->EmitEqualityRegConstCompare(left.reg(),
+                                          right.constant(),
+                                          needs_number_check());
+  } else {
+    compiler->EmitEqualityRegRegCompare(left.reg(),
+                                       right.reg(),
+                                       needs_number_check());
+  }
+
+  Register result = locs()->out().reg();
+  Label load_true, done;
+  Condition true_condition = (kind() == Token::kEQ_STRICT) ? EQ : NE;
+  __ b(&load_true, true_condition);
+  __ LoadObject(result, Bool::False());
+  __ b(&done);
+  __ Bind(&load_true);
+  __ LoadObject(result, Bool::True());
+  __ Bind(&done);
 }
 
 
 void StrictCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
                                         BranchInstr* branch) {
-  UNIMPLEMENTED();
+  ASSERT(kind() == Token::kEQ_STRICT || kind() == Token::kNE_STRICT);
+  Location left = locs()->in(0);
+  Location right = locs()->in(1);
+  if (left.IsConstant() && right.IsConstant()) {
+    // TODO(vegorov): should be eliminated earlier by constant propagation.
+    const bool result = (kind() == Token::kEQ_STRICT) ?
+        left.constant().raw() == right.constant().raw() :
+        left.constant().raw() != right.constant().raw();
+    branch->EmitBranchOnValue(compiler, result);
+    return;
+  }
+  if (left.IsConstant()) {
+    compiler->EmitEqualityRegConstCompare(right.reg(),
+                                          left.constant(),
+                                          needs_number_check());
+  } else if (right.IsConstant()) {
+    compiler->EmitEqualityRegConstCompare(left.reg(),
+                                          right.constant(),
+                                          needs_number_check());
+  } else {
+    compiler->EmitEqualityRegRegCompare(left.reg(),
+                                        right.reg(),
+                                        needs_number_check());
+  }
+
+  Condition true_condition = (kind() == Token::kEQ_STRICT) ? EQ : NE;
+  branch->EmitBranchOnCondition(compiler, true_condition);
 }
 
 
@@ -896,13 +1326,19 @@ void StoreVMFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* AllocateObjectInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  return MakeCallSummary();
 }
 
 
 void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  const Class& cls = Class::ZoneHandle(constructor().Owner());
+  const Code& stub = Code::Handle(StubCode::GetAllocationStubForClass(cls));
+  const ExternalLabel label(cls.ToCString(), stub.EntryPoint());
+  compiler->GenerateCall(token_pos(),
+                         &label,
+                         PcDescriptors::kOther,
+                         locs());
+  __ Drop(ArgumentCount());  // Discard arguments.
 }
 
 

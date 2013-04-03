@@ -537,6 +537,7 @@ Simulator::Simulator() {
   break_pc_ = NULL;
   break_instr_ = 0;
   last_setjmp_buffer_ = NULL;
+  top_exit_frame_info_ = 0;
 
   // Setup architecture state.
   // All registers are initialized to zero to start with.
@@ -837,6 +838,15 @@ void Simulator::DoBreak(Instr *instr) {
       if (FLAG_trace_sim) {
         OS::Print("Call to host function at 0x%"Pd"\n", external);
       }
+
+      if (redirection->call_kind() != kLeafRuntimeCall) {
+        // The top_exit_frame_info of the current isolate points to the top of
+        // the simulator stack.
+        ASSERT((StackTop() - Isolate::Current()->top_exit_frame_info()) <
+               Isolate::GetSpecifiedStackSize());
+        // Set the top_exit_frame_info of this simulator to the native stack.
+        set_top_exit_frame_info(reinterpret_cast<uword>(&buffer));
+      }
       if (redirection->call_kind() == kRuntimeCall) {
         NativeArguments arguments;
         ASSERT(sizeof(NativeArguments) == 4*kWordSize);
@@ -866,6 +876,7 @@ void Simulator::DoBreak(Instr *instr) {
         target(arguments);
         set_register(V0, icount_);  // Zap result register from void function.
       }
+      set_top_exit_frame_info(0);
 
       // Zap caller-saved registers, since the actual runtime call could have
       // used them.

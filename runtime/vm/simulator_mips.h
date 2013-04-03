@@ -55,6 +55,12 @@ class Simulator {
   // Accessor to the internal simulator stack top.
   uword StackTop() const;
 
+  // The isolate's top_exit_frame_info refers to a Dart frame in the simulator
+  // stack. The simulator's top_exit_frame_info refers to a C++ frame in the
+  // native stack.
+  uword top_exit_frame_info() const { return top_exit_frame_info_; }
+  void set_top_exit_frame_info(uword value) { top_exit_frame_info_ = value; }
+
   // Call on program start.
   static void InitOnce();
 
@@ -95,6 +101,7 @@ class Simulator {
   int icount_;
   bool delay_slot_;
   SimulatorSetjmpBuffer* last_setjmp_buffer_;
+  uword top_exit_frame_info_;
 
   // Registered breakpoints.
   Instr* break_pc_;

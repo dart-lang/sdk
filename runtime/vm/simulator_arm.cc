@@ -496,6 +496,7 @@ void SimulatorDebugger::Debug() {
 #undef XSTR
 }
 
+
 char* SimulatorDebugger::ReadLine(const char* prompt) {
   char* result = NULL;
   char line_buf[256];
@@ -627,6 +628,7 @@ Simulator::Simulator() {
   break_pc_ = NULL;
   break_instr_ = 0;
   last_setjmp_buffer_ = NULL;
+  top_exit_frame_info_ = 0;
 
   // Setup architecture state.
   // All registers are initialized to zero to start with.
@@ -1335,6 +1337,15 @@ void Simulator::SupervisorCall(Instr* instr) {
         if (FLAG_trace_sim) {
           OS::Print("Call to host function at 0x%"Pd"\n", external);
         }
+
+        if (redirection->call_kind() != kLeafRuntimeCall) {
+          // The top_exit_frame_info of the current isolate points to the top of
+          // the simulator stack.
+          ASSERT((StackTop() - Isolate::Current()->top_exit_frame_info()) <
+                 Isolate::GetSpecifiedStackSize());
+          // Set the top_exit_frame_info of this simulator to the native stack.
+          set_top_exit_frame_info(reinterpret_cast<uword>(&buffer));
+        }
         if (redirection->call_kind() == kRuntimeCall) {
           NativeArguments arguments;
           ASSERT(sizeof(NativeArguments) == 4*kWordSize);
@@ -1364,6 +1375,7 @@ void Simulator::SupervisorCall(Instr* instr) {
           target(arguments);
           set_register(R0, icount_);  // Zap result register from void function.
         }
+        set_top_exit_frame_info(0);
 
         // Zap caller-saved registers, since the actual runtime call could have
         // used them.
@@ -2865,10 +2877,7 @@ void Simulator::Longjmp(
   }
   ASSERT(buf != NULL);
 
-  // Clean up stack memory of C++ frames.
-  // TODO(regis): Revisit.
-  // isolate->PrepareForUnwinding(reinterpret_cast<uword>(buf));
-  // isolate->ChangeStateToGeneratedCode();
+  // The caller has already cleaned up the stack memory of C++ frames.
   set_register(kExceptionObjectReg, bit_cast<int32_t>(object.raw()));
   buf->Longjmp();
 }

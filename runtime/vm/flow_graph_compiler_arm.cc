@@ -49,13 +49,23 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
 #define __ assembler()->
 
 
+// Fall through if bool_register contains null.
 void FlowGraphCompiler::GenerateBoolToJump(Register bool_register,
                                            Label* is_true,
                                            Label* is_false) {
-  UNIMPLEMENTED();
+  Label fall_through;
+  __ CompareImmediate(bool_register,
+                      reinterpret_cast<intptr_t>(Object::null()));
+  __ b(&fall_through, EQ);
+  __ CompareObject(bool_register, Bool::True());
+  __ b(is_true, EQ);
+  __ b(is_false);
+  __ Bind(&fall_through);
 }
 
 
+// R0: instance (must be preserved).
+// R1: instantiator type arguments (if used).
 RawSubtypeTestCache* FlowGraphCompiler::GenerateCallSubtypeTestStub(
     TypeTestStubKind test_kind,
     Register instance_reg,
@@ -63,8 +73,28 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateCallSubtypeTestStub(
     Register temp_reg,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
-  UNIMPLEMENTED();
-  return NULL;
+  ASSERT(instance_reg == R0);
+  ASSERT(temp_reg == kNoRegister);  // Unused on ARM.
+  const SubtypeTestCache& type_test_cache =
+      SubtypeTestCache::ZoneHandle(SubtypeTestCache::New());
+  __ LoadObject(R2, type_test_cache);
+  if (test_kind == kTestTypeOneArg) {
+    ASSERT(type_arguments_reg == kNoRegister);
+    __ LoadImmediate(R1, reinterpret_cast<intptr_t>(Object::null()));
+    __ BranchLink(&StubCode::Subtype1TestCacheLabel());
+  } else if (test_kind == kTestTypeTwoArgs) {
+    ASSERT(type_arguments_reg == kNoRegister);
+    __ LoadImmediate(R1, reinterpret_cast<intptr_t>(Object::null()));
+    __ BranchLink(&StubCode::Subtype2TestCacheLabel());
+  } else if (test_kind == kTestTypeThreeArgs) {
+    ASSERT(type_arguments_reg == R1);
+    __ BranchLink(&StubCode::Subtype3TestCacheLabel());
+  } else {
+    UNREACHABLE();
+  }
+  // Result is in R1: null -> not found, otherwise Bool::True or Bool::False.
+  GenerateBoolToJump(R1, is_instance_lbl, is_not_instance_lbl);
+  return type_test_cache.raw();
 }
 
 
@@ -155,13 +185,36 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
 }
 
 
+// Uses SubtypeTestCache to store instance class and result.
+// R0: instance to test.
+// Clobbers R1-R5.
+// Immediate class test already done.
+// TODO(srdjan): Implement a quicker subtype check, as type test
+// arrays can grow too high, but they may be useful when optimizing
+// code (type-feedback).
 RawSubtypeTestCache* FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
     intptr_t token_pos,
     const Class& type_class,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
-  UNIMPLEMENTED();
-  return NULL;
+  __ Comment("Subtype1TestCacheLookup");
+  const Register kInstanceReg = R0;
+  __ LoadClass(R1, kInstanceReg, R2);
+  // R1: instance class.
+  // Check immediate superclass equality.
+  __ ldr(R2, FieldAddress(R1, Class::super_type_offset()));
+  __ ldr(R2, FieldAddress(R2, Type::type_class_offset()));
+  __ CompareObject(R2, type_class);
+  __ b(is_instance_lbl, EQ);
+
+  const Register kTypeArgumentsReg = kNoRegister;
+  const Register kTempReg = kNoRegister;
+  return GenerateCallSubtypeTestStub(kTestTypeOneArg,
+                                     kInstanceReg,
+                                     kTypeArgumentsReg,
+                                     kTempReg,
+                                     is_instance_lbl,
+                                     is_not_instance_lbl);
 }
 
 
@@ -834,7 +887,22 @@ void FlowGraphCompiler::GenerateCallRuntime(intptr_t token_pos,
                                             intptr_t deopt_id,
                                             const RuntimeEntry& entry,
                                             LocationSummary* locs) {
-  __ Unimplemented("call runtime");
+  __ CallRuntime(entry);
+  AddCurrentDescriptor(PcDescriptors::kOther, deopt_id, token_pos);
+  RecordSafepoint(locs);
+  if (deopt_id != Isolate::kNoDeoptId) {
+    // Marks either the continuation point in unoptimized code or the
+    // deoptimization point in optimized code, after call.
+    if (is_optimizing()) {
+      AddDeoptIndexAtCall(deopt_id, token_pos);
+    } else {
+      // Add deoptimization continuation point after the call and before the
+      // arguments are removed.
+      AddCurrentDescriptor(PcDescriptors::kDeoptAfter,
+                           deopt_id,
+                           token_pos);
+    }
+  }
 }
 
 
@@ -908,7 +976,16 @@ void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
 void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
                                                   Register right,
                                                   bool needs_number_check) {
-  UNIMPLEMENTED();
+  if (needs_number_check) {
+    __ Push(left);
+    __ Push(right);
+    __ BranchLink(&StubCode::IdenticalWithNumberCheckLabel());
+    // Stub returns result in flags (result of a cmpl, we need ZF computed).
+    __ Pop(right);
+    __ Pop(left);
+  } else {
+    __ cmp(left, ShifterOperand(right));
+  }
 }
 
 

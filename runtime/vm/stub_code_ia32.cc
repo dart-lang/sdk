@@ -1101,7 +1101,6 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // EAX: new object start.
     // EBX: next object start.
     // EDI: new object type arguments (if is_cls_parameterized).
-    __ LoadObject(EDX, cls);  // Load class of object to be allocated.
     // Set the tags.
     uword tags = 0;
     tags = RawObject::SizeTag::update(instance_size, tags);
@@ -1115,7 +1114,6 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
 
     // EAX: new object start.
     // EBX: next object start.
-    // EDX: class of the object to be allocated.
     // EDI: new object type arguments (if is_cls_parameterized).
     // First try inlining the initialization without a loop.
     if (instance_size < (kInlineInstanceSize * kWordSize)) {
@@ -1638,7 +1636,6 @@ void StubCode::GenerateThreeArgsCheckInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, EBX);
   GenerateNArgsCheckInlineCacheStub(assembler, 3);
 }
-
 
 
 // Use inline cache data array to invoke the target or continue in inline
