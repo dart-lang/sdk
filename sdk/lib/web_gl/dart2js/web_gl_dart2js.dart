@@ -3,7 +3,7 @@ library dart.dom.web_gl;
 import 'dart:collection';
 import 'dart:html';
 import 'dart:html_common';
-import 'dart:_js_helper' show Creates, Returns, convertDartClosureToJS;
+import 'dart:_js_helper' show Creates, JSName, Null, Returns, convertDartClosureToJS;
 import 'dart:_foreign_helper' show JS;
 // DO NOT EDIT - unless you are editing documentation as per:
 // https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
@@ -1548,8 +1548,8 @@ class RenderingContext extends CanvasRenderingContext native "*WebGLRenderingCon
 
   @DomName('WebGLRenderingContext.getParameter')
   @DocsEditable
-  @Creates('Null|num|String|bool|=List|Float32Array|Int32Array|Uint32Array|WebGLFramebuffer|WebGLRenderbuffer|WebGLTexture')
-  @Returns('Null|num|String|bool|=List|Float32Array|Int32Array|Uint32Array|WebGLFramebuffer|WebGLRenderbuffer|WebGLTexture')
+  @Creates('Null|num|String|bool|=List|Float32Array|Int32Array|Uint32Array|Framebuffer|Renderbuffer|Texture')
+  @Returns('Null|num|String|bool|=List|Float32Array|Int32Array|Uint32Array|Framebuffer|Renderbuffer|Texture')
   Object getParameter(int pname) native;
 
   @DomName('WebGLRenderingContext.getProgramInfoLog')

@@ -691,9 +691,9 @@ dart2js_annotations = monitored.Dict('generator.dart2js_annotations', {
       # Taken from http://www.khronos.org/registry/webgl/specs/latest/
       # Section 5.14.3 Setting and getting state
       "@Creates('Null|num|String|bool|=List|Float32Array|Int32Array|Uint32Array"
-                "|WebGLFramebuffer|WebGLRenderbuffer|WebGLTexture')",
+                "|Framebuffer|Renderbuffer|Texture')",
       "@Returns('Null|num|String|bool|=List|Float32Array|Int32Array|Uint32Array"
-                "|WebGLFramebuffer|WebGLRenderbuffer|WebGLTexture')",
+                "|Framebuffer|Renderbuffer|Texture')",
     ],
 
     'XMLHttpRequest.response': [
