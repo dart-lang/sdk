@@ -1694,12 +1694,12 @@ class CodeEmitterTask extends CompilerTask {
     // [Function] and needs checks for all typedefs that are used in is-checks.
     if (checkedClasses.contains(compiler.functionClass) ||
         !checkedTypedefs.isEmpty) {
-      FunctionElement call = cls.lookupLocalMember(Compiler.CALL_OPERATOR_NAME);
+      Element call = cls.lookupLocalMember(Compiler.CALL_OPERATOR_NAME);
       if (call == null) {
         // If [cls] is a closure, it has a synthetic call operator method.
         call = cls.lookupBackendMember(Compiler.CALL_OPERATOR_NAME);
       }
-      if (call != null) {
+      if (call != null && call.isFunction()) {
         generateInterfacesIsTests(compiler.functionClass,
                                   emitIsTest,
                                   emitSubstitution,
