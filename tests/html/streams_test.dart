@@ -87,13 +87,10 @@ main() {
       subscription.onData((_) {});
     }, throws);
 
-    expect(() {
-      subscription.pause();
-    }, throws);
-
-    expect(() {
-      subscription.resume();
-    }, throws);
+    // Calling these after a cancel does nothing.
+    subscription.cancel();
+    subscription.pause();
+    subscription.resume();
   });
 
   test('pause/resume', () {
@@ -131,10 +128,8 @@ main() {
     helper.pulse();
     expect(callCount, 3);
 
-    // Not paused.
-    expect(() {
-      subscription.resume();
-    }, throws);
+    // Not paused, but resuming once too often is ok.
+    subscription.resume();
   });
 
   test('onData', () {
