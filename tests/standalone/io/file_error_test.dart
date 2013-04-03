@@ -453,6 +453,26 @@ testRepeatedlyCloseFileSync() {
   });
 }
 
+testReadSyncBigInt() {
+  createTestFile((file, port) {
+    var bigint = 100000000000000000000000000000000000000000;
+    var openedFile = file.openSync();
+    Expect.throws(() => openedFile.readSync(bigint),
+                  (e) => e is FileIOException);
+    port.send(null);
+  });
+}
+
+testReadSyncClosedFile() {
+  createTestFile((file, port) {
+    var openedFile = file.openSync();
+    openedFile.closeSync();
+    Expect.throws(() => openedFile.readSync(1),
+                  (e) => e is FileIOException);
+    port.send(null);
+  });
+}
+
 main() {
   testOpenNonExistent();
   testDeleteNonExistent();
@@ -469,4 +489,6 @@ main() {
   testOperateOnClosedFile();
   testRepeatedlyCloseFile();
   testRepeatedlyCloseFileSync();
+  testReadSyncBigInt();
+  testReadSyncClosedFile();
 }

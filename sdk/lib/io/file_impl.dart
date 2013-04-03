@@ -698,11 +698,17 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
   external static _read(int id, int bytes);
 
   List<int> readSync(int bytes) {
+    _checkNotClosed();
     if (bytes is !int) {
       throw new FileIOException(
           "Invalid arguments to readSync for file '$_path'");
     }
-    return _read(_id, bytes);
+    var result = _read(_id, bytes);
+    if (result is OSError) {
+      throw new FileIOException("readSync failed for file '$_path'",
+                                result);
+    }
+    return result;
   }
 
   Future<int> readList(List<int> buffer, int offset, int bytes) {
