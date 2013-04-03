@@ -202,7 +202,7 @@ abstract class ListMixin<E> implements List<E> {
     }
   }
 
-  Iterable<E> where(bool test(E element)) => super.where(test);
+  Iterable<E> where(bool test(E element)) => new WhereIterable<E>(this, test);
 
   Iterable map(f(E element)) => new MappedListIterable(this, f);
 
@@ -220,11 +220,15 @@ abstract class ListMixin<E> implements List<E> {
 
   Iterable<E> skip(int count) => new SubListIterable(this, count, null);
 
-  Iterable<E> skipWhile(bool test(E element)) => super.skipWhile(test);
+  Iterable<E> skipWhile(bool test(E element)) {
+    return new SkipWhileIterable<E>(this, test);
+  }
 
   Iterable<E> take(int count) => new SubListIterable(this, 0, count);
 
-  Iterable<E> takeWhile(bool test(E element)) => super.takeWhile(test);
+  Iterable<E> takeWhile(bool test(E element)) {
+    return new TakeWhileIterable<E>(this, test);
+  }
 
   List<E> toList({ bool growable: true }) {
     List<E> result;
@@ -292,12 +296,12 @@ abstract class ListMixin<E> implements List<E> {
   }
 
   static void _filter(List source,
-                      bool test(E element),
+                      bool test(var element),
                       bool retainMatching) {
     List retained = [];
     int length = source.length;
     for (int i = 0; i < length; i++) {
-      E element = source[i];
+      var element = source[i];
       if (test(element) == retainMatching) {
         retained.add(element);
       }
