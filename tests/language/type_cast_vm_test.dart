@@ -34,7 +34,7 @@ class TypeTest {
       }
       String subs = error.url.substring(pos + 1, error.url.length);
       Expect.equals("dart:core-patch", subs);
-      Expect.equals(1889, error.line);
+      Expect.equals(1880, error.line);
       Expect.equals(1, error.column);
     }
     return result;
@@ -76,7 +76,7 @@ class TypeTest {
       }
       String subs = error.url.substring(pos + 1, error.url.length);
       Expect.equals("dart:core-patch", subs);
-      Expect.equals(1889, error.line);
+      Expect.equals(1880, error.line);
       Expect.equals(1, error.column);
     }
     return result;
