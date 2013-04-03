@@ -279,6 +279,40 @@ void testSetAtIndex(TypedData list,
   validate(false);
 }
 
+testViewCreation() {
+  var bytes = new Uint8List(1024);
+  var view = new ByteData.view(bytes, 24);
+  Expect.equals(1000, view.lengthInBytes);
+  view = new Uint8List.view(bytes, 24);
+  Expect.equals(1000, view.lengthInBytes);
+  view = new Int8List.view(bytes, 24);
+  Expect.equals(1000, view.lengthInBytes);
+  view = new Uint8ClampedList.view(bytes, 24);
+  Expect.equals(1000, view.lengthInBytes);
+  view = new Uint16List.view(bytes, 24);
+  Expect.equals(1000, view.lengthInBytes);
+  view = new Int16List.view(bytes, 24);
+  Expect.equals(1000, view.lengthInBytes);
+  view = new Uint32List.view(bytes, 24);
+  Expect.equals(1000, view.lengthInBytes);
+  view = new Int32List.view(bytes, 24);
+  Expect.equals(1000, view.lengthInBytes);
+  view = new Uint64List.view(bytes, 24);
+  Expect.equals(1000, view.lengthInBytes);
+  view = new Int64List.view(bytes, 24);
+  Expect.equals(1000, view.lengthInBytes);
+  view = new Float32List.view(bytes, 24);
+  Expect.equals(1000, view.lengthInBytes);
+  view = new Float64List.view(bytes, 24);
+  Expect.equals(1000, view.lengthInBytes);
+}
+
+testWhere() {
+  var bytes = new Uint8List(13);
+  bytes.setRange(0, 5, [1, 1, 1, 1, 1]);
+  Expect.equals(5, bytes.where((v) => v > 0).length);
+}
+
 main() {
   for (int i = 0; i < 2000; i++) {
     testCreateUint8TypedData();
@@ -335,5 +369,7 @@ main() {
   testTypedDataRange(true);
   testUnsignedTypedDataRange(true);
   testExternalClampedUnsignedTypedDataRange(true);
+  testViewCreation();
+  testWhere();
 }
 

@@ -278,7 +278,7 @@ patch class ByteData {
   /* patch */ factory ByteData.view(ByteBuffer buffer,
                                     [int offsetInBytes = 0, int length]) {
     if (length == null) {
-      length = buffer.lengthInBytes;
+      length = buffer.lengthInBytes - offsetInBytes;
     }
     return new _ByteDataView(buffer, offsetInBytes, length);
   }
@@ -312,7 +312,7 @@ abstract class _TypedListBase {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  Collection where(bool f(int element)) {
+  Iterable where(bool f(int element)) {
     return IterableMixinWorkaround.where(this, f);
   }
 
@@ -578,7 +578,7 @@ class _Int8Array extends _TypedList implements Int8List {
   factory _Int8Array.view(ByteBuffer buffer,
                           [int offsetInBytes = 0, int length]) {
     if (length == null) {
-      length = buffer.lengthInBytes;
+      length = buffer.lengthInBytes - offsetInBytes;
     }
     return new _Int8ArrayView(buffer, offsetInBytes, length);
   }
@@ -636,7 +636,7 @@ class _Uint8Array extends _TypedList implements Uint8List {
   factory _Uint8Array.view(ByteBuffer buffer,
                            [int offsetInBytes = 0, int length]) {
     if (length == null) {
-      length = buffer.lengthInBytes;
+      length = buffer.lengthInBytes - offsetInBytes;
     }
     return new _Uint8ArrayView(buffer, offsetInBytes, length);
   }
@@ -692,7 +692,7 @@ class _Uint8ClampedArray extends _TypedList implements Uint8ClampedList {
   factory _Uint8ClampedArray.view(ByteBuffer buffer,
                                   [int offsetInBytes = 0, int length]) {
     if (length == null) {
-      length = buffer.lengthInBytes;
+      length = buffer.lengthInBytes - offsetInBytes;
     }
     return new _Uint8ClampedArrayView(buffer, offsetInBytes, length);
   }
@@ -2322,7 +2322,7 @@ class _Uint8ArrayView extends _TypedListView implements Uint8List {
 }
 
 
-class _Uint8ClampedArrayView extends _TypedListView implements Uint8List {
+class _Uint8ClampedArrayView extends _TypedListView implements Uint8ClampedList {
   // Constructor.
   _Uint8ClampedArrayView(ByteBuffer buffer,
                          [int _offsetInBytes = 0, int _length])
