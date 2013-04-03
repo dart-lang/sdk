@@ -72,6 +72,7 @@ dart/*: Skip
 cc/Dart2JSCompileAll: Skip
 cc/FrameLookup: Skip
 cc/UseDartApi: Skip
+cc/FindCodeObject: Skip
 
 # Tests needing Dart execution.
 dart/*: Skip
