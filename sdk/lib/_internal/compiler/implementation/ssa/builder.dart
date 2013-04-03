@@ -816,7 +816,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   static const MAX_INLINING_DEPTH = 3;
-  static const MAX_INLINING_NODES = 46;
+  static const MAX_INLINING_SOURCE_SIZE = 128;
   List<InliningState> inliningStack;
   Element returnElement;
   DartType returnType;
@@ -1096,10 +1096,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     for (int i = 0; i < inliningStack.length; i++) {
       if (inliningStack[i].function == element) return false;
     }
-
     PartialFunctionElement function = element;
+    int sourceSize =
+        function.endToken.charOffset - function.beginToken.charOffset;
+    if (sourceSize > MAX_INLINING_SOURCE_SIZE) return false;
     if (!selector.applies(function, compiler)) return false;
-
     FunctionExpression functionExpression = function.parseNode(compiler);
     TreeElements newElements =
         compiler.enqueuer.resolution.getCachedElements(function);
@@ -4786,10 +4787,8 @@ class StringBuilderVisitor extends Visitor {
  */
 class InlineWeeder extends Visitor {
   final TreeElements elements;
-
   bool seenReturn = false;
   bool tooDifficult = false;
-  int nodeCount = 0;
 
   InlineWeeder(this.elements);
 
@@ -4801,21 +4800,11 @@ class InlineWeeder extends Visitor {
     return true;
   }
 
-  bool registerNode() {
-    if (nodeCount++ > SsaBuilder.MAX_INLINING_NODES) {
-      tooDifficult = true;
-      return false;
-    } else {
-      return true;
-    }
-  }
-
   void visit(Node node) {
     node.accept(this);
   }
 
   void visitNode(Node node) {
-    if (!registerNode()) return;
     if (seenReturn) {
       tooDifficult = true;
     } else {
@@ -4824,17 +4813,14 @@ class InlineWeeder extends Visitor {
   }
 
   void visitFunctionExpression(Node node) {
-    if (!registerNode()) return;
     tooDifficult = true;
   }
 
   void visitFunctionDeclaration(Node node) {
-    if (!registerNode()) return;
     tooDifficult = true;
   }
 
   void visitSend(Send node) {
-    if (!registerNode()) return;
     if (node.isParameterCheck) {
       tooDifficult = true;
       return;
@@ -4843,13 +4829,11 @@ class InlineWeeder extends Visitor {
   }
 
   visitLoop(Node node) {
-    if (!registerNode()) return;
     node.visitChildren(this);
     if (seenReturn) tooDifficult = true;
   }
 
   void visitReturn(Return node) {
-    if (!registerNode()) return;
     if (seenReturn
         || identical(node.getBeginToken().stringValue, 'native')
         || node.isRedirectingFactoryBody) {
@@ -4861,12 +4845,10 @@ class InlineWeeder extends Visitor {
   }
 
   void visitTryStatement(Node node) {
-    if (!registerNode()) return;
     tooDifficult = true;
   }
 
   void visitThrow(Node node) {
-    if (!registerNode()) return;
     tooDifficult = true;
   }
 }

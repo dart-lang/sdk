@@ -246,17 +246,16 @@ patch class HashMap<K, V> {
   }
 
   static bool _isNumericKey(var key) {
-    // Only treat unsigned 30-bit integers as numeric keys. This way,
-    // we avoid converting them to strings when we use them as keys in
-    // the JavaScript hash table object.
-    return key is num && JS('bool', '(# & 0x3ffffff) === #', key, key);
+    // We don't want to treat NaN as a numeric key, because we need to
+    // allow multiple mappings for NaNs since they are not equal.
+    return key is num && JS('bool', '# === #', key, key);
   }
 
   static int _computeHashCode(var key) {
-    // We force the hash codes to be unsigned 30-bit integers to avoid
-    // issues with problematic keys like '__proto__'. Another option
-    // would be to throw an exception if the key isn't a number.
-    return JS('int', '# & 0x3ffffff', key.hashCode);
+    // We force the hash codes to be integers to avoid issues with
+    // problematic keys like '__proto__'. Another option would be to
+    // throw an exception if the key isn't a number.
+    return JS('int', '# | 0', key.hashCode);
   }
 
   static bool _hasTableEntry(var table, var key) {
