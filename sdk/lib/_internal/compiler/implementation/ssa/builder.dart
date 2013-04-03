@@ -1335,7 +1335,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
               // closure to class mapper.
               compiler.closureToClassMapper.computeClosureToClassMapping(
                   member, node, elements);
+              sourceElementStack.add(member);
               right.accept(this);
+              sourceElementStack.removeLast();
               elements = savedElements;
               value = pop();
             }
