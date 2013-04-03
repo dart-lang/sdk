@@ -26932,27 +26932,10 @@ class WheelEvent extends MouseEvent {
   void $dom_initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native "WheelEvent_initWebKitWheelEvent_Callback";
 
 
-  /**
-   * The amount that is expected to scroll horizontally, in units determined by
-   * [deltaMode].
-   *
-   * See also:
-   *
-   * * [WheelEvent.deltaX](http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-WheelEvent-deltaX) from the W3C.
-   */
   @DomName('WheelEvent.deltaX')
-  num get deltaX => -$dom_wheelDeltaX;
-
-  /**
-   * The amount that is expected to scroll vertically, in units determined by
-   * [deltaMode].
-   *
-   * See also:
-   *
-   * * [WheelEvent.deltaY](http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-WheelEvent-deltaY) from the W3C.
-   */
+  num get deltaX => $dom_wheelDeltaX;
   @DomName('WheelEvent.deltaY')
-  num get deltaY => -$dom_wheelDeltaY;
+  num get deltaY => $dom_wheelDeltaY;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
