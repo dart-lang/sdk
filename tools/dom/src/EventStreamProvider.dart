@@ -41,9 +41,7 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   }
 
   void cancel() {
-    if (_canceled) {
-      throw new StateError("Subscription has been canceled.");
-    }
+    if (_canceled) return;
 
     _unlisten();
     // Clear out the target to indicate this is complete.
@@ -71,9 +69,7 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   void onDone(void handleDone()) {}
 
   void pause([Future resumeSignal]) {
-    if (_canceled) {
-      throw new StateError("Subscription has been canceled.");
-    }
+    if (_canceled) return;
     ++_pauseCount;
     _unlisten();
 
@@ -85,12 +81,7 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   bool get _paused => _pauseCount > 0;
 
   void resume() {
-    if (_canceled) {
-      throw new StateError("Subscription has been canceled.");
-    }
-    if (!_paused) {
-      throw new StateError("Subscription is not paused.");
-    }
+    if (_canceled || !_paused) return;
     --_pauseCount;
     _tryResume();
   }

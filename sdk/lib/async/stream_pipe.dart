@@ -158,25 +158,20 @@ class _ForwardingStreamSubscription<S, T>
   // StreamSubscription interface.
 
   void pause([Future resumeSignal]) {
-    if (_subscription == null) {
-      throw new StateError("Subscription has been unsubscribed");
-    }
+    if (_subscription == null) return;
     _subscription.pause(resumeSignal);
   }
 
   void resume() {
-    if (_subscription == null) {
-      throw new StateError("Subscription has been unsubscribed");
-    }
+    if (_subscription == null) return;
     _subscription.resume();
   }
 
   void cancel() {
-    if (_subscription == null) {
-      throw new StateError("Subscription has been unsubscribed");
+    if (_subscription != null) {
+      _subscription.cancel();
+      _subscription = null;
     }
-    _subscription.cancel();
-    _subscription = null;
   }
 
   // _EventOutputSink interface. Sends data to this subscription.
