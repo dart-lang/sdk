@@ -156,9 +156,13 @@ def test_dart2js(browser, argv):
 
 def call(args):
   print ' '.join(args)
-  return subprocess.call(args,
-                         stdout=subprocess.STDOUT,
-                         stderr=subprocess.STDERR)
+  pipe = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  output, error = pipe.communicate()
+  if output:
+    print output
+  if error:
+    print error
+  return pipe.returncode
 
 def init_dir():
   ''' Makes sure that we're always rooted in the dart root folder.'''
@@ -202,7 +206,8 @@ def main(argv):
       help();
       success = False
       break
-    success = success and bool(commands[command][0]())
+    returncode = commands[command][0]()
+    success = success and not bool(returncode)
 
   sys.exit(not success)
 
