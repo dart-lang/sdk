@@ -61,6 +61,12 @@ class ColorFormatter extends Formatter {
 
 List<String> _buildFailureOutput(TestCase test,
                                  [Formatter formatter = const Formatter()]) {
+
+  List<String> getLinesWithoutCarriageReturn(List<int> output) {
+    return decodeUtf8(output).replaceAll('\r\n', '\n')
+        .replaceAll('\r', '\n').split('\n');
+  }
+
   List<String> output = new List<String>();
   output.add('');
   output.add(formatter.failed('FAILED: ${test.configurationString}'
@@ -98,13 +104,14 @@ List<String> _buildFailureOutput(TestCase test,
       output.add('DRT pixel test failed! stdout is not printed because it '
                  'contains binary data!');
     } else {
-      output.add(decodeUtf8(test.lastCommandOutput.stdout));
+      output.addAll(
+          getLinesWithoutCarriageReturn(test.lastCommandOutput.stdout));
     }
   }
   if (!test.lastCommandOutput.stderr.isEmpty) {
     output.add('');
     output.add('stderr:');
-    output.add(decodeUtf8(test.lastCommandOutput.stderr));
+    output.addAll(getLinesWithoutCarriageReturn(test.lastCommandOutput.stderr));
   }
   if (test is BrowserTestCase) {
     // Additional command for rerunning the steps locally after the fact.
