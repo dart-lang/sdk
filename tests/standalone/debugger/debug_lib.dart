@@ -154,11 +154,6 @@ bool matchMaps(Map template, Map msg) {
 }
 
 
-class Matcher {
-  void match(Debugger debugger);
-}
-
-
 class Command {
   var template;
 
@@ -429,10 +424,9 @@ class Debugger {
 
   void openConnection() {
     Socket.connect("127.0.0.1", portNumber).then((s) {
-      socket = s;
-      var stringStream = socket.transform(new StringDecoder());
-      stringStream.listen(
-          (str) {
+        this.socket = s;
+        var stringStream = socket.transform(new StringDecoder());
+        stringStream.listen((str) {
             try {
               responses.append(str);
               handleMessages();
@@ -449,6 +443,10 @@ class Debugger {
             print("Error '$e' detected in input stream from debug target");
             close(killDebugee: true);
           });
+      },
+      onError: (asyncErr) {
+        print("Error while connecting to debugee: $asyncErr");
+        close(killDebugee: true);
       });
   }
 
@@ -456,7 +454,7 @@ class Debugger {
     if (errorsDetected) {
       for (int i = 0; i < errors.length; i++) print(errors[i]);
     }
-    socket.close();
+    if (socket != null) socket.close();
     if (killDebugee) {
       targetProcess.kill();
       print("Target process killed");
