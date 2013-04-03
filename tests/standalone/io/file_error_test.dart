@@ -459,6 +459,7 @@ testReadSyncBigInt() {
     var openedFile = file.openSync();
     Expect.throws(() => openedFile.readSync(bigint),
                   (e) => e is FileIOException);
+    openedFile.closeSync();
     port.send(null);
   });
 }
