@@ -15,8 +15,9 @@ part of dart.core;
  *
  * Collections are [Iterable]. The order of iteration is defined by
  * each type of collection.
+ *
+ * *Deprecated*: This class is deprecated and will be removed soon.
  */
-@deprecated
 abstract class Collection<E> extends Iterable<E> {
   const Collection();
 
