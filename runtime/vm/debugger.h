@@ -334,7 +334,7 @@ class Debugger {
 
   void SyncBreakpoint(SourceBreakpoint* bpt);
 
-  DebuggerStackTrace* CollectStackTrace();
+  static DebuggerStackTrace* CollectStackTrace();
   void SignalBpResolved(SourceBreakpoint *bpt);
 
   bool IsDebuggable(const Function& func);
@@ -381,6 +381,7 @@ class Debugger {
   static BreakpointHandler* bp_handler_;
   static EventHandler* event_handler_;
 
+  friend class Isolate;
   friend class SourceBreakpoint;
   DISALLOW_COPY_AND_ASSIGN(Debugger);
 };
