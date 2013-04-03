@@ -6,7 +6,6 @@
 
 #include "include/dart_api.h"
 #include "platform/assert.h"
-#include "platform/json.h"
 #include "lib/mirrors.h"
 #include "vm/code_observers.h"
 #include "vm/compiler_stats.h"
@@ -343,9 +342,7 @@ Isolate::Isolate()
       deopt_fpu_registers_copy_(NULL),
       deopt_frame_copy_(NULL),
       deopt_frame_copy_size_(0),
-      deferred_objects_(NULL),
-      stacktrace_(NULL),
-      stack_frame_index_(-1) {
+      deferred_objects_(NULL) {
 }
 
 
@@ -638,7 +635,6 @@ Dart_IsolateShutdownCallback Isolate::shutdown_callback_ = NULL;
 Dart_FileOpenCallback Isolate::file_open_callback_ = NULL;
 Dart_FileWriteCallback Isolate::file_write_callback_ = NULL;
 Dart_FileCloseCallback Isolate::file_close_callback_ = NULL;
-Dart_IsolateInterruptCallback Isolate::vmstats_callback_ = NULL;
 
 
 void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
@@ -693,188 +689,60 @@ void Isolate::VisitWeakPersistentHandles(HandleVisitor* visitor,
 }
 
 
-static Monitor* status_sync = NULL;
-
-bool Isolate::FetchStacktrace() {
-  Isolate* isolate = Isolate::Current();
-  MonitorLocker ml(status_sync);
-  DebuggerStackTrace* stack = Debugger::CollectStackTrace();
-  TextBuffer buffer(256);
-  buffer.Printf("{ \"handle\": \"0x%"Px64"\", \"stacktrace\": [ ",
-                reinterpret_cast<int64_t>(isolate));
-  intptr_t n_frames = stack->Length();
-  String& url = String::Handle();
-  String& function = String::Handle();
-  for (int i = 0; i < n_frames; i++) {
-    if (i > 0) {
-      buffer.Printf(", ");
-    }
-    ActivationFrame* frame = stack->ActivationFrameAt(i);
-    url ^= frame->SourceUrl();
-    function ^= frame->function().UserVisibleName();
-    buffer.Printf("{ \"url\": \"%s\", ", url.ToCString());
-    buffer.Printf("\"line\": %"Pd", ", frame->LineNumber());
-    buffer.Printf("\"function\": \"%s\", ", function.ToCString());
-
-    const Code& code = frame->code();
-    buffer.Printf("\"code\": { ");
-    buffer.Printf("\"alive\": %s, ", code.is_alive() ? "false" : "true");
-    buffer.Printf("\"optimized\": %s }}",
-        code.is_optimized() ? "false" : "true");
-  }
-  buffer.Printf("]}");
-  isolate->stacktrace_ = strndup(buffer.buf(), buffer.length());
-  ml.Notify();
-  return true;
-}
-
-
-bool Isolate::FetchStackFrameDetails() {
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate->stack_frame_index_ >= 0);
-  MonitorLocker ml(status_sync);
-  DebuggerStackTrace* stack = Debugger::CollectStackTrace();
-  intptr_t frame_index = isolate->stack_frame_index_;
-  if (frame_index >= stack->Length()) {
-    // Frame no longer available.
-    return NULL;
-  }
-  ActivationFrame* frame = stack->ActivationFrameAt(frame_index);
-  TextBuffer buffer(256);
-  buffer.Printf("{ \"handle\": \"0x%"Px64"\", \"frame_index\": %"Pd", ",
-       reinterpret_cast<int64_t>(isolate), frame_index);
-
-  const Code& code = frame->code();
-  buffer.Printf("\"code\": { \"size\": %"Pd", ", code.Size());
-  buffer.Printf("\"alive\": %s, ", code.is_alive() ? "false" : "true");
-  buffer.Printf("\"optimized\": %s }, ",
-      code.is_optimized() ? "false" : "true");
-  // TODO(tball): add compilation stats (time, etc.), when available.
-
-  buffer.Printf("\"local_vars\": [ ");
-  intptr_t n_local_vars = frame->NumLocalVariables();
-  String& var_name = String::Handle();
-  Instance& value = Instance::Handle();
-  for (int i = 0; i < n_local_vars; i++) {
-    if (i > 0) {
-      buffer.Printf(", ");
-    }
-    intptr_t token_pos, end_pos;
-    frame->VariableAt(i, &var_name, &token_pos, &end_pos, &value);
-    buffer.Printf(
-        "{ \"name\": \"%s\", \"pos\": %"Pd", \"end_pos\": %"Pd", "
-        "\"value\": \"%s\" }",
-        var_name.ToCString(), token_pos, end_pos, value.ToCString());
-  }
-  buffer.Printf("]}");
-  isolate->stacktrace_ = strndup(buffer.buf(), buffer.length());
-  ml.Notify();
-  return true;
-}
-
-
-char* Isolate::DoStacktraceInterrupt(Dart_IsolateInterruptCallback cb) {
-  ASSERT(stacktrace_ == NULL);
-  SetVmStatsCallback(cb);
-  if (status_sync == NULL) {
-    status_sync = new Monitor();
-  }
-  ScheduleInterrupts(Isolate::kVmStatusInterrupt);
-  {
-    MonitorLocker ml(status_sync);
-    if (stacktrace_ == NULL) {  // It may already be available.
-      ml.Wait();
-    }
-  }
-  SetVmStatsCallback(NULL);
-  ASSERT(stacktrace_ != NULL);
-  // result is freed by VmStats::WebServer().
-  char* result = stacktrace_;
-  stacktrace_ = NULL;
-  return result;
-}
-
-
-char* Isolate::GetStatusStacktrace() {
-  return DoStacktraceInterrupt(&FetchStacktrace);
-}
-
-char* Isolate::GetStatusStackFrame(intptr_t index) {
-  ASSERT(index >= 0);
-  stack_frame_index_ = index;
-  char* result = DoStacktraceInterrupt(&FetchStackFrameDetails);
-  stack_frame_index_ = -1;
-  return result;
-}
-
-
-// Returns the isolate's general detail information.
-char* Isolate::GetStatusDetails() {
-  const char* format = "{\n"
-      "  \"handle\": \"0x%"Px64"\",\n"
-      "  \"name\": \"%s\",\n"
-      "  \"port\": %"Pd",\n"
-      "  \"starttime\": %"Pd",\n"
-      "  \"stacklimit\": %"Pd",\n"
-      "  \"newspace\": {\n"
-      "    \"used\": %"Pd",\n"
-      "    \"capacity\": %"Pd"\n"
-      "  },\n"
-      "  \"oldspace\": {\n"
-      "    \"used\": %"Pd",\n"
-      "    \"capacity\": %"Pd"\n"
-      "  }\n"
-      "}";
-  char buffer[300];
-  int64_t address = reinterpret_cast<int64_t>(this);
-  int n = OS::SNPrint(buffer, 300, format, address, name(), main_port(),
-                      (start_time() / 1000L), saved_stack_limit(),
-                      heap()->Used(Heap::kNew) / KB,
-                      heap()->Capacity(Heap::kNew) / KB,
-                      heap()->Used(Heap::kOld) / KB,
-                      heap()->Capacity(Heap::kOld) / KB);
-  ASSERT(n < 300);
-  return strdup(buffer);
-}
-
-
 char* Isolate::GetStatus(const char* request) {
   char* p = const_cast<char*>(request);
   const char* service_type = "/isolate/";
-  ASSERT(!strncmp(p, service_type, strlen(service_type)));
+  ASSERT(strncmp(p, service_type, strlen(service_type)) == 0);
   p += strlen(service_type);
 
   // Extract isolate handle.
   int64_t addr;
   OS::StringToInt64(p, &addr);
-  // TODO(tball): add validity check when issue 9600 is fixed.
   Isolate* isolate = reinterpret_cast<Isolate*>(addr);
-  p += strcspn(p, "/");
+  Heap* heap = isolate->heap();
 
-  // Query "/isolate/<handle>".
-  if (strlen(p) == 0) {
-    return isolate->GetStatusDetails();
-  }
-
-  // Query "/isolate/<handle>/stacktrace"
-  if (!strcmp(p, "/stacktrace")) {
-    return isolate->GetStatusStacktrace();
-  }
-
-  // Query "/isolate/<handle>/stacktrace/<frame-index>"
-  const char* stacktrace_query = "/stacktrace/";
-  int64_t frame_index = -1;
-  if (!strncmp(p, stacktrace_query, strlen(stacktrace_query))) {
-    p += strlen(stacktrace_query);
-    OS::StringToInt64(p, &frame_index);
-    if (frame_index >= 0) {
-      return isolate->GetStatusStackFrame(frame_index);
-    }
-  }
-
-  // TODO(tball): "/isolate/<handle>/stacktrace/<frame-index>"/disassemble"
-
-  return NULL;  // Unimplemented query.
+  char buffer[256];
+  int64_t port = isolate->main_port();
+  int64_t start_time = (isolate->start_time() / 1000L);
+#if defined(TARGET_ARCH_X64)
+  const char* format = "{\n"
+      "  \"name\": \"%s\",\n"
+      "  \"port\": %ld,\n"
+      "  \"starttime\": %ld,\n"
+      "  \"stacklimit\": %ld,\n"
+      "  \"newspace\": {\n"
+      "    \"used\": %ld,\n"
+      "    \"capacity\": %ld\n"
+      "  },\n"
+      "  \"oldspace\": {\n"
+      "    \"used\": %ld,\n"
+      "    \"capacity\": %ld\n"
+      "  }\n"
+      "}";
+#else
+  const char* format = "{\n"
+      "  \"name\": \"%s\",\n"
+      "  \"port\": %lld,\n"
+      "  \"starttime\": %lld,\n"
+      "  \"stacklimit\": %d,\n"
+      "  \"newspace\": {\n"
+      "    \"used\": %d,\n"
+      "    \"capacity\": %d\n"
+      "  },\n"
+      "  \"oldspace\": {\n"
+      "    \"used\": %d,\n"
+      "    \"capacity\": %d\n"
+      "  }\n"
+      "}";
+#endif
+  int n = OS::SNPrint(buffer, 256, format, isolate->name(), port, start_time,
+                      isolate->saved_stack_limit(),
+                      heap->Used(Heap::kNew) / KB,
+                      heap->Capacity(Heap::kNew) / KB,
+                      heap->Used(Heap::kOld) / KB,
+                      heap->Capacity(Heap::kOld) / KB);
+  ASSERT(n < 256);
+  return strdup(buffer);
 }
 
 }  // namespace dart
