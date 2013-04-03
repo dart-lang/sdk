@@ -30,13 +30,11 @@ main() {
 
 // Expected debugger events and commands.
 var testScript = [
-  Breakpoint(),  // Expect a breakpoint event.
   MatchFrame(0, "main"),  // Top frame in trace is function "main".
   Step(),
-  Breakpoint(function: "main"),
+  MatchFrame(0, "main"),  // Should still be in "main".
   SetBreakpoint(15),  // Set breakpoint a line 15, in function bar.
   Resume(),
-  Breakpoint(function: "bar"),
   MatchFrames(["bar", "foo", "main"]),
   MatchFrame(1, "foo"),
   Resume(),

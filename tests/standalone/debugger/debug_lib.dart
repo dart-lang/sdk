@@ -154,53 +154,50 @@ bool matchMaps(Map template, Map msg) {
 }
 
 
-class BreakpointEvent {
-  String functionName;
-  var template = { "event": "paused", "params": { "reason": "breakpoint" }};
-
-  BreakpointEvent({String function: null}) {
-    functionName = function;
-  }
-
-  void match(Debugger debugger) {
-    var msg = debugger.currentMessage;
-    if (!matchMaps(template, msg)) {
-      debugger.error("message does not match $template");
-    }
-    var name = getJsonValue(msg, "params:callFrames[0]:functionName");
-    if (name == "main") {
-      // Extract script url of debugged script.
-      var scriptUrl = getJsonValue(msg, "params:callFrames[0]:location:url");
-      assert(scriptUrl != null);
-      debugger.scriptUrl = scriptUrl;
-    }
-    if (functionName != null) {
-      var name = getJsonValue(msg, "params:callFrames[0]:functionName");
-      if (functionName != name) {
-        debugger.error("expected function name $functionName but got $name");
-      }
-    }
-  }
-}
-
-Breakpoint({String function}) {
-  return new BreakpointEvent(function: function);
-}
-
 class Matcher {
   void match(Debugger debugger);
 }
 
-class FrameMatcher extends Matcher {
+
+class Command {
+  var template;
+
+  void send(Debugger debugger) {
+    debugger.sendMessage(template);
+  }
+
+  void matchResponse(Debugger debugger) {
+    Map response = debugger.currentMessage;
+    var id = template["id"];
+    assert(id != null && id >= 0);
+    if (response["id"] != id) {
+      debugger.error("Expected messaged id $id but got ${response["id"]}.");
+    }
+  }
+}
+
+
+class FrameMatcher extends Command {
   int frameIndex;
   List<String> functionNames;
 
-  FrameMatcher(this.frameIndex, this.functionNames);
+  FrameMatcher(this.frameIndex, this.functionNames) {
+    template = {"id": 0, "command": "getStackTrace", "params": {"isolateId": 0}};
+  }
 
-  void match(Debugger debugger) {
+  void matchResponse(Debugger debugger) {
+    super.matchResponse(debugger);
     var msg = debugger.currentMessage;
-    List frames = getJsonValue(msg, "params:callFrames");
+    List frames = getJsonValue(msg, "result:callFrames");
     assert(frames != null);
+    if (debugger.scriptUrl == null) {
+      var name = frames[0]["functionName"];
+      if (name == "main") {
+        // Extract script url of debugged script.
+        debugger.scriptUrl = frames[0]["location"]["url"];
+        assert(debugger.scriptUrl != null);
+      }
+    }
     if (frames.length < functionNames.length) {
       debugger.error("stack trace not long enough "
                      "to match ${functionNames.length} frames");
@@ -208,12 +205,8 @@ class FrameMatcher extends Matcher {
     }
     for (int i = 0; i < functionNames.length; i++) {
       var idx = i + frameIndex;
-      var property = "params:callFrames[$idx]:functionName";
-      var name = getJsonValue(msg, property);
-      if (name == null) {
-        debugger.error("property '$property' not found");
-        return;
-      }
+      var name = frames[idx]["functionName"];
+      assert(name != null);
       if (name != functionNames[i]) {
         debugger.error("call frame $idx: "
           "expected function name '${functionNames[i]}' but found '$name'");
@@ -233,42 +226,23 @@ MatchFrames(List<String> functionNames) {
 }
 
 
-class Command {
-  var template;
-  Command();
-  Command.resume() {
+class RunCommand extends Command {
+  RunCommand.resume() {
     template = {"id": 0, "command": "resume", "params": {"isolateId": 0}};
   }
-  Command.step() {
+  RunCommand.step() {
     template = {"id": 0, "command": "stepOver", "params": {"isolateId": 0}};
   }
-  Map makeMsg(int cmdId, int isolateId) {
-    template["id"] = cmdId;
-    if ((template["params"] != null)
-        && (template["params"]["isolateId"] != null)) {
-      template["params"]["isolateId"] = isolateId;
-    }
-    return template;
-  }
-
   void send(Debugger debugger) {
-    template["id"] = debugger.seqNr;
-    template["params"]["isolateId"] = debugger.isolateId;
     debugger.sendMessage(template);
-  }
-
-  void matchResponse(Debugger debugger) {
-    Map response = debugger.currentMessage;
-    var id = template["id"];
-    assert(id != null && id >= 0);
-    if (response["id"] != id) {
-      debugger.error("Expected messaged id $id but got ${response["id"]}.");
-    }
+    debugger.isPaused = false;
   }
 }
 
-Resume() => new Command.resume();
-Step() => new Command.step();
+
+Resume() => new RunCommand.resume();
+Step() => new RunCommand.step();
+
 
 class SetBreakpointCommand extends Command {
   int line;
@@ -279,29 +253,29 @@ class SetBreakpointCommand extends Command {
                             "url": null,
                             "line": null }};
   }
+
   void send(Debugger debugger) {
     assert(debugger.scriptUrl != null);
     template["params"]["url"] = debugger.scriptUrl;
     template["params"]["line"] = line;
-    super.send(debugger);
+    debugger.sendMessage(template);
   }
 }
 
 SetBreakpoint(int line) => new SetBreakpointCommand(line);
 
 
-// A debug script is a list of Event, Matcher and Command objects.
+// A debug script is a list of Command objects.
 class DebugScript {
   List entries;
-  int currentIndex;
-  DebugScript(List this.entries) : currentIndex = 0;
-  get currentEntry {
-    if (currentIndex < entries.length) return entries[currentIndex];
-    return null;
+  DebugScript(List scriptEntries) {
+    entries = new List.from(scriptEntries.reversed);
+    entries.add(MatchFrame(0, "main"));
   }
-  advance() {
-    currentIndex++;
-  }
+  bool get isEmpty => entries.isEmpty;
+  get currentEntry => entries.last;
+  advance() => entries.removeLast();
+  add(entry) => entries.add(entry);
 }
 
 
@@ -322,6 +296,7 @@ class Debugger {
   String scriptUrl = null;
   bool shutdownEventSeen = false;
   int isolateId = 0;
+  bool isPaused = false;
 
   Debugger(this.targetProcess, this.portNumber) {
     stdin.listen((_) {});
@@ -344,10 +319,8 @@ class Debugger {
     });
   }
 
-  // Handle debugger events for which there is no explicit
-  // entry in the debug script, for example isolate create and
-  // shutdown events, breakpoint resolution events, etc.
-  bool handleImplicitEvents(Map<String,dynamic> msg) {
+  // Handle debugger events, updating the debugger state.
+  void handleEvent(Map<String,dynamic> msg) {
     if (msg["event"] == "isolate") {
       if (msg["params"]["reason"] == "created") {
         isolateId = msg["params"]["id"];
@@ -356,27 +329,31 @@ class Debugger {
       } else if (msg["params"]["reason"] == "shutdown") {
         print("Debuggee isolate id ${msg["params"]["id"]} shut down.");
         shutdownEventSeen = true;
-        if (script.currentEntry != null) {
+        if (!script.isEmpty) {
           error("Premature isolate shutdown event seen.");
         }
       }
-      return true;
     } else if (msg["event"] == "breakpointResolved") {
       // Ignore the event. We may want to maintain a table of
       // breakpoints in the future.
-      return true;
+    } else if (msg["event"] == "paused") {
+      isPaused = true;
+    } else {
+      error("unknown debugger event received");
     }
-    return false;
   }
 
   // Handle one JSON message object and match it to the
   // expected events and responses in the debugging script.
   void handleMessage(Map<String,dynamic> receivedMsg) {
     currentMessage = receivedMsg;
-    var isHandled = handleImplicitEvents(receivedMsg);
-    if (isHandled) return;
-
-    if (receivedMsg["id"] != null) {
+    if (receivedMsg["event"] != null) {
+      handleEvent(receivedMsg);
+      if (errorsDetected) {
+        error("Error while handling debugger event");
+        error("Event received from debug target: $receivedMsg");
+      }
+    } else if (receivedMsg["id"] != null) {
       // This is a response to the last command we sent.
       assert(lastCommand != null);
       lastCommand.matchResponse(this);
@@ -384,25 +361,6 @@ class Debugger {
       if (errorsDetected) {
         error("Error while matching response to debugger command");
         error("Response received from debug target: $receivedMsg");
-      }
-      return;
-    }
-
-    // This message must be an event that is expected by the script.
-    assert(receivedMsg["event"] != null);
-    if ((script.currentEntry == null) || (script.currentEntry is Command)) {
-      // Error: unexpected event received.
-      error("unexpected event received: $receivedMsg");
-      return;
-    } else {
-      // Match received message with expected event.
-      script.currentEntry.match(this);
-      if (errorsDetected) return;
-      script.advance();
-      while (script.currentEntry is Matcher) {
-        script.currentEntry.match(this);
-        if (errorsDetected) return;
-        script.advance();
       }
     }
   }
@@ -430,7 +388,7 @@ class Debugger {
       var msgObj = JSON.parse(msg);
       handleMessage(msgObj);
       if (errorsDetected) {
-        error("Error while handling script entry ${script.currentIndex}");
+        error("Error while handling script entry");
         error("Message received from debug target: $msg");
         close(killDebugee: true);
         return;
@@ -439,7 +397,7 @@ class Debugger {
         close();
         return;
       }
-      sendNextCommand();
+      if (isPaused) sendNextCommand();
       msg = responses.getNextMessage();
     }
   }
@@ -451,6 +409,12 @@ class Debugger {
 
   // Send a debugger command to the target VM.
   void sendMessage(Map<String,dynamic> msg) {
+    if (msg["id"] != null) {
+      msg["id"] = seqNr;
+    }
+    if (msg["params"] != null && msg["params"]["isolateId"] != null) {
+      msg["params"]["isolateId"] = isolateId;
+    }
     String jsonMsg = JSON.stringify(msg);
     if (verboseWire) print("SEND: $jsonMsg");
     socket.write(jsonMsg);
