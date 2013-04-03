@@ -41,34 +41,6 @@ getInterceptor(object) {
 }
 
 /**
- * The name of the property used on native classes and `Object.prototype` to get
- * the interceptor for a native class instance.
- * TODO(sra): The value should be initialized on isolate startup to a
- * cryptographic hash to prevent collisions.
- */
-var dispatchPropertyName = '_zzyzx';
-
-/**
- * Returns the interceptor for a native class instance. Used by
- * [getInterceptor].
- */
-getNativeInterceptor(object) {
-  // This is a magic method: the compiler replaces it with a runtime generated
-  // function
-  //
-  //     function(object){return object._zzyzx();}
-  //
-  // where _zzyzx is replaced with the actual [dispatchPropertyName].
-  //
-  // The body is the CSP compliant version.
-  return JS('', '#[#]()', object, dispatchPropertyName);
-}
-
-setNativeInterceptor(prototype, function) {
-  JS('', '#[#]=#', prototype, dispatchPropertyName, function);
-}
-
-/**
  * If [InvocationMirror.invokeOn] is being used, this variable
  * contains a JavaScript array with the names of methods that are
  * intercepted.

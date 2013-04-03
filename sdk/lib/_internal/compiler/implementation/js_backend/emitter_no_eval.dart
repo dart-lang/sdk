@@ -28,13 +28,12 @@ class CodeEmitterNoEvalTask extends CodeEmitterTask {
   }
 
 
-  bool emitClassFields(ClassElement classElement,
+  void emitClassFields(ClassElement classElement,
                        ClassBuilder builder,
                        { String superClass: "",
                          bool classIsNative: false }) {
     // Class fields are dynamically generated so they have to be
     // emitted using getters and setters instead.
-    return false;
   }
 
   void emitClassConstructor(ClassElement classElement, ClassBuilder builder) {
@@ -56,11 +55,7 @@ class CodeEmitterNoEvalTask extends CodeEmitterTask {
       fields.add(name);
     });
     String constructorName = namer.safeName(classElement.name.slowToString());
-    if (classElement.isNative()) {
-      builder.addProperty('', buildUnusedConstructor(constructorName));
-    } else {
-      builder.addProperty('', buildConstructor(constructorName, fields));
-    }
+    builder.addProperty('', buildConstructor(constructorName, fields));
   }
 
   List get defineClassFunction {
@@ -85,13 +80,6 @@ class CodeEmitterNoEvalTask extends CodeEmitterTask {
         js.fun(fieldNames, fieldNames.map(
             (name) => js['this.$name = $name']).toList()));
   }
-
-  jsAst.Expression buildUnusedConstructor(String mangledName) {
-    String message = 'Called unused constructor';
-    return new jsAst.NamedFunction(
-        new jsAst.VariableDeclaration(mangledName),
-        js.fun([], new jsAst.Throw(js.string(message))));
-}
 
   jsAst.FunctionDeclaration get generateAccessorFunction {
     String message =

@@ -15,8 +15,6 @@ import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
                                    RAW_DART_FUNCTION_REF;
 import 'dart:_interceptors' show getInterceptor,
                                  interceptedNames,
-                                 dispatchPropertyName,
-                                 Interceptor,
                                  JSIndexable;
 
 part 'constant_map.dart';
@@ -1134,7 +1132,7 @@ propertyTypeCast(value, property) {
 callTypeCheck(value, property) {
   if (value == null) return value;
   if ((identical(JS('String', 'typeof #', value), 'object'))
-      && JS('bool', '#[#]()', getInterceptor(value), property)) {
+      && JS('bool', '#[#]()', value, property)) {
     return value;
   }
   propertyTypeError(value, property);
@@ -1148,7 +1146,7 @@ callTypeCheck(value, property) {
 callTypeCast(value, property) {
   if (value == null
       || ((JS('bool', 'typeof # === "object"', value))
-          && JS('bool', '#[#]()', getInterceptor(value), property))) {
+          && JS('bool', '#[#]()', value, property))) {
     return value;
   }
   propertyTypeCastError(value, property);

@@ -665,13 +665,6 @@ class JavaScriptBackend extends Backend {
   Element getInterceptorMethod;
   Element interceptedNames;
 
-  // TODO(9577): Make it so that these are not needed when there are no native
-  // classes.
-  Element dispatchPropertyName;
-  Element getNativeInterceptorMethod;
-  Element setNativeInterceptorMethod;
-  Element defineNativeMethodsFinishMethod;
-
   bool seenAnyClass = false;
 
   final Namer namer;
@@ -845,14 +838,6 @@ class JavaScriptBackend extends Backend {
         compiler.findInterceptor(const SourceString('getInterceptor'));
     interceptedNames =
         compiler.findInterceptor(const SourceString('interceptedNames'));
-    dispatchPropertyName =
-        compiler.findInterceptor(const SourceString('dispatchPropertyName'));
-    getNativeInterceptorMethod =
-        compiler.findInterceptor(const SourceString('getNativeInterceptor'));
-    setNativeInterceptorMethod =
-        compiler.findInterceptor(const SourceString('setNativeInterceptor'));
-    defineNativeMethodsFinishMethod =
-        compiler.findHelper(const SourceString('defineNativeMethodsFinish'));
     List<ClassElement> classes = [
       jsInterceptorClass =
           compiler.findInterceptor(const SourceString('Interceptor')),
@@ -995,13 +980,6 @@ class JavaScriptBackend extends Backend {
     if (!seenAnyClass) {
       initializeNoSuchMethod();
       seenAnyClass = true;
-      if (enqueuer.isResolutionQueue) {
-        // TODO(9577): Make it so that these are not needed when there are no
-        // native classes.
-        enqueuer.registerStaticUse(getNativeInterceptorMethod);
-        enqueuer.registerStaticUse(setNativeInterceptorMethod);
-        enqueuer.registerStaticUse(defineNativeMethodsFinishMethod);
-      }
     }
 
     // Register any helper that will be needed by the backend.
@@ -1069,15 +1047,6 @@ class JavaScriptBackend extends Backend {
         enqueuer.registerIsCheck(type, elements);
       });
     }
-  }
-
-  void registerUseInterceptor(Enqueuer enqueuer) {
-    assert(!enqueuer.isResolutionQueue);
-    // TODO(9577): Make it so that these are not needed when there are no native
-    // classes.
-    enqueuer.registerStaticUse(getNativeInterceptorMethod);
-    enqueuer.registerStaticUse(setNativeInterceptorMethod);
-    enqueuer.registerStaticUse(defineNativeMethodsFinishMethod);
   }
 
   JavaScriptItemCompilationContext createItemCompilationContext() {
