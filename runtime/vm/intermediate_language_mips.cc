@@ -33,13 +33,30 @@ LocationSummary* Instruction::MakeCallSummary() {
 
 
 LocationSummary* PushArgumentInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps= 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  locs->set_in(0, Location::AnyOrConstant(value()));
+  return locs;
 }
 
 
 void PushArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  // In SSA mode, we need an explicit push. Nothing to do in non-SSA mode
+  // where PushArgument is handled by BindInstr::EmitNativeCode.
+  if (compiler->is_optimizing()) {
+    Location value = locs()->in(0);
+    if (value.IsRegister()) {
+      __ Push(value.reg());
+    } else if (value.IsConstant()) {
+      __ PushObject(value.constant());
+    } else {
+      ASSERT(value.IsStackSlot());
+      __ lw(TMP, value.ToStackSlotAddress());
+      __ Push(TMP);
+    }
+  }
 }
 
 
@@ -97,24 +114,30 @@ LocationSummary* ClosureCallInstr::MakeLocationSummary() const {
 
 
 LocationSummary* LoadLocalInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  return LocationSummary::Make(0,
+                               Location::RequiresRegister(),
+                               LocationSummary::kNoCall);
 }
 
 
 void LoadLocalInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register result = locs()->out().reg();
+  __ lw(result, Address(FP, local().index() * kWordSize));
 }
 
 
 LocationSummary* StoreLocalInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  return LocationSummary::Make(1,
+                               Location::SameAsFirstInput(),
+                               LocationSummary::kNoCall);
 }
 
 
 void StoreLocalInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register value = locs()->in(0).reg();
+  Register result = locs()->out().reg();
+  ASSERT(result == value);  // Assert that register assignment is correct.
+  __ sw(value, Address(FP, local().index() * kWordSize));
 }
 
 

@@ -166,8 +166,234 @@ void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
 }
 
 
+// Input parameters:
+//   S4: arguments descriptor array.
 void FlowGraphCompiler::CopyParameters() {
-  UNIMPLEMENTED();
+  __ Comment("Copy parameters");
+  const Function& function = parsed_function().function();
+  LocalScope* scope = parsed_function().node_sequence()->scope();
+  const int num_fixed_params = function.num_fixed_parameters();
+  const int num_opt_pos_params = function.NumOptionalPositionalParameters();
+  const int num_opt_named_params = function.NumOptionalNamedParameters();
+  const int num_params =
+      num_fixed_params + num_opt_pos_params + num_opt_named_params;
+  ASSERT(function.NumParameters() == num_params);
+  ASSERT(parsed_function().first_parameter_index() == kFirstLocalSlotIndex);
+
+  // Check that min_num_pos_args <= num_pos_args <= max_num_pos_args,
+  // where num_pos_args is the number of positional arguments passed in.
+  const int min_num_pos_args = num_fixed_params;
+  const int max_num_pos_args = num_fixed_params + num_opt_pos_params;
+
+  __ lw(T2, FieldAddress(S4, ArgumentsDescriptor::positional_count_offset()));
+  // Check that min_num_pos_args <= num_pos_args.
+  Label wrong_num_arguments;
+  __ addiu(T3, T2, Immediate(-Smi::RawValue(min_num_pos_args)));
+  __ bltz(T3, &wrong_num_arguments);
+
+  // Check that num_pos_args <= max_num_pos_args.
+  __ addiu(T3, T2, Immediate(-Smi::RawValue(max_num_pos_args)));
+  __ bgtz(T3, &wrong_num_arguments);
+
+  // Copy positional arguments.
+  // Argument i passed at fp[kLastParamSlotIndex + num_args - 1 - i] is copied
+  // to fp[kFirstLocalSlotIndex - i].
+
+  __ lw(T1, FieldAddress(S4, ArgumentsDescriptor::count_offset()));
+  // Since T1 and T2 are Smi, use LSL 1 instead of LSL 2.
+  // Let T1 point to the last passed positional argument, i.e. to
+  // fp[kLastParamSlotIndex + num_args - 1 - (num_pos_args - 1)].
+  __ subu(T1, T1, T2);
+  __ sll(T1, T1, 1);
+  __ addu(T1, FP, T1);
+  __ addiu(T1, T1, Immediate(kLastParamSlotIndex * kWordSize));
+
+  // Let T0 point to the last copied positional argument, i.e. to
+  // fp[kFirstLocalSlotIndex - (num_pos_args - 1)].
+  __ addiu(T0, FP, Immediate((kFirstLocalSlotIndex + 1) * kWordSize));
+  __ sll(T3, T2, 1);  // T2 is a Smi.
+  __ subu(T0, T0, T3);
+
+  Label loop, loop_condition;
+  __ b(&loop_condition);
+  __ delay_slot()->SmiUntag(T2);
+  // We do not use the final allocation index of the variable here, i.e.
+  // scope->VariableAt(i)->index(), because captured variables still need
+  // to be copied to the context that is not yet allocated.
+  __ Bind(&loop);
+  __ addu(T4, T1, T2);
+  __ addu(T5, T0, T2);
+  __ lw(TMP, Address(T4));
+  __ sw(TMP, Address(T5));
+  __ Bind(&loop_condition);
+  __ addiu(T2, T2, Immediate(-4));
+  __ bgez(T2, &loop);
+
+  // Copy or initialize optional named arguments.
+  Label all_arguments_processed;
+  if (num_opt_named_params > 0) {
+    // Start by alphabetically sorting the names of the optional parameters.
+    LocalVariable** opt_param = new LocalVariable*[num_opt_named_params];
+    int* opt_param_position = new int[num_opt_named_params];
+    for (int pos = num_fixed_params; pos < num_params; pos++) {
+      LocalVariable* parameter = scope->VariableAt(pos);
+      const String& opt_param_name = parameter->name();
+      int i = pos - num_fixed_params;
+      while (--i >= 0) {
+        LocalVariable* param_i = opt_param[i];
+        const intptr_t result = opt_param_name.CompareTo(param_i->name());
+        ASSERT(result != 0);
+        if (result > 0) break;
+        opt_param[i + 1] = opt_param[i];
+        opt_param_position[i + 1] = opt_param_position[i];
+      }
+      opt_param[i + 1] = parameter;
+      opt_param_position[i + 1] = pos;
+    }
+    // Generate code handling each optional parameter in alphabetical order.
+    __ lw(T1, FieldAddress(S4, ArgumentsDescriptor::count_offset()));
+    __ lw(T2, FieldAddress(S4, ArgumentsDescriptor::positional_count_offset()));
+    __ SmiUntag(T2);
+    // Let T1 point to the first passed argument, i.e. to
+    // fp[kLastParamSlotIndex + num_args - 1 - 0]; num_args (T1) is Smi.
+    __ sll(T3, T1, 1);
+    __ addu(T1, FP, T3);
+    __ addiu(T1, T1, Immediate((kLastParamSlotIndex - 1) * kWordSize));
+    // Let T0 point to the entry of the first named argument.
+    __ addiu(T0, S4, Immediate(
+        ArgumentsDescriptor::first_named_entry_offset() - kHeapObjectTag));
+    for (int i = 0; i < num_opt_named_params; i++) {
+      Label load_default_value, assign_optional_parameter;
+      const int param_pos = opt_param_position[i];
+      // Check if this named parameter was passed in.
+      // Load T3 with the name of the argument.
+      __ lw(T3, Address(T0, ArgumentsDescriptor::name_offset()));
+      ASSERT(opt_param[i]->name().IsSymbol());
+      __ LoadObject(T4, opt_param[i]->name());
+      __ bne(T3, T4, &load_default_value);
+
+      // Load T3 with passed-in argument at provided arg_pos, i.e. at
+      // fp[kLastParamSlotIndex + num_args - 1 - arg_pos].
+      __ lw(T3, Address(T0, ArgumentsDescriptor::position_offset()));
+      // T3 is arg_pos as Smi.
+      // Point to next named entry.
+      __ addiu(T0, T0, Immediate(ArgumentsDescriptor::named_entry_size()));
+      __ subu(T3, ZR, T3);
+      __ sll(T3, T3, 1);
+      __ addu(T3, T1, T3);
+      __ b(&assign_optional_parameter);
+      __ delay_slot()->lw(T3, Address(T3));
+
+      __ Bind(&load_default_value);
+      // Load T3 with default argument.
+      const Object& value = Object::ZoneHandle(
+          parsed_function().default_parameter_values().At(
+              param_pos - num_fixed_params));
+      __ LoadObject(T3, value);
+      __ Bind(&assign_optional_parameter);
+      // Assign T3 to fp[kFirstLocalSlotIndex - param_pos].
+      // We do not use the final allocation index of the variable here, i.e.
+      // scope->VariableAt(i)->index(), because captured variables still need
+      // to be copied to the context that is not yet allocated.
+      const intptr_t computed_param_pos = kFirstLocalSlotIndex - param_pos;
+      __ sw(T3, Address(FP, computed_param_pos * kWordSize));
+    }
+    delete[] opt_param;
+    delete[] opt_param_position;
+    // Check that T0 now points to the null terminator in the array descriptor.
+    __ lw(T3, Address(T0));
+    __ LoadImmediate(T4, reinterpret_cast<int32_t>(Object::null()));
+    __ beq(T3, T4, &all_arguments_processed);
+  } else {
+    ASSERT(num_opt_pos_params > 0);
+    __ lw(T2,
+          FieldAddress(S4, ArgumentsDescriptor::positional_count_offset()));
+    __ SmiUntag(T2);
+    for (int i = 0; i < num_opt_pos_params; i++) {
+      Label next_parameter;
+      // Handle this optional positional parameter only if k or fewer positional
+      // arguments have been passed, where k is param_pos, the position of this
+      // optional parameter in the formal parameter list.
+      const int param_pos = num_fixed_params + i;
+      __ addiu(T3, T2, Immediate(-param_pos));
+      __ bgtz(T3, &next_parameter);
+      // Load T3 with default argument.
+      const Object& value = Object::ZoneHandle(
+          parsed_function().default_parameter_values().At(i));
+      __ LoadObject(T3, value);
+      // Assign T3 to fp[kFirstLocalSlotIndex - param_pos].
+      // We do not use the final allocation index of the variable here, i.e.
+      // scope->VariableAt(i)->index(), because captured variables still need
+      // to be copied to the context that is not yet allocated.
+      const intptr_t computed_param_pos = kFirstLocalSlotIndex - param_pos;
+      __ sw(T3, Address(FP, computed_param_pos * kWordSize));
+      __ Bind(&next_parameter);
+    }
+    __ lw(T1, FieldAddress(S4, ArgumentsDescriptor::count_offset()));
+    __ SmiUntag(T1);
+    // Check that T2 equals T1, i.e. no named arguments passed.
+    __ beq(T2, T2, &all_arguments_processed);
+  }
+
+  __ Bind(&wrong_num_arguments);
+  if (StackSize() != 0) {
+    // We need to unwind the space we reserved for locals and copied parameters.
+    // The NoSuchMethodFunction stub does not expect to see that area on the
+    // stack.
+    __ addiu(SP, SP, Immediate(StackSize() * kWordSize));
+  }
+  // The call below has an empty stackmap because we have just
+  // dropped the spill slots.
+  BitmapBuilder* empty_stack_bitmap = new BitmapBuilder();
+
+  // Invoke noSuchMethod function passing the original name of the function.
+  // If the function is a closure function, use "call" as the original name.
+  const String& name = String::Handle(
+      function.IsClosureFunction() ? Symbols::Call().raw() : function.name());
+  const int kNumArgsChecked = 1;
+  const ICData& ic_data = ICData::ZoneHandle(
+      ICData::New(function, name, Isolate::kNoDeoptId, kNumArgsChecked));
+  __ LoadObject(S5, ic_data);
+  // FP - 4 : saved PP, object pool pointer of caller.
+  // FP + 0 : previous frame pointer.
+  // FP + 4 : return address.
+  // FP + 8 : PC marker, for easy identification of RawInstruction obj.
+  // FP + 12: last argument (arg n-1).
+  // SP + 0 : saved PP.
+  // SP + 16 + 4*(n-1) : first argument (arg 0).
+  // S5 : ic-data.
+  // S4 : arguments descriptor array.
+  __ BranchLink(&StubCode::CallNoSuchMethodFunctionLabel());
+  if (is_optimizing()) {
+    stackmap_table_builder_->AddEntry(assembler()->CodeSize(),
+                                      empty_stack_bitmap,
+                                      0);  // No registers.
+  }
+  // The noSuchMethod call may return.
+  __ LeaveDartFrame();
+  __ Ret();
+
+  __ Bind(&all_arguments_processed);
+  // Nullify originally passed arguments only after they have been copied and
+  // checked, otherwise noSuchMethod would not see their original values.
+  // This step can be skipped in case we decide that formal parameters are
+  // implicitly final, since garbage collecting the unmodified value is not
+  // an issue anymore.
+
+  // S4 : arguments descriptor array.
+  __ lw(T2, FieldAddress(S4, ArgumentsDescriptor::count_offset()));
+  __ SmiUntag(T2);
+
+  __ LoadImmediate(TMP, reinterpret_cast<intptr_t>(Object::null()));
+  Label null_args_loop, null_args_loop_condition;
+  __ b(&null_args_loop_condition);
+  __ delay_slot()->addiu(T1, FP, Immediate(kLastParamSlotIndex * kWordSize));
+  __ Bind(&null_args_loop);
+  __ addu(T3, T1, T2);
+  __ sw(TMP, Address(T3));
+  __ Bind(&null_args_loop_condition);
+  __ addiu(T2, T2, Immediate(-4));
+  __ bgez(T2, &null_args_loop);
 }
 
 
@@ -460,7 +686,14 @@ void FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
                                          intptr_t deopt_id,
                                          intptr_t token_pos,
                                          LocationSummary* locs) {
-  UNIMPLEMENTED();
+  __ LoadObject(S4, arguments_descriptor);
+  __ LoadObject(S5, ic_data);
+  GenerateDartCall(deopt_id,
+                   token_pos,
+                   target_label,
+                   PcDescriptors::kIcCall,
+                   locs);
+  __ Drop(argument_count);
 }
 
 

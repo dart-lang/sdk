@@ -45,12 +45,34 @@ CODEGEN_TEST2_RUN(PatchStaticCall, NativePatchStaticCall, Instance::null());
 #define __ assembler->
 
 ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
-  UNIMPLEMENTED();
+  const String& class_name = String::Handle(Symbols::New("ownerClass"));
+  const Script& script = Script::Handle();
+  const Class& owner_class =
+      Class::Handle(Class::New(class_name, script, Scanner::kDummyTokenIndex));
+  const String& function_name =
+      String::ZoneHandle(Symbols::New("callerFunction"));
+  const Function& function = Function::ZoneHandle(
+      Function::New(function_name, RawFunction::kRegularFunction,
+                    true, false, false, false, owner_class, 0));
+
+  const String& target_name = String::Handle(String::New("targetFunction"));
+  const ICData& ic_data =
+      ICData::ZoneHandle(ICData::New(function, target_name, 15, 1));
+  const Array& arg_descriptor =
+      Array::ZoneHandle(ArgumentsDescriptor::New(1, Array::Handle()));
+
+  __ LoadObject(S4, arg_descriptor);
+  __ LoadObject(S5, ic_data);
+  ExternalLabel target_label(
+      "InlineCache", StubCode::OneArgCheckInlineCacheEntryPoint());
+  __ BranchLinkPatchable(&target_label);
+  __ Ret();
 }
 
 
 ASSEMBLER_TEST_RUN(IcDataAccess, test) {
-  uword return_address = test->entry() + CodePatcher::InstanceCallSizeInBytes();
+  uword return_address =
+      test->entry() + test->code().Size() - 2 * Instr::kInstrSize;
   ICData& ic_data = ICData::Handle();
   CodePatcher::GetInstanceCallAt(return_address, test->code(), &ic_data, NULL);
   EXPECT_STREQ("targetFunction",

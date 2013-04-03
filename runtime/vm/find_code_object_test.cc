@@ -13,16 +13,14 @@
 
 namespace dart {
 
-// Compiler only implemented on IA32, X64, and ARM.
-#if defined(TARGET_ARCH_IA32) ||                                               \
-    defined(TARGET_ARCH_X64) ||                                                \
-    defined(TARGET_ARCH_ARM)
-
 TEST_CASE(FindCodeObject) {
 #if defined(TARGET_ARCH_IA32)
   const int kLoopCount = 50000;
 #elif defined(TARGET_ARCH_X64)
   const int kLoopCount = 25000;
+#elif defined(TARGET_ARCH_MIPS)
+  // TODO(zra): Increase after we implement far branches on MIPS.
+  const int kLoopCount = 1818;
 #else
   const int kLoopCount = 20000;
 #endif
@@ -149,13 +147,19 @@ TEST_CASE(FindCodeObject) {
   code = function.CurrentCode();
   EXPECT(code.Size() > 16);
   pc = code.EntryPoint() + 16;
+#if defined(TARGET_ARCH_MIPS)
+  // MIPS can only Branch +/- 128KB
+  EXPECT(code.Size() > (PageSpace::kPageSize / 2));
+  EXPECT(Code::LookupCode(pc) == code.raw());
+  pc = code.EntryPoint() + (PageSpace::kPageSize / 4);
+  EXPECT(Code::LookupCode(pc) == code.raw());
+#else
   EXPECT(code.Size() > PageSpace::kPageSize);
   EXPECT(Code::LookupCode(pc) == code.raw());
   EXPECT(code.Size() > (1 * MB));
   pc = code.EntryPoint() + (1 * MB);
   EXPECT(Code::LookupCode(pc) == code.raw());
+#endif  // defined(TARGET_ARCH_MIPS)
 }
-
-#endif  // TARGET_ARCH_IA32 || TARGET_ARCH_X64 || TARGET_ARCH_ARM
 
 }  // namespace dart

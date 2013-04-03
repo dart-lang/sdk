@@ -492,10 +492,6 @@ class Assembler : public ValueObject {
     EmitRType(SPECIAL, rs, rt, rd, 0, SRLV);
   }
 
-  void sub(Register rd, Register rs, Register rt) {
-    EmitRType(SPECIAL, rs, rt, rd, 0, SUB);
-  }
-
   void subu(Register rd, Register rs, Register rt) {
     EmitRType(SPECIAL, rs, rt, rd, 0, SUBU);
   }
@@ -521,7 +517,7 @@ class Assembler : public ValueObject {
     lui(TMP, Immediate(high));
     ori(TMP, TMP, Immediate(low));
     jr(TMP);
-    delay_slot()->nop();
+    delay_slot_available_ = false;  // CodePatcher expects a nop.
   }
 
   void BranchLink(const ExternalLabel* label) {
@@ -534,7 +530,7 @@ class Assembler : public ValueObject {
         Array::data_offset() + 4*AddExternalLabel(label) - kHeapObjectTag;
     LoadWordFromPoolOffset(TMP, offset);
     jalr(TMP);
-    delay_slot()->nop();
+    delay_slot_available_ = false;  // CodePatcher expects a nop.
   }
 
   // If the signed value in rs is less than value, rd is 1, and 0 otherwise.
@@ -672,7 +668,7 @@ class Assembler : public ValueObject {
          imm);
   }
 
-  void EmitJType(Opcode opcode, Label* label) {
+  void EmitJType(Opcode opcode, uint32_t destination) {
     UNIMPLEMENTED();
   }
 
@@ -700,7 +696,8 @@ class Assembler : public ValueObject {
       EmitIType(b, rs, rt, dest_off);
     } else {
       const int position = buffer_.Size();
-      EmitIType(b, rs, rt, label->position_);
+      const uint16_t dest_off = EncodeBranchOffset(label->position_, 0);
+      EmitIType(b, rs, rt, dest_off);
       label->LinkTo(position);
     }
   }
@@ -714,7 +711,8 @@ class Assembler : public ValueObject {
       EmitRegImmType(REGIMM, rs, b, dest_off);
     } else {
       const int position = buffer_.Size();
-      EmitRegImmType(REGIMM, rs, b, label->position_);
+      const uint16_t dest_off = EncodeBranchOffset(label->position_, 0);
+      EmitRegImmType(REGIMM, rs, b, dest_off);
       label->LinkTo(position);
     }
   }

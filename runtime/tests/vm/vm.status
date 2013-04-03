@@ -71,7 +71,6 @@ dart/*: Skip
 # Tests needing an assembler.
 cc/Dart2JSCompileAll: Skip
 cc/FrameLookup: Skip
-cc/IcDataAccess: Skip
 cc/UseDartApi: Skip
 
 # Tests needing Dart execution.

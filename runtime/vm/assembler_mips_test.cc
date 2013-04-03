@@ -989,6 +989,46 @@ ASSEMBLER_TEST_RUN(Bnel, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(Label_link1, assembler) {
+  Label l;
+
+  __ bgez(ZR, &l);
+  __ bgez(ZR, &l);
+  __ bgez(ZR, &l);
+
+  __ LoadImmediate(V0, 1);
+  __ Bind(&l);
+  __ mov(V0, ZR);
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(Label_link1, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Label_link2, assembler) {
+  Label l;
+
+  __ beq(ZR, ZR, &l);
+  __ beq(ZR, ZR, &l);
+  __ beq(ZR, ZR, &l);
+
+  __ LoadImmediate(V0, 1);
+  __ Bind(&l);
+  __ mov(V0, ZR);
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(Label_link2, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
 ASSEMBLER_TEST_GENERATE(Jalr_delay, assembler) {
   __ mov(R2, RA);
   __ jalr(R2, RA);
