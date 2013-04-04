@@ -34,7 +34,7 @@ class Compiler extends leg.Compiler {
         this.allowedLibraryCategories = getAllowedLibraryCategories(options),
         super(
             tracer: new ssa.HTracer(
-                ssa.SSA_TRACE_FILTER ? outputProvider('dart', 'cfg') : null),
+                ssa.SSA_TRACE_FILTER != null ? outputProvider('dart', 'cfg') : null),
             outputProvider: outputProvider,
             enableTypeAssertions: hasOption(options, '--enable-checked-mode'),
             enableUserAssertions: hasOption(options, '--enable-checked-mode'),
