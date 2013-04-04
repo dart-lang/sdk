@@ -169,6 +169,9 @@ static bool ListRecursively(PathBuffer* path,
         int stat_success;
         if (follow_links) {
           stat_success = TEMP_FAILURE_RETRY(stat(path->data, &entry_info));
+          if (stat_success == -1) {
+            stat_success = TEMP_FAILURE_RETRY(lstat(path->data, &entry_info));
+          }
         } else {
           stat_success = TEMP_FAILURE_RETRY(lstat(path->data, &entry_info));
         }
@@ -189,7 +192,6 @@ static bool ListRecursively(PathBuffer* path,
                                path,
                                listing) && success;
         } else if (S_ISLNK(entry_info.st_mode)) {
-          ASSERT(!follow_links);
           success = HandleLink(entry.d_name,
                                path,
                                listing) && success;
@@ -232,14 +234,15 @@ static bool DeleteDir(char* dir_name,
 
 
 static bool DeleteRecursively(PathBuffer* path) {
-  if (!path->Add(File::PathSeparator())) return false;
-      // Do not recurse into links for deletion. Instead delete the link.
+  // Do not recurse into links for deletion. Instead delete the link.
   struct stat st;
   if (TEMP_FAILURE_RETRY(lstat(path->data, &st)) == -1) {
     return false;
   } else if (S_ISLNK(st.st_mode)) {
     return (remove(path->data) == 0);
   }
+
+  if (!path->Add(File::PathSeparator())) return false;
 
   // Not a link. Attempt to open as a directory and recurse into the
   // directory.

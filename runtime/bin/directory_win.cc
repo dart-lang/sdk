@@ -118,9 +118,25 @@ static bool HandleEntry(LPWIN32_FIND_DATAW find_file_data,
                         bool follow_links,
                         DirectoryListing* listing) {
   DWORD attributes = find_file_data->dwFileAttributes;
-  if (!follow_links && (attributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0) {
-    return HandleLink(find_file_data->cFileName, path, listing);
-  } else if ((attributes & FILE_ATTRIBUTE_DIRECTORY) != 0) {
+  if ((attributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0) {
+    if (!follow_links) {
+      return HandleLink(find_file_data->cFileName, path, listing);
+    }
+    // Attempt to list the directory, to see if it's a valid link or not.
+    int path_length = path->length;
+    if (!path->Add(find_file_data->cFileName)) return false;
+    if (!path->Add(L"\\*")) return false;
+    WIN32_FIND_DATAW tmp_file_data;
+    HANDLE find_handle = FindFirstFileW(path->data, &tmp_file_data);
+    path->Reset(path_length);
+    if (find_handle == INVALID_HANDLE_VALUE) {
+      // Invalid handle, report as (broken) link.
+      return HandleLink(find_file_data->cFileName, path, listing);
+    } else {
+      FindClose(find_handle);
+    }
+  }
+  if ((attributes & FILE_ATTRIBUTE_DIRECTORY) != 0) {
     return HandleDir(find_file_data->cFileName,
                      path,
                      recursive,
