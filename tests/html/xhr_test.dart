@@ -166,9 +166,9 @@ main() {
     });
   });
 
+  // TODO(antonm): enable again.
+  if (false)
   group('xhr_requestBlob', () {
-    // TODO(antonm): enable again.
-    if (false)
     test('XHR.request responseType blob', () {
       if (ArrayBuffer.supported) {
         return HttpRequest.request(url, responseType: 'blob').then(
