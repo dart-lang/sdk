@@ -3364,6 +3364,7 @@ class LoadFieldInstr : public TemplateDefinition<1> {
   intptr_t offset_in_bytes() const { return offset_in_bytes_; }
   const AbstractType& type() const { return type_; }
   void set_result_cid(intptr_t value) { result_cid_ = value; }
+  intptr_t result_cid() const { return result_cid_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 

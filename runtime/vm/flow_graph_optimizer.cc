@@ -38,13 +38,15 @@ DECLARE_FLAG(bool, trace_type_check_elimination);
 
 
 
+// Optimize instance calls using ICData.
 void FlowGraphOptimizer::ApplyICData() {
   VisitBlocks();
 }
 
 
+// Optimize instance calls using cid.
 // Attempts to convert an instance call (IC call) using propagated class-ids,
-// e.g., receiver class id.
+// e.g., receiver class id, guarded-cid.
 void FlowGraphOptimizer::ApplyClassIds() {
   ASSERT(current_iterator_ == NULL);
   for (intptr_t i = 0; i < block_order_.length(); ++i) {
@@ -1205,6 +1207,13 @@ void FlowGraphOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
   // can't deoptimize.
   call->RemoveEnvironment();
   ReplaceCall(call, load);
+
+  if (load->result_cid() != kDynamicCid) {
+    // Reset value types if guarded_cid was used.
+    for (Value::Iterator it(load->input_use_list()); !it.Done(); it.Advance()) {
+      it.Current()->SetReachingType(NULL);
+    }
+  }
 }
 
 
