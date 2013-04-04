@@ -45,7 +45,7 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames', {
     'SVGElement': 'SvgElement', # Manual to avoid name conflicts.
     'SVGException': 'SvgException', # Manual of avoid conflict with Exception.
     'SVGSVGElement': 'SvgSvgElement', # Manual to avoid name conflicts.
-    'WebGLVertexArrayObjectOES': 'WebGLVertexArrayObject',
+    'WebGLVertexArrayObjectOES': 'VertexArrayObject',
     'WebKitAnimationEvent': 'AnimationEvent',
     'WebKitCSSKeyframeRule': 'CssKeyframeRule',
     'WebKitCSSKeyframesRule': 'CssKeyframesRule',

@@ -742,19 +742,19 @@ class OesVertexArrayObject extends NativeFieldWrapperClass1 {
 
   @DomName('OESVertexArrayObject.bindVertexArrayOES')
   @DocsEditable
-  void bindVertexArray(WebGLVertexArrayObject arrayObject) native "OESVertexArrayObject_bindVertexArrayOES_Callback";
+  void bindVertexArray(VertexArrayObject arrayObject) native "OESVertexArrayObject_bindVertexArrayOES_Callback";
 
   @DomName('OESVertexArrayObject.createVertexArrayOES')
   @DocsEditable
-  WebGLVertexArrayObject createVertexArray() native "OESVertexArrayObject_createVertexArrayOES_Callback";
+  VertexArrayObject createVertexArray() native "OESVertexArrayObject_createVertexArrayOES_Callback";
 
   @DomName('OESVertexArrayObject.deleteVertexArrayOES')
   @DocsEditable
-  void deleteVertexArray(WebGLVertexArrayObject arrayObject) native "OESVertexArrayObject_deleteVertexArrayOES_Callback";
+  void deleteVertexArray(VertexArrayObject arrayObject) native "OESVertexArrayObject_deleteVertexArrayOES_Callback";
 
   @DomName('OESVertexArrayObject.isVertexArrayOES')
   @DocsEditable
-  bool isVertexArray(WebGLVertexArrayObject arrayObject) native "OESVertexArrayObject_isVertexArrayOES_Callback";
+  bool isVertexArray(VertexArrayObject arrayObject) native "OESVertexArrayObject_isVertexArrayOES_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2143,7 +2143,7 @@ class UniformLocation extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('WebGLVertexArrayObjectOES')
-class WebGLVertexArrayObject extends NativeFieldWrapperClass1 {
-  WebGLVertexArrayObject.internal();
+class VertexArrayObject extends NativeFieldWrapperClass1 {
+  VertexArrayObject.internal();
 
 }

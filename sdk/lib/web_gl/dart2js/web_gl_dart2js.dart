@@ -644,22 +644,22 @@ class OesVertexArrayObject native "*OESVertexArrayObject" {
   @JSName('bindVertexArrayOES')
   @DomName('OESVertexArrayObject.bindVertexArrayOES')
   @DocsEditable
-  void bindVertexArray(WebGLVertexArrayObject arrayObject) native;
+  void bindVertexArray(VertexArrayObject arrayObject) native;
 
   @JSName('createVertexArrayOES')
   @DomName('OESVertexArrayObject.createVertexArrayOES')
   @DocsEditable
-  WebGLVertexArrayObject createVertexArray() native;
+  VertexArrayObject createVertexArray() native;
 
   @JSName('deleteVertexArrayOES')
   @DomName('OESVertexArrayObject.deleteVertexArrayOES')
   @DocsEditable
-  void deleteVertexArray(WebGLVertexArrayObject arrayObject) native;
+  void deleteVertexArray(VertexArrayObject arrayObject) native;
 
   @JSName('isVertexArrayOES')
   @DomName('OESVertexArrayObject.isVertexArrayOES')
   @DocsEditable
-  bool isVertexArray(WebGLVertexArrayObject arrayObject) native;
+  bool isVertexArray(VertexArrayObject arrayObject) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1985,5 +1985,5 @@ class UniformLocation native "*WebGLUniformLocation" {
 
 @DocsEditable
 @DomName('WebGLVertexArrayObjectOES')
-class WebGLVertexArrayObject native "*WebGLVertexArrayObjectOES" {
+class VertexArrayObject native "*WebGLVertexArrayObjectOES" {
 }
