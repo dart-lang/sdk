@@ -274,20 +274,8 @@ class IterableMixinWorkaround {
   }
 
   static String join(Iterable iterable, [String separator]) {
-    Iterator iterator = iterable.iterator;
-    if (!iterator.moveNext()) return "";
     StringBuffer buffer = new StringBuffer();
-    if (separator == null || separator == "") {
-      do {
-        buffer.write("${iterator.current}");
-      } while (iterator.moveNext());
-    } else {
-      buffer.write("${iterator.current}");
-      while (iterator.moveNext()) {
-        buffer.write(separator);
-        buffer.write("${iterator.current}");
-      }
-    }
+    buffer.writeAll(iterable, separator == null ? "" : separator);
     return buffer.toString();
   }
 

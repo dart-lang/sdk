@@ -37,9 +37,19 @@ class CodeBuffer implements StringBuffer {
     return this;
   }
 
-  CodeBuffer writeAll(Iterable<Object> objects) {
-    for (var object in objects) {
-      write(object);
+  CodeBuffer writeAll(Iterable<Object> objects, [String separator = ""]) {
+    Iterator iterator = objects.iterator;
+    if (!iterator.moveNext()) return this;
+    if (separator == "") {
+      do {
+        write(iterator.current);
+      } while (iterator.moveNext());
+    } else {
+      buffer.write(iterator.current);
+      while (iterator.moveNext()) {
+        write(separator);
+        write(iterator.current);
+      }
     }
     return this;
   }

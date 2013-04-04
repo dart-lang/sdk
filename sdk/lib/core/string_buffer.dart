@@ -29,8 +29,20 @@ class StringBuffer implements StringSink {
   /// Adds the string representation of [charCode] to the buffer.
   external void writeCharCode(int charCode);
 
-  void writeAll(Iterable objects) {
-    for (Object obj in objects) write(obj);
+  void writeAll(Iterable objects, [String separator = ""]) {
+    Iterator iterator = objects.iterator;
+    if (!iterator.moveNext()) return;
+    if (separator == "") {
+      do {
+        write(iterator.current);
+      } while (iterator.moveNext());
+    } else {
+      write(iterator.current);
+      while (iterator.moveNext()) {
+        write(separator);
+        write(iterator.current);
+      }
+    }
   }
 
   void writeln([Object obj = ""]) {

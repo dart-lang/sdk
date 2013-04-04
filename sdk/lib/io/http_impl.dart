@@ -375,8 +375,16 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
     _ioSink.write(string);
   }
 
-  void writeAll(Iterable objects) {
-    for (Object obj in objects) write(obj);
+  void writeAll(Iterable objects, [String separator = ""]) {
+    bool isFirst = true;
+    for (Object obj in objects) {
+      if (isFirst) {
+        isFirst = false;
+      } else {
+        if (separator != "") write(separator);
+      }
+      write(obj);
+    }
   }
 
   void writeln([Object obj = ""]) {
@@ -1635,7 +1643,9 @@ class _DetachedSocket extends Stream<List<int>> implements Socket {
 
   void writeCharCode(int charCode) => _socket.writeCharCode(charCode);
 
-  void writeAll(Iterable objects) => _socket.writeAll(objects);
+  void writeAll(Iterable objects, [String separator = ""]) {
+    _socket.writeAll(objects, separator);
+  }
 
   void writeBytes(List<int> bytes) => _socket.writeBytes(bytes);
 

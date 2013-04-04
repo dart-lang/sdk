@@ -15,7 +15,7 @@ abstract class StringSink {
   /**
    * Iterates over the given [objects] and [write]s them in sequence.
    */
-  void writeAll(Iterable objects);
+  void writeAll(Iterable objects, [String separator = ""]);
 
   /**
    * Converts [obj] to a String by invoking `toString` and adds the result to
