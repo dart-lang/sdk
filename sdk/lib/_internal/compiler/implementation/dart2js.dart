@@ -463,7 +463,6 @@ be removed in a future version:
     reported as errors or warnings.
 
   --categories=<categories>
-
     A comma separated list of allowed library categories.  The default
     is "Client".  Possible categories can be seen by providing an
     unsupported category, for example, --categories=help.  To enable
