@@ -25,20 +25,22 @@ String buildStatusString(int passed, int failed, int errors,
                          String uncaughtError: null,
                          String message: ''}) {
   var totalTests = 0;
-  String testDetails = '';
-  if (results is String) {
+  var testDetails = new StringBuffer();
+  if(results == null) {
+    // no op
+    assert(message == '');
+  } else if (results is String) {
     totalTests = passed + failed + errors;
-    testDetails = ':$results:$message';
+    testDetails.write(':$results:$message');
   } else {
     totalTests = results.length;
     for (var i = 0; i < results.length; i++) {
-      testDetails = '$testDetails:${results[i].description}:'
-          '${collapseWhitespace(results[i].message)}';
+      testDetails.write(':${results[i].description}:'
+          '${collapseWhitespace(results[i].message)}');
     }
   }
-  var result = '$passed:$failed:$errors:$totalTests:$count:'
+  return '$passed:$failed:$errors:$totalTests:$count:'
       '$setup:$teardown:$uncaughtError$testDetails';
-  return result;
 }
 
 class TestConfiguration extends Configuration {
@@ -68,8 +70,8 @@ class TestConfiguration extends Configuration {
 
 runTest() {
   port.receive((String testName, sendport) {
-    var _testconfig= new TestConfiguration(sendport);
-    unittestConfiguration = _testconfig;
+    var testConfig = new TestConfiguration(sendport);
+    unittestConfiguration = testConfig;
 
     if (testName == 'single correct test') {
       test(testName, () => expect(2 + 3, equals(5)));
@@ -86,27 +88,27 @@ runTest() {
       });
     } else if (testName == 'setup test') {
       group('a', () {
-        setUp(() { _testconfig.setup = 'setup'; });
+        setUp(() { testConfig.setup = 'setup'; });
         test(testName, () {});
       });
     } else if (testName == 'teardown test') {
       group('a', () {
-        tearDown(() { _testconfig.teardown = 'teardown'; });
+        tearDown(() { testConfig.teardown = 'teardown'; });
         test(testName, () {});
       });
     } else if (testName == 'setup and teardown test') {
       group('a', () {
-        setUp(() { _testconfig.setup = 'setup'; });
-        tearDown(() { _testconfig.teardown = 'teardown'; });
+        setUp(() { testConfig.setup = 'setup'; });
+        tearDown(() { testConfig.teardown = 'teardown'; });
         test(testName, () {});
       });
     } else if (testName == 'correct callback test') {
       test(testName,
-        () =>_defer(expectAsync0((){ ++_testconfig.count;})));
+        () =>_defer(expectAsync0((){ ++testConfig.count;})));
     } else if (testName == 'excess callback test') {
       test(testName, () {
-        var _callback0 = expectAsync0(() => ++_testconfig.count);
-        var _callback1 = expectAsync0(() => ++_testconfig.count);
+        var _callback0 = expectAsync0(() => ++testConfig.count);
+        var _callback1 = expectAsync0(() => ++testConfig.count);
         var _callback2 = expectAsync0(() {
           _callback1();
           _callback1();
@@ -118,11 +120,11 @@ runTest() {
       test(testName, () {
              var _callback;
              _callback = expectAsyncUntil0(() {
-               if (++_testconfig.count < 10) {
+               if (++testConfig.count < 10) {
                  _defer(_callback);
                }
              },
-             () => (_testconfig.count == 10));
+             () => (testConfig.count == 10));
              _defer(_callback);
       });
     } else if (testName == 'async exception test') {
@@ -295,6 +297,8 @@ runTest() {
         expect(() => testCases.clear(), throwsUnsupportedError);
         expect(() => testCases.removeLast(), throwsUnsupportedError);
       });
+    } else if (testName == 'runTests without tests') {
+      runTests();
     }
   });
 }
@@ -351,6 +355,7 @@ main() {
         'foo6'),
     'testCases immutable':
         buildStatusString(1, 0, 0, 'testCases immutable'),
+    'runTests without tests': buildStatusString(0, 0, 0, null)
   };
 
   tests.forEach((String name, String expected) {

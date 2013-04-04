@@ -697,6 +697,7 @@ void filterTests(testFilter) {
 
 /** Runs all queued tests, one at a time. */
 void runTests() {
+  _ensureInitialized(false);
   _currentTestCaseIndex = 0;
   _currentGroup = '';
 
@@ -805,6 +806,10 @@ String _fullSpec(String spec) {
  * Lazily initializes the test library if not already initialized.
  */
 void ensureInitialized() {
+  _ensureInitialized(true);
+}
+
+void _ensureInitialized(bool configAutoStart) {
   if (_initialized) {
     return;
   }
@@ -819,7 +824,7 @@ void ensureInitialized() {
   }
   _config.onInit();
 
-  if (_config.autoStart) {
+  if (configAutoStart && _config.autoStart) {
     // Immediately queue the suite up. It will run after a timeout (i.e. after
     // main() has returned).
     _defer(runTests);
