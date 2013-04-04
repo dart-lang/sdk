@@ -271,8 +271,8 @@ class Location : public ValueObject {
     return kind() == kDoubleStackSlot;
   }
 
-  static Location Float32x4StackSlot(intptr_t stack_index, Representation rep) {
-    uword payload = make_stack_index_payload(stack_index, rep);
+  static Location Float32x4StackSlot(intptr_t stack_index) {
+    uword payload = make_stack_index_payload(stack_index, kUnboxedFloat32x4);
     Location loc(kFloat32x4StackSlot, payload);
     // Ensure that sign is preserved.
     ASSERT(loc.stack_index() == stack_index);
@@ -283,8 +283,8 @@ class Location : public ValueObject {
     return kind() == kFloat32x4StackSlot;
   }
 
-  static Location Uint32x4StackSlot(intptr_t stack_index, Representation rep) {
-    uword payload = make_stack_index_payload(stack_index, rep);
+  static Location Uint32x4StackSlot(intptr_t stack_index) {
+    uword payload = make_stack_index_payload(stack_index, kUnboxedUint32x4);
     Location loc(kUint32x4StackSlot, payload);
     // Ensure that sign is preserved.
     ASSERT(loc.stack_index() == stack_index);

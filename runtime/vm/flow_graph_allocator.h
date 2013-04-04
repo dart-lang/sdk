@@ -37,8 +37,8 @@ class ReachingDefs : public ValueObject {
 
 class FlowGraphAllocator : public ValueObject {
  public:
-  // Number of stack slots needed for a double spill slot.
-  static const intptr_t kDoubleSpillSlotFactor = kDoubleSize / kWordSize;
+  // Number of stack slots needed for a fpu register spill slot.
+  static const intptr_t kFpuRegisterSpillFactor = kFpuRegisterSize / kWordSize;
 
   explicit FlowGraphAllocator(const FlowGraph& flow_graph);
 
