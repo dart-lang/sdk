@@ -261,8 +261,9 @@ main() {
       }
     })
     .catchError((e) {
-        print('Error: generation failed: ${e.error}');
-        exit(1);
+      print('Error: generation failed: ${e}');
+      dartdoc.cleanup();
+      exit(1);
     })
     .whenComplete(() => dartdoc.cleanup());
 }

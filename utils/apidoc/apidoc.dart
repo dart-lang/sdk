@@ -151,7 +151,11 @@ void main() {
             packageRoot))
       .then((_) => compileScript(mode, outputDir, libPath))
       .then((_) => print(apidoc.status))
-      .catchError((e) => print('Error: generation failed: ${e.error}'))
+      .catchError((e) {
+        print('Error: generation failed: ${e}');
+        apidoc.cleanup();
+        exit(1);
+      })
       .whenComplete(() => apidoc.cleanup());
   });
 }
