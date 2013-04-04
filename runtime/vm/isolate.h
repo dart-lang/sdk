@@ -262,11 +262,13 @@ class Isolate : public BaseIsolate {
     kApiInterrupt = 0x1,      // An interrupt from Dart_InterruptIsolate.
     kMessageInterrupt = 0x2,  // An interrupt to process an out of band message.
     kStoreBufferInterrupt = 0x4,  // An interrupt to process the store buffer.
+    kVmStatusInterrupt = 0x8,     // An interrupt to process a status request.
 
     kInterruptsMask =
         kApiInterrupt |
         kMessageInterrupt |
-        kStoreBufferInterrupt,
+        kStoreBufferInterrupt |
+        kVmStatusInterrupt,
   };
 
   void ScheduleInterrupts(uword interrupt_bits);
@@ -318,6 +320,13 @@ class Isolate : public BaseIsolate {
   }
   static Dart_IsolateInterruptCallback InterruptCallback() {
     return interrupt_callback_;
+  }
+
+  static void SetVmStatsCallback(Dart_IsolateInterruptCallback cb) {
+    vmstats_callback_ = cb;
+  }
+  static Dart_IsolateInterruptCallback VmStatsCallback() {
+    return vmstats_callback_;
   }
 
   static void SetUnhandledExceptionCallback(
@@ -419,6 +428,13 @@ class Isolate : public BaseIsolate {
   void BuildName(const char* name_prefix);
   void PrintInvokedFunctions();
 
+  static bool FetchStacktrace();
+  static bool FetchStackFrameDetails();
+  char* GetStatusDetails();
+  char* GetStatusStacktrace();
+  char* GetStatusStackFrame(intptr_t index);
+  char* DoStacktraceInterrupt(Dart_IsolateInterruptCallback cb);
+
   static ThreadLocalKey isolate_key;
   StoreBufferBlock store_buffer_block_;
   StoreBuffer store_buffer_;
@@ -457,6 +473,10 @@ class Isolate : public BaseIsolate {
   intptr_t deopt_frame_copy_size_;
   DeferredObject* deferred_objects_;
 
+  // Status support.
+  char* stacktrace_;
+  intptr_t stack_frame_index_;
+
   static Dart_IsolateCreateCallback create_callback_;
   static Dart_IsolateInterruptCallback interrupt_callback_;
   static Dart_IsolateUnhandledExceptionCallback unhandled_exception_callback_;
@@ -464,6 +484,7 @@ class Isolate : public BaseIsolate {
   static Dart_FileOpenCallback file_open_callback_;
   static Dart_FileWriteCallback file_write_callback_;
   static Dart_FileCloseCallback file_close_callback_;
+  static Dart_IsolateInterruptCallback vmstats_callback_;
 
   DISALLOW_COPY_AND_ASSIGN(Isolate);
 };
