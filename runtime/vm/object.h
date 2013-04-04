@@ -3681,7 +3681,9 @@ class TypeParameter : public AbstractType {
   void set_index(intptr_t value) const;
   RawAbstractType* bound() const { return raw_ptr()->bound_; }
   void set_bound(const AbstractType& value) const;
-  void CheckBound(const AbstractType& bounded_type,
+  // Returns true if bounded_type is below upper_bound, otherwise return false
+  // and set malformed_error if not NULL.
+  bool CheckBound(const AbstractType& bounded_type,
                   const AbstractType& upper_bound,
                   Error* malformed_error) const;
   virtual intptr_t token_pos() const { return raw_ptr()->token_pos_; }

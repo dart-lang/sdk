@@ -120,7 +120,8 @@ class ClassFinalizer : public AllStatic {
   static void ResolveType(const Class& cls,
                           const AbstractType& type,
                           FinalizationKind finalization);
-  static void ResolveAndFinalizeUpperBounds(const Class& cls);
+  static void ResolveUpperBounds(const Class& cls);
+  static void FinalizeUpperBounds(const Class& cls);
   static void ResolveAndFinalizeSignature(const Class& cls,
                                           const Function& function);
   static void ResolveAndFinalizeMemberTypes(const Class& cls);
