@@ -214,11 +214,16 @@ class ConstantPropagator : public FlowGraphVisitor {
 
   static void Optimize(FlowGraph* graph);
 
+  // Only visit branches to optimize away unreachable blocks discovered
+  // by range analysis.
+  static void OptimizeBranches(FlowGraph* graph);
+
   // Used to initialize the abstract value of definitions.
   static RawObject* Unknown() { return Object::transition_sentinel().raw(); }
 
  private:
   void Analyze();
+  void VisitBranches();
   void Transform();
 
   void SetReachable(BlockEntryInstr* block);

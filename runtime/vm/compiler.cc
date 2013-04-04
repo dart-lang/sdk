@@ -264,6 +264,13 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
       }
 
+      if (FLAG_constant_propagation) {
+        // Constant propagation can use information from range analysis to
+        // find unreachable branch targets.
+        ConstantPropagator::OptimizeBranches(flow_graph);
+        DEBUG_ASSERT(flow_graph->VerifyUseLists());
+      }
+
       // The final canonicalization pass before the code generation.
       if (FLAG_propagate_types) {
         // Recompute types after code movement was done to ensure correct

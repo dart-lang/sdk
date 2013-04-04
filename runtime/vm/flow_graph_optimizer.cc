@@ -2477,7 +2477,10 @@ void RangeAnalysis::ConstrainValueAfterBranch(Definition* defn, Value* use) {
                             branch->true_successor());
     // Mark true_constraint an artificial use of boundary. This ensures
     // that constraint's range is recalculated if boundary's range changes.
-    if (true_constraint != NULL) true_constraint->AddDependency(boundary);
+    if (true_constraint != NULL) {
+      true_constraint->AddDependency(boundary);
+      true_constraint->set_target(branch->true_successor());
+    }
 
     // Constrain definition with a negated condition at the false successor.
     ConstraintInstr* false_constraint =
@@ -2487,7 +2490,10 @@ void RangeAnalysis::ConstrainValueAfterBranch(Definition* defn, Value* use) {
             branch->false_successor());
     // Mark false_constraint an artificial use of boundary. This ensures
     // that constraint's range is recalculated if boundary's range changes.
-    if (false_constraint != NULL) false_constraint->AddDependency(boundary);
+    if (false_constraint != NULL) {
+      false_constraint->AddDependency(boundary);
+      false_constraint->set_target(branch->false_successor());
+    }
   }
 }
 
@@ -2524,17 +2530,15 @@ void RangeAnalysis::ConstrainValueAfterCheckArrayBound(
 void RangeAnalysis::InsertConstraints() {
   for (intptr_t i = 0; i < smi_checks_.length(); i++) {
     CheckSmiInstr* check = smi_checks_[i];
-    ConstraintInstr* constraint =
-        InsertConstraintFor(check->value()->definition(),
-                            Range::Unknown(),
-                            check);
-    if (constraint != NULL) {
-      InsertConstraintsFor(constraint);  // Constrain uses further.
-    }
+    InsertConstraintFor(check->value()->definition(), Range::Unknown(), check);
   }
 
   for (intptr_t i = 0; i < smi_values_.length(); i++) {
     InsertConstraintsFor(smi_values_[i]);
+  }
+
+  for (intptr_t i = 0; i < constraints_.length(); i++) {
+    InsertConstraintsFor(constraints_[i]);
   }
 }
 
@@ -3620,6 +3624,14 @@ void ConstantPropagator::Optimize(FlowGraph* graph) {
 }
 
 
+void ConstantPropagator::OptimizeBranches(FlowGraph* graph) {
+  GrowableArray<BlockEntryInstr*> ignored;
+  ConstantPropagator cp(graph, ignored);
+  cp.VisitBranches();
+  cp.Transform();
+}
+
+
 void ConstantPropagator::SetReachable(BlockEntryInstr* block) {
   if (!reachable_->Contains(block->preorder_number())) {
     reachable_->Add(block->preorder_number());
@@ -4333,6 +4345,40 @@ void ConstantPropagator::Analyze() {
     } else {
       BlockEntryInstr* block = block_worklist_.RemoveLast();
       block->Accept(this);
+    }
+  }
+}
+
+
+void ConstantPropagator::VisitBranches() {
+  GraphEntryInstr* entry = graph_->graph_entry();
+  reachable_->Add(entry->preorder_number());
+  // TODO(fschneider): Handle CatchEntry.
+  reachable_->Add(entry->normal_entry()->preorder_number());
+  block_worklist_.Add(entry->normal_entry());
+
+  while (!block_worklist_.is_empty()) {
+    BlockEntryInstr* block = block_worklist_.RemoveLast();
+    Instruction* last = block->last_instruction();
+    if (last->IsGoto()) {
+      SetReachable(last->AsGoto()->successor());
+    } else if (last->IsBranch()) {
+      BranchInstr* branch = last->AsBranch();
+      // The current block must be reachable.
+      ASSERT(reachable_->Contains(branch->GetBlock()->preorder_number()));
+      if (branch->constant_target() != NULL) {
+        // Found constant target computed by range analysis.
+        if (branch->constant_target() == branch->true_successor()) {
+          SetReachable(branch->true_successor());
+        } else {
+          ASSERT(branch->constant_target() == branch->false_successor());
+          SetReachable(branch->false_successor());
+        }
+      } else {
+        // No new information: Assume both targets are reachable.
+        SetReachable(branch->true_successor());
+        SetReachable(branch->false_successor());
+      }
     }
   }
 }

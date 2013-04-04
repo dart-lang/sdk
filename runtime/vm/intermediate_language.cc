@@ -28,6 +28,7 @@ DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(int, max_polymorphic_checks);
 DECLARE_FLAG(bool, trace_optimization);
+DECLARE_FLAG(bool, trace_constant_propagation);
 
 Definition::Definition()
     : range_(NULL),
@@ -608,7 +609,8 @@ void Definition::ReplaceWith(Definition* other,
 BranchInstr::BranchInstr(ComparisonInstr* comparison, bool is_checked)
     : comparison_(comparison),
       is_checked_(is_checked),
-      constrained_type_(NULL) {
+      constrained_type_(NULL),
+      constant_target_(NULL) {
   for (intptr_t i = comparison->InputCount() - 1; i >= 0; --i) {
     comparison->InputAt(i)->set_instruction(this);
   }
@@ -1957,6 +1959,28 @@ void ConstraintInstr::InferRange() {
   }
 
   range_ = new Range(min, max);
+
+  // Mark branches that generate unsatisfiable constraints as constant.
+  if (target() != NULL && range_->IsUnsatisfiable()) {
+    BranchInstr* branch =
+        target()->PredecessorAt(0)->last_instruction()->AsBranch();
+    if (target() == branch->true_successor()) {
+      // True unreachable.
+      if (FLAG_trace_constant_propagation) {
+        OS::Print("Range analysis: True unreachable (B%"Pd")\n",
+                  branch->true_successor()->block_id());
+      }
+      branch->set_constant_target(branch->false_successor());
+    } else {
+      ASSERT(target() == branch->false_successor());
+      // False unreachable.
+      if (FLAG_trace_constant_propagation) {
+        OS::Print("Range analysis: False unreachable (B%"Pd")\n",
+                  branch->false_successor()->block_id());
+      }
+      branch->set_constant_target(branch->true_successor());
+    }
+  }
 }
 
 
@@ -2189,6 +2213,19 @@ bool Range::IsWithin(intptr_t min_int, intptr_t max_int) const {
   if (min().LowerBound().value() < min_int) return false;
   if (max().UpperBound().value() > max_int) return false;
   return true;
+}
+
+
+bool Range::IsUnsatisfiable() const {
+  // Constant case: For example [0, -1].
+  if (Range::ConstantMin(this).value() > Range::ConstantMax(this).value()) {
+    return true;
+  }
+  // Symbol case: For example [v+1, v].
+  if (DependOnSameSymbol(min(), max()) && min().offset() > max().offset()) {
+    return true;
+  }
+  return false;
 }
 
 
