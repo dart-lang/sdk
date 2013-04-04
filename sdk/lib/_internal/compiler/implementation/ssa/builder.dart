@@ -1982,13 +1982,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       conditionExitBlock.remove(conditionExitBlock.last);
       HIfBlockInformation info =
           new HIfBlockInformation(
-            wrapExpressionGraph(conditionExpression),
-            wrapStatementGraph(bodyGraph),
-            wrapStatementGraph(elseGraph));
+              wrapExpressionGraph(conditionExpression),
+              wrapStatementGraph(bodyGraph),
+              wrapStatementGraph(elseGraph));
 
-      conditionBlock.setBlockFlow(info, current);
-      HIf ifBlock = conditionBlock.last;
-      ifBlock.blockInformation = conditionBlock.blockFlow;
+      conditionExitBlock.setBlockFlow(info, current);
+      HIf ifBlock = conditionExitBlock.last;
+      ifBlock.blockInformation = conditionExitBlock.blockFlow;
 
       // If the body has any break, attach a synthesized label to the
       // if block.
