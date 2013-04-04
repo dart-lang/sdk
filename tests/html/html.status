@@ -107,7 +107,7 @@ xsltprocessor_test/supported: Fail
 
 [ $runtime == ie9 ]
 blob_constructor_test: Fail
-document_test/document: Fail # BUG(9654) need per-instance patching
+document_test/document: Pass, Fail # BUG(9654) need per-instance patching
 dom_constructors_test: Fail
 dromaeo_smoke_test: Skip #TODO(efortuna): investigating.
 element_test/click: Fail                # IE does not support firing this event.
