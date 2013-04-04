@@ -2158,7 +2158,10 @@ class CodeEmitterTask extends CompilerTask {
       for (VariableElement element in Elements.sortedByPosition(lazyFields)) {
         assert(backend.generatedBailoutCode[element] == null);
         jsAst.Expression code = backend.generatedCode[element];
-        assert(code != null);
+        // The code is null if we ended up not needing the lazily
+        // initialized field after all because of constant folding
+        // before code generation.
+        if (code == null) continue;
         // The code only computes the initial value. We build the lazy-check
         // here:
         //   lazyInitializer(prototype, 'name', fieldName, getterName, initial);

@@ -634,6 +634,13 @@ class JavaScriptBackend extends Backend {
   final Map<Element, jsAst.Expression> generatedBailoutCode =
       new Map<Element, jsAst.Expression>();
 
+  /**
+   * Keep track of which function elements are simple enough to be
+   * inlined in callers.
+   */
+  final Map<FunctionElement, bool> canBeInlined =
+      new Map<FunctionElement, bool>();
+
   ClassElement jsInterceptorClass;
   ClassElement jsStringClass;
   ClassElement jsArrayClass;
