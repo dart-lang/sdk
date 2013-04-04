@@ -289,7 +289,11 @@ void SimulatorDebugger::Debug() {
   while (!done) {
     if (last_pc != sim_->get_pc()) {
       last_pc = sim_->get_pc();
-      Disassembler::Disassemble(last_pc, last_pc + Instr::kInstrSize);
+      if (Simulator::IsIllegalAddress(last_pc)) {
+        OS::Print("pc is out of bounds: 0x%"Px"\n", last_pc);
+      } else {
+        Disassembler::Disassemble(last_pc, last_pc + Instr::kInstrSize);
+      }
     }
     char* line = ReadLine("sim> ");
     if (line == NULL) {
@@ -904,8 +908,8 @@ void Simulator::DoBreak(Instr *instr) {
         set_fregister(static_cast<FRegister>(i), zap_dvalue);
       }
 
-      // Return.
-      set_pc(saved_ra);
+      // Return. Subtract to account for pc_ increment after return.
+      set_pc(saved_ra - Instr::kInstrSize);
     }
   } else {
     SimulatorDebugger dbg(this);
@@ -984,10 +988,10 @@ void Simulator::DecodeSpecial(Instr* instr) {
       ASSERT(instr->RsField() != instr->RdField());
       ASSERT(!delay_slot_);
       // Format(instr, "jalr'hint 'rd, rs");
+      set_register(instr->RdField(), pc_ + 2*Instr::kInstrSize);
       uword next_pc = get_register(instr->RsField());
       ExecuteDelaySlot();
       // Set return address to be the instruction after the delay slot.
-      set_register(instr->RdField(), pc_ + Instr::kInstrSize);
       pc_ = next_pc - Instr::kInstrSize;  // Account for regular PC increment.
       break;
     }

@@ -72,13 +72,11 @@ dart/*: Skip
 cc/Dart2JSCompileAll: Skip
 cc/FrameLookup: Skip
 cc/UseDartApi: Skip
-cc/FindCodeObject: Skip
-
 # Tests needing Dart execution.
 dart/*: Skip
 
-[ $arch == simmips && $system == macos ]
-cc/CallLeafRuntimeStubCode: Crash  # Fails on Mac OS X
+[ $arch == simmips && $checked]
+cc/FindCodeObject: Skip
 
 # TODO(ajohnsen): Fix this as part of library changes.
 [ $compiler == none ]
