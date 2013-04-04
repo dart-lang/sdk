@@ -4,8 +4,7 @@
 
 library tracer;
 
-import 'dart:async' show EventSink;
-
+import 'dart:io';
 import 'ssa.dart';
 import '../js_backend/js_backend.dart';
 import '../dart2jslib.dart';
@@ -16,14 +15,17 @@ const String SSA_TRACE_FILTER = null;
 class HTracer extends HGraphVisitor implements Tracer {
   JavaScriptItemCompilationContext context;
   int indent = 0;
-  final EventSink<String> output;
+  final RandomAccessFile output;
   final bool enabled = GENERATE_SSA_TRACE;
   bool traceActive = false;
 
-  HTracer(this.output);
+  HTracer([String path = "dart.cfg"])
+      : output = GENERATE_SSA_TRACE
+          ? new File(path).openSync(mode: FileMode.WRITE)
+          : null;
 
   void close() {
-    if (enabled) output.close();
+    if (enabled) output.closeSync();
   }
 
   void traceCompilation(String methodName,
@@ -154,7 +156,7 @@ class HTracer extends HGraphVisitor implements Tracer {
   }
 
   void add(String string) {
-    output.add(string);
+    output.writeStringSync(string);
   }
 
   void addIndent() {
