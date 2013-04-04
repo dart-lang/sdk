@@ -28,6 +28,8 @@ main() {
     expect(data[100], equals(200));
   });
 
+  // TODO(antonm): enable again.
+  if (false)
   test('toDataUrl', () {
     var canvas = new CanvasElement(width: 100, height: 100);
     var context = canvas.context2d;
