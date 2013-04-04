@@ -595,6 +595,10 @@ class Assembler : public ValueObject {
   // set to non-zero otherwise.
   void CompareObject(Register rd, Register rn, const Object& object);
 
+  void LoadClassId(Register result, Register object);
+  void LoadClassById(Register result, Register class_id);
+  void LoadClass(Register result, Register object, Register scratch);
+
   void CallRuntime(const RuntimeEntry& entry);
 
   // Set up a Dart frame on entry with a frame pointer and PC information to

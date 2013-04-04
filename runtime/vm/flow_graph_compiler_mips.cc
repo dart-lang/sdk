@@ -23,6 +23,7 @@ DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, print_ast);
 DECLARE_FLAG(bool, print_scopes);
 DECLARE_FLAG(bool, enable_type_checks);
+DECLARE_FLAG(bool, eliminate_type_checks);
 
 
 FlowGraphCompiler::~FlowGraphCompiler() {
@@ -82,17 +83,75 @@ void FlowGraphCompiler::CheckClassIds(Register class_id_reg,
                                       const GrowableArray<intptr_t>& class_ids,
                                       Label* is_equal_lbl,
                                       Label* is_not_equal_lbl) {
-  UNIMPLEMENTED();
+  for (intptr_t i = 0; i < class_ids.length(); i++) {
+    __ LoadImmediate(TMP, class_ids[i]);
+    __ beq(class_id_reg, TMP, is_equal_lbl);
+  }
+  __ b(is_not_equal_lbl);
 }
 
 
+// Testing against an instantiated type with no arguments, without
+// SubtypeTestCache.
+// A0: instance being type checked (preserved).
+// Clobbers: T0, T1, T2
+// Returns true if there is a fallthrough.
 bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     intptr_t token_pos,
     const AbstractType& type,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
-  UNIMPLEMENTED();
-  return false;
+  __ Comment("InstantiatedTypeNoArgumentsTest");
+  ASSERT(type.IsInstantiated());
+  const Class& type_class = Class::Handle(type.type_class());
+  ASSERT(!type_class.HasTypeArguments());
+
+  const Register kInstanceReg = A0;
+  __ andi(T0, A0, Immediate(kSmiTagMask));
+  // If instance is Smi, check directly.
+  const Class& smi_class = Class::Handle(Smi::Class());
+  if (smi_class.IsSubtypeOf(TypeArguments::Handle(),
+                            type_class,
+                            TypeArguments::Handle(),
+                            NULL)) {
+    __ beq(T0, ZR, is_instance_lbl);
+  } else {
+    __ beq(T0, ZR, is_not_instance_lbl);
+  }
+  // Compare if the classes are equal.
+  const Register kClassIdReg = T0;
+  __ LoadClassId(kClassIdReg, kInstanceReg);
+  __ LoadImmediate(T1, type_class.id());
+  __ beq(kClassIdReg, T1, is_instance_lbl);
+  // See ClassFinalizer::ResolveSuperTypeAndInterfaces for list of restricted
+  // interfaces.
+  // Bool interface can be implemented only by core class Bool.
+  if (type.IsBoolType()) {
+    __ LoadImmediate(T1, kBoolCid);
+    __ beq(kClassIdReg, T1, is_instance_lbl);
+    __ b(is_not_instance_lbl);
+    return false;
+  }
+  if (type.IsFunctionType()) {
+    // Check if instance is a closure.
+    __ LoadClassById(T1, kClassIdReg);
+    __ lw(T1, FieldAddress(T1, Class::signature_function_offset()));
+    __ LoadImmediate(T2, reinterpret_cast<int32_t>(Object::null()));
+    __ bne(T1, T2, is_instance_lbl);
+  }
+  // Custom checking for numbers (Smi, Mint, Bigint and Double).
+  // Note that instance is not Smi (checked above).
+  if (type.IsSubtypeOf(Type::Handle(Type::Number()), NULL)) {
+    GenerateNumberTypeCheck(
+        kClassIdReg, type, is_instance_lbl, is_not_instance_lbl);
+    return false;
+  }
+  if (type.IsStringType()) {
+    GenerateStringTypeCheck(kClassIdReg, is_instance_lbl, is_not_instance_lbl);
+    return false;
+  }
+  // Otherwise fallthrough.
+  return true;
 }
 
 
@@ -116,13 +175,71 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
 }
 
 
+// Inputs:
+// - A0: instance being type checked (preserved).
+// - A1: optional instantiator type arguments (preserved).
+// Returns:
+// - preserved instance in A0 and optional instantiator type arguments in A1.
+// Clobbers: T0, T1, T2
+// Note that this inlined code must be followed by the runtime_call code, as it
+// may fall through to it. Otherwise, this inline code will jump to the label
+// is_instance or to the label is_not_instance.
 RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
     intptr_t token_pos,
     const AbstractType& type,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
-  UNIMPLEMENTED();
-  return NULL;
+  __ Comment("InlineInstanceof");
+  if (type.IsVoidType()) {
+    // A non-null value is returned from a void function, which will result in a
+    // type error. A null value is handled prior to executing this inline code.
+    return SubtypeTestCache::null();
+  }
+  if (TypeCheckAsClassEquality(type)) {
+    const intptr_t type_cid = Class::Handle(type.type_class()).id();
+    const Register kInstanceReg = A0;
+    __ andi(T0, kInstanceReg, Immediate(kSmiTagMask));
+    if (type_cid == kSmiCid) {
+      __ beq(T0, ZR, is_instance_lbl);
+    } else {
+      __ beq(T0, ZR, is_not_instance_lbl);
+      __ LoadClassId(T0, kInstanceReg);
+      __ LoadImmediate(T1, type_cid);
+      __ beq(T0, T1, is_instance_lbl);
+    }
+    __ b(is_not_instance_lbl);
+    return SubtypeTestCache::null();
+  }
+  if (type.IsInstantiated()) {
+    const Class& type_class = Class::ZoneHandle(type.type_class());
+    // A Smi object cannot be the instance of a parameterized class.
+    // A class equality check is only applicable with a dst type of a
+    // non-parameterized class or with a raw dst type of a parameterized class.
+    if (type_class.HasTypeArguments()) {
+      return GenerateInstantiatedTypeWithArgumentsTest(token_pos,
+                                                       type,
+                                                       is_instance_lbl,
+                                                       is_not_instance_lbl);
+      // Fall through to runtime call.
+    }
+    const bool has_fall_through =
+        GenerateInstantiatedTypeNoArgumentsTest(token_pos,
+                                                type,
+                                                is_instance_lbl,
+                                                is_not_instance_lbl);
+    if (has_fall_through) {
+      // If test non-conclusive so far, try the inlined type-test cache.
+      // 'type' is known at compile time.
+      return GenerateSubtype1TestCacheLookup(
+          token_pos, type_class, is_instance_lbl, is_not_instance_lbl);
+    } else {
+      return SubtypeTestCache::null();
+    }
+  }
+  return GenerateUninstantiatedTypeTest(token_pos,
+                                        type,
+                                        is_instance_lbl,
+                                        is_not_instance_lbl);
 }
 
 
@@ -135,12 +252,101 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
 }
 
 
+// Optimize assignable type check by adding inlined tests for:
+// - NULL -> return NULL.
+// - Smi -> compile time subtype check (only if dst class is not parameterized).
+// - Class equality (only if class is not parameterized).
+// Inputs:
+// - A0: instance being type checked.
+// - A1: instantiator type arguments or raw_null.
+// - A2: instantiator or raw_null.
+// Returns:
+// - object in A0 for successful assignable check (or throws TypeError).
+// Clobbers: T0, T1, T2
+// Performance notes: positive checks must be quick, negative checks can be slow
+// as they throw an exception.
 void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
                                                  intptr_t deopt_id,
                                                  const AbstractType& dst_type,
                                                  const String& dst_name,
                                                  LocationSummary* locs) {
-  UNIMPLEMENTED();
+  ASSERT(token_pos >= 0);
+  ASSERT(!dst_type.IsNull());
+  ASSERT(dst_type.IsFinalized());
+  // Assignable check is skipped in FlowGraphBuilder, not here.
+  ASSERT(dst_type.IsMalformed() ||
+         (!dst_type.IsDynamicType() && !dst_type.IsObjectType()));
+  // Preserve instantiator and its type arguments.
+  __ addiu(SP, SP, Immediate(-2 * kWordSize));
+  __ sw(A2, Address(SP, 1 * kWordSize));
+  __ sw(A1, Address(SP, 0 * kWordSize));
+  // A null object is always assignable and is returned as result.
+  Label is_assignable, runtime_call;
+  __ LoadImmediate(T0, reinterpret_cast<int32_t>(Object::null()));
+  __ beq(A0, T0, &is_assignable);
+
+  if (!FLAG_eliminate_type_checks) {
+    // If type checks are not eliminated during the graph building then
+    // a transition sentinel can be seen here.
+    __ LoadObject(T0, Object::transition_sentinel());
+    __ beq(A0, T0, &is_assignable);
+  }
+
+  // Generate throw new TypeError() if the type is malformed.
+  if (dst_type.IsMalformed()) {
+    const Error& error = Error::Handle(dst_type.malformed_error());
+    const String& error_message = String::ZoneHandle(
+        Symbols::New(error.ToErrorCString()));
+    __ PushObject(Object::ZoneHandle());  // Make room for the result.
+    __ Push(A0);  // Push the source object.
+    __ PushObject(dst_name);  // Push the name of the destination.
+    __ PushObject(error_message);
+    GenerateCallRuntime(token_pos,
+                        deopt_id,
+                        kMalformedTypeErrorRuntimeEntry,
+                        locs);
+    // We should never return here.
+    __ break_(0);
+
+    __ Bind(&is_assignable);  // For a null object.
+    // Restore instantiator and its type arguments.
+    __ lw(A1, Address(SP, 0 * kWordSize));
+    __ lw(A2, Address(SP, 1 * kWordSize));
+    __ addiu(SP, SP, Immediate(2 * kWordSize));
+    return;
+  }
+
+  // Generate inline type check, linking to runtime call if not assignable.
+  SubtypeTestCache& test_cache = SubtypeTestCache::ZoneHandle();
+  test_cache = GenerateInlineInstanceof(token_pos, dst_type,
+                                        &is_assignable, &runtime_call);
+
+  __ Bind(&runtime_call);
+  // Load instantiator and its type arguments.
+  __ lw(A1, Address(SP, 0 * kWordSize));
+  __ lw(A2, Address(SP, 1 * kWordSize));
+  __ addiu(SP, SP, Immediate(2 * kWordSize));
+  __ PushObject(Object::ZoneHandle());  // Make room for the result.
+  __ Push(A0);  // Push the source object.
+  __ PushObject(dst_type);  // Push the type of the destination.
+  // Push instantiator and its type arguments.
+  __ addiu(SP, SP, Immediate(-2 * kWordSize));
+  __ sw(A2, Address(SP, 1 * kWordSize));
+  __ sw(A1, Address(SP, 0 * kWordSize));
+  __ PushObject(dst_name);  // Push the name of the destination.
+  __ LoadObject(A0, test_cache);
+  __ Push(A0);
+  GenerateCallRuntime(token_pos, deopt_id, kTypeCheckRuntimeEntry, locs);
+  // Pop the parameters supplied to the runtime entry. The result of the
+  // type check runtime call is the checked value.
+  __ Drop(6);
+  __ Pop(A0);
+
+  __ Bind(&is_assignable);
+  // Restore instantiator and its type arguments.
+    __ lw(A1, Address(SP, 0 * kWordSize));
+    __ lw(A2, Address(SP, 1 * kWordSize));
+    __ addiu(SP, SP, Immediate(2 * kWordSize));
 }
 
 
@@ -226,7 +432,7 @@ void FlowGraphCompiler::CopyParameters() {
   __ lw(TMP, Address(T4));
   __ sw(TMP, Address(T5));
   __ Bind(&loop_condition);
-  __ addiu(T2, T2, Immediate(-4));
+  __ addiu(T2, T2, Immediate(-kWordSize));
   __ bgez(T2, &loop);
 
   // Copy or initialize optional named arguments.
@@ -392,7 +598,7 @@ void FlowGraphCompiler::CopyParameters() {
   __ addu(T3, T1, T2);
   __ sw(TMP, Address(T3));
   __ Bind(&null_args_loop_condition);
-  __ addiu(T2, T2, Immediate(-4));
+  __ addiu(T2, T2, Immediate(-kWordSize));
   __ bgez(T2, &null_args_loop);
 }
 

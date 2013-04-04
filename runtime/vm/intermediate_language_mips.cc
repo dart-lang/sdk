@@ -158,8 +158,15 @@ void ConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* AssertAssignableInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 3;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+  summary->set_in(0, Location::RegisterLocation(A0));  // Value.
+  summary->set_in(1, Location::RegisterLocation(A1));  // Instantiator.
+  summary->set_in(2, Location::RegisterLocation(A2));  // Type arguments.
+  summary->set_out(Location::RegisterLocation(A0));
+  return summary;
 }
 
 
