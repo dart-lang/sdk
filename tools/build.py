@@ -224,6 +224,61 @@ def CurrentDirectoryBaseName():
   return os.path.relpath(os.curdir, start=os.pardir)
 
 
+def FilterEmptyXcodebuildSections(process):
+  """
+  Filter output from xcodebuild so empty sections are less verbose.
+
+  The output from xcodebuild looks like this:
+
+Build settings from command line:
+    SYMROOT = .../xcodebuild
+
+=== BUILD AGGREGATE TARGET samples OF PROJECT dart WITH CONFIGURATION ...
+Check dependencies
+
+
+=== BUILD AGGREGATE TARGET upload_sdk OF PROJECT dart WITH CONFIGURATION ...
+Check dependencies
+
+PhaseScriptExecution "Action \"upload_sdk_py\"" xcodebuild/dart.build/...
+    cd ...
+    /bin/sh -c .../xcodebuild/dart.build/ReleaseIA32/upload_sdk.build/...
+
+
+** BUILD SUCCEEDED **
+
+  """
+
+  def is_empty_chunk(chunk):
+    empty_chunk = ['Check dependencies', '', '']
+    return not chunk or (len(chunk) == 4 and chunk[1:] == empty_chunk)
+
+  def unbuffered(callable):
+    # Use iter to disable buffering in for-in.
+    return iter(callable, '')
+
+  section = None
+  chunk = []
+  # Is stdout a terminal?
+  isatty = sys.stdout.isatty()
+  for line in unbuffered(process.stdout.readline):
+    line = line.rstrip()
+    if line.startswith('=== BUILD ') or line.startswith('** BUILD '):
+      if not is_empty_chunk(chunk):
+        print '\n'.join(chunk)
+      section = line
+      if isatty:
+        # If stdout is a terminal, emit "progress" information.
+        print '%s[2K%s\r' % (chr(27), section),
+      chunk = []
+    if not section:
+      print line
+    else:
+      chunk.append(line)
+  if not is_empty_chunk(chunk):
+    print '\n'.join(chunk)
+
+
 def Main():
   utils.ConfigureJava()
   # Parse the options.
@@ -241,6 +296,7 @@ def Main():
   else:
     target = args[0]
 
+  filter_xcodebuild_output = False
   # Remember path
   old_path = os.environ['PATH']
   # Build the targets for each requested configuration.
@@ -249,6 +305,7 @@ def Main():
       for arch in options.arch:
         build_config = utils.GetBuildConf(mode, arch)
         if HOST_OS == 'macos':
+          filter_xcodebuild_output = True
           project_file = 'dart.xcodeproj'
           if os.path.exists('dart-%s.gyp' % CurrentDirectoryBaseName()):
             project_file = 'dart-%s.xcodeproj' % CurrentDirectoryBaseName()
@@ -316,7 +373,16 @@ def Main():
               print k + " = " + v
 
         print ' '.join(args)
-        process = subprocess.Popen(args)
+        process = None
+        if filter_xcodebuild_output:
+          process = subprocess.Popen(args,
+                                     stdin=None,
+                                     bufsize=1, # Line buffered.
+                                     stdout=subprocess.PIPE,
+                                     stderr=subprocess.STDOUT)
+          FilterEmptyXcodebuildSections(process)
+        else:
+          process = subprocess.Popen(args, stdin=None)
         process.wait()
         if process.returncode != 0:
           print "BUILD FAILED"
