@@ -872,15 +872,6 @@ class StandardTestSuite extends TestSuite {
     dartWrapper.closeSync();
   }
 
-  void _createLibraryWrapperFile(Path dartLibraryFilename, filePath) {
-    File file = new File(dartLibraryFilename.toNativePath());
-    RandomAccessFile dartLibrary = file.openSync(FileMode.WRITE);
-    var requestPath = new Path(PREFIX_DARTDIR)
-        .join(filePath.relativeTo(TestUtils.dartDir()));
-    dartLibrary.writeStringSync(wrapDartTestInLibrary(requestPath));
-    dartLibrary.closeSync();
-  }
-
   /**
    * The [StandardTestSuite] has support for tests that
    * compile a test from Dart to JavaScript, and then run the resulting
@@ -903,12 +894,6 @@ class StandardTestSuite extends TestSuite {
     Path filePath = info.filePath;
     String filename = filePath.toString();
     bool isWebTest = optionsFromFile['containsDomImport'];
-    bool isLibraryDefinition = optionsFromFile['isLibraryDefinition'];
-    if (isWrappingRequired
-        && !isLibraryDefinition && optionsFromFile['containsSourceOrImport']) {
-      print('Warning for $filename: Browser tests require #library '
-            'in any file that uses #import, #source, or #resource');
-    }
 
     final String compiler = configuration['compiler'];
     final String runtime = configuration['runtime'];
@@ -930,15 +915,8 @@ class StandardTestSuite extends TestSuite {
 
       String htmlPath = '$tempDir/test.html';
       if (isWrappingRequired && !isWebTest) {
-        // test.dart will import the dart test directly, if it is a library,
-        // or indirectly through test_as_library.dart, if it is not.
-        Path dartLibraryFilename = filePath;
-        if (!isLibraryDefinition) {
-          dartLibraryFilename = new Path(tempDir).append(
-              'test_as_library.dart');
-          _createLibraryWrapperFile(dartLibraryFilename, filePath);
-        }
-        _createWrapperFile(dartWrapperFilename, dartLibraryFilename);
+        // test.dart will import the dart test.
+        _createWrapperFile(dartWrapperFilename, filePath);
       } else {
         dartWrapperFilename = filename;
         // TODO(whesse): Once test.py is retired, adjust the relative path in
@@ -1355,10 +1333,6 @@ class StandardTestSuite extends TestSuite {
     RegExp domImportRegExp =
         new RegExp(r"^[#]?import.*dart:(html|web_audio|indexed_db|svg|web_sql)",
         multiLine: true);
-    RegExp libraryDefinitionRegExp =
-        new RegExp(r"^[#]?library[\( ]", multiLine: true);
-    RegExp sourceOrImportRegExp =
-        new RegExp("^(#source|#import|part)[ \t]+[\('\"]", multiLine: true);
 
     var bytes = new File.fromPath(filePath).readAsBytesSync();
     String contents = decodeUtf8(bytes);
@@ -1418,8 +1392,6 @@ class StandardTestSuite extends TestSuite {
     Match isolateMatch = isolateStubsRegExp.firstMatch(contents);
     String isolateStubs = isolateMatch != null ? isolateMatch[1] : '';
     bool containsDomImport = domImportRegExp.hasMatch(contents);
-    bool isLibraryDefinition = libraryDefinitionRegExp.hasMatch(contents);
-    bool containsSourceOrImport = sourceOrImportRegExp.hasMatch(contents);
     int numStaticTypeAnnotations = 0;
     for (var i in staticTypeRegExp.allMatches(contents)) {
       numStaticTypeAnnotations++;
@@ -1455,8 +1427,6 @@ class StandardTestSuite extends TestSuite {
              "subtestNames": subtestNames,
              "isolateStubs": isolateStubs,
              "containsDomImport": containsDomImport,
-             "isLibraryDefinition": isLibraryDefinition,
-             "containsSourceOrImport": containsSourceOrImport,
              "numStaticTypeAnnotations": numStaticTypeAnnotations,
              "numCompileTimeAnnotations": numCompileTimeAnnotations };
   }
@@ -1525,8 +1495,6 @@ class StandardTestSuite extends TestSuite {
       "subtestNames": <String>[],
       "isolateStubs": '',
       "containsDomImport": false,
-      "isLibraryDefinition": false,
-      "containsSourceOrImport": false,
       "numStaticTypeAnnotations": 0,
       "numCompileTimeAnnotations": 0,
     };

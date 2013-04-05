@@ -49,12 +49,6 @@ String getHtmlLayoutContents(String scriptType, String sourceScript) =>
 </html>
 """;
 
-String wrapDartTestInLibrary(Path testRelativeToDart) =>
-"""
-library libraryWrapper;
-part '/$testRelativeToDart';
-""";
-
 String dartTestWrapper(bool usePackageImport, String libraryPathComponent) {
   // Tests inside "pkg" import unittest using "package:". All others use a
   // relative path. The imports need to agree, so use a matching form here.

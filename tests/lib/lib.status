@@ -90,7 +90,6 @@ async/run_async3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug
 async/run_async4_test: Pass, Fail # http://dartbug.com/9013
 
 [ $compiler == none && $runtime == drt ]
-async/deferred/deferred_api_test: Fail # http://dartbug.com/2264
 async/timer_isolate_test: Skip # See Issue 4997
 async/timer_not_available_test: Skip # only meant to test when there is no way to
                                      # implement timer (currently only in d8)

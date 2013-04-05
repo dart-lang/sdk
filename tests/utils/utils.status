@@ -11,8 +11,7 @@ dummy_compiler_test: Slow, Fail # http://dartbug.com/9687
 
 [ $compiler == none && $runtime == drt ]
 dummy_compiler_test: Skip # http://dartbug.com/7233
-recursive_import_test: Fail # http://dartbug.com/2264
-dart2js_test: Fail # http://dartbug.com/2264
+dart2js_test: Skip # Uses dart:io.
 
 [ $compiler == dart2js && $browser ]
 *: Skip
