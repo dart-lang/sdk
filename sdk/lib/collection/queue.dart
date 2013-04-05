@@ -224,29 +224,16 @@ class DoubleLinkedQueue<E> extends Collection<E> implements Queue<E> {
     }
   }
 
-  void retainAll(Iterable elements) {
-    _filterIterable(elements, true);
-  }
-
   void removeAll(Iterable elements) {
-    _filterIterable(elements, false);
+    // Use this method when remove is slow and removeWhere more efficient.
+    IterableMixinWorkaround.removeAllList(this, elements);
   }
 
-  void _filterIterable(Iterable elements, bool retainMatching) {
-    Set elementSet;
-    if (elements is Set) {
-      elementSet = elements;
-    } else {
-      elementSet = elements.toSet();
-    }
-    _filter(elementSet.contains, retainMatching);
-  }
-
-  void _filter(bool test(E element), bool retainMatching) {
+  void removeWhere(bool test(E element)) {
     DoubleLinkedQueueEntry<E> entry = firstEntry();
     while (!identical(entry, _sentinel)) {
       DoubleLinkedQueueEntry<E> next = entry._next;
-      if (test(entry.element) != retainMatching) {
+      if (test(entry.element)) {
         entry.remove();
         _elementCount--;
       }
@@ -254,12 +241,16 @@ class DoubleLinkedQueue<E> extends Collection<E> implements Queue<E> {
     }
   }
 
-  void removeWhere(bool test(E element)) {
-    _filter(test, false);
-  }
-
   void retainWhere(bool test(E element)) {
-    _filter(test, true);
+    DoubleLinkedQueueEntry<E> entry = firstEntry();
+    while (!identical(entry, _sentinel)) {
+      DoubleLinkedQueueEntry<E> next = entry._next;
+      if (!test(entry.element)) {
+        entry.remove();
+        _elementCount--;
+      }
+      entry = next;
+    }
   }
 
   E get first {
