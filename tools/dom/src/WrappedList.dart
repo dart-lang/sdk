@@ -30,6 +30,9 @@ class _WrappedList<E> implements List<E> {
   dynamic reduce(initialValue, combine(previousValue, E element)) =>
       _list.reduce(initialValue, combine);
 
+  dynamic fold(initialValue, combine(previousValue, E element)) =>
+      _list.fold(initialValue, combine);
+
   bool every(bool f(E element)) => _list.every(f);
 
   String join([String separator]) => _list.join(separator);

@@ -14,7 +14,7 @@ Future getData(HttpClient client, int port, bool chunked, int length) {
   return client.get("localhost", port, "/?chunked=$chunked&length=$length")
       .then((request) => request.close())
       .then((response) {
-        return response.reduce(0, (bytes, data) => bytes + data.length)
+        return response.fold(0, (bytes, data) => bytes + data.length)
             .then((bytes) {
               Expect.equals(length, bytes);
             });

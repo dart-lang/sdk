@@ -300,7 +300,7 @@ Future<ProcessResult> _runNonInteractiveProcess(String path,
     // Setup stdout handling.
     Future<StringBuffer> stdout = p.stdout
         .transform(new StringDecoder(stdoutEncoding))
-        .reduce(
+        .fold(
             new StringBuffer(),
             (buf, data) {
               buf.write(data);
@@ -309,7 +309,7 @@ Future<ProcessResult> _runNonInteractiveProcess(String path,
 
     Future<StringBuffer> stderr = p.stderr
         .transform(new StringDecoder(stderrEncoding))
-        .reduce(
+        .fold(
             new StringBuffer(),
             (buf, data) {
               buf.write(data);

@@ -207,6 +207,10 @@ abstract class ListMixin<E> implements List<E> {
   Iterable map(f(E element)) => new MappedListIterable(this, f);
 
   reduce(var initialValue, combine(var previousValue, E element)) {
+    return fold(initialValue, combine);
+  }
+
+  fold(var initialValue, combine(var previousValue, E element)) {
     var value = initialValue;
     int length = this.length;
     for (int i = 0; i < length; i++) {

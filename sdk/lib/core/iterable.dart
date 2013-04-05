@@ -98,12 +98,31 @@ abstract class Iterable<E> {
    * Use [initialValue] as the initial value, and the function [combine] to
    * create a new value from the previous one and an element.
    *
-   * Example of calculating the sum of a collection:
+   * Example of calculating the sum of an iterable:
    *
-   *   collection.reduce(0, (prev, element) => prev + element);
+   *   iterable.reduce((prev, element) => prev + element);
+   *
+   * *UPCOMING API-CHANGE*: this method will soon be changed to not take
+   * an initial value: `iterable.reduce(min)`. Use [fold] instead.
    */
+  @deprecated
   dynamic reduce(var initialValue,
                  dynamic combine(var previousValue, E element)) {
+    return fold(initialValue, combine);
+  }
+
+  /**
+   * Reduce a collection to a single value by iteratively combining each element
+   * of the collection with an existing value using the provided function.
+   * Use [initialValue] as the initial value, and the function [combine] to
+   * create a new value from the previous one and an element.
+   *
+   * Example of calculating the sum of an iterable:
+   *
+   *   iterable.fold(0, (prev, element) => prev + element);
+   */
+  dynamic fold(var initialValue,
+               dynamic combine(var previousValue, E element)) {
     var value = initialValue;
     for (E element in this) value = combine(value, element);
     return value;

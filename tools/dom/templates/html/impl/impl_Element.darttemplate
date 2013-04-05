@@ -162,6 +162,11 @@ class _ChildrenElementList implements List {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
+  dynamic fold(dynamic initialValue,
+      dynamic combine(dynamic previousValue, Element element)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
   void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
     throw new UnimplementedError();
   }
@@ -406,6 +411,11 @@ class _FrozenElementList implements List {
   dynamic reduce(dynamic initialValue,
       dynamic combine(dynamic previousValue, Element element)) {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  }
+
+  dynamic fold(dynamic initialValue,
+      dynamic combine(dynamic previousValue, Element element)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
   void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {

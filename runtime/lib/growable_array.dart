@@ -268,6 +268,10 @@ class _GrowableObjectArray<T> implements List<T> {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
+  fold(initialValue, combine(previousValue, T element)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
   Iterable<T> where(bool f(T element)) {
     return IterableMixinWorkaround.where(this, f);
   }

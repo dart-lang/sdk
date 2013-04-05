@@ -312,6 +312,11 @@ abstract class _TypedListBase {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
+  dynamic fold(dynamic initialValue,
+                 dynamic combine(dynamic initialValue, element)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
   Iterable where(bool f(int element)) {
     return IterableMixinWorkaround.where(this, f);
   }

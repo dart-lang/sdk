@@ -51,7 +51,7 @@ Future testCertificateCallback({String host, bool acceptCertificate}) {
         Expect.isTrue(acceptCertificate);
         socket.write("GET / HTTP/1.0\r\nHost: $host\r\n\r\n");
         socket.close();
-        return socket.reduce(<int>[], (message, data)  => message..addAll(data))
+        return socket.fold(<int>[], (message, data)  => message..addAll(data))
             .then((message) {
               String received = new String.fromCharCodes(message);
               Expect.isTrue(received.contains('</body></html>'));

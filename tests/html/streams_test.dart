@@ -194,6 +194,10 @@ main() {
     stream.reduce(null, (a, b) => null).then((_) {});
   });
 
+  test('fold', () {
+    stream.fold(null, (a, b) => null).then((_) {});
+  });
+
   test('contains', () {
     stream.contains((_) => true).then((_) {});
   });

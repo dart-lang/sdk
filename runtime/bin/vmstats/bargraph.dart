@@ -220,6 +220,6 @@ class Sample {
   Iterator<int> get iterator => _segments.iterator;
 
   int total() {
-    return _segments.reduce(0, (int prev, int element) => prev + element);
+    return _segments.fold(0, (int prev, int element) => prev + element);
   }
 }

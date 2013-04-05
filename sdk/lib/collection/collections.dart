@@ -40,6 +40,12 @@ class IterableMixinWorkaround {
   static dynamic reduce(Iterable iterable,
                         dynamic initialValue,
                         dynamic combine(dynamic previousValue, element)) {
+    return fold(iterable, initialValue, combine);
+  }
+
+  static dynamic fold(Iterable iterable,
+                      dynamic initialValue,
+                      dynamic combine(dynamic previousValue, element)) {
     for (final element in iterable) {
       initialValue = combine(initialValue, element);
     }

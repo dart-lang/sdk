@@ -260,7 +260,7 @@ class _HttpClientResponse
         // TODO(sgjesse): Support digest.
         if (cr.scheme == _AuthenticationScheme.BASIC) {
           // Drain body and retry.
-          return reduce(null, (x, y) {}).then((_) {
+          return fold(null, (x, y) {}).then((_) {
               return _httpClient._openUrlFromRequest(_httpRequest.method,
                                                      _httpRequest.uri,
                                                      _httpRequest)
@@ -460,7 +460,7 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
     int contentLength = headers.contentLength;
     if (_ignoreBody) {
       ioSink.close();
-      return stream.reduce(null, (x, y) {}).then((_) => this);
+      return stream.fold(null, (x, y) {}).then((_) => this);
     }
     stream = stream.transform(new _BufferTransformer());
     if (headers.chunkedTransferEncoding) {
@@ -735,11 +735,11 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientRequest>
     if (followRedirects && response.isRedirect) {
       if (response.redirects.length < maxRedirects) {
         // Redirect and drain response.
-        future = response.reduce(null, (x, y) {})
+        future = response.fold(null, (x, y) {})
           .then((_) => response.redirect());
       } else {
         // End with exception, too many redirects.
-        future = response.reduce(null, (x, y) {})
+        future = response.fold(null, (x, y) {})
             .then((_) => new Future.immediateError(
                 new RedirectLimitExceededException(response.redirects)));
       }
@@ -1097,7 +1097,7 @@ class _HttpClient implements HttpClient {
     _closing = true;
     // Create flattened copy of _idleConnections, as 'destory' will manipulate
     // it.
-    var idle = _idleConnections.values.reduce(
+    var idle = _idleConnections.values.fold(
         [],
         (l, e) {
           l.addAll(e);
@@ -1249,7 +1249,7 @@ class _HttpClient implements HttpClient {
   _Credentials _findCredentials(Uri url, [_AuthenticationScheme scheme]) {
     // Look for credentials.
     _Credentials cr =
-        _credentials.reduce(null, (_Credentials prev, _Credentials value) {
+        _credentials.fold(null, (_Credentials prev, _Credentials value) {
           if (value.applies(url, scheme)) {
             if (prev == null) return value;
             return value.uri.path.length > prev.uri.path.length ? value : prev;

@@ -328,7 +328,7 @@ Future<bool> confirm(String message) {
 /// Reads and discards all output from [stream]. Returns a [Future] that
 /// completes when the stream is closed.
 Future drainStream(Stream stream) {
-  return stream.reduce(null, (x, y) {});
+  return stream.fold(null, (x, y) {});
 }
 
 /// Returns a [EventSink] that pipes all data to [consumer] and a [Future] that

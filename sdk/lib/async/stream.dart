@@ -249,8 +249,18 @@ abstract class Stream<T> {
     return streamTransformer.bind(this);
   }
 
-  /** Reduces a sequence of values by repeatedly applying [combine]. */
+  /**
+   * Reduces a sequence of values by repeatedly applying [combine].
+   *
+   * *WARNING UPCOMING API-CHANGE*: This method will be changed so that
+   * it doesn't take an initial value. Use [fold] instead.
+   */
   Future reduce(var initialValue, combine(var previous, T element)) {
+    return fold(initialValue, combine);
+  }
+
+  /** Reduces a sequence of values by repeatedly applying [combine]. */
+  Future fold(var initialValue, combine(var previous, T element)) {
     _FutureImpl result = new _FutureImpl();
     var value = initialValue;
     StreamSubscription subscription;

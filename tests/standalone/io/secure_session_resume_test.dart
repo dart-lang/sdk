@@ -29,7 +29,7 @@ Future<SecureServerSocket> startServer() {
                                  5,
                                  CERTIFICATE).then((server) {
     server.listen((SecureSocket client) {
-      client.reduce(<int>[], (message, data) => message..addAll(data))
+      client.fold(<int>[], (message, data) => message..addAll(data))
           .then((message) {
             String received = new String.fromCharCodes(message);
             Expect.isTrue(received.contains("Hello from client "));
@@ -46,7 +46,7 @@ Future testClient(server, name) {
   return SecureSocket.connect(HOST_NAME, server.port).then((socket) {
     socket.write("Hello from client $name");
     socket.close();
-    return socket.reduce(<int>[], (message, data) => message..addAll(data))
+    return socket.fold(<int>[], (message, data) => message..addAll(data))
         .then((message) {
           Expect.listEquals("Welcome, client $name".codeUnits, message);
           return server;

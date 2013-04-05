@@ -3336,6 +3336,10 @@ class LengthList extends NativeFieldWrapperClass1 implements List<Length> {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, Length)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
   bool contains(Length element) => IterableMixinWorkaround.contains(this, element);
 
   void forEach(void f(Length element)) => IterableMixinWorkaround.forEach(this, f);
@@ -4045,6 +4049,10 @@ class NumberList extends NativeFieldWrapperClass1 implements List<Number> {
   int get length => numberOfItems;
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Number)) {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  }
+
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, Number)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
   bool contains(Number element) => IterableMixinWorkaround.contains(this, element);
@@ -5234,6 +5242,10 @@ class PathSegList extends NativeFieldWrapperClass1 implements List<PathSeg> {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, PathSeg)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
   bool contains(PathSeg element) => IterableMixinWorkaround.contains(this, element);
 
   void forEach(void f(PathSeg element)) => IterableMixinWorkaround.forEach(this, f);
@@ -6224,6 +6236,10 @@ class StringList extends NativeFieldWrapperClass1 implements List<String> {
   int get length => numberOfItems;
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, String)) {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  }
+
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, String)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
   bool contains(String element) => IterableMixinWorkaround.contains(this, element);
@@ -7487,6 +7503,10 @@ class TransformList extends NativeFieldWrapperClass1 implements List<Transform> 
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, Transform)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
   bool contains(Transform element) => IterableMixinWorkaround.contains(this, element);
 
   void forEach(void f(Transform element)) => IterableMixinWorkaround.forEach(this, f);
@@ -8066,6 +8086,10 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 implements List<Elem
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, ElementInstance)) {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  }
+
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, ElementInstance)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
   bool contains(ElementInstance element) => IterableMixinWorkaround.contains(this, element);

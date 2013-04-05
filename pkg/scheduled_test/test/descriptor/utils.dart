@@ -32,7 +32,7 @@ void scheduleSandbox() {
 }
 
 Future<List<int>> byteStreamToList(Stream<List<int>> stream) {
-  return stream.reduce(<int>[], (buffer, chunk) {
+  return stream.fold(<int>[], (buffer, chunk) {
     buffer.addAll(chunk);
     return buffer;
   });

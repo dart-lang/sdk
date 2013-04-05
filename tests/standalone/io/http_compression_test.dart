@@ -28,7 +28,7 @@ void testServerCompress() {
                           response.headers.value(HttpHeaders.CONTENT_ENCODING));
             response
                 .transform(new ZLibInflater())
-                .reduce([], (list, b) {
+                .fold([], (list, b) {
                   list.addAll(b);
                   return list;
                 }).then((list) {

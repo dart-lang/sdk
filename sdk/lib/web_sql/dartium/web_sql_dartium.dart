@@ -289,6 +289,10 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, Map)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
   bool contains(Map element) => IterableMixinWorkaround.contains(this, element);
 
   void forEach(void f(Map element)) => IterableMixinWorkaround.forEach(this, f);

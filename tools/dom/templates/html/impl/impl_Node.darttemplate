@@ -150,6 +150,11 @@ $endif
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
+  dynamic fold(dynamic initialValue,
+      dynamic combine(dynamic previousValue, Node element)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
   String join([String separator]) {
     return IterableMixinWorkaround.joinList(this, separator);
   }

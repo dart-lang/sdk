@@ -125,6 +125,10 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
+  fold(initialValue, combine(previousValue, E element)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
   E firstWhere(bool test(E value), {E orElse()}) {
     return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }

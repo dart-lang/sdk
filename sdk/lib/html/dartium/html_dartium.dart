@@ -7996,6 +7996,10 @@ class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeT
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, DomMimeType)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
   bool contains(DomMimeType element) => IterableMixinWorkaround.contains(this, element);
 
   void forEach(void f(DomMimeType element)) => IterableMixinWorkaround.forEach(this, f);
@@ -8272,6 +8276,10 @@ class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin>
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, DomPlugin)) {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  }
+
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, DomPlugin)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
   bool contains(DomPlugin element) => IterableMixinWorkaround.contains(this, element);
@@ -8668,6 +8676,10 @@ class DomStringList extends NativeFieldWrapperClass1 implements List<String> {
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, String)) {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  }
+
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, String)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
   // contains() defined by IDL.
@@ -9068,6 +9080,11 @@ class _ChildrenElementList implements List {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
+  dynamic fold(dynamic initialValue,
+      dynamic combine(dynamic previousValue, Element element)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
   void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
     throw new UnimplementedError();
   }
@@ -9312,6 +9329,11 @@ class _FrozenElementList implements List {
   dynamic reduce(dynamic initialValue,
       dynamic combine(dynamic previousValue, Element element)) {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  }
+
+  dynamic fold(dynamic initialValue,
+      dynamic combine(dynamic previousValue, Element element)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
   void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
@@ -11581,6 +11603,10 @@ class FileList extends NativeFieldWrapperClass1 implements List<File> {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, File)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
   bool contains(File element) => IterableMixinWorkaround.contains(this, element);
 
   void forEach(void f(File element)) => IterableMixinWorkaround.forEach(this, f);
@@ -12202,6 +12228,10 @@ class Float32Array extends ArrayBufferView implements List<double> {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, num)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
   bool contains(num element) => IterableMixinWorkaround.contains(this, element);
 
   void forEach(void f(num element)) => IterableMixinWorkaround.forEach(this, f);
@@ -12445,6 +12475,10 @@ class Float64Array extends ArrayBufferView implements List<double> {
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, num)) {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  }
+
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, num)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
   bool contains(num element) => IterableMixinWorkaround.contains(this, element);
@@ -13141,6 +13175,10 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, Node)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
   bool contains(Node element) => IterableMixinWorkaround.contains(this, element);
 
   void forEach(void f(Node element)) => IterableMixinWorkaround.forEach(this, f);
@@ -13358,6 +13396,10 @@ class HtmlCollection extends NativeFieldWrapperClass1 implements List<Node> {
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Node)) {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  }
+
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, Node)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
   bool contains(Node element) => IterableMixinWorkaround.contains(this, element);
@@ -15726,6 +15768,10 @@ class Int16Array extends ArrayBufferView implements List<int> {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, int)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
   bool contains(int element) => IterableMixinWorkaround.contains(this, element);
 
   void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
@@ -15971,6 +16017,10 @@ class Int32Array extends ArrayBufferView implements List<int> {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, int)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
   bool contains(int element) => IterableMixinWorkaround.contains(this, element);
 
   void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
@@ -16214,6 +16264,10 @@ class Int8Array extends ArrayBufferView implements List<int> {
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  }
+
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, int)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
   bool contains(int element) => IterableMixinWorkaround.contains(this, element);
@@ -19088,6 +19142,11 @@ class _ChildNodeListLazy implements List {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
+  dynamic fold(dynamic initialValue,
+      dynamic combine(dynamic previousValue, Node element)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
   String join([String separator]) {
     return IterableMixinWorkaround.joinList(this, separator);
   }
@@ -19581,6 +19640,10 @@ class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Node)) {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  }
+
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, Node)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
   bool contains(Node element) => IterableMixinWorkaround.contains(this, element);
@@ -22186,6 +22249,10 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, SourceBuffer)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
   bool contains(SourceBuffer element) => IterableMixinWorkaround.contains(this, element);
 
   void forEach(void f(SourceBuffer element)) => IterableMixinWorkaround.forEach(this, f);
@@ -22512,6 +22579,10 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, SpeechGrammar)) {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  }
+
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, SpeechGrammar)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
   bool contains(SpeechGrammar element) => IterableMixinWorkaround.contains(this, element);
@@ -24240,6 +24311,10 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, TextTrackCue)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
   bool contains(TextTrackCue element) => IterableMixinWorkaround.contains(this, element);
 
   void forEach(void f(TextTrackCue element)) => IterableMixinWorkaround.forEach(this, f);
@@ -24457,6 +24532,10 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, TextTrack)) {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  }
+
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, TextTrack)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
   bool contains(TextTrack element) => IterableMixinWorkaround.contains(this, element);
@@ -24893,6 +24972,10 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Touch)) {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  }
+
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, Touch)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
   bool contains(Touch element) => IterableMixinWorkaround.contains(this, element);
@@ -25414,6 +25497,10 @@ class Uint16Array extends ArrayBufferView implements List<int> {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, int)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
   bool contains(int element) => IterableMixinWorkaround.contains(this, element);
 
   void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
@@ -25657,6 +25744,10 @@ class Uint32Array extends ArrayBufferView implements List<int> {
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  }
+
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, int)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
   bool contains(int element) => IterableMixinWorkaround.contains(this, element);
@@ -25904,6 +25995,10 @@ class Uint8Array extends ArrayBufferView implements List<int> {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, int)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
   bool contains(int element) => IterableMixinWorkaround.contains(this, element);
 
   void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
@@ -26145,6 +26240,10 @@ class Uint8ClampedArray extends Uint8Array implements List<int> {
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  }
+
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, int)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
   bool contains(int element) => IterableMixinWorkaround.contains(this, element);
@@ -28482,6 +28581,10 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<Rect> {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, Rect)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
   bool contains(Rect element) => IterableMixinWorkaround.contains(this, element);
 
   void forEach(void f(Rect element)) => IterableMixinWorkaround.forEach(this, f);
@@ -28693,6 +28796,10 @@ class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, CssRule)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
   bool contains(CssRule element) => IterableMixinWorkaround.contains(this, element);
 
   void forEach(void f(CssRule element)) => IterableMixinWorkaround.forEach(this, f);
@@ -28902,6 +29009,10 @@ class _CssValueList extends CssValue implements List<CssValue> {
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, CssValue)) {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  }
+
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, CssValue)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
   bool contains(CssValue element) => IterableMixinWorkaround.contains(this, element);
@@ -29258,6 +29369,10 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, Entry)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
   bool contains(Entry element) => IterableMixinWorkaround.contains(this, element);
 
   void forEach(void f(Entry element)) => IterableMixinWorkaround.forEach(this, f);
@@ -29469,6 +29584,10 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, EntrySync)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
   bool contains(EntrySync element) => IterableMixinWorkaround.contains(this, element);
 
   void forEach(void f(EntrySync element)) => IterableMixinWorkaround.forEach(this, f);
@@ -29678,6 +29797,10 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Gamepad)) {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  }
+
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, Gamepad)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
   bool contains(Gamepad element) => IterableMixinWorkaround.contains(this, element);
@@ -29982,6 +30105,10 @@ class _NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, Node)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
   bool contains(Node element) => IterableMixinWorkaround.contains(this, element);
 
   void forEach(void f(Node element)) => IterableMixinWorkaround.forEach(this, f);
@@ -30217,6 +30344,10 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, SpeechInputResult)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
   bool contains(SpeechInputResult element) => IterableMixinWorkaround.contains(this, element);
 
   void forEach(void f(SpeechInputResult element)) => IterableMixinWorkaround.forEach(this, f);
@@ -30428,6 +30559,10 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, SpeechRecognitionResult)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
   bool contains(SpeechRecognitionResult element) => IterableMixinWorkaround.contains(this, element);
 
   void forEach(void f(SpeechRecognitionResult element)) => IterableMixinWorkaround.forEach(this, f);
@@ -30637,6 +30772,10 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
 
   dynamic reduce(dynamic initialValue, dynamic combine(dynamic, StyleSheet)) {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  }
+
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, StyleSheet)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
   bool contains(StyleSheet element) => IterableMixinWorkaround.contains(this, element);
@@ -31282,6 +31421,11 @@ abstract class CssClassSet implements Set<String> {
   dynamic reduce(dynamic initialValue,
       dynamic combine(dynamic previousValue, String element)) {
     return readClasses().reduce(initialValue, combine);
+  }
+
+  dynamic fold(dynamic initialValue,
+      dynamic combine(dynamic previousValue, String element)) {
+    return readClasses().fold(initialValue, combine);
   }
   // interface Collection - END
 
@@ -33123,6 +33267,9 @@ class _WrappedList<E> implements List<E> {
 
   dynamic reduce(initialValue, combine(previousValue, E element)) =>
       _list.reduce(initialValue, combine);
+
+  dynamic fold(initialValue, combine(previousValue, E element)) =>
+      _list.fold(initialValue, combine);
 
   bool every(bool f(E element)) => _list.every(f);
 
