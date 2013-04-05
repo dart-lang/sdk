@@ -11,9 +11,6 @@ import "dart:math";
 import "dart:utf";
 import "dart:json" as JSON;
 
-// Whether or not to print debug target process on the console.
-var showDebuggeeOutput = true;
-
 // Whether or not to print the debugger wire messages on the console.
 var verboseWire = false;
 
@@ -293,24 +290,23 @@ class Debugger {
   int isolateId = 0;
   bool isPaused = false;
 
-  Debugger(this.targetProcess, this.portNumber) {
+  Debugger(this.targetProcess, this.portNumber, this.script) {
     stdin.listen((_) {});
     var stdoutStringStream = targetProcess.stdout
         .transform(new StringDecoder())
         .transform(new LineTransformer());
     stdoutStringStream.listen((line) {
-      if (showDebuggeeOutput) {
-        print("TARG: $line");
+      if (line == "Debugger initialized") {
+        openConnection();
       }
+      print("TARG: $line");
     });
 
     var stderrStringStream = targetProcess.stderr
         .transform(new StringDecoder())
         .transform(new LineTransformer());
     stderrStringStream.listen((line) {
-      if (showDebuggeeOutput) {
-        print("TARG: $line");
-      }
+      print("TARG: $line");
     });
   }
 
@@ -445,7 +441,7 @@ class Debugger {
           });
       },
       onError: (asyncErr) {
-        print("Error while connecting to debugee: $asyncErr");
+        error("Error while connecting to debugee: $asyncErr");
         close(killDebugee: true);
       });
   }
@@ -470,8 +466,6 @@ bool RunScript(List script) {
   if (options.arguments.contains("--debuggee")) {
     return false;
   }
-  // The default is to show debugging output.
-  showDebuggeeOutput = !options.arguments.contains("--non-verbose");
   verboseWire = options.arguments.contains("--wire");
   
   // Pick a port in the upper half of the port number range.
@@ -482,9 +476,12 @@ bool RunScript(List script) {
   ServerSocket.bind('127.0.0.1', debugPort).then((ServerSocket s) {
       s.close();
       var targetOpts = [ "--debug:$debugPort" ];
-      if (showDebuggeeOutput) targetOpts.add("--verbose_debug");
+      // --verbose_debug is necessary so the test knows when the debuggee
+      // is initialized.
+      targetOpts.add("--verbose_debug");
       targetOpts.add(options.script);
       targetOpts.add("--debuggee");
+      print('args: ${targetOpts.join(" ")}');
 
       Process.start(options.executable, targetOpts).then((Process process) {
         print("Debug target process started");
@@ -493,8 +490,8 @@ bool RunScript(List script) {
           Expect.equals(0, exitCode);
           print("Debug target process exited with exit code $exitCode");
         });
-        var debugger = new Debugger(process, debugPort);
-        debugger.runScript(script);
+        var debugger =
+            new Debugger(process, debugPort, new DebugScript(script));
       });
     },
     onError: (e) {

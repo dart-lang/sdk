@@ -293,7 +293,8 @@ static int ParseArguments(int argc,
                           char** executable_name,
                           char** script_name,
                           CommandLineOptions* dart_options,
-                          bool* print_flags_seen) {
+                          bool* print_flags_seen,
+                          bool* verbose_debug_seen) {
   const char* kPrefix = "--";
   const intptr_t kPrefixLen = strlen(kPrefix);
 
@@ -317,6 +318,10 @@ static int ParseArguments(int argc,
       if ((strncmp(argv[i], kPrintFlags1, strlen(kPrintFlags1)) == 0) ||
           (strncmp(argv[i], kPrintFlags2, strlen(kPrintFlags2)) == 0)) {
         *print_flags_seen = true;
+      }
+      const char* kVerboseDebug = "--verbose_debug";
+      if (strncmp(argv[i], kVerboseDebug, strlen(kVerboseDebug)) == 0) {
+        *verbose_debug_seen = true;
       }
       vm_options->AddArgument(argv[i]);
       i++;
@@ -677,6 +682,7 @@ int main(int argc, char** argv) {
   CommandLineOptions vm_options(argc);
   CommandLineOptions dart_options(argc);
   bool print_flags_seen = false;
+  bool verbose_debug_seen = false;
 
   // Perform platform specific initialization.
   if (!Platform::Initialize()) {
@@ -694,7 +700,8 @@ int main(int argc, char** argv) {
                      &executable_name,
                      &script_name,
                      &dart_options,
-                     &print_flags_seen) < 0) {
+                     &print_flags_seen,
+                     &verbose_debug_seen) < 0) {
     if (has_help_option) {
       PrintUsage();
       return 0;
@@ -728,6 +735,9 @@ int main(int argc, char** argv) {
   if (start_debugger) {
     ASSERT(debug_port != 0);
     DebuggerConnectionHandler::StartHandler(debug_ip, debug_port);
+    if (verbose_debug_seen) {
+      Log::Print("Debugger initialized\n");
+    }
   }
 
   // Call CreateIsolateAndSetup which creates an isolate and loads up
