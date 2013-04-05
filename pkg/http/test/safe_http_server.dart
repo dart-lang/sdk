@@ -31,7 +31,7 @@ class SafeHttpServer extends StreamView<HttpRequest> implements HttpServer {
       : super(server),
         _inner = server;
 
-  void close() => _inner.close();
+  Future close() => _inner.close();
 
   int get port => _inner.port;
 
@@ -136,7 +136,7 @@ class _HttpResponseWrapper implements HttpResponse {
     _inner.consume(stream);
   Future<HttpResponse> writeStream(Stream<List<int>> stream) =>
     _inner.writeStream(stream);
-  void close() => _inner.close();
+  Future close() => _inner.close();
   void write(Object obj) => _inner.write(obj);
   void writeAll(Iterable objects, [String separator = ""]) =>
       _inner.writeAll(objects, separator);

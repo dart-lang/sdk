@@ -19,10 +19,15 @@ class SlowConsumer extends StreamConsumer {
   final int bufferSize;
   final List bufferedData = [];
   int usedBufferSize = 0;
+  int finalCount;
 
   SlowConsumer(int this.bytesPerSecond, int this.bufferSize);
 
   Future consume(Stream stream) {
+    return addStream(stream).then((_) => close());
+  }
+
+  Future addStream(Stream stream) {
     Completer result = new Completer();
     var subscription;
     subscription = stream.listen(
@@ -44,8 +49,15 @@ class SlowConsumer extends StreamConsumer {
           });
         }
       },
-      onDone: () { result.complete(receivedCount); });
+      onDone: () {
+        finalCount = receivedCount;
+        result.complete(receivedCount);
+      });
     return result.future;
+  }
+
+  Future close() {
+    return new Future.immediate(finalCount);
   }
 }
 

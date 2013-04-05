@@ -151,6 +151,7 @@ class _FileStreamConsumer extends StreamConsumer<List<int>, File> {
   File _file;
   Future<RandomAccessFile> _openFuture;
   StreamSubscription _subscription;
+  
 
   _FileStreamConsumer(File this._file, FileMode mode) {
     _openFuture = _file.open(mode: mode);
@@ -162,6 +163,10 @@ class _FileStreamConsumer extends StreamConsumer<List<int>, File> {
   }
 
   Future<File> consume(Stream<List<int>> stream) {
+    return addStream(stream).then((_) => close());
+  }
+
+  Future<File> addStream(Stream<List<int>> stream) {
     Completer<File> completer = new Completer<File>();
     _openFuture
       .then((openedFile) {
@@ -176,15 +181,7 @@ class _FileStreamConsumer extends StreamConsumer<List<int>, File> {
               });
           },
           onDone: () {
-            // Wait for the file to close (and therefore flush) before
-            // completing the future.
-            openedFile.close()
-              .then((_) {
-                completer.complete(_file);
-              })
-              .catchError((e) {
-                completer.completeError(e);
-              });
+            completer.complete(_file);
           },
           onError: (e) {
             openedFile.close();
@@ -196,6 +193,10 @@ class _FileStreamConsumer extends StreamConsumer<List<int>, File> {
         completer.completeError(e);
       });
     return completer.future;
+  }
+
+  Future<File> close() {
+    return _openFuture.then((openedFile) => openedFile.close());
   }
 }
 

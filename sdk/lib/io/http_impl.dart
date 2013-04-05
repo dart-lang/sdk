@@ -407,12 +407,16 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
     return _ioSink.consume(stream);
   }
 
-  Future<T> writeStream(Stream<List<int>> stream) {
+  Future<T> addStream(Stream<List<int>> stream) {
     _writeHeaders();
     return _ioSink.writeStream(stream).then((_) => this);
   }
 
-  void close() {
+  Future<T> writeStream(Stream<List<int>> stream) {
+    return addStream(stream);
+  }
+
+  Future close() {
     // TODO(ajohnsen): Currently, contentLength, chunkedTransferEncoding and
     // persistentConnection is not guaranteed to be in sync.
     if (!_headersWritten && !_ignoreBody && headers.contentLength == -1) {
@@ -422,7 +426,7 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
       headers.contentLength = 0;
     }
     _writeHeaders();
-    _ioSink.close();
+    return _ioSink.close();
   }
 
   Future<T> get done {
@@ -487,6 +491,14 @@ class _HttpOutboundConsumer implements StreamConsumer {
                         bool this._asGZip);
 
   Future consume(var stream) => _consume(_ioSink, stream, _asGZip);
+
+  Future addStream(var stream) {
+    throw new UnimplementedError("_HttpOutboundConsumer.addStream");
+  }
+
+  Future close() {
+    throw new UnimplementedError("_HttpOutboundConsumer.close");
+  }
 }
 
 
@@ -893,6 +905,14 @@ class _HttpOutgoing implements StreamConsumer<List<int>, dynamic> {
               onError: _consumeCompleter.completeError);
     // Use .then to ensure a Future branch.
     return _consumeCompleter.future.then((_) => this);
+  }
+
+  Future addStream(Stream<List<int>> stream) {
+    throw new UnimplementedError("_HttpOutgoing.addStream");
+  }
+
+  Future close() {
+    throw new UnimplementedError("_HttpOutgoing.close");
   }
 }
 
@@ -1653,13 +1673,17 @@ class _DetachedSocket extends Stream<List<int>> implements Socket {
     return _socket.consume(stream);
   }
 
+  Future<Socket> addStream(Stream<List<int>> stream) {
+    return _socket.addStream(stream);
+  }
+
   Future<Socket> writeStream(Stream<List<int>> stream) {
     return _socket.writeStream(stream);
   }
 
   void destroy() => _socket.destroy();
 
-  void close() => _socket.close();
+  Future close() => _socket.close();
 
   Future<Socket> get done => _socket.done;
 

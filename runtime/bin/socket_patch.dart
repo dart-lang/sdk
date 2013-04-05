@@ -689,6 +689,34 @@ class _SocketStreamConsumer extends StreamConsumer<List<int>, Socket> {
     return socket._doneFuture;
   }
 
+  Future<Socket> addStream(Stream<List<int>> stream) {
+    Completer completer = new Completer<Socket>();
+    if (socket._raw != null) {
+      subscription = stream.listen(
+          (data) {
+            assert(!paused);
+            assert(buffer == null);
+            buffer = data;
+            offset = 0;
+            write();
+          },
+          onError: (error) {
+            socket._consumerDone(error);
+            completer.completeError(error.error, error.stackTrace);
+          },
+          onDone: () {
+            completer.complete(socket);
+          },
+          unsubscribeOnError: true);
+    }
+    return completer.future;
+  }
+
+  Future<Socket> close() {
+    socket._consumerDone();
+    return completer.future;
+  }
+
   void write() {
     try {
       if (subscription == null) return;
