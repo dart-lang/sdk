@@ -695,40 +695,4 @@ intptr_t FlowGraph::InstructionCount() const {
   return size;
 }
 
-
-const ZoneGrowableArray<Field*>* FlowGraph::FieldDependencies() const {
-  ZoneGrowableArray<Field*>* result = new ZoneGrowableArray<Field*>(10);
-
-  for (intptr_t i = 1; i < reverse_postorder().length(); i++) {
-    BlockEntryInstr* entry = reverse_postorder()[i];
-    for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
-      LoadFieldInstr* load_field = it.Current()->AsLoadField();
-      if (load_field == NULL) {
-        continue;
-      }
-
-      Field* field = load_field->field();
-      if ((field == NULL) ||
-          (field->guarded_cid() == kDynamicCid) ||
-          (field->guarded_cid() == kIllegalCid)) {
-        continue;
-      }
-
-      bool found = false;
-      for (intptr_t j = 0; j < result->length(); j++) {
-        if ((*result)[j]->raw() == field->raw()) {
-          found = true;
-          break;
-        }
-      }
-
-      if (!found) {
-        result->Add(field);
-      }
-    }
-  }
-
-  return result;
-}
-
 }  // namespace dart
