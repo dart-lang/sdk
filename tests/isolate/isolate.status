@@ -3,14 +3,14 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2js && $csp && $runtime == drt && $unchecked ]
-mandel_isolate_stream_test: Fail, Crash # Bug in v8, http://dartbug.com/9407
+mandel_isolate_stream_test: Pass, Fail, Crash # Bug in v8, http://dartbug.com/9407
 nested_spawn_stream2_test: Pass, Fail, Crash # Bug in v8, http://dartbug.com/9407
-count_test: Fail, Crash # Bug in v8, http://dartbug.com/9407
-count_stream_test: Fail, Crash # Bug in v8, http://dartbug.com/9407
-mandel_isolate_test: Fail, Crash # Bug in v8, http://dartbug.com/9407
-message_test: Fail, Crash # Bug in v8, http://dartbug.com/9407
-mint_maker_test: Fail, Crash # Bug in v8, http://dartbug.com/9407
-unresolved_ports_negative_test: Pass, Crash # Bug in v8, http://dartbug.com/9407
+count_test: Pass, Fail, Crash # Bug in v8, http://dartbug.com/9407
+count_stream_test: Pass, Fail, Crash # Bug in v8, http://dartbug.com/9407
+mandel_isolate_test: Pass, Fail, Crash # Bug in v8, http://dartbug.com/9407
+message_test: Pass, Fail, Crash # Bug in v8, http://dartbug.com/9407
+mint_maker_test: Pass, Fail, Crash # Bug in v8, http://dartbug.com/9407
+unresolved_ports_negative_test: Fail, Pass, Crash # Bug in v8, http://dartbug.com/9407
 
 [ $runtime == vm ]
 isolate2_negative_test: Skip  # Need to resolve correct behaviour.
