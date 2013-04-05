@@ -9,30 +9,15 @@
 
 library date_time_format_http_request_test;
 
-import 'dart:async';
-import 'package:intl/intl.dart';
-import 'package:intl/date_symbol_data_http_request.dart';
-import 'date_time_format_test_core.dart';
 import 'dart:html';
-import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
-
-var url = '';
+import 'package:intl/date_symbol_data_http_request.dart';
+import 'date_time_format_test_stub.dart';
 
 main() {
   useHtmlConfiguration();
-  url = "http://localhost:${window.location.port}/root_dart/pkg/intl/lib/src/data/dates/";
-  // Initialize one locale just so we know what the list is.
-  test('Run everything', () {
-    initializeDateFormatting("en_US", url).then(expectAsync1(runEverything));});
-}
+  var url = "http://localhost:${window.location.port}"
+    "/root_dart/pkg/intl/lib/src/data/dates/";
 
-void runEverything(_) {
-  // Initialize all locales and wait for them to finish before running tests.
-  var futures = DateFormat.allLocalesWithSymbols()
-      .map((locale) => initializeDateFormatting(locale, url))
-      .toList();
-  Future.wait(futures).then(expectAsync1((_) {
-      runDateTests(smallSetOfLocales());
-    }));
+  runWith(smallSetOfLocales, url, initializeDateFormatting);
 }

@@ -8,11 +8,8 @@
  */
 library date_time_format_file_test;
 
-import 'package:intl/intl.dart';
-import 'package:intl/date_symbol_data_local.dart';
 import 'date_time_format_test_core.dart';
-import 'package:unittest/unittest.dart';
 
 main() {
-  runDateTests(['en_US']);
+  runDateTests(() => ['en_US']);
 }
