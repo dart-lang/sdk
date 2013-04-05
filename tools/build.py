@@ -266,9 +266,13 @@ PhaseScriptExecution "Action \"upload_sdk_py\"" xcodebuild/dart.build/...
     term = os.getenv('TERM', 'dumb')
     # The capability "clr_eol" means clear the line from cursor to end
     # of line.  See man pages for tput and terminfo.
-    clr_eol = subprocess.check_output(['tput', '-T' + term, 'el'])
-    if clr_eol:
-      is_fancy_tty = True
+    try:
+      clr_eol = subprocess.check_output(['tput', '-T' + term, 'el'],
+                                        stderr=subprocess.STDOUT)
+      if clr_eol:
+        is_fancy_tty = True
+    except subprocess.CalledProcessError:
+      is_fancy_tty = False
   for line in unbuffered(process.stdout.readline):
     line = line.rstrip()
     if line.startswith('=== BUILD ') or line.startswith('** BUILD '):
