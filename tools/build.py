@@ -259,17 +259,33 @@ PhaseScriptExecution "Action \"upload_sdk_py\"" xcodebuild/dart.build/...
 
   section = None
   chunk = []
-  # Is stdout a terminal?
-  isatty = sys.stdout.isatty()
+  # Is stdout a terminal which supports colors?
+  is_fancy_tty = False
+  clr_eol = None
+  if sys.stdout.isatty():
+    term = os.getenv('TERM', 'dumb')
+    # The capability "clr_eol" means clear the line from cursor to end
+    # of line.  See man pages for tput and terminfo.
+    clr_eol = subprocess.check_output(['tput', '-T' + term, 'el'])
+    if clr_eol:
+      is_fancy_tty = True
   for line in unbuffered(process.stdout.readline):
     line = line.rstrip()
     if line.startswith('=== BUILD ') or line.startswith('** BUILD '):
       if not is_empty_chunk(chunk):
         print '\n'.join(chunk)
       section = line
-      if isatty:
-        # If stdout is a terminal, emit "progress" information.
-        print '%s[2K%s\r' % (chr(27), section),
+      if is_fancy_tty:
+        # If stdout is a terminal, emit "progress" information.  The
+        # progress information is the first line of the current chunk.
+        # After printing the line, move the cursor back to the
+        # beginning of the line.  This has two effects: First, if the
+        # chunk isn't empty, the first line will be overwritten
+        # (avoiding duplication).  Second, the next segment line will
+        # overwrite it too avoid long scrollback.  clr_eol ensures
+        # that there is no trailing garbage when a shorter line
+        # overwrites a longer line.
+        print '%s%s\r' % (clr_eol, section),
       chunk = []
     if not section:
       print line
