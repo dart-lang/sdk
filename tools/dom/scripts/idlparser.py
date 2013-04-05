@@ -74,7 +74,7 @@ class IDLParser(object):
 
     def Enum():
       def StringLiteral():
-        return re.compile(r'"\w+"')
+        return re.compile(r'"\w*"')
 
       return ['enum', Id, '{', MAYBE(MANY(StringLiteral, ',')), '}', ';']
 
