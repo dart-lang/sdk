@@ -62,7 +62,7 @@ $!MEMBERS
    * will allow, the image will be clipped to fit the available space.
    *
    *     CanvasElement canvas = new CanvasElement(width: 600, height: 600);
-   *     CanvasRenderingContext2D ctx = canvas.context2d;
+   *     CanvasRenderingContext2D ctx = canvas.context2D;
    *     ImageElement img = document.query('img');
    *     img.width = 100;
    *     img.height = 100;
@@ -140,7 +140,7 @@ $endif
    * available space.
    *
    *     CanvasElement canvas = new CanvasElement(width: 600, height: 600);
-   *     CanvasRenderingContext2D ctx = canvas.context2d;
+   *     CanvasRenderingContext2D ctx = canvas.context2D;
    *     ImageElement img = document.query('img');
    *
    *     ctx.drawImage(img, 100, 100);
@@ -181,7 +181,7 @@ $endif
    * will allow, the image will be clipped to fit the available space.
    *
    *     CanvasElement canvas = new CanvasElement(width: 600, height: 600);
-   *     CanvasRenderingContext2D ctx = canvas.context2d;
+   *     CanvasRenderingContext2D ctx = canvas.context2D;
    *     ImageElement img = document.query('img');
    *     img.width = 100;
    *     img.height = 100;

@@ -1129,7 +1129,7 @@ class CanvasElement extends _Element_Merged implements CanvasImageSource {
    * Example usage:
    *
    *     CanvasElement canvas = new CanvasElement();
-   *     var ctx = canvas.context2d
+   *     var ctx = canvas.context2D
    *     ..fillStyle = "rgb(200,0,0)"
    *     ..fillRect(10, 10, 55, 50);
    *     var dataUrl = canvas.toDataURL("image/jpeg", 0.95);
@@ -1154,7 +1154,11 @@ class CanvasElement extends _Element_Merged implements CanvasImageSource {
   @DocsEditable
   String toDataUrl(String type, [num quality]) native "HTMLCanvasElement_toDataURL_Callback";
 
-  CanvasRenderingContext2D get context2d => getContext('2d');
+  /** An API for drawing on this canvas. */
+  CanvasRenderingContext2D get context2D => getContext('2d');
+
+  @deprecated
+  CanvasRenderingContext2D get context2d => this.context2D;
 
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
@@ -1194,7 +1198,7 @@ class CanvasElement extends _Element_Merged implements CanvasImageSource {
  * Example usage:
  *
  *     var canvas = new CanvasElement(width: 600, height: 600);
- *     var ctx = canvas.context2d;
+ *     var ctx = canvas.context2D;
  *     ctx.clearRect(0, 0, 600, 600);
  *     ctx.save();
  *     // Create radial gradient.
@@ -1248,7 +1252,7 @@ class CanvasGradient extends NativeFieldWrapperClass1 {
  * Example usage:
  *
  *     var canvas = new CanvasElement(width: 600, height: 600);
- *     var ctx = canvas.context2d;
+ *     var ctx = canvas.context2D;
  *     var img = new ImageElement();
  *     // Image src needs to be loaded before pattern is applied.
  *     img.onLoad.listen((event) {
@@ -1863,7 +1867,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
    * will allow, the image will be clipped to fit the available space.
    *
    *     CanvasElement canvas = new CanvasElement(width: 600, height: 600);
-   *     CanvasRenderingContext2D ctx = canvas.context2d;
+   *     CanvasRenderingContext2D ctx = canvas.context2D;
    *     ImageElement img = document.query('img');
    *     img.width = 100;
    *     img.height = 100;
@@ -1921,7 +1925,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
    * available space.
    *
    *     CanvasElement canvas = new CanvasElement(width: 600, height: 600);
-   *     CanvasRenderingContext2D ctx = canvas.context2d;
+   *     CanvasRenderingContext2D ctx = canvas.context2D;
    *     ImageElement img = document.query('img');
    *
    *     ctx.drawImage(img, 100, 100);
@@ -1957,7 +1961,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
    * will allow, the image will be clipped to fit the available space.
    *
    *     CanvasElement canvas = new CanvasElement(width: 600, height: 600);
-   *     CanvasRenderingContext2D ctx = canvas.context2d;
+   *     CanvasRenderingContext2D ctx = canvas.context2D;
    *     ImageElement img = document.query('img');
    *     img.width = 100;
    *     img.height = 100;

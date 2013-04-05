@@ -26,14 +26,14 @@ void createCanvas() {
   canvas.width = 100;
   canvas.height = 100;
 
-  context = canvas.context2d;
+  context = canvas.context2D;
 }
 
 void createOtherCanvas() {
   otherCanvas = new CanvasElement();
   otherCanvas.width = 10;
   otherCanvas.height = 10;
-  otherContext = otherCanvas.context2d;
+  otherContext = otherCanvas.context2D;
   otherContext.fillStyle = "red";
   otherContext.fillRect(0, 0, otherCanvas.width, otherCanvas.height);
 }

@@ -38,7 +38,7 @@ class BarGraph {
 
   void drawBarGraph() {
     // Draw chart's outer box.
-    var context = _canvas.context2d;
+    var context = _canvas.context2D;
     context.beginPath();
     context.strokeStyle = 'black';
     // The '2's are the width of the line, even though 1 is specified.
@@ -76,7 +76,7 @@ class BarGraph {
 
   void drawChart(int maxHeight, double scale) {
     var dividerHeight = maxHeight ~/ NUM_DIVIDERS;
-    var context = _canvas.context2d;
+    var context = _canvas.context2D;
     context.beginPath();
     var height = maxHeight.toInt();
     var scaledY = dividerHeight * scale;
@@ -105,7 +105,7 @@ class BarGraph {
     var y = INSIDE_MARGIN;
     var w = _canvas.width - LEFT_MARGIN - RIGHT_MARGIN - INSIDE_MARGIN;
     var h = (maxHeight * scale).ceil() - (2 * INSIDE_MARGIN);
-    _canvas.context2d.clearRect(x, y, w, h);
+    _canvas.context2D.clearRect(x, y, w, h);
 
     while (iterator.moveNext()) {
       Sample s = iterator.current;
@@ -129,7 +129,7 @@ class BarGraph {
 
   void drawVerticalSegment(int x, int y, int w, int h, String color,
                            num scale) {
-    var context = _canvas.context2d;
+    var context = _canvas.context2D;
     y = (y * scale).floor();
     h = (h * scale).ceil();
     context.beginPath();
