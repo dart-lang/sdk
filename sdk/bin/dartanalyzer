@@ -31,11 +31,11 @@ fi
 
 if [[ `uname` == 'Darwin' ]]; 
 then
-  JAR_DIR="$CUR_DIR"/../../xcodebuild/$DART_CONFIGURATION/new_analyzer
+  JAR_DIR="$CUR_DIR"/../../xcodebuild/$DART_CONFIGURATION/dartanalyzer
 else
-  JAR_DIR="$CUR_DIR"/../../out/$DART_CONFIGURATION/new_analyzer
+  JAR_DIR="$CUR_DIR"/../../out/$DART_CONFIGURATION/dartanalyzer
 fi 
 
-JAR_FILE="$JAR_DIR/new_analyzer.jar"
+JAR_FILE="$JAR_DIR/dartanalyzer.jar"
 
 exec java -jar $JAR_FILE --dart-sdk "$SDK_DIR" "$@"

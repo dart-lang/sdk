@@ -79,10 +79,10 @@ is 'dart file.dart' and you specify special command
    dartc: Perform static analysis on Dart code by running dartc.
           (only valid with the following runtimes: none),
 
-   new_analyzer: Perform static analysis on Dart code by running the analyzer.
+   dartanalyzer: Perform static analysis on Dart code by running the analyzer.
           (only valid with the following runtimes: none)''',
               ['-c', '--compiler'],
-              ['none', 'dart2dart', 'dart2js', 'dartc', 'new_analyzer'],
+              ['none', 'dart2dart', 'dart2js', 'dartc', 'dartanalyzer'],
               'none'),
           new _TestOptionSpecification(
               'runtime',
@@ -442,7 +442,7 @@ Note: currently only implemented for dart2js.''',
                                'opera'];
         break;
       case 'dartc':
-      case 'new_analyzer':
+      case 'dartanalyzer':
         validRuntimes = const ['none'];
         break;
       case 'none':
@@ -591,7 +591,7 @@ Note: currently only implemented for dart2js.''',
       var timeout = 60;
       switch (configuration['compiler']) {
         case 'dartc':
-        case 'new_analyzer':
+        case 'dartanalyzer':
           timeout *= 4;
           break;
         case 'dart2js':

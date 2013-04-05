@@ -140,7 +140,7 @@ abstract class TestSuite {
     var name;
     switch (configuration['compiler']) {
       case 'dartc':
-      case 'new_analyzer':
+      case 'dartanalyzer':
         name = executablePath;
         break;
       case 'dart2js':
@@ -181,8 +181,8 @@ abstract class TestSuite {
         return '$buildDir/dart$suffix';
       case 'dartc':
         return '$buildDir/analyzer/bin/dart_analyzer$suffix';
-      case 'new_analyzer':
-        return 'sdk/bin/analyzer$suffix';
+      case 'dartanalyzer':
+        return 'sdk/bin/dartanalyzer$suffix';
       default:
         throw "Unknown executable for: ${configuration['compiler']}";
     }
@@ -781,7 +781,7 @@ class StandardTestSuite extends TestSuite {
 
     case 'none':
     case 'dartc':
-    case 'new_analyzer':
+    case 'dartanalyzer':
       var arguments = new List.from(vmOptions);
       arguments.addAll(args);
       return <Command>[new Command(dartShellFileName, arguments)];
@@ -1148,7 +1148,7 @@ class StandardTestSuite extends TestSuite {
       case 'dart2dart':
         return 'application/dart';
       case 'dart2js':
-      case 'new_analyzer':
+      case 'dartanalyzer':
       case 'dartc':
         return 'text/javascript';
       default:
@@ -1832,7 +1832,7 @@ class TestUtils {
       const ['d8', 'jsshell'].contains(runtime);
 
   static bool isCommandLineAnalyzer(String compiler) =>
-      compiler == 'dartc' || compiler == 'new_analyzer';
+      compiler == 'dartc' || compiler == 'dartanalyzer';
 
   static String buildDir(Map configuration) {
     // FIXME(kustermann,ricow): Our code assumes that the returned 'buildDir'

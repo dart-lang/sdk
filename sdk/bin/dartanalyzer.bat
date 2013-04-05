@@ -20,8 +20,8 @@ set arguments=%*
 
 set "SDK_DIR=%SCRIPTPATH%\..\..\build\%DART_CONFIGURATION%\dart-sdk"
 
-set "JAR_DIR=%SCRIPTPATH%\..\..\build\%DART_CONFIGURATION%\new_analyzer"
+set "JAR_DIR=%SCRIPTPATH%\..\..\build\%DART_CONFIGURATION%\dartanalyzer"
 
-set "JAR_FILE=%JAR_DIR%\new_analyzer.jar"
+set "JAR_FILE=%JAR_DIR%\dartanalyzer.jar"
 
 java -jar %JAR_FILE% --dart-sdk %SDK_DIR% %arguments%
