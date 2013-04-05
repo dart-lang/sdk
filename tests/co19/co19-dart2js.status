@@ -285,8 +285,6 @@ LibTest/core/Match/str_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/RegExp/RegExp_A01_t02: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/RegExp/allMatches_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/Set/intersection_A03_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/core/String/contains_A01_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/core/String/contains_A01_t03: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/TypeError/column_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/TypeError/dstName_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/TypeError/dstType_A01_t01: Fail # TODO(ahe): Please triage this failure.
