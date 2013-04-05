@@ -48,6 +48,7 @@ void printHelp() {
   pg <id> Print all global variables visible within given library id
   ls <lib_id> List loaded scripts in library
   gs <lib_id> <script_url> Get source text of script in library
+  tok <lib_id> <script_url> Get line and token table of script in library
   epi <none|all|unhandled>  Set exception pause info
   i <id> Interrupt execution of given isolate id
   h   Print help
@@ -181,6 +182,13 @@ void processCommand(String cmdLine) {
                             "libraryId": int.parse(args[1]),
                             "url": args[2] } };
     sendCmd(cmd).then((result) => handleGetSourceResponse(result));
+  } else if (command == "tok" && args.length == 3) {
+    var cmd = { "id": seqNum,
+                "command":  "getLineNumberTable",
+                "params": { "isolateId" : isolate_id,
+                            "libraryId": int.parse(args[1]),
+                            "url": args[2] } };
+    sendCmd(cmd).then((result) => handleGetLineTableResponse(result));
   } else if (command == "epi" && args.length == 2) {
     var cmd = { "id": seqNum,
                 "command":  "setPauseOnException",
@@ -324,6 +332,13 @@ handleGetSourceResponse(response) {
 }
 
 
+handleGetLineTableResponse(response) {
+  Map result = response["result"];
+  var info = result["lines"];
+  print("Line info table:\n$info");
+}
+
+
 void handleGetLibraryResponse(response) {
   Map result = response["result"];
   List libs = result["libraries"];
@@ -391,7 +406,7 @@ void printStackTrace(List frames) {
 void handlePausedEvent(msg) {
   assert(msg["params"] != null);
   var reason = msg["params"]["reason"];
-  isolate_id = msg["params"]["id"];
+  isolate_id = msg["params"]["isolateId"];
   stackTrace = msg["params"]["callFrames"];
   assert(stackTrace != null);
   assert(stackTrace.length >= 1);

@@ -479,6 +479,7 @@ static JSONDebuggerCommand debugger_commands[] = {
   { "getGlobalVariables", DbgMessage::HandleGetGlobalsCmd },
   { "getScriptURLs", DbgMessage::HandleGetScriptURLsCmd },
   { "getScriptSource", DbgMessage::HandleGetSourceCmd },
+  { "getLineNumberTable", DbgMessage::HandleGetLineNumbersCmd },
   { "getStackTrace", DbgMessage::HandleGetStackTraceCmd },
   { "setBreakpoint", DbgMessage::HandleSetBpCmd },
   { "setPauseOnException", DbgMessage::HandlePauseOnExcCmd },
@@ -783,6 +784,53 @@ bool DbgMessage::HandleGetSourceCmd(DbgMessage* in_msg) {
   msg.Printf("\"result\": { \"text\": ");
   FormatEncodedString(&msg, source);
   msg.Printf("}}");
+  in_msg->SendReply(&msg);
+  return false;
+}
+
+
+bool DbgMessage::HandleGetLineNumbersCmd(DbgMessage* in_msg) {
+  ASSERT(in_msg != NULL);
+  MessageParser msg_parser(in_msg->buffer(), in_msg->buffer_len());
+  int msg_id = msg_parser.MessageId();
+  dart::TextBuffer msg(64);
+  intptr_t lib_id = msg_parser.GetIntParam("libraryId");
+  char* url_chars = msg_parser.GetStringParam("url");
+  ASSERT(url_chars != NULL);
+  Dart_Handle url = DartUtils::NewString(url_chars);
+  ASSERT_NOT_ERROR(url);
+  free(url_chars);
+  url_chars = NULL;
+  Dart_Handle info = Dart_ScriptGetTokenInfo(lib_id, url);
+  if (Dart_IsError(info)) {
+    in_msg->SendErrorReply(msg_id, Dart_GetError(info));
+    return false;
+  }
+  ASSERT(Dart_IsList(info));
+  intptr_t info_len = 0;
+  Dart_Handle res = Dart_ListLength(info, &info_len);
+  ASSERT_NOT_ERROR(res);
+  msg.Printf("{ \"id\": %d, ", msg_id);
+  msg.Printf("\"result\": { \"lines\": [");
+  Dart_Handle elem;
+  bool num_elems = 0;
+  for (intptr_t i = 0; i < info_len; i++) {
+    elem = Dart_ListGetAt(info, i);
+    if (Dart_IsNull(elem)) {
+      msg.Printf((i == 0) ? "[" : "], [");
+      num_elems = 0;
+    } else {
+      ASSERT(Dart_IsInteger(elem));
+      int value = GetIntValue(elem);
+      if (num_elems == 0) {
+        msg.Printf("%d", value);
+      } else {
+        msg.Printf(",%d", value);
+      }
+      num_elems++;
+    }
+  }
+  msg.Printf("]]}}");
   in_msg->SendReply(&msg);
   return false;
 }

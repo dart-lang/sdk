@@ -587,6 +587,57 @@ DART_EXPORT Dart_Handle Dart_ScriptGetSource(
 }
 
 
+DART_EXPORT Dart_Handle Dart_ScriptGetTokenInfo(
+                            intptr_t library_id,
+                            Dart_Handle script_url_in) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const Library& lib = Library::Handle(Library::GetLibrary(library_id));
+  if (lib.IsNull()) {
+    return Api::NewError("%s: %"Pd" is not a valid library id",
+                         CURRENT_FUNC, library_id);
+  }
+  UNWRAP_AND_CHECK_PARAM(String, script_url, script_url_in);
+  const Script& script = Script::Handle(lib.LookupScript(script_url));
+  if (script.IsNull()) {
+    return Api::NewError("%s: script '%s' not found in library '%s'",
+                         CURRENT_FUNC, script_url.ToCString(),
+                         String::Handle(lib.url()).ToCString());
+  }
+
+  const GrowableObjectArray& info =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
+  const String& source = String::Handle(script.Source());
+  const String& key = Symbols::Empty();
+  const Object& line_separator = Object::Handle();
+  const TokenStream& tkns = TokenStream::Handle(script.tokens());
+  ASSERT(!tkns.IsNull());
+  TokenStream::Iterator tkit(tkns, 0);
+  int current_line = -1;
+  Scanner s(source, key);
+  s.Scan();
+  while (s.current_token().kind != Token::kEOS) {
+    ASSERT(tkit.IsValid());
+    ASSERT(s.current_token().kind == tkit.CurrentTokenKind());
+    int token_line = s.current_token().position.line;
+    if (token_line != current_line) {
+      // emit line
+      info.Add(line_separator);
+      info.Add(Smi::Handle(Smi::New(token_line)));
+      current_line = token_line;
+    }
+    // TODO(hausner): Could optimize here by not reporting tokens
+    // that will never be a location used by the debugger, e.g.
+    // braces, semicolons, most keywords etc.
+    info.Add(Smi::Handle(Smi::New(tkit.CurrentPosition())));
+    info.Add(Smi::Handle(Smi::New(s.current_token().offset)));
+    s.Scan();
+    tkit.Advance();
+  }
+  return Api::NewHandle(isolate, Array::MakeArray(info));
+}
+
+
 DART_EXPORT Dart_Handle Dart_GenerateScriptSource(Dart_Handle library_url_in,
                                                   Dart_Handle script_url_in) {
   Isolate* isolate = Isolate::Current();
