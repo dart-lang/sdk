@@ -167,18 +167,19 @@ main() {
   });
 
   // TODO(antonm): enable again.
-  if (false)
-  group('xhr_requestBlob', () {
-    test('XHR.request responseType blob', () {
-      if (ArrayBuffer.supported) {
-        return HttpRequest.request(url, responseType: 'blob').then(
-          (xhr) {
-            expect(xhr.status, equals(200));
-            var blob = xhr.response;
-            expect(blob is Blob, isTrue);
-            expect(blob, isNotNull);
-          });
-      }
-    });
-  });
+  /*
+   *groupXX('xhr_requestBlob', () {
+   *  testXX('XHR.request responseType blob', () {
+   *    if (ArrayBuffer.supported) {
+   *      return HttpRequest.request(url, responseType: 'blob').then(
+   *        (xhr) {
+   *          expect(xhr.status, equals(200));
+   *          var blob = xhr.response;
+   *          expect(blob is Blob, isTrue);
+   *          expect(blob, isNotNull);
+   *        });
+   *    }
+   *  });
+   *});
+   */
 }
