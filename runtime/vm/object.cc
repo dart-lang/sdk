@@ -125,6 +125,8 @@ const double MegamorphicCache::kLoadFactor = 0.75;
 // (Library, class name, method name)
 #define INVISIBLE_LIST(V)                                                      \
   V(CoreLibrary, Object, _noSuchMethod)                                        \
+  V(CoreLibrary, Object, _as)                                                  \
+  V(CoreLibrary, Object, _instanceOf)                                          \
   V(CoreLibrary, _ObjectArray, _ObjectArray.)                                  \
   V(CoreLibrary, AssertionErrorImplementation, _throwNew)                      \
   V(CoreLibrary, TypeErrorImplementation, _throwNew)                           \
@@ -994,7 +996,7 @@ RawError* Object::Init(Isolate* isolate) {
   INIT_LIBRARY(Core, core, true);
 
   INIT_LIBRARY(Async, async, true);
-  INIT_LIBRARY(Collection, collection, false);
+  INIT_LIBRARY(Collection, collection, true);
   INIT_LIBRARY(CollectionDev, collection_dev, false);
   INIT_LIBRARY(Crypto, crypto, false);
   INIT_LIBRARY(Isolate, isolate, true);
@@ -1201,20 +1203,26 @@ RawObject* Object::Allocate(intptr_t cls_id,
 
 class StoreBufferUpdateVisitor : public ObjectPointerVisitor {
  public:
-  explicit StoreBufferUpdateVisitor(Isolate* isolate) :
-      ObjectPointerVisitor(isolate) { }
+  explicit StoreBufferUpdateVisitor(Isolate* isolate, RawObject* obj) :
+      ObjectPointerVisitor(isolate), old_obj_(obj) {
+    ASSERT(old_obj_->IsOldObject());
+  }
 
   void VisitPointers(RawObject** first, RawObject** last) {
     for (RawObject** curr = first; curr <= last; ++curr) {
       RawObject* raw_obj = *curr;
       if (raw_obj->IsHeapObject() && raw_obj->IsNewObject()) {
-        uword ptr = reinterpret_cast<uword>(curr);
+        uword ptr = reinterpret_cast<uword>(old_obj_);
         isolate()->store_buffer()->AddPointer(ptr);
+        // Remembered this object. There is no need to continue searching.
+        return;
       }
     }
   }
 
  private:
+  RawObject* old_obj_;
+
   DISALLOW_COPY_AND_ASSIGN(StoreBufferUpdateVisitor);
 };
 
@@ -1237,7 +1245,7 @@ RawObject* Object::Clone(const Object& src, Heap::Space space) {
   NoGCScope no_gc;
   memmove(raw_obj->ptr(), src.raw()->ptr(), size);
   if (space == Heap::kOld) {
-    StoreBufferUpdateVisitor visitor(Isolate::Current());
+    StoreBufferUpdateVisitor visitor(Isolate::Current(), raw_obj);
     raw_obj->VisitPointers(&visitor);
   }
   return raw_obj;
@@ -2853,7 +2861,7 @@ bool TypeArguments::IsUninstantiatedIdentity() const {
     // substituted by the instantiator's type argument vector without checking
     // the upper bound.
     const AbstractType& bound = AbstractType::Handle(type_param.bound());
-    ASSERT(bound.IsFinalized());
+    ASSERT(bound.IsResolved());
     if (!bound.IsObjectType() && !bound.IsDynamicType()) {
       return false;
     }
@@ -9255,8 +9263,8 @@ bool AbstractType::IsFunctionType() const {
 bool AbstractType::TypeTest(TypeTestKind test_kind,
                             const AbstractType& other,
                             Error* malformed_error) const {
-  ASSERT(IsFinalized());
-  ASSERT(other.IsFinalized());
+  ASSERT(IsResolved());
+  ASSERT(other.IsResolved());
   // In case the type checked in a type test is malformed, the code generator
   // may compile a throw instead of a run time call performing the type check.
   // However, in checked mode, a function type may include malformed result type
@@ -9293,13 +9301,10 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
   // The same rule applies when checking the upper bound of a still
   // uninstantiated type at compile time. Returning false will defer the test
   // to run time.
-  // We may think that some cases can be decided at compile time.
+  // There are however some cases can be decided at compile time.
   // For example, with class A<K, V extends K>, new A<T, T> called from within
   // a class B<T> will never require a run time bound check, even if T is
   // uninstantiated at compile time.
-  // However, this is not true, because bounds are ignored in production mode,
-  // and even if we are running in checked mode, we may generate a snapshot
-  // that will be executed in production mode.
   if (IsTypeParameter()) {
     const TypeParameter& type_param = TypeParameter::Cast(*this);
     if (other.IsTypeParameter()) {
@@ -9307,6 +9312,10 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
       if (type_param.Equals(other_type_param)) {
         return true;
       }
+    }
+    const AbstractType& bound = AbstractType::Handle(type_param.bound());
+    if (bound.IsMoreSpecificThan(other, malformed_error)) {
+      return true;
     }
     return false;  // TODO(regis): We should return "maybe after instantiation".
   }
@@ -9524,7 +9533,7 @@ bool Type::IsInstantiated() const {
 RawAbstractType* Type::InstantiateFrom(
     const AbstractTypeArguments& instantiator_type_arguments,
     Error* malformed_error) const {
-  ASSERT(IsFinalized());
+  ASSERT(IsResolved());
   ASSERT(!IsInstantiated());
   // Return the uninstantiated type unchanged if malformed. No copy needed.
   if (IsMalformed()) {
@@ -9556,11 +9565,14 @@ bool Type::Equals(const Instance& other) const {
     return false;
   }
   const Type& other_type = Type::Cast(other);
-  ASSERT(IsFinalized() && other_type.IsFinalized());
+  ASSERT(IsResolved() && other_type.IsResolved());
   if (IsMalformed() || other_type.IsMalformed()) {
     return false;
   }
   if (type_class() != other_type.type_class()) {
+    return false;
+  }
+  if (!IsFinalized() || !other_type.IsFinalized()) {
     return false;
   }
   return AbstractTypeArguments::AreEqual(
@@ -9772,49 +9784,60 @@ RawAbstractType* TypeParameter::InstantiateFrom(
   if (instantiator_type_arguments.IsNull()) {
     return Type::DynamicType();
   }
-  // Bound checks should never appear in the instantiator type arguments.
-  ASSERT(!AbstractType::Handle(
-      instantiator_type_arguments.TypeAt(index())).IsBoundedType());
-  return instantiator_type_arguments.TypeAt(index());
+  // Bound checks may appear in the instantiator type arguments, as is the case
+  // with a pair of type parameters of the same class referring to each other
+  // via their bounds.
+  AbstractType& type_arg = AbstractType::Handle(
+      instantiator_type_arguments.TypeAt(index()));
+  if (type_arg.IsBoundedType()) {
+    const BoundedType& bounded_type = BoundedType::Cast(type_arg);
+    ASSERT(!bounded_type.IsInstantiated());
+    ASSERT(AbstractType::Handle(bounded_type.bound()).IsInstantiated());
+    type_arg = bounded_type.InstantiateFrom(AbstractTypeArguments::Handle(),
+                                            malformed_error);
+  }
+  return type_arg.raw();
 }
 
 
-void TypeParameter::CheckBound(const AbstractType& bounded_type,
+bool TypeParameter::CheckBound(const AbstractType& bounded_type,
                                const AbstractType& upper_bound,
                                Error* malformed_error) const {
-  ASSERT(malformed_error->IsNull());
+  ASSERT((malformed_error == NULL) || malformed_error->IsNull());
   ASSERT(bounded_type.IsFinalized());
   ASSERT(upper_bound.IsFinalized());
   ASSERT(!bounded_type.IsMalformed());
-  if (bounded_type.IsSubtypeOf(upper_bound, malformed_error) ||
-      !malformed_error->IsNull()) {
-    return;
+  if (bounded_type.IsSubtypeOf(upper_bound, malformed_error)) {
+    return true;
   }
-  // Report the bound error.
-  const String& bounded_type_name = String::Handle(
-      bounded_type.UserVisibleName());
-  const String& upper_bound_name = String::Handle(
-      upper_bound.UserVisibleName());
-  const AbstractType& declared_bound = AbstractType::Handle(bound());
-  const String& declared_bound_name = String::Handle(
-      declared_bound.UserVisibleName());
-  const String& type_param_name = String::Handle(UserVisibleName());
-  const Class& cls = Class::Handle(parameterized_class());
-  const String& class_name = String::Handle(cls.Name());
-  const Script& script = Script::Handle(cls.script());
-  // Since the bound may have been canonicalized, its token index is
-  // meaningless, therefore use the token index of this type parameter.
-  *malformed_error = FormatError(
-      *malformed_error,
-      script,
-      token_pos(),
-      "type parameter '%s' of class '%s' must extend bound '%s', "
-      "but type argument '%s' is not a subtype of '%s'\n",
-      type_param_name.ToCString(),
-      class_name.ToCString(),
-      declared_bound_name.ToCString(),
-      bounded_type_name.ToCString(),
-      upper_bound_name.ToCString());
+  if ((malformed_error != NULL) && malformed_error->IsNull()) {
+    // Report the bound error.
+    const String& bounded_type_name = String::Handle(
+        bounded_type.UserVisibleName());
+    const String& upper_bound_name = String::Handle(
+        upper_bound.UserVisibleName());
+    const AbstractType& declared_bound = AbstractType::Handle(bound());
+    const String& declared_bound_name = String::Handle(
+        declared_bound.UserVisibleName());
+    const String& type_param_name = String::Handle(UserVisibleName());
+    const Class& cls = Class::Handle(parameterized_class());
+    const String& class_name = String::Handle(cls.Name());
+    const Script& script = Script::Handle(cls.script());
+    // Since the bound may have been canonicalized, its token index is
+    // meaningless, therefore use the token index of this type parameter.
+    *malformed_error = FormatError(
+        *malformed_error,
+        script,
+        token_pos(),
+        "type parameter '%s' of class '%s' must extend bound '%s', "
+        "but type argument '%s' is not a subtype of '%s'\n",
+        type_param_name.ToCString(),
+        class_name.ToCString(),
+        declared_bound_name.ToCString(),
+        bounded_type_name.ToCString(),
+        upper_bound_name.ToCString());
+  }
+  return false;
 }
 
 

@@ -19,15 +19,16 @@ IsolateListModel _isolates;
 Timer _updater;
 
 final int _POLL_INTERVAL = const Duration(seconds: 1);
+final String CYAN = '#00EE76';
+final String GREEN = '#97FFFF';
 
 void main() {
   DivElement dashBoard = query('#dashboard');
   CanvasElement canvas = query('#graph');
-  var elements = [ new Element("Old Space", "#97FFFF"),
-                   new Element("New Space", "#00EE76")];
+  var elements = [ new Element("Old Space", GREEN),
+                   new Element("New Space", CYAN)];
   _graph = new BarGraph(canvas, elements);
-  UListElement isolateListElement = query('#isolateList');
-  _isolateList = new IsolateList(isolateListElement);
+  _isolateList = new IsolateList(query('#isolateList'));
   _statusText = query('#statusText');
 
   _isolates = new IsolateListModel();

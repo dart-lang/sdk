@@ -1256,6 +1256,12 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
       }
     }
   }
+  if (interrupt_bits & Isolate::kVmStatusInterrupt) {
+    Dart_IsolateInterruptCallback callback = isolate->VmStatsCallback();
+    if (callback) {
+      (*callback)();
+    }
+  }
 }
 
 

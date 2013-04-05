@@ -203,16 +203,14 @@ def main():
   if name.startswith('dart-editor'):
     # TODO(kustermann,ricow): This is a temporary hack until we can safely
     # enable it on main waterfall. We need to remove this eventually
-    is_fyi = False
     if name.startswith('dart-editor-fyi'):
       match = re.search('dart-editor-fyi(.*)', name)
       name = 'dart-editor' + match.group(1)
-      is_fyi = True
-    # Run the old annotated steps script first.
-    status = ProcessTools('release', name, version)
-    # In case we're an FYI builder, run 'tools/bots/editor.py' as well
-    if is_fyi:
-      status = ProcessBot(name, 'editor') or status
+      # In case we're an FYI builder, run 'tools/bots/editor.py'.
+      status = ProcessBot(name, 'editor')
+    else:
+      # Run the old annotated steps script
+      status = ProcessTools('release', name, version)
   elif name.startswith('pub-'):
     status = ProcessBot(name, 'pub')
   elif name.startswith('vm-android'):

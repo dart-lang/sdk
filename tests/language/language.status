@@ -15,7 +15,11 @@
 # 2) File a bug on each architecture for the failure due to the language change.
 # 3) Update the language/src directory with the updated test.
 
+[ $compiler == dart2dart ]
+closure_type_variable_test: Fail # Type variable used as expression (dartbug.com/6282)
+
 [ $compiler == none ]
+closure_type_variable_test: Fail # Type variable used as expression (dartbug.com/6282)
 built_in_identifier_prefix_test: Fail # http://dartbug.com/6970
 library_juxtaposition_test: Fail # Issue 6877
 gc_test: Pass, Fail # Issue 1487

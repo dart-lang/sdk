@@ -237,6 +237,8 @@ abstract class Stream<T> {
    * Binds this stream as the input of the provided [StreamConsumer].
    */
   Future pipe(StreamConsumer<T, dynamic> streamConsumer) {
+    // TODO(floitsch): switch to:
+    // streamConsumer.addStream(this).then((_) => streamConsumer.close());
     return streamConsumer.consume(this);
   }
 
@@ -249,8 +251,18 @@ abstract class Stream<T> {
     return streamTransformer.bind(this);
   }
 
-  /** Reduces a sequence of values by repeatedly applying [combine]. */
+  /**
+   * Reduces a sequence of values by repeatedly applying [combine].
+   *
+   * *WARNING UPCOMING API-CHANGE*: This method will be changed so that
+   * it doesn't take an initial value. Use [fold] instead.
+   */
   Future reduce(var initialValue, combine(var previous, T element)) {
+    return fold(initialValue, combine);
+  }
+
+  /** Reduces a sequence of values by repeatedly applying [combine]. */
+  Future fold(var initialValue, combine(var previous, T element)) {
     _FutureImpl result = new _FutureImpl();
     var value = initialValue;
     StreamSubscription subscription;
@@ -973,6 +985,16 @@ class EventSinkView<T> extends StreamSink<T> {
  * done.
  */
 abstract class StreamConsumer<S, T> {
+  // TODO(floitsch): generic types.
+  // Currently not possible to add generic types, since they clash with other
+  // types that have already been used.
+  Future addStream(Stream<S> stream);
+  Future close();
+
+
+  /**
+   * Consume is deprecated. Use [addStream] followed by [close] instead.
+   */
   Future<T> consume(Stream<S> stream);
 }
 

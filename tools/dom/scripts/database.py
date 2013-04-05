@@ -42,6 +42,7 @@ class Database(object):
       os.makedirs(root_dir)
     self._all_interfaces = {}
     self._interfaces_to_delete = []
+    self._enums = {}
     self._idlparser = idlparser.IDLParser(idlparser.FREMONTCUT_SYNTAX)
 
   def Clone(self):
@@ -49,6 +50,7 @@ class Database(object):
     new_database._all_interfaces = copy.deepcopy(self._all_interfaces)
     new_database._interfaces_to_delete = copy.deepcopy(
         self._interfaces_to_delete)
+    new_database._enums = copy.deepcopy(self._enums)
     return new_database
 
   def Delete(self):
@@ -234,3 +236,12 @@ class Database(object):
         continue
       for parent_interface in self.Hierarchy(self.GetInterface(parent.type.id)):
         yield parent_interface
+
+  def HasEnum(self, enum_name):
+    return enum_name in self._enums
+
+  def GetEnum(self, enum_name):
+    return self._enums[enum_name]
+
+  def AddEnum(self, enum):
+    self._enums[enum.id] = enum

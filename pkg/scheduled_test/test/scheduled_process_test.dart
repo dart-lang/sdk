@@ -16,11 +16,7 @@ import 'metatest.dart';
 import 'utils.dart';
 
 void main() {
-  metaSetUp(() {
-    // The windows bots are very slow, so we increase the default timeout.
-    if (Platform.operatingSystem != "windows") return;
-    currentSchedule.timeout = new Duration(seconds: 10);
-  });
+  setUpTimeout();
 
   expectTestsPass("a process must have kill() or shouldExit() called", () {
     var errors;

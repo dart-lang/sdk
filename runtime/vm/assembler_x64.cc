@@ -2079,7 +2079,9 @@ void Assembler::StoreIntoObject(Register object,
   }
   // A store buffer update is required.
   if (value != RAX) pushq(RAX);
-  leaq(RAX, dest);
+  if (object != RAX) {
+    movq(RAX, object);
+  }
   call(&StubCode::UpdateStoreBufferLabel());
   if (value != RAX) popq(RAX);
   Bind(&done);

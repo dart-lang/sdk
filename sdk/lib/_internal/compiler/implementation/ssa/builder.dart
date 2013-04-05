@@ -496,13 +496,17 @@ class LocalsHandler {
     }
   }
 
-  void beginLoopHeader(Node node, HBasicBlock loopEntry) {
+  /**
+   * Create phis at the loop entry for local variables (ready for the values
+   * from the back edge).  Populate the phis with the current values.
+   */
+  void beginLoopHeader(HBasicBlock loopEntry) {
     // Create a copy because we modify the map while iterating over it.
-    Map<Element, HInstruction> saved =
+    Map<Element, HInstruction> savedDirectLocals =
         new LinkedHashMap<Element, HInstruction>.from(directLocals);
 
     // Create phis for all elements in the definitions environment.
-    saved.forEach((Element element, HInstruction instruction) {
+    savedDirectLocals.forEach((Element element, HInstruction instruction) {
       if (isAccessedDirectly(element)) {
         // We know 'this' cannot be modified.
         if (!identical(element, closureData.thisElement)) {
@@ -539,6 +543,10 @@ class LocalsHandler {
     }
   }
 
+  /**
+   * Goes through the phis created in beginLoopHeader entry and adds the
+   * input from the back edge (from the current value of directLocals) to them.
+   */
   void endLoop(HBasicBlock loopEntry) {
     // If the loop has an aborting body, we don't update the loop
     // phis.
@@ -586,15 +594,16 @@ class LocalsHandler {
   }
 
   /**
-   * The current localsHandler is not used for its values, only for its
-   * declared variables. This is a way to exclude local values from the
-   * result when they are no longer in scope.
-   * Returns the new LocalsHandler to use (may not be [this]).
+   * When control flow merges, this method can be used to merge several
+   * localsHandlers into a new one using phis.  The new localsHandler is
+   * returned.  Unless it is also in the list, the current localsHandler is not
+   * used for its values, only for its declared variables. This is a way to
+   * exclude local values from the result when they are no longer in scope.
    */
-  LocalsHandler mergeMultiple(List<LocalsHandler> locals,
+  LocalsHandler mergeMultiple(List<LocalsHandler> localsHandlers,
                               HBasicBlock joinBlock) {
-    assert(locals.length > 0);
-    if (locals.length == 1) return locals[0];
+    assert(localsHandlers.length > 0);
+    if (localsHandlers.length == 1) return localsHandlers[0];
     Map<Element, HInstruction> joinedLocals =
         new LinkedHashMap<Element,HInstruction>();
     HInstruction thisValue = null;
@@ -610,8 +619,8 @@ class LocalsHandler {
         thisValue = instruction;
       }
     });
-    for (LocalsHandler local in locals) {
-      local.directLocals.forEach((Element element, HInstruction instruction) {
+    for (LocalsHandler handler in localsHandlers) {
+      handler.directLocals.forEach((Element element, HInstruction instruction) {
         HPhi phi = joinedLocals[element];
         if (phi != null) {
           phi.addInput(instruction);
@@ -816,7 +825,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   static const MAX_INLINING_DEPTH = 3;
-  static const MAX_INLINING_SOURCE_SIZE = 128;
+  static const MAX_INLINING_NODES = 46;
   List<InliningState> inliningStack;
   Element returnElement;
   DartType returnType;
@@ -1096,21 +1105,27 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     for (int i = 0; i < inliningStack.length; i++) {
       if (inliningStack[i].function == element) return false;
     }
+
     PartialFunctionElement function = element;
-    int sourceSize =
-        function.endToken.charOffset - function.beginToken.charOffset;
-    if (sourceSize > MAX_INLINING_SOURCE_SIZE) return false;
+    if (function == backend.getInterceptorMethod) return false;
+    bool canBeInlined = backend.canBeInlined[function];
+    if (canBeInlined == false) return false;
     if (!selector.applies(function, compiler)) return false;
+
     FunctionExpression functionExpression = function.parseNode(compiler);
     TreeElements newElements =
         compiler.enqueuer.resolution.getCachedElements(function);
     if (newElements == null) {
       compiler.internalError("Element not resolved: $function");
     }
-    if (!InlineWeeder.canBeInlined(functionExpression, newElements)) {
-      return false;
+
+    if (canBeInlined == null) {
+      canBeInlined = InlineWeeder.canBeInlined(functionExpression, newElements);
+      backend.canBeInlined[function] = canBeInlined;
+      if (!canBeInlined) return false;
     }
 
+    assert(canBeInlined);
     InliningState state = enterInlinedMethod(
         function, selector, arguments, currentNode);
     inlinedFrom(element, () {
@@ -1335,7 +1350,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
               // closure to class mapper.
               compiler.closureToClassMapper.computeClosureToClassMapping(
                   member, node, elements);
+              sourceElementStack.add(member);
               right.accept(this);
+              sourceElementStack.removeLast();
               elements = savedElements;
               value = pop();
             }
@@ -1728,7 +1745,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
            'length': sourceFile.text.length});
     }
     return location;
-}
+  }
 
   void visit(Node node) {
     if (node != null) node.accept(this);
@@ -1774,37 +1791,56 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     previousBlock.addSuccessor(loopEntry);
     open(loopEntry);
 
-    localsHandler.beginLoopHeader(node, loopEntry);
+    localsHandler.beginLoopHeader(loopEntry);
     return jumpHandler;
   }
 
   /**
    * Ends the loop:
-   * - creates a new block and adds it as successor to the [branchBlock].
+   * - creates a new block and adds it as successor to the [branchBlock] and
+   *   any blocks that end in break.
    * - opens the new block (setting as [current]).
    * - notifies the locals handler that we're exiting a loop.
+   * [savedLocals] are the locals from the end of the loop condition.
+   * [branchBlock] is the exit (branching) block of the condition.  For the
+   * while and for loops this is at the top of the loop.  For do-while it is
+   * the end of the body.  It is null for degenerate do-while loops that have
+   * no back edge because they abort (throw/return/break in the body and have
+   * no continues).
    */
   void endLoop(HBasicBlock loopEntry,
                HBasicBlock branchBlock,
                JumpHandler jumpHandler,
                LocalsHandler savedLocals) {
-    if (branchBlock == null && !jumpHandler.hasAnyBreak()) return;
-
     HBasicBlock loopExitBlock = addNewBlock();
-    assert(branchBlock == null || branchBlock.successors.length == 1);
-    List<LocalsHandler> breakLocals = <LocalsHandler>[];
+    List<LocalsHandler> breakHandlers = <LocalsHandler>[];
+    // Collect data for the successors and the phis at each break.
     jumpHandler.forEachBreak((HBreak breakInstruction, LocalsHandler locals) {
       breakInstruction.block.addSuccessor(loopExitBlock);
-      breakLocals.add(locals);
+      breakHandlers.add(locals);
     });
+    // The exit block is a successor of the loop condition if it is reached.
+    // We don't add the successor in the case of a while/for loop that aborts
+    // because the caller of endLoop will be wiring up a special empty else
+    // block instead.
     if (branchBlock != null) {
       branchBlock.addSuccessor(loopExitBlock);
     }
-    open(loopExitBlock);
+    // Update the phis at the loop entry with the current values of locals.
     localsHandler.endLoop(loopEntry);
-    if (!breakLocals.isEmpty) {
-      breakLocals.add(savedLocals);
-      localsHandler = savedLocals.mergeMultiple(breakLocals, loopExitBlock);
+
+    // Start generating code for the exit block.
+    open(loopExitBlock);
+
+    // Create a new localsHandler for the loopExitBlock with the correct phis.
+    if (!breakHandlers.isEmpty) {
+      if (branchBlock != null) {
+        // Add the values of the locals at the end of the condition block to
+        // the phis.  These are the values that flow to the exit if the
+        // condition fails.
+        breakHandlers.add(savedLocals);
+      }
+      localsHandler = savedLocals.mergeMultiple(breakHandlers, loopExitBlock);
     } else {
       localsHandler = savedLocals;
     }
@@ -1862,6 +1898,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     SubExpression conditionExpression =
         new SubExpression(conditionBlock, conditionExitBlock);
 
+    // Save the values of the local variables at the end of the condition
+    // block.  These are the values that will flow to the loop exit if the
+    // condition fails.
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
 
     // The body.
@@ -1878,30 +1917,30 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     SubExpression updateGraph;
 
-    // Check that the loop has at least one back-edge.
-    if (jumpHandler.hasAnyContinue() || bodyBlock != null) {
+    bool loopIsDegenerate = !jumpHandler.hasAnyContinue() && bodyBlock == null;
+    if (!loopIsDegenerate) {
       // Update.
       // We create an update block, even when we are in a while loop. There the
       // update block is the jump-target for continue statements. We could avoid
       // the creation if there is no continue, but for now we always create it.
       HBasicBlock updateBlock = addNewBlock();
 
-      List<LocalsHandler> continueLocals = <LocalsHandler>[];
+      List<LocalsHandler> continueHandlers = <LocalsHandler>[];
       jumpHandler.forEachContinue((HContinue instruction,
                                    LocalsHandler locals) {
         instruction.block.addSuccessor(updateBlock);
-        continueLocals.add(locals);
+        continueHandlers.add(locals);
       });
 
 
       if (bodyBlock != null) {
-        continueLocals.add(localsHandler);
+        continueHandlers.add(localsHandler);
         bodyBlock.addSuccessor(updateBlock);
       }
 
       open(updateBlock);
       localsHandler =
-          continueLocals[0].mergeMultiple(continueLocals, updateBlock);
+          continueHandlers[0].mergeMultiple(continueHandlers, updateBlock);
 
       HLabeledBlockInformation labelInfo;
       List<LabelElement> labels = jumpHandler.labels();
@@ -1930,10 +1969,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // The back-edge completing the cycle.
       updateEndBlock.addSuccessor(conditionBlock);
       updateGraph = new SubExpression(updateBlock, updateEndBlock);
-    }
 
-    if (jumpHandler.hasAnyContinue() || bodyBlock != null) {
       endLoop(conditionBlock, conditionExitBlock, jumpHandler, savedLocals);
+
       conditionBlock.postProcessLoopHeader();
       HLoopBlockInformation info =
           new HLoopBlockInformation(
@@ -1950,7 +1988,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       startBlock.setBlockFlow(info, current);
       loopInfo.loopBlockInformation = info;
     } else {
-      // There is no back edge for the loop, so we turn the code into:
+      // The body of the for/while loop always aborts, so there is no back edge.
+      // We turn the code into:
       // if (condition) {
       //   body;
       // } else {
@@ -1962,12 +2001,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       HBasicBlock elseBlock = addNewBlock();
       open(elseBlock);
       close(new HGoto());
-      endLoop(conditionBlock, null, jumpHandler, savedLocals);
+      // Pass the elseBlock as the branchBlock, because that's the block we go
+      // to just before leaving the 'loop'.
+      endLoop(conditionBlock, elseBlock, jumpHandler, savedLocals);
 
-      // [endLoop] will not create an exit block if there are no
-      // breaks.
-      if (current == null) open(addNewBlock());
-      elseBlock.addSuccessor(current);
       SubGraph elseGraph = new SubGraph(elseBlock, elseBlock);
       // Remove the loop information attached to the header.
       conditionBlock.loopInformation = null;
@@ -1980,13 +2017,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       conditionExitBlock.remove(conditionExitBlock.last);
       HIfBlockInformation info =
           new HIfBlockInformation(
-            wrapExpressionGraph(conditionExpression),
-            wrapStatementGraph(bodyGraph),
-            wrapStatementGraph(elseGraph));
+              wrapExpressionGraph(conditionExpression),
+              wrapStatementGraph(bodyGraph),
+              wrapStatementGraph(elseGraph));
 
-      conditionBlock.setBlockFlow(info, current);
-      HIf ifBlock = conditionBlock.last;
-      ifBlock.blockInformation = conditionBlock.blockFlow;
+      conditionExitBlock.setBlockFlow(info, current);
+      HIf ifBlock = conditionExitBlock.last;
+      ifBlock.blockInformation = conditionExitBlock.blockFlow;
 
       // If the body has any break, attach a synthesized label to the
       // if block.
@@ -2091,25 +2128,25 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
 
     SubExpression conditionExpression;
-    HBasicBlock conditionEndBlock;
-    if (!isAbortingBody || hasContinues) {
+    bool loopIsDegenerate = isAbortingBody && !hasContinues;
+    if (!loopIsDegenerate) {
       HBasicBlock conditionBlock = addNewBlock();
 
-      List<LocalsHandler> continueLocals = <LocalsHandler>[];
+      List<LocalsHandler> continueHandlers = <LocalsHandler>[];
       jumpHandler.forEachContinue((HContinue instruction,
                                    LocalsHandler locals) {
         instruction.block.addSuccessor(conditionBlock);
-        continueLocals.add(locals);
+        continueHandlers.add(locals);
       });
 
       if (!isAbortingBody) {
         bodyExitBlock.addSuccessor(conditionBlock);
       }
 
-      if (!continueLocals.isEmpty) {
-        if (!isAbortingBody) continueLocals.add(localsHandler);
+      if (!continueHandlers.isEmpty) {
+        if (!isAbortingBody) continueHandlers.add(localsHandler);
         localsHandler =
-            savedLocals.mergeMultiple(continueLocals, conditionBlock);
+            savedLocals.mergeMultiple(continueHandlers, conditionBlock);
         SubGraph bodyGraph = new SubGraph(bodyEntryBlock, bodyExitBlock);
         List<LabelElement> labels = jumpHandler.labels();
         HSubGraphBlockInformation bodyInfo =
@@ -2129,7 +2166,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       visit(node.condition);
       assert(!isAborted());
       HInstruction conditionInstruction = popBoolified();
-      conditionEndBlock = close(
+      HBasicBlock conditionEndBlock = close(
           new HLoopBranch(conditionInstruction, HLoopBranch.DO_WHILE_LOOP));
 
       HBasicBlock avoidCriticalEdge = addNewBlock();
@@ -2140,10 +2177,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
       conditionExpression =
           new SubExpression(conditionBlock, conditionEndBlock);
-    }
 
-    endLoop(loopEntryBlock, conditionEndBlock, jumpHandler, localsHandler);
-    if (!isAbortingBody || hasContinues) {
+      endLoop(loopEntryBlock, conditionEndBlock, jumpHandler, localsHandler);
+
       loopEntryBlock.postProcessLoopHeader();
       SubGraph bodyGraph = new SubGraph(loopEntryBlock, bodyExitBlock);
       HLoopBlockInformation loopBlockInfo =
@@ -2160,13 +2196,17 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       loopEntryBlock.setBlockFlow(loopBlockInfo, current);
       loopInfo.loopBlockInformation = loopBlockInfo;
     } else {
-      // If the loop has no back edge, we remove the loop information
-      // on the header.
+      // Since the loop has no back edge, we remove the loop information on the
+      // header.
       loopEntryBlock.loopInformation = null;
 
-      // If the body of the loop has any break, we attach a
-      // synthesized label to the body.
       if (jumpHandler.hasAnyBreak()) {
+        // Null branchBlock because the body of the do-while loop always aborts,
+        // so we never get to the condition.
+        endLoop(loopEntryBlock, null, jumpHandler, localsHandler);
+
+        // Since the body of the loop has a break, we attach a synthesized label
+        // to the body.
         SubGraph bodyGraph = new SubGraph(bodyEntryBlock, bodyExitBlock);
         TargetElement target = elements[node];
         LabelElement label = target.addLabel(null, 'loop');
@@ -4069,18 +4109,18 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     SubGraph bodyGraph = new SubGraph(entryBlock, lastOpenedBlock);
 
     HBasicBlock joinBlock = graph.addNewBlock();
-    List<LocalsHandler> breakLocals = <LocalsHandler>[];
+    List<LocalsHandler> breakHandlers = <LocalsHandler>[];
     handler.forEachBreak((HBreak breakInstruction, LocalsHandler locals) {
       breakInstruction.block.addSuccessor(joinBlock);
-      breakLocals.add(locals);
+      breakHandlers.add(locals);
     });
-    bool hasBreak = breakLocals.length > 0;
+    bool hasBreak = breakHandlers.length > 0;
     if (!isAborted()) {
       goto(current, joinBlock);
-      breakLocals.add(localsHandler);
+      breakHandlers.add(localsHandler);
     }
     open(joinBlock);
-    localsHandler = beforeLocals.mergeMultiple(breakLocals, joinBlock);
+    localsHandler = beforeLocals.mergeMultiple(breakHandlers, joinBlock);
 
     if (hasBreak) {
       // There was at least one reachable break, so the label is needed.
@@ -4143,25 +4183,25 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     // Create merge block for break targets.
     HBasicBlock joinBlock = new HBasicBlock();
-    List<LocalsHandler> caseLocals = <LocalsHandler>[];
+    List<LocalsHandler> caseHandlers = <LocalsHandler>[];
     jumpHandler.forEachBreak((HBreak instruction, LocalsHandler locals) {
       instruction.block.addSuccessor(joinBlock);
-      caseLocals.add(locals);
+      caseHandlers.add(locals);
     });
     if (!isAborted()) {
       // The current flow is only aborted if the switch has a default that
       // aborts (all previous cases must abort, and if there is no default,
       // it's possible to miss all the cases).
-      caseLocals.add(localsHandler);
+      caseHandlers.add(localsHandler);
       goto(current, joinBlock);
     }
-    if (caseLocals.length != 0) {
+    if (caseHandlers.length != 0) {
       graph.addBlock(joinBlock);
       open(joinBlock);
-      if (caseLocals.length == 1) {
-        localsHandler = caseLocals[0];
+      if (caseHandlers.length == 1) {
+        localsHandler = caseHandlers[0];
       } else {
-        localsHandler = savedLocals.mergeMultiple(caseLocals, joinBlock);
+        localsHandler = savedLocals.mergeMultiple(caseHandlers, joinBlock);
       }
     } else {
       // The joinblock is not used.
@@ -4282,36 +4322,36 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // Add a join-block if necessary.
     // We create [joinBlock] early, and then go through the cases that might
     // want to jump to it. In each case, if we add [joinBlock] as a successor
-    // of another block, we also add an element to [caseLocals] that is used
+    // of another block, we also add an element to [caseHandlers] that is used
     // to create the phis in [joinBlock].
-    // If we never jump to the join block, [caseLocals] will stay empty, and
+    // If we never jump to the join block, [caseHandlers] will stay empty, and
     // the join block is never added to the graph.
     HBasicBlock joinBlock = new HBasicBlock();
-    List<LocalsHandler> caseLocals = <LocalsHandler>[];
+    List<LocalsHandler> caseHandlers = <LocalsHandler>[];
     jumpHandler.forEachBreak((HBreak instruction, LocalsHandler locals) {
       instruction.block.addSuccessor(joinBlock);
-      caseLocals.add(locals);
+      caseHandlers.add(locals);
     });
     if (!isAborted()) {
       current.close(new HGoto());
       lastOpenedBlock.addSuccessor(joinBlock);
-      caseLocals.add(localsHandler);
+      caseHandlers.add(localsHandler);
     }
     if (!hasDefault) {
       // The current flow is only aborted if the switch has a default that
       // aborts (all previous cases must abort, and if there is no default,
       // it's possible to miss all the cases).
       expressionEnd.addSuccessor(joinBlock);
-      caseLocals.add(savedLocals);
+      caseHandlers.add(savedLocals);
     }
-    assert(caseLocals.length == joinBlock.predecessors.length);
-    if (caseLocals.length != 0) {
+    assert(caseHandlers.length == joinBlock.predecessors.length);
+    if (caseHandlers.length != 0) {
       graph.addBlock(joinBlock);
       open(joinBlock);
-      if (caseLocals.length == 1) {
-        localsHandler = caseLocals[0];
+      if (caseHandlers.length == 1) {
+        localsHandler = caseHandlers[0];
       } else {
-        localsHandler = savedLocals.mergeMultiple(caseLocals, joinBlock);
+        localsHandler = savedLocals.mergeMultiple(caseHandlers, joinBlock);
       }
     } else {
       // The joinblock is not used.
@@ -4785,8 +4825,10 @@ class StringBuilderVisitor extends Visitor {
  */
 class InlineWeeder extends Visitor {
   final TreeElements elements;
+
   bool seenReturn = false;
   bool tooDifficult = false;
+  int nodeCount = 0;
 
   InlineWeeder(this.elements);
 
@@ -4798,11 +4840,21 @@ class InlineWeeder extends Visitor {
     return true;
   }
 
+  bool registerNode() {
+    if (nodeCount++ > SsaBuilder.MAX_INLINING_NODES) {
+      tooDifficult = true;
+      return false;
+    } else {
+      return true;
+    }
+  }
+
   void visit(Node node) {
     node.accept(this);
   }
 
   void visitNode(Node node) {
+    if (!registerNode()) return;
     if (seenReturn) {
       tooDifficult = true;
     } else {
@@ -4811,14 +4863,17 @@ class InlineWeeder extends Visitor {
   }
 
   void visitFunctionExpression(Node node) {
+    if (!registerNode()) return;
     tooDifficult = true;
   }
 
   void visitFunctionDeclaration(Node node) {
+    if (!registerNode()) return;
     tooDifficult = true;
   }
 
   void visitSend(Send node) {
+    if (!registerNode()) return;
     if (node.isParameterCheck) {
       tooDifficult = true;
       return;
@@ -4827,11 +4882,13 @@ class InlineWeeder extends Visitor {
   }
 
   visitLoop(Node node) {
+    if (!registerNode()) return;
     node.visitChildren(this);
     if (seenReturn) tooDifficult = true;
   }
 
   void visitReturn(Return node) {
+    if (!registerNode()) return;
     if (seenReturn
         || identical(node.getBeginToken().stringValue, 'native')
         || node.isRedirectingFactoryBody) {
@@ -4843,10 +4900,12 @@ class InlineWeeder extends Visitor {
   }
 
   void visitTryStatement(Node node) {
+    if (!registerNode()) return;
     tooDifficult = true;
   }
 
   void visitThrow(Node node) {
+    if (!registerNode()) return;
     tooDifficult = true;
   }
 }

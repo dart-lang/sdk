@@ -12,7 +12,7 @@ void testZLibDeflate() {
     var data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
     var controller = new StreamController();
     controller.stream.transform(new ZLibDeflater(gzip: false, level: level))
-        .reduce([], (buffer, data) {
+        .fold([], (buffer, data) {
           buffer.addAll(data);
           return buffer;
         })
@@ -52,7 +52,7 @@ void testZLibDeflateEmpty() {
   var port = new ReceivePort();
   var controller = new StreamController();
   controller.stream.transform(new ZLibDeflater(gzip: false, level: 6))
-      .reduce([], (buffer, data) {
+      .fold([], (buffer, data) {
         buffer.addAll(data);
         return buffer;
       })
@@ -70,7 +70,7 @@ void testZLibDeflateGZip() {
   var data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
   var controller = new StreamController();
   controller.stream.transform(new ZLibDeflater())
-      .reduce([], (buffer, data) {
+      .fold([], (buffer, data) {
         buffer.addAll(data);
         return buffer;
       })
@@ -116,7 +116,7 @@ void testZLibInflate() {
     controller.stream
       .transform(new ZLibDeflater(gzip: gzip, level: level))
       .transform(new ZLibInflater())
-        .reduce([], (buffer, data) {
+        .fold([], (buffer, data) {
           buffer.addAll(data);
           return buffer;
         })

@@ -1087,7 +1087,6 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // RAX: new object start.
     // RBX: next object start.
     // RDI: new object type arguments (if is_cls_parameterized).
-    __ LoadObject(RDX, cls);  // Load class of object to be allocated.
     // Set the tags.
     uword tags = 0;
     tags = RawObject::SizeTag::update(instance_size, tags);
@@ -1101,7 +1100,6 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
 
     // RAX: new object start.
     // RBX: next object start.
-    // RDX: class of the object to be allocated.
     // RDI: new object type arguments (if is_cls_parameterized).
     // First try inlining the initialization without a loop.
     if (instance_size < (kInlineInstanceSize * kWordSize)) {

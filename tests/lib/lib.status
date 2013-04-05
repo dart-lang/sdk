@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-async/stream_periodic4_test: Pass, Fail # Issue http://dartbug.com/9367
+async/stream_periodic4_test: Fail, Pass # floitsch: Marking as flaky while collection debug information. http://dartbug.com/9619
 
 # The typeddata library is not supported by dart2js or dart2dart yet.
 [ $compiler == dart2js  || $compiler == dart2dart ]
@@ -90,7 +90,6 @@ async/run_async3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug
 async/run_async4_test: Pass, Fail # http://dartbug.com/9013
 
 [ $compiler == none && $runtime == drt ]
-async/deferred/deferred_api_test: Fail # http://dartbug.com/2264
 async/timer_isolate_test: Skip # See Issue 4997
 async/timer_not_available_test: Skip # only meant to test when there is no way to
                                      # implement timer (currently only in d8)

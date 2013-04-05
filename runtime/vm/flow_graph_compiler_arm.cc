@@ -19,6 +19,7 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, print_ast);
 DECLARE_FLAG(bool, print_scopes);
@@ -42,20 +43,42 @@ bool FlowGraphCompiler::SupportsUnboxedMints() {
 
 void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
                                              intptr_t stub_ix) {
-  UNIMPLEMENTED();
+  // Calls do not need stubs, they share a deoptimization trampoline.
+  ASSERT(reason() != kDeoptAtCall);
+  Assembler* assem = compiler->assembler();
+#define __ assem->
+  __ Comment("Deopt stub for id %"Pd"", deopt_id());
+  __ Bind(entry_label());
+  if (FLAG_trap_on_deoptimization) __ bkpt(0);
+
+  ASSERT(deoptimization_env() != NULL);
+
+  __ BranchLink(&StubCode::DeoptimizeLabel());
+  set_pc_offset(assem->CodeSize());
+#undef __
 }
 
 
 #define __ assembler()->
 
 
+// Fall through if bool_register contains null.
 void FlowGraphCompiler::GenerateBoolToJump(Register bool_register,
                                            Label* is_true,
                                            Label* is_false) {
-  UNIMPLEMENTED();
+  Label fall_through;
+  __ CompareImmediate(bool_register,
+                      reinterpret_cast<intptr_t>(Object::null()));
+  __ b(&fall_through, EQ);
+  __ CompareObject(bool_register, Bool::True());
+  __ b(is_true, EQ);
+  __ b(is_false);
+  __ Bind(&fall_through);
 }
 
 
+// R0: instance (must be preserved).
+// R1: instantiator type arguments (if used).
 RawSubtypeTestCache* FlowGraphCompiler::GenerateCallSubtypeTestStub(
     TypeTestStubKind test_kind,
     Register instance_reg,
@@ -63,8 +86,28 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateCallSubtypeTestStub(
     Register temp_reg,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
-  UNIMPLEMENTED();
-  return NULL;
+  ASSERT(instance_reg == R0);
+  ASSERT(temp_reg == kNoRegister);  // Unused on ARM.
+  const SubtypeTestCache& type_test_cache =
+      SubtypeTestCache::ZoneHandle(SubtypeTestCache::New());
+  __ LoadObject(R2, type_test_cache);
+  if (test_kind == kTestTypeOneArg) {
+    ASSERT(type_arguments_reg == kNoRegister);
+    __ LoadImmediate(R1, reinterpret_cast<intptr_t>(Object::null()));
+    __ BranchLink(&StubCode::Subtype1TestCacheLabel());
+  } else if (test_kind == kTestTypeTwoArgs) {
+    ASSERT(type_arguments_reg == kNoRegister);
+    __ LoadImmediate(R1, reinterpret_cast<intptr_t>(Object::null()));
+    __ BranchLink(&StubCode::Subtype2TestCacheLabel());
+  } else if (test_kind == kTestTypeThreeArgs) {
+    ASSERT(type_arguments_reg == R1);
+    __ BranchLink(&StubCode::Subtype3TestCacheLabel());
+  } else {
+    UNREACHABLE();
+  }
+  // Result is in R1: null -> not found, otherwise Bool::True or Bool::False.
+  GenerateBoolToJump(R1, is_instance_lbl, is_not_instance_lbl);
+  return type_test_cache.raw();
 }
 
 
@@ -155,13 +198,36 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
 }
 
 
+// Uses SubtypeTestCache to store instance class and result.
+// R0: instance to test.
+// Clobbers R1-R5.
+// Immediate class test already done.
+// TODO(srdjan): Implement a quicker subtype check, as type test
+// arrays can grow too high, but they may be useful when optimizing
+// code (type-feedback).
 RawSubtypeTestCache* FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
     intptr_t token_pos,
     const Class& type_class,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
-  UNIMPLEMENTED();
-  return NULL;
+  __ Comment("Subtype1TestCacheLookup");
+  const Register kInstanceReg = R0;
+  __ LoadClass(R1, kInstanceReg, R2);
+  // R1: instance class.
+  // Check immediate superclass equality.
+  __ ldr(R2, FieldAddress(R1, Class::super_type_offset()));
+  __ ldr(R2, FieldAddress(R2, Type::type_class_offset()));
+  __ CompareObject(R2, type_class);
+  __ b(is_instance_lbl, EQ);
+
+  const Register kTypeArgumentsReg = kNoRegister;
+  const Register kTempReg = kNoRegister;
+  return GenerateCallSubtypeTestStub(kTestTypeOneArg,
+                                     kInstanceReg,
+                                     kTypeArgumentsReg,
+                                     kTempReg,
+                                     is_instance_lbl,
+                                     is_not_instance_lbl);
 }
 
 
@@ -834,7 +900,22 @@ void FlowGraphCompiler::GenerateCallRuntime(intptr_t token_pos,
                                             intptr_t deopt_id,
                                             const RuntimeEntry& entry,
                                             LocationSummary* locs) {
-  __ Unimplemented("call runtime");
+  __ CallRuntime(entry);
+  AddCurrentDescriptor(PcDescriptors::kOther, deopt_id, token_pos);
+  RecordSafepoint(locs);
+  if (deopt_id != Isolate::kNoDeoptId) {
+    // Marks either the continuation point in unoptimized code or the
+    // deoptimization point in optimized code, after call.
+    if (is_optimizing()) {
+      AddDeoptIndexAtCall(deopt_id, token_pos);
+    } else {
+      // Add deoptimization continuation point after the call and before the
+      // arguments are removed.
+      AddCurrentDescriptor(PcDescriptors::kDeoptAfter,
+                           deopt_id,
+                           token_pos);
+    }
+  }
 }
 
 
@@ -908,7 +989,16 @@ void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
 void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
                                                   Register right,
                                                   bool needs_number_check) {
-  UNIMPLEMENTED();
+  if (needs_number_check) {
+    __ Push(left);
+    __ Push(right);
+    __ BranchLink(&StubCode::IdenticalWithNumberCheckLabel());
+    // Stub returns result in flags (result of a cmpl, we need ZF computed).
+    __ Pop(right);
+    __ Pop(left);
+  } else {
+    __ cmp(left, ShifterOperand(right));
+  }
 }
 
 
@@ -1025,36 +1115,165 @@ Address FlowGraphCompiler::ExternalElementAddressForRegIndex(
 }
 
 
+#undef __
+#define __ compiler_->assembler()->
+
+
 void ParallelMoveResolver::EmitMove(int index) {
-  UNIMPLEMENTED();
+  MoveOperands* move = moves_[index];
+  const Location source = move->src();
+  const Location destination = move->dest();
+
+  if (source.IsRegister()) {
+    if (destination.IsRegister()) {
+      __ mov(destination.reg(), ShifterOperand(source.reg()));
+    } else {
+      ASSERT(destination.IsStackSlot());
+      __ str(source.reg(), destination.ToStackSlotAddress());
+    }
+  } else if (source.IsStackSlot()) {
+    if (destination.IsRegister()) {
+      __ ldr(destination.reg(), source.ToStackSlotAddress());
+    } else {
+      ASSERT(destination.IsStackSlot());
+      MoveMemoryToMemory(destination.ToStackSlotAddress(),
+                         source.ToStackSlotAddress());
+    }
+  } else if (source.IsFpuRegister()) {
+    if (destination.IsFpuRegister()) {
+      __ vmovd(destination.fpu_reg(), source.fpu_reg());
+    } else {
+      if (destination.IsDoubleStackSlot()) {
+        __ vstrd(source.fpu_reg(), destination.ToStackSlotAddress());
+      } else {
+        ASSERT(destination.IsFloat32x4StackSlot() ||
+               destination.IsUint32x4StackSlot());
+        UNIMPLEMENTED();
+      }
+    }
+  } else if (source.IsDoubleStackSlot()) {
+    if (destination.IsFpuRegister()) {
+      __ vldrd(destination.fpu_reg(), source.ToStackSlotAddress());
+    } else {
+      ASSERT(destination.IsDoubleStackSlot());
+      __ vldrd(FpuTMP, source.ToStackSlotAddress());
+      __ vstrd(FpuTMP, destination.ToStackSlotAddress());
+    }
+  } else if (source.IsFloat32x4StackSlot() || source.IsUint32x4StackSlot()) {
+    UNIMPLEMENTED();
+  } else {
+    ASSERT(source.IsConstant());
+    if (destination.IsRegister()) {
+      const Object& constant = source.constant();
+      __ LoadObject(destination.reg(), constant);
+    } else {
+      ASSERT(destination.IsStackSlot());
+      StoreObject(destination.ToStackSlotAddress(), source.constant());
+    }
+  }
+
+  move->Eliminate();
 }
 
 
 void ParallelMoveResolver::EmitSwap(int index) {
-  UNIMPLEMENTED();
+  MoveOperands* move = moves_[index];
+  const Location source = move->src();
+  const Location destination = move->dest();
+
+  if (source.IsRegister() && destination.IsRegister()) {
+    ASSERT(source.reg() != IP);
+    ASSERT(destination.reg() != IP);
+    __ mov(IP, ShifterOperand(source.reg()));
+    __ mov(source.reg(), ShifterOperand(destination.reg()));
+    __ mov(destination.reg(), ShifterOperand(IP));
+  } else if (source.IsRegister() && destination.IsStackSlot()) {
+    Exchange(source.reg(), destination.ToStackSlotAddress());
+  } else if (source.IsStackSlot() && destination.IsRegister()) {
+    Exchange(destination.reg(), source.ToStackSlotAddress());
+  } else if (source.IsStackSlot() && destination.IsStackSlot()) {
+    Exchange(destination.ToStackSlotAddress(), source.ToStackSlotAddress());
+  } else if (source.IsFpuRegister() && destination.IsFpuRegister()) {
+    __ vmovd(FpuTMP, source.fpu_reg());
+    __ vmovd(source.fpu_reg(), destination.fpu_reg());
+    __ vmovd(destination.fpu_reg(), FpuTMP);
+  } else if (source.IsFpuRegister() || destination.IsFpuRegister()) {
+    ASSERT(destination.IsDoubleStackSlot() ||
+           destination.IsFloat32x4StackSlot() ||
+           destination.IsUint32x4StackSlot() ||
+           source.IsDoubleStackSlot() ||
+           source.IsFloat32x4StackSlot() ||
+           source.IsUint32x4StackSlot());
+    bool double_width = destination.IsDoubleStackSlot() ||
+                        source.IsDoubleStackSlot();
+    DRegister reg = source.IsFpuRegister() ? source.fpu_reg()
+                                           : destination.fpu_reg();
+    const Address& slot_address = source.IsFpuRegister()
+        ? destination.ToStackSlotAddress()
+        : source.ToStackSlotAddress();
+
+    if (double_width) {
+      __ vldrd(FpuTMP, slot_address);
+      __ vstrd(reg, slot_address);
+      __ vmovd(reg, FpuTMP);
+    } else {
+      UNIMPLEMENTED();
+    }
+  } else {
+    UNREACHABLE();
+  }
+
+  // The swap of source and destination has executed a move from source to
+  // destination.
+  move->Eliminate();
+
+  // Any unperformed (including pending) move with a source of either
+  // this move's source or destination needs to have their source
+  // changed to reflect the state of affairs after the swap.
+  for (int i = 0; i < moves_.length(); ++i) {
+    const MoveOperands& other_move = *moves_[i];
+    if (other_move.Blocks(source)) {
+      moves_[i]->set_src(destination);
+    } else if (other_move.Blocks(destination)) {
+      moves_[i]->set_src(source);
+    }
+  }
 }
 
 
 void ParallelMoveResolver::MoveMemoryToMemory(const Address& dst,
                                               const Address& src) {
-  UNIMPLEMENTED();
+  __ ldr(IP, src);
+  __ str(IP, dst);
 }
 
 
 void ParallelMoveResolver::StoreObject(const Address& dst, const Object& obj) {
-  UNIMPLEMENTED();
+  __ LoadObject(IP, obj);
+  __ str(IP, dst);
 }
 
 
 void ParallelMoveResolver::Exchange(Register reg, const Address& mem) {
-  UNIMPLEMENTED();
+  ASSERT(reg != IP);
+  __ mov(IP, ShifterOperand(reg));
+  __ ldr(reg, mem);
+  __ str(IP, mem);
 }
 
 
 void ParallelMoveResolver::Exchange(const Address& mem1, const Address& mem2) {
-  UNIMPLEMENTED();
+  // TODO(vegorov): allocate temporary registers for such moves.
+  __ Push(R0);
+  __ ldr(R0, mem1);
+  __ ldr(IP, mem2);
+  __ str(IP, mem1);
+  __ str(R0, mem2);
+  __ Pop(R0);
 }
 
+
+#undef __
 
 }  // namespace dart
 

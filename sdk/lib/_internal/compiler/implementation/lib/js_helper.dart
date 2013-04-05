@@ -12,11 +12,11 @@ import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
                                    JS_DART_OBJECT_CONSTRUCTOR,
                                    JS_OPERATOR_IS_PREFIX,
                                    JS_OPERATOR_AS_PREFIX,
-                                   JS_HAS_EQUALS,
-                                   RAW_DART_FUNCTION_REF,
-                                   UNINTERCEPTED;
+                                   RAW_DART_FUNCTION_REF;
 import 'dart:_interceptors' show getInterceptor,
                                  interceptedNames,
+                                 dispatchPropertyName,
+                                 Interceptor,
                                  JSIndexable;
 
 part 'constant_map.dart';
@@ -1134,7 +1134,7 @@ propertyTypeCast(value, property) {
 callTypeCheck(value, property) {
   if (value == null) return value;
   if ((identical(JS('String', 'typeof #', value), 'object'))
-      && JS('bool', '#[#]()', value, property)) {
+      && JS('bool', '#[#]()', getInterceptor(value), property)) {
     return value;
   }
   propertyTypeError(value, property);
@@ -1148,7 +1148,7 @@ callTypeCheck(value, property) {
 callTypeCast(value, property) {
   if (value == null
       || ((JS('bool', 'typeof # === "object"', value))
-          && JS('bool', '#[#]()', value, property))) {
+          && JS('bool', '#[#]()', getInterceptor(value), property))) {
     return value;
   }
   propertyTypeCastError(value, property);

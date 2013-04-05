@@ -260,7 +260,7 @@ class _HttpClientResponse
         // TODO(sgjesse): Support digest.
         if (cr.scheme == _AuthenticationScheme.BASIC) {
           // Drain body and retry.
-          return reduce(null, (x, y) {}).then((_) {
+          return fold(null, (x, y) {}).then((_) {
               return _httpClient._openUrlFromRequest(_httpRequest.method,
                                                      _httpRequest.uri,
                                                      _httpRequest)
@@ -375,8 +375,16 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
     _ioSink.write(string);
   }
 
-  void writeAll(Iterable objects) {
-    for (Object obj in objects) write(obj);
+  void writeAll(Iterable objects, [String separator = ""]) {
+    bool isFirst = true;
+    for (Object obj in objects) {
+      if (isFirst) {
+        isFirst = false;
+      } else {
+        if (separator != "") write(separator);
+      }
+      write(obj);
+    }
   }
 
   void writeln([Object obj = ""]) {
@@ -399,12 +407,16 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
     return _ioSink.consume(stream);
   }
 
-  Future<T> writeStream(Stream<List<int>> stream) {
+  Future<T> addStream(Stream<List<int>> stream) {
     _writeHeaders();
     return _ioSink.writeStream(stream).then((_) => this);
   }
 
-  void close() {
+  Future<T> writeStream(Stream<List<int>> stream) {
+    return addStream(stream);
+  }
+
+  Future close() {
     // TODO(ajohnsen): Currently, contentLength, chunkedTransferEncoding and
     // persistentConnection is not guaranteed to be in sync.
     if (!_headersWritten && !_ignoreBody && headers.contentLength == -1) {
@@ -414,7 +426,7 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
       headers.contentLength = 0;
     }
     _writeHeaders();
-    _ioSink.close();
+    return _ioSink.close();
   }
 
   Future<T> get done {
@@ -452,7 +464,7 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
     int contentLength = headers.contentLength;
     if (_ignoreBody) {
       ioSink.close();
-      return stream.reduce(null, (x, y) {}).then((_) => this);
+      return stream.fold(null, (x, y) {}).then((_) => this);
     }
     stream = stream.transform(new _BufferTransformer());
     if (headers.chunkedTransferEncoding) {
@@ -479,6 +491,14 @@ class _HttpOutboundConsumer implements StreamConsumer {
                         bool this._asGZip);
 
   Future consume(var stream) => _consume(_ioSink, stream, _asGZip);
+
+  Future addStream(var stream) {
+    throw new UnimplementedError("_HttpOutboundConsumer.addStream");
+  }
+
+  Future close() {
+    throw new UnimplementedError("_HttpOutboundConsumer.close");
+  }
 }
 
 
@@ -727,11 +747,11 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientRequest>
     if (followRedirects && response.isRedirect) {
       if (response.redirects.length < maxRedirects) {
         // Redirect and drain response.
-        future = response.reduce(null, (x, y) {})
+        future = response.fold(null, (x, y) {})
           .then((_) => response.redirect());
       } else {
         // End with exception, too many redirects.
-        future = response.reduce(null, (x, y) {})
+        future = response.fold(null, (x, y) {})
             .then((_) => new Future.immediateError(
                 new RedirectLimitExceededException(response.redirects)));
       }
@@ -885,6 +905,14 @@ class _HttpOutgoing implements StreamConsumer<List<int>, dynamic> {
               onError: _consumeCompleter.completeError);
     // Use .then to ensure a Future branch.
     return _consumeCompleter.future.then((_) => this);
+  }
+
+  Future addStream(Stream<List<int>> stream) {
+    throw new UnimplementedError("_HttpOutgoing.addStream");
+  }
+
+  Future close() {
+    throw new UnimplementedError("_HttpOutgoing.close");
   }
 }
 
@@ -1089,7 +1117,7 @@ class _HttpClient implements HttpClient {
     _closing = true;
     // Create flattened copy of _idleConnections, as 'destory' will manipulate
     // it.
-    var idle = _idleConnections.values.reduce(
+    var idle = _idleConnections.values.fold(
         [],
         (l, e) {
           l.addAll(e);
@@ -1241,7 +1269,7 @@ class _HttpClient implements HttpClient {
   _Credentials _findCredentials(Uri url, [_AuthenticationScheme scheme]) {
     // Look for credentials.
     _Credentials cr =
-        _credentials.reduce(null, (_Credentials prev, _Credentials value) {
+        _credentials.fold(null, (_Credentials prev, _Credentials value) {
           if (value.applies(url, scheme)) {
             if (prev == null) return value;
             return value.uri.path.length > prev.uri.path.length ? value : prev;
@@ -1635,12 +1663,18 @@ class _DetachedSocket extends Stream<List<int>> implements Socket {
 
   void writeCharCode(int charCode) => _socket.writeCharCode(charCode);
 
-  void writeAll(Iterable objects) => _socket.writeAll(objects);
+  void writeAll(Iterable objects, [String separator = ""]) {
+    _socket.writeAll(objects, separator);
+  }
 
   void writeBytes(List<int> bytes) => _socket.writeBytes(bytes);
 
   Future<Socket> consume(Stream<List<int>> stream) {
     return _socket.consume(stream);
+  }
+
+  Future<Socket> addStream(Stream<List<int>> stream) {
+    return _socket.addStream(stream);
   }
 
   Future<Socket> writeStream(Stream<List<int>> stream) {
@@ -1649,7 +1683,7 @@ class _DetachedSocket extends Stream<List<int>> implements Socket {
 
   void destroy() => _socket.destroy();
 
-  void close() => _socket.close();
+  Future close() => _socket.close();
 
   Future<Socket> get done => _socket.done;
 

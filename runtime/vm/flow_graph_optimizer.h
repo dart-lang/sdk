@@ -80,6 +80,7 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   bool TryInlineInstanceMethod(InstanceCallInstr* call);
   void ReplaceWithInstanceOf(InstanceCallInstr* instr);
+  void ReplaceWithTypeCast(InstanceCallInstr* instr);
 
   LoadIndexedInstr* BuildStringCodeUnitAt(InstanceCallInstr* call,
                                           intptr_t cid);
@@ -213,11 +214,16 @@ class ConstantPropagator : public FlowGraphVisitor {
 
   static void Optimize(FlowGraph* graph);
 
+  // Only visit branches to optimize away unreachable blocks discovered
+  // by range analysis.
+  static void OptimizeBranches(FlowGraph* graph);
+
   // Used to initialize the abstract value of definitions.
   static RawObject* Unknown() { return Object::transition_sentinel().raw(); }
 
  private:
   void Analyze();
+  void VisitBranches();
   void Transform();
 
   void SetReachable(BlockEntryInstr* block);

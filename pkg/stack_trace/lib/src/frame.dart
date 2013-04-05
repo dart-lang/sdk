@@ -46,6 +46,13 @@ class Frame {
     return path.relative(fileUriToPath(uri));
   }
 
+  /// Returns the name of the package this stack frame comes from, or `null` if
+  /// this stack frame doesn't come from a `package:` URL.
+  String get package {
+    if (uri.scheme != 'package') return null;
+    return uri.path.split('/').first;
+  }
+
   /// A human-friendly description of the code location.
   ///
   /// For Dart core libraries, this will omit the line and column information,

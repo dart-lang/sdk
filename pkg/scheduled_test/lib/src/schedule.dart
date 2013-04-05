@@ -7,6 +7,7 @@ library schedule;
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:stack_trace/stack_trace.dart';
 import 'package:unittest/unittest.dart' as unittest;
 
 import 'mock_clock.dart' as mock_clock;
@@ -495,6 +496,8 @@ class TaskQueue {
     if (description == null) {
       description = "Out-of-band operation #${_totalCallbacks}";
     }
+    var stackString = prefixLines(terseTraceString(new Trace.current()));
+    description = "$description\n\nStack trace:\n$stackString";
     _totalCallbacks++;
 
     _pendingCallbacks.add(description);
@@ -558,7 +561,10 @@ class TaskQueue {
   String generateTree([Task highlight]) {
     assert(highlight == null || highlight.queue == this);
     return _contents.map((task) {
-      var taskString = prefixLines(task.toString(),
+      var taskString = task == highlight
+          ? task.toStringWithStackTrace()
+          : task.toString();
+      taskString = prefixLines(taskString,
           firstPrefix: task == highlight ? "> " : "* ");
 
       if (task == highlight && !task.children.isEmpty) {
@@ -570,7 +576,10 @@ class TaskQueue {
             prefix = "*";
           }
 
-          return prefixLines(child.toString(),
+          var childString = prefix == "*"
+              ? child.toString()
+              : child.toStringWithStackTrace();
+          return prefixLines(childString,
               firstPrefix: "  $prefix ", prefix: "  | ");
         }).join('\n');
         taskString = '$taskString\n$childrenString';

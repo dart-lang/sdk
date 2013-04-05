@@ -171,32 +171,34 @@ static bool CanonicalizeUri(Isolate* isolate,
                             char** canonical_uri,
                             char** error) {
   Zone* zone = isolate->current_zone();
+  bool retval = false;
   Dart_LibraryTagHandler handler = isolate->library_tag_handler();
-  if (handler == NULL) {
+  if (handler != NULL) {
+    Dart_EnterScope();
+    Dart_Handle result = handler(kCanonicalizeUrl,
+                                 Api::NewHandle(isolate, library.raw()),
+                                 Api::NewHandle(isolate, uri.raw()));
+    const Object& obj = Object::Handle(Api::UnwrapHandle(result));
+    if (obj.IsString()) {
+      *canonical_uri = zone->MakeCopyOfString(String::Cast(obj).ToCString());
+      retval = true;
+    } else if (obj.IsError()) {
+      Error& error_obj = Error::Handle();
+      error_obj ^= obj.raw();
+      *error = zone->PrintToString("Unable to canonicalize uri '%s': %s",
+                                   uri.ToCString(), error_obj.ToErrorCString());
+    } else {
+      *error = zone->PrintToString("Unable to canonicalize uri '%s': "
+                                   "library tag handler returned wrong type",
+                                   uri.ToCString());
+    }
+    Dart_ExitScope();
+  } else {
     *error = zone->PrintToString(
         "Unable to canonicalize uri '%s': no library tag handler found.",
         uri.ToCString());
-    return false;
   }
-  Dart_Handle result = handler(kCanonicalizeUrl,
-                               Api::NewHandle(isolate, library.raw()),
-                               Api::NewHandle(isolate, uri.raw()));
-  const Object& obj = Object::Handle(Api::UnwrapHandle(result));
-  if (obj.IsError()) {
-    Error& error_obj = Error::Handle();
-    error_obj ^= obj.raw();
-    *error = zone->PrintToString("Unable to canonicalize uri '%s': %s",
-                                 uri.ToCString(), error_obj.ToErrorCString());
-    return false;
-  } else if (obj.IsString()) {
-    *canonical_uri = zone->MakeCopyOfString(String::Cast(obj).ToCString());
-    return true;
-  } else {
-    *error = zone->PrintToString("Unable to canonicalize uri '%s': "
-                                 "library tag handler returned wrong type",
-                                 uri.ToCString());
-    return false;
-  }
+  return retval;
 }
 
 

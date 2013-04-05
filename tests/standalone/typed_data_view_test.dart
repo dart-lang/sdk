@@ -15,7 +15,7 @@ validate(TypedData list, num expected) {
   }
 }
 
-main() {
+testView() {
   var list = new Int8List(128);
   for (var i = 0; i < list.length; i++) {
     list[i] = 42;
@@ -41,4 +41,42 @@ main() {
   validate(flist, 1.511366173271439e-13);
   var dlist = new Float64List.view(ba, 0, 8);
   validate(dlist, 1.4260258159703532e-105);
+}
+
+testSetters() {
+  var blist = new ByteData(128);
+  blist.setInt8(0, 0xffff);
+  Expect.equals(-1, blist.getInt8(0));
+  blist.setUint8(0, 0xffff);
+  Expect.equals(0xff, blist.getUint8(0));
+  blist.setInt16(0, 0xffffffff);
+  Expect.equals(-1, blist.getInt16(0));
+  blist.setUint16(0, 0xffffffff);
+  Expect.equals(0xffff, blist.getUint16(0));
+  blist.setInt32(0, 0xffffffffffff);
+  Expect.equals(-1, blist.getInt32(0));
+  blist.setUint32(0, 0xffffffffffff);
+  Expect.equals(0xffffffff, blist.getUint32(0));
+  blist.setInt64(0, 0xffffffffffffffffff);
+  Expect.equals(-1, blist.getInt64(0));
+  blist.setUint64(0, 0xffffffffffffffffff);
+  Expect.equals(0xffffffffffffffff, blist.getUint64(0));
+  blist.setInt32(0, 18446744073709551614);
+  Expect.equals(-2, blist.getInt32(0));
+  blist.setUint32(0, 18446744073709551614);
+  Expect.equals(0xfffffffe, blist.getUint32(0));
+  blist.setInt64(0, 18446744073709551614);
+  Expect.equals(-2, blist.getInt64(0));
+  blist.setUint64(0, 18446744073709551614);
+  Expect.equals(0xfffffffffffffffe, blist.getUint64(0));
+
+  blist.setFloat32(0, 18446744073709551614.0);
+  Expect.equals(18446744073709551614.0, blist.getFloat32(0));
+  blist.setFloat64(0, 18446744073709551614.0);
+  Expect.equals(18446744073709551614.0, blist.getFloat64(0));
+}
+
+main() {
+  testView();
+  testSetters();
 }

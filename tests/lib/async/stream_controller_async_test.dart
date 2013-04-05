@@ -11,11 +11,11 @@ import '../../../pkg/unittest/lib/unittest.dart';
 import 'event_helper.dart';
 
 testController() {
-  // Test reduce
-  test("StreamController.reduce", () {
+  // Test fold
+  test("StreamController.fold", () {
     StreamController c = new StreamController.broadcast();
     Stream stream = c.stream;
-    stream.reduce(0, (a,b) => a + b)
+    stream.fold(0, (a,b) => a + b)
      .then(expectAsync1((int v) {
         Expect.equals(42, v);
     }));
@@ -24,10 +24,10 @@ testController() {
     c.close();
   });
 
-  test("StreamController.reduce throws", () {
+  test("StreamController.fold throws", () {
     StreamController c = new StreamController.broadcast();
     Stream stream = c.stream;
-    stream.reduce(0, (a,b) { throw "Fnyf!"; })
+    stream.fold(0, (a,b) { throw "Fnyf!"; })
      .catchError(expectAsync1((e) { Expect.equals("Fnyf!", e.error); }));
     c.add(42);
   });
@@ -50,20 +50,20 @@ testController() {
 }
 
 testSingleController() {
-  test("Single-subscription StreamController.reduce", () {
+  test("Single-subscription StreamController.fold", () {
     StreamController c = new StreamController();
     Stream stream = c.stream;
-    stream.reduce(0, (a,b) => a + b)
+    stream.fold(0, (a,b) => a + b)
     .then(expectAsync1((int v) { Expect.equals(42, v); }));
     c.add(10);
     c.add(32);
     c.close();
   });
 
-  test("Single-subscription StreamController.reduce throws", () {
+  test("Single-subscription StreamController.fold throws", () {
     StreamController c = new StreamController();
     Stream stream = c.stream;
-    stream.reduce(0, (a,b) { throw "Fnyf!"; })
+    stream.fold(0, (a,b) { throw "Fnyf!"; })
             .catchError(expectAsync1((e) { Expect.equals("Fnyf!", e.error); }));
     c.add(42);
   });
@@ -449,6 +449,7 @@ testRethrow() {
   testFuture("min", (s, act) => s.min((a, b) => act(b)));
   testFuture("max", (s, act) => s.max((a, b) => act(b)));
   testFuture("reduce", (s, act) => s.reduce(0, (a,b) => act(b)));
+  testFuture("fold", (s, act) => s.fold(0, (a,b) => act(b)));
 }
 
 main() {

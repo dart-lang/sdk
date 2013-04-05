@@ -84,11 +84,6 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     }
   }
 
-  void addLast(E value) {
-    checkGrowable(this, 'addLast');
-    JS('void', r'#.push(#)', this, value);
-  }
-
   void clear() {
     length = 0;
   }
@@ -128,6 +123,10 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
 
   reduce(initialValue, combine(previousValue, E element)) {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  }
+
+  fold(initialValue, combine(previousValue, E element)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
   E firstWhere(bool test(E value), {E orElse()}) {

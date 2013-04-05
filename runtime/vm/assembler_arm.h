@@ -251,8 +251,8 @@ class Address : public ValueObject {
     encoding_ |= static_cast<uint32_t>(rn) << kRnShift;
   }
 
-  explicit Address(Register rn, Register rm, Shift shift = LSL,
-                   uint32_t shift_imm = 0, Mode am = Offset) {
+  Address(Register rn, Register rm,
+          Shift shift = LSL, uint32_t shift_imm = 0, Mode am = Offset) {
     ShifterOperand so(rm, shift, shift_imm);
 
     kind_ = ShiftedRegister;
@@ -337,15 +337,9 @@ class Assembler : public ValueObject {
 
   const Code::Comments& GetCodeComments() const;
 
-  static const char* RegisterName(Register reg) {
-    UNIMPLEMENTED();
-    return NULL;
-  }
+  static const char* RegisterName(Register reg);
 
-  static const char* FpuRegisterName(FpuRegister reg) {
-    UNIMPLEMENTED();
-    return NULL;
-  }
+  static const char* FpuRegisterName(FpuRegister reg);
 
   // Data-processing instructions.
   void and_(Register rd, Register rn, ShifterOperand so, Condition cond = AL);
@@ -639,8 +633,8 @@ class Assembler : public ValueObject {
 
   // Set up a stub frame so that the stack traversal code can easily identify
   // a stub frame.
-  void EnterStubFrame();
-  void LeaveStubFrame();
+  void EnterStubFrame(bool uses_pp = false);
+  void LeaveStubFrame(bool uses_pp = false);
 
   // Instruction pattern from entrypoint is used in Dart frame prologs
   // to set up the frame and save a PC which can be used to figure out the

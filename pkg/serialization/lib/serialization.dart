@@ -16,13 +16,15 @@
  *      address.city = 'Seattle';
  *      var serialization = new Serialization()
  *          ..addRuleFor(address);
- *      String output = serialization.write(address);
+ *      Map output = serialization.write(address);
  *
  * This creates a new serialization and adds a rule for address objects. Right
  * now it has to be passed an address instance because of limitations using
- * Address as a literal. Then we ask the Serialization to write the address
+ * Address as a literal. Then we ask the [Serialization] to write the address
  * and we get back a Map which is a [json]able representation of the state of
- * the address and related objects.
+ * the address and related objects. Note that while the output in this case
+ * is a [Map], the type will vary depending on which output format we've told
+ * the [Serialization] to use.
  *
  * The version above used reflection to automatically identify the public
  * fields of the address object. We can also specify those fields explicitly.

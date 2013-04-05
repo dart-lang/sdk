@@ -222,6 +222,25 @@ DART_EXPORT Dart_Handle Dart_ActivationFrameInfo(
 }
 
 
+DART_EXPORT Dart_Handle Dart_ActivationFrameGetLocation(
+                            Dart_ActivationFrame activation_frame,
+                            Dart_Handle* script_url,
+                            intptr_t* token_number) {
+  // TODO(hausner): Implement implement a way to recognize when there
+  // is no source code for the code in the frame.
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  CHECK_AND_CAST(ActivationFrame, frame, activation_frame);
+  if (script_url != NULL) {
+    *script_url = Api::NewHandle(isolate, frame->SourceUrl());
+  }
+  if (token_number != NULL) {
+    *token_number = frame->TokenPos();
+  }
+  return Api::True(isolate);
+}
+
+
 DART_EXPORT Dart_Handle Dart_GetLocalVariables(
                             Dart_ActivationFrame activation_frame) {
   Isolate* isolate = Isolate::Current();

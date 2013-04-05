@@ -123,7 +123,8 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
   }
   class ObjectInterceptor {
   }
-  getInterceptor(x) {}''';
+  getInterceptor(x) {}
+  getNativeInterceptor(x) {}''';
 
 const String DEFAULT_CORELIB = r'''
   print(var obj) {}
@@ -167,14 +168,18 @@ class MockCompiler extends Compiler {
                 bool enableMinification: false,
                 bool enableConcreteTypeInference: false,
                 int maxConcreteTypeSize: 5,
-                bool analyzeAll: false})
+                bool analyzeAll: false,
+                bool analyzeOnly: false,
+                bool preserveComments: false})
       : warnings = [], errors = [],
         sourceFiles = new Map<String, SourceFile>(),
         super(enableTypeAssertions: enableTypeAssertions,
               enableMinification: enableMinification,
               enableConcreteTypeInference: enableConcreteTypeInference,
               maxConcreteTypeSize: maxConcreteTypeSize,
-              analyzeAll: analyzeAll) {
+              analyzeAll: analyzeAll,
+              analyzeOnly: analyzeOnly,
+              preserveComments: preserveComments) {
     coreLibrary = createLibrary("core", coreSource);
     // We need to set the assert method to avoid calls with a 'null'
     // target being interpreted as a call to assert.

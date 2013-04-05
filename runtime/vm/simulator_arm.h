@@ -16,7 +16,6 @@
 #error Do not include simulator_arm.h directly; use simulator.h.
 #endif
 
-#include "vm/allocation.h"
 #include "vm/constants_arm.h"
 #include "vm/object.h"
 
@@ -55,8 +54,11 @@ class Simulator {
   // Accessor to the internal simulator stack top.
   uword StackTop() const;
 
-  // Executes ARM instructions until the PC reaches end_sim_pc.
-  void Execute();
+  // The isolate's top_exit_frame_info refers to a Dart frame in the simulator
+  // stack. The simulator's top_exit_frame_info refers to a C++ frame in the
+  // native stack.
+  uword top_exit_frame_info() const { return top_exit_frame_info_; }
+  void set_top_exit_frame_info(uword value) { top_exit_frame_info_ = value; }
 
   // Call on program start.
   static void InitOnce();
@@ -119,6 +121,7 @@ class Simulator {
   int icount_;
   static int32_t flag_stop_sim_at_;
   SimulatorSetjmpBuffer* last_setjmp_buffer_;
+  uword top_exit_frame_info_;
 
   // Registered breakpoints.
   Instr* break_pc_;
@@ -218,6 +221,9 @@ class Simulator {
 
   // Executes one instruction.
   void InstructionDecode(Instr* instr);
+
+  // Executes ARM instructions until the PC reaches kEndSimulatingPC.
+  void Execute();
 
   // Longjmp support for exceptions.
   SimulatorSetjmpBuffer* last_setjmp_buffer() {

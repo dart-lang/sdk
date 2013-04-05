@@ -1593,8 +1593,13 @@ void ParallelMoveResolver::EmitMove(int index) {
       // to register moves.
       __ movaps(destination.fpu_reg(), source.fpu_reg());
     } else {
-      ASSERT(destination.IsDoubleStackSlot());
-      __ movsd(destination.ToStackSlotAddress(), source.fpu_reg());
+      if (destination.IsDoubleStackSlot()) {
+        __ movsd(destination.ToStackSlotAddress(), source.fpu_reg());
+      } else {
+        ASSERT(destination.IsFloat32x4StackSlot() ||
+               destination.IsUint32x4StackSlot());
+        __ movups(destination.ToStackSlotAddress(), source.fpu_reg());
+      }
     }
   } else if (source.IsDoubleStackSlot()) {
     if (destination.IsFpuRegister()) {
@@ -1603,6 +1608,15 @@ void ParallelMoveResolver::EmitMove(int index) {
       ASSERT(destination.IsDoubleStackSlot());
       __ movsd(XMM0, source.ToStackSlotAddress());
       __ movsd(destination.ToStackSlotAddress(), XMM0);
+    }
+  } else if (source.IsFloat32x4StackSlot() || source.IsUint32x4StackSlot()) {
+    if (destination.IsFpuRegister()) {
+      __ movups(destination.fpu_reg(), source.ToStackSlotAddress());
+    } else {
+      ASSERT(destination.IsFloat32x4StackSlot() ||
+             destination.IsUint32x4StackSlot());
+      __ movups(XMM0, source.ToStackSlotAddress());
+      __ movups(destination.ToStackSlotAddress(), XMM0);
     }
   } else {
     ASSERT(source.IsConstant());
@@ -1641,15 +1655,27 @@ void ParallelMoveResolver::EmitSwap(int index) {
     __ movaps(source.fpu_reg(), destination.fpu_reg());
     __ movaps(destination.fpu_reg(), XMM0);
   } else if (source.IsFpuRegister() || destination.IsFpuRegister()) {
-    ASSERT(destination.IsDoubleStackSlot() || source.IsDoubleStackSlot());
+    ASSERT(destination.IsDoubleStackSlot() ||
+           destination.IsFloat32x4StackSlot() ||
+           destination.IsUint32x4StackSlot() ||
+           source.IsDoubleStackSlot() ||
+           source.IsFloat32x4StackSlot() ||
+           source.IsUint32x4StackSlot());
+    bool double_width = destination.IsDoubleStackSlot() ||
+                        source.IsDoubleStackSlot();
     XmmRegister reg = source.IsFpuRegister() ? source.fpu_reg()
                                              : destination.fpu_reg();
     Address slot_address = source.IsFpuRegister()
         ? destination.ToStackSlotAddress()
         : source.ToStackSlotAddress();
 
-    __ movsd(XMM0, slot_address);
-    __ movsd(slot_address, reg);
+    if (double_width) {
+      __ movsd(XMM0, slot_address);
+      __ movsd(slot_address, reg);
+    } else {
+      __ movups(XMM0, slot_address);
+      __ movups(slot_address, reg);
+    }
     __ movaps(reg, XMM0);
   } else {
     UNREACHABLE();

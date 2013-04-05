@@ -174,12 +174,15 @@ void Monitor::Exit() {
 
 
 void MonitorWaitData::ThreadExit() {
-  uword raw_wait_data =
-    Thread::GetThreadLocal(MonitorWaitData::monitor_wait_data_key_);
-  if (raw_wait_data != 0) {
-    MonitorWaitData* wait_data =
-        reinterpret_cast<MonitorWaitData*>(raw_wait_data);
-    delete wait_data;
+  if (MonitorWaitData::monitor_wait_data_key_ !=
+      Thread::kUnsetThreadLocalKey) {
+    uword raw_wait_data =
+      Thread::GetThreadLocal(MonitorWaitData::monitor_wait_data_key_);
+    if (raw_wait_data != 0) {
+      MonitorWaitData* wait_data =
+          reinterpret_cast<MonitorWaitData*>(raw_wait_data);
+      delete wait_data;
+    }
   }
 }
 

@@ -573,10 +573,12 @@ class ApiState {
     delayed_weak_reference_sets_ = reference_set;
   }
 
-  void UnwindScopes(uword sp) {
+  void UnwindScopes(uword stack_marker) {
+    // Unwind all scopes using the same stack_marker, i.e. all scopes allocated
+    // under the same top_exit_frame_info.
     while (top_scope_ != NULL &&
            top_scope_->stack_marker() != 0 &&
-           top_scope_->stack_marker() <= sp) {
+           top_scope_->stack_marker() == stack_marker) {
       ApiLocalScope* scope = top_scope_;
       top_scope_ = top_scope_->previous();
       delete scope;

@@ -44,7 +44,7 @@ Future<RawSecureServerSocket> startEchoServer() {
             }
             break;
           case RawSocketEvent.READ_CLOSED:
-            dataToWrite = readChunks.reduce(<int>[], (list, x) {
+            dataToWrite = readChunks.fold(<int>[], (list, x) {
               list.addAll(x);
               return list;
             });

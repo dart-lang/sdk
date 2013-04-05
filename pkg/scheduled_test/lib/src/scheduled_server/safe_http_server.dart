@@ -134,11 +134,14 @@ class _HttpResponseWrapper implements HttpResponse {
   void writeBytes(List<int> data) => _inner.writeBytes(data);
   Future<HttpResponse> consume(Stream<List<int>> stream) =>
     _inner.consume(stream);
+  Future<HttpResponse> addStream(Stream<List<int>> stream) =>
+    _inner.writeStream(stream);
   Future<HttpResponse> writeStream(Stream<List<int>> stream) =>
     _inner.writeStream(stream);
-  void close() => _inner.close();
+  Future close() => _inner.close();
   void write(Object obj) => _inner.write(obj);
-  void writeAll(Iterable objects) => _inner.writeAll(objects);
+  void writeAll(Iterable objects, [String separator = ""]) =>
+    _inner.writeAll(objects, separator);
   void writeCharCode(int charCode) => _inner.writeCharCode(charCode);
   void writeln([Object obj = ""]) => _inner.writeln(obj);
 }

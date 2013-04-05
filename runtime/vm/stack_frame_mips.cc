@@ -9,27 +9,28 @@
 
 namespace dart {
 
+static const int kPcAddressOffsetFromSp = -2 * kWordSize;
+static const int kEntrypointMarkerOffsetFromFp = 2 * kWordSize;
+static const int kSpOffsetFromPreviousFp = 3 * kWordSize;
+
+
 intptr_t StackFrame::PcAddressOffsetFromSp() {
-  UNIMPLEMENTED();
-  return 0;
+  return kPcAddressOffsetFromSp;
 }
 
 
 intptr_t StackFrame::EntrypointMarkerOffsetFromFp() {
-  UNIMPLEMENTED();
-  return 0;
+  return kEntrypointMarkerOffsetFromFp;
 }
 
 
 uword StackFrame::GetCallerFp() const {
-  UNIMPLEMENTED();
-  return 0;
+  return *(reinterpret_cast<uword*>(fp()));
 }
 
 
 uword StackFrame::GetCallerSp() const {
-  UNIMPLEMENTED();
-  return 0;
+  return fp() + kSpOffsetFromPreviousFp;
 }
 
 
@@ -46,7 +47,9 @@ intptr_t EntryFrame::SavedContextOffset() const {
 
 
 void StackFrameIterator::SetupLastExitFrameData() {
-  UNIMPLEMENTED();
+  Isolate* current = Isolate::Current();
+  uword exit_marker = current->top_exit_frame_info();
+  frames_.fp_ = exit_marker;
 }
 
 

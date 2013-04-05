@@ -68,24 +68,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
       codegen.visitGraph(graph);
 
       FunctionElement element = work.element;
-      js.Block body;
-      ClassElement enclosingClass = element.getEnclosingClass();
-
-      if (element.isInstanceMember()
-          && enclosingClass.isNative()
-          && native.isOverriddenMethod(
-              element, enclosingClass, nativeEmitter)) {
-        // Record that this method is overridden. In case of optional
-        // arguments, the emitter will generate stubs to handle them,
-        // and needs to know if the method is overridden.
-        nativeEmitter.overriddenMethods.add(element);
-        body = nativeEmitter.generateMethodBodyWithPrototypeCheckForElement(
-                  element, codegen.body, codegen.parameters);
-      } else {
-        body = codegen.body;
-      }
-
-      return buildJavaScriptFunction(element, codegen.parameters, body);
+      return buildJavaScriptFunction(element, codegen.parameters, codegen.body);
     });
   }
 
@@ -1500,6 +1483,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     use(node.receiver);
     List<js.Expression> arguments = <js.Expression>[pop()];
     push(jsPropertyCall(isolate, name, arguments), node);
+    backend.registerUseInterceptor(world);
   }
 
   visitInvokeDynamicMethod(HInvokeDynamicMethod node) {
@@ -1529,30 +1513,12 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         } else if (target == backend.jsStringConcat) {
           push(new js.Binary('+', object, arguments[0]), node);
           return;
-        } else if (target.isNative()
-                   && !compiler.enableTypeAssertions
-                   && target.isFunction()) {
-          // Enable direct calls to a native method only if we don't
-          // run in checked mode, where the Dart version may have
-          // type annotations on parameters and return type that it
-          // should check.
-          // Also check that the parameters are not functions: it's
-          // the callee that will translate them to JS functions.
-          // TODO(ngeoffray): There are some cases where we could
-          // still inline in checked mode if we know the arguments
-          // have the right type. And we could do the closure
-          // conversion as well as the return type annotation check.
-          bool canInlineNativeCall = true;
-          FunctionElement function = target;
-          function.computeSignature(compiler).forEachParameter((Element element) {
-            DartType type = element.computeType(compiler).unalias(compiler);
-            if (type is FunctionType) {
-              canInlineNativeCall = false;
-            }
-          });
-          if (canInlineNativeCall) {
-            methodName = target.fixedBackendName();
-          }
+        } else if (target.isNative() && target.isFunction()
+                   && !node.isInterceptedCall) {
+          // A direct (i.e. non-interceptor) native call is the result of
+          // optimization.  The optimization ensures any type checks or
+          // conversions have been satisified.
+          methodName = target.fixedBackendName();
         }
       }
     }
@@ -1577,6 +1543,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     } else {
       registerMethodInvoke(node);
     }
+    backend.registerUseInterceptor(world);
   }
 
   Selector getOptimizedSelectorFor(HInvokeDynamic node, Selector selector) {
@@ -2245,6 +2212,36 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     world.registerIsCheck(type, work.resolutionTree);
     Element element = type.element;
     use(input);
+
+    // Hack in interceptor.  Ideally the interceptor would occur at the
+    // instruction level to allow optimizations, and checks would be broken into
+    // several smaller tests.
+    String interceptorName =
+        backend.namer.getName(backend.getInterceptorMethod);
+
+    var isolate = new js.VariableUse(backend.namer.CURRENT_ISOLATE);
+    List<js.Expression> arguments = <js.Expression>[pop()];
+    push(jsPropertyCall(isolate, interceptorName, arguments));
+    backend.registerUseInterceptor(world);
+
+    // TODO(9586): If a static function can have the type, the type info is
+    // sitting on the function.  So generate:
+    //
+    //   (typeof x == "function" ? x : getInterceptor(x)).$isFoo
+    //
+    if (type.unalias(compiler) is FunctionType) {
+      js.Expression whenNotFunction = pop();
+      use(input);
+      js.Expression whenFunction = pop();
+      use(input);
+      push(new js.Conditional(
+          new js.Binary('==',
+              new js.Prefix("typeof", pop()),
+              js.string('function')),
+          whenFunction,
+          whenNotFunction));
+    }
+
     js.PropertyAccess field =
         new js.PropertyAccess.field(pop(), backend.namer.operatorIs(element));
     if (backend.emitter.nativeEmitter.requiresNativeIsCheck(element)) {
@@ -2256,6 +2253,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // If the result is not negated, put another '!' in front.
       if (!negative) push(new js.Prefix('!', pop()));
     }
+
   }
 
   void handleNumberOrStringSupertypeCheck(HInstruction input, DartType type) {

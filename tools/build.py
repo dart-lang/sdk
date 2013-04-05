@@ -224,6 +224,81 @@ def CurrentDirectoryBaseName():
   return os.path.relpath(os.curdir, start=os.pardir)
 
 
+def FilterEmptyXcodebuildSections(process):
+  """
+  Filter output from xcodebuild so empty sections are less verbose.
+
+  The output from xcodebuild looks like this:
+
+Build settings from command line:
+    SYMROOT = .../xcodebuild
+
+=== BUILD AGGREGATE TARGET samples OF PROJECT dart WITH CONFIGURATION ...
+Check dependencies
+
+
+=== BUILD AGGREGATE TARGET upload_sdk OF PROJECT dart WITH CONFIGURATION ...
+Check dependencies
+
+PhaseScriptExecution "Action \"upload_sdk_py\"" xcodebuild/dart.build/...
+    cd ...
+    /bin/sh -c .../xcodebuild/dart.build/ReleaseIA32/upload_sdk.build/...
+
+
+** BUILD SUCCEEDED **
+
+  """
+
+  def is_empty_chunk(chunk):
+    empty_chunk = ['Check dependencies', '', '']
+    return not chunk or (len(chunk) == 4 and chunk[1:] == empty_chunk)
+
+  def unbuffered(callable):
+    # Use iter to disable buffering in for-in.
+    return iter(callable, '')
+
+  section = None
+  chunk = []
+  # Is stdout a terminal which supports colors?
+  is_fancy_tty = False
+  clr_eol = None
+  if sys.stdout.isatty():
+    term = os.getenv('TERM', 'dumb')
+    # The capability "clr_eol" means clear the line from cursor to end
+    # of line.  See man pages for tput and terminfo.
+    try:
+      clr_eol = subprocess.check_output(['tput', '-T' + term, 'el'],
+                                        stderr=subprocess.STDOUT)
+      if clr_eol:
+        is_fancy_tty = True
+    except subprocess.CalledProcessError:
+      is_fancy_tty = False
+  for line in unbuffered(process.stdout.readline):
+    line = line.rstrip()
+    if line.startswith('=== BUILD ') or line.startswith('** BUILD '):
+      if not is_empty_chunk(chunk):
+        print '\n'.join(chunk)
+      section = line
+      if is_fancy_tty:
+        # If stdout is a terminal, emit "progress" information.  The
+        # progress information is the first line of the current chunk.
+        # After printing the line, move the cursor back to the
+        # beginning of the line.  This has two effects: First, if the
+        # chunk isn't empty, the first line will be overwritten
+        # (avoiding duplication).  Second, the next segment line will
+        # overwrite it too avoid long scrollback.  clr_eol ensures
+        # that there is no trailing garbage when a shorter line
+        # overwrites a longer line.
+        print '%s%s\r' % (clr_eol, section),
+      chunk = []
+    if not section:
+      print line
+    else:
+      chunk.append(line)
+  if not is_empty_chunk(chunk):
+    print '\n'.join(chunk)
+
+
 def Main():
   utils.ConfigureJava()
   # Parse the options.
@@ -241,6 +316,7 @@ def Main():
   else:
     target = args[0]
 
+  filter_xcodebuild_output = False
   # Remember path
   old_path = os.environ['PATH']
   # Build the targets for each requested configuration.
@@ -249,6 +325,7 @@ def Main():
       for arch in options.arch:
         build_config = utils.GetBuildConf(mode, arch)
         if HOST_OS == 'macos':
+          filter_xcodebuild_output = True
           project_file = 'dart.xcodeproj'
           if os.path.exists('dart-%s.gyp' % CurrentDirectoryBaseName()):
             project_file = 'dart-%s.xcodeproj' % CurrentDirectoryBaseName()
@@ -316,7 +393,16 @@ def Main():
               print k + " = " + v
 
         print ' '.join(args)
-        process = subprocess.Popen(args)
+        process = None
+        if filter_xcodebuild_output:
+          process = subprocess.Popen(args,
+                                     stdin=None,
+                                     bufsize=1, # Line buffered.
+                                     stdout=subprocess.PIPE,
+                                     stderr=subprocess.STDOUT)
+          FilterEmptyXcodebuildSections(process)
+        else:
+          process = subprocess.Popen(args, stdin=None)
         process.wait()
         if process.returncode != 0:
           print "BUILD FAILED"

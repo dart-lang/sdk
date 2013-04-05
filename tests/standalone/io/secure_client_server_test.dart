@@ -20,7 +20,7 @@ Future<SecureServerSocket> startEchoServer() {
                                  5,
                                  CERTIFICATE).then((server) {
     server.listen((SecureSocket client) {
-      client.reduce(<int>[], (message, data) => message..addAll(data))
+      client.fold(<int>[], (message, data) => message..addAll(data))
           .then((message) {
             client.writeBytes(message);
             client.close();
@@ -34,7 +34,7 @@ Future testClient(server) {
   return SecureSocket.connect(HOST_NAME, server.port).then((socket) {
     socket.write("Hello server.");
     socket.close();
-    return socket.reduce(<int>[], (message, data) => message..addAll(data))
+    return socket.fold(<int>[], (message, data) => message..addAll(data))
         .then((message) {
           Expect.listEquals("Hello server.".codeUnits, message);
           return server;

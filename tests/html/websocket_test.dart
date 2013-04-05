@@ -24,5 +24,18 @@ main() {
         expect(socket, isWebSocket);
         }, expectation);
     });
+
+    if (WebSocket.supported) {
+      test('echo', () {
+        var socket = new WebSocket('ws://${window.location.host}/ws', 'chat');
+        socket.onOpen.first.then((_) {
+          socket.send('hello!');
+        });
+
+        return socket.onMessage.first.then((MessageEvent e) {
+          expect(e.data, 'hello!');
+        });
+      });
+    }
   });
 }

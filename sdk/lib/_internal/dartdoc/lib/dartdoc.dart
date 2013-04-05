@@ -403,15 +403,15 @@ class Dartdoc {
     return content;
   }
 
-  Future documentEntryPoint(Path entrypoint, Path libPath, Path pkgPath) {
-    return documentLibraries(<Path>[entrypoint], libPath, pkgPath);
+  Future documentEntryPoint(Path entrypoint, Path libPath, Path packageRoot) {
+    return documentLibraries(<Path>[entrypoint], libPath, packageRoot);
   }
 
-  Future documentLibraries(List<Path> libraryList, Path libPath, Path pkgPath) {
+  Future documentLibraries(List<Path> libraryList, Path libPath, Path packageRoot) {
     // TODO(amouravski): make all of these print statements into logging
     // statements.
     print('Analyzing libraries...');
-    return dart2js.analyze(libraryList, libPath, packageRoot: pkgPath,
+    return dart2js.analyze(libraryList, libPath, packageRoot: packageRoot,
         options: COMPILER_OPTIONS)
       .then((MirrorSystem mirrors) {
         print('Generating documentation...');
@@ -1397,12 +1397,12 @@ class Dartdoc {
       }
 
       if (!member.isConstructor) {
-        annotateType(host, member.returnType);
+        annotateDynamicType(host, member.returnType);
       }
     } else {
       assert(member is VariableMirror);
       if (asGetter) {
-        annotateType(host, member.type);
+        annotateDynamicType(host, member.type);
       } else {
         write('void ');
       }
@@ -1698,6 +1698,14 @@ class Dartdoc {
     final rel = isAbsolute(href) ? ' ref="external"' : '';
     final cssClass = css == null ? '' : ' class="$css"';
     return '<a href="${relativePath(href)}"$cssClass$rel>$contents</a>';
+  }
+
+  /**
+   * Writes a type annotation, preferring to print dynamic.
+   */
+  annotateDynamicType(ContainerMirror enclosingType,
+                      TypeMirror type) {
+    annotateType(enclosingType, type, type.isDynamic ? 'dynamic' : null);
   }
 
   /**

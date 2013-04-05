@@ -7,7 +7,11 @@ part of dart.async;
 typedef void _CollectionSinkCallback<T>(Collection<T> collection);
 typedef void _CollectionSinkErrorCallback(AsyncError error);
 
-/** EventSink that stores incoming data in a collection. */
+/**
+ * EventSink that stores incoming data in a collection.
+ *
+ * *Deprecated*.
+ */
 class CollectionSink<T> extends StreamSink<T> {
   // TODO(8997): Implement EventSink instead.
   final Collection<T> collection;

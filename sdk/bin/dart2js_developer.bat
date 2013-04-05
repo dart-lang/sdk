@@ -7,3 +7,4 @@ setlocal
 set DART2JS_DEVELOPER_MODE=1
 call "%~dp0dart2js.bat" %*
 endlocal
+exit /b %errorlevel%

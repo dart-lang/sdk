@@ -23,20 +23,40 @@ namespace dart {
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, propagate_ic_data);
 
+// Generic summary for call instructions that have all arguments pushed
+// on the stack and return the result in a fixed register V0.
 LocationSummary* Instruction::MakeCallSummary() {
-  UNIMPLEMENTED();
-  return NULL;
+  LocationSummary* result = new LocationSummary(0, 0, LocationSummary::kCall);
+  result->set_out(Location::RegisterLocation(V0));
+  return result;
 }
 
 
 LocationSummary* PushArgumentInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps= 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  locs->set_in(0, Location::AnyOrConstant(value()));
+  return locs;
 }
 
 
 void PushArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  // In SSA mode, we need an explicit push. Nothing to do in non-SSA mode
+  // where PushArgument is handled by BindInstr::EmitNativeCode.
+  if (compiler->is_optimizing()) {
+    Location value = locs()->in(0);
+    if (value.IsRegister()) {
+      __ Push(value.reg());
+    } else if (value.IsConstant()) {
+      __ PushObject(value.constant());
+    } else {
+      ASSERT(value.IsStackSlot());
+      __ lw(TMP, value.ToStackSlotAddress());
+      __ Push(TMP);
+    }
+  }
 }
 
 
@@ -94,24 +114,30 @@ LocationSummary* ClosureCallInstr::MakeLocationSummary() const {
 
 
 LocationSummary* LoadLocalInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  return LocationSummary::Make(0,
+                               Location::RequiresRegister(),
+                               LocationSummary::kNoCall);
 }
 
 
 void LoadLocalInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register result = locs()->out().reg();
+  __ lw(result, Address(FP, local().index() * kWordSize));
 }
 
 
 LocationSummary* StoreLocalInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  return LocationSummary::Make(1,
+                               Location::SameAsFirstInput(),
+                               LocationSummary::kNoCall);
 }
 
 
 void StoreLocalInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register value = locs()->in(0).reg();
+  Register result = locs()->out().reg();
+  ASSERT(result == value);  // Assert that register assignment is correct.
+  __ sw(value, Address(FP, local().index() * kWordSize));
 }
 
 
@@ -132,8 +158,15 @@ void ConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* AssertAssignableInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 3;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+  summary->set_in(0, Location::RegisterLocation(A0));  // Value.
+  summary->set_in(1, Location::RegisterLocation(A1));  // Instantiator.
+  summary->set_in(2, Location::RegisterLocation(A2));  // Type arguments.
+  summary->set_out(Location::RegisterLocation(A0));
+  return summary;
 }
 
 
@@ -194,13 +227,47 @@ void RelationalOpInstr::EmitBranchCode(FlowGraphCompiler* compiler,
 
 
 LocationSummary* NativeCallInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 0;
+  const intptr_t kNumTemps = 3;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+  locs->set_temp(0, Location::RegisterLocation(A1));
+  locs->set_temp(1, Location::RegisterLocation(A2));
+  locs->set_temp(2, Location::RegisterLocation(T5));
+  locs->set_out(Location::RegisterLocation(V0));
+  return locs;
 }
 
 
 void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  ASSERT(locs()->temp(0).reg() == A1);
+  ASSERT(locs()->temp(1).reg() == A2);
+  ASSERT(locs()->temp(2).reg() == T5);
+  Register result = locs()->out().reg();
+
+  // Push the result place holder initialized to NULL.
+  __ PushObject(Object::ZoneHandle());
+  // Pass a pointer to the first argument in A2.
+  if (!function().HasOptionalParameters()) {
+    __ addiu(A2, FP, Immediate((kLastParamSlotIndex +
+                                function().NumParameters() - 1) * kWordSize));
+  } else {
+    __ addiu(A2, FP, Immediate(kFirstLocalSlotIndex * kWordSize));
+  }
+  // Compute the effective address. When running under the simulator,
+  // this is a redirection address that forces the simulator to call
+  // into the runtime system.
+  uword entry = reinterpret_cast<uword>(native_c_function());
+#if defined(USING_SIMULATOR)
+  entry = Simulator::RedirectExternalReference(entry, Simulator::kNativeCall);
+#endif
+  __ LoadImmediate(T5, entry);
+  __ LoadImmediate(A1, NativeArguments::ComputeArgcTag(function()));
+  compiler->GenerateCall(token_pos(),
+                         &StubCode::CallNativeCFunctionLabel(),
+                         PcDescriptors::kOther,
+                         locs());
+  __ Pop(result);
 }
 
 

@@ -137,8 +137,6 @@ class _ChildrenElementList implements List {
     return value;
   }
 
-  Element addLast(Element value) => add(value);
-
   Iterator<Element> get iterator => toList().iterator;
 
   void addAll(Iterable<Element> iterable) {
@@ -162,6 +160,11 @@ class _ChildrenElementList implements List {
   dynamic reduce(dynamic initialValue,
       dynamic combine(dynamic previousValue, Element element)) {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  }
+
+  dynamic fold(dynamic initialValue,
+      dynamic combine(dynamic previousValue, Element element)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
   void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
@@ -391,10 +394,6 @@ class _FrozenElementList implements List {
     throw new UnsupportedError('');
   }
 
-  void addLast(Element value) {
-    throw new UnsupportedError('');
-  }
-
   Iterator<Element> get iterator => new _FrozenElementListIterator(this);
 
   void addAll(Iterable<Element> iterable) {
@@ -412,6 +411,11 @@ class _FrozenElementList implements List {
   dynamic reduce(dynamic initialValue,
       dynamic combine(dynamic previousValue, Element element)) {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  }
+
+  dynamic fold(dynamic initialValue,
+      dynamic combine(dynamic previousValue, Element element)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
   void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {

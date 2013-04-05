@@ -139,6 +139,22 @@ void main() {
     });
   });
 
+  group('.package', () {
+    test('returns null for non-package URIs', () {
+      expect(new Frame.parse('#0 Foo (dart:async:0:0)').package, isNull);
+      expect(new Frame.parse('#0 Foo '
+              '(http://dartlang.org/stuff/thing.dart:0:0)').package,
+          isNull);
+    });
+
+    test('returns the package name for package: URIs', () {
+      expect(new Frame.parse('#0 Foo (package:foo/foo.dart:0:0)').package,
+          equals('foo'));
+      expect(new Frame.parse('#0 Foo (package:foo/zap/bar.dart:0:0)').package,
+          equals('foo'));
+    });
+  });
+
   group('.toString()', () {
     test('returns the library and line/column numbers for non-core '
         'libraries', () {

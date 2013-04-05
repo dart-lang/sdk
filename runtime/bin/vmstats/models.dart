@@ -83,6 +83,7 @@ class IsolateListModel extends ObservableModel {
 
 // Model of a single isolate.
 class Isolate {
+  final String handle;
   final String name;
   final int port;
   final int startTime;
@@ -92,6 +93,7 @@ class Isolate {
 
   // Create an isolate from a map describing an isolate in the observed VM.
   Isolate(Map raw):
+      handle = raw['handle'],
       name = raw['name'],
       port = raw['port'],
       startTime = raw['starttime'],

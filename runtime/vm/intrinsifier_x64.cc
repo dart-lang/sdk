@@ -181,11 +181,11 @@ bool Intrinsifier::Array_setIndexed(Assembler* assembler) {
   __ movq(RAX, Address(RSP, + 3 * kWordSize));  // Array.
   Label fall_through;
   __ testq(RCX, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);
+  __ j(NOT_ZERO, &fall_through);
   // Range check.
   __ cmpq(RCX, FieldAddress(RAX, Array::length_offset()));
   // Runtime throws exception.
-  __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
+  __ j(ABOVE_EQUAL, &fall_through);
   // Note that RBX is Smi, i.e, times 2.
   ASSERT(kSmiTagShift == 1);
   // Destroy RCX as we will not continue in the function.
@@ -321,11 +321,11 @@ bool Intrinsifier::GrowableArray_setIndexed(Assembler* assembler) {
   __ movq(RAX, Address(RSP, + 3 * kWordSize));  // GrowableArray.
   Label fall_through;
   __ testq(RCX, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi index.
+  __ j(NOT_ZERO, &fall_through);  // Non-smi index.
   // Range check using _length field.
   __ cmpq(RCX, FieldAddress(RAX, GrowableObjectArray::length_offset()));
   // Runtime throws exception.
-  __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
+  __ j(ABOVE_EQUAL, &fall_through);
   __ movq(RAX, FieldAddress(RAX, GrowableObjectArray::data_offset()));  // data.
   // Note that RCX is Smi, i.e, times 4.
   ASSERT(kSmiTagShift == 1);
@@ -365,9 +365,9 @@ bool Intrinsifier::GrowableArray_setData(Assembler* assembler) {
   Label fall_through;
   __ movq(RBX, Address(RSP, + 1 * kWordSize));  /// Data.
   __ testq(RBX, Immediate(kSmiTagMask));
-  __ j(ZERO, &fall_through, Assembler::kNearJump);  // Data is Smi.
+  __ j(ZERO, &fall_through);  // Data is Smi.
   __ CompareClassId(RBX, kArrayCid);
-  __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
+  __ j(NOT_EQUAL, &fall_through);
   __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Growable array.
   __ StoreIntoObject(RAX,
                      FieldAddress(RAX, GrowableObjectArray::data_offset()),
@@ -392,7 +392,7 @@ bool Intrinsifier::GrowableArray_add(Assembler* assembler) {
   // RDX: data.
   // Compare length with capacity.
   __ cmpq(RCX, FieldAddress(RDX, Array::length_offset()));
-  __ j(EQUAL, &fall_through, Assembler::kNearJump);  // Must grow data.
+  __ j(EQUAL, &fall_through);  // Must grow data.
   const Immediate& value_one =
       Immediate(reinterpret_cast<int64_t>(Smi::New(1)));
   // len = len + 1;

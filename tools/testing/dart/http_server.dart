@@ -26,6 +26,8 @@ import 'utils.dart';
 ///                directory (i.e. '$BuildDirectory/X').
 /// /FOO/packages/BAR: This will serve the corresponding file from the packages
 ///                    directory (i.e. '$BuildDirectory/packages/BAR')
+/// /ws: This will upgrade the connection to a WebSocket connection and echo
+///      all data back to the client.
 ///
 /// In case a path does not refer to a file but rather to a directory, a
 /// directory listing will be displayed.
@@ -132,6 +134,8 @@ class TestingServers {
       httpServer.listen((HttpRequest request) {
         if (request.uri.path == "/echo") {
           _handleEchoRequest(request, request.response);
+        } else if (request.uri.path == '/ws') {
+          _handleWebSocketRequest(request);
         } else {
           _handleFileOrDirectoryRequest(
               request, request.response, allowedPort);
@@ -183,6 +187,21 @@ class TestingServers {
     request.pipe(response).catchError((e) {
       DebugLogger.warning(
           'HttpServer: error while closing the response stream: $e');
+    });
+  }
+
+  void _handleWebSocketRequest(HttpRequest request) {
+    WebSocketTransformer.upgrade(request).then((websocket) {
+      websocket.listen((data) {
+        websocket.send(data);
+        websocket.close();
+      }, onError: (e) {
+        DebugLogger.warning(
+            'HttpServer: error while echoing to WebSocket: $e');
+      });
+    }).catchError((e) {
+      DebugLogger.warning(
+          'HttpServer: error while transforming to WebSocket: $e');
     });
   }
 

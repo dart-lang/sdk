@@ -8,7 +8,7 @@ import 'dart:io';
 const SESSION_ID = "DARTSESSID";
 
 String getSessionId(List<Cookie> cookies) {
-  var id = cookies.reduce(null, (last, cookie) {
+  var id = cookies.fold(null, (last, cookie) {
     if (last != null) return last;
     if (cookie.name.toUpperCase() == SESSION_ID) {
       Expect.isTrue(cookie.httpOnly);
@@ -30,7 +30,7 @@ Future<String> connectGetSession(
       return request.close();
     })
     .then((response) {
-      return response.reduce(getSessionId(response.cookies), (v, _) => v);
+      return response.fold(getSessionId(response.cookies), (v, _) => v);
     });
 }
 

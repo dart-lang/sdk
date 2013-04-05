@@ -942,17 +942,17 @@ class _StreamSubscriptionImpl<T> extends _StreamListener<T>
   }
 
   void cancel() {
+    if (!_isSubscribed) return;
     _source._cancel(this);
   }
 
   void pause([Future resumeSignal]) {
+    if (!_isSubscribed) return;
     _source._pause(this, resumeSignal);
   }
 
   void resume() {
-    if (!isPaused) {
-      throw new StateError("Resuming unpaused subscription");
-    }
+    if (!_isSubscribed || !isPaused) return;
     _source._resume(this, false);
   }
 }
@@ -1270,9 +1270,7 @@ class _DoneSubscription<T> implements StreamSubscription<T> {
   }
 
   void pause([Future signal]) {
-    if (_isComplete) {
-      throw new StateError("Subscription has been canceled.");
-    }
+    if (_isComplete) return;
     if (_timer != null) {
       _timer.cancel();
       _timer = null;
@@ -1282,9 +1280,7 @@ class _DoneSubscription<T> implements StreamSubscription<T> {
   }
 
   void resume() {
-    if (_isComplete) {
-      throw new StateError("Subscription has been canceled.");
-    }
+    if (_isComplete) return;
     if (_pauseCount == 0) return;
     _pauseCount--;
     if (_pauseCount == 0) {
@@ -1295,9 +1291,7 @@ class _DoneSubscription<T> implements StreamSubscription<T> {
   bool get isPaused => _pauseCount > 0;
 
   void cancel() {
-    if (_isComplete) {
-      throw new StateError("Subscription has been canceled.");
-    }
+    if (_isComplete) return;
     if (_timer != null) {
       _timer.cancel();
       _timer = null;

@@ -23,6 +23,7 @@ DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, print_ast);
 DECLARE_FLAG(bool, print_scopes);
 DECLARE_FLAG(bool, enable_type_checks);
+DECLARE_FLAG(bool, eliminate_type_checks);
 
 
 FlowGraphCompiler::~FlowGraphCompiler() {
@@ -82,17 +83,75 @@ void FlowGraphCompiler::CheckClassIds(Register class_id_reg,
                                       const GrowableArray<intptr_t>& class_ids,
                                       Label* is_equal_lbl,
                                       Label* is_not_equal_lbl) {
-  UNIMPLEMENTED();
+  for (intptr_t i = 0; i < class_ids.length(); i++) {
+    __ LoadImmediate(TMP, class_ids[i]);
+    __ beq(class_id_reg, TMP, is_equal_lbl);
+  }
+  __ b(is_not_equal_lbl);
 }
 
 
+// Testing against an instantiated type with no arguments, without
+// SubtypeTestCache.
+// A0: instance being type checked (preserved).
+// Clobbers: T0, T1, T2
+// Returns true if there is a fallthrough.
 bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     intptr_t token_pos,
     const AbstractType& type,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
-  UNIMPLEMENTED();
-  return false;
+  __ Comment("InstantiatedTypeNoArgumentsTest");
+  ASSERT(type.IsInstantiated());
+  const Class& type_class = Class::Handle(type.type_class());
+  ASSERT(!type_class.HasTypeArguments());
+
+  const Register kInstanceReg = A0;
+  __ andi(T0, A0, Immediate(kSmiTagMask));
+  // If instance is Smi, check directly.
+  const Class& smi_class = Class::Handle(Smi::Class());
+  if (smi_class.IsSubtypeOf(TypeArguments::Handle(),
+                            type_class,
+                            TypeArguments::Handle(),
+                            NULL)) {
+    __ beq(T0, ZR, is_instance_lbl);
+  } else {
+    __ beq(T0, ZR, is_not_instance_lbl);
+  }
+  // Compare if the classes are equal.
+  const Register kClassIdReg = T0;
+  __ LoadClassId(kClassIdReg, kInstanceReg);
+  __ LoadImmediate(T1, type_class.id());
+  __ beq(kClassIdReg, T1, is_instance_lbl);
+  // See ClassFinalizer::ResolveSuperTypeAndInterfaces for list of restricted
+  // interfaces.
+  // Bool interface can be implemented only by core class Bool.
+  if (type.IsBoolType()) {
+    __ LoadImmediate(T1, kBoolCid);
+    __ beq(kClassIdReg, T1, is_instance_lbl);
+    __ b(is_not_instance_lbl);
+    return false;
+  }
+  if (type.IsFunctionType()) {
+    // Check if instance is a closure.
+    __ LoadClassById(T1, kClassIdReg);
+    __ lw(T1, FieldAddress(T1, Class::signature_function_offset()));
+    __ LoadImmediate(T2, reinterpret_cast<int32_t>(Object::null()));
+    __ bne(T1, T2, is_instance_lbl);
+  }
+  // Custom checking for numbers (Smi, Mint, Bigint and Double).
+  // Note that instance is not Smi (checked above).
+  if (type.IsSubtypeOf(Type::Handle(Type::Number()), NULL)) {
+    GenerateNumberTypeCheck(
+        kClassIdReg, type, is_instance_lbl, is_not_instance_lbl);
+    return false;
+  }
+  if (type.IsStringType()) {
+    GenerateStringTypeCheck(kClassIdReg, is_instance_lbl, is_not_instance_lbl);
+    return false;
+  }
+  // Otherwise fallthrough.
+  return true;
 }
 
 
@@ -116,13 +175,71 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
 }
 
 
+// Inputs:
+// - A0: instance being type checked (preserved).
+// - A1: optional instantiator type arguments (preserved).
+// Returns:
+// - preserved instance in A0 and optional instantiator type arguments in A1.
+// Clobbers: T0, T1, T2
+// Note that this inlined code must be followed by the runtime_call code, as it
+// may fall through to it. Otherwise, this inline code will jump to the label
+// is_instance or to the label is_not_instance.
 RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
     intptr_t token_pos,
     const AbstractType& type,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
-  UNIMPLEMENTED();
-  return NULL;
+  __ Comment("InlineInstanceof");
+  if (type.IsVoidType()) {
+    // A non-null value is returned from a void function, which will result in a
+    // type error. A null value is handled prior to executing this inline code.
+    return SubtypeTestCache::null();
+  }
+  if (TypeCheckAsClassEquality(type)) {
+    const intptr_t type_cid = Class::Handle(type.type_class()).id();
+    const Register kInstanceReg = A0;
+    __ andi(T0, kInstanceReg, Immediate(kSmiTagMask));
+    if (type_cid == kSmiCid) {
+      __ beq(T0, ZR, is_instance_lbl);
+    } else {
+      __ beq(T0, ZR, is_not_instance_lbl);
+      __ LoadClassId(T0, kInstanceReg);
+      __ LoadImmediate(T1, type_cid);
+      __ beq(T0, T1, is_instance_lbl);
+    }
+    __ b(is_not_instance_lbl);
+    return SubtypeTestCache::null();
+  }
+  if (type.IsInstantiated()) {
+    const Class& type_class = Class::ZoneHandle(type.type_class());
+    // A Smi object cannot be the instance of a parameterized class.
+    // A class equality check is only applicable with a dst type of a
+    // non-parameterized class or with a raw dst type of a parameterized class.
+    if (type_class.HasTypeArguments()) {
+      return GenerateInstantiatedTypeWithArgumentsTest(token_pos,
+                                                       type,
+                                                       is_instance_lbl,
+                                                       is_not_instance_lbl);
+      // Fall through to runtime call.
+    }
+    const bool has_fall_through =
+        GenerateInstantiatedTypeNoArgumentsTest(token_pos,
+                                                type,
+                                                is_instance_lbl,
+                                                is_not_instance_lbl);
+    if (has_fall_through) {
+      // If test non-conclusive so far, try the inlined type-test cache.
+      // 'type' is known at compile time.
+      return GenerateSubtype1TestCacheLookup(
+          token_pos, type_class, is_instance_lbl, is_not_instance_lbl);
+    } else {
+      return SubtypeTestCache::null();
+    }
+  }
+  return GenerateUninstantiatedTypeTest(token_pos,
+                                        type,
+                                        is_instance_lbl,
+                                        is_not_instance_lbl);
 }
 
 
@@ -135,12 +252,101 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
 }
 
 
+// Optimize assignable type check by adding inlined tests for:
+// - NULL -> return NULL.
+// - Smi -> compile time subtype check (only if dst class is not parameterized).
+// - Class equality (only if class is not parameterized).
+// Inputs:
+// - A0: instance being type checked.
+// - A1: instantiator type arguments or raw_null.
+// - A2: instantiator or raw_null.
+// Returns:
+// - object in A0 for successful assignable check (or throws TypeError).
+// Clobbers: T0, T1, T2
+// Performance notes: positive checks must be quick, negative checks can be slow
+// as they throw an exception.
 void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
                                                  intptr_t deopt_id,
                                                  const AbstractType& dst_type,
                                                  const String& dst_name,
                                                  LocationSummary* locs) {
-  UNIMPLEMENTED();
+  ASSERT(token_pos >= 0);
+  ASSERT(!dst_type.IsNull());
+  ASSERT(dst_type.IsFinalized());
+  // Assignable check is skipped in FlowGraphBuilder, not here.
+  ASSERT(dst_type.IsMalformed() ||
+         (!dst_type.IsDynamicType() && !dst_type.IsObjectType()));
+  // Preserve instantiator and its type arguments.
+  __ addiu(SP, SP, Immediate(-2 * kWordSize));
+  __ sw(A2, Address(SP, 1 * kWordSize));
+  __ sw(A1, Address(SP, 0 * kWordSize));
+  // A null object is always assignable and is returned as result.
+  Label is_assignable, runtime_call;
+  __ LoadImmediate(T0, reinterpret_cast<int32_t>(Object::null()));
+  __ beq(A0, T0, &is_assignable);
+
+  if (!FLAG_eliminate_type_checks) {
+    // If type checks are not eliminated during the graph building then
+    // a transition sentinel can be seen here.
+    __ LoadObject(T0, Object::transition_sentinel());
+    __ beq(A0, T0, &is_assignable);
+  }
+
+  // Generate throw new TypeError() if the type is malformed.
+  if (dst_type.IsMalformed()) {
+    const Error& error = Error::Handle(dst_type.malformed_error());
+    const String& error_message = String::ZoneHandle(
+        Symbols::New(error.ToErrorCString()));
+    __ PushObject(Object::ZoneHandle());  // Make room for the result.
+    __ Push(A0);  // Push the source object.
+    __ PushObject(dst_name);  // Push the name of the destination.
+    __ PushObject(error_message);
+    GenerateCallRuntime(token_pos,
+                        deopt_id,
+                        kMalformedTypeErrorRuntimeEntry,
+                        locs);
+    // We should never return here.
+    __ break_(0);
+
+    __ Bind(&is_assignable);  // For a null object.
+    // Restore instantiator and its type arguments.
+    __ lw(A1, Address(SP, 0 * kWordSize));
+    __ lw(A2, Address(SP, 1 * kWordSize));
+    __ addiu(SP, SP, Immediate(2 * kWordSize));
+    return;
+  }
+
+  // Generate inline type check, linking to runtime call if not assignable.
+  SubtypeTestCache& test_cache = SubtypeTestCache::ZoneHandle();
+  test_cache = GenerateInlineInstanceof(token_pos, dst_type,
+                                        &is_assignable, &runtime_call);
+
+  __ Bind(&runtime_call);
+  // Load instantiator and its type arguments.
+  __ lw(A1, Address(SP, 0 * kWordSize));
+  __ lw(A2, Address(SP, 1 * kWordSize));
+  __ addiu(SP, SP, Immediate(2 * kWordSize));
+  __ PushObject(Object::ZoneHandle());  // Make room for the result.
+  __ Push(A0);  // Push the source object.
+  __ PushObject(dst_type);  // Push the type of the destination.
+  // Push instantiator and its type arguments.
+  __ addiu(SP, SP, Immediate(-2 * kWordSize));
+  __ sw(A2, Address(SP, 1 * kWordSize));
+  __ sw(A1, Address(SP, 0 * kWordSize));
+  __ PushObject(dst_name);  // Push the name of the destination.
+  __ LoadObject(A0, test_cache);
+  __ Push(A0);
+  GenerateCallRuntime(token_pos, deopt_id, kTypeCheckRuntimeEntry, locs);
+  // Pop the parameters supplied to the runtime entry. The result of the
+  // type check runtime call is the checked value.
+  __ Drop(6);
+  __ Pop(A0);
+
+  __ Bind(&is_assignable);
+  // Restore instantiator and its type arguments.
+    __ lw(A1, Address(SP, 0 * kWordSize));
+    __ lw(A2, Address(SP, 1 * kWordSize));
+    __ addiu(SP, SP, Immediate(2 * kWordSize));
 }
 
 
@@ -166,8 +372,234 @@ void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
 }
 
 
+// Input parameters:
+//   S4: arguments descriptor array.
 void FlowGraphCompiler::CopyParameters() {
-  UNIMPLEMENTED();
+  __ Comment("Copy parameters");
+  const Function& function = parsed_function().function();
+  LocalScope* scope = parsed_function().node_sequence()->scope();
+  const int num_fixed_params = function.num_fixed_parameters();
+  const int num_opt_pos_params = function.NumOptionalPositionalParameters();
+  const int num_opt_named_params = function.NumOptionalNamedParameters();
+  const int num_params =
+      num_fixed_params + num_opt_pos_params + num_opt_named_params;
+  ASSERT(function.NumParameters() == num_params);
+  ASSERT(parsed_function().first_parameter_index() == kFirstLocalSlotIndex);
+
+  // Check that min_num_pos_args <= num_pos_args <= max_num_pos_args,
+  // where num_pos_args is the number of positional arguments passed in.
+  const int min_num_pos_args = num_fixed_params;
+  const int max_num_pos_args = num_fixed_params + num_opt_pos_params;
+
+  __ lw(T2, FieldAddress(S4, ArgumentsDescriptor::positional_count_offset()));
+  // Check that min_num_pos_args <= num_pos_args.
+  Label wrong_num_arguments;
+  __ addiu(T3, T2, Immediate(-Smi::RawValue(min_num_pos_args)));
+  __ bltz(T3, &wrong_num_arguments);
+
+  // Check that num_pos_args <= max_num_pos_args.
+  __ addiu(T3, T2, Immediate(-Smi::RawValue(max_num_pos_args)));
+  __ bgtz(T3, &wrong_num_arguments);
+
+  // Copy positional arguments.
+  // Argument i passed at fp[kLastParamSlotIndex + num_args - 1 - i] is copied
+  // to fp[kFirstLocalSlotIndex - i].
+
+  __ lw(T1, FieldAddress(S4, ArgumentsDescriptor::count_offset()));
+  // Since T1 and T2 are Smi, use LSL 1 instead of LSL 2.
+  // Let T1 point to the last passed positional argument, i.e. to
+  // fp[kLastParamSlotIndex + num_args - 1 - (num_pos_args - 1)].
+  __ subu(T1, T1, T2);
+  __ sll(T1, T1, 1);
+  __ addu(T1, FP, T1);
+  __ addiu(T1, T1, Immediate(kLastParamSlotIndex * kWordSize));
+
+  // Let T0 point to the last copied positional argument, i.e. to
+  // fp[kFirstLocalSlotIndex - (num_pos_args - 1)].
+  __ addiu(T0, FP, Immediate((kFirstLocalSlotIndex + 1) * kWordSize));
+  __ sll(T3, T2, 1);  // T2 is a Smi.
+  __ subu(T0, T0, T3);
+
+  Label loop, loop_condition;
+  __ b(&loop_condition);
+  __ delay_slot()->SmiUntag(T2);
+  // We do not use the final allocation index of the variable here, i.e.
+  // scope->VariableAt(i)->index(), because captured variables still need
+  // to be copied to the context that is not yet allocated.
+  __ Bind(&loop);
+  __ addu(T4, T1, T2);
+  __ addu(T5, T0, T2);
+  __ lw(TMP, Address(T4));
+  __ sw(TMP, Address(T5));
+  __ Bind(&loop_condition);
+  __ addiu(T2, T2, Immediate(-kWordSize));
+  __ bgez(T2, &loop);
+
+  // Copy or initialize optional named arguments.
+  Label all_arguments_processed;
+  if (num_opt_named_params > 0) {
+    // Start by alphabetically sorting the names of the optional parameters.
+    LocalVariable** opt_param = new LocalVariable*[num_opt_named_params];
+    int* opt_param_position = new int[num_opt_named_params];
+    for (int pos = num_fixed_params; pos < num_params; pos++) {
+      LocalVariable* parameter = scope->VariableAt(pos);
+      const String& opt_param_name = parameter->name();
+      int i = pos - num_fixed_params;
+      while (--i >= 0) {
+        LocalVariable* param_i = opt_param[i];
+        const intptr_t result = opt_param_name.CompareTo(param_i->name());
+        ASSERT(result != 0);
+        if (result > 0) break;
+        opt_param[i + 1] = opt_param[i];
+        opt_param_position[i + 1] = opt_param_position[i];
+      }
+      opt_param[i + 1] = parameter;
+      opt_param_position[i + 1] = pos;
+    }
+    // Generate code handling each optional parameter in alphabetical order.
+    __ lw(T1, FieldAddress(S4, ArgumentsDescriptor::count_offset()));
+    __ lw(T2, FieldAddress(S4, ArgumentsDescriptor::positional_count_offset()));
+    __ SmiUntag(T2);
+    // Let T1 point to the first passed argument, i.e. to
+    // fp[kLastParamSlotIndex + num_args - 1 - 0]; num_args (T1) is Smi.
+    __ sll(T3, T1, 1);
+    __ addu(T1, FP, T3);
+    __ addiu(T1, T1, Immediate((kLastParamSlotIndex - 1) * kWordSize));
+    // Let T0 point to the entry of the first named argument.
+    __ addiu(T0, S4, Immediate(
+        ArgumentsDescriptor::first_named_entry_offset() - kHeapObjectTag));
+    for (int i = 0; i < num_opt_named_params; i++) {
+      Label load_default_value, assign_optional_parameter;
+      const int param_pos = opt_param_position[i];
+      // Check if this named parameter was passed in.
+      // Load T3 with the name of the argument.
+      __ lw(T3, Address(T0, ArgumentsDescriptor::name_offset()));
+      ASSERT(opt_param[i]->name().IsSymbol());
+      __ LoadObject(T4, opt_param[i]->name());
+      __ bne(T3, T4, &load_default_value);
+
+      // Load T3 with passed-in argument at provided arg_pos, i.e. at
+      // fp[kLastParamSlotIndex + num_args - 1 - arg_pos].
+      __ lw(T3, Address(T0, ArgumentsDescriptor::position_offset()));
+      // T3 is arg_pos as Smi.
+      // Point to next named entry.
+      __ addiu(T0, T0, Immediate(ArgumentsDescriptor::named_entry_size()));
+      __ subu(T3, ZR, T3);
+      __ sll(T3, T3, 1);
+      __ addu(T3, T1, T3);
+      __ b(&assign_optional_parameter);
+      __ delay_slot()->lw(T3, Address(T3));
+
+      __ Bind(&load_default_value);
+      // Load T3 with default argument.
+      const Object& value = Object::ZoneHandle(
+          parsed_function().default_parameter_values().At(
+              param_pos - num_fixed_params));
+      __ LoadObject(T3, value);
+      __ Bind(&assign_optional_parameter);
+      // Assign T3 to fp[kFirstLocalSlotIndex - param_pos].
+      // We do not use the final allocation index of the variable here, i.e.
+      // scope->VariableAt(i)->index(), because captured variables still need
+      // to be copied to the context that is not yet allocated.
+      const intptr_t computed_param_pos = kFirstLocalSlotIndex - param_pos;
+      __ sw(T3, Address(FP, computed_param_pos * kWordSize));
+    }
+    delete[] opt_param;
+    delete[] opt_param_position;
+    // Check that T0 now points to the null terminator in the array descriptor.
+    __ lw(T3, Address(T0));
+    __ LoadImmediate(T4, reinterpret_cast<int32_t>(Object::null()));
+    __ beq(T3, T4, &all_arguments_processed);
+  } else {
+    ASSERT(num_opt_pos_params > 0);
+    __ lw(T2,
+          FieldAddress(S4, ArgumentsDescriptor::positional_count_offset()));
+    __ SmiUntag(T2);
+    for (int i = 0; i < num_opt_pos_params; i++) {
+      Label next_parameter;
+      // Handle this optional positional parameter only if k or fewer positional
+      // arguments have been passed, where k is param_pos, the position of this
+      // optional parameter in the formal parameter list.
+      const int param_pos = num_fixed_params + i;
+      __ addiu(T3, T2, Immediate(-param_pos));
+      __ bgtz(T3, &next_parameter);
+      // Load T3 with default argument.
+      const Object& value = Object::ZoneHandle(
+          parsed_function().default_parameter_values().At(i));
+      __ LoadObject(T3, value);
+      // Assign T3 to fp[kFirstLocalSlotIndex - param_pos].
+      // We do not use the final allocation index of the variable here, i.e.
+      // scope->VariableAt(i)->index(), because captured variables still need
+      // to be copied to the context that is not yet allocated.
+      const intptr_t computed_param_pos = kFirstLocalSlotIndex - param_pos;
+      __ sw(T3, Address(FP, computed_param_pos * kWordSize));
+      __ Bind(&next_parameter);
+    }
+    __ lw(T1, FieldAddress(S4, ArgumentsDescriptor::count_offset()));
+    __ SmiUntag(T1);
+    // Check that T2 equals T1, i.e. no named arguments passed.
+    __ beq(T2, T2, &all_arguments_processed);
+  }
+
+  __ Bind(&wrong_num_arguments);
+  if (StackSize() != 0) {
+    // We need to unwind the space we reserved for locals and copied parameters.
+    // The NoSuchMethodFunction stub does not expect to see that area on the
+    // stack.
+    __ addiu(SP, SP, Immediate(StackSize() * kWordSize));
+  }
+  // The call below has an empty stackmap because we have just
+  // dropped the spill slots.
+  BitmapBuilder* empty_stack_bitmap = new BitmapBuilder();
+
+  // Invoke noSuchMethod function passing the original name of the function.
+  // If the function is a closure function, use "call" as the original name.
+  const String& name = String::Handle(
+      function.IsClosureFunction() ? Symbols::Call().raw() : function.name());
+  const int kNumArgsChecked = 1;
+  const ICData& ic_data = ICData::ZoneHandle(
+      ICData::New(function, name, Isolate::kNoDeoptId, kNumArgsChecked));
+  __ LoadObject(S5, ic_data);
+  // FP - 4 : saved PP, object pool pointer of caller.
+  // FP + 0 : previous frame pointer.
+  // FP + 4 : return address.
+  // FP + 8 : PC marker, for easy identification of RawInstruction obj.
+  // FP + 12: last argument (arg n-1).
+  // SP + 0 : saved PP.
+  // SP + 16 + 4*(n-1) : first argument (arg 0).
+  // S5 : ic-data.
+  // S4 : arguments descriptor array.
+  __ BranchLink(&StubCode::CallNoSuchMethodFunctionLabel());
+  if (is_optimizing()) {
+    stackmap_table_builder_->AddEntry(assembler()->CodeSize(),
+                                      empty_stack_bitmap,
+                                      0);  // No registers.
+  }
+  // The noSuchMethod call may return.
+  __ LeaveDartFrame();
+  __ Ret();
+
+  __ Bind(&all_arguments_processed);
+  // Nullify originally passed arguments only after they have been copied and
+  // checked, otherwise noSuchMethod would not see their original values.
+  // This step can be skipped in case we decide that formal parameters are
+  // implicitly final, since garbage collecting the unmodified value is not
+  // an issue anymore.
+
+  // S4 : arguments descriptor array.
+  __ lw(T2, FieldAddress(S4, ArgumentsDescriptor::count_offset()));
+  __ SmiUntag(T2);
+
+  __ LoadImmediate(TMP, reinterpret_cast<intptr_t>(Object::null()));
+  Label null_args_loop, null_args_loop_condition;
+  __ b(&null_args_loop_condition);
+  __ delay_slot()->addiu(T1, FP, Immediate(kLastParamSlotIndex * kWordSize));
+  __ Bind(&null_args_loop);
+  __ addu(T3, T1, T2);
+  __ sw(TMP, Address(T3));
+  __ Bind(&null_args_loop_condition);
+  __ addiu(T2, T2, Immediate(-kWordSize));
+  __ bgez(T2, &null_args_loop);
 }
 
 
@@ -251,6 +683,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
   __ Comment("Enter frame");
   __ EnterDartFrame((StackSize() * kWordSize));
 }
+
 
 // Input parameters:
 //   RA: return address.
@@ -404,7 +837,9 @@ void FlowGraphCompiler::GenerateCall(intptr_t token_pos,
                                      const ExternalLabel* label,
                                      PcDescriptors::Kind kind,
                                      LocationSummary* locs) {
-  UNIMPLEMENTED();
+  __ BranchLinkPatchable(label);
+  AddCurrentDescriptor(kind, Isolate::kNoDeoptId, token_pos);
+  RecordSafepoint(locs);
 }
 
 
@@ -413,7 +848,20 @@ void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
                                          const ExternalLabel* label,
                                          PcDescriptors::Kind kind,
                                          LocationSummary* locs) {
-  UNIMPLEMENTED();
+  __ BranchLinkPatchable(label);
+  AddCurrentDescriptor(kind, deopt_id, token_pos);
+  RecordSafepoint(locs);
+  // Marks either the continuation point in unoptimized code or the
+  // deoptimization point in optimized code, after call.
+  if (is_optimizing()) {
+    AddDeoptIndexAtCall(deopt_id, token_pos);
+  } else {
+    // Add deoptimization continuation point after the call and before the
+    // arguments are removed.
+    AddCurrentDescriptor(PcDescriptors::kDeoptAfter,
+                         deopt_id,
+                         token_pos);
+  }
 }
 
 
@@ -444,7 +892,14 @@ void FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
                                          intptr_t deopt_id,
                                          intptr_t token_pos,
                                          LocationSummary* locs) {
-  UNIMPLEMENTED();
+  __ LoadObject(S4, arguments_descriptor);
+  __ LoadObject(S5, ic_data);
+  GenerateDartCall(deopt_id,
+                   token_pos,
+                   target_label,
+                   PcDescriptors::kIcCall,
+                   locs);
+  __ Drop(argument_count);
 }
 
 
@@ -465,7 +920,16 @@ void FlowGraphCompiler::EmitStaticCall(const Function& function,
                                        intptr_t deopt_id,
                                        intptr_t token_pos,
                                        LocationSummary* locs) {
-  UNIMPLEMENTED();
+  __ LoadObject(S4, arguments_descriptor);
+  // Do not use the code from the function, but let the code be patched so that
+  // we can record the outgoing edges to other code.
+  GenerateDartCall(deopt_id,
+                   token_pos,
+                   &StubCode::CallStaticFunctionLabel(),
+                   PcDescriptors::kFuncCall,
+                   locs);
+  AddStaticCallTarget(function);
+  __ Drop(argument_count);
 }
 
 

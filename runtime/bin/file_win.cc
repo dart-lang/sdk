@@ -259,12 +259,19 @@ bool File::CreateLink(const char* utf8_name, const char* utf8_target) {
 
 bool File::Delete(const char* name) {
   const wchar_t* system_name = StringUtils::Utf8ToWide(name);
-  int status = _wremove(system_name);
-  free(const_cast<wchar_t*>(system_name));
-  if (status == -1) {
-    return false;
+  DWORD attributes = GetFileAttributesW(system_name);
+  if ((attributes != INVALID_FILE_ATTRIBUTES) &&
+      (attributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0) {
+    // It's a junction(link), delete it.
+    return RemoveDirectoryW(system_name) != 0;
+  } else {
+    int status = _wremove(system_name);
+    free(const_cast<wchar_t*>(system_name));
+    if (status == -1) {
+      return false;
+    }
+    return true;
   }
-  return true;
 }
 
 

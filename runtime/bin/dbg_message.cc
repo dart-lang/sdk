@@ -389,6 +389,31 @@ static const char* FormatListSlice(dart::TextBuffer* buf,
 }
 
 
+static void FormatLocationFromTrace(dart::TextBuffer* msg,
+                                    Dart_StackTrace trace) {
+  intptr_t trace_len = 0;
+  Dart_Handle res = Dart_StackTraceLength(trace, &trace_len);
+  ASSERT_NOT_ERROR(res);
+  Dart_ActivationFrame frame;
+  res = Dart_GetActivationFrame(trace, 0, &frame);
+  ASSERT_NOT_ERROR(res);
+  Dart_Handle script_url;
+  intptr_t token_number = 0;
+  intptr_t line_number = 0;
+  res = Dart_ActivationFrameInfo(frame, NULL, NULL, &line_number, NULL);
+  ASSERT_NOT_ERROR(res);
+  res = Dart_ActivationFrameGetLocation(frame, &script_url, &token_number);
+  ASSERT_NOT_ERROR(res);
+  if (!Dart_IsNull(script_url)) {
+    ASSERT(Dart_IsString(script_url));
+    msg->Printf("\"location\": { \"url\":");
+    FormatEncodedString(msg, script_url);
+    msg->Printf(",\"tokenOffset\":%"Pd",", token_number);
+    msg->Printf("\"lineNumber\":%"Pd"},", line_number);
+  }
+}
+
+
 static void FormatCallFrames(dart::TextBuffer* msg, Dart_StackTrace trace) {
   intptr_t trace_len = 0;
   Dart_Handle res = Dart_StackTraceLength(trace, &trace_len);
@@ -401,19 +426,26 @@ static void FormatCallFrames(dart::TextBuffer* msg, Dart_StackTrace trace) {
     Dart_Handle func_name;
     Dart_Handle script_url;
     intptr_t line_number = 0;
+    intptr_t token_number = 0;
     intptr_t library_id = 0;
     res = Dart_ActivationFrameInfo(
-        frame, &func_name, &script_url, &line_number, &library_id);
+        frame, &func_name, NULL, &line_number, &library_id);
     ASSERT_NOT_ERROR(res);
+
     ASSERT(Dart_IsString(func_name));
     msg->Printf("%s{\"functionName\":", (i > 0) ? "," : "");
     FormatEncodedString(msg, func_name);
     msg->Printf(",\"libraryId\": %"Pd",", library_id);
 
-    ASSERT(Dart_IsString(script_url));
-    msg->Printf("\"location\": { \"url\":");
-    FormatEncodedString(msg, script_url);
-    msg->Printf(",\"lineNumber\":%"Pd"},", line_number);
+    res = Dart_ActivationFrameGetLocation(frame, &script_url, &token_number);
+    ASSERT_NOT_ERROR(res);
+    if (!Dart_IsNull(script_url)) {
+      ASSERT(Dart_IsString(script_url));
+      msg->Printf("\"location\": { \"url\":");
+      FormatEncodedString(msg, script_url);
+      msg->Printf(",\"tokenOffset\":%"Pd",", token_number);
+      msg->Printf("\"lineNumber\":%"Pd"},", line_number);
+    }
 
     Dart_Handle locals = Dart_GetLocalVariables(frame);
     ASSERT_NOT_ERROR(locals);
@@ -912,17 +944,22 @@ void DbgMsgQueue::SendQueuedMsgs() {
 }
 
 
+// TODO(hausner): Remove stack trace parameter once we remove the stack
+// trace from the paused event in the wire protocol.
 void DbgMsgQueue::SendBreakpointEvent(Dart_StackTrace trace) {
   dart::TextBuffer msg(128);
   msg.Printf("{ \"event\": \"paused\", \"params\": { ");
   msg.Printf("\"reason\": \"breakpoint\", ");
   msg.Printf("\"id\": %"Pd64", ", isolate_id_);
+  FormatLocationFromTrace(&msg, trace);
   FormatCallFrames(&msg, trace);
   msg.Printf("}}");
   DebuggerConnectionHandler::BroadcastMsg(&msg);
 }
 
 
+// TODO(hausner): Remove stack trace parameter once we remove the stack
+// trace from the paused event in the wire protocol.
 void DbgMsgQueue::SendExceptionEvent(Dart_Handle exception,
                                      Dart_StackTrace stack_trace) {
   intptr_t exception_id = Dart_CacheObject(exception);
@@ -934,12 +971,15 @@ void DbgMsgQueue::SendExceptionEvent(Dart_Handle exception,
   msg.Printf("\"exception\":");
   FormatRemoteObj(&msg, exception);
   msg.Printf(", ");
+  FormatLocationFromTrace(&msg, stack_trace);
   FormatCallFrames(&msg, stack_trace);
   msg.Printf("}}");
   DebuggerConnectionHandler::BroadcastMsg(&msg);
 }
 
 
+// TODO(hausner): Remove stack trace parameter once we remove the stack
+// trace from the interrupted event in the wire protocol.
 void DbgMsgQueue::SendIsolateEvent(Dart_IsolateId isolate_id,
                                    Dart_IsolateEvent kind) {
   dart::TextBuffer msg(128);
@@ -950,6 +990,7 @@ void DbgMsgQueue::SendIsolateEvent(Dart_IsolateId isolate_id,
     msg.Printf("{ \"event\": \"paused\", \"params\": { ");
     msg.Printf("\"reason\": \"interrupted\", ");
     msg.Printf("\"id\": %"Pd64", ", isolate_id);
+    FormatLocationFromTrace(&msg, trace);
     FormatCallFrames(&msg, trace);
     msg.Printf("}}");
   } else {

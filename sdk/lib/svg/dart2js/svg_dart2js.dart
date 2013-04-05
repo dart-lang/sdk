@@ -3073,6 +3073,10 @@ class LengthList implements JavaScriptIndexingBehavior, List<Length> native "*SV
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, Length)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
   bool contains(Length element) => IterableMixinWorkaround.contains(this, element);
 
   void forEach(void f(Length element)) => IterableMixinWorkaround.forEach(this, f);
@@ -3131,10 +3135,6 @@ class LengthList implements JavaScriptIndexingBehavior, List<Length> native "*SV
   // From Collection<Length>:
 
   void add(Length value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(Length value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
@@ -3711,6 +3711,10 @@ class NumberList implements JavaScriptIndexingBehavior, List<Number> native "*SV
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, Number)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
   bool contains(Number element) => IterableMixinWorkaround.contains(this, element);
 
   void forEach(void f(Number element)) => IterableMixinWorkaround.forEach(this, f);
@@ -3769,10 +3773,6 @@ class NumberList implements JavaScriptIndexingBehavior, List<Number> native "*SV
   // From Collection<Number>:
 
   void add(Number value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(Number value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
@@ -4625,6 +4625,10 @@ class PathSegList implements JavaScriptIndexingBehavior, List<PathSeg> native "*
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, PathSeg)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
   bool contains(PathSeg element) => IterableMixinWorkaround.contains(this, element);
 
   void forEach(void f(PathSeg element)) => IterableMixinWorkaround.forEach(this, f);
@@ -4683,10 +4687,6 @@ class PathSegList implements JavaScriptIndexingBehavior, List<PathSeg> native "*
   // From Collection<PathSeg>:
 
   void add(PathSeg value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(PathSeg value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
@@ -5524,6 +5524,10 @@ class StringList implements JavaScriptIndexingBehavior, List<String> native "*SV
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, String)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
   bool contains(String element) => IterableMixinWorkaround.contains(this, element);
 
   void forEach(void f(String element)) => IterableMixinWorkaround.forEach(this, f);
@@ -5582,10 +5586,6 @@ class StringList implements JavaScriptIndexingBehavior, List<String> native "*SV
   // From Collection<String>:
 
   void add(String value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(String value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
@@ -6700,6 +6700,10 @@ class TransformList implements List<Transform>, JavaScriptIndexingBehavior nativ
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, Transform)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
   bool contains(Transform element) => IterableMixinWorkaround.contains(this, element);
 
   void forEach(void f(Transform element)) => IterableMixinWorkaround.forEach(this, f);
@@ -6758,10 +6762,6 @@ class TransformList implements List<Transform>, JavaScriptIndexingBehavior nativ
   // From Collection<Transform>:
 
   void add(Transform value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(Transform value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
@@ -7231,6 +7231,10 @@ class _ElementInstanceList implements JavaScriptIndexingBehavior, List<ElementIn
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, ElementInstance)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
   bool contains(ElementInstance element) => IterableMixinWorkaround.contains(this, element);
 
   void forEach(void f(ElementInstance element)) => IterableMixinWorkaround.forEach(this, f);
@@ -7289,10 +7293,6 @@ class _ElementInstanceList implements JavaScriptIndexingBehavior, List<ElementIn
   // From Collection<ElementInstance>:
 
   void add(ElementInstance value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(ElementInstance value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 

@@ -18,6 +18,10 @@ $endif
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, $E)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
 $if DEFINE_CONTAINS
   bool contains($E element) => IterableMixinWorkaround.contains(this, element);
 $else
@@ -80,10 +84,6 @@ $endif
   // From Collection<$E>:
 
   void add($E value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast($E value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 

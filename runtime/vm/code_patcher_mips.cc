@@ -7,6 +7,7 @@
 
 #include "vm/code_patcher.h"
 
+#include "vm/instructions.h"
 #include "vm/object.h"
 
 namespace dart {
@@ -14,8 +15,8 @@ namespace dart {
 uword CodePatcher::GetStaticCallTargetAt(uword return_address,
                                          const Code& code) {
   ASSERT(code.ContainsInstructionAt(return_address));
-  UNIMPLEMENTED();
-  return 0;
+  CallPattern call(return_address, code);
+  return call.TargetAddress();
 }
 
 
@@ -23,7 +24,8 @@ void CodePatcher::PatchStaticCallAt(uword return_address,
                                     const Code& code,
                                     uword new_target) {
   ASSERT(code.ContainsInstructionAt(return_address));
-  UNIMPLEMENTED();
+  CallPattern call(return_address, code);
+  call.SetTargetAddress(new_target);
 }
 
 
@@ -45,13 +47,20 @@ uword CodePatcher::GetInstanceCallAt(uword return_address,
                                      ICData* ic_data,
                                      Array* arguments_descriptor) {
   ASSERT(code.ContainsInstructionAt(return_address));
-  UNIMPLEMENTED();
-  return 0;
+  CallPattern call(return_address, code);
+  if (ic_data != NULL) {
+    *ic_data = call.IcData();
+  }
+  if (arguments_descriptor != NULL) {
+    *arguments_descriptor = call.ArgumentsDescriptor();
+  }
+  return call.TargetAddress();
 }
 
 
 intptr_t CodePatcher::InstanceCallSizeInBytes() {
-  UNIMPLEMENTED();
+  // The instance call instruction sequence has a variable size on MIPS.
+  UNREACHABLE();
   return 0;
 }
 

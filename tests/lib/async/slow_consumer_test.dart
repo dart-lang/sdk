@@ -16,10 +16,15 @@ const int GB = KB * KB * KB;
 class SlowConsumer extends StreamConsumer {
   var current = new Future.immediate(0);
   final int bytesPerSecond;
+  int finalCount;
 
   SlowConsumer(int this.bytesPerSecond);
 
   Future consume(Stream stream) {
+    return addStream(stream).then((_) => close());
+  }
+
+  Future addStream(Stream stream) {
     bool done = false;
     Completer completer = new Completer();
     var subscription;
@@ -40,9 +45,16 @@ class SlowConsumer extends StreamConsumer {
         },
       onDone: () {
         done = true;
-        current.then((count) { completer.complete(count); });
+        current.then((count) {
+          finalCount = count;
+          completer.complete(count);
+        });
       });
     return completer.future;
+  }
+
+  Future close() {
+    return new Future.immediate(finalCount);
   }
 }
 

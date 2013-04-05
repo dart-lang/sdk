@@ -332,10 +332,6 @@ void MIPSDecoder::DecodeSpecial(Instr* instr) {
       }
       break;
     }
-    case SUB: {
-      Format(instr, "sub 'rd, 'rs, 'rt");
-      break;
-    }
     case SUBU: {
       Format(instr, "subu 'rd, 'rs, 'rt");
       break;

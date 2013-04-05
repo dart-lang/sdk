@@ -432,7 +432,7 @@ class Object {
     // Filter stores based on source and target.
     if (!value->IsHeapObject()) return;
     if (value->IsNewObject() && raw()->IsOldObject()) {
-      uword ptr = reinterpret_cast<uword>(addr);
+      uword ptr = reinterpret_cast<uword>(raw());
       Isolate::Current()->store_buffer()->AddPointer(ptr);
     }
   }
@@ -3432,6 +3432,7 @@ class Instance : public Object {
   HEAP_OBJECT_IMPLEMENTATION(Instance, Object);
   friend class Class;
   friend class Closure;
+  friend class TypedDataView;
 };
 
 
@@ -3681,7 +3682,9 @@ class TypeParameter : public AbstractType {
   void set_index(intptr_t value) const;
   RawAbstractType* bound() const { return raw_ptr()->bound_; }
   void set_bound(const AbstractType& value) const;
-  void CheckBound(const AbstractType& bounded_type,
+  // Returns true if bounded_type is below upper_bound, otherwise return false
+  // and set malformed_error if not NULL.
+  bool CheckBound(const AbstractType& bounded_type,
                   const AbstractType& upper_bound,
                   Error* malformed_error) const;
   virtual intptr_t token_pos() const { return raw_ptr()->token_pos_; }
@@ -4930,7 +4933,7 @@ class GrowableObjectArray : public Instance {
     // Filter stores based on source and target.
     if (!value->IsHeapObject()) return;
     if (value->IsNewObject() && data()->IsOldObject()) {
-      uword ptr = reinterpret_cast<uword>(addr);
+      uword ptr = reinterpret_cast<uword>(data());
       Isolate::Current()->store_buffer()->AddPointer(ptr);
     }
   }
@@ -5090,6 +5093,12 @@ class TypedData : public Instance {
                    intptr_t src_offset_in_bytes,
                    intptr_t length_in_bytes);
 
+  static bool IsTypedData(const Instance& obj) {
+    ASSERT(!obj.IsNull());
+    intptr_t cid = obj.raw()->GetClassId();
+    return RawObject::IsTypedDataClassId(cid);
+  }
+
  protected:
   void SetLength(intptr_t value) const {
     raw_ptr()->length_ = Smi::New(value);
@@ -5101,6 +5110,7 @@ class TypedData : public Instance {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(TypedData, Instance);
   friend class Class;
   friend class ExternalTypedData;
+  friend class TypedDataView;
 };
 
 
@@ -5185,6 +5195,12 @@ class ExternalTypedData : public Instance {
                    intptr_t src_offset_in_bytes,
                    intptr_t length_in_bytes);
 
+  static bool IsExternalTypedData(const Instance& obj) {
+    ASSERT(!obj.IsNull());
+    intptr_t cid = obj.raw()->GetClassId();
+    return RawObject::IsExternalTypedDataClassId(cid);
+  }
+
  protected:
   void SetLength(intptr_t value) const {
     raw_ptr()->length_ = Smi::New(value);
@@ -5201,6 +5217,71 @@ class ExternalTypedData : public Instance {
  private:
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ExternalTypedData, Instance);
   friend class Class;
+};
+
+
+class TypedDataView : public AllStatic {
+ public:
+  static intptr_t ElementSizeInBytes(const Instance& view_obj) {
+    ASSERT(!view_obj.IsNull());
+    intptr_t cid = view_obj.raw()->GetClassId();
+    return ElementSizeInBytes(cid);
+  }
+
+  static RawInstance* Data(const Instance& view_obj) {
+    ASSERT(!view_obj.IsNull());
+    return *reinterpret_cast<RawInstance**>(view_obj.raw_ptr() + kDataOffset);
+  }
+
+  static RawSmi* OffsetInBytes(const Instance& view_obj) {
+    ASSERT(!view_obj.IsNull());
+    return *reinterpret_cast<RawSmi**>(
+        view_obj.raw_ptr() + kOffsetInBytesOffset);
+  }
+
+  static RawSmi* Length(const Instance& view_obj) {
+    ASSERT(!view_obj.IsNull());
+    return *reinterpret_cast<RawSmi**>(view_obj.raw_ptr() + kLengthOffset);
+  }
+
+  static bool IsExternalTypedDataView(const Instance& view_obj) {
+    const Instance& data = Instance::Handle(Data(view_obj));
+    intptr_t cid = data.raw()->GetClassId();
+    ASSERT(RawObject::IsTypedDataClassId(cid) ||
+           RawObject::IsExternalTypedDataClassId(cid));
+    return RawObject::IsExternalTypedDataClassId(cid);
+  }
+
+  static intptr_t NumberOfFields() {
+    return (kLengthOffset - kTypeArguments);
+  }
+
+  static intptr_t data_offset() {
+    return kWordSize * kDataOffset;
+  }
+
+  static intptr_t offset_in_bytes_offset() {
+    return kWordSize * kOffsetInBytesOffset;
+  }
+
+  static intptr_t length_offset() {
+    return kWordSize * kLengthOffset;
+  }
+
+  static intptr_t ElementSizeInBytes(intptr_t class_id) {
+    ASSERT(RawObject::IsTypedDataViewClassId(class_id));
+    return (class_id == kByteDataViewCid) ?
+        TypedData::element_size[kTypedDataInt8ArrayCid] :
+        TypedData::element_size[class_id - kTypedDataInt8ArrayViewCid];
+  }
+
+ private:
+  enum {
+    kTypeArguments = 1,
+    kDataOffset = 2,
+    kOffsetInBytesOffset = 3,
+    kLengthOffset = 4,
+  };
 };
 
 

@@ -5,6 +5,15 @@
 //
 // Dart test program testing type casts.
 
+checkTopFunction(String expected, StackTrace stacktrace) {
+  var topLine = stacktrace.toString().split("\n")[0];
+  int startPos = topLine.lastIndexOf("/");
+  int endPos = topLine.lastIndexOf(")");
+  String subs = topLine.substring(startPos + 1, endPos);
+  Expect.equals(expected, subs);
+}
+
+
 // Test that the initializer expression gets properly skipped.
 bool b = "foo" as double;
 
@@ -13,20 +22,13 @@ class TypeTest {
     int result = 0;
     try {
       var i = "hello" as int;  // Throws a CastError
-    } on TypeError catch (error) {
+    } on TypeError catch (error, stacktrace) {
       result = 1;
       Expect.isTrue(error is CastError);
       Expect.equals("int", error.dstType);
       Expect.equals("String", error.srcType);
       Expect.equals("type cast", error.dstName);
-      int pos = error.url.lastIndexOf("/", error.url.length);
-      if (pos == -1) {
-        pos = error.url.lastIndexOf("\\", error.url.length);
-      }
-      String subs = error.url.substring(pos + 1, error.url.length);
-      Expect.equals("type_cast_vm_test.dart", subs);
-      Expect.equals(15, error.line);
-      Expect.equals(23, error.column);
+      checkTopFunction("type_cast_vm_test.dart:24:23", stacktrace);
     }
     return result;
   }
@@ -55,20 +57,13 @@ class TypeTest {
     }
     try {
       int i = f("hello" as int);  // Throws a CastError
-    } on TypeError catch (error) {
+    } on TypeError catch (error, stacktrace) {
       result = 1;
       Expect.isTrue(error is CastError);
       Expect.equals("int", error.dstType);
       Expect.equals("String", error.srcType);
       Expect.equals("type cast", error.dstName);
-      int pos = error.url.lastIndexOf("/", error.url.length);
-      if (pos == -1) {
-        pos = error.url.lastIndexOf("\\", error.url.length);
-      }
-      String subs = error.url.substring(pos + 1, error.url.length);
-      Expect.equals("type_cast_vm_test.dart", subs);
-      Expect.equals(57, error.line);
-      Expect.equals(25, error.column);
+      checkTopFunction("type_cast_vm_test.dart:59:25", stacktrace);
     }
     return result;
   }
@@ -80,43 +75,30 @@ class TypeTest {
     }
     try {
       int i = f("hello");
-    } on TypeError catch (error) {
+    } on TypeError catch (error, stacktrace) {
       result = 1;
       Expect.isTrue(error is CastError);
       Expect.equals("int", error.dstType);
       Expect.equals("String", error.srcType);
       Expect.equals("type cast", error.dstName);
-      int pos = error.url.lastIndexOf("/", error.url.length);
-      if (pos == -1) {
-        pos = error.url.lastIndexOf("\\", error.url.length);
-      }
-      String subs = error.url.substring(pos + 1, error.url.length);
-      Expect.equals("type_cast_vm_test.dart", subs);
-      Expect.equals(79, error.line);
-      Expect.equals(16, error.column);
+      checkTopFunction("type_cast_vm_test.dart:74:16", stacktrace);
     }
     return result;
   }
 
   static var field = "hello";
+
   static testField() {
     int result = 0;
     Expect.equals(5, (field as String).length);
     try {
       field as int;  // Throws a CastError
-    } on TypeError catch (error) {
+    } on TypeError catch (error, stacktrace) {
       result = 1;
       Expect.equals("int", error.dstType);
       Expect.equals("String", error.srcType);
       Expect.equals("type cast", error.dstName);
-      int pos = error.url.lastIndexOf("/", error.url.length);
-      if (pos == -1) {
-        pos = error.url.lastIndexOf("\\", error.url.length);
-      }
-      String subs = error.url.substring(pos + 1, error.url.length);
-      Expect.equals("type_cast_vm_test.dart", subs);
-      Expect.equals(106, error.line);
-      Expect.equals(13, error.column);
+      checkTopFunction("type_cast_vm_test.dart:95:13", stacktrace);
     }
     return result;
   }
@@ -129,19 +111,12 @@ class TypeTest {
     anyFunction = null as Function;  // No error.
     try {
       var i = f as int;  // Throws a TypeError if type checks are enabled.
-    } on TypeError catch (error) {
+    } on TypeError catch (error, stacktrace) {
       result = 1;
       Expect.equals("int", error.dstType);
       Expect.equals("() => dynamic", error.srcType);
       Expect.equals("type cast", error.dstName);
-      int pos = error.url.lastIndexOf("/", error.url.length);
-      if (pos == -1) {
-        pos = error.url.lastIndexOf("\\", error.url.length);
-      }
-      String subs = error.url.substring(pos + 1, error.url.length);
-      Expect.equals("type_cast_vm_test.dart", subs);
-      Expect.equals(131, error.line);
-      Expect.equals(17, error.column);
+      checkTopFunction("type_cast_vm_test.dart:113:17", stacktrace);
     }
     return result;
   }

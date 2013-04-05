@@ -634,6 +634,13 @@ class JavaScriptBackend extends Backend {
   final Map<Element, jsAst.Expression> generatedBailoutCode =
       new Map<Element, jsAst.Expression>();
 
+  /**
+   * Keep track of which function elements are simple enough to be
+   * inlined in callers.
+   */
+  final Map<FunctionElement, bool> canBeInlined =
+      new Map<FunctionElement, bool>();
+
   ClassElement jsInterceptorClass;
   ClassElement jsStringClass;
   ClassElement jsArrayClass;
@@ -664,6 +671,13 @@ class JavaScriptBackend extends Backend {
 
   Element getInterceptorMethod;
   Element interceptedNames;
+
+  // TODO(9577): Make it so that these are not needed when there are no native
+  // classes.
+  Element dispatchPropertyName;
+  Element getNativeInterceptorMethod;
+  Element setNativeInterceptorMethod;
+  Element defineNativeMethodsFinishMethod;
 
   bool seenAnyClass = false;
 
@@ -838,6 +852,14 @@ class JavaScriptBackend extends Backend {
         compiler.findInterceptor(const SourceString('getInterceptor'));
     interceptedNames =
         compiler.findInterceptor(const SourceString('interceptedNames'));
+    dispatchPropertyName =
+        compiler.findInterceptor(const SourceString('dispatchPropertyName'));
+    getNativeInterceptorMethod =
+        compiler.findInterceptor(const SourceString('getNativeInterceptor'));
+    setNativeInterceptorMethod =
+        compiler.findInterceptor(const SourceString('setNativeInterceptor'));
+    defineNativeMethodsFinishMethod =
+        compiler.findHelper(const SourceString('defineNativeMethodsFinish'));
     List<ClassElement> classes = [
       jsInterceptorClass =
           compiler.findInterceptor(const SourceString('Interceptor')),
@@ -980,6 +1002,13 @@ class JavaScriptBackend extends Backend {
     if (!seenAnyClass) {
       initializeNoSuchMethod();
       seenAnyClass = true;
+      if (enqueuer.isResolutionQueue) {
+        // TODO(9577): Make it so that these are not needed when there are no
+        // native classes.
+        enqueuer.registerStaticUse(getNativeInterceptorMethod);
+        enqueuer.registerStaticUse(setNativeInterceptorMethod);
+        enqueuer.registerStaticUse(defineNativeMethodsFinishMethod);
+      }
     }
 
     // Register any helper that will be needed by the backend.
@@ -1047,6 +1076,15 @@ class JavaScriptBackend extends Backend {
         enqueuer.registerIsCheck(type, elements);
       });
     }
+  }
+
+  void registerUseInterceptor(Enqueuer enqueuer) {
+    assert(!enqueuer.isResolutionQueue);
+    // TODO(9577): Make it so that these are not needed when there are no native
+    // classes.
+    enqueuer.registerStaticUse(getNativeInterceptorMethod);
+    enqueuer.registerStaticUse(setNativeInterceptorMethod);
+    enqueuer.registerStaticUse(defineNativeMethodsFinishMethod);
   }
 
   JavaScriptItemCompilationContext createItemCompilationContext() {
@@ -1196,7 +1234,7 @@ class JavaScriptBackend extends Backend {
       if (argument == null) return;
       if (argument.element.isTypeVariable()) {
         ClassElement enclosing = argument.element.getEnclosingClass();
-        assert(enclosing == enclosingElement.getEnclosingClass());
+        assert(enclosing == enclosingElement.getEnclosingClass().declaration);
         rti.registerRtiDependency(annotation.element, enclosing);
       } else if (argument is InterfaceType) {
         InterfaceType type = argument;
@@ -1220,7 +1258,8 @@ class JavaScriptBackend extends Backend {
   }
 
   bool needsRti(ClassElement cls) {
-    return rti.classesNeedingRti.contains(cls) || compiler.enabledRuntimeType;
+    return rti.classesNeedingRti.contains(cls.declaration)
+        || compiler.enabledRuntimeType;
   }
 
   bool isDefaultNoSuchMethodImplementation(Element element) {

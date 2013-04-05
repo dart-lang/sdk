@@ -178,10 +178,6 @@ class _GrowableObjectArray<T> implements List<T> {
     this[len] = value;
   }
 
-  void addLast(T element) {
-    add(element);
-  }
-
   void addAll(Iterable<T> iterable) {
     for (T elem in iterable) {
       add(elem);
@@ -270,6 +266,10 @@ class _GrowableObjectArray<T> implements List<T> {
 
   reduce(initialValue, combine(previousValue, T element)) {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  }
+
+  fold(initialValue, combine(previousValue, T element)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
   Iterable<T> where(bool f(T element)) {

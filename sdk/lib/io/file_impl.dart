@@ -4,13 +4,13 @@
 
 part of dart.io;
 
+// Read the file in blocks of size 64k.
+const int _BLOCK_SIZE = 64 * 1024;
+
 
 class _FileStream extends Stream<List<int>> {
   // Stream controller.
   StreamController<List<int>> _controller;
-
-  // Read the file in blocks of size 64k.
-  final int _blockSize = 64 * 1024;
 
   // Information about the underlying file.
   String _path;
@@ -76,7 +76,7 @@ class _FileStream extends Stream<List<int>> {
           }
           return null;
         } else {
-          return _openedFile.read(_blockSize);
+          return _openedFile.read(_BLOCK_SIZE);
         }
       })
       .then((block) {
@@ -151,6 +151,7 @@ class _FileStreamConsumer extends StreamConsumer<List<int>, File> {
   File _file;
   Future<RandomAccessFile> _openFuture;
   StreamSubscription _subscription;
+  
 
   _FileStreamConsumer(File this._file, FileMode mode) {
     _openFuture = _file.open(mode: mode);
@@ -162,6 +163,10 @@ class _FileStreamConsumer extends StreamConsumer<List<int>, File> {
   }
 
   Future<File> consume(Stream<List<int>> stream) {
+    return addStream(stream).then((_) => close());
+  }
+
+  Future<File> addStream(Stream<List<int>> stream) {
     Completer<File> completer = new Completer<File>();
     _openFuture
       .then((openedFile) {
@@ -176,15 +181,7 @@ class _FileStreamConsumer extends StreamConsumer<List<int>, File> {
               });
           },
           onDone: () {
-            // Wait for the file to close (and therefore flush) before
-            // completing the future.
-            openedFile.close()
-              .then((_) {
-                completer.complete(_file);
-              })
-              .catchError((e) {
-                completer.completeError(e);
-              });
+            completer.complete(_file);
           },
           onError: (e) {
             openedFile.close();
@@ -196,6 +193,10 @@ class _FileStreamConsumer extends StreamConsumer<List<int>, File> {
         completer.completeError(e);
       });
     return completer.future;
+  }
+
+  Future<File> close() {
+    return _openFuture.then((openedFile) => openedFile.close());
   }
 }
 
@@ -503,14 +504,13 @@ class _File extends _FileBase implements File {
 
   List<int> readAsBytesSync() {
     var opened = openSync();
-    var length = opened.lengthSync();
-    var result = new Uint8List(length);
-    var read = opened.readListSync(result, 0, length);
-    if (read != length) {
-      throw new FileIOException("Failed to read file");
+    var chunks = new _BufferList();
+    var data;
+    while ((data = opened.readSync(_BLOCK_SIZE)).length > 0) {
+      chunks.add(data);
     }
     opened.closeSync();
-    return result;
+    return chunks.readBytes();
   }
 
   Future<String> readAsString({Encoding encoding: Encoding.UTF_8}) {
@@ -699,11 +699,17 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
   external static _read(int id, int bytes);
 
   List<int> readSync(int bytes) {
+    _checkNotClosed();
     if (bytes is !int) {
       throw new FileIOException(
           "Invalid arguments to readSync for file '$_path'");
     }
-    return _read(_id, bytes);
+    var result = _read(_id, bytes);
+    if (result is OSError) {
+      throw new FileIOException("readSync failed for file '$_path'",
+                                result);
+    }
+    return result;
   }
 
   Future<int> readList(List<int> buffer, int offset, int bytes) {

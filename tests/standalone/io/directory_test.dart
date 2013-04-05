@@ -244,6 +244,98 @@ class DirectoryTest {
     Expect.isFalse(d.existsSync());
   }
 
+  static void testDeleteLinkSync() {
+    Directory tmp = new Directory("").createTempSync();
+    var path = "${tmp.path}${Platform.pathSeparator}";
+    Directory d = new Directory("${path}target");
+    d.createSync();
+    Link l = new Link("${path}symlink");
+    l.createSync("${path}target");
+    Expect.isTrue(d.existsSync());
+    Expect.isTrue(l.existsSync());
+    new Directory(l.path).deleteSync(recursive: true);
+    Expect.isTrue(d.existsSync());
+    Expect.isFalse(l.existsSync());
+    d.deleteSync();
+    Expect.isFalse(d.existsSync());
+    tmp.deleteSync();
+  }
+
+  static void testDeleteLinkAsFileSync() {
+    Directory tmp = new Directory("").createTempSync();
+    var path = "${tmp.path}${Platform.pathSeparator}";
+    Directory d = new Directory("${path}target");
+    d.createSync();
+    Link l = new Link("${path}symlink");
+    l.createSync("${path}target");
+    Expect.isTrue(d.existsSync());
+    Expect.isTrue(l.existsSync());
+    new Link(l.path).deleteSync();
+    Expect.isTrue(d.existsSync());
+    Expect.isFalse(l.existsSync());
+    d.deleteSync();
+    Expect.isFalse(d.existsSync());
+    tmp.deleteSync();
+  }
+
+  static void testDeleteBrokenLinkAsFileSync() {
+    Directory tmp = new Directory("").createTempSync();
+    var path = "${tmp.path}${Platform.pathSeparator}";
+    Directory d = new Directory("${path}target");
+    d.createSync();
+    Link l = new Link("${path}symlink");
+    l.createSync("${path}target");
+    d.deleteSync();
+    Expect.isFalse(d.existsSync());
+    Expect.isTrue(l.existsSync());
+    new Link(l.path).deleteSync();
+    Expect.isFalse(l.existsSync());
+    Expect.isFalse(d.existsSync());
+    tmp.deleteSync();
+  }
+
+  static void testListBrokenLinkSync() {
+    Directory tmp = new Directory("").createTempSync();
+    var path = "${tmp.path}${Platform.pathSeparator}";
+    Directory d = new Directory("${path}target");
+    d.createSync();
+    Link l = new Link("${path}symlink");
+    l.createSync("${path}target");
+    d.deleteSync();
+    int count = 0;
+    tmp.list(followLinks: true).listen(
+        (file) {
+          count++;
+          Expect.isTrue(file is Link);
+        },
+        onDone: () {
+          Expect.equals(1, count);
+          l.deleteSync();
+          tmp.deleteSync();
+        });
+  }
+
+  static void testListLinkSync() {
+    Directory tmp = new Directory("").createTempSync();
+    var path = "${tmp.path}${Platform.pathSeparator}";
+    Directory d = new Directory("${path}target");
+    d.createSync();
+    Link l = new Link("${path}symlink");
+    l.createSync("${path}target");
+    int count = 0;
+    tmp.list(followLinks: true).listen(
+        (file) {
+          count++;
+          Expect.isTrue(file is Directory);
+        },
+        onDone: () {
+          Expect.equals(2, count);
+          l.deleteSync();
+          d.deleteSync();
+          tmp.deleteSync();
+        });
+  }
+
   static void testCreateTemp([String template = ""]) {
     var port = new ReceivePort();
     Directory dir = new Directory(template);
@@ -314,6 +406,11 @@ class DirectoryTest {
     testDeleteTooLongNameSync();
     testExistsCreateDelete();
     testExistsCreateDeleteSync();
+    testDeleteLinkSync();
+    testDeleteLinkAsFileSync();
+    testDeleteBrokenLinkAsFileSync();
+    testListBrokenLinkSync();
+    testListLinkSync();
     testCreateTemp();
     testCreateDeleteTemp();
     testCurrent();

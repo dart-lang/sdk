@@ -185,7 +185,12 @@ void set unittestConfiguration(Configuration value) {
   }
 }
 
-void logMessage(String message) => _config.logMessage(message);
+/**
+ * Can be called by tests to log status. Tests should use this
+ * instead of [print].
+ */
+void logMessage(String message) =>
+    _config.onLogMessage(currentTestCase, message);
 
 /**
  * Description text of the current test group. If multiple groups are nested,
@@ -692,6 +697,7 @@ void filterTests(testFilter) {
 
 /** Runs all queued tests, one at a time. */
 void runTests() {
+  _ensureInitialized(false);
   _currentTestCaseIndex = 0;
   _currentGroup = '';
 
@@ -785,7 +791,7 @@ void _completeTests() {
       case ERROR: errors++; break;
     }
   }
-  _config.onSummary(passed, failed, errors, _testCases, _uncaughtErrorMessage);
+  _config.onSummary(passed, failed, errors, testCases, _uncaughtErrorMessage);
   _config.onDone(passed > 0 && failed == 0 && errors == 0 &&
       _uncaughtErrorMessage == null);
   _initialized = false;
@@ -800,6 +806,10 @@ String _fullSpec(String spec) {
  * Lazily initializes the test library if not already initialized.
  */
 void ensureInitialized() {
+  _ensureInitialized(true);
+}
+
+void _ensureInitialized(bool configAutoStart) {
   if (_initialized) {
     return;
   }
@@ -814,7 +824,7 @@ void ensureInitialized() {
   }
   _config.onInit();
 
-  if (_config.autoStart) {
+  if (configAutoStart && _config.autoStart) {
     // Immediately queue the suite up. It will run after a timeout (i.e. after
     // main() has returned).
     _defer(runTests);

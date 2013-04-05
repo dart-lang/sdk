@@ -415,7 +415,8 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs) {
         //
         // FPU registers have the highest register number at the highest
         // address (i.e., first in the stackmap).
-        const intptr_t kFpuRegisterSpillFactor = kFpuRegisterSize / kWordSize;
+        const intptr_t kFpuRegisterSpillFactor =
+            FlowGraphAllocator::kFpuRegisterSpillFactor;
         for (intptr_t i = kNumberOfFpuRegisters - 1; i >= 0; --i) {
           FpuRegister reg = static_cast<FpuRegister>(i);
           if (regs->ContainsFpuRegister(reg)) {

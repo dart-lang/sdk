@@ -17,6 +17,7 @@ import 'dart:json' as json;
 import 'dart:math';
 import 'dart:nativewrappers';
 import 'dart:typeddata' as _typeddata;
+import 'dart:web_gl' as gl;
 import 'dart:web_sql';
 // Not actually used, but imported since dart:html can generate these objects.
 import 'dart:svg' as svg;
@@ -38,7 +39,6 @@ part '$AUXILIARY_DIR/ModelTreeObserver.dart';
 part '$AUXILIARY_DIR/Point.dart';
 part '$AUXILIARY_DIR/ReadyState.dart';
 part '$AUXILIARY_DIR/Rectangle.dart';
-part '$AUXILIARY_DIR/Timer.dart';
 part '$AUXILIARY_DIR/WrappedList.dart';
 part '$AUXILIARY_DIR/_HttpRequestUtils.dart';
 part '$AUXILIARY_DIR/shared_FactoryProviders.dart';

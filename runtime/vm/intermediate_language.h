@@ -466,7 +466,7 @@ class EmbeddedArray<T, 0> {
   M(AllocateObjectWithBoundsCheck)                                             \
   M(LoadField)                                                                 \
   M(StoreVMField)                                                              \
-  M(LoadUntagged)                                                          \
+  M(LoadUntagged)                                                              \
   M(InstantiateTypeArguments)                                                  \
   M(ExtractConstructorTypeArguments)                                           \
   M(ExtractConstructorInstantiator)                                            \
@@ -1825,6 +1825,14 @@ class BranchInstr : public ControlInstruction {
     return constrained_type_;
   }
 
+  void set_constant_target(TargetEntryInstr* target) {
+    ASSERT(target == true_successor() || target == false_successor());
+    constant_target_ = target;
+  }
+  TargetEntryInstr* constant_target() const {
+    return constant_target_;
+  }
+
  private:
   virtual void RawSetInputAt(intptr_t i, Value* value);
 
@@ -1832,6 +1840,8 @@ class BranchInstr : public ControlInstruction {
   const bool is_checked_;
 
   ConstrainedCompileType* constrained_type_;
+
+  TargetEntryInstr* constant_target_;
 
   DISALLOW_COPY_AND_ASSIGN(BranchInstr);
 };
@@ -2029,18 +2039,20 @@ class Range : public ZoneAllocated {
     return min_.Equals(other->min_) && max_.Equals(other->max_);
   }
 
-  static RangeBoundary ConstantMin(Range* range) {
+  static RangeBoundary ConstantMin(const Range* range) {
     if (range == NULL) return RangeBoundary::MinSmi();
     return range->min().LowerBound().Clamp();
   }
 
-  static RangeBoundary ConstantMax(Range* range) {
+  static RangeBoundary ConstantMax(const Range* range) {
     if (range == NULL) return RangeBoundary::MaxSmi();
     return range->max().UpperBound().Clamp();
   }
 
   // Inclusive.
   bool IsWithin(intptr_t min_int, intptr_t max_int) const;
+
+  bool IsUnsatisfiable() const;
 
  private:
   RangeBoundary min_;
@@ -2051,7 +2063,8 @@ class Range : public ZoneAllocated {
 class ConstraintInstr : public TemplateDefinition<2> {
  public:
   ConstraintInstr(Value* value, Range* constraint)
-      : constraint_(constraint) {
+      : constraint_(constraint),
+        target_(NULL) {
     SetInputAt(0, value);
   }
 
@@ -2085,12 +2098,23 @@ class ConstraintInstr : public TemplateDefinition<2> {
     SetInputAt(1, val);
   }
 
+  // Constraints for branches have their target block stored in order
+  // to find the the comparsion that generated the constraint:
+  // target->predecessor->last_instruction->comparison.
+  void set_target(TargetEntryInstr* target) {
+    target_ = target;
+  }
+  TargetEntryInstr* target() const {
+    return target_;
+  }
+
  private:
   Value* dependency() {
     return inputs_[1];
   }
 
   Range* constraint_;
+  TargetEntryInstr* target_;
 
   DISALLOW_COPY_AND_ASSIGN(ConstraintInstr);
 };
@@ -2315,6 +2339,7 @@ class InstanceCallInstr : public TemplateDefinition<0> {
            Token::IsPrefixOperator(token_kind) ||
            Token::IsIndexOperator(token_kind) ||
            Token::IsTypeTestOperator(token_kind) ||
+           Token::IsTypeCastOperator(token_kind) ||
            token_kind == Token::kGET ||
            token_kind == Token::kSET ||
            token_kind == Token::kILLEGAL);
@@ -2812,11 +2837,6 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2> {
         emit_store_barrier_(emit_store_barrier) {
     SetInputAt(0, instance);
     SetInputAt(1, value);
-  }
-
-  void SetDeoptId(intptr_t deopt_id) {
-    ASSERT(CanDeoptimize());
-    deopt_id_ = deopt_id;
   }
 
   DECLARE_INSTRUCTION(StoreInstanceField)
@@ -3344,6 +3364,7 @@ class LoadFieldInstr : public TemplateDefinition<1> {
   intptr_t offset_in_bytes() const { return offset_in_bytes_; }
   const AbstractType& type() const { return type_; }
   void set_result_cid(intptr_t value) { result_cid_ = value; }
+  intptr_t result_cid() const { return result_cid_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 

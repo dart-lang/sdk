@@ -242,6 +242,14 @@ class _HttpParser
     return completer.future;
   }
 
+  Future<_HttpParser> addStream(Stream<List<int>> stream) {
+    throw new UnimplementedError("_HttpParser.addStream");
+  }
+
+  Future<_HttpParser> close() {
+    throw new UnimplementedError("_HttpParser.close");
+  }
+
   // From RFC 2616.
   // generic-message = start-line
   //                   *(message-header CRLF)

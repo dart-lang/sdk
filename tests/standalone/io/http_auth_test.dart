@@ -98,7 +98,7 @@ void testBasicNoCredentials() {
         .then((HttpClientRequest request) => request.close())
         .then((HttpClientResponse response) {
           Expect.equals(HttpStatus.UNAUTHORIZED, response.statusCode);
-          return response.reduce(null, (x, y) {});
+          return response.fold(null, (x, y) {});
         });
     }
 
@@ -128,7 +128,7 @@ void testBasicCredentials() {
         .then((HttpClientRequest request) => request.close())
         .then((HttpClientResponse response) {
           Expect.equals(HttpStatus.OK, response.statusCode);
-          return response.reduce(null, (x, y) {});
+          return response.fold(null, (x, y) {});
         });
     }
 
@@ -181,7 +181,7 @@ void testBasicAuthenticateCallback() {
         .then((HttpClientRequest request) => request.close())
         .then((HttpClientResponse response) {
           Expect.equals(HttpStatus.OK, response.statusCode);
-          return response.reduce(null, (x, y) {});
+          return response.fold(null, (x, y) {});
         });
     }
 

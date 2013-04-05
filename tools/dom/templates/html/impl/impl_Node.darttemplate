@@ -63,11 +63,6 @@ $endif
     _this.append(value);
   }
 
-  void addLast(Node value) {
-    _this.append(value);
-  }
-
-
   void addAll(Iterable<Node> iterable) {
     if (iterable is _ChildNodeListLazy) {
       if (!identical(iterable._this, _this)) {
@@ -153,6 +148,11 @@ $endif
   dynamic reduce(dynamic initialValue,
       dynamic combine(dynamic previousValue, Node element)) {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  }
+
+  dynamic fold(dynamic initialValue,
+      dynamic combine(dynamic previousValue, Node element)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
   String join([String separator]) {

@@ -61,10 +61,6 @@ class FilteredElementList implements List {
     }
   }
 
-  void addLast(Element value) {
-    add(value);
-  }
-
   bool contains(Element element) {
     return element is Element && _childNodes.contains(element);
   }
@@ -149,6 +145,12 @@ class FilteredElementList implements List {
       dynamic combine(dynamic previousValue, Element element)) {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
+
+  dynamic fold(dynamic initialValue,
+      dynamic combine(dynamic previousValue, Element element)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
   bool every(bool f(Element element)) => _filtered.every(f);
   bool any(bool f(Element element)) => _filtered.any(f);
   List<Element> toList({ bool growable: true }) =>

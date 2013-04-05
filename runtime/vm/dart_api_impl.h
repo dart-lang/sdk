@@ -58,9 +58,6 @@ const char* CanonicalFunction(const char* func);
   HANDLESCOPE(__temp_isolate__);
 
 
-void SetupErrorResult(Dart_Handle* handle);
-
-
 class Api : AllStatic {
  public:
   // Creates a new local handle.

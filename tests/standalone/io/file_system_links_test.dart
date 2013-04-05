@@ -206,15 +206,17 @@ testDirectoryListingBrokenLink() {
   var doesNotExist = 'this_thing_does_not_exist';
   new File(x).createSync();
   createLink(doesNotExist, link, () {
-    Expect.throws(() => temp.listSync(recursive: true),
-                  (e) => e is DirectoryIOException);
+    temp.listSync(recursive: true);  // No exceptions.
     var files = [];
     var dirs = [];
+    var links = [];
     var errors = [];
     temp.list(recursive: true).listen(
         (entity) {
           if (entity is File) {
             files.add(entity.path);
+          } else if (entity is Link) {
+            links.add(entity.path);
           } else {
             Expect.isTrue(entity is Directory);
             dirs.add(entity.path);
@@ -224,9 +226,10 @@ testDirectoryListingBrokenLink() {
         onDone: () {
           Expect.equals(1, files.length);
           Expect.isTrue(files[0].endsWith(x));
+          Expect.equals(1, links.length);
+          Expect.isTrue(links[0].endsWith(link));
           Expect.equals(0, dirs.length);
-          Expect.equals(1, errors.length);
-          Expect.isTrue(errors[0].toString().contains(link));
+          Expect.equals(0, errors.length);
           temp.deleteSync(recursive: true);
           keepAlive.close();
         });

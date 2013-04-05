@@ -5,58 +5,121 @@
 part of dart.vmstats;
 
 class IsolateList {
-  UListElement _listArea;
+  TableElement _isolateTable;
 
-  static const String CSS_VISIBLE = 'isolate_details';
-  static const String CSS_HIDDEN  = 'isolate_details_hidden';
+  static const String DETAILS = 'isolate_details';
+  static const String VISIBLE = 'visible';
+  static const String HIDDEN  = 'hidden';
+  static const String ISOLATE_LIST_ITEM = 'isolate_list_item';
+  static const String ISOLATE_DETAILS_COLUMN = 'isolate_details_column';
+  static const String ISOLATE_ROW = 'isolate_row';
+  static const String ISOLATE_STACKTRACE_COLUMN = 'isolate_stacktrace_column';
+  static const String NEW_SPACE = 'new_space';
+  static const String OLD_SPACE = 'old_space';
+  static const String STACK_FRAME = 'stack_frame';
+  static const String STACK_LIMIT = 'stack_limit';
+  static const String STACK_TRACE = 'stack_trace';
+  static const String STACK_TRACE_TITLE = 'stack_trace_title';
 
-  IsolateList(this._listArea) {}
+  IsolateList(this._isolateTable) {}
 
   void updateList(IsolateListModel model) {
-    var detailsClass = CSS_HIDDEN;
-    if (_listArea.children.length > 0) {
-      // Preserve visibility state.
-      var listItem = _listArea.children.first;
-      var item = listItem.children.first;
-      if (item.classes.length > 0 && item.classes.first == CSS_VISIBLE) {
-        detailsClass = CSS_VISIBLE;
-      }
-      _listArea.children.clear();
-    }
     var iterator = model.iterator;
     while (iterator.moveNext()) {
       var isolate = iterator.current;
-      var listItem = new LIElement();
-      listItem.classes.add('isolate_list');
-      listItem.text = isolate.name
+      var isolateId = 'isolate-${isolate.port}';
+      var isolateRow = _isolateTable.query('#$isolateId');
+      if (isolateRow != null) {
+        updateIsolateDetails(isolate, isolateRow);
+      } else {
+        isolateRow = new TableRowElement();
+        isolateRow.$dom_className = ISOLATE_ROW;
+        isolateRow.id = isolateId;
+        _isolateTable.children.add(isolateRow);
+        var detailsCell = new TableCellElement();
+        detailsCell.$dom_className = ISOLATE_DETAILS_COLUMN;
+        isolateRow.children.add(detailsCell);
+        var basicData = new DivElement();
+        basicData.text = isolate.name
           .replaceAll('\$', ': ')  // Split script from isolate, and ...
           .replaceAll('-', ' ');   // ... split name from port number.
+        detailsCell.children.add(basicData);
 
-      // Add isolate details as hidden children.
-      var details = new DivElement();
-      isolateDetails(isolate, details);
-      details.classes.add(detailsClass);
-      listItem.children.add(details);
-      listItem.onClick.listen((e) => toggle(details));
+        // Add isolate details as hidden children.
+        var details = new DivElement();
+        details.classes.addAll([DETAILS, HIDDEN]);
+        detailsCell.children.add(details);
 
-      _listArea.children.add(listItem);
+        // Add stacktrace column.
+        var stacktraceCell = new TableCellElement();
+        stacktraceCell.classes.addAll([ISOLATE_STACKTRACE_COLUMN, HIDDEN]);
+        isolateRow.children.add(stacktraceCell);
+        var stacktrace = new DivElement();
+        stacktrace.classes.addAll([STACK_TRACE, HIDDEN]);
+        stacktraceCell.children.add(stacktrace);
+
+        isolateRow.onClick.listen((e) => toggle(isolateRow));
+        updateIsolateDetails(isolate, isolateRow);
+      }
     }
   }
 
-  void isolateDetails(Isolate isolate, DivElement parent) {
-    var newSpace = new DivElement();
-    newSpace.text = 'New space: ${isolate.newSpace.used}K';
-    parent.children.add(newSpace);
-    var oldSpace = new DivElement();
-    oldSpace.text = 'Old space: ${isolate.oldSpace.used}K';
-    parent.children.add(oldSpace);
-    var stack = new DivElement();
-    stack.text = 'Stack limit: ${(isolate.stackLimit / 1000000).round()}M';
-    parent.children.add(stack);
+  void setStacktrace(DivElement element, String json) {
+    element.children.clear();
+    var response = JSON.parse(json);
+    element.id = response['handle'];
+    var title = new DivElement();
+    title.$dom_className = STACK_TRACE_TITLE;
+    title.text = "Stack Trace";
+    element.children.add(title);
+
+    var stackIterator = response['stacktrace'].iterator;
+    var i = 0;
+    while (stackIterator.moveNext()) {
+      i++;
+      var frame = stackIterator.current;
+      var frameElement = new DivElement();
+      frameElement.$dom_className = STACK_FRAME;
+      var text = '$i: ${frame["url"]}:${frame["line"]}: ${frame["function"]}';
+      var code = frame["code"];
+      if (code['optimized']) {
+        text = '$text (optimized)';
+      }
+      frameElement.text = text;
+      element.children.add(frameElement);
+    }
   }
 
-  void toggle(DivElement e) {
-    e.classes.toggle(CSS_VISIBLE);
-    e.classes.toggle(CSS_HIDDEN);
+  Element findOrAddChild(DivElement parent, String className) {
+    var child = parent.query('.$className');
+    if (child == null) {
+      child = new DivElement();
+      child.$dom_className = className;
+      parent.children.add(child);
+    }
+    return child;
+  }
+
+  void updateIsolateDetails(Isolate isolate, TableRowElement row) {
+    var details = row.query('.$DETAILS');
+    var newSpace = findOrAddChild(details, NEW_SPACE);
+    newSpace.text = 'New space: ${isolate.newSpace.used}K';
+    var oldSpace = findOrAddChild(details, OLD_SPACE);
+    oldSpace.text = 'Old space: ${isolate.oldSpace.used}K';
+    var stackLimit = findOrAddChild(details, STACK_LIMIT);
+    stackLimit.text =
+        'Stack limit: ${(isolate.stackLimit.abs() / 1000000).round()}M';
+    var stackTrace = findOrAddChild(row, ISOLATE_STACKTRACE_COLUMN);
+    HttpRequest.getString('/isolate/${isolate.handle}/stacktrace').then(
+        (String response) => setStacktrace(stackTrace, response));
+  }
+
+  void toggle(TableRowElement row) {
+    var details = row.query('.$DETAILS');
+    details.classes.toggle(VISIBLE);
+    details.classes.toggle(HIDDEN);
+    var stacktrace = row.query('.$ISOLATE_STACKTRACE_COLUMN');
+    stacktrace.classes.toggle(VISIBLE);
+    stacktrace.classes.toggle(HIDDEN);
   }
 }

@@ -12,10 +12,10 @@ import 'dart:uri';
 import '../../compiler.dart' as api;
 import '../elements/elements.dart';
 import '../resolution/resolution.dart' show ResolverTask, ResolverVisitor;
-import '../apiimpl.dart' show Compiler;
+import '../apiimpl.dart' as apiimpl;
 import '../scanner/scannerlib.dart' hide SourceString;
 import '../ssa/ssa.dart';
-import '../dart2jslib.dart' hide Compiler;
+import '../dart2jslib.dart';
 import '../dart_types.dart';
 import '../filenames.dart';
 import '../source_file.dart';
@@ -229,21 +229,19 @@ Future<String> compile(Path script,
  * Analyzes set of libraries and provides a mirror system which can be used for
  * static inspection of the source code.
  */
-Future<MirrorSystem> analyze(List<Path> libraries,
-                             Path libraryRoot,
-                             {Path packageRoot,
-                              List<String> options: const <String>[],
-                              api.DiagnosticHandler diagnosticHandler}) {
-  Uri cwd = getCurrentDirectory();
-  SourceFileProvider provider = new SourceFileProvider();
-  if (diagnosticHandler == null) {
-    diagnosticHandler =
-        new FormattingDiagnosticHandler(provider).diagnosticHandler;
+// TODO(johnniwinther): Move this to [compiler/compiler.dart] and rename to
+// [:analyze:].
+Future<MirrorSystem> analyzeUri(List<Uri> libraries,
+                                Uri libraryRoot,
+                                Uri packageRoot,
+                                api.CompilerInputProvider inputProvider,
+                                api.DiagnosticHandler diagnosticHandler,
+                                [List<String> options = const <String>[]]) {
+  if (!libraryRoot.path.endsWith("/")) {
+    throw new ArgumentError("libraryRoot must end with a /");
   }
-  Uri libraryUri = cwd.resolve('${libraryRoot}/');
-  Uri packageUri = null;
-  if (packageRoot != null) {
-    packageUri = cwd.resolve('${packageRoot}/');
+  if (packageRoot != null && !packageRoot.path.endsWith("/")) {
+    throw new ArgumentError("packageRoot must end with a /");
   }
   options = new List<String>.from(options);
   options.add('--analyze-only');
@@ -260,17 +258,11 @@ Future<MirrorSystem> analyze(List<Path> libraries,
     diagnosticHandler(uri, begin, end, message, kind);
   }
 
-  // TODO(johnniwinther): Extract the following as an [analyze] method in
-  // [:compiler/compiler.dart:].
-  Compiler compiler = new Compiler(provider.readStringFromUri,
-                                   null,
-                                   internalDiagnosticHandler,
-                                   libraryUri, packageUri, options);
-  List<Uri> librariesUri = <Uri>[];
-  for (Path library in libraries) {
-    librariesUri.add(cwd.resolve(library.toString()));
-  }
-  compiler.librariesToAnalyzeWhenRun = librariesUri;
+  Compiler compiler = new apiimpl.Compiler(inputProvider,
+                                           null,
+                                           internalDiagnosticHandler,
+                                           libraryRoot, packageRoot, options);
+  compiler.librariesToAnalyzeWhenRun = libraries;
   bool success = compiler.run(null);
   if (success && !compilationFailed) {
     return new Future<MirrorSystem>.immediate(
@@ -279,6 +271,36 @@ Future<MirrorSystem> analyze(List<Path> libraries,
     return new Future<MirrorSystem>.immediateError(
         'Failed to create mirror system.');
   }
+}
+
+/**
+ * Analyzes set of libraries and provides a mirror system which can be used for
+ * static inspection of the source code.
+ */
+// TODO(johnniwinther): Move dart:io dependent parts outside
+// dart2js_mirror.dart.
+Future<MirrorSystem> analyze(List<Path> libraries,
+                             Path libraryRoot,
+                             {Path packageRoot,
+                              List<String> options: const <String>[],
+                              api.DiagnosticHandler diagnosticHandler}) {
+  Uri cwd = getCurrentDirectory();
+  SourceFileProvider provider = new SourceFileProvider();
+  if (diagnosticHandler == null) {
+    diagnosticHandler =
+        new FormattingDiagnosticHandler(provider).diagnosticHandler;
+  }
+  Uri libraryUri = cwd.resolve('${libraryRoot}/');
+  Uri packageUri = null;
+  if (packageRoot != null) {
+    packageUri = cwd.resolve('${packageRoot}/');
+  }
+  List<Uri> librariesUri = <Uri>[];
+  for (Path library in libraries) {
+    librariesUri.add(cwd.resolve(library.toString()));
+  }
+  return analyzeUri(librariesUri, libraryUri, packageUri,
+                    provider.readStringFromUri, diagnosticHandler, options);
 }
 
 //------------------------------------------------------------------------------
@@ -327,6 +349,15 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
     assert (_element != null);
   }
 
+  /**
+   * Returns the element to be used to determine the begin token of this
+   * declaration and the metadata associated with this declaration.
+   *
+   * This indirection is needed to use the [VariableListElement] as the location
+   * for type and metadata information on a [VariableElement].
+   */
+  Element get _beginElement => _element;
+
   String get simpleName => _element.name.slowToString();
 
   String get displayName => simpleName;
@@ -337,9 +368,9 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
    */
   Token getBeginToken() {
     // TODO(johnniwinther): Avoid calling [parseNode].
-    Node node = _element.parseNode(mirrors.compiler);
+    Node node = _beginElement.parseNode(mirrors.compiler);
     if (node == null) {
-      return _element.position();
+      return _beginElement.position();
     }
     return node.getBeginToken();
   }
@@ -362,8 +393,8 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
    * metadata annotations.
    */
   Token getFirstToken() {
-    if (!_element.metadata.isEmpty) {
-      for (MetadataAnnotation metadata in _element.metadata) {
+    if (!_beginElement.metadata.isEmpty) {
+      for (MetadataAnnotation metadata in _beginElement.metadata) {
         if (metadata.beginToken != null) {
           return metadata.beginToken;
         }
@@ -721,6 +752,8 @@ class Dart2JsParameterMirror extends Dart2JsMemberMirror
                          this.isNamed)
     : super(system, element);
 
+  Element get _beginElement => _variableElement.variables;
+
   DeclarationMirror get owner => _method;
 
   VariableElement get _variableElement => _element;
@@ -767,9 +800,12 @@ class Dart2JsFieldParameterMirror extends Dart2JsParameterMirror {
   FieldParameterElement get _fieldParameterElement => _element;
 
   TypeMirror get type {
-    if (_fieldParameterElement.variables.cachedNode.type != null) {
+    VariableListElement variables = _fieldParameterElement.variables;
+    VariableDefinitions node = variables.parseNode(mirrors.compiler);
+    if (node.type != null) {
       return super.type;
     }
+    // Use the field type for initializing formals with no type annotation.
     return _convertTypeToTypeMirror(mirrors,
       _fieldParameterElement.fieldElement.computeType(mirrors.compiler),
       mirrors.compiler.types.dynamicType,
@@ -1472,6 +1508,8 @@ class Dart2JsFieldMirror extends Dart2JsMemberMirror implements VariableMirror {
       : this._objectMirror = objectMirror,
         this._variable = variable,
         super(objectMirror.mirrors, variable);
+
+  Element get _beginElement => _variable.variables;
 
   String get qualifiedName
       => '${owner.qualifiedName}.$simpleName';

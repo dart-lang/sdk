@@ -37,14 +37,23 @@ abstract class IOSink<T> implements StreamConsumer<List<int>, T>, StringSink {
   Future<T> consume(Stream<List<int>> stream);
 
   /**
+   * Adds all elements of the given [stream] to `this`.
+   */
+  Future<T> addStream(Stream<List<int>> stream);
+
+  /**
    * Like [consume], but will not close the target when done.
+   *
+   * *Deprecated*: use [addStream] instead.
    */
   Future<T> writeStream(Stream<List<int>> stream);
 
   /**
    * Close the target.
    */
-  void close();
+  // TODO(floitsch): Currently the future cannot be typed because it has
+  // hardcoded type Future<HttpClientResponse> in subclass HttpClientRequest.
+  Future close();
 
   /**
    * Get future that will complete when all data has been written to
@@ -94,8 +103,20 @@ class _IOSinkImpl<T> implements IOSink<T> {
     writeBytes(_encodeString(string, _encoding));
   }
 
-  void writeAll(Iterable objects) {
-    for (Object obj in objects) write(obj);
+  void writeAll(Iterable objects, [String separator = ""]) {
+    Iterator iterator = objects.iterator;
+    if (!iterator.moveNext()) return;
+    if (separator == "") {
+      do {
+        write(iterator.current);
+      } while (iterator.moveNext());
+    } else {
+      write(iterator.current);
+      while (iterator.moveNext()) {
+        write(separator);
+        write(iterator.current);
+      }
+    }
   }
 
   void writeln([Object obj = ""]) {
@@ -122,17 +143,22 @@ class _IOSinkImpl<T> implements IOSink<T> {
   }
 
   Future<T> writeStream(Stream<List<int>> stream) {
+    return addStream(stream);
+  }
+
+  Future<T> addStream(Stream<List<int>> stream) {
     if (_isBound) {
       throw new StateError("IOSink is already bound to a stream");
     }
     return _fillFromStream(stream, unbind: true);
   }
 
-  void close() {
+  Future close() {
     if (_isBound) {
       throw new StateError("IOSink is already bound to a stream");
     }
     _controller.close();
+    return _pipeFuture;
   }
 
   Future<T> get done {

@@ -165,7 +165,7 @@ class JSString extends Interceptor implements String, JSIndexable {
     return stringLastIndexOfUnchecked(this, other, start);
   }
 
-  bool contains(String other, [int startIndex = 0]) {
+  bool contains(Pattern other, [int startIndex = 0]) {
     checkNull(other);
     return stringContainsUnchecked(this, other, startIndex);
   }

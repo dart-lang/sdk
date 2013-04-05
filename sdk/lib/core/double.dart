@@ -23,7 +23,6 @@ abstract class double extends num {
   static const double MIN_POSITIVE = 5e-324;
   static const double MAX_FINITE = 1.7976931348623157e+308;
 
-  /** Return the remainder from dividing this [double] by [other]. */
   double remainder(num other);
 
   /** Addition operator. */
@@ -35,7 +34,6 @@ abstract class double extends num {
   /** Multiplication operator. */
   double operator *(num other);
 
-  /** Euclidean modulo operator. */
   double operator %(num other);
 
   /** Division operator. */

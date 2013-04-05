@@ -289,6 +289,10 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, Map)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
   bool contains(Map element) => IterableMixinWorkaround.contains(this, element);
 
   void forEach(void f(Map element)) => IterableMixinWorkaround.forEach(this, f);
@@ -347,10 +351,6 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
   // From Collection<Map>:
 
   void add(Map value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addLast(Map value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 

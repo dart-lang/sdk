@@ -59,7 +59,8 @@ class _Utils {
 
   static window() native "Utils_window";
   static forwardingPrint(String message) native "Utils_forwardingPrint";
-  static void spawnDomFunction(Function topLevelFunction, int replyTo) native "Utils_spawnDomFunction";
+  static void spawnDomFunction(Function f, int replyTo) native "Utils_spawnDomFunction";
+  static void spawnDomUri(String uri, int replyTo) native "Utils_spawnDomUri";
   static int _getNewIsolateId() native "Utils_getNewIsolateId";
   static bool shadowRootSupported(Document document) native "Utils_shadowRootSupported";
 }
@@ -131,8 +132,28 @@ class _DOMStringMap extends NativeFieldWrapperClass1 implements Map<String, Stri
   bool get isEmpty => Maps.isEmpty(this);
 }
 
-final Future<SendPort> _HELPER_ISOLATE_PORT =
+final Future<SendPort> __HELPER_ISOLATE_PORT =
     spawnDomFunction(_helperIsolateMain);
+
+// Tricky part.
+// Once __HELPER_ISOLATE_PORT gets resolved, it will still delay in .then
+// and to delay Timer.run is used. However, Timer.run will try to register
+// another Timer and here we got stuck: event cannot be posted as then
+// callback is not executed because it's delayed with timer.
+// Therefore once future is resolved, it's unsafe to call .then on it
+// in Timer code.
+SendPort __SEND_PORT;
+
+_sendToHelperIsolate(msg, SendPort replyTo) {
+  if (__SEND_PORT != null) {
+    __SEND_PORT.send(msg, replyTo);
+  } else {
+    __HELPER_ISOLATE_PORT.then((port) {
+      __SEND_PORT = port;
+      __SEND_PORT.send(msg, replyTo);
+    });
+  }
+}
 
 final _TIMER_REGISTRY = new Map<SendPort, Timer>();
 
@@ -147,10 +168,10 @@ _helperIsolateMain() {
     if (cmd == _NEW_TIMER) {
       final duration = new Duration(milliseconds: msg[1]);
       bool periodic = msg[2];
-      final callback = () { replyTo.send(_TIMER_PING); };
+      ping() { replyTo.send(_TIMER_PING); };
       _TIMER_REGISTRY[replyTo] = periodic ?
-          new Timer.periodic(duration, callback) :
-          new Timer(duration, callback);
+          new Timer.periodic(duration, (_) { ping(); }) :
+          new Timer(duration, ping);
     } else if (cmd == _CANCEL_TIMER) {
       _TIMER_REGISTRY.remove(replyTo).cancel();
     } else if (cmd == _PRINT) {
@@ -163,9 +184,66 @@ _helperIsolateMain() {
 
 final _printClosure = window.console.log;
 final _pureIsolatePrintClosure = (s) {
-  _HELPER_ISOLATE_PORT.then((sendPort) {
-    sendPort.send([_PRINT, s]);
-  });
+  _sendToHelperIsolate([_PRINT, s], null);
 };
 
 final _forwardingPrintClosure = _Utils.forwardingPrint;
+
+class _Timer implements Timer {
+  final canceller;
+
+  _Timer(this.canceller);
+
+  void cancel() { canceller(); }
+}
+
+get _timerFactoryClosure => (int milliSeconds, void callback(Timer timer), bool repeating) {
+  var maker;
+  var canceller;
+  if (repeating) {
+    maker = window._setInterval;
+    canceller = window._clearInterval;
+  } else {
+    maker = window._setTimeout;
+    canceller = window._clearTimeout;
+  }
+  Timer timer;
+  final int id = maker(() { callback(timer); }, milliSeconds);
+  timer = new _Timer(() { canceller(id); });
+  return timer;
+};
+
+class _PureIsolateTimer implements Timer {
+  final ReceivePort _port = new ReceivePort();
+  SendPort _sendPort; // Effectively final.
+
+  static SendPort _SEND_PORT;
+
+  _PureIsolateTimer(int milliSeconds, callback, repeating) {
+    _sendPort = _port.toSendPort();
+    _port.receive((msg, replyTo) {
+      assert(msg == _TIMER_PING);
+      callback(this);
+      if (!repeating) _cancel();
+    });
+
+    _send([_NEW_TIMER, milliSeconds, repeating]);
+  }
+
+  void cancel() {
+    _cancel();
+    _send([_CANCEL_TIMER]);
+  }
+
+  void _cancel() {
+    _port.close();
+  }
+
+  _send(msg) {
+    _sendToHelperIsolate(msg, _sendPort);
+  }
+}
+
+get _pureIsolateTimerFactoryClosure =>
+    ((int milliSeconds, void callback(Timer time), bool repeating) =>
+        new _PureIsolateTimer(milliSeconds, callback, repeating));

@@ -17,7 +17,21 @@ abstract class num implements Comparable<num> {
   /** Multiplication operator. */
   num operator *(num other);
 
-  /** Euclidean modulo operator. */
+  /**
+   * Euclidean modulo operator.
+   *
+   * Returns the remainder of the euclidean division. The euclidean division of
+   * two integers `a` and `b` yields two integers `q` and `r` such that
+   * `a = b*q + r` and `0 <= r < |a|`.
+   *
+   * The euclidean division is only defined for integers, but can be easily
+   * extended to work with doubles. In that case `r` may have a non-integer
+   * value, but it still verifies `0 <= r < |a|`.
+   *
+   * The sign of the returned value `r` is always positive.
+   *
+   * See [remainder] for the remainder of the truncating division.
+   */
   num operator %(num other);
 
   /** Division operator. */
@@ -37,7 +51,13 @@ abstract class num implements Comparable<num> {
   /** Negate operator. */
   num operator -();
 
-  /** Return the remainder from dividing this [num] by [other]. */
+  /**
+   * Return the remainder of the truncating division of `this` by [other].
+   *
+   * The result `r` of this operation satisfies: `this = this ~/ other + r`.
+   * As a consequence the remainder `r` has the same sign as the dividend
+   * `this`.
+   */
   num remainder(num other);
 
   /** Relational less than operator. */

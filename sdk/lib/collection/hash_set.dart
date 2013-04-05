@@ -5,85 +5,39 @@
 part of dart.collection;
 
 class HashSet<E> extends Collection<E> implements Set<E> {
-  static const int _INITIAL_CAPACITY = 8;
-  final _HashTable<E> _table;
-
-  HashSet() : _table = new _HashTable(_INITIAL_CAPACITY) {
-    _table._container = this;
-  }
+  external HashSet();
 
   factory HashSet.from(Iterable<E> iterable) {
     return new HashSet<E>()..addAll(iterable);
   }
 
   // Iterable.
-  Iterator<E> get iterator => new _HashTableKeyIterator<E>(_table);
+  external Iterator<E> get iterator;
 
-  int get length => _table._elementCount;
+  external int get length;
 
-  bool get isEmpty => _table._elementCount == 0;
+  external bool get isEmpty;
 
-  bool contains(Object object) => _table._get(object) >= 0;
+  external bool contains(Object object);
 
   // Collection.
-  void add(E element) {
-    _table._put(element);
-    _table._checkCapacity();
-  }
+  external void add(E element);
 
-  void addAll(Iterable<E> objects) {
-    for (E object in objects) {
-      _table._put(object);
-      _table._checkCapacity();
-    }
-  }
+  external void addAll(Iterable<E> objects);
 
-  bool remove(Object object) {
-    int offset = _table._remove(object);
-    _table._checkCapacity();
-    return offset >= 0;
-  }
+  external bool remove(Object object);
 
-  void removeAll(Iterable objectsToRemove) {
-    for (Object object in objectsToRemove) {
-      _table._remove(object);
-      _table._checkCapacity();
-    }
-  }
+  external void removeAll(Iterable objectsToRemove);
 
   void retainAll(Iterable objectsToRetain) {
     IterableMixinWorkaround.retainAll(this, objectsToRetain);
   }
 
-  void _filterWhere(bool test(E element), bool removeMatching) {
-    int entrySize = _table._entrySize;
-    int length = _table._table.length;
-    for (int offset =  0; offset < length; offset += entrySize) {
-      Object entry = _table._table[offset];
-      if (!_table._isFree(entry)) {
-        E key = identical(entry, _NULL) ? null : entry;
-        int modificationCount = _table._modificationCount;
-        bool shouldRemove = (removeMatching == test(key));
-        _table._checkModification(modificationCount);
-        if (shouldRemove) {
-          _table._deleteEntry(offset);
-        }
-      }
-    }
-    _table._checkCapacity();
-  }
+  external void removeWhere(bool test(E element));
 
-  void removeWhere(bool test(E element)) {
-    _filterWhere(test, true);
-  }
+  external void retainWhere(bool test(E element));
 
-  void retainWhere(bool test(E element)) {
-    _filterWhere(test, false);
-  }
-
-  void clear() {
-    _table._clear();
-  }
+  external void clear();
 
   // Set.
   bool isSubsetOf(Collection<E> other) {

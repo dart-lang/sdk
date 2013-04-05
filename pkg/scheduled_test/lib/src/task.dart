@@ -7,6 +7,8 @@ library task;
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:stack_trace/stack_trace.dart';
+
 import 'future_group.dart';
 import 'schedule.dart';
 import 'utils.dart';
@@ -58,6 +60,8 @@ class Task {
   /// finishes running.
   Future get result => _resultCompleter.future;
   final _resultCompleter = new Completer();
+
+  final stackTrace = new Trace.current();
 
   Task(fn(), String description, TaskQueue queue)
     : this._(fn, description, queue, null, queue.contents.length);
@@ -115,6 +119,11 @@ class Task {
   }
 
   String toString() => description == null ? "#$_id" : description;
+
+  String toStringWithStackTrace() {
+    var stackString = prefixLines(terseTraceString(stackTrace));
+    return "$this\n\nStack trace:\n$stackString";
+  }
 
   /// Returns a detailed representation of [queue] with this task highlighted.
   String generateTree() => queue.generateTree(this);

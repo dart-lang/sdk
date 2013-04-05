@@ -430,6 +430,7 @@ class RawObject {
   friend class SnapshotWriter;
   friend class String;
   friend class TypedData;
+  friend class TypedDataView;
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(RawObject);

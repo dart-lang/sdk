@@ -17,6 +17,7 @@ abstract class MirrorSystem {
   /**
    * Returns an unmodifiable map of all libraries in this mirror system.
    */
+  // TODO(johnniwinther): Change to Map<Uri, LibraryMirror>.
   Map<String, LibraryMirror> get libraries;
 
   /**

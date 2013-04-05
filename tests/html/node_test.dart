@@ -178,12 +178,6 @@ main() {
       expect(node.nodes.last, isHRElement);
     });
 
-    test('addLast', () {
-      var node = makeNode();
-      node.nodes.addLast(new Element.tag('hr'));
-      expect(node.nodes.last, isHRElement);
-    });
-
     test('iterator', () {
       var nodes = [];
       var node = makeNodeWithChildren();

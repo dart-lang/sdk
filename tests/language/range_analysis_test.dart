@@ -24,8 +24,8 @@ test1() {
 // Check that range analysis does not erroneously remove overflow check.
 test2() {
   var width = 1073741823;
-  print(foo(width - 5000, width - 1));
-  print(foo(width - 5000, width));
+  Expect.equals(width - 1, foo(width - 5000, width - 1));
+  Expect.equals(width, foo(width - 5000, width));
 }
 
 foo(n, w) {
@@ -37,7 +37,83 @@ foo(n, w) {
   return x;
 }
 
+
+// Test detection of unsatisfiable constraints.
+f(a, b) {
+  if (a < b) {
+    if (a > b) {
+      throw "unreachable";
+    }
+    return 2;
+  }
+  return 3;
+}
+
+f1(a, b) {
+  if (a < b) {
+    if (a > b - 1) {
+      throw "unreachable";
+    }
+    return 2;
+  }
+  return 3;
+}
+
+f2(a, b) {
+  if (a < b) {
+    if (a > b - 2) {
+      return 2;
+    }
+    throw "unreachable";
+  }
+  return 3;
+}
+
+g() {
+  var i;
+  for (i = 0; i < 10; i++) {
+    if (i < 0) throw "unreachable";
+  }
+  return i;
+}
+
+h(n) {
+  var i;
+  for (i = 0; i < n; i++) {
+    if (i < 0) throw "unreachable";
+    var j = i - 1;
+    if (j >= n - 1) throw "unreachable"; 
+  }
+  return i;
+}
+
+
+test3() {
+  test_fun(fun) {
+    Expect.equals(2, fun(0, 1));
+    Expect.equals(3, fun(0, 0));
+    for (var i = 0; i < 2000; i++) fun(0, 1);
+    Expect.equals(2, fun(0, 1));
+    Expect.equals(3, fun(0, 0));
+  }
+  
+  test_fun(f);
+  test_fun(f1);
+  test_fun(f2);
+
+  Expect.equals(10, g());
+  for (var i = 0; i < 2000; i++) g();
+  Expect.equals(10, g());
+
+
+  Expect.equals(10, h(10));
+  for (var i = 0; i < 2000; i++) h(10);
+  Expect.equals(10, h(10));
+}
+
+
 main() {
   test1();
   test2();
+  test3();
 }

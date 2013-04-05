@@ -45,7 +45,7 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames', {
     'SVGElement': 'SvgElement', # Manual to avoid name conflicts.
     'SVGException': 'SvgException', # Manual of avoid conflict with Exception.
     'SVGSVGElement': 'SvgSvgElement', # Manual to avoid name conflicts.
-    'WebGLVertexArrayObjectOES': 'WebGLVertexArrayObject',
+    'WebGLVertexArrayObjectOES': 'VertexArrayObject',
     'WebKitAnimationEvent': 'AnimationEvent',
     'WebKitCSSKeyframeRule': 'CssKeyframeRule',
     'WebKitCSSKeyframesRule': 'CssKeyframesRule',
@@ -683,6 +683,8 @@ class HtmlRenamer(object):
         return 'indexed_db'
       if 'SQL_DATABASE' in interface.ext_attrs['Conditional']:
         return 'web_sql'
+      if 'WEBGL' in interface.ext_attrs['Conditional']:
+        return 'web_gl'
 
     return 'html'
 
@@ -695,6 +697,7 @@ class HtmlRenamer(object):
     # Strip off any standard prefixes.
     name = re.sub(r'^SVG', '', type_name)
     name = re.sub(r'^IDB', '', name)
+    name = re.sub(r'^WebGL', '', name)
 
     return self._CamelCaseName(name)
 

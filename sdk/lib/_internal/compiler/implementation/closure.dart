@@ -405,6 +405,11 @@ class ClosureTranslator extends Visitor {
   visitIdentifier(Identifier node) {
     if (node.isThis()) {
       useLocal(closureData.thisElement);
+    } else {
+      Element element = elements[node];
+      if (element != null && element.kind == ElementKind.TYPE_VARIABLE) {
+        useLocal(closureData.thisElement);
+      }
     }
     node.visitChildren(this);
   }

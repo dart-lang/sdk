@@ -415,6 +415,29 @@ DART_EXPORT Dart_Handle Dart_ActivationFrameInfo(
 
 
 /**
+ * Returns text location of the given activation frame.
+ * \script_url receives a string handle with the url of the
+ *    source script that contains the frame's function.
+ *    Receives a null handle if there is no textual location
+ *    that corresponds to the frame, e.g. for implicitly
+ *    generated constructors.
+ * \token_number receives the line number in the script.
+ *
+ * Any or all of the out parameters above may be NULL.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \return A handle to the True object if no error occurs.
+ *         A handle to the False object if there is no text
+ *         position for the frame.
+ */
+DART_EXPORT Dart_Handle Dart_ActivationFrameGetLocation(
+                            Dart_ActivationFrame activation_frame,
+                            Dart_Handle* script_url,
+                            intptr_t* token_number);
+
+
+/**
  * Returns an array containing all the local variable names and values of
  * the given \activation_frame.
  *

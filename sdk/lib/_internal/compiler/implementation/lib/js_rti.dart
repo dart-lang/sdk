@@ -112,13 +112,20 @@ bool checkSubtype(Object object, String isField, List checks, String asField,
                   bool native) {
   if (object == null) return false;
   var arguments = getRuntimeTypeInfo(object);
-  if (isJsArray(object)) {
-    object = getInterceptor(object);
-  }
-  bool isSubclass = native ? call(object, isField) : getField(object, isField);
+  // Interceptor is needed for JSArray and native classes.
+  // TODO(sra): It could be a more specialized interceptor since [object] is not
+  // `null` or a primitive.
+  // TODO(9586): Move type info for static functions onto an interceptor.
+  var interceptor = isJsFunction(object) ? object : getInterceptor(object);
+  bool isSubclass = native
+      ? call(interceptor, isField)
+      : getField(interceptor, isField);
   // When we read the field and it is not there, [isSubclass] will be [:null:].
   if (isSubclass == null || !isSubclass) return false;
-  var substitution = native ? call(object, asField) : getField(object, asField);
+  // Should the asField function be passed the receiver?
+  var substitution = native
+      ? call(interceptor, asField)
+      : getField(interceptor, asField);
   return checkArguments(substitution, arguments, checks);
 }
 
@@ -168,7 +175,8 @@ bool objectIsSubtype(Object o, var t) {
   // overwrite o with the interceptor below.
   var rti = getRuntimeTypeInfo(o);
   // Check for native objects and use the interceptor instead of the object.
-  o = getInterceptor(o);
+  // TODO(9586): Move type info for static functions onto an interceptor.
+  o = isJsFunction(o) ? o : getInterceptor(o);
   // We can use the object as its own type representation because we install
   // the subtype flags and the substitution on the prototype, so they are
   // properties of the object in JS.

@@ -31,8 +31,8 @@ Function test() {
         .then((response) {
           Expect.equals('CN=localhost', response.certificate.subject);
           Expect.equals('CN=myauthority', response.certificate.issuer);
-          return response.reduce(<int>[],
-                                 (message, data) => message..addAll(data));
+          return response.fold(<int>[],
+                               (message, data) => message..addAll(data));
         })
         .then((message) {
           String received = new String.fromCharCodes(message);

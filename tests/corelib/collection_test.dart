@@ -8,13 +8,12 @@ import 'dart:collection' show Queue;
 
 class CollectionTest {
   CollectionTest(Collection collection) {
-    testReduce(collection);
+    testFold(collection);
   }
 
-  void testReduce(Collection collection) {
-    Expect.equals(28, collection.reduce(0, (prev, element) => prev + element));
-    Expect.equals(
-        3024, collection.reduce(1, (prev, element) => prev * element));
+  void testFold(Collection collection) {
+    Expect.equals(28, collection.fold(0, (prev, element) => prev + element));
+    Expect.equals(3024, collection.fold(1, (prev, element) => prev * element));
   }
 }
 

@@ -53,15 +53,21 @@ def render(idl_node, indent_str='  '):
     elif isinstance(node, IDLFile):
       w(node.modules)
       w(node.interfaces)
+      w(node.enums)
+      w(node.typeDefs)
     elif isinstance(node, IDLModule):
       wsp(node.annotations)
       wsp(node.ext_attrs)
       wln('module %s {' % node.id)
       begin_indent()
       w(node.interfaces)
+      w(node.enums)
       w(node.typeDefs)
       end_indent()
       wln('};')
+    elif isinstance(node, IDLEnum):
+      w('enum %s {}' % node.id)
+      # TODO(antonm): emit values as well.
     elif isinstance(node, IDLInterface):
       if node.annotations:
         wln(node.annotations)

@@ -133,4 +133,23 @@ bar.dart 10:20  alsoNotCore
 dart:async      bottom
 '''));
   });
+
+  test('.foldFrames folds frames together bottom-up', () {
+    var trace = new Trace.parse('''
+#0 notFoo (foo.dart:42:21)
+#1 fooTop (bar.dart:0:2)
+#2 fooBottom (foo.dart:1:100)
+#3 alsoNotFoo (bar.dart:10:20)
+#4 fooTop (dart:io:5:10)
+#5 fooBottom (dart:async-patch:9:11)
+''');
+
+    var folded = trace.foldFrames((frame) => frame.member.startsWith('foo'));
+    expect(folded.toString(), equals('''
+foo.dart 42:21    notFoo
+foo.dart 1:100    fooBottom
+bar.dart 10:20    alsoNotFoo
+dart:async-patch  fooBottom
+'''));
+  });
 }

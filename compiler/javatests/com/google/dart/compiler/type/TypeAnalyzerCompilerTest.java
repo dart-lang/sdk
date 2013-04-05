@@ -2005,8 +2005,12 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   public void test_conditionalExpressionType_genericInterface() throws Exception {
     AnalyzeLibraryResult result = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
+        "class A<T> { const A(); }",
+        "class B<T> extends A<T> { const B(); }",
+        "class C<T> implements B<T> { const C(); }",
+        "class D<T> implements B<T> { const D(); }",
         "main() {",
-        "  Collection<int> test = true ? new Set<int>() : const [null];",
+        "  B<int> test = true ? new C<int>() : const D<int>();",
         "}",
         "");
     assertErrors(result.getErrors());
@@ -3275,7 +3279,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
    * Sometimes inferred type is too generic - such as "Object" or "Collection", so there are no
    * reason to reports problems.
    */
-  public void test_typesPropagation_dontWant_ifTooGeneric() throws Exception {
+  public void deprecatedCollection_test_typesPropagation_dontWant_ifTooGeneric() throws Exception {
     compilerConfiguration = new DefaultCompilerConfiguration(new CompilerOptions() {
       @Override
       public boolean typeChecksForInferredTypes() {

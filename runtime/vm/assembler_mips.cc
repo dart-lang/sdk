@@ -6,6 +6,9 @@
 #if defined(TARGET_ARCH_MIPS)
 
 #include "vm/assembler.h"
+#include "vm/runtime_entry.h"
+#include "vm/simulator.h"
+#include "vm/stub_code.h"
 
 namespace dart {
 
@@ -128,6 +131,41 @@ void Assembler::CompareObject(Register rd, Register rn, const Object& object) {
 }
 
 
+void Assembler::LoadClassId(Register result, Register object) {
+  ASSERT(RawObject::kClassIdTagBit == 16);
+  ASSERT(RawObject::kClassIdTagSize == 16);
+  const intptr_t class_id_offset = Object::tags_offset() +
+      RawObject::kClassIdTagBit / kBitsPerByte;
+  lhu(result, FieldAddress(object, class_id_offset));
+}
+
+
+void Assembler::LoadClassById(Register result, Register class_id) {
+  ASSERT(result != class_id);
+  lw(result, FieldAddress(CTX, Context::isolate_offset()));
+  const intptr_t table_offset_in_isolate =
+      Isolate::class_table_offset() + ClassTable::table_offset();
+  lw(result, Address(result, table_offset_in_isolate));
+  sll(TMP, class_id, 2);
+  addu(result, result, TMP);
+  lw(result, Address(result));
+}
+
+
+void Assembler::LoadClass(Register result, Register object, Register scratch) {
+  ASSERT(scratch != result);
+  LoadClassId(scratch, object);
+
+  lw(result, FieldAddress(CTX, Context::isolate_offset()));
+  const intptr_t table_offset_in_isolate =
+      Isolate::class_table_offset() + ClassTable::table_offset();
+  lw(result, Address(result, table_offset_in_isolate));
+  sll(scratch, scratch, 2);
+  addu(result, result, scratch);
+  lw(result, Address(result));
+}
+
+
 void Assembler::EnterStubFrame() {
   addiu(SP, SP, Immediate(-3 * kWordSize));
   sw(ZR, Address(SP, 2 * kWordSize));  // PC marker is 0 in stubs.
@@ -142,6 +180,11 @@ void Assembler::LeaveStubFrame() {
   lw(RA, Address(SP, 1 * kWordSize));
   lw(FP, Address(SP, 0 * kWordSize));
   addiu(SP, SP, Immediate(3 * kWordSize));
+}
+
+
+void Assembler::CallRuntime(const RuntimeEntry& entry) {
+  entry.Call(this);
 }
 
 
@@ -198,6 +241,17 @@ void Assembler::LeaveDartFrame() {
 
   // Adjust SP for PC pushed in EnterDartFrame.
   addiu(SP, SP, Immediate(4 * kWordSize));
+}
+
+
+void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
+  // Reserve space for arguments and align frame before entering
+  // the C++ world.
+  addiu(SP, SP, Immediate(-frame_space));
+  if (OS::ActivationFrameAlignment() > 0) {
+    LoadImmediate(TMP, ~(OS::ActivationFrameAlignment() - 1));
+    and_(SP, SP, TMP);
+  }
 }
 
 

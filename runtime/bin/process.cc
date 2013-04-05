@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -8,7 +8,6 @@
 #include "bin/socket.h"
 
 #include "include/dart_api.h"
-
 
 static const int kProcessIdNativeField = 0;
 
@@ -186,6 +185,16 @@ void FUNCTION_NAME(Process_SetExitCode)(Dart_NativeArguments args) {
   // Ignore result if passing invalid argument and just set exit code to 0.
   DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 0), &status);
   Process::SetGlobalExitCode(status);
+  Dart_ExitScope();
+}
+
+
+void FUNCTION_NAME(Process_Sleep)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  int64_t milliseconds = 0;
+  // Ignore result if passing invalid argument and just set exit code to 0.
+  DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 0), &milliseconds);
+  TimerUtils::Sleep(milliseconds);
   Dart_ExitScope();
 }
 

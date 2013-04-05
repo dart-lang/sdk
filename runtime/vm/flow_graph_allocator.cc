@@ -643,7 +643,9 @@ static Location::Kind RegisterKindFromPolicy(Location loc) {
 
 static Location::Kind RegisterKindForResult(Instruction* instr) {
   if ((instr->representation() == kUnboxedDouble) ||
-      (instr->representation() == kUnboxedMint)) {
+      (instr->representation() == kUnboxedMint) ||
+      (instr->representation() == kUnboxedFloat32x4) ||
+      (instr->representation() == kUnboxedUint32x4)) {
     return Location::kFpuRegister;
   } else {
     return Location::kRegister;
@@ -1596,15 +1598,25 @@ void FlowGraphAllocator::AllocateSpillSlotFor(LiveRange* range) {
   if (register_kind_ == Location::kRegister) {
     range->set_spill_slot(Location::StackSlot(idx));
   } else {
-    // Double spill slots are essentially one (x64) or two (ia32) normal
+    // FPU register spill slots are essentially two (x64) or four (ia32) normal
     // word size spill slots.  We use the index of the slot with the lowest
-    // address as an index for the double spill slot. In terms of indexes
+    // address as an index for the FPU register spill slot. In terms of indexes
     // this relation is inverted: so we have to take the highest index.
-    const intptr_t slot_idx =
-        idx * kDoubleSpillSlotFactor + (kDoubleSpillSlotFactor - 1);
-    range->set_spill_slot(
-        Location::DoubleStackSlot(
-            cpu_spill_slot_count_ + slot_idx, range->representation()));
+    const intptr_t slot_idx = cpu_spill_slot_count_ +
+        idx * kFpuRegisterSpillFactor + (kFpuRegisterSpillFactor - 1);
+
+    Location location;
+    if (range->representation() == kUnboxedFloat32x4) {
+      location = Location::Float32x4StackSlot(slot_idx);
+    } else if (range->representation() == kUnboxedUint32x4) {
+      location = Location::Uint32x4StackSlot(slot_idx);
+    } else {
+      ASSERT((range->representation() == kUnboxedDouble) ||
+             (range->representation() == kUnboxedMint));
+      location = Location::DoubleStackSlot(slot_idx,
+                                           range->representation());
+    }
+    range->set_spill_slot(location);
   }
 
   spilled_.Add(range);
@@ -2523,7 +2535,7 @@ void FlowGraphAllocator::AllocateRegisters() {
   GraphEntryInstr* entry = block_order_[0]->AsGraphEntry();
   ASSERT(entry != NULL);
   intptr_t double_spill_slot_count =
-      spill_slots_.length() * kDoubleSpillSlotFactor;
+      spill_slots_.length() * kFpuRegisterSpillFactor;
   entry->set_spill_slot_count(cpu_spill_slot_count_ + double_spill_slot_count);
 
   if (FLAG_print_ssa_liveranges) {

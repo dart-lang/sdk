@@ -1101,7 +1101,6 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // EAX: new object start.
     // EBX: next object start.
     // EDI: new object type arguments (if is_cls_parameterized).
-    __ LoadObject(EDX, cls);  // Load class of object to be allocated.
     // Set the tags.
     uword tags = 0;
     tags = RawObject::SizeTag::update(instance_size, tags);
@@ -1115,7 +1114,6 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
 
     // EAX: new object start.
     // EBX: next object start.
-    // EDX: class of the object to be allocated.
     // EDI: new object type arguments (if is_cls_parameterized).
     // First try inlining the initialization without a loop.
     if (instance_size < (kInlineInstanceSize * kWordSize)) {
@@ -1640,7 +1638,6 @@ void StubCode::GenerateThreeArgsCheckInlineCacheStub(Assembler* assembler) {
 }
 
 
-
 // Use inline cache data array to invoke the target or continue in inline
 // cache miss handler. Stub for 1-argument check (receiver class).
 //  EDI: function which counter needs to be incremented.
@@ -2017,7 +2014,7 @@ void StubCode::GenerateEqualityWithNullArgStub(Assembler* assembler) {
 }
 
 
-// Calls to runtime to ooptimized give function
+// Calls to the runtime to optimize the given function.
 // EDI: function to be reoptimized.
 // EDX: argument descriptor (preserved).
 void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {

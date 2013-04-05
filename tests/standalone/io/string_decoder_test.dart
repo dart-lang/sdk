@@ -17,7 +17,7 @@ void test() {
 
   var decoder = new StringDecoder(Encoding.UTF_8, '?'.codeUnitAt(0));
   var stream = controller.stream.transform(decoder);
-  stream.reduce(
+  stream.fold(
       new StringBuffer(),
       (b, e) {
         b.write(e);

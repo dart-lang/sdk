@@ -40,7 +40,12 @@ void test(String shellScript, String dartScript, String type, bool devNull) {
   String redirectOutFile = "${dir.path}/redirect";
   String executable = new Options().executable;
   List args =
-      [executable, dartScript, type, pipeOutFile, redirectOutFile];
+      [executable,
+       dartScript,
+       type,
+       pipeOutFile,
+       redirectOutFile,
+       devNull ? "terminal" : "file"];
   var future = Process.start(shellScript, args);
   future.then((process) {
     process.exitCode.then((exitCode) {
@@ -105,9 +110,10 @@ main() {
     shellScript = new File("../tests/standalone/io/dart_std_io_pipe_test.sh");
   }
   // Get the Dart script file which echoes stdin to stdout or stderr or both.
-  var scriptFile = new File("tests/standalone/io/process_std_io_script.dart");
+  var scriptFile = new File("tests/standalone/io/dart_std_io_pipe_script.dart");
   if (!scriptFile.existsSync()) {
-    scriptFile = new File("../tests/standalone/io/process_std_io_script.dart");
+    scriptFile =
+        new File("../tests/standalone/io/dart_std_io_pipe_script.dart");
   }
 
   // Run the shell script.

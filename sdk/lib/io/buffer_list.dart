@@ -69,7 +69,8 @@ class _BufferList {
   List<int> readBytes([int count]) {
     if (count == null) count = length;
     List<int> result;
-    if (_length == 0 || _length < count) return null;
+    if (_length == 0) return new Uint8List(0);
+    if (_length < count) return null;
     if (_index == 0 && _buffers.first.length == count) {
       result = _buffers.first;
       _buffers.removeFirst();

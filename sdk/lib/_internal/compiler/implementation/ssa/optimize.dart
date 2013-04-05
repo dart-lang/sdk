@@ -335,15 +335,79 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     // TODO(ngeoffray): Also fold if it's a getter or variable.
     if (element != null && element.isFunction()) {
       FunctionElement method = element;
-      FunctionSignature parameters = method.computeSignature(compiler);
-      // TODO(ngeoffray): If the method has optional parameters,
-      // we should pass the default values.
-      if (parameters.optionalParameterCount == 0
-          || parameters.parameterCount == node.selector.argumentCount) {
-        node.element = element;
+
+      if (method.isNative()) {
+        HInstruction folded = tryInlineNativeMethod(node, method);
+        if (folded != null) return folded;
+      } else {
+        // TODO(ngeoffray): If the method has optional parameters,
+        // we should pass the default values.
+        FunctionSignature parameters = method.computeSignature(compiler);
+        if (parameters.optionalParameterCount == 0
+            || parameters.parameterCount == node.selector.argumentCount) {
+          node.element = element;
+        }
       }
     }
     return node;
+  }
+
+  HInstruction tryInlineNativeMethod(HInvokeDynamicMethod node,
+                                     FunctionElement method) {
+    // Enable direct calls to a native method only if we don't run in checked
+    // mode, where the Dart version may have type annotations on parameters and
+    // return type that it should check.
+    // Also check that the parameters are not functions: it's the callee that
+    // will translate them to JS functions.
+    //
+    // TODO(ngeoffray): There are some cases where we could still inline in
+    // checked mode if we know the arguments have the right type. And we could
+    // do the closure conversion as well as the return type annotation check.
+
+    if (!node.isInterceptedCall) return null;
+
+    // TODO(sra): Check for legacy methods with bodies in the native strings.
+    //   foo() native 'return something';
+    // They should not be used.
+
+    FunctionSignature signature = method.computeSignature(compiler);
+    if (signature.optionalParametersAreNamed) return null;
+
+    // Return types on native methods don't need to be checked, since the
+    // declaration has to be truthful.
+
+    // The call site might omit optional arguments. The inlined code must
+    // preserve the number of arguments, so check only the actual arguments.
+
+    List<HInstruction> inputs = node.inputs.sublist(1);
+    int inputPosition = 0;
+    bool canInline = true;
+    signature.forEachParameter((Element element) {
+      if (inputPosition < inputs.length && canInline) {
+        HInstruction input = inputs[inputPosition++];
+        DartType type = element.computeType(compiler).unalias(compiler);
+        if (type is FunctionType) {
+          canInline = false;
+        }
+        if (compiler.enableTypeAssertions) {
+          // TODO(sra): Check if [input] is guaranteed to pass the parameter
+          // type check.  Consider using a strengthened type check to avoid
+          // passing `null` to primitive types since the native methods usually
+          // have non-nullable primitive parameter types.
+          canInline = false;
+        }
+      }
+    });
+
+    if (!canInline) return null;
+
+    HInvokeDynamicMethod result =
+        new HInvokeDynamicMethod(node.selector, inputs);
+    result.element = method;
+    // TODO(sra): Can the instruction type be strengthened to help optimize
+    // dependent instructions?
+    result.instructionType = node.instructionType;
+    return result;
   }
 
   HInstruction visitIntegerCheck(HIntegerCheck node) {

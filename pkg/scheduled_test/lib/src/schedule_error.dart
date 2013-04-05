@@ -6,6 +6,8 @@ library schedule_error;
 
 import 'dart:async';
 
+import 'package:stack_trace/stack_trace.dart';
+
 import 'schedule.dart';
 import 'task.dart';
 import 'utils.dart';
@@ -36,7 +38,7 @@ class ScheduleError extends AsyncError {
 
   /// Creates a new [ScheduleError] wrapping [error]. The metadata in
   /// [AsyncError]s and [ScheduleError]s will be preserved.
-  factory ScheduleError.from(Schedule schedule, error, {stackTrace,
+  factory ScheduleError.from(Schedule schedule, error, {StackTrace stackTrace,
       AsyncError cause}) {
     if (error is ScheduleError) return error;
 
@@ -59,7 +61,8 @@ class ScheduleError extends AsyncError {
     return new ScheduleError(schedule, error, stackTrace, cause);
   }
 
-  ScheduleError(Schedule schedule, error, stackTrace, AsyncError cause)
+  ScheduleError(Schedule schedule, error, StackTrace stackTrace,
+      AsyncError cause)
       : super.withCause(error, stackTrace, cause),
         schedule = schedule,
         task = schedule.currentTask,
@@ -86,7 +89,7 @@ class ScheduleError extends AsyncError {
     }
 
     result.write('Stack trace:\n');
-    result.write(prefixLines(stackTrace.toString().trim()));
+    result.write(prefixLines(terseTraceString(stackTrace)));
     result.write("\n\n");
 
     if (task != null) {
@@ -106,7 +109,7 @@ class ScheduleError extends AsyncError {
       result.write("\n\n");
       result.writeln("Pending out-of-band callbacks:");
       for (var callback in pendingCallbacks) {
-        result.writeln("* $callback");
+        result.writeln(prefixLines(callback, firstPrefix: "* "));
       }
     }
 

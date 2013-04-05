@@ -691,9 +691,9 @@ dart2js_annotations = monitored.Dict('generator.dart2js_annotations', {
       # Taken from http://www.khronos.org/registry/webgl/specs/latest/
       # Section 5.14.3 Setting and getting state
       "@Creates('Null|num|String|bool|=List|Float32Array|Int32Array|Uint32Array"
-                "|WebGLFramebuffer|WebGLRenderbuffer|WebGLTexture')",
+                "|Framebuffer|Renderbuffer|Texture')",
       "@Returns('Null|num|String|bool|=List|Float32Array|Int32Array|Uint32Array"
-                "|WebGLFramebuffer|WebGLRenderbuffer|WebGLTexture')",
+                "|Framebuffer|Renderbuffer|Texture')",
     ],
 
     'XMLHttpRequest.response': [
@@ -1544,6 +1544,11 @@ class TypeRegistry(object):
       return SequenceIDLTypeInfo(type_name, TypeData('Sequence'), item_info)
 
     if not type_name in _idl_type_registry:
+      if self._database.HasEnum(type_name):
+        return PrimitiveIDLTypeInfo(
+            type_name,
+            TypeData(clazz='Primitive', dart_type='String', native_type='String'))
+
       interface = self._database.GetInterface(type_name)
       if 'Callback' in interface.ext_attrs:
         return CallbackIDLTypeInfo(type_name, TypeData('Callback',

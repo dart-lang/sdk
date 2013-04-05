@@ -35,7 +35,13 @@ main() {
   // 'getInterceptor'. The environment for the second bailout contains
   // the interceptor of [:a.length:], but since the bailout is
   // removed, the interceptor is removed too.
-  Expect.isTrue(!generated.contains('getInterceptor'));
+  if (generated.contains(r'getInterceptor(a).$is')) {
+    // If we have an interceptor for a type check, it should be the only one.
+    checkNumberOfMatches(
+        new RegExp('getInterceptor').allMatches(generated).iterator, 1);
+  } else {
+    Expect.isTrue(!generated.contains('getInterceptor'));
+  }
 
   generated = compileAll(TEST);
   

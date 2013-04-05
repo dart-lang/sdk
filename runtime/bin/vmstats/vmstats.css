@@ -35,12 +35,23 @@ h1, p {
 .isolate_list {
   font-family: 'Open Sans', sans-serif;
   font-size: 14px;
+  vertical-align: top;
 }
 
 .isolate_details {
   visibility:visible;
 }
 
-.isolate_details_hidden {
+.hidden {
   visibility:hidden;
+}
+
+.stack_trace_title {
+  font-weight: bold;
+}
+
+td {
+  padding-left: 10px;
+  padding-right: 10px;
+  vertical-align: top;
 }

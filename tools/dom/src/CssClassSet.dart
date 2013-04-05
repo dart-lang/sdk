@@ -62,6 +62,11 @@ abstract class CssClassSet implements Set<String> {
       dynamic combine(dynamic previousValue, String element)) {
     return readClasses().reduce(initialValue, combine);
   }
+
+  dynamic fold(dynamic initialValue,
+      dynamic combine(dynamic previousValue, String element)) {
+    return readClasses().fold(initialValue, combine);
+  }
   // interface Collection - END
 
   // interface Set - BEGIN

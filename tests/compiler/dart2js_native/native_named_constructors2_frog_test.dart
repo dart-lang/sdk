@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Hidden native class wwith named constructors and static methods.
+// Native class wwith named constructors and static methods.
 
 
 class A native "*A" {
@@ -16,7 +16,7 @@ class A native "*A" {
 
   static A _construct(v) { return makeA(v); }
 
-  foo() native 'return this._x;';
+  foo() native;
 }
 
 makeA(v) native;
@@ -24,6 +24,7 @@ makeA(v) native;
 void setup() native """
 // This code is all inside 'setup' and so not accesible from the global scope.
 function A(arg) { this._x = arg; }
+A.prototype.foo = function() { return this._x; };
 makeA = function(arg) { return new A(arg); }
 """;
 

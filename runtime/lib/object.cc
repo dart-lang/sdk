@@ -12,6 +12,9 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, enable_type_checks);
+
+
 DEFINE_NATIVE_ENTRY(Object_toString, 1) {
   const Instance& instance = Instance::CheckedHandle(arguments->NativeArgAt(0));
   const char* c_str = instance.ToCString();
@@ -90,7 +93,7 @@ DEFINE_NATIVE_ENTRY(Object_instanceOf, 5) {
     StackFrame* caller_frame = iterator.NextFrame();
     ASSERT(caller_frame != NULL);
     const intptr_t location = caller_frame->GetTokenPos();
-    String& malformed_error_message =  String::Handle(
+    String& malformed_error_message = String::Handle(
         String::New(malformed_error.ToErrorCString()));
     Exceptions::CreateAndThrowTypeError(
         location, Symbols::Empty(), Symbols::Empty(),
@@ -98,6 +101,64 @@ DEFINE_NATIVE_ENTRY(Object_instanceOf, 5) {
     UNREACHABLE();
   }
   return Bool::Get(negate.value() ? !is_instance_of : is_instance_of);
+}
+
+
+DEFINE_NATIVE_ENTRY(Object_as, 4) {
+  const Instance& instance = Instance::CheckedHandle(arguments->NativeArgAt(0));
+  // Instantiator at position 1 is not used. It is passed along so that the call
+  // can be easily converted to an optimized implementation. Instantiator is
+  // used to populate the subtype cache.
+  const AbstractTypeArguments& instantiator_type_arguments =
+      AbstractTypeArguments::CheckedHandle(arguments->NativeArgAt(2));
+  const AbstractType& type =
+      AbstractType::CheckedHandle(arguments->NativeArgAt(3));
+  ASSERT(type.IsFinalized());
+  ASSERT(!type.IsMalformed());
+  Error& malformed_error = Error::Handle();
+  if (instance.IsNull()) {
+    return instance.raw();
+  }
+  const bool is_instance_of = instance.IsInstanceOf(type,
+                                                    instantiator_type_arguments,
+                                                    &malformed_error);
+  if (!is_instance_of) {
+    DartFrameIterator iterator;
+    StackFrame* caller_frame = iterator.NextFrame();
+    ASSERT(caller_frame != NULL);
+    const intptr_t location = caller_frame->GetTokenPos();
+    const AbstractType& instance_type =
+        AbstractType::Handle(instance.GetType());
+    const String& instance_type_name =
+        String::Handle(instance_type.UserVisibleName());
+    String& type_name = String::Handle();
+    if (!type.IsInstantiated()) {
+      // Instantiate type before reporting the error.
+      const AbstractType& instantiated_type = AbstractType::Handle(
+          type.InstantiateFrom(instantiator_type_arguments, NULL));
+      // Note that instantiated_type may be malformed.
+      type_name = instantiated_type.UserVisibleName();
+    } else {
+      type_name = type.UserVisibleName();
+    }
+    String& malformed_error_message =  String::Handle();
+    if (malformed_error.IsNull()) {
+      const String& dst_name = String::ZoneHandle(
+          Symbols::New(Exceptions::kCastErrorDstName));
+
+      Exceptions::CreateAndThrowTypeError(
+          location, instance_type_name, type_name,
+          dst_name, String::Handle());
+    } else {
+      ASSERT(FLAG_enable_type_checks);
+      malformed_error_message = String::New(malformed_error.ToErrorCString());
+      Exceptions::CreateAndThrowTypeError(
+          location, instance_type_name, Symbols::Empty(),
+          Symbols::Empty(), malformed_error_message);
+    }
+    UNREACHABLE();
+  }
+  return instance.raw();
 }
 
 

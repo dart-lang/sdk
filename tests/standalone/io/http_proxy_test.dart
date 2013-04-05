@@ -28,7 +28,7 @@ class Server {
         var response = request.response;
         requestCount++;
         // Check whether a proxy or direct connection is expected.
-        bool direct = directRequestPaths.reduce(
+        bool direct = directRequestPaths.fold(
             false,
             (prev, path) => prev ? prev : path == request.uri.path);
         if (!direct && proxyHops > 0) {

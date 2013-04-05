@@ -64,6 +64,7 @@ void StoreBuffer::Reset() {
 void StoreBuffer::AddPointer(uword address) {
   ASSERT(dedup_sets_ != NULL);
   ASSERT(Isolate::Current()->heap()->OldContains(address));
+  ASSERT((address & kSmiTagMask) != kSmiTag);
   if (!dedup_sets_->set()->Add(address)) {
     // Add a new DedupSet. Schedule an interrupt if we have run over the max
     // number of DedupSets.

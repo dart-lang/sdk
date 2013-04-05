@@ -33,7 +33,8 @@ class Compiler extends leg.Compiler {
       : this.options = options,
         this.allowedLibraryCategories = getAllowedLibraryCategories(options),
         super(
-            tracer: new ssa.HTracer(),
+            tracer: new ssa.HTracer(
+                ssa.GENERATE_SSA_TRACE ? outputProvider('dart', 'cfg') : null),
             outputProvider: outputProvider,
             enableTypeAssertions: hasOption(options, '--enable-checked-mode'),
             enableUserAssertions: hasOption(options, '--enable-checked-mode'),

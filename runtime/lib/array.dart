@@ -118,6 +118,10 @@ class _ObjectArray<E> implements List<E> {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
+  fold(initialValue, combine(previousValue, E element)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
   Iterable<E> where(bool f(E element)) {
     return IterableMixinWorkaround.where(this, f);
   }
@@ -192,10 +196,6 @@ class _ObjectArray<E> implements List<E> {
   void add(E element) {
     throw new UnsupportedError(
         "Cannot add to a non-extendable array");
-  }
-
-  void addLast(E element) {
-    add(element);
   }
 
   void addAll(Iterable<E> iterable) {
@@ -365,6 +365,10 @@ class _ImmutableArray<E> implements List<E> {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
+  fold(initialValue, combine(previousValue, E element)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
   Iterable<E> where(bool f(E element)) {
     return IterableMixinWorkaround.where(this, f);
   }
@@ -444,10 +448,6 @@ class _ImmutableArray<E> implements List<E> {
   void add(E element) {
     throw new UnsupportedError(
         "Cannot add to an immutable array");
-  }
-
-  void addLast(E element) {
-    add(element);
   }
 
   void addAll(Iterable<E> elements) {
