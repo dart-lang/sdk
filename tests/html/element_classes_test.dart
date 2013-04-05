@@ -73,7 +73,7 @@ main() {
   });
 
   test('where', () {
-    expect(makeClassSet().where((c) => c.contains('a')).toSet(),
+    expect(makeClassSet().where((c) => c.contains('a')).toList(),
         orderedEquals(['bar', 'baz']));
   });
 
