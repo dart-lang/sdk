@@ -10,7 +10,7 @@ library test_pub;
 
 import 'dart:async';
 import 'dart:collection' show Queue;
-import 'dart:io';
+import 'dart:io' hide sleep;
 import 'dart:json' as json;
 import 'dart:math';
 import 'dart:uri';

@@ -87,4 +87,8 @@ int64_t TimerUtils::GetCurrentTimeMicros() {
   return (static_cast<int64_t>(tv.tv_sec) * 1000000) + tv.tv_usec;
 }
 
+void TimerUtils::Sleep(int64_t millis) {
+  usleep(millis * 1000);
+}
+
 #endif  // defined(TARGET_OS_LINUX)

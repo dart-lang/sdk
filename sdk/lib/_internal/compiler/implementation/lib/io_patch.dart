@@ -165,6 +165,9 @@ patch class _ProcessUtils {
   patch static _setExitCode(int status) {
     throw new UnsupportedError("ProcessUtils._setExitCode");
   }
+  patch static _sleep(int millis) {
+    throw new UnsupportedError("ProcessUtils._sleep");
+  }
 }
 
 patch class Process {
