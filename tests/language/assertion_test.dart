@@ -5,6 +5,8 @@
 //
 // Dart test program testing assert statements.
 
+import "package:expect/expect.dart";
+
 class AssertionTest {
   static testTrue() {
     int i = 0;

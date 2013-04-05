@@ -6,6 +6,7 @@
 // test cases with illegal metadata annotations.
 
 library metadata_test.dart;
+import "package:expect/expect.dart";
 import "metadata_lib.dart" as Meta;
 
 class Tag {

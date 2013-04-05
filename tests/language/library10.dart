@@ -6,6 +6,7 @@
 library library10.dart;
 
 import "library11.dart" as lib11;
+import "package:expect/expect.dart";
 
 class Library10 {
   Library10(this.fld);

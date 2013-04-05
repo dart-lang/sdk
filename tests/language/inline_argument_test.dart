@@ -4,6 +4,8 @@
 // Test that when inlining A.foo, we're not evaluating the argument
 // twice.
 
+import "package:expect/expect.dart";
+
 class A {
   var field = 0;
 

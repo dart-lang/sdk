@@ -5,6 +5,8 @@
 // VMOptions=
 // VMOptions=--use_slow_path
 
+import "package:expect/expect.dart";
+
 class First {
   First(this.i) {}
   var b;

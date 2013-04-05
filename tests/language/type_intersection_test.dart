@@ -5,6 +5,8 @@
 // Regression test for dart2js that used to consider that the
 // intersection of [Comparable] and [num] is conflicting.
 
+import "package:expect/expect.dart";
+
 class A {
   foo(a, Comparable b) => a == b;
   bar(a, Comparable b) => b == a;

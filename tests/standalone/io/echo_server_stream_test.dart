@@ -11,6 +11,7 @@
 
 library ServerTest;
 
+import "package:expect/expect.dart";
 import "dart:io";
 import "dart:isolate";
 part "testing_server.dart";

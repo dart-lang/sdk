@@ -4,6 +4,8 @@
 
 // dart2js regression test for issue 8781.
 
+import "package:expect/expect.dart";
+
 class N {
   var outgoing;
   var incoming;

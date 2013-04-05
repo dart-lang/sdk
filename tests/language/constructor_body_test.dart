@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for constructors without function bodies.
 
+import "package:expect/expect.dart";
+
 // Test a non-const constructor works without a body.
 class First {
   First(int this.value);

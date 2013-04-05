@@ -4,6 +4,7 @@
 //
 // Test the Path class in dart:io.
 
+import "package:expect/expect.dart";
 import "dart:io";
 
 void main() {

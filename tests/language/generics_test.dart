@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for generic types.
 
+import "package:expect/expect.dart";
+
 class GenericsTest<T,V> implements Map<int, int> {
   static int myFunc(bool a, bool b) {
     Expect.equals(true, a);

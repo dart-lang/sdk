@@ -5,6 +5,7 @@
 // Use qualified symbols with generics at various places.
 
 library Prefix15Test.dart;
+import "package:expect/expect.dart";
 import "library12.dart" as lib12;
 
 typedef T myFunc<T>(T param);

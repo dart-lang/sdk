@@ -4,6 +4,8 @@
 // Dart test program testing overridden messageNotUnderstood.
 
 library OverriddenNoSuchMethodTest.dart;
+
+import "package:expect/expect.dart";
 part "overridden_no_such_method.dart";
 
 main() {

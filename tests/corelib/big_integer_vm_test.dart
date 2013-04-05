@@ -5,6 +5,7 @@
 // TODO(srdjan): Make sure the numbers are Bigint and not Mint or Smi.
 
 library big_integer_test;
+import "package:expect/expect.dart";
 
 class BigIntegerTest {
 

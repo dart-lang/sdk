@@ -5,6 +5,8 @@
 // Dart test for testing access to private fields.
 
 library PrivateTest.dart;
+
+import "package:expect/expect.dart";
 import "private_other.lib";
 part "private1.dart";
 part "private2.dart";

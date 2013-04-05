@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "package:expect/expect.dart";
+
 // Regression test for http://dartbug.com/6259. This test used to fail
 // on dart2js because class A does not know [A.document] is a target for
 // the call [:obj.document:] in the [main] method. Therefore, dart2js

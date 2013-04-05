@@ -4,6 +4,7 @@
 
 library mock_compiler;
 
+import "package:expect/expect.dart";
 import 'dart:collection';
 import 'dart:uri';
 

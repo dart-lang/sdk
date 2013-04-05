@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for testing String.allMatches.
 
+import "package:expect/expect.dart";
+
 String str = "this is a string with hello here and hello there";
 
 main() {

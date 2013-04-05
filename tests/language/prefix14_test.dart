@@ -5,6 +5,7 @@
 // Use qualified symbols at various places.
 
 library Prefix14Test.dart;
+import "package:expect/expect.dart";
 import "library12.dart" as lib12;
 
 typedef lib12.Library12 myFunc(lib12.Library12 param);

@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for testing regular expressions in Dart.
 
+import "package:expect/expect.dart";
+
 class RegExp2Test {
   static String findImageTag_(String text, String extensions) {
     final re = new RegExp('src="(http://\\S+\\.(${extensions}))"');

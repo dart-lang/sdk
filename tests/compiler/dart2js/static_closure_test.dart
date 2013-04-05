@@ -4,6 +4,7 @@
 
 // Test that static functions are closurized as expected.
 
+import "package:expect/expect.dart";
 import 'compiler_helper.dart';
 
 main() {

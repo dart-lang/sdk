@@ -4,6 +4,7 @@
 
 library stream_min_max_test;
 
+import "package:expect/expect.dart";
 import 'dart:async';
 import 'dart:isolate';
 import '../../../pkg/unittest/lib/unittest.dart';

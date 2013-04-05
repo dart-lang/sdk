@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "package:expect/expect.dart";
+
 // An abstract class with a redirecting factory to a class with no declared
 // constructor should use the implicit default constructor.
 

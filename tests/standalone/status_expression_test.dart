@@ -4,6 +4,7 @@
 
 library StatusExpressionTest;
 
+import "package:expect/expect.dart";
 import "../../tools/testing/dart/status_expression.dart";
 
 

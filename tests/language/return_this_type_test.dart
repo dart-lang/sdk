@@ -4,6 +4,8 @@
 
 // Make sure the engine does not infer the wrong type for [:A.foo:].
 
+import "package:expect/expect.dart";
+
 class A {
   foo() => this;
 }

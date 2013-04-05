@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test correct usage of inlined double temporary objects.
 
+import "package:expect/expect.dart";
+
 main() {
   for (int i = 0; i < 2000; i++) {
     testBinaryOp();

@@ -4,6 +4,7 @@
 
 // Test that type checks occur on native methods.
 
+import "package:expect/expect.dart";
 import 'native_metadata.dart';
 
 @Native("*A")

@@ -309,6 +309,7 @@ bool _identical(a, b) => identical(a, b);
 
 typedef bool _CheckExceptionFn(exception);
 
+/** This class is *deprecated*. */
 @deprecated
 class ExpectException implements Exception {
   ExpectException(this.message);

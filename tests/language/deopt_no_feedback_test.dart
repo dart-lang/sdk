@@ -4,6 +4,8 @@
 // Test deoptimization caused by running code that did not collect type
 // feedback before.
 
+import "package:expect/expect.dart";
+
 testStoreIndexed() {
   test(a, i, v, flag) {
     if (flag) {

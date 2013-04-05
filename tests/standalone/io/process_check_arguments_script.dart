@@ -7,6 +7,20 @@
 import "dart:math";
 import "dart:io";
 
+class Expect {
+  static void isTrue(x) {
+    if (!x) {
+      throw new Error("Not true");
+    }
+  }
+
+  static void equals(x, y) {
+    if (x != y) {
+      throw new Error("Not equal");
+    }
+  }
+}
+
 main() {
   var options = new Options();
   Expect.isTrue(options.script.endsWith('process_check_arguments_script.dart'));

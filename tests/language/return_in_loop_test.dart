@@ -4,6 +4,8 @@
 // Test for a dart2js bug where the live environment was not computed
 // right.
 
+import "package:expect/expect.dart";
+
 class A {
   foo() {
     var x = 0;

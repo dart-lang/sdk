@@ -4,6 +4,7 @@
 // Test that dart2js gvns dynamic getters that don't have side
 // effects.
 
+import "package:expect/expect.dart";
 import 'compiler_helper.dart';
 import 'parser_helper.dart';
 

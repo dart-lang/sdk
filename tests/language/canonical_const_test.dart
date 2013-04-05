@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Check that initializers of static const fields are compile time constants.
 
+import "package:expect/expect.dart";
+
 class CanonicalConstTest {
   static const A = const C1();
   static const B = const C2();

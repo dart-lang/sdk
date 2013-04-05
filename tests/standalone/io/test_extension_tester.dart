@@ -6,6 +6,22 @@ library test_extension_test;
 
 import "test_extension.dart";
 
+class Expect {
+  static void equals(expected, actual, [msg]) {
+    if (expected != actual) {
+      if (msg == null) msg = "Expected: $expected. Actual: $actual";
+      throw new RuntimeError(msg);
+    }
+  }
+
+  static void isNull(x, [msg]) {
+    if (x != null) {
+      if (msg != null) msg = "$x not null";
+      throw new RuntimeError(msg);
+    }
+  }
+}
+
 main() {
   Expect.equals('cat 13', new Cat(13).toString(), 'new Cat(13).toString()');
 

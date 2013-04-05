@@ -6,6 +6,8 @@
 // unless we encounter a non-Smi result, in which case we deoptimize and
 // optimize it later to DoubleToInt.
 
+import "package:expect/expect.dart";
+
 
 main() {
   for (int i = 0; i < 600; i++) {

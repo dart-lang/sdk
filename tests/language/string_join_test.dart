@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Regression test ensuring that only ObjectArrays are handed to the VM code.
 
+import "package:expect/expect.dart";
+
 class StringJoinTest {
   static testMain() {
     List<String> ga = new List<String>();

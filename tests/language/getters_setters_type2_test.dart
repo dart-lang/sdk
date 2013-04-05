@@ -5,6 +5,8 @@
 // two types are assignable.
 // @static-clean
 
+import "package:expect/expect.dart";
+
 int bar = 499;
 
 int get foo => bar;

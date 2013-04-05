@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "package:expect/expect.dart";
+
 // This test triggered an NPE in dart2js.
 // The bug needed:
 // - double usage of the same variable in one expression ("b != b").

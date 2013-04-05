@@ -6,6 +6,7 @@
 // parameters set to null. These parameters should be treated as if they
 // do not have a default value for the native methods.
 
+import "package:expect/expect.dart";
 import 'native_metadata.dart';
 
 @Native("*A")

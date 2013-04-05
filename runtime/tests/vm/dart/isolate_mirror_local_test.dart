@@ -9,6 +9,7 @@
 
 library isolate_mirror_local_test;
 
+import "package:expect/expect.dart";
 import 'dart:async';
 import 'dart:isolate';
 import 'dart:mirrors';

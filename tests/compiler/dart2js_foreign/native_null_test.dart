@@ -5,6 +5,7 @@
 // Test that parameters in native methods are not mangled. This test is needed
 // until we change all libraries to using the JS foreign element.
 
+import "package:expect/expect.dart";
 import 'native_metadata.dart';
 
 @Native("*A")

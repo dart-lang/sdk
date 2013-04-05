@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library sort_helper;
+import "package:expect/expect.dart";
 
 class SortHelper {
 

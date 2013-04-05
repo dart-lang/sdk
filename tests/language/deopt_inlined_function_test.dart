@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test deoptimization from within an inlined function.
 
+import "package:expect/expect.dart";
+
 class A {
   deopt_here() => 1;
 }

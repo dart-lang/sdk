@@ -4,6 +4,7 @@
 
 // Additional Dart code may be 'placed on' hidden native classes.
 
+import "package:expect/expect.dart";
 import 'native_metadata.dart';
 
 @Native("*A")

@@ -4,6 +4,7 @@
 // Stress test isolate generation.
 // DartOptions=tests/standalone/io/options_test.dart 10 options_test 20
 
+import "package:expect/expect.dart";
 import "dart:math";
 import "dart:io";
 

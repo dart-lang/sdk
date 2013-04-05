@@ -4,6 +4,8 @@
 
 library set_test;
 
+
+import 'package:expect/expect.dart';
 import "dart:collection";
 
 void testMain(Set create()) {

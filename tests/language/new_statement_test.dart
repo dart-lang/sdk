@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test a new statement by itself.
 
+import "package:expect/expect.dart";
+
 class A {
   int a;
   int b;

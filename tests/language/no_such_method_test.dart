@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program testing that NoSuchMethod is properly called.
 
+import "package:expect/expect.dart";
+
 class GetName {
   foo({a, b}) => "foo";
   moo({b}) => "moo";

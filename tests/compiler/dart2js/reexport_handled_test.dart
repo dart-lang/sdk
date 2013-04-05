@@ -4,6 +4,7 @@
 
 library reexport_handled_test;
 
+import "package:expect/expect.dart";
 import 'dart:uri';
 import 'mock_compiler.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart'

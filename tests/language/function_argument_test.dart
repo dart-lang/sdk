@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for function passing.
 
+import "package:expect/expect.dart";
+
 class FunctionArgumentTest {
   static testMe(Function f) {
     return f();

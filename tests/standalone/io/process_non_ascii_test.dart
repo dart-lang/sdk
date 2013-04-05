@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "package:expect/expect.dart";
 import 'dart:io';
 import 'dart:isolate';
 
@@ -17,7 +18,9 @@ main() {
 import 'dart:io';
 
 main() {
-  Expect.equals('æøå', new File('æøå.txt').readAsStringSync());
+  if ('æøå' != new File('æøå.txt').readAsStringSync()) {
+    throw new RuntimeError("not equal");
+  }
 }
 """);
   var nonAsciiTxtFile = new File('${nonAsciiDir.path}/æøå.txt');

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "package:expect/expect.dart";
+
 closure0() {
   // f and g will both capture a variable named 'x'. If we use the original
   // name in the (shared) box then there will be troubles.
