@@ -92,6 +92,7 @@ class HValidator extends HInstructionVisitor {
     // corresponding predecessor block. Note that a block dominates
     // itself.
     block.forEachPhi((HPhi phi) {
+      assert(phi.inputs.length <= block.predecessors.length);
       for (int i = 0; i < phi.inputs.length; i++) {
         HInstruction input = phi.inputs[i];
         if (!input.block.dominates(block.predecessors[i])) {

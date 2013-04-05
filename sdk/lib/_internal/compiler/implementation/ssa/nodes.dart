@@ -544,6 +544,8 @@ class HBasicBlock extends HInstructionList {
   }
 
   void addPhi(HPhi phi) {
+    assert(phi.inputs.length == 0 || phi.inputs.length == predecessors.length);
+    assert(phi.block == null);
     phis.internalAddAfter(phis.last, phi);
     phi.notifyAddedToBlock(this);
   }
@@ -1931,6 +1933,7 @@ class HPhi extends HInstruction {
   void addInput(HInstruction input) {
     assert(isInBasicBlock());
     inputs.add(input);
+    assert(inputs.length <= block.predecessors.length);
     input.usedBy.add(this);
   }
 
