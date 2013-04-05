@@ -544,7 +544,7 @@ class _LazyList extends Iterable implements List {
   lastIndexOf(x, [pos]) => _inflated.toList().lastIndexOf(x);
   sublist(start, [end]) => _inflated.sublist(start, end);
 
-  Map<int, dynamic> asMap() => IterableMixinWorkaround.asMapList(this);
+  Map<int, dynamic> asMap() => _inflated.asMap();
 
   // These operations are all invalid
   _throw() {
