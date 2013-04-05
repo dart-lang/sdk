@@ -78,27 +78,10 @@ hoo() {
   kast("hoo").x;
 }
 
-switcheroo(x) {
+switcheroo() {
   switch (kast("switcheroo")) {
     case 0:
       boo();
-  }
-}
-switchertoo(x) {
-  switch (kast("switcheroo")) {
-    case boo():
-      foo();
-  }
-}
-
-switchenoo(x) {
-  switch (x) {
-    case callMeTrue():
-      break;
-    case kast("switchenoo"):
-      break;
-    case 42:
-      return 42;
   }
 }
 
@@ -178,10 +161,6 @@ main() {
   Expect.throws(yo);
   Expect.throws(hoo);
   Expect.throws(switcheroo);
-  Expect.throws(switchertoo);
-  testCallThenThrow(() => switchenoo(false));
-  switchenoo(true);
-  testCall(() { try { switchenoo(x); } catch(e) { } });
   Expect.throws(interpole);
   testCallThenThrow(interpoleCallThrow);
   Expect.throws(call1);
