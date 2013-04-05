@@ -1530,7 +1530,7 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
   Element lookupSuperSelector(Selector selector) {
     return internalLookupSelector(selector, true);
   }
-  
+
   Element internalLookupSelector(Selector selector, bool isSuperLookup) {
     SourceString name = selector.name;
     bool isPrivate = name.isPrivate();
@@ -1583,24 +1583,25 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
    */
   bool isShadowedByField(Element fieldMember) {
     assert(fieldMember.isField());
-    // Note that we cannot use [lookupMember] or [lookupSuperMember] since it
-    // will not do the right thing for private elements.
-    ClassElement lookupClass = this;
-    LibraryElement memberLibrary = fieldMember.getLibrary();
-    if (fieldMember.name.isPrivate()) {
-      // We find a super class in the same library as the field. This way the
-      // lookupMember will work.
-      while (lookupClass.getLibrary() != memberLibrary) {
-        lookupClass = lookupClass.superclass;
-      }
-    }
     SourceString fieldName = fieldMember.name;
-    while (true) {
-      Element foundMember = lookupClass.lookupMember(fieldName);
-      if (foundMember == fieldMember) return false;
-      if (foundMember.isField()) return true;
-      lookupClass = foundMember.getEnclosingClass().superclass;
+    bool isPrivate = fieldName.isPrivate();
+    LibraryElement memberLibrary = fieldMember.getLibrary();
+    ClassElement lookupClass = this;
+    while (lookupClass != null) {
+      Element foundMember = lookupClass.lookupLocalMember(fieldName);
+      if (foundMember != null) {
+        if (foundMember == fieldMember) return false;
+        if (foundMember.isField()) {
+          if (!isPrivate || memberLibrary == foundMember.getLibrary()) {
+            // Private fields can only be shadowed by a field declared
+            // in the same library.
+            return true;
+          }
+        }
+      }
+      lookupClass = lookupClass.superclass;
     }
+    return false;
   }
 
   Element validateConstructorLookupResults(Selector selector,
