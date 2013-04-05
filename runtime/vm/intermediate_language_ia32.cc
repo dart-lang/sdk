@@ -254,7 +254,7 @@ static Condition TokenKindToSmiCondition(Token::Kind kind) {
     case Token::kLT: return LESS;
     case Token::kGT: return GREATER;
     case Token::kLTE: return LESS_EQUAL;
-    case Token::kGTE: return  GREATER_EQUAL;
+    case Token::kGTE: return GREATER_EQUAL;
     default:
       UNREACHABLE();
       return OVERFLOW;

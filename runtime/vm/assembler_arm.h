@@ -337,15 +337,9 @@ class Assembler : public ValueObject {
 
   const Code::Comments& GetCodeComments() const;
 
-  static const char* RegisterName(Register reg) {
-    UNIMPLEMENTED();
-    return NULL;
-  }
+  static const char* RegisterName(Register reg);
 
-  static const char* FpuRegisterName(FpuRegister reg) {
-    UNIMPLEMENTED();
-    return NULL;
-  }
+  static const char* FpuRegisterName(FpuRegister reg);
 
   // Data-processing instructions.
   void and_(Register rd, Register rn, ShifterOperand so, Condition cond = AL);

@@ -2014,7 +2014,7 @@ void StubCode::GenerateEqualityWithNullArgStub(Assembler* assembler) {
 }
 
 
-// Calls to runtime to ooptimized give function
+// Calls to the runtime to optimize the given function.
 // EDI: function to be reoptimized.
 // EDX: argument descriptor (preserved).
 void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {

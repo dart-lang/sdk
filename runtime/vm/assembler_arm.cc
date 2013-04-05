@@ -2020,6 +2020,34 @@ int32_t Assembler::AddExternalLabel(const ExternalLabel* label) {
   return object_pool_.Length() - 1;
 }
 
+
+static const char* cpu_reg_names[kNumberOfCpuRegisters] = {
+  "r0", "r1", "r2", "r3", "r4", "r5", "r6", "r7",
+  "r8", "ctx", "pp", "fp", "ip", "sp", "lr", "pc",
+};
+
+
+const char* Assembler::RegisterName(Register reg) {
+  ASSERT((0 <= reg) && (reg < kNumberOfCpuRegisters));
+  return cpu_reg_names[reg];
+}
+
+
+static const char* fpu_reg_names[kNumberOfFpuRegisters] = {
+  "d0", "d1", "d2", "d3", "d4", "d5", "d6", "d7",
+  "d8", "d9", "d10", "d11", "d12", "d13", "d14", "d15",
+#ifdef VFPv3_D32
+  "d16", "d17", "d18", "d19", "d20", "d21", "d22", "d23",
+  "d24", "d25", "d26", "d27", "d28", "d29", "d30", "d31",
+#endif
+};
+
+
+const char* Assembler::FpuRegisterName(FpuRegister reg) {
+  ASSERT((0 <= reg) && (reg < kNumberOfFpuRegisters));
+  return fpu_reg_names[reg];
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_ARM
