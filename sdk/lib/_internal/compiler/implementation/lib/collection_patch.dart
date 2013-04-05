@@ -530,11 +530,10 @@ patch class HashSet<E> {
   }
 
   void _addHashTableEntry(var table, E element) {
-    if (!_hasTableEntry(table, element)) {
-      _length++;
-      _elements = null;
-    }
+    if (_hasTableEntry(table, element)) return;
     _setTableEntry(table, element, 0);
+    _length++;
+    _elements = null;
   }
 
   bool _removeHashTableEntry(var table, E element) {
