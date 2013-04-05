@@ -143,9 +143,9 @@ void Socket::GetError(intptr_t fd, OSError* os_error) {
 
 int Socket::GetType(intptr_t fd) {
   struct stat buf;
-  if (isatty(fd)) return File::kTerminal;
   int result = fstat(fd, &buf);
   if (result == -1) return -1;
+  if (S_ISCHR(buf.st_mode)) return File::kTerminal;
   if (S_ISFIFO(buf.st_mode)) return File::kPipe;
   if (S_ISREG(buf.st_mode)) return File::kFile;
   return File::kOther;

@@ -8,7 +8,7 @@ const int _STDIO_HANDLE_TYPE_TERMINAL = 0;
 const int _STDIO_HANDLE_TYPE_PIPE = 1;
 const int _STDIO_HANDLE_TYPE_FILE = 2;
 const int _STDIO_HANDLE_TYPE_SOCKET = 3;
-const int _STDIO_HANDLE_TYPE_OTHER = -1;
+const int _STDIO_HANDLE_TYPE_OTHER = 4;
 
 
 class StdioType {
@@ -16,8 +16,9 @@ class StdioType {
   static const StdioType PIPE = const StdioType._("pipe");
   static const StdioType FILE = const StdioType._("file");
   static const StdioType OTHER = const StdioType._("other");
-  const StdioType._(String this.name);
   final String name;
+  const StdioType._(String this.name);
+  String toString() => "StdioType: $name";
 }
 
 
@@ -63,7 +64,7 @@ StdioType stdioType(object) {
   }
   if (object is IOSink) {
     try {
-      if (object._sink.target is _FileStreamConsumer) {
+      if (object._target is _FileStreamConsumer) {
         return StdioType.FILE;
       }
     } catch (e) {
