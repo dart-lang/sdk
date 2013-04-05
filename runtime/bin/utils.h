@@ -82,6 +82,7 @@ class TimerUtils {
  public:
   static int64_t GetCurrentTimeMicros();
   static int64_t GetCurrentTimeMilliseconds();
+  static void Sleep(int64_t millis);
 };
 
 #endif  // BIN_UTILS_H_
