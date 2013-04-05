@@ -1258,7 +1258,8 @@ class JavaScriptBackend extends Backend {
   }
 
   bool needsRti(ClassElement cls) {
-    return rti.classesNeedingRti.contains(cls) || compiler.enabledRuntimeType;
+    return rti.classesNeedingRti.contains(cls.declaration)
+        || compiler.enabledRuntimeType;
   }
 
   bool isDefaultNoSuchMethodImplementation(Element element) {

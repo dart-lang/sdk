@@ -111,3 +111,81 @@ patch class HashMap<K, V> {
 
   /* patch */ bool get isEmpty => _hashTable._elementCount == 0;
 }
+
+patch class HashSet<E> {
+  static const int _INITIAL_CAPACITY = 8;
+  final _HashTable<E> _table;
+
+  /* patch */ HashSet() : _table = new _HashTable(_INITIAL_CAPACITY) {
+    _table._container = this;
+  }
+
+  factory HashSet.from(Iterable<E> iterable) {
+    return new HashSet<E>()..addAll(iterable);
+  }
+
+  // Iterable.
+  /* patch */ Iterator<E> get iterator => new _HashTableKeyIterator<E>(_table);
+
+  /* patch */ int get length => _table._elementCount;
+
+  /* patch */ bool get isEmpty => _table._elementCount == 0;
+
+  /* patch */ bool contains(Object object) => _table._get(object) >= 0;
+
+  // Collection.
+  /* patch */ void add(E element) {
+    _table._put(element);
+    _table._checkCapacity();
+  }
+
+  /* patch */ void addAll(Iterable<E> objects) {
+    for (E object in objects) {
+      _table._put(object);
+      _table._checkCapacity();
+    }
+  }
+
+  /* patch */ bool remove(Object object) {
+    int offset = _table._remove(object);
+    _table._checkCapacity();
+    return offset >= 0;
+  }
+
+  /* patch */ void removeAll(Iterable objectsToRemove) {
+    for (Object object in objectsToRemove) {
+      _table._remove(object);
+      _table._checkCapacity();
+    }
+  }
+
+  void _filterWhere(bool test(E element), bool removeMatching) {
+    int entrySize = _table._entrySize;
+    int length = _table._table.length;
+    for (int offset =  0; offset < length; offset += entrySize) {
+      Object entry = _table._table[offset];
+      if (!_table._isFree(entry)) {
+        E key = identical(entry, _NULL) ? null : entry;
+        int modificationCount = _table._modificationCount;
+        bool shouldRemove = (removeMatching == test(key));
+        _table._checkModification(modificationCount);
+        if (shouldRemove) {
+          _table._deleteEntry(offset);
+        }
+      }
+    }
+    _table._checkCapacity();
+  }
+
+  /* patch */ void removeWhere(bool test(E element)) {
+    _filterWhere(test, true);
+  }
+
+  /* patch */ void retainWhere(bool test(E element)) {
+    _filterWhere(test, false);
+  }
+
+  /* patch */ void clear() {
+    _table._clear();
+  }
+}

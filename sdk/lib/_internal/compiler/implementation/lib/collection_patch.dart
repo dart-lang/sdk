@@ -208,19 +208,6 @@ patch class HashMap<K, V> {
     return _keys = result;
   }
 
-  _newHashTable() {
-    // Create a new JavaScript object to be used as a hash table. Use
-    // Object.create to avoid the properties on Object.prototype
-    // showing up as entries.
-    var table = JS('var', 'Object.create(null)');
-    // Attempt to force the hash table into 'dictionary' mode by
-    // adding a property to it and deleting it again.
-    var temporaryKey = '<non-identifier-key>';
-    _setTableEntry(table, temporaryKey, table);
-    _deleteTableEntry(table, temporaryKey);
-    return table;
-  }
-
   void _addHashTableEntry(var table, K key, V value) {
     if (!_hasTableEntry(table, key)) {
       _length++;
@@ -255,7 +242,7 @@ patch class HashMap<K, V> {
   static int _computeHashCode(var key) {
     // We force the hash codes to be unsigned 30-bit integers to avoid
     // issues with problematic keys like '__proto__'. Another option
-    // would be to throw an exception if the key isn't a number.
+    // would be to throw an exception if the hash code isn't a number.
     return JS('int', '# & 0x3ffffff', key.hashCode);
   }
 
@@ -286,7 +273,7 @@ patch class HashMap<K, V> {
     JS('void', 'delete #[#]', table, key);
   }
 
-  static _getBucket(var table, var key) {
+  static List _getBucket(var table, var key) {
     var hash = _computeHashCode(key);
     return JS('var', '#[#]', table, hash);
   }
@@ -298,6 +285,19 @@ patch class HashMap<K, V> {
       if (JS('var', '#[#]', bucket, i) == key) return i;
     }
     return -1;
+  }
+
+  static _newHashTable() {
+    // Create a new JavaScript object to be used as a hash table. Use
+    // Object.create to avoid the properties on Object.prototype
+    // showing up as entries.
+    var table = JS('var', 'Object.create(null)');
+    // Attempt to force the hash table into 'dictionary' mode by
+    // adding a property to it and deleting it again.
+    var temporaryKey = '<non-identifier-key>';
+    _setTableEntry(table, temporaryKey, table);
+    _deleteTableEntry(table, temporaryKey);
+    return table;
   }
 }
 
@@ -347,6 +347,293 @@ class HashMapKeyIterator<E> implements Iterator<E> {
       return false;
     } else {
       _current = JS('var', '#[#]', keys, offset);
+      // TODO(kasperl): For now, we have to tell the type inferrer to
+      // treat the result of doing offset + 1 as an int. Otherwise, we
+      // get unnecessary bailout code.
+      _offset = JS('int', '#', offset + 1);
+      return true;
+    }
+  }
+}
+
+patch class HashSet<E> {
+  int _length = 0;
+
+  // The hash set contents is divided into three parts: one part for
+  // string elements, one for numeric elements, and one for the
+  // rest. String and numeric elements map directly to a sentinel
+  // value, but the rest of the entries are stored in bucket lists of
+  // the form:
+  //
+  //    [element-0, element-1, element-2, ...]
+  //
+  // where all elements in the same bucket share the same hash code.
+  var _strings;
+  var _nums;
+  var _rest;
+
+  // When iterating over the hash set, it is very convenient to have a
+  // list of all the elements. We cache that on the instance and clear
+  // the the cache whenever the set changes. This is also used to
+  // guard against concurrent modifications.
+  List _elements;
+
+  patch HashSet();
+
+  // Iterable.
+  patch Iterator<E> get iterator {
+    return new HashSetIterator<E>(this, _computeElements());
+  }
+
+  patch int get length => _length;
+  patch bool get isEmpty => _length == 0;
+
+  patch bool contains(Object object) {
+    if (_isStringElement(object)) {
+      var strings = _strings;
+      return (strings == null) ? false : _hasTableEntry(strings, object);
+    } else if (_isNumericElement(object)) {
+      var nums = _nums;
+      return (nums == null) ? false : _hasTableEntry(nums, object);
+    } else {
+      var rest = _rest;
+      if (rest == null) return false;
+      var bucket = _getBucket(rest, object);
+      return _findBucketIndex(bucket, object) >= 0;
+    }
+  }
+
+  // Collection.
+  patch void add(E element) {
+    if (_isStringElement(element)) {
+      var strings = _strings;
+      if (strings == null) _strings = strings = _newHashTable();
+      _addHashTableEntry(strings, element);
+    } else if (_isNumericElement(element)) {
+      var nums = _nums;
+      if (nums == null) _nums = nums = _newHashTable();
+      _addHashTableEntry(nums, element);
+    } else {
+      var rest = _rest;
+      if (rest == null) _rest = rest = _newHashTable();
+      var hash = _computeHashCode(element);
+      var bucket = JS('var', '#[#]', rest, hash);
+      if (bucket == null) {
+        _setTableEntry(rest, hash, JS('var', '[#]', element));
+      } else {
+        int index = _findBucketIndex(bucket, element);
+        if (index >= 0) return;
+        JS('void', '#.push(#)', bucket, element);
+      }
+      _length++;
+      _elements = null;
+    }
+  }
+
+  patch void addAll(Iterable<E> objects) {
+    for (E each in objects) {
+      add(each);
+    }
+  }
+
+  patch bool remove(Object object) {
+    if (_isStringElement(object)) {
+      return _removeHashTableEntry(_strings, object);
+    } else if (_isNumericElement(object)) {
+      return _removeHashTableEntry(_nums, object);
+    } else {
+      var rest = _rest;
+      if (rest == null) return false;
+      var bucket = _getBucket(rest, object);
+      int index = _findBucketIndex(bucket, object);
+      if (index < 0) return false;
+      // TODO(kasperl): Consider getting rid of the bucket list when
+      // the length reaches zero.
+      _length--;
+      _elements = null;
+      // TODO(kasperl): It would probably be faster to move the
+      // element to the end and reduce the length of the bucket list.
+      JS('void', '#.splice(#, 1)', bucket, index);
+      return true;
+    }
+  }
+
+  patch void removeAll(Iterable objectsToRemove) {
+    for (var each in objectsToRemove) {
+      remove(each);
+    }
+  }
+
+  patch void removeWhere(bool test(E element)) {
+    removeAll(_computeElements().where(test));
+  }
+
+  patch void retainWhere(bool test(E element)) {
+    removeAll(_computeElements().where((E element) => !test(element)));
+  }
+
+  patch void clear() {
+    if (_length > 0) {
+      _strings = _nums = _rest = _elements = null;
+      _length = 0;
+    }
+  }
+
+  List _computeElements() {
+    if (_elements != null) return _elements;
+    List result = new List(_length);
+    int index = 0;
+
+    // Add all string elements to the list.
+    var strings = _strings;
+    if (strings != null) {
+      var names = JS('var', 'Object.getOwnPropertyNames(#)', strings);
+      int entries = JS('int', '#.length', names);
+      for (int i = 0; i < entries; i++) {
+        String element = JS('String', '#[#]', names, i);
+        JS('void', '#[#] = #', result, index, element);
+        index++;
+      }
+    }
+
+    // Add all numeric elements to the list.
+    var nums = _nums;
+    if (nums != null) {
+      var names = JS('var', 'Object.getOwnPropertyNames(#)', nums);
+      int entries = JS('int', '#.length', names);
+      for (int i = 0; i < entries; i++) {
+        // Object.getOwnPropertyNames returns a list of strings, so we
+        // have to convert the elements back to numbers (+).
+        num element = JS('num', '+#[#]', names, i);
+        JS('void', '#[#] = #', result, index, element);
+        index++;
+      }
+    }
+
+    // Add all the remaining elements to the list.
+    var rest = _rest;
+    if (rest != null) {
+      var names = JS('var', 'Object.getOwnPropertyNames(#)', rest);
+      int entries = JS('int', '#.length', names);
+      for (int i = 0; i < entries; i++) {
+        var entry = JS('String', '#[#]', names, i);
+        var bucket = JS('var', '#[#]', rest, entry);
+        int length = JS('int', '#.length', bucket);
+        for (int i = 0; i < length; i++) {
+          JS('void', '#[#] = #[#]', result, index, bucket, i);
+          index++;
+        }
+      }
+    }
+    assert(index == _length);
+    return _elements = result;
+  }
+
+  void _addHashTableEntry(var table, E element) {
+    if (!_hasTableEntry(table, element)) {
+      _length++;
+      _elements = null;
+    }
+    _setTableEntry(table, element, 0);
+  }
+
+  bool _removeHashTableEntry(var table, E element) {
+    if (table != null && _hasTableEntry(table, element)) {
+      _deleteTableEntry(table, element);
+      _length--;
+      _elements = null;
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  static bool _isStringElement(var element) {
+    return element is String && element != '__proto__';
+  }
+
+  static bool _isNumericElement(var element) {
+    // Only treat unsigned 30-bit integers as numeric elements. This
+    // way, we avoid converting them to strings when we use them as
+    // keys in the JavaScript hash table object.
+    return element is num &&
+        JS('bool', '(# & 0x3ffffff) === #', element, element);
+  }
+
+  static int _computeHashCode(var element) {
+    // We force the hash codes to be unsigned 30-bit integers to avoid
+    // issues with problematic elements like '__proto__'. Another
+    // option would be to throw an exception if the hash code isn't a
+    // number.
+    return JS('int', '# & 0x3ffffff', element.hashCode);
+  }
+
+  static bool _hasTableEntry(var table, var key) {
+    var entry = JS('var', '#[#]', table, key);
+    // We take care to only store non-null entries in the table, so we
+    // can check if the table has an entry for the given key with a
+    // simple null check.
+    return entry != null;
+  }
+
+  static void _setTableEntry(var table, var key, var value) {
+    assert(value != null);
+    JS('void', '#[#] = #', table, key, value);
+  }
+
+  static void _deleteTableEntry(var table, var key) {
+    JS('void', 'delete #[#]', table, key);
+  }
+
+  static List _getBucket(var table, var element) {
+    var hash = _computeHashCode(element);
+    return JS('var', '#[#]', table, hash);
+  }
+
+  static int _findBucketIndex(var bucket, var element) {
+    if (bucket == null) return -1;
+    int length = JS('int', '#.length', bucket);
+    for (int i = 0; i < length; i++) {
+      if (JS('var', '#[#]', bucket, i) == element) return i;
+    }
+    return -1;
+  }
+
+  static _newHashTable() {
+    // Create a new JavaScript object to be used as a hash table. Use
+    // Object.create to avoid the properties on Object.prototype
+    // showing up as entries.
+    var table = JS('var', 'Object.create(null)');
+    // Attempt to force the hash table into 'dictionary' mode by
+    // adding a property to it and deleting it again.
+    var temporaryKey = '<non-identifier-key>';
+    _setTableEntry(table, temporaryKey, table);
+    _deleteTableEntry(table, temporaryKey);
+    return table;
+  }
+}
+
+// TODO(kasperl): Share this code with HashMapKeyIterator<E>?
+class HashSetIterator<E> implements Iterator<E> {
+  final _set;
+  final List _elements;
+  int _offset = 0;
+  E _current;
+
+  HashSetIterator(this._set, this._elements);
+
+  E get current => _current;
+
+  bool moveNext() {
+    var elements = _elements;
+    int offset = _offset;
+    if (JS('bool', '# !== #', elements, _set._elements)) {
+      throw new ConcurrentModificationError(_set);
+    } else if (offset >= JS('int', '#.length', elements)) {
+      _current = null;
+      return false;
+    } else {
+      _current = JS('var', '#[#]', elements, offset);
       // TODO(kasperl): For now, we have to tell the type inferrer to
       // treat the result of doing offset + 1 as an int. Otherwise, we
       // get unnecessary bailout code.

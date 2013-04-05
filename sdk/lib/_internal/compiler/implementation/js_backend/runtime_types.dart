@@ -59,6 +59,7 @@ class RuntimeTypes {
     // (2) dependencies of classes in (1),
     // (3) subclasses of (2) and (3).
     void potentiallyAddForRti(ClassElement cls) {
+      assert(invariant(cls, cls.isDeclaration));
       if (cls.typeVariables.isEmpty) return;
       if (classesNeedingRti.contains(cls)) return;
       classesNeedingRti.add(cls);
