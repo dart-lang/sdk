@@ -167,6 +167,7 @@ bool ClassFinalizer::FinalizePendingClasses() {
   if (FLAG_use_cha) {
     RemoveOptimizedCode(added_subclasses_to_cids);
   }
+  VerifyImplicitFieldOffsets();
   return retval;
 }
 
@@ -1971,6 +1972,60 @@ void ClassFinalizer::ReportError(const char* format, ...) {
       Parser::FormatError(Script::Handle(), -1, "Error", format, args));
   va_end(args);
   ReportError(error);
+}
+
+
+void ClassFinalizer::VerifyImplicitFieldOffsets() {
+#ifdef DEBUG
+  const ClassTable& class_table = *(Isolate::Current()->class_table());
+  Class& cls = Class::Handle();
+  Array& fields_array = Array::Handle();
+  Field& field = Field::Handle();
+  String& name = String::Handle();
+  String& expected_name = String::Handle();
+
+  // First verify field offsets of all the TypedDataView classes.
+  for (intptr_t cid = kTypedDataInt8ArrayViewCid;
+       cid <= kTypedDataFloat32x4ArrayViewCid;
+       cid++) {
+    cls = class_table.At(cid);  // Get the TypedDataView class.
+    cls = cls.SuperClass();  // Get it's super class '_TypedListView'.
+    fields_array ^= cls.fields();
+    ASSERT(fields_array.Length() == TypedDataView::NumberOfFields());
+    field ^= fields_array.At(0);
+    ASSERT(field.Offset() == TypedDataView::data_offset());
+    name ^= field.name();
+    expected_name ^= String::New("_typeddata");
+    ASSERT(String::EqualsIgnoringPrivateKey(name, expected_name));
+    field ^= fields_array.At(1);
+    ASSERT(field.Offset() == TypedDataView::offset_in_bytes_offset());
+    name ^= field.name();
+    ASSERT(name.Equals("offsetInBytes"));
+    field ^= fields_array.At(2);
+    ASSERT(field.Offset() == TypedDataView::length_offset());
+    name ^= field.name();
+    ASSERT(name.Equals("length"));
+  }
+
+  // Now verify field offsets of '_ByteDataView' class.
+  cls = class_table.At(kByteDataViewCid);
+  fields_array ^= cls.fields();
+  ASSERT(fields_array.Length() == TypedDataView::NumberOfFields());
+  field ^= fields_array.At(0);
+  ASSERT(field.Offset() == TypedDataView::data_offset());
+  name ^= field.name();
+  expected_name ^= String::New("_typeddata");
+  ASSERT(String::EqualsIgnoringPrivateKey(name, expected_name));
+  field ^= fields_array.At(1);
+  ASSERT(field.Offset() == TypedDataView::offset_in_bytes_offset());
+  name ^= field.name();
+  expected_name ^= String::New("_offset");
+  ASSERT(String::EqualsIgnoringPrivateKey(name, expected_name));
+  field ^= fields_array.At(2);
+  ASSERT(field.Offset() == TypedDataView::length_offset());
+  name ^= field.name();
+  ASSERT(name.Equals("length"));
+#endif
 }
 
 }  // namespace dart

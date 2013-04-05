@@ -2711,23 +2711,25 @@ DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
     START_NO_CALLBACK_SCOPE(isolate);
     *data = obj.DataAddr(0);
   } else {
-    // typed data view object, set up some GC and API callback guards.
-    // TODO(asiva): Have to come up with a scheme to directly access
-    // the fields using offsets for a more efficient implementation.
-    Dart_Handle field_name = Dart_NewStringFromCString("length");
-    Dart_Handle field_value = Dart_GetField(object, field_name);
-    ASSERT(Api::IsSmi(field_value));
-    *len = Api::SmiValue(field_value);
-    field_name = Dart_NewStringFromCString("offsetInBytes");
-    field_value = Dart_GetField(object, field_name);
-    ASSERT(Api::IsSmi(field_value));
-    intptr_t offset_in_bytes = Api::SmiValue(field_value);
-    field_name = Dart_NewStringFromCString("_typeddata");
-    field_value = Dart_GetField(object, field_name);
-    const TypedData& obj = Api::UnwrapTypedDataHandle(isolate, field_value);
+    ASSERT(RawObject::IsTypedDataViewClassId(class_id));
+    const Instance& view_obj = Api::UnwrapInstanceHandle(isolate, object);
+    ASSERT(!view_obj.IsNull());
+    Smi& val = Smi::Handle();
+    val ^= TypedDataView::Length(view_obj);
+    *len = val.Value();
+    val ^= TypedDataView::OffsetInBytes(view_obj);
+    intptr_t offset_in_bytes = val.Value();
+    const Instance& obj = Instance::Handle(TypedDataView::Data(view_obj));
     isolate->IncrementNoGCScopeDepth();
     START_NO_CALLBACK_SCOPE(isolate);
-    *data = obj.DataAddr(offset_in_bytes);
+    if (TypedData::IsTypedData(obj)) {
+      const TypedData& data_obj = TypedData::Cast(obj);
+      *data = data_obj.DataAddr(offset_in_bytes);
+    } else {
+      ASSERT(ExternalTypedData::IsExternalTypedData(obj));
+      const ExternalTypedData& data_obj = ExternalTypedData::Cast(obj);
+      *data = data_obj.DataAddr(offset_in_bytes);
+    }
   }
   return Api::Success(isolate);
 }
