@@ -23766,6 +23766,23 @@ class TableSectionElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
+@DomName('HTMLTemplateElement')
+class TemplateElement extends _Element_Merged {
+  TemplateElement.internal() : super.internal();
+
+  @DomName('HTMLTemplateElement.content')
+  @DocsEditable
+  DocumentFragment get content native "HTMLTemplateElement_content_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
 @DomName('Text')
 class Text extends CharacterData {
   factory Text(String data) => _TextFactoryProvider.createText(data);

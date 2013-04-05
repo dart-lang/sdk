@@ -21879,6 +21879,19 @@ class TableSectionElement extends Element native "*HTMLTableSectionElement" {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
+@DocsEditable
+@DomName('HTMLTemplateElement')
+class TemplateElement extends Element native "*HTMLTemplateElement" {
+
+  @DomName('HTMLTemplateElement.content')
+  @DocsEditable
+  final DocumentFragment content;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 // WARNING: Do not edit - generated code.
 
 
