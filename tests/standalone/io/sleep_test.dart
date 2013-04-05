@@ -9,7 +9,7 @@ test(int milliseconds) {
   watch.start();
   sleep(new Duration(milliseconds: milliseconds));
   watch.stop();
-  Expect.isTrue(watch.elapsedMilliseconds >= milliseconds);
+  Expect.isTrue(watch.elapsedMilliseconds + 1 >= milliseconds);
 }
 
 main() {
