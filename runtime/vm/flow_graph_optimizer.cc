@@ -21,6 +21,9 @@ namespace dart {
 
 DEFINE_FLAG(bool, array_bounds_check_elimination, true,
     "Eliminate redundant bounds checks.");
+// TODO(srdjan): Enable/remove flag once it works.
+DEFINE_FLAG(bool, inline_getter_with_guarded_cid, false,
+    "Inline implict getter using guarded cid");
 DEFINE_FLAG(bool, load_cse, true, "Use redundant load elimination.");
 DEFINE_FLAG(int, max_polymorphic_checks, 4,
     "Maximum number of polymorphic check, otherwise it is megamorphic.");
@@ -1196,12 +1199,10 @@ void FlowGraphOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
       AbstractType::ZoneHandle(field.type()),
       field.is_final());
   if (field.guarded_cid() != kIllegalCid) {
-    Field* the_field = &Field::ZoneHandle(field.raw());
     if (!field.is_nullable() || (field.guarded_cid() == kNullCid)) {
       load->set_result_cid(field.guarded_cid());
-      guarded_fields_->Add(the_field);
     }
-    load->set_field(the_field);
+    load->set_field(&Field::ZoneHandle(field.raw()));
   }
   load->set_field_name(String::Handle(field.name()).ToCString());
 
@@ -1210,12 +1211,14 @@ void FlowGraphOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
   call->RemoveEnvironment();
   ReplaceCall(call, load);
 
-  if (load->result_cid() != kDynamicCid) {
-    // Reset value types if guarded_cid was used.
-    for (Value::Iterator it(load->input_use_list());
-         !it.Done();
-         it.Advance()) {
-      it.Current()->SetReachingType(NULL);
+  if (FLAG_inline_getter_with_guarded_cid) {
+    if (load->result_cid() != kDynamicCid) {
+      // Reset value types if guarded_cid was used.
+      for (Value::Iterator it(load->input_use_list());
+           !it.Done();
+           it.Advance()) {
+        it.Current()->SetReachingType(NULL);
+      }
     }
   }
 }

@@ -167,16 +167,14 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
       FlowGraphPrinter::PrintGraph("Before Optimizations", flow_graph);
     }
 
-    // Collect all instance fields that are loaded in the graph and
-    // have non-generic type feedback attached to them that can
-    // potentially affect optimizations.
-    GrowableArray<Field*> guarded_fields(10);
+    const ZoneGrowableArray<Field*>* guarded_fields = NULL;
+
     if (optimized) {
       TimerScope timer(FLAG_compiler_stats,
                        &CompilerStats::graphoptimizer_timer,
                        isolate);
 
-      FlowGraphOptimizer optimizer(flow_graph, &guarded_fields);
+      FlowGraphOptimizer optimizer(flow_graph);
       optimizer.ApplyICData();
       DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
@@ -191,11 +189,13 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
       if (FLAG_use_inlining) {
         TimerScope timer(FLAG_compiler_stats,
                          &CompilerStats::graphinliner_timer);
-        FlowGraphInliner inliner(flow_graph, &guarded_fields);
+        FlowGraphInliner inliner(flow_graph);
         inliner.Inline();
         // Use lists are maintained and validated by the inliner.
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
       }
+
+      guarded_fields = flow_graph->FieldDependencies();
 
       // Propagate types and eliminate more type tests.
       if (FLAG_propagate_types) {
@@ -325,8 +325,8 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
                     Code::Handle(function.unoptimized_code()).EntryPoint());
         }
 
-        for (intptr_t i = 0; i < guarded_fields.length(); i++) {
-          const Field& field = *guarded_fields[i];
+        for (intptr_t i = 0; i < guarded_fields->length(); i++) {
+          const Field& field = *(*guarded_fields)[i];
           field.RegisterDependentCode(code);
         }
       } else {
