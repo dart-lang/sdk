@@ -292,7 +292,7 @@ class CallSites : public FlowGraphVisitor {
 
 class CallSiteInliner : public ValueObject {
  public:
-  explicit CallSiteInliner(FlowGraph* flow_graph)
+  CallSiteInliner(FlowGraph* flow_graph, GrowableArray<Field*>* guarded_fields)
       : caller_graph_(flow_graph),
         inlined_(false),
         initial_size_(flow_graph->InstructionCount()),
@@ -300,7 +300,8 @@ class CallSiteInliner : public ValueObject {
         inlining_depth_(1),
         collected_call_sites_(NULL),
         inlining_call_sites_(NULL),
-        function_cache_() { }
+        function_cache_(),
+        guarded_fields_(guarded_fields) { }
 
   // Inlining heuristics based on Cooper et al. 2008.
   bool ShouldWeInline(intptr_t instr_count,
@@ -501,7 +502,7 @@ class CallSiteInliner : public ValueObject {
                          &CompilerStats::graphinliner_opt_timer,
                          isolate);
         // TODO(zerny): Do more optimization passes on the callee graph.
-        FlowGraphOptimizer optimizer(callee_graph);
+        FlowGraphOptimizer optimizer(callee_graph, guarded_fields_);
         optimizer.ApplyICData();
         DEBUG_ASSERT(callee_graph->VerifyUseLists());
       }
@@ -834,6 +835,7 @@ class CallSiteInliner : public ValueObject {
   CallSites* collected_call_sites_;
   CallSites* inlining_call_sites_;
   GrowableArray<ParsedFunction*> function_cache_;
+  GrowableArray<Field*>* guarded_fields_;
 
   DISALLOW_COPY_AND_ASSIGN(CallSiteInliner);
 };
@@ -874,7 +876,7 @@ void FlowGraphInliner::Inline() {
     printer.PrintBlocks();
   }
 
-  CallSiteInliner inliner(flow_graph_);
+  CallSiteInliner inliner(flow_graph_, guarded_fields_);
   inliner.InlineCalls();
 
   if (inliner.inlined()) {

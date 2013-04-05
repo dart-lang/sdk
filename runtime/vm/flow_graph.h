@@ -141,11 +141,6 @@ class FlowGraph : public ZoneAllocated {
   bool VerifyUseLists();
 #endif  // DEBUG
 
-  // Return all instance fields that are loaded in the graph and
-  // have non-generic type feedback attached to them that can
-  // potentially affect optimizations.
-  const ZoneGrowableArray<Field*>* FieldDependencies() const;
-
  private:
   friend class BranchSimplifier;
   friend class ConstantPropagator;
