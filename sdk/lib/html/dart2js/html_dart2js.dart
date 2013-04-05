@@ -7496,6 +7496,13 @@ class DomMimeTypeArray implements JavaScriptIndexingBehavior, List<DomMimeType> 
   Map<int, DomMimeType> asMap() =>
     IterableMixinWorkaround.asMapList(this);
 
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
+
   // -- end List<DomMimeType> mixins.
 
   @DomName('DOMMimeTypeArray.item')
@@ -7763,6 +7770,13 @@ class DomPluginArray implements JavaScriptIndexingBehavior, List<DomPlugin> nati
 
   Map<int, DomPlugin> asMap() =>
     IterableMixinWorkaround.asMapList(this);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
 
   // -- end List<DomPlugin> mixins.
 
@@ -8139,6 +8153,13 @@ class DomStringList implements JavaScriptIndexingBehavior, List<String> native "
   Map<int, String> asMap() =>
     IterableMixinWorkaround.asMapList(this);
 
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
+
   // -- end List<String> mixins.
 
   @DomName('DOMStringList.contains')
@@ -8469,6 +8490,13 @@ class _ChildrenElementList implements List {
   Map<int, Element> asMap() {
     return IterableMixinWorkaround.asMapList(this);
   }
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
 }
 
 // TODO(jacobr): this is an inefficient implementation but it is hard to see
@@ -8678,6 +8706,13 @@ class _FrozenElementList implements List {
 
   Map<int, Element> asMap() {
     return IterableMixinWorkaround.asMapList(this);
+  }
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
   }
 }
 
@@ -9159,6 +9194,12 @@ abstract class Element extends Node implements ElementTraversal native "*Element
     }
     throw new UnsupportedError("Not supported on this platform");
   }
+
+  /** 
+   * Print out a String representation of this Element. By default, this is
+   * this Element's tagName.
+   */
+  String toString() => this.tagName;
 
 
   @DomName('Element.abortEvent')
@@ -11102,6 +11143,13 @@ class FileList implements JavaScriptIndexingBehavior, List<File> native "*FileLi
   Map<int, File> asMap() =>
     IterableMixinWorkaround.asMapList(this);
 
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
+
   // -- end List<File> mixins.
 
   @DomName('FileList.item')
@@ -11675,6 +11723,13 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
   Map<int, num> asMap() =>
     IterableMixinWorkaround.asMapList(this);
 
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
+
   // -- end List<num> mixins.
 
   @JSName('set')
@@ -11906,6 +11961,13 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 
   Map<int, num> asMap() =>
     IterableMixinWorkaround.asMapList(this);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
 
   // -- end List<num> mixins.
 
@@ -12559,6 +12621,13 @@ class HtmlAllCollection implements JavaScriptIndexingBehavior, List<Node> native
   Map<int, Node> asMap() =>
     IterableMixinWorkaround.asMapList(this);
 
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
+
   // -- end List<Node> mixins.
 
   @DomName('HTMLAllCollection.item')
@@ -12779,6 +12848,13 @@ class HtmlCollection implements JavaScriptIndexingBehavior, List<Node> native "*
 
   Map<int, Node> asMap() =>
     IterableMixinWorkaround.asMapList(this);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
 
   // -- end List<Node> mixins.
 
@@ -14824,6 +14900,13 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   Map<int, int> asMap() =>
     IterableMixinWorkaround.asMapList(this);
 
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
+
   // -- end List<int> mixins.
 
   @JSName('set')
@@ -15056,6 +15139,13 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   Map<int, int> asMap() =>
     IterableMixinWorkaround.asMapList(this);
 
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
+
   // -- end List<int> mixins.
 
   @JSName('set')
@@ -15287,6 +15377,13 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
 
   Map<int, int> asMap() =>
     IterableMixinWorkaround.asMapList(this);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
 
   // -- end List<int> mixins.
 
@@ -17801,6 +17898,12 @@ class _ChildNodeListLazy implements List {
   List<Node> getRange(int start, int rangeLength) =>
       sublist(start, start + rangeLength);
 
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
   // -- end List<Node> mixins.
 
   // TODO(jacobr): benchmark whether this is more efficient or whether caching
@@ -18372,6 +18475,13 @@ class NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeLi
 
   Map<int, Node> asMap() =>
     IterableMixinWorkaround.asMapList(this);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
 
   // -- end List<Node> mixins.
 
@@ -20697,6 +20807,13 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
   Map<int, SourceBuffer> asMap() =>
     IterableMixinWorkaround.asMapList(this);
 
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
+
   // -- end List<SourceBuffer> mixins.
 
   @JSName('addEventListener')
@@ -20990,6 +21107,13 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
 
   Map<int, SpeechGrammar> asMap() =>
     IterableMixinWorkaround.asMapList(this);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
 
   // -- end List<SpeechGrammar> mixins.
 
@@ -22448,6 +22572,13 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
   Map<int, TextTrackCue> asMap() =>
     IterableMixinWorkaround.asMapList(this);
 
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
+
   // -- end List<TextTrackCue> mixins.
 
   @DomName('TextTrackCueList.getCueById')
@@ -22666,6 +22797,13 @@ class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, L
 
   Map<int, TextTrack> asMap() =>
     IterableMixinWorkaround.asMapList(this);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
 
   // -- end List<TextTrack> mixins.
 
@@ -23111,6 +23249,13 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
 
   Map<int, Touch> asMap() =>
     IterableMixinWorkaround.asMapList(this);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
 
   // -- end List<Touch> mixins.
 
@@ -23594,6 +23739,13 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
   Map<int, int> asMap() =>
     IterableMixinWorkaround.asMapList(this);
 
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
+
   // -- end List<int> mixins.
 
   @JSName('set')
@@ -23825,6 +23977,13 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
 
   Map<int, int> asMap() =>
     IterableMixinWorkaround.asMapList(this);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
 
   // -- end List<int> mixins.
 
@@ -24058,6 +24217,13 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
   Map<int, int> asMap() =>
     IterableMixinWorkaround.asMapList(this);
 
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
+
   // -- end List<int> mixins.
 
   @JSName('set')
@@ -24286,6 +24452,13 @@ class Uint8ClampedArray extends Uint8Array implements JavaScriptIndexingBehavior
 
   Map<int, int> asMap() =>
     IterableMixinWorkaround.asMapList(this);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
 
   // -- end List<int> mixins.
 
@@ -26887,6 +27060,13 @@ class _ClientRectList implements JavaScriptIndexingBehavior, List<Rect> native "
   Map<int, Rect> asMap() =>
     IterableMixinWorkaround.asMapList(this);
 
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
+
   // -- end List<Rect> mixins.
 
   @DomName('ClientRectList.item')
@@ -27097,6 +27277,13 @@ class _CssRuleList implements JavaScriptIndexingBehavior, List<CssRule> native "
 
   Map<int, CssRule> asMap() =>
     IterableMixinWorkaround.asMapList(this);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
 
   // -- end List<CssRule> mixins.
 
@@ -27309,6 +27496,13 @@ class _CssValueList extends CssValue implements List<CssValue>, JavaScriptIndexi
   Map<int, CssValue> asMap() =>
     IterableMixinWorkaround.asMapList(this);
 
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
+
   // -- end List<CssValue> mixins.
 
   @DomName('CSSValueList.item')
@@ -27519,6 +27713,13 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*En
 
   Map<int, Entry> asMap() =>
     IterableMixinWorkaround.asMapList(this);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
 
   // -- end List<Entry> mixins.
 
@@ -27731,6 +27932,13 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> nat
   Map<int, EntrySync> asMap() =>
     IterableMixinWorkaround.asMapList(this);
 
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
+
   // -- end List<EntrySync> mixins.
 
   @DomName('EntryArraySync.item')
@@ -27941,6 +28149,13 @@ class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "
 
   Map<int, Gamepad> asMap() =>
     IterableMixinWorkaround.asMapList(this);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
 
   // -- end List<Gamepad> mixins.
 
@@ -28216,6 +28431,13 @@ class _NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*N
   Map<int, Node> asMap() =>
     IterableMixinWorkaround.asMapList(this);
 
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
+
   // -- end List<Node> mixins.
 
   @DomName('NamedNodeMap.getNamedItem')
@@ -28451,6 +28673,13 @@ class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechI
   Map<int, SpeechInputResult> asMap() =>
     IterableMixinWorkaround.asMapList(this);
 
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
+
   // -- end List<SpeechInputResult> mixins.
 
   @DomName('SpeechInputResultList.item')
@@ -28662,6 +28891,13 @@ class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<S
   Map<int, SpeechRecognitionResult> asMap() =>
     IterableMixinWorkaround.asMapList(this);
 
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
+
   // -- end List<SpeechRecognitionResult> mixins.
 
   @DomName('SpeechRecognitionResultList.item')
@@ -28872,6 +29108,13 @@ class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> na
 
   Map<int, StyleSheet> asMap() =>
     IterableMixinWorkaround.asMapList(this);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
 
   // -- end List<StyleSheet> mixins.
 
@@ -31930,6 +32173,13 @@ class _WrappedList<E> implements List<E> {
   }
 
   Map<int, E> asMap() => IterableMixinWorkaround.asMapList(_list);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
 }
 
 /**

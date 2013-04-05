@@ -616,6 +616,13 @@ main() {
   });
 
   group('functional', () {
+    test('toString', () {
+      final elems = makeElementWithChildren().children;
+      expect(elems.toString(), "[BR, IMG, INPUT]");
+      final elem = makeElement().children;
+      expect(elem.toString(), '[]');
+    });
+
     test('scrollIntoView', () {
       var child = new DivElement();
       document.body.append(child);

@@ -282,6 +282,13 @@ class _ChildrenElementList implements List {
   Map<int, Element> asMap() {
     return IterableMixinWorkaround.asMapList(this);
   }
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
 }
 
 // TODO(jacobr): this is an inefficient implementation but it is hard to see
@@ -491,6 +498,13 @@ class _FrozenElementList implements List {
 
   Map<int, Element> asMap() {
     return IterableMixinWorkaround.asMapList(this);
+  }
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
   }
 }
 
@@ -978,6 +992,12 @@ $if DART2JS
   }
 $else
 $endif
+
+  /** 
+   * Print out a String representation of this Element. By default, this is
+   * this Element's tagName.
+   */
+  String toString() => this.tagName;
 
 $!MEMBERS
 }

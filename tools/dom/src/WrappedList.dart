@@ -131,6 +131,13 @@ class _WrappedList<E> implements List<E> {
   }
 
   Map<int, E> asMap() => IterableMixinWorkaround.asMapList(_list);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
 }
 
 /**

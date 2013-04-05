@@ -252,6 +252,12 @@ $endif
   List<Node> getRange(int start, int rangeLength) =>
       sublist(start, start + rangeLength);
 
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
   // -- end List<Node> mixins.
 
   // TODO(jacobr): benchmark whether this is more efficient or whether caching

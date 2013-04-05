@@ -3242,6 +3242,13 @@ class LengthList implements JavaScriptIndexingBehavior, List<Length> native "*SV
   Map<int, Length> asMap() =>
     IterableMixinWorkaround.asMapList(this);
 
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
+
   // -- end List<Length> mixins.
 
   @DomName('SVGLengthList.appendItem')
@@ -3879,6 +3886,13 @@ class NumberList implements JavaScriptIndexingBehavior, List<Number> native "*SV
 
   Map<int, Number> asMap() =>
     IterableMixinWorkaround.asMapList(this);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
 
   // -- end List<Number> mixins.
 
@@ -4794,6 +4808,13 @@ class PathSegList implements JavaScriptIndexingBehavior, List<PathSeg> native "*
   Map<int, PathSeg> asMap() =>
     IterableMixinWorkaround.asMapList(this);
 
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
+
   // -- end List<PathSeg> mixins.
 
   @DomName('SVGPathSegList.appendItem')
@@ -5692,6 +5713,13 @@ class StringList implements JavaScriptIndexingBehavior, List<String> native "*SV
 
   Map<int, String> asMap() =>
     IterableMixinWorkaround.asMapList(this);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
 
   // -- end List<String> mixins.
 
@@ -6869,6 +6897,13 @@ class TransformList implements List<Transform>, JavaScriptIndexingBehavior nativ
   Map<int, Transform> asMap() =>
     IterableMixinWorkaround.asMapList(this);
 
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
+
   // -- end List<Transform> mixins.
 
   @DomName('SVGTransformList.appendItem')
@@ -7401,6 +7436,13 @@ class _ElementInstanceList implements JavaScriptIndexingBehavior, List<ElementIn
 
   Map<int, ElementInstance> asMap() =>
     IterableMixinWorkaround.asMapList(this);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
 
   // -- end List<ElementInstance> mixins.
 

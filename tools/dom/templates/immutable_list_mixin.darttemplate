@@ -199,4 +199,11 @@ $endif
   Map<int, $E> asMap() =>
     IterableMixinWorkaround.asMapList(this);
 
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
+
   // -- end List<$E> mixins.

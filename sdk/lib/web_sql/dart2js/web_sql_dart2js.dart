@@ -438,6 +438,13 @@ class SqlResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
   Map<int, Map> asMap() =>
     IterableMixinWorkaround.asMapList(this);
 
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
+
   // -- end List<Map> mixins.
 
   @DomName('SQLResultSetRowList.item')

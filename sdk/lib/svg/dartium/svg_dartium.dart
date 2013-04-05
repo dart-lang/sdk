@@ -3505,6 +3505,13 @@ class LengthList extends NativeFieldWrapperClass1 implements List<Length> {
   Map<int, Length> asMap() =>
     IterableMixinWorkaround.asMapList(this);
 
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
+
   // -- end List<Length> mixins.
 
   @DomName('SVGLengthList.appendItem')
@@ -4219,6 +4226,13 @@ class NumberList extends NativeFieldWrapperClass1 implements List<Number> {
 
   Map<int, Number> asMap() =>
     IterableMixinWorkaround.asMapList(this);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
 
   // -- end List<Number> mixins.
 
@@ -5411,6 +5425,13 @@ class PathSegList extends NativeFieldWrapperClass1 implements List<PathSeg> {
   Map<int, PathSeg> asMap() =>
     IterableMixinWorkaround.asMapList(this);
 
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
+
   // -- end List<PathSeg> mixins.
 
   @DomName('SVGPathSegList.appendItem')
@@ -6406,6 +6427,13 @@ class StringList extends NativeFieldWrapperClass1 implements List<String> {
 
   Map<int, String> asMap() =>
     IterableMixinWorkaround.asMapList(this);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
 
   // -- end List<String> mixins.
 
@@ -7672,6 +7700,13 @@ class TransformList extends NativeFieldWrapperClass1 implements List<Transform> 
   Map<int, Transform> asMap() =>
     IterableMixinWorkaround.asMapList(this);
 
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
+
   // -- end List<Transform> mixins.
 
   @DomName('SVGTransformList.appendItem')
@@ -8258,6 +8293,13 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 implements List<Elem
 
   Map<int, ElementInstance> asMap() =>
     IterableMixinWorkaround.asMapList(this);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
 
   // -- end List<ElementInstance> mixins.
 

@@ -460,6 +460,13 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
   Map<int, Map> asMap() =>
     IterableMixinWorkaround.asMapList(this);
 
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
+
   // -- end List<Map> mixins.
 
   @DomName('SQLResultSetRowList.item')
