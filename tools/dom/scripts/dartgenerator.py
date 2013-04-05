@@ -47,6 +47,9 @@ class DartGenerator(object):
     if database.HasInterface(stripped_type_name):
       return True
 
+    if database.HasEnum(stripped_type_name):
+      return True
+
     dart_template_match = self._dart_templates_re.match(type_name)
     if dart_template_match:
       # Dart templates

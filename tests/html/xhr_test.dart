@@ -142,8 +142,6 @@ main() {
         }));
     });
 
-    // TODO(antonm): enable again.
-    if (false)
     test('XHR.request responseType arraybuffer', () {
       if (ArrayBuffer.supported) {
         HttpRequest.request(url, responseType: 'arraybuffer').then(
@@ -166,20 +164,17 @@ main() {
     });
   });
 
-  // TODO(antonm): enable again.
-  /*
-   *groupXX('xhr_requestBlob', () {
-   *  testXX('XHR.request responseType blob', () {
-   *    if (ArrayBuffer.supported) {
-   *      return HttpRequest.request(url, responseType: 'blob').then(
-   *        (xhr) {
-   *          expect(xhr.status, equals(200));
-   *          var blob = xhr.response;
-   *          expect(blob is Blob, isTrue);
-   *          expect(blob, isNotNull);
-   *        });
-   *    }
-   *  });
-   *});
-   */
+  group('xhr_requestBlob', () {
+    test('XHR.request responseType blob', () {
+      if (ArrayBuffer.supported) {
+        return HttpRequest.request(url, responseType: 'blob').then(
+          (xhr) {
+            expect(xhr.status, equals(200));
+            var blob = xhr.response;
+            expect(blob is Blob, isTrue);
+            expect(blob, isNotNull);
+          });
+      }
+    });
+  });
 }

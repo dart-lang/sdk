@@ -459,6 +459,9 @@ class DatabaseBuilder(object):
     for implStmt in idl_file.implementsStatements:
       self._impl_stmts.append((implStmt, import_options))
 
+    for enum in idl_file.enums:
+      self._database.AddEnum(enum)
+
 
   def _is_node_enabled(self, node, idl_defines):
     if not 'Conditional' in node.ext_attrs:

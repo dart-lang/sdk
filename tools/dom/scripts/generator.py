@@ -1544,6 +1544,11 @@ class TypeRegistry(object):
       return SequenceIDLTypeInfo(type_name, TypeData('Sequence'), item_info)
 
     if not type_name in _idl_type_registry:
+      if self._database.HasEnum(type_name):
+        return PrimitiveIDLTypeInfo(
+            type_name,
+            TypeData(clazz='Primitive', dart_type='String', native_type='String'))
+
       interface = self._database.GetInterface(type_name)
       if 'Callback' in interface.ext_attrs:
         return CallbackIDLTypeInfo(type_name, TypeData('Callback',

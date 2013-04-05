@@ -259,6 +259,7 @@ class IDLFile(IDLNode):
     self.implementsStatements = self._convert_all(ast, 'ImplStmt',
       IDLImplementsStatement)
     self.typeDefs = self._convert_all(ast, 'TypeDef', IDLTypeDef)
+    self.enums = self._convert_all(ast, 'Enum', IDLEnum)
     for module in modules:
       self.interfaces.extend(module.interfaces)
       self.implementsStatements.extend(module.implementsStatements)
@@ -274,6 +275,7 @@ class IDLModule(IDLNode):
     self._convert_annotations(ast)
     self.interfaces = self._convert_all(ast, 'Interface', IDLInterface)
     self.typeDefs = self._convert_all(ast, 'TypeDef', IDLTypeDef)
+    self.enums = self._convert_all(ast, 'Enum', IDLNode)
     self.implementsStatements = self._convert_all(ast, 'ImplStmt',
       IDLImplementsStatement)
 
@@ -376,6 +378,14 @@ class IDLType(IDLNode):
     if self._has(ast, 'Unsigned'):
       label = 'unsigned %s' % label
     return label
+
+
+class IDLEnum(IDLNode):
+  """IDLNode for 'enum [id] { [string]+ }'"""
+  def __init__(self, ast):
+    IDLNode.__init__(self, ast)
+    self._convert_annotations(ast)
+    # TODO(antonm): save enum values.
 
 
 class IDLTypeDef(IDLNode):
