@@ -4,4 +4,4 @@
 
 part of html;
 
-typedef void EventListener(Event event);
+typedef EventListener(Event event);

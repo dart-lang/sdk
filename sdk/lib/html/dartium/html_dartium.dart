@@ -829,10 +829,6 @@ class Blob extends NativeFieldWrapperClass1 {
 class BodyElement extends _Element_Merged {
   BodyElement.internal() : super.internal();
 
-  @DomName('HTMLBodyElement.beforeunloadEvent')
-  @DocsEditable
-  static const EventStreamProvider<Event> beforeUnloadEvent = const EventStreamProvider<Event>('beforeunload');
-
   @DomName('HTMLBodyElement.blurEvent')
   @DocsEditable
   static const EventStreamProvider<Event> blurEvent = const EventStreamProvider<Event>('blur');
@@ -884,10 +880,6 @@ class BodyElement extends _Element_Merged {
   @DomName('HTMLBodyElement.HTMLBodyElement')
   @DocsEditable
   factory BodyElement() => document.$dom_createElement("body");
-
-  @DomName('HTMLBodyElement.onbeforeunload')
-  @DocsEditable
-  Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
 
   @DomName('HTMLBodyElement.onblur')
   @DocsEditable
@@ -11077,14 +11069,6 @@ class Event extends NativeFieldWrapperClass1 {
   @DomName('Event.eventPhase')
   @DocsEditable
   int get eventPhase native "Event_eventPhase_Getter";
-
-  @DomName('Event.returnValue')
-  @DocsEditable
-  bool get returnValue native "Event_returnValue_Getter";
-
-  @DomName('Event.returnValue')
-  @DocsEditable
-  void set returnValue(bool value) native "Event_returnValue_Setter";
 
   @DomName('Event.target')
   @DocsEditable
@@ -27151,7 +27135,7 @@ class Window extends EventTarget implements WindowBase {
    * lasting storage. This storage cannot be freed without the user's
    * permission. Returns a [Future] whose value stores a reference to the
    * sandboxed file system for use. Because the file system is sandboxed,
-   * applications cannot access file systems created in other web pages. 
+   * applications cannot access file systems created in other web pages.
    */
   Future<FileSystem> requestFileSystem(int size, {bool persistent: false}) {
     return _requestFileSystem(persistent? 1 : 0, size);
@@ -27161,10 +27145,6 @@ class Window extends EventTarget implements WindowBase {
   @DomName('DOMWindow.DOMContentLoadedEvent')
   @DocsEditable
   static const EventStreamProvider<Event> contentLoadedEvent = const EventStreamProvider<Event>('DOMContentLoaded');
-
-  @DomName('DOMWindow.beforeunloadEvent')
-  @DocsEditable
-  static const EventStreamProvider<Event> beforeUnloadEvent = const EventStreamProvider<Event>('beforeunload');
 
   @DomName('DOMWindow.devicemotionEvent')
   @DocsEditable
@@ -27649,10 +27629,6 @@ class Window extends EventTarget implements WindowBase {
   @DocsEditable
   Stream<Event> get onAbort => Element.abortEvent.forTarget(this);
 
-  @DomName('DOMWindow.onbeforeunload')
-  @DocsEditable
-  Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
-
   @DomName('DOMWindow.onblur')
   @DocsEditable
   Stream<Event> get onBlur => Element.blurEvent.forTarget(this);
@@ -27857,6 +27833,65 @@ class Window extends EventTarget implements WindowBase {
   @DocsEditable
   Stream<TransitionEvent> get onTransitionEnd => Element.transitionEndEvent.forTarget(this);
 
+
+  @DomName('DOMWindow.beforeunloadEvent')
+  @DocsEditable
+  static const EventStreamProvider<BeforeUnloadEvent> beforeUnloadEvent =
+      const _BeforeUnloadEventStreamProvider('beforeunload');
+
+  @DomName('DOMWindow.onbeforeunload')
+  @DocsEditable
+  Stream<Event> get onBeforeUnload => beforeUnloadEvent.forTarget(this);
+}
+
+/**
+ * Event object that is fired before the window is closed.
+ *
+ * The standard window close behavior can be prevented by setting the
+ * [returnValue]. This will display a dialog to the user confirming that they
+ * want to close the page.
+ */
+abstract class BeforeUnloadEvent implements Event {
+  /**
+   * If set to a non-null value, a dialog will be presented to the user
+   * confirming that they want to close the page.
+   */
+  String returnValue;
+}
+
+class _BeforeUnloadEvent extends _WrappedEvent implements BeforeUnloadEvent {
+  String _returnValue;
+
+  _BeforeUnloadEvent(Event base): super(base);
+
+  String get returnValue => _returnValue;
+
+  void set returnValue(String value) {
+    _returnValue = value;
+  }
+}
+
+class _BeforeUnloadEventStreamProvider implements
+    EventStreamProvider<BeforeUnloadEvent> {
+  final String _eventType;
+
+  const _BeforeUnloadEventStreamProvider(this._eventType);
+
+  Stream<BeforeUnloadEvent> forTarget(EventTarget e, {bool useCapture: false}) {
+    var controller = new StreamController.broadcast();
+    var stream = new _EventStream(e, _eventType, useCapture);
+    stream.listen((event) {
+      var wrapped = new _BeforeUnloadEvent(event);
+      controller.add(wrapped);
+      return wrapped.returnValue;
+    });
+
+    return controller.stream;
+  }
+
+  String getEventType(EventTarget target) {
+    return _eventType;
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31604,7 +31639,7 @@ abstract class CssClassSet implements Set<String> {
 // BSD-style license that can be found in the LICENSE file.
 
 
-typedef void EventListener(Event event);
+typedef EventListener(Event event);
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -33260,6 +33295,59 @@ class Rect {
 
 
 /**
+ * Helper class to implement custom events which wrap DOM events.
+ */
+class _WrappedEvent implements Event {
+  final Event wrapped;
+  _WrappedEvent(this.wrapped);
+
+  bool get bubbles => wrapped.bubbles;
+
+  bool get cancelBubble => wrapped.bubbles;
+  void set cancelBubble(bool value) {
+    wrapped.cancelBubble = value;
+  }
+
+  bool get cancelable => wrapped.cancelable;
+
+  DataTransfer get clipboardData => wrapped.clipboardData;
+
+  EventTarget get currentTarget => wrapped.currentTarget;
+
+  bool get defaultPrevented => wrapped.defaultPrevented;
+
+  int get eventPhase => wrapped.eventPhase;
+
+  EventTarget get target => wrapped.target;
+
+  int get timeStamp => wrapped.timeStamp;
+
+  String get type => wrapped.type;
+
+  void $dom_initEvent(String eventTypeArg, bool canBubbleArg,
+      bool cancelableArg) {
+    throw new UnsupportedError(
+        'Cannot initialize this Event.');
+  }
+
+  void preventDefault() {
+    wrapped.preventDefault();
+  }
+
+  void stopImmediatePropagation() {
+    wrapped.stopImmediatePropagation();
+  }
+
+  void stopPropagation() {
+    wrapped.stopPropagation();
+  }
+}
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/**
  * A list which just wraps another list, for either intercepting list calls or
  * retyping the list (for example, from List<A> to List<B> where B extends A).
  */
@@ -33492,7 +33580,7 @@ class _DocumentFragmentFactoryProvider {
  * on how we can make this class work with as many international keyboards as
  * possible. Bugs welcome!
  */
-class KeyEvent implements KeyboardEvent {
+class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   /** The parent KeyboardEvent that this KeyEvent is wrapping and "fixing". */
   KeyboardEvent _parent;
 
@@ -33527,7 +33615,7 @@ class KeyEvent implements KeyboardEvent {
   bool get _realAltKey => _parent.altKey;
 
   /** Construct a KeyEvent with [parent] as the event we're emulating. */
-  KeyEvent(KeyboardEvent parent) {
+  KeyEvent(KeyboardEvent parent): super(parent) {
     _parent = parent;
     _shadowAltKey = _realAltKey;
     _shadowCharCode = _realCharCode;
@@ -33546,22 +33634,9 @@ class KeyEvent implements KeyboardEvent {
 
   /** True if the altGraphKey is pressed during this event. */
   bool get altGraphKey => _parent.altGraphKey;
-  bool get bubbles => _parent.bubbles;
-  /** True if this event can be cancelled. */
-  bool get cancelable => _parent.cancelable;
-  bool get cancelBubble => _parent.cancelBubble;
-  void set cancelBubble(bool cancel) {
-    _parent.cancelBubble = cancel;
-  }
-  /** Accessor to the clipboardData available for this event. */
-  DataTransfer get clipboardData => _parent.clipboardData;
   /** True if the ctrl key is pressed during this event. */
   bool get ctrlKey => _parent.ctrlKey;
-  /** Accessor to the target this event is listening to for changes. */
-  EventTarget get currentTarget => _parent.currentTarget;
-  bool get defaultPrevented => _parent.defaultPrevented;
   int get detail => _parent.detail;
-  int get eventPhase => _parent.eventPhase;
   /**
    * Accessor to the part of the keyboard that the key was pressed from (one of
    * KeyLocation.STANDARD, KeyLocation.RIGHT, KeyLocation.LEFT,
@@ -33572,35 +33647,17 @@ class KeyEvent implements KeyboardEvent {
   /** True if the Meta (or Mac command) key is pressed during this event. */
   bool get metaKey => _parent.metaKey;
   Point get page => _parent.page;
-  bool get returnValue => _parent.returnValue;
-  void set returnValue(bool value) {
-    _parent.returnValue = value;
-  }
   /** True if the shift key was pressed during this event. */
   bool get shiftKey => _parent.shiftKey;
-  int get timeStamp => _parent.timeStamp;
-  /**
-   * The type of key event that occurred. One of "keydown", "keyup", or
-   * "keypress".
-   */
-  String get type => _parent.type;
   Window get view => _parent.view;
-  void preventDefault() => _parent.preventDefault();
-  void stopImmediatePropagation() => _parent.stopImmediatePropagation();
-  void stopPropagation() => _parent.stopPropagation();
   void $dom_initUIEvent(String type, bool canBubble, bool cancelable,
       Window view, int detail) {
     throw new UnsupportedError("Cannot initialize a UI Event from a KeyEvent.");
-  }
-  void $dom_initEvent(String eventTypeArg, bool canBubbleArg,
-      bool cancelableArg) {
-    throw new UnsupportedError("Cannot initialize an Event from a KeyEvent.");
   }
   String get _shadowKeyIdentifier => _parent.$dom_keyIdentifier;
 
   int get $dom_charCode => charCode;
   int get $dom_keyCode => keyCode;
-  EventTarget get target => _parent.target;
   String get $dom_keyIdentifier {
     throw new UnsupportedError("keyIdentifier is unsupported.");
   }
