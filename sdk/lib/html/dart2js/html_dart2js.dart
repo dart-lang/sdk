@@ -24671,6 +24671,13 @@ class WheelEvent extends MouseEvent native "*WheelEvent" {
       eventType = 'MouseScrollEvents';
     }
     final event = document.$dom_createEvent(eventType);
+    // If polyfilling, then flip these because we'll flip them back to match
+    // the W3C standard:
+    // http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-WheelEvent-deltaY
+    if (JS('bool', '#.deltaY === undefined', event)) {
+      deltaX = -deltaX;
+      deltaY = -deltaY;
+    }
     if (event._hasInitWheelEvent) {
       var modifiers = [];
       if (ctrlKey) {
@@ -24740,6 +24747,14 @@ class WheelEvent extends MouseEvent native "*WheelEvent" {
   void $dom_initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native;
 
 
+  /**
+   * The amount that is expected to scroll vertically, in units determined by
+   * [deltaMode].
+   *
+   * See also:
+   *
+   * * [WheelEvent.deltaY](http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-WheelEvent-deltaY) from the W3C.
+   */
   @DomName('WheelEvent.deltaY')
   num get deltaY {
     if (JS('bool', '#.deltaY !== undefined', this)) {
@@ -24747,7 +24762,7 @@ class WheelEvent extends MouseEvent native "*WheelEvent" {
       return this._deltaY;
     } else if (JS('bool', '#.wheelDelta !== undefined', this)) {
       // Chrome and IE
-      return this._wheelDelta;
+      return -this._wheelDelta;
     } else if (JS('bool', '#.detail !== undefined', this)) {
       // Firefox
 
@@ -24757,10 +24772,10 @@ class WheelEvent extends MouseEvent native "*WheelEvent" {
         var detail = this._detail;
         // Firefox is normally the number of lines to scale (normally 3)
         // so multiply it by 40 to get pixels to move, matching IE & WebKit.
-        if (detail < 100) {
-          return detail * 40;
+        if (detail.abs() < 100) {
+          return -detail * 40;
         }
-        return detail;
+        return -detail;
       }
       return 0;
     }
@@ -24768,6 +24783,14 @@ class WheelEvent extends MouseEvent native "*WheelEvent" {
         'deltaY is not supported');
   }
 
+  /**
+   * The amount that is expected to scroll horizontally, in units determined by
+   * [deltaMode].
+   *
+   * See also:
+   *
+   * * [WheelEvent.deltaX](http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-WheelEvent-deltaX) from the W3C.
+   */
   @DomName('WheelEvent.deltaX')
   num get deltaX {
     if (JS('bool', '#.deltaX !== undefined', this)) {
@@ -24775,7 +24798,7 @@ class WheelEvent extends MouseEvent native "*WheelEvent" {
       return this._deltaX;
     } else if (JS('bool', '#.wheelDeltaX !== undefined', this)) {
       // Chrome
-      return this._wheelDeltaX;
+      return -this._wheelDeltaX;
     } else if (JS('bool', '#.detail !== undefined', this)) {
       // Firefox and IE.
       // IE will have detail set but will not set axis.
@@ -24788,9 +24811,9 @@ class WheelEvent extends MouseEvent native "*WheelEvent" {
         // Firefox is normally the number of lines to scale (normally 3)
         // so multiply it by 40 to get pixels to move, matching IE & WebKit.
         if (detail < 100) {
-          return detail * 40;
+          return -detail * 40;
         }
-        return detail;
+        return -detail;
       }
       return 0;
     }
