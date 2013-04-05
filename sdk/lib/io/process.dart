@@ -9,7 +9,7 @@ part of dart.io;
 class _ProcessUtils {
   external static _exit(int status);
   external static _setExitCode(int status);
-  external static _sleep(int status);
+  external static _sleep(int millis);
 }
 
 /**

@@ -33,7 +33,7 @@ patch class Process {
 patch class _ProcessUtils {
   /* patch */ static _exit(int status) native "Process_Exit";
   /* patch */ static _setExitCode(int status) native "Process_SetExitCode";
-  /* patch */ static _sleep(int miliseconds) native "Process_Sleep";
+  /* patch */ static _sleep(int millis) native "Process_Sleep";
 }
 
 
