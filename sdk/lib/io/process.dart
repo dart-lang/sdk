@@ -1,4 +1,4 @@
-// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -9,7 +9,6 @@ part of dart.io;
 class _ProcessUtils {
   external static _exit(int status);
   external static _setExitCode(int status);
-  external static _sleep(int millis);
 }
 
 /**
@@ -37,16 +36,6 @@ set exitCode(int status) {
     throw new ArgumentError("setExitCode: int status expected");
   }
   _ProcessUtils._setExitCode(status);
-}
-
-/**
- * Sleep for the duration specified in [duration].
- *
- * Use this with care, as no asynchronous operations can be processed
- * in a isolate while it is blocked in a [sleep] call.
- */
-void sleep(Duration duration) {
-  _ProcessUtils._sleep(duration.inMilliseconds);
 }
 
 /**

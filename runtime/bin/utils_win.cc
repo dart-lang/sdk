@@ -141,8 +141,4 @@ int64_t TimerUtils::GetCurrentTimeMicros() {
   return (time.t_ - kTimeEpoc) / kTimeScaler;
 }
 
-void TimerUtils::Sleep(int64_t millis) {
-  ::Sleep(millis);
-}
-
 #endif  // defined(TARGET_OS_WINDOWS)
