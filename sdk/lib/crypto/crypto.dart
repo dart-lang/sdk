@@ -142,9 +142,6 @@ abstract class CryptoUtils {
    *
    * If [urlSafe] is true, the result is URL and filename safe.
    *
-   * If [usePadding] is false, No extra padding characters ('=') are
-   * appended to the output.
-   *
    * Based on [RFC 4648](http://tools.ietf.org/html/rfc4648)
    *
    */
