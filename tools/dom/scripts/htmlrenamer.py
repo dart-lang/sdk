@@ -14,7 +14,6 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames', {
     'DOMApplicationCache': 'ApplicationCache',
     'DOMCoreException': 'DomException',
     'DOMFileSystem': 'FileSystem',
-    'DOMFileSystemSync': 'FileSystemSync',
     'DOMFormData': 'FormData',
     'DOMURL': 'Url',
     'DOMWindow': 'Window',
@@ -62,6 +61,15 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames', {
 # Interfaces that are suppressed, but need to still exist for Dartium and to
 # properly wrap DOM objects if/when encountered.
 _removed_html_interfaces = [
+  'DOMFileSystemSync', # Workers
+  'DatabaseSync', # Workers
+  'DedicatedWorkerContext', # Workers
+  'DirectoryEntrySync', # Workers
+  'DirectoryReaderSync', # Workers
+  'EntrySync', # Workers
+  'FileEntrySync', # Workers
+  'FileReaderSync', # Workers
+  'FileWriterSync', # Workers
   'HTMLAppletElement',
   'HTMLBaseFontElement',
   'HTMLDirectoryElement',
@@ -70,12 +78,13 @@ _removed_html_interfaces = [
   'HTMLFrameSetElement',
   'HTMLMarqueeElement',
   'IDBAny',
+  'SQLTransactionSync', # Workers
+  'SQLTransactionSyncCallback', # Workers
   'SVGAltGlyphDefElement', # Webkit only.
   'SVGAltGlyphItemElement', # Webkit only.
   'SVGAnimateColorElement', # Deprecated. Use AnimateElement instead.
   'SVGComponentTransferFunctionElement', # Currently not supported anywhere.
   'SVGCursorElement', # Webkit only.
-  'SVGGradientElement', # Currently not supported anywhere.
   'SVGFEDropShadowElement', # Webkit only for the following:
   'SVGFontElement',
   'SVGFontFaceElement',
@@ -85,11 +94,17 @@ _removed_html_interfaces = [
   'SVGFontFaceUriElement',
   'SVGGlyphElement',
   'SVGGlyphRefElement',
+  'SVGGradientElement', # Currently not supported anywhere.
   'SVGHKernElement',
-  'SVGMissingGlyphElement',
   'SVGMPathElement',
+  'SVGMissingGlyphElement',
   'SVGTRefElement',
   'SVGVKernElement',
+  'SharedWorker', # Workers
+  'SharedWorkerContext', # Workers
+  'WorkerContext', # Workers
+  'WorkerLocation', # Workers
+  'WorkerNavigator', # Workers
 ]
 
 for interface in _removed_html_interfaces:
@@ -306,15 +321,10 @@ renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
     'RTCPeerConnection.createAnswer': '_createAnswer',
     'RTCPeerConnection.createOffer': '_createOffer',
     'StorageInfo.queryUsageAndQuota': '_queryUsageAndQuota',
-    'SVGComponentTransferFunctionElement.offset': 'gradientOffset',
     'SVGElement.className': '$dom_svgClassName',
     'SVGStopElement.offset': 'gradientOffset',
-    'WorkerContext.webkitRequestFileSystem': '_requestFileSystem',
-    'WorkerContext.webkitRequestFileSystemSync': '_requestFileSystemSync',
-    'WorkerContext.webkitResolveLocalFileSystemSyncURL':
-        'resolveLocalFileSystemSyncUrl',
-    'WorkerContext.webkitResolveLocalFileSystemURL':
-        'resolveLocalFileSystemUrl',
+    #'WorkerContext.webkitRequestFileSystem': '_requestFileSystem', # Workers
+    #'WorkerContext.webkitRequestFileSystemSync': '_requestFileSystemSync', # Workers
 })
 
 for member in convert_to_future_members:
@@ -614,6 +624,10 @@ class HtmlRenamer(object):
     self._database = database
 
   def RenameInterface(self, interface):
+    if 'Callback' in interface.ext_attrs:
+      if interface.id in _removed_html_interfaces:
+        return None
+
     if interface.id in html_interface_renames:
       return html_interface_renames[interface.id]
     elif interface.id.startswith('HTML'):
@@ -657,6 +671,8 @@ class HtmlRenamer(object):
     """ Returns true if the member should be suppressed."""
     if self._FindMatch(interface, member, member_prefix,
         _removed_html_members):
+      return True
+    if interface.id in _removed_html_interfaces:
       return True
     return False
 

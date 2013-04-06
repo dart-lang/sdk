@@ -69,14 +69,6 @@ typedef void SqlTransactionErrorCallback(SqlError error);
 // WARNING: Do not edit - generated code.
 
 
-typedef void SqlTransactionSyncCallback(SqlTransactionSync transaction);
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
 @DocsEditable
 @DomName('Database')
 @SupportedBrowser(SupportedBrowser.CHROME)
@@ -115,42 +107,6 @@ class SqlDatabase extends NativeFieldWrapperClass1 {
   @DomName('Database.transaction')
   @DocsEditable
   void transaction(SqlTransactionCallback callback, [SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) native "Database_transaction_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('DatabaseSync')
-@SupportedBrowser(SupportedBrowser.CHROME)
-@SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental
-class SqlDatabaseSync extends NativeFieldWrapperClass1 {
-  SqlDatabaseSync.internal();
-
-  @DomName('DatabaseSync.lastErrorMessage')
-  @DocsEditable
-  String get lastErrorMessage native "DatabaseSync_lastErrorMessage_Getter";
-
-  @DomName('DatabaseSync.version')
-  @DocsEditable
-  String get version native "DatabaseSync_version_Getter";
-
-  @DomName('DatabaseSync.changeVersion')
-  @DocsEditable
-  void changeVersion(String oldVersion, String newVersion, [SqlTransactionSyncCallback callback]) native "DatabaseSync_changeVersion_Callback";
-
-  @DomName('DatabaseSync.readTransaction')
-  @DocsEditable
-  void readTransaction(SqlTransactionSyncCallback callback) native "DatabaseSync_readTransaction_Callback";
-
-  @DomName('DatabaseSync.transaction')
-  @DocsEditable
-  void transaction(SqlTransactionSyncCallback callback) native "DatabaseSync_transaction_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -502,15 +458,27 @@ class SqlTransaction extends NativeFieldWrapperClass1 {
 
 
 @DocsEditable
+@DomName('DatabaseSync')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
+class _DatabaseSync extends NativeFieldWrapperClass1 {
+  _DatabaseSync.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
 @DomName('SQLTransactionSync')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
-class SqlTransactionSync extends NativeFieldWrapperClass1 {
-  SqlTransactionSync.internal();
-
-  @DomName('SQLTransactionSync.executeSql')
-  @DocsEditable
-  SqlResultSet executeSql(String sqlStatement, List arguments) native "SQLTransactionSync_executeSql_Callback";
+class _SQLTransactionSync extends NativeFieldWrapperClass1 {
+  _SQLTransactionSync.internal();
 
 }

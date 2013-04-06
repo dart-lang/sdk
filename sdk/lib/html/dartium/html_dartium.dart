@@ -6900,31 +6900,6 @@ class DataView extends ArrayBufferView {
 
 
 @DocsEditable
-@DomName('DedicatedWorkerContext')
-class DedicatedWorkerContext extends WorkerContext {
-  DedicatedWorkerContext.internal() : super.internal();
-
-  @DomName('DedicatedWorkerContext.messageEvent')
-  @DocsEditable
-  static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
-
-  @DomName('DedicatedWorkerContext.postMessage')
-  @DocsEditable
-  void postMessage(Object message, [List messagePorts]) native "DedicatedWorkerContext_postMessage_Callback";
-
-  @DomName('DedicatedWorkerContext.onmessage')
-  @DocsEditable
-  Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
 @DomName('HTMLDetailsElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -7101,35 +7076,6 @@ class DirectoryEntry extends Entry {
 
 
 @DocsEditable
-@DomName('DirectoryEntrySync')
-class DirectoryEntrySync extends EntrySync {
-  DirectoryEntrySync.internal() : super.internal();
-
-  @DomName('DirectoryEntrySync.createReader')
-  @DocsEditable
-  DirectoryReaderSync createReader() native "DirectoryEntrySync_createReader_Callback";
-
-  @DomName('DirectoryEntrySync.getDirectory')
-  @DocsEditable
-  DirectoryEntrySync getDirectory(String path, Map flags) native "DirectoryEntrySync_getDirectory_Callback";
-
-  @DomName('DirectoryEntrySync.getFile')
-  @DocsEditable
-  FileEntrySync getFile(String path, Map flags) native "DirectoryEntrySync_getFile_Callback";
-
-  @DomName('DirectoryEntrySync.removeRecursively')
-  @DocsEditable
-  void removeRecursively() native "DirectoryEntrySync_removeRecursively_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
 @DomName('DirectoryReader')
 class DirectoryReader extends NativeFieldWrapperClass1 {
   DirectoryReader.internal();
@@ -7145,23 +7091,6 @@ class DirectoryReader extends NativeFieldWrapperClass1 {
         (error) { completer.completeError(error); });
     return completer.future;
   }
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('DirectoryReaderSync')
-class DirectoryReaderSync extends NativeFieldWrapperClass1 {
-  DirectoryReaderSync.internal();
-
-  @DomName('DirectoryReaderSync.readEntries')
-  @DocsEditable
-  List<EntrySync> readEntries() native "DirectoryReaderSync_readEntries_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10920,63 +10849,6 @@ typedef void _EntryCallback(Entry entry);
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
-@DomName('EntrySync')
-class EntrySync extends NativeFieldWrapperClass1 {
-  EntrySync.internal();
-
-  @DomName('EntrySync.filesystem')
-  @DocsEditable
-  FileSystemSync get filesystem native "EntrySync_filesystem_Getter";
-
-  @DomName('EntrySync.fullPath')
-  @DocsEditable
-  String get fullPath native "EntrySync_fullPath_Getter";
-
-  @DomName('EntrySync.isDirectory')
-  @DocsEditable
-  bool get isDirectory native "EntrySync_isDirectory_Getter";
-
-  @DomName('EntrySync.isFile')
-  @DocsEditable
-  bool get isFile native "EntrySync_isFile_Getter";
-
-  @DomName('EntrySync.name')
-  @DocsEditable
-  String get name native "EntrySync_name_Getter";
-
-  @DomName('EntrySync.copyTo')
-  @DocsEditable
-  EntrySync copyTo(DirectoryEntrySync parent, String name) native "EntrySync_copyTo_Callback";
-
-  @DomName('EntrySync.getMetadata')
-  @DocsEditable
-  Metadata getMetadata() native "EntrySync_getMetadata_Callback";
-
-  @DomName('EntrySync.getParent')
-  @DocsEditable
-  EntrySync getParent() native "EntrySync_getParent_Callback";
-
-  @DomName('EntrySync.moveTo')
-  @DocsEditable
-  EntrySync moveTo(DirectoryEntrySync parent, String name) native "EntrySync_moveTo_Callback";
-
-  @DomName('EntrySync.remove')
-  @DocsEditable
-  void remove() native "EntrySync_remove_Callback";
-
-  @DomName('EntrySync.toURL')
-  @DocsEditable
-  String toUrl() native "EntrySync_toURL_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
 typedef void _ErrorCallback(FileError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11488,27 +11360,6 @@ class FileEntry extends Entry {
 
 
 @DocsEditable
-@DomName('FileEntrySync')
-class FileEntrySync extends EntrySync {
-  FileEntrySync.internal() : super.internal();
-
-  @DomName('FileEntrySync.createWriter')
-  @DocsEditable
-  FileWriterSync createWriter() native "FileEntrySync_createWriter_Callback";
-
-  @DomName('FileEntrySync.file')
-  @DocsEditable
-  File file() native "FileEntrySync_file_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
 @DomName('FileError')
 class FileError extends NativeFieldWrapperClass1 {
   FileError.internal();
@@ -11958,55 +11809,6 @@ class FileReader extends EventTarget {
 
 
 @DocsEditable
-@DomName('FileReaderSync')
-class FileReaderSync extends NativeFieldWrapperClass1 {
-  FileReaderSync.internal();
-
-  @DomName('FileReaderSync.FileReaderSync')
-  @DocsEditable
-  factory FileReaderSync() {
-    return FileReaderSync._create_1();
-  }
-
-  @DocsEditable
-  static FileReaderSync _create_1() native "FileReaderSync__create_1constructorCallback";
-
-  @DomName('FileReaderSync.readAsArrayBuffer')
-  @DocsEditable
-  dynamic readAsArrayBuffer(Blob blob) native "FileReaderSync_readAsArrayBuffer_Callback";
-
-  @DomName('FileReaderSync.readAsBinaryString')
-  @DocsEditable
-  String readAsBinaryString(Blob blob) native "FileReaderSync_readAsBinaryString_Callback";
-
-  @DomName('FileReaderSync.readAsDataURL')
-  @DocsEditable
-  String readAsDataUrl(Blob blob) native "FileReaderSync_readAsDataURL_Callback";
-
-  String readAsText(Blob blob, [String encoding]) {
-    if (?encoding) {
-      return _readAsText_1(blob, encoding);
-    }
-    return _readAsText_2(blob);
-  }
-
-  @DomName('FileReaderSync._readAsText_1')
-  @DocsEditable
-  String _readAsText_1(blob, encoding) native "FileReaderSync__readAsText_1_Callback";
-
-  @DomName('FileReaderSync._readAsText_2')
-  @DocsEditable
-  String _readAsText_2(blob) native "FileReaderSync__readAsText_2_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
 @DomName('DOMFileSystem')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental
@@ -12033,29 +11835,6 @@ class FileSystem extends NativeFieldWrapperClass1 {
 
 
 typedef void _FileSystemCallback(FileSystem fileSystem);
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('DOMFileSystemSync')
-@SupportedBrowser(SupportedBrowser.CHROME)
-@Experimental
-class FileSystemSync extends NativeFieldWrapperClass1 {
-  FileSystemSync.internal();
-
-  @DomName('DOMFileSystemSync.name')
-  @DocsEditable
-  String get name native "DOMFileSystemSync_name_Getter";
-
-  @DomName('DOMFileSystemSync.root')
-  @DocsEditable
-  DirectoryEntrySync get root native "DOMFileSystemSync_root_Getter";
-
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -12175,39 +11954,6 @@ class FileWriter extends EventTarget {
 
 
 typedef void _FileWriterCallback(FileWriter fileWriter);
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('FileWriterSync')
-class FileWriterSync extends NativeFieldWrapperClass1 {
-  FileWriterSync.internal();
-
-  @DomName('FileWriterSync.length')
-  @DocsEditable
-  int get length native "FileWriterSync_length_Getter";
-
-  @DomName('FileWriterSync.position')
-  @DocsEditable
-  int get position native "FileWriterSync_position_Getter";
-
-  @DomName('FileWriterSync.seek')
-  @DocsEditable
-  void seek(int position) native "FileWriterSync_seek_Callback";
-
-  @DomName('FileWriterSync.truncate')
-  @DocsEditable
-  void truncate(int size) native "FileWriterSync_truncate_Callback";
-
-  @DomName('FileWriterSync.write')
-  @DocsEditable
-  void write(Blob data) native "FileWriterSync_write_Callback";
-
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -22234,57 +21980,6 @@ class ShadowRoot extends DocumentFragment {
 
 
 @DocsEditable
-@DomName('SharedWorker')
-class SharedWorker extends AbstractWorker {
-  SharedWorker.internal() : super.internal();
-
-  @DomName('SharedWorker.SharedWorker')
-  @DocsEditable
-  factory SharedWorker(String scriptURL, [String name]) {
-    return SharedWorker._create_1(scriptURL, name);
-  }
-
-  @DocsEditable
-  static SharedWorker _create_1(scriptURL, name) native "SharedWorker__create_1constructorCallback";
-
-  @DomName('SharedWorker.port')
-  @DocsEditable
-  MessagePort get port native "SharedWorker_port_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('SharedWorkerContext')
-class SharedWorkerContext extends WorkerContext {
-  SharedWorkerContext.internal() : super.internal();
-
-  @DomName('SharedWorkerContext.connectEvent')
-  @DocsEditable
-  static const EventStreamProvider<Event> connectEvent = const EventStreamProvider<Event>('connect');
-
-  @DomName('SharedWorkerContext.name')
-  @DocsEditable
-  String get name native "SharedWorkerContext_name_Getter";
-
-  @DomName('SharedWorkerContext.onconnect')
-  @DocsEditable
-  Stream<Event> get onConnect => connectEvent.forTarget(this);
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
 @DomName('SourceBuffer')
 class SourceBuffer extends NativeFieldWrapperClass1 {
   SourceBuffer.internal();
@@ -28079,6 +27774,10 @@ class _BeforeUnloadEventStreamProvider implements
 
 @DocsEditable
 @DomName('Worker')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class Worker extends AbstractWorker {
   Worker.internal() : super.internal();
 
@@ -28095,6 +27794,9 @@ class Worker extends AbstractWorker {
   @DocsEditable
   static Worker _create_1(scriptUrl) native "Worker__create_1constructorCallback";
 
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => true;
+
   @DomName('Worker.postMessage')
   @DocsEditable
   void postMessage(/*SerializedScriptValue*/ message, [List messagePorts]) native "Worker_postMessage_Callback";
@@ -28106,289 +27808,6 @@ class Worker extends AbstractWorker {
   @DomName('Worker.onmessage')
   @DocsEditable
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
-
-}
-// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DomName('WorkerContext')
-class WorkerContext extends EventTarget {
-
-  /**
-   * Access a sandboxed file system of the specified `size`. If `persistent` is
-   * true, the application will request permission from the user to create
-   * lasting storage. This storage cannot be freed without the user's
-   * permission. Returns a [Future] whose value stores a reference to the
-   * sandboxed file system for use. Because the file system is sandboxed,
-   * applications cannot access file systems created in other web pages. 
-   */
-  @DomName('WorkerContext.webkitRequestFileSystem')
-  @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @Experimental
-  Future<FileSystem> requestFileSystem(int size, {bool persistent: false}) {
-    return _requestFileSystem(persistent? 1 : 0, size);
-  }
-
-  /**
-   * Access a sandboxed file system of the specified `size`. If `persistent` is
-   * true, the application will request permission from the user to create
-   * lasting storage. This storage cannot be freed without the user's
-   * permission. This call will block until a reference to the synchronous file 
-   * system API has been obtained. Because the file system is sandboxed,
-   * applications cannot access file systems created in other web pages. 
-   */
-  @DomName('WorkerContext.webkitRequestFileSystemSync')
-  @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @Experimental
-  FileSystemSync requestFileSystemSync(int size, {bool persistent: false}) {
-    return _requestFileSystemSync(persistent? 1 : 0, size);
-  }
-  WorkerContext.internal() : super.internal();
-
-  @DomName('WorkerContext.errorEvent')
-  @DocsEditable
-  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
-
-  static const int PERSISTENT = 1;
-
-  static const int TEMPORARY = 0;
-
-  @DomName('WorkerContext.indexedDB')
-  @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.FIREFOX, '15')
-  @SupportedBrowser(SupportedBrowser.IE, '10')
-  @Experimental
-  IdbFactory get indexedDB native "WorkerContext_indexedDB_Getter";
-
-  @DomName('WorkerContext.location')
-  @DocsEditable
-  WorkerLocation get location native "WorkerContext_location_Getter";
-
-  @DomName('WorkerContext.navigator')
-  @DocsEditable
-  WorkerNavigator get navigator native "WorkerContext_navigator_Getter";
-
-  @DomName('WorkerContext.self')
-  @DocsEditable
-  WorkerContext get self native "WorkerContext_self_Getter";
-
-  @DomName('WorkerContext.webkitNotifications')
-  @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  NotificationCenter get notifications native "WorkerContext_webkitNotifications_Getter";
-
-  @DomName('WorkerContext.addEventListener')
-  @DocsEditable
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "WorkerContext_addEventListener_Callback";
-
-  @DomName('WorkerContext.clearInterval')
-  @DocsEditable
-  void clearInterval(int handle) native "WorkerContext_clearInterval_Callback";
-
-  @DomName('WorkerContext.clearTimeout')
-  @DocsEditable
-  void clearTimeout(int handle) native "WorkerContext_clearTimeout_Callback";
-
-  @DomName('WorkerContext.close')
-  @DocsEditable
-  void close() native "WorkerContext_close_Callback";
-
-  @DomName('WorkerContext.dispatchEvent')
-  @DocsEditable
-  bool dispatchEvent(Event evt) native "WorkerContext_dispatchEvent_Callback";
-
-  @DomName('WorkerContext.importScripts')
-  @DocsEditable
-  void importScripts() native "WorkerContext_importScripts_Callback";
-
-  @DomName('WorkerContext.openDatabase')
-  @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  SqlDatabase openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native "WorkerContext_openDatabase_Callback";
-
-  @DomName('WorkerContext.openDatabaseSync')
-  @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  SqlDatabaseSync openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native "WorkerContext_openDatabaseSync_Callback";
-
-  @DomName('WorkerContext.removeEventListener')
-  @DocsEditable
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "WorkerContext_removeEventListener_Callback";
-
-  @DomName('WorkerContext.setInterval')
-  @DocsEditable
-  int setInterval(Object handler, int timeout) native "WorkerContext_setInterval_Callback";
-
-  @DomName('WorkerContext.setTimeout')
-  @DocsEditable
-  int setTimeout(Object handler, int timeout) native "WorkerContext_setTimeout_Callback";
-
-  /**
-   * Access a sandboxed file system of the specified `size`. If `persistent` is
-   * true, the application will request permission from the user to create
-   * lasting storage. This storage cannot be freed without the user's
-   * permission. Returns a [Future] whose value stores a reference to the
-   * sandboxed file system for use. Because the file system is sandboxed,
-   * applications cannot access file systems created in other web pages. 
-   */
-  @DomName('WorkerContext.webkitRequestFileSystem')
-  @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @Experimental
-  void __requestFileSystem(int type, int size, [_FileSystemCallback successCallback, _ErrorCallback errorCallback]) native "WorkerContext_webkitRequestFileSystem_Callback";
-
-  Future<FileSystem> _requestFileSystem(int type, int size) {
-    var completer = new Completer<FileSystem>();
-    __requestFileSystem(type, size,
-        (value) { completer.complete(value); },
-        (error) { completer.completeError(error); });
-    return completer.future;
-  }
-
-  /**
-   * Access a sandboxed file system of the specified `size`. If `persistent` is
-   * true, the application will request permission from the user to create
-   * lasting storage. This storage cannot be freed without the user's
-   * permission. This call will block until a reference to the synchronous file 
-   * system API has been obtained. Because the file system is sandboxed,
-   * applications cannot access file systems created in other web pages. 
-   */
-  @DomName('WorkerContext.webkitRequestFileSystemSync')
-  @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @Experimental
-  FileSystemSync _requestFileSystemSync(int type, int size) native "WorkerContext_webkitRequestFileSystemSync_Callback";
-
-  @DomName('WorkerContext.webkitResolveLocalFileSystemSyncURL')
-  @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @Experimental
-  EntrySync resolveLocalFileSystemSyncUrl(String url) native "WorkerContext_webkitResolveLocalFileSystemSyncURL_Callback";
-
-  @DomName('WorkerContext.webkitResolveLocalFileSystemURL')
-  @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @Experimental
-  void _resolveLocalFileSystemUrl(String url, _EntryCallback successCallback, [_ErrorCallback errorCallback]) native "WorkerContext_webkitResolveLocalFileSystemURL_Callback";
-
-  Future<Entry> resolveLocalFileSystemUrl(String url) {
-    var completer = new Completer<Entry>();
-    _resolveLocalFileSystemUrl(url,
-        (value) { completer.complete(value); },
-        (error) { completer.completeError(error); });
-    return completer.future;
-  }
-
-  @DomName('WorkerContext.onerror')
-  @DocsEditable
-  Stream<Event> get onError => errorEvent.forTarget(this);
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('WorkerLocation')
-class WorkerLocation extends NativeFieldWrapperClass1 {
-  WorkerLocation.internal();
-
-  @DomName('WorkerLocation.hash')
-  @DocsEditable
-  String get hash native "WorkerLocation_hash_Getter";
-
-  @DomName('WorkerLocation.host')
-  @DocsEditable
-  String get host native "WorkerLocation_host_Getter";
-
-  @DomName('WorkerLocation.hostname')
-  @DocsEditable
-  String get hostname native "WorkerLocation_hostname_Getter";
-
-  @DomName('WorkerLocation.href')
-  @DocsEditable
-  String get href native "WorkerLocation_href_Getter";
-
-  @DomName('WorkerLocation.pathname')
-  @DocsEditable
-  String get pathname native "WorkerLocation_pathname_Getter";
-
-  @DomName('WorkerLocation.port')
-  @DocsEditable
-  String get port native "WorkerLocation_port_Getter";
-
-  @DomName('WorkerLocation.protocol')
-  @DocsEditable
-  String get protocol native "WorkerLocation_protocol_Getter";
-
-  @DomName('WorkerLocation.search')
-  @DocsEditable
-  String get search native "WorkerLocation_search_Getter";
-
-  @DomName('WorkerLocation.toString')
-  @DocsEditable
-  String toString() native "WorkerLocation_toString_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('WorkerNavigator')
-class WorkerNavigator extends NativeFieldWrapperClass1 {
-  WorkerNavigator.internal();
-
-  @DomName('WorkerNavigator.appName')
-  @DocsEditable
-  String get appName native "WorkerNavigator_appName_Getter";
-
-  @DomName('WorkerNavigator.appVersion')
-  @DocsEditable
-  String get appVersion native "WorkerNavigator_appVersion_Getter";
-
-  @DomName('WorkerNavigator.onLine')
-  @DocsEditable
-  bool get onLine native "WorkerNavigator_onLine_Getter";
-
-  @DomName('WorkerNavigator.platform')
-  @DocsEditable
-  String get platform native "WorkerNavigator_platform_Getter";
-
-  @DomName('WorkerNavigator.userAgent')
-  @DocsEditable
-  String get userAgent native "WorkerNavigator_userAgent_Getter";
-
-  @DomName('WorkerNavigator.webkitPersistentStorage')
-  @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  StorageQuota get persistentStorage native "WorkerNavigator_webkitPersistentStorage_Getter";
-
-  @DomName('WorkerNavigator.webkitTemporaryStorage')
-  @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  StorageQuota get temporaryStorage native "WorkerNavigator_webkitTemporaryStorage_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29447,6 +28866,60 @@ class _CssValueList extends CssValue implements List<CssValue> {
 
 
 @DocsEditable
+@DomName('DOMFileSystemSync')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@Experimental
+class _DOMFileSystemSync extends NativeFieldWrapperClass1 {
+  _DOMFileSystemSync.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('DedicatedWorkerContext')
+class _DedicatedWorkerContext extends _WorkerContext {
+  _DedicatedWorkerContext.internal() : super.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('DirectoryEntrySync')
+class _DirectoryEntrySync extends _EntrySync {
+  _DirectoryEntrySync.internal() : super.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('DirectoryReaderSync')
+class _DirectoryReaderSync extends NativeFieldWrapperClass1 {
+  _DirectoryReaderSync.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
 @DomName('HTMLElement')
 class _Element_Merged extends Element {
   _Element_Merged.internal() : super.internal();
@@ -29813,104 +29286,104 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
 
 @DocsEditable
 @DomName('EntryArraySync')
-class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync> {
+class _EntryArraySync extends NativeFieldWrapperClass1 implements List<_EntrySync> {
   _EntryArraySync.internal();
 
   @DomName('EntryArraySync.length')
   @DocsEditable
   int get length native "EntryArraySync_length_Getter";
 
-  EntrySync operator[](int index) native "EntryArraySync_item_Callback";
+  _EntrySync operator[](int index) native "EntryArraySync_item_Callback";
 
-  void operator[]=(int index, EntrySync value) {
+  void operator[]=(int index, _EntrySync value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
-  // -- start List<EntrySync> mixins.
-  // EntrySync is the element type.
+  // -- start List<_EntrySync> mixins.
+  // _EntrySync is the element type.
 
-  // From Iterable<EntrySync>:
+  // From Iterable<_EntrySync>:
 
-  Iterator<EntrySync> get iterator {
+  Iterator<_EntrySync> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new FixedSizeListIterator<EntrySync>(this);
+    return new FixedSizeListIterator<_EntrySync>(this);
   }
 
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, EntrySync)) {
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, _EntrySync)) {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, EntrySync)) {
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, _EntrySync)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
-  bool contains(EntrySync element) => IterableMixinWorkaround.contains(this, element);
+  bool contains(_EntrySync element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(EntrySync element)) => IterableMixinWorkaround.forEach(this, f);
+  void forEach(void f(_EntrySync element)) => IterableMixinWorkaround.forEach(this, f);
 
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  Iterable map(f(EntrySync element)) =>
+  Iterable map(f(_EntrySync element)) =>
       IterableMixinWorkaround.mapList(this, f);
 
-  Iterable<EntrySync> where(bool f(EntrySync element)) =>
+  Iterable<_EntrySync> where(bool f(_EntrySync element)) =>
       IterableMixinWorkaround.where(this, f);
 
-  Iterable expand(Iterable f(EntrySync element)) =>
+  Iterable expand(Iterable f(_EntrySync element)) =>
       IterableMixinWorkaround.expand(this, f);
 
-  bool every(bool f(EntrySync element)) => IterableMixinWorkaround.every(this, f);
+  bool every(bool f(_EntrySync element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(EntrySync element)) => IterableMixinWorkaround.any(this, f);
+  bool any(bool f(_EntrySync element)) => IterableMixinWorkaround.any(this, f);
 
-  List<EntrySync> toList({ bool growable: true }) =>
-      new List<EntrySync>.from(this, growable: growable);
+  List<_EntrySync> toList({ bool growable: true }) =>
+      new List<_EntrySync>.from(this, growable: growable);
 
-  Set<EntrySync> toSet() => new Set<EntrySync>.from(this);
+  Set<_EntrySync> toSet() => new Set<_EntrySync>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  Iterable<EntrySync> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<_EntrySync> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
-  Iterable<EntrySync> takeWhile(bool test(EntrySync value)) {
+  Iterable<_EntrySync> takeWhile(bool test(_EntrySync value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  Iterable<EntrySync> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<_EntrySync> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
-  Iterable<EntrySync> skipWhile(bool test(EntrySync value)) {
+  Iterable<_EntrySync> skipWhile(bool test(_EntrySync value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  EntrySync firstWhere(bool test(EntrySync value), { EntrySync orElse() }) {
+  _EntrySync firstWhere(bool test(_EntrySync value), { _EntrySync orElse() }) {
     return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  EntrySync lastWhere(bool test(EntrySync value), {EntrySync orElse()}) {
+  _EntrySync lastWhere(bool test(_EntrySync value), {_EntrySync orElse()}) {
     return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  EntrySync singleWhere(bool test(EntrySync value)) {
+  _EntrySync singleWhere(bool test(_EntrySync value)) {
     return IterableMixinWorkaround.singleWhere(this, test);
   }
 
-  EntrySync elementAt(int index) {
+  _EntrySync elementAt(int index) {
     return this[index];
   }
 
-  // From Collection<EntrySync>:
+  // From Collection<_EntrySync>:
 
-  void add(EntrySync value) {
+  void add(_EntrySync value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Iterable<EntrySync> iterable) {
+  void addAll(Iterable<_EntrySync> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  // From List<EntrySync>:
+  // From List<_EntrySync>:
   void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
@@ -29919,53 +29392,53 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  Iterable<EntrySync> get reversed {
+  Iterable<_EntrySync> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
-  void sort([int compare(EntrySync a, EntrySync b)]) {
+  void sort([int compare(_EntrySync a, _EntrySync b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
-  int indexOf(EntrySync element, [int start = 0]) =>
+  int indexOf(_EntrySync element, [int start = 0]) =>
       Lists.indexOf(this, element, start, this.length);
 
-  int lastIndexOf(EntrySync element, [int start]) {
+  int lastIndexOf(_EntrySync element, [int start]) {
     if (start == null) start = length - 1;
     return Lists.lastIndexOf(this, element, start);
   }
 
-  EntrySync get first {
+  _EntrySync get first {
     if (this.length > 0) return this[0];
     throw new StateError("No elements");
   }
 
-  EntrySync get last {
+  _EntrySync get last {
     if (this.length > 0) return this[this.length - 1];
     throw new StateError("No elements");
   }
 
-  EntrySync get single {
+  _EntrySync get single {
     if (length == 1) return this[0];
     if (length == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
   }
 
-  EntrySync min([int compare(EntrySync a, EntrySync b)]) =>
+  _EntrySync min([int compare(_EntrySync a, _EntrySync b)]) =>
       IterableMixinWorkaround.min(this, compare);
 
-  EntrySync max([int compare(EntrySync a, EntrySync b)]) =>
+  _EntrySync max([int compare(_EntrySync a, _EntrySync b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
-  void insert(int index, EntrySync element) {
+  void insert(int index, _EntrySync element) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  EntrySync removeAt(int pos) {
+  _EntrySync removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  EntrySync removeLast() {
+  _EntrySync removeLast() {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -29981,15 +29454,15 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeWhere(bool test(EntrySync element)) {
+  void removeWhere(bool test(_EntrySync element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainWhere(bool test(EntrySync element)) {
+  void retainWhere(bool test(_EntrySync element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<EntrySync> from, [int startFrom]) {
+  void setRange(int start, int rangeLength, List<_EntrySync> from, [int startFrom]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -29997,19 +29470,19 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [EntrySync initialValue]) {
+  void insertRange(int start, int rangeLength, [_EntrySync initialValue]) {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
-  List<EntrySync> sublist(int start, [int end]) {
+  List<_EntrySync> sublist(int start, [int end]) {
     if (end == null) end = length;
-    return Lists.getRange(this, start, end, <EntrySync>[]);
+    return Lists.getRange(this, start, end, <_EntrySync>[]);
   }
 
-  List<EntrySync> getRange(int start, int rangeLength) =>
+  List<_EntrySync> getRange(int start, int rangeLength) =>
       sublist(start, start + rangeLength);
 
-  Map<int, EntrySync> asMap() =>
+  Map<int, _EntrySync> asMap() =>
     IterableMixinWorkaround.asMapList(this);
 
   String toString() {
@@ -30019,11 +29492,72 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<EntrySync
     return buffer.toString();
   }
 
-  // -- end List<EntrySync> mixins.
+  // -- end List<_EntrySync> mixins.
 
   @DomName('EntryArraySync.item')
   @DocsEditable
-  EntrySync item(int index) native "EntryArraySync_item_Callback";
+  _EntrySync item(int index) native "EntryArraySync_item_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('EntrySync')
+class _EntrySync extends NativeFieldWrapperClass1 {
+  _EntrySync.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('FileEntrySync')
+class _FileEntrySync extends _EntrySync {
+  _FileEntrySync.internal() : super.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('FileReaderSync')
+class _FileReaderSync extends NativeFieldWrapperClass1 {
+  _FileReaderSync.internal();
+
+  @DomName('FileReaderSync.FileReaderSync')
+  @DocsEditable
+  factory _FileReaderSync() {
+    return _FileReaderSync._create_1();
+  }
+
+  @DocsEditable
+  static _FileReaderSync _create_1() native "FileReaderSync__create_1constructorCallback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('FileWriterSync')
+class _FileWriterSync extends NativeFieldWrapperClass1 {
+  _FileWriterSync.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30583,6 +30117,41 @@ class _NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
   @DomName('NamedNodeMap.setNamedItemNS')
   @DocsEditable
   Node setNamedItemNS(Node node) native "NamedNodeMap_setNamedItemNS_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('SharedWorker')
+class _SharedWorker extends AbstractWorker {
+  _SharedWorker.internal() : super.internal();
+
+  @DomName('SharedWorker.SharedWorker')
+  @DocsEditable
+  factory _SharedWorker(String scriptURL, [String name]) {
+    return _SharedWorker._create_1(scriptURL, name);
+  }
+
+  @DocsEditable
+  static _SharedWorker _create_1(scriptURL, name) native "SharedWorker__create_1constructorCallback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('SharedWorkerContext')
+class _SharedWorkerContext extends _WorkerContext {
+  _SharedWorkerContext.internal() : super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31273,6 +30842,45 @@ class _WebKitTransitionEvent extends Event implements TransitionEvent  {
   @DomName('WebKitTransitionEvent.pseudoElement')
   @DocsEditable
   String get pseudoElement native "WebKitTransitionEvent_pseudoElement_Getter";
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('WorkerContext')
+class _WorkerContext extends EventTarget {
+  _WorkerContext.internal() : super.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('WorkerLocation')
+class _WorkerLocation extends NativeFieldWrapperClass1 {
+  _WorkerLocation.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('WorkerNavigator')
+class _WorkerNavigator extends NativeFieldWrapperClass1 {
+  _WorkerNavigator.internal();
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

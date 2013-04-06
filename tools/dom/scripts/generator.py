@@ -493,10 +493,8 @@ dart2js_conversions = monitored.Dict('generator.dart2js_conversions', {
     'any set IDBCursor.update': _serialize_SSV,
 
     # postMessage
-    'any set DedicatedWorkerContext.postMessage': _serialize_SSV,
     'any set MessagePort.postMessage': _serialize_SSV,
     'SerializedScriptValue set DOMWindow.postMessage': _serialize_SSV,
-    'SerializedScriptValue set Worker.postMessage': _serialize_SSV,
 
     # receiving message via MessageEvent
     '* get MessageEvent.data':
@@ -594,7 +592,6 @@ dart2js_annotations = monitored.Dict('generator.dart2js_annotations', {
 
     'DOMWindow.openDatabase': [
       "@Creates('SqlDatabase')",
-      "@Creates('SqlDatabaseSync')",
     ],
 
     # To be in callback with the browser-created Event, we had to have called
@@ -898,13 +895,7 @@ dart_annotations = monitored.Dict('generator.dart_annotations', {
   'WebKitCSSMatrix': _webkit_experimental_annotations,
   'WebKitPoint': _webkit_experimental_annotations,
   'WebSocket': _all_but_ie9_annotations,
-  'WorkerContext.indexedDB': _indexed_db_annotations,
-  'WorkerContext.openDatabase': _web_sql_annotations,
-  'WorkerContext.openDatabaseSync': _web_sql_annotations,
-  'WorkerContext.webkitRequestFileSystem': _file_system_annotations,
-  'WorkerContext.webkitRequestFileSystemSync': _file_system_annotations,
-  'WorkerContext.webkitResolveLocalFileSystemSyncURL': _file_system_annotations,
-  'WorkerContext.webkitResolveLocalFileSystemURL': _file_system_annotations,
+  'Worker': _all_but_ie9_annotations,
   'XMLHttpRequest.onloadend': _all_but_ie9_annotations,
   'XMLHttpRequest.onprogress': _all_but_ie9_annotations,
   'XMLHttpRequest.response': _all_but_ie9_annotations,

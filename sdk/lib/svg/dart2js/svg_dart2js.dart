@@ -7485,47 +7485,6 @@ class _SVGAnimateColorElement extends AnimationElement native "*SVGAnimateColorE
 @DocsEditable
 @DomName('SVGComponentTransferFunctionElement')
 class _SVGComponentTransferFunctionElement extends SvgElement native "*SVGComponentTransferFunctionElement" {
-
-  static const int SVG_FECOMPONENTTRANSFER_TYPE_DISCRETE = 3;
-
-  static const int SVG_FECOMPONENTTRANSFER_TYPE_GAMMA = 5;
-
-  static const int SVG_FECOMPONENTTRANSFER_TYPE_IDENTITY = 1;
-
-  static const int SVG_FECOMPONENTTRANSFER_TYPE_LINEAR = 4;
-
-  static const int SVG_FECOMPONENTTRANSFER_TYPE_TABLE = 2;
-
-  static const int SVG_FECOMPONENTTRANSFER_TYPE_UNKNOWN = 0;
-
-  @DomName('SVGComponentTransferFunctionElement.amplitude')
-  @DocsEditable
-  final AnimatedNumber amplitude;
-
-  @DomName('SVGComponentTransferFunctionElement.exponent')
-  @DocsEditable
-  final AnimatedNumber exponent;
-
-  @DomName('SVGComponentTransferFunctionElement.intercept')
-  @DocsEditable
-  final AnimatedNumber intercept;
-
-  @JSName('offset')
-  @DomName('SVGComponentTransferFunctionElement.offset')
-  @DocsEditable
-  final AnimatedNumber gradientOffset;
-
-  @DomName('SVGComponentTransferFunctionElement.slope')
-  @DocsEditable
-  final AnimatedNumber slope;
-
-  @DomName('SVGComponentTransferFunctionElement.tableValues')
-  @DocsEditable
-  final AnimatedNumberList tableValues;
-
-  @DomName('SVGComponentTransferFunctionElement.type')
-  @DocsEditable
-  final AnimatedEnumeration type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7543,43 +7502,11 @@ class _SVGCursorElement extends SvgElement implements UriReference, Tests, Exter
   /// Checks if this type is supported on the current platform.
   static bool get supported => SvgElement.isTagSupported('cursor') && (new SvgElement.tag('cursor') is _SVGCursorElement);
 
-  @DomName('SVGCursorElement.x')
-  @DocsEditable
-  final AnimatedLength x;
-
-  @DomName('SVGCursorElement.y')
-  @DocsEditable
-  final AnimatedLength y;
-
   // From SVGExternalResourcesRequired
-
-  @DomName('SVGCursorElement.externalResourcesRequired')
-  @DocsEditable
-  final AnimatedBoolean externalResourcesRequired;
 
   // From SVGTests
 
-  @DomName('SVGCursorElement.requiredExtensions')
-  @DocsEditable
-  final StringList requiredExtensions;
-
-  @DomName('SVGCursorElement.requiredFeatures')
-  @DocsEditable
-  final StringList requiredFeatures;
-
-  @DomName('SVGCursorElement.systemLanguage')
-  @DocsEditable
-  final StringList systemLanguage;
-
-  @DomName('SVGCursorElement.hasExtension')
-  @DocsEditable
-  bool hasExtension(String extension) native;
-
   // From SVGURIReference
-
-  @DomName('SVGCursorElement.href')
-  @DocsEditable
-  final AnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7590,51 +7517,7 @@ class _SVGCursorElement extends SvgElement implements UriReference, Tests, Exter
 @DomName('SVGFEDropShadowElement')
 class _SVGFEDropShadowElement extends StyledElement implements FilterPrimitiveStandardAttributes native "*SVGFEDropShadowElement" {
 
-  @DomName('SVGFEDropShadowElement.dx')
-  @DocsEditable
-  final AnimatedNumber dx;
-
-  @DomName('SVGFEDropShadowElement.dy')
-  @DocsEditable
-  final AnimatedNumber dy;
-
-  @DomName('SVGFEDropShadowElement.in1')
-  @DocsEditable
-  final AnimatedString in1;
-
-  @DomName('SVGFEDropShadowElement.stdDeviationX')
-  @DocsEditable
-  final AnimatedNumber stdDeviationX;
-
-  @DomName('SVGFEDropShadowElement.stdDeviationY')
-  @DocsEditable
-  final AnimatedNumber stdDeviationY;
-
-  @DomName('SVGFEDropShadowElement.setStdDeviation')
-  @DocsEditable
-  void setStdDeviation(num stdDeviationX, num stdDeviationY) native;
-
   // From SVGFilterPrimitiveStandardAttributes
-
-  @DomName('SVGFEDropShadowElement.height')
-  @DocsEditable
-  final AnimatedLength height;
-
-  @DomName('SVGFEDropShadowElement.result')
-  @DocsEditable
-  final AnimatedString result;
-
-  @DomName('SVGFEDropShadowElement.width')
-  @DocsEditable
-  final AnimatedLength width;
-
-  @DomName('SVGFEDropShadowElement.x')
-  @DocsEditable
-  final AnimatedLength x;
-
-  @DomName('SVGFEDropShadowElement.y')
-  @DocsEditable
-  final AnimatedLength y;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7712,35 +7595,7 @@ class _SVGGlyphElement extends SvgElement native "*SVGGlyphElement" {
 @DomName('SVGGlyphRefElement')
 class _SVGGlyphRefElement extends StyledElement implements UriReference native "*SVGGlyphRefElement" {
 
-  @DomName('SVGGlyphRefElement.dx')
-  @DocsEditable
-  num dx;
-
-  @DomName('SVGGlyphRefElement.dy')
-  @DocsEditable
-  num dy;
-
-  @DomName('SVGGlyphRefElement.format')
-  @DocsEditable
-  String format;
-
-  @DomName('SVGGlyphRefElement.glyphRef')
-  @DocsEditable
-  String glyphRef;
-
-  @DomName('SVGGlyphRefElement.x')
-  @DocsEditable
-  num x;
-
-  @DomName('SVGGlyphRefElement.y')
-  @DocsEditable
-  num y;
-
   // From SVGURIReference
-
-  @DomName('SVGGlyphRefElement.href')
-  @DocsEditable
-  final AnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7751,37 +7606,9 @@ class _SVGGlyphRefElement extends StyledElement implements UriReference native "
 @DomName('SVGGradientElement')
 class _SVGGradientElement extends StyledElement implements UriReference, ExternalResourcesRequired native "*SVGGradientElement" {
 
-  static const int SVG_SPREADMETHOD_PAD = 1;
-
-  static const int SVG_SPREADMETHOD_REFLECT = 2;
-
-  static const int SVG_SPREADMETHOD_REPEAT = 3;
-
-  static const int SVG_SPREADMETHOD_UNKNOWN = 0;
-
-  @DomName('SVGGradientElement.gradientTransform')
-  @DocsEditable
-  final AnimatedTransformList gradientTransform;
-
-  @DomName('SVGGradientElement.gradientUnits')
-  @DocsEditable
-  final AnimatedEnumeration gradientUnits;
-
-  @DomName('SVGGradientElement.spreadMethod')
-  @DocsEditable
-  final AnimatedEnumeration spreadMethod;
-
   // From SVGExternalResourcesRequired
 
-  @DomName('SVGGradientElement.externalResourcesRequired')
-  @DocsEditable
-  final AnimatedBoolean externalResourcesRequired;
-
   // From SVGURIReference
-
-  @DomName('SVGGradientElement.href')
-  @DocsEditable
-  final AnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7811,15 +7638,7 @@ class _SVGMPathElement extends SvgElement implements UriReference, ExternalResou
 
   // From SVGExternalResourcesRequired
 
-  @DomName('SVGMPathElement.externalResourcesRequired')
-  @DocsEditable
-  final AnimatedBoolean externalResourcesRequired;
-
   // From SVGURIReference
-
-  @DomName('SVGMPathElement.href')
-  @DocsEditable
-  final AnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7844,10 +7663,6 @@ class _SVGTRefElement extends TextPositioningElement implements UriReference nat
   factory _SVGTRefElement() => _SvgElementFactoryProvider.createSvgElement_tag("tref");
 
   // From SVGURIReference
-
-  @DomName('SVGTRefElement.href')
-  @DocsEditable
-  final AnimatedString href;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

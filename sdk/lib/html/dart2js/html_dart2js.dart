@@ -6128,44 +6128,6 @@ class DataView extends ArrayBufferView native "*DataView" {
 
 
 @DocsEditable
-@DomName('DedicatedWorkerContext')
-class DedicatedWorkerContext extends WorkerContext native "*DedicatedWorkerContext" {
-
-  @DomName('DedicatedWorkerContext.messageEvent')
-  @DocsEditable
-  static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
-
-  @DomName('DedicatedWorkerContext.postMessage')
-  @DocsEditable
-  void postMessage(/*any*/ message, [List messagePorts]) {
-    if (?messagePorts) {
-      var message_1 = convertDartToNative_SerializedScriptValue(message);
-      _postMessage_1(message_1, messagePorts);
-      return;
-    }
-    var message_2 = convertDartToNative_SerializedScriptValue(message);
-    _postMessage_2(message_2);
-    return;
-  }
-  @JSName('postMessage')
-  @DomName('DedicatedWorkerContext.postMessage')
-  @DocsEditable
-  void _postMessage_1(message, List messagePorts) native;
-  @JSName('postMessage')
-  @DomName('DedicatedWorkerContext.postMessage')
-  @DocsEditable
-  void _postMessage_2(message) native;
-
-  @DomName('DedicatedWorkerContext.onmessage')
-  @DocsEditable
-  Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
 @DomName('HTMLDetailsElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -6407,45 +6369,6 @@ class DirectoryEntry extends Entry native "*DirectoryEntry" {
 
 
 @DocsEditable
-@DomName('DirectoryEntrySync')
-class DirectoryEntrySync extends EntrySync native "*DirectoryEntrySync" {
-
-  @DomName('DirectoryEntrySync.createReader')
-  @DocsEditable
-  DirectoryReaderSync createReader() native;
-
-  @DomName('DirectoryEntrySync.getDirectory')
-  @DocsEditable
-  DirectoryEntrySync getDirectory(String path, Map flags) {
-    var flags_1 = convertDartToNative_Dictionary(flags);
-    return _getDirectory_1(path, flags_1);
-  }
-  @JSName('getDirectory')
-  @DomName('DirectoryEntrySync.getDirectory')
-  @DocsEditable
-  DirectoryEntrySync _getDirectory_1(path, flags) native;
-
-  @DomName('DirectoryEntrySync.getFile')
-  @DocsEditable
-  FileEntrySync getFile(String path, Map flags) {
-    var flags_1 = convertDartToNative_Dictionary(flags);
-    return _getFile_1(path, flags_1);
-  }
-  @JSName('getFile')
-  @DomName('DirectoryEntrySync.getFile')
-  @DocsEditable
-  FileEntrySync _getFile_1(path, flags) native;
-
-  @DomName('DirectoryEntrySync.removeRecursively')
-  @DocsEditable
-  void removeRecursively() native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
 @DomName('DirectoryReader')
 class DirectoryReader native "*DirectoryReader" {
 
@@ -6464,21 +6387,6 @@ class DirectoryReader native "*DirectoryReader" {
         (error) { completer.completeError(error); });
     return completer.future;
   }
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('DirectoryReaderSync')
-class DirectoryReaderSync native "*DirectoryReaderSync" {
-
-  @DomName('DirectoryReaderSync.readEntries')
-  @DocsEditable
-  @Returns('_EntryArraySync')
-  @Creates('_EntryArraySync')
-  List<EntrySync> readEntries() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10284,60 +10192,6 @@ typedef void _EntryCallback(Entry entry);
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
-@DocsEditable
-@DomName('EntrySync')
-class EntrySync native "*EntrySync" {
-
-  @DomName('EntrySync.filesystem')
-  @DocsEditable
-  final FileSystemSync filesystem;
-
-  @DomName('EntrySync.fullPath')
-  @DocsEditable
-  final String fullPath;
-
-  @DomName('EntrySync.isDirectory')
-  @DocsEditable
-  final bool isDirectory;
-
-  @DomName('EntrySync.isFile')
-  @DocsEditable
-  final bool isFile;
-
-  @DomName('EntrySync.name')
-  @DocsEditable
-  final String name;
-
-  @DomName('EntrySync.copyTo')
-  @DocsEditable
-  EntrySync copyTo(DirectoryEntrySync parent, String name) native;
-
-  @DomName('EntrySync.getMetadata')
-  @DocsEditable
-  Metadata getMetadata() native;
-
-  @DomName('EntrySync.getParent')
-  @DocsEditable
-  EntrySync getParent() native;
-
-  @DomName('EntrySync.moveTo')
-  @DocsEditable
-  EntrySync moveTo(DirectoryEntrySync parent, String name) native;
-
-  @DomName('EntrySync.remove')
-  @DocsEditable
-  void remove() native;
-
-  @JSName('toURL')
-  @DomName('EntrySync.toURL')
-  @DocsEditable
-  String toUrl() native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 // WARNING: Do not edit - generated code.
 
 
@@ -10841,23 +10695,6 @@ class FileEntry extends Entry native "*FileEntry" {
 
 
 @DocsEditable
-@DomName('FileEntrySync')
-class FileEntrySync extends EntrySync native "*FileEntrySync" {
-
-  @DomName('FileEntrySync.createWriter')
-  @DocsEditable
-  FileWriterSync createWriter() native;
-
-  @DomName('FileEntrySync.file')
-  @DocsEditable
-  File file() native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
 @DomName('FileError')
 class FileError native "*FileError" {
 
@@ -11280,41 +11117,6 @@ class FileReader extends EventTarget native "*FileReader" {
 
 
 @DocsEditable
-@DomName('FileReaderSync')
-class FileReaderSync native "*FileReaderSync" {
-
-  @DomName('FileReaderSync.FileReaderSync')
-  @DocsEditable
-  factory FileReaderSync() {
-    return FileReaderSync._create_1();
-  }
-  static FileReaderSync _create_1() => JS('FileReaderSync', 'new FileReaderSync()');
-
-  @DomName('FileReaderSync.readAsArrayBuffer')
-  @DocsEditable
-  @Creates('ArrayBuffer')
-  @Returns('ArrayBuffer|Null')
-  dynamic readAsArrayBuffer(Blob blob) native;
-
-  @DomName('FileReaderSync.readAsBinaryString')
-  @DocsEditable
-  String readAsBinaryString(Blob blob) native;
-
-  @JSName('readAsDataURL')
-  @DomName('FileReaderSync.readAsDataURL')
-  @DocsEditable
-  String readAsDataUrl(Blob blob) native;
-
-  @DomName('FileReaderSync.readAsText')
-  @DocsEditable
-  String readAsText(Blob blob, [String encoding]) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
 @DomName('DOMFileSystem')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental
@@ -11339,25 +11141,6 @@ class FileSystem native "*DOMFileSystem" {
 
 
 typedef void _FileSystemCallback(FileSystem fileSystem);
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('DOMFileSystemSync')
-@SupportedBrowser(SupportedBrowser.CHROME)
-@Experimental
-class FileSystemSync native "*DOMFileSystemSync" {
-
-  @DomName('DOMFileSystemSync.name')
-  @DocsEditable
-  final String name;
-
-  @DomName('DOMFileSystemSync.root')
-  @DocsEditable
-  final DirectoryEntrySync root;
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -11475,35 +11258,6 @@ class FileWriter extends EventTarget native "*FileWriter" {
 
 
 typedef void _FileWriterCallback(FileWriter fileWriter);
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('FileWriterSync')
-class FileWriterSync native "*FileWriterSync" {
-
-  @DomName('FileWriterSync.length')
-  @DocsEditable
-  final int length;
-
-  @DomName('FileWriterSync.position')
-  @DocsEditable
-  final int position;
-
-  @DomName('FileWriterSync.seek')
-  @DocsEditable
-  void seek(int position) native;
-
-  @DomName('FileWriterSync.truncate')
-  @DocsEditable
-  void truncate(int size) native;
-
-  @DomName('FileWriterSync.write')
-  @DocsEditable
-  void write(Blob data) native;
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -20538,51 +20292,6 @@ class ShadowRoot extends DocumentFragment native "*ShadowRoot" {
 
 
 @DocsEditable
-@DomName('SharedWorker')
-class SharedWorker extends AbstractWorker native "*SharedWorker" {
-
-  @DomName('SharedWorker.SharedWorker')
-  @DocsEditable
-  factory SharedWorker(String scriptURL, [String name]) {
-    if (?name) {
-      return SharedWorker._create_1(scriptURL, name);
-    }
-    return SharedWorker._create_2(scriptURL);
-  }
-  static SharedWorker _create_1(scriptURL, name) => JS('SharedWorker', 'new SharedWorker(#,#)', scriptURL, name);
-  static SharedWorker _create_2(scriptURL) => JS('SharedWorker', 'new SharedWorker(#)', scriptURL);
-
-  @DomName('SharedWorker.port')
-  @DocsEditable
-  final MessagePort port;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('SharedWorkerContext')
-class SharedWorkerContext extends WorkerContext native "*SharedWorkerContext" {
-
-  @DomName('SharedWorkerContext.connectEvent')
-  @DocsEditable
-  static const EventStreamProvider<Event> connectEvent = const EventStreamProvider<Event>('connect');
-
-  @DomName('SharedWorkerContext.name')
-  @DocsEditable
-  final String name;
-
-  @DomName('SharedWorkerContext.onconnect')
-  @DocsEditable
-  Stream<Event> get onConnect => connectEvent.forTarget(this);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
 @DomName('SourceBuffer')
 class SourceBuffer native "*SourceBuffer" {
 
@@ -25743,7 +25452,6 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
   @Creates('SqlDatabase')
-  @Creates('SqlDatabaseSync')
   SqlDatabase openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native;
 
   @DomName('DOMWindow.postMessage')
@@ -26158,6 +25866,10 @@ class _BeforeUnloadEventStreamProvider implements
 
 @DocsEditable
 @DomName('Worker')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
+@SupportedBrowser(SupportedBrowser.IE, '10')
+@SupportedBrowser(SupportedBrowser.SAFARI)
 class Worker extends AbstractWorker native "*Worker" {
 
   @DomName('Worker.messageEvent')
@@ -26171,26 +25883,12 @@ class Worker extends AbstractWorker native "*Worker" {
   }
   static Worker _create_1(scriptUrl) => JS('Worker', 'new Worker(#)', scriptUrl);
 
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => JS('bool', '(typeof window.Worker != "undefined")');
+
   @DomName('Worker.postMessage')
   @DocsEditable
-  void postMessage(/*SerializedScriptValue*/ message, [List messagePorts]) {
-    if (?messagePorts) {
-      var message_1 = convertDartToNative_SerializedScriptValue(message);
-      _postMessage_1(message_1, messagePorts);
-      return;
-    }
-    var message_2 = convertDartToNative_SerializedScriptValue(message);
-    _postMessage_2(message_2);
-    return;
-  }
-  @JSName('postMessage')
-  @DomName('Worker.postMessage')
-  @DocsEditable
-  void _postMessage_1(message, List messagePorts) native;
-  @JSName('postMessage')
-  @DomName('Worker.postMessage')
-  @DocsEditable
-  void _postMessage_2(message) native;
+  void postMessage(/*SerializedScriptValue*/ message, [List messagePorts]) native;
 
   @DomName('Worker.terminate')
   @DocsEditable
@@ -26199,313 +25897,6 @@ class Worker extends AbstractWorker native "*Worker" {
   @DomName('Worker.onmessage')
   @DocsEditable
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
-}
-// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DomName('WorkerContext')
-class WorkerContext extends EventTarget native "*WorkerContext" {
-  /**
-   * Gets an instance of the Indexed DB factory to being using Indexed DB.
-   *
-   * Use [IdbFactory.supported] to check if Indexed DB is supported on the
-   * current platform.
-   */
-  @SupportedBrowser(SupportedBrowser.CHROME, '23.0')
-  @SupportedBrowser(SupportedBrowser.FIREFOX, '15.0')
-  @SupportedBrowser(SupportedBrowser.IE, '10.0')
-  @Experimental
-  IdbFactory get indexedDB =>
-      JS('IdbFactory',
-         '#.indexedDB || #.webkitIndexedDB || #.mozIndexedDB',
-         this, this, this);
-
-  /**
-   * Access a sandboxed file system of the specified `size`. If `persistent` is
-   * true, the application will request permission from the user to create
-   * lasting storage. This storage cannot be freed without the user's
-   * permission. Returns a [Future] whose value stores a reference to the
-   * sandboxed file system for use. Because the file system is sandboxed,
-   * applications cannot access file systems created in other web pages. 
-   */
-  @DomName('WorkerContext.webkitRequestFileSystem')
-  @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @Experimental
-  Future<FileSystem> requestFileSystem(int size, {bool persistent: false}) {
-    return _requestFileSystem(persistent? 1 : 0, size);
-  }
-
-  /**
-   * Access a sandboxed file system of the specified `size`. If `persistent` is
-   * true, the application will request permission from the user to create
-   * lasting storage. This storage cannot be freed without the user's
-   * permission. This call will block until a reference to the synchronous file 
-   * system API has been obtained. Because the file system is sandboxed,
-   * applications cannot access file systems created in other web pages. 
-   */
-  @DomName('WorkerContext.webkitRequestFileSystemSync')
-  @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @Experimental
-  FileSystemSync requestFileSystemSync(int size, {bool persistent: false}) {
-    return _requestFileSystemSync(persistent? 1 : 0, size);
-  }
-
-  @DomName('WorkerContext.errorEvent')
-  @DocsEditable
-  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
-
-  static const int PERSISTENT = 1;
-
-  static const int TEMPORARY = 0;
-
-  @DomName('WorkerContext.location')
-  @DocsEditable
-  final WorkerLocation location;
-
-  @DomName('WorkerContext.navigator')
-  @DocsEditable
-  final WorkerNavigator navigator;
-
-  @DomName('WorkerContext.self')
-  @DocsEditable
-  final WorkerContext self;
-
-  @JSName('webkitNotifications')
-  @DomName('WorkerContext.webkitNotifications')
-  @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  final NotificationCenter notifications;
-
-  @JSName('addEventListener')
-  @DomName('WorkerContext.addEventListener')
-  @DocsEditable
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
-
-  @DomName('WorkerContext.clearInterval')
-  @DocsEditable
-  void clearInterval(int handle) native;
-
-  @DomName('WorkerContext.clearTimeout')
-  @DocsEditable
-  void clearTimeout(int handle) native;
-
-  @DomName('WorkerContext.close')
-  @DocsEditable
-  void close() native;
-
-  @DomName('WorkerContext.dispatchEvent')
-  @DocsEditable
-  bool dispatchEvent(Event evt) native;
-
-  @DomName('WorkerContext.importScripts')
-  @DocsEditable
-  void importScripts() native;
-
-  @DomName('WorkerContext.openDatabase')
-  @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  SqlDatabase openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native;
-
-  @DomName('WorkerContext.openDatabaseSync')
-  @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  SqlDatabaseSync openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native;
-
-  @JSName('removeEventListener')
-  @DomName('WorkerContext.removeEventListener')
-  @DocsEditable
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
-
-  @DomName('WorkerContext.setInterval')
-  @DocsEditable
-  int setInterval(Object handler, int timeout) native;
-
-  @DomName('WorkerContext.setTimeout')
-  @DocsEditable
-  int setTimeout(Object handler, int timeout) native;
-
-  @JSName('webkitRequestFileSystem')
-  /**
-   * Access a sandboxed file system of the specified `size`. If `persistent` is
-   * true, the application will request permission from the user to create
-   * lasting storage. This storage cannot be freed without the user's
-   * permission. Returns a [Future] whose value stores a reference to the
-   * sandboxed file system for use. Because the file system is sandboxed,
-   * applications cannot access file systems created in other web pages. 
-   */
-  @DomName('WorkerContext.webkitRequestFileSystem')
-  @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @Experimental
-  void __requestFileSystem(int type, int size, [_FileSystemCallback successCallback, _ErrorCallback errorCallback]) native;
-
-  @JSName('webkitRequestFileSystem')
-  /**
-   * Access a sandboxed file system of the specified `size`. If `persistent` is
-   * true, the application will request permission from the user to create
-   * lasting storage. This storage cannot be freed without the user's
-   * permission. Returns a [Future] whose value stores a reference to the
-   * sandboxed file system for use. Because the file system is sandboxed,
-   * applications cannot access file systems created in other web pages. 
-   */
-  @DomName('WorkerContext.webkitRequestFileSystem')
-  @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @Experimental
-  Future<FileSystem> _requestFileSystem(int type, int size) {
-    var completer = new Completer<FileSystem>();
-    __requestFileSystem(type, size,
-        (value) { completer.complete(value); },
-        (error) { completer.completeError(error); });
-    return completer.future;
-  }
-
-  @JSName('webkitRequestFileSystemSync')
-  /**
-   * Access a sandboxed file system of the specified `size`. If `persistent` is
-   * true, the application will request permission from the user to create
-   * lasting storage. This storage cannot be freed without the user's
-   * permission. This call will block until a reference to the synchronous file 
-   * system API has been obtained. Because the file system is sandboxed,
-   * applications cannot access file systems created in other web pages. 
-   */
-  @DomName('WorkerContext.webkitRequestFileSystemSync')
-  @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @Experimental
-  FileSystemSync _requestFileSystemSync(int type, int size) native;
-
-  @JSName('webkitResolveLocalFileSystemSyncURL')
-  @DomName('WorkerContext.webkitResolveLocalFileSystemSyncURL')
-  @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @Experimental
-  EntrySync resolveLocalFileSystemSyncUrl(String url) native;
-
-  @JSName('webkitResolveLocalFileSystemURL')
-  @DomName('WorkerContext.webkitResolveLocalFileSystemURL')
-  @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @Experimental
-  void _resolveLocalFileSystemUrl(String url, _EntryCallback successCallback, [_ErrorCallback errorCallback]) native;
-
-  @JSName('webkitResolveLocalFileSystemURL')
-  @DomName('WorkerContext.webkitResolveLocalFileSystemURL')
-  @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @Experimental
-  Future<Entry> resolveLocalFileSystemUrl(String url) {
-    var completer = new Completer<Entry>();
-    _resolveLocalFileSystemUrl(url,
-        (value) { completer.complete(value); },
-        (error) { completer.completeError(error); });
-    return completer.future;
-  }
-
-  @DomName('WorkerContext.onerror')
-  @DocsEditable
-  Stream<Event> get onError => errorEvent.forTarget(this);
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('WorkerLocation')
-class WorkerLocation native "*WorkerLocation" {
-
-  @DomName('WorkerLocation.hash')
-  @DocsEditable
-  final String hash;
-
-  @DomName('WorkerLocation.host')
-  @DocsEditable
-  final String host;
-
-  @DomName('WorkerLocation.hostname')
-  @DocsEditable
-  final String hostname;
-
-  @DomName('WorkerLocation.href')
-  @DocsEditable
-  final String href;
-
-  @DomName('WorkerLocation.pathname')
-  @DocsEditable
-  final String pathname;
-
-  @DomName('WorkerLocation.port')
-  @DocsEditable
-  final String port;
-
-  @DomName('WorkerLocation.protocol')
-  @DocsEditable
-  final String protocol;
-
-  @DomName('WorkerLocation.search')
-  @DocsEditable
-  final String search;
-
-  @DomName('WorkerLocation.toString')
-  @DocsEditable
-  String toString() native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('WorkerNavigator')
-class WorkerNavigator native "*WorkerNavigator" {
-
-  @DomName('WorkerNavigator.appName')
-  @DocsEditable
-  final String appName;
-
-  @DomName('WorkerNavigator.appVersion')
-  @DocsEditable
-  final String appVersion;
-
-  @DomName('WorkerNavigator.onLine')
-  @DocsEditable
-  final bool onLine;
-
-  @DomName('WorkerNavigator.platform')
-  @DocsEditable
-  final String platform;
-
-  @DomName('WorkerNavigator.userAgent')
-  @DocsEditable
-  final String userAgent;
-
-  @JSName('webkitPersistentStorage')
-  @DomName('WorkerNavigator.webkitPersistentStorage')
-  @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  final StorageQuota persistentStorage;
-
-  @JSName('webkitTemporaryStorage')
-  @DomName('WorkerNavigator.webkitTemporaryStorage')
-  @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  final StorageQuota temporaryStorage;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27515,6 +26906,44 @@ class _CssValueList extends CssValue implements List<CssValue>, JavaScriptIndexi
 
 
 @DocsEditable
+@DomName('DOMFileSystemSync')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@Experimental
+class _DOMFileSystemSync native "*DOMFileSystemSync" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('DedicatedWorkerContext')
+class _DedicatedWorkerContext extends _WorkerContext native "*DedicatedWorkerContext" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('DirectoryEntrySync')
+class _DirectoryEntrySync extends _EntrySync native "*DirectoryEntrySync" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('DirectoryReaderSync')
+class _DirectoryReaderSync native "*DirectoryReaderSync" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
 @DomName('EntryArray')
 class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*EntryArray" {
 
@@ -27734,103 +27163,103 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*En
 
 @DocsEditable
 @DomName('EntryArraySync')
-class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> native "*EntryArraySync" {
+class _EntryArraySync implements JavaScriptIndexingBehavior, List<_EntrySync> native "*EntryArraySync" {
 
   @DomName('EntryArraySync.length')
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  EntrySync operator[](int index) => JS("EntrySync", "#[#]", this, index);
+  _EntrySync operator[](int index) => JS("_EntrySync", "#[#]", this, index);
 
-  void operator[]=(int index, EntrySync value) {
+  void operator[]=(int index, _EntrySync value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
-  // -- start List<EntrySync> mixins.
-  // EntrySync is the element type.
+  // -- start List<_EntrySync> mixins.
+  // _EntrySync is the element type.
 
-  // From Iterable<EntrySync>:
+  // From Iterable<_EntrySync>:
 
-  Iterator<EntrySync> get iterator {
+  Iterator<_EntrySync> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new FixedSizeListIterator<EntrySync>(this);
+    return new FixedSizeListIterator<_EntrySync>(this);
   }
 
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, EntrySync)) {
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, _EntrySync)) {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, EntrySync)) {
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, _EntrySync)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
-  bool contains(EntrySync element) => IterableMixinWorkaround.contains(this, element);
+  bool contains(_EntrySync element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(EntrySync element)) => IterableMixinWorkaround.forEach(this, f);
+  void forEach(void f(_EntrySync element)) => IterableMixinWorkaround.forEach(this, f);
 
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  Iterable map(f(EntrySync element)) =>
+  Iterable map(f(_EntrySync element)) =>
       IterableMixinWorkaround.mapList(this, f);
 
-  Iterable<EntrySync> where(bool f(EntrySync element)) =>
+  Iterable<_EntrySync> where(bool f(_EntrySync element)) =>
       IterableMixinWorkaround.where(this, f);
 
-  Iterable expand(Iterable f(EntrySync element)) =>
+  Iterable expand(Iterable f(_EntrySync element)) =>
       IterableMixinWorkaround.expand(this, f);
 
-  bool every(bool f(EntrySync element)) => IterableMixinWorkaround.every(this, f);
+  bool every(bool f(_EntrySync element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(EntrySync element)) => IterableMixinWorkaround.any(this, f);
+  bool any(bool f(_EntrySync element)) => IterableMixinWorkaround.any(this, f);
 
-  List<EntrySync> toList({ bool growable: true }) =>
-      new List<EntrySync>.from(this, growable: growable);
+  List<_EntrySync> toList({ bool growable: true }) =>
+      new List<_EntrySync>.from(this, growable: growable);
 
-  Set<EntrySync> toSet() => new Set<EntrySync>.from(this);
+  Set<_EntrySync> toSet() => new Set<_EntrySync>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  Iterable<EntrySync> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<_EntrySync> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
-  Iterable<EntrySync> takeWhile(bool test(EntrySync value)) {
+  Iterable<_EntrySync> takeWhile(bool test(_EntrySync value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  Iterable<EntrySync> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<_EntrySync> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
-  Iterable<EntrySync> skipWhile(bool test(EntrySync value)) {
+  Iterable<_EntrySync> skipWhile(bool test(_EntrySync value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  EntrySync firstWhere(bool test(EntrySync value), { EntrySync orElse() }) {
+  _EntrySync firstWhere(bool test(_EntrySync value), { _EntrySync orElse() }) {
     return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  EntrySync lastWhere(bool test(EntrySync value), {EntrySync orElse()}) {
+  _EntrySync lastWhere(bool test(_EntrySync value), {_EntrySync orElse()}) {
     return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  EntrySync singleWhere(bool test(EntrySync value)) {
+  _EntrySync singleWhere(bool test(_EntrySync value)) {
     return IterableMixinWorkaround.singleWhere(this, test);
   }
 
-  EntrySync elementAt(int index) {
+  _EntrySync elementAt(int index) {
     return this[index];
   }
 
-  // From Collection<EntrySync>:
+  // From Collection<_EntrySync>:
 
-  void add(EntrySync value) {
+  void add(_EntrySync value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Iterable<EntrySync> iterable) {
+  void addAll(Iterable<_EntrySync> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  // From List<EntrySync>:
+  // From List<_EntrySync>:
   void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
@@ -27839,53 +27268,53 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> nat
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  Iterable<EntrySync> get reversed {
+  Iterable<_EntrySync> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
-  void sort([int compare(EntrySync a, EntrySync b)]) {
+  void sort([int compare(_EntrySync a, _EntrySync b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
-  int indexOf(EntrySync element, [int start = 0]) =>
+  int indexOf(_EntrySync element, [int start = 0]) =>
       Lists.indexOf(this, element, start, this.length);
 
-  int lastIndexOf(EntrySync element, [int start]) {
+  int lastIndexOf(_EntrySync element, [int start]) {
     if (start == null) start = length - 1;
     return Lists.lastIndexOf(this, element, start);
   }
 
-  EntrySync get first {
+  _EntrySync get first {
     if (this.length > 0) return this[0];
     throw new StateError("No elements");
   }
 
-  EntrySync get last {
+  _EntrySync get last {
     if (this.length > 0) return this[this.length - 1];
     throw new StateError("No elements");
   }
 
-  EntrySync get single {
+  _EntrySync get single {
     if (length == 1) return this[0];
     if (length == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
   }
 
-  EntrySync min([int compare(EntrySync a, EntrySync b)]) =>
+  _EntrySync min([int compare(_EntrySync a, _EntrySync b)]) =>
       IterableMixinWorkaround.min(this, compare);
 
-  EntrySync max([int compare(EntrySync a, EntrySync b)]) =>
+  _EntrySync max([int compare(_EntrySync a, _EntrySync b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
-  void insert(int index, EntrySync element) {
+  void insert(int index, _EntrySync element) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  EntrySync removeAt(int pos) {
+  _EntrySync removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  EntrySync removeLast() {
+  _EntrySync removeLast() {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -27901,15 +27330,15 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> nat
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeWhere(bool test(EntrySync element)) {
+  void removeWhere(bool test(_EntrySync element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainWhere(bool test(EntrySync element)) {
+  void retainWhere(bool test(_EntrySync element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<EntrySync> from, [int startFrom]) {
+  void setRange(int start, int rangeLength, List<_EntrySync> from, [int startFrom]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -27917,19 +27346,19 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> nat
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [EntrySync initialValue]) {
+  void insertRange(int start, int rangeLength, [_EntrySync initialValue]) {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
-  List<EntrySync> sublist(int start, [int end]) {
+  List<_EntrySync> sublist(int start, [int end]) {
     if (end == null) end = length;
-    return Lists.getRange(this, start, end, <EntrySync>[]);
+    return Lists.getRange(this, start, end, <_EntrySync>[]);
   }
 
-  List<EntrySync> getRange(int start, int rangeLength) =>
+  List<_EntrySync> getRange(int start, int rangeLength) =>
       sublist(start, start + rangeLength);
 
-  Map<int, EntrySync> asMap() =>
+  Map<int, _EntrySync> asMap() =>
     IterableMixinWorkaround.asMapList(this);
 
   String toString() {
@@ -27939,11 +27368,54 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<EntrySync> nat
     return buffer.toString();
   }
 
-  // -- end List<EntrySync> mixins.
+  // -- end List<_EntrySync> mixins.
 
   @DomName('EntryArraySync.item')
   @DocsEditable
-  EntrySync item(int index) native;
+  _EntrySync item(int index) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('EntrySync')
+class _EntrySync native "*EntrySync" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('FileEntrySync')
+class _FileEntrySync extends _EntrySync native "*FileEntrySync" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('FileReaderSync')
+class _FileReaderSync native "*FileReaderSync" {
+
+  @DomName('FileReaderSync.FileReaderSync')
+  @DocsEditable
+  factory _FileReaderSync() {
+    return _FileReaderSync._create_1();
+  }
+  static _FileReaderSync _create_1() => JS('_FileReaderSync', 'new FileReaderSync()');
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('FileWriterSync')
+class _FileWriterSync native "*FileWriterSync" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28467,6 +27939,35 @@ class _NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*N
   @DomName('NamedNodeMap.setNamedItemNS')
   @DocsEditable
   Node setNamedItemNS(Node node) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('SharedWorker')
+class _SharedWorker extends AbstractWorker native "*SharedWorker" {
+
+  @DomName('SharedWorker.SharedWorker')
+  @DocsEditable
+  factory _SharedWorker(String scriptURL, [String name]) {
+    if (?name) {
+      return _SharedWorker._create_1(scriptURL, name);
+    }
+    return _SharedWorker._create_2(scriptURL);
+  }
+  static _SharedWorker _create_1(scriptURL, name) => JS('_SharedWorker', 'new SharedWorker(#,#)', scriptURL, name);
+  static _SharedWorker _create_2(scriptURL) => JS('_SharedWorker', 'new SharedWorker(#)', scriptURL);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('SharedWorkerContext')
+class _SharedWorkerContext extends _WorkerContext native "*SharedWorkerContext" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29143,6 +28644,33 @@ class _WebKitTransitionEvent extends Event implements TransitionEvent  native "*
   @DomName('WebKitTransitionEvent.pseudoElement')
   @DocsEditable
   final String pseudoElement;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('WorkerContext')
+class _WorkerContext extends EventTarget native "*WorkerContext" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('WorkerLocation')
+class _WorkerLocation native "*WorkerLocation" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('WorkerNavigator')
+class _WorkerNavigator native "*WorkerNavigator" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

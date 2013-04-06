@@ -67,14 +67,6 @@ typedef void SqlTransactionErrorCallback(SqlError error);
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
-
-typedef void SqlTransactionSyncCallback(SqlTransactionSync transaction);
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 @DocsEditable
 @DomName('Database')
@@ -113,38 +105,6 @@ class SqlDatabase native "*Database" {
   @DomName('Database.transaction')
   @DocsEditable
   void transaction(SqlTransactionCallback callback, [SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('DatabaseSync')
-@SupportedBrowser(SupportedBrowser.CHROME)
-@SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental
-class SqlDatabaseSync native "*DatabaseSync" {
-
-  @DomName('DatabaseSync.lastErrorMessage')
-  @DocsEditable
-  final String lastErrorMessage;
-
-  @DomName('DatabaseSync.version')
-  @DocsEditable
-  final String version;
-
-  @DomName('DatabaseSync.changeVersion')
-  @DocsEditable
-  void changeVersion(String oldVersion, String newVersion, [SqlTransactionSyncCallback callback]) native;
-
-  @DomName('DatabaseSync.readTransaction')
-  @DocsEditable
-  void readTransaction(SqlTransactionSyncCallback callback) native;
-
-  @DomName('DatabaseSync.transaction')
-  @DocsEditable
-  void transaction(SqlTransactionSyncCallback callback) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -481,13 +441,21 @@ class SqlTransaction native "*SQLTransaction" {
 
 
 @DocsEditable
+@DomName('DatabaseSync')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
+class _DatabaseSync native "*DatabaseSync" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
 @DomName('SQLTransactionSync')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
-class SqlTransactionSync native "*SQLTransactionSync" {
-
-  @DomName('SQLTransactionSync.executeSql')
-  @DocsEditable
-  SqlResultSet executeSql(String sqlStatement, List arguments) native;
+class _SQLTransactionSync native "*SQLTransactionSync" {
 }

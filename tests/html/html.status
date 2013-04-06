@@ -63,6 +63,7 @@ websocket_test/websocket: Fail # TODO(efortuna): Issue 7875.
 window_open_test: Skip
 canvasrenderingcontext2d_test/drawImage_video_element: Fail # IE does not support drawImage w/ video element
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # IE does not support drawImage w/ video element
+worker_test/functional: Fail # IE uses incorrect security context for Blob URIs.
 
 # IE10 Feature support statuses-
 # All changes should be accompanied by platform support annotation changes.
@@ -203,6 +204,7 @@ typed_arrays_1_test/supported: Fail
 webgl_1_test/supported: Fail
 websocket_test/supported: Fail
 websql_test/supported: Fail
+worker_test/supported: Fail
 xhr_cross_origin_test/supported: Fail
 xhr_test/supported_HttpRequestProgressEvent: Fail
 xhr_test/supported_onLoadEnd: Fail

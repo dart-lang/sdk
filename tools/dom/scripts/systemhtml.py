@@ -71,7 +71,7 @@ _js_custom_members = monitored.Set('systemhtml._js_custom_members', [
     'Window.location',
     'Window.open',
     'Window.requestAnimationFrame',
-    'WorkerContext.indexedDB',
+    # 'WorkerContext.indexedDB', # Workers
     ])
 
 _js_custom_constructors = monitored.Set('systemhtml._js_custom_constructors', [
@@ -396,6 +396,7 @@ js_support_checks = dict({
     'WebKitCSSMatrix': "JS('bool', '!!(window.WebKitCSSMatrix)')",
     'WebKitPoint': "JS('bool', '!!(window.WebKitPoint)')",
     'WebSocket': "JS('bool', 'typeof window.WebSocket != \"undefined\"')",
+    'Worker': "JS('bool', '(typeof window.Worker != \"undefined\")')",
     'XSLTProcessor': "JS('bool', '!!(window.XSLTProcessor)')",
   }.items() +
   dict((key,
@@ -430,12 +431,15 @@ class HtmlDartInterfaceGenerator(object):
 
   def GenerateCallback(self):
     """Generates a typedef for the callback interface."""
+    typedef_name = self._renamer.RenameInterface(self._interface)
+    if not typedef_name:
+      return
+
     info = GetCallbackInfo(self._interface)
     code = self._library_emitter.FileEmitter(self._interface.id,
         self._library_name)
     code.Emit(self._template_loader.Load('callback.darttemplate'))
 
-    typedef_name = self._renamer.RenameInterface(self._interface)
     code.Emit('typedef void $NAME($PARAMS);\n',
               LIBRARYNAME='dart.dom.%s' % self._library_name,
               NAME=typedef_name,
