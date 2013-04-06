@@ -12635,21 +12635,21 @@ class HtmlDocument extends Document native "*HTMLDocument" {
   final Element activeElement;
 
   @DomName('Document.body')
-  BodyElement get body => document.$dom_body;
+  BodyElement get body => $dom_body;
 
   @DomName('Document.body')
   void set body(BodyElement value) {
-    document.$dom_body = value;
+    $dom_body = value;
   }
 
   @DomName('Document.caretRangeFromPoint')
   Range caretRangeFromPoint(int x, int y) {
-    return document.$dom_caretRangeFromPoint(x, y);
+    return $dom_caretRangeFromPoint(x, y);
   }
 
   @DomName('Document.elementFromPoint')
   Element elementFromPoint(int x, int y) {
-    return document.$dom_elementFromPoint(x, y);
+    return $dom_elementFromPoint(x, y);
   }
 
   /**
@@ -12689,36 +12689,36 @@ class HtmlDocument extends Document native "*HTMLDocument" {
   @DomName('Document.getCSSCanvasContext')
   CanvasRenderingContext getCssCanvasContext(String contextId, String name,
       int width, int height) {
-    return document.$dom_getCssCanvasContext(contextId, name, width, height);
+    return $dom_getCssCanvasContext(contextId, name, width, height);
   }
 
   @DomName('Document.head')
-  HeadElement get head => document.$dom_head;
+  HeadElement get head => $dom_head;
 
   @DomName('Document.lastModified')
-  String get lastModified => document.$dom_lastModified;
+  String get lastModified => $dom_lastModified;
 
   @DomName('Document.preferredStylesheetSet')
-  String get preferredStylesheetSet => document.$dom_preferredStylesheetSet;
+  String get preferredStylesheetSet => $dom_preferredStylesheetSet;
 
   @DomName('Document.referrer')
-  String get referrer => document.$dom_referrer;
+  String get referrer => $dom_referrer;
 
   @DomName('Document.selectedStylesheetSet')
-  String get selectedStylesheetSet => document.$dom_selectedStylesheetSet;
+  String get selectedStylesheetSet => $dom_selectedStylesheetSet;
   void set selectedStylesheetSet(String value) {
-    document.$dom_selectedStylesheetSet = value;
+    $dom_selectedStylesheetSet = value;
   }
 
   @DomName('Document.styleSheets')
-  List<StyleSheet> get styleSheets => document.$dom_styleSheets;
+  List<StyleSheet> get styleSheets => $dom_styleSheets;
 
   @DomName('Document.title')
-  String get title => document.$dom_title;
+  String get title => $dom_title;
 
   @DomName('Document.title')
   void set title(String value) {
-    document.$dom_title = value;
+    $dom_title = value;
   }
 
   @DomName('Document.webkitCancelFullScreen')
@@ -12726,7 +12726,7 @@ class HtmlDocument extends Document native "*HTMLDocument" {
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
   void cancelFullScreen() {
-    document.$dom_webkitCancelFullScreen();
+    $dom_webkitCancelFullScreen();
   }
 
   @DomName('Document.webkitExitFullscreen')
@@ -12734,7 +12734,7 @@ class HtmlDocument extends Document native "*HTMLDocument" {
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
   void exitFullscreen() {
-    document.$dom_webkitExitFullscreen();
+    $dom_webkitExitFullscreen();
   }
 
   @DomName('Document.webkitExitPointerLock')
@@ -12742,45 +12742,45 @@ class HtmlDocument extends Document native "*HTMLDocument" {
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
   void exitPointerLock() {
-    document.$dom_webkitExitPointerLock();
+    $dom_webkitExitPointerLock();
   }
 
   @DomName('Document.webkitFullscreenElement')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
-  Element get fullscreenElement => document.$dom_webkitFullscreenElement;
+  Element get fullscreenElement => $dom_webkitFullscreenElement;
 
   @DomName('Document.webkitFullscreenEnabled')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
-  bool get fullscreenEnabled => document.$dom_webkitFullscreenEnabled;
+  bool get fullscreenEnabled => $dom_webkitFullscreenEnabled;
 
   @DomName('Document.webkitHidden')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
-  bool get hidden => document.$dom_webkitHidden;
+  bool get hidden => $dom_webkitHidden;
 
   @DomName('Document.webkitIsFullScreen')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
-  bool get isFullScreen => document.$dom_webkitIsFullScreen;
+  bool get isFullScreen => $dom_webkitIsFullScreen;
 
   @DomName('Document.webkitPointerLockElement')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
   Element get pointerLockElement =>
-      document.$dom_webkitPointerLockElement;
+      $dom_webkitPointerLockElement;
 
   @DomName('Document.webkitVisibilityState')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
-  String get visibilityState => document.$dom_webkitVisibilityState;
+  String get visibilityState => $dom_webkitVisibilityState;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
