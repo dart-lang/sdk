@@ -1445,8 +1445,6 @@ _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
         suppress_interface=True),
     'HTMLAllCollection': TypeData(clazz='Interface', item_type='Node'),
     'HTMLCollection': TypeData(clazz='Interface', item_type='Node'),
-    'MediaStreamList': TypeData(clazz='Interface',
-        item_type='MediaStream', suppress_interface=True),
     'NamedNodeMap': TypeData(clazz='Interface', item_type='Node'),
     'NodeList': TypeData(clazz='Interface', item_type='Node',
                          suppress_interface=False, dart_type='List<Node>'),

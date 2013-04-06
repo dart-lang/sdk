@@ -21102,6 +21102,10 @@ class RtcDataChannelEvent extends Event {
 class RtcDtmfSender extends EventTarget {
   RtcDtmfSender.internal() : super.internal();
 
+  @DomName('RTCDTMFSender.tonechangeEvent')
+  @DocsEditable
+  static const EventStreamProvider<RtcDtmfToneChangeEvent> toneChangeEvent = const EventStreamProvider<RtcDtmfToneChangeEvent>('tonechange');
+
   @DomName('RTCDTMFSender.canInsertDTMF')
   @DocsEditable
   bool get canInsertDtmf native "RTCDTMFSender_canInsertDTMF_Getter";
@@ -21158,6 +21162,10 @@ class RtcDtmfSender extends EventTarget {
   @DomName('RTCDTMFSender.removeEventListener')
   @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "RTCDTMFSender_removeEventListener_Callback";
+
+  @DomName('RTCDTMFSender.ontonechange')
+  @DocsEditable
+  Stream<RtcDtmfToneChangeEvent> get onToneChange => toneChangeEvent.forTarget(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21274,6 +21282,10 @@ class RtcPeerConnection extends EventTarget {
   @DocsEditable
   static const EventStreamProvider<RtcIceCandidateEvent> iceCandidateEvent = const EventStreamProvider<RtcIceCandidateEvent>('icecandidate');
 
+  @DomName('RTCPeerConnection.iceconnectionstatechangeEvent')
+  @DocsEditable
+  static const EventStreamProvider<Event> iceConnectionStateChangeEvent = const EventStreamProvider<Event>('iceconnectionstatechange');
+
   @DomName('RTCPeerConnection.negotiationneededEvent')
   @DocsEditable
   static const EventStreamProvider<Event> negotiationNeededEvent = const EventStreamProvider<Event>('negotiationneeded');
@@ -21281,6 +21293,10 @@ class RtcPeerConnection extends EventTarget {
   @DomName('RTCPeerConnection.removestreamEvent')
   @DocsEditable
   static const EventStreamProvider<MediaStreamEvent> removeStreamEvent = const EventStreamProvider<MediaStreamEvent>('removestream');
+
+  @DomName('RTCPeerConnection.signalingstatechangeEvent')
+  @DocsEditable
+  static const EventStreamProvider<Event> signalingStateChangeEvent = const EventStreamProvider<Event>('signalingstatechange');
 
   @DomName('RTCPeerConnection.RTCPeerConnection')
   @DocsEditable
@@ -21411,6 +21427,10 @@ class RtcPeerConnection extends EventTarget {
   @DocsEditable
   Stream<RtcIceCandidateEvent> get onIceCandidate => iceCandidateEvent.forTarget(this);
 
+  @DomName('RTCPeerConnection.oniceconnectionstatechange')
+  @DocsEditable
+  Stream<Event> get onIceConnectionStateChange => iceConnectionStateChangeEvent.forTarget(this);
+
   @DomName('RTCPeerConnection.onnegotiationneeded')
   @DocsEditable
   Stream<Event> get onNegotiationNeeded => negotiationNeededEvent.forTarget(this);
@@ -21418,6 +21438,10 @@ class RtcPeerConnection extends EventTarget {
   @DomName('RTCPeerConnection.onremovestream')
   @DocsEditable
   Stream<MediaStreamEvent> get onRemoveStream => removeStreamEvent.forTarget(this);
+
+  @DomName('RTCPeerConnection.onsignalingstatechange')
+  @DocsEditable
+  Stream<Event> get onSignalingStateChange => signalingStateChangeEvent.forTarget(this);
 
 }
 

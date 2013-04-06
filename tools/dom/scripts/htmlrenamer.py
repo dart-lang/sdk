@@ -37,8 +37,6 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames', {
     'RTCDTMFToneChangeEvent': 'RtcDtmfToneChangeEvent',
     'RTCErrorCallback': '_RtcErrorCallback',
     'RTCSessionDescriptionCallback': '_RtcSessionDescriptionCallback',
-    'StorageInfoErrorCallback': '_StorageInfoErrorCallback',
-    'StorageInfoUsageCallback': '_StorageInfoUsageCallback',
     'StringCallback': '_StringCallback',
     'SVGDocument': 'SvgDocument', # Manual to avoid name conflicts.
     'SVGElement': 'SvgElement', # Manual to avoid name conflicts.
@@ -530,7 +528,6 @@ _removed_html_members = monitored.Set('htmlrenamer._removed_html_members', [
     'HTMLPreElement.width',
     'HTMLScriptElement.text',
     'HTMLSelectElement.options',
-    'HTMLSelectElement.remove',
     'HTMLSelectElement.selectedOptions',
     'HTMLTableCaptionElement.align',
     'HTMLTableCellElement.abbr',

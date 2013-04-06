@@ -49,7 +49,6 @@ _js_custom_members = monitored.Set('systemhtml._js_custom_members', [
     'Element.remove',
     'ElementEvents.mouseWheel',
     'ElementEvents.transitionEnd',
-    'Event.returnValue',
     'DOMException.name',
     'HTMLTableElement.createTBody',
     'IDBDatabase.transaction',
