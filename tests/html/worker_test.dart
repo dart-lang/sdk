@@ -28,6 +28,10 @@ main() {
       }, expectation);
     });
 
+    if (!Worker.supported) {
+      return;
+    }
+
     test('works', () {
       // Use Blob to make a local URL so we don't have to have a separate file.
       var blob = new Blob([workerScript], 'text/javascript');
