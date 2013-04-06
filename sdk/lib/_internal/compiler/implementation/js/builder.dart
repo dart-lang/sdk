@@ -10,18 +10,8 @@ part of js;
 class JsBuilder {
   const JsBuilder();
 
-  Expression operator [](String source) {
+  Expression call(String source) {
     return new MiniJsParser(source).expression();
-  }
-
-  // TODO(ahe): Remove this method.
-  Binary equals(Expression left, Expression right) {
-    return new Binary('==', left, right);
-  }
-
-  // TODO(ahe): Remove this method.
-  Binary strictEquals(Expression left, Expression right) {
-    return new Binary('===', left, right);
   }
 
   LiteralString string(String value) => new LiteralString('"$value"');
@@ -92,7 +82,7 @@ class JsBuilder {
     if (expression is Expression) {
       return expression;
     } else if (expression is String) {
-      return this[expression];
+      return this(expression);
     } else if (expression is num) {
       return new LiteralNumber('$expression');
     } else if (expression is bool) {

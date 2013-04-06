@@ -7,7 +7,7 @@ import '../../../sdk/lib/_internal/compiler/implementation/js/js.dart' as jsAst;
 import '../../../sdk/lib/_internal/compiler/implementation/js/js.dart' show js;
 
 void testExpression(String expression, [String expect = ""]) {
-  jsAst.Node node = js[expression];
+  jsAst.Node node = js(expression);
   MockCompiler compiler = new MockCompiler();
   String jsText =
       jsAst.prettyPrint(node,
@@ -25,7 +25,7 @@ void testError(String expression, [String expect = ""]) {
     Expect.isTrue(exception.toString().contains(expect));
     return true;
   }
-  Expect.throws(() => js[expression], doCheck);
+  Expect.throws(() => js(expression), doCheck);
 }
     
 

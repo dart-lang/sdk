@@ -65,6 +65,7 @@ main() {
 
 twoClasses() {
   String generated = compileAll(TEST_ONE);
+  print(generated);
   Expect.isTrue(generated.contains('\$.A = {"": "Object;"'));
   Expect.isTrue(generated.contains('\$.B = {"": "Object;"'));
 }

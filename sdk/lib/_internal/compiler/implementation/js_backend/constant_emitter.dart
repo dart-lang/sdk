@@ -93,7 +93,7 @@ class ConstantReferenceEmitter implements ConstantVisitor<jsAst.Expression> {
   jsAst.Expression visitTrue(TrueConstant constant) {
     if (compiler.enableMinification) {
       // Use !0 for true.
-      return js["!0"];
+      return js("!0");
     } else {
       return new jsAst.LiteralBool(true);
     }
@@ -102,7 +102,7 @@ class ConstantReferenceEmitter implements ConstantVisitor<jsAst.Expression> {
   jsAst.Expression visitFalse(FalseConstant constant) {
     if (compiler.enableMinification) {
       // Use !1 for false.
-      return js["!1"];
+      return js("!1");
     } else {
       return new jsAst.LiteralBool(false);
     }

@@ -67,15 +67,15 @@ class CodeEmitterNoEvalTask extends CodeEmitterTask {
     return [new jsAst.FunctionDeclaration(
         new jsAst.VariableDeclaration('defineClass'),
         js.fun(['cls', 'constructor', 'prototype'],
-               [js[r'constructor.prototype = prototype'],
-                js[r'constructor.builtin$cls = cls'],
+               [js(r'constructor.prototype = prototype'),
+                js(r'constructor.builtin$cls = cls'),
                 js.return_('constructor')]))];
   }
 
   List buildProtoSupportCheck() {
     // We don't modify the prototypes in CSP mode. Therefore we can have an
     // easier prototype-check.
-    return [js['var $supportsProtoName = !(!({}.__proto__))']];
+    return [js('var $supportsProtoName = !(!({}.__proto__))')];
   }
 
   jsAst.Expression buildConstructor(String mangledName,
@@ -83,7 +83,7 @@ class CodeEmitterNoEvalTask extends CodeEmitterTask {
     return new jsAst.NamedFunction(
         new jsAst.VariableDeclaration(mangledName),
         js.fun(fieldNames, fieldNames.map(
-            (name) => js['this.$name = $name']).toList()));
+            (name) => js('this.$name = $name')).toList()));
   }
 
   jsAst.Expression buildUnusedConstructor(String mangledName) {
@@ -104,7 +104,7 @@ class CodeEmitterNoEvalTask extends CodeEmitterTask {
   jsAst.Expression buildLazyInitializedGetter(VariableElement element) {
     String isolate = namer.CURRENT_ISOLATE;
     String name = namer.getName(element);
-    return js.fun([], js.return_(js['$isolate.$name']));
+    return js.fun([], js.return_(js('$isolate.$name')));
   }
 
   jsAst.Fun get lazyInitializerFunction {
@@ -122,25 +122,25 @@ class CodeEmitterNoEvalTask extends CodeEmitterTask {
     // We also copy over old values like the prototype, and the
     // isolateProperties themselves.
     return js.fun('oldIsolate', [
-      js['var isolateProperties = oldIsolate.${namer.isolatePropertiesName}'],
+      js('var isolateProperties = oldIsolate.${namer.isolatePropertiesName}'),
       new jsAst.FunctionDeclaration(
         new jsAst.VariableDeclaration('Isolate'),
           js.fun([], [
-            js['var hasOwnProperty = Object.prototype.hasOwnProperty'],
+            js('var hasOwnProperty = Object.prototype.hasOwnProperty'),
             js.forIn('staticName', 'isolateProperties',
               js.if_('hasOwnProperty.call(isolateProperties, staticName)',
-                js['this[staticName] = isolateProperties[staticName]'])),
+                js('this[staticName] = isolateProperties[staticName]'))),
             // Use the newly created object as prototype. In Chrome,
             // this creates a hidden class for the object and makes
             // sure it is fast to access.
             new jsAst.FunctionDeclaration(
               new jsAst.VariableDeclaration('ForceEfficientMap'),
               js.fun([], [])),
-            js['ForceEfficientMap.prototype = this'],
-            js['new ForceEfficientMap()']])),
-      js['Isolate.prototype = oldIsolate.prototype'],
-      js['Isolate.prototype.constructor = Isolate'],
-      js['Isolate.${namer.isolatePropertiesName} = isolateProperties'],
+            js('ForceEfficientMap.prototype = this'),
+            js('new ForceEfficientMap()')])),
+      js('Isolate.prototype = oldIsolate.prototype'),
+      js('Isolate.prototype.constructor = Isolate'),
+      js('Isolate.${namer.isolatePropertiesName} = isolateProperties'),
       js.return_('Isolate')]);
   }
 }
