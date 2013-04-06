@@ -66,6 +66,7 @@
         'runtime/dart-runtime.gyp:dart',
         'utils/compiler/compiler.gyp:dart2js',
         'compiler',
+        'packages'
       ],
       'actions': [
         {
@@ -130,6 +131,17 @@
       'dependencies': [
         'create_sdk',
         'editor/analyzer.gyp:analyzer',
+      ],
+    },
+    {
+      # This is the target that is built on the dart2dart bots.
+      # It must depend on anything that is required by dart2dart
+      # tests.
+      'target_name': 'dart2dart_bot',
+      'type': 'none',
+      'dependencies': [
+        'create_sdk',
+        'packages',
       ],
     },
     {
