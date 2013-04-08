@@ -220,6 +220,7 @@ const int _WRITE_BYTE_REQUEST = 15;
 const int _READ_REQUEST = 16;
 const int _READ_LIST_REQUEST = 17;
 const int _WRITE_LIST_REQUEST = 18;
+const int _DELETE_LINK_REQUEST = 19;
 
 // Base class for _File and _RandomAccessFile with shared functions.
 class _FileBase {

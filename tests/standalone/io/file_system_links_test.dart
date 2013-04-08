@@ -58,7 +58,7 @@ testFileExistsCreate() {
                   FileSystemEntity.typeSync(x, followLinks: false));
     Expect.equals(x, new Link(y).targetSync());
 
-    new File(y).deleteSync();
+    new Link(y).deleteSync();
     Expect.isFalse(FileSystemEntity.isLinkSync(y));
     Expect.isFalse(FileSystemEntity.isLinkSync(x));
     Expect.equals(FileSystemEntityType.NOT_FOUND, FileSystemEntity.typeSync(y));

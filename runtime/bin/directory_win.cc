@@ -6,6 +6,7 @@
 #if defined(TARGET_OS_WINDOWS)
 
 #include "bin/directory.h"
+#include "bin/file.h"
 
 #include <errno.h>  // NOLINT
 #include <sys/stat.h>  // NOLINT
@@ -47,6 +48,25 @@ class PathBuffer {
     data[length] = L'\0';
   }
 };
+
+// If link_name points to a link, IsBrokenLink will return true if link_name
+// points to an invalid target.
+static bool IsBrokenLink(const wchar_t* link_name) {
+  HANDLE handle = CreateFileW(
+      link_name,
+      0,
+      FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+      NULL,
+      OPEN_EXISTING,
+      FILE_FLAG_BACKUP_SEMANTICS,
+      NULL);
+  if (handle == INVALID_HANDLE_VALUE) {
+    return true;
+  } else {
+    CloseHandle(handle);
+    return false;
+  }
+}
 
 
 // Forward declarations.
@@ -122,18 +142,13 @@ static bool HandleEntry(LPWIN32_FIND_DATAW find_file_data,
     if (!follow_links) {
       return HandleLink(find_file_data->cFileName, path, listing);
     }
-    // Attempt to list the directory, to see if it's a valid link or not.
     int path_length = path->length;
     if (!path->Add(find_file_data->cFileName)) return false;
-    if (!path->Add(L"\\*")) return false;
-    WIN32_FIND_DATAW tmp_file_data;
-    HANDLE find_handle = FindFirstFileW(path->data, &tmp_file_data);
+    bool broken = IsBrokenLink(path->data);
     path->Reset(path_length);
-    if (find_handle == INVALID_HANDLE_VALUE) {
-      // Invalid handle, report as (broken) link.
+    if (broken) {
+      // Report as (broken) link.
       return HandleLink(find_file_data->cFileName, path, listing);
-    } else {
-      FindClose(find_handle);
     }
   }
   if ((attributes & FILE_ATTRIBUTE_DIRECTORY) != 0) {
@@ -253,8 +268,12 @@ static bool DeleteRecursively(PathBuffer* path) {
   DWORD attributes = GetFileAttributesW(path->data);
   if ((attributes != INVALID_FILE_ATTRIBUTES) &&
       (attributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0) {
-    // Just delete the junction itself.
-    return RemoveDirectoryW(path->data) != 0;
+    if (IsBrokenLink(path->data)) {
+      return false;
+    } else {
+      // Just delete the junction itself.
+      return RemoveDirectoryW(path->data) != 0;
+    }
   }
 
   if (!path->Add(L"\\*")) return false;
@@ -318,6 +337,7 @@ static Directory::ExistsResult ExistsHelper(const wchar_t* dir_name) {
     }
   }
   bool exists = (attributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
+  exists = exists && !IsBrokenLink(dir_name);
   return exists ? Directory::EXISTS : Directory::DOES_NOT_EXIST;
 }
 
@@ -407,13 +427,16 @@ bool Directory::Delete(const char* dir_name, bool recursive) {
   bool result = false;
   const wchar_t* system_dir_name = StringUtils::Utf8ToWide(dir_name);
   if (!recursive) {
-    result = (RemoveDirectoryW(system_dir_name) != 0);
+    if (File::GetType(dir_name, true) == File::kIsDirectory) {
+      result = (RemoveDirectoryW(system_dir_name) != 0);
+    } else {
+      SetLastError(ERROR_DIRECTORY);
+    }
   } else {
     PathBuffer path;
-    if (!path.Add(system_dir_name)) {
-      return false;
+    if (path.Add(system_dir_name)) {
+      result = DeleteRecursively(&path);
     }
-    result = DeleteRecursively(&path);
   }
   free(const_cast<wchar_t*>(system_dir_name));
   return result;

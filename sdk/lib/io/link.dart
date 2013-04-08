@@ -108,6 +108,8 @@ abstract class Link extends FileSystemEntity {
 class _Link extends FileSystemEntity implements Link {
   final String path;
 
+  SendPort _fileService;
+
   _Link(String this.path);
 
   _Link.fromPath(Path inputPath) : path = inputPath.toNativePath();
@@ -134,9 +136,7 @@ class _Link extends FileSystemEntity implements Link {
       target = _makeWindowsLinkTarget(target);
     }
     var result = _File._createLink(path, target);
-    if (result is OSError) {
-      throw new LinkIOException("Error in Link.createSync", result);
-    }
+    throwIfError(result, "Cannot create link '$path'");
   }
 
   // Put target into the form "\??\C:\my\target\dir".
@@ -164,11 +164,21 @@ class _Link extends FileSystemEntity implements Link {
   }
 
   Future<Link> delete() {
-    return new File(path).delete().then((_) => this);
+    _ensureFileService();
+    List request = new List(2);
+    request[0] = _DELETE_LINK_REQUEST;
+    request[1] = path;
+    return _fileService.call(request).then((response) {
+      if (_isErrorResponse(response)) {
+        throw _exceptionFromResponse(response, "Cannot delete link '$path'");
+      }
+      return this;
+    });
   }
 
   void deleteSync() {
-    new File(path).deleteSync();
+    var result = _File._deleteLink(path);
+    throwIfError(result, "Cannot delete link '$path'");
   }
 
   Future<String> target() {
@@ -178,10 +188,24 @@ class _Link extends FileSystemEntity implements Link {
 
   String targetSync() {
     var result = _File._linkTarget(path);
-    if (result is OSError) {
-      throw new LinkIOException("Error in Link.targetSync", result);
-    }
+    throwIfError(result, "Cannot read link '$path'");
     return result;
+  }
+
+  static throwIfError(Object result, String msg) {
+    if (result is OSError) {
+      throw new FileIOException(msg, result);
+    }
+  }
+
+  bool _isErrorResponse(response) {
+    return response is List && response[0] != _SUCCESS_RESPONSE;
+  }
+
+  void _ensureFileService() {
+    if (_fileService == null) {
+      _fileService = _FileUtils._newServicePort();
+    }
   }
 }
 

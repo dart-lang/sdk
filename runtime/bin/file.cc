@@ -488,6 +488,22 @@ void FUNCTION_NAME(File_Delete)(Dart_NativeArguments args) {
 }
 
 
+void FUNCTION_NAME(File_DeleteLink)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  const char* str =
+      DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
+  bool result = File::DeleteLink(str);
+  if (result) {
+    Dart_SetReturnValue(args, Dart_NewBoolean(result));
+  } else {
+    Dart_Handle err = DartUtils::NewDartOSError();
+    if (Dart_IsError(err)) Dart_PropagateError(err);
+    Dart_SetReturnValue(args, err);
+  }
+  Dart_ExitScope();
+}
+
+
 void FUNCTION_NAME(File_Directory)(Dart_NativeArguments args) {
   Dart_EnterScope();
   const char* str =
@@ -997,6 +1013,20 @@ static CObject* FileWriteListRequest(const CObjectArray& request) {
 }
 
 
+static CObject* FileDeleteLinkRequest(const CObjectArray& request) {
+  if (request.Length() == 2 && request[1]->IsString()) {
+    CObjectString filename(request[1]);
+    bool result = File::DeleteLink(filename.CString());
+    if (result) {
+      return CObject::True();
+    } else {
+      return CObject::NewOSError();
+    }
+  }
+  return CObject::False();
+}
+
+
 static void FileService(Dart_Port dest_port_id,
                  Dart_Port reply_port_id,
                  Dart_CObject* message) {
@@ -1062,6 +1092,9 @@ static void FileService(Dart_Port dest_port_id,
           break;
         case File::kWriteListRequest:
           response = FileWriteListRequest(request);
+          break;
+        case File::kDeleteLinkRequest:
+          response = FileDeleteLinkRequest(request);
           break;
         default:
           UNREACHABLE();

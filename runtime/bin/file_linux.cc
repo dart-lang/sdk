@@ -167,11 +167,25 @@ bool File::CreateLink(const char* name, const char* target) {
 
 
 bool File::Delete(const char* name) {
-  int status = TEMP_FAILURE_RETRY(remove(name));
-  if (status == -1) {
-    return false;
+  File::Type type = File::GetType(name, true);
+  if (type == kIsFile) {
+    return TEMP_FAILURE_RETRY(unlink(name)) == 0;
+  } else if (type == kIsDirectory) {
+    errno = EISDIR;
+  } else {
+    errno = ENOENT;
   }
-  return true;
+  return false;
+}
+
+
+bool File::DeleteLink(const char* name) {
+  File::Type type = File::GetType(name, false);
+  if (type == kIsLink) {
+    return TEMP_FAILURE_RETRY(unlink(name)) == 0;
+  }
+  errno = EINVAL;
+  return false;
 }
 
 

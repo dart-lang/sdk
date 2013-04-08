@@ -239,7 +239,11 @@ static bool DeleteRecursively(PathBuffer* path) {
   if (TEMP_FAILURE_RETRY(lstat(path->data, &st)) == -1) {
     return false;
   } else if (S_ISLNK(st.st_mode)) {
-    return (remove(path->data) == 0);
+    if (TEMP_FAILURE_RETRY(stat(path->data, &st)) == -1) {
+      return false;
+    } else if (S_ISDIR(st.st_mode)) {
+      return (unlink(path->data) == 0);
+    }
   }
 
   if (!path->Add(File::PathSeparator())) return false;
@@ -409,7 +413,11 @@ char* Directory::CreateTemp(const char* const_template) {
 
 bool Directory::Delete(const char* dir_name, bool recursive) {
   if (!recursive) {
-    return (TEMP_FAILURE_RETRY(remove(dir_name)) == 0);
+    if (File::GetType(dir_name, false) == File::kIsLink &&
+        File::GetType(dir_name, true) == File::kIsDirectory) {
+      return (TEMP_FAILURE_RETRY(unlink(dir_name)) == 0);
+    }
+    return (TEMP_FAILURE_RETRY(rmdir(dir_name)) == 0);
   } else {
     PathBuffer path;
     if (!path.Add(dir_name)) {

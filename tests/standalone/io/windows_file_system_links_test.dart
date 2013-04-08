@@ -30,13 +30,13 @@ testJunctionTypeDelete() {
 
     // Test Junction pointing to a missing directory.
     new Directory(x).deleteSync();
-    Expect.isTrue(new Directory(y).existsSync());
+    Expect.isTrue(new Link(y).existsSync());
     Expect.isFalse(new Directory(x).existsSync());
     Expect.isTrue(FileSystemEntity.isLinkSync(y));
     Expect.isFalse(FileSystemEntity.isLinkSync(x));
     Expect.isFalse(FileSystemEntity.isDirectorySync(y));
     Expect.isFalse(FileSystemEntity.isDirectorySync(x));
-    Expect.equals(FileSystemEntityType.NOT_FOUND,
+    Expect.equals(FileSystemEntityType.LINK,
                   FileSystemEntity.typeSync(y));
     Expect.equals(FileSystemEntityType.NOT_FOUND,
                   FileSystemEntity.typeSync(x));
@@ -47,7 +47,7 @@ testJunctionTypeDelete() {
     Expect.equals(x, new Link(y).targetSync());
 
     // Delete Junction pointing to a missing directory.
-    new Directory(y).deleteSync();
+    new Link(y).deleteSync();
     Expect.isFalse(FileSystemEntity.isLinkSync(y));
     Expect.equals(FileSystemEntityType.NOT_FOUND,
                   FileSystemEntity.typeSync(y));
