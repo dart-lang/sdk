@@ -455,7 +455,7 @@ class Debugger {
       targetProcess.kill();
       print("Target process killed");
     }
-    Expect.isTrue(!errorsDetected);
+    if (errorsDetected) throw "Errors detected";
     exit(errors.length);
   }
 }
@@ -487,7 +487,7 @@ bool RunScript(List script) {
         print("Debug target process started");
         process.stdin.close();
         process.exitCode.then((int exitCode) {
-          Expect.equals(0, exitCode);
+          if (exitCode != 0) throw "bad exit code: $exitCode";
           print("Debug target process exited with exit code $exitCode");
         });
         var debugger =

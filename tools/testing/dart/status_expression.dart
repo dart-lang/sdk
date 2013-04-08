@@ -56,7 +56,7 @@ class Tokenizer {
 
   List<String> tokenize() {
     if (!testRegexp.hasMatch(expression)) {
-      throw new ExpectException("Syntax error in '$expression'");
+      throw new FormatException("Syntax error in '$expression'");
     }
     for (Match match in regexp.allMatches(expression)) tokens.add(match[0]);
     return tokens;

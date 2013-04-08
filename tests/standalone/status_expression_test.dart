@@ -65,7 +65,8 @@ class StatusExpressionTest {
     } on Exception catch (e) {
       thrown = e;
     }
-    Expect.equals("Syntax error in '$input'", thrown.toString());
+    Expect.equals("FormatException: Syntax error in '$input'",
+                  thrown.toString());
   }
 
   static void test4() {
@@ -78,7 +79,8 @@ class StatusExpressionTest {
     } on Exception catch (e) {
       thrown = e;
     }
-    Expect.equals("Syntax error in '$input'", thrown.toString());
+    Expect.equals("FormatException: Syntax error in '$input'",
+                  thrown.toString());
   }
 
   static void test5() {

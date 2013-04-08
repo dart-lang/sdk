@@ -188,6 +188,14 @@ LibTest/core/double/floor_A01_t04: Fail # truncate/ceil/floor/round returns ints
 LibTest/core/double/round_A01_t02: Fail # truncate/ceil/floor/round returns ints, issue 389
 LibTest/core/double/round_A01_t04: Fail # truncate/ceil/floor/round returns ints, issue 389
 
+Language/15_Reference/1_Lexical_Rules/2_Comments_A04_t03: Fail # Uses deprecated Expect class, issue 398
+LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A02_t01: Fail # Uses deprecated Expect class, issue 398
+LibTest/core/Date/Date.fromString_A04_t01: Fail # Uses deprecated Expect class, issue 398
+LibTest/core/Date/add_A06_t01: Fail # Uses deprecated Expect class, issue 398
+LibTest/core/Date/compareTo_A03_t01: Fail # Uses deprecated Expect class, issue 398
+LibTest/core/Date/difference_A03_t01: Fail # Uses deprecated Expect class, issue 398
+LibTest/core/Date/subtract_A06_t01: Fail # Uses deprecated Expect class, issue 398
+
 LibTest/core/Date/operator_equality_A01_t01: Fail # DateTime.== now looks at timezone, co19 issue 379
 
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t03: Fail # issue 6085

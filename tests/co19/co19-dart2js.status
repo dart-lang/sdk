@@ -459,6 +459,14 @@ Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t04: Fail # 
 Language/11_Expressions/05_Strings/1_String_Interpolation_A03_t01: Fail # StringBuffer renamed add to write. co19 issue 388.
 Language/11_Expressions/05_Strings/1_String_Interpolation_A04_t01: Fail # StringBuffer renamed add to write. co19 issue 388.
 
+Language/15_Reference/1_Lexical_Rules/2_Comments_A04_t03: Fail # Uses deprecated Expect class, issue 398
+LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A02_t01: Fail # Uses deprecated Expect class, issue 398
+LibTest/core/Date/Date.fromString_A04_t01: Fail # Uses deprecated Expect class, issue 398
+LibTest/core/Date/add_A06_t01: Fail # Uses deprecated Expect class, issue 398
+LibTest/core/Date/compareTo_A03_t01: Fail # Uses deprecated Expect class, issue 398
+LibTest/core/Date/difference_A03_t01: Fail # Uses deprecated Expect class, issue 398
+LibTest/core/Date/subtract_A06_t01: Fail # Uses deprecated Expect class, issue 398
+
 LibTest/core/double/ceil_A01_t03: Fail # truncate/ceil/floor/round returns ints, issue 389
 LibTest/core/double/ceil_A01_t04: Fail # truncate/ceil/floor/round returns ints, issue 389
 LibTest/core/double/floor_A01_t03: Fail # truncate/ceil/floor/round returns ints, issue 389

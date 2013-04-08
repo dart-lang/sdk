@@ -4,6 +4,7 @@
 
 library run_async_test;
 
+import "package:expect/expect.dart";
 import 'dart:async';
 import '../../../pkg/unittest/lib/unittest.dart';
 

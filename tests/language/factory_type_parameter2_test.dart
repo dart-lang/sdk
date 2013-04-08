@@ -4,6 +4,8 @@
 
 // Test that type variables are correctly set in instances created by factories.
 
+import 'package:expect/expect.dart';
+
 var p;
 bool done = false;
 

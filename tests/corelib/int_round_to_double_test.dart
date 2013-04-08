@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:expect/expect.dart';
+
 main() {
   Expect.equals(0.0, 0.roundToDouble());
   Expect.equals(1.0, 1.roundToDouble());

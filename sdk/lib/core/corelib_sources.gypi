@@ -15,7 +15,6 @@
     'exceptions.dart',
     'errors.dart',
     'expando.dart',
-    'expect.dart',
     'function.dart',
     'identical.dart',
     'int.dart',

@@ -7,6 +7,7 @@
 // Parameters used to be passed in the wrong order in a constructor in the
 // presence of parameter checks.
 
+import 'package:expect/expect.dart';
 
 class A {
   A(expect1, expect2, value1, value2, {layers, serviceUrl}) {

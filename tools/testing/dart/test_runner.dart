@@ -275,8 +275,9 @@ class TestCase {
     // PREFIX EXECUTABLE SUFFIX ARGUMENTS
     var specialCommand = configuration['special-command'];
     if (!specialCommand.isEmpty) {
-      Expect.isTrue(specialCommand.contains('@'),
-                    "special-command must contain a '@' char");
+      if (!specialCommand.contains('@')) {
+        throw new FormatException("special-command must contain a '@' char");
+      }
       var specialCommandSplit = specialCommand.split('@');
       var prefix = specialCommandSplit[0].trim();
       var suffix = specialCommandSplit[1].trim();
@@ -810,7 +811,7 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
 
   bool _didMultitestFail(List errors, List staticWarnings) {
     Set<String> outcome = testCase.info.multitestOutcome;
-    Expect.isNotNull(outcome);
+    if (outcome == null) throw "outcome must not be null";
     if (outcome.contains('compile-time error') && errors.length > 0) {
       return true;
     } else if (outcome.contains('static type warning')
@@ -943,7 +944,9 @@ class RunningProcess {
   RunningProcess(TestCase this.testCase, Command this.command);
 
   Future<CommandOutput> start() {
-    Expect.isFalse(testCase.expectedOutcomes.contains(SKIP));
+    if (testCase.expectedOutcomes.contains(SKIP)) {
+      throw "testCase.expectedOutcomes must not contain 'SKIP'.";
+    }
 
     completer = new Completer<CommandOutput>();
     startTime = new DateTime.now();
@@ -1055,7 +1058,7 @@ class BatchRunnerProcess {
   bool get active => _currentTest != null;
 
   void startTest(TestCase testCase) {
-    Expect.isNull(_currentTest);
+    if (_currentTest != null) throw "_currentTest must be null.";
     _currentTest = testCase;
     _command = testCase.commands.last;
     if (_process == null) {
@@ -1652,7 +1655,9 @@ class ProcessQueue {
 
     var nextCommandIndex = testCase.commandOutputs.keys.length;
     var numberOfCommands = testCase.commands.length;
-    Expect.isTrue(nextCommandIndex < numberOfCommands);
+    if (nextCommandIndex >= numberOfCommands) {
+      throw "nextCommandIndex must be less than numberOfCommands";
+    }
     var command = testCase.commands[nextCommandIndex];
     var isLastCommand = nextCommandIndex == (numberOfCommands - 1);
 

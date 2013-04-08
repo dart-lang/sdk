@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test efficient and correct implementation of !identical(a, b).
 
+import 'package:expect/expect.dart';
+
 notIdenticalTest1(a) {
   if (!identical("ho", a)) {
     return 2;

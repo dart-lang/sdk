@@ -5,6 +5,8 @@
 // Test that dart2js uses the right interceptor when call a method on
 // something that has type number.
 
+import 'package:expect/expect.dart';
+
 var array = [];
 
 main() {

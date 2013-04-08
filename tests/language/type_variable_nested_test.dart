@@ -5,6 +5,8 @@
 // Regression test for
 // http://code.google.com/p/dart/issues/detail?id=9050.
 
+import 'package:expect/expect.dart';
+
 class A<T> {
 }
 

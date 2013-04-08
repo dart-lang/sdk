@@ -4,6 +4,7 @@
 
 library mixin_lib_extends_field_test;
 
+import 'package:expect/expect.dart';
 import "mixin_lib_extends_field_lib.dart" as L;
 
 class S {

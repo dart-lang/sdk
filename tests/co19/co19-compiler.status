@@ -168,6 +168,50 @@ LibTest/core/Date/toUtc_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374
 LibTest/core/Date/weekday_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
 LibTest/core/Date/year_A01_t01: Fail # Renamed Date to DateTime (issue 373, 374)
 
+Language/15_Reference/1_Lexical_Rules/2_Comments_A04_t03: Fail # Uses deprecated Expect class, issue 398
+LibTest/core/Date/Date.fromMillisecondsSinceEpoch_A02_t01: Fail # Uses deprecated Expect class, issue 398
+LibTest/core/Date/compareTo_A03_t01: Fail # Uses deprecated Expect class, issue 398
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A17_t04: Fail # Uses deprecated Expect class, issue 398
+Language/07_Classes/6_Constructors/2_Factories_A06_t01: Fail # Uses deprecated Expect class, issue 398
+Language/07_Classes/6_Constructors/2_Factories_A06_t02: Fail # Uses deprecated Expect class, issue 398
+Language/07_Classes/6_Constructors/2_Factories_A06_t03: Fail # Uses deprecated Expect class, issue 398
+Language/07_Classes/6_Constructors/2_Factories_A06_t04: Fail # Uses deprecated Expect class, issue 398
+Language/09_Generics/09_Generics_A05_t01: Fail # Uses deprecated Expect class, issue 398
+Language/09_Generics/09_Generics_A05_t02: Fail # Uses deprecated Expect class, issue 398
+Language/11_Expressions/04_Booleans/1_Boolean_Conversion_A01_t01: Fail # Uses deprecated Expect class, issue 398
+Language/11_Expressions/04_Booleans/1_Boolean_Conversion_A02_t01: Fail # Uses deprecated Expect class, issue 398
+Language/11_Expressions/06_Lists_A09_t01: Fail # Uses deprecated Expect class, issue 398
+Language/11_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A02_t01: Fail # Uses deprecated Expect class, issue 398
+Language/11_Expressions/14_Function_Invocation/2_Binding_Actuals_to_Formals_A03_t01: Fail # Uses deprecated Expect class, issue 398
+Language/11_Expressions/18_Assignment_A02_t01: Fail # Uses deprecated Expect class, issue 398
+Language/11_Expressions/18_Assignment_A04_t06: Fail # Uses deprecated Expect class, issue 398
+Language/11_Expressions/18_Assignment_A06_t01: Fail # Uses deprecated Expect class, issue 398
+Language/11_Expressions/19_Conditional_A02_t03: Fail # Uses deprecated Expect class, issue 398
+Language/11_Expressions/19_Conditional_A02_t04: Fail # Uses deprecated Expect class, issue 398
+Language/11_Expressions/19_Conditional_A04_t03: Fail # Uses deprecated Expect class, issue 398
+Language/11_Expressions/27_Unary_Expressions_A02_t03: Fail # Uses deprecated Expect class, issue 398
+Language/12_Statements/03_Variable_Declaration_A01_t01: Fail # Uses deprecated Expect class, issue 398
+Language/12_Statements/03_Variable_Declaration_A01_t02: Fail # Uses deprecated Expect class, issue 398
+Language/12_Statements/05_If_A02_t01: Fail # Uses deprecated Expect class, issue 398
+Language/12_Statements/05_If_A02_t02: Fail # Uses deprecated Expect class, issue 398
+Language/12_Statements/10_Try_A01_t01: Fail # Uses deprecated Expect class, issue 398
+Language/12_Statements/11_Return_A03_t02: Fail # Uses deprecated Expect class, issue 398
+Language/12_Statements/11_Return_A04_t01: Fail # Uses deprecated Expect class, issue 398
+Language/12_Statements/15_Assert_A03_t03: Fail # Uses deprecated Expect class, issue 398
+Language/12_Statements/15_Assert_A03_t08: Fail # Uses deprecated Expect class, issue 398
+Language/12_Statements/15_Assert_A03_t09: Fail # Uses deprecated Expect class, issue 398
+Language/12_Statements/15_Assert_A04_t02: Fail # Uses deprecated Expect class, issue 398
+Language/14_Types/2_Dynamic_Type_System_A01_t01: Fail # Uses deprecated Expect class, issue 398
+Language/14_Types/7_Type_Void_A04_t02: Fail # Uses deprecated Expect class, issue 398
+LibTest/core/AssertionError/toString_A01_t01: Fail # Uses deprecated Expect class, issue 398
+LibTest/core/List/every_A01_t01: Fail # Uses deprecated Expect class, issue 398
+LibTest/core/List/getRange_A06_t01: Fail # Uses deprecated Expect class, issue 398
+LibTest/core/List/indexOf_A06_t01: Fail # Uses deprecated Expect class, issue 398
+LibTest/core/List/insertRange_A08_t01: Fail # Uses deprecated Expect class, issue 398
+LibTest/core/List/operator_subscript_A03_t01: Fail # Uses deprecated Expect class, issue 398
+LibTest/core/List/operator_subscripted_assignment_A03_t01: Fail # Uses deprecated Expect class, issue 398
+LibTest/core/Map/putIfAbsent_A01_t04: Fail # Uses deprecated Expect class, issue 398
+
 LibTest/core/int/operator_division_A01_t01: Fail # truncate/ceil/floor/round returns ints, issue 389
 
 Language/11_Expressions/06_Lists_A06_t01: Fail # Issue 397

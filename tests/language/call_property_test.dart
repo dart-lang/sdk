@@ -5,6 +5,8 @@
 // Test that a class with a [call] property does not implement [Function] or
 // a typedef of function type.
 
+import 'package:expect/expect.dart';
+
 class Call {
   int get call => 0;
 }

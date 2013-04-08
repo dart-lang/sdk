@@ -4,6 +4,7 @@
 
 library test;
 
+import 'package:expect/expect.dart';
 import 'dart:isolate';
 
 funcFoo(x) => x + 2;

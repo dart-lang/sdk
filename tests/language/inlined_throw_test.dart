@@ -5,6 +5,8 @@
 // Dart test program to test check that we don't fail to compile when an
 // inlinable method contains a throw.
 
+import 'package:expect/expect.dart';
+
 var x = false;
 
 bool called;

@@ -24,14 +24,21 @@ class TestController {
     numCompletedTests++;
     CommandOutput output = testCase.lastCommandOutput;
     if (testCase.displayName == "fail-unexpected") {
-      Expect.isTrue(output.unexpectedOutput);
+      if (!output.unexpectedOutput) {
+        throw "Expected fail-unexpected";
+      }
     } else {
-      Expect.isFalse(output.unexpectedOutput);
+      if (output.unexpectedOutput) {
+        throw "Unexpected fail";
+      }
     }
   }
 
   static void finished() {
-    Expect.equals(numTests, numCompletedTests);
+    if (numTests != numCompletedTests) {
+      throw "bad completion count. "
+            "expected: $numTests, actual: $numCompletedTests";
+    }
   }
 }
 
@@ -111,7 +118,7 @@ void main() {
         return;
       case 'fail-unexpected':
       case 'fail':
-        Expect.fail("This test always fails, to test the test scripts.");
+        throw "This test always fails, to test the test scripts.";
         break;
       case 'timeout':
         // Run for 10 seconds, then exit.  This tests a 2 second timeout.

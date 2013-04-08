@@ -7,5 +7,7 @@ import 'dart:io';
 void main() {
   var expected = new File(new Options().script).readAsStringSync();
   var stdin = new File('/dev/fd/0').readAsStringSync();
-  Expect.equals(expected, stdin);
+  if (expected != stdin) {
+    throw "stdin not equal expected file";
+  }
 }

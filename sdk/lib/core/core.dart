@@ -16,7 +16,6 @@ part "duration.dart";
 part "errors.dart";
 part "exceptions.dart";
 part "expando.dart";
-part "expect.dart";
 part "function.dart";
 part "identical.dart";
 part "int.dart";
