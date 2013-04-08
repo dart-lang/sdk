@@ -739,7 +739,14 @@ class JavaScriptBackend extends Backend {
   /**
    * Set of classes whose methods are intercepted.
    */
-  final Set<ClassElement> interceptedClasses;
+  final Set<ClassElement> interceptedClasses = new Set<ClassElement>();
+
+  /**
+   * Set of classes used as mixins on native classes.  Methods on these classes
+   * might also be mixed in to non-native classes.
+   */
+  final Set<ClassElement> classesMixedIntoNativeClasses =
+      new Set<ClassElement>();
 
   /**
    * Set of classes whose `operator ==` methods handle `null` themselves.
@@ -762,7 +769,6 @@ class JavaScriptBackend extends Backend {
         rti = new RuntimeTypes(compiler),
         specializedGetInterceptors =
             new Map<String, Collection<ClassElement>>(),
-        interceptedClasses = new Set<ClassElement>(),
         super(compiler, JAVA_SCRIPT_CONSTANT_SYSTEM) {
     emitter = disableEval
         ? new CodeEmitterNoEvalTask(compiler, namer, generateSourceMap)
@@ -783,7 +789,9 @@ class JavaScriptBackend extends Backend {
   bool isInterceptorClass(ClassElement element) {
     if (element == null) return false;
     if (element.isNative()) return true;
-    return interceptedClasses.contains(element);
+    if (interceptedClasses.contains(element)) return true;
+    if (classesMixedIntoNativeClasses.contains(element)) return true;
+    return false;
   }
 
   void addInterceptedSelector(Selector selector) {
@@ -949,7 +957,19 @@ class JavaScriptBackend extends Backend {
       ClassElement cls, Enqueuer enqueuer) {
     if (enqueuer.isResolutionQueue) {
       cls.ensureResolved(compiler);
-      addInterceptorMembers(cls);
+      cls.forEachMember((ClassElement classElement, Element member) {
+          // All methods on [Object] are shadowed by [Interceptor].
+          if (classElement == compiler.objectClass) return;
+          Set<Element> set = interceptedElements.putIfAbsent(
+              member.name, () => new Set<Element>());
+          set.add(member);
+          if (!classElement.isNative()) {
+            MixinApplicationElement mixinApplication = classElement;
+            assert(member.getEnclosingClass() == mixinApplication.mixin);
+            classesMixedIntoNativeClasses.add(mixinApplication.mixin);
+          }
+        },
+        includeSuperMembers: true);
     }
   }
 
@@ -958,20 +978,16 @@ class JavaScriptBackend extends Backend {
                        TreeElements elements) {
     if (enqueuer.isResolutionQueue) {
       cls.ensureResolved(compiler);
-      addInterceptorMembers(cls);
+      cls.forEachMember((ClassElement classElement, Element member) {
+          // All methods on [Object] are shadowed by [Interceptor].
+          if (classElement == compiler.objectClass) return;
+          Set<Element> set = interceptedElements.putIfAbsent(
+              member.name, () => new Set<Element>());
+          set.add(member);
+        },
+        includeSuperMembers: true);
     }
     enqueuer.registerInstantiatedClass(cls, elements);
-  }
-
-  void addInterceptorMembers(ClassElement cls) {
-    cls.forEachMember((ClassElement classElement, Element member) {
-        // All methods on [Object] are shadowed by [Interceptor].
-        if (classElement == compiler.objectClass) return;
-        Set<Element> set = interceptedElements.putIfAbsent(
-            member.name, () => new Set<Element>());
-        set.add(member);
-      },
-      includeSuperMembers: true);
   }
 
   void registerSpecializedGetInterceptor(Set<ClassElement> classes) {
