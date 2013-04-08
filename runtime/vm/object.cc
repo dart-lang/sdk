@@ -10607,29 +10607,9 @@ RawDouble* Double::New(double d, Heap::Space space) {
 }
 
 
-static bool IsWhiteSpace(char ch) {
-  return ch == '\0' || ch == '\n' || ch == '\r' || ch == ' ' || ch == '\t';
-}
-
-
-static bool StringToDouble(const String& str, double* double_value) {
-  ASSERT(double_value != NULL);
-  // TODO(regis): For now, we use strtod to convert a string to double.
-  const char* nptr = str.ToCString();
-  char* endptr = NULL;
-  *double_value = strtod(nptr, &endptr);
-  // We do not treat overflow or underflow as an error and therefore do not
-  // check errno for ERANGE.
-  if (!IsWhiteSpace(*endptr)) {
-    return false;
-  }
-  return true;
-}
-
-
 RawDouble* Double::New(const String& str, Heap::Space space) {
   double double_value;
-  if (!StringToDouble(str, &double_value)) {
+  if (!CStringToDouble(str.ToCString(), str.Length(), &double_value)) {
     return Double::Handle().raw();
   }
   return New(double_value, space);
@@ -10666,7 +10646,7 @@ RawDouble* Double::NewCanonical(double value) {
 
 RawDouble* Double::NewCanonical(const String& str) {
   double double_value;
-  if (!StringToDouble(str, &double_value)) {
+  if (!CStringToDouble(str.ToCString(), str.Length(), &double_value)) {
     return Double::Handle().raw();
   }
   return NewCanonical(double_value);

@@ -166,4 +166,25 @@ RawString* DoubleToStringAsPrecision(double d, int precision) {
   return String::New(builder.Finalize());
 }
 
+
+bool CStringToDouble(const char* str, intptr_t length, double* result) {
+  if (length == 0) {
+    return false;
+  }
+
+  double_conversion::StringToDoubleConverter converter(
+    double_conversion::StringToDoubleConverter::NO_FLAGS,
+    0.0,
+    0.0,
+    kDoubleToStringCommonInfinitySymbol,
+    kDoubleToStringCommonNaNSymbol);
+
+  int parsed_count = 0;
+  *result = converter.StringToDouble(str,
+                                     static_cast<int>(length),
+                                     &parsed_count);
+  return (parsed_count == length);
+}
+
+
 }  // namespace dart

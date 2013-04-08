@@ -221,9 +221,8 @@ DEFINE_NATIVE_ENTRY(Double_parse, 1) {
           }
         }
         if (dot_ok) {
-          char* p_end = NULL;
-          const double double_value = strtod(cstr, &p_end);
-          if (p_end == (cstr + len)) {
+          double double_value;
+          if (CStringToDouble(cstr, len, &double_value)) {
             return Double::New(double_value);
           }
         }
@@ -238,10 +237,16 @@ DEFINE_NATIVE_ENTRY(Double_parse, 1) {
                               Token::kDOUBLE,
                               &is_positive,
                               &number_string)) {
+    // Even if original string was two byte string the scanner should produce
+    // literal value that is represented as a one byte string because all
+    // characters in the double literal are Latin-1.
+    ASSERT(number_string->IsOneByteString());
     const char* cstr = number_string->ToCString();
-    char* p_end = NULL;
-    double double_value = strtod(cstr, &p_end);
-    ASSERT(p_end != cstr);
+
+    double double_value;
+    bool ok = CStringToDouble(cstr, number_string->Length(), &double_value);
+    ASSERT(ok);
+
     if (!is_positive) {
       double_value = -double_value;
     }
