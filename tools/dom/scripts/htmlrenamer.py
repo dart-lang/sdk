@@ -31,8 +31,6 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames', {
     'NotificationPermissionCallback': '_NotificationPermissionCallback',
     'PositionCallback': '_PositionCallback',
     'PositionErrorCallback': '_PositionErrorCallback',
-    'Rect': 'CssRect',
-    'RGBColor': 'CssRgbColor',
     'RTCDTMFSender': 'RtcDtmfSender',
     'RTCDTMFToneChangeEvent': 'RtcDtmfToneChangeEvent',
     'RTCErrorCallback': '_RtcErrorCallback',
@@ -47,9 +45,8 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames', {
     'WebKitAnimationEvent': 'AnimationEvent',
     'WebKitCSSKeyframeRule': 'CssKeyframeRule',
     'WebKitCSSKeyframesRule': 'CssKeyframesRule',
-    'WebKitCSSMatrix': 'CssMatrix',
     'WebKitCSSTransformValue': 'CssTransformValue',
-    'WebKitPoint': 'DomPoint',
+    'WebKitPoint': '_DomPoint',
     'WebKitTransitionEvent': '_WebKitTransitionEvent',
     'XMLHttpRequest': 'HttpRequest',
     'XMLHttpRequestException': 'HttpRequestException',
@@ -60,6 +57,9 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames', {
 # Interfaces that are suppressed, but need to still exist for Dartium and to
 # properly wrap DOM objects if/when encountered.
 _removed_html_interfaces = [
+  'CSSPrimitiveValue',
+  'CSSValue',
+  'Counter',
   'DOMFileSystemSync', # Workers
   'DatabaseSync', # Workers
   'DedicatedWorkerContext', # Workers
@@ -77,11 +77,14 @@ _removed_html_interfaces = [
   'HTMLFrameSetElement',
   'HTMLMarqueeElement',
   'IDBAny',
+  'RGBColor',
+  'Rect',
   'SQLTransactionSync', # Workers
   'SQLTransactionSyncCallback', # Workers
   'SVGAltGlyphDefElement', # Webkit only.
   'SVGAltGlyphItemElement', # Webkit only.
   'SVGAnimateColorElement', # Deprecated. Use AnimateElement instead.
+  'SVGColor',
   'SVGComponentTransferFunctionElement', # Currently not supported anywhere.
   'SVGCursorElement', # Webkit only.
   'SVGFEDropShadowElement', # Webkit only for the following:
@@ -95,11 +98,16 @@ _removed_html_interfaces = [
   'SVGGlyphRefElement',
   'SVGHKernElement',
   'SVGMPathElement',
+  'SVGPaint',
   'SVGMissingGlyphElement',
   'SVGTRefElement',
   'SVGVKernElement',
   'SharedWorker', # Workers
   'SharedWorkerContext', # Workers
+  'WebKitCSSFilterValue',
+  'WebKitCSSMatrix',
+  'WebKitCSSMixFunctionValue',
+  'WebKitCSSTransformValue',
   'WorkerContext', # Workers
   'WorkerLocation', # Workers
   'WorkerNavigator', # Workers
@@ -299,8 +307,8 @@ renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
     'DOMWindow.clearInterval': '_clearInterval',
     'DOMWindow.setTimeout': '_setTimeout',
     'DOMWindow.setInterval': '_setInterval',
-    'DOMWindow.webkitConvertPointFromNodeToPage': 'convertPointFromNodeToPage',
-    'DOMWindow.webkitConvertPointFromPageToNode': 'convertPointFromPageToNode',
+    'DOMWindow.webkitConvertPointFromNodeToPage': '_convertPointFromNodeToPage',
+    'DOMWindow.webkitConvertPointFromPageToNode': '_convertPointFromPageToNode',
     'DOMWindow.webkitNotifications': 'notifications',
     'DOMWindow.webkitRequestFileSystem': '_requestFileSystem',
     'DOMWindow.webkitResolveLocalFileSystemURL': 'resolveLocalFileSystemUrl',
@@ -339,6 +347,7 @@ for member in convert_to_future_members:
 # TODO(jacobr): cleanup and augment this list.
 _removed_html_members = monitored.Set('htmlrenamer._removed_html_members', [
     'Attr.*',
+    'CSSStyleDeclaration.getPropertyCSSValue',
     'CanvasRenderingContext2D.clearShadow',
     'CanvasRenderingContext2D.drawImageFromRect',
     'CanvasRenderingContext2D.setAlpha',
@@ -601,6 +610,7 @@ _removed_html_members = monitored.Set('htmlrenamer._removed_html_members', [
     'Node.set:nodeValue',
     'NodeList.item',
     'ShadowRoot.getElementsByTagNameNS',
+    'SVGStyledElement.getPresentationAttribute',
     'WheelEvent.wheelDelta',
     'WorkerContext.webkitIndexedDB',
 # TODO(jacobr): should these be removed?

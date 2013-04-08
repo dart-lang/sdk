@@ -236,6 +236,32 @@ $endif
   Future<FileSystem> requestFileSystem(int size, {bool persistent: false}) {
     return _requestFileSystem(persistent? 1 : 0, size);
   }
+
+  @DomName('DOMWindow.convertPointFromNodeToPage')
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  Point convertPointFromNodeToPage(Node node, Point point) {
+    var result = _convertPointFromNodeToPage(node,
+        new _DomPoint(point.x, point.y));
+    return new Point(result.x, result.y);
+  }
+
+  @DomName('DOMWindow.convertPointFromPageToNode')
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  Point convertPointFromPageToNode(Node node, Point point) {
+    var result = _convertPointFromPageToNode(node,
+        new _DomPoint(point.x, point.y));
+    return new Point(result.x, result.y);
+  }
+
+  /**
+   * Checks whether [convertPointFromNodeToPage] and
+   * [convertPointFromPageToNode] are supported on the current platform.
+   */
+  static bool get supportsPointConversions => _DomPoint.supported;
 $!MEMBERS
 
   @DomName('DOMWindow.beforeunloadEvent')

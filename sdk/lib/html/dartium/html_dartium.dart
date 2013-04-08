@@ -2332,31 +2332,6 @@ class Coordinates extends NativeFieldWrapperClass1 {
 
 
 @DocsEditable
-@DomName('Counter')
-class Counter extends NativeFieldWrapperClass1 {
-  Counter.internal();
-
-  @DomName('Counter.identifier')
-  @DocsEditable
-  String get identifier native "Counter_identifier_Getter";
-
-  @DomName('Counter.listStyle')
-  @DocsEditable
-  String get listStyle native "Counter_listStyle_Getter";
-
-  @DomName('Counter.separator')
-  @DocsEditable
-  String get separator native "Counter_separator_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
 @DomName('Crypto')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -2532,250 +2507,6 @@ class CssKeyframesRule extends CssRule {
 
 
 @DocsEditable
-@DomName('WebKitCSSMatrix')
-@SupportedBrowser(SupportedBrowser.CHROME)
-@SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental
-class CssMatrix extends NativeFieldWrapperClass1 {
-  CssMatrix.internal();
-
-  @DomName('WebKitCSSMatrix.WebKitCSSMatrix')
-  @DocsEditable
-  factory CssMatrix([String cssValue]) {
-    return CssMatrix._create_1(cssValue);
-  }
-
-  @DocsEditable
-  static CssMatrix _create_1(cssValue) native "WebKitCSSMatrix__create_1constructorCallback";
-
-  /// Checks if this type is supported on the current platform.
-  static bool get supported => true;
-
-  @DomName('WebKitCSSMatrix.a')
-  @DocsEditable
-  num get a native "WebKitCSSMatrix_a_Getter";
-
-  @DomName('WebKitCSSMatrix.a')
-  @DocsEditable
-  void set a(num value) native "WebKitCSSMatrix_a_Setter";
-
-  @DomName('WebKitCSSMatrix.b')
-  @DocsEditable
-  num get b native "WebKitCSSMatrix_b_Getter";
-
-  @DomName('WebKitCSSMatrix.b')
-  @DocsEditable
-  void set b(num value) native "WebKitCSSMatrix_b_Setter";
-
-  @DomName('WebKitCSSMatrix.c')
-  @DocsEditable
-  num get c native "WebKitCSSMatrix_c_Getter";
-
-  @DomName('WebKitCSSMatrix.c')
-  @DocsEditable
-  void set c(num value) native "WebKitCSSMatrix_c_Setter";
-
-  @DomName('WebKitCSSMatrix.d')
-  @DocsEditable
-  num get d native "WebKitCSSMatrix_d_Getter";
-
-  @DomName('WebKitCSSMatrix.d')
-  @DocsEditable
-  void set d(num value) native "WebKitCSSMatrix_d_Setter";
-
-  @DomName('WebKitCSSMatrix.e')
-  @DocsEditable
-  num get e native "WebKitCSSMatrix_e_Getter";
-
-  @DomName('WebKitCSSMatrix.e')
-  @DocsEditable
-  void set e(num value) native "WebKitCSSMatrix_e_Setter";
-
-  @DomName('WebKitCSSMatrix.f')
-  @DocsEditable
-  num get f native "WebKitCSSMatrix_f_Getter";
-
-  @DomName('WebKitCSSMatrix.f')
-  @DocsEditable
-  void set f(num value) native "WebKitCSSMatrix_f_Setter";
-
-  @DomName('WebKitCSSMatrix.m11')
-  @DocsEditable
-  num get m11 native "WebKitCSSMatrix_m11_Getter";
-
-  @DomName('WebKitCSSMatrix.m11')
-  @DocsEditable
-  void set m11(num value) native "WebKitCSSMatrix_m11_Setter";
-
-  @DomName('WebKitCSSMatrix.m12')
-  @DocsEditable
-  num get m12 native "WebKitCSSMatrix_m12_Getter";
-
-  @DomName('WebKitCSSMatrix.m12')
-  @DocsEditable
-  void set m12(num value) native "WebKitCSSMatrix_m12_Setter";
-
-  @DomName('WebKitCSSMatrix.m13')
-  @DocsEditable
-  num get m13 native "WebKitCSSMatrix_m13_Getter";
-
-  @DomName('WebKitCSSMatrix.m13')
-  @DocsEditable
-  void set m13(num value) native "WebKitCSSMatrix_m13_Setter";
-
-  @DomName('WebKitCSSMatrix.m14')
-  @DocsEditable
-  num get m14 native "WebKitCSSMatrix_m14_Getter";
-
-  @DomName('WebKitCSSMatrix.m14')
-  @DocsEditable
-  void set m14(num value) native "WebKitCSSMatrix_m14_Setter";
-
-  @DomName('WebKitCSSMatrix.m21')
-  @DocsEditable
-  num get m21 native "WebKitCSSMatrix_m21_Getter";
-
-  @DomName('WebKitCSSMatrix.m21')
-  @DocsEditable
-  void set m21(num value) native "WebKitCSSMatrix_m21_Setter";
-
-  @DomName('WebKitCSSMatrix.m22')
-  @DocsEditable
-  num get m22 native "WebKitCSSMatrix_m22_Getter";
-
-  @DomName('WebKitCSSMatrix.m22')
-  @DocsEditable
-  void set m22(num value) native "WebKitCSSMatrix_m22_Setter";
-
-  @DomName('WebKitCSSMatrix.m23')
-  @DocsEditable
-  num get m23 native "WebKitCSSMatrix_m23_Getter";
-
-  @DomName('WebKitCSSMatrix.m23')
-  @DocsEditable
-  void set m23(num value) native "WebKitCSSMatrix_m23_Setter";
-
-  @DomName('WebKitCSSMatrix.m24')
-  @DocsEditable
-  num get m24 native "WebKitCSSMatrix_m24_Getter";
-
-  @DomName('WebKitCSSMatrix.m24')
-  @DocsEditable
-  void set m24(num value) native "WebKitCSSMatrix_m24_Setter";
-
-  @DomName('WebKitCSSMatrix.m31')
-  @DocsEditable
-  num get m31 native "WebKitCSSMatrix_m31_Getter";
-
-  @DomName('WebKitCSSMatrix.m31')
-  @DocsEditable
-  void set m31(num value) native "WebKitCSSMatrix_m31_Setter";
-
-  @DomName('WebKitCSSMatrix.m32')
-  @DocsEditable
-  num get m32 native "WebKitCSSMatrix_m32_Getter";
-
-  @DomName('WebKitCSSMatrix.m32')
-  @DocsEditable
-  void set m32(num value) native "WebKitCSSMatrix_m32_Setter";
-
-  @DomName('WebKitCSSMatrix.m33')
-  @DocsEditable
-  num get m33 native "WebKitCSSMatrix_m33_Getter";
-
-  @DomName('WebKitCSSMatrix.m33')
-  @DocsEditable
-  void set m33(num value) native "WebKitCSSMatrix_m33_Setter";
-
-  @DomName('WebKitCSSMatrix.m34')
-  @DocsEditable
-  num get m34 native "WebKitCSSMatrix_m34_Getter";
-
-  @DomName('WebKitCSSMatrix.m34')
-  @DocsEditable
-  void set m34(num value) native "WebKitCSSMatrix_m34_Setter";
-
-  @DomName('WebKitCSSMatrix.m41')
-  @DocsEditable
-  num get m41 native "WebKitCSSMatrix_m41_Getter";
-
-  @DomName('WebKitCSSMatrix.m41')
-  @DocsEditable
-  void set m41(num value) native "WebKitCSSMatrix_m41_Setter";
-
-  @DomName('WebKitCSSMatrix.m42')
-  @DocsEditable
-  num get m42 native "WebKitCSSMatrix_m42_Getter";
-
-  @DomName('WebKitCSSMatrix.m42')
-  @DocsEditable
-  void set m42(num value) native "WebKitCSSMatrix_m42_Setter";
-
-  @DomName('WebKitCSSMatrix.m43')
-  @DocsEditable
-  num get m43 native "WebKitCSSMatrix_m43_Getter";
-
-  @DomName('WebKitCSSMatrix.m43')
-  @DocsEditable
-  void set m43(num value) native "WebKitCSSMatrix_m43_Setter";
-
-  @DomName('WebKitCSSMatrix.m44')
-  @DocsEditable
-  num get m44 native "WebKitCSSMatrix_m44_Getter";
-
-  @DomName('WebKitCSSMatrix.m44')
-  @DocsEditable
-  void set m44(num value) native "WebKitCSSMatrix_m44_Setter";
-
-  @DomName('WebKitCSSMatrix.inverse')
-  @DocsEditable
-  CssMatrix inverse() native "WebKitCSSMatrix_inverse_Callback";
-
-  @DomName('WebKitCSSMatrix.multiply')
-  @DocsEditable
-  CssMatrix multiply(CssMatrix secondMatrix) native "WebKitCSSMatrix_multiply_Callback";
-
-  @DomName('WebKitCSSMatrix.rotate')
-  @DocsEditable
-  CssMatrix rotate(num rotX, num rotY, num rotZ) native "WebKitCSSMatrix_rotate_Callback";
-
-  @DomName('WebKitCSSMatrix.rotateAxisAngle')
-  @DocsEditable
-  CssMatrix rotateAxisAngle(num x, num y, num z, num angle) native "WebKitCSSMatrix_rotateAxisAngle_Callback";
-
-  @DomName('WebKitCSSMatrix.scale')
-  @DocsEditable
-  CssMatrix scale(num scaleX, num scaleY, num scaleZ) native "WebKitCSSMatrix_scale_Callback";
-
-  @DomName('WebKitCSSMatrix.setMatrixValue')
-  @DocsEditable
-  void setMatrixValue(String string) native "WebKitCSSMatrix_setMatrixValue_Callback";
-
-  @DomName('WebKitCSSMatrix.skewX')
-  @DocsEditable
-  CssMatrix skewX(num angle) native "WebKitCSSMatrix_skewX_Callback";
-
-  @DomName('WebKitCSSMatrix.skewY')
-  @DocsEditable
-  CssMatrix skewY(num angle) native "WebKitCSSMatrix_skewY_Callback";
-
-  @DomName('WebKitCSSMatrix.toString')
-  @DocsEditable
-  String toString() native "WebKitCSSMatrix_toString_Callback";
-
-  @DomName('WebKitCSSMatrix.translate')
-  @DocsEditable
-  CssMatrix translate(num x, num y, num z) native "WebKitCSSMatrix_translate_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
 @DomName('CSSMediaRule')
 class CssMediaRule extends CssRule {
   CssMediaRule.internal() : super.internal();
@@ -2820,165 +2551,6 @@ class CssPageRule extends CssRule {
   @DomName('CSSPageRule.style')
   @DocsEditable
   CssStyleDeclaration get style native "CSSPageRule_style_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('CSSPrimitiveValue')
-class CssPrimitiveValue extends CssValue {
-  CssPrimitiveValue.internal() : super.internal();
-
-  static const int CSS_ATTR = 22;
-
-  static const int CSS_CM = 6;
-
-  static const int CSS_COUNTER = 23;
-
-  static const int CSS_DEG = 11;
-
-  static const int CSS_DIMENSION = 18;
-
-  static const int CSS_EMS = 3;
-
-  static const int CSS_EXS = 4;
-
-  static const int CSS_GRAD = 13;
-
-  static const int CSS_HZ = 16;
-
-  static const int CSS_IDENT = 21;
-
-  static const int CSS_IN = 8;
-
-  static const int CSS_KHZ = 17;
-
-  static const int CSS_MM = 7;
-
-  static const int CSS_MS = 14;
-
-  static const int CSS_NUMBER = 1;
-
-  static const int CSS_PC = 10;
-
-  static const int CSS_PERCENTAGE = 2;
-
-  static const int CSS_PT = 9;
-
-  static const int CSS_PX = 5;
-
-  static const int CSS_RAD = 12;
-
-  static const int CSS_RECT = 24;
-
-  static const int CSS_RGBCOLOR = 25;
-
-  static const int CSS_S = 15;
-
-  static const int CSS_STRING = 19;
-
-  static const int CSS_UNKNOWN = 0;
-
-  static const int CSS_URI = 20;
-
-  static const int CSS_VH = 27;
-
-  static const int CSS_VMAX = 29;
-
-  static const int CSS_VMIN = 28;
-
-  static const int CSS_VW = 26;
-
-  @DomName('CSSPrimitiveValue.primitiveType')
-  @DocsEditable
-  int get primitiveType native "CSSPrimitiveValue_primitiveType_Getter";
-
-  @DomName('CSSPrimitiveValue.getCounterValue')
-  @DocsEditable
-  Counter getCounterValue() native "CSSPrimitiveValue_getCounterValue_Callback";
-
-  @DomName('CSSPrimitiveValue.getFloatValue')
-  @DocsEditable
-  num getFloatValue(int unitType) native "CSSPrimitiveValue_getFloatValue_Callback";
-
-  @DomName('CSSPrimitiveValue.getRGBColorValue')
-  @DocsEditable
-  CssRgbColor getRgbColorValue() native "CSSPrimitiveValue_getRGBColorValue_Callback";
-
-  @DomName('CSSPrimitiveValue.getRectValue')
-  @DocsEditable
-  CssRect getRectValue() native "CSSPrimitiveValue_getRectValue_Callback";
-
-  @DomName('CSSPrimitiveValue.getStringValue')
-  @DocsEditable
-  String getStringValue() native "CSSPrimitiveValue_getStringValue_Callback";
-
-  @DomName('CSSPrimitiveValue.setFloatValue')
-  @DocsEditable
-  void setFloatValue(int unitType, num floatValue) native "CSSPrimitiveValue_setFloatValue_Callback";
-
-  @DomName('CSSPrimitiveValue.setStringValue')
-  @DocsEditable
-  void setStringValue(int stringType, String stringValue) native "CSSPrimitiveValue_setStringValue_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('Rect')
-class CssRect extends NativeFieldWrapperClass1 {
-  CssRect.internal();
-
-  @DomName('Rect.bottom')
-  @DocsEditable
-  CssPrimitiveValue get bottom native "Rect_bottom_Getter";
-
-  @DomName('Rect.left')
-  @DocsEditable
-  CssPrimitiveValue get left native "Rect_left_Getter";
-
-  @DomName('Rect.right')
-  @DocsEditable
-  CssPrimitiveValue get right native "Rect_right_Getter";
-
-  @DomName('Rect.top')
-  @DocsEditable
-  CssPrimitiveValue get top native "Rect_top_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('RGBColor')
-class CssRgbColor extends NativeFieldWrapperClass1 {
-  CssRgbColor.internal();
-
-  @DomName('RGBColor.blue')
-  @DocsEditable
-  CssPrimitiveValue get blue native "RGBColor_blue_Getter";
-
-  @DomName('RGBColor.green')
-  @DocsEditable
-  CssPrimitiveValue get green native "RGBColor_green_Getter";
-
-  @DomName('RGBColor.red')
-  @DocsEditable
-  CssPrimitiveValue get red native "RGBColor_red_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3068,10 +2640,6 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
   @DomName('CSSStyleDeclaration._getPropertyValue')
   @DocsEditable
   String _getPropertyValue(String propertyName) native "CSSStyleDeclaration__getPropertyValue_Callback";
-
-  @DomName('CSSStyleDeclaration.getPropertyCSSValue')
-  @DocsEditable
-  CssValue getPropertyCssValue(String propertyName) native "CSSStyleDeclaration_getPropertyCSSValue_Callback";
 
   @DomName('CSSStyleDeclaration.getPropertyPriority')
   @DocsEditable
@@ -6352,101 +5920,9 @@ class CssStyleSheet extends StyleSheet {
 
 
 @DocsEditable
-@DomName('WebKitCSSTransformValue')
-class CssTransformValue extends _CssValueList {
-  CssTransformValue.internal() : super.internal();
-
-  static const int CSS_MATRIX = 11;
-
-  static const int CSS_MATRIX3D = 21;
-
-  static const int CSS_PERSPECTIVE = 20;
-
-  static const int CSS_ROTATE = 4;
-
-  static const int CSS_ROTATE3D = 17;
-
-  static const int CSS_ROTATEX = 14;
-
-  static const int CSS_ROTATEY = 15;
-
-  static const int CSS_ROTATEZ = 16;
-
-  static const int CSS_SCALE = 5;
-
-  static const int CSS_SCALE3D = 19;
-
-  static const int CSS_SCALEX = 6;
-
-  static const int CSS_SCALEY = 7;
-
-  static const int CSS_SCALEZ = 18;
-
-  static const int CSS_SKEW = 8;
-
-  static const int CSS_SKEWX = 9;
-
-  static const int CSS_SKEWY = 10;
-
-  static const int CSS_TRANSLATE = 1;
-
-  static const int CSS_TRANSLATE3D = 13;
-
-  static const int CSS_TRANSLATEX = 2;
-
-  static const int CSS_TRANSLATEY = 3;
-
-  static const int CSS_TRANSLATEZ = 12;
-
-  @DomName('WebKitCSSTransformValue.operationType')
-  @DocsEditable
-  int get operationType native "WebKitCSSTransformValue_operationType_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
 @DomName('CSSUnknownRule')
 class CssUnknownRule extends CssRule {
   CssUnknownRule.internal() : super.internal();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('CSSValue')
-class CssValue extends NativeFieldWrapperClass1 {
-  CssValue.internal();
-
-  static const int CSS_CUSTOM = 3;
-
-  static const int CSS_INHERIT = 0;
-
-  static const int CSS_PRIMITIVE_VALUE = 1;
-
-  static const int CSS_VALUE_LIST = 2;
-
-  @DomName('CSSValue.cssText')
-  @DocsEditable
-  String get cssText native "CSSValue_cssText_Getter";
-
-  @DomName('CSSValue.cssText')
-  @DocsEditable
-  void set cssText(String value) native "CSSValue_cssText_Setter";
-
-  @DomName('CSSValue.cssValueType')
-  @DocsEditable
-  int get cssValueType native "CSSValue_cssValueType_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8401,45 +7877,6 @@ class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin>
   @DomName('DOMPluginArray.refresh')
   @DocsEditable
   void refresh(bool reload) native "DOMPluginArray_refresh_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('WebKitPoint')
-@SupportedBrowser(SupportedBrowser.CHROME)
-@SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental
-class DomPoint extends NativeFieldWrapperClass1 {
-  DomPoint.internal();
-  factory DomPoint(num x, num y) => _create(x, y);
-
-  @DocsEditable
-  static DomPoint _create(x, y) native "WebKitPoint_constructorCallback";
-
-  /// Checks if this type is supported on the current platform.
-  static bool get supported => true;
-
-  @DomName('WebKitPoint.x')
-  @DocsEditable
-  num get x native "WebKitPoint_x_Getter";
-
-  @DomName('WebKitPoint.x')
-  @DocsEditable
-  void set x(num value) native "WebKitPoint_x_Setter";
-
-  @DomName('WebKitPoint.y')
-  @DocsEditable
-  num get y native "WebKitPoint_y_Getter";
-
-  @DomName('WebKitPoint.y')
-  @DocsEditable
-  void set y(num value) native "WebKitPoint_y_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26575,60 +26012,6 @@ class WebKitCssFilterRule extends CssRule {
 
 
 @DocsEditable
-@DomName('WebKitCSSFilterValue')
-class WebKitCssFilterValue extends _CssValueList {
-  WebKitCssFilterValue.internal() : super.internal();
-
-  static const int CSS_FILTER_BLUR = 10;
-
-  static const int CSS_FILTER_BRIGHTNESS = 8;
-
-  static const int CSS_FILTER_CONTRAST = 9;
-
-  static const int CSS_FILTER_CUSTOM = 12;
-
-  static const int CSS_FILTER_DROP_SHADOW = 11;
-
-  static const int CSS_FILTER_GRAYSCALE = 2;
-
-  static const int CSS_FILTER_HUE_ROTATE = 5;
-
-  static const int CSS_FILTER_INVERT = 6;
-
-  static const int CSS_FILTER_OPACITY = 7;
-
-  static const int CSS_FILTER_REFERENCE = 1;
-
-  static const int CSS_FILTER_SATURATE = 4;
-
-  static const int CSS_FILTER_SEPIA = 3;
-
-  @DomName('WebKitCSSFilterValue.operationType')
-  @DocsEditable
-  int get operationType native "WebKitCSSFilterValue_operationType_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('WebKitCSSMixFunctionValue')
-class WebKitCssMixFunctionValue extends _CssValueList {
-  WebKitCssMixFunctionValue.internal() : super.internal();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
 @DomName('WebKitNamedFlow')
 class WebKitNamedFlow extends EventTarget {
   WebKitNamedFlow.internal() : super.internal();
@@ -27036,6 +26419,32 @@ class Window extends EventTarget implements WindowBase {
   Future<FileSystem> requestFileSystem(int size, {bool persistent: false}) {
     return _requestFileSystem(persistent? 1 : 0, size);
   }
+
+  @DomName('DOMWindow.convertPointFromNodeToPage')
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  Point convertPointFromNodeToPage(Node node, Point point) {
+    var result = _convertPointFromNodeToPage(node,
+        new _DomPoint(point.x, point.y));
+    return new Point(result.x, result.y);
+  }
+
+  @DomName('DOMWindow.convertPointFromPageToNode')
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  Point convertPointFromPageToNode(Node node, Point point) {
+    var result = _convertPointFromPageToNode(node,
+        new _DomPoint(point.x, point.y));
+    return new Point(result.x, result.y);
+  }
+
+  /**
+   * Checks whether [convertPointFromNodeToPage] and
+   * [convertPointFromPageToNode] are supported on the current platform.
+   */
+  static bool get supportsPointConversions => _DomPoint.supported;
   Window.internal() : super.internal();
 
   @DomName('DOMWindow.DOMContentLoadedEvent')
@@ -27480,14 +26889,14 @@ class Window extends EventTarget implements WindowBase {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
-  DomPoint convertPointFromNodeToPage(Node node, DomPoint p) native "DOMWindow_webkitConvertPointFromNodeToPage_Callback";
+  _DomPoint _convertPointFromNodeToPage(Node node, _DomPoint p) native "DOMWindow_webkitConvertPointFromNodeToPage_Callback";
 
   @DomName('DOMWindow.webkitConvertPointFromPageToNode')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
-  DomPoint convertPointFromPageToNode(Node node, DomPoint p) native "DOMWindow_webkitConvertPointFromPageToNode_Callback";
+  _DomPoint _convertPointFromPageToNode(Node node, _DomPoint p) native "DOMWindow_webkitConvertPointFromPageToNode_Callback";
 
   @DomName('DOMWindow.webkitRequestFileSystem')
   @DocsEditable
@@ -28090,6 +27499,32 @@ class XsltProcessor extends NativeFieldWrapperClass1 {
   DocumentFragment transformToFragment(Node source, Document docVal) native "XSLTProcessor_transformToFragment_Callback";
 
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('CSSPrimitiveValue')
+abstract class _CSSPrimitiveValue extends _CSSValue {
+  _CSSPrimitiveValue.internal() : super.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('CSSValue')
+abstract class _CSSValue extends NativeFieldWrapperClass1 {
+  _CSSValue.internal();
+
+}
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -28446,6 +27881,19 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<Rect> {
 
 
 @DocsEditable
+@DomName('Counter')
+abstract class _Counter extends NativeFieldWrapperClass1 {
+  _Counter.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
 @DomName('CSSRuleList')
 class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
   _CssRuleList.internal();
@@ -28669,104 +28117,104 @@ class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
 
 @DocsEditable
 @DomName('CSSValueList')
-class _CssValueList extends CssValue implements List<CssValue> {
+class _CssValueList extends _CSSValue implements List<_CSSValue> {
   _CssValueList.internal() : super.internal();
 
   @DomName('CSSValueList.length')
   @DocsEditable
   int get length native "CSSValueList_length_Getter";
 
-  CssValue operator[](int index) native "CSSValueList_item_Callback";
+  _CSSValue operator[](int index) native "CSSValueList_item_Callback";
 
-  void operator[]=(int index, CssValue value) {
+  void operator[]=(int index, _CSSValue value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
-  // -- start List<CssValue> mixins.
-  // CssValue is the element type.
+  // -- start List<_CSSValue> mixins.
+  // _CSSValue is the element type.
 
-  // From Iterable<CssValue>:
+  // From Iterable<_CSSValue>:
 
-  Iterator<CssValue> get iterator {
+  Iterator<_CSSValue> get iterator {
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new FixedSizeListIterator<CssValue>(this);
+    return new FixedSizeListIterator<_CSSValue>(this);
   }
 
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, CssValue)) {
+  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, _CSSValue)) {
     return IterableMixinWorkaround.reduce(this, initialValue, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, CssValue)) {
+  dynamic fold(dynamic initialValue, dynamic combine(dynamic, _CSSValue)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
-  bool contains(CssValue element) => IterableMixinWorkaround.contains(this, element);
+  bool contains(_CSSValue element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(CssValue element)) => IterableMixinWorkaround.forEach(this, f);
+  void forEach(void f(_CSSValue element)) => IterableMixinWorkaround.forEach(this, f);
 
   String join([String separator]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
-  Iterable map(f(CssValue element)) =>
+  Iterable map(f(_CSSValue element)) =>
       IterableMixinWorkaround.mapList(this, f);
 
-  Iterable<CssValue> where(bool f(CssValue element)) =>
+  Iterable<_CSSValue> where(bool f(_CSSValue element)) =>
       IterableMixinWorkaround.where(this, f);
 
-  Iterable expand(Iterable f(CssValue element)) =>
+  Iterable expand(Iterable f(_CSSValue element)) =>
       IterableMixinWorkaround.expand(this, f);
 
-  bool every(bool f(CssValue element)) => IterableMixinWorkaround.every(this, f);
+  bool every(bool f(_CSSValue element)) => IterableMixinWorkaround.every(this, f);
 
-  bool any(bool f(CssValue element)) => IterableMixinWorkaround.any(this, f);
+  bool any(bool f(_CSSValue element)) => IterableMixinWorkaround.any(this, f);
 
-  List<CssValue> toList({ bool growable: true }) =>
-      new List<CssValue>.from(this, growable: growable);
+  List<_CSSValue> toList({ bool growable: true }) =>
+      new List<_CSSValue>.from(this, growable: growable);
 
-  Set<CssValue> toSet() => new Set<CssValue>.from(this);
+  Set<_CSSValue> toSet() => new Set<_CSSValue>.from(this);
 
   bool get isEmpty => this.length == 0;
 
-  Iterable<CssValue> take(int n) => IterableMixinWorkaround.takeList(this, n);
+  Iterable<_CSSValue> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
-  Iterable<CssValue> takeWhile(bool test(CssValue value)) {
+  Iterable<_CSSValue> takeWhile(bool test(_CSSValue value)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
-  Iterable<CssValue> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+  Iterable<_CSSValue> skip(int n) => IterableMixinWorkaround.skipList(this, n);
 
-  Iterable<CssValue> skipWhile(bool test(CssValue value)) {
+  Iterable<_CSSValue> skipWhile(bool test(_CSSValue value)) {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  CssValue firstWhere(bool test(CssValue value), { CssValue orElse() }) {
+  _CSSValue firstWhere(bool test(_CSSValue value), { _CSSValue orElse() }) {
     return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  CssValue lastWhere(bool test(CssValue value), {CssValue orElse()}) {
+  _CSSValue lastWhere(bool test(_CSSValue value), {_CSSValue orElse()}) {
     return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  CssValue singleWhere(bool test(CssValue value)) {
+  _CSSValue singleWhere(bool test(_CSSValue value)) {
     return IterableMixinWorkaround.singleWhere(this, test);
   }
 
-  CssValue elementAt(int index) {
+  _CSSValue elementAt(int index) {
     return this[index];
   }
 
-  // From Collection<CssValue>:
+  // From Collection<_CSSValue>:
 
-  void add(CssValue value) {
+  void add(_CSSValue value) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void addAll(Iterable<CssValue> iterable) {
+  void addAll(Iterable<_CSSValue> iterable) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  // From List<CssValue>:
+  // From List<_CSSValue>:
   void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
@@ -28775,53 +28223,53 @@ class _CssValueList extends CssValue implements List<CssValue> {
     throw new UnsupportedError("Cannot clear immutable List.");
   }
 
-  Iterable<CssValue> get reversed {
+  Iterable<_CSSValue> get reversed {
     return IterableMixinWorkaround.reversedList(this);
   }
 
-  void sort([int compare(CssValue a, CssValue b)]) {
+  void sort([int compare(_CSSValue a, _CSSValue b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
-  int indexOf(CssValue element, [int start = 0]) =>
+  int indexOf(_CSSValue element, [int start = 0]) =>
       Lists.indexOf(this, element, start, this.length);
 
-  int lastIndexOf(CssValue element, [int start]) {
+  int lastIndexOf(_CSSValue element, [int start]) {
     if (start == null) start = length - 1;
     return Lists.lastIndexOf(this, element, start);
   }
 
-  CssValue get first {
+  _CSSValue get first {
     if (this.length > 0) return this[0];
     throw new StateError("No elements");
   }
 
-  CssValue get last {
+  _CSSValue get last {
     if (this.length > 0) return this[this.length - 1];
     throw new StateError("No elements");
   }
 
-  CssValue get single {
+  _CSSValue get single {
     if (length == 1) return this[0];
     if (length == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
   }
 
-  CssValue min([int compare(CssValue a, CssValue b)]) =>
+  _CSSValue min([int compare(_CSSValue a, _CSSValue b)]) =>
       IterableMixinWorkaround.min(this, compare);
 
-  CssValue max([int compare(CssValue a, CssValue b)]) =>
+  _CSSValue max([int compare(_CSSValue a, _CSSValue b)]) =>
       IterableMixinWorkaround.max(this, compare);
 
-  void insert(int index, CssValue element) {
+  void insert(int index, _CSSValue element) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  CssValue removeAt(int pos) {
+  _CSSValue removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  CssValue removeLast() {
+  _CSSValue removeLast() {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -28837,15 +28285,15 @@ class _CssValueList extends CssValue implements List<CssValue> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeWhere(bool test(CssValue element)) {
+  void removeWhere(bool test(_CSSValue element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainWhere(bool test(CssValue element)) {
+  void retainWhere(bool test(_CSSValue element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<CssValue> from, [int startFrom]) {
+  void setRange(int start, int rangeLength, List<_CSSValue> from, [int startFrom]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -28853,19 +28301,19 @@ class _CssValueList extends CssValue implements List<CssValue> {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [CssValue initialValue]) {
+  void insertRange(int start, int rangeLength, [_CSSValue initialValue]) {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
-  List<CssValue> sublist(int start, [int end]) {
+  List<_CSSValue> sublist(int start, [int end]) {
     if (end == null) end = length;
-    return Lists.getRange(this, start, end, <CssValue>[]);
+    return Lists.getRange(this, start, end, <_CSSValue>[]);
   }
 
-  List<CssValue> getRange(int start, int rangeLength) =>
+  List<_CSSValue> getRange(int start, int rangeLength) =>
       sublist(start, start + rangeLength);
 
-  Map<int, CssValue> asMap() =>
+  Map<int, _CSSValue> asMap() =>
     IterableMixinWorkaround.asMapList(this);
 
   String toString() {
@@ -28875,11 +28323,11 @@ class _CssValueList extends CssValue implements List<CssValue> {
     return buffer.toString();
   }
 
-  // -- end List<CssValue> mixins.
+  // -- end List<_CSSValue> mixins.
 
   @DomName('CSSValueList.item')
   @DocsEditable
-  CssValue item(int index) native "CSSValueList_item_Callback";
+  _CSSValue item(int index) native "CSSValueList_item_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28934,6 +28382,45 @@ abstract class _DirectoryEntrySync extends _EntrySync {
 @DomName('DirectoryReaderSync')
 abstract class _DirectoryReaderSync extends NativeFieldWrapperClass1 {
   _DirectoryReaderSync.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('WebKitPoint')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
+class _DomPoint extends NativeFieldWrapperClass1 {
+  _DomPoint.internal();
+  factory _DomPoint(num x, num y) => _create(x, y);
+
+  @DocsEditable
+  static _DomPoint _create(x, y) native "WebKitPoint_constructorCallback";
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => true;
+
+  @DomName('WebKitPoint.x')
+  @DocsEditable
+  num get x native "WebKitPoint_x_Getter";
+
+  @DomName('WebKitPoint.x')
+  @DocsEditable
+  void set x(num value) native "WebKitPoint_x_Setter";
+
+  @DomName('WebKitPoint.y')
+  @DocsEditable
+  num get y native "WebKitPoint_y_Getter";
+
+  @DomName('WebKitPoint.y')
+  @DocsEditable
+  void set y(num value) native "WebKitPoint_y_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30151,6 +29638,32 @@ class _NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
 
 
 @DocsEditable
+@DomName('RGBColor')
+abstract class _RGBColor extends NativeFieldWrapperClass1 {
+  _RGBColor.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('Rect')
+abstract class _Rect extends NativeFieldWrapperClass1 {
+  _Rect.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
 @DomName('SharedWorker')
 abstract class _SharedWorker extends AbstractWorker {
   _SharedWorker.internal() : super.internal();
@@ -30842,6 +30355,70 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
   @DomName('StyleSheetList.item')
   @DocsEditable
   StyleSheet item(int index) native "StyleSheetList_item_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('WebKitCSSFilterValue')
+abstract class _WebKitCSSFilterValue extends _CssValueList {
+  _WebKitCSSFilterValue.internal() : super.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('WebKitCSSMatrix')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
+abstract class _WebKitCSSMatrix extends NativeFieldWrapperClass1 {
+  _WebKitCSSMatrix.internal();
+
+  @DomName('WebKitCSSMatrix.WebKitCSSMatrix')
+  @DocsEditable
+  factory _WebKitCSSMatrix([String cssValue]) {
+    return _WebKitCSSMatrix._create_1(cssValue);
+  }
+
+  @DocsEditable
+  static _WebKitCSSMatrix _create_1(cssValue) native "WebKitCSSMatrix__create_1constructorCallback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('WebKitCSSMixFunctionValue')
+abstract class _WebKitCSSMixFunctionValue extends _CssValueList {
+  _WebKitCSSMixFunctionValue.internal() : super.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('WebKitCSSTransformValue')
+abstract class _WebKitCSSTransformValue extends _CssValueList {
+  _WebKitCSSTransformValue.internal() : super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

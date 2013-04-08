@@ -153,7 +153,6 @@ main() {
             'is an svg.AnimatedTransformList');
     var isCssStyleDeclaration =
         predicate((x) => x is CssStyleDeclaration, 'is a CssStyleDeclaration');
-    var isCssValue = predicate((x) => x is CssValue, 'is a CssValue');
 
     /// Verifies that [e] supports the operations on the svg.Tests interface.
     checkSvgTests(e) {

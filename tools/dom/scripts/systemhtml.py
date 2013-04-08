@@ -392,7 +392,6 @@ js_support_checks = dict({
     'XMLHttpRequestProgressEvent':
         "Device.isEventTypeSupported('XMLHttpRequestProgressEvent')",
     'WebGLRenderingContext': "JS('bool', '!!(window.WebGLRenderingContext)')",
-    'WebKitCSSMatrix': "JS('bool', '!!(window.WebKitCSSMatrix)')",
     'WebKitPoint': "JS('bool', '!!(window.WebKitPoint)')",
     'WebSocket': "JS('bool', 'typeof window.WebSocket != \"undefined\"')",
     'Worker': "JS('bool', '(typeof window.Worker != \"undefined\")')",

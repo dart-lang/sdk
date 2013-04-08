@@ -839,47 +839,6 @@ class ClipPathElement extends StyledElement implements Transformable, Tests, Ext
 
 
 @DocsEditable
-@DomName('SVGColor')
-class Color extends CssValue {
-  Color.internal() : super.internal();
-
-  static const int SVG_COLORTYPE_CURRENTCOLOR = 3;
-
-  static const int SVG_COLORTYPE_RGBCOLOR = 1;
-
-  static const int SVG_COLORTYPE_RGBCOLOR_ICCCOLOR = 2;
-
-  static const int SVG_COLORTYPE_UNKNOWN = 0;
-
-  @DomName('SVGColor.colorType')
-  @DocsEditable
-  int get colorType native "SVGColor_colorType_Getter";
-
-  @DomName('SVGColor.rgbColor')
-  @DocsEditable
-  CssRgbColor get rgbColor native "SVGColor_rgbColor_Getter";
-
-  @DomName('SVGColor.setColor')
-  @DocsEditable
-  void setColor(int colorType, String rgbColor, String iccColor) native "SVGColor_setColor_Callback";
-
-  @DomName('SVGColor.setRGBColor')
-  @DocsEditable
-  void setRgbColor(String rgbColor) native "SVGColor_setRGBColor_Callback";
-
-  @DomName('SVGColor.setRGBColorICCColor')
-  @DocsEditable
-  void setRgbColorIccColor(String rgbColor, String iccColor) native "SVGColor_setRGBColorICCColor_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
 @DomName('SVGDefsElement')
 class DefsElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
   DefsElement.internal() : super.internal();
@@ -4273,55 +4232,6 @@ class NumberList extends NativeFieldWrapperClass1 implements List<Number> {
 
 
 @DocsEditable
-@DomName('SVGPaint')
-class Paint extends Color {
-  Paint.internal() : super.internal();
-
-  static const int SVG_PAINTTYPE_CURRENTCOLOR = 102;
-
-  static const int SVG_PAINTTYPE_NONE = 101;
-
-  static const int SVG_PAINTTYPE_RGBCOLOR = 1;
-
-  static const int SVG_PAINTTYPE_RGBCOLOR_ICCCOLOR = 2;
-
-  static const int SVG_PAINTTYPE_UNKNOWN = 0;
-
-  static const int SVG_PAINTTYPE_URI = 107;
-
-  static const int SVG_PAINTTYPE_URI_CURRENTCOLOR = 104;
-
-  static const int SVG_PAINTTYPE_URI_NONE = 103;
-
-  static const int SVG_PAINTTYPE_URI_RGBCOLOR = 105;
-
-  static const int SVG_PAINTTYPE_URI_RGBCOLOR_ICCCOLOR = 106;
-
-  @DomName('SVGPaint.paintType')
-  @DocsEditable
-  int get paintType native "SVGPaint_paintType_Getter";
-
-  @DomName('SVGPaint.uri')
-  @DocsEditable
-  String get uri native "SVGPaint_uri_Getter";
-
-  @DomName('SVGPaint.setPaint')
-  @DocsEditable
-  void setPaint(int paintType, String uri, String rgbColor, String iccColor) native "SVGPaint_setPaint_Callback";
-
-  @DomName('SVGPaint.setUri')
-  @DocsEditable
-  void setUri(String uri) native "SVGPaint_setUri_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
 @DomName('SVGPathElement')
 class PathElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
   PathElement.internal() : super.internal();
@@ -6551,10 +6461,6 @@ class StyledElement extends SvgElement {
   @DocsEditable
   CssStyleDeclaration get style native "SVGStyledElement_style_Getter";
 
-  @DomName('SVGStyledElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGStyledElement_getPresentationAttribute_Callback";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8388,6 +8294,18 @@ abstract class _SVGAnimateColorElement extends AnimationElement {
   _SVGAnimateColorElement.internal() : super.internal();
 
 }
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+// Hack because the baseclass is private in dart:html, and we want to omit this
+// type entirely but can't.
+@DocsEditable
+@DomName('SVGColor')
+class _SVGColor {
+  _SVGColor.internal() : super.internal();
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -8587,6 +8505,19 @@ abstract class _SVGMPathElement extends SvgElement implements UriReference, Exte
 @DomName('SVGMissingGlyphElement')
 abstract class _SVGMissingGlyphElement extends StyledElement {
   _SVGMissingGlyphElement.internal() : super.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('SVGPaint')
+abstract class _SVGPaint extends _SVGColor {
+  _SVGPaint.internal() : super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
