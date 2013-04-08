@@ -323,6 +323,7 @@ void testWindowsDrive() {
   var C2Path = new Path(r'C:\a\b\d');
   var C3Path = new Path(r'C:\a\b');
   var C4Path = new Path(r'C:\');
+  var c4Path = new Path(r'c:\');
   var DPath = new Path(r'D:\a\b\d\e');
   var NoPath = new Path(r'\a\b\c\.');
 
@@ -338,4 +339,5 @@ void testWindowsDrive() {
   Expect.equals('d', cPath.relativeTo(C3Path).toString());
   Expect.equals('a/b/d', cPath.relativeTo(C4Path).toString());
   Expect.equals('../../../', C4Path.relativeTo(cPath).toString());
+  Expect.equals('a/b', C3Path.relativeTo(c4Path).toString());
 }
