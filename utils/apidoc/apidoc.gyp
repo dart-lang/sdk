@@ -66,12 +66,18 @@
             '../../sdk/bin/dart.bat',
             '../../sdk/bin/dart2js',
             '../../sdk/bin/dart2js.bat',
+            '../../tools/only_in_release_mode.py',
           ],
           'outputs': [
             '<(PRODUCT_DIR)/api_docs/index.html',
             '<(PRODUCT_DIR)/api_docs/client-static.js',
           ],
           'action': [
+            'python',
+            '../../tools/only_in_release_mode.py',
+            '--outputs=<(_outputs)',
+            '--mode=$(DART_BUILD_MODE)',
+            '--',
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
             '--package-root=<(PRODUCT_DIR)/packages/',
             'apidoc.dart',

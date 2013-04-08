@@ -340,6 +340,7 @@ def Main():
   for target_os in options.os:
     for mode in options.mode:
       for arch in options.arch:
+        os.environ['DART_BUILD_MODE'] = mode
         build_config = utils.GetBuildConf(mode, arch)
         if HOST_OS == 'macos':
           filter_xcodebuild_output = True
