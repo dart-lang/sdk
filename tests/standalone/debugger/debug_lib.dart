@@ -46,7 +46,22 @@ class JsonBuffer {
     return msg;
   }
 
-  // Returns the character length of the newxt json message in the
+  bool haveGarbage() {
+    if (buffer == null || buffer.length == 0) return false;
+    var i = 0, char = " ";
+    while (i < buffer.length) {
+      char = buffer[i];
+      if (char != " " && char != "\n" && char != "\r" && char != "\t") break;
+      i++;
+    }
+    if (i >= buffer.length) {
+      return false;
+    } else { 
+      return char != "{";
+    }
+  }
+
+  // Returns the character length of the next json message in the
   // buffer, or 0 if there is only a partial message in the buffer.
   // The object value must start with '{' and continues to the
   // matching '}'. No attempt is made to otherwise validate the contents
@@ -376,6 +391,12 @@ class Debugger {
     var msg = responses.getNextMessage();
     while (msg != null) {
       if (verboseWire) print("RECV: $msg");
+      if (responses.haveGarbage()) {
+        error("Error: leftover text after message: '${responses.buffer}'");
+        error("Previous message may be malformed, was: '$msg'");
+        close(killDebugee: true);
+        return;
+      }
       var msgObj = JSON.parse(msg);
       handleMessage(msgObj);
       if (errorsDetected) {

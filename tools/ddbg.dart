@@ -19,7 +19,8 @@ StreamSubscription<String> streamSubscription;
 int seqNum = 0;
 int isolate_id = -1;
 
-bool verbose = false;
+final verbose = false;
+final printMessages = false;
 
 // The current stack trace, while the VM is paused. It's a list
 // of activation frames.
@@ -463,13 +464,31 @@ void processVmMessage(String jsonString) {
   }
 }
 
+bool haveGarbageVmData() {
+  if (vmData == null || vmData.length == 0) return false;
+  var i = 0, char = " ";
+  while (i < vmData.length) {
+    char = vmData[i];
+    if (char != " " && char != "\n" && char != "\r" && char != "\t") break;
+    i++;
+  }
+  if (i >= vmData.length) {
+    return false;
+  } else { 
+    return char != "{";
+  }
+}
+
 
 void processVmData(String data) {
-  final printMessages = false;
   if (vmData == null || vmData.length == 0) {
     vmData = data;
   } else {
     vmData = vmData + data;
+  }
+  if (haveGarbageVmData()) {
+    print("Error: have garbage data from VM: '$vmData'");
+    return;
   }
   int msg_len = jsonObjectLength(vmData);
   if (printMessages && msg_len == 0) {
@@ -487,8 +506,13 @@ void processVmData(String data) {
     if (printMessages) { print("at least one message: '$vmData'"); }
     var msg = vmData.substring(0, msg_len);
     if (printMessages) { print("first message: $msg"); }
-    processVmMessage(msg);
     vmData = vmData.substring(msg_len);
+    if (haveGarbageVmData()) {
+      print("Error: garbage data after previous message: '$vmData'");
+      print("Previous message was: '$msg'");
+      return;
+    }
+    processVmMessage(msg);
     msg_len = jsonObjectLength(vmData);
   }
   if (printMessages) { print("leftover vm data '$vmData'"); }
