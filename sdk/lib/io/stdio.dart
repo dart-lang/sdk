@@ -41,12 +41,12 @@ class _StdSink implements IOSink {
   void writeAll(objects, [sep = ""]) => _ioSink.writeAll(objects, sep);
   void writeBytes(List<int> data) => _ioSink.writeBytes(data);
   void writeCharCode(int charCode) => _ioSink.writeCharCode(charCode);
-  Future<T> consume(Stream<List<int>> stream) => _ioSink.consume(stream);
-  Future<T> addStream(Stream<List<int>> stream) => _ioSink.addStream(stream);
-  Future<T> writeStream(Stream<List<int>> stream)
+  Future consume(Stream<List<int>> stream) => _ioSink.consume(stream);
+  Future addStream(Stream<List<int>> stream) => _ioSink.addStream(stream);
+  Future writeStream(Stream<List<int>> stream)
       => _ioSink.writeStream(stream);
   Future close() => _ioSink.close();
-  Future<T> get done => _ioSink.done;
+  Future get done => _ioSink.done;
 }
 
 class StdioType {
