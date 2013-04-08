@@ -4,8 +4,5 @@
 
 library stack_trace;
 
-import 'src/trace.dart';
-import 'src/frame.dart';
-
 export 'src/trace.dart';
 export 'src/frame.dart';
