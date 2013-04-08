@@ -295,8 +295,6 @@ LibTest/core/TypeError/url_A01_t01: Fail # TODO(ahe): Please triage this failure
 
 Language/11_Expressions/11_Instance_Creation/1_New_A12_t02: Fail # http://dartbug.com/3970
 
-Language/13_Libraries_and_Scripts/3_Parts_A02_t03: Fail # http://dartbug.com/5022
-Language/13_Libraries_and_Scripts/3_Parts_A03_t01: Fail # http://dartbug.com/5022
 Language/14_Types/3_Type_Declarations/1_Typedef_A01_t01: Fail # http://dartbug.com/5022
 
 LibTest/core/List/operator_subscript_A03_t01: Fail # http://dartbug.com/9228
