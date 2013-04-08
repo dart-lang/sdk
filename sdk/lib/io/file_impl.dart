@@ -325,6 +325,8 @@ class _File extends _FileBase implements File {
 
   external static _delete(String path);
 
+  external static _deleteLink(String path);
+
   void deleteSync() {
     var result = _delete(_path);
     throwIfError(result, "Cannot delete file '$_path'");
