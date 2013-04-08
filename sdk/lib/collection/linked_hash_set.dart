@@ -4,7 +4,7 @@
 
 part of dart.collection;
 
-class LinkedHashSet<E> extends Collection<E> implements Set<E> {
+class LinkedHashSet<E> extends _HashSetBase<E> {
   static const int _INITIAL_CAPACITY = 8;
   _LinkedHashTable<E> _table;
 
@@ -19,6 +19,12 @@ class LinkedHashSet<E> extends Collection<E> implements Set<E> {
   // Iterable.
   Iterator<E> get iterator => new _LinkedHashTableKeyIterator<E>(_table);
 
+  int get length => _table._elementCount;
+
+  bool get isEmpty => _table._elementCount == 0;
+
+  bool contains(Object object) => _table._get(object) >= 0;
+
   void forEach(void action(E element)) {
     int offset = _table._next(_LinkedHashTable._HEAD_OFFSET);
     int modificationCount = _table._modificationCount;
@@ -29,12 +35,6 @@ class LinkedHashSet<E> extends Collection<E> implements Set<E> {
       offset = _table._next(offset);
     }
   }
-
-  int get length => _table._elementCount;
-
-  bool get isEmpty => _table._elementCount == 0;
-
-  bool contains(Object object) => _table._get(object) >= 0;
 
   E get first {
     int firstOffset = _table._next(_LinkedHashTable._HEAD_OFFSET);
@@ -65,38 +65,6 @@ class LinkedHashSet<E> extends Collection<E> implements Set<E> {
   }
 
   // Collection.
-  void add(E element) {
-    _table._put(element);
-    _table._checkCapacity();
-  }
-
-  void addAll(Iterable<E> objects) {
-    for (E object in objects) {
-      _table._put(object);
-      _table._checkCapacity();
-    }
-  }
-
-  bool remove(Object object) {
-    int offset = _table._remove(object);
-    if (offset >= 0) {
-      _table._checkCapacity();
-      return true;
-    }
-    return false;
-  }
-
-  void removeAll(Iterable objectsToRemove) {
-    for (Object object in objectsToRemove) {
-      _table._remove(object);
-      _table._checkCapacity();
-    }
-  }
-
-  void retainAll(Iterable objectsToRemove) {
-    IterableMixinWorkaround.retainAll(this, objectsToRemove);
-  }
-
   void _filterWhere(bool test(E element), bool removeMatching) {
     int entrySize = _table._entrySize;
     int length = _table._table.length;
@@ -115,48 +83,46 @@ class LinkedHashSet<E> extends Collection<E> implements Set<E> {
     _table._checkCapacity();
   }
 
+  void add(E element) {
+    _table._put(element);
+    _table._checkCapacity();
+  }
+
+  bool remove(Object object) {
+    int offset = _table._remove(object);
+    if (offset >= 0) {
+      _table._checkCapacity();
+      return true;
+    }
+    return false;
+  }
+
+  void removeAll(Iterable objectsToRemove) {
+    for (Object object in objectsToRemove) {
+      if (_table._remove(object) >= 0) {
+        _table._checkCapacity();
+      }
+    }
+  }
+
+  void retainAll(Iterable objectsToRetain) {
+    Set retainSet;
+    if (objectsToRetain is Set) {
+      retainSet = objectsToRetain;
+    } else {
+      retainSet = objectsToRetain.toSet();
+    }
+    _filterWhere(retainSet.contains, false);
+  }
+
   void removeWhere(bool test(E element)) {
     _filterWhere(test, true);
   }
 
-  void retainWhere(bool test(E element)) {
+  retianWhere(bool test(E element)) {
     _filterWhere(test, false);
   }
 
-  void clear() {
-    _table._clear();
-  }
-
-  // Set.
-  bool isSubsetOf(Collection<E> other) {
-    // Deprecated, and using old signature.
-    Set otherSet;
-    if (other is Set) {
-      otherSet = other;
-    } else {
-      otherSet = other.toSet();
-    }
-    return IterableMixinWorkaround.setContainsAll(otherSet, this);
-  }
-
-  bool containsAll(Iterable<E> other) {
-    return IterableMixinWorkaround.setContainsAll(this, other);
-  }
-
-  Set<E> intersection(Set<E> other) {
-    return IterableMixinWorkaround.setIntersection(
-        this, other, new LinkedHashSet<E>());
-  }
-
-  Set<E> union(Set<E> other) {
-    return IterableMixinWorkaround.setUnion(
-        this, other, new LinkedHashSet<E>());
-  }
-
-  Set<E> difference(Set<E> other) {
-    return IterableMixinWorkaround.setDifference(
-        this, other, new LinkedHashSet<E>());
-  }
-
-  String toString() => Collections.collectionToString(this);
+  // Set
+  Set<E> _newSet() => new LinkedHashSet<E>();
 }
