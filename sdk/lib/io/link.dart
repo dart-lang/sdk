@@ -125,6 +125,9 @@ class _Link extends FileSystemEntity implements Link {
 
   Future<Link> create(String target) {
     _ensureFileService();
+    if (Platform.operatingSystem == 'windows') {
+      target = _makeWindowsLinkTarget(target);
+    }
     List request = new List(3);
     request[0] = _CREATE_LINK_REQUEST;
     request[1] = path;
