@@ -125,7 +125,7 @@ class RawSocketEvent {
  */
 abstract class RawSocket implements Stream<RawSocketEvent> {
   /**
-   * Creats a new socket connection to the host and port and returns a [Future]
+   * Creates a new socket connection to the host and port and returns a [Future]
    * that will complete with either a [RawSocket] once connected or an error
    * if the host-lookup or connection failed.
    */
@@ -216,7 +216,7 @@ abstract class Socket implements Stream<List<int>>,
                                  IOSink<Socket> {
   /**
    * Creats a new socket connection to the host and port and returns a [Future]
-   * that will complete with either a [RawSocket] once connected or an error
+   * that will complete with either a [Socket] once connected or an error
    * if the host-lookup or connection failed.
    */
   external static Future<Socket> connect(String host, int port);
