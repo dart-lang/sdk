@@ -15,7 +15,7 @@ isNoSuchMethodError(e) => e is NoSuchMethodError;
 class Expect {
   static void isTrue(x) => Expect.equals(true, x);
 
-  static void isFalse(x) => Expect.equals(true, x);
+  static void isFalse(x) => Expect.equals(false, x);
 
   static void equals(expected, actual) {
     if (expected != actual) {
