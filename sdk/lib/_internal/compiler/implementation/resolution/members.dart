@@ -2968,17 +2968,30 @@ class TypeDefinitionVisitor extends CommonResolverVisitor<DartType> {
       if (typeNode.bound != null) {
         DartType boundType = typeResolver.resolveTypeAnnotation(
             typeNode.bound, scope, element, onFailure: warning);
-        if (boundType != null && boundType.element == variableElement) {
-          // TODO(johnniwinther): Check for more general cycles, like
-          // [: <A extends B, B extends C, C extends B> :].
-          warning(node, MessageKind.CYCLIC_TYPE_VARIABLE,
-                  {'typeVariableName': variableElement.name});
-        } else if (boundType != null) {
-          variableElement.bound = boundType;
-        } else {
-          // TODO(johnniwinther): Should be an erroneous type.
-          variableElement.bound = compiler.objectClass.computeType(compiler);
+        variableElement.bound = boundType;
+
+        void checkTypeVariableBound() {
+          Link<TypeVariableElement> seenTypeVariables =
+              const Link<TypeVariableElement>();
+          seenTypeVariables = seenTypeVariables.prepend(variableElement);
+          DartType bound = boundType;
+          while (bound.element.isTypeVariable()) {
+            TypeVariableElement element = bound.element;
+            if (seenTypeVariables.contains(element)) {
+              if (identical(element, variableElement)) {
+                // Only report an error on the checked type variable to avoid
+                // generating multiple errors for the same cyclicity.
+                warning(typeNode.name, MessageKind.CYCLIC_TYPE_VARIABLE,
+                    {'typeVariableName': variableElement.name});
+              }
+              break;
+            }
+            seenTypeVariables = seenTypeVariables.prepend(element);
+            bound = element.bound;
+          }
         }
+        compiler.enqueuer.resolution.addPostProcessAction(
+            element, checkTypeVariableBound);
       } else {
         variableElement.bound = compiler.objectClass.computeType(compiler);
       }

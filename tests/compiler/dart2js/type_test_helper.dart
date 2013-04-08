@@ -26,7 +26,9 @@ class TypeEnvironment {
     MockCompiler compiler = compilerFor('''
         main() {}
         $source''',
-        uri);
+        uri,
+        analyzeAll: true,
+        analyzeOnly: true);
     compiler.runCompiler(uri);
     return new TypeEnvironment._(compiler);
   }

@@ -393,6 +393,8 @@ abstract class Enqueuer {
 
   void forEach(f(WorkItem work));
 
+  void forEachPostProcessTask(f(PostProcessTask work)) {}
+
   void logSummary(log(message)) {
     _logSpecificSummary(log);
     nativeEnqueuer.logSummary(log);
@@ -416,11 +418,18 @@ class ResolutionEnqueuer extends Enqueuer {
 
   final Queue<ResolutionWorkItem> queue;
 
+  /**
+   * A post-processing queue for the resolution phase which is processed
+   * immediately after the resolution queue has been closed.
+   */
+  final Queue<PostProcessTask> postQueue;
+
   ResolutionEnqueuer(Compiler compiler,
                      ItemCompilationContext itemCompilationContextCreator())
       : super('resolution enqueuer', compiler, itemCompilationContextCreator),
         resolvedElements = new Map<Element, TreeElements>(),
-        queue = new Queue<ResolutionWorkItem>();
+        queue = new Queue<ResolutionWorkItem>(),
+        postQueue = new Queue<PostProcessTask>();
 
   bool get isResolutionQueue => true;
 
@@ -518,6 +527,27 @@ class ResolutionEnqueuer extends Enqueuer {
     while (!queue.isEmpty) {
       // TODO(johnniwinther): Find an optimal process order for resolution.
       f(queue.removeLast());
+    }
+  }
+
+  /**
+   * Adds an action to the post-processing queue.
+   *
+   * The action is performed as part of the post-processing immediately after
+   * the resolution queue has been closed. As a consequence, [action] must not
+   * add elements to the resolution queue.
+   */
+  void addPostProcessAction(Element element, PostProcessAction action) {
+    if (queueIsClosed) {
+      throw new SpannableAssertionFailure(element,
+                                          "Resolution work list is closed.");
+    }
+    postQueue.add(new PostProcessTask(element, action));
+  }
+
+  void forEachPostProcessTask(f(PostProcessTask work)) {
+    while (!postQueue.isEmpty) {
+      f(postQueue.removeFirst());
     }
   }
 

@@ -465,16 +465,6 @@ class ArgumentCollector extends DartTypeVisitor {
     type.accept(this, false);
   }
 
-  visit(DartType type) {
-    type.accept(this, true);
-  }
-
-  visitList(Link<DartType> types) {
-    for (Link<DartType> link = types; !link.isEmpty; link = link.tail) {
-      link.head.accept(this, true);
-    }
-  }
-
   visitType(DartType type, _) {
     // Do nothing.
   }
@@ -487,13 +477,10 @@ class ArgumentCollector extends DartTypeVisitor {
     if (isTypeArgument) {
       classes.add(type.element);
     }
-    visitList(type.typeArguments);
+    type.visitChildren(this, true);
   }
 
   visitFunctionType(FunctionType type, _) {
-    visit(type.returnType);
-    visitList(type.parameterTypes);
-    visitList(type.optionalParameterTypes);
-    visitList(type.namedParameterTypes);
+    type.visitChildren(this, true);
   }
 }

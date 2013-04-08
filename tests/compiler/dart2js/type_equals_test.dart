@@ -85,7 +85,8 @@ void main() {
 
       void main() {}
       """,
-      uri);
+      uri,
+      analyzeAll: true, analyzeOnly: true);
   compiler.runCompiler(uri);
 
   test(compiler, "void1", "void2", expect: true);

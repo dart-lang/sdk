@@ -85,6 +85,15 @@ class CodegenWorkItem extends WorkItem {
   }
 }
 
+typedef void PostProcessAction();
+
+class PostProcessTask {
+  final Element element;
+  final PostProcessAction action;
+
+  PostProcessTask(this.element, this.action);
+}
+
 class ReadingFilesTask extends CompilerTask {
   ReadingFilesTask(Compiler compiler) : super(compiler);
   String get name => 'Reading input files';
@@ -835,6 +844,9 @@ abstract class Compiler implements DiagnosticListener {
       withCurrentElement(work.element, () => work.run(this, world));
     });
     world.queueIsClosed = true;
+    world.forEachPostProcessTask((PostProcessTask work) {
+      withCurrentElement(work.element, () => work.action());
+    });
     if (compilationFailed) return;
     assert(world.checkNoEnqueuedInvokedInstanceMethods());
     if (DUMP_INFERRED_TYPES && phase == PHASE_COMPILING) {

@@ -133,6 +133,15 @@ abstract class DartType {
   bool get containsTypeVariables => typeVariableOccurrence != null;
 
   accept(DartTypeVisitor visitor, var argument);
+
+  void visitChildren(DartTypeVisitor visitor, var argument) {}
+
+  static void visitList(Link<DartType> types,
+                        DartTypeVisitor visitor, var argument) {
+    for (Link<DartType> link = types; !link.isEmpty ; link = link.tail) {
+      link.head.accept(visitor, argument);
+    }
+  }
 }
 
 /**
@@ -394,6 +403,10 @@ abstract class GenericType extends DartType {
 
   TypeVariableType get typeVariableOccurrence {
     return _findTypeVariableOccurrence(typeArguments);
+  }
+
+  void visitChildren(DartTypeVisitor visitor, var argument) {
+    DartType.visitList(typeArguments, visitor, argument);
   }
 
   String toString() {
@@ -661,6 +674,13 @@ class FunctionType extends DartType {
 
   accept(DartTypeVisitor visitor, var argument) {
     return visitor.visitFunctionType(this, argument);
+  }
+
+  void visitChildren(DartTypeVisitor visitor, var argument) {
+   returnType.accept(visitor, argument);
+   DartType.visitList(parameterTypes, visitor, argument);
+   DartType.visitList(optionalParameterTypes, visitor, argument);
+   DartType.visitList(namedParameterTypes, visitor, argument);
   }
 
   String toString() {
