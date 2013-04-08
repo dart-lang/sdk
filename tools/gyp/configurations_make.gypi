@@ -25,10 +25,8 @@
           #'-ansi',
           '-fno-rtti',
           '-fno-exceptions',
-          '-fPIC',
           '-fvisibility=hidden',
           '-fvisibility-inlines-hidden',
-          '-fno-omit-frame-pointer',
         ],
       },
 
@@ -70,7 +68,10 @@
       },
 
       'Dart_Debug': {
-        'cflags': [ '-O<(dart_debug_optimization_level)' ],
+        'cflags': [
+          '-O<(dart_debug_optimization_level)',
+          '-fno-omit-frame-pointer',
+        ],
       },
 
       'Dart_Release': {
