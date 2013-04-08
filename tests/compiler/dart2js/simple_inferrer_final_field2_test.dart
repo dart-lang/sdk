@@ -5,6 +5,7 @@
 // Test that a non-used generative constructor does not prevent
 // infering types for fields.
 
+import 'package:expect/expect.dart';
 import 'compiler_helper.dart';
 import 'parser_helper.dart';
 

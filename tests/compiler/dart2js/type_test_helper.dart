@@ -4,6 +4,7 @@
 
 library type_test_helper;
 
+import "package:expect/expect.dart";
 import '../../../sdk/lib/_internal/compiler/implementation/dart_types.dart';
 import "parser_helper.dart" show SourceString;
 import "compiler_helper.dart";

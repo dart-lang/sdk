@@ -4,6 +4,7 @@
 
 // Test that we are analyzing field parameters correctly.
 
+import 'package:expect/expect.dart';
 import 'compiler_helper.dart';
 import 'parser_helper.dart';
 

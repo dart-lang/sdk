@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
 import "dart:io";
 
 main() {
@@ -22,7 +21,7 @@ set SCRIPTDIR=%~dp0
   var script = scriptDir.append('windows_environment_script.dart');
   Process.run('cmd',
               ['/c', funkyFile.path, dart, script.toNativePath()]).then((p) {
-    Expect.equals(0, p.exitCode);
+    if (0 != p.exitCode) throw "Exit code not 0";
     tempDir.deleteSync(recursive: true);
   });
 }

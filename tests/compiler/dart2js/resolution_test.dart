@@ -5,6 +5,7 @@
 // Test that resolution does not resolve things we know will not be
 // needed by the backend.
 
+import 'package:expect/expect.dart';
 import 'compiler_helper.dart';
 import 'parser_helper.dart';
 

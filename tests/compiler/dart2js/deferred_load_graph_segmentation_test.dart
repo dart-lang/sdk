@@ -6,6 +6,7 @@
 // to determine which elements can be deferred and which libraries
 // much be included in the initial download (loaded eagerly).
 
+import 'package:expect/expect.dart';
 import 'dart:async' show Future;
 import 'dart:uri' show Uri;
 import 'dart:io';
@@ -86,7 +87,7 @@ const lazy = const DeferredLibrary('deferred');
 
 main() {
   lazy.load().then((_) {
-    Expect.equals(42, new MyClass().foo(87));
+    if (42 != new MyClass().foo(87)) throw "not equal";
   });
 }
 

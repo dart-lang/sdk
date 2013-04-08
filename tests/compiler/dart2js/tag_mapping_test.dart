@@ -4,6 +4,7 @@
 
 // Test of import tag to library mapping.
 
+import 'package:expect/expect.dart';
 import 'compiler_helper.dart';
 
 const MAIN_CODE = """
