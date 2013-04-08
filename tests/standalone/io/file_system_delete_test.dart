@@ -27,11 +27,13 @@ void testDeleteFileSync() {
   file.createSync();
 
   Expect.isTrue(file.existsSync());
-  Expect.throws(() => new Directory(file.path).deleteSync());
-  Expect.isTrue(file.existsSync());
+  new Directory(file.path).deleteSync(recursive: true);
+  Expect.isFalse(file.existsSync());
+
+  file.createSync();
 
   Expect.isTrue(file.existsSync());
-  Expect.throws(() => new Directory(file.path).deleteSync(recursive: true));
+  Expect.throws(() => new Directory(file.path).deleteSync());
   Expect.isTrue(file.existsSync());
 
   Expect.isTrue(file.existsSync());
@@ -56,12 +58,13 @@ void testDeleteFile() {
       .then((_) => file.create())
 
       .then((_) => file.exists().then(Expect.isTrue))
-      .then((_) => throws(() => new Directory(file.path).delete()))
-      .then((_) => file.exists().then(Expect.isTrue))
+      .then((_) => new Directory(file.path).delete(recursive: true))
+      .then((_) => file.exists().then(Expect.isFalse))
+
+      .then((_) => file.create())
 
       .then((_) => file.exists().then(Expect.isTrue))
-      .then((_) => throws(
-          () => new Directory(file.path).delete(recursive: true)))
+      .then((_) => throws(() => new Directory(file.path).delete()))
       .then((_) => file.exists().then(Expect.isTrue))
 
       .then((_) => file.exists().then(Expect.isTrue))
@@ -161,11 +164,13 @@ void testDeleteFileLinkSync() {
   link.createSync(file.path);
 
   Expect.isTrue(link.existsSync());
-  Expect.throws(() => new Directory(link.path).deleteSync());
-  Expect.isTrue(link.existsSync());
+  new Directory(link.path).deleteSync(recursive: true);
+  Expect.isFalse(link.existsSync());
+
+  link.createSync(file.path);
 
   Expect.isTrue(link.existsSync());
-  Expect.throws(() => new Directory(link.path).deleteSync(recursive: true));
+  Expect.throws(() => new Directory(link.path).deleteSync());
   Expect.isTrue(link.existsSync());
 
   link.deleteSync();
@@ -199,12 +204,13 @@ void testDeleteFileLink() {
       .then((_) => link.create(file.path))
 
       .then((_) => link.exists().then(Expect.isTrue))
-      .then((_) => throws(() => new Directory(link.path).delete()))
-      .then((_) => link.exists().then(Expect.isTrue))
+      .then((_) => new Directory(link.path).delete(recursive: true))
+      .then((_) => link.exists().then(Expect.isFalse))
+
+      .then((_) => link.create(file.path))
 
       .then((_) => link.exists().then(Expect.isTrue))
-      .then((_) => throws(
-          () => new Directory(link.path).delete(recursive: true)))
+      .then((_) => throws(() => new Directory(link.path).delete()))
       .then((_) => link.exists().then(Expect.isTrue))
 
       .then((_) => link.deleteSync())
@@ -323,11 +329,15 @@ void testDeleteBrokenLinkSync() {
   directory.deleteSync();
 
   Expect.isTrue(link.existsSync());
-  Expect.throws(() => new Directory(link.path).deleteSync());
-  Expect.isTrue(link.existsSync());
+  new Directory(link.path).deleteSync(recursive: true);
+  Expect.isFalse(link.existsSync());
+
+  directory.createSync();
+  link.createSync(directory.path);
+  directory.deleteSync();
 
   Expect.isTrue(link.existsSync());
-  Expect.throws(() => new Directory(link.path).deleteSync(recursive: true));
+  Expect.throws(() => new Directory(link.path).deleteSync());
   Expect.isTrue(link.existsSync());
 
   Expect.isTrue(link.existsSync());
@@ -358,12 +368,15 @@ void testDeleteBrokenLink() {
       .then((_) => dir.delete())
 
       .then((_) => link.exists().then(Expect.isTrue))
-      .then((_) => throws(() => new Directory(link.path).delete()))
-      .then((_) => link.exists().then(Expect.isTrue))
+      .then((_) => new Directory(link.path).delete(recursive: true))
+      .then((_) => link.exists().then(Expect.isFalse))
+
+      .then((_) => dir.create())
+      .then((_) => link.create(dir.path))
+      .then((_) => dir.delete())
 
       .then((_) => link.exists().then(Expect.isTrue))
-      .then((_) => throws(
-          () => new Directory(link.path).delete(recursive: true)))
+      .then((_) => throws(() => new Directory(link.path).delete()))
       .then((_) => link.exists().then(Expect.isTrue))
 
       .then((_) => link.exists().then(Expect.isTrue))

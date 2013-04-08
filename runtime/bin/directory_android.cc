@@ -221,7 +221,7 @@ static bool ListRecursively(PathBuffer* path,
 
 static bool DeleteFile(char* file_name,
                        PathBuffer* path) {
-  return path->Add(file_name) && remove(path->data) == 0;
+  return path->Add(file_name) && unlink(path->data) == 0;
 }
 
 
@@ -235,15 +235,12 @@ static bool DeleteDir(char* dir_name,
 
 static bool DeleteRecursively(PathBuffer* path) {
   // Do not recurse into links for deletion. Instead delete the link.
+  // If it's a file, delete it.
   struct stat st;
   if (TEMP_FAILURE_RETRY(lstat(path->data, &st)) == -1) {
     return false;
-  } else if (S_ISLNK(st.st_mode)) {
-    if (TEMP_FAILURE_RETRY(stat(path->data, &st)) == -1) {
-      return false;
-    } else if (S_ISDIR(st.st_mode)) {
-      return (unlink(path->data) == 0);
-    }
+  } else if (S_ISREG(st.st_mode) || S_ISLNK(st.st_mode)) {
+    return (unlink(path->data) == 0);
   }
 
   if (!path->Add(File::PathSeparator())) return false;

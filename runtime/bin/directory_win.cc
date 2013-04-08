@@ -263,17 +263,19 @@ static bool DeleteEntry(LPWIN32_FIND_DATAW find_file_data, PathBuffer* path) {
 
 
 static bool DeleteRecursively(PathBuffer* path) {
+  DWORD attributes = GetFileAttributesW(path->data);
+  if ((attributes == INVALID_FILE_ATTRIBUTES)) {
+    return false;
+  }
   // If the directory is a junction, it's pointing to some other place in the
   // filesystem that we do not want to recurse into.
-  DWORD attributes = GetFileAttributesW(path->data);
-  if ((attributes != INVALID_FILE_ATTRIBUTES) &&
-      (attributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0) {
-    if (IsBrokenLink(path->data)) {
-      return false;
-    } else {
-      // Just delete the junction itself.
-      return RemoveDirectoryW(path->data) != 0;
-    }
+  if ((attributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0) {
+    // Just delete the junction itself.
+    return RemoveDirectoryW(path->data) != 0;
+  }
+  // If it's a file, remove it directly.
+  if ((attributes & FILE_ATTRIBUTE_DIRECTORY) == 0) {
+    return DeleteFile(L"", path);
   }
 
   if (!path->Add(L"\\*")) return false;
