@@ -5,33 +5,13 @@
 // Test that loading of a library (with top-level functions only) can
 // be deferred.
 
+import "package:expect/expect.dart";
 import 'dart:async';
 @lazy import 'deferred_function_library.dart';
 
 const lazy = const DeferredLibrary('deferred_function_library');
 
 isNoSuchMethodError(e) => e is NoSuchMethodError;
-
-class Expect {
-  static void isTrue(x) => Expect.equals(true, x);
-
-  static void isFalse(x) => Expect.equals(false, x);
-
-  static void equals(expected, actual) {
-    if (expected != actual) {
-      throw "Not equal. Expected: $expected. Got: $actual";
-    }
-  }
-  static void throws(fun, [test]) {
-    try {
-      fun();
-    } catch (e) {
-      if (!test(e)) throw "doesn't satisfy exception test";
-      return;
-    }
-    throw "didn't throw";
-  }
-}
 
 main() {
   print('unittest-suite-wait-for-done');
