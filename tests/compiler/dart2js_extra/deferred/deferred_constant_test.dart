@@ -8,6 +8,29 @@ import 'dart:async';
 
 const lazy = const DeferredLibrary('deferred_class_library');
 
+class Expect {
+  static void isTrue(x) => Expect.equals(true, x);
+  static void isFalse(x) => Expect.equals(false, x);
+
+  static void equals(expected, actual) {
+    if (expected != actual) {
+      throw "Not equal. Expected: $expected. Got: $actual";
+    }
+  }
+
+  static void throws(fun, [test]) {
+    try {
+      fun();
+    } catch (e) {
+      if (!test(e)) throw "doesn't satisfy exception test";
+      return;
+    }
+    throw "didn't throw";
+  }
+
+  static void isNull(x) => expect.equals(null, x);
+}
+
 main() {
   var x;
   // TODO(ahe): What are the semantics of this:

@@ -13,7 +13,10 @@ const lazy = const DeferredLibrary('deferred_function_library');
 isNoSuchMethodError(e) => e is NoSuchMethodError;
 
 class Expect {
-  static void isTrue(x) => expect.equals(true, x);
+  static void isTrue(x) => Expect.equals(true, x);
+
+  static void isFalse(x) => Expect.equals(true, x);
+
   static void equals(expected, actual) {
     if (expected != actual) {
       throw "Not equal. Expected: $expected. Got: $actual";
