@@ -430,7 +430,7 @@ bool Directory::Delete(const char* dir_name, bool recursive) {
     if (File::GetType(dir_name, true) == File::kIsDirectory) {
       result = (RemoveDirectoryW(system_dir_name) != 0);
     } else {
-      SetLastError(ERROR_DIRECTORY);
+      SetLastError(ERROR_FILE_NOT_FOUND);
     }
   } else {
     PathBuffer path;
