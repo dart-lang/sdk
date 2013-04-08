@@ -50,7 +50,9 @@ class _WebSocketProtocolTransformer extends StreamEventTransformer {
   static const int CLOSED = 5;
   static const int FAILURE = 6;
 
-  _WebSocketProtocolTransformer() {
+  bool _serverSide;
+
+  _WebSocketProtocolTransformer([bool this._serverSide = false]) {
     _prepareForNextFrame();
     _currentMessageType = _WebSocketMessageType.NONE;
   }
@@ -223,9 +225,15 @@ class _WebSocketProtocolTransformer extends StreamEventTransformer {
 
   void _lengthDone(EventSink sink) {
     if (_masked) {
+      if (!_serverSide) {
+        throw new WebSocketException("Received masked frame from server");
+      }
       _state = MASK;
       _remainingMaskingKeyBytes = 4;
     } else {
+      if (_serverSide) {
+        throw new WebSocketException("Received unmasked frame from client");
+      }
       _remainingPayloadBytes = _len;
       _startPayload(sink);
     }
@@ -392,7 +400,7 @@ class _WebSocketTransformerImpl implements WebSocketTransformer {
     response.headers.add("Sec-WebSocket-Accept", accept);
     response.headers.contentLength = 0;
     return response.detachSocket()
-        .then((socket) => new _WebSocketImpl._fromSocket(socket));
+        .then((socket) => new _WebSocketImpl._fromSocket(socket, true));
   }
 
   static bool _isUpgradeRequest(HttpRequest request) {
@@ -428,6 +436,7 @@ class _WebSocketImpl extends Stream implements WebSocket {
   final StreamController _controller = new StreamController();
 
   final Socket _socket;
+  final bool _serverSide;
   int _readyState = WebSocket.CONNECTING;
   bool _writeClosed = false;
   int _closeCode;
@@ -505,11 +514,12 @@ class _WebSocketImpl extends Stream implements WebSocket {
       });
   }
 
-  _WebSocketImpl._fromSocket(Socket this._socket) {
+  _WebSocketImpl._fromSocket(Socket this._socket,
+                             [bool this._serverSide = false]) {
     _readyState = WebSocket.OPEN;
 
     bool closed = false;
-    var transformer = new _WebSocketProtocolTransformer();
+    var transformer = new _WebSocketProtocolTransformer(_serverSide);
     _socket.transform(transformer).listen(
         (data) {
           _controller.add(data);
@@ -631,7 +641,7 @@ class _WebSocketImpl extends Stream implements WebSocket {
 
   void _sendFrame(int opcode, [List<int> data]) {
     if (_writeClosed) return;
-    bool mask = false;  // Masking not implemented for server.
+    bool mask = !_serverSide;  // Masking not implemented for server.
     int dataLength = data == null ? 0 : data.length;
     // Determine the header size.
     int headerSize = (mask) ? 6 : 2;
@@ -657,6 +667,19 @@ class _WebSocketImpl extends Stream implements WebSocket {
     // Write the length in network byte order into the header.
     for (int i = 0; i < lengthBytes; i++) {
       header[index++] = dataLength >> (((lengthBytes - 1) - i) * 8) & 0xFF;
+    }
+    if (mask) {
+      header[1] |= 1 << 7;
+      var maskBytes = _IOCrypto.getRandomBytes(4);
+      header.setRange(index, 4, maskBytes);
+      index += 4;
+      if (data != null) {
+        var list = new Uint8List(data.length);
+        for (int i = 0; i < data.length; i++) {
+          list[i] = data[i] ^ maskBytes[i % 4];
+        }
+        data = list;
+      }
     }
     assert(index == headerSize);
     try {

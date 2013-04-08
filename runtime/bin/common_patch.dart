@@ -7,4 +7,7 @@ patch class _BufferUtils {
       native "Common_IsBuiltinList";
 }
 
-
+patch class _IOCrypto {
+  /* patch */ static Uint8List getRandomBytes(int count)
+      native "Crypto_GetRandomBytes";
+}

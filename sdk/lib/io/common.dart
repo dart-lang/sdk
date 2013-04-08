@@ -97,3 +97,7 @@ class _BufferUtils {
   // a user defined List type.
   external static bool _isBuiltinList(List buffer);
 }
+
+class _IOCrypto {
+  external static Uint8List getRandomBytes(int count);
+}
