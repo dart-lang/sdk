@@ -1053,8 +1053,30 @@ class SubtypeVisitor extends DartTypeVisitor<bool, DartType> {
   }
 
   bool visitTypeVariableType(TypeVariableType t, DartType s) {
-    if (s is !TypeVariableType) return false;
-    return (identical(t.element, s.element));
+    // Identity check is handled in [isSubtype].
+    DartType bound = t.element.bound;
+    if (bound.element.isTypeVariable()) {
+      // The bound is potentially cyclic so we need to be extra careful.
+      Link<TypeVariableElement> seenTypeVariables =
+          const Link<TypeVariableElement>();
+      seenTypeVariables = seenTypeVariables.prepend(t.element);
+      while (bound.element.isTypeVariable()) {
+        TypeVariableElement element = bound.element;
+        if (identical(bound.element, s.element)) {
+          // [t] extends [s].
+          return true;
+        }
+        if (seenTypeVariables.contains(element)) {
+          // We have a cycle and have already checked all bounds in the cycle
+          // against [s] and can therefore conclude that [t] is not a subtype
+          // of [s].
+          return false;
+        }
+        seenTypeVariables = seenTypeVariables.prepend(element);
+        bound = element.bound;
+      }
+    }
+    return isSubtype(bound, s);
   }
 }
 
