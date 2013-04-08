@@ -412,8 +412,8 @@ static void FormatLocationFromTrace(dart::TextBuffer* msg,
     ASSERT(Dart_IsString(script_url));
     msg->Printf("\"location\": { \"url\":");
     FormatEncodedString(msg, script_url);
-    msg->Printf("\"libraryId\":%"Pd"},", library_id);
-    msg->Printf(",\"tokenOffset\":%"Pd",", token_number);
+    msg->Printf(",\"libraryId\":%"Pd"},", library_id);
+    msg->Printf("\"tokenOffset\":%"Pd",", token_number);
     msg->Printf("\"lineNumber\":%"Pd"},", line_number);
   }
 }
@@ -452,7 +452,7 @@ static void FormatCallFrames(dart::TextBuffer* msg, Dart_StackTrace trace) {
       msg->Printf("\"location\": { \"url\":");
       FormatEncodedString(msg, script_url);
       msg->Printf(",\"libraryId\": %"Pd",", library_id);
-      msg->Printf(",\"tokenOffset\":%"Pd",", token_number);
+      msg->Printf("\"tokenOffset\":%"Pd",", token_number);
       msg->Printf("\"lineNumber\":%"Pd"},", line_number);
     }
 
