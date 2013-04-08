@@ -15,6 +15,7 @@
         'api_docs',
         'dartc_bot',
         'dart2js_bot',
+        'dart2dart_bot',
       ],
     },
     {
@@ -66,7 +67,6 @@
         'runtime/dart-runtime.gyp:dart',
         'utils/compiler/compiler.gyp:dart2js',
         'compiler',
-        'packages'
       ],
       'actions': [
         {
