@@ -993,12 +993,6 @@ $if DART2JS
 $else
 $endif
 
-  /** 
-   * Print out a String representation of this Element. By default, this is
-   * this Element's tagName.
-   */
-  String toString() => this.tagName;
-
 $!MEMBERS
 }
 

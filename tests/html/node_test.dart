@@ -30,8 +30,7 @@ main() {
       final nodes = makeNodeWithChildren();
       // TODO(efortuna): Update this test when you have actual toString methods
       // for the items in the node List as well.
-      expect(nodes.nodes.toString(), "[Instance of 'Text', BR, "
-          "Instance of 'Comment']");
+      expect(nodes.nodes.toString(), "[Foo, br, baz]");
       final node = makeNode();
       expect(node.nodes.toString(), '[]');
     });

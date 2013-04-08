@@ -618,7 +618,7 @@ main() {
   group('functional', () {
     test('toString', () {
       final elems = makeElementWithChildren().children;
-      expect(elems.toString(), "[BR, IMG, INPUT]");
+      expect(elems.toString(), "[br, img, input]");
       final elem = makeElement().children;
       expect(elem.toString(), '[]');
     });

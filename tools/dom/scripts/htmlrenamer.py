@@ -250,7 +250,6 @@ _private_html_members = monitored.Set('htmlrenamer._private_html_members', [
   'Node.childNodes',
   'Node.firstChild',
   'Node.lastChild',
-  'Node.localName',
   'Node.namespaceURI',
   'Node.removeChild',
   'Node.replaceChild',

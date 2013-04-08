@@ -424,5 +424,11 @@ $endif
     return _modelChangedStream.stream;
   }
 
+  /** 
+   * Print out a String representation of this Node.
+   */
+  String toString() => localName == null ? 
+      (nodeValue == null ? super.toString() : nodeValue) : localName;
+
 $!MEMBERS
 }

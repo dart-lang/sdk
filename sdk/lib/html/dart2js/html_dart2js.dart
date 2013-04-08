@@ -9103,12 +9103,6 @@ abstract class Element extends Node implements ElementTraversal native "*Element
     throw new UnsupportedError("Not supported on this platform");
   }
 
-  /** 
-   * Print out a String representation of this Element. By default, this is
-   * this Element's tagName.
-   */
-  String toString() => this.tagName;
-
 
   @DomName('Element.abortEvent')
   @DocsEditable
@@ -17823,6 +17817,12 @@ class Node extends EventTarget native "*Node" {
     return _modelChangedStream.stream;
   }
 
+  /** 
+   * Print out a String representation of this Node.
+   */
+  String toString() => localName == null ? 
+      (nodeValue == null ? super.toString() : nodeValue) : localName;
+
 
   @JSName('childNodes')
   @DomName('Node.childNodes')
@@ -17841,10 +17841,9 @@ class Node extends EventTarget native "*Node" {
   @DocsEditable
   final Node $dom_lastChild;
 
-  @JSName('localName')
   @DomName('Node.localName')
   @DocsEditable
-  final String $dom_localName;
+  final String localName;
 
   @JSName('namespaceURI')
   @DomName('Node.namespaceURI')
@@ -28741,7 +28740,7 @@ abstract class _AttributeMap implements Map<String, String> {
     var keys = new List<String>();
     for (int i = 0, len = attributes.length; i < len; i++) {
       if (_matches(attributes[i])) {
-        keys.add(attributes[i].$dom_localName);
+        keys.add(attributes[i].localName);
       }
     }
     return keys;

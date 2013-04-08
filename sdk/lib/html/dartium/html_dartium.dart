@@ -9704,12 +9704,6 @@ abstract class Element extends Node implements ElementTraversal {
   }
 
 
-  /** 
-   * Print out a String representation of this Element. By default, this is
-   * this Element's tagName.
-   */
-  String toString() => this.tagName;
-
   Element.internal() : super.internal();
 
   @DomName('Element.abortEvent')
@@ -19245,6 +19239,12 @@ class Node extends EventTarget {
     return _modelChangedStream.stream;
   }
 
+  /** 
+   * Print out a String representation of this Node.
+   */
+  String toString() => localName == null ? 
+      (nodeValue == null ? super.toString() : nodeValue) : localName;
+
   Node.internal() : super.internal();
 
   @DomName('Node.childNodes')
@@ -19261,7 +19261,7 @@ class Node extends EventTarget {
 
   @DomName('Node.localName')
   @DocsEditable
-  String get $dom_localName native "Node_localName_Getter";
+  String get localName native "Node_localName_Getter";
 
   @DomName('Node.namespaceURI')
   @DocsEditable
@@ -30951,7 +30951,7 @@ abstract class _AttributeMap implements Map<String, String> {
     var keys = new List<String>();
     for (int i = 0, len = attributes.length; i < len; i++) {
       if (_matches(attributes[i])) {
-        keys.add(attributes[i].$dom_localName);
+        keys.add(attributes[i].localName);
       }
     }
     return keys;
