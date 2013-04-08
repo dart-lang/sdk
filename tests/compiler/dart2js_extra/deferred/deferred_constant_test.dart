@@ -28,7 +28,7 @@ class Expect {
     throw "didn't throw";
   }
 
-  static void isNull(x) => expect.equals(null, x);
+  static void isNull(x) => Expect.equals(null, x);
 }
 
 main() {
