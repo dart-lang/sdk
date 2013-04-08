@@ -142,7 +142,8 @@ class CodeEmitterTask extends CompilerTask {
   void computeRequiredTypeChecks() {
     assert(checkedClasses == null && checkedTypedefs == null);
 
-    compiler.codegenWorld.addImplicitChecks(classesUsingTypeVariableTests);
+    backend.rti.addImplicitChecks(compiler.codegenWorld,
+                                  classesUsingTypeVariableTests);
 
     checkedClasses = new Set<ClassElement>();
     checkedTypedefs = new Set<TypedefElement>();

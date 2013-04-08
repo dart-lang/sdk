@@ -52,6 +52,54 @@ class RuntimeTypes {
     classes.add(dependency);
   }
 
+  bool usingFactoryWithTypeArguments = false;
+
+  /**
+   * Compute type arguments of classes that use one of their type variables in
+   * is-checks and add the is-checks that they imply.
+   *
+   * This function must be called after all is-checks have been registered.
+   *
+   * TODO(karlklose): move these computations into a function producing an
+   * immutable datastructure.
+   */
+  void addImplicitChecks(Universe universe,
+                         Iterable<ClassElement> classesUsingChecks) {
+    // If there are no classes that use their variables in checks, there is
+    // nothing to do.
+    if (classesUsingChecks.isEmpty) return;
+    if (universe.usingFactoryWithTypeArguments) {
+      for (DartType type in universe.instantiatedTypes) {
+        if (type.kind != TypeKind.INTERFACE) continue;
+        InterfaceType interface = type;
+        for (DartType argument in interface.typeArguments) {
+          universe.isChecks.add(argument);
+        }
+      }
+    } else {
+      // Find all instantiated types that are a subtype of a class that uses
+      // one of its type arguments in an is-check and add the arguments to the
+      // set of is-checks.
+      // TODO(karlklose): replace this with code that uses a subtype lookup
+      // datastructure in the world.
+      for (DartType type in universe.instantiatedTypes) {
+        if (type.kind != TypeKind.INTERFACE) continue;
+        InterfaceType classType = type;
+        for (ClassElement cls in classesUsingChecks) {
+          // We need the type as instance of its superclass anyway, so we just
+          // try to compute the substitution; if the result is [:null:], the
+          // classes are not related.
+          InterfaceType instance = classType.asInstanceOf(cls);
+          if (instance == null) continue;
+          Link<DartType> typeArguments = instance.typeArguments;
+          for (DartType argument in typeArguments) {
+            universe.isChecks.add(argument);
+          }
+        }
+      }
+    }
+  }
+
   void computeClassesNeedingRti() {
     // Find the classes that need runtime type information. Such
     // classes are:
@@ -88,7 +136,7 @@ class RuntimeTypes {
       }
     });
     // Add is-checks that result from classes using type variables in checks.
-    compiler.resolverWorld.addImplicitChecks(classesUsingTypeVariableTests);
+    addImplicitChecks(compiler.resolverWorld, classesUsingTypeVariableTests);
     // Add the rti dependencies that are implicit in the way the backend
     // generates code: when we create a new [List], we actually create
     // a JSArray in the backend and we need to add type arguments to
@@ -121,10 +169,12 @@ class RuntimeTypes {
     if (cachedRequiredChecks != null) return cachedRequiredChecks;
 
     // Get all types used in type arguments of instantiated types.
-    Set<ClassElement> instantiatedArguments = getInstantiatedArguments();
+    Set<ClassElement> instantiatedArguments =
+        getInstantiatedArguments(compiler.codegenWorld);
 
     // Collect all type arguments used in is-checks.
-    Set<ClassElement> checkedArguments = getCheckedArguments();
+    Set<ClassElement> checkedArguments =
+        getCheckedArguments(compiler.codegenWorld);
 
     // Precompute the set of all seen type arguments for use in the emitter.
     allArguments = new Set<ClassElement>.from(instantiatedArguments)
@@ -158,9 +208,9 @@ class RuntimeTypes {
    * have a type check against this supertype that includes a check against
    * the type arguments.
    */
-  Set<ClassElement> getInstantiatedArguments() {
+  Set<ClassElement> getInstantiatedArguments(Universe universe) {
     ArgumentCollector collector = new ArgumentCollector();
-    for (DartType type in instantiatedTypes) {
+    for (DartType type in universe.instantiatedTypes) {
       collector.collect(type);
       ClassElement cls = type.element;
       for (DartType supertype in cls.allSupertypes) {
@@ -176,20 +226,12 @@ class RuntimeTypes {
   }
 
   /// Collects all type arguments used in is-checks.
-  Set<ClassElement> getCheckedArguments() {
+  Set<ClassElement> getCheckedArguments(Universe universe) {
     ArgumentCollector collector = new ArgumentCollector();
-    for (DartType type in isChecks) {
+    for (DartType type in universe.isChecks) {
       collector.collect(type);
     }
     return collector.classes;
-  }
-
-  Iterable<DartType> get isChecks {
-    return compiler.enqueuer.resolution.universe.isChecks;
-  }
-
-  Iterable<DartType> get instantiatedTypes {
-    return compiler.codegenWorld.instantiatedTypes;
   }
 
   /// Return the unique name for the element as an unquoted string.

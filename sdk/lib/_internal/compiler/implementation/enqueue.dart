@@ -386,6 +386,15 @@ abstract class Enqueuer {
     compiler.backend.registerIsCheck(type, this, elements);
   }
 
+  /**
+   * If a factory constructor is used with type arguments, we lose track
+   * which arguments could be used to create instances of classes that use their
+   * type variables as expressions, so we have to remember if we saw such a use.
+   */
+  void registerFactoryWithTypeArguments(TreeElements elements) {
+    universe.usingFactoryWithTypeArguments = true;
+  }
+
   void registerAsCheck(DartType type, TreeElements elements) {
     registerIsCheck(type, elements);
     compiler.backend.registerAsCheck(type, elements);

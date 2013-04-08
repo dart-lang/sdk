@@ -3357,6 +3357,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
     }
 
+    if (constructor.isFactoryConstructor() && !type.typeArguments.isEmpty) {
+      compiler.enqueuer.codegen.registerFactoryWithTypeArguments(elements);
+    }
     HType elementType = computeType(constructor);
     HInstruction newInstance = new HInvokeStatic(inputs, elementType);
     pushWithPosition(newInstance, node);

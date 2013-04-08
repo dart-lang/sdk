@@ -2538,9 +2538,11 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     // and only declaration elements may be registered.
     world.registerStaticUse(constructor.declaration);
     ClassElement cls = constructor.getEnclosingClass();
-    // [cls] might be the implementation element and only declaration elements
-    // may be registered.
-    world.registerInstantiatedType(mapping.getType(node), mapping);
+    InterfaceType type = mapping.getType(node);
+    world.registerInstantiatedType(type, mapping);
+    if (constructor.isFactoryConstructor() && !type.typeArguments.isEmpty) {
+      world.registerFactoryWithTypeArguments(mapping);
+    }
     if (cls.isAbstract(compiler)) {
       compiler.backend.registerAbstractClassInstantiation(mapping);
     }
