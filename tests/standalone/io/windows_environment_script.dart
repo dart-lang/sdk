@@ -6,9 +6,9 @@ import "dart:io";
 
 main() {
   var scriptDir = Platform.environment['SCRIPTDIR'];
-  Expect.isTrue(scriptDir.contains('å'));
+  if (!scriptDir.contains('å')) throw "scriptDir not containing character å";
   scriptDir = Platform.environment['ScriptDir'];
-  Expect.isTrue(scriptDir.contains('å'));
+  if (!scriptDir.contains('å')) throw "scriptDir not containing character å";
   var str = new File('$scriptDir/funky.bat').readAsStringSync();
-  Expect.isTrue(str.contains('%~dp0'));
+  if (!str.contains('%~dp0')) throw "str not containing dp0";
 }
