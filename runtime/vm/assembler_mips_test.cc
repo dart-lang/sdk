@@ -1041,6 +1041,73 @@ ASSEMBLER_TEST_RUN(Jalr_delay, test) {
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
+
+ASSEMBLER_TEST_GENERATE(AddOverflow_detect, assembler) {
+  Register left = T0;
+  Register right = T1;
+  Register result = T2;
+  Register overflow = T3;
+  Register scratch = T4;
+  Label error, done;
+
+  __ LoadImmediate(V0, 1);  // Success value.
+
+  __ LoadImmediate(left, 0x7fffffff);
+  __ LoadImmediate(right, 1);
+  __ AdduDetectOverflow(result, left, right, overflow);
+  __ bgez(overflow, &error);  // INT_MAX + 1 overflows.
+
+  __ LoadImmediate(left, 0x7fffffff);
+  __ AdduDetectOverflow(result, left, left, overflow);
+  __ bgez(overflow, &error);  // INT_MAX + INT_MAX overflows.
+
+  __ LoadImmediate(left, 0x7fffffff);
+  __ LoadImmediate(right, -1);
+  __ AdduDetectOverflow(result, left, right, overflow);
+  __ bltz(overflow, &error);  // INT_MAX - 1 does not overflow.
+
+  __ LoadImmediate(left, -1);
+  __ LoadImmediate(right, 1);
+  __ AdduDetectOverflow(result, left, right, overflow);
+  __ bltz(overflow, &error);  // -1 + 1 does not overflow.
+
+  __ LoadImmediate(left, 123456);
+  __ LoadImmediate(right, 654321);
+  __ AdduDetectOverflow(result, left, right, overflow);
+  __ bltz(overflow, &error);  // 123456 + 654321 does not overflow.
+
+  __ LoadImmediate(left, 0x80000000);
+  __ LoadImmediate(right, -1);
+  __ AdduDetectOverflow(result, left, right, overflow);
+  __ bgez(overflow, &error);  // INT_MIN - 1 overflows.
+
+  // result has 0x7fffffff.
+  __ AdduDetectOverflow(result, result, result, overflow, scratch);
+  __ bgez(overflow, &error);  // INT_MAX + INT_MAX overflows.
+
+  __ LoadImmediate(left, 0x80000000);
+  __ LoadImmediate(right, 0x80000000);
+  __ AdduDetectOverflow(result, left, right, overflow);
+  __ bgez(overflow, &error);  // INT_MIN + INT_MIN overflows.
+
+  __ LoadImmediate(left, -123456);
+  __ LoadImmediate(right, -654321);
+  __ AdduDetectOverflow(result, left, right, overflow);
+  __ bltz(overflow, &error);  // -123456 + -654321 does not overflow.
+
+  __ b(&done);
+  __ Bind(&error);
+  __ mov(V0, ZR);
+  __ Bind(&done);
+  __ Ret();
+}
+
+
+ASSEMBLER_TEST_RUN(AddOverflow_detect, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_MIPS

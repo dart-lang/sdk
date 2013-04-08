@@ -79,6 +79,44 @@ void Assembler::LoadWordFromPoolOffset(Register rd, int32_t offset) {
 }
 
 
+void Assembler::AdduDetectOverflow(Register rd, Register rs, Register rt,
+                                   Register ro, Register scratch) {
+  ASSERT(rd != ro);
+  ASSERT(rd != TMP);
+  ASSERT(ro != TMP);
+  ASSERT(ro != rs);
+  ASSERT(ro != rt);
+
+  if ((rs == rt) && (rd == rs)) {
+    ASSERT(scratch != kNoRegister);
+    ASSERT(rd != scratch);
+    ASSERT(ro != scratch);
+    ASSERT(scratch != TMP);
+    mov(scratch, rt);
+    rt = scratch;
+  }
+
+  if (rd == rs) {
+    mov(TMP, rs);  // Preserve rs.
+    addu(rd, rs, rt);  // rs is overwritten.
+    xor_(TMP, rd, TMP);  // Original rs.
+    xor_(ro, rd, rt);
+    and_(ro, ro, TMP);
+  } else if (rd == rt) {
+    mov(TMP, rt);  // Preserve rt.
+    addu(rd, rs, rt);  // rt is overwritten.
+    xor_(TMP, rd, TMP);  // Original rt.
+    xor_(ro, rd, rs);
+    and_(ro, ro, TMP);
+  } else {
+    addu(rd, rs, rt);
+    xor_(ro, rd, rs);
+    xor_(TMP, rd, rt);
+    and_(ro, TMP, ro);
+  }
+}
+
+
 void Assembler::LoadObject(Register rd, const Object& object) {
   // Smi's and VM heap objects are never relocated; do not use object pool.
   if (object.IsSmi()) {

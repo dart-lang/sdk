@@ -506,6 +506,14 @@ class Assembler : public ValueObject {
 
   // Macros in alphabetical order.
 
+  // Addition of rs and rt with the result placed in rd.
+  // After, ro < 0 if there was signed overflow, ro >= 0 otherwise.
+  // A scratch register is needed when rd, rs, and rt are the same
+  // register. The scratch register may not be TMP.
+  // ro must be different from all the other registers.
+  void AdduDetectOverflow(Register rd, Register rs, Register rt, Register ro,
+                          Register scratch = kNoRegister);
+
   void Branch(const ExternalLabel* label) {
     LoadImmediate(TMP, label->address());
     jr(TMP);
