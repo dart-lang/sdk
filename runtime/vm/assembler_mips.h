@@ -58,13 +58,13 @@ class Address : public ValueObject {
   }
 
   uint32_t encoding() const {
-    ASSERT(Utils::IsInt(16, offset_));
+    ASSERT(Utils::IsInt(kImmBits, offset_));
     uint16_t imm_value = static_cast<uint16_t>(offset_);
     return (base_ << kRsShift) | imm_value;
   }
 
   static bool CanHoldOffset(int32_t offset) {
-    return Utils::IsInt(16, offset);
+    return Utils::IsInt(kImmBits, offset);
   }
 
  private:
@@ -224,7 +224,7 @@ class Assembler : public ValueObject {
 
   // CPU instructions in alphabetical order.
   void addiu(Register rt, Register rs, const Immediate& imm) {
-    ASSERT(Utils::IsInt(16, imm.value()));
+    ASSERT(Utils::IsInt(kImmBits, imm.value()));
     const uint16_t imm_value = static_cast<uint16_t>(imm.value());
     EmitIType(ADDIU, rs, rt, imm_value);
   }
@@ -238,7 +238,7 @@ class Assembler : public ValueObject {
   }
 
   void andi(Register rt, Register rs, const Immediate& imm) {
-    ASSERT(Utils::IsUint(16, imm.value()));
+    ASSERT(Utils::IsUint(kImmBits, imm.value()));
     const uint16_t imm_value = static_cast<uint16_t>(imm.value());
     EmitIType(ANDI, rs, rt, imm_value);
   }
@@ -397,7 +397,7 @@ class Assembler : public ValueObject {
   }
 
   void lui(Register rt, const Immediate& imm) {
-    ASSERT(Utils::IsUint(16, imm.value()));
+    ASSERT(Utils::IsUint(kImmBits, imm.value()));
     uint16_t imm_value = static_cast<uint16_t>(imm.value());
     EmitIType(LUI, R0, rt, imm_value);
   }
@@ -447,7 +447,7 @@ class Assembler : public ValueObject {
   }
 
   void ori(Register rt, Register rs, const Immediate& imm) {
-    ASSERT(Utils::IsUint(16, imm.value()));
+    ASSERT(Utils::IsUint(kImmBits, imm.value()));
     uint16_t imm_value = static_cast<uint16_t>(imm.value());
     EmitIType(ORI, rs, rt, imm_value);
   }
@@ -508,49 +508,43 @@ class Assembler : public ValueObject {
 
   // Addition of rs and rt with the result placed in rd.
   // After, ro < 0 if there was signed overflow, ro >= 0 otherwise.
-  // A scratch register is needed when rd, rs, and rt are the same
-  // register. The scratch register may not be TMP.
+  // rd and ro must not be TMP1 or TMP2.
   // ro must be different from all the other registers.
-  void AdduDetectOverflow(Register rd, Register rs, Register rt, Register ro,
-                          Register scratch = kNoRegister);
+  void AdduDetectOverflow(Register rd, Register rs, Register rt, Register ro);
+
+  // ro must be different from rd and rs.
+  // rd and ro must not be TMP1 or TMP2
+  void AddImmediateDetectOverflow(Register rd, Register rs, int32_t imm,
+                                  Register ro) {
+    LoadImmediate(rd, imm);
+    AdduDetectOverflow(rd, rs, rd, ro);
+  }
 
   void Branch(const ExternalLabel* label) {
-    LoadImmediate(TMP, label->address());
-    jr(TMP);
+    LoadImmediate(TMP1, label->address());
+    jr(TMP1);
   }
 
   void BranchPatchable(const ExternalLabel* label) {
     const uint16_t low = Utils::Low16Bits(label->address());
     const uint16_t high = Utils::High16Bits(label->address());
-    lui(TMP, Immediate(high));
-    ori(TMP, TMP, Immediate(low));
-    jr(TMP);
+    lui(TMP1, Immediate(high));
+    ori(TMP1, TMP1, Immediate(low));
+    jr(TMP1);
     delay_slot_available_ = false;  // CodePatcher expects a nop.
   }
 
   void BranchLink(const ExternalLabel* label) {
-    LoadImmediate(TMP, label->address());
-    jalr(TMP);
+    LoadImmediate(TMP1, label->address());
+    jalr(TMP1);
   }
 
   void BranchLinkPatchable(const ExternalLabel* label) {
     const int32_t offset =
         Array::data_offset() + 4*AddExternalLabel(label) - kHeapObjectTag;
-    LoadWordFromPoolOffset(TMP, offset);
-    jalr(TMP);
+    LoadWordFromPoolOffset(TMP1, offset);
+    jalr(TMP1);
     delay_slot_available_ = false;  // CodePatcher expects a nop.
-  }
-
-  // If the signed value in rs is less than value, rd is 1, and 0 otherwise.
-  void LessThanSImmediate(Register rd, Register rs, int32_t value) {
-    LoadImmediate(TMP, value);
-    slt(rd, rs, TMP);
-  }
-
-  // If the unsigned value in rs is less than value, rd is 1, and 0 otherwise.
-  void LessThanUImmediate(Register rd, Register rs, uint32_t value) {
-    LoadImmediate(TMP, value);
-    sltu(rd, rs, TMP);
   }
 
   void Drop(intptr_t stack_elements) {
@@ -561,7 +555,7 @@ class Assembler : public ValueObject {
   }
 
   void LoadImmediate(Register rd, int32_t value) {
-    if (Utils::IsInt(16, value)) {
+    if (Utils::IsInt(kImmBits, value)) {
       addiu(rd, ZR, Immediate(value));
     } else {
       const uint16_t low = Utils::Low16Bits(value);
@@ -569,6 +563,90 @@ class Assembler : public ValueObject {
       lui(rd, Immediate(high));
       ori(rd, rd, Immediate(low));
     }
+  }
+
+  void BranchEqual(Register rd, int32_t value, Label* l) {
+    LoadImmediate(TMP1, value);
+    beq(rd, TMP1, l);
+  }
+
+  void BranchEqual(Register rd, const Object& object, Label* l) {
+    LoadObject(TMP1, object);
+    beq(rd, TMP1, l);
+  }
+
+  void BranchNotEqual(Register rd, int32_t value, Label* l) {
+    LoadImmediate(TMP1, value);
+    bne(rd, TMP1, l);
+  }
+
+  void BranchNotEqual(Register rd, const Object& object, Label* l) {
+    LoadObject(TMP1, object);
+    bne(rd, TMP1, l);
+  }
+
+  void BranchGreater(Register rd, int32_t value, Label* l) {
+    if (Utils::IsInt(kImmBits, -value)) {
+      addiu(TMP1, rd, Immediate(-value));
+      bgtz(TMP1, l);
+    } else {
+      LoadImmediate(TMP1, value);
+      subu(TMP1, rd, TMP1);
+      bgtz(TMP1, l);
+    }
+  }
+
+  void BranchGreater(Register rd, Register rs, Label* l) {
+    subu(TMP1, rd, rs);
+    bgtz(TMP1, l);
+  }
+
+  void BranchGreaterEqual(Register rd, int32_t value, Label* l) {
+    if (Utils::IsInt(kImmBits, -value)) {
+      addiu(TMP1, rd, Immediate(-value));
+      bgez(TMP1, l);
+    } else {
+      LoadImmediate(TMP1, value);
+      subu(TMP1, rd, TMP1);
+      bgez(TMP1, l);
+    }
+  }
+
+  void BranchGreaterEqual(Register rd, Register rs, Label* l) {
+    subu(TMP1, rd, rs);
+    bgez(TMP1, l);
+  }
+
+  void BranchLess(Register rd, int32_t value, Label* l) {
+    if (Utils::IsInt(kImmBits, -value)) {
+      addiu(TMP1, rd, Immediate(-value));
+      bltz(TMP1, l);
+    } else {
+      LoadImmediate(TMP1, value);
+      subu(TMP1, rd, TMP1);
+      bltz(TMP1, l);
+    }
+  }
+
+  void BranchLess(Register rd, Register rs, Label* l) {
+    subu(TMP1, rd, rs);
+    bltz(TMP1, l);
+  }
+
+  void BranchLessEqual(Register rd, int32_t value, Label* l) {
+    if (Utils::IsInt(kImmBits, -value)) {
+      addiu(TMP1, rd, Immediate(-value));
+      blez(TMP1, l);
+    } else {
+      LoadImmediate(TMP1, value);
+      subu(TMP1, rd, TMP1);
+      blez(TMP1, l);
+    }
+  }
+
+  void BranchLessEqual(Register rd, Register rs, Label* l) {
+    subu(TMP1, rd, rs);
+    blez(TMP1, l);
   }
 
   void Push(Register rt) {
@@ -605,7 +683,7 @@ class Assembler : public ValueObject {
 
   void LoadClassId(Register result, Register object);
   void LoadClassById(Register result, Register class_id);
-  void LoadClass(Register result, Register object, Register scratch);
+  void LoadClass(Register result, Register object);
 
   void CallRuntime(const RuntimeEntry& entry);
 

@@ -87,8 +87,7 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     const int sp_fp_dist = compiler->StackSize() + (-kFirstLocalSlotIndex - 1);
     __ subu(T2, FP, SP);
 
-    __ addiu(T2, T2, Immediate(-sp_fp_dist * kWordSize));
-    __ beq(T2, ZR, &stack_ok);
+    __ BranchEqual(T2, sp_fp_dist * kWordSize, &stack_ok);
     __ break_(0);
 
     __ Bind(&stack_ok);
@@ -537,11 +536,10 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   CheckStackOverflowSlowPath* slow_path = new CheckStackOverflowSlowPath(this);
   compiler->AddSlowPathCode(slow_path);
 
-  __ LoadImmediate(TMP, Isolate::Current()->stack_limit_address());
+  __ LoadImmediate(TMP1, Isolate::Current()->stack_limit_address());
 
-  __ lw(TMP, Address(TMP));
-  __ subu(TMP, SP, TMP);
-  __ blez(TMP, slow_path->entry_label());
+  __ lw(TMP1, Address(TMP1));
+  __ BranchLessEqual(SP, TMP1, slow_path->entry_label());
 
   __ Bind(slow_path->exit_label());
 }

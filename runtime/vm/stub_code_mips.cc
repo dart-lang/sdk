@@ -167,8 +167,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ jalr(T5);
 
   // Reset exit frame information in Isolate structure.
-  __ LoadImmediate(A2, 0);
-  __ sw(A2, Address(CTX, Isolate::top_exit_frame_info_offset()));
+  __ sw(ZR, Address(CTX, Isolate::top_exit_frame_info_offset()));
 
   // Load Context pointer from Isolate structure into R2.
   __ lw(A2, Address(CTX, Isolate::top_context_offset()));
@@ -193,25 +192,25 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
   __ EnterStubFrame();
   // Setup space on stack for return value and preserve arguments descriptor.
-  __ LoadImmediate(V0, reinterpret_cast<intptr_t>(Object::null()));
+  __ LoadImmediate(T0, reinterpret_cast<intptr_t>(Object::null()));
 
   __ addiu(SP, SP, Immediate(-2 * kWordSize));
   __ sw(S4, Address(SP, 1 * kWordSize));
-  __ sw(V0, Address(SP, 0 * kWordSize));
+  __ sw(T0, Address(SP, 0 * kWordSize));
 
   __ CallRuntime(kPatchStaticCallRuntimeEntry);
 
   // Get Code object result and restore arguments descriptor array.
-  __ lw(V0, Address(SP, 0 * kWordSize));
+  __ lw(T0, Address(SP, 0 * kWordSize));
   __ lw(S4, Address(SP, 1 * kWordSize));
   __ addiu(SP, SP, Immediate(2 * kWordSize));
 
   // Remove the stub frame as we are about to jump to the dart function.
   __ LeaveStubFrame();
 
-  __ lw(V0, FieldAddress(V0, Code::instructions_offset()));
-  __ addiu(V0, V0, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
-  __ jr(V0);
+  __ lw(T0, FieldAddress(T0, Code::instructions_offset()));
+  __ addiu(T0, T0, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ jr(T0);
 }
 
 
@@ -284,23 +283,22 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Load Isolate pointer from Context structure into temporary register R8.
   __ lw(T2, FieldAddress(CTX, Context::isolate_offset()));
 
-  // Save the top exit frame info. Use R5 as a temporary register.
+  // Save the top exit frame info. Use T0 as a temporary register.
   // StackFrameIterator reads the top exit frame info saved in this frame.
-  __ lw(S5, Address(T2, Isolate::top_exit_frame_info_offset()));
-  __ LoadImmediate(T0, 0);
-  __ sw(T0, Address(T2, Isolate::top_exit_frame_info_offset()));
+  __ lw(T0, Address(T2, Isolate::top_exit_frame_info_offset()));
+  __ sw(ZR, Address(T2, Isolate::top_exit_frame_info_offset()));
 
-  // Save the old Context pointer. Use S4 as a temporary register.
+  // Save the old Context pointer. Use T1 as a temporary register.
   // Note that VisitObjectPointers will find this saved Context pointer during
   // GC marking, since it traverses any information between SP and
   // FP - kExitLinkOffsetInEntryFrame.
   // EntryFrame::SavedContext reads the context saved in this frame.
-  __ lw(S4, Address(T2, Isolate::top_context_offset()));
+  __ lw(T1, Address(T2, Isolate::top_context_offset()));
 
   // The constants kSavedContextOffsetInEntryFrame and
   // kExitLinkOffsetInEntryFrame must be kept in sync with the code below.
-  __ sw(S5, Address(SP, 1 * kWordSize));
-  __ sw(S4, Address(SP, 0 * kWordSize));
+  __ sw(T0, Address(SP, 1 * kWordSize));
+  __ sw(T1, Address(SP, 0 * kWordSize));
 
   // after the call, The stack pointer is restored to this location.
   // Pushed A3, S0-7, S4, S5 = 11.
@@ -310,26 +308,28 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ lw(S4, Address(A1, VMHandles::kOffsetOfRawPtrInHandle));
 
   // Load number of arguments into S5.
-  __ lw(S5, FieldAddress(S4, ArgumentsDescriptor::count_offset()));
-  __ SmiUntag(S5);
-
-  // Compute address of 'arguments array' data area into A2.
-  __ lw(A2, Address(A2, VMHandles::kOffsetOfRawPtrInHandle));
-  __ addiu(A2, A2, Immediate(Array::data_offset() - kHeapObjectTag));
+  __ lw(T1, FieldAddress(S4, ArgumentsDescriptor::count_offset()));
+  __ SmiUntag(T1);
 
   // Set up arguments for the Dart call.
   Label push_arguments;
   Label done_push_arguments;
 
-  __ beq(S5, ZR, &done_push_arguments);  // check if there are arguments.
-  __ LoadImmediate(A1, 0);
+  // Compute address of 'arguments array' data area into A2.
+  // See also the addiu in the delay slot of the upcoming beq.
+  __ lw(A2, Address(A2, VMHandles::kOffsetOfRawPtrInHandle));
+
+  __ beq(T1, ZR, &done_push_arguments);  // check if there are arguments.
+  __ delay_slot()->addiu(A2, A2,
+                         Immediate(Array::data_offset() - kHeapObjectTag));
+
+  __ mov(A1, ZR);
   __ Bind(&push_arguments);
   __ lw(A3, Address(A2));
   __ Push(A3);
   __ addiu(A2, A2, Immediate(kWordSize));
   __ addiu(A1, A1, Immediate(1));
-  __ subu(T0, A1, S5);
-  __ bltz(T0, &push_arguments);
+  __ BranchLess(A1, T1, &push_arguments);
 
   __ Bind(&done_push_arguments);
 
@@ -347,13 +347,13 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ lw(CTX, FieldAddress(CTX, Context::isolate_offset()));
 
   // Restore the saved Context pointer into the Isolate structure.
-  // Uses S4 as a temporary register for this.
+  // Uses T1 as a temporary register for this.
   // Restore the saved top exit frame info back into the Isolate structure.
-  // Uses S5 as a temporary register for this.
-  __ lw(S4, Address(SP, 0 * kWordSize));
-  __ lw(S5, Address(SP, 1 * kWordSize));
-  __ sw(S4, Address(CTX, Isolate::top_context_offset()));
-  __ sw(S5, Address(CTX, Isolate::top_exit_frame_info_offset()));
+  // Uses T0 as a temporary register for this.
+  __ lw(T1, Address(SP, 0 * kWordSize));
+  __ lw(T0, Address(SP, 1 * kWordSize));
+  __ sw(T1, Address(CTX, Isolate::top_context_offset()));
+  __ sw(T0, Address(CTX, Isolate::top_exit_frame_info_offset()));
 
   // Restore C++ ABI callee-saved registers.
   for (int i = S0; i <= S7; i++) {

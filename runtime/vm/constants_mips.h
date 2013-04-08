@@ -134,7 +134,10 @@ const int kNumberOfFpuRegisters = kNumberOfFRegisters;
 
 
 // Register aliases.
-const Register TMP = AT;  // Used as scratch register by assembler.
+const Register TMP1 = AT;  // Used as scratch register by assembler.
+const Register TMP2 = T9;  // Used as scratch register by assembler.
+const Register TMP = TMP1;  // Arch independent flow graph compiler needs a
+                            // Register called TMP.
 const Register CTX = S6;  // Caches current context in generated code.
 const Register PP = S7;  // Caches object pool pointer in generated code.
 const Register SPREG = SP;  // Stack pointer register.

@@ -80,39 +80,39 @@ void Assembler::LoadWordFromPoolOffset(Register rd, int32_t offset) {
 
 
 void Assembler::AdduDetectOverflow(Register rd, Register rs, Register rt,
-                                   Register ro, Register scratch) {
+                                   Register ro) {
   ASSERT(rd != ro);
-  ASSERT(rd != TMP);
-  ASSERT(ro != TMP);
+  ASSERT(rd != TMP1);
+  ASSERT(ro != TMP1);
   ASSERT(ro != rs);
   ASSERT(ro != rt);
 
   if ((rs == rt) && (rd == rs)) {
-    ASSERT(scratch != kNoRegister);
-    ASSERT(rd != scratch);
-    ASSERT(ro != scratch);
-    ASSERT(scratch != TMP);
-    mov(scratch, rt);
-    rt = scratch;
+    ASSERT(rd != TMP2);
+    ASSERT(ro != TMP2);
+    ASSERT(rs != TMP2);
+    ASSERT(rt != TMP2);
+    mov(TMP2, rt);
+    rt = TMP2;
   }
 
   if (rd == rs) {
-    mov(TMP, rs);  // Preserve rs.
+    mov(TMP1, rs);  // Preserve rs.
     addu(rd, rs, rt);  // rs is overwritten.
-    xor_(TMP, rd, TMP);  // Original rs.
+    xor_(TMP1, rd, TMP1);  // Original rs.
     xor_(ro, rd, rt);
-    and_(ro, ro, TMP);
+    and_(ro, ro, TMP1);
   } else if (rd == rt) {
-    mov(TMP, rt);  // Preserve rt.
+    mov(TMP1, rt);  // Preserve rt.
     addu(rd, rs, rt);  // rt is overwritten.
-    xor_(TMP, rd, TMP);  // Original rt.
+    xor_(TMP1, rd, TMP1);  // Original rt.
     xor_(ro, rd, rs);
-    and_(ro, ro, TMP);
+    and_(ro, ro, TMP1);
   } else {
     addu(rd, rs, rt);
     xor_(ro, rd, rs);
-    xor_(TMP, rd, rt);
-    and_(ro, TMP, ro);
+    xor_(TMP1, rd, rt);
+    and_(ro, TMP1, ro);
   }
 }
 
@@ -157,15 +157,15 @@ int32_t Assembler::AddObject(const Object& obj) {
 
 
 void Assembler::PushObject(const Object& object) {
-  LoadObject(TMP, object);
-  Push(TMP);
+  LoadObject(TMP1, object);
+  Push(TMP1);
 }
 
 
 void Assembler::CompareObject(Register rd, Register rn, const Object& object) {
-  ASSERT(rn != TMP);
-  LoadObject(TMP, object);
-  subu(rd, rn, TMP);
+  ASSERT(rn != TMP1);
+  LoadObject(TMP1, object);
+  subu(rd, rn, TMP1);
 }
 
 
@@ -184,22 +184,22 @@ void Assembler::LoadClassById(Register result, Register class_id) {
   const intptr_t table_offset_in_isolate =
       Isolate::class_table_offset() + ClassTable::table_offset();
   lw(result, Address(result, table_offset_in_isolate));
-  sll(TMP, class_id, 2);
-  addu(result, result, TMP);
+  sll(TMP1, class_id, 2);
+  addu(result, result, TMP1);
   lw(result, Address(result));
 }
 
 
-void Assembler::LoadClass(Register result, Register object, Register scratch) {
-  ASSERT(scratch != result);
-  LoadClassId(scratch, object);
+void Assembler::LoadClass(Register result, Register object) {
+  ASSERT(TMP1 != result);
+  LoadClassId(TMP1, object);
 
   lw(result, FieldAddress(CTX, Context::isolate_offset()));
   const intptr_t table_offset_in_isolate =
       Isolate::class_table_offset() + ClassTable::table_offset();
   lw(result, Address(result, table_offset_in_isolate));
-  sll(scratch, scratch, 2);
-  addu(result, result, scratch);
+  sll(TMP1, TMP1, 2);
+  addu(result, result, TMP1);
   lw(result, Address(result));
 }
 
@@ -287,8 +287,8 @@ void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
   // the C++ world.
   addiu(SP, SP, Immediate(-frame_space));
   if (OS::ActivationFrameAlignment() > 0) {
-    LoadImmediate(TMP, ~(OS::ActivationFrameAlignment() - 1));
-    and_(SP, SP, TMP);
+    LoadImmediate(TMP1, ~(OS::ActivationFrameAlignment() - 1));
+    and_(SP, SP, TMP1);
   }
 }
 
