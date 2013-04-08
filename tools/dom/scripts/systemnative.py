@@ -152,6 +152,9 @@ class DartiumBackend(HtmlDartGenerator):
     # Emit internal constructor which is necessary for Dartium bindings
     # to construct wrappers from C++.  Eventually it should go away
     # once it is possible to construct such an instance directly.
+    if not self._members_emitter:
+      return
+
     super_constructor = ''
     if base_class and base_class != 'NativeFieldWrapperClass1':
       super_constructor = ' : super.internal()'

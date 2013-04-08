@@ -8,4 +8,4 @@ part of $LIBRARYNAME;
 // type entirely but can't.
 @DocsEditable
 $(ANNOTATIONS)class $CLASSNAME$IMPLEMENTS$NATIVESPEC {
-$!MEMBERS}
+}

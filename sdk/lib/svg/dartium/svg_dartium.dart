@@ -8304,7 +8304,6 @@ abstract class _SVGAnimateColorElement extends AnimationElement {
 @DocsEditable
 @DomName('SVGColor')
 class _SVGColor {
-  _SVGColor.internal() : super.internal();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
