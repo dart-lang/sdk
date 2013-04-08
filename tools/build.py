@@ -7,6 +7,7 @@
 
 import optparse
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -273,6 +274,8 @@ PhaseScriptExecution "Action \"upload_sdk_py\"" xcodebuild/dart.build/...
         is_fancy_tty = True
     except subprocess.CalledProcessError:
       is_fancy_tty = False
+  pattern = re.compile(r'=== BUILD .* TARGET (.*) OF PROJECT (.*) WITH ' +
+                       r'CONFIGURATION (.*) ===')
   has_interesting_info = False
   for line in unbuffered(process.stdout.readline):
     line = line.rstrip()
@@ -280,6 +283,12 @@ PhaseScriptExecution "Action \"upload_sdk_py\"" xcodebuild/dart.build/...
       has_interesting_info = False
       section = line
       if is_fancy_tty:
+        match = re.match(pattern, section)
+        if match:
+          section = '%s/%s/%s' % (
+            match.group(3), match.group(2), match.group(1))
+        # Truncate to avoid extending beyond 80 columns.
+        section = section[:80]
         # If stdout is a terminal, emit "progress" information.  The
         # progress information is the first line of the current chunk.
         # After printing the line, move the cursor back to the
