@@ -207,6 +207,22 @@ class _Link extends FileSystemEntity implements Link {
       _fileService = _FileUtils._newServicePort();
     }
   }
+
+  _exceptionFromResponse(response, String message) {
+    assert(_isErrorResponse(response));
+    switch (response[_ERROR_RESPONSE_ERROR_TYPE]) {
+      case _ILLEGAL_ARGUMENT_RESPONSE:
+        return new ArgumentError();
+      case _OSERROR_RESPONSE:
+        var err = new OSError(response[_OSERROR_RESPONSE_MESSAGE],
+                              response[_OSERROR_RESPONSE_ERROR_CODE]);
+        return new FileIOException(message, err);
+      case _FILE_CLOSED_RESPONSE:
+        return new FileIOException("File closed");
+      default:
+        return new Exception("Unknown error");
+    }
+  }
 }
 
 
