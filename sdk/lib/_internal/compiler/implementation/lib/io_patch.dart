@@ -78,6 +78,9 @@ patch class _File {
   patch static _delete(String path) {
     throw new UnsupportedError("File._delete");
   }
+  patch static _deleteLink(String path) {
+    throw new UnsupportedError("File._deleteLink");
+  }
   patch static _directory(String path) {
     throw new UnsupportedError("File._directory");
   }
