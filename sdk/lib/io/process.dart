@@ -46,7 +46,11 @@ set exitCode(int status) {
  * in a isolate while it is blocked in a [sleep] call.
  */
 void sleep(Duration duration) {
-  _ProcessUtils._sleep(duration.inMilliseconds);
+  int milliseconds = duration.inMilliseconds;
+  if (milliseconds < 0) {
+    throw new ArgumentError("sleep: duration cannot be negative");
+  }
+  _ProcessUtils._sleep(milliseconds);
 }
 
 /**

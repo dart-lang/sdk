@@ -13,7 +13,10 @@ test(int milliseconds) {
 }
 
 main() {
+  test(0);
   test(1);
   test(10);
   test(100);
+  Expect.throws(() => sleep(new Duration(milliseconds: -1)),
+                (e) => e is ArgumentError);
 }
