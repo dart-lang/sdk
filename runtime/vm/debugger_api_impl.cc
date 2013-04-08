@@ -225,6 +225,7 @@ DART_EXPORT Dart_Handle Dart_ActivationFrameInfo(
 DART_EXPORT Dart_Handle Dart_ActivationFrameGetLocation(
                             Dart_ActivationFrame activation_frame,
                             Dart_Handle* script_url,
+                            intptr_t* library_id,
                             intptr_t* token_number) {
   // TODO(hausner): Implement implement a way to recognize when there
   // is no source code for the code in the frame.
@@ -233,6 +234,10 @@ DART_EXPORT Dart_Handle Dart_ActivationFrameGetLocation(
   CHECK_AND_CAST(ActivationFrame, frame, activation_frame);
   if (script_url != NULL) {
     *script_url = Api::NewHandle(isolate, frame->SourceUrl());
+  }
+  if (library_id != NULL) {
+    const Library& lib = Library::Handle(frame->Library());
+    *library_id = lib.index();
   }
   if (token_number != NULL) {
     *token_number = frame->TokenPos();

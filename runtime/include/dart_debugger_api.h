@@ -456,6 +456,7 @@ DART_EXPORT Dart_Handle Dart_ActivationFrameInfo(
 DART_EXPORT Dart_Handle Dart_ActivationFrameGetLocation(
                             Dart_ActivationFrame activation_frame,
                             Dart_Handle* script_url,
+                            intptr_t* library_id,
                             intptr_t* token_number);
 
 

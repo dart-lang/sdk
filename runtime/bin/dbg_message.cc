@@ -400,14 +400,19 @@ static void FormatLocationFromTrace(dart::TextBuffer* msg,
   Dart_Handle script_url;
   intptr_t token_number = 0;
   intptr_t line_number = 0;
+  intptr_t library_id = 0;
+  // TODO(hausner): Remove this call and line_number once Editor no
+  // longer depends on line number info.
   res = Dart_ActivationFrameInfo(frame, NULL, NULL, &line_number, NULL);
   ASSERT_NOT_ERROR(res);
-  res = Dart_ActivationFrameGetLocation(frame, &script_url, &token_number);
+  res = Dart_ActivationFrameGetLocation(
+      frame, &script_url, &library_id, &token_number);
   ASSERT_NOT_ERROR(res);
   if (!Dart_IsNull(script_url)) {
     ASSERT(Dart_IsString(script_url));
     msg->Printf("\"location\": { \"url\":");
     FormatEncodedString(msg, script_url);
+    msg->Printf("\"libraryId\":%"Pd"},", library_id);
     msg->Printf(",\"tokenOffset\":%"Pd",", token_number);
     msg->Printf("\"lineNumber\":%"Pd"},", line_number);
   }
@@ -435,14 +440,18 @@ static void FormatCallFrames(dart::TextBuffer* msg, Dart_StackTrace trace) {
     ASSERT(Dart_IsString(func_name));
     msg->Printf("%s{\"functionName\":", (i > 0) ? "," : "");
     FormatEncodedString(msg, func_name);
+    // TODO(hausner): Remove this libraryId field when Editor
+    // no longer depends on it.
     msg->Printf(",\"libraryId\": %"Pd",", library_id);
 
-    res = Dart_ActivationFrameGetLocation(frame, &script_url, &token_number);
+    res = Dart_ActivationFrameGetLocation(
+        frame, &script_url, NULL, &token_number);
     ASSERT_NOT_ERROR(res);
     if (!Dart_IsNull(script_url)) {
       ASSERT(Dart_IsString(script_url));
       msg->Printf("\"location\": { \"url\":");
       FormatEncodedString(msg, script_url);
+      msg->Printf(",\"libraryId\": %"Pd",", library_id);
       msg->Printf(",\"tokenOffset\":%"Pd",", token_number);
       msg->Printf("\"lineNumber\":%"Pd"},", line_number);
     }
