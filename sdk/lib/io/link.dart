@@ -124,9 +124,16 @@ class _Link extends FileSystemEntity implements Link {
   bool existsSync() => FileSystemEntity.isLinkSync(path);
 
   Future<Link> create(String target) {
-    // TODO(whesse): Replace with asynchronous version.
-    return new Future.of(() {
-      createSync(target);
+    _ensureFileService();
+    List request = new List(3);
+    request[0] = _CREATE_LINK_REQUEST;
+    request[1] = path;
+    request[2] = target;
+    return _fileService.call(request).then((response) {
+      if (_isErrorResponse(response)) {
+        throw _exceptionFromResponse(response,
+            "Cannot create link '$path' to target '$target'");
+      }
       return this;
     });
   }

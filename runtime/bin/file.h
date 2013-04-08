@@ -77,7 +77,8 @@ class File {
     kReadRequest = 16,
     kReadListRequest = 17,
     kWriteListRequest = 18,
-    kDeleteLinkRequest = 19
+    kCreateLinkRequest = 19,
+    kDeleteLinkRequest = 20
   };
 
   ~File();

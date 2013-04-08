@@ -1013,6 +1013,22 @@ static CObject* FileWriteListRequest(const CObjectArray& request) {
 }
 
 
+static CObject* FileCreateLinkRequest(const CObjectArray& request) {
+  if (request.Length() != 3 ||
+      !request[1]->IsString() ||
+      !request[2]->IsString()) {
+    return CObject::IllegalArgumentError();
+  }
+  CObjectString link_name(request[1]);
+  CObjectString target_name(request[2]);
+  if (File::CreateLink(link_name.CString(), target_name.CString())) {
+    return CObject::True();
+  } else {
+    return CObject::NewOSError();
+  }
+}
+
+
 static CObject* FileDeleteLinkRequest(const CObjectArray& request) {
   if (request.Length() == 2 && request[1]->IsString()) {
     CObjectString filename(request[1]);
@@ -1023,7 +1039,7 @@ static CObject* FileDeleteLinkRequest(const CObjectArray& request) {
       return CObject::NewOSError();
     }
   }
-  return CObject::False();
+  return CObject::IllegalArgumentError();
 }
 
 
@@ -1095,6 +1111,9 @@ static void FileService(Dart_Port dest_port_id,
           break;
         case File::kDeleteLinkRequest:
           response = FileDeleteLinkRequest(request);
+          break;
+        case File::kCreateLinkRequest:
+          response = FileCreateLinkRequest(request);
           break;
         default:
           UNREACHABLE();
