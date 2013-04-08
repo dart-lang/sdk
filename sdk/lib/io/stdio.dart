@@ -10,6 +10,44 @@ const int _STDIO_HANDLE_TYPE_FILE = 2;
 const int _STDIO_HANDLE_TYPE_SOCKET = 3;
 const int _STDIO_HANDLE_TYPE_OTHER = 4;
 
+class _Stdin extends Stream<List<int>> {
+  final Stream<List<int>> _stdin;
+
+  _Stdin(Stream<List<int>> this._stdin);
+
+  StreamSubscription<List<int>> listen(void onData(List<int> event),
+                                       {void onError(AsyncError error),
+                                        void onDone(),
+                                        bool unsubscribeOnError}) {
+    return _stdin.listen(
+        onData,
+        onError: onError,
+        onDone: onDone,
+        unsubscribeOnError: unsubscribeOnError);
+  }
+}
+
+class _StdSink implements IOSink {
+  final IOSink _ioSink;
+
+  _StdSink(IOSink this._ioSink);
+
+  Encoding get encoding => _ioSink.encoding;
+  void set encoding(Encoding encoding) {
+    _ioSink.encoding = encoding;
+  }
+  void write(object) => _ioSink.write(object);
+  void writeln([object = "" ]) => _ioSink.writeln(object);
+  void writeAll(objects, [sep = ""]) => _ioSink.writeAll(objects, sep);
+  void writeBytes(List<int> data) => _ioSink.writeBytes(data);
+  void writeCharCode(int charCode) => _ioSink.writeCharCode(charCode);
+  Future<T> consume(Stream<List<int>> stream) => _ioSink.consume(stream);
+  Future<T> addStream(Stream<List<int>> stream) => _ioSink.addStream(stream);
+  Future<T> writeStream(Stream<List<int>> stream)
+      => _ioSink.writeStream(stream);
+  Future close() => _ioSink.close();
+  Future<T> get done => _ioSink.done;
+}
 
 class StdioType {
   static const StdioType TERMINAL = const StdioType._("terminal");
@@ -52,6 +90,11 @@ IOSink get stderr {
 
 
 StdioType stdioType(object) {
+  if (object is _Stdin) {
+    object = object._stdin;
+  } else if (object is _StdSink) {
+    object = object._ioSink;
+  }
   if (object is _FileStream) {
     return StdioType.FILE;
   }

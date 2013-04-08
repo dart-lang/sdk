@@ -8,9 +8,9 @@ patch class _StdIOUtils {
       case _STDIO_HANDLE_TYPE_TERMINAL:
       case _STDIO_HANDLE_TYPE_PIPE:
       case _STDIO_HANDLE_TYPE_SOCKET:
-        return new _Socket._readPipe(0);
+        return new _Stdin(new _Socket._readPipe(0));
       case _STDIO_HANDLE_TYPE_FILE:
-        return new _FileStream.forStdin();
+        return new _Stdin(new _FileStream.forStdin());
       default:
         throw new FileIOException("Unsupported stdin type");
     }
@@ -22,9 +22,9 @@ patch class _StdIOUtils {
       case _STDIO_HANDLE_TYPE_TERMINAL:
       case _STDIO_HANDLE_TYPE_PIPE:
       case _STDIO_HANDLE_TYPE_SOCKET:
-        return new _Socket._writePipe(fd);
+        return new _StdSink(new _Socket._writePipe(fd));
       case _STDIO_HANDLE_TYPE_FILE:
-        return new IOSink(new _FileStreamConsumer.fromStdio(fd));
+        return new _StdSink(new IOSink(new _FileStreamConsumer.fromStdio(fd)));
       default:
         throw new FileIOException("Unsupported stdin type");
     }
