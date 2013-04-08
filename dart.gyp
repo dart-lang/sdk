@@ -64,6 +64,7 @@
       'dependencies': [
         'runtime/dart-runtime.gyp:dart',
         'utils/compiler/compiler.gyp:dart2js',
+        'analyzer',
         'compiler',
       ],
       'actions': [
@@ -76,6 +77,7 @@
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
             '<(PRODUCT_DIR)/dart2js.snapshot',
             '<(PRODUCT_DIR)/analyzer/bin/dart_analyzer',
+            '<(PRODUCT_DIR)/dartanalyzer/dartanalyzer.jar',
           ],
           'outputs': [
             '<(PRODUCT_DIR)/dart-sdk/README',
@@ -127,7 +129,6 @@
       'target_name': 'analyzer',
       'type': 'none',
       'dependencies': [
-        'create_sdk',
         'editor/analyzer.gyp:analyzer',
       ],
     },
