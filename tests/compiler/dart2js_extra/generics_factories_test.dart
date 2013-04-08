@@ -4,6 +4,8 @@
 
 // Test that factories are marked as needing rti.
 
+import "package:expect/expect.dart";
+
 class A<T> {
   foo(o) => o is T;
   factory A.c() => new B<T>();

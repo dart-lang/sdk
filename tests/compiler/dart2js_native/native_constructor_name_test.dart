@@ -8,6 +8,8 @@
 // This could be done by renaming the Dart constructor or by being able to check
 // that objects are Dart classes.
 
+import "package:expect/expect.dart";
+
 class A {
 }
 

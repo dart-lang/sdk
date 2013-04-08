@@ -4,6 +4,8 @@
 
 // Regression test to ensure that we can use type variable in factories.
 
+import "package:expect/expect.dart";
+
 class A<T> {
   factory A.foo(o) {
     Expect.isTrue(o is A<T>);

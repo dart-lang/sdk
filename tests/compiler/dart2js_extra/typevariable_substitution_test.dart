@@ -4,6 +4,8 @@
 
 // Regression test to ensure that we substitute type variables in is-tests.
 
+import "package:expect/expect.dart";
+
 class A<T> {
   A.foo(o) {
     Expect.isTrue(o is A<T>);
