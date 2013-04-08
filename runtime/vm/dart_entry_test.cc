@@ -14,8 +14,10 @@
 
 namespace dart {
 
-// Only ia32 and x64 can run execution tests.
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+// Only IA32, X64, and ARM can run execution tests.
+#if defined(TARGET_ARCH_IA32) ||                                               \
+    defined(TARGET_ARCH_X64) ||                                                \
+    defined(TARGET_ARCH_ARM)
 
 TEST_CASE(DartEntry) {
   const char* kScriptChars =
@@ -113,6 +115,6 @@ TEST_CASE(InvokeDynamic_CompileError) {
   EXPECT_SUBSTRING("++++", Error::Cast(retval).ToErrorCString());
 }
 
-#endif  // TARGET_ARCH_IA32 || TARGET_ARCH_X64.
+#endif  // TARGET_ARCH_IA32 || TARGET_ARCH_X64 || TARGET_ARCH_ARM
 
 }  // namespace dart
