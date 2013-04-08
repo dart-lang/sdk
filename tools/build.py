@@ -328,9 +328,10 @@ def Main():
     return 1
   # Determine which targets to build. By default we build the "all" target.
   if len(args) == 0:
-    # Note: The 'default' target doesn't depend on all targets. Developers have
-    # requested to exclude certain targets to keep build times down.
-    target = 'default'
+    if HOST_OS == 'macos':
+      target = 'All'
+    else:
+      target = 'all'
   else:
     target = args[0]
 

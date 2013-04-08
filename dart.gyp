@@ -10,7 +10,7 @@
       'type': 'none',
       'dependencies': [
         # Most dependencies.
-        'default',
+        'most',
         # All other targets.
         'api_docs',
         'dartc_bot',
@@ -19,9 +19,7 @@
       ],
     },
     {
-      # Contains all the dependencies that will run by default.
-      # Excludes api_docs.
-      'target_name': 'default',
+      'target_name': 'most',
       'type': 'none',
       'dependencies': [
         'analyzer',
