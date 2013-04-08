@@ -26932,7 +26932,7 @@ class _CssValueList extends CssValue implements List<CssValue>, JavaScriptIndexi
 @DomName('DOMFileSystemSync')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental
-class _DOMFileSystemSync native "*DOMFileSystemSync" {
+abstract class _DOMFileSystemSync native "*DOMFileSystemSync" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26941,7 +26941,7 @@ class _DOMFileSystemSync native "*DOMFileSystemSync" {
 
 @DocsEditable
 @DomName('DedicatedWorkerContext')
-class _DedicatedWorkerContext extends _WorkerContext native "*DedicatedWorkerContext" {
+abstract class _DedicatedWorkerContext extends _WorkerContext native "*DedicatedWorkerContext" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26950,7 +26950,7 @@ class _DedicatedWorkerContext extends _WorkerContext native "*DedicatedWorkerCon
 
 @DocsEditable
 @DomName('DirectoryEntrySync')
-class _DirectoryEntrySync extends _EntrySync native "*DirectoryEntrySync" {
+abstract class _DirectoryEntrySync extends _EntrySync native "*DirectoryEntrySync" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26959,7 +26959,7 @@ class _DirectoryEntrySync extends _EntrySync native "*DirectoryEntrySync" {
 
 @DocsEditable
 @DomName('DirectoryReaderSync')
-class _DirectoryReaderSync native "*DirectoryReaderSync" {
+abstract class _DirectoryReaderSync native "*DirectoryReaderSync" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27404,7 +27404,7 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<_EntrySync> na
 
 @DocsEditable
 @DomName('EntrySync')
-class _EntrySync native "*EntrySync" {
+abstract class _EntrySync native "*EntrySync" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27413,7 +27413,7 @@ class _EntrySync native "*EntrySync" {
 
 @DocsEditable
 @DomName('FileEntrySync')
-class _FileEntrySync extends _EntrySync native "*FileEntrySync" {
+abstract class _FileEntrySync extends _EntrySync native "*FileEntrySync" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27422,7 +27422,7 @@ class _FileEntrySync extends _EntrySync native "*FileEntrySync" {
 
 @DocsEditable
 @DomName('FileReaderSync')
-class _FileReaderSync native "*FileReaderSync" {
+abstract class _FileReaderSync native "*FileReaderSync" {
 
   @DomName('FileReaderSync.FileReaderSync')
   @DocsEditable
@@ -27438,7 +27438,7 @@ class _FileReaderSync native "*FileReaderSync" {
 
 @DocsEditable
 @DomName('FileWriterSync')
-class _FileWriterSync native "*FileWriterSync" {
+abstract class _FileWriterSync native "*FileWriterSync" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27665,7 +27665,7 @@ class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "
 
 @DocsEditable
 @DomName('HTMLAppletElement')
-class _HTMLAppletElement extends Element native "*HTMLAppletElement" {
+abstract class _HTMLAppletElement extends Element native "*HTMLAppletElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27674,7 +27674,7 @@ class _HTMLAppletElement extends Element native "*HTMLAppletElement" {
 
 @DocsEditable
 @DomName('HTMLBaseFontElement')
-class _HTMLBaseFontElement extends Element native "*HTMLBaseFontElement" {
+abstract class _HTMLBaseFontElement extends Element native "*HTMLBaseFontElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27683,7 +27683,7 @@ class _HTMLBaseFontElement extends Element native "*HTMLBaseFontElement" {
 
 @DocsEditable
 @DomName('HTMLDirectoryElement')
-class _HTMLDirectoryElement extends Element native "*HTMLDirectoryElement" {
+abstract class _HTMLDirectoryElement extends Element native "*HTMLDirectoryElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27692,7 +27692,7 @@ class _HTMLDirectoryElement extends Element native "*HTMLDirectoryElement" {
 
 @DocsEditable
 @DomName('HTMLFontElement')
-class _HTMLFontElement extends Element native "*HTMLFontElement" {
+abstract class _HTMLFontElement extends Element native "*HTMLFontElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27701,7 +27701,7 @@ class _HTMLFontElement extends Element native "*HTMLFontElement" {
 
 @DocsEditable
 @DomName('HTMLFrameElement')
-class _HTMLFrameElement extends Element native "*HTMLFrameElement" {
+abstract class _HTMLFrameElement extends Element native "*HTMLFrameElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27710,7 +27710,7 @@ class _HTMLFrameElement extends Element native "*HTMLFrameElement" {
 
 @DocsEditable
 @DomName('HTMLFrameSetElement')
-class _HTMLFrameSetElement extends Element native "*HTMLFrameSetElement" {
+abstract class _HTMLFrameSetElement extends Element native "*HTMLFrameSetElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27719,7 +27719,7 @@ class _HTMLFrameSetElement extends Element native "*HTMLFrameSetElement" {
 
 @DocsEditable
 @DomName('HTMLMarqueeElement')
-class _HTMLMarqueeElement extends Element native "*HTMLMarqueeElement" {
+abstract class _HTMLMarqueeElement extends Element native "*HTMLMarqueeElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27970,7 +27970,7 @@ class _NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*N
 
 @DocsEditable
 @DomName('SharedWorker')
-class _SharedWorker extends AbstractWorker native "*SharedWorker" {
+abstract class _SharedWorker extends AbstractWorker native "*SharedWorker" {
 
   @DomName('SharedWorker.SharedWorker')
   @DocsEditable
@@ -27990,7 +27990,7 @@ class _SharedWorker extends AbstractWorker native "*SharedWorker" {
 
 @DocsEditable
 @DomName('SharedWorkerContext')
-class _SharedWorkerContext extends _WorkerContext native "*SharedWorkerContext" {
+abstract class _SharedWorkerContext extends _WorkerContext native "*SharedWorkerContext" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28675,7 +28675,7 @@ class _WebKitTransitionEvent extends Event implements TransitionEvent  native "*
 
 @DocsEditable
 @DomName('WorkerContext')
-class _WorkerContext extends EventTarget native "*WorkerContext" {
+abstract class _WorkerContext extends EventTarget native "*WorkerContext" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28684,7 +28684,7 @@ class _WorkerContext extends EventTarget native "*WorkerContext" {
 
 @DocsEditable
 @DomName('WorkerLocation')
-class _WorkerLocation native "*WorkerLocation" {
+abstract class _WorkerLocation native "*WorkerLocation" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28693,7 +28693,7 @@ class _WorkerLocation native "*WorkerLocation" {
 
 @DocsEditable
 @DomName('WorkerNavigator')
-class _WorkerNavigator native "*WorkerNavigator" {
+abstract class _WorkerNavigator native "*WorkerNavigator" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31723,7 +31723,7 @@ class _WrappedList<E> implements List<E> {
     _list.insertRange(start, length, fill);
   }
 
-  Map<int, E> asMap() => IterableMixinWorkaround.asMapList(_list);
+  Map<int, E> asMap() => _list.asMap();
 
   String toString() {
     StringBuffer buffer = new StringBuffer('[');

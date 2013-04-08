@@ -1243,5 +1243,5 @@ class VersionChangeEvent extends Event native "*IDBVersionChangeEvent" {
 
 @DocsEditable
 @DomName('IDBAny')
-class _IDBAny native "*IDBAny" {
+abstract class _IDBAny native "*IDBAny" {
 }

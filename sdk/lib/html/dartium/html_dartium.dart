@@ -28893,7 +28893,7 @@ class _CssValueList extends CssValue implements List<CssValue> {
 @DomName('DOMFileSystemSync')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental
-class _DOMFileSystemSync extends NativeFieldWrapperClass1 {
+abstract class _DOMFileSystemSync extends NativeFieldWrapperClass1 {
   _DOMFileSystemSync.internal();
 
 }
@@ -28906,7 +28906,7 @@ class _DOMFileSystemSync extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('DedicatedWorkerContext')
-class _DedicatedWorkerContext extends _WorkerContext {
+abstract class _DedicatedWorkerContext extends _WorkerContext {
   _DedicatedWorkerContext.internal() : super.internal();
 
 }
@@ -28919,7 +28919,7 @@ class _DedicatedWorkerContext extends _WorkerContext {
 
 @DocsEditable
 @DomName('DirectoryEntrySync')
-class _DirectoryEntrySync extends _EntrySync {
+abstract class _DirectoryEntrySync extends _EntrySync {
   _DirectoryEntrySync.internal() : super.internal();
 
 }
@@ -28932,7 +28932,7 @@ class _DirectoryEntrySync extends _EntrySync {
 
 @DocsEditable
 @DomName('DirectoryReaderSync')
-class _DirectoryReaderSync extends NativeFieldWrapperClass1 {
+abstract class _DirectoryReaderSync extends NativeFieldWrapperClass1 {
   _DirectoryReaderSync.internal();
 
 }
@@ -29532,7 +29532,7 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<_EntrySyn
 
 @DocsEditable
 @DomName('EntrySync')
-class _EntrySync extends NativeFieldWrapperClass1 {
+abstract class _EntrySync extends NativeFieldWrapperClass1 {
   _EntrySync.internal();
 
 }
@@ -29545,7 +29545,7 @@ class _EntrySync extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('FileEntrySync')
-class _FileEntrySync extends _EntrySync {
+abstract class _FileEntrySync extends _EntrySync {
   _FileEntrySync.internal() : super.internal();
 
 }
@@ -29558,7 +29558,7 @@ class _FileEntrySync extends _EntrySync {
 
 @DocsEditable
 @DomName('FileReaderSync')
-class _FileReaderSync extends NativeFieldWrapperClass1 {
+abstract class _FileReaderSync extends NativeFieldWrapperClass1 {
   _FileReaderSync.internal();
 
   @DomName('FileReaderSync.FileReaderSync')
@@ -29580,7 +29580,7 @@ class _FileReaderSync extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('FileWriterSync')
-class _FileWriterSync extends NativeFieldWrapperClass1 {
+abstract class _FileWriterSync extends NativeFieldWrapperClass1 {
   _FileWriterSync.internal();
 
 }
@@ -29815,7 +29815,7 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
 
 @DocsEditable
 @DomName('HTMLAppletElement')
-class _HTMLAppletElement extends _Element_Merged {
+abstract class _HTMLAppletElement extends _Element_Merged {
   _HTMLAppletElement.internal() : super.internal();
 
 }
@@ -29828,7 +29828,7 @@ class _HTMLAppletElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('HTMLBaseFontElement')
-class _HTMLBaseFontElement extends _Element_Merged {
+abstract class _HTMLBaseFontElement extends _Element_Merged {
   _HTMLBaseFontElement.internal() : super.internal();
 
 }
@@ -29841,7 +29841,7 @@ class _HTMLBaseFontElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('HTMLDirectoryElement')
-class _HTMLDirectoryElement extends _Element_Merged {
+abstract class _HTMLDirectoryElement extends _Element_Merged {
   _HTMLDirectoryElement.internal() : super.internal();
 
 }
@@ -29854,7 +29854,7 @@ class _HTMLDirectoryElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('HTMLFontElement')
-class _HTMLFontElement extends _Element_Merged {
+abstract class _HTMLFontElement extends _Element_Merged {
   _HTMLFontElement.internal() : super.internal();
 
 }
@@ -29867,7 +29867,7 @@ class _HTMLFontElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('HTMLFrameElement')
-class _HTMLFrameElement extends _Element_Merged {
+abstract class _HTMLFrameElement extends _Element_Merged {
   _HTMLFrameElement.internal() : super.internal();
 
 }
@@ -29880,7 +29880,7 @@ class _HTMLFrameElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('HTMLFrameSetElement')
-class _HTMLFrameSetElement extends _Element_Merged {
+abstract class _HTMLFrameSetElement extends _Element_Merged {
   _HTMLFrameSetElement.internal() : super.internal();
 
 }
@@ -29893,7 +29893,7 @@ class _HTMLFrameSetElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('HTMLMarqueeElement')
-class _HTMLMarqueeElement extends _Element_Merged {
+abstract class _HTMLMarqueeElement extends _Element_Merged {
   _HTMLMarqueeElement.internal() : super.internal();
 
 }
@@ -30152,7 +30152,7 @@ class _NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
 
 @DocsEditable
 @DomName('SharedWorker')
-class _SharedWorker extends AbstractWorker {
+abstract class _SharedWorker extends AbstractWorker {
   _SharedWorker.internal() : super.internal();
 
   @DomName('SharedWorker.SharedWorker')
@@ -30174,7 +30174,7 @@ class _SharedWorker extends AbstractWorker {
 
 @DocsEditable
 @DomName('SharedWorkerContext')
-class _SharedWorkerContext extends _WorkerContext {
+abstract class _SharedWorkerContext extends _WorkerContext {
   _SharedWorkerContext.internal() : super.internal();
 
 }
@@ -30876,7 +30876,7 @@ class _WebKitTransitionEvent extends Event implements TransitionEvent  {
 
 @DocsEditable
 @DomName('WorkerContext')
-class _WorkerContext extends EventTarget {
+abstract class _WorkerContext extends EventTarget {
   _WorkerContext.internal() : super.internal();
 
 }
@@ -30889,7 +30889,7 @@ class _WorkerContext extends EventTarget {
 
 @DocsEditable
 @DomName('WorkerLocation')
-class _WorkerLocation extends NativeFieldWrapperClass1 {
+abstract class _WorkerLocation extends NativeFieldWrapperClass1 {
   _WorkerLocation.internal();
 
 }
@@ -30902,7 +30902,7 @@ class _WorkerLocation extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('WorkerNavigator')
-class _WorkerNavigator extends NativeFieldWrapperClass1 {
+abstract class _WorkerNavigator extends NativeFieldWrapperClass1 {
   _WorkerNavigator.internal();
 
 }
@@ -33352,7 +33352,7 @@ class _WrappedList<E> implements List<E> {
     _list.insertRange(start, length, fill);
   }
 
-  Map<int, E> asMap() => IterableMixinWorkaround.asMapList(_list);
+  Map<int, E> asMap() => _list.asMap();
 
   String toString() {
     StringBuffer buffer = new StringBuffer('[');

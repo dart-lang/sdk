@@ -3383,7 +3383,7 @@ class LineElement extends StyledElement implements Transformable, Tests, Externa
 
 @DocsEditable
 @DomName('SVGLinearGradientElement')
-class LinearGradientElement extends _SVGGradientElement native "*SVGLinearGradientElement" {
+class LinearGradientElement extends _GradientElement native "*SVGLinearGradientElement" {
 
   @DomName('SVGLinearGradientElement.SVGLinearGradientElement')
   @DocsEditable
@@ -5262,7 +5262,7 @@ class PreserveAspectRatio native "*SVGPreserveAspectRatio" {
 
 @DocsEditable
 @DomName('SVGRadialGradientElement')
-class RadialGradientElement extends _SVGGradientElement native "*SVGRadialGradientElement" {
+class RadialGradientElement extends _GradientElement native "*SVGRadialGradientElement" {
 
   @DomName('SVGRadialGradientElement.SVGRadialGradientElement')
   @DocsEditable
@@ -7456,8 +7456,49 @@ class _ElementInstanceList implements JavaScriptIndexingBehavior, List<ElementIn
 
 
 @DocsEditable
+@DomName('SVGGradientElement')
+class _GradientElement extends StyledElement implements UriReference, ExternalResourcesRequired native "*SVGGradientElement" {
+
+  static const int SVG_SPREADMETHOD_PAD = 1;
+
+  static const int SVG_SPREADMETHOD_REFLECT = 2;
+
+  static const int SVG_SPREADMETHOD_REPEAT = 3;
+
+  static const int SVG_SPREADMETHOD_UNKNOWN = 0;
+
+  @DomName('SVGGradientElement.gradientTransform')
+  @DocsEditable
+  final AnimatedTransformList gradientTransform;
+
+  @DomName('SVGGradientElement.gradientUnits')
+  @DocsEditable
+  final AnimatedEnumeration gradientUnits;
+
+  @DomName('SVGGradientElement.spreadMethod')
+  @DocsEditable
+  final AnimatedEnumeration spreadMethod;
+
+  // From SVGExternalResourcesRequired
+
+  @DomName('SVGGradientElement.externalResourcesRequired')
+  @DocsEditable
+  final AnimatedBoolean externalResourcesRequired;
+
+  // From SVGURIReference
+
+  @DomName('SVGGradientElement.href')
+  @DocsEditable
+  final AnimatedString href;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
 @DomName('SVGAltGlyphDefElement')
-class _SVGAltGlyphDefElement extends SvgElement native "*SVGAltGlyphDefElement" {
+abstract class _SVGAltGlyphDefElement extends SvgElement native "*SVGAltGlyphDefElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7466,7 +7507,7 @@ class _SVGAltGlyphDefElement extends SvgElement native "*SVGAltGlyphDefElement" 
 
 @DocsEditable
 @DomName('SVGAltGlyphItemElement')
-class _SVGAltGlyphItemElement extends SvgElement native "*SVGAltGlyphItemElement" {
+abstract class _SVGAltGlyphItemElement extends SvgElement native "*SVGAltGlyphItemElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7475,7 +7516,7 @@ class _SVGAltGlyphItemElement extends SvgElement native "*SVGAltGlyphItemElement
 
 @DocsEditable
 @DomName('SVGAnimateColorElement')
-class _SVGAnimateColorElement extends AnimationElement native "*SVGAnimateColorElement" {
+abstract class _SVGAnimateColorElement extends AnimationElement native "*SVGAnimateColorElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7484,7 +7525,7 @@ class _SVGAnimateColorElement extends AnimationElement native "*SVGAnimateColorE
 
 @DocsEditable
 @DomName('SVGComponentTransferFunctionElement')
-class _SVGComponentTransferFunctionElement extends SvgElement native "*SVGComponentTransferFunctionElement" {
+abstract class _SVGComponentTransferFunctionElement extends SvgElement native "*SVGComponentTransferFunctionElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7493,7 +7534,7 @@ class _SVGComponentTransferFunctionElement extends SvgElement native "*SVGCompon
 
 @DocsEditable
 @DomName('SVGCursorElement')
-class _SVGCursorElement extends SvgElement implements UriReference, Tests, ExternalResourcesRequired native "*SVGCursorElement" {
+abstract class _SVGCursorElement extends SvgElement implements UriReference, Tests, ExternalResourcesRequired native "*SVGCursorElement" {
 
   @DomName('SVGCursorElement.SVGCursorElement')
   @DocsEditable
@@ -7515,7 +7556,7 @@ class _SVGCursorElement extends SvgElement implements UriReference, Tests, Exter
 
 @DocsEditable
 @DomName('SVGFEDropShadowElement')
-class _SVGFEDropShadowElement extends StyledElement implements FilterPrimitiveStandardAttributes native "*SVGFEDropShadowElement" {
+abstract class _SVGFEDropShadowElement extends StyledElement implements FilterPrimitiveStandardAttributes native "*SVGFEDropShadowElement" {
 
   // From SVGFilterPrimitiveStandardAttributes
 }
@@ -7526,7 +7567,7 @@ class _SVGFEDropShadowElement extends StyledElement implements FilterPrimitiveSt
 
 @DocsEditable
 @DomName('SVGFontElement')
-class _SVGFontElement extends SvgElement native "*SVGFontElement" {
+abstract class _SVGFontElement extends SvgElement native "*SVGFontElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7535,7 +7576,7 @@ class _SVGFontElement extends SvgElement native "*SVGFontElement" {
 
 @DocsEditable
 @DomName('SVGFontFaceElement')
-class _SVGFontFaceElement extends SvgElement native "*SVGFontFaceElement" {
+abstract class _SVGFontFaceElement extends SvgElement native "*SVGFontFaceElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7544,7 +7585,7 @@ class _SVGFontFaceElement extends SvgElement native "*SVGFontFaceElement" {
 
 @DocsEditable
 @DomName('SVGFontFaceFormatElement')
-class _SVGFontFaceFormatElement extends SvgElement native "*SVGFontFaceFormatElement" {
+abstract class _SVGFontFaceFormatElement extends SvgElement native "*SVGFontFaceFormatElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7553,7 +7594,7 @@ class _SVGFontFaceFormatElement extends SvgElement native "*SVGFontFaceFormatEle
 
 @DocsEditable
 @DomName('SVGFontFaceNameElement')
-class _SVGFontFaceNameElement extends SvgElement native "*SVGFontFaceNameElement" {
+abstract class _SVGFontFaceNameElement extends SvgElement native "*SVGFontFaceNameElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7562,7 +7603,7 @@ class _SVGFontFaceNameElement extends SvgElement native "*SVGFontFaceNameElement
 
 @DocsEditable
 @DomName('SVGFontFaceSrcElement')
-class _SVGFontFaceSrcElement extends SvgElement native "*SVGFontFaceSrcElement" {
+abstract class _SVGFontFaceSrcElement extends SvgElement native "*SVGFontFaceSrcElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7571,7 +7612,7 @@ class _SVGFontFaceSrcElement extends SvgElement native "*SVGFontFaceSrcElement" 
 
 @DocsEditable
 @DomName('SVGFontFaceUriElement')
-class _SVGFontFaceUriElement extends SvgElement native "*SVGFontFaceUriElement" {
+abstract class _SVGFontFaceUriElement extends SvgElement native "*SVGFontFaceUriElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7580,7 +7621,7 @@ class _SVGFontFaceUriElement extends SvgElement native "*SVGFontFaceUriElement" 
 
 @DocsEditable
 @DomName('SVGGlyphElement')
-class _SVGGlyphElement extends SvgElement native "*SVGGlyphElement" {
+abstract class _SVGGlyphElement extends SvgElement native "*SVGGlyphElement" {
 
   @DomName('SVGGlyphElement.SVGGlyphElement')
   @DocsEditable
@@ -7593,20 +7634,7 @@ class _SVGGlyphElement extends SvgElement native "*SVGGlyphElement" {
 
 @DocsEditable
 @DomName('SVGGlyphRefElement')
-class _SVGGlyphRefElement extends StyledElement implements UriReference native "*SVGGlyphRefElement" {
-
-  // From SVGURIReference
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('SVGGradientElement')
-class _SVGGradientElement extends StyledElement implements UriReference, ExternalResourcesRequired native "*SVGGradientElement" {
-
-  // From SVGExternalResourcesRequired
+abstract class _SVGGlyphRefElement extends StyledElement implements UriReference native "*SVGGlyphRefElement" {
 
   // From SVGURIReference
 }
@@ -7617,7 +7645,7 @@ class _SVGGradientElement extends StyledElement implements UriReference, Externa
 
 @DocsEditable
 @DomName('SVGHKernElement')
-class _SVGHKernElement extends SvgElement native "*SVGHKernElement" {
+abstract class _SVGHKernElement extends SvgElement native "*SVGHKernElement" {
 
   @DomName('SVGHKernElement.SVGHKernElement')
   @DocsEditable
@@ -7630,7 +7658,7 @@ class _SVGHKernElement extends SvgElement native "*SVGHKernElement" {
 
 @DocsEditable
 @DomName('SVGMPathElement')
-class _SVGMPathElement extends SvgElement implements UriReference, ExternalResourcesRequired native "*SVGMPathElement" {
+abstract class _SVGMPathElement extends SvgElement implements UriReference, ExternalResourcesRequired native "*SVGMPathElement" {
 
   @DomName('SVGMPathElement.SVGMPathElement')
   @DocsEditable
@@ -7647,7 +7675,7 @@ class _SVGMPathElement extends SvgElement implements UriReference, ExternalResou
 
 @DocsEditable
 @DomName('SVGMissingGlyphElement')
-class _SVGMissingGlyphElement extends StyledElement native "*SVGMissingGlyphElement" {
+abstract class _SVGMissingGlyphElement extends StyledElement native "*SVGMissingGlyphElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7656,7 +7684,7 @@ class _SVGMissingGlyphElement extends StyledElement native "*SVGMissingGlyphElem
 
 @DocsEditable
 @DomName('SVGTRefElement')
-class _SVGTRefElement extends TextPositioningElement implements UriReference native "*SVGTRefElement" {
+abstract class _SVGTRefElement extends TextPositioningElement implements UriReference native "*SVGTRefElement" {
 
   @DomName('SVGTRefElement.SVGTRefElement')
   @DocsEditable
@@ -7671,7 +7699,7 @@ class _SVGTRefElement extends TextPositioningElement implements UriReference nat
 
 @DocsEditable
 @DomName('SVGVKernElement')
-class _SVGVKernElement extends SvgElement native "*SVGVKernElement" {
+abstract class _SVGVKernElement extends SvgElement native "*SVGVKernElement" {
 
   @DomName('SVGVKernElement.SVGVKernElement')
   @DocsEditable

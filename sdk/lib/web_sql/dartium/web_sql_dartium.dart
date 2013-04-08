@@ -462,7 +462,7 @@ class SqlTransaction extends NativeFieldWrapperClass1 {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
-class _DatabaseSync extends NativeFieldWrapperClass1 {
+abstract class _DatabaseSync extends NativeFieldWrapperClass1 {
   _DatabaseSync.internal();
 
 }
@@ -478,7 +478,7 @@ class _DatabaseSync extends NativeFieldWrapperClass1 {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
-class _SQLTransactionSync extends NativeFieldWrapperClass1 {
+abstract class _SQLTransactionSync extends NativeFieldWrapperClass1 {
   _SQLTransactionSync.internal();
 
 }

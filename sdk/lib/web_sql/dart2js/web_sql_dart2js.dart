@@ -445,7 +445,7 @@ class SqlTransaction native "*SQLTransaction" {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
-class _DatabaseSync native "*DatabaseSync" {
+abstract class _DatabaseSync native "*DatabaseSync" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -457,5 +457,5 @@ class _DatabaseSync native "*DatabaseSync" {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
-class _SQLTransactionSync native "*SQLTransactionSync" {
+abstract class _SQLTransactionSync native "*SQLTransactionSync" {
 }

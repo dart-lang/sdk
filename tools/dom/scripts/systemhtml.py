@@ -515,10 +515,15 @@ class HtmlDartInterfaceGenerator(object):
         GetAnnotationsAndComments(self._library_name,
                                   self._interface.doc_js_name), '')
 
+    class_modifiers = ''
+    if self._renamer.ShouldSuppressInterface(self._interface):
+      class_modifiers = 'abstract '
+
     self._implementation_members_emitter = implementation_emitter.Emit(
         self._backend.ImplementationTemplate(),
         LIBRARYNAME='dart.dom.%s' % self._library_name,
         ANNOTATIONS=annotations,
+        CLASS_MODIFIERS=class_modifiers,
         CLASSNAME=self._interface_type_info.implementation_name(),
         EXTENDS=' extends %s' % base_class if base_class else '',
         IMPLEMENTS=implements_str,

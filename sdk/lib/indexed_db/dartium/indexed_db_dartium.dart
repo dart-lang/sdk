@@ -1307,7 +1307,7 @@ class VersionChangeEvent extends Event {
 
 @DocsEditable
 @DomName('IDBAny')
-class _IDBAny extends NativeFieldWrapperClass1 {
+abstract class _IDBAny extends NativeFieldWrapperClass1 {
   _IDBAny.internal();
 
 }

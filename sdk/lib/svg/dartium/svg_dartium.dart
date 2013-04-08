@@ -3649,7 +3649,7 @@ class LineElement extends StyledElement implements Transformable, Tests, Externa
 
 @DocsEditable
 @DomName('SVGLinearGradientElement')
-class LinearGradientElement extends _SVGGradientElement {
+class LinearGradientElement extends _GradientElement {
   LinearGradientElement.internal() : super.internal();
 
   @DomName('SVGLinearGradientElement.SVGLinearGradientElement')
@@ -5936,7 +5936,7 @@ class PreserveAspectRatio extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SVGRadialGradientElement')
-class RadialGradientElement extends _SVGGradientElement {
+class RadialGradientElement extends _GradientElement {
   RadialGradientElement.internal() : super.internal();
 
   @DomName('SVGRadialGradientElement.SVGRadialGradientElement')
@@ -8316,8 +8316,49 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 implements List<Elem
 
 
 @DocsEditable
+@DomName('SVGGradientElement')
+class _GradientElement extends StyledElement implements UriReference, ExternalResourcesRequired {
+  _GradientElement.internal() : super.internal();
+
+  static const int SVG_SPREADMETHOD_PAD = 1;
+
+  static const int SVG_SPREADMETHOD_REFLECT = 2;
+
+  static const int SVG_SPREADMETHOD_REPEAT = 3;
+
+  static const int SVG_SPREADMETHOD_UNKNOWN = 0;
+
+  @DomName('SVGGradientElement.gradientTransform')
+  @DocsEditable
+  AnimatedTransformList get gradientTransform native "SVGGradientElement_gradientTransform_Getter";
+
+  @DomName('SVGGradientElement.gradientUnits')
+  @DocsEditable
+  AnimatedEnumeration get gradientUnits native "SVGGradientElement_gradientUnits_Getter";
+
+  @DomName('SVGGradientElement.spreadMethod')
+  @DocsEditable
+  AnimatedEnumeration get spreadMethod native "SVGGradientElement_spreadMethod_Getter";
+
+  @DomName('SVGGradientElement.externalResourcesRequired')
+  @DocsEditable
+  AnimatedBoolean get externalResourcesRequired native "SVGGradientElement_externalResourcesRequired_Getter";
+
+  @DomName('SVGGradientElement.href')
+  @DocsEditable
+  AnimatedString get href native "SVGGradientElement_href_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
 @DomName('SVGAltGlyphDefElement')
-class _SVGAltGlyphDefElement extends SvgElement {
+abstract class _SVGAltGlyphDefElement extends SvgElement {
   _SVGAltGlyphDefElement.internal() : super.internal();
 
 }
@@ -8330,7 +8371,7 @@ class _SVGAltGlyphDefElement extends SvgElement {
 
 @DocsEditable
 @DomName('SVGAltGlyphItemElement')
-class _SVGAltGlyphItemElement extends SvgElement {
+abstract class _SVGAltGlyphItemElement extends SvgElement {
   _SVGAltGlyphItemElement.internal() : super.internal();
 
 }
@@ -8343,7 +8384,7 @@ class _SVGAltGlyphItemElement extends SvgElement {
 
 @DocsEditable
 @DomName('SVGAnimateColorElement')
-class _SVGAnimateColorElement extends AnimationElement {
+abstract class _SVGAnimateColorElement extends AnimationElement {
   _SVGAnimateColorElement.internal() : super.internal();
 
 }
@@ -8356,7 +8397,7 @@ class _SVGAnimateColorElement extends AnimationElement {
 
 @DocsEditable
 @DomName('SVGComponentTransferFunctionElement')
-class _SVGComponentTransferFunctionElement extends SvgElement {
+abstract class _SVGComponentTransferFunctionElement extends SvgElement {
   _SVGComponentTransferFunctionElement.internal() : super.internal();
 
 }
@@ -8369,7 +8410,7 @@ class _SVGComponentTransferFunctionElement extends SvgElement {
 
 @DocsEditable
 @DomName('SVGCursorElement')
-class _SVGCursorElement extends SvgElement implements UriReference, Tests, ExternalResourcesRequired {
+abstract class _SVGCursorElement extends SvgElement implements UriReference, Tests, ExternalResourcesRequired {
   _SVGCursorElement.internal() : super.internal();
 
   @DomName('SVGCursorElement.SVGCursorElement')
@@ -8389,7 +8430,7 @@ class _SVGCursorElement extends SvgElement implements UriReference, Tests, Exter
 
 @DocsEditable
 @DomName('SVGFEDropShadowElement')
-class _SVGFEDropShadowElement extends StyledElement implements FilterPrimitiveStandardAttributes {
+abstract class _SVGFEDropShadowElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   _SVGFEDropShadowElement.internal() : super.internal();
 
 }
@@ -8402,7 +8443,7 @@ class _SVGFEDropShadowElement extends StyledElement implements FilterPrimitiveSt
 
 @DocsEditable
 @DomName('SVGFontElement')
-class _SVGFontElement extends SvgElement {
+abstract class _SVGFontElement extends SvgElement {
   _SVGFontElement.internal() : super.internal();
 
 }
@@ -8415,7 +8456,7 @@ class _SVGFontElement extends SvgElement {
 
 @DocsEditable
 @DomName('SVGFontFaceElement')
-class _SVGFontFaceElement extends SvgElement {
+abstract class _SVGFontFaceElement extends SvgElement {
   _SVGFontFaceElement.internal() : super.internal();
 
 }
@@ -8428,7 +8469,7 @@ class _SVGFontFaceElement extends SvgElement {
 
 @DocsEditable
 @DomName('SVGFontFaceFormatElement')
-class _SVGFontFaceFormatElement extends SvgElement {
+abstract class _SVGFontFaceFormatElement extends SvgElement {
   _SVGFontFaceFormatElement.internal() : super.internal();
 
 }
@@ -8441,7 +8482,7 @@ class _SVGFontFaceFormatElement extends SvgElement {
 
 @DocsEditable
 @DomName('SVGFontFaceNameElement')
-class _SVGFontFaceNameElement extends SvgElement {
+abstract class _SVGFontFaceNameElement extends SvgElement {
   _SVGFontFaceNameElement.internal() : super.internal();
 
 }
@@ -8454,7 +8495,7 @@ class _SVGFontFaceNameElement extends SvgElement {
 
 @DocsEditable
 @DomName('SVGFontFaceSrcElement')
-class _SVGFontFaceSrcElement extends SvgElement {
+abstract class _SVGFontFaceSrcElement extends SvgElement {
   _SVGFontFaceSrcElement.internal() : super.internal();
 
 }
@@ -8467,7 +8508,7 @@ class _SVGFontFaceSrcElement extends SvgElement {
 
 @DocsEditable
 @DomName('SVGFontFaceUriElement')
-class _SVGFontFaceUriElement extends SvgElement {
+abstract class _SVGFontFaceUriElement extends SvgElement {
   _SVGFontFaceUriElement.internal() : super.internal();
 
 }
@@ -8480,7 +8521,7 @@ class _SVGFontFaceUriElement extends SvgElement {
 
 @DocsEditable
 @DomName('SVGGlyphElement')
-class _SVGGlyphElement extends SvgElement {
+abstract class _SVGGlyphElement extends SvgElement {
   _SVGGlyphElement.internal() : super.internal();
 
   @DomName('SVGGlyphElement.SVGGlyphElement')
@@ -8497,7 +8538,7 @@ class _SVGGlyphElement extends SvgElement {
 
 @DocsEditable
 @DomName('SVGGlyphRefElement')
-class _SVGGlyphRefElement extends StyledElement implements UriReference {
+abstract class _SVGGlyphRefElement extends StyledElement implements UriReference {
   _SVGGlyphRefElement.internal() : super.internal();
 
 }
@@ -8509,21 +8550,8 @@ class _SVGGlyphRefElement extends StyledElement implements UriReference {
 
 
 @DocsEditable
-@DomName('SVGGradientElement')
-class _SVGGradientElement extends StyledElement implements UriReference, ExternalResourcesRequired {
-  _SVGGradientElement.internal() : super.internal();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
 @DomName('SVGHKernElement')
-class _SVGHKernElement extends SvgElement {
+abstract class _SVGHKernElement extends SvgElement {
   _SVGHKernElement.internal() : super.internal();
 
   @DomName('SVGHKernElement.SVGHKernElement')
@@ -8540,7 +8568,7 @@ class _SVGHKernElement extends SvgElement {
 
 @DocsEditable
 @DomName('SVGMPathElement')
-class _SVGMPathElement extends SvgElement implements UriReference, ExternalResourcesRequired {
+abstract class _SVGMPathElement extends SvgElement implements UriReference, ExternalResourcesRequired {
   _SVGMPathElement.internal() : super.internal();
 
   @DomName('SVGMPathElement.SVGMPathElement')
@@ -8557,7 +8585,7 @@ class _SVGMPathElement extends SvgElement implements UriReference, ExternalResou
 
 @DocsEditable
 @DomName('SVGMissingGlyphElement')
-class _SVGMissingGlyphElement extends StyledElement {
+abstract class _SVGMissingGlyphElement extends StyledElement {
   _SVGMissingGlyphElement.internal() : super.internal();
 
 }
@@ -8570,7 +8598,7 @@ class _SVGMissingGlyphElement extends StyledElement {
 
 @DocsEditable
 @DomName('SVGTRefElement')
-class _SVGTRefElement extends TextPositioningElement implements UriReference {
+abstract class _SVGTRefElement extends TextPositioningElement implements UriReference {
   _SVGTRefElement.internal() : super.internal();
 
   @DomName('SVGTRefElement.SVGTRefElement')
@@ -8587,7 +8615,7 @@ class _SVGTRefElement extends TextPositioningElement implements UriReference {
 
 @DocsEditable
 @DomName('SVGVKernElement')
-class _SVGVKernElement extends SvgElement {
+abstract class _SVGVKernElement extends SvgElement {
   _SVGVKernElement.internal() : super.internal();
 
   @DomName('SVGVKernElement.SVGVKernElement')

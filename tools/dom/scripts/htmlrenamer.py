@@ -41,6 +41,7 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames', {
     'SVGDocument': 'SvgDocument', # Manual to avoid name conflicts.
     'SVGElement': 'SvgElement', # Manual to avoid name conflicts.
     'SVGException': 'SvgException', # Manual of avoid conflict with Exception.
+    'SVGGradientElement': '_GradientElement',
     'SVGSVGElement': 'SvgSvgElement', # Manual to avoid name conflicts.
     'WebGLVertexArrayObjectOES': 'VertexArrayObject',
     'WebKitAnimationEvent': 'AnimationEvent',
@@ -92,7 +93,6 @@ _removed_html_interfaces = [
   'SVGFontFaceUriElement',
   'SVGGlyphElement',
   'SVGGlyphRefElement',
-  'SVGGradientElement', # Currently not supported anywhere.
   'SVGHKernElement',
   'SVGMPathElement',
   'SVGMissingGlyphElement',
@@ -671,6 +671,11 @@ class HtmlRenamer(object):
     if interface.id in _removed_html_interfaces:
       return True
     return False
+
+  def ShouldSuppressInterface(self, interface):
+    """ Returns true if the interface should be suppressed."""
+    if interface.id in _removed_html_interfaces:
+      return True
 
   def _FindMatch(self, interface, member, member_prefix, candidates):
     for interface in self._database.Hierarchy(interface):
