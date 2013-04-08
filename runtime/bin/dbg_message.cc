@@ -412,7 +412,7 @@ static void FormatLocationFromTrace(dart::TextBuffer* msg,
     ASSERT(Dart_IsString(script_url));
     msg->Printf("\"location\": { \"url\":");
     FormatEncodedString(msg, script_url);
-    msg->Printf(",\"libraryId\":%"Pd"},", library_id);
+    msg->Printf(",\"libraryId\":%"Pd",", library_id);
     msg->Printf("\"tokenOffset\":%"Pd",", token_number);
     msg->Printf("\"lineNumber\":%"Pd"},", line_number);
   }
