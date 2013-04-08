@@ -273,11 +273,11 @@ PhaseScriptExecution "Action \"upload_sdk_py\"" xcodebuild/dart.build/...
         is_fancy_tty = True
     except subprocess.CalledProcessError:
       is_fancy_tty = False
+  has_interesting_info = False
   for line in unbuffered(process.stdout.readline):
     line = line.rstrip()
     if line.startswith('=== BUILD ') or line.startswith('** BUILD '):
-      if not is_empty_chunk(chunk):
-        print '\n'.join(chunk)
+      has_interesting_info = False
       section = line
       if is_fancy_tty:
         # If stdout is a terminal, emit "progress" information.  The
@@ -291,10 +291,19 @@ PhaseScriptExecution "Action \"upload_sdk_py\"" xcodebuild/dart.build/...
         # overwrites a longer line.
         print '%s%s\r' % (clr_eol, section),
       chunk = []
-    if not section:
+    if not section or has_interesting_info:
       print line
     else:
-      chunk.append(line)
+      length = len(chunk)
+      if length == 1 and line != 'Check dependencies':
+        has_interesting_info = True
+      elif (length == 2 or length == 3) and line:
+        has_interesting_info = True
+      if has_interesting_info:
+        print '\n'.join(chunk)
+        chunk = []
+      else:
+        chunk.append(line)
   if not is_empty_chunk(chunk):
     print '\n'.join(chunk)
 
