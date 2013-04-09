@@ -37,6 +37,7 @@ void main() {
         'path': '/',
         'headers': {
           'content-type': ['application/json; charset=utf-8'],
+          'accept-encoding': ['gzip'],
           'transfer-encoding': ['chunked']
         },
         'body': '{"hello": "world"}'

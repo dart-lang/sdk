@@ -36,6 +36,7 @@ main() {
             'path': '/',
             'headers': {
               'content-length': ['0'],
+              'accept-encoding': ['gzip'],
               'x-random-header': ['Value'],
               'x-other-header': ['Other Value']
             },
@@ -62,6 +63,7 @@ main() {
                 'application/x-www-form-urlencoded; charset=utf-8'
               ],
               'content-length': ['40'],
+              'accept-encoding': ['gzip'],
               'x-random-header': ['Value'],
               'x-other-header': ['Other Value']
             },
@@ -83,6 +85,7 @@ main() {
             'method': 'POST',
             'path': '/',
             'headers': {
+              'accept-encoding': ['gzip'],
               'content-length': ['0'],
               'content-type': ['text/plain'],
               'x-random-header': ['Value'],
@@ -110,6 +113,7 @@ main() {
               'content-type': [
                 'application/x-www-form-urlencoded; charset=utf-8'
               ],
+              'accept-encoding': ['gzip'],
               'content-length': ['40'],
               'x-random-header': ['Value'],
               'x-other-header': ['Other Value']
@@ -133,6 +137,7 @@ main() {
             'path': '/',
             'headers': {
               'content-length': ['0'],
+              'accept-encoding': ['gzip'],
               'content-type': ['text/plain'],
               'x-random-header': ['Value'],
               'x-other-header': ['Other Value']
@@ -154,6 +159,7 @@ main() {
             'path': '/',
             'headers': {
               'content-length': ['0'],
+              'accept-encoding': ['gzip'],
               'x-random-header': ['Value'],
               'x-other-header': ['Other Value']
             }
@@ -172,6 +178,7 @@ main() {
           'path': '/',
           'headers': {
             'content-length': ['0'],
+            'accept-encoding': ['gzip'],
             'x-random-header': ['Value'],
             'x-other-header': ['Other Value']
           },
@@ -197,6 +204,7 @@ main() {
           'path': '/',
           'headers': {
             'content-length': ['0'],
+            'accept-encoding': ['gzip'],
             'x-random-header': ['Value'],
             'x-other-header': ['Other Value']
           },
