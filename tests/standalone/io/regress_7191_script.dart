@@ -17,7 +17,6 @@ main() {
       p.stderr.listen((_) { });
       // When receiving data again, kill sub-process and exit.
       subscription.onData((data) {
-        Expect.listEquals([0], data);
         p.kill();
         p.exitCode.then(exit);
       });

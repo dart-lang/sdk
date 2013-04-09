@@ -20,8 +20,8 @@ main() {
   var script = scriptDir.append('regress_7191_script.dart').toNativePath();
   Process.start(executable, [script]).then((process) {
     process.stdin.writeBytes([0]);
-      process.stdout.listen((_) { },
-                            onDone: () { process.stdin.writeBytes([0]); });
+    process.stdout.listen((_) { },
+                           onDone: () { process.stdin.writeBytes([0]); });
     process.stderr.listen((_) { });
     process.exitCode.then((exitCode) => port.close());
   });
