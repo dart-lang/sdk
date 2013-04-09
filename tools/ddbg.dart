@@ -15,7 +15,8 @@ Map<int, Completer> outstandingCommands;
 
 Socket vmSock;
 String vmData;
-StreamSubscription<String> streamSubscription;
+var stdinSubscription;
+var vmSubscription;
 int seqNum = 0;
 int isolate_id = -1;
 
@@ -58,9 +59,9 @@ void printHelp() {
 
 
 void quitShell() {
-  streamSubscription.cancel();
+  vmSubscription.cancel();
   vmSock.close();
-  stdin.close();
+  stdinSubscription.cancel();
 }
 
 
@@ -407,7 +408,7 @@ void printStackTrace(List frames) {
 void handlePausedEvent(msg) {
   assert(msg["params"] != null);
   var reason = msg["params"]["reason"];
-  isolate_id = msg["params"]["isolateId"];
+  isolate_id = msg["params"]["id"];
   stackTrace = msg["params"]["callFrames"];
   assert(stackTrace != null);
   assert(stackTrace.length >= 1);
@@ -569,8 +570,8 @@ void debuggerMain() {
   outstandingCommands = new Map<int, Completer>();
   Socket.connect("127.0.0.1", 5858).then((s) {
     vmSock = s;
-    Stream<String> stringStream = vmSock.transform(new StringDecoder());
-    streamSubscription = stringStream.listen(
+    var stringStream = vmSock.transform(new StringDecoder());
+    vmSubscription = stringStream.listen(
         (String data) {
           processVmData(data);
         },
@@ -582,9 +583,9 @@ void debuggerMain() {
           print("Error in debug connection: $err");
           quitShell();
         });
-    stdin.transform(new StringDecoder())
-        .transform(new LineTransformer())
-        .listen((String line) => processCommand(line));
+    stdinSubscription = stdin.transform(new StringDecoder())
+                             .transform(new LineTransformer())
+                             .listen((String line) => processCommand(line));
   });
 }
 

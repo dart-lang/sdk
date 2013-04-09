@@ -194,7 +194,11 @@ static RawString* IdentifierPrettyName(const String& name) {
   intptr_t dot_pos = len;  // Position of '.' in the name.
   bool is_setter = false;
 
-  for (int i = 0; i < name.Length(); i++) {
+  if (name.Equals(Symbols::TopLevel())) {
+    // Name of invisible top-level class.
+    return Symbols::Empty().raw();
+  }
+  for (int i = start; i < name.Length(); i++) {
     if (name.CharAt(i) == ':') {
       ASSERT(start == 0);
       if (name.CharAt(0) == 's') {
