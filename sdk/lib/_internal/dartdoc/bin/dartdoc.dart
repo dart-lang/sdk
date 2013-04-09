@@ -18,9 +18,11 @@ library dartdoc;
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:uri';
 
 // TODO(rnystrom): Use "package:" URL (#4968).
 import '../lib/dartdoc.dart';
+import '../lib/src/dartdoc/utils.dart';
 import 'package:args/args.dart';
 import 'package:pathos/path.dart' as path;
 
@@ -39,7 +41,7 @@ main() {
 
   final Path libPath = scriptDir.append('../../../../');
 
-  Path packageRoot;
+  String packageRoot;
 
   argParser.addFlag('no-code',
       help: 'Do not include source code in the documentation.',
@@ -166,7 +168,7 @@ main() {
         ' the entrypoint.',
       callback: (packageDir) {
         if(packageDir != null) {
-          packageRoot = new Path(packageDir);
+          packageRoot = packageDir;
         }
       });
 
@@ -175,7 +177,7 @@ main() {
       help: 'Deprecated: same as --package-root.',
       callback: (packageDir) {
         if(packageDir != null) {
-          packageRoot = new Path(packageDir);
+          packageRoot = packageDir;
         }
       });
 
@@ -188,21 +190,22 @@ main() {
     exit(1);
   }
 
-  final entrypoints = <Path>[];
+  final entrypoints = <Uri>[];
   try {
     final option = argParser.parse(args);
 
     // This checks to see if the root of all entrypoints is the same.
     // If it is not, then we display a warning, as package imports might fail.
     var entrypointRoot;
-    for(final arg in option.rest) {
-      var entrypoint = new Path(arg);
-      entrypoints.add(entrypoint);
+    for (final entrypoint in option.rest) {
+      var uri = Uri.parse(entrypoint);
+      if (uri.scheme == '') uri = pathToFileUri(entrypoint);
+      entrypoints.add(uri);
 
+      if (uri.scheme != 'file') continue;
       if (entrypointRoot == null) {
-        entrypointRoot = entrypoint.directoryPath;
-      } else if (entrypointRoot.toNativePath() !=
-          entrypoint.directoryPath.toNativePath()) {
+        entrypointRoot = path.dirname(entrypoint);
+      } else if (entrypointRoot != path.dirname(entrypoint)) {
         print('Warning: entrypoints are at different directories. "package:"'
             ' imports may fail.');
       }
@@ -220,25 +223,7 @@ main() {
     exit(1);
   }
 
-  if (packageRoot == null) {
-    // Check if there's a `packages` directory in the entry point directory.
-    var script = path.normalize(path.absolute(entrypoints[0].toNativePath()));
-    var dir = path.join(path.dirname(script), 'packages/');
-    if (new Directory(dir).existsSync()) {
-      // TODO(amouravski): convert all of dartdoc to use pathos.
-      packageRoot = new Path(dir);
-    } else {
-      // If there is not, then check if the entrypoint is somewhere in a `lib`
-      // directory.
-      dir = path.dirname(script);
-      var parts = path.split(dir);
-      var libDir = parts.lastIndexOf('lib');
-      if (libDir > 0) {
-        packageRoot = new Path(path.join(path.joinAll(parts.take(libDir)),
-              'packages'));
-      }
-    }
-  }
+  if (packageRoot == null) packageRoot = _getPackageRoot(entrypoints);
 
   cleanOutputDirectory(dartdoc.outputDir);
 
@@ -266,4 +251,27 @@ main() {
       exit(1);
     })
     .whenComplete(() => dartdoc.cleanup());
+}
+
+String _getPackageRoot(List<Uri> entrypoints) {
+  // Check if there's a `packages` directory in the entry point directory.
+  var fileEntrypoint = entrypoints.firstWhere(
+      (entrypoint) => entrypoint.scheme == 'file',
+      orElse: () => null);
+
+  var script = path.normalize(path.absolute(fileUriToPath(fileEntrypoint)));
+  if (fileEntrypoint != null) {
+    var dir = path.join(path.dirname(script), 'packages/');
+    if (new Directory(dir).existsSync()) return dir;
+  }
+
+  // If there is not, then check if the entrypoint is somewhere in a `lib`
+  // directory.
+  var parts = path.split(path.dirname(script));
+  var libDir = parts.lastIndexOf('lib');
+  if (libDir > 0) {
+    return path.join(path.joinAll(parts.take(libDir)), 'packages');
+  } else {
+    return null;
+  }
 }

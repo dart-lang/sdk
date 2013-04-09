@@ -17,6 +17,7 @@ library apidoc;
 import 'dart:async';
 import 'dart:io';
 import 'dart:json' as json;
+import 'dart:uri';
 
 import 'html_diff.dart';
 
@@ -25,6 +26,7 @@ import '../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors.dart';
 import '../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.dart';
 import '../../sdk/lib/_internal/dartdoc/lib/dartdoc.dart';
 import '../../sdk/lib/_internal/libraries.dart';
+import 'package:pathos/path.dart' as pathos;
 
 HtmlDiff _diff;
 
@@ -37,7 +39,7 @@ void main() {
 
   List<String> excludedLibraries = <String>[];
   List<String> includedLibraries = <String>[];
-  Path packageRoot;
+  String packageRoot;
   String version;
 
   // Parse the command-line arguments.
@@ -65,7 +67,7 @@ void main() {
         } else if (arg.startsWith('--out=')) {
           outputDir = new Path(arg.substring('--out='.length));
         } else if (arg.startsWith('--package-root=')) {
-          packageRoot = new Path(arg.substring('--package-root='.length));
+          packageRoot = arg.substring('--package-root='.length);
         } else if (arg.startsWith('--version=')) {
           version = arg.substring('--version='.length);
         } else {
@@ -104,10 +106,10 @@ void main() {
   // TODO(johnniwinther): Libraries for the compilation seem to be more like
   // URIs. Perhaps Path should have a toURI() method.
   // Add all of the core libraries.
-  final apidocLibraries = <Path>[];
+  final apidocLibraries = <Uri>[];
   LIBRARIES.forEach((String name, LibraryInfo info) {
     if (info.documented) {
-      apidocLibraries.add(new Path('dart:$name'));
+      apidocLibraries.add(Uri.parse('dart:$name'));
     }
   });
 
@@ -130,7 +132,7 @@ void main() {
       }
 
       if (new File.fromPath(libPath).existsSync()) {
-        apidocLibraries.add(libPath);
+        apidocLibraries.add(_pathToFileUri(libPath.toNativePath()));
         includedLibraries.add(libName);
       } else {
         print('Warning: could not find package at $path');
@@ -147,7 +149,7 @@ void main() {
 
     // TODO(amouravski): make apidoc use roughly the same flow as bin/dartdoc.
     Future.wait([copiedStatic, copiedApiDocStatic, htmlDiff])
-      .then((_) => apidoc.documentLibraries( apidocLibraries, libPath,
+      .then((_) => apidoc.documentLibraries(apidocLibraries, libPath,
             packageRoot))
       .then((_) => compileScript(mode, outputDir, libPath))
       .then((_) => print(apidoc.status))
@@ -447,3 +449,14 @@ class Apidoc extends Dartdoc {
     return a(memberUrl(member), memberName);
   }
 }
+
+/** Converts a local path string to a `file:` [Uri]. */
+Uri _pathToFileUri(String path) {
+  path = pathos.absolute(path);
+  if (Platform.operatingSystem != 'windows') {
+    return Uri.parse('file://$path');
+  } else {
+    return Uri.parse('file:///${path.replaceAll("\\", "/")}');
+  }
+}
+

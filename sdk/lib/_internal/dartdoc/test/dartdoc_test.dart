@@ -17,42 +17,6 @@ import '../lib/markdown.dart';
 import 'markdown_test.dart';
 
 main() {
-  group('countOccurrences', () {
-    test('empty text returns 0', () {
-      expect(dd.countOccurrences('', 'needle'), equals(0));
-    });
-
-    test('one occurrence', () {
-      expect(dd.countOccurrences('bananarama', 'nara'), equals(1));
-    });
-
-    test('multiple occurrences', () {
-      expect(dd.countOccurrences('bananarama', 'a'), equals(5));
-    });
-
-    test('overlapping matches do not count', () {
-      expect(dd.countOccurrences('bananarama', 'ana'), equals(1));
-    });
-  });
-
-  group('repeat', () {
-    test('zero times returns an empty string', () {
-      expect(dd.repeat('ba', 0), isEmpty);
-    });
-
-    test('one time returns the string', () {
-      expect(dd.repeat('ba', 1), equals('ba'));
-    });
-
-    test('multiple times', () {
-      expect(dd.repeat('ba', 3), equals('bababa'));
-    });
-
-    test('multiple times with a separator', () {
-      expect(dd.repeat('ba', 3, separator: ' '), equals('ba ba ba'));
-    });
-  });
-
   group('isAbsolute', () {
     final doc = new dd.Dartdoc();
 
