@@ -496,33 +496,8 @@ class NativeEmitter {
     }
     emitIsChecks();
 
-    jsAst.Expression makeCallOnThis(String functionName) {
-      // Because we know the function is intercepted, we need an extra
-      // parameter.
-      return js.fun(['_'], js.return_(js('$functionName(this)')));
-    }
-
     if (!nativeClasses.isEmpty) {
       emitDynamicDispatchMetadata();
-
-      // In order to have the toString method on every native class,
-      // we must patch the JS Object prototype with a helper method.
-      String toStringName = backend.namer.publicInstanceMethodNameByArity(
-          const SourceString('toString'), 0);
-      addProperty(toStringName, makeCallOnThis(toStringHelperName));
-
-      // Same as above, but for hashCode.
-      String hashCodeName =
-          backend.namer.publicGetterName(const SourceString('hashCode'));
-      addProperty(hashCodeName, makeCallOnThis(hashCodeHelperName));
-
-      // Same as above, but for operator==.
-      String equalsName = backend.namer.publicInstanceMethodNameByArity(
-          const SourceString('=='), 1);
-      // Because we know the function is intercepted, we need an extra
-      // parameter.
-      addProperty(equalsName, js.fun(['_', 'a'],
-          js.return_(js('this === a'))));
 
       // If the native emitter has been asked to take care of the
       // noSuchMethod handlers, we do that now.
