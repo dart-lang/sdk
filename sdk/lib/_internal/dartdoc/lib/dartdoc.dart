@@ -424,12 +424,16 @@ class Dartdoc {
     return content;
   }
 
-  Future documentLibraries(List<String> libraryList, Path libPath,
+  Future documentLibraries(List<Uri> libraryList, Path libPath,
       String packageRoot) {
     _packageRoot = packageRoot;
     _exports = new ExportMap.parse(libraryList, packageRoot);
-    var librariesToAnalyze = new List.from(_exports.allExportedFiles);
-    librariesToAnalyze.addAll(libraryList);
+    var librariesToAnalyze = _exports.allExportedFiles.map(pathToFileUri);
+    librariesToAnalyze.addAll(libraryList.map((uri) {
+      if (uri.scheme == 'file') return fileUriToPath(uri);
+      // dart2js takes "dart:*" URIs as Path objects for some reason.
+      return uri.toString();
+    });
 
     // TODO(amouravski): make all of these print statements into logging
     // statements.

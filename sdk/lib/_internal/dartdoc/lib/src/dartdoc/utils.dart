@@ -121,6 +121,16 @@ String fileUriToPath(Uri uri) {
   return uri.path.replaceFirst("/", "").replaceAll("/", "\\");
 }
 
+/** Converts a local path string to a `file:` [Uri]. */
+Uri pathToFileUri(String path) {
+  path = pathos.absolute(path);
+  if (Platform.operatingSystem != 'windows') {
+    return Uri.parse('file://$path');
+  } else {
+    return Uri.parse('file:///${path.replaceAll("\\", "/")}');
+  }
+}
+
 /**
  * If [map] contains an [Export] under [key], this merges that with [export].
  * Otherwise, it sets [key] to [export].

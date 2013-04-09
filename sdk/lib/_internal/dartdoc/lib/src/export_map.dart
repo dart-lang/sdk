@@ -34,14 +34,15 @@ class ExportMap {
   /// objects, to make it easier to merge multiple exports of the same library.
   final _transitiveExportsByPath = <String, Map<String, Export>>{};
 
-  /// Parse an export map from a set of [libraries], which should be paths to
-  /// libraries on disk. [packageRoot] should be the path to the `packages`
-  /// directory to use when resolving `package:` imports.
+  /// Parse an export map from a set of [libraries], which should be Dart import
+  /// [Uri]s. [packageRoot] should be the path to the `packages` directory to
+  /// use when resolving `package:` imports and libraries. Libraries that are
+  /// not available on the local machine will be ignored.
   ///
   /// In addition to parsing the exports in [libraries], this will parse the
   /// exports in all libraries transitively reachable from [libraries] via
   /// `import` or `export`.
-  factory ExportMap.parse(Iterable<String> libraries, String packageRoot) {
+  factory ExportMap.parse(Iterable<Uri> libraries, String packageRoot) {
     var exports = <String, List<Export>>{};
 
     void traverse(String path) {
@@ -58,7 +59,8 @@ class ExportMap {
     }
 
     for (var library in libraries) {
-      traverse(pathos.normalize(pathos.absolute(library)));
+      var path = importUriToPath(library, packageRoot: packageRoot);
+      if (path != null) traverse(path);
     }
 
     return new ExportMap._(exports);

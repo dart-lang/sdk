@@ -3,11 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+import 'dart:uri';
 
 import 'package:pathos/path.dart' as pathos;
 import 'package:unittest/unittest.dart';
 
 import '../lib/src/export_map.dart';
+import '../lib/src/dartdoc/utils.dart';
 
 String tempDir;
 
@@ -240,6 +242,33 @@ main() {
         new Export(libPath('a.dart'), libPath(bPath))
       ]));
     });
+
+    test('ignores dart: exports', () {
+      createLibrary('a.dart', 'export "dart:async";');
+      var map = parse(['a.dart']);
+      expect(map.exports[libPath('a.dart')], isEmpty);
+    });
+
+    test('.parse() resolves package: imports', () {
+      var aPath = pathos.join('packages', 'a', 'a.dart');
+      createLibrary(aPath, 'export "package:b/b.dart";');
+      var bPath = pathos.join('packages', 'b', 'b.dart');
+      createLibrary(bPath);
+      var map = new ExportMap.parse(
+          [Uri.parse('package:a/a.dart')],
+          pathos.join(tempDir, 'packages'));
+
+      expect(map.exports[libPath(aPath)], unorderedEquals([
+        new Export(libPath(aPath), libPath(bPath))
+      ]));
+    });
+
+    test('.parse() ignores dart: imports', () {
+      var map = new ExportMap.parse(
+          [Uri.parse('dart:async')],
+          pathos.join(tempDir, 'packages'));
+      expect(map.exports, isEmpty);
+    });
   });
 
   group('Export', () {
@@ -344,7 +373,9 @@ main() {
 }
 
 ExportMap parse(List<String> libraries) =>
-  new ExportMap.parse(libraries.map(libPath), pathos.join(tempDir, 'packages'));
+  new ExportMap.parse(
+      libraries.map(libPath).map(pathToFileUri),
+      pathos.join(tempDir, 'packages'));
 
 void createLibrary(String name, [String contents]) {
   if (contents == null) contents = '';

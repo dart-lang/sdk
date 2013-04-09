@@ -21,6 +21,7 @@ import 'dart:io';
 
 // TODO(rnystrom): Use "package:" URL (#4968).
 import '../lib/dartdoc.dart';
+import '../lib/src/dartdoc/utils.dart';
 import 'package:args/args.dart';
 import 'package:pathos/path.dart' as path;
 
@@ -188,7 +189,7 @@ main() {
     exit(1);
   }
 
-  final entrypoints = <String>[];
+  final entrypoints = <Uri>[];
   try {
     final option = argParser.parse(args);
 
@@ -196,8 +197,11 @@ main() {
     // If it is not, then we display a warning, as package imports might fail.
     var entrypointRoot;
     for (final entrypoint in option.rest) {
-      entrypoints.add(entrypoint);
+      var uri = Uri.parse(entrypoint);
+      if (uri.scheme == '') uri = pathToFileUri(entrypoint);
+      entrypoints.add(uri);
 
+      if (uri.scheme != 'file') continue;
       if (entrypointRoot == null) {
         entrypointRoot = path.dirname(entrypoint);
       } else if (entrypointRoot != path.dirname(entrypoint)) {
@@ -218,23 +222,7 @@ main() {
     exit(1);
   }
 
-  if (packageRoot == null) {
-    // Check if there's a `packages` directory in the entry point directory.
-    var script = path.normalize(path.absolute(entrypoints[0]));
-    var dir = path.join(path.dirname(script), 'packages/');
-    if (new Directory(dir).existsSync()) {
-      packageRoot = dir;
-    } else {
-      // If there is not, then check if the entrypoint is somewhere in a `lib`
-      // directory.
-      dir = path.dirname(script);
-      var parts = path.split(dir);
-      var libDir = parts.lastIndexOf('lib');
-      if (libDir > 0) {
-        packageRoot = path.join(path.joinAll(parts.take(libDir)), 'packages');
-      }
-    }
-  }
+  if (packageRoot == null) packageRoot = _getPackageRoot(entrypoints);
 
   cleanOutputDirectory(dartdoc.outputDir);
 
@@ -262,4 +250,27 @@ main() {
       exit(1);
     })
     .whenComplete(() => dartdoc.cleanup());
+}
+
+String _getPackageRoot(List<Uri> entrypoints) {
+  // Check if there's a `packages` directory in the entry point directory.
+  var fileEntrypoint = entrypoints.firstWhere(
+      (entrypoint) => entrypoint.scheme == 'file',
+      orElse: () => null);
+  if (fileEntrypoint != null) {
+    var script = path.normalize(path.absolute(fileUriToPath(fileEntrypoint)));
+    var dir = path.join(path.dirname(script), 'packages/');
+    if (new Directory(dir).existsSync()) return dir;
+  }
+
+  // If there is not, then check if the entrypoint is somewhere in a `lib`
+  // directory.
+  dir = path.dirname(script);
+  var parts = path.split(dir);
+  var libDir = parts.lastIndexOf('lib');
+  if (libDir > 0) {
+    return path.join(path.joinAll(parts.take(libDir)), 'packages');
+  } else {
+    return null;
+  }
 }
