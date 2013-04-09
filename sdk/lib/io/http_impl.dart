@@ -687,7 +687,7 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
 }
 
 
-class _HttpClientRequest extends _HttpOutboundMessage<HttpClientRequest>
+class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
     implements HttpClientRequest {
   final String method;
   final Uri uri;
