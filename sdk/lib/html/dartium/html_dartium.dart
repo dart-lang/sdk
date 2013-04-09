@@ -12836,6 +12836,7 @@ class HtmlDocument extends Document {
   @DocsEditable
   Element get activeElement native "HTMLDocument_activeElement_Getter";
 
+
   @DomName('Document.body')
   BodyElement get body => $dom_body;
 

@@ -38,7 +38,7 @@ Window get window => JS('Window', 'window');
 /**
  * The top-level Document object.
  */
-HtmlDocument get document => JS('Document', 'document');
+HtmlDocument get document => JS('HtmlDocument', 'document');
 
 Element query(String selector) => document.query(selector);
 List<Element> queryAll(String selector) => document.queryAll(selector);
@@ -12190,13 +12190,9 @@ class HtmlDocument extends Document native "*HTMLDocument" {
   @DocsEditable
   final Element activeElement;
 
-  @DomName('Document.body')
-  BodyElement get body => $dom_body;
 
   @DomName('Document.body')
-  void set body(BodyElement value) {
-    $dom_body = value;
-  }
+  BodyElement body;
 
   @DomName('Document.caretRangeFromPoint')
   Range caretRangeFromPoint(int x, int y) {

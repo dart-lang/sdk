@@ -65,7 +65,7 @@ Window get window => JS('Window', 'window');
 /**
  * The top-level Document object.
  */
-HtmlDocument get document => JS('Document', 'document');
+HtmlDocument get document => JS('HtmlDocument', 'document');
 
 Element query(String selector) => document.query(selector);
 List<Element> queryAll(String selector) => document.queryAll(selector);

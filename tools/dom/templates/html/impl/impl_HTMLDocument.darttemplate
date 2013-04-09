@@ -8,6 +8,11 @@ part of $LIBRARYNAME;
 
 $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 $!MEMBERS
+
+$if DART2JS
+  @DomName('Document.body')
+  BodyElement body;
+$else
   @DomName('Document.body')
   BodyElement get body => $dom_body;
 
@@ -15,6 +20,7 @@ $!MEMBERS
   void set body(BodyElement value) {
     $dom_body = value;
   }
+$endif
 
   @DomName('Document.caretRangeFromPoint')
   Range caretRangeFromPoint(int x, int y) {
