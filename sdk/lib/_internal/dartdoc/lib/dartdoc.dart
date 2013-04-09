@@ -18,6 +18,7 @@ library dartdoc;
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:json' as json;
 import 'dart:math';
 import 'dart:uri';
@@ -133,16 +134,38 @@ Future copyDirectory(Path from, Path to) {
  */
 Future compileScript(int mode, Path outputDir, Path libPath) {
   print('Compiling client JavaScript...');
-  var clientScript = (mode == MODE_STATIC) ? 'static' : 'live-nav';
-  var dartPath = libPath.append(
-      'lib/_internal/dartdoc/lib/src/client/client-$clientScript.dart');
-  var jsPath = outputDir.append('client-$clientScript.js');
 
-  return dart2js.compile(dartPath, libPath,
-      options: const <String>['--categories=Client,Server'])
-    .then((jsCode) {
-      writeString(new File.fromPath(jsPath), jsCode);
+  // TODO(nweiz): don't run this in an isolate when issue 9815 is fixed.
+  return spawnFunction(_compileScript).call({
+    'mode': mode,
+    'outputDir': outputDir.toNativePath(),
+    'libPath': libPath.toNativePath()
+  }).then((result) {
+    if (result.first == 'success') return;
+    throw new AsyncError(result[1], result[2]);
+  });
+}
+
+void _compileScript() {
+  port.receive((message, replyTo) {
+    new Future.of(() {
+      var clientScript = (message['mode'] == MODE_STATIC) ?
+          'static' : 'live-nav';
+      var dartPath = pathos.join(message['libPath'], 'lib', '_internal',
+          'dartdoc', 'lib', 'src', 'client', 'client-$clientScript.dart');
+      var jsPath = pathos.join(message['outputDir'], 'client-$clientScript.js');
+
+      return dart2js.compile(
+          new Path(dartPath), new Path(message['libPath']),
+          options: const <String>['--categories=Client,Server']).then((jsCode) {
+        writeString(new File(jsPath), jsCode);
+      });
+    }).then((_) {
+      replyTo.send(['success']);
+    }).catchError((e) {
+      replyTo.send(['error', e.error.toString(), e.stackTrace.toString()]);
     });
+  });
 }
 
 /**
@@ -435,12 +458,14 @@ class Dartdoc {
       return uri.toString();
     }));
 
+    var packageRootPath = packageRoot == null ? null : new Path(packageRoot);
+
     // TODO(amouravski): make all of these print statements into logging
     // statements.
     print('Analyzing libraries...');
     return dart2js.analyze(
         librariesToAnalyze.map((path) => new Path(path)).toList(), libPath,
-        packageRoot: new Path(packageRoot), options: COMPILER_OPTIONS)
+        packageRoot: packageRootPath, options: COMPILER_OPTIONS)
       .then((MirrorSystem mirrors) {
         print('Generating documentation...');
         _document(mirrors);

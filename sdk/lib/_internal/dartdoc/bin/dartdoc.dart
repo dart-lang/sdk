@@ -258,12 +258,11 @@ String _getPackageRoot(List<Uri> entrypoints) {
   var fileEntrypoint = entrypoints.firstWhere(
       (entrypoint) => entrypoint.scheme == 'file',
       orElse: () => null);
+  if (fileEntrypoint == null) return;
 
   var script = path.normalize(path.absolute(fileUriToPath(fileEntrypoint)));
-  if (fileEntrypoint != null) {
-    var dir = path.join(path.dirname(script), 'packages/');
-    if (new Directory(dir).existsSync()) return dir;
-  }
+  var dir = path.join(path.dirname(script), 'packages/');
+  if (new Directory(dir).existsSync()) return dir;
 
   // If there is not, then check if the entrypoint is somewhere in a `lib`
   // directory.
