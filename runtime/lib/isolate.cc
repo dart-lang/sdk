@@ -42,12 +42,6 @@ static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
 }
 
 
-static void StoreError(Isolate* isolate, const Object& obj) {
-  ASSERT(obj.IsError());
-  isolate->object_store()->set_sticky_error(Error::Cast(obj));
-}
-
-
 // TODO(turnidge): Move to DartLibraryCalls.
 static RawObject* ReceivePortCreate(intptr_t port_id) {
   Isolate* isolate = Isolate::Current();
@@ -79,37 +73,6 @@ static RawObject* ReceivePortCreate(intptr_t port_id) {
     PortMap::SetLive(port_id);
   }
   return result.raw();
-}
-
-
-static void ShutdownIsolate(uword parameter) {
-  Isolate* isolate = reinterpret_cast<Isolate*>(parameter);
-  {
-    // Print the error if there is one.  This may execute dart code to
-    // print the exception object, so we need to use a StartIsolateScope.
-    StartIsolateScope start_scope(isolate);
-    StackZone zone(isolate);
-    HandleScope handle_scope(isolate);
-    Error& error = Error::Handle();
-    error = isolate->object_store()->sticky_error();
-    if (!error.IsNull()) {
-      OS::PrintErr("in ShutdownIsolate: %s\n", error.ToErrorCString());
-    }
-  }
-  {
-    // Shut the isolate down.
-    SwitchIsolateScope switch_scope(isolate);
-    Dart::ShutdownIsolate();
-  }
-}
-
-
-static char* GetRootScriptUri(Isolate* isolate) {
-  const Library& library =
-      Library::Handle(isolate->object_store()->root_library());
-  ASSERT(!library.IsNull());
-  const String& script_name = String::Handle(library.url());
-  return isolate->current_zone()->MakeCopyOfString(script_name.ToCString());
 }
 
 
@@ -202,100 +165,7 @@ static bool CanonicalizeUri(Isolate* isolate,
 }
 
 
-class SpawnState {
- public:
-  SpawnState(const Function& func, const Function& callback_func)
-      : isolate_(NULL),
-        script_url_(NULL),
-        library_url_(NULL),
-        function_name_(NULL),
-        exception_callback_name_(NULL) {
-    script_url_ = strdup(GetRootScriptUri(Isolate::Current()));
-    const Class& cls = Class::Handle(func.Owner());
-    ASSERT(cls.IsTopLevel());
-    const Library& lib = Library::Handle(cls.library());
-    const String& lib_url = String::Handle(lib.url());
-    library_url_ = strdup(lib_url.ToCString());
-
-    const String& func_name = String::Handle(func.name());
-    function_name_ = strdup(func_name.ToCString());
-    if (!callback_func.IsNull()) {
-      const String& callback_name = String::Handle(callback_func.name());
-      exception_callback_name_ = strdup(callback_name.ToCString());
-    } else {
-      exception_callback_name_ = strdup("_unhandledExceptionCallback");
-    }
-  }
-
-  explicit SpawnState(const char* script_url)
-      : isolate_(NULL),
-        library_url_(NULL),
-        function_name_(NULL),
-        exception_callback_name_(NULL) {
-    script_url_ = strdup(script_url);
-    library_url_ = NULL;
-    function_name_ = strdup("main");
-    exception_callback_name_ = strdup("_unhandledExceptionCallback");
-  }
-
-  ~SpawnState() {
-    free(script_url_);
-    free(library_url_);
-    free(function_name_);
-    free(exception_callback_name_);
-  }
-
-  Isolate* isolate() const { return isolate_; }
-  void set_isolate(Isolate* value) { isolate_ = value; }
-  char* script_url() const { return script_url_; }
-  char* library_url() const { return library_url_; }
-  char* function_name() const { return function_name_; }
-  char* exception_callback_name() const { return exception_callback_name_; }
-
-  RawObject* ResolveFunction() {
-    // Resolve the library.
-    Library& lib = Library::Handle();
-    if (library_url()) {
-      const String& lib_url = String::Handle(String::New(library_url()));
-      lib = Library::LookupLibrary(lib_url);
-      if (lib.IsNull() || lib.IsError()) {
-        const String& msg = String::Handle(String::NewFormatted(
-            "Unable to find library '%s'.", library_url()));
-        return LanguageError::New(msg);
-      }
-    } else {
-      lib = isolate()->object_store()->root_library();
-    }
-    ASSERT(!lib.IsNull());
-
-    // Resolve the function.
-    const String& func_name =
-        String::Handle(String::New(function_name()));
-    const Function& func = Function::Handle(lib.LookupLocalFunction(func_name));
-    if (func.IsNull()) {
-      const String& msg = String::Handle(String::NewFormatted(
-          "Unable to resolve function '%s' in library '%s'.",
-          function_name(), (library_url() ? library_url() : script_url())));
-      return LanguageError::New(msg);
-    }
-    return func.raw();
-  }
-
-  void Cleanup() {
-    SwitchIsolateScope switch_scope(isolate());
-    Dart::ShutdownIsolate();
-  }
-
- private:
-  Isolate* isolate_;
-  char* script_url_;
-  char* library_url_;
-  char* function_name_;
-  char* exception_callback_name_;
-};
-
-
-static bool CreateIsolate(SpawnState* state, char** error) {
+static bool CreateIsolate(IsolateSpawnState* state, char** error) {
   Isolate* parent_isolate = Isolate::Current();
 
   Dart_IsolateCreateCallback callback = Isolate::CreateCallback();
@@ -306,87 +176,23 @@ static bool CreateIsolate(SpawnState* state, char** error) {
   }
 
   void* init_data = parent_isolate->init_callback_data();
-  bool retval = (callback)(state->script_url(),
-                           state->function_name(),
-                           init_data,
-                           error);
-  if (!retval) {
+  Isolate* child_isolate = reinterpret_cast<Isolate*>(
+      (callback)(state->script_url(),
+                 state->function_name(),
+                 init_data,
+                 error));
+  if (child_isolate == NULL) {
     Isolate::SetCurrent(parent_isolate);
     return false;
   }
-
-  Isolate* child_isolate = Isolate::Current();
-  ASSERT(child_isolate);
-  state->set_isolate(child_isolate);
-
-  // Attempt to resolve the entry function now, so that we fail fast
-  // in the case that the function cannot be resolved.
-  //
-  // TODO(turnidge): Revisit this once we have an isolate death api.
-  bool resolve_error = false;
-  {
-    StackZone zone(child_isolate);
-    HandleScope handle_scope(child_isolate);
-    const Object& result = Object::Handle(state->ResolveFunction());
-    if (result.IsError()) {
-      Error& errobj = Error::Handle();
-      errobj ^= result.raw();
-      *error = strdup(errobj.ToErrorCString());
-      resolve_error = true;
-    } else {
-      const String& callback_name =
-          String::Handle(child_isolate,
-                         String::New(state->exception_callback_name()));
-      child_isolate->object_store()->
-          set_unhandled_exception_handler(callback_name);
-    }
-  }
-  if (resolve_error) {
-    Dart::ShutdownIsolate();
-    Isolate::SetCurrent(parent_isolate);
-    return false;
-  }
+  state->set_isolate(reinterpret_cast<Isolate*>(child_isolate));
 
   Isolate::SetCurrent(parent_isolate);
   return true;
 }
 
 
-static bool RunIsolate(uword parameter) {
-  Isolate* isolate = reinterpret_cast<Isolate*>(parameter);
-  SpawnState* state = reinterpret_cast<SpawnState*>(isolate->spawn_data());
-  isolate->set_spawn_data(0);
-  {
-    StartIsolateScope start_scope(isolate);
-    StackZone zone(isolate);
-    HandleScope handle_scope(isolate);
-    if (!ClassFinalizer::FinalizePendingClasses()) {
-      // Error is in sticky error already.
-      return false;
-    }
-
-    Object& result = Object::Handle();
-    result = state->ResolveFunction();
-    delete state;
-    state = NULL;
-    if (result.IsError()) {
-      StoreError(isolate, result);
-      return false;
-    }
-    ASSERT(result.IsFunction());
-    Function& func = Function::Handle(isolate);
-    func ^= result.raw();
-    result = DartEntry::InvokeFunction(func, Object::empty_array());
-    if (result.IsError()) {
-      StoreError(isolate, result);
-      return false;
-    }
-  }
-  return true;
-}
-
-
-static RawObject* Spawn(NativeArguments* arguments, SpawnState* state) {
+static RawObject* Spawn(NativeArguments* arguments, IsolateSpawnState* state) {
   // Create a new isolate.
   char* error = NULL;
   if (!CreateIsolate(state, &error)) {
@@ -405,11 +211,12 @@ static RawObject* Spawn(NativeArguments* arguments, SpawnState* state) {
     Exceptions::PropagateError(Error::Cast(port));
   }
 
-  // Start the new isolate.
+  // Start the new isolate if it is already marked as runnable.
+  MutexLocker ml(state->isolate()->mutex());
   state->isolate()->set_spawn_data(reinterpret_cast<uword>(state));
-  state->isolate()->message_handler()->Run(
-      Dart::thread_pool(), RunIsolate, ShutdownIsolate,
-      reinterpret_cast<uword>(state->isolate()));
+  if (state->isolate()->is_runnable()) {
+    state->isolate()->Run();
+  }
 
   return port.raw();
 }
@@ -464,7 +271,7 @@ DEFINE_NATIVE_ENTRY(isolate_spawnFunction, 2) {
   }
 #endif
 
-  return Spawn(arguments, new SpawnState(func, callback_func));
+  return Spawn(arguments, new IsolateSpawnState(func, callback_func));
 }
 
 
@@ -482,7 +289,7 @@ DEFINE_NATIVE_ENTRY(isolate_spawnUri, 1) {
     ThrowIsolateSpawnException(msg);
   }
 
-  return Spawn(arguments, new SpawnState(canonical_uri));
+  return Spawn(arguments, new IsolateSpawnState(canonical_uri));
 }
 
 

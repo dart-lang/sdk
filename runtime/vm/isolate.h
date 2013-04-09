@@ -21,6 +21,7 @@ namespace dart {
 class ApiState;
 class CodeIndexTable;
 class Debugger;
+class Function;
 class HandleScope;
 class HandleVisitor;
 class Heap;
@@ -35,6 +36,7 @@ class RawArray;
 class RawContext;
 class RawDouble;
 class RawMint;
+class RawObject;
 class RawInteger;
 class RawError;
 class Simulator;
@@ -274,8 +276,14 @@ class Isolate : public BaseIsolate {
   void ScheduleInterrupts(uword interrupt_bits);
   uword GetAndClearInterrupts();
 
+  bool MakeRunnable();
+  void Run();
+
   MessageHandler* message_handler() const { return message_handler_; }
   void set_message_handler(MessageHandler* value) { message_handler_ = value; }
+
+  bool is_runnable() const { return is_runnable_; }
+  void set_is_runnable(bool value) { is_runnable_ = value; }
 
   uword spawn_data() const { return spawn_data_; }
   void set_spawn_data(uword value) { spawn_data_ = value; }
@@ -294,6 +302,8 @@ class Isolate : public BaseIsolate {
   RawArray* ic_data_array() const { return ic_data_array_; }
   void set_ic_data_array(RawArray* value) { ic_data_array_ = value; }
   ICData* GetICDataForDeoptId(intptr_t deopt_id) const;
+
+  Mutex* mutex() const { return mutex_; }
 
   Debugger* debugger() const { return debugger_; }
 
@@ -463,6 +473,7 @@ class Isolate : public BaseIsolate {
   uword saved_stack_limit_;
   MessageHandler* message_handler_;
   uword spawn_data_;
+  bool is_runnable_;
   GcPrologueCallbacks gc_prologue_callbacks_;
   GcEpilogueCallbacks gc_epilogue_callbacks_;
 
@@ -551,6 +562,31 @@ class SwitchIsolateScope {
   uword saved_stack_limit_;
 
   DISALLOW_COPY_AND_ASSIGN(SwitchIsolateScope);
+};
+
+
+class IsolateSpawnState {
+ public:
+  IsolateSpawnState(const Function& func, const Function& callback_func);
+  explicit IsolateSpawnState(const char* script_url);
+  ~IsolateSpawnState();
+
+  Isolate* isolate() const { return isolate_; }
+  void set_isolate(Isolate* value) { isolate_ = value; }
+  char* script_url() const { return script_url_; }
+  char* library_url() const { return library_url_; }
+  char* function_name() const { return function_name_; }
+  char* exception_callback_name() const { return exception_callback_name_; }
+
+  RawObject* ResolveFunction();
+  void Cleanup();
+
+ private:
+  Isolate* isolate_;
+  char* script_url_;
+  char* library_url_;
+  char* function_name_;
+  char* exception_callback_name_;
 };
 
 }  // namespace dart

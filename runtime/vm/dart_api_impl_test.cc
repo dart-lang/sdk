@@ -6278,10 +6278,10 @@ UNIT_TEST_CASE(NewNativePort) {
 }
 
 
-static bool RunLoopTestCallback(const char* script_name,
-                                const char* main,
-                                void* data,
-                                char** error) {
+static Dart_Isolate RunLoopTestCallback(const char* script_name,
+                                        const char* main,
+                                        void* data,
+                                        char** error) {
   const char* kScriptChars =
       "import 'builtin';\n"
       "import 'dart:isolate';\n"
@@ -6317,7 +6317,10 @@ static bool RunLoopTestCallback(const char* script_name,
   Dart_Handle lib = Dart_LoadScript(url, source, 0, 0);
   EXPECT_VALID(lib);
   Dart_ExitScope();
-  return true;
+  Dart_ExitIsolate();
+  bool retval = Dart_IsolateMakeRunnable(isolate);
+  EXPECT(retval);
+  return isolate;
 }
 
 
@@ -6343,8 +6346,9 @@ static void RunLoopTest(bool throw_exception_child,
   Dart_IsolateCreateCallback saved = Isolate::CreateCallback();
   Isolate::SetCreateCallback(RunLoopTestCallback);
   Isolate::SetUnhandledExceptionCallback(RunLoopUnhandledExceptionCallback);
-  RunLoopTestCallback(NULL, NULL, NULL, NULL);
+  Dart_Isolate isolate = RunLoopTestCallback(NULL, NULL, NULL, NULL);
 
+  Dart_EnterIsolate(isolate);
   Dart_EnterScope();
   Dart_Handle lib = Dart_LookupLibrary(NewString(TestCase::url()));
   EXPECT_VALID(lib);

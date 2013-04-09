@@ -316,6 +316,9 @@ Language/07_Classes/07_Classes_A02_t29: Fail
 Language/07_Classes/07_Classes_A02_t31: Fail
 Language/11_Expressions/05_Strings_A20_t01: Fail
 LibTest/isolate/ReceivePort/receive_A01_t02: Fail
+LibTest/isolate/isolate_api/spawnFunction_A02_t01: Fail
+LibTest/isolate/isolate_api/spawnUri_A02_t02: Fail
+LibTest/isolate/isolate_api/spawnUri_A02_t03: Fail
 
 LibTest/core/StringBuffer/isEmpty_A01_t01:  Fail, OK # co19 issue 355
 

@@ -427,19 +427,19 @@ static Dart_Handle SetupRuntimeOptions(CommandLineOptions* options,
     *error = strdup(Dart_GetError(result));                                    \
     Dart_ExitScope();                                                          \
     Dart_ShutdownIsolate();                                                    \
-    return false;                                                              \
+    return NULL;                                                               \
   }                                                                            \
 
 
 // Returns true on success, false on failure.
-static bool CreateIsolateAndSetupHelper(const char* script_uri,
-                                        const char* main,
-                                        void* data,
-                                        char** error) {
+static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
+                                                const char* main,
+                                                void* data,
+                                                char** error) {
   Dart_Isolate isolate =
       Dart_CreateIsolate(script_uri, main, snapshot_buffer, data, error);
   if (isolate == NULL) {
-    return false;
+    return NULL;
   }
 
   Dart_EnterScope();
@@ -481,17 +481,28 @@ static bool CreateIsolateAndSetupHelper(const char* script_uri,
     *error = strdup(errbuf);
     Dart_ExitScope();
     Dart_ShutdownIsolate();
-    return false;
+    return NULL;
   }
+
+  // Make the isolate runnable so that it is ready to handle messages.
   Dart_ExitScope();
+  Dart_ExitIsolate();
+  bool retval = Dart_IsolateMakeRunnable(isolate);
+  if (!retval) {
+    *error = strdup("Invalid isolate state - Unable to make it runnable");
+    Dart_EnterIsolate(isolate);
+    Dart_ShutdownIsolate();
+    return NULL;
+  }
+
   VmStats::AddIsolate(reinterpret_cast<IsolateData*>(data), isolate);
-  return true;
+  return isolate;
 }
 
 
-static bool CreateIsolateAndSetup(const char* script_uri,
-                                  const char* main,
-                                  void* data, char** error) {
+static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
+                                          const char* main,
+                                          void* data, char** error) {
   return CreateIsolateAndSetupHelper(script_uri,
                                      main,
                                      new IsolateData(),
@@ -744,10 +755,11 @@ int main(int argc, char** argv) {
   // the specified application script.
   char* error = NULL;
   char* isolate_name = BuildIsolateName(script_name, "main");
-  if (!CreateIsolateAndSetupHelper(script_name,
-                                   "main",
-                                   new IsolateData(),
-                                   &error)) {
+  Dart_Isolate isolate = CreateIsolateAndSetupHelper(script_name,
+                                                     "main",
+                                                     new IsolateData(),
+                                                     &error);
+  if (isolate == NULL) {
     Log::PrintErr("%s\n", error);
     free(error);
     delete [] isolate_name;
@@ -755,7 +767,8 @@ int main(int argc, char** argv) {
   }
   delete [] isolate_name;
 
-  Dart_Isolate isolate = Dart_CurrentIsolate();
+  Dart_EnterIsolate(isolate);
+  ASSERT(isolate == Dart_CurrentIsolate());
   ASSERT(isolate != NULL);
   Dart_Handle result;
 
