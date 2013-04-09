@@ -606,6 +606,7 @@ void FlowGraphAllocator::BuildLiveRanges() {
       if (flow_graph_.num_copied_params() > 0) {
         ASSERT(spill_slots_.length() == slot_index);
         spill_slots_.Add(range->End());
+        quad_spill_slots_.Add(false);
       }
       AssignSafepoints(range);
     } else {
@@ -993,9 +994,8 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
     }
 
     for (intptr_t reg = 0; reg < kNumberOfFpuRegisters; reg++) {
-      Representation ignored = kNoRepresentation;
       BlockLocation(
-          Location::FpuRegisterLocation(static_cast<FpuRegister>(reg), ignored),
+          Location::FpuRegisterLocation(static_cast<FpuRegister>(reg)),
           pos,
           pos + 1);
     }
@@ -1581,40 +1581,76 @@ void FlowGraphAllocator::SpillAfter(LiveRange* range, intptr_t from) {
 void FlowGraphAllocator::AllocateSpillSlotFor(LiveRange* range) {
   ASSERT(range->spill_slot().IsInvalid());
 
-  intptr_t idx = 0;
-  for (; idx < spill_slots_.length(); idx++) {
-    if (spill_slots_[idx] <= range->Start()) break;
-  }
-
-  if (idx == spill_slots_.length()) spill_slots_.Add(0);
-
+  // Compute range start and end.
   LiveRange* last_sibling = range;
   while (last_sibling->next_sibling() != NULL) {
     last_sibling = last_sibling->next_sibling();
   }
 
-  spill_slots_[idx] = last_sibling->End();
+  const intptr_t start = range->Start();
+  const intptr_t end = last_sibling->End();
 
+  // During fpu register allocation spill slot indices are computed in terms of
+  // double (64bit) stack slots. We treat quad stack slot (128bit) as a
+  // consecutive pair of two double spill slots.
+  // Special care is taken to never allocate the same index to both
+  // double and quad spill slots as it complicates disambiguation during
+  // parallel move resolution.
+  const bool need_quad = (register_kind_ == Location::kFpuRegister) &&
+      ((range->representation() == kUnboxedFloat32x4) ||
+       (range->representation() == kUnboxedUint32x4));
+
+  // Search for a free spill slot among allocated: the value in it should be
+  // dead and its type should match (e.g. it should not be a part of the quad if
+  // we are allocating normal double slot).
+  intptr_t idx = 0;
+  for (; idx < spill_slots_.length(); idx++) {
+    if ((need_quad == quad_spill_slots_[idx]) &&
+        (spill_slots_[idx] <= start)) {
+      break;
+    }
+  }
+
+  if (idx == spill_slots_.length()) {
+    // No free spill slot found. Allocate a new one.
+    spill_slots_.Add(0);
+    quad_spill_slots_.Add(need_quad);
+    if (need_quad) {  // Allocate two double stack slots if we need quad slot.
+      spill_slots_.Add(0);
+      quad_spill_slots_.Add(need_quad);
+    }
+  }
+
+
+  // Set spill slot expiration boundary to the live range's end.
+  spill_slots_[idx] = end;
+  if (need_quad) {
+    ASSERT(quad_spill_slots_[idx] && quad_spill_slots_[idx + 1]);
+    idx++;  // Use the higher index it corresponds to the lower stack address.
+    spill_slots_[idx] = end;
+  } else {
+    ASSERT(!quad_spill_slots_[idx]);
+  }
+
+  // Assign spill slot to the range.
   if (register_kind_ == Location::kRegister) {
     range->set_spill_slot(Location::StackSlot(idx));
   } else {
-    // FPU register spill slots are essentially two (x64) or four (ia32) normal
-    // word size spill slots.  We use the index of the slot with the lowest
-    // address as an index for the FPU register spill slot. In terms of indexes
-    // this relation is inverted: so we have to take the highest index.
+    // We use the index of the slot with the lowest address as an index for the
+    // FPU register spill slot. In terms of indexes this relation is inverted:
+    // so we have to take the highest index.
     const intptr_t slot_idx = cpu_spill_slot_count_ +
-        idx * kFpuRegisterSpillFactor + (kFpuRegisterSpillFactor - 1);
+        idx * kDoubleSpillFactor + (kDoubleSpillFactor - 1);
 
     Location location;
-    if (range->representation() == kUnboxedFloat32x4) {
-      location = Location::Float32x4StackSlot(slot_idx);
-    } else if (range->representation() == kUnboxedUint32x4) {
-      location = Location::Uint32x4StackSlot(slot_idx);
+    if ((range->representation() == kUnboxedFloat32x4) ||
+        (range->representation() == kUnboxedUint32x4)) {
+      ASSERT(need_quad);
+      location = Location::QuadStackSlot(slot_idx);
     } else {
       ASSERT((range->representation() == kUnboxedDouble) ||
              (range->representation() == kUnboxedMint));
-      location = Location::DoubleStackSlot(slot_idx,
-                                           range->representation());
+      location = Location::DoubleStackSlot(slot_idx);
     }
     range->set_spill_slot(location);
   }
@@ -1815,7 +1851,7 @@ bool FlowGraphAllocator::AllocateFreeRegister(LiveRange* unallocated) {
       TRACE_ALLOC(OS::Print(
           "considering %s for v%"Pd": has interference on the back edge"
           " {loop [%"Pd", %"Pd")}\n",
-          MakeRegisterLocation(candidate, kUnboxedDouble).Name(),
+          MakeRegisterLocation(candidate).Name(),
           unallocated->vreg(),
           loop_header->entry()->start_pos(),
           loop_header->last_block()->end_pos()));
@@ -1833,7 +1869,7 @@ bool FlowGraphAllocator::AllocateFreeRegister(LiveRange* unallocated) {
           free_until = intersection;
           TRACE_ALLOC(OS::Print(
               "found %s for v%"Pd" with no interference on the back edge\n",
-              MakeRegisterLocation(candidate, kUnboxedDouble).Name(),
+              MakeRegisterLocation(candidate).Name(),
               candidate));
           break;
         }
@@ -1842,7 +1878,7 @@ bool FlowGraphAllocator::AllocateFreeRegister(LiveRange* unallocated) {
   }
 
   TRACE_ALLOC(OS::Print("assigning free register "));
-  TRACE_ALLOC(MakeRegisterLocation(candidate, kUnboxedDouble).Print());
+  TRACE_ALLOC(MakeRegisterLocation(candidate).Print());
   TRACE_ALLOC(OS::Print(" to v%"Pd"\n", unallocated->vreg()));
 
   if (free_until != kMaxPosition) {
@@ -1853,8 +1889,7 @@ bool FlowGraphAllocator::AllocateFreeRegister(LiveRange* unallocated) {
   }
 
   registers_[candidate].Add(unallocated);
-  unallocated->set_assigned_location(
-      MakeRegisterLocation(candidate, unallocated->representation()));
+  unallocated->set_assigned_location(MakeRegisterLocation(candidate));
 
   return true;
 }
@@ -1945,7 +1980,7 @@ void FlowGraphAllocator::AllocateAnyRegister(LiveRange* unallocated) {
   }
 
   TRACE_ALLOC(OS::Print("assigning blocked register "));
-  TRACE_ALLOC(MakeRegisterLocation(candidate, kUnboxedDouble).Print());
+  TRACE_ALLOC(MakeRegisterLocation(candidate).Print());
   TRACE_ALLOC(OS::Print(" to live range v%"Pd" until %"Pd"\n",
                         unallocated->vreg(), blocked_at));
 
@@ -2051,8 +2086,7 @@ void FlowGraphAllocator::AssignNonFreeRegister(LiveRange* unallocated,
   if (first_evicted != -1) RemoveEvicted(reg, first_evicted);
 
   registers_[reg].Add(unallocated);
-  unallocated->set_assigned_location(
-      MakeRegisterLocation(reg, unallocated->representation()));
+  unallocated->set_assigned_location(MakeRegisterLocation(reg));
 }
 
 
@@ -2522,6 +2556,7 @@ void FlowGraphAllocator::AllocateRegisters() {
 
   cpu_spill_slot_count_ = spill_slots_.length();
   spill_slots_.Clear();
+  quad_spill_slots_.Clear();
 
   PrepareForAllocation(Location::kFpuRegister,
                        kNumberOfFpuRegisters,
@@ -2534,8 +2569,7 @@ void FlowGraphAllocator::AllocateRegisters() {
 
   GraphEntryInstr* entry = block_order_[0]->AsGraphEntry();
   ASSERT(entry != NULL);
-  intptr_t double_spill_slot_count =
-      spill_slots_.length() * kFpuRegisterSpillFactor;
+  intptr_t double_spill_slot_count = spill_slots_.length() * kDoubleSpillFactor;
   entry->set_spill_slot_count(cpu_spill_slot_count_ + double_spill_slot_count);
 
   if (FLAG_print_ssa_liveranges) {

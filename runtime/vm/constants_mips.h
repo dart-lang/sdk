@@ -131,6 +131,7 @@ enum FRegister {
 typedef FRegister FpuRegister;
 const FpuRegister FpuTMP = F0;
 const int kNumberOfFpuRegisters = kNumberOfFRegisters;
+const FpuRegister kNoFpuRegister = kNoFRegister;
 
 
 // Register aliases.

@@ -70,6 +70,7 @@ enum XmmRegister {
 typedef XmmRegister FpuRegister;
 const FpuRegister FpuTMP = XMM0;
 const int kNumberOfFpuRegisters = kNumberOfXmmRegisters;
+const FpuRegister kNoFpuRegister = kNoXmmRegister;
 
 
 enum RexBits {

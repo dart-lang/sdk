@@ -846,24 +846,25 @@ void DeoptInfoBuilder::AddPcMarker(const Function& function,
 }
 
 
-void DeoptInfoBuilder::AddCopy(const Location& from_loc,
+void DeoptInfoBuilder::AddCopy(Value* value,
+                               const Location& from_loc,
                                const intptr_t to_index) {
   DeoptInstr* deopt_instr = NULL;
   if (from_loc.IsConstant()) {
     intptr_t object_table_index = FindOrAddObjectInTable(from_loc.constant());
     deopt_instr = new DeoptConstantInstr(object_table_index);
   } else if (from_loc.IsRegister()) {
-    ASSERT(from_loc.representation() == kTagged);
+    ASSERT(value->definition()->representation() == kTagged);
     deopt_instr = new DeoptRegisterInstr(from_loc.reg());
   } else if (from_loc.IsFpuRegister()) {
-    if (from_loc.representation() == kUnboxedDouble) {
+    if (value->definition()->representation() == kUnboxedDouble) {
       deopt_instr = new DeoptFpuRegisterInstr(from_loc.fpu_reg());
     } else {
-      ASSERT(from_loc.representation() == kUnboxedMint);
+      ASSERT(value->definition()->representation() == kUnboxedMint);
       deopt_instr = new DeoptInt64FpuRegisterInstr(from_loc.fpu_reg());
     }
   } else if (from_loc.IsStackSlot()) {
-    ASSERT(from_loc.representation() == kTagged);
+    ASSERT(value->definition()->representation() == kTagged);
     intptr_t from_index = (from_loc.stack_index() < 0) ?
         from_loc.stack_index() + num_args_ :
         from_loc.stack_index() + num_args_ - kFirstLocalSlotIndex + 1;
@@ -872,10 +873,10 @@ void DeoptInfoBuilder::AddCopy(const Location& from_loc,
     intptr_t from_index = (from_loc.stack_index() < 0) ?
         from_loc.stack_index() + num_args_ :
         from_loc.stack_index() + num_args_ - kFirstLocalSlotIndex + 1;
-    if (from_loc.representation() == kUnboxedDouble) {
+    if (value->definition()->representation() == kUnboxedDouble) {
       deopt_instr = new DeoptDoubleStackSlotInstr(from_index);
     } else {
-      ASSERT(from_loc.representation() == kUnboxedMint);
+      ASSERT(value->definition()->representation() == kUnboxedMint);
       deopt_instr = new DeoptInt64StackSlotInstr(from_index);
     }
   } else {

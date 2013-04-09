@@ -35,7 +35,12 @@ enum Representation {
 // low 3 bits denote location kind, rest is kind specific location payload
 // e.g. for REGISTER kind payload is register code (value of the Register
 // enumeration), constant locations contain a tagged (low 2 bits are set to 01)
-// Object handle
+// Object handle.
+//
+// Locations must satisfy the following invariant: if two locations' encodings
+// are bitwise unequal then these two locations are guaranteed to be disjoint.
+// Properties like representation belong to the value that is stored in
+// the location not to the location itself.
 class Location : public ValueObject {
  private:
   enum {
@@ -54,6 +59,9 @@ class Location : public ValueObject {
   // Constant payload can overlap with kind field so Kind values
   // have to be chosen in a way that their last 2 bits are never
   // the same as kConstant.
+  // Note that two locations with different kinds should never point to
+  // the same place. For example kQuadStackSlot location should never intersect
+  // with kDoubleStackSlot location.
   enum Kind {
     // This location is invalid.  Payload must be zero.
     kInvalid = 0,
@@ -67,12 +75,11 @@ class Location : public ValueObject {
     // contains register allocation policy.
     kUnallocated = 2,
 
-    // Spill slot allocated by the register allocator.  Payload contains
+    // Spill slots allocated by the register allocator.  Payload contains
     // a spill index.
-    kStackSlot = 3,
-    kDoubleStackSlot = 4,
-    kFloat32x4StackSlot = 8,
-    kUint32x4StackSlot = 10,
+    kStackSlot = 3,  // Word size slot.
+    kDoubleStackSlot = 4,  // 64bit stack slot.
+    kQuadStackSlot = 8,  // 128bit stack slot.
 
     // Register location represents a fixed register.  Payload contains
     // register code.
@@ -175,11 +182,8 @@ class Location : public ValueObject {
   }
 
   // Register locations.
-  static Location RegisterLocation(Register reg, Representation rep = kTagged) {
-    uword payload =
-        RegisterField::encode(reg) |
-        RepresentationField::encode(rep);
-    return Location(kRegister, payload);
+  static Location RegisterLocation(Register reg) {
+    return Location(kRegister, reg);
   }
 
   bool IsRegister() const {
@@ -188,19 +192,12 @@ class Location : public ValueObject {
 
   Register reg() const {
     ASSERT(IsRegister());
-    return RegisterField::decode(payload());
-  }
-
-
-  Representation representation() const {
-    return RepresentationField::decode(payload());
+    return static_cast<Register>(payload());
   }
 
   // FpuRegister locations.
-  static Location FpuRegisterLocation(FpuRegister reg, Representation rep) {
-    uword payload =
-        FpuRegisterField::encode(reg) | RepresentationField::encode(rep);
-    return Location(kFpuRegister, payload);
+  static Location FpuRegisterLocation(FpuRegister reg) {
+    return Location(kFpuRegister, reg);
   }
 
   bool IsFpuRegister() const {
@@ -209,7 +206,7 @@ class Location : public ValueObject {
 
   FpuRegister fpu_reg() const {
     ASSERT(IsFpuRegister());
-    return FpuRegisterField::decode(payload());
+    return static_cast<FpuRegister>(payload());
   }
 
   static bool IsMachineRegisterKind(Kind kind) {
@@ -217,13 +214,12 @@ class Location : public ValueObject {
   }
 
   static Location MachineRegisterLocation(Kind kind,
-                                          intptr_t reg,
-                                          Representation rep) {
+                                          intptr_t reg) {
     if (kind == kRegister) {
       return RegisterLocation(static_cast<Register>(reg));
     } else {
       ASSERT(kind == kFpuRegister);
-      return FpuRegisterLocation(static_cast<FpuRegister>(reg), rep);
+      return FpuRegisterLocation(static_cast<FpuRegister>(reg));
     }
   }
 
@@ -233,22 +229,18 @@ class Location : public ValueObject {
 
   intptr_t register_code() const {
     ASSERT(IsMachineRegister());
-    return static_cast<intptr_t>(RegisterField::decode(payload()));
+    return static_cast<intptr_t>(payload());
   }
 
-  static uword make_stack_index_payload(intptr_t stack_index,
-                                        Representation rep) {
+  static uword EncodeStackIndex(intptr_t stack_index) {
     ASSERT((-kStackIndexBias <= stack_index) &&
-       (stack_index < kStackIndexBias));
-    uword payload =
-      IndexField::encode(static_cast<uword>(kStackIndexBias + stack_index));
-    return payload | RepresentationField::encode(rep);
+           (stack_index < kStackIndexBias));
+    return static_cast<uword>(kStackIndexBias + stack_index);
   }
 
   // Spill slots.
-  static Location StackSlot(intptr_t stack_index,
-                            Representation rep = kTagged) {
-    uword payload = make_stack_index_payload(stack_index, rep);
+  static Location StackSlot(intptr_t stack_index) {
+    uword payload = EncodeStackIndex(stack_index);
     Location loc(kStackSlot, payload);
     // Ensure that sign is preserved.
     ASSERT(loc.stack_index() == stack_index);
@@ -259,8 +251,8 @@ class Location : public ValueObject {
     return kind() == kStackSlot;
   }
 
-  static Location DoubleStackSlot(intptr_t stack_index, Representation rep) {
-    uword payload = make_stack_index_payload(stack_index, rep);
+  static Location DoubleStackSlot(intptr_t stack_index) {
+    uword payload = EncodeStackIndex(stack_index);
     Location loc(kDoubleStackSlot, payload);
     // Ensure that sign is preserved.
     ASSERT(loc.stack_index() == stack_index);
@@ -271,36 +263,22 @@ class Location : public ValueObject {
     return kind() == kDoubleStackSlot;
   }
 
-  static Location Float32x4StackSlot(intptr_t stack_index) {
-    uword payload = make_stack_index_payload(stack_index, kUnboxedFloat32x4);
-    Location loc(kFloat32x4StackSlot, payload);
+  static Location QuadStackSlot(intptr_t stack_index) {
+    uword payload = EncodeStackIndex(stack_index);
+    Location loc(kQuadStackSlot, payload);
     // Ensure that sign is preserved.
     ASSERT(loc.stack_index() == stack_index);
     return loc;
   }
 
-  bool IsFloat32x4StackSlot() const {
-    return kind() == kFloat32x4StackSlot;
+  bool IsQuadStackSlot() const {
+    return kind() == kQuadStackSlot;
   }
-
-  static Location Uint32x4StackSlot(intptr_t stack_index) {
-    uword payload = make_stack_index_payload(stack_index, kUnboxedUint32x4);
-    Location loc(kUint32x4StackSlot, payload);
-    // Ensure that sign is preserved.
-    ASSERT(loc.stack_index() == stack_index);
-    return loc;
-  }
-
-  bool IsUint32x4StackSlot() const {
-    return kind() == kUint32x4StackSlot;
-  }
-
 
   intptr_t stack_index() const {
-    ASSERT(IsStackSlot() || IsDoubleStackSlot() || IsFloat32x4StackSlot() ||
-           IsUint32x4StackSlot());
+    ASSERT(IsStackSlot() || IsDoubleStackSlot() || IsQuadStackSlot());
     // Decode stack index manually to preserve sign.
-    return IndexField::decode(payload()) - kStackIndexBias;
+    return payload() - kStackIndexBias;
   }
 
   // Return a memory operand for stack slot locations.
@@ -344,30 +322,9 @@ class Location : public ValueObject {
   // Layout for kUnallocated locations payload.
   typedef BitField<Policy, 0, 3> PolicyField;
 
-  // Layout for register locations payload.
-  static const intptr_t kBitsForRepresentation = 3;
-  COMPILE_ASSERT(kNumRepresentations <= (1 << kBitsForRepresentation),
-                 invalid_enum);
-  static const intptr_t kBitsForRegister =
-      kBitsForPayload - kBitsForRepresentation;
-  typedef BitField<Representation,
-                   0,
-                   kBitsForRepresentation> RepresentationField;
-  typedef BitField<Register,
-                   kBitsForRepresentation,
-                   kBitsForRegister> RegisterField;
-  typedef BitField<FpuRegister,
-                   kBitsForRepresentation,
-                   kBitsForRegister> FpuRegisterField;
-
   // Layout for stack slots.
-  static const intptr_t kBitsForIndex =
-      kBitsForPayload - kBitsForRepresentation;
-  typedef BitField<uword,
-                   kBitsForRepresentation,
-                   kBitsForIndex> IndexField;
   static const intptr_t kStackIndexBias =
-      static_cast<intptr_t>(1) << (kBitsForIndex - 1);
+      static_cast<intptr_t>(1) << (kBitsForPayload - 1);
 
   // Location either contains kind and payload fields or a tagged handle for
   // a constant locations. Values of enumeration Kind are selected in such a

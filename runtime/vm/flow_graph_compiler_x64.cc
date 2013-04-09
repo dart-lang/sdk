@@ -1596,8 +1596,7 @@ void ParallelMoveResolver::EmitMove(int index) {
       if (destination.IsDoubleStackSlot()) {
         __ movsd(destination.ToStackSlotAddress(), source.fpu_reg());
       } else {
-        ASSERT(destination.IsFloat32x4StackSlot() ||
-               destination.IsUint32x4StackSlot());
+        ASSERT(destination.IsQuadStackSlot());
         __ movups(destination.ToStackSlotAddress(), source.fpu_reg());
       }
     }
@@ -1609,12 +1608,11 @@ void ParallelMoveResolver::EmitMove(int index) {
       __ movsd(XMM0, source.ToStackSlotAddress());
       __ movsd(destination.ToStackSlotAddress(), XMM0);
     }
-  } else if (source.IsFloat32x4StackSlot() || source.IsUint32x4StackSlot()) {
+  } else if (source.IsQuadStackSlot()) {
     if (destination.IsFpuRegister()) {
       __ movups(destination.fpu_reg(), source.ToStackSlotAddress());
     } else {
-      ASSERT(destination.IsFloat32x4StackSlot() ||
-             destination.IsUint32x4StackSlot());
+      ASSERT(destination.IsQuadStackSlot());
       __ movups(XMM0, source.ToStackSlotAddress());
       __ movups(destination.ToStackSlotAddress(), XMM0);
     }
@@ -1656,11 +1654,9 @@ void ParallelMoveResolver::EmitSwap(int index) {
     __ movaps(destination.fpu_reg(), XMM0);
   } else if (source.IsFpuRegister() || destination.IsFpuRegister()) {
     ASSERT(destination.IsDoubleStackSlot() ||
-           destination.IsFloat32x4StackSlot() ||
-           destination.IsUint32x4StackSlot() ||
+           destination.IsQuadStackSlot() ||
            source.IsDoubleStackSlot() ||
-           source.IsFloat32x4StackSlot() ||
-           source.IsUint32x4StackSlot());
+           source.IsQuadStackSlot());
     bool double_width = destination.IsDoubleStackSlot() ||
                         source.IsDoubleStackSlot();
     XmmRegister reg = source.IsFpuRegister() ? source.fpu_reg()
@@ -1677,6 +1673,24 @@ void ParallelMoveResolver::EmitSwap(int index) {
       __ movups(slot_address, reg);
     }
     __ movaps(reg, XMM0);
+  } else if (source.IsDoubleStackSlot() && destination.IsDoubleStackSlot()) {
+    const Address& source_slot_address = source.ToStackSlotAddress();
+    const Address& destination_slot_address = destination.ToStackSlotAddress();
+
+    ScratchFpuRegisterScope ensure_scratch(this, XMM0);
+    __ movsd(XMM0, source_slot_address);
+    __ movsd(ensure_scratch.reg(), destination_slot_address);
+    __ movsd(destination_slot_address, XMM0);
+    __ movsd(source_slot_address, ensure_scratch.reg());
+  } else if (source.IsQuadStackSlot() && destination.IsQuadStackSlot()) {
+    const Address& source_slot_address = source.ToStackSlotAddress();
+    const Address& destination_slot_address = destination.ToStackSlotAddress();
+
+    ScratchFpuRegisterScope ensure_scratch(this, XMM0);
+    __ movups(XMM0, source_slot_address);
+    __ movups(ensure_scratch.reg(), destination_slot_address);
+    __ movups(destination_slot_address, XMM0);
+    __ movups(source_slot_address, ensure_scratch.reg());
   } else {
     UNREACHABLE();
   }
@@ -1717,6 +1731,28 @@ void ParallelMoveResolver::Exchange(Register reg, const Address& mem) {
 
 void ParallelMoveResolver::Exchange(const Address& mem1, const Address& mem2) {
   __ Exchange(mem1, mem2);
+}
+
+
+void ParallelMoveResolver::SpillScratch(Register reg) {
+  __ pushq(reg);
+}
+
+
+void ParallelMoveResolver::RestoreScratch(Register reg) {
+  __ popq(reg);
+}
+
+
+void ParallelMoveResolver::SpillFpuScratch(FpuRegister reg) {
+  __ subq(RSP, Immediate(kFpuRegisterSize));
+  __ movups(Address(RSP, 0), reg);
+}
+
+
+void ParallelMoveResolver::RestoreFpuScratch(FpuRegister reg) {
+  __ movups(reg, Address(RSP, 0));
+  __ addq(RSP, Immediate(kFpuRegisterSize));
 }
 
 

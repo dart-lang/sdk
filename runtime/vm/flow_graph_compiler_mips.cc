@@ -1100,6 +1100,26 @@ void ParallelMoveResolver::Exchange(const Address& mem1, const Address& mem2) {
 }
 
 
+void ParallelMoveResolver::SpillScratch(Register reg) {
+  UNIMPLEMENTED();
+}
+
+
+void ParallelMoveResolver::RestoreScratch(Register reg) {
+  UNIMPLEMENTED();
+}
+
+
+void ParallelMoveResolver::SpillFpuScratch(FpuRegister reg) {
+  UNIMPLEMENTED();
+}
+
+
+void ParallelMoveResolver::RestoreFpuScratch(FpuRegister reg) {
+  UNIMPLEMENTED();
+}
+
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_MIPS

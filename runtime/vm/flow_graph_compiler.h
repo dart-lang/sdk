@@ -31,6 +31,47 @@ class ParallelMoveResolver : public ValueObject {
   void EmitNativeCode(ParallelMoveInstr* parallel_move);
 
  private:
+  class ScratchFpuRegisterScope : public ValueObject {
+   public:
+    ScratchFpuRegisterScope(ParallelMoveResolver* resolver,
+                            FpuRegister blocked);
+    ~ScratchFpuRegisterScope();
+
+    FpuRegister reg() const { return reg_; }
+
+   private:
+    ParallelMoveResolver* resolver_;
+    FpuRegister reg_;
+    bool spilled_;
+  };
+
+  class ScratchRegisterScope : public ValueObject {
+   public:
+    ScratchRegisterScope(ParallelMoveResolver* resolver, Register blocked);
+    ~ScratchRegisterScope();
+
+    Register reg() const { return reg_; }
+
+   private:
+    ParallelMoveResolver* resolver_;
+    Register reg_;
+    bool spilled_;
+  };
+
+
+  bool IsScratchLocation(Location loc);
+  intptr_t AllocateScratchRegister(Location::Kind kind,
+                                   intptr_t blocked,
+                                   intptr_t register_count,
+                                   bool* spilled);
+
+  void SpillScratch(Register reg);
+  void RestoreScratch(Register reg);
+  void SpillFpuScratch(FpuRegister reg);
+  void RestoreFpuScratch(FpuRegister reg);
+
+  // friend class ScratchXmmRegisterScope;
+
   // Build the initial list of moves.
   void BuildInitialMoveList(ParallelMoveInstr* parallel_move);
 

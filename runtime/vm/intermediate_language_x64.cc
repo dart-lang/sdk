@@ -2788,11 +2788,11 @@ LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary() const {
   const intptr_t kNumTemps = 0;
   LocationSummary* result =
       new LocationSummary(InputCount(), kNumTemps, LocationSummary::kCall);
-  result->set_in(0, Location::FpuRegisterLocation(XMM1, kUnboxedDouble));
+  result->set_in(0, Location::FpuRegisterLocation(XMM1));
   if (InputCount() == 2) {
-    result->set_in(1, Location::FpuRegisterLocation(XMM2, kUnboxedDouble));
+    result->set_in(1, Location::FpuRegisterLocation(XMM2));
   }
-  result->set_out(Location::FpuRegisterLocation(XMM1, kUnboxedDouble));
+  result->set_out(Location::FpuRegisterLocation(XMM1));
   return result;
 }
 

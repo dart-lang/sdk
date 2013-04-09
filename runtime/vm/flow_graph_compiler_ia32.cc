@@ -1596,8 +1596,7 @@ void ParallelMoveResolver::EmitMove(int index) {
       if (destination.IsDoubleStackSlot()) {
         __ movsd(destination.ToStackSlotAddress(), source.fpu_reg());
       } else {
-        ASSERT(destination.IsFloat32x4StackSlot() ||
-               destination.IsUint32x4StackSlot());
+        ASSERT(destination.IsQuadStackSlot());
         __ movups(destination.ToStackSlotAddress(), source.fpu_reg());
       }
     }
@@ -1609,12 +1608,11 @@ void ParallelMoveResolver::EmitMove(int index) {
       __ movsd(XMM0, source.ToStackSlotAddress());
       __ movsd(destination.ToStackSlotAddress(), XMM0);
     }
-  } else if (source.IsFloat32x4StackSlot() || source.IsUint32x4StackSlot()) {
+  } else if (source.IsQuadStackSlot()) {
     if (destination.IsFpuRegister()) {
       __ movups(destination.fpu_reg(), source.ToStackSlotAddress());
     } else {
-      ASSERT(destination.IsFloat32x4StackSlot() ||
-             destination.IsUint32x4StackSlot());
+      ASSERT(destination.IsQuadStackSlot());
       __ movups(XMM0, source.ToStackSlotAddress());
       __ movups(destination.ToStackSlotAddress(), XMM0);
     }
@@ -1656,11 +1654,9 @@ void ParallelMoveResolver::EmitSwap(int index) {
     __ movaps(destination.fpu_reg(), XMM0);
   } else if (source.IsFpuRegister() || destination.IsFpuRegister()) {
     ASSERT(destination.IsDoubleStackSlot() ||
-           destination.IsFloat32x4StackSlot() ||
-           destination.IsUint32x4StackSlot() ||
+           destination.IsQuadStackSlot() ||
            source.IsDoubleStackSlot() ||
-           source.IsFloat32x4StackSlot() ||
-           source.IsUint32x4StackSlot());
+           source.IsQuadStackSlot());
     bool double_width = destination.IsDoubleStackSlot() ||
                         source.IsDoubleStackSlot();
     XmmRegister reg = source.IsFpuRegister() ? source.fpu_reg()
@@ -1677,6 +1673,24 @@ void ParallelMoveResolver::EmitSwap(int index) {
       __ movups(slot_address, reg);
     }
     __ movaps(reg, XMM0);
+  } else if (source.IsDoubleStackSlot() && destination.IsDoubleStackSlot()) {
+    const Address& source_slot_address = source.ToStackSlotAddress();
+    const Address& destination_slot_address = destination.ToStackSlotAddress();
+
+    ScratchFpuRegisterScope ensure_scratch(this, XMM0);
+    __ movsd(XMM0, source_slot_address);
+    __ movsd(ensure_scratch.reg(), destination_slot_address);
+    __ movsd(destination_slot_address, XMM0);
+    __ movsd(source_slot_address, ensure_scratch.reg());
+  } else if (source.IsQuadStackSlot() && destination.IsQuadStackSlot()) {
+    const Address& source_slot_address = source.ToStackSlotAddress();
+    const Address& destination_slot_address = destination.ToStackSlotAddress();
+
+    ScratchFpuRegisterScope ensure_scratch(this, XMM0);
+    __ movups(XMM0, source_slot_address);
+    __ movups(ensure_scratch.reg(), destination_slot_address);
+    __ movups(destination_slot_address, XMM0);
+    __ movups(source_slot_address, ensure_scratch.reg());
   } else {
     UNREACHABLE();
   }
@@ -1701,48 +1715,60 @@ void ParallelMoveResolver::EmitSwap(int index) {
 
 void ParallelMoveResolver::MoveMemoryToMemory(const Address& dst,
                                               const Address& src) {
-  // TODO(vegorov): allocate temporary register for such moves.
-  __ pushl(EAX);
-  __ movl(EAX, src);
-  __ movl(dst, EAX);
-  __ popl(EAX);
+  ScratchRegisterScope ensure_scratch(this, kNoRegister);
+  __ movl(ensure_scratch.reg(), src);
+  __ movl(dst, ensure_scratch.reg());
 }
 
 
 void ParallelMoveResolver::StoreObject(const Address& dst, const Object& obj) {
-  // TODO(vegorov): allocate temporary register for such moves.
   if (obj.IsSmi() || obj.IsNull()) {
     __ movl(dst, Immediate(reinterpret_cast<int32_t>(obj.raw())));
   } else {
-    __ pushl(EAX);
-    __ LoadObject(EAX, obj);
-    __ movl(dst, EAX);
-    __ popl(EAX);
+    ScratchRegisterScope ensure_scratch(this, kNoRegister);
+    __ LoadObject(ensure_scratch.reg(), obj);
+    __ movl(dst, ensure_scratch.reg());
   }
 }
 
 
 void ParallelMoveResolver::Exchange(Register reg, const Address& mem) {
-  // TODO(vegorov): allocate temporary register for such moves.
-  Register scratch = (reg == EAX) ? ECX : EAX;
-  __ pushl(scratch);
-  __ movl(scratch, mem);
-  __ xchgl(scratch, reg);
-  __ movl(mem, scratch);
-  __ popl(scratch);
+  ScratchRegisterScope ensure_scratch(this, reg);
+  __ movl(ensure_scratch.reg(), mem);
+  __ movl(mem, reg);
+  __ movl(reg, ensure_scratch.reg());
 }
 
 
 void ParallelMoveResolver::Exchange(const Address& mem1, const Address& mem2) {
-  // TODO(vegorov): allocate temporary registers for such moves.
-  __ pushl(EAX);
-  __ pushl(ECX);
-  __ movl(EAX, mem1);
-  __ movl(ECX, mem2);
-  __ movl(mem1, ECX);
-  __ movl(mem2, EAX);
-  __ popl(ECX);
-  __ popl(EAX);
+  ScratchRegisterScope ensure_scratch1(this, kNoRegister);
+  ScratchRegisterScope ensure_scratch2(this, ensure_scratch1.reg());
+  __ movl(ensure_scratch1.reg(), mem1);
+  __ movl(ensure_scratch2.reg(), mem2);
+  __ movl(mem2, ensure_scratch1.reg());
+  __ movl(mem1, ensure_scratch2.reg());
+}
+
+
+void ParallelMoveResolver::SpillScratch(Register reg) {
+  __ pushl(reg);
+}
+
+
+void ParallelMoveResolver::RestoreScratch(Register reg) {
+  __ popl(reg);
+}
+
+
+void ParallelMoveResolver::SpillFpuScratch(FpuRegister reg) {
+  __ subl(ESP, Immediate(kFpuRegisterSize));
+  __ movups(Address(ESP, 0), reg);
+}
+
+
+void ParallelMoveResolver::RestoreFpuScratch(FpuRegister reg) {
+  __ movups(reg, Address(ESP, 0));
+  __ addl(ESP, Immediate(kFpuRegisterSize));
 }
 
 
