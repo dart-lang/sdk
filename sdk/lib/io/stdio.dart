@@ -10,16 +10,16 @@ const int _STDIO_HANDLE_TYPE_FILE = 2;
 const int _STDIO_HANDLE_TYPE_SOCKET = 3;
 const int _STDIO_HANDLE_TYPE_OTHER = 4;
 
-class _Stdin extends Stream<List<int>> {
-  final Stream<List<int>> _stdin;
+class _StdStream extends Stream<List<int>> {
+  final Stream<List<int>> _stream;
 
-  _Stdin(Stream<List<int>> this._stdin);
+  _StdStream(Stream<List<int>> this._stream);
 
   StreamSubscription<List<int>> listen(void onData(List<int> event),
                                        {void onError(AsyncError error),
                                         void onDone(),
                                         bool unsubscribeOnError}) {
-    return _stdin.listen(
+    return _stream.listen(
         onData,
         onError: onError,
         onDone: onDone,
@@ -28,25 +28,24 @@ class _Stdin extends Stream<List<int>> {
 }
 
 class _StdSink implements IOSink {
-  final IOSink _ioSink;
+  final IOSink _sink;
 
-  _StdSink(IOSink this._ioSink);
+  _StdSink(IOSink this._sink);
 
-  Encoding get encoding => _ioSink.encoding;
+  Encoding get encoding => _sink.encoding;
   void set encoding(Encoding encoding) {
-    _ioSink.encoding = encoding;
+    _sink.encoding = encoding;
   }
-  void write(object) => _ioSink.write(object);
-  void writeln([object = "" ]) => _ioSink.writeln(object);
-  void writeAll(objects, [sep = ""]) => _ioSink.writeAll(objects, sep);
-  void writeBytes(List<int> data) => _ioSink.writeBytes(data);
-  void writeCharCode(int charCode) => _ioSink.writeCharCode(charCode);
-  Future consume(Stream<List<int>> stream) => _ioSink.consume(stream);
-  Future addStream(Stream<List<int>> stream) => _ioSink.addStream(stream);
-  Future writeStream(Stream<List<int>> stream)
-      => _ioSink.writeStream(stream);
-  Future close() => _ioSink.close();
-  Future get done => _ioSink.done;
+  void write(object) => _sink.write(object);
+  void writeln([object = "" ]) => _sink.writeln(object);
+  void writeAll(objects, [sep = ""]) => _sink.writeAll(objects, sep);
+  void writeBytes(List<int> data) => _sink.writeBytes(data);
+  void writeCharCode(int charCode) => _sink.writeCharCode(charCode);
+  Future consume(Stream<List<int>> stream) => _sink.consume(stream);
+  Future addStream(Stream<List<int>> stream) => _sink.addStream(stream);
+  Future writeStream(Stream<List<int>> stream) => _sink.writeStream(stream);
+  Future close() => _sink.close();
+  Future get done => _sink.done;
 }
 
 class StdioType {
@@ -90,10 +89,10 @@ IOSink get stderr {
 
 
 StdioType stdioType(object) {
-  if (object is _Stdin) {
-    object = object._stdin;
+  if (object is _StdStream) {
+    object = object._stream;
   } else if (object is _StdSink) {
-    object = object._ioSink;
+    object = object._sink;
   }
   if (object is _FileStream) {
     return StdioType.FILE;
