@@ -629,8 +629,8 @@ abstract class Stream<T> {
       // TODO(ahe): Restore type when feature is implemented in dart2js
       // checked mode. http://dartbug.com/7733
       (/*T*/ value) {
-        future._setValue(value);
         subscription.cancel();
+        future._setValue(value);
         return;
       },
       onError: future._setError,
@@ -685,10 +685,10 @@ abstract class Stream<T> {
       // checked mode. http://dartbug.com/7733
       (/*T*/ value) {
         if (foundResult) {
+          subscription.cancel();
           // This is the second element we get.
           Error error = new StateError("More than one element");
           future._setError(new AsyncError(error));
-          subscription.cancel();
           return;
         }
         foundResult = true;
@@ -857,8 +857,8 @@ abstract class Stream<T> {
       // checked mode. http://dartbug.com/7733
       (/*T*/ value) {
         if (index == 0) {
-          future._setValue(value);
           subscription.cancel();
+          future._setValue(value);
           return;
         }
         index -= 1;
@@ -1153,16 +1153,19 @@ class _EventTransformStreamSubscription<S, T>
                                   onDone: _handleDone);
   }
 
+  /** Whether this subscription is still subscribed to its source. */
+  bool get _isSubscribed => _subscription != null;
+
   void pause([Future pauseSignal]) {
-    if (_subscription != null) _subscription.pause(pauseSignal);
+    if (_isSubscribed) _subscription.pause(pauseSignal);
   }
 
   void resume() {
-    if (_subscription != null) _subscription.resume();
+    if (_isSubscribed) _subscription.resume();
   }
 
   void cancel() {
-    if (_subscription != null) {
+    if (_isSubscribed) {
       _subscription.cancel();
       _subscription = null;
     }
@@ -1185,7 +1188,6 @@ class _EventTransformStreamSubscription<S, T>
   }
 
   void _handleDone() {
-    _subscription = null;
     try {
       _transformer.handleDone(_sink);
     } catch (e, s) {
@@ -1195,10 +1197,12 @@ class _EventTransformStreamSubscription<S, T>
 
   // EventOutputSink interface.
   void _sendData(T data) {
+    if (!_isSubscribed) return;
     _onData(data);
   }
 
   void _sendError(AsyncError error) {
+    if (!_isSubscribed) return;
     _onError(error);
     if (_unsubscribeOnError) {
       cancel();
@@ -1206,8 +1210,9 @@ class _EventTransformStreamSubscription<S, T>
   }
 
   void _sendDone() {
-    // It's ok to cancel even if we have been unsubscribed already.
-    cancel();
+    if (!_isSubscribed) return;
+    _subscription.cancel();
+    _subscription = null;
     _onDone();
   }
 }
