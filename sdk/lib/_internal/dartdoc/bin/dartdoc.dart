@@ -39,7 +39,7 @@ main() {
 
   final Path libPath = scriptDir.append('../../../../');
 
-  Path packageRoot;
+  String packageRoot;
 
   argParser.addFlag('no-code',
       help: 'Do not include source code in the documentation.',
@@ -166,7 +166,7 @@ main() {
         ' the entrypoint.',
       callback: (packageDir) {
         if(packageDir != null) {
-          packageRoot = new Path(packageDir);
+          packageRoot = packageDir;
         }
       });
 
@@ -175,7 +175,7 @@ main() {
       help: 'Deprecated: same as --package-root.',
       callback: (packageDir) {
         if(packageDir != null) {
-          packageRoot = new Path(packageDir);
+          packageRoot = packageDir;
         }
       });
 
@@ -188,21 +188,19 @@ main() {
     exit(1);
   }
 
-  final entrypoints = <Path>[];
+  final entrypoints = <String>[];
   try {
     final option = argParser.parse(args);
 
     // This checks to see if the root of all entrypoints is the same.
     // If it is not, then we display a warning, as package imports might fail.
     var entrypointRoot;
-    for(final arg in option.rest) {
-      var entrypoint = new Path(arg);
+    for (final entrypoint in option.rest) {
       entrypoints.add(entrypoint);
 
       if (entrypointRoot == null) {
-        entrypointRoot = entrypoint.directoryPath;
-      } else if (entrypointRoot.toNativePath() !=
-          entrypoint.directoryPath.toNativePath()) {
+        entrypointRoot = path.dirname(entrypoint);
+      } else if (entrypointRoot != path.dirname(entrypoint)) {
         print('Warning: entrypoints are at different directories. "package:"'
             ' imports may fail.');
       }
@@ -222,11 +220,10 @@ main() {
 
   if (packageRoot == null) {
     // Check if there's a `packages` directory in the entry point directory.
-    var script = path.normalize(path.absolute(entrypoints[0].toNativePath()));
+    var script = path.normalize(path.absolute(entrypoints[0]));
     var dir = path.join(path.dirname(script), 'packages/');
     if (new Directory(dir).existsSync()) {
-      // TODO(amouravski): convert all of dartdoc to use pathos.
-      packageRoot = new Path(dir);
+      packageRoot = dir;
     } else {
       // If there is not, then check if the entrypoint is somewhere in a `lib`
       // directory.
@@ -234,8 +231,7 @@ main() {
       var parts = path.split(dir);
       var libDir = parts.lastIndexOf('lib');
       if (libDir > 0) {
-        packageRoot = new Path(path.join(path.joinAll(parts.take(libDir)),
-              'packages'));
+        packageRoot = path.join(path.joinAll(parts.take(libDir)), 'packages');
       }
     }
   }
