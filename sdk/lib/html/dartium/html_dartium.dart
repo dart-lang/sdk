@@ -8307,7 +8307,7 @@ class DomTokenList extends NativeFieldWrapperClass1 {
 
 // TODO(jacobr): use _Lists.dart to remove some of the duplicated
 // functionality.
-class _ChildrenElementList implements List {
+class _ChildrenElementList implements List<Element> {
   // Raw Element.
   final Element _element;
   final HtmlCollection _childElements;
@@ -8365,19 +8365,19 @@ class _ChildrenElementList implements List {
   }
 
   String join([String separator]) {
-    return IterableMixinWorkaround.joinList(this, separator);
+    return _childElements.join(separator);
   }
 
   Iterable map(f(Element element)) {
-    return IterableMixinWorkaround.mapList(this, f);
+    return _childElements.map(f);
   }
 
   Iterable<Element> where(bool f(Element element)) {
-    return IterableMixinWorkaround.where(this, f);
+    return _childElements.where(f);
   }
 
   Iterable expand(Iterable f(Element element)) {
-    return IterableMixinWorkaround.expand(this, f);
+    return _childElements.expand(f);
   }
 
   bool get isEmpty {

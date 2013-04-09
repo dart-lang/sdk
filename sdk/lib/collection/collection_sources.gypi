@@ -15,6 +15,7 @@
     'linked_hash_map.dart',
     'linked_hash_set.dart',
     'linked_hash_table.dart',
+    'list.dart',
     'maps.dart',
     'queue.dart',
     'splay_tree.dart',

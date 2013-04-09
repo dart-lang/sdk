@@ -328,7 +328,7 @@ class _GrowableObjectArray<T> implements List<T> {
     this.length = 0;
   }
 
-  Iterable<T> get reversed => new ReversedListIterable<T>(this);
+  Iterable<T> get reversed => IterableMixinWorkaround.reversedList(this);
 
   void sort([int compare(T a, T b)]) {
     IterableMixinWorkaround.sortList(this, compare);

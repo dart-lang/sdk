@@ -14,6 +14,7 @@ part 'splay_tree.dart';
 part 'hash_table.dart';
 part 'hash_set.dart';
 part 'hash_map.dart';
+part 'list.dart';
 part 'linked_hash_table.dart';
 part 'linked_hash_set.dart';
 part 'linked_hash_map.dart';

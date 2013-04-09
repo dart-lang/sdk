@@ -8,7 +8,7 @@ part of html_common;
  * An indexable collection of a node's descendants in the document tree,
  * filtered so that only elements are in the collection.
  */
-class FilteredElementList implements List {
+class FilteredElementList extends ListBase<Element> {
   final Node _node;
   final List<Node> _childNodes;
 
@@ -143,7 +143,7 @@ class FilteredElementList implements List {
 
   dynamic reduce(dynamic initialValue,
       dynamic combine(dynamic previousValue, Element element)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+    return _filtered.reduce(initialValue, combine);
   }
 
   dynamic fold(dynamic initialValue,

@@ -9,6 +9,7 @@ part of dart.collection;
  *
  * Once Dart receives Mixins it will be replaced with mixin classes.
  */
+@deprecated
 class IterableMixinWorkaround {
   static bool contains(Iterable iterable, var element) {
     for (final e in iterable) {
