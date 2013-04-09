@@ -967,7 +967,8 @@ class CanvasElement extends Element implements CanvasImageSource native "*HTMLCa
   String toDataUrl(String type, [num quality]) native;
 
   /** An API for drawing on this canvas. */
-  CanvasRenderingContext2D get context2D => getContext('2d');
+  CanvasRenderingContext2D get context2D =>
+      JS('Null|CanvasRenderingContext2D', '#.getContext(#)', this, '2d');
 
   @deprecated
   CanvasRenderingContext2D get context2d => this.context2D;
