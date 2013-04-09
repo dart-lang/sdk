@@ -158,7 +158,13 @@ class TestCase {
                 [String messageText = '',
                  String stack = '']) {
     if (runningTime == null) {
-      _runningTime = new DateTime.now().difference(startTime);
+      // The startTime can be `null` if an error happened during setup. In this
+      // case we simply report a running time of 0.
+      if (startTime != null) {
+        _runningTime = new DateTime.now().difference(startTime);
+      } else {
+        _runningTime = const Duration(seconds: 0);
+      }
     }
     _setResult(testResult, messageText, stack);
     if (!_doneTeardown) {
