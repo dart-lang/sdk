@@ -234,10 +234,14 @@ class _HttpClientResponse
                                        {void onError(AsyncError error),
                                         void onDone(),
                                         bool unsubscribeOnError}) {
-    return _incoming.listen(onData,
-                            onError: onError,
-                            onDone: onDone,
-                            unsubscribeOnError: unsubscribeOnError);
+    var stream = _incoming;
+    if (headers.value(HttpHeaders.CONTENT_ENCODING) == "gzip") {
+      stream = stream.transform(new ZLibInflater());
+    }
+    return stream.listen(onData,
+                         onError: onError,
+                         onDone: onDone,
+                         unsubscribeOnError: unsubscribeOnError);
   }
 
   Future<Socket> detachSocket() {
@@ -971,6 +975,7 @@ class _HttpClientConnection {
                                          this);
     request.headers.host = uri.domain;
     request.headers.port = port;
+    request.headers.set(HttpHeaders.ACCEPT_ENCODING, "gzip");
     if (uri.userInfo != null && !uri.userInfo.isEmpty) {
       // If the URL contains user information use that for basic
       // authorization

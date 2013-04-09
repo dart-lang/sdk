@@ -28,7 +28,6 @@ void testServerCompress() {
             Expect.equals("gzip",
                           response.headers.value(HttpHeaders.CONTENT_ENCODING));
             response
-                .transform(new ZLibInflater())
                 .fold([], (list, b) {
                   list.addAll(b);
                   return list;

@@ -30,8 +30,8 @@ void testServerDetachSocket() {
 
     Socket.connect("127.0.0.1", server.port).then((socket) {
       socket.write("GET / HTTP/1.1\r\n"
-                       "content-length: 0\r\n\r\n"
-                       "Some data");
+                   "content-length: 0\r\n\r\n"
+                   "Some data");
       var body = new StringBuffer();
       socket.listen(
         (data) => body.write(new String.fromCharCodes(data)),
@@ -59,7 +59,7 @@ void testBadServerDetachSocket() {
 
     Socket.connect("127.0.0.1", server.port).then((socket) {
       socket.write("GET / HTTP/1.1\r\n"
-                       "content-length: 0\r\n\r\n");
+                   "content-length: 0\r\n\r\n");
       socket.listen((_) {}, onDone: () {
           socket.close();
         });
@@ -78,6 +78,7 @@ void testClientDetachSocket() {
         (data) => body.write(new String.fromCharCodes(data)),
         onDone: () {
           Expect.equals("GET / HTTP/1.1\r\n"
+                        "accept-encoding: gzip\r\n"
                         "content-length: 0\r\n"
                         "host: 127.0.0.1:${server.port}\r\n\r\n"
                         "Some data",
