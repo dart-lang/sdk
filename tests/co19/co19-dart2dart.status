@@ -399,6 +399,7 @@ LibTest/core/int/operator_left_shift_A01_t02: Fail, OK # co19 issue 129
 LibTest/core/int/toRadixString_A01_t01: Fail # inherited from VM
 LibTest/isolate/ReceivePort/receive_A01_t02: Fail, OK # co19 issue 276
 LibTest/isolate/isolate_api/port_A01_t01: Skip # Times out.
+LibTest/isolate/isolate_api/spawnFunction_A02_t01: Fail  # Inherited from VM.
 LibTest/isolate/isolate_api/spawnUri_A01_t01: Fail, OK # Problems with the test: encoded file name
 LibTest/isolate/isolate_api/spawnUri_A01_t02: Fail, OK # Problems with the test: encoded file name
 LibTest/isolate/isolate_api/spawnUri_A01_t03: Fail, OK # Problems with the test: encoded file name
