@@ -734,8 +734,8 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientRequest>
 
   Future<HttpClientResponse> get done => response;
 
-  Future<HttpClientResponse> pipe(Stream<List<int>> stream) {
-    super.pipe(stream);
+  Future<HttpClientResponse> consume(Stream<List<int>> stream) {
+    super.consume(stream);
     return response;
   }
 
