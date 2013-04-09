@@ -35,27 +35,6 @@
             '../../sdk/lib/_internal/compiler/implementation/dart2js.dart',
           ],
         },
-        {
-          # TODO(ahe): Remove this action after a few days.
-          'action_name': 'remove_old_scripts',
-          'inputs': [
-            'remove_old_scripts.py',
-          ],
-          'outputs': [
-            '<(INTERMEDIATE_DIR)/<(_action_name).success',
-          ],
-          'action': [
-            'python',
-            '<@(_inputs)',
-            '<@(_outputs)',
-            '<(PRODUCT_DIR)/dart2js',
-            '<(PRODUCT_DIR)/dart2js.bat',
-            '<(PRODUCT_DIR)/dart2js_developer',
-            '<(PRODUCT_DIR)/dart2js_developer.bat',
-            '<(PRODUCT_DIR)/dartdoc',
-            '<(PRODUCT_DIR)/dartdoc.bat',
-          ]
-        },
       ],
     },
   ],
