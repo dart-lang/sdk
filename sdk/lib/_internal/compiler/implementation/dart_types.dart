@@ -5,7 +5,8 @@
 library dart_types;
 
 import 'dart2jslib.dart' show Compiler, invariant, Script, Message;
-import 'elements/modelx.dart' show VoidElementX, LibraryElementX;
+import 'elements/modelx.dart'
+    show VoidElementX, LibraryElementX, BaseClassElementX;
 import 'elements/elements.dart';
 import 'scanner/scannerlib.dart' show SourceString;
 import 'util/util.dart' show Link, LinkBuilder;
@@ -451,8 +452,8 @@ class InterfaceType extends GenericType {
     assert(invariant(element, element.isDeclaration));
     assert(invariant(element, element.thisType == null ||
         typeArguments.slowLength() == element.typeVariables.slowLength(),
-        message: 'Invalid type argument count on ${element.thisType}. '
-                 'Provided type arguments: $typeArguments.'));
+        message: () => 'Invalid type argument count on ${element.thisType}. '
+                       'Provided type arguments: $typeArguments.'));
   }
 
   InterfaceType.userProvidedBadType(this.element,
@@ -1087,11 +1088,11 @@ class Types {
   final DynamicType dynamicType;
   final SubtypeVisitor subtypeVisitor;
 
-  factory Types(Compiler compiler, ClassElement dynamicElement) {
+  factory Types(Compiler compiler, BaseClassElementX dynamicElement) {
     LibraryElement library = new LibraryElementX(new Script(null, null));
     VoidType voidType = new VoidType(new VoidElementX(library));
     DynamicType dynamicType = new DynamicType(dynamicElement);
-    dynamicElement.rawType = dynamicElement.thisType = dynamicType;
+    dynamicElement.rawTypeCache = dynamicElement.thisType = dynamicType;
     SubtypeVisitor subtypeVisitor =
         new SubtypeVisitor(compiler, dynamicType, voidType);
     return new Types.internal(compiler, voidType, dynamicType, subtypeVisitor);

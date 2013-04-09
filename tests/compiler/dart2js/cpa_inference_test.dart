@@ -163,7 +163,7 @@ const String CORELIB = r'''
     E operator [](int index);
     void operator []=(int index, E value);
   }
-  abstract class Map {}
+  abstract class Map<K, V> {}
   class Closure {}
   class Null {}
   class Type {}

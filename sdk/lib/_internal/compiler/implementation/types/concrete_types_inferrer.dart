@@ -398,7 +398,7 @@ class ConcreteTypesEnvironment {
         if (baseType.isUnknown()) return false;
         if (baseType.isNull()) continue;
         ClassBaseType classType = baseType;
-        if (!types.isSubtype(new InterfaceType(classType.element),
+        if (!types.isSubtype(classType.element.rawType,
                              parameterType)) return false;
       }
       return true;

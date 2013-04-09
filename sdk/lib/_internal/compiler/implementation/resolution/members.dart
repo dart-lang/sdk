@@ -2618,8 +2618,10 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       listType = new InterfaceType(compiler.listClass,
                                    new Link<DartType>.fromList([typeArgument]));
     } else {
+      compiler.listClass.computeType(compiler);
       listType = compiler.listClass.rawType;
     }
+    mapping.setType(node, listType);
     world.registerInstantiatedType(listType, mapping);
     visit(node.elements);
   }
@@ -2775,6 +2777,36 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitLiteralMap(LiteralMap node) {
+    NodeList arguments = node.typeArguments;
+    DartType keyTypeArgument;
+    DartType valueTypeArgument;
+    if (arguments != null) {
+      Link<Node> nodes = arguments.nodes;
+      if (nodes.isEmpty) {
+        error(arguments, MessageKind.MISSING_TYPE_ARGUMENT);
+      } else {
+        keyTypeArgument = resolveTypeRequired(nodes.head);
+        nodes = nodes.tail;
+        if (nodes.isEmpty) {
+          error(arguments, MessageKind.MISSING_TYPE_ARGUMENT);
+        } else {
+          valueTypeArgument = resolveTypeRequired(nodes.head);
+          for (nodes = nodes.tail; !nodes.isEmpty; nodes = nodes.tail) {
+            error(nodes.head, MessageKind.ADDITIONAL_TYPE_ARGUMENT);
+            resolveTypeRequired(nodes.head);
+          }
+        }
+      }
+    }
+    DartType mapType;
+    if (valueTypeArgument != null) {
+      mapType = new InterfaceType(compiler.mapClass,
+          new Link<DartType>.fromList([keyTypeArgument, valueTypeArgument]));
+    } else {
+      compiler.mapClass.computeType(compiler);
+      mapType = compiler.mapClass.rawType;
+    }
+    mapping.setType(node, mapType);
     world.registerInstantiatedClass(compiler.mapClass, mapping);
     if (node.isConst()) {
       compiler.backend.registerConstantMap(mapping);

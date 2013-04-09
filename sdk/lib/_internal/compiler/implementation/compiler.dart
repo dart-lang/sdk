@@ -1251,13 +1251,16 @@ class SourceSpan {
  * [spannable] must be non-null and will be used to provide positional
  * information in the generated error message.
  */
-bool invariant(Spannable spannable, var condition, {String message: null}) {
+bool invariant(Spannable spannable, var condition, {var message: null}) {
   // TODO(johnniwinther): Use [spannable] and [message] to provide better
   // information on assertion errors.
   if (condition is Function){
     condition = condition();
   }
   if (spannable == null || !condition) {
+    if (message is Function) {
+      message = message();
+    }
     throw new SpannableAssertionFailure(spannable, message);
   }
   return true;
