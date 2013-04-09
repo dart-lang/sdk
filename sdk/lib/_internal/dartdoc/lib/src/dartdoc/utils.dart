@@ -117,8 +117,8 @@ String fileUriToPath(Uri uri) {
   if (uri.scheme != 'file') {
     throw new ArgumentError("Uri $uri must have scheme 'file:'.");
   }
-  if (Platform.operatingSystem != 'windows') return uri.path;
-  return uri.path.replaceFirst("/", "").replaceAll("/", "\\");
+  if (Platform.operatingSystem != 'windows') return pathos.normalize(uri.path);
+  return pathos.normalize(uri.path.replaceFirst("/", "").replaceAll("/", "\\"));
 }
 
 /** Converts a local path string to a `file:` [Uri]. */

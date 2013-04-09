@@ -372,10 +372,12 @@ main() {
   });
 }
 
-ExportMap parse(List<String> libraries) =>
-  new ExportMap.parse(
-      libraries.map(libPath).map(pathToFileUri),
+ExportMap parse(List<String> libraries) {
+  return new ExportMap.parse(
+      libraries.map(libPath)
+          .map(pathToFileUri),
       pathos.join(tempDir, 'packages'));
+}
 
 void createLibrary(String name, [String contents]) {
   if (contents == null) contents = '';

@@ -17,6 +17,7 @@ library apidoc;
 import 'dart:async';
 import 'dart:io';
 import 'dart:json' as json;
+import 'dart:uri';
 
 import 'html_diff.dart';
 
@@ -25,6 +26,7 @@ import '../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors.dart';
 import '../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.dart';
 import '../../sdk/lib/_internal/dartdoc/lib/dartdoc.dart';
 import '../../sdk/lib/_internal/libraries.dart';
+import 'package:pathos/path.dart' as pathos;
 
 HtmlDiff _diff;
 
@@ -37,7 +39,7 @@ void main() {
 
   List<String> excludedLibraries = <String>[];
   List<String> includedLibraries = <String>[];
-  Path packageRoot;
+  String packageRoot;
   String version;
 
   // Parse the command-line arguments.
@@ -65,7 +67,7 @@ void main() {
         } else if (arg.startsWith('--out=')) {
           outputDir = new Path(arg.substring('--out='.length));
         } else if (arg.startsWith('--package-root=')) {
-          packageRoot = new Path(arg.substring('--package-root='.length));
+          packageRoot = arg.substring('--package-root='.length);
         } else if (arg.startsWith('--version=')) {
           version = arg.substring('--version='.length);
         } else {
@@ -449,12 +451,12 @@ class Apidoc extends Dartdoc {
 }
 
 /** Converts a local path string to a `file:` [Uri]. */
-Uri _pathToFileUri(String pathString) {
-  pathString = path.absolute(pathString);
+Uri _pathToFileUri(String path) {
+  path = pathos.absolute(path);
   if (Platform.operatingSystem != 'windows') {
-    return Uri.parse('file://$pathString');
+    return Uri.parse('file://$path');
   } else {
-    return Uri.parse('file:///${pathString.replaceAll("\\", "/")}');
+    return Uri.parse('file:///${path.replaceAll("\\", "/")}');
   }
 }
 

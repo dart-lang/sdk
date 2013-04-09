@@ -428,12 +428,12 @@ class Dartdoc {
       String packageRoot) {
     _packageRoot = packageRoot;
     _exports = new ExportMap.parse(libraryList, packageRoot);
-    var librariesToAnalyze = _exports.allExportedFiles.map(pathToFileUri);
+    var librariesToAnalyze = _exports.allExportedFiles.toList();
     librariesToAnalyze.addAll(libraryList.map((uri) {
       if (uri.scheme == 'file') return fileUriToPath(uri);
       // dart2js takes "dart:*" URIs as Path objects for some reason.
       return uri.toString();
-    });
+    }));
 
     // TODO(amouravski): make all of these print statements into logging
     // statements.
@@ -2148,7 +2148,10 @@ class Dartdoc {
   List<DeclarationMirror> _libraryContents(LibraryMirror library,
       List<DeclarationMirror> fn(LibraryMirror)) {
     var contents = fn(library).toList();
-    contents.addAll(_exports.exports[_libraryPath(library)].expand((export) {
+    var path = _libraryPath(library);
+    if (path == null) return contents;
+
+    contents.addAll(_exports.exports[path].expand((export) {
       var exportedLibrary = _librariesByPath[export.path];
       // TODO(nweiz): remove this check when issue 9645 is fixed.
       if (exportedLibrary == null) return [];
