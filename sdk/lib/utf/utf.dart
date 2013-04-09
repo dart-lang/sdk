@@ -21,6 +21,8 @@ List<int> stringToCodepoints(String str) {
 
 /**
  * Generate a string from the provided Unicode codepoints.
+ *
+ * *Deprecated* Use [String.fromCharCodes] instead.
  */
 String codepointsToString(List<int> codepoints) {
   return new String.fromCharCodes(codepoints);
