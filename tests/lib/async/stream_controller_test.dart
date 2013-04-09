@@ -98,8 +98,11 @@ testMultiController() {
           handleData: (v, s) { s.addError(new AsyncError(v)); },
           handleError: (e, s) { s.add(e.error); },
           handleDone: (s) {
+
             s.add("foo");
+
             s.close();
+
           })));
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
@@ -373,6 +376,7 @@ testExtraMethods() {
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
+
   c = new StreamController();
   sentEvents = new Events()
       ..add(1)..add(1)..add(2)..add(1)..add(2)..add(2)..add(2)..close();
@@ -381,6 +385,7 @@ testExtraMethods() {
   actualEvents = new Events.capture(c.stream.distinct());
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
+
 
   c = new StreamController();
   sentEvents = new Events()
