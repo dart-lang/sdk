@@ -29,15 +29,17 @@ void testClientRequest(void handler(request)) {
       .catchError((error) {
         server.close();
         client.close();
-      }, test: (e) => e is HttpParserException);
+      });
   });
 }
 
 void testResponseDone() {
   testClientRequest((request) {
     request.close();
-    request.done.then((req) {
-      Expect.equals(request, req);
+    request.done.then((res1) {
+      request.response.then((res2) {
+        Expect.equals(res1, res2);
+      });
     });
     return request.response;
   });

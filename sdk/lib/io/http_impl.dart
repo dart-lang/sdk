@@ -702,6 +702,8 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientRequest>
 
   final bool _usingProxy;
 
+  Future<HttpClientResponse> _response;
+
   // TODO(ajohnsen): Get default value from client?
   bool _followRedirects = true;
 
@@ -722,7 +724,20 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientRequest>
     }
   }
 
-  Future<HttpClientResponse> get response => _responseCompleter.future;
+  Future<HttpClientResponse> get response {
+    if (_response == null) {
+      _response = Future.wait([_responseCompleter.future, super.done])
+        .then((list) => list[0]);
+    }
+    return _response;
+  }
+
+  Future<HttpClientResponse> get done => response;
+
+  Future<HttpClientResponse> pipe(Stream<List<int>> stream) {
+    super.pipe(stream);
+    return response;
+  }
 
   Future<HttpClientResponse> close() {
     super.close();
@@ -993,51 +1008,47 @@ class _HttpClientConnection {
     // data).
     _httpParser.responseToMethod = method;
     _streamFuture = outgoing.onStream((stream) {
-        // Sending request, set up response completer.
-        _nextResponseCompleter = new Completer();
+        return _socket.writeStream(stream)
+            .then((s) {
+              // Request sent, set up response completer.
+              _nextResponseCompleter = new Completer();
 
-        var requestFuture = _socket.writeStream(stream)
-            .catchError((e) {
-              destroy();
-              throw e;
-            });
-
-        // Listen for response.
-        _nextResponseCompleter.future
-            .then((incoming) {
-              incoming.dataDone.then((_) {
-                if (incoming.headers.persistentConnection &&
-                    request.persistentConnection) {
-                  // Be sure we have written the full request.
-                  requestFuture
-                      .then((_) {
+              // Listen for response.
+              _nextResponseCompleter.future
+                  .then((incoming) {
+                    incoming.dataDone.then((_) {
+                      if (incoming.headers.persistentConnection &&
+                          request.persistentConnection) {
                         // Return connection, now we are done.
                         _httpClient._returnConnection(this);
                         _subscription.resume();
-                      },
-                      onError: (_) {
-                        // Already handled.
-                      });
-                } else {
-                  destroy();
-                }
-              });
-              request._onIncoming(incoming);
-            })
-            // If we see a state error, we failed to get the 'first' element.
-            // Transform the error to a HttpParserException, for consistency.
-            .catchError((error) {
-              throw new HttpParserException(
-                  "Connection closed before data was received");
-            }, test: (error) => error is StateError)
-            .catchError((error) {
-              // We are done with the socket.
+                      } else {
+                        destroy();
+                      }
+                    });
+                    request._onIncoming(incoming);
+                  })
+                  // If we see a state error, we failed to get the 'first'
+                  // element.
+                  // Transform the error to a HttpParserException, for
+                  // consistency.
+                  .catchError((error) {
+                    throw new HttpParserException(
+                        "Connection closed before data was received");
+                  }, test: (error) => error is StateError)
+                  .catchError((error) {
+                    // We are done with the socket.
+                    destroy();
+                    request._onError(error);
+                  });
+
+              // Resume the parser now we have a handler.
+              _subscription.resume();
+              return s;
+            }, onError: (e) {
               destroy();
-              request._onError(error);
+              throw e;
             });
-        // Resume the parser now we have a handler.
-        _subscription.resume();
-        return requestFuture;
     });
     return request;
   }
