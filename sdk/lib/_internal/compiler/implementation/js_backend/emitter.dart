@@ -311,7 +311,7 @@ class CodeEmitterTask extends CompilerTask {
 
         js('str += (") {" + body + "}\\nreturn " + cls)'),
 
-        js('constructor = (new Function(str))()')
+        js('constructor = new Function(str)()')
       ]),
 
       js('constructor.prototype = prototype'),
@@ -523,8 +523,8 @@ class CodeEmitterTask extends CompilerTask {
           js('nameNumber += diff'),
           js.for_('var remaining = nameNumber',
                   'remaining > 0',
-                  'remaining = ((remaining / 88) | 0)', [
-            js('codes.unshift(${$HASH} + (remaining % 88))')
+                  'remaining = (remaining / 88) | 0', [
+            js('codes.unshift(${$HASH} + remaining % 88)')
           ]),
           js('calculatedShortNames.push('
              '    String.fromCharCode.apply(String, codes))')
@@ -2653,21 +2653,20 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
   jsAst.Statement tryOptimizeOneShotInterceptor(Selector selector,
                                                 Set<ClassElement> classes) {
     jsAst.Expression isNumber(String variable) {
-      return js(variable).typeof.equals(js.string('number'));
+      return js('typeof $variable == "number"');
     }
 
     jsAst.Expression isNotObject(String variable) {
-      return js(variable).typeof.equals(js.string('object')).not;
+      return js('typeof $variable != "object"');
     }
 
     jsAst.Expression isInt(String variable) {
-      jsAst.Expression receiver = js(variable);
       return isNumber(variable).binary('&&',
-          js('Math')['floor'](receiver).equals(receiver));
+          js('Math.floor($variable) == $variable'));
     }
 
     jsAst.Expression tripleShiftZero(jsAst.Expression receiver) {
-      return receiver.binary('>>>', js.toExpression(0));
+      return receiver.binary('>>>', js('0'));
     }
 
     if (selector.isOperator()) {
@@ -2680,12 +2679,10 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
         //    }
         // :].
         List<jsAst.Statement> body = <jsAst.Statement>[];
-        body.add(js.if_('receiver == null',
-                        js.return_(js('a0').equals(new jsAst.LiteralNull()))));
+        body.add(js.if_('receiver == null', js.return_(js('a0 == null'))));
         body.add(js.if_(
             isNotObject('receiver'),
-            js.return_(js('a0').equals(new jsAst.LiteralNull()).not.binary(
-                '&&', js('receiver').strictEquals(js('a0'))))));
+            js.return_(js('a0 != null && receiver === a0'))));
         return new jsAst.Block(body);
       }
       if (!classes.contains(backend.jsIntClass)
@@ -2715,7 +2712,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
         // [: if (typeof receiver == "number") return -receiver:].
         return js.if_(
             isNumber('receiver'),
-            js.return_(new jsAst.Prefix('-', js('receiver'))));
+            js.return_(js('-receiver')));
       } else {
         assert(name == '~');
         return js.if_(
@@ -2753,16 +2750,12 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
       if (!containsArray && !containsString) {
         return null;
       }
-      jsAst.Expression receiver = js('receiver');
-      jsAst.Expression arg0 = js('a0');
-      jsAst.Expression isIntAndAboveZero =
-          arg0.binary('>>>', js.toExpression(0)).strictEquals(arg0);
-      jsAst.Expression belowLength = arg0.binary('<', receiver['length']);
-      jsAst.Expression arrayCheck = receiver['constructor'].equals('Array');
+      jsAst.Expression isIntAndAboveZero = js('a0 >>> 0 === a0');
+      jsAst.Expression belowLength = js('a0 < receiver.length');
+      jsAst.Expression arrayCheck = js('receiver.constructor == "Array"');
 
       if (selector.isIndex()) {
-        jsAst.Expression stringCheck =
-            receiver.typeof.equals(js.string('string'));
+        jsAst.Expression stringCheck = js('typeof receiver == "string"');
         jsAst.Expression typeCheck;
         if (containsArray) {
           if (containsString) {
@@ -2777,13 +2770,13 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
 
         return js.if_(typeCheck,
                       js.if_(isIntAndAboveZero.binary('&&', belowLength),
-                             js.return_(receiver[arg0])));
+                             js.return_(js('receiver[a0]'))));
       } else {
         jsAst.Expression isImmutableArray = arrayCheck.binary(
-            '&&', receiver[r'immutable$list'].not);
+            '&&', js(r'!receiver[immutable$list]'));
         return js.if_(isImmutableArray.binary(
                       '&&', isIntAndAboveZero.binary('&&', belowLength)),
-                      js.return_(receiver[arg0].assign(js('a1'))));
+                      js.return_(js('receiver[a0] = a1')));
       }
     }
     return null;

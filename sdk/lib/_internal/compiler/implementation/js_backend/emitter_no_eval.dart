@@ -75,7 +75,7 @@ class CodeEmitterNoEvalTask extends CodeEmitterTask {
   List buildProtoSupportCheck() {
     // We don't modify the prototypes in CSP mode. Therefore we can have an
     // easier prototype-check.
-    return [js('var $supportsProtoName = !(!({}.__proto__))')];
+    return [js('var $supportsProtoName = !!{}.__proto__')];
   }
 
   jsAst.Expression buildConstructor(String mangledName,
