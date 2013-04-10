@@ -321,8 +321,11 @@ class Elements {
   static bool isClosureSend(Send send, Element element) {
     if (send.isPropertyAccess) return false;
     if (send.receiver != null) return false;
+    Node selector = send.selector;
+    // this().
+    if (selector.isThis()) return true;
     // (o)() or foo()().
-    if (element == null && send.selector.asIdentifier() == null) return true;
+    if (element == null && selector.asIdentifier() == null) return true;
     if (element == null) return false;
     // foo() with foo a local or a parameter.
     return isLocal(element);
