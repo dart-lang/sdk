@@ -25,6 +25,9 @@ abstract class _HashSetBase<E> extends Collection<E> implements Set<E> {
     return true;
   }
 
+  /** Create a new Set of the same type as this. */
+  Set _newSet();
+
   Set<E> intersection(Set<E> other) {
     Set<E> result = _newSet();
     if (other.length < this.length) {

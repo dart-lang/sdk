@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:collection";
 import "package:expect/expect.dart";
 
 testRemove(Collection base) {
@@ -106,7 +107,25 @@ void main() {
       testRetainAll(base.toSet(), deltaSet);
       testRemoveWhere(base.toSet(), deltaSet.contains);
       testRetainWhere(base.toSet(), (e) => !deltaSet.contains(e));
+
+      // Test the ListBase class's List implementation.
+      testRemoveAll(new MyList(base.toList()), delta);
+      testRemoveAll(new MyList(base.toList()), deltaSet);
+      testRetainAll(new MyList(base.toList()), delta);
+      testRetainAll(new MyList(base.toList()), deltaSet);
+      testRemoveWhere(new MyList(base.toList()), deltaSet.contains);
+      testRetainWhere(new MyList(base.toList()),
+                         (e) => !deltaSet.contains(e));
+
     }
   }
 }
 
+class MyList<E> extends ListBase<E> {
+  List<E> _source;
+  MyList(this._source);
+  int get length => _source.length;
+  void set length(int length) { _source.length = length; }
+  E operator[](int index) => _source[index];
+  void operator[]=(int index, E value) { _source[index] = value; }
+}

@@ -118,6 +118,13 @@ abstract class List<E> implements Collection<E> {
   void operator []=(int index, E value);
 
   /**
+   * Returns the number of elements in the list.
+   *
+   * The valid indices for a list are 0 through `length - 1`.
+   */
+  int get length;
+
+  /**
    * Changes the length of the list. If [newLength] is greater than
    * the current [length], entries are initialized to [:null:]. Throws
    * an [UnsupportedError] if the list is not extendable.

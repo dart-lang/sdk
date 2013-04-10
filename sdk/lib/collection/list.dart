@@ -292,7 +292,7 @@ abstract class ListMixin<E> implements List<E> {
   }
 
 
-  void retainAll(Iterable<E> iterable) {
+  void retainAll(Iterable<E> elements) {
     if (elements is! Set) {
       elements = elements.toSet();
     }
@@ -327,7 +327,18 @@ abstract class ListMixin<E> implements List<E> {
     }
   }
 
+  void clear() { this.length = 0; }
+
   // List interface.
+
+  E removeLast() {
+    if (length == 0) {
+      throw new StateError("No elements");
+    }
+    E result = this[length - 1];
+    length--;
+    return result;
+  }
 
   void sort([Comparator<E> compare]) {
     Sort.sort(this, compare);
@@ -440,8 +451,8 @@ abstract class ListMixin<E> implements List<E> {
       if (startIndex < 0) {
         return -1;
       }
-      if (startIndex >= a.length) {
-        startIndex = a.length - 1;
+      if (startIndex >= this.length) {
+        startIndex = this.length - 1;
       }
     }
     for (int i = startIndex; i >= 0; i--) {
