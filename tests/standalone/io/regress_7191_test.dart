@@ -23,6 +23,9 @@ main() {
     process.stdout.listen((_) { },
                            onDone: () { process.stdin.writeBytes([0]); });
     process.stderr.listen((_) { });
-    process.exitCode.then((exitCode) => port.close());
+    process.exitCode.then((exitCode) {
+      port.close();
+      if (exitCode != 0) throw "Bad exit code";
+    });
   });
 }
