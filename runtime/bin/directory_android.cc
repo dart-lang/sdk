@@ -153,6 +153,7 @@ static bool ListRecursively(PathBuffer* path,
                             path,
                             recursive,
                             follow_links,
+                            seen,
                             listing) && success;
         break;
       case DT_REG:
@@ -236,6 +237,7 @@ static bool ListRecursively(PathBuffer* path,
                               path,
                               recursive,
                               follow_links,
+                              seen,
                               listing) && success;
         } else if (S_ISREG(entry_info.st_mode)) {
           success = HandleFile(entry.d_name,

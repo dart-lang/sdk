@@ -153,6 +153,7 @@ static bool ListRecursively(PathBuffer* path,
                             path,
                             recursive,
                             follow_links,
+                            seen,
                             listing) && success;
         break;
       case DT_REG:
