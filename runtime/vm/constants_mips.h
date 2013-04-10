@@ -31,11 +31,11 @@ enum Register {
   R19 = 19,
   R20 = 20,
   R21 = 21,
+  kLastFreeCpuRegister = 21,
   R22 = 22,
   R23 = 23,
   R24 = 24,
   R25 = 25,
-  kLastFreeCpuRegister = 25,
   R26 = 26,
   R27 = 27,
   R28 = 28,
@@ -144,6 +144,10 @@ const Register PP = S7;  // Caches object pool pointer in generated code.
 const Register SPREG = SP;  // Stack pointer register.
 const Register FPREG = FP;  // Frame pointer register.
 
+// The code that generates a comparison can be far away from the code that
+// generates the branch that uses the result of that comparison. In this case,
+// CMPRES is used for the result of the comparison.
+const Register CMPRES = T8;
 
 typedef uint32_t RegList;
 const RegList kAllCpuRegistersList = 0xFFFFFFFF;
@@ -162,10 +166,12 @@ static const int kLastParamSlotIndex = 3;
 static const int kFirstLocalSlotIndex = -2;
 
 
-// Values for the condition field.  // UNIMPLEMENTED.
+// Values for the condition field.
+// There is no condition field on MIPS, but Conditions are used and passed
+// around by the intermediate language, so we need them here, too.
 enum Condition {
-  kNoCondition = -1,
-  kMaxCondition = 16,
+  EQ,  // equal
+  NE,  // not equal
 };
 
 

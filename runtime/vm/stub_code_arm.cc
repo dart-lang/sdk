@@ -764,7 +764,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
 
   // Instance in R0, return its class-id in R0 as Smi.
   __ Bind(&get_class_id_as_smi);
-  Label not_smi;
+
   // Test if Smi -> load Smi class for comparison.
   __ tst(R0, ShifterOperand(kSmiTagMask));
   __ mov(R0, ShifterOperand(Smi::RawValue(kSmiCid)), EQ);

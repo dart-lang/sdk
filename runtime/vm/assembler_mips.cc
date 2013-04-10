@@ -204,20 +204,47 @@ void Assembler::LoadClass(Register result, Register object) {
 }
 
 
-void Assembler::EnterStubFrame() {
-  addiu(SP, SP, Immediate(-3 * kWordSize));
-  sw(ZR, Address(SP, 2 * kWordSize));  // PC marker is 0 in stubs.
-  sw(RA, Address(SP, 1 * kWordSize));
-  sw(FP, Address(SP, 0 * kWordSize));
-  mov(FP, SP);
+void Assembler::EnterStubFrame(bool uses_pp) {
+  if (uses_pp) {
+    addiu(SP, SP, Immediate(-4 * kWordSize));
+    sw(ZR, Address(SP, 3 * kWordSize));  // PC marker is 0 in stubs.
+    sw(RA, Address(SP, 2 * kWordSize));
+    sw(PP, Address(SP, 1 * kWordSize));
+    sw(FP, Address(SP, 0 * kWordSize));
+    mov(FP, SP);
+    // Setup pool pointer for this stub.
+    Label next;
+    bal(&next);
+    delay_slot()->mov(T0, RA);
+
+    const intptr_t object_pool_pc_dist =
+        Instructions::HeaderSize() - Instructions::object_pool_offset() +
+        CodeSize();
+
+    Bind(&next);
+    lw(PP, Address(T0, -object_pool_pc_dist));
+  } else {
+    addiu(SP, SP, Immediate(-3 * kWordSize));
+    sw(ZR, Address(SP, 2 * kWordSize));  // PC marker is 0 in stubs.
+    sw(RA, Address(SP, 1 * kWordSize));
+    sw(FP, Address(SP, 0 * kWordSize));
+    mov(FP, SP);
+  }
 }
 
 
-void Assembler::LeaveStubFrame() {
+void Assembler::LeaveStubFrame(bool uses_pp) {
   mov(SP, FP);
-  lw(RA, Address(SP, 1 * kWordSize));
-  lw(FP, Address(SP, 0 * kWordSize));
-  addiu(SP, SP, Immediate(3 * kWordSize));
+  if (uses_pp) {
+    lw(RA, Address(SP, 2 * kWordSize));
+    lw(PP, Address(SP, 1 * kWordSize));
+    lw(FP, Address(SP, 0 * kWordSize));
+    addiu(SP, SP, Immediate(4 * kWordSize));
+  } else {
+    lw(RA, Address(SP, 1 * kWordSize));
+    lw(FP, Address(SP, 0 * kWordSize));
+    addiu(SP, SP, Immediate(3 * kWordSize));
+  }
 }
 
 
@@ -250,14 +277,15 @@ void Assembler::EnterDartFrame(intptr_t frame_size) {
   // the PC at this sw instruction.
   Bind(&next);
 
-  if (offset != 0) {
-    // Adjust PC for any intrinsic code that could have been generated
-    // before a frame is created.
-    addiu(T0, T0, Immediate(-offset));
-  }
-
   // Save PC in frame for fast identification of corresponding code.
-  sw(T0, Address(SP, 3 * kWordSize));
+  if (offset == 0) {
+    sw(T0, Address(SP, 3 * kWordSize));
+  } else {
+    // Adjust saved PC for any intrinsic code that could have been generated
+    // before a frame is created.
+    AddImmediate(T1, T0, -offset);
+    sw(T1, Address(SP, 3 * kWordSize));
+  }
 
   // Set FP to the saved previous FP.
   addiu(FP, SP, Immediate(kWordSize));
@@ -266,7 +294,7 @@ void Assembler::EnterDartFrame(intptr_t frame_size) {
   lw(PP, Address(T0, -object_pool_pc_dist));
 
   // Reserve space for locals.
-  addiu(SP, SP, Immediate(-frame_size));
+  AddImmediate(SP, -frame_size);
 }
 
 
@@ -285,7 +313,7 @@ void Assembler::LeaveDartFrame() {
 void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
   // Reserve space for arguments and align frame before entering
   // the C++ world.
-  addiu(SP, SP, Immediate(-frame_space));
+  AddImmediate(SP, -frame_space);
   if (OS::ActivationFrameAlignment() > 0) {
     LoadImmediate(TMP1, ~(OS::ActivationFrameAlignment() - 1));
     and_(SP, SP, TMP1);

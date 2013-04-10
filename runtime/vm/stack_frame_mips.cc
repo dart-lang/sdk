@@ -9,6 +9,9 @@
 
 namespace dart {
 
+// The constant kExitLinkOffsetInEntryFrame must be kept in sync with the
+// code in the InvokeDartCode stub.
+static const int kExitLinkOffsetInEntryFrame = -10 * kWordSize;
 static const int kPcAddressOffsetFromSp = -2 * kWordSize;
 static const int kEntrypointMarkerOffsetFromFp = 2 * kWordSize;
 static const int kSpOffsetFromPreviousFp = 3 * kWordSize;
@@ -54,7 +57,10 @@ void StackFrameIterator::SetupLastExitFrameData() {
 
 
 void StackFrameIterator::SetupNextExitFrameData() {
-  UNIMPLEMENTED();
+  uword exit_address = entry_.fp() + kExitLinkOffsetInEntryFrame;
+  uword exit_marker = *reinterpret_cast<uword*>(exit_address);
+  frames_.fp_ = exit_marker;
+  frames_.sp_ = 0;
 }
 
 }  // namespace dart

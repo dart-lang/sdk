@@ -169,8 +169,8 @@ class Assembler : public ValueObject {
 
   // Set up a stub frame so that the stack traversal code can easily identify
   // a stub frame.
-  void EnterStubFrame();
-  void LeaveStubFrame();
+  void EnterStubFrame(bool uses_pp = false);
+  void LeaveStubFrame(bool uses_pp = false);
 
   // Instruction pattern from entrypoint is used in dart frame prologs
   // to set up the frame and save a PC which can be used to figure out the
@@ -565,6 +565,19 @@ class Assembler : public ValueObject {
     }
   }
 
+  void AddImmediate(Register rd, Register rs, int32_t value) {
+    if (Utils::IsInt(kImmBits, value)) {
+      addiu(rd, rs, Immediate(value));
+    } else {
+      LoadImmediate(TMP1, value);
+      addu(rd, rs, TMP1);
+    }
+  }
+
+  void AddImmediate(Register rd, int32_t value) {
+    AddImmediate(rd, rd, value);
+  }
+
   void BranchEqual(Register rd, int32_t value, Label* l) {
     LoadImmediate(TMP1, value);
     beq(rd, TMP1, l);
@@ -678,7 +691,7 @@ class Assembler : public ValueObject {
   void PushObject(const Object& object);
 
   // Sets register rd to zero if the object is equal to register rn,
-  // set to non-zero otherwise.
+  // sets it to non-zero otherwise.
   void CompareObject(Register rd, Register rn, const Object& object);
 
   void LoadClassId(Register result, Register object);

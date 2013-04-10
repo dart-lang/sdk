@@ -49,13 +49,21 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
 #define __ assembler()->
 
 
+// Fall through if bool_register contains null.
 void FlowGraphCompiler::GenerateBoolToJump(Register bool_register,
                                            Label* is_true,
                                            Label* is_false) {
-  UNIMPLEMENTED();
+  Label fall_through;
+  __ BranchEqual(bool_register, reinterpret_cast<intptr_t>(Object::null()),
+                 &fall_through);
+  __ BranchEqual(bool_register, Bool::True(), is_true);
+  __ b(is_false);
+  __ Bind(&fall_through);
 }
 
 
+// A0: instance (must be preserved).
+// A1: instantiator type arguments (if used).
 RawSubtypeTestCache* FlowGraphCompiler::GenerateCallSubtypeTestStub(
     TypeTestStubKind test_kind,
     Register instance_reg,
@@ -63,8 +71,28 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateCallSubtypeTestStub(
     Register temp_reg,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
-  UNIMPLEMENTED();
-  return NULL;
+  ASSERT(instance_reg == A0);
+  ASSERT(temp_reg == kNoRegister);  // Unused on MIPS.
+  const SubtypeTestCache& type_test_cache =
+      SubtypeTestCache::ZoneHandle(SubtypeTestCache::New());
+  __ LoadObject(A2, type_test_cache);
+  if (test_kind == kTestTypeOneArg) {
+    ASSERT(type_arguments_reg == kNoRegister);
+    __ LoadImmediate(A1, reinterpret_cast<intptr_t>(Object::null()));
+    __ BranchLink(&StubCode::Subtype1TestCacheLabel());
+  } else if (test_kind == kTestTypeTwoArgs) {
+    ASSERT(type_arguments_reg == kNoRegister);
+    __ LoadImmediate(A1, reinterpret_cast<intptr_t>(Object::null()));
+    __ BranchLink(&StubCode::Subtype2TestCacheLabel());
+  } else if (test_kind == kTestTypeThreeArgs) {
+    ASSERT(type_arguments_reg == A1);
+    __ BranchLink(&StubCode::Subtype3TestCacheLabel());
+  } else {
+    UNREACHABLE();
+  }
+  // Result is in V0: null -> not found, otherwise Bool::True or Bool::False.
+  GenerateBoolToJump(V0, is_instance_lbl, is_not_instance_lbl);
+  return type_test_cache.raw();
 }
 
 
@@ -153,13 +181,35 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
 }
 
 
+// Uses SubtypeTestCache to store instance class and result.
+// A0: instance to test.
+// Clobbers A1, A2, T0-T3.
+// Immediate class test already done.
+// TODO(srdjan): Implement a quicker subtype check, as type test
+// arrays can grow too high, but they may be useful when optimizing
+// code (type-feedback).
 RawSubtypeTestCache* FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
     intptr_t token_pos,
     const Class& type_class,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
-  UNIMPLEMENTED();
-  return NULL;
+  __ Comment("Subtype1TestCacheLookup");
+  const Register kInstanceReg = A0;
+  __ LoadClass(T0, kInstanceReg);
+  // T0: instance class.
+  // Check immediate superclass equality.
+  __ lw(T0, FieldAddress(T0, Class::super_type_offset()));
+  __ lw(T0, FieldAddress(T0, Type::type_class_offset()));
+  __ BranchEqual(T0, type_class, is_instance_lbl);
+
+  const Register kTypeArgumentsReg = kNoRegister;
+  const Register kTempReg = kNoRegister;
+  return GenerateCallSubtypeTestStub(kTestTypeOneArg,
+                                     kInstanceReg,
+                                     kTypeArgumentsReg,
+                                     kTempReg,
+                                     is_instance_lbl,
+                                     is_not_instance_lbl);
 }
 
 
@@ -329,8 +379,8 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
   __ sw(A2, Address(SP, 1 * kWordSize));
   __ sw(A1, Address(SP, 0 * kWordSize));
   __ PushObject(dst_name);  // Push the name of the destination.
-  __ LoadObject(A0, test_cache);
-  __ Push(A0);
+  __ LoadObject(T0, test_cache);
+  __ Push(T0);
   GenerateCallRuntime(token_pos, deopt_id, kTypeCheckRuntimeEntry, locs);
   // Pop the parameters supplied to the runtime entry. The result of the
   // type check runtime call is the checked value.
@@ -405,11 +455,11 @@ void FlowGraphCompiler::CopyParameters() {
   __ subu(T1, T1, T2);
   __ sll(T1, T1, 1);
   __ addu(T1, FP, T1);
-  __ addiu(T1, T1, Immediate(kLastParamSlotIndex * kWordSize));
+  __ AddImmediate(T1, kLastParamSlotIndex * kWordSize);
 
   // Let T0 point to the last copied positional argument, i.e. to
   // fp[kFirstLocalSlotIndex - (num_pos_args - 1)].
-  __ addiu(T0, FP, Immediate((kFirstLocalSlotIndex + 1) * kWordSize));
+  __ AddImmediate(T0, FP, (kFirstLocalSlotIndex + 1) * kWordSize);
   __ sll(T3, T2, 1);  // T2 is a Smi.
   __ subu(T0, T0, T3);
 
@@ -457,10 +507,10 @@ void FlowGraphCompiler::CopyParameters() {
     // fp[kLastParamSlotIndex + num_args - 1 - 0]; num_args (T1) is Smi.
     __ sll(T3, T1, 1);
     __ addu(T1, FP, T3);
-    __ addiu(T1, T1, Immediate((kLastParamSlotIndex - 1) * kWordSize));
+    __ AddImmediate(T1, (kLastParamSlotIndex - 1) * kWordSize);
     // Let T0 point to the entry of the first named argument.
-    __ addiu(T0, S4, Immediate(
-        ArgumentsDescriptor::first_named_entry_offset() - kHeapObjectTag));
+    __ AddImmediate(T0, S4,
+        ArgumentsDescriptor::first_named_entry_offset() - kHeapObjectTag);
     for (int i = 0; i < num_opt_named_params; i++) {
       Label load_default_value, assign_optional_parameter;
       const int param_pos = opt_param_position[i];
@@ -475,7 +525,7 @@ void FlowGraphCompiler::CopyParameters() {
       __ lw(T3, Address(T0, ArgumentsDescriptor::position_offset()));
       // T3 is arg_pos as Smi.
       // Point to next named entry.
-      __ addiu(T0, T0, Immediate(ArgumentsDescriptor::named_entry_size()));
+      __ AddImmediate(T0, ArgumentsDescriptor::named_entry_size());
       __ subu(T3, ZR, T3);
       __ sll(T3, T3, 1);
       __ addu(T3, T1, T3);
@@ -537,7 +587,7 @@ void FlowGraphCompiler::CopyParameters() {
     // We need to unwind the space we reserved for locals and copied parameters.
     // The NoSuchMethodFunction stub does not expect to see that area on the
     // stack.
-    __ addiu(SP, SP, Immediate(StackSize() * kWordSize));
+    __ AddImmediate(SP, StackSize() * kWordSize);
   }
   // The call below has an empty stackmap because we have just
   // dropped the spill slots.
@@ -730,7 +780,7 @@ void FlowGraphCompiler::CompileGraph() {
           // We need to unwind the space we reserved for locals and copied
           // parameters. The NoSuchMethodFunction stub does not expect to see
           // that area on the stack.
-          __ addiu(SP, SP, Immediate(StackSize() * kWordSize));
+          __ AddImmediate(SP, StackSize() * kWordSize);
         }
         // The call below has an empty stackmap because we have just
         // dropped the spill slots.
@@ -858,7 +908,22 @@ void FlowGraphCompiler::GenerateCallRuntime(intptr_t token_pos,
                                             intptr_t deopt_id,
                                             const RuntimeEntry& entry,
                                             LocationSummary* locs) {
-  __ Unimplemented("call runtime");
+  __ CallRuntime(entry);
+  AddCurrentDescriptor(PcDescriptors::kOther, deopt_id, token_pos);
+  RecordSafepoint(locs);
+  if (deopt_id != Isolate::kNoDeoptId) {
+    // Marks either the continuation point in unoptimized code or the
+    // deoptimization point in optimized code, after call.
+    if (is_optimizing()) {
+      AddDeoptIndexAtCall(deopt_id, token_pos);
+    } else {
+      // Add deoptimization continuation point after the call and before the
+      // arguments are removed.
+      AddCurrentDescriptor(PcDescriptors::kDeoptAfter,
+                           deopt_id,
+                           token_pos);
+    }
+  }
 }
 
 
@@ -932,7 +997,16 @@ void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
 void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
                                                   Register right,
                                                   bool needs_number_check) {
-  UNIMPLEMENTED();
+  if (needs_number_check) {
+    __ Push(left);
+    __ Push(right);
+    __ BranchLink(&StubCode::IdenticalWithNumberCheckLabel());
+    // Stub returns result in CMPRES. If it is 0, then left and right are equal.
+    __ Pop(right);
+    __ Pop(left);
+  } else {
+    __ subu(CMPRES, left, right);
+  }
 }
 
 
