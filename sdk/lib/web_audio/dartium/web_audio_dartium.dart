@@ -231,6 +231,10 @@ class AudioContext extends EventTarget {
   @DomName('AudioContext.completeEvent')
   @DocsEditable
   static const EventStreamProvider<Event> completeEvent = const EventStreamProvider<Event>('complete');
+  factory AudioContext() => _create();
+
+  @DocsEditable
+  static AudioContext _create() native "AudioContext_constructorCallback";
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -1112,6 +1116,10 @@ class ScriptProcessorNode extends AudioNode {
   @DomName('ScriptProcessorNode.bufferSize')
   @DocsEditable
   int get bufferSize native "ScriptProcessorNode_bufferSize_Getter";
+
+  @DomName('ScriptProcessorNode._setEventListener')
+  @DocsEditable
+  void _setEventListener(EventListener eventListener) native "ScriptProcessorNode__setEventListener_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

@@ -7771,7 +7771,7 @@ class _ChildrenElementList extends ListBase<Element> {
   }
 
   Iterable<Element> skip(int n) {
-    return _childElements.skipList(n);
+    return _childElements.skip(n);
   }
 
   Iterable<Element> skipWhile(bool test(Element value)) {
@@ -7960,7 +7960,7 @@ class _ChildrenElementList extends ListBase<Element> {
   }
 
   Map<int, Element> asMap() {
-    return _childElements.asMapList(this);
+    return _childElements.asMap();
   }
 
   String toString() {
