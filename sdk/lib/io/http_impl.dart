@@ -724,7 +724,7 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
     }
   }
 
-  Future<HttpClientResponse> get response {
+  Future<HttpClientResponse> get done {
     if (_response == null) {
       _response = Future.wait([_responseCompleter.future, super.done])
         .then((list) => list[0]);
@@ -732,16 +732,14 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
     return _response;
   }
 
-  Future<HttpClientResponse> get done => response;
-
   Future<HttpClientResponse> consume(Stream<List<int>> stream) {
     super.consume(stream);
-    return response;
+    return done;
   }
 
   Future<HttpClientResponse> close() {
     super.close();
-    return response;
+    return done;
   }
 
   int get maxRedirects => _maxRedirects;

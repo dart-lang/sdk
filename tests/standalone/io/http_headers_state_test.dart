@@ -53,7 +53,7 @@ void test(int totalConnections, [String body]) {
           // Cannot mutate request headers when data has been sent.
           Expect.throws(() => request.headers.add("X-Request-Header", "value3"),
                         (e) => e is HttpException);
-          return request.response;
+          return request.done;
         })
         .then((HttpClientResponse response) {
           // Cannot mutate response headers.

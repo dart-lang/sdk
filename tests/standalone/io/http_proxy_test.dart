@@ -104,8 +104,7 @@ class ProxyServer {
             clientRequest.headers.add(
                 HttpHeaders.VIA, "${viaPrefix}1.1 localhost:$port");
             // Copy all content.
-            request.pipe(clientRequest);
-            return clientRequest.response;
+            return request.pipe(clientRequest);
           })
           .then((HttpClientResponse clientResponse) {
             clientResponse.pipe(request.response);

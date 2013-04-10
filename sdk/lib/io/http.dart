@@ -967,7 +967,7 @@ abstract class HttpClient {
  * using one of the write methods taking a string.
  */
 abstract class HttpClientRequest
-    implements IOSink<HttpClientRequest> {
+    implements IOSink<HttpClientResponse> {
   /**
    * Gets and sets the content length of the request. If the size of
    * the request is not known in advance set content length to -1,
@@ -996,10 +996,10 @@ abstract class HttpClientRequest
    * available. If an error occurs before the response is available, this
    * future will complete with an error.
    */
-  Future<HttpClientResponse> get response;
+  Future<HttpClientResponse> get done;
 
   /**
-   * Close the request for input. Returns the value of [response].
+   * Close the request for input. Returns the value of [done].
    */
   Future<HttpClientResponse> close();
 

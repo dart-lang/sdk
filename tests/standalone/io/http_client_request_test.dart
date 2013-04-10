@@ -35,13 +35,12 @@ void testClientRequest(void handler(request)) {
 
 void testResponseDone() {
   testClientRequest((request) {
-    request.close();
-    request.done.then((res1) {
-      request.response.then((res2) {
+    request.close().then((res1) {
+      request.done.then((res2) {
         Expect.equals(res1, res2);
       });
     });
-    return request.response;
+    return request.done;
   });
 }
 
@@ -54,7 +53,7 @@ void testBadResponseAdd() {
     request.done.catchError((error) {
       port.close();
     }, test: (e) => e is HttpException);
-    return request.response;
+    return request.done;
   });
 
   testClientRequest((request) {
@@ -66,7 +65,7 @@ void testBadResponseAdd() {
     request.done.catchError((error) {
       port.close();
     }, test: (e) => e is HttpException);
-    return request.response;
+    return request.done;
   });
 
   testClientRequest((request) {
@@ -79,7 +78,7 @@ void testBadResponseAdd() {
     request.done.catchError((error) {
       port.close();
     }, test: (e) => e is HttpException);
-    return request.response;
+    return request.done;
   });
 }
 
@@ -91,7 +90,7 @@ void testBadResponseClose() {
     request.done.catchError((error) {
       port.close();
     }, test: (e) => e is HttpException);
-    return request.response;
+    return request.done;
   });
 
   testClientRequest((request) {
@@ -102,7 +101,7 @@ void testBadResponseClose() {
     request.done.catchError((error) {
       port.close();
     }, test: (e) => e is HttpException);
-    return request.response;
+    return request.done;
   });
 }
 
