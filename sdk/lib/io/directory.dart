@@ -152,7 +152,11 @@ abstract class Directory extends FileSystemEntity {
    * If [followLinks] is true, then working links are reported as
    * directories or files, depending on
    * their type, and links to directories are recursed into.
-   * Broken links are reported as [Link] objects,
+   * Broken links are reported as [Link] objects.
+   * If a symbolic link makes a loop in the file system, then a recursive
+   * listing will not follow a link twice in the
+   * same recursive descent, but will report it as a [Link]
+   * the second time it is seen.
    *
    * The result is a stream of [FileSystemEntity] objects
    * for the directories, files, and links.
@@ -171,7 +175,11 @@ abstract class Directory extends FileSystemEntity {
    * If [followLinks] is true, then working links are reported as
    * directories or files, depending on
    * their type, and links to directories are recursed into.
-   * Broken links are reported as [Link] objects,
+   * Broken links are reported as [Link] objects.
+   * If a link makes a loop in the file system, then a recursive
+   * listing will not follow a link twice in the
+   * same recursive descent, but will report it as a [Link]
+   * the second time it is seen.
    *
    * Returns a [List] containing [FileSystemEntity] objects for the
    * directories, files, and links.

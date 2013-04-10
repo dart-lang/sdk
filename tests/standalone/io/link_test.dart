@@ -137,7 +137,34 @@ testCreateSync() {
   });
 }
 
+testCreateLoopingLink() {
+  Path base = new Path(new Directory('').createTempSync().path);
+  new Directory.fromPath(base.append('a/b/c')).create(recursive: true)
+  .then((_) =>
+    new Link.fromPath(base.append('a/b/c/d'))
+        .create(base.append('a/b').toNativePath()))
+  .then((_) =>
+    new Link.fromPath(base.append('a/b/c/e'))
+        .create(base.append('a').toNativePath()))
+  .then((_) =>
+    new Directory.fromPath(base.append('a'))
+        .list(recursive: true, followLinks: false)
+        .last)
+  .then((_) =>
+    // This directory listing must terminate, even though it contains loops.
+    new Directory.fromPath(base.append('a'))
+        .list(recursive: true, followLinks: true)
+        .last)
+  .then((_) =>
+    // This directory listing must terminate, even though it contains loops.
+    new Directory.fromPath(base.append('a/b/c'))
+        .list(recursive: true, followLinks: true)
+        .last)
+  .then((_) =>
+    new Directory.fromPath(base).delete(recursive: true));
+}
 
 main() {
   testCreateSync();
+  testCreateLoopingLink();
 }

@@ -54,10 +54,20 @@ class PathBuffer {
 };
 
 
+// A linked list of symbolic links, with their unique file system identifiers.
+// These are scanned to detect loops while doing a recursive directory listing.
+struct LinkList {
+  dev_t dev;
+  ino_t ino;
+  LinkList* next;
+};
+
+
 // Forward declarations.
 static bool ListRecursively(PathBuffer* path,
                             bool recursive,
                             bool follow_links,
+                            LinkList* seen,
                             DirectoryListing* listing);
 static bool DeleteRecursively(PathBuffer* path);
 
@@ -72,6 +82,7 @@ static bool HandleDir(char* dir_name,
                       PathBuffer* path,
                       bool recursive,
                       bool follow_links,
+                      LinkList* seen,
                       DirectoryListing *listing) {
   if (strcmp(dir_name, ".") == 0) return true;
   if (strcmp(dir_name, "..") == 0) return true;
@@ -80,7 +91,8 @@ static bool HandleDir(char* dir_name,
     return false;
   }
   return listing->HandleDirectory(path->data) &&
-      (!recursive || ListRecursively(path, recursive, follow_links, listing));
+      (!recursive ||
+       ListRecursively(path, recursive, follow_links, seen, listing));
 }
 
 
@@ -109,6 +121,7 @@ static bool HandleLink(char* link_name,
 static bool ListRecursively(PathBuffer* path,
                             bool recursive,
                             bool follow_links,
+                            LinkList* seen,
                             DirectoryListing *listing) {
   if (!path->Add(File::PathSeparator())) {
     PostError(listing, path->data);
@@ -167,18 +180,54 @@ static bool ListRecursively(PathBuffer* path,
           break;
         }
         int stat_success;
-        if (follow_links) {
-          stat_success = TEMP_FAILURE_RETRY(stat(path->data, &entry_info));
-          if (stat_success == -1) {
-            stat_success = TEMP_FAILURE_RETRY(lstat(path->data, &entry_info));
-          }
-        } else {
-          stat_success = TEMP_FAILURE_RETRY(lstat(path->data, &entry_info));
-        }
+        stat_success = TEMP_FAILURE_RETRY(lstat(path->data, &entry_info));
         if (stat_success == -1) {
           success = false;
           PostError(listing, path->data);
           break;
+        }
+        if (follow_links && S_ISLNK(entry_info.st_mode)) {
+          // Check to see if we are in a loop created by a symbolic link.
+          LinkList current_link = { entry_info.st_dev,
+                                    entry_info.st_ino,
+                                    seen };
+          LinkList* previous = seen;
+          bool looping_link = false;
+          while (previous != NULL) {
+            if (previous->dev == current_link.dev &&
+                previous->ino == current_link.ino) {
+              // Report the looping link as a link, rather than following it.
+              path->Reset(path_length);
+              success = HandleLink(entry.d_name,
+                                   path,
+                                   listing) && success;
+              looping_link = true;
+              break;
+            }
+            previous = previous->next;
+          }
+          if (looping_link) break;
+          stat_success = TEMP_FAILURE_RETRY(stat(path->data, &entry_info));
+          if (stat_success == -1) {
+            // Report a broken link as a link, even if follow_links is true.
+            path->Reset(path_length);
+            success = HandleLink(entry.d_name,
+                                 path,
+                                 listing) && success;
+            break;
+          }
+          if (S_ISDIR(entry_info.st_mode)) {
+            // Recurse into the subdirectory with current_link added to the
+            // linked list of seen file system links.
+            path->Reset(path_length);
+            success = HandleDir(entry.d_name,
+                                path,
+                                recursive,
+                                follow_links,
+                                &current_link,
+                                listing) && success;
+            break;
+          }
         }
         path->Reset(path_length);
         if (S_ISDIR(entry_info.st_mode)) {
@@ -186,6 +235,7 @@ static bool ListRecursively(PathBuffer* path,
                               path,
                               recursive,
                               follow_links,
+                              seen,
                               listing) && success;
         } else if (S_ISREG(entry_info.st_mode)) {
           success = HandleFile(entry.d_name,
@@ -327,7 +377,7 @@ bool Directory::List(const char* dir_name,
     PostError(listing, dir_name);
     return false;
   }
-  return ListRecursively(&path, recursive, follow_links, listing);
+  return ListRecursively(&path, recursive, follow_links, NULL, listing);
 }
 
 

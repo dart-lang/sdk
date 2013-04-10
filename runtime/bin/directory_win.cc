@@ -68,11 +68,20 @@ static bool IsBrokenLink(const wchar_t* link_name) {
   }
 }
 
+// A linked list structure holding a link target's unique file system ID.
+// Used to detect loops in the file system when listing recursively.
+struct LinkList {
+  DWORD volume;
+  DWORD id_low;
+  DWORD id_high;
+  LinkList* next;
+};
 
 // Forward declarations.
 static bool ListRecursively(PathBuffer* path,
                             bool recursive,
                             bool follow_links,
+                            LinkList* seen,
                             DirectoryListing* listing);
 static bool DeleteRecursively(PathBuffer* path);
 
@@ -89,6 +98,7 @@ static bool HandleDir(wchar_t* dir_name,
                       PathBuffer* path,
                       bool recursive,
                       bool follow_links,
+                      LinkList* seen,
                       DirectoryListing* listing) {
   if (wcscmp(dir_name, L".") == 0) return true;
   if (wcscmp(dir_name, L"..") == 0) return true;
@@ -100,7 +110,8 @@ static bool HandleDir(wchar_t* dir_name,
   bool ok = listing->HandleDirectory(utf8_path);
   free(utf8_path);
   return ok &&
-      (!recursive || ListRecursively(path, recursive, follow_links, listing));
+      (!recursive ||
+       ListRecursively(path, recursive, follow_links, seen, listing));
 }
 
 
@@ -136,6 +147,7 @@ static bool HandleEntry(LPWIN32_FIND_DATAW find_file_data,
                         PathBuffer* path,
                         bool recursive,
                         bool follow_links,
+                        LinkList* seen,
                         DirectoryListing* listing) {
   DWORD attributes = find_file_data->dwFileAttributes;
   if ((attributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0) {
@@ -144,11 +156,53 @@ static bool HandleEntry(LPWIN32_FIND_DATAW find_file_data,
     }
     int path_length = path->length;
     if (!path->Add(find_file_data->cFileName)) return false;
-    bool broken = IsBrokenLink(path->data);
+    HANDLE handle = CreateFileW(
+        path->data,
+        0,
+        FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+        NULL,
+        OPEN_EXISTING,
+        FILE_FLAG_BACKUP_SEMANTICS,
+        NULL);
     path->Reset(path_length);
-    if (broken) {
+    if (handle == INVALID_HANDLE_VALUE) {
       // Report as (broken) link.
       return HandleLink(find_file_data->cFileName, path, listing);
+    }
+    if ((attributes & FILE_ATTRIBUTE_DIRECTORY) != 0) {
+      // Check the seen link targets to see if we are in a file system loop.
+      LinkList current_link;
+      BY_HANDLE_FILE_INFORMATION info;
+      // Get info
+      if (!GetFileInformationByHandle(handle, &info)) {
+        DWORD error = GetLastError();
+        CloseHandle(handle);
+        SetLastError(error);
+        PostError(listing, path->data);
+        return false;
+      }
+      CloseHandle(handle);
+      current_link.volume = info.dwVolumeSerialNumber;
+      current_link.id_low = info.nFileIndexLow;
+      current_link.id_high = info.nFileIndexHigh;
+      current_link.next = seen;
+      LinkList* previous = seen;
+      while (previous != NULL) {
+        if (previous->volume == current_link.volume &&
+            previous->id_low == current_link.id_low &&
+            previous->id_high == current_link.id_high) {
+          // Report the looping link as a link, rather than following it.
+          return HandleLink(find_file_data->cFileName, path, listing);
+        }
+        previous = previous->next;
+      }
+      // Recurse into the directory, adding current link to the seen links list.
+      return HandleDir(find_file_data->cFileName,
+                       path,
+                       recursive,
+                       follow_links,
+                       &current_link,
+                       listing);
     }
   }
   if ((attributes & FILE_ATTRIBUTE_DIRECTORY) != 0) {
@@ -156,6 +210,7 @@ static bool HandleEntry(LPWIN32_FIND_DATAW find_file_data,
                      path,
                      recursive,
                      follow_links,
+                     seen,
                      listing);
   } else {
     return HandleFile(find_file_data->cFileName, path, listing);
@@ -166,6 +221,7 @@ static bool HandleEntry(LPWIN32_FIND_DATAW find_file_data,
 static bool ListRecursively(PathBuffer* path,
                             bool recursive,
                             bool follow_links,
+                            LinkList* seen,
                             DirectoryListing* listing) {
   if (!path->Add(L"\\*")) {
     PostError(listing, path->data);
@@ -188,6 +244,7 @@ static bool ListRecursively(PathBuffer* path,
                              path,
                              recursive,
                              follow_links,
+                             seen,
                              listing);
 
   while ((FindNextFileW(find_handle, &find_file_data) != 0)) {
@@ -196,6 +253,7 @@ static bool ListRecursively(PathBuffer* path,
                           path,
                           recursive,
                           follow_links,
+                          seen,
                           listing) && success;
   }
 
@@ -320,7 +378,7 @@ bool Directory::List(const char* dir_name,
     return false;
   }
   free(const_cast<wchar_t*>(system_name));
-  return ListRecursively(&path, recursive, follow_links, listing);
+  return ListRecursively(&path, recursive, follow_links, NULL, listing);
 }
 
 
