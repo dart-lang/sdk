@@ -2752,7 +2752,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
       }
       jsAst.Expression isIntAndAboveZero = js('a0 >>> 0 === a0');
       jsAst.Expression belowLength = js('a0 < receiver.length');
-      jsAst.Expression arrayCheck = js('receiver.constructor == "Array"');
+      jsAst.Expression arrayCheck = js('receiver.constructor == Array');
 
       if (selector.isIndex()) {
         jsAst.Expression stringCheck = js('typeof receiver == "string"');
@@ -2773,7 +2773,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
                              js.return_(js('receiver[a0]'))));
       } else {
         jsAst.Expression isImmutableArray = arrayCheck.binary(
-            '&&', js(r'!receiver[immutable$list]'));
+            '&&', js(r'!receiver.immutable$list'));
         return js.if_(isImmutableArray.binary(
                       '&&', isIntAndAboveZero.binary('&&', belowLength)),
                       js.return_(js('receiver[a0] = a1')));
