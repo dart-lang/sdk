@@ -1705,7 +1705,7 @@ class Dartdoc {
    */
   annotateDynamicType(ContainerMirror enclosingType,
                       TypeMirror type) {
-    annotateType(enclosingType, type, type.isDynamic ? 'dynamic' : null);
+    annotateType(enclosingType, type, type.isDynamic ? 'dynamic ' : null);
   }
 
   /**
