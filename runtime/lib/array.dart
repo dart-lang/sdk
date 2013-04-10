@@ -174,7 +174,7 @@ class _ObjectArray<E> implements List<E> {
     return this.length == 0;
   }
 
-  Iterable<T> get reversed => IterableMixinWorkaround.reversedList(this);
+  Iterable<E> get reversed => IterableMixinWorkaround.reversedList(this);
 
   void sort([int compare(E a, E b)]) {
     IterableMixinWorkaround.sortList(this, compare);
@@ -421,7 +421,7 @@ class _ImmutableArray<E> implements List<E> {
     return this.length == 0;
   }
 
-  Iterable<T> get reversed => IterableMixinWorkaround.reversedList(this);
+  Iterable<E> get reversed => IterableMixinWorkaround.reversedList(this);
 
   void sort([int compare(E a, E b)]) {
     throw new UnsupportedError(
