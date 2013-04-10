@@ -35,7 +35,7 @@ class _WrappedList<E> implements List<E> {
 
   bool every(bool f(E element)) => _list.every(f);
 
-  String join([String separator]) => _list.join(separator);
+  String join([String separator = ""]) => _list.join(separator);
 
   bool any(bool f(E element)) => _list.any(f);
 

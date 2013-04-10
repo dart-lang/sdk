@@ -235,7 +235,7 @@ class SqlResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
 
   void forEach(void f(Map element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(Map element)) =>

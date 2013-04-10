@@ -303,7 +303,7 @@ abstract class _TypedListBase {
     return IterableMixinWorkaround.mapList(this, f);
   }
 
-  String join([String separator]) {
+  String join([String separator = ""]) {
     return IterableMixinWorkaround.join(this, separator);
   }
 

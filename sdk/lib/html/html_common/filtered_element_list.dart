@@ -49,7 +49,7 @@ class FilteredElementList extends ListBase<Element> {
     removeRange(newLength, len - newLength);
   }
 
-  String join([String separator]) => _filtered.join(separator);
+  String join([String separator = ""]) => _filtered.join(separator);
 
   void add(Element value) {
     _childNodes.add(value);

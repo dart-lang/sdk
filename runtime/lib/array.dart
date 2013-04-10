@@ -106,7 +106,7 @@ class _ObjectArray<E> implements List<E> {
     IterableMixinWorkaround.forEach(this, f);
   }
 
-  String join([String separator]) {
+  String join([String separator = ""]) {
     return IterableMixinWorkaround.joinList(this, separator);
   }
 
@@ -357,7 +357,7 @@ class _ImmutableArray<E> implements List<E> {
     return IterableMixinWorkaround.mapList(this, f);
   }
 
-  String join([String separator]) {
+  String join([String separator = ""]) {
     return IterableMixinWorkaround.joinList(this, separator);
   }
 

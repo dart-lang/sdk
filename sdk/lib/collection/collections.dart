@@ -282,7 +282,7 @@ class IterableMixinWorkaround {
 
   static String join(Iterable iterable, [String separator]) {
     StringBuffer buffer = new StringBuffer();
-    buffer.writeAll(iterable, separator == null ? "" : separator);
+    buffer.writeAll(iterable, separator);
     return buffer.toString();
   }
 
@@ -290,15 +290,15 @@ class IterableMixinWorkaround {
     if (list.isEmpty) return "";
     if (list.length == 1) return "${list[0]}";
     StringBuffer buffer = new StringBuffer();
-    if (separator == null || separator == "") {
+    if (separator.isEmpty) {
       for (int i = 0; i < list.length; i++) {
-        buffer.write("${list[i]}");
+        buffer.write(list[i]);
       }
     } else {
-      buffer.write("${list[0]}");
+      buffer.write(list[0]);
       for (int i = 1; i < list.length; i++) {
         buffer.write(separator);
-        buffer.write("${list[i]}");
+        buffer.write(list[i]);
       }
     }
     return buffer.toString();

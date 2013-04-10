@@ -181,9 +181,9 @@ abstract class ListMixin<E> implements List<E> {
     return max;
   }
 
-  String join([String separator]) {
+  String join([String separator = ""]) {
     int length = this.length;
-    if (separator != null && !separator.isEmpty) {
+    if (!separator.isEmpty) {
       if (length == 0) return "";
       String first = "${this[0]}";
       if (length != this.length) {
@@ -192,7 +192,7 @@ abstract class ListMixin<E> implements List<E> {
       StringBuffer buffer = new StringBuffer(first);
       for (int i = 1; i < length; i++) {
         buffer.write(separator);
-        buffer.write("${this[i]}");
+        buffer.write(this[i]);
         if (length != this.length) {
           throw new ConcurrentModificationError(this);
         }
@@ -201,7 +201,7 @@ abstract class ListMixin<E> implements List<E> {
     } else {
       StringBuffer buffer = new StringBuffer();
       for (int i = 0; i < length; i++) {
-        buffer.write("${this[i]}");
+        buffer.write(this[i]);
         if (length != this.length) {
           throw new ConcurrentModificationError(this);
         }

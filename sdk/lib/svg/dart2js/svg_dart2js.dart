@@ -3042,7 +3042,7 @@ class LengthList implements JavaScriptIndexingBehavior, List<Length> native "*SV
 
   void forEach(void f(Length element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(Length element)) =>
@@ -3687,7 +3687,7 @@ class NumberList implements JavaScriptIndexingBehavior, List<Number> native "*SV
 
   void forEach(void f(Number element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(Number element)) =>
@@ -4563,7 +4563,7 @@ class PathSegList implements JavaScriptIndexingBehavior, List<PathSeg> native "*
 
   void forEach(void f(PathSeg element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(PathSeg element)) =>
@@ -5469,7 +5469,7 @@ class StringList implements JavaScriptIndexingBehavior, List<String> native "*SV
 
   void forEach(void f(String element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(String element)) =>
@@ -6648,7 +6648,7 @@ class TransformList implements List<Transform>, JavaScriptIndexingBehavior nativ
 
   void forEach(void f(Transform element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(Transform element)) =>
@@ -7186,7 +7186,7 @@ class _ElementInstanceList implements JavaScriptIndexingBehavior, List<ElementIn
 
   void forEach(void f(ElementInstance element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(ElementInstance element)) =>

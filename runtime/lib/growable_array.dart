@@ -242,11 +242,11 @@ class _GrowableObjectArray<T> implements List<T> {
     }
   }
 
-  String join([String separator]) {
+  String join([String separator = ""]) {
     if (isEmpty) return "";
     if (this.length == 1) return "${this[0]}";
     StringBuffer buffer = new StringBuffer();
-    if (separator == null || separator == "") {
+    if (separator.isEmpty) {
       for (int i = 0; i < this.length; i++) {
         buffer.write("${this[i]}");
       }

@@ -40,7 +40,7 @@ class CodeBuffer implements StringBuffer {
   CodeBuffer writeAll(Iterable<Object> objects, [String separator = ""]) {
     Iterator iterator = objects.iterator;
     if (!iterator.moveNext()) return this;
-    if (separator == "") {
+    if (separator.isEmpty) {
       do {
         write(iterator.current);
       } while (iterator.moveNext());

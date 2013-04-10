@@ -3303,7 +3303,7 @@ class LengthList extends NativeFieldWrapperClass1 implements List<Length> {
 
   void forEach(void f(Length element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(Length element)) =>
@@ -4025,7 +4025,7 @@ class NumberList extends NativeFieldWrapperClass1 implements List<Number> {
 
   void forEach(void f(Number element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(Number element)) =>
@@ -5174,7 +5174,7 @@ class PathSegList extends NativeFieldWrapperClass1 implements List<PathSeg> {
 
   void forEach(void f(PathSeg element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(PathSeg element)) =>
@@ -6177,7 +6177,7 @@ class StringList extends NativeFieldWrapperClass1 implements List<String> {
 
   void forEach(void f(String element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(String element)) =>
@@ -7445,7 +7445,7 @@ class TransformList extends NativeFieldWrapperClass1 implements List<Transform> 
 
   void forEach(void f(Transform element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(Transform element)) =>
@@ -8037,7 +8037,7 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 implements List<Elem
 
   void forEach(void f(ElementInstance element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(ElementInstance element)) =>

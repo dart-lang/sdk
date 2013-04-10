@@ -30,7 +30,7 @@ $endif
 
   void forEach(void f($E element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f($E element)) =>

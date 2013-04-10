@@ -146,9 +146,9 @@ abstract class Iterable<E> {
    * Then concatenates the strings, optionally separated by the [separator]
    * string.
    */
-  String join([String separator]) {
+  String join([String separator = ""]) {
     StringBuffer buffer = new StringBuffer();
-    buffer.writeAll(this, separator == null ? "" : separator);
+    buffer.writeAll(this, separator);
     return buffer.toString();
   }
 

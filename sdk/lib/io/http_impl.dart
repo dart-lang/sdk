@@ -385,7 +385,7 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
       if (isFirst) {
         isFirst = false;
       } else {
-        if (separator != "") write(separator);
+        if (!separator.isEmpty) write(separator);
       }
       write(obj);
     }

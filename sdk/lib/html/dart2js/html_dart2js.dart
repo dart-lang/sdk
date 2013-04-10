@@ -6834,7 +6834,7 @@ class DomMimeTypeArray implements JavaScriptIndexingBehavior, List<DomMimeType> 
 
   void forEach(void f(DomMimeType element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(DomMimeType element)) =>
@@ -7109,7 +7109,7 @@ class DomPluginArray implements JavaScriptIndexingBehavior, List<DomPlugin> nati
 
   void forEach(void f(DomPlugin element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(DomPlugin element)) =>
@@ -7461,7 +7461,7 @@ class DomStringList implements JavaScriptIndexingBehavior, List<String> native "
 
   void forEach(void f(String element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(String element)) =>
@@ -7742,7 +7742,7 @@ class _ChildrenElementList extends ListBase<Element> {
     return false;
   }
 
-  String join([String separator]) {
+  String join([String separator = ""]) {
     return _childElements.join(separator);
   }
 
@@ -10222,7 +10222,7 @@ class FileList implements JavaScriptIndexingBehavior, List<File> native "*FileLi
 
   void forEach(void f(File element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(File element)) =>
@@ -10719,7 +10719,7 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 
   void forEach(void f(num element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(num element)) =>
@@ -10958,7 +10958,7 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
 
   void forEach(void f(num element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(num element)) =>
@@ -11617,7 +11617,7 @@ class HtmlAllCollection implements JavaScriptIndexingBehavior, List<Node> native
 
   void forEach(void f(Node element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(Node element)) =>
@@ -11845,7 +11845,7 @@ class HtmlCollection implements JavaScriptIndexingBehavior, List<Node> native "*
 
   void forEach(void f(Node element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(Node element)) =>
@@ -13892,7 +13892,7 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(int element)) =>
@@ -14131,7 +14131,7 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(int element)) =>
@@ -14370,7 +14370,7 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
 
   void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(int element)) =>
@@ -17404,7 +17404,7 @@ class NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeLi
 
   void forEach(void f(Node element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(Node element)) =>
@@ -19714,7 +19714,7 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
 
   void forEach(void f(SourceBuffer element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(SourceBuffer element)) =>
@@ -20015,7 +20015,7 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
 
   void forEach(void f(SpeechGrammar element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(SpeechGrammar element)) =>
@@ -21479,7 +21479,7 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
 
   void forEach(void f(TextTrackCue element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(TextTrackCue element)) =>
@@ -21705,7 +21705,7 @@ class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, L
 
   void forEach(void f(TextTrack element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(TextTrack element)) =>
@@ -22157,7 +22157,7 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
 
   void forEach(void f(Touch element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(Touch element)) =>
@@ -22646,7 +22646,7 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
 
   void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(int element)) =>
@@ -22885,7 +22885,7 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
 
   void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(int element)) =>
@@ -23124,7 +23124,7 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
 
   void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(int element)) =>
@@ -23360,7 +23360,7 @@ class Uint8ClampedArray extends Uint8Array implements JavaScriptIndexingBehavior
 
   void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(int element)) =>
@@ -25647,7 +25647,7 @@ class _ClientRectList implements JavaScriptIndexingBehavior, List<Rect> native "
 
   void forEach(void f(Rect element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(Rect element)) =>
@@ -25874,7 +25874,7 @@ class _CssRuleList implements JavaScriptIndexingBehavior, List<CssRule> native "
 
   void forEach(void f(CssRule element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(CssRule element)) =>
@@ -26092,7 +26092,7 @@ class _CssValueList extends _CSSValue implements JavaScriptIndexingBehavior, Lis
 
   void forEach(void f(_CSSValue element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(_CSSValue element)) =>
@@ -26378,7 +26378,7 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*En
 
   void forEach(void f(Entry element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(Entry element)) =>
@@ -26596,7 +26596,7 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<_EntrySync> na
 
   void forEach(void f(_EntrySync element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(_EntrySync element)) =>
@@ -26857,7 +26857,7 @@ class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "
 
   void forEach(void f(Gamepad element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(Gamepad element)) =>
@@ -27138,7 +27138,7 @@ class _NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*N
 
   void forEach(void f(Node element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(Node element)) =>
@@ -27427,7 +27427,7 @@ class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechI
 
   void forEach(void f(SpeechInputResult element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(SpeechInputResult element)) =>
@@ -27645,7 +27645,7 @@ class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<S
 
   void forEach(void f(SpeechRecognitionResult element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(SpeechRecognitionResult element)) =>
@@ -27863,7 +27863,7 @@ class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> na
 
   void forEach(void f(StyleSheet element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(StyleSheet element)) =>
@@ -28565,7 +28565,7 @@ abstract class CssClassSet implements Set<String> {
     readClasses().forEach(f);
   }
 
-  String join([String separator]) => readClasses().join(separator);
+  String join([String separator = ""]) => readClasses().join(separator);
 
   Iterable map(f(String element)) => readClasses().map(f);
 
@@ -31071,7 +31071,7 @@ class _WrappedList<E> implements List<E> {
 
   bool every(bool f(E element)) => _list.every(f);
 
-  String join([String separator]) => _list.join(separator);
+  String join([String separator = ""]) => _list.join(separator);
 
   bool any(bool f(E element)) => _list.any(f);
 

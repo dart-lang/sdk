@@ -96,8 +96,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     return IterableMixinWorkaround.mapList(this, f);
   }
 
-  String join([String separator]) {
-    if (separator == null) separator = "";
+  String join([String separator = ""]) {
     var list = new List(this.length);
     for (int i = 0; i < this.length; i++) {
       list[i] = "${this[i]}";

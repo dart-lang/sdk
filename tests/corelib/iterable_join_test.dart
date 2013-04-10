@@ -9,8 +9,12 @@ class IC {
   String toString() => "${count++}";
 }
 
-testJoin(String expect, Iterable iterable, [String separator]) {
-  Expect.equals(expect, iterable.join(separator));
+testJoin(String expect, Iterable iterable, [String separator = ""]) {
+  if (?separator) {
+    Expect.equals(expect, iterable.join(separator));
+  } else {
+    Expect.equals(expect, iterable.join());
+  }
 }
 
 testCollections() {

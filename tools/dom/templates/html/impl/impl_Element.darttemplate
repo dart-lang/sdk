@@ -63,7 +63,7 @@ class _ChildrenElementList extends ListBase<Element> {
     return false;
   }
 
-  String join([String separator]) {
+  String join([String separator = ""]) {
     return _childElements.join(separator);
   }
 

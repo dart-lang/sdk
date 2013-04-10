@@ -166,9 +166,9 @@ abstract class ListIterable<E> extends Iterable<E> {
     return max;
   }
 
-  String join([String separator]) {
+  String join([String separator = ""]) {
     int length = this.length;
-    if (separator != null && !separator.isEmpty) {
+    if (!separator.isEmpty) {
       if (length == 0) return "";
       String first = "${elementAt(0)}";
       if (length != this.length) {
@@ -177,7 +177,7 @@ abstract class ListIterable<E> extends Iterable<E> {
       StringBuffer buffer = new StringBuffer(first);
       for (int i = 1; i < length; i++) {
         buffer.write(separator);
-        buffer.write("${elementAt(i)}");
+        buffer.write(elementAt(i));
         if (length != this.length) {
           throw new ConcurrentModificationError(this);
         }
@@ -186,7 +186,7 @@ abstract class ListIterable<E> extends Iterable<E> {
     } else {
       StringBuffer buffer = new StringBuffer();
       for (int i = 0; i < length; i++) {
-        buffer.write("${elementAt(i)}");
+        buffer.write(elementAt(i));
         if (length != this.length) {
           throw new ConcurrentModificationError(this);
         }
@@ -667,7 +667,7 @@ class EmptyIterable<E> extends Iterable<E> {
 
   E max([int compare(E a, E b)]) => null;
 
-  String join([String separator]) => "";
+  String join([String separator = ""]) => "";
 
   Iterable<E> where(bool test(E element)) => this;
 

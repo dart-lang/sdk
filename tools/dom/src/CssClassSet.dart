@@ -42,7 +42,7 @@ abstract class CssClassSet implements Set<String> {
     readClasses().forEach(f);
   }
 
-  String join([String separator]) => readClasses().join(separator);
+  String join([String separator = ""]) => readClasses().join(separator);
 
   Iterable map(f(String element)) => readClasses().map(f);
 
