@@ -34,13 +34,17 @@ abstract class Link extends FileSystemEntity {
 
   /**
    * Creates a symbolic link. Returns a [:Future<Link>:] that completes with
-   * the link when it has been created. If the link exists, the function
+   * the link when it has been created. If the link exists,
    * the future will complete with an error.
    *
    * On the Windows platform, this will only work with directories, and the
    * target directory must exist. The link will be created as a Junction.
    * Only absolute links will be created, and relative paths to the target
    * will be converted to absolute paths.
+   *
+   * On other platforms, the posix symlink() call is used to make a symbolic
+   * link containing the string [target].  If [target] is a relative path,
+   * it will be interpreted relative to the directory containing the link.
    */
   Future<Link> create(String target);
 
@@ -52,6 +56,10 @@ abstract class Link extends FileSystemEntity {
    * target directory must exist. The link will be created as a Junction.
    * Only absolute links will be created, and relative paths to the target
    * will be converted to absolute paths.
+   *
+   * On other platforms, the posix symlink() call is used to make a symbolic
+   * link containing the string [target].  If [target] is a relative path,
+   * it will be interpreted relative to the directory containing the link.
    */
   void createSync(String target);
 
@@ -70,14 +78,18 @@ abstract class Link extends FileSystemEntity {
 
   /**
    * Deletes the link. Returns a [:Future<Link>:] that completes with
-   * the link when it has been deleted.  This does not delete, or otherwise
-   * affect, the target of the link.
+   * the link when it has been deleted. This does not delete, or otherwise
+   * affect, the target of the link. It also works on broken links, but if
+   * the link does not exist or is not actually a link, it completes the
+   * future with a LinkIOException.
    */
   Future<Link> delete();
 
   /**
    * Synchronously deletes the link. This does not delete, or otherwise
-   * affect, the target of the link.
+   * affect, the target of the link.  It also works on broken links, but if
+   * the link does not exist or is not actually a link, it throws a
+   * LinkIOException.
    */
   void deleteSync();
 
@@ -204,7 +216,7 @@ class _Link extends FileSystemEntity implements Link {
 
   static throwIfError(Object result, String msg) {
     if (result is OSError) {
-      throw new FileIOException(msg, result);
+      throw new LinkIOException(msg, result);
     }
   }
 
@@ -226,9 +238,7 @@ class _Link extends FileSystemEntity implements Link {
       case _OSERROR_RESPONSE:
         var err = new OSError(response[_OSERROR_RESPONSE_MESSAGE],
                               response[_OSERROR_RESPONSE_ERROR_CODE]);
-        return new FileIOException(message, err);
-      case _FILE_CLOSED_RESPONSE:
-        return new FileIOException("File closed");
+        return new LinkIOException(message, err);
       default:
         return new Exception("Unknown error");
     }
