@@ -704,6 +704,11 @@ class HtmlRenamer(object):
     if interface.id in _library_names:
       return _library_names[interface.id]
 
+    # TODO(ager, blois): The conditional has been removed from indexed db,
+    # so we can no longer determine the library based on the conditionals.
+    if interface.id.startswith("IDB"):
+      return 'indexed_db'
+
     if 'Conditional' in interface.ext_attrs:
       if 'WEB_AUDIO' in interface.ext_attrs['Conditional']:
         return 'web_audio'
