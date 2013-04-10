@@ -75,8 +75,7 @@
           'action': [
             'python',
             '../../tools/only_in_release_mode.py',
-            '--outputs=<(_outputs)',
-            '--mode=$(DART_BUILD_MODE)',
+            '<@(_outputs)',
             '--',
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
             '--package-root=<(PRODUCT_DIR)/packages/',

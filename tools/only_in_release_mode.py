@@ -5,40 +5,33 @@
 # BSD-style license that can be found in the LICENSE file.
 
 """
-Wrapper around a build action that should only be executed in "release" mode.
+Wrapper around a build action that should only be executed in release mode.
 
-The following options are accepted:
+The mode is defined via an environment varible DART_BUILD_MODE.
 
-  --mode=[release,debug]
+The arguments to the script are:
 
-  --outputs=files...
+  only_in_release_mode.py files... -- command arguments...
 
-If mode is not 'release', the script will create the files listed in
-outputs.  If mode is release, the script will execute the remaining
-command line arguments as a command.
-
-Files are a list of quoted filenames separated by space.  For example,
-'"file1.ext" "file2.ext"'
+If mode is not 'release', the script will create the files listed
+before --.  If mode is release, the script will execute the command
+after --.
 """
 
-import optparse
+import os
 import subprocess
 import sys
 
 
-def BuildOptions():
-  result = optparse.OptionParser()
-  result.add_option('-m', '--mode')
-  result.add_option('-o', '--outputs')
-  return result
-
-
 def Main():
-  (options, arguments) = BuildOptions().parse_args()
-  if options.mode != 'release':
-    print >> sys.stderr, 'Not running %s in mode=%s' % (arguments,
-                                                        options.mode)
-    for output in options.outputs.strip('"').split('" "'):
+  # Throws an error if '--' is not in the argument list.
+  separator_index = sys.argv.index('--')
+  outputs = sys.argv[1:separator_index]
+  arguments = sys.argv[separator_index + 1:]
+  mode = os.getenv('DART_BUILD_MODE', default='release')
+  if mode != 'release':
+    print >> sys.stderr, 'Not running %s in mode=%s' % (arguments, mode)
+    for output in outputs:
       with open(output, 'w'):
         # Create an empty file to ensure that we don't rerun this
         # command unnecessarily.
