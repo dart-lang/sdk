@@ -20,7 +20,8 @@ from generator import TypeRegistry
 from htmleventgenerator import HtmlEventGenerator
 from htmlrenamer import HtmlRenamer
 from systemhtml import DartLibraryEmitter, Dart2JSBackend,\
-                       HtmlDartInterfaceGenerator, DartLibrary, DartLibraries
+                       HtmlDartInterfaceGenerator, DartLibrary, DartLibraries,\
+                       HTML_LIBRARY_NAMES
 from systemnative import CPPLibraryEmitter, DartiumBackend
 from templateloader import TemplateLoader
 
@@ -28,9 +29,6 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 import utils
 
 _logger = logging.getLogger('dartdomgenerator')
-
-_libraries = ['chrome', 'html', 'indexed_db', 'svg', 'web_audio', 'web_gl',
-    'web_sql']
 
 class GeneratorOptions(object):
   def __init__(self, templates, database, type_registry, renamer):
@@ -102,7 +100,7 @@ def GenerateFromDatabase(common_database, dart2js_output_dir,
 
     dart_output_dir = os.path.join(dart2js_output_dir, 'dart')
     dart_libraries = DartLibraries(
-        _libraries, template_loader, 'dart2js', dart2js_output_dir)
+        HTML_LIBRARY_NAMES, template_loader, 'dart2js', dart2js_output_dir)
 
     RunGenerator(dart_libraries, dart_output_dir,
         template_loader, backend_factory)
@@ -121,7 +119,7 @@ def GenerateFromDatabase(common_database, dart2js_output_dir,
 
     dart_output_dir = os.path.join(dartium_output_dir, 'dart')
     dart_libraries = DartLibraries(
-        _libraries, template_loader, 'dartium', dartium_output_dir)
+        HTML_LIBRARY_NAMES, template_loader, 'dartium', dartium_output_dir)
 
     RunGenerator(dart_libraries, dart_output_dir,
                  template_loader, backend_factory)
@@ -195,13 +193,13 @@ def main():
 
   if 'htmldart2js' in systems:
     _logger.info('Generating dart2js single files.')
-    for library_name in _libraries:
+    for library_name in HTML_LIBRARY_NAMES:
       GenerateSingleFile(
           os.path.join(dart2js_output_dir, '%s_dart2js.dart' % library_name),
           os.path.join('..', '..', '..', 'sdk', 'lib', library_name, 'dart2js'))
   if 'htmldartium' in systems:
     _logger.info('Generating dartium single files.')
-    for library_name in _libraries:
+    for library_name in HTML_LIBRARY_NAMES:
       GenerateSingleFile(
           os.path.join(dartium_output_dir, '%s_dartium.dart' % library_name),
           os.path.join('..', '..', '..', 'sdk', 'lib', library_name, 'dartium'))

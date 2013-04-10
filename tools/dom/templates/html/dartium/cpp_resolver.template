@@ -6,6 +6,7 @@
 
 #include "config.h"
 $!INCLUDES
+#include <dart_api.h>
 
 namespace WebCore {
 

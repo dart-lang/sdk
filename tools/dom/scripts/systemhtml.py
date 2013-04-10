@@ -12,6 +12,9 @@ import os
 from generator import *
 from htmldartgenerator import *
 
+HTML_LIBRARY_NAMES = ['chrome', 'html', 'indexed_db', 'svg', 'web_audio',
+                      'web_gl', 'web_sql']
+
 _js_custom_members = monitored.Set('systemhtml._js_custom_members', [
     'ArrayBuffer.slice',
     'AudioBufferSourceNode.start',
