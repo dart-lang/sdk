@@ -2,18 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of dartdoc;
+
 // Generic utility functions.
-library utils;
-
-import 'dart:io';
-import 'dart:uri';
-import 'dart:math' as math;
-
-import 'package:pathos/path.dart' as pathos;
-
-import '../../../../compiler/implementation/mirrors/mirrors.dart';
-
-import '../export_map.dart';
 
 /** Turns [name] into something that's safe to use as a file name. */
 String sanitize(String name) => name.replaceAll(':', '_').replaceAll('/', '_');
@@ -49,7 +40,7 @@ String repeat(String text, int count, {String separator}) {
 /** Removes up to [indentation] leading whitespace characters from [text]. */
 String unindent(String text, int indentation) {
   var start;
-  for (start = 0; start < math.min(indentation, text.length); start++) {
+  for (start = 0; start < min(indentation, text.length); start++) {
     // Stop if we hit a non-whitespace character.
     if (text[start] != ' ') break;
   }
@@ -85,77 +76,4 @@ void writeString(File file, String text) {
   var randomAccessFile = file.openSync(mode: FileMode.WRITE);
   randomAccessFile.writeStringSync(text);
   randomAccessFile.closeSync();
-}
-
-/**
- * Converts [uri], which should come from a Dart import or export, to a local
- * filesystem path. [basePath] is the base directory to use when converting
- * relative URIs; without it, relative URIs will not be converted. [packageRoot]
- * is the `packages` directory to use when converting `package:` URIs; without
- * it, `package:` URIs will not be converted.
- *
- * If a URI cannot be converted, this will return `null`.
- */
-String importUriToPath(Uri uri, {String basePath, String packageRoot}) {
-  if (uri.scheme == 'file') return fileUriToPath(uri);
-
-  if (basePath != null && uri.scheme == '') {
-    return pathos.normalize(pathos.absolute(pathos.join(basePath, uri.path)));
-  }
-
-  if (packageRoot != null && uri.scheme == 'package') {
-    return pathos.normalize(pathos.absolute(
-        pathos.join(packageRoot, uri.path)));
-  }
-
-  // Ignore unsupported schemes.
-  return null;
-}
-
-/** Converts a `file:` [Uri] to a local path string. */
-String fileUriToPath(Uri uri) {
-  if (uri.scheme != 'file') {
-    throw new ArgumentError("Uri $uri must have scheme 'file:'.");
-  }
-  if (Platform.operatingSystem != 'windows') return pathos.normalize(uri.path);
-  return pathos.normalize(uri.path.replaceFirst("/", "").replaceAll("/", "\\"));
-}
-
-/** Converts a local path string to a `file:` [Uri]. */
-Uri pathToFileUri(String path) {
-  path = pathos.absolute(path);
-  if (Platform.operatingSystem != 'windows') {
-    return Uri.parse('file://$path');
-  } else {
-    return Uri.parse('file:///${path.replaceAll("\\", "/")}');
-  }
-}
-
-/**
- * If [map] contains an [Export] under [key], this merges that with [export].
- * Otherwise, it sets [key] to [export].
- */
-void addOrMergeExport(Map<String, Export> map, String key, Export export) {
-  if (map.containsKey(key)) {
-    map[key] = map[key].merge(export);
-  } else {
-    map[key] = export;
-  }
-}
-
-/// A pair of values.
-class Pair<E, F> {
-  E first;
-  F last;
-
-  Pair(this.first, this.last);
-
-  String toString() => '($first, $last)';
-
-  bool operator==(other) {
-    if (other is! Pair) return false;
-    return other.first == first && other.last == last;
-  }
-
-  int get hashCode => first.hashCode ^ last.hashCode;
 }
