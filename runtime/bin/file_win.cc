@@ -325,14 +325,12 @@ char* File::LinkTarget(const char* pathname) {
   if (result == 0) {
     DWORD error = GetLastError();
     CloseHandle(dir_handle);
-    free(buffer);
     SetLastError(error);
+    free(buffer);
     return NULL;
   }
   if (CloseHandle(dir_handle) == 0) {
-    DWORD error = GetLastError();
     free(buffer);
-    SetLastError(error);
     return NULL;
   }
 
@@ -378,10 +376,8 @@ char* File::LinkTarget(const char* pathname) {
                                utf8_length,
                                NULL,
                                NULL)) {
-    DWORD error = GetLastError();
     free(buffer);
     free(utf8_target);
-    SetLastError(error);
     return NULL;
   }
   utf8_target[utf8_length] = '\0';
@@ -531,9 +527,7 @@ File::Identical File::AreIdentical(const char* file_1, const char* file_2) {
         FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT,
         NULL);
     if (file_handle == INVALID_HANDLE_VALUE) {
-      DWORD error = GetLastError();
       free(const_cast<wchar_t*>(wide_name));
-      SetLastError(error);
       return File::kError;
     }
     free(const_cast<wchar_t*>(wide_name));
