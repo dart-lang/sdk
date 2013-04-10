@@ -499,7 +499,7 @@ class EmbeddedArray<T, 0> {
   M(StringFromCharCode)                                                        \
   M(InvokeMathCFunction)                                                       \
   M(GuardField)                                                                \
-
+  M(IfThenElse)                                                                \
 
 #define FORWARD_DECLARATION(type) class type##Instr;
 FOR_EACH_INSTRUCTION(FORWARD_DECLARATION)
@@ -1001,6 +1001,8 @@ class BlockEntryInstr : public Instruction {
   // successors.
   void ReplaceAsPredecessorWith(BlockEntryInstr* new_block);
 
+  void set_block_id(intptr_t block_id) { block_id_ = block_id; }
+
  protected:
   BlockEntryInstr(intptr_t block_id, intptr_t try_index)
       : block_id_(block_id),
@@ -1019,7 +1021,7 @@ class BlockEntryInstr : public Instruction {
   virtual void ClearPredecessors() = 0;
   virtual void AddPredecessor(BlockEntryInstr* predecessor) = 0;
 
-  const intptr_t block_id_;
+  intptr_t block_id_;
   const intptr_t try_index_;
   intptr_t preorder_number_;
   intptr_t postorder_number_;
@@ -2674,6 +2676,65 @@ class RelationalOpInstr : public ComparisonInstr {
   intptr_t operands_class_id_;  // class id of both operands.
 
   DISALLOW_COPY_AND_ASSIGN(RelationalOpInstr);
+};
+
+
+// TODO(vegorov): ComparisonInstr should be switched to use IfTheElseInstr for
+// materialization of true and false constants.
+class IfThenElseInstr : public TemplateDefinition<2> {
+ public:
+  IfThenElseInstr(Token::Kind kind,
+                  Value* left,
+                  Value* right,
+                  Value* if_true,
+                  Value* if_false)
+      : kind_(kind),
+        if_true_(Smi::Cast(if_true->BoundConstant()).Value()),
+        if_false_(Smi::Cast(if_false->BoundConstant()).Value()) {
+    ASSERT(Token::IsEqualityOperator(kind));
+    SetInputAt(0, left);
+    SetInputAt(1, right);
+  }
+
+  // Returns true if this instruction is supported on the current platform.
+  static bool IsSupported();
+
+  // Returns true if this combination of comparison and values flowing on
+  // the true and false paths is supported on the current platform.
+  static bool Supports(ComparisonInstr* comparison, Value* v1, Value* v2);
+
+  DECLARE_INSTRUCTION(IfThenElse)
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual CompileType ComputeType() const;
+
+  virtual void InferRange();
+
+  virtual bool CanDeoptimize() const { return false; }
+  virtual bool HasSideEffect() const { return false; }
+
+  virtual bool AttributesEqual(Instruction* other) const {
+    return kind_ == other->AsIfThenElse()->kind_;
+  }
+
+  virtual bool AffectedBySideEffect() const {
+    return false;
+  }
+
+  Value* left() const { return inputs_[0]; }
+  Value* right() const { return inputs_[1]; }
+  intptr_t if_true() const { return if_true_; }
+  intptr_t if_false() const { return if_false_; }
+
+  Token::Kind kind() const { return kind_; }
+
+ private:
+  const Token::Kind kind_;
+  const intptr_t if_true_;
+  const intptr_t if_false_;
+
+  DISALLOW_COPY_AND_ASSIGN(IfThenElseInstr);
 };
 
 

@@ -304,6 +304,15 @@ class BranchSimplifier : public AllStatic {
 };
 
 
+// Rewrite diamond control flow patterns that materialize values to use more
+// efficient branchless code patterns if such are supported on the current
+// platform.
+class IfConverter : public AllStatic {
+ public:
+  static void Simplify(FlowGraph* flow_graph);
+};
+
+
 }  // namespace dart
 
 #endif  // VM_FLOW_GRAPH_OPTIMIZER_H_

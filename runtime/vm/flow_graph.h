@@ -142,6 +142,7 @@ class FlowGraph : public ZoneAllocated {
 #endif  // DEBUG
 
  private:
+  friend class IfConverter;
   friend class BranchSimplifier;
   friend class ConstantPropagator;
 

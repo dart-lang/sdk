@@ -3930,6 +3930,39 @@ void ConstantPropagator::VisitStoreLocal(StoreLocalInstr* instr) {
 }
 
 
+void ConstantPropagator::VisitIfThenElse(IfThenElseInstr* instr) {
+  ASSERT(Token::IsEqualityOperator(instr->kind()));
+
+  const Object& left = instr->left()->definition()->constant_value();
+  const Object& right = instr->right()->definition()->constant_value();
+
+  if (IsNonConstant(left) || IsNonConstant(right)) {
+    // TODO(vegorov): incorporate nullability information into the lattice.
+    if ((left.IsNull() && instr->right()->Type()->HasDecidableNullability()) ||
+        (right.IsNull() && instr->left()->Type()->HasDecidableNullability())) {
+      bool result = left.IsNull() ? instr->right()->Type()->IsNull()
+                                  : instr->left()->Type()->IsNull();
+      if (instr->kind() == Token::kNE_STRICT ||
+          instr->kind() == Token::kNE) {
+        result = !result;
+      }
+      SetValue(instr, Smi::Handle(
+          Smi::New(result ? instr->if_true() : instr->if_false())));
+    } else {
+      SetValue(instr, non_constant_);
+    }
+  } else if (IsConstant(left) && IsConstant(right)) {
+    bool result = (left.raw() == right.raw());
+    if (instr->kind() == Token::kNE_STRICT ||
+        instr->kind() == Token::kNE) {
+      result = !result;
+    }
+    SetValue(instr, Smi::Handle(
+        Smi::New(result ? instr->if_true() : instr->if_false())));
+  }
+}
+
+
 void ConstantPropagator::VisitStrictCompare(StrictCompareInstr* instr) {
   const Object& left = instr->left()->definition()->constant_value();
   const Object& right = instr->right()->definition()->constant_value();
@@ -4737,6 +4770,135 @@ void BranchSimplifier::Simplify(FlowGraph* flow_graph) {
       // unreachable from the graph.
       phi->UnuseAllInputs();
       branch->UnuseAllInputs();
+    }
+  }
+
+  if (changed) {
+    // We may have changed the block order and the dominator tree.
+    flow_graph->DiscoverBlocks();
+    GrowableArray<BitVector*> dominance_frontier;
+    flow_graph->ComputeDominators(&dominance_frontier);
+  }
+}
+
+
+static bool IsTrivialBlock(BlockEntryInstr* block, Definition* defn) {
+  return (block->IsTargetEntry() && (block->PredecessorCount() == 1)) &&
+    ((block->next() == block->last_instruction()) ||
+     ((block->next() == defn) && (defn->next() == block->last_instruction())));
+}
+
+
+static void EliminateTrivialBlock(BlockEntryInstr* block,
+                                  Definition* instr,
+                                  IfThenElseInstr* before) {
+  block->UnuseAllInputs();
+  block->last_instruction()->UnuseAllInputs();
+
+  if ((block->next() == instr) &&
+      (instr->next() == block->last_instruction())) {
+    before->previous()->LinkTo(instr);
+    instr->LinkTo(before);
+  }
+}
+
+
+void IfConverter::Simplify(FlowGraph* flow_graph) {
+  if (!IfThenElseInstr::IsSupported()) {
+    return;
+  }
+
+  bool changed = false;
+
+  const GrowableArray<BlockEntryInstr*>& postorder = flow_graph->postorder();
+  for (BlockIterator it(postorder); !it.Done(); it.Advance()) {
+    BlockEntryInstr* block = it.Current();
+    JoinEntryInstr* join = block->AsJoinEntry();
+
+    // Detect diamond control flow pattern which materializes a value depending
+    // on the result of the comparison:
+    //
+    // B_pred:
+    //   ...
+    //   Branch if COMP goto (B_pred1, B_pred2)
+    // B_pred1: -- trivial block that contains at most one definition
+    //   v1 = Constant(...)
+    //   goto B_block
+    // B_pred2: -- trivial block that contains at most one definition
+    //   v2 = Constant(...)
+    //   goto B_block
+    // B_block:
+    //   v3 = phi(v1, v2) -- single phi
+    //
+    // and replace it with
+    //
+    // Ba:
+    //   v3 = IfThenElse(COMP ? v1 : v2)
+    //
+    if ((join != NULL) &&
+        (join->phis() != NULL) &&
+        (join->phis()->length() == 1) &&
+        (block->PredecessorCount() == 2)) {
+      BlockEntryInstr* pred1 = block->PredecessorAt(0);
+      BlockEntryInstr* pred2 = block->PredecessorAt(1);
+
+      PhiInstr* phi = (*join->phis())[0];
+      Value* v1 = phi->InputAt(0);
+      Value* v2 = phi->InputAt(1);
+
+      if (IsTrivialBlock(pred1, v1->definition()) &&
+          IsTrivialBlock(pred2, v2->definition()) &&
+          (pred1->PredecessorAt(0) == pred2->PredecessorAt(0))) {
+        BlockEntryInstr* pred = pred1->PredecessorAt(0);
+        BranchInstr* branch = pred->last_instruction()->AsBranch();
+        ComparisonInstr* comparison = branch->comparison();
+
+        // Check if the platform supports efficient branchless IfThenElseInstr
+        // for the given combination of comparison and values flowing from
+        // false and true paths.
+        if (IfThenElseInstr::Supports(comparison, v1, v2)) {
+          Value* if_true = (pred1 == branch->true_successor()) ? v1 : v2;
+          Value* if_false = (pred2 == branch->true_successor()) ? v1 : v2;
+
+          IfThenElseInstr* if_then_else = new IfThenElseInstr(
+              comparison->kind(),
+              comparison->InputAt(0)->Copy(),
+              comparison->InputAt(1)->Copy(),
+              if_true->Copy(),
+              if_false->Copy());
+          flow_graph->InsertBefore(branch,
+                                   if_then_else,
+                                   NULL,
+                                   Definition::kValue);
+
+          phi->ReplaceUsesWith(if_then_else);
+
+          // Connect IfThenElseInstr to the first instruction in the merge block
+          // effectively eliminating diamond control flow.
+          // Current block as well as pred1 and pred2 blocks are no longer in
+          // the graph at this point.
+          if_then_else->LinkTo(join->next());
+          pred->set_last_instruction(join->last_instruction());
+
+          // Resulting block must inherit block id from the eliminated current
+          // block to guarantee that ordering of phi operands in its successor
+          // stays consistent.
+          pred->set_block_id(block->block_id());
+
+          // If v1 and v2 were defined inside eliminated blocks pred1/pred2
+          // move them out to the place before inserted IfThenElse instruction.
+          EliminateTrivialBlock(pred1, v1->definition(), if_then_else);
+          EliminateTrivialBlock(pred2, v2->definition(), if_then_else);
+
+          // Update use lists to reflect changes in the graph.
+          phi->UnuseAllInputs();
+          branch->UnuseAllInputs();
+
+          // The graph has changed. Recompute dominators and block orders after
+          // this pass is finished.
+          changed = true;
+        }
+      }
     }
   }
 

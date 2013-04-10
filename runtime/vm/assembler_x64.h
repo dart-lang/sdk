@@ -339,6 +339,8 @@ class Assembler : public ValueObject {
   void popq(Register reg);
   void popq(const Address& address);
 
+  void setcc(Condition condition, ByteRegister dst);
+
   void movl(Register dst, Register src);
   void movl(Register dst, const Immediate& imm);
   void movl(Register dst, const Address& src);

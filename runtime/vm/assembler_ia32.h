@@ -329,6 +329,8 @@ class Assembler : public ValueObject {
   void pushal();
   void popal();
 
+  void setcc(Condition condition, ByteRegister dst);
+
   void movl(Register dst, const Immediate& src);
   void movl(Register dst, Register src);
 
@@ -605,6 +607,7 @@ class Assembler : public ValueObject {
   void Drop(intptr_t stack_elements);
 
   void LoadObject(Register dst, const Object& object);
+
   void PushObject(const Object& object);
   void CompareObject(Register reg, const Object& object);
   void LoadDoubleConstant(XmmRegister dst, double value);

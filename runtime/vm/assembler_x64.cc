@@ -155,6 +155,14 @@ void Assembler::popq(const Address& address) {
 }
 
 
+void Assembler::setcc(Condition condition, ByteRegister dst) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0x90 + condition);
+  EmitUint8(0xC0 + dst);
+}
+
+
 void Assembler::movl(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   Operand operand(src);

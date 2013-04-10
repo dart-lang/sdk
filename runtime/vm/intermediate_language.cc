@@ -2039,6 +2039,14 @@ void LoadIndexedInstr::InferRange() {
 }
 
 
+void IfThenElseInstr::InferRange() {
+  const intptr_t min = Utils::Minimum(if_true_, if_false_);
+  const intptr_t max = Utils::Maximum(if_true_, if_false_);
+  range_ = new Range(RangeBoundary::FromConstant(min),
+                     RangeBoundary::FromConstant(max));
+}
+
+
 void PhiInstr::InferRange() {
   RangeBoundary new_min;
   RangeBoundary new_max;

@@ -103,6 +103,30 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+bool IfThenElseInstr::IsSupported() {
+  return false;
+}
+
+
+bool IfThenElseInstr::Supports(ComparisonInstr* comparison,
+                               Value* v1,
+                               Value* v2) {
+  UNREACHABLE();
+  return false;
+}
+
+
+LocationSummary* IfThenElseInstr::MakeLocationSummary() const {
+  UNREACHABLE();
+  return NULL;
+}
+
+
+void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNREACHABLE();
+}
+
+
 LocationSummary* ClosureCallInstr::MakeLocationSummary() const {
   UNIMPLEMENTED();
   return NULL;

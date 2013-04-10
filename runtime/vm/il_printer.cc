@@ -429,6 +429,16 @@ void StoreInstanceFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
+void IfThenElseInstr::PrintOperandsTo(BufferFormatter* f) const {
+  left()->PrintTo(f);
+  f->Print(" %s ", Token::Str(kind_));
+  right()->PrintTo(f);
+  f->Print(" ? %"Pd" : %"Pd,
+           if_true_,
+           if_false_);
+}
+
+
 void LoadStaticFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s", String::Handle(field().name()).ToCString());
 }

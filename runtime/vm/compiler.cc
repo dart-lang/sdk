@@ -215,6 +215,9 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
       BranchSimplifier::Simplify(flow_graph);
       DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
+      IfConverter::Simplify(flow_graph);
+      DEBUG_ASSERT(flow_graph->VerifyUseLists());
+
       if (FLAG_constant_propagation) {
         ConstantPropagator::Optimize(flow_graph);
         DEBUG_ASSERT(flow_graph->VerifyUseLists());

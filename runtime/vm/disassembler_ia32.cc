@@ -386,11 +386,15 @@ static const char* cpu_regs[kMaxCPURegisters] = {
   "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi"
 };
 
+static const int kMaxByteCPURegisters = 8;
+static const char* byte_cpu_regs[kMaxByteCPURegisters] = {
+  "al", "cl", "dl", "bl", "ah", "ch", "dh", "bh"
+};
+
 static const int kMaxXmmRegisters = 8;
 static const char* xmm_regs[kMaxXmmRegisters] = {
   "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7"
 };
-
 
 void X86Decoder::PrintCPURegister(int reg) {
   ASSERT(0 <= reg);
@@ -400,7 +404,9 @@ void X86Decoder::PrintCPURegister(int reg) {
 
 
 void X86Decoder::PrintCPUByteRegister(int reg) {
-  UNIMPLEMENTED();
+  ASSERT(0 <= reg);
+  ASSERT(reg < kMaxByteCPURegisters);
+  Print(byte_cpu_regs[reg]);
 }
 
 
@@ -634,8 +640,7 @@ int X86Decoder::PrintRightXmmOperand(uint8_t* modrmp) {
 
 
 int X86Decoder::PrintRightByteOperand(uint8_t* modrmp) {
-  UNIMPLEMENTED();
-  return 0;
+  return PrintRightOperandHelper(modrmp, &X86Decoder::PrintCPUByteRegister);
 }
 
 

@@ -3603,6 +3603,127 @@ void StrictCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
 }
 
 
+static bool BindsToSmiConstant(Value* val, intptr_t* smi_value) {
+  if (!val->BindsToConstant()) {
+    return false;
+  }
+
+  const Object& bound_constant = val->BoundConstant();
+  if (!bound_constant.IsSmi()) {
+    return false;
+  }
+
+  *smi_value = Smi::Cast(bound_constant).Value();
+  return true;
+}
+
+
+// Detect pattern when one value is zero and another is a power of 2.
+static bool IsPowerOfTwoKind(intptr_t v1, intptr_t v2) {
+  return (Utils::IsPowerOfTwo(v1) && (v2 == 0)) ||
+         (Utils::IsPowerOfTwo(v2) && (v1 == 0));
+}
+
+
+// Detect pattern when one value is increment of another.
+static bool IsIncrementKind(intptr_t v1, intptr_t v2) {
+  return ((v1 == v2 + 1) || (v1 + 1 == v2));
+}
+
+
+bool IfThenElseInstr::IsSupported() {
+  return true;
+}
+
+
+bool IfThenElseInstr::Supports(ComparisonInstr* comparison,
+                               Value* v1,
+                               Value* v2) {
+  if (!(comparison->IsStrictCompare() &&
+        !comparison->AsStrictCompare()->needs_number_check()) &&
+      !(comparison->IsEqualityCompare() &&
+        (comparison->AsEqualityCompare()->receiver_class_id() == kSmiCid))) {
+    return false;
+  }
+
+  intptr_t v1_value, v2_value;
+
+  if (!BindsToSmiConstant(v1, &v1_value) ||
+      !BindsToSmiConstant(v2, &v2_value)) {
+    return false;
+  }
+
+  if (IsPowerOfTwoKind(v1_value, v2_value) ||
+      IsIncrementKind(v1_value, v2_value)) {
+    return true;
+  }
+
+  return false;
+}
+
+
+LocationSummary* IfThenElseInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  locs->set_in(0, Location::RegisterOrConstant(left()));
+  locs->set_in(1, Location::RegisterOrConstant(right()));
+  // TODO(vegorov): support byte register constraints in the register allocator.
+  locs->set_out(Location::RegisterLocation(EDX));
+  return locs;
+}
+
+
+void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(locs()->out().reg() == EDX);
+  ASSERT(Token::IsEqualityOperator(kind()));
+
+  Location left = locs()->in(0);
+  Location right = locs()->in(1);
+  ASSERT(!left.IsConstant() || !right.IsConstant());
+
+  // Clear upper part of the out register. We are going to use setcc on it
+  // which is a byte move.
+  __ xorl(EDX, EDX);
+
+  // Compare left and right. For now only equality comparison is supported.
+  // TODO(vegorov): reuse code from the other comparison instructions instead of
+  // generating it inline here.
+  if (left.IsConstant()) {
+    __ CompareObject(right.reg(), left.constant());
+  } else if (right.IsConstant()) {
+    __ CompareObject(left.reg(), right.constant());
+  } else {
+    __ cmpl(left.reg(), right.reg());
+  }
+
+  Condition true_condition =
+      ((kind_ == Token::kEQ_STRICT) || (kind_ == Token::kEQ)) ? EQUAL
+                                                              : NOT_EQUAL;
+
+  const bool is_power_of_two_kind = IsPowerOfTwoKind(if_true_, if_false_);
+
+  const intptr_t base = Utils::Minimum(if_true_, if_false_);
+
+  if (if_true_ == base) {
+    // We need to have zero in EDX on true_condition.
+    true_condition = NegateCondition(true_condition);
+  }
+
+  __ setcc(true_condition, DL);
+
+  if (is_power_of_two_kind) {
+    const intptr_t shift =
+        Utils::ShiftForPowerOfTwo(Utils::Maximum(if_true_, if_false_));
+    __ shll(EDX, Immediate(shift + kSmiTagSize));
+  } else {
+    ASSERT(kSmiTagSize == 1);
+    __ leal(EDX, Address(EDX, TIMES_2, base << kSmiTagSize));
+  }
+}
+
+
 void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The arguments to the stub include the closure, as does the arguments
   // descriptor.

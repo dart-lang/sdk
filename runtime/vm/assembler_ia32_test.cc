@@ -2426,6 +2426,21 @@ ASSEMBLER_TEST_RUN(TestObjectCompare, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(TestSetCC, assembler) {
+  __ movl(EAX, Immediate(0xFFFFFFFF));
+  __ cmpl(EAX, EAX);
+  __ setcc(NOT_EQUAL, AL);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(TestSetCC, test) {
+  typedef uword (*TestSetCC)();
+  uword res = reinterpret_cast<TestSetCC>(test->entry())();
+  EXPECT_EQ(0xFFFFFF00, res);
+}
+
+
 ASSEMBLER_TEST_GENERATE(TestNop, assembler) {
   __ nop(1);
   __ nop(2);

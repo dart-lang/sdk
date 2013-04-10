@@ -2291,6 +2291,21 @@ ASSEMBLER_TEST_RUN(ExtractSignBits, test) {
   EXPECT_EQ(1, res);
 }
 
+
+ASSEMBLER_TEST_GENERATE(TestSetCC, assembler) {
+  __ movq(RAX, Immediate(0xFFFFFFFF));
+  __ cmpq(RAX, RAX);
+  __ setcc(NOT_EQUAL, AL);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(TestSetCC, test) {
+  typedef uword (*TestSetCC)();
+  uword res = reinterpret_cast<TestSetCC>(test->entry())();
+  EXPECT_EQ(0xFFFFFF00, res);
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_X64
