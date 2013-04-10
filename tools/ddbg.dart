@@ -23,12 +23,8 @@ int isolate_id = -1;
 final verbose = false;
 final printMessages = false;
 
-// The current stack trace, while the VM is paused. It's a list
-// of activation frames.
-List stackTrace;
-
-// The current activation frame, while the VM is paused.
-Map curFrame;
+// The location of the last paused event.
+Map pausedLocation = null;
 
 
 void printHelp() {
@@ -91,7 +87,6 @@ void processCommand(String cmdLine) {
                 "command": simple_commands[command],
                 "params": { "isolateId" : isolate_id } };
     sendCmd(cmd).then((result) => handleGenericResponse(result));
-    stackTrace = curFrame = null;
   } else if (command == "bt") {
     var cmd = { "id": seqNum,
                 "command": "getStackTrace",
@@ -104,8 +99,9 @@ void processCommand(String cmdLine) {
     sendCmd(cmd).then((result) => handleGetLibraryResponse(result));
   } else if (command == "sbp" && args.length >= 2) {
     var url, line;
-    if (args.length == 2) {
-      url = stackTrace[0]["location"]["url"];
+    if (args.length == 2 && pausedLocation != null) {
+      url = pausedLocation["url"];
+      assert(url != null);
       line = int.parse(args[1]);
     } else {
       url = args[1];
@@ -408,13 +404,13 @@ void printStackTrace(List frames) {
 void handlePausedEvent(msg) {
   assert(msg["params"] != null);
   var reason = msg["params"]["reason"];
-  isolate_id = msg["params"]["id"];
-  stackTrace = msg["params"]["callFrames"];
-  assert(stackTrace != null);
-  assert(stackTrace.length >= 1);
-  curFrame = stackTrace[0];
+  isolate_id = msg["params"]["isolateId"];
+  assert(isolate_id != null);
+  pausedLocation = msg["params"]["location"];
+  assert(pausedLocation != null);
   if (reason == "breakpoint") {
     print("Isolate $isolate_id paused on breakpoint");
+    print("location: $pausedLocation");
   } else if (reason == "interrupted") {
     print("Isolate $isolate_id paused due to an interrupt");
   } else {
@@ -423,8 +419,6 @@ void handlePausedEvent(msg) {
     print("Isolate $isolate_id paused on exception");
     print(remoteObject(excObj));
   }
-  print("Stack trace:");
-  printStackTrace(stackTrace);
 }
 
 

@@ -390,7 +390,8 @@ static const char* FormatListSlice(dart::TextBuffer* buf,
 
 
 static void FormatLocationFromTrace(dart::TextBuffer* msg,
-                                    Dart_StackTrace trace) {
+                                    Dart_StackTrace trace,
+                                    const char* prefix) {
   intptr_t trace_len = 0;
   Dart_Handle res = Dart_StackTraceLength(trace, &trace_len);
   ASSERT_NOT_ERROR(res);
@@ -410,11 +411,11 @@ static void FormatLocationFromTrace(dart::TextBuffer* msg,
   ASSERT_NOT_ERROR(res);
   if (!Dart_IsNull(script_url)) {
     ASSERT(Dart_IsString(script_url));
-    msg->Printf("\"location\": { \"url\":");
+    msg->Printf("%s\"location\": { \"url\":", prefix);
     FormatEncodedString(msg, script_url);
     msg->Printf(",\"libraryId\":%"Pd",", library_id);
     msg->Printf("\"tokenOffset\":%"Pd",", token_number);
-    msg->Printf("\"lineNumber\":%"Pd"},", line_number);
+    msg->Printf("\"lineNumber\":%"Pd"}", line_number);
   }
 }
 
@@ -1007,9 +1008,8 @@ void DbgMsgQueue::SendBreakpointEvent(Dart_StackTrace trace) {
   dart::TextBuffer msg(128);
   msg.Printf("{ \"event\": \"paused\", \"params\": { ");
   msg.Printf("\"reason\": \"breakpoint\", ");
-  msg.Printf("\"id\": %"Pd64", ", isolate_id_);
-  FormatLocationFromTrace(&msg, trace);
-  FormatCallFrames(&msg, trace);
+  msg.Printf("\"isolateId\": %"Pd64"", isolate_id_);
+  FormatLocationFromTrace(&msg, trace, ", ");
   msg.Printf("}}");
   DebuggerConnectionHandler::BroadcastMsg(&msg);
 }
@@ -1024,12 +1024,10 @@ void DbgMsgQueue::SendExceptionEvent(Dart_Handle exception,
   dart::TextBuffer msg(128);
   msg.Printf("{ \"event\": \"paused\", \"params\": {");
   msg.Printf("\"reason\": \"exception\", ");
-  msg.Printf("\"id\": %"Pd64", ", isolate_id_);
+  msg.Printf("\"isolateId\": %"Pd64", ", isolate_id_);
   msg.Printf("\"exception\":");
   FormatRemoteObj(&msg, exception);
-  msg.Printf(", ");
-  FormatLocationFromTrace(&msg, stack_trace);
-  FormatCallFrames(&msg, stack_trace);
+  FormatLocationFromTrace(&msg, stack_trace, ", ");
   msg.Printf("}}");
   DebuggerConnectionHandler::BroadcastMsg(&msg);
 }
@@ -1046,9 +1044,8 @@ void DbgMsgQueue::SendIsolateEvent(Dart_IsolateId isolate_id,
     ASSERT_NOT_ERROR(res);
     msg.Printf("{ \"event\": \"paused\", \"params\": { ");
     msg.Printf("\"reason\": \"interrupted\", ");
-    msg.Printf("\"id\": %"Pd64", ", isolate_id);
-    FormatLocationFromTrace(&msg, trace);
-    FormatCallFrames(&msg, trace);
+    msg.Printf("\"isolateId\": %"Pd64"", isolate_id);
+    FormatLocationFromTrace(&msg, trace, ", ");
     msg.Printf("}}");
   } else {
     msg.Printf("{ \"event\": \"isolate\", \"params\": { ");
