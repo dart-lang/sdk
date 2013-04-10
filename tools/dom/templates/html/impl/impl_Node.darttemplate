@@ -9,7 +9,7 @@ part of $LIBRARYNAME;
  * the actual child nodes of an element until strictly necessary greatly
  * improving performance for the typical cases where it is not required.
  */
-class _ChildNodeListLazy implements List {
+class _ChildNodeListLazy extends ListBase<Node> {
   final Node _this;
 
   _ChildNodeListLazy(this._this);
@@ -50,14 +50,6 @@ $else
     return _this.$dom_firstChild;
   }
 $endif
-
-  Node min([int compare(Node a, Node b)]) {
-    return IterableMixinWorkaround.min(this, compare);
-  }
-
-  Node max([int compare(Node a, Node b)]) {
-    return IterableMixinWorkaround.max(this, compare);
-  }
 
   void add(Node value) {
     _this.append(value);
@@ -114,19 +106,38 @@ $endif
   }
 
   void removeAll(Iterable elements) {
-    IterableMixinWorkaround.removeAll(this, elements);
+    // This is not using the default removeAll from ListBase because
+    // DOM nodes can be efficiently removed in constant time.
+    for (var element in elements) {
+      remove(element);
+    }
+  }
+
+  void _filter(bool test(Node node), bool removeMatching) {
+    // This implementation of removeWhere/retainWhere is more efficient
+    // than the default in ListBase. Child nodes can be removed in constant
+    // time.
+    Node child = _this.$dom_firstChild;
+    while (child != null) {
+      Node nextChild = child.nextSibling;
+      if (test(child) == removeMatching) {
+        _this.$dom_removeChild(child);
+      }
+      child = nextChild;
+    }
   }
 
   void retainAll(Iterable elements) {
-    IterableMixinWorkaround.retainAll(this, elements);
+    Set retainSet = (elements is Set) ? elements : elements.toSet();
+    _filter(retainSet.contains, false);
   }
 
   void removeWhere(bool test(Node node)) {
-    IterableMixinWorkaround.removeWhere(this, test);
+    _filter(test, true);
   }
 
   void retainWhere(bool test(Node node)) {
-    IterableMixinWorkaround.retainWhere(this, test);
+    _filter(test, false);
   }
 
   void clear() {
@@ -139,42 +150,6 @@ $endif
 
   Iterator<Node> get iterator => _this.$dom_childNodes.iterator;
 
-  // TODO(jacobr): We can implement these methods much more efficiently by
-  // looking up the nodeList only once instead of once per iteration.
-  bool contains(Node element) => IterableMixinWorkaround.contains(this, element);
-
-  void forEach(void f(Node element)) => IterableMixinWorkaround.forEach(this, f);
-
-  dynamic reduce(dynamic initialValue,
-      dynamic combine(dynamic previousValue, Node element)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
-  }
-
-  dynamic fold(dynamic initialValue,
-      dynamic combine(dynamic previousValue, Node element)) {
-    return IterableMixinWorkaround.fold(this, initialValue, combine);
-  }
-
-  String join([String separator]) {
-    return IterableMixinWorkaround.joinList(this, separator);
-  }
-
-  Iterable map(f(Node element)) {
-    return IterableMixinWorkaround.mapList(this, f);
-  }
-
-  Iterable<Node> where(bool f(Node element)) {
-    return IterableMixinWorkaround.where(this, f);
-  }
-
-  Iterable expand(Iterable f(Node element)) {
-    return IterableMixinWorkaround.expand(this, f);
-  }
-
-  bool every(bool f(Node element)) => IterableMixinWorkaround.every(this, f);
-
-  bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
-
   List<Node> toList({ bool growable: true }) =>
       new List<Node>.from(this, growable: growable);
   Set<Node> toSet() => new Set<Node>.from(this);
@@ -183,53 +158,11 @@ $endif
 
   // From List<Node>:
 
-  Iterable<Node> take(int n) {
-    return IterableMixinWorkaround.takeList(this, n);
-  }
-
-  Iterable<Node> takeWhile(bool test(Node value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
-  }
-
-  Iterable<Node> skip(int n) {
-    return IterableMixinWorkaround.skipList(this, n);
-  }
-
-  Iterable<Node> skipWhile(bool test(Node value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
-  }
-
-  Node firstWhere(bool test(Node value), {Node orElse()}) {
-    return IterableMixinWorkaround.firstWhere(this, test, orElse);
-  }
-
-  Node lastWhere(bool test(Node value), {Node orElse()}) {
-    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
-  }
-
-  Node singleWhere(bool test(Node value)) {
-    return IterableMixinWorkaround.singleWhere(this, test);
-  }
-
-  Node elementAt(int index) {
-    return this[index];
-  }
-
-  Iterable<Node> get reversed {
-    return IterableMixinWorkaround.reversedList(this);
-  }
-
   // TODO(jacobr): this could be implemented for child node lists.
   // The exception we throw here is misleading.
   void sort([int compare(Node a, Node b)]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
-
-  int indexOf(Node element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(Node element, [int start = 0]) =>
-      Lists.lastIndexOf(this, element, start);
 
   // FIXME: implement these.
   void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
@@ -270,8 +203,6 @@ $endif
   }
 
   Node operator[](int index) => _this.$dom_childNodes[index];
-
-  Map<int, Node> asMap() => IterableMixinWorkaround.asMapList(this);
 }
 
 $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
@@ -424,10 +355,10 @@ $endif
     return _modelChangedStream.stream;
   }
 
-  /** 
+  /**
    * Print out a String representation of this Node.
    */
-  String toString() => localName == null ? 
+  String toString() => localName == null ?
       (nodeValue == null ? super.toString() : nodeValue) : localName;
 
 $!MEMBERS
