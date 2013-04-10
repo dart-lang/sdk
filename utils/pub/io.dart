@@ -149,7 +149,7 @@ List<String> listDir(String dir, {bool recursive: false,
       var entityPath = entity.path;
       if (!includeHidden && path.basename(entityPath).startsWith('.')) continue;
 
-      // TODO(nweiz): remove this when issue 4928 is fixed.
+      // TODO(nweiz): remove this when issue 9832 is fixed.
       if (entity is Link) {
         // We treat broken symlinks as files, in that we don't want to recurse
         // into them.
