@@ -296,7 +296,7 @@ class _ChildrenElementList extends ListBase<Element> {
 // a better option given that we cannot quite force NodeList to be an
 // ElementList as there are valid cases where a NodeList JavaScript object
 // contains Node objects that are not Elements.
-class _FrozenElementList extends ListBase<Element> {
+class _FrozenElementList extends ListBase {
   final List<Node> _nodeList;
 
   _FrozenElementList._wrap(this._nodeList);
