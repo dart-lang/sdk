@@ -1420,6 +1420,120 @@ bool Intrinsifier::OneByteString_getHashCode(Assembler* assembler) {
 }
 
 
+// Allocates one-byte string of length 'end - start'. The content is not
+// initialized.
+static void TryAllocateOnebyteString(Assembler* assembler,
+                                     Label* failure,
+                                     intptr_t start_index_offset,
+                                     intptr_t end_index_offset) {
+  __ movq(RDI, Address(RSP, + end_index_offset));
+  __ subq(RDI, Address(RSP, + start_index_offset));
+  const intptr_t fixed_size = sizeof(RawString) + kObjectAlignment - 1;
+  __ SmiUntag(RDI);
+  __ leaq(RDI, Address(RDI, TIMES_1, fixed_size));  // RDI is a Smi.
+  __ andq(RDI, Immediate(-kObjectAlignment));
+
+  Isolate* isolate = Isolate::Current();
+  Heap* heap = isolate->heap();
+
+  __ movq(RAX, Immediate(heap->TopAddress()));
+  __ movq(RAX, Address(RAX, 0));
+
+  // RDI: allocation size.
+  __ movq(RCX, RAX);
+  __ addq(RCX, RDI);
+  __ j(CARRY, failure);
+
+  // Check if the allocation fits into the remaining space.
+  // RAX: potential new object start.
+  // RCX: potential next object start.
+  // RDI: allocation size.
+  __ movq(R13, Immediate(heap->EndAddress()));
+  __ cmpq(RCX, Address(R13, 0));
+  __ j(ABOVE_EQUAL, failure);
+
+  // Successfully allocated the object(s), now update top to point to
+  // next object start and initialize the object.
+  __ movq(R13, Immediate(heap->TopAddress()));
+  __ movq(Address(R13, 0), RCX);
+  __ addq(RAX, Immediate(kHeapObjectTag));
+
+  // Initialize the tags.
+  // RAX: new object start as a tagged pointer.
+  // RDI: allocation size.
+  {
+    Label size_tag_overflow, done;
+    __ cmpq(RDI, Immediate(RawObject::SizeTag::kMaxSizeTag));
+    __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
+    __ shlq(RDI, Immediate(RawObject::kSizeTagBit - kObjectAlignmentLog2));
+    __ jmp(&done, Assembler::kNearJump);
+
+    __ Bind(&size_tag_overflow);
+    __ xorq(RDI, RDI);
+    __ Bind(&done);
+
+    // Get the class index and insert it into the tags.
+    const Class& cls =
+        Class::Handle(isolate->object_store()->one_byte_string_class());
+    __ orq(RDI, Immediate(RawObject::ClassIdTag::encode(cls.id())));
+    __ movq(FieldAddress(RAX, String::tags_offset()), RDI);  // Tags.
+  }
+
+  // Set the length field.
+  __ movq(RDI, Address(RSP, + end_index_offset));
+  __ subq(RDI, Address(RSP, + start_index_offset));  // Length.
+  __ StoreIntoObjectNoBarrier(RAX,
+                              FieldAddress(RAX, String::length_offset()),
+                              RDI);
+  // Clear hash.
+  __ movq(FieldAddress(RAX, String::hash_offset()), Immediate(0));
+}
+
+
+// Arg0: Onebyte String
+// Arg1: Start index as Smi.
+// Arg2: End index as Smi.
+// The indexes must be valid.
+bool Intrinsifier::OneByteString_substringUnchecked(Assembler* assembler) {
+  const intptr_t kStringOffset = 3 * kWordSize;
+  const intptr_t kStartIndexOffset = 2 * kWordSize;
+  const intptr_t kEndIndexOffset = 1 * kWordSize;
+  Label fall_through, done;
+  TryAllocateOnebyteString(
+      assembler, &fall_through, kStartIndexOffset, kEndIndexOffset);
+  // RAX: new string as tagged pointer.
+  // Copy string.
+  __ movq(RDI, Address(RSP, + kStringOffset));
+  __ movq(RBX, Address(RSP, + kStartIndexOffset));
+  __ SmiUntag(RBX);
+  __ leaq(RDI, FieldAddress(RDI, RBX, TIMES_1, OneByteString::data_offset()));
+  // RDI: Start address to copy from (untagged).
+  __ movq(RDX, Address(RSP, + kEndIndexOffset));
+  __ SmiUntag(RDX);
+  __ subq(RDX, RBX);
+  __ xorq(RCX, RCX);
+  // RDX: Number of bytes to copy.
+  // RCX: Loop counter.
+  // TODO(srdjan): For large substrings it could be better if we would group
+  // the byte copies into word copies or even call memcpy.
+  Label loop, check;
+  // TODO(srdjan): Use rep movsb instead.
+  __ jmp(&check, Assembler::kNearJump);
+  __ Bind(&loop);
+  __ movzxb(RBX, Address(RDI, RCX, TIMES_1, 0));
+  __ movb(FieldAddress(RAX, RCX, TIMES_1, OneByteString::data_offset()), RBX);
+  __ incq(RCX);
+  __ Bind(&check);
+  __ cmpq(RCX, RDX);
+  __ j(LESS, &loop, Assembler::kNearJump);
+
+  __ Bind(&done);
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
+}
+
+
 #undef __
 
 }  // namespace dart

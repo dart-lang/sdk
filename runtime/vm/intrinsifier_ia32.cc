@@ -1498,6 +1498,118 @@ bool Intrinsifier::OneByteString_getHashCode(Assembler* assembler) {
   return true;
 }
 
+
+// Allocates one-byte string of length 'end - start'. The content is not
+// initialized.
+static void TryAllocateOnebyteString(Assembler* assembler,
+                                     Label* failure,
+                                     intptr_t start_index_offset,
+                                     intptr_t end_index_offset) {
+  __ movl(EDI, Address(ESP, + end_index_offset));
+  __ subl(EDI, Address(ESP, + start_index_offset));
+  const intptr_t fixed_size = sizeof(RawString) + kObjectAlignment - 1;
+  __ SmiUntag(EDI);
+  __ leal(EDI, Address(EDI, TIMES_1, fixed_size));  // EDI is a Smi.
+  __ andl(EDI, Immediate(-kObjectAlignment));
+
+  Isolate* isolate = Isolate::Current();
+  Heap* heap = isolate->heap();
+
+  __ movl(EAX, Address::Absolute(heap->TopAddress()));
+  __ movl(EBX, EAX);
+
+  // EDI: allocation size.
+  __ addl(EBX, EDI);
+  __ j(CARRY, failure);
+
+  // Check if the allocation fits into the remaining space.
+  // EAX: potential new object start.
+  // EBX: potential next object start.
+  // EDI: allocation size.
+  __ cmpl(EBX, Address::Absolute(heap->EndAddress()));
+  __ j(ABOVE_EQUAL, failure);
+
+  // Successfully allocated the object(s), now update top to point to
+  // next object start and initialize the object.
+  __ movl(Address::Absolute(heap->TopAddress()), EBX);
+  __ addl(EAX, Immediate(kHeapObjectTag));
+
+  // Initialize the tags.
+  // EAX: new object start as a tagged pointer.
+  // EBX: new object end address.
+  // EDI: allocation size.
+  {
+    Label size_tag_overflow, done;
+    __ cmpl(EDI, Immediate(RawObject::SizeTag::kMaxSizeTag));
+    __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
+    __ shll(EDI, Immediate(RawObject::kSizeTagBit - kObjectAlignmentLog2));
+    __ jmp(&done, Assembler::kNearJump);
+
+    __ Bind(&size_tag_overflow);
+    __ xorl(EDI, EDI);
+    __ Bind(&done);
+
+    // Get the class index and insert it into the tags.
+    const Class& cls =
+        Class::Handle(isolate->object_store()->one_byte_string_class());
+    __ orl(EDI, Immediate(RawObject::ClassIdTag::encode(cls.id())));
+    __ movl(FieldAddress(EAX, String::tags_offset()), EDI);  // Tags.
+  }
+
+  // Set the length field.
+  __ movl(EDI, Address(ESP, + end_index_offset));
+  __ subl(EDI, Address(ESP, + start_index_offset));  // Length.
+  __ StoreIntoObjectNoBarrier(EAX,
+                              FieldAddress(EAX, String::length_offset()),
+                              EDI);
+  // Clear hash.
+  __ movl(FieldAddress(EAX, String::hash_offset()), Immediate(0));
+}
+
+
+// Arg0: Onebyte String
+// Arg1: Start index as Smi.
+// Arg2: End index as Smi.
+// The indexes must be valid.
+bool Intrinsifier::OneByteString_substringUnchecked(Assembler* assembler) {
+  const intptr_t kStringOffset = 3 * kWordSize;
+  const intptr_t kStartIndexOffset = 2 * kWordSize;
+  const intptr_t kEndIndexOffset = 1 * kWordSize;
+  Label fall_through, done;
+  TryAllocateOnebyteString(
+      assembler, &fall_through, kStartIndexOffset, kEndIndexOffset);
+  // EAX: new string as tagged pointer.
+  // Copy string.
+  __ movl(EDI, Address(ESP, + kStringOffset));
+  __ movl(EBX, Address(ESP, + kStartIndexOffset));
+  __ SmiUntag(EBX);
+  __ leal(EDI, FieldAddress(EDI, EBX, TIMES_1, OneByteString::data_offset()));
+  // EDI: Start address to copy from (untagged).
+  __ movl(EDX, Address(ESP, + kEndIndexOffset));
+  __ SmiUntag(EDX);
+  __ subl(EDX, EBX);
+  __ xorl(ECX, ECX);
+  // EDX: Number of bytes to copy.
+  // ECX: Loop counter.
+  // TODO(srdjan): For large substrings it could be better if we would group
+  // the byte copies into word copies or even call memcpy.
+  Label loop, check;
+  // TODO(srdjan): Use rep movsb instead.
+  __ jmp(&check, Assembler::kNearJump);
+  __ Bind(&loop);
+  __ movzxb(EBX, Address(EDI, ECX, TIMES_1, 0));
+  __ movb(FieldAddress(EAX, ECX, TIMES_1, OneByteString::data_offset()), BL);
+  __ incl(ECX);
+  __ Bind(&check);
+  __ cmpl(ECX, EDX);
+  __ j(LESS, &loop, Assembler::kNearJump);
+
+  __ Bind(&done);
+  __ ret();
+  __ Bind(&fall_through);
+  return false;
+}
+
 #undef __
 }  // namespace dart
 
