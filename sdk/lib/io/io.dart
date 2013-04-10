@@ -18,6 +18,7 @@ import 'dart:collection' show Queue,
                               DoubleLinkedQueueEntry;
 import 'dart:crypto';
 import 'dart:isolate';
+import 'dart:json' as JSON;
 import 'dart:math';
 import 'dart:uri';
 import 'dart:utf';
