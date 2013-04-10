@@ -15,28 +15,28 @@ part of dart.core;
  */
 class DateTime {
   // Weekday constants that are returned by [weekday] method:
-  static const int MON = 1;
-  static const int TUE = 2;
-  static const int WED = 3;
-  static const int THU = 4;
-  static const int FRI = 5;
-  static const int SAT = 6;
-  static const int SUN = 7;
+  static const int MONDAY = 1;
+  static const int TUESDAY = 2;
+  static const int WEDNESDAY = 3;
+  static const int THURSDAY = 4;
+  static const int FRIDAY = 5;
+  static const int SATURDAY = 6;
+  static const int SUNDAY = 7;
   static const int DAYS_IN_WEEK = 7;
 
   // Month constants that are returned by the [month] getter.
-  static const int JAN = 1;
-  static const int FEB = 2;
-  static const int MAR = 3;
-  static const int APR = 4;
+  static const int JANUARY = 1;
+  static const int FEBRUARY = 2;
+  static const int MARCH = 3;
+  static const int APRIL = 4;
   static const int MAY = 5;
-  static const int JUN = 6;
-  static const int JUL = 7;
-  static const int AUG = 8;
-  static const int SEP = 9;
-  static const int OCT = 10;
-  static const int NOV = 11;
-  static const int DEC = 12;
+  static const int JUNE = 6;
+  static const int JULY = 7;
+  static const int AUGUST = 8;
+  static const int SEPTEMBER = 9;
+  static const int OCTOBER = 10;
+  static const int NOVEMBER = 11;
+  static const int DECEMBER = 12;
 
   /**
    * The milliseconds since 1970-01-01T00:00:00Z (UTC). This value is

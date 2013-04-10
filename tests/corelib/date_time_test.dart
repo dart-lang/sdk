@@ -782,32 +782,32 @@ class DateTest {
   static void testWeekday() {
     // 2011-10-06 is Summertime.
     var d = new DateTime(2011, 10, 6, 0, 45, 37, 0);
-    Expect.equals(DateTime.THU, d.weekday);
+    Expect.equals(DateTime.THURSDAY, d.weekday);
     d = new DateTime.utc(2011, 10, 6, 0, 45, 37, 0);
-    Expect.equals(DateTime.THU, d.weekday);
+    Expect.equals(DateTime.THURSDAY, d.weekday);
     d = new DateTime(2011, 10, 5, 23, 45, 37, 0);
-    Expect.equals(DateTime.WED, d.weekday);
+    Expect.equals(DateTime.WEDNESDAY, d.weekday);
     d = new DateTime.utc(2011, 10, 5, 23, 45, 37, 0);
-    Expect.equals(DateTime.WED, d.weekday);
+    Expect.equals(DateTime.WEDNESDAY, d.weekday);
     // 1970-01-01 is Wintertime.
     d = new DateTime(1970, 1, 1, 0, 0, 0, 1);
-    Expect.equals(DateTime.THU, d.weekday);
+    Expect.equals(DateTime.THURSDAY, d.weekday);
     d = new DateTime.utc(1970, 1, 1, 0, 0, 0, 1);
-    Expect.equals(DateTime.THU, d.weekday);
+    Expect.equals(DateTime.THURSDAY, d.weekday);
     d = new DateTime.utc(1969, 12, 31, 23, 59, 59, 999);
-    Expect.equals(DateTime.WED, d.weekday);
+    Expect.equals(DateTime.WEDNESDAY, d.weekday);
     d = new DateTime(1969, 12, 31, 23, 59, 59, 999);
-    Expect.equals(DateTime.WED, d.weekday);
+    Expect.equals(DateTime.WEDNESDAY, d.weekday);
     d = new DateTime(2011, 10, 4, 23, 45, 37, 0);
-    Expect.equals(DateTime.TUE, d.weekday);
+    Expect.equals(DateTime.TUESDAY, d.weekday);
     d = new DateTime(2011, 10, 3, 23, 45, 37, 0);
-    Expect.equals(DateTime.MON, d.weekday);
+    Expect.equals(DateTime.MONDAY, d.weekday);
     d = new DateTime(2011, 10, 2, 23, 45, 37, 0);
-    Expect.equals(DateTime.SUN, d.weekday);
+    Expect.equals(DateTime.SUNDAY, d.weekday);
     d = new DateTime(2011, 10, 1, 23, 45, 37, 0);
-    Expect.equals(DateTime.SAT, d.weekday);
+    Expect.equals(DateTime.SATURDAY, d.weekday);
     d = new DateTime(2011, 9, 30, 23, 45, 37, 0);
-    Expect.equals(DateTime.FRI, d.weekday);
+    Expect.equals(DateTime.FRIDAY, d.weekday);
   }
 
   static void testMain() {
