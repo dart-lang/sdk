@@ -6042,6 +6042,22 @@ class DataTransfer extends NativeFieldWrapperClass1 {
   @DocsEditable
   void clearData([String type]) native "Clipboard_clearData_Callback";
 
+  /**
+   * Gets the data for the specified type.
+   *
+   * The data is only available from within a drop operation (such as an
+   * [Element.onDrop] event) and will return `null` before the event is
+   * triggered.
+   *
+   * Data transfer is prohibited across domains. If a drag originates
+   * from content from another domain or protocol (HTTP vs HTTPS) then the
+   * data cannot be accessed.
+   *
+   * The [type] can have values such as:
+   *
+   * * `'Text'`
+   * * `'URL'`
+   */
   @DomName('Clipboard.getData')
   @DocsEditable
   String getData(String type) native "Clipboard_getData_Callback";
