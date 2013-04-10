@@ -3240,10 +3240,11 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
       // Preserve and reuse the original type parameters and bounds since the
       // ones defined in the patch class will not be finalized.
       orig_type_parameters = cls.type_parameters();
-      String& patch = String::Handle(
-          String::Concat(Symbols::PatchSpace(), class_name));
-      patch = Symbols::New(patch);
-      cls = Class::New(patch, script_, classname_pos);
+      // A patch class must be given the same name as the class it is patching,
+      // otherwise the generic signature classes it defines will not match the
+      // patched generic signature classes. Therefore, new signature classes
+      // will be introduced and the original ones will not get finalized.
+      cls = Class::New(class_name, script_, classname_pos);
       cls.set_library(library_);
     } else {
       // Not patching a class, but it has been found. This must be one of the
