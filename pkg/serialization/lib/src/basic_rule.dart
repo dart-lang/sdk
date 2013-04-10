@@ -375,7 +375,7 @@ class _NamedField extends _Field {
   }
 
   valueIn(InstanceMirror mirror) =>
-      deprecatedFutureValue(mirror.getField(name)).reflectee;
+      deprecatedFutureValue(mirror.getFieldAsync(name)).reflectee;
 
   /** Return the function to use to set our value. */
   Function get setter =>
@@ -383,7 +383,7 @@ class _NamedField extends _Field {
 
   /** Return a default setter function. */
   void defaultSetter(InstanceMirror object, value) {
-    object.setField(name, reflect(value));
+    object.setFieldAsync(name, reflect(value));
   }
 
   String toString() => 'Field($name)';
@@ -615,7 +615,7 @@ class Constructor {
     // TODO(alanknight): Handle named parameters
     Iterable inflated = fieldNumbers.map(
         (x) => (x is int) ? reflect(r.inflateReference(state[x])) : reflect(x));
-    var result = type.newInstance(name, inflated.toList());
+    var result = type.newInstanceAsync(name, inflated.toList());
     return deprecatedFutureValue(result);
   }
 }

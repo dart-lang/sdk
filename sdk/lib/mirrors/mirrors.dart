@@ -174,32 +174,34 @@ abstract class DeclarationMirror implements Mirror {
 abstract class ObjectMirror implements Mirror {
   /**
    * Invokes the named function and returns a mirror on the result.
-   *
-   * TODO(turnidge): Properly document.
+   * The arguments must be instances of [InstanceMirror], [num], 
+   * [String] or [bool].
+   */
+  /* TODO(turnidge): Properly document.
    * TODO(turnidge): Handle ambiguous names.
    * TODO(turnidge): Handle optional & named arguments.
    */
-  Future<InstanceMirror> invoke(String memberName,
-                                List<Object> positionalArguments,
-                                [Map<String,Object> namedArguments]);
+  Future<InstanceMirror> invokeAsync(String memberName,
+                                     List<Object> positionalArguments,
+                                     [Map<String,Object> namedArguments]);
 
   /**
    * Invokes a getter and returns a mirror on the result. The getter
    * can be the implicit getter for a field or a user-defined getter
    * method.
-   *
-   * TODO(turnidge): Handle ambiguous names.
    */
-  Future<InstanceMirror> getField(String fieldName);
+  /* TODO(turnidge): Handle ambiguous names.*/
+  Future<InstanceMirror> getFieldAsync(String fieldName);
 
   /**
    * Invokes a setter and returns a mirror on the result. The setter
    * may be either the implicit setter for a non-final field or a
    * user-defined setter method.
-   *
-   * TODO(turnidge): Handle ambiguous names.
+   * The argument must be an instance of either [InstanceMirror], [num], 
+   * [String] or [bool].
    */
-  Future<InstanceMirror> setField(String fieldName, Object value);
+  /* TODO(turnidge): Handle ambiguous names.*/
+  Future<InstanceMirror> setFieldAsync(String fieldName, Object value);
 }
 
 /**
@@ -256,17 +258,12 @@ abstract class ClosureMirror implements InstanceMirror {
   String get source;
 
   /**
-   * Executes the closure. The arguments given in the descriptor need to
-   * be InstanceMirrors or simple values.
-   *
-   * A value is simple if one of the following holds:
-   *  - the value is null
-   *  - the value is of type [num]
-   *  - the value is of type [bool]
-   *  - the value is of type [String]
+   * Executes the closure.
+   * The arguments must be instances of [InstanceMirror], [num], 
+   * [String] or [bool]. 
    */
-  Future<InstanceMirror> apply(List<Object> positionalArguments,
-                               [Map<String,Object> namedArguments]);
+  Future<InstanceMirror> applyAsync(List<Object> positionalArguments,
+                                    [Map<String,Object> namedArguments]);
 
   /**
    * Looks up the value of a name in the scope of the closure. The
@@ -436,12 +433,12 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
 
   /**
    * Invokes the named constructor and returns a mirror on the result.
-   *
-   * TODO(turnidge): Properly document.
+   * The arguments must be instances of [InstanceMirror], [num], 
    */
-  Future<InstanceMirror> newInstance(String constructorName,
-                                     List<Object> positionalArguments,
-                                     [Map<String,Object> namedArguments]);
+  /* TODO(turnidge): Properly document.*/
+  Future<InstanceMirror> newInstanceAsync(String constructorName,
+                                          List<Object> positionalArguments,
+                                          [Map<String,Object> namedArguments]);
 
   /**
    * Does this mirror represent a class?

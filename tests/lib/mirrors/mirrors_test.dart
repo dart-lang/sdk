@@ -25,22 +25,22 @@ testFieldAccess(mirrors) {
   var classMirror = libMirror.classes["Class"];
   var instMirror = reflect(instance);
 
-  libMirror.setField('topLevelField', 42);
-  var future = libMirror.getField('topLevelField');
+  libMirror.setFieldAsync('topLevelField', 42);
+  var future = libMirror.getFieldAsync('topLevelField');
   future.then(expectAsync1((resultMirror) {
     expect(resultMirror.reflectee, equals(42));
     expect(topLevelField, equals(42));   
   }));
   
-  classMirror.setField('staticField', 43);
-  future = classMirror.getField('staticField');
+  classMirror.setFieldAsync('staticField', 43);
+  future = classMirror.getFieldAsync('staticField');
   future.then(expectAsync1((resultMirror) {
     expect(resultMirror.reflectee, equals(43));
     expect(Class.staticField, equals(43)); 
   }));
 
-  instMirror.setField('field', 44);
-  future = instMirror.getField('field');
+  instMirror.setFieldAsync('field', 44);
+  future = instMirror.getFieldAsync('field');
   future.then(expectAsync1((resultMirror) {
     expect(resultMirror.reflectee, equals(44));
     expect(instance.field, equals(44)); 
@@ -57,7 +57,7 @@ testClosureMirrors(mirrors) {
   expect(funcMirror is MethodMirror, equals(true));
   expect(funcMirror.parameters.length, equals(3));
 
-  var future = mirror.apply([2, 4, 8]);
+  var future = mirror.applyAsync([2, 4, 8]);
   future.then(expectAsync1((resultMirror) {
     expect(resultMirror.reflectee, equals(14));
   }));
@@ -67,14 +67,14 @@ testInvokeConstructor(mirrors) {
   var libMirror = mirrors.libraries["MirrorsTest"];
   var classMirror = libMirror.classes["Class"];
   
-  var future = classMirror.newInstance('', []);
+  var future = classMirror.newInstanceAsync('', []);
   future.then(expectAsync1((resultMirror) {
     var instance = resultMirror.reflectee;
     expect(instance is Class, equals(true));
     expect(instance.field, equals("default value"));
   }));
 
-  future = classMirror.newInstance('withInitialValue', [45]);
+  future = classMirror.newInstanceAsync('withInitialValue', [45]);
   future.then(expectAsync1((resultMirror) {
     var instance = resultMirror.reflectee;
     expect(instance is Class, equals(true));
