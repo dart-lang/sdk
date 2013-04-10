@@ -1,8 +1,7 @@
 // This file introduces / supplements and forces Dart declarations.
 
 [Supplemental,
- Constructor,
- Conditional=WEB_AUDIO]
+ Constructor]
 interface AudioContext {};
 
 [Supplemental]
@@ -11,8 +10,7 @@ interface Document {
   CanvasRenderingContext getCSSCanvasContext(in DOMString contextId, in DOMString name, in long width, in long height);
 };
 
-[Supplemental,
- Conditional=WEB_AUDIO]
+[Supplemental]
 interface ScriptProcessorNode {
   [Suppressed] attribute EventListener onaudioprocess;
   [Custom] void _setEventListener(EventListener eventListener);
