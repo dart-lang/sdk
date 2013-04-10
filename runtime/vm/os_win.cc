@@ -6,6 +6,7 @@
 #if defined(TARGET_OS_WINDOWS)
 
 #include "vm/os.h"
+#include "vm/vtune.h"
 
 #include <malloc.h>  // NOLINT
 #include <time.h>  // NOLINT
@@ -254,7 +255,7 @@ bool OS::StringToInt64(const char* str, int64_t* value) {
 
 void OS::RegisterCodeObservers() {
 #if defined(DART_VTUNE_SUPPORT)
-  Register(new VTuneCodeObserver);
+  CodeObservers::Register(new VTuneCodeObserver);
 #endif
 }
 

@@ -21,6 +21,7 @@
 #include "vm/dart.h"
 #include "vm/debuginfo.h"
 #include "vm/isolate.h"
+#include "vm/vtune.h"
 #include "vm/zone.h"
 
 
@@ -477,7 +478,7 @@ void OS::RegisterCodeObservers() {
     CodeObservers::Register(new PprofCodeObserver);
   }
 #if defined(DART_VTUNE_SUPPORT)
-  Register(new VTuneCodeObserver);
+  CodeObservers::Register(new VTuneCodeObserver);
 #endif
 }
 
