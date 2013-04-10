@@ -493,8 +493,8 @@ patch class LinkedHashMap<K, V> {
       var bucket = _getBucket(rest, key);
       int index = _findBucketIndex(bucket, key);
       if (index < 0) return null;
-      // Use splice to remove the two [key, value] elements at the
-      // index and unlink the cell before returning its value.
+      // Use splice to remove the [cell] element at the index and
+      // unlink the cell before returning its value.
       LinkedHashMapCell cell = JS('var', '#.splice(#, 1)[0]', bucket, index);
       _unlinkCell(cell);
       // TODO(kasperl): Consider getting rid of the bucket list when
@@ -988,6 +988,331 @@ class HashSetIterator<E> implements Iterator<E> {
       // treat the result of doing offset + 1 as an int. Otherwise, we
       // get unnecessary bailout code.
       _offset = JS('int', '#', offset + 1);
+      return true;
+    }
+  }
+}
+
+patch class LinkedHashSet<E> extends _HashSetBase<E> {
+  int _length = 0;
+
+  // The hash set contents are divided into three parts: one part for
+  // string elements, one for numeric elements, and one for the
+  // rest. String and numeric elements map directly to their linked
+  // cells, but the rest of the entries are stored in bucket lists of
+  // the form:
+  //
+  //    [cell-0, cell-1, ...]
+  //
+  // where all elements in the same bucket share the same hash code.
+  var _strings;
+  var _nums;
+  var _rest;
+
+  // The elements are stored in cells that are linked together
+  // to form a double linked list.
+  LinkedHashSetCell _first;
+  LinkedHashSetCell _last;
+
+  // We track the number of modifications done to the element set to
+  // be able to throw when the set is modified while being iterated
+  // over.
+  int _modifications = 0;
+
+  patch LinkedHashSet();
+
+  void _unsupported(String operation) {
+    throw 'LinkedHashSet: unsupported $operation';
+  }
+
+  // Iterable.
+  patch Iterator<E> get iterator {
+    return new LinkedHashSetIterator(this, _modifications);
+  }
+
+  patch int get length => _length;
+  patch bool get isEmpty => _length == 0;
+
+  patch bool contains(Object object) {
+    if (_isStringElement(object)) {
+      var strings = _strings;
+      if (strings == null) return false;
+      LinkedHashSetCell cell = _getTableEntry(strings, object);
+      return cell != null;
+    } else if (_isNumericElement(object)) {
+      var nums = _nums;
+      if (nums == null) return false;
+      LinkedHashSetCell cell = _getTableEntry(nums, object);
+      return cell != null;
+    } else {
+      var rest = _rest;
+      if (rest == null) return false;
+      var bucket = _getBucket(rest, object);
+      return _findBucketIndex(bucket, object) >= 0;
+    }
+  }
+
+  patch void forEach(void action(E element)) {
+    LinkedHashSetCell cell = _first;
+    int modifications = _modifications;
+    while (cell != null) {
+      action(cell._element);
+      if (modifications != _modifications) {
+        throw new ConcurrentModificationError(this);
+      }
+      cell = cell._next;
+    }
+  }
+
+  patch E get first {
+    if (_first == null) throw new StateError("No elements");
+    return _first._element;
+  }
+
+  patch E get last {
+    if (_last == null) throw new StateError("No elements");
+    return _last._element;
+  }
+
+  // Collection.
+  patch void add(E element) {
+    if (_isStringElement(element)) {
+      var strings = _strings;
+      if (strings == null) _strings = strings = _newHashTable();
+      _addHashTableEntry(strings, element);
+    } else if (_isNumericElement(element)) {
+      var nums = _nums;
+      if (nums == null) _nums = nums = _newHashTable();
+      _addHashTableEntry(nums, element);
+    } else {
+      var rest = _rest;
+      if (rest == null) _rest = rest = _newHashTable();
+      var hash = _computeHashCode(element);
+      var bucket = JS('var', '#[#]', rest, hash);
+      if (bucket == null) {
+        LinkedHashSetCell cell = _newLinkedCell(element);
+        _setTableEntry(rest, hash, JS('var', '[#]', cell));
+      } else {
+        int index = _findBucketIndex(bucket, element);
+        if (index >= 0) return;
+        LinkedHashSetCell cell = _newLinkedCell(element);
+        JS('void', '#.push(#)', bucket, cell);
+      }
+    }
+  }
+
+  patch void addAll(Iterable<E> objects) {
+    for (E object in objects) {
+      add(object);
+    }
+  }
+
+  patch bool remove(Object object) {
+    if (_isStringElement(object)) {
+      return _removeHashTableEntry(_strings, object);
+    } else if (_isNumericElement(object)) {
+      return _removeHashTableEntry(_nums, object);
+    } else {
+      var rest = _rest;
+      if (rest == null) return false;
+      var bucket = _getBucket(rest, object);
+      int index = _findBucketIndex(bucket, object);
+      if (index < 0) return false;
+      // Use splice to remove the [cell] element at the index and
+      // unlink it.
+      LinkedHashSetCell cell = JS('var', '#.splice(#, 1)[0]', bucket, index);
+      _unlinkCell(cell);
+      return true;
+    }
+  }
+
+  patch void removeAll(Iterable objectsToRemove) {
+    for (var each in objectsToRemove) {
+      remove(each);
+    }
+  }
+
+  patch void removeWhere(bool test(E element)) {
+    _filterWhere(test, true);
+  }
+
+  patch void retainWhere(bool test(E element)) {
+    _filterWhere(test, false);
+  }
+
+  void _filterWhere(bool test(E element), bool removeMatching) {
+    LinkedHashSetCell cell = _first;
+    while (cell != null) {
+      E element = cell._element;
+      LinkedHashSetCell next = cell._next;
+      int modifications = _modifications;
+      bool shouldRemove = (removeMatching == test(element));
+      if (modifications != _modifications) {
+        throw new ConcurrentModificationError(this);
+      }
+      if (shouldRemove) remove(element);
+      cell = next;
+    }
+  }
+
+  patch void clear() {
+    if (_length > 0) {
+      _strings = _nums = _rest = _first = _last = null;
+      _length = 0;
+      _modified();
+    }
+  }
+
+  void _addHashTableEntry(var table, E element) {
+    LinkedHashSetCell cell = _getTableEntry(table, element);
+    if (cell != null) return;
+    _setTableEntry(table, element, _newLinkedCell(element));
+  }
+
+  bool _removeHashTableEntry(var table, E element) {
+    if (table == null) return false;
+    LinkedHashSetCell cell = _getTableEntry(table, element);
+    if (cell == null) return false;
+    _unlinkCell(cell);
+    _deleteTableEntry(table, element);
+    return true;
+  }
+
+  void _modified() {
+    // Value cycles after 2^30 modifications. If you keep hold of an
+    // iterator for that long, you might miss a modification
+    // detection, and iteration can go sour. Don't do that.
+    _modifications = (_modifications + 1) & 0x3ffffff;
+  }
+
+  // Create a new cell and link it in as the last one in the list.
+  LinkedHashSetCell _newLinkedCell(E element) {
+    LinkedHashSetCell cell = new LinkedHashSetCell(element);
+    if (_first == null) {
+      _first = _last = cell;
+    } else {
+      LinkedHashSetCell last = _last;
+      cell._previous = last;
+      _last = last._next = cell;
+    }
+    _length++;
+    _modified();
+    return cell;
+  }
+
+  // Unlink the given cell from the linked list of cells.
+  void _unlinkCell(LinkedHashSetCell cell) {
+    LinkedHashSetCell previous = cell._previous;
+    LinkedHashSetCell next = cell._next;
+    if (previous == null) {
+      assert(cell == _first);
+      _first = next;
+    } else {
+      previous._next = next;
+    }
+    if (next == null) {
+      assert(cell == _last);
+      _last = previous;
+    } else {
+      next._previous = previous;
+    }
+    _length--;
+    _modified();
+  }
+
+  static bool _isStringElement(var element) {
+    return element is String && element != '__proto__';
+  }
+
+  static bool _isNumericElement(var element) {
+    // Only treat unsigned 30-bit integers as numeric elements. This
+    // way, we avoid converting them to strings when we use them as
+    // keys in the JavaScript hash table object.
+    return element is num &&
+        JS('bool', '(# & 0x3ffffff) === #', element, element);
+  }
+
+  static int _computeHashCode(var element) {
+    // We force the hash codes to be unsigned 30-bit integers to avoid
+    // issues with problematic elements like '__proto__'. Another
+    // option would be to throw an exception if the hash code isn't a
+    // number.
+    return JS('int', '# & 0x3ffffff', element.hashCode);
+  }
+
+  static _getTableEntry(var table, var key) {
+    return JS('var', '#[#]', table, key);
+  }
+
+  static void _setTableEntry(var table, var key, var value) {
+    assert(value != null);
+    JS('void', '#[#] = #', table, key, value);
+  }
+
+  static void _deleteTableEntry(var table, var key) {
+    JS('void', 'delete #[#]', table, key);
+  }
+
+  static List _getBucket(var table, var element) {
+    var hash = _computeHashCode(element);
+    return JS('var', '#[#]', table, hash);
+  }
+
+  static int _findBucketIndex(var bucket, var element) {
+    if (bucket == null) return -1;
+    int length = JS('int', '#.length', bucket);
+    for (int i = 0; i < length; i++) {
+      LinkedHashSetCell cell = JS('var', '#[#]', bucket, i);
+      if (cell._element == element) return i;
+    }
+    return -1;
+  }
+
+  static _newHashTable() {
+    // Create a new JavaScript object to be used as a hash table. Use
+    // Object.create to avoid the properties on Object.prototype
+    // showing up as entries.
+    var table = JS('var', 'Object.create(null)');
+    // Attempt to force the hash table into 'dictionary' mode by
+    // adding a property to it and deleting it again.
+    var temporaryKey = '<non-identifier-key>';
+    _setTableEntry(table, temporaryKey, table);
+    _deleteTableEntry(table, temporaryKey);
+    return table;
+  }
+}
+
+class LinkedHashSetCell {
+  final _element;
+
+  LinkedHashSetCell _next;
+  LinkedHashSetCell _previous;
+
+  LinkedHashSetCell(this._element);
+}
+
+// TODO(kasperl): Share this code with LinkedHashMapKeyIterator<E>?
+class LinkedHashSetIterator<E> implements Iterator<E> {
+  final _set;
+  final int _modifications;
+  LinkedHashSetCell _cell;
+  E _current;
+
+  LinkedHashSetIterator(this._set, this._modifications) {
+    _cell = _set._first;
+  }
+
+  E get current => _current;
+
+  bool moveNext() {
+    if (_modifications != _set._modifications) {
+      throw new ConcurrentModificationError(_set);
+    } else if (_cell == null) {
+      _current = null;
+      return false;
+    } else {
+      _current = _cell._element;
+      _cell = _cell._next;
       return true;
     }
   }

@@ -188,6 +188,34 @@ testSet(Set newSet(), Set newSetFrom(Set from)) {
     Expect.equals(127, set.length);
     Expect.isFalse(set.contains(null));
   }
+
+  {  // Check that addAll and clear works.
+    Set set = newSet();
+    set.addAll([]);
+    Expect.isTrue(set.isEmpty);
+    set.addAll([1, 3, 2]);
+    Expect.equals(3, set.length);
+    Expect.isTrue(set.contains(1));
+    Expect.isTrue(set.contains(3));
+    Expect.isTrue(set.contains(2));
+    Expect.isFalse(set.contains(4));
+    set.clear();
+    Expect.isTrue(set.isEmpty);
+  }
+
+  {  // Check that removeWhere and retainWhere work.
+    Set set = newSetFrom([1, 2, 3]);
+    set.removeWhere((each) => each == 2);
+    Expect.equals(2, set.length);
+    Expect.isTrue(set.contains(1));
+    Expect.isFalse(set.contains(2));
+    Expect.isTrue(set.contains(3));
+    set.retainWhere((each) => each == 3);
+    Expect.equals(1, set.length);
+    Expect.isFalse(set.contains(1));
+    Expect.isFalse(set.contains(2));
+    Expect.isTrue(set.contains(3));
+  }
 }
 
 void main() {

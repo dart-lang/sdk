@@ -51,6 +51,16 @@ abstract class _HashSetBase<E> extends Collection<E> implements Set<E> {
     return result;
   }
 
+  void retainAll(Iterable objectsToRetain) {
+    Set retainSet;
+    if (objectsToRetain is Set) {
+      retainSet = objectsToRetain;
+    } else {
+      retainSet = objectsToRetain.toSet();
+    }
+    retainWhere(retainSet.contains);
+  }
+
   String toString() => Collections.collectionToString(this);
 }
 
@@ -78,16 +88,6 @@ class HashSet<E> extends _HashSetBase<E> {
   external bool remove(Object object);
 
   external void removeAll(Iterable objectsToRemove);
-
-  void retainAll(Iterable objectsToRetain) {
-    Set retainSet;
-    if (objectsToRetain is Set) {
-      retainSet = objectsToRetain;
-    } else {
-      retainSet = objectsToRetain.toSet();
-    }
-    retainWhere(retainSet.contains);
-  }
 
   external void removeWhere(bool test(E element));
 
