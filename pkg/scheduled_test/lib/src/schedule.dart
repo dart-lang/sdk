@@ -110,6 +110,14 @@ class Schedule {
   /// The timer for keeping track of task timeouts. This may be null.
   Timer _timeoutTimer;
 
+  /// If `true`, then new [Task]s will capture the current stack trace before
+  /// running. This can be set to `false` to speed up running tests since
+  /// capturing stack traces is currently quite slow. Even when set to `false`,
+  /// stack traces from *thrown* exceptions will be caught. This only disables
+  /// the eager collection of stack traces *before* an error occurs. Defaults
+  /// to `true`.
+  bool captureStackTraces = true;
+
   /// Creates a new schedule with empty task queues.
   Schedule() {
     _tasks = new TaskQueue._("tasks", this);
@@ -309,7 +317,7 @@ class Schedule {
   /// are no duplicate errors, and that all errors are wrapped in
   /// [ScheduleError].
   void _addError(error) {
-    if (errors.contains(error)) return;
+    if (error is ScheduleError && errors.contains(error)) return;
     errors.add(new ScheduleError.from(this, error));
   }
 }
@@ -345,6 +353,10 @@ class TaskQueue {
 
   /// The name of the queue, for debugging purposes.
   final String name;
+
+  /// If `true`, then new [Task]s in this queue will capture the current stack
+  /// trace before running.
+  bool get captureStackTraces => _schedule.captureStackTraces;
 
   /// The [Schedule] that created this queue.
   final Schedule _schedule;
@@ -496,8 +508,12 @@ class TaskQueue {
     if (description == null) {
       description = "Out-of-band operation #${_totalCallbacks}";
     }
-    var stackString = prefixLines(terseTraceString(new Trace.current()));
-    description = "$description\n\nStack trace:\n$stackString";
+
+    if (captureStackTraces) {
+      var stackString = prefixLines(terseTraceString(new Trace.current()));
+      description += "\n\nStack trace:\n$stackString";
+    }
+
     _totalCallbacks++;
 
     _pendingCallbacks.add(description);

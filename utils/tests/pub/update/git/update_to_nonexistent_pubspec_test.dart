@@ -10,6 +10,7 @@ import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
+  initConfig();
   integration("updates Git packages to a nonexistent pubspec", () {
     ensureGit();
 

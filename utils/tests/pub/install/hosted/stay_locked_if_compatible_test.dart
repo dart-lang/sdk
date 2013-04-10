@@ -10,6 +10,7 @@ import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
+  initConfig();
   integration("doesn't update a locked pub server package with a new "
       "compatible constraint", () {
     servePackages([packageMap("foo", "1.0.0")]);

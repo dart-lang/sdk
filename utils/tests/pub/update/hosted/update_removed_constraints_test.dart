@@ -10,6 +10,7 @@ import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
+  initConfig();
   integration("updates dependencies whose constraints have been removed", () {
     servePackages([
       packageMap("foo", "1.0.0", [dependencyMap("shared-dep")]),

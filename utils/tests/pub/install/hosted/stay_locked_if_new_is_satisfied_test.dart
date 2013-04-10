@@ -10,6 +10,7 @@ import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
+  initConfig();
   integration("doesn't unlock dependencies if a new dependency is already "
       "satisfied", () {
     servePackages([

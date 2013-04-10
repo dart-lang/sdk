@@ -35,6 +35,7 @@ ScheduledProcess startPubUploader(ScheduledServer server, List<String> args) {
 }
 
 main() {
+  initConfig();
   group('displays usage', () {
     integration('when run with no arguments', () {
       schedulePub(args: ['uploader'],

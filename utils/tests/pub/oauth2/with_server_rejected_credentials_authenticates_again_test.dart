@@ -15,6 +15,7 @@ import '../test_pub.dart';
 import 'utils.dart';
 
 main() {
+  initConfig();
   integration('with server-rejected credentials, authenticates again and saves '
       'credentials.json', () {
     d.validPackage.create();

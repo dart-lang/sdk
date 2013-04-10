@@ -10,6 +10,7 @@ import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
+  initConfig();
   integration("doesn't update one locked Git package's dependencies if it's "
       "not necessary", () {
     ensureGit();

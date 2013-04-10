@@ -14,6 +14,7 @@ import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
+  initConfig();
   integration('keeps a Git package locked to the version in the lockfile', () {
     ensureGit();
 

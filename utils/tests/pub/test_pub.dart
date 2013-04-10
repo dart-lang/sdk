@@ -232,6 +232,11 @@ void _integration(String description, void body(), [Function testFn]) {
       currentSchedule.timeout = new Duration(seconds: 10);
     }
 
+    // By default, don't capture stack traces since they slow the tests way
+    // down. To debug failing tests, comment this out.
+    currentSchedule.captureStackTraces =
+        new Options().arguments.contains('--trace');
+
     // Ensure the SDK version is always available.
     d.dir(sdkPath, [
       d.file('version', '0.1.2.3')

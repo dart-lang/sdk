@@ -15,6 +15,7 @@ import '../test_pub.dart';
 import 'utils.dart';
 
 main() {
+  initConfig();
   integration('with a pre-existing credentials.json does not authenticate', () {
     d.validPackage.create();
 

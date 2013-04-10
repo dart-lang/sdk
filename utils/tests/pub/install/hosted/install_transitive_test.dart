@@ -10,6 +10,7 @@ import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
+  initConfig();
   integration('installs packages transitively from a pub server', () {
     servePackages([
       packageMap("foo", "1.2.3", [dependencyMap("bar", "2.0.4")]),

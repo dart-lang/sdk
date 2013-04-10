@@ -12,6 +12,7 @@ import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
+  initConfig();
   group("(regression)", () {
     integration('checks out a package from Git with a trailing slash', () {
       ensureGit();

@@ -10,6 +10,7 @@ import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
+  initConfig();
   integration("doesn't update dependencies whose constraints have been "
       "removed", () {
     servePackages([

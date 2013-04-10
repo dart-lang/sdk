@@ -10,6 +10,7 @@ import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
+  initConfig();
   integration("removes a transitive dependency that's no longer depended"
       " on", () {
     servePackages([

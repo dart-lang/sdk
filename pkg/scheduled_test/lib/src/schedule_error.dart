@@ -50,12 +50,8 @@ class ScheduleError extends AsyncError {
       error = error.error;
     }
 
-    if (stackTrace == null) {
-      try {
-        throw '';
-      } catch (_, thrownStackTrace) {
-        stackTrace = thrownStackTrace;
-      }
+    if (schedule.captureStackTraces && stackTrace == null) {
+      stackTrace = new Trace.current();
     }
 
     return new ScheduleError(schedule, error, stackTrace, cause);
@@ -88,9 +84,11 @@ class ScheduleError extends AsyncError {
       result.write('ScheduleError: "$errorString"\n');
     }
 
-    result.write('Stack trace:\n');
-    result.write(prefixLines(terseTraceString(stackTrace)));
-    result.write("\n\n");
+    if (stackTrace != null) {
+      result.write('Stack trace:\n');
+      result.write(prefixLines(terseTraceString(stackTrace)));
+      result.write("\n\n");
+    }
 
     if (task != null) {
       result.write('Error detected during task in queue "$queue":\n');
