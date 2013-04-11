@@ -1575,7 +1575,7 @@ bool Intrinsifier::OneByteString_substringUnchecked(Assembler* assembler) {
   const intptr_t kStringOffset = 3 * kWordSize;
   const intptr_t kStartIndexOffset = 2 * kWordSize;
   const intptr_t kEndIndexOffset = 1 * kWordSize;
-  Label fall_through, done;
+  Label fall_through;
   TryAllocateOnebyteString(
       assembler, &fall_through, kStartIndexOffset, kEndIndexOffset);
   // EAX: new string as tagged pointer.
@@ -1585,26 +1585,18 @@ bool Intrinsifier::OneByteString_substringUnchecked(Assembler* assembler) {
   __ SmiUntag(EBX);
   __ leal(EDI, FieldAddress(EDI, EBX, TIMES_1, OneByteString::data_offset()));
   // EDI: Start address to copy from (untagged).
-  __ movl(EDX, Address(ESP, + kEndIndexOffset));
-  __ SmiUntag(EDX);
-  __ subl(EDX, EBX);
-  __ xorl(ECX, ECX);
-  // EDX: Number of bytes to copy.
-  // ECX: Loop counter.
-  // TODO(srdjan): For large substrings it could be better if we would group
-  // the byte copies into word copies or even call memcpy.
-  Label loop, check;
-  // TODO(srdjan): Use rep movsb instead.
-  __ jmp(&check, Assembler::kNearJump);
-  __ Bind(&loop);
-  __ movzxb(EBX, Address(EDI, ECX, TIMES_1, 0));
-  __ movb(FieldAddress(EAX, ECX, TIMES_1, OneByteString::data_offset()), BL);
-  __ incl(ECX);
-  __ Bind(&check);
-  __ cmpl(ECX, EDX);
-  __ j(LESS, &loop, Assembler::kNearJump);
+  // EBX: Untagged start index.
+  __ movl(ECX, Address(ESP, + kEndIndexOffset));
+  __ SmiUntag(ECX);
+  __ subl(ECX, EBX);
+  // ECX: Untagged number of bytes to copy.
+  ASSERT(CTX == ESI);
+  __ pushl(ESI);  // Preserve CTX.
+  __ movl(ESI, EDI);  // from.
+  __ leal(EDI, FieldAddress(EAX, OneByteString::data_offset()));  // to.
+  __ rep_movsb();
+  __ popl(ESI);  // Restore CTX.
 
-  __ Bind(&done);
   __ ret();
   __ Bind(&fall_through);
   return false;

@@ -2521,6 +2521,35 @@ ASSEMBLER_TEST_RUN(TestAlignLarge, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(TestRepMovsBytes, assembler) {
+  // Preserve registers.
+  __ pushl(ESI);
+  __ pushl(EDI);
+  __ pushl(ECX);
+  __ movl(ESI, Address(ESP, 4 * kWordSize));  // from.
+  __ movl(EDI, Address(ESP, 5 * kWordSize));  // to.
+  __ movl(ECX, Address(ESP, 6 * kWordSize));  // count.
+  __ rep_movsb();
+  __ popl(ECX);
+  __ popl(EDI);
+  __ popl(ESI);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(TestRepMovsBytes, test) {
+  const char* from = "0123456789";
+  const char* to = new char[10];
+  typedef void (*TestRepMovsBytes)(const char* from, const char* to, int count);
+  reinterpret_cast<TestRepMovsBytes>(test->entry())(from, to, 10);
+  EXPECT_EQ(to[0], '0');
+  for (int i = 0; i < 10; i++) {
+    EXPECT_EQ(from[i], to[i]);
+  }
+  delete [] to;
+}
+
+
 // Called from assembler_test.cc.
 ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
   __ pushl(CTX);
@@ -2535,7 +2564,6 @@ ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
   __ popl(CTX);
   __ ret();
 }
-
 
 }  // namespace dart
 

@@ -1498,36 +1498,25 @@ bool Intrinsifier::OneByteString_substringUnchecked(Assembler* assembler) {
   const intptr_t kStringOffset = 3 * kWordSize;
   const intptr_t kStartIndexOffset = 2 * kWordSize;
   const intptr_t kEndIndexOffset = 1 * kWordSize;
-  Label fall_through, done;
+  Label fall_through;
   TryAllocateOnebyteString(
       assembler, &fall_through, kStartIndexOffset, kEndIndexOffset);
   // RAX: new string as tagged pointer.
   // Copy string.
-  __ movq(RDI, Address(RSP, + kStringOffset));
+  __ movq(RSI, Address(RSP, + kStringOffset));
   __ movq(RBX, Address(RSP, + kStartIndexOffset));
   __ SmiUntag(RBX);
-  __ leaq(RDI, FieldAddress(RDI, RBX, TIMES_1, OneByteString::data_offset()));
+  __ leaq(RSI, FieldAddress(RSI, RBX, TIMES_1, OneByteString::data_offset()));
   // RDI: Start address to copy from (untagged).
-  __ movq(RDX, Address(RSP, + kEndIndexOffset));
-  __ SmiUntag(RDX);
-  __ subq(RDX, RBX);
-  __ xorq(RCX, RCX);
-  // RDX: Number of bytes to copy.
-  // RCX: Loop counter.
-  // TODO(srdjan): For large substrings it could be better if we would group
-  // the byte copies into word copies or even call memcpy.
-  Label loop, check;
-  // TODO(srdjan): Use rep movsb instead.
-  __ jmp(&check, Assembler::kNearJump);
-  __ Bind(&loop);
-  __ movzxb(RBX, Address(RDI, RCX, TIMES_1, 0));
-  __ movb(FieldAddress(RAX, RCX, TIMES_1, OneByteString::data_offset()), RBX);
-  __ incq(RCX);
-  __ Bind(&check);
-  __ cmpq(RCX, RDX);
-  __ j(LESS, &loop, Assembler::kNearJump);
+  // RBX: Untagged start index.
+  __ movq(RCX, Address(RSP, + kEndIndexOffset));
+  __ SmiUntag(RCX);
+  __ subq(RCX, RBX);
+  // RCX: Untagged number of bytes to copy.
 
-  __ Bind(&done);
+  __ leaq(RDI, FieldAddress(RAX, OneByteString::data_offset()));  // to.
+  __ rep_movsb();
+
   __ ret();
   __ Bind(&fall_through);
   return false;

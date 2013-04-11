@@ -390,6 +390,13 @@ void Assembler::movsxd(Register dst, const Address& src) {
 }
 
 
+void Assembler::rep_movsb() {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0xF3);
+  EmitUint8(0xA4);
+}
+
+
 void Assembler::leaq(Register dst, const Address& src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitOperandREX(dst, src, REX_W);

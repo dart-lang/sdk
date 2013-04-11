@@ -370,6 +370,8 @@ class Assembler : public ValueObject {
   void movsxd(Register dst, Register src);
   void movsxd(Register dst, const Address& src);
 
+  void rep_movsb();
+
   void leaq(Register dst, const Address& src);
 
   void movss(XmmRegister dst, const Address& src);

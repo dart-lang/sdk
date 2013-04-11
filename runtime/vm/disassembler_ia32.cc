@@ -914,6 +914,11 @@ uint8_t* X86Decoder::F3Instruction(uint8_t* data) {
       default:
         UNIMPLEMENTED();
     }
+  } else if (*(data+1) == 0xA4) {
+    Print("rep_movsb");
+    data += 2;
+  } else {
+    UNIMPLEMENTED();
   }
   return data;
 }
