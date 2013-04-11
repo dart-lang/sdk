@@ -96,9 +96,10 @@ void ExtractTestsFromMultitest(Path filePath,
         for (String nextOutcome in annotation.outcomesList) {
           outcomes[annotation.key].add(nextOutcome);
           if (!validMultitestOutcomes.contains(nextOutcome)) {
-            Expect.fail(
-              "Invalid test directive '$nextOutcome' on line ${lineCount}:\n"
-              "${annotation.rest} ");
+            print(
+                "Invalid test directive '$nextOutcome' on line ${lineCount}:\n"
+                "${annotation.rest} ");
+            exit(1);
           }
         }
       }
@@ -111,8 +112,9 @@ void ExtractTestsFromMultitest(Path filePath,
   // Check that every key (other than the none case) has at least one outcome
   for (var outcomeKey in outcomes.keys) {
     if (outcomeKey != 'none' && outcomes[outcomeKey].isEmpty) {
-      Expect.fail("Test ${outcomeKey} has no valid annotated outcomes.\n"
-                  "Expected one of: ${validMultitestOutcomes.toString()}");
+      print("Test ${outcomeKey} has no valid annotated outcomes.\n"
+            "Expected one of: ${validMultitestOutcomes.toString()}");
+      exit(1);
     }
   }
 
@@ -172,7 +174,8 @@ Set<Path> _findAllRelativeImports(Path topLibrary) {
             // This is just for safety reasons, we don't want
             // to unintentionally clobber files relative to the destination
             // dir when copying them ove.
-            Expect.fail("relative paths containing .. are not allowed.");
+            print("relative paths containing .. are not allowed.");
+            exit(1);
           }
           foundImports.add(relativePath);
           toSearch.add(libraryDir.join(relativePath));
@@ -192,7 +195,7 @@ Future doMultitest(Path filePath, String outputDir, Path suiteDir,
 
   Path sourceDir = filePath.directoryPath;
   Path targetDir = CreateMultitestDirectory(outputDir, suiteDir);
-  Expect.isNotNull(targetDir);
+  assert(targetDir != null);
 
   // Copy all the relative imports of the multitest.
   Set<Path> importsToCopy = _findAllRelativeImports(filePath);

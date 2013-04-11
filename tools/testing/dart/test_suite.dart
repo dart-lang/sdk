@@ -397,7 +397,7 @@ class TestInformation {
                   this.hasCompileError, this.hasRuntimeError,
                   this.isNegativeIfChecked, this.hasFatalTypeErrors,
                   this.multitestOutcome) {
-    Expect.isTrue(filePath.isAbsolute);
+    assert(filePath.isAbsolute);
   }
 }
 
@@ -528,7 +528,7 @@ class StandardTestSuite extends TestSuite {
       return new Future.immediate(null);
     }
 
-    Expect.isTrue(updater.isActive);
+    assert(updater.isActive);
     updater.onUpdated.add(() => completer.complete(null));
 
     return completer.future;
@@ -637,10 +637,10 @@ class StandardTestSuite extends TestSuite {
     } else {
       // The test name is the relative path from the test suite directory to
       // the test, with the .dart extension removed.
-      Expect.isTrue(filePath.toNativePath().startsWith(
+      assert(filePath.toNativePath().startsWith(
                     suiteDir.toNativePath()));
       var testNamePath = filePath.relativeTo(suiteDir);
-      Expect.isTrue(testNamePath.extension == 'dart');
+      assert(testNamePath.extension == 'dart');
       if (testNamePath.extension == 'dart') {
         testName = testNamePath.directoryPath.append(
             testNamePath.filenameWithoutExtension).toString();
@@ -717,7 +717,7 @@ class StandardTestSuite extends TestSuite {
                                                   info.optionsFromFile);
 
     List<List<String>> vmOptionsList = getVmOptions(info.optionsFromFile);
-    Expect.isFalse(vmOptionsList.isEmpty, "empty vmOptionsList");
+    assert(!vmOptionsList.isEmpty);
 
     for (var vmOptions in vmOptionsList) {
       doTest(new TestCase('$suiteName/$testName',
@@ -836,7 +836,8 @@ class StandardTestSuite extends TestSuite {
       return "/$PREFIX_DARTDIR/$fileRelativeToDartDir";
     }
     // Unreachable
-    Expect.fail('This should be unreachable.');
+    print("Cannot create URL for path $file. Not in build or dart directory.");
+    exit(1);
   }
 
   String _getUriForBrowserTest(TestInformation info,
@@ -848,7 +849,7 @@ class StandardTestSuite extends TestSuite {
     var serverPort = "PORT";
     var crossOriginPort = "CROSS_ORIGIN_PORT";
     if (!configuration['list']) {
-      Expect.isTrue(configuration.containsKey('_servers_'));
+      assert(configuration.containsKey('_servers_'));
       serverPort = configuration['_servers_'].port;
       crossOriginPort = configuration['_servers_'].crossOriginPort;
     }
@@ -970,7 +971,7 @@ class StandardTestSuite extends TestSuite {
         List<String> otherScripts = optionsFromFile['otherScripts'];
         for (String name in otherScripts) {
           Path namePath = new Path(name);
-          Expect.equals(namePath.extension, 'dart');
+          assert(namePath.extension == 'dart');
           String baseName = namePath.filenameWithoutExtension;
           Path fromPath = filePath.directoryPath.join(namePath);
           commands.add(_compileCommand(
@@ -1012,7 +1013,10 @@ class StandardTestSuite extends TestSuite {
           }
           commandSet.add(new Command('python', args));
         } else {
-          Expect.isTrue(runtime == "drt");
+          if (runtime != "drt") {
+            print("Unknown runtime $runtime");
+            exit(1);
+          }
 
           var dartFlags = [];
           var dumpRenderTreeOptions = [];
@@ -1085,7 +1089,8 @@ class StandardTestSuite extends TestSuite {
         args.add(inputFile);
         break;
       default:
-        Expect.fail('unimplemented compiler $compiler');
+        print('unimplemented compiler $compiler');
+        exit(1);
     }
     if (executable.endsWith('.dart')) {
       // Run the compiler script via the Dart VM.
@@ -1152,8 +1157,9 @@ class StandardTestSuite extends TestSuite {
       case 'dartc':
         return 'text/javascript';
       default:
-        Expect.fail('Non-web runtime, so no scriptType for: '
+        print('Non-web runtime, so no scriptType for: '
                     '${configuration["compiler"]}');
+        exit(1);
         return null;
     }
   }
@@ -1216,7 +1222,7 @@ class StandardTestSuite extends TestSuite {
     bool isMultitest = optionsFromFile["isMultitest"];
     List<String> dartOptions = optionsFromFile["dartOptions"];
     List<List<String>> vmOptionsList = getVmOptions(optionsFromFile);
-    Expect.isTrue(!isMultitest || dartOptions == null);
+    assert(!isMultitest || dartOptions == null);
     if (dartOptions == null) {
       args.add(filePath.toNativePath());
     } else {
@@ -1225,7 +1231,7 @@ class StandardTestSuite extends TestSuite {
       var file = new File(executable_name);
       if (!file.existsSync()) {
         executable_name = '../$executable_name';
-        Expect.isTrue(new File(executable_name).existsSync());
+        assert(new File(executable_name).existsSync());
         dartOptions[0] = executable_name;
       }
       args.addAll(dartOptions);
@@ -1710,8 +1716,7 @@ class TestUtils {
       base = new Path('/');
     }
     Directory dir = new Directory.fromPath(base);
-    Expect.isTrue(dir.existsSync(),
-                  "Expected ${dir} to already exist");
+    assert(dir.existsSync());
     var segments = relativePath.segments();
     for (String segment in segments) {
       base = base.append(segment);
@@ -1725,7 +1730,7 @@ class TestUtils {
       if (!dir.existsSync()) {
         dir.createSync();
       }
-      Expect.isTrue(dir.existsSync(), "Failed to create ${dir.path}");
+      assert(dir.existsSync());
     }
     return dir;
   }
