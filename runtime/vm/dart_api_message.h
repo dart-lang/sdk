@@ -14,13 +14,26 @@ namespace dart {
 // data. These are objects that we need to process in order to
 // generate the Dart_CObject graph but that we don't want to expose in
 // that graph.
-// TODO(sjesse): Remove this when message serialization format is
-// updated.
 struct Dart_CObject_Internal : public Dart_CObject {
   enum Type {
     kTypeArguments = Dart_CObject::kNumberOfTypes,
     kDynamicType,
+    kClass,
+    kView,
+    kUninitialized,
   };
+  struct Dart_CObject_Internal* cls;
+  union {
+    struct {
+      struct _Dart_CObject* library_url;
+      struct _Dart_CObject* class_name;
+    } as_class;
+    struct {
+      struct _Dart_CObject* buffer;
+      int offset_in_bytes;
+      int length;
+    } as_view;
+  } internal;
 };
 
 
@@ -79,6 +92,11 @@ class ApiMessageReader : public BaseReader {
   Dart_CObject* AllocateDartCObjectUint8Array(intptr_t length);
   // Allocates a C array of Dart_CObject objects.
   Dart_CObject* AllocateDartCObjectArray(intptr_t length);
+  // Allocates a Dart_CObject_Internal object with the specified type.
+  Dart_CObject_Internal* AllocateDartCObjectInternal(
+      Dart_CObject_Internal::Type type);
+  // Allocates a Dart_CObject_Internal object for a class object.
+  Dart_CObject_Internal* AllocateDartCObjectClass();
   // Allocates a backwards reference node.
   BackRefNode* AllocateBackRefNode(Dart_CObject* ref, DeserializeState state);
 

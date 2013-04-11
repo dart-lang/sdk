@@ -164,6 +164,22 @@ Dart_CObject* ApiMessageReader::AllocateDartCObjectArray(intptr_t length) {
 }
 
 
+Dart_CObject_Internal* ApiMessageReader::AllocateDartCObjectInternal(
+    Dart_CObject_Internal::Type type) {
+  Dart_CObject_Internal* value =
+      reinterpret_cast<Dart_CObject_Internal*>(
+          alloc_(NULL, 0, sizeof(Dart_CObject_Internal)));
+  ASSERT(value != NULL);
+  value->type = static_cast<Dart_CObject::Type>(type);
+  return value;
+}
+
+
+Dart_CObject_Internal* ApiMessageReader::AllocateDartCObjectClass() {
+  return AllocateDartCObjectInternal(Dart_CObject_Internal::kClass);
+}
+
+
 ApiMessageReader::BackRefNode* ApiMessageReader::AllocateBackRefNode(
     Dart_CObject* reference,
     DeserializeState state) {
@@ -182,9 +198,55 @@ Dart_CObject* ApiMessageReader::ReadInlinedObject(intptr_t object_id) {
   USE(tags);
   intptr_t class_id;
 
-  // Reading of regular dart instances is not supported.
+  // There is limited support for reading regular dart instances. Only
+  // typed data views are currently handled.
   if (SerializedHeaderData::decode(class_header) == kInstanceObjectId) {
-    return AllocateDartCObjectUnsupported();
+    Dart_CObject_Internal* object =
+        reinterpret_cast<Dart_CObject_Internal*>(GetBackRef(object_id));
+    if (object == NULL) {
+      object =
+          AllocateDartCObjectInternal(Dart_CObject_Internal::kUninitialized);
+      AddBackRef(object_id, object, kIsDeserialized);
+      // Read class of object.
+      object->cls = reinterpret_cast<Dart_CObject_Internal*>(ReadObjectImpl());
+      ASSERT(object->cls->type ==
+             static_cast<Dart_CObject::Type>(Dart_CObject_Internal::kClass));
+    }
+    ASSERT(object->type ==
+           static_cast<Dart_CObject::Type>(
+               Dart_CObject_Internal::kUninitialized));
+
+    // Handle typed data views.
+    char* library_url =
+        object->cls->internal.as_class.library_url->value.as_string;
+    char* class_name =
+        object->cls->internal.as_class.class_name->value.as_string;
+    if (strcmp("dart:typeddata", library_url) == 0 &&
+        strncmp("_Uint8ArrayView", class_name, 15) == 0) {
+      object->type =
+          static_cast<Dart_CObject::Type>(Dart_CObject_Internal::kView);
+      // Skip type arguments.
+      ReadObjectImpl();
+      object->internal.as_view.buffer = ReadObjectImpl();
+      object->internal.as_view.offset_in_bytes = ReadSmiValue();
+      object->internal.as_view.length = ReadSmiValue();
+
+      // The buffer is fully read now as typed data objects are
+      // serialized in-line.
+      Dart_CObject* buffer = object->internal.as_view.buffer;
+      ASSERT(buffer->type == Dart_CObject::kUint8Array);
+
+      // Now turn the view into a byte array.
+      object->type = Dart_CObject::kUint8Array;
+      object->value.as_byte_array.length = object->internal.as_view.length;
+      object->value.as_byte_array.values =
+          buffer->value.as_byte_array.values +
+          object->internal.as_view.offset_in_bytes;
+    } else {
+      // TODO(sgjesse): Handle other instances. Currently this will
+      // skew the reading as the fields of the instance is not read.
+    }
+    return object;
   }
 
   ASSERT((class_header & kSmiTagMask) != 0);
@@ -265,11 +327,17 @@ Dart_CObject* ApiMessageReader::ReadObjectRef() {
   // Read the class header information and lookup the class.
   intptr_t class_header = ReadIntptrValue();
 
-  // Reading of regular dart instances is not supported.
+  // Reading of regular dart instances has limited support in order to
+  // read typed data views.
   if (SerializedHeaderData::decode(class_header) == kInstanceObjectId) {
     intptr_t object_id = SerializedHeaderData::decode(value);
-    Dart_CObject* object = AllocateDartCObjectUnsupported();
+    Dart_CObject_Internal* object =
+        AllocateDartCObjectInternal(Dart_CObject_Internal::kUninitialized);
     AddBackRef(object_id, object, kIsNotDeserialized);
+    // Read class of object.
+    object->cls = reinterpret_cast<Dart_CObject_Internal*>(ReadObjectImpl());
+    ASSERT(object->cls->type ==
+           static_cast<Dart_CObject::Type>(Dart_CObject_Internal::kClass));
     return object;
   }
   ASSERT((class_header & kSmiTagMask) != 0);
@@ -313,8 +381,14 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
                                                      intptr_t object_id) {
   switch (class_id) {
     case kClassCid: {
-      Dart_CObject* object = AllocateDartCObjectUnsupported();
+      Dart_CObject_Internal* object = AllocateDartCObjectClass();
       AddBackRef(object_id, object, kIsDeserialized);
+      object->internal.as_class.library_url = ReadObjectImpl();
+      ASSERT(object->internal.as_class.library_url->type ==
+             Dart_CObject::kString);
+      object->internal.as_class.class_name = ReadObjectImpl();
+      ASSERT(object->internal.as_class.class_name->type ==
+             Dart_CObject::kString);
       return object;
     }
     case kTypeArgumentsCid: {

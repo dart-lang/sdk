@@ -1800,10 +1800,19 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
       "  for (var i = 0; i < kArrayLength; i++) list[i] = d;\n"
       "  return list;\n"
       "}\n"
-      "getByteArrayList() {\n"
+      "getTypedDataList() {\n"
       "  var byte_array = new Uint8List(256);\n"
       "  var list = new List(kArrayLength);\n"
       "  for (var i = 0; i < kArrayLength; i++) list[i] = byte_array;\n"
+      "  return list;\n"
+      "}\n"
+      "getTypedDataViewList() {\n"
+      "  var uint8_list = new Uint8List(256);\n"
+      "  uint8_list[64] = 1;\n"
+      "  var uint8_list_view =\n"
+      "      new Uint8List.view(uint8_list.buffer, 64, 128);\n"
+      "  var list = new List(kArrayLength);\n"
+      "  for (var i = 0; i < kArrayLength; i++) list[i] = uint8_list_view;\n"
       "  return list;\n"
       "}\n"
       "getMixedList() {\n"
@@ -1890,9 +1899,9 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
       }
     }
     {
-      // Generate a list of doubles from Dart code.
+      // Generate a list of Uint8Lists from Dart code.
       ApiNativeScope scope;
-      Dart_CObject* root = GetDeserializedDartMessage(lib, "getByteArrayList");
+      Dart_CObject* root = GetDeserializedDartMessage(lib, "getTypedDataList");
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject::kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
@@ -1901,6 +1910,23 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
         EXPECT_EQ(root->value.as_array.values[0], element);
         EXPECT_EQ(Dart_CObject::kUint8Array, element->type);
         EXPECT_EQ(256, element->value.as_byte_array.length);
+      }
+    }
+    {
+      // Generate a list of Uint8List views from Dart code.
+      ApiNativeScope scope;
+      Dart_CObject* root =
+          GetDeserializedDartMessage(lib, "getTypedDataViewList");
+      EXPECT_NOTNULL(root);
+      EXPECT_EQ(Dart_CObject::kArray, root->type);
+      EXPECT_EQ(kArrayLength, root->value.as_array.length);
+      for (int i = 0; i < kArrayLength; i++) {
+        Dart_CObject* element = root->value.as_array.values[i];
+        EXPECT_EQ(root->value.as_array.values[0], element);
+        EXPECT_EQ(Dart_CObject::kUint8Array, element->type);
+        EXPECT_EQ(128, element->value.as_byte_array.length);
+        EXPECT_EQ(1, element->value.as_byte_array.values[0]);
+        EXPECT_EQ(0, element->value.as_byte_array.values[1]);
       }
     }
     {
@@ -1973,11 +1999,22 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
       "  list.add(3.14);;\n"
       "  return list;\n"
       "}\n"
-      "getByteArrayList() {\n"
+      "getTypedDataList() {\n"
       "  var byte_array = new Uint8List(256);\n"
       "  var list = [];\n"
       "  for (var i = 0; i < kArrayLength; i++) {\n"
       "    list.add(byte_array);\n"
+      "  }\n"
+      "  return list;\n"
+      "}\n"
+      "getTypedDataViewList() {\n"
+      "  var uint8_list = new Uint8List(256);\n"
+      "  uint8_list[64] = 1;\n"
+      "  var uint8_list_view =\n"
+      "      new Uint8List.view(uint8_list.buffer, 64, 128);\n"
+      "  var list = [];\n"
+      "  for (var i = 0; i < kArrayLength; i++) {\n"
+      "    list.add(uint8_list_view);\n"
       "  }\n"
       "  return list;\n"
       "}\n"
@@ -2006,7 +2043,6 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
 
   {
     DARTSCOPE(isolate);
-
     {
       // Generate a list of strings from Dart code.
       ApiNativeScope scope;
@@ -2065,9 +2101,9 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
       }
     }
     {
-      // Generate a list of doubles from Dart code.
+      // Generate a list of Uint8Lists from Dart code.
       ApiNativeScope scope;
-      Dart_CObject* root = GetDeserializedDartMessage(lib, "getByteArrayList");
+      Dart_CObject* root = GetDeserializedDartMessage(lib, "getTypedDataList");
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject::kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
@@ -2076,6 +2112,23 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
         EXPECT_EQ(root->value.as_array.values[0], element);
         EXPECT_EQ(Dart_CObject::kUint8Array, element->type);
         EXPECT_EQ(256, element->value.as_byte_array.length);
+      }
+    }
+    {
+      // Generate a list of Uint8List views from Dart code.
+      ApiNativeScope scope;
+      Dart_CObject* root =
+          GetDeserializedDartMessage(lib, "getTypedDataViewList");
+      EXPECT_NOTNULL(root);
+      EXPECT_EQ(Dart_CObject::kArray, root->type);
+      EXPECT_EQ(kArrayLength, root->value.as_array.length);
+      for (int i = 0; i < kArrayLength; i++) {
+        Dart_CObject* element = root->value.as_array.values[i];
+        EXPECT_EQ(root->value.as_array.values[0], element);
+        EXPECT_EQ(Dart_CObject::kUint8Array, element->type);
+        EXPECT_EQ(128, element->value.as_byte_array.length);
+        EXPECT_EQ(1, element->value.as_byte_array.values[0]);
+        EXPECT_EQ(0, element->value.as_byte_array.values[1]);
       }
     }
     {
