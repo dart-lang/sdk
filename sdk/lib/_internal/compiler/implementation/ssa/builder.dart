@@ -940,9 +940,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                   parameter, graph.addConstantNull(constantSystem)));
             },
             () {
-              HReturn ret = new HReturn(
-                  graph.addConstantBool(false, constantSystem));
-              close(ret).addSuccessor(graph.exit);
+              closeAndGotoExit(new HReturn(
+                  graph.addConstantBool(false, constantSystem)));
             },
             null);
       }
@@ -959,7 +958,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     visit(link.head);
     HInstruction value = pop();
     value = potentiallyCheckType(value, variable.computeType(compiler));
-    close(new HReturn(value)).addSuccessor(graph.exit);
+    closeAndGotoExit(new HReturn(value));
     return closeFunction();
   }
 
@@ -1536,7 +1535,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       invoke.element = body;
       add(invoke);
     }
-    close(new HReturn(newObject)).addSuccessor(graph.exit);
+    closeAndGotoExit(new HReturn(newObject));
     return closeFunction();
   }
 
@@ -1664,7 +1663,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   HGraph closeFunction() {
     // TODO(kasperl): Make this goto an implicit return.
-    if (!isAborted()) close(new HGoto()).addSuccessor(graph.exit);
+    if (!isAborted()) closeAndGotoExit(new HGoto());
     graph.finalize();
     return graph;
   }
@@ -1686,6 +1685,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     HBasicBlock result = current;
     current.close(end);
     current = null;
+    return result;
+  }
+
+  HBasicBlock closeAndGotoExit(HControlFlow end) {
+    HBasicBlock result = current;
+    current.close(end);
+    current = null;
+    result.addSuccessor(graph.exit);
     return result;
   }
 
@@ -3927,7 +3934,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     if (!inliningStack.isEmpty) {
       localsHandler.updateLocal(returnElement, value);
     } else {
-      close(attachPosition(new HReturn(value), node)).addSuccessor(graph.exit);
+      closeAndGotoExit(attachPosition(new HReturn(value), node));
     }
   }
 
@@ -3939,16 +3946,17 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         compiler.internalError(
             'rethrowableException should not be null', node: node);
       }
-      close(new HThrow(exception, isRethrow: true));
+      handleInTryStatement();
+      closeAndGotoExit(new HThrow(exception, isRethrow: true));
     } else {
+      visit(node.expression);
+      handleInTryStatement();
       if (inliningStack.isEmpty) {
-        visit(node.expression);
-        close(new HThrow(pop()));
+        closeAndGotoExit(new HThrow(pop()));
       } else if (isReachable) {
         // We don't close the block when we are inlining, because we could be
         // inside an expression, and it is rather complicated to close the
         // block at an arbitrary place in an expression.
-        visit(node.expression);
         add(new HThrowExpression(pop()));
         isReachable = false;
       }
@@ -4364,7 +4372,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       if (!isAborted() && caseIterator.hasNext) {
         pushInvokeHelper0(getFallThroughErrorElement, HType.UNKNOWN);
         HInstruction error = pop();
-        close(new HThrow(error));
+        closeAndGotoExit(new HThrow(error));
       }
       statements.add(
           new HSubGraphBlockInformation(new SubGraph(block, lastOpenedBlock)));
@@ -4481,7 +4489,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
             compiler.findHelper(const SourceString("getFallThroughError"));
         pushInvokeHelper0(element, HType.UNKNOWN);
         HInstruction error = pop();
-        close(new HThrow(error));
+        closeAndGotoExit(new HThrow(error));
       }
     }
 
@@ -4697,7 +4705,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
       void visitElse() {
         if (link.isEmpty) {
-          close(new HThrow(exception, isRethrow: true));
+          closeAndGotoExit(new HThrow(exception, isRethrow: true));
         } else {
           CatchBlock newBlock = link.head;
           handleIf(node,
@@ -4739,9 +4747,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         var last = block.last;
         if (last is HExitTry) {
           block.addSuccessor(successor);
-        } else if (last is HTry) {
-          // Skip all blocks inside this nested try/catch.
-          i = last.joinBlock.id;
         }
       }
     }

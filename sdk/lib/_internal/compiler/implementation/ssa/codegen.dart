@@ -337,11 +337,11 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // Register return types to the backend.
     graph.exit.predecessors.forEach((HBasicBlock block) {
       HInstruction last = block.last;
-      assert(last is HGoto || last is HReturn);
+      assert(last is HGoto || last is HReturn || last is HThrow);
       if (last is HReturn) {
         backend.registerReturnType(
             work.element, last.inputs[0].instructionType);
-      } else {
+      } else if (last is HGoto) {
         backend.registerReturnType(work.element, HType.NULL);
       }
     });
