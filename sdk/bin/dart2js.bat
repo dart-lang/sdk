@@ -34,7 +34,7 @@ rem See comments regarding options below in dart2js shell script.
 set EXTRA_VM_OPTIONS=%EXTRA_VM_OPTIONS% --heap_growth_rate=512
 
 if exist "%SNAPSHOT%" (
-  "%DART%" %EXTRA_VM_OPTIONS% "SNAPSHOT%" "dart2js" %EXTRA_OPTIONS% %*
+  "%DART%" %EXTRA_VM_OPTIONS% "%SNAPSHOT%" "dart2js" %EXTRA_OPTIONS% %*
 ) else (
   "%DART%" %EXTRA_VM_OPTIONS% "%DART2JS%" %EXTRA_OPTIONS% %*
 )
