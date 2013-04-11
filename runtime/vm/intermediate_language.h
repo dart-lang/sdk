@@ -3021,6 +3021,13 @@ class StoreStaticFieldInstr : public TemplateDefinition<1> {
   virtual bool HasSideEffect() const { return true; }
 
  private:
+  bool CanValueBeSmi() const {
+    const intptr_t cid = value()->Type()->ToNullableCid();
+    // Write barrier is skipped for nullable and non-nullable smis.
+    ASSERT(cid != kSmiCid);
+    return (cid == kDynamicCid);
+  }
+
   const Field& field_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreStaticFieldInstr);

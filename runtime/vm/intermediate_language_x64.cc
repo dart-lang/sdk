@@ -1712,7 +1712,8 @@ void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ LoadObject(temp, field());
   if (this->value()->NeedsStoreBuffer()) {
-    __ StoreIntoObject(temp, FieldAddress(temp, Field::value_offset()), value);
+    __ StoreIntoObject(temp,
+        FieldAddress(temp, Field::value_offset()), value, CanValueBeSmi());
   } else {
     __ StoreIntoObjectNoBarrier(
         temp, FieldAddress(temp, Field::value_offset()), value);
