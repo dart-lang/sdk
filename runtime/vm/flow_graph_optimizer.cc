@@ -345,7 +345,7 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
     converted = new UnboxDoubleInstr(new Value(boxed), deopt_id);
 
   } else if ((from == kUnboxedDouble) && (to == kTagged)) {
-    converted = new BoxDoubleInstr(use->CopyWithType(), NULL);
+    converted = new BoxDoubleInstr(use->CopyWithType());
 
   } else if ((from == kTagged) && (to == kUnboxedDouble)) {
     ASSERT((deopt_target != NULL) ||
@@ -363,6 +363,14 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
     } else {
       converted = new UnboxDoubleInstr(use->CopyWithType(), deopt_id);
     }
+  } else if ((from == kTagged) && (to == kUnboxedFloat32x4)) {
+    ASSERT((deopt_target != NULL) ||
+           (use->Type()->ToCid() == kFloat32x4Cid));
+    const intptr_t deopt_id = (deopt_target != NULL) ?
+        deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
+    converted = new UnboxFloat32x4Instr(use->CopyWithType(), deopt_id);
+  } else if ((from == kUnboxedFloat32x4) && (to == kTagged)) {
+    converted = new BoxFloat32x4Instr(use->CopyWithType());
   }
   ASSERT(converted != NULL);
   use->BindTo(converted);
@@ -763,6 +771,15 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
       }
       break;
     }
+    case kTypedDataFloat32x4ArrayCid: {
+      // Check that value is always a Float32x4.
+      value_check = call->ic_data()->AsUnaryClassChecksForArgNr(2);
+      if ((value_check.NumberOfChecks() != 1) ||
+          (value_check.GetReceiverClassIdAt(0) != kFloat32x4Cid)) {
+          return false;
+      }
+    }
+    break;
     default:
       // TODO(fschneider): Add support for other array types.
       return false;
@@ -824,6 +841,13 @@ void FlowGraphOptimizer::BuildStoreIndexed(InstanceCallInstr* call,
         ASSERT(value_type.IsInstantiated());
         break;
       }
+      case kTypedDataFloat32x4ArrayCid: {
+        type_args = instantiator = flow_graph_->constant_null();
+        ASSERT((class_id != kTypedDataFloat32x4ArrayCid) ||
+               value_type.IsFloat32x4Type());
+        ASSERT(value_type.IsInstantiated());
+        break;
+      }
       default:
         // TODO(fschneider): Add support for other array types.
         UNREACHABLE();
@@ -850,8 +874,8 @@ void FlowGraphOptimizer::BuildStoreIndexed(InstanceCallInstr* call,
        RawObject::IsExternalTypedDataClassId(array_cid)) ? kNoStoreBarrier
                                                          : kEmitStoreBarrier;
   if (!value_check.IsNull()) {
-    // No store barrier needed because checked value is a smi, an unboxed mint
-    // or unboxed double.
+    // No store barrier needed because checked value is a smi, an unboxed mint,
+    // an unboxed double, an unboxed Float32x4, or unboxed Uint32x4.
     needs_store_barrier = kNoStoreBarrier;
     AddCheckClass(stored_value, value_check, call->deopt_id(), call->env(),
                   call);
@@ -880,6 +904,7 @@ bool FlowGraphOptimizer::TryReplaceWithLoadIndexed(InstanceCallInstr* call) {
     case kGrowableObjectArrayCid:
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
+    case kTypedDataFloat32x4ArrayCid:
     case kTypedDataInt8ArrayCid:
     case kTypedDataUint8ArrayCid:
     case kTypedDataUint8ClampedArrayCid:
@@ -1470,6 +1495,7 @@ static bool IsSupportedByteArrayViewCid(intptr_t cid) {
     case kTypedDataUint32ArrayCid:
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
+    case kTypedDataFloat32x4ArrayCid:
       return true;
     default:
       return false;
@@ -1603,6 +1629,9 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
       case MethodRecognizer::kByteArrayBaseGetFloat64:
         return BuildByteArrayViewLoad(
             call, class_ids[0], kTypedDataFloat64ArrayCid);
+      case MethodRecognizer::kByteArrayBaseGetFloat32x4:
+        return BuildByteArrayViewLoad(
+            call, class_ids[0], kTypedDataFloat32x4ArrayCid);
 
       // ByteArray setters.
       case MethodRecognizer::kByteArrayBaseSetInt8:
@@ -1629,6 +1658,9 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
       case MethodRecognizer::kByteArrayBaseSetFloat64:
         return BuildByteArrayViewStore(
             call, class_ids[0], kTypedDataFloat64ArrayCid);
+      case MethodRecognizer::kByteArrayBaseSetFloat32x4:
+        return BuildByteArrayViewStore(
+            call, class_ids[0], kTypedDataFloat32x4ArrayCid);
       default:
         // Unsupported method.
         return false;
@@ -1709,6 +1741,15 @@ bool FlowGraphOptimizer::BuildByteArrayViewStore(
                                 Isolate::kNoDeoptId,
                                 1);
       value_check.AddReceiverCheck(kDoubleCid, Function::Handle());
+      break;
+    }
+    case kTypedDataFloat32x4ArrayCid: {
+      // Check that value is always Float32x4.
+      value_check = ICData::New(Function::Handle(),
+                                String::Handle(),
+                                Isolate::kNoDeoptId,
+                                1);
+      value_check.AddReceiverCheck(kFloat32x4Cid, Function::Handle());
       break;
     }
     default:
@@ -4377,6 +4418,28 @@ void ConstantPropagator::VisitUnboxDouble(UnboxDoubleInstr* instr) {
 
 
 void ConstantPropagator::VisitBoxDouble(BoxDoubleInstr* instr) {
+  const Object& value = instr->value()->definition()->constant_value();
+  if (IsNonConstant(value)) {
+    SetValue(instr, non_constant_);
+  } else if (IsConstant(value)) {
+    // TODO(kmillikin): Handle conversion.
+    SetValue(instr, non_constant_);
+  }
+}
+
+
+void ConstantPropagator::VisitUnboxFloat32x4(UnboxFloat32x4Instr* instr) {
+  const Object& value = instr->value()->definition()->constant_value();
+  if (IsNonConstant(value)) {
+    SetValue(instr, non_constant_);
+  } else if (IsConstant(value)) {
+    // TODO(kmillikin): Handle conversion.
+    SetValue(instr, non_constant_);
+  }
+}
+
+
+void ConstantPropagator::VisitBoxFloat32x4(BoxFloat32x4Instr* instr) {
   const Object& value = instr->value()->definition()->constant_value();
   if (IsNonConstant(value)) {
     SetValue(instr, non_constant_);

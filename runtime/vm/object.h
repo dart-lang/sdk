@@ -3510,6 +3510,12 @@ class AbstractType : public Instance {
   // Check if this type represents the 'double' type.
   bool IsDoubleType() const;
 
+  // Check if this type represents the 'Float32x4' type.
+  bool IsFloat32x4Type() const;
+
+  // Check if this type represents the 'Uint32x4' type.
+  bool IsUint32x4Type() const;
+
   // Check if this type represents the 'num' type.
   bool IsNumberType() const;
 
@@ -3621,6 +3627,12 @@ class Type : public AbstractType {
 
   // The 'double' type.
   static RawType* Double();
+
+  // The 'Float32x4' type.
+  static RawType* Float32x4();
+
+  // The 'Uint32x4' type.
+  static RawType* Uint32x4();
 
   // The 'num' type.
   static RawType* Number();

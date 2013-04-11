@@ -1529,6 +1529,7 @@ static ScaleFactor ToScaleFactor(intptr_t index_scale) {
     case 2: return TIMES_1;
     case 4: return TIMES_2;
     case 8: return TIMES_4;
+    case 16: return TIMES_8;
     default:
       UNREACHABLE();
       return TIMES_1;

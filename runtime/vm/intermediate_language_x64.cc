@@ -1132,6 +1132,8 @@ CompileType LoadIndexedInstr::ComputeType() const {
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
       return CompileType::FromCid(kDoubleCid);
+    case kTypedDataFloat32x4ArrayCid:
+      return CompileType::FromCid(kFloat32x4Cid);
 
     case kTypedDataInt8ArrayCid:
     case kTypedDataUint8ArrayCid:
@@ -1172,6 +1174,8 @@ Representation LoadIndexedInstr::representation() const {
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
       return kUnboxedDouble;
+    case kTypedDataFloat32x4ArrayCid:
+      return kUnboxedFloat32x4;
     default:
       UNIMPLEMENTED();
       return kTagged;
@@ -1231,7 +1235,8 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
             Smi::Cast(index.constant()).Value());
   }
 
-  if (representation() == kUnboxedDouble) {
+  if ((representation() == kUnboxedDouble) ||
+      (representation() == kUnboxedFloat32x4)) {
     if ((index_scale() == 1) && index.IsRegister()) {
       __ SmiUntag(index.reg());
     }
@@ -1242,9 +1247,11 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ movss(result, element_address);
       // Promote to double.
       __ cvtss2sd(result, locs()->out().fpu_reg());
-    } else {
-      ASSERT(class_id() == kTypedDataFloat64ArrayCid);
+    } else if (class_id() == kTypedDataFloat64ArrayCid) {
       __ movsd(result, element_address);
+    } else {
+      ASSERT(class_id() == kTypedDataFloat32x4ArrayCid);
+      __ movups(result, element_address);
     }
     return;
   }
@@ -1311,6 +1318,8 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
       return kUnboxedDouble;
+    case kTypedDataFloat32x4ArrayCid:
+      return kUnboxedFloat32x4;
     default:
       UNIMPLEMENTED();
       return kTagged;
@@ -1365,6 +1374,9 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary() const {
       // Fall through.
     case kTypedDataFloat64ArrayCid:
       // TODO(srdjan): Support Float64 constants.
+      locs->set_in(2, Location::RequiresFpuRegister());
+      break;
+    case kTypedDataFloat32x4ArrayCid:
       locs->set_in(2, Location::RequiresFpuRegister());
       break;
     default:
@@ -1479,6 +1491,9 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     case kTypedDataFloat64ArrayCid:
       __ movsd(element_address, locs()->in(2).fpu_reg());
+      break;
+    case kTypedDataFloat32x4ArrayCid:
+      __ movups(element_address, locs()->in(2).fpu_reg());
       break;
     default:
       UNREACHABLE();
@@ -2628,11 +2643,11 @@ class BoxDoubleSlowPath : public SlowPathCode {
     locs->live_registers()->Remove(locs->out());
 
     compiler->SaveLiveRegisters(locs);
-    compiler->GenerateCall(instruction_->token_pos(),
+    compiler->GenerateCall(Scanner::kDummyTokenIndex,  // No token position.
                            &label,
                            PcDescriptors::kOther,
                            locs);
-    if (RAX != locs->out().reg()) __ movq(locs->out().reg(), RAX);
+    __ MoveRegister(locs->out().reg(), RAX);
     compiler->RestoreLiveRegisters(locs);
 
     __ jmp(exit_label());
@@ -2697,6 +2712,88 @@ void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ cvtsi2sd(result, value);
     __ Bind(&done);
   }
+}
+
+
+LocationSummary* BoxFloat32x4Instr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs,
+                          kNumTemps,
+                          LocationSummary::kCallOnSlowPath);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_out(Location::RequiresRegister());
+  return summary;
+}
+
+
+class BoxFloat32x4SlowPath : public SlowPathCode {
+ public:
+  explicit BoxFloat32x4SlowPath(BoxFloat32x4Instr* instruction)
+      : instruction_(instruction) { }
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
+    __ Comment("BoxFloat32x4SlowPath");
+    __ Bind(entry_label());
+    const Class& float32x4_class = compiler->float32x4_class();
+    const Code& stub =
+        Code::Handle(StubCode::GetAllocationStubForClass(float32x4_class));
+    const ExternalLabel label(float32x4_class.ToCString(), stub.EntryPoint());
+
+    LocationSummary* locs = instruction_->locs();
+    locs->live_registers()->Remove(locs->out());
+
+    compiler->SaveLiveRegisters(locs);
+    compiler->GenerateCall(Scanner::kDummyTokenIndex,  // No token position.
+                           &label,
+                           PcDescriptors::kOther,
+                           locs);
+    __ MoveRegister(locs->out().reg(), RAX);
+    compiler->RestoreLiveRegisters(locs);
+
+    __ jmp(exit_label());
+  }
+
+ private:
+  BoxFloat32x4Instr* instruction_;
+};
+
+
+void BoxFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  BoxFloat32x4SlowPath* slow_path = new BoxFloat32x4SlowPath(this);
+  compiler->AddSlowPathCode(slow_path);
+
+  Register out_reg = locs()->out().reg();
+  XmmRegister value = locs()->in(0).fpu_reg();
+
+  __ TryAllocate(compiler->float32x4_class(),
+                 slow_path->entry_label(),
+                 Assembler::kFarJump,
+                 out_reg);
+  __ Bind(slow_path->exit_label());
+  __ movups(FieldAddress(out_reg, Float32x4::value_offset()), value);
+}
+
+
+LocationSummary* UnboxFloat32x4Instr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_out(Location::RequiresFpuRegister());
+  return summary;
+}
+
+
+void UnboxFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const intptr_t value_cid = value()->Type()->ToCid();
+  const Register value = locs()->in(0).reg();
+  const XmmRegister result = locs()->out().fpu_reg();
+
+  ASSERT(value_cid == kFloat32x4Cid);
+  __ movups(result, FieldAddress(value, Float32x4::value_offset()));
 }
 
 

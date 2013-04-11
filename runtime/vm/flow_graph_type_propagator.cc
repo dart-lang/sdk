@@ -977,6 +977,16 @@ CompileType BoxDoubleInstr::ComputeType() const {
 }
 
 
+CompileType UnboxFloat32x4Instr::ComputeType() const {
+  return CompileType::FromCid(kFloat32x4Cid);
+}
+
+
+CompileType BoxFloat32x4Instr::ComputeType() const {
+  return CompileType::FromCid(kFloat32x4Cid);
+}
+
+
 CompileType SmiToDoubleInstr::ComputeType() const {
   return CompileType::FromCid(kDoubleCid);
 }

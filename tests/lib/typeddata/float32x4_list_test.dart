@@ -1,6 +1,7 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+// VMOptions=--deoptimization_counter_threshold=1000
 
 // Library tag to be able to run in html test framework.
 library float32x4_list_test;
@@ -26,6 +27,72 @@ testLoadStore(array) {
   Expect.equals(2.0, array[1].y);
   Expect.equals(3.0, array[1].z);
   Expect.equals(4.0, array[1].w);
+}
+
+testLoadStoreDeopt(array, index, value) {
+  array[index] = value;
+  Expect.equals(value.x, array[index].x);
+  Expect.equals(value.y, array[index].y);
+  Expect.equals(value.z, array[index].z);
+  Expect.equals(value.w, array[index].w);
+}
+
+testLoadStoreDeoptDriver() {
+  Float32x4List list = new Float32x4List(4);
+  Float32x4 value = new Float32x4(1.0, 2.0, 3.0, 4.0);
+  for (int i = 0; i < 3000; i++) {
+    testLoadStoreDeopt(list, 0, value);
+  }
+  try {
+    // Invalid index.
+    testLoadStoreDeopt(list, 5, value);
+  } catch (_) {}
+  for (int i = 0; i < 3000; i++) {
+    testLoadStoreDeopt(list, 0, value);
+  }
+  try {
+    // null list.
+    testLoadStoreDeopt(null, 0, value);
+  } catch (_) {}
+  for (int i = 0; i < 3000; i++) {
+    testLoadStoreDeopt(list, 0, value);
+  }
+  try {
+    // null value.
+    testLoadStoreDeopt(list, 0, null);
+  } catch (_) {}
+  for (int i = 0; i < 3000; i++) {
+    testLoadStoreDeopt(list, 0, value);
+  }
+  try {
+    // non-smi index.
+    testLoadStoreDeopt(list, 3.14159, value);
+  } catch (_) {}
+  for (int i = 0; i < 3000; i++) {
+    testLoadStoreDeopt(list, 0, value);
+  }
+  try {
+    // non-Float32x4 value.
+    testLoadStoreDeopt(list, 0, 4.toDouble());
+  } catch (_) {}
+  for (int i = 0; i < 3000; i++) {
+    testLoadStoreDeopt(list, 0, value);
+  }
+  try {
+    // non-Float32x4List list.
+    testLoadStoreDeopt([new Float32x4(2.0, 3.0, 4.0, 5.0)], 0, value);
+  } catch (_) {}
+  for (int i = 0; i < 3000; i++) {
+    testLoadStoreDeopt(list, 0, value);
+  }
+}
+
+testListZero() {
+  Float32x4List list = new Float32x4List(1);
+  Expect.equals(0.0, list[0].x);
+  Expect.equals(0.0, list[0].y);
+  Expect.equals(0.0, list[0].z);
+  Expect.equals(0.0, list[0].w);
 }
 
 testView(array) {
@@ -64,4 +131,8 @@ main() {
   for (int i = 0; i < 3000; i++) {
     testLoadStore(list);
   }
+  for (int i = 0; i < 3000; i++) {
+    testListZero();
+  }
+  testLoadStoreDeoptDriver();
 }

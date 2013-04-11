@@ -181,12 +181,18 @@ class ObjectStore {
     float32x4_class_ = value.raw();
   }
 
+  RawType* float32x4_type() const { return float32x4_type_; }
+  void set_float32x4_type(const Type& value) { float32x4_type_ = value.raw(); }
+
   RawClass* uint32x4_class() const {
     return uint32x4_class_;
   }
   void set_uint32x4_class(const Class& value) {
     uint32x4_class_ = value.raw();
   }
+
+  RawType* uint32x4_type() const { return uint32x4_type_; }
+  void set_uint32x4_type(const Type& value) { uint32x4_type_ = value.raw(); }
 
   RawArray* typeddata_classes() const {
     return typeddata_classes_;
@@ -442,6 +448,8 @@ class ObjectStore {
   RawClass* bigint_class_;
   RawClass* double_class_;
   RawType* double_type_;
+  RawType* float32x4_type_;
+  RawType* uint32x4_type_;
   RawType* string_type_;
   RawClass* one_byte_string_class_;
   RawClass* two_byte_string_class_;

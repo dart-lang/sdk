@@ -914,6 +914,19 @@ RawError* Object::Init(Isolate* isolate) {
   object_store->set_uint32x4_class(cls);
   RegisterPrivateClass(cls, Symbols::_Uint32x4(), lib);
 
+  cls = Class::New<Instance>(Symbols::Float32x4(), script,
+                             Scanner::kDummyTokenIndex);
+  RegisterClass(cls, Symbols::Float32x4(), lib);
+  pending_classes.Add(cls, Heap::kOld);
+  type = Type::NewNonParameterizedType(cls);
+  object_store->set_float32x4_type(type);
+
+  cls = Class::New<Instance>(Symbols::Uint32x4(), script,
+                             Scanner::kDummyTokenIndex);
+  pending_classes.Add(cls, Heap::kOld);
+  type = Type::NewNonParameterizedType(cls);
+  object_store->set_uint32x4_type(type);
+
   object_store->set_typeddata_classes(typeddata_classes);
 
   // Set the super type of class Stacktrace to Object type so that the
@@ -9246,6 +9259,18 @@ bool AbstractType::IsDoubleType() const {
 }
 
 
+bool AbstractType::IsFloat32x4Type() const {
+  return HasResolvedTypeClass() &&
+      (type_class() == Type::Handle(Type::Float32x4()).type_class());
+}
+
+
+bool AbstractType::IsUint32x4Type() const {
+  return HasResolvedTypeClass() &&
+      (type_class() == Type::Handle(Type::Uint32x4()).type_class());
+}
+
+
 bool AbstractType::IsNumberType() const {
   return HasResolvedTypeClass() &&
       (type_class() == Type::Handle(Type::Number()).type_class());
@@ -9391,6 +9416,16 @@ RawType* Type::MintType() {
 
 RawType* Type::Double() {
   return Isolate::Current()->object_store()->double_type();
+}
+
+
+RawType* Type::Float32x4() {
+  return Isolate::Current()->object_store()->float32x4_type();
+}
+
+
+RawType* Type::Uint32x4() {
+  return Isolate::Current()->object_store()->uint32x4_type();
 }
 
 

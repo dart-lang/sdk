@@ -46,6 +46,7 @@ class Range;
   V(_TypedList, _getUint32, ByteArrayBaseGetUint32, 380843687)                 \
   V(_TypedList, _getFloat32, ByteArrayBaseGetFloat32, 979971573)               \
   V(_TypedList, _getFloat64, ByteArrayBaseGetFloat64, 979971573)               \
+  V(_TypedList, _getFloat32x4, ByteArrayBaseGetFloat32x4, 690339584)           \
   V(_TypedList, _setInt8, ByteArrayBaseSetInt8, 287047804)                     \
   V(_TypedList, _setUint8, ByteArrayBaseSetUint8, 287047804)                   \
   V(_TypedList, _setInt16, ByteArrayBaseSetInt16, 287047804)                   \
@@ -54,6 +55,7 @@ class Range;
   V(_TypedList, _setUint32, ByteArrayBaseSetUint32, 287047804)                 \
   V(_TypedList, _setFloat32, ByteArrayBaseSetFloat32, 1032541114)              \
   V(_TypedList, _setFloat64, ByteArrayBaseSetFloat64, 1032541114)              \
+  V(_TypedList, _setFloat32x4, ByteArrayBaseSetFloat32x4, 1016704782)          \
   V(_GrowableObjectArray, get:length, GrowableArrayLength, 725548050)          \
   V(_GrowableObjectArray, get:_capacity, GrowableArrayCapacity, 725548050)     \
   V(_StringBase, get:length, StringBaseLength, 320803993)                      \
@@ -489,6 +491,8 @@ class EmbeddedArray<T, 0> {
   M(MathSqrt)                                                                  \
   M(UnboxDouble)                                                               \
   M(BoxDouble)                                                                 \
+  M(BoxFloat32x4)                                                              \
+  M(UnboxFloat32x4)                                                            \
   M(UnboxInteger)                                                              \
   M(BoxInteger)                                                                \
   M(BinaryMintOp)                                                              \
@@ -740,6 +744,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   // Classes that set deopt_id_.
   friend class UnboxIntegerInstr;
   friend class UnboxDoubleInstr;
+  friend class UnboxFloat32x4Instr;
   friend class BinaryDoubleOpInstr;
   friend class BinaryMintOpInstr;
   friend class BinarySmiOpInstr;
@@ -3738,14 +3743,11 @@ class CheckEitherNonSmiInstr : public TemplateInstruction<2> {
 
 class BoxDoubleInstr : public TemplateDefinition<1> {
  public:
-  BoxDoubleInstr(Value* value, InstanceCallInstr* instance_call)
-      : token_pos_((instance_call != NULL) ? instance_call->token_pos() : 0) {
+  explicit BoxDoubleInstr(Value* value) {
     SetInputAt(0, value);
   }
 
   Value* value() const { return inputs_[0]; }
-
-  intptr_t token_pos() const { return token_pos_; }
 
   virtual bool CanDeoptimize() const { return false; }
 
@@ -3763,9 +3765,35 @@ class BoxDoubleInstr : public TemplateDefinition<1> {
   virtual CompileType ComputeType() const;
 
  private:
-  const intptr_t token_pos_;
-
   DISALLOW_COPY_AND_ASSIGN(BoxDoubleInstr);
+};
+
+
+class BoxFloat32x4Instr : public TemplateDefinition<1> {
+ public:
+  explicit BoxFloat32x4Instr(Value* value) {
+    SetInputAt(0, value);
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
+
+  virtual bool AffectedBySideEffect() const { return false; }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kUnboxedFloat32x4;
+  }
+
+  DECLARE_INSTRUCTION(BoxFloat32x4)
+  virtual CompileType ComputeType() const;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(BoxFloat32x4Instr);
 };
 
 
@@ -3825,6 +3853,36 @@ class UnboxDoubleInstr : public TemplateDefinition<1> {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(UnboxDoubleInstr);
+};
+
+
+class UnboxFloat32x4Instr : public TemplateDefinition<1> {
+ public:
+  UnboxFloat32x4Instr(Value* value, intptr_t deopt_id) {
+    SetInputAt(0, value);
+    deopt_id_ = deopt_id;
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  virtual bool CanDeoptimize() const {
+    return (value()->Type()->ToCid() != kFloat32x4Cid);
+  }
+
+  virtual bool HasSideEffect() const { return false; }
+
+  virtual Representation representation() const {
+    return kUnboxedFloat32x4;
+  }
+
+  virtual bool AffectedBySideEffect() const { return false; }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  DECLARE_INSTRUCTION(UnboxFloat32x4)
+  virtual CompileType ComputeType() const;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(UnboxFloat32x4Instr);
 };
 
 

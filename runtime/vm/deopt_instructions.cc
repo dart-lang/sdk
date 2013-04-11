@@ -859,9 +859,13 @@ void DeoptInfoBuilder::AddCopy(Value* value,
   } else if (from_loc.IsFpuRegister()) {
     if (value->definition()->representation() == kUnboxedDouble) {
       deopt_instr = new DeoptFpuRegisterInstr(from_loc.fpu_reg());
-    } else {
-      ASSERT(value->definition()->representation() == kUnboxedMint);
+    } else if (value->definition()->representation() == kUnboxedMint) {
       deopt_instr = new DeoptInt64FpuRegisterInstr(from_loc.fpu_reg());
+    } else if (value->definition()->representation() == kUnboxedFloat32x4) {
+      deopt_instr = new DeoptFloat32x4FpuRegisterInstr(from_loc.fpu_reg());
+    } else {
+      ASSERT(value->definition()->representation() == kUnboxedUint32x4);
+      deopt_instr = new DeoptUint32x4FpuRegisterInstr(from_loc.fpu_reg());
     }
   } else if (from_loc.IsStackSlot()) {
     ASSERT(value->definition()->representation() == kTagged);
