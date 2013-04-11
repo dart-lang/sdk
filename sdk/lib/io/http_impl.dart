@@ -912,7 +912,7 @@ class _ContentLengthValidator
 
 
 // Extends StreamConsumer as this is an internal type, only used to pipe to.
-class _HttpOutgoing implements StreamConsumer<List<int>, dynamic> {
+class _HttpOutgoing implements StreamConsumer<List<int>> {
   Function _onStream;
   final Completer _consumeCompleter = new Completer();
 

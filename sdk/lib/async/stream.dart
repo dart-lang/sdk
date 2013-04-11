@@ -236,7 +236,7 @@ abstract class Stream<T> {
   /**
    * Binds this stream as the input of the provided [StreamConsumer].
    */
-  Future pipe(StreamConsumer<T, dynamic> streamConsumer) {
+  Future pipe(StreamConsumer<T> streamConsumer) {
     // TODO(floitsch): switch to:
     // streamConsumer.addStream(this).then((_) => streamConsumer.close());
     return streamConsumer.consume(this);
@@ -888,10 +888,7 @@ class EventSinkView<T> extends EventSink<T> {
  * the resulting [Future]. The pipe should complete the future when it's
  * done.
  */
-abstract class StreamConsumer<S, T> {
-  // TODO(floitsch): generic types.
-  // Currently not possible to add generic types, since they clash with other
-  // types that have already been used.
+abstract class StreamConsumer<S> {
   Future addStream(Stream<S> stream);
   Future close();
 
@@ -899,7 +896,7 @@ abstract class StreamConsumer<S, T> {
   /**
    * Consume is deprecated. Use [addStream] followed by [close] instead.
    */
-  Future<T> consume(Stream<S> stream);
+  Future consume(Stream<S> stream);
 }
 
 

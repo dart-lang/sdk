@@ -659,7 +659,7 @@ patch class SecureSocket {
 }
 
 
-class _SocketStreamConsumer extends StreamConsumer<List<int>, Socket> {
+class _SocketStreamConsumer extends StreamConsumer<List<int>> {
   StreamSubscription subscription;
   final _Socket socket;
   int offset;

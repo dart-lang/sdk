@@ -197,7 +197,7 @@ class _HttpDetachedIncoming extends Stream<List<int>> {
  */
 class _HttpParser
     extends Stream<_HttpIncoming>
-    implements StreamConsumer<List<int>, _HttpParser> {
+    implements StreamConsumer<List<int>> {
 
   factory _HttpParser.requestParser() {
     return new _HttpParser._(true);

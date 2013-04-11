@@ -5,7 +5,7 @@
 part of dart.io;
 
 /**
- * Helper class to wrap a [StreamConsumer<List<int>, T>] and provide
+ * Helper class to wrap a [StreamConsumer<List<int>>] and provide
  * utility functions for writing to the StreamConsumer directly. The
  * [IOSink] buffers the input given by [write], [writeAll], [writeln],
  * [writeCharCode] and [add] and will delay a [consume] or
@@ -16,8 +16,8 @@ part of dart.io;
  * [StateError].
  */
 abstract class IOSink<T>
-    implements StreamConsumer<List<int>, T>, StringSink, EventSink<List<int>> {
-  factory IOSink(StreamConsumer<List<int>, T> target,
+    implements StreamConsumer<List<int>>, StringSink, EventSink<List<int>> {
+  factory IOSink(StreamConsumer<List<int>> target,
                  {Encoding encoding: Encoding.UTF_8})
       => new _IOSinkImpl(target, encoding);
 
@@ -70,7 +70,7 @@ abstract class IOSink<T>
 
 
 class _IOSinkImpl<T> implements IOSink<T> {
-  final StreamConsumer<List<int>, T> _target;
+  final StreamConsumer<List<int>> _target;
 
   Completer _writeStreamCompleter;
   StreamController<List<int>> _controllerInstance;
@@ -79,7 +79,7 @@ class _IOSinkImpl<T> implements IOSink<T> {
   bool _paused = true;
   bool _encodingMutable = true;
 
-  _IOSinkImpl(StreamConsumer<List<int>, T> this._target, this._encoding);
+  _IOSinkImpl(StreamConsumer<List<int>> this._target, this._encoding);
 
   Encoding _encoding;
 
