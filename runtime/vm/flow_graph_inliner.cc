@@ -439,7 +439,7 @@ class CallSiteInliner : public ValueObject {
       }
 
       // Build the callee graph.
-      InliningContext inlining_context(caller_graph_, call);
+      InliningContext inlining_context;
       FlowGraphBuilder builder(*parsed_function, &inlining_context);
       builder.SetInitialBlockId(caller_graph_->max_block_id());
       FlowGraph* callee_graph;
@@ -562,7 +562,7 @@ class CallSiteInliner : public ValueObject {
                          isolate);
 
         // Plug result in the caller graph.
-        inlining_context.ReplaceCall(callee_graph);
+        inlining_context.ReplaceCall(caller_graph_, call, callee_graph);
 
         // Replace each stub with the actual argument or the caller's constant.
         // Nulls denote optional parameters for which no actual was given.
@@ -880,7 +880,7 @@ void FlowGraphInliner::Inline() {
   inliner.InlineCalls();
 
   if (inliner.inlined()) {
-    flow_graph_->DiscoverBlocks();
+    flow_graph_->RepairGraphAfterInlining();
     if (FLAG_trace_inlining) {
       OS::Print("Inlining growth factor: %f\n", inliner.GrowthFactor());
       if (FLAG_print_flow_graph || FLAG_print_flow_graph_optimized) {
