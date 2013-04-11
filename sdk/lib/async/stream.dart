@@ -967,7 +967,30 @@ abstract class StreamEventTransformer<S, T> implements StreamTransformer<S, T> {
   const StreamEventTransformer();
 
   Stream<T> bind(Stream<S> source) {
-    return new EventTransformStream<S, T>(source, this);
+    // Hackish way of buffering data that goes out of the event-transformer.
+    // TODO(floitsch): replace this with a correct solution.
+    Stream transformingStream = new EventTransformStream<S, T>(source, this);
+    StreamController controller;
+    StreamSubscription subscription;
+    controller = new StreamController<T>(
+        onPauseStateChange: () {
+          if (controller.isPaused) {
+            subscription.pause();
+          } else {
+            subscription.resume();
+          }
+        },
+        onSubscriptionStateChange: () {
+          if (controller.hasSubscribers) {
+            subscription = transformingStream.listen(
+                controller.add,
+                onError: controller.addError,
+                onDone: controller.close);
+          } else {
+            subscription.cancel();
+          }
+        });
+    return controller.stream;
   }
 
   /**
