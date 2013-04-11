@@ -232,18 +232,6 @@ testSingleController() {
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
-  // pipe is tested asynchronously and therefore not in this file.
-  c = new StreamController();
-  var list = <int>[];
-  c.stream.pipeInto(new CollectionSink<int>(list))
-   .whenComplete(() { Expect.listEquals(<int>[1,2,9,3,9], list); });
-  c.add(1);
-  c.add(2);
-  c.add(9);
-  c.add(3);
-  c.add(9);
-  c.close();
-
   // test contains.
   {
     c = new StreamController();

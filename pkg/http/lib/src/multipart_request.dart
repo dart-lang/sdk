@@ -41,6 +41,21 @@ class MultipartRequest extends BaseRequest {
 
   static final Random _random = new Random();
 
+  /// The form fields to send for this request.
+  final Map<String, String> fields;
+
+  /// The private version of [files].
+  final List<MultipartFile> _files;
+
+  /// Creates a new [MultipartRequest].
+  MultipartRequest(String method, Uri url)
+    : super(method, url),
+      fields = {},
+      _files = <MultipartFile>[];
+
+  /// The list of files to upload for this request.
+  List<MultipartFile> get files => _files;
+
   /// The total length of the request body, in bytes. This is calculated from
   /// [fields] and [files] and cannot be set manually.
   int get contentLength {
@@ -52,7 +67,7 @@ class MultipartRequest extends BaseRequest {
           encodeUtf8(value).length + "\r\n".length;
     });
 
-    for (var file in _files.collection) {
+    for (var file in _files) {
       length += "--".length + _BOUNDARY_LENGTH + "\r\n".length +
           _headerForFile(file).length +
           file.length + "\r\n".length;
@@ -65,25 +80,6 @@ class MultipartRequest extends BaseRequest {
     throw new UnsupportedError("Cannot set the contentLength property of "
         "multipart requests.");
   }
-
-  /// The form fields to send for this request.
-  final Map<String, String> fields;
-
-  /// The sink for files to upload for this request.
-  ///
-  /// This doesn't need to be closed. When the request is sent, whichever files
-  /// are written to this sink at that point will be used.
-  CollectionSink<MultipartFile> get files => _files;
-
-  /// The private version of [files], typed so that the underlying collection is
-  /// accessible.
-  final CollectionSink<MultipartFile> _files;
-
-  /// Creates a new [MultipartRequest].
-  MultipartRequest(String method, Uri url)
-    : super(method, url),
-      fields = {},
-      _files = new CollectionSink<MultipartFile>(<MultipartFile>[]);
 
   /// Freezes all mutable fields and returns a single-subscription [ByteStream]
   /// that will emit the request body.
@@ -111,7 +107,7 @@ class MultipartRequest extends BaseRequest {
       writeLine();
     });
 
-    Future.forEach(_files.collection, (file) {
+    Future.forEach(_files, (file) {
       writeAscii('--$boundary\r\n');
       writeAscii(_headerForFile(file));
       return writeStreamToSink(file.finalize(), controller)

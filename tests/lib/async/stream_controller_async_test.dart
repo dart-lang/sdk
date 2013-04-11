@@ -32,22 +32,6 @@ testController() {
      .catchError(expectAsync1((e) { Expect.equals("Fnyf!", e.error); }));
     c.add(42);
   });
-
-  test("StreamController.pipeInto", () {
-    StreamController c = new StreamController.broadcast();
-    var list = <int>[];
-    Stream stream = c.stream;
-    stream.pipeInto(new CollectionSink<int>(list))
-     .whenComplete(expectAsync0(() {
-        Expect.listEquals(<int>[1,2,9,3,9], list);
-      }));
-    c.add(1);
-    c.add(2);
-    c.add(9);
-    c.add(3);
-    c.add(9);
-    c.close();
-  });
 }
 
 testSingleController() {
@@ -67,22 +51,6 @@ testSingleController() {
     stream.fold(0, (a,b) { throw "Fnyf!"; })
             .catchError(expectAsync1((e) { Expect.equals("Fnyf!", e.error); }));
     c.add(42);
-  });
-
-  test("Single-subscription StreamController.pipeInto", () {
-    StreamController c = new StreamController();
-    var list = <int>[];
-    Stream stream = c.stream;
-    stream.pipeInto(new CollectionSink<int>(list))
-     .whenComplete(expectAsync0(() {
-        Expect.listEquals(<int>[1,2,9,3,9], list);
-      }));
-    c.add(1);
-    c.add(2);
-    c.add(9);
-    c.add(3);
-    c.add(9);
-    c.close();
   });
 
   test("Single-subscription StreamController subscription changes", () {

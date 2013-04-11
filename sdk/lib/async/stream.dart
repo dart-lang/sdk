@@ -310,23 +310,6 @@ abstract class Stream<T> {
     return result;
   }
 
-  // Deprecated method, previously called 'pipe', retained for compatibility.
-  Future pipeInto(EventSink<T> sink,
-                  {void onError(AsyncError error),
-                   bool unsubscribeOnError}) {
-    _FutureImpl<T> result = new _FutureImpl<T>();
-    this.listen(
-        sink.add,
-        onError: sink.addError,
-        onDone: () {
-          sink.close();
-          result._setValue(null);
-        },
-        unsubscribeOnError: unsubscribeOnError);
-    return result;
-  }
-
-
   /**
    * Checks whether [match] occurs in the elements provided by this stream.
    *
