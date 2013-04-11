@@ -579,34 +579,20 @@ static void PrintUsage() {
 
 static Dart_Handle SetBreakpoint(const char* breakpoint_at,
                                  Dart_Handle library) {
-  Dart_Handle result;
-  if (strchr(breakpoint_at, ':')) {
-    char* bpt_line = strdup(breakpoint_at);
-    char* colon = strchr(bpt_line, ':');
-    ASSERT(colon != NULL);
-    *colon = '\0';
-    Dart_Handle url = DartUtils::NewString(bpt_line);
-    Dart_Handle line_number = Dart_NewInteger(atoi(colon + 1));
-    free(bpt_line);
-    Dart_Breakpoint bpt;
-    result = Dart_SetBreakpointAtLine(url, line_number, &bpt);
+  char* bpt_function = strdup(breakpoint_at);
+  Dart_Handle class_name;
+  Dart_Handle function_name;
+  char* dot = strchr(bpt_function, '.');
+  if (dot == NULL) {
+    class_name = DartUtils::NewString("");
+    function_name = DartUtils::NewString(breakpoint_at);
   } else {
-    char* bpt_function = strdup(breakpoint_at);
-    Dart_Handle class_name;
-    Dart_Handle function_name;
-    char* dot = strchr(bpt_function, '.');
-    if (dot == NULL) {
-      class_name = DartUtils::NewString("");
-      function_name = DartUtils::NewString(breakpoint_at);
-    } else {
-      *dot = '\0';
-      class_name = DartUtils::NewString(bpt_function);
-      function_name = DartUtils::NewString(dot + 1);
-    }
-    free(bpt_function);
-    result = Dart_OneTimeBreakAtEntry(library, class_name, function_name);
+    *dot = '\0';
+    class_name = DartUtils::NewString(bpt_function);
+    function_name = DartUtils::NewString(dot + 1);
   }
-  return result;
+  free(bpt_function);
+  return Dart_OneTimeBreakAtEntry(library, class_name, function_name);
 }
 
 

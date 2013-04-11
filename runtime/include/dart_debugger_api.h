@@ -68,22 +68,6 @@ DART_EXPORT Dart_Handle Dart_GetCachedObject(intptr_t obj_id);
 
 
 /**
- * DEPRECATED -- use Dart_GetLibraryIds instead.
- *
- * Returns a list of urls (strings) of all the libraries loaded in the
- * current isolate.
- *
- * Requires there to be a current isolate.
- *
- * \return A handle to a list of string handles.
- */
-DART_EXPORT Dart_Handle Dart_GetLibraryURLs();
-// TODO(turnidge): The embedding and debugger apis are not consistent
-// in how they capitalize url.  One uses 'Url' and the other 'URL'.
-// They should be the same.
-
-
-/**
  * Returns a list of ids (integers) of all the libraries loaded in the
  * current isolate.
  *
@@ -223,41 +207,19 @@ DART_EXPORT Dart_Handle Dart_GetBreakpointLine(intptr_t bp_id);
 
 
 /**
- * DEPRECATED -- use Dart_SetBreakpoint instead.
- *
- * Sets a breakpoint at line \line_number in \script_url, or the closest
- * following line (within the same function) where a breakpoint can be set.
- *
- * Requires there to be a current isolate.
- *
- * \breakpoint If non-null, will point to the breakpoint object
- *   if a breakpoint was successfully created.
- *
- * \return A handle to the True object if no error occurs.
- */
-DART_EXPORT Dart_Handle Dart_SetBreakpointAtLine(
-                            Dart_Handle script_url,
-                            Dart_Handle line_number,
-                            Dart_Breakpoint* breakpoint);
-
-
-/**
  * Sets a one-time breakpoint at the entry of the given function.
  * If class_name is the empty string, looks for a library function
  * with the given name.
  *
  * Requires there to be a current isolate.
  *
- * \breakpoint If non-null, will point to the breakpoint object
- *   if a breakpoint was successfully created.
- *
- * \return A handle to the True object if no error occurs.
+ * \return A handle containing the breakpoint id, which is an integer
+ * value, or an error object if a breakpoint could not be set.
  */
 DART_EXPORT Dart_Handle Dart_SetBreakpointAtEntry(
                             Dart_Handle library,
                             Dart_Handle class_name,
-                            Dart_Handle function_name,
-                            Dart_Breakpoint* breakpoint);
+                            Dart_Handle function_name);
 
 
 /**
@@ -273,19 +235,6 @@ DART_EXPORT Dart_Handle Dart_OneTimeBreakAtEntry(
                             Dart_Handle library,
                             Dart_Handle class_name,
                             Dart_Handle function_name);
-
-
-/**
- * DEPRECATED -- use Dart_RemoveBreakpoint instead.
- *
- * Deletes the given \breakpoint.
- *
- * Requires there to be a current isolate.
- *
- * \return A handle to the True object if no error occurs.
- */
-DART_EXPORT Dart_Handle Dart_DeleteBreakpoint(
-                            Dart_Breakpoint breakpoint);
 
 
 /**

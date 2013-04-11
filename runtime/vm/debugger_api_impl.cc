@@ -273,43 +273,6 @@ DART_EXPORT Dart_Handle Dart_SetBreakpoint(
 }
 
 
-// TODO(hausner): remove this function.
-DART_EXPORT Dart_Handle Dart_SetBreakpointAtLine(
-                            Dart_Handle script_url_in,
-                            Dart_Handle line_number_in,
-                            Dart_Breakpoint* breakpoint) {
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  UNWRAP_AND_CHECK_PARAM(String, script_url, script_url_in);
-  UNWRAP_AND_CHECK_PARAM(Integer, line_number, line_number_in);
-  CHECK_NOT_NULL(breakpoint);
-
-  if (!line_number.IsSmi()) {
-    return Api::NewError("%s: line number out of range", CURRENT_FUNC);
-  }
-  intptr_t line = line_number.AsInt64Value();
-
-  Dart_Handle state = Api::CheckIsolateState(isolate);
-  if (::Dart_IsError(state)) {
-    return state;
-  }
-
-  Dart_Handle result = Api::True(isolate);
-  *breakpoint = NULL;
-  Debugger* debugger = isolate->debugger();
-  ASSERT(debugger != NULL);
-  SourceBreakpoint* bpt =
-      debugger->SetBreakpointAtLine(script_url, line);
-  if (bpt == NULL) {
-    result = Api::NewError("%s: could not set breakpoint at line %"Pd" of '%s'",
-                           CURRENT_FUNC, line, script_url.ToCString());
-  } else {
-    *breakpoint = reinterpret_cast<Dart_Breakpoint>(bpt);
-  }
-  return result;
-}
-
-
 DART_EXPORT Dart_Handle Dart_GetBreakpointURL(intptr_t bp_id) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
@@ -343,14 +306,12 @@ DART_EXPORT Dart_Handle Dart_GetBreakpointLine(intptr_t bp_id) {
 DART_EXPORT Dart_Handle Dart_SetBreakpointAtEntry(
                             Dart_Handle library_in,
                             Dart_Handle class_name_in,
-                            Dart_Handle function_name_in,
-                            Dart_Breakpoint* breakpoint) {
+                            Dart_Handle function_name_in) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   UNWRAP_AND_CHECK_PARAM(Library, library, library_in);
   UNWRAP_AND_CHECK_PARAM(String, class_name, class_name_in);
   UNWRAP_AND_CHECK_PARAM(String, function_name, function_name_in);
-  CHECK_NOT_NULL(breakpoint);
 
   Dart_Handle state = Api::CheckIsolateState(isolate);
   if (::Dart_IsError(state)) {
@@ -370,18 +331,13 @@ DART_EXPORT Dart_Handle Dart_SetBreakpointAtEntry(
                          function_name.ToCString());
   }
 
-  Dart_Handle result = Api::True(isolate);
-  *breakpoint = NULL;
-
   SourceBreakpoint* bpt = debugger->SetBreakpointAtEntry(bp_target);
   if (bpt == NULL) {
     const char* target_name = Debugger::QualifiedFunctionName(bp_target);
-    result = Api::NewError("%s: no breakpoint location found in '%s'",
-                             CURRENT_FUNC, target_name);
-  } else {
-    *breakpoint = reinterpret_cast<Dart_Breakpoint>(bpt);
+    return Api::NewError("%s: no breakpoint location found in '%s'",
+                         CURRENT_FUNC, target_name);
   }
-  return result;
+  return Dart_NewInteger(bpt->id());
 }
 
 
@@ -418,9 +374,6 @@ DART_EXPORT Dart_Handle Dart_OneTimeBreakAtEntry(
 }
 
 
-
-
-
 DART_EXPORT Dart_Handle Dart_RemoveBreakpoint(intptr_t bp_id) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
@@ -428,17 +381,6 @@ DART_EXPORT Dart_Handle Dart_RemoveBreakpoint(intptr_t bp_id) {
   ASSERT(debugger != NULL);
 
   isolate->debugger()->RemoveBreakpoint(bp_id);
-  return Api::True(isolate);
-}
-
-
-DART_EXPORT Dart_Handle Dart_DeleteBreakpoint(
-                            Dart_Breakpoint breakpoint_in) {
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-
-  CHECK_AND_CAST(SourceBreakpoint, breakpoint, breakpoint_in);
-  isolate->debugger()->RemoveBreakpoint(breakpoint->id());
   return Api::True(isolate);
 }
 
@@ -763,29 +705,6 @@ DART_EXPORT Dart_Handle Dart_GetLibraryURL(intptr_t library_id) {
                          CURRENT_FUNC, library_id);
   }
   return Api::NewHandle(isolate, lib.url());
-}
-
-
-DART_EXPORT Dart_Handle Dart_GetLibraryURLs() {
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != NULL);
-  DARTSCOPE(isolate);
-
-  const GrowableObjectArray& libs =
-      GrowableObjectArray::Handle(isolate->object_store()->libraries());
-  int num_libs = libs.Length();
-
-  // Create new list and populate with the url of loaded libraries.
-  Library &lib = Library::Handle();
-  String& lib_url = String::Handle();
-  const Array& library_url_list = Array::Handle(Array::New(num_libs));
-  for (int i = 0; i < num_libs; i++) {
-    lib ^= libs.At(i);
-    ASSERT(!lib.IsNull());
-    lib_url = lib.url();
-    library_url_list.SetAt(i, lib_url);
-  }
-  return Api::NewHandle(isolate, library_url_list.raw());
 }
 
 

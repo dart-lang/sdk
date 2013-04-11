@@ -833,17 +833,23 @@ static Dart_Handle CreateLibrariesMap() {
   // TODO(turnidge): This should be an immutable map.
   Dart_Handle map = MapNew();
 
-  Dart_Handle lib_urls = Dart_GetLibraryURLs();
-  if (Dart_IsError(lib_urls)) {
-    return lib_urls;
+  Dart_Handle lib_ids = Dart_GetLibraryIds();
+  if (Dart_IsError(lib_ids)) {
+    return lib_ids;
   }
   intptr_t len;
-  Dart_Handle result = Dart_ListLength(lib_urls, &len);
+  Dart_Handle result = Dart_ListLength(lib_ids, &len);
   if (Dart_IsError(result)) {
     return result;
   }
   for (intptr_t i = 0; i < len; i++) {
-    Dart_Handle lib_url = Dart_ListGetAt(lib_urls, i);
+    Dart_Handle lib_id = Dart_ListGetAt(lib_ids, i);
+    int64_t id64;
+    Dart_IntegerToInt64(lib_id, &id64);
+    Dart_Handle lib_url = Dart_GetLibraryURL(id64);
+    if (Dart_IsError(lib_url)) {
+      return lib_url;
+    }
     Dart_Handle lib = Dart_LookupLibrary(lib_url);
     if (Dart_IsError(lib)) {
       return lib;

@@ -1120,7 +1120,7 @@ UNIT_TEST_CASE(ScriptSnapshot) {
     EXPECT_VALID(Api::CheckIsolateState(Isolate::Current()));
 
     // Get list of library URLs loaded and save the count.
-    Dart_Handle libs = Dart_GetLibraryURLs();
+    Dart_Handle libs = Dart_GetLibraryIds();
     EXPECT(Dart_IsList(libs));
     Dart_ListLength(libs, &expected_num_libs);
 
@@ -1145,7 +1145,7 @@ UNIT_TEST_CASE(ScriptSnapshot) {
     EXPECT_VALID(result);
 
     // Get list of library URLs loaded and compare with expected count.
-    Dart_Handle libs = Dart_GetLibraryURLs();
+    Dart_Handle libs = Dart_GetLibraryIds();
     EXPECT(Dart_IsList(libs));
     Dart_ListLength(libs, &actual_num_libs);
 
