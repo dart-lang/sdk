@@ -23,4 +23,4 @@ if test -f "$BIN_DIR/../lib/_internal/dartdoc/bin/dartdoc.dart.snapshot"; then
   echo Using snapshot "$BIN_DIR/../lib/_internal/dartdoc/bin/dartdoc.dart.snapshot" 1>&2
   SNAPSHOT="--use-script-snapshot=$BIN_DIR/../lib/_internal/dartdoc/bin/dartdoc.dart.snapshot"
 fi
-exec "$BIN_DIR"/dart --heap_growth_rate=32 "--package-root=$BIN_DIR/../packages/" $SNAPSHOT "$BIN_DIR/../lib/_internal/dartdoc/bin/dartdoc.dart" $COLORS "$@"
+exec "$BIN_DIR"/dart --heap_growth_rate=32 "--package-root=$BIN_DIR/../packages/" $SNAPSHOT "$BIN_DIR/../lib/_internal/dartdoc/bin/dartdoc.dart" "--package-root=$BIN_DIR/../packages/" $COLORS "$@"
