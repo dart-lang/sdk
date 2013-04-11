@@ -275,7 +275,7 @@ abstract class Stream<T> {
       onError: result._setError,
       onDone: () {
         if (!seenFirst) {
-          result._setError(new StateError("No elements"));
+          result._setError(new AsyncError(new StateError("No elements")));
         } else {
           result._setValue(value);
         }
