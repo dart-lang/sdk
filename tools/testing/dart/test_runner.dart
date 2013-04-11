@@ -1415,7 +1415,7 @@ class ProcessQueue {
 
   void _runTest(TestCase test) {
     if (test.usesWebDriver) {
-      browserUsed = test.configuration['browser'];
+      browserUsed = test.configuration['runtime'];
       if (_needsSelenium) _ensureSeleniumServerRunning();
     }
     eventTestAdded(test);

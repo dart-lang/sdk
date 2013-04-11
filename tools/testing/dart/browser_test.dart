@@ -33,7 +33,7 @@ String getHtmlContents(String title,
 </html>
 """;
 
-String getHtmlLayoutContents(String scriptType, String sourceScript) =>
+String getHtmlLayoutContents(String scriptType, Path sourceScript) =>
 """
 <!DOCTYPE html>
 <html>
