@@ -18,20 +18,15 @@ library dartdoc;
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:isolate';
 import 'dart:json' as json;
 import 'dart:math';
 import 'dart:uri';
-
-import 'package:pathos/path.dart' as pathos;
 
 import 'classify.dart';
 import 'markdown.dart' as md;
 import 'universe_serializer.dart';
 
 import 'src/dartdoc/nav.dart';
-import 'src/dartdoc/utils.dart';
-import 'src/export_map.dart';
 import 'src/json_serializer.dart' as json_serializer;
 
 // TODO(rnystrom): Use "package:" URL (#4968).
@@ -39,6 +34,8 @@ import '../../compiler/implementation/mirrors/dart2js_mirror.dart' as dart2js;
 import '../../compiler/implementation/mirrors/mirrors.dart';
 import '../../compiler/implementation/mirrors/mirrors_util.dart';
 import '../../libraries.dart';
+
+part 'src/dartdoc/utils.dart';
 
 /**
  * Generates completely static HTML containing everything you need to browse
@@ -134,38 +131,16 @@ Future copyDirectory(Path from, Path to) {
  */
 Future compileScript(int mode, Path outputDir, Path libPath) {
   print('Compiling client JavaScript...');
+  var clientScript = (mode == MODE_STATIC) ? 'static' : 'live-nav';
+  var dartPath = libPath.append(
+      'lib/_internal/dartdoc/lib/src/client/client-$clientScript.dart');
+  var jsPath = outputDir.append('client-$clientScript.js');
 
-  // TODO(nweiz): don't run this in an isolate when issue 9815 is fixed.
-  return spawnFunction(_compileScript).call({
-    'mode': mode,
-    'outputDir': outputDir.toNativePath(),
-    'libPath': libPath.toNativePath()
-  }).then((result) {
-    if (result.first == 'success') return;
-    throw new AsyncError(result[1], result[2]);
-  });
-}
-
-void _compileScript() {
-  port.receive((message, replyTo) {
-    new Future.of(() {
-      var clientScript = (message['mode'] == MODE_STATIC) ?
-          'static' : 'live-nav';
-      var dartPath = pathos.join(message['libPath'], 'lib', '_internal',
-          'dartdoc', 'lib', 'src', 'client', 'client-$clientScript.dart');
-      var jsPath = pathos.join(message['outputDir'], 'client-$clientScript.js');
-
-      return dart2js.compile(
-          new Path(dartPath), new Path(message['libPath']),
-          options: const <String>['--categories=Client,Server']).then((jsCode) {
-        writeString(new File(jsPath), jsCode);
-      });
-    }).then((_) {
-      replyTo.send(['success']);
-    }).catchError((e) {
-      replyTo.send(['error', e.error.toString(), e.stackTrace.toString()]);
+  return dart2js.compile(dartPath, libPath,
+      options: const <String>['--categories=Client,Server'])
+    .then((jsCode) {
+      writeString(new File.fromPath(jsPath), jsCode);
     });
-  });
 }
 
 /**
@@ -286,29 +261,10 @@ class Dartdoc {
   /** Set this to select the libraries to exclude from the documentation. */
   List<String> excludedLibraries = const <String>[];
 
-  /** The package root for `package:` imports. */
-  String _packageRoot;
-
-  /** The map containing all the exports for each library. */
-  ExportMap _exports;
-
   /**
    * This list contains the libraries sorted in by the library name.
    */
   List<LibraryMirror> _sortedLibraries;
-
-  /** A map from absolute paths of libraries to the libraries at those paths. */
-  Map<String, LibraryMirror> _librariesByPath;
-
-  /**
-   * A map from absolute paths of hidden libraries to lists of [Export]s that
-   * export those libraries from visible libraries. This is used to determine
-   * what public library any given entity belongs to.
-   *
-   * The lists of exports are sorted so that exports that hide the fewest number
-   * of members come first.
-   */
-  Map<String, List<Export>> _hiddenLibraryExports;
 
   /** The library that we're currently generating docs for. */
   LibraryMirror _currentLibrary;
@@ -447,25 +403,16 @@ class Dartdoc {
     return content;
   }
 
-  Future documentLibraries(List<Uri> libraryList, Path libPath,
-      String packageRoot) {
-    _packageRoot = packageRoot;
-    _exports = new ExportMap.parse(libraryList, packageRoot);
-    var librariesToAnalyze = _exports.allExportedFiles.toList();
-    librariesToAnalyze.addAll(libraryList.map((uri) {
-      if (uri.scheme == 'file') return fileUriToPath(uri);
-      // dart2js takes "dart:*" URIs as Path objects for some reason.
-      return uri.toString();
-    }));
+  Future documentEntryPoint(Path entrypoint, Path libPath, Path packageRoot) {
+    return documentLibraries(<Path>[entrypoint], libPath, packageRoot);
+  }
 
-    var packageRootPath = packageRoot == null ? null : new Path(packageRoot);
-
+  Future documentLibraries(List<Path> libraryList, Path libPath, Path packageRoot) {
     // TODO(amouravski): make all of these print statements into logging
     // statements.
     print('Analyzing libraries...');
-    return dart2js.analyze(
-        librariesToAnalyze.map((path) => new Path(path)).toList(), libPath,
-        packageRoot: packageRootPath, options: COMPILER_OPTIONS)
+    return dart2js.analyze(libraryList, libPath, packageRoot: packageRoot,
+        options: COMPILER_OPTIONS)
       .then((MirrorSystem mirrors) {
         print('Generating documentation...');
         _document(mirrors);
@@ -483,16 +430,6 @@ class Dartdoc {
           displayName(y).toUpperCase());
     });
 
-    _librariesByPath = <String, LibraryMirror>{};
-    for (var library in mirrors.libraries.values) {
-      var path = _libraryPath(library);
-      if (path == null) continue;
-      path = pathos.normalize(pathos.absolute(path));
-      _librariesByPath[path] = library;
-    }
-
-    _hiddenLibraryExports = _generateHiddenLibraryExports();
-
     // Generate the docs.
     if (mode == MODE_LIVE_NAV) {
       docNavigationJson();
@@ -509,7 +446,6 @@ class Dartdoc {
       generateAppCacheManifest();
     }
 
-    // TODO(nweiz): properly handle exports when generating JSON.
     // TODO(jacobr): handle arbitrary pub packages rather than just the system
     // libraries.
     var revision = '0';
@@ -546,63 +482,6 @@ class Dartdoc {
     endFile();
 
     _finished = true;
-  }
-
-  /**
-   * Generate [_hiddenLibraryExports] from [_exports] and [_librariesByPath].
-   */
-  Map<String, List<Export>> _generateHiddenLibraryExports() {
-    // First generate a map `exported path => exporter path => Export`. The
-    // inner map makes it easier to merge multiple exports of the same library
-    // by the same exporter.
-    var hiddenLibraryExportMaps = <String, Map<String, Export>>{};
-    _exports.exports.forEach((exporter, exports) {
-      var library = _librariesByPath[exporter];
-      // TODO(nweiz): remove this check when issue 9645 is fixed.
-      if (library == null) return;
-      if (!shouldIncludeLibrary(library)) return;
-      for (var export in exports) {
-        var library = _librariesByPath[export.path];
-        // TODO(nweiz): remove this check when issue 9645 is fixed.
-        if (library == null) continue;
-        if (shouldIncludeLibrary(library)) continue;
-
-        var hiddenExports = _exports.transitiveExports(export.path)
-            .map((transitiveExport) => export.compose(transitiveExport))
-            .toList();
-        hiddenExports.add(export);
-
-        for (var hiddenExport in hiddenExports) {
-          var exportsByExporterPath = hiddenLibraryExportMaps
-              .putIfAbsent(hiddenExport.path, () => <String, Export>{});
-          addOrMergeExport(exportsByExporterPath, exporter, hiddenExport);
-        }
-      }
-    });
-
-    // Now sort the values of the inner maps of `hiddenLibraryExportMaps` to get
-    // the final value of `_hiddenLibraryExports`.
-    var hiddenLibraryExports = <String, List<Export>>{};
-    hiddenLibraryExportMaps.forEach((exporteePath, exportsByExporterPath) {
-      int rank(Export export) {
-        if (export.show.isEmpty && export.hide.isEmpty) return 0;
-        if (export.show.isEmpty) return export.hide.length;
-        // Multiply by 1000 to ensure this sorts after an export with hides.
-        return 1000 * export.show.length;
-      }
-
-      var exports = exportsByExporterPath.values.toList();
-      exports.sort((export1, export2) {
-        var comparison = Comparable.compare(rank(export1), rank(export2));
-        if (comparison != 0) return comparison;
-
-        var library1 = _librariesByPath[export1.exporter];
-        var library2 = _librariesByPath[export2.exporter];
-        return Comparable.compare(library1.displayName, library2.displayName);
-      });
-      hiddenLibraryExports[exporteePath] = exports;
-    });
-    return hiddenLibraryExports;
   }
 
   MdnComment lookupMdnComment(Mirror mirror) => null;
@@ -989,9 +868,6 @@ class Dartdoc {
       writeln('<div class="doc">${comment.html}</div>');
     }
 
-    // Document the visible libraries exported by this library.
-    docExports(library);
-
     // Document the top-level members.
     docMembers(library);
 
@@ -1002,8 +878,7 @@ class Dartdoc {
     final typedefs = <TypedefMirror>[];
     final exceptions = <ClassMirror>[];
 
-    var allClasses = _libraryClasses(library);
-    for (ClassMirror type in orderByName(allClasses)) {
+    for (ClassMirror type in orderByName(library.classes.values)) {
       if (!showPrivate && type.isPrivate) continue;
 
       if (isException(type)) {
@@ -1032,7 +907,7 @@ class Dartdoc {
     writeFooter();
     endFile();
 
-    for (final type in allClasses) {
+    for (final type in library.classes.values) {
       if (!showPrivate && type.isPrivate) continue;
 
       docType(type);
@@ -1080,9 +955,8 @@ class Dartdoc {
 
     final typeTitle =
       '${typeName(type)} ${kind}';
-    var library = _libraryFor(type);
-    writeHeader('$typeTitle / ${displayName(library)} Library',
-        [displayName(library), libraryUrl(library),
+    writeHeader('$typeTitle / ${displayName(type.library)} Library',
+        [displayName(type.library), libraryUrl(type.library),
          typeName(type), typeUrl(type)]);
     writeln(
         '''
@@ -1274,40 +1148,6 @@ class Dartdoc {
     return map;
   }();
 
-  void docExports(LibraryMirror library) {
-    // TODO(nweiz): show `dart:` library exports.
-    var exportLinks = _exports.transitiveExports(_libraryPath(library))
-        .map((export) {
-      var library = _librariesByPath[export.path];
-      // TODO(nweiz): remove this check when issue 9645 is fixed.
-      if (library == null) return null;
-      // Only link to publically visible libraries.
-      if (!shouldIncludeLibrary(library)) return null;
-
-      var memberNames = export.show.isEmpty ? export.hide : export.show;
-      var memberLinks = memberNames.map((name) {
-        return md.renderToHtml([resolveNameReference(
-            name, currentLibrary: library)]);
-      }).join(', ');
-      var combinator = '';
-      if (!export.show.isEmpty) {
-        combinator = ' show $memberLinks';
-      } else if (!export.hide.isEmpty) {
-        combinator = ' hide $memberLinks';
-      }
-
-      return '<ul>${a(libraryUrl(library), displayName(library))}'
-        '$combinator</ul>';
-    }).where((link) => link != null);
-
-    if (!exportLinks.isEmpty) {
-      writeln('<h3>Exports</h3>');
-      writeln('<ul>');
-      writeln(exportLinks.join('\n'));
-      writeln('</ul>');
-    }
-  }
-
   void docMembers(ContainerMirror host) {
     // Collect the different kinds of members.
     final staticMethods = [];
@@ -1320,10 +1160,8 @@ class Dartdoc {
     final instanceSetters = new Map<String,MemberMirror>();
     final constructors = [];
 
-    var hostMembers = host is LibraryMirror ?
-        _libraryMembers(host) : host.members.values;
-    for (var member in hostMembers) {
-      if (!showPrivate && member.isPrivate) continue;
+    host.members.forEach((_, MemberMirror member) {
+      if (!showPrivate && member.isPrivate) return;
       if (host is LibraryMirror || member.isStatic) {
         if (member is MethodMirror) {
           if (member.isGetter) {
@@ -1337,7 +1175,7 @@ class Dartdoc {
           staticGetters[member.displayName] = member;
         }
       }
-    }
+    });
 
     if (host is ClassMirror) {
       var iterable = new HierarchyIterable(host, includeType: true);
@@ -1381,28 +1219,28 @@ class Dartdoc {
       if (member is MethodMirror) {
         if (member.isGetter) {
           instanceGetters[member.displayName] = member;
-          if (_ownerFor(member) == host) {
+          if (member.owner == host) {
             allPropertiesInherited = false;
           }
         } else if (member.isSetter) {
           instanceSetters[member.displayName] = member;
-          if (_ownerFor(member) == host) {
+          if (member.owner == host) {
             allPropertiesInherited = false;
           }
         } else if (member.isOperator) {
           instanceOperators.add(member);
-          if (_ownerFor(member) == host) {
+          if (member.owner == host) {
             allOperatorsInherited = false;
           }
         } else {
           instanceMethods.add(member);
-          if (_ownerFor(member) == host) {
+          if (member.owner == host) {
             allMethodsInherited = false;
           }
         }
       } else if (member is VariableMirror) {
         instanceGetters[member.displayName] = member;
-        if (_ownerFor(member) == host) {
+        if (member.owner == host) {
           allPropertiesInherited = false;
         }
       }
@@ -1467,7 +1305,7 @@ class Dartdoc {
       } else {
         DocComment getterComment = getMemberComment(getter);
         DocComment setterComment = getMemberComment(setter);
-        if (_ownerFor(getter) != _ownerFor(setter) ||
+        if (getter.owner != setter.owner ||
             getterComment != null && setterComment != null) {
           // Both have comments or are not declared in the same class
           // => Documents separately.
@@ -1538,7 +1376,7 @@ class Dartdoc {
     }
 
     bool showCode = includeSource && !isAbstract;
-    bool inherited = host != member.owner && member.owner is! LibraryMirror;
+    bool inherited = host != member.owner;
 
     writeln('<div class="method${inherited ? ' inherited': ''}">'
             '<h4 id="${memberAnchor(member)}">');
@@ -1629,7 +1467,7 @@ class Dartdoc {
     _totalMembers++;
     _currentMember = getter;
 
-    bool inherited = host != getter.owner && getter.owner is! LibraryMirror;
+    bool inherited = host != getter.owner;
 
     writeln('<div class="field${inherited ? ' inherited' : ''}">'
             '<h4 id="${memberAnchor(getter)}">');
@@ -1836,13 +1674,13 @@ class Dartdoc {
     // Always get the generic type to strip off any type parameters or
     // arguments. If the type isn't generic, genericType returns `this`, so it
     // works for non-generic types too.
-    return '${sanitize(displayName(_libraryFor(type)))}/'
+    return '${sanitize(displayName(type.library))}/'
            '${type.originalDeclaration.simpleName}.html';
   }
 
   /** Gets the URL for the documentation for [member]. */
   String memberUrl(MemberMirror member) {
-    String url = typeUrl(_ownerFor(member));
+    String url = typeUrl(member.owner);
     return '$url#${memberAnchor(member)}';
   }
 
@@ -1921,10 +1759,9 @@ class Dartdoc {
     assert(type is ClassMirror);
 
     // Link to the type.
-    var library = _libraryFor(type);
-    if (shouldLinkToPublicApi(library)) {
+    if (shouldLinkToPublicApi(type.library)) {
       write('<a href="$API_LOCATION${typeUrl(type)}">${type.simpleName}</a>');
-    } else if (shouldIncludeLibrary(library)) {
+    } else if (shouldIncludeLibrary(type.library)) {
       write(a(typeUrl(type), type.simpleName));
     } else {
       write(type.simpleName);
@@ -2141,86 +1978,6 @@ class Dartdoc {
   bool isException(TypeMirror type) {
     return type.simpleName.endsWith('Exception') ||
         type.simpleName.endsWith('Error');
-  }
-
-  /**
-   * Returns the absolute path to [library] on the filesystem, or `null` if the
-   * library doesn't exist on the local filesystem.
-   */
-  String _libraryPath(LibraryMirror library) =>
-    importUriToPath(library.uri, packageRoot: _packageRoot);
-
-  /**
-   * Returns a list of classes in [library], including classes it exports from
-   * hidden libraries.
-   */
-  List<ClassMirror> _libraryClasses(LibraryMirror library) =>
-    _libraryContents(library, (lib) => lib.classes.values);
-
-  /**
-   * Returns a list of top-level members in [library], including members it
-   * exports from hidden libraries.
-   */
-  List<MemberMirror> _libraryMembers(LibraryMirror library) =>
-    _libraryContents(library, (lib) => lib.members.values);
-
-
-  /**
-   * Returns a list of elements in [library], including elements it exports from
-   * hidden libraries. [fn] should return the element list for a single library,
-   * which will then be merged across all exported libraries.
-   */
-  List<DeclarationMirror> _libraryContents(LibraryMirror library,
-      List<DeclarationMirror> fn(LibraryMirror)) {
-    var contents = fn(library).toList();
-    var path = _libraryPath(library);
-    if (path == null || _exports.exports[path] == null) return contents;
-
-
-    contents.addAll(_exports.exports[path].expand((export) {
-      var exportedLibrary = _librariesByPath[export.path];
-      // TODO(nweiz): remove this check when issue 9645 is fixed.
-      if (exportedLibrary == null) return [];
-      if (shouldIncludeLibrary(exportedLibrary)) return [];
-      return fn(exportedLibrary).where((declaration) =>
-          export.isMemberVisible(declaration.displayName));
-    }));
-    return contents;
-  }
-
-  /**
-   * Returns the library in which [type] was defined. If [type] was defined in a
-   * hidden library that was exported by another library, this returns the
-   * exporter.
-   */
-  LibraryMirror _libraryFor(TypeMirror type) =>
-    _visibleLibrary(type.library, type.displayName);
-
-  /**
-   * Returns the owner of [declaration]. If [declaration]'s owner is a hidden
-   * library that was exported by another library, this returns the exporter.
-   */
-  DeclarationMirror _ownerFor(DeclarationMirror declaration) {
-    var owner = declaration.owner;
-    if (owner is! LibraryMirror) return owner;
-    return _visibleLibrary(owner, declaration.displayName);
-  }
-
-  /**
-   * Returns the best visible library that exports [name] from [library]. If
-   * [library] is public, it will be returned.
-   */
-  LibraryMirror _visibleLibrary(LibraryMirror library, String name) {
-    if (library == null) return null;
-
-    var exports = _hiddenLibraryExports[_libraryPath(library)];
-    if (exports == null) return library;
-
-    var export = exports.firstWhere(
-        (exp) => exp.isMemberVisible(name),
-        orElse: () => null);
-    if (export == null) return library;
-    return _librariesByPath[export.exporter];
   }
 }
 
