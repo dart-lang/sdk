@@ -14,8 +14,8 @@ void test(void onDone(bool success)) {
   print('mirror.type: ${mirror.type}');
   print('now.toUtc(): ${now.toUtc()}');
 
-  mirror.invoke("toUtc", []).then((value) {
-    print('mirror.invoke("toUtc", []): $value');
+  mirror.invokeAsync("toUtc", []).then((value) {
+    print('mirror.invokeAsync("toUtc", []): $value');
     Expect.isTrue(value.hasReflectee);
     Expect.equals(now.toUtc(), value.reflectee);
     onDone(true);
