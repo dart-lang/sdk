@@ -199,7 +199,7 @@ def Main(argv):
 
   os.makedirs(join(LIB, 'html'))
 
-  for library in ['_internal/compiler/implementation/lib',
+  for library in ['_internal',
                   'async', 'collection', '_collection_dev', 'core',
                   'crypto', 'io', 'isolate',
                   join('chrome', 'dart2js'), join('chrome', 'dartium'),
@@ -214,11 +214,6 @@ def Main(argv):
                   join('web_sql', 'dart2js'), join('web_sql', 'dartium')]:
     copytree(join(HOME, 'sdk', 'lib', library), join(LIB, library),
              ignore=ignore_patterns('*.svn', 'doc', '*.py', '*.gypi', '*.sh'))
-
-  # This is used by both the editor and dart2js, remove this once we moved
-  # out the compiler functionality from sdk/lib/_internal. See issue 9801.
-  copyfile(join(HOME, 'sdk', 'lib', '_internal', 'libraries.dart'),
-           join(LIB, '_internal', 'libraries.dart'))
 
   # Create and copy packages.
   PACKAGES = join(SDK_tmp, 'packages')
