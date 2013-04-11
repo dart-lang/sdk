@@ -35,8 +35,7 @@ class HeapPage {
   }
 
   uword object_start() const {
-    return (reinterpret_cast<uword>(this) +
-            Utils::RoundUp(sizeof(HeapPage), OS::kMaxPreferredCodeAlignment));
+    return (reinterpret_cast<uword>(this) + ObjectStartOffset());
   }
   uword object_end() const {
     return object_end_;
@@ -58,6 +57,10 @@ class HeapPage {
   RawObject* FindObject(FindObjectVisitor* visitor) const;
 
   void WriteProtect(bool read_only);
+
+  static intptr_t ObjectStartOffset() {
+    return Utils::RoundUp(sizeof(HeapPage), OS::kMaxPreferredCodeAlignment);
+  }
 
  private:
   void set_object_end(uword val) {
