@@ -77,7 +77,6 @@ void testConfigurations(List<Map> configurations) {
   var startTime = new DateTime.now();
   // Extract global options from first configuration.
   var firstConf = configurations[0];
-  Map<String, RegExp> selectors = firstConf['selectors'];
   var maxProcesses = firstConf['tasks'];
   var progressIndicator = firstConf['progress'];
   var failureSummary = firstConf['failure-summary'];
@@ -85,7 +84,6 @@ void testConfigurations(List<Map> configurations) {
   var verbose = firstConf['verbose'];
   var printTiming = firstConf['time'];
   var listTests = firstConf['list'];
-  var useContentSecurityPolicy = firstConf['csp'];
 
   if (!firstConf['append_logs'])  {
     var file = new File(TestUtils.flakyFileName());
@@ -120,6 +118,8 @@ void testConfigurations(List<Map> configurations) {
   var testSuites = new List<TestSuite>();
   var maxBrowserProcesses = maxProcesses;
   for (var conf in configurations) {
+    Map<String, RegExp> selectors = conf['selectors'];
+    var useContentSecurityPolicy = conf['csp'];
     if (!listTests && runningBrowserTests) {
       // Start global http servers that serve the entire dart repo.
       // The http server is available on window.location.port, and a second
