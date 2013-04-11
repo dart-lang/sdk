@@ -71,8 +71,8 @@ type_variable_field_initializer_closure_test: Crash # issue 8847
 super_getter_setter_test: Fail # Issue 8917
 super_operator_index7_test: Fail # Issue 8918
 
-execute_finally_10_test: Fail # Issue 430
-execute_finally_11_test: Fail # Issue 430
+execute_finally10_test: Fail # Issue 430
+execute_finally11_test: Fail # Issue 430
 
 [ $compiler == none && ($system == macos || $system == linux) && $arch == ia32 && $checked ]
 gc_test: Skip  # Issue 1487, flaky.
@@ -550,8 +550,8 @@ type_variable_field_initializer_closure_test: Crash # VM bug: issue 8847
 super_getter_setter_test: Fail # VM bug: issue 8917
 super_operator_index7_test: Fail # VM bug: issue 8918
 
-execute_finally_10_test: Fail # VM bug: issue 430
-execute_finally_11_test: Fail # VM bug: issue 430
+execute_finally10_test: Fail # VM bug: issue 430
+execute_finally11_test: Fail # VM bug: issue 430
 
 [ $compiler == dart2dart && $minified ]
 
