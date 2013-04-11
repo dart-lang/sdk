@@ -610,7 +610,7 @@ class LocalsHandler {
         new LinkedHashMap<Element,HInstruction>();
     HInstruction thisValue = null;
     directLocals.forEach((Element element, HInstruction instruction) {
-      if (!identical(element, closureData.thisElement)) {
+      if (element != closureData.thisElement) {
         HPhi phi = new HPhi.noInputs(element);
         joinedLocals[element] = phi;
         joinBlock.addPhi(phi);
@@ -633,7 +633,17 @@ class LocalsHandler {
       // If there was a "this" for the scope, add it to the new locals.
       joinedLocals[closureData.thisElement] = thisValue;
     }
-    directLocals = joinedLocals;
+
+    // Remove locals that are not in all handlers.
+    directLocals = new LinkedHashMap<Element, HInstruction>();
+    joinedLocals.forEach((element, instruction) {
+      if (instruction is HPhi
+          && instruction.inputs.length != localsHandlers.length) {
+        joinBlock.removePhi(instruction);
+      } else {
+        directLocals[element] = instruction;
+      }
+    });
     return this;
   }
 }
