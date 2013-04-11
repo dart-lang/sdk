@@ -410,7 +410,7 @@ inline D bit_copy(const S& source) {
 
 #if defined(NEEDS_STRNDUP)
 // size_t used to match function signature on other platforms.
-static inline char* strndup(const char* s, size_t n) {
+inline char* strndup(const char* s, size_t n) {
   size_t len = strlen(s);
   if (n < len) {
     len = n;
