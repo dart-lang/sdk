@@ -5,6 +5,7 @@
 package/invalid_uri_test: Fail, OK # Fails intentionally
 
 [ $runtime == vm && ( $system == windows ) ]
+io/raw_socket_test: Pass, Fail # Issue 8901
 io/http_shutdown_test: Pass, Fail # Issue  9101
 
 [ $runtime == vm ]
