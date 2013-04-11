@@ -29,8 +29,7 @@ FlowGraph::FlowGraph(const FlowGraphBuilder& builder,
     graph_entry_(graph_entry),
     preorder_(),
     postorder_(),
-    reverse_postorder_(),
-    invalid_dominator_tree_(true) {
+    reverse_postorder_() {
   DiscoverBlocks();
 }
 
@@ -231,7 +230,6 @@ void FlowGraph::ComputeSSA(intptr_t next_virtual_register_number,
 //     (preorder block numbers of) blocks in the dominance frontier.
 void FlowGraph::ComputeDominators(
     GrowableArray<BitVector*>* dominance_frontier) {
-  invalid_dominator_tree_ = false;
   // Use the SEMI-NCA algorithm to compute dominators.  This is a two-pass
   // version of the Lengauer-Tarjan algorithm (LT is normally three passes)
   // that eliminates a pass by using nearest-common ancestor (NCA) to
@@ -670,15 +668,6 @@ void FlowGraph::Bailout(const char* reason) const {
   const Error& error = Error::Handle(
       LanguageError::New(String::Handle(String::New(chars))));
   Isolate::Current()->long_jump_base()->Jump(1, error);
-}
-
-
-void FlowGraph::RepairGraphAfterInlining() {
-  DiscoverBlocks();
-  if (invalid_dominator_tree_) {
-    GrowableArray<BitVector*> dominance_frontier;
-    ComputeDominators(&dominance_frontier);
-  }
 }
 
 

@@ -20,7 +20,8 @@ class ParsedFunction;
 // graph construction so they can be plugged into the caller's flow graph.
 class InliningContext: public ValueObject {
  public:
-  InliningContext() : exits_(4) { }
+  InliningContext(FlowGraph* caller_graph, Definition* call)
+      : caller_graph_(caller_graph), call_(call), exits_(4) { }
 
   void AddExit(ReturnInstr* exit);
 
@@ -30,11 +31,11 @@ class InliningContext: public ValueObject {
   // context and transformed to SSA with ComputeSSA with a correct virtual
   // register number, and that the use lists have been correctly computed.
   //
-  // After inlining the caller graph will correctly have adjusted the
-  // pre/post orders, the dominator tree and the use lists.
-  void ReplaceCall(FlowGraph* caller_graph,
-                   Definition* call,
-                   FlowGraph* callee_graph);
+  // After inlining the caller graph will have correctly adjusted the use
+  // lists.  The block orders will need to be recomputed, and the dominator
+  // tree will need to be recomputed if it is marked invalid in the caller
+  // graph.
+  void ReplaceCall(FlowGraph* callee_graph);
 
  private:
   struct Data {
@@ -42,9 +43,7 @@ class InliningContext: public ValueObject {
     ReturnInstr* exit_return;
   };
 
-  static void PrepareGraphs(FlowGraph* caller_graph,
-                            Definition* call,
-                            FlowGraph* callee_graph);
+  void PrepareGraphs(FlowGraph* caller_graph);
 
   BlockEntryInstr* ExitBlockAt(intptr_t i) const {
     ASSERT(exits_[i].exit_block != NULL);
@@ -60,6 +59,11 @@ class InliningContext: public ValueObject {
   static int LowestBlockIdFirst(const Data* a, const Data* b);
   void SortExits();
 
+  Definition* JoinReturns(BlockEntryInstr** exit_block,
+                          Instruction** last_instruction);
+
+  FlowGraph* caller_graph_;
+  Definition* call_;
   GrowableArray<Data> exits_;
 };
 
