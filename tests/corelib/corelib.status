@@ -9,6 +9,11 @@ unicode_test: Fail        # Bug 6706
 *dartc_test: Skip
 compare_to2_test: Fail    # Bug 4018
 
+symbol_test/01: Fail
+symbol_test/02: Fail
+symbol_test/03: Fail
+
+
 [ $runtime == ff || $runtime == ie9 || $runtime == jsshell ]
 unicode_test: Fail
 
@@ -49,6 +54,12 @@ string_base_vm_test: Fail, OK # VM specific test.
 
 string_replace_func_test: Skip # Bug 6554 - doesn't terminate.
 
+symbol_test/none: Fail
+symbol_test/01: Fail
+symbol_test/02: Fail
+symbol_test/03: Fail
+
+
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
@@ -60,6 +71,11 @@ string_base_vm_test: Fail # BUG(3304): Maybe this doesn't time out?
 [ $compiler == dart2dart ]
 compare_to2_test: Fail # inherited from VM
 unicode_test: Fail # inherited from VM
+
+symbol_test/01: Fail
+symbol_test/02: Fail
+symbol_test/03: Fail
+
 
 # Library changes
 [ $compiler == none || $compiler == dart2js || $compiler == dart2dart ]
@@ -73,6 +89,12 @@ map_values2_test: Fail # Generic types aren't right
 # Tests fail due to bug in generics on constants, issue 6827
 iterable_to_list_test: Fail
 iterable_to_set_test: Fail
+
+[ $compiler == dartc || $compiler == dartanalyzer ]
+symbol_test/01: Fail
+symbol_test/02: Fail
+symbol_test/03: Fail
+
 
 [ $arch == arm ]
 *: Skip

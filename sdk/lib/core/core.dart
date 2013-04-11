@@ -35,4 +35,5 @@ part "stopwatch.dart";
 part "string.dart";
 part "string_buffer.dart";
 part "string_sink.dart";
+part "symbol.dart";
 part "type.dart";
