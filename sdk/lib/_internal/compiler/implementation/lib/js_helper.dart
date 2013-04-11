@@ -627,7 +627,7 @@ wrapException(ex) {
     // Otherwise, produce a stack trace and record it in the wrapper.
     // This is a slower way to create a stack trace which works on
     // some browsers, but may simply evaluate to null.
-    String stackTrace = JS('', 'new Error().stack');
+    String stackTrace = JS('', '(new Error()).stack');
     JS('void', '#.stack = #', wrapper, stackTrace);
   }
   return wrapper;

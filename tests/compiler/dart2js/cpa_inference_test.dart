@@ -1088,16 +1088,16 @@ testJsCall() {
       // we don't create any D on purpose
       new B(); new BB(); new C();
 
-      var a = JS('', '');
-      var b = JS('Object', '');
-      var c = JS('=List', '');
-      var d = JS('String', '');
-      var e = JS('int', '');
-      var f = JS('double', '');
-      var g = JS('num', '');
-      var h = JS('bool', '');
-      var i = JS('A', '');
-      var j = JS('X', '');
+      var a = JS('', '1');
+      var b = JS('Object', '1');
+      var c = JS('=List', '1');
+      var d = JS('String', '1');
+      var e = JS('int', '1');
+      var f = JS('double', '1');
+      var g = JS('num', '1');
+      var h = JS('bool', '1');
+      var i = JS('A', '1');
+      var j = JS('X', '1');
       a; b; c; d; e; f; g; h; i; j;
     }
     """;

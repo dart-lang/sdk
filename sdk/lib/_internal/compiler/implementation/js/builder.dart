@@ -197,7 +197,8 @@ class MiniJsParser {
   static const COMMA = 12;
   static const QUERY = 13;
   static const COLON = 14;
-  static const OTHER = 15;
+  static const SPACE = 15;
+  static const OTHER = 16;
 
   // Make sure that ]] is two symbols.
   bool singleCharCategory(int category) => category >= DOT;
@@ -219,6 +220,7 @@ class MiniJsParser {
       case COMMA: return "COMMA";
       case QUERY: return "QUERY";
       case COLON: return "COLON";
+      case SPACE: return "SPACE";
       case OTHER: return "OTHER";
     }
     return "Unknown: $cat";
@@ -226,10 +228,10 @@ class MiniJsParser {
 
   static const CATEGORIES = const <int>[
       OTHER, OTHER, OTHER, OTHER, OTHER, OTHER, OTHER, OTHER,       // 0-7
-      OTHER, OTHER, OTHER, OTHER, OTHER, OTHER, OTHER, OTHER,       // 8-15
+      OTHER, SPACE, SPACE, OTHER, OTHER, SPACE, OTHER, OTHER,       // 8-15
       OTHER, OTHER, OTHER, OTHER, OTHER, OTHER, OTHER, OTHER,       // 16-23
       OTHER, OTHER, OTHER, OTHER, OTHER, OTHER, OTHER, OTHER,       // 24-31
-      OTHER, SYMBOL, OTHER, OTHER, ALPHA, SYMBOL, SYMBOL, OTHER,    //  !"#$%&´
+      SPACE, SYMBOL, OTHER, OTHER, ALPHA, SYMBOL, SYMBOL, OTHER,    //  !"#$%&´
       LPAREN, RPAREN, SYMBOL, SYMBOL, COMMA, SYMBOL, DOT, SYMBOL,   // ()*+,-./
       NUMERIC, NUMERIC, NUMERIC, NUMERIC, NUMERIC,                  // 01234
       NUMERIC, NUMERIC, NUMERIC, NUMERIC, NUMERIC,                  // 56789
@@ -272,7 +274,7 @@ class MiniJsParser {
 
   void getSymbol() {
     while (position < src.length &&
-           src.codeUnitAt(position) == charCodes.$SPACE) {
+           category(src.codeUnitAt(position)) == SPACE) {
       position++;
     }
     if (position == src.length) {

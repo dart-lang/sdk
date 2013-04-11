@@ -1743,12 +1743,24 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       }
       pushStatement(new js.LiteralStatement(code), node);
     } else {
-      List<js.Expression> data = <js.Expression>[];
-      for (int i = 0; i < inputs.length; i++) {
-        use(inputs[i]);
-        data.add(pop());
+      // We can parse simple JS with the mini parser.  At the moment we can't
+      // handle expression interpolation with # and we can't handle JSON
+      // literals and function literals, both of which contain "{".
+      if (!code.contains("#") && !code.contains("{")) {
+        js.Expression codeAst = js.js(code);
+        push(codeAst, node);
+        if (!inputs.isEmpty) {
+          compiler.internalError("Too many arguments to JS expression",
+                                 instruction: node);
+        }
+      } else {
+        List<js.Expression> data = <js.Expression>[];
+        for (int i = 0; i < inputs.length; i++) {
+          use(inputs[i]);
+          data.add(pop());
+        }
+        push(new js.LiteralExpression.withData(code, data), node);
       }
-      push(new js.LiteralExpression.withData(code, data), node);
     }
     registerForeignType(node.instructionType);
     // TODO(sra): Tell world.nativeEnqueuer about the types created here.

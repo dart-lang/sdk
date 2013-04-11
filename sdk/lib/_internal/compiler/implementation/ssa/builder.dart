@@ -3055,7 +3055,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                       node: node.argumentsNode);
     }
     String constructorName = backend.namer.isolateName;
-    push(new HForeign(new DartString.literal("new $constructorName"),
+    push(new HForeign(new DartString.literal("new $constructorName()"),
                       HType.UNKNOWN,
                       <HInstruction>[]));
   }
