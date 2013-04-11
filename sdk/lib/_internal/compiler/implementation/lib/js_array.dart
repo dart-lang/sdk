@@ -164,8 +164,8 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
   }
 
 
-  List<E> getRange(int start, int length) {
-    return sublist(start, start + length);
+  Iterable<E> getRange(int start, int end) {
+    return IterableMixinWorkaround.getRangeList(this, start, end);
   }
 
   void insertRange(int start, int length, [E initialValue]) {

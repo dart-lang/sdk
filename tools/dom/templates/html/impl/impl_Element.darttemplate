@@ -204,13 +204,14 @@ class _ChildrenElementList extends ListBase<Element> {
     throw new UnimplementedError();
   }
 
+  Iterable getRange(int start, int end)  {
+    throw new UnimplementedError();
+  }
+
   List sublist(int start, [int end]) {
     if (end == null) end = length;
     return new _FrozenElementList._wrap(Lists.getRange(this, start, end, []));
   }
-
-  List getRange(int start, int rangeLength) =>
-      sublist(start, start + rangeLength);
 
   int indexOf(Element element, [int start = 0]) {
     return Lists.indexOf(this, element, start, this.length);

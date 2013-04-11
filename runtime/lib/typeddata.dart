@@ -476,8 +476,8 @@ abstract class _TypedListBase {
     return result;
   }
 
-  List getRange(int start, int length) {
-    return sublist(start, start + length);
+  Iterable getRange(int start, [int end]) {
+    return IterableMixinWorkaround.getRangeList(this, start, end);
   }
 
   void setRange(int start, int length, List from, [int startFrom = 0]) {

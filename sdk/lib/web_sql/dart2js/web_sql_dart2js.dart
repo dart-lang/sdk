@@ -382,13 +382,13 @@ class SqlResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  Iterable<Map> getRange(int start, int end) =>
+    IterableMixinWorkaround.getRangeList(this, start, end);
+
   List<Map> sublist(int start, [int end]) {
     if (end == null) end = length;
     return Lists.getRange(this, start, end, <Map>[]);
   }
-
-  List<Map> getRange(int start, int rangeLength) =>
-      sublist(start, start + rangeLength);
 
   Map<int, Map> asMap() =>
     IterableMixinWorkaround.asMapList(this);

@@ -3187,13 +3187,13 @@ class LengthList implements JavaScriptIndexingBehavior, List<Length> native "*SV
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  Iterable<Length> getRange(int start, int end) =>
+    IterableMixinWorkaround.getRangeList(this, start, end);
+
   List<Length> sublist(int start, [int end]) {
     if (end == null) end = length;
     return Lists.getRange(this, start, end, <Length>[]);
   }
-
-  List<Length> getRange(int start, int rangeLength) =>
-      sublist(start, start + rangeLength);
 
   Map<int, Length> asMap() =>
     IterableMixinWorkaround.asMapList(this);
@@ -3827,13 +3827,13 @@ class NumberList implements JavaScriptIndexingBehavior, List<Number> native "*SV
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  Iterable<Number> getRange(int start, int end) =>
+    IterableMixinWorkaround.getRangeList(this, start, end);
+
   List<Number> sublist(int start, [int end]) {
     if (end == null) end = length;
     return Lists.getRange(this, start, end, <Number>[]);
   }
-
-  List<Number> getRange(int start, int rangeLength) =>
-      sublist(start, start + rangeLength);
 
   Map<int, Number> asMap() =>
     IterableMixinWorkaround.asMapList(this);
@@ -4698,13 +4698,13 @@ class PathSegList implements JavaScriptIndexingBehavior, List<PathSeg> native "*
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  Iterable<PathSeg> getRange(int start, int end) =>
+    IterableMixinWorkaround.getRangeList(this, start, end);
+
   List<PathSeg> sublist(int start, [int end]) {
     if (end == null) end = length;
     return Lists.getRange(this, start, end, <PathSeg>[]);
   }
-
-  List<PathSeg> getRange(int start, int rangeLength) =>
-      sublist(start, start + rangeLength);
 
   Map<int, PathSeg> asMap() =>
     IterableMixinWorkaround.asMapList(this);
@@ -5599,13 +5599,13 @@ class StringList implements JavaScriptIndexingBehavior, List<String> native "*SV
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  Iterable<String> getRange(int start, int end) =>
+    IterableMixinWorkaround.getRangeList(this, start, end);
+
   List<String> sublist(int start, [int end]) {
     if (end == null) end = length;
     return Lists.getRange(this, start, end, <String>[]);
   }
-
-  List<String> getRange(int start, int rangeLength) =>
-      sublist(start, start + rangeLength);
 
   Map<int, String> asMap() =>
     IterableMixinWorkaround.asMapList(this);
@@ -6773,13 +6773,13 @@ class TransformList implements List<Transform>, JavaScriptIndexingBehavior nativ
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  Iterable<Transform> getRange(int start, int end) =>
+    IterableMixinWorkaround.getRangeList(this, start, end);
+
   List<Transform> sublist(int start, [int end]) {
     if (end == null) end = length;
     return Lists.getRange(this, start, end, <Transform>[]);
   }
-
-  List<Transform> getRange(int start, int rangeLength) =>
-      sublist(start, start + rangeLength);
 
   Map<int, Transform> asMap() =>
     IterableMixinWorkaround.asMapList(this);
@@ -7308,13 +7308,13 @@ class _ElementInstanceList implements JavaScriptIndexingBehavior, List<ElementIn
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  Iterable<ElementInstance> getRange(int start, int end) =>
+    IterableMixinWorkaround.getRangeList(this, start, end);
+
   List<ElementInstance> sublist(int start, [int end]) {
     if (end == null) end = length;
     return Lists.getRange(this, start, end, <ElementInstance>[]);
   }
-
-  List<ElementInstance> getRange(int start, int rangeLength) =>
-      sublist(start, start + rangeLength);
 
   Map<int, ElementInstance> asMap() =>
     IterableMixinWorkaround.asMapList(this);

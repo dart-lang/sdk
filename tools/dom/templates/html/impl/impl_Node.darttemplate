@@ -177,13 +177,15 @@ $endif
     throw new UnsupportedError(
         "Cannot insertRange on immutable List.");
   }
+
+  Iterable<Node> getRange(int start, int end) {
+    throw new UnimplementedError("NodeList.getRange");
+  }
+
   List<Node> sublist(int start, [int end]) {
     if (end == null) end == length;
     return Lists.getRange(this, start, end, <Node>[]);
   }
-
-  List<Node> getRange(int start, int rangeLength) =>
-      sublist(start, start + rangeLength);
 
   String toString() {
     StringBuffer buffer = new StringBuffer('[');

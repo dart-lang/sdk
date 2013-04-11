@@ -69,6 +69,10 @@ class _GrowableObjectArray<T> implements List<T> {
                                             (T element) => !test(element));
   }
 
+  Iterable<T> getRange(int start, int end) {
+    return IterableMixinWorkaround.getRangeList(this, start, end);
+  }
+
   void setRange(int start, int length, List<T> from, [int startFrom = 0]) {
     IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
   }
@@ -118,8 +122,6 @@ class _GrowableObjectArray<T> implements List<T> {
     Arrays.copy(this, start, list, 0, length);
     return list;
   }
-
-  List<T> getRange(int start, int length) => sublist(start, start + length);
 
   factory _GrowableObjectArray(int length) {
     var data = new _ObjectArray((length == 0) ? 4 : length);

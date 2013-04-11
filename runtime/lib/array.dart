@@ -60,6 +60,10 @@ class _ObjectArray<E> implements List<E> {
         "Cannot remove element of a non-extendable array");
   }
 
+  Iterable<E> getRange(int start, [int end]) {
+    return IterableMixinWorkaround.getRangeList(this, start, end);
+  }
+
   // List interface.
   void setRange(int start, int length, List<E> from, [int startFrom = 0]) {
     if (length < 0) {
@@ -93,8 +97,6 @@ class _ObjectArray<E> implements List<E> {
     Arrays.copy(this, start, list, 0, length);
     return list;
   }
-
-  List<E> getRange(int start, int length) => sublist(start, start + length);
 
   // Iterable interface.
 
@@ -337,7 +339,9 @@ class _ImmutableArray<E> implements List<E> {
     return list;
   }
 
-  List<E> getRange(int start, int length) => sublist(start, start + length);
+  Iterable<E> getRange(int start, int end) {
+    return IterableMixinWorkaround.getRangeList(this, start, end);
+  }
 
   // Collection interface.
 

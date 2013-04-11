@@ -327,7 +327,6 @@ class IterableMixinWorkaround {
 
   static Iterable takeList(List list, int n) {
     // The generic type is currently lost. It will be fixed with mixins.
-    // This is currently a List as well as an Iterable.
     return new SubListIterable(list, 0, n);
   }
 
@@ -338,7 +337,6 @@ class IterableMixinWorkaround {
 
   static Iterable skipList(List list, int n) {
     // The generic type is currently lost. It will be fixed with mixins.
-    // This is currently a List as well as an Iterable.
     return new SubListIterable(list, n, null);
   }
 
@@ -363,6 +361,17 @@ class IterableMixinWorkaround {
   static int lastIndexOfList(List list, var element, int start) {
     if (start == null) start = list.length - 1;
     return Arrays.lastIndexOf(list, element, start);
+  }
+
+  static Iterable getRangeList(List list, int start, int end) {
+    if (start < 0 || start > list.length) {
+      throw new RangeError.range(start, 0, list.length);
+    }
+    if (end < start || end > list.length) {
+      throw new RangeError.range(end, start, list.length);
+    }
+    // The generic type is currently lost. It will be fixed with mixins.
+    return new SubListIterable(list, start, end);
   }
 
   static void setRangeList(List list, int start, int length,

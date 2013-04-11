@@ -177,8 +177,8 @@ class FilteredElementList extends ListBase<Element> {
   Iterator<Element> get iterator => _filtered.iterator;
   List<Element> sublist(int start, [int end]) =>
     _filtered.sublist(start, end);
-  List<Element> getRange(int start, int rangeLength) =>
-    sublist(start, start + rangeLength);
+  Iterable<Element> getRange(int start, int end) =>
+    _filtered.getRange(start, end);
   int indexOf(Element element, [int start = 0]) =>
     _filtered.indexOf(element, start);
 

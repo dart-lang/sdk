@@ -527,7 +527,10 @@ LibTest/core/double/round_A01_t04: Fail # truncate/ceil/floor/round returns ints
 LibTest/core/double/truncate_A01_t03: Fail # truncate/ceil/floor/round returns ints, issue 389
 LibTest/core/double/truncate_A01_t04: Fail # truncate/ceil/floor/round returns ints, issue 389
 
-LibTest/core/List/getRange_A02_t01: Fail # issue 391
+LibTest/core/List/getRange_A02_t01: Fail # issue 391, and Issue 399
+LibTest/core/List/getRange_A01_t01: Fail # getRange now takes end-argument and returns Iterable. Issue 399
+LibTest/core/List/getRange_A04_t01: Fail # getRange now takes end-argument and returns Iterable. Issue 399
+LibTest/core/List/operator_subscript_A01_t02: Fail # getRange now takes end-argument and returns Iterable. Issue 399
 
 Language/11_Expressions/05_Strings/1_String_Interpolation_A03_t02: Fail # Issue 397
 Language/11_Expressions/05_Strings/1_String_Interpolation_A04_t02: Fail # Issue 397

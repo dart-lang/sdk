@@ -394,8 +394,7 @@ class BrowserTestCase extends TestCase {
 
   List<String> get batchRunnerArguments => [_lastArguments[0], '--batch'];
 
-  List<String> get batchTestArguments =>
-      _lastArguments.getRange(1, _lastArguments.length - 1);
+  List<String> get batchTestArguments => _lastArguments.sublist(1);
 
   /** Add a test case to listen for when this current test has completed. */
   void addObserver(BrowserTestCase testCase) {

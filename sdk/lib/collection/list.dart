@@ -329,7 +329,15 @@ abstract class ListMixin<E> implements List<E> {
     return result;
   }
 
-  List<E> getRange(int start, int length) => sublist(start, start + length);
+  Iterable<E> getRange(int start, int end) {
+    if (start < 0 || start > this.length) {
+      throw new RangeError.range(start, 0, this.length);
+    }
+    if (end < start || end > this.length) {
+      throw new RangeError.range(end, start, this.length);
+    }
+    return new SubListIterable(this, start, end);
+  }
 
   void insertRange(int start, int length, [E initialValue]) {
     if (start < 0 || start > this.length) {

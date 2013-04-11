@@ -222,7 +222,7 @@ abstract class List<E> implements Collection<E> {
   E removeLast();
 
   /**
-   * Returns a new list containing the elemenst from [start] to [end].
+   * Returns a new list containing the elements from [start] to [end].
    *
    * If [end] is omitted, the [length] of the list is used.
    *
@@ -232,10 +232,26 @@ abstract class List<E> implements Collection<E> {
   List<E> sublist(int start, [int end]);
 
   /**
-   * *Deprecated*. Use [sublist] instead.
+   * Returns an [Iterable] that iterators over the elements in the range
+   * [start] to [end] (exclusive). The result of this function is backed by
+   * `this`.
+   *
+   * It is an error if [end] is before [start].
+   *
+   * It is an error if the [start] and [end] are not valid ranges at the time
+   * of the call to this method. The returned [Iterable] behaves similar to
+   * `skip(start).take(end - start)`. That is, it will not throw exceptions
+   * if `this` changes size.
+   *
+   * Example:
+   *
+   *     var list = [1, 2, 3, 4, 5];
+   *     var range = list.getRange(1, 4);
+   *     print(range.join(', '));  // => 2, 3, 4
+   *     list.length = 3;
+   *     print(range.join(', '));  // => 2, 3
    */
-  @deprecated
-  List<E> getRange(int start, int length);
+  Iterable<E> getRange(int start, int end);
 
   /**
    * Copies [length] elements of [from], starting
