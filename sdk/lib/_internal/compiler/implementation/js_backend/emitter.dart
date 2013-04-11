@@ -591,9 +591,9 @@ class CodeEmitterTask extends CompilerTask {
 
       js('var hasOwnProperty = Object.prototype.hasOwnProperty'),
 
-      // for (var cls in collectedClasses) {
+      // for (var cls in collectedClasses)
       js.forIn('cls', 'collectedClasses', [
-        // if (hasOwnProperty.call(collectedClasses, cls)) {
+        // if (hasOwnProperty.call(collectedClasses, cls))
         js.if_('hasOwnProperty.call(collectedClasses, cls)', [
           js('var desc = collectedClasses[cls]'),
 
@@ -635,7 +635,7 @@ class CodeEmitterTask extends CompilerTask {
     );
     // function(collectedClasses,
     //          isolateProperties,
-    //          existingIsolateProperties) {
+    //          existingIsolateProperties)
     return js.fun(['collectedClasses', 'isolateProperties',
                    'existingIsolateProperties'], statements);
   }
@@ -666,11 +666,9 @@ class CodeEmitterTask extends CompilerTask {
       js('var constructor = isolateProperties[cls]'),
       js('var superConstructor = isolateProperties[superclass]'),
 
-      // if (!superConstructor)
-      //   superConstructor = existingIsolateProperties[superclass];
-      js.if_(js('superConstructor').not,
-             js('superConstructor').assign(
-                 js('existingIsolateProperties')[js('superclass')])),
+      js.if_(js('!superConstructor'),
+             js('superConstructor ='
+                    'existingIsolateProperties[superclass]')),
 
       js('var prototype = constructor.prototype'),
 
@@ -737,9 +735,8 @@ class CodeEmitterTask extends CompilerTask {
     List copyFinishClasses = [];
     if (needsDefineClass) {
       copyFinishClasses.add(
-          // newIsolate.$finishClasses = oldIsolate.$finishClasses;
-          js('newIsolate')[finishClassesProperty].assign(
-              js('oldIsolate')[finishClassesProperty]));
+          js('newIsolate.$finishClassesProperty = '
+             '    oldIsolate.$finishClassesProperty'));
     }
 
     // function(oldIsolate) {
@@ -801,16 +798,16 @@ class CodeEmitterTask extends CompilerTask {
       js('var sentinelInProgress = {}'),
       js('prototype[fieldName] = sentinelUndefined'),
 
-      // prototype[getterName] = function() {
-      js('prototype')[js('getterName')].assign(js.fun([], [
+      // prototype[getterName] = function()
+      js('prototype[getterName] = #', js.fun([], [
         js('var result = $isolate[fieldName]'),
 
-        // try {
+        // try
         js.try_([
           js.if_('result === sentinelUndefined', [
             js('$isolate[fieldName] = sentinelInProgress'),
 
-            // try {
+            // try
             js.try_([
               js('result = $isolate[fieldName] = lazyValue()'),
 
@@ -818,9 +815,9 @@ class CodeEmitterTask extends CompilerTask {
               // Use try-finally, not try-catch/throw as it destroys the
               // stack trace.
 
-              // if (result === sentinelUndefined) {
+              // if (result === sentinelUndefined)
               js.if_('result === sentinelUndefined', [
-                // if ($isolate[fieldName] === sentinelInProgress) {
+                // if ($isolate[fieldName] === sentinelInProgress)
                 js.if_('$isolate[fieldName] === sentinelInProgress', [
                   js('$isolate[fieldName] = null'),
                 ])
@@ -847,21 +844,19 @@ class CodeEmitterTask extends CompilerTask {
     return defineClassFunction
     ..addAll(buildProtoSupportCheck())
     ..addAll([
-      js(finishClassesName).assign(finishClassesFunction)
+      js('$finishClassesName = #', finishClassesFunction)
     ]);
   }
 
   List buildLazyInitializerFunctionIfNecessary() {
     if (!needsLazyInitializer) return [];
 
-    // $lazyInitializerName = $lazyInitializerFunction
-    return [js(lazyInitializerName).assign(lazyInitializerFunction)];
+    return [js('$lazyInitializerName = #', lazyInitializerFunction)];
   }
 
   List buildFinishIsolateConstructor() {
     return [
-      // $finishIsolateConstructorName = $finishIsolateConstructorFunction
-      js(finishIsolateConstructorName).assign(finishIsolateConstructorFunction)
+      js('$finishIsolateConstructorName = #', finishIsolateConstructorFunction)
     ];
   }
 
@@ -1185,7 +1180,7 @@ class CodeEmitterTask extends CompilerTask {
       if (nativeEmitter.requiresNativeIsCheck(other)) {
         code = js.fun([], [js.return_(true)]);
       } else {
-        code = new jsAst.LiteralBool(true);
+        code = js('true');
       }
       builder.addProperty(namer.operatorIs(other), code);
     }
@@ -1389,7 +1384,7 @@ class CodeEmitterTask extends CompilerTask {
         ? ['receiver', 'v']
         : ['v'];
     builder.addProperty(setterName,
-        js.fun(args, js(receiver)[fieldName].assign('v')));
+        js.fun(args, js('$receiver[$fieldName] = v')));
   }
 
   bool canGenerateCheckedSetter(Element member) {
@@ -1427,7 +1422,7 @@ class CodeEmitterTask extends CompilerTask {
         : ['v'];
     builder.addProperty(setterName,
         js.fun(args,
-            js(receiver)[fieldName].assign(js(helperName)(arguments))));
+            js('$receiver.$fieldName = #', js(helperName)(arguments))));
   }
 
   void emitClassConstructor(ClassElement classElement, ClassBuilder builder) {
@@ -1566,7 +1561,7 @@ class CodeEmitterTask extends CompilerTask {
     emitInstanceMembers(classElement, builder);
 
     jsAst.Expression init =
-        js(classesCollector)[className].assign(builder.toObjectInitializer());
+        js('$classesCollector.$className = #', builder.toObjectInitializer());
     buffer.write(jsAst.prettyPrint(init, compiler));
     buffer.write('$N$n');
   }
@@ -1778,7 +1773,7 @@ class CodeEmitterTask extends CompilerTask {
                           String name,
                           jsAst.Expression functionExpression) {
     jsAst.Expression assignment =
-        js(isolateProperties)[name].assign(functionExpression);
+        js('$isolateProperties.$name = #', functionExpression);
     buffer.write(jsAst.prettyPrint(assignment, compiler));
     buffer.write('$N$n');
   }
@@ -1835,7 +1830,7 @@ class CodeEmitterTask extends CompilerTask {
 
       addParameterStubs(callElement, (String name, jsAst.Expression value) {
         jsAst.Expression assignment =
-            js(isolateProperties)[staticName][name].assign(value);
+            js('$isolateProperties.$staticName.$name = #', value);
         buffer.write(jsAst.prettyPrint(assignment.toStatement(), compiler));
         buffer.write('$N');
       });
@@ -1974,11 +1969,11 @@ class CodeEmitterTask extends CompilerTask {
       addParameterStubs(callElement, boundClosureBuilder.addProperty);
       typedefChecks.forEach((Element typedef) {
         String operator = namer.operatorIs(typedef);
-        boundClosureBuilder.addProperty(operator, new jsAst.LiteralBool(true));
+        boundClosureBuilder.addProperty(operator, js('true'));
       });
 
       boundClosures.add(
-          js(classesCollector)[mangledName].assign(
+          js('$classesCollector.$mangledName = #',
               boundClosureBuilder.toObjectInitializer()));
 
       closureClass = namer.isolateAccess(closureClassElement);
@@ -2086,7 +2081,7 @@ class CodeEmitterTask extends CompilerTask {
       compiler.withCurrentElement(element, () {
         Constant initialValue = handler.getInitialValueFor(element);
         jsAst.Expression init =
-          js(isolateProperties)[namer.getName(element)].assign(
+          js('$isolateProperties.${namer.getName(element)} = #',
               constantEmitter.referenceInInitializationContext(initialValue));
         buffer.write(jsAst.prettyPrint(init, compiler));
         buffer.write('$N');
@@ -2155,7 +2150,7 @@ class CodeEmitterTask extends CompilerTask {
       }
       CodeBuffer buffer =
           bufferForElement(constant.computeType(compiler).element, eagerBuffer);
-      jsAst.Expression init = js(isolateProperties)[name].assign(
+      jsAst.Expression init = js('$isolateProperties.$name = #',
           constantInitializerExpression(constant));
       buffer.write(jsAst.prettyPrint(init, compiler));
       buffer.write('$N');
@@ -2553,12 +2548,9 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
       // if (receiver instanceof $.Object) return receiver;
       // return $.getNativeInterceptor(receiver);
       block.statements.add(
-          js.if_(
-              new jsAst.Binary(
-                  "instanceof",
-                  js('receiver'),
-                  js(namer.isolateAccess(compiler.objectClass))),
-              js.return_(js('receiver'))));
+          js.if_(js('receiver instanceof #',
+                    js(namer.isolateAccess(compiler.objectClass))),
+                 js.return_(js('receiver'))));
 
       // TODO(sra): Fold this 'Object' check into the `getNativeInterceptor`
       // check by patching `Object.prototype` with a special hook function.
@@ -2579,7 +2571,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
     }
 
     buffer.write(jsAst.prettyPrint(
-        js(isolateProperties)[key].assign(js.fun(['receiver'], block)),
+        js('$isolateProperties.$key = #', js.fun(['receiver'], block)),
         compiler));
     buffer.write(N);
   }
@@ -2710,15 +2702,12 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
         // operator~ does not map to a JavaScript operator.
         // Unfolds to:
         // [: if (typeof receiver == "number") return -receiver:].
-        return js.if_(
-            isNumber('receiver'),
-            js.return_(js('-receiver')));
+        return js.if_(isNumber('receiver'),
+                      js.return_(js('-receiver')));
       } else {
         assert(name == '~');
-        return js.if_(
-            isInt('receiver'),
-            js.return_(
-                tripleShiftZero(new jsAst.Prefix(name, js('receiver')))));
+        return js.if_(isInt('receiver'),
+                      js.return_(js('~receiver >>> 0')));
       }
     } else if (selector.isIndex() || selector.isIndexSet()) {
       // For an index operation, this code generates:
@@ -2820,12 +2809,10 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
           js(isolateProperties)[getInterceptorName]('receiver')[invocationName](
               arguments)));
 
-      jsAst.Fun function = js.fun(parameters, body);
+      jsAst.Expression assignment =
+          js('$isolateProperties.$name = #', js.fun(parameters, body));
 
-      jsAst.PropertyAccess property =
-          js(isolateProperties)[name];
-
-      buffer.write(jsAst.prettyPrint(property.assign(function), compiler));
+      buffer.write(jsAst.prettyPrint(assignment, compiler));
       buffer.write(N);
     }
   }
@@ -2840,7 +2827,6 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
   void emitInterceptedNames(CodeBuffer buffer) {
     if (!compiler.enabledInvokeOn) return;
     String name = backend.namer.getName(backend.interceptedNames);
-    jsAst.PropertyAccess property = js(isolateProperties)[name];
 
     int index = 0;
     List<jsAst.ArrayElement> elements = backend.usedInterceptors.map(
@@ -2852,7 +2838,9 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
         backend.usedInterceptors.length,
         elements);
 
-    buffer.write(jsAst.prettyPrint(property.assign(array), compiler));
+    jsAst.Expression assignment = js('$isolateProperties.$name = #', array);
+
+    buffer.write(jsAst.prettyPrint(assignment, compiler));
     buffer.write(N);
   }
 

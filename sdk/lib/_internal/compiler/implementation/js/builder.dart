@@ -10,8 +10,19 @@ part of js;
 class JsBuilder {
   const JsBuilder();
 
-  Expression call(String source) {
-    return new MiniJsParser(source).expression();
+  // Parse a bit of JS, and return an expression.  See the MiniJsParser class.
+  // You can provide an expression or a list of expressions, which will be
+  // interpolated into the source at the '#' signs.
+  Expression call(String source, [var expression]) {
+    List<Expression> expressions;
+    if (expression != null) {
+      if (expression is List) {
+        expressions = expression;
+      } else {
+        expressions = <Expression>[expression];
+      }
+    }
+    return new MiniJsParser(source, expressions).expression();
   }
 
   LiteralString string(String value) => new LiteralString('"$value"');
@@ -167,11 +178,12 @@ class MiniJsParserError {
 /// to get early errors for unintentional escape sequences without complicating
 /// this parser unneccessarily.
 class MiniJsParser {
-  MiniJsParser(this.src)
+  MiniJsParser(this.src, this.interpolatedValues)
       : lastCategory = NONE,
         lastToken = null,
         lastPosition = 0,
-        position = 0 {
+        position = 0,
+        valuesUsed = 0 {
     getSymbol();
   }
 
@@ -179,7 +191,9 @@ class MiniJsParser {
   String lastToken;
   int lastPosition;
   int position;
+  int valuesUsed;
   String src;
+  List<Expression> interpolatedValues;
 
   static const NONE = -1;
   static const ALPHA = 0;
@@ -197,8 +211,9 @@ class MiniJsParser {
   static const COMMA = 12;
   static const QUERY = 13;
   static const COLON = 14;
-  static const SPACE = 15;
-  static const OTHER = 16;
+  static const HASH = 15;
+  static const WHITESPACE = 16;
+  static const OTHER = 17;
 
   // Make sure that ]] is two symbols.
   bool singleCharCategory(int category) => category >= DOT;
@@ -220,7 +235,8 @@ class MiniJsParser {
       case COMMA: return "COMMA";
       case QUERY: return "QUERY";
       case COLON: return "COLON";
-      case SPACE: return "SPACE";
+      case HASH: return "HASH";
+      case WHITESPACE: return "WHITESPACE";
       case OTHER: return "OTHER";
     }
     return "Unknown: $cat";
@@ -228,10 +244,11 @@ class MiniJsParser {
 
   static const CATEGORIES = const <int>[
       OTHER, OTHER, OTHER, OTHER, OTHER, OTHER, OTHER, OTHER,       // 0-7
-      OTHER, SPACE, SPACE, OTHER, OTHER, SPACE, OTHER, OTHER,       // 8-15
-      OTHER, OTHER, OTHER, OTHER, OTHER, OTHER, OTHER, OTHER,       // 16-23
-      OTHER, OTHER, OTHER, OTHER, OTHER, OTHER, OTHER, OTHER,       // 24-31
-      SPACE, SYMBOL, OTHER, OTHER, ALPHA, SYMBOL, SYMBOL, OTHER,    //  !"#$%&´
+      OTHER, WHITESPACE, WHITESPACE, OTHER, OTHER, WHITESPACE,      // 8-13
+      OTHER, OTHER, OTHER, OTHER, OTHER, OTHER, OTHER, OTHER,       // 14-21
+      OTHER, OTHER, OTHER, OTHER, OTHER, OTHER, OTHER, OTHER,       // 22-29
+      OTHER, OTHER, WHITESPACE,                                     // 30-32
+      SYMBOL, OTHER, HASH, ALPHA, SYMBOL, SYMBOL, OTHER,            // !"#$%&´
       LPAREN, RPAREN, SYMBOL, SYMBOL, COMMA, SYMBOL, DOT, SYMBOL,   // ()*+,-./
       NUMERIC, NUMERIC, NUMERIC, NUMERIC, NUMERIC,                  // 01234
       NUMERIC, NUMERIC, NUMERIC, NUMERIC, NUMERIC,                  // 56789
@@ -274,7 +291,7 @@ class MiniJsParser {
 
   void getSymbol() {
     while (position < src.length &&
-           category(src.codeUnitAt(position)) == SPACE) {
+           category(src.codeUnitAt(position)) == WHITESPACE) {
       position++;
     }
     if (position == src.length) {
@@ -403,6 +420,12 @@ class MiniJsParser {
         expectCategory(RSQUARE);
       }
       return new ArrayInitializer(values.length, values);
+    } else if (acceptCategory(HASH)) {
+      if (interpolatedValues == null ||
+          valuesUsed >= interpolatedValues.length) {
+        throw new MiniJsParserError(this, "Too few values for #es");
+      }
+      return interpolatedValues[valuesUsed++];
     } else {
       throw new MiniJsParserError(this, "Expected primary expression");
     }
@@ -561,6 +584,9 @@ class MiniJsParser {
     if (lastCategory != NONE || position != src.length) {
       throw new MiniJsParserError(
           this, "Unparsed junk: ${categoryToString(lastCategory)}");
+    }
+    if (interpolatedValues != null && valuesUsed != interpolatedValues.length) {
+      throw new MiniJsParserError(this, "Too many values for #es");
     }
     return expression;
   }

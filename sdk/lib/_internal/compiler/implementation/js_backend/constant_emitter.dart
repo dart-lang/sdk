@@ -80,11 +80,11 @@ class ConstantReferenceEmitter implements ConstantVisitor<jsAst.Expression> {
   jsAst.Expression visitDouble(DoubleConstant constant) {
     double value = constant.value;
     if (value.isNaN) {
-      return new jsAst.LiteralNumber("(0/0)");
+      return js("0/0");
     } else if (value == double.INFINITY) {
-      return new jsAst.LiteralNumber("(1/0)");
+      return js("1/0");
     } else if (value == -double.INFINITY) {
-      return new jsAst.LiteralNumber("(-1/0)");
+      return js("-1/0");
     } else {
       return new jsAst.LiteralNumber("$value");
     }
@@ -95,7 +95,7 @@ class ConstantReferenceEmitter implements ConstantVisitor<jsAst.Expression> {
       // Use !0 for true.
       return js("!0");
     } else {
-      return new jsAst.LiteralBool(true);
+      return js('true');
     }
   }
 
@@ -104,7 +104,7 @@ class ConstantReferenceEmitter implements ConstantVisitor<jsAst.Expression> {
       // Use !1 for false.
       return js("!1");
     } else {
-      return new jsAst.LiteralBool(false);
+      return js('false');
     }
   }
 

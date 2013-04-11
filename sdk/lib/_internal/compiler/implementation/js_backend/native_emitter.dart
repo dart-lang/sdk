@@ -222,13 +222,7 @@ class NativeEmitter {
             // typedef(s).
             int arity = type.computeArity();
 
-            statements.add(
-                new jsAst.ExpressionStatement(
-                    js.assign(
-                        js(name),
-                        js(closureConverter)(
-                            [js(name),
-                             new jsAst.LiteralNumber('$arity')]))));
+            statements.add(js('$name = $closureConverter($name, $arity)'));
             break;
           }
         }
@@ -277,7 +271,7 @@ class NativeEmitter {
         arguments = argumentsBuffer.sublist(1,
             indexOfLastOptionalArgumentInParameters + 1);
       } else {
-        receiver = new jsAst.VariableUse('this');
+        receiver = js('this');
         arguments = argumentsBuffer.sublist(0,
             indexOfLastOptionalArgumentInParameters + 1);
       }
@@ -364,13 +358,13 @@ class NativeEmitter {
               // don't have DAGs yet, but if the dispatch is used for mixins
               // that will be a possibility.
               // Re-use the previously created temporary variable.
-              expressions.add(new jsAst.VariableUse(use.name));
+              expressions.add(js(use.name));
             } else {
               String varName = 'v${varNames.length}_${tag.name.slowToString()}';
               varNames.add(varName);
               varDefns[varName] = existing;
-              tagDefns[tag] = new jsAst.VariableUse(varName);
-              expressions.add(new jsAst.VariableUse(varName));
+              tagDefns[tag] = js(varName);
+              expressions.add(js(varName));
             }
           }
         }
@@ -424,12 +418,7 @@ class NativeEmitter {
                       js.string(toNativeTag(cls)),
                       tagDefns[cls]])));
 
-      //  $.dynamicSetMetadata(table);
-      statements.add(
-          new jsAst.ExpressionStatement(
-              new jsAst.Call(
-                  new jsAst.VariableUse(dynamicSetMetadataName),
-                  [table])));
+      statements.add(js('$dynamicSetMetadataName(#)', table));
 
       //  (function(){statements})();
       if (emitter.compiler.enableMinification) nativeBuffer.add(';');
