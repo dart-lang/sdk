@@ -16,16 +16,6 @@ const bool REPORT_EXCESS_RESOLUTION = false;
 const bool DUMP_INFERRED_TYPES = false;
 
 /**
- * A string to identify the revision or build.
- *
- * This ID is displayed if the compiler crashes and in verbose mode, and is
- * an aid in reproducing bug reports.
- *
- * The actual string is rewritten during the SDK build process.
- */
-const String BUILD_ID = 'build number could not be determined';
-
-/**
  * Contains backend-specific data that is used throughout the compilation of
  * one work item.
  */
@@ -373,6 +363,7 @@ abstract class Compiler implements DiagnosticListener {
   EnqueueTask enqueuer;
   CompilerTask fileReadingTask;
   DeferredLoadTask deferredLoadTask;
+  String buildId;
 
   static const SourceString MAIN = const SourceString('main');
   static const SourceString CALL_OPERATOR_NAME = const SourceString('call');
@@ -418,6 +409,7 @@ abstract class Compiler implements DiagnosticListener {
             bool checkDeprecationInSdk: false,
             bool preserveComments: false,
             bool verbose: false,
+            String buildId: "build number could not be determined",
             outputProvider,
             List<String> strips: const []})
       : tracer = tracer,
@@ -434,6 +426,7 @@ abstract class Compiler implements DiagnosticListener {
         verbose = verbose,
         libraries = new Map<String, LibraryElement>(),
         progress = new Stopwatch(),
+        this.buildId = buildId,
         this.analyzeOnly = analyzeOnly || analyzeSignaturesOnly,
         this.analyzeSignaturesOnly = analyzeSignaturesOnly,
         this.outputProvider =
@@ -517,7 +510,7 @@ abstract class Compiler implements DiagnosticListener {
   }
 
   void pleaseReportCrash() {
-    print(MessageKind.PLEASE_REPORT_THE_CRASH.message({'buildId': BUILD_ID}));
+    print(MessageKind.PLEASE_REPORT_THE_CRASH.message({'buildId': buildId}));
   }
 
   void cancel(String reason, {Node node, Token token,
@@ -724,15 +717,15 @@ abstract class Compiler implements DiagnosticListener {
     scanBuiltinLibraries();
     if (librariesToAnalyzeWhenRun != null) {
       for (Uri libraryUri in librariesToAnalyzeWhenRun) {
-        log('analyzing $libraryUri ($BUILD_ID)');
+        log('analyzing $libraryUri ($buildId)');
         libraryLoader.loadLibrary(libraryUri, null, libraryUri);
       }
     }
     if (uri != null) {
       if (analyzeOnly) {
-        log('analyzing $uri ($BUILD_ID)');
+        log('analyzing $uri ($buildId)');
       } else {
-        log('compiling $uri ($BUILD_ID)');
+        log('compiling $uri ($buildId)');
       }
       mainApp = libraryLoader.loadLibrary(uri, null, uri);
     }

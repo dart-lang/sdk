@@ -16,7 +16,7 @@ for %%i in ("%BIN_DIR%\..\") do set SDK_DIR=%%~fi
 
 set DART2JS=%SDK_DIR%lib\_internal\compiler\implementation\dart2js.dart
 set DART=%BIN_DIR%\dart
-set SNAPSHOT=%DART2JS%.snapshot
+set SNAPSHOT=%BIN_DIR%\snapshots\utils_wrapper.dart.snapshot
 
 set EXTRA_OPTIONS=
 set EXTRA_VM_OPTIONS=
@@ -27,13 +27,18 @@ if _%DART2JS_DEVELOPER_MODE%_ == _1_ (
 
 if exist "%SNAPSHOT%" (
   echo Using snapshot "%SNAPSHOT%" >&2
-  set DART2JS=%SNAPSHOT%
+  set EXTRA_VM_OPTIONS=%EXTRA_VM_OPTIONS% --library-root=%SDK_DIR%
 )
 
 rem See comments regarding options below in dart2js shell script.
 set EXTRA_VM_OPTIONS=%EXTRA_VM_OPTIONS% --heap_growth_rate=512
 
-"%DART%" %EXTRA_VM_OPTIONS% "%DART2JS%" %EXTRA_OPTIONS% %*
+if exist "%SNAPSHOT%" (
+  "%DART%" %EXTRA_VM_OPTIONS% "SNAPSHOT%" "dart2js" %EXTRA_OPTIONS% %*
+) else (
+  "%DART%" %EXTRA_VM_OPTIONS% "%DART2JS%" %EXTRA_OPTIONS% %*
+)
+
 endlocal
 
 exit /b %errorlevel%

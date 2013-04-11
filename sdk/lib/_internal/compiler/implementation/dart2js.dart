@@ -20,6 +20,16 @@ import '../../libraries.dart';
 const String LIBRARY_ROOT = '../../../../..';
 const String OUTPUT_LANGUAGE_DART = 'Dart';
 
+/**
+ * A string to identify the revision or build.
+ *
+ * This ID is displayed if the compiler crashes and in verbose mode, and is
+ * an aid in reproducing bug reports.
+ *
+ * The actual string is rewritten by a wrapper script when included in the sdk.
+ */
+String BUILD_ID = null;
+
 typedef void HandleOption(String option);
 
 class OptionHandler {
@@ -86,6 +96,10 @@ void compile(List<String> argv) {
       new FormattingDiagnosticHandler(inputProvider);
 
   passThrough(String argument) => options.add(argument);
+
+  if (BUILD_ID != null) {
+    passThrough("--build-id=$BUILD_ID");
+  }
 
   setLibraryRoot(String argument) {
     libraryRoot = cwd.resolve(extractPath(argument));
@@ -486,9 +500,9 @@ void helpAndFail(String message) {
   fail(message);
 }
 
-void main() {
+void mainWithErrorHandler(Options options) {
   try {
-    compilerMain(new Options());
+    compilerMain(options);
   } catch (exception, trace) {
     try {
       print('Internal error: $exception');
@@ -501,4 +515,8 @@ void main() {
       exit(253); // 253 is recognized as a crash by our test scripts.
     }
   }
+}
+
+void main() {
+  mainWithErrorHandler(new Options());
 }

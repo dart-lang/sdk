@@ -473,8 +473,8 @@ class StandardTestSuite extends TestSuite {
     if (!useSdk) return [];
 
     var snapshotPath = TestUtils.absolutePath(new Path(buildDir).join(
-        new Path('dart-sdk/lib/_internal/compiler/'
-                 'implementation/dart2js.dart.snapshot'))).toString();
+        new Path('dart-sdk/bin/snapshots/'
+                 'utils_wrapper.dart.snapshot'))).toString();
     return [new Uri.fromComponents(scheme: 'file', path: snapshotPath)];
   }
 

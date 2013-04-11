@@ -18,6 +18,8 @@
 # ......dart2js
 # ......dart_analyzer
 # ......pub
+# ......snapshots/
+# ........utils_wrapper.dart.snapshot
 # ....include/
 # ......dart_api.h
 # ......dart_debugger_api.h
@@ -99,32 +101,27 @@ def CopyShellScript(src_file, dest_dir):
   Copy(src, dest)
 
 
-def CopyDartScripts(home, build_dir, sdk_root, version):
-  if version:
-    ReplaceInFiles([os.path.join(sdk_root, 'lib', '_internal', 'compiler',
-                                 'implementation', 'compiler.dart')],
-                   [(r"BUILD_ID = 'build number could not be determined'",
-                     r"BUILD_ID = '%s'" % version)])
+def CopyDartScripts(home, sdk_root):
   # TODO(dgrove) - add pub once issue 6619 is fixed
   for executable in ['dart2js', 'dartdoc']:
     CopyShellScript(os.path.join(home, 'sdk', 'bin', executable),
                     os.path.join(sdk_root, 'bin'))
 
-  subprocess.call([os.path.join(build_dir, 'dart'),
-                   '--generate-script-snapshot=%s' %
-                   os.path.join(sdk_root, 'lib', '_internal', 'compiler',
-                                'implementation', 'dart2js.dart.snapshot'),
-                   os.path.join(sdk_root, 'lib', '_internal', 'compiler',
-                                'implementation', 'dart2js.dart')])
 
+def CopySnapshots(snapshot, sdk_root):
+  copyfile(snapshot, join(sdk_root, 'bin', 'snapshots', basename(snapshot)))
 
 
 def Main(argv):
-  # Pull in all of the gpyi files which will be munged into the sdk.
+  # Pull in all of the gypi files which will be munged into the sdk.
   HOME = dirname(dirname(realpath(__file__)))
 
+  # TODO(ricow): change to use option parser, issue 9820.
   SDK = argv[1]
   SDK_tmp = '%s.tmp' % SDK
+
+  SNAPSHOT_LOCATION = argv[2]
+  SNAPSHOT = join(SNAPSHOT_LOCATION, 'utils_wrapper.dart.snapshot')
 
   # TODO(dgrove) - deal with architectures that are not ia32.
 
@@ -139,6 +136,8 @@ def Main(argv):
   # Create and populate sdk/bin.
   BIN = join(SDK_tmp, 'bin')
   os.makedirs(BIN)
+
+  os.makedirs(join(BIN, 'snapshots'))
 
   # Copy the Dart VM binary and the Windows Dart VM link library
   # into sdk/bin.
@@ -199,7 +198,9 @@ def Main(argv):
   #
 
   os.makedirs(join(LIB, 'html'))
-  for library in ['_internal', 'async', 'collection', '_collection_dev', 'core',
+
+  for library in ['_internal/compiler/implementation/lib',
+                  'async', 'collection', '_collection_dev', 'core',
                   'crypto', 'io', 'isolate',
                   join('chrome', 'dart2js'), join('chrome', 'dartium'),
                   join('html', 'dart2js'), join('html', 'dartium'),
@@ -214,6 +215,10 @@ def Main(argv):
     copytree(join(HOME, 'sdk', 'lib', library), join(LIB, library),
              ignore=ignore_patterns('*.svn', 'doc', '*.py', '*.gypi', '*.sh'))
 
+  # This is used by both the editor and dart2js, remove this once we moved
+  # out the compiler functionality from sdk/lib/_internal. See issue 9801.
+  copyfile(join(HOME, 'sdk', 'lib', '_internal', 'libraries.dart'),
+           join(LIB, '_internal', 'libraries.dart'))
 
   # Create and copy packages.
   PACKAGES = join(SDK_tmp, 'packages')
@@ -269,12 +274,12 @@ def Main(argv):
        "7zip/7za.exe"),
     ])
 
-  version = utils.GetVersion()
-
   # Copy dart2js/dartdoc/pub.
-  CopyDartScripts(HOME, build_dir, SDK_tmp, version)
+  CopyDartScripts(HOME, SDK_tmp)
+  CopySnapshots(SNAPSHOT, SDK_tmp)
 
   # Write the 'version' file
+  version = utils.GetVersion()
   versionFile = open(os.path.join(SDK_tmp, 'version'), 'w')
   versionFile.write(version + '\n')
   versionFile.close()

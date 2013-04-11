@@ -74,7 +74,7 @@
             '<!@(["python", "tools/list_files.py", "", "sdk/bin"])',
             'tools/create_sdk.py',
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
-            '<(PRODUCT_DIR)/dart2js.snapshot',
+            '<(SHARED_INTERMEDIATE_DIR)/utils_wrapper.dart.snapshot',
             '<(PRODUCT_DIR)/analyzer/bin/dart_analyzer',
           ],
           'outputs': [
@@ -84,6 +84,7 @@
             'python',
             'tools/create_sdk.py',
             '<(PRODUCT_DIR)/dart-sdk',
+            '<(SHARED_INTERMEDIATE_DIR)'
           ],
           'message': 'Creating SDK.',
         },
