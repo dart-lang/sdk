@@ -286,8 +286,7 @@ class ConstantInitializerEmitter implements ConstantVisitor<jsAst.Expression> {
     Element helper = backend.getCreateRuntimeType();
     String helperName = backend.namer.getName(helper);
     DartType type = constant.representedType;
-    Element element = type.element;
-    String name = backend.rti.getRawTypeRepresentation(type);
+    String name = namer.getRuntimeTypeName(type.element);
     jsAst.Expression typeName = new jsAst.LiteralString("'$name'");
     return new jsAst.Call(
         new jsAst.PropertyAccess.field(

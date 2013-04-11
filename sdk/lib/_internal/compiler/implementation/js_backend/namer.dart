@@ -635,6 +635,17 @@ class Namer implements ClosureNamer {
     return name;
   }
 
+  /// Returns the runtime name for [element].  The result is not safe as an id.
+  String getRuntimeTypeName(Element element) {
+    if (element == compiler.intClass) {
+      return 'int';
+    } else if (element == compiler.doubleClass) {
+      return 'double';
+    } else {
+      return getName(element);
+    }
+  }
+
   /**
    * Returns a preferred JS-id for the given element. The returned id is
    * guaranteed to be a valid JS-id. Globals and static fields are furthermore
@@ -728,7 +739,7 @@ class Namer implements ClosureNamer {
 
   String operatorIs(Element element) {
     // TODO(erikcorry): Reduce from $isx to ix when we are minifying.
-    return '${operatorIsPrefix()}${getName(element)}';
+    return '${operatorIsPrefix()}${getRuntimeTypeName(element)}';
   }
 
   /*

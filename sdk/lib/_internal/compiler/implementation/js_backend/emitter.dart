@@ -1256,7 +1256,7 @@ class CodeEmitterTask extends CompilerTask {
     void maybeGenerateHolder(ClassElement cls) {
       if (!needsHolder(cls)) return;
       String holder = namer.isolateAccess(cls);
-      String name = namer.getName(cls);
+      String name = namer.getRuntimeTypeName(cls);
       buffer.write('$holder$_=$_{builtin\$cls:$_"$name"');
       buffer.write('}$N');
     }
