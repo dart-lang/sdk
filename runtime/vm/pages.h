@@ -36,7 +36,7 @@ class HeapPage {
 
   uword object_start() const {
     return (reinterpret_cast<uword>(this) +
-            Utils::RoundUp(sizeof(HeapPage), kObjectAlignment));
+            Utils::RoundUp(sizeof(HeapPage), OS::kMaxPreferredCodeAlignment));
   }
   uword object_end() const {
     return object_end_;
