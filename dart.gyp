@@ -83,8 +83,9 @@
           'action': [
             'python',
             'tools/create_sdk.py',
-            '<(PRODUCT_DIR)/dart-sdk',
-            '<(SHARED_INTERMEDIATE_DIR)'
+            '--sdk_output_dir', '<(PRODUCT_DIR)/dart-sdk',
+            '--utils_snapshot_location',
+             '<(SHARED_INTERMEDIATE_DIR)/utils_wrapper.dart.snapshot'
           ],
           'message': 'Creating SDK.',
         },

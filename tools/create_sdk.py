@@ -55,7 +55,7 @@
 # ......(more will come here)
 
 
-
+import optparse
 import os
 import re
 import sys
@@ -70,6 +70,16 @@ from os.path import basename, dirname, join, realpath, exists, isdir
 
 # TODO(dgrove): Only import modules following Google style guide.
 from shutil import copyfile, copymode, copytree, ignore_patterns, rmtree, move
+
+
+def GetOptions():
+  options = optparse.OptionParser(usage='usage: %prog [options]')
+  options.add_option("--sdk_output_dir",
+      help='Where to output the sdk')
+  options.add_option("--utils_snapshot_location",
+      help='Location of the utils snapshot.')
+  return options.parse_args()
+
 
 def ReplaceInFiles(paths, subs):
   '''Reads a series of files, applies a series of substitutions to each, and
@@ -116,12 +126,12 @@ def Main(argv):
   # Pull in all of the gypi files which will be munged into the sdk.
   HOME = dirname(dirname(realpath(__file__)))
 
-  # TODO(ricow): change to use option parser, issue 9820.
-  SDK = argv[1]
+  (options, args) = GetOptions()
+
+  SDK = options.sdk_output_dir
   SDK_tmp = '%s.tmp' % SDK
 
-  SNAPSHOT_LOCATION = argv[2]
-  SNAPSHOT = join(SNAPSHOT_LOCATION, 'utils_wrapper.dart.snapshot')
+  SNAPSHOT = options.utils_snapshot_location
 
   # TODO(dgrove) - deal with architectures that are not ia32.
 
@@ -143,7 +153,7 @@ def Main(argv):
   # into sdk/bin.
   #
   # TODO(dgrove) - deal with architectures that are not ia32.
-  build_dir = os.path.dirname(argv[1])
+  build_dir = os.path.dirname(SDK)
   dart_file_extension = ''
   analyzer_file_extension = ''
   if HOST_OS == 'win32':
