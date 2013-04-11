@@ -36,14 +36,14 @@ class SsaBuilderTask extends CompilerTask {
       SsaBuilder builder = new SsaBuilder(constantSystem, this, work);
       HGraph graph;
       ElementKind kind = element.kind;
-      if (identical(kind, ElementKind.GENERATIVE_CONSTRUCTOR)) {
+      if (kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
         graph = compileConstructor(builder, work);
-      } else if (identical(kind, ElementKind.GENERATIVE_CONSTRUCTOR_BODY) ||
-                 identical(kind, ElementKind.FUNCTION) ||
-                 identical(kind, ElementKind.GETTER) ||
-                 identical(kind, ElementKind.SETTER)) {
+      } else if (kind == ElementKind.GENERATIVE_CONSTRUCTOR_BODY ||
+                 kind == ElementKind.FUNCTION ||
+                 kind == ElementKind.GETTER ||
+                 kind == ElementKind.SETTER) {
         graph = builder.buildMethod(element);
-      } else if (identical(kind, ElementKind.FIELD)) {
+      } else if (kind == ElementKind.FIELD) {
         graph = builder.buildLazyInitializer(element);
       } else {
         compiler.internalErrorOnElement(element,
@@ -109,6 +109,7 @@ class SsaBuilderTask extends CompilerTask {
                                 work.element.implementation);
   }
 }
+
 
 /**
  * Keeps track of locals (including parameters and phis) when building. The
@@ -440,8 +441,9 @@ class LocalsHandler {
   }
 
   /**
-   * This function must be called before visiting any children of the loop. In
-   * particular it needs to be called before executing the initializers.
+   * This function, startLoop, must be called before visiting any children of
+   * the loop. In particular it needs to be called before executing the
+   * initializers.
    *
    * The [LocalsHandler] will make the boxes and updates at the right moment.
    * The builder just needs to call [enterLoopBody] and [enterLoopUpdates] (for
@@ -794,13 +796,27 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   // We build the Ssa graph by simulating a stack machine.
   List<HInstruction> stack;
 
-  // The current block to add instructions to. Might be null, if we are
-  // visiting dead code.
-  HBasicBlock current;
-  // The most recently opened block. Has the same value as [current] while
-  // the block is open, but unlike [current], it isn't cleared when the current
-  // block is closed.
+  /**
+   * The current block to add instructions to. Might be null, if we are
+   * visiting dead code, but see [isReachable].
+   */
+  HBasicBlock _current;
+
+  /**
+   * The most recently opened block. Has the same value as [_current] while
+   * the block is open, but unlike [_current], it isn't cleared when the
+   * current block is closed.
+   */
   HBasicBlock lastOpenedBlock;
+
+  /**
+   * Indicates whether the current block is dead (because it has a throw or a
+   * return further up).  If this is false, then [_current] may be null.  If the
+   * block is dead then it may also be aborted, but for simplicity we only
+   * abort on statement boundaries, not in the middle of expressions.  See
+   * isAborted.
+   */
+  bool isReachable = true;
 
   final List<Element> sourceElementStack;
 
@@ -830,6 +846,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   Element returnElement;
   DartType returnType;
   bool inTryStatement = false;
+
+  HBasicBlock get current => _current;
+  void set current(c) {
+    isReachable = c != null;
+    _current = c;
+  }
 
   /**
    * Compiles compile-time constants. Never returns [:null:]. If the
@@ -1663,7 +1685,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   bool isAborted() {
-    return current == null;
+    return _current == null;
   }
 
   /**
@@ -1750,11 +1772,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   visitBlock(Block node) {
+    if (!isReachable) return;  // This can happen when inlining.
     for (Link<Node> link = node.statements.nodes;
          !link.isEmpty;
          link = link.tail) {
       visit(link.head);
-      if (isAborted()) {
+      if (!isReachable) {
         // The block has been aborted by a return or a throw.
         if (!stack.isEmpty) compiler.cancel('non-empty instruction stack');
         return;
@@ -1769,6 +1792,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   visitExpressionStatement(ExpressionStatement node) {
+    assert(isReachable);
     visit(node.expression);
     pop();
   }
@@ -2047,6 +2071,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   visitFor(For node) {
+    assert(isReachable);
     assert(node.body != null);
     void buildInitializer() {
       if (node.initializer == null) return;
@@ -2081,6 +2106,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   visitWhile(While node) {
+    assert(isReachable);
     HInstruction buildCondition() {
       visit(node.condition);
       return popBoolified();
@@ -2093,6 +2119,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   visitDoWhile(DoWhile node) {
+    assert(isReachable);
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
     localsHandler.startLoop(node);
     JumpHandler jumpHandler = beginLoopHeader(node);
@@ -2255,6 +2282,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   visitFunctionDeclaration(FunctionDeclaration node) {
+    assert(isReachable);
     visit(node.function);
     localsHandler.updateLocal(elements[node], pop());
   }
@@ -2269,6 +2297,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   visitIf(If node) {
+    assert(isReachable);
     handleIf(node,
              () => visit(node.condition),
              () => visit(node.thenPart),
@@ -3874,7 +3903,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     assert(invariant(node, !node.isRedirectingFactoryBody));
     HInstruction value;
-    if (node.expression == null) {
+    if (node.expression == null || !isReachable) {
       value = graph.addConstantNull(constantSystem);
     } else {
       visit(node.expression);
@@ -3901,8 +3930,17 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
       close(new HThrow(exception, isRethrow: true));
     } else {
-      visit(node.expression);
-      close(new HThrow(pop()));
+      if (inliningStack.isEmpty) {
+        visit(node.expression);
+        close(new HThrow(pop()));
+      } else if (isReachable) {
+        // We don't close the block when we are inlining, because we could be
+        // inside an expression, and it is rather complicated to close the
+        // block at an arbitrary place in an expression.
+        visit(node.expression);
+        add(new HThrowExpression(pop()));
+        isReachable = false;
+      }
     }
   }
 
@@ -3912,6 +3950,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   visitVariableDefinitions(VariableDefinitions node) {
+    assert(isReachable);
     for (Link<Node> link = node.definitions.nodes;
          !link.isEmpty;
          link = link.tail) {
@@ -4905,9 +4944,11 @@ class InlineWeeder extends Visitor {
     tooDifficult = true;
   }
 
-  void visitThrow(Node node) {
+  void visitThrow(Throw node) {
     if (!registerNode()) return;
-    tooDifficult = true;
+    // We can't inline rethrows and we don't want to handle throw after a return
+    // even if it is in an "if".
+    if (seenReturn || node.expression == null) tooDifficult = true;
   }
 }
 

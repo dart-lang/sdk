@@ -1917,7 +1917,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       use(node.inputs[0]);
       pushStatement(new js.Throw(pop()), node);
     } else {
-      generateThrowWithHelper(r'$throw', node.inputs[0]);
+      generateThrowWithHelper('wrapException', node.inputs[0]);
     }
   }
 
@@ -1993,6 +1993,20 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // but it has the advantage of explicitly telling the JS engine that
     // this code path will terminate abruptly. Needs more work.
     pushStatement(new js.Throw(value));
+  }
+
+  visitThrowExpression(HThrowExpression node) {
+    HInstruction argument = node.inputs[0];
+    use(argument);
+
+    Element helper = compiler.findHelper(new SourceString("throwExpression"));
+    world.registerStaticUse(helper);
+
+    js.VariableUse jsHelper =
+        new js.VariableUse(backend.namer.isolateAccess(helper));
+    js.Call value = new js.Call(jsHelper, [pop()]);
+    attachLocation(value, argument);
+    push(value, node);
   }
 
   void visitSwitch(HSwitch node) {

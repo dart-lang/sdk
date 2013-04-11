@@ -64,6 +64,7 @@ abstract class HVisitor<R> {
   R visitSwitch(HSwitch node);
   R visitThis(HThis node);
   R visitThrow(HThrow node);
+  R visitThrowExpression(HThrowExpression node);
   R visitTry(HTry node);
   R visitTypeGuard(HTypeGuard node);
   R visitTypeConversion(HTypeConversion node);
@@ -339,6 +340,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitStringify(HStringify node) => visitInstruction(node);
   visitThis(HThis node) => visitParameterValue(node);
   visitThrow(HThrow node) => visitControlFlow(node);
+  visitThrowExpression(HThrowExpression node) => visitInstruction(node);
   visitTry(HTry node) => visitControlFlow(node);
   visitTypeGuard(HTypeGuard node) => visitCheck(node);
   visitIs(HIs node) => visitInstruction(node);
@@ -2016,6 +2018,13 @@ class HReturn extends HControlFlow {
   HReturn(value) : super(<HInstruction>[value]);
   toString() => 'return';
   accept(HVisitor visitor) => visitor.visitReturn(this);
+}
+
+class HThrowExpression extends HInstruction {
+  HThrowExpression(value) : super(<HInstruction>[value]);
+  toString() => 'throwexpression';
+  accept(HVisitor visitor) => visitor.visitThrowExpression(this);
+  bool canThrow() => true;
 }
 
 class HThrow extends HControlFlow {

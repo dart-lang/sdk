@@ -479,6 +479,10 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitThrow(HThrow node) => "Throw ${temporaryId(node.inputs[0])}";
 
+  String visitThrowExpression(HThrowExpression node) {
+    return "ThrowExpression ${temporaryId(node.inputs[0])}";
+  }
+
   String visitExitTry(HExitTry node) {
     return "Exit try";
   }

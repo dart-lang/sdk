@@ -73,6 +73,12 @@ boo() {
 yo() {
   throw kast("yo");
 }
+bin() {
+  return 5 * kast("bin");
+}
+binCallThrow() {
+  return callMe() * kast("binct");
+}
 hoo() {
   x[kast("hoo")] = 0;
   x[kast("hoo")];
@@ -85,6 +91,26 @@ switcheroo() {
     case 0:
       boo();
   }
+}
+
+class ThrowConstructor {
+  ThrowConstructor() :
+    foo = callMeTrue(),
+    bar = kast("ThrowConstructor") {
+    called = false;
+  }
+
+  bool foo;
+  var bar;
+}
+
+throwConstructor() {
+  called = false;
+  return new ThrowConstructor();
+}
+
+cascade() {
+  return new List()..add(callMeTrue())..add(kast("cascade"));
 }
 
 interpole() => "inter${kast('tada!')}pole";
@@ -142,6 +168,81 @@ dovileContinue() {
   return(x);
 }
 
+dovileBreakContinue(x) {
+  do {
+    callMe();
+    if (x == 1) break;
+    continue;
+  } while (kast("vile"));
+  return(x);
+}
+
+faar1() {
+  callMe();
+  for (kast("faar"); called = false; called = false) {
+    called = false;
+  }
+}
+
+faar2() {
+  for (callMe(); kast("faar"); called = false) {
+    called = false;
+  }
+}
+
+faar3() {
+  for (; true; kast("faar")) {
+    callMe();
+  }
+  called = false;
+}
+
+faar4() {
+  callMe();
+  for (kast("faar"); called = false; called = false) {
+    called = false;
+    continue;
+  }
+}
+
+faar5() {
+  for (callMe(); kast("faar"); called = false) {
+    called = false;
+    continue;
+  }
+}
+
+faar6() {
+  for (; true; kast("faar")) {
+    callMe();
+    continue;
+  }
+  called = false;
+}
+
+faar7() {
+  callMe();
+  for (kast("faar"); called = false; called = false) {
+    called = false;
+    break;
+  }
+}
+
+faar8() {
+  for (callMe(); kast("faar"); called = false) {
+    called = false;
+    break;
+  }
+}
+
+faar9() {
+  for (; true; kast("faar")) {
+    callMe();
+    break;
+    called = false;
+  }
+}
+
 main() {
   Expect.throws(hest);
   Expect.throws(hest2);
@@ -161,6 +262,8 @@ main() {
   Expect.throws(unary);
   testCallThenThrow(boo);
   Expect.throws(yo);
+  Expect.throws(bin);
+  testCallThenThrow(binCallThrow);
   Expect.throws(hoo);
   Expect.throws(switcheroo);
   Expect.throws(interpole);
@@ -178,4 +281,16 @@ main() {
   testCallThenThrow(dovile);
   testCall(dovileBreak);
   testCallThenThrow(dovileContinue);
+  testCallThenThrow(throwConstructor);
+  testCallThenThrow(cascade);
+  dovileBreakContinue(1);
+  testCallThenThrow(faar1);
+  testCallThenThrow(faar2);
+  testCallThenThrow(faar3);
+  testCallThenThrow(faar4);
+  testCallThenThrow(faar5);
+  testCallThenThrow(faar6);
+  testCallThenThrow(faar7);
+  testCallThenThrow(faar8);
+  testCall(faar9);
 }

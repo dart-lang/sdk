@@ -614,7 +614,7 @@ checkString(value) {
  * The code in [unwrapException] deals with getting the original Dart
  * object out of the wrapper again.
  */
-$throw(ex) {
+wrapException(ex) {
   if (ex == null) ex = const NullThrownError();
   var wrapper = new DartError(ex);
 
@@ -622,7 +622,7 @@ $throw(ex) {
     // Use V8 API for recording a "fast" stack trace (this installs a
     // "stack" property getter on [wrapper]).
     JS('void', r'Error.captureStackTrace(#, #)',
-       wrapper, RAW_DART_FUNCTION_REF($throw));
+       wrapper, RAW_DART_FUNCTION_REF(wrapException));
   } else {
     // Otherwise, produce a stack trace and record it in the wrapper.
     // This is a slower way to create a stack trace which works on
@@ -631,6 +631,16 @@ $throw(ex) {
     JS('void', '#.stack = #', wrapper, stackTrace);
   }
   return wrapper;
+}
+
+/**
+ * This wraos the exception and actually does the throw too.  It is
+ * possible to call this in a JS expression context, where the throw statement
+ * is not allowed.  Helpers are never inlined, so we don't risk inlining the
+ * throw statement into an expression context.
+ */
+throwExpression(ex) {
+  JS('void', 'throw #', wrapException(ex));
 }
 
 /**
@@ -652,8 +662,8 @@ class DartError {
 
   /**
    * V8/Chrome installs a property getter, "stack", when calling
-   * Error.captureStackTrace (see [$throw]). In [$throw], we make sure
-   * that this property is always set.
+   * Error.captureStackTrace (see [wrapException]). In [wrapException], we make
+   * sure that this property is always set.
    */
   String get stack => JS('', '#.stack', this);
 
@@ -663,7 +673,7 @@ class DartError {
    *
    * We only expect this method to be called (indirectly) by the
    * browser when an uncaught exception occurs. Instance of this class
-   * should never escape into Dart code (except for [$throw] above).
+   * should never escape into Dart code (except for [wrapException] above).
    */
   String toString() {
     // If Error.captureStackTrace is available, accessing stack from
@@ -715,7 +725,7 @@ throwAbstractClassInstantiationError(className) {
 /**
  * Called from catch blocks in generated code to extract the Dart
  * exception from the thrown value. The thrown value may have been
- * created by [$throw] or it may be a 'native' JS exception.
+ * created by [wrapException] or it may be a 'native' JS exception.
  *
  * Some native exceptions are mapped to new Dart instances, others are
  * returned unmodified.

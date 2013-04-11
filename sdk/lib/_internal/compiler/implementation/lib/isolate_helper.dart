@@ -585,7 +585,7 @@ class IsolateNatives {
    * but you should probably not count on this.
    */
   static String _getJSFunctionName(Function f) {
-    return JS("String|Null", r"(#.$name || #)", f, null);
+    return JS("String|Null", r"(#['$name'] || #)", f, null);
   }
 
   /** Create a new JavaScript object instance given its constructor. */

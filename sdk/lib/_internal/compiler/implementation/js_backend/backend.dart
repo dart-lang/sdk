@@ -1135,8 +1135,12 @@ class JavaScriptBackend extends Backend {
     enqueueInResolution(getExceptionUnwrapper(), elements);
   }
 
-  void registerThrow(TreeElements elements) {
-    enqueueInResolution(getThrowHelper(), elements);
+  void registerWrapException(TreeElements elements) {
+    enqueueInResolution(getWrapExceptionHelper(), elements);
+  }
+
+  void registerThrowExpression(TreeElements elements) {
+    enqueueInResolution(getThrowExpressionHelper(), elements);
   }
 
   void registerLazyField(TreeElements elements) {
@@ -1672,8 +1676,12 @@ class JavaScriptBackend extends Backend {
     return compiler.findHelper(const SourceString('S'));
   }
 
-  Element getThrowHelper() {
-    return compiler.findHelper(const SourceString(r'$throw'));
+  Element getWrapExceptionHelper() {
+    return compiler.findHelper(const SourceString(r'wrapException'));
+  }
+
+  Element getThrowExpressionHelper() {
+    return compiler.findHelper(const SourceString('throwExpression'));
   }
 
   Element getClosureConverter() {

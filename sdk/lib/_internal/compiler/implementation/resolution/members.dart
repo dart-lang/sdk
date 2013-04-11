@@ -2477,7 +2477,11 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     if (!inCatchBlock && node.expression == null) {
       error(node, MessageKind.THROW_WITHOUT_EXPRESSION);
     }
-    compiler.backend.registerThrow(mapping);
+    // We don't know ahead of time whether we will need the throw in a statement
+    // context or an expression context, so we register both here, even though
+    // we may not need ThrowExpression.
+    compiler.backend.registerWrapException(mapping);
+    compiler.backend.registerThrowExpression(mapping);
     visit(node.expression);
   }
 

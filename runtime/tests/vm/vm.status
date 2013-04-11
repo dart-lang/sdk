@@ -40,9 +40,10 @@ dart/isolate_unhandled*: Skip
 # The source positions do not match with dart2js.
 dart/optimized_stacktrace_test: Fail
 
-[ $compiler == dart2js && $minified ]
-# Methods in stack traces are renamed.
-dart/inline_stack_frame_test: Fail # Issue 7953.
+[ $compiler == dart2js ]
+# Methods can be missing in dart2js stack traces due to inlining.  Also when
+# minifying they can be renamed, which is issue 7953.
+dart/inline_stack_frame_test: Fail
 
 [ $runtime == ff || $runtime == ie9 ]
 dart/inline_stack_frame_test: Skip
