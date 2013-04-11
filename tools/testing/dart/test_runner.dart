@@ -161,7 +161,7 @@ class CompilationCommand extends Command {
             var dependencyLastModified =
                 TestUtils.lastModifiedCache.getLastModified(dependency);
             if (dependencyLastModified == null ||
-                dependencyLastModified > jsOutputLastModified) {
+                dependencyLastModified.isAfter(jsOutputLastModified)) {
               return false;
             }
           }

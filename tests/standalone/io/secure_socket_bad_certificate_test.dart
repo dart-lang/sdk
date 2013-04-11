@@ -40,8 +40,8 @@ Future testCertificateCallback({String host, bool acceptCertificate}) {
 
   bool badCertificateCallback(X509Certificate certificate) {
     Expect.isTrue(certificate.subject.contains("O=Google Inc"));
-    Expect.isTrue(certificate.startValidity < new DateTime.now());
-    Expect.isTrue(certificate.endValidity > new DateTime.now());
+    Expect.isTrue(certificate.startValidity.isBefore(new DateTime.now()));
+    Expect.isTrue(certificate.endValidity.isAfter(new DateTime.now()));
     return acceptCertificate;
   };
 

@@ -191,48 +191,6 @@ class DateTime {
   /**
    * Returns true if [this] occurs before [other]. The comparison is independent
    * of whether the time is in UTC or in the local time zone.
-   *
-   * *Deprecated* Use [isBefore] instead.
-   */
-  @deprecated
-  bool operator <(DateTime other)
-      => millisecondsSinceEpoch < other.millisecondsSinceEpoch;
-
-  /**
-   * Returns true if [this] occurs at the same time or before [other]. The
-   * comparison is independent of whether the time is in UTC or in the local
-   * time zone.
-   *
-   * *Deprecated* Use [isAfter] instead ([:!isAfter:]).
-   */
-  @deprecated
-  bool operator <=(DateTime other)
-      => millisecondsSinceEpoch <= other.millisecondsSinceEpoch;
-
-  /**
-   * Returns true if [this] occurs after [other]. The comparison is independent
-   * of whether the time is in UTC or in the local time zone.
-   *
-   * *Deprecated* Use [isAfter] instead.
-   */
-  @deprecated
-  bool operator >(DateTime other)
-      => millisecondsSinceEpoch > other.millisecondsSinceEpoch;
-
-  /**
-   * Returns true if [this] occurs at the same time or after [other]. The
-   * comparison is independent of whether the time is in UTC or in the local
-   * time zone.
-   *
-   * *Deprecated* Use [isBefore] instead ([:!isBefore:]).
-   */
-  @deprecated
-  bool operator >=(DateTime other)
-      => millisecondsSinceEpoch >= other.millisecondsSinceEpoch;
-
-  /**
-   * Returns true if [this] occurs before [other]. The comparison is independent
-   * of whether the time is in UTC or in the local time zone.
    */
   bool isBefore(DateTime other) {
     return millisecondsSinceEpoch < other.millisecondsSinceEpoch;

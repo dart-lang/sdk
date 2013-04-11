@@ -1070,7 +1070,7 @@ class FileTest {
     var port = new ReceivePort();
     new File(new Options().executable).lastModified().then((modified) {
       Expect.isTrue(modified is DateTime);
-      Expect.isTrue(modified < new DateTime.now());
+      Expect.isTrue(modified.isBefore(new DateTime.now()));
       port.close();
     });
   }
@@ -1078,7 +1078,7 @@ class FileTest {
   static void testLastModifiedSync() {
     var modified = new File(new Options().executable).lastModifiedSync();
     Expect.isTrue(modified is DateTime);
-    Expect.isTrue(modified < new DateTime.now());
+    Expect.isTrue(modified.isBefore(new DateTime.now()));
   }
 
   // Test that opens the same file for writing then for appending to test
