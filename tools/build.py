@@ -275,6 +275,8 @@ PhaseScriptExecution "Action \"upload_sdk_py\"" xcodebuild/dart.build/...
         is_fancy_tty = True
     except subprocess.CalledProcessError:
       is_fancy_tty = False
+    except AttributeError:
+      is_fancy_tty = False
   pattern = re.compile(r'=== BUILD .* TARGET (.*) OF PROJECT (.*) WITH ' +
                        r'CONFIGURATION (.*) ===')
   has_interesting_info = False
