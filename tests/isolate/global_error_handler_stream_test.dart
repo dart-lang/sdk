@@ -19,7 +19,7 @@ void runFunctions() {
   }
 }
 
-void startTest(StreamSink finishSink) {
+void startTest(EventSink finishSink) {
   firstFunction = () { throw new RuntimeError("ignore exception"); };
   finishFunction = () { finishSink.add("done"); finishSink.close(); };
   new Timer(Duration.ZERO, runFunctions);
@@ -36,7 +36,7 @@ bool globalErrorHandler(IsolateUnhandledException e) {
 main() {
   var box = new MessageBox();
   var timer;
-  StreamSink otherIsolate = streamSpawnFunction(runTest, globalErrorHandler);
+  EventSink otherIsolate = streamSpawnFunction(runTest, globalErrorHandler);
   otherIsolate.add(box.sink);
   otherIsolate.close();
   box.stream.single.then((msg) {

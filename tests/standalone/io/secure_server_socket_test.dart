@@ -171,7 +171,7 @@ void testSimpleReadWrite() {
           bytesRead += buffer.length;
           if (bytesRead == data.length) {
             verifyTestData(data);
-            client.writeBytes(data);
+            client.add(data);
             client.close();
           }
         },
@@ -185,7 +185,7 @@ void testSimpleReadWrite() {
       int bytesWritten = 0;
       List<int> dataSent = createTestData();
       List<int> dataReceived = new List<int>(dataSent.length);
-      socket.writeBytes(dataSent);
+      socket.add(dataSent);
       socket.close();  // Can also be delayed.
       socket.listen(
         (List<int> buffer) {

@@ -683,9 +683,9 @@ class _WebSocketImpl extends Stream implements WebSocket {
     }
     assert(index == headerSize);
     try {
-      _socket.writeBytes(header);
+      _socket.add(header);
       if (data != null) {
-        _socket.writeBytes(data);
+        _socket.add(data);
       }
     } catch (_) {
       // The socket can be closed before _socket.done have a chance

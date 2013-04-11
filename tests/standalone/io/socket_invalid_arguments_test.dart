@@ -40,7 +40,7 @@ testAdd(buffer) {
             socket.destroy();
             server.close();
           });
-      socket.writeBytes(buffer);
+      socket.add(buffer);
     });
   });
 }

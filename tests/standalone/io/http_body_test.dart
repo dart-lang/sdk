@@ -21,7 +21,7 @@ void testHttpClientResponseBody() {
             onDone: () {
               request.response.headers.contentType =
                   new ContentType.fromString(mimeType);
-              request.response.writeBytes(content);
+              request.response.add(content);
               request.response.close();
             });
       });
@@ -118,7 +118,7 @@ void testHttpServerRequestBody() {
           .then((request) {
             request.headers.contentType =
                 new ContentType.fromString(mimeType);
-            request.writeBytes(content);
+            request.add(content);
             return request.close();
           })
           .then((response) {

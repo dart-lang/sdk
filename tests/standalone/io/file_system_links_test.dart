@@ -101,7 +101,7 @@ testFileWriteRead() {
   createLink(x, y, () {
     var data = "asdf".codeUnits;
     var output = new File(y).openWrite(mode: FileMode.WRITE);
-    output.writeBytes(data);
+    output.add(data);
     output.close();
     output.done.then((_) {
       var read = new File(y).readAsBytesSync();

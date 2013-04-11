@@ -12,7 +12,7 @@ void sendData(List<int> data, int port) {
     socket.listen((data) {
         Expect.fail("No data response was expected");
       });
-    socket.writeBytes(data);
+    socket.add(data);
     socket.close();
     socket.done.then((_) {
       socket.destroy();

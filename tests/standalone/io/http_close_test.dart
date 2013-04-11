@@ -84,7 +84,7 @@ void testClientCloseSendingResponse(int connections) {
     }
     server.listen((request) {
       var timer = new Timer.periodic(const Duration(milliseconds: 20), (_) {
-        request.response.writeBytes(new Uint8List(16 * 1024));
+        request.response.add(new Uint8List(16 * 1024));
       });
       request.response.done
           .catchError((_) {})

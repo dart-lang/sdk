@@ -24,7 +24,7 @@ class CloseToken {
   const CloseToken();
 }
 
-class JsIsolateSink extends StreamSink<dynamic> implements IsolateSink {
+class JsIsolateSink extends EventSink<dynamic> implements IsolateSink {
   bool _isClosed = false;
   final SendPort _port;
   JsIsolateSink.fromPort(this._port);

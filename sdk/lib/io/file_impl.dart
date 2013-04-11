@@ -557,7 +557,7 @@ class _File extends _FileBase implements File {
                             {FileMode mode: FileMode.WRITE}) {
     try {
       IOSink<File> sink = openWrite(mode: mode);
-      sink.writeBytes(bytes);
+      sink.add(bytes);
       sink.close();
       return sink.done.then((_) => this);;
     } catch (e) {

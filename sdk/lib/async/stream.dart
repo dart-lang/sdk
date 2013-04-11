@@ -836,16 +836,6 @@ abstract class StreamSubscription<T> {
 
 
 /**
- * *Deprecated*. Use [EventSink] instead.
- */
-abstract class StreamSink<T> extends EventSink<T>{
-  /* TODO(8997): Remove class.*/
-  /** *Deprecated*. Use [EventSink.addError] instead.*/
-  void signalError(AsyncError errorEvent) { addError(errorEvent); }
-}
-
-
-/**
  * An interface that abstracts creation or handling of [Stream] events.
  */
 abstract class EventSink<T> {
@@ -880,8 +870,7 @@ class StreamView<T> extends Stream<T> {
 /**
  * [EventSink] wrapper that only exposes the [EventSink] interface.
  */
-class EventSinkView<T> extends StreamSink<T> {
-  // TODO(8997): Implment EventSink instead.
+class EventSinkView<T> extends EventSink<T> {
   final EventSink<T> _sink;
 
   EventSinkView(this._sink);
@@ -1140,8 +1129,7 @@ class _EventTransformStreamSubscription<S, T>
   }
 }
 
-/* TODO(8997): Implement EventSink instead, */
-class _EventOutputSinkWrapper<T> extends StreamSink<T> {
+class _EventOutputSinkWrapper<T> extends EventSink<T> {
   _EventOutputSink _sink;
   _EventOutputSinkWrapper(this._sink);
 

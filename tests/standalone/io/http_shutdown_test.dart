@@ -165,7 +165,7 @@ void test5(int totalConnections) {
     for (int i = 0; i < totalConnections; i++) {
       client.post("127.0.0.1", server.port, "/")
         .then((request) {
-            request.writeBytes([0]);
+            request.add([0]);
             // TODO(sgjesse): Make this test work with
             //request.response instead of request.close() return
             //return request.response;

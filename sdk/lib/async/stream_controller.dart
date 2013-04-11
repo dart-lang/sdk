@@ -46,8 +46,7 @@ part of dart.async;
  * the stream at all, and won't trigger callbacks. From the controller's point
  * of view, the stream is completely inert when has completed.
  */
-class StreamController<T> extends StreamSink<T> {
-  // TODO(8997): Implement EventSink instead.
+class StreamController<T> extends EventSink<T> {
   final _StreamImpl<T> stream;
 
   /**

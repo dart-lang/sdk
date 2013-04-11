@@ -815,7 +815,7 @@ class _Socket extends Stream<List<int>> implements Socket {
 
   void writeAll(Iterable objects, [sep = ""]) => _sink.writeAll(objects, sep);
 
-  void writeBytes(List<int> bytes) => _sink.writeBytes(bytes);
+  void add(List<int> bytes) => _sink.add(bytes);
 
   Future<Socket> consume(Stream<List<int>> stream) {
     return _sink.consume(stream);

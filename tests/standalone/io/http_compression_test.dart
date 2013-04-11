@@ -15,7 +15,7 @@ void testServerCompress() {
   void test(List<int> data) {
     HttpServer.bind().then((server) {
       server.listen((request) {
-        request.response.writeBytes(data);
+        request.response.add(data);
         request.response.close();
       });
       var client = new HttpClient();

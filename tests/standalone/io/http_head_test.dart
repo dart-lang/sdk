@@ -15,15 +15,15 @@ void testHEAD(int totalConnections) {
         } else if (request.uri.path == "/test200") {
           response.contentLength = 200;
           List<int> data = new List<int>.filled(200, 0);
-          response.writeBytes(data);
+          response.add(data);
           response.close();
         } else if (request.uri.path == "/testChunked100") {
           List<int> data = new List<int>.filled(100, 0);
-          response.writeBytes(data);
+          response.add(data);
           response.close();
         } else if (request.uri.path == "/testChunked200") {
           List<int> data = new List<int>.filled(200, 0);
-          response.writeBytes(data);
+          response.add(data);
           response.close();
         } else {
           assert(false);

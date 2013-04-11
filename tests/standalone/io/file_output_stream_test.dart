@@ -22,7 +22,7 @@ void testOpenOutputStreamSync() {
   file.createSync();
   IOSink x = file.openWrite();
   var data = [65, 66, 67];
-  x.writeBytes(data);
+  x.add(data);
   x.close();
   x.done.then((_) {
     Expect.listEquals(file.readAsBytesSync(), data);

@@ -92,7 +92,7 @@ class FileTest {
             tempDirectory.path + "/out_read_write_stream";
         var file2 = new File(outFilename);
         var output = file2.openWrite();
-        output.writeBytes(buffer);
+        output.add(buffer);
         output.close();
         output.done.then((_) {
           // Now read the contents of the file just written.
@@ -130,8 +130,8 @@ class FileTest {
         tempDirectory.path + "/out_read_write_stream_large_file";
     File file = new File(filename);
     IOSink output = file.openWrite();
-    output.writeBytes(buffer);
-    output.writeBytes(buffer);
+    output.add(buffer);
+    output.add(buffer);
     output.close();
     output.done.then((_) {
       Stream input = file.openRead();
@@ -345,12 +345,12 @@ class FileTest {
     file.createSync();
     List<int> buffer = content.codeUnits;
     var output = file.openWrite();
-    output.writeBytes(buffer);
+    output.add(buffer);
     output.close();
     output.done.then((_) {
       File file2 = new File(filename);
       var appendingOutput = file2.openWrite(mode: FileMode.APPEND);
-      appendingOutput.writeBytes(buffer);
+      appendingOutput.add(buffer);
       appendingOutput.close();
       appendingOutput.done.then((_) {
         File file3 = new File(filename);
@@ -766,7 +766,7 @@ class FileTest {
     file.createSync();
     var output = file.openWrite();
     output.close();
-    Expect.throws(() => output.writeBytes(buffer));
+    Expect.throws(() => output.add(buffer));
     output.done.then((_) {
       file.deleteSync();
       asyncTestDone("testCloseExceptionStream");

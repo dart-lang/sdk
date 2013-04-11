@@ -25,7 +25,7 @@ main() {
     // Write to the stdin after the process is terminated to test
     // writing to a broken pipe.
     process.exitCode.then((code) {
-      process.stdin.writeBytes([0]);
+      process.stdin.add([0]);
     });
   });
 }

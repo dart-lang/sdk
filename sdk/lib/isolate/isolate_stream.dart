@@ -94,8 +94,7 @@ class IsolateStream extends Stream<dynamic> {
  *
  * [IsolateSink]s can be transmitted to other isolates.
  */
-abstract class IsolateSink extends StreamSink<dynamic> {
-  // TODO(8997): Implement EventSink instead.
+abstract class IsolateSink extends EventSink<dynamic> {
   // TODO(floitsch): Actually it should be a StreamSink (being able to flow-
   // control).
 

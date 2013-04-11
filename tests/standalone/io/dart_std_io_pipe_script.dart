@@ -27,8 +27,8 @@ main() {
       stdin.pipe(stderr);
     } else if (options.arguments[0] == "2") {
       stdin.listen((data) {
-        stdout.writeBytes(data);
-        stderr.writeBytes(data);
+        stdout.add(data);
+        stderr.add(data);
       });
     }
   }

@@ -5,7 +5,7 @@
 import "dart:io";
 
 main() {
-  stdout.writeBytes("Hello\n");
+  stdout.add("Hello\n");
   stdout.done.catchError((e) {
     exit(0);
   });

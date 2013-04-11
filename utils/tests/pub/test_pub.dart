@@ -94,7 +94,7 @@ void serve([List<d.Descriptor> contents]) {
             new ByteStream(stream).toBytes().then((data) {
               response.statusCode = 200;
               response.contentLength = data.length;
-              response.writeBytes(data);
+              response.add(data);
               response.close();
             }).catchError((e) {
               response.statusCode = 404;

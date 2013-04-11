@@ -131,7 +131,7 @@ class _HttpResponseWrapper implements HttpResponse {
   List<Cookie> get cookies => _inner.cookies;
   Future<Socket> detachSocket() => _inner.detachSocket();
   HttpConnectionInfo get connectionInfo => _inner.connectionInfo;
-  void writeBytes(List<int> data) => _inner.writeBytes(data);
+  void add(List<int> data) => _inner.add(data);
   Future<HttpResponse> consume(Stream<List<int>> stream) =>
     _inner.consume(stream);
   Future<HttpResponse> writeStream(Stream<List<int>> stream) =>

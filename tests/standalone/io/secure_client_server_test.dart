@@ -23,7 +23,7 @@ Future<SecureServerSocket> startEchoServer() {
     server.listen((SecureSocket client) {
       client.fold(<int>[], (message, data) => message..addAll(data))
           .then((message) {
-            client.writeBytes(message);
+            client.add(message);
             client.close();
           });
     });

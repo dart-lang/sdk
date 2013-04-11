@@ -400,10 +400,15 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
     write(new String.fromCharCode(charCode));
   }
 
-  void writeBytes(List<int> data) {
+  void add(List<int> data) {
     _writeHeaders();
     if (data.length == 0) return;
-    _ioSink.writeBytes(data);
+    _ioSink.add(data);
+  }
+
+  void addError(AsyncError error) {
+    _writeHeaders();
+    _ioSink.addError(error);
   }
 
   Future<T> consume(Stream<List<int>> stream) {
@@ -627,7 +632,7 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
     // Write headers.
     headers._write(buffer);
     writeCRLF();
-    _ioSink.writeBytes(buffer.readBytes());
+    _ioSink.add(buffer.readBytes());
   }
 
   String _findReasonPhrase(int statusCode) {
@@ -832,7 +837,7 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
     // Write headers.
     headers._write(buffer);
     writeCRLF();
-    _ioSink.writeBytes(buffer.readBytes());
+    _ioSink.add(buffer.readBytes());
   }
 }
 
@@ -1681,7 +1686,9 @@ class _DetachedSocket extends Stream<List<int>> implements Socket {
     _socket.writeAll(objects, separator);
   }
 
-  void writeBytes(List<int> bytes) => _socket.writeBytes(bytes);
+  void add(List<int> bytes) => _socket.add(bytes);
+
+  void addError(AsyncError error) => _socket.addError(error);
 
   Future<Socket> consume(Stream<List<int>> stream) {
     return _socket.consume(stream);
