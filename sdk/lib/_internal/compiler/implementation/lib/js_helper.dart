@@ -634,10 +634,10 @@ wrapException(ex) {
 }
 
 /**
- * This wraos the exception and actually does the throw too.  It is
- * possible to call this in a JS expression context, where the throw statement
- * is not allowed.  Helpers are never inlined, so we don't risk inlining the
- * throw statement into an expression context.
+ * This wraps the exception and does the throw.  It is possible to call this in
+ * a JS expression context, where the throw statement is not allowed.  Helpers
+ * are never inlined, so we don't risk inlining the throw statement into an
+ * expression context.
  */
 throwExpression(ex) {
   JS('void', 'throw #', wrapException(ex));

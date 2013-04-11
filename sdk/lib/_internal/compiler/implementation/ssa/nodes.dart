@@ -2022,7 +2022,7 @@ class HReturn extends HControlFlow {
 
 class HThrowExpression extends HInstruction {
   HThrowExpression(value) : super(<HInstruction>[value]);
-  toString() => 'throwexpression';
+  toString() => 'throw expression';
   accept(HVisitor visitor) => visitor.visitThrowExpression(this);
   bool canThrow() => true;
 }

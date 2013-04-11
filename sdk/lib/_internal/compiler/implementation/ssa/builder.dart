@@ -1772,7 +1772,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   visitBlock(Block node) {
-    if (!isReachable) return;  // This can happen when inlining.
+    assert(!isAborted());
+    if (!isReachable) return;  // This can only happen when inlining.
     for (Link<Node> link = node.statements.nodes;
          !link.isEmpty;
          link = link.tail) {
@@ -3903,7 +3904,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     assert(invariant(node, !node.isRedirectingFactoryBody));
     HInstruction value;
-    if (node.expression == null || !isReachable) {
+    if (node.expression == null) {
       value = graph.addConstantNull(constantSystem);
     } else {
       visit(node.expression);
