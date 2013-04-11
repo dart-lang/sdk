@@ -307,9 +307,8 @@ abstract class _TypedListBase {
     return IterableMixinWorkaround.join(this, separator);
   }
 
-  dynamic reduce(dynamic initialValue,
-                 dynamic combine(dynamic initialValue, element)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  dynamic reduce(dynamic combine(value, element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
   dynamic fold(dynamic initialValue,
@@ -449,12 +448,6 @@ abstract class _TypedListBase {
     if (length == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
   }
-
-  int min([int compare(int a, int b)]) =>
-    IterableMixinWorkaround.min(this, compare);
-
-  int max([int compare(int a, int b)]) =>
-    IterableMixinWorkaround.max(this, compare);
 
   void removeRange(int start, int length) {
     throw new UnsupportedError(

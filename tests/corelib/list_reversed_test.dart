@@ -106,9 +106,7 @@ void testOperations() {
     testOp((i) => i.any((n) => n < 10), "any<10");
     testOp((i) => i.every((n) => n < 5), "every<5");
     testOp((i) => i.every((n) => n < 10), "every<10");
-    testOp((i) => i.max(), "max");
-    testOp((i) => i.min(), "min");
-    testOp((i) => i.reduce(0, (a, b) => a + b), "reduce-sum");
+    testOp((i) => i.reduce((a, b) => a + b), "reduce-sum");
     testOp((i) => i.fold(0, (a, b) => a + b), "fold-sum");
     testOp((i) => i.join("-"), "join-");
     testOp((i) => i.join(""), "join");

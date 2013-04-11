@@ -208,10 +208,6 @@ class _GrowableObjectArray<T> implements List<T> {
     throw new StateError("More than one element");
   }
 
-  T min([int compare(T a, T b)]) => IterableMixinWorkaround.min(this, compare);
-
-  T max([int compare(T a, T b)]) => IterableMixinWorkaround.max(this, compare);
-
   int indexOf(T element, [int start = 0]) {
     return IterableMixinWorkaround.indexOfList(this, element, start);
   }
@@ -264,8 +260,8 @@ class _GrowableObjectArray<T> implements List<T> {
     return IterableMixinWorkaround.mapList(this, f);
   }
 
-  reduce(initialValue, combine(previousValue, T element)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  T reduce(T combine(T value, T element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
   fold(initialValue, combine(previousValue, T element)) {

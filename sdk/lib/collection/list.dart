@@ -141,46 +141,6 @@ abstract class ListMixin<E> implements List<E> {
     throw new StateError("No matching element");
   }
 
-  E min([int compare(E a, E b)]) {
-    if (length == 0) return null;
-    if (compare == null) {
-      var defaultCompare = Comparable.compare;
-      compare = defaultCompare;
-    }
-    E min = this[0];
-    int length = this.length;
-    for (int i = 1; i < length; i++) {
-      E element = this[i];
-      if (compare(min, element) > 0) {
-        min = element;
-      }
-      if (length != this.length) {
-        throw new ConcurrentModificationError(this);
-      }
-    }
-    return min;
-  }
-
-  E max([int compare(E a, E b)]) {
-    if (length == 0) return null;
-    if (compare == null) {
-      var defaultCompare = Comparable.compare;
-      compare = defaultCompare;
-    }
-    E max = this[0];
-    int length = this.length;
-    for (int i = 1; i < length; i++) {
-      E element = this[i];
-      if (compare(max, element) < 0) {
-        max = element;
-      }
-      if (length != this.length) {
-        throw new ConcurrentModificationError(this);
-      }
-    }
-    return max;
-  }
-
   String join([String separator = ""]) {
     int length = this.length;
     if (!separator.isEmpty) {
@@ -214,8 +174,13 @@ abstract class ListMixin<E> implements List<E> {
 
   Iterable map(f(E element)) => new MappedListIterable(this, f);
 
-  reduce(var initialValue, combine(var previousValue, E element)) {
-    return fold(initialValue, combine);
+  E reduce(E combine(E previousValue, E element)) {
+    if (length == 0) throw new StateError("No elements");
+    E value = this[0];
+    for (int i = 1; i < length; i++) {
+      value = combine(value, this[i]);
+    }
+    return value;
   }
 
   fold(var initialValue, combine(var previousValue, E element)) {

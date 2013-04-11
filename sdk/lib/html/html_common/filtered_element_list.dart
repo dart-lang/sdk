@@ -141,14 +141,13 @@ class FilteredElementList extends ListBase<Element> {
     IterableMixinWorkaround.retainWhere(this, test);
   }
 
-  dynamic reduce(dynamic initialValue,
-      dynamic combine(dynamic previousValue, Element element)) {
-    return _filtered.reduce(initialValue, combine);
+  Element reduce(Element combine(Element value, Element element)) {
+    return _filtered.reduce(combine);
   }
 
   dynamic fold(dynamic initialValue,
       dynamic combine(dynamic previousValue, Element element)) {
-    return IterableMixinWorkaround.fold(this, initialValue, combine);
+    return _filtered.fold(initialValue, combine);
   }
 
   bool every(bool f(Element element)) => _filtered.every(f);

@@ -3030,11 +3030,12 @@ class LengthList implements JavaScriptIndexingBehavior, List<Length> native "*SV
 
   // SVG Collections expose numberOfItems rather than length.
   int get length => numberOfItems;
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Length)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  Length reduce(Length combine(Length value, Length element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, Length)) {
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, Length element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
@@ -3141,12 +3142,6 @@ class LengthList implements JavaScriptIndexingBehavior, List<Length> native "*SV
     if (length == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
   }
-
-  Length min([int compare(Length a, Length b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  Length max([int compare(Length a, Length b)]) =>
-      IterableMixinWorkaround.max(this, compare);
 
   void insert(int index, Length element) {
     throw new UnsupportedError("Cannot add to immutable List.");
@@ -3675,11 +3670,12 @@ class NumberList implements JavaScriptIndexingBehavior, List<Number> native "*SV
 
   // SVG Collections expose numberOfItems rather than length.
   int get length => numberOfItems;
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Number)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  Number reduce(Number combine(Number value, Number element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, Number)) {
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, Number element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
@@ -3786,12 +3782,6 @@ class NumberList implements JavaScriptIndexingBehavior, List<Number> native "*SV
     if (length == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
   }
-
-  Number min([int compare(Number a, Number b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  Number max([int compare(Number a, Number b)]) =>
-      IterableMixinWorkaround.max(this, compare);
 
   void insert(int index, Number element) {
     throw new UnsupportedError("Cannot add to immutable List.");
@@ -4551,11 +4541,12 @@ class PathSegList implements JavaScriptIndexingBehavior, List<PathSeg> native "*
 
   // SVG Collections expose numberOfItems rather than length.
   int get length => numberOfItems;
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, PathSeg)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  PathSeg reduce(PathSeg combine(PathSeg value, PathSeg element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, PathSeg)) {
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, PathSeg element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
@@ -4662,12 +4653,6 @@ class PathSegList implements JavaScriptIndexingBehavior, List<PathSeg> native "*
     if (length == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
   }
-
-  PathSeg min([int compare(PathSeg a, PathSeg b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  PathSeg max([int compare(PathSeg a, PathSeg b)]) =>
-      IterableMixinWorkaround.max(this, compare);
 
   void insert(int index, PathSeg element) {
     throw new UnsupportedError("Cannot add to immutable List.");
@@ -5457,11 +5442,12 @@ class StringList implements JavaScriptIndexingBehavior, List<String> native "*SV
 
   // SVG Collections expose numberOfItems rather than length.
   int get length => numberOfItems;
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, String)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  String reduce(String combine(String value, String element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, String)) {
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, String element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
@@ -5568,12 +5554,6 @@ class StringList implements JavaScriptIndexingBehavior, List<String> native "*SV
     if (length == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
   }
-
-  String min([int compare(String a, String b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  String max([int compare(String a, String b)]) =>
-      IterableMixinWorkaround.max(this, compare);
 
   void insert(int index, String element) {
     throw new UnsupportedError("Cannot add to immutable List.");
@@ -6636,11 +6616,12 @@ class TransformList implements List<Transform>, JavaScriptIndexingBehavior nativ
 
   // SVG Collections expose numberOfItems rather than length.
   int get length => numberOfItems;
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Transform)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  Transform reduce(Transform combine(Transform value, Transform element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, Transform)) {
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, Transform element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
@@ -6747,12 +6728,6 @@ class TransformList implements List<Transform>, JavaScriptIndexingBehavior nativ
     if (length == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
   }
-
-  Transform min([int compare(Transform a, Transform b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  Transform max([int compare(Transform a, Transform b)]) =>
-      IterableMixinWorkaround.max(this, compare);
 
   void insert(int index, Transform element) {
     throw new UnsupportedError("Cannot add to immutable List.");
@@ -7174,11 +7149,12 @@ class _ElementInstanceList implements JavaScriptIndexingBehavior, List<ElementIn
     return new FixedSizeListIterator<ElementInstance>(this);
   }
 
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, ElementInstance)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  ElementInstance reduce(ElementInstance combine(ElementInstance value, ElementInstance element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, ElementInstance)) {
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, ElementInstance element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
@@ -7287,12 +7263,6 @@ class _ElementInstanceList implements JavaScriptIndexingBehavior, List<ElementIn
     if (length == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
   }
-
-  ElementInstance min([int compare(ElementInstance a, ElementInstance b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  ElementInstance max([int compare(ElementInstance a, ElementInstance b)]) =>
-      IterableMixinWorkaround.max(this, compare);
 
   void insert(int index, ElementInstance element) {
     throw new UnsupportedError("Cannot add to immutable List.");

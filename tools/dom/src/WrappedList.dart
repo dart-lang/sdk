@@ -27,8 +27,8 @@ class _WrappedList<E> implements List<E> {
 
   void forEach(void f(E element)) { _list.forEach(f); }
 
-  dynamic reduce(initialValue, combine(previousValue, E element)) =>
-      _list.reduce(initialValue, combine);
+  E reduce(E combine(E value, E element)) =>
+      _list.reduce(combine);
 
   dynamic fold(initialValue, combine(previousValue, E element)) =>
       _list.fold(initialValue, combine);
@@ -45,10 +45,6 @@ class _WrappedList<E> implements List<E> {
   Set<E> toSet() => _list.toSet();
 
   int get length => _list.length;
-
-  E min([int compare(E a, E b)]) => _list.min(compare);
-
-  E max([int compare(E a, E b)]) => _list.max(compare);
 
   bool get isEmpty => _list.isEmpty;
 

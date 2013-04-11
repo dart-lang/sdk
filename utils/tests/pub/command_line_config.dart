@@ -5,6 +5,7 @@
 library command_line_config;
 
 import 'dart:io';
+import 'dart:math';
 
 import 'package:pathos/path.dart' as path;
 import 'package:unittest/unittest.dart';
@@ -91,7 +92,7 @@ class CommandLineConfiguration extends Configuration {
     if (stack.length == 0) return;
 
     // Figure out the longest path so we know how much to pad.
-    int longest = stack.map((frame) => frame.location.length).max();
+    int longest = stack.map((frame) => frame.location.length).reduce(max);
 
     // Print out the stack trace nicely formatted.
     for (var frame in stack) {

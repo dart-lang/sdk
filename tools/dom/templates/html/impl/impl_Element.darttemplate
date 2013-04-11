@@ -157,9 +157,8 @@ class _ChildrenElementList extends ListBase<Element> {
     throw new UnsupportedError('TODO(jacobr): should we impl?');
   }
 
-  dynamic reduce(dynamic initialValue,
-      dynamic combine(dynamic previousValue, Element element)) {
-    return _childElements.reduce(initialValue, combine);
+  Element reduce(Element combine(Element value, Element element)) {
+    return _childElements.reduce(combine);
   }
 
   dynamic fold(dynamic initialValue,
@@ -270,14 +269,6 @@ class _ChildrenElementList extends ListBase<Element> {
   Element get single {
     if (length > 1) throw new StateError("More than one element");
     return first;
-  }
-
-  Element min([int compare(Element a, Element b)]) {
-    return _childElements.min(compare);
-  }
-
-  Element max([int compare(Element a, Element b)]) {
-    return _childElements.max(compare);
   }
 
   Map<int, Element> asMap() {

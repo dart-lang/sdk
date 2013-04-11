@@ -7413,11 +7413,12 @@ class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeT
     return new FixedSizeListIterator<DomMimeType>(this);
   }
 
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, DomMimeType)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  DomMimeType reduce(DomMimeType combine(DomMimeType value, DomMimeType element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, DomMimeType)) {
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, DomMimeType element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
@@ -7526,12 +7527,6 @@ class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeT
     if (length == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
   }
-
-  DomMimeType min([int compare(DomMimeType a, DomMimeType b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  DomMimeType max([int compare(DomMimeType a, DomMimeType b)]) =>
-      IterableMixinWorkaround.max(this, compare);
 
   void insert(int index, DomMimeType element) {
     throw new UnsupportedError("Cannot add to immutable List.");
@@ -7702,11 +7697,12 @@ class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin>
     return new FixedSizeListIterator<DomPlugin>(this);
   }
 
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, DomPlugin)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  DomPlugin reduce(DomPlugin combine(DomPlugin value, DomPlugin element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, DomPlugin)) {
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, DomPlugin element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
@@ -7815,12 +7811,6 @@ class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin>
     if (length == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
   }
-
-  DomPlugin min([int compare(DomPlugin a, DomPlugin b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  DomPlugin max([int compare(DomPlugin a, DomPlugin b)]) =>
-      IterableMixinWorkaround.max(this, compare);
 
   void insert(int index, DomPlugin element) {
     throw new UnsupportedError("Cannot add to immutable List.");
@@ -8143,11 +8133,12 @@ class DomStringList extends NativeFieldWrapperClass1 implements List<String> {
     return new FixedSizeListIterator<String>(this);
   }
 
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, String)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  String reduce(String combine(String value, String element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, String)) {
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, String element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
@@ -8256,12 +8247,6 @@ class DomStringList extends NativeFieldWrapperClass1 implements List<String> {
     if (length == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
   }
-
-  String min([int compare(String a, String b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  String max([int compare(String a, String b)]) =>
-      IterableMixinWorkaround.max(this, compare);
 
   void insert(int index, String element) {
     throw new UnsupportedError("Cannot add to immutable List.");
@@ -8551,9 +8536,8 @@ class _ChildrenElementList extends ListBase<Element> {
     throw new UnsupportedError('TODO(jacobr): should we impl?');
   }
 
-  dynamic reduce(dynamic initialValue,
-      dynamic combine(dynamic previousValue, Element element)) {
-    return _childElements.reduce(initialValue, combine);
+  Element reduce(Element combine(Element value, Element element)) {
+    return _childElements.reduce(combine);
   }
 
   dynamic fold(dynamic initialValue,
@@ -8664,14 +8648,6 @@ class _ChildrenElementList extends ListBase<Element> {
   Element get single {
     if (length > 1) throw new StateError("More than one element");
     return first;
-  }
-
-  Element min([int compare(Element a, Element b)]) {
-    return _childElements.min(compare);
-  }
-
-  Element max([int compare(Element a, Element b)]) {
-    return _childElements.max(compare);
   }
 
   Map<int, Element> asMap() {
@@ -10851,11 +10827,12 @@ class FileList extends NativeFieldWrapperClass1 implements List<File> {
     return new FixedSizeListIterator<File>(this);
   }
 
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, File)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  File reduce(File combine(File value, File element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, File)) {
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, File element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
@@ -10964,12 +10941,6 @@ class FileList extends NativeFieldWrapperClass1 implements List<File> {
     if (length == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
   }
-
-  File min([int compare(File a, File b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  File max([int compare(File a, File b)]) =>
-      IterableMixinWorkaround.max(this, compare);
 
   void insert(int index, File element) {
     throw new UnsupportedError("Cannot add to immutable List.");
@@ -11378,11 +11349,12 @@ class Float32Array extends ArrayBufferView implements List<double> {
     return new FixedSizeListIterator<num>(this);
   }
 
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, num)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  num reduce(num combine(num value, num element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, num)) {
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, num element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
@@ -11491,12 +11463,6 @@ class Float32Array extends ArrayBufferView implements List<double> {
     if (length == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
   }
-
-  num min([int compare(num a, num b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  num max([int compare(num a, num b)]) =>
-      IterableMixinWorkaround.max(this, compare);
 
   void insert(int index, num element) {
     throw new UnsupportedError("Cannot add to immutable List.");
@@ -11634,11 +11600,12 @@ class Float64Array extends ArrayBufferView implements List<double> {
     return new FixedSizeListIterator<num>(this);
   }
 
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, num)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  num reduce(num combine(num value, num element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, num)) {
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, num element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
@@ -11747,12 +11714,6 @@ class Float64Array extends ArrayBufferView implements List<double> {
     if (length == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
   }
-
-  num min([int compare(num a, num b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  num max([int compare(num a, num b)]) =>
-      IterableMixinWorkaround.max(this, compare);
 
   void insert(int index, num element) {
     throw new UnsupportedError("Cannot add to immutable List.");
@@ -12339,11 +12300,12 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
     return new FixedSizeListIterator<Node>(this);
   }
 
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Node)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  Node reduce(Node combine(Node value, Node element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, Node)) {
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, Node element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
@@ -12452,12 +12414,6 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
     if (length == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
   }
-
-  Node min([int compare(Node a, Node b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  Node max([int compare(Node a, Node b)]) =>
-      IterableMixinWorkaround.max(this, compare);
 
   void insert(int index, Node element) {
     throw new UnsupportedError("Cannot add to immutable List.");
@@ -12569,11 +12525,12 @@ class HtmlCollection extends NativeFieldWrapperClass1 implements List<Node> {
     return new FixedSizeListIterator<Node>(this);
   }
 
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Node)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  Node reduce(Node combine(Node value, Node element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, Node)) {
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, Node element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
@@ -12682,12 +12639,6 @@ class HtmlCollection extends NativeFieldWrapperClass1 implements List<Node> {
     if (length == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
   }
-
-  Node min([int compare(Node a, Node b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  Node max([int compare(Node a, Node b)]) =>
-      IterableMixinWorkaround.max(this, compare);
 
   void insert(int index, Node element) {
     throw new UnsupportedError("Cannot add to immutable List.");
@@ -14955,11 +14906,12 @@ class Int16Array extends ArrayBufferView implements List<int> {
     return new FixedSizeListIterator<int>(this);
   }
 
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  int reduce(int combine(int value, int element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, int)) {
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, int element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
@@ -15068,12 +15020,6 @@ class Int16Array extends ArrayBufferView implements List<int> {
     if (length == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
   }
-
-  int min([int compare(int a, int b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  int max([int compare(int a, int b)]) =>
-      IterableMixinWorkaround.max(this, compare);
 
   void insert(int index, int element) {
     throw new UnsupportedError("Cannot add to immutable List.");
@@ -15211,11 +15157,12 @@ class Int32Array extends ArrayBufferView implements List<int> {
     return new FixedSizeListIterator<int>(this);
   }
 
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  int reduce(int combine(int value, int element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, int)) {
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, int element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
@@ -15324,12 +15271,6 @@ class Int32Array extends ArrayBufferView implements List<int> {
     if (length == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
   }
-
-  int min([int compare(int a, int b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  int max([int compare(int a, int b)]) =>
-      IterableMixinWorkaround.max(this, compare);
 
   void insert(int index, int element) {
     throw new UnsupportedError("Cannot add to immutable List.");
@@ -15467,11 +15408,12 @@ class Int8Array extends ArrayBufferView implements List<int> {
     return new FixedSizeListIterator<int>(this);
   }
 
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  int reduce(int combine(int value, int element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, int)) {
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, int element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
@@ -15580,12 +15522,6 @@ class Int8Array extends ArrayBufferView implements List<int> {
     if (length == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
   }
-
-  int min([int compare(int a, int b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  int max([int compare(int a, int b)]) =>
-      IterableMixinWorkaround.max(this, compare);
 
   void insert(int index, int element) {
     throw new UnsupportedError("Cannot add to immutable List.");
@@ -18793,11 +18729,12 @@ class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
     return new FixedSizeListIterator<Node>(this);
   }
 
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Node)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  Node reduce(Node combine(Node value, Node element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, Node)) {
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, Node element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
@@ -18906,12 +18843,6 @@ class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
     if (length == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
   }
-
-  Node min([int compare(Node a, Node b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  Node max([int compare(Node a, Node b)]) =>
-      IterableMixinWorkaround.max(this, compare);
 
   void insert(int index, Node element) {
     throw new UnsupportedError("Cannot add to immutable List.");
@@ -21433,11 +21364,12 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
     return new FixedSizeListIterator<SourceBuffer>(this);
   }
 
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, SourceBuffer)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  SourceBuffer reduce(SourceBuffer combine(SourceBuffer value, SourceBuffer element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, SourceBuffer)) {
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, SourceBuffer element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
@@ -21546,12 +21478,6 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
     if (length == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
   }
-
-  SourceBuffer min([int compare(SourceBuffer a, SourceBuffer b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  SourceBuffer max([int compare(SourceBuffer a, SourceBuffer b)]) =>
-      IterableMixinWorkaround.max(this, compare);
 
   void insert(int index, SourceBuffer element) {
     throw new UnsupportedError("Cannot add to immutable List.");
@@ -21772,11 +21698,12 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
     return new FixedSizeListIterator<SpeechGrammar>(this);
   }
 
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, SpeechGrammar)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  SpeechGrammar reduce(SpeechGrammar combine(SpeechGrammar value, SpeechGrammar element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, SpeechGrammar)) {
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, SpeechGrammar element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
@@ -21885,12 +21812,6 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
     if (length == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
   }
-
-  SpeechGrammar min([int compare(SpeechGrammar a, SpeechGrammar b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  SpeechGrammar max([int compare(SpeechGrammar a, SpeechGrammar b)]) =>
-      IterableMixinWorkaround.max(this, compare);
 
   void insert(int index, SpeechGrammar element) {
     throw new UnsupportedError("Cannot add to immutable List.");
@@ -23526,11 +23447,12 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
     return new FixedSizeListIterator<TextTrackCue>(this);
   }
 
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, TextTrackCue)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  TextTrackCue reduce(TextTrackCue combine(TextTrackCue value, TextTrackCue element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, TextTrackCue)) {
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, TextTrackCue element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
@@ -23639,12 +23561,6 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
     if (length == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
   }
-
-  TextTrackCue min([int compare(TextTrackCue a, TextTrackCue b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  TextTrackCue max([int compare(TextTrackCue a, TextTrackCue b)]) =>
-      IterableMixinWorkaround.max(this, compare);
 
   void insert(int index, TextTrackCue element) {
     throw new UnsupportedError("Cannot add to immutable List.");
@@ -23756,11 +23672,12 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
     return new FixedSizeListIterator<TextTrack>(this);
   }
 
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, TextTrack)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  TextTrack reduce(TextTrack combine(TextTrack value, TextTrack element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, TextTrack)) {
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, TextTrack element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
@@ -23869,12 +23786,6 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
     if (length == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
   }
-
-  TextTrack min([int compare(TextTrack a, TextTrack b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  TextTrack max([int compare(TextTrack a, TextTrack b)]) =>
-      IterableMixinWorkaround.max(this, compare);
 
   void insert(int index, TextTrack element) {
     throw new UnsupportedError("Cannot add to immutable List.");
@@ -24203,11 +24114,12 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
     return new FixedSizeListIterator<Touch>(this);
   }
 
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Touch)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  Touch reduce(Touch combine(Touch value, Touch element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, Touch)) {
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, Touch element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
@@ -24316,12 +24228,6 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
     if (length == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
   }
-
-  Touch min([int compare(Touch a, Touch b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  Touch max([int compare(Touch a, Touch b)]) =>
-      IterableMixinWorkaround.max(this, compare);
 
   void insert(int index, Touch element) {
     throw new UnsupportedError("Cannot add to immutable List.");
@@ -24733,11 +24639,12 @@ class Uint16Array extends ArrayBufferView implements List<int> {
     return new FixedSizeListIterator<int>(this);
   }
 
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  int reduce(int combine(int value, int element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, int)) {
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, int element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
@@ -24846,12 +24753,6 @@ class Uint16Array extends ArrayBufferView implements List<int> {
     if (length == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
   }
-
-  int min([int compare(int a, int b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  int max([int compare(int a, int b)]) =>
-      IterableMixinWorkaround.max(this, compare);
 
   void insert(int index, int element) {
     throw new UnsupportedError("Cannot add to immutable List.");
@@ -24989,11 +24890,12 @@ class Uint32Array extends ArrayBufferView implements List<int> {
     return new FixedSizeListIterator<int>(this);
   }
 
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  int reduce(int combine(int value, int element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, int)) {
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, int element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
@@ -25102,12 +25004,6 @@ class Uint32Array extends ArrayBufferView implements List<int> {
     if (length == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
   }
-
-  int min([int compare(int a, int b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  int max([int compare(int a, int b)]) =>
-      IterableMixinWorkaround.max(this, compare);
 
   void insert(int index, int element) {
     throw new UnsupportedError("Cannot add to immutable List.");
@@ -25245,11 +25141,12 @@ class Uint8Array extends ArrayBufferView implements List<int> {
     return new FixedSizeListIterator<int>(this);
   }
 
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  int reduce(int combine(int value, int element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, int)) {
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, int element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
@@ -25358,12 +25255,6 @@ class Uint8Array extends ArrayBufferView implements List<int> {
     if (length == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
   }
-
-  int min([int compare(int a, int b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  int max([int compare(int a, int b)]) =>
-      IterableMixinWorkaround.max(this, compare);
 
   void insert(int index, int element) {
     throw new UnsupportedError("Cannot add to immutable List.");
@@ -25499,11 +25390,12 @@ class Uint8ClampedArray extends Uint8Array implements List<int> {
     return new FixedSizeListIterator<int>(this);
   }
 
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, int)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  int reduce(int combine(int value, int element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, int)) {
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, int element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
@@ -25612,12 +25504,6 @@ class Uint8ClampedArray extends Uint8Array implements List<int> {
     if (length == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
   }
-
-  int min([int compare(int a, int b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  int max([int compare(int a, int b)]) =>
-      IterableMixinWorkaround.max(this, compare);
 
   void insert(int index, int element) {
     throw new UnsupportedError("Cannot add to immutable List.");
@@ -27618,11 +27504,12 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<Rect> {
     return new FixedSizeListIterator<Rect>(this);
   }
 
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Rect)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  Rect reduce(Rect combine(Rect value, Rect element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, Rect)) {
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, Rect element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
@@ -27731,12 +27618,6 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<Rect> {
     if (length == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
   }
-
-  Rect min([int compare(Rect a, Rect b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  Rect max([int compare(Rect a, Rect b)]) =>
-      IterableMixinWorkaround.max(this, compare);
 
   void insert(int index, Rect element) {
     throw new UnsupportedError("Cannot add to immutable List.");
@@ -27853,11 +27734,12 @@ class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
     return new FixedSizeListIterator<CssRule>(this);
   }
 
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, CssRule)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  CssRule reduce(CssRule combine(CssRule value, CssRule element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, CssRule)) {
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, CssRule element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
@@ -27967,12 +27849,6 @@ class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
     throw new StateError("More than one element");
   }
 
-  CssRule min([int compare(CssRule a, CssRule b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  CssRule max([int compare(CssRule a, CssRule b)]) =>
-      IterableMixinWorkaround.max(this, compare);
-
   void insert(int index, CssRule element) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -28075,11 +27951,12 @@ class _CssValueList extends _CSSValue implements List<_CSSValue> {
     return new FixedSizeListIterator<_CSSValue>(this);
   }
 
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, _CSSValue)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  _CSSValue reduce(_CSSValue combine(_CSSValue value, _CSSValue element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, _CSSValue)) {
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, _CSSValue element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
@@ -28188,12 +28065,6 @@ class _CssValueList extends _CSSValue implements List<_CSSValue> {
     if (length == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
   }
-
-  _CSSValue min([int compare(_CSSValue a, _CSSValue b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  _CSSValue max([int compare(_CSSValue a, _CSSValue b)]) =>
-      IterableMixinWorkaround.max(this, compare);
 
   void insert(int index, _CSSValue element) {
     throw new UnsupportedError("Cannot add to immutable List.");
@@ -28533,11 +28404,12 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
     return new FixedSizeListIterator<Entry>(this);
   }
 
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Entry)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  Entry reduce(Entry combine(Entry value, Entry element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, Entry)) {
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, Entry element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
@@ -28647,12 +28519,6 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
     throw new StateError("More than one element");
   }
 
-  Entry min([int compare(Entry a, Entry b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  Entry max([int compare(Entry a, Entry b)]) =>
-      IterableMixinWorkaround.max(this, compare);
-
   void insert(int index, Entry element) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -28755,11 +28621,12 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<_EntrySyn
     return new FixedSizeListIterator<_EntrySync>(this);
   }
 
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, _EntrySync)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  _EntrySync reduce(_EntrySync combine(_EntrySync value, _EntrySync element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, _EntrySync)) {
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, _EntrySync element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
@@ -28868,12 +28735,6 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<_EntrySyn
     if (length == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
   }
-
-  _EntrySync min([int compare(_EntrySync a, _EntrySync b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  _EntrySync max([int compare(_EntrySync a, _EntrySync b)]) =>
-      IterableMixinWorkaround.max(this, compare);
 
   void insert(int index, _EntrySync element) {
     throw new UnsupportedError("Cannot add to immutable List.");
@@ -29038,11 +28899,12 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
     return new FixedSizeListIterator<Gamepad>(this);
   }
 
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Gamepad)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  Gamepad reduce(Gamepad combine(Gamepad value, Gamepad element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, Gamepad)) {
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, Gamepad element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
@@ -29151,12 +29013,6 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
     if (length == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
   }
-
-  Gamepad min([int compare(Gamepad a, Gamepad b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  Gamepad max([int compare(Gamepad a, Gamepad b)]) =>
-      IterableMixinWorkaround.max(this, compare);
 
   void insert(int index, Gamepad element) {
     throw new UnsupportedError("Cannot add to immutable List.");
@@ -29351,11 +29207,12 @@ class _NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
     return new FixedSizeListIterator<Node>(this);
   }
 
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Node)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  Node reduce(Node combine(Node value, Node element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, Node)) {
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, Node element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
@@ -29464,12 +29321,6 @@ class _NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
     if (length == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
   }
-
-  Node min([int compare(Node a, Node b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  Node max([int compare(Node a, Node b)]) =>
-      IterableMixinWorkaround.max(this, compare);
 
   void insert(int index, Node element) {
     throw new UnsupportedError("Cannot add to immutable List.");
@@ -29658,11 +29509,12 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
     return new FixedSizeListIterator<SpeechInputResult>(this);
   }
 
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, SpeechInputResult)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  SpeechInputResult reduce(SpeechInputResult combine(SpeechInputResult value, SpeechInputResult element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, SpeechInputResult)) {
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, SpeechInputResult element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
@@ -29772,12 +29624,6 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
     throw new StateError("More than one element");
   }
 
-  SpeechInputResult min([int compare(SpeechInputResult a, SpeechInputResult b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  SpeechInputResult max([int compare(SpeechInputResult a, SpeechInputResult b)]) =>
-      IterableMixinWorkaround.max(this, compare);
-
   void insert(int index, SpeechInputResult element) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -29880,11 +29726,12 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
     return new FixedSizeListIterator<SpeechRecognitionResult>(this);
   }
 
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, SpeechRecognitionResult)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  SpeechRecognitionResult reduce(SpeechRecognitionResult combine(SpeechRecognitionResult value, SpeechRecognitionResult element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, SpeechRecognitionResult)) {
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, SpeechRecognitionResult element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
@@ -29994,12 +29841,6 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
     throw new StateError("More than one element");
   }
 
-  SpeechRecognitionResult min([int compare(SpeechRecognitionResult a, SpeechRecognitionResult b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  SpeechRecognitionResult max([int compare(SpeechRecognitionResult a, SpeechRecognitionResult b)]) =>
-      IterableMixinWorkaround.max(this, compare);
-
   void insert(int index, SpeechRecognitionResult element) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -30102,11 +29943,12 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
     return new FixedSizeListIterator<StyleSheet>(this);
   }
 
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, StyleSheet)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  StyleSheet reduce(StyleSheet combine(StyleSheet value, StyleSheet element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, StyleSheet)) {
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, StyleSheet element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
@@ -30215,12 +30057,6 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
     if (length == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
   }
-
-  StyleSheet min([int compare(StyleSheet a, StyleSheet b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  StyleSheet max([int compare(StyleSheet a, StyleSheet b)]) =>
-      IterableMixinWorkaround.max(this, compare);
 
   void insert(int index, StyleSheet element) {
     throw new UnsupportedError("Cannot add to immutable List.");
@@ -30860,9 +30696,8 @@ abstract class CssClassSet implements Set<String> {
 
   int get length => readClasses().length;
 
-  dynamic reduce(dynamic initialValue,
-      dynamic combine(dynamic previousValue, String element)) {
-    return readClasses().reduce(initialValue, combine);
+  String reduce(String combine(String value, String element)) {
+    return readClasses().reduce(combine);
   }
 
   dynamic fold(dynamic initialValue,
@@ -30972,10 +30807,6 @@ abstract class CssClassSet implements Set<String> {
   List<String> toList({ bool growable: true }) =>
       readClasses().toList(growable: growable);
   Set<String> toSet() => readClasses().toSet();
-  String min([int compare(String a, String b)]) =>
-      readClasses().min(compare);
-  String max([int compare(String a, String b)]) =>
-      readClasses().max(compare);
   Iterable<String> take(int n) => readClasses().take(n);
   Iterable<String> takeWhile(bool test(String value)) =>
       readClasses().takeWhile(test);
@@ -32760,8 +32591,8 @@ class _WrappedList<E> implements List<E> {
 
   void forEach(void f(E element)) { _list.forEach(f); }
 
-  dynamic reduce(initialValue, combine(previousValue, E element)) =>
-      _list.reduce(initialValue, combine);
+  E reduce(E combine(E value, E element)) =>
+      _list.reduce(combine);
 
   dynamic fold(initialValue, combine(previousValue, E element)) =>
       _list.fold(initialValue, combine);
@@ -32778,10 +32609,6 @@ class _WrappedList<E> implements List<E> {
   Set<E> toSet() => _list.toSet();
 
   int get length => _list.length;
-
-  E min([int compare(E a, E b)]) => _list.min(compare);
-
-  E max([int compare(E a, E b)]) => _list.max(compare);
 
   bool get isEmpty => _list.isEmpty;
 

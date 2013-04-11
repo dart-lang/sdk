@@ -14,11 +14,12 @@ $if DEFINE_LENGTH_AS_NUM_ITEMS
   // SVG Collections expose numberOfItems rather than length.
   int get length => numberOfItems;
 $endif
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, $E)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  $E reduce($E combine($E value, $E element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, $E)) {
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, $E element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
@@ -137,12 +138,6 @@ $endif
     if (length == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
   }
-
-  $E min([int compare($E a, $E b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  $E max([int compare($E a, $E b)]) =>
-      IterableMixinWorkaround.max(this, compare);
 
   void insert(int index, $E element) {
     throw new UnsupportedError("Cannot add to immutable List.");

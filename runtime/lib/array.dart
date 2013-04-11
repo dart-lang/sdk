@@ -114,8 +114,8 @@ class _ObjectArray<E> implements List<E> {
     return IterableMixinWorkaround.mapList(this, f);
   }
 
-  reduce(initialValue, combine(previousValue, E element)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  E reduce(E combine(E value, E element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
   fold(initialValue, combine(previousValue, E element)) {
@@ -233,10 +233,6 @@ class _ObjectArray<E> implements List<E> {
     if (length == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
   }
-
-  E min([int compare(E a, E b)]) => IterableMixinWorkaround.min(this, compare);
-
-  E max([int compare(E a, E b)]) => IterableMixinWorkaround.max(this, compare);
 
   List<E> toList({ bool growable: true}) {
     return new List<E>.from(this, growable: growable);
@@ -361,8 +357,8 @@ class _ImmutableArray<E> implements List<E> {
     return IterableMixinWorkaround.joinList(this, separator);
   }
 
-  reduce(initialValue, combine(previousValue, E element)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  E reduce(E combine(E value, E element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
   fold(initialValue, combine(previousValue, E element)) {
@@ -485,10 +481,6 @@ class _ImmutableArray<E> implements List<E> {
     if (length == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
   }
-
-  E min([int compare(E a, E b)]) => IterableMixinWorkaround.min(this, compare);
-
-  E max([int compare(E a, E b)]) => IterableMixinWorkaround.max(this, compare);
 
   List<E> toList({ bool growable: true }) {
     return new List<E>.from(this, growable: growable);

@@ -432,7 +432,7 @@ testRethrow() {
       Future f = streamValueTransform(c.stream, (v) { throw error; });
       f.then((v) { Expect.fail("unreachable"); },
              onError: expectAsync1((e) { Expect.identical(error, e); }));
-      // Need two values to trigger compare for min/max.
+      // Need two values to trigger compare for reduce.
       c.add(0);
       c.add(1);
       c.close();
@@ -447,9 +447,7 @@ testRethrow() {
   testStreamError("handleTest", (s, act) => s.handleError((v) {}, test: act));
   testFuture("every", (s, act) => s.every(act));
   testFuture("any", (s, act) => s.any(act));
-  testFuture("min", (s, act) => s.min((a, b) => act(b)));
-  testFuture("max", (s, act) => s.max((a, b) => act(b)));
-  testFuture("reduce", (s, act) => s.reduce(0, (a,b) => act(b)));
+  testFuture("reduce", (s, act) => s.reduce((a,b) => act(b)));
   testFuture("fold", (s, act) => s.fold(0, (a,b) => act(b)));
 }
 

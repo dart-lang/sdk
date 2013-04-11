@@ -126,46 +126,6 @@ abstract class ListIterable<E> extends Iterable<E> {
     throw new StateError("No matching element");
   }
 
-  E min([int compare(E a, E b)]) {
-    if (length == 0) return null;
-    if (compare == null) {
-      var defaultCompare = Comparable.compare;
-      compare = defaultCompare;
-    }
-    E min = elementAt(0);
-    int length = this.length;
-    for (int i = 1; i < length; i++) {
-      E element = elementAt(i);
-      if (compare(min, element) > 0) {
-        min = element;
-      }
-      if (length != this.length) {
-        throw new ConcurrentModificationError(this);
-      }
-    }
-    return min;
-  }
-
-  E max([int compare(E a, E b)]) {
-    if (length == 0) return null;
-    if (compare == null) {
-      var defaultCompare = Comparable.compare;
-      compare = defaultCompare;
-    }
-    E max = elementAt(0);
-    int length = this.length;
-    for (int i = 1; i < length; i++) {
-      E element = elementAt(i);
-      if (compare(max, element) < 0) {
-        max = element;
-      }
-      if (length != this.length) {
-        throw new ConcurrentModificationError(this);
-      }
-    }
-    return max;
-  }
-
   String join([String separator = ""]) {
     int length = this.length;
     if (!separator.isEmpty) {
@@ -199,8 +159,13 @@ abstract class ListIterable<E> extends Iterable<E> {
 
   Iterable map(f(E element)) => new MappedListIterable(this, f);
 
-  reduce(var initialValue, combine(var previousValue, E element)) {
-    return fold(initialValue, combine);
+  E reduce(E combine(var value, E element)) {
+    if (length == 0) throw new StateError("No elements");
+    E value = elementAt(0);
+    for (int i = 1; i < length; i++) {
+      value = combine(value, elementAt(i));
+    }
+    return value;
   }
 
   fold(var initialValue, combine(var previousValue, E element)) {
@@ -663,18 +628,14 @@ class EmptyIterable<E> extends Iterable<E> {
     throw new StateError("No matching element");
   }
 
-  E min([int compare(E a, E b)]) => null;
-
-  E max([int compare(E a, E b)]) => null;
-
   String join([String separator = ""]) => "";
 
   Iterable<E> where(bool test(E element)) => this;
 
   Iterable map(f(E element)) => const EmptyIterable();
 
-  reduce(var initialValue, combine(var previousValue, E element)) {
-    return fold(initialValue, combine);
+  E reduce(E combine(E value, E element)) {
+    throw new StateError("No elements");
   }
 
   fold(var initialValue, combine(var previousValue, E element)) {

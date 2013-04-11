@@ -93,22 +93,24 @@ abstract class Iterable<E> {
   }
 
   /**
-   * Reduce a collection to a single value by iteratively combining each element
-   * of the collection with an existing value using the provided function.
-   * Use [initialValue] as the initial value, and the function [combine] to
-   * create a new value from the previous one and an element.
+   * Reduce a collection to a single value by iteratively combining elements
+   * of the collection using the provided function.
    *
    * Example of calculating the sum of an iterable:
    *
-   *   iterable.reduce((prev, element) => prev + element);
+   *     iterable.reduce((value, element) => value + element);
    *
-   * *UPCOMING API-CHANGE*: this method will soon be changed to not take
-   * an initial value: `iterable.reduce(min)`. Use [fold] instead.
    */
-  @deprecated
-  dynamic reduce(var initialValue,
-                 dynamic combine(var previousValue, E element)) {
-    return fold(initialValue, combine);
+  E reduce(E combine(E value, E element)) {
+    Iterator<E> iterator = this.iterator;
+    if (!iterator.moveNext()) {
+      throw new StateError("No elements");
+    }
+    E value = iterator.current;
+    while (iterator.moveNext()) {
+      value = combine(value, iterator.current);
+    }
+    return value;
   }
 
   /**
@@ -119,7 +121,8 @@ abstract class Iterable<E> {
    *
    * Example of calculating the sum of an iterable:
    *
-   *   iterable.fold(0, (prev, element) => prev + element);
+   *     iterable.fold(0, (prev, element) => prev + element);
+   *
    */
   dynamic fold(var initialValue,
                dynamic combine(var previousValue, E element)) {
@@ -180,58 +183,6 @@ abstract class Iterable<E> {
       count++;
     }
     return count;
-  }
-
-  /**
-   * Find the least element in the iterable.
-   *
-   * Returns null if the iterable is empty.
-   * Otherwise returns an element [:x:] of this [Iterable] so that
-   * [:x:] is not greater than [:y:] (that is, [:compare(x, y) <= 0:]) for all
-   * other elements [:y:] in the iterable.
-   *
-   * The [compare] function must be a proper [Comparator<T>]. If a function is
-   * not provided, [compare] defaults to [Comparable.compare].
-   *
-   * *Deprecated*. Use [reduce] with a binary min method if needed.
-   */
-  @deprecated
-  E min([int compare(E a, E b)]) {
-    if (compare == null) compare = Comparable.compare;
-    Iterator it = iterator;
-    if (!it.moveNext()) return null;
-    E min = it.current;
-    while (it.moveNext()) {
-      E current = it.current;
-      if (compare(min, current) > 0) min = current;
-    }
-    return min;
-  }
-
-  /**
-   * Find the largest element in the iterable.
-   *
-   * Returns null if the iterable is empty.
-   * Otherwise returns an element [:x:] of this [Iterable] so that
-   * [:x:] is not smaller than [:y:] (that is, [:compare(x, y) >= 0:]) for all
-   * other elements [:y:] in the iterable.
-   *
-   * The [compare] function must be a proper [Comparator<T>]. If a function is
-   * not provided, [compare] defaults to [Comparable.compare].
-   *
-   * *Deprecated*. Use [reduce] with a binary max method if needed.
-   */
-  @deprecated
-  E max([int compare(E a, E b)]) {
-    if (compare == null) compare = Comparable.compare;
-    Iterator it = iterator;
-    if (!it.moveNext()) return null;
-    E max = it.current;
-    while (it.moveNext()) {
-      E current = it.current;
-      if (compare(max, current) < 0) max = current;
-    }
-    return max;
   }
 
   /**

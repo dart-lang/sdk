@@ -120,8 +120,8 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  reduce(initialValue, combine(previousValue, E element)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  E reduce(E combine(E value, E element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
   fold(initialValue, combine(previousValue, E element)) {
@@ -211,10 +211,6 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     if (length == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
   }
-
-  E min([int compare(E a, E b)]) => IterableMixinWorkaround.min(this, compare);
-
-  E max([int compare(E a, E b)]) => IterableMixinWorkaround.max(this, compare);
 
   void removeRange(int start, int length) {
     checkGrowable(this, 'removeRange');

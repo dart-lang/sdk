@@ -241,11 +241,12 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
     return new FixedSizeListIterator<Map>(this);
   }
 
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Map)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  Map reduce(Map combine(Map value, Map element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, Map)) {
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, Map element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
@@ -354,12 +355,6 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
     if (length == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
   }
-
-  Map min([int compare(Map a, Map b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  Map max([int compare(Map a, Map b)]) =>
-      IterableMixinWorkaround.max(this, compare);
 
   void insert(int index, Map element) {
     throw new UnsupportedError("Cannot add to immutable List.");

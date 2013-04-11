@@ -39,9 +39,14 @@ class IterableMixinWorkaround {
   }
 
   static dynamic reduce(Iterable iterable,
-                        dynamic initialValue,
-                        dynamic combine(dynamic previousValue, element)) {
-    return fold(iterable, initialValue, combine);
+                        dynamic combine(previousValue, element)) {
+    Iterator iterator = iterable.iterator;
+    if (!iterator.moveNext()) throw new StateError("No elements");
+    var value = iterator.current;
+    while (iterator.moveNext()) {
+      value = combine(value, iterator.current);
+    }
+    return value;
   }
 
   static dynamic fold(Iterable iterable,
