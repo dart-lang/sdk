@@ -133,6 +133,15 @@ testCreateSync() {
     }
   }
   Future.wait(futures).then((_) {
+    new Directory(target).deleteSync(recursive: true);
+    for (bool recursive in [true, false]) {
+      for (bool followLinks in [true, false]) {
+        var result = baseDir.listSync(recursive: recursive,
+                                      followLinks: followLinks);
+        Expect.equals(1, result.length);
+        Expect.isTrue(result[0] is Link);
+      }
+    }
     baseDir.deleteSync(recursive: true);
   });
 }
