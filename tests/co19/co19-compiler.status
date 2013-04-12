@@ -223,10 +223,6 @@ LibTest/core/List/filter_A03_t01: Fail # Issue 397
 
 LibTest/collection/Queue/Queue.from_A01_t01: fail # Issue 400
 LibTest/core/List/List.from_A01_t01: fail # Issue 400
-LibTest/core/List/getRange_A01_t01: fail # Issue 400
-LibTest/core/List/getRange_A02_t01: fail # Issue 400
-LibTest/core/List/getRange_A04_t01: fail # Issue 400
-LibTest/core/List/getRange_A05_t01: fail # Issue 400
 LibTest/core/List/operator_subscript_A01_t02: fail # Issue 400
 LibTest/core/Match/pattern_A01_t01: fail # Issue 400
 LibTest/core/Match/str_A01_t01: fail # Issue 400
@@ -236,6 +232,16 @@ LibTest/core/String/String_class_A01_t01: fail # Issue 400
 LibTest/core/String/concat_A01_t01: fail # Issue 400
 LibTest/core/String/concat_A02_t01: fail # Issue 400
 LibTest/core/String/hashCode_A01_t01: fail # Issue 400
+LibTest/core/List/List.fixedLength_A01_t01: fail # Issue 400
+LibTest/core/List/addAll_A02_t01: fail # Issue 400
+LibTest/core/List/add_A02_t01: fail # Issue 400
+LibTest/core/List/clear_A02_t01: fail # Issue 400
+LibTest/core/List/insertRange_A02_t01: fail # Issue 400
+LibTest/core/List/length_A04_t01: fail # Issue 400
+LibTest/core/List/removeLast_A02_t01: fail # Issue 400
+LibTest/core/List/removeRange_A02_t01: fail # Issue 400
+LibTest/core/Set/isSubsetOf_A01_t01: fail # Issue 400
+LibTest/core/Set/isSubsetOf_A01_t02: fail # Issue 400
 LibTest/core/List/operator_subscript_A01_t02: Fail # getRange now takes end-argument and returns Iterable. Issue 399
 
 [ $runtime == drt && $compiler == none ]

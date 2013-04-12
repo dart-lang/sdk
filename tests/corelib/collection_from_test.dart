@@ -21,7 +21,7 @@ class CollectionFromTest {
   }
 
 
-  static check(Collection initial, Collection other) {
+  static check(Iterable initial, Iterable other) {
     Expect.equals(3, initial.length);
     Expect.equals(initial.length, other.length);
 

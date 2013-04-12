@@ -541,3 +541,14 @@ LibTest/core/Iterable/where_A01_t07: Fail # Issue 397
 LibTest/core/List/addLast_A01_t01: Fail # Issue 397
 LibTest/core/List/addLast_A01_t03: Fail # Issue 397
 LibTest/core/List/addLast_A02_t01: Fail # Issue 397
+
+LibTest/core/List/List.fixedLength_A01_t01: Fail # Issue 400
+LibTest/core/List/addAll_A02_t01: Fail # Issue 400
+LibTest/core/List/add_A02_t01: Fail # Issue 400
+LibTest/core/List/clear_A02_t01: Fail # Issue 400
+LibTest/core/List/insertRange_A02_t01: Fail # Issue 400
+LibTest/core/List/length_A04_t01: Fail # Issue 400
+LibTest/core/List/removeLast_A02_t01: Fail # Issue 400
+LibTest/core/List/removeRange_A02_t01: Fail # Issue 400
+LibTest/core/Set/isSubsetOf_A01_t01: Fail # Issue 400
+LibTest/core/Set/isSubsetOf_A01_t02: Fail # Issue 400

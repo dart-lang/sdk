@@ -8,13 +8,13 @@ import "package:expect/expect.dart";
 import 'dart:collection' show Queue;
 
 class CollectionTest {
-  CollectionTest(Collection collection) {
-    testFold(collection);
+  CollectionTest(Iterable iterable) {
+    testFold(iterable);
   }
 
-  void testFold(Collection collection) {
-    Expect.equals(28, collection.fold(0, (prev, element) => prev + element));
-    Expect.equals(3024, collection.fold(1, (prev, element) => prev * element));
+  void testFold(Iterable iterable) {
+    Expect.equals(28, iterable.fold(0, (prev, element) => prev + element));
+    Expect.equals(3024, iterable.fold(1, (prev, element) => prev * element));
   }
 }
 

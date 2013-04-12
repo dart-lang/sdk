@@ -33,7 +33,7 @@ void testMap(Map map, int n) {
   testLength(map.values, n);
 }
 
-void testCollection(Collection collection, n) {
+void testCollection(var collection, n) {
   for (int i = 0; i < n; i++) {
     collection.add(i);
   }
