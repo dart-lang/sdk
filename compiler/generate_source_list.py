@@ -57,6 +57,10 @@ class Generator:
       out.write('''      r'%s/%s',%s''' % (self.path, filename,'\n'))
     out.write("    ],\n")
 
+  def _print_txt_files(self, out, files):
+    for filename in files:
+      out.write('%s\n' % os.path.join(self.path, filename))
+
   def _print_ant_files(self, out, name, files):
     out.write("  <filelist id='%s' dir='%s'>\n" % (name, self.path))
     for filename in files:
@@ -89,6 +93,7 @@ class Generator:
 
   def generate(self):
     self._list_files()
+
     file_name = self.output + '.gypi';
     gypi = self._make_output(file_name)
     gypi.write("{\n  'variables': {\n")
@@ -96,6 +101,7 @@ class Generator:
     self._print_gypi_files(gypi, self.name + '_resources', self.resources)
     gypi.write("  },\n}\n")
     self._close(file_name, gypi)
+
     file_name = self.output + '.xml'
     ant = self._make_output(file_name)
     ant.write("<project>\n")
@@ -103,6 +109,11 @@ class Generator:
     self._print_ant_files(ant, self.name + '_resources', self.resources)
     ant.write("</project>\n")
     self._close(file_name, ant)
+
+    file_name = self.output + '.txt';
+    txt = self._make_output(file_name)
+    self._print_txt_files(txt, self.sources)
+    self._close(file_name, txt)
 
 
 def Main(script_name = None, name = None, output = None, path = None,

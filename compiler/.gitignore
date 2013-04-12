@@ -13,8 +13,10 @@
 /jsonlib_sources.gypi
 /jsonlib_sources.xml
 /sources.gypi
+/sources.txt
 /sources.xml
 /test_sources.gypi
+/test_sources.txt
 /test_sources.xml
 /out
 /xcodebuild

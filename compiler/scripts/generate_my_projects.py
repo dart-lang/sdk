@@ -12,28 +12,49 @@ def Main():
     return os.path.normpath(os.path.join(*args))
 
   compiler = normjoin(sys.argv[0], os.pardir, os.pardir)
-  tools = normjoin(compiler, os.pardir, 'tools')
+  editor = normjoin(compiler, os.pardir, 'editor')
+
   locations = {
     'compiler': compiler,
-    'tools': tools,
-    }
+    'editor': editor,
+  }
 
-  exit_code = os.system("python %(compiler)s/generate_source_list.py "
-                        "java %(compiler)s/sources java" % locations)
-  if exit_code:
-    return exit_code
+  generate_source_list_calls = [
+    # The paths are relative to dart/compiler/
+    {
+        "name" : "java",
+        "output" : "%(compiler)s/sources" % locations,
+        "path" : "java",
+    },
+    {
+        "name" : "javatests",
+        "output" : "%(compiler)s/test_sources" % locations,
+        "path" : "javatests",
+    },
+    # The paths are relative to dart/editor/
+    {
+        "name" : "plugin_engine_java",
+        "output" : "%(editor)s/plugin_engine_sources" % locations,
+        "path" : "tools/plugins/com.google.dart.engine",
+    },
+    {
+        "name" : "plugin_command_analyze_java",
+        "output" : "%(editor)s/plugin_command_analyze_sources" % locations,
+        "path" : "tools/plugins/com.google.dart.command.analyze",
+    },
+  ]
 
-
-  exit_code = os.system("python %(compiler)s/generate_source_list.py "
-                        "javatests %(compiler)s/test_sources javatests"
-                        % locations)
-  if exit_code:
-    return exit_code
+  for call_options in generate_source_list_calls:
+    command = ("python %(compiler)s/generate_source_list.py " % locations +
+              "%(name)s %(output)s %(path)s" % call_options)
+    exit_code = os.system(command)
+    if exit_code:
+      return exit_code
 
   if '--no-gyp' in sys.argv:
     print '--no-gyp is deprecated.'
 
-  return exit_code
+  return 0
 
 
 if __name__ == '__main__':
