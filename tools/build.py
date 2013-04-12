@@ -273,6 +273,8 @@ PhaseScriptExecution "Action \"upload_sdk_py\"" xcodebuild/dart.build/...
         is_fancy_tty = True
     except subprocess.CalledProcessError:
       is_fancy_tty = False
+    except AttributeError:
+      is_fancy_tty = False
   for line in unbuffered(process.stdout.readline):
     line = line.rstrip()
     if line.startswith('=== BUILD ') or line.startswith('** BUILD '):
