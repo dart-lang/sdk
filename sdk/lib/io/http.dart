@@ -688,17 +688,17 @@ abstract class HttpRequest implements Stream<List<int>> {
  * will be determined from the "charset" parameter of the
  * "Content-Type" header.
  *
- *   HttpResponse response = ...
- *   response.headers.contentType
- *       = new ContentType("application", "json", charset: "utf-8");
- *   response.write(...);  // Strings written will be UTF-8 encoded.
+ *     HttpResponse response = ...
+ *     response.headers.contentType
+ *         = new ContentType("application", "json", charset: "utf-8");
+ *     response.write(...);  // Strings written will be UTF-8 encoded.
  *
  * If no charset is provided the default of ISO-8859-1 (Latin 1) will
  * be used.
  *
- *   HttpResponse response = ...
- *   response.headers.add(HttpHeaders.CONTENT_TYPE, "text/plain");
- *   response.write(...);  // Strings written will be ISO-8859-1 encoded.
+ *     HttpResponse response = ...
+ *     response.headers.add(HttpHeaders.CONTENT_TYPE, "text/plain");
+ *     response.write(...);  // Strings written will be ISO-8859-1 encoded.
  *
  * If an unsupported encoding is used an exception will be thrown if
  * using one of the write methods taking a string.
@@ -762,13 +762,51 @@ abstract class HttpResponse implements IOSink<HttpResponse> {
 
 
 /**
- * HTTP client factory. The [HttpClient] handles all the sockets associated
- * with the [HttpClientConnection]s and when the endpoint supports it, it will
- * try to reuse opened sockets for several requests to support HTTP 1.1
- * persistent connections. This means that sockets will be kept open for some
- * time after a requests have completed, unless HTTP procedures indicate that it
- * must be closed as part of completing the request. Use [:HttpClient.close:]
- * to force close the idle sockets.
+ * The [HttpClient] class implements the client side of the HTTP
+ * protocol. It contains a number of methods to send a HTTP request
+ * to a HTTP server and receive a HTTP response back.
+ *
+ * This is a two-step process, triggered by two futures. When the
+ * first future completes with a [HttpClientRequest] the underlying
+ * network connection has been established, but no data has yet been
+ * sent. The HTTP headers and body can be set on the request, and
+ * [:close:] is called to sent it to the server.
+ *
+ * The second future, which is returned by [:close:], completes with
+ * an [HttpClientResponse] object when the response is received from
+ * the server. This object contains the headers and body of the
+ * response.
+
+ * The future for [HttpClientRequest] is created by methods such as
+ * [getUrl] and [open].
+ *
+ * When the HTTP response is ready a [HttpClientResponse] object is
+ * provided which provides access to the headers and body of the response.
+ *
+ *     HttpClient client = new HttpClient();
+ *     client.getUrl(new Uri.fromString("http://www.example.com/"))
+ *         .then((HttpClientRequest request) {
+ *           // Prepare the request then call close on it to send it.
+ *           return request.close();
+ *         })
+ *         .then((HttpClientResponse response) {
+ *          // Process the response.
+ *         });
+ *
+ * All [HttpClient] requests set the following header by default:
+ *
+ *     Accept-Encoding: gzip
+ *
+ * This allows the HTTP server to use gzip compression for the body if
+ * possible. If this behavior is not desired set the
+ * "Accept-Encoding" header to something else.
+ *
+ * The [HttpClient] supports persistent connections and caches network
+ * connections to reuse then for multiple requests whenever
+ * possible. This means that network connections can be kept open for
+ * some time after a request have completed. Use [:HttpClient.close:]
+ * to force shut down the [HttpClient] object and close the idle
+ * network connections.
  *
  * By default the HttpClient uses the proxy configuration available
  * from the environment, see [findProxyFromEnvironment]. To turn off
@@ -914,17 +952,17 @@ abstract class HttpClient {
    * To activate this way of resolving proxies assign this function to
    * the [findProxy] property on the [HttpClient].
    *
-   *   HttpClient client = new HttpClient();
-   *   client.findProxy = HttpClient.findProxyFromEnvironment;
+   *     HttpClient client = new HttpClient();
+   *     client.findProxy = HttpClient.findProxyFromEnvironment;
    *
    * If you don't want to use the system environment you can use a
    * different one by wrapping the function.
    *
-   *   HttpClient client = new HttpClient();
-   *   client.findProxy = (url) {
-   *     return HttpClient.findProxyFromEnvironment(
-   *         url, {"http_proxy": ..., "no_proxy": ...});
-   *   }
+   *     HttpClient client = new HttpClient();
+   *     client.findProxy = (url) {
+   *       return HttpClient.findProxyFromEnvironment(
+   *           url, {"http_proxy": ..., "no_proxy": ...});
+   *     }
    */
   static String findProxyFromEnvironment(Uri url,
                                          {Map<String, String> environment}) {
@@ -959,17 +997,17 @@ abstract class HttpClient {
  * encoding used will be determined from the "charset" parameter of
  * the "Content-Type" header.
  *
- *   HttpClientRequest request = ...
- *   request.headers.contentType
- *       = new ContentType("application", "json", charset: "utf-8");
- *   request.write(...);  // Strings written will be UTF-8 encoded.
+ *     HttpClientRequest request = ...
+ *     request.headers.contentType
+ *         = new ContentType("application", "json", charset: "utf-8");
+ *     request.write(...);  // Strings written will be UTF-8 encoded.
  *
  * If no charset is provided the default of ISO-8859-1 (Latin 1) will
  * be used.
  *
- *   HttpClientRequest request = ...
- *   request.headers.add(HttpHeaders.CONTENT_TYPE, "text/plain");
- *   request.write(...);  // Strings written will be ISO-8859-1 encoded.
+ *     HttpClientRequest request = ...
+ *     request.headers.add(HttpHeaders.CONTENT_TYPE, "text/plain");
+ *     request.write(...);  // Strings written will be ISO-8859-1 encoded.
  *
  * If an unsupported encoding is used an exception will be thrown if
  * using one of the write methods taking a string.
