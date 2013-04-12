@@ -12,7 +12,7 @@ fixnum/test/int_64_vm_test: Skip
 # Skip non-test files ending with "_test".
 scheduled_test/lib/*: Skip
 
-scheduled_test/test/scheduled_server_test: Pass, Fail, Slow # Issue 9231, 9582
+scheduled_test/test/scheduled_server_test: Pass, Fail, Slow, Crash # Issue 9231, 9582
 scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
 
 # WebDriver tests have 3rd party dependencies (we need to run
