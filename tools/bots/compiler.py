@@ -210,7 +210,9 @@ def TestCompiler(runtime, mode, system, flags, is_buildbot, test_set):
     # The dart2js compiler isn't self-hosted (yet) so we run its
     # unit tests on the VM. We avoid doing this on the builders
     # that run the browser tests to cut down on the cycle time.
-    TestStep("dart2js_unit", mode, system, 'none', 'vm', ['dart2js'], flags)
+    TestStep("dart2js_unit", mode, system, 'none', 'vm', ['dart2js'],
+             # Run the unit tests in checked mode (the VM's checked mode).
+             ['--checked'])
 
   if system.startswith('win') and runtime.startswith('ie10'):
     TestStep("dart2js", mode, system, 'dart2js', runtime, ['html'], flags)
@@ -220,7 +222,9 @@ def TestCompiler(runtime, mode, system, flags, is_buildbot, test_set):
 
     # TODO(kasperl): Consider running peg and css tests too.
     extras = ['dart2js_extra', 'dart2js_native', 'dart2js_foreign']
-    TestStep("dart2js_extra", mode, system, 'dart2js', runtime, extras, flags)
+    TestStep("dart2js_extra", mode, system, 'dart2js', runtime, extras,
+             # Run this small test subset in checked mode.
+             flags + ['--host-checked'])
 
 
 def _DeleteTempWebdriverProfiles(directory):
