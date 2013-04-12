@@ -338,7 +338,8 @@ bool Intrinsifier::GrowableArray_setIndexed(Assembler* assembler) {
 }
 
 
-// Set length of growable object array.
+// Set length of growable object array. The length cannot
+// be greater than the length of the data container.
 // On stack: growable array (+2), length (+1), return-address (+0).
 bool Intrinsifier::GrowableArray_setLength(Assembler* assembler) {
   Label fall_through;
@@ -346,9 +347,6 @@ bool Intrinsifier::GrowableArray_setLength(Assembler* assembler) {
   __ movq(RCX, Address(RSP, + 1 * kWordSize));  // Length value.
   __ testq(RCX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi length.
-  __ movq(RDX, FieldAddress(RAX, GrowableObjectArray::data_offset()));
-  __ cmpq(RCX, FieldAddress(RDX, Array::length_offset()));
-  __ j(ABOVE, &fall_through, Assembler::kNearJump);
   __ movq(FieldAddress(RAX, GrowableObjectArray::length_offset()), RCX);
   __ ret();
   __ Bind(&fall_through);
