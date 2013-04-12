@@ -1107,6 +1107,164 @@ ASSEMBLER_TEST_RUN(AddOverflow_detect, test) {
   EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
+
+ASSEMBLER_TEST_GENERATE(Mtc1Mfc1, assembler) {
+  __ mtc1(ZR, F0);
+  __ mfc1(V0, F0);
+  __ Ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Mtc1Mfc1, test) {
+  typedef double (*SimpleCode)();
+  EXPECT(test != NULL);
+  double res = EXECUTE_TEST_CODE_FLOAT(SimpleCode, test->entry());
+  EXPECT_FLOAT_EQ(0.0, res, 0.001);
+}
+
+
+ASSEMBLER_TEST_GENERATE(Addd, assembler) {
+  __ LoadImmediate(F0, 1.0);
+  __ LoadImmediate(F2, 2.0);
+  __ addd(F4, F0, F2);
+  __ mfc1(V0, F4);
+  __ mfc1(V1, F5);
+  __ Ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Addd, test) {
+  typedef double (*SimpleCode)();
+  EXPECT(test != NULL);
+  double res = EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry());
+  EXPECT_FLOAT_EQ(3.0, res, 0.001);
+}
+
+
+ASSEMBLER_TEST_GENERATE(Adds, assembler) {
+  __ LoadImmediate(F0, 1.0f);
+  __ LoadImmediate(F2, 2.0f);
+  __ adds(F4, F0, F2);
+  __ mfc1(V0, F4);
+  __ Ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Adds, test) {
+  typedef double (*SimpleCode)();
+  EXPECT(test != NULL);
+  double res = EXECUTE_TEST_CODE_FLOAT(SimpleCode, test->entry());
+  EXPECT_FLOAT_EQ(3.0, res, 0.001);
+}
+
+
+ASSEMBLER_TEST_GENERATE(Movd, assembler) {
+  __ LoadImmediate(F0, 1.0);
+  __ movd(F2, F0);
+  __ mfc1(V0, F2);
+  __ mfc1(V1, F3);
+  __ Ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Movd, test) {
+  typedef double (*SimpleCode)();
+  EXPECT(test != NULL);
+  double res = EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry());
+  EXPECT_FLOAT_EQ(1.0, res, 0.001);
+}
+
+
+ASSEMBLER_TEST_GENERATE(Movs, assembler) {
+  __ LoadImmediate(F0, 1.0f);
+  __ movd(F2, F0);
+  __ mfc1(V0, F2);
+  __ Ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Movs, test) {
+  typedef double (*SimpleCode)();
+  EXPECT(test != NULL);
+  double res = EXECUTE_TEST_CODE_FLOAT(SimpleCode, test->entry());
+  EXPECT_FLOAT_EQ(1.0, res, 0.001);
+}
+
+
+ASSEMBLER_TEST_GENERATE(Sdc1Ldc1, assembler) {
+  __ AddImmediate(SP, -8 * kWordSize);
+  __ LoadImmediate(T1, ~(8 - 1));
+  __ and_(T0, SP, T1);  // Need 8 byte alignment.
+  __ LoadImmediate(F0, 1.0);
+  __ sdc1(F0, Address(T0));
+  __ ldc1(F2, Address(T0));
+  __ mfc1(V0, F2);
+  __ mfc1(V1, F3);
+  __ Ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Sdc1Ldc1, test) {
+  typedef double (*SimpleCode)();
+  EXPECT(test != NULL);
+  double res = EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry());
+  EXPECT_FLOAT_EQ(1.0, res, 0.001);
+}
+
+
+ASSEMBLER_TEST_GENERATE(Swc1Lwc1, assembler) {
+  __ AddImmediate(SP, -1 * kWordSize);
+  __ LoadImmediate(F0, 1.0f);
+  __ swc1(F0, Address(SP));
+  __ lwc1(F1, Address(SP));
+  __ mfc1(V0, F1);
+  __ AddImmediate(SP, 1 * kWordSize);
+  __ Ret();
+}
+
+ASSEMBLER_TEST_RUN(Swc1Lwc1, test) {
+  typedef double (*SimpleCode)();
+  EXPECT(test != NULL);
+  double res = EXECUTE_TEST_CODE_FLOAT(SimpleCode, test->entry());
+  EXPECT_FLOAT_EQ(1.0, res, 0.001);
+}
+
+
+ASSEMBLER_TEST_GENERATE(Adds_NaN, assembler) {
+  __ LoadImmediate(F0, 1.0f);
+  __ LoadImmediate(T0, 0x7f800001);  // NaN
+  __ mtc1(T0, F2);
+  __ adds(F4, F0, F2);
+  __ mfc1(V0, F4);
+  __ Ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Adds_NaN, test) {
+  typedef double (*SimpleCode)();
+  EXPECT(test != NULL);
+  float res = EXECUTE_TEST_CODE_FLOAT(SimpleCode, test->entry());
+  EXPECT_EQ(isnan(res), true);
+}
+
+
+ASSEMBLER_TEST_GENERATE(Adds_Inf, assembler) {
+  __ LoadImmediate(F0, 1.0f);
+  __ LoadImmediate(T0, 0x7f800000);  // +inf
+  __ mtc1(T0, F2);
+  __ adds(F4, F0, F2);
+  __ mfc1(V0, F4);
+  __ Ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Adds_Inf, test) {
+  typedef double (*SimpleCode)();
+  EXPECT(test != NULL);
+  float res = EXECUTE_TEST_CODE_FLOAT(SimpleCode, test->entry());
+  EXPECT_EQ(isfinite(res), false);
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_MIPS

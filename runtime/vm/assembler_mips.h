@@ -223,10 +223,21 @@ class Assembler : public ValueObject {
   }
 
   // CPU instructions in alphabetical order.
+  void addd(FRegister fd, FRegister fs, FRegister ft) {
+    ASSERT(EvenFPURegister(fd));
+    ASSERT(EvenFPURegister(fs));
+    ASSERT(EvenFPURegister(ft));
+    EmitFpuRType(COP1, FMT_D, ft, fs, fd, COP1_ADD);
+  }
+
   void addiu(Register rt, Register rs, const Immediate& imm) {
     ASSERT(Utils::IsInt(kImmBits, imm.value()));
     const uint16_t imm_value = static_cast<uint16_t>(imm.value());
     EmitIType(ADDIU, rs, rt, imm_value);
+  }
+
+  void adds(FRegister fd, FRegister fs, FRegister ft) {
+    EmitFpuRType(COP1, FMT_S, ft, fs, fd, COP1_ADD);
   }
 
   void addu(Register rd, Register rs, Register rt) {
@@ -388,6 +399,11 @@ class Assembler : public ValueObject {
     EmitLoadStore(LBU, rt, addr);
   }
 
+  void ldc1(FRegister ft, const Address& addr) {
+    ASSERT(EvenFPURegister(ft));
+    EmitFpuLoadStore(LDC1, ft, addr);
+  }
+
   void lh(Register rt, const Address& addr) {
     EmitLoadStore(LH, rt, addr);
   }
@@ -406,6 +422,17 @@ class Assembler : public ValueObject {
     EmitLoadStore(LW, rt, addr);
   }
 
+  void lwc1(FRegister ft, const Address& addr) {
+    EmitFpuLoadStore(LWC1, ft, addr);
+  }
+
+  void mfc1(Register rt, FRegister fs) {
+    Emit(COP1 << kOpcodeShift |
+         COP1_MF << kCop1SubShift |
+         rt << kRtShift |
+         fs << kFsShift);
+  }
+
   void mfhi(Register rd) {
     EmitRType(SPECIAL, R0, R0, rd, 0, MFHI);
   }
@@ -418,12 +445,29 @@ class Assembler : public ValueObject {
     or_(rd, rs, ZR);
   }
 
+  void movd(FRegister fd, FRegister fs) {
+    ASSERT(EvenFPURegister(fd));
+    ASSERT(EvenFPURegister(fs));
+    EmitFpuRType(COP1, FMT_D, F0, fs, fd, COP1_MOV);
+  }
+
   void movn(Register rd, Register rs, Register rt) {
     EmitRType(SPECIAL, rs, rt, rd, 0, MOVN);
   }
 
   void movz(Register rd, Register rs, Register rt) {
     EmitRType(SPECIAL, rs, rt, rd, 0, MOVZ);
+  }
+
+  void movs(FRegister fd, FRegister fs) {
+    EmitFpuRType(COP1, FMT_S, F0, fs, fd, COP1_MOV);
+  }
+
+  void mtc1(Register rt, FRegister fs) {
+    Emit(COP1 << kOpcodeShift |
+         COP1_MT << kCop1SubShift |
+         rt << kRtShift |
+         fs << kFsShift);
   }
 
   void mult(Register rs, Register rt) {
@@ -454,6 +498,11 @@ class Assembler : public ValueObject {
 
   void sb(Register rt, const Address& addr) {
     EmitLoadStore(SB, rt, addr);
+  }
+
+  void sdc1(FRegister ft, const Address& addr) {
+    ASSERT(EvenFPURegister(ft));
+    EmitFpuLoadStore(SDC1, ft, addr);
   }
 
   void sh(Register rt, const Address& addr) {
@@ -498,6 +547,10 @@ class Assembler : public ValueObject {
 
   void sw(Register rt, const Address& addr) {
     EmitLoadStore(SW, rt, addr);
+  }
+
+  void swc1(FRegister ft, const Address& addr) {
+    EmitFpuLoadStore(SWC1, ft, addr);
   }
 
   void xor_(Register rd, Register rs, Register rt) {
@@ -562,6 +615,36 @@ class Assembler : public ValueObject {
       const uint16_t high = Utils::High16Bits(value);
       lui(rd, Immediate(high));
       ori(rd, rd, Immediate(low));
+    }
+  }
+
+  void LoadImmediate(FRegister rd, double value) {
+    ASSERT(EvenFPURegister(rd));
+    const int64_t ival = bit_cast<uint64_t, double>(value);
+    const int32_t low = Utils::Low32Bits(ival);
+    const int32_t high = Utils::High32Bits(ival);
+    if (low != 0) {
+      LoadImmediate(TMP1, low);
+      mtc1(TMP1, rd);
+    } else {
+      mtc1(ZR, rd);
+    }
+
+    if (high != 0) {
+      LoadImmediate(TMP1, high);
+      mtc1(TMP1, static_cast<FRegister>(rd + 1));
+    } else {
+      mtc1(ZR, static_cast<FRegister>(rd + 1));
+    }
+  }
+
+  void LoadImmediate(FRegister rd, float value) {
+    const int32_t ival = bit_cast<int32_t, float>(value);
+    if (ival == 0) {
+      mtc1(ZR, rd);
+    } else {
+      LoadImmediate(TMP1, ival);
+      mtc1(TMP1, rd);
     }
   }
 
@@ -734,6 +817,10 @@ class Assembler : public ValueObject {
 
   GrowableArray<CodeComment*> comments_;
 
+  bool EvenFPURegister(FRegister reg) {
+    return (static_cast<int>(reg) & 1) == 0;
+  }
+
   void Emit(int32_t value) {
     // Emitting an instruction clears the delay slot state.
     in_delay_slot_ = false;
@@ -758,6 +845,13 @@ class Assembler : public ValueObject {
                      const Address &addr) {
     Emit(opcode << kOpcodeShift |
          rt << kRtShift |
+         addr.encoding());
+  }
+
+  void EmitFpuLoadStore(Opcode opcode, FRegister ft,
+                        const Address &addr) {
+    Emit(opcode << kOpcodeShift |
+         ft << kFtShift |
          addr.encoding());
   }
 
@@ -788,6 +882,20 @@ class Assembler : public ValueObject {
          rd << kRdShift |
          sa << kSaShift |
          func << kFunctionShift);
+  }
+
+  void EmitFpuRType(Opcode opcode,
+                    Format fmt,
+                    FRegister ft,
+                    FRegister fs,
+                    FRegister fd,
+                    Cop1Function func) {
+    Emit(opcode << kOpcodeShift |
+         fmt << kFmtShift |
+         ft << kFtShift |
+         fs << kFsShift |
+         fd << kFdShift |
+         func << kCop1FnShift);
   }
 
   void EmitBranch(Opcode b, Register rs, Register rt, Label* label) {

@@ -39,8 +39,16 @@ class Simulator {
   int32_t get_register(Register reg) const;
 
   // Accessors for floating point register state.
-  void set_fregister(FRegister freg, double value);
-  double get_fregister(FRegister) const;
+  void set_fregister(FRegister freg, int32_t value);
+  void set_fregister_float(FRegister freg, float value);
+  void set_fregister_double(FRegister freg, double value);
+  void set_fregister_long(FRegister freg, int64_t value);
+
+  int32_t get_fregister(FRegister freg) const;
+  float get_fregister_float(FRegister freg) const;
+  double get_fregister_double(FRegister freg) const;
+  int64_t get_fregister_long(FRegister freg) const;
+
 
   // Accessor for the pc.
   void set_pc(int32_t value) { pc_ = value; }
@@ -93,7 +101,7 @@ class Simulator {
   int32_t lo_reg_;
 
   int32_t registers_[kNumberOfCpuRegisters];
-  double fregisters_[kNumberOfFRegisters];
+  int32_t fregisters_[kNumberOfFRegisters];
   uword pc_;
 
   // Simulator support.
@@ -138,12 +146,16 @@ class Simulator {
   inline void WriteH(uword addr, uint16_t value, Instr* isntr);
   inline void WriteW(uword addr, int value, Instr* instr);
 
+  inline double ReadD(uword addr, Instr* instr);
+  inline void WriteD(uword addr, double value, Instr* instr);
+
   void DoBranch(Instr* instr, bool taken, bool likely);
   void DoBreak(Instr *instr);
 
   void DecodeSpecial(Instr* instr);
   void DecodeSpecial2(Instr* instr);
   void DecodeRegImm(Instr* instr);
+  void DecodeCop1(Instr* instr);
   void InstructionDecode(Instr* instr);
 
   void Execute();

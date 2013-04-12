@@ -642,8 +642,7 @@ Simulator* Simulator::Current() {
 }
 
 
-// Sets the register in the architecture state. It will also deal with updating
-// Simulator internal state for special registers such as PC.
+// Sets the register in the architecture state.
 void Simulator::set_register(Register reg, int32_t value) {
   if (reg != R0) {
     registers_[reg] = value;
@@ -651,8 +650,36 @@ void Simulator::set_register(Register reg, int32_t value) {
 }
 
 
-// Get the register from the architecture state. This function does handle
-// the special case of accessing the PC register.
+void Simulator::set_fregister(FRegister reg, int32_t value) {
+  ASSERT(reg >= 0);
+  ASSERT(reg < kNumberOfFRegisters);
+  fregisters_[reg] = value;
+}
+
+
+void Simulator::set_fregister_float(FRegister reg, float value) {
+  ASSERT(reg >= 0);
+  ASSERT(reg < kNumberOfFRegisters);
+  fregisters_[reg] = bit_cast<int32_t, float>(value);
+}
+
+
+void Simulator::set_fregister_long(FRegister reg, int64_t value) {
+  ASSERT(reg >= 0);
+  ASSERT(reg < kNumberOfFRegisters);
+  ASSERT((reg & 1) == 0);
+  fregisters_[reg] = Utils::Low32Bits(value);
+  fregisters_[reg + 1] = Utils::High32Bits(value);
+}
+
+
+void Simulator::set_fregister_double(FRegister reg, double value) {
+  const int64_t ival = bit_cast<int64_t, double>(value);
+  set_fregister_long(reg, ival);
+}
+
+
+// Get the register from the architecture state.
 int32_t Simulator::get_register(Register reg) const {
   if (reg == R0) {
     return 0;
@@ -661,15 +688,36 @@ int32_t Simulator::get_register(Register reg) const {
 }
 
 
-void Simulator::set_fregister(FRegister reg, double value) {
+int32_t Simulator::get_fregister(FRegister reg) const {
   ASSERT((reg >= 0) && (reg < kNumberOfFRegisters));
-  fregisters_[reg] = value;
+  return fregisters_[reg];
 }
 
 
-double Simulator::get_fregister(FRegister reg) const {
-  ASSERT((reg >= 0) && (reg < kNumberOfFRegisters));
-  return fregisters_[reg];
+float Simulator::get_fregister_float(FRegister reg) const {
+  ASSERT(reg >= 0);
+  ASSERT(reg < kNumberOfFRegisters);
+  return bit_cast<float, int32_t>(fregisters_[reg]);
+}
+
+
+int64_t Simulator::get_fregister_long(FRegister reg) const {
+  ASSERT(reg >= 0);
+  ASSERT(reg < kNumberOfFRegisters);
+  ASSERT((reg & 1) == 0);
+  const int32_t low = fregisters_[reg];
+  const int32_t high = fregisters_[reg + 1];
+  const int64_t value = Utils::LowHighTo64Bits(low, high);
+  return value;
+}
+
+
+double Simulator::get_fregister_double(FRegister reg) const {
+  ASSERT(reg >= 0);
+  ASSERT(reg < kNumberOfFRegisters);
+  ASSERT((reg & 1) == 0);
+  const int64_t value = get_fregister_long(reg);
+  return bit_cast<double, int64_t>(value);
 }
 
 
@@ -794,6 +842,26 @@ void Simulator::WriteW(uword addr, int value, Instr* instr) {
 }
 
 
+double Simulator::ReadD(uword addr, Instr* instr) {
+  if ((addr & 7) == 0) {
+    double* ptr = reinterpret_cast<double*>(addr);
+    return *ptr;
+  }
+  UnalignedAccess("double-precision floating point read", addr, instr);
+  return 0.0;
+}
+
+
+void Simulator::WriteD(uword addr, double value, Instr* instr) {
+  if ((addr & 7) == 0) {
+    double* ptr = reinterpret_cast<double*>(addr);
+    *ptr = value;
+    return;
+  }
+  UnalignedAccess("double-precision floating point write", addr, instr);
+}
+
+
 bool Simulator::OverflowFrom(int32_t alu_out,
                              int32_t left, int32_t right, bool addition) {
   bool overflow;
@@ -905,7 +973,7 @@ void Simulator::DoBreak(Instr *instr) {
       set_register(RA, icount_);
 
       // Zap floating point registers.
-      double zap_dvalue = static_cast<double>(icount_);
+      int32_t zap_dvalue = icount_;
       for (int i = F0; i <= F31; i++) {
         set_fregister(static_cast<FRegister>(i), zap_dvalue);
       }
@@ -1286,6 +1354,72 @@ void Simulator::DecodeRegImm(Instr* instr) {
 }
 
 
+void Simulator::DecodeCop1(Instr* instr) {
+  ASSERT(instr->OpcodeField() == COP1);
+  if (instr->HasFormat()) {
+    // If the rs field is a valid format, then the function field identifies the
+    // instruction.
+    switch (instr->Cop1FunctionField()) {
+      case COP1_ADD: {
+        // Format(instr, "add.'fmt 'fd, 'fs, 'ft");
+        if (instr->FormatField() == FMT_S) {
+          float fs_val = get_fregister_float(instr->FsField());
+          float ft_val = get_fregister_float(instr->FtField());
+          set_fregister_float(instr->FdField(), fs_val + ft_val);
+        } else {
+          ASSERT(instr->FormatField() == FMT_D);  // Only S and D supported.
+          double fs_val = get_fregister_double(instr->FsField());
+          double ft_val = get_fregister_double(instr->FtField());
+          set_fregister_double(instr->FdField(), fs_val + ft_val);
+        }
+        break;
+      }
+      case COP1_MOV: {
+        // Format(instr, "mov.'fmt 'fd, 'fs");
+        ASSERT(instr->FtField() == F0);
+        if (instr->FormatField() == FMT_S) {
+          float fs_val = get_fregister_float(instr->FsField());
+          set_fregister_float(instr->FdField(), fs_val);
+        } else {
+          ASSERT(instr->FormatField() == FMT_D);
+          double fs_val = get_fregister_double(instr->FsField());
+          set_fregister_double(instr->FdField(), fs_val);
+        }
+        break;
+      }
+      default: {
+        OS::PrintErr("DecodeCop1: 0x%x\n", instr->InstructionBits());
+        UnimplementedInstruction(instr);
+        break;
+      }
+    }
+  } else {
+    // If the rs field isn't a valid format, then it must be a sub-op.
+    switch (instr->Cop1SubField()) {
+      case COP1_MF: {
+        // Format(instr, "mfc1 'rt, 'fs");
+        ASSERT(instr->Bits(0, 11) == 0);
+        int32_t fs_val = get_fregister(instr->FsField());
+        set_register(instr->RtField(), fs_val);
+        break;
+      }
+      case COP1_MT: {
+        // Format(instr, "mtc1 'rt, 'fs");
+        ASSERT(instr->Bits(0, 11) == 0);
+        int32_t rt_val = get_register(instr->RtField());
+        set_fregister(instr->FsField(), rt_val);
+        break;
+      }
+      default: {
+        OS::PrintErr("DecodeCop1: 0x%x\n", instr->InstructionBits());
+        UnimplementedInstruction(instr);
+        break;
+      }
+    }
+  }
+}
+
+
 void Simulator::InstructionDecode(Instr* instr) {
   if (FLAG_trace_sim) {
     const uword start = reinterpret_cast<uword>(instr);
@@ -1304,6 +1438,10 @@ void Simulator::InstructionDecode(Instr* instr) {
     }
     case REGIMM: {
       DecodeRegImm(instr);
+      break;
+    }
+    case COP1: {
+      DecodeCop1(instr);
       break;
     }
     case ADDIU: {
@@ -1403,6 +1541,19 @@ void Simulator::InstructionDecode(Instr* instr) {
       }
       break;
     }
+    case LDC1: {
+      // Format(instr, "ldc1 'ft, 'imms('rs)");
+      int32_t base_val = get_register(instr->RsField());
+      int32_t imm_val = instr->SImmField();
+      uword addr = base_val + imm_val;
+      if (Simulator::IsIllegalAddress(addr)) {
+        HandleIllegalAccess(addr, instr);
+      } else {
+        double value = ReadD(addr, instr);
+        set_fregister_double(instr->FtField(), value);
+      }
+      break;
+    }
     case LH: {
       // Format(instr, "lh 'rt, 'imms('rs)");
       int32_t base_val = get_register(instr->RsField());
@@ -1447,6 +1598,19 @@ void Simulator::InstructionDecode(Instr* instr) {
       }
       break;
     }
+    case LWC1: {
+      // Format(instr, "lwc1 'ft, 'imms('rs)");
+      int32_t base_val = get_register(instr->RsField());
+      int32_t imm_val = instr->SImmField();
+      uword addr = base_val + imm_val;
+      if (Simulator::IsIllegalAddress(addr)) {
+        HandleIllegalAccess(addr, instr);
+      } else {
+        int32_t value = ReadW(addr, instr);
+        set_fregister(instr->FtField(), value);
+      }
+      break;
+    }
     case ORI: {
       // Format(instr, "ori 'rt, 'rs, 'immu");
       int32_t rs_val = get_register(instr->RsField());
@@ -1463,6 +1627,19 @@ void Simulator::InstructionDecode(Instr* instr) {
         HandleIllegalAccess(addr, instr);
       } else {
         WriteB(addr, rt_val & 0xff);
+      }
+      break;
+    }
+    case SDC1: {
+      // Format(instr, "sdc1 'ft, 'imms('rs)");
+      int32_t base_val = get_register(instr->RsField());
+      int32_t imm_val = instr->SImmField();
+      uword addr = base_val + imm_val;
+      if (Simulator::IsIllegalAddress(addr)) {
+        HandleIllegalAccess(addr, instr);
+      } else {
+        double value = get_fregister_double(instr->FtField());
+        WriteD(addr, value, instr);
       }
       break;
     }
@@ -1489,6 +1666,19 @@ void Simulator::InstructionDecode(Instr* instr) {
         HandleIllegalAccess(addr, instr);
       } else {
         WriteW(addr, rt_val, instr);
+      }
+      break;
+    }
+    case SWC1: {
+      // Format(instr, "swc1 'ft, 'imms('rs)");
+      int32_t base_val = get_register(instr->RsField());
+      int32_t imm_val = instr->SImmField();
+      uword addr = base_val + imm_val;
+      if (Simulator::IsIllegalAddress(addr)) {
+        HandleIllegalAccess(addr, instr);
+      } else {
+        int32_t value = get_fregister(instr->FtField());
+        WriteW(addr, value, instr);
       }
       break;
     }
