@@ -15,7 +15,7 @@ main() {
   var isSvgSvgElement =
       predicate((x) => x is svg.SvgSvgElement, 'is a SvgSvgElement');
 
-  Collection<String> _nodeStrings(Collection<Node> input) {
+  List<String> _nodeStrings(Iterable<Node> input) {
     final out = new List<String>();
     for (Node n in input) {
       if (n is Element) {
