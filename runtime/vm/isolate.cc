@@ -828,7 +828,7 @@ bool Isolate::FetchStacktrace() {
         code.is_optimized() ? "false" : "true");
   }
   buffer.Printf("]}");
-  isolate->stacktrace_ = strndup(buffer.buf(), buffer.length());
+  isolate->stacktrace_ = OS::StrNDup(buffer.buf(), buffer.length());
   ml.Notify();
   return true;
 }
@@ -872,7 +872,7 @@ bool Isolate::FetchStackFrameDetails() {
         var_name.ToCString(), token_pos, end_pos, value.ToCString());
   }
   buffer.Printf("]}");
-  isolate->stacktrace_ = strndup(buffer.buf(), buffer.length());
+  isolate->stacktrace_ = OS::StrNDup(buffer.buf(), buffer.length());
   ml.Notify();
   return true;
 }

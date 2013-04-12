@@ -396,36 +396,6 @@ inline D bit_copy(const S& source) {
 }
 
 
-// Some platforms do not support strndup. We add it below as necessary.
-#if defined(TARGET_OS_MACOS)
-// strndup has only been added to Mac OS X in 10.7. We are supplying
-// our own copy here.
-#if !defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) || \
-    __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ <= 1060
-#define NEEDS_STRNDUP 1
-#endif  // !defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__)
-#elif defined(TARGET_OS_WINDOWS)
-#define NEEDS_STRNDUP 1
-#endif  // defined(TARGET_OS_MACOS)
-
-#if defined(NEEDS_STRNDUP)
-// size_t used to match function signature on other platforms.
-inline char* strndup(const char* s, size_t n) {
-  size_t len = strlen(s);
-  if (n < len) {
-    len = n;
-  }
-  char* result = reinterpret_cast<char*>(malloc(len + 1));
-  if (!result) {
-    return NULL;
-  }
-  result[len] = '\0';
-  return reinterpret_cast<char*>(memcpy(result, s, len));
-}
-#endif  // defined(NEEDS_STRNDUP)
-#undef NEEDS_STRNDUP
-
-
 // A macro to ensure that memcpy cannot be called. memcpy does not handle
 // overlapping memory regions. Even though this is well documented it seems
 // to be used in error quite often. To avoid problems we disallow the direct

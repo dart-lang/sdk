@@ -178,6 +178,23 @@ void OS::DebugBreak() {
 }
 
 
+char* OS::StrNDup(const char* s, intptr_t n) {
+  intptr_t len = strlen(s);
+  if ((n < 0) || (len < 0)) {
+    return NULL;
+  }
+  if (n < len) {
+    len = n;
+  }
+  char* result = reinterpret_cast<char*>(malloc(len + 1));
+  if (result == NULL) {
+    return NULL;
+  }
+  result[len] = '\0';
+  return reinterpret_cast<char*>(memcpy(result, s, len));
+}
+
+
 void OS::Print(const char* format, ...) {
   va_list args;
   va_start(args, format);
