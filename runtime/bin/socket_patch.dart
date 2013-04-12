@@ -471,7 +471,7 @@ class _RawServerSocket extends Stream<RawSocket>
   }
 
   void _onSubscriptionStateChange() {
-    if (_controller.hasSubscribers) {
+    if (_controller.hasListener) {
       _resume();
     } else {
       close();
@@ -598,7 +598,7 @@ class _RawSocket extends Stream<RawSocketEvent>
   }
 
   void _onSubscriptionStateChange() {
-    if (_controller.hasSubscribers) {
+    if (_controller.hasListener) {
       _resume();
     } else {
       close();
@@ -867,7 +867,7 @@ class _Socket extends Stream<List<int>> implements Socket {
   }
 
   void _onSubscriptionStateChange() {
-    if (_controller.hasSubscribers) {
+    if (_controller.hasListener) {
       _ensureRawSocketSubscription();
       // Enable read events for providing data to subscription.
       if (_raw != null) {

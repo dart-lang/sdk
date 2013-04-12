@@ -230,7 +230,7 @@ class _ErrorGroupStream extends Stream {
   StreamSubscription _subscription;
 
   /// Whether [this] has any listeners.
-  bool get _hasListeners => _controller.hasSubscribers;
+  bool get _hasListeners => _controller.hasListener;
 
   /// Creates a new [_ErrorGroupFuture] that's a child of [_group] and wraps
   /// [inner].

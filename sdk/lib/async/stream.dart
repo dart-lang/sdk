@@ -132,7 +132,7 @@ abstract class Stream<T> {
           }
         },
         onSubscriptionStateChange: () {
-          if (controller.hasSubscribers) {
+          if (controller.hasListener) {
             watch.start();
             startPeriodicTimer();
           } else {
@@ -981,7 +981,7 @@ abstract class StreamEventTransformer<S, T> implements StreamTransformer<S, T> {
           }
         },
         onSubscriptionStateChange: () {
-          if (controller.hasSubscribers) {
+          if (controller.hasListener) {
             subscription = transformingStream.listen(
                 controller.add,
                 onError: controller.addError,

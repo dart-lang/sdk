@@ -222,7 +222,7 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
   }
 
   void _onSubscriptionStateChange() {
-    if (_controller.hasSubscribers) {
+    if (_controller.hasListener) {
       _subscription = _socket.listen(_onData,
                                      onDone: _onDone,
                                      onError: _onError);

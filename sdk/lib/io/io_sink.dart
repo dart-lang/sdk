@@ -236,7 +236,7 @@ class _IOSinkImpl<T> implements IOSink<T> {
   }
 
   void _onSubscriptionStateChange() {
-    if (_controller.hasSubscribers) {
+    if (_controller.hasListener) {
       _paused = false;
       _resume();
     } else {

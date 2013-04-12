@@ -130,7 +130,7 @@ class _FileStream extends Stream<List<int>> {
   }
 
   void _onSubscriptionStateChange() {
-    if (_controller.hasSubscribers) {
+    if (_controller.hasListener) {
       _start();
     } else {
       _unsubscribed = true;

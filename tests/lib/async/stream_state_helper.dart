@@ -105,7 +105,7 @@ class StreamProtocolTest {
     _withNextExpectation((Event expect) {
       if (!expect.matchSubscriptionChange(_controller)) {
         _fail("Expected: $expect\n"
-              "Found: [Subscribed:${_controller.hasSubscribers}, "
+              "Found: [Has listener:${_controller.hasListener}, "
                       "Paused:${_controller.isPaused}]");
       }
     });
@@ -159,12 +159,12 @@ class StreamProtocolTest {
     }
     _expectations.add(new PauseCallbackEvent(isPaused, action));
   }
-  void expectSubscription(bool hasSubscribers, bool isPaused, [void action()]) {
+  void expectSubscription(bool hasListener, bool isPaused, [void action()]) {
     if (_onComplete == null) {
       _fail("Adding expectation after completing");
     }
     _expectations.add(
-          new SubscriptionCallbackEvent(hasSubscribers, isPaused, action));
+          new SubscriptionCallbackEvent(hasListener, isPaused, action));
   }
 
   void _fail(String message) {
@@ -252,14 +252,14 @@ class PauseCallbackEvent extends Event {
 }
 
 class SubscriptionCallbackEvent extends Event {
-  final bool hasSubscribers;
+  final bool hasListener;
   final bool isPaused;
-  SubscriptionCallbackEvent(this.hasSubscribers, this.isPaused, void action())
+  SubscriptionCallbackEvent(this.hasListener, this.isPaused, void action())
       : super(action);
   bool _testSubscribe(StreamController c) {
-    return hasSubscribers == c.hasSubscribers && isPaused == c.isPaused;
+    return hasListener == c.hasListener && isPaused == c.isPaused;
   }
-  String toString() => "[Subscribers:$hasSubscribers, Paused:$isPaused]";
+  String toString() => "[Has listener:$hasListener, Paused:$isPaused]";
 }
 
 
@@ -283,7 +283,7 @@ class LogAnyEvent extends Event {
     return true;
   }
   bool _testSubcribe(StreamController c) {
-    _actual = "*[Subscribers:${c.hasSubscribers}, Paused:${c.isPaused}]";
+    _actual = "*[Has listener:${c.hasListener}, Paused:${c.isPaused}]";
     return true;
   }
 

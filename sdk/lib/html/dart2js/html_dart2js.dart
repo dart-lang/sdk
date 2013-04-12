@@ -11391,7 +11391,7 @@ class Geolocation native "*Geolocation" {
     var controller;
     controller = new StreamController<Geoposition>(
       onSubscriptionStateChange: () {
-        if (controller.hasSubscribers) {
+        if (controller.hasListener) {
           assert(watchId == null);
           watchId = $dom_watchPosition(
               (position) {

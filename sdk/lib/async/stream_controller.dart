@@ -58,7 +58,7 @@ class StreamController<T> extends EventSink<T> {
    *
    * The [onSubscriptionStateChange] function is called when the stream
    * receives its first listener or loses its last. The current subscription
-   * state can be read from [hasSubscribers]. Ignored if [:null:].
+   * state can be read from [hasListener]. Ignored if [:null:].
    */
   StreamController.broadcast({void onPauseStateChange(),
                               void onSubscriptionStateChange()})
@@ -77,7 +77,7 @@ class StreamController<T> extends EventSink<T> {
    *
    * The [onSubscriptionStateChange] function is called when the stream
    * receives its first listener or loses its last. The current subscription
-   * state can be read from [hasSubscribers]. Ignored if [:null:].
+   * state can be read from [hasListener]. Ignored if [:null:].
    */
   StreamController({void onPauseStateChange(),
                     void onSubscriptionStateChange()})
@@ -101,7 +101,7 @@ class StreamController<T> extends EventSink<T> {
   bool get isPaused => stream._isInputPaused;
 
   /** Whether there are currently any subscribers on this [Stream]. */
-  bool get hasSubscribers => stream._hasSubscribers;
+  bool get hasListener => stream._hasListener;
 
   /**
    * Send or queue a data event.
