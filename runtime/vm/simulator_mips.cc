@@ -1682,6 +1682,13 @@ void Simulator::InstructionDecode(Instr* instr) {
       }
       break;
     }
+    case XORI: {
+      // Format(instr, "xori 'rt, 'rs, 'immu");
+      int32_t rs_val = get_register(instr->RsField());
+      set_register(instr->RtField(), rs_val ^ instr->UImmField());
+      break;
+      break;
+    }
     default: {
       OS::PrintErr("Undecoded instruction: 0x%x at %p\n",
                     instr->InstructionBits(), instr);

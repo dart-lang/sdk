@@ -632,6 +632,10 @@ void MIPSDecoder::InstructionDecode(Instr* instr) {
       Format(instr, "swc1 'ft, 'imms('rs)");
       break;
     }
+    case XORI: {
+      Format(instr, "xori 'rt, 'rs, 'immu");
+      break;
+    }
     default: {
       Unknown(instr);
       break;

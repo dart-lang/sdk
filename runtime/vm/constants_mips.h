@@ -183,6 +183,11 @@ static const int kFirstLocalSlotIndex = -2;
 enum Condition {
   EQ,  // equal
   NE,  // not equal
+  GT,  // greater than
+  GE,  // greater equal
+  LT,  // less than
+  LE,  // less equal
+  VS,  // overflow
 };
 
 
