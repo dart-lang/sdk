@@ -506,6 +506,12 @@ LibTest/core/List/operator_subscript_A01_t02: Fail # getRange now takes end-argu
 LibTest/core/Set/intersection_A01_t01: Fail # issue 390
 LibTest/core/Set/intersection_A01_t02: Fail # issue 390
 LibTest/core/Set/intersection_A01_t03: Fail # issue 390
+LibTest/core/List/List.from_A01_t01: fail # Issue 400
+LibTest/core/List/every_A01_t01: fail # Issue 400
+LibTest/collection/Queue/Queue.from_A01_t01: Fail # Issue 400
+LibTest/collection/Queue/Queue.from_A01_t02: Fail # Issue 400
+
+
 
 # Issues with co19 test suite in browsers.
 [ $compiler == dart2js && $browser ]
