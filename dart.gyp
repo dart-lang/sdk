@@ -5,20 +5,6 @@
 {
   'targets': [
     {
-      # Contains all dependencies.
-      'target_name': 'everything',
-      'type': 'none',
-      'dependencies': [
-        # Most dependencies.
-        'most',
-        # All other targets.
-        'api_docs',
-        'dartc_bot',
-        'dart2js_bot',
-        'dart2dart_bot',
-      ],
-    },
-    {
       'target_name': 'most',
       'type': 'none',
       'dependencies': [
