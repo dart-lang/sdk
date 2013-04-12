@@ -13045,7 +13045,7 @@ class NodeList<E extends ASTNode> extends ListWrapper<E> {
     owner.becomeParentOf(node);
     elements.add(node);
   }
-  bool addAll(Collection<E> nodes) {
+  bool addAll(Iterable<E> nodes) {
     if (nodes != null) {
       for (E node in nodes) {
         add(node);

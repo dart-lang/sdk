@@ -10,7 +10,7 @@ library matcher;
 import 'dart:async';
 
 part 'src/basematcher.dart';
-part 'src/collection_matchers.dart';
+part 'src/iterable_matchers.dart';
 part 'src/core_matchers.dart';
 part 'src/description.dart';
 part 'src/expect.dart';

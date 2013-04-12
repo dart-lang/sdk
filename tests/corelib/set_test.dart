@@ -47,7 +47,6 @@ void testMain(Set create()) {
   set.forEach(testForEach);
   Expect.equals(10 + 9 + 8 + 7 + 6 + 5 + 4 + 3 + 2 + 1, sum);
 
-  Expect.isTrue(set.isSubsetOf(set));
   Expect.isTrue(set.containsAll(set));
 
   // Test Set.map.
@@ -98,7 +97,6 @@ void testMain(Set create()) {
   Expect.equals(1 + 3 + 5 + 7 + 9, sum);
 
   Expect.isTrue(set.containsAll(filtered));
-  Expect.isTrue(filtered.isSubsetOf(set));
 
   // Test Set.every.
   testEvery(int val) {
@@ -138,8 +136,6 @@ void testMain(Set create()) {
 
   Expect.isTrue(set.containsAll(intersection));
   Expect.isTrue(filtered.containsAll(intersection));
-  Expect.isTrue(intersection.isSubsetOf(set));
-  Expect.isTrue(intersection.isSubsetOf(filtered));
 
   // Test Set.union.
   Set twice = create()..addAll([0, 2, 4, 6, 8, 10, 12, 14]);
@@ -159,7 +155,7 @@ void testMain(Set create()) {
   Expect.isTrue(twice.difference(thrice).difference(twice).isEmpty);
 
   // Test Set.addAll.
-  List list = new List.fixedLength(10);
+  List list = new List(10);
   for (int i = 0; i < 10; i++) {
     list[i] = i + 10;
   }

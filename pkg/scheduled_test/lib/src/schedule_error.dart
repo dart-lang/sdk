@@ -27,7 +27,7 @@ class ScheduleError extends AsyncError {
 
   /// The descriptions of out-of-band callbacks that were pending when this
   /// error occurred.
-  final Collection<String> pendingCallbacks;
+  final Iterable<String> pendingCallbacks;
 
   /// The state of the schedule at the time the error was detected.
   final ScheduleState _stateWhenDetected;

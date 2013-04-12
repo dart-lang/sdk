@@ -122,24 +122,6 @@ class FilteredElementList extends ListBase<Element> {
     }
   }
 
-  // Operations defined in terms of [Collections]' [remove].
-
-  void removeAll(Iterable elements) {
-    // This should be optimized to not use [remove] directly.
-    IterableMixinWorkaround.removeAll(this, elements);
-  }
-
-  void retainAll(Iterable elements) {
-    IterableMixinWorkaround.retainAll(this, elements);
-  }
-
-  void removeWhere(bool test(Element element)) {
-    IterableMixinWorkaround.removeWhere(this, test);
-  }
-
-  void retainWhere(bool test(Element element)) {
-    IterableMixinWorkaround.retainWhere(this, test);
-  }
 
   Element reduce(Element combine(Element value, Element element)) {
     return _filtered.reduce(combine);

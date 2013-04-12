@@ -6133,10 +6133,6 @@ class Document extends Node  native "*Document"
   @DocsEditable
   final String $dom_referrer;
 
-  @DomName('Document.securityPolicy')
-  @DocsEditable
-  final DomSecurityPolicy securityPolicy;
-
   @JSName('selectedStylesheetSet')
   @DomName('Document.selectedStylesheetSet')
   @DocsEditable
@@ -6973,14 +6969,6 @@ class DomMimeTypeArray implements JavaScriptIndexingBehavior, List<DomMimeType> 
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
   void removeWhere(bool test(DomMimeType element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -7243,14 +7231,6 @@ class DomPluginArray implements JavaScriptIndexingBehavior, List<DomPlugin> nati
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
   void removeWhere(bool test(DomPlugin element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -7302,77 +7282,6 @@ class DomPluginArray implements JavaScriptIndexingBehavior, List<DomPlugin> nati
   @DomName('DOMPluginArray.refresh')
   @DocsEditable
   void refresh(bool reload) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('SecurityPolicy')
-class DomSecurityPolicy native "*SecurityPolicy" {
-
-  @DomName('DOMSecurityPolicy.allowsEval')
-  @DocsEditable
-  final bool allowsEval;
-
-  @DomName('DOMSecurityPolicy.allowsInlineScript')
-  @DocsEditable
-  final bool allowsInlineScript;
-
-  @DomName('DOMSecurityPolicy.allowsInlineStyle')
-  @DocsEditable
-  final bool allowsInlineStyle;
-
-  @DomName('DOMSecurityPolicy.isActive')
-  @DocsEditable
-  final bool isActive;
-
-  @DomName('DOMSecurityPolicy.reportURIs')
-  @DocsEditable
-  @Returns('DomStringList')
-  @Creates('DomStringList')
-  final List<String> reportURIs;
-
-  @DomName('DOMSecurityPolicy.allowsConnectionTo')
-  @DocsEditable
-  bool allowsConnectionTo(String url) native;
-
-  @DomName('DOMSecurityPolicy.allowsFontFrom')
-  @DocsEditable
-  bool allowsFontFrom(String url) native;
-
-  @DomName('DOMSecurityPolicy.allowsFormAction')
-  @DocsEditable
-  bool allowsFormAction(String url) native;
-
-  @DomName('DOMSecurityPolicy.allowsFrameFrom')
-  @DocsEditable
-  bool allowsFrameFrom(String url) native;
-
-  @DomName('DOMSecurityPolicy.allowsImageFrom')
-  @DocsEditable
-  bool allowsImageFrom(String url) native;
-
-  @DomName('DOMSecurityPolicy.allowsMediaFrom')
-  @DocsEditable
-  bool allowsMediaFrom(String url) native;
-
-  @DomName('DOMSecurityPolicy.allowsObjectFrom')
-  @DocsEditable
-  bool allowsObjectFrom(String url) native;
-
-  @DomName('DOMSecurityPolicy.allowsPluginType')
-  @DocsEditable
-  bool allowsPluginType(String type) native;
-
-  @DomName('DOMSecurityPolicy.allowsScriptFrom')
-  @DocsEditable
-  bool allowsScriptFrom(String url) native;
-
-  @DomName('DOMSecurityPolicy.allowsStyleFrom')
-  @DocsEditable
-  bool allowsStyleFrom(String url) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7661,14 +7570,6 @@ class DomStringList implements JavaScriptIndexingBehavior, List<String> native "
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
   void removeWhere(bool test(String element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -7935,14 +7836,6 @@ class _ChildrenElementList extends ListBase<Element> {
     }
   }
 
-  void removeAll(Iterable elements) {
-    _childElements.removeAll(elements);
-  }
-
-  void retainAll(Iterable elements) {
-    _childElements.retainAll(elements);
-  }
-
   void removeWhere(bool test(Element element)) {
     _childElements.removeWhere(test);
   }
@@ -8105,14 +7998,6 @@ class _FrozenElementList extends ListBase {
     throw new UnsupportedError('');
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError('');
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError('');
-  }
-
   void removeWhere(bool test(Element element)) {
     throw new UnsupportedError('');
   }
@@ -8271,7 +8156,7 @@ abstract class Element extends Node implements ElementTraversal native "*Element
    */
   CssClassSet get classes => new _ElementCssClassSet(this);
 
-  void set classes(Collection<String> value) {
+  void set classes(Iterable<String> value) {
     CssClassSet classSet = classes;
     classSet.clear();
     classSet.addAll(value);
@@ -10409,14 +10294,6 @@ class FileList implements JavaScriptIndexingBehavior, List<File> native "*FileLi
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
   void removeWhere(bool test(File element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -10901,14 +10778,6 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
   void removeWhere(bool test(num element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -11132,14 +11001,6 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
   }
 
   void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -11789,14 +11650,6 @@ class HtmlAllCollection implements JavaScriptIndexingBehavior, List<Node> native
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
   void removeWhere(bool test(Node element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -12009,14 +11862,6 @@ class HtmlCollection implements JavaScriptIndexingBehavior, List<Node> native "*
   }
 
   void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -12905,10 +12750,6 @@ class IFrameElement extends Element native "*HTMLIFrameElement" {
   @DomName('HTMLIFrameElement.sandbox')
   @DocsEditable
   String sandbox;
-
-  @DomName('HTMLIFrameElement.seamless')
-  @DocsEditable
-  bool seamless;
 
   @DomName('HTMLIFrameElement.src')
   @DocsEditable
@@ -14058,14 +13899,6 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
   void removeWhere(bool test(int element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -14292,14 +14125,6 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
   void removeWhere(bool test(int element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -14523,14 +14348,6 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
   }
 
   void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -16938,14 +16755,6 @@ class _ChildNodeListLazy extends ListBase<Node> {
     _this.$dom_removeChild(node);
   }
 
-  void removeAll(Iterable elements) {
-    // This is not using the default removeAll from ListBase because
-    // DOM nodes can be efficiently removed in constant time.
-    for (var element in elements) {
-      remove(element);
-    }
-  }
-
   void _filter(bool test(Node node), bool removeMatching) {
     // This implementation of removeWhere/retainWhere is more efficient
     // than the default in ListBase. Child nodes can be removed in constant
@@ -16958,11 +16767,6 @@ class _ChildNodeListLazy extends ListBase<Node> {
       }
       child = nextChild;
     }
-  }
-
-  void retainAll(Iterable elements) {
-    Set retainSet = (elements is Set) ? elements : elements.toSet();
-    _filter(retainSet.contains, false);
   }
 
   void removeWhere(bool test(Node node)) {
@@ -17046,7 +16850,7 @@ class Node extends EventTarget native "*Node" {
     return new _ChildNodeListLazy(this);
   }
 
-  void set nodes(Collection<Node> value) {
+  void set nodes(Iterable<Node> value) {
     // Copy list first since we don't want liveness during iteration.
     // TODO(jacobr): there is a better way to do this.
     List copy = new List.from(value);
@@ -17554,14 +17358,6 @@ class NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeLi
   }
 
   void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -19406,10 +19202,6 @@ class ScriptElement extends Element native "*HTMLScriptElement" {
   @DocsEditable
   String htmlFor;
 
-  @DomName('HTMLScriptElement.nonce')
-  @DocsEditable
-  String nonce;
-
   @DomName('HTMLScriptElement.src')
   @DocsEditable
   String src;
@@ -19488,49 +19280,6 @@ class ScriptProfileNode native "*ScriptProfileNode" {
   @DomName('ScriptProfileNode.children')
   @DocsEditable
   List<ScriptProfileNode> children() native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('SecurityPolicyViolationEvent')
-class SecurityPolicyViolationEvent extends Event native "*SecurityPolicyViolationEvent" {
-
-  @JSName('blockedURI')
-  @DomName('SecurityPolicyViolationEvent.blockedURI')
-  @DocsEditable
-  final String blockedUri;
-
-  @JSName('documentURI')
-  @DomName('SecurityPolicyViolationEvent.documentURI')
-  @DocsEditable
-  final String documentUri;
-
-  @DomName('SecurityPolicyViolationEvent.effectiveDirective')
-  @DocsEditable
-  final String effectiveDirective;
-
-  @DomName('SecurityPolicyViolationEvent.lineNumber')
-  @DocsEditable
-  final int lineNumber;
-
-  @DomName('SecurityPolicyViolationEvent.originalPolicy')
-  @DocsEditable
-  final String originalPolicy;
-
-  @DomName('SecurityPolicyViolationEvent.referrer')
-  @DocsEditable
-  final String referrer;
-
-  @DomName('SecurityPolicyViolationEvent.sourceFile')
-  @DocsEditable
-  final String sourceFile;
-
-  @DomName('SecurityPolicyViolationEvent.violatedDirective')
-  @DocsEditable
-  final String violatedDirective;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19909,14 +19658,6 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
   void removeWhere(bool test(SourceBuffer element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -20202,14 +19943,6 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
   }
 
   void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -20600,13 +20333,13 @@ class Storage implements Map<String, String>
     }
   }
 
-  Collection<String> get keys {
+  Iterable<String> get keys {
     final keys = [];
     forEach((k, v) => keys.add(k));
     return keys;
   }
 
-  Collection<String> get values {
+  Iterable<String> get values {
     final values = [];
     forEach((k, v) => values.add(v));
     return values;
@@ -21664,14 +21397,6 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
   void removeWhere(bool test(TextTrackCue element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -21882,14 +21607,6 @@ class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, L
   }
 
   void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -22329,14 +22046,6 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
   }
 
   void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -22816,14 +22525,6 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
   void removeWhere(bool test(int element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -23047,14 +22748,6 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
   }
 
   void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -23284,14 +22977,6 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
   void removeWhere(bool test(int element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -23512,14 +23197,6 @@ class Uint8ClampedArray extends Uint8Array implements JavaScriptIndexingBehavior
   }
 
   void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -25797,14 +25474,6 @@ class _ClientRectList implements JavaScriptIndexingBehavior, List<Rect> native "
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
   void removeWhere(bool test(Rect element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -26019,14 +25688,6 @@ class _CssRuleList implements JavaScriptIndexingBehavior, List<CssRule> native "
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
   void removeWhere(bool test(CssRule element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -26229,14 +25890,6 @@ class _CssValueList extends _CSSValue implements JavaScriptIndexingBehavior, Lis
   }
 
   void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -26513,14 +26166,6 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*En
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
   void removeWhere(bool test(Entry element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -26723,14 +26368,6 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<_EntrySync> na
   }
 
   void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -26979,14 +26616,6 @@ class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "
   }
 
   void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -27255,14 +26884,6 @@ class _NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*N
   }
 
   void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -27542,14 +27163,6 @@ class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechI
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
   void removeWhere(bool test(SpeechInputResult element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -27752,14 +27365,6 @@ class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<S
   }
 
   void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -27968,14 +27573,6 @@ class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> na
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
   void removeWhere(bool test(StyleSheet element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -28158,7 +27755,7 @@ abstract class _AttributeMap implements Map<String, String> {
     }
   }
 
-  Collection<String> get keys {
+  Iterable<String> get keys {
     // TODO: generate a lazy collection instead.
     var attributes = _element.$dom_attributes;
     var keys = new List<String>();
@@ -28170,7 +27767,7 @@ abstract class _AttributeMap implements Map<String, String> {
     return keys;
   }
 
-  Collection<String> get values {
+  Iterable<String> get values {
     // TODO: generate a lazy collection instead.
     var attributes = _element.$dom_attributes;
     var values = new List<String>();
@@ -28311,7 +27908,7 @@ class _DataAttributeMap implements Map<String, String> {
     });
   }
 
-  Collection<String> get keys {
+  Iterable<String> get keys {
     final keys = new List<String>();
     $dom_attributes.forEach((String key, String value) {
       if (_matches(key)) {
@@ -28321,7 +27918,7 @@ class _DataAttributeMap implements Map<String, String> {
     return keys;
   }
 
-  Collection<String> get values {
+  Iterable<String> get values {
     final values = new List<String>();
     $dom_attributes.forEach((String key, String value) {
       if (_matches(key)) {
@@ -28651,9 +28248,6 @@ abstract class CssClassSet implements Set<String> {
   void retainWhere(bool test(String name)) {
     _modify((s) => s.retainWhere(test));
   }
-
-  bool isSubsetOf(Collection<String> collection) =>
-    readClasses().isSubsetOf(collection);
 
   bool containsAll(Iterable<String> collection) =>
     readClasses().containsAll(collection);
@@ -31091,10 +30685,6 @@ class _WrappedList<E> implements List<E> {
   void addAll(Iterable<E> elements) { _list.addAll(elements); }
 
   void remove(Object element) { _list.remove(element); }
-
-  void removeAll(Iterable elements) { _list.removeAll(elements); }
-
-  void retainAll(Iterable elements) { _list.retainAll(elements); }
 
   void removeWhere(bool test(E element)) { _list.removeWhere(test); }
 

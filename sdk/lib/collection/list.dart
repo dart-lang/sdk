@@ -249,21 +249,6 @@ abstract class ListMixin<E> implements List<E> {
     }
   }
 
-  void removeAll(Iterable<Object> elements) {
-    if (elements is! Set) {
-      elements = elements.toSet();
-    }
-    _filter(this, elements.contains, false);
-  }
-
-
-  void retainAll(Iterable<E> elements) {
-    if (elements is! Set) {
-      elements = elements.toSet();
-    }
-    _filter(this, elements.contains, true);
-  }
-
   void removeWhere(bool test(E element)) {
     _filter(this, test, false);
   }

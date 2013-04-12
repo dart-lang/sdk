@@ -105,14 +105,6 @@ $endif
     _this.$dom_removeChild(node);
   }
 
-  void removeAll(Iterable elements) {
-    // This is not using the default removeAll from ListBase because
-    // DOM nodes can be efficiently removed in constant time.
-    for (var element in elements) {
-      remove(element);
-    }
-  }
-
   void _filter(bool test(Node node), bool removeMatching) {
     // This implementation of removeWhere/retainWhere is more efficient
     // than the default in ListBase. Child nodes can be removed in constant
@@ -125,11 +117,6 @@ $endif
       }
       child = nextChild;
     }
-  }
-
-  void retainAll(Iterable elements) {
-    Set retainSet = (elements is Set) ? elements : elements.toSet();
-    _filter(retainSet.contains, false);
   }
 
   void removeWhere(bool test(Node node)) {
@@ -212,7 +199,7 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     return new _ChildNodeListLazy(this);
   }
 
-  void set nodes(Collection<Node> value) {
+  void set nodes(Iterable<Node> value) {
     // Copy list first since we don't want liveness during iteration.
     // TODO(jacobr): there is a better way to do this.
     List copy = new List.from(value);

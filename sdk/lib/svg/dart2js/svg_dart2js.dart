@@ -3159,14 +3159,6 @@ class LengthList implements JavaScriptIndexingBehavior, List<Length> native "*SV
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
   void removeWhere(bool test(Length element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -3796,14 +3788,6 @@ class NumberList implements JavaScriptIndexingBehavior, List<Number> native "*SV
   }
 
   void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -4667,14 +4651,6 @@ class PathSegList implements JavaScriptIndexingBehavior, List<PathSeg> native "*
   }
 
   void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -5568,14 +5544,6 @@ class StringList implements JavaScriptIndexingBehavior, List<String> native "*SV
   }
 
   void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -6745,14 +6713,6 @@ class TransformList implements List<Transform>, JavaScriptIndexingBehavior nativ
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
   void removeWhere(bool test(Transform element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -7277,14 +7237,6 @@ class _ElementInstanceList implements JavaScriptIndexingBehavior, List<ElementIn
   }
 
   void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 

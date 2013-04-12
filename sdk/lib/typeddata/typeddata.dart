@@ -5,6 +5,7 @@
 library dart.typeddata;
 
 import 'dart:collection';
+import 'dart:_collection-dev';
 
 /**
  * A sequence of bytes underlying a typed data object.

@@ -18,9 +18,6 @@ main() {
   Expect.isTrue(new A<Iterable<B>>().foo(new List<B>()));
   Expect.isFalse(new A<Iterable<C>>().foo(new List<B>()));
 
-  Expect.isTrue(new A<Collection<B>>().foo(new List<B>()));
-  Expect.isFalse(new A<Collection<C>>().foo(new List<B>()));
-
   Expect.isTrue(new A<Pattern>().foo('hest'));
 
   Expect.isTrue(new A<Comparable<String>>().foo('hest'));

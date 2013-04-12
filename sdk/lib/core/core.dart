@@ -8,7 +8,6 @@ import "dart:collection";
 import "dart:_collection-dev";
 
 part "bool.dart";
-part "collection.dart";
 part "comparable.dart";
 part "date_time.dart";
 part "double.dart";

@@ -139,12 +139,6 @@ abstract class String implements Comparable<String>, Pattern {
   String operator +(String other);
 
   /**
-   * *Deprecated* Use [operator+] instead.
-   */
-  @deprecated
-  String concat(String other);
-
-  /**
    * Returns a slice of this string from [startIndex] to [endIndex].
    *
    * If [startIndex] is omitted, it defaults to the start of the string.

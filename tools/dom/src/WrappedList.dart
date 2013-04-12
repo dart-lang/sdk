@@ -80,10 +80,6 @@ class _WrappedList<E> implements List<E> {
 
   void remove(Object element) { _list.remove(element); }
 
-  void removeAll(Iterable elements) { _list.removeAll(elements); }
-
-  void retainAll(Iterable elements) { _list.retainAll(elements); }
-
   void removeWhere(bool test(E element)) { _list.removeWhere(test); }
 
   void retainWhere(bool test(E element)) { _list.retainWhere(test); }

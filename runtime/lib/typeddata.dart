@@ -557,7 +557,7 @@ abstract class _TypedListBase {
   // Method(s) implementing Object interface.
 
   String toString() {
-    return Collections.collectionToString(this);
+    return ToString.iterableToString(this);
   }
 
 

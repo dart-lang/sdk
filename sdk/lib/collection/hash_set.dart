@@ -5,19 +5,8 @@
 part of dart.collection;
 
 /** Common parts of [HashSet] and [LinkedHashSet] implementations. */
-abstract class _HashSetBase<E> extends Collection<E> implements Set<E> {
+abstract class _HashSetBase<E> extends Iterable<E> implements Set<E> {
   // Set.
-  bool isSubsetOf(Collection<E> other) {
-    // Deprecated, and using old signature.
-    Set otherSet;
-    if (other is Set) {
-      otherSet = other;
-    } else {
-      otherSet = other.toSet();
-    }
-    return otherSet.containsAll(this);
-  }
-
   bool containsAll(Iterable<E> other) {
     for (E object in other) {
       if (!this.contains(object)) return false;
@@ -64,7 +53,7 @@ abstract class _HashSetBase<E> extends Collection<E> implements Set<E> {
     retainWhere(retainSet.contains);
   }
 
-  String toString() => Collections.collectionToString(this);
+  String toString() => ToString.iterableToString(this);
 }
 
 class HashSet<E> extends _HashSetBase<E> {

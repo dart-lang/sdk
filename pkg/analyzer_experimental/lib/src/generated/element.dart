@@ -1277,9 +1277,9 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   accept(ElementVisitor visitor) => visitor.visitClassElement(this);
   List<PropertyAccessorElement> get accessors => _accessors;
   List<InterfaceType> get allSupertypes {
-    Collection<InterfaceType> list = new Set<InterfaceType>();
-    collectAllSupertypes(list);
-    return new List.from(list);
+    Set<InterfaceType> set = new Set<InterfaceType>();
+    collectAllSupertypes(set);
+    return set.toList();
   }
   ElementImpl getChild(String identifier25) {
     for (PropertyAccessorElement accessor in _accessors) {
@@ -1541,7 +1541,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
       builder.append(">");
     }
   }
-  void collectAllSupertypes(Collection<InterfaceType> list) {
+  void collectAllSupertypes(var list) {
     if (_supertype == null || list.contains(_supertype)) {
       return;
     }

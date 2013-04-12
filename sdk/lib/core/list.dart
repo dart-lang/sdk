@@ -34,7 +34,7 @@ part of dart.core;
  *    unmodifiableList.add(499);  // throws
  *    unmodifiableList[0] = 87;  // throws.
  */
-abstract class List<E> implements Collection<E> {
+abstract class List<E> implements Iterable<E> {
   /**
    * Creates a list of the given [length].
    *
@@ -48,18 +48,6 @@ abstract class List<E> implements Collection<E> {
    * contains [fill].
    */
   external factory List.filled(int length, E fill);
-
-  /**
-   * *Deprecated*: Use `new List(count)` instead.
-   */
-  @deprecated
-  factory List.fixedLength(int count, { E fill }) {
-    List<E> result = new List(count);
-    if (fill != null) {
-      for (int i = 0; i < count; i++) result[i] = fill;
-    }
-    return result;
-  }
 
   /**
    * Creates an list with the elements of [other]. The order in
@@ -201,6 +189,13 @@ abstract class List<E> implements Collection<E> {
   void insert(int index, E element);
 
   /**
+   * Removes [value] from the list. Returns true if [value] was
+   * in the list. Returns false otherwise. The method has no effect
+   * if [value] value was not in the list.
+   */
+  bool remove(Object value);
+
+  /**
    * Removes the element at position [index] from the list.
    *
    * This reduces the length of the list by one and moves all later elements
@@ -220,6 +215,20 @@ abstract class List<E> implements Collection<E> {
    * list cannot be changed.
    */
   E removeLast();
+
+  /**
+   * Removes all elements of this list that satisfy [test].
+   *
+   * An elements [:e:] satisfies [test] if [:test(e):] is true.
+   */
+  void removeWhere(bool test(E element));
+
+  /**
+   * Removes all elements of this list that fail to satisfy [test].
+   *
+   * An elements [:e:] satisfies [test] if [:test(e):] is true.
+   */
+  void retainWhere(bool test(E element));
 
   /**
    * Returns a new list containing the elements from [start] to [end].

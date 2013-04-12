@@ -52,14 +52,6 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     }
   }
 
-  void removeAll(Iterable elements) {
-    IterableMixinWorkaround.removeAllList(this, elements);
-  }
-
-  void retainAll(Iterable elements) {
-    IterableMixinWorkaround.retainAll(this, elements);
-  }
-
   void removeWhere(bool test(E element)) {
     // This could, and should, be optimized.
     IterableMixinWorkaround.removeWhereList(this, test);
@@ -270,7 +262,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
 
   bool get isEmpty => length == 0;
 
-  String toString() => Collections.collectionToString(this);
+  String toString() => ToString.iterableToString(this);
 
   List<E> toList({ bool growable: true }) =>
       new List<E>.from(this, growable: growable);

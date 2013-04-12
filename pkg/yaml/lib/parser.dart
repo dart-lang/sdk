@@ -1119,7 +1119,7 @@ class _Parser {
   });
 
   // 138
-  Collection<_Node> ns_s_flowSeqEntries(int indent, int ctx) {
+  Iterable<_Node> ns_s_flowSeqEntries(int indent, int ctx) {
     var first = ns_flowSeqEntry(indent, ctx);
     if (!truth(first)) return new Queue<_Node>();
     zeroOrOne(() => s_separate(indent, ctx));

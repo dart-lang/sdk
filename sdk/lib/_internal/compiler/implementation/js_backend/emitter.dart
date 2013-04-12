@@ -1724,7 +1724,7 @@ class CodeEmitterTask extends CompilerTask {
     // interceptors are needed.
     Set<ClassElement> needed = new Set<ClassElement>();
     backend.specializedGetInterceptors.forEach(
-        (_, Collection<ClassElement> elements) {
+        (_, Iterable<ClassElement> elements) {
           needed.addAll(elements);
         }
     );
@@ -2415,7 +2415,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
 
   void emitGetInterceptorMethod(CodeBuffer buffer,
                                 String key,
-                                Collection<ClassElement> classes) {
+                                Iterable<ClassElement> classes) {
     jsAst.Statement buildReturnInterceptor(ClassElement cls) {
       return js.return_(js(namer.isolateAccess(cls))['prototype']);
     }
@@ -2582,7 +2582,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
   void emitGetInterceptorMethods(CodeBuffer buffer) {
     var specializedGetInterceptors = backend.specializedGetInterceptors;
     for (String name in specializedGetInterceptors.keys.toList()..sort()) {
-      Collection<ClassElement> classes = specializedGetInterceptors[name];
+      Iterable<ClassElement> classes = specializedGetInterceptors[name];
       emitGetInterceptorMethod(buffer, name, classes);
     }
   }

@@ -52,14 +52,6 @@ class _GrowableObjectArray<T> implements List<T> {
     }
   }
 
-  void removeAll(Iterable elements) {
-    IterableMixinWorkaround.removeAllList(this, elements);
-  }
-
-  void retainAll(Iterable elements) {
-    IterableMixinWorkaround.retainAll(this, elements);
-  }
-
   void removeWhere(bool test(T element)) {
     IterableMixinWorkaround.removeWhereList(this, test);
   }
@@ -135,7 +127,7 @@ class _GrowableObjectArray<T> implements List<T> {
     return new _GrowableObjectArray<T>.withData(data);
   }
 
-  factory _GrowableObjectArray.from(Collection<T> other) {
+  factory _GrowableObjectArray.from(Iterable<T> other) {
     List<T> result = new _GrowableObjectArray<T>();
     result.addAll(other);
     return result;
@@ -333,7 +325,7 @@ class _GrowableObjectArray<T> implements List<T> {
   }
 
   String toString() {
-    return Collections.collectionToString(this);
+    return ToString.iterableToString(this);
   }
 
   Iterator<T> get iterator {

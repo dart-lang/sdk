@@ -3420,14 +3420,6 @@ class LengthList extends NativeFieldWrapperClass1 implements List<Length> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
   void removeWhere(bool test(Length element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -4134,14 +4126,6 @@ class NumberList extends NativeFieldWrapperClass1 implements List<Number> {
   }
 
   void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -5281,14 +5265,6 @@ class PathSegList extends NativeFieldWrapperClass1 implements List<PathSeg> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
   void removeWhere(bool test(PathSeg element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -6276,14 +6252,6 @@ class StringList extends NativeFieldWrapperClass1 implements List<String> {
   }
 
   void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -7542,14 +7510,6 @@ class TransformList extends NativeFieldWrapperClass1 implements List<Transform> 
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
   void removeWhere(bool test(Transform element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -8128,14 +8088,6 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 implements List<Elem
   }
 
   void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 

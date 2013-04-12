@@ -734,7 +734,7 @@ class JavaScriptBackend extends Backend {
    * the generic version that contains all possible type checks is
    * also stored in this map.
    */
-  final Map<String, Collection<ClassElement>> specializedGetInterceptors;
+  final Map<String, Set<ClassElement>> specializedGetInterceptors;
 
   /**
    * Set of classes whose methods are intercepted.
@@ -767,8 +767,7 @@ class JavaScriptBackend extends Backend {
         oneShotInterceptors = new Map<String, Selector>(),
         interceptedElements = new Map<SourceString, Set<Element>>(),
         rti = new RuntimeTypes(compiler),
-        specializedGetInterceptors =
-            new Map<String, Collection<ClassElement>>(),
+        specializedGetInterceptors = new Map<String, Set<ClassElement>>(),
         super(compiler, JAVA_SCRIPT_CONSTANT_SYSTEM) {
     emitter = disableEval
         ? new CodeEmitterNoEvalTask(compiler, namer, generateSourceMap)

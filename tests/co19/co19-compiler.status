@@ -221,6 +221,21 @@ LibTest/core/List/addLast_A01_t03: Fail # Issue 397
 LibTest/core/List/addLast_A02_t01: Fail # Issue 397
 LibTest/core/List/filter_A03_t01: Fail # Issue 397
 
+LibTest/collection/Queue/Queue.from_A01_t01: fail # Issue 400
+LibTest/core/List/List.from_A01_t01: fail # Issue 400
+LibTest/core/List/getRange_A01_t01: fail # Issue 400
+LibTest/core/List/getRange_A02_t01: fail # Issue 400
+LibTest/core/List/getRange_A04_t01: fail # Issue 400
+LibTest/core/List/getRange_A05_t01: fail # Issue 400
+LibTest/core/List/operator_subscript_A01_t02: fail # Issue 400
+LibTest/core/Match/pattern_A01_t01: fail # Issue 400
+LibTest/core/Match/str_A01_t01: fail # Issue 400
+LibTest/core/RegExp/allMatches_A01_t01: fail # Issue 400
+LibTest/core/Set/intersection_A01_t02: fail # Issue 400
+LibTest/core/String/String_class_A01_t01: fail # Issue 400
+LibTest/core/String/concat_A01_t01: fail # Issue 400
+LibTest/core/String/concat_A02_t01: fail # Issue 400
+LibTest/core/String/hashCode_A01_t01: fail # Issue 400
 LibTest/core/List/operator_subscript_A01_t02: Fail # getRange now takes end-argument and returns Iterable. Issue 399
 
 [ $runtime == drt && $compiler == none ]

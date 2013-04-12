@@ -225,19 +225,15 @@ abstract class QueueTest {
     queue.remove(10);
     testLength(29, queue);
 
-    queue.removeAll([4, 6]);
-    testLength(23, queue);
-
-    queue.retainAll([1, 3, 5, 7, 9, 10]);  // Remove 2 and 8.
-    testLength(17, queue);
-
     queue.removeWhere((x) => x == 7);
-    testLength(14, queue);
+    testLength(26, queue);
 
     queue.retainWhere((x) => x != 3);
-    testLength(11, queue);
+    testLength(23, queue);
 
-    Expect.listEquals([9, 1, 5, 9, 10, 1, 5, 9, 10, 1, 5], queue.toList());
+    Expect.listEquals(
+        [6, 8, 9, 1, 2, 4, 5, 6, 8, 9, 10, 1, 2, 4, 5, 6, 8, 9, 10, 1, 2, 4, 5],
+        queue.toList());
   }
 
   void testLarge() {
@@ -271,13 +267,10 @@ abstract class QueueTest {
     }
     Expect.equals(N - 1000, queue.length);
 
-    queue.retainAll(set);
-    Expect.equals(N - 1000, queue.length);
-
     queue.remove(N >> 1);
     Expect.equals(N - 1001, queue.length);
 
-    queue.removeAll(set);
+    queue.clear();
     Expect.equals(0, queue.length);
     Expect.isTrue(queue.isEmpty);
 

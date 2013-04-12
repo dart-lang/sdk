@@ -13,7 +13,7 @@ class _ObjectArray<E> implements List<E> {
   void operator []=(int index, E value) native "ObjectArray_setIndexed";
 
   String toString() {
-    return Collections.collectionToString(this);
+    return ToString.iterableToString(this);
   }
 
   int get length native "ObjectArray_getLength";
@@ -35,17 +35,6 @@ class _ObjectArray<E> implements List<E> {
   }
 
   void remove(Object element) {
-    throw new UnsupportedError(
-        "Cannot remove element of a non-extendable array");
-  }
-
-  // Collection interface.
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError(
-        "Cannot remove element of a non-extendable array");
-  }
-
-  void retainAll(Iterable elements) {
     throw new UnsupportedError(
         "Cannot remove element of a non-extendable array");
   }
@@ -288,16 +277,6 @@ class _ImmutableArray<E> implements List<E> {
         "Cannot modify an immutable array");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError(
-        "Cannot modify an immutable array");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError(
-        "Cannot modify an immutable array");
-  }
-
   void removeWhere(bool test(E element)) {
     throw new UnsupportedError(
         "Cannot modify an immutable array");
@@ -429,7 +408,7 @@ class _ImmutableArray<E> implements List<E> {
   }
 
   String toString() {
-    return Collections.collectionToString(this);
+    return ToString.iterableToString(this);
   }
 
   int indexOf(E element, [int start = 0]) {

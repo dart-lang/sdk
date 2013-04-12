@@ -308,7 +308,7 @@ void testLibrariesMap(Map libraries) {
   Expect.equals('Object', list_intf.superclass.simpleName);
   Expect.equals('dart.core', list_intf.owner.simpleName);
   Expect.isTrue(list_intf.isClass);
-  Expect.equals('Collection', list_intf.superinterfaces[0].simpleName);
+  Expect.equals('Iterable', list_intf.superinterfaces[0].simpleName);
   Expect.equals("ClassMirror on 'List'", list_intf.toString());
 
   // Lookup a class from a library and make sure it is sane.

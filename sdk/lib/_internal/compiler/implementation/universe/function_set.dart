@@ -73,7 +73,7 @@ class FunctionSetNode {
   // compact than a hash set. Once we get enough elements, we change
   // the representation to be a set to get faster contains checks.
   static const int MAX_ELEMENTS_IN_LIST = 8;
-  Collection<Element> elements = <Element>[];
+  var elements = <Element>[];
   bool isList = true;
 
   FunctionSetNode(this.name);

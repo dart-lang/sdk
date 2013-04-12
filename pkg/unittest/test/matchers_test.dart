@@ -461,7 +461,7 @@ void main() {
     });
   });
   
-  group('Collection Matchers', () {
+  group('Iterable Matchers', () {
 
     test('isEmpty', () {
       shouldPass([], isEmpty);

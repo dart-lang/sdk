@@ -462,8 +462,7 @@ class Elements {
 
   static bool isListSupertype(Element element, Compiler compiler) {
     LibraryElement coreLibrary = compiler.coreLibrary;
-    return (element == coreLibrary.find(const SourceString('Collection')))
-        || (element == coreLibrary.find(const SourceString('Iterable')));
+    return element == coreLibrary.find(const SourceString('Iterable'));
   }
 
   /// A `compareTo` function that places [Element]s in a consistent order based

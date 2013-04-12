@@ -148,9 +148,6 @@ abstract class CssClassSet implements Set<String> {
     _modify((s) => s.retainWhere(test));
   }
 
-  bool isSubsetOf(Collection<String> collection) =>
-    readClasses().isSubsetOf(collection);
-
   bool containsAll(Iterable<String> collection) =>
     readClasses().containsAll(collection);
 

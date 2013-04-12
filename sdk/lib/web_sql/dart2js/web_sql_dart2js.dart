@@ -354,14 +354,6 @@ class SqlResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
   void removeWhere(bool test(Map element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }

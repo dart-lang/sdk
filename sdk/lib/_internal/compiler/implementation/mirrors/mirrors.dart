@@ -169,7 +169,7 @@ abstract class MapInstanceMirror implements InstanceMirror {
   /**
    * Returns a collection containing all the keys in the map.
    */
-  Collection<String> get keys;
+  Iterable<String> get keys;
 
   /**
    * Returns a future on the instance mirror of the value for the given key or

@@ -155,14 +155,6 @@ $endif
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
   void removeWhere(bool test($E element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }

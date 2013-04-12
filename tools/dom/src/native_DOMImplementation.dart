@@ -126,8 +126,8 @@ class _DOMStringMap extends NativeFieldWrapperClass1 implements Map<String, Stri
   String remove(String key) native "DOMStringMap_remove_Callback";
   void clear() => Maps.clear(this);
   void forEach(void f(String key, String value)) => Maps.forEach(this, f);
-  Collection<String> get keys native "DOMStringMap_getKeys_Callback";
-  Collection<String> get values => Maps.getValues(this);
+  Iterable<String> get keys native "DOMStringMap_getKeys_Callback";
+  Iterable<String> get values => Maps.getValues(this);
   int get length => Maps.length(this);
   bool get isEmpty => Maps.isEmpty(this);
 }

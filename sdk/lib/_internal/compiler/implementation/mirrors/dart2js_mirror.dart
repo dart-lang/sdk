@@ -87,7 +87,7 @@ Dart2JsTypeMirror _convertTypeToTypeMirror(
   system.compiler.internalError("Unexpected type $type of kind ${type.kind}");
 }
 
-Collection<Dart2JsMemberMirror> _convertElementMemberToMemberMirrors(
+Iterable<Dart2JsMemberMirror> _convertElementMemberToMemberMirrors(
     Dart2JsContainerMirror library, Element element) {
   if (element.isSynthesized) {
     return const <Dart2JsMemberMirror>[];
@@ -1655,7 +1655,7 @@ class Dart2JsMapConstantMirror extends Dart2JsConstantMirror
 
   int get length => _constant.length;
 
-  Collection<String> get keys {
+  Iterable<String> get keys {
     // TODO(johnniwinther): Return an unmodifiable list instead.
     return new List<String>.from(_list);
   }

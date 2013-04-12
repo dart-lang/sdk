@@ -6730,10 +6730,6 @@ class Document extends Node
   @DocsEditable
   String get $dom_referrer native "Document_referrer_Getter";
 
-  @DomName('Document.securityPolicy')
-  @DocsEditable
-  DomSecurityPolicy get securityPolicy native "Document_securityPolicy_Getter";
-
   @DomName('Document.selectedStylesheetSet')
   @DocsEditable
   String get $dom_selectedStylesheetSet native "Document_selectedStylesheetSet_Getter";
@@ -7544,14 +7540,6 @@ class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeT
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
   void removeWhere(bool test(DomMimeType element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -7828,14 +7816,6 @@ class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin>
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
   void removeWhere(bool test(DomPlugin element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -7887,79 +7867,6 @@ class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin>
   @DomName('DOMPluginArray.refresh')
   @DocsEditable
   void refresh(bool reload) native "DOMPluginArray_refresh_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('SecurityPolicy')
-class DomSecurityPolicy extends NativeFieldWrapperClass1 {
-  DomSecurityPolicy.internal();
-
-  @DomName('DOMSecurityPolicy.allowsEval')
-  @DocsEditable
-  bool get allowsEval native "DOMSecurityPolicy_allowsEval_Getter";
-
-  @DomName('DOMSecurityPolicy.allowsInlineScript')
-  @DocsEditable
-  bool get allowsInlineScript native "DOMSecurityPolicy_allowsInlineScript_Getter";
-
-  @DomName('DOMSecurityPolicy.allowsInlineStyle')
-  @DocsEditable
-  bool get allowsInlineStyle native "DOMSecurityPolicy_allowsInlineStyle_Getter";
-
-  @DomName('DOMSecurityPolicy.isActive')
-  @DocsEditable
-  bool get isActive native "DOMSecurityPolicy_isActive_Getter";
-
-  @DomName('DOMSecurityPolicy.reportURIs')
-  @DocsEditable
-  List<String> get reportURIs native "DOMSecurityPolicy_reportURIs_Getter";
-
-  @DomName('DOMSecurityPolicy.allowsConnectionTo')
-  @DocsEditable
-  bool allowsConnectionTo(String url) native "DOMSecurityPolicy_allowsConnectionTo_Callback";
-
-  @DomName('DOMSecurityPolicy.allowsFontFrom')
-  @DocsEditable
-  bool allowsFontFrom(String url) native "DOMSecurityPolicy_allowsFontFrom_Callback";
-
-  @DomName('DOMSecurityPolicy.allowsFormAction')
-  @DocsEditable
-  bool allowsFormAction(String url) native "DOMSecurityPolicy_allowsFormAction_Callback";
-
-  @DomName('DOMSecurityPolicy.allowsFrameFrom')
-  @DocsEditable
-  bool allowsFrameFrom(String url) native "DOMSecurityPolicy_allowsFrameFrom_Callback";
-
-  @DomName('DOMSecurityPolicy.allowsImageFrom')
-  @DocsEditable
-  bool allowsImageFrom(String url) native "DOMSecurityPolicy_allowsImageFrom_Callback";
-
-  @DomName('DOMSecurityPolicy.allowsMediaFrom')
-  @DocsEditable
-  bool allowsMediaFrom(String url) native "DOMSecurityPolicy_allowsMediaFrom_Callback";
-
-  @DomName('DOMSecurityPolicy.allowsObjectFrom')
-  @DocsEditable
-  bool allowsObjectFrom(String url) native "DOMSecurityPolicy_allowsObjectFrom_Callback";
-
-  @DomName('DOMSecurityPolicy.allowsPluginType')
-  @DocsEditable
-  bool allowsPluginType(String type) native "DOMSecurityPolicy_allowsPluginType_Callback";
-
-  @DomName('DOMSecurityPolicy.allowsScriptFrom')
-  @DocsEditable
-  bool allowsScriptFrom(String url) native "DOMSecurityPolicy_allowsScriptFrom_Callback";
-
-  @DomName('DOMSecurityPolicy.allowsStyleFrom')
-  @DocsEditable
-  bool allowsStyleFrom(String url) native "DOMSecurityPolicy_allowsStyleFrom_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8264,14 +8171,6 @@ class DomStringList extends NativeFieldWrapperClass1 implements List<String> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
   void removeWhere(bool test(String element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -8559,14 +8458,6 @@ class _ChildrenElementList extends ListBase<Element> {
     }
   }
 
-  void removeAll(Iterable elements) {
-    _childElements.removeAll(elements);
-  }
-
-  void retainAll(Iterable elements) {
-    _childElements.retainAll(elements);
-  }
-
   void removeWhere(bool test(Element element)) {
     _childElements.removeWhere(test);
   }
@@ -8729,14 +8620,6 @@ class _FrozenElementList extends ListBase {
     throw new UnsupportedError('');
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError('');
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError('');
-  }
-
   void removeWhere(bool test(Element element)) {
     throw new UnsupportedError('');
   }
@@ -8895,7 +8778,7 @@ abstract class Element extends Node implements ElementTraversal {
    */
   CssClassSet get classes => new _ElementCssClassSet(this);
 
-  void set classes(Collection<String> value) {
+  void set classes(Iterable<String> value) {
     CssClassSet classSet = classes;
     classSet.clear();
     classSet.addAll(value);
@@ -10959,14 +10842,6 @@ class FileList extends NativeFieldWrapperClass1 implements List<File> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
   void removeWhere(bool test(File element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -11481,14 +11356,6 @@ class Float32Array extends ArrayBufferView implements List<double> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
   void removeWhere(bool test(num element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -11729,14 +11596,6 @@ class Float64Array extends ArrayBufferView implements List<double> {
   }
 
   void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -12432,14 +12291,6 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
   void removeWhere(bool test(Node element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -12654,14 +12505,6 @@ class HtmlCollection extends NativeFieldWrapperClass1 implements List<Node> {
   }
 
   void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -13613,14 +13456,6 @@ class IFrameElement extends _Element_Merged {
   @DomName('HTMLIFrameElement.sandbox')
   @DocsEditable
   void set sandbox(String value) native "HTMLIFrameElement_sandbox_Setter";
-
-  @DomName('HTMLIFrameElement.seamless')
-  @DocsEditable
-  bool get seamless native "HTMLIFrameElement_seamless_Getter";
-
-  @DomName('HTMLIFrameElement.seamless')
-  @DocsEditable
-  void set seamless(bool value) native "HTMLIFrameElement_seamless_Setter";
 
   @DomName('HTMLIFrameElement.src')
   @DocsEditable
@@ -15038,14 +14873,6 @@ class Int16Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
   void removeWhere(bool test(int element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -15289,14 +15116,6 @@ class Int32Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
   void removeWhere(bool test(int element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -15537,14 +15356,6 @@ class Int8Array extends ArrayBufferView implements List<int> {
   }
 
   void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -18246,14 +18057,6 @@ class _ChildNodeListLazy extends ListBase<Node> {
     _this.$dom_removeChild(node);
   }
 
-  void removeAll(Iterable elements) {
-    // This is not using the default removeAll from ListBase because
-    // DOM nodes can be efficiently removed in constant time.
-    for (var element in elements) {
-      remove(element);
-    }
-  }
-
   void _filter(bool test(Node node), bool removeMatching) {
     // This implementation of removeWhere/retainWhere is more efficient
     // than the default in ListBase. Child nodes can be removed in constant
@@ -18266,11 +18069,6 @@ class _ChildNodeListLazy extends ListBase<Node> {
       }
       child = nextChild;
     }
-  }
-
-  void retainAll(Iterable elements) {
-    Set retainSet = (elements is Set) ? elements : elements.toSet();
-    _filter(retainSet.contains, false);
   }
 
   void removeWhere(bool test(Node node)) {
@@ -18354,7 +18152,7 @@ class Node extends EventTarget {
     return new _ChildNodeListLazy(this);
   }
 
-  void set nodes(Collection<Node> value) {
+  void set nodes(Iterable<Node> value) {
     // Copy list first since we don't want liveness during iteration.
     // TODO(jacobr): there is a better way to do this.
     List copy = new List.from(value);
@@ -18860,14 +18658,6 @@ class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
   }
 
   void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -20913,14 +20703,6 @@ class ScriptElement extends _Element_Merged {
   @DocsEditable
   void set htmlFor(String value) native "HTMLScriptElement_htmlFor_Setter";
 
-  @DomName('HTMLScriptElement.nonce')
-  @DocsEditable
-  String get nonce native "HTMLScriptElement_nonce_Getter";
-
-  @DomName('HTMLScriptElement.nonce')
-  @DocsEditable
-  void set nonce(String value) native "HTMLScriptElement_nonce_Setter";
-
   @DomName('HTMLScriptElement.src')
   @DocsEditable
   String get src native "HTMLScriptElement_src_Getter";
@@ -21014,51 +20796,6 @@ class ScriptProfileNode extends NativeFieldWrapperClass1 {
   @DomName('ScriptProfileNode.children')
   @DocsEditable
   List<ScriptProfileNode> children() native "ScriptProfileNode_children_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('SecurityPolicyViolationEvent')
-class SecurityPolicyViolationEvent extends Event {
-  SecurityPolicyViolationEvent.internal() : super.internal();
-
-  @DomName('SecurityPolicyViolationEvent.blockedURI')
-  @DocsEditable
-  String get blockedUri native "SecurityPolicyViolationEvent_blockedURI_Getter";
-
-  @DomName('SecurityPolicyViolationEvent.documentURI')
-  @DocsEditable
-  String get documentUri native "SecurityPolicyViolationEvent_documentURI_Getter";
-
-  @DomName('SecurityPolicyViolationEvent.effectiveDirective')
-  @DocsEditable
-  String get effectiveDirective native "SecurityPolicyViolationEvent_effectiveDirective_Getter";
-
-  @DomName('SecurityPolicyViolationEvent.lineNumber')
-  @DocsEditable
-  int get lineNumber native "SecurityPolicyViolationEvent_lineNumber_Getter";
-
-  @DomName('SecurityPolicyViolationEvent.originalPolicy')
-  @DocsEditable
-  String get originalPolicy native "SecurityPolicyViolationEvent_originalPolicy_Getter";
-
-  @DomName('SecurityPolicyViolationEvent.referrer')
-  @DocsEditable
-  String get referrer native "SecurityPolicyViolationEvent_referrer_Getter";
-
-  @DomName('SecurityPolicyViolationEvent.sourceFile')
-  @DocsEditable
-  String get sourceFile native "SecurityPolicyViolationEvent_sourceFile_Getter";
-
-  @DomName('SecurityPolicyViolationEvent.violatedDirective')
-  @DocsEditable
-  String get violatedDirective native "SecurityPolicyViolationEvent_violatedDirective_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21498,14 +21235,6 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
   void removeWhere(bool test(SourceBuffer element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -21829,14 +21558,6 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
   }
 
   void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -22301,13 +22022,13 @@ class Storage extends NativeFieldWrapperClass1 implements Map<String, String>
     }
   }
 
-  Collection<String> get keys {
+  Iterable<String> get keys {
     final keys = [];
     forEach((k, v) => keys.add(k));
     return keys;
   }
 
-  Collection<String> get values {
+  Iterable<String> get values {
     final values = [];
     forEach((k, v) => values.add(v));
     return values;
@@ -23581,14 +23302,6 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
   void removeWhere(bool test(TextTrackCue element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -23803,14 +23516,6 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
   }
 
   void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -24245,14 +23950,6 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
   }
 
   void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -24773,14 +24470,6 @@ class Uint16Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
   void removeWhere(bool test(int element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -25021,14 +24710,6 @@ class Uint32Array extends ArrayBufferView implements List<int> {
   }
 
   void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -25275,14 +24956,6 @@ class Uint8Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
   void removeWhere(bool test(int element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -25521,14 +25194,6 @@ class Uint8ClampedArray extends Uint8Array implements List<int> {
   }
 
   void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -27638,14 +27303,6 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<Rect> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
   void removeWhere(bool test(Rect element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -27868,14 +27525,6 @@ class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
   void removeWhere(bool test(CssRule element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -28082,14 +27731,6 @@ class _CssValueList extends _CSSValue implements List<_CSSValue> {
   }
 
   void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -28538,14 +28179,6 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
   void removeWhere(bool test(Entry element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -28752,14 +28385,6 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<_EntrySyn
   }
 
   void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -29030,14 +28655,6 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
   }
 
   void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -29341,14 +28958,6 @@ class _NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
   void removeWhere(bool test(Node element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -29643,14 +29252,6 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
   void removeWhere(bool test(SpeechInputResult element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -29860,14 +29461,6 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
   void removeWhere(bool test(SpeechRecognitionResult element)) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -30074,14 +29667,6 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
   }
 
   void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -30295,7 +29880,7 @@ abstract class _AttributeMap implements Map<String, String> {
     }
   }
 
-  Collection<String> get keys {
+  Iterable<String> get keys {
     // TODO: generate a lazy collection instead.
     var attributes = _element.$dom_attributes;
     var keys = new List<String>();
@@ -30307,7 +29892,7 @@ abstract class _AttributeMap implements Map<String, String> {
     return keys;
   }
 
-  Collection<String> get values {
+  Iterable<String> get values {
     // TODO: generate a lazy collection instead.
     var attributes = _element.$dom_attributes;
     var values = new List<String>();
@@ -30448,7 +30033,7 @@ class _DataAttributeMap implements Map<String, String> {
     });
   }
 
-  Collection<String> get keys {
+  Iterable<String> get keys {
     final keys = new List<String>();
     $dom_attributes.forEach((String key, String value) {
       if (_matches(key)) {
@@ -30458,7 +30043,7 @@ class _DataAttributeMap implements Map<String, String> {
     return keys;
   }
 
-  Collection<String> get values {
+  Iterable<String> get values {
     final values = new List<String>();
     $dom_attributes.forEach((String key, String value) {
       if (_matches(key)) {
@@ -30788,9 +30373,6 @@ abstract class CssClassSet implements Set<String> {
   void retainWhere(bool test(String name)) {
     _modify((s) => s.retainWhere(test));
   }
-
-  bool isSubsetOf(Collection<String> collection) =>
-    readClasses().isSubsetOf(collection);
 
   bool containsAll(Iterable<String> collection) =>
     readClasses().containsAll(collection);
@@ -32647,10 +32229,6 @@ class _WrappedList<E> implements List<E> {
 
   void remove(Object element) { _list.remove(element); }
 
-  void removeAll(Iterable elements) { _list.removeAll(elements); }
-
-  void retainAll(Iterable elements) { _list.retainAll(elements); }
-
   void removeWhere(bool test(E element)) { _list.removeWhere(test); }
 
   void retainWhere(bool test(E element)) { _list.retainWhere(test); }
@@ -33756,8 +33334,8 @@ class _DOMStringMap extends NativeFieldWrapperClass1 implements Map<String, Stri
   String remove(String key) native "DOMStringMap_remove_Callback";
   void clear() => Maps.clear(this);
   void forEach(void f(String key, String value)) => Maps.forEach(this, f);
-  Collection<String> get keys native "DOMStringMap_getKeys_Callback";
-  Collection<String> get values => Maps.getValues(this);
+  Iterable<String> get keys native "DOMStringMap_getKeys_Callback";
+  Iterable<String> get values => Maps.getValues(this);
   int get length => Maps.length(this);
   bool get isEmpty => Maps.isEmpty(this);
 }

@@ -59,71 +59,6 @@ class IterableMixinWorkaround {
   }
 
   /**
-   * Simple implementation for [Collection.removeAll].
-   *
-   * This implementation assumes that [Collection.remove] on [collection]
-   * is efficient. The [:remove:] method on [List] objects is typically
-   * not efficient since it requires linear search to find an element.
-   */
-  static void removeAll(Collection collection, Iterable elementsToRemove) {
-    for (Object object in elementsToRemove) {
-      collection.remove(object);
-    }
-  }
-
-  /**
-   * Implementation of [Collection.removeAll] for lists.
-   *
-   * This implementation assumes that [Collection.remove] is not efficient
-   * (as it usually isn't on a [List]) and uses [Collection.removeMathcing]
-   * instead of just repeatedly calling remove.
-   */
-  static void removeAllList(Collection collection, Iterable elementsToRemove) {
-    Set setToRemove;
-    // Assume [contains] is efficient on a Set.
-    if (elementsToRemove is Set) {
-      setToRemove = elementsToRemove;
-    } else {
-      setToRemove = elementsToRemove.toSet();
-    }
-    collection.removeWhere(setToRemove.contains);
-  }
-
-  /**
-   * Simple implemenation for [Collection.retainAll].
-   *
-   * This implementation assumes that [Collecton.retainWhere] on [collection]
-   * is efficient.
-   */
-  static void retainAll(Collection collection, Iterable elementsToRetain) {
-    Set lookup;
-    if (elementsToRetain is Set) {
-      lookup = elementsToRetain;
-    } else {
-      lookup = elementsToRetain.toSet();
-    }
-    if (lookup.isEmpty) {
-      collection.clear();
-      return;
-    }
-    collection.retainWhere(lookup.contains);
-  }
-
-  /**
-   * Simple implemenation for [Collection.removeWhere].
-   *
-   * This implementation assumes that [Collecton.removeAll] on [collection] is
-   * efficient.
-   */
-  static void removeWhere(Collection collection, bool test(var element)) {
-    List elementsToRemove = [];
-    for (var element in collection) {
-      if (test(element)) elementsToRemove.add(element);
-    }
-    collection.removeAll(elementsToRemove);
-  }
-
-  /**
    * Removes elements matching [test] from [list].
    *
    * This is performed in two steps, to avoid exposing an inconsistent state
@@ -149,20 +84,6 @@ class IterableMixinWorkaround {
     }
   }
 
-  /**
-   * Simple implemenation for [Collection.retainWhere].
-   *
-   * This implementation assumes that [Collecton.removeAll] on [collection] is
-   * efficient.
-   */
-  static void retainWhere(Collection collection, bool test(var element)) {
-    List elementsToRemove = [];
-    for (var element in collection) {
-      if (!test(element)) elementsToRemove.add(element);
-    }
-    collection.removeAll(elementsToRemove);
-  }
-
   static bool isEmpty(Iterable iterable) {
     return !iterable.iterator.moveNext();
   }
@@ -185,32 +106,6 @@ class IterableMixinWorkaround {
       result = it.current;
     } while(it.moveNext());
     return result;
-  }
-
-  static dynamic min(Iterable iterable, [int compare(var a, var b)]) {
-    if (compare == null) compare = Comparable.compare;
-    Iterator it = iterable.iterator;
-    if (!it.moveNext()) {
-      return null;
-    }
-    var min = it.current;
-    while (it.moveNext()) {
-      if (compare(min, it.current) > 0) min = it.current;
-    }
-    return min;
-  }
-
-  static dynamic max(Iterable iterable, [int compare(var a, var b)]) {
-    if (compare == null) compare = Comparable.compare;
-    Iterator it = iterable.iterator;
-    if (!it.moveNext()) {
-      return null;
-    }
-    var max = it.current;
-    while (it.moveNext()) {
-      if (compare(max, it.current) < 0) max = it.current;
-    }
-    return max;
   }
 
   static dynamic single(Iterable iterable) {
@@ -430,11 +325,6 @@ class IterableMixinWorkaround {
     }
     return result;
   }
-}
-
-class Collections {
-  static String collectionToString(Collection c)
-      => ToString.collectionToString(c);
 }
 
 /**

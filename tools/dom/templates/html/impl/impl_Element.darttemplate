@@ -180,14 +180,6 @@ class _ChildrenElementList extends ListBase<Element> {
     }
   }
 
-  void removeAll(Iterable elements) {
-    _childElements.removeAll(elements);
-  }
-
-  void retainAll(Iterable elements) {
-    _childElements.retainAll(elements);
-  }
-
   void removeWhere(bool test(Element element)) {
     _childElements.removeWhere(test);
   }
@@ -350,14 +342,6 @@ class _FrozenElementList extends ListBase {
     throw new UnsupportedError('');
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError('');
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError('');
-  }
-
   void removeWhere(bool test(Element element)) {
     throw new UnsupportedError('');
   }
@@ -515,7 +499,7 @@ $(ANNOTATIONS)abstract class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
    */
   CssClassSet get classes => new _ElementCssClassSet(this);
 
-  void set classes(Collection<String> value) {
+  void set classes(Iterable<String> value) {
     CssClassSet classSet = classes;
     classSet.clear();
     classSet.addAll(value);

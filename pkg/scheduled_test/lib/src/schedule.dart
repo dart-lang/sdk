@@ -348,7 +348,7 @@ class ScheduleState {
 class TaskQueue {
   // TODO(nweiz): make this a read-only view when issue 8321 is fixed.
   /// The tasks in the queue.
-  Collection<Task> get contents => _contents;
+  Iterable<Task> get contents => _contents;
   final _contents = new Queue<Task>();
 
   /// The name of the queue, for debugging purposes.
@@ -380,7 +380,7 @@ class TaskQueue {
   // TODO(nweiz): make this a read-only view when issue 8321 is fixed.
   /// The descriptions of all callbacks that are blocking the completion of
   /// [this].
-  Collection<String> get pendingCallbacks => _pendingCallbacks;
+  Iterable<String> get pendingCallbacks => _pendingCallbacks;
   final _pendingCallbacks = new Queue<String>();
 
   /// A completer that will be completed once [_pendingCallbacks] becomes empty

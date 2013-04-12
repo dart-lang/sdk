@@ -71,7 +71,7 @@ void renamePlaceholders(
   final Map<LibraryElement, Map<String, String>> renamed
       = new Map<LibraryElement, Map<String, String>>();
 
-  renameNodes(Collection<Node> nodes, renamer) {
+  renameNodes(Iterable<Node> nodes, renamer) {
     for (Node node in sorted(nodes, _compareNodes)) {
       renames[node] = renamer(node);
     }

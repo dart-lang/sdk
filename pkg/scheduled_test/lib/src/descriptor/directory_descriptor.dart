@@ -108,7 +108,7 @@ class DirectoryDescriptor extends Descriptor {
 
 /// A class for formatting errors thrown by [DirectoryDescriptor].
 class _DirectoryValidationError {
-  final Collection<String> errors;
+  final Iterable<String> errors;
 
   /// Flatten nested [_DirectoryValidationError]s in [errors] to create a single
   /// list of errors.
