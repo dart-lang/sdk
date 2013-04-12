@@ -6133,6 +6133,10 @@ class Document extends Node  native "*Document"
   @DocsEditable
   final String $dom_referrer;
 
+  @DomName('Document.securityPolicy')
+  @DocsEditable
+  final DomSecurityPolicy securityPolicy;
+
   @JSName('selectedStylesheetSet')
   @DomName('Document.selectedStylesheetSet')
   @DocsEditable
@@ -7282,6 +7286,77 @@ class DomPluginArray implements JavaScriptIndexingBehavior, List<DomPlugin> nati
   @DomName('DOMPluginArray.refresh')
   @DocsEditable
   void refresh(bool reload) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('SecurityPolicy')
+class DomSecurityPolicy native "*SecurityPolicy" {
+
+  @DomName('DOMSecurityPolicy.allowsEval')
+  @DocsEditable
+  final bool allowsEval;
+
+  @DomName('DOMSecurityPolicy.allowsInlineScript')
+  @DocsEditable
+  final bool allowsInlineScript;
+
+  @DomName('DOMSecurityPolicy.allowsInlineStyle')
+  @DocsEditable
+  final bool allowsInlineStyle;
+
+  @DomName('DOMSecurityPolicy.isActive')
+  @DocsEditable
+  final bool isActive;
+
+  @DomName('DOMSecurityPolicy.reportURIs')
+  @DocsEditable
+  @Returns('DomStringList')
+  @Creates('DomStringList')
+  final List<String> reportURIs;
+
+  @DomName('DOMSecurityPolicy.allowsConnectionTo')
+  @DocsEditable
+  bool allowsConnectionTo(String url) native;
+
+  @DomName('DOMSecurityPolicy.allowsFontFrom')
+  @DocsEditable
+  bool allowsFontFrom(String url) native;
+
+  @DomName('DOMSecurityPolicy.allowsFormAction')
+  @DocsEditable
+  bool allowsFormAction(String url) native;
+
+  @DomName('DOMSecurityPolicy.allowsFrameFrom')
+  @DocsEditable
+  bool allowsFrameFrom(String url) native;
+
+  @DomName('DOMSecurityPolicy.allowsImageFrom')
+  @DocsEditable
+  bool allowsImageFrom(String url) native;
+
+  @DomName('DOMSecurityPolicy.allowsMediaFrom')
+  @DocsEditable
+  bool allowsMediaFrom(String url) native;
+
+  @DomName('DOMSecurityPolicy.allowsObjectFrom')
+  @DocsEditable
+  bool allowsObjectFrom(String url) native;
+
+  @DomName('DOMSecurityPolicy.allowsPluginType')
+  @DocsEditable
+  bool allowsPluginType(String type) native;
+
+  @DomName('DOMSecurityPolicy.allowsScriptFrom')
+  @DocsEditable
+  bool allowsScriptFrom(String url) native;
+
+  @DomName('DOMSecurityPolicy.allowsStyleFrom')
+  @DocsEditable
+  bool allowsStyleFrom(String url) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12750,6 +12825,10 @@ class IFrameElement extends Element native "*HTMLIFrameElement" {
   @DomName('HTMLIFrameElement.sandbox')
   @DocsEditable
   String sandbox;
+
+  @DomName('HTMLIFrameElement.seamless')
+  @DocsEditable
+  bool seamless;
 
   @DomName('HTMLIFrameElement.src')
   @DocsEditable
@@ -19202,6 +19281,10 @@ class ScriptElement extends Element native "*HTMLScriptElement" {
   @DocsEditable
   String htmlFor;
 
+  @DomName('HTMLScriptElement.nonce')
+  @DocsEditable
+  String nonce;
+
   @DomName('HTMLScriptElement.src')
   @DocsEditable
   String src;
@@ -19280,6 +19363,49 @@ class ScriptProfileNode native "*ScriptProfileNode" {
   @DomName('ScriptProfileNode.children')
   @DocsEditable
   List<ScriptProfileNode> children() native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('SecurityPolicyViolationEvent')
+class SecurityPolicyViolationEvent extends Event native "*SecurityPolicyViolationEvent" {
+
+  @JSName('blockedURI')
+  @DomName('SecurityPolicyViolationEvent.blockedURI')
+  @DocsEditable
+  final String blockedUri;
+
+  @JSName('documentURI')
+  @DomName('SecurityPolicyViolationEvent.documentURI')
+  @DocsEditable
+  final String documentUri;
+
+  @DomName('SecurityPolicyViolationEvent.effectiveDirective')
+  @DocsEditable
+  final String effectiveDirective;
+
+  @DomName('SecurityPolicyViolationEvent.lineNumber')
+  @DocsEditable
+  final int lineNumber;
+
+  @DomName('SecurityPolicyViolationEvent.originalPolicy')
+  @DocsEditable
+  final String originalPolicy;
+
+  @DomName('SecurityPolicyViolationEvent.referrer')
+  @DocsEditable
+  final String referrer;
+
+  @DomName('SecurityPolicyViolationEvent.sourceFile')
+  @DocsEditable
+  final String sourceFile;
+
+  @DomName('SecurityPolicyViolationEvent.violatedDirective')
+  @DocsEditable
+  final String violatedDirective;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

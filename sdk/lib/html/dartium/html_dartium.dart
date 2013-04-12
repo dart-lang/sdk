@@ -6730,6 +6730,10 @@ class Document extends Node
   @DocsEditable
   String get $dom_referrer native "Document_referrer_Getter";
 
+  @DomName('Document.securityPolicy')
+  @DocsEditable
+  DomSecurityPolicy get securityPolicy native "Document_securityPolicy_Getter";
+
   @DomName('Document.selectedStylesheetSet')
   @DocsEditable
   String get $dom_selectedStylesheetSet native "Document_selectedStylesheetSet_Getter";
@@ -7867,6 +7871,79 @@ class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin>
   @DomName('DOMPluginArray.refresh')
   @DocsEditable
   void refresh(bool reload) native "DOMPluginArray_refresh_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('SecurityPolicy')
+class DomSecurityPolicy extends NativeFieldWrapperClass1 {
+  DomSecurityPolicy.internal();
+
+  @DomName('DOMSecurityPolicy.allowsEval')
+  @DocsEditable
+  bool get allowsEval native "DOMSecurityPolicy_allowsEval_Getter";
+
+  @DomName('DOMSecurityPolicy.allowsInlineScript')
+  @DocsEditable
+  bool get allowsInlineScript native "DOMSecurityPolicy_allowsInlineScript_Getter";
+
+  @DomName('DOMSecurityPolicy.allowsInlineStyle')
+  @DocsEditable
+  bool get allowsInlineStyle native "DOMSecurityPolicy_allowsInlineStyle_Getter";
+
+  @DomName('DOMSecurityPolicy.isActive')
+  @DocsEditable
+  bool get isActive native "DOMSecurityPolicy_isActive_Getter";
+
+  @DomName('DOMSecurityPolicy.reportURIs')
+  @DocsEditable
+  List<String> get reportURIs native "DOMSecurityPolicy_reportURIs_Getter";
+
+  @DomName('DOMSecurityPolicy.allowsConnectionTo')
+  @DocsEditable
+  bool allowsConnectionTo(String url) native "DOMSecurityPolicy_allowsConnectionTo_Callback";
+
+  @DomName('DOMSecurityPolicy.allowsFontFrom')
+  @DocsEditable
+  bool allowsFontFrom(String url) native "DOMSecurityPolicy_allowsFontFrom_Callback";
+
+  @DomName('DOMSecurityPolicy.allowsFormAction')
+  @DocsEditable
+  bool allowsFormAction(String url) native "DOMSecurityPolicy_allowsFormAction_Callback";
+
+  @DomName('DOMSecurityPolicy.allowsFrameFrom')
+  @DocsEditable
+  bool allowsFrameFrom(String url) native "DOMSecurityPolicy_allowsFrameFrom_Callback";
+
+  @DomName('DOMSecurityPolicy.allowsImageFrom')
+  @DocsEditable
+  bool allowsImageFrom(String url) native "DOMSecurityPolicy_allowsImageFrom_Callback";
+
+  @DomName('DOMSecurityPolicy.allowsMediaFrom')
+  @DocsEditable
+  bool allowsMediaFrom(String url) native "DOMSecurityPolicy_allowsMediaFrom_Callback";
+
+  @DomName('DOMSecurityPolicy.allowsObjectFrom')
+  @DocsEditable
+  bool allowsObjectFrom(String url) native "DOMSecurityPolicy_allowsObjectFrom_Callback";
+
+  @DomName('DOMSecurityPolicy.allowsPluginType')
+  @DocsEditable
+  bool allowsPluginType(String type) native "DOMSecurityPolicy_allowsPluginType_Callback";
+
+  @DomName('DOMSecurityPolicy.allowsScriptFrom')
+  @DocsEditable
+  bool allowsScriptFrom(String url) native "DOMSecurityPolicy_allowsScriptFrom_Callback";
+
+  @DomName('DOMSecurityPolicy.allowsStyleFrom')
+  @DocsEditable
+  bool allowsStyleFrom(String url) native "DOMSecurityPolicy_allowsStyleFrom_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13456,6 +13533,14 @@ class IFrameElement extends _Element_Merged {
   @DomName('HTMLIFrameElement.sandbox')
   @DocsEditable
   void set sandbox(String value) native "HTMLIFrameElement_sandbox_Setter";
+
+  @DomName('HTMLIFrameElement.seamless')
+  @DocsEditable
+  bool get seamless native "HTMLIFrameElement_seamless_Getter";
+
+  @DomName('HTMLIFrameElement.seamless')
+  @DocsEditable
+  void set seamless(bool value) native "HTMLIFrameElement_seamless_Setter";
 
   @DomName('HTMLIFrameElement.src')
   @DocsEditable
@@ -20703,6 +20788,14 @@ class ScriptElement extends _Element_Merged {
   @DocsEditable
   void set htmlFor(String value) native "HTMLScriptElement_htmlFor_Setter";
 
+  @DomName('HTMLScriptElement.nonce')
+  @DocsEditable
+  String get nonce native "HTMLScriptElement_nonce_Getter";
+
+  @DomName('HTMLScriptElement.nonce')
+  @DocsEditable
+  void set nonce(String value) native "HTMLScriptElement_nonce_Setter";
+
   @DomName('HTMLScriptElement.src')
   @DocsEditable
   String get src native "HTMLScriptElement_src_Getter";
@@ -20796,6 +20889,51 @@ class ScriptProfileNode extends NativeFieldWrapperClass1 {
   @DomName('ScriptProfileNode.children')
   @DocsEditable
   List<ScriptProfileNode> children() native "ScriptProfileNode_children_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('SecurityPolicyViolationEvent')
+class SecurityPolicyViolationEvent extends Event {
+  SecurityPolicyViolationEvent.internal() : super.internal();
+
+  @DomName('SecurityPolicyViolationEvent.blockedURI')
+  @DocsEditable
+  String get blockedUri native "SecurityPolicyViolationEvent_blockedURI_Getter";
+
+  @DomName('SecurityPolicyViolationEvent.documentURI')
+  @DocsEditable
+  String get documentUri native "SecurityPolicyViolationEvent_documentURI_Getter";
+
+  @DomName('SecurityPolicyViolationEvent.effectiveDirective')
+  @DocsEditable
+  String get effectiveDirective native "SecurityPolicyViolationEvent_effectiveDirective_Getter";
+
+  @DomName('SecurityPolicyViolationEvent.lineNumber')
+  @DocsEditable
+  int get lineNumber native "SecurityPolicyViolationEvent_lineNumber_Getter";
+
+  @DomName('SecurityPolicyViolationEvent.originalPolicy')
+  @DocsEditable
+  String get originalPolicy native "SecurityPolicyViolationEvent_originalPolicy_Getter";
+
+  @DomName('SecurityPolicyViolationEvent.referrer')
+  @DocsEditable
+  String get referrer native "SecurityPolicyViolationEvent_referrer_Getter";
+
+  @DomName('SecurityPolicyViolationEvent.sourceFile')
+  @DocsEditable
+  String get sourceFile native "SecurityPolicyViolationEvent_sourceFile_Getter";
+
+  @DomName('SecurityPolicyViolationEvent.violatedDirective')
+  @DocsEditable
+  String get violatedDirective native "SecurityPolicyViolationEvent_violatedDirective_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
