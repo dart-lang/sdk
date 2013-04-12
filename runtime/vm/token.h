@@ -170,6 +170,7 @@ namespace dart {
   KW(kNULL, "null", 0, kKeyword)                                               \
   KW(kOPERATOR, "operator", 0, kPseudoKeyword)                                 \
   KW(kPART, "part", 0, kPseudoKeyword)                                         \
+  KW(kRETHROW, "rethrow", 0, kKeyword)                                         \
   KW(kRETURN, "return", 0, kKeyword)                                           \
   KW(kSET, "set", 0, kPseudoKeyword)                                           \
   KW(kSTATIC, "static", 0, kPseudoKeyword)                                     \

@@ -4461,14 +4461,22 @@ int32_t Function::SourceFingerprint() const {
 }
 
 
-bool Function::CheckSourceFingerprint(intptr_t fp) const {
+bool Function::CheckSourceFingerprint(int32_t fp) const {
   if (SourceFingerprint() != fp) {
-    OS::Print("FP mismatch while recognizing method %s:"
-      " expecting %"Pd" found %d\n",
-      ToFullyQualifiedCString(),
-      fp,
-      SourceFingerprint());
-    return false;
+    const bool recalculatingFingerprints = false;
+    if (recalculatingFingerprints) {
+      // This output can be copied into a file, then used with sed
+      // to replace the old values.
+      // sed -i .bak -f /tmp/newkeys runtime/vm/intrinsifier.h
+      OS::Print("s/%d/%d/\n", fp, SourceFingerprint());
+    } else {
+      OS::Print("FP mismatch while recognizing method %s:"
+                " expecting %d found %d\n",
+                ToFullyQualifiedCString(),
+                fp,
+                SourceFingerprint());
+      return false;
+    }
   }
   return true;
 }

@@ -29,7 +29,7 @@ class RethrowTest {
           Expect.fail("Should have thrown an exception");
         } catch (e) {
           Expect.equals(true, identical(e, currentException));
-          throw;
+          rethrow;
           Expect.fail("Should have thrown an exception");
         }
       } on OtherException catch (e) {
@@ -47,7 +47,7 @@ class RethrowTest {
         Expect.fail("Should have thrown an exception");
       } catch (e) {
         Expect.equals(true, identical(e, currentException));
-        throw;
+        rethrow;
         Expect.fail("Should have thrown an exception");
       }
     } catch (e) {

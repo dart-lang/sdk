@@ -2079,18 +2079,18 @@ void EffectGraphVisitor::BuildConstructorCall(
 #define RECOGNIZED_LIST_FACTORY_LIST(V)                                        \
   V(ObjectArrayFactory, kArrayCid, 97987288)                                   \
   V(GrowableObjectArrayWithData, kGrowableObjectArrayCid, 816132033)           \
-  V(GrowableObjectArrayFactory, kGrowableObjectArrayCid, 224791427)            \
-  V(Int8ListFactory, kTypedDataInt8ArrayCid, 1178498933)                       \
-  V(Uint8ListFactory, kTypedDataUint8ArrayCid, 996047641)                      \
-  V(Uint8ClampedListFactory, kTypedDataUint8ClampedArrayCid, 1504313643)       \
-  V(Int16ListFactory, kTypedDataInt16ArrayCid, 1595869856)                     \
-  V(Uint16ListFactory, kTypedDataUint16ArrayCid, 665298027)                    \
-  V(Int32ListFactory, kTypedDataInt32ArrayCid, 728173538)                      \
-  V(Uint32ListFactory, kTypedDataUint32ArrayCid, 352036624)                    \
-  V(Int64ListFactory, kTypedDataInt64ArrayCid, 105935265)                      \
-  V(Uint64ListFactory, kTypedDataUint64ArrayCid, 943403644)                    \
-  V(Float64ListFactory, kTypedDataFloat64ArrayCid, 348533743)                  \
-  V(Float32ListFactory, kTypedDataFloat32ArrayCid, 1830794379)                 \
+  V(GrowableObjectArrayFactory, kGrowableObjectArrayCid, 369608996)            \
+  V(Int8ListFactory, kTypedDataInt8ArrayCid, 2066002614)                       \
+  V(Uint8ListFactory, kTypedDataUint8ArrayCid, 1883551322)                     \
+  V(Uint8ClampedListFactory, kTypedDataUint8ClampedArrayCid, 244333676)        \
+  V(Int16ListFactory, kTypedDataInt16ArrayCid, 335889889)                      \
+  V(Uint16ListFactory, kTypedDataUint16ArrayCid, 1552801708)                   \
+  V(Int32ListFactory, kTypedDataInt32ArrayCid, 1615677219)                     \
+  V(Uint32ListFactory, kTypedDataUint32ArrayCid, 1239540305)                   \
+  V(Int64ListFactory, kTypedDataInt64ArrayCid, 993438946)                      \
+  V(Uint64ListFactory, kTypedDataUint64ArrayCid, 1830907325)                   \
+  V(Float64ListFactory, kTypedDataFloat64ArrayCid, 1236037424)                 \
+  V(Float32ListFactory, kTypedDataFloat32ArrayCid, 570814412)                  \
 
 
 // Class that recognizes factories and returns corresponding result cid.

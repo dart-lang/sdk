@@ -30,6 +30,15 @@ const POWER_OF_2 = 0x1000000000;
 
 bigPower(i) => (i == 11) ? 0 : POWER_OF_2;
 
+cse(i) {
+  final a = i == 0 ? 0 : 1;
+  final b = i == 0 ? 2 : 3;
+  return a + b;
+}
+
+f17(b) => b ? 0 : 11;
+f18(b) => b ? 2 : 0;
+
 main() {
   for (var i = 0; i < 10000; i++) {
     f1(i);
@@ -48,7 +57,10 @@ main() {
     f14(i);
     f15(i);
     f16(i);
+    cse(i);
     bigPower(i);
+    f17(true);
+    f18(true);
   }
 
   Expect.equals(0, f1(0));
@@ -89,4 +101,13 @@ main() {
 
   Expect.equals(0, bigPower(11));
   Expect.equals(POWER_OF_2, bigPower(12));
+
+  Expect.equals(2, cse(0));
+  Expect.equals(4, cse(1));
+
+  Expect.equals(11, f17(false));
+  Expect.equals(0, f17(true));
+
+  Expect.equals(0, f18(false));
+  Expect.equals(2, f18(true));
 }

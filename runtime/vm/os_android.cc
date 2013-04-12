@@ -318,6 +318,11 @@ void OS::DebugBreak() {
 }
 
 
+char* OS::StrNDup(const char* s, intptr_t n) {
+  return strndup(s, n);
+}
+
+
 void OS::Print(const char* format, ...) {
   va_list args;
   va_start(args, format);

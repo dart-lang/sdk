@@ -81,6 +81,9 @@ class OS {
   // Debug break.
   static void DebugBreak();
 
+  // Not all platform support strndup.
+  static char* StrNDup(const char* s, intptr_t n);
+
   // Print formatted output to stdout/stderr for debugging.
   static void Print(const char* format, ...) PRINTF_ATTRIBUTE(1, 2);
   static void PrintErr(const char* format, ...) PRINTF_ATTRIBUTE(1, 2);

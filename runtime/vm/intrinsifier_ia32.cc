@@ -384,7 +384,8 @@ bool Intrinsifier::GrowableArray_setIndexed(Assembler* assembler) {
 }
 
 
-// Set length of growable object array.
+// Set length of growable object array. The length cannot
+// be greater than the length of the data container.
 // On stack: growable array (+2), length (+1), return-address (+0).
 bool Intrinsifier::GrowableArray_setLength(Assembler* assembler) {
   Label fall_through;
@@ -392,9 +393,6 @@ bool Intrinsifier::GrowableArray_setLength(Assembler* assembler) {
   __ movl(EBX, Address(ESP, + 1 * kWordSize));  // Length value.
   __ testl(EBX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi length.
-  __ movl(EDI, FieldAddress(EAX, GrowableObjectArray::data_offset()));
-  __ cmpl(EBX, FieldAddress(EDI, Array::length_offset()));
-  __ j(ABOVE, &fall_through, Assembler::kNearJump);
   __ movl(FieldAddress(EAX, GrowableObjectArray::length_offset()), EBX);
   __ ret();
   __ Bind(&fall_through);
@@ -1589,14 +1587,21 @@ bool Intrinsifier::OneByteString_substringUnchecked(Assembler* assembler) {
   __ movl(ECX, Address(ESP, + kEndIndexOffset));
   __ SmiUntag(ECX);
   __ subl(ECX, EBX);
+  __ xorl(EDX, EDX);
+  // EDI: Start address to copy from (untagged).
   // ECX: Untagged number of bytes to copy.
-  ASSERT(CTX == ESI);
-  __ pushl(ESI);  // Preserve CTX.
-  __ movl(ESI, EDI);  // from.
-  __ leal(EDI, FieldAddress(EAX, OneByteString::data_offset()));  // to.
-  __ rep_movsb();
-  __ popl(ESI);  // Restore CTX.
-
+  // EAX: Tagged result string.
+  // EDX: Loop counter.
+  // EBX: Scratch register.
+  Label loop, check;
+  __ jmp(&check, Assembler::kNearJump);
+  __ Bind(&loop);
+  __ movzxb(EBX, Address(EDI, EDX, TIMES_1, 0));
+  __ movb(FieldAddress(EAX, EDX, TIMES_1, OneByteString::data_offset()), BL);
+  __ incl(EDX);
+  __ Bind(&check);
+  __ cmpl(EDX, ECX);
+  __ j(LESS, &loop, Assembler::kNearJump);
   __ ret();
   __ Bind(&fall_through);
   return false;

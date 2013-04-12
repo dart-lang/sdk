@@ -88,7 +88,8 @@ enum Register {
 };
 
 
-// Values for double-precision floating point registers.
+// Values for floating point registers.
+// Double-precision values use register pairs.
 enum FRegister {
   F0  =  0,
   F1  =  1,
@@ -161,6 +162,16 @@ const RegList kAbiPreservedCpuRegs =
 const int kAbiPreservedCpuRegCount = 8;
 
 
+// FPU registers 20 - 31 are preserved across calls.
+const FRegister kAbiFirstPreservedFpuReg = F20;
+const FRegister kAbiLastPreservedFpuReg =
+    static_cast<FRegister>(kNumberOfFRegisters - 1);
+
+// FPU registers 0 - 19 are not preserved across calls.
+const FRegister kDartFirstVolatileFpuReg = F0;
+const FRegister kDartLastVolatileFpuReg = F19;
+const int kDartVolatileFpuRegCount = 20;
+
 // Dart stack frame layout.
 static const int kLastParamSlotIndex = 3;
 static const int kFirstLocalSlotIndex = -2;
@@ -182,14 +193,26 @@ enum InstructionFields {
   kOpcodeBits = 6,
   kRsShift = 21,
   kRsBits = 5,
+  kFmtShift = 21,
+  kFmtBits = 5,
   kRtShift = 16,
   kRtBits = 5,
+  kFtShift = 16,
+  kFtBits = 5,
   kRdShift = 11,
   kRdBits = 5,
+  kFsShift = 11,
+  kFsBits = 5,
   kSaShift = 6,
   kSaBits = 5,
+  kFdShift = 6,
+  kFdBits = 5,
   kFunctionShift = 0,
   kFunctionBits = 6,
+  kCop1FnShift = 0,
+  kCop1FnBits = 6,
+  kCop1SubShift = 21,
+  kCop1SubBits = 5,
   kImmShift = 0,
   kImmBits = 16,
   kInstrShift = 0,
@@ -322,6 +345,24 @@ enum RtRegImm {
 };
 
 
+enum Cop1Function {
+  COP1_ADD = 0,
+  COP1_MOV = 6,
+};
+
+enum Cop1Sub {
+  COP1_MF = 0,
+  COP1_MT = 4,
+};
+
+enum Format {
+  FMT_S = 16,
+  FMT_D = 17,
+  FMT_W = 20,
+  FMT_L = 21,
+  FMT_PS = 22,
+};
+
 class Instr {
  public:
   enum {
@@ -371,6 +412,18 @@ class Instr {
     return static_cast<Register>(Bits(kRdShift, kRdBits));
   }
 
+  inline FRegister FsField() const {
+    return static_cast<FRegister>(Bits(kFsShift, kFsBits));
+  }
+
+  inline FRegister FtField() const {
+    return static_cast<FRegister>(Bits(kFtShift, kFtBits));
+  }
+
+  inline FRegister FdField() const {
+    return static_cast<FRegister>(Bits(kFdShift, kFdBits));
+  }
+
   inline int SaField() const {
     return Bits(kSaShift, kSaBits);
   }
@@ -398,6 +451,22 @@ class Instr {
 
   inline bool IsBreakPoint() {
     return (OpcodeField() == SPECIAL) && (FunctionField() == BREAK);
+  }
+
+  inline Cop1Function Cop1FunctionField() const {
+    return static_cast<Cop1Function>(Bits(kCop1FnShift, kCop1FnBits));
+  }
+
+  inline Cop1Sub Cop1SubField() const {
+    return static_cast<Cop1Sub>(Bits(kCop1SubShift, kCop1SubBits));
+  }
+
+  inline bool HasFormat() const {
+    return (OpcodeField() == COP1) && (Bit(25) == 1);
+  }
+
+  inline Format FormatField() const {
+    return static_cast<Format>(Bits(kFmtShift, kFmtBits));
   }
 
   // Instructions are read out of a code stream. The only way to get a

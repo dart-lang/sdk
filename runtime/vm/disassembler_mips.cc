@@ -31,8 +31,11 @@ class MIPSDecoder : public ValueObject {
 
   // Printing of common values.
   void PrintRegister(Register reg);
+  void PrintFRegister(FRegister reg);
+  void PrintFormat(Instr* instr);
 
   int FormatRegister(Instr* instr, const char* format);
+  int FormatFRegister(Instr* instr, const char* format);
   int FormatOption(Instr* instr, const char* format);
   void Format(Instr* instr, const char* format);
   void Unknown(Instr* instr);
@@ -40,6 +43,7 @@ class MIPSDecoder : public ValueObject {
   void DecodeSpecial(Instr* instr);
   void DecodeSpecial2(Instr* instr);
   void DecodeRegImm(Instr* instr);
+  void DecodeCop1(Instr* instr);
 
   // Convenience functions.
   char* get_buffer() const { return buffer_; }
@@ -79,10 +83,25 @@ static const char* reg_names[kNumberOfCpuRegisters] = {
 };
 
 
+static const char* freg_names[kNumberOfFRegisters] = {
+  "f0" , "f1" , "f2" , "f3" , "f4" , "f5" , "f6" , "f7" ,
+  "f8" , "f9" , "f10", "f11", "f12", "f13", "f14", "f15",
+  "f16", "f17", "f18", "f19", "f20", "f21", "f22", "f23",
+  "f24", "f25", "f26", "f27", "f28", "f29", "f30", "f31",
+};
+
+
 void MIPSDecoder::PrintRegister(Register reg) {
   ASSERT(0 <= reg);
   ASSERT(reg < kNumberOfCpuRegisters);
   Print(reg_names[reg]);
+}
+
+
+void MIPSDecoder::PrintFRegister(FRegister reg) {
+  ASSERT(0 <= reg);
+  ASSERT(reg < kNumberOfFRegisters);
+  Print(freg_names[reg]);
 }
 
 
@@ -106,6 +125,57 @@ int MIPSDecoder::FormatRegister(Instr* instr, const char* format) {
   }
   UNREACHABLE();
   return -1;
+}
+
+
+int MIPSDecoder::FormatFRegister(Instr* instr, const char* format) {
+  ASSERT(format[0] == 'f');
+  switch (format[1]) {
+    case 's': {  // 'fs: Fs register
+      PrintFRegister(instr->FsField());
+      return 2;
+    }
+    case 't': {  // 'ft: Ft register
+      PrintFRegister(instr->FtField());
+      return 2;
+    }
+    case 'd': {  // 'fd: Fd register
+      PrintFRegister(instr->FdField());
+      return 2;
+    }
+  }
+  UNREACHABLE();
+  return -1;
+}
+
+
+void MIPSDecoder::PrintFormat(Instr *instr) {
+  switch (instr->FormatField()) {
+    case FMT_S: {
+      Print("s");
+      break;
+    }
+    case FMT_D: {
+      Print("d");
+      break;
+    }
+    case FMT_W: {
+      Print("w");
+      break;
+    }
+    case FMT_L: {
+      Print("l");
+      break;
+    }
+    case FMT_PS: {
+      Print("ps");
+      break;
+    }
+    default: {
+      Print("unknown");
+      break;
+    }
+  }
 }
 
 
@@ -169,6 +239,15 @@ int MIPSDecoder::FormatOption(Instr* instr, const char* format) {
     }
     case 'r': {
       return FormatRegister(instr, format);
+    }
+    case 'f': {
+      if (format[1] == 'm') {
+        ASSERT(STRING_STARTS_WITH(format, "fmt"));
+        PrintFormat(instr);
+        return 3;
+      } else {
+        return FormatFRegister(instr, format);
+      }
     }
     case 's': {
       ASSERT(STRING_STARTS_WITH(format, "sa"));
@@ -397,6 +476,51 @@ void MIPSDecoder::DecodeRegImm(Instr* instr) {
   }
 }
 
+void MIPSDecoder::DecodeCop1(Instr* instr) {
+  ASSERT(instr->OpcodeField() == COP1);
+  if (instr->HasFormat()) {
+    // If the rs field is a valid format, then the function field identifies
+    // the instruction.
+    switch (instr->Cop1FunctionField()) {
+      case COP1_ADD: {
+        Format(instr, "add.'fmt 'fd, 'fs, 'ft");
+        break;
+      }
+      case COP1_MOV: {
+        Format(instr, "mov.'fmt 'fd, 'fs");
+        break;
+      }
+      default: {
+        Unknown(instr);
+        break;
+      }
+    }
+  } else {
+    // If the rs field isn't a valid format, then it must be a sub-opcode.
+    switch (instr->Cop1SubField()) {
+      case COP1_MF: {
+        if (instr->Bits(0, 11) != 0) {
+          Unknown(instr);
+        } else {
+          Format(instr, "mfc1 'rt, 'fs");
+        }
+        break;
+      }
+      case COP1_MT: {
+        if (instr->Bits(0, 11) != 0) {
+          Unknown(instr);
+        } else {
+          Format(instr, "mtc1 'rt, 'fs");
+        }
+        break;
+      }
+      default: {
+        Unknown(instr);
+        break;
+      }
+    }
+  }
+}
 
 void MIPSDecoder::InstructionDecode(Instr* instr) {
   switch (instr->OpcodeField()) {
@@ -410,6 +534,10 @@ void MIPSDecoder::InstructionDecode(Instr* instr) {
     }
     case REGIMM: {
       DecodeRegImm(instr);
+      break;
+    }
+    case COP1: {
+      DecodeCop1(instr);
       break;
     }
     case ADDIU: {
@@ -460,6 +588,10 @@ void MIPSDecoder::InstructionDecode(Instr* instr) {
       Format(instr, "lbu 'rt, 'imms('rs)");
       break;
     }
+    case LDC1: {
+      Format(instr, "ldc1 'ft, 'imms('rs)");
+      break;
+    }
     case LH: {
       Format(instr, "lh 'rt, 'imms('rs)");
       break;
@@ -470,6 +602,10 @@ void MIPSDecoder::InstructionDecode(Instr* instr) {
     }
     case LW: {
       Format(instr, "lw 'rt, 'imms('rs)");
+      break;
+    }
+    case LWC1: {
+      Format(instr, "lwc1 'ft, 'imms('rs)");
       break;
     }
     case ORI: {
@@ -484,8 +620,16 @@ void MIPSDecoder::InstructionDecode(Instr* instr) {
       Format(instr, "sh 'rt, 'imms('rs)");
       break;
     }
+    case SDC1: {
+      Format(instr, "sdc1 'ft, 'imms('rs)");
+      break;
+    }
     case SW: {
       Format(instr, "sw 'rt, 'imms('rs)");
+      break;
+    }
+    case SWC1: {
+      Format(instr, "swc1 'ft, 'imms('rs)");
       break;
     }
     default: {

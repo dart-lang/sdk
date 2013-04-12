@@ -6411,10 +6411,12 @@ AstNode* Parser::ParseStatement() {
   } else if (CurrentToken() == Token::kSEMICOLON) {
     // Empty statement, nothing to do.
     ConsumeToken();
-  } else if ((CurrentToken() == Token::kTHROW) &&
-             (LookaheadToken(1) == Token::kSEMICOLON)) {
+  } else if ((CurrentToken() == Token::kRETHROW) ||
+            ((CurrentToken() == Token::kTHROW) &&
+             (LookaheadToken(1) == Token::kSEMICOLON))) {
     // Rethrow of current exception. Throwing of an exception object
     // is an expression and is handled in ParseExpr().
+    // TODO(hausner): remove support for 'throw;'.
     ConsumeToken();
     ExpectSemicolon();
     // Check if it is ok to do a rethrow.

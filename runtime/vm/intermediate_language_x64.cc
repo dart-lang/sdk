@@ -155,12 +155,6 @@ static bool IsPowerOfTwoKind(intptr_t v1, intptr_t v2) {
 }
 
 
-// Detect pattern when one value is increment of another.
-static bool IsIncrementKind(intptr_t v1, intptr_t v2) {
-  return ((v1 == v2 + 1) || (v1 + 1 == v2));
-}
-
-
 bool IfThenElseInstr::IsSupported() {
   return true;
 }
@@ -181,11 +175,6 @@ bool IfThenElseInstr::Supports(ComparisonInstr* comparison,
   if (!BindsToSmiConstant(v1, &v1_value) ||
       !BindsToSmiConstant(v2, &v2_value)) {
     return false;
-  }
-
-  if (IsPowerOfTwoKind(v1_value, v2_value) ||
-      IsIncrementKind(v1_value, v2_value)) {
-    return true;
   }
 
   return false;
@@ -234,22 +223,38 @@ void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   const bool is_power_of_two_kind = IsPowerOfTwoKind(if_true_, if_false_);
 
-  const intptr_t base = Utils::Minimum(if_true_, if_false_);
+  intptr_t true_value = if_true_;
+  intptr_t false_value = if_false_;
 
-  if (if_true_ == base) {
-    // We need to have zero in RDX on true_condition.
-    true_condition = NegateCondition(true_condition);
+  if (is_power_of_two_kind) {
+    if (true_value == 0) {
+      // We need to have zero in RDX on true_condition.
+      true_condition = NegateCondition(true_condition);
+    }
+  } else {
+    if (true_value == 0) {
+      // Swap values so that false_value is zero.
+      intptr_t temp = true_value;
+      true_value = false_value;
+      false_value = temp;
+    } else {
+      true_condition = NegateCondition(true_condition);
+    }
   }
 
   __ setcc(true_condition, DL);
 
   if (is_power_of_two_kind) {
     const intptr_t shift =
-        Utils::ShiftForPowerOfTwo(Utils::Maximum(if_true_, if_false_));
+        Utils::ShiftForPowerOfTwo(Utils::Maximum(true_value, false_value));
     __ shlq(RDX, Immediate(shift + kSmiTagSize));
   } else {
-    ASSERT(kSmiTagSize == 1);
-    __ leaq(RDX, Address(RDX, TIMES_2, base << kSmiTagSize));
+    __ subq(RDX, Immediate(1));
+    __ andq(RDX, Immediate(
+        Smi::RawValue(true_value) - Smi::RawValue(false_value)));
+    if (false_value != 0) {
+      __ addq(RDX, Immediate(Smi::RawValue(false_value)));
+    }
   }
 }
 
