@@ -429,14 +429,14 @@ static void FormatCallFrames(dart::TextBuffer* msg, Dart_StackTrace trace) {
     FormatEncodedString(msg, func_name);
     if (!Dart_IsNull(location.script_url)) {
       ASSERT(Dart_IsString(location.script_url));
-      msg->Printf("\"location\": { \"url\":");
+      msg->Printf(",\"location\": { \"url\":");
       FormatEncodedString(msg, location.script_url);
       msg->Printf(",\"libraryId\":%d,", location.library_id);
-      msg->Printf("\"tokenOffset\":%d},", location.token_pos);
+      msg->Printf("\"tokenOffset\":%d}", location.token_pos);
     }
     Dart_Handle locals = Dart_GetLocalVariables(frame);
     ASSERT_NOT_ERROR(locals);
-    msg->Printf("\"locals\":");
+    msg->Printf(",\"locals\":");
     FormatNamedValueList(msg, locals);
     msg->Printf("}");
   }
