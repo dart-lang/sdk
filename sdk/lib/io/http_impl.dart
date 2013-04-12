@@ -1090,8 +1090,8 @@ class _HttpClient implements HttpClient {
   static const int DEFAULT_EVICTION_TIMEOUT = 60000;
   bool _closing = false;
 
-  final Map<String, Queue<_HttpClientConnection>> _idleConnections
-      = new Map<String, Queue<_HttpClientConnection>>();
+  final Map<String, Set<_HttpClientConnection>> _idleConnections
+      = new Map<String, Set<_HttpClientConnection>>();
   final Set<_HttpClientConnection> _activeConnections
       = new Set<_HttpClientConnection>();
   final List<_Credentials> _credentials = [];
@@ -1229,9 +1229,9 @@ class _HttpClient implements HttpClient {
     }
     // TODO(ajohnsen): Listen for socket close events.
     if (!_idleConnections.containsKey(connection.key)) {
-      _idleConnections[connection.key] = new Queue();
+      _idleConnections[connection.key] = new Set();
     }
-    _idleConnections[connection.key].addLast(connection);
+    _idleConnections[connection.key].add(connection);
   }
 
   // Remove a closed connnection from the active set.
@@ -1260,7 +1260,8 @@ class _HttpClient implements HttpClient {
       int port = proxy.isDirect ? uriPort: proxy.port;
       String key = isSecure ? "ssh:$host:$port" : "$host:$port";
       if (_idleConnections.containsKey(key)) {
-        var connection = _idleConnections[key].removeFirst();
+        var connection = _idleConnections[key].first;
+        _idleConnections[key].remove(connection);
         if (_idleConnections[key].isEmpty) {
           _idleConnections.remove(key);
         }
