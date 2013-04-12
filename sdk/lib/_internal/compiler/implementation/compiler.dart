@@ -410,7 +410,7 @@ abstract class Compiler implements DiagnosticListener {
             bool checkDeprecationInSdk: false,
             bool preserveComments: false,
             bool verbose: false,
-            String buildId: "build number could not be determined",
+            String this.buildId: "build number could not be determined",
             outputProvider,
             List<String> strips: const []})
       : tracer = tracer,
@@ -427,7 +427,6 @@ abstract class Compiler implements DiagnosticListener {
         verbose = verbose,
         libraries = new Map<String, LibraryElement>(),
         progress = new Stopwatch(),
-        this.buildId = buildId,
         this.analyzeOnly = analyzeOnly || analyzeSignaturesOnly,
         this.analyzeSignaturesOnly = analyzeSignaturesOnly,
         this.outputProvider =
