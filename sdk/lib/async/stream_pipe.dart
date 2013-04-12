@@ -25,6 +25,8 @@ _runUserCode(userCode(), onSuccess(value), onError(AsyncError error),
     } else {
       onError(new AsyncError.withCause(e, s, cause));
     }
+    // onError is allowed to return. Don't execute the onSuccess below.
+    return;
   }
   onSuccess(result);
 }

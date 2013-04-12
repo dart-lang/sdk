@@ -815,7 +815,9 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     TypeMask receiverMask = receiverType.computeMask(compiler);
     return interceptedClasses
         .where((cls) => cls != compiler.objectClass)
-        .map((cls) => new TypeMask.subclass(cls.rawType))
+        .map((cls) => backend.classesMixedIntoNativeClasses.contains(cls)
+            ? new TypeMask.subtype(cls.rawType)
+            : new TypeMask.subclass(cls.rawType))
         .every((mask) => receiverMask.intersection(mask, compiler).isEmpty);
   }
 

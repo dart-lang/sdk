@@ -129,28 +129,20 @@ class FlowGraph : public ZoneAllocated {
   // body blocks for each loop header.
   void ComputeLoops(GrowableArray<BlockEntryInstr*>* loop_headers);
 
-  void RepairGraphAfterInlining();
-
   // TODO(zerny): Once the SSA is feature complete this should be removed.
   void Bailout(const char* reason) const;
-
-  void InvalidateDominatorTree() { invalid_dominator_tree_ = true; }
 
 #ifdef DEBUG
   // Verification methods for debugging.
   bool VerifyUseLists();
 #endif  // DEBUG
 
-  // Return all instance fields that are loaded in the graph and
-  // have non-generic type feedback attached to them that can
-  // potentially affect optimizations.
-  const ZoneGrowableArray<Field*>* FieldDependencies() const;
+  void DiscoverBlocks();
 
  private:
+  friend class IfConverter;
   friend class BranchSimplifier;
   friend class ConstantPropagator;
-
-  void DiscoverBlocks();
 
   // SSA transformation methods and fields.
   void ComputeDominators(GrowableArray<BitVector*>* dominance_frontier);
@@ -167,6 +159,8 @@ class FlowGraph : public ZoneAllocated {
       BlockEntryInstr* block_entry,
       GrowableArray<Definition*>* env,
       GrowableArray<PhiInstr*>* live_phis);
+
+  void AttachEnvironment(Instruction* instr, GrowableArray<Definition*>* env);
 
   void InsertPhis(
       const GrowableArray<BlockEntryInstr*>& preorder,
@@ -195,7 +189,6 @@ class FlowGraph : public ZoneAllocated {
   GrowableArray<BlockEntryInstr*> preorder_;
   GrowableArray<BlockEntryInstr*> postorder_;
   GrowableArray<BlockEntryInstr*> reverse_postorder_;
-  bool invalid_dominator_tree_;
   ConstantInstr* constant_null_;
 };
 

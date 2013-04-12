@@ -34,13 +34,17 @@ abstract class Link extends FileSystemEntity {
 
   /**
    * Creates a symbolic link. Returns a [:Future<Link>:] that completes with
-   * the link when it has been created. If the link exists, the function
+   * the link when it has been created. If the link exists,
    * the future will complete with an error.
    *
    * On the Windows platform, this will only work with directories, and the
    * target directory must exist. The link will be created as a Junction.
    * Only absolute links will be created, and relative paths to the target
    * will be converted to absolute paths.
+   *
+   * On other platforms, the posix symlink() call is used to make a symbolic
+   * link containing the string [target].  If [target] is a relative path,
+   * it will be interpreted relative to the directory containing the link.
    */
   Future<Link> create(String target);
 
@@ -52,6 +56,10 @@ abstract class Link extends FileSystemEntity {
    * target directory must exist. The link will be created as a Junction.
    * Only absolute links will be created, and relative paths to the target
    * will be converted to absolute paths.
+   *
+   * On other platforms, the posix symlink() call is used to make a symbolic
+   * link containing the string [target].  If [target] is a relative path,
+   * it will be interpreted relative to the directory containing the link.
    */
   void createSync(String target);
 
@@ -70,14 +78,18 @@ abstract class Link extends FileSystemEntity {
 
   /**
    * Deletes the link. Returns a [:Future<Link>:] that completes with
-   * the link when it has been deleted.  This does not delete, or otherwise
-   * affect, the target of the link.
+   * the link when it has been deleted. This does not delete, or otherwise
+   * affect, the target of the link. It also works on broken links, but if
+   * the link does not exist or is not actually a link, it completes the
+   * future with a LinkIOException.
    */
   Future<Link> delete();
 
   /**
    * Synchronously deletes the link. This does not delete, or otherwise
-   * affect, the target of the link.
+   * affect, the target of the link.  It also works on broken links, but if
+   * the link does not exist or is not actually a link, it throws a
+   * LinkIOException.
    */
   void deleteSync();
 
@@ -108,6 +120,8 @@ abstract class Link extends FileSystemEntity {
 class _Link extends FileSystemEntity implements Link {
   final String path;
 
+  SendPort _fileService;
+
   _Link(String this.path);
 
   _Link.fromPath(Path inputPath) : path = inputPath.toNativePath();
@@ -122,9 +136,19 @@ class _Link extends FileSystemEntity implements Link {
   bool existsSync() => FileSystemEntity.isLinkSync(path);
 
   Future<Link> create(String target) {
-    // TODO(whesse): Replace with asynchronous version.
-    return new Future.of(() {
-      createSync(target);
+    _ensureFileService();
+    if (Platform.operatingSystem == 'windows') {
+      target = _makeWindowsLinkTarget(target);
+    }
+    List request = new List(3);
+    request[0] = _CREATE_LINK_REQUEST;
+    request[1] = path;
+    request[2] = target;
+    return _fileService.call(request).then((response) {
+      if (_isErrorResponse(response)) {
+        throw _exceptionFromResponse(response,
+            "Cannot create link '$path' to target '$target'");
+      }
       return this;
     });
   }
@@ -134,9 +158,7 @@ class _Link extends FileSystemEntity implements Link {
       target = _makeWindowsLinkTarget(target);
     }
     var result = _File._createLink(path, target);
-    if (result is OSError) {
-      throw new LinkIOException("Error in Link.createSync", result);
-    }
+    throwIfError(result, "Cannot create link '$path'");
   }
 
   // Put target into the form "\??\C:\my\target\dir".
@@ -164,11 +186,21 @@ class _Link extends FileSystemEntity implements Link {
   }
 
   Future<Link> delete() {
-    return new File(path).delete().then((_) => this);
+    _ensureFileService();
+    List request = new List(2);
+    request[0] = _DELETE_LINK_REQUEST;
+    request[1] = path;
+    return _fileService.call(request).then((response) {
+      if (_isErrorResponse(response)) {
+        throw _exceptionFromResponse(response, "Cannot delete link '$path'");
+      }
+      return this;
+    });
   }
 
   void deleteSync() {
-    new File(path).deleteSync();
+    var result = _File._deleteLink(path);
+    throwIfError(result, "Cannot delete link '$path'");
   }
 
   Future<String> target() {
@@ -178,10 +210,38 @@ class _Link extends FileSystemEntity implements Link {
 
   String targetSync() {
     var result = _File._linkTarget(path);
-    if (result is OSError) {
-      throw new LinkIOException("Error in Link.targetSync", result);
-    }
+    throwIfError(result, "Cannot read link '$path'");
     return result;
+  }
+
+  static throwIfError(Object result, String msg) {
+    if (result is OSError) {
+      throw new LinkIOException(msg, result);
+    }
+  }
+
+  bool _isErrorResponse(response) {
+    return response is List && response[0] != _SUCCESS_RESPONSE;
+  }
+
+  void _ensureFileService() {
+    if (_fileService == null) {
+      _fileService = _FileUtils._newServicePort();
+    }
+  }
+
+  _exceptionFromResponse(response, String message) {
+    assert(_isErrorResponse(response));
+    switch (response[_ERROR_RESPONSE_ERROR_TYPE]) {
+      case _ILLEGAL_ARGUMENT_RESPONSE:
+        return new ArgumentError();
+      case _OSERROR_RESPONSE:
+        var err = new OSError(response[_OSERROR_RESPONSE_MESSAGE],
+                              response[_OSERROR_RESPONSE_ERROR_CODE]);
+        return new LinkIOException(message, err);
+      default:
+        return new Exception("Unknown error");
+    }
   }
 }
 

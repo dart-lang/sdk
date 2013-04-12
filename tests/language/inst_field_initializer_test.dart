@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test for instance field initializer expressions.
 
+import "package:expect/expect.dart";
+
 class Cheese {
   static const mild = 1;
   static const stinky = 2;

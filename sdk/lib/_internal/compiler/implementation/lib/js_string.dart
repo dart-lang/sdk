@@ -137,7 +137,7 @@ class JSString extends Interceptor implements String, JSIndexable {
     return JS('String', r'#.trim()', this);
   }
 
-  List<int> get codeUnits => new CodeUnits(this);
+  List<int> get codeUnits => new _CodeUnits(this);
 
   Runes get runes => new Runes(this);
 
@@ -210,4 +210,17 @@ class JSString extends Interceptor implements String, JSIndexable {
     if (index >= length || index < 0) throw new RangeError.value(index);
     return JS('String', '#[#]', this, index);
   }
+}
+
+/**
+ * An [Iterable] of the UTF-16 code units of a [String] in index order.
+ */
+class _CodeUnits extends UnmodifiableListBase<int> {
+  /** The string that this is the code units of. */
+  String _string;
+
+  _CodeUnits(this._string);
+
+  int get length => _string.length;
+  int operator[](int i) => _string.codeUnitAt(i);
 }

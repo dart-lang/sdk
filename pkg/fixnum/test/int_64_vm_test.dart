@@ -6,6 +6,7 @@
 
 library int64vmtest;
 
+import "package:expect/expect.dart";
 import 'dart:math' as math;
 
 part 'package:fixnum/src/int32.dart';

@@ -11,6 +11,7 @@ import "dart:async";
 import "dart:collection";
 import "dart:crypto";
 import "dart:isolate";
+import 'dart:json' as JSON;
 import "dart:math";
 import "dart:nativewrappers";
 import "dart:typeddata";

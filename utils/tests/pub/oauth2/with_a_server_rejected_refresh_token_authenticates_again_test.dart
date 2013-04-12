@@ -15,6 +15,7 @@ import '../test_pub.dart';
 import 'utils.dart';
 
 main() {
+  initConfig();
   // Regression test for issue 8849.
   integration('with a server-rejected refresh token, authenticates again and '
       'saves credentials.json', () {

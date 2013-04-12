@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "package:expect/expect.dart";
+
 // On frogsh constant folded hex literals of large magnitude were truncated on
 // constant folding - Issue 636 is 'fixed', remaining concerns at Issue 638.
 

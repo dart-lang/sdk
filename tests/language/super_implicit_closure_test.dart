@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing invocation of implicit closures.
 
+import "package:expect/expect.dart";
+
 class BaseClass {
   BaseClass(this._i) {}
   int foo() { return _i; }

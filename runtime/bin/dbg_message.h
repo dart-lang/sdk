@@ -104,6 +104,7 @@ class DbgMessage {
   static bool HandleGetListCmd(DbgMessage* msg);
   static bool HandleGetScriptURLsCmd(DbgMessage* msg);
   static bool HandleGetSourceCmd(DbgMessage* msg);
+  static bool HandleGetLineNumbersCmd(DbgMessage* msg);
   static bool HandleGetStackTraceCmd(DbgMessage* msg);
   static bool HandlePauseOnExcCmd(DbgMessage* msg);
   static bool HandleSetBpCmd(DbgMessage* msg);

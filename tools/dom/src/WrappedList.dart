@@ -27,15 +27,15 @@ class _WrappedList<E> implements List<E> {
 
   void forEach(void f(E element)) { _list.forEach(f); }
 
-  dynamic reduce(initialValue, combine(previousValue, E element)) =>
-      _list.reduce(initialValue, combine);
+  E reduce(E combine(E value, E element)) =>
+      _list.reduce(combine);
 
   dynamic fold(initialValue, combine(previousValue, E element)) =>
       _list.fold(initialValue, combine);
 
   bool every(bool f(E element)) => _list.every(f);
 
-  String join([String separator]) => _list.join(separator);
+  String join([String separator = ""]) => _list.join(separator);
 
   bool any(bool f(E element)) => _list.any(f);
 
@@ -45,10 +45,6 @@ class _WrappedList<E> implements List<E> {
   Set<E> toSet() => _list.toSet();
 
   int get length => _list.length;
-
-  E min([int compare(E a, E b)]) => _list.min(compare);
-
-  E max([int compare(E a, E b)]) => _list.max(compare);
 
   bool get isEmpty => _list.isEmpty;
 
@@ -84,10 +80,6 @@ class _WrappedList<E> implements List<E> {
 
   void remove(Object element) { _list.remove(element); }
 
-  void removeAll(Iterable elements) { _list.removeAll(elements); }
-
-  void retainAll(Iterable elements) { _list.retainAll(elements); }
-
   void removeWhere(bool test(E element)) { _list.removeWhere(test); }
 
   void retainWhere(bool test(E element)) { _list.retainWhere(test); }
@@ -118,7 +110,7 @@ class _WrappedList<E> implements List<E> {
 
   List<E> sublist(int start, [int end]) => _list.sublist(start, end);
 
-  List<E> getRange(int start, int length) => sublist(start, start + length);
+  Iterable<E> getRange(int start, int end) => _list.getRange(start, end);
 
   void setRange(int start, int length, List<E> from, [int startFrom]) {
     _list.setRange(start, length, from, startFrom);
@@ -130,7 +122,14 @@ class _WrappedList<E> implements List<E> {
     _list.insertRange(start, length, fill);
   }
 
-  Map<int, E> asMap() => IterableMixinWorkaround.asMapList(_list);
+  Map<int, E> asMap() => _list.asMap();
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
 }
 
 /**

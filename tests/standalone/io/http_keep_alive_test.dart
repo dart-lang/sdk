@@ -7,6 +7,7 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
+import "package:expect/expect.dart";
 import "dart:async";
 import "dart:io";
 
@@ -28,7 +29,7 @@ Future<HttpServer> startServer() {
       int length = int.parse(request.queryParameters["length"]);
       var buffer = new List<int>.filled(length, 0);
       if (!chunked) request.response.contentLength = length;
-      request.response.writeBytes(buffer);
+      request.response.add(buffer);
       request.response.close();
     });
     return server;

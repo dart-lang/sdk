@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "package:expect/expect.dart";
+
 int zero() { return 0; }
 int one() { return 1; }
 int minus1() { return 0 - 1; }

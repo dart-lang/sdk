@@ -4,6 +4,8 @@
 
 // Test for downcasts on native classes.
 
+import "package:expect/expect.dart";
+
 interface J {
 }
 

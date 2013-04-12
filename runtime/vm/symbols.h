@@ -221,7 +221,6 @@ class ObjectPointerVisitor;
   V(ColonSpace, ": ")                                                          \
   V(RParenArrow, ") => ")                                                      \
   V(SpaceExtendsSpace, " extends ")                                            \
-  V(PatchSpace, "patch ")                                                      \
   V(SwitchExpr, ":switch_expr")                                                \
   V(TwoNewlines, "\n\n")                                                       \
   V(TwoSpaces, "  ")                                                           \

@@ -5,6 +5,8 @@
 // Optimize function foo with instance of A and inlined function bar. Call later
 // with instance of B and cause deoptimization.
 
+import "package:expect/expect.dart";
+
 class A {
   var x = 1;
 }

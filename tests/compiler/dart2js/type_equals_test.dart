@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "package:expect/expect.dart";
 import '../../../sdk/lib/_internal/compiler/implementation/dart_types.dart';
 import "compiler_helper.dart";
 import "parser_helper.dart";
@@ -84,7 +85,8 @@ void main() {
 
       void main() {}
       """,
-      uri);
+      uri,
+      analyzeAll: true, analyzeOnly: true);
   compiler.runCompiler(uri);
 
   test(compiler, "void1", "void2", expect: true);

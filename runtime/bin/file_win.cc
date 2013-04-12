@@ -259,19 +259,25 @@ bool File::CreateLink(const char* utf8_name, const char* utf8_target) {
 
 bool File::Delete(const char* name) {
   const wchar_t* system_name = StringUtils::Utf8ToWide(name);
+  int status = _wremove(system_name);
+  free(const_cast<wchar_t*>(system_name));
+  return status != -1;
+}
+
+
+bool File::DeleteLink(const char* name) {
+  const wchar_t* system_name = StringUtils::Utf8ToWide(name);
+  bool result = false;
   DWORD attributes = GetFileAttributesW(system_name);
   if ((attributes != INVALID_FILE_ATTRIBUTES) &&
       (attributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0) {
     // It's a junction(link), delete it.
-    return RemoveDirectoryW(system_name) != 0;
+    result = (RemoveDirectoryW(system_name) != 0);
   } else {
-    int status = _wremove(system_name);
-    free(const_cast<wchar_t*>(system_name));
-    if (status == -1) {
-      return false;
-    }
-    return true;
+    SetLastError(ERROR_NOT_A_REPARSE_POINT);
   }
+  free(const_cast<wchar_t*>(system_name));
+  return result;
 }
 
 
@@ -319,14 +325,12 @@ char* File::LinkTarget(const char* pathname) {
   if (result == 0) {
     DWORD error = GetLastError();
     CloseHandle(dir_handle);
-    free(buffer);
     SetLastError(error);
+    free(buffer);
     return NULL;
   }
   if (CloseHandle(dir_handle) == 0) {
-    DWORD error = GetLastError();
     free(buffer);
-    SetLastError(error);
     return NULL;
   }
 
@@ -372,10 +376,8 @@ char* File::LinkTarget(const char* pathname) {
                                utf8_length,
                                NULL,
                                NULL)) {
-    DWORD error = GetLastError();
     free(buffer);
     free(utf8_target);
-    SetLastError(error);
     return NULL;
   }
   utf8_target[utf8_length] = '\0';
@@ -480,15 +482,11 @@ File::StdioHandleType File::GetStdioHandleType(int fd) {
 
 File::Type File::GetType(const char* pathname, bool follow_links) {
   const wchar_t* name = StringUtils::Utf8ToWide(pathname);
-  WIN32_FIND_DATAW file_data;
-  HANDLE find_handle = FindFirstFileW(name, &file_data);
-  if (find_handle == INVALID_HANDLE_VALUE) {
-    // TODO(whesse): Distinguish other errors from does not exist.
-    return File::kDoesNotExist;
-  }
-  FindClose(find_handle);
-  DWORD attributes = file_data.dwFileAttributes;
-  if ((attributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0) {
+  DWORD attributes = GetFileAttributesW(name);
+  File::Type result = kIsFile;
+  if (attributes == INVALID_FILE_ATTRIBUTES) {
+    result = kDoesNotExist;
+  } else if ((attributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0) {
     if (follow_links) {
       HANDLE dir_handle = CreateFileW(
           name,
@@ -499,26 +497,19 @@ File::Type File::GetType(const char* pathname, bool follow_links) {
           FILE_FLAG_BACKUP_SEMANTICS,
           NULL);
       if (dir_handle == INVALID_HANDLE_VALUE) {
-        // TODO(whesse): Distinguish other errors from does not exist.
-        return File::kDoesNotExist;
+        result = File::kIsLink;
       } else {
         CloseHandle(dir_handle);
-        return File::kIsDirectory;
+        result = File::kIsDirectory;
       }
     } else {
-      DWORD reparse_tag = file_data.dwReserved0;
-      if (reparse_tag == IO_REPARSE_TAG_SYMLINK ||
-          reparse_tag == IO_REPARSE_TAG_MOUNT_POINT) {
-        return File::kIsLink;
-      } else {
-        return File::kDoesNotExist;
-      }
+      result = kIsLink;
     }
   } else if ((attributes & FILE_ATTRIBUTE_DIRECTORY) != 0) {
-    return File::kIsDirectory;
-  } else {
-    return File::kIsFile;
+    result = kIsDirectory;
   }
+  free(const_cast<wchar_t*>(name));
+  return result;
 }
 
 
@@ -536,9 +527,7 @@ File::Identical File::AreIdentical(const char* file_1, const char* file_2) {
         FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT,
         NULL);
     if (file_handle == INVALID_HANDLE_VALUE) {
-      DWORD error = GetLastError();
       free(const_cast<wchar_t*>(wide_name));
-      SetLastError(error);
       return File::kError;
     }
     free(const_cast<wchar_t*>(wide_name));

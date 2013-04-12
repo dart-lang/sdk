@@ -132,7 +132,7 @@ abstract class Stream<T> {
           }
         },
         onSubscriptionStateChange: () {
-          if (controller.hasSubscribers) {
+          if (controller.hasListener) {
             watch.start();
             startPeriodicTimer();
           } else {
@@ -236,7 +236,7 @@ abstract class Stream<T> {
   /**
    * Binds this stream as the input of the provided [StreamConsumer].
    */
-  Future pipe(StreamConsumer<T, dynamic> streamConsumer) {
+  Future pipe(StreamConsumer<T> streamConsumer) {
     // TODO(floitsch): switch to:
     // streamConsumer.addStream(this).then((_) => streamConsumer.close());
     return streamConsumer.consume(this);
@@ -253,12 +253,36 @@ abstract class Stream<T> {
 
   /**
    * Reduces a sequence of values by repeatedly applying [combine].
-   *
-   * *WARNING UPCOMING API-CHANGE*: This method will be changed so that
-   * it doesn't take an initial value. Use [fold] instead.
    */
-  Future reduce(var initialValue, combine(var previous, T element)) {
-    return fold(initialValue, combine);
+  Future<T> reduce(T combine(T previous, T element)) {
+    _FutureImpl<T> result = new _FutureImpl<T>();
+    bool seenFirst = false;
+    T value;
+    StreamSubscription subscription;
+    subscription = this.listen(
+      // TODO(ahe): Restore type when feature is implemented in dart2js
+      // checked mode. http://dartbug.com/7733
+      (/* T */ element) {
+        if (seenFirst) {
+          _runUserCode(() => combine(value, element),
+                       (T newValue) { value = newValue; },
+                       _cancelAndError(subscription, result));
+        } else {
+          value = element;
+          seenFirst = true;
+        }
+      },
+      onError: result._setError,
+      onDone: () {
+        if (!seenFirst) {
+          result._setError(new AsyncError(new StateError("No elements")));
+        } else {
+          result._setValue(value);
+        }
+      },
+      unsubscribeOnError: true
+    );
+    return result;
   }
 
   /** Reduces a sequence of values by repeatedly applying [combine]. */
@@ -272,7 +296,7 @@ abstract class Stream<T> {
       (/*T*/ element) {
         _runUserCode(
           () => combine(value, element),
-          (result) { value = result; },
+          (newValue) { value = newValue; },
           _cancelAndError(subscription, result)
         );
       },
@@ -285,23 +309,6 @@ abstract class Stream<T> {
       unsubscribeOnError: true);
     return result;
   }
-
-  // Deprecated method, previously called 'pipe', retained for compatibility.
-  Future pipeInto(EventSink<T> sink,
-                  {void onError(AsyncError error),
-                   bool unsubscribeOnError}) {
-    _FutureImpl<T> result = new _FutureImpl<T>();
-    this.listen(
-        sink.add,
-        onError: sink.addError,
-        onDone: () {
-          sink.close();
-          result._setValue(null);
-        },
-        unsubscribeOnError: unsubscribeOnError);
-    return result;
-  }
-
 
   /**
    * Checks whether [match] occurs in the elements provided by this stream.
@@ -411,98 +418,6 @@ abstract class Stream<T> {
         future._setValue(count);
       },
       unsubscribeOnError: true);
-    return future;
-  }
-
-  /**
-   * Finds the least element in the stream.
-   *
-   * If the stream is empty, the result is [:null:].
-   * Otherwise the result is a value from the stream that is not greater
-   * than any other value from the stream (according to [compare], which must
-   * be a [Comparator]).
-   *
-   * If [compare] is omitted, it defaults to [Comparable.compare].
-   *
-   * *Deprecated*. Use [reduce] with a binary min method if needed.
-   */
-  Future<T> min([int compare(T a, T b)]) {
-    if (compare == null) {
-      var defaultCompare = Comparable.compare;
-      compare = defaultCompare;
-    }
-    _FutureImpl<T> future = new _FutureImpl<T>();
-    StreamSubscription subscription;
-    T min = null;
-    subscription = this.listen(
-      // TODO(ahe): Restore type when feature is implemented in dart2js
-      // checked mode. http://dartbug.com/7733
-      (/*T*/ value) {
-        min = value;
-        subscription.onData((T value) {
-          _runUserCode(
-            () => compare(min, value) > 0,
-            (bool foundSmaller) {
-              if (foundSmaller) {
-                min = value;
-              }
-            },
-            _cancelAndError(subscription, future)
-          );
-        });
-      },
-      onError: future._setError,
-      onDone: () {
-        future._setValue(min);
-      },
-      unsubscribeOnError: true
-    );
-    return future;
-  }
-
-  /**
-   * Finds the largest element in the stream.
-   *
-   * If the stream is empty, the result is [:null:].
-   * Otherwise the result is an value from the stream that is not smaller
-   * than any other value from the stream (according to [compare], which must
-   * be a [Comparator]).
-   *
-   * If [compare] is omitted, it defaults to [Comparable.compare].
-   *
-   * *Deprecated*. Use [reduce] with a binary max method if needed.
-   */
-  Future<T> max([int compare(T a, T b)]) {
-    if (compare == null)  {
-      var defaultCompare = Comparable.compare;
-      compare = defaultCompare;
-    }
-    _FutureImpl<T> future = new _FutureImpl<T>();
-    StreamSubscription subscription;
-    T max = null;
-    subscription = this.listen(
-      // TODO(ahe): Restore type when feature is implemented in dart2js
-      // checked mode. http://dartbug.com/7733
-      (/*T*/ value) {
-        max = value;
-        subscription.onData((T value) {
-          _runUserCode(
-            () => compare(max, value) < 0,
-            (bool foundGreater) {
-              if (foundGreater) {
-                max = value;
-              }
-            },
-            _cancelAndError(subscription, future)
-          );
-        });
-      },
-      onError: future._setError,
-      onDone: () {
-        future._setValue(max);
-      },
-      unsubscribeOnError: true
-    );
     return future;
   }
 
@@ -629,8 +544,8 @@ abstract class Stream<T> {
       // TODO(ahe): Restore type when feature is implemented in dart2js
       // checked mode. http://dartbug.com/7733
       (/*T*/ value) {
-        future._setValue(value);
         subscription.cancel();
+        future._setValue(value);
         return;
       },
       onError: future._setError,
@@ -685,10 +600,10 @@ abstract class Stream<T> {
       // checked mode. http://dartbug.com/7733
       (/*T*/ value) {
         if (foundResult) {
+          subscription.cancel();
           // This is the second element we get.
           Error error = new StateError("More than one element");
           future._setError(new AsyncError(error));
-          subscription.cancel();
           return;
         }
         foundResult = true;
@@ -857,8 +772,8 @@ abstract class Stream<T> {
       // checked mode. http://dartbug.com/7733
       (/*T*/ value) {
         if (index == 0) {
-          future._setValue(value);
           subscription.cancel();
+          future._setValue(value);
           return;
         }
         index -= 1;
@@ -921,16 +836,6 @@ abstract class StreamSubscription<T> {
 
 
 /**
- * *Deprecated*. Use [EventSink] instead.
- */
-abstract class StreamSink<T> extends EventSink<T>{
-  /* TODO(8997): Remove class.*/
-  /** *Deprecated*. Use [EventSink.addError] instead.*/
-  void signalError(AsyncError errorEvent) { addError(errorEvent); }
-}
-
-
-/**
  * An interface that abstracts creation or handling of [Stream] events.
  */
 abstract class EventSink<T> {
@@ -965,8 +870,7 @@ class StreamView<T> extends Stream<T> {
 /**
  * [EventSink] wrapper that only exposes the [EventSink] interface.
  */
-class EventSinkView<T> extends StreamSink<T> {
-  // TODO(8997): Implment EventSink instead.
+class EventSinkView<T> extends EventSink<T> {
   final EventSink<T> _sink;
 
   EventSinkView(this._sink);
@@ -984,10 +888,7 @@ class EventSinkView<T> extends StreamSink<T> {
  * the resulting [Future]. The pipe should complete the future when it's
  * done.
  */
-abstract class StreamConsumer<S, T> {
-  // TODO(floitsch): generic types.
-  // Currently not possible to add generic types, since they clash with other
-  // types that have already been used.
+abstract class StreamConsumer<S> {
   Future addStream(Stream<S> stream);
   Future close();
 
@@ -995,7 +896,7 @@ abstract class StreamConsumer<S, T> {
   /**
    * Consume is deprecated. Use [addStream] followed by [close] instead.
    */
-  Future<T> consume(Stream<S> stream);
+  Future consume(Stream<S> stream);
 }
 
 
@@ -1066,7 +967,30 @@ abstract class StreamEventTransformer<S, T> implements StreamTransformer<S, T> {
   const StreamEventTransformer();
 
   Stream<T> bind(Stream<S> source) {
-    return new EventTransformStream<S, T>(source, this);
+    // Hackish way of buffering data that goes out of the event-transformer.
+    // TODO(floitsch): replace this with a correct solution.
+    Stream transformingStream = new EventTransformStream<S, T>(source, this);
+    StreamController controller;
+    StreamSubscription subscription;
+    controller = new StreamController<T>(
+        onPauseStateChange: () {
+          if (controller.isPaused) {
+            subscription.pause();
+          } else {
+            subscription.resume();
+          }
+        },
+        onSubscriptionStateChange: () {
+          if (controller.hasListener) {
+            subscription = transformingStream.listen(
+                controller.add,
+                onError: controller.addError,
+                onDone: controller.close);
+          } else {
+            subscription.cancel();
+          }
+        });
+    return controller.stream;
   }
 
   /**
@@ -1135,6 +1059,8 @@ class _EventTransformStreamSubscription<S, T>
   final StreamEventTransformer<S, T> _transformer;
   /** Whether to unsubscribe when emitting an error. */
   final bool _unsubscribeOnError;
+  /** Whether this stream has sent a done event. */
+  bool _isClosed = false;
   /** Source of incoming events. */
   StreamSubscription<S> _subscription;
   /** Cached EventSink wrapper for this class. */
@@ -1153,19 +1079,24 @@ class _EventTransformStreamSubscription<S, T>
                                   onDone: _handleDone);
   }
 
+  /** Whether this subscription is still subscribed to its source. */
+  bool get _isSubscribed => _subscription != null;
+
   void pause([Future pauseSignal]) {
-    if (_subscription != null) _subscription.pause(pauseSignal);
+    if (_isSubscribed) _subscription.pause(pauseSignal);
   }
 
   void resume() {
-    if (_subscription != null) _subscription.resume();
+    if (_isSubscribed) _subscription.resume();
   }
 
   void cancel() {
-    if (_subscription != null) {
-      _subscription.cancel();
+    if (_isSubscribed) {
+      StreamSubscription subscription = _subscription;
       _subscription = null;
+      subscription.cancel();
     }
+    _isClosed = true;
   }
 
   void _handleData(S data) {
@@ -1185,8 +1116,8 @@ class _EventTransformStreamSubscription<S, T>
   }
 
   void _handleDone() {
-    _subscription = null;
     try {
+      _subscription = null;
       _transformer.handleDone(_sink);
     } catch (e, s) {
       _sendError(_asyncError(e, s));
@@ -1195,10 +1126,12 @@ class _EventTransformStreamSubscription<S, T>
 
   // EventOutputSink interface.
   void _sendData(T data) {
+    if (_isClosed) return;
     _onData(data);
   }
 
   void _sendError(AsyncError error) {
+    if (_isClosed) return;
     _onError(error);
     if (_unsubscribeOnError) {
       cancel();
@@ -1206,14 +1139,17 @@ class _EventTransformStreamSubscription<S, T>
   }
 
   void _sendDone() {
-    // It's ok to cancel even if we have been unsubscribed already.
-    cancel();
+    if (_isClosed) throw new StateError("Already closed.");
+    _isClosed = true;
+    if (_isSubscribed) {
+      _subscription.cancel();
+      _subscription = null;
+    }
     _onDone();
   }
 }
 
-/* TODO(8997): Implement EventSink instead, */
-class _EventOutputSinkWrapper<T> extends StreamSink<T> {
+class _EventOutputSinkWrapper<T> extends EventSink<T> {
   _EventOutputSink _sink;
   _EventOutputSinkWrapper(this._sink);
 

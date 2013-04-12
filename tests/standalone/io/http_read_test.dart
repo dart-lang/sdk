@@ -7,6 +7,7 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
+import "package:expect/expect.dart";
 import "dart:isolate";
 import "dart:io";
 
@@ -174,7 +175,7 @@ void testRead(bool chunkedEncoding) {
               request.write(data.substring(10, data.length));
             } else {
               request.contentLength = data.length;
-              request.writeBytes(data.codeUnits);
+              request.add(data.codeUnits);
             }
             return request.close();
           })

@@ -417,7 +417,7 @@ class ArgResults {
     return _options[name];
   }
 
-  /** Get the names of the options as a [Collection]. */
-  Collection<String> get options => _options.keys.toList(growable: false);
+  /** Get the names of the options as an [Iterable]. */
+  Iterable<String> get options => _options.keys;
 }
 

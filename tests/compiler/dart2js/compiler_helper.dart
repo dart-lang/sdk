@@ -5,6 +5,7 @@
 
 library compiler_helper;
 
+import "package:expect/expect.dart";
 import 'dart:uri';
 export 'dart:uri' show Uri;
 
@@ -77,9 +78,12 @@ String compile(String code, {String entry: 'main',
 
 MockCompiler compilerFor(String code, Uri uri,
                          {bool analyzeAll: false,
+                          bool analyzeOnly: false,
                           String coreSource: DEFAULT_CORELIB}) {
   MockCompiler compiler = new MockCompiler(
-      analyzeAll: analyzeAll, coreSource: coreSource);
+      analyzeAll: analyzeAll,
+      analyzeOnly: analyzeOnly,
+      coreSource: coreSource);
   compiler.sourceFiles[uri.toString()] = new SourceFile(uri.toString(), code);
   return compiler;
 }

@@ -5,6 +5,7 @@
 // Test that we put native names and not Dart names into the dynamic
 // dispatch table.
 
+import "package:expect/expect.dart";
 import 'native_metadata.dart';
 
 @Native("*NativeA")

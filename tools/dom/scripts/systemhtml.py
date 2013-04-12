@@ -12,6 +12,9 @@ import os
 from generator import *
 from htmldartgenerator import *
 
+HTML_LIBRARY_NAMES = ['chrome', 'html', 'indexed_db', 'svg', 'web_audio',
+                      'web_gl', 'web_sql']
+
 _js_custom_members = monitored.Set('systemhtml._js_custom_members', [
     'ArrayBuffer.slice',
     'AudioBufferSourceNode.start',
@@ -70,7 +73,7 @@ _js_custom_members = monitored.Set('systemhtml._js_custom_members', [
     'Window.location',
     'Window.open',
     'Window.requestAnimationFrame',
-    'WorkerContext.indexedDB',
+    # 'WorkerContext.indexedDB', # Workers
     ])
 
 _js_custom_constructors = monitored.Set('systemhtml._js_custom_constructors', [
@@ -392,9 +395,9 @@ js_support_checks = dict({
     'XMLHttpRequestProgressEvent':
         "Device.isEventTypeSupported('XMLHttpRequestProgressEvent')",
     'WebGLRenderingContext': "JS('bool', '!!(window.WebGLRenderingContext)')",
-    'WebKitCSSMatrix': "JS('bool', '!!(window.WebKitCSSMatrix)')",
     'WebKitPoint': "JS('bool', '!!(window.WebKitPoint)')",
     'WebSocket': "JS('bool', 'typeof window.WebSocket != \"undefined\"')",
+    'Worker': "JS('bool', '(typeof window.Worker != \"undefined\")')",
     'XSLTProcessor': "JS('bool', '!!(window.XSLTProcessor)')",
   }.items() +
   dict((key,
@@ -429,12 +432,15 @@ class HtmlDartInterfaceGenerator(object):
 
   def GenerateCallback(self):
     """Generates a typedef for the callback interface."""
+    typedef_name = self._renamer.RenameInterface(self._interface)
+    if not typedef_name:
+      return
+
     info = GetCallbackInfo(self._interface)
     code = self._library_emitter.FileEmitter(self._interface.id,
         self._library_name)
     code.Emit(self._template_loader.Load('callback.darttemplate'))
 
-    typedef_name = self._renamer.RenameInterface(self._interface)
     code.Emit('typedef void $NAME($PARAMS);\n',
               LIBRARYNAME='dart.dom.%s' % self._library_name,
               NAME=typedef_name,
@@ -511,10 +517,15 @@ class HtmlDartInterfaceGenerator(object):
         GetAnnotationsAndComments(self._library_name,
                                   self._interface.doc_js_name), '')
 
+    class_modifiers = ''
+    if self._renamer.ShouldSuppressInterface(self._interface):
+      class_modifiers = 'abstract '
+
     self._implementation_members_emitter = implementation_emitter.Emit(
         self._backend.ImplementationTemplate(),
         LIBRARYNAME='dart.dom.%s' % self._library_name,
         ANNOTATIONS=annotations,
+        CLASS_MODIFIERS=class_modifiers,
         CLASSNAME=self._interface_type_info.implementation_name(),
         EXTENDS=' extends %s' % base_class if base_class else '',
         IMPLEMENTS=implements_str,

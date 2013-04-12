@@ -42,7 +42,7 @@ abstract class CssClassSet implements Set<String> {
     readClasses().forEach(f);
   }
 
-  String join([String separator]) => readClasses().join(separator);
+  String join([String separator = ""]) => readClasses().join(separator);
 
   Iterable map(f(String element)) => readClasses().map(f);
 
@@ -58,9 +58,8 @@ abstract class CssClassSet implements Set<String> {
 
   int get length => readClasses().length;
 
-  dynamic reduce(dynamic initialValue,
-      dynamic combine(dynamic previousValue, String element)) {
-    return readClasses().reduce(initialValue, combine);
+  String reduce(String combine(String value, String element)) {
+    return readClasses().reduce(combine);
   }
 
   dynamic fold(dynamic initialValue,
@@ -149,9 +148,6 @@ abstract class CssClassSet implements Set<String> {
     _modify((s) => s.retainWhere(test));
   }
 
-  bool isSubsetOf(Collection<String> collection) =>
-    readClasses().isSubsetOf(collection);
-
   bool containsAll(Iterable<String> collection) =>
     readClasses().containsAll(collection);
 
@@ -170,10 +166,6 @@ abstract class CssClassSet implements Set<String> {
   List<String> toList({ bool growable: true }) =>
       readClasses().toList(growable: growable);
   Set<String> toSet() => readClasses().toSet();
-  String min([int compare(String a, String b)]) =>
-      readClasses().min(compare);
-  String max([int compare(String a, String b)]) =>
-      readClasses().max(compare);
   Iterable<String> take(int n) => readClasses().take(n);
   Iterable<String> takeWhile(bool test(String value)) =>
       readClasses().takeWhile(test);

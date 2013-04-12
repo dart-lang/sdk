@@ -6,6 +6,7 @@
 
 library slow_consumer3_test;
 
+import "package:expect/expect.dart";
 import 'dart:async';
 import 'dart:isolate';
 

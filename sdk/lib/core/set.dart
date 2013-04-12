@@ -8,7 +8,7 @@ part of dart.core;
  * This class is the public interface of a set. A set is a collection
  * without duplicates.
  */
-abstract class Set<E> extends Collection<E> {
+abstract class Set<E> extends Iterable<E> {
   factory Set() => new HashSet<E>();
 
   /**
@@ -28,6 +28,14 @@ abstract class Set<E> extends Collection<E> {
   void add(E value);
 
   /**
+   * Adds all of [elements] to this Set.
+   *
+   * Equivalent to adding each element in [elements] using [add],
+   * but some collections may be able to optimize it.
+   */
+  void addAll(Iterable<E> elements);
+
+  /**
    * Removes [value] from the set. Returns true if [value] was
    * in the set. Returns false otherwise. The method has no effect
    * if [value] value was not in the set.
@@ -35,13 +43,25 @@ abstract class Set<E> extends Collection<E> {
   bool remove(Object value);
 
   /**
-   * Returns true if [other] contains all the elements of this Set.
-   *
-   * *Deprecated*. Use `other.containsAll(thisSet)` instead if [other]
-   * is a Set, and convert `other` to a Set if it isn't.
+   * Removes all of [elements] from this set.
    */
-  @deprecated
-  bool isSubsetOf(Iterable<E> other);
+  void removeAll(Iterable elements);
+
+  /**
+   * Removes all elements of this set that are not
+   * in [elements].
+   */
+  void retainAll(Iterable elements);
+
+  /**
+   * Removes all elements of this set that satisfy [test].
+   */
+  void removeWhere(bool test(E element));
+
+  /**
+   * Removes all elements of this set that fail to satisfy [test].
+   */
+  void retainWhere(bool test(E element));
 
   /**
    * Returns true if this Set contains all the elements of [other].

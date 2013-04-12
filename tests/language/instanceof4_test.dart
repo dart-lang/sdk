@@ -4,6 +4,8 @@
 // Dart test program for testing the instanceof operation.
 // Regression test for issue 5216.
 
+import "package:expect/expect.dart";
+
 class Foo<T> {
   bool isT() => "a string" is T;
   bool isNotT() => "a string" is! T;

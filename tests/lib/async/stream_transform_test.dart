@@ -4,6 +4,7 @@
 
 library stream_transform_test;
 
+import "package:expect/expect.dart";
 import 'dart:async';
 import '../../../pkg/unittest/lib/unittest.dart';
 import 'event_helper.dart';

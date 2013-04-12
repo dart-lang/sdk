@@ -60,7 +60,7 @@
 ///
 ///       // ...
 ///     }
-library descriptor;
+library scheduled_test.descriptor;
 
 import 'dart:async';
 

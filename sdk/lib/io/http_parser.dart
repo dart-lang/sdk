@@ -166,7 +166,7 @@ class _HttpDetachedIncoming extends Stream<List<int>> {
   }
 
   void onSubscriptionStateChange() {
-    if (controller.hasSubscribers) {
+    if (controller.hasListener) {
       resume();
     } else {
       subscription.cancel();
@@ -197,7 +197,7 @@ class _HttpDetachedIncoming extends Stream<List<int>> {
  */
 class _HttpParser
     extends Stream<_HttpIncoming>
-    implements StreamConsumer<List<int>, _HttpParser> {
+    implements StreamConsumer<List<int>> {
 
   factory _HttpParser.requestParser() {
     return new _HttpParser._(true);
@@ -912,7 +912,7 @@ class _HttpParser
   }
 
   void _bodySubscriptionStateChange() {
-    if (_incoming != null && !_bodyController.hasSubscribers) {
+    if (_incoming != null && !_bodyController.hasListener) {
       _closeIncoming();
     } else {
       _updateParsePauseState();
@@ -921,13 +921,13 @@ class _HttpParser
 
   void _updateParsePauseState() {
     if (_bodyController != null) {
-      if (_bodyController.hasSubscribers && !_bodyController.isPaused) {
+      if (_bodyController.hasListener && !_bodyController.isPaused) {
         _continueParsing();
       } else {
         _pauseParsing();
       }
     } else {
-      if (_controller.hasSubscribers && !_controller.isPaused) {
+      if (_controller.hasListener && !_controller.isPaused) {
         _continueParsing();
       } else {
         _pauseParsing();

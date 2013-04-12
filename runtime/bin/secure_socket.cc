@@ -17,6 +17,7 @@
 #include <prerror.h>
 #include <prinit.h>
 #include <prnetdb.h>
+#include <secmod.h>
 #include <ssl.h>
 #include <sslproto.h>
 
@@ -333,36 +334,57 @@ void SSLFilter::RegisterBadCertificateCallback(Dart_Handle callback) {
   bad_certificate_callback_ = ThrowIfError(Dart_NewPersistentHandle(callback));
 }
 
+static const char* builtin_roots_module =
+#if defined(TARGET_OS_LINUX) || defined(TARGET_OS_ANDROID)
+    "name=\"Root Certs\" library=\"libnssckbi.so\"";
+#elif defined(TARGET_OS_MACOS)
+    "name=\"Root Certs\" library=\"libnssckbi.dylib\"";
+#elif defined(TARGET_OS_WINDOWS)
+    "name=\"Root Certs\" library=\"nssckbi.dll\"";
+#else
+#error Automatic target os detection failed.
+#endif
+
+
 
 void SSLFilter::InitializeLibrary(const char* certificate_database,
                                   const char* password,
                                   bool use_builtin_root_certificates,
                                   bool report_duplicate_initialization) {
   MutexLocker locker(&mutex_);
+  SECStatus status;
   if (!library_initialized_) {
     password_ = strdup(password);  // This one copy persists until Dart exits.
     PR_Init(PR_USER_THREAD, PR_PRIORITY_NORMAL, 0);
     // TODO(whesse): Verify there are no UTF-8 issues here.
-    PRUint32 init_flags = NSS_INIT_READONLY;
-    if (certificate_database == NULL) {
-      // Passing the empty string as the database path does not try to open
-      // a database in the current directory.
-      certificate_database = "";
-      // The flag NSS_INIT_NOCERTDB is documented to do what we want here,
-      // however it causes the builtins not to be available on Windows.
-      init_flags |= NSS_INIT_FORCEOPEN;
-    }
-    if (!use_builtin_root_certificates) {
-      init_flags |= NSS_INIT_NOMODDB;
-    }
-    SECStatus status = NSS_Initialize(certificate_database,
-                                      "",
-                                      "",
-                                      SECMOD_DB,
-                                      init_flags);
-    if (status != SECSuccess) {
-      mutex_.Unlock();  // MutexLocker destructor not called when throwing.
-      ThrowPRException("Failed NSS_Init call.");
+    if (certificate_database == NULL || certificate_database[0] == '\0') {
+      status = NSS_NoDB_Init(NULL);
+      if (status != SECSuccess) {
+        mutex_.Unlock();  // MutexLocker destructor not called when throwing.
+        ThrowPRException("Failed NSS_NoDB_Init call.");
+      }
+      if (use_builtin_root_certificates) {
+        SECMODModule* module = SECMOD_LoadUserModule(
+            const_cast<char*>(builtin_roots_module), NULL, PR_FALSE);
+        if (!module) {
+          mutex_.Unlock();  // MutexLocker destructor not called when throwing.
+          ThrowPRException("Failed to load builtin root certificates.");
+        }
+      }
+    } else {
+      PRUint32 init_flags = NSS_INIT_READONLY;
+      if (!use_builtin_root_certificates) {
+        init_flags |= NSS_INIT_NOMODDB;
+      }
+      status = NSS_Initialize(certificate_database,
+                              "",
+                              "",
+                              SECMOD_DB,
+                              init_flags);
+      if (status != SECSuccess) {
+        mutex_.Unlock();  // MutexLocker destructor not called when throwing.
+        ThrowPRException("Failed NSS_Init call.");
+      }
     }
     library_initialized_ = true;
 

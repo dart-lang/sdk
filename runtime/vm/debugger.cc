@@ -262,7 +262,6 @@ intptr_t ActivationFrame::TokenPos() {
         break;
       }
     }
-    ASSERT(token_pos_ >= 0);
   }
   return token_pos_;
 }
@@ -270,8 +269,7 @@ intptr_t ActivationFrame::TokenPos() {
 
 intptr_t ActivationFrame::PcDescIndex() {
   if (pc_desc_index_ < 0) {
-    TokenPos();
-    ASSERT(pc_desc_index_ >= 0);
+    TokenPos();  // Sets pc_desc_index_ as a side effect.
   }
   return pc_desc_index_;
 }
@@ -279,13 +277,17 @@ intptr_t ActivationFrame::PcDescIndex() {
 
 intptr_t ActivationFrame::TryIndex() {
   intptr_t desc_index = PcDescIndex();
-  return pc_desc_.TryIndex(desc_index);
+  if (desc_index < 0) {
+    return -1;
+  } else {
+    return pc_desc_.TryIndex(desc_index);
+  }
 }
 
 
 intptr_t ActivationFrame::LineNumber() {
   // Compute line number lazily since it causes scanning of the script.
-  if (line_number_ < 0) {
+  if ((line_number_ < 0) && (TokenPos() >= 0)) {
     const Script& script = Script::Handle(SourceScript());
     intptr_t ignore_column;
     script.GetTokenLocation(TokenPos(), &line_number_, &ignore_column);
@@ -308,6 +310,12 @@ intptr_t ActivationFrame::ContextLevel() {
     ASSERT(!code_.is_optimized());
     context_level_ = 0;
     intptr_t pc_desc_idx = PcDescIndex();
+    // TODO(hausner): What to do if there is no descriptor entry
+    // for the code position of the frame? For now say we are at context
+    // level 0.
+    if (pc_desc_idx < 0) {
+      return context_level_;
+    }
     ASSERT(!pc_desc_.IsNull());
     if (pc_desc_.DescriptorKind(pc_desc_idx) == PcDescriptors::kReturn) {
       // Special case: the context chain has already been deallocated.
@@ -316,6 +324,7 @@ intptr_t ActivationFrame::ContextLevel() {
     }
     intptr_t innermost_begin_pos = 0;
     intptr_t activation_token_pos = TokenPos();
+    ASSERT(activation_token_pos >= 0);
     GetVarDescriptors();
     intptr_t var_desc_len = var_descriptors_.Length();
     for (int cur_idx = 0; cur_idx < var_desc_len; cur_idx++) {
@@ -406,8 +415,15 @@ void ActivationFrame::GetDescIndices() {
     return;
   }
 
-  GrowableArray<String*> var_names(8);
   intptr_t activation_token_pos = TokenPos();
+  if (activation_token_pos < 0) {
+    // We don't have a token position for this frame, so can't determine
+    // which variables are visible.
+    vars_initialized_ = true;
+    return;
+  }
+
+  GrowableArray<String*> var_names(8);
   intptr_t var_desc_len = var_descriptors_.Length();
   for (int cur_idx = 0; cur_idx < var_desc_len; cur_idx++) {
     ASSERT(var_names.length() == desc_indices_.length());
@@ -992,6 +1008,7 @@ CodeBreakpoint* Debugger::MakeCodeBreakpoint(const Function& func,
   intptr_t lowest_pc_index = -1;
   for (int i = 0; i < desc.Length(); i++) {
     intptr_t desc_token_pos = desc.TokenPos(i);
+    ASSERT(desc_token_pos >= 0);
     if (desc_token_pos < first_token_pos) {
       continue;
     }

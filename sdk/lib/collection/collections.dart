@@ -9,6 +9,7 @@ part of dart.collection;
  *
  * Once Dart receives Mixins it will be replaced with mixin classes.
  */
+@deprecated
 class IterableMixinWorkaround {
   static bool contains(Iterable iterable, var element) {
     for (final e in iterable) {
@@ -38,9 +39,14 @@ class IterableMixinWorkaround {
   }
 
   static dynamic reduce(Iterable iterable,
-                        dynamic initialValue,
-                        dynamic combine(dynamic previousValue, element)) {
-    return fold(iterable, initialValue, combine);
+                        dynamic combine(previousValue, element)) {
+    Iterator iterator = iterable.iterator;
+    if (!iterator.moveNext()) throw new StateError("No elements");
+    var value = iterator.current;
+    while (iterator.moveNext()) {
+      value = combine(value, iterator.current);
+    }
+    return value;
   }
 
   static dynamic fold(Iterable iterable,
@@ -50,71 +56,6 @@ class IterableMixinWorkaround {
       initialValue = combine(initialValue, element);
     }
     return initialValue;
-  }
-
-  /**
-   * Simple implementation for [Collection.removeAll].
-   *
-   * This implementation assumes that [Collection.remove] on [collection]
-   * is efficient. The [:remove:] method on [List] objects is typically
-   * not efficient since it requires linear search to find an element.
-   */
-  static void removeAll(Collection collection, Iterable elementsToRemove) {
-    for (Object object in elementsToRemove) {
-      collection.remove(object);
-    }
-  }
-
-  /**
-   * Implementation of [Collection.removeAll] for lists.
-   *
-   * This implementation assumes that [Collection.remove] is not efficient
-   * (as it usually isn't on a [List]) and uses [Collection.removeMathcing]
-   * instead of just repeatedly calling remove.
-   */
-  static void removeAllList(Collection collection, Iterable elementsToRemove) {
-    Set setToRemove;
-    // Assume [contains] is efficient on a Set.
-    if (elementsToRemove is Set) {
-      setToRemove = elementsToRemove;
-    } else {
-      setToRemove = elementsToRemove.toSet();
-    }
-    collection.removeWhere(setToRemove.contains);
-  }
-
-  /**
-   * Simple implemenation for [Collection.retainAll].
-   *
-   * This implementation assumes that [Collecton.retainWhere] on [collection]
-   * is efficient.
-   */
-  static void retainAll(Collection collection, Iterable elementsToRetain) {
-    Set lookup;
-    if (elementsToRetain is Set) {
-      lookup = elementsToRetain;
-    } else {
-      lookup = elementsToRetain.toSet();
-    }
-    if (lookup.isEmpty) {
-      collection.clear();
-      return;
-    }
-    collection.retainWhere(lookup.contains);
-  }
-
-  /**
-   * Simple implemenation for [Collection.removeWhere].
-   *
-   * This implementation assumes that [Collecton.removeAll] on [collection] is
-   * efficient.
-   */
-  static void removeWhere(Collection collection, bool test(var element)) {
-    List elementsToRemove = [];
-    for (var element in collection) {
-      if (test(element)) elementsToRemove.add(element);
-    }
-    collection.removeAll(elementsToRemove);
   }
 
   /**
@@ -143,20 +84,6 @@ class IterableMixinWorkaround {
     }
   }
 
-  /**
-   * Simple implemenation for [Collection.retainWhere].
-   *
-   * This implementation assumes that [Collecton.removeAll] on [collection] is
-   * efficient.
-   */
-  static void retainWhere(Collection collection, bool test(var element)) {
-    List elementsToRemove = [];
-    for (var element in collection) {
-      if (!test(element)) elementsToRemove.add(element);
-    }
-    collection.removeAll(elementsToRemove);
-  }
-
   static bool isEmpty(Iterable iterable) {
     return !iterable.iterator.moveNext();
   }
@@ -179,32 +106,6 @@ class IterableMixinWorkaround {
       result = it.current;
     } while(it.moveNext());
     return result;
-  }
-
-  static dynamic min(Iterable iterable, [int compare(var a, var b)]) {
-    if (compare == null) compare = Comparable.compare;
-    Iterator it = iterable.iterator;
-    if (!it.moveNext()) {
-      return null;
-    }
-    var min = it.current;
-    while (it.moveNext()) {
-      if (compare(min, it.current) > 0) min = it.current;
-    }
-    return min;
-  }
-
-  static dynamic max(Iterable iterable, [int compare(var a, var b)]) {
-    if (compare == null) compare = Comparable.compare;
-    Iterator it = iterable.iterator;
-    if (!it.moveNext()) {
-      return null;
-    }
-    var max = it.current;
-    while (it.moveNext()) {
-      if (compare(max, it.current) < 0) max = it.current;
-    }
-    return max;
   }
 
   static dynamic single(Iterable iterable) {
@@ -281,7 +182,7 @@ class IterableMixinWorkaround {
 
   static String join(Iterable iterable, [String separator]) {
     StringBuffer buffer = new StringBuffer();
-    buffer.writeAll(iterable, separator == null ? "" : separator);
+    buffer.writeAll(iterable, separator);
     return buffer.toString();
   }
 
@@ -289,15 +190,15 @@ class IterableMixinWorkaround {
     if (list.isEmpty) return "";
     if (list.length == 1) return "${list[0]}";
     StringBuffer buffer = new StringBuffer();
-    if (separator == null || separator == "") {
+    if (separator.isEmpty) {
       for (int i = 0; i < list.length; i++) {
-        buffer.write("${list[i]}");
+        buffer.write(list[i]);
       }
     } else {
-      buffer.write("${list[0]}");
+      buffer.write(list[0]);
       for (int i = 1; i < list.length; i++) {
         buffer.write(separator);
-        buffer.write("${list[i]}");
+        buffer.write(list[i]);
       }
     }
     return buffer.toString();
@@ -321,7 +222,6 @@ class IterableMixinWorkaround {
 
   static Iterable takeList(List list, int n) {
     // The generic type is currently lost. It will be fixed with mixins.
-    // This is currently a List as well as an Iterable.
     return new SubListIterable(list, 0, n);
   }
 
@@ -332,7 +232,6 @@ class IterableMixinWorkaround {
 
   static Iterable skipList(List list, int n) {
     // The generic type is currently lost. It will be fixed with mixins.
-    // This is currently a List as well as an Iterable.
     return new SubListIterable(list, n, null);
   }
 
@@ -357,6 +256,17 @@ class IterableMixinWorkaround {
   static int lastIndexOfList(List list, var element, int start) {
     if (start == null) start = list.length - 1;
     return Arrays.lastIndexOf(list, element, start);
+  }
+
+  static Iterable getRangeList(List list, int start, int end) {
+    if (start < 0 || start > list.length) {
+      throw new RangeError.range(start, 0, list.length);
+    }
+    if (end < start || end > list.length) {
+      throw new RangeError.range(end, start, list.length);
+    }
+    // The generic type is currently lost. It will be fixed with mixins.
+    return new SubListIterable(list, start, end);
   }
 
   static void setRangeList(List list, int start, int length,
@@ -415,11 +325,6 @@ class IterableMixinWorkaround {
     }
     return result;
   }
-}
-
-class Collections {
-  static String collectionToString(Collection c)
-      => ToString.collectionToString(c);
 }
 
 /**

@@ -12,6 +12,12 @@ class Encoding {
   static const Encoding ISO_8859_1 = const Encoding._internal("iso-8859-1");
   static const Encoding ASCII = const Encoding._internal("us-ascii");
 
+  /**
+   * SYSTEM encoding is the current code page on Windows and UTF-8 on
+   * Linux and Mac.
+   */
+  static const Encoding SYSTEM = const Encoding._internal("system");
+
   // All aliasses (in lowercase) of supported encoding from
   // http://www.iana.org/assignments/character-sets/character-sets.xml.
   static Map<String, Encoding> _nameToEncoding = <String, Encoding> {
@@ -67,14 +73,12 @@ class Encoding {
    */
   final String name;
 
-  /**
-   * SYSTEM encoding is the current code page on Windows and UTF-8 on
-   * Linux and Mac.
-   */
-  static const Encoding SYSTEM = const Encoding._internal("system");
   const Encoding._internal(String this.name);
 }
 
+const UTF_8 = Encoding.UTF_8;
+const ISO_8859_1 = Encoding.ISO_8859_1;
+const ASCII = Encoding.ASCII;
 
 /**
  * Stream transformer that can decode a stream of bytes into a stream of

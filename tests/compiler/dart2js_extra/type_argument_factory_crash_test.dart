@@ -4,6 +4,7 @@
 
 // A regression test for a dart2js crash.
 library type.argument.factory.crash.test;
+import "package:expect/expect.dart";
 import 'dart:collection' show LinkedHashMap;
 
 void main() {

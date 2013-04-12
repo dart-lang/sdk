@@ -4,6 +4,8 @@
 // Test that a function only used by compile-time constants is being
 // generated.
 
+import "package:expect/expect.dart";
+
 topLevelMethod() => 42;
 
 class A {

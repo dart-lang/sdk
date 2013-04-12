@@ -225,6 +225,7 @@ DART_EXPORT Dart_Handle Dart_ActivationFrameInfo(
 DART_EXPORT Dart_Handle Dart_ActivationFrameGetLocation(
                             Dart_ActivationFrame activation_frame,
                             Dart_Handle* script_url,
+                            intptr_t* library_id,
                             intptr_t* token_number) {
   // TODO(hausner): Implement implement a way to recognize when there
   // is no source code for the code in the frame.
@@ -233,6 +234,10 @@ DART_EXPORT Dart_Handle Dart_ActivationFrameGetLocation(
   CHECK_AND_CAST(ActivationFrame, frame, activation_frame);
   if (script_url != NULL) {
     *script_url = Api::NewHandle(isolate, frame->SourceUrl());
+  }
+  if (library_id != NULL) {
+    const Library& lib = Library::Handle(frame->Library());
+    *library_id = lib.index();
   }
   if (token_number != NULL) {
     *token_number = frame->TokenPos();
@@ -265,43 +270,6 @@ DART_EXPORT Dart_Handle Dart_SetBreakpoint(
                          CURRENT_FUNC, line_number, script_url.ToCString());
   }
   return Dart_NewInteger(bpt->id());
-}
-
-
-// TODO(hausner): remove this function.
-DART_EXPORT Dart_Handle Dart_SetBreakpointAtLine(
-                            Dart_Handle script_url_in,
-                            Dart_Handle line_number_in,
-                            Dart_Breakpoint* breakpoint) {
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  UNWRAP_AND_CHECK_PARAM(String, script_url, script_url_in);
-  UNWRAP_AND_CHECK_PARAM(Integer, line_number, line_number_in);
-  CHECK_NOT_NULL(breakpoint);
-
-  if (!line_number.IsSmi()) {
-    return Api::NewError("%s: line number out of range", CURRENT_FUNC);
-  }
-  intptr_t line = line_number.AsInt64Value();
-
-  Dart_Handle state = Api::CheckIsolateState(isolate);
-  if (::Dart_IsError(state)) {
-    return state;
-  }
-
-  Dart_Handle result = Api::True(isolate);
-  *breakpoint = NULL;
-  Debugger* debugger = isolate->debugger();
-  ASSERT(debugger != NULL);
-  SourceBreakpoint* bpt =
-      debugger->SetBreakpointAtLine(script_url, line);
-  if (bpt == NULL) {
-    result = Api::NewError("%s: could not set breakpoint at line %"Pd" of '%s'",
-                           CURRENT_FUNC, line, script_url.ToCString());
-  } else {
-    *breakpoint = reinterpret_cast<Dart_Breakpoint>(bpt);
-  }
-  return result;
 }
 
 
@@ -338,14 +306,12 @@ DART_EXPORT Dart_Handle Dart_GetBreakpointLine(intptr_t bp_id) {
 DART_EXPORT Dart_Handle Dart_SetBreakpointAtEntry(
                             Dart_Handle library_in,
                             Dart_Handle class_name_in,
-                            Dart_Handle function_name_in,
-                            Dart_Breakpoint* breakpoint) {
+                            Dart_Handle function_name_in) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   UNWRAP_AND_CHECK_PARAM(Library, library, library_in);
   UNWRAP_AND_CHECK_PARAM(String, class_name, class_name_in);
   UNWRAP_AND_CHECK_PARAM(String, function_name, function_name_in);
-  CHECK_NOT_NULL(breakpoint);
 
   Dart_Handle state = Api::CheckIsolateState(isolate);
   if (::Dart_IsError(state)) {
@@ -365,18 +331,13 @@ DART_EXPORT Dart_Handle Dart_SetBreakpointAtEntry(
                          function_name.ToCString());
   }
 
-  Dart_Handle result = Api::True(isolate);
-  *breakpoint = NULL;
-
   SourceBreakpoint* bpt = debugger->SetBreakpointAtEntry(bp_target);
   if (bpt == NULL) {
     const char* target_name = Debugger::QualifiedFunctionName(bp_target);
-    result = Api::NewError("%s: no breakpoint location found in '%s'",
-                             CURRENT_FUNC, target_name);
-  } else {
-    *breakpoint = reinterpret_cast<Dart_Breakpoint>(bpt);
+    return Api::NewError("%s: no breakpoint location found in '%s'",
+                         CURRENT_FUNC, target_name);
   }
-  return result;
+  return Dart_NewInteger(bpt->id());
 }
 
 
@@ -413,9 +374,6 @@ DART_EXPORT Dart_Handle Dart_OneTimeBreakAtEntry(
 }
 
 
-
-
-
 DART_EXPORT Dart_Handle Dart_RemoveBreakpoint(intptr_t bp_id) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
@@ -423,17 +381,6 @@ DART_EXPORT Dart_Handle Dart_RemoveBreakpoint(intptr_t bp_id) {
   ASSERT(debugger != NULL);
 
   isolate->debugger()->RemoveBreakpoint(bp_id);
-  return Api::True(isolate);
-}
-
-
-DART_EXPORT Dart_Handle Dart_DeleteBreakpoint(
-                            Dart_Breakpoint breakpoint_in) {
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-
-  CHECK_AND_CAST(SourceBreakpoint, breakpoint, breakpoint_in);
-  isolate->debugger()->RemoveBreakpoint(breakpoint->id());
   return Api::True(isolate);
 }
 
@@ -587,6 +534,57 @@ DART_EXPORT Dart_Handle Dart_ScriptGetSource(
 }
 
 
+DART_EXPORT Dart_Handle Dart_ScriptGetTokenInfo(
+                            intptr_t library_id,
+                            Dart_Handle script_url_in) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const Library& lib = Library::Handle(Library::GetLibrary(library_id));
+  if (lib.IsNull()) {
+    return Api::NewError("%s: %"Pd" is not a valid library id",
+                         CURRENT_FUNC, library_id);
+  }
+  UNWRAP_AND_CHECK_PARAM(String, script_url, script_url_in);
+  const Script& script = Script::Handle(lib.LookupScript(script_url));
+  if (script.IsNull()) {
+    return Api::NewError("%s: script '%s' not found in library '%s'",
+                         CURRENT_FUNC, script_url.ToCString(),
+                         String::Handle(lib.url()).ToCString());
+  }
+
+  const GrowableObjectArray& info =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
+  const String& source = String::Handle(script.Source());
+  const String& key = Symbols::Empty();
+  const Object& line_separator = Object::Handle();
+  const TokenStream& tkns = TokenStream::Handle(script.tokens());
+  ASSERT(!tkns.IsNull());
+  TokenStream::Iterator tkit(tkns, 0);
+  int current_line = -1;
+  Scanner s(source, key);
+  s.Scan();
+  while (s.current_token().kind != Token::kEOS) {
+    ASSERT(tkit.IsValid());
+    ASSERT(s.current_token().kind == tkit.CurrentTokenKind());
+    int token_line = s.current_token().position.line;
+    if (token_line != current_line) {
+      // emit line
+      info.Add(line_separator);
+      info.Add(Smi::Handle(Smi::New(token_line)));
+      current_line = token_line;
+    }
+    // TODO(hausner): Could optimize here by not reporting tokens
+    // that will never be a location used by the debugger, e.g.
+    // braces, semicolons, most keywords etc.
+    info.Add(Smi::Handle(Smi::New(tkit.CurrentPosition())));
+    info.Add(Smi::Handle(Smi::New(s.current_token().offset)));
+    s.Scan();
+    tkit.Advance();
+  }
+  return Api::NewHandle(isolate, Array::MakeArray(info));
+}
+
+
 DART_EXPORT Dart_Handle Dart_GenerateScriptSource(Dart_Handle library_url_in,
                                                   Dart_Handle script_url_in) {
   Isolate* isolate = Isolate::Current();
@@ -707,29 +705,6 @@ DART_EXPORT Dart_Handle Dart_GetLibraryURL(intptr_t library_id) {
                          CURRENT_FUNC, library_id);
   }
   return Api::NewHandle(isolate, lib.url());
-}
-
-
-DART_EXPORT Dart_Handle Dart_GetLibraryURLs() {
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != NULL);
-  DARTSCOPE(isolate);
-
-  const GrowableObjectArray& libs =
-      GrowableObjectArray::Handle(isolate->object_store()->libraries());
-  int num_libs = libs.Length();
-
-  // Create new list and populate with the url of loaded libraries.
-  Library &lib = Library::Handle();
-  String& lib_url = String::Handle();
-  const Array& library_url_list = Array::Handle(Array::New(num_libs));
-  for (int i = 0; i < num_libs; i++) {
-    lib ^= libs.At(i);
-    ASSERT(!lib.IsNull());
-    lib_url = lib.url();
-    library_url_list.SetAt(i, lib_url);
-  }
-  return Api::NewHandle(isolate, library_url_list.raw());
 }
 
 

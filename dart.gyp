@@ -5,22 +5,7 @@
 {
   'targets': [
     {
-      # Contains all dependencies.
-      'target_name': 'everything',
-      'type': 'none',
-      'dependencies': [
-        # Most dependencies.
-        'default',
-        # All other targets.
-        'api_docs',
-        'dartc_bot',
-        'dart2js_bot',
-      ],
-    },
-    {
-      # Contains all the dependencies that will run by default.
-      # Excludes api_docs.
-      'target_name': 'default',
+      'target_name': 'most',
       'type': 'none',
       'dependencies': [
         'analyzer',
@@ -75,7 +60,7 @@
             '<!@(["python", "tools/list_files.py", "", "sdk/bin"])',
             'tools/create_sdk.py',
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
-            '<(PRODUCT_DIR)/dart2js.snapshot',
+            '<(SHARED_INTERMEDIATE_DIR)/utils_wrapper.dart.snapshot',
             '<(PRODUCT_DIR)/analyzer/bin/dart_analyzer',
           ],
           'outputs': [
@@ -84,7 +69,9 @@
           'action': [
             'python',
             'tools/create_sdk.py',
-            '<(PRODUCT_DIR)/dart-sdk',
+            '--sdk_output_dir', '<(PRODUCT_DIR)/dart-sdk',
+            '--utils_snapshot_location',
+             '<(SHARED_INTERMEDIATE_DIR)/utils_wrapper.dart.snapshot'
           ],
           'message': 'Creating SDK.',
         },
@@ -128,8 +115,18 @@
       'target_name': 'analyzer',
       'type': 'none',
       'dependencies': [
-        'create_sdk',
         'editor/analyzer.gyp:analyzer',
+      ],
+    },
+    {
+      # This is the target that is built on the dart2dart bots.
+      # It must depend on anything that is required by dart2dart
+      # tests.
+      'target_name': 'dart2dart_bot',
+      'type': 'none',
+      'dependencies': [
+        'create_sdk',
+        'packages',
       ],
     },
     {

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "package:expect/expect.dart";
+
 // Test cascades, issues 7494 (vm), 7689 (dart2js).
 
 main() {

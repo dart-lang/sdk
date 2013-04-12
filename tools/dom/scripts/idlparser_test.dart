@@ -95,7 +95,9 @@ void check(grammar, rule, input, expected) {
   if (expected is String)
     formatted = printList(ast);
 
-  Expect.equals(expected, formatted, "parse: $input");
+  if (expected != formatted) {
+    throw new StateError("parse: $input");
+  }
 }
 
 // Prints the list in [1,2,3] notation, including nested lists.

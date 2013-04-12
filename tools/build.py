@@ -7,6 +7,7 @@
 
 import optparse
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -267,21 +268,30 @@ PhaseScriptExecution "Action \"upload_sdk_py\"" xcodebuild/dart.build/...
     # The capability "clr_eol" means clear the line from cursor to end
     # of line.  See man pages for tput and terminfo.
     try:
-      clr_eol = subprocess.check_output(['tput', '-T' + term, 'el'],
-                                        stderr=subprocess.STDOUT)
+      with open('/dev/null', 'a') as dev_null:
+        clr_eol = subprocess.check_output(['tput', '-T' + term, 'el'],
+                                          stderr=dev_null)
       if clr_eol:
         is_fancy_tty = True
     except subprocess.CalledProcessError:
       is_fancy_tty = False
     except AttributeError:
       is_fancy_tty = False
+  pattern = re.compile(r'=== BUILD .* TARGET (.*) OF PROJECT (.*) WITH ' +
+                       r'CONFIGURATION (.*) ===')
+  has_interesting_info = False
   for line in unbuffered(process.stdout.readline):
     line = line.rstrip()
     if line.startswith('=== BUILD ') or line.startswith('** BUILD '):
-      if not is_empty_chunk(chunk):
-        print '\n'.join(chunk)
+      has_interesting_info = False
       section = line
       if is_fancy_tty:
+        match = re.match(pattern, section)
+        if match:
+          section = '%s/%s/%s' % (
+            match.group(3), match.group(2), match.group(1))
+        # Truncate to avoid extending beyond 80 columns.
+        section = section[:80]
         # If stdout is a terminal, emit "progress" information.  The
         # progress information is the first line of the current chunk.
         # After printing the line, move the cursor back to the
@@ -293,10 +303,19 @@ PhaseScriptExecution "Action \"upload_sdk_py\"" xcodebuild/dart.build/...
         # overwrites a longer line.
         print '%s%s\r' % (clr_eol, section),
       chunk = []
-    if not section:
+    if not section or has_interesting_info:
       print line
     else:
-      chunk.append(line)
+      length = len(chunk)
+      if length == 1 and line != 'Check dependencies':
+        has_interesting_info = True
+      elif (length == 2 or length == 3) and line:
+        has_interesting_info = True
+      if has_interesting_info:
+        print '\n'.join(chunk)
+        chunk = []
+      else:
+        chunk.append(line)
   if not is_empty_chunk(chunk):
     print '\n'.join(chunk)
 
@@ -325,6 +344,7 @@ def Main():
   for target_os in options.os:
     for mode in options.mode:
       for arch in options.arch:
+        os.environ['DART_BUILD_MODE'] = mode
         build_config = utils.GetBuildConf(mode, arch)
         if HOST_OS == 'macos':
           filter_xcodebuild_output = True

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library testing;
-
 /// This library contains testing classes for the HTTP library.
 ///
 /// The [MockClient] class is a drop-in replacement for `http.Client` that
@@ -23,5 +21,6 @@ library testing;
 ///         'content-type': 'application/json'
 ///       });
 ///     };
+library http.testing;
 
 export 'src/mock_client.dart';

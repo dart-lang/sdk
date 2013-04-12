@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "package:expect/expect.dart";
+
 // Test to see if resolving a hidden native class's method to noSuchMethod
 // interferes with subsequent resolving of the method.  This might happen if the
 // noSuchMethod is cached on Object.prototype.

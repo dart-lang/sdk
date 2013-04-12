@@ -298,3 +298,19 @@ patch class StackTrace {
     throw new UnsupportedError('stackTrace');
   }
 }
+
+patch class Symbol {
+  final String _name;
+
+  patch const Symbol(String name) :
+    this._name = name;
+
+  patch bool operator ==(other) {
+    return other is Symbol && _name == other._name;
+  }
+
+  patch int get hashCode {
+    const arbitraryPrime = 664597;
+    return 0x1fffffff & (arbitraryPrime * _name.hashCode);
+  }
+}

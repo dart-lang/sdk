@@ -12,7 +12,7 @@ fixnum/test/int_64_vm_test: Skip
 # Skip non-test files ending with "_test".
 scheduled_test/lib/*: Skip
 
-scheduled_test/test/scheduled_server_test: Pass, Fail, Slow # Issue 9231, 9582
+scheduled_test/test/scheduled_server_test: Pass, Fail, Slow, Crash # Issue 9231, 9582
 scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
 
 # WebDriver tests have 3rd party dependencies (we need to run
@@ -20,11 +20,10 @@ scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
 # testing.
 webdriver/test/webdriver_test: Skip
 
-[$compiler == none && $runtime == vm]
-intl/test/date_time_format_file_even_test: Pass, Crash # Issue 9342
-intl/test/date_time_format_file_odd_test: Pass, Crash # Issue 9342
-intl/test/date_time_format_local_even_test: Pass, Crash # Issue 9342
-intl/test/date_time_format_local_odd_test: Pass, Crash # Issue 9342
+
+[ $compiler == dart2js && $runtime == drt ]
+unittest/test/unittest_test: Pass, Fail, Crash # Bug in v8, http://dartbug.com/9407
+
 
 [$compiler == dart2dart]
 *: Skip
@@ -76,7 +75,7 @@ intl/test/find_default_locale_browser_test: Fail
 intl/test/date_time_format_http_request_test: Skip # Timeout.
 
 [ $runtime == ie9 ]
-intl/test/date_time_format_http_request_test: Fail # Issue 8983
+intl/test/date_time_format_http_request_test: Skip # Issue 8983
 
 [ $runtime == safari ]
 fixnum/test/int_64_test: Pass, Fail # Bug in JSC.
@@ -89,11 +88,6 @@ intl/test/date_time_format_http_request_test: Skip
 [ $runtime == vm && $system == windows ]
 intl/test/find_default_locale_standalone_test: Fail # Issue 8110
 intl/test/message_extraction/message_extraction_test: Fail # Issue 9167
-
-# Skip http request tests on Dartium while resolving an odd
-# error there that causes the tests to timeout.
-[ $runtime == dartium || $runtime == drt ]
-intl/test/date_time_format_http_request_test: Skip
 
 [ $compiler == dart2js ]
 # Skip intl_message tests that use mirrors on dart2js until it's been

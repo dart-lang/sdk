@@ -9,7 +9,7 @@ part of dart.collection;
  * can iterate over the elements of a queue through [forEach] or with
  * an [Iterator].
  */
-abstract class Queue<E> implements Collection<E> {
+abstract class Queue<E> implements Iterable<E> {
 
   /**
    * Creates a queue.
@@ -160,7 +160,7 @@ class _DoubleLinkedQueueEntrySentinel<E> extends DoubleLinkedQueueEntry<E> {
  *
  * Can do [removeAll] and [retainAll] in linear time.
  */
-class DoubleLinkedQueue<E> extends Collection<E> implements Queue<E> {
+class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
   _DoubleLinkedQueueEntrySentinel<E> _sentinel;
   int _elementCount = 0;
 
@@ -224,33 +224,42 @@ class DoubleLinkedQueue<E> extends Collection<E> implements Queue<E> {
     }
   }
 
+  void retainAll(Iterable elements) {
+    _filterIterable(elements, true);
+  }
+
   void removeAll(Iterable elements) {
-    // Use this method when remove is slow and removeWhere more efficient.
-    IterableMixinWorkaround.removeAllList(this, elements);
+    _filterIterable(elements, false);
+  }
+
+  void _filterIterable(Iterable elements, bool retainMatching) {
+    Set elementSet;
+    if (elements is Set) {
+      elementSet = elements;
+    } else {
+      elementSet = elements.toSet();
+    }
+    _filter(elementSet.contains, retainMatching);
+  }
+
+  void _filter(bool test(E element), bool retainMatching) {
+    DoubleLinkedQueueEntry<E> entry = firstEntry();
+    while (!identical(entry, _sentinel)) {
+      DoubleLinkedQueueEntry<E> next = entry._next;
+      if (test(entry.element) != retainMatching) {
+        entry.remove();
+        _elementCount--;
+      }
+      entry = next;
+    }
   }
 
   void removeWhere(bool test(E element)) {
-    DoubleLinkedQueueEntry<E> entry = firstEntry();
-    while (!identical(entry, _sentinel)) {
-      DoubleLinkedQueueEntry<E> next = entry._next;
-      if (test(entry.element)) {
-        entry.remove();
-        _elementCount--;
-      }
-      entry = next;
-    }
+    _filter(test, false);
   }
 
   void retainWhere(bool test(E element)) {
-    DoubleLinkedQueueEntry<E> entry = firstEntry();
-    while (!identical(entry, _sentinel)) {
-      DoubleLinkedQueueEntry<E> next = entry._next;
-      if (!test(entry.element)) {
-        entry.remove();
-        _elementCount--;
-      }
-      entry = next;
-    }
+    _filter(test, true);
   }
 
   E get first {
@@ -301,7 +310,7 @@ class DoubleLinkedQueue<E> extends Collection<E> implements Queue<E> {
   }
 
   String toString() {
-    return Collections.collectionToString(this);
+    return ToString.iterableToString(this);
   }
 }
 
@@ -342,10 +351,10 @@ class _DoubleLinkedQueueIterator<E> implements Iterator<E> {
  *
  * The structure is efficient for any queue or stack usage.
  *
- * Collection operations like [removeAll] and [removeWhere] are very
+ * Operations like [removeAll] and [removeWhere] are very
  * inefficient. If those are needed, use a [DoubleLinkedQueue] instead.
  */
-class ListQueue<E> extends Collection<E> implements Queue<E>{
+class ListQueue<E> extends Iterable<E> implements Queue<E>{
   static const int _INITIAL_CAPACITY = 8;
   List<E> _table;
   int _head;
@@ -481,14 +490,6 @@ class ListQueue<E> extends Collection<E> implements Queue<E>{
     _modificationCount++;
   }
 
-  void removeAll(Iterable objectsToRemove) {
-    IterableMixinWorkaround.removeAllList(this, objectsToRemove);
-  }
-
-  void retainAll(Iterable objectsToRetain) {
-    IterableMixinWorkaround.retainAll(this, objectsToRetain);
-  }
-
   void _filterWhere(bool test(E element), bool removeMatching) {
     int index = _head;
     int modificationCount = _modificationCount;
@@ -537,7 +538,7 @@ class ListQueue<E> extends Collection<E> implements Queue<E>{
   }
 
   String toString() {
-    return Collections.collectionToString(this);
+    return ToString.iterableToString(this);
   }
 
   // Queue interface.

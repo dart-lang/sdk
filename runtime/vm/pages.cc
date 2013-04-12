@@ -132,7 +132,7 @@ PageSpace::~PageSpace() {
 
 
 intptr_t PageSpace::LargePageSizeFor(intptr_t size) {
-  intptr_t page_size = Utils::RoundUp(size + sizeof(HeapPage),
+  intptr_t page_size = Utils::RoundUp(size + HeapPage::ObjectStartOffset(),
                                       VirtualMemory::PageSize());
   return page_size;
 }

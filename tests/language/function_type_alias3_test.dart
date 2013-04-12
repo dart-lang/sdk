@@ -6,6 +6,7 @@
 // to have the same name as a type parameter.
 
 library main;
+import "package:expect/expect.dart";
 import "library11.dart" as lib11;
 
 typedef lib11.Library111<Library111>

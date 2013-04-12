@@ -336,7 +336,7 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
                                        LocationSummary* locs,
                                        const ICData& original_ic_data) {
   if (!compiler->is_optimizing()) {
-    compiler->AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
+    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
                                    deopt_id,
                                    token_pos);
   }
@@ -972,7 +972,7 @@ void RelationalOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const String& function_name =
       String::ZoneHandle(Symbols::New(Token::Str(kind())));
   if (!compiler->is_optimizing()) {
-    compiler->AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
+    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
                                    deopt_id(),
                                    token_pos());
   }
@@ -1124,6 +1124,8 @@ CompileType LoadIndexedInstr::ComputeType() const {
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
       return CompileType::FromCid(kDoubleCid);
+    case kTypedDataFloat32x4ArrayCid:
+      return CompileType::FromCid(kFloat32x4Cid);
 
     case kTypedDataInt8ArrayCid:
     case kTypedDataUint8ArrayCid:
@@ -1173,6 +1175,8 @@ Representation LoadIndexedInstr::representation() const {
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
       return kUnboxedDouble;
+    case kTypedDataFloat32x4ArrayCid:
+      return kUnboxedFloat32x4;
     default:
       UNIMPLEMENTED();
       return kTagged;
@@ -1230,7 +1234,8 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   if ((representation() == kUnboxedDouble) ||
-      (representation() == kUnboxedMint)) {
+      (representation() == kUnboxedMint) ||
+      (representation() == kUnboxedFloat32x4)) {
     XmmRegister result = locs()->out().fpu_reg();
     if ((index_scale() == 1) && index.IsRegister()) {
       __ SmiUntag(index.reg());
@@ -1251,6 +1256,9 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         break;
       case kTypedDataFloat64ArrayCid:
         __ movsd(result, element_address);
+        break;
+      case kTypedDataFloat32x4ArrayCid:
+        __ movups(result, element_address);
         break;
     }
     return;
@@ -1332,6 +1340,8 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
       return kUnboxedDouble;
+    case kTypedDataFloat32x4ArrayCid:
+      return kUnboxedFloat32x4;
     default:
       UNIMPLEMENTED();
       return kTagged;
@@ -1392,6 +1402,9 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary() const {
       // Fall through.
     case kTypedDataFloat64ArrayCid:
       // TODO(srdjan): Support Float64 constants.
+      locs->set_in(2, Location::RequiresFpuRegister());
+      break;
+    case kTypedDataFloat32x4ArrayCid:
       locs->set_in(2, Location::RequiresFpuRegister());
       break;
     default:
@@ -1509,6 +1522,9 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     case kTypedDataFloat64ArrayCid:
       __ movsd(element_address, locs()->in(2).fpu_reg());
+      break;
+    case kTypedDataFloat32x4ArrayCid:
+      __ movups(element_address, locs()->in(2).fpu_reg());
       break;
     default:
       UNREACHABLE();
@@ -1729,7 +1745,8 @@ void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ LoadObject(temp, field());
   if (this->value()->NeedsStoreBuffer()) {
-    __ StoreIntoObject(temp, FieldAddress(temp, Field::value_offset()), value);
+    __ StoreIntoObject(temp,
+        FieldAddress(temp, Field::value_offset()), value, CanValueBeSmi());
   } else {
     __ StoreIntoObjectNoBarrier(
         temp, FieldAddress(temp, Field::value_offset()), value);
@@ -2611,11 +2628,11 @@ class BoxDoubleSlowPath : public SlowPathCode {
     locs->live_registers()->Remove(locs->out());
 
     compiler->SaveLiveRegisters(locs);
-    compiler->GenerateCall(instruction_->token_pos(),
+    compiler->GenerateCall(Scanner::kDummyTokenIndex,  // No token position.
                            &label,
                            PcDescriptors::kOther,
                            locs);
-    if (EAX != locs->out().reg()) __ movl(locs->out().reg(), EAX);
+    __ MoveRegister(locs->out().reg(), EAX);
     compiler->RestoreLiveRegisters(locs);
 
     __ jmp(exit_label());
@@ -2685,6 +2702,88 @@ void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ cvtsi2sd(result, temp);
     __ Bind(&done);
   }
+}
+
+
+LocationSummary* BoxFloat32x4Instr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs,
+                          kNumTemps,
+                          LocationSummary::kCallOnSlowPath);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_out(Location::RequiresRegister());
+  return summary;
+}
+
+
+class BoxFloat32x4SlowPath : public SlowPathCode {
+ public:
+  explicit BoxFloat32x4SlowPath(BoxFloat32x4Instr* instruction)
+      : instruction_(instruction) { }
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
+    __ Comment("BoxFloat32x4SlowPath");
+    __ Bind(entry_label());
+    const Class& float32x4_class = compiler->float32x4_class();
+    const Code& stub =
+        Code::Handle(StubCode::GetAllocationStubForClass(float32x4_class));
+    const ExternalLabel label(float32x4_class.ToCString(), stub.EntryPoint());
+
+    LocationSummary* locs = instruction_->locs();
+    locs->live_registers()->Remove(locs->out());
+
+    compiler->SaveLiveRegisters(locs);
+    compiler->GenerateCall(Scanner::kDummyTokenIndex,  // No token position.
+                           &label,
+                           PcDescriptors::kOther,
+                           locs);
+    __ MoveRegister(locs->out().reg(), EAX);
+    compiler->RestoreLiveRegisters(locs);
+
+    __ jmp(exit_label());
+  }
+
+ private:
+  BoxFloat32x4Instr* instruction_;
+};
+
+
+void BoxFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  BoxFloat32x4SlowPath* slow_path = new BoxFloat32x4SlowPath(this);
+  compiler->AddSlowPathCode(slow_path);
+
+  Register out_reg = locs()->out().reg();
+  XmmRegister value = locs()->in(0).fpu_reg();
+
+  __ TryAllocate(compiler->float32x4_class(),
+                 slow_path->entry_label(),
+                 Assembler::kFarJump,
+                 out_reg);
+  __ Bind(slow_path->exit_label());
+  __ movups(FieldAddress(out_reg, Float32x4::value_offset()), value);
+}
+
+
+LocationSummary* UnboxFloat32x4Instr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_out(Location::RequiresFpuRegister());
+  return summary;
+}
+
+
+void UnboxFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const intptr_t value_cid = value()->Type()->ToCid();
+  const Register value = locs()->in(0).reg();
+  const XmmRegister result = locs()->out().fpu_reg();
+
+  ASSERT(value_cid == kFloat32x4Cid);
+  __ movups(result, FieldAddress(value, Float32x4::value_offset()));
 }
 
 
@@ -2903,11 +3002,11 @@ LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary() const {
   const intptr_t kNumTemps = 0;
   LocationSummary* result =
       new LocationSummary(InputCount(), kNumTemps, LocationSummary::kCall);
-  result->set_in(0, Location::FpuRegisterLocation(XMM1, kUnboxedDouble));
+  result->set_in(0, Location::FpuRegisterLocation(XMM1));
   if (InputCount() == 2) {
-    result->set_in(1, Location::FpuRegisterLocation(XMM2, kUnboxedDouble));
+    result->set_in(1, Location::FpuRegisterLocation(XMM2));
   }
-  result->set_out(Location::FpuRegisterLocation(XMM1, kUnboxedDouble));
+  result->set_out(Location::FpuRegisterLocation(XMM1));
   return result;
 }
 
@@ -3184,11 +3283,11 @@ class BoxIntegerSlowPath : public SlowPathCode {
     locs->live_registers()->Remove(locs->out());
 
     compiler->SaveLiveRegisters(locs);
-    compiler->GenerateCall(0,  // No token pos.
+    compiler->GenerateCall(Scanner::kDummyTokenIndex,  // No token position.
                            &label,
                            PcDescriptors::kOther,
                            locs);
-    if (EAX != locs->out().reg()) __ movl(locs->out().reg(), EAX);
+    __ MoveRegister(locs->out().reg(), EAX);
     compiler->RestoreLiveRegisters(locs);
 
     __ jmp(exit_label());
@@ -3442,7 +3541,7 @@ void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Add deoptimization descriptor for deoptimizing instructions
   // that may be inserted before this instruction.
   if (!compiler->is_optimizing()) {
-    compiler->AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
+    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
                                    GetDeoptId(),
                                    0);  // No token position.
   }
@@ -3600,6 +3699,127 @@ void StrictCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
 
   Condition true_condition = (kind() == Token::kEQ_STRICT) ? EQUAL : NOT_EQUAL;
   branch->EmitBranchOnCondition(compiler, true_condition);
+}
+
+
+static bool BindsToSmiConstant(Value* val, intptr_t* smi_value) {
+  if (!val->BindsToConstant()) {
+    return false;
+  }
+
+  const Object& bound_constant = val->BoundConstant();
+  if (!bound_constant.IsSmi()) {
+    return false;
+  }
+
+  *smi_value = Smi::Cast(bound_constant).Value();
+  return true;
+}
+
+
+// Detect pattern when one value is zero and another is a power of 2.
+static bool IsPowerOfTwoKind(intptr_t v1, intptr_t v2) {
+  return (Utils::IsPowerOfTwo(v1) && (v2 == 0)) ||
+         (Utils::IsPowerOfTwo(v2) && (v1 == 0));
+}
+
+
+// Detect pattern when one value is increment of another.
+static bool IsIncrementKind(intptr_t v1, intptr_t v2) {
+  return ((v1 == v2 + 1) || (v1 + 1 == v2));
+}
+
+
+bool IfThenElseInstr::IsSupported() {
+  return true;
+}
+
+
+bool IfThenElseInstr::Supports(ComparisonInstr* comparison,
+                               Value* v1,
+                               Value* v2) {
+  if (!(comparison->IsStrictCompare() &&
+        !comparison->AsStrictCompare()->needs_number_check()) &&
+      !(comparison->IsEqualityCompare() &&
+        (comparison->AsEqualityCompare()->receiver_class_id() == kSmiCid))) {
+    return false;
+  }
+
+  intptr_t v1_value, v2_value;
+
+  if (!BindsToSmiConstant(v1, &v1_value) ||
+      !BindsToSmiConstant(v2, &v2_value)) {
+    return false;
+  }
+
+  if (IsPowerOfTwoKind(v1_value, v2_value) ||
+      IsIncrementKind(v1_value, v2_value)) {
+    return true;
+  }
+
+  return false;
+}
+
+
+LocationSummary* IfThenElseInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  locs->set_in(0, Location::RegisterOrConstant(left()));
+  locs->set_in(1, Location::RegisterOrConstant(right()));
+  // TODO(vegorov): support byte register constraints in the register allocator.
+  locs->set_out(Location::RegisterLocation(EDX));
+  return locs;
+}
+
+
+void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(locs()->out().reg() == EDX);
+  ASSERT(Token::IsEqualityOperator(kind()));
+
+  Location left = locs()->in(0);
+  Location right = locs()->in(1);
+  ASSERT(!left.IsConstant() || !right.IsConstant());
+
+  // Clear upper part of the out register. We are going to use setcc on it
+  // which is a byte move.
+  __ xorl(EDX, EDX);
+
+  // Compare left and right. For now only equality comparison is supported.
+  // TODO(vegorov): reuse code from the other comparison instructions instead of
+  // generating it inline here.
+  if (left.IsConstant()) {
+    __ CompareObject(right.reg(), left.constant());
+  } else if (right.IsConstant()) {
+    __ CompareObject(left.reg(), right.constant());
+  } else {
+    __ cmpl(left.reg(), right.reg());
+  }
+
+  Condition true_condition =
+      ((kind_ == Token::kEQ_STRICT) || (kind_ == Token::kEQ)) ? EQUAL
+                                                              : NOT_EQUAL;
+
+  const bool is_power_of_two_kind = IsPowerOfTwoKind(if_true_, if_false_);
+
+  const intptr_t base = Utils::Minimum(if_true_, if_false_);
+
+  if (if_true_ == base) {
+    // We need to have zero in EDX on true_condition.
+    true_condition = NegateCondition(true_condition);
+  }
+
+  __ setcc(true_condition, DL);
+
+  if (is_power_of_two_kind) {
+    const intptr_t shift =
+        Utils::ShiftForPowerOfTwo(Utils::Maximum(if_true_, if_false_));
+    __ shll(EDX, Immediate(shift + kSmiTagSize));
+  } else {
+    ASSERT(kSmiTagSize == 1);
+    __ leal(EDX, Address(EDX, TIMES_2, base << kSmiTagSize));
+  }
 }
 
 

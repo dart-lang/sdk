@@ -23,7 +23,8 @@ DART2JS="$SDK_DIR/lib/_internal/compiler/implementation/dart2js.dart"
 
 DART="$BIN_DIR/dart"
 
-SNAPSHOT="${DART2JS}.snapshot"
+SNAPSHOT_DIR="$BIN_DIR/snapshots"
+SNAPSHOT="$SNAPSHOT_DIR/utils_wrapper.dart.snapshot"
 
 unset EXTRA_OPTIONS
 declare -a EXTRA_OPTIONS
@@ -42,6 +43,8 @@ declare -a EXTRA_VM_OPTIONS
 if test -f "$SNAPSHOT"; then
   # TODO(ahe): Remove the following line when we are relatively sure it works.
   echo Using snapshot "$SNAPSHOT" 1>&2
+
+  EXTRA_OPTIONS[${#EXTRA_OPTIONS[@]}]="--library-root=$SDK_DIR"
 fi
 
 # Tell the VM to grow the heap more aggressively. This should only
@@ -57,7 +60,8 @@ case $0 in
 esac
 
 if test -f "$SNAPSHOT"; then
-  exec "$DART" "${EXTRA_VM_OPTIONS[@]}" "$SNAPSHOT" "${EXTRA_OPTIONS[@]}" "$@"
+  exec "$DART" "${EXTRA_VM_OPTIONS[@]}" "$SNAPSHOT" "dart2js" \
+      "${EXTRA_OPTIONS[@]}" "$@"
 else
   exec "$DART" "${EXTRA_VM_OPTIONS[@]}" "$DART2JS" "${EXTRA_OPTIONS[@]}" "$@"
 fi

@@ -4,6 +4,7 @@
 
 // Dart test for Splaytrees.
 library splay_tree_test;
+import "package:expect/expect.dart";
 import 'dart:collection';
 
 

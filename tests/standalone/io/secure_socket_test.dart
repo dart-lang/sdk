@@ -7,6 +7,7 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
+import "package:expect/expect.dart";
 import "dart:async";
 import "dart:io";
 
@@ -22,7 +23,7 @@ Future<HttpServer> startServer() {
         onDone: () {
           request.response.contentLength = 100;
           for (int i = 0; i < 10; i++) {
-            request.response.writeBytes([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+            request.response.add([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
           }
           request.response.close();
         });

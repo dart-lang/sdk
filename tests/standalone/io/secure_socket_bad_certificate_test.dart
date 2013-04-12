@@ -10,6 +10,7 @@
 // www.google.dk.  Add this to the test when we have secure server sockets.
 // See TODO below.
 
+import "package:expect/expect.dart";
 import "dart:async";
 import "dart:isolate";
 import "dart:io";
@@ -39,8 +40,8 @@ Future testCertificateCallback({String host, bool acceptCertificate}) {
 
   bool badCertificateCallback(X509Certificate certificate) {
     Expect.isTrue(certificate.subject.contains("O=Google Inc"));
-    Expect.isTrue(certificate.startValidity < new DateTime.now());
-    Expect.isTrue(certificate.endValidity > new DateTime.now());
+    Expect.isTrue(certificate.startValidity.isBefore(new DateTime.now()));
+    Expect.isTrue(certificate.endValidity.isAfter(new DateTime.now()));
     return acceptCertificate;
   };
 

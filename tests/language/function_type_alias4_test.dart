@@ -4,6 +4,8 @@
 //
 // Dart test for function type alias with a type parameter as result type.
 
+import "package:expect/expect.dart";
+
 typedef bool F<bool>(bool a);  // 'bool' is not the boolean type.
 
 bool bar(bool a) {

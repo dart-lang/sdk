@@ -165,6 +165,14 @@ void Assembler::popal() {
 }
 
 
+void Assembler::setcc(Condition condition, ByteRegister dst) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0x90 + condition);
+  EmitUint8(0xC0 + dst);
+}
+
+
 void Assembler::movl(Register dst, const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xB8 + dst);
@@ -319,6 +327,13 @@ void Assembler::cmovns(Register dst, Register src) {
   EmitUint8(0x0F);
   EmitUint8(0x49);
   EmitRegisterOperand(dst, src);
+}
+
+
+void Assembler::rep_movsb() {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0xF3);
+  EmitUint8(0xA4);
 }
 
 

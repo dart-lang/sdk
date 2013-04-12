@@ -11,7 +11,6 @@ io/http_shutdown_test: Pass, Fail # Issue  9101
 [ $runtime == vm ]
 package/package_isolate_test: Fail # http://dartbug.com/7520.
 io/raw_server_socket_cancel_test: Pass, Fail, Timeout # Issue 8675
-debugger/basic_debugger_test: Skip # Issue 8232.
 
 [ $runtime == vm && $checked ]
 # These tests have type errors on purpose.
@@ -26,8 +25,6 @@ io/file_fuzz_test: Skip
 io/directory_fuzz_test: Skip
 
 [ $runtime == vm && $system == macos ]
-io/regress_7191_test: Pass, Timeout # http://dartbug.com/8091
-
 # This test fails with "Too many open files" on the Mac OS buildbot.
 # This is expected as MacOS by default runs with a very low number
 # of allowed open files ('ulimit -n' says something like 256).

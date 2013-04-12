@@ -9,6 +9,7 @@
 //
 // Test socket close events.
 
+import "package:expect/expect.dart";
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';

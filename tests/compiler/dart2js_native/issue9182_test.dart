@@ -5,6 +5,8 @@
 // Regression test for Issue 9182.  The generative constructor body function
 // should not have the interceptor calling convention.
 
+import "package:expect/expect.dart";
+
 class Foo native "*A" {
   factory Foo() => makeA();
   // Ensure the instance method 'Bar' uses interceptor convention.

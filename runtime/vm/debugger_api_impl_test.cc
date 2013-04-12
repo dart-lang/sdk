@@ -29,12 +29,10 @@ static void SetBreakpointAtEntry(const char* cname, const char* fname) {
   ASSERT(script_lib != NULL);
   ASSERT(!Dart_IsError(script_lib));
   ASSERT(Dart_IsLibrary(script_lib));
-  Dart_Breakpoint bpt;
   Dart_Handle res = Dart_SetBreakpointAtEntry(script_lib,
                         NewString(cname),
-                        NewString(fname),
-                        &bpt);
-  EXPECT_TRUE(res);
+                        NewString(fname));
+  EXPECT(Dart_IsInteger(res));
 }
 
 
@@ -998,14 +996,17 @@ TEST_CASE(Debug_LookupSourceLine) {
   func = test_lib.LookupFunctionInSource(script_url, 10);
   EXPECT(func.IsNull());
 
-  Dart_Handle libs = Dart_GetLibraryURLs();
+  Dart_Handle libs = Dart_GetLibraryIds();
   EXPECT(Dart_IsList(libs));
   intptr_t num_libs;
   Dart_ListLength(libs, &num_libs);
   EXPECT(num_libs > 0);
   for (int i = 0; i < num_libs; i++) {
-    Dart_Handle lib_url = Dart_ListGetAt(libs, i);
-    EXPECT(Dart_IsString(lib_url));
+    Dart_Handle lib_id = Dart_ListGetAt(libs, i);
+    EXPECT(Dart_IsInteger(lib_id));
+    int64_t id = 0;
+    Dart_IntegerToInt64(lib_id, &id);
+    Dart_Handle lib_url = Dart_GetLibraryURL(id);
     char const* chars;
     Dart_StringToCString(lib_url, &chars);
     OS::Print("Lib %d: %s\n", i, chars);
@@ -1030,35 +1031,6 @@ TEST_CASE(Debug_LookupSourceLine) {
   Dart_StringToCString(source, &source_chars);
   OS::Print("\n=== source: ===\n%s", source_chars);
   EXPECT_STREQ(kScriptChars, source_chars);
-}
-
-
-TEST_CASE(GetLibraryURLs) {
-  const char* kScriptChars =
-      "main() {"
-      "  return 12345;"
-      "}";
-
-  Dart_Handle lib_list = Dart_GetLibraryURLs();
-  EXPECT_VALID(lib_list);
-  EXPECT(Dart_IsList(lib_list));
-  Dart_Handle list_as_string = Dart_ToString(lib_list);
-  const char* list_cstr = "";
-  EXPECT_VALID(Dart_StringToCString(list_as_string, &list_cstr));
-  EXPECT_NOTSUBSTRING(TestCase::url(), list_cstr);
-
-  // Load a script.
-  Dart_Handle url = NewString(TestCase::url());
-  Dart_Handle source = NewString(kScriptChars);
-  EXPECT_VALID(Dart_LoadScript(url, source, 0, 0));
-
-  lib_list = Dart_GetLibraryURLs();
-  EXPECT_VALID(lib_list);
-  EXPECT(Dart_IsList(lib_list));
-  list_as_string = Dart_ToString(lib_list);
-  list_cstr = "";
-  EXPECT_VALID(Dart_StringToCString(list_as_string, &list_cstr));
-  EXPECT_SUBSTRING(TestCase::url(), list_cstr);
 }
 
 

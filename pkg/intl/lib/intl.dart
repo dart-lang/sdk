@@ -21,12 +21,15 @@ import 'src/intl_helpers.dart';
 import 'dart:math';
 import 'date_symbols.dart';
 import 'src/date_format_internal.dart';
+import "number_symbols.dart";
+import "number_symbols_data.dart";
 
 part 'date_format.dart';
 part 'src/date_format_field.dart';
 part 'src/date_format_helpers.dart';
 part 'bidi_formatter.dart';
 part 'bidi_utils.dart';
+part 'number_format.dart';
 
 /**
  * The Intl class provides a common entry point for internationalization
@@ -170,7 +173,7 @@ class Intl {
     // difficult. As a result, we call this more often. Consider keeping
     // verified locales for each purpose if it turns out to be a performance
     // issue.
-    if (newLocale == null) return systemLocale;
+    if (newLocale == null) return getCurrentLocale();
     if (localeExists(newLocale)) {
       return newLocale;
     }
@@ -244,8 +247,7 @@ class Intl {
     // We have to do this silliness because Locale is not known at compile time,
     // but must be a static variable in order to be visible to the Intl.message
     // invocation.
-    if (_defaultLocale == null) _defaultLocale = systemLocale;
-    var oldLocale = _defaultLocale;
+    var oldLocale = getCurrentLocale();
     _defaultLocale = locale;
     var result = message_function();
     _defaultLocale = oldLocale;

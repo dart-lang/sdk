@@ -31,6 +31,7 @@ class_test: Fail
 
 [ $compiler == dart2js && $minified ]
 to_string_test: Fail # Issue 7179.
+runtime_type_test: Fail, OK # Tests extected output of Type.toString().
 
 # Mirrors do not work with minification.
 mirror_test: Fail  # Issue 6490.

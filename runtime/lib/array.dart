@@ -13,7 +13,7 @@ class _ObjectArray<E> implements List<E> {
   void operator []=(int index, E value) native "ObjectArray_setIndexed";
 
   String toString() {
-    return Collections.collectionToString(this);
+    return ToString.iterableToString(this);
   }
 
   int get length native "ObjectArray_getLength";
@@ -39,17 +39,6 @@ class _ObjectArray<E> implements List<E> {
         "Cannot remove element of a non-extendable array");
   }
 
-  // Collection interface.
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError(
-        "Cannot remove element of a non-extendable array");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError(
-        "Cannot remove element of a non-extendable array");
-  }
-
   void removeWhere(bool test(E element)) {
     throw new UnsupportedError(
         "Cannot remove element of a non-extendable array");
@@ -58,6 +47,10 @@ class _ObjectArray<E> implements List<E> {
   void retainWhere(bool test(E element)) {
     throw new UnsupportedError(
         "Cannot remove element of a non-extendable array");
+  }
+
+  Iterable<E> getRange(int start, [int end]) {
+    return IterableMixinWorkaround.getRangeList(this, start, end);
   }
 
   // List interface.
@@ -94,8 +87,6 @@ class _ObjectArray<E> implements List<E> {
     return list;
   }
 
-  List<E> getRange(int start, int length) => sublist(start, start + length);
-
   // Iterable interface.
 
   bool contains(E element) {
@@ -106,7 +97,7 @@ class _ObjectArray<E> implements List<E> {
     IterableMixinWorkaround.forEach(this, f);
   }
 
-  String join([String separator]) {
+  String join([String separator = ""]) {
     return IterableMixinWorkaround.joinList(this, separator);
   }
 
@@ -114,8 +105,8 @@ class _ObjectArray<E> implements List<E> {
     return IterableMixinWorkaround.mapList(this, f);
   }
 
-  reduce(initialValue, combine(previousValue, E element)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  E reduce(E combine(E value, E element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
   fold(initialValue, combine(previousValue, E element)) {
@@ -174,7 +165,7 @@ class _ObjectArray<E> implements List<E> {
     return this.length == 0;
   }
 
-  Iterable<E> get reversed => new ReversedListIterable<E>(this);
+  Iterable<E> get reversed => IterableMixinWorkaround.reversedList(this);
 
   void sort([int compare(E a, E b)]) {
     IterableMixinWorkaround.sortList(this, compare);
@@ -234,10 +225,6 @@ class _ObjectArray<E> implements List<E> {
     throw new StateError("More than one element");
   }
 
-  E min([int compare(E a, E b)]) => IterableMixinWorkaround.min(this, compare);
-
-  E max([int compare(E a, E b)]) => IterableMixinWorkaround.max(this, compare);
-
   List<E> toList({ bool growable: true}) {
     return new List<E>.from(this, growable: growable);
   }
@@ -290,16 +277,6 @@ class _ImmutableArray<E> implements List<E> {
         "Cannot modify an immutable array");
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError(
-        "Cannot modify an immutable array");
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError(
-        "Cannot modify an immutable array");
-  }
-
   void removeWhere(bool test(E element)) {
     throw new UnsupportedError(
         "Cannot modify an immutable array");
@@ -341,7 +318,9 @@ class _ImmutableArray<E> implements List<E> {
     return list;
   }
 
-  List<E> getRange(int start, int length) => sublist(start, start + length);
+  Iterable<E> getRange(int start, int end) {
+    return IterableMixinWorkaround.getRangeList(this, start, end);
+  }
 
   // Collection interface.
 
@@ -357,12 +336,12 @@ class _ImmutableArray<E> implements List<E> {
     return IterableMixinWorkaround.mapList(this, f);
   }
 
-  String join([String separator]) {
+  String join([String separator = ""]) {
     return IterableMixinWorkaround.joinList(this, separator);
   }
 
-  reduce(initialValue, combine(previousValue, E element)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  E reduce(E combine(E value, E element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
   fold(initialValue, combine(previousValue, E element)) {
@@ -421,7 +400,7 @@ class _ImmutableArray<E> implements List<E> {
     return this.length == 0;
   }
 
-  Iterable<E> get reversed => new ReversedListIterable<E>(this);
+  Iterable<E> get reversed => IterableMixinWorkaround.reversedList(this);
 
   void sort([int compare(E a, E b)]) {
     throw new UnsupportedError(
@@ -429,7 +408,7 @@ class _ImmutableArray<E> implements List<E> {
   }
 
   String toString() {
-    return Collections.collectionToString(this);
+    return ToString.iterableToString(this);
   }
 
   int indexOf(E element, [int start = 0]) {
@@ -485,10 +464,6 @@ class _ImmutableArray<E> implements List<E> {
     if (length == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
   }
-
-  E min([int compare(E a, E b)]) => IterableMixinWorkaround.min(this, compare);
-
-  E max([int compare(E a, E b)]) => IterableMixinWorkaround.max(this, compare);
 
   List<E> toList({ bool growable: true }) {
     return new List<E>.from(this, growable: growable);

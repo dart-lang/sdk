@@ -77,15 +77,15 @@ void testConfigurations(List<Map> configurations) {
   var startTime = new DateTime.now();
   // Extract global options from first configuration.
   var firstConf = configurations[0];
-  Map<String, RegExp> selectors = firstConf['selectors'];
   var maxProcesses = firstConf['tasks'];
   var progressIndicator = firstConf['progress'];
+  // TODO(kustermann): Remove this option once the buildbots don't use it
+  // anymore.
   var failureSummary = firstConf['failure-summary'];
   BuildbotProgressIndicator.stepName = firstConf['step_name'];
   var verbose = firstConf['verbose'];
   var printTiming = firstConf['time'];
   var listTests = firstConf['list'];
-  var useContentSecurityPolicy = firstConf['csp'];
 
   if (!firstConf['append_logs'])  {
     var file = new File(TestUtils.flakyFileName());
@@ -120,6 +120,8 @@ void testConfigurations(List<Map> configurations) {
   var testSuites = new List<TestSuite>();
   var maxBrowserProcesses = maxProcesses;
   for (var conf in configurations) {
+    Map<String, RegExp> selectors = conf['selectors'];
+    var useContentSecurityPolicy = conf['csp'];
     if (!listTests && runningBrowserTests) {
       // Start global http servers that serve the entire dart repo.
       // The http server is available on window.location.port, and a second
@@ -195,10 +197,9 @@ void testConfigurations(List<Map> configurations) {
     eventListener.add(new FlakyLogWriter());
     if (printFailures) {
       // The buildbot has it's own failure summary since it needs to wrap it
-      // into'@@@'-annotated sections.
-      var printFaiureSummary =
-          failureSummary && progressIndicator != 'buildbot';
-      eventListener.add(new TestFailurePrinter(printFaiureSummary, formatter));
+      // into '@@@'-annotated sections.
+      var printFailureSummary = progressIndicator != 'buildbot';
+      eventListener.add(new TestFailurePrinter(printFailureSummary, formatter));
     }
     eventListener.add(new ProgressIndicator.fromName(progressIndicator,
                                                      startTime,

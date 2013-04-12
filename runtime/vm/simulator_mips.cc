@@ -832,6 +832,8 @@ void Simulator::DoBreak(Instr *instr) {
         reinterpret_cast<intptr_t>(instr) - Instr::kInstrSize);
     set_pc(get_pc() + Instr::kInstrSize);
     dbg.Stop(instr, message);
+    // Adjust for extra pc increment.
+    set_pc(get_pc() - Instr::kInstrSize);
   } else if (instr->BreakCodeField() == Instr::kRedirectCode) {
     SimulatorSetjmpBuffer buffer(this);
 
@@ -914,6 +916,8 @@ void Simulator::DoBreak(Instr *instr) {
   } else {
     SimulatorDebugger dbg(this);
     dbg.Stop(instr, "breakpoint");
+    // Adjust for extra pc increment.
+    set_pc(get_pc() - Instr::kInstrSize);
   }
 }
 

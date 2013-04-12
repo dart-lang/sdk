@@ -15,6 +15,7 @@ import '../test_pub.dart';
 import 'utils.dart';
 
 main() {
+  initConfig();
   integration('with a malformed credentials.json, authenticates again and '
       'saves credentials.json', () {
     d.validPackage.create();

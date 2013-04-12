@@ -5,20 +5,33 @@
 #include "vm/assembler.h"
 #include "vm/globals.h"
 #include "vm/os.h"
+#include "vm/simulator.h"
 #include "vm/unit_test.h"
 #include "vm/virtual_memory.h"
 
 namespace dart {
 
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+#if defined(TARGET_ARCH_IA32) ||                                               \
+    defined(TARGET_ARCH_X64) ||                                                \
+    defined(TARGET_ARCH_ARM)
 
 ASSEMBLER_TEST_EXTERN(StoreIntoObject);
 
 ASSEMBLER_TEST_RUN(StoreIntoObject, test) {
+#if defined(USING_SIMULATOR)
+#define test_code(ctx, value, growable_array)                                  \
+  Simulator::Current()->Call(                                                  \
+      bit_cast<int32_t, uword>(test->entry()),                                 \
+      reinterpret_cast<int32_t>(ctx),                                          \
+      reinterpret_cast<int32_t>(value),                                        \
+      reinterpret_cast<int32_t>(growable_array),                               \
+      0)
+#else
   typedef void (*StoreData)(RawContext* ctx,
                             RawObject* value,
                             RawObject* growable_array);
   StoreData test_code = reinterpret_cast<StoreData>(test->entry());
+#endif
 
   const Array& old_array = Array::Handle(Array::New(3, Heap::kOld));
   const Array& new_array = Array::Handle(Array::New(3, Heap::kNew));
@@ -70,6 +83,6 @@ ASSEMBLER_TEST_RUN(StoreIntoObject, test) {
       reinterpret_cast<uword>(grow_new_array.raw())));
 }
 
-#endif
+#endif  // TARGET_ARCH_IA32 || TARGET_ARCH_X64 || TARGET_ARCH_ARM
 
 }  // namespace dart

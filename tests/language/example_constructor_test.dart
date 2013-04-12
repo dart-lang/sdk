@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for testing order of constructor invocation.
 
+import "package:expect/expect.dart";
+
 var trace = "";
 
 int rec(int i) {

@@ -906,6 +906,13 @@ static Dart_NativeFunction ByteDataNativeResolver(Dart_Handle name,
 TEST_CASE(ByteDataAccess) {
   const char* kScriptChars =
       "import 'dart:typeddata';\n"
+      "class Expect {\n"
+      "  static equals(a, b) {\n"
+      "    if (a != b) {\n"
+      "      throw 'not equal. expected: $a, got: $b';\n"
+      "    }\n"
+      "  }\n"
+      "}\n"
       "ByteData createByteData() native 'CreateByteData';"
       "ByteData main() {"
       "  var length = 16;"
@@ -961,6 +968,13 @@ TEST_CASE(ExternalByteDataAccess) {
   // appropriate getter instead of the host endian format used now.
   const char* kScriptChars =
       "import 'dart:typeddata';\n"
+      "class Expect {\n"
+      "  static equals(a, b) {\n"
+      "    if (a != b) {\n"
+      "      throw 'not equal. expected: $a, got: $b';\n"
+      "    }\n"
+      "  }\n"
+      "}\n"
       "ByteData createExternalByteData() native 'CreateExternalByteData';"
       "ByteData main() {"
       "  var length = 16;"
@@ -1073,6 +1087,13 @@ static void TestDirectAccess(Dart_Handle lib,
 TEST_CASE(TypedDataDirectAccess1) {
   const char* kScriptChars =
       "import 'dart:typeddata';\n"
+      "class Expect {\n"
+      "  static equals(a, b) {\n"
+      "    if (a != b) {\n"
+      "      throw new Exception('not equal. expected: $a, got: $b');\n"
+      "    }\n"
+      "  }\n"
+      "}\n"
       "void setMain(var a) {"
       "  for (var i = 0; i < 10; i++) {"
       "    a[i] = i;"
@@ -1113,6 +1134,13 @@ TEST_CASE(TypedDataDirectAccess1) {
 TEST_CASE(TypedDataViewDirectAccess) {
   const char* kScriptChars =
       "import 'dart:typeddata';\n"
+      "class Expect {\n"
+      "  static equals(a, b) {\n"
+      "    if (a != b) {\n"
+      "      throw 'not equal. expected: $a, got: $b';\n"
+      "    }\n"
+      "  }\n"
+      "}\n"
       "void setMain(var list) {"
       "  Expect.equals(10, list.length);"
       "  for (var i = 0; i < 10; i++) {"
@@ -1145,6 +1173,13 @@ TEST_CASE(TypedDataViewDirectAccess) {
 TEST_CASE(ByteDataDirectAccess) {
   const char* kScriptChars =
       "import 'dart:typeddata';\n"
+      "class Expect {\n"
+      "  static equals(a, b) {\n"
+      "    if (a != b) {\n"
+      "      throw 'not equal. expected: $a, got: $b';\n"
+      "    }\n"
+      "  }\n"
+      "}\n"
       "void setMain(var list) {"
       "  Expect.equals(10, list.length);"
       "  for (var i = 0; i < 10; i++) {"
@@ -6243,10 +6278,10 @@ UNIT_TEST_CASE(NewNativePort) {
 }
 
 
-static bool RunLoopTestCallback(const char* script_name,
-                                const char* main,
-                                void* data,
-                                char** error) {
+static Dart_Isolate RunLoopTestCallback(const char* script_name,
+                                        const char* main,
+                                        void* data,
+                                        char** error) {
   const char* kScriptChars =
       "import 'builtin';\n"
       "import 'dart:isolate';\n"
@@ -6282,7 +6317,10 @@ static bool RunLoopTestCallback(const char* script_name,
   Dart_Handle lib = Dart_LoadScript(url, source, 0, 0);
   EXPECT_VALID(lib);
   Dart_ExitScope();
-  return true;
+  Dart_ExitIsolate();
+  bool retval = Dart_IsolateMakeRunnable(isolate);
+  EXPECT(retval);
+  return isolate;
 }
 
 
@@ -6308,8 +6346,9 @@ static void RunLoopTest(bool throw_exception_child,
   Dart_IsolateCreateCallback saved = Isolate::CreateCallback();
   Isolate::SetCreateCallback(RunLoopTestCallback);
   Isolate::SetUnhandledExceptionCallback(RunLoopUnhandledExceptionCallback);
-  RunLoopTestCallback(NULL, NULL, NULL, NULL);
+  Dart_Isolate isolate = RunLoopTestCallback(NULL, NULL, NULL, NULL);
 
+  Dart_EnterIsolate(isolate);
   Dart_EnterScope();
   Dart_Handle lib = Dart_LookupLibrary(NewString(TestCase::url()));
   EXPECT_VALID(lib);
@@ -6648,6 +6687,13 @@ TEST_CASE(NativeFunctionClosure) {
       "  int bar43(int i, int j, int k) {\n"
       "    var func = foo4; return func(i, j, k); }\n"
       "}\n"
+      "class Expect {\n"
+      "  static equals(a, b) {\n"
+      "    if (a != b) {\n"
+      "      throw 'not equal. expected: $a, got: $b';\n"
+      "    }\n"
+      "  }\n"
+      "}\n"
       "int testMain() {\n"
       "  Test obj = new Test();\n"
       "  Expect.equals(1, obj.foo1());\n"
@@ -6785,6 +6831,13 @@ TEST_CASE(NativeStaticFunctionClosure) {
       "    var func = foo4; return func(i, j); }\n"
       "  int bar43(int i, int j, int k) {\n"
       "    var func = foo4; return func(i, j, k); }\n"
+      "}\n"
+      "class Expect {\n"
+      "  static equals(a, b) {\n"
+      "    if (a != b) {\n"
+      "      throw 'not equal. expected: $a, got: $b';\n"
+      "    }\n"
+      "  }\n"
       "}\n"
       "int testMain() {\n"
       "  Test obj = new Test();\n"

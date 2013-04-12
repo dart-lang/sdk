@@ -4,6 +4,8 @@
 
 // Test that the type argument is available inside a closure.
 
+import "package:expect/expect.dart";
+
 class A<T> {
   foo() {
     bar() => T;

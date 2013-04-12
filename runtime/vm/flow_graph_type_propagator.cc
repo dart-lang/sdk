@@ -645,6 +645,12 @@ bool PhiInstr::RecomputeType() {
 }
 
 
+CompileType IfThenElseInstr::ComputeType() const {
+  ASSERT(InputCount() == 2);
+  return CompileType::FromCid(kSmiCid);
+}
+
+
 CompileType ParameterInstr::ComputeType() const {
   // Note that returning the declared type of the formal parameter would be
   // incorrect, because ParameterInstr is used as input to the type check
@@ -968,6 +974,16 @@ CompileType UnboxDoubleInstr::ComputeType() const {
 
 CompileType BoxDoubleInstr::ComputeType() const {
   return CompileType::FromCid(kDoubleCid);
+}
+
+
+CompileType UnboxFloat32x4Instr::ComputeType() const {
+  return CompileType::FromCid(kFloat32x4Cid);
+}
+
+
+CompileType BoxFloat32x4Instr::ComputeType() const {
+  return CompileType::FromCid(kFloat32x4Cid);
 }
 
 

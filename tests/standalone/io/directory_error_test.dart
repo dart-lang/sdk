@@ -4,6 +4,7 @@
 //
 // Dart test program for testing error handling in directory I/O.
 
+import "package:expect/expect.dart";
 import "dart:async";
 import "dart:io";
 import "dart:isolate";
@@ -94,13 +95,8 @@ bool checkDeleteRecursivelyNonExistentFileException(e) {
   Expect.isTrue(e is DirectoryIOException);
   Expect.isTrue(e.osError != null);
   Expect.isTrue(e.toString().indexOf("Deletion failed") != -1);
-  if (Platform.operatingSystem == "linux") {
-    Expect.equals(2, e.osError.errorCode);
-  } else if (Platform.operatingSystem == "macos") {
-    Expect.equals(2, e.osError.errorCode);
-  } else if (Platform.operatingSystem == "windows") {
-    Expect.equals(3, e.osError.errorCode);
-  }
+  // File not not found has error code 2 on all supported platforms.
+  Expect.equals(2, e.osError.errorCode);
 
   return true;
 }

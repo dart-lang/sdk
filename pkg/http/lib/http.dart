@@ -50,7 +50,6 @@
 ///         return _inner.send(request);
 ///       }
 ///     }
-
 library http;
 
 import 'dart:async';

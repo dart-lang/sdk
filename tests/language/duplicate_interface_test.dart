@@ -5,6 +5,7 @@
 
 library duplicateInterfaceTest;
 
+import 'package:expect/expect.dart';
 import "duplicate_interface_lib.dart" as alib;
 
 class InterfB { }

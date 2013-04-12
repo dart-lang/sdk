@@ -293,7 +293,8 @@ static int ParseArguments(int argc,
                           char** executable_name,
                           char** script_name,
                           CommandLineOptions* dart_options,
-                          bool* print_flags_seen) {
+                          bool* print_flags_seen,
+                          bool* verbose_debug_seen) {
   const char* kPrefix = "--";
   const intptr_t kPrefixLen = strlen(kPrefix);
 
@@ -317,6 +318,10 @@ static int ParseArguments(int argc,
       if ((strncmp(argv[i], kPrintFlags1, strlen(kPrintFlags1)) == 0) ||
           (strncmp(argv[i], kPrintFlags2, strlen(kPrintFlags2)) == 0)) {
         *print_flags_seen = true;
+      }
+      const char* kVerboseDebug = "--verbose_debug";
+      if (strncmp(argv[i], kVerboseDebug, strlen(kVerboseDebug)) == 0) {
+        *verbose_debug_seen = true;
       }
       vm_options->AddArgument(argv[i]);
       i++;
@@ -422,19 +427,19 @@ static Dart_Handle SetupRuntimeOptions(CommandLineOptions* options,
     *error = strdup(Dart_GetError(result));                                    \
     Dart_ExitScope();                                                          \
     Dart_ShutdownIsolate();                                                    \
-    return false;                                                              \
+    return NULL;                                                               \
   }                                                                            \
 
 
 // Returns true on success, false on failure.
-static bool CreateIsolateAndSetupHelper(const char* script_uri,
-                                        const char* main,
-                                        void* data,
-                                        char** error) {
+static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
+                                                const char* main,
+                                                void* data,
+                                                char** error) {
   Dart_Isolate isolate =
       Dart_CreateIsolate(script_uri, main, snapshot_buffer, data, error);
   if (isolate == NULL) {
-    return false;
+    return NULL;
   }
 
   Dart_EnterScope();
@@ -476,17 +481,28 @@ static bool CreateIsolateAndSetupHelper(const char* script_uri,
     *error = strdup(errbuf);
     Dart_ExitScope();
     Dart_ShutdownIsolate();
-    return false;
+    return NULL;
   }
+
+  // Make the isolate runnable so that it is ready to handle messages.
   Dart_ExitScope();
+  Dart_ExitIsolate();
+  bool retval = Dart_IsolateMakeRunnable(isolate);
+  if (!retval) {
+    *error = strdup("Invalid isolate state - Unable to make it runnable");
+    Dart_EnterIsolate(isolate);
+    Dart_ShutdownIsolate();
+    return NULL;
+  }
+
   VmStats::AddIsolate(reinterpret_cast<IsolateData*>(data), isolate);
-  return true;
+  return isolate;
 }
 
 
-static bool CreateIsolateAndSetup(const char* script_uri,
-                                  const char* main,
-                                  void* data, char** error) {
+static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
+                                          const char* main,
+                                          void* data, char** error) {
   return CreateIsolateAndSetupHelper(script_uri,
                                      main,
                                      new IsolateData(),
@@ -563,34 +579,20 @@ static void PrintUsage() {
 
 static Dart_Handle SetBreakpoint(const char* breakpoint_at,
                                  Dart_Handle library) {
-  Dart_Handle result;
-  if (strchr(breakpoint_at, ':')) {
-    char* bpt_line = strdup(breakpoint_at);
-    char* colon = strchr(bpt_line, ':');
-    ASSERT(colon != NULL);
-    *colon = '\0';
-    Dart_Handle url = DartUtils::NewString(bpt_line);
-    Dart_Handle line_number = Dart_NewInteger(atoi(colon + 1));
-    free(bpt_line);
-    Dart_Breakpoint bpt;
-    result = Dart_SetBreakpointAtLine(url, line_number, &bpt);
+  char* bpt_function = strdup(breakpoint_at);
+  Dart_Handle class_name;
+  Dart_Handle function_name;
+  char* dot = strchr(bpt_function, '.');
+  if (dot == NULL) {
+    class_name = DartUtils::NewString("");
+    function_name = DartUtils::NewString(breakpoint_at);
   } else {
-    char* bpt_function = strdup(breakpoint_at);
-    Dart_Handle class_name;
-    Dart_Handle function_name;
-    char* dot = strchr(bpt_function, '.');
-    if (dot == NULL) {
-      class_name = DartUtils::NewString("");
-      function_name = DartUtils::NewString(breakpoint_at);
-    } else {
-      *dot = '\0';
-      class_name = DartUtils::NewString(bpt_function);
-      function_name = DartUtils::NewString(dot + 1);
-    }
-    free(bpt_function);
-    result = Dart_OneTimeBreakAtEntry(library, class_name, function_name);
+    *dot = '\0';
+    class_name = DartUtils::NewString(bpt_function);
+    function_name = DartUtils::NewString(dot + 1);
   }
-  return result;
+  free(bpt_function);
+  return Dart_OneTimeBreakAtEntry(library, class_name, function_name);
 }
 
 
@@ -677,6 +679,7 @@ int main(int argc, char** argv) {
   CommandLineOptions vm_options(argc);
   CommandLineOptions dart_options(argc);
   bool print_flags_seen = false;
+  bool verbose_debug_seen = false;
 
   // Perform platform specific initialization.
   if (!Platform::Initialize()) {
@@ -694,7 +697,8 @@ int main(int argc, char** argv) {
                      &executable_name,
                      &script_name,
                      &dart_options,
-                     &print_flags_seen) < 0) {
+                     &print_flags_seen,
+                     &verbose_debug_seen) < 0) {
     if (has_help_option) {
       PrintUsage();
       return 0;
@@ -728,16 +732,20 @@ int main(int argc, char** argv) {
   if (start_debugger) {
     ASSERT(debug_port != 0);
     DebuggerConnectionHandler::StartHandler(debug_ip, debug_port);
+    if (verbose_debug_seen) {
+      Log::Print("Debugger initialized\n");
+    }
   }
 
   // Call CreateIsolateAndSetup which creates an isolate and loads up
   // the specified application script.
   char* error = NULL;
   char* isolate_name = BuildIsolateName(script_name, "main");
-  if (!CreateIsolateAndSetupHelper(script_name,
-                                   "main",
-                                   new IsolateData(),
-                                   &error)) {
+  Dart_Isolate isolate = CreateIsolateAndSetupHelper(script_name,
+                                                     "main",
+                                                     new IsolateData(),
+                                                     &error);
+  if (isolate == NULL) {
     Log::PrintErr("%s\n", error);
     free(error);
     delete [] isolate_name;
@@ -745,7 +753,8 @@ int main(int argc, char** argv) {
   }
   delete [] isolate_name;
 
-  Dart_Isolate isolate = Dart_CurrentIsolate();
+  Dart_EnterIsolate(isolate);
+  ASSERT(isolate == Dart_CurrentIsolate());
   ASSERT(isolate != NULL);
   Dart_Handle result;
 

@@ -10,6 +10,7 @@ import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
+  initConfig();
   integration('resolves version constraints from a pub server', () {
     servePackages([
       packageMap("foo", "1.2.3", [dependencyMap("baz", ">=2.0.0")]),

@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test optimization of modulo operator on Double.
 
+import "package:expect/expect.dart";
+
 main() {
   double k = -0.33333;
   double firstResPos = doMod(k, 1.0);

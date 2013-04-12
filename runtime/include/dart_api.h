@@ -546,6 +546,20 @@ DART_EXPORT Dart_Handle Dart_RemoveGcEpilogueCallback(
 DART_EXPORT const char* Dart_VersionString();
 
 /**
+ * An isolate is the unit of concurrency in Dart. Each isolate has
+ * its own memory and thread of control. No state is shared between
+ * isolates. Instead, isolates communicate by message passing.
+ *
+ * Each thread keeps track of its current isolate, which is the
+ * isolate which is ready to execute on the current thread. The
+ * current isolate may be NULL, in which case no isolate is ready to
+ * execute. Most of the Dart apis require there to be a current
+ * isolate in order to function without error. The current isolate is
+ * set by any call to Dart_CreateIsolate or Dart_EnterIsolate.
+ */
+typedef struct _Dart_Isolate* Dart_Isolate;
+
+/**
  * An isolate creation and initialization callback function.
  *
  * This callback, provided by the embedder, is called when the vm
@@ -573,18 +587,20 @@ DART_EXPORT const char* Dart_VersionString();
  *   eventually run.  This is provided for advisory purposes only to
  *   improve debugging messages.  The main function is not invoked by
  *   this function.
+ * \param unhandled_exc The name of the function to this isolate will
+ *   call when an unhandled exception is encountered.
  * \param callback_data The callback data which was passed to the
  *   parent isolate when it was created by calling Dart_CreateIsolate().
  * \param error A structure into which the embedder can place a
  *   C string containing an error message in the case of failures.
  *
- * \return The embedder returns false if the creation and
- *   initialization was not successful and true if successful.
+ * \return The embedder returns NULL if the creation and
+ *   initialization was not successful and the isolate if successful.
  */
-typedef bool (*Dart_IsolateCreateCallback)(const char* script_uri,
-                                           const char* main,
-                                           void* callback_data,
-                                           char** error);
+typedef Dart_Isolate (*Dart_IsolateCreateCallback)(const char* script_uri,
+                                                   const char* main,
+                                                   void* callback_data,
+                                                   char** error);
 
 /**
  * An isolate interrupt callback function.
@@ -678,20 +694,6 @@ DART_EXPORT bool Dart_SetVMFlags(int argc, const char** argv);
 DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name);
 
 // --- Isolates ---
-
-/**
- * An isolate is the unit of concurrency in Dart. Each isolate has
- * its own memory and thread of control. No state is shared between
- * isolates. Instead, isolates communicate by message passing.
- *
- * Each thread keeps track of its current isolate, which is the
- * isolate which is ready to execute on the current thread. The
- * current isolate may be NULL, in which case no isolate is ready to
- * execute. Most of the Dart apis require there to be a current
- * isolate in order to function without error. The current isolate is
- * set by any call to Dart_CreateIsolate or Dart_EnterIsolate.
- */
-typedef struct _Dart_Isolate* Dart_Isolate;
 
 /**
  * Creates a new isolate. The new isolate becomes the current isolate.
@@ -826,6 +828,20 @@ DART_EXPORT Dart_Handle Dart_CreateScriptSnapshot(uint8_t** buffer,
  * \param isolate The isolate to be interrupted.
  */
 DART_EXPORT void Dart_InterruptIsolate(Dart_Isolate isolate);
+
+
+/**
+ * Make isolate runnable.
+ *
+ * When isolates are spawned this function is used to indicate that
+ * the creation and initialization (including script loading) of the
+ * isolate is complete and the isolate can start.
+ * This function does not expect there to be a current isolate.
+ *
+ * \param isolate The isolate to be made runnable.
+ */
+DART_EXPORT bool Dart_IsolateMakeRunnable(Dart_Isolate isolate);
+
 
 // --- Messages and Ports ---
 

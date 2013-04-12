@@ -4,6 +4,8 @@
 
 // Test that we correctly intercept super getter and setter calls.
 
+import "package:expect/expect.dart";
+
 var expected;
 
 class A {

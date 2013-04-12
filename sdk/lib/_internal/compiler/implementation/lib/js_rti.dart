@@ -37,8 +37,7 @@ String getClassName(var object) {
 
 String getRuntimeTypeAsString(List runtimeType) {
   String className = getConstructorName(runtimeType[0]);
-  if (runtimeType.length == 1) return className;
-  return '$className<${joinArguments(runtimeType, 1)}>';
+  return '$className${joinArguments(runtimeType, 1)}';
 }
 
 String getConstructorName(type) => JS('String', r'#.builtin$cls', type);
@@ -56,7 +55,9 @@ String runtimeTypeToString(type) {
 }
 
 String joinArguments(var types, int startIndex) {
+  if (types == null) return '';
   bool firstArgument = true;
+  bool allDynamic = true;
   StringBuffer buffer = new StringBuffer();
   for (int index = startIndex; index < types.length; index++) {
     if (firstArgument) {
@@ -65,16 +66,18 @@ String joinArguments(var types, int startIndex) {
       buffer.write(', ');
     }
     var argument = types[index];
+    if (argument != null) {
+      allDynamic = false;
+    }
     buffer.write(runtimeTypeToString(argument));
   }
-  return buffer.toString();
+  return allDynamic ? '' : '<$buffer>';
 }
 
 String getRuntimeTypeString(var object) {
   String className = isJsArray(object) ? 'List' : getClassName(object);
   var typeInfo = JS('var', r'#.$builtinTypeInfo', object);
-  if (typeInfo == null) return className;
-  return "$className<${joinArguments(typeInfo, 0)}>";
+  return "$className${joinArguments(typeInfo, 0)}";
 }
 
 bool isJsFunction(var o) => JS('bool', r'typeof # == "function"', o);

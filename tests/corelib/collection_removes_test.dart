@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-testRemove(Collection base) {
+import 'dart:collection';
+import "package:expect/expect.dart";
+
+testRemove(base) {
   int length = base.length;
   for (int i = 0; i < length; i++) {
     Expect.isFalse(base.isEmpty);
@@ -11,7 +14,7 @@ testRemove(Collection base) {
   Expect.isTrue(base.isEmpty);
 }
 
-testRemoveAll(Collection base, Iterable removes) {
+testRemoveAll(base, Iterable removes) {
   Set retained = new Set();
   for (var element in base) {
     if (!removes.contains(element)) {
@@ -28,7 +31,7 @@ testRemoveAll(Collection base, Iterable removes) {
   }
 }
 
-testRetainAll(Collection base, Iterable retains) {
+testRetainAll(base, Iterable retains) {
   Set retained = new Set();
   for (var element in base) {
     if (retains.contains(element)) {
@@ -45,7 +48,7 @@ testRetainAll(Collection base, Iterable retains) {
   }
 }
 
-testRemoveWhere(Collection base, bool test(value)) {
+testRemoveWhere(base, bool test(value)) {
   Set retained = new Set();
   for (var element in base) {
     if (!test(element)) {
@@ -62,7 +65,7 @@ testRemoveWhere(Collection base, bool test(value)) {
   }
 }
 
-testRetainWhere(Collection base, bool test(value)) {
+testRetainWhere(base, bool test(value)) {
   Set retained = new Set();
   for (var element in base) {
     if (test(element)) {
@@ -90,13 +93,9 @@ void main() {
       testRemove(base.toSet());
 
       var deltaSet = delta.toSet();
-      testRemoveAll(base.toList(), delta);
-      testRemoveAll(base.toList(), deltaSet);
-      testRetainAll(base.toList(), delta);
-      testRetainAll(base.toList(), deltaSet);
       testRemoveWhere(base.toList(), deltaSet.contains);
       testRetainWhere(base.toList(),
-                         (e) => !deltaSet.contains(e));
+                      (e) => !deltaSet.contains(e));
 
       testRemoveAll(base.toSet(), delta);
       testRemoveAll(base.toSet(), deltaSet);
@@ -104,7 +103,21 @@ void main() {
       testRetainAll(base.toSet(), deltaSet);
       testRemoveWhere(base.toSet(), deltaSet.contains);
       testRetainWhere(base.toSet(), (e) => !deltaSet.contains(e));
+
+      // Test the ListBase class's List implementation.
+      testRemoveWhere(new MyList(base.toList()), deltaSet.contains);
+      testRetainWhere(new MyList(base.toList()),
+                      (e) => !deltaSet.contains(e));
+
     }
   }
 }
 
+class MyList<E> extends ListBase<E> {
+  List<E> _source;
+  MyList(this._source);
+  int get length => _source.length;
+  void set length(int length) { _source.length = length; }
+  E operator[](int index) => _source[index];
+  void operator[]=(int index, E value) { _source[index] = value; }
+}

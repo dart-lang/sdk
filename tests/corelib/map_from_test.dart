@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library map.from.test;
+import "package:expect/expect.dart";
 import 'dart:collection';
 
 main() {

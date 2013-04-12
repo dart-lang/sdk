@@ -4,6 +4,7 @@
 
 library subtype_test;
 
+import 'package:expect/expect.dart';
 import 'type_test_helper.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/dart_types.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart'

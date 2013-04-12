@@ -5,18 +5,19 @@
 part of dart.io;
 
 /**
- * Helper class to wrap a [StreamConsumer<List<int>, T>] and provide
+ * Helper class to wrap a [StreamConsumer<List<int>>] and provide
  * utility functions for writing to the StreamConsumer directly. The
  * [IOSink] buffers the input given by [write], [writeAll], [writeln],
- * [writeCharCode] and [writeBytes] and will delay a [consume] or
+ * [writeCharCode] and [add] and will delay a [consume] or
  * [writeStream] until the buffer is flushed.
  *
  * When the [IOSink] is bound to a stream (through either [consume]
  * or [writeStream]) any call to the [IOSink] will throw a
  * [StateError].
  */
-abstract class IOSink<T> implements StreamConsumer<List<int>, T>, StringSink {
-  factory IOSink(StreamConsumer<List<int>, T> target,
+abstract class IOSink<T>
+    implements StreamConsumer<List<int>>, StringSink, EventSink<List<int>> {
+  factory IOSink(StreamConsumer<List<int>> target,
                  {Encoding encoding: Encoding.UTF_8})
       => new _IOSinkImpl(target, encoding);
 
@@ -29,7 +30,12 @@ abstract class IOSink<T> implements StreamConsumer<List<int>, T>, StringSink {
   /**
    * Writes the bytes uninterpreted to the consumer.
    */
-  void writeBytes(List<int> data);
+  void add(List<int> data);
+
+  /**
+   * Writes an error to the consumer.
+   */
+  void addError(AsyncError error);
 
   /**
    * Provide functionality for piping to the [IOSink].
@@ -64,7 +70,7 @@ abstract class IOSink<T> implements StreamConsumer<List<int>, T>, StringSink {
 
 
 class _IOSinkImpl<T> implements IOSink<T> {
-  final StreamConsumer<List<int>, T> _target;
+  final StreamConsumer<List<int>> _target;
 
   Completer _writeStreamCompleter;
   StreamController<List<int>> _controllerInstance;
@@ -73,7 +79,7 @@ class _IOSinkImpl<T> implements IOSink<T> {
   bool _paused = true;
   bool _encodingMutable = true;
 
-  _IOSinkImpl(StreamConsumer<List<int>, T> this._target, this._encoding);
+  _IOSinkImpl(StreamConsumer<List<int>> this._target, this._encoding);
 
   Encoding _encoding;
 
@@ -100,13 +106,13 @@ class _IOSinkImpl<T> implements IOSink<T> {
       }
     }
     if (string.isEmpty) return;
-    writeBytes(_encodeString(string, _encoding));
+    add(_encodeString(string, _encoding));
   }
 
   void writeAll(Iterable objects, [String separator = ""]) {
     Iterator iterator = objects.iterator;
     if (!iterator.moveNext()) return;
-    if (separator == "") {
+    if (separator.isEmpty) {
       do {
         write(iterator.current);
       } while (iterator.moveNext());
@@ -128,11 +134,18 @@ class _IOSinkImpl<T> implements IOSink<T> {
     write(new String.fromCharCode(charCode));
   }
 
-  void writeBytes(List<int> data) {
+  void add(List<int> data) {
     if (_isBound) {
       throw new StateError("IOSink is already bound to a stream");
     }
     _controller.add(data);
+  }
+
+  void addError(AsyncError error) {
+    if (_isBound) {
+      throw new StateError("IOSink is already bound to a stream");
+    }
+    _controller.addError(error);
   }
 
   Future<T> consume(Stream<List<int>> stream) {
@@ -223,7 +236,7 @@ class _IOSinkImpl<T> implements IOSink<T> {
   }
 
   void _onSubscriptionStateChange() {
-    if (_controller.hasSubscribers) {
+    if (_controller.hasListener) {
       _paused = false;
       _resume();
     } else {

@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "package:expect/expect.dart";
 import "dart:utf";
 import "dart:math";
 import "dart:async";
 import "dart:collection";
 import "dart:typeddata";
+import "dart:isolate";
 
 part "../../../sdk/lib/io/http.dart";
 part "../../../sdk/lib/io/buffer_list.dart";
@@ -225,7 +227,22 @@ void testFragmentedMessages() {
   Expect.equals(0, mc.closeCount);
 }
 
+void testUnmaskedMessage() {
+  var transformer = new _WebSocketProtocolTransformer(true);
+  var controller = new StreamController();
+  var port = new ReceivePort();
+  controller.stream.transform(transformer).listen((_) {}, onError: (e) {
+    port.close();
+  });
+  var message = new Uint8List(10);
+  List<int> frame = createFrame(
+      true, FRAME_OPCODE_BINARY, null, message, 0, message.length);
+  controller.add(frame);
+}
+
+
 void main() {
   testFullMessages();
   testFragmentedMessages();
+  testUnmaskedMessage();
 }

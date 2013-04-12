@@ -8,6 +8,7 @@
 // VMOptions=--short_socket_read --short_socket_write
 library ServerTest;
 
+import "package:expect/expect.dart";
 import "dart:io";
 import "dart:isolate";
 
@@ -100,7 +101,7 @@ testFileToFilePipe2() {
   dstFile.createSync();
   var output = dstFile.openWrite();
   output.writeStream(srcStream).then((_) {
-    output.writeBytes([32]);
+    output.add([32]);
     output.close();
     output.done.then((_) {
       var src = srcFile.openSync();

@@ -46,8 +46,7 @@ part of dart.async;
  * the stream at all, and won't trigger callbacks. From the controller's point
  * of view, the stream is completely inert when has completed.
  */
-class StreamController<T> extends StreamSink<T> {
-  // TODO(8997): Implement EventSink instead.
+class StreamController<T> extends EventSink<T> {
   final _StreamImpl<T> stream;
 
   /**
@@ -59,7 +58,7 @@ class StreamController<T> extends StreamSink<T> {
    *
    * The [onSubscriptionStateChange] function is called when the stream
    * receives its first listener or loses its last. The current subscription
-   * state can be read from [hasSubscribers]. Ignored if [:null:].
+   * state can be read from [hasListener]. Ignored if [:null:].
    */
   StreamController.broadcast({void onPauseStateChange(),
                               void onSubscriptionStateChange()})
@@ -78,7 +77,7 @@ class StreamController<T> extends StreamSink<T> {
    *
    * The [onSubscriptionStateChange] function is called when the stream
    * receives its first listener or loses its last. The current subscription
-   * state can be read from [hasSubscribers]. Ignored if [:null:].
+   * state can be read from [hasListener]. Ignored if [:null:].
    */
   StreamController({void onPauseStateChange(),
                     void onSubscriptionStateChange()})
@@ -102,7 +101,7 @@ class StreamController<T> extends StreamSink<T> {
   bool get isPaused => stream._isInputPaused;
 
   /** Whether there are currently any subscribers on this [Stream]. */
-  bool get hasSubscribers => stream._hasSubscribers;
+  bool get hasListener => stream._hasListener;
 
   /**
    * Send or queue a data event.

@@ -15,6 +15,9 @@ class FileMode {
   final int _mode;
 }
 
+const READ = FileMode.READ;
+const WRITE = FileMode.WRITE;
+const APPEND = FileMode.APPEND;
 
 /**
  * [File] objects are references to files.
@@ -76,12 +79,14 @@ abstract class File extends FileSystemEntity {
 
   /**
    * Delete the file. Returns a [:Future<File>:] that completes with
-   * the file when it has been deleted.
+   * the file when it has been deleted. Only a file or a link to a file
+   * can be deleted with this method, not a directory or a broken link.
    */
   Future<File> delete();
 
   /**
-   * Synchronously delete the file.
+   * Synchronously delete the file. Only a file or a link to a file
+   * can be deleted with this method, not a directory or a broken link.
    *
    * Throws a [FileIOException] if the operation fails.
    */

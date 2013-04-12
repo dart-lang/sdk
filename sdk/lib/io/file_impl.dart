@@ -130,7 +130,7 @@ class _FileStream extends Stream<List<int>> {
   }
 
   void _onSubscriptionStateChange() {
-    if (_controller.hasSubscribers) {
+    if (_controller.hasListener) {
       _start();
     } else {
       _unsubscribed = true;
@@ -147,11 +147,10 @@ class _FileStream extends Stream<List<int>> {
   }
 }
 
-class _FileStreamConsumer extends StreamConsumer<List<int>, File> {
+class _FileStreamConsumer extends StreamConsumer<List<int>> {
   File _file;
   Future<RandomAccessFile> _openFuture;
   StreamSubscription _subscription;
-  
 
   _FileStreamConsumer(File this._file, FileMode mode) {
     _openFuture = _file.open(mode: mode);
@@ -220,6 +219,8 @@ const int _WRITE_BYTE_REQUEST = 15;
 const int _READ_REQUEST = 16;
 const int _READ_LIST_REQUEST = 17;
 const int _WRITE_LIST_REQUEST = 18;
+const int _CREATE_LINK_REQUEST = 19;
+const int _DELETE_LINK_REQUEST = 20;
 
 // Base class for _File and _RandomAccessFile with shared functions.
 class _FileBase {
@@ -323,6 +324,8 @@ class _File extends _FileBase implements File {
   }
 
   external static _delete(String path);
+
+  external static _deleteLink(String path);
 
   void deleteSync() {
     var result = _delete(_path);
@@ -554,7 +557,7 @@ class _File extends _FileBase implements File {
                             {FileMode mode: FileMode.WRITE}) {
     try {
       IOSink<File> sink = openWrite(mode: mode);
-      sink.writeBytes(bytes);
+      sink.add(bytes);
       sink.close();
       return sink.done.then((_) => this);;
     } catch (e) {

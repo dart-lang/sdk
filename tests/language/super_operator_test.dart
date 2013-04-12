@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for testing super operator calls
 
+import "package:expect/expect.dart";
+
 
 class A {
   String val = "";

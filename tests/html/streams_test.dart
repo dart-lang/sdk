@@ -191,7 +191,7 @@ main() {
   });
 
   test('reduce', () {
-    stream.reduce(null, (a, b) => null).then((_) {});
+    stream.reduce((a, b) => null).then((_) {});
   });
 
   test('fold', () {
@@ -212,14 +212,6 @@ main() {
 
   test('length', () {
     stream.length.then((_) {});
-  });
-
-  test('min', () {
-    stream.min((a, b) => 0).then((_) {});
-  });
-
-  test('max', () {
-    stream.max((a, b) => 0).then((_) {});
   });
 
   test('isEmpty', () {

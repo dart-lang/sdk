@@ -5,12 +5,12 @@
 part of matcher;
 
 /**
- * Returns a matcher which matches [Collection]s in which all elements
+ * Returns a matcher which matches [Iterable]s in which all elements
  * match the given [matcher].
  */
 Matcher everyElement(matcher) => new _EveryElement(wrapMatcher(matcher));
 
-class _EveryElement extends _CollectionMatcher {
+class _EveryElement extends _IterableMatcher {
   Matcher _matcher;
 
   _EveryElement(Matcher this._matcher);
@@ -51,12 +51,12 @@ class _EveryElement extends _CollectionMatcher {
 }
 
 /**
- * Returns a matcher which matches [Collection]s in which at least one
+ * Returns a matcher which matches [Iterable]s in which at least one
  * element matches the given [matcher].
  */
 Matcher someElement(matcher) => new _SomeElement(wrapMatcher(matcher));
 
-class _SomeElement extends _CollectionMatcher {
+class _SomeElement extends _IterableMatcher {
   Matcher _matcher;
 
   _SomeElement(this._matcher);
@@ -120,23 +120,8 @@ class _UnorderedEquals extends BaseMatcher {
       return 'not iterable';
     }
     // Check the lengths are the same.
-    var expectedLength = 0;
-    if (_expected is Collection) {
-      Collection cast = _expected; // "_expected as Collection"
-      expectedLength = cast.length;
-    } else {
-      for (var element in _expected) {
-        ++expectedLength;
-      }
-    }
-    var actualLength = 0;
-    if (item is Collection) {
-      actualLength = item.length;
-    } else {
-      for (var element in item) {
-        ++actualLength;
-      }
-    }
+    var expectedLength = _expected.length;
+    var actualLength = item.length;
     if (expectedLength > actualLength) {
       return 'has too few elements (${actualLength} < ${expectedLength})';
     } else if (expectedLength < actualLength) {
@@ -182,11 +167,11 @@ class _UnorderedEquals extends BaseMatcher {
 }
 
 /**
- * Collection matchers match against [Collection]s. We add this intermediate
+ * Iterable matchers match against [Iterable]s. We add this intermediate
  * class to give better mismatch error messages than the base Matcher class.
  */
-abstract class _CollectionMatcher extends BaseMatcher {
-  const _CollectionMatcher();
+abstract class _IterableMatcher extends BaseMatcher {
+  const _IterableMatcher();
   Description describeMismatch(item, Description mismatchDescription,
                                MatchState matchState, bool verbose) {
     if (item is! Iterable) {

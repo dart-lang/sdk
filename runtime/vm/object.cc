@@ -194,7 +194,11 @@ static RawString* IdentifierPrettyName(const String& name) {
   intptr_t dot_pos = len;  // Position of '.' in the name.
   bool is_setter = false;
 
-  for (int i = 0; i < name.Length(); i++) {
+  if (name.Equals(Symbols::TopLevel())) {
+    // Name of invisible top-level class.
+    return Symbols::Empty().raw();
+  }
+  for (int i = start; i < name.Length(); i++) {
     if (name.CharAt(i) == ':') {
       ASSERT(start == 0);
       if (name.CharAt(0) == 's') {
@@ -909,6 +913,19 @@ RawError* Object::Init(Isolate* isolate) {
   cls = Class::New<Uint32x4>();
   object_store->set_uint32x4_class(cls);
   RegisterPrivateClass(cls, Symbols::_Uint32x4(), lib);
+
+  cls = Class::New<Instance>(Symbols::Float32x4(), script,
+                             Scanner::kDummyTokenIndex);
+  RegisterClass(cls, Symbols::Float32x4(), lib);
+  pending_classes.Add(cls, Heap::kOld);
+  type = Type::NewNonParameterizedType(cls);
+  object_store->set_float32x4_type(type);
+
+  cls = Class::New<Instance>(Symbols::Uint32x4(), script,
+                             Scanner::kDummyTokenIndex);
+  pending_classes.Add(cls, Heap::kOld);
+  type = Type::NewNonParameterizedType(cls);
+  object_store->set_uint32x4_type(type);
 
   object_store->set_typeddata_classes(typeddata_classes);
 
@@ -6923,8 +6940,7 @@ RawPcDescriptors* PcDescriptors::New(intptr_t num_descriptors) {
 
 const char* PcDescriptors::KindAsStr(intptr_t index) const {
   switch (DescriptorKind(index)) {
-    case PcDescriptors::kDeoptBefore:   return "deopt-before ";
-    case PcDescriptors::kDeoptAfter:    return "deopt-after  ";
+    case PcDescriptors::kDeopt:         return "deopt ";
     case PcDescriptors::kEntryPatch:    return "entry-patch  ";
     case PcDescriptors::kPatchCode:     return "patch        ";
     case PcDescriptors::kLazyDeoptJump: return "lazy-deopt   ";
@@ -7005,10 +7021,19 @@ void PcDescriptors::Verify(const Function& function) const {
     PcDescriptors::Kind kind = DescriptorKind(i);
     // 'deopt_id' is set for kDeopt and kIcCall and must be unique for one kind.
     intptr_t deopt_id = Isolate::kNoDeoptId;
-    if ((DescriptorKind(i) == PcDescriptors::kDeoptBefore) ||
-        (DescriptorKind(i) == PcDescriptors::kIcCall)) {
-      deopt_id = DeoptId(i);
+    if ((DescriptorKind(i) != PcDescriptors::kDeopt) ||
+        (DescriptorKind(i) != PcDescriptors::kIcCall)) {
+      continue;
     }
+
+    deopt_id = DeoptId(i);
+    if (Isolate::IsDeoptAfter(deopt_id)) {
+      // TODO(vegorov): some instructions contain multiple calls and have
+      // multiple "after" targets recorded. Right now it is benign but might
+      // lead to issues in the future. Fix that and enable verification.
+      continue;
+    }
+
     for (intptr_t k = i + 1; k < Length(); k++) {
       if (kind == DescriptorKind(k)) {
         if (deopt_id != Isolate::kNoDeoptId) {
@@ -7747,18 +7772,6 @@ uword Code::GetPcForDeoptId(intptr_t deopt_id, PcDescriptors::Kind kind) const {
     }
   }
   return 0;
-}
-
-
-uword Code::GetDeoptBeforePcAtDeoptId(intptr_t deopt_id) const {
-  ASSERT(!is_optimized());
-  return GetPcForDeoptId(deopt_id, PcDescriptors::kDeoptBefore);
-}
-
-
-uword Code::GetDeoptAfterPcAtDeoptId(intptr_t deopt_id) const {
-  ASSERT(!is_optimized());
-  return GetPcForDeoptId(deopt_id, PcDescriptors::kDeoptAfter);
 }
 
 
@@ -9242,6 +9255,18 @@ bool AbstractType::IsDoubleType() const {
 }
 
 
+bool AbstractType::IsFloat32x4Type() const {
+  return HasResolvedTypeClass() &&
+      (type_class() == Type::Handle(Type::Float32x4()).type_class());
+}
+
+
+bool AbstractType::IsUint32x4Type() const {
+  return HasResolvedTypeClass() &&
+      (type_class() == Type::Handle(Type::Uint32x4()).type_class());
+}
+
+
 bool AbstractType::IsNumberType() const {
   return HasResolvedTypeClass() &&
       (type_class() == Type::Handle(Type::Number()).type_class());
@@ -9387,6 +9412,16 @@ RawType* Type::MintType() {
 
 RawType* Type::Double() {
   return Isolate::Current()->object_store()->double_type();
+}
+
+
+RawType* Type::Float32x4() {
+  return Isolate::Current()->object_store()->float32x4_type();
+}
+
+
+RawType* Type::Uint32x4() {
+  return Isolate::Current()->object_store()->uint32x4_type();
 }
 
 
@@ -10607,29 +10642,9 @@ RawDouble* Double::New(double d, Heap::Space space) {
 }
 
 
-static bool IsWhiteSpace(char ch) {
-  return ch == '\0' || ch == '\n' || ch == '\r' || ch == ' ' || ch == '\t';
-}
-
-
-static bool StringToDouble(const String& str, double* double_value) {
-  ASSERT(double_value != NULL);
-  // TODO(regis): For now, we use strtod to convert a string to double.
-  const char* nptr = str.ToCString();
-  char* endptr = NULL;
-  *double_value = strtod(nptr, &endptr);
-  // We do not treat overflow or underflow as an error and therefore do not
-  // check errno for ERANGE.
-  if (!IsWhiteSpace(*endptr)) {
-    return false;
-  }
-  return true;
-}
-
-
 RawDouble* Double::New(const String& str, Heap::Space space) {
   double double_value;
-  if (!StringToDouble(str, &double_value)) {
+  if (!CStringToDouble(str.ToCString(), str.Length(), &double_value)) {
     return Double::Handle().raw();
   }
   return New(double_value, space);
@@ -10666,7 +10681,7 @@ RawDouble* Double::NewCanonical(double value) {
 
 RawDouble* Double::NewCanonical(const String& str) {
   double double_value;
-  if (!StringToDouble(str, &double_value)) {
+  if (!CStringToDouble(str.ToCString(), str.Length(), &double_value)) {
     return Double::Handle().raw();
   }
   return NewCanonical(double_value);

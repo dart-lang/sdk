@@ -7,6 +7,7 @@
 // Library tag to be able to run in html test framework.
 library ByteArrayViewOptimizedTest;
 
+import "package:expect/expect.dart";
 import "dart:typeddata";
 
 li16(v) => v[0];

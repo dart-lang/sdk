@@ -14,11 +14,6 @@
 
 namespace dart {
 
-// Compiler only implemented on IA32, X64, and ARM.
-#if defined(TARGET_ARCH_IA32) ||                                               \
-    defined(TARGET_ARCH_X64) ||                                                \
-    defined(TARGET_ARCH_ARM)
-
 // Setup function for invocation.
 static void SetupFunction(const char* test_library_name,
                           const char* test_class_name,
@@ -220,7 +215,5 @@ TEST_CASE(DartDynamicResolve) {
     EXPECT(!super_function.IsNull());
   }
 }
-
-#endif  // TARGET_ARCH_IA32 || TARGET_ARCH_X64 || TARGET_ARCH_ARM
 
 }  // namespace dart

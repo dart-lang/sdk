@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for a function with a malformed result type.
 
+import "package:expect/expect.dart";
+
 class C<T, U> {}
 
 isCheckedMode() {

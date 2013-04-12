@@ -145,26 +145,29 @@
 #else
 // Not running on ARM or MIPS hardware, call simulator to execute code.
 #define EXECUTE_TEST_CODE_INT32(name, entry)                                   \
-  static_cast<int32_t>(Simulator::Current()->Call((int32_t)entry,              \
-      0, 0, 0, 0))
+  static_cast<int32_t>(Simulator::Current()->Call(                             \
+      bit_cast<int32_t, uword>(entry), 0, 0, 0, 0))
 #define EXECUTE_TEST_CODE_INT64_LL(name, entry, long_arg0, long_arg1)          \
-  static_cast<int64_t>(Simulator::Current()->Call((int32_t)entry,              \
+  static_cast<int64_t>(Simulator::Current()->Call(                             \
+      bit_cast<int32_t, uword>(entry),                                         \
       Utils::Low32Bits(long_arg0),                                             \
       Utils::High32Bits(long_arg0),                                            \
       Utils::Low32Bits(long_arg1),                                             \
       Utils::High32Bits(long_arg1)))
 #define EXECUTE_TEST_CODE_FLOAT(name, entry)                                   \
-  bit_cast<float, int32_t>(Simulator::Current()->Call((int32_t)entry,          \
-      0, 0, 0, 0))
+  bit_cast<float, int32_t>(Simulator::Current()->Call(                         \
+      bit_cast<int32_t, uword>(entry), 0, 0, 0, 0))
 #define EXECUTE_TEST_CODE_DOUBLE(name, entry)                                  \
-  bit_cast<double, int64_t>(Simulator::Current()->Call((int32_t)entry,         \
-      0, 0, 0, 0))
+  bit_cast<double, int64_t>(Simulator::Current()->Call(                        \
+      bit_cast<int32_t, uword>(entry), 0, 0, 0, 0))
 #define EXECUTE_TEST_CODE_INT32_F(name, entry, float_arg)                      \
-  static_cast<int32_t>(Simulator::Current()->Call((int32_t)entry,              \
+  static_cast<int32_t>(Simulator::Current()->Call(                             \
+      bit_cast<int32_t, uword>(entry),                                         \
       bit_cast<int32_t, float>(float_arg),                                     \
       0, 0, 0))
 #define EXECUTE_TEST_CODE_INT32_D(name, entry, double_arg)                     \
-  static_cast<int32_t>(Simulator::Current()->Call((int32_t)entry,              \
+  static_cast<int32_t>(Simulator::Current()->Call(                             \
+      bit_cast<int32_t, uword>(entry),                                         \
       Utils::Low32Bits(bit_cast<int64_t, double>(double_arg)),                 \
       Utils::High32Bits(bit_cast<int64_t, double>(double_arg)),                \
       0, 0))

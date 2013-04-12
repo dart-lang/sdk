@@ -3,10 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library utf_test;
+import "package:expect/expect.dart";
 import 'dart:utf';
 
 main() {
-  String str = codepointsToString([0x1d537]);
+  String str = new String.fromCharCodes([0x1d537]);
   // String.codeUnits gives 16-bit code units, but stringToCodepoints gives
   // back the original code points.
   Expect.listEquals([0xd835, 0xdd37], str.codeUnits);

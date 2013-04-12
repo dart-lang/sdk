@@ -150,13 +150,6 @@ main() {
     expect(classes, orderedEquals(['baz', 'qux', 'quux']));
   });
 
-  test('isSubsetOf', () {
-    final classes = makeClassSet();
-    expect(classes.isSubsetOf(['foo', 'bar', 'baz'].toSet()), isTrue);
-    expect(classes.isSubsetOf(['foo', 'bar', 'baz', 'qux'].toSet()), isTrue);
-    expect(classes.isSubsetOf(['foo', 'bar', 'qux'].toSet()), isFalse);
-  });
-
   test('containsAll', () {
     final classes = makeClassSet();
     expect(classes.containsAll(['foo', 'baz'].toSet()), isTrue);

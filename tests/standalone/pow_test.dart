@@ -6,6 +6,7 @@
 
 library pow_test;
 
+import "package:expect/expect.dart";
 import 'dart:math';
 
 var expectedResults =

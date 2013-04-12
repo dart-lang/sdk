@@ -9,6 +9,7 @@
 // Serialization test.
 // ---------------------------------------------------------------------------
 library SerializationTest;
+import "package:expect/expect.dart";
 import 'dart:isolate';
 
 main() {

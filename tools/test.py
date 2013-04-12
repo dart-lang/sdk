@@ -19,7 +19,7 @@ def Main():
   client = os.path.abspath(os.path.join(tools_dir, '..'));
   dart_script_name = 'test.dart'
   dart_test_script = string.join([tools_dir, dart_script_name], os.sep)
-  command = [utils.DartBinary(), dart_test_script] + args
+  command = [utils.DartBinary(), '--checked', dart_test_script] + args
   exit_code = subprocess.call(command)
   utils.DiagnoseExitCode(exit_code, command)
   return exit_code

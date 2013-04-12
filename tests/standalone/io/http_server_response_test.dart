@@ -7,6 +7,7 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
+import "package:expect/expect.dart";
 import "dart:async";
 import "dart:io";
 import "dart:typeddata";
@@ -87,7 +88,7 @@ void testResponseAddStream() {
 void testBadResponseAdd() {
   testServerRequest((server, request) {
     request.response.contentLength = 0;
-    request.response.writeBytes([0]);
+    request.response.add([0]);
     request.response.close();
     request.response.done.catchError((error) {
       server.close();
@@ -96,8 +97,8 @@ void testBadResponseAdd() {
 
   testServerRequest((server, request) {
     request.response.contentLength = 5;
-    request.response.writeBytes([0, 0, 0]);
-    request.response.writeBytes([0, 0, 0]);
+    request.response.add([0, 0, 0]);
+    request.response.add([0, 0, 0]);
     request.response.close();
     request.response.done.catchError((error) {
       server.close();
@@ -106,9 +107,9 @@ void testBadResponseAdd() {
 
   testServerRequest((server, request) {
     request.response.contentLength = 0;
-    request.response.writeBytes(new Uint8List(64 * 1024));
-    request.response.writeBytes(new Uint8List(64 * 1024));
-    request.response.writeBytes(new Uint8List(64 * 1024));
+    request.response.add(new Uint8List(64 * 1024));
+    request.response.add(new Uint8List(64 * 1024));
+    request.response.add(new Uint8List(64 * 1024));
     request.response.close();
     request.response.done.catchError((error) {
       server.close();
@@ -127,7 +128,7 @@ void testBadResponseClose() {
 
   testServerRequest((server, request) {
     request.response.contentLength = 5;
-    request.response.writeBytes([0]);
+    request.response.add([0]);
     request.response.close();
     request.response.done.catchError((error) {
       server.close();

@@ -5,6 +5,7 @@
 // Hidden native class with factory constructors and NO static methods.
 // Regression test.
 
+import "package:expect/expect.dart";
 import 'native_metadata.dart';
 
 @Native("*A")

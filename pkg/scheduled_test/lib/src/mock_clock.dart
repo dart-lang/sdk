@@ -67,7 +67,7 @@ class Clock {
   /// code runs before the next tick.
   void run() {
     pumpEventQueue().then((_) {
-      if (!_onTickController.hasSubscribers) return;
+      if (!_onTickController.hasListener) return;
       tick();
       return run();
     });

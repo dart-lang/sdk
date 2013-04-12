@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing throw statement
 
+import 'package:expect/expect.dart';
+
 class S {
   var s1 = good_stuff();
   static good_stuff() => "Speyburn";

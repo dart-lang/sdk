@@ -15,6 +15,8 @@
     'file_impl.dart',
     'file_system_entity.dart',
     'http.dart',
+    'http_body.dart',
+    'http_body_impl.dart',
     'http_headers.dart',
     'http_impl.dart',
     'http_parser.dart',

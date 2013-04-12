@@ -5,6 +5,7 @@
 // Process test program to test process communication.
 
 library ProcessSegfaultTest;
+import "package:expect/expect.dart";
 import "dart:io";
 import "process_test_util.dart";
 

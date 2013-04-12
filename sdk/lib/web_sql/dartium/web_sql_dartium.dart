@@ -69,14 +69,6 @@ typedef void SqlTransactionErrorCallback(SqlError error);
 // WARNING: Do not edit - generated code.
 
 
-typedef void SqlTransactionSyncCallback(SqlTransactionSync transaction);
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
 @DocsEditable
 @DomName('Database')
 @SupportedBrowser(SupportedBrowser.CHROME)
@@ -115,42 +107,6 @@ class SqlDatabase extends NativeFieldWrapperClass1 {
   @DomName('Database.transaction')
   @DocsEditable
   void transaction(SqlTransactionCallback callback, [SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) native "Database_transaction_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('DatabaseSync')
-@SupportedBrowser(SupportedBrowser.CHROME)
-@SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental
-class SqlDatabaseSync extends NativeFieldWrapperClass1 {
-  SqlDatabaseSync.internal();
-
-  @DomName('DatabaseSync.lastErrorMessage')
-  @DocsEditable
-  String get lastErrorMessage native "DatabaseSync_lastErrorMessage_Getter";
-
-  @DomName('DatabaseSync.version')
-  @DocsEditable
-  String get version native "DatabaseSync_version_Getter";
-
-  @DomName('DatabaseSync.changeVersion')
-  @DocsEditable
-  void changeVersion(String oldVersion, String newVersion, [SqlTransactionSyncCallback callback]) native "DatabaseSync_changeVersion_Callback";
-
-  @DomName('DatabaseSync.readTransaction')
-  @DocsEditable
-  void readTransaction(SqlTransactionSyncCallback callback) native "DatabaseSync_readTransaction_Callback";
-
-  @DomName('DatabaseSync.transaction')
-  @DocsEditable
-  void transaction(SqlTransactionSyncCallback callback) native "DatabaseSync_transaction_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -285,11 +241,12 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
     return new FixedSizeListIterator<Map>(this);
   }
 
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Map)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  Map reduce(Map combine(Map value, Map element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, Map)) {
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, Map element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
@@ -297,7 +254,7 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
 
   void forEach(void f(Map element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(Map element)) =>
@@ -399,12 +356,6 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
     throw new StateError("More than one element");
   }
 
-  Map min([int compare(Map a, Map b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  Map max([int compare(Map a, Map b)]) =>
-      IterableMixinWorkaround.max(this, compare);
-
   void insert(int index, Map element) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -418,14 +369,6 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
   }
 
   void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -449,16 +392,23 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 implements List<Map> 
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  Iterable<Map> getRange(int start, int end) =>
+    IterableMixinWorkaround.getRangeList(this, start, end);
+
   List<Map> sublist(int start, [int end]) {
     if (end == null) end = length;
     return Lists.getRange(this, start, end, <Map>[]);
   }
 
-  List<Map> getRange(int start, int rangeLength) =>
-      sublist(start, start + rangeLength);
-
   Map<int, Map> asMap() =>
     IterableMixinWorkaround.asMapList(this);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
 
   // -- end List<Map> mixins.
 
@@ -495,15 +445,27 @@ class SqlTransaction extends NativeFieldWrapperClass1 {
 
 
 @DocsEditable
+@DomName('DatabaseSync')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
+abstract class _DatabaseSync extends NativeFieldWrapperClass1 {
+  _DatabaseSync.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
 @DomName('SQLTransactionSync')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
-class SqlTransactionSync extends NativeFieldWrapperClass1 {
-  SqlTransactionSync.internal();
-
-  @DomName('SQLTransactionSync.executeSql')
-  @DocsEditable
-  SqlResultSet executeSql(String sqlStatement, List arguments) native "SQLTransactionSync_executeSql_Callback";
+abstract class _SQLTransactionSync extends NativeFieldWrapperClass1 {
+  _SQLTransactionSync.internal();
 
 }

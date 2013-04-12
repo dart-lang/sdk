@@ -671,7 +671,7 @@ class LogEntryList {
    * list is created.
    */
   LogEntryList after(DateTime when, [bool inPlace = false]) =>
-      _tail((e) => e.time > when, inPlace, 'after $when', logs.length);
+      _tail((e) => e.time.isAfter(when), inPlace, 'after $when', logs.length);
 
   /**
    * Returns log events that happened from [when] onwards. If
@@ -680,7 +680,7 @@ class LogEntryList {
    * a new list is created.
    */
   LogEntryList from(DateTime when, [bool inPlace = false]) =>
-      _tail((e) => e.time >= when, inPlace, 'from $when', logs.length);
+      _tail((e) => !e.time.isBefore(when), inPlace, 'from $when', logs.length);
 
   /**
    * Returns log events that happened until [when]. If [inPlace]
@@ -689,7 +689,7 @@ class LogEntryList {
    * list is created.
    */
   LogEntryList until(DateTime when, [bool inPlace = false]) =>
-      _head((e) => e.time > when, inPlace, 'until $when', logs.length);
+      _head((e) => e.time.isAfter(when), inPlace, 'until $when', logs.length);
 
   /**
    * Returns log events that happened before [when]. If [inPlace]
@@ -698,7 +698,10 @@ class LogEntryList {
    * list is created.
    */
   LogEntryList before(DateTime when, [bool inPlace = false]) =>
-      _head((e) => e.time >= when, inPlace, 'before $when', logs.length);
+      _head((e) => !e.time.isBefore(when),
+            inPlace,
+            'before $when',
+            logs.length);
 
   /**
    * Returns log events that happened after [logEntry]'s time.

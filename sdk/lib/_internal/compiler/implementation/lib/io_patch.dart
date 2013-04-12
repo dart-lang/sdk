@@ -78,6 +78,9 @@ patch class _File {
   patch static _delete(String path) {
     throw new UnsupportedError("File._delete");
   }
+  patch static _deleteLink(String path) {
+    throw new UnsupportedError("File._deleteLink");
+  }
   patch static _directory(String path) {
     throw new UnsupportedError("File._directory");
   }
@@ -134,9 +137,9 @@ patch class _RandomAccessFile {
   }
 }
 
-patch class _HttpSessionManager {
-  patch static Uint8List _getRandomBytes(int count) {
-    throw new UnsupportedError("HttpSessionManager._getRandomBytes");
+patch class _IOCrypto {
+  patch static Uint8List getRandomBytes(int count) {
+    throw new UnsupportedError("_IOCrypto.getRandomBytes");
   }
 }
 

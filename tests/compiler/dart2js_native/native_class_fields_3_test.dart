@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "package:expect/expect.dart";
+
 // Verify that we can have fields with names that start with g and s even
 // though those names are reserved for getters and setters in minified mode.
 
@@ -84,4 +86,3 @@ main() {
   Expect.equals(6, foo.gettersCalled);
   Expect.equals(6, foo.settersCalled);
 }
-

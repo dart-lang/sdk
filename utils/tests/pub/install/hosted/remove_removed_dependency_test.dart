@@ -10,6 +10,7 @@ import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
+  initConfig();
   integration("removes a dependency that's been removed from the pubspec", () {
     servePackages([
       packageMap("foo", "1.0.0"),

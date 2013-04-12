@@ -9,6 +9,7 @@
 
 library isolate_mirror_local_test;
 
+import "package:expect/expect.dart";
 import 'dart:async';
 import 'dart:isolate';
 import 'dart:mirrors';
@@ -116,7 +117,7 @@ void testRootLibraryMirror(LibraryMirror lib_mirror) {
 
   // Test library invocation by calling function(123).
   Expect.equals(0, global_var);
-  lib_mirror.invoke('function', [ 123 ]).then(
+  lib_mirror.invokeAsync('function', [123]).then(
       (InstanceMirror retval) {
         Expect.equals(123, global_var);
         Expect.equals('int', retval.type.simpleName);
@@ -307,7 +308,7 @@ void testLibrariesMap(Map libraries) {
   Expect.equals('Object', list_intf.superclass.simpleName);
   Expect.equals('dart.core', list_intf.owner.simpleName);
   Expect.isTrue(list_intf.isClass);
-  Expect.equals('Collection', list_intf.superinterfaces[0].simpleName);
+  Expect.equals('Iterable', list_intf.superinterfaces[0].simpleName);
   Expect.equals("ClassMirror on 'List'", list_intf.toString());
 
   // Lookup a class from a library and make sure it is sane.
@@ -342,7 +343,7 @@ void testIntegerInstanceMirror(InstanceMirror mirror) {
   Expect.equals("InstanceMirror on <1001>", mirror.toString());
 
   // Invoke (mirror + mirror).
-  mirror.invoke('+', [ mirror ]).then(
+  mirror.invokeAsync('+', [ mirror ]).then(
       (InstanceMirror retval) {
         Expect.equals('int', retval.type.simpleName);
         Expect.isTrue(retval.hasReflectee);
@@ -359,7 +360,7 @@ void testStringInstanceMirror(InstanceMirror mirror) {
                 mirror.toString());
 
   // Invoke mirror[0].
-  mirror.invoke('[]', [ 0 ]).then(
+  mirror.invokeAsync('[]', [ 0 ]).then(
       (InstanceMirror retval) {
         Expect.equals('String', retval.type.simpleName);
         Expect.isTrue(retval.hasReflectee);
@@ -431,7 +432,7 @@ void testCustomInstanceMirror(InstanceMirror mirror) {
                 cls.toString());
 
   // Invoke mirror.method(1000).
-  mirror.invoke('method', [ 1000 ]).then(
+  mirror.invokeAsync('method', [ 1000 ]).then(
       (InstanceMirror retval) {
         Expect.equals('int', retval.type.simpleName);
         Expect.isTrue(retval.hasReflectee);
@@ -459,7 +460,7 @@ void methodWithError() {
 void testMirrorErrors(MirrorSystem mirrors) {
   LibraryMirror lib_mirror = mirrors.isolate.rootLibrary;
 
-  lib_mirror.invoke('methodWithException', [])
+  lib_mirror.invokeAsync('methodWithException', [])
     .then((InstanceMirror retval) {
       // Should not reach here.
       Expect.isTrue(false);
@@ -475,7 +476,7 @@ void testMirrorErrors(MirrorSystem mirrors) {
         testDone('testMirrorErrors1');
       });
 
-  lib_mirror.invoke('methodWithError', [])
+  lib_mirror.invokeAsync('methodWithError', [])
     .then((InstanceMirror retval) {
       // Should not reach here.
       Expect.isTrue(false);
@@ -489,7 +490,7 @@ void testMirrorErrors(MirrorSystem mirrors) {
   // TODO(turnidge): When we call a method that doesn't exist, we
   // should probably call noSuchMethod().  I'm adding this test to
   // document the current behavior in the meantime.
-  lib_mirror.invoke('methodNotFound', [])
+  lib_mirror.invokeAsync('methodNotFound', [])
     .then((InstanceMirror retval) {
       // Should not reach here.
       Expect.isTrue(false);

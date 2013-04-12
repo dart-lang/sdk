@@ -6,6 +6,7 @@
 // interferes with subsequent resolving of the method.  This might happen if the
 // noSuchMethod is cached on Object.prototype.
 
+import "package:expect/expect.dart";
 import 'native_metadata.dart';
 
 @Native("*A1")

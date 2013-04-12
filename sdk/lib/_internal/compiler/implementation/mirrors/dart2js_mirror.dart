@@ -87,7 +87,7 @@ Dart2JsTypeMirror _convertTypeToTypeMirror(
   system.compiler.internalError("Unexpected type $type of kind ${type.kind}");
 }
 
-Collection<Dart2JsMemberMirror> _convertElementMemberToMemberMirrors(
+Iterable<Dart2JsMemberMirror> _convertElementMemberToMemberMirrors(
     Dart2JsContainerMirror library, Element element) {
   if (element.isSynthesized) {
     return const <Dart2JsMemberMirror>[];
@@ -216,10 +216,10 @@ Future<String> compile(Path script,
         new FormattingDiagnosticHandler(provider).diagnosticHandler;
   }
   Uri scriptUri = cwd.resolve(script.toString());
-  Uri libraryUri = cwd.resolve('${libraryRoot}/');
+  Uri libraryUri = cwd.resolve(appendSlash('$libraryRoot'));
   Uri packageUri = null;
   if (packageRoot != null) {
-    packageUri = cwd.resolve('${packageRoot}/');
+    packageUri = cwd.resolve(appendSlash('$packageRoot'));
   }
   return api.compile(scriptUri, libraryUri, packageUri,
       provider.readStringFromUri, diagnosticHandler, options);
@@ -290,10 +290,10 @@ Future<MirrorSystem> analyze(List<Path> libraries,
     diagnosticHandler =
         new FormattingDiagnosticHandler(provider).diagnosticHandler;
   }
-  Uri libraryUri = cwd.resolve('${libraryRoot}/');
+  Uri libraryUri = cwd.resolve(appendSlash('$libraryRoot'));
   Uri packageUri = null;
   if (packageRoot != null) {
-    packageUri = cwd.resolve('${packageRoot}/');
+    packageUri = cwd.resolve(appendSlash('$packageRoot'));
   }
   List<Uri> librariesUri = <Uri>[];
   for (Path library in libraries) {
@@ -1655,7 +1655,7 @@ class Dart2JsMapConstantMirror extends Dart2JsConstantMirror
 
   int get length => _constant.length;
 
-  Collection<String> get keys {
+  Iterable<String> get keys {
     // TODO(johnniwinther): Return an unmodifiable list instead.
     return new List<String>.from(_list);
   }

@@ -5,6 +5,7 @@
 // Test the basic StreamController and StreamController.singleSubscription.
 library stream_controller_async_test;
 
+import "package:expect/expect.dart";
 import 'dart:async';
 import 'dart:isolate';
 import '../../../pkg/unittest/lib/unittest.dart';
@@ -31,22 +32,6 @@ testController() {
      .catchError(expectAsync1((e) { Expect.equals("Fnyf!", e.error); }));
     c.add(42);
   });
-
-  test("StreamController.pipeInto", () {
-    StreamController c = new StreamController.broadcast();
-    var list = <int>[];
-    Stream stream = c.stream;
-    stream.pipeInto(new CollectionSink<int>(list))
-     .whenComplete(expectAsync0(() {
-        Expect.listEquals(<int>[1,2,9,3,9], list);
-      }));
-    c.add(1);
-    c.add(2);
-    c.add(9);
-    c.add(3);
-    c.add(9);
-    c.close();
-  });
 }
 
 testSingleController() {
@@ -66,22 +51,6 @@ testSingleController() {
     stream.fold(0, (a,b) { throw "Fnyf!"; })
             .catchError(expectAsync1((e) { Expect.equals("Fnyf!", e.error); }));
     c.add(42);
-  });
-
-  test("Single-subscription StreamController.pipeInto", () {
-    StreamController c = new StreamController();
-    var list = <int>[];
-    Stream stream = c.stream;
-    stream.pipeInto(new CollectionSink<int>(list))
-     .whenComplete(expectAsync0(() {
-        Expect.listEquals(<int>[1,2,9,3,9], list);
-      }));
-    c.add(1);
-    c.add(2);
-    c.add(9);
-    c.add(3);
-    c.add(9);
-    c.close();
   });
 
   test("Single-subscription StreamController subscription changes", () {
@@ -431,7 +400,7 @@ testRethrow() {
       Future f = streamValueTransform(c.stream, (v) { throw error; });
       f.then((v) { Expect.fail("unreachable"); },
              onError: expectAsync1((e) { Expect.identical(error, e); }));
-      // Need two values to trigger compare for min/max.
+      // Need two values to trigger compare for reduce.
       c.add(0);
       c.add(1);
       c.close();
@@ -446,9 +415,7 @@ testRethrow() {
   testStreamError("handleTest", (s, act) => s.handleError((v) {}, test: act));
   testFuture("every", (s, act) => s.every(act));
   testFuture("any", (s, act) => s.any(act));
-  testFuture("min", (s, act) => s.min((a, b) => act(b)));
-  testFuture("max", (s, act) => s.max((a, b) => act(b)));
-  testFuture("reduce", (s, act) => s.reduce(0, (a,b) => act(b)));
+  testFuture("reduce", (s, act) => s.reduce((a,b) => act(b)));
   testFuture("fold", (s, act) => s.fold(0, (a,b) => act(b)));
 }
 

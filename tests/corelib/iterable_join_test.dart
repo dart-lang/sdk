@@ -2,13 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "package:expect/expect.dart";
+
 class IC {
   int count = 0;
   String toString() => "${count++}";
 }
 
-testJoin(String expect, Iterable iterable, [String separator]) {
-  Expect.equals(expect, iterable.join(separator));
+testJoin(String expect, Iterable iterable, [String separator = ""]) {
+  if (?separator) {
+    Expect.equals(expect, iterable.join(separator));
+  } else {
+    Expect.equals(expect, iterable.join());
+  }
 }
 
 testCollections() {

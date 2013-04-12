@@ -14,11 +14,12 @@ $if DEFINE_LENGTH_AS_NUM_ITEMS
   // SVG Collections expose numberOfItems rather than length.
   int get length => numberOfItems;
 $endif
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, $E)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  $E reduce($E combine($E value, $E element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, $E)) {
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, $E element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
@@ -30,7 +31,7 @@ $endif
 
   void forEach(void f($E element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f($E element)) =>
@@ -138,12 +139,6 @@ $endif
     throw new StateError("More than one element");
   }
 
-  $E min([int compare($E a, $E b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  $E max([int compare($E a, $E b)]) =>
-      IterableMixinWorkaround.max(this, compare);
-
   void insert(int index, $E element) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -157,14 +152,6 @@ $endif
   }
 
   void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -188,15 +175,22 @@ $endif
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  Iterable<$E> getRange(int start, int end) =>
+    IterableMixinWorkaround.getRangeList(this, start, end);
+
   List<$E> sublist(int start, [int end]) {
     if (end == null) end = length;
     return Lists.getRange(this, start, end, <$E>[]);
   }
 
-  List<$E> getRange(int start, int rangeLength) =>
-      sublist(start, start + rangeLength);
-
   Map<int, $E> asMap() =>
     IterableMixinWorkaround.asMapList(this);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
 
   // -- end List<$E> mixins.

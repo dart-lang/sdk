@@ -110,7 +110,7 @@ only(Iterable iter) {
 
 /// Returns a set containing all elements in [minuend] that are not in
 /// [subtrahend].
-Set setMinus(Collection minuend, Collection subtrahend) {
+Set setMinus(Iterable minuend, Iterable subtrahend) {
   var minuendSet = new Set.from(minuend);
   minuendSet.removeAll(subtrahend);
   return minuendSet;
@@ -333,13 +333,13 @@ void mapAddAll(Map destination, Map source) =>
 String urlDecode(String encoded) =>
   decodeUriComponent(encoded.replaceAll("+", " "));
 
-/// Takes a simple data structure (composed of [Map]s, [List]s, scalar objects,
-/// and [Future]s) and recursively resolves all the [Future]s contained within.
-/// Completes with the fully resolved structure.
+/// Takes a simple data structure (composed of [Map]s, [Iterable]s, scalar
+/// objects, and [Future]s) and recursively resolves all the [Future]s contained
+/// within. Completes with the fully resolved structure.
 Future awaitObject(object) {
   // Unroll nested futures.
   if (object is Future) return object.then(awaitObject);
-  if (object is Collection) {
+  if (object is Iterable) {
     return Future.wait(object.map(awaitObject).toList());
   }
   if (object is! Map) return new Future.immediate(object);

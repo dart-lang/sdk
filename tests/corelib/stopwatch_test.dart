@@ -5,6 +5,7 @@
 // Dart test program for testing stopwatch support.
 
 library stopwatch_test;
+import "package:expect/expect.dart";
 
 class StopwatchTest {
   static bool checkTicking(Stopwatch sw) {

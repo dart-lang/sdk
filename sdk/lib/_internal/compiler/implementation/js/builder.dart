@@ -10,18 +10,19 @@ part of js;
 class JsBuilder {
   const JsBuilder();
 
-  Expression operator [](String source) {
-    return new MiniJsParser(source).expression();
-  }
-
-  // TODO(ahe): Remove this method.
-  Binary equals(Expression left, Expression right) {
-    return new Binary('==', left, right);
-  }
-
-  // TODO(ahe): Remove this method.
-  Binary strictEquals(Expression left, Expression right) {
-    return new Binary('===', left, right);
+  // Parse a bit of JS, and return an expression.  See the MiniJsParser class.
+  // You can provide an expression or a list of expressions, which will be
+  // interpolated into the source at the '#' signs.
+  Expression call(String source, [var expression]) {
+    List<Expression> expressions;
+    if (expression != null) {
+      if (expression is List) {
+        expressions = expression;
+      } else {
+        expressions = <Expression>[expression];
+      }
+    }
+    return new MiniJsParser(source, expressions).expression();
   }
 
   LiteralString string(String value) => new LiteralString('"$value"');
@@ -92,7 +93,7 @@ class JsBuilder {
     if (expression is Expression) {
       return expression;
     } else if (expression is String) {
-      return this[expression];
+      return this(expression);
     } else if (expression is num) {
       return new LiteralNumber('$expression');
     } else if (expression is bool) {
@@ -161,12 +162,11 @@ class MiniJsParserError {
 /// * most operators.
 /// * brackets.
 /// * var declarations.
-/// Notable things it can't do yet include:
 /// * operator precedence.
+/// Notable things it can't do yet include:
 /// * non-empty object literals.
 /// * throw, return.
 /// * statements, including any flow control (if, while, for, etc.)
-/// * the 'in' keyword.
 ///
 /// It's a fairly standard recursive descent parser.
 ///
@@ -178,11 +178,12 @@ class MiniJsParserError {
 /// to get early errors for unintentional escape sequences without complicating
 /// this parser unneccessarily.
 class MiniJsParser {
-  MiniJsParser(this.src)
+  MiniJsParser(this.src, this.interpolatedValues)
       : lastCategory = NONE,
         lastToken = null,
         lastPosition = 0,
-        position = 0 {
+        position = 0,
+        valuesUsed = 0 {
     getSymbol();
   }
 
@@ -190,14 +191,16 @@ class MiniJsParser {
   String lastToken;
   int lastPosition;
   int position;
+  int valuesUsed;
   String src;
+  List<Expression> interpolatedValues;
 
   static const NONE = -1;
   static const ALPHA = 0;
   static const NUMERIC = 1;
   static const STRING = 2;
   static const SYMBOL = 3;
-  static const RELATION = 4;
+  static const ASSIGNMENT = 4;
   static const DOT = 5;
   static const LPAREN = 6;
   static const RPAREN = 7;
@@ -208,7 +211,9 @@ class MiniJsParser {
   static const COMMA = 12;
   static const QUERY = 13;
   static const COLON = 14;
-  static const OTHER = 15;
+  static const HASH = 15;
+  static const WHITESPACE = 16;
+  static const OTHER = 17;
 
   // Make sure that ]] is two symbols.
   bool singleCharCategory(int category) => category >= DOT;
@@ -219,7 +224,7 @@ class MiniJsParser {
       case ALPHA: return "ALPHA";
       case NUMERIC: return "NUMERIC";
       case SYMBOL: return "SYMBOL";
-      case RELATION: return "RELATION";
+      case ASSIGNMENT: return "ASSIGNMENT";
       case DOT: return "DOT";
       case LPAREN: return "LPAREN";
       case RPAREN: return "RPAREN";
@@ -230,6 +235,8 @@ class MiniJsParser {
       case COMMA: return "COMMA";
       case QUERY: return "QUERY";
       case COLON: return "COLON";
+      case HASH: return "HASH";
+      case WHITESPACE: return "WHITESPACE";
       case OTHER: return "OTHER";
     }
     return "Unknown: $cat";
@@ -237,14 +244,15 @@ class MiniJsParser {
 
   static const CATEGORIES = const <int>[
       OTHER, OTHER, OTHER, OTHER, OTHER, OTHER, OTHER, OTHER,       // 0-7
-      OTHER, OTHER, OTHER, OTHER, OTHER, OTHER, OTHER, OTHER,       // 8-15
-      OTHER, OTHER, OTHER, OTHER, OTHER, OTHER, OTHER, OTHER,       // 16-23
-      OTHER, OTHER, OTHER, OTHER, OTHER, OTHER, OTHER, OTHER,       // 24-31
-      OTHER, RELATION, OTHER, OTHER, ALPHA, SYMBOL, SYMBOL, OTHER,  //  !"#$%&´
+      OTHER, WHITESPACE, WHITESPACE, OTHER, OTHER, WHITESPACE,      // 8-13
+      OTHER, OTHER, OTHER, OTHER, OTHER, OTHER, OTHER, OTHER,       // 14-21
+      OTHER, OTHER, OTHER, OTHER, OTHER, OTHER, OTHER, OTHER,       // 22-29
+      OTHER, OTHER, WHITESPACE,                                     // 30-32
+      SYMBOL, OTHER, HASH, ALPHA, SYMBOL, SYMBOL, OTHER,            // !"#$%&´
       LPAREN, RPAREN, SYMBOL, SYMBOL, COMMA, SYMBOL, DOT, SYMBOL,   // ()*+,-./
       NUMERIC, NUMERIC, NUMERIC, NUMERIC, NUMERIC,                  // 01234
       NUMERIC, NUMERIC, NUMERIC, NUMERIC, NUMERIC,                  // 56789
-      COLON, OTHER, RELATION, RELATION, RELATION, QUERY, OTHER,     // :;<=>?@
+      COLON, OTHER, SYMBOL, SYMBOL, SYMBOL, QUERY, OTHER,           // :;<=>?@
       ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA,       // ABCDEFGH
       ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA,       // IJKLMNOP
       ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA,       // QRSTUVWX
@@ -254,11 +262,27 @@ class MiniJsParser {
       ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA, ALPHA,       // qrstuvwx
       ALPHA, ALPHA, LBRACE, SYMBOL, RBRACE, SYMBOL];                // yz{|}~
 
-  static final BINARY_OPERATORS = [
-      '+', '-', '*', '/', '%', '^', '|', '&', '||', '&&', '<<', '>>', '>>>',
-      '+=', '-=', '*=', '/=', '%=', '^=', '|=', '&=', '<<=', '>>=', '>>>=',
-      '=', '!=', '==', '!==', '===', '<', '<=', '>=', '>'].toSet();
-  static final UNARY_OPERATORS = ['++', '--', '+', '-', '~', '!'].toSet();
+  // This must be a >= the highest precedence number handled by parseBinary.
+  static var HIGHEST_PARSE_BINARY_PRECEDENCE = 16;
+  static bool isAssignment(String symbol) => BINARY_PRECEDENCE[symbol] == 17;
+
+  // From https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Operators/Operator_Precedence
+  static final BINARY_PRECEDENCE = {
+      '+=': 17, '-=': 17, '*=': 17, '/=': 17, '%=': 17, '^=': 17, '|=': 17,
+      '&=': 17, '<<=': 17, '>>=': 17, '>>>=': 17, '=': 17,
+      '||': 14,
+      '&&': 13,
+      '|': 12,
+      '^': 11,
+      '&': 10,
+      '!=': 9, '==': 9, '!==': 9, '===': 9,
+      '<': 8, '<=': 8, '>=': 8, '>': 8, 'in': 8, 'instanceof': 8,
+      '<<': 7, '>>': 7, '>>>': 7,
+      '+': 6, '-': 6,
+      '*': 5, '/': 5, '%': 5
+  };
+  static final UNARY_OPERATORS =
+      ['++', '--', '+', '-', '~', '!', 'typeof', 'void', 'delete'].toSet();
 
   static int category(int code) {
     if (code >= CATEGORIES.length) return OTHER;
@@ -267,7 +291,7 @@ class MiniJsParser {
 
   void getSymbol() {
     while (position < src.length &&
-           src.codeUnitAt(position) == charCodes.$SPACE) {
+           category(src.codeUnitAt(position)) == WHITESPACE) {
       position++;
     }
     if (position == src.length) {
@@ -311,22 +335,31 @@ class MiniJsParser {
       do {
         position++;
         if (position == src.length) break;
-        newCat = category(src.codeUnitAt(position));
+        int code = src.codeUnitAt(position);
+        // Special code to disallow ! in non-first position in token, so that
+        // !! parses as two tokens and != parses as one.
+        newCat = (code == charCodes.$BANG) ? NONE : category(code);
       } while (!singleCharCategory(cat) &&
                (cat == newCat ||
                 (cat == ALPHA && newCat == NUMERIC) ||    // eg. level42.
-                (cat == NUMERIC && newCat == DOT) ||      // eg. 3.1415
-                (cat == SYMBOL && newCat == RELATION)));  // eg. +=.
+                (cat == NUMERIC && newCat == DOT)));      // eg. 3.1415
       lastCategory = cat;
       lastToken = src.substring(lastPosition, position);
       if (cat == NUMERIC) {
         double.parse(lastToken, (_) {
           throw new MiniJsParserError(this, "Unparseable number");
         });
-      } else if (cat == SYMBOL || cat == RELATION) {
-        if (!BINARY_OPERATORS.contains(lastToken) &&
-            !UNARY_OPERATORS.contains(lastToken)) {
+      } else if (cat == SYMBOL) {
+        int binaryPrecendence = BINARY_PRECEDENCE[lastToken];
+        if (binaryPrecendence == null && !UNARY_OPERATORS.contains(lastToken)) {
           throw new MiniJsParserError(this, "Unknown operator");
+        }
+        if (isAssignment(lastToken)) lastCategory = ASSIGNMENT;
+      } else if (cat == ALPHA) {
+        if (lastToken == 'typeof' || lastToken == 'void' ||
+            lastToken == 'delete' || lastToken == 'in' ||
+            lastToken == 'instanceof') {
+          lastCategory = SYMBOL;
         }
       }
     }
@@ -387,6 +420,12 @@ class MiniJsParser {
         expectCategory(RSQUARE);
       }
       return new ArrayInitializer(values.length, values);
+    } else if (acceptCategory(HASH)) {
+      if (interpolatedValues == null ||
+          valuesUsed >= interpolatedValues.length) {
+        throw new MiniJsParserError(this, "Too few values for #es");
+      }
+      return interpolatedValues[valuesUsed++];
     } else {
       throw new MiniJsParserError(this, "Expected primary expression");
     }
@@ -412,25 +451,28 @@ class MiniJsParser {
   Expression parseCall() {
     bool constructor = acceptString("new");
     Expression receiver = parseMember();
-    if (acceptCategory(LPAREN)) {
-      final arguments = <Expression>[];
-      if (!acceptCategory(RPAREN)) {
-        while (true) {
-          Expression argument = parseExpression();
-          arguments.add(argument);
-          if (acceptCategory(RPAREN)) break;
-          expectCategory(COMMA);
+    while (true) {
+      if (acceptCategory(LPAREN)) {
+        final arguments = <Expression>[];
+        if (!acceptCategory(RPAREN)) {
+          while (true) {
+            Expression argument = parseExpression();
+            arguments.add(argument);
+            if (acceptCategory(RPAREN)) break;
+            expectCategory(COMMA);
+          }
         }
+        receiver = constructor ?
+               new New(receiver, arguments) :
+               new Call(receiver, arguments);
+        constructor = false;
+      } else {
+        if (constructor) {
+          // JS allows new without (), but we don't.
+          throw new MiniJsParserError(this, "Parentheses are required for new");
+        }
+        return receiver;
       }
-      return constructor ?
-             new New(receiver, arguments) :
-             new Call(receiver, arguments);
-    } else {
-      if (constructor) {
-        // JS allows new without (), but we don't.
-        throw new MiniJsParserError(this, "Parentheses are required for new");
-      }
-      return receiver;
     }
   }
 
@@ -443,71 +485,53 @@ class MiniJsParser {
     return expression;
   }
 
-  Expression parseUnary() {
+  Expression parseUnaryHigh() {
     String operator = lastToken;
-    if (lastCategory == ALPHA) {
-     if (acceptString("typeof") || acceptString("void") ||
-         acceptString("delete")) {
-        return new Prefix(operator, parsePostfix());
-     }
-    } else if (lastCategory == SYMBOL) {
-      if (acceptString("~") || acceptString("-") || acceptString("++") ||
-          acceptString("--") || acceptString("+")) {
-        return new Prefix(operator, parsePostfix());
-      }
-    } else if (acceptString("!")) {
+    if (lastCategory == SYMBOL && UNARY_OPERATORS.contains(operator) &&
+        (acceptString("++") || acceptString("--"))) {
       return new Prefix(operator, parsePostfix());
     }
     return parsePostfix();
   }
 
-  Expression parseBinary() {
-    // Since we don't handle precedence we don't allow two different symbols
-    // without parentheses.
-    Expression lhs = parseUnary();
-    String firstSymbol = lastToken;
-    while (true) {
-      String symbol = lastToken;
-      if (!acceptCategory(SYMBOL)) return lhs;
-      if (!BINARY_OPERATORS.contains(symbol)) {
-        throw new MiniJsParserError(this, "Unknown binary operator");
-      }
-      if (symbol != firstSymbol) {
-        throw new MiniJsParserError(
-            this, "Mixed $firstSymbol and $symbol operators without ()");
-      }
-      Expression rhs = parseUnary();
-      if (symbol.endsWith("=")) {
-        // +=, -=, *= etc.
-        lhs = new Assignment.compound(lhs,
-                                      symbol.substring(0, symbol.length - 1),
-                                      rhs);
-      } else {
-        lhs = new Binary(symbol, lhs, rhs);
-      }
+  Expression parseUnaryLow() {
+    String operator = lastToken;
+    if (lastCategory == SYMBOL && UNARY_OPERATORS.contains(operator) &&
+        operator != "++" && operator != "--") {
+      expectCategory(SYMBOL);
+      return new Prefix(operator, parseUnaryLow());
     }
+    return parseUnaryHigh();
   }
 
-  Expression parseRelation() {
-    Expression lhs = parseBinary();
-    String relation = lastToken;
-    // The lexer returns "=" as a relational operator because it looks a bit
-    // like ==, <=, etc.  But we don't want to handle it here (that would give
-    // it the wrong prescedence), so we just return if we see it.
-    if (relation == "=" || !acceptCategory(RELATION)) return lhs;
-    Expression rhs = parseBinary();
-    if (relation == "<<=" || relation == ">>=" || relation == ">>>=") {
-      return new Assignment.compound(lhs,
-                                     relation.substring(0, relation.length - 1),
-                                     rhs);
-    } else {
-      // Regular binary operation.
-      return new Binary(relation, lhs, rhs);
+  Expression parseBinary(int maxPrecedence) {
+    Expression lhs = parseUnaryLow();
+    int minPrecedence;
+    String lastSymbol;
+    Expression rhs;  // This is null first time around.
+    while (true) {
+      String symbol = lastToken;
+      if (lastCategory != SYMBOL ||
+          !BINARY_PRECEDENCE.containsKey(symbol) ||
+          BINARY_PRECEDENCE[symbol] > maxPrecedence) {
+        if (rhs == null) return lhs;
+        return new Binary(lastSymbol, lhs, rhs);
+      }
+      expectCategory(SYMBOL);
+      if (rhs == null || BINARY_PRECEDENCE[symbol] >= minPrecedence) {
+        if (rhs != null) lhs = new Binary(lastSymbol, lhs, rhs);
+        minPrecedence = BINARY_PRECEDENCE[symbol];
+        rhs = parseUnaryLow();
+        lastSymbol = symbol;
+      } else {
+        Expression higher = parseBinary(BINARY_PRECEDENCE[symbol]);
+        rhs = new Binary(symbol, rhs, higher);
+      }
     }
   }
 
   Expression parseConditional() {
-    Expression lhs = parseRelation();
+    Expression lhs = parseBinary(HIGHEST_PARSE_BINARY_PRECEDENCE);
     if (!acceptCategory(QUERY)) return lhs;
     Expression ifTrue = parseAssignment();
     expectCategory(COLON);
@@ -518,8 +542,17 @@ class MiniJsParser {
 
   Expression parseAssignment() {
     Expression lhs = parseConditional();
-    if (acceptString("=")) {
-      return new Assignment(lhs, parseAssignment());
+    String assignmentOperator = lastToken;
+    if (acceptCategory(ASSIGNMENT)) {
+      Expression rhs = parseAssignment();
+      if (assignmentOperator == "=") {
+        return new Assignment(lhs, rhs);
+      } else  {
+        // Handle +=, -=, etc.
+        String operator =
+            assignmentOperator.substring(0, assignmentOperator.length - 1);
+        return new Assignment.compound(lhs, operator, rhs);
+      }
     }
     return lhs;
   }
@@ -551,6 +584,9 @@ class MiniJsParser {
     if (lastCategory != NONE || position != src.length) {
       throw new MiniJsParserError(
           this, "Unparsed junk: ${categoryToString(lastCategory)}");
+    }
+    if (interpolatedValues != null && valuesUsed != interpolatedValues.length) {
+      throw new MiniJsParserError(this, "Too many values for #es");
     }
     return expression;
   }

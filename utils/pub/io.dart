@@ -149,7 +149,7 @@ List<String> listDir(String dir, {bool recursive: false,
       var entityPath = entity.path;
       if (!includeHidden && path.basename(entityPath).startsWith('.')) continue;
 
-      // TODO(nweiz): remove this when issue 4928 is fixed.
+      // TODO(nweiz): remove this when issue 9832 is fixed.
       if (entity is Link) {
         // We treat broken symlinks as files, in that we don't want to recurse
         // into them.
@@ -188,12 +188,7 @@ bool dirExists(String dir) => new Directory(dir).existsSync();
 void deleteEntry(String path) {
   if (linkExists(path)) {
     log.io("Deleting link $path.");
-    if (Platform.operatingSystem == 'windows') {
-      // TODO(nweiz): remove this when issue 9278 is fixed.
-      new Directory(path).deleteSync();
-    } else {
-      new Link(path).deleteSync();
-    }
+    new Link(path).deleteSync();
   } else if (dirExists(path)) {
     log.io("Deleting directory $path.");
     new Directory(path).deleteSync(recursive: true);

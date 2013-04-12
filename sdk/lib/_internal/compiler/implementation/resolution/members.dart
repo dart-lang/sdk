@@ -15,9 +15,6 @@ abstract class TreeElements {
   Selector getSelector(Send send);
   Selector getGetterSelectorInComplexSendSet(SendSet node);
   Selector getOperatorSelectorInComplexSendSet(SendSet node);
-  Selector getIteratorSelector(ForIn node);
-  Selector getMoveNextSelector(ForIn node);
-  Selector getCurrentSelector(ForIn node);
   DartType getType(Node node);
   bool isParameterChecked(Element element);
 
@@ -97,34 +94,6 @@ class TreeElementMapping implements TreeElements {
 
   Selector getOperatorSelectorInComplexSendSet(SendSet node) {
     return selectors[node.assignmentOperator];
-  }
-
-  // The following methods set selectors on the "for in" node. Since
-  // we're using three selectors, we need to use children of the node,
-  // and we arbitrarily choose which ones.
-
-  Selector setIteratorSelector(ForIn node, Selector selector) {
-    selectors[node] = selector;
-  }
-
-  Selector getIteratorSelector(ForIn node) {
-    return selectors[node];
-  }
-
-  Selector setMoveNextSelector(ForIn node, Selector selector) {
-    selectors[node.forToken] = selector;
-  }
-
-  Selector getMoveNextSelector(ForIn node) {
-    return selectors[node.forToken];
-  }
-
-  Selector setCurrentSelector(ForIn node, Selector selector) {
-    selectors[node.inToken] = selector;
-  }
-
-  Selector getCurrentSelector(ForIn node) {
-    return selectors[node.inToken];
   }
 
   bool isParameterChecked(Element element) {
@@ -1555,7 +1524,12 @@ class TypeResolver {
           }
         }
       } else if (element.isTypeVariable()) {
-        if (enclosingElement.isInStaticMember()) {
+        Element outer = enclosingElement.getOutermostEnclosingMemberOrTopLevel();
+        bool isInFactoryConstructor = outer != null && outer.isFactoryConstructor();
+        if (!outer.isClass()
+	    && !outer.isTypedef()
+            && !isInFactoryConstructor
+            && Elements.isInStaticContext(enclosingElement)) {
           compiler.backend.registerThrowRuntimeError(
               // TODO(ahe): Get the TreeElements for the current element.
               compiler.globalDependencies);
@@ -2477,7 +2451,11 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     if (!inCatchBlock && node.expression == null) {
       error(node, MessageKind.THROW_WITHOUT_EXPRESSION);
     }
-    compiler.backend.registerThrow(mapping);
+    // We don't know ahead of time whether we will need the throw in a statement
+    // context or an expression context, so we register both here, even though
+    // we may not need ThrowExpression.
+    compiler.backend.registerWrapException(mapping);
+    compiler.backend.registerThrowExpression(mapping);
     visit(node.expression);
   }
 
@@ -2538,9 +2516,11 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     // and only declaration elements may be registered.
     world.registerStaticUse(constructor.declaration);
     ClassElement cls = constructor.getEnclosingClass();
-    // [cls] might be the implementation element and only declaration elements
-    // may be registered.
-    world.registerInstantiatedType(mapping.getType(node), mapping);
+    InterfaceType type = mapping.getType(node);
+    world.registerInstantiatedType(type, mapping);
+    if (constructor.isFactoryConstructor() && !type.typeArguments.isEmpty) {
+      world.registerFactoryWithTypeArguments(mapping);
+    }
     if (cls.isAbstract(compiler)) {
       compiler.backend.registerAbstractClassInstantiation(mapping);
     }
@@ -2616,8 +2596,10 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       listType = new InterfaceType(compiler.listClass,
                                    new Link<DartType>.fromList([typeArgument]));
     } else {
+      compiler.listClass.computeType(compiler);
       listType = compiler.listClass.rawType;
     }
+    mapping.setType(node, listType);
     world.registerInstantiatedType(listType, mapping);
     visit(node.elements);
   }
@@ -2707,37 +2689,61 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
   visitForIn(ForIn node) {
     LibraryElement library = enclosingElement.getLibrary();
-    Selector iteratorSelector =
-        new Selector.getter(const SourceString('iterator'), library);
-    world.registerDynamicGetter(iteratorSelector.name, iteratorSelector);
-    mapping.setIteratorSelector(node, iteratorSelector);
-
-    Selector currentSelector =
-        new Selector.getter(const SourceString('current'), library);
-    world.registerDynamicGetter(currentSelector.name, currentSelector);
-    mapping.setCurrentSelector(node, currentSelector);
-
-    Selector moveNextSelector =
-        new Selector.call(const SourceString('moveNext'), library, 0);
-    world.registerDynamicInvocation(moveNextSelector.name, moveNextSelector);
-    mapping.setMoveNextSelector(node, moveNextSelector);
+    world.registerDynamicGetter(compiler.iteratorSelector.name,
+                                compiler.iteratorSelector);
+    world.registerDynamicGetter(compiler.currentSelector.name,
+                                compiler.currentSelector);
+    world.registerDynamicInvocation(compiler.moveNextSelector.name,
+                                    compiler.moveNextSelector);
 
     visit(node.expression);
     Scope blockScope = new BlockScope(scope);
     Node declaration = node.declaredIdentifier;
     visitIn(declaration, blockScope);
-    visitLoopBodyIn(node, node.body, blockScope);
 
-    // TODO(lrn): Also allow a single identifier.
-    if ((declaration is !Send || declaration.asSend().selector is !Identifier
-        || declaration.asSend().receiver != null)
-        && (declaration is !VariableDefinitions ||
-        !declaration.asVariableDefinitions().definitions.nodes.tail.isEmpty))
-    {
-      // The variable declaration is either not an identifier, not a
-      // declaration, or it's declaring more than one variable.
-      error(node.declaredIdentifier, MessageKind.INVALID_FOR_IN);
+    Send send = declaration.asSend();
+    VariableDefinitions variableDefinitions =
+        declaration.asVariableDefinitions();
+    Element loopVariable;
+    Selector loopVariableSelector;
+    if (send != null) {
+      loopVariable = mapping[send];
+      Identifier identifier = send.selector.asIdentifier();
+      if (identifier == null) {
+        compiler.reportErrorCode(send.selector, MessageKind.INVALID_FOR_IN);
+      } else {
+        loopVariableSelector = new Selector.setter(identifier.source, library);
+      }
+      if (send.receiver != null) {
+        compiler.reportErrorCode(send.receiver, MessageKind.INVALID_FOR_IN);
+      }
+    } else if (variableDefinitions != null) {
+      Link<Node> nodes = variableDefinitions.definitions.nodes;
+      if (!nodes.tail.isEmpty) {
+        compiler.reportErrorCode(nodes.tail.head, MessageKind.INVALID_FOR_IN);
+      }
+      Node first = nodes.head;
+      Identifier identifier = first.asIdentifier();
+      if (identifier == null) {
+        compiler.reportErrorCode(first, MessageKind.INVALID_FOR_IN);
+      } else {
+        loopVariableSelector = new Selector.setter(identifier.source, library);
+        loopVariable = mapping[identifier];
+      }
+    } else {
+      compiler.reportErrorCode(declaration, MessageKind.INVALID_FOR_IN);
     }
+    if (loopVariableSelector != null) {
+      mapping.setSelector(declaration, loopVariableSelector);
+    } else {
+      // The selector may only be null if we reported an error.
+      assert(invariant(declaration, compiler.compilationFailed));
+    }
+    if (loopVariable != null) {
+      // loopVariable may be null if it could not be resolved.
+      mapping[declaration] = loopVariable;
+    }
+    visitLoopBodyIn(node, node.body, blockScope);
   }
 
   visitLabel(Label node) {
@@ -2773,6 +2779,36 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitLiteralMap(LiteralMap node) {
+    NodeList arguments = node.typeArguments;
+    DartType keyTypeArgument;
+    DartType valueTypeArgument;
+    if (arguments != null) {
+      Link<Node> nodes = arguments.nodes;
+      if (nodes.isEmpty) {
+        error(arguments, MessageKind.MISSING_TYPE_ARGUMENT);
+      } else {
+        keyTypeArgument = resolveTypeRequired(nodes.head);
+        nodes = nodes.tail;
+        if (nodes.isEmpty) {
+          error(arguments, MessageKind.MISSING_TYPE_ARGUMENT);
+        } else {
+          valueTypeArgument = resolveTypeRequired(nodes.head);
+          for (nodes = nodes.tail; !nodes.isEmpty; nodes = nodes.tail) {
+            error(nodes.head, MessageKind.ADDITIONAL_TYPE_ARGUMENT);
+            resolveTypeRequired(nodes.head);
+          }
+        }
+      }
+    }
+    DartType mapType;
+    if (valueTypeArgument != null) {
+      mapType = new InterfaceType(compiler.mapClass,
+          new Link<DartType>.fromList([keyTypeArgument, valueTypeArgument]));
+    } else {
+      compiler.mapClass.computeType(compiler);
+      mapType = compiler.mapClass.rawType;
+    }
+    mapping.setType(node, mapType);
     world.registerInstantiatedClass(compiler.mapClass, mapping);
     if (node.isConst()) {
       compiler.backend.registerConstantMap(mapping);
@@ -2968,17 +3004,30 @@ class TypeDefinitionVisitor extends CommonResolverVisitor<DartType> {
       if (typeNode.bound != null) {
         DartType boundType = typeResolver.resolveTypeAnnotation(
             typeNode.bound, scope, element, onFailure: warning);
-        if (boundType != null && boundType.element == variableElement) {
-          // TODO(johnniwinther): Check for more general cycles, like
-          // [: <A extends B, B extends C, C extends B> :].
-          warning(node, MessageKind.CYCLIC_TYPE_VARIABLE,
-                  {'typeVariableName': variableElement.name});
-        } else if (boundType != null) {
-          variableElement.bound = boundType;
-        } else {
-          // TODO(johnniwinther): Should be an erroneous type.
-          variableElement.bound = compiler.objectClass.computeType(compiler);
+        variableElement.bound = boundType;
+
+        void checkTypeVariableBound() {
+          Link<TypeVariableElement> seenTypeVariables =
+              const Link<TypeVariableElement>();
+          seenTypeVariables = seenTypeVariables.prepend(variableElement);
+          DartType bound = boundType;
+          while (bound.element.isTypeVariable()) {
+            TypeVariableElement element = bound.element;
+            if (seenTypeVariables.contains(element)) {
+              if (identical(element, variableElement)) {
+                // Only report an error on the checked type variable to avoid
+                // generating multiple errors for the same cyclicity.
+                warning(typeNode.name, MessageKind.CYCLIC_TYPE_VARIABLE,
+                    {'typeVariableName': variableElement.name});
+              }
+              break;
+            }
+            seenTypeVariables = seenTypeVariables.prepend(element);
+            bound = element.bound;
+          }
         }
+        compiler.enqueuer.resolution.addPostProcessAction(
+            element, checkTypeVariableBound);
       } else {
         variableElement.bound = compiler.objectClass.computeType(compiler);
       }

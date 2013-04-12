@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "package:expect/expect.dart";
 import "dart:async";
 import "dart:io";
 import "dart:isolate";
@@ -132,11 +133,47 @@ testCreateSync() {
     }
   }
   Future.wait(futures).then((_) {
+    new Directory(target).deleteSync(recursive: true);
+    for (bool recursive in [true, false]) {
+      for (bool followLinks in [true, false]) {
+        var result = baseDir.listSync(recursive: recursive,
+                                      followLinks: followLinks);
+        Expect.equals(1, result.length);
+        Expect.isTrue(result[0] is Link);
+      }
+    }
     baseDir.deleteSync(recursive: true);
   });
 }
 
+testCreateLoopingLink() {
+  Path base = new Path(new Directory('').createTempSync().path);
+  new Directory.fromPath(base.append('a/b/c')).create(recursive: true)
+  .then((_) =>
+    new Link.fromPath(base.append('a/b/c/d'))
+        .create(base.append('a/b').toNativePath()))
+  .then((_) =>
+    new Link.fromPath(base.append('a/b/c/e'))
+        .create(base.append('a').toNativePath()))
+  .then((_) =>
+    new Directory.fromPath(base.append('a'))
+        .list(recursive: true, followLinks: false)
+        .last)
+  .then((_) =>
+    // This directory listing must terminate, even though it contains loops.
+    new Directory.fromPath(base.append('a'))
+        .list(recursive: true, followLinks: true)
+        .last)
+  .then((_) =>
+    // This directory listing must terminate, even though it contains loops.
+    new Directory.fromPath(base.append('a/b/c'))
+        .list(recursive: true, followLinks: true)
+        .last)
+  .then((_) =>
+    new Directory.fromPath(base).delete(recursive: true));
+}
 
 main() {
   testCreateSync();
+  testCreateLoopingLink();
 }

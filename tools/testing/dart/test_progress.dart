@@ -310,7 +310,7 @@ class LeftOverTempDirPrinter extends EventListener {
   }
 }
 
-class LineProgressIndicator extends EventListener {
+class LineProgressIndicator extends EventListener implements ProgressIndicator {
   void done(TestCase test) {
     var status = 'pass';
     if (test.lastCommandOutput.unexpectedOutput) {

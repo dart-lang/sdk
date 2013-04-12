@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Testing file input stream, VM-only, standalone test.
 
+import "package:expect/expect.dart";
 import "dart:io";
 import "dart:isolate";
 

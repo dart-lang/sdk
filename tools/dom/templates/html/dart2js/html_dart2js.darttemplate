@@ -45,6 +45,7 @@ part '$AUXILIARY_DIR/_HttpRequestUtils.dart';
 part '$AUXILIARY_DIR/Isolates.dart';
 part '$AUXILIARY_DIR/Microtask.dart';
 part '$AUXILIARY_DIR/Serialization.dart';
+part '$AUXILIARY_DIR/WrappedEvent.dart';
 part '$AUXILIARY_DIR/WrappedList.dart';
 part '$AUXILIARY_DIR/shared_FactoryProviders.dart';
 part '$AUXILIARY_DIR/dart2js_Conversions.dart';
@@ -64,7 +65,7 @@ Window get window => JS('Window', 'window');
 /**
  * The top-level Document object.
  */
-HtmlDocument get document => JS('Document', 'document');
+HtmlDocument get document => JS('HtmlDocument', 'document');
 
 Element query(String selector) => document.query(selector);
 List<Element> queryAll(String selector) => document.queryAll(selector);

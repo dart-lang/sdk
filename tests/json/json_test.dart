@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library json_tests;
+import "package:expect/expect.dart";
 import 'dart:json' as json;
 import 'dart:html';
 import '../../pkg/unittest/lib/unittest.dart';

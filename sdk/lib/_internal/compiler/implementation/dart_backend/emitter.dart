@@ -7,8 +7,8 @@ part of dart_backend;
 String emitCode(
       Unparser unparser,
       Map<LibraryElement, String> imports,
-      Collection<Node> topLevelNodes,
-      Map<ClassNode, Collection<Node>> classMembers) {
+      Iterable<Node> topLevelNodes,
+      Map<ClassNode, Iterable<Node>> classMembers) {
   imports.forEach((libraryElement, prefix) {
     unparser.unparseImportTag('${libraryElement.canonicalUri}', prefix);
   });

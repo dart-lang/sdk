@@ -7,6 +7,7 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
+import 'package:expect/expect.dart';
 import 'dart:io';
 import 'dart:typeddata';
 
@@ -14,7 +15,7 @@ void testServerCompress() {
   void test(List<int> data) {
     HttpServer.bind().then((server) {
       server.listen((request) {
-        request.response.writeBytes(data);
+        request.response.add(data);
         request.response.close();
       });
       var client = new HttpClient();
@@ -27,7 +28,6 @@ void testServerCompress() {
             Expect.equals("gzip",
                           response.headers.value(HttpHeaders.CONTENT_ENCODING));
             response
-                .transform(new ZLibInflater())
                 .fold([], (list, b) {
                   list.addAll(b);
                   return list;

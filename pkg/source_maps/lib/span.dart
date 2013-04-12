@@ -5,7 +5,7 @@
 /// Dart classes representing the souce spans and source files.
 library source_maps.span;
 
-import 'dart:utf' show stringToCodepoints, codepointsToString;
+import 'dart:utf' show stringToCodepoints;
 import 'dart:math' show min;
 
 import 'src/utils.dart';
@@ -232,7 +232,7 @@ class SourceFile {
 
   /// Gets the text at the given offsets.
   String getText(int start, [int end]) {
-    return codepointsToString(_decodedChars.sublist(start, end));
+    return new String.fromCharCodes(_decodedChars.sublist(start, end));
   }
 
   /// Create a pretty string representation from a span.

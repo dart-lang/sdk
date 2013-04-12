@@ -46,6 +46,7 @@ class Range;
   V(_TypedList, _getUint32, ByteArrayBaseGetUint32, 380843687)                 \
   V(_TypedList, _getFloat32, ByteArrayBaseGetFloat32, 979971573)               \
   V(_TypedList, _getFloat64, ByteArrayBaseGetFloat64, 979971573)               \
+  V(_TypedList, _getFloat32x4, ByteArrayBaseGetFloat32x4, 690339584)           \
   V(_TypedList, _setInt8, ByteArrayBaseSetInt8, 287047804)                     \
   V(_TypedList, _setUint8, ByteArrayBaseSetUint8, 287047804)                   \
   V(_TypedList, _setInt16, ByteArrayBaseSetInt16, 287047804)                   \
@@ -54,6 +55,7 @@ class Range;
   V(_TypedList, _setUint32, ByteArrayBaseSetUint32, 287047804)                 \
   V(_TypedList, _setFloat32, ByteArrayBaseSetFloat32, 1032541114)              \
   V(_TypedList, _setFloat64, ByteArrayBaseSetFloat64, 1032541114)              \
+  V(_TypedList, _setFloat32x4, ByteArrayBaseSetFloat32x4, 1016704782)          \
   V(_GrowableObjectArray, get:length, GrowableArrayLength, 725548050)          \
   V(_GrowableObjectArray, get:_capacity, GrowableArrayCapacity, 725548050)     \
   V(_StringBase, get:length, StringBaseLength, 320803993)                      \
@@ -489,6 +491,8 @@ class EmbeddedArray<T, 0> {
   M(MathSqrt)                                                                  \
   M(UnboxDouble)                                                               \
   M(BoxDouble)                                                                 \
+  M(BoxFloat32x4)                                                              \
+  M(UnboxFloat32x4)                                                            \
   M(UnboxInteger)                                                              \
   M(BoxInteger)                                                                \
   M(BinaryMintOp)                                                              \
@@ -499,7 +503,7 @@ class EmbeddedArray<T, 0> {
   M(StringFromCharCode)                                                        \
   M(InvokeMathCFunction)                                                       \
   M(GuardField)                                                                \
-
+  M(IfThenElse)                                                                \
 
 #define FORWARD_DECLARATION(type) class type##Instr;
 FOR_EACH_INSTRUCTION(FORWARD_DECLARATION)
@@ -535,7 +539,7 @@ class Instruction : public ZoneAllocated {
   virtual Tag tag() const = 0;
 
   intptr_t deopt_id() const {
-    ASSERT(CanDeoptimize());
+    ASSERT(CanDeoptimize() || CanBeDeoptimizationTarget());
     return deopt_id_;
   }
 
@@ -728,6 +732,18 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
     return false;
   }
 
+  virtual void InheritDeoptTarget(Instruction* other);
+
+  bool NeedsEnvironment() const {
+    return CanDeoptimize() || CanBeDeoptimizationTarget();
+  }
+
+  virtual bool CanBeDeoptimizationTarget() const {
+    return false;
+  }
+
+  void InheritDeoptTargetAfter(Instruction* other);
+
  protected:
   // Fetch deopt id without checking if this computation can deoptimize.
   intptr_t GetDeoptId() const {
@@ -740,6 +756,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   // Classes that set deopt_id_.
   friend class UnboxIntegerInstr;
   friend class UnboxDoubleInstr;
+  friend class UnboxFloat32x4Instr;
   friend class BinaryDoubleOpInstr;
   friend class BinaryMintOpInstr;
   friend class BinarySmiOpInstr;
@@ -760,6 +777,11 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class LoadIndexedInstr;
   friend class StoreIndexedInstr;
   friend class StoreInstanceFieldInstr;
+  friend class ControlInstruction;
+  friend class ComparisonInstr;
+  friend class TargetEntryInstr;
+  friend class JoinEntryInstr;
+  friend class InstanceOfInstr;
 
   virtual void RawSetInputAt(intptr_t i, Value* value) = 0;
 
@@ -981,6 +1003,12 @@ class BlockEntryInstr : public Instruction {
 
   virtual intptr_t ArgumentCount() const { return 0; }
 
+  virtual bool CanBeDeoptimizationTarget() const {
+    // BlockEntry environment is copied to Goto and Branch instructions
+    // when we insert new blocks targeting this block.
+    return true;
+  }
+
   virtual bool CanDeoptimize() const { return false; }
 
   virtual bool HasSideEffect() const { return false; }
@@ -1001,6 +1029,8 @@ class BlockEntryInstr : public Instruction {
   // successors.
   void ReplaceAsPredecessorWith(BlockEntryInstr* new_block);
 
+  void set_block_id(intptr_t block_id) { block_id_ = block_id; }
+
  protected:
   BlockEntryInstr(intptr_t block_id, intptr_t try_index)
       : block_id_(block_id),
@@ -1019,7 +1049,7 @@ class BlockEntryInstr : public Instruction {
   virtual void ClearPredecessors() = 0;
   virtual void AddPredecessor(BlockEntryInstr* predecessor) = 0;
 
-  const intptr_t block_id_;
+  intptr_t block_id_;
   const intptr_t try_index_;
   intptr_t preorder_number_;
   intptr_t postorder_number_;
@@ -1653,6 +1683,12 @@ class ReturnInstr : public TemplateInstruction<1> {
   intptr_t token_pos() const { return token_pos_; }
   Value* value() const { return inputs_[0]; }
 
+  virtual bool CanBeDeoptimizationTarget() const {
+    // Return instruction might turn into a Goto instruction after inlining.
+    // Every Goto must have an environment.
+    return true;
+  }
+
   virtual bool CanDeoptimize() const { return false; }
 
   virtual bool HasSideEffect() const { return false; }
@@ -1720,6 +1756,12 @@ class GotoInstr : public TemplateInstruction<0> {
   void set_successor(JoinEntryInstr* successor) { successor_ = successor; }
   virtual intptr_t SuccessorCount() const;
   virtual BlockEntryInstr* SuccessorAt(intptr_t index) const;
+
+  virtual bool CanBeDeoptimizationTarget() const {
+    // Goto instruction can be used as a deoptimization target when LICM
+    // hoists instructions out of the loop.
+    return true;
+  }
 
   virtual bool CanDeoptimize() const { return false; }
 
@@ -1789,6 +1831,7 @@ class BranchInstr : public ControlInstruction {
   intptr_t InputCount() const;
   Value* InputAt(intptr_t i) const;
   virtual bool CanDeoptimize() const;
+  virtual bool CanBeDeoptimizationTarget() const;
 
   virtual bool HasSideEffect() const;
 
@@ -1832,6 +1875,8 @@ class BranchInstr : public ControlInstruction {
   TargetEntryInstr* constant_target() const {
     return constant_target_;
   }
+
+  virtual void InheritDeoptTarget(Instruction* other);
 
  private:
   virtual void RawSetInputAt(intptr_t i, Value* value);
@@ -2446,6 +2491,10 @@ class ComparisonInstr : public TemplateDefinition<2> {
   virtual void EmitBranchCode(FlowGraphCompiler* compiler,
                               BranchInstr* branch) = 0;
 
+  void SetDeoptId(intptr_t deopt_id) {
+    deopt_id_ = deopt_id;
+  }
+
  protected:
   Token::Kind kind_;
 };
@@ -2471,6 +2520,11 @@ inline bool BranchInstr::CanDeoptimize() const {
   // Branches need a deoptimization info in checked mode if they
   // can throw a type check error.
   return comparison()->CanDeoptimize() || is_checked();
+}
+
+
+inline bool BranchInstr::CanBeDeoptimizationTarget() const {
+  return comparison()->CanBeDeoptimizationTarget();
 }
 
 
@@ -2509,6 +2563,11 @@ class StrictCompareInstr : public ComparisonInstr {
   virtual CompileType ComputeType() const;
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanBeDeoptimizationTarget() const {
+    // StrictCompare can be merged into Branch and thus needs an environment.
+    return true;
+  }
 
   virtual bool CanDeoptimize() const { return false; }
 
@@ -2557,6 +2616,7 @@ class EqualityCompareInstr : public ComparisonInstr {
   bool HasICData() const {
     return (ic_data() != NULL) && !ic_data()->IsNull();
   }
+  void set_ic_data(const ICData* value) { ic_data_ = value; }
 
   intptr_t token_pos() const { return token_pos_; }
 
@@ -2627,6 +2687,7 @@ class RelationalOpInstr : public ComparisonInstr {
   bool HasICData() const {
     return (ic_data() != NULL) && !ic_data()->IsNull();
   }
+  void set_ic_data(const ICData* value) { ic_data_ = value; }
 
   intptr_t token_pos() const { return token_pos_; }
 
@@ -2674,6 +2735,65 @@ class RelationalOpInstr : public ComparisonInstr {
   intptr_t operands_class_id_;  // class id of both operands.
 
   DISALLOW_COPY_AND_ASSIGN(RelationalOpInstr);
+};
+
+
+// TODO(vegorov): ComparisonInstr should be switched to use IfTheElseInstr for
+// materialization of true and false constants.
+class IfThenElseInstr : public TemplateDefinition<2> {
+ public:
+  IfThenElseInstr(Token::Kind kind,
+                  Value* left,
+                  Value* right,
+                  Value* if_true,
+                  Value* if_false)
+      : kind_(kind),
+        if_true_(Smi::Cast(if_true->BoundConstant()).Value()),
+        if_false_(Smi::Cast(if_false->BoundConstant()).Value()) {
+    ASSERT(Token::IsEqualityOperator(kind));
+    SetInputAt(0, left);
+    SetInputAt(1, right);
+  }
+
+  // Returns true if this instruction is supported on the current platform.
+  static bool IsSupported();
+
+  // Returns true if this combination of comparison and values flowing on
+  // the true and false paths is supported on the current platform.
+  static bool Supports(ComparisonInstr* comparison, Value* v1, Value* v2);
+
+  DECLARE_INSTRUCTION(IfThenElse)
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual CompileType ComputeType() const;
+
+  virtual void InferRange();
+
+  virtual bool CanDeoptimize() const { return false; }
+  virtual bool HasSideEffect() const { return false; }
+
+  virtual bool AttributesEqual(Instruction* other) const {
+    return kind_ == other->AsIfThenElse()->kind_;
+  }
+
+  virtual bool AffectedBySideEffect() const {
+    return false;
+  }
+
+  Value* left() const { return inputs_[0]; }
+  Value* right() const { return inputs_[1]; }
+  intptr_t if_true() const { return if_true_; }
+  intptr_t if_false() const { return if_false_; }
+
+  Token::Kind kind() const { return kind_; }
+
+ private:
+  const Token::Kind kind_;
+  const intptr_t if_true_;
+  const intptr_t if_false_;
+
+  DISALLOW_COPY_AND_ASSIGN(IfThenElseInstr);
 };
 
 
@@ -2955,6 +3075,13 @@ class StoreStaticFieldInstr : public TemplateDefinition<1> {
   virtual bool HasSideEffect() const { return true; }
 
  private:
+  bool CanValueBeSmi() const {
+    const intptr_t cid = value()->Type()->ToNullableCid();
+    // Write barrier is skipped for nullable and non-nullable smis.
+    ASSERT(cid != kSmiCid);
+    return (cid == kDynamicCid);
+  }
+
   const Field& field_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreStaticFieldInstr);
@@ -3129,7 +3256,8 @@ class InstanceOfInstr : public TemplateDefinition<3> {
                   Value* instantiator,
                   Value* instantiator_type_arguments,
                   const AbstractType& type,
-                  bool negate_result)
+                  bool negate_result,
+                  intptr_t deopt_id)
       : token_pos_(token_pos),
         type_(type),
         negate_result_(negate_result) {
@@ -3137,6 +3265,7 @@ class InstanceOfInstr : public TemplateDefinition<3> {
     SetInputAt(0, value);
     SetInputAt(1, instantiator);
     SetInputAt(2, instantiator_type_arguments);
+    deopt_id_ = deopt_id;
   }
 
   DECLARE_INSTRUCTION(InstanceOf)
@@ -3677,14 +3806,11 @@ class CheckEitherNonSmiInstr : public TemplateInstruction<2> {
 
 class BoxDoubleInstr : public TemplateDefinition<1> {
  public:
-  BoxDoubleInstr(Value* value, InstanceCallInstr* instance_call)
-      : token_pos_((instance_call != NULL) ? instance_call->token_pos() : 0) {
+  explicit BoxDoubleInstr(Value* value) {
     SetInputAt(0, value);
   }
 
   Value* value() const { return inputs_[0]; }
-
-  intptr_t token_pos() const { return token_pos_; }
 
   virtual bool CanDeoptimize() const { return false; }
 
@@ -3702,9 +3828,35 @@ class BoxDoubleInstr : public TemplateDefinition<1> {
   virtual CompileType ComputeType() const;
 
  private:
-  const intptr_t token_pos_;
-
   DISALLOW_COPY_AND_ASSIGN(BoxDoubleInstr);
+};
+
+
+class BoxFloat32x4Instr : public TemplateDefinition<1> {
+ public:
+  explicit BoxFloat32x4Instr(Value* value) {
+    SetInputAt(0, value);
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
+
+  virtual bool AffectedBySideEffect() const { return false; }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kUnboxedFloat32x4;
+  }
+
+  DECLARE_INSTRUCTION(BoxFloat32x4)
+  virtual CompileType ComputeType() const;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(BoxFloat32x4Instr);
 };
 
 
@@ -3764,6 +3916,36 @@ class UnboxDoubleInstr : public TemplateDefinition<1> {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(UnboxDoubleInstr);
+};
+
+
+class UnboxFloat32x4Instr : public TemplateDefinition<1> {
+ public:
+  UnboxFloat32x4Instr(Value* value, intptr_t deopt_id) {
+    SetInputAt(0, value);
+    deopt_id_ = deopt_id;
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  virtual bool CanDeoptimize() const {
+    return (value()->Type()->ToCid() != kFloat32x4Cid);
+  }
+
+  virtual bool HasSideEffect() const { return false; }
+
+  virtual Representation representation() const {
+    return kUnboxedFloat32x4;
+  }
+
+  virtual bool AffectedBySideEffect() const { return false; }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  DECLARE_INSTRUCTION(UnboxFloat32x4)
+  virtual CompileType ComputeType() const;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(UnboxFloat32x4Instr);
 };
 
 

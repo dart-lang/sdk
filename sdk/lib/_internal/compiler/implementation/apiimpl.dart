@@ -56,13 +56,23 @@ class Compiler extends leg.Compiler {
             enableConcreteTypeInference:
                 hasOption(options, '--enable-concrete-type-inference'),
             preserveComments: hasOption(options, '--preserve-comments'),
-            verbose: hasOption(options, '--verbose')) {
+            verbose: hasOption(options, '--verbose'),
+            buildId: getBuildId(options)) {
     if (!libraryRoot.path.endsWith("/")) {
       throw new ArgumentError("libraryRoot must end with a /");
     }
     if (packageRoot != null && !packageRoot.path.endsWith("/")) {
       throw new ArgumentError("packageRoot must end with a /");
     }
+  }
+
+  static String getBuildId(List<String> options) {
+    for (String option in options) {
+      if (option.startsWith('--build-id=')) {
+        return option.substring('--build-id='.length);
+      }
+    }
+    return "build number could not be determined";
   }
 
   static List<String> getStrips(List<String> options) {

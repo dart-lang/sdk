@@ -6,7 +6,7 @@ part of $LIBRARYNAME;
 
 // TODO(jacobr): use _Lists.dart to remove some of the duplicated
 // functionality.
-class _ChildrenElementList implements List {
+class _ChildrenElementList extends ListBase<Element> {
   // Raw Element.
   final Element _element;
   final HtmlCollection _childElements;
@@ -63,20 +63,20 @@ class _ChildrenElementList implements List {
     return false;
   }
 
-  String join([String separator]) {
-    return IterableMixinWorkaround.joinList(this, separator);
+  String join([String separator = ""]) {
+    return _childElements.join(separator);
   }
 
   Iterable map(f(Element element)) {
-    return IterableMixinWorkaround.mapList(this, f);
+    return _childElements.map(f);
   }
 
   Iterable<Element> where(bool f(Element element)) {
-    return IterableMixinWorkaround.where(this, f);
+    return _childElements.where(f);
   }
 
   Iterable expand(Iterable f(Element element)) {
-    return IterableMixinWorkaround.expand(this, f);
+    return _childElements.expand(f);
   }
 
   bool get isEmpty {
@@ -84,31 +84,31 @@ class _ChildrenElementList implements List {
   }
 
   Iterable<Element> take(int n) {
-    return IterableMixinWorkaround.takeList(this, n);
+    return _childElements.take(n);
   }
 
   Iterable<Element> takeWhile(bool test(Element value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
+    return _childElements.takeWhile(test);
   }
 
   Iterable<Element> skip(int n) {
-    return IterableMixinWorkaround.skipList(this, n);
+    return _childElements.skip(n);
   }
 
   Iterable<Element> skipWhile(bool test(Element value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
+    return _childElements.skipWhile(test);
   }
 
   Element firstWhere(bool test(Element value), {Element orElse()}) {
-    return IterableMixinWorkaround.firstWhere(this, test, orElse);
+    return _childElements.firstWhere(test, orElse: orElse);
   }
 
   Element lastWhere(bool test(Element value), {Element orElse()}) {
-    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
+    return _childElements.lastWhere(test, orElse: orElse);
   }
 
   Element singleWhere(bool test(Element value)) {
-    return IterableMixinWorkaround.singleWhere(this, test);
+    return _childElements.singleWhere(test);
   }
 
   Element elementAt(int index) {
@@ -150,24 +150,24 @@ class _ChildrenElementList implements List {
   }
 
   Iterable<Element> get reversed {
-    return IterableMixinWorkaround.reversedList(this);
+    return _childElements.reversed;
   }
 
   void sort([int compare(Element a, Element b)]) {
     throw new UnsupportedError('TODO(jacobr): should we impl?');
   }
 
-  dynamic reduce(dynamic initialValue,
-      dynamic combine(dynamic previousValue, Element element)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  Element reduce(Element combine(Element value, Element element)) {
+    return _childElements.reduce(combine);
   }
 
   dynamic fold(dynamic initialValue,
       dynamic combine(dynamic previousValue, Element element)) {
-    return IterableMixinWorkaround.fold(this, initialValue, combine);
+    return _childElements.fold(initialValue, combine);
   }
 
-  void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
+  void setRange(int start, int rangeLength, List from,
+                [int startFrom = 0]) {
     throw new UnimplementedError();
   }
 
@@ -180,20 +180,12 @@ class _ChildrenElementList implements List {
     }
   }
 
-  void removeAll(Iterable elements) {
-    IterableMixinWorkaround.removeAll(this, elements);
-  }
-
-  void retainAll(Iterable elements) {
-    IterableMixinWorkaround.retainAll(this, elements);
-  }
-
   void removeWhere(bool test(Element element)) {
-    IterableMixinWorkaround.removeWhere(this, test);
+    _childElements.removeWhere(test);
   }
 
   void retainWhere(bool test(Element element)) {
-    IterableMixinWorkaround.retainWhere(this, test);
+    _childElements.retainWhere(test);
   }
 
   void removeRange(int start, int rangeLength) {
@@ -204,13 +196,14 @@ class _ChildrenElementList implements List {
     throw new UnimplementedError();
   }
 
+  Iterable getRange(int start, int end)  {
+    throw new UnimplementedError();
+  }
+
   List sublist(int start, [int end]) {
     if (end == null) end = length;
     return new _FrozenElementList._wrap(Lists.getRange(this, start, end, []));
   }
-
-  List getRange(int start, int rangeLength) =>
-      sublist(start, start + rangeLength);
 
   int indexOf(Element element, [int start = 0]) {
     return Lists.indexOf(this, element, start, this.length);
@@ -271,16 +264,15 @@ class _ChildrenElementList implements List {
     return first;
   }
 
-  Element min([int compare(Element a, Element b)]) {
-    return IterableMixinWorkaround.min(this, compare);
-  }
-
-  Element max([int compare(Element a, Element b)]) {
-    return IterableMixinWorkaround.max(this, compare);
-  }
-
   Map<int, Element> asMap() {
-    return IterableMixinWorkaround.asMapList(this);
+    return _childElements.asMap();
+  }
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
   }
 }
 
@@ -288,95 +280,10 @@ class _ChildrenElementList implements List {
 // a better option given that we cannot quite force NodeList to be an
 // ElementList as there are valid cases where a NodeList JavaScript object
 // contains Node objects that are not Elements.
-class _FrozenElementList implements List {
+class _FrozenElementList extends ListBase {
   final List<Node> _nodeList;
 
   _FrozenElementList._wrap(this._nodeList);
-
-  bool contains(Element element) {
-    for (Element el in this) {
-      if (el == element) return true;
-    }
-    return false;
-  }
-
-  void forEach(void f(Element element)) {
-    for (Element el in this) {
-      f(el);
-    }
-  }
-
-  String join([String separator]) {
-    return IterableMixinWorkaround.joinList(this, separator);
-  }
-
-  Iterable map(f(Element element)) {
-    return IterableMixinWorkaround.mapList(this, f);
-  }
-
-  Iterable<Element> where(bool f(Element element)) {
-    return IterableMixinWorkaround.where(this, f);
-  }
-
-  Iterable expand(Iterable f(Element element)) {
-    return IterableMixinWorkaround.expand(this, f);
-  }
-
-  bool every(bool f(Element element)) {
-    for(Element element in this) {
-      if (!f(element)) {
-        return false;
-      }
-    };
-    return true;
-  }
-
-  bool any(bool f(Element element)) {
-    for(Element element in this) {
-      if (f(element)) {
-        return true;
-      }
-    };
-    return false;
-  }
-
-  List<Element> toList({ bool growable: true }) =>
-      new List<Element>.from(this, growable: growable);
-  Set<Element> toSet() => new Set<Element>.from(this);
-
-  Iterable<Element> take(int n) {
-    return IterableMixinWorkaround.takeList(this, n);
-  }
-
-  Iterable<Element> takeWhile(bool test(Element value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
-  }
-
-  Iterable<Element> skip(int n) {
-    return IterableMixinWorkaround.skipList(this, n);
-  }
-
-  Iterable<Element> skipWhile(bool test(Element value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
-  }
-
-  Element firstWhere(bool test(Element value), {Element orElse()}) {
-    return IterableMixinWorkaround.firstWhere(this, test, orElse);
-  }
-
-  Element lastWhere(bool test(Element value), {Element orElse()}) {
-    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
-  }
-
-  Element singleWhere(bool test(Element value)) {
-    return IterableMixinWorkaround.singleWhere(this, test);
-  }
-
-  Element elementAt(int index) {
-    return this[index];
-  }
-
-  bool get isEmpty => _nodeList.isEmpty;
 
   int get length => _nodeList.length;
 
@@ -394,31 +301,16 @@ class _FrozenElementList implements List {
     throw new UnsupportedError('');
   }
 
-  Iterator<Element> get iterator => new _FrozenElementListIterator(this);
-
   void addAll(Iterable<Element> iterable) {
     throw new UnsupportedError('');
-  }
-
-  Iterable<Element> get reversed {
-    return IterableMixinWorkaround.reversedList(this);
   }
 
   void sort([int compare(Element a, Element b)]) {
     throw new UnsupportedError('');
   }
 
-  dynamic reduce(dynamic initialValue,
-      dynamic combine(dynamic previousValue, Element element)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
-  }
-
-  dynamic fold(dynamic initialValue,
-      dynamic combine(dynamic previousValue, Element element)) {
-    return IterableMixinWorkaround.fold(this, initialValue, combine);
-  }
-
-  void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
+  void setRange(int start, int rangeLength, List from,
+                [int startFrom = 0]) {
     throw new UnsupportedError('');
   }
 
@@ -433,15 +325,6 @@ class _FrozenElementList implements List {
   List<Element> sublist(int start, [int end]) {
     return new _FrozenElementList._wrap(_nodeList.sublist(start, end));
   }
-
-  List<Element> getRange(int start, int rangeLength) =>
-      sublist(start, start + rangeLength);
-
-  int indexOf(Element element, [int start = 0]) =>
-    _nodeList.indexOf(element, start);
-
-  int lastIndexOf(Element element, [int start = null]) =>
-    _nodeList.lastIndexOf(element, start);
 
   void clear() {
     throw new UnsupportedError('');
@@ -459,14 +342,6 @@ class _FrozenElementList implements List {
     throw new UnsupportedError('');
   }
 
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError('');
-  }
-
-  void retainAll(Iterable elements) {
-    throw new UnsupportedError('');
-  }
-
   void removeWhere(bool test(Element element)) {
     throw new UnsupportedError('');
   }
@@ -481,49 +356,12 @@ class _FrozenElementList implements List {
 
   Element get single => _nodeList.single;
 
-  Element min([int compare(Element a, Element b)]) {
-    return IterableMixinWorkaround.min(this, compare);
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
   }
-
-  Element max([int compare(Element a, Element b)]) {
-    return IterableMixinWorkaround.max(this, compare);
-  }
-
-  Map<int, Element> asMap() {
-    return IterableMixinWorkaround.asMapList(this);
-  }
-}
-
-class _FrozenElementListIterator implements Iterator<Element> {
-  final _FrozenElementList _list;
-  int _index = -1;
-  Element _current;
-
-  _FrozenElementListIterator(this._list);
-
-  /**
-   * Moves to the next element. Returns true if the iterator is positioned
-   * at an element. Returns false if it is positioned after the last element.
-   */
-  bool moveNext() {
-    int nextIndex = _index + 1;
-    if (nextIndex < _list.length) {
-      _current = _list[nextIndex];
-      _index = nextIndex;
-      return true;
-    }
-    _index = _list.length;
-    _current = null;
-    return false;
-  }
-
-  /**
-   * Returns the element the [Iterator] is positioned at.
-   *
-   * Return [:null:] if the iterator is positioned before the first, or
-   * after the last element.
-   */
-  Element get current => _current;
 }
 
 class _ElementCssClassSet extends CssClassSet {
@@ -661,7 +499,7 @@ $(ANNOTATIONS)abstract class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
    */
   CssClassSet get classes => new _ElementCssClassSet(this);
 
-  void set classes(Collection<String> value) {
+  void set classes(Iterable<String> value) {
     CssClassSet classSet = classes;
     classSet.clear();
     classSet.addAll(value);

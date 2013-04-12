@@ -68,9 +68,9 @@ class _InstanceMirror extends InstanceMirror {
     return mirror;
   }
 
-  Future<InstanceMirror> invoke(String memberName,
-                                List<Object> positionalArguments,
-                                [Map<String,Object> namedArguments]) {
+  Future<InstanceMirror> invokeAsync(String memberName,
+                                     List<Object> positionalArguments,
+                                     [Map<String,Object> namedArguments]) {
     if (namedArguments != null && !namedArguments.isEmpty) {
       throw new UnsupportedError('Named arguments are not implemented');
     }

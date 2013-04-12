@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "package:expect/expect.dart";
 import "dart:io";
 
 test(int milliseconds) {
@@ -13,7 +14,10 @@ test(int milliseconds) {
 }
 
 main() {
+  test(0);
   test(1);
   test(10);
   test(100);
+  Expect.throws(() => sleep(new Duration(milliseconds: -1)),
+                (e) => e is ArgumentError);
 }

@@ -4,6 +4,7 @@
 
 library stream_mangling_test;
 
+import "package:expect/expect.dart";
 import 'dart:isolate';
 import '../../pkg/unittest/lib/unittest.dart';
 

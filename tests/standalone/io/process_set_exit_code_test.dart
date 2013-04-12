@@ -6,6 +6,7 @@
 
 library ProcessSetExitCodeTest;
 
+import "package:expect/expect.dart";
 import "dart:io";
 
 main() {

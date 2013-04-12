@@ -4,6 +4,8 @@
 // Test lazy deoptimization from within an inlined function.
 // VMOptions=--deoptimize_alot
 
+import "package:expect/expect.dart";
+
 call_native(x) {
   // Wrap in try to avoid inlining.
   // Use a large int so the intrinsifier does not fire.

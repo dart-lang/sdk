@@ -839,47 +839,6 @@ class ClipPathElement extends StyledElement implements Transformable, Tests, Ext
 
 
 @DocsEditable
-@DomName('SVGColor')
-class Color extends CssValue {
-  Color.internal() : super.internal();
-
-  static const int SVG_COLORTYPE_CURRENTCOLOR = 3;
-
-  static const int SVG_COLORTYPE_RGBCOLOR = 1;
-
-  static const int SVG_COLORTYPE_RGBCOLOR_ICCCOLOR = 2;
-
-  static const int SVG_COLORTYPE_UNKNOWN = 0;
-
-  @DomName('SVGColor.colorType')
-  @DocsEditable
-  int get colorType native "SVGColor_colorType_Getter";
-
-  @DomName('SVGColor.rgbColor')
-  @DocsEditable
-  CssRgbColor get rgbColor native "SVGColor_rgbColor_Getter";
-
-  @DomName('SVGColor.setColor')
-  @DocsEditable
-  void setColor(int colorType, String rgbColor, String iccColor) native "SVGColor_setColor_Callback";
-
-  @DomName('SVGColor.setRGBColor')
-  @DocsEditable
-  void setRgbColor(String rgbColor) native "SVGColor_setRGBColor_Callback";
-
-  @DomName('SVGColor.setRGBColorICCColor')
-  @DocsEditable
-  void setRgbColorIccColor(String rgbColor, String iccColor) native "SVGColor_setRGBColorICCColor_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
 @DomName('SVGDefsElement')
 class DefsElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
   DefsElement.internal() : super.internal();
@@ -3332,11 +3291,12 @@ class LengthList extends NativeFieldWrapperClass1 implements List<Length> {
 
   // SVG Collections expose numberOfItems rather than length.
   int get length => numberOfItems;
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Length)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  Length reduce(Length combine(Length value, Length element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, Length)) {
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, Length element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
@@ -3344,7 +3304,7 @@ class LengthList extends NativeFieldWrapperClass1 implements List<Length> {
 
   void forEach(void f(Length element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(Length element)) =>
@@ -3444,12 +3404,6 @@ class LengthList extends NativeFieldWrapperClass1 implements List<Length> {
     throw new StateError("More than one element");
   }
 
-  Length min([int compare(Length a, Length b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  Length max([int compare(Length a, Length b)]) =>
-      IterableMixinWorkaround.max(this, compare);
-
   void insert(int index, Length element) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -3463,14 +3417,6 @@ class LengthList extends NativeFieldWrapperClass1 implements List<Length> {
   }
 
   void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -3494,16 +3440,23 @@ class LengthList extends NativeFieldWrapperClass1 implements List<Length> {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  Iterable<Length> getRange(int start, int end) =>
+    IterableMixinWorkaround.getRangeList(this, start, end);
+
   List<Length> sublist(int start, [int end]) {
     if (end == null) end = length;
     return Lists.getRange(this, start, end, <Length>[]);
   }
 
-  List<Length> getRange(int start, int rangeLength) =>
-      sublist(start, start + rangeLength);
-
   Map<int, Length> asMap() =>
     IterableMixinWorkaround.asMapList(this);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
 
   // -- end List<Length> mixins.
 
@@ -3642,7 +3595,7 @@ class LineElement extends StyledElement implements Transformable, Tests, Externa
 
 @DocsEditable
 @DomName('SVGLinearGradientElement')
-class LinearGradientElement extends _SVGGradientElement {
+class LinearGradientElement extends _GradientElement {
   LinearGradientElement.internal() : super.internal();
 
   @DomName('SVGLinearGradientElement.SVGLinearGradientElement')
@@ -4047,11 +4000,12 @@ class NumberList extends NativeFieldWrapperClass1 implements List<Number> {
 
   // SVG Collections expose numberOfItems rather than length.
   int get length => numberOfItems;
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Number)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  Number reduce(Number combine(Number value, Number element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, Number)) {
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, Number element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
@@ -4059,7 +4013,7 @@ class NumberList extends NativeFieldWrapperClass1 implements List<Number> {
 
   void forEach(void f(Number element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(Number element)) =>
@@ -4159,12 +4113,6 @@ class NumberList extends NativeFieldWrapperClass1 implements List<Number> {
     throw new StateError("More than one element");
   }
 
-  Number min([int compare(Number a, Number b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  Number max([int compare(Number a, Number b)]) =>
-      IterableMixinWorkaround.max(this, compare);
-
   void insert(int index, Number element) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -4178,14 +4126,6 @@ class NumberList extends NativeFieldWrapperClass1 implements List<Number> {
   }
 
   void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -4209,16 +4149,23 @@ class NumberList extends NativeFieldWrapperClass1 implements List<Number> {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  Iterable<Number> getRange(int start, int end) =>
+    IterableMixinWorkaround.getRangeList(this, start, end);
+
   List<Number> sublist(int start, [int end]) {
     if (end == null) end = length;
     return Lists.getRange(this, start, end, <Number>[]);
   }
 
-  List<Number> getRange(int start, int rangeLength) =>
-      sublist(start, start + rangeLength);
-
   Map<int, Number> asMap() =>
     IterableMixinWorkaround.asMapList(this);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
 
   // -- end List<Number> mixins.
 
@@ -4249,55 +4196,6 @@ class NumberList extends NativeFieldWrapperClass1 implements List<Number> {
   @DomName('SVGNumberList.replaceItem')
   @DocsEditable
   Number replaceItem(Number item, int index) native "SVGNumberList_replaceItem_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('SVGPaint')
-class Paint extends Color {
-  Paint.internal() : super.internal();
-
-  static const int SVG_PAINTTYPE_CURRENTCOLOR = 102;
-
-  static const int SVG_PAINTTYPE_NONE = 101;
-
-  static const int SVG_PAINTTYPE_RGBCOLOR = 1;
-
-  static const int SVG_PAINTTYPE_RGBCOLOR_ICCCOLOR = 2;
-
-  static const int SVG_PAINTTYPE_UNKNOWN = 0;
-
-  static const int SVG_PAINTTYPE_URI = 107;
-
-  static const int SVG_PAINTTYPE_URI_CURRENTCOLOR = 104;
-
-  static const int SVG_PAINTTYPE_URI_NONE = 103;
-
-  static const int SVG_PAINTTYPE_URI_RGBCOLOR = 105;
-
-  static const int SVG_PAINTTYPE_URI_RGBCOLOR_ICCCOLOR = 106;
-
-  @DomName('SVGPaint.paintType')
-  @DocsEditable
-  int get paintType native "SVGPaint_paintType_Getter";
-
-  @DomName('SVGPaint.uri')
-  @DocsEditable
-  String get uri native "SVGPaint_uri_Getter";
-
-  @DomName('SVGPaint.setPaint')
-  @DocsEditable
-  void setPaint(int paintType, String uri, String rgbColor, String iccColor) native "SVGPaint_setPaint_Callback";
-
-  @DomName('SVGPaint.setUri')
-  @DocsEditable
-  void setUri(String uri) native "SVGPaint_setUri_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5238,11 +5136,12 @@ class PathSegList extends NativeFieldWrapperClass1 implements List<PathSeg> {
 
   // SVG Collections expose numberOfItems rather than length.
   int get length => numberOfItems;
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, PathSeg)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  PathSeg reduce(PathSeg combine(PathSeg value, PathSeg element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, PathSeg)) {
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, PathSeg element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
@@ -5250,7 +5149,7 @@ class PathSegList extends NativeFieldWrapperClass1 implements List<PathSeg> {
 
   void forEach(void f(PathSeg element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(PathSeg element)) =>
@@ -5350,12 +5249,6 @@ class PathSegList extends NativeFieldWrapperClass1 implements List<PathSeg> {
     throw new StateError("More than one element");
   }
 
-  PathSeg min([int compare(PathSeg a, PathSeg b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  PathSeg max([int compare(PathSeg a, PathSeg b)]) =>
-      IterableMixinWorkaround.max(this, compare);
-
   void insert(int index, PathSeg element) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -5369,14 +5262,6 @@ class PathSegList extends NativeFieldWrapperClass1 implements List<PathSeg> {
   }
 
   void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -5400,16 +5285,23 @@ class PathSegList extends NativeFieldWrapperClass1 implements List<PathSeg> {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  Iterable<PathSeg> getRange(int start, int end) =>
+    IterableMixinWorkaround.getRangeList(this, start, end);
+
   List<PathSeg> sublist(int start, [int end]) {
     if (end == null) end = length;
     return Lists.getRange(this, start, end, <PathSeg>[]);
   }
 
-  List<PathSeg> getRange(int start, int rangeLength) =>
-      sublist(start, start + rangeLength);
-
   Map<int, PathSeg> asMap() =>
     IterableMixinWorkaround.asMapList(this);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
 
   // -- end List<PathSeg> mixins.
 
@@ -5915,7 +5807,7 @@ class PreserveAspectRatio extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SVGRadialGradientElement')
-class RadialGradientElement extends _SVGGradientElement {
+class RadialGradientElement extends _GradientElement {
   RadialGradientElement.internal() : super.internal();
 
   @DomName('SVGRadialGradientElement.SVGRadialGradientElement')
@@ -6234,11 +6126,12 @@ class StringList extends NativeFieldWrapperClass1 implements List<String> {
 
   // SVG Collections expose numberOfItems rather than length.
   int get length => numberOfItems;
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, String)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  String reduce(String combine(String value, String element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, String)) {
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, String element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
@@ -6246,7 +6139,7 @@ class StringList extends NativeFieldWrapperClass1 implements List<String> {
 
   void forEach(void f(String element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(String element)) =>
@@ -6346,12 +6239,6 @@ class StringList extends NativeFieldWrapperClass1 implements List<String> {
     throw new StateError("More than one element");
   }
 
-  String min([int compare(String a, String b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  String max([int compare(String a, String b)]) =>
-      IterableMixinWorkaround.max(this, compare);
-
   void insert(int index, String element) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -6365,14 +6252,6 @@ class StringList extends NativeFieldWrapperClass1 implements List<String> {
   }
 
   void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -6396,16 +6275,23 @@ class StringList extends NativeFieldWrapperClass1 implements List<String> {
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  Iterable<String> getRange(int start, int end) =>
+    IterableMixinWorkaround.getRangeList(this, start, end);
+
   List<String> sublist(int start, [int end]) {
     if (end == null) end = length;
     return Lists.getRange(this, start, end, <String>[]);
   }
 
-  List<String> getRange(int start, int rangeLength) =>
-      sublist(start, start + rangeLength);
-
   Map<int, String> asMap() =>
     IterableMixinWorkaround.asMapList(this);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
 
   // -- end List<String> mixins.
 
@@ -6522,10 +6408,6 @@ class StyledElement extends SvgElement {
   @DomName('SVGStyledElement.style')
   @DocsEditable
   CssStyleDeclaration get style native "SVGStyledElement_style_Getter";
-
-  @DomName('SVGStyledElement.getPresentationAttribute')
-  @DocsEditable
-  CssValue getPresentationAttribute(String name) native "SVGStyledElement_getPresentationAttribute_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7499,11 +7381,12 @@ class TransformList extends NativeFieldWrapperClass1 implements List<Transform> 
 
   // SVG Collections expose numberOfItems rather than length.
   int get length => numberOfItems;
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, Transform)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  Transform reduce(Transform combine(Transform value, Transform element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, Transform)) {
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, Transform element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
@@ -7511,7 +7394,7 @@ class TransformList extends NativeFieldWrapperClass1 implements List<Transform> 
 
   void forEach(void f(Transform element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(Transform element)) =>
@@ -7611,12 +7494,6 @@ class TransformList extends NativeFieldWrapperClass1 implements List<Transform> 
     throw new StateError("More than one element");
   }
 
-  Transform min([int compare(Transform a, Transform b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  Transform max([int compare(Transform a, Transform b)]) =>
-      IterableMixinWorkaround.max(this, compare);
-
   void insert(int index, Transform element) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -7630,14 +7507,6 @@ class TransformList extends NativeFieldWrapperClass1 implements List<Transform> 
   }
 
   void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -7661,16 +7530,23 @@ class TransformList extends NativeFieldWrapperClass1 implements List<Transform> 
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  Iterable<Transform> getRange(int start, int end) =>
+    IterableMixinWorkaround.getRangeList(this, start, end);
+
   List<Transform> sublist(int start, [int end]) {
     if (end == null) end = length;
     return Lists.getRange(this, start, end, <Transform>[]);
   }
 
-  List<Transform> getRange(int start, int rangeLength) =>
-      sublist(start, start + rangeLength);
-
   Map<int, Transform> asMap() =>
     IterableMixinWorkaround.asMapList(this);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
 
   // -- end List<Transform> mixins.
 
@@ -8084,11 +7960,12 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 implements List<Elem
     return new FixedSizeListIterator<ElementInstance>(this);
   }
 
-  dynamic reduce(dynamic initialValue, dynamic combine(dynamic, ElementInstance)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  ElementInstance reduce(ElementInstance combine(ElementInstance value, ElementInstance element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  dynamic fold(dynamic initialValue, dynamic combine(dynamic, ElementInstance)) {
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, ElementInstance element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
@@ -8096,7 +7973,7 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 implements List<Elem
 
   void forEach(void f(ElementInstance element)) => IterableMixinWorkaround.forEach(this, f);
 
-  String join([String separator]) =>
+  String join([String separator = ""]) =>
       IterableMixinWorkaround.joinList(this, separator);
 
   Iterable map(f(ElementInstance element)) =>
@@ -8198,12 +8075,6 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 implements List<Elem
     throw new StateError("More than one element");
   }
 
-  ElementInstance min([int compare(ElementInstance a, ElementInstance b)]) =>
-      IterableMixinWorkaround.min(this, compare);
-
-  ElementInstance max([int compare(ElementInstance a, ElementInstance b)]) =>
-      IterableMixinWorkaround.max(this, compare);
-
   void insert(int index, ElementInstance element) {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
@@ -8217,14 +8088,6 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 implements List<Elem
   }
 
   void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeAll(Iterable elements) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainAll(Iterable elements) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -8248,16 +8111,23 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 implements List<Elem
     throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
+  Iterable<ElementInstance> getRange(int start, int end) =>
+    IterableMixinWorkaround.getRangeList(this, start, end);
+
   List<ElementInstance> sublist(int start, [int end]) {
     if (end == null) end = length;
     return Lists.getRange(this, start, end, <ElementInstance>[]);
   }
 
-  List<ElementInstance> getRange(int start, int rangeLength) =>
-      sublist(start, start + rangeLength);
-
   Map<int, ElementInstance> asMap() =>
     IterableMixinWorkaround.asMapList(this);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
 
   // -- end List<ElementInstance> mixins.
 
@@ -8274,370 +8144,9 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 implements List<Elem
 
 
 @DocsEditable
-@DomName('SVGAltGlyphDefElement')
-class _SVGAltGlyphDefElement extends SvgElement {
-  _SVGAltGlyphDefElement.internal() : super.internal();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('SVGAltGlyphItemElement')
-class _SVGAltGlyphItemElement extends SvgElement {
-  _SVGAltGlyphItemElement.internal() : super.internal();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('SVGAnimateColorElement')
-class _SVGAnimateColorElement extends AnimationElement {
-  _SVGAnimateColorElement.internal() : super.internal();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('SVGComponentTransferFunctionElement')
-class _SVGComponentTransferFunctionElement extends SvgElement {
-  _SVGComponentTransferFunctionElement.internal() : super.internal();
-
-  static const int SVG_FECOMPONENTTRANSFER_TYPE_DISCRETE = 3;
-
-  static const int SVG_FECOMPONENTTRANSFER_TYPE_GAMMA = 5;
-
-  static const int SVG_FECOMPONENTTRANSFER_TYPE_IDENTITY = 1;
-
-  static const int SVG_FECOMPONENTTRANSFER_TYPE_LINEAR = 4;
-
-  static const int SVG_FECOMPONENTTRANSFER_TYPE_TABLE = 2;
-
-  static const int SVG_FECOMPONENTTRANSFER_TYPE_UNKNOWN = 0;
-
-  @DomName('SVGComponentTransferFunctionElement.amplitude')
-  @DocsEditable
-  AnimatedNumber get amplitude native "SVGComponentTransferFunctionElement_amplitude_Getter";
-
-  @DomName('SVGComponentTransferFunctionElement.exponent')
-  @DocsEditable
-  AnimatedNumber get exponent native "SVGComponentTransferFunctionElement_exponent_Getter";
-
-  @DomName('SVGComponentTransferFunctionElement.intercept')
-  @DocsEditable
-  AnimatedNumber get intercept native "SVGComponentTransferFunctionElement_intercept_Getter";
-
-  @DomName('SVGComponentTransferFunctionElement.offset')
-  @DocsEditable
-  AnimatedNumber get gradientOffset native "SVGComponentTransferFunctionElement_offset_Getter";
-
-  @DomName('SVGComponentTransferFunctionElement.slope')
-  @DocsEditable
-  AnimatedNumber get slope native "SVGComponentTransferFunctionElement_slope_Getter";
-
-  @DomName('SVGComponentTransferFunctionElement.tableValues')
-  @DocsEditable
-  AnimatedNumberList get tableValues native "SVGComponentTransferFunctionElement_tableValues_Getter";
-
-  @DomName('SVGComponentTransferFunctionElement.type')
-  @DocsEditable
-  AnimatedEnumeration get type native "SVGComponentTransferFunctionElement_type_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('SVGCursorElement')
-class _SVGCursorElement extends SvgElement implements UriReference, Tests, ExternalResourcesRequired {
-  _SVGCursorElement.internal() : super.internal();
-
-  @DomName('SVGCursorElement.SVGCursorElement')
-  @DocsEditable
-  factory _SVGCursorElement() => _SvgElementFactoryProvider.createSvgElement_tag("cursor");
-
-  /// Checks if this type is supported on the current platform.
-  static bool get supported => true;
-
-  @DomName('SVGCursorElement.x')
-  @DocsEditable
-  AnimatedLength get x native "SVGCursorElement_x_Getter";
-
-  @DomName('SVGCursorElement.y')
-  @DocsEditable
-  AnimatedLength get y native "SVGCursorElement_y_Getter";
-
-  @DomName('SVGCursorElement.externalResourcesRequired')
-  @DocsEditable
-  AnimatedBoolean get externalResourcesRequired native "SVGCursorElement_externalResourcesRequired_Getter";
-
-  @DomName('SVGCursorElement.requiredExtensions')
-  @DocsEditable
-  StringList get requiredExtensions native "SVGCursorElement_requiredExtensions_Getter";
-
-  @DomName('SVGCursorElement.requiredFeatures')
-  @DocsEditable
-  StringList get requiredFeatures native "SVGCursorElement_requiredFeatures_Getter";
-
-  @DomName('SVGCursorElement.systemLanguage')
-  @DocsEditable
-  StringList get systemLanguage native "SVGCursorElement_systemLanguage_Getter";
-
-  @DomName('SVGCursorElement.hasExtension')
-  @DocsEditable
-  bool hasExtension(String extension) native "SVGCursorElement_hasExtension_Callback";
-
-  @DomName('SVGCursorElement.href')
-  @DocsEditable
-  AnimatedString get href native "SVGCursorElement_href_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('SVGFEDropShadowElement')
-class _SVGFEDropShadowElement extends StyledElement implements FilterPrimitiveStandardAttributes {
-  _SVGFEDropShadowElement.internal() : super.internal();
-
-  @DomName('SVGFEDropShadowElement.dx')
-  @DocsEditable
-  AnimatedNumber get dx native "SVGFEDropShadowElement_dx_Getter";
-
-  @DomName('SVGFEDropShadowElement.dy')
-  @DocsEditable
-  AnimatedNumber get dy native "SVGFEDropShadowElement_dy_Getter";
-
-  @DomName('SVGFEDropShadowElement.in1')
-  @DocsEditable
-  AnimatedString get in1 native "SVGFEDropShadowElement_in1_Getter";
-
-  @DomName('SVGFEDropShadowElement.stdDeviationX')
-  @DocsEditable
-  AnimatedNumber get stdDeviationX native "SVGFEDropShadowElement_stdDeviationX_Getter";
-
-  @DomName('SVGFEDropShadowElement.stdDeviationY')
-  @DocsEditable
-  AnimatedNumber get stdDeviationY native "SVGFEDropShadowElement_stdDeviationY_Getter";
-
-  @DomName('SVGFEDropShadowElement.setStdDeviation')
-  @DocsEditable
-  void setStdDeviation(num stdDeviationX, num stdDeviationY) native "SVGFEDropShadowElement_setStdDeviation_Callback";
-
-  @DomName('SVGFEDropShadowElement.height')
-  @DocsEditable
-  AnimatedLength get height native "SVGFEDropShadowElement_height_Getter";
-
-  @DomName('SVGFEDropShadowElement.result')
-  @DocsEditable
-  AnimatedString get result native "SVGFEDropShadowElement_result_Getter";
-
-  @DomName('SVGFEDropShadowElement.width')
-  @DocsEditable
-  AnimatedLength get width native "SVGFEDropShadowElement_width_Getter";
-
-  @DomName('SVGFEDropShadowElement.x')
-  @DocsEditable
-  AnimatedLength get x native "SVGFEDropShadowElement_x_Getter";
-
-  @DomName('SVGFEDropShadowElement.y')
-  @DocsEditable
-  AnimatedLength get y native "SVGFEDropShadowElement_y_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('SVGFontElement')
-class _SVGFontElement extends SvgElement {
-  _SVGFontElement.internal() : super.internal();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('SVGFontFaceElement')
-class _SVGFontFaceElement extends SvgElement {
-  _SVGFontFaceElement.internal() : super.internal();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('SVGFontFaceFormatElement')
-class _SVGFontFaceFormatElement extends SvgElement {
-  _SVGFontFaceFormatElement.internal() : super.internal();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('SVGFontFaceNameElement')
-class _SVGFontFaceNameElement extends SvgElement {
-  _SVGFontFaceNameElement.internal() : super.internal();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('SVGFontFaceSrcElement')
-class _SVGFontFaceSrcElement extends SvgElement {
-  _SVGFontFaceSrcElement.internal() : super.internal();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('SVGFontFaceUriElement')
-class _SVGFontFaceUriElement extends SvgElement {
-  _SVGFontFaceUriElement.internal() : super.internal();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('SVGGlyphElement')
-class _SVGGlyphElement extends SvgElement {
-  _SVGGlyphElement.internal() : super.internal();
-
-  @DomName('SVGGlyphElement.SVGGlyphElement')
-  @DocsEditable
-  factory _SVGGlyphElement() => _SvgElementFactoryProvider.createSvgElement_tag("glyph");
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('SVGGlyphRefElement')
-class _SVGGlyphRefElement extends StyledElement implements UriReference {
-  _SVGGlyphRefElement.internal() : super.internal();
-
-  @DomName('SVGGlyphRefElement.dx')
-  @DocsEditable
-  num get dx native "SVGGlyphRefElement_dx_Getter";
-
-  @DomName('SVGGlyphRefElement.dx')
-  @DocsEditable
-  void set dx(num value) native "SVGGlyphRefElement_dx_Setter";
-
-  @DomName('SVGGlyphRefElement.dy')
-  @DocsEditable
-  num get dy native "SVGGlyphRefElement_dy_Getter";
-
-  @DomName('SVGGlyphRefElement.dy')
-  @DocsEditable
-  void set dy(num value) native "SVGGlyphRefElement_dy_Setter";
-
-  @DomName('SVGGlyphRefElement.format')
-  @DocsEditable
-  String get format native "SVGGlyphRefElement_format_Getter";
-
-  @DomName('SVGGlyphRefElement.format')
-  @DocsEditable
-  void set format(String value) native "SVGGlyphRefElement_format_Setter";
-
-  @DomName('SVGGlyphRefElement.glyphRef')
-  @DocsEditable
-  String get glyphRef native "SVGGlyphRefElement_glyphRef_Getter";
-
-  @DomName('SVGGlyphRefElement.glyphRef')
-  @DocsEditable
-  void set glyphRef(String value) native "SVGGlyphRefElement_glyphRef_Setter";
-
-  @DomName('SVGGlyphRefElement.x')
-  @DocsEditable
-  num get x native "SVGGlyphRefElement_x_Getter";
-
-  @DomName('SVGGlyphRefElement.x')
-  @DocsEditable
-  void set x(num value) native "SVGGlyphRefElement_x_Setter";
-
-  @DomName('SVGGlyphRefElement.y')
-  @DocsEditable
-  num get y native "SVGGlyphRefElement_y_Getter";
-
-  @DomName('SVGGlyphRefElement.y')
-  @DocsEditable
-  void set y(num value) native "SVGGlyphRefElement_y_Setter";
-
-  @DomName('SVGGlyphRefElement.href')
-  @DocsEditable
-  AnimatedString get href native "SVGGlyphRefElement_href_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
 @DomName('SVGGradientElement')
-class _SVGGradientElement extends StyledElement implements UriReference, ExternalResourcesRequired {
-  _SVGGradientElement.internal() : super.internal();
+class _GradientElement extends StyledElement implements UriReference, ExternalResourcesRequired {
+  _GradientElement.internal() : super.internal();
 
   static const int SVG_SPREADMETHOD_PAD = 1;
 
@@ -8676,8 +8185,213 @@ class _SVGGradientElement extends StyledElement implements UriReference, Externa
 
 
 @DocsEditable
+@DomName('SVGAltGlyphDefElement')
+abstract class _SVGAltGlyphDefElement extends SvgElement {
+  _SVGAltGlyphDefElement.internal() : super.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('SVGAltGlyphItemElement')
+abstract class _SVGAltGlyphItemElement extends SvgElement {
+  _SVGAltGlyphItemElement.internal() : super.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('SVGAnimateColorElement')
+abstract class _SVGAnimateColorElement extends AnimationElement {
+  _SVGAnimateColorElement.internal() : super.internal();
+
+}
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+// Hack because the baseclass is private in dart:html, and we want to omit this
+// type entirely but can't.
+@DocsEditable
+@DomName('SVGColor')
+class _SVGColor {
+  _SVGColor.internal();
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('SVGComponentTransferFunctionElement')
+abstract class _SVGComponentTransferFunctionElement extends SvgElement {
+  _SVGComponentTransferFunctionElement.internal() : super.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('SVGCursorElement')
+abstract class _SVGCursorElement extends SvgElement implements UriReference, Tests, ExternalResourcesRequired {
+  _SVGCursorElement.internal() : super.internal();
+
+  @DomName('SVGCursorElement.SVGCursorElement')
+  @DocsEditable
+  factory _SVGCursorElement() => _SvgElementFactoryProvider.createSvgElement_tag("cursor");
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => true;
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('SVGFEDropShadowElement')
+abstract class _SVGFEDropShadowElement extends StyledElement implements FilterPrimitiveStandardAttributes {
+  _SVGFEDropShadowElement.internal() : super.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('SVGFontElement')
+abstract class _SVGFontElement extends SvgElement {
+  _SVGFontElement.internal() : super.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('SVGFontFaceElement')
+abstract class _SVGFontFaceElement extends SvgElement {
+  _SVGFontFaceElement.internal() : super.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('SVGFontFaceFormatElement')
+abstract class _SVGFontFaceFormatElement extends SvgElement {
+  _SVGFontFaceFormatElement.internal() : super.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('SVGFontFaceNameElement')
+abstract class _SVGFontFaceNameElement extends SvgElement {
+  _SVGFontFaceNameElement.internal() : super.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('SVGFontFaceSrcElement')
+abstract class _SVGFontFaceSrcElement extends SvgElement {
+  _SVGFontFaceSrcElement.internal() : super.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('SVGFontFaceUriElement')
+abstract class _SVGFontFaceUriElement extends SvgElement {
+  _SVGFontFaceUriElement.internal() : super.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('SVGGlyphElement')
+abstract class _SVGGlyphElement extends SvgElement {
+  _SVGGlyphElement.internal() : super.internal();
+
+  @DomName('SVGGlyphElement.SVGGlyphElement')
+  @DocsEditable
+  factory _SVGGlyphElement() => _SvgElementFactoryProvider.createSvgElement_tag("glyph");
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('SVGGlyphRefElement')
+abstract class _SVGGlyphRefElement extends StyledElement implements UriReference {
+  _SVGGlyphRefElement.internal() : super.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
 @DomName('SVGHKernElement')
-class _SVGHKernElement extends SvgElement {
+abstract class _SVGHKernElement extends SvgElement {
   _SVGHKernElement.internal() : super.internal();
 
   @DomName('SVGHKernElement.SVGHKernElement')
@@ -8694,20 +8408,12 @@ class _SVGHKernElement extends SvgElement {
 
 @DocsEditable
 @DomName('SVGMPathElement')
-class _SVGMPathElement extends SvgElement implements UriReference, ExternalResourcesRequired {
+abstract class _SVGMPathElement extends SvgElement implements UriReference, ExternalResourcesRequired {
   _SVGMPathElement.internal() : super.internal();
 
   @DomName('SVGMPathElement.SVGMPathElement')
   @DocsEditable
   factory _SVGMPathElement() => _SvgElementFactoryProvider.createSvgElement_tag("mpath");
-
-  @DomName('SVGMPathElement.externalResourcesRequired')
-  @DocsEditable
-  AnimatedBoolean get externalResourcesRequired native "SVGMPathElement_externalResourcesRequired_Getter";
-
-  @DomName('SVGMPathElement.href')
-  @DocsEditable
-  AnimatedString get href native "SVGMPathElement_href_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8719,7 +8425,7 @@ class _SVGMPathElement extends SvgElement implements UriReference, ExternalResou
 
 @DocsEditable
 @DomName('SVGMissingGlyphElement')
-class _SVGMissingGlyphElement extends StyledElement {
+abstract class _SVGMissingGlyphElement extends StyledElement {
   _SVGMissingGlyphElement.internal() : super.internal();
 
 }
@@ -8731,17 +8437,26 @@ class _SVGMissingGlyphElement extends StyledElement {
 
 
 @DocsEditable
+@DomName('SVGPaint')
+abstract class _SVGPaint extends _SVGColor {
+  _SVGPaint.internal() : super.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
 @DomName('SVGTRefElement')
-class _SVGTRefElement extends TextPositioningElement implements UriReference {
+abstract class _SVGTRefElement extends TextPositioningElement implements UriReference {
   _SVGTRefElement.internal() : super.internal();
 
   @DomName('SVGTRefElement.SVGTRefElement')
   @DocsEditable
   factory _SVGTRefElement() => _SvgElementFactoryProvider.createSvgElement_tag("tref");
-
-  @DomName('SVGTRefElement.href')
-  @DocsEditable
-  AnimatedString get href native "SVGTRefElement_href_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8753,7 +8468,7 @@ class _SVGTRefElement extends TextPositioningElement implements UriReference {
 
 @DocsEditable
 @DomName('SVGVKernElement')
-class _SVGVKernElement extends SvgElement {
+abstract class _SVGVKernElement extends SvgElement {
   _SVGVKernElement.internal() : super.internal();
 
   @DomName('SVGVKernElement.SVGVKernElement')

@@ -4,6 +4,8 @@
 // Dart test program for testing execution of finally blocks on
 // control flow breaks because of 'return', 'continue' etc.
 
+import "package:expect/expect.dart";
+
 
 class Helper {
   Helper() : i = 0 { }

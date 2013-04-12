@@ -52,14 +52,6 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     }
   }
 
-  void removeAll(Iterable elements) {
-    IterableMixinWorkaround.removeAllList(this, elements);
-  }
-
-  void retainAll(Iterable elements) {
-    IterableMixinWorkaround.retainAll(this, elements);
-  }
-
   void removeWhere(bool test(E element)) {
     // This could, and should, be optimized.
     IterableMixinWorkaround.removeWhereList(this, test);
@@ -96,8 +88,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     return IterableMixinWorkaround.mapList(this, f);
   }
 
-  String join([String separator]) {
-    if (separator == null) separator = "";
+  String join([String separator = ""]) {
     var list = new List(this.length);
     for (int i = 0; i < this.length; i++) {
       list[i] = "${this[i]}";
@@ -121,8 +112,8 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  reduce(initialValue, combine(previousValue, E element)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  E reduce(E combine(E value, E element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
   fold(initialValue, combine(previousValue, E element)) {
@@ -165,8 +156,8 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
   }
 
 
-  List<E> getRange(int start, int length) {
-    return sublist(start, start + length);
+  Iterable<E> getRange(int start, int end) {
+    return IterableMixinWorkaround.getRangeList(this, start, end);
   }
 
   void insertRange(int start, int length, [E initialValue]) {
@@ -212,10 +203,6 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     if (length == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
   }
-
-  E min([int compare(E a, E b)]) => IterableMixinWorkaround.min(this, compare);
-
-  E max([int compare(E a, E b)]) => IterableMixinWorkaround.max(this, compare);
 
   void removeRange(int start, int length) {
     checkGrowable(this, 'removeRange');
@@ -275,7 +262,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
 
   bool get isEmpty => length == 0;
 
-  String toString() => Collections.collectionToString(this);
+  String toString() => ToString.iterableToString(this);
 
   List<E> toList({ bool growable: true }) =>
       new List<E>.from(this, growable: growable);

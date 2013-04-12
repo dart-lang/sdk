@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test correct handling of NULL object in invocation and implicit closures.
 
+import "package:expect/expect.dart";
+
 class A {}
 
 A foo() => null;

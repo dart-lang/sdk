@@ -4,6 +4,7 @@
 //
 // Dart test program for testing error handling in file I/O.
 
+import "package:expect/expect.dart";
 import "dart:io";
 import "dart:isolate";
 

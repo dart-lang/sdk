@@ -4,6 +4,8 @@
 // Dart test program for testing named parameters.
 // Specifying named argument for not existing named parameter is run time error.
 
+import "package:expect/expect.dart";
+
 int test(int a, [int b]) {
   return a;
 }

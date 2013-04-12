@@ -408,9 +408,18 @@ void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
   if (!is_optimizing()) {
     if (FLAG_enable_type_checks && instr->IsAssertAssignable()) {
       AssertAssignableInstr* assert = instr->AsAssertAssignable();
-      AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
+      AddCurrentDescriptor(PcDescriptors::kDeopt,
                            assert->deopt_id(),
                            assert->token_pos());
+    } else if (instr->IsGuardField()) {
+      GuardFieldInstr* guard = instr->AsGuardField();
+      AddCurrentDescriptor(PcDescriptors::kDeopt,
+                           guard->deopt_id(),
+                           Scanner::kDummyTokenIndex);
+    } else if (instr->CanBeDeoptimizationTarget()) {
+      AddCurrentDescriptor(PcDescriptors::kDeopt,
+                           instr->deopt_id(),
+                           Scanner::kDummyTokenIndex);
     }
     AllocateRegistersLocally(instr);
   }
@@ -884,14 +893,13 @@ void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
   RecordSafepoint(locs);
   // Marks either the continuation point in unoptimized code or the
   // deoptimization point in optimized code, after call.
+  const intptr_t deopt_id_after = Isolate::ToDeoptAfter(deopt_id);
   if (is_optimizing()) {
-    AddDeoptIndexAtCall(deopt_id, token_pos);
+    AddDeoptIndexAtCall(deopt_id_after, token_pos);
   } else {
     // Add deoptimization continuation point after the call and before the
     // arguments are removed.
-    AddCurrentDescriptor(PcDescriptors::kDeoptAfter,
-                         deopt_id,
-                         token_pos);
+    AddCurrentDescriptor(PcDescriptors::kDeopt, deopt_id_after, token_pos);
   }
 }
 
@@ -906,13 +914,14 @@ void FlowGraphCompiler::GenerateCallRuntime(intptr_t token_pos,
   if (deopt_id != Isolate::kNoDeoptId) {
     // Marks either the continuation point in unoptimized code or the
     // deoptimization point in optimized code, after call.
+    const intptr_t deopt_id_after = Isolate::ToDeoptAfter(deopt_id);
     if (is_optimizing()) {
-      AddDeoptIndexAtCall(deopt_id, token_pos);
+      AddDeoptIndexAtCall(deopt_id_after, token_pos);
     } else {
       // Add deoptimization continuation point after the call and before the
       // arguments are removed.
-      AddCurrentDescriptor(PcDescriptors::kDeoptAfter,
-                           deopt_id,
+      AddCurrentDescriptor(PcDescriptors::kDeopt,
+                           deopt_id_after,
                            token_pos);
     }
   }
@@ -1146,8 +1155,7 @@ void ParallelMoveResolver::EmitMove(int index) {
       if (destination.IsDoubleStackSlot()) {
         __ vstrd(source.fpu_reg(), destination.ToStackSlotAddress());
       } else {
-        ASSERT(destination.IsFloat32x4StackSlot() ||
-               destination.IsUint32x4StackSlot());
+        ASSERT(destination.IsQuadStackSlot());
         UNIMPLEMENTED();
       }
     }
@@ -1159,7 +1167,7 @@ void ParallelMoveResolver::EmitMove(int index) {
       __ vldrd(FpuTMP, source.ToStackSlotAddress());
       __ vstrd(FpuTMP, destination.ToStackSlotAddress());
     }
-  } else if (source.IsFloat32x4StackSlot() || source.IsUint32x4StackSlot()) {
+  } else if (source.IsQuadStackSlot()) {
     UNIMPLEMENTED();
   } else {
     ASSERT(source.IsConstant());
@@ -1199,11 +1207,9 @@ void ParallelMoveResolver::EmitSwap(int index) {
     __ vmovd(destination.fpu_reg(), FpuTMP);
   } else if (source.IsFpuRegister() || destination.IsFpuRegister()) {
     ASSERT(destination.IsDoubleStackSlot() ||
-           destination.IsFloat32x4StackSlot() ||
-           destination.IsUint32x4StackSlot() ||
+           destination.IsQuadStackSlot() ||
            source.IsDoubleStackSlot() ||
-           source.IsFloat32x4StackSlot() ||
-           source.IsUint32x4StackSlot());
+           source.IsQuadStackSlot());
     bool double_width = destination.IsDoubleStackSlot() ||
                         source.IsDoubleStackSlot();
     DRegister reg = source.IsFpuRegister() ? source.fpu_reg()
@@ -1219,6 +1225,17 @@ void ParallelMoveResolver::EmitSwap(int index) {
     } else {
       UNIMPLEMENTED();
     }
+  } else if (source.IsDoubleStackSlot() && destination.IsDoubleStackSlot()) {
+    const Address& source_slot_address = source.ToStackSlotAddress();
+    const Address& destination_slot_address = destination.ToStackSlotAddress();
+
+    ScratchFpuRegisterScope ensure_scratch(this, FpuTMP);
+    __ vldrd(FpuTMP, source_slot_address);
+    __ vldrd(ensure_scratch.reg(), destination_slot_address);
+    __ vstrd(FpuTMP, destination_slot_address);
+    __ vstrd(ensure_scratch.reg(), source_slot_address);
+  } else if (source.IsQuadStackSlot() && destination.IsQuadStackSlot()) {
+    UNIMPLEMENTED();
   } else {
     UNREACHABLE();
   }
@@ -1263,13 +1280,31 @@ void ParallelMoveResolver::Exchange(Register reg, const Address& mem) {
 
 
 void ParallelMoveResolver::Exchange(const Address& mem1, const Address& mem2) {
-  // TODO(vegorov): allocate temporary registers for such moves.
-  __ Push(R0);
-  __ ldr(R0, mem1);
+  ScratchRegisterScope ensure_scratch(this, IP);
+  __ ldr(ensure_scratch.reg(), mem1);
   __ ldr(IP, mem2);
+  __ str(ensure_scratch.reg(), mem2);
   __ str(IP, mem1);
-  __ str(R0, mem2);
-  __ Pop(R0);
+}
+
+
+void ParallelMoveResolver::SpillScratch(Register reg) {
+  __ Push(reg);
+}
+
+
+void ParallelMoveResolver::RestoreScratch(Register reg) {
+  __ Pop(reg);
+}
+
+
+void ParallelMoveResolver::SpillFpuScratch(FpuRegister reg) {
+  __ vstrd(reg, Address(SP, -kDoubleSize, Address::PreIndex));
+}
+
+
+void ParallelMoveResolver::RestoreFpuScratch(FpuRegister reg) {
+  __ vldrd(reg, Address(SP, kDoubleSize, Address::PostIndex));
 }
 
 

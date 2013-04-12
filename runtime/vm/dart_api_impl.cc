@@ -938,6 +938,16 @@ DART_EXPORT void Dart_InterruptIsolate(Dart_Isolate isolate) {
 }
 
 
+DART_EXPORT bool Dart_IsolateMakeRunnable(Dart_Isolate isolate) {
+  CHECK_NO_ISOLATE(Isolate::Current());
+  if (isolate == NULL) {
+    FATAL1("%s expects argument 'isolate' to be non-null.",  CURRENT_FUNC);
+  }
+  Isolate* iso = reinterpret_cast<Isolate*>(isolate);
+  return iso->MakeRunnable();
+}
+
+
 // --- Messages and Ports ---
 
 DART_EXPORT void Dart_SetMessageNotifyCallback(

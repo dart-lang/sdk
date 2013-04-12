@@ -48,12 +48,12 @@ class Package {
         where((entry) => entry.contains(_README_REGEXP));
     if (readmes.isEmpty) return;
 
-    return path.join(dir, readmes.min((readme1, readme2) {
+    return path.join(dir, readmes.reduce((readme1, readme2) {
       var extensions1 = ".".allMatches(readme1).length;
       var extensions2 = ".".allMatches(readme2).length;
       var comparison = extensions1.compareTo(extensions2);
-      if (comparison != 0) return comparison;
-      return readme1.compareTo(readme2);
+      if (comparison == 0) comparison = readme1.compareTo(readme2);
+      return (comparison <= 0) ? readme1 : readme2;
     }));
   }
 

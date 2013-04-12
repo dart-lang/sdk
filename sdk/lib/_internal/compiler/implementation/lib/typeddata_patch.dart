@@ -11,6 +11,10 @@ patch class Int8List {
     throw new UnsupportedError('Int8List');
   }
 
+  patch factory Int8List.fromList(List<int> elements) {
+    throw new UnsupportedError('Int8List.fromList');
+  }
+
   patch factory Int8List.view(ByteBuffer buffer,
                               [int offsetInBytes = 0, int length]) {
     throw new UnsupportedError('Int8List.view');
@@ -23,6 +27,10 @@ patch class Uint8List {
     throw new UnsupportedError('Uint8List');
   }
 
+  patch factory Uint8List.fromList(List<int> elements) {
+    throw new UnsupportedError('Uint8List.fromList');
+  }
+
   patch factory Uint8List.view(ByteBuffer buffer,
                                [int offsetInBytes = 0, int length]) {
     throw new UnsupportedError('Uint8List.view');
@@ -33,6 +41,10 @@ patch class Uint8List {
 patch class Uint8ClampedList {
   patch factory Uint8ClampedList(int length) {
     throw new UnsupportedError('Uint8ClampedList');
+  }
+
+  patch factory Uint8ClampedList.fromList(List<int> elements) {
+    throw new UnsupportedError('Uint8ClampedList.fromList');
   }
 
   patch factory Uint8ClampedList.view(ByteBuffer buffer,
@@ -48,6 +60,10 @@ patch class Int16List {
 
   }
 
+  patch factory Int16List.fromList(List<int> elements) {
+    throw new UnsupportedError('Int16List.fromList');
+  }
+
   patch factory Int16List.view(ByteBuffer buffer,
                                [int offsetInBytes = 0, int length]) {
     throw new UnsupportedError('Int16List.view');
@@ -58,6 +74,10 @@ patch class Int16List {
 patch class Uint16List {
   patch factory Uint16List(int length) {
     throw new UnsupportedError('Uint16List');
+  }
+
+  patch factory Uint16List.fromList(List<int> elements) {
+    throw new UnsupportedError('Uint16List.fromList');
   }
 
   patch factory Uint16List.view(ByteBuffer buffer,
@@ -72,6 +92,10 @@ patch class Int32List {
     throw new UnsupportedError('Int32List');
   }
 
+  patch factory Int32List.fromList(List<int> elements) {
+    throw new UnsupportedError('Int32List.fromList');
+  }
+
   patch factory Int32List.view(ByteBuffer buffer,
                                [int offsetInBytes = 0, int length]) {
     throw new UnsupportedError('Int32List.view');
@@ -82,6 +106,10 @@ patch class Int32List {
 patch class Uint32List {
   patch factory Uint32List(int length) {
     throw new UnsupportedError('Uint32List');
+  }
+
+  patch factory Uint32List.fromList(List<int> elements) {
+    throw new UnsupportedError('Uint32List.fromList');
   }
 
   patch factory Uint32List.view(ByteBuffer buffer,
@@ -96,6 +124,10 @@ patch class Int64List {
     throw new UnsupportedError('Int64List');
   }
 
+  patch factory Int64List.fromList(List<int> elements) {
+    throw new UnsupportedError('Int64List.fromList');
+  }
+
   patch factory Int64List.view(ByteBuffer buffer,
                                [int offsetInBytes = 0, int length]) {
     throw new UnsupportedError('Int64List.view');
@@ -106,6 +138,10 @@ patch class Int64List {
 patch class Uint64List {
   patch factory Uint64List(int length) {
     throw new UnsupportedError('Uint64List');
+  }
+
+  patch factory Uint64List.fromList(List<int> elements) {
+    throw new UnsupportedError('Uint64List.fromList');
   }
 
   patch factory Uint64List.view(ByteBuffer buffer,
@@ -120,6 +156,10 @@ patch class Float32List {
     throw new UnsupportedError('Float32List');
   }
 
+  patch factory Float32List.fromList(List<double> elements) {
+    throw new UnsupportedError('Float32List.fromList');
+  }
+
   patch factory Float32List.view(ByteBuffer buffer,
                                  [int offsetInBytes = 0, int length]) {
     throw new UnsupportedError('Float32List.view');
@@ -130,6 +170,10 @@ patch class Float32List {
 patch class Float64List {
   patch factory Float64List(int length) {
     throw new UnsupportedError('Float64List');
+  }
+
+  patch factory Float64List.fromList(List<double> elements) {
+    throw new UnsupportedError('Float64List.fromList');
   }
 
   patch factory Float64List.view(ByteBuffer buffer,

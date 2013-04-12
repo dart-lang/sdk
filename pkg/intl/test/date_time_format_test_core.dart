@@ -171,35 +171,24 @@ testRoundTripParsing(String localeName, DateTime date) {
 /** A shortcut for returning all the locales we have available.*/
 List<String> allLocales() => DateFormat.allLocalesWithSymbols();
 
-/**
- * Return only the odd-numbered locales. A simple way to divide the list into
- * two roughly equal parts.
- */
-List oddLocales() {
-  int i = 1;
-  return allLocales().where((x) => (i++).isOdd).toList();
-}
+Function _subsetFunc;
 
-/**
- * Return a set of a few locales to run just the tests on a small sample.
- */
-List smallSetOfLocales() {
-  return allLocales().sublist(0,10);
-}
+List<String> _subsetValue;
 
-/**
- * Return only the even-numbered locales. A simple way to divide the list into
- * two roughly equal parts.
- */
-List evenLocales() {
-  int i = 1;
-  return allLocales().where((x) => !((i++).isOdd)).toList();
+List<String> get subset {
+  if(_subsetValue == null) {
+    _subsetValue = _subsetFunc();
+  }
+  return _subsetValue;
 }
 
 // TODO(alanknight): Run specific tests for the en_ISO locale which isn't
 // included in CLDR, and check that our patterns for it are correct (they
 // very likely aren't).
-runDateTests([List<String> subset]) {
+void runDateTests(Function subsetFunc) {
+  assert(subsetFunc != null);
+  _subsetFunc = subsetFunc;
+
   test('Multiple patterns', () {
     var date = new DateTime.now();
     var multiple1 = new DateFormat.yMd().add_jms();
@@ -244,8 +233,7 @@ runDateTests([List<String> subset]) {
   test('Test round-trip parsing of dates', () {
     var hours = [0, 1, 11, 12, 13, 23];
     var months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-    var locales = subset == null ? allLocales() : subset;
-    for (var locale in locales) {
+    for (var locale in subset) {
       for (var month in months) {
         var aDate = new DateTime(2012, month, 27, 13, 58, 59, 012);
         testRoundTripParsing(locale, aDate);

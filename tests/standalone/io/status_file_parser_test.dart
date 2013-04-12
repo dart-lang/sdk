@@ -4,6 +4,7 @@
 
 library StatusFileParserTest;
 
+import "package:expect/expect.dart";
 import "dart:io";
 import "../../../tools/testing/dart/status_file_parser.dart";
 

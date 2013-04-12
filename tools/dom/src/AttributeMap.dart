@@ -38,19 +38,19 @@ abstract class _AttributeMap implements Map<String, String> {
     }
   }
 
-  Collection<String> get keys {
+  Iterable<String> get keys {
     // TODO: generate a lazy collection instead.
     var attributes = _element.$dom_attributes;
     var keys = new List<String>();
     for (int i = 0, len = attributes.length; i < len; i++) {
       if (_matches(attributes[i])) {
-        keys.add(attributes[i].$dom_localName);
+        keys.add(attributes[i].localName);
       }
     }
     return keys;
   }
 
-  Collection<String> get values {
+  Iterable<String> get values {
     // TODO: generate a lazy collection instead.
     var attributes = _element.$dom_attributes;
     var values = new List<String>();
@@ -191,7 +191,7 @@ class _DataAttributeMap implements Map<String, String> {
     });
   }
 
-  Collection<String> get keys {
+  Iterable<String> get keys {
     final keys = new List<String>();
     $dom_attributes.forEach((String key, String value) {
       if (_matches(key)) {
@@ -201,7 +201,7 @@ class _DataAttributeMap implements Map<String, String> {
     return keys;
   }
 
-  Collection<String> get values {
+  Iterable<String> get values {
     final values = new List<String>();
     $dom_attributes.forEach((String key, String value) {
       if (_matches(key)) {

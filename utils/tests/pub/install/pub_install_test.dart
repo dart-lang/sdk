@@ -15,7 +15,6 @@ import '../test_pub.dart';
 
 main() {
   initConfig();
-
   group('requires', () {
     integration('a pubspec', () {
       d.dir(appPath, []).create();

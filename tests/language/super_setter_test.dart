@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for testing super setters and getters.
 
+import "package:expect/expect.dart";
+
 class Base {
   Base() {}
   String value_;

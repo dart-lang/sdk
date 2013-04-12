@@ -24,7 +24,7 @@ class CloseToken {
   const CloseToken();
 }
 
-class JsIsolateSink extends StreamSink<dynamic> implements IsolateSink {
+class JsIsolateSink extends EventSink<dynamic> implements IsolateSink {
   bool _isClosed = false;
   final SendPort _port;
   JsIsolateSink.fromPort(this._port);
@@ -54,9 +54,10 @@ class JsIsolateSink extends StreamSink<dynamic> implements IsolateSink {
  * Called by the compiler to support switching
  * between isolates when we get a callback from the DOM.
  */
-void _callInIsolate(_IsolateContext isolate, Function function) {
-  isolate.eval(function);
+_callInIsolate(_IsolateContext isolate, Function function) {
+  var result = isolate.eval(function);
   _globalState.topEventLoop.run();
+  return result;
 }
 
 /**
@@ -449,7 +450,7 @@ class IsolateNatives {
     // such as d8 and jsshell. We should move this code to a helper
     // library that is only loaded when testing on those engines.
 
-    var stack = JS('String|Null', 'new Error().stack');
+    var stack = JS('String|Null', '(new Error()).stack');
     if (stack == null) {
       // According to Internet Explorer documentation, the stack
       // property is not set until the exception is thrown. The stack
@@ -584,7 +585,7 @@ class IsolateNatives {
    * but you should probably not count on this.
    */
   static String _getJSFunctionName(Function f) {
-    return JS("String|Null", r"(#.$name || #)", f, null);
+    return JS("String|Null", r"(#['$name'] || #)", f, null);
   }
 
   /** Create a new JavaScript object instance given its constructor. */

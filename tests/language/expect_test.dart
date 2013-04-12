@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Testing the Expect class.
 
+import "package:expect/expect.dart";
+
 class ExpectTest {
 
   static testEquals(a) {

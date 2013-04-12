@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing factories.
 
+import "package:expect/expect.dart";
+
 class A {
   factory A(n) {
     return new A.internal(n);

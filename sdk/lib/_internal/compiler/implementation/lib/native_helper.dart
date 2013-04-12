@@ -41,6 +41,7 @@ String typeNameInOpera(obj) {
 String typeNameInFirefox(obj) {
   String name = JS('String', '#', constructorNameFallback(obj));
   if (name == 'Window') return 'DOMWindow';
+  if (name == 'BeforeUnloadEvent') return 'Event';
   if (name == 'CSS2Properties') return 'CSSStyleDeclaration';
   if (name == 'DataTransfer') return 'Clipboard';
   if (name == 'DragEvent') return 'MouseEvent';
@@ -62,6 +63,7 @@ String typeNameInIE(obj) {
     return 'HTMLDocument';
   }
   if (name == 'ApplicationCache') return 'DOMApplicationCache';
+  if (name == 'BeforeUnloadEvent') return 'Event';
   if (name == 'CanvasPixelArray') return 'Uint8ClampedArray';
   if (name == 'DataTransfer') return 'Clipboard';
   if (name == 'DragEvent') return 'MouseEvent';

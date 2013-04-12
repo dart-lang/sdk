@@ -11,6 +11,7 @@
 
 library ServerTest;
 
+import "package:expect/expect.dart";
 import "dart:io";
 import "dart:isolate";
 part "testing_server.dart";
@@ -63,7 +64,7 @@ class EchoServerGame {
       _socket.listen(onData,
                      onError: errorHandler,
                      onDone: onClosed);
-      _socket.writeBytes(_buffer);
+      _socket.add(_buffer);
       _socket.close();
       data = new List<int>(MSGSIZE);
     }
@@ -120,7 +121,7 @@ class EchoServer extends TestingServer {
           Expect.equals(EchoServerGame.FIRSTCHAR + i, buffer[i]);
         }
         if (offset == MSGSIZE) {
-          connection.writeBytes(buffer);
+          connection.add(buffer);
           connection.close();
         }
       }

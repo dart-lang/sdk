@@ -4,6 +4,7 @@
 
 // Hidden native class wwith named constructors and static methods.
 
+import "package:expect/expect.dart";
 import 'native_metadata.dart';
 
 @Native("*A")

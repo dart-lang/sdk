@@ -16,9 +16,11 @@ template <typename T> class PointerKeyValueTrait;
 
 class FlowGraphOptimizer : public FlowGraphVisitor {
  public:
-  explicit FlowGraphOptimizer(FlowGraph* flow_graph)
+  FlowGraphOptimizer(FlowGraph* flow_graph,
+                     GrowableArray<Field*>* guarded_fields)
       : FlowGraphVisitor(flow_graph->reverse_postorder()),
-        flow_graph_(flow_graph) { }
+        flow_graph_(flow_graph),
+        guarded_fields_(guarded_fields) { }
   virtual ~FlowGraphOptimizer() {}
 
   FlowGraph* flow_graph() const { return flow_graph_; }
@@ -157,7 +159,10 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                                     Definition* left_instr,
                                     Definition* right_instr);
 
+  void AddToGuardedFields(Field* field);
+
   FlowGraph* flow_graph_;
+  GrowableArray<Field*>* guarded_fields_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphOptimizer);
 };
@@ -296,6 +301,15 @@ class BranchSimplifier : public AllStatic {
   static BranchInstr* CloneBranch(BranchInstr* branch,
                                   Value* left,
                                   Value* right);
+};
+
+
+// Rewrite diamond control flow patterns that materialize values to use more
+// efficient branchless code patterns if such are supported on the current
+// platform.
+class IfConverter : public AllStatic {
+ public:
+  static void Simplify(FlowGraph* flow_graph);
 };
 
 

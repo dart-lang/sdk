@@ -57,7 +57,7 @@ IterableUtf32Decoder decodeUtf32leAsIterable(List<int> bytes, [
  */
 String decodeUtf32(List<int> bytes, [int offset = 0, int length,
     int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) {
-  return codepointsToString((new Utf32BytesDecoder(bytes, offset, length,
+  return new String.fromCharCodes((new Utf32BytesDecoder(bytes, offset, length,
       replacementCodepoint)).decodeRest());
 }
 /**
@@ -70,8 +70,8 @@ String decodeUtf32(List<int> bytes, [int offset = 0, int length,
 String decodeUtf32be(
     List<int> bytes, [int offset = 0, int length, bool stripBom = true,
     int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) =>
-  codepointsToString((new Utf32beBytesDecoder(bytes, offset, length, stripBom,
-      replacementCodepoint)).decodeRest());
+  new String.fromCharCodes((new Utf32beBytesDecoder(bytes, offset, length, 
+    stripBom, replacementCodepoint)).decodeRest());
 
 /**
  * Produce a String from a sequence of UTF-32LE encoded bytes. The parameters
@@ -83,8 +83,8 @@ String decodeUtf32be(
 String decodeUtf32le(
     List<int> bytes, [int offset = 0, int length, bool stripBom = true,
     int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) =>
-    codepointsToString((new Utf32leBytesDecoder(bytes, offset, length, stripBom,
-        replacementCodepoint)).decodeRest());
+    new String.fromCharCodes((new Utf32leBytesDecoder(bytes, offset, length,
+      stripBom, replacementCodepoint)).decodeRest());
 
 /**
  * Produce a list of UTF-32 encoded bytes. This method prefixes the resulting

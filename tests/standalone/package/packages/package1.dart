@@ -9,6 +9,10 @@ import 'package2.dart' as p2;
 import 'package:package2.dart' as p3;
 
 main() {
-  Expect.identical(p1.x, p2.x);
-  Expect.identical(p1.x, p3.x);
+  if (!identical(p1.x, p2.x)) {
+    throw new Error("Not identical");
+  }
+  if (!identical(p1.x, p3.x)) {
+    throw new Error("Not identical");
+  }
 }

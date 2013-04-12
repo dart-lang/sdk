@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library SvgElementTest;
+import "package:expect/expect.dart";
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_individual_config.dart';
 import 'dart:html';
@@ -14,7 +15,7 @@ main() {
   var isSvgSvgElement =
       predicate((x) => x is svg.SvgSvgElement, 'is a SvgSvgElement');
 
-  Collection<String> _nodeStrings(Collection<Node> input) {
+  List<String> _nodeStrings(Iterable<Node> input) {
     final out = new List<String>();
     for (Node n in input) {
       if (n is Element) {

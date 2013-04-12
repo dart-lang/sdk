@@ -103,6 +103,30 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+bool IfThenElseInstr::IsSupported() {
+  return false;
+}
+
+
+bool IfThenElseInstr::Supports(ComparisonInstr* comparison,
+                               Value* v1,
+                               Value* v2) {
+  UNREACHABLE();
+  return false;
+}
+
+
+LocationSummary* IfThenElseInstr::MakeLocationSummary() const {
+  UNREACHABLE();
+  return NULL;
+}
+
+
+void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNREACHABLE();
+}
+
+
 LocationSummary* ClosureCallInstr::MakeLocationSummary() const {
   UNIMPLEMENTED();
   return NULL;
@@ -311,7 +335,7 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
                                        LocationSummary* locs,
                                        const ICData& original_ic_data) {
   if (!compiler->is_optimizing()) {
-    compiler->AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
+    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
                                    deopt_id,
                                    token_pos);
   }
@@ -669,7 +693,7 @@ void RelationalOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const String& function_name =
       String::ZoneHandle(Symbols::New(Token::Str(kind())));
   if (!compiler->is_optimizing()) {
-    compiler->AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
+    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
                                    deopt_id(),
                                    token_pos());
   }
@@ -1264,6 +1288,28 @@ void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* BoxFloat32x4Instr::MakeLocationSummary() const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void BoxFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* UnboxFloat32x4Instr::MakeLocationSummary() const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void UnboxFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
 LocationSummary* BinaryDoubleOpInstr::MakeLocationSummary() const {
   UNIMPLEMENTED();
   return NULL;
@@ -1533,7 +1579,7 @@ void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Add deoptimization descriptor for deoptimizing instructions
   // that may be inserted before this instruction.
   if (!compiler->is_optimizing()) {
-    compiler->AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
+    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
                                    GetDeoptId(),
                                    0);  // No token position.
   }

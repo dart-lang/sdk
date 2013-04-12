@@ -27,6 +27,7 @@ void main() {
         'path': '/',
         'headers': {
           'content-type': ['text/plain; charset=utf-8'],
+          'accept-encoding': ['gzip'],
           'content-length': ['5']
         },
         'body': 'hello'

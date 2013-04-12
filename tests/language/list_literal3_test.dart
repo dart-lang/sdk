@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Check that arrays from const array literals are immutable.
 
+import "package:expect/expect.dart";
+
 class ListLiteral3Test {
 
   static const List<String> canonicalJoke = const ["knock", "knock"];

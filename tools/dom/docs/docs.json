@@ -11,7 +11,7 @@
         " * Example usage:",
         " *",
         " *     var canvas = new CanvasElement(width: 600, height: 600);",
-        " *     var ctx = canvas.context2d;",
+        " *     var ctx = canvas.context2D;",
         " *     ctx.clearRect(0, 0, 600, 600);",
         " *     ctx.save();",
         " *     // Create radial gradient.",
@@ -56,7 +56,7 @@
         " * Example usage:",
         " *",
         " *     var canvas = new CanvasElement(width: 600, height: 600);",
-        " *     var ctx = canvas.context2d;",
+        " *     var ctx = canvas.context2D;",
         " *     var img = new ImageElement();",
         " *     // Image src needs to be loaded before pattern is applied.",
         " *     img.onLoad.listen((event) {",
@@ -89,6 +89,28 @@
       "members": {
         "canvas": [
           "/// Reference to the canvas element to which this context belongs."
+        ]
+      }
+    },
+    "Clipboard": {
+      "members": {
+        "getData": [
+          "/**",
+          "   * Gets the data for the specified type.",
+          "   *",
+          "   * The data is only available from within a drop operation (such as an",
+          "   * [Element.onDrop] event) and will return `null` before the event is",
+          "   * triggered.",
+          "   *",
+          "   * Data transfer is prohibited across domains. If a drag originates",
+          "   * from content from another domain or protocol (HTTP vs HTTPS) then the",
+          "   * data cannot be accessed.",
+          "   *",
+          "   * The [type] can have values such as:",
+          "   *",
+          "   * * `'Text'`",
+          "   * * `'URL'`",
+          "   */"
         ]
       }
     },
@@ -232,7 +254,7 @@
           "   * Example usage:",
           "   *",
           "   *     CanvasElement canvas = new CanvasElement();",
-          "   *     var ctx = canvas.context2d",
+          "   *     var ctx = canvas.context2D",
           "   *     ..fillStyle = \"rgb(200,0,0)\"",
           "   *     ..fillRect(10, 10, 55, 50);",
           "   *     var dataUrl = canvas.toDataURL(\"image/jpeg\", 0.95);",
@@ -342,30 +364,6 @@
         " * an HTML5Rocks.com tutorial.",
         " */"
       ]
-    },
-    "WorkerContext": {
-      "members": {
-        "webkitRequestFileSystem": [
-          "/**",
-          "   * Access a sandboxed file system of the specified `size`. If `persistent` is",
-          "   * true, the application will request permission from the user to create",
-          "   * lasting storage. This storage cannot be freed without the user's",
-          "   * permission. Returns a [Future] whose value stores a reference to the",
-          "   * sandboxed file system for use. Because the file system is sandboxed,",
-          "   * applications cannot access file systems created in other web pages. ",
-          "   */"
-        ],
-        "webkitRequestFileSystemSync": [
-          "/**",
-          "   * Access a sandboxed file system of the specified `size`. If `persistent` is",
-          "   * true, the application will request permission from the user to create",
-          "   * lasting storage. This storage cannot be freed without the user's",
-          "   * permission. This call will block until a reference to the synchronous file ",
-          "   * system API has been obtained. Because the file system is sandboxed,",
-          "   * applications cannot access file systems created in other web pages. ",
-          "   */"
-        ]
-      }
     },
     "XMLHttpRequest": {
       "members": {

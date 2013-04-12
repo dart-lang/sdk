@@ -15,5 +15,7 @@ void main() {
   lib1();
 
   // Make sure they were all reached successfully.
-  Expect.equals(output, 'main|lib1|lib2|lib3');
+  if (output != 'main|lib1|lib2|lib3') {
+    throw new Error("libraries were not reached successfully");
+  }
 }

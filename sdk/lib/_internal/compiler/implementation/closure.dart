@@ -63,6 +63,9 @@ class ClosureTask extends CompilerTask {
   }
 }
 
+// TODO(ahe): These classes continuously cause problems.  We need to
+// move these classes to elements/modelx.dart or see if we can find a
+// more general solution.
 class ClosureFieldElement extends ElementX {
   ClosureFieldElement(SourceString name, ClassElement enclosing)
       : super(name, ElementKind.FIELD, enclosing);
@@ -79,6 +82,9 @@ class ClosureFieldElement extends ElementX {
   String toString() => "ClosureFieldElement($name)";
 }
 
+// TODO(ahe): These classes continuously cause problems.  We need to
+// move these classes to elements/modelx.dart or see if we can find a
+// more general solution.
 class ClosureClassElement extends ClassElementX {
   DartType rawType;
   DartType thisType;
@@ -114,11 +120,17 @@ class ClosureClassElement extends ClassElementX {
   Element methodElement;
 }
 
+// TODO(ahe): These classes continuously cause problems.  We need to
+// move these classes to elements/modelx.dart or see if we can find a
+// more general solution.
 class BoxElement extends ElementX {
   BoxElement(SourceString name, Element enclosingElement)
       : super(name, ElementKind.VARIABLE, enclosingElement);
 }
 
+// TODO(ahe): These classes continuously cause problems.  We need to
+// move these classes to elements/modelx.dart or see if we can find a
+// more general solution.
 class ThisElement extends ElementX {
   ThisElement(Element enclosing)
       : super(const SourceString('this'), ElementKind.PARAMETER, enclosing);
@@ -130,6 +142,9 @@ class ThisElement extends ElementX {
   Token position() => enclosingElement.position();
 }
 
+// TODO(ahe): These classes continuously cause problems.  We need to
+// move these classes to elements/modelx.dart or see if we can find a
+// more general solution.
 class CheckVariableElement extends ElementX {
   Element parameter;
   CheckVariableElement(SourceString name, this.parameter, Element enclosing)

@@ -4,6 +4,7 @@
 
 library mock_compiler;
 
+import "package:expect/expect.dart";
 import 'dart:collection';
 import 'dart:uri';
 
@@ -38,7 +39,7 @@ class WarningMessage {
 }
 
 const String DEFAULT_HELPERLIB = r'''
-  $throw(x) { return x; }
+  wrapException(x) { return x; }
   iae(x) { throw x; } ioore(x) { throw x; }
   guard$array(x) { return x; }
   guard$num(x) { return x; }
@@ -235,7 +236,8 @@ class MockCompiler extends Compiler {
   }
 
   void reportWarning(Node node, var message) {
-    warnings.add(new WarningMessage(node, message.message));
+    if (message is! Message) message = message.message;
+    warnings.add(new WarningMessage(node, message));
   }
 
   void reportError(Node node, var message) {
@@ -243,7 +245,8 @@ class MockCompiler extends Compiler {
       // TODO(ahe): Fix the MockCompiler to not have this problem.
       return;
     }
-    errors.add(new WarningMessage(node, message.message));
+    if (message is! Message) message = message.message;
+    errors.add(new WarningMessage(node, message));
   }
 
   void reportMessage(SourceSpan span, var message, api.Diagnostic kind) {

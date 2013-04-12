@@ -4,22 +4,6 @@
 
 part of dart.collection;
 
-class _HashMapTable<K, V> extends _HashTable<K> {
-  static const int _INITIAL_CAPACITY = 8;
-  static const int _VALUE_INDEX = 1;
-
-  _HashMapTable() : super(_INITIAL_CAPACITY);
-
-  int get _entrySize => 2;
-
-  V _value(int offset) => _table[offset + _VALUE_INDEX];
-  void _setValue(int offset, V value) { _table[offset + _VALUE_INDEX] = value; }
-
-  _copyEntry(List fromTable, int fromOffset, int toOffset) {
-    _table[toOffset + _VALUE_INDEX] = fromTable[fromOffset + _VALUE_INDEX];
-  }
-}
-
 class HashMap<K, V> implements Map<K, V> {
   external HashMap();
 

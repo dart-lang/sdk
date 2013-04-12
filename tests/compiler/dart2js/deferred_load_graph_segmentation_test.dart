@@ -6,39 +6,11 @@
 // to determine which elements can be deferred and which libraries
 // much be included in the initial download (loaded eagerly).
 
-import 'dart:async' show Future;
-import 'dart:uri' show Uri;
-import 'dart:io';
-
-import '../../../sdk/lib/_internal/compiler/implementation/apiimpl.dart'
-       show Compiler;
+import 'package:expect/expect.dart';
+import 'memory_source_file_helper.dart';
 
 import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
        as dart2js;
-
-import '../../../sdk/lib/_internal/compiler/implementation/filenames.dart'
-       show getCurrentDirectory, nativeToUriPath;
-
-import '../../../sdk/lib/_internal/compiler/implementation/source_file.dart'
-       show SourceFile;
-
-import '../../../sdk/lib/_internal/compiler/implementation/source_file_provider.dart'
-       show FormattingDiagnosticHandler,
-            SourceFileProvider;
-
-class MemorySourceFileProvider extends SourceFileProvider {
-  Future<String> readStringFromUri(Uri resourceUri) {
-    if (resourceUri.scheme != 'memory') {
-      return super.readStringFromUri(resourceUri);
-    }
-    String source = MEMORY_SOURCE_FILES[resourceUri.path];
-    // TODO(ahe): Return new Future.immediateError(...) ?
-    if (source == null) throw 'No such file $resourceUri';
-    String resourceName = '$resourceUri';
-    this.sourceFiles[resourceName] = new SourceFile(resourceName, source);
-    return new Future.immediate(source);
-  }
-}
 
 void main() {
   Uri cwd = getCurrentDirectory();
@@ -46,6 +18,7 @@ void main() {
   Uri libraryRoot = script.resolve('../../../sdk/');
   Uri packageRoot = script.resolve('./packages/');
 
+  MemorySourceFileProvider.MEMORY_SOURCE_FILES = MEMORY_SOURCE_FILES;
   var provider = new MemorySourceFileProvider();
   var handler = new FormattingDiagnosticHandler(provider);
 
@@ -86,7 +59,7 @@ const lazy = const DeferredLibrary('deferred');
 
 main() {
   lazy.load().then((_) {
-    Expect.equals(42, new MyClass().foo(87));
+    if (42 != new MyClass().foo(87)) throw "not equal";
   });
 }
 

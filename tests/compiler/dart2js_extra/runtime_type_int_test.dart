@@ -5,6 +5,8 @@
 // Test that in dart2js, the constant system matches the runtime
 // handling of numbers.
 
+import "package:expect/expect.dart";
+
 main() {
   var x = 10000000000000000;
   var y = [x][0];

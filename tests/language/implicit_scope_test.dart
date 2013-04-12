@@ -4,6 +4,8 @@
 // Test that if, while etc create an implicit scope if the body
 // is not a compound statement.
 
+import "package:expect/expect.dart";
+
 class ImplicitScopeTest {
   static bool alwaysTrue() {
     return 1 + 1 == 2;

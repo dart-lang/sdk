@@ -33,6 +33,12 @@ typedef void TestCaseEvent(TestCase testCase);
 typedef void ExitCodeEvent(int exitCode);
 typedef void EnqueueMoreWork(ProcessQueue queue);
 
+// Some IO tests use these variables and get confused if the host environment
+// variables are inherited so they are excluded.
+const List<String> EXCLUDED_ENVIRONMENT_VARIABLES =
+    const ['http_proxy', 'https_proxy', 'no_proxy',
+           'HTTP_PROXY', 'HTTPS_PROXY', 'NO_PROXY'];
+
 
 /**
  * [areByteArraysEqual] compares a range of bytes from [buffer1] with a
@@ -161,7 +167,7 @@ class CompilationCommand extends Command {
             var dependencyLastModified =
                 TestUtils.lastModifiedCache.getLastModified(dependency);
             if (dependencyLastModified == null ||
-                dependencyLastModified > jsOutputLastModified) {
+                dependencyLastModified.isAfter(jsOutputLastModified)) {
               return false;
             }
           }
@@ -275,8 +281,9 @@ class TestCase {
     // PREFIX EXECUTABLE SUFFIX ARGUMENTS
     var specialCommand = configuration['special-command'];
     if (!specialCommand.isEmpty) {
-      Expect.isTrue(specialCommand.contains('@'),
-                    "special-command must contain a '@' char");
+      if (!specialCommand.contains('@')) {
+        throw new FormatException("special-command must contain a '@' char");
+      }
       var specialCommandSplit = specialCommand.split('@');
       var prefix = specialCommandSplit[0].trim();
       var suffix = specialCommandSplit[1].trim();
@@ -393,8 +400,7 @@ class BrowserTestCase extends TestCase {
 
   List<String> get batchRunnerArguments => [_lastArguments[0], '--batch'];
 
-  List<String> get batchTestArguments =>
-      _lastArguments.getRange(1, _lastArguments.length - 1);
+  List<String> get batchTestArguments => _lastArguments.sublist(1);
 
   /** Add a test case to listen for when this current test has completed. */
   void addObserver(BrowserTestCase testCase) {
@@ -810,7 +816,7 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
 
   bool _didMultitestFail(List errors, List staticWarnings) {
     Set<String> outcome = testCase.info.multitestOutcome;
-    Expect.isNotNull(outcome);
+    if (outcome == null) throw "outcome must not be null";
     if (outcome.contains('compile-time error') && errors.length > 0) {
       return true;
     } else if (outcome.contains('static type warning')
@@ -943,7 +949,9 @@ class RunningProcess {
   RunningProcess(TestCase this.testCase, Command this.command);
 
   Future<CommandOutput> start() {
-    Expect.isFalse(testCase.expectedOutcomes.contains(SKIP));
+    if (testCase.expectedOutcomes.contains(SKIP)) {
+      throw "testCase.expectedOutcomes must not contain 'SKIP'.";
+    }
 
     completer = new Completer<CommandOutput>();
     startTime = new DateTime.now();
@@ -1020,6 +1028,11 @@ class RunningProcess {
     options.environment = new Map<String, String>.from(baseEnvironment);
     options.environment['DART_CONFIGURATION'] =
         TestUtils.configurationDir(testCase.configuration);
+
+    for (var excludedEnvironmentVariable in EXCLUDED_ENVIRONMENT_VARIABLES) {
+      options.environment.remove(excludedEnvironmentVariable);
+    }
+
     return options;
   }
 }
@@ -1055,7 +1068,7 @@ class BatchRunnerProcess {
   bool get active => _currentTest != null;
 
   void startTest(TestCase testCase) {
-    Expect.isNull(_currentTest);
+    if (_currentTest != null) throw "_currentTest must be null.";
     _currentTest = testCase;
     _command = testCase.commands.last;
     if (_process == null) {
@@ -1413,7 +1426,7 @@ class ProcessQueue {
 
   void _runTest(TestCase test) {
     if (test.usesWebDriver) {
-      browserUsed = test.configuration['browser'];
+      browserUsed = test.configuration['runtime'];
       if (_needsSelenium) _ensureSeleniumServerRunning();
     }
     eventTestAdded(test);
@@ -1652,7 +1665,9 @@ class ProcessQueue {
 
     var nextCommandIndex = testCase.commandOutputs.keys.length;
     var numberOfCommands = testCase.commands.length;
-    Expect.isTrue(nextCommandIndex < numberOfCommands);
+    if (nextCommandIndex >= numberOfCommands) {
+      throw "nextCommandIndex must be less than numberOfCommands";
+    }
     var command = testCase.commands[nextCommandIndex];
     var isLastCommand = nextCommandIndex == (numberOfCommands - 1);
 

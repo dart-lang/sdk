@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing increment operator.
 
+import "package:expect/expect.dart";
+
 class A {
   static var yy;
   static set y(v) {

@@ -43,7 +43,7 @@ IterableUtf8Decoder decodeUtf8AsIterable(List<int> bytes, [int offset = 0,
  */
 String decodeUtf8(List<int> bytes, [int offset = 0, int length,
     int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) {
-  return codepointsToString(
+  return new String.fromCharCodes(
       (new Utf8Decoder(bytes, offset, length, replacementCodepoint))
       .decodeRest());
 }

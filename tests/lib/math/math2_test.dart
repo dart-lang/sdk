@@ -6,6 +6,7 @@
 // class. This can easily be simplified once we get rid of the Math
 // class entirely.
 library math_test;
+import "package:expect/expect.dart";
 import 'dart:math' as math;
 
 class MathLibraryTest {

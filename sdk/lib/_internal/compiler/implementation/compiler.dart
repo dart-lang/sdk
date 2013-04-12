@@ -16,16 +16,6 @@ const bool REPORT_EXCESS_RESOLUTION = false;
 const bool DUMP_INFERRED_TYPES = false;
 
 /**
- * A string to identify the revision or build.
- *
- * This ID is displayed if the compiler crashes and in verbose mode, and is
- * an aid in reproducing bug reports.
- *
- * The actual string is rewritten during the SDK build process.
- */
-const String BUILD_ID = 'build number could not be determined';
-
-/**
  * Contains backend-specific data that is used throughout the compilation of
  * one work item.
  */
@@ -85,6 +75,15 @@ class CodegenWorkItem extends WorkItem {
   }
 }
 
+typedef void PostProcessAction();
+
+class PostProcessTask {
+  final Element element;
+  final PostProcessAction action;
+
+  PostProcessTask(this.element, this.action);
+}
+
 class ReadingFilesTask extends CompilerTask {
   ReadingFilesTask(Compiler compiler) : super(compiler);
   String get name => 'Reading input files';
@@ -139,7 +138,8 @@ abstract class Backend {
                                  TreeElements elements) {}
   void registerStringInterpolation(TreeElements elements) {}
   void registerCatchStatement(TreeElements elements) {}
-  void registerThrow(TreeElements elements) {}
+  void registerWrapException(TreeElements elements) {}
+  void registerThrowExpression(TreeElements elements) {}
   void registerLazyField(TreeElements elements) {}
   void registerTypeVariableExpression(TreeElements elements) {}
   void registerTypeLiteral(TreeElements elements) {}
@@ -364,6 +364,7 @@ abstract class Compiler implements DiagnosticListener {
   EnqueueTask enqueuer;
   CompilerTask fileReadingTask;
   DeferredLoadTask deferredLoadTask;
+  String buildId;
 
   static const SourceString MAIN = const SourceString('main');
   static const SourceString CALL_OPERATOR_NAME = const SourceString('call');
@@ -375,6 +376,14 @@ abstract class Compiler implements DiagnosticListener {
   static const SourceString RUNTIME_TYPE = const SourceString('runtimeType');
   static const SourceString START_ROOT_ISOLATE =
       const SourceString('startRootIsolate');
+
+  final Selector iteratorSelector =
+      new Selector.getter(const SourceString('iterator'), null);
+  final Selector currentSelector =
+      new Selector.getter(const SourceString('current'), null);
+  final Selector moveNextSelector =
+      new Selector.call(const SourceString('moveNext'), null, 0);
+
   bool enabledNoSuchMethod = false;
   bool enabledRuntimeType = false;
   bool enabledFunctionApply = false;
@@ -409,6 +418,7 @@ abstract class Compiler implements DiagnosticListener {
             bool checkDeprecationInSdk: false,
             bool preserveComments: false,
             bool verbose: false,
+            String this.buildId: "build number could not be determined",
             outputProvider,
             List<String> strips: const []})
       : tracer = tracer,
@@ -508,7 +518,7 @@ abstract class Compiler implements DiagnosticListener {
   }
 
   void pleaseReportCrash() {
-    print(MessageKind.PLEASE_REPORT_THE_CRASH.message({'buildId': BUILD_ID}));
+    print(MessageKind.PLEASE_REPORT_THE_CRASH.message({'buildId': buildId}));
   }
 
   void cancel(String reason, {Node node, Token token,
@@ -715,15 +725,15 @@ abstract class Compiler implements DiagnosticListener {
     scanBuiltinLibraries();
     if (librariesToAnalyzeWhenRun != null) {
       for (Uri libraryUri in librariesToAnalyzeWhenRun) {
-        log('analyzing $libraryUri ($BUILD_ID)');
+        log('analyzing $libraryUri ($buildId)');
         libraryLoader.loadLibrary(libraryUri, null, libraryUri);
       }
     }
     if (uri != null) {
       if (analyzeOnly) {
-        log('analyzing $uri ($BUILD_ID)');
+        log('analyzing $uri ($buildId)');
       } else {
-        log('compiling $uri ($BUILD_ID)');
+        log('compiling $uri ($buildId)');
       }
       mainApp = libraryLoader.loadLibrary(uri, null, uri);
     }
@@ -835,6 +845,9 @@ abstract class Compiler implements DiagnosticListener {
       withCurrentElement(work.element, () => work.run(this, world));
     });
     world.queueIsClosed = true;
+    world.forEachPostProcessTask((PostProcessTask work) {
+      withCurrentElement(work.element, () => work.action());
+    });
     if (compilationFailed) return;
     assert(world.checkNoEnqueuedInvokedInstanceMethods());
     if (DUMP_INFERRED_TYPES && phase == PHASE_COMPILING) {
@@ -1239,13 +1252,16 @@ class SourceSpan {
  * [spannable] must be non-null and will be used to provide positional
  * information in the generated error message.
  */
-bool invariant(Spannable spannable, var condition, {String message: null}) {
+bool invariant(Spannable spannable, var condition, {var message: null}) {
   // TODO(johnniwinther): Use [spannable] and [message] to provide better
   // information on assertion errors.
   if (condition is Function){
     condition = condition();
   }
   if (spannable == null || !condition) {
+    if (message is Function) {
+      message = message();
+    }
     throw new SpannableAssertionFailure(spannable, message);
   }
   return true;

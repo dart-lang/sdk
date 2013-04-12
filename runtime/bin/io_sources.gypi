@@ -11,7 +11,6 @@
     'file_patch.dart',
     'file_system_entity_patch.dart',
     'filter_patch.dart',
-    'http_patch.dart',
     'platform_patch.dart',
     'process_patch.dart',
     'socket_patch.dart',

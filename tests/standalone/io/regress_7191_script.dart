@@ -17,9 +17,8 @@ main() {
       p.stderr.listen((_) { });
       // When receiving data again, kill sub-process and exit.
       subscription.onData((data) {
-        Expect.listEquals([0], data);
         p.kill();
-        p.exitCode.then(exit);
+        p.exitCode.then((_) => exit(0));
       });
       // Close stdout. If handles are incorrectly inherited this will
       // not actually close stdout and the test will hang.

@@ -26,6 +26,15 @@ main() {
       predicate((x) => x is InputElement, 'is an InputElement');
 
   group('functional', () {
+    test('toString', () {
+      final nodes = makeNodeWithChildren();
+      // TODO(efortuna): Update this test when you have actual toString methods
+      // for the items in the node List as well.
+      expect(nodes.nodes.toString(), "[Foo, br, baz]");
+      final node = makeNode();
+      expect(node.nodes.toString(), '[]');
+    });
+
     test('replaceWith', () {
       final node = makeNodeWithChildren();
       final subnode = node.nodes[1];

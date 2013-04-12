@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Bug: 4254106 Constant constructors must have (implicit) const parameters.
 
+import "package:expect/expect.dart";
+
 class ConstCounter {
   // Incorrect assignment of a non const function to a final field.
   const ConstCounter(int i) : nextValue_ = (() => i++);

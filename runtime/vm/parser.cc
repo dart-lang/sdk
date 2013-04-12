@@ -3071,14 +3071,19 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
         ErrorMsg(member.name_pos, "factory name must be '%s'",
                  members->class_name().ToCString());
       }
+      // Do not bypass class resolution by using current_class() directly, since
+      // it may be a patch class.
       const Object& result_type_class = Object::Handle(
           UnresolvedClass::New(LibraryPrefix::Handle(),
                                *member.name,
                                member.name_pos));
-      // The type arguments of the result type are set during finalization.
-      member.type = &Type::ZoneHandle(Type::New(result_type_class,
-                                                TypeArguments::Handle(),
-                                                member.name_pos));
+      // The type arguments of the result type are the type parameters of the
+      // current class. Note that in the case of a patch class, they are copied
+      // from the class being patched.
+      member.type = &Type::ZoneHandle(Type::New(
+          result_type_class,
+          TypeArguments::Handle(current_class().type_parameters()),
+          member.name_pos));
     } else if (member.has_static) {
       ErrorMsg(member.name_pos, "constructor cannot be static");
     }
@@ -3235,10 +3240,11 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
       // Preserve and reuse the original type parameters and bounds since the
       // ones defined in the patch class will not be finalized.
       orig_type_parameters = cls.type_parameters();
-      String& patch = String::Handle(
-          String::Concat(Symbols::PatchSpace(), class_name));
-      patch = Symbols::New(patch);
-      cls = Class::New(patch, script_, classname_pos);
+      // A patch class must be given the same name as the class it is patching,
+      // otherwise the generic signature classes it defines will not match the
+      // patched generic signature classes. Therefore, new signature classes
+      // will be introduced and the original ones will not get finalized.
+      cls = Class::New(class_name, script_, classname_pos);
       cls.set_library(library_);
     } else {
       // Not patching a class, but it has been found. This must be one of the
@@ -3300,6 +3306,11 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
                "class '%s' may not extend type parameter '%s'",
                class_name.ToCString(),
                String::Handle(super_type.UserVisibleName()).ToCString());
+    }
+    if (super_type.IsDynamicType()) {
+      ErrorMsg(type_pos,
+               "class '%s' may not extend 'dynamic'",
+               class_name.ToCString());
     }
     if (CurrentToken() == Token::kWITH) {
       super_type = ParseMixins(super_type);
@@ -3841,6 +3852,9 @@ void Parser::ParseInterfaceList(const Class& cls) {
       ErrorMsg(interface_pos,
                "type parameter '%s' may not be used in interface list",
                String::Handle(interface.UserVisibleName()).ToCString());
+    }
+    if (interface.IsDynamicType()) {
+      ErrorMsg(interface_pos, "'dynamic' may not be used in interface list");
     }
     all_interfaces.Add(interface);
   } while (CurrentToken() == Token::kCOMMA);

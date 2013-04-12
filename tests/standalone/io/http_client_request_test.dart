@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "package:expect/expect.dart";
 import "dart:io";
 import "dart:isolate";
 import "dart:typeddata";
@@ -28,17 +29,18 @@ void testClientRequest(void handler(request)) {
       .catchError((error) {
         server.close();
         client.close();
-      }, test: (e) => e is HttpParserException);
+      });
   });
 }
 
 void testResponseDone() {
   testClientRequest((request) {
-    request.close();
-    request.done.then((req) {
-      Expect.equals(request, req);
+    request.close().then((res1) {
+      request.done.then((res2) {
+        Expect.equals(res1, res2);
+      });
     });
-    return request.response;
+    return request.done;
   });
 }
 
@@ -46,37 +48,37 @@ void testBadResponseAdd() {
   testClientRequest((request) {
     var port = new ReceivePort();
     request.contentLength = 0;
-    request.writeBytes([0]);
+    request.add([0]);
     request.close();
     request.done.catchError((error) {
       port.close();
     }, test: (e) => e is HttpException);
-    return request.response;
+    return request.done;
   });
 
   testClientRequest((request) {
     var port = new ReceivePort();
     request.contentLength = 5;
-    request.writeBytes([0, 0, 0]);
-    request.writeBytes([0, 0, 0]);
+    request.add([0, 0, 0]);
+    request.add([0, 0, 0]);
     request.close();
     request.done.catchError((error) {
       port.close();
     }, test: (e) => e is HttpException);
-    return request.response;
+    return request.done;
   });
 
   testClientRequest((request) {
     var port = new ReceivePort();
     request.contentLength = 0;
-    request.writeBytes(new Uint8List(64 * 1024));
-    request.writeBytes(new Uint8List(64 * 1024));
-    request.writeBytes(new Uint8List(64 * 1024));
+    request.add(new Uint8List(64 * 1024));
+    request.add(new Uint8List(64 * 1024));
+    request.add(new Uint8List(64 * 1024));
     request.close();
     request.done.catchError((error) {
       port.close();
     }, test: (e) => e is HttpException);
-    return request.response;
+    return request.done;
   });
 }
 
@@ -88,18 +90,18 @@ void testBadResponseClose() {
     request.done.catchError((error) {
       port.close();
     }, test: (e) => e is HttpException);
-    return request.response;
+    return request.done;
   });
 
   testClientRequest((request) {
     var port = new ReceivePort();
     request.contentLength = 5;
-    request.writeBytes([0]);
+    request.add([0]);
     request.close();
     request.done.catchError((error) {
       port.close();
     }, test: (e) => e is HttpException);
-    return request.response;
+    return request.done;
   });
 }
 

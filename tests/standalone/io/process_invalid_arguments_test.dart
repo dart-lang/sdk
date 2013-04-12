@@ -4,6 +4,7 @@
 //
 // Process test program to test that invalid arguments throw exceptions.
 
+import "package:expect/expect.dart";
 import "dart:io";
 
 void main() {

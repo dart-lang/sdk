@@ -21,9 +21,6 @@ namespace dart {
 
 DEFINE_FLAG(bool, array_bounds_check_elimination, true,
     "Eliminate redundant bounds checks.");
-// TODO(srdjan): Enable/remove flag once it works.
-DEFINE_FLAG(bool, inline_getter_with_guarded_cid, false,
-    "Inline implict getter using guarded cid");
 DEFINE_FLAG(bool, load_cse, true, "Use redundant load elimination.");
 DEFINE_FLAG(int, max_polymorphic_checks, 4,
     "Maximum number of polymorphic check, otherwise it is megamorphic.");
@@ -348,7 +345,7 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
     converted = new UnboxDoubleInstr(new Value(boxed), deopt_id);
 
   } else if ((from == kUnboxedDouble) && (to == kTagged)) {
-    converted = new BoxDoubleInstr(use->CopyWithType(), NULL);
+    converted = new BoxDoubleInstr(use->CopyWithType());
 
   } else if ((from == kTagged) && (to == kUnboxedDouble)) {
     ASSERT((deopt_target != NULL) ||
@@ -366,6 +363,14 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
     } else {
       converted = new UnboxDoubleInstr(use->CopyWithType(), deopt_id);
     }
+  } else if ((from == kTagged) && (to == kUnboxedFloat32x4)) {
+    ASSERT((deopt_target != NULL) ||
+           (use->Type()->ToCid() == kFloat32x4Cid));
+    const intptr_t deopt_id = (deopt_target != NULL) ?
+        deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
+    converted = new UnboxFloat32x4Instr(use->CopyWithType(), deopt_id);
+  } else if ((from == kUnboxedFloat32x4) && (to == kTagged)) {
+    converted = new BoxFloat32x4Instr(use->CopyWithType());
   }
   ASSERT(converted != NULL);
   use->BindTo(converted);
@@ -766,6 +771,15 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
       }
       break;
     }
+    case kTypedDataFloat32x4ArrayCid: {
+      // Check that value is always a Float32x4.
+      value_check = call->ic_data()->AsUnaryClassChecksForArgNr(2);
+      if ((value_check.NumberOfChecks() != 1) ||
+          (value_check.GetReceiverClassIdAt(0) != kFloat32x4Cid)) {
+          return false;
+      }
+    }
+    break;
     default:
       // TODO(fschneider): Add support for other array types.
       return false;
@@ -827,6 +841,13 @@ void FlowGraphOptimizer::BuildStoreIndexed(InstanceCallInstr* call,
         ASSERT(value_type.IsInstantiated());
         break;
       }
+      case kTypedDataFloat32x4ArrayCid: {
+        type_args = instantiator = flow_graph_->constant_null();
+        ASSERT((class_id != kTypedDataFloat32x4ArrayCid) ||
+               value_type.IsFloat32x4Type());
+        ASSERT(value_type.IsInstantiated());
+        break;
+      }
       default:
         // TODO(fschneider): Add support for other array types.
         UNREACHABLE();
@@ -853,8 +874,8 @@ void FlowGraphOptimizer::BuildStoreIndexed(InstanceCallInstr* call,
        RawObject::IsExternalTypedDataClassId(array_cid)) ? kNoStoreBarrier
                                                          : kEmitStoreBarrier;
   if (!value_check.IsNull()) {
-    // No store barrier needed because checked value is a smi, an unboxed mint
-    // or unboxed double.
+    // No store barrier needed because checked value is a smi, an unboxed mint,
+    // an unboxed double, an unboxed Float32x4, or unboxed Uint32x4.
     needs_store_barrier = kNoStoreBarrier;
     AddCheckClass(stored_value, value_check, call->deopt_id(), call->env(),
                   call);
@@ -883,6 +904,7 @@ bool FlowGraphOptimizer::TryReplaceWithLoadIndexed(InstanceCallInstr* call) {
     case kGrowableObjectArrayCid:
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
+    case kTypedDataFloat32x4ArrayCid:
     case kTypedDataInt8ArrayCid:
     case kTypedDataUint8ArrayCid:
     case kTypedDataUint8ClampedArrayCid:
@@ -1177,6 +1199,20 @@ bool FlowGraphOptimizer::MethodExtractorNeedsClassCheck(
 }
 
 
+void FlowGraphOptimizer::AddToGuardedFields(Field* field) {
+  if ((field->guarded_cid() == kDynamicCid) ||
+      (field->guarded_cid() == kIllegalCid)) {
+    return;
+  }
+  for (intptr_t j = 0; j < guarded_fields_->length(); j++) {
+    if ((*guarded_fields_)[j]->raw() == field->raw()) {
+      return;
+    }
+  }
+  guarded_fields_->Add(field);
+}
+
+
 void FlowGraphOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
   const ICData& ic_data = *call->ic_data();
@@ -1202,7 +1238,9 @@ void FlowGraphOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
     if (!field.is_nullable() || (field.guarded_cid() == kNullCid)) {
       load->set_result_cid(field.guarded_cid());
     }
-    load->set_field(&Field::ZoneHandle(field.raw()));
+    Field* the_field = &Field::ZoneHandle(field.raw());
+    load->set_field(the_field);
+    AddToGuardedFields(the_field);
   }
   load->set_field_name(String::Handle(field.name()).ToCString());
 
@@ -1211,14 +1249,12 @@ void FlowGraphOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
   call->RemoveEnvironment();
   ReplaceCall(call, load);
 
-  if (FLAG_inline_getter_with_guarded_cid) {
-    if (load->result_cid() != kDynamicCid) {
-      // Reset value types if guarded_cid was used.
-      for (Value::Iterator it(load->input_use_list());
-           !it.Done();
-           it.Advance()) {
-        it.Current()->SetReachingType(NULL);
-      }
+  if (load->result_cid() != kDynamicCid) {
+    // Reset value types if guarded_cid was used.
+    for (Value::Iterator it(load->input_use_list());
+         !it.Done();
+         it.Advance()) {
+      it.Current()->SetReachingType(NULL);
     }
   }
 }
@@ -1459,6 +1495,7 @@ static bool IsSupportedByteArrayViewCid(intptr_t cid) {
     case kTypedDataUint32ArrayCid:
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
+    case kTypedDataFloat32x4ArrayCid:
       return true;
     default:
       return false;
@@ -1592,6 +1629,9 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
       case MethodRecognizer::kByteArrayBaseGetFloat64:
         return BuildByteArrayViewLoad(
             call, class_ids[0], kTypedDataFloat64ArrayCid);
+      case MethodRecognizer::kByteArrayBaseGetFloat32x4:
+        return BuildByteArrayViewLoad(
+            call, class_ids[0], kTypedDataFloat32x4ArrayCid);
 
       // ByteArray setters.
       case MethodRecognizer::kByteArrayBaseSetInt8:
@@ -1618,6 +1658,9 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
       case MethodRecognizer::kByteArrayBaseSetFloat64:
         return BuildByteArrayViewStore(
             call, class_ids[0], kTypedDataFloat64ArrayCid);
+      case MethodRecognizer::kByteArrayBaseSetFloat32x4:
+        return BuildByteArrayViewStore(
+            call, class_ids[0], kTypedDataFloat32x4ArrayCid);
       default:
         // Unsupported method.
         return false;
@@ -1698,6 +1741,15 @@ bool FlowGraphOptimizer::BuildByteArrayViewStore(
                                 Isolate::kNoDeoptId,
                                 1);
       value_check.AddReceiverCheck(kDoubleCid, Function::Handle());
+      break;
+    }
+    case kTypedDataFloat32x4ArrayCid: {
+      // Check that value is always Float32x4.
+      value_check = ICData::New(Function::Handle(),
+                                String::Handle(),
+                                Isolate::kNoDeoptId,
+                                1);
+      value_check.AddReceiverCheck(kFloat32x4Cid, Function::Handle());
       break;
     }
     default:
@@ -1846,7 +1898,8 @@ void FlowGraphOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
                           new Value(instantiator),
                           new Value(type_args),
                           type,
-                          negate);
+                          negate,
+                          call->deopt_id());
   ReplaceCall(call, instance_of);
 }
 
@@ -1886,6 +1939,9 @@ void FlowGraphOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
                                 new Value(type_args),
                                 type,
                                 dst_name);
+  // Newly inserted instructions that can deoptimize or throw an exception
+  // must have a deoptimization id that is valid for lookup in the unoptimized
+  // code.
   assert_as->deopt_id_ = call->deopt_id();
   ReplaceCall(call, assert_as);
 }
@@ -3919,6 +3975,39 @@ void ConstantPropagator::VisitStoreLocal(StoreLocalInstr* instr) {
 }
 
 
+void ConstantPropagator::VisitIfThenElse(IfThenElseInstr* instr) {
+  ASSERT(Token::IsEqualityOperator(instr->kind()));
+
+  const Object& left = instr->left()->definition()->constant_value();
+  const Object& right = instr->right()->definition()->constant_value();
+
+  if (IsNonConstant(left) || IsNonConstant(right)) {
+    // TODO(vegorov): incorporate nullability information into the lattice.
+    if ((left.IsNull() && instr->right()->Type()->HasDecidableNullability()) ||
+        (right.IsNull() && instr->left()->Type()->HasDecidableNullability())) {
+      bool result = left.IsNull() ? instr->right()->Type()->IsNull()
+                                  : instr->left()->Type()->IsNull();
+      if (instr->kind() == Token::kNE_STRICT ||
+          instr->kind() == Token::kNE) {
+        result = !result;
+      }
+      SetValue(instr, Smi::Handle(
+          Smi::New(result ? instr->if_true() : instr->if_false())));
+    } else {
+      SetValue(instr, non_constant_);
+    }
+  } else if (IsConstant(left) && IsConstant(right)) {
+    bool result = (left.raw() == right.raw());
+    if (instr->kind() == Token::kNE_STRICT ||
+        instr->kind() == Token::kNE) {
+      result = !result;
+    }
+    SetValue(instr, Smi::Handle(
+        Smi::New(result ? instr->if_true() : instr->if_false())));
+  }
+}
+
+
 void ConstantPropagator::VisitStrictCompare(StrictCompareInstr* instr) {
   const Object& left = instr->left()->definition()->constant_value();
   const Object& right = instr->right()->definition()->constant_value();
@@ -4343,6 +4432,28 @@ void ConstantPropagator::VisitBoxDouble(BoxDoubleInstr* instr) {
 }
 
 
+void ConstantPropagator::VisitUnboxFloat32x4(UnboxFloat32x4Instr* instr) {
+  const Object& value = instr->value()->definition()->constant_value();
+  if (IsNonConstant(value)) {
+    SetValue(instr, non_constant_);
+  } else if (IsConstant(value)) {
+    // TODO(kmillikin): Handle conversion.
+    SetValue(instr, non_constant_);
+  }
+}
+
+
+void ConstantPropagator::VisitBoxFloat32x4(BoxFloat32x4Instr* instr) {
+  const Object& value = instr->value()->definition()->constant_value();
+  if (IsNonConstant(value)) {
+    SetValue(instr, non_constant_);
+  } else if (IsConstant(value)) {
+    // TODO(kmillikin): Handle conversion.
+    SetValue(instr, non_constant_);
+  }
+}
+
+
 void ConstantPropagator::Analyze() {
   GraphEntryInstr* entry = graph_->graph_entry();
   reachable_->Add(entry->preorder_number());
@@ -4428,6 +4539,7 @@ void ConstantPropagator::Transform() {
           it.Current()->UnuseAllInputs();
         }
       }
+      block->UnuseAllInputs();
       for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
         it.Current()->UnuseAllInputs();
       }
@@ -4520,11 +4632,15 @@ void ConstantPropagator::Transform() {
         ASSERT(if_false->parallel_move() == NULL);
         ASSERT(if_false->loop_info() == NULL);
         join = new JoinEntryInstr(if_false->block_id(), if_false->try_index());
+        join->InheritDeoptTarget(if_false);
+        if_false->UnuseAllInputs();
         next = if_false->next();
       } else if (!reachable_->Contains(if_false->preorder_number())) {
         ASSERT(if_true->parallel_move() == NULL);
         ASSERT(if_true->loop_info() == NULL);
         join = new JoinEntryInstr(if_true->block_id(), if_true->try_index());
+        join->InheritDeoptTarget(if_true);
+        if_true->UnuseAllInputs();
         next = if_true->next();
       }
 
@@ -4534,9 +4650,12 @@ void ConstantPropagator::Transform() {
         // as it is a strict compare (the only one we can determine is
         // constant with the current analysis).
         GotoInstr* jump = new GotoInstr(join);
+        jump->InheritDeoptTarget(branch);
+
         Instruction* previous = branch->previous();
         branch->set_previous(NULL);
         previous->LinkTo(jump);
+
         // Replace the false target entry with the new join entry. We will
         // recompute the dominators after this pass.
         join->LinkTo(next);
@@ -4554,6 +4673,28 @@ void ConstantPropagator::Transform() {
     FlowGraphPrinter printer(*graph_);
     printer.PrintBlocks();
   }
+}
+
+
+// Returns true if the given phi has a single input use and
+// is used in the environments either at the corresponding block entry or
+// at the same instruction where input use is.
+static bool PhiHasSingleUse(PhiInstr* phi, Value* use) {
+  if ((use->next_use() != NULL) || (phi->input_use_list() != use)) {
+    return false;
+  }
+
+  BlockEntryInstr* block = phi->block();
+  for (Value* env_use = phi->env_use_list();
+       env_use != NULL;
+       env_use = env_use->next_use()) {
+    if ((env_use->instruction() != block) &&
+        (env_use->instruction() != use->instruction())) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 
@@ -4578,7 +4719,7 @@ bool BranchSimplifier::Match(JoinEntryInstr* block) {
   return (phi != NULL) &&
       (constant != NULL) &&
       (phi->GetBlock() == block) &&
-      phi->HasOnlyUse(left) &&
+      PhiHasSingleUse(phi, left) &&
       constant->HasOnlyUse(right) &&
       (block->next() == constant) &&
       (constant->next() == branch) &&
@@ -4592,8 +4733,10 @@ JoinEntryInstr* BranchSimplifier::ToJoinEntry(TargetEntryInstr* target) {
   // from all the duplicated branches.
   JoinEntryInstr* join =
       new JoinEntryInstr(target->block_id(), target->try_index());
+  join->InheritDeoptTarget(target);
   join->LinkTo(target->next());
   join->set_last_instruction(target->last_instruction());
+  target->UnuseAllInputs();
   return join;
 }
 
@@ -4614,18 +4757,24 @@ BranchInstr* BranchSimplifier::CloneBranch(BranchInstr* branch,
   if (comparison->IsStrictCompare()) {
     new_comparison = new StrictCompareInstr(comparison->kind(), left, right);
   } else if (comparison->IsEqualityCompare()) {
-    new_comparison =
-        new EqualityCompareInstr(comparison->AsEqualityCompare()->token_pos(),
+    EqualityCompareInstr* equality_compare = comparison->AsEqualityCompare();
+    EqualityCompareInstr* new_equality_compare =
+        new EqualityCompareInstr(equality_compare->token_pos(),
                                  comparison->kind(),
                                  left,
                                  right);
+    new_equality_compare->set_ic_data(equality_compare->ic_data());
+    new_comparison = new_equality_compare;
   } else {
     ASSERT(comparison->IsRelationalOp());
-    new_comparison =
-        new RelationalOpInstr(comparison->AsRelationalOp()->token_pos(),
+    RelationalOpInstr* relational_op = comparison->AsRelationalOp();
+    RelationalOpInstr* new_relational_op =
+        new RelationalOpInstr(relational_op->token_pos(),
                               comparison->kind(),
                               left,
                               right);
+    new_relational_op->set_ic_data(relational_op->ic_data());
+    new_comparison = new_relational_op;
   }
   return new BranchInstr(new_comparison, branch->is_checked());
 }
@@ -4694,6 +4843,7 @@ void BranchSimplifier::Simplify(FlowGraph* flow_graph) {
         Value* new_left = phi->InputAt(i)->Copy();
         Value* new_right = new Value(new_constant);
         BranchInstr* new_branch = CloneBranch(branch, new_left, new_right);
+        new_branch->InheritDeoptTarget(old_goto);
         new_branch->InsertBefore(old_goto);
         new_branch->set_next(NULL);  // Detaching the goto from the graph.
         old_goto->UnuseAllInputs();
@@ -4709,16 +4859,20 @@ void BranchSimplifier::Simplify(FlowGraph* flow_graph) {
         TargetEntryInstr* true_target =
             new TargetEntryInstr(flow_graph->max_block_id() + 1,
                                  block->try_index());
+        true_target->InheritDeoptTarget(join_true);
         TargetEntryInstr* false_target =
             new TargetEntryInstr(flow_graph->max_block_id() + 2,
                                  block->try_index());
+        false_target->InheritDeoptTarget(join_false);
         flow_graph->set_max_block_id(flow_graph->max_block_id() + 2);
         *new_branch->true_successor_address() = true_target;
         *new_branch->false_successor_address() = false_target;
         GotoInstr* goto_true = new GotoInstr(join_true);
+        goto_true->InheritDeoptTarget(join_true);
         true_target->LinkTo(goto_true);
         true_target->set_last_instruction(goto_true);
         GotoInstr* goto_false = new GotoInstr(join_false);
+        goto_false->InheritDeoptTarget(join_false);
         false_target->LinkTo(goto_false);
         false_target->set_last_instruction(goto_false);
       }
@@ -4726,6 +4880,136 @@ void BranchSimplifier::Simplify(FlowGraph* flow_graph) {
       // unreachable from the graph.
       phi->UnuseAllInputs();
       branch->UnuseAllInputs();
+      block->UnuseAllInputs();
+    }
+  }
+
+  if (changed) {
+    // We may have changed the block order and the dominator tree.
+    flow_graph->DiscoverBlocks();
+    GrowableArray<BitVector*> dominance_frontier;
+    flow_graph->ComputeDominators(&dominance_frontier);
+  }
+}
+
+
+static bool IsTrivialBlock(BlockEntryInstr* block, Definition* defn) {
+  return (block->IsTargetEntry() && (block->PredecessorCount() == 1)) &&
+    ((block->next() == block->last_instruction()) ||
+     ((block->next() == defn) && (defn->next() == block->last_instruction())));
+}
+
+
+static void EliminateTrivialBlock(BlockEntryInstr* block,
+                                  Definition* instr,
+                                  IfThenElseInstr* before) {
+  block->UnuseAllInputs();
+  block->last_instruction()->UnuseAllInputs();
+
+  if ((block->next() == instr) &&
+      (instr->next() == block->last_instruction())) {
+    before->previous()->LinkTo(instr);
+    instr->LinkTo(before);
+  }
+}
+
+
+void IfConverter::Simplify(FlowGraph* flow_graph) {
+  if (!IfThenElseInstr::IsSupported()) {
+    return;
+  }
+
+  bool changed = false;
+
+  const GrowableArray<BlockEntryInstr*>& postorder = flow_graph->postorder();
+  for (BlockIterator it(postorder); !it.Done(); it.Advance()) {
+    BlockEntryInstr* block = it.Current();
+    JoinEntryInstr* join = block->AsJoinEntry();
+
+    // Detect diamond control flow pattern which materializes a value depending
+    // on the result of the comparison:
+    //
+    // B_pred:
+    //   ...
+    //   Branch if COMP goto (B_pred1, B_pred2)
+    // B_pred1: -- trivial block that contains at most one definition
+    //   v1 = Constant(...)
+    //   goto B_block
+    // B_pred2: -- trivial block that contains at most one definition
+    //   v2 = Constant(...)
+    //   goto B_block
+    // B_block:
+    //   v3 = phi(v1, v2) -- single phi
+    //
+    // and replace it with
+    //
+    // Ba:
+    //   v3 = IfThenElse(COMP ? v1 : v2)
+    //
+    if ((join != NULL) &&
+        (join->phis() != NULL) &&
+        (join->phis()->length() == 1) &&
+        (block->PredecessorCount() == 2)) {
+      BlockEntryInstr* pred1 = block->PredecessorAt(0);
+      BlockEntryInstr* pred2 = block->PredecessorAt(1);
+
+      PhiInstr* phi = (*join->phis())[0];
+      Value* v1 = phi->InputAt(0);
+      Value* v2 = phi->InputAt(1);
+
+      if (IsTrivialBlock(pred1, v1->definition()) &&
+          IsTrivialBlock(pred2, v2->definition()) &&
+          (pred1->PredecessorAt(0) == pred2->PredecessorAt(0))) {
+        BlockEntryInstr* pred = pred1->PredecessorAt(0);
+        BranchInstr* branch = pred->last_instruction()->AsBranch();
+        ComparisonInstr* comparison = branch->comparison();
+
+        // Check if the platform supports efficient branchless IfThenElseInstr
+        // for the given combination of comparison and values flowing from
+        // false and true paths.
+        if (IfThenElseInstr::Supports(comparison, v1, v2)) {
+          Value* if_true = (pred1 == branch->true_successor()) ? v1 : v2;
+          Value* if_false = (pred2 == branch->true_successor()) ? v1 : v2;
+
+          IfThenElseInstr* if_then_else = new IfThenElseInstr(
+              comparison->kind(),
+              comparison->InputAt(0)->Copy(),
+              comparison->InputAt(1)->Copy(),
+              if_true->Copy(),
+              if_false->Copy());
+          flow_graph->InsertBefore(branch,
+                                   if_then_else,
+                                   NULL,
+                                   Definition::kValue);
+
+          phi->ReplaceUsesWith(if_then_else);
+
+          // Connect IfThenElseInstr to the first instruction in the merge block
+          // effectively eliminating diamond control flow.
+          // Current block as well as pred1 and pred2 blocks are no longer in
+          // the graph at this point.
+          if_then_else->LinkTo(join->next());
+          pred->set_last_instruction(join->last_instruction());
+
+          // Resulting block must inherit block id from the eliminated current
+          // block to guarantee that ordering of phi operands in its successor
+          // stays consistent.
+          pred->set_block_id(block->block_id());
+
+          // If v1 and v2 were defined inside eliminated blocks pred1/pred2
+          // move them out to the place before inserted IfThenElse instruction.
+          EliminateTrivialBlock(pred1, v1->definition(), if_then_else);
+          EliminateTrivialBlock(pred2, v2->definition(), if_then_else);
+
+          // Update use lists to reflect changes in the graph.
+          phi->UnuseAllInputs();
+          branch->UnuseAllInputs();
+
+          // The graph has changed. Recompute dominators and block orders after
+          // this pass is finished.
+          changed = true;
+        }
+      }
     }
   }
 

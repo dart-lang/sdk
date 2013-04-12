@@ -536,7 +536,7 @@ class Namer implements ClosureNamer {
     return name;
   }
 
-  String getInterceptorSuffix(Collection<ClassElement> classes) {
+  String getInterceptorSuffix(Iterable<ClassElement> classes) {
     String abbreviate(ClassElement cls) {
       if (cls == compiler.objectClass) return "o";
       JavaScriptBackend backend = compiler.backend;
@@ -565,7 +565,7 @@ class Namer implements ClosureNamer {
     return names.join();
   }
 
-  String getInterceptorName(Element element, Collection<ClassElement> classes) {
+  String getInterceptorName(Element element, Iterable<ClassElement> classes) {
     JavaScriptBackend backend = compiler.backend;
     if (classes.contains(backend.jsInterceptorClass)) {
       // If the base Interceptor class is in the set of intercepted classes, we
@@ -578,7 +578,7 @@ class Namer implements ClosureNamer {
   }
 
   String getOneShotInterceptorName(Selector selector,
-                                   Collection<ClassElement> classes) {
+                                   Iterable<ClassElement> classes) {
     JavaScriptBackend backend = compiler.backend;
     // The one-shot name is a global name derived from the invocation name.  To
     // avoid instability we would like the names to be unique and not clash with
@@ -633,6 +633,17 @@ class Namer implements ClosureNamer {
     }
     bailoutNames[element] = name;
     return name;
+  }
+
+  /// Returns the runtime name for [element].  The result is not safe as an id.
+  String getRuntimeTypeName(Element element) {
+    if (element == compiler.intClass) {
+      return 'int';
+    } else if (element == compiler.doubleClass) {
+      return 'double';
+    } else {
+      return getName(element);
+    }
   }
 
   /**
@@ -728,7 +739,7 @@ class Namer implements ClosureNamer {
 
   String operatorIs(Element element) {
     // TODO(erikcorry): Reduce from $isx to ix when we are minifying.
-    return '${operatorIsPrefix()}${getName(element)}';
+    return '${operatorIsPrefix()}${getRuntimeTypeName(element)}';
   }
 
   /*

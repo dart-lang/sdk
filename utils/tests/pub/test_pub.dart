@@ -94,7 +94,7 @@ void serve([List<d.Descriptor> contents]) {
             new ByteStream(stream).toBytes().then((data) {
               response.statusCode = 200;
               response.contentLength = data.length;
-              response.writeBytes(data);
+              response.add(data);
               response.close();
             }).catchError((e) {
               response.statusCode = 404;
@@ -231,6 +231,11 @@ void _integration(String description, void body(), [Function testFn]) {
     if (Platform.operatingSystem == "windows") {
       currentSchedule.timeout = new Duration(seconds: 10);
     }
+
+    // By default, don't capture stack traces since they slow the tests way
+    // down. To debug failing tests, comment this out.
+    currentSchedule.captureStackTraces =
+        new Options().arguments.contains('--trace');
 
     // Ensure the SDK version is always available.
     d.dir(sdkPath, [

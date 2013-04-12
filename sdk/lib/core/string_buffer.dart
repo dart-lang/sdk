@@ -32,7 +32,7 @@ class StringBuffer implements StringSink {
   void writeAll(Iterable objects, [String separator = ""]) {
     Iterator iterator = objects.iterator;
     if (!iterator.moveNext()) return;
-    if (separator == "") {
+    if (separator.isEmpty) {
       do {
         write(iterator.current);
       } while (iterator.moveNext());

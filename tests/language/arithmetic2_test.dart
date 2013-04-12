@@ -4,6 +4,8 @@
 // Dart test program to test arithmetic operations.
 // @static-clean
 
+import "package:expect/expect.dart";
+
 class A {
   static foo() => 499;
 }

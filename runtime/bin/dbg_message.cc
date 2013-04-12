@@ -390,7 +390,8 @@ static const char* FormatListSlice(dart::TextBuffer* buf,
 
 
 static void FormatLocationFromTrace(dart::TextBuffer* msg,
-                                    Dart_StackTrace trace) {
+                                    Dart_StackTrace trace,
+                                    const char* prefix) {
   intptr_t trace_len = 0;
   Dart_Handle res = Dart_StackTraceLength(trace, &trace_len);
   ASSERT_NOT_ERROR(res);
@@ -400,16 +401,21 @@ static void FormatLocationFromTrace(dart::TextBuffer* msg,
   Dart_Handle script_url;
   intptr_t token_number = 0;
   intptr_t line_number = 0;
+  intptr_t library_id = 0;
+  // TODO(hausner): Remove this call and line_number once Editor no
+  // longer depends on line number info.
   res = Dart_ActivationFrameInfo(frame, NULL, NULL, &line_number, NULL);
   ASSERT_NOT_ERROR(res);
-  res = Dart_ActivationFrameGetLocation(frame, &script_url, &token_number);
+  res = Dart_ActivationFrameGetLocation(
+      frame, &script_url, &library_id, &token_number);
   ASSERT_NOT_ERROR(res);
   if (!Dart_IsNull(script_url)) {
     ASSERT(Dart_IsString(script_url));
-    msg->Printf("\"location\": { \"url\":");
+    msg->Printf("%s\"location\": { \"url\":", prefix);
     FormatEncodedString(msg, script_url);
-    msg->Printf(",\"tokenOffset\":%"Pd",", token_number);
-    msg->Printf("\"lineNumber\":%"Pd"},", line_number);
+    msg->Printf(",\"libraryId\":%"Pd",", library_id);
+    msg->Printf("\"tokenOffset\":%"Pd",", token_number);
+    msg->Printf("\"lineNumber\":%"Pd"}", line_number);
   }
 }
 
@@ -435,15 +441,19 @@ static void FormatCallFrames(dart::TextBuffer* msg, Dart_StackTrace trace) {
     ASSERT(Dart_IsString(func_name));
     msg->Printf("%s{\"functionName\":", (i > 0) ? "," : "");
     FormatEncodedString(msg, func_name);
+    // TODO(hausner): Remove this libraryId field when Editor
+    // no longer depends on it.
     msg->Printf(",\"libraryId\": %"Pd",", library_id);
 
-    res = Dart_ActivationFrameGetLocation(frame, &script_url, &token_number);
+    res = Dart_ActivationFrameGetLocation(
+        frame, &script_url, NULL, &token_number);
     ASSERT_NOT_ERROR(res);
     if (!Dart_IsNull(script_url)) {
       ASSERT(Dart_IsString(script_url));
       msg->Printf("\"location\": { \"url\":");
       FormatEncodedString(msg, script_url);
-      msg->Printf(",\"tokenOffset\":%"Pd",", token_number);
+      msg->Printf(",\"libraryId\": %"Pd",", library_id);
+      msg->Printf("\"tokenOffset\":%"Pd",", token_number);
       msg->Printf("\"lineNumber\":%"Pd"},", line_number);
     }
 
@@ -479,6 +489,7 @@ static JSONDebuggerCommand debugger_commands[] = {
   { "getGlobalVariables", DbgMessage::HandleGetGlobalsCmd },
   { "getScriptURLs", DbgMessage::HandleGetScriptURLsCmd },
   { "getScriptSource", DbgMessage::HandleGetSourceCmd },
+  { "getLineNumberTable", DbgMessage::HandleGetLineNumbersCmd },
   { "getStackTrace", DbgMessage::HandleGetStackTraceCmd },
   { "setBreakpoint", DbgMessage::HandleSetBpCmd },
   { "setPauseOnException", DbgMessage::HandlePauseOnExcCmd },
@@ -788,6 +799,53 @@ bool DbgMessage::HandleGetSourceCmd(DbgMessage* in_msg) {
 }
 
 
+bool DbgMessage::HandleGetLineNumbersCmd(DbgMessage* in_msg) {
+  ASSERT(in_msg != NULL);
+  MessageParser msg_parser(in_msg->buffer(), in_msg->buffer_len());
+  int msg_id = msg_parser.MessageId();
+  dart::TextBuffer msg(64);
+  intptr_t lib_id = msg_parser.GetIntParam("libraryId");
+  char* url_chars = msg_parser.GetStringParam("url");
+  ASSERT(url_chars != NULL);
+  Dart_Handle url = DartUtils::NewString(url_chars);
+  ASSERT_NOT_ERROR(url);
+  free(url_chars);
+  url_chars = NULL;
+  Dart_Handle info = Dart_ScriptGetTokenInfo(lib_id, url);
+  if (Dart_IsError(info)) {
+    in_msg->SendErrorReply(msg_id, Dart_GetError(info));
+    return false;
+  }
+  ASSERT(Dart_IsList(info));
+  intptr_t info_len = 0;
+  Dart_Handle res = Dart_ListLength(info, &info_len);
+  ASSERT_NOT_ERROR(res);
+  msg.Printf("{ \"id\": %d, ", msg_id);
+  msg.Printf("\"result\": { \"lines\": [");
+  Dart_Handle elem;
+  bool num_elems = 0;
+  for (intptr_t i = 0; i < info_len; i++) {
+    elem = Dart_ListGetAt(info, i);
+    if (Dart_IsNull(elem)) {
+      msg.Printf((i == 0) ? "[" : "], [");
+      num_elems = 0;
+    } else {
+      ASSERT(Dart_IsInteger(elem));
+      int value = GetIntValue(elem);
+      if (num_elems == 0) {
+        msg.Printf("%d", value);
+      } else {
+        msg.Printf(",%d", value);
+      }
+      num_elems++;
+    }
+  }
+  msg.Printf("]]}}");
+  in_msg->SendReply(&msg);
+  return false;
+}
+
+
 bool DbgMessage::HandleGetStackTraceCmd(DbgMessage* in_msg) {
   ASSERT(in_msg != NULL);
   MessageParser msg_parser(in_msg->buffer(), in_msg->buffer_len());
@@ -950,9 +1008,8 @@ void DbgMsgQueue::SendBreakpointEvent(Dart_StackTrace trace) {
   dart::TextBuffer msg(128);
   msg.Printf("{ \"event\": \"paused\", \"params\": { ");
   msg.Printf("\"reason\": \"breakpoint\", ");
-  msg.Printf("\"id\": %"Pd64", ", isolate_id_);
-  FormatLocationFromTrace(&msg, trace);
-  FormatCallFrames(&msg, trace);
+  msg.Printf("\"isolateId\": %"Pd64"", isolate_id_);
+  FormatLocationFromTrace(&msg, trace, ", ");
   msg.Printf("}}");
   DebuggerConnectionHandler::BroadcastMsg(&msg);
 }
@@ -967,12 +1024,10 @@ void DbgMsgQueue::SendExceptionEvent(Dart_Handle exception,
   dart::TextBuffer msg(128);
   msg.Printf("{ \"event\": \"paused\", \"params\": {");
   msg.Printf("\"reason\": \"exception\", ");
-  msg.Printf("\"id\": %"Pd64", ", isolate_id_);
+  msg.Printf("\"isolateId\": %"Pd64", ", isolate_id_);
   msg.Printf("\"exception\":");
   FormatRemoteObj(&msg, exception);
-  msg.Printf(", ");
-  FormatLocationFromTrace(&msg, stack_trace);
-  FormatCallFrames(&msg, stack_trace);
+  FormatLocationFromTrace(&msg, stack_trace, ", ");
   msg.Printf("}}");
   DebuggerConnectionHandler::BroadcastMsg(&msg);
 }
@@ -989,9 +1044,8 @@ void DbgMsgQueue::SendIsolateEvent(Dart_IsolateId isolate_id,
     ASSERT_NOT_ERROR(res);
     msg.Printf("{ \"event\": \"paused\", \"params\": { ");
     msg.Printf("\"reason\": \"interrupted\", ");
-    msg.Printf("\"id\": %"Pd64", ", isolate_id);
-    FormatLocationFromTrace(&msg, trace);
-    FormatCallFrames(&msg, trace);
+    msg.Printf("\"isolateId\": %"Pd64"", isolate_id);
+    FormatLocationFromTrace(&msg, trace, ", ");
     msg.Printf("}}");
   } else {
     msg.Printf("{ \"event\": \"isolate\", \"params\": { ");

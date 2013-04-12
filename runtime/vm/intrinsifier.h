@@ -80,6 +80,8 @@ namespace dart {
   V(_StringBase, get:length, String_getLength, 320803993)                      \
   V(_StringBase, codeUnitAt, String_codeUnitAt, 984449525)                     \
   V(_OneByteString, get:hashCode, OneByteString_getHashCode, 682660413)        \
+  V(_OneByteString, _substringUncheckedNative,                                 \
+      OneByteString_substringUnchecked, 713121438)                             \
 
 
 #define MATH_LIB_INTRINSIC_LIST(V)                                             \

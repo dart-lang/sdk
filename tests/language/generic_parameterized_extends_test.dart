@@ -4,6 +4,8 @@
 //
 // Test verifying that generic extends are processed correctly.
 
+import "package:expect/expect.dart";
+
 class A<T> {}
 class B<T1, T2 extends A<T1>> {}
 class C<T1 extends A<T2>, T2> {}

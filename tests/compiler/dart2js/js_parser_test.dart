@@ -2,12 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:expect/expect.dart';
 import 'mock_compiler.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/js/js.dart' as jsAst;
 import '../../../sdk/lib/_internal/compiler/implementation/js/js.dart' show js;
 
 void testExpression(String expression, [String expect = ""]) {
-  jsAst.Node node = js[expression];
+  jsAst.Node node = js(expression);
   MockCompiler compiler = new MockCompiler();
   String jsText =
       jsAst.prettyPrint(node,
@@ -25,7 +26,7 @@ void testError(String expression, [String expect = ""]) {
     Expect.isTrue(exception.toString().contains(expect));
     return true;
   }
-  Expect.throws(() => js[expression], doCheck);
+  Expect.throws(() => js(expression), doCheck);
 }
     
 
@@ -36,9 +37,14 @@ void main() {
   testExpression('var a = ""');
   // Parse and print will normalize whitespace.
   testExpression(' var  a  =  "" ', 'var a = ""');
-  // *We don't do operator prescedence.
-  testError('x = a + b * c', 'Mixed + and *');
-  // But we can chain binary operators (with left associativity).
+  // Operator precedence.
+  testExpression('x = a + b * c');
+  testExpression('x = a * b + c');
+  testExpression('x = a + b * c + d');
+  testExpression('x = a * b + c * d');
+  testExpression('remaining = (remaining / 88) | 0',
+                 'remaining = remaining / 88 | 0');
+  // Binary operators have left associativity.
   testExpression('x = a + b + c');
   // We can cope with relational operators and non-relational.
   testExpression('a + b == c + d');
@@ -47,8 +53,13 @@ void main() {
   // We can handle () for calls.
   testExpression('foo(bar)');
   testExpression('foo(bar, baz)');
-  // *But we can't handle chained calls without parentheses.
-  testError('foo(bar)(baz)');
+  // Chained calls without parentheses.
+  testExpression('foo(bar)(baz)');
+  // Chaned calls with and without new.
+  testExpression('new foo(bar)(baz)');
+  testExpression('new foo.bar(bar)(baz)');
+  testExpression('foo.bar(bar)(baz)');
+  testExpression('constructor = new Function(str)()');
   // The prettyprinter understands chained calls without extra parentheses.
   testExpression('(foo(bar))(baz)', 'foo(bar)(baz)');
   // Chains of dotting and calls.
@@ -65,6 +76,10 @@ void main() {
   testExpression('new Foo()');
   // New with dotted access.
   testExpression('new Frobinator.frobinate()');
+  // *We don't handle dot after 'new' because we group 'new' with regular calls
+  // instead of having it together with the dot operator but with opposite
+  // associativity.
+  testError('new Frobinator().frobinate()', "DOT");
   // The prettyprinter is smarter than we are.
   testExpression('(new Frobinator()).frobinate()',
                  'new Frobinator().frobinate()');
@@ -77,8 +92,8 @@ void main() {
   testError('a <=> b', 'Unknown operator');
   // Typeof.
   testExpression('typeof foo == "number"');
-  // *Strange relation.
-  testError('a < b < c', 'RELATION');
+  // Strange relation.
+  testExpression('a < b < c');
   // Chained var.
   testExpression('var x = 0, y = 1.2, z = 42');
   // Empty object literal.
@@ -90,7 +105,8 @@ void main() {
   // *We should really throw here.
   testExpression('var false = 42');
   testExpression('var new = 42');
-  testExpression('var typeof = 42');
+  // Bad keyword.
+  testError('var typeof = 42', "Expected ALPHA");
   // Malformed decimal
   testError('var x = 42.', "Unparseable number");
   testError('var x = 1.1.1', "Unparseable number");
@@ -100,10 +116,15 @@ void main() {
   testExpression('var foo = void 0');
   testExpression('delete foo.bar');
   testExpression('delete foo');
+  testExpression('x in y');
+  testExpression('x instanceof y');
+  testExpression('a * b in c * d');
+  testExpression('a * b instanceof c * d');
   testError('x typeof y', 'Unparsed junk');
   testExpression('x &= ~mask');
   // Adjacent tokens.
   testExpression('foo[x[bar]]');
+  testExpression('foo[[bar]]');
   // Prefix ++ etc.
   testExpression("++x");
   testExpression("++foo.bar");
@@ -123,9 +144,10 @@ void main() {
   testExpression("++foo.bar++");
   testExpression("--x--");
   testExpression("--foo.bar--");
-  // *We can't handle stacked unary operators.
+  // *We can't handle stacked unary operators (apart from !).
   testError("x++ ++");
   testError("++ typeof x");
+  testExpression(r"var $supportsProtoName = !!{}.__proto__");
   // ++ used as a binary operator.
   testError("x++ ++ 42");
   // Shift operators.

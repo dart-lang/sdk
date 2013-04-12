@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test basic integer operations.
 
+import "package:expect/expect.dart";
+
 main() {
   Expect.equals("1e+0", (1.0).toStringAsExponential());
   Expect.equals("1.1e+1", (11.0).toStringAsExponential());

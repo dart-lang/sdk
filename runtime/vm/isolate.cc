@@ -337,6 +337,7 @@ Isolate::Isolate()
       saved_stack_limit_(0),
       message_handler_(NULL),
       spawn_data_(0),
+      is_runnable_(false),
       gc_prologue_callbacks_(),
       gc_epilogue_callbacks_(),
       deopt_cpu_registers_copy_(NULL),
@@ -477,6 +478,109 @@ void Isolate::ScheduleInterrupts(uword interrupt_bits) {
   }
   stack_limit_ |= interrupt_bits;
   mutex_->Unlock();
+}
+
+
+bool Isolate::MakeRunnable() {
+  ASSERT(Isolate::Current() == NULL);
+  // Can't use MutexLocker here because MutexLocker is
+  // a StackResource, which requires a current isolate.
+  mutex_->Lock();
+  // Check if we are in a valid state to make the isolate runnable.
+  if (is_runnable_ == true) {
+    mutex_->Unlock();
+    return false;  // Already runnable.
+  }
+  // Set the isolate as runnable and if we are being spawned schedule
+  // isolate on thread pool for execution.
+  is_runnable_ = true;
+  IsolateSpawnState* state = reinterpret_cast<IsolateSpawnState*>(spawn_data());
+  if (state != NULL) {
+    ASSERT(this == state->isolate());
+    Run();
+  }
+  mutex_->Unlock();
+  return true;
+}
+
+
+static void StoreError(Isolate* isolate, const Object& obj) {
+  ASSERT(obj.IsError());
+  isolate->object_store()->set_sticky_error(Error::Cast(obj));
+}
+
+
+static bool RunIsolate(uword parameter) {
+  Isolate* isolate = reinterpret_cast<Isolate*>(parameter);
+  IsolateSpawnState* state = NULL;
+  {
+    MutexLocker ml(isolate->mutex());
+    state = reinterpret_cast<IsolateSpawnState*>(isolate->spawn_data());
+    isolate->set_spawn_data(0);
+  }
+  {
+    StartIsolateScope start_scope(isolate);
+    StackZone zone(isolate);
+    HandleScope handle_scope(isolate);
+    if (!ClassFinalizer::FinalizePendingClasses()) {
+      // Error is in sticky error already.
+      return false;
+    }
+
+    // Set up specific unhandled exception handler.
+    const String& callback_name = String::Handle(
+        isolate, String::New(state->exception_callback_name()));
+    isolate->object_store()->
+        set_unhandled_exception_handler(callback_name);
+
+    Object& result = Object::Handle();
+    result = state->ResolveFunction();
+    delete state;
+    state = NULL;
+    if (result.IsError()) {
+      StoreError(isolate, result);
+      return false;
+    }
+    ASSERT(result.IsFunction());
+    Function& func = Function::Handle(isolate);
+    func ^= result.raw();
+    result = DartEntry::InvokeFunction(func, Object::empty_array());
+    if (result.IsError()) {
+      StoreError(isolate, result);
+      return false;
+    }
+  }
+  return true;
+}
+
+
+static void ShutdownIsolate(uword parameter) {
+  Isolate* isolate = reinterpret_cast<Isolate*>(parameter);
+  {
+    // Print the error if there is one.  This may execute dart code to
+    // print the exception object, so we need to use a StartIsolateScope.
+    StartIsolateScope start_scope(isolate);
+    StackZone zone(isolate);
+    HandleScope handle_scope(isolate);
+    Error& error = Error::Handle();
+    error = isolate->object_store()->sticky_error();
+    if (!error.IsNull()) {
+      OS::PrintErr("in ShutdownIsolate: %s\n", error.ToErrorCString());
+    }
+  }
+  {
+    // Shut the isolate down.
+    SwitchIsolateScope switch_scope(isolate);
+    Dart::ShutdownIsolate();
+  }
+}
+
+
+void Isolate::Run() {
+  message_handler()->Run(Dart::thread_pool(),
+                         RunIsolate,
+                         ShutdownIsolate,
+                         reinterpret_cast<uword>(this));
 }
 
 
@@ -876,6 +980,96 @@ char* Isolate::GetStatus(const char* request) {
   // TODO(tball): "/isolate/<handle>/stacktrace/<frame-index>"/disassemble"
 
   return NULL;  // Unimplemented query.
+}
+
+
+static char* GetRootScriptUri(Isolate* isolate) {
+  const Library& library =
+      Library::Handle(isolate->object_store()->root_library());
+  ASSERT(!library.IsNull());
+  const String& script_name = String::Handle(library.url());
+  return isolate->current_zone()->MakeCopyOfString(script_name.ToCString());
+}
+
+
+IsolateSpawnState::IsolateSpawnState(const Function& func,
+                                     const Function& callback_func)
+    : isolate_(NULL),
+      script_url_(NULL),
+      library_url_(NULL),
+      function_name_(NULL),
+      exception_callback_name_(NULL) {
+  script_url_ = strdup(GetRootScriptUri(Isolate::Current()));
+  const Class& cls = Class::Handle(func.Owner());
+  ASSERT(cls.IsTopLevel());
+  const Library& lib = Library::Handle(cls.library());
+  const String& lib_url = String::Handle(lib.url());
+  library_url_ = strdup(lib_url.ToCString());
+
+  const String& func_name = String::Handle(func.name());
+  function_name_ = strdup(func_name.ToCString());
+  if (!callback_func.IsNull()) {
+    const String& callback_name = String::Handle(callback_func.name());
+    exception_callback_name_ = strdup(callback_name.ToCString());
+  } else {
+    exception_callback_name_ = strdup("_unhandledExceptionCallback");
+  }
+}
+
+
+IsolateSpawnState::IsolateSpawnState(const char* script_url)
+    : isolate_(NULL),
+      library_url_(NULL),
+      function_name_(NULL),
+      exception_callback_name_(NULL) {
+  script_url_ = strdup(script_url);
+  library_url_ = NULL;
+  function_name_ = strdup("main");
+  exception_callback_name_ = strdup("_unhandledExceptionCallback");
+}
+
+
+IsolateSpawnState::~IsolateSpawnState() {
+  free(script_url_);
+  free(library_url_);
+  free(function_name_);
+  free(exception_callback_name_);
+}
+
+
+RawObject* IsolateSpawnState::ResolveFunction() {
+  // Resolve the library.
+  Library& lib = Library::Handle();
+  if (library_url()) {
+    const String& lib_url = String::Handle(String::New(library_url()));
+    lib = Library::LookupLibrary(lib_url);
+    if (lib.IsNull() || lib.IsError()) {
+      const String& msg = String::Handle(String::NewFormatted(
+          "Unable to find library '%s'.", library_url()));
+      return LanguageError::New(msg);
+    }
+  } else {
+    lib = isolate()->object_store()->root_library();
+  }
+  ASSERT(!lib.IsNull());
+
+  // Resolve the function.
+  const String& func_name =
+      String::Handle(String::New(function_name()));
+  const Function& func = Function::Handle(lib.LookupLocalFunction(func_name));
+  if (func.IsNull()) {
+    const String& msg = String::Handle(String::NewFormatted(
+        "Unable to resolve function '%s' in library '%s'.",
+        function_name(), (library_url() ? library_url() : script_url())));
+    return LanguageError::New(msg);
+  }
+  return func.raw();
+}
+
+
+void IsolateSpawnState::Cleanup() {
+  SwitchIsolateScope switch_scope(isolate());
+  Dart::ShutdownIsolate();
 }
 
 }  // namespace dart

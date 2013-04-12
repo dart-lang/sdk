@@ -185,7 +185,6 @@ abstract class Element implements Spannable {
   bool isClosure();
   bool isMember();
   bool isInstanceMember();
-  bool isInStaticMember();
 
   bool isFactoryConstructor();
   bool isGenerativeConstructor();
@@ -294,6 +293,20 @@ class Elements {
                element.enclosingElement.kind == ElementKind.LIBRARY);
   }
 
+  static bool isInStaticContext(Element element) {
+    if (isUnresolved(element)) return true;
+    if (element.enclosingElement.isClosure()) {
+      var closureClass = element.enclosingElement;
+      element = closureClass.methodElement;
+    }
+    Element outer = element.getOutermostEnclosingMemberOrTopLevel();
+    if (isUnresolved(outer)) return true;
+    if (outer.isTopLevel()) return true;
+    if (outer.isGenerativeConstructor()) return false;
+    if (outer.isInstanceMember()) return false;
+    return true;
+  }
+
   static bool isStaticOrTopLevelField(Element element) {
     return isStaticOrTopLevel(element)
            && (identical(element.kind, ElementKind.FIELD)
@@ -321,8 +334,11 @@ class Elements {
   static bool isClosureSend(Send send, Element element) {
     if (send.isPropertyAccess) return false;
     if (send.receiver != null) return false;
+    Node selector = send.selector;
+    // this().
+    if (selector.isThis()) return true;
     // (o)() or foo()().
-    if (element == null && send.selector.asIdentifier() == null) return true;
+    if (element == null && selector.asIdentifier() == null) return true;
     if (element == null) return false;
     // foo() with foo a local or a parameter.
     return isLocal(element);
@@ -459,8 +475,7 @@ class Elements {
 
   static bool isListSupertype(Element element, Compiler compiler) {
     LibraryElement coreLibrary = compiler.coreLibrary;
-    return (element == coreLibrary.find(const SourceString('Collection')))
-        || (element == coreLibrary.find(const SourceString('Iterable')));
+    return element == coreLibrary.find(const SourceString('Iterable'));
   }
 
   /// A `compareTo` function that places [Element]s in a consistent order based
@@ -741,7 +756,6 @@ abstract class ClassElement extends TypeDeclarationElement
   bool get hasLocalScopeMembers;
 
   // TODO(kasperl): These are bit fishy. Do we really need them?
-  void set rawType(InterfaceType value);
   void set thisType(InterfaceType value);
   void set supertype(DartType value);
   void set allSupertypes(Link<DartType> value);

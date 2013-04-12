@@ -15,18 +15,16 @@ Map<int, Completer> outstandingCommands;
 
 Socket vmSock;
 String vmData;
-StreamSubscription<String> streamSubscription;
+var stdinSubscription;
+var vmSubscription;
 int seqNum = 0;
 int isolate_id = -1;
 
-bool verbose = false;
+final verbose = false;
+final printMessages = false;
 
-// The current stack trace, while the VM is paused. It's a list
-// of activation frames.
-List stackTrace;
-
-// The current activation frame, while the VM is paused.
-Map curFrame;
+// The location of the last paused event.
+Map pausedLocation = null;
 
 
 void printHelp() {
@@ -48,6 +46,7 @@ void printHelp() {
   pg <id> Print all global variables visible within given library id
   ls <lib_id> List loaded scripts in library
   gs <lib_id> <script_url> Get source text of script in library
+  tok <lib_id> <script_url> Get line and token table of script in library
   epi <none|all|unhandled>  Set exception pause info
   i <id> Interrupt execution of given isolate id
   h   Print help
@@ -56,9 +55,9 @@ void printHelp() {
 
 
 void quitShell() {
-  streamSubscription.cancel();
+  vmSubscription.cancel();
   vmSock.close();
-  stdin.close();
+  stdinSubscription.cancel();
 }
 
 
@@ -88,7 +87,6 @@ void processCommand(String cmdLine) {
                 "command": simple_commands[command],
                 "params": { "isolateId" : isolate_id } };
     sendCmd(cmd).then((result) => handleGenericResponse(result));
-    stackTrace = curFrame = null;
   } else if (command == "bt") {
     var cmd = { "id": seqNum,
                 "command": "getStackTrace",
@@ -101,8 +99,9 @@ void processCommand(String cmdLine) {
     sendCmd(cmd).then((result) => handleGetLibraryResponse(result));
   } else if (command == "sbp" && args.length >= 2) {
     var url, line;
-    if (args.length == 2) {
-      url = stackTrace[0]["location"]["url"];
+    if (args.length == 2 && pausedLocation != null) {
+      url = pausedLocation["url"];
+      assert(url != null);
       line = int.parse(args[1]);
     } else {
       url = args[1];
@@ -181,6 +180,13 @@ void processCommand(String cmdLine) {
                             "libraryId": int.parse(args[1]),
                             "url": args[2] } };
     sendCmd(cmd).then((result) => handleGetSourceResponse(result));
+  } else if (command == "tok" && args.length == 3) {
+    var cmd = { "id": seqNum,
+                "command":  "getLineNumberTable",
+                "params": { "isolateId" : isolate_id,
+                            "libraryId": int.parse(args[1]),
+                            "url": args[2] } };
+    sendCmd(cmd).then((result) => handleGetLineTableResponse(result));
   } else if (command == "epi" && args.length == 2) {
     var cmd = { "id": seqNum,
                 "command":  "setPauseOnException",
@@ -324,6 +330,13 @@ handleGetSourceResponse(response) {
 }
 
 
+handleGetLineTableResponse(response) {
+  Map result = response["result"];
+  var info = result["lines"];
+  print("Line info table:\n$info");
+}
+
+
 void handleGetLibraryResponse(response) {
   Map result = response["result"];
   List libs = result["libraries"];
@@ -391,13 +404,13 @@ void printStackTrace(List frames) {
 void handlePausedEvent(msg) {
   assert(msg["params"] != null);
   var reason = msg["params"]["reason"];
-  isolate_id = msg["params"]["id"];
-  stackTrace = msg["params"]["callFrames"];
-  assert(stackTrace != null);
-  assert(stackTrace.length >= 1);
-  curFrame = stackTrace[0];
+  isolate_id = msg["params"]["isolateId"];
+  assert(isolate_id != null);
+  pausedLocation = msg["params"]["location"];
+  assert(pausedLocation != null);
   if (reason == "breakpoint") {
     print("Isolate $isolate_id paused on breakpoint");
+    print("location: $pausedLocation");
   } else if (reason == "interrupted") {
     print("Isolate $isolate_id paused due to an interrupt");
   } else {
@@ -406,8 +419,6 @@ void handlePausedEvent(msg) {
     print("Isolate $isolate_id paused on exception");
     print(remoteObject(excObj));
   }
-  print("Stack trace:");
-  printStackTrace(stackTrace);
 }
 
 
@@ -448,13 +459,31 @@ void processVmMessage(String jsonString) {
   }
 }
 
+bool haveGarbageVmData() {
+  if (vmData == null || vmData.length == 0) return false;
+  var i = 0, char = " ";
+  while (i < vmData.length) {
+    char = vmData[i];
+    if (char != " " && char != "\n" && char != "\r" && char != "\t") break;
+    i++;
+  }
+  if (i >= vmData.length) {
+    return false;
+  } else { 
+    return char != "{";
+  }
+}
+
 
 void processVmData(String data) {
-  final printMessages = false;
   if (vmData == null || vmData.length == 0) {
     vmData = data;
   } else {
     vmData = vmData + data;
+  }
+  if (haveGarbageVmData()) {
+    print("Error: have garbage data from VM: '$vmData'");
+    return;
   }
   int msg_len = jsonObjectLength(vmData);
   if (printMessages && msg_len == 0) {
@@ -472,8 +501,13 @@ void processVmData(String data) {
     if (printMessages) { print("at least one message: '$vmData'"); }
     var msg = vmData.substring(0, msg_len);
     if (printMessages) { print("first message: $msg"); }
-    processVmMessage(msg);
     vmData = vmData.substring(msg_len);
+    if (haveGarbageVmData()) {
+      print("Error: garbage data after previous message: '$vmData'");
+      print("Previous message was: '$msg'");
+      return;
+    }
+    processVmMessage(msg);
     msg_len = jsonObjectLength(vmData);
   }
   if (printMessages) { print("leftover vm data '$vmData'"); }
@@ -530,8 +564,8 @@ void debuggerMain() {
   outstandingCommands = new Map<int, Completer>();
   Socket.connect("127.0.0.1", 5858).then((s) {
     vmSock = s;
-    Stream<String> stringStream = vmSock.transform(new StringDecoder());
-    streamSubscription = stringStream.listen(
+    var stringStream = vmSock.transform(new StringDecoder());
+    vmSubscription = stringStream.listen(
         (String data) {
           processVmData(data);
         },
@@ -543,9 +577,9 @@ void debuggerMain() {
           print("Error in debug connection: $err");
           quitShell();
         });
-    stdin.transform(new StringDecoder())
-        .transform(new LineTransformer())
-        .listen((String line) => processCommand(line));
+    stdinSubscription = stdin.transform(new StringDecoder())
+                             .transform(new LineTransformer())
+                             .listen((String line) => processCommand(line));
   });
 }
 

@@ -342,8 +342,6 @@ type_checks_in_factory_method_test: Fail
 
 
 [ $compiler == dart2js && $runtime == safari ]
-execute_finally8_test: Fail # Issue: 7414
-execute_finally9_test: Fail # Issue: 7414
 null_pointer_exception_test: Fail # Uncaught error: Instance of 'TypeError'
 string_interpolate_npe_test: Fail # Uncaught error: Instance of 'TypeError'
 arithmetic_test: Fail # Issue: 7414

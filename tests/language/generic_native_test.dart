@@ -4,6 +4,8 @@
 
 // Test is-tests with type variables on native subclasses.
 
+import "package:expect/expect.dart";
+
 class A<T> {
   foo(o) => o is T;
 }
@@ -15,9 +17,6 @@ class C {}
 main() {
   Expect.isTrue(new A<Iterable<B>>().foo(new List<B>()));
   Expect.isFalse(new A<Iterable<C>>().foo(new List<B>()));
-
-  Expect.isTrue(new A<Collection<B>>().foo(new List<B>()));
-  Expect.isFalse(new A<Collection<C>>().foo(new List<B>()));
 
   Expect.isTrue(new A<Pattern>().foo('hest'));
 

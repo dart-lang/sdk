@@ -29,8 +29,7 @@ FlowGraph::FlowGraph(const FlowGraphBuilder& builder,
     graph_entry_(graph_entry),
     preorder_(),
     postorder_(),
-    reverse_postorder_(),
-    invalid_dominator_tree_(true) {
+    reverse_postorder_() {
   DiscoverBlocks();
 }
 
@@ -170,7 +169,11 @@ static void VerifyUseListsInInstruction(Instruction* instr) {
       ASSERT(defn == curr->definition());
       Instruction* instr = curr->instruction();
       ASSERT(curr == instr->env()->ValueAtUseIndex(curr->use_index()));
-      ASSERT((instr->IsPhi() && instr->AsPhi()->is_alive()) ||
+      // BlockEntry instructions have environments attached to them but
+      // have no reliable way to verify if they are still in the graph.
+      // Thus we just assume they are.
+      ASSERT(instr->IsBlockEntry() ||
+             (instr->IsPhi() && instr->AsPhi()->is_alive()) ||
              (instr->previous() != NULL));
       prev = curr;
       curr = curr->next_use();
@@ -231,7 +234,6 @@ void FlowGraph::ComputeSSA(intptr_t next_virtual_register_number,
 //     (preorder block numbers of) blocks in the dominance frontier.
 void FlowGraph::ComputeDominators(
     GrowableArray<BitVector*>* dominance_frontier) {
-  invalid_dominator_tree_ = false;
   // Use the SEMI-NCA algorithm to compute dominators.  This is a two-pass
   // version of the Lengauer-Tarjan algorithm (LT is normally three passes)
   // that eliminates a pass by using nearest-common ancestor (NCA) to
@@ -441,6 +443,23 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
 }
 
 
+void FlowGraph::AttachEnvironment(Instruction* instr,
+                                  GrowableArray<Definition*>* env) {
+  Environment* deopt_env =
+      Environment::From(*env,
+                        num_non_copied_params_,
+                        parsed_function_.function());
+  instr->SetEnvironment(deopt_env);
+  for (Environment::DeepIterator it(deopt_env); !it.Done(); it.Advance()) {
+    Value* use = it.CurrentValue();
+    use->definition()->AddEnvUse(use);
+  }
+  if (instr->CanDeoptimize()) {
+    instr->env()->set_deopt_id(instr->deopt_id());
+  }
+}
+
+
 void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
                                 GrowableArray<Definition*>* env,
                                 GrowableArray<PhiInstr*>* live_phis) {
@@ -458,25 +477,17 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
     }
   }
 
+  // Attach environment to the block entry.
+  AttachEnvironment(block_entry, env);
+
   // 2. Process normal instructions.
+
   for (ForwardInstructionIterator it(block_entry); !it.Done(); it.Advance()) {
     Instruction* current = it.Current();
-    // Attach current environment to the instructions that can deoptimize and
-    // at goto instructions. Optimizations like LICM expect an environment at
-    // gotos.
-    if (current->CanDeoptimize() || current->IsGoto()) {
-      Environment* deopt_env =
-          Environment::From(*env,
-                            num_non_copied_params_,
-                            parsed_function_.function());
-      current->SetEnvironment(deopt_env);
-      for (Environment::DeepIterator it(deopt_env); !it.Done(); it.Advance()) {
-        Value* use = it.CurrentValue();
-        use->definition()->AddEnvUse(use);
-      }
-    }
-    if (current->CanDeoptimize()) {
-      current->env()->set_deopt_id(current->deopt_id());
+
+    // Attach current environment to the instructions that need it.
+    if (current->NeedsEnvironment()) {
+      AttachEnvironment(current, env);
     }
 
     // 2a. Handle uses:
@@ -673,15 +684,6 @@ void FlowGraph::Bailout(const char* reason) const {
 }
 
 
-void FlowGraph::RepairGraphAfterInlining() {
-  DiscoverBlocks();
-  if (invalid_dominator_tree_) {
-    GrowableArray<BitVector*> dominance_frontier;
-    ComputeDominators(&dominance_frontier);
-  }
-}
-
-
 intptr_t FlowGraph::InstructionCount() const {
   intptr_t size = 0;
   // Iterate each block, skipping the graph entry.
@@ -693,42 +695,6 @@ intptr_t FlowGraph::InstructionCount() const {
     }
   }
   return size;
-}
-
-
-const ZoneGrowableArray<Field*>* FlowGraph::FieldDependencies() const {
-  ZoneGrowableArray<Field*>* result = new ZoneGrowableArray<Field*>(10);
-
-  for (intptr_t i = 1; i < reverse_postorder().length(); i++) {
-    BlockEntryInstr* entry = reverse_postorder()[i];
-    for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
-      LoadFieldInstr* load_field = it.Current()->AsLoadField();
-      if (load_field == NULL) {
-        continue;
-      }
-
-      Field* field = load_field->field();
-      if ((field == NULL) ||
-          (field->guarded_cid() == kDynamicCid) ||
-          (field->guarded_cid() == kIllegalCid)) {
-        continue;
-      }
-
-      bool found = false;
-      for (intptr_t j = 0; j < result->length(); j++) {
-        if ((*result)[j]->raw() == field->raw()) {
-          found = true;
-          break;
-        }
-      }
-
-      if (!found) {
-        result->Add(field);
-      }
-    }
-  }
-
-  return result;
 }
 
 }  // namespace dart

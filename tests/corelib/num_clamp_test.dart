@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test num.clamp.
 
+import "package:expect/expect.dart";
+
 testIntClamp() {
   Expect.equals(2, 2.clamp(1, 3));
   Expect.equals(1, 0.clamp(1, 3));

@@ -15,7 +15,7 @@ main() {
     canvas.width = 100;
     canvas.height = 100;
 
-    var context = canvas.context2d;
+    var context = canvas.context2D;
     context.fillStyle = 'red';
     context.fillRect(0, 0, canvas.width, canvas.height);
 

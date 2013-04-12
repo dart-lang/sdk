@@ -10,7 +10,7 @@
  * on how we can make this class work with as many international keyboards as
  * possible. Bugs welcome!
  */
-class KeyEvent implements KeyboardEvent {
+class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   /** The parent KeyboardEvent that this KeyEvent is wrapping and "fixing". */
   KeyboardEvent _parent;
 
@@ -45,7 +45,7 @@ class KeyEvent implements KeyboardEvent {
   bool get _realAltKey => _parent.altKey;
 
   /** Construct a KeyEvent with [parent] as the event we're emulating. */
-  KeyEvent(KeyboardEvent parent) {
+  KeyEvent(KeyboardEvent parent): super(parent) {
     _parent = parent;
     _shadowAltKey = _realAltKey;
     _shadowCharCode = _realCharCode;
@@ -64,22 +64,9 @@ class KeyEvent implements KeyboardEvent {
 
   /** True if the altGraphKey is pressed during this event. */
   bool get altGraphKey => _parent.altGraphKey;
-  bool get bubbles => _parent.bubbles;
-  /** True if this event can be cancelled. */
-  bool get cancelable => _parent.cancelable;
-  bool get cancelBubble => _parent.cancelBubble;
-  void set cancelBubble(bool cancel) {
-    _parent.cancelBubble = cancel;
-  }
-  /** Accessor to the clipboardData available for this event. */
-  DataTransfer get clipboardData => _parent.clipboardData;
   /** True if the ctrl key is pressed during this event. */
   bool get ctrlKey => _parent.ctrlKey;
-  /** Accessor to the target this event is listening to for changes. */
-  EventTarget get currentTarget => _parent.currentTarget;
-  bool get defaultPrevented => _parent.defaultPrevented;
   int get detail => _parent.detail;
-  int get eventPhase => _parent.eventPhase;
   /**
    * Accessor to the part of the keyboard that the key was pressed from (one of
    * KeyLocation.STANDARD, KeyLocation.RIGHT, KeyLocation.LEFT,
@@ -90,35 +77,17 @@ class KeyEvent implements KeyboardEvent {
   /** True if the Meta (or Mac command) key is pressed during this event. */
   bool get metaKey => _parent.metaKey;
   Point get page => _parent.page;
-  bool get returnValue => _parent.returnValue;
-  void set returnValue(bool value) {
-    _parent.returnValue = value;
-  }
   /** True if the shift key was pressed during this event. */
   bool get shiftKey => _parent.shiftKey;
-  int get timeStamp => _parent.timeStamp;
-  /**
-   * The type of key event that occurred. One of "keydown", "keyup", or
-   * "keypress".
-   */
-  String get type => _parent.type;
   Window get view => _parent.view;
-  void preventDefault() => _parent.preventDefault();
-  void stopImmediatePropagation() => _parent.stopImmediatePropagation();
-  void stopPropagation() => _parent.stopPropagation();
   void $dom_initUIEvent(String type, bool canBubble, bool cancelable,
       Window view, int detail) {
     throw new UnsupportedError("Cannot initialize a UI Event from a KeyEvent.");
-  }
-  void $dom_initEvent(String eventTypeArg, bool canBubbleArg,
-      bool cancelableArg) {
-    throw new UnsupportedError("Cannot initialize an Event from a KeyEvent.");
   }
   String get _shadowKeyIdentifier => _parent.$dom_keyIdentifier;
 
   int get $dom_charCode => charCode;
   int get $dom_keyCode => keyCode;
-  EventTarget get target => _parent.target;
   String get $dom_keyIdentifier {
     throw new UnsupportedError("keyIdentifier is unsupported.");
   }

@@ -4,6 +4,8 @@
 
 // Test for the evaluation order of getters and setters.
 
+import 'package:expect/expect.dart';
+
 var trace;
 
 class X {

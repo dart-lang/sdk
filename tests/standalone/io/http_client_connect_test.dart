@@ -7,6 +7,7 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
+import "package:expect/expect.dart";
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
@@ -32,7 +33,7 @@ void testGetDataRequest() {
   HttpServer.bind().then((server) {
     var data = "lalala".codeUnits;
     server.listen((request) {
-      request.response.writeBytes(data);
+      request.response.add(data);
       request.pipe(request.response);
     });
 

@@ -391,7 +391,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
 
   void set writeEventsEnabled(bool value) {
     if (value &&
-        _controller.hasSubscribers &&
+        _controller.hasListener &&
         _secureFilter != null &&
         _secureFilter.buffers[WRITE_PLAINTEXT].free > 0) {
       Timer.run(() => _controller.add(RawSocketEvent.WRITE));
@@ -501,7 +501,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
         _secureHandshake();
       } catch (e) { _reportError(e, "RawSecureSocket error"); }
     } else if (_status == CONNECTED &&
-               _controller.hasSubscribers &&
+               _controller.hasListener &&
                _writeEventsEnabled &&
                _secureFilter.buffers[WRITE_PLAINTEXT].free > 0) {
       // Reset the one-shot handler.
@@ -628,7 +628,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   }
 
   void _onSubscriptionStateChange() {
-    if (_controller.hasSubscribers) {
+    if (_controller.hasListener) {
       // TODO(ajohnsen): Do something here?
     }
   }

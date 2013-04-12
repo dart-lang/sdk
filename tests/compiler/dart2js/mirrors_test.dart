@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "package:expect/expect.dart";
 import '../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/mirrors/dart2js_mirror.dart';

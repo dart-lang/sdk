@@ -139,10 +139,10 @@ abstract class _LocalVMObjectMirrorImpl extends _LocalMirrorImpl {
 abstract class _LocalObjectMirrorImpl extends _LocalVMObjectMirrorImpl
     implements ObjectMirror {
   _LocalObjectMirrorImpl(ref) : super(ref) {}
-
-  Future<InstanceMirror> invoke(String memberName,
-                                List positionalArguments,
-                                [Map<String,dynamic> namedArguments]) {
+  
+Future<InstanceMirror> invokeAsync(String memberName,
+                                   List positionalArguments,
+                                   [Map<String,dynamic> namedArguments]) {
     if (namedArguments != null) {
       throw new UnimplementedError(
           'named argument support is not implemented');
@@ -162,8 +162,7 @@ abstract class _LocalObjectMirrorImpl extends _LocalVMObjectMirrorImpl
     return completer.future;
   }
 
-  Future<InstanceMirror> getField(String fieldName)
-  {
+  Future<InstanceMirror> getFieldAsync(String fieldName) {
     Completer<InstanceMirror> completer = new Completer<InstanceMirror>();
     try {
       completer.complete(_getField(this, fieldName));
@@ -173,8 +172,7 @@ abstract class _LocalObjectMirrorImpl extends _LocalVMObjectMirrorImpl
     return completer.future;
   }
 
-  Future<InstanceMirror> setField(String fieldName, Object arg)
-  {
+  Future<InstanceMirror> setFieldAsync(String fieldName, Object arg) {
     _validateArgument(0, arg);
 
     Completer<InstanceMirror> completer = new Completer<InstanceMirror>();
@@ -305,8 +303,8 @@ class _LocalClosureMirrorImpl extends _LocalInstanceMirrorImpl
         'ClosureMirror.source is not implemented');
   }
 
-  Future<InstanceMirror> apply(List<Object> positionalArguments,
-                               [Map<String,Object> namedArguments]) {
+  Future<InstanceMirror> applyAsync(List<Object> positionalArguments,
+                                    [Map<String,Object> namedArguments]) {
     if (namedArguments != null) {
       throw new UnimplementedError(
           'named argument support is not implemented');
@@ -501,9 +499,9 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
 
   String toString() => "ClassMirror on '$simpleName'";
 
-  Future<InstanceMirror> newInstance(String constructorName,
-                                     List positionalArguments,
-                                     [Map<String,dynamic> namedArguments]) {
+  Future<InstanceMirror> newInstanceAsync(String constructorName,
+                                          List positionalArguments,
+                                          [Map<String,dynamic> namedArguments]) {
     if (namedArguments != null) {
       throw new UnimplementedError(
           'named argument support is not implemented');
@@ -969,5 +967,9 @@ class _Mirrors {
   // Creates a new local mirror for some Object.
   static InstanceMirror reflect(Object reflectee) {
     return makeLocalInstanceMirror(reflectee);
+  }
+
+  static ClassMirror reflectClass(Type reflectee) {
+    throw new UnimplementedError('reflectClass is not implemented');
   }
 }

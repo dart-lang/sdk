@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for testing super field access.
 
+import "package:expect/expect.dart";
+
 
 class A {
   A() {

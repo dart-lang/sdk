@@ -980,6 +980,10 @@ void SnapshotWriter::WriteObjectRef(RawObject* raw) {
 
     return;
   }
+  if (RawObject::IsTypedDataViewClassId(class_id)) {
+    WriteInstanceRef(raw, cls);
+    return;
+  }
   // Object is being referenced, add it to the forward ref list and mark
   // it so that future references to this object in the snapshot will use
   // this object id. Mark it as not having been serialized yet so that we
@@ -1011,15 +1015,6 @@ void SnapshotWriter::WriteObjectRef(RawObject* raw) {
       RawExternalTypedData* raw_obj =
         reinterpret_cast<RawExternalTypedData*>(raw);
       raw_obj->WriteTo(this, object_id, kind_);
-      return;
-    }
-#undef SNAPSHOT_WRITE
-#define SNAPSHOT_WRITE(clazz)                                                  \
-    case kTypedData##clazz##ViewCid:                                           \
-
-    CLASS_LIST_TYPED_DATA(SNAPSHOT_WRITE)
-    case kByteDataViewCid: {
-      WriteInstanceRef(raw, cls);
       return;
     }
 #undef SNAPSHOT_WRITE
@@ -1088,6 +1083,7 @@ intptr_t SnapshotWriter::MarkObject(RawObject* raw, SerializeState state) {
   value = SerializedHeaderTag::update(kObjectId, value);
   value = SerializedHeaderData::update(object_id, value);
   uword tags = raw->ptr()->tags_;
+  ASSERT(SerializedHeaderTag::decode(tags) != kObjectId);
   raw->ptr()->tags_ = value;
   ForwardObjectNode* node = new ForwardObjectNode(raw, tags, state);
   ASSERT(node != NULL);

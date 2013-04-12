@@ -337,11 +337,11 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // Register return types to the backend.
     graph.exit.predecessors.forEach((HBasicBlock block) {
       HInstruction last = block.last;
-      assert(last is HGoto || last is HReturn);
+      assert(last is HGoto || last is HReturn || last is HThrow);
       if (last is HReturn) {
         backend.registerReturnType(
             work.element, last.inputs[0].instructionType);
-      } else {
+      } else if (last is HGoto) {
         backend.registerReturnType(work.element, HType.NULL);
       }
     });
@@ -1743,12 +1743,24 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       }
       pushStatement(new js.LiteralStatement(code), node);
     } else {
-      List<js.Expression> data = <js.Expression>[];
-      for (int i = 0; i < inputs.length; i++) {
-        use(inputs[i]);
-        data.add(pop());
+      // We can parse simple JS with the mini parser.  At the moment we can't
+      // handle expression interpolation with # and we can't handle JSON
+      // literals and function literals, both of which contain "{".
+      if (!code.contains("#") && !code.contains("{")) {
+        js.Expression codeAst = js.js(code);
+        push(codeAst, node);
+        if (!inputs.isEmpty) {
+          compiler.internalError("Too many arguments to JS expression",
+                                 instruction: node);
+        }
+      } else {
+        List<js.Expression> data = <js.Expression>[];
+        for (int i = 0; i < inputs.length; i++) {
+          use(inputs[i]);
+          data.add(pop());
+        }
+        push(new js.LiteralExpression.withData(code, data), node);
       }
-      push(new js.LiteralExpression.withData(code, data), node);
     }
     registerForeignType(node.instructionType);
     // TODO(sra): Tell world.nativeEnqueuer about the types created here.
@@ -1917,7 +1929,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       use(node.inputs[0]);
       pushStatement(new js.Throw(pop()), node);
     } else {
-      generateThrowWithHelper(r'$throw', node.inputs[0]);
+      generateThrowWithHelper('wrapException', node.inputs[0]);
     }
   }
 
@@ -1993,6 +2005,20 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // but it has the advantage of explicitly telling the JS engine that
     // this code path will terminate abruptly. Needs more work.
     pushStatement(new js.Throw(value));
+  }
+
+  visitThrowExpression(HThrowExpression node) {
+    HInstruction argument = node.inputs[0];
+    use(argument);
+
+    Element helper = compiler.findHelper(new SourceString("throwExpression"));
+    world.registerStaticUse(helper);
+
+    js.VariableUse jsHelper =
+        new js.VariableUse(backend.namer.isolateAccess(helper));
+    js.Call value = new js.Call(jsHelper, [pop()]);
+    attachLocation(value, argument);
+    push(value, node);
   }
 
   void visitSwitch(HSwitch node) {

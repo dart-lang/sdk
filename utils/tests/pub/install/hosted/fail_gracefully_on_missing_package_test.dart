@@ -10,6 +10,7 @@ import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
+  initConfig();
   integration('fails gracefully if the package does not exist', () {
     servePackages([]);
 

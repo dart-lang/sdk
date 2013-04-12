@@ -5,6 +5,7 @@
 // Test the basic StreamController and StreamController.singleSubscription.
 library stream_controller_test;
 
+import "package:expect/expect.dart";
 import 'dart:async';
 import 'event_helper.dart';
 
@@ -97,8 +98,11 @@ testMultiController() {
           handleData: (v, s) { s.addError(new AsyncError(v)); },
           handleError: (e, s) { s.add(e.error); },
           handleDone: (s) {
+
             s.add("foo");
+
             s.close();
+
           })));
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
@@ -227,18 +231,6 @@ testSingleController() {
   }));
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
-
-  // pipe is tested asynchronously and therefore not in this file.
-  c = new StreamController();
-  var list = <int>[];
-  c.stream.pipeInto(new CollectionSink<int>(list))
-   .whenComplete(() { Expect.listEquals(<int>[1,2,9,3,9], list); });
-  c.add(1);
-  c.add(2);
-  c.add(9);
-  c.add(3);
-  c.add(9);
-  c.close();
 
   // test contains.
   {
@@ -372,6 +364,7 @@ testExtraMethods() {
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
+
   c = new StreamController();
   sentEvents = new Events()
       ..add(1)..add(1)..add(2)..add(1)..add(2)..add(2)..add(2)..close();
@@ -380,6 +373,7 @@ testExtraMethods() {
   actualEvents = new Events.capture(c.stream.distinct());
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
+
 
   c = new StreamController();
   sentEvents = new Events()

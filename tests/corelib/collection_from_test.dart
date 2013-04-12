@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library collection.from.test;
+import "package:expect/expect.dart";
 import 'dart:collection' show Queue;
 
 class CollectionFromTest {
@@ -20,7 +21,7 @@ class CollectionFromTest {
   }
 
 
-  static check(Collection initial, Collection other) {
+  static check(Iterable initial, Iterable other) {
     Expect.equals(3, initial.length);
     Expect.equals(initial.length, other.length);
 

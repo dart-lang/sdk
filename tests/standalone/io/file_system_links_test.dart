@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "package:expect/expect.dart";
 import "dart:io";
 import "dart:isolate";
 
@@ -57,7 +58,7 @@ testFileExistsCreate() {
                   FileSystemEntity.typeSync(x, followLinks: false));
     Expect.equals(x, new Link(y).targetSync());
 
-    new File(y).deleteSync();
+    new Link(y).deleteSync();
     Expect.isFalse(FileSystemEntity.isLinkSync(y));
     Expect.isFalse(FileSystemEntity.isLinkSync(x));
     Expect.equals(FileSystemEntityType.NOT_FOUND, FileSystemEntity.typeSync(y));
@@ -100,7 +101,7 @@ testFileWriteRead() {
   createLink(x, y, () {
     var data = "asdf".codeUnits;
     var output = new File(y).openWrite(mode: FileMode.WRITE);
-    output.writeBytes(data);
+    output.add(data);
     output.close();
     output.done.then((_) {
       var read = new File(y).readAsBytesSync();

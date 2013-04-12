@@ -52,14 +52,6 @@ class _GrowableObjectArray<T> implements List<T> {
     }
   }
 
-  void removeAll(Iterable elements) {
-    IterableMixinWorkaround.removeAllList(this, elements);
-  }
-
-  void retainAll(Iterable elements) {
-    IterableMixinWorkaround.retainAll(this, elements);
-  }
-
   void removeWhere(bool test(T element)) {
     IterableMixinWorkaround.removeWhereList(this, test);
   }
@@ -67,6 +59,10 @@ class _GrowableObjectArray<T> implements List<T> {
   void retainWhere(bool test(T element)) {
     IterableMixinWorkaround.removeWhereList(this,
                                             (T element) => !test(element));
+  }
+
+  Iterable<T> getRange(int start, int end) {
+    return IterableMixinWorkaround.getRangeList(this, start, end);
   }
 
   void setRange(int start, int length, List<T> from, [int startFrom = 0]) {
@@ -119,8 +115,6 @@ class _GrowableObjectArray<T> implements List<T> {
     return list;
   }
 
-  List<T> getRange(int start, int length) => sublist(start, start + length);
-
   factory _GrowableObjectArray(int length) {
     var data = new _ObjectArray((length == 0) ? 4 : length);
     var result = new _GrowableObjectArray<T>.withData(data);
@@ -133,7 +127,7 @@ class _GrowableObjectArray<T> implements List<T> {
     return new _GrowableObjectArray<T>.withData(data);
   }
 
-  factory _GrowableObjectArray.from(Collection<T> other) {
+  factory _GrowableObjectArray.from(Iterable<T> other) {
     List<T> result = new _GrowableObjectArray<T>();
     result.addAll(other);
     return result;
@@ -208,10 +202,6 @@ class _GrowableObjectArray<T> implements List<T> {
     throw new StateError("More than one element");
   }
 
-  T min([int compare(T a, T b)]) => IterableMixinWorkaround.min(this, compare);
-
-  T max([int compare(T a, T b)]) => IterableMixinWorkaround.max(this, compare);
-
   int indexOf(T element, [int start = 0]) {
     return IterableMixinWorkaround.indexOfList(this, element, start);
   }
@@ -242,11 +232,11 @@ class _GrowableObjectArray<T> implements List<T> {
     }
   }
 
-  String join([String separator]) {
+  String join([String separator = ""]) {
     if (isEmpty) return "";
     if (this.length == 1) return "${this[0]}";
     StringBuffer buffer = new StringBuffer();
-    if (separator == null || separator == "") {
+    if (separator.isEmpty) {
       for (int i = 0; i < this.length; i++) {
         buffer.write("${this[i]}");
       }
@@ -264,8 +254,8 @@ class _GrowableObjectArray<T> implements List<T> {
     return IterableMixinWorkaround.mapList(this, f);
   }
 
-  reduce(initialValue, combine(previousValue, T element)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  T reduce(T combine(T value, T element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
   }
 
   fold(initialValue, combine(previousValue, T element)) {
@@ -328,14 +318,14 @@ class _GrowableObjectArray<T> implements List<T> {
     this.length = 0;
   }
 
-  Iterable<T> get reversed => new ReversedListIterable<T>(this);
+  Iterable<T> get reversed => IterableMixinWorkaround.reversedList(this);
 
   void sort([int compare(T a, T b)]) {
     IterableMixinWorkaround.sortList(this, compare);
   }
 
   String toString() {
-    return Collections.collectionToString(this);
+    return ToString.iterableToString(this);
   }
 
   Iterator<T> get iterator {

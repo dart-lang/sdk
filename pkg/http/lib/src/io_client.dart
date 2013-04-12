@@ -32,8 +32,7 @@ class IOClient extends BaseClient {
       request.headers.forEach((name, value) {
         ioRequest.headers.set(name, value);
       });
-      return Future.wait([stream.pipe(ioRequest), ioRequest.response])
-          .then((list) => list[1]);
+      return stream.pipe(ioRequest);
     }).then((response) {
       var headers = {};
       response.headers.forEach((key, values) {

@@ -44,21 +44,17 @@ class HValidator extends HInstructionVisitor {
     if (block.last is HJump && block.successors.length != 1) {
       markInvalid("Break or continue node without one successor");
     }
-    if (block.last is HReturn &&
+    if ((block.last is HReturn || block.last is HThrow) &&
         (block.successors.length != 1 || !block.successors[0].isExitBlock())) {
-      markInvalid("Return node with > 1 succesor or not going to exit-block");
+      markInvalid("Return or throw node with > 1 successor "
+                  "or not going to exit-block");
     }
     if (block.last is HExit && !block.successors.isEmpty) {
       markInvalid("Exit block with successor");
     }
-    if (block.last is HThrow && !block.successors.isEmpty) {
-      markInvalid("Throw block with successor");
-    }
 
-    if (block.successors.isEmpty &&
-        block.last is !HThrow &&
-        !block.isExitBlock()) {
-      markInvalid("Non-exit or throw block without successor");
+    if (block.successors.isEmpty && !block.isExitBlock()) {
+      markInvalid("Non-exit block without successor");
     }
 
     // Check that successors ids are always higher than the current one.

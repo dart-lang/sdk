@@ -68,22 +68,6 @@ DART_EXPORT Dart_Handle Dart_GetCachedObject(intptr_t obj_id);
 
 
 /**
- * DEPRECATED -- use Dart_GetLibraryIds instead.
- *
- * Returns a list of urls (strings) of all the libraries loaded in the
- * current isolate.
- *
- * Requires there to be a current isolate.
- *
- * \return A handle to a list of string handles.
- */
-DART_EXPORT Dart_Handle Dart_GetLibraryURLs();
-// TODO(turnidge): The embedding and debugger apis are not consistent
-// in how they capitalize url.  One uses 'Url' and the other 'URL'.
-// They should be the same.
-
-
-/**
  * Returns a list of ids (integers) of all the libraries loaded in the
  * current isolate.
  *
@@ -137,6 +121,28 @@ DART_EXPORT Dart_Handle Dart_GetScriptURLs(Dart_Handle library_url);
  * occurs.
  */
 DART_EXPORT Dart_Handle Dart_ScriptGetSource(
+                            intptr_t library_id,
+                            Dart_Handle script_url_in);
+
+
+/**
+ * Returns an array containing line number and token offset info
+ * for the given script.
+ *
+ * Returns an array of numbers. Null values indicate the beginning of
+ * a new line. The first number after null is the line number.
+ * The line number is followed by pairs of numbers, with the first value
+ * being the "token offset" and the second value being the character offset
+ * of the token relative to the beginning of the script.
+ * The "token offset" is a value that is used to indicate a location
+ * in code, similarly to a "PC" address.
+ * Source lines with no tokens are omitted.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \return A handle to an array or an error object.
+ */
+DART_EXPORT Dart_Handle Dart_ScriptGetTokenInfo(
                             intptr_t library_id,
                             Dart_Handle script_url_in);
 
@@ -201,41 +207,19 @@ DART_EXPORT Dart_Handle Dart_GetBreakpointLine(intptr_t bp_id);
 
 
 /**
- * DEPRECATED -- use Dart_SetBreakpoint instead.
- *
- * Sets a breakpoint at line \line_number in \script_url, or the closest
- * following line (within the same function) where a breakpoint can be set.
- *
- * Requires there to be a current isolate.
- *
- * \breakpoint If non-null, will point to the breakpoint object
- *   if a breakpoint was successfully created.
- *
- * \return A handle to the True object if no error occurs.
- */
-DART_EXPORT Dart_Handle Dart_SetBreakpointAtLine(
-                            Dart_Handle script_url,
-                            Dart_Handle line_number,
-                            Dart_Breakpoint* breakpoint);
-
-
-/**
  * Sets a one-time breakpoint at the entry of the given function.
  * If class_name is the empty string, looks for a library function
  * with the given name.
  *
  * Requires there to be a current isolate.
  *
- * \breakpoint If non-null, will point to the breakpoint object
- *   if a breakpoint was successfully created.
- *
- * \return A handle to the True object if no error occurs.
+ * \return A handle containing the breakpoint id, which is an integer
+ * value, or an error object if a breakpoint could not be set.
  */
 DART_EXPORT Dart_Handle Dart_SetBreakpointAtEntry(
                             Dart_Handle library,
                             Dart_Handle class_name,
-                            Dart_Handle function_name,
-                            Dart_Breakpoint* breakpoint);
+                            Dart_Handle function_name);
 
 
 /**
@@ -251,19 +235,6 @@ DART_EXPORT Dart_Handle Dart_OneTimeBreakAtEntry(
                             Dart_Handle library,
                             Dart_Handle class_name,
                             Dart_Handle function_name);
-
-
-/**
- * DEPRECATED -- use Dart_RemoveBreakpoint instead.
- *
- * Deletes the given \breakpoint.
- *
- * Requires there to be a current isolate.
- *
- * \return A handle to the True object if no error occurs.
- */
-DART_EXPORT Dart_Handle Dart_DeleteBreakpoint(
-                            Dart_Breakpoint breakpoint);
 
 
 /**
@@ -434,6 +405,7 @@ DART_EXPORT Dart_Handle Dart_ActivationFrameInfo(
 DART_EXPORT Dart_Handle Dart_ActivationFrameGetLocation(
                             Dart_ActivationFrame activation_frame,
                             Dart_Handle* script_url,
+                            intptr_t* library_id,
                             intptr_t* token_number);
 
 

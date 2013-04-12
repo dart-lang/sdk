@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Testing file input stream, VM-only, standalone test.
 
+import "package:expect/expect.dart";
 import "dart:io";
 import "dart:isolate";
 
@@ -21,7 +22,7 @@ void testOpenOutputStreamSync() {
   file.createSync();
   IOSink x = file.openWrite();
   var data = [65, 66, 67];
-  x.writeBytes(data);
+  x.add(data);
   x.close();
   x.done.then((_) {
     Expect.listEquals(file.readAsBytesSync(), data);

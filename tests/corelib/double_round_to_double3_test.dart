@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:expect/expect.dart';
+
 main() {
   // The following numbers are on the border of 52 bits.
   // For example: 4503599627370499 + 0.5 => 4503599627370500.

@@ -1014,7 +1014,7 @@ class ObjectStore native "*IDBObjectStore" {
         controller.close();
       } else {
         controller.add(cursor);
-        if (autoAdvance == true && controller.hasSubscribers) {
+        if (autoAdvance == true && controller.hasListener) {
           cursor.next();
         }
       }
@@ -1243,5 +1243,5 @@ class VersionChangeEvent extends Event native "*IDBVersionChangeEvent" {
 
 @DocsEditable
 @DomName('IDBAny')
-class _IDBAny native "*IDBAny" {
+abstract class _IDBAny native "*IDBAny" {
 }

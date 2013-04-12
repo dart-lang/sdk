@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "package:expect/expect.dart";
+
 // Dart spec 0.03, section 11.10 - generative constructors can only have return
 // statements in the form 'return;'.
 class A {

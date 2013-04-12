@@ -8,6 +8,7 @@
 
 library collection_to_string;
 
+import "package:expect/expect.dart";
 import 'dart:collection' show Queue, LinkedHashMap;
 import 'dart:math' as Math;
 
@@ -206,8 +207,8 @@ Map randomMap(int size, bool exact, StringBuffer stringRep, List beingMade) {
  * and will not contain a collection with ill-defined iteration order
  * (i.e., a HashSet or HashMap).
  */
-Collection populateRandomCollection(int size, bool exact,
-    StringBuffer stringRep, List beingMade, Collection coll) {
+populateRandomCollection(int size, bool exact,
+    StringBuffer stringRep, List beingMade, var coll) {
   beingMade.add(coll);
   stringRep.write(coll is List ? '[' : '{');
 

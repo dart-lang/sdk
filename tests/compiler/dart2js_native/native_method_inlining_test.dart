@@ -5,6 +5,8 @@
 // Test that native methods with unnamed optional arguments are called with the
 // number of arguments in the call site AND the call site is inlined.
 
+import "package:expect/expect.dart";
+
 class A native "*A" {
   int foo([x, y, z]) native;
 }

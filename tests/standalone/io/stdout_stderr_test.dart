@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "package:expect/expect.dart";
 import "dart:async";
 import "dart:io";
 
@@ -13,7 +14,7 @@ callIOSink(IOSink sink) {
   sink.writeln("Hello");
   sink.writeAll(["H", "e", "l", "lo\n"]);
   sink.writeCharCode(72);
-  sink.writeBytes([101, 108, 108, 111, 10]);
+  sink.add([101, 108, 108, 111, 10]);
 
   var controller = new StreamController();
   sink.writeStream(controller.stream);

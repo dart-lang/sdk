@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "package:expect/expect.dart";
+
 class A {
   var _x, _y;
   A(x, [y = 10]): _x = x++, _y = y++ {

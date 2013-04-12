@@ -15,6 +15,8 @@ RawString* DoubleToStringAsFixed(double d, int fraction_digits);
 RawString* DoubleToStringAsExponential(double d, int fraction_digits);
 RawString* DoubleToStringAsPrecision(double d, int precision);
 
+bool CStringToDouble(const char* str, intptr_t length, double* result);
+
 }  // namespace dart
 
 #endif  // VM_DOUBLE_CONVERSION_H_

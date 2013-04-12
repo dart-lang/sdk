@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for closures.
 
+import "package:expect/expect.dart";
+
 class A {
   var field;
   A(this.field) {}

@@ -8,7 +8,7 @@ part of html_common;
  * An indexable collection of a node's descendants in the document tree,
  * filtered so that only elements are in the collection.
  */
-class FilteredElementList implements List {
+class FilteredElementList extends ListBase<Element> {
   final Node _node;
   final List<Node> _childNodes;
 
@@ -49,7 +49,7 @@ class FilteredElementList implements List {
     removeRange(newLength, len - newLength);
   }
 
-  String join([String separator]) => _filtered.join(separator);
+  String join([String separator = ""]) => _filtered.join(separator);
 
   void add(Element value) {
     _childNodes.add(value);
@@ -122,33 +122,14 @@ class FilteredElementList implements List {
     }
   }
 
-  // Operations defined in terms of [Collections]' [remove].
 
-  void removeAll(Iterable elements) {
-    // This should be optimized to not use [remove] directly.
-    IterableMixinWorkaround.removeAll(this, elements);
-  }
-
-  void retainAll(Iterable elements) {
-    IterableMixinWorkaround.retainAll(this, elements);
-  }
-
-  void removeWhere(bool test(Element element)) {
-    IterableMixinWorkaround.removeWhere(this, test);
-  }
-
-  void retainWhere(bool test(Element element)) {
-    IterableMixinWorkaround.retainWhere(this, test);
-  }
-
-  dynamic reduce(dynamic initialValue,
-      dynamic combine(dynamic previousValue, Element element)) {
-    return IterableMixinWorkaround.reduce(this, initialValue, combine);
+  Element reduce(Element combine(Element value, Element element)) {
+    return _filtered.reduce(combine);
   }
 
   dynamic fold(dynamic initialValue,
       dynamic combine(dynamic previousValue, Element element)) {
-    return IterableMixinWorkaround.fold(this, initialValue, combine);
+    return _filtered.fold(initialValue, combine);
   }
 
   bool every(bool f(Element element)) => _filtered.every(f);
@@ -178,8 +159,8 @@ class FilteredElementList implements List {
   Iterator<Element> get iterator => _filtered.iterator;
   List<Element> sublist(int start, [int end]) =>
     _filtered.sublist(start, end);
-  List<Element> getRange(int start, int rangeLength) =>
-    sublist(start, start + rangeLength);
+  Iterable<Element> getRange(int start, int end) =>
+    _filtered.getRange(start, end);
   int indexOf(Element element, [int start = 0]) =>
     _filtered.indexOf(element, start);
 

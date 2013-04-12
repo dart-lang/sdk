@@ -5,6 +5,8 @@
 // Regression test for dart2js that used to infer [:super == null:]
 // always returns an int.
 
+import 'package:expect/expect.dart';
+
 class A {
   operator==(other) => 42;
 }

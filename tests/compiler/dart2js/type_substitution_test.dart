@@ -4,6 +4,7 @@
 
 library type_substitution_test;
 
+import "package:expect/expect.dart";
 import '../../../sdk/lib/_internal/compiler/implementation/dart_types.dart';
 import "compiler_helper.dart";
 import "parser_helper.dart";

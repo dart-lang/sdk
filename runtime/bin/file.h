@@ -76,7 +76,9 @@ class File {
     kWriteByteRequest = 15,
     kReadRequest = 16,
     kReadListRequest = 17,
-    kWriteListRequest = 18
+    kWriteListRequest = 18,
+    kCreateLinkRequest = 19,
+    kDeleteLinkRequest = 20
   };
 
   ~File();
@@ -131,6 +133,7 @@ class File {
   static bool Create(const char* path);
   static bool CreateLink(const char* path, const char* target);
   static bool Delete(const char* path);
+  static bool DeleteLink(const char* path);
   static off_t LengthFromPath(const char* path);
   static time_t LastModified(const char* path);
   static char* LinkTarget(const char* pathname);

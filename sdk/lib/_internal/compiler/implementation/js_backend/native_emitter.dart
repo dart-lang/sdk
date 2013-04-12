@@ -157,7 +157,7 @@ class NativeEmitter {
     // Define interceptor class for [classElement].
     String className = backend.namer.getName(classElement);
     jsAst.Expression init =
-        js[emitter.classesCollector][className].assign(
+        js(emitter.classesCollector)[className].assign(
             builder.toObjectInitializer());
     mainBuffer.write(jsAst.prettyPrint(init, compiler));
     mainBuffer.write('$N$n');
@@ -175,9 +175,9 @@ class NativeEmitter {
     if (nativeTag == 'HTMLElement') definer = defineNativeMethodsNonleafName;
 
     jsAst.Expression definition =
-        js[definer](
+        js(definer)(
             [js.string(nativeTag),
-             js[backend.namer.isolateAccess(classElement)]]);
+             js(backend.namer.isolateAccess(classElement))]);
 
     nativeBuffer.add(jsAst.prettyPrint(definition, compiler));
     nativeBuffer.add('$N$n');
@@ -190,7 +190,7 @@ class NativeEmitter {
     // `Object.prototype` to avoid checking in `getInterceptor` and
     // specializations.
 
-    // jsAst.Expression call = js[defineNativeMethodsFinishName]([]);
+    // jsAst.Expression call = js(defineNativeMethodsFinishName)([]);
     // nativeBuffer.add(jsAst.prettyPrint(call, compiler));
     // nativeBuffer.add('$N$n');
   }
@@ -221,14 +221,8 @@ class NativeEmitter {
             // The parameter type is a function type either directly or through
             // typedef(s).
             int arity = type.computeArity();
-
             statements.add(
-                new jsAst.ExpressionStatement(
-                    js.assign(
-                        js[name],
-                        js[closureConverter](
-                            [js[name],
-                             new jsAst.LiteralNumber('$arity')]))));
+                js('$name = $closureConverter($name, $arity)').toStatement());
             break;
           }
         }
@@ -277,7 +271,7 @@ class NativeEmitter {
         arguments = argumentsBuffer.sublist(1,
             indexOfLastOptionalArgumentInParameters + 1);
       } else {
-        receiver = new jsAst.VariableUse('this');
+        receiver = js('this');
         arguments = argumentsBuffer.sublist(0,
             indexOfLastOptionalArgumentInParameters + 1);
       }
@@ -364,13 +358,13 @@ class NativeEmitter {
               // don't have DAGs yet, but if the dispatch is used for mixins
               // that will be a possibility.
               // Re-use the previously created temporary variable.
-              expressions.add(new jsAst.VariableUse(use.name));
+              expressions.add(js(use.name));
             } else {
               String varName = 'v${varNames.length}_${tag.name.slowToString()}';
               varNames.add(varName);
               varDefns[varName] = existing;
-              tagDefns[tag] = new jsAst.VariableUse(varName);
-              expressions.add(new jsAst.VariableUse(varName));
+              tagDefns[tag] = js(varName);
+              expressions.add(js(varName));
             }
           }
         }
@@ -424,12 +418,7 @@ class NativeEmitter {
                       js.string(toNativeTag(cls)),
                       tagDefns[cls]])));
 
-      //  $.dynamicSetMetadata(table);
-      statements.add(
-          new jsAst.ExpressionStatement(
-              new jsAst.Call(
-                  new jsAst.VariableUse(dynamicSetMetadataName),
-                  [table])));
+      statements.add(js('$dynamicSetMetadataName(#)', table).toStatement());
 
       //  (function(){statements})();
       if (emitter.compiler.enableMinification) nativeBuffer.add(';');
@@ -488,41 +477,16 @@ class NativeEmitter {
         // Add function for the is-test.
         String name = backend.namer.operatorIs(element);
         addProperty(name,
-            js.fun([], js.return_(js['false'])));
+            js.fun([], js.return_(js('false'))));
         // Add a function for the (trivial) substitution.
         addProperty(backend.namer.substitutionName(element),
-                    js.fun([], js.return_(js['null'])));
+                    js.fun([], js.return_(js('null'))));
       }
     }
     emitIsChecks();
 
-    jsAst.Expression makeCallOnThis(String functionName) {
-      // Because we know the function is intercepted, we need an extra
-      // parameter.
-      return js.fun(['_'], js.return_(js['$functionName(this)']));
-    }
-
     if (!nativeClasses.isEmpty) {
       emitDynamicDispatchMetadata();
-
-      // In order to have the toString method on every native class,
-      // we must patch the JS Object prototype with a helper method.
-      String toStringName = backend.namer.publicInstanceMethodNameByArity(
-          const SourceString('toString'), 0);
-      addProperty(toStringName, makeCallOnThis(toStringHelperName));
-
-      // Same as above, but for hashCode.
-      String hashCodeName =
-          backend.namer.publicGetterName(const SourceString('hashCode'));
-      addProperty(hashCodeName, makeCallOnThis(hashCodeHelperName));
-
-      // Same as above, but for operator==.
-      String equalsName = backend.namer.publicInstanceMethodNameByArity(
-          const SourceString('=='), 1);
-      // Because we know the function is intercepted, we need an extra
-      // parameter.
-      addProperty(equalsName, js.fun(['_', 'a'],
-          js.return_(js['this === a'])));
 
       // If the native emitter has been asked to take care of the
       // noSuchMethod handlers, we do that now.
@@ -541,9 +505,9 @@ class NativeEmitter {
                       [new jsAst.VariableInitialization(
                           new jsAst.VariableDeclaration('key'),
                           null)]),
-                  js['table'],
+                  js('table'),
                   new jsAst.ExpressionStatement(
-                      js['$defPropName(Object.prototype, key, table[key])'])))(
+                      js('$defPropName(Object.prototype, key, table[key])'))))(
               new jsAst.ObjectInitializer(objectProperties));
 
       if (emitter.compiler.enableMinification) targetBuffer.add(';');

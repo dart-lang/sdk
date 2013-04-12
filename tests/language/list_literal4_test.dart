@@ -5,6 +5,8 @@
 //
 // Dart test program testing type checks in list literals.
 
+import "package:expect/expect.dart";
+
 class ListLiteral4Test<T> {
   test() {
     int result = 0;

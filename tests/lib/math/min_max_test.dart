@@ -4,6 +4,7 @@
 // Dart test for testing Math.min and Math.max.
 
 library min_max_test;
+import "package:expect/expect.dart";
 import 'dart:math';
 
 testMin() {

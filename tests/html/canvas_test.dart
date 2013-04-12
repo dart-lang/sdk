@@ -12,7 +12,7 @@ main() {
   canvas = new CanvasElement(width:width, height:height);
   document.body.nodes.add(canvas);
 
-  context = canvas.context2d;
+  context = canvas.context2D;
 
   useHtmlConfiguration();
   test('CreateImageData', () {
@@ -30,7 +30,7 @@ main() {
 
   test('toDataUrl', () {
     var canvas = new CanvasElement(width: 100, height: 100);
-    var context = canvas.context2d;
+    var context = canvas.context2D;
     context.fillStyle = 'red';
     context.fill();
 

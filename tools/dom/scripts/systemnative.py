@@ -10,7 +10,7 @@ import emitter
 import os
 from generator import *
 from htmldartgenerator import *
-from systemhtml import js_support_checks, GetCallbackInfo
+from systemhtml import js_support_checks, GetCallbackInfo, HTML_LIBRARY_NAMES
 
 class DartiumBackend(HtmlDartGenerator):
   """Generates Dart implementation for one DOM IDL interface."""
@@ -152,6 +152,9 @@ class DartiumBackend(HtmlDartGenerator):
     # Emit internal constructor which is necessary for Dartium bindings
     # to construct wrappers from C++.  Eventually it should go away
     # once it is possible to construct such an instance directly.
+    if not self._members_emitter:
+      return
+
     super_constructor = ''
     if base_class and base_class != 'NativeFieldWrapperClass1':
       super_constructor = ' : super.internal()'
@@ -875,14 +878,12 @@ class CPPLibraryEmitter():
   def __init__(self, emitters, cpp_sources_dir):
     self._emitters = emitters
     self._cpp_sources_dir = cpp_sources_dir
-    self._library_headers = {}
+    self._library_headers = dict((lib, []) for lib in HTML_LIBRARY_NAMES)
     self._sources_list = []
 
   def CreateHeaderEmitter(self, interface_name, library_name, is_callback=False):
     path = os.path.join(self._cpp_sources_dir, 'Dart%s.h' % interface_name)
     if not is_callback:
-      if not library_name in self._library_headers:
-        self._library_headers[library_name] = []
       self._library_headers[library_name].append(path)
     return self._emitters.FileEmitter(path)
 

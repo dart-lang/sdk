@@ -1536,6 +1536,21 @@ ASSEMBLER_TEST_RUN(Muls, test) {
 }
 
 
+// Called from assembler_test.cc.
+// LR: return address.
+// R0: context.
+// R1: value.
+// R2: growable array.
+ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
+  __ PushList((1 << CTX) | (1 << LR));
+  __ mov(CTX, ShifterOperand(R0));
+  __ StoreIntoObject(R2,
+                     FieldAddress(R2, GrowableObjectArray::data_offset()),
+                     R1);
+  __ PopList((1 << CTX) | (1 << LR));
+  __ Ret();
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_ARM

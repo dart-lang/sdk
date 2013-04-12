@@ -70,15 +70,6 @@ class ElementX implements Element {
   }
   bool isInstanceMember() => false;
 
-  /**
-   * Returns [:true:] if this element is enclosed in a static member or is
-   * itself a static member.
-   */
-  bool isInStaticMember() {
-    Element member = getEnclosingMember();
-    return member != null && member.modifiers.isStatic();
-  }
-
   bool isFactoryConstructor() => modifiers.isFactory();
   bool isGenerativeConstructor() =>
       identical(kind, ElementKind.GENERATIVE_CONSTRUCTOR);
@@ -1364,7 +1355,7 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
    *
    * This type is computed together with [thisType] in [computeType].
    */
-  InterfaceType rawType;
+  InterfaceType rawTypeCache;
   DartType supertype;
   DartType defaultClass;
   Link<DartType> interfaces;
@@ -1400,21 +1391,27 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
         Link<DartType> parameters = computeTypeParameters(compiler);
         thisType = new InterfaceType(this, parameters);
         if (parameters.isEmpty) {
-          rawType = thisType;
+          rawTypeCache = thisType;
         } else {
           var dynamicParameters = const Link<DartType>();
           parameters.forEach((_) {
             dynamicParameters =
                 dynamicParameters.prepend(compiler.types.dynamicType);
           });
-          rawType = new InterfaceType(this, dynamicParameters);
+          rawTypeCache = new InterfaceType(this, dynamicParameters);
         }
       } else {
         thisType = origin.computeType(compiler);
-        rawType = origin.rawType;
+        rawTypeCache = origin.rawType;
       }
     }
     return thisType;
+  }
+
+  InterfaceType get rawType {
+    assert(invariant(this, rawTypeCache != null,
+                     message: 'Raw type has not been computed for $this'));
+    return rawTypeCache;
   }
 
   Link<DartType> computeTypeParameters(Compiler compiler);

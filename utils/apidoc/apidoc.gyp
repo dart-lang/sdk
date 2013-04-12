@@ -28,24 +28,55 @@
       'actions': [
         {
           'action_name': 'run_apidoc',
+          # The 'inputs' list records the files whose timestamps are
+          # compared to the files listed in 'outputs'.  If a file
+          # 'outputs' doesn't exist or if a file in 'inputs' is newer
+          # than a file in 'outputs', this action is executed.  Notice
+          # that the dependencies listed above has nothing to do with
+          # when this action is executed.  You must list a file in
+          # 'inputs' to make sure that it exists before the action is
+          # executed, or to make sure this action is re-run.
+          #
+          # We want to build the platform documentation whenever
+          # dartdoc, apidoc, or its dependency changes.  This prevents
+          # people from accidentally breaking apidoc when making
+          # changes to the platform libraries and or when modifying
+          # dart2js or the VM.
+          #
+          # In addition, we want to make sure that the platform
+          # documentation is regenerated when the platform sources
+          # changes.
+          #
+          # So we want this action to be re-run when a dart file
+          # changes in this directory, or in the SDK library (we may
+          # no longer need to list the files in ../../runtime/lib and
+          # ../../runtime/bin, as most of them has moved to
+          # ../../sdk/lib).
+          #
+          # In addition, we want to make sure the documentation is
+          # regenerated when a resource file (CSS, PNG, etc) is
+          # updated.  This is because these files are also copied to
+          # the output directory.
           'inputs': [
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
-            '<(PRODUCT_DIR)/dart2js.snapshot',
+            '<(SHARED_INTERMEDIATE_DIR)/utils_wrapper.dart.snapshot',
             '<!@(["python", "../../tools/list_files.py", "\\.(css|ico|js|json|png|sh|txt|yaml|py)$", ".", "../../sdk/lib/_internal/dartdoc"])',
-            '<!@(["python", "../../tools/list_files.py", "\\.dart$", "../../sdk/lib", "../../runtime/lib", "../../runtime/bin"])',
+            '<!@(["python", "../../tools/list_files.py", "\\.dart$", ".", "../../sdk/lib", "../../runtime/lib", "../../runtime/bin"])',
             '../../sdk/bin/dart',
             '../../sdk/bin/dart.bat',
             '../../sdk/bin/dart2js',
             '../../sdk/bin/dart2js.bat',
-          ],
-          'inputs': [
-            '<!@(["python", "../../tools/list_files.py", "\\.(css|png|dart)$", "."])',
+            '../../tools/only_in_release_mode.py',
           ],
           'outputs': [
             '<(PRODUCT_DIR)/api_docs/index.html',
             '<(PRODUCT_DIR)/api_docs/client-static.js',
           ],
           'action': [
+            'python',
+            '../../tools/only_in_release_mode.py',
+            '<@(_outputs)',
+            '--',
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
             '--package-root=<(PRODUCT_DIR)/packages/',
             'apidoc.dart',
@@ -56,6 +87,7 @@
             '--exclude-lib=analyzer_experimental',
             '--exclude-lib=browser',
             '--exclude-lib=dartdoc',
+            '--exclude-lib=expect',
             '--exclude-lib=http',
             '--exclude-lib=oauth2',
             '--exclude-lib=pathos',

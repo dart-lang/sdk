@@ -7,6 +7,7 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
+import "package:expect/expect.dart";
 import "dart:async";
 import "dart:io";
 import "dart:isolate";
@@ -22,7 +23,7 @@ Future<SecureServerSocket> startEchoServer() {
     server.listen((SecureSocket client) {
       client.fold(<int>[], (message, data) => message..addAll(data))
           .then((message) {
-            client.writeBytes(message);
+            client.add(message);
             client.close();
           });
     });

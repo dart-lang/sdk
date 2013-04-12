@@ -34,7 +34,7 @@ main() {
     });
   });
 
-  integration('should consider a package invalid if it', () {
+  group('should consider a package invalid if it', () {
     setUp(d.validPackage.create);
 
     integration('has no lib directory', () {

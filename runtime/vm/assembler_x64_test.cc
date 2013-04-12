@@ -2291,6 +2291,51 @@ ASSEMBLER_TEST_RUN(ExtractSignBits, test) {
   EXPECT_EQ(1, res);
 }
 
+
+ASSEMBLER_TEST_GENERATE(TestSetCC, assembler) {
+  __ movq(RAX, Immediate(0xFFFFFFFF));
+  __ cmpq(RAX, RAX);
+  __ setcc(NOT_EQUAL, AL);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(TestSetCC, test) {
+  typedef uword (*TestSetCC)();
+  uword res = reinterpret_cast<TestSetCC>(test->entry())();
+  EXPECT_EQ(0xFFFFFF00, res);
+}
+
+
+ASSEMBLER_TEST_GENERATE(TestRepMovsBytes, assembler) {
+  // Save incoming arguments.
+  __ pushq(RDI);  // Arg0, from.
+  __ pushq(RSI);  // Arg1, to.
+  __ pushq(RDX);  // Arg2, count.
+  __ movq(RSI, Address(RSP, 2 * kWordSize));  // from.
+  __ movq(RDI, Address(RSP, 1 * kWordSize));  // to.
+  __ movq(RCX, Address(RSP, 0 * kWordSize));  // count.
+  __ rep_movsb();
+  // Remove saved arguments.
+  __ popq(RAX);
+  __ popq(RAX);
+  __ popq(RAX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(TestRepMovsBytes, test) {
+  const char* from = "0123456789";
+  const char* to = new char[10];
+  typedef void (*TestRepMovsBytes)(const char* from, const char* to, int count);
+  reinterpret_cast<TestRepMovsBytes>(test->entry())(from, to, 10);
+  EXPECT_EQ(to[0], '0');
+  for (int i = 0; i < 10; i++) {
+    EXPECT_EQ(from[i], to[i]);
+  }
+  delete [] to;
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_X64

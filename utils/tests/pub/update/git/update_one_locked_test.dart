@@ -10,6 +10,7 @@ import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
+  initConfig();
   integration("updates one locked Git package but no others", () {
     ensureGit();
 

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "package:expect/expect.dart";
+
 // This test tries to verify that we produce the correct stack trace when
 // throwing exceptions even when functions are inlined.
 // The test invokes a bunch of functions and then does a throw. There is a

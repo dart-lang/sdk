@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "package:expect/expect.dart";
 import 'dart:mirrors';
 
 import 'async_helper.dart';
@@ -13,8 +14,8 @@ void test(void onDone(bool success)) {
   print('mirror.type: ${mirror.type}');
   print('now.toUtc(): ${now.toUtc()}');
 
-  mirror.invoke("toUtc", []).then((value) {
-    print('mirror.invoke("toUtc", []): $value');
+  mirror.invokeAsync("toUtc", []).then((value) {
+    print('mirror.invokeAsync("toUtc", []): $value');
     Expect.isTrue(value.hasReflectee);
     Expect.equals(now.toUtc(), value.reflectee);
     onDone(true);

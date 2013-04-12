@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program testing nested comments
 
+import "package:expect/expect.dart";
+
 // /* nested comment */
 /*// nested comment */
 /*/* nested comment */*/

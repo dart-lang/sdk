@@ -38,7 +38,7 @@ class ReachingDefs : public ValueObject {
 class FlowGraphAllocator : public ValueObject {
  public:
   // Number of stack slots needed for a fpu register spill slot.
-  static const intptr_t kFpuRegisterSpillFactor = kFpuRegisterSize / kWordSize;
+  static const intptr_t kDoubleSpillFactor = kDoubleSize / kWordSize;
 
   explicit FlowGraphAllocator(const FlowGraph& flow_graph);
 
@@ -227,8 +227,8 @@ class FlowGraphAllocator : public ValueObject {
 
   MoveOperands* AddMoveAt(intptr_t pos, Location to, Location from);
 
-  Location MakeRegisterLocation(intptr_t reg, Representation rep) {
-    return Location::MachineRegisterLocation(register_kind_, reg, rep);
+  Location MakeRegisterLocation(intptr_t reg) {
+    return Location::MachineRegisterLocation(register_kind_, reg);
   }
 
   void PrintLiveRanges();
@@ -309,8 +309,13 @@ class FlowGraphAllocator : public ValueObject {
   // List of used spill slots. Contains positions after which spill slots
   // become free and can be reused for allocation.
   GrowableArray<intptr_t> spill_slots_;
-  intptr_t cpu_spill_slot_count_;
 
+  // For every used spill slot contains a flag determines whether it is
+  // QuadSpillSlot to ensure that indexes of quad and double spill slots
+  // are disjoint.
+  GrowableArray<bool> quad_spill_slots_;
+
+  intptr_t cpu_spill_slot_count_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphAllocator);
 };

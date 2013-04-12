@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test program for correct optimizations related to types fo allocated lists.
 
+import "package:expect/expect.dart";
+
 main() {
   // Trigger optimization of 'test' method.
   for (int i = 0; i < 1000; i++) {

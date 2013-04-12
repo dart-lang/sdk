@@ -599,7 +599,7 @@ class _HasLength extends BaseMatcher {
  * Returns a matcher that matches if the match argument contains
  * the expected value. For [String]s this means substring matching;
  * for [Map]s it means the map has the key, and for [Iterable]s
- * (including [Collection]s) it means the iterable has a matching
+ * (including [Iterable]s) it means the iterable has a matching
  * element. In the case of iterables, [expected] can itself be a
  * matcher.
  */
@@ -645,7 +645,7 @@ class _In extends BaseMatcher {
   bool matches(item, MatchState matchState) {
     if (_expected is String) {
       return _expected.indexOf(item) >= 0;
-    } else if (_expected is Collection) {
+    } else if (_expected is Iterable) {
       return _expected.any((e) => e == item);
     } else if (_expected is Map) {
       return _expected.containsKey(item);

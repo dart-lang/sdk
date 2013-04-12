@@ -5,6 +5,7 @@
 // Regression test for missing immutability check in the ListSet
 // methods in the API. This allowed overwriting const Lists.
 
+import "package:expect/expect.dart";
 import "dart:io";
 
 String getFilename(String path) =>

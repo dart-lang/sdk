@@ -54,7 +54,7 @@ void _serializeObject(String name, Object o, JsonPrinter printer) {
   // TODO(jacobr): this code works only because futures for mirrors return
   // immediately.
   for(String memberName in members) {
-    var result = deprecatedFutureValue(mirror.getField(memberName));
+    var result = deprecatedFutureValue(mirror.getFieldAsync(memberName));
     _serialize(memberName, result.reflectee, printer);
   }
   printer.endObject();

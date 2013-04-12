@@ -6,6 +6,7 @@
 #if defined(TARGET_OS_WINDOWS)
 
 #include "bin/directory.h"
+#include "bin/file.h"
 
 #include <errno.h>  // NOLINT
 #include <sys/stat.h>  // NOLINT
@@ -48,11 +49,39 @@ class PathBuffer {
   }
 };
 
+// If link_name points to a link, IsBrokenLink will return true if link_name
+// points to an invalid target.
+static bool IsBrokenLink(const wchar_t* link_name) {
+  HANDLE handle = CreateFileW(
+      link_name,
+      0,
+      FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+      NULL,
+      OPEN_EXISTING,
+      FILE_FLAG_BACKUP_SEMANTICS,
+      NULL);
+  if (handle == INVALID_HANDLE_VALUE) {
+    return true;
+  } else {
+    CloseHandle(handle);
+    return false;
+  }
+}
+
+// A linked list structure holding a link target's unique file system ID.
+// Used to detect loops in the file system when listing recursively.
+struct LinkList {
+  DWORD volume;
+  DWORD id_low;
+  DWORD id_high;
+  LinkList* next;
+};
 
 // Forward declarations.
 static bool ListRecursively(PathBuffer* path,
                             bool recursive,
                             bool follow_links,
+                            LinkList* seen,
                             DirectoryListing* listing);
 static bool DeleteRecursively(PathBuffer* path);
 
@@ -69,6 +98,7 @@ static bool HandleDir(wchar_t* dir_name,
                       PathBuffer* path,
                       bool recursive,
                       bool follow_links,
+                      LinkList* seen,
                       DirectoryListing* listing) {
   if (wcscmp(dir_name, L".") == 0) return true;
   if (wcscmp(dir_name, L"..") == 0) return true;
@@ -80,7 +110,8 @@ static bool HandleDir(wchar_t* dir_name,
   bool ok = listing->HandleDirectory(utf8_path);
   free(utf8_path);
   return ok &&
-      (!recursive || ListRecursively(path, recursive, follow_links, listing));
+      (!recursive ||
+       ListRecursively(path, recursive, follow_links, seen, listing));
 }
 
 
@@ -116,24 +147,62 @@ static bool HandleEntry(LPWIN32_FIND_DATAW find_file_data,
                         PathBuffer* path,
                         bool recursive,
                         bool follow_links,
+                        LinkList* seen,
                         DirectoryListing* listing) {
   DWORD attributes = find_file_data->dwFileAttributes;
   if ((attributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0) {
     if (!follow_links) {
       return HandleLink(find_file_data->cFileName, path, listing);
     }
-    // Attempt to list the directory, to see if it's a valid link or not.
     int path_length = path->length;
     if (!path->Add(find_file_data->cFileName)) return false;
-    if (!path->Add(L"\\*")) return false;
-    WIN32_FIND_DATAW tmp_file_data;
-    HANDLE find_handle = FindFirstFileW(path->data, &tmp_file_data);
+    HANDLE handle = CreateFileW(
+        path->data,
+        0,
+        FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+        NULL,
+        OPEN_EXISTING,
+        FILE_FLAG_BACKUP_SEMANTICS,
+        NULL);
     path->Reset(path_length);
-    if (find_handle == INVALID_HANDLE_VALUE) {
-      // Invalid handle, report as (broken) link.
+    if (handle == INVALID_HANDLE_VALUE) {
+      // Report as (broken) link.
       return HandleLink(find_file_data->cFileName, path, listing);
-    } else {
-      FindClose(find_handle);
+    }
+    if ((attributes & FILE_ATTRIBUTE_DIRECTORY) != 0) {
+      // Check the seen link targets to see if we are in a file system loop.
+      LinkList current_link;
+      BY_HANDLE_FILE_INFORMATION info;
+      // Get info
+      if (!GetFileInformationByHandle(handle, &info)) {
+        DWORD error = GetLastError();
+        CloseHandle(handle);
+        SetLastError(error);
+        PostError(listing, path->data);
+        return false;
+      }
+      CloseHandle(handle);
+      current_link.volume = info.dwVolumeSerialNumber;
+      current_link.id_low = info.nFileIndexLow;
+      current_link.id_high = info.nFileIndexHigh;
+      current_link.next = seen;
+      LinkList* previous = seen;
+      while (previous != NULL) {
+        if (previous->volume == current_link.volume &&
+            previous->id_low == current_link.id_low &&
+            previous->id_high == current_link.id_high) {
+          // Report the looping link as a link, rather than following it.
+          return HandleLink(find_file_data->cFileName, path, listing);
+        }
+        previous = previous->next;
+      }
+      // Recurse into the directory, adding current link to the seen links list.
+      return HandleDir(find_file_data->cFileName,
+                       path,
+                       recursive,
+                       follow_links,
+                       &current_link,
+                       listing);
     }
   }
   if ((attributes & FILE_ATTRIBUTE_DIRECTORY) != 0) {
@@ -141,6 +210,7 @@ static bool HandleEntry(LPWIN32_FIND_DATAW find_file_data,
                      path,
                      recursive,
                      follow_links,
+                     seen,
                      listing);
   } else {
     return HandleFile(find_file_data->cFileName, path, listing);
@@ -151,6 +221,7 @@ static bool HandleEntry(LPWIN32_FIND_DATAW find_file_data,
 static bool ListRecursively(PathBuffer* path,
                             bool recursive,
                             bool follow_links,
+                            LinkList* seen,
                             DirectoryListing* listing) {
   if (!path->Add(L"\\*")) {
     PostError(listing, path->data);
@@ -173,6 +244,7 @@ static bool ListRecursively(PathBuffer* path,
                              path,
                              recursive,
                              follow_links,
+                             seen,
                              listing);
 
   while ((FindNextFileW(find_handle, &find_file_data) != 0)) {
@@ -181,6 +253,7 @@ static bool ListRecursively(PathBuffer* path,
                           path,
                           recursive,
                           follow_links,
+                          seen,
                           listing) && success;
   }
 
@@ -248,13 +321,19 @@ static bool DeleteEntry(LPWIN32_FIND_DATAW find_file_data, PathBuffer* path) {
 
 
 static bool DeleteRecursively(PathBuffer* path) {
+  DWORD attributes = GetFileAttributesW(path->data);
+  if ((attributes == INVALID_FILE_ATTRIBUTES)) {
+    return false;
+  }
   // If the directory is a junction, it's pointing to some other place in the
   // filesystem that we do not want to recurse into.
-  DWORD attributes = GetFileAttributesW(path->data);
-  if ((attributes != INVALID_FILE_ATTRIBUTES) &&
-      (attributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0) {
+  if ((attributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0) {
     // Just delete the junction itself.
     return RemoveDirectoryW(path->data) != 0;
+  }
+  // If it's a file, remove it directly.
+  if ((attributes & FILE_ATTRIBUTE_DIRECTORY) == 0) {
+    return DeleteFile(L"", path);
   }
 
   if (!path->Add(L"\\*")) return false;
@@ -299,7 +378,7 @@ bool Directory::List(const char* dir_name,
     return false;
   }
   free(const_cast<wchar_t*>(system_name));
-  return ListRecursively(&path, recursive, follow_links, listing);
+  return ListRecursively(&path, recursive, follow_links, NULL, listing);
 }
 
 
@@ -318,6 +397,7 @@ static Directory::ExistsResult ExistsHelper(const wchar_t* dir_name) {
     }
   }
   bool exists = (attributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
+  exists = exists && !IsBrokenLink(dir_name);
   return exists ? Directory::EXISTS : Directory::DOES_NOT_EXIST;
 }
 
@@ -407,13 +487,16 @@ bool Directory::Delete(const char* dir_name, bool recursive) {
   bool result = false;
   const wchar_t* system_dir_name = StringUtils::Utf8ToWide(dir_name);
   if (!recursive) {
-    result = (RemoveDirectoryW(system_dir_name) != 0);
+    if (File::GetType(dir_name, true) == File::kIsDirectory) {
+      result = (RemoveDirectoryW(system_dir_name) != 0);
+    } else {
+      SetLastError(ERROR_FILE_NOT_FOUND);
+    }
   } else {
     PathBuffer path;
-    if (!path.Add(system_dir_name)) {
-      return false;
+    if (path.Add(system_dir_name)) {
+      result = DeleteRecursively(&path);
     }
-    result = DeleteRecursively(&path);
   }
   free(const_cast<wchar_t*>(system_dir_name));
   return result;

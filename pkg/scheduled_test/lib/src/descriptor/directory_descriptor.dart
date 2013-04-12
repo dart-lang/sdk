@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library descriptor.file;
+library descriptor.directory;
 
 import 'dart:async';
 import 'dart:io';
@@ -108,7 +108,7 @@ class DirectoryDescriptor extends Descriptor {
 
 /// A class for formatting errors thrown by [DirectoryDescriptor].
 class _DirectoryValidationError {
-  final Collection<String> errors;
+  final Iterable<String> errors;
 
   /// Flatten nested [_DirectoryValidationError]s in [errors] to create a single
   /// list of errors.

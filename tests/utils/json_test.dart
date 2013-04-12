@@ -4,6 +4,7 @@
 
 library jsonTest;
 
+import "package:expect/expect.dart";
 import 'dart:json';
 
 main() {

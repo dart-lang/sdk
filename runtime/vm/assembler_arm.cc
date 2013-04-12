@@ -1296,6 +1296,85 @@ void Assembler::CompareObject(Register rn, const Object& object) {
 }
 
 
+// Preserves object and value registers.
+void Assembler::StoreIntoObjectFilterNoSmi(Register object,
+                                           Register value,
+                                           Label* no_update) {
+  COMPILE_ASSERT((kNewObjectAlignmentOffset == kWordSize) &&
+                 (kOldObjectAlignmentOffset == 0), young_alignment);
+
+  // Write-barrier triggers if the value is in the new space (has bit set) and
+  // the object is in the old space (has bit cleared).
+  // To check that, we compute value & ~object and skip the write barrier
+  // if the bit is not set. We can't destroy the object.
+  bic(IP, value, ShifterOperand(object));
+  tst(IP, ShifterOperand(kNewObjectAlignmentOffset));
+  b(no_update, EQ);
+}
+
+
+// Preserves object and value registers.
+void Assembler::StoreIntoObjectFilter(Register object,
+                                      Register value,
+                                      Label* no_update) {
+  // For the value we are only interested in the new/old bit and the tag bit.
+  // And the new bit with the tag bit. The resulting bit will be 0 for a Smi.
+  and_(IP, value, ShifterOperand(value, LSL, kObjectAlignmentLog2 - 1));
+  // And the result with the negated space bit of the object.
+  bic(IP, IP, ShifterOperand(object));
+  tst(IP, ShifterOperand(kNewObjectAlignmentOffset));
+  b(no_update, EQ);
+}
+
+
+void Assembler::StoreIntoObject(Register object,
+                                const Address& dest,
+                                Register value,
+                                bool can_value_be_smi) {
+  ASSERT(object != value);
+  str(value, dest);
+  Label done;
+  if (can_value_be_smi) {
+    StoreIntoObjectFilter(object, value, &done);
+  } else {
+    StoreIntoObjectFilterNoSmi(object, value, &done);
+  }
+  // A store buffer update is required.
+  if (value != R0) Push(R0);  // Preserve R0.
+  if (object != R0) {
+    mov(R0, ShifterOperand(object));
+  }
+  BranchLink(&StubCode::UpdateStoreBufferLabel());
+  if (value != R0) Pop(R0);  // Restore R0.
+  Bind(&done);
+}
+
+
+void Assembler::StoreIntoObjectNoBarrier(Register object,
+                                         const Address& dest,
+                                         Register value) {
+  str(value, dest);
+#if defined(DEBUG)
+  Label done;
+  StoreIntoObjectFilter(object, value, &done);
+  Stop("Store buffer update is required");
+  Bind(&done);
+#endif  // defined(DEBUG)
+  // No store buffer update.
+}
+
+
+void Assembler::StoreIntoObjectNoBarrier(Register object,
+                                         const Address& dest,
+                                         const Object& value) {
+  ASSERT(value.IsSmi() || value.InVMHeap() ||
+         (value.IsOld() && value.IsNotTemporaryScopedHandle()));
+  // No store buffer update.
+  LoadObject(IP, value);
+  str(IP, dest);
+}
+
+
 void Assembler::LoadClassId(Register result, Register object) {
   ASSERT(RawObject::kClassIdTagBit == 16);
   ASSERT(RawObject::kClassIdTagSize == 16);

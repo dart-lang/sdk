@@ -191,7 +191,7 @@ class MessageKind {
       "no default class on enclosing interface '#{interfaceName}'");
 
   static const CYCLIC_TYPE_VARIABLE = const MessageKind(
-      "cyclic reference to type variable #{typeVariableName}");
+      "type variable #{typeVariableName} is a supertype of itself");
 
   static const CLASS_NAME_EXPECTED = const MessageKind(
       "class name expected");

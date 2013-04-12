@@ -31,19 +31,6 @@ DECLARE_FLAG(bool, report_usage_count);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, use_cha);
 
-void CompilerDeoptInfo::BuildReturnAddress(DeoptInfoBuilder* builder,
-                                           const Function& function,
-                                           intptr_t slot_ix) {
-  builder->AddReturnAddressAfter(function, deopt_id(), slot_ix);
-}
-
-
-void CompilerDeoptInfoWithStub::BuildReturnAddress(DeoptInfoBuilder* builder,
-                                                   const Function& function,
-                                                   intptr_t slot_ix) {
-  builder->AddReturnAddressBefore(function, deopt_id(), slot_ix);
-}
-
 
 // Assign locations to incoming arguments, i.e., values pushed above spill slots
 // with PushArgument.  Recursively allocates from outermost to innermost
@@ -72,14 +59,15 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   intptr_t slot_ix = 0;
   Environment* current = deoptimization_env_;
 
-  // For the innermost environment, call the virtual return builder.
-  BuildReturnAddress(builder, current->function(), slot_ix++);
+  builder->AddReturnAddress(current->function(),
+                            deopt_id(),
+                            slot_ix++);
 
   // For the innermost environment, set outgoing arguments and the locals.
   for (intptr_t i = current->Length() - 1;
        i >= current->fixed_parameter_count();
        i--) {
-    builder->AddCopy(current->LocationAt(i), slot_ix++);
+    builder->AddCopy(current->ValueAt(i), current->LocationAt(i), slot_ix++);
   }
 
   // PC marker and caller FP.
@@ -91,21 +79,25 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   while (current != NULL) {
     // For any outer environment the deopt id is that of the call instruction
     // which is recorded in the outer environment.
-    builder->AddReturnAddressAfter(current->function(),
-                                   current->deopt_id(),
-                                   slot_ix++);
+    builder->AddReturnAddress(current->function(),
+                              Isolate::ToDeoptAfter(current->deopt_id()),
+                              slot_ix++);
 
     // The values of outgoing arguments can be changed from the inlined call so
     // we must read them from the previous environment.
     for (intptr_t i = previous->fixed_parameter_count() - 1; i >= 0; i--) {
-      builder->AddCopy(previous->LocationAt(i), slot_ix++);
+      builder->AddCopy(previous->ValueAt(i),
+                       previous->LocationAt(i),
+                       slot_ix++);
     }
 
     // Set the locals, note that outgoing arguments are not in the environment.
     for (intptr_t i = current->Length() - 1;
          i >= current->fixed_parameter_count();
          i--) {
-      builder->AddCopy(current->LocationAt(i), slot_ix++);
+      builder->AddCopy(current->ValueAt(i),
+                       current->LocationAt(i),
+                       slot_ix++);
     }
 
     // PC marker and caller FP.
@@ -124,7 +116,7 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
 
   // For the outermost environment, set the incoming arguments.
   for (intptr_t i = previous->fixed_parameter_count() - 1; i >= 0; i--) {
-    builder->AddCopy(previous->LocationAt(i), slot_ix++);
+    builder->AddCopy(previous->ValueAt(i), previous->LocationAt(i), slot_ix++);
   }
 
   const DeoptInfo& deopt_info = DeoptInfo::Handle(builder->CreateDeoptInfo());
@@ -151,6 +143,8 @@ FlowGraphCompiler::FlowGraphCompiler(Assembler* assembler,
       may_reoptimize_(false),
       double_class_(Class::ZoneHandle(
           Isolate::Current()->object_store()->double_class())),
+      float32x4_class_(Class::ZoneHandle(
+          Isolate::Current()->object_store()->float32x4_class())),
       parallel_move_resolver_(this),
       pending_deoptimization_env_(NULL) {
   ASSERT(assembler != NULL);
@@ -416,7 +410,7 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs) {
         // FPU registers have the highest register number at the highest
         // address (i.e., first in the stackmap).
         const intptr_t kFpuRegisterSpillFactor =
-            FlowGraphAllocator::kFpuRegisterSpillFactor;
+            kFpuRegisterSize / kWordSize;
         for (intptr_t i = kNumberOfFpuRegisters - 1; i >= 0; --i) {
           FpuRegister reg = static_cast<FpuRegister>(i);
           if (regs->ContainsFpuRegister(reg)) {
@@ -941,6 +935,99 @@ void ParallelMoveResolver::PerformMove(int index) {
 
   // This move is not blocked.
   EmitMove(index);
+}
+
+
+bool ParallelMoveResolver::IsScratchLocation(Location loc) {
+  for (int i = 0; i < moves_.length(); ++i) {
+    if (moves_[i]->Blocks(loc)) {
+      return false;
+    }
+  }
+
+  for (int i = 0; i < moves_.length(); ++i) {
+    if (moves_[i]->dest().Equals(loc)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+
+intptr_t ParallelMoveResolver::AllocateScratchRegister(Location::Kind kind,
+                                                       intptr_t blocked,
+                                                       intptr_t register_count,
+                                                       bool* spilled) {
+  intptr_t scratch = -1;
+  for (intptr_t reg = 0; reg < register_count; reg++) {
+    if ((blocked != reg) &&
+        IsScratchLocation(Location::MachineRegisterLocation(kind, reg))) {
+      scratch = reg;
+      break;
+    }
+  }
+
+  if (scratch == -1) {
+    *spilled = true;
+    for (intptr_t reg = 0; reg < register_count; reg++) {
+      if (blocked != reg) {
+        scratch = reg;
+      }
+    }
+  } else {
+    *spilled = false;
+  }
+
+  return scratch;
+}
+
+
+ParallelMoveResolver::ScratchFpuRegisterScope::ScratchFpuRegisterScope(
+    ParallelMoveResolver* resolver, FpuRegister blocked)
+    : resolver_(resolver),
+      reg_(kNoFpuRegister),
+      spilled_(false) {
+  reg_ = static_cast<FpuRegister>(
+      resolver_->AllocateScratchRegister(Location::kFpuRegister,
+                                         blocked,
+                                         kNumberOfFpuRegisters,
+                                         &spilled_));
+
+  if (spilled_) {
+    resolver->SpillFpuScratch(reg_);
+  }
+}
+
+
+ParallelMoveResolver::ScratchFpuRegisterScope::~ScratchFpuRegisterScope() {
+  if (spilled_) {
+    resolver_->RestoreFpuScratch(reg_);
+  }
+}
+
+
+ParallelMoveResolver::ScratchRegisterScope::ScratchRegisterScope(
+    ParallelMoveResolver* resolver, Register blocked)
+    : resolver_(resolver),
+      reg_(kNoRegister),
+      spilled_(false) {
+  reg_ = static_cast<Register>(
+      resolver_->AllocateScratchRegister(Location::kRegister,
+                                         blocked,
+                                         kNumberOfCpuRegisters,
+                                         &spilled_));
+
+  if (spilled_) {
+    resolver->SpillScratch(reg_);
+  }
+}
+
+
+ParallelMoveResolver::ScratchRegisterScope::~ScratchRegisterScope() {
+  if (spilled_) {
+    resolver_->RestoreScratch(reg_);
+  }
 }
 
 

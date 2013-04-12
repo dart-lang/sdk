@@ -7,6 +7,7 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
+import "package:expect/expect.dart";
 import "dart:async";
 import "dart:io";
 import "dart:typeddata";
@@ -68,47 +69,6 @@ void testClientCloseServerListen(int connections) {
 }
 
 
-void testClientCloseDelayed(int connections) {
-  HttpServer.bind().then((server) {
-    int closed = 0;
-    void check() {
-      closed++;
-      // Wait for both server and client to see the connections as closed.
-      if (closed == connections * 2) {
-        Expect.equals(0, server.connectionsInfo().active);
-        Expect.equals(server.connectionsInfo().total,
-                      server.connectionsInfo().idle);
-        server.close();
-      }
-    }
-    server.listen((request) {
-      request.pipe(request.response)
-          .then((_) => check());
-    });
-    var client = new HttpClient();
-    for (int i = 0; i < connections; i++) {
-      var req;
-      client.post("localhost", server.port, "/")
-          .then((request) {
-            req = request;
-            request.writeBytes(new Uint8List(1024));
-            return request.response;
-          })
-          .then((response) {
-            req.close();
-            // Ensure we don't accept the response until we have send the entire
-            // request.
-            response.listen(
-                (_) {},
-                onDone: () {
-                  check();
-                });
-          });
-    }
-  });
-}
-
-
 void testClientCloseSendingResponse(int connections) {
   HttpServer.bind().then((server) {
     int closed = 0;
@@ -124,7 +84,7 @@ void testClientCloseSendingResponse(int connections) {
     }
     server.listen((request) {
       var timer = new Timer.periodic(const Duration(milliseconds: 20), (_) {
-        request.response.writeBytes(new Uint8List(16 * 1024));
+        request.response.add(new Uint8List(16 * 1024));
       });
       request.response.done
           .catchError((_) {})
@@ -154,7 +114,6 @@ void testClientCloseSendingResponse(int connections) {
 void main() {
   testClientAndServerCloseNoListen(10);
   testClientCloseServerListen(10);
-  testClientCloseDelayed(10);
   testClientCloseSendingResponse(10);
 }
 

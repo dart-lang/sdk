@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 
+import "package:expect/expect.dart";
 import "dart:isolate";
 import "dart:io";
 
@@ -52,7 +53,7 @@ void test(int totalConnections, [String body]) {
           // Cannot mutate request headers when data has been sent.
           Expect.throws(() => request.headers.add("X-Request-Header", "value3"),
                         (e) => e is HttpException);
-          return request.response;
+          return request.done;
         })
         .then((HttpClientResponse response) {
           // Cannot mutate response headers.

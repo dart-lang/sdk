@@ -14,7 +14,6 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames', {
     'DOMApplicationCache': 'ApplicationCache',
     'DOMCoreException': 'DomException',
     'DOMFileSystem': 'FileSystem',
-    'DOMFileSystemSync': 'FileSystemSync',
     'DOMFormData': 'FormData',
     'DOMURL': 'Url',
     'DOMWindow': 'Window',
@@ -32,26 +31,22 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames', {
     'NotificationPermissionCallback': '_NotificationPermissionCallback',
     'PositionCallback': '_PositionCallback',
     'PositionErrorCallback': '_PositionErrorCallback',
-    'Rect': 'CssRect',
-    'RGBColor': 'CssRgbColor',
     'RTCDTMFSender': 'RtcDtmfSender',
     'RTCDTMFToneChangeEvent': 'RtcDtmfToneChangeEvent',
     'RTCErrorCallback': '_RtcErrorCallback',
     'RTCSessionDescriptionCallback': '_RtcSessionDescriptionCallback',
-    'StorageInfoErrorCallback': '_StorageInfoErrorCallback',
-    'StorageInfoUsageCallback': '_StorageInfoUsageCallback',
     'StringCallback': '_StringCallback',
     'SVGDocument': 'SvgDocument', # Manual to avoid name conflicts.
     'SVGElement': 'SvgElement', # Manual to avoid name conflicts.
     'SVGException': 'SvgException', # Manual of avoid conflict with Exception.
+    'SVGGradientElement': '_GradientElement',
     'SVGSVGElement': 'SvgSvgElement', # Manual to avoid name conflicts.
     'WebGLVertexArrayObjectOES': 'VertexArrayObject',
     'WebKitAnimationEvent': 'AnimationEvent',
     'WebKitCSSKeyframeRule': 'CssKeyframeRule',
     'WebKitCSSKeyframesRule': 'CssKeyframesRule',
-    'WebKitCSSMatrix': 'CssMatrix',
     'WebKitCSSTransformValue': 'CssTransformValue',
-    'WebKitPoint': 'DomPoint',
+    'WebKitPoint': '_DomPoint',
     'WebKitTransitionEvent': '_WebKitTransitionEvent',
     'XMLHttpRequest': 'HttpRequest',
     'XMLHttpRequestException': 'HttpRequestException',
@@ -62,6 +57,18 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames', {
 # Interfaces that are suppressed, but need to still exist for Dartium and to
 # properly wrap DOM objects if/when encountered.
 _removed_html_interfaces = [
+  'CSSPrimitiveValue',
+  'CSSValue',
+  'Counter',
+  'DOMFileSystemSync', # Workers
+  'DatabaseSync', # Workers
+  'DedicatedWorkerContext', # Workers
+  'DirectoryEntrySync', # Workers
+  'DirectoryReaderSync', # Workers
+  'EntrySync', # Workers
+  'FileEntrySync', # Workers
+  'FileReaderSync', # Workers
+  'FileWriterSync', # Workers
   'HTMLAppletElement',
   'HTMLBaseFontElement',
   'HTMLDirectoryElement',
@@ -70,12 +77,16 @@ _removed_html_interfaces = [
   'HTMLFrameSetElement',
   'HTMLMarqueeElement',
   'IDBAny',
+  'RGBColor',
+  'Rect',
+  'SQLTransactionSync', # Workers
+  'SQLTransactionSyncCallback', # Workers
   'SVGAltGlyphDefElement', # Webkit only.
   'SVGAltGlyphItemElement', # Webkit only.
   'SVGAnimateColorElement', # Deprecated. Use AnimateElement instead.
+  'SVGColor',
   'SVGComponentTransferFunctionElement', # Currently not supported anywhere.
   'SVGCursorElement', # Webkit only.
-  'SVGGradientElement', # Currently not supported anywhere.
   'SVGFEDropShadowElement', # Webkit only for the following:
   'SVGFontElement',
   'SVGFontFaceElement',
@@ -86,10 +97,20 @@ _removed_html_interfaces = [
   'SVGGlyphElement',
   'SVGGlyphRefElement',
   'SVGHKernElement',
-  'SVGMissingGlyphElement',
   'SVGMPathElement',
+  'SVGPaint',
+  'SVGMissingGlyphElement',
   'SVGTRefElement',
   'SVGVKernElement',
+  'SharedWorker', # Workers
+  'SharedWorkerContext', # Workers
+  'WebKitCSSFilterValue',
+  'WebKitCSSMatrix',
+  'WebKitCSSMixFunctionValue',
+  'WebKitCSSTransformValue',
+  'WorkerContext', # Workers
+  'WorkerLocation', # Workers
+  'WorkerNavigator', # Workers
 ]
 
 for interface in _removed_html_interfaces:
@@ -237,7 +258,6 @@ _private_html_members = monitored.Set('htmlrenamer._private_html_members', [
   'Node.childNodes',
   'Node.firstChild',
   'Node.lastChild',
-  'Node.localName',
   'Node.namespaceURI',
   'Node.removeChild',
   'Node.replaceChild',
@@ -287,8 +307,8 @@ renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
     'DOMWindow.clearInterval': '_clearInterval',
     'DOMWindow.setTimeout': '_setTimeout',
     'DOMWindow.setInterval': '_setInterval',
-    'DOMWindow.webkitConvertPointFromNodeToPage': 'convertPointFromNodeToPage',
-    'DOMWindow.webkitConvertPointFromPageToNode': 'convertPointFromPageToNode',
+    'DOMWindow.webkitConvertPointFromNodeToPage': '_convertPointFromNodeToPage',
+    'DOMWindow.webkitConvertPointFromPageToNode': '_convertPointFromPageToNode',
     'DOMWindow.webkitNotifications': 'notifications',
     'DOMWindow.webkitRequestFileSystem': '_requestFileSystem',
     'DOMWindow.webkitResolveLocalFileSystemURL': 'resolveLocalFileSystemUrl',
@@ -306,15 +326,10 @@ renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
     'RTCPeerConnection.createAnswer': '_createAnswer',
     'RTCPeerConnection.createOffer': '_createOffer',
     'StorageInfo.queryUsageAndQuota': '_queryUsageAndQuota',
-    'SVGComponentTransferFunctionElement.offset': 'gradientOffset',
     'SVGElement.className': '$dom_svgClassName',
     'SVGStopElement.offset': 'gradientOffset',
-    'WorkerContext.webkitRequestFileSystem': '_requestFileSystem',
-    'WorkerContext.webkitRequestFileSystemSync': '_requestFileSystemSync',
-    'WorkerContext.webkitResolveLocalFileSystemSyncURL':
-        'resolveLocalFileSystemSyncUrl',
-    'WorkerContext.webkitResolveLocalFileSystemURL':
-        'resolveLocalFileSystemUrl',
+    #'WorkerContext.webkitRequestFileSystem': '_requestFileSystem', # Workers
+    #'WorkerContext.webkitRequestFileSystemSync': '_requestFileSystemSync', # Workers
 })
 
 for member in convert_to_future_members:
@@ -332,6 +347,7 @@ for member in convert_to_future_members:
 # TODO(jacobr): cleanup and augment this list.
 _removed_html_members = monitored.Set('htmlrenamer._removed_html_members', [
     'Attr.*',
+    'CSSStyleDeclaration.getPropertyCSSValue',
     'CanvasRenderingContext2D.clearShadow',
     'CanvasRenderingContext2D.drawImageFromRect',
     'CanvasRenderingContext2D.setAlpha',
@@ -347,10 +363,11 @@ _removed_html_members = monitored.Set('htmlrenamer._removed_html_members', [
     'CanvasRenderingContext2D.webkitLineDashOffset',
     'CharacterData.remove',
     'DOMWindow.call:blur',
-    'DOMWindow.clientInformation',
     'DOMWindow.call:focus',
+    'DOMWindow.clientInformation',
     'DOMWindow.get:frames',
     'DOMWindow.get:length',
+    'DOMWindow.on:beforeUnload',
     'DOMWindow.prompt',
     'DOMWindow.webkitCancelAnimationFrame',
     'DOMWindow.webkitCancelRequestAnimationFrame',
@@ -448,6 +465,7 @@ _removed_html_members = monitored.Set('htmlrenamer._removed_html_members', [
     'Element.set:outerHTML',
     'Element.setAttributeNode',
     'Element.setAttributeNodeNS',
+    'Event.returnValue',
     'Event.srcElement',
     'EventSource.URL',
     'HTMLAnchorElement.charset',
@@ -463,6 +481,7 @@ _removed_html_members = monitored.Set('htmlrenamer._removed_html_members', [
     'HTMLBodyElement.background',
     'HTMLBodyElement.bgColor',
     'HTMLBodyElement.link',
+    'HTMLBodyElement.on:beforeUnload',
     'HTMLBodyElement.text',
     'HTMLBodyElement.vLink',
     'HTMLDListElement.compact',
@@ -517,7 +536,6 @@ _removed_html_members = monitored.Set('htmlrenamer._removed_html_members', [
     'HTMLPreElement.width',
     'HTMLScriptElement.text',
     'HTMLSelectElement.options',
-    'HTMLSelectElement.remove',
     'HTMLSelectElement.selectedOptions',
     'HTMLTableCaptionElement.align',
     'HTMLTableCellElement.abbr',
@@ -592,6 +610,7 @@ _removed_html_members = monitored.Set('htmlrenamer._removed_html_members', [
     'Node.set:nodeValue',
     'NodeList.item',
     'ShadowRoot.getElementsByTagNameNS',
+    'SVGStyledElement.getPresentationAttribute',
     'WheelEvent.wheelDelta',
     'WorkerContext.webkitIndexedDB',
 # TODO(jacobr): should these be removed?
@@ -611,6 +630,10 @@ class HtmlRenamer(object):
     self._database = database
 
   def RenameInterface(self, interface):
+    if 'Callback' in interface.ext_attrs:
+      if interface.id in _removed_html_interfaces:
+        return None
+
     if interface.id in html_interface_renames:
       return html_interface_renames[interface.id]
     elif interface.id.startswith('HTML'):
@@ -655,7 +678,14 @@ class HtmlRenamer(object):
     if self._FindMatch(interface, member, member_prefix,
         _removed_html_members):
       return True
+    if interface.id in _removed_html_interfaces:
+      return True
     return False
+
+  def ShouldSuppressInterface(self, interface):
+    """ Returns true if the interface should be suppressed."""
+    if interface.id in _removed_html_interfaces:
+      return True
 
   def _FindMatch(self, interface, member, member_prefix, candidates):
     for interface in self._database.Hierarchy(interface):
@@ -673,6 +703,11 @@ class HtmlRenamer(object):
     # Some types have attributes merged in from many other interfaces.
     if interface.id in _library_names:
       return _library_names[interface.id]
+
+    # TODO(ager, blois): The conditional has been removed from indexed db,
+    # so we can no longer determine the library based on the conditionals.
+    if interface.id.startswith("IDB"):
+      return 'indexed_db'
 
     if 'Conditional' in interface.ext_attrs:
       if 'WEB_AUDIO' in interface.ext_attrs['Conditional']:

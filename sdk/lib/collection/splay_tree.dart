@@ -86,10 +86,10 @@ abstract class _SplayTree<K> {
     _SplayTreeNode<K> current = _root;
     int comp;
     while (true) {
-      comp = current.key.compareTo(key);
+      comp = _compare(current.key, key);
       if (comp > 0) {
         if (current.left == null) break;
-        comp = current.left.key.compareTo(key);
+        comp = _compare(current.left.key, key);
         if (comp > 0) {
           // Rotate right.
           _SplayTreeNode<K> tmp = current.left;
@@ -104,7 +104,7 @@ abstract class _SplayTree<K> {
         current = current.left;
       } else if (comp < 0) {
         if (current.right == null) break;
-        comp = current.right.key.compareTo(key);
+        comp = _compare(current.right.key, key);
         if (comp < 0) {
           // Rotate left.
           _SplayTreeNode<K> tmp = current.right;
@@ -256,15 +256,18 @@ class SplayTreeMap<K, V> extends _SplayTree<K> implements Map<K, V> {
     if (key == null) throw new ArgumentError(key);
     if (_root != null) {
       int comp = _splay(key);
-      if (comp == 0) return _root.value;
+      if (comp == 0) {
+        _SplayTreeMapNode mapRoot = _root;
+        return mapRoot.value;
+      }
     }
     return null;
   }
 
   V remove(Object key) {
     if (key is! K) return null;
-    _SplayTreeMapNode root = _remove(key);
-    if (root != null) return root.value;
+    _SplayTreeMapNode mapRoot = _remove(key);
+    if (mapRoot != null) return mapRoot.value;
     return null;
   }
 
@@ -274,7 +277,8 @@ class SplayTreeMap<K, V> extends _SplayTree<K> implements Map<K, V> {
     // the key to the root of the tree.
     int comp = _splay(key);
     if (comp == 0) {
-      _root.value = value;
+      _SplayTreeMapNode mapRoot = _root;
+      mapRoot.value = value;
       return;
     }
     _addNewRoot(new _SplayTreeMapNode(key, value), comp);
@@ -284,7 +288,10 @@ class SplayTreeMap<K, V> extends _SplayTree<K> implements Map<K, V> {
   V putIfAbsent(K key, V ifAbsent()) {
     if (key == null) throw new ArgumentError(key);
     int comp = _splay(key);
-    if (comp == 0) return _root.value;
+    if (comp == 0) {
+      _SplayTreeMapNode mapRoot = _root;
+      return mapRoot.value;
+    }
     int modificationCount = _modificationCount;
     int splayCount = _splayCount;
     V value = ifAbsent();
@@ -330,7 +337,7 @@ class SplayTreeMap<K, V> extends _SplayTree<K> implements Map<K, V> {
   bool containsValue(V value) {
     bool found = false;
     int initialSplayCount = _splayCount;
-    bool visit(_SplayTreeNode node) {
+    bool visit(_SplayTreeMapNode node) {
       while (node != null) {
         if (node.value == value) return true;
         if (initialSplayCount != _splayCount) {

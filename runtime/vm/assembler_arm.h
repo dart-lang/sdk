@@ -554,6 +554,18 @@ class Assembler : public ValueObject {
   void PushObject(const Object& object);
   void CompareObject(Register rn, const Object& object);
 
+  void StoreIntoObject(Register object,  // Object we are storing into.
+                       const Address& dest,  // Where we are storing into.
+                       Register value,  // Value we are storing.
+                       bool can_value_be_smi = true);
+
+  void StoreIntoObjectNoBarrier(Register object,
+                                const Address& dest,
+                                Register value);
+  void StoreIntoObjectNoBarrier(Register object,
+                                const Address& dest,
+                                const Object& value);
+
   void LoadClassId(Register result, Register object);
   void LoadClassById(Register result, Register class_id);
   void LoadClass(Register result, Register object, Register scratch);
@@ -772,10 +784,12 @@ class Assembler : public ValueObject {
   int32_t EncodeTstOffset(int32_t offset, int32_t inst);
   int DecodeTstOffset(int32_t inst);
 
-  // Returns whether or not the given register is used for passing parameters.
-  static int RegisterCompare(const Register* reg1, const Register* reg2) {
-    return *reg1 - *reg2;
-  }
+  void StoreIntoObjectFilter(Register object, Register value, Label* no_update);
+
+  // Shorter filtering sequence that assumes that value is not a smi.
+  void StoreIntoObjectFilterNoSmi(Register object,
+                                  Register value,
+                                  Label* no_update);
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Assembler);

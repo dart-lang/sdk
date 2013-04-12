@@ -471,7 +471,7 @@ class _RawServerSocket extends Stream<RawSocket>
   }
 
   void _onSubscriptionStateChange() {
-    if (_controller.hasSubscribers) {
+    if (_controller.hasListener) {
       _resume();
     } else {
       close();
@@ -598,7 +598,7 @@ class _RawSocket extends Stream<RawSocketEvent>
   }
 
   void _onSubscriptionStateChange() {
-    if (_controller.hasSubscribers) {
+    if (_controller.hasListener) {
       _resume();
     } else {
       close();
@@ -659,7 +659,7 @@ patch class SecureSocket {
 }
 
 
-class _SocketStreamConsumer extends StreamConsumer<List<int>, Socket> {
+class _SocketStreamConsumer extends StreamConsumer<List<int>> {
   StreamSubscription subscription;
   final _Socket socket;
   int offset;
@@ -813,9 +813,9 @@ class _Socket extends Stream<List<int>> implements Socket {
 
   void writeCharCode(int charCode) => _sink.writeCharCode(charCode);
 
-  void writeAll(Iterable objects) => _sink.writeAll(objects);
+  void writeAll(Iterable objects, [sep = ""]) => _sink.writeAll(objects, sep);
 
-  void writeBytes(List<int> bytes) => _sink.writeBytes(bytes);
+  void add(List<int> bytes) => _sink.add(bytes);
 
   Future<Socket> consume(Stream<List<int>> stream) {
     return _sink.consume(stream);
@@ -867,7 +867,7 @@ class _Socket extends Stream<List<int>> implements Socket {
   }
 
   void _onSubscriptionStateChange() {
-    if (_controller.hasSubscribers) {
+    if (_controller.hasListener) {
       _ensureRawSocketSubscription();
       // Enable read events for providing data to subscription.
       if (_raw != null) {

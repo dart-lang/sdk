@@ -4,7 +4,59 @@
 
 part of dart.collection;
 
-class HashSet<E> extends Collection<E> implements Set<E> {
+/** Common parts of [HashSet] and [LinkedHashSet] implementations. */
+abstract class _HashSetBase<E> extends Iterable<E> implements Set<E> {
+  // Set.
+  bool containsAll(Iterable<E> other) {
+    for (E object in other) {
+      if (!this.contains(object)) return false;
+    }
+    return true;
+  }
+
+  /** Create a new Set of the same type as this. */
+  Set _newSet();
+
+  Set<E> intersection(Set<E> other) {
+    Set<E> result = _newSet();
+    if (other.length < this.length) {
+      for (E element in other) {
+        if (this.contains(element)) result.add(element);
+      }
+    } else {
+      for (E element in this) {
+        if (other.contains(element)) result.add(element);
+      }
+    }
+    return result;
+  }
+
+  Set<E> union(Set<E> other) {
+    return _newSet()..addAll(this)..addAll(other);
+  }
+
+  Set<E> difference(Set<E> other) {
+    HashSet<E> result = _newSet();
+    for (E element in this) {
+      if (!other.contains(element)) result.add(element);
+    }
+    return result;
+  }
+
+  void retainAll(Iterable objectsToRetain) {
+    Set retainSet;
+    if (objectsToRetain is Set) {
+      retainSet = objectsToRetain;
+    } else {
+      retainSet = objectsToRetain.toSet();
+    }
+    retainWhere(retainSet.contains);
+  }
+
+  String toString() => ToString.iterableToString(this);
+}
+
+class HashSet<E> extends _HashSetBase<E> {
   external HashSet();
 
   factory HashSet.from(Iterable<E> iterable) {
@@ -29,10 +81,6 @@ class HashSet<E> extends Collection<E> implements Set<E> {
 
   external void removeAll(Iterable objectsToRemove);
 
-  void retainAll(Iterable objectsToRetain) {
-    IterableMixinWorkaround.retainAll(this, objectsToRetain);
-  }
-
   external void removeWhere(bool test(E element));
 
   external void retainWhere(bool test(E element));
@@ -40,33 +88,5 @@ class HashSet<E> extends Collection<E> implements Set<E> {
   external void clear();
 
   // Set.
-  bool isSubsetOf(Collection<E> other) {
-    // Deprecated, and using old signature.
-    Set otherSet;
-    if (other is Set) {
-      otherSet = other;
-    } else {
-      otherSet = other.toSet();
-    }
-    return IterableMixinWorkaround.setContainsAll(otherSet, this);
-  }
-
-  bool containsAll(Iterable<E> other) {
-    return IterableMixinWorkaround.setContainsAll(this, other);
-  }
-
-  Set<E> intersection(Set<E> other) {
-    return IterableMixinWorkaround.setIntersection(
-        this, other, new HashSet<E>());
-  }
-
-  Set<E> union(Set<E> other) {
-    return IterableMixinWorkaround.setUnion(this, other, new HashSet<E>());
-  }
-
-  Set<E> difference(Set<E> other) {
-    return IterableMixinWorkaround.setDifference(this, other, new HashSet<E>());
-  }
-
-  String toString() => Collections.collectionToString(this);
+  Set<E> _newSet() => new HashSet<E>();
 }

@@ -63,13 +63,13 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS implements Map<String, String>
     }
   }
 
-  Collection<String> get keys {
+  Iterable<String> get keys {
     final keys = [];
     forEach((k, v) => keys.add(k));
     return keys;
   }
 
-  Collection<String> get values {
+  Iterable<String> get values {
     final values = [];
     forEach((k, v) => values.add(v));
     return values;

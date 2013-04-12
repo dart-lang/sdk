@@ -4,6 +4,7 @@
 
 // Test of "recursive" imports using the dart2js compiler API.
 
+import "package:expect/expect.dart";
 import 'dart:async';
 import '../../sdk/lib/_internal/compiler/compiler.dart';
 import 'dart:uri';

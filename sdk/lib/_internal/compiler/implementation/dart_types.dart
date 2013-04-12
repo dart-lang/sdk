@@ -5,7 +5,8 @@
 library dart_types;
 
 import 'dart2jslib.dart' show Compiler, invariant, Script, Message;
-import 'elements/modelx.dart' show VoidElementX, LibraryElementX;
+import 'elements/modelx.dart'
+    show VoidElementX, LibraryElementX, BaseClassElementX;
 import 'elements/elements.dart';
 import 'scanner/scannerlib.dart' show SourceString;
 import 'util/util.dart' show Link, LinkBuilder;
@@ -133,6 +134,15 @@ abstract class DartType {
   bool get containsTypeVariables => typeVariableOccurrence != null;
 
   accept(DartTypeVisitor visitor, var argument);
+
+  void visitChildren(DartTypeVisitor visitor, var argument) {}
+
+  static void visitList(Link<DartType> types,
+                        DartTypeVisitor visitor, var argument) {
+    for (Link<DartType> link = types; !link.isEmpty ; link = link.tail) {
+      link.head.accept(visitor, argument);
+    }
+  }
 }
 
 /**
@@ -396,6 +406,10 @@ abstract class GenericType extends DartType {
     return _findTypeVariableOccurrence(typeArguments);
   }
 
+  void visitChildren(DartTypeVisitor visitor, var argument) {
+    DartType.visitList(typeArguments, visitor, argument);
+  }
+
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write(name.slowToString());
@@ -438,8 +452,8 @@ class InterfaceType extends GenericType {
     assert(invariant(element, element.isDeclaration));
     assert(invariant(element, element.thisType == null ||
         typeArguments.slowLength() == element.typeVariables.slowLength(),
-        message: 'Invalid type argument count on ${element.thisType}. '
-                 'Provided type arguments: $typeArguments.'));
+        message: () => 'Invalid type argument count on ${element.thisType}. '
+                       'Provided type arguments: $typeArguments.'));
   }
 
   InterfaceType.userProvidedBadType(this.element,
@@ -661,6 +675,13 @@ class FunctionType extends DartType {
 
   accept(DartTypeVisitor visitor, var argument) {
     return visitor.visitFunctionType(this, argument);
+  }
+
+  void visitChildren(DartTypeVisitor visitor, var argument) {
+   returnType.accept(visitor, argument);
+   DartType.visitList(parameterTypes, visitor, argument);
+   DartType.visitList(optionalParameterTypes, visitor, argument);
+   DartType.visitList(namedParameterTypes, visitor, argument);
   }
 
   String toString() {
@@ -1033,8 +1054,30 @@ class SubtypeVisitor extends DartTypeVisitor<bool, DartType> {
   }
 
   bool visitTypeVariableType(TypeVariableType t, DartType s) {
-    if (s is !TypeVariableType) return false;
-    return (identical(t.element, s.element));
+    // Identity check is handled in [isSubtype].
+    DartType bound = t.element.bound;
+    if (bound.element.isTypeVariable()) {
+      // The bound is potentially cyclic so we need to be extra careful.
+      Link<TypeVariableElement> seenTypeVariables =
+          const Link<TypeVariableElement>();
+      seenTypeVariables = seenTypeVariables.prepend(t.element);
+      while (bound.element.isTypeVariable()) {
+        TypeVariableElement element = bound.element;
+        if (identical(bound.element, s.element)) {
+          // [t] extends [s].
+          return true;
+        }
+        if (seenTypeVariables.contains(element)) {
+          // We have a cycle and have already checked all bounds in the cycle
+          // against [s] and can therefore conclude that [t] is not a subtype
+          // of [s].
+          return false;
+        }
+        seenTypeVariables = seenTypeVariables.prepend(element);
+        bound = element.bound;
+      }
+    }
+    return isSubtype(bound, s);
   }
 }
 
@@ -1045,11 +1088,11 @@ class Types {
   final DynamicType dynamicType;
   final SubtypeVisitor subtypeVisitor;
 
-  factory Types(Compiler compiler, ClassElement dynamicElement) {
+  factory Types(Compiler compiler, BaseClassElementX dynamicElement) {
     LibraryElement library = new LibraryElementX(new Script(null, null));
     VoidType voidType = new VoidType(new VoidElementX(library));
     DynamicType dynamicType = new DynamicType(dynamicElement);
-    dynamicElement.rawType = dynamicElement.thisType = dynamicType;
+    dynamicElement.rawTypeCache = dynamicElement.thisType = dynamicType;
     SubtypeVisitor subtypeVisitor =
         new SubtypeVisitor(compiler, dynamicType, voidType);
     return new Types.internal(compiler, voidType, dynamicType, subtypeVisitor);

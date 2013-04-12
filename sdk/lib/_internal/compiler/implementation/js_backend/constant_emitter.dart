@@ -80,11 +80,11 @@ class ConstantReferenceEmitter implements ConstantVisitor<jsAst.Expression> {
   jsAst.Expression visitDouble(DoubleConstant constant) {
     double value = constant.value;
     if (value.isNaN) {
-      return new jsAst.LiteralNumber("(0/0)");
+      return js("0/0");
     } else if (value == double.INFINITY) {
-      return new jsAst.LiteralNumber("(1/0)");
+      return js("1/0");
     } else if (value == -double.INFINITY) {
-      return new jsAst.LiteralNumber("(-1/0)");
+      return js("-1/0");
     } else {
       return new jsAst.LiteralNumber("$value");
     }
@@ -93,18 +93,18 @@ class ConstantReferenceEmitter implements ConstantVisitor<jsAst.Expression> {
   jsAst.Expression visitTrue(TrueConstant constant) {
     if (compiler.enableMinification) {
       // Use !0 for true.
-      return js["!0"];
+      return js("!0");
     } else {
-      return new jsAst.LiteralBool(true);
+      return js('true');
     }
   }
 
   jsAst.Expression visitFalse(FalseConstant constant) {
     if (compiler.enableMinification) {
       // Use !1 for false.
-      return js["!1"];
+      return js("!1");
     } else {
-      return new jsAst.LiteralBool(false);
+      return js('false');
     }
   }
 
@@ -286,8 +286,7 @@ class ConstantInitializerEmitter implements ConstantVisitor<jsAst.Expression> {
     Element helper = backend.getCreateRuntimeType();
     String helperName = backend.namer.getName(helper);
     DartType type = constant.representedType;
-    Element element = type.element;
-    String name = backend.rti.getRawTypeRepresentation(type);
+    String name = namer.getRuntimeTypeName(type.element);
     jsAst.Expression typeName = new jsAst.LiteralString("'$name'");
     return new jsAst.Call(
         new jsAst.PropertyAccess.field(

@@ -5,6 +5,7 @@
 // Test script for testing that output is handled correctly for
 // non-interactive processes started with Process.run.
 
+import "package:expect/expect.dart";
 import "dart:io";
 import "process_test_util.dart";
 

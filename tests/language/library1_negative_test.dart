@@ -6,6 +6,7 @@
 // which define the same top level name foo, and we are referring to the name.
 
 library Library1NegativeTest.dart;
+import "package:expect/expect.dart";
 import "library1.dart";  // Defines top level variable 'foo'
 import "library2.dart";  // Defines top level variable 'foo'
 

@@ -5,6 +5,8 @@
 // Test named arguments work as expected regardless of whether the function or
 // method is called via function call syntax or method call syntax.
 
+import "package:expect/expect.dart";
+
 
 Validate(tag, a, b) {
   // tag encodes which parameters are passed in with values a: 111, b: 222.

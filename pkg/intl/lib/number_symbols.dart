@@ -9,7 +9,6 @@ library number_symbols;
  * and infinity. We expect the data for instances to be generated out of ICU
  * or a similar reference source.
  */
-
 class NumberSymbols {
   final String NAME;
   final String DECIMAL_SEP, GROUP_SEP, PERCENT, ZERO_DIGIT, PLUS_SIGN,

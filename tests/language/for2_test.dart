@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing for statement which captures loop variable.
 
+import "package:expect/expect.dart";
+
 var f;
 
 main() {

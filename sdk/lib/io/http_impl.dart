@@ -234,10 +234,14 @@ class _HttpClientResponse
                                        {void onError(AsyncError error),
                                         void onDone(),
                                         bool unsubscribeOnError}) {
-    return _incoming.listen(onData,
-                            onError: onError,
-                            onDone: onDone,
-                            unsubscribeOnError: unsubscribeOnError);
+    var stream = _incoming;
+    if (headers.value(HttpHeaders.CONTENT_ENCODING) == "gzip") {
+      stream = stream.transform(new ZLibInflater());
+    }
+    return stream.listen(onData,
+                         onError: onError,
+                         onDone: onDone,
+                         unsubscribeOnError: unsubscribeOnError);
   }
 
   Future<Socket> detachSocket() {
@@ -381,7 +385,7 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
       if (isFirst) {
         isFirst = false;
       } else {
-        if (separator != "") write(separator);
+        if (!separator.isEmpty) write(separator);
       }
       write(obj);
     }
@@ -396,10 +400,15 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
     write(new String.fromCharCode(charCode));
   }
 
-  void writeBytes(List<int> data) {
+  void add(List<int> data) {
     _writeHeaders();
     if (data.length == 0) return;
-    _ioSink.writeBytes(data);
+    _ioSink.add(data);
+  }
+
+  void addError(AsyncError error) {
+    _writeHeaders();
+    _ioSink.addError(error);
   }
 
   Future<T> consume(Stream<List<int>> stream) {
@@ -623,7 +632,7 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
     // Write headers.
     headers._write(buffer);
     writeCRLF();
-    _ioSink.writeBytes(buffer.readBytes());
+    _ioSink.add(buffer.readBytes());
   }
 
   String _findReasonPhrase(int statusCode) {
@@ -683,7 +692,7 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
 }
 
 
-class _HttpClientRequest extends _HttpOutboundMessage<HttpClientRequest>
+class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
     implements HttpClientRequest {
   final String method;
   final Uri uri;
@@ -697,6 +706,8 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientRequest>
       = new Completer<HttpClientResponse>();
 
   final bool _usingProxy;
+
+  Future<HttpClientResponse> _response;
 
   // TODO(ajohnsen): Get default value from client?
   bool _followRedirects = true;
@@ -718,11 +729,22 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientRequest>
     }
   }
 
-  Future<HttpClientResponse> get response => _responseCompleter.future;
+  Future<HttpClientResponse> get done {
+    if (_response == null) {
+      _response = Future.wait([_responseCompleter.future, super.done])
+        .then((list) => list[0]);
+    }
+    return _response;
+  }
+
+  Future<HttpClientResponse> consume(Stream<List<int>> stream) {
+    super.consume(stream);
+    return done;
+  }
 
   Future<HttpClientResponse> close() {
     super.close();
-    return response;
+    return done;
   }
 
   int get maxRedirects => _maxRedirects;
@@ -815,7 +837,7 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientRequest>
     // Write headers.
     headers._write(buffer);
     writeCRLF();
-    _ioSink.writeBytes(buffer.readBytes());
+    _ioSink.add(buffer.readBytes());
   }
 }
 
@@ -890,7 +912,7 @@ class _ContentLengthValidator
 
 
 // Extends StreamConsumer as this is an internal type, only used to pipe to.
-class _HttpOutgoing implements StreamConsumer<List<int>, dynamic> {
+class _HttpOutgoing implements StreamConsumer<List<int>> {
   Function _onStream;
   final Completer _consumeCompleter = new Completer();
 
@@ -971,6 +993,7 @@ class _HttpClientConnection {
                                          this);
     request.headers.host = uri.domain;
     request.headers.port = port;
+    request.headers.set(HttpHeaders.ACCEPT_ENCODING, "gzip");
     if (uri.userInfo != null && !uri.userInfo.isEmpty) {
       // If the URL contains user information use that for basic
       // authorization
@@ -988,51 +1011,47 @@ class _HttpClientConnection {
     // data).
     _httpParser.responseToMethod = method;
     _streamFuture = outgoing.onStream((stream) {
-        // Sending request, set up response completer.
-        _nextResponseCompleter = new Completer();
+        return _socket.writeStream(stream)
+            .then((s) {
+              // Request sent, set up response completer.
+              _nextResponseCompleter = new Completer();
 
-        var requestFuture = _socket.writeStream(stream)
-            .catchError((e) {
-              destroy();
-              throw e;
-            });
-
-        // Listen for response.
-        _nextResponseCompleter.future
-            .then((incoming) {
-              incoming.dataDone.then((_) {
-                if (incoming.headers.persistentConnection &&
-                    request.persistentConnection) {
-                  // Be sure we have written the full request.
-                  requestFuture
-                      .then((_) {
+              // Listen for response.
+              _nextResponseCompleter.future
+                  .then((incoming) {
+                    incoming.dataDone.then((_) {
+                      if (incoming.headers.persistentConnection &&
+                          request.persistentConnection) {
                         // Return connection, now we are done.
                         _httpClient._returnConnection(this);
                         _subscription.resume();
-                      },
-                      onError: (_) {
-                        // Already handled.
-                      });
-                } else {
-                  destroy();
-                }
-              });
-              request._onIncoming(incoming);
-            })
-            // If we see a state error, we failed to get the 'first' element.
-            // Transform the error to a HttpParserException, for consistency.
-            .catchError((error) {
-              throw new HttpParserException(
-                  "Connection closed before data was received");
-            }, test: (error) => error is StateError)
-            .catchError((error) {
-              // We are done with the socket.
+                      } else {
+                        destroy();
+                      }
+                    });
+                    request._onIncoming(incoming);
+                  })
+                  // If we see a state error, we failed to get the 'first'
+                  // element.
+                  // Transform the error to a HttpParserException, for
+                  // consistency.
+                  .catchError((error) {
+                    throw new HttpParserException(
+                        "Connection closed before data was received");
+                  }, test: (error) => error is StateError)
+                  .catchError((error) {
+                    // We are done with the socket.
+                    destroy();
+                    request._onError(error);
+                  });
+
+              // Resume the parser now we have a handler.
+              _subscription.resume();
+              return s;
+            }, onError: (e) {
               destroy();
-              request._onError(error);
+              throw e;
             });
-        // Resume the parser now we have a handler.
-        _subscription.resume();
-        return requestFuture;
     });
     return request;
   }
@@ -1071,13 +1090,13 @@ class _HttpClient implements HttpClient {
   static const int DEFAULT_EVICTION_TIMEOUT = 60000;
   bool _closing = false;
 
-  final Map<String, Queue<_HttpClientConnection>> _idleConnections
-      = new Map<String, Queue<_HttpClientConnection>>();
+  final Map<String, Set<_HttpClientConnection>> _idleConnections
+      = new Map<String, Set<_HttpClientConnection>>();
   final Set<_HttpClientConnection> _activeConnections
       = new Set<_HttpClientConnection>();
   final List<_Credentials> _credentials = [];
   Function _authenticate;
-  Function _findProxy;
+  Function _findProxy = HttpClient.findProxyFromEnvironment;
 
   Future<HttpClientRequest> open(String method,
                                  String host,
@@ -1210,9 +1229,9 @@ class _HttpClient implements HttpClient {
     }
     // TODO(ajohnsen): Listen for socket close events.
     if (!_idleConnections.containsKey(connection.key)) {
-      _idleConnections[connection.key] = new Queue();
+      _idleConnections[connection.key] = new Set();
     }
-    _idleConnections[connection.key].addLast(connection);
+    _idleConnections[connection.key].add(connection);
   }
 
   // Remove a closed connnection from the active set.
@@ -1241,7 +1260,8 @@ class _HttpClient implements HttpClient {
       int port = proxy.isDirect ? uriPort: proxy.port;
       String key = isSecure ? "ssh:$host:$port" : "$host:$port";
       if (_idleConnections.containsKey(key)) {
-        var connection = _idleConnections[key].removeFirst();
+        var connection = _idleConnections[key].first;
+        _idleConnections[key].remove(connection);
         if (_idleConnections[key].isEmpty) {
           _idleConnections.remove(key);
         }
@@ -1667,7 +1687,9 @@ class _DetachedSocket extends Stream<List<int>> implements Socket {
     _socket.writeAll(objects, separator);
   }
 
-  void writeBytes(List<int> bytes) => _socket.writeBytes(bytes);
+  void add(List<int> bytes) => _socket.add(bytes);
+
+  void addError(AsyncError error) => _socket.addError(error);
 
   Future<Socket> consume(Stream<List<int>> stream) {
     return _socket.consume(stream);

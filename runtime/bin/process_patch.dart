@@ -90,11 +90,11 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
     }
 
     // stdin going to process.
-    _stdin = new _Socket._writePipe();
+    _stdin = new _StdSink(new _Socket._writePipe());
     // stdout coming from process.
-    _stdout = new _Socket._readPipe();
+    _stdout = new _StdStream(new _Socket._readPipe());
     // stderr coming from process.
-    _stderr = new _Socket._readPipe();
+    _stderr = new _StdStream(new _Socket._readPipe());
     _exitHandler = new _Socket._readPipe();
     _ended = false;
     _started = false;
@@ -163,9 +163,9 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
                                   _arguments,
                                   _workingDirectory,
                                   _environment,
-                                  _stdin._nativeSocket,
-                                  _stdout._nativeSocket,
-                                  _stderr._nativeSocket,
+                                  _stdin._sink._nativeSocket,
+                                  _stdout._stream._nativeSocket,
+                                  _stderr._stream._nativeSocket,
                                   _exitHandler._nativeSocket,
                                   status);
       if (!success) {
@@ -196,7 +196,7 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
           _ended = true;
           _exitCode.complete(exitCode(exitDataBuffer));
           // Kill stdin, helping hand if the user forgot to do it.
-          _stdin.destroy();
+          _stdin._sink.destroy();
         }
 
         exitDataBuffer.setRange(exitDataRead, data.length, data);
@@ -222,17 +222,14 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
                     _ProcessStartStatus status) native "Process_Start";
 
   Stream<List<int>> get stdout {
-    // TODO(ajohnsen): Get stream object only.
     return _stdout;
   }
 
   Stream<List<int>> get stderr {
-    // TODO(ajohnsen): Get stream object only.
     return _stderr;
   }
 
   IOSink get stdin {
-    // TODO(ajohnsen): Get consumer object only.
     return _stdin;
   }
 
@@ -255,9 +252,9 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
   String _workingDirectory;
   List<String> _environment;
   // Private methods of Socket are used by _in, _out, and _err.
-  Socket _stdin;
-  Socket _stdout;
-  Socket _stderr;
+  _StdSink _stdin;
+  _StdStream _stdout;
+  _StdStream _stderr;
   Socket _exitHandler;
   bool _ended;
   bool _started;
