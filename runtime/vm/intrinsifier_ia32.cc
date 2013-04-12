@@ -1589,14 +1589,21 @@ bool Intrinsifier::OneByteString_substringUnchecked(Assembler* assembler) {
   __ movl(ECX, Address(ESP, + kEndIndexOffset));
   __ SmiUntag(ECX);
   __ subl(ECX, EBX);
+  __ xorl(EDX, EDX);
+  // EDI: Start address to copy from (untagged).
   // ECX: Untagged number of bytes to copy.
-  ASSERT(CTX == ESI);
-  __ pushl(ESI);  // Preserve CTX.
-  __ movl(ESI, EDI);  // from.
-  __ leal(EDI, FieldAddress(EAX, OneByteString::data_offset()));  // to.
-  __ rep_movsb();
-  __ popl(ESI);  // Restore CTX.
-
+  // EAX: Tagged result string.
+  // EDX: Loop counter.
+  // EBX: Scratch register.
+  Label loop, check;
+  __ jmp(&check, Assembler::kNearJump);
+  __ Bind(&loop);
+  __ movzxb(EBX, Address(EDI, EDX, TIMES_1, 0));
+  __ movb(FieldAddress(EAX, EDX, TIMES_1, OneByteString::data_offset()), BL);
+  __ incl(EDX);
+  __ Bind(&check);
+  __ cmpl(EDX, ECX);
+  __ j(LESS, &loop, Assembler::kNearJump);
   __ ret();
   __ Bind(&fall_through);
   return false;

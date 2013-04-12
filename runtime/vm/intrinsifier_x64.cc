@@ -1507,16 +1507,26 @@ bool Intrinsifier::OneByteString_substringUnchecked(Assembler* assembler) {
   __ movq(RBX, Address(RSP, + kStartIndexOffset));
   __ SmiUntag(RBX);
   __ leaq(RSI, FieldAddress(RSI, RBX, TIMES_1, OneByteString::data_offset()));
-  // RDI: Start address to copy from (untagged).
+  // RSI: Start address to copy from (untagged).
   // RBX: Untagged start index.
   __ movq(RCX, Address(RSP, + kEndIndexOffset));
   __ SmiUntag(RCX);
   __ subq(RCX, RBX);
+  __ xorq(RDX, RDX);
+  // RSI: Start address to copy from (untagged).
   // RCX: Untagged number of bytes to copy.
-
-  __ leaq(RDI, FieldAddress(RAX, OneByteString::data_offset()));  // to.
-  __ rep_movsb();
-
+  // RAX: Tagged result string
+  // RDX: Loop counter.
+  // RBX: Scratch register.
+  Label loop, check;
+  __ jmp(&check, Assembler::kNearJump);
+  __ Bind(&loop);
+  __ movzxb(RBX, Address(RSI, RDX, TIMES_1, 0));
+  __ movb(FieldAddress(RAX, RDX, TIMES_1, OneByteString::data_offset()), RBX);
+  __ incq(RDX);
+  __ Bind(&check);
+  __ cmpq(RDX, RCX);
+  __ j(LESS, &loop, Assembler::kNearJump);
   __ ret();
   __ Bind(&fall_through);
   return false;
