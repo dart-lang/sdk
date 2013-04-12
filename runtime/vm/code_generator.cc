@@ -1014,8 +1014,9 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
   const MegamorphicCache& cache = MegamorphicCache::Handle(
       isolate->megamorphic_cache_table()->Lookup(name, descriptor));
   Class& cls = Class::Handle(receiver.clazz());
+  const bool is_null = cls.IsNullClass();
   // For lookups treat null as an instance of class Object.
-  if (cls.IsNullClass()) {
+  if (is_null) {
     cls = isolate->object_store()->object_class();
   }
   ASSERT(!cls.IsNull());
@@ -1049,7 +1050,7 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
   if (instructions.IsNull()) return;
 
   cache.EnsureCapacity();
-  const Smi& class_id = Smi::Handle(Smi::New(cls.id()));
+  const Smi& class_id = Smi::Handle(Smi::New(is_null ? kNullCid : cls.id()));
   cache.Insert(class_id, target);
   return;
 }
