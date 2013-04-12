@@ -79,6 +79,8 @@ void testConfigurations(List<Map> configurations) {
   var firstConf = configurations[0];
   var maxProcesses = firstConf['tasks'];
   var progressIndicator = firstConf['progress'];
+  // TODO(kustermann): Remove this option once the buildbots don't use it
+  // anymore.
   var failureSummary = firstConf['failure-summary'];
   BuildbotProgressIndicator.stepName = firstConf['step_name'];
   var verbose = firstConf['verbose'];
@@ -195,10 +197,9 @@ void testConfigurations(List<Map> configurations) {
     eventListener.add(new FlakyLogWriter());
     if (printFailures) {
       // The buildbot has it's own failure summary since it needs to wrap it
-      // into'@@@'-annotated sections.
-      var printFaiureSummary =
-          failureSummary && progressIndicator != 'buildbot';
-      eventListener.add(new TestFailurePrinter(printFaiureSummary, formatter));
+      // into '@@@'-annotated sections.
+      var printFailureSummary = progressIndicator != 'buildbot';
+      eventListener.add(new TestFailurePrinter(printFailureSummary, formatter));
     }
     eventListener.add(new ProgressIndicator.fromName(progressIndicator,
                                                      startTime,
