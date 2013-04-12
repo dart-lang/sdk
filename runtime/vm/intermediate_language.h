@@ -2774,7 +2774,10 @@ class IfThenElseInstr : public TemplateDefinition<2> {
   virtual bool HasSideEffect() const { return false; }
 
   virtual bool AttributesEqual(Instruction* other) const {
-    return kind_ == other->AsIfThenElse()->kind_;
+    IfThenElseInstr* other_if_then_else = other->AsIfThenElse();
+    return (kind_ == other_if_then_else->kind_) &&
+           (if_true_ == other_if_then_else->if_true_) &&
+           (if_false_ == other_if_then_else->if_false_);
   }
 
   virtual bool AffectedBySideEffect() const {
