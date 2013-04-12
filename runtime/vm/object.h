@@ -2393,8 +2393,7 @@ class PcDescriptors : public Object {
 
  public:
   enum Kind {
-    kDeoptBefore = 0,  // Deoptimization continuation point before instruction.
-    kDeoptAfter,       // Deoptimization continuation point after instruction.
+    kDeopt,            // Deoptimization continuation point.
     kEntryPatch,       // Location where to patch entry.
     kPatchCode,        // Buffer for patching code entry.
     kLazyDeoptJump,    // Lazy deoptimization trampoline.
@@ -2809,9 +2808,6 @@ class Code : public Object {
   // Find pc, return 0 if not found.
   uword GetPatchCodePc() const;
   uword GetLazyDeoptPc() const;
-
-  uword GetDeoptBeforePcAtDeoptId(intptr_t deopt_id) const;
-  uword GetDeoptAfterPcAtDeoptId(intptr_t deopt_id) const;
 
   uword GetPcForDeoptId(intptr_t deopt_id, PcDescriptors::Kind kind) const;
 

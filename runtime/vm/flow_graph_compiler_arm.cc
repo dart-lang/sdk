@@ -408,9 +408,18 @@ void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
   if (!is_optimizing()) {
     if (FLAG_enable_type_checks && instr->IsAssertAssignable()) {
       AssertAssignableInstr* assert = instr->AsAssertAssignable();
-      AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
+      AddCurrentDescriptor(PcDescriptors::kDeopt,
                            assert->deopt_id(),
                            assert->token_pos());
+    } else if (instr->IsGuardField()) {
+      GuardFieldInstr* guard = instr->AsGuardField();
+      AddCurrentDescriptor(PcDescriptors::kDeopt,
+                           guard->deopt_id(),
+                           Scanner::kDummyTokenIndex);
+    } else if (instr->CanBeDeoptimizationTarget()) {
+      AddCurrentDescriptor(PcDescriptors::kDeopt,
+                           instr->deopt_id(),
+                           Scanner::kDummyTokenIndex);
     }
     AllocateRegistersLocally(instr);
   }
@@ -884,14 +893,13 @@ void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
   RecordSafepoint(locs);
   // Marks either the continuation point in unoptimized code or the
   // deoptimization point in optimized code, after call.
+  const intptr_t deopt_id_after = Isolate::ToDeoptAfter(deopt_id);
   if (is_optimizing()) {
-    AddDeoptIndexAtCall(deopt_id, token_pos);
+    AddDeoptIndexAtCall(deopt_id_after, token_pos);
   } else {
     // Add deoptimization continuation point after the call and before the
     // arguments are removed.
-    AddCurrentDescriptor(PcDescriptors::kDeoptAfter,
-                         deopt_id,
-                         token_pos);
+    AddCurrentDescriptor(PcDescriptors::kDeopt, deopt_id_after, token_pos);
   }
 }
 
@@ -906,13 +914,14 @@ void FlowGraphCompiler::GenerateCallRuntime(intptr_t token_pos,
   if (deopt_id != Isolate::kNoDeoptId) {
     // Marks either the continuation point in unoptimized code or the
     // deoptimization point in optimized code, after call.
+    const intptr_t deopt_id_after = Isolate::ToDeoptAfter(deopt_id);
     if (is_optimizing()) {
-      AddDeoptIndexAtCall(deopt_id, token_pos);
+      AddDeoptIndexAtCall(deopt_id_after, token_pos);
     } else {
       // Add deoptimization continuation point after the call and before the
       // arguments are removed.
-      AddCurrentDescriptor(PcDescriptors::kDeoptAfter,
-                           deopt_id,
+      AddCurrentDescriptor(PcDescriptors::kDeopt,
+                           deopt_id_after,
                            token_pos);
     }
   }

@@ -1898,7 +1898,8 @@ void FlowGraphOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
                           new Value(instantiator),
                           new Value(type_args),
                           type,
-                          negate);
+                          negate,
+                          call->deopt_id());
   ReplaceCall(call, instance_of);
 }
 
@@ -1938,6 +1939,9 @@ void FlowGraphOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
                                 new Value(type_args),
                                 type,
                                 dst_name);
+  // Newly inserted instructions that can deoptimize or throw an exception
+  // must have a deoptimization id that is valid for lookup in the unoptimized
+  // code.
   assert_as->deopt_id_ = call->deopt_id();
   ReplaceCall(call, assert_as);
 }
@@ -4535,6 +4539,7 @@ void ConstantPropagator::Transform() {
           it.Current()->UnuseAllInputs();
         }
       }
+      block->UnuseAllInputs();
       for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
         it.Current()->UnuseAllInputs();
       }
@@ -4627,11 +4632,15 @@ void ConstantPropagator::Transform() {
         ASSERT(if_false->parallel_move() == NULL);
         ASSERT(if_false->loop_info() == NULL);
         join = new JoinEntryInstr(if_false->block_id(), if_false->try_index());
+        join->InheritDeoptTarget(if_false);
+        if_false->UnuseAllInputs();
         next = if_false->next();
       } else if (!reachable_->Contains(if_false->preorder_number())) {
         ASSERT(if_true->parallel_move() == NULL);
         ASSERT(if_true->loop_info() == NULL);
         join = new JoinEntryInstr(if_true->block_id(), if_true->try_index());
+        join->InheritDeoptTarget(if_true);
+        if_true->UnuseAllInputs();
         next = if_true->next();
       }
 
@@ -4641,9 +4650,12 @@ void ConstantPropagator::Transform() {
         // as it is a strict compare (the only one we can determine is
         // constant with the current analysis).
         GotoInstr* jump = new GotoInstr(join);
+        jump->InheritDeoptTarget(branch);
+
         Instruction* previous = branch->previous();
         branch->set_previous(NULL);
         previous->LinkTo(jump);
+
         // Replace the false target entry with the new join entry. We will
         // recompute the dominators after this pass.
         join->LinkTo(next);
@@ -4661,6 +4673,28 @@ void ConstantPropagator::Transform() {
     FlowGraphPrinter printer(*graph_);
     printer.PrintBlocks();
   }
+}
+
+
+// Returns true if the given phi has a single input use and
+// is used in the environments either at the corresponding block entry or
+// at the same instruction where input use is.
+static bool PhiHasSingleUse(PhiInstr* phi, Value* use) {
+  if ((use->next_use() != NULL) || (phi->input_use_list() != use)) {
+    return false;
+  }
+
+  BlockEntryInstr* block = phi->block();
+  for (Value* env_use = phi->env_use_list();
+       env_use != NULL;
+       env_use = env_use->next_use()) {
+    if ((env_use->instruction() != block) &&
+        (env_use->instruction() != use->instruction())) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 
@@ -4685,7 +4719,7 @@ bool BranchSimplifier::Match(JoinEntryInstr* block) {
   return (phi != NULL) &&
       (constant != NULL) &&
       (phi->GetBlock() == block) &&
-      phi->HasOnlyUse(left) &&
+      PhiHasSingleUse(phi, left) &&
       constant->HasOnlyUse(right) &&
       (block->next() == constant) &&
       (constant->next() == branch) &&
@@ -4699,8 +4733,10 @@ JoinEntryInstr* BranchSimplifier::ToJoinEntry(TargetEntryInstr* target) {
   // from all the duplicated branches.
   JoinEntryInstr* join =
       new JoinEntryInstr(target->block_id(), target->try_index());
+  join->InheritDeoptTarget(target);
   join->LinkTo(target->next());
   join->set_last_instruction(target->last_instruction());
+  target->UnuseAllInputs();
   return join;
 }
 
@@ -4721,18 +4757,24 @@ BranchInstr* BranchSimplifier::CloneBranch(BranchInstr* branch,
   if (comparison->IsStrictCompare()) {
     new_comparison = new StrictCompareInstr(comparison->kind(), left, right);
   } else if (comparison->IsEqualityCompare()) {
-    new_comparison =
-        new EqualityCompareInstr(comparison->AsEqualityCompare()->token_pos(),
+    EqualityCompareInstr* equality_compare = comparison->AsEqualityCompare();
+    EqualityCompareInstr* new_equality_compare =
+        new EqualityCompareInstr(equality_compare->token_pos(),
                                  comparison->kind(),
                                  left,
                                  right);
+    new_equality_compare->set_ic_data(equality_compare->ic_data());
+    new_comparison = new_equality_compare;
   } else {
     ASSERT(comparison->IsRelationalOp());
-    new_comparison =
-        new RelationalOpInstr(comparison->AsRelationalOp()->token_pos(),
+    RelationalOpInstr* relational_op = comparison->AsRelationalOp();
+    RelationalOpInstr* new_relational_op =
+        new RelationalOpInstr(relational_op->token_pos(),
                               comparison->kind(),
                               left,
                               right);
+    new_relational_op->set_ic_data(relational_op->ic_data());
+    new_comparison = new_relational_op;
   }
   return new BranchInstr(new_comparison, branch->is_checked());
 }
@@ -4801,6 +4843,7 @@ void BranchSimplifier::Simplify(FlowGraph* flow_graph) {
         Value* new_left = phi->InputAt(i)->Copy();
         Value* new_right = new Value(new_constant);
         BranchInstr* new_branch = CloneBranch(branch, new_left, new_right);
+        new_branch->InheritDeoptTarget(old_goto);
         new_branch->InsertBefore(old_goto);
         new_branch->set_next(NULL);  // Detaching the goto from the graph.
         old_goto->UnuseAllInputs();
@@ -4816,16 +4859,20 @@ void BranchSimplifier::Simplify(FlowGraph* flow_graph) {
         TargetEntryInstr* true_target =
             new TargetEntryInstr(flow_graph->max_block_id() + 1,
                                  block->try_index());
+        true_target->InheritDeoptTarget(join_true);
         TargetEntryInstr* false_target =
             new TargetEntryInstr(flow_graph->max_block_id() + 2,
                                  block->try_index());
+        false_target->InheritDeoptTarget(join_false);
         flow_graph->set_max_block_id(flow_graph->max_block_id() + 2);
         *new_branch->true_successor_address() = true_target;
         *new_branch->false_successor_address() = false_target;
         GotoInstr* goto_true = new GotoInstr(join_true);
+        goto_true->InheritDeoptTarget(join_true);
         true_target->LinkTo(goto_true);
         true_target->set_last_instruction(goto_true);
         GotoInstr* goto_false = new GotoInstr(join_false);
+        goto_false->InheritDeoptTarget(join_false);
         false_target->LinkTo(goto_false);
         false_target->set_last_instruction(goto_false);
       }
@@ -4833,6 +4880,7 @@ void BranchSimplifier::Simplify(FlowGraph* flow_graph) {
       // unreachable from the graph.
       phi->UnuseAllInputs();
       branch->UnuseAllInputs();
+      block->UnuseAllInputs();
     }
   }
 

@@ -122,11 +122,6 @@ class CompilerDeoptInfo : public ZoneAllocated {
   // No code needs to be generated.
   virtual void GenerateCode(FlowGraphCompiler* compiler, intptr_t stub_ix) {}
 
-  // Builds deopt-after continuation point.
-  virtual void BuildReturnAddress(DeoptInfoBuilder* builder,
-                                  const Function& function,
-                                  intptr_t slot_ix);
-
   intptr_t pc_offset() const { return pc_offset_; }
   void set_pc_offset(intptr_t offset) { pc_offset_ = offset; }
 
@@ -159,11 +154,6 @@ class CompilerDeoptInfoWithStub : public CompilerDeoptInfo {
 
   // Implementation is in architecture specific file.
   virtual void GenerateCode(FlowGraphCompiler* compiler, intptr_t stub_ix);
-
-  // Builds deopt-before continuation point.
-  virtual void BuildReturnAddress(DeoptInfoBuilder* builder,
-                                  const Function& function,
-                                  intptr_t slot_ix);
 
  private:
   Label entry_label_;

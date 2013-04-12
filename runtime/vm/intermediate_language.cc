@@ -510,11 +510,11 @@ void Value::RemoveFromUseList() {
 
 
 bool Definition::HasOnlyUse(Value* use) const {
-  if (((input_use_list() == use) && (env_use_list() == NULL)) ||
-      ((input_use_list() == NULL) && (env_use_list() == use))) {
-    return (use->next_use() == NULL);
-  }
-  return false;
+  return (input_use_list() == use) &&
+     (use->next_use() == NULL) &&
+     ((env_use_list() == NULL) ||
+      ((env_use_list()->instruction() == use->instruction()) &&
+       (env_use_list()->next_use() == NULL)));
 }
 
 
@@ -565,6 +565,28 @@ void Instruction::UnuseAllInputs() {
   for (Environment::DeepIterator it(env()); !it.Done(); it.Advance()) {
     it.CurrentValue()->RemoveFromUseList();
   }
+}
+
+
+void Instruction::InheritDeoptTargetAfter(Instruction* other) {
+  ASSERT(other->env() != NULL);
+  deopt_id_ = Isolate::ToDeoptAfter(other->deopt_id_);
+  other->env()->DeepCopyTo(this);
+  env()->set_deopt_id(deopt_id_);
+}
+
+
+void Instruction::InheritDeoptTarget(Instruction* other) {
+  ASSERT(other->env() != NULL);
+  deopt_id_ = other->deopt_id_;
+  other->env()->DeepCopyTo(this);
+  env()->set_deopt_id(deopt_id_);
+}
+
+
+void BranchInstr::InheritDeoptTarget(Instruction* other) {
+  Instruction::InheritDeoptTarget(other);
+  comparison()->SetDeoptId(GetDeoptId());
 }
 
 
@@ -1260,9 +1282,11 @@ Instruction* BranchInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
 
     // Replace the comparison if the replacement is used at this branch,
     // and has exactly one use.
-    if ((comp->input_use_list()->instruction() == this) &&
-        (comp->input_use_list()->next_use() == NULL) &&
-        (comp->env_use_list() == NULL)) {
+    Value* use = comp->input_use_list();
+    if ((use->instruction() == this) && comp->HasOnlyUse(use)) {
+      RemoveEnvironment();
+      InheritDeoptTarget(comp);
+
       comp->RemoveFromGraph();
       SetComparison(comp);
       if (FLAG_trace_optimization) {
@@ -1378,6 +1402,11 @@ void GraphEntryInstr::PrepareEntry(FlowGraphCompiler* compiler) {
 
 
 void JoinEntryInstr::PrepareEntry(FlowGraphCompiler* compiler) {
+  if (!compiler->is_optimizing()) {
+    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
+                                   deopt_id_,
+                                   Scanner::kDummyTokenIndex);
+  }
   __ Bind(compiler->GetJumpLabel(this));
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
@@ -1386,6 +1415,11 @@ void JoinEntryInstr::PrepareEntry(FlowGraphCompiler* compiler) {
 
 
 void TargetEntryInstr::PrepareEntry(FlowGraphCompiler* compiler) {
+  if (!compiler->is_optimizing()) {
+    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
+                                   deopt_id_,
+                                   Scanner::kDummyTokenIndex);
+  }
   __ Bind(compiler->GetJumpLabel(this));
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
@@ -1553,7 +1587,7 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else {
     // Unoptimized code.
     ASSERT(!HasICData());
-    compiler->AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
+    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
                                    deopt_id(),
                                    token_pos());
     compiler->GenerateInstanceCall(deopt_id(),
@@ -1576,7 +1610,7 @@ void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!compiler->is_optimizing()) {
     // Some static calls can be optimized by the optimizing compiler (e.g. sqrt)
     // and therefore need a deoptimization descriptor.
-    compiler->AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
+    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
                                    deopt_id(),
                                    token_pos());
   }

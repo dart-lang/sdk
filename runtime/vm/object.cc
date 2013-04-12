@@ -6940,8 +6940,7 @@ RawPcDescriptors* PcDescriptors::New(intptr_t num_descriptors) {
 
 const char* PcDescriptors::KindAsStr(intptr_t index) const {
   switch (DescriptorKind(index)) {
-    case PcDescriptors::kDeoptBefore:   return "deopt-before ";
-    case PcDescriptors::kDeoptAfter:    return "deopt-after  ";
+    case PcDescriptors::kDeopt:         return "deopt ";
     case PcDescriptors::kEntryPatch:    return "entry-patch  ";
     case PcDescriptors::kPatchCode:     return "patch        ";
     case PcDescriptors::kLazyDeoptJump: return "lazy-deopt   ";
@@ -7022,10 +7021,19 @@ void PcDescriptors::Verify(const Function& function) const {
     PcDescriptors::Kind kind = DescriptorKind(i);
     // 'deopt_id' is set for kDeopt and kIcCall and must be unique for one kind.
     intptr_t deopt_id = Isolate::kNoDeoptId;
-    if ((DescriptorKind(i) == PcDescriptors::kDeoptBefore) ||
-        (DescriptorKind(i) == PcDescriptors::kIcCall)) {
-      deopt_id = DeoptId(i);
+    if ((DescriptorKind(i) != PcDescriptors::kDeopt) ||
+        (DescriptorKind(i) != PcDescriptors::kIcCall)) {
+      continue;
     }
+
+    deopt_id = DeoptId(i);
+    if (Isolate::IsDeoptAfter(deopt_id)) {
+      // TODO(vegorov): some instructions contain multiple calls and have
+      // multiple "after" targets recorded. Right now it is benign but might
+      // lead to issues in the future. Fix that and enable verification.
+      continue;
+    }
+
     for (intptr_t k = i + 1; k < Length(); k++) {
       if (kind == DescriptorKind(k)) {
         if (deopt_id != Isolate::kNoDeoptId) {
@@ -7764,18 +7772,6 @@ uword Code::GetPcForDeoptId(intptr_t deopt_id, PcDescriptors::Kind kind) const {
     }
   }
   return 0;
-}
-
-
-uword Code::GetDeoptBeforePcAtDeoptId(intptr_t deopt_id) const {
-  ASSERT(!is_optimized());
-  return GetPcForDeoptId(deopt_id, PcDescriptors::kDeoptBefore);
-}
-
-
-uword Code::GetDeoptAfterPcAtDeoptId(intptr_t deopt_id) const {
-  ASSERT(!is_optimized());
-  return GetPcForDeoptId(deopt_id, PcDescriptors::kDeoptAfter);
 }
 
 

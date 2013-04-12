@@ -289,6 +289,9 @@ class Isolate : public BaseIsolate {
   void set_spawn_data(uword value) { spawn_data_ = value; }
 
   static const intptr_t kNoDeoptId = -1;
+  static const intptr_t kDeoptIdStep = 2;
+  static const intptr_t kDeoptIdBeforeOffset = 0;
+  static const intptr_t kDeoptIdAfterOffset = 1;
   intptr_t deopt_id() const { return deopt_id_; }
   void set_deopt_id(int value) {
     ASSERT(value >= 0);
@@ -296,7 +299,22 @@ class Isolate : public BaseIsolate {
   }
   intptr_t GetNextDeoptId() {
     ASSERT(deopt_id_ != kNoDeoptId);
-    return deopt_id_++;
+    const intptr_t id = deopt_id_;
+    deopt_id_ += kDeoptIdStep;
+    return id;
+  }
+
+  static intptr_t ToDeoptAfter(intptr_t deopt_id) {
+    ASSERT(IsDeoptBefore(deopt_id));
+    return deopt_id + kDeoptIdAfterOffset;
+  }
+
+  static bool IsDeoptBefore(intptr_t deopt_id) {
+    return (deopt_id % kDeoptIdStep) == kDeoptIdBeforeOffset;
+  }
+
+  static bool IsDeoptAfter(intptr_t deopt_id) {
+    return (deopt_id % kDeoptIdStep) == kDeoptIdAfterOffset;
   }
 
   RawArray* ic_data_array() const { return ic_data_array_; }

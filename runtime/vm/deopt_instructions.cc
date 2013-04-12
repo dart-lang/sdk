@@ -243,17 +243,16 @@ class DeoptUint32x4StackSlotInstr : public DeoptInstr {
 
 
 // Deoptimization instruction creating return address using function and
-// deopt-id stored at 'object_table_index'. Uses the deopt-after
-// continuation point.
-class DeoptRetAfterAddressInstr : public DeoptInstr {
+// deopt-id stored at 'object_table_index'.
+class DeoptRetAddressInstr : public DeoptInstr {
  public:
-  DeoptRetAfterAddressInstr(intptr_t object_table_index, intptr_t deopt_id)
+  DeoptRetAddressInstr(intptr_t object_table_index, intptr_t deopt_id)
       : object_table_index_(object_table_index), deopt_id_(deopt_id) {
     ASSERT(object_table_index >= 0);
     ASSERT(deopt_id >= 0);
   }
 
-  explicit DeoptRetAfterAddressInstr(intptr_t from_index)
+  explicit DeoptRetAddressInstr(intptr_t from_index)
       : object_table_index_(ObjectTableIndex::decode(from_index)),
         deopt_id_(DeoptId::decode(from_index)) {
   }
@@ -262,14 +261,12 @@ class DeoptRetAfterAddressInstr : public DeoptInstr {
     return ObjectTableIndex::encode(object_table_index_) |
         DeoptId::encode(deopt_id_);
   }
-  virtual DeoptInstr::Kind kind() const { return kRetAfterAddress; }
+
+  virtual DeoptInstr::Kind kind() const { return kRetAddress; }
 
   virtual const char* ToCString() const {
-    const char* format = "ret aft oti:%"Pd"(%"Pd")";
-    intptr_t len = OS::SNPrint(NULL, 0, format, object_table_index_, deopt_id_);
-    char* chars = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
-    OS::SNPrint(chars, len + 1, format, object_table_index_, deopt_id_);
-    return chars;
+    return Isolate::Current()->current_zone()->PrintToString(
+        "ret oti:%"Pd"(%"Pd")", object_table_index_, deopt_id_);
   }
 
   void Execute(DeoptimizationContext* deopt_context, intptr_t to_index) {
@@ -278,64 +275,8 @@ class DeoptRetAfterAddressInstr : public DeoptInstr {
     const Code& code =
         Code::Handle(deopt_context->isolate(), function.unoptimized_code());
     ASSERT(!code.IsNull());
-    uword continue_at_pc = code.GetDeoptAfterPcAtDeoptId(deopt_id_);
-    ASSERT(continue_at_pc != 0);
-    intptr_t* to_addr = deopt_context->GetToFrameAddressAt(to_index);
-    *to_addr = continue_at_pc;
-  }
-
-  intptr_t object_table_index() const { return object_table_index_; }
-  intptr_t deopt_id() const { return deopt_id_; }
-
- private:
-  static const intptr_t kFieldWidth = kBitsPerWord / 2;
-  class ObjectTableIndex : public BitField<intptr_t, 0, kFieldWidth> { };
-  class DeoptId : public BitField<intptr_t, kFieldWidth, kFieldWidth> { };
-
-  const intptr_t object_table_index_;
-  const intptr_t deopt_id_;
-
-  DISALLOW_COPY_AND_ASSIGN(DeoptRetAfterAddressInstr);
-};
-
-
-// Deoptimization instruction creating return address using function and
-// deopt-id stored at 'object_table_index'. Uses the deopt-before
-// continuation point.
-class DeoptRetBeforeAddressInstr : public DeoptInstr {
- public:
-  DeoptRetBeforeAddressInstr(intptr_t object_table_index, intptr_t deopt_id)
-      : object_table_index_(object_table_index), deopt_id_(deopt_id) {
-    ASSERT(object_table_index >= 0);
-    ASSERT(deopt_id >= 0);
-  }
-
-  explicit DeoptRetBeforeAddressInstr(intptr_t from_index)
-      : object_table_index_(ObjectTableIndex::decode(from_index)),
-        deopt_id_(DeoptId::decode(from_index)) {
-  }
-
-  virtual intptr_t from_index() const {
-    return ObjectTableIndex::encode(object_table_index_) |
-        DeoptId::encode(deopt_id_);
-  }
-  virtual DeoptInstr::Kind kind() const { return kRetBeforeAddress; }
-
-  virtual const char* ToCString() const {
-    const char* format = "ret bef oti:%"Pd"(%"Pd")";
-    intptr_t len = OS::SNPrint(NULL, 0, format, object_table_index_, deopt_id_);
-    char* chars = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
-    OS::SNPrint(chars, len + 1, format, object_table_index_, deopt_id_);
-    return chars;
-  }
-
-  void Execute(DeoptimizationContext* deopt_context, intptr_t to_index) {
-    Function& function = Function::Handle(deopt_context->isolate());
-    function ^= deopt_context->ObjectAt(object_table_index_);
-    const Code& code =
-        Code::Handle(deopt_context->isolate(), function.unoptimized_code());
-    ASSERT(!code.IsNull());
-    uword continue_at_pc = code.GetDeoptBeforePcAtDeoptId(deopt_id_);
+    uword continue_at_pc = code.GetPcForDeoptId(deopt_id_,
+                                                PcDescriptors::kDeopt);
     ASSERT(continue_at_pc != 0);
     intptr_t* to_addr = deopt_context->GetToFrameAddressAt(to_index);
     *to_addr = continue_at_pc;
@@ -352,6 +293,9 @@ class DeoptRetBeforeAddressInstr : public DeoptInstr {
     }
   }
 
+  intptr_t object_table_index() const { return object_table_index_; }
+  intptr_t deopt_id() const { return deopt_id_; }
+
  private:
   static const intptr_t kFieldWidth = kBitsPerWord / 2;
   class ObjectTableIndex : public BitField<intptr_t, 0, kFieldWidth> { };
@@ -360,7 +304,7 @@ class DeoptRetBeforeAddressInstr : public DeoptInstr {
   const intptr_t object_table_index_;
   const intptr_t deopt_id_;
 
-  DISALLOW_COPY_AND_ASSIGN(DeoptRetBeforeAddressInstr);
+  DISALLOW_COPY_AND_ASSIGN(DeoptRetAddressInstr);
 };
 
 
@@ -713,18 +657,20 @@ intptr_t DeoptInstr::DecodeSuffix(intptr_t from_index, intptr_t* info_number) {
 }
 
 
-uword DeoptInstr::GetRetAfterAddress(DeoptInstr* instr,
-                                     const Array& object_table,
-                                     Function* func) {
-  ASSERT(instr->kind() == kRetAfterAddress);
-  DeoptRetAfterAddressInstr* ret_after_instr =
-      static_cast<DeoptRetAfterAddressInstr*>(instr);
+uword DeoptInstr::GetRetAddress(DeoptInstr* instr,
+                                const Array& object_table,
+                                Function* func) {
+  ASSERT(instr->kind() == kRetAddress);
+  DeoptRetAddressInstr* ret_address_instr =
+      static_cast<DeoptRetAddressInstr*>(instr);
+  ASSERT(Isolate::IsDeoptAfter(ret_address_instr->deopt_id()));
   ASSERT(!object_table.IsNull());
   ASSERT(func != NULL);
-  *func ^= object_table.At(ret_after_instr->object_table_index());
+  *func ^= object_table.At(ret_address_instr->object_table_index());
   const Code& code = Code::Handle(func->unoptimized_code());
   ASSERT(!code.IsNull());
-  uword res = code.GetDeoptAfterPcAtDeoptId(ret_after_instr->deopt_id());
+  uword res = code.GetPcForDeoptId(ret_address_instr->deopt_id(),
+                                   PcDescriptors::kDeopt);
   ASSERT(res != 0);
   return res;
 }
@@ -740,8 +686,7 @@ DeoptInstr* DeoptInstr::Create(intptr_t kind_as_int, intptr_t from_index) {
         return new DeoptFloat32x4StackSlotInstr(from_index);
     case kUint32x4StackSlot:
         return new DeoptUint32x4StackSlotInstr(from_index);
-    case kRetAfterAddress: return new DeoptRetAfterAddressInstr(from_index);
-    case kRetBeforeAddress: return new DeoptRetBeforeAddressInstr(from_index);
+    case kRetAddress: return new DeoptRetAddressInstr(from_index);
     case kConstant: return new DeoptConstantInstr(from_index);
     case kRegister: return new DeoptRegisterInstr(from_index);
     case kFpuRegister: return new DeoptFpuRegisterInstr(from_index);
@@ -814,26 +759,19 @@ intptr_t DeoptInfoBuilder::FindOrAddObjectInTable(const Object& obj) const {
 }
 
 
-void DeoptInfoBuilder::AddReturnAddressBefore(const Function& function,
-                                              intptr_t deopt_id,
-                                              intptr_t to_index) {
+void DeoptInfoBuilder::AddReturnAddress(const Function& function,
+                                        intptr_t deopt_id,
+                                        intptr_t to_index) {
   // Check that deopt_id exists.
-  ASSERT(Code::Handle(function.unoptimized_code()).
-      GetDeoptBeforePcAtDeoptId(deopt_id) != 0);
+  // TODO(vegorov): verify after deoptimization targets as well.
+#ifdef DEBUG
+  const Code& code = Code::Handle(function.unoptimized_code());
+  ASSERT(Isolate::IsDeoptAfter(deopt_id) ||
+      (code.GetPcForDeoptId(deopt_id, PcDescriptors::kDeopt) != 0));
+#endif
   const intptr_t object_table_index = FindOrAddObjectInTable(function);
   ASSERT(to_index == instructions_.length());
-  instructions_.Add(new DeoptRetBeforeAddressInstr(object_table_index,
-                                                   deopt_id));
-}
-
-
-void DeoptInfoBuilder::AddReturnAddressAfter(const Function& function,
-                                             intptr_t deopt_id,
-                                             intptr_t to_index) {
-  const intptr_t object_table_index = FindOrAddObjectInTable(function);
-  ASSERT(to_index == instructions_.length());
-  instructions_.Add(new DeoptRetAfterAddressInstr(object_table_index,
-                                                  deopt_id));
+  instructions_.Add(new DeoptRetAddressInstr(object_table_index, deopt_id));
 }
 
 

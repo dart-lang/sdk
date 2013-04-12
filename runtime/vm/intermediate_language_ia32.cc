@@ -336,7 +336,7 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
                                        LocationSummary* locs,
                                        const ICData& original_ic_data) {
   if (!compiler->is_optimizing()) {
-    compiler->AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
+    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
                                    deopt_id,
                                    token_pos);
   }
@@ -972,7 +972,7 @@ void RelationalOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const String& function_name =
       String::ZoneHandle(Symbols::New(Token::Str(kind())));
   if (!compiler->is_optimizing()) {
-    compiler->AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
+    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
                                    deopt_id(),
                                    token_pos());
   }
@@ -3541,7 +3541,7 @@ void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Add deoptimization descriptor for deoptimizing instructions
   // that may be inserted before this instruction.
   if (!compiler->is_optimizing()) {
-    compiler->AddCurrentDescriptor(PcDescriptors::kDeoptBefore,
+    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
                                    GetDeoptId(),
                                    0);  // No token position.
   }

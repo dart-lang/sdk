@@ -164,6 +164,8 @@ class FlowGraph : public ZoneAllocated {
       GrowableArray<Definition*>* env,
       GrowableArray<PhiInstr*>* live_phis);
 
+  void AttachEnvironment(Instruction* instr, GrowableArray<Definition*>* env);
+
   void InsertPhis(
       const GrowableArray<BlockEntryInstr*>& preorder,
       const GrowableArray<BitVector*>& assigned_vars,

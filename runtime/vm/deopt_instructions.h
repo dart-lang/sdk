@@ -95,8 +95,7 @@ class DeoptimizationContext : public ValueObject {
 class DeoptInstr : public ZoneAllocated {
  public:
   enum Kind {
-    kRetAfterAddress,
-    kRetBeforeAddress,
+    kRetAddress,
     kConstant,
     kRegister,
     kFpuRegister,
@@ -136,9 +135,9 @@ class DeoptInstr : public ZoneAllocated {
 
   // Get the function and return address which is encoded in this
   // kRetAfterAddress deopt instruction.
-  static uword GetRetAfterAddress(DeoptInstr* instr,
-                                  const Array& object_table,
-                                  Function* func);
+  static uword GetRetAddress(DeoptInstr* instr,
+                             const Array& object_table,
+                             Function* func);
 
  protected:
   virtual intptr_t from_index() const = 0;
@@ -164,14 +163,9 @@ class DeoptInfoBuilder : public ValueObject {
   const GrowableObjectArray& object_table() { return object_table_; }
 
   // Return address before instruction.
-  void AddReturnAddressBefore(const Function& function,
-                              intptr_t deopt_id,
-                              intptr_t to_index);
-
-  // Return address after instruction.
-  void AddReturnAddressAfter(const Function& function,
-                             intptr_t deopt_id,
-                             intptr_t to_index);
+  void AddReturnAddress(const Function& function,
+                        intptr_t deopt_id,
+                        intptr_t to_index);
 
   // Copy from optimized frame to unoptimized.
   void AddCopy(Value* value, const Location& from_loc, intptr_t to_index);

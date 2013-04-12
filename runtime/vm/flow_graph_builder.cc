@@ -133,7 +133,7 @@ void InliningContext::ReplaceCall(FlowGraph* caller_graph,
   } else if (num_exits == 1) {
     // For just one exit, replace the uses and remove the call from the graph.
     call->ReplaceUsesWith(ValueAt(0)->definition());
-    ValueAt(0)->RemoveFromUseList();
+    ReturnAt(0)->UnuseAllInputs();
     call->previous()->LinkTo(callee_entry->next());
     LastInstructionAt(0)->LinkTo(call->next());
     // In case of control flow, locally update the predecessors, phis and
@@ -186,8 +186,11 @@ void InliningContext::ReplaceCall(FlowGraph* caller_graph,
     caller_graph->set_max_block_id(join_id);
     JoinEntryInstr* join =
         new JoinEntryInstr(join_id, CatchClauseNode::kInvalidTryIndex);
+    join->InheritDeoptTarget(call);
     for (intptr_t i = 0; i < num_exits; ++i) {
-      LastInstructionAt(i)->Goto(join);
+      GotoInstr* goto_instr = new GotoInstr(join);
+      goto_instr->InheritDeoptTarget(ReturnAt(i));
+      LastInstructionAt(i)->LinkTo(goto_instr);
       // Directly add the predecessors of the join in ascending block id order.
       join->predecessors_.Add(ExitBlockAt(i));
     }
@@ -198,6 +201,7 @@ void InliningContext::ReplaceCall(FlowGraph* caller_graph,
       phi->set_ssa_temp_index(caller_graph->alloc_ssa_temp_index());
       phi->mark_alive();
       for (intptr_t i = 0; i < num_exits; ++i) {
+        ReturnAt(i)->RemoveEnvironment();
         phi->SetInputAt(i, ValueAt(i));
       }
       join->InsertPhi(phi);
@@ -207,7 +211,7 @@ void InliningContext::ReplaceCall(FlowGraph* caller_graph,
       // In the case that the result is unused, remove the return value uses
       // from their definition's use list.
       for (intptr_t i = 0; i < num_exits; ++i) {
-        ValueAt(i)->RemoveFromUseList();
+        ReturnAt(i)->UnuseAllInputs();
       }
     }
     // Remove the call from the graph.

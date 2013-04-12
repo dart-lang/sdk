@@ -170,7 +170,11 @@ static void VerifyUseListsInInstruction(Instruction* instr) {
       ASSERT(defn == curr->definition());
       Instruction* instr = curr->instruction();
       ASSERT(curr == instr->env()->ValueAtUseIndex(curr->use_index()));
-      ASSERT((instr->IsPhi() && instr->AsPhi()->is_alive()) ||
+      // BlockEntry instructions have environments attached to them but
+      // have no reliable way to verify if they are still in the graph.
+      // Thus we just assume they are.
+      ASSERT(instr->IsBlockEntry() ||
+             (instr->IsPhi() && instr->AsPhi()->is_alive()) ||
              (instr->previous() != NULL));
       prev = curr;
       curr = curr->next_use();
@@ -441,6 +445,23 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
 }
 
 
+void FlowGraph::AttachEnvironment(Instruction* instr,
+                                  GrowableArray<Definition*>* env) {
+  Environment* deopt_env =
+      Environment::From(*env,
+                        num_non_copied_params_,
+                        parsed_function_.function());
+  instr->SetEnvironment(deopt_env);
+  for (Environment::DeepIterator it(deopt_env); !it.Done(); it.Advance()) {
+    Value* use = it.CurrentValue();
+    use->definition()->AddEnvUse(use);
+  }
+  if (instr->CanDeoptimize()) {
+    instr->env()->set_deopt_id(instr->deopt_id());
+  }
+}
+
+
 void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
                                 GrowableArray<Definition*>* env,
                                 GrowableArray<PhiInstr*>* live_phis) {
@@ -458,25 +479,17 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
     }
   }
 
+  // Attach environment to the block entry.
+  AttachEnvironment(block_entry, env);
+
   // 2. Process normal instructions.
+
   for (ForwardInstructionIterator it(block_entry); !it.Done(); it.Advance()) {
     Instruction* current = it.Current();
-    // Attach current environment to the instructions that can deoptimize and
-    // at goto instructions. Optimizations like LICM expect an environment at
-    // gotos.
-    if (current->CanDeoptimize() || current->IsGoto()) {
-      Environment* deopt_env =
-          Environment::From(*env,
-                            num_non_copied_params_,
-                            parsed_function_.function());
-      current->SetEnvironment(deopt_env);
-      for (Environment::DeepIterator it(deopt_env); !it.Done(); it.Advance()) {
-        Value* use = it.CurrentValue();
-        use->definition()->AddEnvUse(use);
-      }
-    }
-    if (current->CanDeoptimize()) {
-      current->env()->set_deopt_id(current->deopt_id());
+
+    // Attach current environment to the instructions that need it.
+    if (current->NeedsEnvironment()) {
+      AttachEnvironment(current, env);
     }
 
     // 2a. Handle uses:

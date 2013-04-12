@@ -539,7 +539,7 @@ class Instruction : public ZoneAllocated {
   virtual Tag tag() const = 0;
 
   intptr_t deopt_id() const {
-    ASSERT(CanDeoptimize());
+    ASSERT(CanDeoptimize() || CanBeDeoptimizationTarget());
     return deopt_id_;
   }
 
@@ -732,6 +732,18 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
     return false;
   }
 
+  virtual void InheritDeoptTarget(Instruction* other);
+
+  bool NeedsEnvironment() const {
+    return CanDeoptimize() || CanBeDeoptimizationTarget();
+  }
+
+  virtual bool CanBeDeoptimizationTarget() const {
+    return false;
+  }
+
+  void InheritDeoptTargetAfter(Instruction* other);
+
  protected:
   // Fetch deopt id without checking if this computation can deoptimize.
   intptr_t GetDeoptId() const {
@@ -765,6 +777,11 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class LoadIndexedInstr;
   friend class StoreIndexedInstr;
   friend class StoreInstanceFieldInstr;
+  friend class ControlInstruction;
+  friend class ComparisonInstr;
+  friend class TargetEntryInstr;
+  friend class JoinEntryInstr;
+  friend class InstanceOfInstr;
 
   virtual void RawSetInputAt(intptr_t i, Value* value) = 0;
 
@@ -985,6 +1002,12 @@ class BlockEntryInstr : public Instruction {
   }
 
   virtual intptr_t ArgumentCount() const { return 0; }
+
+  virtual bool CanBeDeoptimizationTarget() const {
+    // BlockEntry environment is copied to Goto and Branch instructions
+    // when we insert new blocks targeting this block.
+    return true;
+  }
 
   virtual bool CanDeoptimize() const { return false; }
 
@@ -1660,6 +1683,12 @@ class ReturnInstr : public TemplateInstruction<1> {
   intptr_t token_pos() const { return token_pos_; }
   Value* value() const { return inputs_[0]; }
 
+  virtual bool CanBeDeoptimizationTarget() const {
+    // Return instruction might turn into a Goto instruction after inlining.
+    // Every Goto must have an environment.
+    return true;
+  }
+
   virtual bool CanDeoptimize() const { return false; }
 
   virtual bool HasSideEffect() const { return false; }
@@ -1727,6 +1756,12 @@ class GotoInstr : public TemplateInstruction<0> {
   void set_successor(JoinEntryInstr* successor) { successor_ = successor; }
   virtual intptr_t SuccessorCount() const;
   virtual BlockEntryInstr* SuccessorAt(intptr_t index) const;
+
+  virtual bool CanBeDeoptimizationTarget() const {
+    // Goto instruction can be used as a deoptimization target when LICM
+    // hoists instructions out of the loop.
+    return true;
+  }
 
   virtual bool CanDeoptimize() const { return false; }
 
@@ -1796,6 +1831,7 @@ class BranchInstr : public ControlInstruction {
   intptr_t InputCount() const;
   Value* InputAt(intptr_t i) const;
   virtual bool CanDeoptimize() const;
+  virtual bool CanBeDeoptimizationTarget() const;
 
   virtual bool HasSideEffect() const;
 
@@ -1839,6 +1875,8 @@ class BranchInstr : public ControlInstruction {
   TargetEntryInstr* constant_target() const {
     return constant_target_;
   }
+
+  virtual void InheritDeoptTarget(Instruction* other);
 
  private:
   virtual void RawSetInputAt(intptr_t i, Value* value);
@@ -2453,6 +2491,10 @@ class ComparisonInstr : public TemplateDefinition<2> {
   virtual void EmitBranchCode(FlowGraphCompiler* compiler,
                               BranchInstr* branch) = 0;
 
+  void SetDeoptId(intptr_t deopt_id) {
+    deopt_id_ = deopt_id;
+  }
+
  protected:
   Token::Kind kind_;
 };
@@ -2478,6 +2520,11 @@ inline bool BranchInstr::CanDeoptimize() const {
   // Branches need a deoptimization info in checked mode if they
   // can throw a type check error.
   return comparison()->CanDeoptimize() || is_checked();
+}
+
+
+inline bool BranchInstr::CanBeDeoptimizationTarget() const {
+  return comparison()->CanBeDeoptimizationTarget();
 }
 
 
@@ -2516,6 +2563,11 @@ class StrictCompareInstr : public ComparisonInstr {
   virtual CompileType ComputeType() const;
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanBeDeoptimizationTarget() const {
+    // StrictCompare can be merged into Branch and thus needs an environment.
+    return true;
+  }
 
   virtual bool CanDeoptimize() const { return false; }
 
@@ -2564,6 +2616,7 @@ class EqualityCompareInstr : public ComparisonInstr {
   bool HasICData() const {
     return (ic_data() != NULL) && !ic_data()->IsNull();
   }
+  void set_ic_data(const ICData* value) { ic_data_ = value; }
 
   intptr_t token_pos() const { return token_pos_; }
 
@@ -2634,6 +2687,7 @@ class RelationalOpInstr : public ComparisonInstr {
   bool HasICData() const {
     return (ic_data() != NULL) && !ic_data()->IsNull();
   }
+  void set_ic_data(const ICData* value) { ic_data_ = value; }
 
   intptr_t token_pos() const { return token_pos_; }
 
@@ -3202,7 +3256,8 @@ class InstanceOfInstr : public TemplateDefinition<3> {
                   Value* instantiator,
                   Value* instantiator_type_arguments,
                   const AbstractType& type,
-                  bool negate_result)
+                  bool negate_result,
+                  intptr_t deopt_id)
       : token_pos_(token_pos),
         type_(type),
         negate_result_(negate_result) {
@@ -3210,6 +3265,7 @@ class InstanceOfInstr : public TemplateDefinition<3> {
     SetInputAt(0, value);
     SetInputAt(1, instantiator);
     SetInputAt(2, instantiator_type_arguments);
+    deopt_id_ = deopt_id;
   }
 
   DECLARE_INSTRUCTION(InstanceOf)

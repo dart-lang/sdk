@@ -332,11 +332,8 @@ void InlinedFunctionsIterator::Advance() {
   ASSERT(deopt_instructions_.length() != 0);
   while (index_ < deopt_instructions_.length()) {
     DeoptInstr* deopt_instr = deopt_instructions_[index_++];
-    ASSERT(deopt_instr->kind() != DeoptInstr::kRetBeforeAddress);
-    if (deopt_instr->kind() == DeoptInstr::kRetAfterAddress) {
-      pc_ = DeoptInstr::GetRetAfterAddress(deopt_instr,
-                                           object_table_,
-                                           &func);
+    if (deopt_instr->kind() == DeoptInstr::kRetAddress) {
+      pc_ = DeoptInstr::GetRetAddress(deopt_instr, object_table_, &func);
       code_ = func.unoptimized_code();
       function_ = func.raw();
       return;

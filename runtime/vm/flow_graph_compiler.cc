@@ -31,19 +31,6 @@ DECLARE_FLAG(bool, report_usage_count);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, use_cha);
 
-void CompilerDeoptInfo::BuildReturnAddress(DeoptInfoBuilder* builder,
-                                           const Function& function,
-                                           intptr_t slot_ix) {
-  builder->AddReturnAddressAfter(function, deopt_id(), slot_ix);
-}
-
-
-void CompilerDeoptInfoWithStub::BuildReturnAddress(DeoptInfoBuilder* builder,
-                                                   const Function& function,
-                                                   intptr_t slot_ix) {
-  builder->AddReturnAddressBefore(function, deopt_id(), slot_ix);
-}
-
 
 // Assign locations to incoming arguments, i.e., values pushed above spill slots
 // with PushArgument.  Recursively allocates from outermost to innermost
@@ -72,8 +59,9 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   intptr_t slot_ix = 0;
   Environment* current = deoptimization_env_;
 
-  // For the innermost environment, call the virtual return builder.
-  BuildReturnAddress(builder, current->function(), slot_ix++);
+  builder->AddReturnAddress(current->function(),
+                            deopt_id(),
+                            slot_ix++);
 
   // For the innermost environment, set outgoing arguments and the locals.
   for (intptr_t i = current->Length() - 1;
@@ -91,9 +79,9 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   while (current != NULL) {
     // For any outer environment the deopt id is that of the call instruction
     // which is recorded in the outer environment.
-    builder->AddReturnAddressAfter(current->function(),
-                                   current->deopt_id(),
-                                   slot_ix++);
+    builder->AddReturnAddress(current->function(),
+                              Isolate::ToDeoptAfter(current->deopt_id()),
+                              slot_ix++);
 
     // The values of outgoing arguments can be changed from the inlined call so
     // we must read them from the previous environment.

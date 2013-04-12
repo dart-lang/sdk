@@ -50,11 +50,17 @@ class InliningContext: public ValueObject {
     ASSERT(exits_[i].exit_block != NULL);
     return exits_[i].exit_block;
   }
+
   Instruction* LastInstructionAt(intptr_t i) const {
-    return exits_[i].exit_return->previous();
+    return ReturnAt(i)->previous();
   }
+
   Value* ValueAt(intptr_t i) const {
-    return exits_[i].exit_return->value();
+    return ReturnAt(i)->value();
+  }
+
+  ReturnInstr* ReturnAt(intptr_t i) const {
+    return exits_[i].exit_return;
   }
 
   static int LowestBlockIdFirst(const Data* a, const Data* b);
