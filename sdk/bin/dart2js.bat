@@ -14,7 +14,10 @@ for %%i in ("%RETURNED_BIN_DIR%") do set BIN_DIR=%%~fi
 rem Get absolute full name for SDK_DIR.
 for %%i in ("%BIN_DIR%\..\") do set SDK_DIR=%%~fi
 
-set DART2JS=%SDK_DIR%lib\_internal\compiler\implementation\dart2js.dart
+rem Remove trailing backslash if there is one
+IF %SDK_DIR:~-1%==\ set SDK_DIR=%SDK_DIR:~0,-1%
+
+set DART2JS=%SDK_DIR%\lib\_internal\compiler\implementation\dart2js.dart
 set DART=%BIN_DIR%\dart
 set SNAPSHOT=%BIN_DIR%\snapshots\utils_wrapper.dart.snapshot
 
@@ -27,7 +30,7 @@ if _%DART2JS_DEVELOPER_MODE%_ == _1_ (
 
 if exist "%SNAPSHOT%" (
   echo Using snapshot "%SNAPSHOT%" >&2
-  set EXTRA_OPTIONS=%EXTRA_OPTIONS% --library-root=%SDK_DIR%
+  set EXTRA_OPTIONS=%EXTRA_OPTIONS% "--library-root=%SDK_DIR%"
 )
 
 rem See comments regarding options below in dart2js shell script.
