@@ -376,6 +376,14 @@ abstract class Compiler implements DiagnosticListener {
   static const SourceString RUNTIME_TYPE = const SourceString('runtimeType');
   static const SourceString START_ROOT_ISOLATE =
       const SourceString('startRootIsolate');
+
+  final Selector iteratorSelector =
+      new Selector.getter(const SourceString('iterator'), null);
+  final Selector currentSelector =
+      new Selector.getter(const SourceString('current'), null);
+  final Selector moveNextSelector =
+      new Selector.call(const SourceString('moveNext'), null, 0);
+
   bool enabledNoSuchMethod = false;
   bool enabledRuntimeType = false;
   bool enabledFunctionApply = false;

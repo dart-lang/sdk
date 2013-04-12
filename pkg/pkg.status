@@ -20,6 +20,11 @@ scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
 # testing.
 webdriver/test/webdriver_test: Skip
 
+
+[ $compiler == dart2js && $runtime == drt ]
+unittest/test/unittest_test: Pass, Fail, Crash # Bug in v8, http://dartbug.com/9407
+
+
 [$compiler == dart2dart]
 *: Skip
 

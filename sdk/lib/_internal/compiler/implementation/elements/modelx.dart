@@ -70,15 +70,6 @@ class ElementX implements Element {
   }
   bool isInstanceMember() => false;
 
-  /**
-   * Returns [:true:] if this element is enclosed in a static member or is
-   * itself a static member.
-   */
-  bool isInStaticMember() {
-    Element member = getEnclosingMember();
-    return member != null && member.modifiers.isStatic();
-  }
-
   bool isFactoryConstructor() => modifiers.isFactory();
   bool isGenerativeConstructor() =>
       identical(kind, ElementKind.GENERATIVE_CONSTRUCTOR);

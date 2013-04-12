@@ -2497,31 +2497,38 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   void generateInstanceSetterWithCompiledReceiver(Send send,
                                                   HInstruction receiver,
-                                                  HInstruction value) {
-    assert(Elements.isInstanceSend(send, elements));
-    Selector selector = elements.getSelector(send);
+                                                  HInstruction value,
+                                                  {Selector selector,
+                                                   Node location}) {
+    assert(send == null || Elements.isInstanceSend(send, elements));
+    if (selector == null) {
+      assert(send != null);
+      selector = elements.getSelector(send);
+    }
+    if (location == null) {
+      assert(send != null);
+      location = send;
+    }
     assert(selector.isSetter());
-    SourceString setterName = selector.name;
     bool hasSetter = compiler.world.hasAnyUserDefinedSetter(selector);
     Set<ClassElement> interceptedClasses =
-        backend.getInterceptedClassesOn(setterName);
+        backend.getInterceptedClassesOn(selector.name);
+    HInstruction instruction;
     if (interceptedClasses != null) {
       // If we're using an interceptor class, emit a call to the
       // getInterceptor method and then the actual dynamic call on the
       // interceptor object.
-      HInstruction instruction =
-          invokeInterceptor(interceptedClasses, receiver, send);
+      instruction = invokeInterceptor(interceptedClasses, receiver, send);
       instruction = new HInvokeDynamicSetter(
           selector, null, instruction, receiver, !hasSetter);
       // Add the value as an argument to the setter call on the
       // interceptor.
       instruction.inputs.add(value);
-      addWithPosition(instruction, send);
     } else {
-      addWithPosition(
-          new HInvokeDynamicSetter(selector, null, receiver, value, !hasSetter),
-          send);
+      instruction = new HInvokeDynamicSetter(
+          selector, null, receiver, value, !hasSetter);
     }
+    addWithPosition(instruction, location);
     stack.add(value);
   }
 
@@ -4085,7 +4092,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // The iterator is shared between initializer, condition and body.
     HInstruction iterator;
     void buildInitializer() {
-      Selector selector = elements.getIteratorSelector(node);
+      Selector selector = compiler.iteratorSelector;
       Set<ClassElement> interceptedClasses =
           backend.getInterceptedClassesOn(selector.name);
       visit(node.expression);
@@ -4106,28 +4113,34 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       add(iterator);
     }
     HInstruction buildCondition() {
-      Selector selector = elements.getMoveNextSelector(node);
+      Selector selector = compiler.moveNextSelector;
       push(new HInvokeDynamicMethod(selector, <HInstruction>[iterator]));
       return popBoolified();
     }
     void buildBody() {
-      Selector call = elements.getCurrentSelector(node);
+      Selector call = compiler.currentSelector;
       bool hasGetter = compiler.world.hasAnyUserDefinedGetter(call);
       push(new HInvokeDynamicGetter(call, null, iterator, !hasGetter));
 
-      Element variable;
-      if (node.declaredIdentifier.asSend() != null) {
-        variable = elements[node.declaredIdentifier];
-      } else {
-        assert(node.declaredIdentifier.asVariableDefinitions() != null);
-        VariableDefinitions variableDefinitions = node.declaredIdentifier;
-        variable = elements[variableDefinitions.definitions.nodes.head];
-      }
+      Element variable = elements[node.declaredIdentifier];
+      Selector selector = elements.getSelector(node.declaredIdentifier);
+
       HInstruction oldVariable = pop();
-      if (variable.isErroneous()) {
-        generateThrowNoSuchMethod(node,
-                                  getTargetName(variable, 'set'),
-                                  argumentValues: <HInstruction>[oldVariable]);
+      if (Elements.isUnresolved(variable)) {
+        if (Elements.isInStaticContext(currentElement)) {
+          generateThrowNoSuchMethod(
+              node.declaredIdentifier,
+              'set ${selector.name.slowToString()}',
+              argumentValues: <HInstruction>[oldVariable]);
+        } else {
+          // The setter may have been defined in a subclass.
+          generateInstanceSetterWithCompiledReceiver(
+              null,
+              localsHandler.readThis(),
+              oldVariable,
+              selector: selector,
+              location: node.declaredIdentifier);
+        }
         pop();
       } else {
         localsHandler.updateLocal(variable, oldVariable);

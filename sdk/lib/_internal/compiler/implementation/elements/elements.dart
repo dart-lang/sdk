@@ -185,7 +185,6 @@ abstract class Element implements Spannable {
   bool isClosure();
   bool isMember();
   bool isInstanceMember();
-  bool isInStaticMember();
 
   bool isFactoryConstructor();
   bool isGenerativeConstructor();
@@ -292,6 +291,20 @@ class Elements {
            && (element.enclosingElement.kind == ElementKind.CLASS ||
                element.enclosingElement.kind == ElementKind.COMPILATION_UNIT ||
                element.enclosingElement.kind == ElementKind.LIBRARY);
+  }
+
+  static bool isInStaticContext(Element element) {
+    if (isUnresolved(element)) return true;
+    if (element.enclosingElement.isClosure()) {
+      var closureClass = element.enclosingElement;
+      element = closureClass.methodElement;
+    }
+    Element outer = element.getOutermostEnclosingMemberOrTopLevel();
+    if (isUnresolved(outer)) return true;
+    if (outer.isTopLevel()) return true;
+    if (outer.isGenerativeConstructor()) return false;
+    if (outer.isInstanceMember()) return false;
+    return true;
   }
 
   static bool isStaticOrTopLevelField(Element element) {

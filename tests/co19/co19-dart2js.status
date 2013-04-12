@@ -82,8 +82,6 @@ Language/12_Statements/03_Variable_Declaration_A04_t07: Fail # TODO(ahe): Please
 Language/12_Statements/03_Variable_Declaration_A04_t08: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/04_Local_Function_Declaration_A01_t01: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/04_Local_Function_Declaration_A02_t02: Fail # TODO(ahe): Please triage this failure.
-Language/12_Statements/06_For_A01_t11: Fail # TODO(ahe): Please triage this failure.
-Language/12_Statements/06_For_A01_t12: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/09_Switch_A02_t01: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/09_Switch_A02_t02: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/09_Switch_A03_t01: Fail # TODO(ahe): Please triage this failure.
@@ -575,6 +573,9 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fa
 
 Language/11_Expressions/06_Lists_A07_t02: Fail # generic type information is lost during canonicalization.
 Language/11_Expressions/07_Maps_A06_t02: Fail # generic type information is lost during canonicalization.
+
+Language/12_Statements/06_For_A01_t11: Fail # http://dartbug.com/9824
+
 
 #
 # The following tests may be broken, but require further review.
