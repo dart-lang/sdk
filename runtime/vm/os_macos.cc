@@ -152,7 +152,7 @@ char* OS::StrNDup(const char* s, intptr_t n) {
     return NULL;
   }
   result[len] = '\0';
-  return reinterpret_cast<char*>(memcpy(result, s, len));
+  return reinterpret_cast<char*>(memmove(result, s, len));
 #else  // !defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) || ...
   return strndup(s, n);
 #endif  // !defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) || ...
