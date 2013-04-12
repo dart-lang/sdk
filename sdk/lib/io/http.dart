@@ -769,6 +769,14 @@ abstract class HttpResponse implements IOSink<HttpResponse> {
  * time after a requests have completed, unless HTTP procedures indicate that it
  * must be closed as part of completing the request. Use [:HttpClient.close:]
  * to force close the idle sockets.
+ *
+ * By default the HttpClient uses the proxy configuration available
+ * from the environment, see [findProxyFromEnvironment]. To turn off
+ * the use of proxies all together set the [findProxy] property to
+ * [:null:].
+ *
+ *     HttpClient client = new HttpClient();
+ *     client.findProxy = null;
  */
 abstract class HttpClient {
   static const int DEFAULT_HTTP_PORT = 80;

@@ -1096,7 +1096,7 @@ class _HttpClient implements HttpClient {
       = new Set<_HttpClientConnection>();
   final List<_Credentials> _credentials = [];
   Function _authenticate;
-  Function _findProxy;
+  Function _findProxy = HttpClient.findProxyFromEnvironment;
 
   Future<HttpClientRequest> open(String method,
                                  String host,
