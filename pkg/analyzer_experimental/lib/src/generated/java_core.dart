@@ -375,7 +375,7 @@ class JavaIterator<E> {
       _coPos--;
       (_iterable as List).remove(_coPos);
     } else if (_iterable is Set) {
-      _iterable.remove(_current);
+      (_iterable as Set).remove(_current);
     } else {
       throw new StateError("Unsupported iterable ${_iterable.runtimeType}");
     }
