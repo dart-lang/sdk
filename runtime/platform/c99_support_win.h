@@ -65,18 +65,4 @@ static inline double round(double x) {
   }
 }
 
-// size_t used to match function signature on other platforms.
-static inline char* strndup(const char* s, size_t n) {
-  size_t len = strlen(s);
-  if (n < len) {
-    len = n;
-  }
-  char* result = reinterpret_cast<char*>(malloc(len + 1));
-  if (!result) {
-    return NULL;
-  }
-  result[len] = '\0';
-  return reinterpret_cast<char*>(memcpy(result, s, len));
-}
-
 #endif  // PLATFORM_C99_SUPPORT_WIN_H_
