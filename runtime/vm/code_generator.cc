@@ -1050,7 +1050,8 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
   if (instructions.IsNull()) return;
 
   cache.EnsureCapacity();
-  const Smi& class_id = Smi::Handle(Smi::New(is_null ? kNullCid : cls.id()));
+  const Smi& class_id = Smi::Handle(Smi::New(
+      is_null ? static_cast<intptr_t>(kNullCid) : cls.id()));
   cache.Insert(class_id, target);
   return;
 }
