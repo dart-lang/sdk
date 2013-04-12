@@ -555,6 +555,8 @@ execute_finally11_test: Fail # VM bug: issue 430
 
 [ $compiler == dart2dart && $minified ]
 
+rethrow_test: Fail
+
 # TODO(tball): Assign proper bug numbers.
 class_literal_test/none: Fail
 

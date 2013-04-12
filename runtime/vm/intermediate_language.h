@@ -59,16 +59,16 @@ class Range;
   V(_GrowableObjectArray, get:length, GrowableArrayLength, 725548050)          \
   V(_GrowableObjectArray, get:_capacity, GrowableArrayCapacity, 725548050)     \
   V(_StringBase, get:length, StringBaseLength, 320803993)                      \
-  V(_StringBase, get:isEmpty, StringBaseIsEmpty, 110632481)                    \
+  V(_StringBase, get:isEmpty, StringBaseIsEmpty, 1026765313)                   \
   V(_StringBase, codeUnitAt, StringBaseCodeUnitAt, 984449525)                  \
   V(_StringBase, [], StringBaseCharAt, 1062366987)                             \
-  V(_IntegerImplementation, toDouble, IntegerToDouble, 927078825)              \
+  V(_IntegerImplementation, toDouble, IntegerToDouble, 1267108971)             \
   V(_Double, toInt, DoubleToInteger, 362666636)                                \
   V(_Double, truncateToDouble, DoubleTruncate, 620870996)                      \
   V(_Double, roundToDouble, DoubleRound, 620870996)                            \
   V(_Double, floorToDouble, DoubleFloor, 620870996)                            \
   V(_Double, ceilToDouble, DoubleCeil, 620870996)                              \
-  V(_Double, pow, DoublePow, 1229411686)                                       \
+  V(_Double, pow, DoublePow, 631903778)                                        \
   V(_Double, _modulo, DoubleMod, 437099337)                                    \
   V(::, sqrt, MathSqrt, 1662640002)                                            \
 
