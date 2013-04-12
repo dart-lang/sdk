@@ -201,7 +201,7 @@ class FileTest {
     // Read a file and check part of it's contents.
     String filename = getFilename("bin/file_test.cc");
     File file = new File(filename);
-    file.open(mode: FileMode.READ).then((RandomAccessFile file) {
+    file.open(mode: READ).then((RandomAccessFile file) {
       List<int> buffer = new List<int>(10);
       file.readList(buffer, 0, 5).then((bytes_read) {
         Expect.equals(5, bytes_read);
@@ -263,7 +263,7 @@ class FileTest {
     // Read a file.
     String inFilename = getFilename("tests/vm/data/fixed_length_file");
     final File file = new File(inFilename);
-    file.open(mode: FileMode.READ).then((openedFile) {
+    file.open(mode: READ).then((openedFile) {
       List<int> buffer1 = new List<int>(42);
       openedFile.readList(buffer1, 0, 42).then((bytes_read) {
         Expect.equals(42, bytes_read);
@@ -277,12 +277,12 @@ class FileTest {
               if (s[0] != '/' && s[0] != '\\' && s[1] != ':') {
                 Expect.fail("Not a full path");
               }
-              file2.open(mode: FileMode.WRITE).then((openedFile2) {
+              file2.open(mode: WRITE).then((openedFile2) {
                 openedFile2.writeList(buffer1, 0, bytes_read).then((ignore) {
                   openedFile2.close().then((ignore) {
                     List<int> buffer2 = new List<int>(bytes_read);
                     final File file3 = new File(outFilename);
-                    file3.open(mode: FileMode.READ).then((openedFile3) {
+                    file3.open(mode: READ).then((openedFile3) {
                       openedFile3.readList(buffer2, 0, 42).then((bytes_read) {
                         Expect.equals(42, bytes_read);
                         openedFile3.close().then((ignore) {
@@ -321,17 +321,17 @@ class FileTest {
     file.createSync();
     Expect.isTrue(new File(filename).existsSync());
     List<int> buffer = content.codeUnits;
-    RandomAccessFile openedFile = file.openSync(mode: FileMode.WRITE);
+    RandomAccessFile openedFile = file.openSync(mode: WRITE);
     openedFile.writeListSync(buffer, 0, buffer.length);
     openedFile.closeSync();
     // Reopen the file in write mode to ensure that we overwrite the content.
-    openedFile = (new File(filename)).openSync(mode: FileMode.WRITE);
+    openedFile = (new File(filename)).openSync(mode: WRITE);
     openedFile.writeListSync(buffer, 0, buffer.length);
     Expect.equals(content.length, openedFile.lengthSync());
     openedFile.closeSync();
     // Open the file in append mode and ensure that we do not overwrite
     // the existing content.
-    openedFile = (new File(filename)).openSync(mode: FileMode.APPEND);
+    openedFile = (new File(filename)).openSync(mode: APPEND);
     openedFile.writeListSync(buffer, 0, buffer.length);
     Expect.equals(content.length * 2, openedFile.lengthSync());
     openedFile.closeSync();
@@ -349,12 +349,12 @@ class FileTest {
     output.close();
     output.done.then((_) {
       File file2 = new File(filename);
-      var appendingOutput = file2.openWrite(mode: FileMode.APPEND);
+      var appendingOutput = file2.openWrite(mode: APPEND);
       appendingOutput.add(buffer);
       appendingOutput.close();
       appendingOutput.done.then((_) {
         File file3 = new File(filename);
-        file3.open(mode: FileMode.READ).then((RandomAccessFile openedFile) {
+        file3.open(mode: READ).then((RandomAccessFile openedFile) {
           openedFile.length().then((int length) {
             Expect.equals(content.length * 2, length);
             openedFile.close().then((ignore) {
@@ -378,13 +378,13 @@ class FileTest {
     List<int> buffer = content.codeUnits;
     var output = file.openWrite();
     output.write("abcdABCD");
-    output.encoding = Encoding.UTF_8;
+    output.encoding = UTF_8;
     output.write("abcdABCD");
-    output.encoding = Encoding.ISO_8859_1;
+    output.encoding = ISO_8859_1;
     output.write("abcdABCD");
-    output.encoding = Encoding.ASCII;
+    output.encoding = ASCII;
     output.write("abcdABCD");
-    output.encoding = Encoding.UTF_8;
+    output.encoding = UTF_8;
     output.write("æøå");
     output.close();
     output.done.then((_) {
@@ -417,7 +417,7 @@ class FileTest {
       Expect.fail("Not a full path");
     }
     Expect.isTrue(new File(path).existsSync());
-    RandomAccessFile openedFile = outFile.openSync(mode: FileMode.WRITE);
+    RandomAccessFile openedFile = outFile.openSync(mode: WRITE);
     openedFile.writeListSync(buffer1, 0, bytes_read);
     openedFile.closeSync();
     // Now read the contents of the file just written.
@@ -451,7 +451,7 @@ class FileTest {
     File file = new File(fileName);
     asyncTestStarted();
     file.create().then((ignore) {
-      file.open(mode: FileMode.READ).then((RandomAccessFile openedFile) {
+      file.open(mode: READ).then((RandomAccessFile openedFile) {
         var readByteFuture = openedFile.readByte();
         readByteFuture.then((int byte) {
           Expect.equals(-1, byte);
@@ -469,7 +469,7 @@ class FileTest {
     final String fileName = "${tempDirectory.path}/testWriteVariousLists";
     final File file = new File(fileName);
     file.create().then((ignore) {
-      file.open(mode: FileMode.WRITE).then((RandomAccessFile openedFile) {
+      file.open(mode: WRITE).then((RandomAccessFile openedFile) {
         // Write bytes from 0 to 7.
         openedFile.writeList([0], 0, 1);
         openedFile.writeList(const [1], 0, 1);
@@ -630,7 +630,7 @@ class FileTest {
   static void testTruncate() {
     File file = new File(tempDirectory.path + "/out_truncate");
     List buffer = const [65, 65, 65, 65, 65, 65, 65, 65, 65, 65];
-    file.open(mode: FileMode.WRITE).then((RandomAccessFile openedFile) {
+    file.open(mode: WRITE).then((RandomAccessFile openedFile) {
       openedFile.writeList(buffer, 0, 10).then((ignore) {
         openedFile.length().then((length) {
           Expect.equals(10, length);
@@ -656,7 +656,7 @@ class FileTest {
   static void testTruncateSync() {
     File file = new File(tempDirectory.path + "/out_truncate_sync");
     List buffer = const [65, 65, 65, 65, 65, 65, 65, 65, 65, 65];
-    RandomAccessFile openedFile = file.openSync(mode: FileMode.WRITE);
+    RandomAccessFile openedFile = file.openSync(mode: WRITE);
     openedFile.writeListSync(buffer, 0, 10);
     Expect.equals(10, openedFile.lengthSync());
     openedFile.truncateSync(5);
@@ -671,7 +671,7 @@ class FileTest {
     bool exceptionCaught = false;
     bool wrongExceptionCaught = false;
     File input = new File(tempDirectory.path + "/out_close_exception");
-    RandomAccessFile openedFile = input.openSync(mode: FileMode.WRITE);
+    RandomAccessFile openedFile = input.openSync(mode: WRITE);
     openedFile.closeSync();
     try {
       openedFile.readByteSync();
@@ -779,7 +779,7 @@ class FileTest {
     bool wrongExceptionCaught = false;
     File file =
         new File(tempDirectory.path + "/out_buffer_out_of_bounds");
-    RandomAccessFile openedFile = file.openSync(mode: FileMode.WRITE);
+    RandomAccessFile openedFile = file.openSync(mode: WRITE);
     try {
       List<int> buffer = new List<int>(10);
       openedFile.readListSync(buffer, 0, 12);
@@ -873,7 +873,7 @@ class FileTest {
 
   static void testOpenDirectoryAsFile() {
     var f = new File('.');
-    var future = f.open(mode: FileMode.READ);
+    var future = f.open(mode: READ);
     future.then((r) => Expect.fail('Directory opened as file'))
           .catchError((e) {});
   }
@@ -948,20 +948,20 @@ class FileTest {
     });
     var name = getFilename("tests/vm/data/fixed_length_file");
     var f = new File(name);
-    f.readAsString(encoding: Encoding.UTF_8).then((text) {
+    f.readAsString(encoding: UTF_8).then((text) {
       Expect.isTrue(text.endsWith("42 bytes."));
       Expect.equals(42, text.length);
       var name = getDataFilename("tests/standalone/io/read_as_text.dat");
       var f = new File(name);
-      f.readAsString(encoding: Encoding.UTF_8).then((text) {
+      f.readAsString(encoding: UTF_8).then((text) {
         Expect.equals(6, text.length);
         var expected = [955, 120, 46, 32, 120, 10];
         Expect.listEquals(expected, text.codeUnits);
-        f.readAsString(encoding: Encoding.ISO_8859_1).then((text) {
+        f.readAsString(encoding: ISO_8859_1).then((text) {
           Expect.equals(7, text.length);
           var expected = [206, 187, 120, 46, 32, 120, 10];
           Expect.listEquals(expected, text.codeUnits);
-          var readAsStringFuture = f.readAsString(encoding: Encoding.ASCII);
+          var readAsStringFuture = f.readAsString(encoding: ASCII);
           readAsStringFuture.then((text) {
             Expect.fail("Non-ascii char should cause error");
           }).catchError((e) {
@@ -980,7 +980,7 @@ class FileTest {
     });
     var name = getFilename("tests/vm/data/empty_file");
     var f = new File(name);
-    f.readAsString(encoding: Encoding.UTF_8).then((text) {
+    f.readAsString(encoding: UTF_8).then((text) {
       port.toSendPort().send(text.length);
       return true;
     });
@@ -996,11 +996,11 @@ class FileTest {
     Expect.equals(6, text.length);
     var expected = [955, 120, 46, 32, 120, 10];
     Expect.listEquals(expected, text.codeUnits);
-    text = new File(name).readAsStringSync(encoding: Encoding.ASCII);
+    text = new File(name).readAsStringSync(encoding: ASCII);
     // Default replacement character is '?', char code 63.
     expected = [63, 63, 120, 46, 32, 120, 10];
     Expect.listEquals(expected, text.codeUnits);
-    text = new File(name).readAsStringSync(encoding: Encoding.ISO_8859_1);
+    text = new File(name).readAsStringSync(encoding: ISO_8859_1);
     expected = [206, 187, 120, 46, 32, 120, 10];
     Expect.equals(7, text.length);
     Expect.listEquals(expected, text.codeUnits);
@@ -1020,7 +1020,7 @@ class FileTest {
     });
     var name = getFilename("tests/vm/data/fixed_length_file");
     var f = new File(name);
-    f.readAsLines(encoding: Encoding.UTF_8).then((lines) {
+    f.readAsLines(encoding: UTF_8).then((lines) {
       Expect.equals(1, lines.length);
       var line = lines[0];
       Expect.isTrue(line.endsWith("42 bytes."));
@@ -1054,10 +1054,10 @@ class FileTest {
     var readAsBytesFuture = f.readAsBytes();
     readAsBytesFuture.then((bytes) => Expect.fail("no bytes expected"))
     .catchError((e) {
-      var readAsStringFuture = f.readAsString(encoding: Encoding.UTF_8);
+      var readAsStringFuture = f.readAsString(encoding: UTF_8);
       readAsStringFuture.then((text) => Expect.fail("no text expected"))
       .catchError((e) {
-        var readAsLinesFuture = f.readAsLines(encoding: Encoding.UTF_8);
+        var readAsLinesFuture = f.readAsLines(encoding: UTF_8);
         readAsLinesFuture.then((lines) => Expect.fail("no lines expected"))
         .catchError((e) {
           port.toSendPort().send(1);
@@ -1085,10 +1085,10 @@ class FileTest {
   // that the file is not truncated when opened for appending.
   static void testAppend() {
     var file = new File('${tempDirectory.path}/out_append');
-    file.open(mode: FileMode.WRITE).then((openedFile) {
+    file.open(mode: WRITE).then((openedFile) {
       openedFile.writeString("asdf").then((ignore) {
         openedFile.close().then((ignore) {
-          file.open(mode: FileMode.APPEND).then((openedFile) {
+          file.open(mode: APPEND).then((openedFile) {
             openedFile.length().then((length) {
               Expect.equals(4, length);
               openedFile.writeString("asdf").then((ignore) {
@@ -1114,11 +1114,11 @@ class FileTest {
 
   static void testAppendSync() {
     var file = new File('${tempDirectory.path}/out_append_sync');
-    var openedFile = file.openSync(mode: FileMode.WRITE);
+    var openedFile = file.openSync(mode: WRITE);
     openedFile.writeStringSync("asdf");
     Expect.equals(4, openedFile.lengthSync());
     openedFile.closeSync();
-    openedFile = file.openSync(mode: FileMode.WRITE);
+    openedFile = file.openSync(mode: WRITE);
     openedFile.setPositionSync(4);
     openedFile.writeStringSync("asdf");
     Expect.equals(8, openedFile.lengthSync());
@@ -1130,12 +1130,12 @@ class FileTest {
   static void testWriteStringUtf8() {
     var file = new File('${tempDirectory.path}/out_write_string');
     var string = new String.fromCharCodes([0x192]);
-    file.open(mode: FileMode.WRITE).then((openedFile) {
+    file.open(mode: WRITE).then((openedFile) {
       openedFile.writeString(string).then((_) {
         openedFile.length().then((l) {
           Expect.equals(2, l);
           openedFile.close().then((_) {
-            file.open(mode: FileMode.APPEND).then((openedFile) {
+            file.open(mode: APPEND).then((openedFile) {
               openedFile.setPosition(2).then((_) {
                 openedFile.writeString(string).then((_) {
                   openedFile.length().then((l) {
@@ -1165,11 +1165,11 @@ class FileTest {
   static void testWriteStringUtf8Sync() {
     var file = new File('${tempDirectory.path}/out_write_string_sync');
     var string = new String.fromCharCodes([0x192]);
-    var openedFile = file.openSync(mode: FileMode.WRITE);
+    var openedFile = file.openSync(mode: WRITE);
     openedFile.writeStringSync(string);
     Expect.equals(2, openedFile.lengthSync());
     openedFile.closeSync();
-    openedFile = file.openSync(mode: FileMode.APPEND);
+    openedFile = file.openSync(mode: APPEND);
     openedFile.setPositionSync(2);
     openedFile.writeStringSync(string);
     Expect.equals(4, openedFile.lengthSync());

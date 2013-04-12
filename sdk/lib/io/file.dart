@@ -15,6 +15,9 @@ class FileMode {
   final int _mode;
 }
 
+const READ = FileMode.READ;
+const WRITE = FileMode.WRITE;
+const APPEND = FileMode.APPEND;
 
 /**
  * [File] objects are references to files.
