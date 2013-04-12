@@ -277,6 +277,8 @@ class ListWrapper<E> extends ListBase<E> implements List<E> {
     elements.length = newLength;
   }
 
+  int get length => elements.length;
+
   void add(E value) {
     elements.add(value);
   }
