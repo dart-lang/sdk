@@ -221,8 +221,8 @@ class NativeEmitter {
             // The parameter type is a function type either directly or through
             // typedef(s).
             int arity = type.computeArity();
-
-            statements.add(js('$name = $closureConverter($name, $arity)'));
+            statements.add(
+                js('$name = $closureConverter($name, $arity)').toStatement());
             break;
           }
         }
@@ -418,7 +418,7 @@ class NativeEmitter {
                       js.string(toNativeTag(cls)),
                       tagDefns[cls]])));
 
-      statements.add(js('$dynamicSetMetadataName(#)', table));
+      statements.add(js('$dynamicSetMetadataName(#)', table).toStatement());
 
       //  (function(){statements})();
       if (emitter.compiler.enableMinification) nativeBuffer.add(';');
