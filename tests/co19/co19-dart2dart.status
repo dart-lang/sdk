@@ -333,7 +333,6 @@ Language/12_Statements/03_Variable_Declaration_A04_t06: Fail # Inherited from da
 Language/12_Statements/04_Local_Function_Declaration_A01_t01: Fail # Inherited from dart2js
 Language/12_Statements/04_Local_Function_Declaration_A02_t02: Fail # Inherited from dart2js
 Language/12_Statements/06_For_A01_t11: Fail # Inherited from dart2js
-Language/12_Statements/06_For_A01_t12: Fail # Inherited from dart2js
 Language/12_Statements/09_Switch_A01_t02: Fail # Inherited from VM (switch case with several labels).
 Language/12_Statements/09_Switch_A02_t01: Fail # Inherited from dart2js
 Language/12_Statements/09_Switch_A02_t02: Fail # Inherited from dart2js

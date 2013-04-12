@@ -570,6 +570,9 @@ Language/11_Expressions/01_Constants_A12_t01: Fail # internal error: CompileTime
 Language/11_Expressions/22_Equality_A05_t01: Fail # != cannot be called on super
 Language/11_Expressions/30_Identifier_Reference_A02_t01: Fail # Pseudo keyword "abstract".
 
+Language/12_Statements/06_For_A01_t11: Fail # http://dartbug.com/9824
+
+
 [ $compiler == dart2js && $jscl ]
 LibTest/core/Date/Date.fromString_A03_t01: Pass # Issue co19 - 121 (currently passing due to co19 issues 373 and 374)
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail # IllegalJSRegExpException: '\c(' 'SyntaxError: Invalid regular expression: /\c(/: Unterminated group'
@@ -580,7 +583,6 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fa
 Language/11_Expressions/06_Lists_A07_t02: Fail # generic type information is lost during canonicalization.
 Language/11_Expressions/07_Maps_A06_t02: Fail # generic type information is lost during canonicalization.
 
-Language/12_Statements/06_For_A01_t11: Fail # http://dartbug.com/9824
 
 
 #
