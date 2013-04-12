@@ -314,6 +314,31 @@ testWhere() {
   Expect.equals(5, bytes.where((v) => v > 0).length);
 }
 
+testCreationFromList() {
+  var intList =
+    [-10000000000000000000, -255, -127, 0, 128, 256, 1000000000000000000000];
+  var intLists = [];
+  intLists.add(new Int8List.fromList(intList));
+  intLists.add(new Int16List.fromList(intList));
+  intLists.add(new Int32List.fromList(intList));
+  intLists.add(new Int64List.fromList(intList));
+  intLists.add(new Uint8List.fromList(intList));
+  intLists.add(new Uint16List.fromList(intList));
+  intLists.add(new Uint32List.fromList(intList));
+  intLists.add(new Uint64List.fromList(intList));
+  var doubleList =
+    [-123123123123.123123123123, -123.0, 0.0, 123.0, 123123123123.123123123];
+  var doubleLists = [];
+  doubleLists.add(new Float32List.fromList(doubleList));
+  doubleLists.add(new Float64List.fromList(doubleList));
+  for (var ints in intLists) {
+    for (var doubles in doubleLists) {
+      Expect.throws(() => ints[0] = doubles[0]);
+      Expect.throws(() => doubles[0] = ints[0]);
+    }
+  }
+}
+
 main() {
   for (int i = 0; i < 2000; i++) {
     testCreateUint8TypedData();
@@ -372,5 +397,6 @@ main() {
   testExternalClampedUnsignedTypedDataRange(true);
   testViewCreation();
   testWhere();
+  testCreationFromList();
 }
 

@@ -327,6 +327,12 @@ abstract class Int8List implements List<int>, TypedData {
   external factory Int8List(int length);
 
   /**
+   * Creates a [Int8List] with the same size as the [elements] list
+   * and copies over the elements.
+   */
+  external factory Int8List.fromList(List<int> elements);
+
+  /**
    * Creates an [Int8List] _view_ of the specified region in the specified
    * byte buffer. Changes in the [Int8List] will be visible in the byte
    * buffer and vice versa. If the [offsetInBytes] index of the region is not
@@ -356,6 +362,12 @@ abstract class Uint8List implements List<int>, TypedData {
    * whose elements are initially zero.
    */
   external factory Uint8List(int length);
+
+  /**
+   * Creates a [Uint8List] with the same size as the [elements] list
+   * and copies over the elements.
+   */
+  external factory Uint8List.fromList(List<int> elements);
 
   /**
    * Creates a [Uint8List] _view_ of the specified region in the specified
@@ -390,6 +402,12 @@ abstract class Uint8ClampedList implements List<int>, TypedData {
   external factory Uint8ClampedList(int length);
 
   /**
+   * Creates a [Uint8ClampedList] of the same size as the [elements]
+   * list and copies over the values clamping when needed.
+   */
+  external factory Uint8ClampedList.fromList(List<int> elements);
+
+  /**
    * Creates a [Uint8ClampedList] _view_ of the specified region in the
    * specified byte [buffer]. Changes in the [Uint8List] will be visible in the
    * byte buffer and vice versa. If the [offsetInBytes] index of the region is
@@ -419,6 +437,12 @@ abstract class Int16List implements List<int>, TypedData {
    * whose elements are initially zero.
    */
   external factory Int16List(int length);
+
+  /**
+   * Creates a [Int16List] with the same size as the [elements] list
+   * and copies over the elements.
+   */
+  external factory Int16List.fromList(List<int> elements);
 
   /**
    * Creates an [Int16List] _view_ of the specified region in the specified
@@ -455,6 +479,12 @@ abstract class Uint16List implements List<int>, TypedData {
   external factory Uint16List(int length);
 
   /**
+   * Creates a [Uint16List] with the same size as the [elements] list
+   * and copies over the elements.
+   */
+  external factory Uint16List.fromList(List<int> elements);
+
+  /**
    * Creates a [Uint16List] _view_ of the specified region in
    * the specified byte buffer. Changes in the [Uint16List] will be
    * visible in the byte buffer and vice versa. If the [offsetInBytes] index
@@ -487,6 +517,12 @@ abstract class Int32List implements List<int>, TypedData {
    * whose elements are initially zero.
    */
   external factory Int32List(int length);
+
+  /**
+   * Creates a [Int32List] with the same size as the [elements] list
+   * and copies over the elements.
+   */
+  external factory Int32List.fromList(List<int> elements);
 
   /**
    * Creates an [Int32List] _view_ of the specified region in the specified
@@ -523,6 +559,12 @@ abstract class Uint32List implements List<int>, TypedData {
   external factory Uint32List(int length);
 
   /**
+   * Creates a [Uint32List] with the same size as the [elements] list
+   * and copies over the elements.
+   */
+  external factory Uint32List.fromList(List<int> elements);
+
+  /**
    * Creates a [Uint32List] _view_ of the specified region in
    * the specified byte buffer. Changes in the [Uint32] will be
    * visible in the byte buffer and vice versa. If the [offsetInBytes] index
@@ -557,6 +599,12 @@ abstract class Int64List implements List<int>, TypedData {
   external factory Int64List(int length);
 
   /**
+   * Creates a [Int64List] with the same size as the [elements] list
+   * and copies over the elements.
+   */
+  external factory Int64List.fromList(List<int> elements);
+
+  /**
    * Creates an [Int64List] _view_ of the specified region in the specified
    * byte buffer. Changes in the [Int64List] will be visible in the byte buffer
    * and vice versa. If the [offsetInBytes] index of the region is not
@@ -589,6 +637,12 @@ abstract class Uint64List implements List<int>, TypedData {
    * of whose elements are initially zero.
    */
   external factory Uint64List(int length);
+
+  /**
+   * Creates a [Uint64List] with the same size as the [elements] list
+   * and copies over the elements.
+   */
+  external factory Uint64List.fromList(List<int> elements);
 
   /**
    * Creates an [Uint64List] _view_ of the specified region in
@@ -627,6 +681,12 @@ abstract class Float32List implements List<double>, TypedData {
   external factory Float32List(int length);
 
   /**
+   * Creates a [Float32List] with the same size as the [elements] list
+   * and copies over the elements.
+   */
+  external factory Float32List.fromList(List<double> elements);
+
+  /**
    * Creates a [Float32List] _view_ of the specified region in the specified
    * byte buffer. Changes in the [Float32List] will be visible in the byte
    * buffer and vice versa. If the [offsetInBytes] index of the region is not
@@ -660,6 +720,12 @@ abstract class Float64List implements List<double>, TypedData {
    * whose elements are initially zero.
    */
   external factory Float64List(int length);
+
+  /**
+   * Creates a [Float64List] with the same size as the [elements] list
+   * and copies over the elements.
+   */
+  external factory Float64List.fromList(List<double> elements);
 
   /**
    * Creates a [Float64List] _view_ of the specified region in the specified

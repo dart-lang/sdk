@@ -13,6 +13,12 @@ patch class Int8List {
     return _newTransferable(length);
   }
 
+  /* patch */ factory Int8List.fromList(List<int> elements) {
+    var result = new _Int8Array(elements.length);
+    for (int i = 0; i < elements.length; i++) result[i] = elements[i];
+    return result;
+  }
+
   /* patch */ factory Int8List.view(ByteBuffer buffer,
                                     [int offsetInBytes = 0, int length]) {
     return new _Int8ArrayView(buffer, offsetInBytes, length);
@@ -33,6 +39,12 @@ patch class Uint8List {
     return _newTransferable(length);
   }
 
+  /* patch */ factory Uint8List.fromList(List<int> elements) {
+    var result = new _Uint8Array(elements.length);
+    for (int i = 0; i < elements.length; i++) result[i] = elements[i];
+    return result;
+  }
+
   /* patch */ factory Uint8List.view(ByteBuffer buffer,
                                      [int offsetInBytes = 0, int length]) {
     return new _Uint8ArrayView(buffer, offsetInBytes, length);
@@ -51,6 +63,12 @@ patch class Uint8ClampedList {
 
   /* patch */ factory Uint8ClampedList.transferable(int length) {
     return _newTransferable(length);
+  }
+
+  /* patch */ factory Uint8ClampedList.fromList(List<int> elements) {
+    var result = new _Uint8ClampedArray(elements.length);
+    for (int i = 0; i < elements.length; i++) result[i] = elements[i];
+    return result;
   }
 
   /* patch */ factory Uint8ClampedList.view(ByteBuffer buffer,
@@ -74,6 +92,12 @@ patch class Int16List {
     return _newTransferable(length);
   }
 
+  /* patch */ factory Int16List.fromList(List<int> elements) {
+    var result = new _Int16Array(elements.length);
+    for (int i = 0; i < elements.length; i++) result[i] = elements[i];
+    return result;
+  }
+
   /* patch */ factory Int16List.view(ByteBuffer buffer,
                                      [int offsetInBytes = 0, int length]) {
     return new _Int16ArrayView(buffer, offsetInBytes, length);
@@ -92,6 +116,12 @@ patch class Uint16List {
 
   /* patch */ factory Uint16List.transferable(int length) {
     return _newTransferable(length);
+  }
+
+  /* patch */ factory Uint16List.fromList(List<int> elements) {
+    var result = new _Uint16Array(elements.length);
+    for (int i = 0; i < elements.length; i++) result[i] = elements[i];
+    return result;
   }
 
   /* patch */ factory Uint16List.view(ByteBuffer buffer,
@@ -114,6 +144,12 @@ patch class Int32List {
     return _newTransferable(length);
   }
 
+  /* patch */ factory Int32List.fromList(List<int> elements) {
+    var result = new _Int32Array(elements.length);
+    for (int i = 0; i < elements.length; i++) result[i] = elements[i];
+    return result;
+  }
+
   /* patch */ factory Int32List.view(ByteBuffer buffer,
                                      [int offsetInBytes = 0, int length]) {
     return new _Int32ArrayView(buffer, offsetInBytes, length);
@@ -132,6 +168,12 @@ patch class Uint32List {
 
   /* patch */ factory Uint32List.transferable(int length) {
     return _newTransferable(length);
+  }
+
+  /* patch */ factory Uint32List.fromList(List<int> elements) {
+    var result = new _Uint32Array(elements.length);
+    for (int i = 0; i < elements.length; i++) result[i] = elements[i];
+    return result;
   }
 
   /* patch */ factory Uint32List.view(ByteBuffer buffer,
@@ -154,6 +196,12 @@ patch class Int64List {
     return _newTransferable(length);
   }
 
+  /* patch */ factory Int64List.fromList(List<int> elements) {
+    var result = new _Int64Array(elements.length);
+    for (int i = 0; i < elements.length; i++) result[i] = elements[i];
+    return result;
+  }
+
   /* patch */ factory Int64List.view(ByteBuffer buffer,
                                      [int offsetInBytes = 0, int length]) {
     return new _Int64ArrayView(buffer, offsetInBytes, length);
@@ -172,6 +220,12 @@ patch class Uint64List {
 
   /* patch */ factory Uint64List.transferable(int length) {
     return _newTransferable(length);
+  }
+
+  /* patch */ factory Uint64List.fromList(List<int> elements) {
+    var result = new _Uint64Array(elements.length);
+    for (int i = 0; i < elements.length; i++) result[i] = elements[i];
+    return result;
   }
 
   /* patch */ factory Uint64List.view(ByteBuffer buffer,
@@ -194,6 +248,12 @@ patch class Float32List {
     return _newTransferable(length);
   }
 
+  /* patch */ factory Float32List.fromList(List<double> elements) {
+    var result = new _Float32Array(elements.length);
+    for (int i = 0; i < elements.length; i++) result[i] = elements[i];
+    return result;
+  }
+
   /* patch */ factory Float32List.view(ByteBuffer buffer,
                                        [int offsetInBytes = 0, int length]) {
     return new _Float32ArrayView(buffer, offsetInBytes, length);
@@ -212,6 +272,12 @@ patch class Float64List {
 
   /* patch */ factory Float64List.transferable(int length) {
     return _newTransferable(length);
+  }
+
+  /* patch */ factory Float64List.fromList(List<double> elements) {
+    var result = new _Float64Array(elements.length);
+    for (int i = 0; i < elements.length; i++) result[i] = elements[i];
+    return result;
   }
 
   /* patch */ factory Float64List.view(ByteBuffer buffer,
