@@ -33,6 +33,12 @@ typedef void TestCaseEvent(TestCase testCase);
 typedef void ExitCodeEvent(int exitCode);
 typedef void EnqueueMoreWork(ProcessQueue queue);
 
+// Some IO tests use these variables and get confused if the host environment
+// variables are inherited so they are excluded.
+const List<String> EXCLUDED_ENVIRONMENT_VARIABLES =
+    const ['http_proxy', 'https_proxy', 'no_proxy',
+           'HTTP_PROXY', 'HTTPS_PROXY', 'NO_PROXY'];
+
 
 /**
  * [areByteArraysEqual] compares a range of bytes from [buffer1] with a
@@ -1022,6 +1028,11 @@ class RunningProcess {
     options.environment = new Map<String, String>.from(baseEnvironment);
     options.environment['DART_CONFIGURATION'] =
         TestUtils.configurationDir(testCase.configuration);
+
+    for (var excludedEnvironmentVariable in EXCLUDED_ENVIRONMENT_VARIABLES) {
+      options.environment.remove(excludedEnvironmentVariable);
+    }
+
     return options;
   }
 }
