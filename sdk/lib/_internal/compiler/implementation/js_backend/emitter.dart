@@ -1384,7 +1384,7 @@ class CodeEmitterTask extends CompilerTask {
         ? ['receiver', 'v']
         : ['v'];
     builder.addProperty(setterName,
-        js.fun(args, js('$receiver[$fieldName] = v')));
+        js.fun(args, js('$receiver.$fieldName = v')));
   }
 
   bool canGenerateCheckedSetter(Element member) {
