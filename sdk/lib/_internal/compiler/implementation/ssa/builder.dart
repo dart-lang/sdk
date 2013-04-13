@@ -1138,7 +1138,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
 
     PartialFunctionElement function = element;
-    if (function == backend.getInterceptorMethod) return false;
     bool canBeInlined = backend.canBeInlined[function];
     if (canBeInlined == false) return false;
     if (!selector.applies(function, compiler)) return false;

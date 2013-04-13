@@ -676,8 +676,9 @@ class JavaScriptBackend extends Backend {
   // classes.
   Element dispatchPropertyName;
   Element getNativeInterceptorMethod;
-  Element setNativeInterceptorMethod;
   Element defineNativeMethodsFinishMethod;
+  Element getDispatchPropertyMethod;
+  Element setDispatchPropertyMethod;
 
   bool seenAnyClass = false;
 
@@ -861,12 +862,20 @@ class JavaScriptBackend extends Backend {
         compiler.findInterceptor(const SourceString('interceptedNames'));
     dispatchPropertyName =
         compiler.findInterceptor(const SourceString('dispatchPropertyName'));
+    getDispatchPropertyMethod =
+        compiler.findInterceptor(const SourceString('getDispatchProperty'));
+    setDispatchPropertyMethod =
+        compiler.findInterceptor(const SourceString('setDispatchProperty'));
     getNativeInterceptorMethod =
         compiler.findInterceptor(const SourceString('getNativeInterceptor'));
-    setNativeInterceptorMethod =
-        compiler.findInterceptor(const SourceString('setNativeInterceptor'));
     defineNativeMethodsFinishMethod =
         compiler.findHelper(const SourceString('defineNativeMethodsFinish'));
+
+    // These methods are overwritten with generated versions.
+    forbidInlining(getInterceptorMethod);
+    forbidInlining(getDispatchPropertyMethod);
+    forbidInlining(setDispatchPropertyMethod);
+
     List<ClassElement> classes = [
       jsInterceptorClass =
           compiler.findInterceptor(const SourceString('Interceptor')),
@@ -938,6 +947,14 @@ class JavaScriptBackend extends Backend {
         ..add(jsNullClass);
 
     validateInterceptorImplementsAllObjectMethods(jsInterceptorClass);
+  }
+
+  void forbidInlining(Element element) {
+    // This guard is needed because the backend is initialized even for
+    // --analyze-only compiles which skip some helper libraries.
+    if (element is FunctionElement) {
+      canBeInlined[element] = false;
+    }
   }
 
   void validateInterceptorImplementsAllObjectMethods(
@@ -1021,7 +1038,6 @@ class JavaScriptBackend extends Backend {
         // TODO(9577): Make it so that these are not needed when there are no
         // native classes.
         enqueuer.registerStaticUse(getNativeInterceptorMethod);
-        enqueuer.registerStaticUse(setNativeInterceptorMethod);
         enqueuer.registerStaticUse(defineNativeMethodsFinishMethod);
       }
     }
@@ -1098,7 +1114,6 @@ class JavaScriptBackend extends Backend {
     // TODO(9577): Make it so that these are not needed when there are no native
     // classes.
     enqueuer.registerStaticUse(getNativeInterceptorMethod);
-    enqueuer.registerStaticUse(setNativeInterceptorMethod);
     enqueuer.registerStaticUse(defineNativeMethodsFinishMethod);
   }
 
