@@ -61,7 +61,9 @@ Future<String> provider(Uri uri) {
                   class JSNumber {}
                   class JSNull {}
                   class JSBool {}
-                  var getInterceptor;""";
+                  getInterceptor(o){}
+                  getDispatchProperty(o) {}
+                  setDispatchProperty(o, v) {}""";
     } else if (uri.path.endsWith('js_helper.dart')) {
       source = 'library jshelper; class JSInvocationMirror {} '
                'class ConstantMap {} class TypeImpl {}';

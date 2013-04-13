@@ -872,9 +872,9 @@ class JavaScriptBackend extends Backend {
         compiler.findHelper(const SourceString('defineNativeMethodsFinish'));
 
     // These methods are overwritten with generated versions.
-    forbidInlining(getInterceptorMethod);
-    forbidInlining(getDispatchPropertyMethod);
-    forbidInlining(setDispatchPropertyMethod);
+    canBeInlined[getInterceptorMethod] = false;
+    canBeInlined[getDispatchPropertyMethod] = false;
+    canBeInlined[setDispatchPropertyMethod] = false;
 
     List<ClassElement> classes = [
       jsInterceptorClass =
@@ -947,14 +947,6 @@ class JavaScriptBackend extends Backend {
         ..add(jsNullClass);
 
     validateInterceptorImplementsAllObjectMethods(jsInterceptorClass);
-  }
-
-  void forbidInlining(Element element) {
-    // This guard is needed because the backend is initialized even for
-    // --analyze-only compiles which skip some helper libraries.
-    if (element is FunctionElement) {
-      canBeInlined[element] = false;
-    }
   }
 
   void validateInterceptorImplementsAllObjectMethods(
