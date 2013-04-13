@@ -422,4 +422,6 @@ abstract class ListMixin<E> implements List<E> {
   }
 
   Iterable<E> get reversed => new ReversedListIterable(this);
+
+  String toString() => ToString.iterableToString(this);
 }
