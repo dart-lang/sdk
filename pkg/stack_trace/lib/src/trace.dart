@@ -5,7 +5,7 @@
 library trace;
 
 import 'dart:uri';
-import 'dart:math';
+import 'dart:math' as math;
 
 import 'frame.dart';
 
@@ -117,7 +117,7 @@ class Trace implements StackTrace {
     if (frames.length == '') return '';
 
     // Figure out the longest path so we know how much to pad.
-    var longest = frames.map((frame) => frame.location.length).reduce(max);
+    var longest = frames.map((frame) => frame.location.length).reduce(math.max);
 
     // Print out the stack trace nicely formatted.
     return frames.map((frame) {
