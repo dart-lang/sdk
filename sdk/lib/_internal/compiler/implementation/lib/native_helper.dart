@@ -224,6 +224,71 @@ void defineProperty(var obj, String property, var value) {
       value);
 }
 
+/**
+ * This method looks up the type name of [obj] in [methods]. [methods]
+ * is a Javascript object. If it cannot find it, it looks into the
+ * [_dynamicMetadata] array. If the method can still not be found, it
+ * creates a method that will throw a [NoSuchMethodError].
+ *
+ * Once it has a method, the prototype of [obj] is patched with that
+ * method, on the property [name]. The method is then invoked.
+ *
+ * This method returns the result of invoking the found method.
+ */
+dynamicBind(var obj,
+            String name,
+            var methods,
+            List arguments) {
+  // The tag is related to the class name.  E.g. the dart:html class
+  // '_ButtonElement' has the tag 'HTMLButtonElement'.  TODO(erikcorry): rename
+  // getTypeNameOf to getTypeTag.
+
+  var hasOwnPropertyFunction = JS('var', 'Object.prototype.hasOwnProperty');
+  var method = null;
+  if (!isDartObject(obj)) {
+    String tag = getTypeNameOf(obj);
+
+    method = dynamicBindLookup(hasOwnPropertyFunction, tag, methods);
+    if (method == null) {
+      String secondTag = alternateTag(obj, tag);
+      if (secondTag != null) {
+        method = dynamicBindLookup(hasOwnPropertyFunction, secondTag, methods);
+      }
+    }
+  }
+
+  // If we didn't find the method then look up in the Dart Object class, using
+  // getTypeNameOf in case the minifier has renamed Object.
+  if (method == null) {
+    String nameOfObjectClass = getTypeNameOf(const Object());
+    method = lookupDynamicClass(
+        hasOwnPropertyFunction, methods, nameOfObjectClass);
+  }
+
+  if (method == null) {
+    // Throw the `TypeError` that would have happened if this dynamic bind hook
+    // had not been installed on `Object.prototype`.
+    JS('void',
+       // `(function(){...})()` converts statement `throw` into an expression.
+       '(function(){throw new TypeError(# + " is not a function");})()',
+       name);
+  } else {
+    var proto = JS('var', 'Object.getPrototypeOf(#)', obj);
+    // Patch the method onto the prototype to avoid repeating the lookup.  We
+    // expect that there is nothing called [name] on the immediate prototype,
+    // except it is OK to patch over the dispatch hook on `Object.prototype`.
+    // What this means is we are calling method [name] on a plain JavaScript
+    // Object.  If the patched method needs to access the dispatch hook (for
+    // example, a check against being called from a yet-to-be-patched subclass),
+    // it gets the hook from [dynamicDispatchTable].
+    if (!callHasOwnProperty(hasOwnPropertyFunction, proto, name) ||
+        JS('bool', '# === Object.prototype', proto)) {
+      defineProperty(proto, name, method);
+    }
+  }
+
+  return JS('var', '#.apply(#, #)', method, obj, arguments);
+}
 
 // Is [obj] an instance of a Dart-defined class?
 bool isDartObject(obj) {
@@ -231,93 +296,7 @@ bool isDartObject(obj) {
   return JS('bool', '((#) instanceof (#))', obj, JS_DART_OBJECT_CONSTRUCTOR());
 }
 
-// For each method name and class inheritance subtree, we use an ordinary JS
-// object as a hash map to store the methods for each class.  Entries are added
-// in native_emitter.dart (see dynamicName).  In order to avoid class names
-// clashing with the method names on Object.prototype (needed for native
-// objects) we must always use hasOwnProperty.
-lookupDynamicClass(var hasOwnPropertyFunction, var methods, String className) {
-  return callHasOwnProperty(hasOwnPropertyFunction, methods, className)
-      ? propertyGet(methods, className)
-      : null;
-}
-
-/// A JavaScript object mapping tags to interceptors.
-var interceptorsByTag;
-
-/// A JavaScript object mapping tags to `true` or `false`.
-var leafTags;
-
-/**
- * Associates tags with an interceptor.  Called from generated code.  The tags
- * are all 'leaf' tags representing classes that have no subclasses with
- * different behaviour.
- *
- * [tags] is a string of `|`-separated tags.
- */
-void defineNativeMethods(String tags, interceptorClass) {
-  defineNativeMethodsCommon(tags, interceptorClass, true);
-}
-
-/**
- * Associates tags with an interceptor.  Called from generated code.  The tags
- * are all non-'leaf' tags, representing classes that have a subclass with
- * different behaviour.
- */
-void defineNativeMethodsNonleaf(String tags, interceptorClass) {
-  defineNativeMethodsCommon(tags, interceptorClass, false);
-}
-
-void defineNativeMethodsCommon(String tags, var interceptorClass, bool isLeaf) {
-  var methods = JS('', '#.prototype', interceptorClass);
-  if (interceptorsByTag == null) interceptorsByTag = JS('=Object', '{}');
-  if (leafTags == null) leafTags = JS('=Object', '{}');
-
-  var tagsList = JS('=List', '#.split("|")', tags);
-  for (int i = 0; i < tagsList.length; i++) {
-    var tag = tagsList[i];
-    JS('void', '#[#] = #', interceptorsByTag, tag, methods);
-    JS('void', '#[#] = #', leafTags, tag, isLeaf);
-  }
-}
-
-void defineNativeMethodsFinish() {
-  // TODO(sra): Investigate placing a dispatch record on Object.prototype that
-  // returns an interceptor for JavaScript objects.  This avoids needing a test
-  // in every interceptor, and prioritizes the performance of known native
-  // classes over unknown.
-}
-
-lookupDispatchRecord(obj) {
-  var hasOwnPropertyFunction = JS('var', 'Object.prototype.hasOwnProperty');
-  var interceptor = null;
-  assert(!isDartObject(obj));
-  String tag = getTypeNameOf(obj);
-
-  interceptor = lookupInterceptor(
-      hasOwnPropertyFunction, tag, interceptorsByTag);
-
-  if (interceptor == null) {
-    String secondTag = alternateTag(obj, tag);
-    if (secondTag != null) {
-      interceptor = lookupInterceptor(
-          hasOwnPropertyFunction, secondTag, interceptorsByTag);
-    }
-  }
-  if (interceptor == null) {
-    // TODO(sra): Think about the error case.
-    interceptor = JS('', '{__what: "interceptor not found", __tag: #}', tag);
-  }
-  var isLeaf = JS('', '#[#]', leafTags, tag);
-  if (true == isLeaf) {
-    return makeDispatchRecord(interceptor, false, null);
-  } else {
-    var proto = JS('', 'Object.getPrototypeOf(#)', obj);
-    return makeDispatchRecord(interceptor, proto, null);
-  }
-}
-
-lookupInterceptor(var hasOwnPropertyFunction, String tag, var methods) {
+dynamicBindLookup(var hasOwnPropertyFunction, String tag, var methods) {
   var method = lookupDynamicClass(hasOwnPropertyFunction, methods, tag);
   // Look at the inheritance data, getting the class tags and using them
   // to check the methods table for this method name.
@@ -334,6 +313,148 @@ lookupInterceptor(var hasOwnPropertyFunction, String tag, var methods) {
   }
   return method;
 }
+
+// For each method name and class inheritance subtree, we use an ordinary JS
+// object as a hash map to store the method for each class.  Entries are added
+// in native_emitter.dart (see dynamicName).  In order to avoid the class names
+// clashing with the method names on Object.prototype (needed for native
+// objects) we must always use hasOwnProperty.
+lookupDynamicClass(var hasOwnPropertyFunction,
+                       var methods,
+                       String className) {
+  return callHasOwnProperty(hasOwnPropertyFunction, methods, className) ?
+         propertyGet(methods, className) :
+         null;
+}
+
+/**
+ * Code for doing the dynamic dispatch on JavaScript prototypes that are not
+ * available at compile-time. Each property of a native Dart class
+ * is registered through this function, which is called with the
+ * following pattern:
+ *
+ * dynamicFunction('propertyName').prototypeName = // JS code
+ *
+ * What this function does is:
+ * - Creates a map of { prototypeName: JS code }.
+ * - Attaches 'propertyName' to the JS Object prototype that will
+ *   intercept at runtime all calls to propertyName.
+ * - Sets the value of 'propertyName' to the returned method from
+ *   [dynamicBind].
+ *
+ */
+dynamicFunction(name) {
+  var table = dynamicFunctionTable;
+  if (table == null) {
+    dynamicFunctionTable = table = JS('=Object', '{}');
+  }
+
+  var f = JS('var', '#[#]', table, name);
+  if (f != null && JS('bool', '!!#.methods', f)) {
+    return JS('var', '#.methods', f);
+  }
+
+  // TODO(ngeoffray): We could make this a map if the code we
+  // generate plays well with a Dart map.
+  var methods = JS('=Object', '{}');
+
+  var bind = JS('var',
+      'function() {'
+        'return #(this, #, #, Array.prototype.slice.call(arguments));'
+      '}',
+    DART_CLOSURE_TO_JS(dynamicBind), name, methods);
+
+  JS('void', '#.methods = #', bind, methods);
+  // Install dispatch function on `Object.prototype`, so that `x.name()` will
+  // initially enter the dispatch code for any object.
+  defineProperty(JS('var', 'Object.prototype'), name, bind);
+  // Install dispatch function in table, so it can be called without relying on
+  // patching on the line above.
+  defineProperty(table, name, bind);
+  return methods;
+}
+
+/**
+ * Table of dispatch _bind_ functions created by [dynamicFunction].
+ *
+ *  methodName -> dispatchFunction
+ */
+var dynamicFunctionTable;
+
+
+/**
+ * Associates a tag of a leaf native class (with no subclasses) with the
+ * interceptor for that class.  Called from generated code.
+ */
+void defineNativeMethods(String tag, interceptorClass) {
+  var methods = JS('', '#.prototype', interceptorClass);
+  var method = dispatchPropertyName;
+  JS('void', '#[#]=#', dynamicFunction(method), tag,
+      _unguardedConstantJSFunction(methods));
+}
+
+/**
+ * Associates a tag of a native class with subclasses with the interceptor for
+ * that class.  Called from generated code.
+ */
+void defineNativeMethodsNonleaf(String tag, interceptorClass) {
+  var methods = JS('', '#.prototype', interceptorClass);
+  var method = dispatchPropertyName;
+  JS('void', '#[#]=#', dynamicFunction(method), tag,
+      _guardedConstantJSFunction(method, methods));
+}
+
+void defineNativeMethodsFinish() {
+  // Replace dispatch hook on Object.prototype with one that returns an
+  // interceptor for JavaScript objects.  This avoids needing a test in every
+  // interceptor, and prioritizes the performance of known native classes over
+  // unknown.
+  JS('void', 'Object.prototype[#]=#', dispatchPropertyName,
+      _guardedConstantJSFunctionForObject(dispatchPropertyName,
+          JS('', 'Object.getPrototypeOf(#)', const Interceptor())));
+}
+
+/**
+ * Returns a JavaScript function that returns [value].
+ */
+_unguardedConstantJSFunction(var value) {
+  return JS('', 'function(){return #}', value);
+}
+
+/**
+ * Returns a JavaScript function that returns [value] when called from a patched
+ * prototype, and calls the dispatch hook when called from an unpatched
+ * prototype.
+ */
+_guardedConstantJSFunction(String name, var value) {
+  return JS('',
+      'function(){'
+        'if(Object.getPrototypeOf(this).hasOwnProperty(#))'
+          'return #;'
+        'return #(#,this);'
+      '}',
+      name,
+      value,
+      RAW_DART_FUNCTION_REF(_redispatchGetNativeInterceptorHook), name);
+}
+
+_redispatchGetNativeInterceptorHook(name, receiver) {
+  return JS('', '#[#].call(#)', dynamicFunctionTable, name, receiver);
+}
+
+_guardedConstantJSFunctionForObject(String name, var value) {
+  var objectPrototype = JS('', 'Object.prototype');
+  return JS('',
+      'function(){'
+        'if (Object.getPrototypeOf(this) === #)'
+          'return #;'
+        'return #(#,this);'
+      '}',
+      objectPrototype,
+      value,
+      RAW_DART_FUNCTION_REF(_redispatchGetNativeInterceptorHook), name);
+}
+
 
 /**
  * This class encodes the class hierarchy when we need it for dynamic

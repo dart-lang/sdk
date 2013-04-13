@@ -16,8 +16,6 @@ import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
 import 'dart:_interceptors' show getInterceptor,
                                  interceptedNames,
                                  dispatchPropertyName,
-                                 makeDispatchRecord,
-                                 setDispatchProperty,
                                  Interceptor,
                                  JSIndexable;
 

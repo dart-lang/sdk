@@ -22,8 +22,7 @@ import 'dart:_js_helper' show allMatchesInStringUnchecked,
                               stringReplaceAllFuncUnchecked,
                               stringReplaceAllUnchecked,
                               stringReplaceFirstUnchecked,
-                              TypeImpl,
-                              lookupDispatchRecord;
+                              TypeImpl;
 import 'dart:_foreign_helper' show JS;
 
 part 'js_array.dart';
@@ -49,94 +48,24 @@ getInterceptor(object) {
  */
 var dispatchPropertyName = '_zzyzx';
 
-getDispatchProperty(object) {
-  // TODO(sra): Implement the magic.
-  // This is a magic method: the compiler replaces it with a runtime generated
-  // function
-  //
-  //     function(object){return object._zzyzx;}
-  //
-  // where _zzyzx is replaced with the actual [dispatchPropertyName].
-  //
-  // The body is the CSP compliant version.
-  return JS('', '#[#]', object, dispatchPropertyName);
-}
-
-setDispatchProperty(object, value) {
-  // TODO(sra): Implement the magic.
-  // This is a magic method: the compiler replaces it with a runtime generated
-  // function
-  //
-  //     function(object, value){object._zzyzx = value;}
-  //
-  // where _zzyzx is replaced with the actual [dispatchPropertyName].
-  //
-  // The body is the CSP compliant version.
-  JS('void', '#[#] = #', object, dispatchPropertyName, value);
-}
-
-makeDispatchRecord(interceptor, proto, extension) {
-  // Dispatch records are stored in the prototype chain, and in some cases, on
-  // instances.
-  //
-  // The record layout and field usage is designed to minimize the number of
-  // operations on the common paths.
-  //
-  // [interceptor] is the interceptor - a holder of methods for the object,
-  // i.e. the prototype of the interceptor class.
-  //
-  // [proto] is usually the prototype, used to check that the dispatch record
-  // matches the object and is not the dispatch record of a superclass.  Other
-  // values:
-  //  - `false` for leaf classes that need no check.
-  //  - `true` for Dart classes where the object is its own interceptor (unused)
-  //  - a function used to continue matching.
-  //
-  // [extension] is used for irregular cases.
-  //
-  //     proto  interceptor extension action
-  //     -----  ----------- --------- ------
-  //     false  I                     use interceptor I
-  //     true   -                     use object
-  //     P      I                     if object's prototype is P, use I
-  //     F      -           P         if object's prototype is P, call F
-
-  return JS('', '{i: #, p: #, e: #}', interceptor, proto, extension);
-}
-
-dispatchRecordInterceptor(record) => JS('', '#.i', record);
-dispatchRecordProto(record) => JS('', '#.p', record);
-dispatchRecordExtension(record) => JS('', '#.e', record);
-
 /**
  * Returns the interceptor for a native class instance. Used by
  * [getInterceptor].
  */
 getNativeInterceptor(object) {
-  var record = getDispatchProperty(object);
+  // This is a magic method: the compiler replaces it with a runtime generated
+  // function
+  //
+  //     function(object){return object._zzyzx();}
+  //
+  // where _zzyzx is replaced with the actual [dispatchPropertyName].
+  //
+  // The body is the CSP compliant version.
+  return JS('', '#[#]()', object, dispatchPropertyName);
+}
 
-  if (record != null) {
-    var proto = dispatchRecordProto(record);
-    if (false == proto) return dispatchRecordInterceptor(record);
-    if (true == proto) return object;
-    var objectProto = JS('', 'Object.getPrototypeOf(#)', object);
-    if (JS('bool', '# === #', proto, objectProto)) {
-      return dispatchRecordInterceptor(record);
-    }
-
-    var extension = dispatchRecordExtension(record);
-    if (JS('bool', '# === #', extension, objectProto)) {
-      // The extension handler will do any required patching.  A typical use
-      // case is where one native class represents two Dart classes.  The
-      // extension method will inspect the native object instance to determine
-      // its class and patch the instance.  Needed to fix dartbug.com/9654.
-      return JS('', '(#)(#, #)', proto, object, record);
-    }
-  }
-
-  record = lookupDispatchRecord(object);
-  setDispatchProperty(JS('', 'Object.getPrototypeOf(#)', object), record);
-  return getNativeInterceptor(object);
+setNativeInterceptor(prototype, function) {
+  JS('', '#[#]=#', prototype, dispatchPropertyName, function);
 }
 
 /**
