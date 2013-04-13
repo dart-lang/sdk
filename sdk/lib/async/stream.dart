@@ -870,10 +870,10 @@ class StreamView<T> extends Stream<T> {
 /**
  * [EventSink] wrapper that only exposes the [EventSink] interface.
  */
-class EventSinkView<T> extends EventSink<T> {
+class _EventSinkView<T> extends EventSink<T> {
   final EventSink<T> _sink;
 
-  EventSinkView(this._sink);
+  _EventSinkView(this._sink);
 
   void add(T value) { _sink.add(value); }
   void addError(AsyncError error) { _sink.addError(error); }

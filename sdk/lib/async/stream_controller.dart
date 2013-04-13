@@ -87,7 +87,7 @@ class StreamController<T> extends EventSink<T> {
   /**
    * Returns a view of this object that only exposes the [EventSink] interface.
    */
-  EventSink<T> get sink => new EventSinkView<T>(this);
+  EventSink<T> get sink => new _EventSinkView<T>(this);
 
   /**
    * Whether the stream is closed for adding more events.
