@@ -311,7 +311,7 @@ class ListWrapper<E> extends ListBase<E> implements List<E> {
     elements.clear();
   }
 
-  void remove(Object element) {
+  bool remove(Object element) {
     return elements.remove(element);
   }
 
