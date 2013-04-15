@@ -18442,6 +18442,22 @@ class Performance extends EventTarget native "*Performance" {
   @DocsEditable
   num now() native;
 
+  @JSName('webkitClearMarks')
+  @DomName('Performance.webkitClearMarks')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  void clearMarks(String markName) native;
+
+  @JSName('webkitClearMeasures')
+  @DomName('Performance.webkitClearMeasures')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  void clearMeasures(String measureName) native;
+
   @JSName('webkitClearResourceTimings')
   @DomName('Performance.webkitClearResourceTimings')
   @DocsEditable
@@ -18473,6 +18489,22 @@ class Performance extends EventTarget native "*Performance" {
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
   PerformanceEntryList getEntriesByType(String entryType) native;
+
+  @JSName('webkitMark')
+  @DomName('Performance.webkitMark')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  void mark(String markName) native;
+
+  @JSName('webkitMeasure')
+  @DomName('Performance.webkitMeasure')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  void measure(String measureName, String startMark, String endMark) native;
 
   @JSName('webkitSetResourceTimingBufferSize')
   @DomName('Performance.webkitSetResourceTimingBufferSize')
@@ -18523,6 +18555,24 @@ class PerformanceEntryList native "*PerformanceEntryList" {
   @DomName('PerformanceEntryList.item')
   @DocsEditable
   PerformanceEntry item(int index) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('PerformanceMark')
+class PerformanceMark extends PerformanceEntry native "*PerformanceMark" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('PerformanceMeasure')
+class PerformanceMeasure extends PerformanceEntry native "*PerformanceMeasure" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
