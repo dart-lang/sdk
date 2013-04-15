@@ -394,8 +394,7 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
       : _outgoing = outgoing,
         _headersSink = new IOSink(outgoing, encoding: Encoding.ASCII),
         headers = new _HttpHeaders(protocolVersion) {
-    _dataSink = new IOSink(
-        new _HttpOutboundConsumer(_headersSink, _addStream, this));
+    _dataSink = new IOSink(new _HttpOutboundConsumer(this));
   }
 
   int get contentLength => headers.contentLength;
@@ -423,74 +422,39 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
   }
 
   void write(Object obj) {
-    _writeHeaders();
-    // This comment is copied from runtime/lib/string_buffer_patch.dart.
-    // TODO(srdjan): The following four lines could be replaced by
-    // '$obj', but apparently this is too slow on the Dart VM.
-    String string;
-    if (obj is String) {
-      string = obj;
-    } else {
-      string = obj.toString();
-      if (string is! String) {
-        throw new ArgumentError('toString() did not return a string');
-      }
-    }
-    if (string.isEmpty) return;
-    _dataSink.write(string);
+    _dataSink.write(obj);
   }
 
   void writeAll(Iterable objects, [String separator = ""]) {
-    bool isFirst = true;
-    for (Object obj in objects) {
-      if (isFirst) {
-        isFirst = false;
-      } else {
-        if (!separator.isEmpty) write(separator);
-      }
-      write(obj);
-    }
+    _dataSink.writeAll(objects, separator);
   }
 
   void writeln([Object obj = ""]) {
-    write(obj);
-    write("\n");
+    _dataSink.writeln(obj);
   }
 
   void writeCharCode(int charCode) {
-    write(new String.fromCharCode(charCode));
+    _dataSink.writeCharCode(charCode);
   }
 
   void add(List<int> data) {
-    _writeHeaders();
     if (data.length == 0) return;
     _dataSink.add(data);
   }
 
   void addError(AsyncError error) {
-    _writeHeaders();
     _dataSink.addError(error);
   }
 
   Future<T> addStream(Stream<List<int>> stream) {
-    _writeHeaders();
     return _dataSink.addStream(stream);
   }
 
   Future close() {
-    // TODO(ajohnsen): Currently, contentLength, chunkedTransferEncoding and
-    // persistentConnection is not guaranteed to be in sync.
-    if (!_headersWritten && !_ignoreBody && headers.contentLength == -1) {
-      // If no body was written, _ignoreBody is false (it's not a HEAD
-      // request) and the content-length is unspecified, set contentLength to 0.
-      headers.chunkedTransferEncoding = false;
-      headers.contentLength = 0;
-    }
-    _writeHeaders();
     return _dataSink.close();
   }
 
-  Future<T> get done => _dataSink.done.then((_) => this);
+  Future<T> get done => _dataSink.done;
 
   void _writeHeaders() {
     if (_headersWritten) return;
@@ -514,11 +478,12 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
     _writeHeader();
   }
 
-  Future _addStream(IOSink ioSink, Stream<List<int>> stream) {
+  Future _addStream(Stream<List<int>> stream) {
+    _writeHeaders();
     int contentLength = headers.contentLength;
     if (_ignoreBody) {
       stream.fold(null, (x, y) {}).catchError((_) {});
-      return ioSink.close().then((_) => this);
+      return _headersSink.close();
     }
     stream = stream.transform(new _BufferTransformer());
     if (headers.chunkedTransferEncoding) {
@@ -529,7 +494,28 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
     } else if (contentLength >= 0) {
       stream = stream.transform(new _ContentLengthValidator(contentLength));
     }
-    return ioSink.addStream(stream).then((_) => this);
+    return _headersSink.addStream(stream);
+  }
+
+  Future _close() {
+    // TODO(ajohnsen): Currently, contentLength, chunkedTransferEncoding and
+    // persistentConnection is not guaranteed to be in sync.
+    if (!_headersWritten) {
+      if (!_ignoreBody && headers.contentLength == -1) {
+        // If no body was written, _ignoreBody is false (it's not a HEAD
+        // request) and the content-length is unspecified, set contentLength to
+        // 0.
+        headers.chunkedTransferEncoding = false;
+        headers.contentLength = 0;
+      } else if (!_ignoreBody && headers.contentLength > 0) {
+        _headersSink.close().catchError((_) {});
+        return new Future.immediateError(new HttpException(
+            "No content while contentLength was specified to be greater "
+            " than 0: ${headers.contentLength}."));
+      }
+    }
+    _writeHeaders();
+    return _headersSink.close();
   }
 
   void _writeHeader();  // TODO(ajohnsen): Better name.
@@ -537,17 +523,13 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
 
 
 class _HttpOutboundConsumer implements StreamConsumer {
+  final _HttpOutboundMessage _outbound;
   StreamController _controller;
   StreamSubscription _subscription;
-  Function _addStream;
-  IOSink _ioSink;
   Completer _closeCompleter = new Completer();
   Completer _completer;
 
-  _HttpOutboundMessage _outbound;
-  _HttpOutboundConsumer(IOSink this._ioSink,
-                        Function this._addStream,
-                        _HttpOutboundMessage this._outbound);
+  _HttpOutboundConsumer(_HttpOutboundMessage this._outbound);
 
   void _onPause() {
     if (_controller.isPaused) {
@@ -567,7 +549,7 @@ class _HttpOutboundConsumer implements StreamConsumer {
     if (_controller != null) return;
     _controller = new StreamController(onPauseStateChange: _onPause,
                                        onSubscriptionStateChange: _onListen);
-    _addStream(_ioSink, _controller.stream)
+    _outbound._addStream(_controller.stream)
         .then((_) {
                 _done();
                 _closeCompleter.complete(_outbound);
@@ -609,11 +591,12 @@ class _HttpOutboundConsumer implements StreamConsumer {
   }
 
   Future close() {
-    _ensureController();
+    Future closeOutbound() {
+      return _outbound._close().then((_) => _outbound);
+    }
+    if (_controller == null) return closeOutbound();
     _controller.close();
-    return _closeCompleter.future.then((_) {
-      return _ioSink.close().then((_) => _outbound);
-    });
+    return _closeCompleter.future.then((_) => closeOutbound());
   }
 }
 

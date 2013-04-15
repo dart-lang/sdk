@@ -166,18 +166,18 @@ class _IOSinkImpl implements IOSink {
 
   void _closeTarget() {
     _target.close()
-        .then((_) => _completeDone(),
-              onError: (error) => _completeDone(error));
+        .then((value) => _completeDone(value: value),
+              onError: (error) => _completeDone(error: error));
   }
 
   Future get done => _doneFuture;
 
-  void _completeDone([error]) {
+  void _completeDone({value, error}) {
     if (_doneCompleter == null) return;
     var tmp = _doneCompleter;
     _doneCompleter = null;
     if (error == null) {
-      tmp.complete();
+      tmp.complete(value);
     } else {
       tmp.completeError(error);
     }
@@ -217,7 +217,7 @@ class _IOSinkImpl implements IOSink {
                 } else {
                   // No new stream. No need to close target, as it have already
                   // failed.
-                  _completeDone(error);
+                  _completeDone(error: error);
                 }
               });
     }
