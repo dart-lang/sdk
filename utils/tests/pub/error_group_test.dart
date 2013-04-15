@@ -248,43 +248,18 @@ main() {
       errorGroup.signalError(new FormatException());
     });
 
-    test("should complete .done when the stream is done even if the stream "
-        "doesn't have a listener", () {
+    test("should see one value and complete .done when the stream is done even "
+         "if the stream doesn't have a listener", () {
       expect(errorGroup.done, completes);
       controller.add('value');
       controller.close();
 
-      // A listener added afterwards should see an empty stream, since it's not
-      // single-subscription
+      // Now that broadcast controllers have been removed a listener should
+      // see the value that has been put into the controller.
       expect(errorGroup.done.then((_) => stream.toList()),
-          completion(isEmpty));
+          completion(equals(['value'])));
     });
 
-    test("should pipe an exception from the stream to .done if the stream "
-        "doesn't have a listener", () {
-      expect(errorGroup.done, throwsFormatException);
-      controller.addError(new FormatException());
-
-      // A listener added afterwards should see an empty stream, since it's not
-      // single-subscription
-      expect(errorGroup.done.catchError((_) {
-        controller.add('value'); // should be ignored
-        return stream.toList();
-      }), completion(isEmpty));
-    });
-
-    test("should pass a signaled exception to .done if the stream doesn't "
-        "have a listener",
-        () {
-      expect(errorGroup.done, throwsFormatException);
-      errorGroup.signalError(new FormatException());
-
-      // A listener added afterwards should receive the exception
-      expect(errorGroup.done.catchError((_) {
-        controller.add('value'); // should be ignored
-        return stream.toList();
-      }), completion(isEmpty));
-    });
   });
 
   group('with a single single-subscription stream', () {
