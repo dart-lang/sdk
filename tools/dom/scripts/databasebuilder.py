@@ -474,12 +474,14 @@ class DatabaseBuilder(object):
     conditional = node.ext_attrs['Conditional']
     if conditional.find('&') != -1:
       for condition in conditional.split('&'):
+        condition = condition.strip()
         self.conditionals_met.add(condition)
         if not enabled(condition):
           return False
       return True
 
     for condition in conditional.split('|'):
+      condition = condition.strip()
       self.conditionals_met.add(condition)
       if enabled(condition):
         return True

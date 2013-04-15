@@ -22,9 +22,8 @@ FEATURE_DISABLED = [
     'ENABLE_ORIENTATION_EVENTS', # Only enabled on Android.
     'ENABLE_PROXIMITY_EVENTS',
     'ENABLE_SPEECH_SYNTHESIS',
+    'ENABLE_WEBVTT_REGIONS',
     'ENABLE_XHR_TIMEOUT',
-    # To enable.
-    'ENABLE_VIDEO_TRACK ', # Sic! With the trailing space.
 ]
 
 FEATURE_DEFINES = [
