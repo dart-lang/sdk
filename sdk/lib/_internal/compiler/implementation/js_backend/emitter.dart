@@ -35,9 +35,6 @@ typedef void DefineStubFunction(String invocationName, jsAst.Expression value);
 class ClassBuilder {
   final List<jsAst.Property> properties = <jsAst.Property>[];
 
-  /// Set to true by user if class is indistinguishable from its superclass.
-  bool isTrivial = false;
-
   // Has the same signature as [DefineStubFunction].
   void addProperty(String name, jsAst.Expression value) {
     properties.add(new jsAst.Property(js.string(name), value));
@@ -2903,8 +2900,9 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
       final CodeBuffer nativeBuffer = new CodeBuffer();
       if (!nativeClasses.isEmpty) {
         addComment('Native classes', nativeBuffer);
-        addComment('Native classes', mainBuffer);
-        nativeEmitter.generateNativeClasses(nativeClasses, mainBuffer);
+        for (ClassElement element in nativeClasses) {
+          nativeEmitter.generateNativeClass(element, mainBuffer);
+        }
       }
       nativeEmitter.finishGenerateNativeClasses();
       nativeEmitter.assembleCode(nativeBuffer);

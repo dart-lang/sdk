@@ -9,8 +9,12 @@ class NativeEmitter {
   CodeEmitterTask emitter;
   CodeBuffer nativeBuffer;
 
+  // Classes that participate in dynamic dispatch. These are the
+  // classes that contain used members.
+  Set<ClassElement> classesWithDynamicDispatch;
+
   // Native classes found in the application.
-  Set<ClassElement> nativeClasses = new Set<ClassElement>();
+  Set<ClassElement> nativeClasses;
 
   // Caches the native subtypes of a native class.
   Map<ClassElement, List<ClassElement>> subtypes;
@@ -27,7 +31,9 @@ class NativeEmitter {
   bool handleNoSuchMethod = false;
 
   NativeEmitter(this.emitter)
-      : subtypes = new Map<ClassElement, List<ClassElement>>(),
+      : classesWithDynamicDispatch = new Set<ClassElement>(),
+        nativeClasses = new Set<ClassElement>(),
+        subtypes = new Map<ClassElement, List<ClassElement>>(),
         directSubtypes = new Map<ClassElement, List<ClassElement>>(),
         nativeMethods = new Set<FunctionElement>(),
         nativeBuffer = new CodeBuffer();
@@ -48,6 +54,12 @@ class NativeEmitter {
   String get dynamicFunctionTableName {
     Element element = compiler.findHelper(
         const SourceString('dynamicFunctionTable'));
+    return backend.namer.isolateAccess(element);
+  }
+
+  String get dynamicSetMetadataName {
+    Element element = compiler.findHelper(
+        const SourceString('dynamicSetMetadata'));
     return backend.namer.isolateAccess(element);
   }
 
@@ -113,146 +125,7 @@ class NativeEmitter {
     }
   }
 
-  /**
-   * Writes the class definitions for the interceptors to [mainBuffer].
-   * Writes code to associate dispatch tags with interceptors to [nativeBuffer].
-   *
-   * The interceptors are filtered to avoid emitting trivial interceptors.  For
-   * example, if the program contains no code that can distinguish between the
-   * numerous subclasses of `Element` then we can pretend that `Element` is a
-   * leaf class, and all instances of subclasses of `Element` are instances of
-   * `Element`.
-   *
-   * There is also a performance benefit (in addition to the obvious code size
-   * benefit), due to how [getNativeInterceptor] works.  Finding the interceptor
-   * of a leaf class in the hierarchy is more efficient that a non-leaf, so it
-   * improves performance when more classes can be treated as leaves.
-   */
-  void generateNativeClasses(List<ClassElement> classes,
-                             CodeBuffer mainBuffer) {
-    // Compute a pre-order traversal of the subclass forest.  We actually want a
-    // post-order traversal but it is easier to compute the pre-order and use it
-    // in reverse.
-
-    List<ClassElement> preOrder = <ClassElement>[];
-    Set<ClassElement> seen = new Set<ClassElement>();
-    void walk(ClassElement element) {
-      if (seen.contains(element) || element == compiler.objectClass) return;
-      seen.add(element);
-      walk(element.superclass);
-      preOrder.add(element);
-    }
-    classes.forEach(walk);
-
-    // Generate code for each native class into [ClassBuilder]s.
-
-    Map<ClassElement, ClassBuilder> builders =
-        new Map<ClassElement, ClassBuilder>();
-    for (ClassElement classElement in classes) {
-      ClassBuilder builder = generateNativeClass(classElement);
-      builders[classElement] = builder;
-    }
-
-    // Find which classes are needed and which are non-leaf classes.  Any class
-    // that is not needed can be treated as a leaf class equivalent to some
-    // needed class.
-
-    Set<ClassElement> neededClasses = new Set<ClassElement>();
-    Set<ClassElement> nonleafClasses = new Set<ClassElement>();
-    neededClasses.add(compiler.objectClass);
-
-    for (ClassElement classElement in preOrder.reversed) {
-      // Post-order traversal ensures we visit the subclasses before their
-      // superclass.  This makes it easy to tell if a class is needed because a
-      // subclass is needed.
-      ClassBuilder builder = builders[classElement];
-      bool needed = false;
-      if (builder == null) {
-        // Mixin applications (native+mixin) are non-native, so [classElement]
-        // has already been emitted as a regular class.  Mark [classElement] as
-        // 'needed' to ensure the native superclass is needed.
-        needed = true;
-      } else if (!builder.isTrivial) {
-        needed = true;
-      }
-
-      // BUG.  There is a missing proto in the picture the DOM gives of the
-      // proto chain.
-      // TODO(9907): Fix DOM generation. We might need an annotation.
-      if (classElement.isNative()) {
-        String nativeTag = toNativeTag(classElement);
-        if (nativeTag == 'HTMLElement') {
-          nonleafClasses.add(classElement);
-          needed = true;
-        }
-      }
-
-      if (needed || neededClasses.contains(classElement)) {
-        neededClasses.add(classElement);
-        neededClasses.add(classElement.superclass);
-        nonleafClasses.add(classElement.superclass);
-      }
-    }
-
-    // Collect all the tags that map to each class.
-
-    Map<ClassElement, Set<String>> leafTags =
-        new Map<ClassElement, Set<String>>();
-    Map<ClassElement, Set<String>> nonleafTags =
-        new Map<ClassElement, Set<String>>();
-
-    for (ClassElement classElement in classes) {
-      String nativeTag = toNativeTag(classElement);
-
-      if (nonleafClasses.contains(classElement)) {
-        nonleafTags
-            .putIfAbsent(classElement, () => new Set<String>())
-            .add(nativeTag);
-      } else {
-        ClassElement sufficingInterceptor = classElement;
-        while (!neededClasses.contains(sufficingInterceptor)) {
-          sufficingInterceptor = sufficingInterceptor.superclass;
-        }
-        if (sufficingInterceptor == compiler.objectClass) {
-          sufficingInterceptor = backend.jsInterceptorClass;
-        }
-        leafTags
-            .putIfAbsent(sufficingInterceptor, () => new Set<String>())
-            .add(nativeTag);
-      }
-    }
-
-    // Emit code to set up dispatch data that maps tags to the interceptors.
-
-    void generateDefines(ClassElement classElement) {
-      generateDefineNativeMethods(leafTags[classElement], classElement,
-          defineNativeMethodsName);
-      generateDefineNativeMethods(nonleafTags[classElement], classElement,
-          defineNativeMethodsNonleafName);
-    }
-    generateDefines(backend.jsInterceptorClass);
-    for (ClassElement classElement in classes) {
-      generateDefines(classElement);
-    }
-
-    // Emit the native class interceptors that were actually used.
-
-    for (ClassElement classElement in classes) {
-      if (neededClasses.contains(classElement)) {
-        ClassBuilder builder = builders[classElement];
-        // Define interceptor class for [classElement].
-        String className = backend.namer.getName(classElement);
-        jsAst.Expression init =
-            js(emitter.classesCollector)[className].assign(
-                builder.toObjectInitializer());
-        mainBuffer.write(jsAst.prettyPrint(init, compiler));
-        mainBuffer.write('$N$n');
-        emitter.needsDefineClass = true;
-      }
-    }
-  }
-
-  ClassBuilder generateNativeClass(ClassElement classElement) {
+  void generateNativeClass(ClassElement classElement, CodeBuffer mainBuffer) {
     assert(!classElement.hasBackendMembers);
     nativeClasses.add(classElement);
 
@@ -271,31 +144,46 @@ class NativeEmitter {
     bool hasFields = emitter.emitClassFields(classElement, builder,
         classIsNative: true,
         superClass: superName);
-    int propertyCount = builder.properties.length;
     emitter.emitClassGettersSetters(classElement, builder);
     emitter.emitInstanceMembers(classElement, builder);
 
-    if (!hasFields && builder.properties.length == propertyCount) {
-      builder.isTrivial = true;
-    }
+    // An empty native class may be omitted since the superclass methods can be
+    // located via the dispatch metadata.
+    // TODO(sra): Also need to check there are no subclasses that will reference
+    // this class.
+    // bool hasOnlyGeneratedFields = builder.properties.length == 1;
+    // if (hasOnlyGeneratedFields == 1 && !hasFields) return;
 
-    return builder;
-  }
+    // Define interceptor class for [classElement].
+    String className = backend.namer.getName(classElement);
+    jsAst.Expression init =
+        js(emitter.classesCollector)[className].assign(
+            builder.toObjectInitializer());
+    mainBuffer.write(jsAst.prettyPrint(init, compiler));
+    mainBuffer.write('$N$n');
 
-  void generateDefineNativeMethods(
-      Set<String> tags, ClassElement classElement, String definer) {
-    if (tags == null) return;
+    emitter.needsDefineClass = true;
 
-    String tagsString = (tags.toList()..sort()).join('|');
+    // Define dispatch for [classElement].
+    String nativeTag = toNativeTag(classElement);
+    String definer = directSubtypes[classElement] == null
+        ? defineNativeMethodsName
+        : defineNativeMethodsNonleafName;
+
+    // TODO(sra): Fix DOM generation.  There is a missing proto in the picture
+    // the DOM gives of the proto chain.  We might need an annotation.
+    if (nativeTag == 'HTMLElement') definer = defineNativeMethodsNonleafName;
+
     jsAst.Expression definition =
         js(definer)(
-            [js.string(tagsString),
+            [js.string(nativeTag),
              js(backend.namer.isolateAccess(classElement))]);
 
     nativeBuffer.add(jsAst.prettyPrint(definition, compiler));
     nativeBuffer.add('$N$n');
-  }
 
+    classesWithDynamicDispatch.add(classElement);
+  }
 
   void finishGenerateNativeClasses() {
     // TODO(sra): Put specialized version of getNativeMethods on
@@ -305,6 +193,11 @@ class NativeEmitter {
     // jsAst.Expression call = js(defineNativeMethodsFinishName)([]);
     // nativeBuffer.add(jsAst.prettyPrint(call, compiler));
     // nativeBuffer.add('$N$n');
+  }
+
+  List<ClassElement> getDirectSubclasses(ClassElement cls) {
+    List<ClassElement> result = directSubtypes[cls];
+    return result == null ? const<ClassElement>[] : result;
   }
 
   void potentiallyConvertDartClosuresToJs(
@@ -388,6 +281,156 @@ class NativeEmitter {
     return statements;
   }
 
+  void emitDynamicDispatchMetadata() {
+    if (classesWithDynamicDispatch.isEmpty) return;
+    int length = classesWithDynamicDispatch.length;
+    if (!compiler.enableMinification) {
+      nativeBuffer.add('// $length dynamic classes.\n');
+    }
+
+    // Build a pre-order traversal over all the classes and their subclasses.
+    Set<ClassElement> seen = new Set<ClassElement>();
+    List<ClassElement> classes = <ClassElement>[];
+    void visit(ClassElement cls) {
+      if (seen.contains(cls)) return;
+      seen.add(cls);
+      getDirectSubclasses(cls).forEach(visit);
+      classes.add(cls);
+    }
+    Elements.sortedByPosition(classesWithDynamicDispatch).forEach(visit);
+
+    List<ClassElement> preorderDispatchClasses = classes.where(
+        (cls) => !getDirectSubclasses(cls).isEmpty &&
+                  classesWithDynamicDispatch.contains(cls)).toList();
+
+    if (!compiler.enableMinification) {
+      nativeBuffer.add('// ${classes.length} classes\n');
+    }
+    Iterable<ClassElement> classesThatHaveSubclasses = classes.where(
+        (ClassElement t) => !getDirectSubclasses(t).isEmpty);
+    if (!compiler.enableMinification) {
+      nativeBuffer.add('// ${classesThatHaveSubclasses.length} !leaf\n');
+    }
+
+    // Generate code that builds the map from cls tags used in dynamic dispatch
+    // to the set of cls tags of classes that extend (TODO: or implement) those
+    // classes.  The set is represented as a string of tags joined with '|'.
+    // This is easily split into an array of tags, or converted into a regexp.
+    //
+    // To reduce the size of the sets, subsets are CSE-ed out into variables.
+    // The sets could be much smaller if we could make assumptions about the
+    // cls tags of other classes (which are constructor names or part of the
+    // result of Object.protocls.toString).  For example, if objects that are
+    // Dart objects could be easily excluded, then we might be able to simplify
+    // the test, replacing dozens of HTMLxxxElement classes with the regexp
+    // /HTML.*Element/.
+
+    // Temporary variables for common substrings.
+    List<String> varNames = <String>[];
+    // Values of temporary variables.
+    Map<String, jsAst.Expression> varDefns = new Map<String, jsAst.Expression>();
+
+    // Expression to compute tags string for a class.  The expression will
+    // initially be a string or expression building a string, but may be
+    // replaced with a variable reference to the common substring.
+    Map<ClassElement, jsAst.Expression> tagDefns =
+        new Map<ClassElement, jsAst.Expression>();
+
+    jsAst.Expression makeExpression(ClassElement classElement) {
+      // Expression fragments for this set of cls keys.
+      List<jsAst.Expression> expressions = <jsAst.Expression>[];
+      // TODO: Remove if cls is abstract.
+      List<String> subtags = [toNativeTag(classElement)];
+      void walk(ClassElement cls) {
+        for (final ClassElement subclass in getDirectSubclasses(cls)) {
+          ClassElement tag = subclass;
+          jsAst.Expression existing = tagDefns[tag];
+          if (existing == null) {
+            // [subclass] is still within the subtree between dispatch classes.
+            subtags.add(toNativeTag(tag));
+            walk(subclass);
+          } else {
+            // [subclass] is one of the preorderDispatchClasses, so CSE this
+            // reference with the previous reference.
+            jsAst.VariableUse use = existing.asVariableUse();
+            if (use != null && varDefns.containsKey(use.name)) {
+              // We end up here if the subclasses have a DAG structure.  We
+              // don't have DAGs yet, but if the dispatch is used for mixins
+              // that will be a possibility.
+              // Re-use the previously created temporary variable.
+              expressions.add(js(use.name));
+            } else {
+              String varName = 'v${varNames.length}_${tag.name.slowToString()}';
+              varNames.add(varName);
+              varDefns[varName] = existing;
+              tagDefns[tag] = js(varName);
+              expressions.add(js(varName));
+            }
+          }
+        }
+      }
+      walk(classElement);
+
+      if (!subtags.isEmpty) {
+        subtags.sort();
+        expressions.add(js.string(subtags.join('|')));
+      }
+      jsAst.Expression expression;
+      if (expressions.length == 1) {
+        expression = expressions[0];
+      } else {
+        jsAst.Expression array = new jsAst.ArrayInitializer.from(expressions);
+        expression = array['join']([js.string('|')]);
+      }
+      return expression;
+    }
+
+    for (final ClassElement classElement in preorderDispatchClasses) {
+      tagDefns[classElement] = makeExpression(classElement);
+    }
+
+    // Write out a thunk that builds the metadata.
+    if (!tagDefns.isEmpty) {
+      List<jsAst.Statement> statements = <jsAst.Statement>[];
+
+      List<jsAst.VariableInitialization> initializations =
+          <jsAst.VariableInitialization>[];
+      for (final String varName in varNames) {
+        initializations.add(
+            new jsAst.VariableInitialization(
+                new jsAst.VariableDeclaration(varName),
+                varDefns[varName]));
+      }
+      if (!initializations.isEmpty) {
+        statements.add(
+            new jsAst.ExpressionStatement(
+                new jsAst.VariableDeclarationList(initializations)));
+      }
+
+      // [table] is a list of lists, each inner list of the form:
+      //   [dynamic-dispatch-tag, tags-of-classes-implementing-dispatch-tag]
+      // E.g.
+      //   [['Node', 'Text|HTMLElement|HTMLDivElement|...'], ...]
+      jsAst.Expression table =
+          new jsAst.ArrayInitializer.from(
+              preorderDispatchClasses.map((cls) =>
+                  new jsAst.ArrayInitializer.from([
+                      js.string(toNativeTag(cls)),
+                      tagDefns[cls]])));
+
+      statements.add(js('$dynamicSetMetadataName(#)', table).toStatement());
+
+      //  (function(){statements})();
+      if (emitter.compiler.enableMinification) nativeBuffer.add(';');
+      nativeBuffer.add(
+          jsAst.prettyPrint(
+              new jsAst.ExpressionStatement(
+                  new jsAst.Call(new jsAst.Fun([], new jsAst.Block(statements)),
+                                 [])),
+              compiler));
+    }
+  }
+
   bool isSupertypeOfNativeClass(Element element) {
     if (element.isTypeVariable()) {
       compiler.cancel("Is check for type variable", element: element);
@@ -443,6 +486,8 @@ class NativeEmitter {
     emitIsChecks();
 
     if (!nativeClasses.isEmpty) {
+      emitDynamicDispatchMetadata();
+
       // If the native emitter has been asked to take care of the
       // noSuchMethod handlers, we do that now.
       if (handleNoSuchMethod) {

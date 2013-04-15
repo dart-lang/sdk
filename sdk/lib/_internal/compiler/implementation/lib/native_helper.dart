@@ -231,6 +231,17 @@ bool isDartObject(obj) {
   return JS('bool', '((#) instanceof (#))', obj, JS_DART_OBJECT_CONSTRUCTOR());
 }
 
+// For each method name and class inheritance subtree, we use an ordinary JS
+// object as a hash map to store the methods for each class.  Entries are added
+// in native_emitter.dart (see dynamicName).  In order to avoid class names
+// clashing with the method names on Object.prototype (needed for native
+// objects) we must always use hasOwnProperty.
+lookupDynamicClass(var hasOwnPropertyFunction, var methods, String className) {
+  return callHasOwnProperty(hasOwnPropertyFunction, methods, className)
+      ? propertyGet(methods, className)
+      : null;
+}
+
 /// A JavaScript object mapping tags to interceptors.
 var interceptorsByTag;
 
@@ -277,24 +288,20 @@ void defineNativeMethodsFinish() {
   // classes over unknown.
 }
 
-lookupInterceptor(var hasOwnPropertyFunction, String tag) {
-  var map = interceptorsByTag;
-  return callHasOwnProperty(hasOwnPropertyFunction, map, tag)
-      ? propertyGet(map, tag)
-      : null;
-}
-
 lookupDispatchRecord(obj) {
   var hasOwnPropertyFunction = JS('var', 'Object.prototype.hasOwnProperty');
   var interceptor = null;
   assert(!isDartObject(obj));
   String tag = getTypeNameOf(obj);
 
-  interceptor = lookupInterceptor(hasOwnPropertyFunction, tag);
+  interceptor = lookupInterceptor(
+      hasOwnPropertyFunction, tag, interceptorsByTag);
+
   if (interceptor == null) {
     String secondTag = alternateTag(obj, tag);
     if (secondTag != null) {
-      interceptor = lookupInterceptor(hasOwnPropertyFunction, secondTag);
+      interceptor = lookupInterceptor(
+          hasOwnPropertyFunction, secondTag, interceptorsByTag);
     }
   }
   if (interceptor == null) {
@@ -308,4 +315,95 @@ lookupDispatchRecord(obj) {
     var proto = JS('', 'Object.getPrototypeOf(#)', obj);
     return makeDispatchRecord(interceptor, proto, null);
   }
+}
+
+lookupInterceptor(var hasOwnPropertyFunction, String tag, var methods) {
+  var method = lookupDynamicClass(hasOwnPropertyFunction, methods, tag);
+  // Look at the inheritance data, getting the class tags and using them
+  // to check the methods table for this method name.
+  if (method == null && _dynamicMetadata != null) {
+    for (int i = 0; i < arrayLength(_dynamicMetadata); i++) {
+      MetaInfo entry = arrayGet(_dynamicMetadata, i);
+      if (callHasOwnProperty(hasOwnPropertyFunction, entry._set, tag)) {
+        method =
+            lookupDynamicClass(hasOwnPropertyFunction, methods, entry._tag);
+        // Stop if we found it in the methods array.
+        if (method != null) break;
+      }
+    }
+  }
+  return method;
+}
+
+/**
+ * This class encodes the class hierarchy when we need it for dynamic
+ * dispatch.
+ */
+class MetaInfo {
+  /**
+   * The type name this [MetaInfo] relates to.
+   */
+  String _tag;
+
+  /**
+   * A string containing the names of subtypes of [tag], separated by
+   * '|'.
+   */
+  String _tags;
+
+  /**
+   * A list of names of subtypes of [tag].
+   */
+  Object _set;
+
+  MetaInfo(this._tag, this._tags, this._set);
+}
+
+List<MetaInfo> get _dynamicMetadata {
+  // Because [dynamicMetadata] has to be shared with multiple isolates
+  // that access native classes (eg multiple DOM isolates),
+  // [_dynamicMetadata] cannot be a field, otherwise all non-main
+  // isolates would not have any value for it.
+  if (identical(JS('var', 'typeof(\$dynamicMetadata)'), 'undefined')) {
+    _dynamicMetadata = <MetaInfo>[];
+  }
+  return JS('var', '\$dynamicMetadata');
+}
+
+void set _dynamicMetadata(List<MetaInfo> table) {
+  JS('void', '\$dynamicMetadata = #', table);
+}
+
+/**
+ * Builds the metadata used for encoding the class hierarchy of native
+ * classes. The following example:
+ *
+ * class A native "*A" {}
+ * class B extends A native "*B" {}
+ *
+ * Will generate:
+ * ['A', 'A|B']
+ *
+ * This method returns a list of [MetaInfo] objects.
+ */
+List <MetaInfo> buildDynamicMetadata(List<List<String>> inputTable) {
+  List<MetaInfo> result = <MetaInfo>[];
+  for (int i = 0; i < arrayLength(inputTable); i++) {
+    String tag = JS('String', '#', arrayGet(arrayGet(inputTable, i), 0));
+    String tags = JS('String', '#', arrayGet(arrayGet(inputTable, i), 1));
+    var set = newJsObject();
+    List<String> tagNames = tags.split('|');
+    for (int j = 0; j < arrayLength(tagNames); j++) {
+      propertySet(set, arrayGet(tagNames, j), true);
+    }
+    result.add(new MetaInfo(tag, tags, set));
+  }
+  return result;
+}
+
+/**
+ * Called by the compiler to setup [_dynamicMetadata].
+ */
+void dynamicSetMetadata(List<List<String>> inputTable) {
+  _dynamicMetadata = buildDynamicMetadata(inputTable);
 }
