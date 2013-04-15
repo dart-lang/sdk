@@ -114,7 +114,7 @@ class _MatchImplementation implements Match {
   }
 }
 
-class _AllMatchesIterable extends Iterable<Match> {
+class _AllMatchesIterable extends IterableBase<Match> {
   final JSSyntaxRegExp _re;
   final String _str;
 

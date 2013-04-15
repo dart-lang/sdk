@@ -212,7 +212,7 @@ class UnionType implements ConcreteType {
  * [: (A, D) :], [: (B, C) :] and finally [: (B, D) :].
  */
 class ConcreteTypeCartesianProduct
-    extends Iterable<ConcreteTypesEnvironment> {
+    extends IterableBase<ConcreteTypesEnvironment> {
   final ConcreteTypesInferrer inferrer;
   final ClassElement typeOfThis;
   final Map<Element, ConcreteType> concreteTypes;

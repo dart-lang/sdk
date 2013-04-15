@@ -521,7 +521,7 @@ class _LazyMap implements Map {
  * looks like it's just a list of objects to a [CustomRule] without needing
  * to inflate all the references in advance.
  */
-class _LazyList extends Iterable implements List {
+class _LazyList extends IterableBase implements List {
   _LazyList(this._raw, this._reader);
 
   final List _raw;

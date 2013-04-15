@@ -4,7 +4,7 @@
 
 library mirrors_util;
 
-import 'dart:collection' show Queue;
+import 'dart:collection' show Queue, IterableBase;
 
 // TODO(rnystrom): Use "package:" URL (#4968).
 import 'mirrors.dart';
@@ -55,7 +55,7 @@ LibraryMirror findLibrary(MemberMirror member) {
   throw new Exception('Unexpected owner: ${owner}');
 }
 
-class HierarchyIterable extends Iterable<ClassMirror> {
+class HierarchyIterable extends IterableBase<ClassMirror> {
   final bool includeType;
   final ClassMirror type;
 

@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-abstract class Link<T> extends Iterable<T> {
+import "dart:collection";
+
+abstract class Link<T> extends IterableBase<T> {
   // does not match constructor for LinkFactory
   factory Link(T head, [Link<T> tail]) = LinkFactory<T>; /// static type warning
   Link<T> prepend(T element);

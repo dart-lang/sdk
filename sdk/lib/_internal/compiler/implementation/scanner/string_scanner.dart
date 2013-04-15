@@ -53,7 +53,7 @@ class StringScanner extends ArrayBasedScanner<SourceString> {
   }
 }
 
-class SubstringWrapper extends Iterable<int> implements SourceString {
+class SubstringWrapper extends IterableBase<int> implements SourceString {
   final String internalString;
   final int begin;
   final int end;

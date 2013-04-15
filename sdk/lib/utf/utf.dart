@@ -4,6 +4,7 @@
 
 library dart.utf;
 import "dart:async";
+import "dart:collection";
 part "utf_stream.dart";
 part "utf8.dart";
 part "utf16.dart";
@@ -197,7 +198,7 @@ class Utf16CodeUnitDecoder implements Iterator<int> {
  */
 // TODO(floitsch): Consider removing the extend and switch to implements since
 // that's cheaper to allocate.
-class _ListRange extends Iterable {
+class _ListRange extends IterableBase {
   final List _source;
   final int _offset;
   final int _length;

@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--enable_checked_mode
 
-abstract class Link<T> extends Iterable<T> {
+import "dart:collection";
+
+abstract class Link<T> extends IterableBase<T> {
   factory Link(T head, [Link<T> tail]) = LinkEntry<T>;
   Link<T> prepend(T element);
 }

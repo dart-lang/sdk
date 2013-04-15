@@ -35,19 +35,19 @@ class HasPrice extends CustomMatcher {
   featureValueOf(actual) => actual.price;
 }
 
-class SimpleIterable extends Iterable {
+class SimpleIterable extends IterableBase {
   int count;
   SimpleIterable(this.count);
-  
+
   bool contains(int val) => count < val ? false : true;
-  
+
   bool any(bool f(element)) {
     for(var i = 0; i <= count; i++) {
       if(f(i)) return true;
     }
     return false;
   }
-  
+
   String toString() => "<[$count]>";
 
   Iterator get iterator {
@@ -197,7 +197,7 @@ void main() {
         "but:  exception <Exception> does not match "
             "UnsupportedError.");
     });
-    
+
     test('throwsStateError', () {
       shouldPass(() { throw new StateError(''); },
           throwsStateError);
@@ -453,14 +453,14 @@ void main() {
       shouldPass(d, isEmpty);
       shouldFail(e, isEmpty, "Expected: empty but: was <[1]>.");
     });
-    
+
     test('contains', () {
       var d = new SimpleIterable(3);
       shouldPass(d, contains(2));
       shouldFail(d, contains(5), "Expected: contains <5> but: was <[3]>.");
     });
   });
-  
+
   group('Iterable Matchers', () {
 
     test('isEmpty', () {

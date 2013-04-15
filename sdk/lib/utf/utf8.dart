@@ -131,7 +131,7 @@ List<int> utf8ToCodepoints(
  */
 // TODO(floitsch): Consider removing the extend and switch to implements since
 // that's cheaper to allocate.
-class IterableUtf8Decoder extends Iterable<int> {
+class IterableUtf8Decoder extends IterableBase<int> {
   final List<int> bytes;
   final int offset;
   final int length;

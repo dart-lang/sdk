@@ -190,7 +190,7 @@ typedef _ListRangeIterator _CodeUnitsProvider();
  */
 // TODO(floitsch): Consider removing the extend and switch to implements since
 // that's cheaper to allocate.
-class IterableUtf16Decoder extends Iterable<int> {
+class IterableUtf16Decoder extends IterableBase<int> {
   final _CodeUnitsProvider codeunitsProvider;
   final int replacementCodepoint;
 

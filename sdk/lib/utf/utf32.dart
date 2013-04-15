@@ -184,7 +184,7 @@ typedef Utf32BytesDecoder Utf32BytesDecoderProvider();
  */
 // TODO(floitsch): Consider removing the extend and switch to implements since
 // that's cheaper to allocate.
-class IterableUtf32Decoder extends Iterable<int> {
+class IterableUtf32Decoder extends IterableBase<int> {
   final Utf32BytesDecoderProvider codeunitsProvider;
 
   IterableUtf32Decoder._(this.codeunitsProvider);

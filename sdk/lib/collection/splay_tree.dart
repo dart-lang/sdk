@@ -505,7 +505,7 @@ abstract class _SplayTreeIterator<T> implements Iterator<T> {
   T _getValue(_SplayTreeNode node);
 }
 
-class _SplayTreeKeyIterable<K> extends Iterable<K> {
+class _SplayTreeKeyIterable<K> extends IterableBase<K> {
   _SplayTree<K> _tree;
   _SplayTreeKeyIterable(this._tree);
   int get length => _tree._count;
@@ -513,7 +513,7 @@ class _SplayTreeKeyIterable<K> extends Iterable<K> {
   Iterator<K> get iterator => new _SplayTreeKeyIterator<K>(_tree);
 }
 
-class _SplayTreeValueIterable<K, V> extends Iterable<V> {
+class _SplayTreeValueIterable<K, V> extends IterableBase<V> {
   SplayTreeMap<K, V> _map;
   _SplayTreeValueIterable(this._map);
   int get length => _map._count;

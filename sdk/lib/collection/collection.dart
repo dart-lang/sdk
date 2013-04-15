@@ -7,6 +7,7 @@ library dart.collection;
 import 'dart:_collection-dev';
 
 part 'collections.dart';
+part 'iterable.dart';
 part 'iterator.dart';
 part 'maps.dart';
 part 'queue.dart';

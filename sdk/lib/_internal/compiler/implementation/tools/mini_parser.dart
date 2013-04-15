@@ -6,7 +6,7 @@ library parser;
 
 import 'dart:io';
 import 'dart:typeddata';
-
+import 'dart:collection';
 import 'dart:utf';
 
 import '../elements/elements.dart';

@@ -251,7 +251,7 @@ abstract class String implements Comparable<String>, Pattern {
 /**
  * The runes (integer Unicode code points) of a [String].
  */
-class Runes extends Iterable<int> {
+class Runes extends IterableBase<int> {
   final String string;
   Runes(this.string);
 

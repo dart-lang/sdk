@@ -11,7 +11,7 @@ part of tree;
  * representing its content after removing quotes and resolving escapes in
  * its source.
  */
-abstract class DartString extends Iterable<int> {
+abstract class DartString extends IterableBase<int> {
   factory DartString.empty() => const LiteralDartString("");
   // This is a convenience constructor. If you need a const literal DartString,
   // use [const LiteralDartString(string)] directly.

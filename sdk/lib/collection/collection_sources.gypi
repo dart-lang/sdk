@@ -10,6 +10,7 @@
     'collections.dart',
     'hash_map.dart',
     'hash_set.dart',
+    'iterable.dart',
     'iterator.dart',
     'linked_hash_map.dart',
     'linked_hash_set.dart',

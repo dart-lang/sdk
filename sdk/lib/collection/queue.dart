@@ -160,7 +160,7 @@ class _DoubleLinkedQueueEntrySentinel<E> extends DoubleLinkedQueueEntry<E> {
  *
  * Can do [removeAll] and [retainAll] in linear time.
  */
-class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
+class DoubleLinkedQueue<E> extends IterableBase<E> implements Queue<E> {
   _DoubleLinkedQueueEntrySentinel<E> _sentinel;
   int _elementCount = 0;
 
@@ -354,7 +354,7 @@ class _DoubleLinkedQueueIterator<E> implements Iterator<E> {
  * Operations like [removeAll] and [removeWhere] are very
  * inefficient. If those are needed, use a [DoubleLinkedQueue] instead.
  */
-class ListQueue<E> extends Iterable<E> implements Queue<E>{
+class ListQueue<E> extends IterableBase<E> implements Queue<E> {
   static const int _INITIAL_CAPACITY = 8;
   List<E> _table;
   int _head;

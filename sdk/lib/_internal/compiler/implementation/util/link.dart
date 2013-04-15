@@ -4,7 +4,7 @@
 
 part of org_dartlang_compiler_util;
 
-class Link<T> extends Iterable<T> {
+class Link<T> extends IterableBase<T> {
   T get head => null;
   Link<T> get tail => null;
 

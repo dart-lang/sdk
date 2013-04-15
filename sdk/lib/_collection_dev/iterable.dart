@@ -10,7 +10,7 @@ part of dart._collection.dev;
  * All other methods are implemented in terms of [length] and [elementAt],
  * including [iterator].
  */
-abstract class ListIterable<E> extends Iterable<E> {
+abstract class ListIterable<E> extends IterableBase<E> {
   int get length;
   E elementAt(int i);
 
@@ -298,7 +298,7 @@ class ListIterator<E> implements Iterator<E> {
 
 typedef T _Transformation<S, T>(S value);
 
-class MappedIterable<S, T> extends Iterable<T> {
+class MappedIterable<S, T> extends IterableBase<T> {
   final Iterable<S> _iterable;
   // TODO(ahe): Restore type when feature is implemented in dart2js
   // checked mode. http://dartbug.com/7733
@@ -356,7 +356,7 @@ class MappedListIterable<S, T> extends ListIterable<T> {
 
 typedef bool _ElementPredicate<E>(E element);
 
-class WhereIterable<E> extends Iterable<E> {
+class WhereIterable<E> extends IterableBase<E> {
   final Iterable<E> _iterable;
   // TODO(ahe): Restore type when feature is implemented in dart2js
   // checked mode. http://dartbug.com/7733
@@ -389,7 +389,7 @@ class WhereIterator<E> extends Iterator<E> {
 
 typedef Iterable<T> _ExpandFunction<S, T>(S sourceElement);
 
-class ExpandIterable<S, T> extends Iterable<T> {
+class ExpandIterable<S, T> extends IterableBase<T> {
   final Iterable<S> _iterable;
   // TODO(ahe): Restore type when feature is implemented in dart2js
   // checked mode. http://dartbug.com/7733
@@ -436,7 +436,7 @@ class ExpandIterator<S, T> implements Iterator<T> {
   }
 }
 
-class TakeIterable<E> extends Iterable<E> {
+class TakeIterable<E> extends IterableBase<E> {
   final Iterable<E> _iterable;
   final int _takeCount;
 
@@ -474,7 +474,7 @@ class TakeIterator<E> extends Iterator<E> {
   }
 }
 
-class TakeWhileIterable<E> extends Iterable<E> {
+class TakeWhileIterable<E> extends IterableBase<E> {
   final Iterable<E> _iterable;
   // TODO(ahe): Restore type when feature is implemented in dart2js
   // checked mode. http://dartbug.com/7733
@@ -511,7 +511,7 @@ class TakeWhileIterator<E> extends Iterator<E> {
   }
 }
 
-class SkipIterable<E> extends Iterable<E> {
+class SkipIterable<E> extends IterableBase<E> {
   final Iterable<E> _iterable;
   final int _skipCount;
 
@@ -550,7 +550,7 @@ class SkipIterator<E> extends Iterator<E> {
   E get current => _iterator.current;
 }
 
-class SkipWhileIterable<E> extends Iterable<E> {
+class SkipWhileIterable<E> extends IterableBase<E> {
   final Iterable<E> _iterable;
   // TODO(ahe): Restore type when feature is implemented in dart2js
   // checked mode. http://dartbug.com/7733
@@ -588,7 +588,7 @@ class SkipWhileIterator<E> extends Iterator<E> {
 /**
  * The always empty [Iterable].
  */
-class EmptyIterable<E> extends Iterable<E> {
+class EmptyIterable<E> extends IterableBase<E> {
   const EmptyIterable();
 
   Iterator<E> get iterator => const EmptyIterator();
