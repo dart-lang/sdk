@@ -440,6 +440,13 @@ LibTest/core/List/removeRange_A01_t01: Fail # removeRange now takes end-argument
 LibTest/core/List/removeRange_A03_t01: Fail # removeRange now takes end-argument. Issue 404
 LibTest/core/List/removeRange_A05_t01: Fail # removeRange now takes end-argument. Issue 404
 
+LibTest/core/List/insertRange_A01_t01: Fail # insertRange is removed. Issue 403
+LibTest/core/List/insertRange_A03_t01: Fail # insertRange is removed. Issue 403
+LibTest/core/List/insertRange_A04_t01: Fail # insertRange is removed. Issue 403
+LibTest/core/List/insertRange_A05_t01: Fail # insertRange is removed. Issue 403
+LibTest/core/List/insertRange_A06_t01: Fail # insertRange is removed. Issue 403
+LibTest/core/List/every_A01_t01: Fail # insertRange is removed. Issue 403
+
 [ $compiler == none && $runtime == vm && $checked ]
 LibTest/core/Set/intersection_A01_t01: Fail # issue 390
 LibTest/core/Set/intersection_A01_t02: Fail # issue 390

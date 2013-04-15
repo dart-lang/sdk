@@ -74,11 +74,6 @@ abstract class FixedLengthListMixin<E>  {
     throw new UnsupportedError(
         "Cannot remove from a fixed-length list");
   }
-
-  void insertRange(int start, int length, [E initialValue]) {
-    throw new UnsupportedError(
-        "Cannot insert range in a fixed-length list");
-  }
 }
 
 /**
@@ -168,11 +163,6 @@ abstract class UnmodifiableListMixin<E> {
   void removeRange(int start, int end) {
     throw new UnsupportedError(
         "Cannot remove from an unmodifiable list");
-  }
-
-  void insertRange(int start, int length, [E initialValue]) {
-    throw new UnsupportedError(
-        "Cannot insert range in an unmodifiable list");
   }
 }
 

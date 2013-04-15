@@ -543,6 +543,13 @@ LibTest/core/List/removeRange_A01_t01: Fail # removeRange now takes end-argument
 LibTest/core/List/removeRange_A03_t01: Fail # removeRange now takes end-argument. Issue 404
 LibTest/core/List/removeRange_A05_t01: Fail # removeRange now takes end-argument. Issue 404
 
+LibTest/core/List/insertRange_A01_t01: Fail # insertRange is removed. Issue 403
+LibTest/core/List/insertRange_A03_t01: Fail # insertRange is removed. Issue 403
+LibTest/core/List/insertRange_A04_t01: Fail # insertRange is removed. Issue 403
+LibTest/core/List/insertRange_A05_t01: Fail # insertRange is removed. Issue 403
+LibTest/core/List/insertRange_A06_t01: Fail # insertRange is removed. Issue 403
+LibTest/core/List/every_A01_t01: Fail # insertRange is removed. Issue 403
+
 Language/11_Expressions/05_Strings/1_String_Interpolation_A03_t02: Fail # Issue 397
 Language/11_Expressions/05_Strings/1_String_Interpolation_A04_t02: Fail # Issue 397
 Language/11_Expressions/11_Instance_Creation/1_New_A08_t01: Fail # Issue 397

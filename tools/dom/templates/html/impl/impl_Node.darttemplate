@@ -161,10 +161,6 @@ $endif
     throw new UnsupportedError(
         "Cannot removeRange on immutable List.");
   }
-  void insertRange(int start, int rangeLength, [Node initialValue]) {
-    throw new UnsupportedError(
-        "Cannot insertRange on immutable List.");
-  }
 
   Iterable<Node> getRange(int start, int end) {
     throw new UnimplementedError("NodeList.getRange");

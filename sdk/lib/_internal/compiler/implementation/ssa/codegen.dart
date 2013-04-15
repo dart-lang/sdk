@@ -234,7 +234,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void insertStatementAtStart(js.Statement statement) {
-    currentContainer.statements.insertRange(0, 1, statement);
+    currentContainer.statements.insert(0, statement);
   }
 
   /**

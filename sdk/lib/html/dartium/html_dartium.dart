@@ -7619,10 +7619,6 @@ class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeT
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [DomMimeType initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
   Iterable<DomMimeType> getRange(int start, int end) =>
     IterableMixinWorkaround.getRangeList(this, start, end);
 
@@ -7918,10 +7914,6 @@ class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin>
 
   void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [DomPlugin initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   Iterable<DomPlugin> getRange(int start, int end) =>
@@ -8348,10 +8340,6 @@ class DomStringList extends NativeFieldWrapperClass1 implements List<String> {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [String initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
   Iterable<String> getRange(int start, int end) =>
     IterableMixinWorkaround.getRangeList(this, start, end);
 
@@ -8631,10 +8619,6 @@ class _ChildrenElementList extends ListBase<Element> {
     throw new UnimplementedError();
   }
 
-  void insertRange(int start, int rangeLength, [initialValue = null]) {
-    throw new UnimplementedError();
-  }
-
   Iterable getRange(int start, int end)  {
     throw new UnimplementedError();
   }
@@ -8754,10 +8738,6 @@ class _FrozenElementList extends ListBase {
   }
 
   void removeRange(int start, int end) {
-    throw new UnsupportedError('');
-  }
-
-  void insertRange(int start, int rangeLength, [initialValue = null]) {
     throw new UnsupportedError('');
   }
 
@@ -11033,10 +11013,6 @@ class FileList extends NativeFieldWrapperClass1 implements List<File> {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [File initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
   Iterable<File> getRange(int start, int end) =>
     IterableMixinWorkaround.getRangeList(this, start, end);
 
@@ -11547,10 +11523,6 @@ class Float32Array extends ArrayBufferView implements List<double> {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [num initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
   Iterable<num> getRange(int start, int end) =>
     IterableMixinWorkaround.getRangeList(this, start, end);
 
@@ -11788,10 +11760,6 @@ class Float64Array extends ArrayBufferView implements List<double> {
 
   void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [num initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   Iterable<num> getRange(int start, int end) =>
@@ -12543,10 +12511,6 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [Node initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
   Iterable<Node> getRange(int start, int end) =>
     IterableMixinWorkaround.getRangeList(this, start, end);
 
@@ -12758,10 +12722,6 @@ class HtmlCollection extends NativeFieldWrapperClass1 implements List<Node> {
 
   void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [Node initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   Iterable<Node> getRange(int start, int end) =>
@@ -15133,10 +15093,6 @@ class Int16Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [int initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
   Iterable<int> getRange(int start, int end) =>
     IterableMixinWorkaround.getRangeList(this, start, end);
 
@@ -15376,10 +15332,6 @@ class Int32Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [int initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
   Iterable<int> getRange(int start, int end) =>
     IterableMixinWorkaround.getRangeList(this, start, end);
 
@@ -15617,10 +15569,6 @@ class Int8Array extends ArrayBufferView implements List<int> {
 
   void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [int initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   Iterable<int> getRange(int start, int end) =>
@@ -18350,10 +18298,6 @@ class _ChildNodeListLazy extends ListBase<Node> {
     throw new UnsupportedError(
         "Cannot removeRange on immutable List.");
   }
-  void insertRange(int start, int rangeLength, [Node initialValue]) {
-    throw new UnsupportedError(
-        "Cannot insertRange on immutable List.");
-  }
 
   Iterable<Node> getRange(int start, int end) {
     throw new UnimplementedError("NodeList.getRange");
@@ -18913,10 +18857,6 @@ class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
 
   void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [Node initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   Iterable<Node> getRange(int start, int end) =>
@@ -21613,10 +21553,6 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [SourceBuffer initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
   Iterable<SourceBuffer> getRange(int start, int end) =>
     IterableMixinWorkaround.getRangeList(this, start, end);
 
@@ -21937,10 +21873,6 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
 
   void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [SpeechGrammar initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   Iterable<SpeechGrammar> getRange(int start, int end) =>
@@ -23680,10 +23612,6 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [TextTrackCue initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
   Iterable<TextTrackCue> getRange(int start, int end) =>
     IterableMixinWorkaround.getRangeList(this, start, end);
 
@@ -23895,10 +23823,6 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
 
   void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [TextTrack initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   Iterable<TextTrack> getRange(int start, int end) =>
@@ -24329,10 +24253,6 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
 
   void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [Touch initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   Iterable<Touch> getRange(int start, int end) =>
@@ -24848,10 +24768,6 @@ class Uint16Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [int initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
   Iterable<int> getRange(int start, int end) =>
     IterableMixinWorkaround.getRangeList(this, start, end);
 
@@ -25089,10 +25005,6 @@ class Uint32Array extends ArrayBufferView implements List<int> {
 
   void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [int initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   Iterable<int> getRange(int start, int end) =>
@@ -25334,10 +25246,6 @@ class Uint8Array extends ArrayBufferView implements List<int> {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [int initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
   Iterable<int> getRange(int start, int end) =>
     IterableMixinWorkaround.getRangeList(this, start, end);
 
@@ -25573,10 +25481,6 @@ class Uint8ClampedArray extends Uint8Array implements List<int> {
 
   void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [int initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   Iterable<int> getRange(int start, int end) =>
@@ -27698,10 +27602,6 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<Rect> {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [Rect initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
   Iterable<Rect> getRange(int start, int end) =>
     IterableMixinWorkaround.getRangeList(this, start, end);
 
@@ -27920,10 +27820,6 @@ class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [CssRule initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
   Iterable<CssRule> getRange(int start, int end) =>
     IterableMixinWorkaround.getRangeList(this, start, end);
 
@@ -28127,10 +28023,6 @@ class _CssValueList extends _CSSValue implements List<_CSSValue> {
 
   void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [_CSSValue initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   Iterable<_CSSValue> getRange(int start, int end) =>
@@ -28574,10 +28466,6 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [Entry initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
   Iterable<Entry> getRange(int start, int end) =>
     IterableMixinWorkaround.getRangeList(this, start, end);
 
@@ -28781,10 +28669,6 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<_EntrySyn
 
   void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [_EntrySync initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   Iterable<_EntrySync> getRange(int start, int end) =>
@@ -29051,10 +28935,6 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
 
   void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [Gamepad initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   Iterable<Gamepad> getRange(int start, int end) =>
@@ -29353,10 +29233,6 @@ class _NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [Node initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
   Iterable<Node> getRange(int start, int end) =>
     IterableMixinWorkaround.getRangeList(this, start, end);
 
@@ -29647,10 +29523,6 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [SpeechInputResult initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
   Iterable<SpeechInputResult> getRange(int start, int end) =>
     IterableMixinWorkaround.getRangeList(this, start, end);
 
@@ -29856,10 +29728,6 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [SpeechRecognitionResult initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
   Iterable<SpeechRecognitionResult> getRange(int start, int end) =>
     IterableMixinWorkaround.getRangeList(this, start, end);
 
@@ -30063,10 +29931,6 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
 
   void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [StyleSheet initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   Iterable<StyleSheet> getRange(int start, int end) =>
@@ -32651,10 +32515,6 @@ class _WrappedList<E> implements List<E> {
   }
 
   void removeRange(int start, int end) { _list.removeRange(start, end); }
-
-  void insertRange(int start, int length, [E fill]) {
-    _list.insertRange(start, length, fill);
-  }
 
   Map<int, E> asMap() => _list.asMap();
 

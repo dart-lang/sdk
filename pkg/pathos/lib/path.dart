@@ -11,6 +11,18 @@ import 'dart:io' as io;
 /// functional interface and not require users to create one.
 final _builder = new Builder();
 
+/**
+ * Inserts [length] elements in front of the [list] and fills them with the
+ * [fillValue].
+ */
+void _growListFront(List list, int length, fillValue) {
+  list.length += length;
+  list.setRange(length, list.length, list);
+  for (var i = 0; i < length; i++) {
+    list[i] = fillValue;
+  }
+}
+
 /// Gets the path to the current working directory.
 String get current => new io.Directory.current().path;
 
@@ -408,7 +420,7 @@ class Builder {
     // Filter out empty parts that exist due to multiple separators in a row.
     parsed.parts = parsed.parts.where((part) => !part.isEmpty)
                                .toList();
-    if (parsed.root != null) parsed.parts.insertRange(0, 1, parsed.root);
+    if (parsed.root != null) parsed.parts.insert(0, parsed.root);
     return parsed.parts;
   }
 
@@ -503,9 +515,9 @@ class Builder {
 
     // If there are any directories left in the root path, we need to walk up
     // out of them.
-    pathParsed.parts.insertRange(0, fromParsed.parts.length, '..');
-    pathParsed.separators.insertRange(0, fromParsed.parts.length,
-        style.separator);
+    _growListFront(pathParsed.parts, fromParsed.parts.length, '..');
+    _growListFront(
+        pathParsed.separators, fromParsed.parts.length, style.separator);
 
     // Corner case: the paths completely collapsed.
     if (pathParsed.parts.length == 0) return '.';
@@ -678,7 +690,7 @@ class _ParsedPath {
 
     // A relative path can back out from the start directory.
     if (!isAbsolute) {
-      newParts.insertRange(0, leadingDoubles, '..');
+      _growListFront(newParts, leadingDoubles, '..');
     }
 
     // If we collapsed down to nothing, do ".".
@@ -688,7 +700,7 @@ class _ParsedPath {
 
     // Canonicalize separators.
     var newSeparators = [];
-    newSeparators.insertRange(0, newParts.length, style.separator);
+    _growListFront(newSeparators, newParts.length, style.separator);
 
     parts = newParts;
     separators = newSeparators;

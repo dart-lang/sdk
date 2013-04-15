@@ -286,20 +286,6 @@ abstract class List<E> implements Iterable<E> {
   void removeRange(int start, int end);
 
   /**
-   * Inserts a new range into the list, starting from [start] to
-   * [:start + length - 1:]. The entries are filled with [fill].
-   * Throws an [UnsupportedError] if the list is
-   * not extendable.
-   * If [length] is 0, this method does not do anything.
-   * If [start] is the length of the list, this method inserts the
-   * range at the end of the list.
-   * Throws an [ArgumentError] if [length] is negative.
-   * Throws an [RangeError] if [start] is negative or if
-   * [start] is greater than the length of the list.
-   */
-  void insertRange(int start, int length, [E fill]);
-
-  /**
    * Returns an unmodifiable [Map] view of `this`.
    *
    * It has the indices of this list as keys, and the corresponding elements

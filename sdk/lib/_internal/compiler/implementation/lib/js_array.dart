@@ -160,34 +160,6 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     return IterableMixinWorkaround.getRangeList(this, start, end);
   }
 
-  void insertRange(int start, int length, [E initialValue]) {
-    checkGrowable(this, 'insertRange');
-    if (length == 0) {
-      return;
-    }
-    if (length is !int) throw new ArgumentError(length);
-    if (length < 0) throw new ArgumentError(length);
-    if (start is !int) throw new ArgumentError(start);
-
-    var receiver = this;
-    var receiverLength = receiver.length;
-    if (start < 0 || start > receiverLength) {
-      throw new RangeError.value(start);
-    }
-    receiver.length = receiverLength + length;
-    Arrays.copy(receiver,
-                start,
-                receiver,
-                start + length,
-                receiverLength - start);
-    if (initialValue != null) {
-      for (int i = start; i < start + length; i++) {
-        receiver[i] = initialValue;
-      }
-    }
-    receiver.length = receiverLength + length;
-  }
-
   E get first {
     if (length > 0) return this[0];
     throw new StateError("No elements");

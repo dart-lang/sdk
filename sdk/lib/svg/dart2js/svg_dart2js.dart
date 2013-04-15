@@ -3176,10 +3176,6 @@ class LengthList implements JavaScriptIndexingBehavior, List<Length> native "*SV
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [Length initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
   Iterable<Length> getRange(int start, int end) =>
     IterableMixinWorkaround.getRangeList(this, start, end);
 
@@ -3806,10 +3802,6 @@ class NumberList implements JavaScriptIndexingBehavior, List<Number> native "*SV
 
   void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [Number initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   Iterable<Number> getRange(int start, int end) =>
@@ -4669,10 +4661,6 @@ class PathSegList implements JavaScriptIndexingBehavior, List<PathSeg> native "*
 
   void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [PathSeg initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   Iterable<PathSeg> getRange(int start, int end) =>
@@ -5562,10 +5550,6 @@ class StringList implements JavaScriptIndexingBehavior, List<String> native "*SV
 
   void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [String initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   Iterable<String> getRange(int start, int end) =>
@@ -6730,10 +6714,6 @@ class TransformList implements List<Transform>, JavaScriptIndexingBehavior nativ
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [Transform initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
-  }
-
   Iterable<Transform> getRange(int start, int end) =>
     IterableMixinWorkaround.getRangeList(this, start, end);
 
@@ -7255,10 +7235,6 @@ class _ElementInstanceList implements JavaScriptIndexingBehavior, List<ElementIn
 
   void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void insertRange(int start, int rangeLength, [ElementInstance initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
   }
 
   Iterable<ElementInstance> getRange(int start, int end) =>

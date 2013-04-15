@@ -118,10 +118,6 @@ class _WrappedList<E> implements List<E> {
 
   void removeRange(int start, int end) { _list.removeRange(start, end); }
 
-  void insertRange(int start, int length, [E fill]) {
-    _list.insertRange(start, length, fill);
-  }
-
   Map<int, E> asMap() => _list.asMap();
 
   String toString() {

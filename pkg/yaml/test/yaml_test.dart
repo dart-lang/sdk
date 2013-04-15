@@ -1350,8 +1350,7 @@ main() {
          bar: invalid ]""")));
 
       // TODO(nweiz): enable this when we throw an error for long keys
-      // var dotList = [];
-      // dotList.insertRange(0, 1024, ' ');
+      // var dotList = new List.filled(1024, ' ');
       // var dots = dotList.join();
       // Expect.throws(() => loadYaml('[ "foo...$dots...bar": invalid ]'));
     });

@@ -190,8 +190,7 @@ class _ScalarNode extends _Node {
   /// long.
   String zeroPad(String str, int length) {
     assert(length >= str.length);
-    var prefix = [];
-    prefix.insertRange(0, length - str.length, '0');
+    var prefix = new List.filled(length - str.length, '0');
     return '${prefix.join()}$str';
   }
 

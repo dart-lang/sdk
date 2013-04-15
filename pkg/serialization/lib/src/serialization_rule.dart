@@ -566,7 +566,6 @@ class _LazyList extends IterableBase implements List {
   getRange(x, y) => _throw();
   setRange(x, y, z, [a]) => _throw();
   removeRange(x, y) => _throw();
-  insertRange(x, y, [z]) => _throw();
   get reversed => _throw();
   void set length(x) => _throw();
 }

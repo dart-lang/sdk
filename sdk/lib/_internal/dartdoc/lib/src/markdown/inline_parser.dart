@@ -80,8 +80,7 @@ class InlineParser {
       syntaxes = defaultSyntaxes;
     }
     // Custom link resolver goes after the generic text syntax.
-    syntaxes.insertRange(1, 1,
-        new LinkSyntax(linkResolver: document.linkResolver));
+    syntaxes.insert(1, new LinkSyntax(linkResolver: document.linkResolver));
   }
 
   List<Node> parse() {

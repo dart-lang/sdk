@@ -79,28 +79,6 @@ class _GrowableObjectArray<T> implements List<T> {
     this.length = this.length - (end - start);
   }
 
-  void insertRange(int start, int length, [T initialValue = null]) {
-    if (length == 0) {
-      return;
-    }
-    if ((length < 0) || (length is! int)) {
-      throw new ArgumentError("invalid length specified $length");
-    }
-    if (start < 0 || start > this.length) {
-      throw new RangeError.value(start);
-    }
-    var old_length = this.length;
-    this.length = old_length + length;  // Will expand if needed.
-    Arrays.copy(this,
-                start,
-                this,
-                start + length,
-                old_length - start);
-    for (int i = start; i < start + length; i++) {
-      this[i] = initialValue;
-    }
-  }
-
   List<T> sublist(int start, [int end]) {
     Arrays.indicesCheck(this, start, end);
     if (end == null) end = length;

@@ -80,10 +80,6 @@ class FilteredElementList extends ListBase<Element> {
     _filtered.sublist(start, end).forEach((el) => el.remove());
   }
 
-  void insertRange(int start, int rangeLength, [initialValue = null]) {
-    throw new UnimplementedError();
-  }
-
   void clear() {
     // Currently, ElementList#clear clears even non-element nodes, so we follow
     // that behavior.

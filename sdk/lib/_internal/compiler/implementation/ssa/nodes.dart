@@ -659,7 +659,7 @@ class HBasicBlock extends HInstructionList {
     if (index == dominatedBlocks.length) {
       dominatedBlocks.add(block);
     } else {
-      dominatedBlocks.insertRange(index, 1, block);
+      dominatedBlocks.insert(index, block);
     }
     assert(block.dominator == null);
     block.dominator = this;

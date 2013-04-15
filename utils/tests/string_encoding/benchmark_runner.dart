@@ -168,15 +168,13 @@ class TestReport {
   }
 
   String _leftAlign(String s, int width) {
-    List<int> outCodes = [];
-    outCodes.insertRange(0, width, spaceChar);
+    List<int> outCodes = new List<int>.filled(width, spaceChar);
     outCodes.setRange(0, Math.min(width, s.length), s.codeUnits);
     return new String.fromCharCodes(outCodes);
   }
 
   String _rightAlign(String s, int width) {
-    List<int> outCodes = [];
-    outCodes.insertRange(0, width, spaceChar);
+    List<int> outCodes = new List<int>.filled(width, spaceChar);
     int fromIndex = Math.max(0, width - s.length);
     int length = Math.min(width, s.length);
     outCodes.setRange(fromIndex, fromIndex + length, s.codeUnits);

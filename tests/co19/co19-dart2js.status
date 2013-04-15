@@ -506,12 +506,19 @@ LibTest/core/List/setRange_A02_t02: Fail # setRange now takes end-argument. Issu
 LibTest/core/List/setRange_A03_t01: Fail # setRange throws StateError if there aren't enough elements in the iterable. Issue 402
 LibTest/core/List/setRange_A03_t02: Fail # setRange throws StateError if there aren't enough elements in the iterable. Issue 402
 
+LibTest/core/List/removeRange_A01_t01: Fail # removeRange now takes end-argument. Issue TODO
+LibTest/core/List/removeRange_A03_t01: Fail # removeRange now takes end-argument. Issue TODO
+LibTest/core/List/removeRange_A05_t01: Fail # removeRange now takes end-argument. Issue TODO
+
+LibTest/core/List/insertRange_A01_t01: Fail # insertRange is removed. Issue 403
+LibTest/core/List/insertRange_A03_t01: Fail # insertRange is removed. Issue 403
+LibTest/core/List/insertRange_A04_t01: Fail # insertRange is removed. Issue 403
+LibTest/core/List/insertRange_A05_t01: Fail # insertRange is removed. Issue 403
+LibTest/core/List/insertRange_A06_t01: Fail # insertRange is removed. Issue 403
+LibTest/core/List/every_A01_t01: Fail # insertRange is removed. Issue 403
+
 [ $compiler == dart2js && $unchecked ]
 LibTest/core/List/setRange_A05_t01: Fail # setRange throws StateError if there aren't enough elements in the iterable. Issue 402
-
-LibTest/core/List/removeRange_A01_t01: Fail # removeRange now takes end-argument. Issue 404
-LibTest/core/List/removeRange_A03_t01: Fail # removeRange now takes end-argument. Issue 404
-LibTest/core/List/removeRange_A05_t01: Fail # removeRange now takes end-argument. Issue 404
 
 # Issues with co19 test suite in checked mode.
 [ $compiler == dart2js && $checked ]

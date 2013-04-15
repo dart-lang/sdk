@@ -951,7 +951,7 @@ class _ChunkedTransformer extends StreamEventTransformer<List<int>, List<int>> {
       header.add(hexDigits[length]);
     } else {
       while (length > 0) {
-        header.insertRange(0, 1, hexDigits[length % 16]);
+        header.insert(0, hexDigits[length % 16]);
         length = length >> 4;
       }
     }

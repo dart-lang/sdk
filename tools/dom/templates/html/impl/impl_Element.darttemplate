@@ -192,10 +192,6 @@ class _ChildrenElementList extends ListBase<Element> {
     throw new UnimplementedError();
   }
 
-  void insertRange(int start, int rangeLength, [initialValue = null]) {
-    throw new UnimplementedError();
-  }
-
   Iterable getRange(int start, int end)  {
     throw new UnimplementedError();
   }
@@ -315,10 +311,6 @@ class _FrozenElementList extends ListBase {
   }
 
   void removeRange(int start, int end) {
-    throw new UnsupportedError('');
-  }
-
-  void insertRange(int start, int rangeLength, [initialValue = null]) {
     throw new UnsupportedError('');
   }
 

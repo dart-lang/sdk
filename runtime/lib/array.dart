@@ -86,12 +86,6 @@ class _ObjectArray<E> implements List<E> {
         "Cannot remove range of a non-extendable array");
   }
 
-  void insertRange(int start, int length, [E initialValue = null]) {
-    throw new UnsupportedError(
-        "Cannot insert range in a non-extendable array");
-  }
-
-
   List<E> sublist(int start, [int end]) {
     Arrays.indicesCheck(this, start, end);
     if (end == null) end = this.length;
@@ -316,11 +310,6 @@ class _ImmutableArray<E> implements List<E> {
   void removeRange(int start, int end) {
     throw new UnsupportedError(
         "Cannot remove range of an immutable array");
-  }
-
-  void insertRange(int start, int length, [E initialValue = null]) {
-    throw new UnsupportedError(
-        "Cannot insert range in an immutable array");
   }
 
   List<E> sublist(int start, [int end]) {

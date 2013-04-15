@@ -542,11 +542,6 @@ abstract class _TypedListBase {
         "Cannot remove from a non-extendable array");
   }
 
-  void insertRange(int start, int length, [initialValue]) {
-    throw new UnsupportedError(
-        "Cannot add to a non-extendable array");
-  }
-
   List toList() {
     return new List.from(this);
   }
