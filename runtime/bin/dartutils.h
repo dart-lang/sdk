@@ -206,7 +206,8 @@ class CObject {
   explicit CObject(Dart_CObject *cobject) : cobject_(cobject) {}
   Dart_CObject::Type type() { return cobject_->type; }
   Dart_CObject::TypedDataType byte_array_type() {
-    ASSERT(type() == Dart_CObject::kTypedData);
+    ASSERT(type() == Dart_CObject::kTypedData ||
+           type() == Dart_CObject::kExternalTypedData);
     return cobject_->value.as_typed_data.type;
   }
 
