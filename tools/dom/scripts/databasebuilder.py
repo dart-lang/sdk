@@ -83,6 +83,7 @@ class DatabaseBuilder(object):
     self._database = database
     self._imported_interfaces = []
     self._impl_stmts = []
+    self.conditionals_met = set()
 
   def _resolve_type_defs(self, idl_file):
     type_def_map = {}
@@ -473,11 +474,13 @@ class DatabaseBuilder(object):
     conditional = node.ext_attrs['Conditional']
     if conditional.find('&') != -1:
       for condition in conditional.split('&'):
+        self.conditionals_met.add(condition)
         if not enabled(condition):
           return False
       return True
 
     for condition in conditional.split('|'):
+      self.conditionals_met.add(condition)
       if enabled(condition):
         return True
     return False

@@ -683,79 +683,6 @@ class BaseElement extends _Element_Merged {
 
 
 @DocsEditable
-@DomName('BatteryManager')
-class BatteryManager extends EventTarget {
-  BatteryManager.internal() : super.internal();
-
-  @DomName('BatteryManager.chargingchangeEvent')
-  @DocsEditable
-  static const EventStreamProvider<Event> chargingChangeEvent = const EventStreamProvider<Event>('chargingchange');
-
-  @DomName('BatteryManager.chargingtimechangeEvent')
-  @DocsEditable
-  static const EventStreamProvider<Event> chargingTimeChangeEvent = const EventStreamProvider<Event>('chargingtimechange');
-
-  @DomName('BatteryManager.dischargingtimechangeEvent')
-  @DocsEditable
-  static const EventStreamProvider<Event> dischargingTimeChangeEvent = const EventStreamProvider<Event>('dischargingtimechange');
-
-  @DomName('BatteryManager.levelchangeEvent')
-  @DocsEditable
-  static const EventStreamProvider<Event> levelChangeEvent = const EventStreamProvider<Event>('levelchange');
-
-  @DomName('BatteryManager.charging')
-  @DocsEditable
-  bool get charging native "BatteryManager_charging_Getter";
-
-  @DomName('BatteryManager.chargingTime')
-  @DocsEditable
-  num get chargingTime native "BatteryManager_chargingTime_Getter";
-
-  @DomName('BatteryManager.dischargingTime')
-  @DocsEditable
-  num get dischargingTime native "BatteryManager_dischargingTime_Getter";
-
-  @DomName('BatteryManager.level')
-  @DocsEditable
-  num get level native "BatteryManager_level_Getter";
-
-  @DomName('BatteryManager.addEventListener')
-  @DocsEditable
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "BatteryManager_addEventListener_Callback";
-
-  @DomName('BatteryManager.dispatchEvent')
-  @DocsEditable
-  bool dispatchEvent(Event event) native "BatteryManager_dispatchEvent_Callback";
-
-  @DomName('BatteryManager.removeEventListener')
-  @DocsEditable
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "BatteryManager_removeEventListener_Callback";
-
-  @DomName('BatteryManager.onchargingchange')
-  @DocsEditable
-  Stream<Event> get onChargingChange => chargingChangeEvent.forTarget(this);
-
-  @DomName('BatteryManager.onchargingtimechange')
-  @DocsEditable
-  Stream<Event> get onChargingTimeChange => chargingTimeChangeEvent.forTarget(this);
-
-  @DomName('BatteryManager.ondischargingtimechange')
-  @DocsEditable
-  Stream<Event> get onDischargingTimeChange => dischargingTimeChangeEvent.forTarget(this);
-
-  @DomName('BatteryManager.onlevelchange')
-  @DocsEditable
-  Stream<Event> get onLevelChange => levelChangeEvent.forTarget(this);
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
 @DomName('BeforeLoadEvent')
 class BeforeLoadEvent extends Event {
   BeforeLoadEvent.internal() : super.internal();
@@ -17978,13 +17905,6 @@ class Navigator extends NativeFieldWrapperClass1 {
   @DomName('Navigator.vendorSub')
   @DocsEditable
   String get vendorSub native "Navigator_vendorSub_Getter";
-
-  @DomName('Navigator.webkitBattery')
-  @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  BatteryManager get battery native "Navigator_webkitBattery_Getter";
 
   @DomName('Navigator.webkitPersistentStorage')
   @DocsEditable
