@@ -8796,9 +8796,18 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
     }
     factory_type_args = factory_type_args.Canonicalize();
     ArgumentListNode* factory_param = new ArgumentListNode(literal_pos);
-    const LocalVariable& temp_local = *BuildArrayTempLocal(type_pos);
-    ArrayNode* list = new ArrayNode(TokenPos(), type, temp_local, element_list);
-    factory_param->Add(list);
+    if (element_list.length() == 0) {
+      // TODO(srdjan): Use Object::empty_array once issue 9871 has been fixed.
+      Array& empty_array = Array::ZoneHandle(Object::empty_array().raw());
+      LiteralNode* empty_array_literal =
+          new LiteralNode(TokenPos(), empty_array);
+      factory_param->Add(empty_array_literal);
+    } else {
+      const LocalVariable& temp_local = *BuildArrayTempLocal(type_pos);
+      ArrayNode* list =
+          new ArrayNode(TokenPos(), type, temp_local, element_list);
+      factory_param->Add(list);
+    }
     return CreateConstructorCallNode(literal_pos,
                                      factory_type_args,
                                      factory_method,
