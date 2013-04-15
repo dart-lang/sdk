@@ -144,29 +144,19 @@ List<String> listDir(String dir, {bool recursive: false,
 
     log.io("Listing directory $dir.");
 
-    var children = [];
-    for (var entity in new Directory(dir).listSync(followLinks: false)) {
-      var entityPath = entity.path;
-      if (!includeHidden && path.basename(entityPath).startsWith('.')) continue;
-
-      // TODO(nweiz): remove this when issue 9832 is fixed.
-      if (entity is Link) {
-        // We treat broken symlinks as files, in that we don't want to recurse
-        // into them.
-        entity = dirExists(entityPath)
-            ? new Directory(entityPath)
-            : new File(entityPath);
+    var children = <String>[];
+    for (var entity in new Directory(dir).listSync()) {
+      if (!includeHidden && path.basename(entity.path).startsWith('.')) {
+        continue;
       }
 
-      if (entity is File) {
-        contents.add(entityPath);
-      } else if (entity is Directory) {
-        contents.add(entityPath);
+      contents.add(entity.path);
+      if (entity is Directory) {
         // TODO(nweiz): don't manually recurse once issue 4794 is fixed.
         // Note that once we remove the manual recursion, we'll need to
         // explicitly filter out files in hidden directories.
         if (recursive) {
-          children.addAll(doList(entityPath, listedDirectories));
+          children.addAll(doList(entity.path, listedDirectories));
         }
       }
     }
