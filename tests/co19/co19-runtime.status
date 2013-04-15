@@ -476,7 +476,7 @@ LibTest/core/Match/str_A01_t01: fail # Issue 400
 LibTest/core/RegExp/allMatches_A01_t01: fail # Issue 400
 
 [ $compiler == none && $runtime == vm && $unchecked ]
-LibTest/core/List/setRange_A05_t01: Fail # setRange now takes end-argument. Issue TODO
+LibTest/core/List/setRange_A05_t01: Fail # setRange now takes end-argument. Issue 402
 
 [ $compiler == none && $arch == simarm ]
 *: Skip
