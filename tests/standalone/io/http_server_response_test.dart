@@ -50,6 +50,21 @@ void testResponseDone() {
       server.close();
     });
   });
+
+  testServerRequest((server, request) {
+    new File("__not_exitsing_file_").openRead().pipe(request.response)
+        .catchError((e) {
+          server.close();
+        });
+  });
+
+  testServerRequest((server, request) {
+    request.response.done.then((_) {
+      server.close();
+    });
+    request.response.contentLength = 0;
+    request.response.close();
+  });
 }
 
 void testResponseAddStream() {
@@ -83,6 +98,20 @@ void testResponseAddStream() {
         });
     controller.close();
   }, bytes: 0);
+
+  testServerRequest((server, request) {
+    request.response.addStream(new File("__not_exitsing_file_").openRead())
+        .catchError((e) {
+          server.close();
+        });
+  });
+
+  testServerRequest((server, request) {
+    new File("__not_exitsing_file_").openRead().pipe(request.response)
+        .catchError((e) {
+          server.close();
+        });
+  });
 }
 
 void testBadResponseAdd() {
