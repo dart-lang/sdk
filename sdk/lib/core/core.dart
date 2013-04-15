@@ -19,7 +19,7 @@ part "expando.dart";
 part "function.dart";
 part "identical.dart";
 part "int.dart";
-part "invocation_mirror.dart";
+part "invocation.dart";
 part "iterable.dart";
 part "iterator.dart";
 part "list.dart";

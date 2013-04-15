@@ -672,7 +672,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
           analyzeLibrary(
               "class A {",
               "  void foo();",
-              "  noSuchMethod(InvocationMirror m) {}",
+              "  noSuchMethod(Invocation m) {}",
               "}",
               "main() {",
               "  new A();",
@@ -693,7 +693,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
           analyzeLibrary(
               "class A {",
               "  void foo();",
-              "  noSuchMethod(InvocationMirror m) {}",
+              "  noSuchMethod(Invocation m) {}",
               "}",
               "main() {",
               "  new A();",
@@ -5354,7 +5354,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     String[] lines = {
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  noSuchMethod(InvocationMirror invocation) {}",
+        "  noSuchMethod(Invocation invocation) {}",
         "}",
         "class B extends A {}",
         "class C {}",
@@ -5396,7 +5396,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     String[] lines = {
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  noSuchMethod(InvocationMirror invocation) {}",
+        "  noSuchMethod(Invocation invocation) {}",
         "}",
         "class B extends A {}",
         "class C {}",
@@ -5436,7 +5436,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     String[] lines = {
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  noSuchMethod(InvocationMirror invocation) {}",
+        "  noSuchMethod(Invocation invocation) {}",
         "}",
         "class B extends A {}",
         "class C {}",

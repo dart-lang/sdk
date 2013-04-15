@@ -123,7 +123,8 @@ intl/test/date_time_format_uninitialized_test: Pass, Fail # http://dartbug.com/9
 
 [ $compiler == dart2js && $minified ]
 # The unittest package relies on getting the original (non-minified) method
-# names in InvocationMirrors.  You can't get that when minifying.
+# names in Invocation.  You can't get that when minifying.
+# TODO(ahe/erikcorry): But soon you can, now that we use Symbol.
 unittest/test/mock_test: Fail
 unittest/test/mock_regexp_negative_test: Fail
 

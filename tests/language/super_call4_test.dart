@@ -10,7 +10,7 @@ import "package:expect/expect.dart";
 class C {
   E e = new E();
 
-  bool noSuchMethod(InvocationMirror im) {
+  bool noSuchMethod(Invocation im) {
     if (im.memberName == 'foo') {
       return im.positionalArguments.isEmpty &&
              im.namedArguments.isEmpty &&
@@ -36,7 +36,7 @@ class C {
 }
 
 class D extends C {
-  bool noSuchMethod(InvocationMirror im) {
+  bool noSuchMethod(Invocation im) {
     return false;
   }
   test1() {

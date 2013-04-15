@@ -17,7 +17,7 @@
     'function.dart',
     'identical.dart',
     'int.dart',
-    'invocation_mirror.dart',
+    'invocation.dart',
     'iterable.dart',
     'iterator.dart',
     'list.dart',

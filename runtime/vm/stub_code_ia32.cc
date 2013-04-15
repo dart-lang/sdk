@@ -1345,7 +1345,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
 // Uses EAX, EBX, EDI as temporary registers.
 void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
   // The target function was not found, so invoke method
-  // "dynamic noSuchMethod(InvocationMirror invocation)".
+  // "dynamic noSuchMethod(Invocation invocation)".
   const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   __ movl(EDI, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));

@@ -140,7 +140,7 @@ getNativeInterceptor(object) {
 }
 
 /**
- * If [InvocationMirror.invokeOn] is being used, this variable
+ * If [Invocation.invokeOn] is being used, this variable
  * contains a JavaScript array with the names of methods that are
  * intercepted.
  */
@@ -203,7 +203,7 @@ abstract class Interceptor {
 
   String toString() => Primitives.objectToString(this);
 
-  dynamic noSuchMethod(InvocationMirror invocation) {
+  dynamic noSuchMethod(Invocation invocation) {
     throw new NoSuchMethodError(this,
                                 invocation.memberName,
                                 invocation.positionalArguments,

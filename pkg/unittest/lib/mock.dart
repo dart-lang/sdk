@@ -1292,7 +1292,7 @@ class Mock {
    * return value. If we find no [Behavior] to apply an exception is
    * thrown.
    */
-  noSuchMethod(InvocationMirror invocation) {
+  noSuchMethod(Invocation invocation) {
     var method = invocation.memberName;
     var args = invocation.positionalArguments;
     if (invocation.isGetter) {

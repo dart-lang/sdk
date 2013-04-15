@@ -257,7 +257,7 @@ TEST_CASE(ValidateNoSuchMethodStackFrameIteration) {
       "} "
       "class StackFrame2Test {"
       "  StackFrame2Test() {}"
-      "  noSuchMethod(InvocationMirror im) {"
+      "  noSuchMethod(Invocation im) {"
       "    /* We should have 8 general frames and 3 dart frames as follows:"
       "     * exit frame"
       "     * dart frame corresponding to StackFrame.frameCount"

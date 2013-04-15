@@ -13,7 +13,7 @@ class NoSuchMethodInfo {
 }
 
 class A {
-  noSuchMethod(InvocationMirror invocation) {
+  noSuchMethod(Invocation invocation) {
     topLevelInfo = new NoSuchMethodInfo(this, invocation.memberName,
                                         invocation.positionalArguments);
     return topLevelInfo;

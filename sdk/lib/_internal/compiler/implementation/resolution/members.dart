@@ -2013,7 +2013,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
             {'className': currentClass, 'memberName': name});
         // We still need to register the invocation, because we might
         // call [:super.noSuchMethod:] that does a
-        // [:InvocationMirror.invokeOn:].
+        // [:Invocation.invokeOn:].
         world.registerDynamicInvocation(selector.name, selector);
         compiler.backend.registerSuperNoSuchMethod(mapping);
       }

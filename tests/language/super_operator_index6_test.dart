@@ -10,7 +10,7 @@ class A {
   var indexField = new List(2);
   operator[]=(index, value) { indexField[index] = value; }
 
-  noSuchMethod(InvocationMirror im) {
+  noSuchMethod(Invocation im) {
     if (im.memberName == '[]') {
       Expect.equals(1, im.positionalArguments.length);
       return indexField[im.positionalArguments[0]];

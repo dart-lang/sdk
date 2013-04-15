@@ -65,7 +65,7 @@ String S(value) {
 createInvocationMirror(name, internalName, type, arguments, argumentNames) =>
     new JSInvocationMirror(name, internalName, type, arguments, argumentNames);
 
-class JSInvocationMirror implements InvocationMirror {
+class JSInvocationMirror implements Invocation {
   static const METHOD = 0;
   static const GETTER = 1;
   static const SETTER = 2;

@@ -11,7 +11,7 @@ part of dart.core;
  * an object doesn't support the member invocation that was attempted
  * on it.
  */
-abstract class InvocationMirror {
+abstract class Invocation {
   /** The name of the invoked member. */
   String get memberName;
 

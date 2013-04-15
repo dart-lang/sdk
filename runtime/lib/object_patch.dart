@@ -33,7 +33,7 @@ patch class Object {
                 Map<String, dynamic> namedArguments)
       native "Object_noSuchMethod";
 
-  /* patch */ noSuchMethod(InvocationMirror invocation) {
+  /* patch */ noSuchMethod(Invocation invocation) {
     return _noSuchMethod(invocation.isMethod,
                          invocation.memberName,
                          invocation._type,

@@ -23,7 +23,7 @@ patch class Object {
 
   patch String toString() => Primitives.objectToString(this);
 
-  patch dynamic noSuchMethod(InvocationMirror invocation) {
+  patch dynamic noSuchMethod(Invocation invocation) {
     throw new NoSuchMethodError(this,
                                 invocation.memberName,
                                 invocation.positionalArguments,

@@ -111,7 +111,7 @@ RawObject* DartEntry::InvokeNoSuchMethod(const Instance& receiver,
                                          const Array& arguments,
                                          const Array& arguments_descriptor) {
   ASSERT(receiver.raw() == arguments.At(0));
-  // Allocate an InvocationMirror object.
+  // Allocate an Invocation object.
   const Library& core_lib = Library::Handle(Library::CoreLibrary());
 
   Class& invocation_mirror_class = Class::Handle(
