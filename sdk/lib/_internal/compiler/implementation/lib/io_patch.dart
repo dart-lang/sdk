@@ -111,13 +111,13 @@ patch class _RandomAccessFile {
   patch static _read(int id, int bytes) {
     throw new UnsupportedError("RandomAccessFile._read");
   }
-  patch static _readInto(int id, List<int> buffer, [int start, int end]) {
+  patch static _readInto(int id, List<int> buffer, int start, int end) {
     throw new UnsupportedError("RandomAccessFile._readInto");
   }
   patch static _writeByte(int id, int value) {
     throw new UnsupportedError("RandomAccessFile._writeByte");
   }
-  patch static _writeFrom(int id, List<int> buffer, [int start, int end]) {
+  patch static _writeFrom(int id, List<int> buffer, int start, int end) {
     throw new UnsupportedError("RandomAccessFile._writeFrom");
   }
   patch static _position(int id) {
