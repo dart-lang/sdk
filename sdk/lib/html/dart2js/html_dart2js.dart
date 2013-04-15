@@ -17047,6 +17047,10 @@ class Navigator native "*Navigator" {
   @DocsEditable
   bool javaEnabled() native;
 
+  @DomName('Navigator.registerProtocolHandler')
+  @DocsEditable
+  void registerProtocolHandler(String scheme, String url, String title) native;
+
   @JSName('webkitGetGamepads')
   @DomName('Navigator.webkitGetGamepads')
   @DocsEditable

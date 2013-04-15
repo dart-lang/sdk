@@ -18389,6 +18389,10 @@ class Navigator extends NativeFieldWrapperClass1 {
   @DocsEditable
   bool javaEnabled() native "Navigator_javaEnabled_Callback";
 
+  @DomName('Navigator.registerProtocolHandler')
+  @DocsEditable
+  void registerProtocolHandler(String scheme, String url, String title) native "Navigator_registerProtocolHandler_Callback";
+
   @DomName('Navigator.webkitGetGamepads')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
