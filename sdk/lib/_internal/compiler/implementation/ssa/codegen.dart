@@ -1743,23 +1743,22 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       }
       pushStatement(new js.LiteralStatement(code), node);
     } else {
-      // We can parse simple JS with the mini parser.  At the moment we can't
-      // handle expression interpolation with # and we can't handle JSON
-      // literals and function literals, both of which contain "{".
-      if (!code.contains("#") && !code.contains("{")) {
-        js.Expression codeAst = js.js(code);
-        push(codeAst, node);
-        if (!inputs.isEmpty) {
-          compiler.internalError("Too many arguments to JS expression",
-                                 instruction: node);
-        }
-      } else {
-        List<js.Expression> data = <js.Expression>[];
+      List<js.Expression> interpolatedExpressions;
+      if (!inputs.isEmpty) {
+        interpolatedExpressions = <js.Expression>[];
         for (int i = 0; i < inputs.length; i++) {
           use(inputs[i]);
-          data.add(pop());
+          interpolatedExpressions.add(pop());
         }
-        push(new js.LiteralExpression.withData(code, data), node);
+      }
+      // We can parse simple JS with the mini parser.  At the moment we can't
+      // handle JSON literals and function literals, both of which contain "{".
+      if (!code.contains("{") && !code.startsWith("throw ")) {
+        js.Expression codeAst = js.js(code, interpolatedExpressions);
+        push(codeAst, node);
+      } else {
+        push(new js.LiteralExpression.withData(code, interpolatedExpressions),
+             node);
       }
     }
     registerForeignType(node.instructionType);

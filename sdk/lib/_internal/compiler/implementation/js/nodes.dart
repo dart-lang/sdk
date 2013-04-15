@@ -519,7 +519,9 @@ class LiteralExpression extends Expression {
   accept(NodeVisitor visitor) => visitor.visitLiteralExpression(this);
 
   void visitChildren(NodeVisitor visitor) {
-    for (Expression expr in inputs) expr.accept(visitor);
+    if (inputs != null) {
+      for (Expression expr in inputs) expr.accept(visitor);
+    }
   }
 
   // Code that uses JS must take care of operator precedences, and
@@ -916,7 +918,7 @@ class Property extends Node {
 }
 
 /**
- * [RegExpLiteral]s, despite being called "Literal", are not inheriting from
+ * [RegExpLiteral]s, despite being called "Literal", do not inherit from
  * [Literal]. Indeed, regular expressions in JavaScript have a side-effect and
  * are thus not in the same category as numbers or strings.
  */

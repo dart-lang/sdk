@@ -450,7 +450,7 @@ class IsolateNatives {
     // such as d8 and jsshell. We should move this code to a helper
     // library that is only loaded when testing on those engines.
 
-    var stack = JS('String|Null', '(new Error()).stack');
+    var stack = JS('String|Null', 'new Error().stack');
     if (stack == null) {
       // According to Internet Explorer documentation, the stack
       // property is not set until the exception is thrown. The stack

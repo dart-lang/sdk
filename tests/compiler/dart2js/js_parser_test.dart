@@ -71,21 +71,18 @@ void main() {
   // String literal with escaped quote.
   testExpression(r'var x = "\""');
   // *No clever escapes.
-  testError(r'var x = "\x42"', 'escapes allowed in string literals');
+  testError(r'var x = "\x42"', 'escapes are not allowed in literals');
   // Operator new.
   testExpression('new Foo()');
   // New with dotted access.
   testExpression('new Frobinator.frobinate()');
-  // *We don't handle dot after 'new' because we group 'new' with regular calls
-  // instead of having it together with the dot operator but with opposite
-  // associativity.
-  testError('new Frobinator().frobinate()', "DOT");
-  // The prettyprinter is smarter than we are.
+  testExpression('new Frobinator().frobinate()');
+  // The prettyprinter strips some superfluous parentheses.
   testExpression('(new Frobinator()).frobinate()',
                  'new Frobinator().frobinate()');
   // *We want a bracket on 'new'.
-  testError('new Foo');
-  testError('(new Foo)');
+  testError('new Foo', 'Parentheses are required');
+  testError('(new Foo)', 'Parentheses are required');
   // Bogus operators.
   testError('a +++ b', 'Unknown operator');
   // This isn't perl.  There are rules.
@@ -107,9 +104,24 @@ void main() {
   testExpression('var new = 42');
   // Bad keyword.
   testError('var typeof = 42', "Expected ALPHA");
-  // Malformed decimal
+  // Malformed decimal/hex.
   testError('var x = 42.', "Unparseable number");
   testError('var x = 1.1.1', "Unparseable number");
+  testError('var x = 0xabcdefga', "Unparseable number");
+  testError('var x = 0xabcdef\$a', "Unparseable number");
+  testError('var x = 0x ', "Unparseable number");
+  // Good hex constants.
+  testExpression('var x = 0xff');
+  testExpression('var x = 0xff + 0xff');
+  testExpression('var x = 0xaF + 0x0123456789abcdefABCDEF');
+  // All sorts of keywords are allowed as property names in ES5.
+  testExpression('x.new = 0');
+  testExpression('x.delete = 0');
+  testExpression('x.for = 0');
+  testExpression('x.instanceof = 0');
+  testExpression('x.in = 0');
+  testExpression('x.void = 0');
+  testExpression('x.continue = 0');
   // More unary.
   testExpression('x = !x');
   testExpression('!x == false');
