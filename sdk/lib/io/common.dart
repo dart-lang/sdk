@@ -74,6 +74,13 @@ _BufferAndOffset _ensureFastAndSerializableBuffer(
       buffer is Int8List ||
       buffer is Uint16List ||
       buffer is Int16List ||
+      buffer is Uint32List ||
+      buffer is Int32List ||
+      buffer is Uint64List ||
+      buffer is Int64List ||
+      buffer is ByteData ||
+      buffer is Float32List ||
+      buffer is Float64List ||
       _BufferUtils._isBuiltinList(buffer)) {
     return new _BufferAndOffset(buffer, offset);
   }

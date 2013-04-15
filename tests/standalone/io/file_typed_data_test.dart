@@ -64,6 +64,33 @@ void testWriteUint8ListAndView() {
 }
 
 
+void testWriteUint8ClampedListAndView() {
+  ReceivePort port = new ReceivePort();
+  Uint8List list = new Uint8ClampedList(8);
+  for (int i = 0; i < 8; i++) list[i] = i;
+  var view = new Uint8ClampedList.view(list.buffer, 2, 4);
+
+  new Directory('').createTemp().then((temp) {
+    var file = new File("${temp.path}/test");
+    file.open(mode: FileMode.WRITE).then((raf) {
+      return raf.writeList(list, 0, 8);
+    }).then((raf) {
+      return raf.writeList(view, 0, 4);
+    }).then((raf) {
+      return raf.close();
+    }).then((_) {
+      var expected = [];
+      expected.addAll(list);
+      expected.addAll(view);
+      var content = file.readAsBytesSync();
+      Expect.listEquals(expected, content);
+      temp.deleteSync(recursive: true);
+      port.close();
+    });
+  });
+}
+
+
 void testWriteInt16ListAndView() {
   ReceivePort port = new ReceivePort();
   var list = new Int16List(8);
@@ -126,9 +153,238 @@ void testWriteUint16ListAndView() {
 }
 
 
+void testWriteInt32ListAndView() {
+  ReceivePort port = new ReceivePort();
+  var list = new Int32List(8);
+  for (int i = 0; i < 8; i++) list[i] = i;
+  var view = new Int32List.view(list.buffer, 2, 4);
+
+  new Directory('').createTemp().then((temp) {
+    var file = new File("${temp.path}/test");
+    file.open(mode: FileMode.WRITE).then((raf) {
+      return raf.writeList(list, 0, 8);
+    }).then((raf) {
+      return raf.writeList(view, 0, 4);
+    }).then((raf) {
+      return raf.close();
+    }).then((_) {
+      var expected = [];
+      expected.addAll(list);
+      expected.addAll(view);
+      var content = file.readAsBytesSync();
+      var typed_data_content = new Uint8List(content.length);
+      for (int i = 0; i < content.length; i++) {
+        typed_data_content[i] = content[i];
+      }
+      Expect.listEquals(expected, new Int32List.view(typed_data_content));
+      temp.deleteSync(recursive: true);
+      port.close();
+    });
+  });
+}
+
+
+void testWriteUint32ListAndView() {
+  ReceivePort port = new ReceivePort();
+  var list = new Uint32List(8);
+  for (int i = 0; i < 8; i++) list[i] = i;
+  var view = new Uint32List.view(list.buffer, 2, 4);
+
+  new Directory('').createTemp().then((temp) {
+    var file = new File("${temp.path}/test");
+    file.open(mode: FileMode.WRITE).then((raf) {
+      return raf.writeList(list, 0, 8);
+    }).then((raf) {
+      return raf.writeList(view, 0, 4);
+    }).then((raf) {
+      return raf.close();
+    }).then((_) {
+      var expected = [];
+      expected.addAll(list);
+      expected.addAll(view);
+      var content = file.readAsBytesSync();
+      var typed_data_content = new Uint8List(content.length);
+      for (int i = 0; i < content.length; i++) {
+        typed_data_content[i] = content[i];
+      }
+      Expect.listEquals(expected, new Uint32List.view(typed_data_content));
+      temp.deleteSync(recursive: true);
+      port.close();
+    });
+  });
+}
+
+
+void testWriteInt64ListAndView() {
+  ReceivePort port = new ReceivePort();
+  var list = new Int64List(8);
+  for (int i = 0; i < 8; i++) list[i] = i;
+  var view = new Int64List.view(list.buffer, 2, 4);
+
+  new Directory('').createTemp().then((temp) {
+    var file = new File("${temp.path}/test");
+    file.open(mode: FileMode.WRITE).then((raf) {
+      return raf.writeList(list, 0, 8);
+    }).then((raf) {
+        //      return raf.writeList(view, 0, 4);
+        //}).then((raf) {
+      return raf.close();
+    }).then((_) {
+      var expected = [];
+      expected.addAll(list);
+      //expected.addAll(view);
+      var content = file.readAsBytesSync();
+      var typed_data_content = new Uint8List(content.length);
+      for (int i = 0; i < content.length; i++) {
+        typed_data_content[i] = content[i];
+      }
+      Expect.listEquals(expected, new Int64List.view(typed_data_content));
+      temp.deleteSync(recursive: true);
+      port.close();
+    });
+  });
+}
+
+
+void testWriteUint64ListAndView() {
+  ReceivePort port = new ReceivePort();
+  var list = new Uint64List(8);
+  for (int i = 0; i < 8; i++) list[i] = i;
+  var view = new Uint64List.view(list.buffer, 2, 4);
+
+  new Directory('').createTemp().then((temp) {
+    var file = new File("${temp.path}/test");
+    file.open(mode: FileMode.WRITE).then((raf) {
+      return raf.writeList(list, 0, 8);
+    }).then((raf) {
+      return raf.writeList(view, 0, 4);
+    }).then((raf) {
+      return raf.close();
+    }).then((_) {
+      var expected = [];
+      expected.addAll(list);
+      expected.addAll(view);
+      var content = file.readAsBytesSync();
+      var typed_data_content = new Uint8List(content.length);
+      for (int i = 0; i < content.length; i++) {
+        typed_data_content[i] = content[i];
+      }
+      Expect.listEquals(expected, new Uint64List.view(typed_data_content));
+      temp.deleteSync(recursive: true);
+      port.close();
+    });
+  });
+}
+
+
+void testWriteByteData() {
+  ReceivePort port = new ReceivePort();
+  var list = new ByteData(8);
+  for (int i = 0; i < 8; i++) list.setUint8(i, i);
+  var view = new ByteData.view(list.buffer, 2, 4);
+
+  new Directory('').createTemp().then((temp) {
+    var file = new File("${temp.path}/test");
+    file.open(mode: FileMode.WRITE).then((raf) {
+      return raf.writeList(list, 0, 8);
+    }).then((raf) {
+      return raf.writeList(view, 0, 4);
+    }).then((raf) {
+      return raf.close();
+    }).then((_) {
+      var expected = [];
+      for (int i = 0; i < list.lengthInBytes; i++) {
+        expected.add(list.getUint8(i));
+      }
+      for (int i = 0; i < view.lengthInBytes; i++) {
+        expected.add(view.getUint8(i));
+      }
+      var content = file.readAsBytesSync();
+      var typed_data_content = new Uint8List(content.length);
+      for (int i = 0; i < content.length; i++) {
+        typed_data_content[i] = content[i];
+      }
+      Expect.listEquals(expected, new Uint8List.view(typed_data_content));
+      temp.deleteSync(recursive: true);
+      port.close();
+    });
+  });
+}
+
+
+void testWriteFloat32ListAndView() {
+  ReceivePort port = new ReceivePort();
+  var list = new Float32List(8);
+  for (int i = 0; i < 8; i++) list[i] = 1.1 * i;
+  var view = new Float32List.view(list.buffer, 2, 4);
+
+  new Directory('').createTemp().then((temp) {
+    var file = new File("${temp.path}/test");
+    file.open(mode: FileMode.WRITE).then((raf) {
+      return raf.writeList(list, 0, 8);
+    }).then((raf) {
+      return raf.writeList(view, 0, 4);
+    }).then((raf) {
+      return raf.close();
+    }).then((_) {
+      var expected = [];
+      expected.addAll(list);
+      expected.addAll(view);
+      var content = file.readAsBytesSync();
+      var typed_data_content = new Uint8List(content.length);
+      for (int i = 0; i < content.length; i++) {
+        typed_data_content[i] = content[i];
+      }
+      Expect.listEquals(expected, new Float32List.view(typed_data_content));
+      temp.deleteSync(recursive: true);
+      port.close();
+    });
+  });
+}
+
+
+void testWriteFloat64ListAndView() {
+  ReceivePort port = new ReceivePort();
+  var list = new Float64List(8);
+  for (int i = 0; i < 8; i++) list[i] = 1.1 * i;
+  var view = new Float64List.view(list.buffer, 2, 4);
+
+  new Directory('').createTemp().then((temp) {
+    var file = new File("${temp.path}/test");
+    file.open(mode: FileMode.WRITE).then((raf) {
+      return raf.writeList(list, 0, 8);
+    }).then((raf) {
+      return raf.writeList(view, 0, 4);
+    }).then((raf) {
+      return raf.close();
+    }).then((_) {
+      var expected = [];
+      expected.addAll(list);
+      expected.addAll(view);
+      var content = file.readAsBytesSync();
+      var typed_data_content = new Uint8List(content.length);
+      for (int i = 0; i < content.length; i++) {
+        typed_data_content[i] = content[i];
+      }
+      Expect.listEquals(expected, new Float64List.view(typed_data_content));
+      temp.deleteSync(recursive: true);
+      port.close();
+    });
+  });
+}
+
+
 main() {
   testWriteInt8ListAndView();
   testWriteUint8ListAndView();
+  testWriteUint8ClampedListAndView();
   testWriteInt16ListAndView();
   testWriteUint16ListAndView();
+  testWriteInt32ListAndView();
+  testWriteUint32ListAndView();
+  testWriteInt64ListAndView();
+  testWriteUint64ListAndView();
+  testWriteByteData();
+  testWriteFloat32ListAndView();
+  testWriteFloat64ListAndView();
 }

@@ -969,10 +969,19 @@ static int SizeInBytes(Dart_CObject::TypedDataType type) {
   switch (type) {
     case Dart_CObject::kInt8Array:
     case Dart_CObject::kUint8Array:
+    case Dart_CObject::kUint8ClampedArray:
       return 1;
     case Dart_CObject::kInt16Array:
     case Dart_CObject::kUint16Array:
       return 2;
+    case Dart_CObject::kInt32Array:
+    case Dart_CObject::kUint32Array:
+    case Dart_CObject::kFloat32Array:
+      return 4;
+    case Dart_CObject::kInt64Array:
+    case Dart_CObject::kUint64Array:
+    case Dart_CObject::kFloat64Array:
+      return 8;
     default:
       break;
   }

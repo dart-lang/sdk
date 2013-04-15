@@ -125,14 +125,23 @@ Dart_CObject* ApiMessageReader::AllocateDartCObjectString(intptr_t length) {
 }
 
 
-static int SizeInBytes(Dart_CObject::TypedDataType type) {
+static int GetTypedDataSizeInBytes(Dart_CObject::TypedDataType type) {
   switch (type) {
     case Dart_CObject::kInt8Array:
     case Dart_CObject::kUint8Array:
+    case Dart_CObject::kUint8ClampedArray:
       return 1;
     case Dart_CObject::kInt16Array:
     case Dart_CObject::kUint16Array:
       return 2;
+    case Dart_CObject::kInt32Array:
+    case Dart_CObject::kUint32Array:
+    case Dart_CObject::kFloat32Array:
+      return 4;
+    case Dart_CObject::kInt64Array:
+    case Dart_CObject::kUint64Array:
+    case Dart_CObject::kFloat64Array:
+      return 8;
     default:
       break;
   }
@@ -146,7 +155,7 @@ Dart_CObject* ApiMessageReader::AllocateDartCObjectTypedData(
   // Allocate a Dart_CObject structure followed by an array of bytes
   // for the byte array content. The pointer to the byte array content
   // is set up to this area.
-  intptr_t length_in_bytes = SizeInBytes(type) * length;
+  intptr_t length_in_bytes = GetTypedDataSizeInBytes(type) * length;
   Dart_CObject* value =
       reinterpret_cast<Dart_CObject*>(
           alloc_(NULL, 0, sizeof(Dart_CObject) + length_in_bytes));
@@ -218,8 +227,16 @@ static Dart_CObject::TypedDataType GetTypedDataTypeFromView(
   } view_class_names[] = {
     { "_Int8ArrayView", Dart_CObject::kInt8Array },
     { "_Uint8ArrayView", Dart_CObject::kUint8Array },
+    { "_Uint8ClampedArrayView", Dart_CObject::kUint8ClampedArray },
     { "_Int16ArrayView", Dart_CObject::kInt16Array },
     { "_Uint16ArrayView", Dart_CObject::kUint16Array },
+    { "_Int32ArrayView", Dart_CObject::kInt32Array },
+    { "_Uint32ArrayView", Dart_CObject::kUint32Array },
+    { "_Int64ArrayView", Dart_CObject::kInt64Array },
+    { "_Uint64ArrayView", Dart_CObject::kUint64Array },
+    { "_ByteDataView", Dart_CObject::kUint8Array },
+    { "_Float32ArrayView", Dart_CObject::kFloat32Array },
+    { "_Float64ArrayView", Dart_CObject::kFloat64Array },
     { NULL, Dart_CObject::kNumberOfTypedDataTypes },
   };
 
@@ -240,22 +257,6 @@ static Dart_CObject::TypedDataType GetTypedDataTypeFromView(
     i++;
   }
   return Dart_CObject::kNumberOfTypedDataTypes;
-}
-
-
-static int GetTypedDataTypeElementSize(Dart_CObject::TypedDataType type) {
-  switch (type) {
-    case Dart_CObject::kInt8Array:
-    case Dart_CObject::kUint8Array:
-      return 1;
-    case Dart_CObject::kInt16Array:
-    case Dart_CObject::kUint16Array:
-      return 2;
-    default:
-      break;
-  }
-  UNREACHABLE();
-  return -1;
 }
 
 
@@ -305,7 +306,7 @@ Dart_CObject* ApiMessageReader::ReadInlinedObject(intptr_t object_id) {
       object->value.as_typed_data.type = type;
       object->value.as_typed_data.length =
           object->internal.as_view.length *
-          GetTypedDataTypeElementSize(type);
+          GetTypedDataSizeInBytes(type);
       object->value.as_typed_data.values =
           buffer->value.as_typed_data.values +
           object->internal.as_view.offset_in_bytes;
@@ -601,6 +602,10 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
     case kExternalTypedDataUint8ArrayCid:
       READ_TYPED_DATA(Uint8, uint8_t);
 
+    case kTypedDataUint8ClampedArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid:
+      READ_TYPED_DATA(Uint8Clamped, uint8_t);
+
     case kTypedDataInt16ArrayCid:
     case kExternalTypedDataInt16ArrayCid:
       READ_TYPED_DATA(Int16, int16_t);
@@ -608,6 +613,30 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
     case kTypedDataUint16ArrayCid:
     case kExternalTypedDataUint16ArrayCid:
       READ_TYPED_DATA(Uint16, uint16_t);
+
+    case kTypedDataInt32ArrayCid:
+    case kExternalTypedDataInt32ArrayCid:
+      READ_TYPED_DATA(Int32, int32_t);
+
+    case kTypedDataUint32ArrayCid:
+    case kExternalTypedDataUint32ArrayCid:
+      READ_TYPED_DATA(Uint32, uint32_t);
+
+    case kTypedDataInt64ArrayCid:
+    case kExternalTypedDataInt64ArrayCid:
+      READ_TYPED_DATA(Int64, int64_t);
+
+    case kTypedDataUint64ArrayCid:
+    case kExternalTypedDataUint64ArrayCid:
+      READ_TYPED_DATA(Uint64, uint64_t);
+
+    case kTypedDataFloat32ArrayCid:
+    case kExternalTypedDataFloat32ArrayCid:
+      READ_TYPED_DATA(Float32, float);
+
+    case kTypedDataFloat64ArrayCid:
+    case kExternalTypedDataFloat64ArrayCid:
+      READ_TYPED_DATA(Float64, double);
 
     case kGrowableObjectArrayCid: {
       // A GrowableObjectArray is serialized as its length followed by

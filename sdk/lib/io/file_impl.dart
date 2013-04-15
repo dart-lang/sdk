@@ -813,7 +813,9 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
   Future<RandomAccessFile> writeList(List<int> buffer, int offset, int bytes) {
     _ensureFileService();
     Completer<RandomAccessFile> completer = new Completer<RandomAccessFile>();
-    if (buffer is !List || offset is !int || bytes is !int) {
+    if ((buffer is !List && buffer is !ByteData) ||
+        offset is !int ||
+        bytes is !int) {
       // Complete asynchronously so the user has a chance to setup
       // handlers without getting exceptions when registering the
       // then handler.

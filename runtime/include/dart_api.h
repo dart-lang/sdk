@@ -967,8 +967,15 @@ typedef struct _Dart_CObject {
   enum TypedDataType {
     kInt8Array = 0,
     kUint8Array,
+    kUint8ClampedArray,
     kInt16Array,
     kUint16Array,
+    kInt32Array,
+    kUint32Array,
+    kInt64Array,
+    kUint64Array,
+    kFloat32Array,
+    kFloat64Array,
     kNumberOfTypedDataTypes
   };
 
