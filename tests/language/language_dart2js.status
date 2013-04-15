@@ -31,7 +31,8 @@ class_literal_test/29: Fail # Class literals are expression now; delete this tes
 full_stacktrace1_test: Fail  # issue 9895
 full_stacktrace2_test: Fail  # issue 9895
 full_stacktrace3_test: Fail  # issue 9895
-stacktrace_test: Fail # Assumes stack trace string ends in newline.
+# Stack traces may or may not end in a newline depending on the JS enging.
+stacktrace_test: Pass, Fail # Assumes stack trace string ends in newline.
 
 # VM specific tests that should not be run by dart2js.
 *vm_test: Skip
