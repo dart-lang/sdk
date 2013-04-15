@@ -2079,7 +2079,7 @@ void EffectGraphVisitor::BuildConstructorCall(
 #define RECOGNIZED_LIST_FACTORY_LIST(V)                                        \
   V(ObjectArrayFactory, kArrayCid, 97987288)                                   \
   V(GrowableObjectArrayWithData, kGrowableObjectArrayCid, 816132033)           \
-  V(GrowableObjectArrayFactory, kGrowableObjectArrayCid, 369608996)            \
+  V(GrowableObjectArrayFactory, kGrowableObjectArrayCid, 552407276)            \
   V(Int8ListFactory, kTypedDataInt8ArrayCid, 2066002614)                       \
   V(Uint8ListFactory, kTypedDataUint8ArrayCid, 1883551322)                     \
   V(Uint8ClampedListFactory, kTypedDataUint8ClampedArrayCid, 244333676)        \
