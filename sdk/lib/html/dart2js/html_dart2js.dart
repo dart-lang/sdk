@@ -11545,21 +11545,20 @@ class Geolocation native "*Geolocation" {
     int watchId;
     var controller;
     controller = new StreamController<Geoposition>(
-      onSubscriptionStateChange: () {
-        if (controller.hasListener) {
-          assert(watchId == null);
-          watchId = $dom_watchPosition(
-              (position) {
-                controller.add(_ensurePosition(position));
-              },
-              (error) {
-                controller.addError(error);
-              },
-              options);
-        } else {
-          assert(watchId != null);
-          $dom_clearWatch(watchId);
-        }
+      onListen: () {
+        assert(watchId == null);
+        watchId = $dom_watchPosition(
+            (position) {
+              controller.add(_ensurePosition(position));
+            },
+            (error) {
+              controller.addError(error);
+            },
+            options);
+      },
+      onCancel: () {
+        assert(watchId != null);
+        $dom_clearWatch(watchId);
       });
 
     return controller.stream;
