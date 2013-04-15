@@ -1359,6 +1359,55 @@ TEST_CASE(ExternalTypedDataCallback) {
   EXPECT(peer == 42);
 }
 
+
+static void CheckFloat32x4Data(Dart_Handle obj) {
+  void* raw_data = NULL;
+  intptr_t len;
+  Dart_TypedData_Type type;
+  EXPECT_VALID(Dart_TypedDataAcquireData(obj, &type, &raw_data, &len));
+  EXPECT_EQ(kFloat32x4, type);
+  EXPECT_EQ(len, 10);
+  float* float_data = reinterpret_cast<float*>(raw_data);
+  for (int i = 0; i < len * 4; i++) {
+    EXPECT_EQ(0.0, float_data[i]);
+  }
+  EXPECT_VALID(Dart_TypedDataReleaseData(obj));
+}
+
+
+TEST_CASE(Float32x4List) {
+    const char* kScriptChars =
+      "import 'dart:typeddata';\n"
+      "Float32x4List float32x4() {\n"
+      "  return new Float32x4List(10);\n"
+      "}\n";
+  // Create a test library and Load up a test script in it.
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+
+  Dart_Handle obj = Dart_Invoke(lib, NewString("float32x4"), 0, NULL);
+  EXPECT_VALID(obj);
+  CheckFloat32x4Data(obj);
+
+  obj = Dart_NewTypedData(kFloat32x4, 10);
+  EXPECT_VALID(obj);
+  CheckFloat32x4Data(obj);
+
+  int peer = 0;
+  float data[] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                   0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                   0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                   0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+  obj = Dart_NewExternalTypedData(kFloat32x4,
+                                  data,
+                                  10,
+                                  &peer,
+                                  ExternalTypedDataCallbackFinalizer);
+  CheckFloat32x4Data(obj);
+  Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
+  EXPECT(peer == 42);
+}
+
+
 #endif
 
 
