@@ -2,6 +2,7 @@ library dart.dom.web_audio;
 
 import 'dart:async';
 import 'dart:collection';
+import 'dart:_collection-dev';
 import 'dart:html';
 import 'dart:html_common';
 import 'dart:_js_helper' show Creates, Returns, convertDartClosureToJS;
