@@ -482,7 +482,7 @@ class TakeWhileIterable<E> extends Iterable<E> {
 
   TakeWhileIterable(this._iterable, bool this._f(E element));
 
-  Iterator<E> get iterator {collectionToString
+  Iterator<E> get iterator {
     return new TakeWhileIterator<E>(_iterable.iterator, _f);
   }
 }
