@@ -18702,7 +18702,7 @@ class Node extends EventTarget {
   // notifications.
   var _model;
   bool _hasLocalModel;
-  StreamController<Node> _modelChangedStream;
+  Set<StreamController<Node>> _modelChangedStreams;
 
   /**
    * The data model which is inherited through the tree.
@@ -18719,7 +18719,7 @@ class Node extends EventTarget {
   @Experimental
   get model {
     // If we have a change handler then we've cached the model locally.
-    if (_modelChangedStream != null) {
+    if (!_modelChangedStreams.isEmpty) {
       return _model;
     }
     // Otherwise start looking up the tree.
@@ -18739,8 +18739,8 @@ class Node extends EventTarget {
     _ModelTreeObserver.initialize();
 
     if (changed) {
-      if (_modelChangedStream != null) {
-        _modelChangedStream.add(this);
+      if (!_modelChangedStreams.isEmpty) {
+        _modelChangedStreams.toList().forEach((stream) => stream.add(this));
       }
       // Propagate new model to all descendants.
       _ModelTreeObserver.propagateModel(this, value, false);
@@ -18769,12 +18769,11 @@ class Node extends EventTarget {
    * Get a stream of models, whenever the model changes.
    */
   Stream<Node> get onModelChanged {
-    if (_modelChangedStream == null) {
-      // Ensure the model is cached locally to minimize change notifications.
-      _model = model;
-      _modelChangedStream = new StreamController();
-    }
-    return _modelChangedStream.stream;
+    var result;
+    result = new StreamController(
+        onListen: () { _modelChangedStreams.add(result); },
+        onCancel: () { _modelChangedStreams.remove(result); });
+    return result;
   }
 
   /**

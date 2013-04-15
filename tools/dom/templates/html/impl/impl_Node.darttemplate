@@ -351,7 +351,7 @@ $endif
   Stream<Node> get onModelChanged {
     var result;
     result = new StreamController(
-        onListen: () { _modelChangedStreams.add(result); }
+        onListen: () { _modelChangedStreams.add(result); },
         onCancel: () { _modelChangedStreams.remove(result); });
     return result;
   }
