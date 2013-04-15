@@ -1941,6 +1941,7 @@ class _ProxyCredentials {
 abstract class _HttpClientCredentials implements HttpClientCredentials {
   _AuthenticationScheme get scheme;
   void authorize(_Credentials credentials, HttpClientRequest request);
+  void authorizeProxy(_ProxyCredentials _, HttpClientRequest request);
 }
 
 

@@ -977,9 +977,9 @@ abstract class HttpClient {
 
   /**
    * Sets the function to be called when a proxy is requesting
-   * authentication. The proxy used and and the security realm from
-   * the server are passed in the arguments [host], [port] and
-   * [realm].
+   * authentication. Information on the proxy in use and the security
+   * realm for the authentication are passed in the arguments [host],
+   * [port] and [realm].
    *
    * The function returns a [Future] which should complete when the
    * authentication has been resolved. If credentials cannot be
