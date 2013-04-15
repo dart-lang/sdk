@@ -11,6 +11,3 @@ part 'iterable.dart';
 part 'list.dart';
 part 'sort.dart';
 part 'to_string.dart';
-
-// TODO(floitsch): move this into core, another hidden library or remove it.
-const deprecated = 0;
