@@ -51,7 +51,8 @@ class _FilterTransformer extends StreamEventTransformer<List<int>, List<int>> {
       }
     } catch (e, s) {
       _closed = true;
-      sink.addError(e, s);
+      // TODO(floitsch): we are losing the stack trace.
+      sink.addError(e);
       sink.close();
     }
   }
@@ -65,7 +66,8 @@ class _FilterTransformer extends StreamEventTransformer<List<int>, List<int>> {
         sink.add(out);
       }
     } catch (e, s) {
-      sink.addError(e, s);
+      // TODO(floitsch): we are losing the stack trace.
+      sink.addError(e);
       _closed = true;
     }
     if (!_closed) _filter.end();

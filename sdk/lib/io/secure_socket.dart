@@ -572,7 +572,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     // TODO(whesse): Call _reportError from all internal functions that throw.
     if (e is SocketIOException) {
       e = new SocketIOException('$message (${e.message})', e.osError);
-    } else if (error is OSError) {
+    } else if (e is OSError) {
       e = new SocketIOException(message, e);
     } else {
       e = new SocketIOException('$message (${e.toString()})', null);
