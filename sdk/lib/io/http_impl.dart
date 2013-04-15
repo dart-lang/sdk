@@ -251,6 +251,13 @@ class _HttpClientResponse
 
   HttpConnectionInfo get connectionInfo => _httpRequest.connectionInfo;
 
+  bool get _shouldAuthenticateProxy {
+    // Only try to authenticate if there is a challenge in the response.
+    List<String> challenge = headers[HttpHeaders.PROXY_AUTHENTICATE];
+    return statusCode == HttpStatus.PROXY_AUTHENTICATION_REQUIRED &&
+        challenge != null && challenge.length == 1;
+  }
+
   bool get _shouldAuthenticate {
     // Only try to authenticate if there is a challenge in the response.
     List<String> challenge = headers[HttpHeaders.WWW_AUTHENTICATE];
@@ -315,6 +322,54 @@ class _HttpClientResponse
         }
       });
     }
+
+    // No credentials were found and the callback was not set.
+    return new Future.immediate(this);
+  }
+
+  Future<HttpClientResponse> _authenticateProxy() {
+    Future<HttpClientResponse> retryWithProxyCredentials(_ProxyCredentials cr) {
+      return fold(null, (x, y) {}).then((_) {
+          return _httpClient._openUrlFromRequest(_httpRequest.method,
+                                                 _httpRequest.uri,
+                                                 _httpRequest)
+              .then((request) => request.close());
+        });
+    }
+
+    List<String> challenge = headers[HttpHeaders.PROXY_AUTHENTICATE];
+    assert(challenge != null || challenge.length == 1);
+    _HeaderValue header =
+        new _HeaderValue.fromString(challenge[0], parameterSeparator: ",");
+    _AuthenticationScheme scheme =
+        new _AuthenticationScheme.fromString(header.value);
+    String realm = header.parameters["realm"];
+
+    // See if any credentials are available.
+    var proxy = _httpRequest._proxy;
+
+    var cr =  _httpClient._findProxyCredentials(proxy);
+    if (cr != null) {
+      return retryWithProxyCredentials(cr);
+    }
+
+    // Ask for more credentials if none found.
+    if (_httpClient._authenticateProxy != null) {
+      Future authComplete = _httpClient._authenticateProxy(proxy.host,
+                                                           proxy.port,
+                                                           "basic",
+                                                           realm);
+      return authComplete.then((credsAvailable) {
+        if (credsAvailable) {
+          var cr =  _httpClient._findProxyCredentials(proxy);
+          return retryWithProxyCredentials(cr);
+        } else {
+          // No credentials available, complete with original response.
+          return this;
+        }
+      });
+    }
+
     // No credentials were found and the callback was not set.
     return new Future.immediate(this);
   }
@@ -757,7 +812,7 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
   final Completer<HttpClientResponse> _responseCompleter
       = new Completer<HttpClientResponse>();
 
-  final bool _usingProxy;
+  final _Proxy _proxy;
 
   Future<HttpClientResponse> _response;
 
@@ -771,7 +826,7 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
   _HttpClientRequest(_HttpOutgoing outgoing,
                      Uri this.uri,
                      String this.method,
-                     bool this._usingProxy,
+                     _Proxy this._proxy,
                      _HttpClient this._httpClient,
                      _HttpClientConnection this._httpClientConnection)
       : super("1.1", outgoing) {
@@ -825,6 +880,8 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
             .then((_) => new Future.immediateError(
                 new RedirectLimitExceededException(response.redirects)));
       }
+    } else if (response._shouldAuthenticateProxy) {
+      future = response._authenticateProxy();
     } else if (response._shouldAuthenticate) {
       future = response._authenticate();
     } else {
@@ -850,7 +907,7 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
     writeSP();
     // Send the path for direct connections and the whole URL for
     // proxy connections.
-    if (!_usingProxy) {
+    if (_proxy.isDirect) {
       String path = uri.path;
       if (path.length == 0) path = "/";
       if (uri.query != "") {
@@ -1023,7 +1080,7 @@ class _HttpClientConnection {
         });
   }
 
-  _HttpClientRequest send(Uri uri, int port, String method, bool isDirect) {
+  _HttpClientRequest send(Uri uri, int port, String method, _Proxy proxy) {
     // Start with pausing the parser.
     _subscription.pause();
     var outgoing = new _HttpOutgoing(_socket);
@@ -1031,15 +1088,27 @@ class _HttpClientConnection {
     var request = new _HttpClientRequest(outgoing,
                                          uri,
                                          method,
-                                         !isDirect,
+                                         proxy,
                                          _httpClient,
                                          this);
     request.headers.host = uri.domain;
     request.headers.port = port;
     request.headers.set(HttpHeaders.ACCEPT_ENCODING, "gzip");
+    if (proxy.isAuthenticated) {
+      // If the proxy configuration contains user information use that
+      // for proxy basic authorization.
+      String auth = CryptoUtils.bytesToBase64(
+          _encodeString("${proxy.username}:${proxy.password}"));
+      request.headers.set(HttpHeaders.PROXY_AUTHORIZATION, "Basic $auth");
+    } else if (!proxy.isDirect && _httpClient._proxyCredentials.length > 0) {
+      var cr =  _httpClient._findProxyCredentials(proxy);
+      if (cr != null) {
+        cr.authorize(request);
+      }
+    }
     if (uri.userInfo != null && !uri.userInfo.isEmpty) {
       // If the URL contains user information use that for basic
-      // authorization
+      // authorization.
       String auth =
           CryptoUtils.bytesToBase64(_encodeString(uri.userInfo));
       request.headers.set(HttpHeaders.AUTHORIZATION, "Basic $auth");
@@ -1133,7 +1202,9 @@ class _HttpClient implements HttpClient {
   final Set<_HttpClientConnection> _activeConnections
       = new Set<_HttpClientConnection>();
   final List<_Credentials> _credentials = [];
+  final List<_ProxyCredentials> _proxyCredentials = [];
   Function _authenticate;
+  Function _authenticateProxy;
   Function _findProxy = HttpClient.findProxyFromEnvironment;
 
   Future<HttpClientRequest> open(String method,
@@ -1201,6 +1272,18 @@ class _HttpClient implements HttpClient {
     _credentials.add(new _Credentials(url, realm, cr));
   }
 
+  set authenticateProxy(
+      Future<bool> f(String host, int port, String scheme, String realm)) {
+    _authenticateProxy = f;
+  }
+
+  void addProxyCredentials(String host,
+                           int port,
+                           String realm,
+                           HttpClientCredentials cr) {
+    _proxyCredentials.add(new _ProxyCredentials(host, port, realm, cr));
+  }
+
   set findProxy(String f(Uri uri)) => _findProxy = f;
 
   Future<HttpClientRequest> _openUrl(String method, Uri uri) {
@@ -1234,7 +1317,7 @@ class _HttpClient implements HttpClient {
           return info.connection.send(uri,
                                       port,
                                       method.toUpperCase(),
-                                      info.proxy.isDirect);
+                                      info.proxy);
         });
   }
 
@@ -1246,7 +1329,7 @@ class _HttpClient implements HttpClient {
           request.followRedirects = previous.followRedirects;
           // Allow same number of redirects.
           request.maxRedirects = previous.maxRedirects;
-          // Copy headers
+          // Copy headers.
           for (var header in previous.headers._headers.keys) {
             if (request.headers[header] == null) {
               request.headers.set(header, previous.headers[header]);
@@ -1336,6 +1419,16 @@ class _HttpClient implements HttpClient {
           }
         });
     return cr;
+  }
+
+  _ProxyCredentials _findProxyCredentials(_Proxy proxy) {
+    // Look for credentials.
+    var it = _proxyCredentials.iterator;
+    while (it.moveNext()) {
+      if (it.current.applies(proxy, _AuthenticationScheme.BASIC)) {
+        return it.current;
+      }
+    }
   }
 
   void _removeCredentials(_Credentials cr) {
@@ -1625,13 +1718,30 @@ class _ProxyConfiguration {
       proxy = proxy.trim();
       if (!proxy.isEmpty) {
         if (proxy.startsWith(PROXY_PREFIX)) {
+          String username;
+          String password;
+          // Skip the "PROXY " prefix.
+          proxy = proxy.substring(PROXY_PREFIX.length).trim();
+          // Look for proxy authentication.
+          int at = proxy.indexOf("@");
+          if (at != -1) {
+            String userinfo = proxy.substring(0, at).trim();
+            proxy = proxy.substring(at + 1).trim();
+            int colon = userinfo.indexOf(":");
+            if (colon == -1 || colon == 0 || colon == proxy.length - 1) {
+              throw new HttpException(
+                  "Invalid proxy configuration $configuration");
+            }
+            username = userinfo.substring(0, colon).trim();
+            password = userinfo.substring(colon + 1).trim();
+          }
+          // Look for proxy host and port.
           int colon = proxy.indexOf(":");
           if (colon == -1 || colon == 0 || colon == proxy.length - 1) {
             throw new HttpException(
                 "Invalid proxy configuration $configuration");
           }
-          // Skip the "PROXY " prefix.
-          String host = proxy.substring(PROXY_PREFIX.length, colon).trim();
+          String host = proxy.substring(0, colon).trim();
           String portString = proxy.substring(colon + 1).trim();
           int port;
           try {
@@ -1641,7 +1751,7 @@ class _ProxyConfiguration {
                 "Invalid proxy configuration $configuration, "
                 "invalid port '$portString'");
           }
-          proxies.add(new _Proxy(host, port));
+          proxies.add(new _Proxy(host, port, username, password));
         } else if (proxy.trim() == DIRECT_PREFIX) {
           proxies.add(new _Proxy.direct());
         } else {
@@ -1659,11 +1769,17 @@ class _ProxyConfiguration {
 
 
 class _Proxy {
-  const _Proxy(this.host, this.port) : isDirect = false;
-  const _Proxy.direct() : host = null, port = null, isDirect = true;
+  const _Proxy(
+      this.host, this.port, this.username, this.password) : isDirect = false;
+  const _Proxy.direct() : host = null, port = null,
+                          username = null, password = null, isDirect = true;
+
+  bool get isAuthenticated => username != null;
 
   final String host;
   final int port;
+  final String username;
+  final String password;
   final bool isDirect;
 }
 
@@ -1802,6 +1918,26 @@ class _Credentials {
 }
 
 
+class _ProxyCredentials {
+  _ProxyCredentials(this.host, this.port, this.realm, this.credentials);
+
+  _AuthenticationScheme get scheme => credentials.scheme;
+
+  bool applies(_Proxy proxy, _AuthenticationScheme scheme) {
+    return proxy.host == host && proxy.port == port;
+  }
+
+  void authorize(HttpClientRequest request) {
+    credentials.authorizeProxy(this, request);
+  }
+
+  String host;
+  int port;
+  String realm;
+  _HttpClientCredentials credentials;
+}
+
+
 abstract class _HttpClientCredentials implements HttpClientCredentials {
   _AuthenticationScheme get scheme;
   void authorize(_Credentials credentials, HttpClientRequest request);
@@ -1816,7 +1952,7 @@ class _HttpClientBasicCredentials
 
   _AuthenticationScheme get scheme => _AuthenticationScheme.BASIC;
 
-  void authorize(_Credentials _, HttpClientRequest request) {
+  String authorization() {
     // There is no mentioning of username/password encoding in RFC
     // 2617. However there is an open draft for adding an additional
     // accept-charset parameter to the WWW-Authenticate and
@@ -1825,7 +1961,15 @@ class _HttpClientBasicCredentials
     // now always use UTF-8 encoding.
     String auth =
         CryptoUtils.bytesToBase64(_encodeString("$username:$password"));
-    request.headers.set(HttpHeaders.AUTHORIZATION, "Basic $auth");
+    return "Basic $auth";
+  }
+
+  void authorize(_Credentials _, HttpClientRequest request) {
+    request.headers.set(HttpHeaders.AUTHORIZATION, authorization());
+  }
+
+  void authorizeProxy(_ProxyCredentials _, HttpClientRequest request) {
+    request.headers.set(HttpHeaders.PROXY_AUTHORIZATION, authorization());
   }
 
   String username;
@@ -1842,6 +1986,11 @@ class _HttpClientDigestCredentials
   _AuthenticationScheme get scheme => _AuthenticationScheme.DIGEST;
 
   void authorize(_Credentials credentials, HttpClientRequest request) {
+    // TODO(sgjesse): Implement!!!
+    throw new UnsupportedError("Digest authentication not yet supported");
+  }
+
+  void authorizeProxy(_Credentials credentials, HttpClientRequest request) {
     // TODO(sgjesse): Implement!!!
     throw new UnsupportedError("Digest authentication not yet supported");
   }

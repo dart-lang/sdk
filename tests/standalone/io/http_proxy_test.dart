@@ -4,8 +4,10 @@
 
 import "package:expect/expect.dart";
 import "dart:async";
+import 'dart:crypto';
 import "dart:io";
 import "dart:uri";
+import 'dart:utf';
 
 class Server {
   HttpServer server;
@@ -48,8 +50,10 @@ class Server {
             },
             onDone: () {
               String path = request.uri.path.substring(1);
-              String content = "$path$path$path";
-              Expect.equals(content, body.toString());
+              if (path != "A") {
+                String content = "$path$path$path";
+                Expect.equals(content, body.toString());
+              }
               response.write(request.uri.path);
               response.close();
             });
@@ -76,8 +80,20 @@ class ProxyServer {
   HttpServer server;
   HttpClient client;
   int requestCount = 0;
+  String username;
+  String password;
 
   ProxyServer() : client = new HttpClient();
+
+  authenticationRequired(request) {
+    request.fold(null, (x, y) {}).then((_) {
+      var response = request.response;
+      response.headers.set(HttpHeaders.PROXY_AUTHENTICATE,
+                           "Basic, realm=realm");
+      response.statusCode = HttpStatus.PROXY_AUTHENTICATION_REQUIRED;
+      response.close();
+    });
+  }
 
   Future<ProxyServer> start() {
     var x = new Completer();
@@ -86,6 +102,25 @@ class ProxyServer {
       x.complete(this);
       server.listen((HttpRequest request) {
         requestCount++;
+        if (username != null && password != null) {
+          if (request.headers[HttpHeaders.PROXY_AUTHORIZATION] == null) {
+            authenticationRequired(request);
+            return;
+          } else {
+            Expect.equals(
+                1, request.headers[HttpHeaders.PROXY_AUTHORIZATION].length);
+            String authorization =
+              request.headers[HttpHeaders.PROXY_AUTHORIZATION][0];
+            List<String> tokens = authorization.split(" ");
+            Expect.equals("Basic", tokens[0]);
+            String auth =
+                CryptoUtils.bytesToBase64(encodeUtf8("$username:$password"));
+            if (auth != tokens[1]) {
+              authenticationRequired(request);
+              return;
+            }
+          }
+        }
         // Open the connection from the proxy.
         client.openUrl(request.method, request.uri)
           .then((HttpClientRequest clientRequest) {
@@ -362,10 +397,151 @@ void testProxyFromEnviroment() {
   });
 }
 
+
+int testProxyAuthenticateCount = 0;
+void testProxyAuthenticate() {
+  setupProxyServer().then((proxyServer) {
+  proxyServer.username = "test";
+  proxyServer.password = "test";
+  setupServer(1).then((server) {
+  setupServer(1, secure: true).then((secureServer) {
+    HttpClient client = new HttpClient();
+
+    Completer step1 = new Completer();
+    Completer step2 = new Completer();
+
+    // Test with no authentication.
+    client.findProxy = (Uri uri) {
+      return "PROXY localhost:${proxyServer.port}";
+    };
+
+    const int loopCount = 2;
+    for (int i = 0; i < loopCount; i++) {
+      test(bool secure) {
+        String url = secure
+            ? "https://localhost:${secureServer.port}/$i"
+            : "http://127.0.0.1:${server.port}/$i";
+
+        client.postUrl(Uri.parse(url))
+          .then((HttpClientRequest clientRequest) {
+            String content = "$i$i$i";
+            clientRequest.write(content);
+            return clientRequest.close();
+          })
+          .then((HttpClientResponse response) {
+            response.listen((_) {}, onDone: () {
+              testProxyAuthenticateCount++;
+              Expect.equals(HttpStatus.PROXY_AUTHENTICATION_REQUIRED,
+                            response.statusCode);
+              if (testProxyAuthenticateCount == loopCount * 2) {
+                Expect.equals(0, server.requestCount);
+                Expect.equals(0, secureServer.requestCount);
+                step1.complete(null);
+              }
+            });
+          });
+      }
+
+      test(false);
+      test(true);
+    }
+
+    step1.future.then((_) {
+      testProxyAuthenticateCount = 0;
+      client.findProxy = (Uri uri) {
+        return "PROXY test:test@localhost:${proxyServer.port}";
+      };
+
+      for (int i = 0; i < loopCount; i++) {
+        test(bool secure) {
+          String url = secure
+              ? "https://localhost:${secureServer.port}/$i"
+              : "http://127.0.0.1:${server.port}/$i";
+
+          client.postUrl(Uri.parse(url))
+            .then((HttpClientRequest clientRequest) {
+              String content = "$i$i$i";
+              clientRequest.write(content);
+              return clientRequest.close();
+            })
+            .then((HttpClientResponse response) {
+              response.listen((_) {}, onDone: () {
+                testProxyAuthenticateCount++;
+                Expect.equals(HttpStatus.OK, response.statusCode);
+                if (testProxyAuthenticateCount == loopCount * 2) {
+                  Expect.equals(loopCount, server.requestCount);
+                  Expect.equals(loopCount, secureServer.requestCount);
+                  step2.complete(null);
+                }
+              });
+            });
+        }
+
+        test(false);
+        test(true);
+      }
+    });
+
+    step2.future.then((_) {
+      testProxyAuthenticateCount = 0;
+      client.findProxy = (Uri uri) {
+        return "PROXY localhost:${proxyServer.port}";
+      };
+
+      client.authenticateProxy = (host, port, scheme, realm) {
+        client.addProxyCredentials(
+            "localhost",
+            proxyServer.port,
+            "realm",
+            new HttpClientBasicCredentials("test", "test"));
+        return new Future.immediate(true);
+      };
+
+      for (int i = 0; i < loopCount; i++) {
+        test(bool secure) {
+          String url = secure
+              ? "https://localhost:${secureServer.port}/A"
+              : "http://127.0.0.1:${server.port}/A";
+
+          client.postUrl(Uri.parse(url))
+            .then((HttpClientRequest clientRequest) {
+              String content = "$i$i$i";
+              clientRequest.write(content);
+              return clientRequest.close();
+            })
+            .then((HttpClientResponse response) {
+              response.listen((_) {}, onDone: () {
+                testProxyAuthenticateCount++;
+                Expect.equals(HttpStatus.OK, response.statusCode);
+                if (testProxyAuthenticateCount == loopCount * 2) {
+                  Expect.equals(loopCount * 2, server.requestCount);
+                  Expect.equals(loopCount * 2, secureServer.requestCount);
+                  proxyServer.shutdown();
+                  server.shutdown();
+                  secureServer.shutdown();
+                  client.close();
+                }
+              });
+            });
+        }
+        test(false);
+        test(true);
+      }
+    });
+
+  });
+  });
+  });
+}
+
 int testRealProxyDoneCount = 0;
 void testRealProxy() {
   setupServer(1).then((server) {
     HttpClient client = new HttpClient();
+     client.addProxyCredentials("localhost",
+                                8080,
+                                "test",
+                                new HttpClientBasicCredentials("test", "test"));
 
     List<String> proxy =
         ["PROXY localhost:8080",
@@ -389,8 +565,45 @@ void testRealProxy() {
         })
         .then((HttpClientResponse response) {
           response.listen((_) {}, onDone: () {
-            testRealProxyDoneCount++;
-            if (testRealProxyDoneCount == proxy.length) {
+            if (++testRealProxyDoneCount == proxy.length) {
+              Expect.equals(proxy.length, server.requestCount);
+              server.shutdown();
+              client.close();
+            }
+          });
+        });
+    }
+  });
+}
+
+int testRealProxyAuthDoneCount = 0;
+void testRealProxyAuth() {
+  setupServer(1).then((server) {
+    HttpClient client = new HttpClient();
+
+    List<String> proxy =
+        ["PROXY test:test@localhost:8080",
+         "PROXY test:test@localhost:8080; PROXY hede.hule.hest:8080",
+         "PROXY hede.hule.hest:8080; PROXY test:test@localhost:8080",
+         "PROXY test:test@localhost:8080; DIRECT"];
+
+    client.findProxy = (Uri uri) {
+      // Pick the proxy configuration based on the request path.
+      int index = int.parse(uri.path.substring(1));
+      return proxy[index];
+    };
+
+    for (int i = 0; i < proxy.length; i++) {
+      client.getUrl(Uri.parse("http://127.0.0.1:${server.port}/$i"))
+        .then((HttpClientRequest clientRequest) {
+          String content = "$i$i$i";
+          clientRequest.contentLength = content.length;
+          clientRequest.write(content);
+          return clientRequest.close();
+        })
+        .then((HttpClientResponse response) {
+          response.listen((_) {}, onDone: () {
+            if (++testRealProxyAuthDoneCount == proxy.length) {
               Expect.equals(proxy.length, server.requestCount);
               server.shutdown();
               client.close();
@@ -415,7 +628,9 @@ main() {
   testProxy();
   testProxyChain();
   testProxyFromEnviroment();
+  testProxyAuthenticate();
   // This test is not normally run. It can be used for locally testing
   // with a real proxy server (e.g. Apache).
   //testRealProxy();
+  //testRealProxyAuth();
 }
