@@ -1311,6 +1311,20 @@ class _DoneSubscription<T> implements StreamSubscription<T> {
     }
     _pauseCount = 0;
   }
+
+  Future asFuture([var futureValue]) {
+    // TODO(floitsch): share more code.
+    _FutureImpl<T> result = new _FutureImpl<T>();
+
+    // Overwrite the onDone and onError handlers.
+    onDone(() { result._setValue(futureValue); });
+    onError((AsyncError error) {
+      cancel();
+      result._setError(error);
+    });
+
+    return result;
+  }
 }
 
 class _SingleStreamMultiplexer<T> extends _MultiStreamImpl<T> {
