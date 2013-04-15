@@ -157,41 +157,6 @@ class _StringBase {
     return _substringUnchecked(startIndex, endIndex);
   }
 
-  String slice([int startIndex, int endIndex]) {
-    int start, end;
-    if (startIndex == null) {
-      start = 0;
-    } else if (startIndex is! int) {
-      throw new ArgumentError("startIndex is not int");
-    } else if (startIndex >= 0) {
-      start = startIndex;
-    } else {
-      start = this.length + startIndex;
-    }
-    if (start < 0 || start > this.length) {
-      throw new RangeError(
-          "startIndex out of range: $startIndex (length: $length)");
-    }
-    if (endIndex == null) {
-      end = this.length;
-    } else if (endIndex is! int) {
-      throw new ArgumentError("endIndex is not int");
-    } else if (endIndex >= 0) {
-      end = endIndex;
-    } else {
-      end = this.length + endIndex;
-    }
-    if (end < 0 || end > this.length) {
-      throw new RangeError(
-          "endIndex out of range: $endIndex (length: $length)");
-    }
-    if (end < start) {
-      throw new ArgumentError(
-          "End before start: $endIndex < $startIndex (length: $length)");
-    }
-    return _substringUnchecked(start, end);
-  }
-
   String _substringUnchecked(int startIndex, int endIndex) {
     assert(endIndex != null);
     assert((startIndex >= 0) && (startIndex <= this.length));

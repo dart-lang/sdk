@@ -139,22 +139,6 @@ abstract class String implements Comparable<String>, Pattern {
   String operator +(String other);
 
   /**
-   * Returns a slice of this string from [startIndex] to [endIndex].
-   *
-   * If [startIndex] is omitted, it defaults to the start of the string.
-   *
-   * If [endIndex] is omitted, it defaults to the end of the string.
-   *
-   * If either index is negative, it's taken as a negative index from the
-   * end of the string. Their effective value is computed by adding the
-   * negative value to the [length] of the string.
-   *
-   * The effective indices, after  must be non-negative, no greater than the
-   * length of the string, and [endIndex] must not be less than [startIndex].
-   */
-  String slice([int startIndex, int endIndex]);
-
-  /**
    * Returns a substring of this string in the given range.
    * [startIndex] is inclusive and [endIndex] is exclusive.
    */
