@@ -5,7 +5,7 @@
 library utils;
 
 import 'dart:io';
-import 'dart:async' show getAttachedStackTrace;
+import 'dart:async';
 import 'dart:utf' as utf;
 
 class DebugLogger {
@@ -31,8 +31,11 @@ class DebugLogger {
   static String _formatErrorMessage(String msg, error) {
     if (error == null) return msg;
     msg += ": $error";
-    var trace = getAttachedStackTrace(error);
-    if (trace != null) msg += "\nStackTrace: $trace";
+    // TODO(floitsch): once the dart-executable that is bundled
+    // with the Dart sources is updated, uncomment the following
+    // lines.
+    // var trace = getAttachedStackTrace(error);
+    // if (trace != null) msg += "\nStackTrace: $trace";
     return msg;
   }
   static void info(String msg, [error]) {
