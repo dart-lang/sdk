@@ -830,6 +830,20 @@ abstract class StreamSubscription<T> {
    * Resume after a pause.
    */
   void resume();
+
+  /**
+   * Returns a future that handles the [onDone] and [onError] callbacks.
+   *
+   * This method *overwrites* the existing [onDone] and [onError] callbacks
+   * with new ones that complete the returned future.
+   *
+   * In case of an error the subscription will automatically cancel (even
+   * when it was listening with `unsubscribeOnError` set to `false`).
+   *
+   * In case of a `done` event the future completes with the given
+   * [futureValue].
+   */
+  Future asFuture([var futureValue]);
 }
 
 

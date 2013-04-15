@@ -97,6 +97,12 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
       _target.$dom_removeEventListener(_eventType, _onData, _useCapture);
     }
   }
+
+  Future asFuture([var futureValue]) {
+    // We just need a future that will never succeed or fail.
+    Completer completer = new Completer();
+    return completer.future;
+  }
 }
 
 

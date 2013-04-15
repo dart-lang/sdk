@@ -955,6 +955,19 @@ class _StreamSubscriptionImpl<T> extends _StreamListener<T>
     if (!_isSubscribed || !isPaused) return;
     _source._resume(this, false);
   }
+
+  Future asFuture([var futureValue]) {
+    _FutureImpl<T> result = new _FutureImpl<T>();
+
+    // Overwrite the onDone and onError handlers.
+    onDone(() { result._setValue(futureValue); });
+    onError((AsyncError error) {
+      cancel();
+      result._setError(error);
+    });
+
+    return result;
+  }
 }
 
 // Internal helpers.

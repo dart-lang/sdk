@@ -131,6 +131,19 @@ abstract class _BaseStreamSubscription<T> implements StreamSubscription<T> {
   void resume();
 
   void cancel();
+
+  Future asFuture([var futureValue]) {
+    _FutureImpl<T> result = new _FutureImpl<T>();
+
+    // Overwrite the onDone and onError handlers.
+    onDone(() { result._setValue(futureValue); });
+    onError((AsyncError error) {
+      cancel();
+      result._setError(error);
+    });
+
+    return result;
+  }
 }
 
 

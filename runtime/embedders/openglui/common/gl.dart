@@ -255,6 +255,12 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
       _target.removeListener(_eventType, _onData);
     }
   }
+
+  Future asFuture([var futureValue]) {
+    // We just need a future that will never succeed or fail.
+    Completer completer = new Completer();
+    return completer.future;
+  }
 }
 
 class _EventStream<T extends Event> extends Stream<T> {
