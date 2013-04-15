@@ -5,6 +5,7 @@
 /// Message logging.
 library log;
 
+import 'dart:io';
 import 'dart:async';
 
 import 'io.dart';
@@ -164,11 +165,11 @@ void recordTranscript() {
 void dumpTranscript() {
   if (_transcript == null) return;
 
-  stderrSink.add('---- Log transcript ----\n'.codeUnits);
+  stderr.writeln('---- Log transcript ----');
   for (var entry in _transcript) {
     _logToStderrWithLabel(entry);
   }
-  stderrSink.add('---- End log transcript ----\n'.codeUnits);
+  stderr.writeln('---- End log transcript ----');
 }
 
 /// Sets the verbosity to "normal", which shows errors, warnings, and messages.
@@ -201,38 +202,36 @@ void showAll() {
 
 /// Log function that prints the message to stdout.
 void _logToStdout(Entry entry) {
-  _logToStream(stdoutSink, entry, showLabel: false);
+  _logToStream(stdout, entry, showLabel: false);
 }
 
 /// Log function that prints the message to stdout with the level name.
 void _logToStdoutWithLabel(Entry entry) {
-  _logToStream(stdoutSink, entry, showLabel: true);
+  _logToStream(stdout, entry, showLabel: true);
 }
 
 /// Log function that prints the message to stderr.
 void _logToStderr(Entry entry) {
-  _logToStream(stderrSink, entry, showLabel: false);
+  _logToStream(stderr, entry, showLabel: false);
 }
 
 /// Log function that prints the message to stderr with the level name.
 void _logToStderrWithLabel(Entry entry) {
-  _logToStream(stderrSink, entry, showLabel: true);
+  _logToStream(stderr, entry, showLabel: true);
 }
 
-void _logToStream(EventSink<List<int>> sink, Entry entry, {bool showLabel}) {
+void _logToStream(IOSink sink, Entry entry, {bool showLabel}) {
   bool firstLine = true;
   for (var line in entry.lines) {
     if (showLabel) {
       if (firstLine) {
-        sink.add(entry.level.name.codeUnits);
-        sink.add(': '.codeUnits);
+        sink.write('${entry.level.name}: ');
       } else {
-        sink.add('    | '.codeUnits);
+        sink.write('    | ');
       }
     }
 
-    sink.add(line.codeUnits);
-    sink.add('\n'.codeUnits);
+    sink.writeln(line);
 
     firstLine = false;
   }

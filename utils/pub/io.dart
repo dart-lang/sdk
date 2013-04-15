@@ -279,32 +279,6 @@ String relativeToPub(String target) {
   return path.normalize(path.join(utilDir, 'pub', target));
 }
 
-// TODO(nweiz): add a ByteSink wrapper to make writing strings to stdout/stderr
-// nicer.
-
-/// A sink that writes to standard output. Errors piped to this stream will be
-/// surfaced to the top-level error handler.
-// TODO: Unrequired wrapper, stdout is now an EventSink<List<int>>.
-final EventSink<List<int>> stdoutSink = _wrapStdio(stdout, "stdout");
-
-/// A sink that writes to standard error. Errors piped to this stream will be
-/// surfaced to the top-level error handler.
-// TODO: Unrequired wrapper, stdout is now an EventSink<List<int>>.
-final EventSink<List<int>> stderrSink = _wrapStdio(stderr, "stderr");
-
-/// Wrap the standard output or error [stream] in a [EventSink]. Any errors are
-/// logged, and then the program is terminated. [name] is used for debugging.
-EventSink<List<int>> _wrapStdio(IOSink sink, String name) {
-  var pair = consumerToSink(sink);
-  pair.last.catchError((e) {
-    // This log may or may not work, depending on how the stream failed. Not
-    // much we can do about that.
-    log.error("Error writing to $name", e);
-    exit(exit_codes.IO);
-  });
-  return pair.first;
-}
-
 /// A line-by-line stream of standard input.
 final Stream<String> stdinLines = streamToLines(
     new ByteStream(stdin).toStringStream());
@@ -317,7 +291,7 @@ final Stream<String> stdinLines = streamToLines(
 /// should just be a fragment like, "Are you sure you want to proceed".
 Future<bool> confirm(String message) {
   log.fine('Showing confirm message: $message');
-  stdoutSink.add("$message (y/n)? ".codeUnits);
+  stdout.write("$message (y/n)? ");
   return streamFirst(stdinLines)
       .then((line) => new RegExp(r"^[yY]").hasMatch(line));
 }
@@ -571,8 +545,8 @@ Future<bool> extractTarGz(Stream<List<int>> stream, String destination) {
     // Ignore errors on process.std{out,err}. They'll be passed to
     // process.exitCode, and we don't want them being top-levelled by
     // std{out,err}Sink.
-    store(process.stdout.handleError((_) {}), stdoutSink, closeSink: false);
-    store(process.stderr.handleError((_) {}), stderrSink, closeSink: false);
+    store(process.stdout.handleError((_) {}), stdout, closeSink: false);
+    store(process.stderr.handleError((_) {}), stderr, closeSink: false);
     return Future.wait([
       store(stream, process.stdin),
       process.exitCode
