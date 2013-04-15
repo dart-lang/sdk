@@ -98,11 +98,18 @@ void testHttpServerRequestBody() {
             Expect.equals(type, body.type);
             switch (type) {
               case "text":
+                Expect.equals(body.mimeType, "text/plain");
                 Expect.equals(expectedBody, body.body);
                 break;
 
               case "json":
+                Expect.equals(body.mimeType, "application/json");
                 Expect.mapEquals(expectedBody, body.body);
+                break;
+
+              case "binary":
+                Expect.equals(body.mimeType, null);
+                Expect.listEquals(expectedBody, body.body);
                 break;
 
               default:
@@ -116,8 +123,10 @@ void testHttpServerRequestBody() {
       var client = new HttpClient();
       client.post("127.0.0.1", server.port, "/")
           .then((request) {
-            request.headers.contentType =
-                new ContentType.fromString(mimeType);
+            if (mimeType != null) {
+              request.headers.contentType =
+                  new ContentType.fromString(mimeType);
+            }
             request.add(content);
             return request.close();
           })
@@ -152,6 +161,8 @@ void testHttpServerRequestBody() {
        null,
        "json",
        true);
+
+  test(null, "body".codeUnits, "body".codeUnits, "binary");
 }
 
 

@@ -632,6 +632,8 @@ class _ContentType extends _HeaderValue implements ContentType {
     }
   }
 
+  String get mimeType => '$primaryType/$subType';
+
   String get primaryType => _primaryType;
 
   String get subType => _subType;

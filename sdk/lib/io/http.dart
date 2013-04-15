@@ -509,6 +509,11 @@ abstract class ContentType implements HeaderValue {
   }
 
   /**
+   * Gets the mime-type, without any parameters.
+   */
+  String get mimeType;
+
+  /**
    * Gets the primary type.
    */
   String get primaryType;
