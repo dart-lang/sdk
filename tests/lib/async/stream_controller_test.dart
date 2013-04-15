@@ -25,7 +25,7 @@ testMultiController() {
   // Test automatic unsubscription on error.
   c = new StreamController.broadcast();
   expectedEvents = new Events()..add(42)..error("error");
-  actualEvents = new Events.capture(c.stream, unsubscribeOnError: true);
+  actualEvents = new Events.capture(c.stream, cancelOnError: true);
   Events sentEvents =
       new Events()..add(42)..error("error")..add("Are you there?");
   sentEvents.replay(c);
@@ -34,7 +34,7 @@ testMultiController() {
   // Test manual unsubscription.
   c = new StreamController.broadcast();
   expectedEvents = new Events()..add(42)..error("error")..add(37);
-  actualEvents = new Events.capture(c.stream, unsubscribeOnError: false);
+  actualEvents = new Events.capture(c.stream, cancelOnError: false);
   expectedEvents.replay(c);
   actualEvents.subscription.cancel();
   c.add("Are you there");  // Not sent to actualEvents.
@@ -67,7 +67,7 @@ testMultiController() {
           throw new AsyncError("[${v.error}]",
                                 "other stack");
         }
-      }), unsubscribeOnError: true);
+      }), cancelOnError: true);
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
@@ -123,7 +123,7 @@ testMultiController() {
           if (v.error is! FormatException) throw v;
         })
        .where((v) => v > 10),
-      unsubscribeOnError: true);
+      cancelOnError: true);
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
@@ -169,7 +169,7 @@ testSingleController() {
   // Test automatic unsubscription on error.
   c = new StreamController();
   expectedEvents = new Events()..add(42)..error("error");
-  actualEvents = new Events.capture(c.stream, unsubscribeOnError: true);
+  actualEvents = new Events.capture(c.stream, cancelOnError: true);
   Events sentEvents =
       new Events()..add(42)..error("error")..add("Are you there?");
   sentEvents.replay(c);
@@ -178,7 +178,7 @@ testSingleController() {
   // Test manual unsubscription.
   c = new StreamController();
   expectedEvents = new Events()..add(42)..error("error")..add(37);
-  actualEvents = new Events.capture(c.stream, unsubscribeOnError: false);
+  actualEvents = new Events.capture(c.stream, cancelOnError: false);
   expectedEvents.replay(c);
   actualEvents.subscription.cancel();
   c.add("Are you there");  // Not sent to actualEvents.
@@ -211,7 +211,7 @@ testSingleController() {
           throw new AsyncError("[${v.error}]",
                                 "other stack");
         }
-      }), unsubscribeOnError: true);
+      }), cancelOnError: true);
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
@@ -300,7 +300,7 @@ testSingleController() {
           if (v.error is! FormatException) throw v;
         })
        .where((v) => v > 10),
-      unsubscribeOnError: true);
+      cancelOnError: true);
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 

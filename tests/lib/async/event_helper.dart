@@ -70,7 +70,7 @@ class Events implements EventSink {
 
   /** Capture events from a stream into a new [Events] object. */
   factory Events.capture(Stream stream,
-                         { bool unsubscribeOnError: false }) = CaptureEvents;
+                         { bool cancelOnError: false }) = CaptureEvents;
 
   // EventSink interface.
   void add(var value) {
@@ -134,21 +134,21 @@ class Events implements EventSink {
 class CaptureEvents extends Events {
   StreamSubscription subscription;
   Completer onDoneSignal;
-  bool unsubscribeOnError = false;
+  bool cancelOnError = false;
 
   CaptureEvents(Stream stream,
-                { bool unsubscribeOnError: false })
+                { bool cancelOnError: false })
       : onDoneSignal = new Completer() {
-    this.unsubscribeOnError = unsubscribeOnError;
+    this.cancelOnError = cancelOnError;
     subscription = stream.listen(add,
                                  onError: addError,
                                  onDone: close,
-                                 unsubscribeOnError: unsubscribeOnError);
+                                 cancelOnError: cancelOnError);
   }
 
   void addError(AsyncError error) {
     super.addError(error);
-    if (unsubscribeOnError) onDoneSignal.complete(null);
+    if (cancelOnError) onDoneSignal.complete(null);
   }
 
   void close() {

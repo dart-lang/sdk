@@ -174,13 +174,13 @@ abstract class Stream<T> {
    *
    * If this stream closes, the [onDone] handler is called.
    *
-   * If [unsubscribeOnError] is true, the subscription is ended when
+   * If [cancelOnError] is true, the subscription is ended when
    * the first error is reported. The default is false.
    */
   StreamSubscription<T> listen(void onData(T event),
                                { void onError(AsyncError error),
                                  void onDone(),
-                                 bool unsubscribeOnError});
+                                 bool cancelOnError});
 
   /**
    * Creates a new stream from this stream that discards some data events.
@@ -278,7 +278,7 @@ abstract class Stream<T> {
           result._setValue(value);
         }
       },
-      unsubscribeOnError: true
+      cancelOnError: true
     );
     return result;
   }
@@ -304,7 +304,7 @@ abstract class Stream<T> {
       onDone: () {
         result._setValue(value);
       },
-      unsubscribeOnError: true);
+      cancelOnError: true);
     return result;
   }
 
@@ -336,7 +336,7 @@ abstract class Stream<T> {
         onDone: () {
           future._setValue(false);
         },
-        unsubscribeOnError: true);
+        cancelOnError: true);
     return future;
   }
 
@@ -368,7 +368,7 @@ abstract class Stream<T> {
         onDone: () {
           future._setValue(true);
         },
-        unsubscribeOnError: true);
+        cancelOnError: true);
     return future;
   }
 
@@ -400,7 +400,7 @@ abstract class Stream<T> {
         onDone: () {
           future._setValue(false);
         },
-        unsubscribeOnError: true);
+        cancelOnError: true);
     return future;
   }
 
@@ -415,7 +415,7 @@ abstract class Stream<T> {
       onDone: () {
         future._setValue(count);
       },
-      unsubscribeOnError: true);
+      cancelOnError: true);
     return future;
   }
 
@@ -432,7 +432,7 @@ abstract class Stream<T> {
       onDone: () {
         future._setValue(true);
       },
-      unsubscribeOnError: true);
+      cancelOnError: true);
     return future;
   }
 
@@ -450,7 +450,7 @@ abstract class Stream<T> {
       onDone: () {
         future._setValue(result);
       },
-      unsubscribeOnError: true);
+      cancelOnError: true);
     return future;
   }
 
@@ -468,7 +468,7 @@ abstract class Stream<T> {
       onDone: () {
         future._setValue(result);
       },
-      unsubscribeOnError: true);
+      cancelOnError: true);
     return future;
   }
 
@@ -550,7 +550,7 @@ abstract class Stream<T> {
       onDone: () {
         future._setError(new AsyncError(new StateError("No elements")));
       },
-      unsubscribeOnError: true);
+      cancelOnError: true);
     return future;
   }
 
@@ -579,7 +579,7 @@ abstract class Stream<T> {
         }
         future._setError(new AsyncError(new StateError("No elements")));
       },
-      unsubscribeOnError: true);
+      cancelOnError: true);
     return future;
   }
 
@@ -615,7 +615,7 @@ abstract class Stream<T> {
         }
         future._setError(new AsyncError(new StateError("No elements")));
       },
-      unsubscribeOnError: true);
+      cancelOnError: true);
     return future;
   }
 
@@ -660,7 +660,7 @@ abstract class Stream<T> {
         future._setError(
             new AsyncError(new StateError("firstMatch ended without match")));
       },
-      unsubscribeOnError: true);
+      cancelOnError: true);
     return future;
   }
 
@@ -704,7 +704,7 @@ abstract class Stream<T> {
         future._setError(
             new AsyncError(new StateError("lastMatch ended without match")));
       },
-      unsubscribeOnError: true);
+      cancelOnError: true);
     return future;
   }
 
@@ -749,7 +749,7 @@ abstract class Stream<T> {
         future._setError(
             new AsyncError(new StateError("single ended without match")));
       },
-      unsubscribeOnError: true);
+      cancelOnError: true);
     return future;
   }
 
@@ -781,7 +781,7 @@ abstract class Stream<T> {
         future._setError(new AsyncError(
             new StateError("Not enough elements for elementAt")));
       },
-      unsubscribeOnError: true);
+      cancelOnError: true);
     return future;
   }
 }
@@ -838,7 +838,7 @@ abstract class StreamSubscription<T> {
    * with new ones that complete the returned future.
    *
    * In case of an error the subscription will automatically cancel (even
-   * when it was listening with `unsubscribeOnError` set to `false`).
+   * when it was listening with `cancelOnError` set to `false`).
    *
    * In case of a `done` event the future completes with the given
    * [futureValue].
@@ -873,9 +873,9 @@ class StreamView<T> extends Stream<T> {
   StreamSubscription<T> listen(void onData(T value),
                                { void onError(AsyncError error),
                                  void onDone(),
-                                 bool unsubscribeOnError }) {
+                                 bool cancelOnError }) {
     return _stream.listen(onData, onError: onError, onDone: onDone,
-                          unsubscribeOnError: unsubscribeOnError);
+                          cancelOnError: cancelOnError);
   }
 }
 
@@ -1085,11 +1085,11 @@ class EventTransformStream<S, T> extends Stream<T> {
   StreamSubscription<T> listen(void onData(T data),
                                { void onError(AsyncError error),
                                  void onDone(),
-                                 bool unsubscribeOnError }) {
-    unsubscribeOnError = identical(true, unsubscribeOnError);
+                                 bool cancelOnError }) {
+    cancelOnError = identical(true, cancelOnError);
     return new _EventTransformStreamSubscription(_source, _transformer,
                                                  onData, onError, onDone,
-                                                 unsubscribeOnError);
+                                                 cancelOnError);
   }
 }
 
@@ -1099,7 +1099,7 @@ class _EventTransformStreamSubscription<S, T>
   /** The transformer used to transform events. */
   final StreamEventTransformer<S, T> _transformer;
   /** Whether to unsubscribe when emitting an error. */
-  final bool _unsubscribeOnError;
+  final bool _cancelOnError;
   /** Whether this stream has sent a done event. */
   bool _isClosed = false;
   /** Source of incoming events. */
@@ -1112,7 +1112,7 @@ class _EventTransformStreamSubscription<S, T>
                                     void onData(T data),
                                     void onError(AsyncError error),
                                     void onDone(),
-                                    this._unsubscribeOnError)
+                                    this._cancelOnError)
       : super(onData, onError, onDone) {
     _sink = new _EventOutputSinkWrapper<T>(this);
     _subscription = source.listen(_handleData,
@@ -1174,7 +1174,7 @@ class _EventTransformStreamSubscription<S, T>
   void _sendError(AsyncError error) {
     if (_isClosed) return;
     _onError(error);
-    if (_unsubscribeOnError) {
+    if (_cancelOnError) {
       cancel();
     }
   }

@@ -18,12 +18,12 @@ class _StdStream extends Stream<List<int>> {
   StreamSubscription<List<int>> listen(void onData(List<int> event),
                                        {void onError(AsyncError error),
                                         void onDone(),
-                                        bool unsubscribeOnError}) {
+                                        bool cancelOnError}) {
     return _stream.listen(
         onData,
         onError: onError,
         onDone: onDone,
-        unsubscribeOnError: unsubscribeOnError);
+        cancelOnError: cancelOnError);
   }
 }
 

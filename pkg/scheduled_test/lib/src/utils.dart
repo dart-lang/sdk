@@ -110,7 +110,7 @@ Future streamFirst(Stream stream) {
     completer.completeError(e.error, e.stackTrace);
   }, onDone: () {
     completer.completeError(new StateError("No elements"), stackTrace);
-  }, unsubscribeOnError: true);
+  }, cancelOnError: true);
   return completer.future;
 }
 

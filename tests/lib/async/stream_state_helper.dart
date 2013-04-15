@@ -36,15 +36,15 @@ class StreamProtocolTest {
   void error(var error) { _controller.addError(error); }
   void close() { _controller.close(); }
 
-  void subscribe({bool unsubscribeOnError : false}) {
+  void subscribe({bool cancelOnError : false}) {
     // TODO(lrn): Handle more subscriptions (e.g., a subscription-id
     // per subscription, and an id on event _expectations).
     if (_subscription != null) throw new StateError("Already subscribed");
     _subscription = _controller.stream.listen(_onData,
                                               onError: _onError,
                                               onDone: _onDone,
-                                              unsubscribeOnError:
-                                                  unsubscribeOnError);
+                                              cancelOnError:
+                                                  cancelOnError);
   }
 
   void pause([Future resumeSignal]) {

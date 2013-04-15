@@ -37,7 +37,7 @@ class _WebSocketOpcode {
  * which is supplied through the [:handleData:]. As the protocol is processed,
  * it'll output frame data as either a List<int> or String.
  *
- * Important infomation about usage: Be sure you use unsubscribeOnError, so the
+ * Important infomation about usage: Be sure you use cancelOnError, so the
  * socket will be closed when the processer encounter an error. Not using it
  * will lead to undefined behaviour.
  */
@@ -547,7 +547,7 @@ class _WebSocketImpl extends Stream implements WebSocket {
           _controller.close();
           if (_writeClosed) _socket.destroy();
         },
-        unsubscribeOnError: true);
+        cancelOnError: true);
 
     _socket.done
         .catchError((error) {
@@ -566,11 +566,11 @@ class _WebSocketImpl extends Stream implements WebSocket {
   StreamSubscription listen(void onData(message),
                             {void onError(AsyncError error),
                              void onDone(),
-                             bool unsubscribeOnError}) {
+                             bool cancelOnError}) {
     return _controller.stream.listen(onData,
                                      onError: onError,
                                      onDone: onDone,
-                                     unsubscribeOnError: unsubscribeOnError);
+                                     cancelOnError: cancelOnError);
   }
 
   int get readyState => _readyState;

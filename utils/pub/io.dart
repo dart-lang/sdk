@@ -343,17 +343,17 @@ Pair<EventSink, Future> consumerToSink(StreamConsumer consumer) {
 /// true.
 ///
 /// When an error occurs on [stream], that error is passed to [sink]. If
-/// [unsubscribeOnError] is true, [Future] will be completed successfully and no
+/// [cancelOnError] is true, [Future] will be completed successfully and no
 /// more data or errors will be piped from [stream] to [sink]. If
-/// [unsubscribeOnError] and [closeSink] are both true, [sink] will then be
+/// [cancelOnError] and [closeSink] are both true, [sink] will then be
 /// closed.
 Future store(Stream stream, EventSink sink,
-    {bool unsubscribeOnError: true, closeSink: true}) {
+    {bool cancelOnError: true, closeSink: true}) {
   var completer = new Completer();
   stream.listen(sink.add,
       onError: (e) {
         sink.addError(e);
-        if (unsubscribeOnError) {
+        if (cancelOnError) {
           completer.complete();
           if (closeSink) sink.close();
         }
@@ -361,7 +361,7 @@ Future store(Stream stream, EventSink sink,
       onDone: () {
         if (closeSink) sink.close();
         completer.complete();
-      }, unsubscribeOnError: unsubscribeOnError);
+      }, cancelOnError: cancelOnError);
   return completer.future;
 }
 

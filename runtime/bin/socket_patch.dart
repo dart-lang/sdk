@@ -450,12 +450,12 @@ class _RawServerSocket extends Stream<RawSocket>
   StreamSubscription<RawSocket> listen(void onData(RawSocket event),
                                        {void onError(AsyncError error),
                                         void onDone(),
-                                        bool unsubscribeOnError}) {
+                                        bool cancelOnError}) {
     return _controller.stream.listen(
         onData,
         onError: onError,
         onDone: onDone,
-        unsubscribeOnError: unsubscribeOnError);
+        cancelOnError: cancelOnError);
   }
 
   int get port => _socket.port;
@@ -537,12 +537,12 @@ class _RawSocket extends Stream<RawSocketEvent>
   StreamSubscription<RawSocketEvent> listen(void onData(RawSocketEvent event),
                                             {void onError(AsyncError error),
                                              void onDone(),
-                                             bool unsubscribeOnError}) {
+                                             bool cancelOnError}) {
     return _controller.stream.listen(
         onData,
         onError: onError,
         onDone: onDone,
-        unsubscribeOnError: unsubscribeOnError);
+        cancelOnError: cancelOnError);
   }
 
   int available() => _socket.available();
@@ -631,12 +631,12 @@ class _ServerSocket extends Stream<Socket>
   StreamSubscription<Socket> listen(void onData(Socket event),
                                     {void onError(AsyncError error),
                                      void onDone(),
-                                     bool unsubscribeOnError}) {
+                                     bool cancelOnError}) {
     return _socket.map((rawSocket) => new _Socket(rawSocket)).listen(
         onData,
         onError: onError,
         onDone: onDone,
-        unsubscribeOnError: unsubscribeOnError);
+        cancelOnError: cancelOnError);
   }
 
   int get port => _socket.port;
@@ -688,7 +688,7 @@ class _SocketStreamConsumer extends StreamConsumer<List<int>> {
           onDone: () {
             done();
           },
-          unsubscribeOnError: true);
+          cancelOnError: true);
     }
     return streamCompleter.future;
   }
@@ -786,12 +786,12 @@ class _Socket extends Stream<List<int>> implements Socket {
   StreamSubscription<List<int>> listen(void onData(List<int> event),
                                        {void onError(AsyncError error),
                                         void onDone(),
-                                        bool unsubscribeOnError}) {
+                                        bool cancelOnError}) {
     return _controller.stream.listen(
         onData,
         onError: onError,
         onDone: onDone,
-        unsubscribeOnError: unsubscribeOnError);
+        cancelOnError: cancelOnError);
   }
 
   Encoding get encoding => _sink.encoding;
@@ -844,7 +844,7 @@ class _Socket extends Stream<List<int>> implements Socket {
       _subscription = _raw.listen(_onData,
                                   onError: _onError,
                                   onDone: _onDone,
-                                  unsubscribeOnError: true);
+                                  cancelOnError: true);
     }
   }
 

@@ -43,7 +43,7 @@ class SafeHttpServer extends StreamView<HttpRequest> implements HttpServer {
 
   StreamSubscription<HttpRequest> listen(void onData(HttpRequest value),
       {void onError(AsyncError error), void onDone(),
-      bool unsubscribeOnError: false}) {
+      bool cancelOnError: false}) {
     var subscription;
     subscription = super.listen((request) {
       onData(new _HttpRequestWrapper(request));
@@ -55,9 +55,9 @@ class SafeHttpServer extends StreamView<HttpRequest> implements HttpServer {
       if (error is SocketIOException && error.osError.errorCode == 104) return;
       // Ignore any parsing errors, which come from malformed requests.
       if (error is HttpParserException) return;
-      // Manually handle unsubscribeOnError so the above (ignored) errors don't
+      // Manually handle cancelOnError so the above (ignored) errors don't
       // cause unsubscription.
-      if (unsubscribeOnError) subscription.cancel();
+      if (cancelOnError) subscription.cancel();
       if (onError != null) onError(e);
     }, onDone: onDone);
     return subscription;

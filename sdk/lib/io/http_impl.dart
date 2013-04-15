@@ -37,11 +37,11 @@ class _HttpIncoming extends Stream<List<int>> {
   StreamSubscription<List<int>> listen(void onData(List<int> event),
                                        {void onError(AsyncError error),
                                         void onDone(),
-                                        bool unsubscribeOnError}) {
+                                        bool cancelOnError}) {
     return _stream.listen(onData,
                           onError: onError,
                           onDone: onDone,
-                          unsubscribeOnError: unsubscribeOnError);
+                          cancelOnError: cancelOnError);
   }
 
   // Is completed once all data have been received.
@@ -108,11 +108,11 @@ class _HttpRequest extends _HttpInboundMessage implements HttpRequest {
   StreamSubscription<List<int>> listen(void onData(List<int> event),
                                        {void onError(AsyncError error),
                                         void onDone(),
-                                        bool unsubscribeOnError}) {
+                                        bool cancelOnError}) {
     return _incoming.listen(onData,
                             onError: onError,
                             onDone: onDone,
-                            unsubscribeOnError: unsubscribeOnError);
+                            cancelOnError: cancelOnError);
   }
 
   Map<String, String> get queryParameters {
@@ -233,7 +233,7 @@ class _HttpClientResponse
   StreamSubscription<List<int>> listen(void onData(List<int> event),
                                        {void onError(AsyncError error),
                                         void onDone(),
-                                        bool unsubscribeOnError}) {
+                                        bool cancelOnError}) {
     var stream = _incoming;
     if (headers.value(HttpHeaders.CONTENT_ENCODING) == "gzip") {
       stream = stream.transform(new ZLibInflater());
@@ -241,7 +241,7 @@ class _HttpClientResponse
     return stream.listen(onData,
                          onError: onError,
                          onDone: onDone,
-                         unsubscribeOnError: unsubscribeOnError);
+                         cancelOnError: cancelOnError);
   }
 
   Future<Socket> detachSocket() {
@@ -586,7 +586,7 @@ class _HttpOutboundConsumer implements StreamConsumer {
         onError: (error) {
           _done(error);
         },
-        unsubscribeOnError: true);
+        cancelOnError: true);
     return _completer.future;
   }
 
@@ -1594,7 +1594,7 @@ class _HttpServer extends Stream<HttpRequest> implements HttpServer {
   StreamSubscription<HttpRequest> listen(void onData(HttpRequest event),
                                          {void onError(AsyncError error),
                                          void onDone(),
-                                         bool unsubscribeOnError}) {
+                                         bool cancelOnError}) {
     _serverSocket.listen(
         (Socket socket) {
           socket.setOption(SocketOption.TCP_NODELAY, true);
@@ -1607,7 +1607,7 @@ class _HttpServer extends Stream<HttpRequest> implements HttpServer {
     return _controller.stream.listen(onData,
                                      onError: onError,
                                      onDone: onDone,
-                                     unsubscribeOnError: unsubscribeOnError);
+                                     cancelOnError: cancelOnError);
   }
 
   void close() {
@@ -1797,11 +1797,11 @@ class _DetachedSocket extends Stream<List<int>> implements Socket {
   StreamSubscription<List<int>> listen(void onData(List<int> event),
                                        {void onError(AsyncError error),
                                         void onDone(),
-                                        bool unsubscribeOnError}) {
+                                        bool cancelOnError}) {
     return _incoming.listen(onData,
                             onError: onError,
                             onDone: onDone,
-                            unsubscribeOnError: unsubscribeOnError);
+                            cancelOnError: cancelOnError);
   }
 
   Encoding get encoding => _socket.encoding;

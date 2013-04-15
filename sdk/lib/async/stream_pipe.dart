@@ -58,20 +58,20 @@ abstract class _ForwardingStream<S, T> extends Stream<T> {
   StreamSubscription<T> listen(void onData(T value),
                               { void onError(AsyncError error),
                                 void onDone(),
-                                bool unsubscribeOnError }) {
+                                bool cancelOnError }) {
     if (onData == null) onData = _nullDataHandler;
     if (onError == null) onError = _nullErrorHandler;
     if (onDone == null) onDone = _nullDoneHandler;
-    unsubscribeOnError = identical(true, unsubscribeOnError);
-    return _createSubscription(onData, onError, onDone, unsubscribeOnError);
+    cancelOnError = identical(true, cancelOnError);
+    return _createSubscription(onData, onError, onDone, cancelOnError);
   }
 
   StreamSubscription<T> _createSubscription(void onData(T value),
                                             void onError(AsyncError error),
                                             void onDone(),
-                                            bool unsubscribeOnError) {
+                                            bool cancelOnError) {
     return new _ForwardingStreamSubscription<S, T>(
-        this, onData, onError, onDone, unsubscribeOnError);
+        this, onData, onError, onDone, cancelOnError);
   }
 
   // Override the following methods in subclasses to change the behavior.
@@ -153,7 +153,7 @@ abstract class _BaseStreamSubscription<T> implements StreamSubscription<T> {
 class _ForwardingStreamSubscription<S, T>
     extends _BaseStreamSubscription<T> implements _EventOutputSink<T> {
   final _ForwardingStream<S, T> _stream;
-  final bool _unsubscribeOnError;
+  final bool _cancelOnError;
 
   StreamSubscription<S> _subscription;
 
@@ -161,7 +161,7 @@ class _ForwardingStreamSubscription<S, T>
                                 void onData(T data),
                                 void onError(AsyncError error),
                                 void onDone(),
-                                this._unsubscribeOnError)
+                                this._cancelOnError)
       : super(onData, onError, onDone) {
     // Don't unsubscribe on incoming error, only if we send an error forwards.
     _subscription =
@@ -197,7 +197,7 @@ class _ForwardingStreamSubscription<S, T>
 
   void _sendError(AsyncError error) {
     _onError(error);
-    if (_unsubscribeOnError) {
+    if (_cancelOnError) {
       _subscription.cancel();
       _subscription = null;
     }

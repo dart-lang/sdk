@@ -125,12 +125,12 @@ class _HttpDetachedIncoming extends Stream<List<int>> {
   StreamSubscription<List<int>> listen(void onData(List<int> event),
                                        {void onError(AsyncError error),
                                         void onDone(),
-                                        bool unsubscribeOnError}) {
+                                        bool cancelOnError}) {
     return controller.stream.listen(
         onData,
         onError: onError,
         onDone: onDone,
-        unsubscribeOnError: unsubscribeOnError);
+        cancelOnError: cancelOnError);
   }
 
   void resume() {
@@ -218,11 +218,11 @@ class _HttpParser
   StreamSubscription<_HttpIncoming> listen(void onData(_HttpIncoming event),
                                            {void onError(AsyncError error),
                                             void onDone(),
-                                            bool unsubscribeOnError}) {
+                                            bool cancelOnError}) {
     return _controller.stream.listen(onData,
                                      onError: onError,
                                      onDone: onDone,
-                                     unsubscribeOnError: unsubscribeOnError);
+                                     cancelOnError: cancelOnError);
   }
 
   Future<_HttpParser> addStream(Stream<List<int>> stream) {

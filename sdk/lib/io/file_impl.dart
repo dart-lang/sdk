@@ -38,11 +38,11 @@ class _FileStream extends Stream<List<int>> {
   StreamSubscription<List<int>> listen(void onData(List<int> event),
                                        {void onError(AsyncError error),
                                         void onDone(),
-                                        bool unsubscribeOnError}) {
+                                        bool cancelOnError}) {
     return _controller.stream.listen(onData,
                                      onError: onError,
                                      onDone: onDone,
-                                     unsubscribeOnError: unsubscribeOnError);
+                                     cancelOnError: cancelOnError);
   }
 
   void _setupController() {
@@ -182,7 +182,7 @@ class _FileStreamConsumer extends StreamConsumer<List<int>> {
             openedFile.close();
             completer.completeError(e);
           },
-          unsubscribeOnError: true);
+          cancelOnError: true);
       })
       .catchError((e) {
         completer.completeError(e);
@@ -497,7 +497,7 @@ class _File extends _FileBase implements File {
       onError: (e) {
         completer.completeError(e);
       },
-      unsubscribeOnError: true);
+      cancelOnError: true);
     return completer.future;
   }
 

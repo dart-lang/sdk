@@ -30711,7 +30711,7 @@ class _EventStream<T extends Event> extends Stream<T> {
   StreamSubscription<T> listen(void onData(T event),
       { void onError(AsyncError error),
       void onDone(),
-      bool unsubscribeOnError}) {
+      bool cancelOnError}) {
 
     return new _EventStreamSubscription<T>(
         this._target, this._eventType, onData, this._useCapture);

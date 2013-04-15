@@ -79,16 +79,16 @@ abstract class _StreamImpl<T> extends Stream<T> {
   StreamSubscription<T> listen(void onData(T data),
                                { void onError(AsyncError error),
                                  void onDone(),
-                                 bool unsubscribeOnError }) {
+                                 bool cancelOnError }) {
     if (_isComplete) {
       return new _DoneSubscription(onDone);
     }
     if (onData == null) onData = _nullDataHandler;
     if (onError == null) onError = _nullErrorHandler;
     if (onDone == null) onDone = _nullDoneHandler;
-    unsubscribeOnError = identical(true, unsubscribeOnError);
+    cancelOnError = identical(true, cancelOnError);
     _StreamSubscriptionImpl subscription =
-        _createSubscription(onData, onError, onDone, unsubscribeOnError);
+        _createSubscription(onData, onError, onDone, cancelOnError);
     _addListener(subscription);
     return subscription;
   }
@@ -376,7 +376,7 @@ abstract class _StreamImpl<T> extends Stream<T> {
       void onData(T data),
       void onError(AsyncError error),
       void onDone(),
-      bool unsubscribeOnError);
+      bool cancelOnError);
 
   /**
    * Adds a listener to this stream.
@@ -594,9 +594,9 @@ class _SingleStreamImpl<T> extends _StreamImpl<T> {
       void onData(T data),
       void onError(AsyncError error),
       void onDone(),
-      bool unsubscribeOnError) {
+      bool cancelOnError) {
     return new _StreamSubscriptionImpl<T>(
-        this, onData, onError, onDone, unsubscribeOnError);
+        this, onData, onError, onDone, cancelOnError);
   }
 
   void _addListener(_StreamListener subscription) {
@@ -714,9 +714,9 @@ class _MultiStreamImpl<T> extends _StreamImpl<T>
       void onData(T data),
       void onError(AsyncError error),
       void onDone(),
-      bool unsubscribeOnError) {
+      bool cancelOnError) {
     return new _StreamSubscriptionImpl<T>(
-        this, onData, onError, onDone, unsubscribeOnError);
+        this, onData, onError, onDone, cancelOnError);
   }
 
   // -------------------------------------------------------------------
@@ -901,7 +901,7 @@ class _IterablePendingEvents<T> extends _PendingEvents {
  */
 class _StreamSubscriptionImpl<T> extends _StreamListener<T>
                                  implements StreamSubscription<T> {
-  final bool _unsubscribeOnError;
+  final bool _cancelOnError;
   // TODO(ahe): Restore type when feature is implemented in dart2js
   // checked mode. http://dartbug.com/7733
   var /* _DataHandler<T> */ _onData;
@@ -911,7 +911,7 @@ class _StreamSubscriptionImpl<T> extends _StreamListener<T>
                           this._onData,
                           this._onError,
                           this._onDone,
-                          this._unsubscribeOnError) : super(source);
+                          this._cancelOnError) : super(source);
 
   void onData(void handleData(T event)) {
     if (handleData == null) handleData = _nullDataHandler;
@@ -934,7 +934,7 @@ class _StreamSubscriptionImpl<T> extends _StreamListener<T>
 
   void _sendError(AsyncError error) {
     _onError(error);
-    if (_unsubscribeOnError) _source._cancel(this);
+    if (_cancelOnError) _source._cancel(this);
   }
 
   void _sendDone() {

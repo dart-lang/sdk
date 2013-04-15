@@ -251,11 +251,11 @@ class _ErrorGroupStream extends Stream {
 
   StreamSubscription listen(void onData(value),
       {void onError(AsyncError error), void onDone(),
-       bool unsubscribeOnError}) {
+       bool cancelOnError}) {
     return _controller.stream.listen(onData,
         onError: onError,
         onDone: onDone,
-        unsubscribeOnError: true);
+        cancelOnError: true);
   }
 
   /// Signal that an error from [_group] should be propagated through [this],

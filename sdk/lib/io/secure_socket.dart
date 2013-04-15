@@ -290,7 +290,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   StreamSubscription listen(void onData(RawSocketEvent data),
                             {void onError(AsyncError error),
                              void onDone(),
-                             bool unsubscribeOnError}) {
+                             bool cancelOnError}) {
     if (_writeEventsEnabled) {
       _writeEventsEnabled = false;
       _controller.add(RawSocketEvent.WRITE);
@@ -298,7 +298,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     return _stream.listen(onData,
                           onError: onError,
                           onDone: onDone,
-                          unsubscribeOnError: unsubscribeOnError);
+                          cancelOnError: cancelOnError);
   }
 
   void _verifyFields() {
