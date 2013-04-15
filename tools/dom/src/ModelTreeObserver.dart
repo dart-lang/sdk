@@ -86,7 +86,7 @@ class _ModelTreeObserver {
           .forEach((controller) => controller.add(node));
       }
     } catch (e, s) {
-      new Future.immediateError(e, s);
+      new Future.error(e, s);
     }
     for (var child = node.$dom_firstChild; child != null;
         child = child.nextNode) {
