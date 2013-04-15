@@ -388,7 +388,7 @@ class TagState {
 
     // Remove the unmatched children.
     final unmatchedTags = parser._stack.sublist(index + 1);
-    parser._stack.removeRange(index + 1, parser._stack.length - index - 1);
+    parser._stack.removeRange(index + 1, parser._stack.length);
 
     // Flatten them out onto this tag.
     for (final unmatched in unmatchedTags) {

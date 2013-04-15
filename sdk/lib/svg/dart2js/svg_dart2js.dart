@@ -3172,7 +3172,7 @@ class LengthList implements JavaScriptIndexingBehavior, List<Length> native "*SV
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int rangeLength) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
@@ -3804,7 +3804,7 @@ class NumberList implements JavaScriptIndexingBehavior, List<Number> native "*SV
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int rangeLength) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
@@ -4667,7 +4667,7 @@ class PathSegList implements JavaScriptIndexingBehavior, List<PathSeg> native "*
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int rangeLength) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
@@ -5560,7 +5560,7 @@ class StringList implements JavaScriptIndexingBehavior, List<String> native "*SV
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int rangeLength) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
@@ -6726,7 +6726,7 @@ class TransformList implements List<Transform>, JavaScriptIndexingBehavior nativ
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int rangeLength) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
@@ -7253,7 +7253,7 @@ class _ElementInstanceList implements JavaScriptIndexingBehavior, List<ElementIn
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int rangeLength) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 

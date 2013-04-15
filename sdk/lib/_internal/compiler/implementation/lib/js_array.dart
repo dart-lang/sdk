@@ -204,29 +204,21 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     throw new StateError("More than one element");
   }
 
-  void removeRange(int start, int length) {
+  void removeRange(int start, int end) {
     checkGrowable(this, 'removeRange');
-    if (length == 0) {
-      return;
+    int receiverLength = this.length;
+    if (start < 0 || start > receiverLength) {
+      throw new RangeError.range(start, 0, receiverLength);
     }
-    checkNull(start); // TODO(ahe): This is not specified but co19 tests it.
-    checkNull(length); // TODO(ahe): This is not specified but co19 tests it.
-    if (start is !int) throw new ArgumentError(start);
-    if (length is !int) throw new ArgumentError(length);
-    if (length < 0) throw new ArgumentError(length);
-    var receiverLength = this.length;
-    if (start < 0 || start >= receiverLength) {
-      throw new RangeError.value(start);
-    }
-    if (start + length > receiverLength) {
-      throw new RangeError.value(start + length);
+    if (end < start || end > receiverLength) {
+      throw new RangeError.range(end, start, receiverLength);
     }
     Arrays.copy(this,
-                start + length,
+                end,
                 this,
                 start,
-                receiverLength - length - start);
-    this.length = receiverLength - length;
+                receiverLength - end);
+    this.length = receiverLength - (end - start);
   }
 
   void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {

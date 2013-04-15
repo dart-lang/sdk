@@ -69,17 +69,14 @@ class _GrowableObjectArray<T> implements List<T> {
     IterableMixinWorkaround.setRangeList(this, start, end, iterable, skipCount);
   }
 
-  void removeRange(int start, int length) {
-    if (length == 0) {
-      return;
-    }
-    Arrays.rangeCheck(this, start, length);
+  void removeRange(int start, int end) {
+    Arrays.indicesCheck(this, start, end);
     Arrays.copy(this,
-                start + length,
+                end,
                 this,
                 start,
-                this.length - length - start);
-    this.length = this.length - length;
+                this.length - end);
+    this.length = this.length - (end - start);
   }
 
   void insertRange(int start, int length, [T initialValue = null]) {

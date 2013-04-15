@@ -81,7 +81,7 @@ class _ObjectArray<E> implements List<E> {
     }
   }
 
-  void removeRange(int start, int length) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError(
         "Cannot remove range of a non-extendable array");
   }
@@ -313,7 +313,7 @@ class _ImmutableArray<E> implements List<E> {
         "Cannot modify an immutable array");
   }
 
-  void removeRange(int start, int length) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError(
         "Cannot remove range of an immutable array");
   }

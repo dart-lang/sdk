@@ -539,6 +539,10 @@ LibTest/core/List/setRange_A05_t01: Fail # setRange now takes end-argument. Issu
 LibTest/core/List/setRange_A03_t01: Fail # setRange throws StateError if there aren't enough elements in the iterable. Issue 402
 LibTest/core/List/setRange_A03_t02: Fail # setRange throws StateError if there aren't enough elements in the iterable. Issue 402
 
+LibTest/core/List/removeRange_A01_t01: Fail # removeRange now takes end-argument. Issue 404
+LibTest/core/List/removeRange_A03_t01: Fail # removeRange now takes end-argument. Issue 404
+LibTest/core/List/removeRange_A05_t01: Fail # removeRange now takes end-argument. Issue 404
+
 Language/11_Expressions/05_Strings/1_String_Interpolation_A03_t02: Fail # Issue 397
 Language/11_Expressions/05_Strings/1_String_Interpolation_A04_t02: Fail # Issue 397
 Language/11_Expressions/11_Instance_Creation/1_New_A08_t01: Fail # Issue 397

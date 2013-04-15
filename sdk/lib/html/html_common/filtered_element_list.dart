@@ -46,7 +46,7 @@ class FilteredElementList extends ListBase<Element> {
       throw new ArgumentError("Invalid list length");
     }
 
-    removeRange(newLength, len - newLength);
+    removeRange(newLength, len);
   }
 
   String join([String separator = ""]) => _filtered.join(separator);
@@ -76,8 +76,8 @@ class FilteredElementList extends ListBase<Element> {
     throw new UnimplementedError();
   }
 
-  void removeRange(int start, int rangeLength) {
-    _filtered.sublist(start, start + rangeLength).forEach((el) => el.remove());
+  void removeRange(int start, int end) {
+    _filtered.sublist(start, end).forEach((el) => el.remove());
   }
 
   void insertRange(int start, int rangeLength, [initialValue = null]) {

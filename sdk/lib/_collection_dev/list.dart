@@ -70,7 +70,7 @@ abstract class FixedLengthListMixin<E>  {
         "Cannot remove from a fixed-length list");
   }
 
-  void removeRange(int start, int length) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError(
         "Cannot remove from a fixed-length list");
   }
@@ -165,7 +165,7 @@ abstract class UnmodifiableListMixin<E> {
         "Cannot modify an unmodifiable list");
   }
 
-  void removeRange(int start, int length) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError(
         "Cannot remove from an unmodifiable list");
   }

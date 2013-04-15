@@ -537,7 +537,7 @@ abstract class _TypedListBase {
     throw new StateError("More than one element");
   }
 
-  void removeRange(int start, int length) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError(
         "Cannot remove from a non-extendable array");
   }

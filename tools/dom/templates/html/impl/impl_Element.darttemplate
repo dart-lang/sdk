@@ -188,7 +188,7 @@ class _ChildrenElementList extends ListBase<Element> {
     _childElements.retainWhere(test);
   }
 
-  void removeRange(int start, int rangeLength) {
+  void removeRange(int start, int end) {
     throw new UnimplementedError();
   }
 
@@ -314,7 +314,7 @@ class _FrozenElementList extends ListBase {
     throw new UnsupportedError('');
   }
 
-  void removeRange(int start, int rangeLength) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError('');
   }
 

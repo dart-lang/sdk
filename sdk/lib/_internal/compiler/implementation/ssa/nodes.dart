@@ -673,7 +673,7 @@ class HBasicBlock extends HInstructionList {
     if (index == dominatedBlocks.length - 1) {
       dominatedBlocks.removeLast();
     } else {
-      dominatedBlocks.removeRange(index, 1);
+      dominatedBlocks.removeRange(index, index + 1);
     }
     assert(identical(block.dominator, this));
     block.dominator = null;

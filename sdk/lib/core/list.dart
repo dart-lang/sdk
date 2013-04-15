@@ -264,7 +264,7 @@ abstract class List<E> implements Iterable<E> {
 
   /**
    * Copies the elements of [iterable], skipping the [skipCount] first elements
-   * into the range [start] - [end] of `this`.
+   * into the range [start] - [end] (excluding) of `this`.
    *
    * If [start] equals [end] and represent a legal range, this method has
    * no effect.
@@ -278,15 +278,12 @@ abstract class List<E> implements Iterable<E> {
   void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]);
 
   /**
-   * Removes [length] elements from the list, beginning at [start].
-   * Throws an [UnsupportedError] if the list is
-   * not extendable.
-   * If [length] is 0, this method does not do anything.
-   * Throws an [ArgumentError] if [length] is negative.
-   * Throws an [RangeError] if [start] or
-   * [:start + length: - 1] are out of range.
+   * Removes the elements in the range [start]..[end] (excluding).
+   *
+   * It is an error if [start]..[end] is not a valid range pointing into the
+   * `this`.
    */
-  void removeRange(int start, int length);
+  void removeRange(int start, int end);
 
   /**
    * Inserts a new range into the list, starting from [start] to

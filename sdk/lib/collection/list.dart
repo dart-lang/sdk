@@ -342,14 +342,14 @@ abstract class ListMixin<E> implements List<E> {
     }
   }
 
-  void removeRange(int start, int length) {
+  void removeRange(int start, int end) {
     if (start < 0 || start > this.length) {
       throw new RangeError.range(start, 0, this.length);
     }
-    if (length < 0 || start + length > this.length) {
-      throw new RangeError.range(length, 0, this.length - start);
+    if (end < start || end > this.length) {
+      throw new RangeError.range(end, start, this.length);
     }
-    int end = start + length;
+    int length = end - start;
     setRange(start, this.length - length, this, end);
     this.length -= length;
   }

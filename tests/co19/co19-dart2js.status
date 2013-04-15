@@ -509,6 +509,10 @@ LibTest/core/List/setRange_A03_t02: Fail # setRange throws StateError if there a
 [ $compiler == dart2js && $unchecked ]
 LibTest/core/List/setRange_A05_t01: Fail # setRange throws StateError if there aren't enough elements in the iterable. Issue 402
 
+LibTest/core/List/removeRange_A01_t01: Fail # removeRange now takes end-argument. Issue 404
+LibTest/core/List/removeRange_A03_t01: Fail # removeRange now takes end-argument. Issue 404
+LibTest/core/List/removeRange_A05_t01: Fail # removeRange now takes end-argument. Issue 404
+
 # Issues with co19 test suite in checked mode.
 [ $compiler == dart2js && $checked ]
 LibTest/core/Set/intersection_A01_t01: Fail # issue 390

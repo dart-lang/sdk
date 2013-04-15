@@ -48,7 +48,7 @@ class _HttpHeaders implements HttpHeaders {
     if (values != null) {
       int index = values.indexOf(value);
       if (index != -1) {
-        values.removeRange(index, 1);
+        values.removeRange(index, index + 1);
       }
       if (values.length == 0) _headers.remove(name);
     }

@@ -513,7 +513,8 @@ class LogEntryList {
             actionMatcher.matches(entry, matchState)) {
           rtn.add(entry);
           if (destructive) {
-            logs.removeRange(i--, 1);
+            int startIndex = i--;
+            logs.removeRange(startIndex, startIndex + 1);
           }
         }
       }
@@ -621,7 +622,7 @@ class LogEntryList {
     int pos = findLogEntry(logFilter, 0, defaultPosition);
     if (inPlace) {
       if (pos < logs.length) {
-        logs.removeRange(pos, logs.length - pos);
+        logs.removeRange(pos, logs.length);
       }
       filter = description;
       return this;
