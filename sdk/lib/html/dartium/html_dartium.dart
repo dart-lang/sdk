@@ -616,6 +616,23 @@ class AudioElement extends MediaElement {
 
 
 @DocsEditable
+@DomName('AutocompleteErrorEvent')
+class AutocompleteErrorEvent extends Event {
+  AutocompleteErrorEvent.internal() : super.internal();
+
+  @DomName('AutocompleteErrorEvent.reason')
+  @DocsEditable
+  String get reason native "AutocompleteErrorEvent_reason_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
 @DomName('HTMLBRElement')
 class BRElement extends _Element_Merged {
   BRElement.internal() : super.internal();
@@ -2303,6 +2320,27 @@ class CssCharsetRule extends CssRule {
 
 
 @DocsEditable
+@DomName('CSSFontFaceLoadEvent')
+class CssFontFaceLoadEvent extends Event {
+  CssFontFaceLoadEvent.internal() : super.internal();
+
+  @DomName('CSSFontFaceLoadEvent.error')
+  @DocsEditable
+  DomError get error native "CSSFontFaceLoadEvent_error_Getter";
+
+  @DomName('CSSFontFaceLoadEvent.fontface')
+  @DocsEditable
+  CssFontFaceRule get fontface native "CSSFontFaceLoadEvent_fontface_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
 @DomName('CSSFontFaceRule')
 class CssFontFaceRule extends CssRule {
   CssFontFaceRule.internal() : super.internal();
@@ -2513,6 +2551,8 @@ class CssRule extends NativeFieldWrapperClass1 {
   static const int WEBKIT_KEYFRAMES_RULE = 7;
 
   static const int WEBKIT_KEYFRAME_RULE = 8;
+
+  static const int WEBKIT_REGION_RULE = 16;
 
   @DomName('CSSRule.cssText')
   @DocsEditable
@@ -5859,6 +5899,19 @@ class CssUnknownRule extends CssRule {
 // WARNING: Do not edit - generated code.
 
 
+@DocsEditable
+@DomName('CustomElementConstructor')
+class CustomElementConstructor extends NativeFieldWrapperClass1 {
+  CustomElementConstructor.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
 @DomName('CustomEvent')
 class CustomEvent extends Event {
   factory CustomEvent(String type,
@@ -6399,6 +6452,39 @@ class DeviceOrientationEvent extends Event {
   void $dom_initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma, bool absolute) native "DeviceOrientationEvent_initDeviceOrientationEvent_Callback";
 
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('HTMLDialogElement')
+class DialogElement extends _Element_Merged {
+  DialogElement.internal() : super.internal();
+
+  @DomName('HTMLDialogElement.open')
+  @DocsEditable
+  bool get open native "HTMLDialogElement_open_Getter";
+
+  @DomName('HTMLDialogElement.open')
+  @DocsEditable
+  void set open(bool value) native "HTMLDialogElement_open_Setter";
+
+  @DomName('HTMLDialogElement.close')
+  @DocsEditable
+  void close() native "HTMLDialogElement_close_Callback";
+
+  @DomName('HTMLDialogElement.show')
+  @DocsEditable
+  void show() native "HTMLDialogElement_show_Callback";
+
+  @DomName('HTMLDialogElement.showModal')
+  @DocsEditable
+  void showModal() native "HTMLDialogElement_showModal_Callback";
+
+}
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -6630,6 +6716,10 @@ class Document extends Node
   @DocsEditable
   String get domain native "Document_domain_Getter";
 
+  @DomName('Document.fontloader')
+  @DocsEditable
+  FontLoader get fontloader native "Document_fontloader_Getter";
+
   /// Moved to [HtmlDocument].
   @DomName('Document.head')
   @DocsEditable
@@ -6744,14 +6834,41 @@ class Document extends Node
   @DocsEditable
   DocumentFragment createDocumentFragment() native "Document_createDocumentFragment_Callback";
 
-  /// Deprecated: use new Element.tag(tagName) instead.
-  @DomName('Document.createElement')
-  @DocsEditable
-  Element $dom_createElement(String tagName) native "Document_createElement_Callback";
+  Element $dom_createElement(String localName_OR_tagName, [String typeExtension]) {
+    if ((localName_OR_tagName is String || localName_OR_tagName == null) && !?typeExtension) {
+      return _createElement_1(localName_OR_tagName);
+    }
+    if ((localName_OR_tagName is String || localName_OR_tagName == null) && (typeExtension is String || typeExtension == null)) {
+      return _createElement_2(localName_OR_tagName, typeExtension);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
-  @DomName('Document.createElementNS')
+  @DomName('Document._createElement_1')
   @DocsEditable
-  Element $dom_createElementNS(String namespaceURI, String qualifiedName) native "Document_createElementNS_Callback";
+  Element _createElement_1(localName_OR_tagName) native "Document__createElement_1_Callback";
+
+  @DomName('Document._createElement_2')
+  @DocsEditable
+  Element _createElement_2(localName_OR_tagName, typeExtension) native "Document__createElement_2_Callback";
+
+  Element $dom_createElementNS(String namespaceURI, String qualifiedName, [String typeExtension]) {
+    if ((namespaceURI is String || namespaceURI == null) && (qualifiedName is String || qualifiedName == null) && !?typeExtension) {
+      return _createElementNS_1(namespaceURI, qualifiedName);
+    }
+    if ((namespaceURI is String || namespaceURI == null) && (qualifiedName is String || qualifiedName == null) && (typeExtension is String || typeExtension == null)) {
+      return _createElementNS_2(namespaceURI, qualifiedName, typeExtension);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  @DomName('Document._createElementNS_1')
+  @DocsEditable
+  Element _createElementNS_1(namespaceURI, qualifiedName) native "Document__createElementNS_1_Callback";
+
+  @DomName('Document._createElementNS_2')
+  @DocsEditable
+  Element _createElementNS_2(namespaceURI, qualifiedName, typeExtension) native "Document__createElementNS_2_Callback";
 
   @DomName('Document.createEvent')
   @DocsEditable
@@ -6870,6 +6987,20 @@ class Document extends Node
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
   void $dom_webkitExitPointerLock() native "Document_webkitExitPointerLock_Callback";
+
+  @DomName('Document.webkitGetNamedFlows')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  DomNamedFlowCollection getNamedFlows() native "Document_webkitGetNamedFlows_Callback";
+
+  @DomName('Document.webkitRegister')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  CustomElementConstructor register(String name, [Map options]) native "Document_webkitRegister_Callback";
 
   @DomName('Document.onabort')
   @DocsEditable
@@ -7518,6 +7649,31 @@ class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeT
   @DomName('DOMMimeTypeArray.namedItem')
   @DocsEditable
   DomMimeType namedItem(String name) native "DOMMimeTypeArray_namedItem_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('WebKitNamedFlowCollection')
+class DomNamedFlowCollection extends NativeFieldWrapperClass1 {
+  DomNamedFlowCollection.internal();
+
+  @DomName('DOMNamedFlowCollection.length')
+  @DocsEditable
+  int get length native "DOMNamedFlowCollection_length_Getter";
+
+  @DomName('DOMNamedFlowCollection.item')
+  @DocsEditable
+  WebKitNamedFlow item(int index) native "DOMNamedFlowCollection_item_Callback";
+
+  @DomName('DOMNamedFlowCollection.namedItem')
+  @DocsEditable
+  WebKitNamedFlow namedItem(String name) native "DOMNamedFlowCollection_namedItem_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9310,6 +9466,13 @@ abstract class Element extends Node implements ElementTraversal {
   @Experimental
   void set pseudo(String value) native "Element_webkitPseudo_Setter";
 
+  @DomName('Element.webkitRegionOverset')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  String get regionOverset native "Element_webkitRegionOverset_Getter";
+
   @DomName('Element.webkitShadowRoot')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -9449,6 +9612,13 @@ abstract class Element extends Node implements ElementTraversal {
   @SupportedBrowser(SupportedBrowser.CHROME, '25')
   @Experimental
   ShadowRoot createShadowRoot() native "Element_webkitCreateShadowRoot_Callback";
+
+  @DomName('Element.webkitGetRegionFlowRanges')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  List<Range> getRegionFlowRanges() native "Element_webkitGetRegionFlowRanges_Callback";
 
   @DomName('Element.webkitMatchesSelector')
   @DocsEditable
@@ -11688,6 +11858,63 @@ class FocusEvent extends UIEvent {
 
 
 @DocsEditable
+@DomName('FontLoader')
+class FontLoader extends EventTarget {
+  FontLoader.internal() : super.internal();
+
+  @DomName('FontLoader.errorEvent')
+  @DocsEditable
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+
+  @DomName('FontLoader.loadEvent')
+  @DocsEditable
+  static const EventStreamProvider<Event> loadEvent = const EventStreamProvider<Event>('load');
+
+  @DomName('FontLoader.loading')
+  @DocsEditable
+  bool get loading native "FontLoader_loading_Getter";
+
+  @DomName('FontLoader.addEventListener')
+  @DocsEditable
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "FontLoader_addEventListener_Callback";
+
+  @DomName('FontLoader.checkFont')
+  @DocsEditable
+  bool checkFont(String font, String text) native "FontLoader_checkFont_Callback";
+
+  @DomName('FontLoader.dispatchEvent')
+  @DocsEditable
+  bool dispatchEvent(Event evt) native "FontLoader_dispatchEvent_Callback";
+
+  @DomName('FontLoader.loadFont')
+  @DocsEditable
+  void loadFont(Map params) native "FontLoader_loadFont_Callback";
+
+  @DomName('FontLoader.notifyWhenFontsReady')
+  @DocsEditable
+  void notifyWhenFontsReady(VoidCallback callback) native "FontLoader_notifyWhenFontsReady_Callback";
+
+  @DomName('FontLoader.removeEventListener')
+  @DocsEditable
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "FontLoader_removeEventListener_Callback";
+
+  @DomName('FontLoader.onerror')
+  @DocsEditable
+  Stream<Event> get onError => errorEvent.forTarget(this);
+
+  @DomName('FontLoader.onload')
+  @DocsEditable
+  Stream<Event> get onLoad => loadEvent.forTarget(this);
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
 @DomName('FormData')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
@@ -11803,6 +12030,10 @@ class FormElement extends _Element_Merged {
   @DomName('HTMLFormElement.checkValidity')
   @DocsEditable
   bool checkValidity() native "HTMLFormElement_checkValidity_Callback";
+
+  @DomName('HTMLFormElement.requestAutocomplete')
+  @DocsEditable
+  void requestAutocomplete() native "HTMLFormElement_requestAutocomplete_Callback";
 
   @DomName('HTMLFormElement.reset')
   @DocsEditable
@@ -19420,6 +19651,77 @@ class Performance extends EventTarget {
   @DocsEditable
   num now() native "Performance_now_Callback";
 
+  @DomName('Performance.webkitGetEntries')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  PerformanceEntryList getEntries() native "Performance_webkitGetEntries_Callback";
+
+  @DomName('Performance.webkitGetEntriesByName')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  PerformanceEntryList getEntriesByName(String name, String entryType) native "Performance_webkitGetEntriesByName_Callback";
+
+  @DomName('Performance.webkitGetEntriesByType')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  PerformanceEntryList getEntriesByType(String entryType) native "Performance_webkitGetEntriesByType_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('PerformanceEntry')
+class PerformanceEntry extends NativeFieldWrapperClass1 {
+  PerformanceEntry.internal();
+
+  @DomName('PerformanceEntry.duration')
+  @DocsEditable
+  num get duration native "PerformanceEntry_duration_Getter";
+
+  @DomName('PerformanceEntry.entryType')
+  @DocsEditable
+  String get entryType native "PerformanceEntry_entryType_Getter";
+
+  @DomName('PerformanceEntry.name')
+  @DocsEditable
+  String get name native "PerformanceEntry_name_Getter";
+
+  @DomName('PerformanceEntry.startTime')
+  @DocsEditable
+  num get startTime native "PerformanceEntry_startTime_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('PerformanceEntryList')
+class PerformanceEntryList extends NativeFieldWrapperClass1 {
+  PerformanceEntryList.internal();
+
+  @DomName('PerformanceEntryList.length')
+  @DocsEditable
+  int get length native "PerformanceEntryList_length_Getter";
+
+  @DomName('PerformanceEntryList.item')
+  @DocsEditable
+  PerformanceEntry item(int index) native "PerformanceEntryList_item_Callback";
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25548,6 +25850,23 @@ class WebKitCssFilterRule extends CssRule {
   @DomName('WebKitCSSFilterRule.style')
   @DocsEditable
   CssStyleDeclaration get style native "WebKitCSSFilterRule_style_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('WebKitCSSRegionRule')
+class WebKitCssRegionRule extends CssRule {
+  WebKitCssRegionRule.internal() : super.internal();
+
+  @DomName('WebKitCSSRegionRule.cssRules')
+  @DocsEditable
+  List<CssRule> get cssRules native "WebKitCSSRegionRule_cssRules_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
