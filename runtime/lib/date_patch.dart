@@ -76,7 +76,7 @@ patch class DateTime {
         _flooredDivision(_localDateInUtcMs, Duration.MILLISECONDS_PER_DAY);
     // 1970-1-1 was a Thursday.
     return ((daysSince1970 + DateTime.THURSDAY - DateTime.MONDAY)
-            % DateTime.DAYS_IN_WEEK) +
+            % DateTime.DAYS_PER_WEEK) +
         DateTime.MONDAY;
   }
 
