@@ -911,7 +911,7 @@ static CObject* FileReadRequest(const CObjectArray& request) {
     if (!file->IsClosed()) {
       int64_t length = CObjectInt32OrInt64ToInt64(request[2]);
       Dart_CObject* io_buffer = CObject::NewIOBuffer(length);
-      uint8_t* data = io_buffer->value.as_external_byte_array.data;
+      uint8_t* data = io_buffer->value.as_external_typed_data.data;
       int64_t bytes_read = file->Read(data, length);
       if (bytes_read >= 0) {
         CObjectExternalUint8Array* external_array =
@@ -942,7 +942,7 @@ static CObject* FileReadListRequest(const CObjectArray& request) {
     if (!file->IsClosed()) {
       int64_t length = CObjectInt32OrInt64ToInt64(request[2]);
       Dart_CObject* io_buffer = CObject::NewIOBuffer(length);
-      uint8_t* data = io_buffer->value.as_external_byte_array.data;
+      uint8_t* data = io_buffer->value.as_external_typed_data.data;
       int64_t bytes_read = file->Read(data, length);
       if (bytes_read >= 0) {
         CObjectExternalUint8Array* external_array =
@@ -965,10 +965,26 @@ static CObject* FileReadListRequest(const CObjectArray& request) {
 }
 
 
+static int SizeInBytes(Dart_CObject::TypedDataType type) {
+  switch (type) {
+    case Dart_CObject::kInt8Array:
+    case Dart_CObject::kUint8Array:
+      return 1;
+    case Dart_CObject::kInt16Array:
+    case Dart_CObject::kUint16Array:
+      return 2;
+    default:
+      break;
+  }
+  UNREACHABLE();
+  return -1;
+}
+
+
 static CObject* FileWriteListRequest(const CObjectArray& request) {
   if (request.Length() == 5 &&
       request[1]->IsIntptr() &&
-      (request[2]->IsUint8Array() || request[2]->IsArray()) &&
+      (request[2]->IsTypedData() || request[2]->IsArray()) &&
       request[3]->IsInt32OrInt64() &&
       request[4]->IsInt32OrInt64()) {
     File* file = CObjectToFilePointer(request[1]);
@@ -977,9 +993,11 @@ static CObject* FileWriteListRequest(const CObjectArray& request) {
       int64_t offset = CObjectInt32OrInt64ToInt64(request[3]);
       int64_t length = CObjectInt32OrInt64ToInt64(request[4]);
       uint8_t* buffer_start;
-      if (request[2]->IsUint8Array()) {
-        CObjectUint8Array byte_array(request[2]);
-        buffer_start = byte_array.Buffer() + offset;
+      if (request[2]->IsTypedData()) {
+        CObjectTypedData typed_data(request[2]);
+        offset = offset * SizeInBytes(typed_data.Type());
+        length = length * SizeInBytes(typed_data.Type());
+        buffer_start = typed_data.Buffer() + offset;
       } else {
         CObjectArray array(request[2]);
         buffer_start = new uint8_t[length];
@@ -997,7 +1015,7 @@ static CObject* FileWriteListRequest(const CObjectArray& request) {
       }
       int64_t bytes_written =
           file->Write(reinterpret_cast<void*>(buffer_start), length);
-      if (!request[2]->IsUint8Array()) {
+      if (!request[2]->IsTypedData()) {
         delete[] buffer_start;
       }
       if (bytes_written >= 0) {

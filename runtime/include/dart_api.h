@@ -942,6 +942,11 @@ DART_EXPORT bool Dart_Post(Dart_Port port_id, Dart_Handle object);
  * representation as a Dart_CObject.
  *
  * The string encoding in the 'value.as_string' is UTF-8.
+ *
+ * All the different types from dart:typeddata are exposed as type
+ * kTypedData. The specific type from dart:typeddata is in the type
+ * field of the as_typed_data structure. The length in the
+ * as_typed_data structure is always in bytes.
  */
 typedef struct _Dart_CObject {
   enum Type {
@@ -953,11 +958,20 @@ typedef struct _Dart_CObject {
     kDouble,
     kString,
     kArray,
-    kUint8Array,
-    kExternalUint8Array,
+    kTypedData,
+    kExternalTypedData,
     kUnsupported,
     kNumberOfTypes
   } type;
+
+  enum TypedDataType {
+    kInt8Array = 0,
+    kUint8Array,
+    kInt16Array,
+    kUint16Array,
+    kNumberOfTypedDataTypes
+  };
+
   union {
     bool as_bool;
     int32_t as_int32;
@@ -970,15 +984,17 @@ typedef struct _Dart_CObject {
       struct _Dart_CObject** values;
     } as_array;
     struct {
+      TypedDataType type;
       int length;
       uint8_t* values;
-    } as_byte_array;
+    } as_typed_data;
     struct {
+      TypedDataType type;
       int length;
       uint8_t* data;
       void* peer;
       Dart_WeakPersistentHandleFinalizer callback;
-    } as_external_byte_array;
+    } as_external_typed_data;
   } value;
 } Dart_CObject;
 

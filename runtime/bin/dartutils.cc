@@ -678,9 +678,10 @@ Dart_CObject* CObject::NewArray(int length) {
 
 
 Dart_CObject* CObject::NewUint8Array(int length) {
-  Dart_CObject* cobject = New(Dart_CObject::kUint8Array, length);
-  cobject->value.as_byte_array.length = length;
-  cobject->value.as_byte_array.values = reinterpret_cast<uint8_t*>(cobject + 1);
+  Dart_CObject* cobject = New(Dart_CObject::kTypedData, length);
+  cobject->value.as_typed_data.type = Dart_CObject::kUint8Array;
+  cobject->value.as_typed_data.length = length;
+  cobject->value.as_typed_data.values = reinterpret_cast<uint8_t*>(cobject + 1);
   return cobject;
 }
 
@@ -688,11 +689,12 @@ Dart_CObject* CObject::NewUint8Array(int length) {
 Dart_CObject* CObject::NewExternalUint8Array(
     int64_t length, uint8_t* data, void* peer,
     Dart_WeakPersistentHandleFinalizer callback) {
-  Dart_CObject* cobject = New(Dart_CObject::kExternalUint8Array);
-  cobject->value.as_external_byte_array.length = length;
-  cobject->value.as_external_byte_array.data = data;
-  cobject->value.as_external_byte_array.peer = peer;
-  cobject->value.as_external_byte_array.callback = callback;
+  Dart_CObject* cobject = New(Dart_CObject::kExternalTypedData);
+  cobject->value.as_external_typed_data.type = Dart_CObject::kUint8Array;
+  cobject->value.as_external_typed_data.length = length;
+  cobject->value.as_external_typed_data.data = data;
+  cobject->value.as_external_typed_data.peer = peer;
+  cobject->value.as_external_typed_data.callback = callback;
   return cobject;
 }
 
@@ -704,10 +706,10 @@ Dart_CObject* CObject::NewIOBuffer(int64_t length) {
 
 
 void CObject::FreeIOBufferData(Dart_CObject* cobject) {
-  ASSERT(cobject->type == Dart_CObject::kExternalUint8Array);
-  cobject->value.as_external_byte_array.callback(
-      NULL, cobject->value.as_external_byte_array.peer);
-  cobject->value.as_external_byte_array.data = NULL;
+  ASSERT(cobject->type == Dart_CObject::kExternalTypedData);
+  cobject->value.as_external_typed_data.callback(
+      NULL, cobject->value.as_external_typed_data.peer);
+  cobject->value.as_external_typed_data.data = NULL;
 }
 
 

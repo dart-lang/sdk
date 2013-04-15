@@ -205,6 +205,10 @@ class CObject {
  public:
   explicit CObject(Dart_CObject *cobject) : cobject_(cobject) {}
   Dart_CObject::Type type() { return cobject_->type; }
+  Dart_CObject::TypedDataType byte_array_type() {
+    ASSERT(type() == Dart_CObject::kTypedData);
+    return cobject_->value.as_typed_data.type;
+  }
 
   bool IsNull() { return type() == Dart_CObject::kNull; }
   bool IsBool() { return type() == Dart_CObject::kBool; }
@@ -216,7 +220,11 @@ class CObject {
   bool IsDouble() { return type() == Dart_CObject::kDouble; }
   bool IsString() { return type() == Dart_CObject::kString; }
   bool IsArray() { return type() == Dart_CObject::kArray; }
-  bool IsUint8Array() { return type() == Dart_CObject::kUint8Array; }
+  bool IsTypedData() { return type() == Dart_CObject::kTypedData; }
+  bool IsUint8Array() {
+    return type() == Dart_CObject::kTypedData &&
+           byte_array_type() == Dart_CObject::kUint8Array;
+  }
 
   bool IsTrue() {
     return type() == Dart_CObject::kBool && cobject_->value.as_bool;
@@ -288,7 +296,35 @@ class CObject {
     ASSERT(cobject != NULL);                                                   \
     ASSERT(cobject->type() == Dart_CObject::k##t);                             \
     cobject_ = cobject->AsApiCObject();                                        \
-  }
+  }                                                                            \
+
+
+#define DECLARE_COBJECT_TYPED_DATA_CONSTRUCTORS(t)                             \
+  explicit CObject##t(Dart_CObject *cobject) : CObject(cobject) {              \
+    ASSERT(type() == Dart_CObject::kTypedData);                                \
+    ASSERT(byte_array_type() == Dart_CObject::k##t);                           \
+    cobject_ = cobject;                                                        \
+  }                                                                            \
+  explicit CObject##t(CObject* cobject) : CObject() {                          \
+    ASSERT(cobject != NULL);                                                   \
+    ASSERT(cobject->type() == Dart_CObject::kTypedData);                       \
+    ASSERT(cobject->byte_array_type() == Dart_CObject::k##t);                  \
+    cobject_ = cobject->AsApiCObject();                                        \
+  }                                                                            \
+
+
+#define DECLARE_COBJECT_EXTERNAL_TYPED_DATA_CONSTRUCTORS(t)                    \
+  explicit CObjectExternal##t(Dart_CObject *cobject) : CObject(cobject) {      \
+    ASSERT(type() == Dart_CObject::kExternalTypedData);                        \
+    ASSERT(byte_array_type() == Dart_CObject::k##t);                           \
+    cobject_ = cobject;                                                        \
+  }                                                                            \
+  explicit CObjectExternal##t(CObject* cobject) : CObject() {                  \
+    ASSERT(cobject != NULL);                                                   \
+    ASSERT(cobject->type() == Dart_CObject::kExternalTypedData);               \
+    ASSERT(cobject->byte_array_type() == Dart_CObject::k##t);                  \
+    cobject_ = cobject->AsApiCObject();                                        \
+  }                                                                            \
 
 
 class CObjectBool : public CObject {
@@ -404,12 +440,35 @@ class CObjectArray : public CObject {
 };
 
 
+class CObjectTypedData : public CObject {
+ public:
+  explicit CObjectTypedData(Dart_CObject *cobject) : CObject(cobject) {
+    ASSERT(type() == Dart_CObject::kTypedData);
+    cobject_ = cobject;
+  }
+  explicit CObjectTypedData(CObject* cobject) : CObject() {
+    ASSERT(cobject != NULL);
+    ASSERT(cobject->type() == Dart_CObject::kTypedData);
+    cobject_ = cobject->AsApiCObject();
+  }
+
+  Dart_CObject::TypedDataType Type() const {
+    return cobject_->value.as_typed_data.type;
+  }
+  int Length() const { return cobject_->value.as_typed_data.length; }
+  uint8_t* Buffer() const { return cobject_->value.as_typed_data.values; }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(CObjectTypedData);
+};
+
+
 class CObjectUint8Array : public CObject {
  public:
-  DECLARE_COBJECT_CONSTRUCTORS(Uint8Array)
+  DECLARE_COBJECT_TYPED_DATA_CONSTRUCTORS(Uint8Array)
 
-  int Length() const { return cobject_->value.as_byte_array.length; }
-  uint8_t* Buffer() const { return cobject_->value.as_byte_array.values; }
+  int Length() const { return cobject_->value.as_typed_data.length; }
+  uint8_t* Buffer() const { return cobject_->value.as_typed_data.values; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(CObjectUint8Array);
@@ -418,16 +477,16 @@ class CObjectUint8Array : public CObject {
 
 class CObjectExternalUint8Array : public CObject {
  public:
-  DECLARE_COBJECT_CONSTRUCTORS(ExternalUint8Array)
+  DECLARE_COBJECT_EXTERNAL_TYPED_DATA_CONSTRUCTORS(Uint8Array)
 
-  int Length() const { return cobject_->value.as_external_byte_array.length; }
+  int Length() const { return cobject_->value.as_external_typed_data.length; }
   void SetLength(uint64_t length) {
-    cobject_->value.as_external_byte_array.length = length;
+    cobject_->value.as_external_typed_data.length = length;
   }
-  uint8_t* Data() const { return cobject_->value.as_external_byte_array.data; }
-  void* Peer() const { return cobject_->value.as_external_byte_array.peer; }
+  uint8_t* Data() const { return cobject_->value.as_external_typed_data.data; }
+  void* Peer() const { return cobject_->value.as_external_typed_data.peer; }
   Dart_WeakPersistentHandleFinalizer Callback() const {
-    return cobject_->value.as_external_byte_array.callback;
+    return cobject_->value.as_external_typed_data.callback;
   }
 
  private:
