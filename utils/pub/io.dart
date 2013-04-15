@@ -284,11 +284,11 @@ String relativeToPub(String target) {
 
 /// A sink that writes to standard output. Errors piped to this stream will be
 /// surfaced to the top-level error handler.
-final EventSink<List<int>> stdoutSink = _wrapStdio(stdout, "stdout");
+final EventSink<List<int>> stdoutSink = stdout;
 
 /// A sink that writes to standard error. Errors piped to this stream will be
 /// surfaced to the top-level error handler.
-final EventSink<List<int>> stderrSink = _wrapStdio(stderr, "stderr");
+final EventSink<List<int>> stderrSink = stderr;
 
 /// Wrap the standard output or error [stream] in a [EventSink]. Any errors are
 /// logged, and then the program is terminated. [name] is used for debugging.
