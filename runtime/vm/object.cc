@@ -593,17 +593,26 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
     intptr_t leftover_size = original_size - used_size;
 
     uword addr = RawObject::ToAddr(obj.raw()) + used_size;
-    ASSERT(TypedData::InstanceSize(0) == Object::InstanceSize());
-    // Update the leftover space as an TypedDataInt8Array object.
-    RawTypedData* raw =
-        reinterpret_cast<RawTypedData*>(RawObject::FromAddr(addr));
-    uword tags = 0;
-    tags = RawObject::SizeTag::update(leftover_size, tags);
-    tags = RawObject::ClassIdTag::update(kTypedDataInt8ArrayCid, tags);
-    raw->ptr()->tags_ = tags;
-    intptr_t leftover_len = (leftover_size - TypedData::InstanceSize(0));
-    ASSERT(TypedData::InstanceSize(leftover_len) == leftover_size);
-    raw->ptr()->length_ = Smi::New(leftover_len);
+    if (leftover_size >= TypedData::InstanceSize(0)) {
+      // Update the leftover space as an TypedDataInt8Array object.
+      RawTypedData* raw =
+          reinterpret_cast<RawTypedData*>(RawObject::FromAddr(addr));
+      uword tags = 0;
+      tags = RawObject::SizeTag::update(leftover_size, tags);
+      tags = RawObject::ClassIdTag::update(kTypedDataInt8ArrayCid, tags);
+      raw->ptr()->tags_ = tags;
+      intptr_t leftover_len = (leftover_size - TypedData::InstanceSize(0));
+      ASSERT(TypedData::InstanceSize(leftover_len) == leftover_size);
+      raw->ptr()->length_ = Smi::New(leftover_len);
+    } else {
+      // Update the leftover space as a basic object.
+      ASSERT(leftover_size == Object::InstanceSize());
+      RawObject* raw = reinterpret_cast<RawObject*>(RawObject::FromAddr(addr));
+      uword tags = 0;
+      tags = RawObject::SizeTag::update(leftover_size, tags);
+      tags = RawObject::ClassIdTag::update(kInstanceCid, tags);
+      raw->ptr()->tags_ = tags;
+    }
   }
 }
 
