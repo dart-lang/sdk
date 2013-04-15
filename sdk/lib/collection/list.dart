@@ -174,6 +174,9 @@ abstract class ListMixin<E> implements List<E> {
 
   Iterable map(f(E element)) => new MappedListIterable(this, f);
 
+  Iterable expand(Iterable f(E element)) =>
+      new ExpandIterable<E, dynamic>(this, f);
+
   E reduce(E combine(E previousValue, E element)) {
     if (length == 0) throw new StateError("No elements");
     E value = this[0];
@@ -242,7 +245,7 @@ abstract class ListMixin<E> implements List<E> {
   void remove(Object element) {
     for (int i = 0; i < this.length; i++) {
       if (this[i] == element) {
-        this.setRange(i, this.length - i - 1, this, i + 1);
+        this.setRange(i, i + this.length - 1, this, i + 1);
         this.length -= 1;
         return;
       }
@@ -298,14 +301,18 @@ abstract class ListMixin<E> implements List<E> {
     return new ListMapView(this);
   }
 
-  List<E> sublist(int start, [int end]) {
-    if (end == null) end = length;
+  void _rangeCheck(int start, int end) {
     if (start < 0 || start > this.length) {
       throw new RangeError.range(start, 0, this.length);
     }
     if (end < start || end > this.length) {
       throw new RangeError.range(end, start, this.length);
     }
+  }
+
+  List<E> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    _rangeCheck(start, end);
     int length = end - start;
     List<E> result = new List<E>()..length = length;
     for (int i = 0; i < length; i++) {
@@ -315,71 +322,60 @@ abstract class ListMixin<E> implements List<E> {
   }
 
   Iterable<E> getRange(int start, int end) {
-    if (start < 0 || start > this.length) {
-      throw new RangeError.range(start, 0, this.length);
-    }
-    if (end < start || end > this.length) {
-      throw new RangeError.range(end, start, this.length);
-    }
+    _rangeCheck(start, end);
     return new SubListIterable(this, start, end);
   }
 
-  void insertRange(int start, int length, [E initialValue]) {
-    if (start < 0 || start > this.length) {
-      throw new RangeError.range(start, 0, this.length);
-    }
-    int oldLength = this.length;
-    int moveLength = oldLength - start;
-    this.length += length;
-    if (moveLength > 0) {
-      this.setRange(start + length, moveLength, this, start);
-    }
-    for (int i = 0; i < length; i++) {
-      this[start + i] = initialValue;
-    }
-  }
-
-  void removeRange(int start, int length) {
-    if (start < 0 || start > this.length) {
-      throw new RangeError.range(start, 0, this.length);
-    }
-    if (length < 0 || start + length > this.length) {
-      throw new RangeError.range(length, 0, this.length - start);
-    }
-    int end = start + length;
-    setRange(start, this.length - end, this, end);
+  void removeRange(int start, int end) {
+    _rangeCheck(start, end);
+    int length = end - start;
+    setRange(start, this.length - length, this, end);
     this.length -= length;
   }
 
-  void clearRange(int start, int length, [E fill]) {
-    for (int i = 0; i < length; i++) {
-      this[start + i] = fill;
+  void fillRange(int start, int end, [E fill]) {
+    _rangeCheck(start, end);
+    for (int i = start; i < end; i++) {
+      this[i] = fill;
     }
   }
 
-  void setRange(int start, int length, List<E> from, [int startFrom]) {
-    if (start < 0 || start > this.length) {
-      throw new RangeError.range(start, 0, this.length);
+  void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
+    _rangeCheck(start, end);
+    int length = end - start;
+    if (length == 0) return;
+
+    if (skipCount < 0) throw new ArgumentError(skipCount);
+
+    List otherList;
+    int otherStart;
+    // TODO(floitsch): Make this accept more.
+    if (iterable is List) {
+      otherList = iterable;
+      otherStart = skipCount;
+    } else {
+      otherList = iterable.skip(skipCount).toList(growable: false);
+      otherStart = 0;
     }
-    if (length < 0 || start + length > this.length) {
-      throw new RangeError.range(length, 0, this.length - start);
+    if (otherStart + length > otherList.length) {
+      throw new StateError("Not enough elements");
     }
-    if (startFrom == null) {
-      startFrom = 0;
-    }
-    if (startFrom < 0 || startFrom + length > from.length) {
-      throw new RangeError.range(startFrom, 0, from.length - length);
-    }
-    if (startFrom < start) {
+    if (otherStart < start) {
       // Copy backwards to ensure correct copy if [from] is this.
       for (int i = length - 1; i >= 0; i--) {
-        this[start + i] = from[startFrom + i];
+        this[start + i] = otherList[otherStart + i];
       }
     } else {
       for (int i = 0; i < length; i++) {
-        this[start + i] = from[startFrom + i];
+        this[start + i] = otherList[otherStart + i];
       }
     }
+  }
+
+  void replaceRange(int start, int end, Iterable<E> newContents) {
+    // TODO(floitsch): Optimize this.
+    removeRange(start, end);
+    insertAll(start, newContents);
   }
 
   int indexOf(E element, [int startIndex = 0]) {
@@ -421,5 +417,58 @@ abstract class ListMixin<E> implements List<E> {
     return -1;
   }
 
+  void insert(int index, E element) {
+    if (index < 0 || index > length) {
+      throw new RangeError.range(index, 0, length);
+    }
+    if (index == this.length) {
+      add(element);
+      return;
+    }
+    // We are modifying the length just below the is-check. Without the check
+    // Array.copy could throw an exception, leaving the list in a bad state
+    // (with a length that has been increased, but without a new element).
+    if (index is! int) throw new ArgumentError(index);
+    this.length++;
+    setRange(index + 1, this.length, this, index);
+    this[index] = element;
+  }
+
+  E removeAt(int index) {
+    E result = this[index];
+    setRange(index, this.length - 1, this, index + 1);
+    length--;
+    return result;
+  }
+
+  void insertAll(int index, Iterable<E> iterable) {
+    if (index < 0 || index > length) {
+      throw new RangeError.range(index, 0, length);
+    }
+    // TODO(floitsch): we can probably detect more cases.
+    if (iterable is! List && iterable is! Set && iterable is! SubListIterable) {
+      iterable = iterable.toList();
+    }
+    int insertionLength = iterable.length;
+    // There might be errors after the length change, in which case the list
+    // will end up being modified but the operation not complete. Unless we
+    // always go through a "toList" we can't really avoid that.
+    this.length += insertionLength;
+    setRange(index + insertionLength, this.length, this, index);
+    setAll(index, iterable);
+  }
+
+  void setAll(int index, Iterable<E> iterable) {
+    if (iterable is List) {
+      setRange(index, index + iterable.length, iterable);
+    } else {
+      for (E element in iterable) {
+        this[index++] = element;
+      }
+    }
+  }
+
   Iterable<E> get reversed => new ReversedListIterable(this);
+
+  String toString() => ToString.iterableToString(this);
 }

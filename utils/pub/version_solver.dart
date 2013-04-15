@@ -97,7 +97,7 @@ class VersionSolver {
     Future processNextWorkItem(_) {
       while (true) {
         // Stop if we are done.
-        if (_work.isEmpty) return new Future.immediate(buildResults());
+        if (_work.isEmpty) return new Future.value(buildResults());
 
         // If we appear to be stuck in a loop, then we probably have an unstable
         // graph, bail. We guess this based on a rough heuristic that it should
@@ -284,8 +284,7 @@ class ChangeVersion implements WorkItem {
       Version version) {
     // If there is no version, it means no package, so no dependencies.
     if (version == null) {
-      return new Future<Map<String, PackageRef>>.immediate(
-          <String, PackageRef>{});
+      return new Future<Map<String, PackageRef>>.value(<String, PackageRef>{});
     }
 
     var id = new PackageId(package, source, version, description);
@@ -475,7 +474,7 @@ class PubspecCache {
   Future<Pubspec> load(PackageId id) {
     // Complete immediately if it's already cached.
     if (_pubspecs.containsKey(id)) {
-      return new Future<Pubspec>.immediate(_pubspecs[id]);
+      return new Future<Pubspec>.value(_pubspecs[id]);
     }
 
     return id.describe().then((pubspec) {

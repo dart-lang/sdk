@@ -28,7 +28,7 @@ class NameValidator extends Validator {
     : super(entrypoint);
 
   Future validate() {
-    return new Future.of(() {
+    return new Future.sync(() {
       _checkName(entrypoint.root.name, 'Package name "${entrypoint.root.name}"',
           isPackage: true);
 

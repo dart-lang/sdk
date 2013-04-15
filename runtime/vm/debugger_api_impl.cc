@@ -224,23 +224,22 @@ DART_EXPORT Dart_Handle Dart_ActivationFrameInfo(
 
 DART_EXPORT Dart_Handle Dart_ActivationFrameGetLocation(
                             Dart_ActivationFrame activation_frame,
-                            Dart_Handle* script_url,
-                            intptr_t* library_id,
-                            intptr_t* token_number) {
-  // TODO(hausner): Implement implement a way to recognize when there
+                            Dart_Handle* function_name,
+                            Dart_CodeLocation* location) {
+  // TODO(hausner): Implement a way to recognize when there
   // is no source code for the code in the frame.
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   CHECK_AND_CAST(ActivationFrame, frame, activation_frame);
-  if (script_url != NULL) {
-    *script_url = Api::NewHandle(isolate, frame->SourceUrl());
+  if (function_name != NULL) {
+    *function_name = Api::NewHandle(isolate, frame->QualifiedFunctionName());
   }
-  if (library_id != NULL) {
+
+  if (location != NULL) {
+    location->script_url = Api::NewHandle(isolate, frame->SourceUrl());
     const Library& lib = Library::Handle(frame->Library());
-    *library_id = lib.index();
-  }
-  if (token_number != NULL) {
-    *token_number = frame->TokenPos();
+    location->library_id = lib.index();
+    location->token_pos = frame->TokenPos();
   }
   return Api::True(isolate);
 }

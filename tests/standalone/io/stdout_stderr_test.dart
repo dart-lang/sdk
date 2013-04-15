@@ -17,16 +17,18 @@ callIOSink(IOSink sink) {
   sink.add([101, 108, 108, 111, 10]);
 
   var controller = new StreamController();
-  sink.writeStream(controller.stream);
+  var future = sink.addStream(controller.stream);
   controller.add([72, 101, 108]);
   controller.add([108, 111, 10]);
   controller.close();
 
-  controller = new StreamController();
-  controller.stream.pipe(sink);
-  controller.add([72, 101, 108]);
-  controller.add([108, 111, 10]);
-  controller.close();
+  future.then((_) {
+    controller = new StreamController();
+    controller.stream.pipe(sink);
+    controller.add([72, 101, 108]);
+    controller.add([108, 111, 10]);
+    controller.close();
+  });
 }
 
 main() {

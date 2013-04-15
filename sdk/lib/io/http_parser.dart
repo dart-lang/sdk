@@ -106,8 +106,10 @@ class _HttpDetachedIncoming extends Stream<List<int>> {
                         List<int> this.carryOverData,
                         Completer oldResumeCompleter) {
     controller = new StreamController<List<int>>(
-        onSubscriptionStateChange: onSubscriptionStateChange,
-        onPauseStateChange: onPauseStateChange);
+        onListen: resume,
+        onPause: pause,
+        onResume: resume,
+        onCancel: () => subscription.cancel());
     if (subscription == null) {
       // Socket was already closed.
       if (carryOverData != null) controller.add(carryOverData);
@@ -123,14 +125,14 @@ class _HttpDetachedIncoming extends Stream<List<int>> {
   }
 
   StreamSubscription<List<int>> listen(void onData(List<int> event),
-                                       {void onError(AsyncError error),
+                                       {void onError(error),
                                         void onDone(),
-                                        bool unsubscribeOnError}) {
+                                        bool cancelOnError}) {
     return controller.stream.listen(
         onData,
         onError: onError,
         onDone: onDone,
-        unsubscribeOnError: unsubscribeOnError);
+        cancelOnError: cancelOnError);
   }
 
   void resume() {
@@ -154,22 +156,6 @@ class _HttpDetachedIncoming extends Stream<List<int>> {
     if (resumeCompleter == null) {
       resumeCompleter = new Completer();
       subscription.pause(resumeCompleter.future);
-    }
-  }
-
-  void onPauseStateChange() {
-    if (controller.isPaused) {
-      pause();
-    } else {
-      resume();
-    }
-  }
-
-  void onSubscriptionStateChange() {
-    if (controller.hasListener) {
-      resume();
-    } else {
-      subscription.cancel();
     }
   }
 }
@@ -209,23 +195,25 @@ class _HttpParser
 
   _HttpParser._(this._requestParser) {
     _controller = new StreamController<_HttpIncoming>(
-          onSubscriptionStateChange: _updateParsePauseState,
-          onPauseStateChange: _updateParsePauseState);
+          onListen: _updateParsePauseState,
+          onPause: _updateParsePauseState,
+          onResume: _updateParsePauseState,
+          onCancel: _updateParsePauseState);
     _reset();
   }
 
 
   StreamSubscription<_HttpIncoming> listen(void onData(_HttpIncoming event),
-                                           {void onError(AsyncError error),
+                                           {void onError(error),
                                             void onDone(),
-                                            bool unsubscribeOnError}) {
+                                            bool cancelOnError}) {
     return _controller.stream.listen(onData,
                                      onError: onError,
                                      onDone: onDone,
-                                     unsubscribeOnError: unsubscribeOnError);
+                                     cancelOnError: cancelOnError);
   }
 
-  Future<_HttpParser> consume(Stream<List<int>> stream) {
+  Future<_HttpParser> addStream(Stream<List<int>> stream) {
     // Listen to the stream and handle data accordingly. When a
     // _HttpIncoming is created, _dataPause, _dataResume, _dataDone is
     // given to provide a way of controlling the parser.
@@ -236,18 +224,14 @@ class _HttpParser
         _onData,
         onError: _onError,
         onDone: () {
-          _onDone();
           completer.complete(this);
         });
     return completer.future;
   }
 
-  Future<_HttpParser> addStream(Stream<List<int>> stream) {
-    throw new UnimplementedError("_HttpParser.addStream");
-  }
-
   Future<_HttpParser> close() {
-    throw new UnimplementedError("_HttpParser.close");
+    _onDone();
+    return new Future.value(this);
   }
 
   // From RFC 2616.
@@ -685,7 +669,7 @@ class _HttpParser
       }
     } catch (e, s) {
       _state = _State.FAILURE;
-      error(new AsyncError(e, s));
+      error(e, s);
     }
 
     _parserCalled = false;
@@ -717,9 +701,8 @@ class _HttpParser
           !(_state == _State.START && !_requestParser) &&
           !(_state == _State.BODY && !_chunked && _transferLength == -1)) {
         _bodyController.addError(
-            new AsyncError(
-                new HttpParserException(
-                    "Connection closed while receiving data")));
+              new HttpParserException(
+                  "Connection closed while receiving data"));
       }
       _closeIncoming();
       _controller.close();
@@ -728,10 +711,8 @@ class _HttpParser
     // If the connection is idle the HTTP stream is closed.
     if (_state == _State.START) {
       if (!_requestParser) {
-        error(
-            new AsyncError(
-                new HttpParserException(
-                    "Connection closed before full header was received")));
+        error(new HttpParserException(
+                    "Connection closed before full header was received"));
       }
       _controller.close();
       return;
@@ -746,10 +727,8 @@ class _HttpParser
       _state = _State.FAILURE;
       // Report the error through the error callback if any. Otherwise
       // throw the error.
-      error(
-          new AsyncError(
-              new HttpParserException(
-                  "Connection closed before full header was received")));
+      error(new HttpParserException(
+                  "Connection closed before full header was received"));
       _controller.close();
       return;
     }
@@ -760,10 +739,8 @@ class _HttpParser
       _state = _State.FAILURE;
       // Report the error through the error callback if any. Otherwise
       // throw the error.
-      error(
-          new AsyncError(
-              new HttpParserException(
-                  "Connection closed before full body was received")));
+      error(new HttpParserException(
+                  "Connection closed before full body was received"));
     }
     _controller.close();
   }
@@ -882,8 +859,10 @@ class _HttpParser
     assert(_incoming == null);
     assert(_bodyController == null);
     _bodyController = new StreamController<List<int>>(
-        onSubscriptionStateChange: _bodySubscriptionStateChange,
-        onPauseStateChange: _updateParsePauseState);
+        onListen: _bodySubscriptionStateChange,
+        onPause: _updateParsePauseState,
+        onResume: _updateParsePauseState,
+        onCancel: _bodySubscriptionStateChange);
     _incoming = new _HttpIncoming(
         _headers, transferLength, _bodyController.stream);
     _pauseParsing();  // Needed to handle detaching - don't start on the body!
@@ -935,10 +914,10 @@ class _HttpParser
     }
   }
 
-  void error(error) {
+  void error(error, [stackTrace]) {
     if (_socketSubscription != null) _socketSubscription.cancel();
     _state = _State.FAILURE;
-    _controller.addError(error);
+    _controller.addError(error, stackTrace);
     _controller.close();
   }
 

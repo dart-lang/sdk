@@ -16,7 +16,7 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
       }
       return _completeRequest(request);
     } catch (e, stacktrace) {
-      return new Future.immediateError(e, stacktrace);
+      return new Future.error(e, stacktrace);
     }
   }
 
@@ -27,7 +27,7 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
       return _completeRequest(request);
     } catch (e, stacktrace) {
-      return new Future.immediateError(e, stacktrace);
+      return new Future.error(e, stacktrace);
     }
   }
 
@@ -38,7 +38,7 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
       return _completeRequest(request);
     } catch (e, stacktrace) {
-      return new Future.immediateError(e, stacktrace);
+      return new Future.error(e, stacktrace);
     }
   }
 

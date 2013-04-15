@@ -22,10 +22,10 @@ void testReadInvalidArgs(arg) {
   var readFuture = file.read(arg);
   readFuture.then((bytes) {
     Expect.fail('exception expected');
-  }).catchError((e) {
+  }).catchError((error) {
     errors++;
-    Expect.isTrue(e.error is FileIOException);
-    Expect.isTrue(e.error.toString().contains('Invalid arguments'));
+    Expect.isTrue(error is FileIOException);
+    Expect.isTrue(error.toString().contains('Invalid arguments'));
     file.close().then((ignore) {
       Expect.equals(1, errors);
       port.close();
@@ -33,12 +33,12 @@ void testReadInvalidArgs(arg) {
   });
 }
 
-void testReadListInvalidArgs(buffer, offset, length) {
+void testReadIntoInvalidArgs(buffer, start, end) {
   var port = new ReceivePort();
   String filename = getFilename("tests/vm/data/fixed_length_file");
   var file = (new File(filename)).openSync();
   try {
-    file.readListSync(buffer, offset, length);
+    file.readIntoSync(buffer, start, end);
     Expect.fail('exception expected');
   } catch (e) {
     Expect.isTrue(e is FileIOException);
@@ -46,13 +46,13 @@ void testReadListInvalidArgs(buffer, offset, length) {
   }
 
   var errors = 0;
-  var readListFuture = file.readList(buffer, offset, length);
-  readListFuture.then((bytes) {
+  var readIntoFuture = file.readInto(buffer, start, end);
+  readIntoFuture.then((bytes) {
     Expect.fail('exception expected');
-  }).catchError((e) {
+  }).catchError((error) {
     errors++;
-    Expect.isTrue(e.error is FileIOException);
-    Expect.isTrue(e.error.toString().contains('Invalid arguments'));
+    Expect.isTrue(error is FileIOException);
+    Expect.isTrue(error.toString().contains('Invalid arguments'));
     file.close().then((ignore) {
       Expect.equals(1, errors);
       port.close();
@@ -75,33 +75,33 @@ void testWriteByteInvalidArgs(value) {
   var writeByteFuture = file.writeByte(value);
   writeByteFuture.then((ignore) {
     Expect.fail('exception expected');
-  }).catchError((s) {
-    Expect.isTrue(s.error is FileIOException);
-    Expect.isTrue(s.error.toString().contains('Invalid argument'));
+  }).catchError((error) {
+    Expect.isTrue(error is FileIOException);
+    Expect.isTrue(error.toString().contains('Invalid argument'));
     file.close().then((ignore) {
       port.close();
     });
   });
 }
 
-void testWriteListInvalidArgs(buffer, offset, bytes) {
+void testWriteFromInvalidArgs(buffer, start, end) {
   var port = new ReceivePort();
   String filename = getFilename("tests/vm/data/fixed_length_file");
   var file = (new File("${filename}_out")).openSync(mode: FileMode.WRITE);
   try {
-    file.writeListSync(buffer, offset, bytes);
+    file.writeFromSync(buffer, start, end);
     Expect.fail('exception expected');
   } catch (e) {
     Expect.isTrue(e is FileIOException);
     Expect.isTrue(e.toString().contains('Invalid arguments'));
   }
 
-  var writeListFuture = file.writeList(buffer, offset, bytes);
-  writeListFuture.then((ignore) {
+  var writeFromFuture = file.writeFrom(buffer, start, end);
+  writeFromFuture.then((ignore) {
     Expect.fail('exception expected');
-  }).catchError((s) {
-    Expect.isTrue(s.error is FileIOException);
-    Expect.isTrue(s.error.toString().contains('Invalid arguments'));
+  }).catchError((error) {
+    Expect.isTrue(error is FileIOException);
+    Expect.isTrue(error.toString().contains('Invalid arguments'));
     file.close().then((ignore) {
       port.close();
     });
@@ -122,8 +122,8 @@ void testWriteStringInvalidArgs(string, encoding) {
   var writeStringFuture = file.writeString(string, encoding: encoding);
   writeStringFuture.then((ignore) {
     Expect.fail('exception expected');
-  }).catchError((s) {
-    Expect.isTrue(s.error is FileIOException);
+  }).catchError((error) {
+    Expect.isTrue(error is FileIOException);
     file.close().then((ignore) {
       port.close();
     });
@@ -136,12 +136,12 @@ String getFilename(String path) {
 
 main() {
   testReadInvalidArgs('asdf');
-  testReadListInvalidArgs(12, 0, 1);
-  testReadListInvalidArgs(new List(10), '0', 1);
-  testReadListInvalidArgs(new List(10), 0, '1');
+  testReadIntoInvalidArgs(12, 0, 1);
+  testReadIntoInvalidArgs(new List(10), '0', 1);
+  testReadIntoInvalidArgs(new List(10), 0, '1');
   testWriteByteInvalidArgs('asdf');
-  testWriteListInvalidArgs(12, 0, 1);
-  testWriteListInvalidArgs(new List(10), '0', 1);
-  testWriteListInvalidArgs(new List(10), 0, '1');
+  testWriteFromInvalidArgs(12, 0, 1);
+  testWriteFromInvalidArgs(new List(10), '0', 1);
+  testWriteFromInvalidArgs(new List(10), 0, '1');
   testWriteStringInvalidArgs("Hello, world", 42);
 }

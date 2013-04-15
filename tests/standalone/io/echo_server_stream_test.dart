@@ -57,7 +57,10 @@ class EchoServerGame {
     }
 
     void errorHandler(e) {
-      Expect.fail("Socket error $e");
+      String msg = "Socket error $e";
+      var trace = getAttachedStackTrace(e);
+      if (trace != null) msg += "\nStackTrace: $trace";
+      Expect.fail(msg);
     }
 
     void connectHandler() {
@@ -115,7 +118,7 @@ class EchoServer extends TestingServer {
       int bytesRead;
       bytesRead = data.length;
       if (bytesRead > 0) {
-        buffer.setRange(offset, data.length, data);
+        buffer.setRange(offset, offset + data.length, data);
         offset += bytesRead;
         for (int i = 0; i < offset; i++) {
           Expect.equals(EchoServerGame.FIRSTCHAR + i, buffer[i]);
@@ -128,7 +131,10 @@ class EchoServer extends TestingServer {
     }
 
     void errorHandler(e) {
-      Expect.fail("Socket error $e");
+      String msg = "Socket error $e";
+      var trace = getAttachedStackTrace(e);
+      if (trace != null) msg += "\nStackTrace: $trace";
+      Expect.fail(msg);
     }
 
     connection.listen(dataReceived, onError: errorHandler);

@@ -44,6 +44,17 @@ typedef enum {
   kShutdown,
 } Dart_IsolateEvent;
 
+
+/**
+ * Represents a location in Dart code.
+ */
+typedef struct {
+  Dart_Handle script_url;  // Url (string) of the script.
+  int32_t library_id;      // Library in which the script is loaded.
+  int32_t token_pos;       // Code address.
+} Dart_CodeLocation;
+
+
 typedef void Dart_IsolateEventHandler(Dart_IsolateId isolate_id,
                                       Dart_IsolateEvent kind);
 
@@ -362,6 +373,8 @@ DART_EXPORT Dart_Handle Dart_GetActivationFrame(
 
 
 /**
+ * DEPRECATED -- Use Dart_ActivationframeGetLocation instead.
+ *
  * Returns information about the given activation frame.
  * \function_name receives a string handle with the qualified
  *    function name.
@@ -386,15 +399,20 @@ DART_EXPORT Dart_Handle Dart_ActivationFrameInfo(
 
 
 /**
- * Returns text location of the given activation frame.
- * \script_url receives a string handle with the url of the
- *    source script that contains the frame's function.
+ * Returns code location of the given activation frame.
+ *
+ * \function_name receives a string handle with the qualified
+ *    function name.
+ * \location.script_url receives a string handle with the url of
+ *    the source script that contains the frame's function.
  *    Receives a null handle if there is no textual location
  *    that corresponds to the frame, e.g. for implicitly
  *    generated constructors.
- * \token_number receives the line number in the script.
+ * \location.library_id receives the id of the library in which the
+ *    function in this frame is defined.
+ * \location.token_pos receives the token position in the script.
  *
- * Any or all of the out parameters above may be NULL.
+ * Any of the out parameters above may be NULL.
  *
  * Requires there to be a current isolate.
  *
@@ -404,9 +422,8 @@ DART_EXPORT Dart_Handle Dart_ActivationFrameInfo(
  */
 DART_EXPORT Dart_Handle Dart_ActivationFrameGetLocation(
                             Dart_ActivationFrame activation_frame,
-                            Dart_Handle* script_url,
-                            intptr_t* library_id,
-                            intptr_t* token_number);
+                            Dart_Handle* function_name,
+                            Dart_CodeLocation* location);
 
 
 /**

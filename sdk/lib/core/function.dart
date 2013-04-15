@@ -21,13 +21,17 @@ abstract class Function {
    * This includes giving the same errors if [function] isn't callable or
    * if it expects different parameters.
    *
-   * Example: [: Function.apply(foo, [1,2,3], {"f": 4, "g": 5}) :] gives
-   * exactly the same result as [: foo(1, 2, 3, f: 4, g: 5) :].
+   * Example: [:
+   * Map<Symbol, dynamic> namedArguments = new Map<Symbol, dynamic>();
+   * namedArguments[const Symbol("f")] = 4;
+   * namedArguments[const Symbol("g")] = 5;
+   * Function.apply(foo, [1,2,3], namedArguments); :]
+   * gives exactly the same result as [: foo(1, 2, 3, f: 4, g: 5) :].
    *
    * If [positionalArguments] is null, it's considered an empty list.
    * If [namedArguments] is omitted or null, it is considered an empty map.
    */
   external static apply(Function function,
                         List positionalArguments,
-                        [Map<String,dynamic> namedArguments]);
+                        [Map<Symbol, dynamic> namedArguments]);
 }

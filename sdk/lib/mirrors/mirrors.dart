@@ -34,7 +34,8 @@ abstract class MirrorSystem {
    * An immutable map from from library names to mirrors for all
    * libraries known to this mirror system.
    */
-  Map<String, LibraryMirror> get libraries;
+  // TODO(ahe): [libraries] should be Map<Uri, LibraryMirror>.
+  Map<Symbol, LibraryMirror> get libraries;
 
   /**
    * A mirror on the isolate associated with this [MirrorSystem].
@@ -51,6 +52,8 @@ abstract class MirrorSystem {
    * A mirror on the [:void:] type.
    */
   TypeMirror get voidType;
+
+  external static String getName(Symbol symbol);
 }
 
 /**
@@ -115,7 +118,7 @@ abstract class DeclarationMirror implements Mirror {
    * entity, such as 'method' for a method [:void method() {...}:] or
    * 'mylibrary' for a [:#library('mylibrary');:] declaration.
    */
-  String get simpleName;
+  Symbol get simpleName;
 
   /**
    * The fully-qualified name for this Dart language entity.
@@ -128,7 +131,7 @@ abstract class DeclarationMirror implements Mirror {
    * this is a gray area due to lack of clarity over whether library
    * names are unique.
    */
-  String get qualifiedName;
+  Symbol get qualifiedName;
 
   /**
    * A mirror on the owner of this function.  This is the declaration
@@ -174,16 +177,16 @@ abstract class DeclarationMirror implements Mirror {
 abstract class ObjectMirror implements Mirror {
   /**
    * Invokes the named function and returns a mirror on the result.
-   * The arguments must be instances of [InstanceMirror], [num], 
-   * [String] or [bool].
+   * The arguments must be instances of [InstanceMirror], [num],
+   * [String], or [bool].
    */
   /* TODO(turnidge): Properly document.
    * TODO(turnidge): Handle ambiguous names.
    * TODO(turnidge): Handle optional & named arguments.
    */
-  Future<InstanceMirror> invokeAsync(String memberName,
+  Future<InstanceMirror> invokeAsync(Symbol memberName,
                                      List<Object> positionalArguments,
-                                     [Map<String,Object> namedArguments]);
+                                     [Map<Symbol, Object> namedArguments]);
 
   /**
    * Invokes a getter and returns a mirror on the result. The getter
@@ -191,17 +194,17 @@ abstract class ObjectMirror implements Mirror {
    * method.
    */
   /* TODO(turnidge): Handle ambiguous names.*/
-  Future<InstanceMirror> getFieldAsync(String fieldName);
+  Future<InstanceMirror> getFieldAsync(Symbol fieldName);
 
   /**
    * Invokes a setter and returns a mirror on the result. The setter
    * may be either the implicit setter for a non-final field or a
    * user-defined setter method.
-   * The argument must be an instance of either [InstanceMirror], [num], 
-   * [String] or [bool].
+   * The argument must be an instance of either [InstanceMirror], [num],
+   * [String], or [bool].
    */
   /* TODO(turnidge): Handle ambiguous names.*/
-  Future<InstanceMirror> setFieldAsync(String fieldName, Object value);
+  Future<InstanceMirror> setFieldAsync(Symbol fieldName, Object value);
 }
 
 /**
@@ -259,17 +262,17 @@ abstract class ClosureMirror implements InstanceMirror {
 
   /**
    * Executes the closure.
-   * The arguments must be instances of [InstanceMirror], [num], 
-   * [String] or [bool]. 
+   * The arguments must be instances of [InstanceMirror], [num],
+   * [String], or [bool].
    */
   Future<InstanceMirror> applyAsync(List<Object> positionalArguments,
-                                    [Map<String,Object> namedArguments]);
+                                    [Map<Symbol, Object> namedArguments]);
 
   /**
    * Looks up the value of a name in the scope of the closure. The
    * result is a mirror on that value.
    */
-  Future<InstanceMirror> findInContext(String name);
+  Future<InstanceMirror> findInContext(Symbol name);
 }
 
 /**
@@ -284,6 +287,7 @@ abstract class LibraryMirror implements DeclarationMirror, ObjectMirror {
    * TODO(turnidge): Document where this url comes from.  Will this
    * value be sensible?
    */
+  // TODO(ahe): Change type to [Uri], rename to "uri"?
   String get url;
 
   /**
@@ -293,41 +297,41 @@ abstract class LibraryMirror implements DeclarationMirror, ObjectMirror {
    * The members of a library are its top-level classes,
    * functions, variables, getters, and setters.
    */
-  Map<String, Mirror> get members;
+  Map<Symbol, Mirror> get members;
 
   /**
    * An immutable map from names to mirrors for all class
    * declarations in this library.
    */
-  Map<String, ClassMirror> get classes;
+  Map<Symbol, ClassMirror> get classes;
 
   /**
    * An immutable map from names to mirrors for all function, getter,
    * and setter declarations in this library.
    */
-  Map<String, MethodMirror> get functions;
+  Map<Symbol, MethodMirror> get functions;
 
   /**
    * An immutable map from names to mirrors for all getter
    * declarations in this library.
    */
-  Map<String, MethodMirror> get getters;
+  Map<Symbol, MethodMirror> get getters;
 
   /**
    * An immutable map from names to mirrors for all setter
    * declarations in this library.
    */
-  Map<String, MethodMirror> get setters;
+  Map<Symbol, MethodMirror> get setters;
 
   /**
    * An immutable map from names to mirrors for all variable
    * declarations in this library.
    */
-  Map<String, VariableMirror> get variables;
+  Map<Symbol, VariableMirror> get variables;
 }
 
 /**
- * A [TypeMirror] reflects a Dart language class, typedef
+ * A [TypeMirror] reflects a Dart language class, typedef,
  * or type variable.
  */
 abstract class TypeMirror implements DeclarationMirror {
@@ -360,38 +364,38 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
    *
    * This does not include inherited members.
    */
-  Map<String, Mirror> get members;
+  Map<Symbol, Mirror> get members;
 
   /**
    * An immutable map from names to mirrors for all method,
    * declarations for this type.  This does not include getters and
    * setters.
    */
-  Map<String, MethodMirror> get methods;
+  Map<Symbol, MethodMirror> get methods;
 
   /**
    * An immutable map from names to mirrors for all getter
    * declarations for this type.
    */
-  Map<String, MethodMirror> get getters;
+  Map<Symbol, MethodMirror> get getters;
 
   /**
    * An immutable map from names to mirrors for all setter
    * declarations for this type.
    */
-  Map<String, MethodMirror> get setters;
+  Map<Symbol, MethodMirror> get setters;
 
   /**
    * An immutable map from names to mirrors for all variable
    * declarations for this type.
    */
-  Map<String, VariableMirror> get variables;
+  Map<Symbol, VariableMirror> get variables;
 
   /**
    * An immutable map from names to mirrors for all constructor
    * declarations for this type.
    */
-   Map<String, MethodMirror> get constructors;
+   Map<Symbol, MethodMirror> get constructors;
 
   /**
    * An immutable map from names to mirrors for all type variables for
@@ -399,7 +403,7 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
    *
    * This map preserves the order of declaration of the type variables.
    */
-   Map<String, TypeVariableMirror> get typeVariables;
+   Map<Symbol, TypeVariableMirror> get typeVariables;
 
   /**
    * An immutable map from names to mirrors for all type arguments for
@@ -407,7 +411,7 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
    *
    * This map preserves the order of declaration of the type variables.
    */
-  Map<String, TypeMirror> get typeArguments;
+  Map<Symbol, TypeMirror> get typeArguments;
 
   /**
    * Is this the original declaration of this type?
@@ -433,12 +437,13 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
 
   /**
    * Invokes the named constructor and returns a mirror on the result.
-   * The arguments must be instances of [InstanceMirror], [num], 
+   * The arguments must be instances of [InstanceMirror], [num],
+   * [String], or [bool].
    */
   /* TODO(turnidge): Properly document.*/
-  Future<InstanceMirror> newInstanceAsync(String constructorName,
+  Future<InstanceMirror> newInstanceAsync(Symbol constructorName,
                                           List<Object> positionalArguments,
-                                          [Map<String,Object> namedArguments]);
+                                          [Map<Symbol, Object> namedArguments]);
 
   /**
    * Does this mirror represent a class?
@@ -569,7 +574,7 @@ abstract class MethodMirror implements DeclarationMirror {
    * For example, [:'bar':] is the constructor name for constructor
    * [:Foo.bar:] of type [:Foo:].
    */
-  String get constructorName;
+  Symbol get constructorName;
 
   /**
    * Is the reflectee a const constructor?
@@ -641,10 +646,8 @@ abstract class ParameterMirror implements VariableMirror {
 
   /**
    * A mirror on the default value for this parameter, if it exists.
-   *
-   * TODO(turnidge): String may not be a good representation of this
-   * at runtime.
    */
+  // TODO(ahe): This should return an InstanceMirror.
   String get defaultValue;
 }
 

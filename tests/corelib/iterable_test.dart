@@ -7,7 +7,9 @@
 
 import "package:expect/expect.dart";
 
-class MyIterable implements Iterable {
+import 'dart:collection';
+
+class MyIterable implements IterableBase {
   get iterator => [].iterator;
 }
 

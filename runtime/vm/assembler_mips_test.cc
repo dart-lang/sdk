@@ -576,6 +576,19 @@ ASSEMBLER_TEST_RUN(Xor, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(Xori, assembler) {
+  __ LoadImmediate(T0, 51);
+  __ xori(V0, T0, Immediate(25));
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(Xori, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
 ASSEMBLER_TEST_GENERATE(Slt, assembler) {
   __ LoadImmediate(R1, -1);
   __ LoadImmediate(R2, 0);
@@ -1103,6 +1116,54 @@ ASSEMBLER_TEST_GENERATE(AddOverflow_detect, assembler) {
 
 
 ASSEMBLER_TEST_RUN(AddOverflow_detect, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(SubOverflow_detect, assembler) {
+  Register left = T0;
+  Register right = T1;
+  Register result = T2;
+  Register overflow = T3;
+  Label error, done;
+
+  __ LoadImmediate(V0, 1);  // Success value.
+
+  __ LoadImmediate(left, 0x80000000);
+  __ LoadImmediate(right, 1);
+  __ SubuDetectOverflow(result, left, right, overflow);
+  __ bgez(overflow, &error);  // INT_MIN - 1 overflows.
+
+  __ LoadImmediate(left, 0x7fffffff);
+  __ LoadImmediate(right, 0x8000000);
+  __ SubuDetectOverflow(result, left, left, overflow);
+  __ bltz(overflow, &error);  // INT_MIN - INT_MAX does not overflow.
+
+  __ LoadImmediate(left, 0x80000000);
+  __ LoadImmediate(right, 0x80000000);
+  __ SubuDetectOverflow(result, left, right, overflow);
+  __ bltz(overflow, &error);  // INT_MIN - INT_MIN does not overflow.
+
+  __ LoadImmediate(left, 0x7fffffff);
+  __ LoadImmediate(right, 0x80000000);
+  __ SubuDetectOverflow(result, left, right, overflow);
+  __ bgez(overflow, &error);  // INT_MAX - INT_MIN overflows.
+
+  __ LoadImmediate(left, 1);
+  __ LoadImmediate(right, -1);
+  __ SubuDetectOverflow(result, left, right, overflow);
+  __ bltz(overflow, &error);  // 1 - -1 does not overflow.
+
+  __ b(&done);
+  __ Bind(&error);
+  __ mov(V0, ZR);
+  __ Bind(&done);
+  __ Ret();
+}
+
+
+ASSEMBLER_TEST_RUN(SubOverflow_detect, test) {
   typedef int (*SimpleCode)();
   EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }

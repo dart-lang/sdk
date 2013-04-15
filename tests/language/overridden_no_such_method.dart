@@ -13,7 +13,7 @@ class OverriddenNoSuchMethod {
 
   OverriddenNoSuchMethod() {}
 
-  noSuchMethod(InvocationMirror mirror) {
+  noSuchMethod(Invocation mirror) {
     Expect.equals("foo", getName(mirror));
     // 'foo' was called with two parameters (not counting receiver).
     List args = mirror.positionalArguments;

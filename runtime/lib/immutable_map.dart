@@ -82,7 +82,7 @@ class ImmutableMap<K, V> implements Map<K, V> {
   }
 }
 
-class _ImmutableMapKeyIterable<E> extends Iterable<E> {
+class _ImmutableMapKeyIterable<E> extends IterableBase<E> {
   final ImmutableMap _map;
   _ImmutableMapKeyIterable(this._map);
 
@@ -91,7 +91,7 @@ class _ImmutableMapKeyIterable<E> extends Iterable<E> {
   }
 }
 
-class _ImmutableMapValueIterable<E> extends Iterable<E> {
+class _ImmutableMapValueIterable<E> extends IterableBase<E> {
   final ImmutableMap _map;
   _ImmutableMapValueIterable(this._map);
 

@@ -15,7 +15,9 @@ patch class Int8List {
 
   /* patch */ factory Int8List.fromList(List<int> elements) {
     var result = new _Int8Array(elements.length);
-    for (int i = 0; i < elements.length; i++) result[i] = elements[i];
+    for (int i = 0; i < elements.length; i++) {
+      result[i] = elements[i];
+    }
     return result;
   }
 
@@ -41,7 +43,9 @@ patch class Uint8List {
 
   /* patch */ factory Uint8List.fromList(List<int> elements) {
     var result = new _Uint8Array(elements.length);
-    for (int i = 0; i < elements.length; i++) result[i] = elements[i];
+    for (int i = 0; i < elements.length; i++) {
+      result[i] = elements[i];
+    }
     return result;
   }
 
@@ -67,7 +71,9 @@ patch class Uint8ClampedList {
 
   /* patch */ factory Uint8ClampedList.fromList(List<int> elements) {
     var result = new _Uint8ClampedArray(elements.length);
-    for (int i = 0; i < elements.length; i++) result[i] = elements[i];
+    for (int i = 0; i < elements.length; i++) {
+      result[i] = elements[i];
+    }
     return result;
   }
 
@@ -94,7 +100,9 @@ patch class Int16List {
 
   /* patch */ factory Int16List.fromList(List<int> elements) {
     var result = new _Int16Array(elements.length);
-    for (int i = 0; i < elements.length; i++) result[i] = elements[i];
+    for (int i = 0; i < elements.length; i++) {
+      result[i] = elements[i];
+    }
     return result;
   }
 
@@ -120,7 +128,9 @@ patch class Uint16List {
 
   /* patch */ factory Uint16List.fromList(List<int> elements) {
     var result = new _Uint16Array(elements.length);
-    for (int i = 0; i < elements.length; i++) result[i] = elements[i];
+    for (int i = 0; i < elements.length; i++) {
+      result[i] = elements[i];
+    }
     return result;
   }
 
@@ -146,7 +156,9 @@ patch class Int32List {
 
   /* patch */ factory Int32List.fromList(List<int> elements) {
     var result = new _Int32Array(elements.length);
-    for (int i = 0; i < elements.length; i++) result[i] = elements[i];
+    for (int i = 0; i < elements.length; i++) {
+      result[i] = elements[i];
+    }
     return result;
   }
 
@@ -172,7 +184,9 @@ patch class Uint32List {
 
   /* patch */ factory Uint32List.fromList(List<int> elements) {
     var result = new _Uint32Array(elements.length);
-    for (int i = 0; i < elements.length; i++) result[i] = elements[i];
+    for (int i = 0; i < elements.length; i++) {
+      result[i] = elements[i];
+    }
     return result;
   }
 
@@ -198,7 +212,9 @@ patch class Int64List {
 
   /* patch */ factory Int64List.fromList(List<int> elements) {
     var result = new _Int64Array(elements.length);
-    for (int i = 0; i < elements.length; i++) result[i] = elements[i];
+    for (int i = 0; i < elements.length; i++) {
+      result[i] = elements[i];
+    }
     return result;
   }
 
@@ -224,7 +240,9 @@ patch class Uint64List {
 
   /* patch */ factory Uint64List.fromList(List<int> elements) {
     var result = new _Uint64Array(elements.length);
-    for (int i = 0; i < elements.length; i++) result[i] = elements[i];
+    for (int i = 0; i < elements.length; i++) {
+      result[i] = elements[i];
+    }
     return result;
   }
 
@@ -250,7 +268,9 @@ patch class Float32List {
 
   /* patch */ factory Float32List.fromList(List<double> elements) {
     var result = new _Float32Array(elements.length);
-    for (int i = 0; i < elements.length; i++) result[i] = elements[i];
+    for (int i = 0; i < elements.length; i++) {
+      result[i] = elements[i];
+    }
     return result;
   }
 
@@ -276,7 +296,9 @@ patch class Float64List {
 
   /* patch */ factory Float64List.fromList(List<double> elements) {
     var result = new _Float64Array(elements.length);
-    for (int i = 0; i < elements.length; i++) result[i] = elements[i];
+    for (int i = 0; i < elements.length; i++) {
+      result[i] = elements[i];
+    }
     return result;
   }
 
@@ -515,14 +537,14 @@ abstract class _TypedListBase {
     throw new StateError("More than one element");
   }
 
-  void removeRange(int start, int length) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError(
         "Cannot remove from a non-extendable array");
   }
 
-  void insertRange(int start, int length, [initialValue]) {
+  void replaceRange(int start, int end, Iterable iterable) {
     throw new UnsupportedError(
-        "Cannot add to a non-extendable array");
+        "Cannot remove from a non-extendable array");
   }
 
   List toList() {
@@ -546,11 +568,19 @@ abstract class _TypedListBase {
     return IterableMixinWorkaround.getRangeList(this, start, end);
   }
 
-  void setRange(int start, int length, List from, [int startFrom = 0]) {
-    if (!_setRange(start, length, from, startFrom)) {
+  void setRange(int start, int end, Iterable iterable, [int skipCount = 0]) {
+    if (!_setRange(start, end - start, iterable, skipCount)) {
       IterableMixinWorkaround.setRangeList(this, start,
-                                           length, from, startFrom);
+                                           end, iterable, skipCount);
     }
+  }
+
+  void setAll(int index, Iterable iterable) {
+    IterableMixinWorkaround.setAllList(this, index, iterable);
+  }
+
+  void fillRange(int start, int end, [fillValue]) {
+    IterableMixinWorkaround.fillRangeList(this, start, end, fillValue);
   }
 
 
@@ -563,7 +593,7 @@ abstract class _TypedListBase {
 
   // Internal utility methods.
 
-  bool _setRange(int start, int length, List from, startFrom)
+  bool _setRange(int start, int length, Iterable from, int startFrom)
       native "TypedData_setRange";
 }
 

@@ -145,7 +145,7 @@ main() {
 /// Checks that pub is running on a supported platform. If it isn't, it prints
 /// an error message and exits. Completes when the validation is done.
 Future validatePlatform() {
-  return new Future.of(() {
+  return new Future.sync(() {
     if (Platform.operatingSystem != 'windows') return;
 
     return runProcess('ver', []).then((result) {
@@ -236,7 +236,9 @@ abstract class PubCommand {
       exit(exit_codes.USAGE);
     }
 
-    handleError(error, trace) {
+    handleError(error) {
+      var trace = getAttachedStackTrace(error);
+
       // This is basically the top-level exception handler so that we don't
       // spew a stack trace on our users.
       var message;
@@ -265,7 +267,7 @@ abstract class PubCommand {
       exit(_chooseExitCode(error));
     }
 
-    new Future.of(() {
+    new Future.sync(() {
       if (requiresEntrypoint) {
         // TODO(rnystrom): Will eventually need better logic to walk up
         // subdirectories until we hit one that looks package-like. For now,
@@ -277,8 +279,7 @@ abstract class PubCommand {
       if (commandFuture == null) return true;
 
       return commandFuture;
-    }).whenComplete(() => cache_.deleteTempDir()).catchError((asyncError) {
-      var e = asyncError.error;
+    }).whenComplete(() => cache_.deleteTempDir()).catchError((e) {
       if (e is PubspecNotFoundException && e.name == null) {
         e = 'Could not find a file named "pubspec.yaml" in the directory '
           '${path.current}.';
@@ -287,7 +288,7 @@ abstract class PubCommand {
           '${path.basename(path.current)}").';
       }
 
-      handleError(e, asyncError.stackTrace);
+      handleError(e);
     }).then((_) {
       // Explicitly exit on success to ensure that any dangling dart:io handles
       // don't cause the process to never terminate.

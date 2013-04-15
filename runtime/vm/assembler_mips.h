@@ -553,6 +553,12 @@ class Assembler : public ValueObject {
     EmitFpuLoadStore(SWC1, ft, addr);
   }
 
+  void xori(Register rt, Register rs, const Immediate& imm) {
+    ASSERT(Utils::IsUint(kImmBits, imm.value()));
+    const uint16_t imm_value = static_cast<uint16_t>(imm.value());
+    EmitIType(XORI, rs, rt, imm_value);
+  }
+
   void xor_(Register rd, Register rs, Register rt) {
     EmitRType(SPECIAL, rs, rt, rd, 0, XOR);
   }
@@ -571,6 +577,20 @@ class Assembler : public ValueObject {
                                   Register ro) {
     LoadImmediate(rd, imm);
     AdduDetectOverflow(rd, rs, rd, ro);
+  }
+
+  // Subtraction of rt from rs (rs - rt) with the result placed in rd.
+  // After, ro < 0 if there was signed overflow, ro >= 0 otherwise.
+  // None of rd, rs, rt, or ro may be TMP1.
+  // ro must be different from the other registers.
+  void SubuDetectOverflow(Register rd, Register rs, Register rt, Register ro);
+
+  // ro must be different from rd and rs.
+  // None of rd, rs, rt, or ro may be TMP1.
+  void SubImmediateDetectOverflow(Register rd, Register rs, int32_t imm,
+                                  Register ro) {
+    LoadImmediate(rd, imm);
+    SubuDetectOverflow(rd, rs, rd, ro);
   }
 
   void Branch(const ExternalLabel* label) {

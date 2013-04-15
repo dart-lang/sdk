@@ -92,25 +92,25 @@ testDart2DartWithLibrary(
   final libUri = fileUri('mylib.dart');
 
   provider(uri) {
-    if (uri == scriptUri) return new Future.immediate(srcMain);
+    if (uri == scriptUri) return new Future.value(srcMain);
     if (uri.toString() == libUri.toString()) {
-      return new Future.immediate(srcLibrary);
+      return new Future.value(srcLibrary);
     }
     if (uri.path.endsWith('/core.dart')) {
-      return new Future.immediate(coreLib);
+      return new Future.value(coreLib);
     } else  if (uri.path.endsWith('/io.dart')) {
-      return new Future.immediate(ioLib);
+      return new Future.value(ioLib);
     } else if (uri.path.endsWith('/js_helper.dart')) {
-      return new Future.immediate(helperLib);
+      return new Future.value(helperLib);
     } else if (uri.path.endsWith('/html_dart2js.dart')) {
       // TODO(smok): The file should change to html_dartium at some point.
-      return new Future.immediate(htmlLib);
+      return new Future.value(htmlLib);
     } else if (uri.path.endsWith('/foreign_helper.dart')) {
-      return new Future.immediate(foreignLib);
+      return new Future.value(foreignLib);
     } else if (uri.path.endsWith('/isolate_helper.dart')) {
-      return new Future.immediate(isolateHelperLib);
+      return new Future.value(isolateHelperLib);
     }
-    return new Future.immediate('');
+    return new Future.value('');
   }
 
   handler(uri, begin, end, message, kind) {

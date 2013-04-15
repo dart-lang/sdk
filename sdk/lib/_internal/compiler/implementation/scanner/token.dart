@@ -185,7 +185,7 @@ class StringToken extends Token {
   String slowToString() => value.slowToString();
 }
 
-abstract class SourceString extends Iterable<int> {
+abstract class SourceString extends IterableBase<int> {
   const factory SourceString(String string) = StringWrapper;
 
   void printOn(StringBuffer sb);
@@ -205,7 +205,7 @@ abstract class SourceString extends Iterable<int> {
   bool isPrivate();
 }
 
-class StringWrapper extends Iterable<int> implements SourceString {
+class StringWrapper extends IterableBase<int> implements SourceString {
   final String stringValue;
 
   const StringWrapper(String this.stringValue);

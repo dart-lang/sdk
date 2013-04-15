@@ -36,19 +36,24 @@ class _FileStream extends Stream<List<int>> {
   }
 
   StreamSubscription<List<int>> listen(void onData(List<int> event),
-                                       {void onError(AsyncError error),
+                                       {void onError(error),
                                         void onDone(),
-                                        bool unsubscribeOnError}) {
+                                        bool cancelOnError}) {
     return _controller.stream.listen(onData,
                                      onError: onError,
                                      onDone: onDone,
-                                     unsubscribeOnError: unsubscribeOnError);
+                                     cancelOnError: cancelOnError);
   }
 
   void _setupController() {
     _controller = new StreamController<List<int>>(
-        onSubscriptionStateChange: _onSubscriptionStateChange,
-        onPauseStateChange: _onPauseStateChange);
+        onListen: _start,
+        onPause: () => _paused = true,
+        onResume: _resume,
+        onCancel: () {
+          _unsubscribed = true;
+          _closeFile();
+        });
   }
 
   Future _closeFile() {
@@ -58,7 +63,7 @@ class _FileStream extends Stream<List<int>> {
       _openedFile = null;
       return closeFuture;
     } else {
-      return new Future.immediate(null);
+      return new Future.value();
     }
   }
 
@@ -106,7 +111,7 @@ class _FileStream extends Stream<List<int>> {
     if (_path != null) {
       openFuture = new File(_path).open(mode: FileMode.READ);
     } else {
-      openFuture = new Future.immediate(_File._openStdioSync(0));
+      openFuture = new Future.value(_File._openStdioSync(0));
     }
     openFuture
       .then((RandomAccessFile opened) {
@@ -128,23 +133,6 @@ class _FileStream extends Stream<List<int>> {
     // Resume reading unless we are already done.
     if (_openedFile != null) _readBlock();
   }
-
-  void _onSubscriptionStateChange() {
-    if (_controller.hasListener) {
-      _start();
-    } else {
-      _unsubscribed = true;
-      _closeFile();
-    }
-  }
-
-  void _onPauseStateChange() {
-    if (_controller.isPaused) {
-      _paused = true;
-    } else {
-      _resume();
-    }
-  }
 }
 
 class _FileStreamConsumer extends StreamConsumer<List<int>> {
@@ -158,11 +146,7 @@ class _FileStreamConsumer extends StreamConsumer<List<int>> {
 
   _FileStreamConsumer.fromStdio(int fd) {
     assert(1 <= fd && fd <= 2);
-    _openFuture = new Future.immediate(_File._openStdioSync(fd));
-  }
-
-  Future<File> consume(Stream<List<int>> stream) {
-    return addStream(stream).then((_) => close());
+    _openFuture = new Future.value(_File._openStdioSync(fd));
   }
 
   Future<File> addStream(Stream<List<int>> stream) {
@@ -172,7 +156,7 @@ class _FileStreamConsumer extends StreamConsumer<List<int>> {
         _subscription = stream.listen(
           (d) {
             _subscription.pause();
-            openedFile.writeList(d, 0, d.length)
+            openedFile.writeFrom(d, 0, d.length)
               .then((_) => _subscription.resume())
               .catchError((e) {
                 openedFile.close();
@@ -186,7 +170,7 @@ class _FileStreamConsumer extends StreamConsumer<List<int>> {
             openedFile.close();
             completer.completeError(e);
           },
-          unsubscribeOnError: true);
+          cancelOnError: true);
       })
       .catchError((e) {
         completer.completeError(e);
@@ -476,15 +460,15 @@ class _File extends _FileBase implements File {
     return new _FileStream(_path);
   }
 
-  IOSink<File> openWrite({FileMode mode: FileMode.WRITE,
-                          Encoding encoding: Encoding.UTF_8}) {
+  IOSink openWrite({FileMode mode: FileMode.WRITE,
+                    Encoding encoding: Encoding.UTF_8}) {
     if (mode != FileMode.WRITE &&
         mode != FileMode.APPEND) {
       throw new FileIOException(
           "Wrong FileMode. Use FileMode.WRITE or FileMode.APPEND");
     }
     var consumer = new _FileStreamConsumer(this, mode);
-    return new IOSink<File>(consumer, encoding: encoding);
+    return new IOSink(consumer, encoding: encoding);
   }
 
   Future<List<int>> readAsBytes() {
@@ -501,7 +485,7 @@ class _File extends _FileBase implements File {
       onError: (e) {
         completer.completeError(e);
       },
-      unsubscribeOnError: true);
+      cancelOnError: true);
     return completer.future;
   }
 
@@ -556,18 +540,18 @@ class _File extends _FileBase implements File {
   Future<File> writeAsBytes(List<int> bytes,
                             {FileMode mode: FileMode.WRITE}) {
     try {
-      IOSink<File> sink = openWrite(mode: mode);
+      IOSink sink = openWrite(mode: mode);
       sink.add(bytes);
       sink.close();
       return sink.done.then((_) => this);;
     } catch (e) {
-      return new Future.immediateError(e);
+      return new Future.error(e);
     }
   }
 
   void writeAsBytesSync(List<int> bytes, {FileMode mode: FileMode.WRITE}) {
     RandomAccessFile opened = openSync(mode: mode);
-    opened.writeListSync(bytes, 0, bytes.length);
+    opened.writeFromSync(bytes, 0, bytes.length);
     opened.closeSync();
   }
 
@@ -715,57 +699,59 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     return result;
   }
 
-  Future<int> readList(List<int> buffer, int offset, int bytes) {
+  Future<int> readInto(List<int> buffer, [int start, int end]) {
     _ensureFileService();
-    Completer<int> completer = new Completer<int>();
-    if (buffer is !List || offset is !int || bytes is !int) {
-      // Complete asynchronously so the user has a chance to setup
-      // handlers without getting exceptions when registering the
-      // then handler.
-      Timer.run(() {
-        completer.completeError(new FileIOException(
-            "Invalid arguments to readList for file '$_path'"));
-      });
-      return completer.future;
+    if (buffer is !List ||
+        (start != null && start is !int) ||
+        (end != null && end is !int)) {
+      return new Future.error(new FileIOException(
+          "Invalid arguments to readInto for file '$_path'"));
     };
+    Completer<int> completer = new Completer<int>();
     if (closed) return _completeWithClosedException(completer);
     List request = new List(3);
+    if (start == null) start = 0;
+    if (end == null) end = buffer.length;
     request[0] = _READ_LIST_REQUEST;
     request[1] = _id;
-    request[2] = bytes;
+    request[2] = end - start;
     return _fileService.call(request).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response,
-                                     "readList failed for file '$_path'");
+                                     "readInto failed for file '$_path'");
       }
       var read = response[1];
       var data = response[2];
-      buffer.setRange(offset, read, data);
+      buffer.setRange(start, start + read, data);
       return read;
     });
   }
 
-  static void _checkReadWriteListArguments(int length, int offset, int bytes) {
-    if (offset < 0) throw new RangeError.value(offset);
-    if (bytes < 0) throw new RangeError.value(bytes);
-    if ((offset + bytes) > length) {
-      throw new RangeError.value(offset + bytes);
+  static void _checkReadWriteListArguments(int length, int start, int end) {
+    if (start < 0) throw new RangeError.value(start);
+    if (end < start) throw new RangeError.value(end);
+    if (end > length) {
+      throw new RangeError.value(end);
     }
   }
 
-  external static _readList(int id, List<int> buffer, int offset, int bytes);
+  external static _readInto(int id, List<int> buffer, int start, int end);
 
-  int readListSync(List<int> buffer, int offset, int bytes) {
+  int readIntoSync(List<int> buffer, [int start, int end]) {
     _checkNotClosed();
-    if (buffer is !List || offset is !int || bytes is !int) {
+    if (buffer is !List ||
+        (start != null && start is !int) ||
+        (end != null && end is !int)) {
       throw new FileIOException(
-          "Invalid arguments to readList for file '$_path'");
+          "Invalid arguments to readInto for file '$_path'");
     }
-    if (bytes == 0) return 0;
-    _checkReadWriteListArguments(buffer.length, offset, bytes);
-    var result = _readList(_id, buffer, offset, bytes);
+    if (start == null) start = 0;
+    if (end == null) end = buffer.length;
+    if (end == start) return 0;
+    _checkReadWriteListArguments(buffer.length, start, end);
+    var result = _readInto(_id, buffer, start, end);
     if (result is OSError) {
-      throw new FileIOException("readList failed for file '$_path'",
+      throw new FileIOException("readInto failed for file '$_path'",
                                 result);
     }
     return result;
@@ -814,65 +800,63 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     return result;
   }
 
-  Future<RandomAccessFile> writeList(List<int> buffer, int offset, int bytes) {
+  Future<RandomAccessFile> writeFrom(List<int> buffer, [int start, int end]) {
     _ensureFileService();
-    Completer<RandomAccessFile> completer = new Completer<RandomAccessFile>();
-    if (buffer is !List || offset is !int || bytes is !int) {
-      // Complete asynchronously so the user has a chance to setup
-      // handlers without getting exceptions when registering the
-      // then handler.
-      Timer.run(() {
-          completer.completeError(new FileIOException(
-          "Invalid arguments to writeList for file '$_path'"));
-      });
-      return completer.future;
+    if ((buffer is !List && buffer is !ByteData) ||
+        (start != null && start is !int) ||
+        (end != null && end is !int)) {
+      return new Future.error(new FileIOException(
+          "Invalid arguments to writeFrom for file '$_path'"));
     }
+    Completer<RandomAccessFile> completer = new Completer<RandomAccessFile>();
+
     if (closed) return _completeWithClosedException(completer);
 
-    _BufferAndOffset result;
+    _BufferAndStart result;
     try {
-      result = _ensureFastAndSerializableBuffer(buffer, offset, bytes);
+      result = _ensureFastAndSerializableBuffer(buffer, start, end);
     } catch (e) {
-      // Complete asynchronously so the user has a chance to setup
-      // handlers without getting exceptions when registering the
-      // then handler.
-      Timer.run(() => completer.completeError(e));
-      return completer.future;
+      return new Future.error(e);
     }
 
     List request = new List(5);
     request[0] = _WRITE_LIST_REQUEST;
     request[1] = _id;
     request[2] = result.buffer;
-    request[3] = result.offset;
-    request[4] = bytes;
+    request[3] = result.start;
+    request[4] = end - (start - result.start);
     return _fileService.call(request).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response,
-                                     "writeList failed for file '$_path'");
+                                     "writeFrom failed for file '$_path'");
       }
       return this;
     });
   }
 
-  external static _writeList(int id, List<int> buffer, int offset, int bytes);
+  external static _writeFrom(int id, List<int> buffer, int start, int end);
 
-  int writeListSync(List<int> buffer, int offset, int bytes) {
+  void writeFromSync(List<int> buffer, [int start, int end]) {
     _checkNotClosed();
-    if (buffer is !List || offset is !int || bytes is !int) {
+    if (buffer is !List ||
+        (start != null && start is !int) ||
+        (end != null && end is !int)) {
       throw new FileIOException(
-          "Invalid arguments to writeList for file '$_path'");
+          "Invalid arguments to writeFrom for file '$_path'");
     }
-    if (bytes == 0) return 0;
-    _checkReadWriteListArguments(buffer.length, offset, bytes);
-    _BufferAndOffset bufferAndOffset =
-        _ensureFastAndSerializableBuffer(buffer, offset, bytes);
-    var result =
-      _writeList(_id, bufferAndOffset.buffer, bufferAndOffset.offset, bytes);
+    if (start == null) start = 0;
+    if (end == null) end = buffer.length;
+    if (end == start) return;
+    _checkReadWriteListArguments(buffer.length, start, end);
+    _BufferAndStart bufferAndStart =
+        _ensureFastAndSerializableBuffer(buffer, start, end);
+    var result = _writeFrom(_id,
+                            bufferAndStart.buffer,
+                            bufferAndStart.start,
+                            end - (start - bufferAndStart.start));
     if (result is OSError) {
-      throw new FileIOException("writeList failed for file '$_path'", result);
+      throw new FileIOException("writeFrom failed for file '$_path'", result);
     }
-    return result;
   }
 
   Future<RandomAccessFile> writeString(String string,
@@ -886,16 +870,16 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
       return completer.future;
     }
     var data = _encodeString(string, encoding);
-    return writeList(data, 0, data.length);
+    return writeFrom(data, 0, data.length);
   }
 
-  int writeStringSync(String string, {Encoding encoding: Encoding.UTF_8}) {
+  void writeStringSync(String string, {Encoding encoding: Encoding.UTF_8}) {
     if (encoding is! Encoding) {
       throw new FileIOException(
           "Invalid encoding in writeStringSync: $encoding");
     }
     var data = _encodeString(string, encoding);
-    return writeListSync(data, 0, data.length);
+    writeFromSync(data, 0, data.length);
   }
 
   Future<int> position() {

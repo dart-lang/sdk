@@ -77,13 +77,13 @@ class IsolateStream extends Stream<dynamic> {
   }
 
   StreamSubscription listen(void onData(event),
-                            { void onError(AsyncError error),
+                            { void onError(error),
                               void onDone(),
-                              bool unsubscribeOnError}) {
+                              bool cancelOnError}) {
       return _controller.stream.listen(onData,
                                        onError: onError,
                                        onDone: onDone,
-                                       unsubscribeOnError: unsubscribeOnError);
+                                       cancelOnError: cancelOnError);
   }
 }
 
@@ -114,7 +114,7 @@ abstract class IsolateSink extends EventSink<dynamic> {
    */
   void add(dynamic message);
 
-  void addError(AsyncError errorEvent);
+  void addError(errorEvent);
 
   /** Closing multiple times is allowed. */
   void close();

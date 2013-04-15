@@ -46,8 +46,8 @@ void main() {
         'access token', null, tokenEndpoint);
     expect(credentials.canRefresh, false);
     credentials.refresh('identifier', 'secret', httpClient: httpClient)
-        .catchError(expectAsync1((e) {
-          expect(e.error is StateError, isTrue);
+        .catchError(expectAsync1((error) {
+          expect(error is StateError, isTrue);
         }));
   });
 
@@ -55,8 +55,8 @@ void main() {
     var credentials = new oauth2.Credentials('access token', 'refresh token');
     expect(credentials.canRefresh, false);
     credentials.refresh('identifier', 'secret', httpClient: httpClient)
-        .catchError(expectAsync1((e) {
-          expect(e.error is StateError, isTrue);
+        .catchError(expectAsync1((error) {
+          expect(error is StateError, isTrue);
         }));
   });
 
@@ -76,7 +76,7 @@ void main() {
         "client_secret": "secret"
       }));
 
-      return new Future.immediate(new http.Response(JSON.stringify({
+      return new Future.value(new http.Response(JSON.stringify({
         'access_token': 'new access token',
         'token_type': 'bearer',
         'refresh_token': 'new refresh token'
@@ -106,7 +106,7 @@ void main() {
         "client_secret": "secret"
       }));
 
-      return new Future.immediate(new http.Response(JSON.stringify({
+      return new Future.value(new http.Response(JSON.stringify({
         'access_token': 'new access token',
         'token_type': 'bearer'
       }), 200, headers: {'content-type': 'application/json'}));

@@ -50,7 +50,6 @@
     'string.cc',
     'string_patch.dart',
     'string_buffer_patch.dart',
-    'symbol_patch.dart',
     'type_patch.dart',
     'weak_property.dart',
     'weak_property.cc',

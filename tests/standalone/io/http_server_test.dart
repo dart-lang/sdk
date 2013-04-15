@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import "dart:async";
 import "dart:io";
 import "dart:isolate";
 
@@ -29,8 +30,11 @@ void testListenOn() {
             onDone();
           });
       })
-      .catchError((error) {
-        Expect.fail("Unexpected error in Http Client: $error");
+      .catchError((e) {
+        String msg = "Unexpected error in Http Client: $e";
+        var trace = getAttachedStackTrace(e);
+        if (trace != null) msg += "\nStackTrace: $trace";
+        Expect.fail(msg);
       });
   }
 

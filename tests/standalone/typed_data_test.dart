@@ -161,7 +161,7 @@ void testSetRangeHelper(typed_data) {
     Expect.equals(20 + i, list[i]);
   }
 
-  typed_data.setRange(1, 2, const [8, 9]);
+  typed_data.setRange(1, 3, const [8, 9]);
   Expect.equals(20, typed_data[0]);
   Expect.equals(8, typed_data[1]);
   Expect.equals(9, typed_data[2]);
@@ -182,7 +182,7 @@ void testIndexOutOfRangeHelper(typed_data) {
   });
 
   Expect.throws(() {
-    typed_data.setRange(3, 1, list);
+    typed_data.setRange(3, 4, list);
   });
 }
 

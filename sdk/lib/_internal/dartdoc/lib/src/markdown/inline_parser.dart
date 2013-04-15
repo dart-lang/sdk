@@ -80,8 +80,7 @@ class InlineParser {
       syntaxes = defaultSyntaxes;
     }
     // Custom link resolver goes after the generic text syntax.
-    syntaxes.insertRange(1, 1,
-        new LinkSyntax(linkResolver: document.linkResolver));
+    syntaxes.insert(1, new LinkSyntax(linkResolver: document.linkResolver));
   }
 
   List<Node> parse() {
@@ -388,7 +387,7 @@ class TagState {
 
     // Remove the unmatched children.
     final unmatchedTags = parser._stack.sublist(index + 1);
-    parser._stack.removeRange(index + 1, parser._stack.length - index - 1);
+    parser._stack.removeRange(index + 1, parser._stack.length);
 
     // Flatten them out onto this tag.
     for (final unmatched in unmatchedTags) {

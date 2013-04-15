@@ -7,7 +7,7 @@ part of scanner;
 /**
  * A keyword in the Dart programming language.
  */
-class Keyword extends Iterable<int> implements SourceString {
+class Keyword extends IterableBase<int> implements SourceString {
   static const List<Keyword> values = const <Keyword> [
       const Keyword("assert"),
       const Keyword("break"),

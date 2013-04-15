@@ -4,36 +4,29 @@
 
 part of dart.async;
 
-/** Utility function to create an [AsyncError] if [error] isn't one already. */
-AsyncError _asyncError(Object error, Object stackTrace, [AsyncError cause]) {
-  if (error is AsyncError) return error;
-  if (cause == null) return new AsyncError(error, stackTrace);
-  return new AsyncError.withCause(error, stackTrace, cause);
+/**
+ * Utility function to attach a stack trace to an [error]  if it doesn't have
+ * one already.
+ */
+_asyncError(Object error, Object stackTrace) {
+  if (stackTrace == null) return error;
+  if (getAttachedStackTrace(error) != null) return error;
+  _attachStackTrace(error, stackTrace);
+  return error;
 }
 
 /** Runs user code and takes actions depending on success or failure. */
-_runUserCode(userCode(), onSuccess(value), onError(AsyncError error),
-             { AsyncError cause }) {
-  var result;
+_runUserCode(userCode(), onSuccess(value), onError(error)) {
   try {
-    result = userCode();
-  } on AsyncError catch (e) {
-    return onError(e);
+    onSuccess(userCode());
   } catch (e, s) {
-    if (cause == null) {
-      onError(new AsyncError(e, s));
-    } else {
-      onError(new AsyncError.withCause(e, s, cause));
-    }
-    // onError is allowed to return. Don't execute the onSuccess below.
-    return;
+    onError(_asyncError(e, s));
   }
-  onSuccess(result);
 }
 
 /** Helper function to make an onError argument to [_runUserCode]. */
 _cancelAndError(StreamSubscription subscription, _FutureImpl future) =>
-  (AsyncError error) {
+  (error) {
     subscription.cancel();
     future._setError(error);
   };
@@ -56,22 +49,22 @@ abstract class _ForwardingStream<S, T> extends Stream<T> {
   bool get isBroadcast => _source.isBroadcast;
 
   StreamSubscription<T> listen(void onData(T value),
-                              { void onError(AsyncError error),
+                              { void onError(error),
                                 void onDone(),
-                                bool unsubscribeOnError }) {
+                                bool cancelOnError }) {
     if (onData == null) onData = _nullDataHandler;
     if (onError == null) onError = _nullErrorHandler;
     if (onDone == null) onDone = _nullDoneHandler;
-    unsubscribeOnError = identical(true, unsubscribeOnError);
-    return _createSubscription(onData, onError, onDone, unsubscribeOnError);
+    cancelOnError = identical(true, cancelOnError);
+    return _createSubscription(onData, onError, onDone, cancelOnError);
   }
 
   StreamSubscription<T> _createSubscription(void onData(T value),
-                                            void onError(AsyncError error),
+                                            void onError(error),
                                             void onDone(),
-                                            bool unsubscribeOnError) {
+                                            bool cancelOnError) {
     return new _ForwardingStreamSubscription<S, T>(
-        this, onData, onError, onDone, unsubscribeOnError);
+        this, onData, onError, onDone, cancelOnError);
   }
 
   // Override the following methods in subclasses to change the behavior.
@@ -81,7 +74,7 @@ abstract class _ForwardingStream<S, T> extends Stream<T> {
     sink._sendData(outputData);
   }
 
-  void _handleError(AsyncError error, _EventOutputSink<T> sink) {
+  void _handleError(error, _EventOutputSink<T> sink) {
     sink._sendError(error);
   }
 
@@ -116,7 +109,7 @@ abstract class _BaseStreamSubscription<T> implements StreamSubscription<T> {
     _onData = handleData;
   }
 
-  void onError(void handleError(AsyncError error)) {
+  void onError(void handleError(error)) {
     if (handleError == null) handleError = _nullErrorHandler;
     _onError = handleError;
   }
@@ -131,6 +124,19 @@ abstract class _BaseStreamSubscription<T> implements StreamSubscription<T> {
   void resume();
 
   void cancel();
+
+  Future asFuture([var futureValue]) {
+    _FutureImpl<T> result = new _FutureImpl<T>();
+
+    // Overwrite the onDone and onError handlers.
+    onDone(() { result._setValue(futureValue); });
+    onError((error) {
+      cancel();
+      result._setError(error);
+    });
+
+    return result;
+  }
 }
 
 
@@ -140,15 +146,15 @@ abstract class _BaseStreamSubscription<T> implements StreamSubscription<T> {
 class _ForwardingStreamSubscription<S, T>
     extends _BaseStreamSubscription<T> implements _EventOutputSink<T> {
   final _ForwardingStream<S, T> _stream;
-  final bool _unsubscribeOnError;
+  final bool _cancelOnError;
 
   StreamSubscription<S> _subscription;
 
   _ForwardingStreamSubscription(this._stream,
                                 void onData(T data),
-                                void onError(AsyncError error),
+                                void onError(error),
                                 void onDone(),
-                                this._unsubscribeOnError)
+                                this._cancelOnError)
       : super(onData, onError, onDone) {
     // Don't unsubscribe on incoming error, only if we send an error forwards.
     _subscription =
@@ -182,9 +188,9 @@ class _ForwardingStreamSubscription<S, T>
     _onData(data);
   }
 
-  void _sendError(AsyncError error) {
+  void _sendError(error) {
     _onError(error);
-    if (_unsubscribeOnError) {
+    if (_cancelOnError) {
       _subscription.cancel();
       _subscription = null;
     }
@@ -207,7 +213,7 @@ class _ForwardingStreamSubscription<S, T>
     _stream._handleData(data, this);
   }
 
-  void _handleError(AsyncError error) {
+  void _handleError(error) {
     _stream._handleError(error, this);
   }
 
@@ -291,7 +297,7 @@ class _ExpandStream<S, T> extends _ForwardingStream<S, T> {
 }
 
 
-typedef void _ErrorTransformation(AsyncError error);
+typedef void _ErrorTransformation(error);
 typedef bool _ErrorTest(error);
 
 /**
@@ -303,17 +309,17 @@ class _HandleErrorStream<T> extends _ForwardingStream<T, T> {
   final _ErrorTest _test;
 
   _HandleErrorStream(Stream<T> source,
-                    void transform(AsyncError event),
+                    void transform(event),
                     bool test(error))
       : this._transform = transform, this._test = test, super(source);
 
-  void _handleError(AsyncError error, _EventOutputSink<T> sink) {
+  void _handleError(Object error, _EventOutputSink<T> sink) {
     bool matches = true;
     if (_test != null) {
       try {
-        matches = _test(error.error);
+        matches = _test(error);
       } catch (e, s) {
-        sink._sendError(_asyncError(e, s, error));
+        sink._sendError(_asyncError(e, s));
         return;
       }
     }
@@ -321,7 +327,7 @@ class _HandleErrorStream<T> extends _ForwardingStream<T, T> {
       try {
         _transform(error);
       } catch (e, s) {
-        sink._sendError(_asyncError(e, s, error));
+        sink._sendError(_asyncError(e, s));
         return;
       }
     } else {
@@ -463,7 +469,7 @@ class _DistinctStream<T> extends _ForwardingStream<T, T> {
 // Stream transformations and event transformations.
 
 typedef void _TransformDataHandler<S, T>(S data, EventSink<T> sink);
-typedef void _TransformErrorHandler<T>(AsyncError data, EventSink<T> sink);
+typedef void _TransformErrorHandler<T>(data, EventSink<T> sink);
 typedef void _TransformDoneHandler<T>(EventSink<T> sink);
 
 /** Default data handler forwards all data. */
@@ -472,7 +478,7 @@ void _defaultHandleData(var data, EventSink sink) {
 }
 
 /** Default error handler forwards all errors. */
-void _defaultHandleError(AsyncError error, EventSink sink) {
+void _defaultHandleError(error, EventSink sink) {
   sink.addError(error);
 }
 
@@ -500,7 +506,7 @@ class _StreamTransformerImpl<S, T> extends StreamEventTransformer<S, T> {
   final _TransformDoneHandler<T> _handleDone;
 
   _StreamTransformerImpl(void handleData(S data, EventSink<T> sink),
-                         void handleError(AsyncError data, EventSink<T> sink),
+                         void handleError(data, EventSink<T> sink),
                          void handleDone(EventSink<T> sink))
       : this._handleData  = (handleData == null  ? _defaultHandleData
                                                  : handleData),
@@ -513,7 +519,7 @@ class _StreamTransformerImpl<S, T> extends StreamEventTransformer<S, T> {
     _handleData(data, sink);
   }
 
-  void handleError(AsyncError error, EventSink<T> sink) {
+  void handleError(error, EventSink<T> sink) {
     _handleError(error, sink);
   }
 

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:collection";
 import "package:expect/expect.dart";
 
 // Test foreach (aka. for-in) functionality.
@@ -25,7 +26,7 @@ testIterator(List expect, Iterable input) {
   Expect.equals(expect.length, i);
 }
 
-class MyIterable<T> extends Iterable<T> {
+class MyIterable<T> extends IterableBase<T> {
   final List<T> values;
   MyIterable(List<T> values) : this.values = values;
   Iterator get iterator {

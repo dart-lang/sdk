@@ -4,14 +4,14 @@
 
 import "package:expect/expect.dart";
 
-// InvocationMirror and noSuchMethod testing.
+// Invocation and noSuchMethod testing.
 
 /** Class with noSuchMethod that returns the mirror */
 class N {
   // Storage for the last argument to noSuchMethod.
   // Needed for setters, which don't evaluate to the return value.
   var last;
-  noSuchMethod(InvocationMirror m) => last = m;
+  noSuchMethod(Invocation m) => last = m;
 
   flif(int x) { Expect.fail("never get here"); }
   flaf([int x]) { Expect.fail("never get here"); }
@@ -28,14 +28,14 @@ class C extends N {
 }
 
 /**
- * Checks the data of an InvocationMirror.
+ * Checks the data of an Invocation.
  *
  * Call without optionals for getters, with only positional for setters,
  * and with both optionals for everything else.
  */
-testInvocationMirror(InvocationMirror im, String name,
+testInvocationMirror(Invocation im, String name,
                      [List positional, Map named]) {
-  Expect.isTrue(im is InvocationMirror, "is InvocationMirror");
+  Expect.isTrue(im is Invocation, "is Invocation");
   Expect.equals(name, im.memberName, "name");
   if (named == null) {
     Expect.isTrue(im.isAccessor, "$name:isAccessor");
@@ -152,7 +152,7 @@ testInvocationMirrors() {
 }
 
 class M extends N {
-  noSuchMethod(InvocationMirror m) { throw "never get here"; }
+  noSuchMethod(Invocation m) { throw "never get here"; }
 
   testSuperCalls() {
     // Missing property/method access.

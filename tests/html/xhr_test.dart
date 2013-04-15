@@ -86,8 +86,8 @@ main() {
     test('XHR.request No file', () {
       HttpRequest.request('NonExistingFile').then(
         (_) { fail('Request should not have succeeded.'); },
-        onError: expectAsync1((e) {
-          var xhr = e.error.target;
+        onError: expectAsync1((error) {
+          var xhr = error.target;
           expect(xhr.readyState, equals(HttpRequest.DONE));
           validate404(xhr);
         }));
@@ -116,8 +116,8 @@ main() {
     test('XHR.request withCredentials No file', () {
       HttpRequest.request('NonExistingFile', withCredentials: true).then(
         (_) { fail('Request should not have succeeded.'); },
-        onError: expectAsync1((e) {
-          var xhr = e.error.target;
+        onError: expectAsync1((error) {
+          var xhr = error.target;
           expect(xhr.readyState, equals(HttpRequest.DONE));
           validate404(xhr);
         }));
@@ -137,8 +137,8 @@ main() {
     test('XHR.getString No file', () {
       HttpRequest.getString('NonExistingFile').then(
         (_) { fail('Succeeded for non-existing file.'); },
-        onError: expectAsync1((e) {
-          validate404(e.error.target);
+        onError: expectAsync1((error) {
+          validate404(error.target);
         }));
     });
 

@@ -13,7 +13,7 @@ import 'utils.dart';
 /// Tests whether or not the git command-line app is available for use.
 Future<bool> get isInstalled {
   if (_isGitInstalledCache != null) {
-    return new Future.immediate(_isGitInstalledCache);
+    return new Future.value(_isGitInstalledCache);
   }
 
   return _gitCommand.then((git) => git != null);
@@ -44,7 +44,7 @@ String _gitCommandCache;
 /// found on the user's PATH.
 Future<String> get _gitCommand {
   if (_gitCommandCache != null) {
-    return new Future.immediate(_gitCommandCache);
+    return new Future.value(_gitCommandCache);
   }
 
   return _tryGitCommand("git").then((success) {

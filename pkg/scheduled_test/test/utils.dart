@@ -26,16 +26,16 @@ export 'package:scheduled_test/src/utils.dart';
 Future timeout(Future input, int milliseconds, onTimeout()) {
   var completer = new Completer();
   var timer = new Timer(new Duration(milliseconds: milliseconds), () {
-    chainToCompleter(new Future.of(onTimeout), completer);
+    chainToCompleter(new Future.sync(onTimeout), completer);
   });
   input.then((value) {
     if (completer.isCompleted) return;
     timer.cancel();
     completer.complete(value);
-  }).catchError((e) {
+  }).catchError((error) {
     if (completer.isCompleted) return;
     timer.cancel();
-    completer.completeError(e.error, e.stackTrace);
+    completer.completeError(error);
   });
   return completer.future;
 }

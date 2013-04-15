@@ -21,9 +21,6 @@ runTest() {
 
 bool globalErrorHandler(IsolateUnhandledException e) {
   var source = e.source;
-  if (source is AsyncError) {
-    source = source.error;
-  }
   return source is RuntimeError && source.message == "ignore exception";
 }
 

@@ -45,8 +45,15 @@ class Clock {
   int _time = 0;
 
   /// The stream of millisecond ticks of the clock.
-  Stream<int> get onTick => _onTickController.stream;
-  final _onTickController = new StreamController<int>.broadcast();
+  Stream<int> get onTick {
+    if (_onTickControllerStream == null) {
+      _onTickControllerStream = _onTickController.stream.asBroadcastStream();
+    }
+    return _onTickControllerStream;
+  }
+
+  final _onTickController = new StreamController<int>();
+  Stream<int> _onTickControllerStream;
 
   Clock._();
 
@@ -57,7 +64,7 @@ class Clock {
   void tick([int milliseconds=1]) {
     for (var i = 0; i < milliseconds; i++) {
       var tickTime = ++_time;
-      new Future.immediate(null).then((_) => _onTickController.add(tickTime));
+      new Future.value().then((_) => _onTickController.add(tickTime));
     }
   }
 

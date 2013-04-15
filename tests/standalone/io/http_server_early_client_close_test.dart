@@ -39,17 +39,17 @@ class EarlyCloseTest {
           calledOnRequest = true;
           request.listen(
               (_) {},
-              onError: (e) {
+              onError: (error) {
                 Expect.isFalse(calledOnError);
-                Expect.equals(exception, e.error.message);
+                Expect.equals(exception, error.message);
                 calledOnError = true;
                 port.close();
                 c.complete(null);
               });
         },
-        onError: (e) {
+        onError: (error) {
           Expect.isFalse(calledOnError);
-          Expect.equals(exception, e.error.message);
+          Expect.equals(exception, error.message);
           Expect.equals(expectRequest, calledOnRequest);
           calledOnError = true;
           port.close();

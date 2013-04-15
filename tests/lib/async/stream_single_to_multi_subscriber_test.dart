@@ -37,7 +37,7 @@ main() {
   });
 
   test("tomulti no-op", () {
-    StreamController c = new StreamController<int>.broadcast();
+    StreamController c = new StreamController<int>();
     Stream<int> multi = c.stream.asBroadcastStream();
     Events expected = new Events.fromIterable([1, 2, 3, 4, 5]);
     Events actual1 = new Events.capture(multi);

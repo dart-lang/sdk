@@ -28,14 +28,14 @@ main() {
   Expect.listEquals([], list);
 
   list.addAll([3, 4, 5, 6]);
-  list.removeRange(2, 2);
+  list.removeRange(2, 4);
   Expect.listEquals([3, 4], list);
   list.addAll([5, 6]);
 
-  expectIOORE(() { list.removeRange(4, 1); });
+  expectIOORE(() { list.removeRange(4, 5); });
   Expect.listEquals([3, 4, 5, 6], list);
 
-  list.removeRange(1, 2);
+  list.removeRange(1, 3);
   Expect.listEquals([3, 6], list);
 
   testNegativeIndices();
@@ -51,18 +51,14 @@ void testNegativeIndices() {
   Expect.listEquals([1, 2], list);
 
   // A negative length throws an ArgumentError.
-  Expect.throws(() { list.removeRange(0, -1); },
-      (e) => e is ArgumentError);
+  expectIOORE(() { list.removeRange(0, -1); });
   Expect.listEquals([1, 2], list);
 
-  Expect.throws(() { list.removeRange(-1, -1); },
-      (e) => e is ArgumentError);
+  expectIOORE(() { list.removeRange(-1, -1); });
   Expect.listEquals([1, 2], list);
 
-  // A zero length prevails, and does not throw an exception.
-  list.removeRange(-1, 0);
-  Expect.listEquals([1, 2], list);
+  expectIOORE(() { list.removeRange(-1, 0); });
 
-  list.removeRange(4, 0);
+  expectIOORE(() { list.removeRange(4, 4); });
   Expect.listEquals([1, 2], list);
 }

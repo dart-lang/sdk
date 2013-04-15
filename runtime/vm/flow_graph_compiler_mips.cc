@@ -19,6 +19,7 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, print_ast);
 DECLARE_FLAG(bool, print_scopes);
@@ -42,7 +43,19 @@ bool FlowGraphCompiler::SupportsUnboxedMints() {
 
 void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
                                              intptr_t stub_ix) {
-  UNIMPLEMENTED();
+  // Calls do not need stubs, they share a deoptimization trampoline.
+  ASSERT(reason() != kDeoptAtCall);
+  Assembler* assem = compiler->assembler();
+#define __ assem->
+  __ Comment("Deopt stub for id %"Pd"", deopt_id());
+  __ Bind(entry_label());
+  if (FLAG_trap_on_deoptimization) __ break_(0);
+
+  ASSERT(deoptimization_env() != NULL);
+
+  __ BranchLink(&StubCode::DeoptimizeLabel());
+  set_pc_offset(assem->CodeSize());
+#undef __
 }
 
 
@@ -1154,55 +1167,193 @@ Address FlowGraphCompiler::ExternalElementAddressForRegIndex(
 }
 
 
+#undef __
+#define __ compiler_->assembler()->
+
+
 void ParallelMoveResolver::EmitMove(int index) {
-  UNIMPLEMENTED();
+  MoveOperands* move = moves_[index];
+  const Location source = move->src();
+  const Location destination = move->dest();
+
+  if (source.IsRegister()) {
+    if (destination.IsRegister()) {
+      __ mov(destination.reg(), source.reg());
+    } else {
+      ASSERT(destination.IsStackSlot());
+      __ sw(source.reg(), destination.ToStackSlotAddress());
+    }
+  } else if (source.IsStackSlot()) {
+    if (destination.IsRegister()) {
+      __ lw(destination.reg(), source.ToStackSlotAddress());
+    } else {
+      ASSERT(destination.IsStackSlot());
+      MoveMemoryToMemory(destination.ToStackSlotAddress(),
+                         source.ToStackSlotAddress());
+    }
+  } else if (source.IsFpuRegister()) {
+    if (destination.IsFpuRegister()) {
+      __ movd(destination.fpu_reg(), source.fpu_reg());
+    } else {
+      if (destination.IsDoubleStackSlot()) {
+        __ sdc1(source.fpu_reg(), destination.ToStackSlotAddress());
+      } else {
+        ASSERT(destination.IsQuadStackSlot());
+        UNIMPLEMENTED();
+      }
+    }
+  } else if (source.IsDoubleStackSlot()) {
+    if (destination.IsFpuRegister()) {
+      __ ldc1(destination.fpu_reg(), source.ToStackSlotAddress());
+    } else {
+      ASSERT(destination.IsDoubleStackSlot());
+      __ ldc1(FpuTMP, source.ToStackSlotAddress());
+      __ sdc1(FpuTMP, destination.ToStackSlotAddress());
+    }
+  } else if (source.IsQuadStackSlot()) {
+    UNIMPLEMENTED();
+  } else {
+    ASSERT(source.IsConstant());
+    if (destination.IsRegister()) {
+      const Object& constant = source.constant();
+      __ LoadObject(destination.reg(), constant);
+    } else {
+      ASSERT(destination.IsStackSlot());
+      StoreObject(destination.ToStackSlotAddress(), source.constant());
+    }
+  }
+
+  move->Eliminate();
 }
 
 
 void ParallelMoveResolver::EmitSwap(int index) {
-  UNIMPLEMENTED();
+  MoveOperands* move = moves_[index];
+  const Location source = move->src();
+  const Location destination = move->dest();
+
+  if (source.IsRegister() && destination.IsRegister()) {
+    ASSERT(source.reg() != TMP1);
+    ASSERT(destination.reg() != TMP1);
+    __ mov(TMP1, source.reg());
+    __ mov(source.reg(), destination.reg());
+    __ mov(destination.reg(), TMP1);
+  } else if (source.IsRegister() && destination.IsStackSlot()) {
+    Exchange(source.reg(), destination.ToStackSlotAddress());
+  } else if (source.IsStackSlot() && destination.IsRegister()) {
+    Exchange(destination.reg(), source.ToStackSlotAddress());
+  } else if (source.IsStackSlot() && destination.IsStackSlot()) {
+    Exchange(destination.ToStackSlotAddress(), source.ToStackSlotAddress());
+  } else if (source.IsFpuRegister() && destination.IsFpuRegister()) {
+    __ movd(FpuTMP, source.fpu_reg());
+    __ movd(source.fpu_reg(), destination.fpu_reg());
+    __ movd(destination.fpu_reg(), FpuTMP);
+  } else if (source.IsFpuRegister() || destination.IsFpuRegister()) {
+    ASSERT(destination.IsDoubleStackSlot() ||
+           destination.IsQuadStackSlot() ||
+           source.IsDoubleStackSlot() ||
+           source.IsQuadStackSlot());
+    bool double_width = destination.IsDoubleStackSlot() ||
+                        source.IsDoubleStackSlot();
+    FRegister reg = source.IsFpuRegister() ? source.fpu_reg()
+                                           : destination.fpu_reg();
+    const Address& slot_address = source.IsFpuRegister()
+        ? destination.ToStackSlotAddress()
+        : source.ToStackSlotAddress();
+
+    if (double_width) {
+      __ ldc1(FpuTMP, slot_address);
+      __ sdc1(reg, slot_address);
+      __ movd(reg, FpuTMP);
+    } else {
+      UNIMPLEMENTED();
+    }
+  } else if (source.IsDoubleStackSlot() && destination.IsDoubleStackSlot()) {
+    const Address& source_slot_address = source.ToStackSlotAddress();
+    const Address& destination_slot_address = destination.ToStackSlotAddress();
+
+    ScratchFpuRegisterScope ensure_scratch(this, FpuTMP);
+    __ ldc1(FpuTMP, source_slot_address);
+    __ ldc1(ensure_scratch.reg(), destination_slot_address);
+    __ sdc1(FpuTMP, destination_slot_address);
+    __ sdc1(ensure_scratch.reg(), source_slot_address);
+  } else if (source.IsQuadStackSlot() && destination.IsQuadStackSlot()) {
+    UNIMPLEMENTED();
+  } else {
+    UNREACHABLE();
+  }
+
+  // The swap of source and destination has executed a move from source to
+  // destination.
+  move->Eliminate();
+
+  // Any unperformed (including pending) move with a source of either
+  // this move's source or destination needs to have their source
+  // changed to reflect the state of affairs after the swap.
+  for (int i = 0; i < moves_.length(); ++i) {
+    const MoveOperands& other_move = *moves_[i];
+    if (other_move.Blocks(source)) {
+      moves_[i]->set_src(destination);
+    } else if (other_move.Blocks(destination)) {
+      moves_[i]->set_src(source);
+    }
+  }
 }
 
 
 void ParallelMoveResolver::MoveMemoryToMemory(const Address& dst,
                                               const Address& src) {
-  UNIMPLEMENTED();
+  __ lw(TMP1, src);
+  __ sw(TMP1, dst);
 }
 
 
 void ParallelMoveResolver::StoreObject(const Address& dst, const Object& obj) {
-  UNIMPLEMENTED();
+  __ LoadObject(TMP1, obj);
+  __ sw(TMP1, dst);
 }
 
 
 void ParallelMoveResolver::Exchange(Register reg, const Address& mem) {
-  UNIMPLEMENTED();
+  ASSERT(reg != TMP1);
+  __ mov(TMP1, reg);
+  __ lw(reg, mem);
+  __ sw(TMP1, mem);
 }
 
 
 void ParallelMoveResolver::Exchange(const Address& mem1, const Address& mem2) {
-  UNIMPLEMENTED();
+  ScratchRegisterScope ensure_scratch(this, TMP1);
+  __ lw(ensure_scratch.reg(), mem1);
+  __ lw(TMP1, mem2);
+  __ sw(ensure_scratch.reg(), mem2);
+  __ sw(TMP1, mem1);
 }
 
 
 void ParallelMoveResolver::SpillScratch(Register reg) {
-  UNIMPLEMENTED();
+  __ Push(reg);
 }
 
 
 void ParallelMoveResolver::RestoreScratch(Register reg) {
-  UNIMPLEMENTED();
+  __ Pop(reg);
 }
 
 
 void ParallelMoveResolver::SpillFpuScratch(FpuRegister reg) {
-  UNIMPLEMENTED();
+  __ AddImmediate(SP, -kDoubleSize);
+  __ sdc1(reg, Address(SP));
 }
 
 
 void ParallelMoveResolver::RestoreFpuScratch(FpuRegister reg) {
-  UNIMPLEMENTED();
+  __ ldc1(reg, Address(SP));
+  __ AddImmediate(SP, kDoubleSize);
 }
+
+
+#undef __
 
 
 }  // namespace dart

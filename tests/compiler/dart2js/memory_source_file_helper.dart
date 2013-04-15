@@ -32,10 +32,10 @@ class MemorySourceFileProvider extends SourceFileProvider {
       return super.readStringFromUri(resourceUri);
     }
     String source = MEMORY_SOURCE_FILES[resourceUri.path];
-    // TODO(ahe): Return new Future.immediateError(...) ?
+    // TODO(ahe): Return new Future.error(...) ?
     if (source == null) throw 'No such file $resourceUri';
     String resourceName = '$resourceUri';
     this.sourceFiles[resourceName] = new SourceFile(resourceName, source);
-    return new Future.immediate(source);
+    return new Future.value(source);
   }
 }

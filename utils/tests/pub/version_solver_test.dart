@@ -481,11 +481,11 @@ class MockSource extends Source {
       : _packages = <String, Map<Version, Package>>{};
 
   Future<List<Version>> getVersions(String name, String description) {
-    return new Future.of(() => _packages[description].keys.toList());
+    return new Future.sync(() => _packages[description].keys.toList());
   }
 
   Future<Pubspec> describe(PackageId id) {
-    return new Future.of(() => _packages[id.name][id.version].pubspec);
+    return new Future.sync(() => _packages[id.name][id.version].pubspec);
   }
 
   Future<bool> install(PackageId id, String path) {

@@ -64,14 +64,14 @@ class _Directory implements Directory {
       } else {
         future = future.then((index) {
           if (index != notFound) {
-            return new Future.immediate(index);
+            return new Future.value(index);
           }
           return dirsToCreate[i].exists().then((e) => e ? i : notFound);
         });
       }
     }
     if (future == null) {
-      return new Future.immediate(notFound);
+      return new Future.value(notFound);
     } else {
       return future;
     }
@@ -100,7 +100,7 @@ class _Directory implements Directory {
         }
       }
       if (future == null) {
-        return new Future.immediate(this);
+        return new Future.value(this);
       } else {
         return future.then((_) => this);
       }

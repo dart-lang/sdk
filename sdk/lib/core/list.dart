@@ -189,6 +189,30 @@ abstract class List<E> implements Iterable<E> {
   void insert(int index, E element);
 
   /**
+   * Inserts all elements of [iterable] at position [index] in the list.
+   *
+   * This increases the length of the list by the length of [iterable] and
+   * shifts all later elements towards the end of the list.
+   *
+   * It is an error if the [index] does not point inside the list or at the
+   * position after the last element.
+   */
+  void insertAll(int index, Iterable<E> iterable);
+
+  /**
+   * Overwrites elements of `this` with the elemenst of [iterable] starting
+   * at position [index] in the list.
+   *
+   * This operation does not increase the length of the list.
+   *
+   * It is an error if the [index] does not point inside the list or at the
+   * position after the last element.
+   *
+   * It is an error if the [iterable] is longer than [length] - [index].
+   */
+  void setAll(int index, Iterable<E> iterable);
+
+  /**
    * Removes [value] from the list. Returns true if [value] was
    * in the list. Returns false otherwise. The method has no effect
    * if [value] value was not in the list.
@@ -263,40 +287,51 @@ abstract class List<E> implements Iterable<E> {
   Iterable<E> getRange(int start, int end);
 
   /**
-   * Copies [length] elements of [from], starting
-   * at [startFrom], into the list, starting at [start].
-   * If [length] is 0, this method does not do anything.
-   * Throws an [ArgumentError] if [length] is negative.
-   * Throws an [RangeError] if [start] or
-   * [:start + length - 1:] are out of range for [:this:], or if
-   * [startFrom] or [:startFrom + length - 1:] are out of range for [from].
+   * Copies the elements of [iterable], skipping the [skipCount] first elements
+   * into the range [start] - [end] (excluding) of `this`.
+   *
+   * If [start] equals [end] and represent a legal range, this method has
+   * no effect.
+   *
+   * It is an error if [start]..[end] is not a valid range pointing into the
+   * `this`.
+   *
+   * It is an error if the [iterable] does not have enough elements after
+   * skipping [skipCount] elements.
    */
-  void setRange(int start, int length, List<E> from, [int startFrom]);
+  void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]);
 
   /**
-   * Removes [length] elements from the list, beginning at [start].
-   * Throws an [UnsupportedError] if the list is
-   * not extendable.
-   * If [length] is 0, this method does not do anything.
-   * Throws an [ArgumentError] if [length] is negative.
-   * Throws an [RangeError] if [start] or
-   * [:start + length: - 1] are out of range.
+   * Removes the elements in the range [start]..[end] (excluding).
+   *
+   * It is an error if [start]..[end] is not a valid range pointing into the
+   * `this`.
    */
-  void removeRange(int start, int length);
+  void removeRange(int start, int end);
 
   /**
-   * Inserts a new range into the list, starting from [start] to
-   * [:start + length - 1:]. The entries are filled with [fill].
-   * Throws an [UnsupportedError] if the list is
-   * not extendable.
-   * If [length] is 0, this method does not do anything.
-   * If [start] is the length of the list, this method inserts the
-   * range at the end of the list.
-   * Throws an [ArgumentError] if [length] is negative.
-   * Throws an [RangeError] if [start] is negative or if
-   * [start] is greater than the length of the list.
+   * Sets the elements in the range [start]..[end] (excluding) to the given
+   * [fillValue].
+   *
+   * It is an error if [start]..[end] is not a valid range pointing into the
+   * `this`.
    */
-  void insertRange(int start, int length, [E fill]);
+  void fillRange(int start, int end, [E fillValue]);
+
+  /**
+   * Removes the elements in the range [start]..[end] (excluding) and replaces
+   * them with the contents of the [iterable].
+   *
+   * It is an error if [start]..[end] is not a valid range pointing into the
+   * `this`.
+   *
+   * Example:
+   *
+   *     var list = [1, 2, 3, 4, 5];
+   *     list.replaceRange(1, 3, [6, 7, 8, 9]);
+   *     print(list);  // [1, 6, 7, 8, 9, 4, 5]
+   */
+  void replaceRange(int start, int end, Iterable<E> iterable);
 
   /**
    * Returns an unmodifiable [Map] view of `this`.

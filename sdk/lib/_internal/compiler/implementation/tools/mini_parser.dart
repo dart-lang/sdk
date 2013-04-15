@@ -6,7 +6,7 @@ library parser;
 
 import 'dart:io';
 import 'dart:typeddata';
-
+import 'dart:collection';
 import 'dart:utf';
 
 import '../elements/elements.dart';
@@ -164,7 +164,7 @@ List<int> read(String filename) {
   try {
     int size = file.lengthSync();
     List<int> bytes = new Uint8List(size + 1);
-    file.readListSync(bytes, 0, size);
+    file.readIntoSync(bytes, 0, size);
     bytes[size] = $EOF;
     threw = false;
     return bytes;

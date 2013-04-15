@@ -43,7 +43,7 @@ Future<String> findSystemLocale() {
     return _getAppleDefaults();
   }
   // We can't find anything, don't set the system locale and return null.
-  return new Future.immediate(null);
+  return new Future.value();
 }
 
 /**
@@ -83,12 +83,12 @@ Future _getAppleDefaults() {
  * then don't set the variable and return a future that completes with null.
  */
 Future<String> _checkResult(ProcessResult result, RegExp regex) {
-  if (result.exitCode != 0) return new Future.immediate(null);
+  if (result.exitCode != 0) return new Future.value();
   var match = regex.firstMatch(result.stdout);
-  if (match == null) return new Future.immediate(null);
+  if (match == null) return new Future.value();
   var locale = match.group(1);
   _setLocale(locale);
-  return new Future.immediate(locale);
+  return new Future.value(locale);
 }
 
 /**
@@ -96,5 +96,5 @@ Future<String> _checkResult(ProcessResult result, RegExp regex) {
  */
 Future<String> _setLocale(aLocale) {
   Intl.systemLocale = Intl.canonicalizedLocale(aLocale);
-  return new Future.immediate(Intl.systemLocale);
+  return new Future.value(Intl.systemLocale);
 }

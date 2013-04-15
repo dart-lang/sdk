@@ -34,8 +34,8 @@ class _IsolateSink implements IsolateSink {
     _port.send(message);
   }
 
-  void addError(AsyncError errorEvent) {
-    throw new UnimplementedError("signalError on isolate streams");
+  void addError(Object errorEvent) {
+    throw new UnimplementedError("addError on isolate streams");
   }
 
   void close() {

@@ -64,7 +64,7 @@ Future<bool> convert(Path libPath, Path jsonPath) {
 }
 
 Future<bool> _exportJsonToFile(Map convertedJson, Path jsonPath) {
-  return new Future.of(() {
+  return new Future.sync(() {
     final jsonFile = new File.fromPath(jsonPath);
     var writeJson = prettySerialize(convertedJson);
 
@@ -106,7 +106,8 @@ Map _generateJsonFromLibraries(MirrorSystem mirrors) {
 
         // Remove interface name from Dom Name.
         if (memberDomName.indexOf('.') >= 0) {
-          memberDomName = memberDomName.slice(memberDomName.indexOf('.') + 1);
+          memberDomName =
+              memberDomName.substring(memberDomName.indexOf('.') + 1);
         }
 
         if (!memberComment.isEmpty) {

@@ -164,7 +164,7 @@ Future writeStreamToSink(Stream stream, EventSink sink) {
 }
 
 /// Returns a [Future] that asynchronously completes to `null`.
-Future get async => new Future.immediate(null);
+Future get async => new Future.value();
 
 /// Returns a closed [Stream] with no elements.
 Stream get emptyStream => streamFromIterable([]);
@@ -218,8 +218,8 @@ class Pair<E, F> {
 /// Configures [future] so that its result (success or exception) is passed on
 /// to [completer].
 void chainToCompleter(Future future, Completer completer) {
-  future.then((v) => completer.complete(v)).catchError((e) {
-    completer.completeError(e.error, e.stackTrace);
+  future.then((v) => completer.complete(v)).catchError((error) {
+    completer.completeError(error);
   });
 }
 
@@ -234,7 +234,7 @@ void chainToCompleter(Future future, Completer completer) {
 Future forEachFuture(Iterable input, Future fn(element)) {
   var iterator = input.iterator;
   Future nextElement(_) {
-    if (!iterator.moveNext()) return new Future.immediate(null);
+    if (!iterator.moveNext()) return new Future.value();
     return fn(iterator.current).then(nextElement);
   }
   return nextElement(null);

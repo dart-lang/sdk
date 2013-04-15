@@ -83,7 +83,7 @@ class BitVector: public ZoneAllocated {
   // bitvector kill.
   bool KillAndAdd(BitVector* kill, BitVector* gen);
 
-  void Intersect(const BitVector& other);
+  void Intersect(const BitVector* other);
 
   bool Contains(int i) const {
     ASSERT(i >= 0 && i < length());

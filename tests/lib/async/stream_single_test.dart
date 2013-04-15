@@ -22,14 +22,14 @@ main() {
   test("single empty", () {
     StreamController c = new StreamController();
     Future f = c.stream.single;
-    f.catchError(expectAsync1((e) { Expect.isTrue(e.error is StateError); }));
+    f.catchError(expectAsync1((error) { Expect.isTrue(error is StateError); }));
     new Events.fromIterable([]).replay(c);
   });
 
   test("single error", () {
     StreamController c = new StreamController();
     Future f = c.stream.single;
-    f.catchError(expectAsync1((e) { Expect.equals("error", e.error); }));
+    f.catchError(expectAsync1((error) { Expect.equals("error", error); }));
     Events errorEvents = new Events()..error("error")..close();
     errorEvents.replay(c);
   });
@@ -37,7 +37,7 @@ main() {
   test("single error 2", () {
     StreamController c = new StreamController();
     Future f = c.stream.single;
-    f.catchError(expectAsync1((e) { Expect.equals("error", e.error); }));
+    f.catchError(expectAsync1((error) { Expect.equals("error", error); }));
     Events errorEvents = new Events()..error("error")..error("error2")..close();
     errorEvents.replay(c);
   });
@@ -45,7 +45,7 @@ main() {
   test("single error 3", () {
     StreamController c = new StreamController();
     Future f = c.stream.single;
-    f.catchError(expectAsync1((e) { Expect.equals("error", e.error); }));
+    f.catchError(expectAsync1((error) { Expect.equals("error", error); }));
     Events errorEvents = new Events()..add(499)..error("error")..close();
     errorEvents.replay(c);
   });

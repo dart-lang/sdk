@@ -700,7 +700,7 @@ class _HashTable<K> {
 /**
  * Generic iterable based on a [_HashTable].
  */
-abstract class _HashTableIterable<E> extends Iterable<E> {
+abstract class _HashTableIterable<E> extends IterableBase<E> {
   final _HashTable _hashTable;
   _HashTableIterable(this._hashTable);
 
@@ -924,7 +924,7 @@ class _LinkedHashTable<K> extends _HashTable<K> {
   }
 }
 
-class _LinkedHashTableKeyIterable<K> extends Iterable<K> {
+class _LinkedHashTableKeyIterable<K> extends IterableBase<K> {
   final _LinkedHashTable<K> _table;
   _LinkedHashTableKeyIterable(this._table);
   Iterator<K> get iterator => new _LinkedHashTableKeyIterator<K>(_table);
@@ -940,7 +940,7 @@ class _LinkedHashTableKeyIterator<K> extends _LinkedHashTableIterator<K> {
   K _getCurrent(int offset) => _hashTable._key(offset);
 }
 
-class _LinkedHashTableValueIterable<V> extends Iterable<V> {
+class _LinkedHashTableValueIterable<V> extends IterableBase<V> {
   final _LinkedHashTable _hashTable;
   final int _valueIndex;
   _LinkedHashTableValueIterable(this._hashTable, this._valueIndex);

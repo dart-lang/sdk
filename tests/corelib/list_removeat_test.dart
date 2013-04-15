@@ -3,11 +3,23 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import 'dart:collection';
 
-void main() {
-  // Normal modifiable list.
-  var l1 = [0, 1, 2, 3, 4];
+class MyList extends ListBase {
+  List list;
+  MyList(this.list);
 
+  get length => list.length;
+  set length(val) { list.length = val; }
+
+  operator [](index) => list[index];
+  operator []=(index, val) => list[index] = val;
+
+  String toString() => "[" + join(", ") + "]";
+}
+
+// l1 must be a modifiable list with 5 elements from 0 to 4.
+void testModifiableList(l1) {
   bool checkedMode = false;
   assert(checkedMode = true);
 
@@ -42,6 +54,12 @@ void main() {
   Expect.equals(3, l1[1], "l1-2[1]");
   Expect.equals(4, l1[2], "l1-2[2]");
   Expect.equals(3, l1.length, "length-2");
+}
+
+void main() {
+  // Normal modifiable list.
+  testModifiableList([0, 1, 2, 3, 4]);
+  testModifiableList(new MyList([0, 1, 2, 3, 4]));
 
   // Fixed size list.
   var l2 = new List(5);

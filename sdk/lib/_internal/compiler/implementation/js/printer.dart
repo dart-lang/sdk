@@ -836,13 +836,14 @@ class Printer implements NodeVisitor {
     List<Expression> inputs = node.inputs;
 
     List<String> parts = template.split('#');
-    if (parts.length != inputs.length + 1) {
+    int inputsLength = inputs == null ? 0 : inputs.length;
+    if (parts.length != inputsLength + 1) {
       compiler.internalError('Wrong number of arguments for JS: $template');
     }
     // Code that uses JS must take care of operator precedences, and
     // put parenthesis if needed.
     out(parts[0]);
-    for (int i = 0; i < inputs.length; i++) {
+    for (int i = 0; i < inputsLength; i++) {
       visit(inputs[i]);
       out(parts[i + 1]);
     }

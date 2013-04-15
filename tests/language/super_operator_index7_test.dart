@@ -9,7 +9,7 @@ import "package:expect/expect.dart";
 class A {
   var indexField = new List(2);
 
-  noSuchMethod(InvocationMirror im) {
+  noSuchMethod(Invocation im) {
     if (im.memberName == '[]=') {
       Expect.equals(2, im.positionalArguments.length);
       indexField[im.positionalArguments[0]] = im.positionalArguments[1];

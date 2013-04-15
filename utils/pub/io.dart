@@ -69,7 +69,7 @@ String writeTextFile(String file, String contents, {dontLogContents: false}) {
 String writeBinaryFile(String file, List<int> contents) {
   log.io("Writing ${contents.length} bytes to binary file $file.");
   new File(file).openSync(mode: FileMode.WRITE)
-      ..writeListSync(contents, 0, contents.length)
+      ..writeFromSync(contents)
       ..closeSync();
   log.fine("Wrote text file $file.");
   return file;
@@ -284,10 +284,12 @@ String relativeToPub(String target) {
 
 /// A sink that writes to standard output. Errors piped to this stream will be
 /// surfaced to the top-level error handler.
+// TODO: Unrequired wrapper, stdout is now an EventSink<List<int>>.
 final EventSink<List<int>> stdoutSink = _wrapStdio(stdout, "stdout");
 
 /// A sink that writes to standard error. Errors piped to this stream will be
 /// surfaced to the top-level error handler.
+// TODO: Unrequired wrapper, stdout is now an EventSink<List<int>>.
 final EventSink<List<int>> stderrSink = _wrapStdio(stderr, "stderr");
 
 /// Wrap the standard output or error [stream] in a [EventSink]. Any errors are
@@ -297,7 +299,7 @@ EventSink<List<int>> _wrapStdio(IOSink sink, String name) {
   pair.last.catchError((e) {
     // This log may or may not work, depending on how the stream failed. Not
     // much we can do about that.
-    log.error("Error writing to $name: $e");
+    log.error("Error writing to $name", e);
     exit(exit_codes.IO);
   });
   return pair.first;
@@ -341,17 +343,17 @@ Pair<EventSink, Future> consumerToSink(StreamConsumer consumer) {
 /// true.
 ///
 /// When an error occurs on [stream], that error is passed to [sink]. If
-/// [unsubscribeOnError] is true, [Future] will be completed successfully and no
+/// [cancelOnError] is true, [Future] will be completed successfully and no
 /// more data or errors will be piped from [stream] to [sink]. If
-/// [unsubscribeOnError] and [closeSink] are both true, [sink] will then be
+/// [cancelOnError] and [closeSink] are both true, [sink] will then be
 /// closed.
 Future store(Stream stream, EventSink sink,
-    {bool unsubscribeOnError: true, closeSink: true}) {
+    {bool cancelOnError: true, closeSink: true}) {
   var completer = new Completer();
   stream.listen(sink.add,
       onError: (e) {
         sink.addError(e);
-        if (unsubscribeOnError) {
+        if (cancelOnError) {
           completer.complete();
           if (closeSink) sink.close();
         }
@@ -359,7 +361,7 @@ Future store(Stream stream, EventSink sink,
       onDone: () {
         if (closeSink) sink.close();
         completer.complete();
-      }, unsubscribeOnError: unsubscribeOnError);
+      }, cancelOnError: cancelOnError);
   return completer.future;
 }
 
@@ -548,9 +550,9 @@ Future timeout(Future input, int milliseconds, String description) {
 /// Returns a future that completes to the value that the future returned from
 /// [fn] completes to.
 Future withTempDir(Future fn(String path)) {
-  return new Future.of(() {
+  return new Future.sync(() {
     var tempDir = createTempDir();
-    return new Future.of(() => fn(tempDir))
+    return new Future.sync(() => fn(tempDir))
         .whenComplete(() => deleteEntry(tempDir));
   });
 }
@@ -668,7 +670,7 @@ ByteStream createTarGz(List contents, {baseDir}) {
     }).catchError((e) {
       // We don't have to worry about double-signaling here, since the store()
       // above will only be reached if startProcess succeeds.
-      controller.addError(e.error, e.stackTrace);
+      controller.addError(e);
       controller.close();
     });
     return new ByteStream(controller.stream);
@@ -705,7 +707,7 @@ ByteStream createTarGz(List contents, {baseDir}) {
   }).catchError((e) {
     // We don't have to worry about double-signaling here, since the store()
     // above will only be reached if everything succeeds.
-    controller.addError(e.error, e.stackTrace);
+    controller.addError(e);
     controller.close();
   });
   return new ByteStream(controller.stream);

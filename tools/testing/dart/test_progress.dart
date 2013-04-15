@@ -344,8 +344,8 @@ class TestFailurePrinter extends EventListener {
 
   void allDone() {
     if (_printSummary) {
-      print('\n=== Failure summary:\n');
       if (!_failureSummary.isEmpty) {
+        print('\n=== Failure summary:\n');
         for (String line in _failureSummary) {
           print(line);
         }

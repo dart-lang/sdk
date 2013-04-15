@@ -5,7 +5,7 @@
 /**
  * An abstract string representation.
  */
-abstract class ByteString extends Iterable<int> implements SourceString {
+abstract class ByteString extends IterableBase<int> implements SourceString {
   final List<int> bytes;
   final int offset;
   final int length;

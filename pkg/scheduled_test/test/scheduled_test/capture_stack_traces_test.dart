@@ -32,6 +32,7 @@ void main() {
   }, passing: ['test 2']);
 
   expectTestsPass('does not capture a stack trace if set to false', () {
+    var errorThrown = new Object();
     var error;
     test('test 1', () {
       currentSchedule.captureStackTraces = false;
@@ -39,7 +40,7 @@ void main() {
         error = currentSchedule.errors.first;
       });
 
-      schedule(() => throw 'error');
+      schedule(() => throw errorThrown);
     });
 
     test('test 2', () {

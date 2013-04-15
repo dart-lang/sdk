@@ -37,7 +37,7 @@ class _WebSocketOpcode {
  * which is supplied through the [:handleData:]. As the protocol is processed,
  * it'll output frame data as either a List<int> or String.
  *
- * Important infomation about usage: Be sure you use unsubscribeOnError, so the
+ * Important infomation about usage: Be sure you use cancelOnError, so the
  * socket will be closed when the processer encounter an error. Not using it
  * will lead to undefined behaviour.
  */
@@ -385,7 +385,7 @@ class _WebSocketTransformerImpl implements WebSocketTransformer {
         response.contentLength = 0;
         response.close();
       });
-      return new Future.immediateError(
+      return new Future.error(
           new WebSocketException("Invalid WebSocket upgrade request"));
     }
 
@@ -547,7 +547,7 @@ class _WebSocketImpl extends Stream implements WebSocket {
           _controller.close();
           if (_writeClosed) _socket.destroy();
         },
-        unsubscribeOnError: true);
+        cancelOnError: true);
 
     _socket.done
         .catchError((error) {
@@ -564,13 +564,13 @@ class _WebSocketImpl extends Stream implements WebSocket {
   }
 
   StreamSubscription listen(void onData(message),
-                            {void onError(AsyncError error),
+                            {void onError(error),
                              void onDone(),
-                             bool unsubscribeOnError}) {
+                             bool cancelOnError}) {
     return _controller.stream.listen(onData,
                                      onError: onError,
                                      onDone: onDone,
-                                     unsubscribeOnError: unsubscribeOnError);
+                                     cancelOnError: cancelOnError);
   }
 
   int get readyState => _readyState;
@@ -671,7 +671,7 @@ class _WebSocketImpl extends Stream implements WebSocket {
     if (mask) {
       header[1] |= 1 << 7;
       var maskBytes = _IOCrypto.getRandomBytes(4);
-      header.setRange(index, 4, maskBytes);
+      header.setRange(index, index + 4, maskBytes);
       index += 4;
       if (data != null) {
         var list = new Uint8List(data.length);

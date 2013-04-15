@@ -18,7 +18,7 @@ class Helper {
     } on MyException catch (exception, stacktrace) {
       i = 50;
       print(exception.message_);
-      Expect.equals((stacktrace != null), true);
+      Expect.isNotNull(stacktrace);
       print(stacktrace);
     }
     try {
@@ -28,7 +28,7 @@ class Helper {
     } on MyException catch (exception, stacktrace) {
       i = 50;
       print(exception.message_);
-      Expect.equals((stacktrace != null), true);
+      Expect.isNotNull(stacktrace);
       print(stacktrace);
     }
     try {
@@ -38,7 +38,7 @@ class Helper {
     } on MyException catch (exception, stacktrace) {
       i = 50;
       print(exception.message_);
-      Expect.equals((stacktrace != null), true);
+      Expect.isNotNull(stacktrace);
       print(stacktrace);
     } finally {
       i = i + 800;

@@ -42,23 +42,22 @@ class SafeHttpServer extends StreamView<HttpRequest> implements HttpServer {
   HttpConnectionsInfo connectionsInfo() => _inner.connectionsInfo();
 
   StreamSubscription<HttpRequest> listen(void onData(HttpRequest value),
-      {void onError(AsyncError error), void onDone(),
-      bool unsubscribeOnError: false}) {
+      {void onError(error), void onDone(),
+      bool cancelOnError: false}) {
     var subscription;
     subscription = super.listen((request) {
       onData(new _HttpRequestWrapper(request));
-    }, onError: (e) {
-      var error = e.error;
+    }, onError: (error) {
       // Ignore socket error 104, which is caused by a request being cancelled
       // before it writes any headers. There's no reason to care about such
       // requests.
       if (error is SocketIOException && error.osError.errorCode == 104) return;
       // Ignore any parsing errors, which come from malformed requests.
       if (error is HttpParserException) return;
-      // Manually handle unsubscribeOnError so the above (ignored) errors don't
+      // Manually handle cancelOnError so the above (ignored) errors don't
       // cause unsubscription.
-      if (unsubscribeOnError) subscription.cancel();
-      if (onError != null) onError(e);
+      if (cancelOnError) subscription.cancel();
+      if (onError != null) onError(error);
     }, onDone: onDone);
     return subscription;
   }
@@ -132,12 +131,8 @@ class _HttpResponseWrapper implements HttpResponse {
   Future<Socket> detachSocket() => _inner.detachSocket();
   HttpConnectionInfo get connectionInfo => _inner.connectionInfo;
   void add(List<int> data) => _inner.add(data);
-  Future<HttpResponse> consume(Stream<List<int>> stream) =>
-    _inner.consume(stream);
   Future<HttpResponse> addStream(Stream<List<int>> stream) =>
     _inner.addStream(stream);
-  Future<HttpResponse> writeStream(Stream<List<int>> stream) =>
-    _inner.writeStream(stream);
   Future close() => _inner.close();
   void write(Object obj) => _inner.write(obj);
   void writeAll(Iterable objects) => _inner.writeAll(objects);

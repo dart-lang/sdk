@@ -38,7 +38,7 @@ Future<AnalysisResult> run(List<String> args) {
 
   var options = new CommandLineOptions.parse(args);
   if (options == null) {
-    return new Future.immediate(new AnalysisResult.forFailure());
+    return new Future.value(new AnalysisResult.forFailure());
   }
 
   //TODO(pquitslund): call out to analyzer...

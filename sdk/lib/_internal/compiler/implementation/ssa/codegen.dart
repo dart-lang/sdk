@@ -89,33 +89,6 @@ class SsaCodeGeneratorTask extends CompilerTask {
   }
 }
 
-// Stop-gap until the core classes have such a class.
-class OrderedSet<T> {
-  final LinkedHashMap<T, bool> map = new LinkedHashMap<T, bool>();
-
-  void add(T x) {
-    if (!map.containsKey(x)) {
-      map[x] = true;
-    }
-  }
-
-  bool contains(T x) => map.containsKey(x);
-
-  bool remove(T x) => map.remove(x) != null;
-
-  bool get isEmpty => map.isEmpty;
-
-  void forEach(f) => map.keys.forEach(f);
-
-  T get first {
-    var iterator = map.keys.iterator;
-    if (!iterator.moveNext()) throw new StateError("No elements");
-    return iterator.current;
-  }
-
-  get length => map.length;
-}
-
 typedef void ElementAction(Element element);
 
 abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
@@ -168,7 +141,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
    * we do this most of the time, because it reduces the size unless there
    * is only one variable.
    */
-  final OrderedSet<String> collectedVariableDeclarations;
+  final LinkedHashSet<String> collectedVariableDeclarations;
 
   /**
    * Set of variables and parameters that have already been declared.
@@ -188,7 +161,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   SsaCodeGenerator(this.backend, CodegenWorkItem work)
     : this.work = work,
       declaredLocals = new Set<String>(),
-      collectedVariableDeclarations = new OrderedSet<String>(),
+      collectedVariableDeclarations = new LinkedHashSet<String>(),
       currentContainer = new js.Block.empty(),
       parameters = <js.Parameter>[],
       expressionStack = <js.Expression>[],
@@ -261,7 +234,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void insertStatementAtStart(js.Statement statement) {
-    currentContainer.statements.insertRange(0, 1, statement);
+    currentContainer.statements.insert(0, statement);
   }
 
   /**
@@ -857,6 +830,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
                   inits.add(new js.VariableInitialization(declaration,
                                                           assignment.value));
                   collectedVariableDeclarations.remove(id);
+                  declaredLocals.add(id);
                 }
                 jsInitialization = new js.VariableDeclarationList(inits);
               }
@@ -1743,23 +1717,22 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       }
       pushStatement(new js.LiteralStatement(code), node);
     } else {
-      // We can parse simple JS with the mini parser.  At the moment we can't
-      // handle expression interpolation with # and we can't handle JSON
-      // literals and function literals, both of which contain "{".
-      if (!code.contains("#") && !code.contains("{")) {
-        js.Expression codeAst = js.js(code);
-        push(codeAst, node);
-        if (!inputs.isEmpty) {
-          compiler.internalError("Too many arguments to JS expression",
-                                 instruction: node);
-        }
-      } else {
-        List<js.Expression> data = <js.Expression>[];
+      List<js.Expression> interpolatedExpressions;
+      if (!inputs.isEmpty) {
+        interpolatedExpressions = <js.Expression>[];
         for (int i = 0; i < inputs.length; i++) {
           use(inputs[i]);
-          data.add(pop());
+          interpolatedExpressions.add(pop());
         }
-        push(new js.LiteralExpression.withData(code, data), node);
+      }
+      // We can parse simple JS with the mini parser.  At the moment we can't
+      // handle JSON literals and function literals, both of which contain "{".
+      if (!code.contains("{") && !code.startsWith("throw ")) {
+        js.Expression codeAst = js.js(code, interpolatedExpressions);
+        push(codeAst, node);
+      } else {
+        push(new js.LiteralExpression.withData(code, interpolatedExpressions),
+             node);
       }
     }
     registerForeignType(node.instructionType);

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(rmacnak): Move the existing mirror tests here (a place for 
+// TODO(rmacnak): Move the existing mirror tests here (a place for
 // cross-implementation tests).
 
 library MirrorsTest;
@@ -11,48 +11,50 @@ import "../../../pkg/unittest/lib/unittest.dart";
 
 var topLevelField;
 
-class Class {
+class Class<T> {
   Class() { this.field = "default value"; }
   Class.withInitialValue(this.field);
   var field;
   static var staticField;
 }
 
+typedef Typedef();
+
 testFieldAccess(mirrors) {
   var instance = new Class();
 
-  var libMirror = mirrors.libraries["MirrorsTest"];
-  var classMirror = libMirror.classes["Class"];
+  var libMirror = mirrors.libraries[const Symbol("MirrorsTest")];
+  var classMirror = libMirror.classes[const Symbol("Class")];
   var instMirror = reflect(instance);
 
-  libMirror.setFieldAsync('topLevelField', 42);
-  var future = libMirror.getFieldAsync('topLevelField');
+  libMirror.setFieldAsync(new Symbol('topLevelField'), 42);
+  var future = libMirror.getFieldAsync(new Symbol('topLevelField'));
   future.then(expectAsync1((resultMirror) {
     expect(resultMirror.reflectee, equals(42));
-    expect(topLevelField, equals(42));   
-  }));
-  
-  classMirror.setFieldAsync('staticField', 43);
-  future = classMirror.getFieldAsync('staticField');
-  future.then(expectAsync1((resultMirror) {
-    expect(resultMirror.reflectee, equals(43));
-    expect(Class.staticField, equals(43)); 
+    expect(topLevelField, equals(42));
   }));
 
-  instMirror.setFieldAsync('field', 44);
-  future = instMirror.getFieldAsync('field');
+  classMirror.setFieldAsync(new Symbol('staticField'), 43);
+  future = classMirror.getFieldAsync(new Symbol('staticField'));
+  future.then(expectAsync1((resultMirror) {
+    expect(resultMirror.reflectee, equals(43));
+    expect(Class.staticField, equals(43));
+  }));
+
+  instMirror.setFieldAsync(new Symbol('field'), 44);
+  future = instMirror.getFieldAsync(new Symbol('field'));
   future.then(expectAsync1((resultMirror) {
     expect(resultMirror.reflectee, equals(44));
-    expect(instance.field, equals(44)); 
+    expect(instance.field, equals(44));
   }));
 }
 
 testClosureMirrors(mirrors) {
   var closure = (x, y, z) { return x + y + z; };
-  
+
   var mirror = reflect(closure);
   expect(mirror is ClosureMirror, equals(true));
-  
+
   var funcMirror = mirror.function;
   expect(funcMirror is MethodMirror, equals(true));
   expect(funcMirror.parameters.length, equals(3));
@@ -64,22 +66,53 @@ testClosureMirrors(mirrors) {
 }
 
 testInvokeConstructor(mirrors) {
-  var libMirror = mirrors.libraries["MirrorsTest"];
-  var classMirror = libMirror.classes["Class"];
-  
-  var future = classMirror.newInstanceAsync('', []);
+  var libMirror = mirrors.libraries[const Symbol("MirrorsTest")];
+  var classMirror = libMirror.classes[const Symbol("Class")];
+
+  var future = classMirror.newInstanceAsync(new Symbol(''), []);
   future.then(expectAsync1((resultMirror) {
     var instance = resultMirror.reflectee;
     expect(instance is Class, equals(true));
     expect(instance.field, equals("default value"));
   }));
 
-  future = classMirror.newInstanceAsync('withInitialValue', [45]);
+  future = classMirror.newInstanceAsync(new Symbol('withInitialValue'), [45]);
   future.then(expectAsync1((resultMirror) {
     var instance = resultMirror.reflectee;
     expect(instance is Class, equals(true));
     expect(instance.field, equals(45));
   }));
+}
+
+testNames(mirrors) {
+  var libMirror = mirrors.libraries[const Symbol('MirrorsTest')];
+  var classMirror = libMirror.classes[const Symbol('Class')];
+  var typedefMirror = libMirror.members[const Symbol('Typedef')];
+  var methodMirror = libMirror.functions[const Symbol('testNames')];
+  var variableMirror = classMirror.variables[const Symbol('field')];
+
+  expect(libMirror.simpleName, equals(const Symbol('MirrorsTest')));
+  expect(libMirror.qualifiedName, equals(const Symbol('MirrorsTest')));
+
+  expect(classMirror.simpleName, equals(const Symbol('Class')));
+  expect(classMirror.qualifiedName, equals(const Symbol('MirrorsTest.Class')));
+
+  TypeVariableMirror typeVariable = classMirror.typeVariables.values.single;
+  expect(typeVariable.simpleName, equals(const Symbol('T')));
+  expect(typeVariable.qualifiedName,
+         equals(const Symbol('MirrorsTest.Class.T')));
+
+  expect(typedefMirror.simpleName, equals(const Symbol('Typedef')));
+  expect(typedefMirror.qualifiedName,
+         equals(const Symbol('MirrorsTest.Typedef')));
+
+  expect(methodMirror.simpleName, equals(const Symbol('testNames')));
+  expect(methodMirror.qualifiedName,
+         equals(const Symbol('MirrorsTest.testNames')));
+
+  expect(variableMirror.simpleName, equals(const Symbol('field')));
+  expect(variableMirror.qualifiedName,
+         equals(const Symbol('MirrorsTest.Class.field')));
 }
 
 main() {
@@ -88,5 +121,5 @@ main() {
   test("Test field access", () { testFieldAccess(mirrors); });
   test("Test closure mirrors", () { testClosureMirrors(mirrors); });
   test("Test invoke constructor", () { testInvokeConstructor(mirrors); });
+  test("Test simple and qualifiedName", () { testNames(mirrors); });
 }
-

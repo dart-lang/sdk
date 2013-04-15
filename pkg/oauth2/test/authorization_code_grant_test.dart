@@ -33,8 +33,8 @@ void createGrant() {
 }
 
 void expectFutureThrows(future, predicate) {
-  future.catchError(expectAsync1((AsyncError e) {
-    expect(predicate(e.error), isTrue);
+  future.catchError(expectAsync1((error) {
+    expect(predicate(error), isTrue);
   }));
 }
 
@@ -154,7 +154,7 @@ void main() {
           'client_secret': 'secret'
         }));
 
-        return new Future.immediate(new http.Response(JSON.stringify({
+        return new Future.value(new http.Response(JSON.stringify({
           'access_token': 'access token',
           'token_type': 'bearer',
         }), 200, headers: {'content-type': 'application/json'}));
@@ -198,7 +198,7 @@ void main() {
           'client_secret': 'secret'
         }));
 
-        return new Future.immediate(new http.Response(JSON.stringify({
+        return new Future.value(new http.Response(JSON.stringify({
           'access_token': 'access token',
           'token_type': 'bearer',
         }), 200, headers: {'content-type': 'application/json'}));

@@ -58,7 +58,7 @@ class SlowConsumer extends StreamConsumer {
   }
 
   Future close() {
-    return new Future.immediate(finalCount);
+    return new Future.value(finalCount);
   }
 }
 
@@ -70,7 +70,9 @@ class DataProvider {
   StreamController controller;
 
   DataProvider(int this.bytesPerSecond, int this.targetCount, this.chunkSize) {
-    controller = new StreamController(onPauseStateChange: onPauseStateChange);
+    controller = new StreamController(
+      onPause: onPauseStateChange,
+      onResume: onPauseStateChange);
     Timer.run(send);
   }
 

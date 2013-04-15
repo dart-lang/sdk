@@ -37,8 +37,9 @@ void main() {
       compiler.deferredLoadTask.allDeferredElements.where((e) => e.isClass())
       .toSet();
 
-  var expando =
-      deferredClasses.where((e) => e.name.slowToString() == 'Expando').single;
+  var dateTime =
+      deferredClasses
+          .where((e) => e.name.slowToString() == 'DateTime').single;
 
   var myClass =
       deferredClasses.where((e) => e.name.slowToString() == 'MyClass').single;
@@ -46,7 +47,7 @@ void main() {
   var deferredLibrary = compiler.libraries['memory:deferred.dart'];
 
   Expect.equals(deferredLibrary, myClass.getLibrary());
-  Expect.equals(compiler.coreLibrary, expando.declaration.getLibrary());
+  Expect.equals(compiler.coreLibrary, dateTime.declaration.getLibrary());
 }
 
 const Map MEMORY_SOURCE_FILES = const {
@@ -71,7 +72,7 @@ class MyClass {
   const MyClass();
 
   foo(x) {
-    new Expando();
+    new DateTime.now();
     return (x - 3) ~/ 2;
   }
 }

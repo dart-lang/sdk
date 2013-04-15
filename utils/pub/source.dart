@@ -154,7 +154,7 @@ abstract class Source {
   ///
   /// This doesn't need to be implemented if [shouldCache] is false.
   Future<String> systemCacheDirectory(PackageId id) {
-    return new Future.immediateError(
+    return new Future.error(
         "systemCacheDirectory() must be implemented if shouldCache is true.");
   }
 
@@ -206,7 +206,7 @@ abstract class Source {
   /// [descriptionsEqual].
   ///
   /// By default, this just returns [id].
-  Future<PackageId> resolveId(PackageId id) => new Future.immediate(id);
+  Future<PackageId> resolveId(PackageId id) => new Future.value(id);
   
   /// Returns the [Package]s that have been installed in the system cache.
   List<Package> getCachedPackages() {

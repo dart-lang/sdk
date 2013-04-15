@@ -105,7 +105,7 @@ Future<String> compile(Uri script,
         ..close();
     code = ''; // Non-null signals success.
   }
-  return new Future.immediate(code);
+  return new Future.value(code);
 }
 
 /**

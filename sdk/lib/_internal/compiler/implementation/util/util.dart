@@ -4,6 +4,7 @@
 
 library org_dartlang_compiler_util;
 
+import "dart:collection";
 import 'util_implementation.dart';
 import 'characters.dart';
 

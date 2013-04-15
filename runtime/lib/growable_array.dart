@@ -52,6 +52,33 @@ class _GrowableObjectArray<T> implements List<T> {
     }
   }
 
+  void insertAll(int index, Iterable<T> iterable) {
+    if (index < 0 || index > length) {
+      throw new RangeError.range(index, 0, length);
+    }
+    // TODO(floitsch): we can probably detect more cases.
+    if (iterable is! List && iterable is! Set && iterable is! SubListIterable) {
+      iterable = iterable.toList();
+    }
+    int insertionLength = iterable.length;
+    // There might be errors after the length change, in which case the list
+    // will end up being modified but the operation not complete. Unless we
+    // always go through a "toList" we can't really avoid that.
+    this.length += insertionLength;
+    setRange(index + insertionLength, this.length, this, index);
+    setAll(index, iterable);
+  }
+
+  void setAll(int index, Iterable<T> iterable) {
+    if (iterable is List) {
+      setRange(index, index + iterable.length, iterable);
+    } else {
+      for (T element in iterable) {
+        this[index++] = element;
+      }
+    }
+  }
+
   void removeWhere(bool test(T element)) {
     IterableMixinWorkaround.removeWhereList(this, test);
   }
@@ -65,43 +92,26 @@ class _GrowableObjectArray<T> implements List<T> {
     return IterableMixinWorkaround.getRangeList(this, start, end);
   }
 
-  void setRange(int start, int length, List<T> from, [int startFrom = 0]) {
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
+  void setRange(int start, int end, Iterable<T> iterable, [int skipCount = 0]) {
+    IterableMixinWorkaround.setRangeList(this, start, end, iterable, skipCount);
   }
 
-  void removeRange(int start, int length) {
-    if (length == 0) {
-      return;
-    }
-    Arrays.rangeCheck(this, start, length);
+  void removeRange(int start, int end) {
+    Arrays.indicesCheck(this, start, end);
     Arrays.copy(this,
-                start + length,
+                end,
                 this,
                 start,
-                this.length - length - start);
-    this.length = this.length - length;
+                this.length - end);
+    this.length = this.length - (end - start);
   }
 
-  void insertRange(int start, int length, [T initialValue = null]) {
-    if (length == 0) {
-      return;
-    }
-    if ((length < 0) || (length is! int)) {
-      throw new ArgumentError("invalid length specified $length");
-    }
-    if (start < 0 || start > this.length) {
-      throw new RangeError.value(start);
-    }
-    var old_length = this.length;
-    this.length = old_length + length;  // Will expand if needed.
-    Arrays.copy(this,
-                start,
-                this,
-                start + length,
-                old_length - start);
-    for (int i = start; i < start + length; i++) {
-      this[i] = initialValue;
-    }
+  void replaceRange(int start, int end, Iterable<T> iterable) {
+    IterableMixinWorkaround.replaceRangeList(this, start, end, iterable);
+  }
+
+  void fillRange(int start, int end, [T fillValue]) {
+    IterableMixinWorkaround.fillRangeList(this, start, end, fillValue);
   }
 
   List<T> sublist(int start, [int end]) {

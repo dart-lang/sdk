@@ -34,16 +34,16 @@ void testInvalidBind() {
   // Bind to a unknown DNS name.
   RawServerSocket.bind("ko.faar.__hest__")
       .then((_) { Expect.fail("Failure expected"); } )
-      .catchError((e) {
-        Expect.isTrue(e.error is SocketIOException);
+      .catchError((error) {
+        Expect.isTrue(error is SocketIOException);
         port.toSendPort().send(1);
       });
 
   // Bind to an unavaliable IP-address.
   RawServerSocket.bind("8.8.8.8")
       .then((_) { Expect.fail("Failure expected"); } )
-      .catchError((e) {
-        Expect.isTrue(e.error is SocketIOException);
+      .catchError((error) {
+        Expect.isTrue(error is SocketIOException);
         port.toSendPort().send(1);
       });
 
@@ -59,9 +59,9 @@ void testInvalidBind() {
               Expect.equals(s.port, t.port);
               port.toSendPort().send(1);
             })
-            .catchError((e) {
+            .catchError((error) {
               Expect.notEquals('windows', Platform.operatingSystem);
-              Expect.isTrue(e.error is SocketIOException);
+              Expect.isTrue(error is SocketIOException);
               port.toSendPort().send(1);
             });
       });
@@ -166,7 +166,7 @@ void testSimpleReadWrite() {
             Expect.isTrue(bytesWritten == 0);
             Expect.isTrue(client.available() > 0);
             var buffer = client.read();
-            data.setRange(bytesRead, buffer.length, buffer);
+            data.setRange(bytesRead, bytesRead + buffer.length, buffer);
             bytesRead += buffer.length;
             if (bytesRead == data.length) {
               verifyTestData(data);
@@ -202,7 +202,7 @@ void testSimpleReadWrite() {
           case RawSocketEvent.READ:
             Expect.isTrue(socket.available() > 0);
             var buffer = socket.read();
-            data.setRange(bytesRead, buffer.length, buffer);
+            data.setRange(bytesRead, bytesRead + buffer.length, buffer);
             bytesRead += buffer.length;
             break;
           case RawSocketEvent.WRITE:

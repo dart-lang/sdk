@@ -3,6 +3,7 @@ library dart.dom.html;
 
 import 'dart:async';
 import 'dart:collection';
+import 'dart:_collection-dev';
 import 'dart:html_common';
 import 'dart:indexed_db';
 import 'dart:isolate';
@@ -510,6 +511,19 @@ class AudioElement extends MediaElement native "*HTMLAudioElement" {
 
 
 @DocsEditable
+@DomName('AutocompleteErrorEvent')
+class AutocompleteErrorEvent extends Event native "*AutocompleteErrorEvent" {
+
+  @DomName('AutocompleteErrorEvent.reason')
+  @DocsEditable
+  final String reason;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
 @DomName('HTMLBRElement')
 class BRElement extends Element native "*HTMLBRElement" {
 
@@ -550,77 +564,6 @@ class BaseElement extends Element native "*HTMLBaseElement" {
   @DomName('HTMLBaseElement.target')
   @DocsEditable
   String target;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('BatteryManager')
-class BatteryManager extends EventTarget native "*BatteryManager" {
-
-  @DomName('BatteryManager.chargingchangeEvent')
-  @DocsEditable
-  static const EventStreamProvider<Event> chargingChangeEvent = const EventStreamProvider<Event>('chargingchange');
-
-  @DomName('BatteryManager.chargingtimechangeEvent')
-  @DocsEditable
-  static const EventStreamProvider<Event> chargingTimeChangeEvent = const EventStreamProvider<Event>('chargingtimechange');
-
-  @DomName('BatteryManager.dischargingtimechangeEvent')
-  @DocsEditable
-  static const EventStreamProvider<Event> dischargingTimeChangeEvent = const EventStreamProvider<Event>('dischargingtimechange');
-
-  @DomName('BatteryManager.levelchangeEvent')
-  @DocsEditable
-  static const EventStreamProvider<Event> levelChangeEvent = const EventStreamProvider<Event>('levelchange');
-
-  @DomName('BatteryManager.charging')
-  @DocsEditable
-  final bool charging;
-
-  @DomName('BatteryManager.chargingTime')
-  @DocsEditable
-  final num chargingTime;
-
-  @DomName('BatteryManager.dischargingTime')
-  @DocsEditable
-  final num dischargingTime;
-
-  @DomName('BatteryManager.level')
-  @DocsEditable
-  final num level;
-
-  @JSName('addEventListener')
-  @DomName('BatteryManager.addEventListener')
-  @DocsEditable
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
-
-  @DomName('BatteryManager.dispatchEvent')
-  @DocsEditable
-  bool dispatchEvent(Event event) native;
-
-  @JSName('removeEventListener')
-  @DomName('BatteryManager.removeEventListener')
-  @DocsEditable
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
-
-  @DomName('BatteryManager.onchargingchange')
-  @DocsEditable
-  Stream<Event> get onChargingChange => chargingChangeEvent.forTarget(this);
-
-  @DomName('BatteryManager.onchargingtimechange')
-  @DocsEditable
-  Stream<Event> get onChargingTimeChange => chargingTimeChangeEvent.forTarget(this);
-
-  @DomName('BatteryManager.ondischargingtimechange')
-  @DocsEditable
-  Stream<Event> get onDischargingTimeChange => dischargingTimeChangeEvent.forTarget(this);
-
-  @DomName('BatteryManager.onlevelchange')
-  @DocsEditable
-  Stream<Event> get onLevelChange => levelChangeEvent.forTarget(this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1087,6 +1030,15 @@ class CanvasPattern native "*CanvasPattern" {
 
 
 @DocsEditable
+@DomName('CanvasProxy')
+class CanvasProxy native "*CanvasProxy" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
 /**
  * A rendering context for a canvas element.
  *
@@ -1108,6 +1060,10 @@ class CanvasRenderingContext native "*CanvasRenderingContext" {
 
 @DomName('CanvasRenderingContext2D')
 class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRenderingContext2D" {
+
+  @DomName('CanvasRenderingContext2D.currentPath')
+  @DocsEditable
+  DomPath currentPath;
 
   @DomName('CanvasRenderingContext2D.fillStyle')
   @DocsEditable
@@ -1951,6 +1907,23 @@ class CssCharsetRule extends CssRule native "*CSSCharsetRule" {
 
 
 @DocsEditable
+@DomName('CSSFontFaceLoadEvent')
+class CssFontFaceLoadEvent extends Event native "*CSSFontFaceLoadEvent" {
+
+  @DomName('CSSFontFaceLoadEvent.error')
+  @DocsEditable
+  final DomError error;
+
+  @DomName('CSSFontFaceLoadEvent.fontface')
+  @DocsEditable
+  final CssFontFaceRule fontface;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
 @DomName('CSSFontFaceRule')
 class CssFontFaceRule extends CssRule native "*CSSFontFaceRule" {
 
@@ -2126,6 +2099,8 @@ class CssRule native "*CSSRule" {
   static const int WEBKIT_KEYFRAMES_RULE = 7;
 
   static const int WEBKIT_KEYFRAME_RULE = 8;
+
+  static const int WEBKIT_REGION_RULE = 16;
 
   @DomName('CSSRule.cssText')
   @DocsEditable
@@ -5450,6 +5425,15 @@ class CssUnknownRule extends CssRule native "*CSSUnknownRule" {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
+@DocsEditable
+@DomName('CustomElementConstructor')
+class CustomElementConstructor native "*CustomElementConstructor" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 // WARNING: Do not edit - generated code.
 
 
@@ -5807,6 +5791,31 @@ class DeviceOrientationEvent extends Event native "*DeviceOrientationEvent" {
   void $dom_initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma, bool absolute) native;
 
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('HTMLDialogElement')
+class DialogElement extends Element native "*HTMLDialogElement" {
+
+  @DomName('HTMLDialogElement.open')
+  @DocsEditable
+  bool open;
+
+  @DomName('HTMLDialogElement.close')
+  @DocsEditable
+  void close() native;
+
+  @DomName('HTMLDialogElement.show')
+  @DocsEditable
+  void show() native;
+
+  @DomName('HTMLDialogElement.showModal')
+  @DocsEditable
+  void showModal() native;
+}
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -6102,6 +6111,10 @@ class Document extends Node  native "*Document"
   @DocsEditable
   final String domain;
 
+  @DomName('Document.fontloader')
+  @DocsEditable
+  final FontLoader fontloader;
+
   @JSName('head')
   /// Moved to [HtmlDocument].
   @DomName('Document.head')
@@ -6228,12 +6241,12 @@ class Document extends Node  native "*Document"
   /// Deprecated: use new Element.tag(tagName) instead.
   @DomName('Document.createElement')
   @DocsEditable
-  Element $dom_createElement(String tagName) native;
+  Element $dom_createElement(String localName_OR_tagName, [String typeExtension]) native;
 
   @JSName('createElementNS')
   @DomName('Document.createElementNS')
   @DocsEditable
-  Element $dom_createElementNS(String namespaceURI, String qualifiedName) native;
+  Element $dom_createElementNS(String namespaceURI, String qualifiedName, [String typeExtension]) native;
 
   @JSName('createEvent')
   @DomName('Document.createEvent')
@@ -6378,6 +6391,41 @@ class Document extends Node  native "*Document"
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
   void $dom_webkitExitPointerLock() native;
+
+  @JSName('webkitGetNamedFlows')
+  @DomName('Document.webkitGetNamedFlows')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  DomNamedFlowCollection getNamedFlows() native;
+
+  @DomName('Document.webkitRegister')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  CustomElementConstructor register(String name, [Map options]) {
+    if (?options) {
+      var options_1 = convertDartToNative_Dictionary(options);
+      return _register_1(name, options_1);
+    }
+    return _register_2(name);
+  }
+  @JSName('webkitRegister')
+  @DomName('Document.webkitRegister')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  CustomElementConstructor _register_1(name, options) native;
+  @JSName('webkitRegister')
+  @DomName('Document.webkitRegister')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  CustomElementConstructor _register_2(name) native;
 
   @DomName('Document.onabort')
   @DocsEditable
@@ -6961,6 +7009,14 @@ class DomMimeTypeArray implements JavaScriptIndexingBehavior, List<DomMimeType> 
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  void insertAll(int index, Iterable<DomMimeType> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<DomMimeType> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
   DomMimeType removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -6981,16 +7037,20 @@ class DomMimeTypeArray implements JavaScriptIndexingBehavior, List<DomMimeType> 
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<DomMimeType> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<DomMimeType> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int rangeLength) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [DomMimeType initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  void replaceRange(int start, int end, Iterable<DomMimeType> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [DomMimeType fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
   Iterable<DomMimeType> getRange(int start, int end) =>
@@ -7027,6 +7087,27 @@ class DomMimeTypeArray implements JavaScriptIndexingBehavior, List<DomMimeType> 
 
 
 @DocsEditable
+@DomName('WebKitNamedFlowCollection')
+class DomNamedFlowCollection native "*WebKitNamedFlowCollection" {
+
+  @DomName('DOMNamedFlowCollection.length')
+  @DocsEditable
+  final int length;
+
+  @DomName('DOMNamedFlowCollection.item')
+  @DocsEditable
+  WebKitNamedFlow item(int index) native;
+
+  @DomName('DOMNamedFlowCollection.namedItem')
+  @DocsEditable
+  WebKitNamedFlow namedItem(String name) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
 @DomName('DOMParser')
 class DomParser native "*DOMParser" {
 
@@ -7040,6 +7121,65 @@ class DomParser native "*DOMParser" {
   @DomName('DOMParser.parseFromString')
   @DocsEditable
   Document parseFromString(String str, String contentType) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('Path')
+class DomPath native "*Path" {
+
+  @DomName('DOMPath.DOMPath')
+  @DocsEditable
+  factory DomPath([path_OR_text]) {
+    if (!?path_OR_text) {
+      return DomPath._create_1();
+    }
+    if ((path_OR_text is DomPath || path_OR_text == null)) {
+      return DomPath._create_2(path_OR_text);
+    }
+    if ((path_OR_text is String || path_OR_text == null)) {
+      return DomPath._create_3(path_OR_text);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+  static DomPath _create_1() => JS('DomPath', 'new Path()');
+  static DomPath _create_2(path_OR_text) => JS('DomPath', 'new Path(#)', path_OR_text);
+  static DomPath _create_3(path_OR_text) => JS('DomPath', 'new Path(#)', path_OR_text);
+
+  @DomName('DOMPath.arc')
+  @DocsEditable
+  void arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) native;
+
+  @DomName('DOMPath.arcTo')
+  @DocsEditable
+  void arcTo(num x1, num y1, num x2, num y2, num radius) native;
+
+  @DomName('DOMPath.bezierCurveTo')
+  @DocsEditable
+  void bezierCurveTo(num cp1x, num cp1y, num cp2x, num cp2y, num x, num y) native;
+
+  @DomName('DOMPath.closePath')
+  @DocsEditable
+  void closePath() native;
+
+  @DomName('DOMPath.lineTo')
+  @DocsEditable
+  void lineTo(num x, num y) native;
+
+  @DomName('DOMPath.moveTo')
+  @DocsEditable
+  void moveTo(num x, num y) native;
+
+  @DomName('DOMPath.quadraticCurveTo')
+  @DocsEditable
+  void quadraticCurveTo(num cpx, num cpy, num x, num y) native;
+
+  @DomName('DOMPath.rect')
+  @DocsEditable
+  void rect(num x, num y, num width, num height) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7223,6 +7363,14 @@ class DomPluginArray implements JavaScriptIndexingBehavior, List<DomPlugin> nati
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  void insertAll(int index, Iterable<DomPlugin> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<DomPlugin> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
   DomPlugin removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -7243,16 +7391,20 @@ class DomPluginArray implements JavaScriptIndexingBehavior, List<DomPlugin> nati
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<DomPlugin> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<DomPlugin> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int rangeLength) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [DomPlugin initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  void replaceRange(int start, int end, Iterable<DomPlugin> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [DomPlugin fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
   Iterable<DomPlugin> getRange(int start, int end) =>
@@ -7633,6 +7785,14 @@ class DomStringList implements JavaScriptIndexingBehavior, List<String> native "
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  void insertAll(int index, Iterable<String> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<String> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
   String removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -7653,16 +7813,20 @@ class DomStringList implements JavaScriptIndexingBehavior, List<String> native "
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<String> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<String> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int rangeLength) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [String initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  void replaceRange(int start, int end, Iterable<String> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [String fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
   Iterable<String> getRange(int start, int end) =>
@@ -7897,8 +8061,16 @@ class _ChildrenElementList extends ListBase<Element> {
     return _childElements.fold(initialValue, combine);
   }
 
-  void setRange(int start, int rangeLength, List from,
-                [int startFrom = 0]) {
+  void setRange(int start, int end, Iterable<Element> iterable,
+                [int skipCount = 0]) {
+    throw new UnimplementedError();
+  }
+
+  void replaceRange(int start, int end, Iterable<Element> iterable) {
+    throw new UnimplementedError();
+  }
+
+  void fillRange(int start, int end, [Element fillValue]) {
     throw new UnimplementedError();
   }
 
@@ -7919,11 +8091,7 @@ class _ChildrenElementList extends ListBase<Element> {
     _childElements.retainWhere(test);
   }
 
-  void removeRange(int start, int rangeLength) {
-    throw new UnimplementedError();
-  }
-
-  void insertRange(int start, int rangeLength, [initialValue = null]) {
+  void removeRange(int start, int end) {
     throw new UnimplementedError();
   }
 
@@ -7954,6 +8122,14 @@ class _ChildrenElementList extends ListBase<Element> {
     } else {
       _element.insertBefore(element, this[index]);
     }
+  }
+
+  void insertAll(int index, Iterable<Element> iterable) {
+    throw new UnimplementedError();
+  }
+
+  void setAll(int index, Iterable<Element> iterable) {
+    throw new UnimplementedError();
   }
 
   void clear() {
@@ -8040,16 +8216,12 @@ class _FrozenElementList extends ListBase {
     throw new UnsupportedError('');
   }
 
-  void setRange(int start, int rangeLength, List from,
-                [int startFrom = 0]) {
+  void setRange(int start, int end, Iterable<Element> iterable,
+                [int skipCount = 0]) {
     throw new UnsupportedError('');
   }
 
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedError('');
-  }
-
-  void insertRange(int start, int rangeLength, [initialValue = null]) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError('');
   }
 
@@ -8915,6 +9087,14 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   @Experimental
   String pseudo;
 
+  @JSName('webkitRegionOverset')
+  @DomName('Element.webkitRegionOverset')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  final String regionOverset;
+
   @JSName('webkitShadowRoot')
   @DomName('Element.webkitShadowRoot')
   @DocsEditable
@@ -9047,6 +9227,14 @@ abstract class Element extends Node implements ElementTraversal native "*Element
   @SupportedBrowser(SupportedBrowser.CHROME, '25')
   @Experimental
   ShadowRoot createShadowRoot() native;
+
+  @JSName('webkitGetRegionFlowRanges')
+  @DomName('Element.webkitGetRegionFlowRanges')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  List<Range> getRegionFlowRanges() native;
 
   @JSName('webkitRequestFullScreen')
   @DomName('Element.webkitRequestFullScreen')
@@ -10357,6 +10545,14 @@ class FileList implements JavaScriptIndexingBehavior, List<File> native "*FileLi
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  void insertAll(int index, Iterable<File> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<File> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
   File removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -10377,16 +10573,20 @@ class FileList implements JavaScriptIndexingBehavior, List<File> native "*FileLi
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<File> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<File> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int rangeLength) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [File initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  void replaceRange(int start, int end, Iterable<File> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [File fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
   Iterable<File> getRange(int start, int end) =>
@@ -10841,6 +11041,14 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  void insertAll(int index, Iterable<num> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<num> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
   num removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -10861,16 +11069,20 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<num> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<num> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int rangeLength) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [num initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  void replaceRange(int start, int end, Iterable<num> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [num fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
   Iterable<num> getRange(int start, int end) =>
@@ -11067,6 +11279,14 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  void insertAll(int index, Iterable<num> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<num> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
   num removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -11087,16 +11307,20 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<num> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<num> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int rangeLength) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [num initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  void replaceRange(int start, int end, Iterable<num> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [num fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
   Iterable<num> getRange(int start, int end) =>
@@ -11144,6 +11368,69 @@ class FocusEvent extends UIEvent native "*FocusEvent" {
   @DomName('FocusEvent.relatedTarget')
   @DocsEditable
   final dynamic _get_relatedTarget;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('FontLoader')
+class FontLoader extends EventTarget native "*FontLoader" {
+
+  @DomName('FontLoader.errorEvent')
+  @DocsEditable
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+
+  @DomName('FontLoader.loadEvent')
+  @DocsEditable
+  static const EventStreamProvider<Event> loadEvent = const EventStreamProvider<Event>('load');
+
+  @DomName('FontLoader.loading')
+  @DocsEditable
+  final bool loading;
+
+  @JSName('addEventListener')
+  @DomName('FontLoader.addEventListener')
+  @DocsEditable
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  @DomName('FontLoader.checkFont')
+  @DocsEditable
+  bool checkFont(String font, String text) native;
+
+  @DomName('FontLoader.dispatchEvent')
+  @DocsEditable
+  bool dispatchEvent(Event evt) native;
+
+  @DomName('FontLoader.loadFont')
+  @DocsEditable
+  void loadFont(Map params) {
+    var params_1 = convertDartToNative_Dictionary(params);
+    _loadFont_1(params_1);
+    return;
+  }
+  @JSName('loadFont')
+  @DomName('FontLoader.loadFont')
+  @DocsEditable
+  void _loadFont_1(params) native;
+
+  @DomName('FontLoader.notifyWhenFontsReady')
+  @DocsEditable
+  void notifyWhenFontsReady(VoidCallback callback) native;
+
+  @JSName('removeEventListener')
+  @DomName('FontLoader.removeEventListener')
+  @DocsEditable
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  @DomName('FontLoader.onerror')
+  @DocsEditable
+  Stream<Event> get onError => errorEvent.forTarget(this);
+
+  @DomName('FontLoader.onload')
+  @DocsEditable
+  Stream<Event> get onLoad => loadEvent.forTarget(this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11232,6 +11519,10 @@ class FormElement extends Element native "*HTMLFormElement" {
   @DomName('HTMLFormElement.checkValidity')
   @DocsEditable
   bool checkValidity() native;
+
+  @DomName('HTMLFormElement.requestAutocomplete')
+  @DocsEditable
+  void requestAutocomplete() native;
 
   @DomName('HTMLFormElement.reset')
   @DocsEditable
@@ -11326,21 +11617,20 @@ class Geolocation native "*Geolocation" {
     int watchId;
     var controller;
     controller = new StreamController<Geoposition>(
-      onSubscriptionStateChange: () {
-        if (controller.hasListener) {
-          assert(watchId == null);
-          watchId = $dom_watchPosition(
-              (position) {
-                controller.add(_ensurePosition(position));
-              },
-              (error) {
-                controller.addError(error);
-              },
-              options);
-        } else {
-          assert(watchId != null);
-          $dom_clearWatch(watchId);
-        }
+      onListen: () {
+        assert(watchId == null);
+        watchId = $dom_watchPosition(
+            (position) {
+              controller.add(_ensurePosition(position));
+            },
+            (error) {
+              controller.addError(error);
+            },
+            options);
+      },
+      onCancel: () {
+        assert(watchId != null);
+        $dom_clearWatch(watchId);
       });
 
     return controller.stream;
@@ -11713,6 +12003,14 @@ class HtmlAllCollection implements JavaScriptIndexingBehavior, List<Node> native
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  void insertAll(int index, Iterable<Node> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<Node> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
   Node removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -11733,16 +12031,20 @@ class HtmlAllCollection implements JavaScriptIndexingBehavior, List<Node> native
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<Node> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int rangeLength) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [Node initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  void replaceRange(int start, int end, Iterable<Node> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [Node fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
   Iterable<Node> getRange(int start, int end) =>
@@ -11928,6 +12230,14 @@ class HtmlCollection implements JavaScriptIndexingBehavior, List<Node> native "*
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  void insertAll(int index, Iterable<Node> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<Node> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
   Node removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -11948,16 +12258,20 @@ class HtmlCollection implements JavaScriptIndexingBehavior, List<Node> native "*
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<Node> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int rangeLength) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [Node initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  void replaceRange(int start, int end, Iterable<Node> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [Node fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
   Iterable<Node> getRange(int start, int end) =>
@@ -13966,6 +14280,14 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  void insertAll(int index, Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -13986,16 +14308,20 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<int> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int rangeLength) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [int initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  void replaceRange(int start, int end, Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [int fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
   Iterable<int> getRange(int start, int end) =>
@@ -14192,6 +14518,14 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  void insertAll(int index, Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -14212,16 +14546,20 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<int> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int rangeLength) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [int initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  void replaceRange(int start, int end, Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [int fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
   Iterable<int> getRange(int start, int end) =>
@@ -14418,6 +14756,14 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  void insertAll(int index, Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -14438,16 +14784,20 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<int> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int rangeLength) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [int initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  void replaceRange(int start, int end, Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [int fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
   Iterable<int> getRange(int start, int end) =>
@@ -16673,14 +17023,6 @@ class Navigator native "*Navigator" {
   @DocsEditable
   final String vendorSub;
 
-  @JSName('webkitBattery')
-  @DomName('Navigator.webkitBattery')
-  @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  final BatteryManager battery;
-
   @JSName('webkitPersistentStorage')
   @DomName('Navigator.webkitPersistentStorage')
   @DocsEditable
@@ -16704,6 +17046,10 @@ class Navigator native "*Navigator" {
   @DomName('Navigator.javaEnabled')
   @DocsEditable
   bool javaEnabled() native;
+
+  @DomName('Navigator.registerProtocolHandler')
+  @DocsEditable
+  void registerProtocolHandler(String scheme, String url, String title) native;
 
   @JSName('webkitGetGamepads')
   @DomName('Navigator.webkitGetGamepads')
@@ -16811,6 +17157,14 @@ class _ChildNodeListLazy extends ListBase<Node> {
     }
   }
 
+  void insertAll(int index, Iterable<Node> iterable) {
+    throw new UnimplementedError();
+  }
+
+  void setAll(int index, Iterable<Node> iterable) {
+    throw new UnimplementedError();
+  }
+
   Node removeLast() {
     final result = last;
     if (result != null) {
@@ -16881,21 +17235,26 @@ class _ChildNodeListLazy extends ListBase<Node> {
   }
 
   // FIXME: implement these.
-  void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<Node> iterable,
+                [int skipCount = 0]) {
     throw new UnsupportedError(
         "Cannot setRange on immutable List.");
   }
-  void removeRange(int start, int rangeLength) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError(
         "Cannot removeRange on immutable List.");
-  }
-  void insertRange(int start, int rangeLength, [Node initialValue]) {
-    throw new UnsupportedError(
-        "Cannot insertRange on immutable List.");
   }
 
   Iterable<Node> getRange(int start, int end) {
     throw new UnimplementedError("NodeList.getRange");
+  }
+
+  void replaceRange(int start, int end, Iterable<Node> iterable) {
+    throw new UnimplementedError("NodeList.replaceRange");
+  }
+
+  void fillRange(int start, int end, [Node fillValue]) {
+    throw new UnimplementedError("NodeList.fillRange");
   }
 
   List<Node> sublist(int start, [int end]) {
@@ -16997,7 +17356,7 @@ class Node extends EventTarget native "*Node" {
   @Creates('Null')
   var _model;
   bool _hasLocalModel;
-  StreamController<Node> _modelChangedStream;
+  Set<StreamController<Node>> _modelChangedStreams;
 
   /**
    * The data model which is inherited through the tree.
@@ -17014,7 +17373,7 @@ class Node extends EventTarget native "*Node" {
   @Experimental
   get model {
     // If we have a change handler then we've cached the model locally.
-    if (_modelChangedStream != null) {
+    if (_modelChangedStreams != null && !_modelChangedStreams.isEmpty) {
       return _model;
     }
     // Otherwise start looking up the tree.
@@ -17034,8 +17393,8 @@ class Node extends EventTarget native "*Node" {
     _ModelTreeObserver.initialize();
 
     if (changed) {
-      if (_modelChangedStream != null) {
-        _modelChangedStream.add(this);
+      if (_modelChangedStreams != null && !_modelChangedStreams.isEmpty) {
+        _modelChangedStreams.toList().forEach((stream) => stream.add(this));
       }
       // Propagate new model to all descendants.
       _ModelTreeObserver.propagateModel(this, value, false);
@@ -17064,12 +17423,14 @@ class Node extends EventTarget native "*Node" {
    * Get a stream of models, whenever the model changes.
    */
   Stream<Node> get onModelChanged {
-    if (_modelChangedStream == null) {
-      // Ensure the model is cached locally to minimize change notifications.
-      _model = model;
-      _modelChangedStream = new StreamController.broadcast();
+    if (_modelChangedStreams == null) {
+      _modelChangedStreams = new Set<StreamController<Node>>();
     }
-    return _modelChangedStream.stream;
+    var controller;
+    controller = new StreamController(
+        onListen: () { _modelChangedStreams.add(controller); },
+        onCancel: () { _modelChangedStreams.remove(controller); });
+    return controller.stream;
   }
 
   /**
@@ -17428,6 +17789,14 @@ class NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeLi
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  void insertAll(int index, Iterable<Node> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<Node> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
   Node removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -17448,16 +17817,20 @@ class NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeLi
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<Node> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int rangeLength) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [Node initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  void replaceRange(int start, int end, Iterable<Node> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [Node fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
   Iterable<Node> getRange(int start, int end) =>
@@ -18070,6 +18443,138 @@ class Performance extends EventTarget native "*Performance" {
   @DomName('Performance.now')
   @DocsEditable
   num now() native;
+
+  @JSName('webkitClearMarks')
+  @DomName('Performance.webkitClearMarks')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  void clearMarks(String markName) native;
+
+  @JSName('webkitClearMeasures')
+  @DomName('Performance.webkitClearMeasures')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  void clearMeasures(String measureName) native;
+
+  @JSName('webkitClearResourceTimings')
+  @DomName('Performance.webkitClearResourceTimings')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  void clearResourceTimings() native;
+
+  @JSName('webkitGetEntries')
+  @DomName('Performance.webkitGetEntries')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  PerformanceEntryList getEntries() native;
+
+  @JSName('webkitGetEntriesByName')
+  @DomName('Performance.webkitGetEntriesByName')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  PerformanceEntryList getEntriesByName(String name, String entryType) native;
+
+  @JSName('webkitGetEntriesByType')
+  @DomName('Performance.webkitGetEntriesByType')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  PerformanceEntryList getEntriesByType(String entryType) native;
+
+  @JSName('webkitMark')
+  @DomName('Performance.webkitMark')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  void mark(String markName) native;
+
+  @JSName('webkitMeasure')
+  @DomName('Performance.webkitMeasure')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  void measure(String measureName, String startMark, String endMark) native;
+
+  @JSName('webkitSetResourceTimingBufferSize')
+  @DomName('Performance.webkitSetResourceTimingBufferSize')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  void setResourceTimingBufferSize(int maxSize) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('PerformanceEntry')
+class PerformanceEntry native "*PerformanceEntry" {
+
+  @DomName('PerformanceEntry.duration')
+  @DocsEditable
+  final num duration;
+
+  @DomName('PerformanceEntry.entryType')
+  @DocsEditable
+  final String entryType;
+
+  @DomName('PerformanceEntry.name')
+  @DocsEditable
+  final String name;
+
+  @DomName('PerformanceEntry.startTime')
+  @DocsEditable
+  final num startTime;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('PerformanceEntryList')
+class PerformanceEntryList native "*PerformanceEntryList" {
+
+  @DomName('PerformanceEntryList.length')
+  @DocsEditable
+  final int length;
+
+  @DomName('PerformanceEntryList.item')
+  @DocsEditable
+  PerformanceEntry item(int index) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('PerformanceMark')
+class PerformanceMark extends PerformanceEntry native "*PerformanceMark" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('PerformanceMeasure')
+class PerformanceMeasure extends PerformanceEntry native "*PerformanceMeasure" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18095,6 +18600,63 @@ class PerformanceNavigation native "*PerformanceNavigation" {
   @DomName('PerformanceNavigation.type')
   @DocsEditable
   final int type;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('PerformanceResourceTiming')
+class PerformanceResourceTiming extends PerformanceEntry native "*PerformanceResourceTiming" {
+
+  @DomName('PerformanceResourceTiming.connectEnd')
+  @DocsEditable
+  final num connectEnd;
+
+  @DomName('PerformanceResourceTiming.connectStart')
+  @DocsEditable
+  final num connectStart;
+
+  @DomName('PerformanceResourceTiming.domainLookupEnd')
+  @DocsEditable
+  final num domainLookupEnd;
+
+  @DomName('PerformanceResourceTiming.domainLookupStart')
+  @DocsEditable
+  final num domainLookupStart;
+
+  @DomName('PerformanceResourceTiming.fetchStart')
+  @DocsEditable
+  final num fetchStart;
+
+  @DomName('PerformanceResourceTiming.initiatorType')
+  @DocsEditable
+  final String initiatorType;
+
+  @DomName('PerformanceResourceTiming.redirectEnd')
+  @DocsEditable
+  final num redirectEnd;
+
+  @DomName('PerformanceResourceTiming.redirectStart')
+  @DocsEditable
+  final num redirectStart;
+
+  @DomName('PerformanceResourceTiming.requestStart')
+  @DocsEditable
+  final num requestStart;
+
+  @DomName('PerformanceResourceTiming.responseEnd')
+  @DocsEditable
+  final num responseEnd;
+
+  @DomName('PerformanceResourceTiming.responseStart')
+  @DocsEditable
+  final num responseStart;
+
+  @DomName('PerformanceResourceTiming.secureConnectionStart')
+  @DocsEditable
+  final num secureConnectionStart;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19772,6 +20334,14 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  void insertAll(int index, Iterable<SourceBuffer> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<SourceBuffer> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
   SourceBuffer removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -19792,16 +20362,20 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<SourceBuffer> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<SourceBuffer> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int rangeLength) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [SourceBuffer initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  void replaceRange(int start, int end, Iterable<SourceBuffer> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [SourceBuffer fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
   Iterable<SourceBuffer> getRange(int start, int end) =>
@@ -20060,6 +20634,14 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  void insertAll(int index, Iterable<SpeechGrammar> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<SpeechGrammar> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
   SpeechGrammar removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -20080,16 +20662,20 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<SpeechGrammar> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<SpeechGrammar> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int rangeLength) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [SpeechGrammar initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  void replaceRange(int start, int end, Iterable<SpeechGrammar> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [SpeechGrammar fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
   Iterable<SpeechGrammar> getRange(int start, int end) =>
@@ -21511,6 +22097,14 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  void insertAll(int index, Iterable<TextTrackCue> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<TextTrackCue> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
   TextTrackCue removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -21531,16 +22125,20 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<TextTrackCue> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<TextTrackCue> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int rangeLength) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [TextTrackCue initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  void replaceRange(int start, int end, Iterable<TextTrackCue> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [TextTrackCue fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
   Iterable<TextTrackCue> getRange(int start, int end) =>
@@ -21724,6 +22322,14 @@ class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, L
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  void insertAll(int index, Iterable<TextTrack> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<TextTrack> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
   TextTrack removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -21744,16 +22350,20 @@ class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, L
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<TextTrack> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<TextTrack> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int rangeLength) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [TextTrack initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  void replaceRange(int start, int end, Iterable<TextTrack> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [TextTrack fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
   Iterable<TextTrack> getRange(int start, int end) =>
@@ -22163,6 +22773,14 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  void insertAll(int index, Iterable<Touch> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<Touch> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
   Touch removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -22183,16 +22801,20 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<Touch> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<Touch> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int rangeLength) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [Touch initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  void replaceRange(int start, int end, Iterable<Touch> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [Touch fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
   Iterable<Touch> getRange(int start, int end) =>
@@ -22639,6 +23261,14 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  void insertAll(int index, Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -22659,16 +23289,20 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<int> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int rangeLength) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [int initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  void replaceRange(int start, int end, Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [int fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
   Iterable<int> getRange(int start, int end) =>
@@ -22865,6 +23499,14 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  void insertAll(int index, Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -22885,16 +23527,20 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<int> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int rangeLength) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [int initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  void replaceRange(int start, int end, Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [int fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
   Iterable<int> getRange(int start, int end) =>
@@ -23091,6 +23737,14 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  void insertAll(int index, Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -23111,16 +23765,20 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<int> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int rangeLength) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [int initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  void replaceRange(int start, int end, Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [int fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
   Iterable<int> getRange(int start, int end) =>
@@ -23314,6 +23972,14 @@ class Uint8ClampedArray extends Uint8Array implements JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  void insertAll(int index, Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
   int removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -23334,16 +24000,20 @@ class Uint8ClampedArray extends Uint8Array implements JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<int> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int rangeLength) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [int initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  void replaceRange(int start, int end, Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [int fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
   Iterable<int> getRange(int start, int end) =>
@@ -23570,6 +24240,21 @@ class WebKitCssFilterRule extends CssRule native "*WebKitCSSFilterRule" {
   @DomName('WebKitCSSFilterRule.style')
   @DocsEditable
   final CssStyleDeclaration style;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('WebKitCSSRegionRule')
+class WebKitCssRegionRule extends CssRule native "*WebKitCSSRegionRule" {
+
+  @DomName('WebKitCSSRegionRule.cssRules')
+  @DocsEditable
+  @Returns('_CssRuleList')
+  @Creates('_CssRuleList')
+  final List<CssRule> cssRules;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25019,7 +25704,7 @@ class _BeforeUnloadEventStreamProvider implements
   const _BeforeUnloadEventStreamProvider(this._eventType);
 
   Stream<BeforeUnloadEvent> forTarget(EventTarget e, {bool useCapture: false}) {
-    var controller = new StreamController.broadcast();
+    var controller = new StreamController();
     var stream = new _EventStream(e, _eventType, useCapture);
     stream.listen((event) {
       var wrapped = new _BeforeUnloadEvent(event);
@@ -25588,6 +26273,14 @@ class _ClientRectList implements JavaScriptIndexingBehavior, List<Rect> native "
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  void insertAll(int index, Iterable<Rect> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<Rect> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
   Rect removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -25608,16 +26301,20 @@ class _ClientRectList implements JavaScriptIndexingBehavior, List<Rect> native "
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<Rect> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<Rect> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int rangeLength) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [Rect initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  void replaceRange(int start, int end, Iterable<Rect> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [Rect fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
   Iterable<Rect> getRange(int start, int end) =>
@@ -25802,6 +26499,14 @@ class _CssRuleList implements JavaScriptIndexingBehavior, List<CssRule> native "
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  void insertAll(int index, Iterable<CssRule> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<CssRule> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
   CssRule removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -25822,16 +26527,20 @@ class _CssRuleList implements JavaScriptIndexingBehavior, List<CssRule> native "
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<CssRule> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<CssRule> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int rangeLength) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [CssRule initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  void replaceRange(int start, int end, Iterable<CssRule> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [CssRule fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
   Iterable<CssRule> getRange(int start, int end) =>
@@ -26007,6 +26716,14 @@ class _CssValueList extends _CSSValue implements JavaScriptIndexingBehavior, Lis
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  void insertAll(int index, Iterable<_CSSValue> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<_CSSValue> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
   _CSSValue removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -26027,16 +26744,20 @@ class _CssValueList extends _CSSValue implements JavaScriptIndexingBehavior, Lis
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<_CSSValue> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<_CSSValue> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int rangeLength) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [_CSSValue initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  void replaceRange(int start, int end, Iterable<_CSSValue> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [_CSSValue fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
   Iterable<_CSSValue> getRange(int start, int end) =>
@@ -26280,6 +27001,14 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*En
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  void insertAll(int index, Iterable<Entry> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<Entry> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
   Entry removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -26300,16 +27029,20 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*En
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<Entry> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<Entry> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int rangeLength) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [Entry initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  void replaceRange(int start, int end, Iterable<Entry> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [Entry fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
   Iterable<Entry> getRange(int start, int end) =>
@@ -26485,6 +27218,14 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<_EntrySync> na
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  void insertAll(int index, Iterable<_EntrySync> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<_EntrySync> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
   _EntrySync removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -26505,16 +27246,20 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<_EntrySync> na
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<_EntrySync> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<_EntrySync> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int rangeLength) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [_EntrySync initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  void replaceRange(int start, int end, Iterable<_EntrySync> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [_EntrySync fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
   Iterable<_EntrySync> getRange(int start, int end) =>
@@ -26733,6 +27478,14 @@ class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  void insertAll(int index, Iterable<Gamepad> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<Gamepad> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
   Gamepad removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -26753,16 +27506,20 @@ class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<Gamepad> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<Gamepad> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int rangeLength) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [Gamepad initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  void replaceRange(int start, int end, Iterable<Gamepad> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [Gamepad fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
   Iterable<Gamepad> getRange(int start, int end) =>
@@ -27001,6 +27758,14 @@ class _NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*N
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  void insertAll(int index, Iterable<Node> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<Node> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
   Node removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -27021,16 +27786,20 @@ class _NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*N
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<Node> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int rangeLength) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [Node initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  void replaceRange(int start, int end, Iterable<Node> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [Node fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
   Iterable<Node> getRange(int start, int end) =>
@@ -27277,6 +28046,14 @@ class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechI
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  void insertAll(int index, Iterable<SpeechInputResult> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<SpeechInputResult> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
   SpeechInputResult removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -27297,16 +28074,20 @@ class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechI
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<SpeechInputResult> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<SpeechInputResult> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int rangeLength) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [SpeechInputResult initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  void replaceRange(int start, int end, Iterable<SpeechInputResult> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [SpeechInputResult fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
   Iterable<SpeechInputResult> getRange(int start, int end) =>
@@ -27482,6 +28263,14 @@ class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<S
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  void insertAll(int index, Iterable<SpeechRecognitionResult> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<SpeechRecognitionResult> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
   SpeechRecognitionResult removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -27502,16 +28291,20 @@ class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<S
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<SpeechRecognitionResult> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<SpeechRecognitionResult> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int rangeLength) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [SpeechRecognitionResult initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  void replaceRange(int start, int end, Iterable<SpeechRecognitionResult> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [SpeechRecognitionResult fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
   Iterable<SpeechRecognitionResult> getRange(int start, int end) =>
@@ -27687,6 +28480,14 @@ class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> na
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  void insertAll(int index, Iterable<StyleSheet> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<StyleSheet> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
   StyleSheet removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -27707,16 +28508,20 @@ class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> na
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<StyleSheet> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<StyleSheet> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int rangeLength) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [StyleSheet initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  void replaceRange(int start, int end, Iterable<StyleSheet> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [StyleSheet fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
   Iterable<StyleSheet> getRange(int start, int end) =>
@@ -28467,9 +29272,9 @@ class _EventStream<T extends Event> extends Stream<T> {
   bool get isBroadcast => true;
 
   StreamSubscription<T> listen(void onData(T event),
-      { void onError(AsyncError error),
-      void onDone(),
-      bool unsubscribeOnError}) {
+      { void onError(error),
+        void onDone(),
+        bool cancelOnError}) {
 
     return new _EventStreamSubscription<T>(
         this._target, this._eventType, onData, this._useCapture);
@@ -28511,7 +29316,7 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   }
 
   /// Has no effect.
-  void onError(void handleError(AsyncError error)) {}
+  void onError(void handleError(error)) {}
 
   /// Has no effect.
   void onDone(void handleDone()) {}
@@ -28544,6 +29349,12 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
     if (_onData != null) {
       _target.$dom_removeEventListener(_eventType, _onData, _useCapture);
     }
+  }
+
+  Future asFuture([var futureValue]) {
+    // We just need a future that will never succeed or fail.
+    Completer completer = new Completer();
+    return completer.future;
   }
 }
 
@@ -28634,7 +29445,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
   static final int _ROMAN_ALPHABET_OFFSET = "a".codeUnits[0] - "A".codeUnits[0];
 
   /** Controller to produce KeyEvents for the stream. */
-  final StreamController _controller = new StreamController.broadcast();
+  final StreamController _controller = new StreamController();
 
   static const _EVENT_TYPE = 'KeyEvent';
 
@@ -29855,14 +30666,14 @@ class _ModelTreeObserver {
     // Catch and report them a global exceptions.
     try {
       if (node._hasLocalModel != true && node._model != model &&
-          node._modelChangedStream != null) {
+          node._modelChangedStreams != null &&
+          !node._modelChangedStreams.isEmpty) {
         node._model = model;
-        node._modelChangedStream.add(node);
+        node._modelChangedStreams.toList()
+          .forEach((controller) => controller.add(node));
       }
-    } on AsyncError catch (e) {
-      e.throwDelayed();
     } catch (e, s) {
-      new AsyncError(e, s).throwDelayed();
+      new Future.error(e, s);
     }
     for (var child = node.$dom_firstChild; child != null;
         child = child.nextNode) {
@@ -30836,6 +31647,12 @@ class _WrappedList<E> implements List<E> {
 
   void insert(int index, E element) => _list.insert(index, element);
 
+  void insertAll(int index, Iterable<E> iterable) =>
+      _list.insertAll(index, iterable);
+
+  void setAll(int index, Iterable<E> iterable) =>
+      _list.setAll(index, iterable);
+
   E removeAt(int index) => _list.removeAt(index);
 
   E removeLast() => _list.removeLast();
@@ -30844,14 +31661,18 @@ class _WrappedList<E> implements List<E> {
 
   Iterable<E> getRange(int start, int end) => _list.getRange(start, end);
 
-  void setRange(int start, int length, List<E> from, [int startFrom]) {
-    _list.setRange(start, length, from, startFrom);
+  void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
+    _list.setRange(start, end, iterable, skipCount);
   }
 
-  void removeRange(int start, int length) { _list.removeRange(start, length); }
+  void removeRange(int start, int end) { _list.removeRange(start, end); }
 
-  void insertRange(int start, int length, [E fill]) {
-    _list.insertRange(start, length, fill);
+  void replaceRange(int start, int end, Iterable<E> iterable) {
+    _list.replaceRange(start, end, iterable);
+  }
+
+  void fillRange(int start, int end, [E fillValue]) {
+    _list.fillRange(start, end, fillValue);
   }
 
   Map<int, E> asMap() => _list.asMap();

@@ -214,7 +214,7 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   }
 
   /// Has no effect.
-  void onError(void handleError(AsyncError error)) {}
+  void onError(void handleError(Object error)) {}
 
   /// Has no effect.
   void onDone(void handleDone()) {}
@@ -255,6 +255,12 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
       _target.removeListener(_eventType, _onData);
     }
   }
+
+  Future asFuture([var futureValue]) {
+    // We just need a future that will never succeed or fail.
+    Completer completer = new Completer();
+    return completer.future;
+  }
 }
 
 class _EventStream<T extends Event> extends Stream<T> {
@@ -268,9 +274,9 @@ class _EventStream<T extends Event> extends Stream<T> {
   bool get isBroadcast => true;
 
   StreamSubscription<T> listen(void onData(T event),
-      { void onError(AsyncError error),
+      { void onError(Object error),
       void onDone(),
-      bool unsubscribeOnError}) {
+      bool cancelOnError}) {
 
     return new _EventStreamSubscription<T>(
         this._target, this._eventType, onData);

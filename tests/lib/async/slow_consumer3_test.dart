@@ -58,7 +58,7 @@ class SlowConsumer extends StreamConsumer {
   }
 
   Future close() {
-    return new Future.immediate(finalCount);
+    return new Future.value(finalCount);
   }
 }
 

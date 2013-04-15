@@ -7,7 +7,7 @@ import "package:expect/expect.dart";
 // Regression test for https://code.google.com/p/dart/issues/detail?id=7697.
 // dart2js used to optimize [noSuchMethod] based on the user-provided
 // argument, and forget that the runtime might call it with its own
-// [InvocationMirror] implementation.
+// [Invocation] implementation.
 
 class Hey {
   foo() => noSuchMethod(new FakeInvocationMirror());
@@ -21,7 +21,7 @@ class You extends Hey {
   noSuchMethod(x) => x.isGetter;
 }
 
-class FakeInvocationMirror implements InvocationMirror {
+class FakeInvocationMirror implements Invocation {
   final bool isGetter = false;
 }
 

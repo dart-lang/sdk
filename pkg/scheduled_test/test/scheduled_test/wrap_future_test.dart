@@ -53,7 +53,7 @@ void main() {
         wrapFuture(pumpEventQueue().then((_) {
           throw 'error';
         })).catchError(wrapAsync((e) {
-          error = e.error;
+          error = e;
         }));
       });
     });

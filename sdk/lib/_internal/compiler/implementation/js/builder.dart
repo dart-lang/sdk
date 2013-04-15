@@ -158,7 +158,7 @@ class MiniJsParserError {
 /// * dot access.
 /// * method calls.
 /// * [] access.
-/// * array, string, boolean, null and numeric literals (no hex).
+/// * array, string, regexp, boolean, null and numeric literals.
 /// * most operators.
 /// * brackets.
 /// * var declarations.
@@ -173,10 +173,9 @@ class MiniJsParserError {
 /// Literal strings are passed through to the final JS source code unchanged,
 /// including the choice of surrounding quotes, so if you parse
 /// r'var x = "foo\n\"bar\""' you will end up with
-///   var x = "foo\n\"bar\"" in the final program.  String literals are
-/// restricted to a small subset of the full set of allowed JS escapes in order
-/// to get early errors for unintentional escape sequences without complicating
-/// this parser unneccessarily.
+///   var x = "foo\n\"bar\"" in the final program.  \x and \u escapes are not
+/// allowed in string and regexp literals because the machinery for checking
+/// their correctness is rather involved.
 class MiniJsParser {
   MiniJsParser(this.src, this.interpolatedValues)
       : lastCategory = NONE,
@@ -184,7 +183,7 @@ class MiniJsParser {
         lastPosition = 0,
         position = 0,
         valuesUsed = 0 {
-    getSymbol();
+    getToken();
   }
 
   int lastCategory;
@@ -230,6 +229,7 @@ class MiniJsParser {
       case RPAREN: return "RPAREN";
       case LBRACE: return "LBRACE";
       case RBRACE: return "RBRACE";
+      case LSQUARE: return "LSQUARE";
       case RSQUARE: return "RSQUARE";
       case STRING: return "STRING";
       case COMMA: return "COMMA";
@@ -284,12 +284,37 @@ class MiniJsParser {
   static final UNARY_OPERATORS =
       ['++', '--', '+', '-', '~', '!', 'typeof', 'void', 'delete'].toSet();
 
+  static final OPERATORS_THAT_LOOK_LIKE_IDENTIFIERS =
+      ['typeof', 'void', 'delete', 'in', 'instanceof'].toSet();
+
   static int category(int code) {
     if (code >= CATEGORIES.length) return OTHER;
     return CATEGORIES[code];
   }
 
-  void getSymbol() {
+  String getDelimited(int startPosition) {
+    position = startPosition;
+    int delimiter = src.codeUnitAt(startPosition);
+    int currentCode;
+    do {
+      position++;
+      if (position >= src.length) error("Unterminated literal");
+      currentCode = src.codeUnitAt(position);
+      if (currentCode == charCodes.$BACKSLASH) {
+        if (++position >= src.length) error("Unterminated literal");
+        int escaped = src.codeUnitAt(position);
+        if (escaped == charCodes.$x || escaped == charCodes.$X ||
+            escaped == charCodes.$u || escaped == charCodes.$U ||
+            category(escaped) == NUMERIC) {
+          error('Numeric and hex escapes are not allowed in literals');
+        }
+      }
+    } while (currentCode != delimiter);
+    position++;
+    return src.substring(lastPosition, position);
+  }
+
+  void getToken() {
     while (position < src.length &&
            category(src.codeUnitAt(position)) == WHITESPACE) {
       position++;
@@ -303,42 +328,44 @@ class MiniJsParser {
     int code = src.codeUnitAt(position);
     lastPosition = position;
     if (code == charCodes.$SQ || code == charCodes.$DQ) {
-      int currentCode;
-      do {
-        position++;
-        if (position >= src.length) {
-          throw new MiniJsParserError(this, "Unterminated string");
-        }
-        currentCode = src.codeUnitAt(position);
-        if (currentCode == charCodes.$BACKSLASH) {
-          if (++position >= src.length) {
-            throw new MiniJsParserError(this, "Unterminated string");
-          }
-          int escapedCode = src.codeUnitAt(position);
-          if (!(escapedCode == charCodes.$BACKSLASH ||
-                escapedCode == charCodes.$SQ ||
-                escapedCode == charCodes.$DQ ||
-                escapedCode == charCodes.$n)) {
-            throw new MiniJsParserError(
-                this,
-                'Only escapes allowed in string literals are '
-                r'''\\, \', \" and \n''');
-          }
-        }
-      } while (currentCode != code);
+      // String literal.
       lastCategory = STRING;
+      lastToken = getDelimited(position);
+    } else if (code == charCodes.$0 &&
+               position + 2 < src.length &&
+               src.codeUnitAt(position + 1) == charCodes.$x) {
+      // Hex literal.
+      for (position += 2; position < src.length; position++) {
+        int cat = category(src.codeUnitAt(position));
+        if (cat != NUMERIC && cat != ALPHA) break;
+      }
+      lastCategory = NUMERIC;
+      lastToken = src.substring(lastPosition, position);
+      int.parse(lastToken, onError: (_) {
+        error("Unparseable number");
+      });
+    } else if (code == charCodes.$SLASH) {
+      // Tokens that start with / are special due to regexp literals.
+      lastCategory = SYMBOL;
       position++;
+      if (position < src.length && src.codeUnitAt(position) == charCodes.$EQ) {
+        position++;
+      }
       lastToken = src.substring(lastPosition, position);
     } else {
+      // All other tokens handled here.
       int cat = category(src.codeUnitAt(position));
       int newCat;
       do {
         position++;
         if (position == src.length) break;
         int code = src.codeUnitAt(position);
-        // Special code to disallow ! in non-first position in token, so that
-        // !! parses as two tokens and != parses as one.
-        newCat = (code == charCodes.$BANG) ? NONE : category(code);
+        // Special code to disallow ! and / in non-first position in token, so
+        // that !! parses as two tokens and != parses as one, while =/ parses
+        // as a an equals token followed by a regexp literal start.
+        newCat = (code == charCodes.$BANG || code == charCodes.$SLASH)
+            ?  NONE
+            : category(code);
       } while (!singleCharCategory(cat) &&
                (cat == newCat ||
                 (cat == ALPHA && newCat == NUMERIC) ||    // eg. level42.
@@ -347,18 +374,16 @@ class MiniJsParser {
       lastToken = src.substring(lastPosition, position);
       if (cat == NUMERIC) {
         double.parse(lastToken, (_) {
-          throw new MiniJsParserError(this, "Unparseable number");
+          error("Unparseable number");
         });
       } else if (cat == SYMBOL) {
         int binaryPrecendence = BINARY_PRECEDENCE[lastToken];
         if (binaryPrecendence == null && !UNARY_OPERATORS.contains(lastToken)) {
-          throw new MiniJsParserError(this, "Unknown operator");
+          error("Unknown operator");
         }
         if (isAssignment(lastToken)) lastCategory = ASSIGNMENT;
       } else if (cat == ALPHA) {
-        if (lastToken == 'typeof' || lastToken == 'void' ||
-            lastToken == 'delete' || lastToken == 'in' ||
-            lastToken == 'instanceof') {
+        if (OPERATORS_THAT_LOOK_LIKE_IDENTIFIERS.contains(lastToken)) {
           lastCategory = SYMBOL;
         }
       }
@@ -366,15 +391,13 @@ class MiniJsParser {
   }
 
   void expectCategory(int cat) {
-    if (cat != lastCategory) {
-      throw new MiniJsParserError(this, "Expected ${categoryToString(cat)}");
-    }
-    getSymbol();
+    if (cat != lastCategory) error("Expected ${categoryToString(cat)}");
+    getToken();
   }
 
   bool acceptCategory(int cat) {
     if (cat == lastCategory) {
-      getSymbol();
+      getToken();
       return true;
     }
     return false;
@@ -382,10 +405,14 @@ class MiniJsParser {
 
   bool acceptString(String string) {
     if (lastToken == string) {
-      getSymbol();
+      getToken();
       return true;
     }
     return false;
+  }
+
+  void error(message) {
+    throw new MiniJsParserError(this, message);
   }
 
   Expression parsePrimary() {
@@ -420,14 +447,21 @@ class MiniJsParser {
         expectCategory(RSQUARE);
       }
       return new ArrayInitializer(values.length, values);
+    } else if (last.startsWith("/")) {
+      String regexp = getDelimited(lastPosition);
+      getToken();
+      String flags = lastToken;
+      if (!acceptCategory(ALPHA)) flags = "";
+      Expression expression = new RegExpLiteral(regexp + flags);
+      return expression;
     } else if (acceptCategory(HASH)) {
       if (interpolatedValues == null ||
           valuesUsed >= interpolatedValues.length) {
-        throw new MiniJsParserError(this, "Too few values for #es");
+        error("Too few values for '#'s");
       }
       return interpolatedValues[valuesUsed++];
     } else {
-      throw new MiniJsParserError(this, "Expected primary expression");
+      error("Expected primary expression");
     }
   }
 
@@ -435,9 +469,7 @@ class MiniJsParser {
     Expression receiver = parsePrimary();
     while (true) {
       if (acceptCategory(DOT)) {
-        String identifier = lastToken;
-        expectCategory(ALPHA);
-        receiver = new PropertyAccess.field(receiver, identifier);
+        receiver = getDotRhs(receiver);
       } else if (acceptCategory(LSQUARE)) {
         Expression inBraces = parseExpression();
         expectCategory(RSQUARE);
@@ -466,14 +498,32 @@ class MiniJsParser {
                new New(receiver, arguments) :
                new Call(receiver, arguments);
         constructor = false;
+      } else if (!constructor && acceptCategory(LSQUARE)) {
+        Expression inBraces = parseExpression();
+        expectCategory(RSQUARE);
+        receiver = new PropertyAccess(receiver, inBraces);
+      } else if (!constructor && acceptCategory(DOT)) {
+        receiver = getDotRhs(receiver);
       } else {
-        if (constructor) {
-          // JS allows new without (), but we don't.
-          throw new MiniJsParserError(this, "Parentheses are required for new");
-        }
+        // JS allows new without (), but we don't.
+        if (constructor) error("Parentheses are required for new");
         return receiver;
       }
     }
+  }
+
+  Expression getDotRhs(Expression receiver) {
+    String identifier = lastToken;
+    // In ES5 keywords like delete and continue are allowed as property
+    // names, and the IndexedDB API uses that, so we need to allow it here.
+    if (acceptCategory(SYMBOL)) {
+      if (!OPERATORS_THAT_LOOK_LIKE_IDENTIFIERS.contains(identifier)) {
+        error("Expected alphanumeric identifier");
+      }
+    } else {
+      expectCategory(ALPHA);
+    }
+    return new PropertyAccess.field(receiver, identifier);
   }
 
   Expression parsePostfix() {
@@ -582,11 +632,10 @@ class MiniJsParser {
   Expression expression() {
     Expression expression = parseVarDeclarationOrExpression();
     if (lastCategory != NONE || position != src.length) {
-      throw new MiniJsParserError(
-          this, "Unparsed junk: ${categoryToString(lastCategory)}");
+      error("Unparsed junk: ${categoryToString(lastCategory)}");
     }
     if (interpolatedValues != null && valuesUsed != interpolatedValues.length) {
-      throw new MiniJsParserError(this, "Too many values for #es");
+      error("Too many values for #es");
     }
     return expression;
   }

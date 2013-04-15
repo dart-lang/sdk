@@ -608,8 +608,6 @@ main() {
 
     testUnsupported('removeRange', () => getQueryAll().removeRange(0, 1));
 
-    testUnsupported('insertangeRange', () => getQueryAll().insertRange(0, 1));
-
     testUnsupported('clear', () => getQueryAll().clear());
 
     testUnsupported('removeLast', () => getQueryAll().removeLast());

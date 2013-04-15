@@ -39,7 +39,7 @@ main() {
 
   final argParser = new ArgParser();
 
-  final Path libPath = scriptDir.append('../../../../');
+  Path libPath = scriptDir.append('../../../../');
 
   String packageRoot;
 
@@ -172,6 +172,14 @@ main() {
         }
       });
 
+  argParser.addOption('library-root',
+      help: 'Sets the library root directory to the specified directory.',
+      callback: (libraryRoot) {
+        if (libraryRoot != null) {
+          libPath = new Path(libraryRoot);
+        }
+      });
+
   // TODO(amouravski): This method is deprecated. Remove on April 22.
   argParser.addOption('pkg',
       help: 'Deprecated: same as --package-root.',
@@ -243,6 +251,8 @@ main() {
     })
     .catchError((e) {
       print('Error: generation failed: ${e}');
+      var trace = getAttachedStackTrace(e);
+      if (trace != null) print("StackTrace: $trace");
       dartdoc.cleanup();
       exit(1);
     })

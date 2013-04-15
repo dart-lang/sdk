@@ -575,6 +575,7 @@ void debuggerMain() {
         },
         onError: (err) {
           print("Error in debug connection: $err");
+          // TODO(floitsch): do we want to print the stack trace?
           quitShell();
         });
     stdinSubscription = stdin.transform(new StringDecoder())

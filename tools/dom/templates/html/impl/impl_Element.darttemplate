@@ -166,8 +166,16 @@ class _ChildrenElementList extends ListBase<Element> {
     return _childElements.fold(initialValue, combine);
   }
 
-  void setRange(int start, int rangeLength, List from,
-                [int startFrom = 0]) {
+  void setRange(int start, int end, Iterable<Element> iterable,
+                [int skipCount = 0]) {
+    throw new UnimplementedError();
+  }
+
+  void replaceRange(int start, int end, Iterable<Element> iterable) {
+    throw new UnimplementedError();
+  }
+
+  void fillRange(int start, int end, [Element fillValue]) {
     throw new UnimplementedError();
   }
 
@@ -188,11 +196,7 @@ class _ChildrenElementList extends ListBase<Element> {
     _childElements.retainWhere(test);
   }
 
-  void removeRange(int start, int rangeLength) {
-    throw new UnimplementedError();
-  }
-
-  void insertRange(int start, int rangeLength, [initialValue = null]) {
+  void removeRange(int start, int end) {
     throw new UnimplementedError();
   }
 
@@ -223,6 +227,14 @@ class _ChildrenElementList extends ListBase<Element> {
     } else {
       _element.insertBefore(element, this[index]);
     }
+  }
+
+  void insertAll(int index, Iterable<Element> iterable) {
+    throw new UnimplementedError();
+  }
+
+  void setAll(int index, Iterable<Element> iterable) {
+    throw new UnimplementedError();
   }
 
   void clear() {
@@ -309,16 +321,12 @@ class _FrozenElementList extends ListBase {
     throw new UnsupportedError('');
   }
 
-  void setRange(int start, int rangeLength, List from,
-                [int startFrom = 0]) {
+  void setRange(int start, int end, Iterable<Element> iterable,
+                [int skipCount = 0]) {
     throw new UnsupportedError('');
   }
 
-  void removeRange(int start, int rangeLength) {
-    throw new UnsupportedError('');
-  }
-
-  void insertRange(int start, int rangeLength, [initialValue = null]) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError('');
   }
 

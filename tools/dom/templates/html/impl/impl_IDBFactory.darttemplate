@@ -24,7 +24,7 @@ $endif
       {int version, void onUpgradeNeeded(VersionChangeEvent),
       void onBlocked(Event)}) {
     if ((version == null) != (onUpgradeNeeded == null)) {
-      return new Future.immediateError(new ArgumentError(
+      return new Future.error(new ArgumentError(
           'version and onUpgradeNeeded must be specified together'));
     }
     try {
@@ -43,7 +43,7 @@ $endif
       }
       return _completeRequest(request);
     } catch (e, stacktrace) {
-      return new Future.immediateError(e, stacktrace);
+      return new Future.error(e, stacktrace);
     }
   }
 
@@ -58,7 +58,7 @@ $endif
       }
       return _completeRequest(request);
     } catch (e, stacktrace) {
-      return new Future.immediateError(e, stacktrace);
+      return new Future.error(e, stacktrace);
     }
   }
 
@@ -71,7 +71,7 @@ $endif
 
       return _completeRequest(request);
     } catch (e, stacktrace) {
-      return new Future.immediateError(e, stacktrace);
+      return new Future.error(e, stacktrace);
     }
   }
 

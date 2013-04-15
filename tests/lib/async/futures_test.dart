@@ -53,8 +53,8 @@ Future testWaitWithSingleError() {
 
   return Future.wait(futures).then((_) {
     throw 'incorrect error';
-  }).catchError((e) {
-    Expect.equals('correct error', e.error);
+  }).catchError((error) {
+    Expect.equals('correct error', error);
   });
 }
 
@@ -69,8 +69,8 @@ Future testWaitWithMultipleErrors() {
 
   return Future.wait(futures).then((_) {
     throw 'incorrect error 2';
-  }).catchError((e) {
-    Expect.equals('correct error', e.error);
+  }).catchError((error) {
+    Expect.equals('correct error', error);
   });
 }
 
@@ -84,7 +84,7 @@ Future testForEach() {
   var seen = <int>[];
   return Future.forEach([1, 2, 3, 4, 5], (n) {
     seen.add(n);
-    return new Future.immediate(null);
+    return new Future.value();
   }).then((_) => Expect.listEquals([1, 2, 3, 4, 5], seen));
 }
 
@@ -93,11 +93,11 @@ Future testForEachWithException() {
   return Future.forEach([1, 2, 3, 4, 5], (n) {
     if (n == 4) throw 'correct exception';
     seen.add(n);
-    return new Future.immediate(null);
+    return new Future.value();
   }).then((_) {
     throw 'incorrect exception';
-  }).catchError((e) {
-    Expect.equals('correct exception', e.error);
+  }).catchError((error) {
+    Expect.equals('correct exception', error);
   });
 }
 

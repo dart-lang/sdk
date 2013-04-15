@@ -11,6 +11,7 @@ import 'dart:_js_helper' show checkNull,
                               Primitives,
                               TypeImpl,
                               stringJoinUnchecked;
+import "dart:_collection-dev" as _symbol_dev;
 
 patch void print(var object) {
   Primitives.printString(object.toString());
@@ -22,7 +23,7 @@ patch class Object {
 
   patch String toString() => Primitives.objectToString(this);
 
-  patch dynamic noSuchMethod(InvocationMirror invocation) {
+  patch dynamic noSuchMethod(Invocation invocation) {
     throw new NoSuchMethodError(this,
                                 invocation.memberName,
                                 invocation.positionalArguments,
@@ -39,9 +40,19 @@ patch class Object {
 patch class Function {
   patch static apply(Function function,
                      List positionalArguments,
-                     [Map<String,dynamic> namedArguments]) {
+                     [Map<Symbol, dynamic> namedArguments]) {
     return Primitives.applyFunction(
-        function, positionalArguments, namedArguments);
+        function, positionalArguments, _toMangledNames(namedArguments));
+  }
+
+  static Map<String, dynamic> _toMangledNames(
+      Map<Symbol, dynamic> namedArguments) {
+    if (namedArguments == null) return null;
+    Map<String, dynamic> result = {};
+    namedArguments.forEach((symbol, value) {
+      result[_symbol_dev.Symbol.getName(symbol)] = value;
+    });
+    return result;
   }
 }
 
@@ -286,31 +297,5 @@ patch class NoSuchMethodError {
           "Tried calling: $_memberName($actualParameters)\n"
           "Found: $_memberName($formalParameters)";
     }
-  }
-}
-
-patch class StackTrace {
-  patch String get fullStackTrace {
-    throw new UnsupportedError('fullStackTrace');
-  }
-
-  patch String get stackTrace {
-    throw new UnsupportedError('stackTrace');
-  }
-}
-
-patch class Symbol {
-  final String _name;
-
-  patch const Symbol(String name) :
-    this._name = name;
-
-  patch bool operator ==(other) {
-    return other is Symbol && _name == other._name;
-  }
-
-  patch int get hashCode {
-    const arbitraryPrime = 664597;
-    return 0x1fffffff & (arbitraryPrime * _name.hashCode);
   }
 }

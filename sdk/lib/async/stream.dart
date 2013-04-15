@@ -115,30 +115,28 @@ abstract class Stream<T> {
     }
 
     controller = new StreamController<T>(
-        onPauseStateChange: () {
-          if (controller.isPaused) {
-            timer.cancel();
-            timer = null;
-            watch.stop();
-          } else {
-            assert(timer == null);
-            Duration elapsed = watch.elapsed;
-            watch.start();
-            timer = new Timer(period - elapsed, () {
-              timer = null;
-              startPeriodicTimer();
-              sendEvent();
-            });
-          }
+        onListen: () {
+          watch.start();
+          startPeriodicTimer();
         },
-        onSubscriptionStateChange: () {
-          if (controller.hasListener) {
-            watch.start();
-            startPeriodicTimer();
-          } else {
-            if (timer != null) timer.cancel();
+        onPause: () {
+          timer.cancel();
+          timer = null;
+          watch.stop();
+        },
+        onResume: () {
+          assert(timer == null);
+          Duration elapsed = watch.elapsed;
+          watch.start();
+          timer = new Timer(period - elapsed, () {
             timer = null;
-          }
+            startPeriodicTimer();
+            sendEvent();
+          });
+        },
+        onCancel: () {
+          if (timer != null) timer.cancel();
+          timer = null;
         });
     return controller.stream;
   }
@@ -170,17 +168,17 @@ abstract class Stream<T> {
    * is called. If [onData] is null, nothing happens.
    *
    * On errors from this stream, the [onError] handler is given a
-   * [AsyncError] object describing the error.
+   * object describing the error.
    *
    * If this stream closes, the [onDone] handler is called.
    *
-   * If [unsubscribeOnError] is true, the subscription is ended when
+   * If [cancelOnError] is true, the subscription is ended when
    * the first error is reported. The default is false.
    */
   StreamSubscription<T> listen(void onData(T event),
-                               { void onError(AsyncError error),
+                               { void onError(error),
                                  void onDone(),
-                                 bool unsubscribeOnError});
+                                 bool cancelOnError});
 
   /**
    * Creates a new stream from this stream that discards some data events.
@@ -217,7 +215,7 @@ abstract class Stream<T> {
    * [Stream.transformEvent] to handle the event by writing a data event to
    * the output sink
    */
-  Stream<T> handleError(void handle(AsyncError error), { bool test(error) }) {
+  Stream<T> handleError(void handle( error), { bool test(error) }) {
     return new _HandleErrorStream<T>(this, handle, test);
   }
 
@@ -237,9 +235,7 @@ abstract class Stream<T> {
    * Binds this stream as the input of the provided [StreamConsumer].
    */
   Future pipe(StreamConsumer<T> streamConsumer) {
-    // TODO(floitsch): switch to:
-    // streamConsumer.addStream(this).then((_) => streamConsumer.close());
-    return streamConsumer.consume(this);
+    return streamConsumer.addStream(this).then((_) => streamConsumer.close());
   }
 
   /**
@@ -275,12 +271,12 @@ abstract class Stream<T> {
       onError: result._setError,
       onDone: () {
         if (!seenFirst) {
-          result._setError(new AsyncError(new StateError("No elements")));
+          result._setError(new StateError("No elements"));
         } else {
           result._setValue(value);
         }
       },
-      unsubscribeOnError: true
+      cancelOnError: true
     );
     return result;
   }
@@ -300,13 +296,13 @@ abstract class Stream<T> {
           _cancelAndError(subscription, result)
         );
       },
-      onError: (AsyncError e) {
+      onError: (e) {
         result._setError(e);
       },
       onDone: () {
         result._setValue(value);
       },
-      unsubscribeOnError: true);
+      cancelOnError: true);
     return result;
   }
 
@@ -338,7 +334,7 @@ abstract class Stream<T> {
         onDone: () {
           future._setValue(false);
         },
-        unsubscribeOnError: true);
+        cancelOnError: true);
     return future;
   }
 
@@ -370,7 +366,7 @@ abstract class Stream<T> {
         onDone: () {
           future._setValue(true);
         },
-        unsubscribeOnError: true);
+        cancelOnError: true);
     return future;
   }
 
@@ -402,7 +398,7 @@ abstract class Stream<T> {
         onDone: () {
           future._setValue(false);
         },
-        unsubscribeOnError: true);
+        cancelOnError: true);
     return future;
   }
 
@@ -417,7 +413,7 @@ abstract class Stream<T> {
       onDone: () {
         future._setValue(count);
       },
-      unsubscribeOnError: true);
+      cancelOnError: true);
     return future;
   }
 
@@ -434,7 +430,7 @@ abstract class Stream<T> {
       onDone: () {
         future._setValue(true);
       },
-      unsubscribeOnError: true);
+      cancelOnError: true);
     return future;
   }
 
@@ -452,7 +448,7 @@ abstract class Stream<T> {
       onDone: () {
         future._setValue(result);
       },
-      unsubscribeOnError: true);
+      cancelOnError: true);
     return future;
   }
 
@@ -470,7 +466,7 @@ abstract class Stream<T> {
       onDone: () {
         future._setValue(result);
       },
-      unsubscribeOnError: true);
+      cancelOnError: true);
     return future;
   }
 
@@ -550,9 +546,9 @@ abstract class Stream<T> {
       },
       onError: future._setError,
       onDone: () {
-        future._setError(new AsyncError(new StateError("No elements")));
+        future._setError(new StateError("No elements"));
       },
-      unsubscribeOnError: true);
+      cancelOnError: true);
     return future;
   }
 
@@ -579,9 +575,9 @@ abstract class Stream<T> {
           future._setValue(result);
           return;
         }
-        future._setError(new AsyncError(new StateError("No elements")));
+        future._setError(new StateError("No elements"));
       },
-      unsubscribeOnError: true);
+      cancelOnError: true);
     return future;
   }
 
@@ -603,7 +599,7 @@ abstract class Stream<T> {
           subscription.cancel();
           // This is the second element we get.
           Error error = new StateError("More than one element");
-          future._setError(new AsyncError(error));
+          future._setError(error);
           return;
         }
         foundResult = true;
@@ -615,9 +611,9 @@ abstract class Stream<T> {
           future._setValue(result);
           return;
         }
-        future._setError(new AsyncError(new StateError("No elements")));
+        future._setError(new StateError("No elements"));
       },
-      unsubscribeOnError: true);
+      cancelOnError: true);
     return future;
   }
 
@@ -659,10 +655,9 @@ abstract class Stream<T> {
           _runUserCode(defaultValue, future._setValue, future._setError);
           return;
         }
-        future._setError(
-            new AsyncError(new StateError("firstMatch ended without match")));
+        future._setError(new StateError("firstMatch ended without match"));
       },
-      unsubscribeOnError: true);
+      cancelOnError: true);
     return future;
   }
 
@@ -703,10 +698,9 @@ abstract class Stream<T> {
           _runUserCode(defaultValue, future._setValue, future._setError);
           return;
         }
-        future._setError(
-            new AsyncError(new StateError("lastMatch ended without match")));
+        future._setError(new StateError("lastMatch ended without match"));
       },
-      unsubscribeOnError: true);
+      cancelOnError: true);
     return future;
   }
 
@@ -731,8 +725,8 @@ abstract class Stream<T> {
             if (isMatch) {
               if (foundResult) {
                 subscription.cancel();
-                future._setError(new AsyncError(
-                    new StateError('Multiple matches for "single"')));
+                future._setError(
+                    new StateError('Multiple matches for "single"'));
                 return;
               }
               foundResult = true;
@@ -748,10 +742,9 @@ abstract class Stream<T> {
           future._setValue(result);
           return;
         }
-        future._setError(
-            new AsyncError(new StateError("single ended without match")));
+        future._setError(new StateError("single ended without match"));
       },
-      unsubscribeOnError: true);
+      cancelOnError: true);
     return future;
   }
 
@@ -780,10 +773,9 @@ abstract class Stream<T> {
       },
       onError: future._setError,
       onDone: () {
-        future._setError(new AsyncError(
-            new StateError("Not enough elements for elementAt")));
+        future._setError(new StateError("Not enough elements for elementAt"));
       },
-      unsubscribeOnError: true);
+      cancelOnError: true);
     return future;
   }
 }
@@ -809,7 +801,7 @@ abstract class StreamSubscription<T> {
   void onData(void handleData(T data));
 
   /** Set or override the error event handler of this subscription. */
-  void onError(void handleError(AsyncError error));
+  void onError(void handleError(error));
 
   /** Set or override the done event handler of this subscription. */
   void onDone(void handleDone());
@@ -832,6 +824,20 @@ abstract class StreamSubscription<T> {
    * Resume after a pause.
    */
   void resume();
+
+  /**
+   * Returns a future that handles the [onDone] and [onError] callbacks.
+   *
+   * This method *overwrites* the existing [onDone] and [onError] callbacks
+   * with new ones that complete the returned future.
+   *
+   * In case of an error the subscription will automatically cancel (even
+   * when it was listening with `cancelOnError` set to `false`).
+   *
+   * In case of a `done` event the future completes with the given
+   * [futureValue].
+   */
+  Future asFuture([var futureValue]);
 }
 
 
@@ -842,7 +848,7 @@ abstract class EventSink<T> {
   /** Create a data event */
   void add(T event);
   /** Create an async error. */
-  void addError(AsyncError errorEvent);
+  void addError(errorEvent);
   /** Request a stream to close. */
   void close();
 }
@@ -859,24 +865,24 @@ class StreamView<T> extends Stream<T> {
   Stream<T> asBroadcastStream() => _stream.asBroadcastStream();
 
   StreamSubscription<T> listen(void onData(T value),
-                               { void onError(AsyncError error),
+                               { void onError(error),
                                  void onDone(),
-                                 bool unsubscribeOnError }) {
+                                 bool cancelOnError }) {
     return _stream.listen(onData, onError: onError, onDone: onDone,
-                          unsubscribeOnError: unsubscribeOnError);
+                          cancelOnError: cancelOnError);
   }
 }
 
 /**
  * [EventSink] wrapper that only exposes the [EventSink] interface.
  */
-class EventSinkView<T> extends EventSink<T> {
+class _EventSinkView<T> extends EventSink<T> {
   final EventSink<T> _sink;
 
-  EventSinkView(this._sink);
+  _EventSinkView(this._sink);
 
   void add(T value) { _sink.add(value); }
-  void addError(AsyncError error) { _sink.addError(error); }
+  void addError(error) { _sink.addError(error); }
   void close() { _sink.close(); }
 }
 
@@ -891,12 +897,41 @@ class EventSinkView<T> extends EventSink<T> {
 abstract class StreamConsumer<S> {
   Future addStream(Stream<S> stream);
   Future close();
+}
 
+
+/**
+ * A [StreamSink] unifies the asynchronous methods from [StreamConsumer<S>] and
+ * the synchronous methods from [EventSink<S>].
+ *
+ * The [EventSink<S>] methods can't be used while the [addStream] is called.
+ * As soon as the [addStream]'s [Future] completes with a value, the
+ * [EventSink<S>] methods can be used again.
+ *
+ * If [addStream] is called after any of the [EventSink<S>] methods, it'll
+ * be delayed until the underlying system has consumed the data added by the
+ * [EventSink<S>] methods.
+ *
+ * When [EventSink<S>] methods are used, the [done] [Future] can be used to
+ * catch any errors.
+ *
+ * When [close] is called, it will return the [done] [Future].
+ */
+abstract class StreamSink<S> implements StreamConsumer<S>, EventSink<S> {
+  /**
+   * Close the [StreamSink<S>]. It'll return the [done] Future.
+   */
+  Future close();
 
   /**
-   * Consume is deprecated. Use [addStream] followed by [close] instead.
+   * The [done] Future completes with the same values as [close], except
+   * for the following case:
+   *
+   * * The synchronous methods of [EventSink<S>] were called, resulting in an
+   *   error. If there is no active future (like from an addStream call), the
+   *   [done] future will complete with that error
    */
-  Future consume(Stream<S> stream);
+  Future get done;
 }
 
 
@@ -926,7 +961,7 @@ abstract class StreamTransformer<S, T> {
    */
   factory StreamTransformer({
       void handleData(S data, EventSink<T> sink),
-      void handleError(AsyncError error, EventSink<T> sink),
+      void handleError(error, EventSink<T> sink),
       void handleDone(EventSink<T> sink)}) {
     return new _StreamTransformerImpl<S, T>(handleData,
                                             handleError,
@@ -973,23 +1008,15 @@ abstract class StreamEventTransformer<S, T> implements StreamTransformer<S, T> {
     StreamController controller;
     StreamSubscription subscription;
     controller = new StreamController<T>(
-        onPauseStateChange: () {
-          if (controller.isPaused) {
-            subscription.pause();
-          } else {
-            subscription.resume();
-          }
+        onListen: () {
+          subscription = transformingStream.listen(
+              controller.add,
+              onError: controller.addError,
+              onDone: controller.close);
         },
-        onSubscriptionStateChange: () {
-          if (controller.hasListener) {
-            subscription = transformingStream.listen(
-                controller.add,
-                onError: controller.addError,
-                onDone: controller.close);
-          } else {
-            subscription.cancel();
-          }
-        });
+        onPause: () => subscription.pause(),
+        onResume: () => subscription.resume(),
+        onCancel: () => subscription.cancel());
     return controller.stream;
   }
 
@@ -1010,7 +1037,7 @@ abstract class StreamEventTransformer<S, T> implements StreamTransformer<S, T> {
    * The method may generate any number of events on the sink, but should
    * not throw.
    */
-  void handleError(AsyncError error, EventSink<T> sink) {
+  void handleError(error, EventSink<T> sink) {
     sink.addError(error);
   }
 
@@ -1042,13 +1069,13 @@ class EventTransformStream<S, T> extends Stream<T> {
       : _source = source, _transformer = transformer;
 
   StreamSubscription<T> listen(void onData(T data),
-                               { void onError(AsyncError error),
+                               { void onError(error),
                                  void onDone(),
-                                 bool unsubscribeOnError }) {
-    unsubscribeOnError = identical(true, unsubscribeOnError);
+                                 bool cancelOnError }) {
+    cancelOnError = identical(true, cancelOnError);
     return new _EventTransformStreamSubscription(_source, _transformer,
                                                  onData, onError, onDone,
-                                                 unsubscribeOnError);
+                                                 cancelOnError);
   }
 }
 
@@ -1058,7 +1085,7 @@ class _EventTransformStreamSubscription<S, T>
   /** The transformer used to transform events. */
   final StreamEventTransformer<S, T> _transformer;
   /** Whether to unsubscribe when emitting an error. */
-  final bool _unsubscribeOnError;
+  final bool _cancelOnError;
   /** Whether this stream has sent a done event. */
   bool _isClosed = false;
   /** Source of incoming events. */
@@ -1069,9 +1096,9 @@ class _EventTransformStreamSubscription<S, T>
   _EventTransformStreamSubscription(Stream<S> source,
                                     this._transformer,
                                     void onData(T data),
-                                    void onError(AsyncError error),
+                                    void onError(error),
                                     void onDone(),
-                                    this._unsubscribeOnError)
+                                    this._cancelOnError)
       : super(onData, onError, onDone) {
     _sink = new _EventOutputSinkWrapper<T>(this);
     _subscription = source.listen(_handleData,
@@ -1107,11 +1134,11 @@ class _EventTransformStreamSubscription<S, T>
     }
   }
 
-  void _handleError(AsyncError error) {
+  void _handleError(error) {
     try {
       _transformer.handleError(error, _sink);
     } catch (e, s) {
-      _sendError(_asyncError(e, s, error));
+      _sendError(_asyncError(e, s));
     }
   }
 
@@ -1130,10 +1157,10 @@ class _EventTransformStreamSubscription<S, T>
     _onData(data);
   }
 
-  void _sendError(AsyncError error) {
+  void _sendError(error) {
     if (_isClosed) return;
     _onError(error);
-    if (_unsubscribeOnError) {
+    if (_cancelOnError) {
       cancel();
     }
   }
@@ -1154,6 +1181,6 @@ class _EventOutputSinkWrapper<T> extends EventSink<T> {
   _EventOutputSinkWrapper(this._sink);
 
   void add(T data) { _sink._sendData(data); }
-  void addError(AsyncError error) { _sink._sendError(error); }
+  void addError(error) { _sink._sendError(error); }
   void close() { _sink._sendDone(); }
 }

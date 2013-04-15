@@ -89,9 +89,8 @@ class DirectoryTest {
     setupListerHandlers(Stream<FileSystemEntity> stream) {
       stream.listen(
           (_) => Expect.fail("Listing of non-existing directory should fail"),
-          onError: (e) {
-            Expect.isTrue(e is AsyncError);
-            Expect.isTrue(e.error is DirectoryIOException);
+          onError: (error) {
+            Expect.isTrue(error is DirectoryIOException);
           });
     }
     new Directory("").createTemp().then((d) {
@@ -109,9 +108,8 @@ class DirectoryTest {
       setupListHandlers(Stream<FileSystemEntity> stream) {
         stream.listen(
           (_) => Expect.fail("Listing of non-existing directory should fail"),
-          onError: (e) {
-            Expect.isTrue(e is AsyncError);
-            Expect.isTrue(e.error is DirectoryIOException);
+          onError: (error) {
+            Expect.isTrue(error is DirectoryIOException);
             if (++errors == 2) {
               d.delete(recursive: true).then((_) {
                 port.close();
@@ -141,8 +139,8 @@ class DirectoryTest {
     setupFutureHandlers(future) {
       future.then((ignore) {
         Expect.fail("Deletion of non-existing directory should fail");
-      }).catchError((e) {
-        Expect.isTrue(e.error is DirectoryIOException);
+      }).catchError((error) {
+        Expect.isTrue(error is DirectoryIOException);
       });
     }
 
@@ -169,8 +167,8 @@ class DirectoryTest {
           }
           var long = new Directory("${buffer.toString()}");
           var errors = 0;
-          onError(e) {
-            Expect.isTrue(e.error is DirectoryIOException);
+          onError(error) {
+            Expect.isTrue(error is DirectoryIOException);
             if (++errors == 2) {
               d.delete(recursive: true).then((ignore) => port.close());
             }
@@ -555,8 +553,8 @@ testCreateDirExistingFile() {
     file.create().then((_) {
       subDir.create()
         .then((_) { Expect.fail("dir create should fail on existing file"); })
-        .catchError((e) {
-          Expect.isTrue(e.error is DirectoryIOException);
+        .catchError((error) {
+          Expect.isTrue(error is DirectoryIOException);
           temp.delete(recursive: true).then((_) {
             port.close();
           });

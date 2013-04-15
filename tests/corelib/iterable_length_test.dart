@@ -2,9 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:collection";
 import "package:expect/expect.dart";
 
-class A extends Iterable {
+class A extends IterableBase {
   int count;
   A(this.count);
 

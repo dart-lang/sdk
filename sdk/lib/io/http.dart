@@ -509,6 +509,11 @@ abstract class ContentType implements HeaderValue {
   }
 
   /**
+   * Gets the mime-type, without any parameters.
+   */
+  String get mimeType;
+
+  /**
    * Gets the primary type.
    */
   String get primaryType;
@@ -703,7 +708,7 @@ abstract class HttpRequest implements Stream<List<int>> {
  * If an unsupported encoding is used an exception will be thrown if
  * using one of the write methods taking a string.
  */
-abstract class HttpResponse implements IOSink<HttpResponse> {
+abstract class HttpResponse implements IOSink {
   // TODO(ajohnsen): Add documentation of how to pipe a file to the response.
   /**
    * Gets and sets the content length of the response. If the size of
@@ -926,12 +931,12 @@ abstract class HttpClient {
    *
    * The following environment variables are taken into account:
    *
-   *  * http_proxy
-   *  * https_proxy
-   *  * no_proxy
-   *  * HTTP_PROXY
-   *  * HTTPS_PROXY
-   *  * NO_PROXY
+   *     http_proxy
+   *     https_proxy
+   *     no_proxy
+   *     HTTP_PROXY
+   *     HTTPS_PROXY
+   *     NO_PROXY
    *
    * [:http_proxy:] and [:HTTP_PROXY:] specify the proxy server to use for
    * http:// urls. Use the format [:hostname:port:]. If no port is used a
@@ -963,11 +968,45 @@ abstract class HttpClient {
    *       return HttpClient.findProxyFromEnvironment(
    *           url, {"http_proxy": ..., "no_proxy": ...});
    *     }
+   *
+   * If a proxy requires authentication it is possible to configure
+   * the username and password as well. Use the format
+   * [:username:password@hostname:port:] to include the username and
+   * password. Alternatively the API [addProxyCredentials] can be used
+   * to set credentials for proxies which require authentication.
    */
   static String findProxyFromEnvironment(Uri url,
                                          {Map<String, String> environment}) {
     return _HttpClient._findProxyFromEnvironment(url, environment);
   }
+
+  /**
+   * Sets the function to be called when a proxy is requesting
+   * authentication. Information on the proxy in use and the security
+   * realm for the authentication are passed in the arguments [host],
+   * [port] and [realm].
+   *
+   * The function returns a [Future] which should complete when the
+   * authentication has been resolved. If credentials cannot be
+   * provided the [Future] should complete with [false]. If
+   * credentials are available the function should add these using
+   * [addProxyCredentials] before completing the [Future] with the value
+   * [true].
+   *
+   * If the [Future] completes with [true] the request will be retried
+   * using the updated credentials. Otherwise response processing will
+   * continue normally.
+   */
+  set authenticateProxy(
+      Future<bool> f(String host, int port, String scheme, String realm));
+
+  /**
+   * Add credentials to be used for authorizing HTTP proxies.
+   */
+  void addProxyCredentials(String host,
+                           int port,
+                           String realm,
+                           HttpClientCredentials credentials);
 
   /**
    * Shutdown the HTTP client. If [force] is [:false:] (the default)
@@ -1012,8 +1051,7 @@ abstract class HttpClient {
  * If an unsupported encoding is used an exception will be thrown if
  * using one of the write methods taking a string.
  */
-abstract class HttpClientRequest
-    implements IOSink<HttpClientResponse> {
+abstract class HttpClientRequest implements IOSink {
   /**
    * Gets and sets the content length of the request. If the size of
    * the request is not known in advance set content length to -1,

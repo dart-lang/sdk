@@ -50,11 +50,14 @@
 # ....util/
 # ......analyzer/
 # ........dart_analyzer.jar
+# ......dartanalyzer/
+# ........dartanalyzer.jar
 # ........(third-party libraries for dart_analyzer)
 # ......pub/
 # ......(more will come here)
 
 
+import glob
 import optparse
 import os
 import re
@@ -113,7 +116,7 @@ def CopyShellScript(src_file, dest_dir):
 
 def CopyDartScripts(home, sdk_root):
   # TODO(dgrove) - add pub once issue 6619 is fixed
-  for executable in ['dart2js', 'dartdoc']:
+  for executable in ['dart2js', 'dartanalyzer', 'dartdoc']:
     CopyShellScript(os.path.join(home, 'sdk', 'bin', executable),
                     os.path.join(sdk_root, 'bin'))
 
@@ -262,6 +265,16 @@ def Main(argv):
     src_file = join(ANALYZER_HOME, 'util', 'analyzer', jarToCopy)
     copyfile(src_file, dest_file)
 
+  # Create and copy dartanalyzer into 'util'
+  DARTANALYZER_SRC = join(HOME, build_dir, 'dartanalyzer')
+  DARTANALYZER_DEST = join(UTIL, 'dartanalyzer')
+  os.makedirs(DARTANALYZER_DEST)
+  
+  jarFiles = glob.glob(join(DARTANALYZER_SRC, '*.jar'))
+  
+  for jarFile in jarFiles:
+    copyfile(jarFile, join(DARTANALYZER_DEST, os.path.basename(jarFile)))
+  
   # Create and populate util/pub.
   copytree(join(HOME, 'utils', 'pub'), join(UTIL, 'pub'),
            ignore=ignore_patterns('.svn', 'sdk'))

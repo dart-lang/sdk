@@ -419,7 +419,7 @@ class _ConstantField extends _Field {
  * are kept in a separate object, which also has the ability to compute the
  * default fields to use reflectively.
  */
-class _FieldList extends Iterable {
+class _FieldList extends IterableBase {
   /**
    * All of our fields, indexed by name. Note that the names are not
    * necessarily strings.

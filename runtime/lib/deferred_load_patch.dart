@@ -9,7 +9,7 @@ patch class DeferredLibrary {
     // Dummy implementation that should eventually be replaced by real
     // implementation.
     Future future =
-        new Future<bool>.immediate(!_loadedLibraries.contains(libraryName));
+        new Future<bool>.value(!_loadedLibraries.contains(libraryName));
     _loadedLibraries.add(libraryName);
     return future;
   }

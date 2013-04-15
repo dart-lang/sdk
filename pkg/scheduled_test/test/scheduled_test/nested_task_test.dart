@@ -89,6 +89,7 @@ void main() {
 
   expectTestsPass("nested scheduled blocks whose return values are passed to "
       "wrapFuture should report exceptions once", () {
+    var error = new Object();
     var errors;
     test('test 1', () {
       currentSchedule.onException.schedule(() {
@@ -97,7 +98,7 @@ void main() {
 
       schedule(() {
         wrapFuture(schedule(() {
-          throw 'error';
+          throw error;
         }));
 
         return pumpEventQueue();
@@ -106,7 +107,7 @@ void main() {
 
     test('test 2', () {
       expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
-      expect(errors.map((e) => e.error), equals(['error']));
+      expect(errors.map((e) => e.error), equals([error]));
     });
   }, passing: ['test 2']);
 

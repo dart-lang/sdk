@@ -11,6 +11,7 @@
     'iterable.dart',
     'list.dart',
     'sort.dart',
+    'symbol.dart',
     'to_string.dart',
   ],
 }

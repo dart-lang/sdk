@@ -20,7 +20,7 @@ void main() {
   File file = new File(filename);
   file.open().then((input) {
       try {
-        input.readListSync(a, 0, 1);
+        input.readIntoSync(a, 0, 1);
         Expect.fail("no exception thrown");
       } catch (e) {
         Expect.isTrue(e is UnsupportedError);

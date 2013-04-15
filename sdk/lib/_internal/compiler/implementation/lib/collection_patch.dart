@@ -301,7 +301,7 @@ patch class HashMap<K, V> {
   }
 }
 
-class HashMapKeyIterable<E> extends Iterable<E> {
+class HashMapKeyIterable<E> extends IterableBase<E> {
   final _map;
   HashMapKeyIterable(this._map);
 
@@ -653,7 +653,7 @@ class LinkedHashMapCell {
   LinkedHashMapCell(this._key, this._value);
 }
 
-class LinkedHashMapKeyIterable<E> extends Iterable<E> {
+class LinkedHashMapKeyIterable<E> extends IterableBase<E> {
   final _map;
   LinkedHashMapKeyIterable(this._map);
 

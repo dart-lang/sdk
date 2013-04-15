@@ -4,7 +4,7 @@
 // Test correct source positions in stack trace with optimized functions.
 import "package:expect/expect.dart";
 
-// (1) Test normal exception. 
+// (1) Test normal exception.
 foo(x) => bar(x);
 
 bar(x) {
@@ -19,8 +19,8 @@ test1() {
     Expect.fail("Unreachable");
   } catch (e, stacktrace) {
     String s = stacktrace.toString();
-    Expect.equals(-1, s.indexOf("-1:-1"));
-    Expect.notEquals(-1, s.indexOf("11:18"));
+    Expect.isFalse(s.contains("-1:-1"));
+    Expect.isTrue(s.contains("11:18"));
   }
 
   // Optimized.
@@ -30,8 +30,8 @@ test1() {
     Expect.fail("Unreachable");
   } catch (e, stacktrace) {
     String s = stacktrace.toString();
-    Expect.equals(-1, s.indexOf("-1:-1"));
-    Expect.notEquals(-1, s.indexOf("11:18"));
+    Expect.isFalse(s.contains("-1:-1"));
+    Expect.isTrue(s.contains("11:18"));
   }
 }
 
@@ -56,9 +56,9 @@ test2() {
   } catch (e, stacktrace) {
     String s = stacktrace.toString();
     print(s);
-    Expect.notEquals(-1, s.indexOf("maximus"));
-    Expect.notEquals(-1, s.indexOf("moritz"));
-    Expect.equals(-1, s.indexOf("-1:-1"));
+    Expect.isTrue(s.contains("maximus"));
+    Expect.isTrue(s.contains("moritz"));
+    Expect.isFalse(s.contains("-1:-1"));
   }
 
   try {
@@ -66,9 +66,9 @@ test2() {
   } catch (e, stacktrace) {
     String s = stacktrace.toString();
     print(s);
-    Expect.notEquals(-1, s.indexOf("maximus"));
-    Expect.notEquals(-1, s.indexOf("moritz"));
-    Expect.equals(-1, s.indexOf("-1:-1"));
+    Expect.isTrue(s.contains("maximus"));
+    Expect.isTrue(s.contains("moritz"));
+    Expect.isFalse(s.contains("-1:-1"));
   }
 }
 

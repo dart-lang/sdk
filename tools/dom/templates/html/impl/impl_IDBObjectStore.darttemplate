@@ -17,7 +17,7 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
       }
       return _completeRequest(request);
     } catch (e, stacktrace) {
-      return new Future.immediateError(e, stacktrace);
+      return new Future.error(e, stacktrace);
     }
   }
 
@@ -26,7 +26,7 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     try {
       return _completeRequest($dom_clear());
     } catch (e, stacktrace) {
-      return new Future.immediateError(e, stacktrace);
+      return new Future.error(e, stacktrace);
     }
   }
 
@@ -35,7 +35,7 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     try {
       return _completeRequest($dom_delete(key_OR_keyRange));
     } catch (e, stacktrace) {
-      return new Future.immediateError(e, stacktrace);
+      return new Future.error(e, stacktrace);
     }
   }
 
@@ -50,7 +50,7 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
       }
       return _completeRequest(request);
     } catch (e, stacktrace) {
-      return new Future.immediateError(e, stacktrace);
+      return new Future.error(e, stacktrace);
     }
   }
 
@@ -65,7 +65,7 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
       }
       return _completeRequest(request);
     } catch (e, stacktrace) {
-      return new Future.immediateError(e, stacktrace);
+      return new Future.error(e, stacktrace);
     }
   }
 
@@ -76,7 +76,7 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
       return _completeRequest(request);
     } catch (e, stacktrace) {
-      return new Future.immediateError(e, stacktrace);
+      return new Future.error(e, stacktrace);
     }
   }
 

@@ -117,6 +117,45 @@ void Assembler::AdduDetectOverflow(Register rd, Register rs, Register rt,
 }
 
 
+void Assembler::SubuDetectOverflow(Register rd, Register rs, Register rt,
+                                   Register ro) {
+  ASSERT(rd != ro);
+  ASSERT(rd != TMP1);
+  ASSERT(ro != TMP1);
+  ASSERT(ro != rs);
+  ASSERT(ro != rt);
+  ASSERT(rs != TMP1);
+  ASSERT(rt != TMP1);
+
+  // This happens with some crankshaft code. Since Subu works fine if
+  // left == right, let's not make that restriction here.
+  if (rs == rt) {
+    mov(rd, ZR);
+    mov(ro, ZR);
+    return;
+  }
+
+  if (rd == rs) {
+    mov(TMP1, rs);  // Preserve left.
+    subu(rd, rs, rt);  // Left is overwritten.
+    xor_(ro, rd, TMP1);  // scratch is original left.
+    xor_(TMP1, TMP1, rs);  // scratch is original left.
+    and_(ro, TMP1, ro);
+  } else if (rd == rt) {
+    mov(TMP1, rt);  // Preserve right.
+    subu(rd, rs, rt);  // Right is overwritten.
+    xor_(ro, rd, rs);
+    xor_(TMP1, rs, TMP1);  // Original right.
+    and_(ro, TMP1, ro);
+  } else {
+    subu(rd, rs, rt);
+    xor_(ro, rd, rs);
+    xor_(TMP1, rs, rt);
+    and_(ro, TMP1, ro);
+  }
+}
+
+
 void Assembler::LoadObject(Register rd, const Object& object) {
   // Smi's and VM heap objects are never relocated; do not use object pool.
   if (object.IsSmi()) {

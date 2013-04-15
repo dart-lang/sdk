@@ -5,7 +5,8 @@
 library dart.core;
 
 import "dart:collection";
-import "dart:_collection-dev";
+import "dart:_collection-dev" hide Symbol;
+import "dart:_collection-dev" as _collection_dev;
 
 part "bool.dart";
 part "comparable.dart";
@@ -18,7 +19,7 @@ part "expando.dart";
 part "function.dart";
 part "identical.dart";
 part "int.dart";
-part "invocation_mirror.dart";
+part "invocation.dart";
 part "iterable.dart";
 part "iterator.dart";
 part "list.dart";

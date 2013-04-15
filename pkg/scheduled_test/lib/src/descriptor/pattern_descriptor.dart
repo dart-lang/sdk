@@ -62,8 +62,8 @@ class PatternDescriptor extends Descriptor {
       var descriptor = _fn(path.basename(entry));
       return descriptor.validateNow(parent).then((_) {
         return new Pair(null, descriptor.describe());
-      }).catchError((e) {
-        return new Pair(e.error.toString(), descriptor.describe());
+      }).catchError((error) {
+        return new Pair(error.toString(), descriptor.describe());
       });
     })).then((results) {
       var matches = results.where((result) => result.first == null).toList();
@@ -110,7 +110,7 @@ class PatternDescriptor extends Descriptor {
     return '/${regExp.pattern}/$flags';
   }
 
-  Future create([String parent]) => new Future.immediateError(
+  Future create([String parent]) => new Future.error(
       new UnsupportedError("Pattern descriptors don't support create()."));
 
   Stream<List<int>> load(String pathToLoad) => errorStream(

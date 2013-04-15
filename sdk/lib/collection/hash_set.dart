@@ -5,7 +5,7 @@
 part of dart.collection;
 
 /** Common parts of [HashSet] and [LinkedHashSet] implementations. */
-abstract class _HashSetBase<E> extends Iterable<E> implements Set<E> {
+abstract class _HashSetBase<E> extends IterableBase<E> implements Set<E> {
   // Set.
   bool containsAll(Iterable<E> other) {
     for (E object in other) {

@@ -1,6 +1,7 @@
 library dart.dom.web_gl;
 
 import 'dart:collection';
+import 'dart:_collection-dev';
 import 'dart:html';
 import 'dart:html_common';
 import 'dart:_js_helper' show Creates, JSName, Null, Returns, convertDartClosureToJS;

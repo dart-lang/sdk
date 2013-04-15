@@ -18,7 +18,7 @@ class NoSuchMethodTest {
     return (10 * a) + b;
   }
 
-  noSuchMethod(InvocationMirror im) {
+  noSuchMethod(Invocation im) {
     Expect.equals("moo", getName(im));
     Expect.equals(0, im.positionalArguments.length);
     Expect.equals(1, im.namedArguments.length);

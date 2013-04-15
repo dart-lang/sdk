@@ -984,8 +984,24 @@ void StubCode::GenerateEqualityWithNullArgStub(Assembler* assembler) {
 }
 
 
+// Calls to the runtime to optimize the given function.
+// T0: function to be reoptimized.
+// S4: argument descriptor (preserved).
 void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
-  __ Unimplemented("OptimizeFunction Stub");
+  __ EnterStubFrame();
+  __ Push(S4);
+  __ LoadImmediate(TMP, reinterpret_cast<intptr_t>(Object::null()));
+  __ Push(TMP);  // Setup space on stack for return value.
+  __ Push(T0);
+  __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry);
+  __ Pop(T0);  // Discard argument.
+  __ Pop(T0);  // Get Code object
+  __ Pop(S4);  // Restore argument descriptor.
+  __ lw(T0, FieldAddress(T0, Code::instructions_offset()));
+  __ AddImmediate(T0, Instructions::HeaderSize() - kHeapObjectTag);
+  __ LeaveStubFrame();
+  __ jr(T0);
+  __ break_(0);
 }
 
 

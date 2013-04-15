@@ -51,7 +51,7 @@ fuzzAsyncMethods() {
     futures.add(doItAsync(() {
       return d.exists().then((res) {
         if (!res) return d.delete(recursive: true);
-        return new Future.immediate(true);
+        return new Future.value(true);
       });
     }));
     typeMapping.forEach((k2, v2) {

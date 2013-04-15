@@ -83,7 +83,7 @@ class TestCase {
     --_callbackFunctionsOutstanding;
     if (f is Future) {
       return f.then((_) => _finishTest())
-       .catchError((e) => fail("${e.error}"));
+       .catchError((error) => fail("${error}"));
     } else {
       _finishTest();
       return null;
@@ -118,7 +118,7 @@ class TestCase {
           // a failed setUp. There is no right answer, but doing it
           // seems to be the more conservative approach, because
           // unittest will not stop at a test failure.
-          error("$description: Test setup failed: ${e.error}");
+          error("$description: Test setup failed: $e");
         });
     } else {
       var f = _runTest();
@@ -175,11 +175,12 @@ class TestCase {
           rtn.then((_) {
             _notifyComplete();
           })
-          .catchError((e) {
+          .catchError((error) {
+            var trace = getAttachedStackTrace(error);
             // We don't call fail() as that will potentially result in
             // spurious messages like 'test failed more than once'.
-            _setResult(ERROR, "$description: Test teardown failed: ${e.error}",
-                e.stackTrace.toString());
+            _setResult(ERROR, "$description: Test teardown failed: ${error}",
+                trace == null ? "" : trace.toString());
             _notifyComplete();
           });
           return;

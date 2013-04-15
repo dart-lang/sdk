@@ -33,8 +33,8 @@ class JsIsolateSink extends EventSink<dynamic> implements IsolateSink {
     _port.send(message);
   }
 
-  void addError(AsyncError errorEvent) {
-    throw new UnimplementedError("signalError on isolate streams");
+  void addError(errorEvent) {
+    throw new UnimplementedError("addError on isolate streams");
   }
 
   void close() {
@@ -450,7 +450,7 @@ class IsolateNatives {
     // such as d8 and jsshell. We should move this code to a helper
     // library that is only loaded when testing on those engines.
 
-    var stack = JS('String|Null', '(new Error()).stack');
+    var stack = JS('String|Null', 'new Error().stack');
     if (stack == null) {
       // According to Internet Explorer documentation, the stack
       // property is not set until the exception is thrown. The stack
@@ -835,7 +835,7 @@ class _BufferingSendPort extends _BaseSendPort implements SendPort {
   SendPort _port;
 
   /**
-   * Future of the underlying port, so that we can detect when this port can be
+   * Future.sync the underlying port, so that we can detect when this port can be
    * sent on messages.
    */
   Future<SendPort> _futurePort;

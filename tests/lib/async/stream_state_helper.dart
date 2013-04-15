@@ -10,21 +10,23 @@ import "dart:collection";
 
 class StreamProtocolTest {
   StreamController _controller;
+  Stream _controllerStream;
   StreamSubscription _subscription;
   List<Event> _expectations = new List<Event>();
   int _nextExpectationIndex = 0;
   Function _onComplete;
 
   StreamProtocolTest([bool broadcast = false]) {
+    _controller = new StreamController(
+          onListen: _onSubcription,
+          onPause: _onPause,
+          onResume: _onPause,
+          onCancel: _onSubcription);
+    // TODO(lrn): Make it work with multiple subscribers too.
     if (broadcast) {
-     _controller = new StreamController.broadcast(
-          onPauseStateChange: _onPause,
-          onSubscriptionStateChange: _onSubcription);
-     // TODO(lrn): Make it work with multiple subscribers too.
+      _controllerStream = _controller.stream.asBroadcastStream();
     } else {
-     _controller = new StreamController(
-          onPauseStateChange: _onPause,
-          onSubscriptionStateChange: _onSubcription);
+      _controllerStream = _controller.stream;
     }
     _onComplete = expectAsync0((){
       _onComplete = null;  // Being null marks the test to be complete.
@@ -36,15 +38,15 @@ class StreamProtocolTest {
   void error(var error) { _controller.addError(error); }
   void close() { _controller.close(); }
 
-  void subscribe({bool unsubscribeOnError : false}) {
+  void subscribe({bool cancelOnError : false}) {
     // TODO(lrn): Handle more subscriptions (e.g., a subscription-id
     // per subscription, and an id on event _expectations).
     if (_subscription != null) throw new StateError("Already subscribed");
-    _subscription = _controller.stream.listen(_onData,
-                                              onError: _onError,
-                                              onDone: _onDone,
-                                              unsubscribeOnError:
-                                                  unsubscribeOnError);
+    _subscription = _controllerStream.listen(_onData,
+                                             onError: _onError,
+                                             onDone: _onDone,
+                                             cancelOnError:
+                                                 cancelOnError);
   }
 
   void pause([Future resumeSignal]) {
@@ -73,11 +75,11 @@ class StreamProtocolTest {
     });
   }
 
-  void _onError(AsyncError error) {
+  void _onError(error) {
     _withNextExpectation((Event expect) {
       if (!expect.matchError(error)) {
         _fail("Expected: $expect\n"
-              "Found   : [Data: ${error.error}]");
+              "Found   : [Data: ${error}]");
       }
     });
   }
@@ -190,7 +192,7 @@ class Event {
     if (_action != null) _action();
     return true;
   }
-  bool matchError(AsyncError e) {
+  bool matchError(e) {
     if (!_testError(e)) return false;
     if (_action != null) _action();
     return true;
@@ -233,7 +235,7 @@ class DataEvent extends Event {
 class ErrorEvent extends Event {
   final error;
   ErrorEvent(this.error, void action()) : super(action);
-  bool _testError(AsyncError error) => this.error == error.error;
+  bool _testError(error) => this.error == error;
   String toString() => "[Error: $error]";
 }
 
@@ -270,8 +272,8 @@ class LogAnyEvent extends Event {
     _actual = "*[Data $data]";
     return true;
   }
-  bool _testError(AsyncError error) {
-    _actual = "*[Error ${error.error}]";
+  bool _testError(error) {
+    _actual = "*[Error ${error}]";
     return true;
   }
   bool _testDone() {

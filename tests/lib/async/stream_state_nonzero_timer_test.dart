@@ -15,7 +15,8 @@ const ms5 = const Duration(milliseconds: 5);
 
 main() {
   mainTest(false);
-  mainTest(true);
+  // TODO(floitsch): reenable?
+  // mainTest(true);
 }
 
 mainTest(bool broadcast) {

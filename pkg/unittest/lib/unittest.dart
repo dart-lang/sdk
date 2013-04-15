@@ -668,7 +668,7 @@ void _reportTestError(String msg, String trace) {
  * (as we do in unitttest_test.dart).
  */
 _defer(void callback()) {
-  (new Future.immediate(null)).then((_) => callback());
+  (new Future.value()).then((_) => callback());
 }
 
 void rerunTests() {

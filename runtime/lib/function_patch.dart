@@ -8,21 +8,21 @@ patch class Function {
 
   /* patch */ static apply(Function function,
                            List positionalArguments,
-                           [Map<String,dynamic> namedArguments]) {
+                           [Map<Symbol, dynamic> namedArguments]) {
     int numPositionalArguments = 1 +  // Function is first implicit argument.
         (positionalArguments != null ? positionalArguments.length : 0);
     int numNamedArguments = namedArguments != null ? namedArguments.length : 0;
     int numArguments = numPositionalArguments + numNamedArguments;
     List arguments = new List(numArguments);
     arguments[0] = function;
-    arguments.setRange(1, numPositionalArguments - 1, positionalArguments);
+    arguments.setRange(1, numPositionalArguments, positionalArguments);
     List names = new List(numNamedArguments);
     int argumentIndex = numPositionalArguments;
     int nameIndex = 0;
     if (numNamedArguments > 0) {
       namedArguments.forEach((name, value) {
         arguments[argumentIndex++] = value;
-        names[nameIndex++] = name;
+        names[nameIndex++] = _symbol_dev.Symbol.getName(name);
       });
     }
     return _apply(arguments, names);

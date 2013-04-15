@@ -16,6 +16,8 @@ import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
 import 'dart:_interceptors' show getInterceptor,
                                  interceptedNames,
                                  dispatchPropertyName,
+                                 makeDispatchRecord,
+                                 setDispatchProperty,
                                  Interceptor,
                                  JSIndexable;
 
@@ -63,7 +65,7 @@ String S(value) {
 createInvocationMirror(name, internalName, type, arguments, argumentNames) =>
     new JSInvocationMirror(name, internalName, type, arguments, argumentNames);
 
-class JSInvocationMirror implements InvocationMirror {
+class JSInvocationMirror implements Invocation {
   static const METHOD = 0;
   static const GETTER = 1;
   static const SETTER = 2;
@@ -503,7 +505,7 @@ class Primitives {
 
   static applyFunction(Function function,
                        List positionalArguments,
-                       Map<String, dynamic> namedArguments) {
+                       Map<Symbol, dynamic> namedArguments) {
     int argumentCount = 0;
     StringBuffer buffer = new StringBuffer();
     List arguments = [];
@@ -627,7 +629,7 @@ wrapException(ex) {
     // Otherwise, produce a stack trace and record it in the wrapper.
     // This is a slower way to create a stack trace which works on
     // some browsers, but may simply evaluate to null.
-    String stackTrace = JS('', '(new Error()).stack');
+    String stackTrace = JS('', 'new Error().stack');
     JS('void', '#.stack = #', wrapper, stackTrace);
   }
   return wrapper;
@@ -822,13 +824,13 @@ unwrapException(ex) {
  * exception.
  */
 StackTrace getTraceFromException(exception) {
-  return new StackTrace(JS("var", r"#.stack", exception));
+  return new _StackTrace(JS("var", r"#.stack", exception));
 }
 
-class StackTrace {
-  var stack;
-  StackTrace(this.stack);
-  String toString() => stack != null ? stack : '';
+class _StackTrace implements StackTrace {
+  var _stack;
+  _StackTrace(this._stack);
+  String toString() => _stack != null ? _stack : '';
 }
 
 

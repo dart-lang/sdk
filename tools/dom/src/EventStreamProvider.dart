@@ -19,9 +19,9 @@ class _EventStream<T extends Event> extends Stream<T> {
   bool get isBroadcast => true;
 
   StreamSubscription<T> listen(void onData(T event),
-      { void onError(AsyncError error),
-      void onDone(),
-      bool unsubscribeOnError}) {
+      { void onError(error),
+        void onDone(),
+        bool cancelOnError}) {
 
     return new _EventStreamSubscription<T>(
         this._target, this._eventType, onData, this._useCapture);
@@ -63,7 +63,7 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   }
 
   /// Has no effect.
-  void onError(void handleError(AsyncError error)) {}
+  void onError(void handleError(error)) {}
 
   /// Has no effect.
   void onDone(void handleDone()) {}
@@ -96,6 +96,12 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
     if (_onData != null) {
       _target.$dom_removeEventListener(_eventType, _onData, _useCapture);
     }
+  }
+
+  Future asFuture([var futureValue]) {
+    // We just need a future that will never succeed or fail.
+    Completer completer = new Completer();
+    return completer.future;
   }
 }
 

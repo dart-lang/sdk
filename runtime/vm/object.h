@@ -4140,7 +4140,8 @@ class String : public Instance {
   // All strings share the same maximum element count to keep things
   // simple.  We choose a value that will prevent integer overflow for
   // 2 byte strings, since it is the worst case.
-  static const intptr_t kSizeofRawString = sizeof(RawObject) + (2 * kWordSize);
+  static const intptr_t kSizeofRawString =
+      sizeof(RawInstance) + (2 * kWordSize);
   static const intptr_t kMaxElements = kSmiMax / kTwoByteChar;
 
   class CodePointIterator : public ValueObject {
@@ -4785,7 +4786,7 @@ class Array : public Instance {
 
   static intptr_t InstanceSize(intptr_t len) {
     // Ensure that variable length data is not adding to the object length.
-    ASSERT(sizeof(RawArray) == (sizeof(RawObject) + (2 * kWordSize)));
+    ASSERT(sizeof(RawArray) == (sizeof(RawInstance) + (2 * kWordSize)));
     ASSERT(0 <= len && len <= kMaxElements);
     return RoundedAllocationSize(sizeof(RawArray) + (len * kBytesPerElement));
   }

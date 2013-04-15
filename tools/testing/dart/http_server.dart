@@ -142,7 +142,7 @@ class TestingServers {
         }
       },
       onError: (e) {
-        DebugLogger.error('HttpServer: an error occured: $e');
+        DebugLogger.error('HttpServer: an error occured', e);
       });
       _serverList.add(httpServer);
     });
@@ -186,7 +186,7 @@ class TestingServers {
     response.headers.set("Access-Control-Allow-Origin", "*");
     request.pipe(response).catchError((e) {
       DebugLogger.warning(
-          'HttpServer: error while closing the response stream: $e');
+          'HttpServer: error while closing the response stream', e);
     });
   }
 
@@ -196,12 +196,11 @@ class TestingServers {
         websocket.send(data);
         websocket.close();
       }, onError: (e) {
-        DebugLogger.warning(
-            'HttpServer: error while echoing to WebSocket: $e');
+        DebugLogger.warning('HttpServer: error while echoing to WebSocket', e);
       });
     }).catchError((e) {
       DebugLogger.warning(
-          'HttpServer: error while transforming to WebSocket: $e');
+          'HttpServer: error while transforming to WebSocket', e);
     });
   }
 
@@ -286,7 +285,7 @@ class TestingServers {
     response.close();
     response.done.catchError((e) {
       DebugLogger.warning(
-          'HttpServer: error while closing the response stream: $e');
+          'HttpServer: error while closing the response stream', e);
     });
   }
 
@@ -336,7 +335,7 @@ class TestingServers {
     }
     file.openRead().pipe(response).catchError((e) {
       DebugLogger.warning(
-          'HttpServer: error while closing the response stream: $e');
+          'HttpServer: error while closing the response stream', e);
     });
   }
 
@@ -352,7 +351,7 @@ class TestingServers {
     response.close();
     response.done.catchError((e) {
       DebugLogger.warning(
-          'HttpServer: error while closing the response stream: $e');
+          'HttpServer: error while closing the response stream', e);
     });
   }
 }

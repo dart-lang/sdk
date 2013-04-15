@@ -4,7 +4,7 @@
 
 import "package:expect/expect.dart";
 
-// Testing InvocationMirror.invokeOn method; test of issue 7227.
+// Testing Invocation.invokeOn method; test of issue 7227.
 
 var reachedSetX = 0;
 var reachedGetX = 0;

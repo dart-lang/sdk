@@ -19,12 +19,12 @@ class NothingDescriptor extends Descriptor {
   NothingDescriptor(String name)
       : super(name);
 
-  Future create([String parent]) => new Future.immediate(null);
+  Future create([String parent]) => new Future.value();
 
   Future validate([String parent]) => schedule(() => validateNow(parent),
       "validating '$name' doesn't exist");
 
-  Future validateNow([String parent]) => new Future.of(() {
+  Future validateNow([String parent]) => new Future.sync(() {
     if (parent == null) parent = defaultRoot;
     var fullPath = path.join(parent, name);
     if (new File(fullPath).existsSync()) {

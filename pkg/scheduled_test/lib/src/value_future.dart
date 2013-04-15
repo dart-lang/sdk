@@ -30,9 +30,9 @@ class ValueFuture<T> implements Future<T> {
   }
 
   Stream<T> asStream() => _future.asStream();
-  Future catchError(onError(AsyncError asyncError), {bool test(error)}) =>
+  Future catchError(onError(Object error), {bool test(error)}) =>
     _future.catchError(onError, test: test);
-  Future then(onValue(T value), {onError(AsyncError asyncError)}) =>
+  Future then(onValue(T value), {onError(Object error)}) =>
     _future.then(onValue, onError: onError);
   Future<T> whenComplete(action()) => _future.whenComplete(action);
 }

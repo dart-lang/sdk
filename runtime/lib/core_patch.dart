@@ -4,3 +4,5 @@
 
 import "dart:math";
 import "dart:typeddata";
+
+import "dart:_collection-dev" as _symbol_dev;

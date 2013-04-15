@@ -31,28 +31,28 @@ void main() {
 
     test('.then and .catchError on success', () {
       expect(future.then((v) => "transformed $v")
-              .catchError((e) => "caught ${e.error}"),
+              .catchError((error) => "caught ${error}"),
           completion(equals('transformed success')));
       completer.complete('success');
     });
 
     test('.then and .catchError on error', () {
       expect(future.then((v) => "transformed $v")
-              .catchError((e) => "caught ${e.error}"),
+              .catchError((error) => "caught ${error}"),
           completion(equals('caught error')));
       completer.completeError('error');
     });
 
     test('.then with onError on success', () {
       expect(future.then((v) => "transformed $v",
-              onError: (e) => "caught ${e.error}"),
+              onError: (error) => "caught ${error}"),
           completion(equals('transformed success')));
       completer.complete('success');
     });
 
     test('.then with onError on error', () {
       expect(future.then((v) => "transformed $v",
-              onError: (e) => "caught ${e.error}"),
+              onError: (error) => "caught ${error}"),
           completion(equals('caught error')));
       completer.completeError('error');
     });

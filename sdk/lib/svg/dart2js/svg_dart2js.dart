@@ -2,6 +2,7 @@ library dart.dom.svg;
 
 import 'dart:async';
 import 'dart:collection';
+import 'dart:_collection-dev';
 import 'dart:html';
 import 'dart:html_common';
 import 'dart:_js_helper' show Creates, Returns, JavaScriptIndexingBehavior, JSName;
@@ -3147,6 +3148,14 @@ class LengthList implements JavaScriptIndexingBehavior, List<Length> native "*SV
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  void insertAll(int index, Iterable<Length> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<Length> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
   Length removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -3167,16 +3176,20 @@ class LengthList implements JavaScriptIndexingBehavior, List<Length> native "*SV
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<Length> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<Length> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int rangeLength) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [Length initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  void replaceRange(int start, int end, Iterable<Length> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [Length fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
   Iterable<Length> getRange(int start, int end) =>
@@ -3779,6 +3792,14 @@ class NumberList implements JavaScriptIndexingBehavior, List<Number> native "*SV
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  void insertAll(int index, Iterable<Number> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<Number> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
   Number removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -3799,16 +3820,20 @@ class NumberList implements JavaScriptIndexingBehavior, List<Number> native "*SV
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<Number> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<Number> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int rangeLength) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [Number initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  void replaceRange(int start, int end, Iterable<Number> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [Number fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
   Iterable<Number> getRange(int start, int end) =>
@@ -4642,6 +4667,14 @@ class PathSegList implements JavaScriptIndexingBehavior, List<PathSeg> native "*
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  void insertAll(int index, Iterable<PathSeg> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<PathSeg> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
   PathSeg removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -4662,16 +4695,20 @@ class PathSegList implements JavaScriptIndexingBehavior, List<PathSeg> native "*
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<PathSeg> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<PathSeg> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int rangeLength) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [PathSeg initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  void replaceRange(int start, int end, Iterable<PathSeg> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [PathSeg fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
   Iterable<PathSeg> getRange(int start, int end) =>
@@ -5535,6 +5572,14 @@ class StringList implements JavaScriptIndexingBehavior, List<String> native "*SV
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  void insertAll(int index, Iterable<String> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<String> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
   String removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -5555,16 +5600,20 @@ class StringList implements JavaScriptIndexingBehavior, List<String> native "*SV
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<String> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<String> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int rangeLength) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [String initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  void replaceRange(int start, int end, Iterable<String> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [String fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
   Iterable<String> getRange(int start, int end) =>
@@ -6701,6 +6750,14 @@ class TransformList implements List<Transform>, JavaScriptIndexingBehavior nativ
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  void insertAll(int index, Iterable<Transform> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<Transform> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
   Transform removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -6721,16 +6778,20 @@ class TransformList implements List<Transform>, JavaScriptIndexingBehavior nativ
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<Transform> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<Transform> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int rangeLength) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [Transform initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  void replaceRange(int start, int end, Iterable<Transform> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [Transform fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
   Iterable<Transform> getRange(int start, int end) =>
@@ -7228,6 +7289,14 @@ class _ElementInstanceList implements JavaScriptIndexingBehavior, List<ElementIn
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  void insertAll(int index, Iterable<ElementInstance> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<ElementInstance> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
   ElementInstance removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -7248,16 +7317,20 @@ class _ElementInstanceList implements JavaScriptIndexingBehavior, List<ElementIn
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<ElementInstance> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<ElementInstance> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
-  void removeRange(int start, int rangeLength) {
+  void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
   }
 
-  void insertRange(int start, int rangeLength, [ElementInstance initialValue]) {
-    throw new UnsupportedError("Cannot insertRange on immutable List.");
+  void replaceRange(int start, int end, Iterable<ElementInstance> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [ElementInstance fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
   Iterable<ElementInstance> getRange(int start, int end) =>

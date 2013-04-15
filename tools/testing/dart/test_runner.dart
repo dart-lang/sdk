@@ -984,6 +984,7 @@ class RunningProcess {
           timeoutTimer = new Timer(new Duration(seconds: testCase.timeout),
                                    timeoutHandler);
         }).catchError((e) {
+          // TODO(floitsch): should we try to report the stacktrace?
           print("Process error:");
           print("  Command: $command");
           print("  Error: $e");
@@ -1243,6 +1244,7 @@ class BatchRunnerProcess {
       });
       callback();
     }).catchError((e) {
+      // TODO(floitsch): should we try to report the stacktrace?
       print("Process error:");
       print("  Command: $_executable ${_batchArguments.join(' ')}");
       print("  Error: $e");
@@ -1414,6 +1416,7 @@ class ProcessQueue {
           }
         });
       }).catchError((e) {
+      // TODO(floitsch): should we try to report the stacktrace?
         print("Error starting process:");
         print("  Command: $cmd ${arg.join(' ')}");
         print("  Error: $e");
@@ -1479,6 +1482,7 @@ class ProcessQueue {
             stdoutStringStream.listen(seleniumServerHandler);
             stderrStringStream.listen(seleniumServerHandler);
           }).catchError((e) {
+            // TODO(floitsch): should we try to report the stacktrace?
             print("Process error:");
             print("  Command: java -jar $file");
             print("  Error: $e");

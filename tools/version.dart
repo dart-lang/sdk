@@ -4,6 +4,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:io";
+import "dart:async" show getAttachedStackTrace;
 import "release/version.dart";
 
 void main() {
@@ -14,6 +15,8 @@ void main() {
     print(currentVersion);
   }).catchError((e) {
     print("Could not create version number, failed with: $e");
+    var trace = getAttachedStackTrace(e);
+    if (trace != null) print("StackTrace: $trace");
     return true;
   });
 }

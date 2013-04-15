@@ -25,7 +25,7 @@ class PathSource extends Source {
   final shouldCache = false;
 
   Future<Pubspec> describe(PackageId id) {
-    return new Future.of(() {
+    return new Future.sync(() {
       _validatePath(id.name, id.description);
       return new Pubspec.load(id.name, id.description["path"],
           systemCache.sources);
@@ -40,7 +40,7 @@ class PathSource extends Source {
   }
 
   Future<bool> install(PackageId id, String destination) {
-    return new Future.of(() {
+    return new Future.sync(() {
       try {
         _validatePath(id.name, id.description);
       } on FormatException catch(err) {

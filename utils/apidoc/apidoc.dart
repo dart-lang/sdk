@@ -155,6 +155,8 @@ void main() {
       .then((_) => print(apidoc.status))
       .catchError((e) {
         print('Error: generation failed: ${e}');
+        var trace = getAttachedStackTrace(e);
+        if (trace != null) print("StackTrace: $trace");
         apidoc.cleanup();
         exit(1);
       })

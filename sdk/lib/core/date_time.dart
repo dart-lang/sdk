@@ -22,7 +22,7 @@ class DateTime {
   static const int FRIDAY = 5;
   static const int SATURDAY = 6;
   static const int SUNDAY = 7;
-  static const int DAYS_IN_WEEK = 7;
+  static const int DAYS_PER_WEEK = 7;
 
   // Month constants that are returned by the [month] getter.
   static const int JANUARY = 1;
@@ -37,6 +37,7 @@ class DateTime {
   static const int OCTOBER = 10;
   static const int NOVEMBER = 11;
   static const int DECEMBER = 12;
+  static const int MONTHS_PER_YEAR = 12;
 
   /**
    * The milliseconds since 1970-01-01T00:00:00Z (UTC). This value is

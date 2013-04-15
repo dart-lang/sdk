@@ -245,8 +245,10 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       bool this.sendClientCertificate,
       bool this.onBadCertificate(X509Certificate certificate)) {
     _controller = new StreamController<RawSocketEvent>(
-        onPauseStateChange: _onPauseStateChange,
-        onSubscriptionStateChange: _onSubscriptionStateChange);
+        onListen: _onSubscriptionStateChange,
+        onPause: _onPauseStateChange,
+        onResume: _onPauseStateChange,
+        onCancel: _onSubscriptionStateChange);
     _stream = _controller.stream;
     // Throw an ArgumentError if any field is invalid.  After this, all
     // errors will be reported through the future or the stream.
@@ -261,7 +263,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     if (socket == null) {
       futureSocket = RawSocket.connect(host, requestedPort);
     } else {
-      futureSocket = new Future.immediate(socket);
+      futureSocket = new Future.value(socket);
     }
     futureSocket.then((rawSocket) {
       rawSocket.writeEventsEnabled = false;
@@ -288,9 +290,9 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   }
 
   StreamSubscription listen(void onData(RawSocketEvent data),
-                            {void onError(AsyncError error),
+                            {void onError(error),
                              void onDone(),
-                             bool unsubscribeOnError}) {
+                             bool cancelOnError}) {
     if (_writeEventsEnabled) {
       _writeEventsEnabled = false;
       _controller.add(RawSocketEvent.WRITE);
@@ -298,7 +300,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     return _stream.listen(onData,
                           onError: onError,
                           onDone: onDone,
-                          unsubscribeOnError: unsubscribeOnError);
+                          cancelOnError: cancelOnError);
   }
 
   void _verifyFields() {
@@ -464,17 +466,21 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   // up handlers to flush the pipeline when possible.
   int write(List<int> data, [int offset, int bytes]) {
     if (_closedWrite) {
-      _controller.addError(new AsyncError(new SocketIOException(
-          "Writing to a closed socket")));
+      _controller.addError(new SocketIOException("Writing to a closed socket"));
       return 0;
     }
     if (_status != CONNECTED) return 0;
+
+    if (offset == null) offset = 0;
+    if (bytes == null) bytes = data.length - offset;
+
     var buffer = _secureFilter.buffers[WRITE_PLAINTEXT];
     if (bytes > buffer.free) {
       bytes = buffer.free;
     }
     if (bytes > 0) {
-      buffer.data.setRange(buffer.start + buffer.length, bytes, data, offset);
+      int startIndex = buffer.start + buffer.length;
+      buffer.data.setRange(startIndex, startIndex + bytes, data, offset);
       buffer.length += bytes;
     }
     _writeEncryptedData();  // Tries to flush all pipeline stages.
@@ -562,17 +568,14 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     _reportError(e, 'Error on underlying RawSocket');
   }
 
-  void _reportError(error, String message) {
+  void _reportError(e, String message) {
     // TODO(whesse): Call _reportError from all internal functions that throw.
-    var e;
-    if (error is AsyncError) {
-      e = error;
-    } else if (error is SocketIOException) {
-      e = new SocketIOException('$message (${error.message})', error.osError);
-    } else if (error is OSError) {
-      e = new SocketIOException(message, error);
+    if (e is SocketIOException) {
+      e = new SocketIOException('$message (${e.message})', e.osError);
+    } else if (e is OSError) {
+      e = new SocketIOException(message, e);
     } else {
-      e = new SocketIOException('$message (${error.toString()})', null);
+      e = new SocketIOException('$message (${e.toString()})', null);
     }
     if (_connectPending) {
       _handshakeComplete.completeError(e);
@@ -660,9 +663,8 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
         List<int> data = _socket.read(encrypted.free);
         if (data != null) {
           int bytes = data.length;
-          encrypted.data.setRange(encrypted.start + encrypted.length,
-                                  bytes,
-                                  data);
+          int startIndex = encrypted.start + encrypted.length;
+          encrypted.data.setRange(startIndex, startIndex + bytes, data);
           encrypted.length += bytes;
           progress = true;
         }

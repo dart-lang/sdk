@@ -29,7 +29,7 @@ class DataEvent implements Event {
 }
 
 class ErrorEvent implements Event {
-  final AsyncError error;
+  final error;
 
   ErrorEvent(this.error);
 
@@ -40,10 +40,10 @@ class ErrorEvent implements Event {
   bool operator==(Object other) {
     if (other is! ErrorEvent) return false;
     ErrorEvent otherEvent = other;
-    return error.error == other.error.error;
+    return error == other.error;
   }
 
-  String toString() => "ErrorEvent: ${error.error}";
+  String toString() => "ErrorEvent: ${error}";
 }
 
 class DoneEvent implements Event {
@@ -70,14 +70,14 @@ class Events implements EventSink {
 
   /** Capture events from a stream into a new [Events] object. */
   factory Events.capture(Stream stream,
-                         { bool unsubscribeOnError: false }) = CaptureEvents;
+                         { bool cancelOnError: false }) = CaptureEvents;
 
   // EventSink interface.
   void add(var value) {
     events.add(new DataEvent(value));
   }
 
-  void addError(AsyncError error) {
+  void addError(error) {
     events.add(new ErrorEvent(error));
   }
 
@@ -86,7 +86,7 @@ class Events implements EventSink {
   }
 
   // Error helper for creating errors manually..
-  void error(var value) { addError(new AsyncError(value, null)); }
+  void error(var value) { addError(value); }
 
   /** Replay the captured events on a sink. */
   void replay(EventSink sink) {
@@ -134,21 +134,21 @@ class Events implements EventSink {
 class CaptureEvents extends Events {
   StreamSubscription subscription;
   Completer onDoneSignal;
-  bool unsubscribeOnError = false;
+  bool cancelOnError = false;
 
   CaptureEvents(Stream stream,
-                { bool unsubscribeOnError: false })
+                { bool cancelOnError: false })
       : onDoneSignal = new Completer() {
-    this.unsubscribeOnError = unsubscribeOnError;
+    this.cancelOnError = cancelOnError;
     subscription = stream.listen(add,
                                  onError: addError,
                                  onDone: close,
-                                 unsubscribeOnError: unsubscribeOnError);
+                                 cancelOnError: cancelOnError);
   }
 
-  void addError(AsyncError error) {
+  void addError(error) {
     super.addError(error);
-    if (unsubscribeOnError) onDoneSignal.complete(null);
+    if (cancelOnError) onDoneSignal.complete(null);
   }
 
   void close() {

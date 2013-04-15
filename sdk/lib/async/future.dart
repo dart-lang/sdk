@@ -25,7 +25,7 @@ part of dart.async;
  *         // Invoked when the future is completed with a value.
  *         return 42;  // The successor is completed with the value 42.
  *       },
- *       onError: (AsyncError e) {
+ *       onError: (e) {
  *         // Invoked when the future is completed with an error.
  *         if (canHandle(e)) {
  *           return 499;  // The successor is completed with the value 499.
@@ -84,31 +84,43 @@ part of dart.async;
  */
 // TODO(floitsch): document chaining.
 abstract class Future<T> {
+
   /**
-   * Creates a future containing the result of calling [function].
+   * Creates a future containing the result of calling [computation]
+   * asynchronously with [runAsync].
    *
-   * The result of computing [:function():] is either a returned value or
-   * a throw.
-   *
-   * If a value is returned, it becomes the result of the created future.
-   *
-   * If calling [function] throws, the created [Future] will be completed
-   * with an async error containing the thrown value and a captured
-   * stacktrace.
-   *
-   * However, if the result of calling [function] is already an asynchronous
-   * result, we treat it specially.
+   * if the result of executing [computation] throws, the returned future is
+   * completed with the error. If a thrown value is an [AsyncError], it is used
+   * directly, instead of wrapping this error again in another [AsyncError].
    *
    * If the returned value is itself a [Future], completion of
    * the created future will wait until the returned future completes,
    * and will then complete with the same result.
    *
-   * If a thrown value is an [AsyncError], it is used directly as the result
-   * of the created future.
+   * If a value is returned, it becomes the result of the created future.
    */
-  factory Future.of(function()) {
+  factory Future(computation()) {
+    _ThenFuture<dynamic, T> future =
+        new _ThenFuture<dynamic, T>((_) => computation());
+    runAsync(() => future._sendValue(null));
+    return future;
+  }
+
+  /**
+   * Creates a future containing the result of immediately calling
+   * [computation].
+   *
+   * if the result of executing [computation] throws, the returned future is
+   * completed with the error. If a thrown value is an [AsyncError], it is used
+   * directly, instead of wrapping this error again in another [AsyncError].
+   *
+   * If the returned value is itself a [Future], completion of
+   * the created future will wait until the returned future completes,
+   * and will then complete with the same result.
+   */
+  factory Future.sync(computation()) {
     try {
-      var result = function();
+      var result = computation();
       return new _FutureImpl<T>().._setOrChainValue(result);
     } catch (error, stackTrace) {
       return new _FutureImpl<T>.immediateError(error, stackTrace);
@@ -119,18 +131,18 @@ abstract class Future<T> {
    * A future whose value is available in the next event-loop iteration.
    *
    * If [value] is not a [Future], using this constructor is equivalent
-   * to [:new Future.of(() => value):].
+   * to [:new Future.sync(() => value):].
    *
    * See [Completer] to create a Future and complete it later.
    */
-  factory Future.immediate(T value) => new _FutureImpl<T>.immediate(value);
+  factory Future.value([T value]) => new _FutureImpl<T>.immediate(value);
 
   /**
    * A future that completes with an error in the next event-loop iteration.
    *
    * See [Completer] to create a Future and complete it later.
    */
-  factory Future.immediateError(var error, [Object stackTrace]) {
+  factory Future.error(var error, [Object stackTrace]) {
     return new _FutureImpl<T>.immediateError(error, stackTrace);
   }
 
@@ -187,7 +199,7 @@ abstract class Future<T> {
     Iterator iterator = input.iterator;
     void nextElement(_) {
       if (iterator.moveNext()) {
-        new Future.of(() => f(iterator.current))
+        new Future.sync(() => f(iterator.current))
             .then(nextElement, onError: doneSignal._setError);
       } else {
         doneSignal._setValue(null);
@@ -207,9 +219,7 @@ abstract class Future<T> {
    * [this] completes with an error).
    *
    * If the invoked callback throws an exception, the returned future `f` is
-   * completed with the error. If the value thrown is an [AsyncError], it is
-   * used directly, as the error result. Otherwise it is wrapped in an
-   * [AsyncError] first.
+   * completed with the error.
    *
    * If the invoked callback returns a [Future] `f2` then `f` and `f2` are
    * chained. That is, `f` is completed with the completion value of `f2`.
@@ -221,7 +231,7 @@ abstract class Future<T> {
    * with a `test` parameter, instead of handling both value and error in a
    * single [then] call.
    */
-  Future then(onValue(T value), { onError(AsyncError asyncError) });
+  Future then(onValue(T value), { onError(Object error) });
 
   /**
    * Handles errors emitted by this [Future].
@@ -233,8 +243,8 @@ abstract class Future<T> {
    *
    * When [this] completes with an error, [test] is called with the
    * error's value. If the invocation returns [true], [onError] is called with
-   * the error wrapped in an [AsyncError]. The result of [onError] is handled
-   * exactly the same as for [then]'s [onError].
+   * the error. The result of [onError] is handled exactly the same as for
+   * [then]'s [onError].
    *
    * If [test] returns false, the exception is not handled by [onError], but is
    * thrown unmodified, thus forwarding it to `f`.
@@ -250,12 +260,12 @@ abstract class Future<T> {
    *
    * This method is equivalent to:
    *
-   *     Future catchError(onError(AsyncError asyncError),
-   *                       {bool test(Object error)}) {
+   *     Future catchError(onError(error),
+   *                       {bool test(error)}) {
    *       this.then((v) => v,  // Forward the value.
    *                 // But handle errors, if the [test] succeeds.
-   *                 onError: (AsyncError e) {
-   *                   if (test == null || test(e.error)) {
+   *                 onError: (e) {
+   *                   if (test == null || test(e)) {
    *                     return onError(e);
    *                   }
    *                   throw e;
@@ -263,7 +273,7 @@ abstract class Future<T> {
    *     }
    *
    */
-  Future catchError(onError(AsyncError asyncError),
+  Future catchError(onError(Object error),
                     {bool test(Object error)});
 
   /**
@@ -295,7 +305,7 @@ abstract class Future<T> {
    *                   if (f2 is Future) return f2.then((_) => v);
    *                   return v
    *                 },
-   *                 onError: (AsyncError e) {
+   *                 onError: (e) {
    *                   var f2 = action();
    *                   if (f2 is Future) return f2.then((_) { throw e; });
    *                   throw e;
@@ -352,12 +362,6 @@ abstract class Completer<T> {
    * while trying to produce a value.
    *
    * The argument [exception] should not be `null`.
-   *
-   * If [exception] is an [AsyncError], it is used directly as the error
-   * message sent to the future's listeners, and [stackTrace] is ignored.
-   *
-   * Otherwise the [exception] and an optional [stackTrace] is combined into an
-   * [AsyncError] and sent to this future's listeners.
    */
   void completeError(Object exception, [Object stackTrace]);
 

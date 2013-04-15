@@ -67,7 +67,7 @@ class ConstantProtoMap<V> extends ConstantMap<V> {
   }
 }
 
-class _ConstantMapKeyIterable extends Iterable<String> {
+class _ConstantMapKeyIterable extends IterableBase<String> {
   ConstantMap _map;
   _ConstantMapKeyIterable(this._map);
 

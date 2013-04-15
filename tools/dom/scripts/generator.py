@@ -101,7 +101,7 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
 
     # DOMWindow aliased with global scope.
     'Window': '@*DOMWindow',
-})
+}, dart2jsOnly=True)
 
 def IsRegisteredType(type_name):
   return type_name in _idl_type_registry
@@ -528,7 +528,7 @@ dart2js_conversions = monitored.Dict('generator.dart2js_conversions', {
 
     # Should be either a DOMString, an Array of DOMStrings or null.
     'IDBAny get IDBObjectStore.keyPath': None,
-})
+}, dart2jsOnly=True)
 
 def FindConversion(idl_type, direction, interface, member):
   table = dart2js_conversions
@@ -696,7 +696,7 @@ dart2js_annotations = monitored.Dict('generator.dart2js_annotations', {
     'XMLHttpRequest.response': [
       "@Creates('ArrayBuffer|Blob|Document|=Object|=List|String|num')",
     ],
-})
+}, dart2jsOnly=True)
 
 _indexed_db_annotations = [
   "@SupportedBrowser(SupportedBrowser.CHROME)",

@@ -7,7 +7,7 @@ import "dart:async";
 import "dart:io";
 
 Future throws(callback()) {
-  return new Future.immediate(null)
+  return new Future.value()
     .then((_) => callback())
     .then((_) { throw "Expected error"; },
           onError: (_) {});

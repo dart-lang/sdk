@@ -51,7 +51,10 @@ class WebSocketMessageCollector {
   }
 
   void onError(e) {
-    Expect.fail("Unexpected error $e");
+    String msg = "Unexpected error $e";
+    var trace = getAttachedStackTrace(e);
+    if (trace != null) msg += "\nStackTrace: $trace";
+    Expect.fail(msg);
   }
 
 }
@@ -90,7 +93,7 @@ List<int> createFrame(bool fin,
       frame[frameIndex++] = count >> ((7 - i) * 8) & 0xFF;
     }
   }
-  frame.setRange(frameIndex, count, data, offset);
+  frame.setRange(frameIndex, frameIndex + count, data, offset);
   return frame;
 }
 

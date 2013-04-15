@@ -47,22 +47,25 @@ class _HttpBodyHandler implements HttpBodyHandler {
         .then((list) {
           dynamic content = list.readBytes();
           String type = "binary";
-          String mimeType = headers.contentType.toString();
+          ContentType contentType = headers.contentType;
+          if (contentType == null) {
+            return new _HttpBody(null, type, content);
+          }
           String asText(Encoding defaultEncoding) {
             var encoding;
-            var charset = headers.contentType.charset;
+            var charset = contentType.charset;
             if (charset != null) encoding = Encoding.fromName(charset);
             if (encoding == null) encoding = defaultEncoding;
             return _decodeString(content, encoding);
           }
-          switch (headers.contentType.primaryType) {
+          switch (contentType.primaryType) {
             case "text":
               type = "text";
               content = asText(Encoding.ASCII);
               break;
 
             case "application":
-              switch (headers.contentType.subType) {
+              switch (contentType.subType) {
                 case "json":
                   content = JSON.parse(asText(Encoding.UTF_8));
                   type = "json";
@@ -76,7 +79,7 @@ class _HttpBodyHandler implements HttpBodyHandler {
             default:
               break;
           }
-          return new _HttpBody(mimeType, type, content);
+          return new _HttpBody(contentType.mimeType, type, content);
         });
   }
 }

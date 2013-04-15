@@ -30,7 +30,7 @@ class B extends A {
   operator[](index) => indexField[index];
   operator[]=(index, value) { indexField[index] = value; }
 
-  noSuchMethod(InvocationMirror im) {
+  noSuchMethod(Invocation im) {
     if (im.memberName.startsWith('missingSetter')) {
       Expect.isTrue(im.isSetter);
       missingSetterField = im.positionalArguments[0];

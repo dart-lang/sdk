@@ -15,8 +15,7 @@ void testGoogleUrl() {
       .then((request) => request.close())
       .then((response) => Expect.fail("Unexpected successful connection"))
       .catchError((error) {
-        Expect.isTrue(error is AsyncError);
-        Expect.isTrue(error.error is SocketIOException);
+        Expect.isTrue(error is SocketIOException);
         keepAlive.close();
         client.close();
       });

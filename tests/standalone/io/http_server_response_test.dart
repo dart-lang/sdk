@@ -33,7 +33,7 @@ void testServerRequest(void handler(server, request), {int bytes}) {
               client.close();
             },
             onError: (error) {
-              Expect.isTrue(error.error is HttpParserException);
+              Expect.isTrue(error is HttpParserException);
             });
       })
       .catchError((error) {
@@ -50,13 +50,28 @@ void testResponseDone() {
       server.close();
     });
   });
+
+  testServerRequest((server, request) {
+    new File("__not_exitsing_file_").openRead().pipe(request.response)
+        .catchError((e) {
+          server.close();
+        });
+  });
+
+  testServerRequest((server, request) {
+    request.response.done.then((_) {
+      server.close();
+    });
+    request.response.contentLength = 0;
+    request.response.close();
+  });
 }
 
 void testResponseAddStream() {
   int bytes = new File(new Options().script).lengthSync();
 
   testServerRequest((server, request) {
-    request.response.writeStream(new File(new Options().script).openRead())
+    request.response.addStream(new File(new Options().script).openRead())
         .then((response) {
           response.close();
           response.done.then((_) => server.close());
@@ -64,9 +79,9 @@ void testResponseAddStream() {
   }, bytes: bytes);
 
   testServerRequest((server, request) {
-    request.response.writeStream(new File(new Options().script).openRead())
+    request.response.addStream(new File(new Options().script).openRead())
         .then((response) {
-          request.response.writeStream(new File(new Options().script).openRead())
+          request.response.addStream(new File(new Options().script).openRead())
               .then((response) {
                 response.close();
                 response.done.then((_) => server.close());
@@ -76,13 +91,27 @@ void testResponseAddStream() {
 
   testServerRequest((server, request) {
     var controller = new StreamController();
-    request.response.writeStream(controller.stream)
+    request.response.addStream(controller.stream)
         .then((response) {
           response.close();
           response.done.then((_) => server.close());
         });
     controller.close();
   }, bytes: 0);
+
+  testServerRequest((server, request) {
+    request.response.addStream(new File("__not_exitsing_file_").openRead())
+        .catchError((e) {
+          server.close();
+        });
+  });
+
+  testServerRequest((server, request) {
+    new File("__not_exitsing_file_").openRead().pipe(request.response)
+        .catchError((e) {
+          server.close();
+        });
+  });
 }
 
 void testBadResponseAdd() {

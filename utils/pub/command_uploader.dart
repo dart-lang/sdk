@@ -59,7 +59,7 @@ class UploaderCommand extends PubCommand {
       exit(exit_codes.USAGE);
     }
 
-    return new Future.of(() {
+    return new Future.sync(() {
       var package = commandOptions['package'];
       if (package != null) return package;
       return new Entrypoint(path.current, cache).root.name;
@@ -76,9 +76,8 @@ class UploaderCommand extends PubCommand {
           return client.delete(url);
         }
       });
-    }).then(handleJsonSuccess).catchError((asyncError) {
-      if (asyncError.error is! PubHttpException) throw asyncError;
-      handleJsonError(asyncError.error.response);
-    });
+    }).then(handleJsonSuccess)
+      .catchError((error) => handleJsonError(error.response),
+                  test: (e) => e is PubHttpException);
   }
 }

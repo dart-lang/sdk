@@ -41,7 +41,7 @@ void testSetRange32() {
   }
 
   // 4.0e40 is larger than the largest representable float.
-  floatArray.setRange(1, 2, const [8.0, 4.0e40]);
+  floatArray.setRange(1, 3, const [8.0, 4.0e40]);
   Expect.equals(20, floatArray[0]);
   Expect.equals(8, floatArray[1]);
   Expect.equals(double.INFINITY, floatArray[2]);
@@ -59,7 +59,7 @@ void testIndexOutOfRange32() {
   });
 
   Expect.throws(() {
-    floatArray.setRange(3, 1, list);
+    floatArray.setRange(3, 4, list);
   });
 }
 
@@ -125,7 +125,7 @@ void testSetRange64() {
   }
 
   // Unlike Float32Array we can properly represent 4.0e40
-  floatArray.setRange(1, 2, const [8.0, 4.0e40]);
+  floatArray.setRange(1, 3, const [8.0, 4.0e40]);
   Expect.equals(20, floatArray[0]);
   Expect.equals(8, floatArray[1]);
   Expect.equals(4.0e40, floatArray[2]);
@@ -143,7 +143,7 @@ void testIndexOutOfRange64() {
   });
 
   Expect.throws(() {
-    floatArray.setRange(3, 1, list);
+    floatArray.setRange(3, 4, list);
   });
 }
 

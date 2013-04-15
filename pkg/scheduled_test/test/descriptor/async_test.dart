@@ -126,7 +126,7 @@ void main() {
     test('test', () {
       scheduleSandbox();
 
-      expect(d.async(new Future.immediate(d.file('name.txt')))
+      expect(d.async(new Future.value(d.file('name.txt')))
               .load('path').toList(),
           throwsA(equals("AsyncDescriptors don't support load().")));
     });
@@ -136,7 +136,7 @@ void main() {
     test('test', () {
       scheduleSandbox();
 
-      expect(d.async(new Future.immediate(d.file('name.txt'))).read().toList(),
+      expect(d.async(new Future.value(d.file('name.txt'))).read().toList(),
           throwsA(equals("AsyncDescriptors don't support read().")));
     });
   });

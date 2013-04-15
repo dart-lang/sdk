@@ -3,10 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import "symbol_map_helper.dart";
 
 apply(Function function, ArgumentDescriptor args) {
   return Function.apply(
-      function, args.positionalArguments, args.namedArguments);
+      function, args.positionalArguments,
+      symbolMapToStringMap(args.namedArguments));
 }
 
 class ArgumentDescriptor {

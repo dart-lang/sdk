@@ -1637,7 +1637,7 @@ class _Parser {
         if (!truth(s_indent(indent))) return null;
         return c_l_blockSeqEntry(indent);
       }));
-    content.insertRange(0, 1, first);
+    content.insert(0, first);
 
     return new _SequenceNode("?", content);
   });
@@ -1720,7 +1720,7 @@ class _Parser {
         if (!truth(s_indent(indent))) return null;
         return ns_l_blockMapEntry(indent);
       }));
-    pairs.insertRange(0, 1, first);
+    pairs.insert(0, first);
 
     return map(pairs);
   });

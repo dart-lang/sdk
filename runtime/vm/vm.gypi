@@ -12,6 +12,7 @@
     'collection_cc_file': '<(SHARED_INTERMEDIATE_DIR)/collection_gen.cc',
     'collection_patch_cc_file': '<(SHARED_INTERMEDIATE_DIR)/collection_patch_gen.cc',
     'collection_dev_cc_file': '<(SHARED_INTERMEDIATE_DIR)/collection_dev_gen.cc',
+    'collection_dev_patch_cc_file': '<(SHARED_INTERMEDIATE_DIR)/collection_dev_patch_gen.cc',
     'crypto_cc_file': '<(SHARED_INTERMEDIATE_DIR)/crypto_gen.cc',
     'math_cc_file': '<(SHARED_INTERMEDIATE_DIR)/math_gen.cc',
     'math_patch_cc_file': '<(SHARED_INTERMEDIATE_DIR)/math_patch_gen.cc',
@@ -98,6 +99,7 @@
         'generate_collection_cc_file',
         'generate_collection_patch_cc_file',
         'generate_collection_dev_cc_file',
+        'generate_collection_dev_patch_cc_file',
         'generate_crypto_cc_file',
         'generate_math_cc_file',
         'generate_math_patch_cc_file',
@@ -131,6 +133,7 @@
         '<(collection_cc_file)',
         '<(collection_patch_cc_file)',
         '<(collection_dev_cc_file)',
+        '<(collection_dev_patch_cc_file)',
         '<(crypto_cc_file)',
         '<(math_cc_file)',
         '<(math_patch_cc_file)',
@@ -372,6 +375,44 @@
             '<(collection_dart)',
           ],
           'message': 'Generating ''<(collection_cc_file)'' file.'
+        },
+      ]
+    },
+    {
+      'target_name': 'generate_collection_dev_patch_cc_file',
+      'type': 'none',
+      'includes': [
+        # Load the runtime implementation sources.
+        '../lib/collection_dev_sources.gypi',
+      ],
+      'sources/': [
+        # Exclude all .[cc|h] files.
+        # This is only here for reference. Excludes happen after
+        # variable expansion, so the script has to do its own
+        # exclude processing of the sources being passed.
+        ['exclude', '\\.cc|h$'],
+      ],
+      'actions': [
+        {
+          'action_name': 'generate_collection_dev_patch_cc',
+          'inputs': [
+            '../tools/create_string_literal.py',
+            '<(builtin_in_cc_file)',
+            '<@(_sources)',
+          ],
+          'outputs': [
+            '<(collection_dev_patch_cc_file)',
+          ],
+          'action': [
+            'python',
+            'tools/create_string_literal.py',
+            '--output', '<(collection_dev_patch_cc_file)',
+            '--input_cc', '<(builtin_in_cc_file)',
+            '--include', 'vm/bootstrap.h',
+            '--var_name', 'dart::Bootstrap::collection_dev_patch_',
+            '<@(_sources)',
+          ],
+          'message': 'Generating ''<(collection_dev_patch_cc_file)'' file.'
         },
       ]
     },

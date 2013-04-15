@@ -1,3 +1,8 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import "dart:collection";
 import 'dart:html';
 import 'dart:json' as json;
 
@@ -477,7 +482,7 @@ class PostOrderTraversalIterator implements Iterator<Node> {
   }
 }
 
-class PostOrderTraversal extends Iterable<Node> {
+class PostOrderTraversal extends IterableBase<Node> {
   final Node _node;
   PostOrderTraversal(this._node);
 

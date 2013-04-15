@@ -2404,6 +2404,11 @@ static Dart_TypedData_Type GetType(intptr_t class_id) {
     case kExternalTypedDataFloat64ArrayCid :
       type = kFloat64;
       break;
+    case kTypedDataFloat32x4ArrayCid :
+    case kTypedDataFloat32x4ArrayViewCid :
+    case kExternalTypedDataFloat32x4ArrayCid :
+      type = kFloat32x4;
+      break;
     default:
       type = kInvalid;
       break;
@@ -2566,6 +2571,8 @@ DART_EXPORT Dart_Handle Dart_NewTypedData(Dart_TypedData_Type type,
       return NewTypedData(isolate, kTypedDataFloat32ArrayCid,  length);
     case kFloat64 :
       return NewTypedData(isolate, kTypedDataFloat64ArrayCid, length);
+    case kFloat32x4:
+      return NewTypedData(isolate, kTypedDataFloat32x4ArrayCid, length);
     default:
       return Api::NewError("%s expects argument 'type' to be of 'TypedData'",
                            CURRENT_FUNC);
@@ -2588,70 +2595,76 @@ DART_EXPORT Dart_Handle Dart_NewExternalTypedData(
   }
   CHECK_CALLBACK_STATE(isolate);
   switch (type) {
-    case kByteData :
+    case kByteData:
       return NewExternalByteData(isolate, data, length, peer, callback);
-    case kInt8 :
+    case kInt8:
       return NewExternalTypedData(kExternalTypedDataInt8ArrayCid,
                                   data,
                                   length,
                                   peer,
                                   callback);
-    case kUint8 :
+    case kUint8:
       return NewExternalTypedData(kExternalTypedDataUint8ArrayCid,
                                   data,
                                   length,
                                   peer,
                                   callback);
-    case kUint8Clamped :
+    case kUint8Clamped:
       return NewExternalTypedData(kExternalTypedDataUint8ClampedArrayCid,
                                   data,
                                   length,
                                   peer,
                                   callback);
-    case kInt16 :
+    case kInt16:
       return NewExternalTypedData(kExternalTypedDataInt16ArrayCid,
                                   data,
                                   length,
                                   peer,
                                   callback);
-    case kUint16 :
+    case kUint16:
       return NewExternalTypedData(kExternalTypedDataUint16ArrayCid,
                                   data,
                                   length,
                                   peer,
                                   callback);
-    case kInt32 :
+    case kInt32:
       return NewExternalTypedData(kExternalTypedDataInt32ArrayCid,
                                   data,
                                   length,
                                   peer,
                                   callback);
-    case kUint32 :
+    case kUint32:
       return NewExternalTypedData(kExternalTypedDataUint32ArrayCid,
                                   data,
                                   length,
                                   peer,
                                   callback);
-    case kInt64 :
+    case kInt64:
       return NewExternalTypedData(kExternalTypedDataInt64ArrayCid,
                                   data,
                                   length,
                                   peer,
                                   callback);
-    case kUint64 :
+    case kUint64:
       return NewExternalTypedData(kExternalTypedDataUint64ArrayCid,
                                   data,
                                   length,
                                   peer,
                                   callback);
-    case kFloat32 :
+    case kFloat32:
       return NewExternalTypedData(kExternalTypedDataFloat32ArrayCid,
                                   data,
                                   length,
                                   peer,
                                   callback);
-    case kFloat64 :
+    case kFloat64:
       return NewExternalTypedData(kExternalTypedDataFloat64ArrayCid,
+                                  data,
+                                  length,
+                                  peer,
+                                  callback);
+    case kFloat32x4:
+      return NewExternalTypedData(kExternalTypedDataFloat32x4ArrayCid,
                                   data,
                                   length,
                                   peer,

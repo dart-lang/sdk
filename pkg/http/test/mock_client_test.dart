@@ -19,7 +19,7 @@ import 'utils.dart';
 void main() {
   test('handles a request', () {
     var client = new MockClient((request) {
-      return new Future.immediate(new http.Response(
+      return new Future.value(new http.Response(
           json.stringify(request.bodyFields), 200,
           request: request, headers: {'content-type': 'application/json'}));
     });
@@ -57,7 +57,7 @@ void main() {
 
   test('handles a request with no body', () {
     var client = new MockClient((request) {
-      return new Future.immediate(new http.Response('you did it', 200));
+      return new Future.value(new http.Response('you did it', 200));
     });
 
     expect(client.read("http://example.com/foo"),

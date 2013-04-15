@@ -2133,7 +2133,7 @@ class ElementLocationImpl implements ElementLocation {
     List<String> components = new List<String>();
     Element ancestor = element;
     while (ancestor != null) {
-      components.insertRange(0, 1, ((ancestor as ElementImpl)).identifier);
+      components.insert(0, ((ancestor as ElementImpl)).identifier);
       ancestor = ancestor.enclosingElement;
     }
     this._components = new List.from(components);

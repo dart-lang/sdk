@@ -110,7 +110,7 @@ main() {
     test('Web Database', () {
       // Skip if not supported.
       if (!SqlDatabase.supported) {
-        return new Future.immediate(null);
+        return new Future.value();
       }
 
       final tableName = 'test_table';

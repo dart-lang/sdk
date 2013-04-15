@@ -23,6 +23,13 @@ JavaScript.
 
 bool _mirrorsEnabled = false;
 
+patch class MirrorSystem {
+  patch static String getName(Symbol symbol) {
+    throw new UnimplementedError('MirrorSystem.getName is not yet implemented '
+                                 'in dart2js');
+  }
+}
+
 /**
  * Stub class for the mirror system.
  */

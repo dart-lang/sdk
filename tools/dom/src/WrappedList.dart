@@ -104,6 +104,12 @@ class _WrappedList<E> implements List<E> {
 
   void insert(int index, E element) => _list.insert(index, element);
 
+  void insertAll(int index, Iterable<E> iterable) =>
+      _list.insertAll(index, iterable);
+
+  void setAll(int index, Iterable<E> iterable) =>
+      _list.setAll(index, iterable);
+
   E removeAt(int index) => _list.removeAt(index);
 
   E removeLast() => _list.removeLast();
@@ -112,14 +118,18 @@ class _WrappedList<E> implements List<E> {
 
   Iterable<E> getRange(int start, int end) => _list.getRange(start, end);
 
-  void setRange(int start, int length, List<E> from, [int startFrom]) {
-    _list.setRange(start, length, from, startFrom);
+  void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
+    _list.setRange(start, end, iterable, skipCount);
   }
 
-  void removeRange(int start, int length) { _list.removeRange(start, length); }
+  void removeRange(int start, int end) { _list.removeRange(start, end); }
 
-  void insertRange(int start, int length, [E fill]) {
-    _list.insertRange(start, length, fill);
+  void replaceRange(int start, int end, Iterable<E> iterable) {
+    _list.replaceRange(start, end, iterable);
+  }
+
+  void fillRange(int start, int end, [E fillValue]) {
+    _list.fillRange(start, end, fillValue);
   }
 
   Map<int, E> asMap() => _list.asMap();

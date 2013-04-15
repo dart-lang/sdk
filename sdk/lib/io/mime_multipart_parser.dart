@@ -49,7 +49,7 @@ class _MimeMultipartParser {
     _boundary[1] = _CharCode.LF;
     _boundary[2] = _CharCode.DASH;
     _boundary[3] = _CharCode.DASH;
-    _boundary.setRange(4, charCodes.length, charCodes);
+    _boundary.setRange(4, 4 + charCodes.length, charCodes);
     _state = _START;
     _headerField = new StringBuffer();
     _headerValue = new StringBuffer();

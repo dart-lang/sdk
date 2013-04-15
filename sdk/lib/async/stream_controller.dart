@@ -50,44 +50,37 @@ class StreamController<T> extends EventSink<T> {
   final _StreamImpl<T> stream;
 
   /**
-   * A controller with a broadcast [stream]..
    *
-   * The [onPauseStateChange] function is called when the stream becomes
-   * paused or resumes after being paused. The current pause state can
-   * be read from [isPaused]. Ignored if [:null:].
-   *
-   * The [onSubscriptionStateChange] function is called when the stream
-   * receives its first listener or loses its last. The current subscription
-   * state can be read from [hasListener]. Ignored if [:null:].
-   */
-  StreamController.broadcast({void onPauseStateChange(),
-                              void onSubscriptionStateChange()})
-      : stream = new _MultiControllerStream<T>(onSubscriptionStateChange,
-                                               onPauseStateChange);
-
-  /**
+   * If the stream is canceled before the controller needs new data the
+   * [onResume] call might not be executed.
+      : stream = new _MultiControllerStream<T>(
+            onListen, onPause, onResume, onCancel);
    * A controller with a [stream] that supports only one single subscriber.
    *
    * The controller will buffer all incoming events until the subscriber is
    * registered.
    *
-   * The [onPauseStateChange] function is called when the stream becomes
-   * paused or resumes after being paused. The current pause state can
-   * be read from [isPaused]. Ignored if [:null:].
+   * The [onPause] function is called when the stream becomes
+   * paused. [onResume] is called when the stream resumed.
    *
-   * The [onSubscriptionStateChange] function is called when the stream
-   * receives its first listener or loses its last. The current subscription
-   * state can be read from [hasListener]. Ignored if [:null:].
+   * The [onListen] callback is called when the stream
+   * receives its listener. [onCancel] when the listener cancels
+   * its subscription.
+   *
+   * If the stream is canceled before the controller needs new data the
+   * [onResume] call might not be executed.
    */
-  StreamController({void onPauseStateChange(),
-                    void onSubscriptionStateChange()})
-      : stream = new _SingleControllerStream<T>(onSubscriptionStateChange,
-                                                onPauseStateChange);
+  StreamController({void onListen(),
+                    void onPause(),
+                    void onResume(),
+                    void onCancel()})
+      : stream = new _SingleControllerStream<T>(
+            onListen, onPause, onResume, onCancel);
 
   /**
    * Returns a view of this object that only exposes the [EventSink] interface.
    */
-  EventSink<T> get sink => new EventSinkView<T>(this);
+  EventSink<T> get sink => new _EventSinkView<T>(this);
 
   /**
    * Whether the stream is closed for adding more events.
@@ -111,23 +104,16 @@ class StreamController<T> extends EventSink<T> {
   /**
    * Send or enqueue an error event.
    *
-   * If [error] is not an [AsyncError], [error] and an optional [stackTrace]
-   * is combined into an [AsyncError] and sent this stream's listeners.
-   *
-   * Otherwise, if [error] is an [AsyncError], it is used directly as the
-   * error object reported to listeners, and the [stackTrace] is ignored.
-   *
    * If a subscription has requested to be unsubscribed on errors,
    * it will be unsubscribed after receiving this event.
    */
   void addError(Object error, [Object stackTrace]) {
-    AsyncError asyncError;
-    if (error is AsyncError) {
-      asyncError = error;
-    } else {
-      asyncError = new AsyncError(error, stackTrace);
+    if (stackTrace != null) {
+      // Force stack trace overwrite. Even if the error already contained
+      // a stack trace.
+      _attachStackTrace(error, stackTrace);
     }
-    stream._addError(asyncError);
+    stream._addError(error);
   }
 
   /**
@@ -141,56 +127,32 @@ class StreamController<T> extends EventSink<T> {
 
 typedef void _NotificationHandler();
 
-class _MultiControllerStream<T> extends _MultiStreamImpl<T> {
-  _NotificationHandler _subscriptionHandler;
-  _NotificationHandler _pauseHandler;
-
-  _MultiControllerStream(this._subscriptionHandler, this._pauseHandler);
-
-  void _onSubscriptionStateChange() {
-    if (_subscriptionHandler != null) {
-      try {
-        _subscriptionHandler();
-      } catch (e, s) {
-        new AsyncError(e, s).throwDelayed();
-      }
-    }
-  }
-
-  void _onPauseStateChange() {
-    if (_pauseHandler != null) {
-      try {
-        _pauseHandler();
-      } catch (e, s) {
-        new AsyncError(e, s).throwDelayed();
-      }
-    }
-  }
-}
-
 class _SingleControllerStream<T> extends _SingleStreamImpl<T> {
-  _NotificationHandler _subscriptionHandler;
-  _NotificationHandler _pauseHandler;
+  _NotificationHandler _onListen;
+  _NotificationHandler _onPause;
+  _NotificationHandler _onResume;
+  _NotificationHandler _onCancel;
 
-  _SingleControllerStream(this._subscriptionHandler, this._pauseHandler);
-
-  void _onSubscriptionStateChange() {
-    if (_subscriptionHandler != null) {
-      try {
-        _subscriptionHandler();
-      } catch (e, s) {
-        new AsyncError(e, s).throwDelayed();
-      }
+  // TODO(floitsch): share this code with _MultiControllerStream.
+  _runGuarded(_NotificationHandler notificationHandler) {
+    if (notificationHandler == null) return;
+    try {
+      notificationHandler();
+    } catch (e, s) {
+      _throwDelayed(e, s);
     }
   }
 
+  _SingleControllerStream(this._onListen,
+                          this._onPause,
+                          this._onResume,
+                          this._onCancel);
+
+  void _onSubscriptionStateChange() {
+    _runGuarded(_hasListener ? _onListen : _onCancel);
+  }
+
   void _onPauseStateChange() {
-    if (_pauseHandler != null) {
-      try {
-        _pauseHandler();
-      } catch (e, s) {
-        new AsyncError(e, s).throwDelayed();
-      }
-    }
+    _runGuarded(_isPaused ? _onPause : _onResume);
   }
 }

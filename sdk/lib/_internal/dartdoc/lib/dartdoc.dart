@@ -126,7 +126,7 @@ Future copyDirectory(Path from, Path to) {
         }
       },
       onDone: () => completer.complete(),
-      onError: (e) => completer.completeError(e.error, e.stackTrace));
+      onError: (e) => completer.completeError(e));
   return completer.future;
 }
 
@@ -149,7 +149,7 @@ Future compileScript(int mode, Path outputDir, Path libPath) {
 
 void _compileScript() {
   port.receive((message, replyTo) {
-    new Future.of(() {
+    new Future.sync(() {
       var clientScript = (message['mode'] == MODE_STATIC) ?
           'static' : 'live-nav';
       var dartPath = pathos.join(message['libPath'], 'lib', '_internal',
@@ -163,8 +163,10 @@ void _compileScript() {
       });
     }).then((_) {
       replyTo.send(['success']);
-    }).catchError((e) {
-      replyTo.send(['error', e.error.toString(), e.stackTrace.toString()]);
+    }).catchError((error) {
+      var trace = getAttachedStackTrace(error);
+      var traceString = trace == null ? "" : trace.toString();
+      replyTo.send(['error', error.toString(), traceString]);
     });
   });
 }

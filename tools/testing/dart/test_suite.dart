@@ -79,7 +79,7 @@ class FutureGroup {
     _pending++;
     var handledTaskFuture = task.catchError((e) {
       if (!wasCompleted) {
-        _completer.completeError(e.error, e.stackTrace);
+        _completer.completeError(e);
         wasCompleted = true;
       }
     }).then((_) {
@@ -1094,7 +1094,7 @@ class StandardTestSuite extends TestSuite {
     }
     if (executable.endsWith('.dart')) {
       // Run the compiler script via the Dart VM.
-      args.insertRange(0, 1, executable);
+      args.insert(0, executable);
       executable = dartShellFileName;
     }
     if (['dart2js', 'dart2dart'].contains(configuration['compiler'])) {

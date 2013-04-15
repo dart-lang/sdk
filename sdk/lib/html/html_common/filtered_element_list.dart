@@ -46,7 +46,7 @@ class FilteredElementList extends ListBase<Element> {
       throw new ArgumentError("Invalid list length");
     }
 
-    removeRange(newLength, len - newLength);
+    removeRange(newLength, len);
   }
 
   String join([String separator = ""]) => _filtered.join(separator);
@@ -71,16 +71,21 @@ class FilteredElementList extends ListBase<Element> {
     throw new UnsupportedError('TODO(jacobr): should we impl?');
   }
 
-  void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
+  void setRange(int start, int end, Iterable<Element> iterable,
+                [int skipCount = 0]) {
     throw new UnimplementedError();
   }
 
-  void removeRange(int start, int rangeLength) {
-    _filtered.sublist(start, start + rangeLength).forEach((el) => el.remove());
+  void fillRange(int start, int end, [Element fillValue]) {
+    throw new UnimplementedError();
   }
 
-  void insertRange(int start, int rangeLength, [initialValue = null]) {
+  void replaceRange(int start, int end, Iterable<Element> iterable) {
     throw new UnimplementedError();
+  }
+
+  void removeRange(int start, int end) {
+    _filtered.sublist(start, end).forEach((el) => el.remove());
   }
 
   void clear() {
@@ -103,6 +108,10 @@ class FilteredElementList extends ListBase<Element> {
 
   void insert(int index, Element value) {
     _childNodes.insert(index, value);
+  }
+
+  void insertAll(int index, Iterable<Element> iterable) {
+    _childNodes.insertAll(index, iterable);
   }
 
   Element removeAt(int index) {

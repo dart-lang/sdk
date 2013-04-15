@@ -30,14 +30,14 @@ void main() {
   expectTestsPass('a scheduled test with a correct asynchronous expectation '
       'should pass', () {
     test('test', () {
-      expect(new Future.immediate('foo'), completion(equals('foo')));
+      expect(new Future.value('foo'), completion(equals('foo')));
     });
   });
 
   expectTestsFail('a scheduled test with an incorrect asynchronous expectation '
       'should fail', () {
     test('test', () {
-      expect(new Future.immediate('foo'), completion(equals('bar')));
+      expect(new Future.value('foo'), completion(equals('bar')));
     });
   });
 
@@ -57,7 +57,7 @@ void main() {
       'register', () {
     test('test', () {
       schedule(() =>
-          expect(new Future.immediate('foo'), completion(equals('foo'))));
+          expect(new Future.value('foo'), completion(equals('foo'))));
     });
   });
 
@@ -65,7 +65,7 @@ void main() {
       'register', () {
     test('test', () {
       schedule(() =>
-          expect(new Future.immediate('foo'), completion(equals('bar'))));
+          expect(new Future.value('foo'), completion(equals('bar'))));
     });
   });
 
@@ -88,7 +88,7 @@ void main() {
     });
 
     test('asynchronous value', () {
-      var future = schedule(() => new Future.immediate('value'));
+      var future = schedule(() => new Future.value('value'));
       expect(future, completion(equals('value')));
     });
   });
@@ -107,7 +107,7 @@ void main() {
   expectTestsFail('a test failure in a chained future in a scheduled block '
       'should be registered', () {
     test('test', () {
-      schedule(() => new Future.immediate('foo')
+      schedule(() => new Future.value('foo')
           .then((v) => expect(v, equals('bar'))));
     });
   });
@@ -115,7 +115,7 @@ void main() {
   expectTestsFail('an error in a chained future in a scheduled block should be '
       'registered', () {
     test('test', () {
-      schedule(() => new Future.immediate(null).then((_) {
+      schedule(() => new Future.value().then((_) {
         throw 'error';
       }));
     });

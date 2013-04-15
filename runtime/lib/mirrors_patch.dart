@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:nativewrappers";
+// TODO(ahe): Move _symbol_dev.Symbol to its own "private" library?
+import "dart:_collection-dev" as _symbol_dev;
 
 /**
  * Returns a [MirrorSystem] for the current isolate.
@@ -27,4 +29,10 @@ patch Future<MirrorSystem> mirrorSystemOf(SendPort port) {
  */
 patch InstanceMirror reflect(Object reflectee) {
   return _Mirrors.reflect(reflectee);
+}
+
+patch class MirrorSystem {
+  /* patch */ static String getName(Symbol symbol) {
+    return _symbol_dev.Symbol.getName(symbol);
+  }
 }

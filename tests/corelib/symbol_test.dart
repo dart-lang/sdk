@@ -83,4 +83,8 @@ main() {
   if (new Symbol('fisk').hashCode != x.hashCode) {
     throw "non-const Symbol's hashCode not equal to its const equivalent";
   }
+
+  if (new Symbol('') != const Symbol('')) {
+    throw 'empty Symbol not equals to itself';
+  }
 }

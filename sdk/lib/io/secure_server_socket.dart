@@ -64,14 +64,14 @@ class SecureServerSocket extends Stream<SecureSocket> implements ServerSocket {
   }
 
   StreamSubscription<SecureSocket> listen(void onData(SecureSocket socket),
-                                          {void onError(AsyncError error),
+                                          {void onError(error),
                                            void onDone(),
-                                           bool unsubscribeOnError}) {
+                                           bool cancelOnError}) {
     return _socket.map((rawSocket) => new SecureSocket._(rawSocket))
                   .listen(onData,
                           onError: onError,
                           onDone: onDone,
-                          unsubscribeOnError: unsubscribeOnError);
+                          cancelOnError: cancelOnError);
   }
 
   /**
@@ -107,8 +107,10 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
                           bool this.requireClientCertificate) {
     _socket = serverSocket;
     _controller = new StreamController<RawSecureSocket>(
-        onPauseStateChange: _onPauseStateChange,
-        onSubscriptionStateChange: _onSubscriptionStateChange);
+        onListen: _onSubscriptionStateChange,
+        onPause: _onPauseStateChange,
+        onResume: _onPauseStateChange,
+        onCancel: _onSubscriptionStateChange);
   }
 
   /**
@@ -157,13 +159,13 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
   }
 
   StreamSubscription<RawSecureSocket> listen(void onData(RawSecureSocket s),
-                                             {void onError(AsyncError error),
+                                             {void onError(error),
                                               void onDone(),
-                                              bool unsubscribeOnError}) {
+                                              bool cancelOnError}) {
     return _controller.stream.listen(onData,
                                      onError: onError,
                                      onDone: onDone,
-                                     unsubscribeOnError: unsubscribeOnError);
+                                     cancelOnError: cancelOnError);
   }
 
   /**

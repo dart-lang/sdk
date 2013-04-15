@@ -8,7 +8,7 @@ part of dart.core;
  * This class is the public interface of a set. A set is a collection
  * without duplicates.
  */
-abstract class Set<E> extends Iterable<E> {
+abstract class Set<E> extends IterableBase<E> {
   factory Set() => new HashSet<E>();
 
   /**

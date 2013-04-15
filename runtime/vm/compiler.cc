@@ -224,6 +224,10 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
         // A canonicalization pass to remove e.g. smi checks on smi constants.
         optimizer.Canonicalize();
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
+        // Canonicalization introduced more opportunities for constant
+        // propagation.
+        ConstantPropagator::Optimize(flow_graph);
+        DEBUG_ASSERT(flow_graph->VerifyUseLists());
       }
 
       // Propagate types and eliminate even more type tests.

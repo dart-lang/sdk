@@ -80,7 +80,10 @@ class TestServer extends TestingServer {
     }
 
     void errorHandler(e) {
-      print("Socket error $e");
+      String msg = "Socket error $e";
+      var trace = getAttachedStackTrace(e);
+      if (trace != null) msg += "\nStackTrace: $trace";
+      print(msg);
       connection.close();
     }
 
