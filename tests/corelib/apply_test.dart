@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import "symbol_map_helper.dart";
 
 // Testing Function.apply calls correctly.
 // This test is not testing error handling, only that correct parameters
@@ -38,15 +39,17 @@ confuse() {
 
 main() {
   testMap(res, func, map) {
+    map = symbolMapToStringMap(map);
     Expect.equals(res, Function.apply(func, null, map));
     Expect.equals(res, Function.apply(func, [], map));
   }
   testList(res, func, list) {
     Expect.equals(res, Function.apply(func, list));
     Expect.equals(res, Function.apply(func, list, null));
-    Expect.equals(res, Function.apply(func, list, {}));
+    Expect.equals(res, Function.apply(func, list, new Map<Symbol, dynamic>()));
   }
   test(res, func, list, map) {
+    map = symbolMapToStringMap(map);
     Expect.equals(res, Function.apply(func, list, map));
   }
   testList(42, test0, null);

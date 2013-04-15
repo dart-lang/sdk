@@ -8,7 +8,7 @@ patch class Function {
 
   /* patch */ static apply(Function function,
                            List positionalArguments,
-                           [Map<String,dynamic> namedArguments]) {
+                           [Map<Symbol, dynamic> namedArguments]) {
     int numPositionalArguments = 1 +  // Function is first implicit argument.
         (positionalArguments != null ? positionalArguments.length : 0);
     int numNamedArguments = namedArguments != null ? namedArguments.length : 0;
@@ -22,7 +22,7 @@ patch class Function {
     if (numNamedArguments > 0) {
       namedArguments.forEach((name, value) {
         arguments[argumentIndex++] = value;
-        names[nameIndex++] = name;
+        names[nameIndex++] = name._name;
       });
     }
     return _apply(arguments, names);

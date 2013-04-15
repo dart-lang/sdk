@@ -505,7 +505,7 @@ class Primitives {
 
   static applyFunction(Function function,
                        List positionalArguments,
-                       Map<String, dynamic> namedArguments) {
+                       Map<Symbol, dynamic> namedArguments) {
     int argumentCount = 0;
     StringBuffer buffer = new StringBuffer();
     List arguments = [];

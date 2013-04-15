@@ -39,9 +39,19 @@ patch class Object {
 patch class Function {
   patch static apply(Function function,
                      List positionalArguments,
-                     [Map<String,dynamic> namedArguments]) {
+                     [Map<Symbol, dynamic> namedArguments]) {
     return Primitives.applyFunction(
-        function, positionalArguments, namedArguments);
+        function, positionalArguments, _toMangledNames(namedArguments));
+  }
+
+  static Map<String, dynamic> _toMangledNames(
+      Map<Symbol, dynamic> namedArguments) {
+    if (namedArguments == null) return null;
+    Map<String, dynamic> result = {};
+    namedArguments.forEach((symbol, value) {
+      result[symbol._name] = value;
+    });
+    return result;
   }
 }
 
