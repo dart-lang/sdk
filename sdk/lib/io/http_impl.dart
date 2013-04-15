@@ -1941,7 +1941,7 @@ class _ProxyCredentials {
 abstract class _HttpClientCredentials implements HttpClientCredentials {
   _AuthenticationScheme get scheme;
   void authorize(_Credentials credentials, HttpClientRequest request);
-  void authorizeProxy(_ProxyCredentials _, HttpClientRequest request);
+  void authorizeProxy(_ProxyCredentials credentials, HttpClientRequest request);
 }
 
 
@@ -1991,7 +1991,8 @@ class _HttpClientDigestCredentials
     throw new UnsupportedError("Digest authentication not yet supported");
   }
 
-  void authorizeProxy(_Credentials credentials, HttpClientRequest request) {
+  void authorizeProxy(_ProxyCredentials credentials,
+                      HttpClientRequest request) {
     // TODO(sgjesse): Implement!!!
     throw new UnsupportedError("Digest authentication not yet supported");
   }
