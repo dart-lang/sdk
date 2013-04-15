@@ -2,6 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+serialization/test/*: Skip # http://dartbug.com/9894
+
+
 # Run this test manually to verify that the fixnum library produces
 # the same results as native ints on a set of directed and random inputs.
 # Skip it when running automated tests because it times out.  This

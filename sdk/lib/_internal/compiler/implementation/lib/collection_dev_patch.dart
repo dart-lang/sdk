@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:math";
-import "dart:typeddata";
-
-import "dart:_collection-dev" as _symbol_dev;
+patch class Symbol implements core.Symbol {
+  patch const Symbol(String name)
+      : this._name = name;
+}

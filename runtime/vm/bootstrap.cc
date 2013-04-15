@@ -51,7 +51,7 @@ RawScript* Bootstrap::LoadCollectionScript(bool patch) {
 RawScript* Bootstrap::LoadCollectionDevScript(bool patch) {
   const char* url =
       patch ? "dart:_collection-dev-patch" : "dart:_collection-dev";
-  const char* source = patch ? collection_dev_source_ : collection_dev_source_;
+  const char* source = patch ? collection_dev_patch_ : collection_dev_source_;
   return LoadScript(url, source, patch);
 }
 

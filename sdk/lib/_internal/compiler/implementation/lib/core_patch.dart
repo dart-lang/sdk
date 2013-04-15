@@ -11,6 +11,7 @@ import 'dart:_js_helper' show checkNull,
                               Primitives,
                               TypeImpl,
                               stringJoinUnchecked;
+import "dart:_collection-dev" as _symbol_dev;
 
 patch void print(var object) {
   Primitives.printString(object.toString());
@@ -49,7 +50,7 @@ patch class Function {
     if (namedArguments == null) return null;
     Map<String, dynamic> result = {};
     namedArguments.forEach((symbol, value) {
-      result[symbol._name] = value;
+      result[_symbol_dev.Symbol.getName(symbol)] = value;
     });
     return result;
   }
@@ -296,21 +297,5 @@ patch class NoSuchMethodError {
           "Tried calling: $_memberName($actualParameters)\n"
           "Found: $_memberName($formalParameters)";
     }
-  }
-}
-
-patch class Symbol {
-  final String _name;
-
-  patch const Symbol(String name) :
-    this._name = name;
-
-  patch bool operator ==(other) {
-    return other is Symbol && _name == other._name;
-  }
-
-  patch int get hashCode {
-    const arbitraryPrime = 664597;
-    return 0x1fffffff & (arbitraryPrime * _name.hashCode);
   }
 }

@@ -1014,7 +1014,7 @@ RawError* Object::Init(Isolate* isolate) {
 
   INIT_LIBRARY(Async, async, true);
   INIT_LIBRARY(Collection, collection, true);
-  INIT_LIBRARY(CollectionDev, collection_dev, false);
+  INIT_LIBRARY(CollectionDev, collection_dev, true);
   INIT_LIBRARY(Crypto, crypto, false);
   INIT_LIBRARY(Isolate, isolate, true);
   INIT_LIBRARY(Json, json, true);

@@ -5,7 +5,8 @@
 library dart.core;
 
 import "dart:collection";
-import "dart:_collection-dev";
+import "dart:_collection-dev" hide Symbol;
+import "dart:_collection-dev" as _collection_dev;
 
 part "bool.dart";
 part "comparable.dart";

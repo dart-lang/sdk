@@ -119,7 +119,9 @@ const Map<String, LibraryInfo> LIBRARIES = const {
   "_collection-dev": const LibraryInfo(
       "_collection_dev/collection_dev.dart",
       category: "Internal",
-      documented: false),
+      documented: false,
+      dart2jsPatchPath:
+          "_internal/compiler/implementation/lib/collection_dev_patch.dart"),
 
   "_js_helper": const LibraryInfo(
       "_internal/compiler/implementation/lib/js_helper.dart",

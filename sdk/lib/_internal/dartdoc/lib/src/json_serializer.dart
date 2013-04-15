@@ -54,7 +54,8 @@ void _serializeObject(String name, Object o, JsonPrinter printer) {
   // TODO(jacobr): this code works only because futures for mirrors return
   // immediately.
   for(String memberName in members) {
-    var result = deprecatedFutureValue(mirror.getFieldAsync(memberName));
+    var result =
+        deprecatedFutureValue(mirror.getFieldAsync(new Symbol(memberName)));
     _serialize(memberName, result.reflectee, printer);
   }
   printer.endObject();
@@ -62,19 +63,25 @@ void _serializeObject(String name, Object o, JsonPrinter printer) {
 
 void determineAllMembers(ClassMirror classMirror,
     List<String> members) {
-  for(String getterName in classMirror.getters.keys) {
-    if (!members.contains(getterName)) {
-      members.add(getterName);
+  for(Symbol getterName in classMirror.getters.keys) {
+    if (!members.contains(MirrorSystem.getName(getterName))) {
+      members.add(MirrorSystem.getName(getterName));
     }
   }
-  for(String fieldName in classMirror.variables.keys) {
-    if (!members.contains(fieldName)) {
-      members.add(fieldName);
+  for(Symbol fieldName in classMirror.variables.keys) {
+    if (!members.contains(MirrorSystem.getName(fieldName))) {
+      members.add(MirrorSystem.getName(fieldName));
     }
   }
   if (classMirror.superclass != null &&
+
+      // TODO(ahe): What is this test for?  Consider removing it,
+      // dart2js will issue an error if there is a cycle in superclass
+      // hierarchy.
       classMirror.superclass.qualifiedName != classMirror.qualifiedName &&
-      classMirror.superclass.qualifiedName != 'dart.core.Object') {
+
+      MirrorSystem.getName(classMirror.superclass.qualifiedName) !=
+          'dart.core.Object') {
     determineAllMembers(classMirror.superclass, members);
   }
 }

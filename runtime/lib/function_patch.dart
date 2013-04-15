@@ -22,7 +22,7 @@ patch class Function {
     if (numNamedArguments > 0) {
       namedArguments.forEach((name, value) {
         arguments[argumentIndex++] = value;
-        names[nameIndex++] = name._name;
+        names[nameIndex++] = _symbol_dev.Symbol.getName(name);
       });
     }
     return _apply(arguments, names);
