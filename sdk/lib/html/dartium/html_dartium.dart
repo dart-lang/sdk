@@ -1229,6 +1229,19 @@ class CanvasPattern extends NativeFieldWrapperClass1 {
 
 
 @DocsEditable
+@DomName('CanvasProxy')
+class CanvasProxy extends NativeFieldWrapperClass1 {
+  CanvasProxy.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
 /**
  * A rendering context for a canvas element.
  *
@@ -1253,6 +1266,14 @@ class CanvasRenderingContext extends NativeFieldWrapperClass1 {
 @DomName('CanvasRenderingContext2D')
 class CanvasRenderingContext2D extends CanvasRenderingContext {
   CanvasRenderingContext2D.internal() : super.internal();
+
+  @DomName('CanvasRenderingContext2D.currentPath')
+  @DocsEditable
+  DomPath get currentPath native "CanvasRenderingContext2D_currentPath_Getter";
+
+  @DomName('CanvasRenderingContext2D.currentPath')
+  @DocsEditable
+  void set currentPath(DomPath value) native "CanvasRenderingContext2D_currentPath_Setter";
 
   @DomName('CanvasRenderingContext2D.fillStyle')
   @DocsEditable
@@ -7713,6 +7734,75 @@ class DomParser extends NativeFieldWrapperClass1 {
   @DomName('DOMParser.parseFromString')
   @DocsEditable
   Document parseFromString(String str, String contentType) native "DOMParser_parseFromString_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('Path')
+class DomPath extends NativeFieldWrapperClass1 {
+  DomPath.internal();
+
+  @DomName('DOMPath.DOMPath')
+  @DocsEditable
+  factory DomPath([path_OR_text]) {
+    if (!?path_OR_text) {
+      return DomPath._create_1();
+    }
+    if ((path_OR_text is DomPath || path_OR_text == null)) {
+      return DomPath._create_2(path_OR_text);
+    }
+    if ((path_OR_text is String || path_OR_text == null)) {
+      return DomPath._create_3(path_OR_text);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  @DocsEditable
+  static DomPath _create_1() native "DOMPath__create_1constructorCallback";
+
+  @DocsEditable
+  static DomPath _create_2(path_OR_text) native "DOMPath__create_2constructorCallback";
+
+  @DocsEditable
+  static DomPath _create_3(path_OR_text) native "DOMPath__create_3constructorCallback";
+
+  @DomName('DOMPath.arc')
+  @DocsEditable
+  void arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) native "DOMPath_arc_Callback";
+
+  @DomName('DOMPath.arcTo')
+  @DocsEditable
+  void arcTo(num x1, num y1, num x2, num y2, num radius) native "DOMPath_arcTo_Callback";
+
+  @DomName('DOMPath.bezierCurveTo')
+  @DocsEditable
+  void bezierCurveTo(num cp1x, num cp1y, num cp2x, num cp2y, num x, num y) native "DOMPath_bezierCurveTo_Callback";
+
+  @DomName('DOMPath.closePath')
+  @DocsEditable
+  void closePath() native "DOMPath_closePath_Callback";
+
+  @DomName('DOMPath.lineTo')
+  @DocsEditable
+  void lineTo(num x, num y) native "DOMPath_lineTo_Callback";
+
+  @DomName('DOMPath.moveTo')
+  @DocsEditable
+  void moveTo(num x, num y) native "DOMPath_moveTo_Callback";
+
+  @DomName('DOMPath.quadraticCurveTo')
+  @DocsEditable
+  void quadraticCurveTo(num cpx, num cpy, num x, num y) native "DOMPath_quadraticCurveTo_Callback";
+
+  @DomName('DOMPath.rect')
+  @DocsEditable
+  void rect(num x, num y, num width, num height) native "DOMPath_rect_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
