@@ -203,8 +203,8 @@ main() {
 
     setUp(() {
       errorGroup = new ErrorGroup();
-      controller = new StreamController.broadcast();
-      stream = errorGroup.registerStream(controller.stream);
+      controller = new StreamController();
+      stream = errorGroup.registerStream(controller.stream.asBroadcastStream());
     });
 
     test('should pass through values from the stream', () {
@@ -342,10 +342,10 @@ main() {
 
     setUp(() {
       errorGroup = new ErrorGroup();
-      controller1 = new StreamController.broadcast();
-      controller2 = new StreamController.broadcast();
-      stream1 = errorGroup.registerStream(controller1.stream);
-      stream2 = errorGroup.registerStream(controller2.stream);
+      controller1 = new StreamController();
+      controller2 = new StreamController();
+      stream1 = errorGroup.registerStream(controller1.stream.asBroadcastStream());
+      stream2 = errorGroup.registerStream(controller2.stream.asBroadcastStream());
     });
 
     test("should pipe exceptions from one stream to the other and to .done",
@@ -397,8 +397,8 @@ main() {
 
     setUp(() {
       errorGroup = new ErrorGroup();
-      controller = new StreamController.broadcast();
-      stream = errorGroup.registerStream(controller.stream);
+      controller = new StreamController();
+      stream = errorGroup.registerStream(controller.stream.asBroadcastStream());
       completer = new Completer();
       future = errorGroup.registerFuture(completer.future);
     });

@@ -14,8 +14,8 @@ import 'event_helper.dart';
 testController() {
   // Test fold
   test("StreamController.fold", () {
-    StreamController c = new StreamController.broadcast();
-    Stream stream = c.stream;
+    StreamController c = new StreamController();
+    Stream stream = c.stream.asBroadcastStream();
     stream.fold(0, (a,b) => a + b)
      .then(expectAsync1((int v) {
         Expect.equals(42, v);
@@ -26,8 +26,8 @@ testController() {
   });
 
   test("StreamController.fold throws", () {
-    StreamController c = new StreamController.broadcast();
-    Stream stream = c.stream;
+    StreamController c = new StreamController();
+    Stream stream = c.stream.asBroadcastStream();
     stream.fold(0, (a,b) { throw "Fnyf!"; })
      .catchError(expectAsync1((error) { Expect.equals("Fnyf!", error); }));
     c.add(42);

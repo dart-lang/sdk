@@ -122,15 +122,16 @@ typedef void StreamCanceller();
 /// the wrapped stream. Unlike [StreamSubscription], this canceller will send a
 /// "done" message to the wrapped stream.
 Pair<Stream, StreamCanceller> streamWithCanceller(Stream stream) {
-  var controller = stream.isBroadcast ?
-      new StreamController.broadcast() :
-      new StreamController();
+  var controller = new StreamController();
+  var controllerStream = stream.isBroadcast ?
+      controller.stream.asBroadcastStream() :
+      controller.stream;
   var subscription = stream.listen((value) {
     if (!controller.isClosed) controller.add(value);
   }, onError: (error) {
     if (!controller.isClosed) controller.signalError(error);
   }, onDone: controller.close);
-  return new Pair<Stream, StreamCanceller>(controller.stream, controller.close);
+  return new Pair<Stream, StreamCanceller>(controllerStream, controller.close);
 }
 
 // TODO(nweiz): remove this when issue 7787 is fixed.

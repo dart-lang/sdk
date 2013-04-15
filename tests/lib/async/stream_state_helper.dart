@@ -10,25 +10,23 @@ import "dart:collection";
 
 class StreamProtocolTest {
   StreamController _controller;
+  Stream _controllerStream;
   StreamSubscription _subscription;
   List<Event> _expectations = new List<Event>();
   int _nextExpectationIndex = 0;
   Function _onComplete;
 
   StreamProtocolTest([bool broadcast = false]) {
+    _controller = new StreamController(
+          onListen: _onSubcription,
+          onPause: _onPause,
+          onResume: _onPause,
+          onCancel: _onSubcription);
+    // TODO(lrn): Make it work with multiple subscribers too.
     if (broadcast) {
-     _controller = new StreamController.broadcast(
-          onListen: _onSubcription,
-          onPause: _onPause,
-          onResume: _onPause,
-          onCancel: _onSubcription);
-     // TODO(lrn): Make it work with multiple subscribers too.
+      _controllerStream = _controller.stream.asBroadcastStream();
     } else {
-     _controller = new StreamController(
-          onListen: _onSubcription,
-          onPause: _onPause,
-          onResume: _onPause,
-          onCancel: _onSubcription);
+      _controllerStream = _controller.stream;
     }
     _onComplete = expectAsync0((){
       _onComplete = null;  // Being null marks the test to be complete.
@@ -44,11 +42,11 @@ class StreamProtocolTest {
     // TODO(lrn): Handle more subscriptions (e.g., a subscription-id
     // per subscription, and an id on event _expectations).
     if (_subscription != null) throw new StateError("Already subscribed");
-    _subscription = _controller.stream.listen(_onData,
-                                              onError: _onError,
-                                              onDone: _onDone,
-                                              cancelOnError:
-                                                  cancelOnError);
+    _subscription = _controllerStream.listen(_onData,
+                                             onError: _onError,
+                                             onDone: _onDone,
+                                             cancelOnError:
+                                                 cancelOnError);
   }
 
   void pause([Future resumeSignal]) {

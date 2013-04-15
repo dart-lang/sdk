@@ -28,7 +28,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
   static final int _ROMAN_ALPHABET_OFFSET = "a".codeUnits[0] - "A".codeUnits[0];
 
   /** Controller to produce KeyEvents for the stream. */
-  final StreamController _controller = new StreamController.broadcast();
+  final StreamController _controller = new StreamController();
 
   static const _EVENT_TYPE = 'KeyEvent';
 

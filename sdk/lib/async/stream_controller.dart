@@ -50,26 +50,11 @@ class StreamController<T> extends EventSink<T> {
   final _StreamImpl<T> stream;
 
   /**
-   * A controller with a broadcast [stream].
-   *
-   * The [onPause] function is called when the stream becomes
-   * paused. [onResume] is called when the stream resumed.
-   *
-   * The [onListen] callback is called when the stream
-   * receives its first listener. [onCancel] when the last listener cancels
-   * its subscription.
    *
    * If the stream is canceled before the controller needs new data the
    * [onResume] call might not be executed.
-   */
-  StreamController.broadcast({void onListen(),
-                              void onPause(),
-                              void onResume(),
-                              void onCancel()})
       : stream = new _MultiControllerStream<T>(
             onListen, onPause, onResume, onCancel);
-
-  /**
    * A controller with a [stream] that supports only one single subscriber.
    *
    * The controller will buffer all incoming events until the subscriber is
@@ -141,36 +126,6 @@ class StreamController<T> extends EventSink<T> {
 }
 
 typedef void _NotificationHandler();
-
-class _MultiControllerStream<T> extends _MultiStreamImpl<T> {
-  _NotificationHandler _onListen;
-  _NotificationHandler _onPause;
-  _NotificationHandler _onResume;
-  _NotificationHandler _onCancel;
-
-  // TODO(floitsch): share this code with _SingleControllerStream.
-  void _runGuarded(_NotificationHandler notificationHandler) {
-    if (notificationHandler == null) return;
-    try {
-      notificationHandler();
-    } catch (e, s) {
-      _throwDelayed(e, s);
-    }
-  }
-
-  _MultiControllerStream(this._onListen,
-                         this._onPause,
-                         this._onResume,
-                         this._onCancel);
-
-  void _onSubscriptionStateChange() {
-    _runGuarded(_hasListener ? _onListen : _onCancel);
-  }
-
-  void _onPauseStateChange() {
-    _runGuarded(_isPaused ? _onPause : _onResume);
-  }
-}
 
 class _SingleControllerStream<T> extends _SingleStreamImpl<T> {
   _NotificationHandler _onListen;

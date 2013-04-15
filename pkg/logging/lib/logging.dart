@@ -48,6 +48,9 @@ class Logger {
   /** Controller used to notify when log entries are added to this logger. */
   StreamController<LogRecord> _controller;
 
+  /** The broadcast stream associated with the controller. */
+  Stream _stream;
+
   /**
    * Singleton constructor. Calling `new Logger(name)` will return the same
    * actual instance whenever it is called with the same string name.
@@ -177,9 +180,10 @@ class Logger {
   Stream<LogRecord> _getStream() {
     if (hierarchicalLoggingEnabled || parent == null) {
       if (_controller == null) {
-        _controller = new StreamController<LogRecord>.broadcast();
+        _controller = new StreamController<LogRecord>();
+        _stream = _controller.stream.asBroadcastStream();
       }
-      return _controller.stream;
+      return _stream;
     } else {
       return root._getStream();
     }

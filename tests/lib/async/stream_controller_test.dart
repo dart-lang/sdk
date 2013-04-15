@@ -11,58 +11,66 @@ import 'event_helper.dart';
 
 testMultiController() {
   // Test normal flow.
-  var c = new StreamController.broadcast();
+  var c = new StreamController();
   Events expectedEvents = new Events()
       ..add(42)
       ..add("dibs")
       ..error("error!")
       ..error("error too!")
       ..close();
-  Events actualEvents = new Events.capture(c.stream);
+  Events actualEvents = new Events.capture(c.stream.asBroadcastStream());
   expectedEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
   // Test automatic unsubscription on error.
-  c = new StreamController.broadcast();
+  c = new StreamController();
   expectedEvents = new Events()..add(42)..error("error");
-  actualEvents = new Events.capture(c.stream, cancelOnError: true);
+  actualEvents = new Events.capture(c.stream.asBroadcastStream(),
+                                    cancelOnError: true);
   Events sentEvents =
       new Events()..add(42)..error("error")..add("Are you there?");
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
   // Test manual unsubscription.
-  c = new StreamController.broadcast();
+  c = new StreamController();
   expectedEvents = new Events()..add(42)..error("error")..add(37);
-  actualEvents = new Events.capture(c.stream, cancelOnError: false);
+  actualEvents = new Events.capture(c.stream.asBroadcastStream(),
+                                    cancelOnError: false);
   expectedEvents.replay(c);
   actualEvents.subscription.cancel();
   c.add("Are you there");  // Not sent to actualEvents.
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
   // Test filter.
-  c = new StreamController.broadcast();
+  c = new StreamController();
   expectedEvents = new Events()
     ..add("a string")..add("another string")..close();
   sentEvents = new Events()
     ..add("a string")..add(42)..add("another string")..close();
-  actualEvents = new Events.capture(c.stream.where((v) => v is String));
+  actualEvents = new Events.capture(c.stream
+    .asBroadcastStream()
+    .where((v) => v is String));
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
   // Test map.
-  c = new StreamController.broadcast();
+  c = new StreamController();
   expectedEvents = new Events()..add("abab")..error("error")..close();
   sentEvents = new Events()..add("ab")..error("error")..close();
-  actualEvents = new Events.capture(c.stream.map((v) => "$v$v"));
+  actualEvents = new Events.capture(c.stream
+    .asBroadcastStream()
+    .map((v) => "$v$v"));
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
   // Test handleError.
-  c = new StreamController.broadcast();
+  c = new StreamController();
   expectedEvents = new Events()..add("ab")..error("[foo]");
   sentEvents = new Events()..add("ab")..error("foo")..add("ab")..close();
-  actualEvents = new Events.capture(c.stream.handleError((error) {
+  actualEvents = new Events.capture(c.stream
+    .asBroadcastStream()
+    .handleError((error) {
         if (error is String) {
           // TODO(floitsch): this test originally changed the stacktrace.
           throw "[${error}]";
@@ -74,13 +82,13 @@ testMultiController() {
   // reduce is tested asynchronously and therefore not in this file.
 
   // Test expand
-  c = new StreamController.broadcast();
+  c = new StreamController();
   sentEvents = new Events()..add(3)..add(2)..add(4)..close();
   expectedEvents = new Events()..add(1)..add(2)..add(3)
                                ..add(1)..add(2)
                                ..add(1)..add(2)..add(3)..add(4)
                                ..close();
-  actualEvents = new Events.capture(c.stream.expand((v) {
+  actualEvents = new Events.capture(c.stream.asBroadcastStream().expand((v) {
     var l = [];
     for (int i = 0; i < v; i++) l.add(i + 1);
     return l;
@@ -89,11 +97,11 @@ testMultiController() {
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
   // Test transform.
-  c = new StreamController.broadcast();
+  c = new StreamController();
   sentEvents = new Events()..add("a")..error(42)..add("b")..close();
   expectedEvents =
       new Events()..error("a")..add(42)..error("b")..add("foo")..close();
-  actualEvents = new Events.capture(c.stream.transform(
+  actualEvents = new Events.capture(c.stream.asBroadcastStream().transform(
       new StreamTransformer(
           handleData: (v, s) { s.addError(v); },
           handleError: (e, s) { s.add(e); },
@@ -108,7 +116,7 @@ testMultiController() {
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
   // Test multiple filters.
-  c = new StreamController.broadcast();
+  c = new StreamController();
   sentEvents = new Events()..add(42)
                            ..add("snugglefluffy")
                            ..add(7)
@@ -117,7 +125,7 @@ testMultiController() {
                            ..close();
   expectedEvents = new Events()..add(42)..error("not FormatException");
   actualEvents = new Events.capture(
-      c.stream.where((v) => v is String)
+      c.stream.asBroadcastStream().where((v) => v is String)
        .map((v) => int.parse(v))
        .handleError((error) {
           if (error is! FormatException) throw error;
@@ -128,9 +136,9 @@ testMultiController() {
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
   // Test subscription changes while firing.
-  c = new StreamController.broadcast();
+  c = new StreamController();
   var sink = c.sink;
-  var stream = c.stream;
+  var stream = c.stream.asBroadcastStream();
   var counter = 0;
   var subscription = stream.listen(null);
   subscription.onData((data) {
@@ -387,16 +395,14 @@ testExtraMethods() {
 }
 
 testClosed() {
-  for (StreamController c in [new StreamController(),
-                              new StreamController.broadcast()]) {
-    Expect.isFalse(c.isClosed);
-    c.add(42);
-    Expect.isFalse(c.isClosed);
-    c.addError("bad");
-    Expect.isFalse(c.isClosed);
-    c.close();
-    Expect.isTrue(c.isClosed);
-  }
+  StreamController c = new StreamController();
+  Expect.isFalse(c.isClosed);
+  c.add(42);
+  Expect.isFalse(c.isClosed);
+  c.addError("bad");
+  Expect.isFalse(c.isClosed);
+  c.close();
+  Expect.isTrue(c.isClosed);
 }
 
 main() {

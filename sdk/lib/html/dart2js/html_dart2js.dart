@@ -17426,7 +17426,7 @@ class Node extends EventTarget native "*Node" {
     if (_modelChangedStream == null) {
       // Ensure the model is cached locally to minimize change notifications.
       _model = model;
-      _modelChangedStream = new StreamController.broadcast();
+      _modelChangedStream = new StreamController();
     }
     return _modelChangedStream.stream;
   }
@@ -25702,7 +25702,7 @@ class _BeforeUnloadEventStreamProvider implements
   const _BeforeUnloadEventStreamProvider(this._eventType);
 
   Stream<BeforeUnloadEvent> forTarget(EventTarget e, {bool useCapture: false}) {
-    var controller = new StreamController.broadcast();
+    var controller = new StreamController();
     var stream = new _EventStream(e, _eventType, useCapture);
     stream.listen((event) {
       var wrapped = new _BeforeUnloadEvent(event);
@@ -29443,7 +29443,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
   static final int _ROMAN_ALPHABET_OFFSET = "a".codeUnits[0] - "A".codeUnits[0];
 
   /** Controller to produce KeyEvents for the stream. */
-  final StreamController _controller = new StreamController.broadcast();
+  final StreamController _controller = new StreamController();
 
   static const _EVENT_TYPE = 'KeyEvent';
 

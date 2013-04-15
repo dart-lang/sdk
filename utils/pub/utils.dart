@@ -179,13 +179,14 @@ Future streamFirst(Stream stream) {
 /// Returns a wrapped version of [stream] along with a [StreamSubscription] that
 /// can be used to control the wrapped stream.
 Pair<Stream, StreamSubscription> streamWithSubscription(Stream stream) {
-  var controller = stream.isBroadcast ?
-      new StreamController.broadcast() :
-      new StreamController();
+  var controller = new StreamController();
+  var controllerStream = stream.isBroadcast ?
+      controller.stream.asBroadcastStream() :
+      controller.stream;
   var subscription = stream.listen(controller.add,
       onError: controller.addError,
       onDone: controller.close);
-  return new Pair<Stream, StreamSubscription>(controller.stream, subscription);
+  return new Pair<Stream, StreamSubscription>(controllerStream, subscription);
 }
 
 // TODO(nweiz): remove this when issue 7787 is fixed.
