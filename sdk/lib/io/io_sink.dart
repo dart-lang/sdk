@@ -14,8 +14,7 @@ part of dart.io;
  * to the [IOSink] will throw a [StateError]. When the [addStream] compeltes,
  * the [IOSink] will again be open for all calls.
  */
-abstract class IOSink
-    implements StreamConsumer<List<int>>, StringSink, EventSink<List<int>> {
+abstract class IOSink implements StreamSink<List<int>>, StringSink {
   factory IOSink(StreamConsumer<List<int>> target,
                  {Encoding encoding: Encoding.UTF_8})
       => new _IOSinkImpl(target, encoding);
