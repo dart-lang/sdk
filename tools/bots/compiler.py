@@ -223,7 +223,9 @@ def TestCompiler(runtime, mode, system, flags, is_buildbot, test_set):
     # TODO(kasperl): Consider running peg and css tests too.
     extras = ['dart2js_extra', 'dart2js_native', 'dart2js_foreign']
     extras_flags = flags
-    if system == 'linux' and runtime == 'd8':
+    if (system == 'linux'
+        and runtime == 'd8'
+        and not '--host-checked' in extra_flags):
       # Run the extra tests in checked mode, but only on linux/d8.
       # Other systems have less resources and tend to time out.
       extras_flags = extras_flags + ['--host-checked']
