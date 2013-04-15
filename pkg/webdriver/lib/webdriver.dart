@@ -217,7 +217,7 @@ class WebDriverBase {
 
   void _failRequest(Completer completer, error, [stackTrace]) {
     if (completer != null) {
-      var trace = stackTrace != null ? stackTrace, getAttachedStackTrace(error);
+      var trace = stackTrace != null ? stackTrace : getAttachedStackTrace(error);
       completer.completeError(new WebDriverError(-1, error), trace);
     }
   }
