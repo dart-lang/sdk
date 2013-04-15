@@ -134,19 +134,16 @@ class _IOSinkImpl implements IOSink {
     }
     _isBound = true;
     // Wait for any sync operations to complete.
-    return _closeController().then((_) {
+    Future targetAddStream() {
       return _target.addStream(stream)
           .whenComplete(() {
             _isBound = false;
           });
-    });
-  }
-
-  Future _closeController() {
-    if (_controllerInstance == null) return new Future.immediate(null);
+    }
+    if (_controllerInstance == null) return targetAddStream();
     var future = _controllerCompleter.future;
     _controllerInstance.close();
-    return future;
+    return future.then((_) => targetAddStream());
   }
 
   Future close() {
