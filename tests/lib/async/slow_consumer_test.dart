@@ -68,7 +68,9 @@ class DataProvider {
   Timer pendingSend;
 
   DataProvider(int this.bytesPerSecond, int this.targetCount, this.chunkSize) {
-    controller = new StreamController(onPauseStateChange: onPauseStateChange);
+    controller = new StreamController(
+      onPause: onPauseStateChange,
+      onResume: onPauseStateChange);
     Timer.run(send);
   }
 

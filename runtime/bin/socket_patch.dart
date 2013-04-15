@@ -432,8 +432,10 @@ class _RawServerSocket extends Stream<RawSocket>
 
   _RawServerSocket(this._socket) {
     _controller = new StreamController(
-        onSubscriptionStateChange: _onSubscriptionStateChange,
-        onPauseStateChange: _onPauseStateChange);
+        onListen: _onSubscriptionStateChange,
+        onCancel: _onSubscriptionStateChange,
+        onPause: _onPauseStateChange,
+        onResume: _onPauseStateChange);
     _socket.closeFuture.then((_) => _controller.close());
     _socket.setHandlers(
       read: () {
@@ -501,8 +503,10 @@ class _RawSocket extends Stream<RawSocketEvent>
 
   _RawSocket(this._socket) {
     _controller = new StreamController(
-        onSubscriptionStateChange: _onSubscriptionStateChange,
-        onPauseStateChange: _onPauseStateChange);
+        onListen: _onSubscriptionStateChange,
+        onCancel: _onSubscriptionStateChange,
+        onPause: _onPauseStateChange,
+        onResume: _onPauseStateChange);
     _socket.closeFuture.then((_) => _controller.close());
     _socket.setHandlers(
       read: () => _controller.add(RawSocketEvent.READ),
@@ -761,8 +765,10 @@ class _Socket extends Stream<List<int>> implements Socket {
 
   _Socket(RawSocket this._raw) {
     _controller = new StreamController<List<int>>(
-        onSubscriptionStateChange: _onSubscriptionStateChange,
-        onPauseStateChange: _onPauseStateChange);
+        onListen: _onSubscriptionStateChange,
+        onCancel: _onSubscriptionStateChange,
+        onPause: _onPauseStateChange,
+        onResume: _onPauseStateChange);
     _consumer = new _SocketStreamConsumer(this);
     _sink = new IOSink(_consumer);
 

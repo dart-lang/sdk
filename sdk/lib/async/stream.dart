@@ -115,30 +115,28 @@ abstract class Stream<T> {
     }
 
     controller = new StreamController<T>(
-        onPauseStateChange: () {
-          if (controller.isPaused) {
-            timer.cancel();
-            timer = null;
-            watch.stop();
-          } else {
-            assert(timer == null);
-            Duration elapsed = watch.elapsed;
-            watch.start();
-            timer = new Timer(period - elapsed, () {
-              timer = null;
-              startPeriodicTimer();
-              sendEvent();
-            });
-          }
+        onListen: () {
+          watch.start();
+          startPeriodicTimer();
         },
-        onSubscriptionStateChange: () {
-          if (controller.hasListener) {
-            watch.start();
-            startPeriodicTimer();
-          } else {
-            if (timer != null) timer.cancel();
+        onPause: () {
+          timer.cancel();
+          timer = null;
+          watch.stop();
+        },
+        onResume: () {
+          assert(timer == null);
+          Duration elapsed = watch.elapsed;
+          watch.start();
+          timer = new Timer(period - elapsed, () {
             timer = null;
-          }
+            startPeriodicTimer();
+            sendEvent();
+          });
+        },
+        onCancel: () {
+          if (timer != null) timer.cancel();
+          timer = null;
         });
     return controller.stream;
   }
@@ -1014,23 +1012,15 @@ abstract class StreamEventTransformer<S, T> implements StreamTransformer<S, T> {
     StreamController controller;
     StreamSubscription subscription;
     controller = new StreamController<T>(
-        onPauseStateChange: () {
-          if (controller.isPaused) {
-            subscription.pause();
-          } else {
-            subscription.resume();
-          }
+        onListen: () {
+          subscription = transformingStream.listen(
+              controller.add,
+              onError: controller.addError,
+              onDone: controller.close);
         },
-        onSubscriptionStateChange: () {
-          if (controller.hasListener) {
-            subscription = transformingStream.listen(
-                controller.add,
-                onError: controller.addError,
-                onDone: controller.close);
-          } else {
-            subscription.cancel();
-          }
-        });
+        onPause: () => subscription.pause(),
+        onResume: () => subscription.resume(),
+        onCancel: () => subscription.cancel());
     return controller.stream;
   }
 

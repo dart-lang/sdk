@@ -47,8 +47,13 @@ class _FileStream extends Stream<List<int>> {
 
   void _setupController() {
     _controller = new StreamController<List<int>>(
-        onSubscriptionStateChange: _onSubscriptionStateChange,
-        onPauseStateChange: _onPauseStateChange);
+        onListen: _start,
+        onPause: () => _paused = true,
+        onResume: _resume,
+        onCancel: () {
+          _unsubscribed = true;
+          _closeFile();
+        });
   }
 
   Future _closeFile() {
@@ -127,23 +132,6 @@ class _FileStream extends Stream<List<int>> {
     }
     // Resume reading unless we are already done.
     if (_openedFile != null) _readBlock();
-  }
-
-  void _onSubscriptionStateChange() {
-    if (_controller.hasListener) {
-      _start();
-    } else {
-      _unsubscribed = true;
-      _closeFile();
-    }
-  }
-
-  void _onPauseStateChange() {
-    if (_controller.isPaused) {
-      _paused = true;
-    } else {
-      _resume();
-    }
   }
 }
 

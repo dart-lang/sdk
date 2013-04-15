@@ -18,13 +18,17 @@ class StreamProtocolTest {
   StreamProtocolTest([bool broadcast = false]) {
     if (broadcast) {
      _controller = new StreamController.broadcast(
-          onPauseStateChange: _onPause,
-          onSubscriptionStateChange: _onSubcription);
+          onListen: _onSubcription,
+          onPause: _onPause,
+          onResume: _onPause,
+          onCancel: _onSubcription);
      // TODO(lrn): Make it work with multiple subscribers too.
     } else {
      _controller = new StreamController(
-          onPauseStateChange: _onPause,
-          onSubscriptionStateChange: _onSubcription);
+          onListen: _onSubcription,
+          onPause: _onPause,
+          onResume: _onPause,
+          onCancel: _onSubcription);
     }
     _onComplete = expectAsync0((){
       _onComplete = null;  // Being null marks the test to be complete.

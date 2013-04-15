@@ -547,8 +547,10 @@ class _HttpOutboundConsumer implements StreamConsumer {
 
   _ensureController() {
     if (_controller != null) return;
-    _controller = new StreamController(onPauseStateChange: _onPause,
-                                       onSubscriptionStateChange: _onListen);
+    _controller = new StreamController(onPause: _onPause,
+                                       onResume: _onPause,
+                                       onListen: _onListen,
+                                       onCancel: _onListen);
     _outbound._addStream(_controller.stream)
         .then((_) {
                 _done();

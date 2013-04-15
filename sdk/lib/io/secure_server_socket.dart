@@ -107,8 +107,10 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
                           bool this.requireClientCertificate) {
     _socket = serverSocket;
     _controller = new StreamController<RawSecureSocket>(
-        onPauseStateChange: _onPauseStateChange,
-        onSubscriptionStateChange: _onSubscriptionStateChange);
+        onListen: _onSubscriptionStateChange,
+        onPause: _onPauseStateChange,
+        onResume: _onPauseStateChange,
+        onCancel: _onSubscriptionStateChange);
   }
 
   /**

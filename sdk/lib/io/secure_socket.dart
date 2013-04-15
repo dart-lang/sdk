@@ -245,8 +245,10 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       bool this.sendClientCertificate,
       bool this.onBadCertificate(X509Certificate certificate)) {
     _controller = new StreamController<RawSocketEvent>(
-        onPauseStateChange: _onPauseStateChange,
-        onSubscriptionStateChange: _onSubscriptionStateChange);
+        onListen: _onSubscriptionStateChange,
+        onPause: _onPauseStateChange,
+        onResume: _onPauseStateChange,
+        onCancel: _onSubscriptionStateChange);
     _stream = _controller.stream;
     // Throw an ArgumentError if any field is invalid.  After this, all
     // errors will be reported through the future or the stream.
