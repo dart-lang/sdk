@@ -20,7 +20,7 @@ String readAll(String filename) {
   var file = (new File(filename)).openSync();
   var length = file.lengthSync();
   var buffer = new List<int>(length);
-  var bytes = file.readListSync(buffer, 0, length);
+  var bytes = file.readIntoSync(buffer, 0, length);
   file.closeSync();
   return new String.fromCharCodes(new Utf8Decoder(buffer).decodeRest());
 }

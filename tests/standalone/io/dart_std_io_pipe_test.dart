@@ -25,7 +25,7 @@ void checkFileContent(String fileName, String content) {
   RandomAccessFile pipeOut  = new File(fileName).openSync();
   int length = pipeOut.lengthSync();
   List data = new List<int>(length);
-  pipeOut.readListSync(data, 0, length);
+  pipeOut.readIntoSync(data, 0, length);
   Expect.equals(content, new String.fromCharCodes(data));
   pipeOut.closeSync();
 }

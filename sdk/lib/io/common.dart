@@ -58,18 +58,18 @@ class OSError implements Error {
 
 
 // Object for holding a buffer and an offset.
-class _BufferAndOffset {
-  _BufferAndOffset(List this.buffer, int this.offset);
+class _BufferAndStart {
+  _BufferAndStart(List this.buffer, int this.start);
   List buffer;
-  int offset;
+  int start;
 }
 
 // Ensure that the input List can be serialized through a native port.
 // Only builtin Lists can be serialized through. If user-defined Lists
 // get here, the contents is copied to a Uint8List. This has the added
 // benefit that it is faster to access from the C code as well.
-_BufferAndOffset _ensureFastAndSerializableBuffer(
-    List buffer, int offset, int bytes) {
+_BufferAndStart _ensureFastAndSerializableBuffer(
+    List buffer, int start, int end) {
   if (buffer is Uint8List ||
       buffer is Int8List ||
       buffer is Uint16List ||
@@ -82,11 +82,12 @@ _BufferAndOffset _ensureFastAndSerializableBuffer(
       buffer is Float32List ||
       buffer is Float64List ||
       _BufferUtils._isBuiltinList(buffer)) {
-    return new _BufferAndOffset(buffer, offset);
+    return new _BufferAndStart(buffer, start);
   }
-  var newBuffer = new Uint8List(bytes);
-  int j = offset;
-  for (int i = 0; i < bytes; i++) {
+  int length = end - start;
+  var newBuffer = new Uint8List(length);
+  int j = start;
+  for (int i = 0; i < length; i++) {
     int value = buffer[j];
     if (value is! int) {
       throw new ArgumentError("List element is not an integer at index $j");
@@ -94,7 +95,7 @@ _BufferAndOffset _ensureFastAndSerializableBuffer(
     newBuffer[i] = value;
     j++;
   }
-  return new _BufferAndOffset(newBuffer, 0);
+  return new _BufferAndStart(newBuffer, 0);
 }
 
 

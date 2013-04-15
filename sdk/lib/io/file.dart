@@ -368,20 +368,26 @@ abstract class RandomAccessFile {
   List<int> readSync(int bytes);
 
   /**
-   * Reads into an existing List<int> from the file. A maximum of [bytes] bytes
-   * is read into [buffer], starting at position [offset] in the buffer.
+   * Reads into an existing List<int> from the file. If [start] is present, the
+   * bytes will be filled into [buffer] from at index [start], otherwise index
+   * 0. If [end] is present, the [end] - [start] bytes will be read into
+   * [buffer], otherwise up to [buffer.length]. If [end] == [start] nothing
+   * happends.
+   *
    * Returns a [:Future<int>:] that completes with the number of bytes read.
    */
-  Future<int> readList(List<int> buffer, int offset, int bytes);
+  Future<int> readInto(List<int> buffer, [int start, int end]);
 
   /**
-   * Synchronously reads from a file into [buffer].  A maximum of [bytes] bytes
-   * is read into [buffer], starting at position [offset] in the buffer.
-   * Returns the number of bytes read.
+   * Synchronously reads into an existing List<int> from the file. If [start] is
+   * present, the bytes will be filled into [buffer] from at index [start],
+   * otherwise index 0.  If [end] is present, the [end] - [start] bytes will be
+   * read into [buffer], otherwise up to [buffer.length]. If [end] == [start]
+   * nothing happends.
    *
    * Throws a [FileIOException] if the operation fails.
    */
-  int readListSync(List<int> buffer, int offset, int bytes);
+  int readIntoSync(List<int> buffer, [int start, int end]);
 
   /**
    * Writes a single byte to the file. Returns a
@@ -399,21 +405,24 @@ abstract class RandomAccessFile {
   int writeByteSync(int value);
 
   /**
-   * Writes from a List<int> to the file. [bytes] bytes are written from
-   * [buffer], starting at position [offset] in the buffer. Returns a
-   * [:Future<RandomAccessFile>:] that completes with this
-   * RandomAccessFile when the write completes.
+   * Writes from a [List<int>] to the file. It will read the buffer from index
+   * [start] to index [end]. If [start] is omitted, it'll start from index 0.
+   * If [end] is omitted, it will write to end of [buffer].
+   *
+   * Returns a [:Future<RandomAccessFile>:] that completes with this
+   * [RandomAccessFile] when the write completes.
    */
-  Future<RandomAccessFile> writeList(List<int> buffer, int offset, int bytes);
+  Future<RandomAccessFile> writeFrom(List<int> buffer, [int start, int end]);
 
   /**
-   * Synchronously writes a List<int> to the file.  [bytes] bytes are
-   * written from [buffer], starting at position [offset] in the
-   * buffer. Returns the number of bytes successfully written.
+   * Synchronously writes from a [List<int>] to the file. It will read the
+   * buffer from index [start] to index [end]. If [start] is omitted, it'll
+   * start from index 0. If [end] is omitted, it will write to the end of
+   * [buffer].
    *
    * Throws a [FileIOException] if the operation fails.
    */
-  int writeListSync(List<int> buffer, int offset, int bytes);
+  void writeFromSync(List<int> buffer, [int start, int end]);
 
   /**
    * Writes a string to the file using the given [Encoding]. Returns a
@@ -425,13 +434,12 @@ abstract class RandomAccessFile {
 
   /**
    * Synchronously writes a single string to the file using the given
-   * [Encoding]. Returns the number of characters successfully
-   * written.
+   * [Encoding].
    *
    * Throws a [FileIOException] if the operation fails.
    */
-  int writeStringSync(String string,
-                      {Encoding encoding: Encoding.UTF_8});
+  void writeStringSync(String string,
+                       {Encoding encoding: Encoding.UTF_8});
 
   /**
    * Gets the current byte position in the file. Returns a

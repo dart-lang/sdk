@@ -26,11 +26,11 @@ patch class _RandomAccessFile {
   /* patch */ static int _close(int id) native "File_Close";
   /* patch */ static _readByte(int id) native "File_ReadByte";
   /* patch */ static _read(int id, int bytes) native "File_Read";
-  /* patch */ static _readList(int id, List<int> buffer, int offset, int bytes)
-      native "File_ReadList";
+  /* patch */ static _readInto(int id, List<int> buffer, int start, int end)
+      native "File_ReadInto";
   /* patch */ static _writeByte(int id, int value) native "File_WriteByte";
-  /* patch */ static _writeList(int id, List<int> buffer, int offset, int bytes)
-      native "File_WriteList";
+  /* patch */ static _writeFrom(int id, List<int> buffer, int start, int end)
+      native "File_WriteFrom";
   /* patch */ static _position(int id) native "File_Position";
   /* patch */ static _setPosition(int id, int position)
       native "File_SetPosition";

@@ -307,17 +307,17 @@ testWriteByteToReadOnlyFile() {
   });
 }
 
-testWriteListToReadOnlyFile() {
+testWriteFromToReadOnlyFile() {
   createTestFile((file, port) {
     var openedFile = file.openSync(mode: FileMode.READ);
 
     List data = [0, 1, 2, 3];
     // Writing to read only file should throw an exception.
-    Expect.throws(() => openedFile.writeListSync(data, 0, data.length),
+    Expect.throws(() => openedFile.writeFromSync(data, 0, data.length),
                   (e) => checkWriteReadOnlyFileException(e));
 
-    var writeListFuture = openedFile.writeList(data, 0, data.length);
-    writeListFuture.catchError((e) {
+    var writeFromFuture = openedFile.writeFrom(data, 0, data.length);
+    writeFromFuture.catchError((e) {
       checkWriteReadOnlyFileException(e.error);
       openedFile.close().then((ignore) => port.send(null));
     });
@@ -361,9 +361,9 @@ testOperateOnClosedFile() {
                   (e) => checkFileClosedException(e));
     Expect.throws(() => openedFile.writeByteSync(0),
                   (e) => checkFileClosedException(e));
-    Expect.throws(() => openedFile.writeListSync(data, 0, data.length),
+    Expect.throws(() => openedFile.writeFromSync(data, 0, data.length),
                   (e) => checkFileClosedException(e));
-    Expect.throws(() => openedFile.readListSync(data, 0, data.length),
+    Expect.throws(() => openedFile.readIntoSync(data, 0, data.length),
                   (e) => checkFileClosedException(e));
     Expect.throws(() => openedFile.writeStringSync("Hello"),
                   (e) => checkFileClosedException(e));
@@ -395,12 +395,12 @@ testOperateOnClosedFile() {
     writeByteFuture.then((ignore) => Expect.fail("Unreachable code"))
     .catchError(_errorHandler);
     errorCount++;
-    var readListFuture = openedFile.readList(data, 0, data.length);
-    readListFuture.then((bytesRead) => Expect.fail("Unreachable code"))
+    var readIntoFuture = openedFile.readInto(data, 0, data.length);
+    readIntoFuture.then((bytesRead) => Expect.fail("Unreachable code"))
     .catchError(_errorHandler);
     errorCount++;
-    var writeListFuture = openedFile.writeList(data, 0, data.length);
-    writeListFuture.then((ignore) => Expect.fail("Unreachable code"))
+    var writeFromFuture = openedFile.writeFrom(data, 0, data.length);
+    writeFromFuture.then((ignore) => Expect.fail("Unreachable code"))
     .catchError(_errorHandler);
     errorCount++;
     var writeStringFuture = openedFile.writeString("Hello");
@@ -486,7 +486,7 @@ main() {
   testReadAsTextNonExistent();
   testReadAsLinesNonExistent();
   testWriteByteToReadOnlyFile();
-  testWriteListToReadOnlyFile();
+  testWriteFromToReadOnlyFile();
   testTruncateReadOnlyFile();
   testOperateOnClosedFile();
   testRepeatedlyCloseFile();

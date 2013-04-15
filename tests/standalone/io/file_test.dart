@@ -203,9 +203,9 @@ class FileTest {
     File file = new File(filename);
     file.open(mode: READ).then((RandomAccessFile file) {
       List<int> buffer = new List<int>(10);
-      file.readList(buffer, 0, 5).then((bytes_read) {
+      file.readInto(buffer, 0, 5).then((bytes_read) {
         Expect.equals(5, bytes_read);
-        file.readList(buffer, 5, 5).then((bytes_read) {
+        file.readInto(buffer, 5, 10).then((bytes_read) {
           Expect.equals(5, bytes_read);
           Expect.equals(47, buffer[0]);  // represents '/' in the file.
           Expect.equals(47, buffer[1]);  // represents '/' in the file.
@@ -229,9 +229,9 @@ class FileTest {
     RandomAccessFile raf = (new File(filename)).openSync();
     List<int> buffer = new List<int>(42);
     int bytes_read = 0;
-    bytes_read = raf.readListSync(buffer, 0, 12);
+    bytes_read = raf.readIntoSync(buffer, 0, 12);
     Expect.equals(12, bytes_read);
-    bytes_read = raf.readListSync(buffer, 12, 30);
+    bytes_read = raf.readIntoSync(buffer, 12, 42);
     Expect.equals(30, bytes_read);
     Expect.equals(47, buffer[0]);  // represents '/' in the file.
     Expect.equals(47, buffer[1]);  // represents '/' in the file.
@@ -265,7 +265,7 @@ class FileTest {
     final File file = new File(inFilename);
     file.open(mode: READ).then((openedFile) {
       List<int> buffer1 = new List<int>(42);
-      openedFile.readList(buffer1, 0, 42).then((bytes_read) {
+      openedFile.readInto(buffer1, 0, 42).then((bytes_read) {
         Expect.equals(42, bytes_read);
         openedFile.close().then((ignore) {
           // Write the contents of the file just read into another file.
@@ -278,12 +278,12 @@ class FileTest {
                 Expect.fail("Not a full path");
               }
               file2.open(mode: WRITE).then((openedFile2) {
-                openedFile2.writeList(buffer1, 0, bytes_read).then((ignore) {
+                openedFile2.writeFrom(buffer1, 0, bytes_read).then((ignore) {
                   openedFile2.close().then((ignore) {
                     List<int> buffer2 = new List<int>(bytes_read);
                     final File file3 = new File(outFilename);
                     file3.open(mode: READ).then((openedFile3) {
-                      openedFile3.readList(buffer2, 0, 42).then((bytes_read) {
+                      openedFile3.readInto(buffer2, 0, 42).then((bytes_read) {
                         Expect.equals(42, bytes_read);
                         openedFile3.close().then((ignore) {
                           // Now compare the two buffers to check if they
@@ -322,17 +322,17 @@ class FileTest {
     Expect.isTrue(new File(filename).existsSync());
     List<int> buffer = content.codeUnits;
     RandomAccessFile openedFile = file.openSync(mode: WRITE);
-    openedFile.writeListSync(buffer, 0, buffer.length);
+    openedFile.writeFromSync(buffer, 0, buffer.length);
     openedFile.closeSync();
     // Reopen the file in write mode to ensure that we overwrite the content.
     openedFile = (new File(filename)).openSync(mode: WRITE);
-    openedFile.writeListSync(buffer, 0, buffer.length);
+    openedFile.writeFromSync(buffer, 0, buffer.length);
     Expect.equals(content.length, openedFile.lengthSync());
     openedFile.closeSync();
     // Open the file in append mode and ensure that we do not overwrite
     // the existing content.
     openedFile = (new File(filename)).openSync(mode: APPEND);
-    openedFile.writeListSync(buffer, 0, buffer.length);
+    openedFile.writeFromSync(buffer, 0, buffer.length);
     Expect.equals(content.length * 2, openedFile.lengthSync());
     openedFile.closeSync();
     file.deleteSync();
@@ -405,7 +405,7 @@ class FileTest {
     List<int> buffer1 = new List<int>(42);
     int bytes_read = 0;
     int bytes_written = 0;
-    bytes_read = file.readListSync(buffer1, 0, 42);
+    bytes_read = file.readIntoSync(buffer1, 0, 42);
     Expect.equals(42, bytes_read);
     file.closeSync();
     // Write the contents of the file just read into another file.
@@ -418,12 +418,50 @@ class FileTest {
     }
     Expect.isTrue(new File(path).existsSync());
     RandomAccessFile openedFile = outFile.openSync(mode: WRITE);
-    openedFile.writeListSync(buffer1, 0, bytes_read);
+    openedFile.writeFromSync(buffer1, 0, bytes_read);
     openedFile.closeSync();
     // Now read the contents of the file just written.
     List<int> buffer2 = new List<int>(bytes_read);
     openedFile = (new File(outFilename)).openSync();
-    bytes_read = openedFile.readListSync(buffer2, 0, 42);
+    bytes_read = openedFile.readIntoSync(buffer2, 0, 42);
+    Expect.equals(42, bytes_read);
+    openedFile.closeSync();
+    // Now compare the two buffers to check if they are identical.
+    Expect.equals(buffer1.length, buffer2.length);
+    for (int i = 0; i < buffer1.length; i++) {
+      Expect.equals(buffer1[i],  buffer2[i]);
+    }
+    // Delete the output file.
+    outFile.deleteSync();
+    Expect.isFalse(outFile.existsSync());
+  }
+
+  static void testReadWriteNoArgsSync() {
+    // Read a file.
+    String inFilename = getFilename("tests/vm/data/fixed_length_file");
+    RandomAccessFile file = (new File(inFilename)).openSync();
+    List<int> buffer1 = new List<int>(42);
+    int bytes_read = 0;
+    int bytes_written = 0;
+    bytes_read = file.readIntoSync(buffer1);
+    Expect.equals(42, bytes_read);
+    file.closeSync();
+    // Write the contents of the file just read into another file.
+    String outFilename = tempDirectory.path + "/out_read_write_sync";
+    File outFile = new File(outFilename);
+    outFile.createSync();
+    String path = outFile.fullPathSync();
+    if (path[0] != '/' && path[0] != '\\' && path[1] != ':') {
+      Expect.fail("Not a full path");
+    }
+    Expect.isTrue(new File(path).existsSync());
+    RandomAccessFile openedFile = outFile.openSync(mode: WRITE);
+    openedFile.writeFromSync(buffer1);
+    openedFile.closeSync();
+    // Now read the contents of the file just written.
+    List<int> buffer2 = new List<int>(bytes_read);
+    openedFile = (new File(outFilename)).openSync();
+    bytes_read = openedFile.readIntoSync(buffer2, 0);
     Expect.equals(42, bytes_read);
     openedFile.closeSync();
     // Now compare the two buffers to check if they are identical.
@@ -471,18 +509,18 @@ class FileTest {
     file.create().then((ignore) {
       file.open(mode: WRITE).then((RandomAccessFile openedFile) {
         // Write bytes from 0 to 7.
-        openedFile.writeList([0], 0, 1);
-        openedFile.writeList(const [1], 0, 1);
-        openedFile.writeList(new MyListOfOneElement(2), 0, 1);
+        openedFile.writeFrom([0], 0, 1);
+        openedFile.writeFrom(const [1], 0, 1);
+        openedFile.writeFrom(new MyListOfOneElement(2), 0, 1);
         var x = 12345678901234567890123456789012345678901234567890;
         var y = 12345678901234567890123456789012345678901234567893;
-        openedFile.writeList([y - x], 0, 1);
-        openedFile.writeList([260], 0, 1);  // 260 = 256 + 4 = 0x104.
-        openedFile.writeList(const [261], 0, 1);
-        openedFile.writeList(new MyListOfOneElement(262), 0, 1);
+        openedFile.writeFrom([y - x], 0, 1);
+        openedFile.writeFrom([260], 0, 1);  // 260 = 256 + 4 = 0x104.
+        openedFile.writeFrom(const [261], 0, 1);
+        openedFile.writeFrom(new MyListOfOneElement(262), 0, 1);
         x = 12345678901234567890123456789012345678901234567890;
         y = 12345678901234567890123456789012345678901234568153;
-        openedFile.writeList([y - x], 0, 1).then((ignore) {
+        openedFile.writeFrom([y - x], 0, 1).then((ignore) {
           openedFile.close().then((ignore) {
             // Check the written bytes.
             final File file2 = new File(fileName);
@@ -490,7 +528,7 @@ class FileTest {
             var length = openedFile2.lengthSync();
             Expect.equals(8, length);
             List data = new List(length);
-            openedFile2.readListSync(data, 0, length);
+            openedFile2.readIntoSync(data, 0, length);
             for (var i = 0; i < data.length; i++) {
               Expect.equals(i, data[i]);
             }
@@ -594,10 +632,10 @@ class FileTest {
     input.position().then((position) {
       Expect.equals(0, position);
       List<int> buffer = new List<int>(100);
-      input.readList(buffer, 0, 12).then((bytes_read) {
+      input.readInto(buffer, 0, 12).then((bytes_read) {
         input.position().then((position) {
           Expect.equals(12, position);
-          input.readList(buffer, 12, 6).then((bytes_read) {
+          input.readInto(buffer, 12, 18).then((bytes_read) {
             input.position().then((position) {
               Expect.equals(18, position);
               input.setPosition(8).then((ignore) {
@@ -618,9 +656,9 @@ class FileTest {
     RandomAccessFile input = (new File(filename)).openSync();
     Expect.equals(0, input.positionSync());
     List<int> buffer = new List<int>(100);
-    input.readListSync(buffer, 0, 12);
+    input.readIntoSync(buffer, 0, 12);
     Expect.equals(12, input.positionSync());
-    input.readListSync(buffer, 12, 6);
+    input.readIntoSync(buffer, 12, 18);
     Expect.equals(18, input.positionSync());
     input.setPositionSync(8);
     Expect.equals(8, input.positionSync());
@@ -631,7 +669,7 @@ class FileTest {
     File file = new File(tempDirectory.path + "/out_truncate");
     List buffer = const [65, 65, 65, 65, 65, 65, 65, 65, 65, 65];
     file.open(mode: WRITE).then((RandomAccessFile openedFile) {
-      openedFile.writeList(buffer, 0, 10).then((ignore) {
+      openedFile.writeFrom(buffer, 0, 10).then((ignore) {
         openedFile.length().then((length) {
           Expect.equals(10, length);
           openedFile.truncate(5).then((ignore) {
@@ -657,7 +695,7 @@ class FileTest {
     File file = new File(tempDirectory.path + "/out_truncate_sync");
     List buffer = const [65, 65, 65, 65, 65, 65, 65, 65, 65, 65];
     RandomAccessFile openedFile = file.openSync(mode: WRITE);
-    openedFile.writeListSync(buffer, 0, 10);
+    openedFile.writeFromSync(buffer, 0, 10);
     Expect.equals(10, openedFile.lengthSync());
     openedFile.truncateSync(5);
     Expect.equals(5, openedFile.lengthSync());
@@ -705,7 +743,7 @@ class FileTest {
     exceptionCaught = false;
     try {
       List<int> buffer = new List<int>(100);
-      openedFile.readListSync(buffer, 0, 10);
+      openedFile.readIntoSync(buffer, 0, 10);
     } on FileIOException catch (ex) {
       exceptionCaught = true;
     } on Exception catch (ex) {
@@ -716,7 +754,7 @@ class FileTest {
     exceptionCaught = false;
     try {
       List<int> buffer = new List<int>(100);
-      openedFile.writeListSync(buffer, 0, 10);
+      openedFile.writeFromSync(buffer, 0, 10);
     } on FileIOException catch (ex) {
       exceptionCaught = true;
     } on Exception catch (ex) {
@@ -782,7 +820,7 @@ class FileTest {
     RandomAccessFile openedFile = file.openSync(mode: WRITE);
     try {
       List<int> buffer = new List<int>(10);
-      openedFile.readListSync(buffer, 0, 12);
+      openedFile.readIntoSync(buffer, 0, 12);
     } on RangeError catch (ex) {
       exceptionCaught = true;
     } on Exception catch (ex) {
@@ -793,7 +831,7 @@ class FileTest {
     exceptionCaught = false;
     try {
       List<int> buffer = new List<int>(10);
-      openedFile.readListSync(buffer, 6, 6);
+      openedFile.readIntoSync(buffer, 6, 12);
     } on RangeError catch (ex) {
       exceptionCaught = true;
     } on Exception catch (ex) {
@@ -804,7 +842,7 @@ class FileTest {
     exceptionCaught = false;
     try {
       List<int> buffer = new List<int>(10);
-      openedFile.readListSync(buffer, -1, 1);
+      openedFile.readIntoSync(buffer, -1, 1);
     } on RangeError catch (ex) {
       exceptionCaught = true;
     } on Exception catch (ex) {
@@ -815,7 +853,7 @@ class FileTest {
     exceptionCaught = false;
     try {
       List<int> buffer = new List<int>(10);
-      openedFile.readListSync(buffer, 0, -1);
+      openedFile.readIntoSync(buffer, 0, -1);
     } on RangeError catch (ex) {
       exceptionCaught = true;
     } on Exception catch (ex) {
@@ -826,7 +864,7 @@ class FileTest {
     exceptionCaught = false;
     try {
       List<int> buffer = new List<int>(10);
-      openedFile.writeListSync(buffer, 0, 12);
+      openedFile.writeFromSync(buffer, 0, 12);
     } on RangeError catch (ex) {
       exceptionCaught = true;
     } on Exception catch (ex) {
@@ -837,7 +875,7 @@ class FileTest {
     exceptionCaught = false;
     try {
       List<int> buffer = new List<int>(10);
-      openedFile.writeListSync(buffer, 6, 6);
+      openedFile.writeFromSync(buffer, 6, 12);
     } on RangeError catch (ex) {
       exceptionCaught = true;
     } on Exception catch (ex) {
@@ -848,7 +886,7 @@ class FileTest {
     exceptionCaught = false;
     try {
       List<int> buffer = new List<int>(10);
-      openedFile.writeListSync(buffer, -1, 1);
+      openedFile.writeFromSync(buffer, -1, 1);
     } on RangeError catch (ex) {
       exceptionCaught = true;
     } on Exception catch (ex) {
@@ -859,7 +897,7 @@ class FileTest {
     exceptionCaught = false;
     try {
       List<int> buffer = new List<int>(10);
-      openedFile.writeListSync(buffer, 0, -1);
+      openedFile.writeFromSync(buffer, 0, -1);
     } on RangeError catch (ex) {
       exceptionCaught = true;
     } on Exception catch (ex) {
@@ -1218,6 +1256,7 @@ class FileTest {
     createTempDirectory(() {
       testReadWrite();
       testReadWriteSync();
+      testReadWriteNoArgsSync();
       testReadWriteStream();
       testReadEmptyFileSync();
       testReadEmptyFile();

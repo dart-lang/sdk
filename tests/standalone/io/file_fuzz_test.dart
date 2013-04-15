@@ -80,8 +80,8 @@ fuzzSyncRandomAccessMethods() {
       doItSync(() => opened.writeStringSync(p[0], p[1]));
     }
     for (var p in typePermutations(3)) {
-      doItSync(() => opened.readListSync(p[0], p[1], p[2]));
-      doItSync(() => opened.writeListSync(p[0], p[1], p[2]));
+      doItSync(() => opened.readIntoSync(p[0], p[1], p[2]));
+      doItSync(() => opened.writeFromSync(p[0], p[1], p[2]));
     }
     opened.closeSync();
   }
@@ -108,8 +108,8 @@ fuzzAsyncRandomAccessMethods() {
       futures.add(doItAsync(() => opened.writeString(p[0], p[1])));
     }
     for (var p in typePermutations(3)) {
-      futures.add(doItAsync(() => opened.readList(p[0], p[1], p[2])));
-      futures.add(doItAsync(() => opened.writeList(p[0], p[1], p[2])));
+      futures.add(doItAsync(() => opened.readInto(p[0], p[1], p[2])));
+      futures.add(doItAsync(() => opened.writeFrom(p[0], p[1], p[2])));
     }
   }
   Future.wait(futures).then((ignore) {

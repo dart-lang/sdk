@@ -210,28 +210,29 @@ void FUNCTION_NAME(File_Read)(Dart_NativeArguments args) {
 }
 
 
-void FUNCTION_NAME(File_ReadList)(Dart_NativeArguments args) {
+void FUNCTION_NAME(File_ReadInto)(Dart_NativeArguments args) {
   Dart_EnterScope();
   File* file = GetFilePointer(Dart_GetNativeArgument(args, 0));
   ASSERT(file != NULL);
   Dart_Handle buffer_obj = Dart_GetNativeArgument(args, 1);
   ASSERT(Dart_IsList(buffer_obj));
-  // Offset and length arguments are checked in Dart code to be
-  // integers and have the property that (offset + length) <=
+  // start and end arguments are checked in Dart code to be
+  // integers and have the property that end <=
   // list.length. Therefore, it is safe to extract their value as
   // intptr_t.
-  intptr_t offset =
+  intptr_t start =
       DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 2));
-  intptr_t length =
+  intptr_t end =
       DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 3));
+  intptr_t length = end - start;
   intptr_t array_len = 0;
   Dart_Handle result = Dart_ListLength(buffer_obj, &array_len);
   if (Dart_IsError(result)) Dart_PropagateError(result);
-  ASSERT((offset + length) <= array_len);
+  ASSERT(end <= array_len);
   uint8_t* buffer = new uint8_t[length];
   int64_t bytes_read = file->Read(reinterpret_cast<void*>(buffer), length);
   if (bytes_read >= 0) {
-    result = Dart_ListSetAsBytes(buffer_obj, offset, buffer, bytes_read);
+    result = Dart_ListSetAsBytes(buffer_obj, start, buffer, bytes_read);
     if (Dart_IsError(result)) {
       delete[] buffer;
       Dart_PropagateError(result);
@@ -247,7 +248,7 @@ void FUNCTION_NAME(File_ReadList)(Dart_NativeArguments args) {
 }
 
 
-void FUNCTION_NAME(File_WriteList)(Dart_NativeArguments args) {
+void FUNCTION_NAME(File_WriteFrom)(Dart_NativeArguments args) {
   Dart_EnterScope();
   File* file = GetFilePointer(Dart_GetNativeArgument(args, 0));
   ASSERT(file != NULL);
@@ -257,24 +258,23 @@ void FUNCTION_NAME(File_WriteList)(Dart_NativeArguments args) {
   // integers and have the property that (offset + length) <=
   // list.length. Therefore, it is safe to extract their value as
   // intptr_t.
-  intptr_t offset =
+  intptr_t start =
       DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 2));
-  intptr_t length =
+  intptr_t end =
       DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 3));
+  intptr_t length = end - start;
   intptr_t buffer_len = 0;
   Dart_Handle result = Dart_ListLength(buffer_obj, &buffer_len);
   if (Dart_IsError(result)) Dart_PropagateError(result);
-  ASSERT((offset + length) <= buffer_len);
+  ASSERT(end <= buffer_len);
   uint8_t* buffer = new uint8_t[length];
-  result = Dart_ListGetAsBytes(buffer_obj, offset, buffer, length);
+  result = Dart_ListGetAsBytes(buffer_obj, start, buffer, length);
   if (Dart_IsError(result)) {
     delete[] buffer;
     Dart_PropagateError(result);
   }
   int64_t bytes_written = file->Write(reinterpret_cast<void*>(buffer), length);
-  if (bytes_written >= 0) {
-    Dart_SetReturnValue(args, Dart_NewInteger(bytes_written));
-  } else {
+  if (bytes_written != length) {
     Dart_Handle err = DartUtils::NewDartOSError();
     if (Dart_IsError(err)) Dart_PropagateError(err);
     Dart_SetReturnValue(args, err);
@@ -933,7 +933,7 @@ static CObject* FileReadRequest(const CObjectArray& request) {
 }
 
 
-static CObject* FileReadListRequest(const CObjectArray& request) {
+static CObject* FileReadIntoRequest(const CObjectArray& request) {
   if (request.Length() == 3 &&
       request[1]->IsIntptr() &&
       request[2]->IsInt32OrInt64()) {
@@ -990,7 +990,7 @@ static int SizeInBytes(Dart_CObject::TypedDataType type) {
 }
 
 
-static CObject* FileWriteListRequest(const CObjectArray& request) {
+static CObject* FileWriteFromRequest(const CObjectArray& request) {
   if (request.Length() == 5 &&
       request[1]->IsIntptr() &&
       (request[2]->IsTypedData() || request[2]->IsArray()) &&
@@ -999,20 +999,21 @@ static CObject* FileWriteListRequest(const CObjectArray& request) {
     File* file = CObjectToFilePointer(request[1]);
     ASSERT(file != NULL);
     if (!file->IsClosed()) {
-      int64_t offset = CObjectInt32OrInt64ToInt64(request[3]);
-      int64_t length = CObjectInt32OrInt64ToInt64(request[4]);
+      int64_t start = CObjectInt32OrInt64ToInt64(request[3]);
+      int64_t end = CObjectInt32OrInt64ToInt64(request[4]);
+      int64_t length = end - start;
       uint8_t* buffer_start;
       if (request[2]->IsTypedData()) {
         CObjectTypedData typed_data(request[2]);
-        offset = offset * SizeInBytes(typed_data.Type());
+        start = start * SizeInBytes(typed_data.Type());
         length = length * SizeInBytes(typed_data.Type());
-        buffer_start = typed_data.Buffer() + offset;
+        buffer_start = typed_data.Buffer() + start;
       } else {
         CObjectArray array(request[2]);
         buffer_start = new uint8_t[length];
         for (int i = 0; i < length; i++) {
-          if (array[i + offset]->IsInt32OrInt64()) {
-            int64_t value = CObjectInt32OrInt64ToInt64(array[i + offset]);
+          if (array[i + start]->IsInt32OrInt64()) {
+            int64_t value = CObjectInt32OrInt64ToInt64(array[i + start]);
             buffer_start[i] = static_cast<uint8_t>(value & 0xFF);
           } else {
             // Unsupported type.
@@ -1020,7 +1021,7 @@ static CObject* FileWriteListRequest(const CObjectArray& request) {
             return CObject::IllegalArgumentError();
           }
         }
-        offset = 0;
+        start = 0;
       }
       int64_t bytes_written =
           file->Write(reinterpret_cast<void*>(buffer_start), length);
@@ -1130,11 +1131,11 @@ static void FileService(Dart_Port dest_port_id,
         case File::kReadRequest:
           response = FileReadRequest(request);
           break;
-        case File::kReadListRequest:
-          response = FileReadListRequest(request);
+        case File::kReadIntoRequest:
+          response = FileReadIntoRequest(request);
           break;
-        case File::kWriteListRequest:
-          response = FileWriteListRequest(request);
+        case File::kWriteFromRequest:
+          response = FileWriteFromRequest(request);
           break;
         case File::kDeleteLinkRequest:
           response = FileDeleteLinkRequest(request);

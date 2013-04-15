@@ -31,8 +31,8 @@
   V(File_ReadByte, 1)                                                          \
   V(File_WriteByte, 2)                                                         \
   V(File_Read, 2)                                                              \
-  V(File_ReadList, 4)                                                          \
-  V(File_WriteList, 4)                                                         \
+  V(File_ReadInto, 4)                                                          \
+  V(File_WriteFrom, 4)                                                         \
   V(File_Position, 1)                                                          \
   V(File_SetPosition, 2)                                                       \
   V(File_Truncate, 2)                                                          \

@@ -19,9 +19,9 @@ void testWriteInt8ListAndView() {
   new Directory('').createTemp().then((temp) {
     var file = new File("${temp.path}/test");
     file.open(mode: FileMode.WRITE).then((raf) {
-      return raf.writeList(list, 0, 8);
+      return raf.writeFrom(list, 0, 8);
     }).then((raf) {
-      return raf.writeList(view, 0, 4);
+      return raf.writeFrom(view, 0, 4);
     }).then((raf) {
       return raf.close();
     }).then((_) {
@@ -46,9 +46,9 @@ void testWriteUint8ListAndView() {
   new Directory('').createTemp().then((temp) {
     var file = new File("${temp.path}/test");
     file.open(mode: FileMode.WRITE).then((raf) {
-      return raf.writeList(list, 0, 8);
+      return raf.writeFrom(list, 0, 8);
     }).then((raf) {
-      return raf.writeList(view, 0, 4);
+      return raf.writeFrom(view, 0, 4);
     }).then((raf) {
       return raf.close();
     }).then((_) {
@@ -73,9 +73,9 @@ void testWriteUint8ClampedListAndView() {
   new Directory('').createTemp().then((temp) {
     var file = new File("${temp.path}/test");
     file.open(mode: FileMode.WRITE).then((raf) {
-      return raf.writeList(list, 0, 8);
+      return raf.writeFrom(list, 0, 8);
     }).then((raf) {
-      return raf.writeList(view, 0, 4);
+      return raf.writeFrom(view, 0, 4);
     }).then((raf) {
       return raf.close();
     }).then((_) {
@@ -100,9 +100,9 @@ void testWriteInt16ListAndView() {
   new Directory('').createTemp().then((temp) {
     var file = new File("${temp.path}/test");
     file.open(mode: FileMode.WRITE).then((raf) {
-      return raf.writeList(list, 0, 8);
+      return raf.writeFrom(list, 0, 8);
     }).then((raf) {
-      return raf.writeList(view, 0, 4);
+      return raf.writeFrom(view, 0, 4);
     }).then((raf) {
       return raf.close();
     }).then((_) {
@@ -131,9 +131,9 @@ void testWriteUint16ListAndView() {
   new Directory('').createTemp().then((temp) {
     var file = new File("${temp.path}/test");
     file.open(mode: FileMode.WRITE).then((raf) {
-      return raf.writeList(list, 0, 8);
+      return raf.writeFrom(list, 0, 8);
     }).then((raf) {
-      return raf.writeList(view, 0, 4);
+      return raf.writeFrom(view, 0, 4);
     }).then((raf) {
       return raf.close();
     }).then((_) {
@@ -162,9 +162,9 @@ void testWriteInt32ListAndView() {
   new Directory('').createTemp().then((temp) {
     var file = new File("${temp.path}/test");
     file.open(mode: FileMode.WRITE).then((raf) {
-      return raf.writeList(list, 0, 8);
+      return raf.writeFrom(list, 0, 8);
     }).then((raf) {
-      return raf.writeList(view, 0, 4);
+      return raf.writeFrom(view, 0, 4);
     }).then((raf) {
       return raf.close();
     }).then((_) {
@@ -193,9 +193,9 @@ void testWriteUint32ListAndView() {
   new Directory('').createTemp().then((temp) {
     var file = new File("${temp.path}/test");
     file.open(mode: FileMode.WRITE).then((raf) {
-      return raf.writeList(list, 0, 8);
+      return raf.writeFrom(list, 0, 8);
     }).then((raf) {
-      return raf.writeList(view, 0, 4);
+      return raf.writeFrom(view, 0, 4);
     }).then((raf) {
       return raf.close();
     }).then((_) {
@@ -224,7 +224,7 @@ void testWriteInt64ListAndView() {
   new Directory('').createTemp().then((temp) {
     var file = new File("${temp.path}/test");
     file.open(mode: FileMode.WRITE).then((raf) {
-      return raf.writeList(list, 0, 8);
+      return raf.writeFrom(list, 0, 8);
     }).then((raf) {
         //      return raf.writeList(view, 0, 4);
         //}).then((raf) {
@@ -255,9 +255,9 @@ void testWriteUint64ListAndView() {
   new Directory('').createTemp().then((temp) {
     var file = new File("${temp.path}/test");
     file.open(mode: FileMode.WRITE).then((raf) {
-      return raf.writeList(list, 0, 8);
+      return raf.writeFrom(list, 0, 8);
     }).then((raf) {
-      return raf.writeList(view, 0, 4);
+      return raf.writeFrom(view, 0, 4);
     }).then((raf) {
       return raf.close();
     }).then((_) {
