@@ -79,9 +79,11 @@ class _ModelTreeObserver {
     // Catch and report them a global exceptions.
     try {
       if (node._hasLocalModel != true && node._model != model &&
-          node._modelChangedStream != null) {
+          node._modelChangedStreams != null &&
+          !node._modelChangedStreams.isEmpty) {
         node._model = model;
-        node._modelChangedStream.add(node);
+        node._modelChangedStreams.toList()
+          .forEach((controller) => controller.add(node));
       }
     } catch (e, s) {
       new Future.immediateError(e, s);

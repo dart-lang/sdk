@@ -299,7 +299,7 @@ $endif
   @Experimental
   get model {
     // If we have a change handler then we've cached the model locally.
-    if (!_modelChangedStreams.isEmpty) {
+    if (_modelChangedStreams != null && !_modelChangedStreams.isEmpty) {
       return _model;
     }
     // Otherwise start looking up the tree.
@@ -319,7 +319,7 @@ $endif
     _ModelTreeObserver.initialize();
 
     if (changed) {
-      if (!_modelChangedStreams.isEmpty) {
+      if (_modelChangedStreams != null && !_modelChangedStreams.isEmpty) {
         _modelChangedStreams.toList().forEach((stream) => stream.add(this));
       }
       // Propagate new model to all descendants.
@@ -349,11 +349,14 @@ $endif
    * Get a stream of models, whenever the model changes.
    */
   Stream<Node> get onModelChanged {
-    var result;
-    result = new StreamController(
-        onListen: () { _modelChangedStreams.add(result); },
-        onCancel: () { _modelChangedStreams.remove(result); });
-    return result;
+    if (_modelChangedStreams == null) {
+      _modelChangedStreams = new Set<StreamController<Node>>();
+    }
+    var controller;
+    controller = new StreamController(
+        onListen: () { _modelChangedStreams.add(controller); },
+        onCancel: () { _modelChangedStreams.remove(controller); });
+    return controller.stream;
   }
 
   /**

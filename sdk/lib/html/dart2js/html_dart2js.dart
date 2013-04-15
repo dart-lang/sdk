@@ -17373,7 +17373,7 @@ class Node extends EventTarget native "*Node" {
   @Experimental
   get model {
     // If we have a change handler then we've cached the model locally.
-    if (!_modelChangedStreams.isEmpty) {
+    if (_modelChangedStreams != null && !_modelChangedStreams.isEmpty) {
       return _model;
     }
     // Otherwise start looking up the tree.
@@ -17393,7 +17393,7 @@ class Node extends EventTarget native "*Node" {
     _ModelTreeObserver.initialize();
 
     if (changed) {
-      if (!_modelChangedStreams.isEmpty) {
+      if (_modelChangedStreams != null && !_modelChangedStreams.isEmpty) {
         _modelChangedStreams.toList().forEach((stream) => stream.add(this));
       }
       // Propagate new model to all descendants.
@@ -17423,11 +17423,14 @@ class Node extends EventTarget native "*Node" {
    * Get a stream of models, whenever the model changes.
    */
   Stream<Node> get onModelChanged {
-    var result;
-    result = new StreamController(
-        onListen: () { _modelChangedStreams.add(result); },
-        onCancel: () { _modelChangedStreams.remove(result); });
-    return result;
+    if (_modelChangedStreams == null) {
+      _modelChangedStreams = new Set<StreamController<Node>>();
+    }
+    var controller;
+    controller = new StreamController(
+        onListen: () { _modelChangedStreams.add(controller); },
+        onCancel: () { _modelChangedStreams.remove(controller); });
+    return controller.stream;
   }
 
   /**
@@ -30663,9 +30666,11 @@ class _ModelTreeObserver {
     // Catch and report them a global exceptions.
     try {
       if (node._hasLocalModel != true && node._model != model &&
-          node._modelChangedStream != null) {
+          node._modelChangedStreams != null &&
+          !node._modelChangedStreams.isEmpty) {
         node._model = model;
-        node._modelChangedStream.add(node);
+        node._modelChangedStreams.toList()
+          .forEach((controller) => controller.add(node));
       }
     } catch (e, s) {
       new Future.immediateError(e, s);
