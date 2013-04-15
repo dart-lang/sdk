@@ -110,7 +110,7 @@ class PatternDescriptor extends Descriptor {
     return '/${regExp.pattern}/$flags';
   }
 
-  Future create([String parent]) => new Future.immediateError(
+  Future create([String parent]) => new Future.error(
       new UnsupportedError("Pattern descriptors don't support create()."));
 
   Stream<List<int>> load(String pathToLoad) => errorStream(

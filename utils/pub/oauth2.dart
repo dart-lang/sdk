@@ -104,7 +104,7 @@ Future withClient(SystemCache cache, Future fn(Client client)) {
 /// Gets a new OAuth2 client. If saved credentials are available, those are
 /// used; otherwise, the user is prompted to authorize the pub client.
 Future<Client> _getClient(SystemCache cache) {
-  return new Future.of(() {
+  return new Future.sync(() {
     var credentials = _loadCredentials(cache);
     if (credentials == null) return _authorize();
 

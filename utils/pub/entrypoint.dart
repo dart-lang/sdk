@@ -71,7 +71,7 @@ class Entrypoint {
     if (pendingOrCompleted != null) return pendingOrCompleted;
 
     var packageDir = path.join(packagesDir, id.name);
-    var future = new Future.of(() {
+    var future = new Future.sync(() {
       ensureDir(path.dirname(packageDir));
 
       if (entryExists(packageDir)) {
@@ -102,7 +102,7 @@ class Entrypoint {
   /// directory, respecting the [LockFile] if present. Returns a [Future] that
   /// completes when all dependencies are installed.
   Future installDependencies() {
-    return new Future.of(() {
+    return new Future.sync(() {
       return resolveVersions(cache.sources, root, loadLockFile());
     }).then(_installDependencies);
   }
@@ -119,7 +119,7 @@ class Entrypoint {
   /// other dependencies as specified by the [LockFile] if possible. Returns a
   /// [Future] that completes when all dependencies are installed.
   Future updateDependencies(List<String> dependencies) {
-    return new Future.of(() {
+    return new Future.sync(() {
       var solver = new VersionSolver(cache.sources, root, loadLockFile());
       for (var dependency in dependencies) {
         solver.useLatestVersion(dependency);
@@ -131,10 +131,10 @@ class Entrypoint {
   /// Removes the old packages directory, installs all dependencies listed in
   /// [packageVersions], and writes a [LockFile].
   Future _installDependencies(List<PackageId> packageVersions) {
-    return new Future.of(() {
+    return new Future.sync(() {
       cleanDir(packagesDir);
       return Future.wait(packageVersions.map((id) {
-        if (id.isRoot) return new Future.immediate(id);
+        if (id.isRoot) return new Future.value(id);
         return install(id);
       }).toList());
     }).then((ids) {
@@ -148,13 +148,13 @@ class Entrypoint {
   /// reached packages. This should only be called after the lockfile has been
   /// successfully generated.
   Future<List<Pubspec>> walkDependencies() {
-    return new Future.of(() {
+    return new Future.sync(() {
       var lockFile = loadLockFile();
       var group = new FutureGroup<Pubspec>();
       var visited = new Set<String>();
 
       // Include the root package in the results.
-      group.add(new Future.immediate(root.pubspec));
+      group.add(new Future.value(root.pubspec));
 
       visitPackage(Pubspec pubspec) {
         for (var ref in pubspec.dependencies) {
@@ -166,7 +166,7 @@ class Entrypoint {
           visited.add(ref.name);
           var future;
           if (ref.name == root.name) {
-            future = new Future<Pubspec>.immediate(root.pubspec);
+            future = new Future<Pubspec>.value(root.pubspec);
           } else {
             future = cache.describe(id);
           }

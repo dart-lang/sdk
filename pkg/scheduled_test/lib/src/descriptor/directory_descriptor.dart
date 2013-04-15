@@ -46,7 +46,7 @@ class DirectoryDescriptor extends Descriptor {
     }
 
     return Future.wait(contents.map((entry) {
-      return new Future.of(() => entry.validateNow(fullPath))
+      return new Future.sync(() => entry.validateNow(fullPath))
           .then((_) => null)
           .catchError((e) => e);
     })).then((results) {
@@ -57,7 +57,7 @@ class DirectoryDescriptor extends Descriptor {
   }
 
   Stream<List<int>> load(String pathToLoad) {
-    return futureStream(new Future.immediate(null).then((_) {
+    return futureStream(new Future.value().then((_) {
       if (_path.isAbsolute(pathToLoad)) {
         throw "Can't load absolute path '$pathToLoad'.";
       }

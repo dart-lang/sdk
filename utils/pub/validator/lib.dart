@@ -23,7 +23,7 @@ class LibValidator extends Validator {
     : super(entrypoint);
 
   Future validate() {
-    return new Future.of(() {
+    return new Future.sync(() {
       var libDir = path.join(entrypoint.root.dir, "lib");
 
       if (!dirExists(libDir)) {

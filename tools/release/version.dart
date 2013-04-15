@@ -149,7 +149,7 @@ class Version {
 
   Future<int> getRevision() {
     if (repositoryType == RepositoryType.UNKNOWN) {
-      return new Future.immediate(0);
+      return new Future.value(0);
     }
     var isSvn = repositoryType == RepositoryType.SVN;
     var command = isSvn ? "svn" : "git";

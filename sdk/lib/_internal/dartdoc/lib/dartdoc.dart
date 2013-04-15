@@ -149,7 +149,7 @@ Future compileScript(int mode, Path outputDir, Path libPath) {
 
 void _compileScript() {
   port.receive((message, replyTo) {
-    new Future.of(() {
+    new Future.sync(() {
       var clientScript = (message['mode'] == MODE_STATIC) ?
           'static' : 'live-nav';
       var dartPath = pathos.join(message['libPath'], 'lib', '_internal',

@@ -64,7 +64,7 @@ class Clock {
   void tick([int milliseconds=1]) {
     for (var i = 0; i < milliseconds; i++) {
       var tickTime = ++_time;
-      new Future.immediate(null).then((_) => _onTickController.add(tickTime));
+      new Future.value().then((_) => _onTickController.add(tickTime));
     }
   }
 

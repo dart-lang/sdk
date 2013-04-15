@@ -50,8 +50,8 @@ String prefixLines(String text, {String prefix: '| ', String firstPrefix}) {
 /// times. By default, this should pump the event queue enough times to allow
 /// any code to run, as long as it's not waiting on some external event.
 Future pumpEventQueue([int times=20]) {
-  if (times == 0) return new Future.immediate(null);
-  return new Future.immediate(null).then((_) => pumpEventQueue(times - 1));
+  if (times == 0) return new Future.value();
+  return new Future.value().then((_) => pumpEventQueue(times - 1));
 }
 
 /// Returns whether [iterable1] has the same elements in the same order as
@@ -71,7 +71,7 @@ bool orderedIterableEquals(Iterable iterable1, Iterable iterable2) {
 
 // TODO(nweiz): remove this when issue 8731 is fixed.
 /// Returns a [Stream] that will immediately emit [error] and then close.
-Stream errorStream(error) => new Future.immediateError(error).asStream();
+Stream errorStream(error) => new Future.error(error).asStream();
 
 /// Returns a buffered stream that will emit the same values as the stream
 /// returned by [future] once [future] completes. If [future] completes to an
@@ -163,7 +163,7 @@ Future awaitObject(object) {
   if (object is Iterable) {
     return Future.wait(object.map(awaitObject).toList());
   }
-  if (object is! Map) return new Future.immediate(object);
+  if (object is! Map) return new Future.value(object);
 
   var pairs = <Future<Pair>>[];
   object.forEach((key, value) {

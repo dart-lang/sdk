@@ -215,7 +215,7 @@ class _HttpClientResponse
     if (followLoops != true) {
       for (var redirect in redirects) {
         if (redirect.location == url) {
-          return new Future.immediateError(
+          return new Future.error(
               new RedirectLoopException(redirects));
         }
       }
@@ -282,7 +282,7 @@ class _HttpClientResponse
 
       // Fall through to here to perform normal response handling if
       // there is no sensible authorization handling.
-      return new Future.immediate(this);
+      return new Future.value(this);
     }
 
     List<String> challenge = headers[HttpHeaders.WWW_AUTHENTICATE];
@@ -324,7 +324,7 @@ class _HttpClientResponse
     }
 
     // No credentials were found and the callback was not set.
-    return new Future.immediate(this);
+    return new Future.value(this);
   }
 
   Future<HttpClientResponse> _authenticateProxy() {
@@ -371,7 +371,7 @@ class _HttpClientResponse
     }
 
     // No credentials were found and the callback was not set.
-    return new Future.immediate(this);
+    return new Future.value(this);
   }
 }
 
@@ -509,7 +509,7 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
         headers.contentLength = 0;
       } else if (!_ignoreBody && headers.contentLength > 0) {
         _headersSink.close().catchError((_) {});
-        return new Future.immediateError(new HttpException(
+        return new Future.error(new HttpException(
             "No content while contentLength was specified to be greater "
             " than 0: ${headers.contentLength}."));
       }
@@ -862,7 +862,7 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
       } else {
         // End with exception, too many redirects.
         future = response.fold(null, (x, y) {})
-            .then((_) => new Future.immediateError(
+            .then((_) => new Future.error(
                 new RedirectLimitExceededException(response.redirects)));
       }
     } else if (response._shouldAuthenticateProxy) {
@@ -870,7 +870,7 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
     } else if (response._shouldAuthenticate) {
       future = response._authenticate();
     } else {
-      future = new Future<HttpClientResponse>.immediate(response);
+      future = new Future<HttpClientResponse>.value(response);
     }
     future.then(
         (v) => _responseCompleter.complete(v),
@@ -1018,7 +1018,7 @@ class _HttpOutgoing implements StreamConsumer<List<int>> {
 
   Future close() {
     _doneCompleter.complete(_consumer);
-    return new Future.immediate(null);
+    return new Future.value();
   }
 
   Future get done => _doneCompleter.future;
@@ -1294,7 +1294,7 @@ class _HttpClient implements HttpClient {
       try {
         proxyConf = new _ProxyConfiguration(_findProxy(uri));
       } catch (error, stackTrace) {
-        return new Future.immediateError(error, stackTrace);
+        return new Future.error(error, stackTrace);
       }
     }
     return _getConnection(uri.domain, port, proxyConf, isSecure)
@@ -1360,7 +1360,7 @@ class _HttpClient implements HttpClient {
     Iterator<_Proxy> proxies = proxyConf.proxies.iterator;
 
     Future<_ConnnectionInfo> connect(error) {
-      if (!proxies.moveNext()) return new Future.immediateError(error);
+      if (!proxies.moveNext()) return new Future.error(error);
       _Proxy proxy = proxies.current;
       String host = proxy.isDirect ? uriHost: proxy.host;
       int port = proxy.isDirect ? uriPort: proxy.port;
@@ -1372,7 +1372,7 @@ class _HttpClient implements HttpClient {
           _idleConnections.remove(key);
         }
         _activeConnections.add(connection);
-        return new Future.immediate(new _ConnnectionInfo(connection, proxy));
+        return new Future.value(new _ConnnectionInfo(connection, proxy));
       }
       return (isSecure && proxy.isDirect
                   ? SecureSocket.connect(host,

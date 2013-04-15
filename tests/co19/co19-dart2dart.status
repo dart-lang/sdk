@@ -531,6 +531,17 @@ LibTest/core/List/getRange_A01_t01: Fail # getRange now takes end-argument and r
 LibTest/core/List/getRange_A04_t01: Fail # getRange now takes end-argument and returns Iterable. Issue 399
 LibTest/core/List/operator_subscript_A01_t02: Fail # getRange now takes end-argument and returns Iterable. Issue 399
 
+LibTest/async/Future/catchError_A01_t01: Fail # Future constructors have changed # issues 408
+LibTest/async/Future/Future.immediateError_A01_t01: Fail # Future constructors have changed # issues 408
+LibTest/async/Future/asStream_A01_t01: Fail # Future constructors have changed # issue 408
+LibTest/async/Future/Future.immediate_A01_t01: Fail # Future constructors have changed # issue 408
+LibTest/async/Future/then_A01_t03: Fail # Future constructors have changed # issue 408
+LibTest/async/Future/catchError_A01_t01: Fail # Future constructors have changed # issue 408
+LibTest/async/Future/forEach_A03_t01: Fail # Future constructors have changed # issue 408
+LibTest/async/Future/asStream_A01_t02: Fail # Future constructors have changed # issue 408
+LibTest/async/Future/Future.immediateError_A01_t01: Fail # Future constructors have changed # issue 408
+LibTest/async/Future/asStream_A02_t01: Fail # Future constructors have changed # issue 408
+
 LibTest/core/Iterable/any_A01_t04: Fail # setRange now takes end-argument. Issue 402
 LibTest/core/List/setRange_A01_t02: Fail # setRange now takes end-argument. Issue 402
 LibTest/core/List/setRange_A02_t01: Fail # setRange now takes end-argument. Issue 402

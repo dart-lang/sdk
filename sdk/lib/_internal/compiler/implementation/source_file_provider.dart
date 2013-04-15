@@ -45,7 +45,7 @@ class SourceFileProvider {
     dartCharactersRead += source.length;
     sourceFiles[resourceUri.toString()] =
       new SourceFile(relativize(cwd, resourceUri, isWindows), source);
-    return new Future.immediate(source);
+    return new Future.value(source);
   }
 }
 

@@ -164,7 +164,7 @@ Future writeStreamToSink(Stream stream, EventSink sink) {
 }
 
 /// Returns a [Future] that asynchronously completes to `null`.
-Future get async => new Future.immediate(null);
+Future get async => new Future.value();
 
 /// Returns a closed [Stream] with no elements.
 Stream get emptyStream => streamFromIterable([]);
@@ -234,7 +234,7 @@ void chainToCompleter(Future future, Completer completer) {
 Future forEachFuture(Iterable input, Future fn(element)) {
   var iterator = input.iterator;
   Future nextElement(_) {
-    if (!iterator.moveNext()) return new Future.immediate(null);
+    if (!iterator.moveNext()) return new Future.value();
     return fn(iterator.current).then(nextElement);
   }
   return nextElement(null);

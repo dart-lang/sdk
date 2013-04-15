@@ -249,7 +249,7 @@ Stream<String> streamToLines(Stream<String> stream) {
 Future<Iterable> futureWhere(Iterable iter, test(value)) {
   return Future.wait(iter.map((e) {
     var result = test(e);
-    if (result is! Future) result = new Future.immediate(result);
+    if (result is! Future) result = new Future.value(result);
     return result.then((result) => new Pair(e, result));
   }))
       .then((pairs) => pairs.where((pair) => pair.last))
@@ -343,7 +343,7 @@ Future awaitObject(object) {
   if (object is Iterable) {
     return Future.wait(object.map(awaitObject).toList());
   }
-  if (object is! Map) return new Future.immediate(object);
+  if (object is! Map) return new Future.value(object);
 
   var pairs = <Future<Pair>>[];
   object.forEach((key, value) {

@@ -131,7 +131,7 @@ class Schedule {
   /// Sets up this schedule by running [setUp], then runs all the task queues in
   /// order. Any errors in [setUp] will cause [onException] to run.
   Future run(void setUp()) {
-    return new Future.immediate(null).then((_) {
+    return new Future.value().then((_) {
       try {
         setUp();
       } catch (e, stackTrace) {
@@ -432,13 +432,13 @@ class TaskQueue {
     if (isRunning) {
       var task = _schedule.currentTask;
       var wrappedFn = () => _schedule.wrapFuture(
-          new Future.immediate(null).then((_) => fn()));
+          new Future.value().then((_) => fn()));
       if (task == null) return wrappedFn();
       return task.runChild(wrappedFn, description);
     }
 
     var task = new Task(() {
-      return new Future.of(fn).catchError((e) {
+      return new Future.sync(fn).catchError((e) {
         throw new ScheduleError.from(_schedule, e);
       });
     }, description, this);
@@ -557,7 +557,7 @@ class TaskQueue {
     } else if (_taskFuture != null) {
       // Catch errors coming off the old task future, in case it completes after
       // timing out.
-      _taskFuture.substitute(new Future.immediateError(error)).catchError((e) {
+      _taskFuture.substitute(new Future.error(error)).catchError((e) {
         _schedule._signalPostTimeoutError(e);
       });
     } else {

@@ -99,7 +99,7 @@ main() {
           return fs.root.createDirectory(
               'directory3')
             .then((DirectoryEntry dir) {
-              return new Future.immediate(new FileAndDir(file, dir));
+              return new Future.value(new FileAndDir(file, dir));
             });
         });
   }

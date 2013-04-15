@@ -38,9 +38,9 @@ setUpDependency(Map dep, {List<String> hostedVersions}) {
     expect(request.url.path, equals("/packages/foo.json"));
 
     if (hostedVersions == null) {
-      return new Future.immediate(new http.Response("not found", 404));
+      return new Future.value(new http.Response("not found", 404));
     } else {
-      return new Future.immediate(new http.Response(json.stringify({
+      return new Future.value(new http.Response(json.stringify({
         "name": "foo",
         "uploaders": ["nweiz@google.com"],
         "versions": hostedVersions

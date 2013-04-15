@@ -16,7 +16,7 @@ import 'utils.dart';
 
 Function size(int size) {
   return (entrypoint) =>
-      new SizeValidator(entrypoint, new Future.immediate(size));
+      new SizeValidator(entrypoint, new Future.value(size));
 }
 
 main() {

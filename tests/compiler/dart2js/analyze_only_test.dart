@@ -19,7 +19,7 @@ runCompiler(String main, List<String> options,
 
   Future<String> localProvider(Uri uri) {
     if (uri.scheme != 'main') return dummy.provider(uri);
-    return new Future<String>.immediate(main);
+    return new Future<String>.value(main);
   }
 
   void localHandler(Uri uri, int begin, int end,

@@ -494,7 +494,7 @@ void testProxyAuthenticate() {
             proxyServer.port,
             "realm",
             new HttpClientBasicCredentials("test", "test"));
-        return new Future.immediate(true);
+        return new Future.value(true);
       };
 
       for (int i = 0; i < loopCount; i++) {

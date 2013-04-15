@@ -130,7 +130,7 @@ class _Link extends FileSystemEntity implements Link {
 
   Future<bool> exists() {
     // TODO(whesse): Replace with asynchronous version.
-    return new Future.immediate(existsSync());
+    return new Future.value(existsSync());
   }
 
   bool existsSync() => FileSystemEntity.isLinkSync(path);
@@ -205,7 +205,7 @@ class _Link extends FileSystemEntity implements Link {
 
   Future<String> target() {
     // TODO(whesse): Replace with asynchronous version.
-    return new Future.of(targetSync);
+    return new Future.sync(targetSync);
   }
 
   String targetSync() {

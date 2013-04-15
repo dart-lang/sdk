@@ -84,7 +84,7 @@ Future testForEach() {
   var seen = <int>[];
   return Future.forEach([1, 2, 3, 4, 5], (n) {
     seen.add(n);
-    return new Future.immediate(null);
+    return new Future.value();
   }).then((_) => Expect.listEquals([1, 2, 3, 4, 5], seen));
 }
 
@@ -93,7 +93,7 @@ Future testForEachWithException() {
   return Future.forEach([1, 2, 3, 4, 5], (n) {
     if (n == 4) throw 'correct exception';
     seen.add(n);
-    return new Future.immediate(null);
+    return new Future.value();
   }).then((_) {
     throw 'incorrect exception';
   }).catchError((error) {

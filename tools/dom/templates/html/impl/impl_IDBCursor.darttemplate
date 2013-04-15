@@ -10,7 +10,7 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
    try {
       return _completeRequest($dom_delete());
     } catch (e, stacktrace) {
-      return new Future.immediateError(e, stacktrace);
+      return new Future.error(e, stacktrace);
     }
   }
 
@@ -19,7 +19,7 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
    try {
       return _completeRequest($dom_update(value));
     } catch (e, stacktrace) {
-      return new Future.immediateError(e, stacktrace);
+      return new Future.error(e, stacktrace);
     }
   }
 

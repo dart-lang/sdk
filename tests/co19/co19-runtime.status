@@ -214,6 +214,16 @@ LibTest/core/Date/operator_equality_A01_t01: Fail # DateTime.== now looks at tim
 
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t03: Fail # issue 6085
 
+LibTest/async/Future/catchError_A01_t01: Fail # Future constructors have changed # issues 408
+LibTest/async/Future/Future.immediateError_A01_t01: Fail # Future constructors have changed # issues 408
+LibTest/async/Future/asStream_A01_t01: Fail # Future constructors have changed # issue 408
+LibTest/async/Future/Future.immediate_A01_t01: Fail # Future constructors have changed # issue 408
+LibTest/async/Future/then_A01_t03: Fail # Future constructors have changed # issue 408
+LibTest/async/Future/catchError_A01_t01: Fail # Future constructors have changed # issue 408
+LibTest/async/Future/forEach_A03_t01: Fail # Future constructors have changed # issue 408
+LibTest/async/Future/asStream_A01_t02: Fail # Future constructors have changed # issue 408
+LibTest/async/Future/Future.immediateError_A01_t01: Fail # Future constructors have changed # issue 408
+LibTest/async/Future/asStream_A02_t01: Fail # Future constructors have changed # issue 408
 
 [ $compiler == none && $runtime == vm && $checked ]
 Language/12_Statements/09_Switch_A05_t01: Fail # TODO(vm-team): Please triage this failure.

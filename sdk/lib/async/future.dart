@@ -84,28 +84,43 @@ part of dart.async;
  */
 // TODO(floitsch): document chaining.
 abstract class Future<T> {
+
   /**
-   * Creates a future containing the result of calling [function].
+   * Creates a future containing the result of calling [computation]
+   * asynchronously with [runAsync].
    *
-   * The result of computing [:function():] is either a returned value or
-   * a throw.
+   * if the result of executing [computation] throws, the returned future is
+   * completed with the error. If a thrown value is an [AsyncError], it is used
+   * directly, instead of wrapping this error again in another [AsyncError].
+   *
+   * If the returned value is itself a [Future], completion of
+   * the created future will wait until the returned future completes,
+   * and will then complete with the same result.
    *
    * If a value is returned, it becomes the result of the created future.
+   */
+  factory Future(computation()) {
+    _ThenFuture<dynamic, T> future =
+        new _ThenFuture<dynamic, T>((_) => computation());
+    runAsync(() => future._sendValue(null));
+    return future;
+  }
+
+  /**
+   * Creates a future containing the result of immediately calling
+   * [computation].
    *
-   * If calling [function] throws, the created [Future] will be completed
-   * with an async error containing the thrown value and a captured
-   * stacktrace.
-   *
-   * However, if the result of calling [function] is already an asynchronous
-   * result, we treat it specially.
+   * if the result of executing [computation] throws, the returned future is
+   * completed with the error. If a thrown value is an [AsyncError], it is used
+   * directly, instead of wrapping this error again in another [AsyncError].
    *
    * If the returned value is itself a [Future], completion of
    * the created future will wait until the returned future completes,
    * and will then complete with the same result.
    */
-  factory Future.of(function()) {
+  factory Future.sync(computation()) {
     try {
-      var result = function();
+      var result = computation();
       return new _FutureImpl<T>().._setOrChainValue(result);
     } catch (error, stackTrace) {
       return new _FutureImpl<T>.immediateError(error, stackTrace);
@@ -116,18 +131,18 @@ abstract class Future<T> {
    * A future whose value is available in the next event-loop iteration.
    *
    * If [value] is not a [Future], using this constructor is equivalent
-   * to [:new Future.of(() => value):].
+   * to [:new Future.sync(() => value):].
    *
    * See [Completer] to create a Future and complete it later.
    */
-  factory Future.immediate(T value) => new _FutureImpl<T>.immediate(value);
+  factory Future.value([T value]) => new _FutureImpl<T>.immediate(value);
 
   /**
    * A future that completes with an error in the next event-loop iteration.
    *
    * See [Completer] to create a Future and complete it later.
    */
-  factory Future.immediateError(var error, [Object stackTrace]) {
+  factory Future.error(var error, [Object stackTrace]) {
     return new _FutureImpl<T>.immediateError(error, stackTrace);
   }
 
@@ -184,7 +199,7 @@ abstract class Future<T> {
     Iterator iterator = input.iterator;
     void nextElement(_) {
       if (iterator.moveNext()) {
-        new Future.of(() => f(iterator.current))
+        new Future.sync(() => f(iterator.current))
             .then(nextElement, onError: doneSignal._setError);
       } else {
         doneSignal._setValue(null);

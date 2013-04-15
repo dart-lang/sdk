@@ -79,7 +79,7 @@ class Task {
       }
 
       _state = TaskState.RUNNING;
-      var future = new Future.immediate(null).then((_) => fn())
+      var future = new Future.value().then((_) => fn())
           .whenComplete(() {
         if (_childGroup == null || _childGroup.completed) return;
         return _childGroup.future;

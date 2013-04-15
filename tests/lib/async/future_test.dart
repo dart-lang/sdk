@@ -10,8 +10,8 @@ import 'dart:isolate';
 
 const Duration MS = const Duration(milliseconds: 1);
 
-testImmediate() {
-  final future = new Future<String>.immediate("42");
+testValue() {
+  final future = new Future<String>.value("42");
   var port = new ReceivePort();
   future.then((x) {
     Expect.equals("42", x);
@@ -19,11 +19,11 @@ testImmediate() {
   });
 }
 
-testOf() {
+testSync() {
   compare(func) {
     // Compare the results of the following two futures.
-    Future f1 = new Future.of(func);
-    Future f2 = new Future.immediate(null).then((_) => func());
+    Future f1 = new Future.sync(func);
+    Future f2 = new Future.value().then((_) => func());
     f2.catchError((_){});  // I'll get the error later.
     f1.then((v1) { f2.then((v2) { Expect.equals(v1, v2); }); },
             onError: (e1) {
@@ -33,17 +33,23 @@ testOf() {
                       });
             });
   }
-  Future val = new Future.immediate(42);
-  Future err1 = new Future.immediateError("Error")..catchError((_){});
+  Future val = new Future.value(42);
+  Future err1 = new Future.error("Error")..catchError((_){});
   try {
     throw new List(0);
   } catch (e, st) {
-    Future err2 = new Future.immediateError(e, st)..catchError((_){});
+    Future err2 = new Future.error(e, st)..catchError((_){});
   }
   compare(() => 42);
   compare(() => val);
   compare(() { throw "Flif"; });
   compare(() => err1);
+  bool hasExecuted = false;
+  compare(() {
+    hasExecuted = true;
+    return 499;
+  });
+  Expect.isTrue(hasExecuted);
 }
 
 testNeverComplete() {
@@ -242,7 +248,7 @@ testFutureAsStreamCompleteBefore() {
 testFutureAsStreamCompleteImmediate() {
   bool gotValue = false;
   var port = new ReceivePort();
-  new Future.immediate("value").asStream().listen(
+  new Future.value("value").asStream().listen(
       (data) {
         Expect.isFalse(gotValue);
         gotValue = true;
@@ -564,7 +570,7 @@ testChainedFutureValue() {
   final future = completer.future;
   var port = new ReceivePort();
 
-  future.then((v) => new Future.immediate(v * 2))
+  future.then((v) => new Future.value(v * 2))
         .then((v) {
           Expect.equals(42, v);
           port.close();
@@ -600,7 +606,7 @@ testChainedFutureError() {
   final future = completer.future;
   var port = new ReceivePort();
 
-  future.then((v) => new Future.immediateError("Fehler"))
+  future.then((v) => new Future.error("Fehler"))
         .then((v) { Expect.fail("unreachable!"); }, onError: (error) {
           Expect.equals("Fehler", error);
           port.close();
@@ -609,8 +615,8 @@ testChainedFutureError() {
 }
 
 main() {
-  testImmediate();
-  testOf();
+  testValue();
+  testSync();
   testNeverComplete();
 
   testComplete();

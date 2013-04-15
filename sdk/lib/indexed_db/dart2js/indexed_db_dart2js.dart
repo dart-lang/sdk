@@ -143,7 +143,7 @@ class Cursor native "*IDBCursor" {
    try {
       return _completeRequest($dom_delete());
     } catch (e, stacktrace) {
-      return new Future.immediateError(e, stacktrace);
+      return new Future.error(e, stacktrace);
     }
   }
 
@@ -152,7 +152,7 @@ class Cursor native "*IDBCursor" {
    try {
       return _completeRequest($dom_update(value));
     } catch (e, stacktrace) {
-      return new Future.immediateError(e, stacktrace);
+      return new Future.error(e, stacktrace);
     }
   }
 
@@ -367,7 +367,7 @@ class IdbFactory native "*IDBFactory" {
       {int version, void onUpgradeNeeded(VersionChangeEvent),
       void onBlocked(Event)}) {
     if ((version == null) != (onUpgradeNeeded == null)) {
-      return new Future.immediateError(new ArgumentError(
+      return new Future.error(new ArgumentError(
           'version and onUpgradeNeeded must be specified together'));
     }
     try {
@@ -386,7 +386,7 @@ class IdbFactory native "*IDBFactory" {
       }
       return _completeRequest(request);
     } catch (e, stacktrace) {
-      return new Future.immediateError(e, stacktrace);
+      return new Future.error(e, stacktrace);
     }
   }
 
@@ -401,7 +401,7 @@ class IdbFactory native "*IDBFactory" {
       }
       return _completeRequest(request);
     } catch (e, stacktrace) {
-      return new Future.immediateError(e, stacktrace);
+      return new Future.error(e, stacktrace);
     }
   }
 
@@ -414,7 +414,7 @@ class IdbFactory native "*IDBFactory" {
 
       return _completeRequest(request);
     } catch (e, stacktrace) {
-      return new Future.immediateError(e, stacktrace);
+      return new Future.error(e, stacktrace);
     }
   }
 
@@ -492,7 +492,7 @@ class Index native "*IDBIndex" {
       }
       return _completeRequest(request);
     } catch (e, stacktrace) {
-      return new Future.immediateError(e, stacktrace);
+      return new Future.error(e, stacktrace);
     }
   }
 
@@ -503,7 +503,7 @@ class Index native "*IDBIndex" {
 
       return _completeRequest(request);
     } catch (e, stacktrace) {
-      return new Future.immediateError(e, stacktrace);
+      return new Future.error(e, stacktrace);
     }
   }
 
@@ -514,7 +514,7 @@ class Index native "*IDBIndex" {
 
       return _completeRequest(request);
     } catch (e, stacktrace) {
-      return new Future.immediateError(e, stacktrace);
+      return new Future.error(e, stacktrace);
     }
   }
 
@@ -714,7 +714,7 @@ class ObjectStore native "*IDBObjectStore" {
       }
       return _completeRequest(request);
     } catch (e, stacktrace) {
-      return new Future.immediateError(e, stacktrace);
+      return new Future.error(e, stacktrace);
     }
   }
 
@@ -723,7 +723,7 @@ class ObjectStore native "*IDBObjectStore" {
     try {
       return _completeRequest($dom_clear());
     } catch (e, stacktrace) {
-      return new Future.immediateError(e, stacktrace);
+      return new Future.error(e, stacktrace);
     }
   }
 
@@ -732,7 +732,7 @@ class ObjectStore native "*IDBObjectStore" {
     try {
       return _completeRequest($dom_delete(key_OR_keyRange));
     } catch (e, stacktrace) {
-      return new Future.immediateError(e, stacktrace);
+      return new Future.error(e, stacktrace);
     }
   }
 
@@ -747,7 +747,7 @@ class ObjectStore native "*IDBObjectStore" {
       }
       return _completeRequest(request);
     } catch (e, stacktrace) {
-      return new Future.immediateError(e, stacktrace);
+      return new Future.error(e, stacktrace);
     }
   }
 
@@ -762,7 +762,7 @@ class ObjectStore native "*IDBObjectStore" {
       }
       return _completeRequest(request);
     } catch (e, stacktrace) {
-      return new Future.immediateError(e, stacktrace);
+      return new Future.error(e, stacktrace);
     }
   }
 
@@ -773,7 +773,7 @@ class ObjectStore native "*IDBObjectStore" {
 
       return _completeRequest(request);
     } catch (e, stacktrace) {
-      return new Future.immediateError(e, stacktrace);
+      return new Future.error(e, stacktrace);
     }
   }
 

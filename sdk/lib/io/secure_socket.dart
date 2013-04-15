@@ -263,7 +263,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     if (socket == null) {
       futureSocket = RawSocket.connect(host, requestedPort);
     } else {
-      futureSocket = new Future.immediate(socket);
+      futureSocket = new Future.value(socket);
     }
     futureSocket.then((rawSocket) {
       rawSocket.writeEventsEnabled = false;

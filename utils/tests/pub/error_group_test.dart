@@ -36,7 +36,7 @@ main() {
       expect(errorGroup.done, throwsFormatException);
       errorGroup.signalError(new FormatException());
 
-      expect(() => errorGroup.registerFuture(new Future.immediate(null)),
+      expect(() => errorGroup.registerFuture(new Future.value()),
           throwsStateError);
       expect(() => errorGroup.registerStream(new StreamController().stream),
           throwsStateError);
@@ -63,7 +63,7 @@ main() {
         "been called", () {
       completer.complete('value');
 
-      expect(() => errorGroup.registerFuture(new Future.immediate(null)),
+      expect(() => errorGroup.registerFuture(new Future.value()),
           throwsStateError);
       expect(() => errorGroup.registerStream(new StreamController().stream),
           throwsStateError);

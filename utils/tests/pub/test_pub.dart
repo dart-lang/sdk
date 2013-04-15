@@ -119,7 +119,7 @@ void serve([List<d.Descriptor> contents]) {
 /// Closes [_server]. Returns a [Future] that will complete after the [_server]
 /// is closed.
 Future _closeServer() {
-  if (_server == null) return new Future.immediate(null);
+  if (_server == null) return new Future.value();
   _server.close();
   _server = null;
   _portCompleterCache = null;
@@ -356,7 +356,7 @@ ScheduledProcess startPub({List args, Future<Uri> tokenEndpoint}) {
       '--trace'];
   dartArgs.addAll(args);
 
-  if (tokenEndpoint == null) tokenEndpoint = new Future.immediate(null);
+  if (tokenEndpoint == null) tokenEndpoint = new Future.value();
   var optionsFuture = tokenEndpoint.then((tokenEndpoint) {
     var options = new ProcessOptions();
     options.workingDirectory = pathInSandbox(appPath);
@@ -588,7 +588,7 @@ Future<Pair<List<String>, List<String>>> schedulePackageValidation(
   return schedule(() {
     var cache = new SystemCache.withSources(path.join(sandboxDir, cachePath));
 
-    return new Future.of(() {
+    return new Future.sync(() {
       var validator = fn(new Entrypoint(path.join(sandboxDir, appPath), cache));
       return validator.validate().then((_) {
         return new Pair(validator.errors, validator.warnings);

@@ -231,7 +231,7 @@ class _HttpParser
 
   Future<_HttpParser> close() {
     _onDone();
-    return new Future.immediate(this);
+    return new Future.value(this);
   }
 
   // From RFC 2616.

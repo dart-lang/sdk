@@ -115,11 +115,11 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
     var socket = new _NativeSocket.listen();
     var result = socket.nativeCreateBindListen(address, port, backlog);
     if (result is OSError) {
-      return new Future.immediateError(
+      return new Future.error(
           new SocketIOException("Failed to create server socket", result));
     }
     if (port != 0) socket.localPort = port;
-    return new Future.immediate(socket);
+    return new Future.value(socket);
   }
 
   _NativeSocket.normal() : typeFlags = TYPE_NORMAL_SOCKET {
@@ -699,7 +699,7 @@ class _SocketStreamConsumer extends StreamConsumer<List<int>> {
 
   Future<Socket> close() {
     socket._consumerDone();
-    return new Future.immediate(socket);
+    return new Future.value(socket);
   }
 
   void write() {

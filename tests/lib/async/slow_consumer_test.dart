@@ -15,7 +15,7 @@ const int MB = KB * KB;
 const int GB = KB * KB * KB;
 
 class SlowConsumer extends StreamConsumer {
-  var current = new Future.immediate(0);
+  var current = new Future.value(0);
   final int bytesPerSecond;
   int finalCount;
 
@@ -55,7 +55,7 @@ class SlowConsumer extends StreamConsumer {
   }
 
   Future close() {
-    return new Future.immediate(finalCount);
+    return new Future.value(finalCount);
   }
 }
 

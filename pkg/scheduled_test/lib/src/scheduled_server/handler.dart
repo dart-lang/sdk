@@ -54,7 +54,7 @@ class Handler {
         // between a test failing while waiting for a handler and a test failing
         // while executing a handler.
         chainToCompleter(schedule(() {
-          return new Future.of(() {
+          return new Future.sync(() {
             if (request.method != method || request.uri.path != path) {
               throw "'${server.description}' expected $method $path, "
                   "but got ${request.method} ${request.uri.path}.";

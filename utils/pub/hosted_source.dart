@@ -63,7 +63,7 @@ class HostedSource extends Source {
 
   /// Downloads a package from the site and unpacks it.
   Future<bool> install(PackageId id, String destPath) {
-    return new Future.of(() {
+    return new Future.sync(() {
       var url = _makeVersionUrl(id, (server, package, version) =>
           "$server/packages/$package/versions/$version.tar.gz");
       log.io("Install package from $url.");
@@ -98,7 +98,7 @@ class HostedSource extends Source {
       return '%${match[0].codeUnitAt(0)}';
     });
 
-    return new Future.immediate(
+    return new Future.value(
         path.join(systemCacheRoot, urlDir, "${parsed.first}-${id.version}"));
   }
 

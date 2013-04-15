@@ -145,7 +145,7 @@ main() {
 /// Checks that pub is running on a supported platform. If it isn't, it prints
 /// an error message and exits. Completes when the validation is done.
 Future validatePlatform() {
-  return new Future.of(() {
+  return new Future.sync(() {
     if (Platform.operatingSystem != 'windows') return;
 
     return runProcess('ver', []).then((result) {
@@ -267,7 +267,7 @@ abstract class PubCommand {
       exit(_chooseExitCode(error));
     }
 
-    new Future.of(() {
+    new Future.sync(() {
       if (requiresEntrypoint) {
         // TODO(rnystrom): Will eventually need better logic to walk up
         // subdirectories until we hit one that looks package-like. For now,

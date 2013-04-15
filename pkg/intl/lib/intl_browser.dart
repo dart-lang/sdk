@@ -27,5 +27,5 @@ import "intl.dart";
  */
 Future<String> findSystemLocale() {
   Intl.systemLocale = Intl.canonicalizedLocale(window.navigator.language);
-  return new Future.immediate(Intl.systemLocale);
+  return new Future.value(Intl.systemLocale);
 }

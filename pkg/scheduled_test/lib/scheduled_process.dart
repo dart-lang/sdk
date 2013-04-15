@@ -134,9 +134,9 @@ class ScheduledProcess {
       _handleExit(exitCodeCompleter);
 
       return Future.wait([
-        new Future.of(() => executable),
+        new Future.sync(() => executable),
         awaitObject(arguments),
-        new Future.of(() => options)
+        new Future.sync(() => options)
       ]).then((results) {
         executable = results[0];
         arguments = results[1];

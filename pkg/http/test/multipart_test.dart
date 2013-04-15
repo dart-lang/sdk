@@ -213,7 +213,7 @@ void main() {
     tearDown(() => tempDir.deleteSync(recursive: true));
 
     test('with a file from disk', () {
-      expect(new Future.of(() {
+      expect(new Future.sync(() {
         var filePath = path.join(tempDir.path, 'test-file');
         new File(filePath).writeAsStringSync('hello');
         return http.MultipartFile.fromPath('file', filePath);

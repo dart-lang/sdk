@@ -38,7 +38,7 @@ class ExpectClient extends MockClient {
 
   Future<http.Response> _handleRequest(http.Request request) {
     if (_handlers.isEmpty) {
-      return new Future.immediate(new http.Response('not found', 404));
+      return new Future.value(new http.Response('not found', 404));
     } else {
       return _handlers.removeFirst()(request);
     }

@@ -220,7 +220,7 @@ void testLocalServerBasic() {
         Uri.parse("http://127.0.0.1/basic"),
         "test",
         new HttpClientBasicCredentials("test", "test"));
-    return new Future.immediate(true);
+    return new Future.value(true);
   };
 
   HttpClientConnection conn =
@@ -243,7 +243,7 @@ void testLocalServerDigest() {
         Uri.parse("http://127.0.0.1/digest"),
         "test",
         new HttpClientDigestCredentials("test", "test"));
-    return new Future.immediate(true);
+    return new Future.value(true);
   };
 
   HttpClientConnection conn =

@@ -148,7 +148,7 @@ void main() {
     var completer = new Completer();
     var future = new SubstituteFuture(completer.future);
     completer.complete('success');
-    expect(() => future.substitute(new Future.immediate(null)),
+    expect(() => future.substitute(new Future.value()),
         throwsStateError);
   });
 }

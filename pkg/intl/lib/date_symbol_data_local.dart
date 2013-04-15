@@ -31,7 +31,7 @@ import "date_time_patterns.dart";
 Future initializeDateFormatting(String locale, String ignored) {
   initializeDateSymbols(dateTimeSymbolMap);
   initializeDatePatterns(dateTimePatternMap);
-  return new Future.immediate(null);
+  return new Future.value();
 }
 
 /**

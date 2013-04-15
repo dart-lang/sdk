@@ -835,7 +835,7 @@ class _BufferingSendPort extends _BaseSendPort implements SendPort {
   SendPort _port;
 
   /**
-   * Future of the underlying port, so that we can detect when this port can be
+   * Future.sync the underlying port, so that we can detect when this port can be
    * sent on messages.
    */
   Future<SendPort> _futurePort;

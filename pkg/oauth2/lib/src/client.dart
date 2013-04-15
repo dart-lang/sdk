@@ -83,7 +83,7 @@ class Client extends http.BaseClient {
   /// the request if necessary.
   Future<http.StreamedResponse> send(http.BaseRequest request) {
     return async.then((_) {
-      if (!credentials.isExpired) return new Future.immediate(null);
+      if (!credentials.isExpired) return new Future.value();
       if (!credentials.canRefresh) throw new ExpirationException(credentials);
       return refreshCredentials();
     }).then((_) {

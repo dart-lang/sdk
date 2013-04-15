@@ -31,12 +31,12 @@ class DependencyValidator extends Validator {
                 'package.\n'
             'Pub enables "package:${entrypoint.root.name}" imports '
                 'implicitly.');
-        return new Future.immediate(null);
+        return new Future.value();
       }
 
       if (dependency.constraint.isAny) _warnAboutConstraint(dependency);
 
-      return new Future.immediate(null);
+      return new Future.value();
     });
   }
 

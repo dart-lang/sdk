@@ -183,7 +183,7 @@ const closing = """
 initializeMessages(localeName) {
   initializeInternalMessageLookup(() => new CompositeMessageLookup());
   messageLookup.addLocale(localeName, _findGeneratedMessagesFor);
-  return new Future.immediate(null);
+  return new Future.value();
 }
 
 MessageLookupByLibrary _findGeneratedMessagesFor(locale) {

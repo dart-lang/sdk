@@ -57,7 +57,7 @@ void main() {
       httpClient.expectRequest((request) {
         expect(request.method, equals('POST'));
         expect(request.url.toString(), equals(tokenEndpoint.toString()));
-        return new Future.immediate(new http.Response(JSON.stringify({
+        return new Future.value(new http.Response(JSON.stringify({
           'access_token': 'new access token',
           'token_type': 'bearer'
         }), 200, headers: {'content-type': 'application/json'}));
@@ -69,7 +69,7 @@ void main() {
         expect(request.headers['authorization'],
             equals('Bearer new access token'));
 
-        return new Future.immediate(new http.Response('good job', 200));
+        return new Future.value(new http.Response('good job', 200));
       });
 
       expect(client.read(requestUri).then((_) {
@@ -92,7 +92,7 @@ void main() {
         expect(request.headers['authorization'],
             equals('Bearer access token'));
 
-        return new Future.immediate(new http.Response('good job', 200));
+        return new Future.value(new http.Response('good job', 200));
       });
 
       expect(client.read(requestUri), completion(equals('good job')));
@@ -107,7 +107,7 @@ void main() {
       httpClient.expectRequest((request) {
         expect(request.method, equals('POST'));
         expect(request.url.toString(), equals(tokenEndpoint.toString()));
-        return new Future.immediate(new http.Response(JSON.stringify({
+        return new Future.value(new http.Response(JSON.stringify({
           'access_token': 'new access token',
           'token_type': 'bearer'
         }), 200, headers: {'content-type': 'application/json'}));
@@ -144,7 +144,7 @@ void main() {
 
         var authenticate = 'Bearer error="invalid_token", error_description='
             '"Something is terribly wrong."';
-        return new Future.immediate(new http.Response('bad job', 401,
+        return new Future.value(new http.Response('bad job', 401,
                 headers: {'www-authenticate': authenticate}));
       });
 
@@ -163,7 +163,7 @@ void main() {
         expect(request.headers['authorization'],
             equals('Bearer access token'));
 
-        return new Future.immediate(new http.Response('bad job', 401));
+        return new Future.value(new http.Response('bad job', 401));
       });
 
       expect(
@@ -184,7 +184,7 @@ void main() {
 
         var authenticate = 'Bearer error="invalid_token", error_description='
           '"Something is terribly wrong.", ';
-        return new Future.immediate(new http.Response('bad job', 401,
+        return new Future.value(new http.Response('bad job', 401,
                 headers: {'www-authenticate': authenticate}));
       });
 
@@ -204,7 +204,7 @@ void main() {
         expect(request.headers['authorization'],
             equals('Bearer access token'));
 
-        return new Future.immediate(new http.Response('bad job', 401,
+        return new Future.value(new http.Response('bad job', 401,
                 headers: {'www-authenticate': 'Digest'}));
       });
 
@@ -224,7 +224,7 @@ void main() {
         expect(request.headers['authorization'],
             equals('Bearer access token'));
 
-        return new Future.immediate(new http.Response('bad job', 401,
+        return new Future.value(new http.Response('bad job', 401,
                 headers: {'www-authenticate': 'Bearer'}));
       });
 

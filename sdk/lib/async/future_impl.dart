@@ -134,7 +134,7 @@ class _FutureImpl<T> implements Future<T> {
       });
     }
     if (remaining == 0) {
-      return new Future.immediate(const []);
+      return new Future.value(const []);
     }
     values = new List(remaining);
     completer = new Completer<List>();

@@ -56,6 +56,6 @@ class PubspecFieldValidator extends Validator {
       errors.add('Your pubspec.yaml is missing a "version" field.');
     }
 
-    return new Future.immediate(null);
+    return new Future.value();
   }
 }

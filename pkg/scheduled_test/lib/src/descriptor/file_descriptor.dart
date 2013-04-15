@@ -63,7 +63,7 @@ class FileDescriptor extends Descriptor {
     });
   }
 
-  Stream<List<int>> read() => new Future.immediate(contents).asStream();
+  Stream<List<int>> read() => new Future.value(contents).asStream();
 
   String describe() => name;
 

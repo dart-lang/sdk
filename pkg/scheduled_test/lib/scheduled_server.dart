@@ -91,7 +91,7 @@ class ScheduledServer {
   /// responsibility to check that the method/path are correct and that it's
   /// being run at the correct time.
   void _handleRequest(HttpRequest request) {
-    wrapFuture(new Future.of(() {
+    wrapFuture(new Future.sync(() {
       if (_handlers.isEmpty) {
         throw "'$description' received ${request.method} ${request.uri.path} "
             "when no more requests were expected.";

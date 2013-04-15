@@ -269,7 +269,7 @@ class _ErrorGroupStream extends Stream {
     if (_isDone) return;
     _subscription.cancel();
     // Call these asynchronously to work around issue 7913.
-    new Future.immediate(null).then((_) {
+    new Future.value().then((_) {
       _controller.addError(e);
       _controller.close();
     });

@@ -385,7 +385,7 @@ class _WebSocketTransformerImpl implements WebSocketTransformer {
         response.contentLength = 0;
         response.close();
       });
-      return new Future.immediateError(
+      return new Future.error(
           new WebSocketException("Invalid WebSocket upgrade request"));
     }
 

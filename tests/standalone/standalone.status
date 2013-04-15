@@ -4,6 +4,10 @@
 
 package/invalid_uri_test: Fail, OK # Fails intentionally
 
+[ $runtime == vm ]
+io/test_runner_test: Fail # Fails because checked-in dart executable is not up to date.
+io/skipping_dart2js_compilations_test: Fail # Fails because checked-in dart executable is not up to date.
+
 [ $runtime == vm && ( $system == windows ) ]
 io/raw_socket_test: Pass, Fail # Issue 8901
 io/http_shutdown_test: Pass, Fail # Issue  9101

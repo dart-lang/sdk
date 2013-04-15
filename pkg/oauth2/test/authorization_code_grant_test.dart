@@ -154,7 +154,7 @@ void main() {
           'client_secret': 'secret'
         }));
 
-        return new Future.immediate(new http.Response(JSON.stringify({
+        return new Future.value(new http.Response(JSON.stringify({
           'access_token': 'access token',
           'token_type': 'bearer',
         }), 200, headers: {'content-type': 'application/json'}));
@@ -198,7 +198,7 @@ void main() {
           'client_secret': 'secret'
         }));
 
-        return new Future.immediate(new http.Response(JSON.stringify({
+        return new Future.value(new http.Response(JSON.stringify({
           'access_token': 'access token',
           'token_type': 'bearer',
         }), 200, headers: {'content-type': 'application/json'}));

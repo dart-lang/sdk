@@ -26,7 +26,7 @@ export 'package:scheduled_test/src/utils.dart';
 Future timeout(Future input, int milliseconds, onTimeout()) {
   var completer = new Completer();
   var timer = new Timer(new Duration(milliseconds: milliseconds), () {
-    chainToCompleter(new Future.of(onTimeout), completer);
+    chainToCompleter(new Future.sync(onTimeout), completer);
   });
   input.then((value) {
     if (completer.isCompleted) return;

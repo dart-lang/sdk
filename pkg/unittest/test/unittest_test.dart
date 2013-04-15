@@ -15,7 +15,7 @@ import 'dart:async';
 import 'package:unittest/unittest.dart';
 
 Future _defer(void fn()) {
-  return new Future.of(fn);
+  return new Future.sync(fn);
 }
 
 String buildStatusString(int passed, int failed, int errors,
@@ -154,37 +154,37 @@ runTest() {
     } else if (testName == 'async setup/teardown test') {
       group('good setup/good teardown', () {
         setUp(() {
-          return new Future.immediate(0);
+          return new Future.value(0);
         });
         tearDown(() {
-          return new Future.immediate(0);
+          return new Future.value(0);
         });
         test('foo1', (){});
       });
       group('good setup/bad teardown', () {
         setUp(() {
-          return new Future.immediate(0);
+          return new Future.value(0);
         });
         tearDown(() {
-          return new Future.immediateError("Failed to complete tearDown");
+          return new Future.error("Failed to complete tearDown");
         });
         test('foo2', (){});
       });
       group('bad setup/good teardown', () {
         setUp(() {
-          return new Future.immediateError("Failed to complete setUp");
+          return new Future.error("Failed to complete setUp");
         });
         tearDown(() {
-          return new Future.immediate(0);
+          return new Future.value(0);
         });
         test('foo3', (){});
       });
       group('bad setup/bad teardown', () {
         setUp(() {
-          return new Future.immediateError("Failed to complete setUp");
+          return new Future.error("Failed to complete setUp");
         });
         tearDown(() {
-          return new Future.immediateError("Failed to complete tearDown");
+          return new Future.error("Failed to complete tearDown");
         });
         test('foo4', (){});
       });

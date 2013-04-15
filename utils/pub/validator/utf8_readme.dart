@@ -20,7 +20,7 @@ class Utf8ReadmeValidator extends Validator {
     : super(entrypoint);
 
   Future validate() {
-    return new Future.of(() {
+    return new Future.sync(() {
       var readme = entrypoint.root.readmePath;
       if (readme == null) return;
       var bytes = readBinaryFile(readme);

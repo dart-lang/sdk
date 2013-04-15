@@ -265,11 +265,9 @@ Future<MirrorSystem> analyzeUri(List<Uri> libraries,
   compiler.librariesToAnalyzeWhenRun = libraries;
   bool success = compiler.run(null);
   if (success && !compilationFailed) {
-    return new Future<MirrorSystem>.immediate(
-        new Dart2JsMirrorSystem(compiler));
+    return new Future<MirrorSystem>.value(new Dart2JsMirrorSystem(compiler));
   } else {
-    return new Future<MirrorSystem>.immediateError(
-        'Failed to create mirror system.');
+    return new Future<MirrorSystem>.error('Failed to create mirror system.');
   }
 }
 
@@ -1626,7 +1624,7 @@ class Dart2JsListConstantMirror extends Dart2JsConstantMirror
   Future<InstanceMirror> operator[](int index) {
     if (index < 0) throw new RangeError('Negative index');
     if (index >= _constant.length) throw new RangeError('Index out of bounds');
-    return new Future<InstanceMirror>.immediate(
+    return new Future<InstanceMirror>.value(
         _convertConstantToInstanceMirror(mirrors, _constant.entries[index]));
   }
 }
@@ -1663,7 +1661,7 @@ class Dart2JsMapConstantMirror extends Dart2JsConstantMirror
   Future<InstanceMirror> operator[](String key) {
     int index = _list.indexOf(key);
     if (index == -1) return null;
-    return new Future<InstanceMirror>.immediate(
+    return new Future<InstanceMirror>.value(
         _convertConstantToInstanceMirror(mirrors, _constant.values[index]));
   }
 }
@@ -1709,7 +1707,7 @@ class Dart2JsConstructedConstantMirror extends Dart2JsConstantMirror {
   Future<InstanceMirror> getField(String fieldName) {
     Constant fieldConstant = _fieldMap[fieldName];
     if (fieldConstant != null) {
-      return new Future<InstanceMirror>.immediate(
+      return new Future<InstanceMirror>.value(
           _convertConstantToInstanceMirror(mirrors, fieldConstant));
     }
     return super.getField(fieldName);
@@ -1745,13 +1743,13 @@ class Dart2JsCommentInstanceMirror implements CommentInstanceMirror {
 
   Future<InstanceMirror> getField(String fieldName) {
     if (fieldName == 'isDocComment') {
-      return new Future.immediate(
+      return new Future.value(
           new Dart2JsBoolConstantMirror.fromBool(mirrors, isDocComment));
     } else if (fieldName == 'text') {
-      return new Future.immediate(
+      return new Future.value(
           new Dart2JsStringConstantMirror.fromString(mirrors, text));
     } else if (fieldName == 'trimmedText') {
-      return new Future.immediate(
+      return new Future.value(
           new Dart2JsStringConstantMirror.fromString(mirrors, trimmedText));
     }
     // TODO(johnniwinther): Which exception/error should be thrown here?

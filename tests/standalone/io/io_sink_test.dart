@@ -34,7 +34,7 @@ class TestConsumer implements StreamConsumer {
   }
 
   Future close() {
-    return new Future.immediate(null)
+    return new Future.value()
       .then((_) {
         if (closePort != null) closePort.close();
         Expect.listEquals(expected, received);

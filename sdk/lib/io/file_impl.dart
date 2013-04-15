@@ -63,7 +63,7 @@ class _FileStream extends Stream<List<int>> {
       _openedFile = null;
       return closeFuture;
     } else {
-      return new Future.immediate(null);
+      return new Future.value();
     }
   }
 
@@ -111,7 +111,7 @@ class _FileStream extends Stream<List<int>> {
     if (_path != null) {
       openFuture = new File(_path).open(mode: FileMode.READ);
     } else {
-      openFuture = new Future.immediate(_File._openStdioSync(0));
+      openFuture = new Future.value(_File._openStdioSync(0));
     }
     openFuture
       .then((RandomAccessFile opened) {
@@ -146,7 +146,7 @@ class _FileStreamConsumer extends StreamConsumer<List<int>> {
 
   _FileStreamConsumer.fromStdio(int fd) {
     assert(1 <= fd && fd <= 2);
-    _openFuture = new Future.immediate(_File._openStdioSync(fd));
+    _openFuture = new Future.value(_File._openStdioSync(fd));
   }
 
   Future<File> addStream(Stream<List<int>> stream) {
@@ -545,7 +545,7 @@ class _File extends _FileBase implements File {
       sink.close();
       return sink.done.then((_) => this);;
     } catch (e) {
-      return new Future.immediateError(e);
+      return new Future.error(e);
     }
   }
 
@@ -704,7 +704,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     if (buffer is !List ||
         (start != null && start is !int) ||
         (end != null && end is !int)) {
-      return new Future.immediateError(new FileIOException(
+      return new Future.error(new FileIOException(
           "Invalid arguments to readInto for file '$_path'"));
     };
     Completer<int> completer = new Completer<int>();
@@ -805,7 +805,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     if ((buffer is !List && buffer is !ByteData) ||
         (start != null && start is !int) ||
         (end != null && end is !int)) {
-      return new Future.immediateError(new FileIOException(
+      return new Future.error(new FileIOException(
           "Invalid arguments to writeFrom for file '$_path'"));
     }
     Completer<RandomAccessFile> completer = new Completer<RandomAccessFile>();
@@ -816,7 +816,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
     try {
       result = _ensureFastAndSerializableBuffer(buffer, start, end);
     } catch (e) {
-      return new Future.immediateError(e);
+      return new Future.error(e);
     }
 
     List request = new List(5);
