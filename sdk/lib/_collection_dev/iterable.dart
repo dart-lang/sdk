@@ -920,25 +920,24 @@ class IterableMixinWorkaround {
     return Arrays.lastIndexOf(list, element, start);
   }
 
-  static Iterable getRangeList(List list, int start, int end) {
+  static void _rangeCheck(List list, int start, int end) {
     if (start < 0 || start > list.length) {
       throw new RangeError.range(start, 0, list.length);
     }
     if (end < start || end > list.length) {
       throw new RangeError.range(end, start, list.length);
     }
+  }
+
+  static Iterable getRangeList(List list, int start, int end) {
+    _rangeCheck(list, start, end);
     // The generic type is currently lost. It will be fixed with mixins.
     return new SubListIterable(list, start, end);
   }
 
   static void setRangeList(List list, int start, int end,
                            Iterable from, int skipCount) {
-    if (start < 0 || start > list.length) {
-      throw new RangeError.range(start, 0, list.length);
-    }
-    if (end < start || end > list.length) {
-      throw new RangeError.range(end, start, list.length);
-    }
+    _rangeCheck(list, start, end);
     int length = end - start;
     if (length == 0) return;
 
@@ -958,6 +957,45 @@ class IterableMixinWorkaround {
       throw new StateError("Not enough elements");
     }
     Arrays.copy(otherList, otherStart, list, start, length);
+  }
+
+  static void replaceRangeList(List list, int start, int end,
+                               Iterable iterable) {
+    _rangeCheck(list, start, end);
+    // TODO(floitsch): optimize this.
+    list.removeRange(start, end);
+    list.insertAll(start, iterable);
+  }
+
+  static void fillRangeList(List list, int start, int end, fillValue) {
+    _rangeCheck(list, start, end);
+    for (int i = start; i < end; i++) {
+      list[i] = fillValue;
+    }
+  }
+
+  static void insertAllList(List list, int index, Iterable iterable) {
+    if (index < 0 || index > list.length) {
+      throw new RangeError.range(index, 0, list.length);
+    }
+    if (iterable is! List && iterable is! Set) {
+      iterable = iterable.toList(growable: false);
+    }
+    int insertionLength = iterable.length;
+    list.length += insertionLength;
+    list.setRange(index + insertionLength, list.length, list, index);
+    for (var element in iterable) {
+      list[index++] = element;
+    }
+  }
+
+  static void setAllList(List list, int index, Iterable iterable) {
+    if (index < 0 || index > list.length) {
+      throw new RangeError.range(index, 0, list.length);
+    }
+    for (var element in iterable) {
+      list[index++] = element;
+    }
   }
 
   static Map<int, dynamic> asMapList(List l) {

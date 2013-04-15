@@ -82,6 +82,14 @@ $endif
     }
   }
 
+  void insertAll(int index, Iterable<Node> iterable) {
+    throw new UnimplementedError();
+  }
+
+  void setAll(int index, Iterable<Node> iterable) {
+    throw new UnimplementedError();
+  }
+
   Node removeLast() {
     final result = last;
     if (result != null) {
@@ -164,6 +172,14 @@ $endif
 
   Iterable<Node> getRange(int start, int end) {
     throw new UnimplementedError("NodeList.getRange");
+  }
+
+  void replaceRange(int start, int end, Iterable<Node> iterable) {
+    throw new UnimplementedError("NodeList.replaceRange");
+  }
+
+  void fillRange(int start, int end, [Node fillValue]) {
+    throw new UnimplementedError("NodeList.fillRange");
   }
 
   List<Node> sublist(int start, [int end]) {

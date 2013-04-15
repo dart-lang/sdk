@@ -76,6 +76,14 @@ class FilteredElementList extends ListBase<Element> {
     throw new UnimplementedError();
   }
 
+  void fillRange(int start, int end, [Element fillValue]) {
+    throw new UnimplementedError();
+  }
+
+  void replaceRange(int start, int end, Iterable<Element> iterable) {
+    throw new UnimplementedError();
+  }
+
   void removeRange(int start, int end) {
     _filtered.sublist(start, end).forEach((el) => el.remove());
   }
@@ -100,6 +108,10 @@ class FilteredElementList extends ListBase<Element> {
 
   void insert(int index, Element value) {
     _childNodes.insert(index, value);
+  }
+
+  void insertAll(int index, Iterable<Element> iterable) {
+    _childNodes.insertAll(index, iterable);
   }
 
   Element removeAt(int index) {

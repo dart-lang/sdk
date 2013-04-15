@@ -3409,6 +3409,14 @@ class LengthList extends NativeFieldWrapperClass1 implements List<Length> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  void insertAll(int index, Iterable<Length> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<Length> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
   Length removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -3435,6 +3443,14 @@ class LengthList extends NativeFieldWrapperClass1 implements List<Length> {
 
   void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void replaceRange(int start, int end, Iterable<Length> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [Length fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
   Iterable<Length> getRange(int start, int end) =>
@@ -4114,6 +4130,14 @@ class NumberList extends NativeFieldWrapperClass1 implements List<Number> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  void insertAll(int index, Iterable<Number> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<Number> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
   Number removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -4140,6 +4164,14 @@ class NumberList extends NativeFieldWrapperClass1 implements List<Number> {
 
   void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void replaceRange(int start, int end, Iterable<Number> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [Number fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
   Iterable<Number> getRange(int start, int end) =>
@@ -5246,6 +5278,14 @@ class PathSegList extends NativeFieldWrapperClass1 implements List<PathSeg> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  void insertAll(int index, Iterable<PathSeg> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<PathSeg> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
   PathSeg removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -5272,6 +5312,14 @@ class PathSegList extends NativeFieldWrapperClass1 implements List<PathSeg> {
 
   void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void replaceRange(int start, int end, Iterable<PathSeg> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [PathSeg fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
   Iterable<PathSeg> getRange(int start, int end) =>
@@ -6232,6 +6280,14 @@ class StringList extends NativeFieldWrapperClass1 implements List<String> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  void insertAll(int index, Iterable<String> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<String> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
   String removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -6258,6 +6314,14 @@ class StringList extends NativeFieldWrapperClass1 implements List<String> {
 
   void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void replaceRange(int start, int end, Iterable<String> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [String fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
   Iterable<String> getRange(int start, int end) =>
@@ -7483,6 +7547,14 @@ class TransformList extends NativeFieldWrapperClass1 implements List<Transform> 
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  void insertAll(int index, Iterable<Transform> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<Transform> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
   Transform removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -7509,6 +7581,14 @@ class TransformList extends NativeFieldWrapperClass1 implements List<Transform> 
 
   void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void replaceRange(int start, int end, Iterable<Transform> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [Transform fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
   Iterable<Transform> getRange(int start, int end) =>
@@ -8060,6 +8140,14 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 implements List<Elem
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  void insertAll(int index, Iterable<ElementInstance> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<ElementInstance> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
   ElementInstance removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -8086,6 +8174,14 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 implements List<Elem
 
   void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void replaceRange(int start, int end, Iterable<ElementInstance> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [ElementInstance fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
   Iterable<ElementInstance> getRange(int start, int end) =>

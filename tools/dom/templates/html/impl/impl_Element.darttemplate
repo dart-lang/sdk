@@ -171,6 +171,14 @@ class _ChildrenElementList extends ListBase<Element> {
     throw new UnimplementedError();
   }
 
+  void replaceRange(int start, int end, Iterable<Element> iterable) {
+    throw new UnimplementedError();
+  }
+
+  void fillRange(int start, int end, [Element fillValue]) {
+    throw new UnimplementedError();
+  }
+
   void remove(Object object) {
     if (object is Element) {
       Element element = object;
@@ -219,6 +227,14 @@ class _ChildrenElementList extends ListBase<Element> {
     } else {
       _element.insertBefore(element, this[index]);
     }
+  }
+
+  void insertAll(int index, Iterable<Element> iterable) {
+    throw new UnimplementedError();
+  }
+
+  void setAll(int index, Iterable<Element> iterable) {
+    throw new UnimplementedError();
   }
 
   void clear() {

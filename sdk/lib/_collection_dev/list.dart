@@ -25,6 +25,11 @@ abstract class FixedLengthListMixin<E>  {
         "Cannot add to a fixed-length list");
   }
 
+  void insertAll(int at, Iterable<E> iterable) {
+    throw new UnsupportedError(
+        "Cannot add to a fixed-length list");
+  }
+
   void addAll(Iterable<E> iterable) {
     throw new UnsupportedError(
         "Cannot add to a fixed-length list");
@@ -74,6 +79,11 @@ abstract class FixedLengthListMixin<E>  {
     throw new UnsupportedError(
         "Cannot remove from a fixed-length list");
   }
+
+  void replaceRange(int start, int end, Iterable<E> iterable) {
+    throw new UnsupportedError(
+        "Cannot remove from a fixed-length list");
+  }
 }
 
 /**
@@ -95,12 +105,22 @@ abstract class UnmodifiableListMixin<E> {
         "Cannot change the length of an unmodifiable list");
   }
 
+  void setAll(int at, Iterable<E> iterable) {
+    throw new UnsupportedError(
+        "Cannot modify an unmodifiable list");
+  }
+
   void add(E value) {
     throw new UnsupportedError(
         "Cannot add to an unmodifiable list");
   }
 
   E insert(int index, E value) {
+    throw new UnsupportedError(
+        "Cannot add to an unmodifiable list");
+  }
+
+  void insertAll(int at, Iterable<E> iterable) {
     throw new UnsupportedError(
         "Cannot add to an unmodifiable list");
   }
@@ -163,6 +183,16 @@ abstract class UnmodifiableListMixin<E> {
   void removeRange(int start, int end) {
     throw new UnsupportedError(
         "Cannot remove from an unmodifiable list");
+  }
+
+  void replaceRange(int start, int end, Iterable<E> iterable) {
+    throw new UnsupportedError(
+        "Cannot remove from an unmodifiable list");
+  }
+
+  void fillRange(int start, int end, [E fillValue]) {
+    throw new UnsupportedError(
+        "Cannot modify an unmodifiable list");
   }
 }
 

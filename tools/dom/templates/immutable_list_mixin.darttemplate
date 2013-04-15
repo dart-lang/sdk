@@ -143,6 +143,14 @@ $endif
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  void insertAll(int index, Iterable<$E> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<$E> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
   $E removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -169,6 +177,14 @@ $endif
 
   void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void replaceRange(int start, int end, Iterable<$E> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [$E fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
   Iterable<$E> getRange(int start, int end) =>

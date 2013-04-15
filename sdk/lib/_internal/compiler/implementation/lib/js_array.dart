@@ -36,6 +36,16 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     JS('void', r'#.splice(#, 0, #)', this, index, value);
   }
 
+  void insertAll(int index, Iterable<E> iterable) {
+    checkGrowable(this, 'insertAll');
+    IterableMixinWorkaround.insertAllList(this, index, iterable);
+  }
+
+  void setAll(int index, Iterable<E> iterable) {
+    checkMutable(this, 'setAll');
+    IterableMixinWorkaround.setAllList(this, index, iterable);
+  }
+
   E removeLast() {
     checkGrowable(this, 'removeLast');
     if (length == 0) throw new RangeError.value(-1);
@@ -196,6 +206,16 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
   void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
     checkMutable(this, 'set range');
     IterableMixinWorkaround.setRangeList(this, start, end, iterable, skipCount);
+  }
+
+  void fillRange(int start, int end, [E fillValue]) {
+    checkMutable(this, 'fill range');
+    IterableMixinWorkaround.fillRangeList(this, start, end, fillValue);
+  }
+
+  void replaceRange(int start, int end, Iterable<E> iterable) {
+    checkGrowable(this, 'removeRange');
+    IterableMixinWorkaround.replaceRangeList(this, start, end, iterable);
   }
 
   bool any(bool f(E element)) => IterableMixinWorkaround.any(this, f);

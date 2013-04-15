@@ -343,6 +343,14 @@ class SqlResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
+  void insertAll(int index, Iterable<Map> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<Map> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
   Map removeAt(int pos) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
@@ -369,6 +377,14 @@ class SqlResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
 
   void removeRange(int start, int end) {
     throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void replaceRange(int start, int end, Iterable<Map> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [Map fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
   Iterable<Map> getRange(int start, int end) =>

@@ -52,6 +52,33 @@ class _GrowableObjectArray<T> implements List<T> {
     }
   }
 
+  void insertAll(int index, Iterable<T> iterable) {
+    if (index < 0 || index > length) {
+      throw new RangeError.range(index, 0, length);
+    }
+    // TODO(floitsch): we can probably detect more cases.
+    if (iterable is! List && iterable is! Set && iterable is! SubListIterable) {
+      iterable = iterable.toList();
+    }
+    int insertionLength = iterable.length;
+    // There might be errors after the length change, in which case the list
+    // will end up being modified but the operation not complete. Unless we
+    // always go through a "toList" we can't really avoid that.
+    this.length += insertionLength;
+    setRange(index + insertionLength, this.length, this, index);
+    setAll(index, iterable);
+  }
+
+  void setAll(int index, Iterable<T> iterable) {
+    if (iterable is List) {
+      setRange(index, index + iterable.length, iterable);
+    } else {
+      for (T element in iterable) {
+        this[index++] = element;
+      }
+    }
+  }
+
   void removeWhere(bool test(T element)) {
     IterableMixinWorkaround.removeWhereList(this, test);
   }
@@ -77,6 +104,14 @@ class _GrowableObjectArray<T> implements List<T> {
                 start,
                 this.length - end);
     this.length = this.length - (end - start);
+  }
+
+  void replaceRange(int start, int end, Iterable<T> iterable) {
+    IterableMixinWorkaround.replaceRangeList(this, start, end, iterable);
+  }
+
+  void fillRange(int start, int end, [T fillValue]) {
+    IterableMixinWorkaround.fillRangeList(this, start, end, fillValue);
   }
 
   List<T> sublist(int start, [int end]) {

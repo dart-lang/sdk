@@ -301,14 +301,18 @@ abstract class ListMixin<E> implements List<E> {
     return new ListMapView(this);
   }
 
-  List<E> sublist(int start, [int end]) {
-    if (end == null) end = length;
+  void _rangeCheck(int start, int end) {
     if (start < 0 || start > this.length) {
       throw new RangeError.range(start, 0, this.length);
     }
     if (end < start || end > this.length) {
       throw new RangeError.range(end, start, this.length);
     }
+  }
+
+  List<E> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    _rangeCheck(start, end);
     int length = end - start;
     List<E> result = new List<E>()..length = length;
     for (int i = 0; i < length; i++) {
@@ -318,40 +322,26 @@ abstract class ListMixin<E> implements List<E> {
   }
 
   Iterable<E> getRange(int start, int end) {
-    if (start < 0 || start > this.length) {
-      throw new RangeError.range(start, 0, this.length);
-    }
-    if (end < start || end > this.length) {
-      throw new RangeError.range(end, start, this.length);
-    }
+    _rangeCheck(start, end);
     return new SubListIterable(this, start, end);
   }
 
   void removeRange(int start, int end) {
-    if (start < 0 || start > this.length) {
-      throw new RangeError.range(start, 0, this.length);
-    }
-    if (end < start || end > this.length) {
-      throw new RangeError.range(end, start, this.length);
-    }
+    _rangeCheck(start, end);
     int length = end - start;
     setRange(start, this.length - length, this, end);
     this.length -= length;
   }
 
-  void clearRange(int start, int length, [E fill]) {
-    for (int i = 0; i < length; i++) {
-      this[start + i] = fill;
+  void fillRange(int start, int end, [E fill]) {
+    _rangeCheck(start, end);
+    for (int i = start; i < end; i++) {
+      this[i] = fill;
     }
   }
 
   void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
-    if (start < 0 || start > this.length) {
-      throw new RangeError.range(start, 0, this.length);
-    }
-    if (end < 0 || end > this.length) {
-      throw new RangeError.range(end, start, this.length);
-    }
+    _rangeCheck(start, end);
     int length = end - start;
     if (length == 0) return;
 
@@ -380,6 +370,12 @@ abstract class ListMixin<E> implements List<E> {
         this[start + i] = otherList[otherStart + i];
       }
     }
+  }
+
+  void replaceRange(int start, int end, Iterable<E> newContents) {
+    // TODO(floitsch): Optimize this.
+    removeRange(start, end);
+    insertAll(start, newContents);
   }
 
   int indexOf(E element, [int startIndex = 0]) {
@@ -443,6 +439,33 @@ abstract class ListMixin<E> implements List<E> {
     setRange(index, this.length - 1, this, index + 1);
     length--;
     return result;
+  }
+
+  void insertAll(int index, Iterable<E> iterable) {
+    if (index < 0 || index > length) {
+      throw new RangeError.range(index, 0, length);
+    }
+    // TODO(floitsch): we can probably detect more cases.
+    if (iterable is! List && iterable is! Set && iterable is! SubListIterable) {
+      iterable = iterable.toList();
+    }
+    int insertionLength = iterable.length;
+    // There might be errors after the length change, in which case the list
+    // will end up being modified but the operation not complete. Unless we
+    // always go through a "toList" we can't really avoid that.
+    this.length += insertionLength;
+    setRange(index + insertionLength, this.length, this, index);
+    setAll(index, iterable);
+  }
+
+  void setAll(int index, Iterable<E> iterable) {
+    if (iterable is List) {
+      setRange(index, index + iterable.length, iterable);
+    } else {
+      for (E element in iterable) {
+        this[index++] = element;
+      }
+    }
   }
 
   Iterable<E> get reversed => new ReversedListIterable(this);

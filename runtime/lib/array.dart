@@ -29,6 +29,15 @@ class _ObjectArray<E> implements List<E> {
         "Cannot add to a non-extendable array");
   }
 
+  void insertAll(int index, Iterable<E> iterable) {
+    throw new UnsupportedError(
+        "Cannot add to a non-extendable array");
+  }
+
+  void setAll(int index, Iterable<E> iterable) {
+    IterableMixinWorkaround.setAllList(this, index, iterable);
+  }
+
   E removeAt(int index) {
     throw new UnsupportedError(
         "Cannot remove element of a non-extendable array");
@@ -84,6 +93,15 @@ class _ObjectArray<E> implements List<E> {
   void removeRange(int start, int end) {
     throw new UnsupportedError(
         "Cannot remove range of a non-extendable array");
+  }
+
+  void replaceRange(int start, int end, Iterable<E> iterable) {
+    throw new UnsupportedError(
+        "Cannot remove range of a non-extendable array");
+  }
+
+  void fillRange(int start, int end, [E fillValue]) {
+    IterableMixinWorkaround.fillRangeList(this, start, end, fillValue);
   }
 
   List<E> sublist(int start, [int end]) {
@@ -277,6 +295,16 @@ class _ImmutableArray<E> implements List<E> {
         "Cannot add to an immutable array");
   }
 
+  void insertAll(int index, Iterable<E> iterable) {
+    throw new UnsupportedError(
+        "Cannot add to an immutable array");
+  }
+
+  void setAll(int index, Iterable<E> iterable) {
+    throw new UnsupportedError(
+        "Cannot modify an immutable array");
+  }
+
   E removeAt(int index) {
     throw new UnsupportedError(
         "Cannot modify an immutable array");
@@ -310,6 +338,16 @@ class _ImmutableArray<E> implements List<E> {
   void removeRange(int start, int end) {
     throw new UnsupportedError(
         "Cannot remove range of an immutable array");
+  }
+
+  void fillRange(int start, int end, [E fillValue]) {
+    throw new UnsupportedError(
+        "Cannot modify an immutable array");
+  }
+
+  void replaceRange(int start, int end, Iterable<E> iterable) {
+    throw new UnsupportedError(
+        "Cannot modify an immutable array");
   }
 
   List<E> sublist(int start, [int end]) {

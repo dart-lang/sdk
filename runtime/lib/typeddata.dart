@@ -542,6 +542,11 @@ abstract class _TypedListBase {
         "Cannot remove from a non-extendable array");
   }
 
+  void replaceRange(int start, int end, Iterable iterable) {
+    throw new UnsupportedError(
+        "Cannot remove from a non-extendable array");
+  }
+
   List toList() {
     return new List.from(this);
   }
@@ -568,6 +573,14 @@ abstract class _TypedListBase {
       IterableMixinWorkaround.setRangeList(this, start,
                                            end, iterable, skipCount);
     }
+  }
+
+  void setAll(int index, Iterable iterable) {
+    IterableMixinWorkaround.setAllList(this, index, iterable);
+  }
+
+  void fillRange(int start, int end, [fillValue]) {
+    IterableMixinWorkaround.fillRangeList(this, start, end, fillValue);
   }
 
 

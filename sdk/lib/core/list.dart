@@ -189,6 +189,30 @@ abstract class List<E> implements Iterable<E> {
   void insert(int index, E element);
 
   /**
+   * Inserts all elements of [iterable] at position [index] in the list.
+   *
+   * This increases the length of the list by the length of [iterable] and
+   * shifts all later elements towards the end of the list.
+   *
+   * It is an error if the [index] does not point inside the list or at the
+   * position after the last element.
+   */
+  void insertAll(int index, Iterable<E> iterable);
+
+  /**
+   * Overwrites elements of `this` with the elemenst of [iterable] starting
+   * at position [index] in the list.
+   *
+   * This operation does not increase the length of the list.
+   *
+   * It is an error if the [index] does not point inside the list or at the
+   * position after the last element.
+   *
+   * It is an error if the [iterable] is longer than [length] - [index].
+   */
+  void setAll(int index, Iterable<E> iterable);
+
+  /**
    * Removes [value] from the list. Returns true if [value] was
    * in the list. Returns false otherwise. The method has no effect
    * if [value] value was not in the list.
@@ -284,6 +308,30 @@ abstract class List<E> implements Iterable<E> {
    * `this`.
    */
   void removeRange(int start, int end);
+
+  /**
+   * Sets the elements in the range [start]..[end] (excluding) to the given
+   * [fillValue].
+   *
+   * It is an error if [start]..[end] is not a valid range pointing into the
+   * `this`.
+   */
+  void fillRange(int start, int end, [E fillValue]);
+
+  /**
+   * Removes the elements in the range [start]..[end] (excluding) and replaces
+   * them with the contents of the [iterable].
+   *
+   * It is an error if [start]..[end] is not a valid range pointing into the
+   * `this`.
+   *
+   * Example:
+   *
+   *     var list = [1, 2, 3, 4, 5];
+   *     list.replaceRange(1, 3, [6, 7, 8, 9]);
+   *     print(list);  // [1, 6, 7, 8, 9, 4, 5]
+   */
+  void replaceRange(int start, int end, Iterable<E> iterable);
 
   /**
    * Returns an unmodifiable [Map] view of `this`.
