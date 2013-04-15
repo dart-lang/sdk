@@ -298,6 +298,19 @@ Language/14_Types/3_Type_Declarations/1_Typedef_A01_t01: Fail # http://dartbug.c
 LibTest/core/List/operator_subscript_A03_t01: Fail # http://dartbug.com/9228
 LibTest/core/List/operator_subscripted_assignment_A03_t01: Fail # http://dartbug.com/9228
 
+Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A01_t02: Fail, OK # co19 issue 405
+Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t03: Fail, OK # co19 issue 405
+Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t02: Fail, OK # co19 issue 405
+Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t06: Fail, OK # co19 issue 405
+Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t02: Fail, OK # co19 issue 405
+Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t01: Fail, OK # co19 issue 405
+Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t03: Fail, OK # co19 issue 405
+Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t04: Fail, OK # co19 issue 405
+Language/11_Expressions/17_Getter_Invocation_A02_t02: Fail, OK # co19 issue 405
+Language/11_Expressions/18_Assignment_A05_t04: Fail, OK # co19 issue 405
+Language/11_Expressions/18_Assignment_A08_t04: Fail, OK # co19 issue 405
+
+
 [ $compiler == dart2js ]
 LibTest/core/int/operator_GT_A01_t01: Fail, OK # co19 issue 200
 LibTest/core/int/operator_LT_A01_t01: Fail, OK # co19 issue 200
