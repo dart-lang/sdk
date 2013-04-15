@@ -1333,7 +1333,7 @@ class _HttpClient implements HttpClient {
     }
     // TODO(ajohnsen): Listen for socket close events.
     if (!_idleConnections.containsKey(connection.key)) {
-      _idleConnections[connection.key] = new Set();
+      _idleConnections[connection.key] = new LinkedHashSet();
     }
     _idleConnections[connection.key].add(connection);
   }
