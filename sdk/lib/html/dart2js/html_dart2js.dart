@@ -18442,6 +18442,14 @@ class Performance extends EventTarget native "*Performance" {
   @DocsEditable
   num now() native;
 
+  @JSName('webkitClearResourceTimings')
+  @DomName('Performance.webkitClearResourceTimings')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  void clearResourceTimings() native;
+
   @JSName('webkitGetEntries')
   @DomName('Performance.webkitGetEntries')
   @DocsEditable
@@ -18465,6 +18473,14 @@ class Performance extends EventTarget native "*Performance" {
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
   PerformanceEntryList getEntriesByType(String entryType) native;
+
+  @JSName('webkitSetResourceTimingBufferSize')
+  @DomName('Performance.webkitSetResourceTimingBufferSize')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  void setResourceTimingBufferSize(int maxSize) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18532,6 +18548,63 @@ class PerformanceNavigation native "*PerformanceNavigation" {
   @DomName('PerformanceNavigation.type')
   @DocsEditable
   final int type;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('PerformanceResourceTiming')
+class PerformanceResourceTiming extends PerformanceEntry native "*PerformanceResourceTiming" {
+
+  @DomName('PerformanceResourceTiming.connectEnd')
+  @DocsEditable
+  final num connectEnd;
+
+  @DomName('PerformanceResourceTiming.connectStart')
+  @DocsEditable
+  final num connectStart;
+
+  @DomName('PerformanceResourceTiming.domainLookupEnd')
+  @DocsEditable
+  final num domainLookupEnd;
+
+  @DomName('PerformanceResourceTiming.domainLookupStart')
+  @DocsEditable
+  final num domainLookupStart;
+
+  @DomName('PerformanceResourceTiming.fetchStart')
+  @DocsEditable
+  final num fetchStart;
+
+  @DomName('PerformanceResourceTiming.initiatorType')
+  @DocsEditable
+  final String initiatorType;
+
+  @DomName('PerformanceResourceTiming.redirectEnd')
+  @DocsEditable
+  final num redirectEnd;
+
+  @DomName('PerformanceResourceTiming.redirectStart')
+  @DocsEditable
+  final num redirectStart;
+
+  @DomName('PerformanceResourceTiming.requestStart')
+  @DocsEditable
+  final num requestStart;
+
+  @DomName('PerformanceResourceTiming.responseEnd')
+  @DocsEditable
+  final num responseEnd;
+
+  @DomName('PerformanceResourceTiming.responseStart')
+  @DocsEditable
+  final num responseStart;
+
+  @DomName('PerformanceResourceTiming.secureConnectionStart')
+  @DocsEditable
+  final num secureConnectionStart;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
