@@ -115,7 +115,7 @@ class EchoServer extends TestingServer {
       int bytesRead;
       bytesRead = data.length;
       if (bytesRead > 0) {
-        buffer.setRange(offset, data.length, data);
+        buffer.setRange(offset, offset + data.length, data);
         offset += bytesRead;
         for (int i = 0; i < offset; i++) {
           Expect.equals(EchoServerGame.FIRSTCHAR + i, buffer[i]);

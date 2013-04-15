@@ -54,14 +54,30 @@ class _ObjectArray<E> implements List<E> {
   }
 
   // List interface.
-  void setRange(int start, int length, List<E> from, [int startFrom = 0]) {
-    if (length < 0) {
-      throw new ArgumentError("negative length $length");
+  void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
+    if (start < 0 || start > this.length) {
+      throw new RangeError.range(start, 0, this.length);
     }
-    if (from is _ObjectArray) {
-      _copyFromObjectArray(from, startFrom, start, length);
+    if (end < 0 || end > this.length) {
+      throw new RangeError.range(end, start, this.length);
+    }
+    int length = end - start;
+    if (length == 0) return;
+
+    if (iterable is _ObjectArray) {
+      _copyFromObjectArray(iterable, skipCount, start, length);
     } else {
-      Arrays.copy(from, startFrom, this, start, length);
+      List otherList;
+      int otherStart;
+      if (iterable is List) {
+        otherList = iterable;
+        otherStart = skipCount;
+      } else {
+        otherList =
+            iterable.skip(skipCount).take(length).toList(growable: false);
+        otherStart = 0;
+      }
+      Arrays.copy(otherList, otherStart, this, start, length);
     }
   }
 
@@ -292,7 +308,7 @@ class _ImmutableArray<E> implements List<E> {
         "Cannot modify an immutable array");
   }
 
-  void setRange(int start, int length, List<E> from, [int startFrom = 0]) {
+  void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
     throw new UnsupportedError(
         "Cannot modify an immutable array");
   }

@@ -65,8 +65,8 @@ class _GrowableObjectArray<T> implements List<T> {
     return IterableMixinWorkaround.getRangeList(this, start, end);
   }
 
-  void setRange(int start, int length, List<T> from, [int startFrom = 0]) {
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
+  void setRange(int start, int end, Iterable<T> iterable, [int skipCount = 0]) {
+    IterableMixinWorkaround.setRangeList(this, start, end, iterable, skipCount);
   }
 
   void removeRange(int start, int length) {

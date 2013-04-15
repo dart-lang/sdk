@@ -90,7 +90,7 @@ List<int> codepointsToUtf8(
   int insertAt = 0;
   for (int value in source) {
     if (value < 0 || value > UNICODE_VALID_RANGE_MAX) {
-      encoded.setRange(insertAt, 3, [0xef, 0xbf, 0xbd]);
+      encoded.setRange(insertAt, insertAt + 3, [0xef, 0xbf, 0xbd]);
       insertAt += 3;
     } else if (value <= _UTF8_ONE_BYTE_MAX) {
       encoded[insertAt] = value;

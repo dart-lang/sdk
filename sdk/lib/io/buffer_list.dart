@@ -94,19 +94,15 @@ class _BufferList {
         while (remaining > 0) {
           int bytesInFirst = _buffers.first.length - _index;
           if (bytesInFirst <= remaining) {
-            result.setRange(count - remaining,
-                            bytesInFirst,
-                            _buffers.first,
-                            _index);
+            int startIndex = count - remaining;
+            int endIndex = startIndex + bytesInFirst;
+            result.setRange(startIndex, endIndex, _buffers.first, _index);
             _buffers.removeFirst();
             _index = 0;
             _length -= bytesInFirst;
             remaining -= bytesInFirst;
           } else {
-            result.setRange(count - remaining,
-                            remaining,
-                            _buffers.first,
-                            _index);
+            result.setRange(count - remaining, count, _buffers.first, _index);
             _index = remaining;
             _length -= remaining;
             remaining = 0;

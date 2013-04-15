@@ -568,10 +568,10 @@ abstract class _TypedListBase {
     return IterableMixinWorkaround.getRangeList(this, start, end);
   }
 
-  void setRange(int start, int length, List from, [int startFrom = 0]) {
-    if (!_setRange(start, length, from, startFrom)) {
+  void setRange(int start, int end, Iterable iterable, [int skipCount = 0]) {
+    if (!_setRange(start, end - start, iterable, skipCount)) {
       IterableMixinWorkaround.setRangeList(this, start,
-                                           length, from, startFrom);
+                                           end, iterable, skipCount);
     }
   }
 
@@ -585,7 +585,7 @@ abstract class _TypedListBase {
 
   // Internal utility methods.
 
-  bool _setRange(int start, int length, List from, startFrom)
+  bool _setRange(int start, int length, Iterable from, int startFrom)
       native "TypedData_setRange";
 }
 

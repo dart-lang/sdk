@@ -199,7 +199,7 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
           _stdin._sink.destroy();
         }
 
-        exitDataBuffer.setRange(exitDataRead, data.length, data);
+        exitDataBuffer.setRange(exitDataRead, exitDataRead + data.length, data);
         exitDataRead += data.length;
         if (exitDataRead == EXIT_DATA_SIZE) {
           handleExit();

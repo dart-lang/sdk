@@ -167,7 +167,7 @@ void testSimpleReadWrite() {
       client.listen(
         (buffer) {
           Expect.isTrue(bytesWritten == 0);
-          data.setRange(bytesRead, buffer.length, buffer);
+          data.setRange(bytesRead, bytesRead + buffer.length, buffer);
           bytesRead += buffer.length;
           if (bytesRead == data.length) {
             verifyTestData(data);
@@ -189,7 +189,7 @@ void testSimpleReadWrite() {
       socket.close();  // Can also be delayed.
       socket.listen(
         (List<int> buffer) {
-          dataReceived.setRange(bytesRead, buffer.length, buffer);
+          dataReceived.setRange(bytesRead, bytesRead + buffer.length, buffer);
           bytesRead += buffer.length;
         },
         onDone: () {

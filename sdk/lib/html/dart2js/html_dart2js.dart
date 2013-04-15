@@ -7016,7 +7016,7 @@ class DomMimeTypeArray implements JavaScriptIndexingBehavior, List<DomMimeType> 
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<DomMimeType> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<DomMimeType> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -7299,7 +7299,7 @@ class DomPluginArray implements JavaScriptIndexingBehavior, List<DomPlugin> nati
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<DomPlugin> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<DomPlugin> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -7709,7 +7709,7 @@ class DomStringList implements JavaScriptIndexingBehavior, List<String> native "
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<String> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<String> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -7953,8 +7953,8 @@ class _ChildrenElementList extends ListBase<Element> {
     return _childElements.fold(initialValue, combine);
   }
 
-  void setRange(int start, int rangeLength, List from,
-                [int startFrom = 0]) {
+  void setRange(int start, int end, Iterable<Element> iterable,
+                [int skipCount = 0]) {
     throw new UnimplementedError();
   }
 
@@ -8096,8 +8096,8 @@ class _FrozenElementList extends ListBase {
     throw new UnsupportedError('');
   }
 
-  void setRange(int start, int rangeLength, List from,
-                [int startFrom = 0]) {
+  void setRange(int start, int end, Iterable<Element> iterable,
+                [int skipCount = 0]) {
     throw new UnsupportedError('');
   }
 
@@ -10449,7 +10449,7 @@ class FileList implements JavaScriptIndexingBehavior, List<File> native "*FileLi
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<File> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<File> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -10933,7 +10933,7 @@ class Float32Array extends ArrayBufferView implements JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<num> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<num> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -11159,7 +11159,7 @@ class Float64Array extends ArrayBufferView implements JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<num> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<num> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -11872,7 +11872,7 @@ class HtmlAllCollection implements JavaScriptIndexingBehavior, List<Node> native
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<Node> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -12087,7 +12087,7 @@ class HtmlCollection implements JavaScriptIndexingBehavior, List<Node> native "*
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<Node> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -14125,7 +14125,7 @@ class Int16Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<int> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -14351,7 +14351,7 @@ class Int32Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<int> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -14577,7 +14577,7 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<int> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -17012,7 +17012,8 @@ class _ChildNodeListLazy extends ListBase<Node> {
   }
 
   // FIXME: implement these.
-  void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<Node> iterable,
+                [int skipCount = 0]) {
     throw new UnsupportedError(
         "Cannot setRange on immutable List.");
   }
@@ -17579,7 +17580,7 @@ class NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeLi
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<Node> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -19989,7 +19990,7 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<SourceBuffer> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<SourceBuffer> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -20277,7 +20278,7 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<SpeechGrammar> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<SpeechGrammar> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -21728,7 +21729,7 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<TextTrackCue> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<TextTrackCue> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -21941,7 +21942,7 @@ class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, L
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<TextTrack> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<TextTrack> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -22380,7 +22381,7 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<Touch> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<Touch> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -22856,7 +22857,7 @@ class Uint16Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<int> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -23082,7 +23083,7 @@ class Uint32Array extends ArrayBufferView implements JavaScriptIndexingBehavior,
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<int> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -23308,7 +23309,7 @@ class Uint8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, 
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<int> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -23531,7 +23532,7 @@ class Uint8ClampedArray extends Uint8Array implements JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<int> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<int> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -25820,7 +25821,7 @@ class _ClientRectList implements JavaScriptIndexingBehavior, List<Rect> native "
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<Rect> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<Rect> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -26034,7 +26035,7 @@ class _CssRuleList implements JavaScriptIndexingBehavior, List<CssRule> native "
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<CssRule> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<CssRule> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -26239,7 +26240,7 @@ class _CssValueList extends _CSSValue implements JavaScriptIndexingBehavior, Lis
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<_CSSValue> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<_CSSValue> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -26512,7 +26513,7 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*En
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<Entry> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<Entry> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -26717,7 +26718,7 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<_EntrySync> na
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<_EntrySync> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<_EntrySync> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -26965,7 +26966,7 @@ class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<Gamepad> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<Gamepad> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -27233,7 +27234,7 @@ class _NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*N
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<Node> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<Node> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -27509,7 +27510,7 @@ class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechI
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<SpeechInputResult> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<SpeechInputResult> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -27714,7 +27715,7 @@ class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<S
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<SpeechRecognitionResult> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<SpeechRecognitionResult> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -27919,7 +27920,7 @@ class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> na
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int rangeLength, List<StyleSheet> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<StyleSheet> iterable, [int skipCount]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -31056,8 +31057,8 @@ class _WrappedList<E> implements List<E> {
 
   Iterable<E> getRange(int start, int end) => _list.getRange(start, end);
 
-  void setRange(int start, int length, List<E> from, [int startFrom]) {
-    _list.setRange(start, length, from, startFrom);
+  void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
+    _list.setRange(start, end, iterable, skipCount);
   }
 
   void removeRange(int start, int length) { _list.removeRange(start, length); }

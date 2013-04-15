@@ -931,17 +931,33 @@ class IterableMixinWorkaround {
     return new SubListIterable(list, start, end);
   }
 
-  static void setRangeList(List list, int start, int length,
-                           List from, int startFrom) {
+  static void setRangeList(List list, int start, int end,
+                           Iterable from, int skipCount) {
+    if (start < 0 || start > list.length) {
+      throw new RangeError.range(start, 0, list.length);
+    }
+    if (end < start || end > list.length) {
+      throw new RangeError.range(end, start, list.length);
+    }
+    int length = end - start;
     if (length == 0) return;
 
-    if (length < 0) throw new ArgumentError(length);
-    if (start < 0) throw new RangeError.value(start);
-    if (start + length > list.length) {
-      throw new RangeError.value(start + length);
-    }
+    if (skipCount < 0) throw new ArgumentError(skipCount);
 
-    Arrays.copy(from, startFrom, list, start, length);
+    // TODO(floitsch): Make this accept more.
+    List otherList;
+    int otherStart;
+    if (from is List) {
+      otherList = from;
+      otherStart = skipCount;
+    } else {
+      otherList = from.skip(skipCount).toList(growable: false);
+      otherStart = 0;
+    }
+    if (otherStart + length > otherList.length) {
+      throw new StateError("Not enough elements");
+    }
+    Arrays.copy(otherList, otherStart, list, start, length);
   }
 
   static Map<int, dynamic> asMapList(List l) {

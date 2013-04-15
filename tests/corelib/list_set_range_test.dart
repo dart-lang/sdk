@@ -27,7 +27,7 @@ main() {
   Expect.equals(1, list.length);
   Expect.equals(1, list[0]);
 
-  expectIOORE(() { list.setRange(0, 1, [1, 2], 2); });
+  expectSE(() { list.setRange(0, 1, [1, 2], 2); });
   Expect.equals(1, list.length);
   Expect.equals(1, list[0]);
 
@@ -44,13 +44,13 @@ main() {
   list.setRange(0, 4, [1, 2, 3, 4]);
   Expect.listEquals([1, 2, 3, 4], list);
 
-  list.setRange(2, 2, [5, 6, 7, 8]);
+  list.setRange(2, 4, [5, 6, 7, 8]);
   Expect.listEquals([1, 2, 5, 6], list);
 
-  expectIOORE(() { list.setRange(4, 1, [5, 6, 7, 8]); });
+  expectIOORE(() { list.setRange(4, 5, [5, 6, 7, 8]); });
   Expect.listEquals([1, 2, 5, 6], list);
 
-  list.setRange(1, 2, [9, 10, 11, 12]);
+  list.setRange(1, 3, [9, 10, 11, 12]);
   Expect.listEquals([1, 9, 10, 6], list);
 
   testNegativeIndices();
@@ -62,23 +62,29 @@ void expectIOORE(Function f) {
   Expect.throws(f, (e) => e is RangeError);
 }
 
+void expectSE(Function f) {
+  Expect.throws(f, (e) => e is StateError);
+}
+
+void expectAE(Function f) {
+  Expect.throws(f, (e) => e is ArgumentError);
+}
+
 void testNegativeIndices() {
   var list = [1, 2];
   expectIOORE(() { list.setRange(-1, 1, [1]); });
-  expectIOORE(() { list.setRange(0, 1, [1], -1); });
+  expectAE(() { list.setRange(0, 1, [1], -1); });
 
   // A negative length throws an ArgumentError.
-  Expect.throws(() { list.setRange(0, -1, [1]); },
-      (e) => e is ArgumentError);
+  expectIOORE(() { list.setRange(2, 1, [1]); });
 
-  Expect.throws(() { list.setRange(-1, -1, [1], -1); },
-      (e) => e is ArgumentError);
+  expectAE(() { list.setRange(-1, -2, [1], -1); });
   Expect.listEquals([1, 2], list);
 
-  // A zero length prevails, and does not throw an exception.
-  list.setRange(-1, 0, [1]);
+  expectIOORE(() { list.setRange(-1, -1, [1]); });
   Expect.listEquals([1, 2], list);
 
+  // The skipCount is only used if the length is not 0.
   list.setRange(0, 0, [1], -1);
   Expect.listEquals([1, 2], list);
 }
@@ -87,6 +93,6 @@ void testNonExtendableList() {
   var list = new List<int>(6);
   Expect.listEquals([null, null, null, null, null, null], list);
   list.setRange(0, 3, [1, 2, 3, 4]);
-  list.setRange(3, 3, [1, 2, 3, 4]);
+  list.setRange(3, 6, [1, 2, 3, 4]);
   Expect.listEquals([1, 2, 3, 1, 2, 3], list);
 }

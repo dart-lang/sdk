@@ -469,12 +469,17 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       return 0;
     }
     if (_status != CONNECTED) return 0;
+
+    if (offset == null) offset = 0;
+    if (bytes == null) bytes = data.length - offset;
+
     var buffer = _secureFilter.buffers[WRITE_PLAINTEXT];
     if (bytes > buffer.free) {
       bytes = buffer.free;
     }
     if (bytes > 0) {
-      buffer.data.setRange(buffer.start + buffer.length, bytes, data, offset);
+      int startIndex = buffer.start + buffer.length;
+      buffer.data.setRange(startIndex, startIndex + bytes, data, offset);
       buffer.length += bytes;
     }
     _writeEncryptedData();  // Tries to flush all pipeline stages.
@@ -660,9 +665,8 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
         List<int> data = _socket.read(encrypted.free);
         if (data != null) {
           int bytes = data.length;
-          encrypted.data.setRange(encrypted.start + encrypted.length,
-                                  bytes,
-                                  data);
+          int startIndex = encrypted.start + encrypted.length;
+          encrypted.data.setRange(startIndex, startIndex + bytes, data);
           encrypted.length += bytes;
           progress = true;
         }

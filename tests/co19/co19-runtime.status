@@ -429,6 +429,13 @@ LibTest/core/List/removeRange_A02_t01: fail # Issue 400
 LibTest/core/Set/isSubsetOf_A01_t01: fail # Issue 400
 LibTest/core/Set/isSubsetOf_A01_t02: fail # Issue 400
 
+LibTest/core/Iterable/any_A01_t04: Fail # setRange now takes end-argument. Issue 402
+LibTest/core/List/setRange_A01_t02: Fail # setRange now takes end-argument. Issue 402
+LibTest/core/List/setRange_A02_t01: Fail # setRange now takes end-argument. Issue 402
+LibTest/core/List/setRange_A02_t02: Fail # setRange now takes end-argument. Issue 402
+LibTest/core/List/setRange_A03_t01: Fail # setRange throws StateError if there aren't enough elements in the iterable. Issue 402
+LibTest/core/List/setRange_A03_t02: Fail # setRange throws StateError if there aren't enough elements in the iterable. Issue 402
+
 [ $compiler == none && $runtime == vm && $checked ]
 LibTest/core/Set/intersection_A01_t01: Fail # issue 390
 LibTest/core/Set/intersection_A01_t02: Fail # issue 390
@@ -441,6 +448,8 @@ LibTest/core/Match/pattern_A01_t01: fail # Issue 400
 LibTest/core/Match/str_A01_t01: fail # Issue 400
 LibTest/core/RegExp/allMatches_A01_t01: fail # Issue 400
 
+[ $compiler == none && $runtime == vm && $unchecked ]
+LibTest/core/List/setRange_A05_t01: Fail # setRange now takes end-argument. Issue TODO
 
 [ $compiler == none && $arch == simarm ]
 *: Skip

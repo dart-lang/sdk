@@ -166,8 +166,8 @@ class _ChildrenElementList extends ListBase<Element> {
     return _childElements.fold(initialValue, combine);
   }
 
-  void setRange(int start, int rangeLength, List from,
-                [int startFrom = 0]) {
+  void setRange(int start, int end, Iterable<Element> iterable,
+                [int skipCount = 0]) {
     throw new UnimplementedError();
   }
 
@@ -309,8 +309,8 @@ class _FrozenElementList extends ListBase {
     throw new UnsupportedError('');
   }
 
-  void setRange(int start, int rangeLength, List from,
-                [int startFrom = 0]) {
+  void setRange(int start, int end, Iterable<Element> iterable,
+                [int skipCount = 0]) {
     throw new UnsupportedError('');
   }
 

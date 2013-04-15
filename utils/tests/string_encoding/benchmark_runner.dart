@@ -177,8 +177,9 @@ class TestReport {
   String _rightAlign(String s, int width) {
     List<int> outCodes = [];
     outCodes.insertRange(0, width, spaceChar);
-    outCodes.setRange(Math.max(0, width - s.length), Math.min(width, s.length),
-        s.codeUnits);
+    int fromIndex = Math.max(0, width - s.length);
+    int length = Math.min(width, s.length);
+    outCodes.setRange(fromIndex, fromIndex + length, s.codeUnits);
     return new String.fromCharCodes(outCodes);
   }
 

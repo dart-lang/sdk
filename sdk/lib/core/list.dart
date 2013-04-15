@@ -263,15 +263,19 @@ abstract class List<E> implements Iterable<E> {
   Iterable<E> getRange(int start, int end);
 
   /**
-   * Copies [length] elements of [from], starting
-   * at [startFrom], into the list, starting at [start].
-   * If [length] is 0, this method does not do anything.
-   * Throws an [ArgumentError] if [length] is negative.
-   * Throws an [RangeError] if [start] or
-   * [:start + length - 1:] are out of range for [:this:], or if
-   * [startFrom] or [:startFrom + length - 1:] are out of range for [from].
+   * Copies the elements of [iterable], skipping the [skipCount] first elements
+   * into the range [start] - [end] of `this`.
+   *
+   * If [start] equals [end] and represent a legal range, this method has
+   * no effect.
+   *
+   * It is an error if [start]..[end] is not a valid range pointing into the
+   * `this`.
+   *
+   * It is an error if the [iterable] does not have enough elements after
+   * skipping [skipCount] elements.
    */
-  void setRange(int start, int length, List<E> from, [int startFrom]);
+  void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]);
 
   /**
    * Removes [length] elements from the list, beginning at [start].

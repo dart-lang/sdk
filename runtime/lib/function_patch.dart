@@ -15,7 +15,7 @@ patch class Function {
     int numArguments = numPositionalArguments + numNamedArguments;
     List arguments = new List(numArguments);
     arguments[0] = function;
-    arguments.setRange(1, numPositionalArguments - 1, positionalArguments);
+    arguments.setRange(1, numPositionalArguments, positionalArguments);
     List names = new List(numNamedArguments);
     int argumentIndex = numPositionalArguments;
     int nameIndex = 0;

@@ -229,9 +229,9 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     this.length = receiverLength - length;
   }
 
-  void setRange(int start, int length, List<E> from, [int startFrom = 0]) {
+  void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
     checkMutable(this, 'set range');
-    IterableMixinWorkaround.setRangeList(this, start, length, from, startFrom);
+    IterableMixinWorkaround.setRangeList(this, start, end, iterable, skipCount);
   }
 
   bool any(bool f(E element)) => IterableMixinWorkaround.any(this, f);

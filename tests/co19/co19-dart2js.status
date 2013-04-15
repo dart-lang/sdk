@@ -500,6 +500,12 @@ LibTest/core/List/getRange_A01_t01: Fail # getRange now takes end-argument and r
 LibTest/core/List/getRange_A04_t01: Fail # getRange now takes end-argument and returns Iterable. Issue 399
 LibTest/core/List/operator_subscript_A01_t02: Fail # getRange now takes end-argument and returns Iterable. Issue 399
 
+LibTest/core/Iterable/any_A01_t04: Fail # setRange now takes end-argument. Issue 402
+LibTest/core/List/setRange_A01_t02: Fail # setRange now takes end-argument. Issue 402
+LibTest/core/List/setRange_A02_t01: Fail # setRange now takes end-argument. Issue 402
+LibTest/core/List/setRange_A02_t02: Fail # setRange now takes end-argument. Issue 402
+LibTest/core/List/setRange_A03_t01: Fail # setRange throws StateError if there aren't enough elements in the iterable. Issue 402
+LibTest/core/List/setRange_A03_t02: Fail # setRange throws StateError if there aren't enough elements in the iterable. Issue 402
 
 # Issues with co19 test suite in checked mode.
 [ $compiler == dart2js && $checked ]

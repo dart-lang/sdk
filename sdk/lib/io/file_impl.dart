@@ -736,7 +736,7 @@ class _RandomAccessFile extends _FileBase implements RandomAccessFile {
       }
       var read = response[1];
       var data = response[2];
-      buffer.setRange(offset, read, data);
+      buffer.setRange(offset, offset + read, data);
       return read;
     });
   }

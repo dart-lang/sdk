@@ -671,7 +671,7 @@ class _WebSocketImpl extends Stream implements WebSocket {
     if (mask) {
       header[1] |= 1 << 7;
       var maskBytes = _IOCrypto.getRandomBytes(4);
-      header.setRange(index, 4, maskBytes);
+      header.setRange(index, index + 4, maskBytes);
       index += 4;
       if (data != null) {
         var list = new Uint8List(data.length);

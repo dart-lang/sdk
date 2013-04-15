@@ -173,7 +173,7 @@ void testSimpleReadWrite() {
             Expect.isTrue(client.available() > 0);
             var buffer = client.read();
             if (buffer != null) {
-              data.setRange(bytesRead, buffer.length, buffer);
+              data.setRange(bytesRead, bytesRead + buffer.length, buffer);
               bytesRead += buffer.length;
               for (var value in buffer) {
                 Expect.isTrue(value is int);
@@ -220,7 +220,8 @@ void testSimpleReadWrite() {
             Expect.isTrue(socket.available() > 0);
             var buffer = socket.read();
             if (buffer != null) {
-              dataReceived.setRange(bytesRead, buffer.length, buffer);
+              int endIndex = bytesRead + buffer.length;
+              dataReceived.setRange(bytesRead, endIndex, buffer);
               bytesRead += buffer.length;
             }
             break;

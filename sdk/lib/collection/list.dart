@@ -242,7 +242,7 @@ abstract class ListMixin<E> implements List<E> {
   void remove(Object element) {
     for (int i = 0; i < this.length; i++) {
       if (this[i] == element) {
-        this.setRange(i, this.length - i - 1, this, i + 1);
+        this.setRange(i, i + this.length - 1, this, i + 1);
         this.length -= 1;
         return;
       }
@@ -332,7 +332,7 @@ abstract class ListMixin<E> implements List<E> {
     int moveLength = oldLength - start;
     this.length += length;
     if (moveLength > 0) {
-      this.setRange(start + length, moveLength, this, start);
+      this.setRange(start + length, oldLength, this, start);
     }
     for (int i = 0; i < length; i++) {
       this[start + i] = initialValue;
@@ -347,7 +347,7 @@ abstract class ListMixin<E> implements List<E> {
       throw new RangeError.range(length, 0, this.length - start);
     }
     int end = start + length;
-    setRange(start, this.length - end, this, end);
+    setRange(start, this.length - length, this, end);
     this.length -= length;
   }
 
@@ -357,27 +357,39 @@ abstract class ListMixin<E> implements List<E> {
     }
   }
 
-  void setRange(int start, int length, List<E> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
     if (start < 0 || start > this.length) {
       throw new RangeError.range(start, 0, this.length);
     }
-    if (length < 0 || start + length > this.length) {
-      throw new RangeError.range(length, 0, this.length - start);
+    if (end < 0 || end > this.length) {
+      throw new RangeError.range(end, start, this.length);
     }
-    if (startFrom == null) {
-      startFrom = 0;
+    int length = end - start;
+    if (length == 0) return;
+
+    if (skipCount < 0) throw new ArgumentError(skipCount);
+
+    List otherList;
+    int otherStart;
+    // TODO(floitsch): Make this accept more.
+    if (iterable is List) {
+      otherList = iterable;
+      otherStart = skipCount;
+    } else {
+      otherList = iterable.skip(skipCount).toList(growable: false);
+      otherStart = 0;
     }
-    if (startFrom < 0 || startFrom + length > from.length) {
-      throw new RangeError.range(startFrom, 0, from.length - length);
+    if (otherStart + length > otherList.length) {
+      throw new StateError("Not enough elements");
     }
-    if (startFrom < start) {
+    if (otherStart < start) {
       // Copy backwards to ensure correct copy if [from] is this.
       for (int i = length - 1; i >= 0; i--) {
-        this[start + i] = from[startFrom + i];
+        this[start + i] = otherList[otherStart + i];
       }
     } else {
       for (int i = 0; i < length; i++) {
-        this[start + i] = from[startFrom + i];
+        this[start + i] = otherList[otherStart + i];
       }
     }
   }

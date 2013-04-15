@@ -166,7 +166,7 @@ void testSimpleReadWrite() {
             Expect.isTrue(bytesWritten == 0);
             Expect.isTrue(client.available() > 0);
             var buffer = client.read();
-            data.setRange(bytesRead, buffer.length, buffer);
+            data.setRange(bytesRead, bytesRead + buffer.length, buffer);
             bytesRead += buffer.length;
             if (bytesRead == data.length) {
               verifyTestData(data);
@@ -202,7 +202,7 @@ void testSimpleReadWrite() {
           case RawSocketEvent.READ:
             Expect.isTrue(socket.available() > 0);
             var buffer = socket.read();
-            data.setRange(bytesRead, buffer.length, buffer);
+            data.setRange(bytesRead, bytesRead + buffer.length, buffer);
             bytesRead += buffer.length;
             break;
           case RawSocketEvent.WRITE:

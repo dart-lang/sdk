@@ -112,8 +112,8 @@ class _WrappedList<E> implements List<E> {
 
   Iterable<E> getRange(int start, int end) => _list.getRange(start, end);
 
-  void setRange(int start, int length, List<E> from, [int startFrom]) {
-    _list.setRange(start, length, from, startFrom);
+  void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
+    _list.setRange(start, end, iterable, skipCount);
   }
 
   void removeRange(int start, int length) { _list.removeRange(start, length); }

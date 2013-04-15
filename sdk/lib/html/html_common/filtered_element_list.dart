@@ -71,7 +71,8 @@ class FilteredElementList extends ListBase<Element> {
     throw new UnsupportedError('TODO(jacobr): should we impl?');
   }
 
-  void setRange(int start, int rangeLength, List from, [int startFrom = 0]) {
+  void setRange(int start, int end, Iterable<Element> iterable,
+                [int skipCount = 0]) {
     throw new UnimplementedError();
   }
 

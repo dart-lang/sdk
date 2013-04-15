@@ -85,7 +85,7 @@ class OptimizedByteArrayTest {
     Expect.isTrue(copy is Int8List);
     Expect.equals(4, region.length);
     Expect.listEquals([3, 4, 5, 6], region);
-    array.setRange(3, 4, [-128, 0, 1, 127]);
+    array.setRange(3, 7, [-128, 0, 1, 127]);
     Expect.listEquals([0, 1, 2, -128, 0, 1, 127, 7, 8, 9],
                       array);
   }
@@ -158,7 +158,7 @@ class OptimizedByteArrayTest {
     Expect.isTrue(copy is Uint8List);
     Expect.equals(4, region.length);
     Expect.listEquals([3, 4, 5, 6], region);
-    array.setRange(3, 4, [257, 0, 1, 255]);
+    array.setRange(3, 7, [257, 0, 1, 255]);
     Expect.listEquals([0, 1, 2, 1, 0, 1, 255, 7, 8, 9],
                       array);
   }
@@ -244,7 +244,7 @@ class OptimizedByteArrayTest {
     Expect.isTrue(copy is Int16List);
     Expect.equals(4, region.length);
     Expect.listEquals([3, 4, 5, 6], region);
-    array.setRange(3, 4, [-32768, 0, 1, 32767]);
+    array.setRange(3, 7, [-32768, 0, 1, 32767]);
     Expect.listEquals([0, 1, 2, -32768, 0, 1, 32767, 7, 8, 9],
                       array);
   }
@@ -318,7 +318,7 @@ class OptimizedByteArrayTest {
     Expect.isTrue(copy is Uint16List);
     Expect.equals(4, region.length);
     Expect.listEquals([3, 4, 5, 6], region);
-    array.setRange(3, 4, [0x10001, 0, 1, 0xFFFF]);
+    array.setRange(3, 7, [0x10001, 0, 1, 0xFFFF]);
     Expect.listEquals([0, 1, 2, 1, 0, 1, 0xFFFF, 7, 8, 9],
                       array);
   }
@@ -410,7 +410,7 @@ class OptimizedByteArrayTest {
     Expect.isTrue(copy is Int32List);
     Expect.equals(4, region.length);
     Expect.listEquals([3, 4, 5, 6], region);
-    array.setRange(3, 4, [-0x80000000, 0, 1, 0x7FFFFFFF]);
+    array.setRange(3, 7, [-0x80000000, 0, 1, 0x7FFFFFFF]);
     Expect.listEquals([0, 1, 2, -0x80000000, 0, 1, 0x7FFFFFFF, 7, 8, 9],
                       array);
   }
@@ -487,7 +487,7 @@ class OptimizedByteArrayTest {
     Expect.isTrue(copy is Uint32List);
     Expect.equals(4, region.length);
     Expect.listEquals([3, 4, 5, 6], region);
-    array.setRange(3, 4, [0x100000001, 0, 1, 0xFFFFFFFF]);
+    array.setRange(3, 7, [0x100000001, 0, 1, 0xFFFFFFFF]);
     Expect.listEquals([0, 1, 2, 1, 0, 1, 0xFFFFFFFF, 7, 8, 9],
                       array);
   }
@@ -582,7 +582,7 @@ class OptimizedByteArrayTest {
     Expect.isTrue(copy is Int64List);
     Expect.equals(4, region.length);
     Expect.listEquals([3, 4, 5, 6], region);
-    array.setRange(3, 4, [-0x8000000000000000, 0, 1, 0x7FFFFFFFFFFFFFFF]);
+    array.setRange(3, 7, [-0x8000000000000000, 0, 1, 0x7FFFFFFFFFFFFFFF]);
     Expect.listEquals([0, 1, 2, -0x8000000000000000, 0,
                        1, 0x7FFFFFFFFFFFFFFF, 7, 8, 9],
                       array);
@@ -660,7 +660,7 @@ class OptimizedByteArrayTest {
     Expect.isTrue(copy is Uint64List);
     Expect.equals(4, region.length);
     Expect.listEquals([3, 4, 5, 6], region);
-    array.setRange(3, 4, [0x10000000000000001, 0, 1, 0xFFFFFFFFFFFFFFFF]);
+    array.setRange(3, 7, [0x10000000000000001, 0, 1, 0xFFFFFFFFFFFFFFFF]);
     Expect.listEquals([0, 1, 2, 1, 0, 1, 0xFFFFFFFFFFFFFFFF, 7, 8, 9],
                       array);
   }
@@ -723,7 +723,7 @@ class OptimizedByteArrayTest {
     Expect.isTrue(copy is Float32List);
     Expect.equals(4, region.length);
     Expect.listEquals([3.0, 4.0, 5.0, 6.0], region);
-    array.setRange(3, 4, [double.NEGATIVE_INFINITY, 0.0, 1.0, double.INFINITY]);
+    array.setRange(3, 7, [double.NEGATIVE_INFINITY, 0.0, 1.0, double.INFINITY]);
     Expect.listEquals([0.0, 1.0, 2.0, double.NEGATIVE_INFINITY, 0.0,
                        1.0, double.INFINITY, 7.0, 8.0, 9.0],
                       array);
@@ -787,7 +787,7 @@ class OptimizedByteArrayTest {
     Expect.isTrue(copy is Float64List);
     Expect.equals(4, region.length);
     Expect.listEquals([3.0, 4.0, 5.0, 6.0], region);
-    array.setRange(3, 4, [double.NEGATIVE_INFINITY, 0.0, 1.0, double.INFINITY]);
+    array.setRange(3, 7, [double.NEGATIVE_INFINITY, 0.0, 1.0, double.INFINITY]);
     Expect.listEquals([0.0, 1.0, 2.0, double.NEGATIVE_INFINITY, 0.0,
                        1.0, double.INFINITY, 7.0, 8.0, 9.0],
                       array);
@@ -917,7 +917,7 @@ class OptimizedByteArrayTest {
     Expect.isTrue(copy is Int8List);
     Expect.equals(4, region.length);
     Expect.listEquals([3, 4, 5, 6], region);
-    view.setRange(3, 4, [-128, 0, 1, 127]);
+    view.setRange(3, 7, [-128, 0, 1, 127]);
     Expect.listEquals([0, 1, 2, -128, 0, 1, 127, 7, 8, 9],
                       view);
     Expect.listEquals([0xFF, 0, 1, 2, 128, 0, 1, 127, 7, 8, 9, 0xFF],
@@ -1028,7 +1028,7 @@ class OptimizedByteArrayTest {
     Expect.isTrue(copy is Uint8List);
     Expect.equals(4, region.length);
     Expect.listEquals([3, 4, 5, 6], region);
-    view.setRange(3, 4, [257, 0, 1, 255]);
+    view.setRange(3, 7, [257, 0, 1, 255]);
     Expect.listEquals([0, 1, 2, 1, 0, 1, 255, 7, 8, 9],
                       view);
   }
@@ -1160,7 +1160,7 @@ class OptimizedByteArrayTest {
     Expect.isTrue(copy is Int16List);
     Expect.equals(4, region.length);
     Expect.listEquals([3, 4, 5, 6], region);
-    view.setRange(3, 4, [-32768, 0, 1, 32767]);
+    view.setRange(3, 7, [-32768, 0, 1, 32767]);
     Expect.listEquals([0, 1, 2, -32768, 0, 1, 32767, 7, 8, 9],
                       view);
     Expect.listEquals([0xFF, 0xFF, 0x00, 0x00, 0x01, 0x00, 0x02, 0x00,
@@ -1275,7 +1275,7 @@ class OptimizedByteArrayTest {
     Expect.isTrue(copy is Uint16List);
     Expect.equals(4, region.length);
     Expect.listEquals([3, 4, 5, 6], region);
-    view.setRange(3, 4, [0x10001, 0, 1, 0xFFFF]);
+    view.setRange(3, 7, [0x10001, 0, 1, 0xFFFF]);
     Expect.listEquals([0, 1, 2, 1, 0, 1, 0xFFFF, 7, 8, 9],
                       view);
     Expect.listEquals([-1, -1, 0, 0, 1, 0, 2, 0,
@@ -1433,7 +1433,7 @@ class OptimizedByteArrayTest {
     Expect.isTrue(copy is Int32List);
     Expect.equals(4, region.length);
     Expect.listEquals([3, 4, 5, 6], region);
-    view.setRange(3, 4, [-0x80000000, 0, 1, 0x7FFFFFFF]);
+    view.setRange(3, 7, [-0x80000000, 0, 1, 0x7FFFFFFF]);
     Expect.listEquals([0, 1, 2, -0x80000000, 0, 1, 0x7FFFFFFF, 7, 8, 9],
                       view);
     Expect.listEquals([0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00,
@@ -1560,7 +1560,7 @@ class OptimizedByteArrayTest {
     Expect.isTrue(copy is Uint32List);
     Expect.equals(4, region.length);
     Expect.listEquals([3, 4, 5, 6], region);
-    view.setRange(3, 4, [0x100000001, 0, 1, 0xFFFFFFFF]);
+    view.setRange(3, 7, [0x100000001, 0, 1, 0xFFFFFFFF]);
     Expect.listEquals([0, 1, 2, 1, 0, 1, 0xFFFFFFFF, 7, 8, 9],
                       view);
     Expect.listEquals([-1, -1, -1, -1, 0, 0, 0, 0,
@@ -1750,7 +1750,7 @@ class OptimizedByteArrayTest {
     Expect.isTrue(copy is Int64List);
     Expect.equals(4, region.length);
     Expect.listEquals([3, 4, 5, 6], region);
-    view.setRange(3, 4, [-0x8000000000000000, 0, 1, 0x7FFFFFFFFFFFFFFF]);
+    view.setRange(3, 7, [-0x8000000000000000, 0, 1, 0x7FFFFFFFFFFFFFFF]);
     Expect.listEquals([0, 1, 2, -0x8000000000000000, 0,
                        1, 0x7FFFFFFFFFFFFFFF, 7, 8, 9],
                       view);
@@ -1910,7 +1910,7 @@ class OptimizedByteArrayTest {
     Expect.isTrue(copy is Uint64List);
     Expect.equals(4, region.length);
     Expect.listEquals([3, 4, 5, 6], region);
-    view.setRange(3, 4, [0x10000000000000001, 0, 1, 0xFFFFFFFFFFFFFFFF]);
+    view.setRange(3, 7, [0x10000000000000001, 0, 1, 0xFFFFFFFFFFFFFFFF]);
     Expect.listEquals([0, 1, 2, 1, 0, 1, 0xFFFFFFFFFFFFFFFF, 7, 8, 9],
                       view);
     Expect.listEquals([-1, -1, -1, -1, -1, -1, -1, -1,
@@ -2020,7 +2020,7 @@ class OptimizedByteArrayTest {
     Expect.isTrue(copy is Float32List);
     Expect.equals(4, region.length);
     Expect.listEquals([3.0, 4.0, 5.0, 6.0], region);
-    view.setRange(3, 4, [double.NEGATIVE_INFINITY, 0.0, 1.0, double.INFINITY]);
+    view.setRange(3, 7, [double.NEGATIVE_INFINITY, 0.0, 1.0, double.INFINITY]);
     Expect.listEquals([0.0, 1.0, 2.0, double.NEGATIVE_INFINITY, 0.0,
                        1.0, double.INFINITY, 7.0, 8.0, 9.0],
                       view);
@@ -2125,7 +2125,7 @@ class OptimizedByteArrayTest {
     Expect.isTrue(copy is Float64List);
     Expect.equals(4, region.length);
     Expect.listEquals([3.0, 4.0, 5.0, 6.0], region);
-    view.setRange(3, 4, [double.NEGATIVE_INFINITY, 0.0, 1.0, double.INFINITY]);
+    view.setRange(3, 7, [double.NEGATIVE_INFINITY, 0.0, 1.0, double.INFINITY]);
     Expect.listEquals([0.0, 1.0, 2.0, double.NEGATIVE_INFINITY, 0.0,
                        1.0, double.INFINITY, 7.0, 8.0, 9.0],
                       view);

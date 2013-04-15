@@ -160,7 +160,7 @@ abstract class UnmodifiableListMixin<E> {
         "Cannot remove from an unmodifiable list");
   }
 
-  void setRange(int start, int length, List<E> from, [int startFrom]) {
+  void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
     throw new UnsupportedError(
         "Cannot modify an unmodifiable list");
   }

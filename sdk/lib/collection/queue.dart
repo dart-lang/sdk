@@ -458,17 +458,17 @@ class ListQueue<E> extends Iterable<E> implements Queue<E>{
       if (length + addCount >= _table.length) {
         _preGrow(length + addCount);
         // After preGrow, all elements are at the start of the list.
-        _table.setRange(length, addCount, list, 0);
+        _table.setRange(length, length + addCount, list, 0);
         _tail += addCount;
       } else {
         // Adding addCount elements won't reach _head.
         int endSpace = _table.length - _tail;
         if (addCount < endSpace) {
-          _table.setRange(_tail, addCount, list, 0);
+          _table.setRange(_tail, _tail + addCount, list, 0);
           _tail += addCount;
         } else {
           int preSpace = addCount - endSpace;
-          _table.setRange(_tail, endSpace, list, 0);
+          _table.setRange(_tail, _tail + endSpace, list, 0);
           _table.setRange(0, preSpace, list, endSpace);
           _tail = preSpace;
         }
@@ -653,7 +653,7 @@ class ListQueue<E> extends Iterable<E> implements Queue<E>{
     List<E> newTable = new List<E>(_table.length * 2);
     int split = _table.length - _head;
     newTable.setRange(0, split, _table, _head);
-    newTable.setRange(split, _head, _table, 0);
+    newTable.setRange(split, split + _head, _table, 0);
     _head = 0;
     _tail = _table.length;
     _table = newTable;
@@ -668,7 +668,7 @@ class ListQueue<E> extends Iterable<E> implements Queue<E>{
     } else {
       int firstPartSize = _table.length - _head;
       target.setRange(0, firstPartSize, _table, _head);
-      target.setRange(firstPartSize, _tail, _table, 0);
+      target.setRange(firstPartSize, firstPartSize + _tail, _table, 0);
       return _tail + firstPartSize;
     }
   }
