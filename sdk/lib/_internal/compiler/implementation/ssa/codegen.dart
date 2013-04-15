@@ -89,33 +89,6 @@ class SsaCodeGeneratorTask extends CompilerTask {
   }
 }
 
-// Stop-gap until the core classes have such a class.
-class OrderedSet<T> {
-  final LinkedHashMap<T, bool> map = new LinkedHashMap<T, bool>();
-
-  void add(T x) {
-    if (!map.containsKey(x)) {
-      map[x] = true;
-    }
-  }
-
-  bool contains(T x) => map.containsKey(x);
-
-  bool remove(T x) => map.remove(x) != null;
-
-  bool get isEmpty => map.isEmpty;
-
-  void forEach(f) => map.keys.forEach(f);
-
-  T get first {
-    var iterator = map.keys.iterator;
-    if (!iterator.moveNext()) throw new StateError("No elements");
-    return iterator.current;
-  }
-
-  get length => map.length;
-}
-
 typedef void ElementAction(Element element);
 
 abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
@@ -168,7 +141,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
    * we do this most of the time, because it reduces the size unless there
    * is only one variable.
    */
-  final OrderedSet<String> collectedVariableDeclarations;
+  final LinkedHashSet<String> collectedVariableDeclarations;
 
   /**
    * Set of variables and parameters that have already been declared.
@@ -188,7 +161,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   SsaCodeGenerator(this.backend, CodegenWorkItem work)
     : this.work = work,
       declaredLocals = new Set<String>(),
-      collectedVariableDeclarations = new OrderedSet<String>(),
+      collectedVariableDeclarations = new LinkedHashSet<String>(),
       currentContainer = new js.Block.empty(),
       parameters = <js.Parameter>[],
       expressionStack = <js.Expression>[],
@@ -857,6 +830,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
                   inits.add(new js.VariableInitialization(declaration,
                                                           assignment.value));
                   collectedVariableDeclarations.remove(id);
+                  declaredLocals.add(id);
                 }
                 jsInitialization = new js.VariableDeclarationList(inits);
               }
