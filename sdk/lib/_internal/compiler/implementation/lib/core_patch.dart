@@ -289,16 +289,6 @@ patch class NoSuchMethodError {
   }
 }
 
-patch class StackTrace {
-  patch String get fullStackTrace {
-    throw new UnsupportedError('fullStackTrace');
-  }
-
-  patch String get stackTrace {
-    throw new UnsupportedError('stackTrace');
-  }
-}
-
 patch class Symbol {
   final String _name;
 

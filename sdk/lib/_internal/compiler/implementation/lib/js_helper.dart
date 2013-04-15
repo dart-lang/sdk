@@ -824,13 +824,13 @@ unwrapException(ex) {
  * exception.
  */
 StackTrace getTraceFromException(exception) {
-  return new StackTrace(JS("var", r"#.stack", exception));
+  return new _StackTrace(JS("var", r"#.stack", exception));
 }
 
-class StackTrace {
-  var stack;
-  StackTrace(this.stack);
-  String toString() => stack != null ? stack : '';
+class _StackTrace implements StackTrace {
+  var _stack;
+  _StackTrace(this._stack);
+  String toString() => _stack != null ? _stack : '';
 }
 
 

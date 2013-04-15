@@ -52,7 +52,7 @@ class Trace implements StackTrace {
   /// a [Trace], it will be returned as-is.
   factory Trace.from(StackTrace trace) {
     if (trace is Trace) return trace;
-    return new Trace.parse(trace.fullStackTrace);
+    return new Trace.parse(trace.toString());
   }
 
   /// Parses a string representation of a stack trace.

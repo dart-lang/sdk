@@ -14,15 +14,14 @@ part of dart.core;
  * them programmatically.
  */
 abstract class StackTrace {
-  // Returns a String object that contains the full stack trace starting from
-  // the point where an exception has ocurred to the entry function which is
-  // typically 'main'.
-  // 'toString()' on a stack trace object essentially invokes this getter.
-  external String get fullStackTrace;
-
-  // Returns a String object that contains a stack trace starting from the
-  // point where an exception has ocurred to the point where the exception
-  // is caught.
-  external String get stackTrace;
+  /**
+   * Returns a [String] representation of the stack trace.
+   *
+   * The string represents the full stack trace starting from
+   * the point where a throw ocurred to the top of the current call sequence.
+   *
+   * The exact format of the string representation is not final.
+   */
+  String toString();
 }
 

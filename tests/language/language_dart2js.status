@@ -26,10 +26,12 @@ class_literal_test/26: Fail # Class literals are expression now; delete this tes
 class_literal_test/27: Fail # Class literals are expression now; delete this test.
 class_literal_test/28: Fail # Class literals are expression now; delete this test.
 class_literal_test/29: Fail # Class literals are expression now; delete this test.
-full_stacktrace1_test: Skip # Stack trace interface is not implemented yet.
-full_stacktrace2_test: Skip # Stack trace interface is not implemented yet.
-full_stacktrace3_test: Skip # Stack trace interface is not implemented yet.
-stacktrace_test: Skip # Stack trace interface is not implemented yet.
+
+# Fails due to inlining. Not all expected frames are in the trace.
+full_stacktrace1_test: Fail  # issue 9895
+full_stacktrace2_test: Fail  # issue 9895
+full_stacktrace3_test: Fail  # issue 9895
+stacktrace_test: Fail # Assumes stack trace string ends in newline.
 
 # VM specific tests that should not be run by dart2js.
 *vm_test: Skip
