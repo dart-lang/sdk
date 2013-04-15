@@ -74,7 +74,7 @@ _js_custom_members = monitored.Set('systemhtml._js_custom_members', [
     'Window.open',
     'Window.requestAnimationFrame',
     # 'WorkerContext.indexedDB', # Workers
-    ])
+    ], dart2jsOnly=True)
 
 _js_custom_constructors = monitored.Set('systemhtml._js_custom_constructors', [
     'AudioContext',
@@ -84,7 +84,7 @@ _js_custom_constructors = monitored.Set('systemhtml._js_custom_constructors', [
     'RTCPeerConnection',
     'RTCSessionDescription',
     'SpeechRecognition',
-    ])
+    ], dart2jsOnly=True)
 
 # Classes that offer only static methods, and therefore we should suppress
 # constructor creation.

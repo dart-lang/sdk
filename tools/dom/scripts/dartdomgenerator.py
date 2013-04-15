@@ -132,7 +132,7 @@ def GenerateFromDatabase(common_database, dart2js_output_dir,
   _logger.info('Flush...')
   emitters.Flush()
 
-  monitored.FinishMonitoring()
+  monitored.FinishMonitoring(dart2js_output_dir)
 
 def GenerateSingleFile(library_path, output_dir, generated_output_dir=None):
   library_dir = os.path.dirname(library_path)

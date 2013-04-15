@@ -8,21 +8,24 @@
 _monitored_values = []
 
 
-def FinishMonitoring():
+def FinishMonitoring(includeDart2jsOnly):
   for value in _monitored_values:
+    if value._dart2jsOnly and not includeDart2jsOnly:
+      continue
     value.CheckUsage()
 
 class MonitoredCollection(object):
-  def __init__(self, name):
+  def __init__(self, name, dart2jsOnly):
     self.name = name
     self._used_keys = set()
+    self._dart2jsOnly = dart2jsOnly
     _monitored_values.append(self)
 
 class Dict(MonitoredCollection):
   """Wrapper for a dict that reports unused keys."""
 
-  def __init__(self, name, map):
-    super(Dict, self).__init__(name)
+  def __init__(self, name, map, dart2jsOnly=False):
+    super(Dict, self).__init__(name, dart2jsOnly)
     self._map = map
 
   def __getitem__(self, key):
@@ -52,8 +55,8 @@ class Dict(MonitoredCollection):
 class Set(MonitoredCollection):
   """Wrapper for a set that reports unused keys."""
 
-  def __init__(self, name, a_set):
-    super(Set, self).__init__(name)
+  def __init__(self, name, a_set, dart2jsOnly=False):
+    super(Set, self).__init__(name, dart2jsOnly)
     self._set = a_set
 
   def __contains__(self, key):
