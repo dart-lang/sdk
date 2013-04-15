@@ -240,7 +240,7 @@ class _ErrorGroupStream extends Stream {
   /// [inner].
   _ErrorGroupStream(this._group, Stream inner)
     : _controller = new StreamController() {
-    this.stream = isBroadcast
+    this._stream = inner.isBroadcast
         ? _controller.stream.asBroadcastStream()
         : _controller.stream;
     _subscription = inner.listen((v) {
@@ -257,7 +257,7 @@ class _ErrorGroupStream extends Stream {
   StreamSubscription listen(void onData(value),
       {void onError(var error), void onDone(),
        bool cancelOnError}) {
-    return _controller.stream.listen(onData,
+    return _stream.listen(onData,
         onError: onError,
         onDone: onDone,
         cancelOnError: true);
