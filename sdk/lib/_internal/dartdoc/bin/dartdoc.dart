@@ -39,7 +39,7 @@ main() {
 
   final argParser = new ArgParser();
 
-  final Path libPath = scriptDir.append('../../../../');
+  Path libPath = scriptDir.append('../../../../');
 
   String packageRoot;
 
@@ -169,6 +169,14 @@ main() {
       callback: (packageDir) {
         if(packageDir != null) {
           packageRoot = packageDir;
+        }
+      });
+
+  argParser.addOption('library-root',
+      help: 'Sets the library root directory to the specified directory.',
+      callback: (libraryRoot) {
+        if (libraryRoot != null) {
+          libPath = new Path(libraryRoot);
         }
       });
 
