@@ -14,6 +14,7 @@ library dart.io;
 
 import 'dart:async';
 import 'dart:collection' show Queue,
+                              LinkedHashSet,
                               DoubleLinkedQueue,
                               DoubleLinkedQueueEntry;
 import 'dart:crypto';
