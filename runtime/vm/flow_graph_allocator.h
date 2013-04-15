@@ -5,6 +5,7 @@
 #ifndef VM_FLOW_GRAPH_ALLOCATOR_H_
 #define VM_FLOW_GRAPH_ALLOCATOR_H_
 
+#include "vm/flow_graph.h"
 #include "vm/growable_array.h"
 #include "vm/intermediate_language.h"
 
@@ -35,6 +36,21 @@ class ReachingDefs : public ValueObject {
 };
 
 
+class SSALivenessAnalysis : public LivenessAnalysis {
+ public:
+  explicit SSALivenessAnalysis(const FlowGraph& flow_graph)
+      : LivenessAnalysis(flow_graph.max_virtual_register_number(),
+                         flow_graph.postorder()),
+        graph_entry_(flow_graph.graph_entry()) { }
+
+ private:
+  // Compute initial values for live-out, kill and live-in sets.
+  virtual void ComputeInitialSets();
+
+  GraphEntryInstr* graph_entry_;
+};
+
+
 class FlowGraphAllocator : public ValueObject {
  public:
   // Number of stack slots needed for a fpu register spill slot.
@@ -44,9 +60,6 @@ class FlowGraphAllocator : public ValueObject {
 
   void AllocateRegisters();
 
-  // Build live-in and live-out sets for each block.
-  void AnalyzeLiveness();
-
   // Map a virtual register number to its live range.
   LiveRange* GetLiveRange(intptr_t vreg);
 
@@ -55,27 +68,6 @@ class FlowGraphAllocator : public ValueObject {
 
   // Eliminate unnecessary environments from the IL.
   void EliminateEnvironments();
-
-  // Compute initial values for live-out, kill and live-in sets.
-  void ComputeInitialSets();
-
-  // Update live-out set for the given block: live-out should contain
-  // all values that are live-in for block's successors.
-  // Returns true if live-out set was changed.
-  bool UpdateLiveOut(const BlockEntryInstr& instr);
-
-  // Update live-in set for the given block: live-in should contain
-  // all values that are live-out from the block and are not defined
-  // by this block.
-  // Returns true if live-in set was changed.
-  bool UpdateLiveIn(const BlockEntryInstr& instr);
-
-  // Perform fix-point iteration updating live-out and live-in sets
-  // for blocks until they stop changing.
-  void ComputeLiveInAndLiveOutSets();
-
-  // Print results of liveness analysis.
-  void DumpLiveness();
 
   // Visit blocks in the code generation order (reverse post order) and
   // linearly assign consequent lifetime positions to every instruction.
@@ -249,19 +241,7 @@ class FlowGraphAllocator : public ValueObject {
   // Mapping between lifetime positions and blocks containing them.
   GrowableArray<BlockInfo*> block_info_;
 
-  // Live-out sets for each block.  They contain indices of SSA values
-  // that are live out from this block: that is values that were either
-  // defined in this block or live into it and that are used in some
-  // successor block.
-  GrowableArray<BitVector*> live_out_;
-
-  // Kill sets for each block.  They contain indices of SSA values that
-  // are defined by this block.
-  GrowableArray<BitVector*> kill_;
-
-  // Live-in sets for each block.  They contain indices of SSA values
-  // that are used by this block or its successors.
-  GrowableArray<BitVector*> live_in_;
+  SSALivenessAnalysis liveness_;
 
   // Number of virtual registers.  Currently equal to the number of
   // SSA values.

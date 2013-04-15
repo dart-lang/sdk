@@ -623,11 +623,6 @@ class Instruction : public ZoneAllocated {
 
   void Goto(JoinEntryInstr* entry);
 
-  // Mutate assigned_vars to add the local variable index for all
-  // frame-allocated locals assigned to by the instruction.
-  virtual void RecordAssignedVars(BitVector* assigned_vars,
-                                  intptr_t fixed_parameter_count);
-
   virtual const char* DebugName() const = 0;
 
   // Printing support.
@@ -991,7 +986,6 @@ class BlockEntryInstr : public Instruction {
       GrowableArray<BlockEntryInstr*>* preorder,
       GrowableArray<BlockEntryInstr*>* postorder,
       GrowableArray<intptr_t>* parent,
-      GrowableArray<BitVector*>* assigned_vars,
       intptr_t variable_count,
       intptr_t fixed_parameter_count);
 
@@ -1419,9 +1413,6 @@ class Definition : public Instruction {
   // can be replaced without affecting iteration order, otherwise pass a
   // NULL iterator.
   void ReplaceWith(Definition* other, ForwardInstructionIterator* iterator);
-
-  virtual void RecordAssignedVars(BitVector* assigned_vars,
-                                  intptr_t fixed_parameter_count);
 
   // Printing support. These functions are sometimes overridden for custom
   // formatting. Otherwise, it prints in the format "opcode(op1, op2, op3)".
@@ -2858,7 +2849,8 @@ class StaticCallInstr : public TemplateDefinition<0> {
 
 class LoadLocalInstr : public TemplateDefinition<0> {
  public:
-  explicit LoadLocalInstr(const LocalVariable& local) : local_(local) { }
+  explicit LoadLocalInstr(const LocalVariable& local)
+      : local_(local), is_last_(false) { }
 
   DECLARE_INSTRUCTION(LoadLocal)
   virtual CompileType ComputeType() const;
@@ -2874,8 +2866,12 @@ class LoadLocalInstr : public TemplateDefinition<0> {
     return false;
   }
 
+  void mark_last() { is_last_ = true; }
+  bool is_last() const { return is_last_; }
+
  private:
   const LocalVariable& local_;
+  bool is_last_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadLocalInstr);
 };
@@ -2883,7 +2879,8 @@ class LoadLocalInstr : public TemplateDefinition<0> {
 
 class StoreLocalInstr : public TemplateDefinition<1> {
  public:
-  StoreLocalInstr(const LocalVariable& local, Value* value) : local_(local) {
+  StoreLocalInstr(const LocalVariable& local, Value* value)
+      : local_(local), is_dead_(false), is_last_(false) {
     SetInputAt(0, value);
   }
 
@@ -2892,9 +2889,6 @@ class StoreLocalInstr : public TemplateDefinition<1> {
 
   const LocalVariable& local() const { return local_; }
   Value* value() const { return inputs_[0]; }
-
-  virtual void RecordAssignedVars(BitVector* assigned_vars,
-                                  intptr_t fixed_parameter_count);
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -2905,8 +2899,16 @@ class StoreLocalInstr : public TemplateDefinition<1> {
     return false;
   }
 
+  void mark_dead() { is_dead_ = true; }
+  bool is_dead() const { return is_dead_; }
+
+  void mark_last() { is_last_ = true; }
+  bool is_last() const { return is_last_; }
+
  private:
   const LocalVariable& local_;
+  bool is_dead_;
+  bool is_last_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreLocalInstr);
 };

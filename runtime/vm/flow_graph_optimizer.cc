@@ -3371,7 +3371,7 @@ class LoadOptimizer : public ValueObject {
           for (intptr_t i = 0; i < block->PredecessorCount(); i++) {
             BlockEntryInstr* pred = block->PredecessorAt(i);
             BitVector* pred_out = out_[pred->preorder_number()];
-            temp->Intersect(*pred_out);
+            temp->Intersect(pred_out);
           }
         }
 
