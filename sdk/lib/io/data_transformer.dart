@@ -51,7 +51,7 @@ class _FilterTransformer extends StreamEventTransformer<List<int>, List<int>> {
       }
     } catch (e, s) {
       _closed = true;
-      sink.addError(new AsyncError(e, s));
+      sink.addError(e, s);
       sink.close();
     }
   }
@@ -65,7 +65,7 @@ class _FilterTransformer extends StreamEventTransformer<List<int>, List<int>> {
         sink.add(out);
       }
     } catch (e, s) {
-      sink.addError(new AsyncError(e, s));
+      sink.addError(e, s);
       _closed = true;
     }
     if (!_closed) _filter.end();

@@ -93,7 +93,7 @@ void test(String shellScript, String dartScript, String type, bool devNull) {
   });
   future.catchError((error) {
     dir.deleteSync(recursive: true);
-    Expect.fail(error.error.toString());
+    Expect.fail(error.toString());
   });
 }
 

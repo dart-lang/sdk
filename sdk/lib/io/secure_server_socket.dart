@@ -64,7 +64,7 @@ class SecureServerSocket extends Stream<SecureSocket> implements ServerSocket {
   }
 
   StreamSubscription<SecureSocket> listen(void onData(SecureSocket socket),
-                                          {void onError(AsyncError error),
+                                          {void onError(error),
                                            void onDone(),
                                            bool cancelOnError}) {
     return _socket.map((rawSocket) => new SecureSocket._(rawSocket))
@@ -159,7 +159,7 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
   }
 
   StreamSubscription<RawSecureSocket> listen(void onData(RawSecureSocket s),
-                                             {void onError(AsyncError error),
+                                             {void onError(error),
                                               void onDone(),
                                               bool cancelOnError}) {
     return _controller.stream.listen(onData,

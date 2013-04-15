@@ -458,11 +458,16 @@ class Debugger {
           },
           onError: (e) {
             print("Error '$e' detected in input stream from debug target");
+            var trace = getAttachedStackTrace(e);
+            if (trace != null) print("StackTrace: $trace");
             close(killDebugee: true);
           });
       },
-      onError: (asyncErr) {
-        error("Error while connecting to debugee: $asyncErr");
+      onError: (e) {
+        String msg = "Error while connecting to debugee: $e";
+        var trace = getAttachedStackTrace(e);
+        if (trace != null) msg += "\nStackTrace: $trace";
+        error(msg);
         close(killDebugee: true);
       });
   }
@@ -518,6 +523,8 @@ bool RunScript(List script) {
     onError: (e) {
       if (++retries >= 3) { 
         print('unable to find unused port: $e');
+        var trace = getAttachedStackTrace(e);
+        if (trace != null) print("StackTrace: $trace");
         return -1; 
       } else {
         // Retry with another random port.

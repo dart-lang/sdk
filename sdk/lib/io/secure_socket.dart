@@ -290,7 +290,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   }
 
   StreamSubscription listen(void onData(RawSocketEvent data),
-                            {void onError(AsyncError error),
+                            {void onError(error),
                              void onDone(),
                              bool cancelOnError}) {
     if (_writeEventsEnabled) {
@@ -466,8 +466,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   // up handlers to flush the pipeline when possible.
   int write(List<int> data, [int offset, int bytes]) {
     if (_closedWrite) {
-      _controller.addError(new AsyncError(new SocketIOException(
-          "Writing to a closed socket")));
+      _controller.addError(new SocketIOException("Writing to a closed socket"));
       return 0;
     }
     if (_status != CONNECTED) return 0;
@@ -569,17 +568,14 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     _reportError(e, 'Error on underlying RawSocket');
   }
 
-  void _reportError(error, String message) {
+  void _reportError(e, String message) {
     // TODO(whesse): Call _reportError from all internal functions that throw.
-    var e;
-    if (error is AsyncError) {
-      e = error;
-    } else if (error is SocketIOException) {
-      e = new SocketIOException('$message (${error.message})', error.osError);
+    if (e is SocketIOException) {
+      e = new SocketIOException('$message (${e.message})', e.osError);
     } else if (error is OSError) {
-      e = new SocketIOException(message, error);
+      e = new SocketIOException(message, e);
     } else {
-      e = new SocketIOException('$message (${error.toString()})', null);
+      e = new SocketIOException('$message (${e.toString()})', null);
     }
     if (_connectPending) {
       _handshakeComplete.completeError(e);

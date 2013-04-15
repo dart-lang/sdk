@@ -42,12 +42,13 @@ class _Completes extends BaseMatcher {
 
     item.then((value) {
       done(() { if (_matcher != null) expect(value, _matcher); });
-    }, onError: (e) {
+    }, onError: (error) {
       var id = _id == '' ? '' : '${_id} ';
       var reason = 'Expected future ${id}to complete successfully, '
-                   'but it failed with ${e.error}';
-      if (e.stackTrace != null) {
-        var stackTrace = e.stackTrace.toString();
+                   'but it failed with ${error}';
+      var trace = getAttachedStackTrace(error);
+      if (trace != null) {
+        var stackTrace = trace.toString();
         stackTrace = '  ${stackTrace.replaceAll('\n', '\n  ')}';
         reason = '$reason\nStack trace:\n$stackTrace';
       }

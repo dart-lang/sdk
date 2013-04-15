@@ -13,9 +13,9 @@ testStartError() {
       Process.start("__path_to_something_that_should_not_exist__",
                     const []);
   processFuture.then((p) => Expect.fail('got process despite start error'))
-  .catchError((e) {
-    Expect.isTrue(e.error is ProcessException);
-    Expect.equals(2, e.error.errorCode, e.error.toString());
+  .catchError((error) {
+    Expect.isTrue(error is ProcessException);
+    Expect.equals(2, error.errorCode, error.toString());
   });
 }
 
@@ -25,9 +25,9 @@ testRunError() {
                   const []);
 
   processFuture.then((result) => Expect.fail("exit handler called"))
-  .catchError((e) {
-    Expect.isTrue(e.error is ProcessException);
-    Expect.equals(2, e.error.errorCode, e.error.toString());
+  .catchError((error) {
+    Expect.isTrue(error is ProcessException);
+    Expect.equals(2, error.errorCode, error.toString());
   });
 }
 

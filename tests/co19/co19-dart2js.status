@@ -530,6 +530,10 @@ LibTest/core/List/insertRange_A05_t01: Fail # insertRange is removed. Issue 403
 LibTest/core/List/insertRange_A06_t01: Fail # insertRange is removed. Issue 403
 LibTest/core/List/every_A01_t01: Fail # insertRange is removed. Issue 403
 
+LibTest/async/Completer/completeError_A01_t01: Fail # No AsyncError anymore. Issue 407
+LibTest/async/Future/Future.immediateError_A01_t01: Fail # No AsyncError anymore. Issue 407
+LibTest/async/Future/catchError_A02_t01: Fail # No AsyncError anymore. Issue 407
+
 [ $compiler == dart2js && $unchecked ]
 LibTest/core/List/setRange_A05_t01: Fail # setRange throws StateError if there aren't enough elements in the iterable. Issue 402
 
@@ -543,6 +547,10 @@ LibTest/core/List/every_A01_t01: fail # Issue 400
 LibTest/collection/Queue/Queue.from_A01_t01: Fail # Issue 400
 LibTest/collection/Queue/Queue.from_A01_t02: Fail # Issue 400
 
+LibTest/async/Completer/completeError_A03_t02: Fail # No AsyncError anymore. Issue 407
+LibTest/async/Completer/complete_A02_t02: Fail # No AsyncError anymore. Issue 407
+LibTest/async/Future/catchError_A01_t01: Fail # No AsyncError anymore. Issue 407
+LibTest/async/Future/catchError_A01_t02: Fail # No AsyncError anymore. Issue 407
 
 
 # Issues with co19 test suite in browsers.

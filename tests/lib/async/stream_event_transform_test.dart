@@ -10,15 +10,15 @@ import '../../../pkg/unittest/lib/unittest.dart';
 import 'event_helper.dart';
 
 void handleData(int data, EventSink<int> sink) {
-  sink.addError(new AsyncError("$data"));
+  sink.addError("$data");
   sink.add(data + 1);
 }
 
-void handleError(AsyncError e, EventSink<int> sink) {
-  String value = e.error;
+void handleError(error, EventSink<int> sink) {
+  String value = error;
   int data = int.parse(value);
   sink.add(data);
-  sink.addError(new AsyncError("${data + 1}"));
+  sink.addError("${data + 1}");
 }
 
 void handleDone(EventSink<int> sink) {
@@ -28,15 +28,14 @@ void handleDone(EventSink<int> sink) {
 
 class EventTransformer extends StreamEventTransformer<int,int> {
   void handleData(int data, EventSink<int> sink) {
-    sink.addError(new AsyncError("$data"));
+    sink.addError("$data");
     sink.add(data + 1);
   }
 
-  void handleError(AsyncError e, EventSink<int> sink) {
-    String value = e.error;
+  void handleError(String value, EventSink<int> sink) {
     int data = int.parse(value);
     sink.add(data);
-    sink.addError(new AsyncError("${data + 1}"));
+    sink.addError("${data + 1}");
   }
 
   void handleDone(EventSink<int> sink) {

@@ -218,8 +218,8 @@ class Pair<E, F> {
 /// Configures [future] so that its result (success or exception) is passed on
 /// to [completer].
 void chainToCompleter(Future future, Completer completer) {
-  future.then((v) => completer.complete(v)).catchError((e) {
-    completer.completeError(e.error, e.stackTrace);
+  future.then((v) => completer.complete(v)).catchError((error) {
+    completer.completeError(error);
   });
 }
 

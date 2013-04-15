@@ -43,8 +43,11 @@ void testListenOn() {
                 onDone();
               });
         })
-        .catchError((error) {
-          Expect.fail("Unexpected error in Https client: $error");
+        .catchError((e) {
+          String msg = "Unexpected error in Https client: $e";
+          var trace = getAttachedStackTrace(e);
+          if (trace != null) msg += "\nStackTrace: $trace";
+          Expect.fail(msg);
         });
     });
   }

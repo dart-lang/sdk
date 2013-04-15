@@ -236,7 +236,9 @@ abstract class PubCommand {
       exit(exit_codes.USAGE);
     }
 
-    handleError(error, trace) {
+    handleError(error) {
+      var trace = getAttachedStackTrace(error);
+
       // This is basically the top-level exception handler so that we don't
       // spew a stack trace on our users.
       var message;
@@ -277,8 +279,7 @@ abstract class PubCommand {
       if (commandFuture == null) return true;
 
       return commandFuture;
-    }).whenComplete(() => cache_.deleteTempDir()).catchError((asyncError) {
-      var e = asyncError.error;
+    }).whenComplete(() => cache_.deleteTempDir()).catchError((e) {
       if (e is PubspecNotFoundException && e.name == null) {
         e = 'Could not find a file named "pubspec.yaml" in the directory '
           '${path.current}.';
@@ -287,7 +288,7 @@ abstract class PubCommand {
           '${path.basename(path.current)}").';
       }
 
-      handleError(e, asyncError.stackTrace);
+      handleError(e);
     }).then((_) {
       // Explicitly exit on success to ensure that any dangling dart:io handles
       // don't cause the process to never terminate.

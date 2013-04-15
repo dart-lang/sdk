@@ -251,6 +251,8 @@ main() {
     })
     .catchError((e) {
       print('Error: generation failed: ${e}');
+      var trace = getAttachedStackTrace(e);
+      if (trace != null) print("StackTrace: $trace");
       dartdoc.cleanup();
       exit(1);
     })

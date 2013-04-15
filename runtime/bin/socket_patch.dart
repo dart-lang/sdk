@@ -443,14 +443,14 @@ class _RawServerSocket extends Stream<RawSocket>
         if (socket != null) _controller.add(new _RawSocket(socket));
       },
       error: (e) {
-        _controller.addError(new AsyncError(e));
+        _controller.addError(e);
         _controller.close();
       }
     );
   }
 
   StreamSubscription<RawSocket> listen(void onData(RawSocket event),
-                                       {void onError(AsyncError error),
+                                       {void onError(Object error),
                                         void onDone(),
                                         bool cancelOnError}) {
     return _controller.stream.listen(
@@ -518,7 +518,7 @@ class _RawSocket extends Stream<RawSocketEvent>
       },
       closed: () => _controller.add(RawSocketEvent.READ_CLOSED),
       error: (e) {
-        _controller.addError(new AsyncError(e));
+        _controller.addError(e);
         close();
       }
     );
@@ -539,7 +539,7 @@ class _RawSocket extends Stream<RawSocketEvent>
   }
 
   StreamSubscription<RawSocketEvent> listen(void onData(RawSocketEvent event),
-                                            {void onError(AsyncError error),
+                                            {void onError(Object error),
                                              void onDone(),
                                              bool cancelOnError}) {
     return _controller.stream.listen(
@@ -633,7 +633,7 @@ class _ServerSocket extends Stream<Socket>
   _ServerSocket(this._socket);
 
   StreamSubscription<Socket> listen(void onData(Socket event),
-                                    {void onError(AsyncError error),
+                                    {void onError(error),
                                      void onDone(),
                                      bool cancelOnError}) {
     return _socket.map((rawSocket) => new _Socket(rawSocket)).listen(
@@ -790,7 +790,7 @@ class _Socket extends Stream<List<int>> implements Socket {
   _NativeSocket get _nativeSocket => _raw._socket;
 
   StreamSubscription<List<int>> listen(void onData(List<int> event),
-                                       {void onError(AsyncError error),
+                                       {void onError(error),
                                         void onDone(),
                                         bool cancelOnError}) {
     return _controller.stream.listen(

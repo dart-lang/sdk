@@ -550,6 +550,10 @@ LibTest/core/List/insertRange_A05_t01: Fail # insertRange is removed. Issue 403
 LibTest/core/List/insertRange_A06_t01: Fail # insertRange is removed. Issue 403
 LibTest/core/List/every_A01_t01: Fail # insertRange is removed. Issue 403
 
+LibTest/async/Completer/completeError_A01_t01: Fail # No AsyncError anymore. Issue 407
+LibTest/async/Future/Future.immediateError_A01_t01: Fail # No AsyncError anymore. Issue 407
+LibTest/async/Future/catchError_A02_t01: Fail # No AsyncError anymore. Issue 407
+
 Language/11_Expressions/05_Strings/1_String_Interpolation_A03_t02: Fail # Issue 397
 Language/11_Expressions/05_Strings/1_String_Interpolation_A04_t02: Fail # Issue 397
 Language/11_Expressions/11_Instance_Creation/1_New_A08_t01: Fail # Issue 397

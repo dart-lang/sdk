@@ -30,6 +30,7 @@ class _DartiumUpdater {
       _updatingProcess = Process.run('python', _getUpdateCommand);
       _updatingProcess.then(_onUpdatedHandler).catchError((e) {
         print("Error starting $script process: $e");
+        // TODO(floitsch): should we print the stacktrace?
         return false;
       });
     }

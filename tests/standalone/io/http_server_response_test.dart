@@ -33,7 +33,7 @@ void testServerRequest(void handler(server, request), {int bytes}) {
               client.close();
             },
             onError: (error) {
-              Expect.isTrue(error.error is HttpParserException);
+              Expect.isTrue(error is HttpParserException);
             });
       })
       .catchError((error) {

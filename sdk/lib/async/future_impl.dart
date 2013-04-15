@@ -7,7 +7,6 @@ part of dart.async;
 deprecatedFutureValue(_FutureImpl future) =>
   future._isComplete ? future._resultOrListeners : null;
 
-
 class _CompleterImpl<T> implements Completer<T> {
   final Future<T> future;
   bool _isComplete = false;
@@ -24,14 +23,12 @@ class _CompleterImpl<T> implements Completer<T> {
   void completeError(Object error, [Object stackTrace = null]) {
     if (_isComplete) throw new StateError("Future already completed");
     _isComplete = true;
-    AsyncError asyncError;
-    if (error is AsyncError) {
-      asyncError = error;
-    } else {
-      asyncError = new AsyncError(error, stackTrace);
+    if (stackTrace != null) {
+      // Force the stack trace onto the error, even if it already had one.
+      _attachStackTrace(error, stackTrace);
     }
     _FutureImpl future = this.future;
-    future._setError(asyncError);
+    future._setError(error);
   }
 
   bool get isCompleted => _isComplete;
@@ -51,7 +48,7 @@ abstract class _FutureListener<T> {
     return new _FutureListenerWrapper(future);
   }
   void _sendValue(T value);
-  void _sendError(AsyncError error);
+  void _sendError(error);
 }
 
 /** Adapter for a [_FutureImpl] to be a future result listener. */
@@ -60,7 +57,7 @@ class _FutureListenerWrapper<T> implements _FutureListener<T> {
   _FutureListener _nextListener;
   _FutureListenerWrapper(this.future);
   _sendValue(T value) { future._setValue(value); }
-  _sendError(AsyncError error) { future._setError(error); }
+  _sendError(error) { future._setError(error); }
 }
 
 class _FutureImpl<T> implements Future<T> {
@@ -85,7 +82,7 @@ class _FutureImpl<T> implements Future<T> {
   /**
    * Either the result, or a list of listeners until the future completes.
    *
-   * The result of the future is either a value or an [AsyncError].
+   * The result of the future is either a value or an error.
    * A result is only stored when the future has completed.
    *
    * The listeners is an internally linked list of [_FutureListener]s.
@@ -104,13 +101,11 @@ class _FutureImpl<T> implements Future<T> {
   }
 
   _FutureImpl.immediateError(var error, [Object stackTrace]) {
-    AsyncError asyncError;
-    if (error is AsyncError) {
-      asyncError = error;
-    } else {
-      asyncError = new AsyncError(error, stackTrace);
+    if (stackTrace != null) {
+      // Force stack trace onto error, even if it had already one.
+      _attachStackTrace(error, stackTrace);
     }
-    _setError(asyncError);
+    _setError(error);
   }
 
   factory _FutureImpl.wait(Iterable<Future> futures) {
@@ -121,7 +116,7 @@ class _FutureImpl<T> implements Future<T> {
     void handleError(error) {
       if (values != null) {
         values = null;
-        completer.completeError(error.error, error.stackTrace);
+        completer.completeError(error);
       }
     }
     // As each future completes, put its value into the corresponding
@@ -146,7 +141,7 @@ class _FutureImpl<T> implements Future<T> {
     return completer.future;
   }
 
-  Future then(f(T value), { onError(AsyncError error) }) {
+  Future then(f(T value), { onError(error) }) {
     if (!_isComplete) {
       if (onError == null) {
         return new _ThenFuture(f).._subscribeTo(this);
@@ -167,7 +162,7 @@ class _FutureImpl<T> implements Future<T> {
     }
   }
 
-  Future catchError(f(AsyncError asyncError), { bool test(error) }) {
+  Future catchError(f(error), { bool test(error) }) {
     if (_hasValue) {
       return new _FutureWrapper(this);
     }
@@ -190,7 +185,7 @@ class _FutureImpl<T> implements Future<T> {
     } else {
       assert(_hasError);
       _clearUnhandledError();
-      AsyncError error = _resultOrListeners;
+      var error = _resultOrListeners;
       Timer.run(() {
         whenFuture._sendError(error);
       });
@@ -208,10 +203,10 @@ class _FutureImpl<T> implements Future<T> {
   }
 
   /** Handle a late listener on a completed future with an error. */
-  Future _handleError(onError(AsyncError error), bool test(error)) {
+  Future _handleError(onError(error), bool test(error)) {
     assert(_hasError);
     _clearUnhandledError();
-    AsyncError error = _resultOrListeners;
+    var error = _resultOrListeners;
     _CatchErrorFuture errorFuture = new _CatchErrorFuture(onError, test);
     Timer.run(() { errorFuture._sendError(error); });
     return errorFuture;
@@ -232,7 +227,7 @@ class _FutureImpl<T> implements Future<T> {
     }
   }
 
-  void _setError(AsyncError error) {
+  void _setError(error) {
     if (_isComplete) throw new StateError("Future already completed");
     _FutureListener listeners = _removeListeners();
     _state = _ERROR;
@@ -257,12 +252,13 @@ class _FutureImpl<T> implements Future<T> {
       if (_hasUnhandledError) {
         // No error handler has been added since the error was set.
         _clearUnhandledError();
-        AsyncError error = _resultOrListeners;
-        print("Uncaught Error: ${error.error}");
-        if (error.stackTrace != null) {
-          print("Stack Trace:\n${error.stackTrace}\n");
+        var error = _resultOrListeners;
+        print("Uncaught Error: ${error}");
+        var trace = getAttachedStackTrace(error);
+        if (trace != null) {
+          print("Stack Trace:\n$trace\n");
         }
-        throw error.error;
+        throw error;
       }
     });
   }
@@ -351,7 +347,7 @@ abstract class _TransformFuture<S, T> extends _FutureImpl<T>
 
   void _sendValue(S value);
 
-  void _sendError(AsyncError error);
+  void _sendError(error);
 
   void _subscribeTo(_FutureImpl future) {
     future._addListener(this);
@@ -360,7 +356,7 @@ abstract class _TransformFuture<S, T> extends _FutureImpl<T>
 
 /** The onValue and onError handlers return either a value or a future */
 typedef dynamic _FutureOnValue<T>(T value);
-typedef dynamic _FutureOnError(AsyncError error);
+typedef dynamic _FutureOnError(error);
 /** Test used by [Future.catchError] to handle skip some errors. */
 typedef bool _FutureErrorTest(var error);
 /** Used by [WhenFuture]. */
@@ -379,17 +375,14 @@ class _ThenFuture<S, T> extends _TransformFuture<S, T> {
     var result;
     try {
       result = _onValue(value);
-    } on AsyncError catch (e) {
-      _setError(e);
-      return;
     } catch (e, s) {
-      _setError(new AsyncError(e, s));
+      _setError(_asyncError(e, s));
       return;
     }
     _setOrChainValue(result);
   }
 
-  void _sendError(AsyncError error) {
+  void _sendError(error) {
     _setError(error);
   }
 }
@@ -405,16 +398,16 @@ class _CatchErrorFuture<T> extends _TransformFuture<T,T> {
     _setValue(value);
   }
 
-  _sendError(AsyncError error) {
+  _sendError(error) {
     assert(_onError != null);
     // if _test is supplied, check if it returns true, otherwise just
     // forward the error unmodified.
     if (_test != null) {
       bool matchesTest;
       try {
-        matchesTest = _test(error.error);
+        matchesTest = _test(error);
       } catch (e, s) {
-        _setError(new AsyncError.withCause(e, s, error));
+        _setError(_asyncError(e, s));
         return;
       }
       if (!matchesTest) {
@@ -426,11 +419,8 @@ class _CatchErrorFuture<T> extends _TransformFuture<T,T> {
     var result;
     try {
       result = _onError(error);
-    } on AsyncError catch (e) {
-      _setError(e);
-      return;
     } catch (e, s) {
-      _setError(new AsyncError.withCause(e, s, error));
+      _setError(_asyncError(e, s));
       return;
     }
     _setOrChainValue(result);
@@ -445,16 +435,13 @@ class _SubscribeFuture<S, T> extends _ThenFuture<S, T> {
 
   // The _sendValue method is inherited from ThenFuture.
 
-  void _sendError(AsyncError error) {
+  void _sendError(error) {
     assert(_onError != null);
     var result;
     try {
       result = _onError(error);
-    } on AsyncError catch (e) {
-      _setError(e);
-      return;
     } catch (e, s) {
-      _setError(new AsyncError.withCause(e, s, error));
+      _setError(_asyncError(e, s));
       return;
     }
     _setOrChainValue(result);
@@ -477,17 +464,14 @@ class _WhenFuture<T> extends _TransformFuture<T, T> {
         }, onError: _setError);
         return;
       }
-    } on AsyncError catch (e) {
-      _setError(e);
-      return;
     } catch (e, s) {
-      _setError(new AsyncError(e, s));
+      _setError(_asyncError(e, s));
       return;
     }
     _setValue(value);
   }
 
-  void _sendError(AsyncError error) {
+  void _sendError(error) {
     try {
       var result = _action();
       if (result is Future) {
@@ -498,10 +482,8 @@ class _WhenFuture<T> extends _TransformFuture<T, T> {
         }, onError: _setError);
         return;
       }
-    } on AsyncError catch (e) {
-      error = e;
     } catch (e, s) {
-      error = new AsyncError.withCause(e, s, error);
+      error = _asyncError(e, s);
     }
     _setError(error);
   }
@@ -519,11 +501,11 @@ class _FutureWrapper<T> implements Future<T> {
 
   _FutureWrapper(this._future);
 
-  Future then(function(T value), { onError(AsyncError error) }) {
+  Future then(function(T value), { onError(error) }) {
     return _future.then(function, onError: onError);
   }
 
-  Future catchError(function(AsyncError error), {bool test(var error)}) {
+  Future catchError(function(error), {bool test(var error)}) {
     return _future.catchError(function, test: test);
   }
 

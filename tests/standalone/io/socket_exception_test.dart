@@ -164,7 +164,7 @@ class SocketExceptionTest {
         client.listen(
             (data) => Expect.fail("Unexpected data"),
             onError: (error) {
-              Expect.isTrue(error.error is SocketIOException);
+              Expect.isTrue(error is SocketIOException);
               errors++;
             },
             onDone: () {
@@ -184,7 +184,7 @@ class SocketExceptionTest {
               Expect.fail("Expected error");
             },
             onError: (error) {
-              Expect.isTrue(error.error is SocketIOException);
+              Expect.isTrue(error is SocketIOException);
               port.close();
             });
       });

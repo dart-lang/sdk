@@ -26,8 +26,8 @@ void createHttpClient() {
 }
 
 void expectFutureThrows(future, predicate) {
-  future.catchError(expectAsync1((AsyncError e) {
-    expect(predicate(e.error), isTrue);
+  future.catchError(expectAsync1((error) {
+    expect(predicate(error), isTrue);
   }));
 }
 

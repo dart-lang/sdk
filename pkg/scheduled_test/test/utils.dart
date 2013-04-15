@@ -32,10 +32,10 @@ Future timeout(Future input, int milliseconds, onTimeout()) {
     if (completer.isCompleted) return;
     timer.cancel();
     completer.complete(value);
-  }).catchError((e) {
+  }).catchError((error) {
     if (completer.isCompleted) return;
     timer.cancel();
-    completer.completeError(e.error, e.stackTrace);
+    completer.completeError(error);
   });
   return completer.future;
 }

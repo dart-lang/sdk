@@ -34,11 +34,11 @@ class FutureGroup<T> {
         completed = true;
         _completer.complete(_values);
       }
-    }).catchError((e) {
+    }).catchError((error) {
       if (completed) return;
 
       completed = true;
-      _completer.completeError(e.error, e.stackTrace);
+      _completer.completeError(error);
     }));
 
     return task;

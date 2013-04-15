@@ -29270,9 +29270,9 @@ class _EventStream<T extends Event> extends Stream<T> {
   bool get isBroadcast => true;
 
   StreamSubscription<T> listen(void onData(T event),
-      { void onError(AsyncError error),
-      void onDone(),
-      bool cancelOnError}) {
+      { void onError(error),
+        void onDone(),
+        bool cancelOnError}) {
 
     return new _EventStreamSubscription<T>(
         this._target, this._eventType, onData, this._useCapture);
@@ -29314,7 +29314,7 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   }
 
   /// Has no effect.
-  void onError(void handleError(AsyncError error)) {}
+  void onError(void handleError(error)) {}
 
   /// Has no effect.
   void onDone(void handleDone()) {}
@@ -30668,10 +30668,8 @@ class _ModelTreeObserver {
         node._model = model;
         node._modelChangedStream.add(node);
       }
-    } on AsyncError catch (e) {
-      e.throwDelayed();
     } catch (e, s) {
-      new AsyncError(e, s).throwDelayed();
+      new Future.immediateError(e, s);
     }
     for (var child = node.$dom_firstChild; child != null;
         child = child.nextNode) {

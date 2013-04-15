@@ -13,9 +13,9 @@ testImmediateError() {
   // executed then the test will fail with a timeout.
   var port = new ReceivePort();
   var future = new Future.immediateError("error");
-  future.catchError((e) {
+  future.catchError((error) {
     port.close();
-    Expect.equals(e.error, "error");
+    Expect.equals(error, "error");
   });
 }
 
@@ -27,9 +27,9 @@ Future get completedFuture {
 
 testDelayedError() {
   var port = new ReceivePort();
-  completedFuture.catchError((e) {
+  completedFuture.catchError((error) {
     port.close();
-    Expect.equals(e.error, "foobar");
+    Expect.equals(error, "foobar");
   });
 }
 

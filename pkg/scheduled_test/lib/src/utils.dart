@@ -107,7 +107,7 @@ Future streamFirst(Stream stream) {
     subscription.cancel();
     completer.complete(value);
   }, onError: (e) {
-    completer.completeError(e.error, e.stackTrace);
+    completer.completeError(e);
   }, onDone: () {
     completer.completeError(new StateError("No elements"), stackTrace);
   }, cancelOnError: true);

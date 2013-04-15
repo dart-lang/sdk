@@ -48,7 +48,7 @@ class DirectoryDescriptor extends Descriptor {
     return Future.wait(contents.map((entry) {
       return new Future.of(() => entry.validateNow(fullPath))
           .then((_) => null)
-          .catchError((e) => e.error);
+          .catchError((e) => e);
     })).then((results) {
       var errors = results.where((e) => e != null);
       if (errors.isEmpty) return;

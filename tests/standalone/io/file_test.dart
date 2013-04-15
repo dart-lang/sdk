@@ -152,10 +152,12 @@ class FileTest {
           }
           position += d.length;
         },
-        onError: (e) {
+        onError: (error) {
           print('Error on input in testReadWriteStreamLargeFile');
-          print('with error $e');
-          throw e;
+          print('with error $error');
+          var trace = getAttachedStackTrace(error);
+          if (trace != null) print("StackTrace: $trace");
+          throw error;
         },
         onDone: () {
           Expect.equals(expectedLength, position);
@@ -167,6 +169,8 @@ class FileTest {
               .catchError((e) {
                 print('Exception while deleting ReadWriteStreamLargeFile file');
                 print('Exception $e');
+                var trace = getAttachedStackTrace(e);
+                if (trace != null) print("StackTrace: $trace");
               });
         });
     });

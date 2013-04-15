@@ -214,7 +214,7 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   }
 
   /// Has no effect.
-  void onError(void handleError(AsyncError error)) {}
+  void onError(void handleError(Object error)) {}
 
   /// Has no effect.
   void onDone(void handleDone()) {}
@@ -274,7 +274,7 @@ class _EventStream<T extends Event> extends Stream<T> {
   bool get isBroadcast => true;
 
   StreamSubscription<T> listen(void onData(T event),
-      { void onError(AsyncError error),
+      { void onError(Object error),
       void onDone(),
       bool cancelOnError}) {
 

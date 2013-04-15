@@ -103,7 +103,7 @@ class ErrorGroup {
   ///
   /// If all members of [this] have already completed successfully or with an
   /// error, it's a [StateError] to try to signal an error.
-  void signalError(AsyncError error) {
+  void signalError(var error) {
     if (_isDone) {
       throw new StateError("Can't signal errors on a complete ErrorGroup.");
     }
@@ -113,7 +113,7 @@ class ErrorGroup {
 
   /// Signal an error internally. This is just like [signalError], but instead
   /// of throwing an error if [this] is complete, it just does nothing.
-  void _signalError(AsyncError error) {
+  void _signalError(var error) {
     if (_isDone) return;
 
     var caught = false;
@@ -181,12 +181,12 @@ class _ErrorGroupFuture implements Future {
     _completer.future.catchError((_) {});
   }
 
-  Future then(onValue(value), {onError(AsyncError asyncError)}) {
+  Future then(onValue(value), {onError(error)}) {
     _hasListeners = true;
     return _completer.future.then(onValue, onError: onError);
   }
 
-  Future catchError(onError(AsyncError asyncError), {bool test(Object error)}) {
+  Future catchError(onError(error), {bool test(Object error)}) {
     _hasListeners = true;
     return _completer.future.catchError(onError, test: test);
   }
@@ -203,8 +203,8 @@ class _ErrorGroupFuture implements Future {
 
   /// Signal that an error from [_group] should be propagated through [this],
   /// unless it's already complete.
-  void _signalError(AsyncError error) {
-    if (!_isDone) _completer.completeError(error.error, error.stackTrace);
+  void _signalError(var error) {
+    if (!_isDone) _completer.completeError(error);
     _isDone = true;
   }
 }
@@ -250,7 +250,7 @@ class _ErrorGroupStream extends Stream {
   }
 
   StreamSubscription listen(void onData(value),
-      {void onError(AsyncError error), void onDone(),
+      {void onError(var error), void onDone(),
        bool cancelOnError}) {
     return _controller.stream.listen(onData,
         onError: onError,
@@ -260,12 +260,12 @@ class _ErrorGroupStream extends Stream {
 
   /// Signal that an error from [_group] should be propagated through [this],
   /// unless it's already complete.
-  void _signalError(AsyncError e) {
+  void _signalError(var e) {
     if (_isDone) return;
     _subscription.cancel();
     // Call these asynchronously to work around issue 7913.
     new Future.immediate(null).then((_) {
-      _controller.addError(e.error, e.stackTrace);
+      _controller.addError(e);
       _controller.close();
     });
   }

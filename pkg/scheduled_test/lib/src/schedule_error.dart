@@ -13,7 +13,13 @@ import 'task.dart';
 import 'utils.dart';
 
 /// A wrapper for errors that occur during a scheduled test.
-class ScheduleError extends AsyncError {
+class ScheduleError {
+  /// The wrapped error.
+  final error;
+
+  /// The stack trace that was attached to the error. Can be `null`.
+  final stackTrace;
+
   /// The schedule during which this error occurred.
   final Schedule schedule;
 
@@ -33,33 +39,33 @@ class ScheduleError extends AsyncError {
   final ScheduleState _stateWhenDetected;
 
   int get hashCode => schedule.hashCode ^ task.hashCode ^ queue.hashCode ^
-      _stateWhenDetected.hashCode ^ error.hashCode ^ stackTrace.hashCode ^
-      cause.hashCode;
+      _stateWhenDetected.hashCode ^ error.hashCode ^ stackTrace.hashCode;
 
   /// Creates a new [ScheduleError] wrapping [error]. The metadata in
-  /// [AsyncError]s and [ScheduleError]s will be preserved.
-  factory ScheduleError.from(Schedule schedule, error, {StackTrace stackTrace,
-      AsyncError cause}) {
+  /// [ScheduleError]s will be preserved.
+  factory ScheduleError.from(Schedule schedule, error,
+                             {StackTrace stackTrace}) {
     if (error is ScheduleError) return error;
 
-    if (error is AsyncError) {
+    var attachedTrace = getAttachedStackTrace(error);
+    if (attachedTrace != null) {
       // Overwrite the explicit stack trace, because it probably came from a
       // rethrow in the first place.
-      stackTrace = error.stackTrace;
-      if (cause == null) cause = error.cause;
-      error = error.error;
+      stackTrace = attachedTrace;
     }
 
     if (schedule.captureStackTraces && stackTrace == null) {
       stackTrace = new Trace.current();
     }
 
-    return new ScheduleError(schedule, error, stackTrace, cause);
+    return new ScheduleError(schedule, error, stackTrace);
   }
 
-  ScheduleError(Schedule schedule, error, StackTrace stackTrace,
-      AsyncError cause)
-      : super.withCause(error, stackTrace, cause),
+  // TODO(floitsch): restore StackTrace type when it has been integrated into
+  // the core libraries.
+  ScheduleError(Schedule schedule, error, var stackTrace)
+      : error = error,
+        stackTrace = stackTrace,
         schedule = schedule,
         task = schedule.currentTask,
         queue = schedule.currentQueue,
@@ -69,8 +75,7 @@ class ScheduleError extends AsyncError {
 
   bool operator ==(other) => other is ScheduleError && task == other.task &&
       queue == other.queue && _stateWhenDetected == other._stateWhenDetected &&
-      error == other.error && stackTrace == other.stackTrace &&
-      cause == other.cause;
+      error == other.error && stackTrace == other.stackTrace;
 
   String toString() {
     var result = new StringBuffer();

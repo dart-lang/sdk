@@ -56,7 +56,12 @@ void main() {
           Expect.equals(9, body[body.length - 1]);
           server.close();
         },
-        onError: (e) => Expect.fail("Unexpected error $e"));
+        onError: (e) {
+          String msg = "Unexpected error $e";
+          var trace = getAttachedStackTrace(e);
+          if (trace != null) msg += "\nStackTrace: $trace";
+          Expect.fail(msg);
+        });
     });
   });
 }

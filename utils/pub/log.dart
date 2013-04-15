@@ -57,7 +57,16 @@ class Entry {
 }
 
 /// Logs [message] at [Level.ERROR].
-void error(message) => write(Level.ERROR, message);
+void error(message, [error]) {
+  if (error != null) {
+    message = "$message: $error";
+    var trace = getAttachedStackTrace(error);
+    if (trace != null) {
+      message = "$message\nStackTrace: $trace";
+    }
+  }
+  write(Level.ERROR, message);
+}
 
 /// Logs [message] at [Level.WARNING].
 void warning(message) => write(Level.WARNING, message);

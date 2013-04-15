@@ -42,7 +42,7 @@ runCompiler(String main, List<String> options,
               localProvider, localHandler, options);
   result.then((String code) {
     onValue(code, errors, warnings);
-  }, onError: (AsyncError e) {
+  }, onError: (e) {
       throw 'Compilation failed';
   });
 }

@@ -22,10 +22,10 @@ void testReadInvalidArgs(arg) {
   var readFuture = file.read(arg);
   readFuture.then((bytes) {
     Expect.fail('exception expected');
-  }).catchError((e) {
+  }).catchError((error) {
     errors++;
-    Expect.isTrue(e.error is FileIOException);
-    Expect.isTrue(e.error.toString().contains('Invalid arguments'));
+    Expect.isTrue(error is FileIOException);
+    Expect.isTrue(error.toString().contains('Invalid arguments'));
     file.close().then((ignore) {
       Expect.equals(1, errors);
       port.close();
@@ -49,10 +49,10 @@ void testReadIntoInvalidArgs(buffer, start, end) {
   var readIntoFuture = file.readInto(buffer, start, end);
   readIntoFuture.then((bytes) {
     Expect.fail('exception expected');
-  }).catchError((e) {
+  }).catchError((error) {
     errors++;
-    Expect.isTrue(e.error is FileIOException);
-    Expect.isTrue(e.error.toString().contains('Invalid arguments'));
+    Expect.isTrue(error is FileIOException);
+    Expect.isTrue(error.toString().contains('Invalid arguments'));
     file.close().then((ignore) {
       Expect.equals(1, errors);
       port.close();
@@ -75,9 +75,9 @@ void testWriteByteInvalidArgs(value) {
   var writeByteFuture = file.writeByte(value);
   writeByteFuture.then((ignore) {
     Expect.fail('exception expected');
-  }).catchError((s) {
-    Expect.isTrue(s.error is FileIOException);
-    Expect.isTrue(s.error.toString().contains('Invalid argument'));
+  }).catchError((error) {
+    Expect.isTrue(error is FileIOException);
+    Expect.isTrue(error.toString().contains('Invalid argument'));
     file.close().then((ignore) {
       port.close();
     });
@@ -99,9 +99,9 @@ void testWriteFromInvalidArgs(buffer, start, end) {
   var writeFromFuture = file.writeFrom(buffer, start, end);
   writeFromFuture.then((ignore) {
     Expect.fail('exception expected');
-  }).catchError((s) {
-    Expect.isTrue(s.error is FileIOException);
-    Expect.isTrue(s.error.toString().contains('Invalid arguments'));
+  }).catchError((error) {
+    Expect.isTrue(error is FileIOException);
+    Expect.isTrue(error.toString().contains('Invalid arguments'));
     file.close().then((ignore) {
       port.close();
     });
@@ -122,8 +122,8 @@ void testWriteStringInvalidArgs(string, encoding) {
   var writeStringFuture = file.writeString(string, encoding: encoding);
   writeStringFuture.then((ignore) {
     Expect.fail('exception expected');
-  }).catchError((s) {
-    Expect.isTrue(s.error is FileIOException);
+  }).catchError((error) {
+    Expect.isTrue(error is FileIOException);
     file.close().then((ignore) {
       port.close();
     });

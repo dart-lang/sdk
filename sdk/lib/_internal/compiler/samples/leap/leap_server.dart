@@ -82,11 +82,11 @@ class Conversation {
     new Conversation(request, request.response).handle();
   }
 
-  static onError(AsyncError e) {
-    if (e.error is HttpParserException) {
-      print('Error: ${e.error.message}');
+  static onError(error) {
+    if (error is HttpParserException) {
+      print('Error: ${error.message}');
     } else {
-      print('Error: ${e.error}');
+      print('Error: ${error}');
     }
   }
 
@@ -116,7 +116,7 @@ main() {
     print('HTTP server started on http://$host:${server.port}/');
     server.listen(Conversation.onRequest, onError: Conversation.onError);
   }).catchError((e) {
-    print("HttpServer.bind error: ${e.error}");
+    print("HttpServer.bind error: $e");
     exit(1);
   });
 }

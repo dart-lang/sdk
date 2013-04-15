@@ -97,7 +97,7 @@ main() {
     if (code == null) {
       throw 'Compilation failed';
     }
-  }, onError: (AsyncError e) {
+  }, onError: (e) {
       throw 'Compilation failed';
   });
 }

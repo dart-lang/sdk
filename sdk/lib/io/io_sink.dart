@@ -33,7 +33,7 @@ abstract class IOSink implements StreamSink<List<int>>, StringSink {
   /**
    * Writes an error to the consumer.
    */
-  void addError(AsyncError error);
+  void addError(error);
 
   /**
    * Adds all elements of the given [stream] to `this`.
@@ -123,7 +123,7 @@ class _IOSinkImpl implements IOSink {
     _controller.add(data);
   }
 
-  void addError(AsyncError error) {
+  void addError(error) {
     _controller.addError(error);
   }
 

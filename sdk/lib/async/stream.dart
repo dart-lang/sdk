@@ -168,7 +168,7 @@ abstract class Stream<T> {
    * is called. If [onData] is null, nothing happens.
    *
    * On errors from this stream, the [onError] handler is given a
-   * [AsyncError] object describing the error.
+   * object describing the error.
    *
    * If this stream closes, the [onDone] handler is called.
    *
@@ -176,7 +176,7 @@ abstract class Stream<T> {
    * the first error is reported. The default is false.
    */
   StreamSubscription<T> listen(void onData(T event),
-                               { void onError(AsyncError error),
+                               { void onError(error),
                                  void onDone(),
                                  bool cancelOnError});
 
@@ -215,7 +215,7 @@ abstract class Stream<T> {
    * [Stream.transformEvent] to handle the event by writing a data event to
    * the output sink
    */
-  Stream<T> handleError(void handle(AsyncError error), { bool test(error) }) {
+  Stream<T> handleError(void handle( error), { bool test(error) }) {
     return new _HandleErrorStream<T>(this, handle, test);
   }
 
@@ -271,7 +271,7 @@ abstract class Stream<T> {
       onError: result._setError,
       onDone: () {
         if (!seenFirst) {
-          result._setError(new AsyncError(new StateError("No elements")));
+          result._setError(new StateError("No elements"));
         } else {
           result._setValue(value);
         }
@@ -296,7 +296,7 @@ abstract class Stream<T> {
           _cancelAndError(subscription, result)
         );
       },
-      onError: (AsyncError e) {
+      onError: (e) {
         result._setError(e);
       },
       onDone: () {
@@ -546,7 +546,7 @@ abstract class Stream<T> {
       },
       onError: future._setError,
       onDone: () {
-        future._setError(new AsyncError(new StateError("No elements")));
+        future._setError(new StateError("No elements"));
       },
       cancelOnError: true);
     return future;
@@ -575,7 +575,7 @@ abstract class Stream<T> {
           future._setValue(result);
           return;
         }
-        future._setError(new AsyncError(new StateError("No elements")));
+        future._setError(new StateError("No elements"));
       },
       cancelOnError: true);
     return future;
@@ -599,7 +599,7 @@ abstract class Stream<T> {
           subscription.cancel();
           // This is the second element we get.
           Error error = new StateError("More than one element");
-          future._setError(new AsyncError(error));
+          future._setError(error);
           return;
         }
         foundResult = true;
@@ -611,7 +611,7 @@ abstract class Stream<T> {
           future._setValue(result);
           return;
         }
-        future._setError(new AsyncError(new StateError("No elements")));
+        future._setError(new StateError("No elements"));
       },
       cancelOnError: true);
     return future;
@@ -655,8 +655,7 @@ abstract class Stream<T> {
           _runUserCode(defaultValue, future._setValue, future._setError);
           return;
         }
-        future._setError(
-            new AsyncError(new StateError("firstMatch ended without match")));
+        future._setError(new StateError("firstMatch ended without match"));
       },
       cancelOnError: true);
     return future;
@@ -699,8 +698,7 @@ abstract class Stream<T> {
           _runUserCode(defaultValue, future._setValue, future._setError);
           return;
         }
-        future._setError(
-            new AsyncError(new StateError("lastMatch ended without match")));
+        future._setError(new StateError("lastMatch ended without match"));
       },
       cancelOnError: true);
     return future;
@@ -727,8 +725,8 @@ abstract class Stream<T> {
             if (isMatch) {
               if (foundResult) {
                 subscription.cancel();
-                future._setError(new AsyncError(
-                    new StateError('Multiple matches for "single"')));
+                future._setError(
+                    new StateError('Multiple matches for "single"'));
                 return;
               }
               foundResult = true;
@@ -744,8 +742,7 @@ abstract class Stream<T> {
           future._setValue(result);
           return;
         }
-        future._setError(
-            new AsyncError(new StateError("single ended without match")));
+        future._setError(new StateError("single ended without match"));
       },
       cancelOnError: true);
     return future;
@@ -776,8 +773,7 @@ abstract class Stream<T> {
       },
       onError: future._setError,
       onDone: () {
-        future._setError(new AsyncError(
-            new StateError("Not enough elements for elementAt")));
+        future._setError(new StateError("Not enough elements for elementAt"));
       },
       cancelOnError: true);
     return future;
@@ -805,7 +801,7 @@ abstract class StreamSubscription<T> {
   void onData(void handleData(T data));
 
   /** Set or override the error event handler of this subscription. */
-  void onError(void handleError(AsyncError error));
+  void onError(void handleError(error));
 
   /** Set or override the done event handler of this subscription. */
   void onDone(void handleDone());
@@ -852,7 +848,7 @@ abstract class EventSink<T> {
   /** Create a data event */
   void add(T event);
   /** Create an async error. */
-  void addError(AsyncError errorEvent);
+  void addError(errorEvent);
   /** Request a stream to close. */
   void close();
 }
@@ -869,7 +865,7 @@ class StreamView<T> extends Stream<T> {
   Stream<T> asBroadcastStream() => _stream.asBroadcastStream();
 
   StreamSubscription<T> listen(void onData(T value),
-                               { void onError(AsyncError error),
+                               { void onError(error),
                                  void onDone(),
                                  bool cancelOnError }) {
     return _stream.listen(onData, onError: onError, onDone: onDone,
@@ -886,7 +882,7 @@ class _EventSinkView<T> extends EventSink<T> {
   _EventSinkView(this._sink);
 
   void add(T value) { _sink.add(value); }
-  void addError(AsyncError error) { _sink.addError(error); }
+  void addError(error) { _sink.addError(error); }
   void close() { _sink.close(); }
 }
 
@@ -965,7 +961,7 @@ abstract class StreamTransformer<S, T> {
    */
   factory StreamTransformer({
       void handleData(S data, EventSink<T> sink),
-      void handleError(AsyncError error, EventSink<T> sink),
+      void handleError(error, EventSink<T> sink),
       void handleDone(EventSink<T> sink)}) {
     return new _StreamTransformerImpl<S, T>(handleData,
                                             handleError,
@@ -1041,7 +1037,7 @@ abstract class StreamEventTransformer<S, T> implements StreamTransformer<S, T> {
    * The method may generate any number of events on the sink, but should
    * not throw.
    */
-  void handleError(AsyncError error, EventSink<T> sink) {
+  void handleError(error, EventSink<T> sink) {
     sink.addError(error);
   }
 
@@ -1073,7 +1069,7 @@ class EventTransformStream<S, T> extends Stream<T> {
       : _source = source, _transformer = transformer;
 
   StreamSubscription<T> listen(void onData(T data),
-                               { void onError(AsyncError error),
+                               { void onError(error),
                                  void onDone(),
                                  bool cancelOnError }) {
     cancelOnError = identical(true, cancelOnError);
@@ -1100,7 +1096,7 @@ class _EventTransformStreamSubscription<S, T>
   _EventTransformStreamSubscription(Stream<S> source,
                                     this._transformer,
                                     void onData(T data),
-                                    void onError(AsyncError error),
+                                    void onError(error),
                                     void onDone(),
                                     this._cancelOnError)
       : super(onData, onError, onDone) {
@@ -1138,11 +1134,11 @@ class _EventTransformStreamSubscription<S, T>
     }
   }
 
-  void _handleError(AsyncError error) {
+  void _handleError(error) {
     try {
       _transformer.handleError(error, _sink);
     } catch (e, s) {
-      _sendError(_asyncError(e, s, error));
+      _sendError(_asyncError(e, s));
     }
   }
 
@@ -1161,7 +1157,7 @@ class _EventTransformStreamSubscription<S, T>
     _onData(data);
   }
 
-  void _sendError(AsyncError error) {
+  void _sendError(error) {
     if (_isClosed) return;
     _onError(error);
     if (_cancelOnError) {
@@ -1185,6 +1181,6 @@ class _EventOutputSinkWrapper<T> extends EventSink<T> {
   _EventOutputSinkWrapper(this._sink);
 
   void add(T data) { _sink._sendData(data); }
-  void addError(AsyncError error) { _sink._sendError(error); }
+  void addError(error) { _sink._sendError(error); }
   void close() { _sink._sendDone(); }
 }

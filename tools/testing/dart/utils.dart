@@ -5,6 +5,7 @@
 library utils;
 
 import 'dart:io';
+import 'dart:async' show getAttachedStackTrace;
 import 'dart:utf' as utf;
 
 class DebugLogger {
@@ -27,15 +28,25 @@ class DebugLogger {
     }
   }
 
-  static void info(String msg) {
+  static String _formatErrorMessage(String msg, error) {
+    if (error == null) return msg;
+    msg += ": $error";
+    var trace = getAttachedStackTrace(error);
+    if (trace != null) msg += "\nStackTrace: $trace";
+    return msg;
+  }
+  static void info(String msg, [error]) {
+    msg = _formatErrorMessage(msg, error);
     _print("Info: $msg");
   }
 
-  static void warning(String msg) {
+  static void warning(String msg, [error]) {
+    msg = _formatErrorMessage(msg, error);
     _print("Warning: $msg");
   }
 
-  static void error(String msg) {
+  static void error(String msg, [error]) {
+    msg = _formatErrorMessage(msg, error);
     _print("Error: $msg");
   }
 

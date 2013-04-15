@@ -215,9 +215,10 @@ class WebDriverBase {
     _url = 'http://$_host:$_port$_path';
   }
 
-  void _failRequest(Completer completer, error, StackTrace stackTrace) {
+  void _failRequest(Completer completer, error, [stackTrace]) {
     if (completer != null) {
-      completer.completeError(new WebDriverError(-1, error), stackTrace);
+      var trace = stackTrace != null ? stackTrace, getAttachedStackTrace(error);
+      completer.completeError(new WebDriverError(-1, error), trace);
     }
   }
 
@@ -273,7 +274,7 @@ class WebDriverBase {
             results = new String.fromCharCodes(body).trim();
             if (!successCodes.contains(rsp.statusCode)) {
               _failRequest(completer, 
-                  'Unexpected response ${rsp.statusCode}; $results', null);
+                  'Unexpected response ${rsp.statusCode}; $results');
               completer = null;
               return;
             }
@@ -297,18 +298,18 @@ class WebDriverBase {
                 completer.complete(value);
               }
             }
-          }, onError: (e) {
-            _failRequest(completer, e.error, e.stackTrace);
+          }, onError: (error) {
+            _failRequest(completer, error);
             completer = null;
           });
         })
-        .catchError((e) {
-          _failRequest(completer, e.error, e.stackTrace);
+        .catchError((error) {
+          _failRequest(completer, error);
           completer = null;
         });
       })
-      .catchError((e) {
-        _failRequest(completer, e.error, e.stackTrace);
+      .catchError((error) {
+        _failRequest(completer, error);
         completer = null;
       });
     } catch (e, s) {

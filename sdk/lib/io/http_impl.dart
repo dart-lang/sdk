@@ -35,7 +35,7 @@ class _HttpIncoming extends Stream<List<int>> {
   }
 
   StreamSubscription<List<int>> listen(void onData(List<int> event),
-                                       {void onError(AsyncError error),
+                                       {void onError(error),
                                         void onDone(),
                                         bool cancelOnError}) {
     return _stream.listen(onData,
@@ -106,7 +106,7 @@ class _HttpRequest extends _HttpInboundMessage implements HttpRequest {
   }
 
   StreamSubscription<List<int>> listen(void onData(List<int> event),
-                                       {void onError(AsyncError error),
+                                       {void onError(error),
                                         void onDone(),
                                         bool cancelOnError}) {
     return _incoming.listen(onData,
@@ -231,7 +231,7 @@ class _HttpClientResponse
   }
 
   StreamSubscription<List<int>> listen(void onData(List<int> event),
-                                       {void onError(AsyncError error),
+                                       {void onError(error),
                                         void onDone(),
                                         bool cancelOnError}) {
     var stream = _incoming;
@@ -442,7 +442,7 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
     _dataSink.add(data);
   }
 
-  void addError(AsyncError error) {
+  void addError(error) {
     _dataSink.addError(error);
   }
 
@@ -879,7 +879,7 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
         });
   }
 
-  void _onError(AsyncError error) {
+  void _onError(error) {
     _responseCompleter.completeError(error);
   }
 
@@ -978,11 +978,11 @@ class _ContentLengthValidator
   void handleData(List<int> data, EventSink<List<int>> sink) {
     _bytesWritten += data.length;
     if (_bytesWritten > expectedContentLength) {
-      sink.addError(new AsyncError(new HttpException(
+      sink.addError(new HttpException(
           "Content size exceeds specified contentLength. "
           "$_bytesWritten bytes written while expected "
           "$expectedContentLength. "
-          "[${new String.fromCharCodes(data)}]")));
+          "[${new String.fromCharCodes(data)}]"));
       sink.close();
     } else {
       sink.add(data);
@@ -991,10 +991,10 @@ class _ContentLengthValidator
 
   void handleDone(EventSink<List<int>> sink) {
     if (_bytesWritten < expectedContentLength) {
-      sink.addError(new AsyncError(new HttpException(
+      sink.addError(new HttpException(
           "Content size below specified contentLength. "
           " $_bytesWritten bytes written while expected "
-          "$expectedContentLength.")));
+          "$expectedContentLength."));
     }
     sink.close();
   }
@@ -1386,7 +1386,7 @@ class _HttpClient implements HttpClient {
           return new _ConnnectionInfo(connection, proxy);
         }, onError: (error) {
           // Continue with next proxy.
-          return connect(error.error);
+          return connect(error);
         });
     }
     return connect(new HttpException("No proxies given"));
@@ -1594,7 +1594,7 @@ class _HttpServer extends Stream<HttpRequest> implements HttpServer {
       : _closeServer = false;
 
   StreamSubscription<HttpRequest> listen(void onData(HttpRequest event),
-                                         {void onError(AsyncError error),
+                                         {void onError(error),
                                          void onDone(),
                                          bool cancelOnError}) {
     _serverSocket.listen(
@@ -1640,7 +1640,7 @@ class _HttpServer extends Stream<HttpRequest> implements HttpServer {
     _controller.add(request);
   }
 
-  void _handleError(AsyncError error) {
+  void _handleError(error) {
     if (!closed) _controller.addError(error);
   }
 
@@ -1797,7 +1797,7 @@ class _DetachedSocket extends Stream<List<int>> implements Socket {
   _DetachedSocket(this._socket, this._incoming);
 
   StreamSubscription<List<int>> listen(void onData(List<int> event),
-                                       {void onError(AsyncError error),
+                                       {void onError(error),
                                         void onDone(),
                                         bool cancelOnError}) {
     return _incoming.listen(onData,
@@ -1824,7 +1824,7 @@ class _DetachedSocket extends Stream<List<int>> implements Socket {
 
   void add(List<int> bytes) => _socket.add(bytes);
 
-  void addError(AsyncError error) => _socket.addError(error);
+  void addError(error) => _socket.addError(error);
 
   Future<Socket> addStream(Stream<List<int>> stream) {
     return _socket.addStream(stream);

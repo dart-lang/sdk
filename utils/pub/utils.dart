@@ -59,7 +59,7 @@ class FutureGroup<T> {
       if (completed) return;
 
       completed = true;
-      _completer.completeError(e.error, e.stackTrace);
+      _completer.completeError(e);
     }));
 
     return task;
@@ -156,7 +156,7 @@ Future sleep(int milliseconds) {
 /// to [completer].
 void chainToCompleter(Future future, Completer completer) {
   future.then((value) => completer.complete(value),
-      onError: (e) => completer.completeError(e.error, e.stackTrace));
+      onError: (e) => completer.completeError(e));
 }
 
 // TODO(nweiz): remove this when issue 7964 is fixed.
@@ -169,7 +169,7 @@ Future streamFirst(Stream stream) {
     subscription.cancel();
     completer.complete(value);
   }, onError: (e) {
-    completer.completeError(e.error, e.stackTrace);
+    completer.completeError(e);
   }, onDone: () {
     completer.completeError(new StateError("No elements"));
   }, cancelOnError: true);

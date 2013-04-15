@@ -16,7 +16,7 @@ class _StdStream extends Stream<List<int>> {
   _StdStream(Stream<List<int>> this._stream);
 
   StreamSubscription<List<int>> listen(void onData(List<int> event),
-                                       {void onError(AsyncError error),
+                                       {void onError(error),
                                         void onDone(),
                                         bool cancelOnError}) {
     return _stream.listen(
@@ -40,7 +40,7 @@ class _StdSink implements IOSink {
   void writeln([object = "" ]) => _sink.writeln(object);
   void writeAll(objects, [sep = ""]) => _sink.writeAll(objects, sep);
   void add(List<int> data) => _sink.add(data);
-  void addError(AsyncError error) => _sink.addError(error);
+  void addError(error) => _sink.addError(error);
   void writeCharCode(int charCode) => _sink.writeCharCode(charCode);
   Future addStream(Stream<List<int>> stream) => _sink.addStream(stream);
   Future close() => _sink.close();

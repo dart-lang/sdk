@@ -344,7 +344,7 @@ class CountingSink implements EventSink<String> {
     count += value.length;
   }
 
-  void addError(AsyncError error) { sink.addError(error); }
+  void addError(Object error) { sink.addError(error); }
 
   void close() { sink.close(); }
 }

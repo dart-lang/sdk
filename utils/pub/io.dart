@@ -299,7 +299,7 @@ EventSink<List<int>> _wrapStdio(IOSink sink, String name) {
   pair.last.catchError((e) {
     // This log may or may not work, depending on how the stream failed. Not
     // much we can do about that.
-    log.error("Error writing to $name: $e");
+    log.error("Error writing to $name", e);
     exit(exit_codes.IO);
   });
   return pair.first;
@@ -670,7 +670,7 @@ ByteStream createTarGz(List contents, {baseDir}) {
     }).catchError((e) {
       // We don't have to worry about double-signaling here, since the store()
       // above will only be reached if startProcess succeeds.
-      controller.addError(e.error, e.stackTrace);
+      controller.addError(e);
       controller.close();
     });
     return new ByteStream(controller.stream);
@@ -707,7 +707,7 @@ ByteStream createTarGz(List contents, {baseDir}) {
   }).catchError((e) {
     // We don't have to worry about double-signaling here, since the store()
     // above will only be reached if everything succeeds.
-    controller.addError(e.error, e.stackTrace);
+    controller.addError(e);
     controller.close();
   });
   return new ByteStream(controller.stream);

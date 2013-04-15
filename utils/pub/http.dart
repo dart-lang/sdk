@@ -61,21 +61,21 @@ class PubHttpClient extends http.BaseClient {
       return http.Response.fromStream(streamedResponse).then((response) {
         throw new PubHttpException(response);
       });
-    }).catchError((asyncError) {
-      if (asyncError.error is SocketIOException &&
-          asyncError.error.osError != null) {
-        if (asyncError.error.osError.errorCode == 8 ||
-            asyncError.error.osError.errorCode == -2 ||
-            asyncError.error.osError.errorCode == -5 ||
-            asyncError.error.osError.errorCode == 11001 ||
-            asyncError.error.osError.errorCode == 11004) {
+    }).catchError((error) {
+      if (error is SocketIOException &&
+          error.osError != null) {
+        if (error.osError.errorCode == 8 ||
+            error.osError.errorCode == -2 ||
+            error.osError.errorCode == -5 ||
+            error.osError.errorCode == 11001 ||
+            error.osError.errorCode == 11004) {
           throw 'Could not resolve URL "${request.url.origin}".';
-        } else if (asyncError.error.osError.errorCode == -12276) {
+        } else if (error.osError.errorCode == -12276) {
           throw 'Unable to validate SSL certificate for '
               '"${request.url.origin}".';
         }
       }
-      throw asyncError;
+      throw error;
     }), HTTP_TIMEOUT, 'fetching URL "${request.url}"');
   }
 

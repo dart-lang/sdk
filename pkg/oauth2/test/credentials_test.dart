@@ -46,8 +46,8 @@ void main() {
         'access token', null, tokenEndpoint);
     expect(credentials.canRefresh, false);
     credentials.refresh('identifier', 'secret', httpClient: httpClient)
-        .catchError(expectAsync1((e) {
-          expect(e.error is StateError, isTrue);
+        .catchError(expectAsync1((error) {
+          expect(error is StateError, isTrue);
         }));
   });
 
@@ -55,8 +55,8 @@ void main() {
     var credentials = new oauth2.Credentials('access token', 'refresh token');
     expect(credentials.canRefresh, false);
     credentials.refresh('identifier', 'secret', httpClient: httpClient)
-        .catchError(expectAsync1((e) {
-          expect(e.error is StateError, isTrue);
+        .catchError(expectAsync1((error) {
+          expect(error is StateError, isTrue);
         }));
   });
 

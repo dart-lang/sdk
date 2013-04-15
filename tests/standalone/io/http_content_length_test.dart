@@ -19,8 +19,8 @@ void testNoBody(int totalConnections, bool explicitContentLength) {
             .then((_) {
               Expect.fail("Unexpected successful response completion");
             })
-            .catchError((e) {
-              Expect.isTrue(e.error is HttpException);
+            .catchError((error) {
+              Expect.isTrue(error is HttpException);
             });
           // write with content length 0 closes the connection and
           // reports an error.
@@ -35,7 +35,10 @@ void testNoBody(int totalConnections, bool explicitContentLength) {
                         (e) => e is StateError);
         },
         onError: (e) {
-          Expect.fail("Unexpected server error $e");
+          String msg = "Unexpected server error $e";
+          var trace = getAttachedStackTrace(e);
+          if (trace != null) msg += "\nStackTrace: $trace";
+          Expect.fail(msg);
         });
 
     int count = 0;
@@ -61,8 +64,11 @@ void testNoBody(int totalConnections, bool explicitContentLength) {
                 });
           })
           .catchError((e) {
-            Expect.fail("Unexpected error $e");
-          });
+            String msg = "Unexpected error $e";
+            var trace = getAttachedStackTrace(e);
+            if (trace != null) msg += "\nStackTrace: $trace";
+            Expect.fail(msg);
+         });
     }
   });
 }
@@ -92,8 +98,8 @@ void testBody(int totalConnections, bool useHeader) {
                     .then((_) {
                       Expect.fail("Unexpected successful response completion");
                     })
-                    .catchError((e) {
-                      Expect.isTrue(e.error is HttpException, "[$e]");
+                    .catchError((error) {
+                      Expect.isTrue(error is HttpException, "[$error]");
                       if (++serverCount == totalConnections) {
                         server.close();
                       }
@@ -103,7 +109,12 @@ void testBody(int totalConnections, bool useHeader) {
                               (e) => e is StateError);
               });
         },
-        onError: (e) => Expect.fail("Unexpected error $e"));
+        onError: (e) {
+          String msg = "Unexpected error $e";
+          var trace = getAttachedStackTrace(e);
+          if (trace != null) msg += "\nStackTrace: $trace";
+          Expect.fail(msg);
+        });
 
     int clientCount = 0;
     HttpClient client = new HttpClient();
@@ -168,7 +179,12 @@ void testBodyChunked(int totalConnections, bool useHeader) {
                               (e) => e is StateError);
               });
         },
-        onError: (e) => Expect.fail("Unexpected error $e"));
+        onError: (e) {
+          String msg = "Unexpected error $e";
+          var trace = getAttachedStackTrace(e);
+          if (trace != null) msg += "\nStackTrace: $trace";
+          Expect.fail(msg);
+        });
 
     int count = 0;
     HttpClient client = new HttpClient();
@@ -201,7 +217,12 @@ void testBodyChunked(int totalConnections, bool useHeader) {
                   }
                 });
           })
-          .catchError((e) => Expect.fail("Unexpected error $e"));
+          .catchError((e) {
+            String msg = "Unexpected error $e";
+            var trace = getAttachedStackTrace(e);
+            if (trace != null) msg += "\nStackTrace: $trace";
+            Expect.fail(msg);
+          });
     }
   });
 }

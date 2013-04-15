@@ -62,8 +62,8 @@ class PatternDescriptor extends Descriptor {
       var descriptor = _fn(path.basename(entry));
       return descriptor.validateNow(parent).then((_) {
         return new Pair(null, descriptor.describe());
-      }).catchError((e) {
-        return new Pair(e.error.toString(), descriptor.describe());
+      }).catchError((error) {
+        return new Pair(error.toString(), descriptor.describe());
       });
     })).then((results) {
       var matches = results.where((result) => result.first == null).toList();

@@ -44,8 +44,8 @@ main() {
       test('directoryDoesntExist', () {
         return fs.root.getDirectory(
             'directory2')
-              .catchError((e) {
-                expect(e.error.code, equals(FileError.NOT_FOUND_ERR));
+              .catchError((error) {
+                expect(error.code, equals(FileError.NOT_FOUND_ERR));
               }, test: (e) => e is FileError);
         });
 
@@ -66,8 +66,8 @@ main() {
       test('fileDoesntExist', () {
         return fs.root.getFile(
             'file2')
-          .catchError((e) {
-            expect(e.error.code, equals(FileError.NOT_FOUND_ERR));
+          .catchError((error) {
+            expect(error.code, equals(FileError.NOT_FOUND_ERR));
           }, test: (e) => e is FileError);
       });
 
@@ -152,8 +152,8 @@ main() {
             expect(entry.name, 'movedFile');
             expect(entry.fullPath, '/directory3/movedFile');
             return fs.root.getFile('file4');
-          }).catchError((e) {
-            expect(e.error.code, equals(FileError.NOT_FOUND_ERR));
+          }).catchError((error) {
+            expect(error.code, equals(FileError.NOT_FOUND_ERR));
           }, test: (e) => e is FileError);
       });
 

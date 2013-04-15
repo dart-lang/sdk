@@ -82,21 +82,21 @@ Future withClient(SystemCache cache, Future fn(Client client)) {
       // Be sure to save the credentials even when an error happens.
       _saveCredentials(cache, client.credentials);
     });
-  }).catchError((asyncError) {
-    if (asyncError.error is ExpirationException) {
+  }).catchError((error) {
+    if (error is ExpirationException) {
       log.error("Pub's authorization to upload packages has expired and "
           "can't be automatically refreshed.");
       return withClient(cache, fn);
-    } else if (asyncError.error is AuthorizationException) {
+    } else if (error is AuthorizationException) {
       var message = "OAuth2 authorization failed";
-      if (asyncError.error.description != null) {
-        message = "$message (${asyncError.error.description})";
+      if (error.description != null) {
+        message = "$message (${error.description})";
       }
       log.error("$message.");
       clearCredentials(cache);
       return withClient(cache, fn);
     } else {
-      throw asyncError;
+      throw error;
     }
   });
 }

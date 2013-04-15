@@ -77,11 +77,11 @@ class StreamProtocolTest {
     });
   }
 
-  void _onError(AsyncError error) {
+  void _onError(error) {
     _withNextExpectation((Event expect) {
       if (!expect.matchError(error)) {
         _fail("Expected: $expect\n"
-              "Found   : [Data: ${error.error}]");
+              "Found   : [Data: ${error}]");
       }
     });
   }
@@ -194,7 +194,7 @@ class Event {
     if (_action != null) _action();
     return true;
   }
-  bool matchError(AsyncError e) {
+  bool matchError(e) {
     if (!_testError(e)) return false;
     if (_action != null) _action();
     return true;
@@ -237,7 +237,7 @@ class DataEvent extends Event {
 class ErrorEvent extends Event {
   final error;
   ErrorEvent(this.error, void action()) : super(action);
-  bool _testError(AsyncError error) => this.error == error.error;
+  bool _testError(error) => this.error == error;
   String toString() => "[Error: $error]";
 }
 
@@ -274,8 +274,8 @@ class LogAnyEvent extends Event {
     _actual = "*[Data $data]";
     return true;
   }
-  bool _testError(AsyncError error) {
-    _actual = "*[Error ${error.error}]";
+  bool _testError(error) {
+    _actual = "*[Error ${error}]";
     return true;
   }
   bool _testDone() {

@@ -62,10 +62,10 @@ testMultiController() {
   c = new StreamController.broadcast();
   expectedEvents = new Events()..add("ab")..error("[foo]");
   sentEvents = new Events()..add("ab")..error("foo")..add("ab")..close();
-  actualEvents = new Events.capture(c.stream.handleError((v) {
-        if (v.error is String) {
-          throw new AsyncError("[${v.error}]",
-                                "other stack");
+  actualEvents = new Events.capture(c.stream.handleError((error) {
+        if (error is String) {
+          // TODO(floitsch): this test originally changed the stacktrace.
+          throw "[${error}]";
         }
       }), cancelOnError: true);
   sentEvents.replay(c);
@@ -95,8 +95,8 @@ testMultiController() {
       new Events()..error("a")..add(42)..error("b")..add("foo")..close();
   actualEvents = new Events.capture(c.stream.transform(
       new StreamTransformer(
-          handleData: (v, s) { s.addError(new AsyncError(v)); },
-          handleError: (e, s) { s.add(e.error); },
+          handleData: (v, s) { s.addError(v); },
+          handleError: (e, s) { s.add(e); },
           handleDone: (s) {
 
             s.add("foo");
@@ -119,8 +119,8 @@ testMultiController() {
   actualEvents = new Events.capture(
       c.stream.where((v) => v is String)
        .map((v) => int.parse(v))
-       .handleError((v) {
-          if (v.error is! FormatException) throw v;
+       .handleError((error) {
+          if (error is! FormatException) throw error;
         })
        .where((v) => v > 10),
       cancelOnError: true);
@@ -206,10 +206,10 @@ testSingleController() {
   c = new StreamController();
   expectedEvents = new Events()..add("ab")..error("[foo]");
   sentEvents = new Events()..add("ab")..error("foo")..add("ab")..close();
-  actualEvents = new Events.capture(c.stream.handleError((v) {
-        if (v.error is String) {
-          throw new AsyncError("[${v.error}]",
-                                "other stack");
+  actualEvents = new Events.capture(c.stream.handleError((error) {
+        if (error is String) {
+          // TODO(floitsch): this error originally changed the stack trace.
+          throw "[${error}]";
         }
       }), cancelOnError: true);
   sentEvents.replay(c);
@@ -262,8 +262,8 @@ testSingleController() {
     Future<bool> contains = c.stream.contains("b");
     contains.then((var c) {
       Expect.fail("no value expected");
-    }).catchError((AsyncError e) {
-      Expect.equals("FAIL", e.error);
+    }).catchError((error) {
+      Expect.equals("FAIL", error);
     });
     sentEvents.replay(c);
   }
@@ -275,8 +275,8 @@ testSingleController() {
       new Events()..error("a")..add(42)..error("b")..add("foo")..close();
   actualEvents = new Events.capture(c.stream.transform(
       new StreamTransformer(
-          handleData: (v, s) { s.addError(new AsyncError(v)); },
-          handleError: (e, s) { s.add(e.error); },
+          handleData: (v, s) { s.addError(v); },
+          handleError: (e, s) { s.add(e); },
           handleDone: (s) {
             s.add("foo");
             s.close();
@@ -296,8 +296,8 @@ testSingleController() {
   actualEvents = new Events.capture(
       c.stream.where((v) => v is String)
        .map((v) => int.parse(v))
-       .handleError((v) {
-          if (v.error is! FormatException) throw v;
+       .handleError((error) {
+          if (error is! FormatException) throw error;
         })
        .where((v) => v > 10),
       cancelOnError: true);

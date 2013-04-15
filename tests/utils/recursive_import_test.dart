@@ -114,7 +114,7 @@ main() {
     // first time.
     Expect.equals(2 * (count - 1), warningCount);
     Expect.equals(1, errorCount);
-  }, onError: (AsyncError e) {
+  }, onError: (e) {
       throw 'Compilation failed';
   });
 }

@@ -66,11 +66,10 @@ class _ScheduledCompletes extends BaseMatcher {
     currentSchedule.wrapFuture(item.then((value) {
       if (_matcher == null) return;
 
-      try {
-        expect(value, _matcher);
-      } catch (e, stackTrace) {
-        throw new AsyncError(e, outerTrace);
-      }
+      // TODO(floitsch): we cannot switch traces anymore.
+      // If expect throws we might want to be able to switch to the outer trace
+      // instead.
+      expect(value, _matcher);
     }), description);
 
     return true;

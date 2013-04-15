@@ -42,13 +42,12 @@ class SafeHttpServer extends StreamView<HttpRequest> implements HttpServer {
   HttpConnectionsInfo connectionsInfo() => _inner.connectionsInfo();
 
   StreamSubscription<HttpRequest> listen(void onData(HttpRequest value),
-      {void onError(AsyncError error), void onDone(),
+      {void onError(error), void onDone(),
       bool cancelOnError: false}) {
     var subscription;
     subscription = super.listen((request) {
       onData(new _HttpRequestWrapper(request));
-    }, onError: (e) {
-      var error = e.error;
+    }, onError: (error) {
       // Ignore socket error 104, which is caused by a request being cancelled
       // before it writes any headers. There's no reason to care about such
       // requests.
@@ -58,7 +57,7 @@ class SafeHttpServer extends StreamView<HttpRequest> implements HttpServer {
       // Manually handle cancelOnError so the above (ignored) errors don't
       // cause unsubscription.
       if (cancelOnError) subscription.cancel();
-      if (onError != null) onError(e);
+      if (onError != null) onError(error);
     }, onDone: onDone);
     return subscription;
   }

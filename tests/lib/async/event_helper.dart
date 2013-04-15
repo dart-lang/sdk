@@ -29,7 +29,7 @@ class DataEvent implements Event {
 }
 
 class ErrorEvent implements Event {
-  final AsyncError error;
+  final error;
 
   ErrorEvent(this.error);
 
@@ -40,10 +40,10 @@ class ErrorEvent implements Event {
   bool operator==(Object other) {
     if (other is! ErrorEvent) return false;
     ErrorEvent otherEvent = other;
-    return error.error == other.error.error;
+    return error == other.error;
   }
 
-  String toString() => "ErrorEvent: ${error.error}";
+  String toString() => "ErrorEvent: ${error}";
 }
 
 class DoneEvent implements Event {
@@ -77,7 +77,7 @@ class Events implements EventSink {
     events.add(new DataEvent(value));
   }
 
-  void addError(AsyncError error) {
+  void addError(error) {
     events.add(new ErrorEvent(error));
   }
 
@@ -86,7 +86,7 @@ class Events implements EventSink {
   }
 
   // Error helper for creating errors manually..
-  void error(var value) { addError(new AsyncError(value, null)); }
+  void error(var value) { addError(value); }
 
   /** Replay the captured events on a sink. */
   void replay(EventSink sink) {
@@ -146,7 +146,7 @@ class CaptureEvents extends Events {
                                  cancelOnError: cancelOnError);
   }
 
-  void addError(AsyncError error) {
+  void addError(error) {
     super.addError(error);
     if (cancelOnError) onDoneSignal.complete(null);
   }

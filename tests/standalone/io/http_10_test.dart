@@ -25,14 +25,19 @@ void testHttp10NoKeepAlive() {
           Expect.equals("1.0", request.protocolVersion);
           response.done
               .then((_) => Expect.fail("Unexpected response completion"))
-              .catchError((e) => Expect.isTrue(e.error is HttpException));
+              .catchError((error) => Expect.isTrue(error is HttpException));
           response.write("Z");
           response.write("Z");
           response.close();
           Expect.throws(() => response.write("x"),
                         (e) => e is StateError);
         },
-        onError: (e) => Expect.fail("Unexpected error $e"));
+        onError: (e) {
+          String msg = "Unexpected error $e";
+          var trace = getAttachedStackTrace(e);
+          if (trace != null) msg += "\nStackTrace: $trace";
+          Expect.fail(msg);
+        });
 
     int count = 0;
     makeRequest() {
@@ -77,7 +82,12 @@ void testHttp10ServerClose() {
             response.close();
           });
         },
-        onError: (e) => Expect.fail("Unexpected error $e"));
+        onError: (e) {
+          String msg = "Unexpected error $e";
+          var trace = getAttachedStackTrace(e);
+          if (trace != null) msg += "\nStackTrace: $trace";
+          Expect.fail(msg);
+        });
 
     int count = 0;
     makeRequest() {
@@ -124,7 +134,12 @@ void testHttp10KeepAlive() {
           response.write("Z");
           response.close();
         },
-        onError: (e) => Expect.fail("Unexpected error $e"));
+        onError: (e) {
+          String msg = "Unexpected error $e";
+          var trace = getAttachedStackTrace(e);
+          if (trace != null) msg += "\nStackTrace: $trace";
+          Expect.fail(msg);
+        });
 
     Socket.connect("127.0.0.1", server.port).then((socket) {
       void sendRequest() {
@@ -174,7 +189,12 @@ void testHttp10KeepAliveServerCloses() {
           response.write("Z");
           response.close();
         },
-        onError: (e) => Expect.fail("Unexpected error $e"));
+        onError: (e) {
+          String msg = "Unexpected error $e";
+          var trace = getAttachedStackTrace(e);
+          if (trace != null) msg += "\nStackTrace: $trace";
+          Expect.fail(msg);
+        });
 
     int count = 0;
     makeRequest() {

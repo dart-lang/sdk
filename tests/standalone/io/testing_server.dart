@@ -13,7 +13,10 @@ abstract class TestingServer {
   void onConnection(Socket connection);  // Abstract.
 
   void errorHandlerServer(e) {
-    Expect.fail("Server socket error $e");
+    String msg = "Server socket error $e";
+    var trace = getAttachedStackTrace(e);
+    if (trace != null) msg += "\nStackTrace: $trace";
+    Expect.fail(msg);
   }
 
   void dispatch(message, SendPort replyTo) {

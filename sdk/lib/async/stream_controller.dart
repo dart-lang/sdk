@@ -119,23 +119,16 @@ class StreamController<T> extends EventSink<T> {
   /**
    * Send or enqueue an error event.
    *
-   * If [error] is not an [AsyncError], [error] and an optional [stackTrace]
-   * is combined into an [AsyncError] and sent this stream's listeners.
-   *
-   * Otherwise, if [error] is an [AsyncError], it is used directly as the
-   * error object reported to listeners, and the [stackTrace] is ignored.
-   *
    * If a subscription has requested to be unsubscribed on errors,
    * it will be unsubscribed after receiving this event.
    */
   void addError(Object error, [Object stackTrace]) {
-    AsyncError asyncError;
-    if (error is AsyncError) {
-      asyncError = error;
-    } else {
-      asyncError = new AsyncError(error, stackTrace);
+    if (stackTrace != null) {
+      // Force stack trace overwrite. Even if the error already contained
+      // a stack trace.
+      _attachStackTrace(error, stackTrace);
     }
-    stream._addError(asyncError);
+    stream._addError(error);
   }
 
   /**
@@ -161,7 +154,7 @@ class _MultiControllerStream<T> extends _MultiStreamImpl<T> {
     try {
       notificationHandler();
     } catch (e, s) {
-      new AsyncError(e, s).throwDelayed();
+      _throwDelayed(e, s);
     }
   }
 
@@ -191,7 +184,7 @@ class _SingleControllerStream<T> extends _SingleStreamImpl<T> {
     try {
       notificationHandler();
     } catch (e, s) {
-      new AsyncError(e, s).throwDelayed();
+      _throwDelayed(e, s);
     }
   }
 

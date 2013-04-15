@@ -79,7 +79,7 @@ class FutureGroup {
     _pending++;
     var handledTaskFuture = task.catchError((e) {
       if (!wasCompleted) {
-        _completer.completeError(e.error, e.stackTrace);
+        _completer.completeError(e);
         wasCompleted = true;
       }
     }).then((_) {

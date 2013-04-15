@@ -197,9 +197,9 @@ testErrorHandler() {
       onDone: () {
         Expect.equals(1, errors);
       },
-      onError: (e) {
+      onError: (error) {
         errors++;
-        Expect.isTrue(e.error is TestException);
+        Expect.isTrue(error is TestException);
       });
   controller.addError(new TestException());
   controller.close();
@@ -222,7 +222,7 @@ testLatin1EncoderError() {
       Expect.fail("data not expected");
     },
     onError: (error) {
-      Expect.isTrue(error.error is FormatException);
+      Expect.isTrue(error is FormatException);
     });
 
 }

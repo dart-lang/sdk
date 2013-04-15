@@ -13,7 +13,10 @@ class Server {
       server.listen((HttpRequest request) {
             Timer.run(server.close);
           }, onError: (e) {
-            Expect.fail("No server errors expected: $e");
+            String msg = "No server errors expected: $e";
+            var trace = getAttachedStackTrace(e);
+            if (trace != null) msg += "\nStackTrace: $trace";
+            Expect.fail(msg);
           });
       return server.port;
     });

@@ -478,13 +478,13 @@ void testMirrorErrors(MirrorSystem mirrors) {
       // Should not reach here.
       Expect.isTrue(false);
     })
-    .catchError((exc) {
-        Expect.isTrue(exc.error is MirroredUncaughtExceptionError);
+    .catchError((error) {
+        Expect.isTrue(error is MirroredUncaughtExceptionError);
         Expect.equals(const Symbol('MyException'),
-                      exc.error.exception_mirror.type.simpleName);
+                      error.exception_mirror.type.simpleName);
         Expect.equals('MyException: from methodWithException',
-                      exc.error.exception_string);
-        Expect.isTrue(exc.error.stacktrace.toString().contains(
+                      error.exception_string);
+        Expect.isTrue(error.stacktrace.toString().contains(
             'isolate_mirror_local_test.dart'));
         testDone('testMirrorErrors1');
       });
@@ -494,9 +494,9 @@ void testMirrorErrors(MirrorSystem mirrors) {
       // Should not reach here.
       Expect.isTrue(false);
     })
-    .catchError((exc) {
-      Expect.isTrue(exc.error is MirroredCompilationError);
-      Expect.isTrue(exc.error.message.contains('unexpected token'));
+    .catchError((error) {
+      Expect.isTrue(error is MirroredCompilationError);
+      Expect.isTrue(error.message.contains('unexpected token'));
       testDone('testMirrorErrors2');
     });
 
@@ -508,9 +508,9 @@ void testMirrorErrors(MirrorSystem mirrors) {
       // Should not reach here.
       Expect.isTrue(false);
     })
-    .catchError((exc) {
-      Expect.isTrue(exc.error is MirroredCompilationError);
-      Expect.isTrue(exc.error.message.contains(
+    .catchError((error) {
+      Expect.isTrue(error is MirroredCompilationError);
+      Expect.isTrue(error.message.contains(
           "did not find top-level function 'methodNotFound'"));
       testDone('testMirrorErrors3');
     });

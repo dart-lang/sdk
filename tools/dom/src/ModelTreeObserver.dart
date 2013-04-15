@@ -83,10 +83,8 @@ class _ModelTreeObserver {
         node._model = model;
         node._modelChangedStream.add(node);
       }
-    } on AsyncError catch (e) {
-      e.throwDelayed();
     } catch (e, s) {
-      new AsyncError(e, s).throwDelayed();
+      new Future.immediateError(e, s);
     }
     for (var child = node.$dom_firstChild; child != null;
         child = child.nextNode) {

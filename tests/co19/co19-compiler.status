@@ -252,6 +252,14 @@ LibTest/core/Set/isSubsetOf_A01_t01: fail # Issue 400
 LibTest/core/Set/isSubsetOf_A01_t02: fail # Issue 400
 LibTest/core/List/operator_subscript_A01_t02: Fail # getRange now takes end-argument and returns Iterable. Issue 399
 
+LibTest/async/Completer/completeError_A01_t01: Fail # No AsyncError anymore. Issue 407
+LibTest/async/Completer/completeError_A03_t02: Fail # No AsyncError anymore. Issue 407
+LibTest/async/Completer/complete_A02_t02: Fail # No AsyncError anymore. Issue 407
+LibTest/async/Future/catchError_A01_t01: Fail # No AsyncError anymore. Issue 407
+LibTest/async/Future/catchError_A01_t02: Fail # No AsyncError anymore. Issue 407
+LibTest/async/Future/catchError_A02_t01: Fail # No AsyncError anymore. Issue 407
+LibTest/async/Future/Future.delayed_A02_t01: Fail # No AsyncError anymore. Issue 407
+
 Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A01_t02: Fail, OK # co19 issue 405
 Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t02: Fail, OK # co19 issue 405
 Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t03: Fail, OK # co19 issue 405

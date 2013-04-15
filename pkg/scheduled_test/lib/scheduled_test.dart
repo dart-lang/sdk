@@ -228,8 +228,6 @@ void _test(String description, void body(), Function testFn) {
         assert(e.schedule.errors.contains(e));
         assert(e.schedule == currentSchedule);
         unittest.registerException(e.schedule.errorString());
-      } else if (e is AsyncError) {
-        unittest.registerException(e.error, e.stackTrace);
       } else {
         unittest.registerException(e);
       }

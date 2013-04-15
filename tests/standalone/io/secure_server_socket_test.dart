@@ -42,16 +42,16 @@ void testInvalidBind() {
   // Bind to a unknown DNS name.
   SecureServerSocket.bind("ko.faar.__hest__", 0, 5, CERTIFICATE).then((_) {
     Expect.fail("Failure expected");
-  }).catchError((e) {
-    Expect.isTrue(e.error is SocketIOException);
+  }).catchError((error) {
+    Expect.isTrue(error is SocketIOException);
     port.toSendPort().send(1);
   });
 
   // Bind to an unavaliable IP-address.
   SecureServerSocket.bind("8.8.8.8", 0, 5, CERTIFICATE).then((_) {
     Expect.fail("Failure expected");
-  }).catchError((e) {
-    Expect.isTrue(e.error is SocketIOException);
+  }).catchError((error) {
+    Expect.isTrue(error is SocketIOException);
     port.toSendPort().send(1);
   });
 
@@ -69,9 +69,9 @@ void testInvalidBind() {
       s.close();
       t.close();
       port.toSendPort().send(1);
-    }).catchError((e) {
+    }).catchError((error) {
       Expect.notEquals('windows', Platform.operatingSystem);
-      Expect.isTrue(e.error is SocketIOException);
+      Expect.isTrue(error is SocketIOException);
       s.close();
       port.toSendPort().send(1);
     });
@@ -100,16 +100,14 @@ void testSimpleConnectFail(String certificate) {
       .then((clientEnd) {
         Expect.fail("No client connection expected.");
       })
-      .catchError((e) {
-        Expect.isTrue(e is AsyncError);
-        Expect.isTrue(e.error is SocketIOException);
+      .catchError((error) {
+        Expect.isTrue(error is SocketIOException);
       });
     server.listen((serverEnd) {
       Expect.fail("No server connection expected.");
     },
-    onError: (e) {
-      Expect.isTrue(e is AsyncError);
-      Expect.isTrue(e.error is SocketIOException);
+    onError: (error) {
+      Expect.isTrue(error is SocketIOException);
       clientEndFuture.then((_) => port.close());
     });
   });

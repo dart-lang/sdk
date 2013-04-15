@@ -564,7 +564,7 @@ class _WebSocketImpl extends Stream implements WebSocket {
   }
 
   StreamSubscription listen(void onData(message),
-                            {void onError(AsyncError error),
+                            {void onError(error),
                              void onDone(),
                              bool cancelOnError}) {
     return _controller.stream.listen(onData,

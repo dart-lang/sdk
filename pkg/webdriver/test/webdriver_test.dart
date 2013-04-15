@@ -1,4 +1,5 @@
 library webdriver_test;
+import 'dart:async' show getAttachedStackTrace;
 import 'package:webdriver/webdriver.dart';
 import 'package:unittest/unittest.dart';
 import 'package:unittest/vm_config.dart';
@@ -15,12 +16,13 @@ main() {
   var web_driver = new WebDriver('localhost', 4444, '/wd/hub');
   var session = null;
 
-  var exceptionHandler = (e) {
-    if (e.error is TestFailure) {
-      currentTestCase.fail(e.error.message, e.stackTrace.toString());
+  var exceptionHandler = (error) {
+    var trace = getAttachedStackTrace(error);
+    String traceString = trace == null ? "" : trace.toString();
+    if (error is TestFailure) {
+      currentTestCase.fail(error.message, traceString);
     } else {
-      currentTestCase.error("Unexpected error: ${e.error}",
-          e.stackTrace.toString());
+      currentTestCase.error("Unexpected error: ${error}", traceString);
     }
     if (session != null) {
       var s = session;

@@ -71,8 +71,11 @@ void main() {
               default: throw "Unexpected event $event";
             }
           },
-          onError: (AsyncError a) {
-            Expect.fail("onError handler of RawSecureSocket stream hit: $a");
+          onError: (e) {
+            String msg = "onError handler of RawSecureSocket stream hit $e";
+            var trace = getAttachedStackTrace(e);
+            if (trace != null) msg += "\nStackTrace: $trace";
+            Expect.fail(msg);
           });
     });
   });

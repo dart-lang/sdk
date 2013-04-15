@@ -33,8 +33,8 @@ class JsIsolateSink extends EventSink<dynamic> implements IsolateSink {
     _port.send(message);
   }
 
-  void addError(AsyncError errorEvent) {
-    throw new UnimplementedError("signalError on isolate streams");
+  void addError(errorEvent) {
+    throw new UnimplementedError("addError on isolate streams");
   }
 
   void close() {

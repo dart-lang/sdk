@@ -188,7 +188,7 @@ class Schedule {
   /// Signals that an out-of-band error has occurred. Using [wrapAsync] along
   /// with `throw` is usually preferable to calling this directly.
   ///
-  /// The metadata in [AsyncError]s and [ScheduleError]s will be preserved.
+  /// The metadata in [ScheduleError]s will be preserved.
   void signalError(error, [stackTrace]) {
     heartbeat();
 

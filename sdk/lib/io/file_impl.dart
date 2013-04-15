@@ -36,7 +36,7 @@ class _FileStream extends Stream<List<int>> {
   }
 
   StreamSubscription<List<int>> listen(void onData(List<int> event),
-                                       {void onError(AsyncError error),
+                                       {void onError(error),
                                         void onDone(),
                                         bool cancelOnError}) {
     return _controller.stream.listen(onData,

@@ -53,8 +53,8 @@ void testOpenNonExistent() {
 
   var openFuture = file.open(mode: FileMode.READ);
   openFuture.then((raf) => Expect.fail("Unreachable code"))
-            .catchError((e) {
-              checkOpenNonExistentFileException(e.error);
+            .catchError((error) {
+              checkOpenNonExistentFileException(error);
               p.toSendPort().send(null);
             });
 }
@@ -75,8 +75,8 @@ void testDeleteNonExistent() {
 
   var delete = file.delete();
   delete.then((ignore) => Expect.fail("Unreachable code"))
-        .catchError((e) {
-          checkDeleteNonExistentFileException(e.error);
+        .catchError((error) {
+          checkDeleteNonExistentFileException(error);
           p.toSendPort().send(null);
         });
 }
@@ -97,8 +97,8 @@ void testLengthNonExistent() {
 
   var lenFuture = file.length();
   lenFuture.then((len) => Expect.fail("Unreachable code"))
-           .catchError((e) {
-             checkLengthNonExistentFileException(e.error);
+           .catchError((error) {
+             checkLengthNonExistentFileException(error);
              p.toSendPort().send(null);
            });
 }
@@ -134,8 +134,8 @@ void testCreateInNonExistentDirectory() {
 
   var create = file.create();
   create.then((ignore) => Expect.fail("Unreachable code"))
-  .catchError((e) {
-    checkCreateInNonExistentDirectoryException(e.error);
+  .catchError((error) {
+    checkCreateInNonExistentDirectoryException(error);
     p.toSendPort().send(null);
   });
 }
@@ -165,8 +165,8 @@ void testFullPathOnNonExistentDirectory() {
 
   var fullPathFuture = file.fullPath();
   fullPathFuture.then((path) => Expect.fail("Unreachable code $path"))
-  .catchError((e) {
-    checkFullPathOnNonExistentDirectoryException(e.error);
+  .catchError((error) {
+    checkFullPathOnNonExistentDirectoryException(error);
     p.toSendPort().send(null);
   });
 }
@@ -197,8 +197,8 @@ void testDirectoryInNonExistentDirectory() {
 
   var dirFuture = file.directory();
   dirFuture.then((directory) => Expect.fail("Unreachable code"))
-  .catchError((e) {
-    checkDirectoryInNonExistentDirectoryException(e.error);
+  .catchError((error) {
+    checkDirectoryInNonExistentDirectoryException(error);
     p.toSendPort().send(null);
   });
 }
@@ -218,8 +218,8 @@ void testReadAsBytesNonExistent() {
 
   var readAsBytesFuture = file.readAsBytes();
   readAsBytesFuture.then((data) => Expect.fail("Unreachable code"))
-  .catchError((e) {
-    checkOpenNonExistentFileException(e.error);
+  .catchError((error) {
+    checkOpenNonExistentFileException(error);
     p.toSendPort().send(null);
   });
 }
@@ -239,8 +239,8 @@ void testReadAsTextNonExistent() {
 
   var readAsStringFuture = file.readAsString(encoding: Encoding.ASCII);
   readAsStringFuture.then((data) => Expect.fail("Unreachable code"))
-  .catchError((e) {
-    checkOpenNonExistentFileException(e.error);
+  .catchError((error) {
+    checkOpenNonExistentFileException(error);
     p.toSendPort().send(null);
   });
 }
@@ -260,8 +260,8 @@ testReadAsLinesNonExistent() {
 
   var readAsLinesFuture = file.readAsLines(encoding: Encoding.ASCII);
   readAsLinesFuture.then((data) => Expect.fail("Unreachable code"))
-  .catchError((e) {
-    checkOpenNonExistentFileException(e.error);
+  .catchError((error) {
+    checkOpenNonExistentFileException(error);
     p.toSendPort().send(null);
   });
 }
@@ -300,8 +300,8 @@ testWriteByteToReadOnlyFile() {
                   (e) => checkWriteReadOnlyFileException(e));
 
     var writeByteFuture = openedFile.writeByte(0);
-    writeByteFuture.catchError((e) {
-      checkWriteReadOnlyFileException(e.error);
+    writeByteFuture.catchError((error) {
+      checkWriteReadOnlyFileException(error);
       openedFile.close().then((ignore) => port.send(null));
     });
   });
@@ -317,8 +317,8 @@ testWriteFromToReadOnlyFile() {
                   (e) => checkWriteReadOnlyFileException(e));
 
     var writeFromFuture = openedFile.writeFrom(data, 0, data.length);
-    writeFromFuture.catchError((e) {
-      checkWriteReadOnlyFileException(e.error);
+    writeFromFuture.catchError((error) {
+      checkWriteReadOnlyFileException(error);
       openedFile.close().then((ignore) => port.send(null));
     });
   });
@@ -337,8 +337,8 @@ testTruncateReadOnlyFile() {
 
     var truncateFuture = openedFile.truncate(0);
     truncateFuture.then((ignore) => Expect.fail("Unreachable code"))
-    .catchError((e) {
-      checkWriteReadOnlyFileException(e.error);
+    .catchError((error) {
+      checkWriteReadOnlyFileException(error);
       openedFile.close().then((ignore) => port.send(null));
     });
   });
@@ -380,8 +380,8 @@ testOperateOnClosedFile() {
 
     var errorCount = 0;
 
-    _errorHandler(e) {
-      checkFileClosedException(e.error);
+    _errorHandler(error) {
+      checkFileClosedException(error);
       if (--errorCount == 0) {
         port.send(null);
       }
@@ -436,8 +436,8 @@ testRepeatedlyCloseFile() {
     openedFile.close().then((ignore) {
       var closeFuture = openedFile.close();
       closeFuture.then((ignore) => null)
-      .catchError((e) {
-        Expect.isTrue(e.error is FileIOException);
+      .catchError((error) {
+        Expect.isTrue(error is FileIOException);
         port.send(null);
       });
     });

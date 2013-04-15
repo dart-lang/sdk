@@ -48,8 +48,8 @@ main() {
     Stream stream = controller.stream;
     var output = [];
     var subscription = stream.listen((x) { output.add(x); });
-    subscription.asFuture(output).catchError(expectAsync1((e) {
-      Expect.equals(e.error, "foo");
+    subscription.asFuture(output).catchError(expectAsync1((error) {
+      Expect.equals(error, "foo");
     }));
   });
 
@@ -61,8 +61,8 @@ main() {
       });
     var output = [];
     var subscription = stream.listen((x) { output.add(x); });
-    subscription.asFuture(output).catchError(expectAsync1((e) {
-      Expect.equals(e.error, "foo");
+    subscription.asFuture(output).catchError(expectAsync1((error) {
+      Expect.equals(error, "foo");
     }));
   });
 }

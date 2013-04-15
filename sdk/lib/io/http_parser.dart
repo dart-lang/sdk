@@ -125,7 +125,7 @@ class _HttpDetachedIncoming extends Stream<List<int>> {
   }
 
   StreamSubscription<List<int>> listen(void onData(List<int> event),
-                                       {void onError(AsyncError error),
+                                       {void onError(error),
                                         void onDone(),
                                         bool cancelOnError}) {
     return controller.stream.listen(
@@ -204,7 +204,7 @@ class _HttpParser
 
 
   StreamSubscription<_HttpIncoming> listen(void onData(_HttpIncoming event),
-                                           {void onError(AsyncError error),
+                                           {void onError(error),
                                             void onDone(),
                                             bool cancelOnError}) {
     return _controller.stream.listen(onData,
@@ -669,7 +669,7 @@ class _HttpParser
       }
     } catch (e, s) {
       _state = _State.FAILURE;
-      error(new AsyncError(e, s));
+      error(e, s);
     }
 
     _parserCalled = false;
@@ -701,9 +701,8 @@ class _HttpParser
           !(_state == _State.START && !_requestParser) &&
           !(_state == _State.BODY && !_chunked && _transferLength == -1)) {
         _bodyController.addError(
-            new AsyncError(
-                new HttpParserException(
-                    "Connection closed while receiving data")));
+              new HttpParserException(
+                  "Connection closed while receiving data"));
       }
       _closeIncoming();
       _controller.close();
@@ -712,10 +711,8 @@ class _HttpParser
     // If the connection is idle the HTTP stream is closed.
     if (_state == _State.START) {
       if (!_requestParser) {
-        error(
-            new AsyncError(
-                new HttpParserException(
-                    "Connection closed before full header was received")));
+        error(new HttpParserException(
+                    "Connection closed before full header was received"));
       }
       _controller.close();
       return;
@@ -730,10 +727,8 @@ class _HttpParser
       _state = _State.FAILURE;
       // Report the error through the error callback if any. Otherwise
       // throw the error.
-      error(
-          new AsyncError(
-              new HttpParserException(
-                  "Connection closed before full header was received")));
+      error(new HttpParserException(
+                  "Connection closed before full header was received"));
       _controller.close();
       return;
     }
@@ -744,10 +739,8 @@ class _HttpParser
       _state = _State.FAILURE;
       // Report the error through the error callback if any. Otherwise
       // throw the error.
-      error(
-          new AsyncError(
-              new HttpParserException(
-                  "Connection closed before full body was received")));
+      error(new HttpParserException(
+                  "Connection closed before full body was received"));
     }
     _controller.close();
   }
@@ -921,10 +914,10 @@ class _HttpParser
     }
   }
 
-  void error(error) {
+  void error(error, [stackTrace]) {
     if (_socketSubscription != null) _socketSubscription.cancel();
     _state = _State.FAILURE;
-    _controller.addError(error);
+    _controller.addError(error, stackTrace);
     _controller.close();
   }
 
