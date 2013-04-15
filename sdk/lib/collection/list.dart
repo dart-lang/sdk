@@ -174,6 +174,9 @@ abstract class ListMixin<E> implements List<E> {
 
   Iterable map(f(E element)) => new MappedListIterable(this, f);
 
+  Iterable expand(Iterable f(E element)) =>
+      new ExpandIterable<E, dynamic>(this, f);
+
   E reduce(E combine(E previousValue, E element)) {
     if (length == 0) throw new StateError("No elements");
     E value = this[0];
@@ -431,6 +434,30 @@ abstract class ListMixin<E> implements List<E> {
       }
     }
     return -1;
+  }
+
+  void insert(int index, E element) {
+    if (index < 0 || index > length) {
+      throw new RangeError.range(index, 0, length);
+    }
+    if (index == this.length) {
+      add(element);
+      return;
+    }
+    // We are modifying the length just below the is-check. Without the check
+    // Array.copy could throw an exception, leaving the list in a bad state
+    // (with a length that has been increased, but without a new element).
+    if (index is! int) throw new ArgumentError(index);
+    this.length++;
+    setRange(index + 1, this.length, this, index);
+    this[index] = element;
+  }
+
+  E removeAt(int index) {
+    E result = this[index];
+    setRange(index, this.length - 1, this, index + 1);
+    length--;
+    return result;
   }
 
   Iterable<E> get reversed => new ReversedListIterable(this);
