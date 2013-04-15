@@ -32,6 +32,44 @@ patch class List<E> {
     return result;
   }
 
+  /* patch */ factory List.from(Iterable other, { bool growable: true }) {
+    // TODO(iposva): Avoid the iterators for the known lists and do the copy in
+    // the VM directly.
+    var len = null;
+    // TODO(iposva): Remove this dance once dart2js does not implement
+    // an Iterable that throws on calling length.
+    try {
+      len = other.length;
+    } catch (e) {
+      // Ensure that we try again below. 
+      len = null;
+    }
+    if (len == null) {
+      len = 0;
+      try {
+        var iter = other.iterator;
+        while (iter.moveNext()) {
+          len++;
+        }
+      } catch (e) {
+        rethrow;  // Giving up and throwing to the caller.
+      }
+    }
+    var result;
+    if (growable) {
+      result = new _GrowableObjectArray<E>.withCapacity(len);
+      result.length = len;
+    } else {
+      result = new _ObjectArray<E>(len);
+    }
+    var iter = other.iterator;
+    for (var i = 0; i < len; i++) {
+      iter.moveNext();
+      result[i] = iter.current;
+    }
+    return result;
+  }
+
   // Factory constructing a mutable List from a parser generated List literal.
   // [elements] contains elements that are already type checked.
   factory List._fromLiteral(List elements) {
