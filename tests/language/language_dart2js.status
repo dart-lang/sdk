@@ -28,9 +28,9 @@ class_literal_test/28: Fail # Class literals are expression now; delete this tes
 class_literal_test/29: Fail # Class literals are expression now; delete this test.
 
 # Fails due to inlining. Not all expected frames are in the trace.
-full_stacktrace1_test: Fail  # issue 9895
-full_stacktrace2_test: Fail  # issue 9895
-full_stacktrace3_test: Fail  # issue 9895
+full_stacktrace1_test: Pass, Fail  # issue 9895
+full_stacktrace2_test: Pass, Fail  # issue 9895
+full_stacktrace3_test: Pass, Fail  # issue 9895
 # Stack traces may or may not end in a newline depending on the JS enging.
 stacktrace_test: Pass, Fail # Assumes stack trace string ends in newline.
 
