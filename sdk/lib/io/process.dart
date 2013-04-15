@@ -115,7 +115,7 @@ abstract class Process {
    * Throws an [UnsupportedError] if the process is
    * non-interactive.
    */
-  IOSink<Process> get stdin;
+  IOSink get stdin;
 
   /**
    * Returns a [:Future:] which completes with the exit code of the process

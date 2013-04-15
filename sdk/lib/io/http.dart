@@ -703,7 +703,7 @@ abstract class HttpRequest implements Stream<List<int>> {
  * If an unsupported encoding is used an exception will be thrown if
  * using one of the write methods taking a string.
  */
-abstract class HttpResponse implements IOSink<HttpResponse> {
+abstract class HttpResponse implements IOSink {
   // TODO(ajohnsen): Add documentation of how to pipe a file to the response.
   /**
    * Gets and sets the content length of the response. If the size of
@@ -1012,8 +1012,7 @@ abstract class HttpClient {
  * If an unsupported encoding is used an exception will be thrown if
  * using one of the write methods taking a string.
  */
-abstract class HttpClientRequest
-    implements IOSink<HttpClientResponse> {
+abstract class HttpClientRequest implements IOSink {
   /**
    * Gets and sets the content length of the request. If the size of
    * the request is not known in advance set content length to -1,

@@ -46,7 +46,10 @@ abstract class Timer {
    * Runs the given [callback] asynchronously as soon as possible.
    */
   static void run(void callback()) {
-    schedule() {
+    // Optimizing a group of Timer.run callbacks to be executed in the
+    // same Timer callback.
+    _runCallbacks.add(callback);
+    if (_runCallbacks.length == 1) {
       new Timer(const Duration(milliseconds: 0), () {
         List runCallbacks = _runCallbacks;
         // Create new list to make sure we don't call newly added callbacks in
@@ -63,17 +66,11 @@ abstract class Timer {
             _runCallbacks.addAll(
                 runCallbacks.sublist(i));
             _runCallbacks.addAll(newCallbacks);
-            if (!_runCallbacks.isEmpty) schedule();
             throw;
           }
         }
       });
     }
-
-    // Optimizing a group of Timer.run callbacks to be executed in the
-    // same Timer callback.
-    _runCallbacks.add(callback);
-    if (_runCallbacks.length == 1) schedule();
   }
 
   /**

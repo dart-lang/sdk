@@ -225,7 +225,7 @@ class _HttpParser
                                      unsubscribeOnError: unsubscribeOnError);
   }
 
-  Future<_HttpParser> consume(Stream<List<int>> stream) {
+  Future<_HttpParser> addStream(Stream<List<int>> stream) {
     // Listen to the stream and handle data accordingly. When a
     // _HttpIncoming is created, _dataPause, _dataResume, _dataDone is
     // given to provide a way of controlling the parser.
@@ -236,18 +236,14 @@ class _HttpParser
         _onData,
         onError: _onError,
         onDone: () {
-          _onDone();
           completer.complete(this);
         });
     return completer.future;
   }
 
-  Future<_HttpParser> addStream(Stream<List<int>> stream) {
-    throw new UnimplementedError("_HttpParser.addStream");
-  }
-
   Future<_HttpParser> close() {
-    throw new UnimplementedError("_HttpParser.close");
+    _onDone();
+    return new Future.immediate(this);
   }
 
   // From RFC 2616.

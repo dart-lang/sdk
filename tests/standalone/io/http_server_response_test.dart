@@ -56,7 +56,7 @@ void testResponseAddStream() {
   int bytes = new File(new Options().script).lengthSync();
 
   testServerRequest((server, request) {
-    request.response.writeStream(new File(new Options().script).openRead())
+    request.response.addStream(new File(new Options().script).openRead())
         .then((response) {
           response.close();
           response.done.then((_) => server.close());
@@ -64,9 +64,9 @@ void testResponseAddStream() {
   }, bytes: bytes);
 
   testServerRequest((server, request) {
-    request.response.writeStream(new File(new Options().script).openRead())
+    request.response.addStream(new File(new Options().script).openRead())
         .then((response) {
-          request.response.writeStream(new File(new Options().script).openRead())
+          request.response.addStream(new File(new Options().script).openRead())
               .then((response) {
                 response.close();
                 response.done.then((_) => server.close());
@@ -76,7 +76,7 @@ void testResponseAddStream() {
 
   testServerRequest((server, request) {
     var controller = new StreamController();
-    request.response.writeStream(controller.stream)
+    request.response.addStream(controller.stream)
         .then((response) {
           response.close();
           response.done.then((_) => server.close());

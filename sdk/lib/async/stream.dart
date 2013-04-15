@@ -237,9 +237,7 @@ abstract class Stream<T> {
    * Binds this stream as the input of the provided [StreamConsumer].
    */
   Future pipe(StreamConsumer<T> streamConsumer) {
-    // TODO(floitsch): switch to:
-    // streamConsumer.addStream(this).then((_) => streamConsumer.close());
-    return streamConsumer.consume(this);
+    return streamConsumer.addStream(this).then((_) => streamConsumer.close());
   }
 
   /**
@@ -891,12 +889,6 @@ class _EventSinkView<T> extends EventSink<T> {
 abstract class StreamConsumer<S> {
   Future addStream(Stream<S> stream);
   Future close();
-
-
-  /**
-   * Consume is deprecated. Use [addStream] followed by [close] instead.
-   */
-  Future consume(Stream<S> stream);
 }
 
 

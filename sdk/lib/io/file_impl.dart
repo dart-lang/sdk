@@ -161,10 +161,6 @@ class _FileStreamConsumer extends StreamConsumer<List<int>> {
     _openFuture = new Future.immediate(_File._openStdioSync(fd));
   }
 
-  Future<File> consume(Stream<List<int>> stream) {
-    return addStream(stream).then((_) => close());
-  }
-
   Future<File> addStream(Stream<List<int>> stream) {
     Completer<File> completer = new Completer<File>();
     _openFuture
@@ -476,15 +472,15 @@ class _File extends _FileBase implements File {
     return new _FileStream(_path);
   }
 
-  IOSink<File> openWrite({FileMode mode: FileMode.WRITE,
-                          Encoding encoding: Encoding.UTF_8}) {
+  IOSink openWrite({FileMode mode: FileMode.WRITE,
+                    Encoding encoding: Encoding.UTF_8}) {
     if (mode != FileMode.WRITE &&
         mode != FileMode.APPEND) {
       throw new FileIOException(
           "Wrong FileMode. Use FileMode.WRITE or FileMode.APPEND");
     }
     var consumer = new _FileStreamConsumer(this, mode);
-    return new IOSink<File>(consumer, encoding: encoding);
+    return new IOSink(consumer, encoding: encoding);
   }
 
   Future<List<int>> readAsBytes() {
@@ -556,7 +552,7 @@ class _File extends _FileBase implements File {
   Future<File> writeAsBytes(List<int> bytes,
                             {FileMode mode: FileMode.WRITE}) {
     try {
-      IOSink<File> sink = openWrite(mode: mode);
+      IOSink sink = openWrite(mode: mode);
       sink.add(bytes);
       sink.close();
       return sink.done.then((_) => this);;

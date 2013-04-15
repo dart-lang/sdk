@@ -100,7 +100,7 @@ testFileToFilePipe2() {
   var dstFile = new File(dstFileName);
   dstFile.createSync();
   var output = dstFile.openWrite();
-  output.writeStream(srcStream).then((_) {
+  output.addStream(srcStream).then((_) {
     output.add([32]);
     output.close();
     output.done.then((_) {
@@ -143,9 +143,9 @@ testFileToFilePipe3() {
   var dstFile = new File(dstFileName);
   dstFile.createSync();
   var output = dstFile.openWrite();
-  output.writeStream(srcStream).then((_) {
+  output.addStream(srcStream).then((_) {
     var srcStream2 = srcFile.openRead();
-    output.writeStream(srcStream2).then((_) {
+    output.addStream(srcStream2).then((_) {
       output.close();
       output.done.then((_) {
         var src = srcFile.openSync();
