@@ -1024,6 +1024,7 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
           class_id = kTypedDataUint8ArrayCid;
           break;
         default:
+          class_id = kTypedDataUint8ArrayCid;
           UNIMPLEMENTED();
       }
 
