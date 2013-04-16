@@ -49,7 +49,7 @@ static int debug_port = 0;
 
 // Global state that defines the VmStats web server port and root directory.
 static int vmstats_port = -1;
-static const char* vmstats_root = NULL;
+static const char* vmstats_root = "";
 
 // Value of the --package-root flag.
 // (This pointer points into an argv buffer and does not need to be
@@ -733,6 +733,7 @@ int main(int argc, char** argv) {
       Log::Print("Debugger initialized\n");
     }
   }
+  VmStats::Start(vmstats_port, vmstats_root, verbose_debug_seen);
 
   // Call CreateIsolateAndSetup which creates an isolate and loads up
   // the specified application script.
@@ -756,10 +757,6 @@ int main(int argc, char** argv) {
   Dart_Handle result;
 
   Dart_EnterScope();
-
-  if (vmstats_port >= 0) {
-    VmStats::Start(vmstats_port, vmstats_root);
-  }
 
   if (generate_script_snapshot) {
     // First create a snapshot.
@@ -821,6 +818,7 @@ int main(int argc, char** argv) {
       if (Dart_IsError(result)) {
         return ErrorExit("%s\n", Dart_GetError(result));
       }
+
       // Keep handling messages until the last active receive port is closed.
       result = Dart_RunLoop();
       if (Dart_IsError(result)) {
