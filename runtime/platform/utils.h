@@ -170,6 +170,15 @@ class Utils {
            length >= 0 &&
            count <= (length - offset);
   }
+
+  // Utility functions for converting values from host endianess to
+  // big or little endian values.
+  static uint16_t HostToBigEndian16(uint16_t host_value);
+  static uint32_t HostToBigEndian32(uint32_t host_value);
+  static uint64_t HostToBigEndian64(uint64_t host_value);
+  static uint16_t HostToLittleEndian16(uint16_t host_value);
+  static uint32_t HostToLittleEndian32(uint32_t host_value);
+  static uint64_t HostToLittleEndian64(uint64_t host_value);
 };
 
 }  // namespace dart
