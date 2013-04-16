@@ -338,6 +338,7 @@ Isolate::Isolate()
       message_handler_(NULL),
       spawn_data_(0),
       is_runnable_(false),
+      running_state_(kIsolateWaiting),
       gc_prologue_callbacks_(),
       gc_epilogue_callbacks_(),
       deopt_cpu_registers_copy_(NULL),
