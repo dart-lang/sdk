@@ -2,14 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of yaml;
+/// This file contains the node classes for the internal representations of YAML
+/// documents. These nodes are used for both the serialization tree and the
+/// representation graph.
+library model;
 
-// This file contains the node classes for the internal representations of YAML
-// documents. These nodes are used for both the serialization tree and the
-// representation graph.
+import 'model.dart';
+import 'parser.dart';
+import 'utils.dart';
+import 'visitor.dart';
+import 'yaml_exception.dart';
 
 /// A tag that indicates the type of a YAML node.
-class _Tag {
+class Tag {
   // TODO(nweiz): it would better match the semantics of the spec if there were
   // a singleton instance of this class for each tag.
 
@@ -25,18 +30,18 @@ class _Tag {
   /// The kind of the tag: SCALAR_KIND, SEQUENCE_KIND, or MAPPING_KIND.
   final int kind;
 
-  _Tag(this.name, this.kind);
+  Tag(this.name, this.kind);
 
-  _Tag.scalar(String name) : this(name, SCALAR_KIND);
-  _Tag.sequence(String name) : this(name, SEQUENCE_KIND);
-  _Tag.mapping(String name) : this(name, MAPPING_KIND);
+  Tag.scalar(String name) : this(name, SCALAR_KIND);
+  Tag.sequence(String name) : this(name, SEQUENCE_KIND);
+  Tag.mapping(String name) : this(name, MAPPING_KIND);
 
   /// Returns the standard YAML tag URI for [type].
   static String yaml(String type) => "tag:yaml.org,2002:$type";
 
   /// Two tags are equal if their URIs are equal.
   operator ==(other) {
-    if (other is! _Tag) return false;
+    if (other is! Tag) return false;
     return name == other.name;
   }
 
@@ -52,37 +57,37 @@ class _Tag {
 }
 
 /// The abstract class for YAML nodes.
-abstract class _Node {
+abstract class Node {
   /// Every YAML node has a tag that describes its type.
-  _Tag tag;
+  Tag tag;
 
   /// Any YAML node can have an anchor associated with it.
   String anchor;
 
-  _Node(this.tag, [this.anchor]);
+  Node(this.tag, [this.anchor]);
 
   bool operator ==(other) {
-    if (other is! _Node) return false;
+    if (other is! Node) return false;
     return tag == other.tag;
   }
 
-  int get hashCode => _hashCode([tag, anchor]);
+  int get hashCode => hashCodeFor([tag, anchor]);
 
-  visit(_Visitor v);
+  visit(Visitor v);
 }
 
 /// A sequence node represents an ordered list of nodes.
-class _SequenceNode extends _Node {
+class SequenceNode extends Node {
   /// The nodes in the sequence.
-  List<_Node> content;
+  List<Node> content;
 
-  _SequenceNode(String tagName, this.content)
-    : super(new _Tag.sequence(tagName));
+  SequenceNode(String tagName, this.content)
+    : super(new Tag.sequence(tagName));
 
   /// Two sequences are equal if their tags and contents are equal.
   bool operator ==(other) {
     // Should be super != other; bug 2554
-    if (!(super == other) || other is! _SequenceNode) return false;
+    if (!(super == other) || other is! SequenceNode) return false;
     if (content.length != other.content.length) return false;
     for (var i = 0; i < content.length; i++) {
       if (content[i] != other.content[i]) return false;
@@ -92,20 +97,20 @@ class _SequenceNode extends _Node {
 
   String toString() => '$tag [${content.map((e) => '$e').join(', ')}]';
 
-  int get hashCode => super.hashCode ^ _hashCode(content);
+  int get hashCode => super.hashCode ^ hashCodeFor(content);
 
-  visit(_Visitor v) => v.visitSequence(this);
+  visit(Visitor v) => v.visitSequence(this);
 }
 
 /// An alias node is a reference to an anchor.
-class _AliasNode extends _Node {
-  _AliasNode(String anchor) : super(new _Tag.scalar(_Tag.yaml("str")), anchor);
+class AliasNode extends Node {
+  AliasNode(String anchor) : super(new Tag.scalar(Tag.yaml("str")), anchor);
 
-  visit(_Visitor v) => v.visitAlias(this);
+  visit(Visitor v) => v.visitAlias(this);
 }
 
 /// A scalar node represents all YAML nodes that have a single value.
-class _ScalarNode extends _Node {
+class ScalarNode extends Node {
   /// The string value of the scalar node, if it was created by the parser.
   final String _content;
 
@@ -118,14 +123,14 @@ class _ScalarNode extends _Node {
   /// be specified for a newly-parsed scalar that hasn't yet been composed.
   /// Value should be specified for a composed scalar, although `null` is a
   /// valid value.
-  _ScalarNode(String tagName, {String content, this.value})
+  ScalarNode(String tagName, {String content, this.value})
    : _content = content,
-     super(new _Tag.scalar(tagName));
+     super(new Tag.scalar(tagName));
 
   /// Two scalars are equal if their string representations are equal.
   bool operator ==(other) {
     // Should be super != other; bug 2554
-    if (!(super == other) || other is! _ScalarNode) return false;
+    if (!(super == other) || other is! ScalarNode) return false;
     return content == other.content;
   }
 
@@ -151,21 +156,21 @@ class _ScalarNode extends _Node {
 
       var escapedValue = value.codeUnits.map((c) {
         switch (c) {
-        case _Parser.TAB: return "\\t";
-        case _Parser.LF: return "\\n";
-        case _Parser.CR: return "\\r";
-        case _Parser.DOUBLE_QUOTE: return '\\"';
-        case _Parser.NULL: return "\\0";
-        case _Parser.BELL: return "\\a";
-        case _Parser.BACKSPACE: return "\\b";
-        case _Parser.VERTICAL_TAB: return "\\v";
-        case _Parser.FORM_FEED: return "\\f";
-        case _Parser.ESCAPE: return "\\e";
-        case _Parser.BACKSLASH: return "\\\\";
-        case _Parser.NEL: return "\\N";
-        case _Parser.NBSP: return "\\_";
-        case _Parser.LINE_SEPARATOR: return "\\L";
-        case _Parser.PARAGRAPH_SEPARATOR: return "\\P";
+        case Parser.TAB: return "\\t";
+        case Parser.LF: return "\\n";
+        case Parser.CR: return "\\r";
+        case Parser.DOUBLE_QUOTE: return '\\"';
+        case Parser.NULL: return "\\0";
+        case Parser.BELL: return "\\a";
+        case Parser.BACKSPACE: return "\\b";
+        case Parser.VERTICAL_TAB: return "\\v";
+        case Parser.FORM_FEED: return "\\f";
+        case Parser.ESCAPE: return "\\e";
+        case Parser.BACKSLASH: return "\\\\";
+        case Parser.NEL: return "\\N";
+        case Parser.NBSP: return "\\_";
+        case Parser.LINE_SEPARATOR: return "\\L";
+        case Parser.PARAGRAPH_SEPARATOR: return "\\P";
         default:
           if (c < 0x20 || (c >= 0x7f && c < 0x100)) {
             return "\\x${zeroPad(c.toRadixString(16).toUpperCase(), 2)}";
@@ -196,21 +201,21 @@ class _ScalarNode extends _Node {
 
   int get hashCode => super.hashCode ^ content.hashCode;
 
-  visit(_Visitor v) => v.visitScalar(this);
+  visit(Visitor v) => v.visitScalar(this);
 }
 
 /// A mapping node represents an unordered map of nodes to nodes.
-class _MappingNode extends _Node {
+class MappingNode extends Node {
   /// The node map.
-  Map<_Node, _Node> content;
+  Map<Node, Node> content;
 
-  _MappingNode(String tagName, this.content)
-    : super(new _Tag.mapping(tagName));
+  MappingNode(String tagName, this.content)
+    : super(new Tag.mapping(tagName));
 
   /// Two mappings are equal if their tags and contents are equal.
   bool operator ==(other) {
     // Should be super != other; bug 2554
-    if (!(super == other) || other is! _MappingNode) return false;
+    if (!(super == other) || other is! MappingNode) return false;
     if (content.length != other.content.length) return false;
     for (var key in content.keys) {
       if (!other.content.containsKey(key)) return false;
@@ -226,7 +231,7 @@ class _MappingNode extends _Node {
     return '$tag {$strContent}';
   }
 
-  int get hashCode => super.hashCode ^ _hashCode(content);
+  int get hashCode => super.hashCode ^ hashCodeFor(content);
 
-  visit(_Visitor v) => v.visitMapping(this);
+  visit(Visitor v) => v.visitMapping(this);
 }

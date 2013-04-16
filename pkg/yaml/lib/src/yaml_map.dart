@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of yaml;
+library yaml_map;
+
+import 'deep_equals.dart';
+import 'utils.dart';
 
 /// This class wraps behaves almost identically to the normal Dart Map
 /// implementation, with the following differences:
@@ -12,7 +15,7 @@ part of yaml;
 ///     have the same contents.
 ///  *  It has a compatible [hashCode] method.
 class YamlMap implements Map {
-  Map _map;
+  final Map _map;
 
   YamlMap() : _map = new Map();
 
@@ -35,7 +38,7 @@ class YamlMap implements Map {
   bool get isEmpty => _map.isEmpty;
   String toString() => _map.toString();
 
-  int get hashCode => _hashCode(_map);
+  int get hashCode => hashCodeFor(_map);
 
   bool operator ==(other) {
     if (other is! YamlMap) return false;
@@ -61,11 +64,11 @@ class YamlMap implements Map {
 /// A class for wrapping normally-unhashable objects that are being used as keys
 /// in a YamlMap.
 class _WrappedHashKey {
-  var value;
+  final value;
 
   _WrappedHashKey(this.value);
 
-  int get hashCode => _hashCode(value);
+  int get hashCode => hashCodeFor(value);
 
   String toString() => value.toString();
 
@@ -73,38 +76,5 @@ class _WrappedHashKey {
   bool operator ==(other) {
     if (other is! _WrappedHashKey) return false;
     return deepEquals(this.value, other.value);
-  }
-}
-
-/// Returns the hash code for [obj]. This includes null, true, false, maps, and
-/// lists. Also handles self-referential structures.
-int _hashCode(obj, [List parents]) {
-  if (parents == null) {
-    parents = [];
-  } else if (parents.any((p) => identical(p, obj))) {
-    return -1;
-  }
-
-  parents.add(obj);
-  try {
-    if (obj == null) return 0;
-    if (obj == true) return 1;
-    if (obj == false) return 2;
-    if (obj is Map) {
-      return _hashCode(obj.keys, parents) ^
-        _hashCode(obj.values, parents);
-    }
-    if (obj is Iterable) {
-      // This is probably a really bad hash function, but presumably we'll get
-      // this in the standard library before it actually matters.
-      int hash = 0;
-      for (var e in obj) {
-        hash ^= _hashCode(e, parents);
-      }
-      return hash;
-    }
-    return obj.hashCode;
-  } finally {
-    parents.removeLast();
   }
 }

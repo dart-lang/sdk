@@ -24,17 +24,13 @@
 ///     }
 library yaml;
 
-import 'dart:math' as Math;
-import 'dart:collection' show Queue;
+import 'src/composer.dart';
+import 'src/constructor.dart';
+import 'src/parser.dart';
+import 'src/yaml_exception.dart';
 
-import 'deep_equals.dart';
-
-part 'yaml_map.dart';
-part 'model.dart';
-part 'parser.dart';
-part 'visitor.dart';
-part 'composer.dart';
-part 'constructor.dart';
+export 'src/yaml_exception.dart';
+export 'src/yaml_map.dart';
 
 /// Loads a single document from a YAML string. If the string contains more than
 /// one document, this throws an error.
@@ -42,8 +38,8 @@ part 'constructor.dart';
 /// The return value is mostly normal Dart objects. However, since YAML mappings
 /// support some key types that the default Dart map implementation doesn't
 /// (null, NaN, booleans, lists, and maps), all maps in the returned document
-/// are YamlMaps. These have a few small behavioral differences from the default
-/// Map implementation; for details, see the YamlMap class.
+/// are [YamlMap]s. These have a few small behavioral differences from the
+/// default Map implementation; for details, see the [YamlMap] class.
 loadYaml(String yaml) {
   var stream = loadYamlStream(yaml);
   if (stream.length != 1) {
@@ -57,19 +53,10 @@ loadYaml(String yaml) {
 /// The return value is mostly normal Dart objects. However, since YAML mappings
 /// support some key types that the default Dart map implementation doesn't
 /// (null, NaN, booleans, lists, and maps), all maps in the returned document
-/// are YamlMaps. These have a few small behavioral differences from the default
-/// Map implementation; for details, see the YamlMap class.
+/// are [YamlMap]s. These have a few small behavioral differences from the
+/// default Map implementation; for details, see the [YamlMap] class.
 List loadYamlStream(String yaml) {
-  return new _Parser(yaml).l_yamlStream()
-      .map((doc) => new _Constructor(new _Composer(doc).compose()).construct())
+  return new Parser(yaml).l_yamlStream()
+      .map((doc) => new Constructor(new Composer(doc).compose()).construct())
       .toList();
-}
-
-/// An error thrown by the YAML processor.
-class YamlException implements Exception {
-  String msg;
-
-  YamlException(this.msg);
-
-  String toString() => msg;
 }
