@@ -135,8 +135,15 @@ static void DebuggerEventHandler(Debugger::DebuggerEvent* event) {
     }
     SourceBreakpoint* bpt = event->breakpoint;
     ASSERT(bpt != NULL);
-    Dart_Handle url = Api::NewHandle(isolate, bpt->SourceUrl());
-    (*bp_resolved_handler)(isolate_id, bpt->id(), url, bpt->LineNumber());
+    Dart_CodeLocation location;
+    Library& library = Library::Handle(isolate);
+    Script& script = Script::Handle(isolate);
+    intptr_t token_pos;
+    bpt->GetCodeLocation(&library, &script, &token_pos);
+    location.script_url = Api::NewHandle(isolate, script.url());
+    location.library_id = library.index();
+    location.token_pos = token_pos;
+    (*bp_resolved_handler)(isolate_id, bpt->id(), location);
   } else if (event->type == Debugger::kExceptionThrown) {
     if (exc_thrown_handler == NULL) {
       return;

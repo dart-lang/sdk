@@ -30,11 +30,6 @@ typedef void Dart_BreakpointHandler(Dart_IsolateId isolate_id,
                                     Dart_Breakpoint breakpoint,
                                     Dart_StackTrace stack_trace);
 
-typedef void Dart_BreakpointResolvedHandler(Dart_IsolateId isolate_id,
-                                            intptr_t bp_id,
-                                            Dart_Handle url,
-                                            intptr_t line_number);
-
 typedef void Dart_ExceptionThrownHandler(Dart_IsolateId isolate_id,
                                          Dart_Handle exception_object,
                                          Dart_StackTrace stack_trace);
@@ -61,6 +56,10 @@ typedef void Dart_IsolateEventHandler(Dart_IsolateId isolate_id,
 
 typedef void Dart_PausedEventHandler(Dart_IsolateId isolate_id,
                                      const Dart_CodeLocation& location);
+
+typedef void Dart_BreakpointResolvedHandler(Dart_IsolateId isolate_id,
+                                            intptr_t bp_id,
+                                            const Dart_CodeLocation& location);
 
 
 /**

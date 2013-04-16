@@ -34,6 +34,8 @@ class SourceBreakpoint {
   RawString* SourceUrl();
   intptr_t LineNumber();
 
+  void GetCodeLocation(Library* lib, Script* script, intptr_t* token_pos);
+
   void Enable();
   void Disable();
   bool IsEnabled() const { return is_enabled_; }

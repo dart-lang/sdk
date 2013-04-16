@@ -80,6 +80,18 @@ RawScript* SourceBreakpoint::SourceCode() {
 }
 
 
+void SourceBreakpoint::GetCodeLocation(
+    Library* lib,
+    Script* script,
+    intptr_t* pos) {
+  const Function& func = Function::Handle(function_);
+  const Class& cls = Class::Handle(func.origin());
+  *lib = cls.library();
+  *script = func.script();
+  *pos = token_pos();
+}
+
+
 RawString* SourceBreakpoint::SourceUrl() {
   const Script& script = Script::Handle(SourceCode());
   return script.url();

@@ -236,8 +236,7 @@ class DbgMsgQueueList {
   // resolution.
   static void BptResolvedHandler(Dart_IsolateId isolate_id,
                                  intptr_t bp_id,
-                                 Dart_Handle url,
-                                 intptr_t line_number);
+                                 const Dart_CodeLocation& location);
   static void PausedEventHandler(Dart_IsolateId isolate_id,
                                  const Dart_CodeLocation& loc);
   static void ExceptionThrownHandler(Dart_IsolateId isolate_id,

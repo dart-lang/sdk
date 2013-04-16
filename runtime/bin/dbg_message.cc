@@ -1157,14 +1157,26 @@ void DbgMsgQueueList::RemoveIsolateMsgQueue(Dart_IsolateId isolate_id) {
 
 void DbgMsgQueueList::BptResolvedHandler(Dart_IsolateId isolate_id,
                                          intptr_t bp_id,
-                                         Dart_Handle url,
-                                         intptr_t line_number) {
+                                         const Dart_CodeLocation& location) {
   Dart_EnterScope();
   dart::TextBuffer msg(128);
   msg.Printf("{ \"event\": \"breakpointResolved\", \"params\": {");
-  msg.Printf("\"breakpointId\": %"Pd", \"url\":", bp_id);
-  FormatEncodedString(&msg, url);
-  msg.Printf(",\"line\": %"Pd" }}", line_number);
+  msg.Printf("\"breakpointId\": %"Pd"", bp_id);
+
+  // TODO(hausner): remove url and line elements.
+  msg.Printf(", \"url\":");
+  FormatEncodedString(&msg, location.script_url);
+  int line_number = GetIntValue(Dart_GetBreakpointLine(bp_id));
+  msg.Printf(",\"line\":%d", line_number);
+
+  msg.Printf(", \"isolateId\":%"Pd64"", isolate_id);
+  ASSERT(!Dart_IsNull(location.script_url));
+  ASSERT(Dart_IsString(location.script_url));
+  msg.Printf(", \"location\":{\"url\":");
+  FormatEncodedString(&msg, location.script_url);
+  msg.Printf(",\"libraryId\":%d", location.library_id);
+  msg.Printf(",\"tokenOffset\":%d}}}", location.token_pos);
+
   DbgMsgQueue* msg_queue = GetIsolateMsgQueue(isolate_id);
   ASSERT(msg_queue != NULL);
   msg_queue->QueueOutputMsg(&msg);
