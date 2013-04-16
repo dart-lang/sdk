@@ -26,13 +26,13 @@ import 'greedy_solver.dart';
 /// packages will be used. This is for forcing an update to one or more
 /// packages.
 ///
-/// If [allowBacktracking] is `false` the non-backtracking version solver will
-/// be used. Otherwise, the backtracking one will be.
+/// If [allowBacktracking] is `true` the backtracking version solver will
+/// be used. Otherwise, the non-backtracking one will be.
 Future<SolveResult> resolveVersions(SourceRegistry sources, Package root,
     {LockFile lockFile, bool allowBacktracking, List<PackageRef> useLatest}) {
   log.message('Resolving dependencies...');
 
-  if (allowBacktracking == null) allowBacktracking = true;
+  if (allowBacktracking == null) allowBacktracking = false;
   if (lockFile == null) lockFile = new LockFile.empty();
   if (useLatest == null) useLatest = [];
 
