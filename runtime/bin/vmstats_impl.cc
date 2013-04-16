@@ -27,25 +27,13 @@ dart::Monitor* VmStats::instance_monitor_;
 dart::Mutex* VmStatusService::mutex_;
 
 
-void VmStats::Start(int port, const char* root_dir, bool verbose) {
+void VmStats::Start(int port, const char* root_dir) {
   if (instance_ != NULL) {
     FATAL("VmStats already started.");
   }
-  instance_ = new VmStats(verbose);
+  instance_ = new VmStats();
   instance_monitor_ = new dart::Monitor();
-  Initialize();
   VmStatusService::InitOnce();
-
-  if (port >= 0) {
-    StartServer(port, root_dir);
-  }
-}
-
-
-void VmStats::StartServer(int port, const char* root_dir) {
-  ASSERT(port >= 0);
-  ASSERT(instance_ != NULL);
-  ASSERT(instance_monitor_ != NULL);
   Socket::Initialize();
 
   if (root_dir != NULL) {
@@ -80,6 +68,7 @@ void VmStats::StartServer(int port, const char* root_dir) {
   }
 }
 
+
 void VmStats::Stop() {
   ASSERT(instance_ != NULL);
   MonitorLocker ml(instance_monitor_);
@@ -98,14 +87,18 @@ void VmStats::Shutdown() {
 
 void VmStats::AddIsolate(IsolateData* isolate_data,
                          Dart_Isolate isolate) {
-  MonitorLocker ml(instance_monitor_);
-  instance_->isolate_table_[isolate_data] = isolate;
+  if (instance_ != NULL) {
+    MonitorLocker ml(instance_monitor_);
+    instance_->isolate_table_[isolate_data] = isolate;
+  }
 }
 
 
 void VmStats::RemoveIsolate(IsolateData* isolate_data) {
-  MonitorLocker ml(instance_monitor_);
-  instance_->isolate_table_.erase(isolate_data);
+  if (instance_ != NULL) {
+    MonitorLocker ml(instance_monitor_);
+    instance_->isolate_table_.erase(isolate_data);
+  }
 }
 
 
@@ -241,9 +234,7 @@ void VmStats::WebServer(uword bind_address) {
     }
     char* url = strdup(&buffer[4]);
 
-    if (instance_->verbose_) {
-      Log::Print("vmstats: %s requested\n", url);
-    }
+    Log::Print("vmstats: %s requested\n", url);
     char* content = NULL;
 
     // Check for VmStats-specific URLs.
@@ -323,104 +314,16 @@ char* VmStats::IsolatesStatus() {
              reinterpret_cast<intptr_t>(isolate));
     char* status = VmStatusService::GetVmStatus(request);
     if (status != NULL) {
+      text.AddString(status);
       if (!first) {
         text.AddString(",\n");
       }
-      text.AddString(status);
       first = false;
       free(status);
     }
   }
   text.AddString("\n]\n}\n");
   return strdup(text.buf());
-}
-
-
-// Advance the scanner to the value token of a specified name-value pair.
-void SeekNamedValue(const char* name, dart::JSONScanner* scanner) {
-  while (!scanner->EOM()) {
-    scanner->Scan();
-    if (scanner->IsStringLiteral(name)) {
-      scanner->Scan();
-      ASSERT(scanner->CurrentToken() == dart::JSONScanner::TokenColon);
-      scanner->Scan();
-     return;
-    }
-  }
-}
-
-
-// Windows doesn't have strndup(), so this is a simple, private version.
-static char* StrNDup(const char* s, uword len) {
-  if (strlen(s) < len) {
-    len = strlen(s);
-  }
-  char* result = reinterpret_cast<char*>(malloc(len + 1));
-  memmove(result, s, len);
-  result[len + 1] = '\0';
-  return result;
-}
-
-
-void VmStats::DumpStackThread(uword unused) {
-  Log::Print("Isolate dump:\n");
-  IsolateTable::iterator itr;
-  MonitorLocker ml(instance_monitor_);
-  for (itr = instance_->isolate_table_.begin();
-       itr != instance_->isolate_table_.end(); ++itr) {
-    Dart_Isolate isolate = itr->second;
-
-    // Print isolate name and details.
-    static char buffer[512];
-    snprintf(buffer, sizeof(buffer),
-             "/isolate/0x%"Px, reinterpret_cast<intptr_t>(isolate));
-    char* isolate_details = VmStatusService::GetVmStatus(buffer);
-    if (isolate_details != NULL) {
-      dart::JSONScanner scanner(isolate_details);
-      SeekNamedValue("name", &scanner);
-      char* name = StrNDup(scanner.TokenChars(), scanner.TokenLen());
-      SeekNamedValue("port", &scanner);
-      char* port = StrNDup(scanner.TokenChars(), scanner.TokenLen());
-      Log::Print("\"%s\" port=%s\n", name, port);
-      free(isolate_details);
-      free(port);
-      free(name);
-    }
-
-    // Print stack trace.
-    snprintf(buffer, sizeof(buffer),
-             "/isolate/0x%"Px"/stacktrace",
-             reinterpret_cast<intptr_t>(isolate));
-    char* trace = VmStatusService::GetVmStatus(buffer);
-    if (trace != NULL) {
-      dart::JSONScanner scanner(trace);
-      while (true) {
-        SeekNamedValue("url", &scanner);
-        if (scanner.CurrentToken() == dart::JSONScanner::TokenEOM) {
-          break;
-        }
-        char* url = StrNDup(scanner.TokenChars(), scanner.TokenLen());
-        SeekNamedValue("line", &scanner);
-        char* line = StrNDup(scanner.TokenChars(), scanner.TokenLen());
-        SeekNamedValue("function", &scanner);
-        char* function = StrNDup(scanner.TokenChars(), scanner.TokenLen());
-        Log::Print("  at %s(%s:%s)\n", function, url, line);
-        free(url);
-        free(line);
-        free(function);
-      }
-      free(trace);
-    }
-  }
-}
-
-
-void VmStats::DumpStack() {
-  int err = dart::Thread::Start(DumpStackThread, 0);
-  if (err != 0) {
-    Log::PrintErr("Failed starting VmStats stackdump thread: %d\n", err);
-    Shutdown();
-  }
 }
 
 
@@ -443,8 +346,6 @@ void VmStatusService::InitOnce() {
 
 
 int VmStatusService::RegisterPlugin(Dart_VmStatusCallback callback) {
-  ASSERT(VmStatusService::instance_ != NULL);
-  ASSERT(VmStatusService::mutex_ != NULL);
   MutexLocker ml(mutex_);
   if (callback == NULL) {
     return -1;
@@ -461,7 +362,6 @@ int VmStatusService::RegisterPlugin(Dart_VmStatusCallback callback) {
 
 
 char* VmStatusService::GetVmStatus(const char* request) {
-  ASSERT(VmStatusService::instance_ != NULL);
   VmStatusPlugin* plugin = instance_->registered_plugin_list_;
   while (plugin != NULL) {
     char* result = (plugin->callback())(request);
