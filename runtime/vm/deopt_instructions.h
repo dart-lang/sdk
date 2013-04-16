@@ -179,6 +179,7 @@ class DeoptInfoBuilder : public ValueObject {
   class TrieNode;
 
   intptr_t FindOrAddObjectInTable(const Object& obj) const;
+  intptr_t CalculateStackIndex(const Location& from_loc) const;
 
   GrowableArray<DeoptInstr*> instructions_;
   const GrowableObjectArray& object_table_;

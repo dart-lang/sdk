@@ -759,6 +759,13 @@ intptr_t DeoptInfoBuilder::FindOrAddObjectInTable(const Object& obj) const {
 }
 
 
+intptr_t DeoptInfoBuilder::CalculateStackIndex(const Location& from_loc) const {
+  return from_loc.stack_index() < 0 ?
+            from_loc.stack_index() + num_args_ :
+            from_loc.stack_index() + num_args_ - kFirstLocalSlotIndex + 1;
+}
+
+
 void DeoptInfoBuilder::AddReturnAddress(const Function& function,
                                         intptr_t deopt_id,
                                         intptr_t to_index) {
@@ -807,19 +814,23 @@ void DeoptInfoBuilder::AddCopy(Value* value,
     }
   } else if (from_loc.IsStackSlot()) {
     ASSERT(value->definition()->representation() == kTagged);
-    intptr_t from_index = (from_loc.stack_index() < 0) ?
-        from_loc.stack_index() + num_args_ :
-        from_loc.stack_index() + num_args_ - kFirstLocalSlotIndex + 1;
+    intptr_t from_index = CalculateStackIndex(from_loc);
     deopt_instr = new DeoptStackSlotInstr(from_index);
   } else if (from_loc.IsDoubleStackSlot()) {
-    intptr_t from_index = (from_loc.stack_index() < 0) ?
-        from_loc.stack_index() + num_args_ :
-        from_loc.stack_index() + num_args_ - kFirstLocalSlotIndex + 1;
+    intptr_t from_index = CalculateStackIndex(from_loc);
     if (value->definition()->representation() == kUnboxedDouble) {
       deopt_instr = new DeoptDoubleStackSlotInstr(from_index);
     } else {
       ASSERT(value->definition()->representation() == kUnboxedMint);
       deopt_instr = new DeoptInt64StackSlotInstr(from_index);
+    }
+  } else if (from_loc.IsQuadStackSlot()) {
+    intptr_t from_index = CalculateStackIndex(from_loc);
+    if (value->definition()->representation() == kUnboxedFloat32x4) {
+      deopt_instr = new DeoptFloat32x4StackSlotInstr(from_index);
+    } else {
+      ASSERT(value->definition()->representation() == kUnboxedUint32x4);
+      deopt_instr = new DeoptUint32x4StackSlotInstr(from_index);
     }
   } else {
     UNREACHABLE();

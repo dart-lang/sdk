@@ -504,6 +504,7 @@ class EmbeddedArray<T, 0> {
   M(InvokeMathCFunction)                                                       \
   M(GuardField)                                                                \
   M(IfThenElse)                                                                \
+  M(BinaryFloat32x4Op)                                                         \
 
 #define FORWARD_DECLARATION(type) class type##Instr;
 FOR_EACH_INSTRUCTION(FORWARD_DECLARATION)
@@ -753,6 +754,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class UnboxDoubleInstr;
   friend class UnboxFloat32x4Instr;
   friend class BinaryDoubleOpInstr;
+  friend class BinaryFloat32x4OpInstr;
   friend class BinaryMintOpInstr;
   friend class BinarySmiOpInstr;
   friend class UnarySmiOpInstr;
@@ -4080,6 +4082,60 @@ class BinaryDoubleOpInstr : public TemplateDefinition<2> {
   const Token::Kind op_kind_;
 
   DISALLOW_COPY_AND_ASSIGN(BinaryDoubleOpInstr);
+};
+
+
+class BinaryFloat32x4OpInstr : public TemplateDefinition<2> {
+ public:
+  BinaryFloat32x4OpInstr(Token::Kind op_kind,
+                         Value* left,
+                         Value* right,
+                         InstanceCallInstr* instance_call)
+      : op_kind_(op_kind) {
+    SetInputAt(0, left);
+    SetInputAt(1, right);
+    deopt_id_ = instance_call->deopt_id();
+  }
+
+  Value* left() const { return inputs_[0]; }
+  Value* right() const { return inputs_[1]; }
+
+  Token::Kind op_kind() const { return op_kind_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
+
+  virtual bool AffectedBySideEffect() const { return false; }
+
+  virtual bool AttributesEqual(Instruction* other) const {
+    return op_kind() == other->AsBinaryFloat32x4Op()->op_kind();
+  }
+
+  virtual Representation representation() const {
+    return kUnboxedFloat32x4;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT((idx == 0) || (idx == 1));
+    return kUnboxedFloat32x4;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return deopt_id_;
+  }
+
+  DECLARE_INSTRUCTION(BinaryFloat32x4Op)
+  virtual CompileType ComputeType() const;
+
+ private:
+  const Token::Kind op_kind_;
+
+  DISALLOW_COPY_AND_ASSIGN(BinaryFloat32x4OpInstr);
 };
 
 

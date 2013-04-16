@@ -595,6 +595,14 @@ void BinaryDoubleOpInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
+void BinaryFloat32x4OpInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s, ", Token::Str(op_kind()));
+  left()->PrintTo(f);
+  f->Print(", ");
+  right()->PrintTo(f);
+}
+
+
 void BinaryMintOpInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s, ", Token::Str(op_kind()));
   left()->PrintTo(f);
