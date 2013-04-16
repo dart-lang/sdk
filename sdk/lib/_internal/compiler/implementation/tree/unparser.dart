@@ -48,7 +48,7 @@ class Unparser implements Visitor {
     visit(node.expression);
   }
 
-  unparseClassWithBody(ClassNode node, Iterable<Node> members) {
+  unparseClassWithBody(ClassNode node, members) {
     addToken(node.beginToken);
     if (node.beginToken.stringValue == 'abstract') {
       addToken(node.beginToken.next);

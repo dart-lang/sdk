@@ -1049,7 +1049,7 @@ class FunctionSignatureX implements FunctionSignature {
 
   List<Element> get orderedOptionalParameters {
     if (_orderedOptionalParameters != null) return _orderedOptionalParameters;
-    List<Element> list = new List<Element>.from(optionalParameters);
+    List<Element> list = optionalParameters.toList();
     if (optionalParametersAreNamed) {
       list.sort((Element a, Element b) {
         return a.name.slowToString().compareTo(b.name.slowToString());
