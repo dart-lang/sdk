@@ -17,62 +17,30 @@ import '../../pub/source_registry.dart';
 import '../../pub/system_cache.dart';
 import '../../pub/utils.dart';
 import '../../pub/version.dart';
-import '../../pub/version_solver.dart';
+import '../../pub/solver/version_solver.dart';
 import 'test_pub.dart';
-
-Matcher noVersion(List<String> packages) {
-  return predicate((x) {
-    if (x is! NoVersionException) return false;
-
-    // Make sure the error string mentions the conflicting dependers.
-    var message = x.toString();
-    return packages.every((package) => message.contains(package));
-  }, "is a NoVersionException");
-}
-
-Matcher disjointConstraint(List<String> packages) {
-  return predicate((x) {
-    if (x is! DisjointConstraintException) return false;
-
-    // Make sure the error string mentions the conflicting dependers.
-    var message = x.toString();
-    return packages.every((package) => message.contains(package));
-  }, "is a DisjointConstraintException");
-}
-
-Matcher descriptionMismatch(String package1, String package2) {
-  return predicate((x) {
-    if (x is! DescriptionMismatchException) return false;
-
-    // Make sure the error string mentions the conflicting dependers.
-    if (!x.toString().contains(package1)) return false;
-    if (!x.toString().contains(package2)) return false;
-
-    return true;
-  }, "is a DescriptionMismatchException");
-}
-
-final couldNotSolve = predicate((x) => x is CouldNotSolveException,
-    "is a CouldNotSolveException");
-
-Matcher sourceMismatch(String package1, String package2) {
-  return predicate((x) {
-    if (x is! SourceMismatchException) return false;
-
-    // Make sure the error string mentions the conflicting dependers.
-    if (!x.toString().contains(package1)) return false;
-    if (!x.toString().contains(package2)) return false;
-
-    return true;
-  }, "is a SourceMismatchException");
-}
 
 MockSource source1;
 MockSource source2;
 
+bool allowBacktracking;
+
 main() {
   initConfig();
 
+  for (allowBacktracking in [false, true]) {
+    group(allowBacktracking ? 'BackTrackingSolver' : 'GreedySolver', () {
+      group('basic graph', basicGraph);
+      group('with lockfile', withLockFile);
+      group('root dependency', rootDependency);
+      group('dev dependency', devDependency);
+      group('unsolvable', unsolvable);
+      group('backtracking', backtracking);
+    });
+  }
+}
+
+void basicGraph() {
   testResolve('no dependencies', {
     'myapp 0.0.0': {}
   }, result: {
@@ -148,8 +116,26 @@ main() {
     'foo': '1.0.1',
     'bar': '1.0.0',
     'bang': '1.0.0'
-  });
+  }, maxTries: 2, hasGreedySolution: true);
 
+  testResolve('circular dependency', {
+    'myapp 1.0.0': {
+      'foo': '1.0.0'
+    },
+    'foo 1.0.0': {
+      'bar': '1.0.0'
+    },
+    'bar 1.0.0': {
+      'foo': '1.0.0'
+    }
+  }, result: {
+    'myapp from root': '1.0.0',
+    'foo': '1.0.0',
+    'bar': '1.0.0'
+  });
+}
+
+withLockFile() {
   testResolve('with compatible locked dependency', {
     'myapp 0.0.0': {
       'foo': 'any'
@@ -205,23 +191,38 @@ main() {
     'bar': '1.0.2'
   });
 
-  testResolve('circular dependency', {
-    'myapp 1.0.0': {
-      'foo': '1.0.0'
+  testResolve('unlocks dependencies if necessary to ensure that a new '
+      'dependency is satisfied', {
+    'myapp 0.0.0': {
+      'foo': 'any',
+      'newdep': 'any'
     },
-    'foo 1.0.0': {
-      'bar': '1.0.0'
-    },
-    'bar 1.0.0': {
-      'foo': '1.0.0'
-    }
-  }, result: {
-    'myapp from root': '1.0.0',
+    'foo 1.0.0': { 'bar': '<2.0.0' },
+    'bar 1.0.0': { 'baz': '<2.0.0' },
+    'baz 1.0.0': { 'qux': '<2.0.0' },
+    'qux 1.0.0': {},
+    'foo 2.0.0': { 'bar': '<3.0.0' },
+    'bar 2.0.0': { 'baz': '<3.0.0' },
+    'baz 2.0.0': { 'qux': '<3.0.0' },
+    'qux 2.0.0': {},
+    'newdep 2.0.0': { 'baz': '>=1.5.0' }
+  }, lockfile: {
     'foo': '1.0.0',
-    'bar': '1.0.0'
-  });
+    'bar': '1.0.0',
+    'baz': '1.0.0',
+    'qux': '1.0.0'
+  }, result: {
+    'myapp from root': '0.0.0',
+    'foo': '2.0.0',
+    'bar': '2.0.0',
+    'baz': '2.0.0',
+    'qux': '1.0.0',
+    'newdep': '2.0.0'
+  }, maxTries: 3, hasGreedySolution: true);
+}
 
-  testResolve('dependency back onto root package', {
+rootDependency() {
+  testResolve('with root source', {
     'myapp 1.0.0': {
       'foo': '1.0.0'
     },
@@ -233,7 +234,7 @@ main() {
     'foo': '1.0.0'
   });
 
-  testResolve('dependency back onto root package with different source', {
+  testResolve('with different source', {
     'myapp 1.0.0': {
       'foo': '1.0.0'
     },
@@ -245,7 +246,7 @@ main() {
     'foo': '1.0.0'
   });
 
-  testResolve('mismatched dependencies back onto root package', {
+  testResolve('with mismatched sources', {
     'myapp 1.0.0': {
       'foo': '1.0.0',
       'bar': '1.0.0'
@@ -258,15 +259,59 @@ main() {
     }
   }, error: sourceMismatch('foo', 'bar'));
 
-  testResolve('dependency back onto root package with wrong version', {
+  testResolve('with wrong version', {
     'myapp 1.0.0': {
       'foo': '1.0.0'
     },
     'foo 1.0.0': {
       'myapp': '<1.0.0'
     }
-  }, error: disjointConstraint(['foo']));
+  }, error: couldNotSolve);
+}
 
+devDependency() {
+  testResolve("includes root package's dev dependencies", {
+    'myapp 1.0.0': {
+      '(dev) foo': '1.0.0',
+      '(dev) bar': '1.0.0'
+    },
+    'foo 1.0.0': {},
+    'bar 1.0.0': {}
+  }, result: {
+    'myapp from root': '1.0.0',
+    'foo': '1.0.0',
+    'bar': '1.0.0'
+  });
+
+  testResolve("includes dev dependency's transitive dependencies", {
+    'myapp 1.0.0': {
+      '(dev) foo': '1.0.0'
+    },
+    'foo 1.0.0': {
+      'bar': '1.0.0'
+    },
+    'bar 1.0.0': {}
+  }, result: {
+    'myapp from root': '1.0.0',
+    'foo': '1.0.0',
+    'bar': '1.0.0'
+  });
+
+  testResolve("ignores transitive dependency's dev dependencies", {
+    'myapp 1.0.0': {
+      'foo': '1.0.0'
+    },
+    'foo 1.0.0': {
+      '(dev) bar': '1.0.0'
+    },
+    'bar 1.0.0': {}
+  }, result: {
+    'myapp from root': '1.0.0',
+    'foo': '1.0.0'
+  });
+}
+
+unsolvable() {
   testResolve('no version that matches requirement', {
     'myapp 0.0.0': {
       'foo': '>=1.0.0 <2.0.0'
@@ -335,7 +380,28 @@ main() {
     'shared 1.0.0 from mock2': {}
   }, error: sourceMismatch('foo', 'bar'));
 
-  testResolve('unstable dependency graph', {
+  testResolve('no valid solution', {
+    'myapp 0.0.0': {
+      'a': 'any',
+      'b': 'any'
+    },
+    'a 1.0.0': {
+      'b': '1.0.0'
+    },
+    'a 2.0.0': {
+      'b': '2.0.0'
+    },
+    'b 1.0.0': {
+      'a': '2.0.0'
+    },
+    'b 2.0.0': {
+      'a': '1.0.0'
+    }
+  }, error: couldNotSolve, maxTries: 4);
+}
+
+backtracking() {
+  testResolve('circular dependency on older version', {
     'myapp 0.0.0': {
       'a': '>=1.0.0'
     },
@@ -346,57 +412,158 @@ main() {
     'b 1.0.0': {
       'a': '1.0.0'
     }
-  }, error: couldNotSolve);
+  }, result: {
+    'myapp from root': '0.0.0',
+    'a': '1.0.0'
+  }, maxTries: 2);
 
-  group('dev dependencies', () {
-    testResolve("includes root package's dev dependencies", {
-      'myapp 1.0.0': {
-        '(dev) foo': '1.0.0',
-        '(dev) bar': '1.0.0'
-      },
-      'foo 1.0.0': {},
-      'bar 1.0.0': {}
-    }, result: {
-      'myapp from root': '1.0.0',
-      'foo': '1.0.0',
-      'bar': '1.0.0'
-    });
+  /// The latest versions of a and b disagree on c. An older version of either
+  /// will resolve the problem. This test validates that b, which is farther
+  /// in the dependency graph from myapp is downgraded first.
+  testResolve('rolls back leaf versions first', {
+    'myapp 0.0.0': {
+      'a': 'any'
+    },
+    'a 1.0.0': {
+      'b': 'any'
+    },
+    'a 2.0.0': {
+      'b': 'any',
+      'c': '2.0.0'
+    },
+    'b 1.0.0': {},
+    'b 2.0.0': {
+      'c': '1.0.0'
+    },
+    'c 1.0.0': {},
+    'c 2.0.0': {}
+  }, result: {
+    'myapp from root': '0.0.0',
+    'a': '2.0.0',
+    'b': '1.0.0',
+    'c': '2.0.0'
+  }, maxTries: 2);
 
-    testResolve("includes dev dependency's transitive dependencies", {
-      'myapp 1.0.0': {
-        '(dev) foo': '1.0.0'
-      },
-      'foo 1.0.0': {
-        'bar': '1.0.0'
-      },
-      'bar 1.0.0': {}
-    }, result: {
-      'myapp from root': '1.0.0',
-      'foo': '1.0.0',
-      'bar': '1.0.0'
-    });
+  // Only one version of baz, so foo and bar will have to downgrade until they
+  // reach it.
+  testResolve('simple transitive', {
+    'myapp 0.0.0': {'foo': 'any'},
+    'foo 1.0.0': {'bar': '1.0.0'},
+    'foo 2.0.0': {'bar': '2.0.0'},
+    'foo 3.0.0': {'bar': '3.0.0'},
+    'bar 1.0.0': {'baz': 'any'},
+    'bar 2.0.0': {'baz': '2.0.0'},
+    'bar 3.0.0': {'baz': '3.0.0'},
+    'baz 1.0.0': {}
+  }, result: {
+    'myapp from root': '0.0.0',
+    'foo': '1.0.0',
+    'bar': '1.0.0',
+    'baz': '1.0.0'
+  }, maxTries: 3);
 
-    testResolve("ignores transitive dependency's dev dependencies", {
-      'myapp 1.0.0': {
-        'foo': '1.0.0'
-      },
-      'foo 1.0.0': {
-        '(dev) bar': '1.0.0'
-      },
-      'bar 1.0.0': {}
-    }, result: {
-      'myapp from root': '1.0.0',
-      'foo': '1.0.0'
-    });
-  });
+  // This ensures it doesn't exhaustively search all versions of b when it's
+  // a-2.0.0 whose dependency on c-2.0.0-nonexistent led to the problem. We
+  // make sure b has more versions than a so that the solver tries a first
+  // since it sorts sibling dependencies by number of versions.
+  testResolve('backjump to nearer unsatisfied package', {
+    'myapp 0.0.0': {
+      'a': 'any',
+      'b': 'any'
+    },
+    'a 1.0.0': { 'c': '1.0.0' },
+    'a 2.0.0': { 'c': '2.0.0-nonexistent' },
+    'b 1.0.0': {},
+    'b 2.0.0': {},
+    'b 3.0.0': {},
+    'c 1.0.0': {},
+  }, result: {
+    'myapp from root': '0.0.0',
+    'a': '1.0.0',
+    'b': '3.0.0',
+    'c': '1.0.0'
+  }, maxTries: 2);
+
+  // Dependencies are ordered so that packages with fewer versions are tried
+  // first. Here, there are two valid solutions (either a or b must be
+  // downgraded once). The chosen one depends on which dep is traversed first.
+  // Since b has fewer versions, it will be traversed first, which means a will
+  // come later. Since later selections are revised first, a gets downgraded.
+  testResolve('traverse into package with fewer versions first', {
+    'myapp 0.0.0': {
+      'a': 'any',
+      'b': 'any'
+    },
+    'a 1.0.0': {'c': 'any'},
+    'a 2.0.0': {'c': 'any'},
+    'a 3.0.0': {'c': 'any'},
+    'a 4.0.0': {'c': 'any'},
+    'a 5.0.0': {'c': '1.0.0'},
+    'b 1.0.0': {'c': 'any'},
+    'b 2.0.0': {'c': 'any'},
+    'b 3.0.0': {'c': 'any'},
+    'b 4.0.0': {'c': '2.0.0'},
+    'c 1.0.0': {},
+    'c 2.0.0': {},
+  }, result: {
+    'myapp from root': '0.0.0',
+    'a': '4.0.0',
+    'b': '4.0.0',
+    'c': '2.0.0'
+  }, maxTries: 2);
+
+  // This sets up a hundred versions of foo and bar, 0.0.0 through 9.9.0. Each
+  // version of foo depends on a baz with the same major version. Each version
+  // of bar depends on a baz with the same minor version. There is only one
+  // version of baz, 0.0.0, so only older versions of foo and bar will
+  // satisfy it.
+  var map = {
+    'myapp 0.0.0': {
+      'foo': 'any',
+      'bar': 'any'
+    },
+    'baz 0.0.0': {}
+  };
+
+  for (var i = 0; i < 10; i++) {
+    for (var j = 0; j < 10; j++) {
+      map['foo $i.$j.0'] = {'baz': '$i.0.0'};
+      map['bar $i.$j.0'] = {'baz': '0.$j.0'};
+    }
+  }
+
+  testResolve('complex backtrack', map, result: {
+    'myapp from root': '0.0.0',
+    'foo': '0.9.0',
+    'bar': '9.0.0',
+    'baz': '0.0.0'
+  }, maxTries: 100);
+
+  // TODO(rnystrom): More tests. In particular:
+  // - Tests that demonstrate backtracking for every case that can cause a
+  //   solution to fail (no versions, disjoint, etc.)
+  // - Tests where there are multiple valid solutions and "best" is possibly
+  //   ambiguous to nail down which order the backtracker tries solutions.
 }
 
-// TODO(rnystrom): More stuff to test:
-// - Depending on a non-existent package.
-// - Test that only a certain number requests are sent to the mock source so we
-//   can keep track of server traffic.
+testResolve(description, packages,
+            {lockfile, result, FailMatcherBuilder error, int maxTries,
+             bool hasGreedySolution}) {
+  // Close over the top-level variable since it will be mutated.
+  var allowBacktracking_ = allowBacktracking;
 
-testResolve(description, packages, {lockfile, result, Matcher error}) {
+  if (maxTries == null) maxTries = 1;
+  if (hasGreedySolution == null) hasGreedySolution = maxTries == 1;
+
+  if (!allowBacktracking_) {
+    // The greedy solver should fail any graph that does expect multiple tries
+    // and isn't explicitly annotated to have a greedy solution.
+    if (!hasGreedySolution) {
+      result = null;
+      error = couldNotSolve;
+    }
+  }
+
   test(description, () {
     var cache = new SystemCache('.');
     source1 = new MockSource('mock1');
@@ -413,14 +580,14 @@ testResolve(description, packages, {lockfile, result, Matcher error}) {
         var name = parts[0];
         var version = parts[1];
 
-        var package = source1.mockPackage(name, version, dependencies);
+        var package = mockPackage(name, version, dependencies);
         if (name == 'myapp') {
           // Don't add the root package to the server, so we can verify that Pub
           // doesn't try to look up information about the local package on the
           // remote server.
           root = package;
         } else {
-          source.addPackage(package);
+          source.addPackage(name, package);
         }
       });
     });
@@ -447,21 +614,180 @@ testResolve(description, packages, {lockfile, result, Matcher error}) {
     }
 
     // Resolve the versions.
-    var future = resolveVersions(cache.sources, root, realLockFile);
+    var future = resolveVersions(cache.sources, root,
+        allowBacktracking: allowBacktracking_, lockFile: realLockFile);
 
+    var matcher;
     if (result != null) {
-      expect(future, completion(predicate((actualResult) {
-        for (var actualId in actualResult) {
-          if (!result.containsKey(actualId.name)) return false;
-          var expectedId = result.remove(actualId.name);
-          if (actualId != expectedId) return false;
-        }
-        return result.isEmpty;
-      }, 'packages to match $result')));
+      matcher = new SolveSuccessMatcher(result, maxTries);
     } else if (error != null) {
-      expect(future, throwsA(error));
+      matcher = error(maxTries);
     }
+
+    expect(future, completion(matcher));
   });
+}
+
+typedef SolveFailMatcher FailMatcherBuilder(int maxTries);
+
+FailMatcherBuilder noVersion(List<String> packages) {
+  return (maxTries) => new SolveFailMatcher(packages, maxTries,
+      NoVersionException);
+}
+
+FailMatcherBuilder disjointConstraint(List<String> packages) {
+  return (maxTries) => new SolveFailMatcher(packages, maxTries,
+      DisjointConstraintException);
+}
+
+FailMatcherBuilder descriptionMismatch(String package1, String package2) {
+  return (maxTries) => new SolveFailMatcher([package1, package2], maxTries,
+      DescriptionMismatchException);
+}
+
+// If no solution can be found, the solver just reports the last failure that
+// happened during propagation. Since we don't specify the order that solutions
+// are tried, this just validates that *some* failure occurred, but not which.
+SolveFailMatcher couldNotSolve(maxTries) =>
+    new SolveFailMatcher([], maxTries, null);
+
+FailMatcherBuilder sourceMismatch(String package1, String package2) {
+  return (maxTries) => new SolveFailMatcher([package1, package2], maxTries,
+      SourceMismatchException);
+}
+
+class SolveSuccessMatcher implements Matcher {
+  /// The expected concrete package selections.
+  final Map<String, PackageId> _expected;
+
+  /// The maximum number of attempts that should have been tried before finding
+  /// the solution.
+  final int _maxTries;
+
+  SolveSuccessMatcher(this._expected, this._maxTries);
+
+  Description describe(Description description) {
+    return description.add(
+        'Solver to use at most $_maxTries attempts to find:\n'
+        '${_listPackages(_expected.values)}');
+  }
+
+  Description describeMismatch(SolveResult result,
+                               Description description,
+                               MatchState state, bool verbose) {
+    if (!result.succeeded) {
+      description.add('Solver failed with:\n${result.error}');
+      return;
+    }
+
+    description.add('Resolved:\n${_listPackages(result.packages)}\n');
+    description.add(state.state);
+    return description;
+  }
+
+  bool matches(SolveResult result, MatchState state) {
+    if (!result.succeeded) return false;
+
+    var expected = new Map.from(_expected);
+    var failures = new StringBuffer();
+
+    for (var id in result.packages) {
+      if (!expected.containsKey(id.name)) {
+        failures.writeln('Should not have selected $id');
+      } else {
+        var expectedId = expected.remove(id.name);
+        if (id != expectedId) {
+          failures.writeln('Expected $expectedId, not $id');
+        }
+      }
+    }
+
+    if (!expected.isEmpty) {
+      failures.writeln('Missing:\n${_listPackages(expected.values)}');
+    }
+
+    // Allow 1 here because the greedy solver will only make one attempt.
+    if (result.attemptedSolutions != 1 &&
+        result.attemptedSolutions != _maxTries) {
+      failures.writeln('Took ${result.attemptedSolutions} attempts');
+    }
+
+    if (!failures.isEmpty) {
+      state.state = failures.toString();
+      return false;
+    }
+
+    return true;
+  }
+
+  String _listPackages(Iterable<PackageId> packages) {
+    return '- ${packages.join('\n- ')}';
+  }
+}
+
+class SolveFailMatcher implements Matcher {
+  /// The strings that should appear in the resulting error message.
+  // TODO(rnystrom): This seems to always be package names. Make that explicit.
+  final Iterable<String> _expected;
+
+  /// The maximum number of attempts that should be tried before failing.
+  final int _maxTries;
+
+  /// The concrete error type that should be found, or `null` if any
+  /// [SolveFailure] is allowed.
+  final Type _expectedType;
+
+  SolveFailMatcher(this._expected, this._maxTries, this._expectedType);
+
+  Description describe(Description description) {
+    description.add('Solver should fail after at most $_maxTries attempts.');
+    if (!_expected.isEmpty) {
+      var textList = _expected.map((s) => '"$s"').join(", ");
+      description.add(' The error should contain $textList.');
+    }
+    return description;
+  }
+
+  Description describeMismatch(SolveResult result,
+                               Description description,
+                               MatchState state, bool verbose) {
+    description.add(state.state);
+    return description;
+  }
+
+  bool matches(SolveResult result, MatchState state) {
+    var failures = new StringBuffer();
+
+    if (result.succeeded) {
+      failures.writeln('Solver succeeded');
+    } else {
+      if (_expectedType != null && result.error.runtimeType != _expectedType) {
+        failures.writeln('Should have error type $_expectedType, got '
+            '${result.error.runtimeType}');
+      }
+
+      var message = result.error.toString();
+      for (var expected in _expected) {
+        if (!message.contains(expected)) {
+          failures.writeln(
+              'Expected error to contain "$expected", got:\n$message');
+        }
+      }
+
+      // Allow 1 here because the greedy solver will only make one attempt.
+      if (result.attemptedSolutions != 1 &&
+          result.attemptedSolutions != _maxTries) {
+        failures.writeln('Took ${result.attemptedSolutions} attempts');
+      }
+    }
+
+    if (!failures.isEmpty) {
+      state.state = failures.toString();
+      return false;
+    }
+
+    return true;
+  }
 }
 
 /// A source used for testing. This both creates mock package objects and acts
@@ -472,56 +798,89 @@ testResolve(description, packages, {lockfile, result, Matcher error}) {
 /// string and stripping off any trailing hyphen followed by non-hyphen
 /// characters.
 class MockSource extends Source {
-  final Map<String, Map<Version, Package>> _packages;
+  final _packages = <String, Map<Version, Package>>{};
+
+  /// Keeps track of which package version lists have been requested. Ensures
+  /// that a source is only hit once for a given package and that pub
+  /// internally caches the results.
+  final _requestedVersions = new Set<String>();
+
+  /// Keeps track of which package pubspecs have been requested. Ensures that a
+  /// source is only hit once for a given package and that pub internally
+  /// caches the results.
+  final _requestedPubspecs = new Map<String, Set<Version>>();
 
   final String name;
   bool get shouldCache => true;
 
-  MockSource(this.name)
-      : _packages = <String, Map<Version, Package>>{};
+  MockSource(this.name);
 
   Future<List<Version>> getVersions(String name, String description) {
-    return new Future.sync(() => _packages[description].keys.toList());
+    return new Future.sync(() {
+      // Make sure the solver doesn't request the same thing twice.
+      if (_requestedVersions.contains(description)) {
+        throw 'Version list for $description was already requested.';
+      }
+
+      _requestedVersions.add(description);
+
+      if (!_packages.containsKey(description)){
+        throw 'MockSource does not have a package matching "$description".';
+      }
+      return _packages[description].keys.toList();
+    });
   }
 
   Future<Pubspec> describe(PackageId id) {
-    return new Future.sync(() => _packages[id.name][id.version].pubspec);
+    return new Future.sync(() {
+      // Make sure the solver doesn't request the same thing twice.
+      if (_requestedPubspecs.containsKey(id.description) &&
+          _requestedPubspecs[id.description].contains(id.version)) {
+        throw 'Pubspec for $id was already requested.';
+      }
+
+      _requestedPubspecs.putIfAbsent(id.description, () => new Set<Version>());
+      _requestedPubspecs[id.description].add(id.version);
+
+      return _packages[id.description][id.version].pubspec;
+    });
   }
 
   Future<bool> install(PackageId id, String path) {
     throw 'no';
   }
 
-  Package mockPackage(String description, String version,
-      Map dependencyStrings) {
-    // Build the pubspec dependencies.
-    var dependencies = <PackageRef>[];
-    var devDependencies = <PackageRef>[];
+  void addPackage(String description, Package package) {
+    _packages.putIfAbsent(description, () => new Map<Version, Package>());
+    _packages[description][package.version] = package;
+  }
+}
 
-    dependencyStrings.forEach((name, constraint) {
-      parseSource(name, (isDev, name, source) {
-        var packageName = name.replaceFirst(new RegExp(r"-[^-]+$"), "");
-        var ref = new PackageRef(packageName, source,
-            new VersionConstraint.parse(constraint), name);
+Package mockPackage(String description, String version,
+                    Map dependencyStrings) {
+  // Build the pubspec dependencies.
+  var dependencies = <PackageRef>[];
+  var devDependencies = <PackageRef>[];
 
-        if (isDev) {
-          devDependencies.add(ref);
-        } else {
-          dependencies.add(ref);
-        }
-      });
+  dependencyStrings.forEach((name, constraint) {
+    parseSource(name, (isDev, name, source) {
+      var packageName = name.replaceFirst(new RegExp(r"-[^-]+$"), "");
+      var ref = new PackageRef(packageName, source,
+          new VersionConstraint.parse(constraint), name);
+
+      if (isDev) {
+        devDependencies.add(ref);
+      } else {
+        dependencies.add(ref);
+      }
     });
+  });
 
-    var pubspec = new Pubspec(
-        description, new Version.parse(version), dependencies, devDependencies,
-        new PubspecEnvironment());
-    return new Package.inMemory(pubspec);
-  }
-
-  void addPackage(Package package) {
-    _packages.putIfAbsent(package.name, () => new Map<Version, Package>());
-    _packages[package.name][package.version] = package;
-  }
+  var name = description.replaceFirst(new RegExp(r"-[^-]+$"), "");
+  var pubspec = new Pubspec(
+      name, new Version.parse(version), dependencies, devDependencies,
+      new PubspecEnvironment());
+  return new Package.inMemory(pubspec);
 }
 
 void parseSource(String description,

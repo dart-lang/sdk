@@ -33,66 +33,42 @@
 /// that happens, we find the new best version that meets the updated constraint
 /// and then the change the package to use that version. That cycles back up to
 /// the beginning again.
-library version_solver;
+library version_solver1;
 
 import 'dart:async';
 import 'dart:collection' show Queue;
-import 'dart:json' as json;
-import 'dart:math';
-import 'lock_file.dart';
-import 'log.dart' as log;
-import 'package.dart';
-import 'pubspec.dart';
-import 'source.dart';
-import 'source_registry.dart';
-import 'utils.dart';
-import 'version.dart';
+import 'dart:math' as math;
 
-/// Attempts to select the best concrete versions for all of the transitive
-/// dependencies of [root] taking into account all of the [VersionConstraint]s
-/// that those dependencies place on each other and the requirements imposed by
-/// [lockFile]. If successful, completes to a [Map] that maps package names to
-/// the selected version for that package. If it fails, the future will complete
-/// with a [NoVersionException], [DisjointConstraintException], or
-/// [CouldNotSolveException].
-Future<List<PackageId>> resolveVersions(SourceRegistry sources, Package root,
-    LockFile lockFile) {
-  log.message('Resolving dependencies...');
-  return new VersionSolver(sources, root, lockFile).solve();
-}
+import '../lock_file.dart';
+import '../log.dart' as log;
+import '../package.dart';
+import '../source.dart';
+import '../source_registry.dart';
+import '../version.dart';
+import 'version_solver.dart';
 
-class VersionSolver {
-  final SourceRegistry _sources;
-  final Package _root;
-  final LockFile lockFile;
-  final PubspecCache _pubspecs;
-  final Map<String, Dependency> _packages;
-  final Queue<WorkItem> _work;
+class GreedyVersionSolver extends VersionSolver {
+  final _packages = <String, DependencyNode>{};
+  final _work = new Queue<WorkItem>();
   int _numIterations = 0;
 
-  VersionSolver(SourceRegistry sources, this._root, this.lockFile)
-      : _sources = sources,
-        _pubspecs = new PubspecCache(sources),
-        _packages = <String, Dependency>{},
-        _work = new Queue<WorkItem>();
+  GreedyVersionSolver(SourceRegistry sources, Package root, LockFile lockFile,
+                      List<String> useLatest)
+      : super(sources, root, lockFile, useLatest);
 
-  /// Tell the version solver to use the most recent version of [package] that
-  /// exists in whatever source it's installed from. If that version violates
-  /// constraints imposed by other dependencies, an error will be raised when
-  /// solving the versions, even if an earlier compatible version exists.
-  void useLatestVersion(String package) {
+  /// The non-backtracking solver always only tries one solution.
+  int get attemptedSolutions => 1;
+
+  void forceLatestVersion(String package) {
     // TODO(nweiz): How do we want to detect and handle unknown dependencies
     // here?
     getDependency(package).useLatestVersion = true;
-    lockFile.packages.remove(package);
   }
 
-  Future<List<PackageId>> solve() {
+  Future<List<PackageId>> runSolver() {
     // Kick off the work by adding the root package at its concrete version to
     // the dependency graph.
-    var ref = new PackageRef.root(_root);
-    enqueue(new AddConstraint('(entrypoint)', ref));
-    _pubspecs.cache(ref.atVersion(_root.version), _root.pubspec);
+    enqueue(new AddConstraint('(entrypoint)', new PackageRef.root(root)));
 
     Future processNextWorkItem(_) {
       while (true) {
@@ -106,7 +82,7 @@ class VersionSolver {
         // TODO(rnystrom): These numbers here are magic and arbitrary. Tune
         // when we have a better picture of real-world package topologies.
         _numIterations++;
-        if (_numIterations > max(50, _packages.length * 5)) {
+        if (_numIterations > math.max(50, _packages.length * 5)) {
           throw new CouldNotSolveException();
         }
 
@@ -128,10 +104,10 @@ class VersionSolver {
     _work.add(work);
   }
 
-  Dependency getDependency(String package) {
+  DependencyNode getDependency(String package) {
     // There can be unused dependencies in the graph, so just create an empty
     // one if needed.
-    _packages.putIfAbsent(package, () => new Dependency(package));
+    _packages.putIfAbsent(package, () => new DependencyNode(package));
     return _packages[package];
   }
 
@@ -142,13 +118,14 @@ class VersionSolver {
 
   /// Returns the most recent version of [dependency] that satisfies all of its
   /// version constraints.
-  Future<Version> getBestVersion(Dependency dependency) {
-    return dependency.getVersions().then((versions) {
+  Future<Version> getBestVersion(DependencyNode dependency) {
+    return cache.getVersions(dependency.name,
+        dependency.source, dependency.description).then((versions) {
       var best = null;
-      for (var version in versions) {
+      for (var ref in versions) {
         if (dependency.useLatestVersion ||
-            dependency.constraint.allows(version)) {
-          if (best == null || version > best) best = version;
+            dependency.constraint.allows(ref.version)) {
+          if (best == null || ref.version > best) best = ref.version;
         }
       }
 
@@ -156,7 +133,7 @@ class VersionSolver {
       if (best == null) {
         if (tryUnlockDepender(dependency)) return null;
         throw new NoVersionException(dependency.name, dependency.constraint,
-            dependency._refs);
+            dependency.toList());
       } else if (!dependency.constraint.allows(best)) {
         if (tryUnlockDepender(dependency)) return null;
         throw new CouldNotUpdateException(
@@ -174,7 +151,7 @@ class VersionSolver {
   ///
   /// This does a breadth-first search; immediate dependers will be unlocked
   /// first, followed by transitive dependers.
-  bool tryUnlockDepender(Dependency dependency, [Set<String> seen]) {
+  bool tryUnlockDepender(DependencyNode dependency, [Set<String> seen]) {
     if (seen == null) seen = new Set();
     // Avoid an infinite loop if there are circular dependencies.
     if (seen.contains(dependency.name)) return false;
@@ -195,22 +172,26 @@ class VersionSolver {
   }
 
   List<PackageId> buildResults() {
-    return _packages.values.where((dep) => dep.isDependedOn).map((dep) {
-      var description = dep.description;
+    return _packages.values
+        .where((dep) => dep.isDependedOn)
+        .map(_dependencyToPackageId)
+        .toList();
+  }
 
-      // If the lockfile contains a fully-resolved description for the package,
-      // use that. This allows e.g. Git to ensure that the same commit is used.
-      var lockedPackage = lockFile.packages[dep.name];
-      if (lockedPackage != null && lockedPackage.version == dep.version &&
-          lockedPackage.source.name == dep.source.name &&
-          dep.source.descriptionsEqual(
-              description, lockedPackage.description)) {
-        description = lockedPackage.description;
-      }
+  PackageId _dependencyToPackageId(DependencyNode dep) {
+    var description = dep.description;
 
-      return new PackageId(dep.name, dep.source, dep.version, description);
-    })
-    .toList();
+    // If the lockfile contains a fully-resolved description for the package,
+    // use that. This allows e.g. Git to ensure that the same commit is used.
+    var lockedPackage = lockFile.packages[dep.name];
+    if (lockedPackage != null && lockedPackage.version == dep.version &&
+        lockedPackage.source.name == dep.source.name &&
+        dep.source.descriptionsEqual(
+            description, lockedPackage.description)) {
+      description = lockedPackage.description;
+    }
+
+    return new PackageId(dep.name, dep.source, dep.version, description);
   }
 }
 
@@ -222,7 +203,7 @@ abstract class WorkItem {
   /// Processes this work item. Returns a future that completes when the work is
   /// done. If `null` is returned, that means the work has completed
   /// synchronously and the next item can be started immediately.
-  Future process(VersionSolver solver);
+  Future process(GreedyVersionSolver solver);
 }
 
 /// The best selected version for a package has changed to [version]. If the
@@ -243,7 +224,7 @@ class ChangeVersion implements WorkItem {
 
   ChangeVersion(this.package, this.source, this.description, this.version);
 
-  Future process(VersionSolver solver) {
+  Future process(GreedyVersionSolver solver) {
     log.fine("Changing $package to version $version.");
 
     var dependency = solver.getDependency(package);
@@ -288,7 +269,7 @@ class ChangeVersion implements WorkItem {
     }
 
     var id = new PackageId(package, source, version, description);
-    return solver._pubspecs.load(id).then((pubspec) {
+    return solver.cache.getPubspec(id).then((pubspec) {
       var dependencies = <String, PackageRef>{};
       for (var dependency in pubspec.dependencies) {
         dependencies[dependency.name] = dependency;
@@ -313,12 +294,13 @@ class ChangeVersion implements WorkItem {
 /// graph once a dependency has changed. Changing the dependency is the
 /// responsibility of subclasses.
 abstract class ChangeConstraint implements WorkItem {
-  Future process(VersionSolver solver);
+  Future process(GreedyVersionSolver solver);
 
-  void undo(VersionSolver solver);
+  void undo(GreedyVersionSolver solver);
 
-  Future _processChange(VersionSolver solver, Dependency oldDependency,
-      Dependency newDependency) {
+  Future _processChange(GreedyVersionSolver solver,
+                        DependencyNode oldDependency,
+                        DependencyNode newDependency) {
     var name = newDependency.name;
     var source = oldDependency.source != null ?
       oldDependency.source : newDependency.source;
@@ -336,7 +318,7 @@ abstract class ChangeConstraint implements WorkItem {
         return null;
       }
 
-      throw new DisjointConstraintException(name, newDependency._refs);
+      throw new DisjointConstraintException(name, newDependency.toList());
     }
 
     // If this constraint change didn't cause the overall constraint on the
@@ -351,9 +333,9 @@ abstract class ChangeConstraint implements WorkItem {
 
     // If the dependency is on the root package, then we don't need to do
     // anything since it's already at the best version.
-    if (name == solver._root.name) {
+    if (name == solver.root.name) {
       solver.enqueue(new ChangeVersion(
-          name, source, description, solver._root.version));
+          name, source, description, solver.root.version));
       return null;
     }
 
@@ -393,7 +375,7 @@ class AddConstraint extends ChangeConstraint {
 
   AddConstraint(this.depender, this.ref);
 
-  Future process(VersionSolver solver) {
+  Future process(GreedyVersionSolver solver) {
     log.fine("Adding $depender's constraint $ref.");
 
     var dependency = solver.getDependency(ref.name);
@@ -402,7 +384,7 @@ class AddConstraint extends ChangeConstraint {
     return _processChange(solver, oldDependency, dependency);
   }
 
-  void undo(VersionSolver solver) {
+  void undo(GreedyVersionSolver solver) {
     solver.getDependency(ref.name).removeConstraint(depender);
   }
 }
@@ -420,7 +402,7 @@ class RemoveConstraint extends ChangeConstraint {
 
   RemoveConstraint(this.depender, this.dependent);
 
-  Future process(VersionSolver solver) {
+  Future process(GreedyVersionSolver solver) {
     log.fine("Removing $depender's constraint ($_removed) on $dependent.");
 
     var dependency = solver.getDependency(dependent);
@@ -429,7 +411,7 @@ class RemoveConstraint extends ChangeConstraint {
     return _processChange(solver, oldDependency, dependency);
   }
 
-  void undo(VersionSolver solver) {
+  void undo(GreedyVersionSolver solver) {
     solver.getDependency(dependent).placeConstraint(depender, _removed);
   }
 }
@@ -437,11 +419,11 @@ class RemoveConstraint extends ChangeConstraint {
 /// [package]'s version is no longer constrained by the lockfile.
 class UnlockPackage implements WorkItem {
   /// The package being unlocked.
-  Dependency package;
+  DependencyNode package;
 
   UnlockPackage(this.package);
 
-  Future process(VersionSolver solver) {
+  Future process(GreedyVersionSolver solver) {
     log.fine("Unlocking ${package.name}.");
 
     solver.lockFile.packages.remove(package.name);
@@ -453,41 +435,9 @@ class UnlockPackage implements WorkItem {
   }
 }
 
-// TODO(rnystrom): Instead of always pulling from the source (which will mean
-// hitting a server), we should consider caching pubspecs of uninstalled
-// packages in the system cache.
-/// Maintains a cache of previously-loaded pubspecs. Used to avoid requesting
-/// the same pubspec from the server repeatedly.
-class PubspecCache {
-  final SourceRegistry _sources;
-  final Map<PackageId, Pubspec> _pubspecs;
-
-  PubspecCache(this._sources)
-      : _pubspecs = new Map<PackageId, Pubspec>();
-
-  /// Caches [pubspec] as the [Pubspec] for the package identified by [id].
-  void cache(PackageId id, Pubspec pubspec) {
-    _pubspecs[id] = pubspec;
-  }
-
-  /// Loads the pubspec for the package identified by [id].
-  Future<Pubspec> load(PackageId id) {
-    // Complete immediately if it's already cached.
-    if (_pubspecs.containsKey(id)) {
-      return new Future<Pubspec>.value(_pubspecs[id]);
-    }
-
-    return id.describe().then((pubspec) {
-      // Cache it.
-      _pubspecs[id] = pubspec;
-      return pubspec;
-    });
-  }
-}
-
 /// Describes one [Package] in the [DependencyGraph] and keeps track of which
 /// packages depend on it and what constraints they place on it.
-class Dependency {
+class DependencyNode {
   /// The name of the this dependency's package.
   final String name;
 
@@ -545,19 +495,16 @@ class Dependency {
     return refs.first;
   }
 
-  Dependency(this.name)
+  DependencyNode(this.name)
       : _refs = <String, PackageRef>{};
 
-  Dependency._clone(Dependency other)
+  DependencyNode._clone(DependencyNode other)
       : name = other.name,
         version = other.version,
         _refs = new Map<String, PackageRef>.from(other._refs);
 
   /// Creates a copy of this dependency.
-  Dependency clone() => new Dependency._clone(this);
-
-  /// Return a list of available versions for this dependency.
-  Future<List<Version>> getVersions() => source.getVersions(name, description);
+  DependencyNode clone() => new DependencyNode._clone(this);
 
   /// Places [ref] as a constraint from [package] onto this.
   void placeConstraint(String package, PackageRef ref) {
@@ -565,12 +512,13 @@ class Dependency {
     if (requiredDepender != null) {
       var required = _refs[requiredDepender];
       if (required.source.name != ref.source.name) {
-        throw new SourceMismatchException(name,
-            requiredDepender, required.source, package, ref.source);
-      } else if (!required.source.descriptionsEqual(
-                     required.description, ref.description)) {
-        throw new DescriptionMismatchException(name,
-            requiredDepender, required.description, package, ref.description);
+        throw new SourceMismatchException(name, [
+            new Dependency(requiredDepender, required),
+            new Dependency(package, ref)]);
+      } else if (!required.descriptionEquals(ref)) {
+        throw new DescriptionMismatchException(name, [
+            new Dependency(requiredDepender, required),
+            new Dependency(package, ref)]);
       }
     }
 
@@ -595,120 +543,14 @@ class Dependency {
 
   /// Removes the constraint from [package] onto this.
   PackageRef removeConstraint(String package) => _refs.remove(package);
-}
 
-/// Exception thrown when the [VersionConstraint] used to match a package is
-/// valid (i.e. non-empty), but there are no released versions of the package
-/// that fit that constraint.
-class NoVersionException implements Exception {
-  final String package;
-  final VersionConstraint constraint;
-  final Map<String, PackageRef> _dependencies;
-
-  NoVersionException(this.package, this.constraint, this._dependencies);
-
-  String toString() {
-    var buffer = new StringBuffer();
-    buffer.write("Package '$package' has no versions that match $constraint "
-        "derived from:\n");
-
-    var keys = new List.from(_dependencies.keys);
-    keys.sort();
-
-    for (var key in keys) {
-      buffer.write("- '$key' depends on version "
-          "${_dependencies[key].constraint}\n");
-    }
-
-    return buffer.toString();
-  }
-}
-
-// TODO(rnystrom): Report the list of depending packages and their constraints.
-/// Exception thrown when the most recent version of [package] must be selected,
-/// but doesn't match the [VersionConstraint] imposed on the package.
-class CouldNotUpdateException implements Exception {
-  final String package;
-  final VersionConstraint constraint;
-  final Version best;
-
-  CouldNotUpdateException(this.package, this.constraint, this.best);
-
-  String toString() =>
-      "The latest version of '$package', $best, does not match $constraint.";
-}
-
-/// Exception thrown when the [VersionConstraint] used to match a package is
-/// the empty set: in other words, multiple packages depend on it and have
-/// conflicting constraints that have no overlap.
-class DisjointConstraintException implements Exception {
-  final String package;
-  final Map<String, PackageRef> _dependencies;
-
-  DisjointConstraintException(this.package, this._dependencies);
-
-  String toString() {
-    var buffer = new StringBuffer();
-    buffer.write("Incompatible version constraints on '$package':\n");
-
-    var keys = new List.from(_dependencies.keys);
-    keys.sort();
-
-    for (var key in keys) {
-      buffer.write("- '$key' depends on version "
-          "${_dependencies[key].constraint}\n");
-    }
-
-    return buffer.toString();
-  }
-}
-
-/// Exception thrown when the [VersionSolver] fails to find a solution after a
-/// certain number of iterations.
-class CouldNotSolveException implements Exception {
-  CouldNotSolveException();
-
-  String toString() =>
-      "Could not find a solution that met all version constraints.";
-}
-
-/// Exception thrown when two packages with the same name but different sources
-/// are depended upon.
-class SourceMismatchException implements Exception {
-  final String package;
-  final String depender1;
-  final Source source1;
-  final String depender2;
-  final Source source2;
-
-  SourceMismatchException(this.package, this.depender1, this.source1,
-      this.depender2, this.source2);
-
-  String toString() {
-    return "Incompatible dependencies on '$package':\n"
-        "- '$depender1' depends on it from source '$source1'\n"
-        "- '$depender2' depends on it from source '$source2'";
-  }
-}
-
-/// Exception thrown when two packages with the same name and source but
-/// different descriptions are depended upon.
-class DescriptionMismatchException implements Exception {
-  final String package;
-  final String depender1;
-  final description1;
-  final String depender2;
-  final description2;
-
-  DescriptionMismatchException(this.package, this.depender1, this.description1,
-      this.depender2, this.description2);
-
-  String toString() {
-    // TODO(nweiz): Dump descriptions to YAML when that's supported.
-    return "Incompatible dependencies on '$package':\n"
-        "- '$depender1' depends on it with description "
-        "${json.stringify(description1)}\n"
-        "- '$depender2' depends on it with description "
-        "${json.stringify(description2)}";
+  /// Converts this to a list of [Dependency] objects like the error types
+  /// expect.
+  List<Dependency> toList() {
+    var result = <Dependency>[];
+    _refs.forEach((name, ref) {
+      result.add(new Dependency(name, ref));
+    });
+    return result;
   }
 }

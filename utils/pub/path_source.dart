@@ -33,10 +33,18 @@ class PathSource extends Source {
   }
 
   bool descriptionsEqual(description1, description2) {
-    // Compare real paths after normalizing and resolving symlinks.
-    var path1 = new File(description1["path"]).fullPathSync();
-    var path2 = new File(description2["path"]).fullPathSync();
-    return path1 == path2;
+    try {
+      // Compare real paths after normalizing and resolving symlinks.
+      var path1 = new File(description1["path"]).fullPathSync();
+      var path2 = new File(description2["path"]).fullPathSync();
+      return path1 == path2;
+    } on FileIOException catch (ex) {
+      // If either of the files couldn't be found, fall back to just comparing
+      // the normalized paths.
+      var path1 = path.normalize(path.absolute(description1["path"]));
+      var path2 = path.normalize(path.absolute(description2["path"]));
+      return path1 == path2;
+    }
   }
 
   Future<bool> install(PackageId id, String destination) {

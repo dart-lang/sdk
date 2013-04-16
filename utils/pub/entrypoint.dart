@@ -17,7 +17,7 @@ import 'sdk.dart' as sdk;
 import 'system_cache.dart';
 import 'utils.dart';
 import 'version.dart';
-import 'version_solver.dart';
+import 'solver/version_solver.dart';
 
 /// Pub operates over a directed graph of dependencies that starts at a root
 /// "entrypoint" package. This is typically the package where the current
@@ -103,7 +103,7 @@ class Entrypoint {
   /// completes when all dependencies are installed.
   Future installDependencies() {
     return new Future.sync(() {
-      return resolveVersions(cache.sources, root, loadLockFile());
+      return resolveVersions(cache.sources, root, lockFile: loadLockFile());
     }).then(_installDependencies);
   }
 
@@ -111,8 +111,7 @@ class Entrypoint {
   /// package to its "package" directory, writing a new [LockFile]. Returns a
   /// [Future] that completes when all dependencies are installed.
   Future updateAllDependencies() {
-    return resolveVersions(cache.sources, root, new LockFile.empty())
-        .then(_installDependencies);
+    return resolveVersions(cache.sources, root).then(_installDependencies);
   }
 
   /// Installs the latest available versions of [dependencies], while leaving
@@ -120,20 +119,19 @@ class Entrypoint {
   /// [Future] that completes when all dependencies are installed.
   Future updateDependencies(List<String> dependencies) {
     return new Future.sync(() {
-      var solver = new VersionSolver(cache.sources, root, loadLockFile());
-      for (var dependency in dependencies) {
-        solver.useLatestVersion(dependency);
-      }
-      return solver.solve();
+      return resolveVersions(cache.sources, root,
+          lockFile: loadLockFile(), useLatest: dependencies);
     }).then(_installDependencies);
   }
 
   /// Removes the old packages directory, installs all dependencies listed in
-  /// [packageVersions], and writes a [LockFile].
-  Future _installDependencies(List<PackageId> packageVersions) {
+  /// [result], and writes a [LockFile].
+  Future _installDependencies(SolveResult result) {
     return new Future.sync(() {
+      if (!result.succeeded) throw result.error;
+
       cleanDir(packagesDir);
-      return Future.wait(packageVersions.map((id) {
+      return Future.wait(result.packages.map((id) {
         if (id.isRoot) return new Future.value(id);
         return install(id);
       }).toList());

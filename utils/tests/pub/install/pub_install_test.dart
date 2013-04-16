@@ -54,7 +54,7 @@ main() {
     ]).validate();
   });
 
-  integration('does not adds itself to the packages if it has no "lib" directory', () {
+  integration('does not add itself to the packages if it has no "lib" directory', () {
     // The symlink should use the name in the pubspec, not the name of the
     // directory.
     d.dir(appPath, [
@@ -84,6 +84,40 @@ main() {
             'directory so you will not be able to import any libraries from '
             'it.'),
         output: new RegExp(r"Dependencies installed!$"));
+  });
+
+  integration('reports a solver failure', () {
+    // myapp depends on foo and bar which both depend on baz with mismatched
+    // descriptions.
+    d.dir('deps', [
+      d.dir('foo', [
+        d.pubspec({"name": "foo", "dependencies": {
+          "baz": {"path": "../baz1"}
+        }})
+      ]),
+      d.dir('bar', [
+        d.pubspec({"name": "bar", "dependencies": {
+          "baz": {"path": "../baz2"}
+        }})
+      ]),
+      d.dir('baz1', [
+        d.libPubspec('baz', '0.0.0')
+      ]),
+      d.dir('baz2', [
+        d.libPubspec('baz', '0.0.0')
+      ])
+    ]).create();
+
+    d.dir(appPath, [
+      d.pubspec({"name": "myapp", "dependencies": {
+        "foo": {"path": "../deps/foo"},
+        "bar": {"path": "../deps/bar"}
+      }})
+    ]).create();
+
+    schedulePub(args: ['install'],
+        error: new RegExp(r"^Incompatible dependencies on 'baz':"),
+        exitCode: 1);
   });
 
   integration('does not warn if the root package lacks a "lib" directory', () {

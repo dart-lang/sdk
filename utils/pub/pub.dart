@@ -64,11 +64,12 @@ ArgParser get pubArgParser {
        help: 'Print debugging information when an error occurs.');
   parser.addOption('verbosity',
       help: 'Control output verbosity.',
-      allowed: ['normal', 'io', 'all'],
+      allowed: ['normal', 'io', 'solver', 'all'],
       allowedHelp: {
-        'normal': 'Errors, warnings, and user messages are shown.',
-        'io':     'IO operations are also shown.',
-        'all':    'All output including internal tracing messages are shown.'
+        'normal': 'Show errors, warnings, and user messages.',
+        'io':     'Also show IO operations.',
+        'solver': 'Show steps during version resolution.',
+        'all':    'Show all output including internal tracing messages.'
       });
   parser.addFlag('verbose', abbr: 'v', negatable: false,
       help: 'Shortcut for "--verbosity=all"');
@@ -102,6 +103,7 @@ main() {
   switch (globalOptions['verbosity']) {
     case 'normal': log.showNormal(); break;
     case 'io': log.showIO(); break;
+    case 'solver': log.showSolver(); break;
     case 'all': log.showAll(); break;
     default:
       // No specific verbosity given, so check for the shortcut.

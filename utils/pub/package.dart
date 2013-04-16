@@ -103,6 +103,13 @@ class PackageId implements Comparable<PackageId> {
 
   PackageId(this.name, this.source, this.version, this.description);
 
+  /// Creates an ID for the given root package.
+  PackageId.root(Package package)
+      : name = package.name,
+        source = null,
+        version = package.version,
+        description = package.name;
+
   /// Whether this ID identifies the root package.
   bool get isRoot => source == null;
 
@@ -143,6 +150,17 @@ class PackageId implements Comparable<PackageId> {
 
   /// Returns a future that completes to the resovled [PackageId] for this id.
   Future<PackageId> get resolved => source.resolveId(this);
+
+  /// Returns a [PackageRef] that references this package and constrains its
+  /// version to exactly match [version].
+  PackageRef toRef() {
+    return new PackageRef(name, source, version, description);
+  }
+
+  /// Returns `true` if this id's description matches [other]'s.
+  bool descriptionEquals(PackageRef other) {
+    return source.descriptionsEqual(description, other.description);
+  }
 }
 
 /// A reference to a package. Unlike a [PackageId], a PackageRef may not
@@ -165,6 +183,7 @@ class PackageRef {
 
   PackageRef(this.name, this.source, this.constraint, this.description);
 
+  // TODO(rnystrom): Remove this if the old version solver is removed.
   /// Creates a reference to the given root package.
   PackageRef.root(Package package)
       : name = package.name,
@@ -184,6 +203,11 @@ class PackageRef {
   /// concrete version.
   PackageId atVersion(Version version) =>
     new PackageId(name, source, version, description);
+
+  /// Returns `true` if this reference's description matches [other]'s.
+  bool descriptionEquals(PackageRef other) {
+    return source.descriptionsEqual(description, other.description);
+  }
 }
 
 class PubspecNotFoundException implements Exception {

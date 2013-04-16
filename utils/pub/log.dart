@@ -37,6 +37,9 @@ class Level {
   /// operation, process spawning, or file IO.
   static const IO = const Level._("IO  ");
 
+  /// Incremental output during pub's version constraint solver.
+  static const SOLVER = const Level._("SLVR");
+
   /// Fine-grained and verbose additional information. Can be used to provide
   /// program state context for other logs (such as what pub was doing when an
   /// IO operation occurred) or just more detail for an operation.
@@ -77,6 +80,9 @@ void message(message) => write(Level.MESSAGE, message);
 
 /// Logs [message] at [Level.IO].
 void io(message) => write(Level.IO, message);
+
+/// Logs [message] at [Level.SOLVER].
+void solver(message) => write(Level.SOLVER, message);
 
 /// Logs [message] at [Level.FINE].
 void fine(message) => write(Level.FINE, message);
@@ -178,6 +184,7 @@ void showNormal() {
   _loggers[Level.WARNING] = _logToStderr;
   _loggers[Level.MESSAGE] = _logToStdout;
   _loggers[Level.IO]      = null;
+  _loggers[Level.SOLVER]  = null;
   _loggers[Level.FINE]    = null;
 }
 
@@ -188,6 +195,18 @@ void showIO() {
   _loggers[Level.WARNING] = _logToStderrWithLabel;
   _loggers[Level.MESSAGE] = _logToStdoutWithLabel;
   _loggers[Level.IO]      = _logToStderrWithLabel;
+  _loggers[Level.SOLVER]  = null;
+  _loggers[Level.FINE]    = null;
+}
+
+/// Sets the verbosity to "solver", which shows errors, warnings, messages, and
+/// solver logs.
+void showSolver() {
+  _loggers[Level.ERROR]   = _logToStderr;
+  _loggers[Level.WARNING] = _logToStderr;
+  _loggers[Level.MESSAGE] = _logToStdout;
+  _loggers[Level.IO]      = null;
+  _loggers[Level.SOLVER]  = _logToStdout;
   _loggers[Level.FINE]    = null;
 }
 
@@ -197,6 +216,7 @@ void showAll() {
   _loggers[Level.WARNING] = _logToStderrWithLabel;
   _loggers[Level.MESSAGE] = _logToStdoutWithLabel;
   _loggers[Level.IO]      = _logToStderrWithLabel;
+  _loggers[Level.SOLVER]  = _logToStderrWithLabel;
   _loggers[Level.FINE]    = _logToStderrWithLabel;
 }
 
