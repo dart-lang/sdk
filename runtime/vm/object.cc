@@ -497,8 +497,10 @@ void Object::InitOnce() {
   // Allocate and initialize the empty_array instance.
   {
     uword address = heap->Allocate(Array::InstanceSize(0), Heap::kOld);
-    *empty_array_ = reinterpret_cast<RawArray*>(address + kHeapObjectTag);
     InitializeObject(address, kArrayCid, Array::InstanceSize(0));
+    Array::initializeHandle(
+        empty_array_,
+        reinterpret_cast<RawArray*>(address + kHeapObjectTag));
     empty_array_->raw()->ptr()->length_ = Smi::New(0);
   }
 
@@ -507,6 +509,16 @@ void Object::InitOnce() {
   isolate->object_store()->set_bool_class(cls);
   *bool_true_ = Bool::New(true);
   *bool_false_ = Bool::New(false);
+  ASSERT(!empty_array_->IsSmi());
+  ASSERT(empty_array_->IsArray());
+  ASSERT(!sentinel_->IsSmi());
+  ASSERT(sentinel_->IsInstance());
+  ASSERT(!transition_sentinel_->IsSmi());
+  ASSERT(transition_sentinel_->IsInstance());
+  ASSERT(!bool_true_->IsSmi());
+  ASSERT(bool_true_->IsBool());
+  ASSERT(!bool_false_->IsSmi());
+  ASSERT(bool_false_->IsBool());
 }
 
 
