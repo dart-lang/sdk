@@ -7,9 +7,11 @@
 
 #include "vm/assembler.h"
 #include "vm/code_generator.h"
+#include "vm/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/flow_graph_compiler.h"
 #include "vm/instructions.h"
+#include "vm/object_store.h"
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 
@@ -217,6 +219,34 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
 }
 
 
+// Input parameters:
+//   R2: Smi-tagged argument count, may be zero.
+//   FP[kLastParamSlotIndex]: Last argument.
+static void PushArgumentsArray(Assembler* assembler) {
+  // Allocate array to store arguments of caller.
+  __ LoadImmediate(R1, reinterpret_cast<intptr_t>(Object::null()));
+  // R1: Null element type for raw Array.
+  // R2: Smi-tagged argument count, may be zero.
+  __ BranchLink(&StubCode::AllocateArrayLabel());
+  // R0: newly allocated array.
+  // R2: Smi-tagged argument count, may be zero (was preserved by the stub).
+  __ Push(R0);  // Array is in R0 and on top of stack.
+  __ add(R1, FP, ShifterOperand(R2, LSL, 1));
+  __ AddImmediate(R1, (kLastParamSlotIndex - 1) * kWordSize);
+  __ AddImmediate(R3, R0, Array::data_offset() - kHeapObjectTag);
+  Label loop, loop_condition;
+  __ b(&loop_condition);
+  __ Bind(&loop);
+  __ ldr(IP, Address(R1, 0));
+  __ str(IP, Address(R3, 0));
+  __ AddImmediate(R1, -kWordSize);
+  __ AddImmediate(R3, kWordSize);
+  __ Bind(&loop_condition);
+  __ subs(R2, R2, ShifterOperand(Smi::RawValue(1)));  // R2 is Smi.
+  __ b(&loop, PL);
+}
+
+
 void StubCode::GenerateInstanceFunctionLookupStub(Assembler* assembler) {
   __ Unimplemented("InstanceFunctionLookup stub");
 }
@@ -237,13 +267,240 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
 }
 
 
+// Called for inline allocation of arrays.
+// Input parameters:
+//   LR: return address.
+//   R2: Array length as Smi.
+//   R1: array element type (either NULL or an instantiated type).
+// NOTE: R2 cannot be clobbered here as the caller relies on it being saved.
+// The newly allocated object is returned in R0.
 void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
-  __ Unimplemented("AllocateArray stub");
+  Label slow_case;
+  if (FLAG_inline_alloc) {
+    // Compute the size to be allocated, it is based on the array length
+    // and is computed as:
+    // RoundedAllocationSize((array_length * kwordSize) + sizeof(RawArray)).
+    // Assert that length is a Smi.
+    __ tst(R2, ShifterOperand(kSmiTagSize));
+    if (FLAG_use_slow_path) {
+      __ b(&slow_case);
+    } else {
+      __ b(&slow_case, NE);
+    }
+    __ ldr(R8, FieldAddress(CTX, Context::isolate_offset()));
+    __ LoadFromOffset(kLoadWord, R8, R8, Isolate::heap_offset());
+    __ LoadFromOffset(kLoadWord, R8, R8, Heap::new_space_offset());
+
+    // Calculate and align allocation size.
+    // Load new object start and calculate next object start.
+    // R1: array element type.
+    // R2: Array length as Smi.
+    // R8: Points to new space object.
+    __ LoadFromOffset(kLoadWord, R0, R8, Scavenger::top_offset());
+    intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
+    __ LoadImmediate(R7, fixed_size);
+    __ add(R7, R7, ShifterOperand(R2, LSL, 1));  // R2 is Smi.
+    ASSERT(kSmiTagShift == 1);
+    __ bic(R7, R7, ShifterOperand(kObjectAlignment - 1));
+    __ add(R7, R7, ShifterOperand(R0));
+
+    // Check if the allocation fits into the remaining space.
+    // R0: potential new object start.
+    // R1: array element type.
+    // R2: Array length as Smi.
+    // R7: potential next object start.
+    // R8: Points to new space object.
+    __ LoadFromOffset(kLoadWord, IP, R8, Scavenger::end_offset());
+    __ cmp(R7, ShifterOperand(IP));
+    __ b(&slow_case, CS);  // Branch if unsigned higher or equal.
+
+    // Successfully allocated the object(s), now update top to point to
+    // next object start and initialize the object.
+    // R0: potential new object start.
+    // R7: potential next object start.
+    // R8: Points to new space object.
+    __ StoreToOffset(kStoreWord, R7, R8, Scavenger::top_offset());
+    __ add(R0, R0, ShifterOperand(kHeapObjectTag));
+
+    // R0: new object start as a tagged pointer.
+    // R1: array element type.
+    // R2: Array length as Smi.
+    // R7: new object end address.
+
+    // Store the type argument field.
+    __ StoreIntoObjectNoBarrier(
+        R0,
+        FieldAddress(R0, Array::type_arguments_offset()),
+        R1);
+
+    // Set the length field.
+    __ StoreIntoObjectNoBarrier(
+        R0,
+        FieldAddress(R0, Array::length_offset()),
+        R2);
+
+    // Calculate the size tag.
+    // R0: new object start as a tagged pointer.
+    // R2: Array length as Smi.
+    // R7: new object end address.
+    __ LoadImmediate(R1, fixed_size);
+    __ add(R1, R1, ShifterOperand(R2, LSL, 1));  // R2 is Smi.
+    ASSERT(kSmiTagShift == 1);
+    __ bic(R1, R1, ShifterOperand(kObjectAlignment - 1));
+    const intptr_t shift = RawObject::kSizeTagBit - kObjectAlignmentLog2;
+    __ CompareImmediate(R1, RawObject::SizeTag::kMaxSizeTag);
+    // If no size tag overflow, shift R1 left, else set R1 to zero.
+    __ mov(R1, ShifterOperand(R1, LSL, shift), LS);
+    __ mov(R1, ShifterOperand(0), HI);
+
+    // Get the class index and insert it into the tags.
+    __ LoadImmediate(IP, RawObject::ClassIdTag::encode(kArrayCid));
+    __ orr(R1, R1, ShifterOperand(IP));
+    __ str(R1, FieldAddress(R0, Array::tags_offset()));
+
+    // Initialize all array elements to raw_null.
+    // R0: new object start as a tagged pointer.
+    // R7: new object end address.
+    // R2: Array length as Smi.
+    __ AddImmediate(R1, R0, Array::data_offset() - kHeapObjectTag);
+    // R1: iterator which initially points to the start of the variable
+    // data area to be initialized.
+    __ LoadImmediate(IP, reinterpret_cast<intptr_t>(Object::null()));
+    Label loop, test;
+    __ b(&test);
+    __ Bind(&loop);
+    // TODO(cshapiro): StoreIntoObjectNoBarrier
+    __ str(IP, Address(R1, 0));
+    __ AddImmediate(R1, kWordSize);
+    __ Bind(&test);
+    __ cmp(R1, ShifterOperand(R7));
+    __ b(&loop, NE);
+
+    // Done allocating and initializing the array.
+    // R0: new object.
+    // R2: Array length as Smi (preserved for the caller.)
+    __ Ret();
+  }
+
+  // Unable to allocate the array using the fast inline code, just call
+  // into the runtime.
+  __ Bind(&slow_case);
+  // Create a stub frame as we are pushing some objects on the stack before
+  // calling into the runtime.
+  __ EnterStubFrame();
+  __ LoadImmediate(IP, reinterpret_cast<intptr_t>(Object::null()));
+  // Setup space on stack for return value.
+  // Push array length as Smi and element type.
+  __ PushList((1 << R1) | (1 << R2) | (1 << IP));
+  __ CallRuntime(kAllocateArrayRuntimeEntry);
+  // Pop arguments; result is popped in IP.
+  __ PopList((1 << R1) | (1 << R2) | (1 << IP));  // R2 is restored.
+  __ mov(R0, ShifterOperand(IP));
+  __ LeaveStubFrame();
+  __ Ret();
 }
 
 
+// Input parameters:
+//   LR: return address.
+//   SP: address of last argument.
+//   R4: Arguments descriptor array.
+// Note: The closure object is the first argument to the function being
+//       called, the stub accesses the closure from this location directly
+//       when trying to resolve the call.
 void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
-  __ Unimplemented("CallClosureFunction stub");
+  // Load num_args.
+  __ ldr(R0, FieldAddress(R4, ArgumentsDescriptor::count_offset()));
+  __ sub(R0, R0, ShifterOperand(Smi::RawValue(1)));
+  // Load closure object in R1.
+  __ ldr(R1, Address(SP, R0, LSL, 1));  // R0 (num_args - 1) is a Smi.
+
+  // Verify that R1 is a closure by checking its class.
+  Label not_closure;
+  __ LoadImmediate(R8, reinterpret_cast<intptr_t>(Object::null()));
+  __ cmp(R1, ShifterOperand(R8));
+  // Not a closure, but null object.
+  __ b(&not_closure, EQ);
+  __ tst(R1, ShifterOperand(kSmiTagMask));
+  __ b(&not_closure, EQ);  // Not a closure, but a smi.
+  // Verify that the class of the object is a closure class by checking that
+  // class.signature_function() is not null.
+  __ LoadClass(R0, R1, R2);
+  __ ldr(R0, FieldAddress(R0, Class::signature_function_offset()));
+  __ cmp(R0, ShifterOperand(R8));  // R8 is raw null.
+  // Actual class is not a closure class.
+  __ b(&not_closure, EQ);
+
+  // R0 is just the signature function. Load the actual closure function.
+  __ ldr(R2, FieldAddress(R1, Closure::function_offset()));
+
+  // Load closure context in CTX; note that CTX has already been preserved.
+  __ ldr(CTX, FieldAddress(R1, Closure::context_offset()));
+
+  // Load closure function code in R0.
+  __ ldr(R0, FieldAddress(R2, Function::code_offset()));
+  __ cmp(R0, ShifterOperand(R8));  // R8 is raw null.
+  Label function_compiled;
+  __ b(&function_compiled, NE);
+
+  // Create a stub frame as we are pushing some objects on the stack before
+  // calling into the runtime.
+  __ EnterStubFrame();
+
+  // Preserve arguments descriptor array and read-only function object argument.
+  __ PushList((1 << R2) | (1 << R4));
+  __ CallRuntime(kCompileFunctionRuntimeEntry);
+  // Restore arguments descriptor array and read-only function object argument.
+  __ PopList((1 << R2) | (1 << R4));
+  // Restore R0.
+  __ ldr(R0, FieldAddress(R2, Function::code_offset()));
+
+  // Remove the stub frame as we are about to jump to the closure function.
+  __ LeaveStubFrame();
+
+  __ Bind(&function_compiled);
+  // R0: Code.
+  // R4: Arguments descriptor array.
+  __ ldr(R0, FieldAddress(R0, Code::instructions_offset()));
+  __ AddImmediate(R0, Instructions::HeaderSize() - kHeapObjectTag);
+  __ bx(R0);
+
+  __ Bind(&not_closure);
+  // Call runtime to attempt to resolve and invoke a call method on a
+  // non-closure object, passing the non-closure object and its arguments array,
+  // returning here.
+  // If no call method exists, throw a NoSuchMethodError.
+  // R1: non-closure object.
+  // R4: arguments descriptor array.
+
+  // Create a stub frame as we are pushing some objects on the stack before
+  // calling into the runtime.
+  __ EnterStubFrame();
+
+  // Setup space on stack for result from error reporting.
+  __ PushList((1 << R4) | (1 << R8));  // Arguments descriptor and raw null.
+
+  // Load smi-tagged arguments array length, including the non-closure.
+  __ ldr(R2, FieldAddress(R4, ArgumentsDescriptor::count_offset()));
+  PushArgumentsArray(assembler);
+
+  // Stack:
+  // TOS + 0: Argument array.
+  // TOS + 1: Arguments descriptor array.
+  // TOS + 2: Place for result from the call.
+  // TOS + 3: Saved FP of previous frame.
+  // TOS + 4: Dart code return address
+  // TOS + 5: PC marker (0 for stub).
+  // TOS + 6: Last argument of caller.
+  // ....
+  __ CallRuntime(kInvokeNonClosureRuntimeEntry);
+  // Remove arguments.
+  __ Drop(2);
+  __ Pop(R0);  // Get result into R0.
+
+  // Remove the stub frame as we are about to return.
+  __ LeaveStubFrame();
+  __ Ret();
 }
 
 
@@ -442,11 +699,11 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // Check if the allocation fits into the remaining space.
     // R2: potential new object start.
     // R3: potential next object start.
+    __ LoadImmediate(IP, heap->EndAddress());
+    __ cmp(R3, ShifterOperand(IP));
     if (FLAG_use_slow_path) {
       __ b(&slow_case);
     } else {
-      __ LoadImmediate(IP, heap->EndAddress());
-      __ cmp(R3, ShifterOperand(IP));
       __ b(&slow_case, CS);  // Branch if unsigned higher or equal.
     }
 
@@ -539,6 +796,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // Done allocating and initializing the instance.
     // R2: new object still missing its heap tag.
     __ add(R0, R2, ShifterOperand(kHeapObjectTag));
+    // R0: new object.
     __ Ret();
 
     __ Bind(&slow_case);
@@ -570,9 +828,153 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
 }
 
 
+// Called for inline allocation of closures.
+// Input parameters:
+//   LR : return address.
+//   SP + 4 : receiver (null if not an implicit instance closure).
+//   SP + 0 : type arguments object (null if class is no parameterized).
 void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
                                                 const Function& func) {
-  __ Unimplemented("AllocateClosure stub");
+  ASSERT(func.IsClosureFunction());
+  const bool is_implicit_static_closure =
+      func.IsImplicitStaticClosureFunction();
+  const bool is_implicit_instance_closure =
+      func.IsImplicitInstanceClosureFunction();
+  const Class& cls = Class::ZoneHandle(func.signature_class());
+  const bool has_type_arguments = cls.HasTypeArguments();
+
+  __ EnterStubFrame(true);  // Uses pool pointer to refer to function.
+  const intptr_t kTypeArgumentsFPOffset = 3 * kWordSize;
+  const intptr_t kReceiverFPOffset = 4 * kWordSize;
+  const intptr_t closure_size = Closure::InstanceSize();
+  const intptr_t context_size = Context::InstanceSize(1);  // Captured receiver.
+  if (FLAG_inline_alloc &&
+      PageSpace::IsPageAllocatableSize(closure_size + context_size)) {
+    Label slow_case;
+    Heap* heap = Isolate::Current()->heap();
+    __ LoadImmediate(R5, heap->TopAddress());
+    __ ldr(R2, Address(R5, 0));
+    __ AddImmediate(R3, R2, closure_size);
+    if (is_implicit_instance_closure) {
+      __ mov(R4, ShifterOperand(R3));  // R4: new context address.
+      __ AddImmediate(R3, context_size);
+    }
+    // Check if the allocation fits into the remaining space.
+    // R2: potential new closure object.
+    // R3: potential next object start.
+    // R4: potential new context object (only if is_implicit_closure).
+    __ LoadImmediate(IP, heap->EndAddress());
+    __ cmp(R3, ShifterOperand(IP));
+    if (FLAG_use_slow_path) {
+      __ b(&slow_case);
+    } else {
+      __ b(&slow_case, CS);  // Branch if unsigned higher or equal.
+    }
+
+    // Successfully allocated the object, now update top to point to
+    // next object start and initialize the object.
+    __ str(R3, Address(R5, 0));
+
+    // R2: new closure object.
+    // R4: new context object (only if is_implicit_closure).
+    // Set the tags.
+    uword tags = 0;
+    tags = RawObject::SizeTag::update(closure_size, tags);
+    tags = RawObject::ClassIdTag::update(cls.id(), tags);
+    __ LoadImmediate(R0, tags);
+    __ str(R0, Address(R2, Instance::tags_offset()));
+
+    // Initialize the function field in the object.
+    // R2: new closure object.
+    // R4: new context object (only if is_implicit_closure).
+    __ LoadObject(R0, func);  // Load function of closure to be allocated.
+    __ str(R0, Address(R2, Closure::function_offset()));
+
+    // Setup the context for this closure.
+    if (is_implicit_static_closure) {
+      ObjectStore* object_store = Isolate::Current()->object_store();
+      ASSERT(object_store != NULL);
+      const Context& empty_context =
+          Context::ZoneHandle(object_store->empty_context());
+      __ LoadObject(R0, empty_context);
+      __ str(R0, Address(R2, Closure::context_offset()));
+    } else if (is_implicit_instance_closure) {
+      // Initialize the new context capturing the receiver.
+      const Class& context_class = Class::ZoneHandle(Object::context_class());
+      // Set the tags.
+      uword tags = 0;
+      tags = RawObject::SizeTag::update(context_size, tags);
+      tags = RawObject::ClassIdTag::update(context_class.id(), tags);
+      __ LoadImmediate(R0, tags);
+      __ str(R0, Address(R4, Context::tags_offset()));
+
+      // Set number of variables field to 1 (for captured receiver).
+      __ LoadImmediate(R0, 1);
+      __ str(R0, Address(R4, Context::num_variables_offset()));
+
+      // Set isolate field to isolate of current context.
+      __ ldr(R0, FieldAddress(CTX, Context::isolate_offset()));
+      __ str(R0, Address(R4, Context::isolate_offset()));
+
+      // Set the parent to null.
+      __ LoadImmediate(R0, reinterpret_cast<intptr_t>(Object::null()));
+      __ str(R0, Address(R4, Context::parent_offset()));
+
+      // Initialize the context variable to the receiver.
+      __ ldr(R0, Address(FP, kReceiverFPOffset));
+      __ str(R0, Address(R4, Context::variable_offset(0)));
+
+      // Set the newly allocated context in the newly allocated closure.
+      __ add(R1, R4, ShifterOperand(kHeapObjectTag));
+      __ str(R1, Address(R2, Closure::context_offset()));
+    } else {
+      __ str(CTX, Address(R2, Closure::context_offset()));
+    }
+
+    // Set the type arguments field in the newly allocated closure.
+    __ ldr(R0, Address(FP, kTypeArgumentsFPOffset));
+    __ str(R0, Address(R2, Closure::type_arguments_offset()));
+
+    // Done allocating and initializing the instance.
+    // R2: new object still missing its heap tag.
+    __ add(R0, R2, ShifterOperand(kHeapObjectTag));
+    // R0: new object.
+    __ LeaveStubFrame(true);
+    __ Ret();
+
+    __ Bind(&slow_case);
+  }
+  __ LoadImmediate(R0, reinterpret_cast<intptr_t>(Object::null()));
+  __ Push(R0);  // Setup space on stack for return value.
+  __ PushObject(func);
+  if (is_implicit_static_closure) {
+    __ CallRuntime(kAllocateImplicitStaticClosureRuntimeEntry);
+  } else {
+    if (is_implicit_instance_closure) {
+      __ ldr(R1, Address(FP, kReceiverFPOffset));
+      __ Push(R1);  // Receiver.
+    }
+    // R0: raw null.
+    if (has_type_arguments) {
+      __ ldr(R0, Address(FP, kTypeArgumentsFPOffset));
+    }
+    __ Push(R0);  // Push type arguments of closure to be allocated or null.
+
+    if (is_implicit_instance_closure) {
+      __ CallRuntime(kAllocateImplicitInstanceClosureRuntimeEntry);
+      __ Drop(2);  // Pop arguments (type arguments of object and receiver).
+    } else {
+      ASSERT(func.IsNonImplicitClosureFunction());
+      __ CallRuntime(kAllocateClosureRuntimeEntry);
+      __ Drop(1);  // Pop argument (type arguments of object).
+    }
+  }
+  __ Drop(1);  // Pop function object.
+  __ Pop(R0);
+  // R0: new object
+  // Restore the frame pointer.
+  __ LeaveStubFrame(true);
+  __ Ret();
 }
 
 
@@ -697,8 +1099,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   // Restore return address.
   __ mov(LR, ShifterOperand(R8));
 
-  // Compute address of arguments (first read number of arguments from
-  // arguments descriptor array and then compute address on the stack).
+  // Compute address of arguments.
   // R7: argument_count - 1 (smi).
   __ add(R7, SP, ShifterOperand(R7, LSL, 1));  // R7 is Smi.
   // R7: address of receiver.

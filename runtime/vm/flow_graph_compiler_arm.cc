@@ -662,12 +662,25 @@ void FlowGraphCompiler::CopyParameters() {
 
 
 void FlowGraphCompiler::GenerateInlinedGetter(intptr_t offset) {
-  UNIMPLEMENTED();
+  // LR: return address.
+  // SP: receiver.
+  // Sequence node has one return node, its input is load field node.
+  __ ldr(R0, Address(SP, 0 * kWordSize));
+  __ LoadFromOffset(kLoadWord, R0, R0, offset - kHeapObjectTag);
+  __ Ret();
 }
 
 
 void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
-  UNIMPLEMENTED();
+  // LR: return address.
+  // SP+1: receiver.
+  // SP+0: value.
+  // Sequence node has one store node and one return NULL node.
+  __ ldr(R0, Address(SP, 1 * kWordSize));  // Receiver.
+  __ ldr(R1, Address(SP, 0 * kWordSize));  // Value.
+  __ StoreIntoObject(R0, FieldAddress(R0, offset), R1);
+  __ LoadImmediate(R0, reinterpret_cast<intptr_t>(Object::null()));
+  __ Ret();
 }
 
 
@@ -1101,7 +1114,7 @@ FieldAddress FlowGraphCompiler::ElementAddressForRegIndex(intptr_t cid,
                                                           intptr_t index_scale,
                                                           Register array,
                                                           Register index) {
-  UNIMPLEMENTED();
+  UNREACHABLE();  // No register indexed with offset addressing mode on ARM.
   return FieldAddress(array, index);
 }
 

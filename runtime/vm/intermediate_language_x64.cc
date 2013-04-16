@@ -1988,8 +1988,9 @@ void ExtractConstructorInstantiatorInstr::EmitNativeCode(
 
     // Check if the instantiator type argument vector is a TypeArguments of a
     // matching length and, if so, use it as the instantiated type_arguments.
-    // No need to check the instantiator (RAX) for null here, because a null
-    // instantiator will have the wrong class (Null instead of TypeArguments).
+    // No need to check the instantiator ('instantiator_reg') for null here,
+    // because a null instantiator will have the wrong class (Null instead of
+    // TypeArguments).
     __ CompareClassId(instantiator_reg, kTypeArgumentsCid);
     __ j(NOT_EQUAL, &done, Assembler::kNearJump);
     const Immediate& arguments_length =

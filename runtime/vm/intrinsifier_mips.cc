@@ -81,7 +81,7 @@ bool Intrinsifier::GrowableArray_add(Assembler* assembler) {
 
 
 bool Intrinsifier::TypedData_getLength(Assembler* assembler) {
-  return true;
+  return false;
 }
 
 
