@@ -920,19 +920,6 @@ class StandardTestSuite extends TestSuite {
         _createWrapperFile(dartWrapperFilename, filePath);
       } else {
         dartWrapperFilename = filename;
-        // TODO(whesse): Once test.py is retired, adjust the relative path in
-        // the client/samples/dartcombat test to its css file, remove the
-        // "../../" from this path, and move this out of the isWebTest guard.
-        // Also remove getHtmlName, and just use test.html.
-        // TODO(efortuna): this shortening of htmlFilename is a band-aid until
-        // the above TODO gets fixed. Windows cannot have paths that are longer
-        // than 260 characters, and without this hack, we were running past the
-        // the limit.
-        String htmlFilename = getHtmlName(filename);
-        while ('$tempDir/../$htmlFilename'.length >= 260) {
-          htmlFilename = htmlFilename.substring(htmlFilename.length~/2);
-        }
-        htmlPath = '$tempDir/../$htmlFilename';
       }
       String scriptPath = (compiler == 'none') ?
           dartWrapperFilename : compiledDartWrapperFilename;
@@ -966,17 +953,26 @@ class StandardTestSuite extends TestSuite {
         commands.add(_compileCommand(
             dartWrapperFilename, compiledDartWrapperFilename,
             compiler, tempDir, vmOptions, optionsFromFile));
+      }
 
-        // some tests require compiling multiple input scripts.
-        List<String> otherScripts = optionsFromFile['otherScripts'];
-        for (String name in otherScripts) {
-          Path namePath = new Path(name);
+      // some tests require compiling multiple input scripts.
+      List<String> otherScripts = optionsFromFile['otherScripts'];
+      for (String name in otherScripts) {
+        Path namePath = new Path(name);
+        String baseName = namePath.filenameWithoutExtension;
+        Path fromPath = filePath.directoryPath.join(namePath);
+        if (compiler != 'none') {
           assert(namePath.extension == 'dart');
-          String baseName = namePath.filenameWithoutExtension;
-          Path fromPath = filePath.directoryPath.join(namePath);
           commands.add(_compileCommand(
               fromPath.toNativePath(), '$tempDir/$baseName.js',
               compiler, tempDir, vmOptions, optionsFromFile));
+        }
+        if (compiler == 'none') {
+          // For the tests that require multiple input scripts but are not
+          // compiled, move the input scripts over with the script so they can
+          // be accessed.
+          String result = new File.fromPath(fromPath).readAsStringSync();
+          new File('$tempDir/$baseName.dart').writeAsStringSync(result);
         }
       }
 
@@ -1171,15 +1167,6 @@ class StandardTestSuite extends TestSuite {
       default:
         return true;
     }
-  }
-
-  String getHtmlName(String filename) {
-    var cleanFilename =  filename.replaceAll('/', '_')
-                                 .replaceAll(':', '_')
-                                 .replaceAll('\\', '_');
-
-    return "$cleanFilename"
-        "${configuration['compiler']}-${configuration['runtime']}.html";
   }
 
   String get dumpRenderTreeFilename {
