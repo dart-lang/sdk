@@ -13,7 +13,7 @@ import "dart:typeddata";
 li16(v) => v[0];
 
 main() {
-  var a = new Uint8List.transferable(2);
+  var a = new Uint8List(2);
   a[0] = a[1] = 0xff;
   var b = new Int16List.view(a.buffer);
   Expect.equals(-1, li16(b));
