@@ -2256,16 +2256,10 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     js.PropertyAccess field =
         new js.PropertyAccess.field(pop(), backend.namer.operatorIs(element));
-    if (backend.emitter.nativeEmitter.requiresNativeIsCheck(element)) {
-      push(new js.Call(field, <js.Expression>[]));
-      if (negative) push(new js.Prefix('!', pop()));
-    } else {
-      // We always negate at least once so that the result is boolified.
-      push(new js.Prefix('!', field));
-      // If the result is not negated, put another '!' in front.
-      if (!negative) push(new js.Prefix('!', pop()));
-    }
-
+    // We always negate at least once so that the result is boolified.
+    push(new js.Prefix('!', field));
+    // If the result is not negated, put another '!' in front.
+    if (!negative) push(new js.Prefix('!', pop()));
   }
 
   void handleNumberOrStringSupertypeCheck(HInstruction input,

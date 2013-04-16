@@ -108,11 +108,8 @@ substitute(var substitution, var arguments) {
  * - [asField]: the name of the function that transforms the type
  *   arguments of [objects] to an instance of the class that we check
  *   against.
- * - [native]: [:true:] if we need to use calls (for handling native
- *   objects).
  */
-bool checkSubtype(Object object, String isField, List checks, String asField,
-                  bool native) {
+bool checkSubtype(Object object, String isField, List checks, String asField) {
   if (object == null) return false;
   var arguments = getRuntimeTypeInfo(object);
   // Interceptor is needed for JSArray and native classes.
@@ -120,15 +117,11 @@ bool checkSubtype(Object object, String isField, List checks, String asField,
   // `null` or a primitive.
   // TODO(9586): Move type info for static functions onto an interceptor.
   var interceptor = isJsFunction(object) ? object : getInterceptor(object);
-  bool isSubclass = native
-      ? call(interceptor, isField)
-      : getField(interceptor, isField);
+  bool isSubclass = getField(interceptor, isField);
   // When we read the field and it is not there, [isSubclass] will be [:null:].
   if (isSubclass == null || !isSubclass) return false;
   // Should the asField function be passed the receiver?
-  var substitution = native
-      ? call(interceptor, asField)
-      : getField(interceptor, asField);
+  var substitution = getField(interceptor, asField);
   return checkArguments(substitution, arguments, checks);
 }
 

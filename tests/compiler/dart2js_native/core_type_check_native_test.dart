@@ -4,12 +4,7 @@
 
 import "package:expect/expect.dart";
 
-check(value, expectComparable, expectPattern) {
-  Expect.equals(expectComparable, value is Comparable);
-  Expect.equals(expectPattern, value is Pattern);
-}
-
-int inscrutable(int x) => x == 0 ? 0 : x | inscrutable(x & (x - 1));
+var inscrutable = (int x) => x == 0 ? 0 : x | inscrutable(x & (x - 1));
 
 class A native "*A" {
 }
@@ -39,18 +34,44 @@ function D() {};
 makeD = function() { return new D; }
 """;
 
+
+checkTest(value, expectComparable, expectPattern) {
+  Expect.equals(expectComparable, value is Comparable);
+  Expect.equals(expectPattern, value is Pattern);
+}
+
+checkCast(value, expectComparable, expectPattern) {
+  if (expectComparable) {
+    Expect.identical(value, value as Comparable);
+  } else {
+    Expect.throws(() => value as Comparable);
+  }
+  if (expectPattern) {
+    Expect.identical(value, value as Pattern);
+  } else {
+    Expect.throws(() => value as Pattern);
+  }
+}
+
+checkAll(check) {
+  var things =
+      [[], 4, 4.2, 'foo', new Object(), makeA(), makeB(), makeC(), makeD()];
+  value(i) => things[inscrutable(i)];
+
+  check(value(0), false, false);  // List
+  check(value(1), true, false);   // int
+  check(value(2), true, false);   // num
+  check(value(3), true, true);    // String
+  check(value(4), false, false);  // Object
+  check(value(5), false, false);  // A
+  check(value(6), true, false);   // B
+  check(value(7), false, true);   // C
+  check(value(8), true, true);    // D
+}
+
 main() {
   setup();
-  var things = [[], 4, 4.2, 'foo', new Object(), makeA(), makeB(),
-                makeC(), makeD()];
 
-  check(things[inscrutable(0)], false, false); // List
-  check(things[inscrutable(1)], true, false); // int
-  check(things[inscrutable(2)], true, false); // num
-  check(things[inscrutable(3)], true, true); // string
-  check(things[inscrutable(4)], false, false); // Object
-  check(things[inscrutable(5)], false, false); // A
-  check(things[inscrutable(6)], true, false); // B
-  check(things[inscrutable(7)], false, true); // C
-  check(things[inscrutable(8)], true, true); // D
+  checkAll(checkTest);
+  checkAll(checkCast);
 }

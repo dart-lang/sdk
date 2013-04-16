@@ -1634,8 +1634,8 @@ class JavaScriptBackend extends Backend {
       } else {
         if (nativeCheck) {
           return typeCast
-              ? const SourceString("callTypeCast")
-              : const SourceString('callTypeCheck');
+              ? const SourceString("interceptedTypeCast")
+              : const SourceString('interceptedTypeCheck');
         } else {
           return typeCast
               ? const SourceString("propertyTypeCast")

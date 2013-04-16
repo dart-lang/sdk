@@ -1175,17 +1175,11 @@ class CodeEmitterTask extends CompilerTask {
         includeSuperMembers: false);
 
     void generateIsTest(Element other) {
-      jsAst.Expression code;
       if (other == compiler.objectClass && other != classElement) {
         // Avoid emitting [:$isObject:] on all classes but [Object].
         return;
       }
-      if (nativeEmitter.requiresNativeIsCheck(other)) {
-        code = js.fun([], [js.return_(true)]);
-      } else {
-        code = js('true');
-      }
-      builder.addProperty(namer.operatorIs(other), code);
+      builder.addProperty(namer.operatorIs(other), js('true'));
     }
 
     void generateSubstitution(Element other, {bool emitNull: false}) {
@@ -1203,9 +1197,6 @@ class CodeEmitterTask extends CompilerTask {
         }
       }
       if (expression != null) {
-        if (needsNativeCheck) {
-          expression = js.fun([], js.return_(expression));
-        }
         builder.addProperty(namer.substitutionName(other), expression);
       }
     }

@@ -1139,28 +1139,28 @@ propertyTypeCast(value, property) {
 }
 
 /**
- * For types that are supertypes of native (eg DOM) types, we emit a
- * call because we cannot add a JS property to their prototype at load
- * time.
+ * For types that are supertypes of native (eg DOM) types, we use the
+ * interceptor for the class because we cannot add a JS property to the
+ * prototype at load time.
  */
-callTypeCheck(value, property) {
+interceptedTypeCheck(value, property) {
   if (value == null) return value;
   if ((identical(JS('String', 'typeof #', value), 'object'))
-      && JS('bool', '#[#]()', getInterceptor(value), property)) {
+      && JS('bool', '#[#]', getInterceptor(value), property)) {
     return value;
   }
   propertyTypeError(value, property);
 }
 
 /**
- * For types that are supertypes of native (eg DOM) types, we emit a
- * call because we cannot add a JS property to their prototype at load
- * time.
+ * For types that are supertypes of native (eg DOM) types, we use the
+ * interceptor for the class because we cannot add a JS property to the
+ * prototype at load time.
  */
-callTypeCast(value, property) {
+interceptedTypeCast(value, property) {
   if (value == null
       || ((JS('bool', 'typeof # === "object"', value))
-          && JS('bool', '#[#]()', getInterceptor(value), property))) {
+          && JS('bool', '#[#]', getInterceptor(value), property))) {
     return value;
   }
   propertyTypeCastError(value, property);
@@ -1188,7 +1188,7 @@ numberOrStringSuperNativeTypeCheck(value, property) {
   if (value == null) return value;
   if (value is String) return value;
   if (value is num) return value;
-  if (JS('bool', '#[#]()', value, property)) return value;
+  if (JS('bool', '#[#]', getInterceptor(value), property)) return value;
   propertyTypeError(value, property);
 }
 
@@ -1196,7 +1196,7 @@ numberOrStringSuperNativeTypeCast(value, property) {
   if (value == null) return value;
   if (value is String) return value;
   if (value is num) return value;
-  if (JS('bool', '#[#]()', value, property)) return value;
+  if (JS('bool', '#[#]', getInterceptor(value), property)) return value;
   propertyTypeCastError(value, property);
 }
 
@@ -1219,13 +1219,13 @@ stringSuperTypeCast(value, property) {
 stringSuperNativeTypeCheck(value, property) {
   if (value == null) return value;
   if (value is String) return value;
-  if (JS('bool', '#[#]()', value, property)) return value;
+  if (JS('bool', '#[#]', getInterceptor(value), property)) return value;
   propertyTypeError(value, property);
 }
 
 stringSuperNativeTypeCast(value, property) {
   if (value is String || value == null) return value;
-  if (JS('bool', '#[#]()', value, property)) return value;
+  if (JS('bool', '#[#]', getInterceptor(value), property)) return value;
   propertyTypeCastError(value, property);
 }
 
@@ -1260,13 +1260,13 @@ listSuperTypeCast(value, property) {
 listSuperNativeTypeCheck(value, property) {
   if (value == null) return value;
   if (value is List) return value;
-  if (JS('bool', '#[#]()', value, property)) return value;
+  if (JS('bool', '#[#]', getInterceptor(value), property)) return value;
   propertyTypeError(value, property);
 }
 
 listSuperNativeTypeCast(value, property) {
   if (value is List || value == null) return value;
-  if (JS('bool', '#[#]()', value, property)) return value;
+  if (JS('bool', '#[#]', getInterceptor(value), property)) return value;
   propertyTypeCastError(value, property);
 }
 

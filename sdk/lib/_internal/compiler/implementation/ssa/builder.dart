@@ -2752,8 +2752,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                             HIs.VARIABLE_CHECK);
     } else if (RuntimeTypes.hasTypeArguments(type)) {
       Element element = type.element;
-      bool needsNativeCheck =
-          backend.emitter.nativeEmitter.requiresNativeIsCheck(element);
       Element helper = backend.getCheckSubtype();
       HInstruction helperCall = new HStatic(helper);
       add(helperCall);
@@ -2766,14 +2764,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // have a subclass.
       HInstruction asFieldName =
           addConstantString(node, backend.namer.substitutionName(element));
-      HInstruction native =
-          graph.addConstantBool(needsNativeCheck, constantSystem);
       List<HInstruction> inputs = <HInstruction>[helperCall,
                                                  expression,
                                                  isFieldName,
                                                  representations,
-                                                 asFieldName,
-                                                 native];
+                                                 asFieldName];
       HInstruction call = new HInvokeStatic(inputs, HType.BOOLEAN);
       add(call);
       instruction = new HIs(type, <HInstruction>[expression, call],

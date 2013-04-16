@@ -413,6 +413,12 @@ class NativeEmitter {
   }
 
   bool requiresNativeIsCheck(Element element) {
+    // TODO(sra): Remove this function.  It determines if a native type may
+    // satisfy a check against [element], in whcih case an interceptor must be
+    // used.  We should also use an interceptor if the check can't be satisfied
+    // by a native class in case we get a natibe instance that tries to spoof
+    // the type info.  i.e the criteria for whether or not to use an interceptor
+    // is whether the receiver can be native, not the type of the test.
     if (!element.isClass()) return false;
     ClassElement cls = element;
     if (cls.isNative()) return true;
@@ -425,27 +431,6 @@ class NativeEmitter {
     void addProperty(String name, jsAst.Expression value) {
       objectProperties.add(new jsAst.Property(js.string(name), value));
     }
-
-    // Because of native classes, we have to generate some is checks
-    // by calling a method, instead of accessing a property. So we
-    // attach to the JS Object prototype these methods that return
-    // false, and will be overridden by subclasses when they have to
-    // return true.
-    void emitIsChecks() {
-      for (ClassElement element in
-               Elements.sortedByPosition(emitter.checkedClasses)) {
-        if (!requiresNativeIsCheck(element)) continue;
-        if (element.isObject(compiler)) continue;
-        // Add function for the is-test.
-        String name = backend.namer.operatorIs(element);
-        addProperty(name,
-            js.fun([], js.return_(js('false'))));
-        // Add a function for the (trivial) substitution.
-        addProperty(backend.namer.substitutionName(element),
-                    js.fun([], js.return_(js('null'))));
-      }
-    }
-    emitIsChecks();
 
     if (!nativeClasses.isEmpty) {
       // If the native emitter has been asked to take care of the
