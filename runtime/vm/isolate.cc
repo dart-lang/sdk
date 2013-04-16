@@ -885,18 +885,28 @@ char* Isolate::DoStacktraceInterrupt(Dart_IsolateInterruptCallback cb) {
   if (status_sync == NULL) {
     status_sync = new Monitor();
   }
-  ScheduleInterrupts(Isolate::kVmStatusInterrupt);
-  {
-    MonitorLocker ml(status_sync);
-    if (stacktrace_ == NULL) {  // It may already be available.
-      ml.Wait();
+  if (is_runnable()) {
+    ScheduleInterrupts(Isolate::kVmStatusInterrupt);
+    {
+      MonitorLocker ml(status_sync);
+      if (stacktrace_ == NULL) {  // It may already be available.
+        ml.Wait(1000);
+      }
     }
+    SetVmStatsCallback(NULL);
   }
-  SetVmStatsCallback(NULL);
-  ASSERT(stacktrace_ != NULL);
-  // result is freed by VmStats::WebServer().
   char* result = stacktrace_;
   stacktrace_ = NULL;
+  if (result == NULL) {
+    // Return empty stack.
+    TextBuffer buffer(256);
+    buffer.Printf("{ \"handle\": \"0x%"Px64"\", \"stacktrace\": []}",
+                  reinterpret_cast<int64_t>(this));
+
+    result = strndup(buffer.buf(), buffer.length());
+  }
+  ASSERT(result != NULL);
+  // result is freed by VmStats::WebServer().
   return result;
 }
 
