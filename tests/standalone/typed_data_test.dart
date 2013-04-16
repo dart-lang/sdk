@@ -41,6 +41,32 @@ void testCreateClampedUint8TypedData() {
   }
 }
 
+void testCreateExternalClampedUint8TypedData() {
+  List typed_data;
+
+  typed_data = new Uint8ClampedList.transferable(0);
+  Expect.isTrue(typed_data is Uint8ClampedList);
+  Expect.isFalse(typed_data is Uint8List);
+  Expect.equals(0, typed_data.length);
+  Expect.equals(0, typed_data.lengthInBytes);
+
+  typed_data = new Uint8ClampedList.transferable(10);
+  Expect.equals(10, typed_data.length);
+  for (int i = 0; i < 10; i++) {
+    Expect.equals(0, typed_data[i]);
+  }
+
+  typed_data[0] = -1;
+  Expect.equals(0, typed_data[0]);
+
+  for (int i = 0; i < 10; i++) {
+    typed_data[i] = i + 250;
+  }
+  for (int i = 0; i < 10; i++) {
+    Expect.equals(i + 250 > 255 ? 255 : i + 250, typed_data[i]);
+  }
+}
+
 void testTypedDataRange(bool check_throws) {
   Int8List typed_data;
   typed_data = new Int8List(10);
@@ -115,6 +141,11 @@ void testClampedUnsignedTypedDataRange(bool check_throws) {
                                           check_throws);
 }
 
+void testExternalClampedUnsignedTypedDataRange(bool check_throws) {
+  testClampedUnsignedTypedDataRangeHelper(new Uint8ClampedList.transferable(10),
+                                          check_throws);
+}
+
 void testSetRangeHelper(typed_data) {
   List<int> list = [10, 11, 12];
   typed_data.setRange(0, 3, list);
@@ -138,7 +169,9 @@ void testSetRangeHelper(typed_data) {
 
 void testSetRange() {
   testSetRangeHelper(new Uint8List(3));
+  testSetRangeHelper(new Uint8List.transferable(3));
   testSetRangeHelper(new Uint8ClampedList(3));
+  testSetRangeHelper(new Uint8ClampedList.transferable(3));
 }
 
 void testIndexOutOfRangeHelper(typed_data) {
@@ -155,7 +188,9 @@ void testIndexOutOfRangeHelper(typed_data) {
 
 void testIndexOutOfRange() {
   testIndexOutOfRangeHelper(new Uint8List(3));
+  testIndexOutOfRangeHelper(new Uint8List.transferable(3));
   testIndexOutOfRangeHelper(new Uint8ClampedList(3));
+  testIndexOutOfRangeHelper(new Uint8ClampedList.transferable(3));
 }
 
 void testIndexOfHelper(list) {
@@ -178,8 +213,9 @@ void testIndexOfHelper(list) {
 }
 
 void testIndexOf() {
-  testIndexOfHelper(new Uint8List(10));
+  testIndexOfHelper(new Uint8List.transferable(10));
   testIndexOfHelper(new Uint8ClampedList(10));
+  testIndexOfHelper(new Uint8ClampedList.transferable(10));
 }
 
 void testGetAtIndex(TypedData list, num initial_value) {
@@ -307,9 +343,11 @@ main() {
   for (int i = 0; i < 2000; i++) {
     testCreateUint8TypedData();
     testCreateClampedUint8TypedData();
+    testCreateExternalClampedUint8TypedData();
     testTypedDataRange(false);
     testUnsignedTypedDataRange(false);
     testClampedUnsignedTypedDataRange(false);
+    testExternalClampedUnsignedTypedDataRange(false);
     testSetRange();
     testIndexOutOfRange();
     testIndexOf();
@@ -356,6 +394,7 @@ main() {
   }
   testTypedDataRange(true);
   testUnsignedTypedDataRange(true);
+  testExternalClampedUnsignedTypedDataRange(true);
   testViewCreation();
   testWhere();
   testCreationFromList();

@@ -116,6 +116,10 @@ main() {
     testLoadStore(list);
   }
 
+  list = new Float32x4List.transferable(8);
+  for (int i = 0; i < 3000; i++) {
+    testLoadStore(list);
+  }
   Float32List floatList = new Float32List(32);
   for (int i = 0; i < floatList.length; i++) {
     floatList[i] = i.toDouble();
