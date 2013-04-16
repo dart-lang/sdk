@@ -34,12 +34,12 @@ class Instrumentation {
   /**
    * A builder that will silently ignore all data and logging requests.
    */
-  static InstrumentationBuilder _NULL_INSTRUMENTATION_BUILDER = new InstrumentationBuilder_9();
+  static InstrumentationBuilder _NULL_INSTRUMENTATION_BUILDER = new InstrumentationBuilder_13();
   /**
    * An instrumentation logger that can be used when no other instrumentation logger has been
    * configured. This logger will silently ignore all data and logging requests.
    */
-  static InstrumentationLogger _NULL_LOGGER = new InstrumentationLogger_10();
+  static InstrumentationLogger _NULL_LOGGER = new InstrumentationLogger_14();
   /**
    * The current instrumentation logger.
    */
@@ -57,10 +57,20 @@ class Instrumentation {
    */
   static InstrumentationBuilder builder2(String name) => _CURRENT_LOGGER.createBuilder(name);
   /**
+   * Get the currently active instrumentation logger
+   */
+  static InstrumentationLogger get logger => _CURRENT_LOGGER;
+  /**
    * Return a builder that will silently ignore all data and logging requests.
    * @return the builder (not {@code null})
    */
   static InstrumentationBuilder get nullBuilder => _NULL_INSTRUMENTATION_BUILDER;
+  /**
+   * Is this instrumentation system currently configured to drop instrumentation data provided to
+   * it?
+   * @return
+   */
+  static bool isNullLogger() => identical(_CURRENT_LOGGER, _NULL_LOGGER);
   /**
    * Set the logger that should receive instrumentation information to the given logger.
    * @param logger the logger that should receive instrumentation information
@@ -74,7 +84,7 @@ class Instrumentation {
   Instrumentation() {
   }
 }
-class InstrumentationBuilder_9 implements InstrumentationBuilder {
+class InstrumentationBuilder_13 implements InstrumentationBuilder {
   InstrumentationBuilder data(String name, bool value) => this;
   InstrumentationBuilder data2(String name, int value) => this;
   InstrumentationBuilder data3(String name, String value) => this;
@@ -86,8 +96,9 @@ class InstrumentationBuilder_9 implements InstrumentationBuilder {
   InstrumentationBuilder metric2(String name, int value) => this;
   InstrumentationBuilder metric3(String name, String value) => this;
   InstrumentationBuilder metric4(String name, List<String> value) => this;
+  InstrumentationBuilder record(Exception exception) => this;
 }
-class InstrumentationLogger_10 implements InstrumentationLogger {
+class InstrumentationLogger_14 implements InstrumentationLogger {
   InstrumentationBuilder createBuilder(String name) => Instrumentation._NULL_INSTRUMENTATION_BUILDER;
 }
 /**
@@ -181,6 +192,14 @@ abstract class InstrumentationBuilder {
    * @return this builder
    */
   InstrumentationBuilder metric4(String name, List<String> value);
+  /**
+   * Append the given exception to the information being collected by this builder. The exception's
+   * class name is captured using {@link #metric(String,String)}. Other aspects of the exception
+   * may contain either user identifiable or contains user intellectual property (but is not
+   * guaranteed to contain either) and thus are captured using the various data methods such as{@link #data(String,String)}.
+   * @param exception the exception (may be {@code null})
+   */
+  InstrumentationBuilder record(Exception exception);
 }
 /**
  * The instrumentation recording level representing (1) recording {@link #EVERYTHING} recording of
@@ -188,7 +207,7 @@ abstract class InstrumentationBuilder {
  * turned {@link #OFF} in which case nothing is recorded.
  * @coverage dart.engine.utilities
  */
-class InstrumentationLevel {
+class InstrumentationLevel implements Comparable<InstrumentationLevel> {
   /**
    * Recording all instrumented information
    */
@@ -219,6 +238,7 @@ class InstrumentationLevel {
   }
   InstrumentationLevel(this.__name, this.__ordinal) {
   }
+  int compareTo(InstrumentationLevel other) => __ordinal - other.__ordinal;
   String toString() => __name;
 }
 /**

@@ -5,6 +5,7 @@ library engine.source;
 
 import 'dart:uri';
 import 'java_core.dart';
+import 'sdk.dart' show DartSdk;
 import 'engine.dart' show AnalysisContext;
 
 /**
@@ -26,14 +27,14 @@ class SourceFactory {
   ContentCache _contentCache;
   /**
    * Initialize a newly created source factory.
-   * @param contentCache the cache holding content used to override the default content of a source.
+   * @param contentCache the cache holding content used to override the default content of a source
    * @param resolvers the resolvers used to resolve absolute URI's
    */
-  SourceFactory.con1(ContentCache contentCache2, List<UriResolver> resolvers2) {
-    _jtd_constructor_306_impl(contentCache2, resolvers2);
+  SourceFactory.con1(ContentCache contentCache3, List<UriResolver> resolvers2) {
+    _jtd_constructor_332_impl(contentCache3, resolvers2);
   }
-  _jtd_constructor_306_impl(ContentCache contentCache2, List<UriResolver> resolvers2) {
-    this._contentCache = contentCache2;
+  _jtd_constructor_332_impl(ContentCache contentCache3, List<UriResolver> resolvers2) {
+    this._contentCache = contentCache3;
     this._resolvers = resolvers2;
   }
   /**
@@ -41,10 +42,10 @@ class SourceFactory {
    * @param resolvers the resolvers used to resolve absolute URI's
    */
   SourceFactory.con2(List<UriResolver> resolvers) {
-    _jtd_constructor_307_impl(resolvers);
+    _jtd_constructor_333_impl(resolvers);
   }
-  _jtd_constructor_307_impl(List<UriResolver> resolvers) {
-    _jtd_constructor_306_impl(new ContentCache(), resolvers);
+  _jtd_constructor_333_impl(List<UriResolver> resolvers) {
+    _jtd_constructor_332_impl(new ContentCache(), resolvers);
   }
   /**
    * Return a source object representing the given absolute URI, or {@code null} if the URI is not a
@@ -70,10 +71,30 @@ class SourceFactory {
    */
   Source fromEncoding(String encoding) => forUri(encoding);
   /**
+   * Return a cache of content used to override the default content of a source.
+   * @return a cache of content used to override the default content of a source
+   */
+  ContentCache get contentCache => _contentCache;
+  /**
    * Return the analysis context that this source factory is associated with.
    * @return the analysis context that this source factory is associated with
    */
   AnalysisContext get context => _context;
+  /**
+   * Return the {@link DartSdk} associated with this {@link SourceFactory}, or {@code null} if there
+   * is no such SDK.
+   * @return the {@link DartSdk} associated with this {@link SourceFactory}, or {@code null} if
+   * there is no such SDK
+   */
+  DartSdk get dartSdk {
+    for (UriResolver resolver in _resolvers) {
+      if (resolver is DartUriResolver) {
+        DartUriResolver dartUriResolver = resolver as DartUriResolver;
+        return dartUriResolver.dartSdk;
+      }
+    }
+    return null;
+  }
   /**
    * Return a source object representing the URI that results from resolving the given (possibly
    * relative) contained URI against the URI associated with an existing source object, or{@code null} if either the contained URI is invalid or if it cannot be resolved against the
@@ -138,7 +159,7 @@ class SourceFactory {
   Source resolveUri2(Source containingSource, Uri containedUri) {
     if (containedUri.isAbsolute) {
       for (UriResolver resolver in _resolvers) {
-        Source result = resolver.resolveAbsolute(this, containedUri);
+        Source result = resolver.resolveAbsolute(_contentCache, containedUri);
         if (result != null) {
           return result;
         }
@@ -164,10 +185,11 @@ abstract class UriResolver {
   /**
    * Resolve the given absolute URI. Return a {@link Source source} representing the file to which
    * it was resolved, or {@code null} if it could not be resolved.
+   * @param contentCache the content cache used to access the contents of the returned source
    * @param uri the URI to be resolved
    * @return a {@link Source source} representing the URI to which given URI was resolved
    */
-  Source resolveAbsolute(SourceFactory factory, Uri uri);
+  Source resolveAbsolute(ContentCache contentCache, Uri uri);
 }
 /**
  * The interface {@code Source} defines the behavior of objects representing source code that can be
@@ -193,11 +215,6 @@ abstract class Source {
    * @return {@code true} if this source exists
    */
   bool exists();
-  /**
-   * Return the analysis context in which this source is defined.
-   * @return the analysis context in which this source is defined
-   */
-  AnalysisContext get context;
   /**
    * Get the contents of this source and pass it to the given receiver. Exactly one of the methods
    * defined on the receiver will be invoked unless an exception is thrown. The method that will be
@@ -248,12 +265,6 @@ abstract class Source {
    */
   bool isInSystemLibrary();
   /**
-   * Resolve the given URI relative to the location of this source.
-   * @param uri the URI to be resolved against this source
-   * @return a source representing the resolved URI
-   */
-  Source resolve(String uri);
-  /**
    * Resolve the relative URI against the URI associated with this source object. Return a{@link Source source} representing the URI to which it was resolved, or {@code null} if it
    * could not be resolved.
    * <p>
@@ -275,20 +286,22 @@ abstract class Source_ContentReceiver {
   /**
    * Accept the contents of a source represented as a character buffer.
    * @param contents the contents of the source
+   * @param modificationTime the time at which the contents were last set
    */
-  accept(CharBuffer contents);
+  void accept(CharBuffer contents, int modificationTime);
   /**
    * Accept the contents of a source represented as a string.
    * @param contents the contents of the source
+   * @param modificationTime the time at which the contents were last set
    */
-  void accept2(String contents);
+  void accept2(String contents, int modificationTime);
 }
 /**
  * The enumeration {@code SourceKind} defines the different kinds of sources that are known to the
  * analysis engine.
  * @coverage dart.engine.source
  */
-class SourceKind {
+class SourceKind implements Comparable<SourceKind> {
   /**
    * A source containing HTML. The HTML might or might not contain Dart scripts.
    */
@@ -314,6 +327,7 @@ class SourceKind {
   int get ordinal => __ordinal;
   SourceKind(this.__name, this.__ordinal) {
   }
+  int compareTo(SourceKind other) => __ordinal - other.__ordinal;
   String toString() => __name;
 }
 /**
@@ -341,23 +355,23 @@ class SourceRange {
     this._length = length;
   }
   /**
-   * @return <code>true</code> if <code>x</code> is in [offset, offset + length) interval.
+   * @return {@code true} if <code>x</code> is in [offset, offset + length) interval.
    */
   bool contains(int x) => _offset <= x && x < _offset + _length;
   /**
-   * @return <code>true</code> if <code>x</code> is in (offset, offset + length) interval.
+   * @return {@code true} if <code>x</code> is in (offset, offset + length) interval.
    */
   bool containsExclusive(int x) => _offset < x && x < _offset + _length;
   /**
-   * @return <code>true</code> if <code>otherRange</code> covers this {@link SourceRange}.
+   * @return {@code true} if <code>otherRange</code> covers this {@link SourceRange}.
    */
   bool coveredBy(SourceRange otherRange) => otherRange.covers(this);
   /**
-   * @return <code>true</code> if this {@link SourceRange} covers <code>otherRange</code>.
+   * @return {@code true} if this {@link SourceRange} covers <code>otherRange</code>.
    */
   bool covers(SourceRange otherRange) => offset <= otherRange.offset && otherRange.end <= end;
   /**
-   * @return <code>true</code> if this {@link SourceRange} ends in <code>otherRange</code>.
+   * @return {@code true} if this {@link SourceRange} ends in <code>otherRange</code>.
    */
   bool endsIn(SourceRange otherRange) {
     int thisEnd = end;
@@ -399,7 +413,7 @@ class SourceRange {
   int get offset => _offset;
   int get hashCode => 31 * _offset + _length;
   /**
-   * @return <code>true</code> if this {@link SourceRange} intersects with given.
+   * @return {@code true} if this {@link SourceRange} intersects with given.
    */
   bool intersects(SourceRange other) {
     if (other == null) {
@@ -414,7 +428,7 @@ class SourceRange {
     return true;
   }
   /**
-   * @return <code>true</code> if this {@link SourceRange} starts in <code>otherRange</code>.
+   * @return {@code true} if this {@link SourceRange} starts in <code>otherRange</code>.
    */
   bool startsIn(SourceRange otherRange) => otherRange.contains(_offset);
   String toString() {
@@ -443,6 +457,45 @@ abstract class SourceContainer {
    * @return {@code true} if the receiver contains the source, else {@code false}
    */
   bool contains(Source source);
+}
+/**
+ * Instances of the class {@code DartUriResolver} resolve {@code dart} URI's.
+ * @coverage dart.engine.source
+ */
+class DartUriResolver extends UriResolver {
+  /**
+   * The Dart SDK against which URI's are to be resolved.
+   */
+  DartSdk _sdk;
+  /**
+   * The name of the {@code dart} scheme.
+   */
+  static String _DART_SCHEME = "dart";
+  /**
+   * Return {@code true} if the given URI is a {@code dart:} URI.
+   * @param uri the URI being tested
+   * @return {@code true} if the given URI is a {@code dart:} URI
+   */
+  static bool isDartUri(Uri uri) => uri.scheme == _DART_SCHEME;
+  /**
+   * Initialize a newly created resolver to resolve Dart URI's against the given platform within the
+   * given Dart SDK.
+   * @param sdk the Dart SDK against which URI's are to be resolved
+   */
+  DartUriResolver(DartSdk sdk) {
+    this._sdk = sdk;
+  }
+  /**
+   * Return the {@link DartSdk} against which URIs are to be resolved.
+   * @return the {@link DartSdk} against which URIs are to be resolved.
+   */
+  DartSdk get dartSdk => _sdk;
+  Source resolveAbsolute(ContentCache contentCache, Uri uri) {
+    if (!isDartUri(uri)) {
+      return null;
+    }
+    return _sdk.mapDartUri(contentCache, uri.toString());
+  }
 }
 /**
  * Instances of the class {@code LineInfo} encapsulate information about line and column information

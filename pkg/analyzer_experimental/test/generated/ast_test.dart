@@ -53,62 +53,62 @@ class NodeLocatorTest extends ParserTestCase {
 }
 class IndexExpressionTest extends EngineTestCase {
   void test_inGetterContext_assignment_compound_left() {
-    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier2("a"), ASTFactory.identifier2("b"));
+    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier3("a"), ASTFactory.identifier3("b"));
     ASTFactory.assignmentExpression(expression, TokenType.PLUS_EQ, null);
     JUnitTestCase.assertTrue(expression.inGetterContext());
   }
   void test_inGetterContext_assignment_simple_left() {
-    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier2("a"), ASTFactory.identifier2("b"));
+    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier3("a"), ASTFactory.identifier3("b"));
     ASTFactory.assignmentExpression(expression, TokenType.EQ, null);
     JUnitTestCase.assertFalse(expression.inGetterContext());
   }
   void test_inGetterContext_nonAssignment() {
-    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier2("a"), ASTFactory.identifier2("b"));
+    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier3("a"), ASTFactory.identifier3("b"));
     ASTFactory.binaryExpression(expression, TokenType.PLUS, null);
     JUnitTestCase.assertTrue(expression.inGetterContext());
   }
   void test_inSetterContext_assignment_compound_left() {
-    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier2("a"), ASTFactory.identifier2("b"));
+    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier3("a"), ASTFactory.identifier3("b"));
     ASTFactory.assignmentExpression(expression, TokenType.PLUS_EQ, null);
     JUnitTestCase.assertTrue(expression.inSetterContext());
   }
   void test_inSetterContext_assignment_compound_right() {
-    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier2("a"), ASTFactory.identifier2("b"));
+    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier3("a"), ASTFactory.identifier3("b"));
     ASTFactory.assignmentExpression(null, TokenType.PLUS_EQ, expression);
     JUnitTestCase.assertFalse(expression.inSetterContext());
   }
   void test_inSetterContext_assignment_simple_left() {
-    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier2("a"), ASTFactory.identifier2("b"));
+    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier3("a"), ASTFactory.identifier3("b"));
     ASTFactory.assignmentExpression(expression, TokenType.EQ, null);
     JUnitTestCase.assertTrue(expression.inSetterContext());
   }
   void test_inSetterContext_assignment_simple_right() {
-    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier2("a"), ASTFactory.identifier2("b"));
+    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier3("a"), ASTFactory.identifier3("b"));
     ASTFactory.assignmentExpression(null, TokenType.EQ, expression);
     JUnitTestCase.assertFalse(expression.inSetterContext());
   }
   void test_inSetterContext_nonAssignment() {
-    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier2("a"), ASTFactory.identifier2("b"));
+    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier3("a"), ASTFactory.identifier3("b"));
     ASTFactory.binaryExpression(expression, TokenType.PLUS, null);
     JUnitTestCase.assertFalse(expression.inSetterContext());
   }
   void test_inSetterContext_postfix() {
-    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier2("a"), ASTFactory.identifier2("b"));
+    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier3("a"), ASTFactory.identifier3("b"));
     ASTFactory.postfixExpression(expression, TokenType.PLUS_PLUS);
     JUnitTestCase.assertTrue(expression.inSetterContext());
   }
   void test_inSetterContext_prefix_bang() {
-    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier2("a"), ASTFactory.identifier2("b"));
+    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier3("a"), ASTFactory.identifier3("b"));
     ASTFactory.prefixExpression(TokenType.BANG, expression);
     JUnitTestCase.assertFalse(expression.inSetterContext());
   }
   void test_inSetterContext_prefix_minusMinus() {
-    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier2("a"), ASTFactory.identifier2("b"));
+    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier3("a"), ASTFactory.identifier3("b"));
     ASTFactory.prefixExpression(TokenType.MINUS_MINUS, expression);
     JUnitTestCase.assertTrue(expression.inSetterContext());
   }
   void test_inSetterContext_prefix_plusPlus() {
-    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier2("a"), ASTFactory.identifier2("b"));
+    IndexExpression expression = ASTFactory.indexExpression(ASTFactory.identifier3("a"), ASTFactory.identifier3("b"));
     ASTFactory.prefixExpression(TokenType.PLUS_PLUS, expression);
     JUnitTestCase.assertTrue(expression.inSetterContext());
   }
@@ -181,7 +181,7 @@ class ASTFactory {
   static AdjacentStrings adjacentStrings(List<StringLiteral> strings) => new AdjacentStrings.full(list(strings));
   static Annotation annotation(Identifier name) => new Annotation.full(TokenFactory.token3(TokenType.AT), name, null, null, null);
   static Annotation annotation2(Identifier name, SimpleIdentifier constructorName, ArgumentList arguments) => new Annotation.full(TokenFactory.token3(TokenType.AT), name, TokenFactory.token3(TokenType.PERIOD), constructorName, arguments);
-  static ArgumentDefinitionTest argumentDefinitionTest(String identifier) => new ArgumentDefinitionTest.full(TokenFactory.token3(TokenType.QUESTION), identifier2(identifier));
+  static ArgumentDefinitionTest argumentDefinitionTest(String identifier) => new ArgumentDefinitionTest.full(TokenFactory.token3(TokenType.QUESTION), identifier3(identifier));
   static ArgumentList argumentList(List<Expression> arguments) => new ArgumentList.full(TokenFactory.token3(TokenType.OPEN_PAREN), list(arguments), TokenFactory.token3(TokenType.CLOSE_PAREN));
   static AsExpression asExpression(Expression expression, TypeName type) => new AsExpression.full(expression, TokenFactory.token(Keyword.AS), type);
   static AssertStatement assertStatement(Expression condition) => new AssertStatement.full(TokenFactory.token(Keyword.ASSERT), TokenFactory.token3(TokenType.OPEN_PAREN), condition, TokenFactory.token3(TokenType.CLOSE_PAREN), TokenFactory.token3(TokenType.SEMICOLON));
@@ -191,18 +191,18 @@ class ASTFactory {
   static BlockFunctionBody blockFunctionBody(List<Statement> statements) => new BlockFunctionBody.full(block(statements));
   static BooleanLiteral booleanLiteral(bool value) => new BooleanLiteral.full(value ? TokenFactory.token(Keyword.TRUE) : TokenFactory.token(Keyword.FALSE), value);
   static BreakStatement breakStatement() => new BreakStatement.full(TokenFactory.token(Keyword.BREAK), null, TokenFactory.token3(TokenType.SEMICOLON));
-  static BreakStatement breakStatement2(String label) => new BreakStatement.full(TokenFactory.token(Keyword.BREAK), identifier2(label), TokenFactory.token3(TokenType.SEMICOLON));
+  static BreakStatement breakStatement2(String label) => new BreakStatement.full(TokenFactory.token(Keyword.BREAK), identifier3(label), TokenFactory.token3(TokenType.SEMICOLON));
   static IndexExpression cascadedIndexExpression(Expression index) => new IndexExpression.forCascade_full(TokenFactory.token3(TokenType.PERIOD_PERIOD), TokenFactory.token3(TokenType.OPEN_SQUARE_BRACKET), index, TokenFactory.token3(TokenType.CLOSE_SQUARE_BRACKET));
-  static MethodInvocation cascadedMethodInvocation(String methodName, List<Expression> arguments) => new MethodInvocation.full(null, TokenFactory.token3(TokenType.PERIOD_PERIOD), identifier2(methodName), argumentList(arguments));
-  static PropertyAccess cascadedPropertyAccess(String propertyName) => new PropertyAccess.full(null, TokenFactory.token3(TokenType.PERIOD_PERIOD), identifier2(propertyName));
+  static MethodInvocation cascadedMethodInvocation(String methodName, List<Expression> arguments) => new MethodInvocation.full(null, TokenFactory.token3(TokenType.PERIOD_PERIOD), identifier3(methodName), argumentList(arguments));
+  static PropertyAccess cascadedPropertyAccess(String propertyName) => new PropertyAccess.full(null, TokenFactory.token3(TokenType.PERIOD_PERIOD), identifier3(propertyName));
   static CascadeExpression cascadeExpression(Expression target, List<Expression> cascadeSections) => new CascadeExpression.full(target, list(cascadeSections));
   static CatchClause catchClause(String exceptionParameter, List<Statement> statements) => catchClause5(null, exceptionParameter, null, statements);
   static CatchClause catchClause2(String exceptionParameter, String stackTraceParameter, List<Statement> statements) => catchClause5(null, exceptionParameter, stackTraceParameter, statements);
   static CatchClause catchClause3(TypeName exceptionType, List<Statement> statements) => catchClause5(exceptionType, null, null, statements);
   static CatchClause catchClause4(TypeName exceptionType, String exceptionParameter, List<Statement> statements) => catchClause5(exceptionType, exceptionParameter, null, statements);
-  static CatchClause catchClause5(TypeName exceptionType, String exceptionParameter, String stackTraceParameter, List<Statement> statements) => new CatchClause.full(exceptionType == null ? null : TokenFactory.token4(TokenType.IDENTIFIER, "on"), exceptionType, exceptionParameter == null ? null : TokenFactory.token(Keyword.CATCH), exceptionParameter == null ? null : TokenFactory.token3(TokenType.OPEN_PAREN), identifier2(exceptionParameter), stackTraceParameter == null ? null : TokenFactory.token3(TokenType.COMMA), stackTraceParameter == null ? null : identifier2(stackTraceParameter), exceptionParameter == null ? null : TokenFactory.token3(TokenType.CLOSE_PAREN), block(statements));
-  static ClassDeclaration classDeclaration(Keyword abstractKeyword, String name, TypeParameterList typeParameters, ExtendsClause extendsClause, WithClause withClause, ImplementsClause implementsClause, List<ClassMember> members) => new ClassDeclaration.full(null, null, abstractKeyword == null ? null : TokenFactory.token(abstractKeyword), TokenFactory.token(Keyword.CLASS), identifier2(name), typeParameters, extendsClause, withClause, implementsClause, TokenFactory.token3(TokenType.OPEN_CURLY_BRACKET), list(members), TokenFactory.token3(TokenType.CLOSE_CURLY_BRACKET));
-  static ClassTypeAlias classTypeAlias(String name, TypeParameterList typeParameters, Keyword abstractKeyword, TypeName superclass, WithClause withClause, ImplementsClause implementsClause) => new ClassTypeAlias.full(null, null, TokenFactory.token(Keyword.TYPEDEF), identifier2(name), typeParameters, TokenFactory.token3(TokenType.EQ), abstractKeyword == null ? null : TokenFactory.token(abstractKeyword), superclass, withClause, implementsClause, TokenFactory.token3(TokenType.SEMICOLON));
+  static CatchClause catchClause5(TypeName exceptionType, String exceptionParameter, String stackTraceParameter, List<Statement> statements) => new CatchClause.full(exceptionType == null ? null : TokenFactory.token4(TokenType.IDENTIFIER, "on"), exceptionType, exceptionParameter == null ? null : TokenFactory.token(Keyword.CATCH), exceptionParameter == null ? null : TokenFactory.token3(TokenType.OPEN_PAREN), identifier3(exceptionParameter), stackTraceParameter == null ? null : TokenFactory.token3(TokenType.COMMA), stackTraceParameter == null ? null : identifier3(stackTraceParameter), exceptionParameter == null ? null : TokenFactory.token3(TokenType.CLOSE_PAREN), block(statements));
+  static ClassDeclaration classDeclaration(Keyword abstractKeyword, String name, TypeParameterList typeParameters, ExtendsClause extendsClause, WithClause withClause, ImplementsClause implementsClause, List<ClassMember> members) => new ClassDeclaration.full(null, null, abstractKeyword == null ? null : TokenFactory.token(abstractKeyword), TokenFactory.token(Keyword.CLASS), identifier3(name), typeParameters, extendsClause, withClause, implementsClause, TokenFactory.token3(TokenType.OPEN_CURLY_BRACKET), list(members), TokenFactory.token3(TokenType.CLOSE_CURLY_BRACKET));
+  static ClassTypeAlias classTypeAlias(String name, TypeParameterList typeParameters, Keyword abstractKeyword, TypeName superclass, WithClause withClause, ImplementsClause implementsClause) => new ClassTypeAlias.full(null, null, TokenFactory.token(Keyword.TYPEDEF), identifier3(name), typeParameters, TokenFactory.token3(TokenType.EQ), abstractKeyword == null ? null : TokenFactory.token(abstractKeyword), superclass, withClause, implementsClause, TokenFactory.token3(TokenType.SEMICOLON));
   static CompilationUnit compilationUnit() => compilationUnit8(null, null, null);
   static CompilationUnit compilationUnit2(List<CompilationUnitMember> declarations) => compilationUnit8(null, null, list(declarations));
   static CompilationUnit compilationUnit3(List<Directive> directives) => compilationUnit8(null, list(directives), null);
@@ -212,14 +212,14 @@ class ASTFactory {
   static CompilationUnit compilationUnit7(String scriptTag, List<Directive> directives) => compilationUnit8(scriptTag, list(directives), null);
   static CompilationUnit compilationUnit8(String scriptTag4, List<Directive> directives, List<CompilationUnitMember> declarations) => new CompilationUnit.full(TokenFactory.token3(TokenType.EOF), scriptTag4 == null ? null : scriptTag(scriptTag4), directives == null ? new List<Directive>() : directives, declarations == null ? new List<CompilationUnitMember>() : declarations, TokenFactory.token3(TokenType.EOF));
   static ConditionalExpression conditionalExpression(Expression condition, Expression thenExpression, Expression elseExpression) => new ConditionalExpression.full(condition, TokenFactory.token3(TokenType.QUESTION), thenExpression, TokenFactory.token3(TokenType.COLON), elseExpression);
-  static ConstructorDeclaration constructorDeclaration(Identifier returnType, String name, FormalParameterList parameters, List<ConstructorInitializer> initializers) => new ConstructorDeclaration.full(null, null, TokenFactory.token(Keyword.EXTERNAL), null, null, returnType, name == null ? null : TokenFactory.token3(TokenType.PERIOD), name == null ? null : identifier2(name), parameters, initializers == null || initializers.isEmpty ? null : TokenFactory.token3(TokenType.PERIOD), initializers == null ? new List<ConstructorInitializer>() : initializers, null, emptyFunctionBody());
-  static ConstructorDeclaration constructorDeclaration2(Keyword constKeyword, Keyword factoryKeyword, Identifier returnType, String name, FormalParameterList parameters, List<ConstructorInitializer> initializers, FunctionBody body) => new ConstructorDeclaration.full(null, null, null, constKeyword == null ? null : TokenFactory.token(constKeyword), factoryKeyword == null ? null : TokenFactory.token(factoryKeyword), returnType, name == null ? null : TokenFactory.token3(TokenType.PERIOD), name == null ? null : identifier2(name), parameters, initializers == null || initializers.isEmpty ? null : TokenFactory.token3(TokenType.PERIOD), initializers == null ? new List<ConstructorInitializer>() : initializers, null, body);
-  static ConstructorFieldInitializer constructorFieldInitializer(bool prefixedWithThis, String fieldName, Expression expression) => new ConstructorFieldInitializer.full(prefixedWithThis ? TokenFactory.token(Keyword.THIS) : null, prefixedWithThis ? TokenFactory.token3(TokenType.PERIOD) : null, identifier2(fieldName), TokenFactory.token3(TokenType.EQ), expression);
-  static ConstructorName constructorName(TypeName type, String name) => new ConstructorName.full(type, name == null ? null : TokenFactory.token3(TokenType.PERIOD), name == null ? null : identifier2(name));
+  static ConstructorDeclaration constructorDeclaration(Identifier returnType, String name, FormalParameterList parameters, List<ConstructorInitializer> initializers) => new ConstructorDeclaration.full(null, null, TokenFactory.token(Keyword.EXTERNAL), null, null, returnType, name == null ? null : TokenFactory.token3(TokenType.PERIOD), name == null ? null : identifier3(name), parameters, initializers == null || initializers.isEmpty ? null : TokenFactory.token3(TokenType.PERIOD), initializers == null ? new List<ConstructorInitializer>() : initializers, null, emptyFunctionBody());
+  static ConstructorDeclaration constructorDeclaration2(Keyword constKeyword, Keyword factoryKeyword, Identifier returnType, String name, FormalParameterList parameters, List<ConstructorInitializer> initializers, FunctionBody body) => new ConstructorDeclaration.full(null, null, null, constKeyword == null ? null : TokenFactory.token(constKeyword), factoryKeyword == null ? null : TokenFactory.token(factoryKeyword), returnType, name == null ? null : TokenFactory.token3(TokenType.PERIOD), name == null ? null : identifier3(name), parameters, initializers == null || initializers.isEmpty ? null : TokenFactory.token3(TokenType.PERIOD), initializers == null ? new List<ConstructorInitializer>() : initializers, null, body);
+  static ConstructorFieldInitializer constructorFieldInitializer(bool prefixedWithThis, String fieldName, Expression expression) => new ConstructorFieldInitializer.full(prefixedWithThis ? TokenFactory.token(Keyword.THIS) : null, prefixedWithThis ? TokenFactory.token3(TokenType.PERIOD) : null, identifier3(fieldName), TokenFactory.token3(TokenType.EQ), expression);
+  static ConstructorName constructorName(TypeName type, String name) => new ConstructorName.full(type, name == null ? null : TokenFactory.token3(TokenType.PERIOD), name == null ? null : identifier3(name));
   static ContinueStatement continueStatement() => new ContinueStatement.full(TokenFactory.token(Keyword.CONTINUE), null, TokenFactory.token3(TokenType.SEMICOLON));
-  static ContinueStatement continueStatement2(String label) => new ContinueStatement.full(TokenFactory.token(Keyword.CONTINUE), identifier2(label), TokenFactory.token3(TokenType.SEMICOLON));
+  static ContinueStatement continueStatement2(String label) => new ContinueStatement.full(TokenFactory.token(Keyword.CONTINUE), identifier3(label), TokenFactory.token3(TokenType.SEMICOLON));
   static DeclaredIdentifier declaredIdentifier(Keyword keyword, String identifier) => declaredIdentifier2(keyword, null, identifier);
-  static DeclaredIdentifier declaredIdentifier2(Keyword keyword, TypeName type, String identifier) => new DeclaredIdentifier.full(null, null, keyword == null ? null : TokenFactory.token(keyword), type, identifier2(identifier));
+  static DeclaredIdentifier declaredIdentifier2(Keyword keyword, TypeName type, String identifier) => new DeclaredIdentifier.full(null, null, keyword == null ? null : TokenFactory.token(keyword), type, identifier3(identifier));
   static DeclaredIdentifier declaredIdentifier3(String identifier) => declaredIdentifier2(null, null, identifier);
   static DeclaredIdentifier declaredIdentifier4(TypeName type, String identifier) => declaredIdentifier2(null, type, identifier);
   static DoStatement doStatement(Statement body, Expression condition) => new DoStatement.full(TokenFactory.token(Keyword.DO), body, TokenFactory.token(Keyword.WHILE), TokenFactory.token3(TokenType.OPEN_PAREN), condition, TokenFactory.token3(TokenType.CLOSE_PAREN), TokenFactory.token3(TokenType.SEMICOLON));
@@ -233,44 +233,46 @@ class ASTFactory {
   static ExtendsClause extendsClause(TypeName type) => new ExtendsClause.full(TokenFactory.token(Keyword.EXTENDS), type);
   static FieldDeclaration fieldDeclaration(bool isStatic, Keyword keyword, TypeName type, List<VariableDeclaration> variables) => new FieldDeclaration.full(null, null, isStatic ? TokenFactory.token(Keyword.STATIC) : null, variableDeclarationList(keyword, type, variables), TokenFactory.token3(TokenType.SEMICOLON));
   static FieldDeclaration fieldDeclaration2(bool isStatic, Keyword keyword, List<VariableDeclaration> variables) => fieldDeclaration(isStatic, keyword, null, variables);
-  static FieldFormalParameter fieldFormalParameter(Keyword keyword, TypeName type, String identifier) => new FieldFormalParameter.full(null, null, keyword == null ? null : TokenFactory.token(keyword), type, TokenFactory.token(Keyword.THIS), TokenFactory.token3(TokenType.PERIOD), identifier2(identifier));
+  static FieldFormalParameter fieldFormalParameter(Keyword keyword, TypeName type, String identifier) => new FieldFormalParameter.full(null, null, keyword == null ? null : TokenFactory.token(keyword), type, TokenFactory.token(Keyword.THIS), TokenFactory.token3(TokenType.PERIOD), identifier3(identifier));
+  static FieldFormalParameter fieldFormalParameter2(String identifier) => fieldFormalParameter(null, null, identifier);
   static ForEachStatement forEachStatement(DeclaredIdentifier loopVariable, Expression iterator, Statement body) => new ForEachStatement.full(TokenFactory.token(Keyword.FOR), TokenFactory.token3(TokenType.OPEN_PAREN), loopVariable, TokenFactory.token(Keyword.IN), iterator, TokenFactory.token3(TokenType.CLOSE_PAREN), body);
   static FormalParameterList formalParameterList(List<FormalParameter> parameters) => new FormalParameterList.full(TokenFactory.token3(TokenType.OPEN_PAREN), list(parameters), null, null, TokenFactory.token3(TokenType.CLOSE_PAREN));
   static ForStatement forStatement(Expression initialization, Expression condition, List<Expression> updaters, Statement body) => new ForStatement.full(TokenFactory.token(Keyword.FOR), TokenFactory.token3(TokenType.OPEN_PAREN), null, initialization, TokenFactory.token3(TokenType.SEMICOLON), condition, TokenFactory.token3(TokenType.SEMICOLON), updaters, TokenFactory.token3(TokenType.CLOSE_PAREN), body);
   static ForStatement forStatement2(VariableDeclarationList variableList, Expression condition, List<Expression> updaters, Statement body) => new ForStatement.full(TokenFactory.token(Keyword.FOR), TokenFactory.token3(TokenType.OPEN_PAREN), variableList, null, TokenFactory.token3(TokenType.SEMICOLON), condition, TokenFactory.token3(TokenType.SEMICOLON), updaters, TokenFactory.token3(TokenType.CLOSE_PAREN), body);
-  static FunctionDeclaration functionDeclaration(TypeName type, Keyword keyword, String name, FunctionExpression functionExpression) => new FunctionDeclaration.full(null, null, null, type, keyword == null ? null : TokenFactory.token(keyword), identifier2(name), functionExpression);
+  static FunctionDeclaration functionDeclaration(TypeName type, Keyword keyword, String name, FunctionExpression functionExpression) => new FunctionDeclaration.full(null, null, null, type, keyword == null ? null : TokenFactory.token(keyword), identifier3(name), functionExpression);
   static FunctionDeclarationStatement functionDeclarationStatement(TypeName type, Keyword keyword, String name, FunctionExpression functionExpression) => new FunctionDeclarationStatement.full(functionDeclaration(type, keyword, name, functionExpression));
   static FunctionExpression functionExpression() => new FunctionExpression.full(formalParameterList([]), blockFunctionBody([]));
   static FunctionExpression functionExpression2(FormalParameterList parameters, FunctionBody body) => new FunctionExpression.full(parameters, body);
   static FunctionExpressionInvocation functionExpressionInvocation(Expression function, List<Expression> arguments) => new FunctionExpressionInvocation.full(function, argumentList(arguments));
-  static FunctionTypedFormalParameter functionTypedFormalParameter(TypeName returnType, String identifier, List<FormalParameter> parameters) => new FunctionTypedFormalParameter.full(null, null, returnType, identifier2(identifier), formalParameterList(parameters));
+  static FunctionTypedFormalParameter functionTypedFormalParameter(TypeName returnType, String identifier, List<FormalParameter> parameters) => new FunctionTypedFormalParameter.full(null, null, returnType, identifier3(identifier), formalParameterList(parameters));
   static HideCombinator hideCombinator(List<SimpleIdentifier> identifiers) => new HideCombinator.full(TokenFactory.token2("hide"), list(identifiers));
   static HideCombinator hideCombinator2(List<String> identifiers) {
     List<SimpleIdentifier> identifierList = new List<SimpleIdentifier>();
     for (String identifier in identifiers) {
-      identifierList.add(identifier2(identifier));
+      identifierList.add(identifier3(identifier));
     }
     return new HideCombinator.full(TokenFactory.token2("hide"), identifierList);
   }
-  static PrefixedIdentifier identifier(SimpleIdentifier prefix, SimpleIdentifier identifier10) => new PrefixedIdentifier.full(prefix, TokenFactory.token3(TokenType.PERIOD), identifier10);
-  static SimpleIdentifier identifier2(String lexeme) => new SimpleIdentifier.full(TokenFactory.token4(TokenType.IDENTIFIER, lexeme));
-  static PrefixedIdentifier identifier3(String prefix, SimpleIdentifier identifier) => new PrefixedIdentifier.full(identifier2(prefix), TokenFactory.token3(TokenType.PERIOD), identifier);
-  static PrefixedIdentifier identifier4(String prefix, String identifier) => new PrefixedIdentifier.full(identifier2(prefix), TokenFactory.token3(TokenType.PERIOD), identifier2(identifier));
+  static PrefixedIdentifier identifier(SimpleIdentifier prefix, SimpleIdentifier identifier11) => new PrefixedIdentifier.full(prefix, TokenFactory.token3(TokenType.PERIOD), identifier11);
+  static SimpleIdentifier identifier3(String lexeme) => new SimpleIdentifier.full(TokenFactory.token4(TokenType.IDENTIFIER, lexeme));
+  static PrefixedIdentifier identifier4(String prefix, SimpleIdentifier identifier) => new PrefixedIdentifier.full(identifier3(prefix), TokenFactory.token3(TokenType.PERIOD), identifier);
+  static PrefixedIdentifier identifier5(String prefix, String identifier) => new PrefixedIdentifier.full(identifier3(prefix), TokenFactory.token3(TokenType.PERIOD), identifier3(identifier));
   static IfStatement ifStatement(Expression condition, Statement thenStatement) => ifStatement2(condition, thenStatement, null);
   static IfStatement ifStatement2(Expression condition, Statement thenStatement, Statement elseStatement) => new IfStatement.full(TokenFactory.token(Keyword.IF), TokenFactory.token3(TokenType.OPEN_PAREN), condition, TokenFactory.token3(TokenType.CLOSE_PAREN), thenStatement, elseStatement == null ? null : TokenFactory.token(Keyword.ELSE), elseStatement);
   static ImplementsClause implementsClause(List<TypeName> types) => new ImplementsClause.full(TokenFactory.token(Keyword.IMPLEMENTS), list(types));
-  static ImportDirective importDirective(List<Annotation> metadata, String uri, String prefix, List<Combinator> combinators) => new ImportDirective.full(null, metadata, TokenFactory.token(Keyword.IMPORT), string2(uri), prefix == null ? null : TokenFactory.token(Keyword.AS), prefix == null ? null : identifier2(prefix), list(combinators), TokenFactory.token3(TokenType.SEMICOLON));
+  static ImportDirective importDirective(List<Annotation> metadata, String uri, String prefix, List<Combinator> combinators) => new ImportDirective.full(null, metadata, TokenFactory.token(Keyword.IMPORT), string2(uri), prefix == null ? null : TokenFactory.token(Keyword.AS), prefix == null ? null : identifier3(prefix), list(combinators), TokenFactory.token3(TokenType.SEMICOLON));
   static ImportDirective importDirective2(String uri, String prefix, List<Combinator> combinators) => importDirective(new List<Annotation>(), uri, prefix, combinators);
   static IndexExpression indexExpression(Expression array, Expression index) => new IndexExpression.forTarget_full(array, TokenFactory.token3(TokenType.OPEN_SQUARE_BRACKET), index, TokenFactory.token3(TokenType.CLOSE_SQUARE_BRACKET));
   static InstanceCreationExpression instanceCreationExpression(Keyword keyword, ConstructorName name, List<Expression> arguments) => new InstanceCreationExpression.full(keyword == null ? null : TokenFactory.token(keyword), name, argumentList(arguments));
   static InstanceCreationExpression instanceCreationExpression2(Keyword keyword, TypeName type, List<Expression> arguments) => instanceCreationExpression3(keyword, type, null, arguments);
-  static InstanceCreationExpression instanceCreationExpression3(Keyword keyword, TypeName type, String identifier, List<Expression> arguments) => instanceCreationExpression(keyword, new ConstructorName.full(type, identifier == null ? null : TokenFactory.token3(TokenType.PERIOD), identifier == null ? null : identifier2(identifier)), arguments);
+  static InstanceCreationExpression instanceCreationExpression3(Keyword keyword, TypeName type, String identifier, List<Expression> arguments) => instanceCreationExpression(keyword, new ConstructorName.full(type, identifier == null ? null : TokenFactory.token3(TokenType.PERIOD), identifier == null ? null : identifier3(identifier)), arguments);
   static IntegerLiteral integer(int value) => new IntegerLiteral.full(TokenFactory.token4(TokenType.INT, value.toString()), value);
   static InterpolationExpression interpolationExpression(Expression expression) => new InterpolationExpression.full(TokenFactory.token3(TokenType.STRING_INTERPOLATION_EXPRESSION), expression, TokenFactory.token3(TokenType.CLOSE_CURLY_BRACKET));
-  static InterpolationExpression interpolationExpression2(String identifier) => new InterpolationExpression.full(TokenFactory.token3(TokenType.STRING_INTERPOLATION_IDENTIFIER), identifier2(identifier), null);
+  static InterpolationExpression interpolationExpression2(String identifier) => new InterpolationExpression.full(TokenFactory.token3(TokenType.STRING_INTERPOLATION_IDENTIFIER), identifier3(identifier), null);
   static InterpolationString interpolationString(String contents, String value) => new InterpolationString.full(TokenFactory.token2(contents), value);
   static IsExpression isExpression(Expression expression, bool negated, TypeName type) => new IsExpression.full(expression, TokenFactory.token(Keyword.IS), negated ? TokenFactory.token3(TokenType.BANG) : null, type);
-  static Label label(String label5) => new Label.full(identifier2(label5), TokenFactory.token3(TokenType.COLON));
+  static Label label(SimpleIdentifier label5) => new Label.full(label5, TokenFactory.token3(TokenType.COLON));
+  static Label label2(String label6) => label(identifier3(label6));
   static LabeledStatement labeledStatement(List<Label> labels, Statement statement) => new LabeledStatement.full(labels, statement);
   static LibraryDirective libraryDirective(List<Annotation> metadata, LibraryIdentifier libraryName) => new LibraryDirective.full(null, metadata, TokenFactory.token(Keyword.LIBRARY), libraryName, TokenFactory.token3(TokenType.SEMICOLON));
   static LibraryDirective libraryDirective2(String libraryName) => libraryDirective(new List<Annotation>(), libraryIdentifier2([libraryName]));
@@ -278,12 +280,12 @@ class ASTFactory {
   static LibraryIdentifier libraryIdentifier2(List<String> components) {
     List<SimpleIdentifier> componentList = new List<SimpleIdentifier>();
     for (String component in components) {
-      componentList.add(identifier2(component));
+      componentList.add(identifier3(component));
     }
     return new LibraryIdentifier.full(componentList);
   }
-  static List<Object> list(List<Object> elements) {
-    List<Object> elementList = new List();
+  static List list(List<Object> elements) {
+    List elementList = new List();
     for (Object element in elements) {
       elementList.add(element);
     }
@@ -296,10 +298,12 @@ class ASTFactory {
   static MapLiteralEntry mapLiteralEntry(String key, Expression value) => new MapLiteralEntry.full(string2(key), TokenFactory.token3(TokenType.COLON), value);
   static MethodDeclaration methodDeclaration(Keyword modifier, TypeName returnType, Keyword property, Keyword operator, SimpleIdentifier name, FormalParameterList parameters) => new MethodDeclaration.full(null, null, TokenFactory.token(Keyword.EXTERNAL), modifier == null ? null : TokenFactory.token(modifier), returnType, property == null ? null : TokenFactory.token(property), operator == null ? null : TokenFactory.token(operator), name, parameters, emptyFunctionBody());
   static MethodDeclaration methodDeclaration2(Keyword modifier, TypeName returnType, Keyword property, Keyword operator, SimpleIdentifier name, FormalParameterList parameters, FunctionBody body) => new MethodDeclaration.full(null, null, null, modifier == null ? null : TokenFactory.token(modifier), returnType, property == null ? null : TokenFactory.token(property), operator == null ? null : TokenFactory.token(operator), name, parameters, body);
-  static MethodInvocation methodInvocation(Expression target, String methodName, List<Expression> arguments) => new MethodInvocation.full(target, target == null ? null : TokenFactory.token3(TokenType.PERIOD), identifier2(methodName), argumentList(arguments));
+  static MethodInvocation methodInvocation(Expression target, String methodName, List<Expression> arguments) => new MethodInvocation.full(target, target == null ? null : TokenFactory.token3(TokenType.PERIOD), identifier3(methodName), argumentList(arguments));
   static MethodInvocation methodInvocation2(String methodName, List<Expression> arguments) => methodInvocation(null, methodName, arguments);
-  static NamedExpression namedExpression(String label6, Expression expression) => new NamedExpression.full(label(label6), expression);
+  static NamedExpression namedExpression(Label label, Expression expression) => new NamedExpression.full(label, expression);
+  static NamedExpression namedExpression2(String label, Expression expression) => namedExpression(label2(label), expression);
   static DefaultFormalParameter namedFormalParameter(NormalFormalParameter parameter, Expression expression) => new DefaultFormalParameter.full(parameter, ParameterKind.NAMED, expression == null ? null : TokenFactory.token3(TokenType.COLON), expression);
+  static NativeFunctionBody nativeFunctionBody(String nativeMethodName) => new NativeFunctionBody.full(TokenFactory.token2("native"), string2(nativeMethodName), TokenFactory.token3(TokenType.SEMICOLON));
   static NullLiteral nullLiteral() => new NullLiteral.full(TokenFactory.token(Keyword.NULL));
   static ParenthesizedExpression parenthesizedExpression(Expression expression) => new ParenthesizedExpression.full(TokenFactory.token3(TokenType.OPEN_PAREN), expression, TokenFactory.token3(TokenType.CLOSE_PAREN));
   static PartDirective partDirective(List<Annotation> metadata, String url) => new PartDirective.full(null, metadata, TokenFactory.token(Keyword.PART), string2(url), TokenFactory.token3(TokenType.SEMICOLON));
@@ -310,9 +314,9 @@ class ASTFactory {
   static PostfixExpression postfixExpression(Expression expression, TokenType operator) => new PostfixExpression.full(expression, TokenFactory.token3(operator));
   static PrefixExpression prefixExpression(TokenType operator, Expression expression) => new PrefixExpression.full(TokenFactory.token3(operator), expression);
   static PropertyAccess propertyAccess(Expression target, SimpleIdentifier propertyName) => new PropertyAccess.full(target, TokenFactory.token3(TokenType.PERIOD), propertyName);
-  static PropertyAccess propertyAccess2(Expression target, String propertyName) => new PropertyAccess.full(target, TokenFactory.token3(TokenType.PERIOD), identifier2(propertyName));
+  static PropertyAccess propertyAccess2(Expression target, String propertyName) => new PropertyAccess.full(target, TokenFactory.token3(TokenType.PERIOD), identifier3(propertyName));
   static RedirectingConstructorInvocation redirectingConstructorInvocation(List<Expression> arguments) => redirectingConstructorInvocation2(null, arguments);
-  static RedirectingConstructorInvocation redirectingConstructorInvocation2(String constructorName, List<Expression> arguments) => new RedirectingConstructorInvocation.full(TokenFactory.token(Keyword.THIS), constructorName == null ? null : TokenFactory.token3(TokenType.PERIOD), constructorName == null ? null : identifier2(constructorName), argumentList(arguments));
+  static RedirectingConstructorInvocation redirectingConstructorInvocation2(String constructorName, List<Expression> arguments) => new RedirectingConstructorInvocation.full(TokenFactory.token(Keyword.THIS), constructorName == null ? null : TokenFactory.token3(TokenType.PERIOD), constructorName == null ? null : identifier3(constructorName), argumentList(arguments));
   static ReturnStatement returnStatement() => returnStatement2(null);
   static ReturnStatement returnStatement2(Expression expression) => new ReturnStatement.full(TokenFactory.token(Keyword.RETURN), expression, TokenFactory.token3(TokenType.SEMICOLON));
   static ScriptTag scriptTag(String scriptTag5) => new ScriptTag.full(TokenFactory.token2(scriptTag5));
@@ -320,18 +324,18 @@ class ASTFactory {
   static ShowCombinator showCombinator2(List<String> identifiers) {
     List<SimpleIdentifier> identifierList = new List<SimpleIdentifier>();
     for (String identifier in identifiers) {
-      identifierList.add(identifier2(identifier));
+      identifierList.add(identifier3(identifier));
     }
     return new ShowCombinator.full(TokenFactory.token2("show"), identifierList);
   }
   static SimpleFormalParameter simpleFormalParameter(Keyword keyword, String parameterName) => simpleFormalParameter2(keyword, null, parameterName);
-  static SimpleFormalParameter simpleFormalParameter2(Keyword keyword, TypeName type, String parameterName) => new SimpleFormalParameter.full(null, null, keyword == null ? null : TokenFactory.token(keyword), type, identifier2(parameterName));
+  static SimpleFormalParameter simpleFormalParameter2(Keyword keyword, TypeName type, String parameterName) => new SimpleFormalParameter.full(null, null, keyword == null ? null : TokenFactory.token(keyword), type, identifier3(parameterName));
   static SimpleFormalParameter simpleFormalParameter3(String parameterName) => simpleFormalParameter2(null, null, parameterName);
   static SimpleFormalParameter simpleFormalParameter4(TypeName type, String parameterName) => simpleFormalParameter2(null, type, parameterName);
   static StringInterpolation string(List<InterpolationElement> elements) => new StringInterpolation.full(list(elements));
   static SimpleStringLiteral string2(String content) => new SimpleStringLiteral.full(TokenFactory.token2("'${content}'"), content);
   static SuperConstructorInvocation superConstructorInvocation(List<Expression> arguments) => superConstructorInvocation2(null, arguments);
-  static SuperConstructorInvocation superConstructorInvocation2(String name, List<Expression> arguments) => new SuperConstructorInvocation.full(TokenFactory.token(Keyword.SUPER), name == null ? null : TokenFactory.token3(TokenType.PERIOD), name == null ? null : identifier2(name), argumentList(arguments));
+  static SuperConstructorInvocation superConstructorInvocation2(String name, List<Expression> arguments) => new SuperConstructorInvocation.full(TokenFactory.token(Keyword.SUPER), name == null ? null : TokenFactory.token3(TokenType.PERIOD), name == null ? null : identifier3(name), argumentList(arguments));
   static SuperExpression superExpression() => new SuperExpression.full(TokenFactory.token(Keyword.SUPER));
   static SwitchCase switchCase(Expression expression, List<Statement> statements) => switchCase2(new List<Label>(), expression, statements);
   static SwitchCase switchCase2(List<Label> labels, Expression expression, List<Statement> statements) => new SwitchCase.full(labels, TokenFactory.token(Keyword.CASE), expression, TokenFactory.token3(TokenType.COLON), list(statements));
@@ -346,7 +350,7 @@ class ASTFactory {
   static TryStatement tryStatement(Block body, Block finallyClause) => tryStatement3(body, new List<CatchClause>(), finallyClause);
   static TryStatement tryStatement2(Block body, List<CatchClause> catchClauses) => tryStatement3(body, list(catchClauses), null);
   static TryStatement tryStatement3(Block body, List<CatchClause> catchClauses, Block finallyClause) => new TryStatement.full(TokenFactory.token(Keyword.TRY), body, catchClauses, finallyClause == null ? null : TokenFactory.token(Keyword.FINALLY), finallyClause);
-  static FunctionTypeAlias typeAlias(TypeName returnType, String name, TypeParameterList typeParameters, FormalParameterList parameters) => new FunctionTypeAlias.full(null, null, TokenFactory.token(Keyword.TYPEDEF), returnType, identifier2(name), typeParameters, parameters, TokenFactory.token3(TokenType.SEMICOLON));
+  static FunctionTypeAlias typeAlias(TypeName returnType, String name, TypeParameterList typeParameters, FormalParameterList parameters) => new FunctionTypeAlias.full(null, null, TokenFactory.token(Keyword.TYPEDEF), returnType, identifier3(name), typeParameters, parameters, TokenFactory.token3(TokenType.SEMICOLON));
   static TypeArgumentList typeArgumentList(List<TypeName> typeNames) => new TypeArgumentList.full(TokenFactory.token3(TokenType.LT), list(typeNames), TokenFactory.token3(TokenType.GT));
   /**
    * Create a type name whose name has been resolved to the given element and whose type has been
@@ -356,27 +360,27 @@ class ASTFactory {
    * @param element the element defining the type represented by the type name
    * @return the type name that was created
    */
-  static TypeName typeName(ClassElement element61, List<TypeName> arguments) {
-    SimpleIdentifier name22 = identifier2(element61.name);
-    name22.element = element61;
-    TypeName typeName = typeName2(name22, arguments);
-    typeName.type = element61.type;
+  static TypeName typeName(ClassElement element70, List<TypeName> arguments) {
+    SimpleIdentifier name25 = identifier3(element70.name);
+    name25.element = element70;
+    TypeName typeName = typeName3(name25, arguments);
+    typeName.type = element70.type;
     return typeName;
   }
-  static TypeName typeName2(Identifier name, List<TypeName> arguments) {
+  static TypeName typeName3(Identifier name, List<TypeName> arguments) {
     if (arguments.length == 0) {
       return new TypeName.full(name, null);
     }
     return new TypeName.full(name, typeArgumentList(arguments));
   }
-  static TypeName typeName3(String name, List<TypeName> arguments) {
+  static TypeName typeName4(String name, List<TypeName> arguments) {
     if (arguments.length == 0) {
-      return new TypeName.full(identifier2(name), null);
+      return new TypeName.full(identifier3(name), null);
     }
-    return new TypeName.full(identifier2(name), typeArgumentList(arguments));
+    return new TypeName.full(identifier3(name), typeArgumentList(arguments));
   }
-  static TypeParameter typeParameter(String name) => new TypeParameter.full(null, null, identifier2(name), null, null);
-  static TypeParameter typeParameter2(String name, TypeName bound) => new TypeParameter.full(null, null, identifier2(name), TokenFactory.token(Keyword.EXTENDS), bound);
+  static TypeParameter typeParameter(String name) => new TypeParameter.full(null, null, identifier3(name), null, null);
+  static TypeParameter typeParameter2(String name, TypeName bound) => new TypeParameter.full(null, null, identifier3(name), TokenFactory.token(Keyword.EXTENDS), bound);
   static TypeParameterList typeParameterList(List<String> typeNames) {
     List<TypeParameter> typeParameters = new List<TypeParameter>();
     for (String typeName in typeNames) {
@@ -384,8 +388,8 @@ class ASTFactory {
     }
     return new TypeParameterList.full(TokenFactory.token3(TokenType.LT), typeParameters, TokenFactory.token3(TokenType.GT));
   }
-  static VariableDeclaration variableDeclaration(String name) => new VariableDeclaration.full(null, null, identifier2(name), null, null);
-  static VariableDeclaration variableDeclaration2(String name, Expression initializer) => new VariableDeclaration.full(null, null, identifier2(name), TokenFactory.token3(TokenType.EQ), initializer);
+  static VariableDeclaration variableDeclaration(String name) => new VariableDeclaration.full(null, null, identifier3(name), null, null);
+  static VariableDeclaration variableDeclaration2(String name, Expression initializer) => new VariableDeclaration.full(null, null, identifier3(name), TokenFactory.token3(TokenType.EQ), initializer);
   static VariableDeclarationList variableDeclarationList(Keyword keyword, TypeName type, List<VariableDeclaration> variables) => new VariableDeclarationList.full(null, null, keyword == null ? null : TokenFactory.token(keyword), type, list(variables));
   static VariableDeclarationList variableDeclarationList2(Keyword keyword, List<VariableDeclaration> variables) => variableDeclarationList(keyword, null, variables);
   static VariableDeclarationStatement variableDeclarationStatement(Keyword keyword, TypeName type, List<VariableDeclaration> variables) => new VariableDeclarationStatement.full(variableDeclarationList(keyword, type, variables), TokenFactory.token3(TokenType.SEMICOLON));
@@ -400,8 +404,8 @@ class ASTFactory {
 }
 class SimpleIdentifierTest extends ParserTestCase {
   void test_inDeclarationContext_argumentDefinition() {
-    SimpleIdentifier identifier15 = ASTFactory.argumentDefinitionTest("p").identifier;
-    JUnitTestCase.assertFalse(identifier15.inDeclarationContext());
+    SimpleIdentifier identifier16 = ASTFactory.argumentDefinitionTest("p").identifier;
+    JUnitTestCase.assertFalse(identifier16.inDeclarationContext());
   }
   void test_inDeclarationContext_catch_exception() {
     SimpleIdentifier identifier = ASTFactory.catchClause("e", []).exceptionParameter;
@@ -420,8 +424,12 @@ class SimpleIdentifierTest extends ParserTestCase {
     JUnitTestCase.assertTrue(identifier.inDeclarationContext());
   }
   void test_inDeclarationContext_constructorDeclaration() {
-    SimpleIdentifier identifier = ASTFactory.constructorDeclaration(ASTFactory.identifier2("C"), "c", null, null).name;
+    SimpleIdentifier identifier = ASTFactory.constructorDeclaration(ASTFactory.identifier3("C"), "c", null, null).name;
     JUnitTestCase.assertTrue(identifier.inDeclarationContext());
+  }
+  void test_inDeclarationContext_fieldFormalParameter() {
+    SimpleIdentifier identifier17 = ASTFactory.fieldFormalParameter2("p").identifier;
+    JUnitTestCase.assertFalse(identifier17.inDeclarationContext());
   }
   void test_inDeclarationContext_functionDeclaration() {
     SimpleIdentifier identifier = ASTFactory.functionDeclaration(null, null, "f", null).name;
@@ -432,26 +440,26 @@ class SimpleIdentifierTest extends ParserTestCase {
     JUnitTestCase.assertTrue(identifier.inDeclarationContext());
   }
   void test_inDeclarationContext_label_false() {
-    SimpleIdentifier identifier = ASTFactory.namedExpression("l", ASTFactory.integer(0)).name.label;
+    SimpleIdentifier identifier = ASTFactory.namedExpression2("l", ASTFactory.integer(0)).name.label;
     JUnitTestCase.assertFalse(identifier.inDeclarationContext());
   }
   void test_inDeclarationContext_label_true() {
-    Label label2 = ASTFactory.label("l");
-    SimpleIdentifier identifier = label2.label;
-    ASTFactory.labeledStatement(ASTFactory.list([label2]), ASTFactory.emptyStatement());
+    Label label = ASTFactory.label2("l");
+    SimpleIdentifier identifier = label.label;
+    ASTFactory.labeledStatement(ASTFactory.list([label]), ASTFactory.emptyStatement());
     JUnitTestCase.assertTrue(identifier.inDeclarationContext());
   }
   void test_inDeclarationContext_methodDeclaration() {
-    SimpleIdentifier identifier = ASTFactory.identifier2("m");
+    SimpleIdentifier identifier = ASTFactory.identifier3("m");
     ASTFactory.methodDeclaration2(null, null, null, null, identifier, null, null);
     JUnitTestCase.assertTrue(identifier.inDeclarationContext());
   }
-  void test_inDeclarationContext_normalFormalParameter() {
-    SimpleIdentifier identifier16 = ASTFactory.simpleFormalParameter3("p").identifier;
-    JUnitTestCase.assertTrue(identifier16.inDeclarationContext());
+  void test_inDeclarationContext_simpleFormalParameter() {
+    SimpleIdentifier identifier18 = ASTFactory.simpleFormalParameter3("p").identifier;
+    JUnitTestCase.assertTrue(identifier18.inDeclarationContext());
   }
   void test_inDeclarationContext_typeParameter_bound() {
-    TypeName bound = ASTFactory.typeName3("A", []);
+    TypeName bound = ASTFactory.typeName4("A", []);
     SimpleIdentifier identifier = bound.name as SimpleIdentifier;
     ASTFactory.typeParameter2("E", bound);
     JUnitTestCase.assertFalse(identifier.inDeclarationContext());
@@ -480,6 +488,12 @@ class SimpleIdentifierTest extends ParserTestCase {
       }
     }
   }
+  void test_inReferenceContext() {
+    SimpleIdentifier identifier = ASTFactory.identifier3("id");
+    ASTFactory.namedExpression(ASTFactory.label(identifier), ASTFactory.identifier3("_"));
+    JUnitTestCase.assertFalse(identifier.inGetterContext());
+    JUnitTestCase.assertFalse(identifier.inSetterContext());
+  }
   void test_inSetterContext() {
     for (WrapperKind wrapper in WrapperKind.values) {
       for (AssignmentKind assignment in AssignmentKind.values) {
@@ -497,27 +511,27 @@ class SimpleIdentifierTest extends ParserTestCase {
     }
   }
   SimpleIdentifier createIdentifier(WrapperKind wrapper, AssignmentKind assignment) {
-    SimpleIdentifier identifier = ASTFactory.identifier2("a");
+    SimpleIdentifier identifier = ASTFactory.identifier3("a");
     Expression expression = identifier;
     while (true) {
       if (wrapper == WrapperKind.PREFIXED_LEFT) {
-        expression = ASTFactory.identifier(identifier, ASTFactory.identifier2("_"));
+        expression = ASTFactory.identifier(identifier, ASTFactory.identifier3("_"));
       } else if (wrapper == WrapperKind.PREFIXED_RIGHT) {
-        expression = ASTFactory.identifier(ASTFactory.identifier2("_"), identifier);
+        expression = ASTFactory.identifier(ASTFactory.identifier3("_"), identifier);
       } else if (wrapper == WrapperKind.PROPERTY_LEFT) {
         expression = ASTFactory.propertyAccess2(expression, "_");
       } else if (wrapper == WrapperKind.PROPERTY_RIGHT) {
-        expression = ASTFactory.propertyAccess(ASTFactory.identifier2("_"), identifier);
+        expression = ASTFactory.propertyAccess(ASTFactory.identifier3("_"), identifier);
       }
       break;
     }
     while (true) {
       if (assignment == AssignmentKind.BINARY) {
-        ASTFactory.binaryExpression(expression, TokenType.PLUS, ASTFactory.identifier2("_"));
+        ASTFactory.binaryExpression(expression, TokenType.PLUS, ASTFactory.identifier3("_"));
       } else if (assignment == AssignmentKind.COMPOUND_LEFT) {
-        ASTFactory.assignmentExpression(expression, TokenType.PLUS_EQ, ASTFactory.identifier2("_"));
+        ASTFactory.assignmentExpression(expression, TokenType.PLUS_EQ, ASTFactory.identifier3("_"));
       } else if (assignment == AssignmentKind.COMPOUND_RIGHT) {
-        ASTFactory.assignmentExpression(ASTFactory.identifier2("_"), TokenType.PLUS_EQ, expression);
+        ASTFactory.assignmentExpression(ASTFactory.identifier3("_"), TokenType.PLUS_EQ, expression);
       } else if (assignment == AssignmentKind.POSTFIX_INC) {
         ASTFactory.postfixExpression(expression, TokenType.PLUS_PLUS);
       } else if (assignment == AssignmentKind.PREFIX_DEC) {
@@ -527,9 +541,9 @@ class SimpleIdentifierTest extends ParserTestCase {
       } else if (assignment == AssignmentKind.PREFIX_NOT) {
         ASTFactory.prefixExpression(TokenType.BANG, expression);
       } else if (assignment == AssignmentKind.SIMPLE_LEFT) {
-        ASTFactory.assignmentExpression(expression, TokenType.EQ, ASTFactory.identifier2("_"));
+        ASTFactory.assignmentExpression(expression, TokenType.EQ, ASTFactory.identifier3("_"));
       } else if (assignment == AssignmentKind.SIMPLE_RIGHT) {
-        ASTFactory.assignmentExpression(ASTFactory.identifier2("_"), TokenType.EQ, expression);
+        ASTFactory.assignmentExpression(ASTFactory.identifier3("_"), TokenType.EQ, expression);
       }
       break;
     }
@@ -542,10 +556,10 @@ class SimpleIdentifierTest extends ParserTestCase {
    */
   ASTNode topMostNode(SimpleIdentifier identifier) {
     ASTNode child = identifier;
-    ASTNode parent20 = identifier.parent;
-    while (parent20 != null) {
-      child = parent20;
-      parent20 = parent20.parent;
+    ASTNode parent19 = identifier.parent;
+    while (parent19 != null) {
+      child = parent19;
+      parent19 = parent19.parent;
     }
     return child;
   }
@@ -575,6 +589,10 @@ class SimpleIdentifierTest extends ParserTestCase {
         final __test = new SimpleIdentifierTest();
         runJUnitTest(__test, __test.test_inDeclarationContext_constructorDeclaration);
       });
+      _ut.test('test_inDeclarationContext_fieldFormalParameter', () {
+        final __test = new SimpleIdentifierTest();
+        runJUnitTest(__test, __test.test_inDeclarationContext_fieldFormalParameter);
+      });
       _ut.test('test_inDeclarationContext_functionDeclaration', () {
         final __test = new SimpleIdentifierTest();
         runJUnitTest(__test, __test.test_inDeclarationContext_functionDeclaration);
@@ -595,9 +613,9 @@ class SimpleIdentifierTest extends ParserTestCase {
         final __test = new SimpleIdentifierTest();
         runJUnitTest(__test, __test.test_inDeclarationContext_methodDeclaration);
       });
-      _ut.test('test_inDeclarationContext_normalFormalParameter', () {
+      _ut.test('test_inDeclarationContext_simpleFormalParameter', () {
         final __test = new SimpleIdentifierTest();
-        runJUnitTest(__test, __test.test_inDeclarationContext_normalFormalParameter);
+        runJUnitTest(__test, __test.test_inDeclarationContext_simpleFormalParameter);
       });
       _ut.test('test_inDeclarationContext_typeParameter_bound', () {
         final __test = new SimpleIdentifierTest();
@@ -615,6 +633,10 @@ class SimpleIdentifierTest extends ParserTestCase {
         final __test = new SimpleIdentifierTest();
         runJUnitTest(__test, __test.test_inGetterContext);
       });
+      _ut.test('test_inReferenceContext', () {
+        final __test = new SimpleIdentifierTest();
+        runJUnitTest(__test, __test.test_inReferenceContext);
+      });
       _ut.test('test_inSetterContext', () {
         final __test = new SimpleIdentifierTest();
         runJUnitTest(__test, __test.test_inSetterContext);
@@ -622,7 +644,7 @@ class SimpleIdentifierTest extends ParserTestCase {
     });
   }
 }
-class AssignmentKind {
+class AssignmentKind implements Comparable<AssignmentKind> {
   static final AssignmentKind BINARY = new AssignmentKind('BINARY', 0);
   static final AssignmentKind COMPOUND_LEFT = new AssignmentKind('COMPOUND_LEFT', 1);
   static final AssignmentKind COMPOUND_RIGHT = new AssignmentKind('COMPOUND_RIGHT', 2);
@@ -639,9 +661,10 @@ class AssignmentKind {
   int get ordinal => __ordinal;
   AssignmentKind(this.__name, this.__ordinal) {
   }
+  int compareTo(AssignmentKind other) => __ordinal - other.__ordinal;
   String toString() => __name;
 }
-class WrapperKind {
+class WrapperKind implements Comparable<WrapperKind> {
   static final WrapperKind PREFIXED_LEFT = new WrapperKind('PREFIXED_LEFT', 0);
   static final WrapperKind PREFIXED_RIGHT = new WrapperKind('PREFIXED_RIGHT', 1);
   static final WrapperKind PROPERTY_LEFT = new WrapperKind('PROPERTY_LEFT', 2);
@@ -653,6 +676,7 @@ class WrapperKind {
   int get ordinal => __ordinal;
   WrapperKind(this.__name, this.__ordinal) {
   }
+  int compareTo(WrapperKind other) => __ordinal - other.__ordinal;
   String toString() => __name;
 }
 class ConstantEvaluatorTest extends ParserTestCase {
@@ -912,7 +936,7 @@ class ConstantEvaluatorTest extends ParserTestCase {
     EngineTestCase.assertInstanceOf(int, value);
     JUnitTestCase.assertEquals(-42, ((value as int)));
   }
-  Object getConstantValue(String source) => ParserTestCase.parseExpression(source, []).accept(new ConstantEvaluator(null));
+  Object getConstantValue(String source) => ParserTestCase.parseExpression(source, []).accept(new ConstantEvaluator());
   static dartSuite() {
     _ut.group('ConstantEvaluatorTest', () {
       _ut.test('test_binary_bitAnd', () {
@@ -1119,28 +1143,28 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("'a' 'b'", ASTFactory.adjacentStrings([ASTFactory.string2("a"), ASTFactory.string2("b")]));
   }
   void test_visitAnnotation_constant() {
-    assertSource("@A", ASTFactory.annotation(ASTFactory.identifier2("A")));
+    assertSource("@A", ASTFactory.annotation(ASTFactory.identifier3("A")));
   }
   void test_visitAnnotation_constructor() {
-    assertSource("@A.c()", ASTFactory.annotation2(ASTFactory.identifier2("A"), ASTFactory.identifier2("c"), ASTFactory.argumentList([])));
+    assertSource("@A.c()", ASTFactory.annotation2(ASTFactory.identifier3("A"), ASTFactory.identifier3("c"), ASTFactory.argumentList([])));
   }
   void test_visitArgumentDefinitionTest() {
     assertSource("?a", ASTFactory.argumentDefinitionTest("a"));
   }
   void test_visitArgumentList() {
-    assertSource("(a, b)", ASTFactory.argumentList([ASTFactory.identifier2("a"), ASTFactory.identifier2("b")]));
+    assertSource("(a, b)", ASTFactory.argumentList([ASTFactory.identifier3("a"), ASTFactory.identifier3("b")]));
   }
   void test_visitAsExpression() {
-    assertSource("e as T", ASTFactory.asExpression(ASTFactory.identifier2("e"), ASTFactory.typeName3("T", [])));
+    assertSource("e as T", ASTFactory.asExpression(ASTFactory.identifier3("e"), ASTFactory.typeName4("T", [])));
   }
   void test_visitAssertStatement() {
-    assertSource("assert (a);", ASTFactory.assertStatement(ASTFactory.identifier2("a")));
+    assertSource("assert (a);", ASTFactory.assertStatement(ASTFactory.identifier3("a")));
   }
   void test_visitAssignmentExpression() {
-    assertSource("a = b", ASTFactory.assignmentExpression(ASTFactory.identifier2("a"), TokenType.EQ, ASTFactory.identifier2("b")));
+    assertSource("a = b", ASTFactory.assignmentExpression(ASTFactory.identifier3("a"), TokenType.EQ, ASTFactory.identifier3("b")));
   }
   void test_visitBinaryExpression() {
-    assertSource("a + b", ASTFactory.binaryExpression(ASTFactory.identifier2("a"), TokenType.PLUS, ASTFactory.identifier2("b")));
+    assertSource("a + b", ASTFactory.binaryExpression(ASTFactory.identifier3("a"), TokenType.PLUS, ASTFactory.identifier3("b")));
   }
   void test_visitBlock_empty() {
     assertSource("{}", ASTFactory.block([]));
@@ -1164,13 +1188,13 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("break;", ASTFactory.breakStatement());
   }
   void test_visitCascadeExpression_field() {
-    assertSource("a..b..c", ASTFactory.cascadeExpression(ASTFactory.identifier2("a"), [ASTFactory.cascadedPropertyAccess("b"), ASTFactory.cascadedPropertyAccess("c")]));
+    assertSource("a..b..c", ASTFactory.cascadeExpression(ASTFactory.identifier3("a"), [ASTFactory.cascadedPropertyAccess("b"), ASTFactory.cascadedPropertyAccess("c")]));
   }
   void test_visitCascadeExpression_index() {
-    assertSource("a..[0]..[1]", ASTFactory.cascadeExpression(ASTFactory.identifier2("a"), [ASTFactory.cascadedIndexExpression(ASTFactory.integer(0)), ASTFactory.cascadedIndexExpression(ASTFactory.integer(1))]));
+    assertSource("a..[0]..[1]", ASTFactory.cascadeExpression(ASTFactory.identifier3("a"), [ASTFactory.cascadedIndexExpression(ASTFactory.integer(0)), ASTFactory.cascadedIndexExpression(ASTFactory.integer(1))]));
   }
   void test_visitCascadeExpression_method() {
-    assertSource("a..b()..c()", ASTFactory.cascadeExpression(ASTFactory.identifier2("a"), [ASTFactory.cascadedMethodInvocation("b", []), ASTFactory.cascadedMethodInvocation("c", [])]));
+    assertSource("a..b()..c()", ASTFactory.cascadeExpression(ASTFactory.identifier3("a"), [ASTFactory.cascadedMethodInvocation("b", []), ASTFactory.cascadedMethodInvocation("c", [])]));
   }
   void test_visitCatchClause_catch_noStack() {
     assertSource("catch (e) {}", ASTFactory.catchClause("e", []));
@@ -1179,10 +1203,10 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("catch (e, s) {}", ASTFactory.catchClause2("e", "s", []));
   }
   void test_visitCatchClause_on() {
-    assertSource("on E {}", ASTFactory.catchClause3(ASTFactory.typeName3("E", []), []));
+    assertSource("on E {}", ASTFactory.catchClause3(ASTFactory.typeName4("E", []), []));
   }
   void test_visitCatchClause_on_catch() {
-    assertSource("on E catch (e) {}", ASTFactory.catchClause4(ASTFactory.typeName3("E", []), "e", []));
+    assertSource("on E catch (e) {}", ASTFactory.catchClause4(ASTFactory.typeName4("E", []), "e", []));
   }
   void test_visitClassDeclaration_abstract() {
     assertSource("abstract class C {}", ASTFactory.classDeclaration(Keyword.ABSTRACT, "C", null, null, null, null, []));
@@ -1191,19 +1215,19 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("class C {}", ASTFactory.classDeclaration(null, "C", null, null, null, null, []));
   }
   void test_visitClassDeclaration_extends() {
-    assertSource("class C extends A {}", ASTFactory.classDeclaration(null, "C", null, ASTFactory.extendsClause(ASTFactory.typeName3("A", [])), null, null, []));
+    assertSource("class C extends A {}", ASTFactory.classDeclaration(null, "C", null, ASTFactory.extendsClause(ASTFactory.typeName4("A", [])), null, null, []));
   }
   void test_visitClassDeclaration_extends_implements() {
-    assertSource("class C extends A implements B {}", ASTFactory.classDeclaration(null, "C", null, ASTFactory.extendsClause(ASTFactory.typeName3("A", [])), null, ASTFactory.implementsClause([ASTFactory.typeName3("B", [])]), []));
+    assertSource("class C extends A implements B {}", ASTFactory.classDeclaration(null, "C", null, ASTFactory.extendsClause(ASTFactory.typeName4("A", [])), null, ASTFactory.implementsClause([ASTFactory.typeName4("B", [])]), []));
   }
   void test_visitClassDeclaration_extends_with() {
-    assertSource("class C extends A with M {}", ASTFactory.classDeclaration(null, "C", null, ASTFactory.extendsClause(ASTFactory.typeName3("A", [])), ASTFactory.withClause([ASTFactory.typeName3("M", [])]), null, []));
+    assertSource("class C extends A with M {}", ASTFactory.classDeclaration(null, "C", null, ASTFactory.extendsClause(ASTFactory.typeName4("A", [])), ASTFactory.withClause([ASTFactory.typeName4("M", [])]), null, []));
   }
   void test_visitClassDeclaration_extends_with_implements() {
-    assertSource("class C extends A with M implements B {}", ASTFactory.classDeclaration(null, "C", null, ASTFactory.extendsClause(ASTFactory.typeName3("A", [])), ASTFactory.withClause([ASTFactory.typeName3("M", [])]), ASTFactory.implementsClause([ASTFactory.typeName3("B", [])]), []));
+    assertSource("class C extends A with M implements B {}", ASTFactory.classDeclaration(null, "C", null, ASTFactory.extendsClause(ASTFactory.typeName4("A", [])), ASTFactory.withClause([ASTFactory.typeName4("M", [])]), ASTFactory.implementsClause([ASTFactory.typeName4("B", [])]), []));
   }
   void test_visitClassDeclaration_implements() {
-    assertSource("class C implements B {}", ASTFactory.classDeclaration(null, "C", null, null, null, ASTFactory.implementsClause([ASTFactory.typeName3("B", [])]), []));
+    assertSource("class C implements B {}", ASTFactory.classDeclaration(null, "C", null, null, null, ASTFactory.implementsClause([ASTFactory.typeName4("B", [])]), []));
   }
   void test_visitClassDeclaration_multipleMember() {
     assertSource("class C {var a; var b;}", ASTFactory.classDeclaration(null, "C", null, null, null, null, [ASTFactory.fieldDeclaration2(false, Keyword.VAR, [ASTFactory.variableDeclaration("a")]), ASTFactory.fieldDeclaration2(false, Keyword.VAR, [ASTFactory.variableDeclaration("b")])]));
@@ -1212,52 +1236,52 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("class C<E> {}", ASTFactory.classDeclaration(null, "C", ASTFactory.typeParameterList(["E"]), null, null, null, []));
   }
   void test_visitClassDeclaration_parameters_extends() {
-    assertSource("class C<E> extends A {}", ASTFactory.classDeclaration(null, "C", ASTFactory.typeParameterList(["E"]), ASTFactory.extendsClause(ASTFactory.typeName3("A", [])), null, null, []));
+    assertSource("class C<E> extends A {}", ASTFactory.classDeclaration(null, "C", ASTFactory.typeParameterList(["E"]), ASTFactory.extendsClause(ASTFactory.typeName4("A", [])), null, null, []));
   }
   void test_visitClassDeclaration_parameters_extends_implements() {
-    assertSource("class C<E> extends A implements B {}", ASTFactory.classDeclaration(null, "C", ASTFactory.typeParameterList(["E"]), ASTFactory.extendsClause(ASTFactory.typeName3("A", [])), null, ASTFactory.implementsClause([ASTFactory.typeName3("B", [])]), []));
+    assertSource("class C<E> extends A implements B {}", ASTFactory.classDeclaration(null, "C", ASTFactory.typeParameterList(["E"]), ASTFactory.extendsClause(ASTFactory.typeName4("A", [])), null, ASTFactory.implementsClause([ASTFactory.typeName4("B", [])]), []));
   }
   void test_visitClassDeclaration_parameters_extends_with() {
-    assertSource("class C<E> extends A with M {}", ASTFactory.classDeclaration(null, "C", ASTFactory.typeParameterList(["E"]), ASTFactory.extendsClause(ASTFactory.typeName3("A", [])), ASTFactory.withClause([ASTFactory.typeName3("M", [])]), null, []));
+    assertSource("class C<E> extends A with M {}", ASTFactory.classDeclaration(null, "C", ASTFactory.typeParameterList(["E"]), ASTFactory.extendsClause(ASTFactory.typeName4("A", [])), ASTFactory.withClause([ASTFactory.typeName4("M", [])]), null, []));
   }
   void test_visitClassDeclaration_parameters_extends_with_implements() {
-    assertSource("class C<E> extends A with M implements B {}", ASTFactory.classDeclaration(null, "C", ASTFactory.typeParameterList(["E"]), ASTFactory.extendsClause(ASTFactory.typeName3("A", [])), ASTFactory.withClause([ASTFactory.typeName3("M", [])]), ASTFactory.implementsClause([ASTFactory.typeName3("B", [])]), []));
+    assertSource("class C<E> extends A with M implements B {}", ASTFactory.classDeclaration(null, "C", ASTFactory.typeParameterList(["E"]), ASTFactory.extendsClause(ASTFactory.typeName4("A", [])), ASTFactory.withClause([ASTFactory.typeName4("M", [])]), ASTFactory.implementsClause([ASTFactory.typeName4("B", [])]), []));
   }
   void test_visitClassDeclaration_parameters_implements() {
-    assertSource("class C<E> implements B {}", ASTFactory.classDeclaration(null, "C", ASTFactory.typeParameterList(["E"]), null, null, ASTFactory.implementsClause([ASTFactory.typeName3("B", [])]), []));
+    assertSource("class C<E> implements B {}", ASTFactory.classDeclaration(null, "C", ASTFactory.typeParameterList(["E"]), null, null, ASTFactory.implementsClause([ASTFactory.typeName4("B", [])]), []));
   }
   void test_visitClassDeclaration_singleMember() {
     assertSource("class C {var a;}", ASTFactory.classDeclaration(null, "C", null, null, null, null, [ASTFactory.fieldDeclaration2(false, Keyword.VAR, [ASTFactory.variableDeclaration("a")])]));
   }
   void test_visitClassTypeAlias_abstract() {
-    assertSource("typedef C = abstract S with M1;", ASTFactory.classTypeAlias("C", null, Keyword.ABSTRACT, ASTFactory.typeName3("S", []), ASTFactory.withClause([ASTFactory.typeName3("M1", [])]), null));
+    assertSource("typedef C = abstract S with M1;", ASTFactory.classTypeAlias("C", null, Keyword.ABSTRACT, ASTFactory.typeName4("S", []), ASTFactory.withClause([ASTFactory.typeName4("M1", [])]), null));
   }
   void test_visitClassTypeAlias_abstract_implements() {
-    assertSource("typedef C = abstract S with M1 implements I;", ASTFactory.classTypeAlias("C", null, Keyword.ABSTRACT, ASTFactory.typeName3("S", []), ASTFactory.withClause([ASTFactory.typeName3("M1", [])]), ASTFactory.implementsClause([ASTFactory.typeName3("I", [])])));
+    assertSource("typedef C = abstract S with M1 implements I;", ASTFactory.classTypeAlias("C", null, Keyword.ABSTRACT, ASTFactory.typeName4("S", []), ASTFactory.withClause([ASTFactory.typeName4("M1", [])]), ASTFactory.implementsClause([ASTFactory.typeName4("I", [])])));
   }
   void test_visitClassTypeAlias_generic() {
-    assertSource("typedef C<E> = S<E> with M1<E>;", ASTFactory.classTypeAlias("C", ASTFactory.typeParameterList(["E"]), null, ASTFactory.typeName3("S", [ASTFactory.typeName3("E", [])]), ASTFactory.withClause([ASTFactory.typeName3("M1", [ASTFactory.typeName3("E", [])])]), null));
+    assertSource("typedef C<E> = S<E> with M1<E>;", ASTFactory.classTypeAlias("C", ASTFactory.typeParameterList(["E"]), null, ASTFactory.typeName4("S", [ASTFactory.typeName4("E", [])]), ASTFactory.withClause([ASTFactory.typeName4("M1", [ASTFactory.typeName4("E", [])])]), null));
   }
   void test_visitClassTypeAlias_implements() {
-    assertSource("typedef C = S with M1 implements I;", ASTFactory.classTypeAlias("C", null, null, ASTFactory.typeName3("S", []), ASTFactory.withClause([ASTFactory.typeName3("M1", [])]), ASTFactory.implementsClause([ASTFactory.typeName3("I", [])])));
+    assertSource("typedef C = S with M1 implements I;", ASTFactory.classTypeAlias("C", null, null, ASTFactory.typeName4("S", []), ASTFactory.withClause([ASTFactory.typeName4("M1", [])]), ASTFactory.implementsClause([ASTFactory.typeName4("I", [])])));
   }
   void test_visitClassTypeAlias_minimal() {
-    assertSource("typedef C = S with M1;", ASTFactory.classTypeAlias("C", null, null, ASTFactory.typeName3("S", []), ASTFactory.withClause([ASTFactory.typeName3("M1", [])]), null));
+    assertSource("typedef C = S with M1;", ASTFactory.classTypeAlias("C", null, null, ASTFactory.typeName4("S", []), ASTFactory.withClause([ASTFactory.typeName4("M1", [])]), null));
   }
   void test_visitClassTypeAlias_parameters_abstract() {
-    assertSource("typedef C<E> = abstract S with M1;", ASTFactory.classTypeAlias("C", ASTFactory.typeParameterList(["E"]), Keyword.ABSTRACT, ASTFactory.typeName3("S", []), ASTFactory.withClause([ASTFactory.typeName3("M1", [])]), null));
+    assertSource("typedef C<E> = abstract S with M1;", ASTFactory.classTypeAlias("C", ASTFactory.typeParameterList(["E"]), Keyword.ABSTRACT, ASTFactory.typeName4("S", []), ASTFactory.withClause([ASTFactory.typeName4("M1", [])]), null));
   }
   void test_visitClassTypeAlias_parameters_abstract_implements() {
-    assertSource("typedef C<E> = abstract S with M1 implements I;", ASTFactory.classTypeAlias("C", ASTFactory.typeParameterList(["E"]), Keyword.ABSTRACT, ASTFactory.typeName3("S", []), ASTFactory.withClause([ASTFactory.typeName3("M1", [])]), ASTFactory.implementsClause([ASTFactory.typeName3("I", [])])));
+    assertSource("typedef C<E> = abstract S with M1 implements I;", ASTFactory.classTypeAlias("C", ASTFactory.typeParameterList(["E"]), Keyword.ABSTRACT, ASTFactory.typeName4("S", []), ASTFactory.withClause([ASTFactory.typeName4("M1", [])]), ASTFactory.implementsClause([ASTFactory.typeName4("I", [])])));
   }
   void test_visitClassTypeAlias_parameters_implements() {
-    assertSource("typedef C<E> = S with M1 implements I;", ASTFactory.classTypeAlias("C", ASTFactory.typeParameterList(["E"]), null, ASTFactory.typeName3("S", []), ASTFactory.withClause([ASTFactory.typeName3("M1", [])]), ASTFactory.implementsClause([ASTFactory.typeName3("I", [])])));
+    assertSource("typedef C<E> = S with M1 implements I;", ASTFactory.classTypeAlias("C", ASTFactory.typeParameterList(["E"]), null, ASTFactory.typeName4("S", []), ASTFactory.withClause([ASTFactory.typeName4("M1", [])]), ASTFactory.implementsClause([ASTFactory.typeName4("I", [])])));
   }
   void test_visitComment() {
     assertSource("", Comment.createBlockComment(<Token> [TokenFactory.token2("/* comment */")]));
   }
   void test_visitCommentReference() {
-    assertSource("", new CommentReference.full(null, ASTFactory.identifier2("a")));
+    assertSource("", new CommentReference.full(null, ASTFactory.identifier3("a")));
   }
   void test_visitCompilationUnit_declaration() {
     assertSource("var a;", ASTFactory.compilationUnit2([ASTFactory.topLevelVariableDeclaration2(Keyword.VAR, [ASTFactory.variableDeclaration("a")])]));
@@ -1284,43 +1308,43 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("!#/bin/dartvm library l; var a;", ASTFactory.compilationUnit8("!#/bin/dartvm", ASTFactory.list([(ASTFactory.libraryDirective2("l") as Directive)]), ASTFactory.list([(ASTFactory.topLevelVariableDeclaration2(Keyword.VAR, [ASTFactory.variableDeclaration("a")]) as CompilationUnitMember)])));
   }
   void test_visitConditionalExpression() {
-    assertSource("a ? b : c", ASTFactory.conditionalExpression(ASTFactory.identifier2("a"), ASTFactory.identifier2("b"), ASTFactory.identifier2("c")));
+    assertSource("a ? b : c", ASTFactory.conditionalExpression(ASTFactory.identifier3("a"), ASTFactory.identifier3("b"), ASTFactory.identifier3("c")));
   }
   void test_visitConstructorDeclaration_const() {
-    assertSource("const C() {}", ASTFactory.constructorDeclaration2(Keyword.CONST, null, ASTFactory.identifier2("C"), null, ASTFactory.formalParameterList([]), null, ASTFactory.blockFunctionBody([])));
+    assertSource("const C() {}", ASTFactory.constructorDeclaration2(Keyword.CONST, null, ASTFactory.identifier3("C"), null, ASTFactory.formalParameterList([]), null, ASTFactory.blockFunctionBody([])));
   }
   void test_visitConstructorDeclaration_external() {
-    assertSource("external C();", ASTFactory.constructorDeclaration(ASTFactory.identifier2("C"), null, ASTFactory.formalParameterList([]), null));
+    assertSource("external C();", ASTFactory.constructorDeclaration(ASTFactory.identifier3("C"), null, ASTFactory.formalParameterList([]), null));
   }
   void test_visitConstructorDeclaration_minimal() {
-    assertSource("C() {}", ASTFactory.constructorDeclaration2(null, null, ASTFactory.identifier2("C"), null, ASTFactory.formalParameterList([]), null, ASTFactory.blockFunctionBody([])));
+    assertSource("C() {}", ASTFactory.constructorDeclaration2(null, null, ASTFactory.identifier3("C"), null, ASTFactory.formalParameterList([]), null, ASTFactory.blockFunctionBody([])));
   }
   void test_visitConstructorDeclaration_multipleInitializers() {
-    assertSource("C() : a = b, c = d {}", ASTFactory.constructorDeclaration2(null, null, ASTFactory.identifier2("C"), null, ASTFactory.formalParameterList([]), ASTFactory.list([(ASTFactory.constructorFieldInitializer(false, "a", ASTFactory.identifier2("b")) as ConstructorInitializer), ASTFactory.constructorFieldInitializer(false, "c", ASTFactory.identifier2("d"))]), ASTFactory.blockFunctionBody([])));
+    assertSource("C() : a = b, c = d {}", ASTFactory.constructorDeclaration2(null, null, ASTFactory.identifier3("C"), null, ASTFactory.formalParameterList([]), ASTFactory.list([(ASTFactory.constructorFieldInitializer(false, "a", ASTFactory.identifier3("b")) as ConstructorInitializer), ASTFactory.constructorFieldInitializer(false, "c", ASTFactory.identifier3("d"))]), ASTFactory.blockFunctionBody([])));
   }
   void test_visitConstructorDeclaration_multipleParameters() {
-    assertSource("C(var a, var b) {}", ASTFactory.constructorDeclaration2(null, null, ASTFactory.identifier2("C"), null, ASTFactory.formalParameterList([ASTFactory.simpleFormalParameter(Keyword.VAR, "a"), ASTFactory.simpleFormalParameter(Keyword.VAR, "b")]), null, ASTFactory.blockFunctionBody([])));
+    assertSource("C(var a, var b) {}", ASTFactory.constructorDeclaration2(null, null, ASTFactory.identifier3("C"), null, ASTFactory.formalParameterList([ASTFactory.simpleFormalParameter(Keyword.VAR, "a"), ASTFactory.simpleFormalParameter(Keyword.VAR, "b")]), null, ASTFactory.blockFunctionBody([])));
   }
   void test_visitConstructorDeclaration_named() {
-    assertSource("C.m() {}", ASTFactory.constructorDeclaration2(null, null, ASTFactory.identifier2("C"), "m", ASTFactory.formalParameterList([]), null, ASTFactory.blockFunctionBody([])));
+    assertSource("C.m() {}", ASTFactory.constructorDeclaration2(null, null, ASTFactory.identifier3("C"), "m", ASTFactory.formalParameterList([]), null, ASTFactory.blockFunctionBody([])));
   }
   void test_visitConstructorDeclaration_singleInitializer() {
-    assertSource("C() : a = b {}", ASTFactory.constructorDeclaration2(null, null, ASTFactory.identifier2("C"), null, ASTFactory.formalParameterList([]), ASTFactory.list([(ASTFactory.constructorFieldInitializer(false, "a", ASTFactory.identifier2("b")) as ConstructorInitializer)]), ASTFactory.blockFunctionBody([])));
+    assertSource("C() : a = b {}", ASTFactory.constructorDeclaration2(null, null, ASTFactory.identifier3("C"), null, ASTFactory.formalParameterList([]), ASTFactory.list([(ASTFactory.constructorFieldInitializer(false, "a", ASTFactory.identifier3("b")) as ConstructorInitializer)]), ASTFactory.blockFunctionBody([])));
   }
   void test_visitConstructorFieldInitializer_withoutThis() {
-    assertSource("a = b", ASTFactory.constructorFieldInitializer(false, "a", ASTFactory.identifier2("b")));
+    assertSource("a = b", ASTFactory.constructorFieldInitializer(false, "a", ASTFactory.identifier3("b")));
   }
   void test_visitConstructorFieldInitializer_withThis() {
-    assertSource("this.a = b", ASTFactory.constructorFieldInitializer(true, "a", ASTFactory.identifier2("b")));
+    assertSource("this.a = b", ASTFactory.constructorFieldInitializer(true, "a", ASTFactory.identifier3("b")));
   }
   void test_visitConstructorName_named_prefix() {
-    assertSource("p.C.n", ASTFactory.constructorName(ASTFactory.typeName3("p.C.n", []), null));
+    assertSource("p.C.n", ASTFactory.constructorName(ASTFactory.typeName4("p.C.n", []), null));
   }
   void test_visitConstructorName_unnamed_noPrefix() {
-    assertSource("C", ASTFactory.constructorName(ASTFactory.typeName3("C", []), null));
+    assertSource("C", ASTFactory.constructorName(ASTFactory.typeName4("C", []), null));
   }
   void test_visitConstructorName_unnamed_prefix() {
-    assertSource("p.C", ASTFactory.constructorName(ASTFactory.typeName2(ASTFactory.identifier4("p", "C"), []), null));
+    assertSource("p.C", ASTFactory.constructorName(ASTFactory.typeName3(ASTFactory.identifier5("p", "C"), []), null));
   }
   void test_visitContinueStatement_label() {
     assertSource("continue l;", ASTFactory.continueStatement2("l"));
@@ -1341,7 +1365,7 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("p = 0", ASTFactory.positionalFormalParameter(ASTFactory.simpleFormalParameter3("p"), ASTFactory.integer(0)));
   }
   void test_visitDoStatement() {
-    assertSource("do {} while (c);", ASTFactory.doStatement(ASTFactory.block([]), ASTFactory.identifier2("c")));
+    assertSource("do {} while (c);", ASTFactory.doStatement(ASTFactory.block([]), ASTFactory.identifier3("c")));
   }
   void test_visitDoubleLiteral() {
     assertSource("4.2", ASTFactory.doubleLiteral(4.2));
@@ -1353,22 +1377,22 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource(";", ASTFactory.emptyStatement());
   }
   void test_visitExportDirective_combinator() {
-    assertSource("export 'a.dart' show A;", ASTFactory.exportDirective2("a.dart", [(ASTFactory.showCombinator([ASTFactory.identifier2("A")]) as Combinator)]));
+    assertSource("export 'a.dart' show A;", ASTFactory.exportDirective2("a.dart", [(ASTFactory.showCombinator([ASTFactory.identifier3("A")]) as Combinator)]));
   }
   void test_visitExportDirective_combinators() {
-    assertSource("export 'a.dart' show A hide B;", ASTFactory.exportDirective2("a.dart", [ASTFactory.showCombinator([ASTFactory.identifier2("A")]), ASTFactory.hideCombinator([ASTFactory.identifier2("B")])]));
+    assertSource("export 'a.dart' show A hide B;", ASTFactory.exportDirective2("a.dart", [ASTFactory.showCombinator([ASTFactory.identifier3("A")]), ASTFactory.hideCombinator([ASTFactory.identifier3("B")])]));
   }
   void test_visitExportDirective_minimal() {
     assertSource("export 'a.dart';", ASTFactory.exportDirective2("a.dart", []));
   }
   void test_visitExpressionFunctionBody() {
-    assertSource("=> a;", ASTFactory.expressionFunctionBody(ASTFactory.identifier2("a")));
+    assertSource("=> a;", ASTFactory.expressionFunctionBody(ASTFactory.identifier3("a")));
   }
   void test_visitExpressionStatement() {
-    assertSource("a;", ASTFactory.expressionStatement(ASTFactory.identifier2("a")));
+    assertSource("a;", ASTFactory.expressionStatement(ASTFactory.identifier3("a")));
   }
   void test_visitExtendsClause() {
-    assertSource("extends C", ASTFactory.extendsClause(ASTFactory.typeName3("C", [])));
+    assertSource("extends C", ASTFactory.extendsClause(ASTFactory.typeName4("C", [])));
   }
   void test_visitFieldDeclaration_instance() {
     assertSource("var a;", ASTFactory.fieldDeclaration2(false, Keyword.VAR, [ASTFactory.variableDeclaration("a")]));
@@ -1380,13 +1404,13 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("var this.a", ASTFactory.fieldFormalParameter(Keyword.VAR, null, "a"));
   }
   void test_visitFieldFormalParameter_keywordAndType() {
-    assertSource("final A this.a", ASTFactory.fieldFormalParameter(Keyword.FINAL, ASTFactory.typeName3("A", []), "a"));
+    assertSource("final A this.a", ASTFactory.fieldFormalParameter(Keyword.FINAL, ASTFactory.typeName4("A", []), "a"));
   }
   void test_visitFieldFormalParameter_type() {
-    assertSource("A this.a", ASTFactory.fieldFormalParameter(null, ASTFactory.typeName3("A", []), "a"));
+    assertSource("A this.a", ASTFactory.fieldFormalParameter(null, ASTFactory.typeName4("A", []), "a"));
   }
   void test_visitForEachStatement() {
-    assertSource("for (a in b) {}", ASTFactory.forEachStatement(ASTFactory.declaredIdentifier3("a"), ASTFactory.identifier2("b"), ASTFactory.block([])));
+    assertSource("for (a in b) {}", ASTFactory.forEachStatement(ASTFactory.declaredIdentifier3("a"), ASTFactory.identifier3("b"), ASTFactory.block([])));
   }
   void test_visitFormalParameterList_empty() {
     assertSource("()", ASTFactory.formalParameterList([]));
@@ -1434,37 +1458,37 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("(a, b, [c = 3, d = 4])", ASTFactory.formalParameterList([ASTFactory.simpleFormalParameter3("a"), ASTFactory.simpleFormalParameter3("b"), ASTFactory.positionalFormalParameter(ASTFactory.simpleFormalParameter3("c"), ASTFactory.integer(3)), ASTFactory.positionalFormalParameter(ASTFactory.simpleFormalParameter3("d"), ASTFactory.integer(4))]));
   }
   void test_visitForStatement_c() {
-    assertSource("for (; c;) {}", ASTFactory.forStatement((null as Expression), ASTFactory.identifier2("c"), null, ASTFactory.block([])));
+    assertSource("for (; c;) {}", ASTFactory.forStatement((null as Expression), ASTFactory.identifier3("c"), null, ASTFactory.block([])));
   }
   void test_visitForStatement_cu() {
-    assertSource("for (; c; u) {}", ASTFactory.forStatement((null as Expression), ASTFactory.identifier2("c"), ASTFactory.list([(ASTFactory.identifier2("u") as Expression)]), ASTFactory.block([])));
+    assertSource("for (; c; u) {}", ASTFactory.forStatement((null as Expression), ASTFactory.identifier3("c"), ASTFactory.list([(ASTFactory.identifier3("u") as Expression)]), ASTFactory.block([])));
   }
   void test_visitForStatement_e() {
-    assertSource("for (e;;) {}", ASTFactory.forStatement(ASTFactory.identifier2("e"), null, null, ASTFactory.block([])));
+    assertSource("for (e;;) {}", ASTFactory.forStatement(ASTFactory.identifier3("e"), null, null, ASTFactory.block([])));
   }
   void test_visitForStatement_ec() {
-    assertSource("for (e; c;) {}", ASTFactory.forStatement(ASTFactory.identifier2("e"), ASTFactory.identifier2("c"), null, ASTFactory.block([])));
+    assertSource("for (e; c;) {}", ASTFactory.forStatement(ASTFactory.identifier3("e"), ASTFactory.identifier3("c"), null, ASTFactory.block([])));
   }
   void test_visitForStatement_ecu() {
-    assertSource("for (e; c; u) {}", ASTFactory.forStatement(ASTFactory.identifier2("e"), ASTFactory.identifier2("c"), ASTFactory.list([(ASTFactory.identifier2("u") as Expression)]), ASTFactory.block([])));
+    assertSource("for (e; c; u) {}", ASTFactory.forStatement(ASTFactory.identifier3("e"), ASTFactory.identifier3("c"), ASTFactory.list([(ASTFactory.identifier3("u") as Expression)]), ASTFactory.block([])));
   }
   void test_visitForStatement_eu() {
-    assertSource("for (e;; u) {}", ASTFactory.forStatement(ASTFactory.identifier2("e"), null, ASTFactory.list([(ASTFactory.identifier2("u") as Expression)]), ASTFactory.block([])));
+    assertSource("for (e;; u) {}", ASTFactory.forStatement(ASTFactory.identifier3("e"), null, ASTFactory.list([(ASTFactory.identifier3("u") as Expression)]), ASTFactory.block([])));
   }
   void test_visitForStatement_i() {
     assertSource("for (var i;;) {}", ASTFactory.forStatement2(ASTFactory.variableDeclarationList2(Keyword.VAR, [ASTFactory.variableDeclaration("i")]), null, null, ASTFactory.block([])));
   }
   void test_visitForStatement_ic() {
-    assertSource("for (var i; c;) {}", ASTFactory.forStatement2(ASTFactory.variableDeclarationList2(Keyword.VAR, [ASTFactory.variableDeclaration("i")]), ASTFactory.identifier2("c"), null, ASTFactory.block([])));
+    assertSource("for (var i; c;) {}", ASTFactory.forStatement2(ASTFactory.variableDeclarationList2(Keyword.VAR, [ASTFactory.variableDeclaration("i")]), ASTFactory.identifier3("c"), null, ASTFactory.block([])));
   }
   void test_visitForStatement_icu() {
-    assertSource("for (var i; c; u) {}", ASTFactory.forStatement2(ASTFactory.variableDeclarationList2(Keyword.VAR, [ASTFactory.variableDeclaration("i")]), ASTFactory.identifier2("c"), ASTFactory.list([(ASTFactory.identifier2("u") as Expression)]), ASTFactory.block([])));
+    assertSource("for (var i; c; u) {}", ASTFactory.forStatement2(ASTFactory.variableDeclarationList2(Keyword.VAR, [ASTFactory.variableDeclaration("i")]), ASTFactory.identifier3("c"), ASTFactory.list([(ASTFactory.identifier3("u") as Expression)]), ASTFactory.block([])));
   }
   void test_visitForStatement_iu() {
-    assertSource("for (var i;; u) {}", ASTFactory.forStatement2(ASTFactory.variableDeclarationList2(Keyword.VAR, [ASTFactory.variableDeclaration("i")]), null, ASTFactory.list([(ASTFactory.identifier2("u") as Expression)]), ASTFactory.block([])));
+    assertSource("for (var i;; u) {}", ASTFactory.forStatement2(ASTFactory.variableDeclarationList2(Keyword.VAR, [ASTFactory.variableDeclaration("i")]), null, ASTFactory.list([(ASTFactory.identifier3("u") as Expression)]), ASTFactory.block([])));
   }
   void test_visitForStatement_u() {
-    assertSource("for (;; u) {}", ASTFactory.forStatement((null as Expression), null, ASTFactory.list([(ASTFactory.identifier2("u") as Expression)]), ASTFactory.block([])));
+    assertSource("for (;; u) {}", ASTFactory.forStatement((null as Expression), null, ASTFactory.list([(ASTFactory.identifier3("u") as Expression)]), ASTFactory.block([])));
   }
   void test_visitFunctionDeclaration_getter() {
     assertSource("get f() {}", ASTFactory.functionDeclaration(null, Keyword.GET, "f", ASTFactory.functionExpression()));
@@ -1482,31 +1506,31 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("() {}", ASTFactory.functionExpression());
   }
   void test_visitFunctionExpressionInvocation() {
-    assertSource("f()", ASTFactory.functionExpressionInvocation(ASTFactory.identifier2("f"), []));
+    assertSource("f()", ASTFactory.functionExpressionInvocation(ASTFactory.identifier3("f"), []));
   }
   void test_visitFunctionTypedFormalParameter_noType() {
     assertSource("f()", ASTFactory.functionTypedFormalParameter(null, "f", []));
   }
   void test_visitFunctionTypedFormalParameter_type() {
-    assertSource("T f()", ASTFactory.functionTypedFormalParameter(ASTFactory.typeName3("T", []), "f", []));
+    assertSource("T f()", ASTFactory.functionTypedFormalParameter(ASTFactory.typeName4("T", []), "f", []));
   }
   void test_visitIfStatement_withElse() {
-    assertSource("if (c) {} else {}", ASTFactory.ifStatement2(ASTFactory.identifier2("c"), ASTFactory.block([]), ASTFactory.block([])));
+    assertSource("if (c) {} else {}", ASTFactory.ifStatement2(ASTFactory.identifier3("c"), ASTFactory.block([]), ASTFactory.block([])));
   }
   void test_visitIfStatement_withoutElse() {
-    assertSource("if (c) {}", ASTFactory.ifStatement(ASTFactory.identifier2("c"), ASTFactory.block([])));
+    assertSource("if (c) {}", ASTFactory.ifStatement(ASTFactory.identifier3("c"), ASTFactory.block([])));
   }
   void test_visitImplementsClause_multiple() {
-    assertSource("implements A, B", ASTFactory.implementsClause([ASTFactory.typeName3("A", []), ASTFactory.typeName3("B", [])]));
+    assertSource("implements A, B", ASTFactory.implementsClause([ASTFactory.typeName4("A", []), ASTFactory.typeName4("B", [])]));
   }
   void test_visitImplementsClause_single() {
-    assertSource("implements A", ASTFactory.implementsClause([ASTFactory.typeName3("A", [])]));
+    assertSource("implements A", ASTFactory.implementsClause([ASTFactory.typeName4("A", [])]));
   }
   void test_visitImportDirective_combinator() {
-    assertSource("import 'a.dart' show A;", ASTFactory.importDirective2("a.dart", null, [ASTFactory.showCombinator([ASTFactory.identifier2("A")])]));
+    assertSource("import 'a.dart' show A;", ASTFactory.importDirective2("a.dart", null, [ASTFactory.showCombinator([ASTFactory.identifier3("A")])]));
   }
   void test_visitImportDirective_combinators() {
-    assertSource("import 'a.dart' show A hide B;", ASTFactory.importDirective2("a.dart", null, [ASTFactory.showCombinator([ASTFactory.identifier2("A")]), ASTFactory.hideCombinator([ASTFactory.identifier2("B")])]));
+    assertSource("import 'a.dart' show A hide B;", ASTFactory.importDirective2("a.dart", null, [ASTFactory.showCombinator([ASTFactory.identifier3("A")]), ASTFactory.hideCombinator([ASTFactory.identifier3("B")])]));
   }
   void test_visitImportDirective_minimal() {
     assertSource("import 'a.dart';", ASTFactory.importDirective2("a.dart", null, []));
@@ -1515,40 +1539,40 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("import 'a.dart' as p;", ASTFactory.importDirective2("a.dart", "p", []));
   }
   void test_visitImportDirective_prefix_combinator() {
-    assertSource("import 'a.dart' as p show A;", ASTFactory.importDirective2("a.dart", "p", [ASTFactory.showCombinator([ASTFactory.identifier2("A")])]));
+    assertSource("import 'a.dart' as p show A;", ASTFactory.importDirective2("a.dart", "p", [ASTFactory.showCombinator([ASTFactory.identifier3("A")])]));
   }
   void test_visitImportDirective_prefix_combinators() {
-    assertSource("import 'a.dart' as p show A hide B;", ASTFactory.importDirective2("a.dart", "p", [ASTFactory.showCombinator([ASTFactory.identifier2("A")]), ASTFactory.hideCombinator([ASTFactory.identifier2("B")])]));
+    assertSource("import 'a.dart' as p show A hide B;", ASTFactory.importDirective2("a.dart", "p", [ASTFactory.showCombinator([ASTFactory.identifier3("A")]), ASTFactory.hideCombinator([ASTFactory.identifier3("B")])]));
   }
   void test_visitImportHideCombinator_multiple() {
-    assertSource("hide a, b", ASTFactory.hideCombinator([ASTFactory.identifier2("a"), ASTFactory.identifier2("b")]));
+    assertSource("hide a, b", ASTFactory.hideCombinator([ASTFactory.identifier3("a"), ASTFactory.identifier3("b")]));
   }
   void test_visitImportHideCombinator_single() {
-    assertSource("hide a", ASTFactory.hideCombinator([ASTFactory.identifier2("a")]));
+    assertSource("hide a", ASTFactory.hideCombinator([ASTFactory.identifier3("a")]));
   }
   void test_visitImportShowCombinator_multiple() {
-    assertSource("show a, b", ASTFactory.showCombinator([ASTFactory.identifier2("a"), ASTFactory.identifier2("b")]));
+    assertSource("show a, b", ASTFactory.showCombinator([ASTFactory.identifier3("a"), ASTFactory.identifier3("b")]));
   }
   void test_visitImportShowCombinator_single() {
-    assertSource("show a", ASTFactory.showCombinator([ASTFactory.identifier2("a")]));
+    assertSource("show a", ASTFactory.showCombinator([ASTFactory.identifier3("a")]));
   }
   void test_visitIndexExpression() {
-    assertSource("a[i]", ASTFactory.indexExpression(ASTFactory.identifier2("a"), ASTFactory.identifier2("i")));
+    assertSource("a[i]", ASTFactory.indexExpression(ASTFactory.identifier3("a"), ASTFactory.identifier3("i")));
   }
   void test_visitInstanceCreationExpression_const() {
-    assertSource("const C()", ASTFactory.instanceCreationExpression2(Keyword.CONST, ASTFactory.typeName3("C", []), []));
+    assertSource("const C()", ASTFactory.instanceCreationExpression2(Keyword.CONST, ASTFactory.typeName4("C", []), []));
   }
   void test_visitInstanceCreationExpression_named() {
-    assertSource("new C.c()", ASTFactory.instanceCreationExpression3(Keyword.NEW, ASTFactory.typeName3("C", []), "c", []));
+    assertSource("new C.c()", ASTFactory.instanceCreationExpression3(Keyword.NEW, ASTFactory.typeName4("C", []), "c", []));
   }
   void test_visitInstanceCreationExpression_unnamed() {
-    assertSource("new C()", ASTFactory.instanceCreationExpression2(Keyword.NEW, ASTFactory.typeName3("C", []), []));
+    assertSource("new C()", ASTFactory.instanceCreationExpression2(Keyword.NEW, ASTFactory.typeName4("C", []), []));
   }
   void test_visitIntegerLiteral() {
     assertSource("42", ASTFactory.integer(42));
   }
   void test_visitInterpolationExpression_expression() {
-    assertSource("\${a}", ASTFactory.interpolationExpression(ASTFactory.identifier2("a")));
+    assertSource("\${a}", ASTFactory.interpolationExpression(ASTFactory.identifier3("a")));
   }
   void test_visitInterpolationExpression_identifier() {
     assertSource("\$a", ASTFactory.interpolationExpression2("a"));
@@ -1557,28 +1581,28 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("'x", ASTFactory.interpolationString("'x", "x"));
   }
   void test_visitIsExpression_negated() {
-    assertSource("a is! C", ASTFactory.isExpression(ASTFactory.identifier2("a"), true, ASTFactory.typeName3("C", [])));
+    assertSource("a is! C", ASTFactory.isExpression(ASTFactory.identifier3("a"), true, ASTFactory.typeName4("C", [])));
   }
   void test_visitIsExpression_normal() {
-    assertSource("a is C", ASTFactory.isExpression(ASTFactory.identifier2("a"), false, ASTFactory.typeName3("C", [])));
+    assertSource("a is C", ASTFactory.isExpression(ASTFactory.identifier3("a"), false, ASTFactory.typeName4("C", [])));
   }
   void test_visitLabel() {
-    assertSource("a:", ASTFactory.label("a"));
+    assertSource("a:", ASTFactory.label2("a"));
   }
   void test_visitLabeledStatement_multiple() {
-    assertSource("a: b: return;", ASTFactory.labeledStatement(ASTFactory.list([ASTFactory.label("a"), ASTFactory.label("b")]), ASTFactory.returnStatement()));
+    assertSource("a: b: return;", ASTFactory.labeledStatement(ASTFactory.list([ASTFactory.label2("a"), ASTFactory.label2("b")]), ASTFactory.returnStatement()));
   }
   void test_visitLabeledStatement_single() {
-    assertSource("a: return;", ASTFactory.labeledStatement(ASTFactory.list([ASTFactory.label("a")]), ASTFactory.returnStatement()));
+    assertSource("a: return;", ASTFactory.labeledStatement(ASTFactory.list([ASTFactory.label2("a")]), ASTFactory.returnStatement()));
   }
   void test_visitLibraryDirective() {
     assertSource("library l;", ASTFactory.libraryDirective2("l"));
   }
   void test_visitLibraryIdentifier_multiple() {
-    assertSource("a.b.c", ASTFactory.libraryIdentifier([ASTFactory.identifier2("a"), ASTFactory.identifier2("b"), ASTFactory.identifier2("c")]));
+    assertSource("a.b.c", ASTFactory.libraryIdentifier([ASTFactory.identifier3("a"), ASTFactory.identifier3("b"), ASTFactory.identifier3("c")]));
   }
   void test_visitLibraryIdentifier_single() {
-    assertSource("a", ASTFactory.libraryIdentifier([ASTFactory.identifier2("a")]));
+    assertSource("a", ASTFactory.libraryIdentifier([ASTFactory.identifier3("a")]));
   }
   void test_visitListLiteral_const() {
     assertSource("const []", ASTFactory.listLiteral2(Keyword.CONST, null, []));
@@ -1587,7 +1611,7 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("[]", ASTFactory.listLiteral([]));
   }
   void test_visitListLiteral_nonEmpty() {
-    assertSource("[a, b, c]", ASTFactory.listLiteral([ASTFactory.identifier2("a"), ASTFactory.identifier2("b"), ASTFactory.identifier2("c")]));
+    assertSource("[a, b, c]", ASTFactory.listLiteral([ASTFactory.identifier3("a"), ASTFactory.identifier3("b"), ASTFactory.identifier3("c")]));
   }
   void test_visitMapLiteral_const() {
     assertSource("const {}", ASTFactory.mapLiteral(Keyword.CONST, null, []));
@@ -1596,67 +1620,70 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("{}", ASTFactory.mapLiteral2([]));
   }
   void test_visitMapLiteral_nonEmpty() {
-    assertSource("{'a' : a, 'b' : b, 'c' : c}", ASTFactory.mapLiteral2([ASTFactory.mapLiteralEntry("a", ASTFactory.identifier2("a")), ASTFactory.mapLiteralEntry("b", ASTFactory.identifier2("b")), ASTFactory.mapLiteralEntry("c", ASTFactory.identifier2("c"))]));
+    assertSource("{'a' : a, 'b' : b, 'c' : c}", ASTFactory.mapLiteral2([ASTFactory.mapLiteralEntry("a", ASTFactory.identifier3("a")), ASTFactory.mapLiteralEntry("b", ASTFactory.identifier3("b")), ASTFactory.mapLiteralEntry("c", ASTFactory.identifier3("c"))]));
   }
   void test_visitMapLiteralEntry() {
-    assertSource("'a' : b", ASTFactory.mapLiteralEntry("a", ASTFactory.identifier2("b")));
+    assertSource("'a' : b", ASTFactory.mapLiteralEntry("a", ASTFactory.identifier3("b")));
   }
   void test_visitMethodDeclaration_external() {
-    assertSource("external m();", ASTFactory.methodDeclaration(null, null, null, null, ASTFactory.identifier2("m"), ASTFactory.formalParameterList([])));
+    assertSource("external m();", ASTFactory.methodDeclaration(null, null, null, null, ASTFactory.identifier3("m"), ASTFactory.formalParameterList([])));
   }
   void test_visitMethodDeclaration_external_returnType() {
-    assertSource("external T m();", ASTFactory.methodDeclaration(null, ASTFactory.typeName3("T", []), null, null, ASTFactory.identifier2("m"), ASTFactory.formalParameterList([])));
+    assertSource("external T m();", ASTFactory.methodDeclaration(null, ASTFactory.typeName4("T", []), null, null, ASTFactory.identifier3("m"), ASTFactory.formalParameterList([])));
   }
   void test_visitMethodDeclaration_getter() {
-    assertSource("get m {}", ASTFactory.methodDeclaration2(null, null, Keyword.GET, null, ASTFactory.identifier2("m"), null, ASTFactory.blockFunctionBody([])));
+    assertSource("get m {}", ASTFactory.methodDeclaration2(null, null, Keyword.GET, null, ASTFactory.identifier3("m"), null, ASTFactory.blockFunctionBody([])));
   }
   void test_visitMethodDeclaration_getter_returnType() {
-    assertSource("T get m {}", ASTFactory.methodDeclaration2(null, ASTFactory.typeName3("T", []), Keyword.GET, null, ASTFactory.identifier2("m"), null, ASTFactory.blockFunctionBody([])));
+    assertSource("T get m {}", ASTFactory.methodDeclaration2(null, ASTFactory.typeName4("T", []), Keyword.GET, null, ASTFactory.identifier3("m"), null, ASTFactory.blockFunctionBody([])));
   }
   void test_visitMethodDeclaration_getter_seturnType() {
-    assertSource("T set m(var v) {}", ASTFactory.methodDeclaration2(null, ASTFactory.typeName3("T", []), Keyword.SET, null, ASTFactory.identifier2("m"), ASTFactory.formalParameterList([ASTFactory.simpleFormalParameter(Keyword.VAR, "v")]), ASTFactory.blockFunctionBody([])));
+    assertSource("T set m(var v) {}", ASTFactory.methodDeclaration2(null, ASTFactory.typeName4("T", []), Keyword.SET, null, ASTFactory.identifier3("m"), ASTFactory.formalParameterList([ASTFactory.simpleFormalParameter(Keyword.VAR, "v")]), ASTFactory.blockFunctionBody([])));
   }
   void test_visitMethodDeclaration_minimal() {
-    assertSource("m() {}", ASTFactory.methodDeclaration2(null, null, null, null, ASTFactory.identifier2("m"), ASTFactory.formalParameterList([]), ASTFactory.blockFunctionBody([])));
+    assertSource("m() {}", ASTFactory.methodDeclaration2(null, null, null, null, ASTFactory.identifier3("m"), ASTFactory.formalParameterList([]), ASTFactory.blockFunctionBody([])));
   }
   void test_visitMethodDeclaration_multipleParameters() {
-    assertSource("m(var a, var b) {}", ASTFactory.methodDeclaration2(null, null, null, null, ASTFactory.identifier2("m"), ASTFactory.formalParameterList([ASTFactory.simpleFormalParameter(Keyword.VAR, "a"), ASTFactory.simpleFormalParameter(Keyword.VAR, "b")]), ASTFactory.blockFunctionBody([])));
+    assertSource("m(var a, var b) {}", ASTFactory.methodDeclaration2(null, null, null, null, ASTFactory.identifier3("m"), ASTFactory.formalParameterList([ASTFactory.simpleFormalParameter(Keyword.VAR, "a"), ASTFactory.simpleFormalParameter(Keyword.VAR, "b")]), ASTFactory.blockFunctionBody([])));
   }
   void test_visitMethodDeclaration_operator() {
-    assertSource("operator +() {}", ASTFactory.methodDeclaration2(null, null, null, Keyword.OPERATOR, ASTFactory.identifier2("+"), ASTFactory.formalParameterList([]), ASTFactory.blockFunctionBody([])));
+    assertSource("operator +() {}", ASTFactory.methodDeclaration2(null, null, null, Keyword.OPERATOR, ASTFactory.identifier3("+"), ASTFactory.formalParameterList([]), ASTFactory.blockFunctionBody([])));
   }
   void test_visitMethodDeclaration_operator_returnType() {
-    assertSource("T operator +() {}", ASTFactory.methodDeclaration2(null, ASTFactory.typeName3("T", []), null, Keyword.OPERATOR, ASTFactory.identifier2("+"), ASTFactory.formalParameterList([]), ASTFactory.blockFunctionBody([])));
+    assertSource("T operator +() {}", ASTFactory.methodDeclaration2(null, ASTFactory.typeName4("T", []), null, Keyword.OPERATOR, ASTFactory.identifier3("+"), ASTFactory.formalParameterList([]), ASTFactory.blockFunctionBody([])));
   }
   void test_visitMethodDeclaration_returnType() {
-    assertSource("T m() {}", ASTFactory.methodDeclaration2(null, ASTFactory.typeName3("T", []), null, null, ASTFactory.identifier2("m"), ASTFactory.formalParameterList([]), ASTFactory.blockFunctionBody([])));
+    assertSource("T m() {}", ASTFactory.methodDeclaration2(null, ASTFactory.typeName4("T", []), null, null, ASTFactory.identifier3("m"), ASTFactory.formalParameterList([]), ASTFactory.blockFunctionBody([])));
   }
   void test_visitMethodDeclaration_setter() {
-    assertSource("set m(var v) {}", ASTFactory.methodDeclaration2(null, null, Keyword.SET, null, ASTFactory.identifier2("m"), ASTFactory.formalParameterList([ASTFactory.simpleFormalParameter(Keyword.VAR, "v")]), ASTFactory.blockFunctionBody([])));
+    assertSource("set m(var v) {}", ASTFactory.methodDeclaration2(null, null, Keyword.SET, null, ASTFactory.identifier3("m"), ASTFactory.formalParameterList([ASTFactory.simpleFormalParameter(Keyword.VAR, "v")]), ASTFactory.blockFunctionBody([])));
   }
   void test_visitMethodDeclaration_static() {
-    assertSource("static m() {}", ASTFactory.methodDeclaration2(Keyword.STATIC, null, null, null, ASTFactory.identifier2("m"), ASTFactory.formalParameterList([]), ASTFactory.blockFunctionBody([])));
+    assertSource("static m() {}", ASTFactory.methodDeclaration2(Keyword.STATIC, null, null, null, ASTFactory.identifier3("m"), ASTFactory.formalParameterList([]), ASTFactory.blockFunctionBody([])));
   }
   void test_visitMethodDeclaration_static_returnType() {
-    assertSource("static T m() {}", ASTFactory.methodDeclaration2(Keyword.STATIC, ASTFactory.typeName3("T", []), null, null, ASTFactory.identifier2("m"), ASTFactory.formalParameterList([]), ASTFactory.blockFunctionBody([])));
+    assertSource("static T m() {}", ASTFactory.methodDeclaration2(Keyword.STATIC, ASTFactory.typeName4("T", []), null, null, ASTFactory.identifier3("m"), ASTFactory.formalParameterList([]), ASTFactory.blockFunctionBody([])));
   }
   void test_visitMethodInvocation_noTarget() {
     assertSource("m()", ASTFactory.methodInvocation2("m", []));
   }
   void test_visitMethodInvocation_target() {
-    assertSource("t.m()", ASTFactory.methodInvocation(ASTFactory.identifier2("t"), "m", []));
+    assertSource("t.m()", ASTFactory.methodInvocation(ASTFactory.identifier3("t"), "m", []));
   }
   void test_visitNamedExpression() {
-    assertSource("a: b", ASTFactory.namedExpression("a", ASTFactory.identifier2("b")));
+    assertSource("a: b", ASTFactory.namedExpression2("a", ASTFactory.identifier3("b")));
   }
   void test_visitNamedFormalParameter() {
     assertSource("var a : 0", ASTFactory.namedFormalParameter(ASTFactory.simpleFormalParameter(Keyword.VAR, "a"), ASTFactory.integer(0)));
+  }
+  void test_visitNativeFunctionBody() {
+    assertSource("native 'str';", ASTFactory.nativeFunctionBody("str"));
   }
   void test_visitNullLiteral() {
     assertSource("null", ASTFactory.nullLiteral());
   }
   void test_visitParenthesizedExpression() {
-    assertSource("(a)", ASTFactory.parenthesizedExpression(ASTFactory.identifier2("a")));
+    assertSource("(a)", ASTFactory.parenthesizedExpression(ASTFactory.identifier3("a")));
   }
   void test_visitPartDirective() {
     assertSource("part 'a.dart';", ASTFactory.partDirective2("a.dart"));
@@ -1668,16 +1695,16 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("var a = 0", ASTFactory.positionalFormalParameter(ASTFactory.simpleFormalParameter(Keyword.VAR, "a"), ASTFactory.integer(0)));
   }
   void test_visitPostfixExpression() {
-    assertSource("a++", ASTFactory.postfixExpression(ASTFactory.identifier2("a"), TokenType.PLUS_PLUS));
+    assertSource("a++", ASTFactory.postfixExpression(ASTFactory.identifier3("a"), TokenType.PLUS_PLUS));
   }
   void test_visitPrefixedIdentifier() {
-    assertSource("a.b", ASTFactory.identifier4("a", "b"));
+    assertSource("a.b", ASTFactory.identifier5("a", "b"));
   }
   void test_visitPrefixExpression() {
-    assertSource("-a", ASTFactory.prefixExpression(TokenType.MINUS, ASTFactory.identifier2("a")));
+    assertSource("-a", ASTFactory.prefixExpression(TokenType.MINUS, ASTFactory.identifier3("a")));
   }
   void test_visitPropertyAccess() {
-    assertSource("a.b", ASTFactory.propertyAccess2(ASTFactory.identifier2("a"), "b"));
+    assertSource("a.b", ASTFactory.propertyAccess2(ASTFactory.identifier3("a"), "b"));
   }
   void test_visitRedirectingConstructorInvocation_named() {
     assertSource("this.c()", ASTFactory.redirectingConstructorInvocation2("c", []));
@@ -1686,7 +1713,7 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("this()", ASTFactory.redirectingConstructorInvocation([]));
   }
   void test_visitReturnStatement_expression() {
-    assertSource("return a;", ASTFactory.returnStatement2(ASTFactory.identifier2("a")));
+    assertSource("return a;", ASTFactory.returnStatement2(ASTFactory.identifier3("a")));
   }
   void test_visitReturnStatement_noExpression() {
     assertSource("return;", ASTFactory.returnStatement());
@@ -1699,19 +1726,19 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("var a", ASTFactory.simpleFormalParameter(Keyword.VAR, "a"));
   }
   void test_visitSimpleFormalParameter_keyword_type() {
-    assertSource("final A a", ASTFactory.simpleFormalParameter2(Keyword.FINAL, ASTFactory.typeName3("A", []), "a"));
+    assertSource("final A a", ASTFactory.simpleFormalParameter2(Keyword.FINAL, ASTFactory.typeName4("A", []), "a"));
   }
   void test_visitSimpleFormalParameter_type() {
-    assertSource("A a", ASTFactory.simpleFormalParameter4(ASTFactory.typeName3("A", []), "a"));
+    assertSource("A a", ASTFactory.simpleFormalParameter4(ASTFactory.typeName4("A", []), "a"));
   }
   void test_visitSimpleIdentifier() {
-    assertSource("a", ASTFactory.identifier2("a"));
+    assertSource("a", ASTFactory.identifier3("a"));
   }
   void test_visitSimpleStringLiteral() {
     assertSource("'a'", ASTFactory.string2("a"));
   }
   void test_visitStringInterpolation() {
-    assertSource("'a\${e}b'", ASTFactory.string([ASTFactory.interpolationString("'a", "a"), ASTFactory.interpolationExpression(ASTFactory.identifier2("e")), ASTFactory.interpolationString("b'", "b")]));
+    assertSource("'a\${e}b'", ASTFactory.string([ASTFactory.interpolationString("'a", "a"), ASTFactory.interpolationExpression(ASTFactory.identifier3("e")), ASTFactory.interpolationString("b'", "b")]));
   }
   void test_visitSuperConstructorInvocation() {
     assertSource("super()", ASTFactory.superConstructorInvocation([]));
@@ -1723,19 +1750,19 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("super", ASTFactory.superExpression());
   }
   void test_visitSwitchCase_multipleLabels() {
-    assertSource("l1: l2: case a: {}", ASTFactory.switchCase2(ASTFactory.list([ASTFactory.label("l1"), ASTFactory.label("l2")]), ASTFactory.identifier2("a"), [ASTFactory.block([])]));
+    assertSource("l1: l2: case a: {}", ASTFactory.switchCase2(ASTFactory.list([ASTFactory.label2("l1"), ASTFactory.label2("l2")]), ASTFactory.identifier3("a"), [ASTFactory.block([])]));
   }
   void test_visitSwitchCase_multipleStatements() {
-    assertSource("case a: {} {}", ASTFactory.switchCase(ASTFactory.identifier2("a"), [ASTFactory.block([]), ASTFactory.block([])]));
+    assertSource("case a: {} {}", ASTFactory.switchCase(ASTFactory.identifier3("a"), [ASTFactory.block([]), ASTFactory.block([])]));
   }
   void test_visitSwitchCase_noLabels() {
-    assertSource("case a: {}", ASTFactory.switchCase(ASTFactory.identifier2("a"), [ASTFactory.block([])]));
+    assertSource("case a: {}", ASTFactory.switchCase(ASTFactory.identifier3("a"), [ASTFactory.block([])]));
   }
   void test_visitSwitchCase_singleLabel() {
-    assertSource("l1: case a: {}", ASTFactory.switchCase2(ASTFactory.list([ASTFactory.label("l1")]), ASTFactory.identifier2("a"), [ASTFactory.block([])]));
+    assertSource("l1: case a: {}", ASTFactory.switchCase2(ASTFactory.list([ASTFactory.label2("l1")]), ASTFactory.identifier3("a"), [ASTFactory.block([])]));
   }
   void test_visitSwitchDefault_multipleLabels() {
-    assertSource("l1: l2: default: {}", ASTFactory.switchDefault(ASTFactory.list([ASTFactory.label("l1"), ASTFactory.label("l2")]), [ASTFactory.block([])]));
+    assertSource("l1: l2: default: {}", ASTFactory.switchDefault(ASTFactory.list([ASTFactory.label2("l1"), ASTFactory.label2("l2")]), [ASTFactory.block([])]));
   }
   void test_visitSwitchDefault_multipleStatements() {
     assertSource("default: {} {}", ASTFactory.switchDefault2([ASTFactory.block([]), ASTFactory.block([])]));
@@ -1744,16 +1771,16 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("default: {}", ASTFactory.switchDefault2([ASTFactory.block([])]));
   }
   void test_visitSwitchDefault_singleLabel() {
-    assertSource("l1: default: {}", ASTFactory.switchDefault(ASTFactory.list([ASTFactory.label("l1")]), [ASTFactory.block([])]));
+    assertSource("l1: default: {}", ASTFactory.switchDefault(ASTFactory.list([ASTFactory.label2("l1")]), [ASTFactory.block([])]));
   }
   void test_visitSwitchStatement() {
-    assertSource("switch (a) {case 'b': {} default: {}}", ASTFactory.switchStatement(ASTFactory.identifier2("a"), [ASTFactory.switchCase(ASTFactory.string2("b"), [ASTFactory.block([])]), ASTFactory.switchDefault2([ASTFactory.block([])])]));
+    assertSource("switch (a) {case 'b': {} default: {}}", ASTFactory.switchStatement(ASTFactory.identifier3("a"), [ASTFactory.switchCase(ASTFactory.string2("b"), [ASTFactory.block([])]), ASTFactory.switchDefault2([ASTFactory.block([])])]));
   }
   void test_visitThisExpression() {
     assertSource("this", ASTFactory.thisExpression());
   }
   void test_visitThrowStatement() {
-    assertSource("throw e", ASTFactory.throwExpression2(ASTFactory.identifier2("e")));
+    assertSource("throw e", ASTFactory.throwExpression2(ASTFactory.identifier3("e")));
   }
   void test_visitTopLevelVariableDeclaration_multiple() {
     assertSource("var a;", ASTFactory.topLevelVariableDeclaration2(Keyword.VAR, [ASTFactory.variableDeclaration("a")]));
@@ -1762,43 +1789,43 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("var a, b;", ASTFactory.topLevelVariableDeclaration2(Keyword.VAR, [ASTFactory.variableDeclaration("a"), ASTFactory.variableDeclaration("b")]));
   }
   void test_visitTryStatement_catch() {
-    assertSource("try {} on E {}", ASTFactory.tryStatement2(ASTFactory.block([]), [ASTFactory.catchClause3(ASTFactory.typeName3("E", []), [])]));
+    assertSource("try {} on E {}", ASTFactory.tryStatement2(ASTFactory.block([]), [ASTFactory.catchClause3(ASTFactory.typeName4("E", []), [])]));
   }
   void test_visitTryStatement_catches() {
-    assertSource("try {} on E {} on F {}", ASTFactory.tryStatement2(ASTFactory.block([]), [ASTFactory.catchClause3(ASTFactory.typeName3("E", []), []), ASTFactory.catchClause3(ASTFactory.typeName3("F", []), [])]));
+    assertSource("try {} on E {} on F {}", ASTFactory.tryStatement2(ASTFactory.block([]), [ASTFactory.catchClause3(ASTFactory.typeName4("E", []), []), ASTFactory.catchClause3(ASTFactory.typeName4("F", []), [])]));
   }
   void test_visitTryStatement_catchFinally() {
-    assertSource("try {} on E {} finally {}", ASTFactory.tryStatement3(ASTFactory.block([]), ASTFactory.list([ASTFactory.catchClause3(ASTFactory.typeName3("E", []), [])]), ASTFactory.block([])));
+    assertSource("try {} on E {} finally {}", ASTFactory.tryStatement3(ASTFactory.block([]), ASTFactory.list([ASTFactory.catchClause3(ASTFactory.typeName4("E", []), [])]), ASTFactory.block([])));
   }
   void test_visitTryStatement_finally() {
     assertSource("try {} finally {}", ASTFactory.tryStatement(ASTFactory.block([]), ASTFactory.block([])));
   }
   void test_visitTypeAlias_generic() {
-    assertSource("typedef A F<B>();", ASTFactory.typeAlias(ASTFactory.typeName3("A", []), "F", ASTFactory.typeParameterList(["B"]), ASTFactory.formalParameterList([])));
+    assertSource("typedef A F<B>();", ASTFactory.typeAlias(ASTFactory.typeName4("A", []), "F", ASTFactory.typeParameterList(["B"]), ASTFactory.formalParameterList([])));
   }
   void test_visitTypeAlias_nonGeneric() {
-    assertSource("typedef A F();", ASTFactory.typeAlias(ASTFactory.typeName3("A", []), "F", null, ASTFactory.formalParameterList([])));
+    assertSource("typedef A F();", ASTFactory.typeAlias(ASTFactory.typeName4("A", []), "F", null, ASTFactory.formalParameterList([])));
   }
   void test_visitTypeArgumentList_multiple() {
-    assertSource("<E, F>", ASTFactory.typeArgumentList([ASTFactory.typeName3("E", []), ASTFactory.typeName3("F", [])]));
+    assertSource("<E, F>", ASTFactory.typeArgumentList([ASTFactory.typeName4("E", []), ASTFactory.typeName4("F", [])]));
   }
   void test_visitTypeArgumentList_single() {
-    assertSource("<E>", ASTFactory.typeArgumentList([ASTFactory.typeName3("E", [])]));
+    assertSource("<E>", ASTFactory.typeArgumentList([ASTFactory.typeName4("E", [])]));
   }
   void test_visitTypeName_multipleArgs() {
-    assertSource("C<D, E>", ASTFactory.typeName3("C", [ASTFactory.typeName3("D", []), ASTFactory.typeName3("E", [])]));
+    assertSource("C<D, E>", ASTFactory.typeName4("C", [ASTFactory.typeName4("D", []), ASTFactory.typeName4("E", [])]));
   }
   void test_visitTypeName_nestedArg() {
-    assertSource("C<D<E>>", ASTFactory.typeName3("C", [ASTFactory.typeName3("D", [ASTFactory.typeName3("E", [])])]));
+    assertSource("C<D<E>>", ASTFactory.typeName4("C", [ASTFactory.typeName4("D", [ASTFactory.typeName4("E", [])])]));
   }
   void test_visitTypeName_noArgs() {
-    assertSource("C", ASTFactory.typeName3("C", []));
+    assertSource("C", ASTFactory.typeName4("C", []));
   }
   void test_visitTypeName_singleArg() {
-    assertSource("C<D>", ASTFactory.typeName3("C", [ASTFactory.typeName3("D", [])]));
+    assertSource("C<D>", ASTFactory.typeName4("C", [ASTFactory.typeName4("D", [])]));
   }
   void test_visitTypeParameter_withExtends() {
-    assertSource("E extends C", ASTFactory.typeParameter2("E", ASTFactory.typeName3("C", [])));
+    assertSource("E extends C", ASTFactory.typeParameter2("E", ASTFactory.typeName4("C", [])));
   }
   void test_visitTypeParameter_withoutExtends() {
     assertSource("E", ASTFactory.typeParameter("E"));
@@ -1810,34 +1837,34 @@ class ToSourceVisitorTest extends EngineTestCase {
     assertSource("<E>", ASTFactory.typeParameterList(["E"]));
   }
   void test_visitVariableDeclaration_initialized() {
-    assertSource("a = b", ASTFactory.variableDeclaration2("a", ASTFactory.identifier2("b")));
+    assertSource("a = b", ASTFactory.variableDeclaration2("a", ASTFactory.identifier3("b")));
   }
   void test_visitVariableDeclaration_uninitialized() {
     assertSource("a", ASTFactory.variableDeclaration("a"));
   }
   void test_visitVariableDeclarationList_const_type() {
-    assertSource("const C a, b", ASTFactory.variableDeclarationList(Keyword.CONST, ASTFactory.typeName3("C", []), [ASTFactory.variableDeclaration("a"), ASTFactory.variableDeclaration("b")]));
+    assertSource("const C a, b", ASTFactory.variableDeclarationList(Keyword.CONST, ASTFactory.typeName4("C", []), [ASTFactory.variableDeclaration("a"), ASTFactory.variableDeclaration("b")]));
   }
   void test_visitVariableDeclarationList_final_noType() {
     assertSource("final a, b", ASTFactory.variableDeclarationList2(Keyword.FINAL, [ASTFactory.variableDeclaration("a"), ASTFactory.variableDeclaration("b")]));
   }
   void test_visitVariableDeclarationList_type() {
-    assertSource("C a, b", ASTFactory.variableDeclarationList(null, ASTFactory.typeName3("C", []), [ASTFactory.variableDeclaration("a"), ASTFactory.variableDeclaration("b")]));
+    assertSource("C a, b", ASTFactory.variableDeclarationList(null, ASTFactory.typeName4("C", []), [ASTFactory.variableDeclaration("a"), ASTFactory.variableDeclaration("b")]));
   }
   void test_visitVariableDeclarationList_var() {
     assertSource("var a, b", ASTFactory.variableDeclarationList2(Keyword.VAR, [ASTFactory.variableDeclaration("a"), ASTFactory.variableDeclaration("b")]));
   }
   void test_visitVariableDeclarationStatement() {
-    assertSource("C c;", ASTFactory.variableDeclarationStatement(null, ASTFactory.typeName3("C", []), [ASTFactory.variableDeclaration("c")]));
+    assertSource("C c;", ASTFactory.variableDeclarationStatement(null, ASTFactory.typeName4("C", []), [ASTFactory.variableDeclaration("c")]));
   }
   void test_visitWhileStatement() {
-    assertSource("while (c) {}", ASTFactory.whileStatement(ASTFactory.identifier2("c"), ASTFactory.block([])));
+    assertSource("while (c) {}", ASTFactory.whileStatement(ASTFactory.identifier3("c"), ASTFactory.block([])));
   }
   void test_visitWithClause_multiple() {
-    assertSource("with A, B, C", ASTFactory.withClause([ASTFactory.typeName3("A", []), ASTFactory.typeName3("B", []), ASTFactory.typeName3("C", [])]));
+    assertSource("with A, B, C", ASTFactory.withClause([ASTFactory.typeName4("A", []), ASTFactory.typeName4("B", []), ASTFactory.typeName4("C", [])]));
   }
   void test_visitWithClause_single() {
-    assertSource("with A", ASTFactory.withClause([ASTFactory.typeName3("A", [])]));
+    assertSource("with A", ASTFactory.withClause([ASTFactory.typeName4("A", [])]));
   }
   /**
    * Assert that a {@code ToSourceVisitor} will produce the expected source when visiting the given
@@ -2568,6 +2595,10 @@ class ToSourceVisitorTest extends EngineTestCase {
       _ut.test('test_visitNamedFormalParameter', () {
         final __test = new ToSourceVisitorTest();
         runJUnitTest(__test, __test.test_visitNamedFormalParameter);
+      });
+      _ut.test('test_visitNativeFunctionBody', () {
+        final __test = new ToSourceVisitorTest();
+        runJUnitTest(__test, __test.test_visitNativeFunctionBody);
       });
       _ut.test('test_visitNullLiteral', () {
         final __test = new ToSourceVisitorTest();

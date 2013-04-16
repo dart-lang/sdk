@@ -12,7 +12,7 @@ import 'package:analyzer_experimental/src/generated/source.dart';
 import 'package:analyzer_experimental/src/generated/error.dart';
 import 'package:analyzer_experimental/src/generated/scanner.dart';
 import 'package:analyzer_experimental/src/generated/element.dart' show InterfaceType, MethodElement, PropertyAccessorElement;
-import 'package:analyzer_experimental/src/generated/engine.dart' show AnalysisContext;
+import 'package:analyzer_experimental/src/generated/engine.dart' show AnalysisContext, AnalysisContextImpl;
 import 'package:unittest/unittest.dart' as _ut;
 
 /**
@@ -45,17 +45,17 @@ class GatheringErrorListener implements AnalysisErrorListener {
    * Initialize a newly created error listener to collect errors.
    */
   GatheringErrorListener() : super() {
-    _jtd_constructor_321_impl();
+    _jtd_constructor_347_impl();
   }
-  _jtd_constructor_321_impl() {
+  _jtd_constructor_347_impl() {
   }
   /**
    * Initialize a newly created error listener to collect errors.
    */
   GatheringErrorListener.con1(String rawSource2) {
-    _jtd_constructor_322_impl(rawSource2);
+    _jtd_constructor_348_impl(rawSource2);
   }
-  _jtd_constructor_322_impl(String rawSource2) {
+  _jtd_constructor_348_impl(String rawSource2) {
     this._rawSource = rawSource2;
     this._markedSource = rawSource2;
   }
@@ -205,6 +205,13 @@ class GatheringErrorListener implements AnalysisErrorListener {
    */
   List<AnalysisError> get errors => _errors;
   /**
+   * Return the line information associated with the given source, or {@code null} if no line
+   * information has been associated with the source.
+   * @param source the source with which the line information is associated
+   * @return the line information associated with the source
+   */
+  LineInfo getLineInfo(Source source) => _lineInfoMap[source];
+  /**
    * Return {@code true} if an error with the given error code has been gathered.
    * @param errorCode the error code being searched for
    * @return {@code true} if an error with the given error code has been gathered
@@ -217,6 +224,11 @@ class GatheringErrorListener implements AnalysisErrorListener {
     }
     return false;
   }
+  /**
+   * Return {@code true} if at least one error has been gathered.
+   * @return {@code true} if at least one error has been gathered
+   */
+  bool hasErrors() => _errors.length > 0;
   void onError(AnalysisError error) {
     if (_rawSource != null) {
       int left = error.offset;
@@ -275,15 +287,15 @@ class GatheringErrorListener implements AnalysisErrorListener {
     writer.print(expectedErrors.length);
     writer.print(" errors:");
     for (AnalysisError error in expectedErrors) {
-      Source source11 = error.source;
-      LineInfo lineInfo = _lineInfoMap[source11];
+      Source source16 = error.source;
+      LineInfo lineInfo = _lineInfoMap[source16];
       writer.println();
       if (lineInfo == null) {
         int offset10 = error.offset;
-        writer.printf("  %s %s (%d..%d)", [source11 == null ? "" : source11.shortName, error.errorCode, offset10, offset10 + error.length]);
+        writer.printf("  %s %s (%d..%d)", [source16 == null ? "" : source16.shortName, error.errorCode, offset10, offset10 + error.length]);
       } else {
         LineInfo_Location location = lineInfo.getLocation(error.offset);
-        writer.printf("  %s %s (%d, %d/%d)", [source11 == null ? "" : source11.shortName, error.errorCode, location.lineNumber, location.columnNumber, error.length]);
+        writer.printf("  %s %s (%d, %d/%d)", [source16 == null ? "" : source16.shortName, error.errorCode, location.lineNumber, location.columnNumber, error.length]);
       }
     }
     writer.println();
@@ -291,15 +303,15 @@ class GatheringErrorListener implements AnalysisErrorListener {
     writer.print(_errors.length);
     writer.print(" errors:");
     for (AnalysisError error in _errors) {
-      Source source12 = error.source;
-      LineInfo lineInfo = _lineInfoMap[source12];
+      Source source17 = error.source;
+      LineInfo lineInfo = _lineInfoMap[source17];
       writer.println();
       if (lineInfo == null) {
         int offset11 = error.offset;
-        writer.printf("  %s %s (%d..%d): %s", [source12 == null ? "" : source12.shortName, error.errorCode, offset11, offset11 + error.length, error.message]);
+        writer.printf("  %s %s (%d..%d): %s", [source17 == null ? "" : source17.shortName, error.errorCode, offset11, offset11 + error.length, error.message]);
       } else {
         LineInfo_Location location = lineInfo.getLocation(error.offset);
-        writer.printf("  %s %s (%d, %d/%d): %s", [source12 == null ? "" : source12.shortName, error.errorCode, location.lineNumber, location.columnNumber, error.length, error.message]);
+        writer.printf("  %s %s (%d, %d/%d): %s", [source17 == null ? "" : source17.shortName, error.errorCode, location.lineNumber, location.columnNumber, error.length, error.message]);
       }
     }
     JUnitTestCase.fail(writer.toString());
@@ -536,6 +548,20 @@ class EngineTestCase extends JUnitTestCase {
     }
   }
   /**
+   * Assert that the given set is non-{@code null} and has the expected number of elements.
+   * @param expectedSize the expected number of elements
+   * @param set the set being tested
+   * @throws AssertionFailedError if the set is {@code null} or does not have the expected number of
+   * elements
+   */
+  static void assertSize3(int expectedSize, Set<Object> set) {
+    if (set == null) {
+      JUnitTestCase.fail("Expected set of size ${expectedSize}; found null");
+    } else if (set.length != expectedSize) {
+      JUnitTestCase.fail("Expected set of size ${expectedSize}; contained ${set.length} elements");
+    }
+  }
+  /**
    * Convert the given array of lines into a single source string.
    * @param lines the lines to be merged into a single source string
    * @return the source string composed of the given lines
@@ -566,6 +592,11 @@ class EngineTestCase extends JUnitTestCase {
       diffPos = len1;
     }
     return diffPos;
+  }
+  AnalysisContextImpl createAnalysisContext() {
+    AnalysisContextImpl context = new AnalysisContextImpl();
+    context.sourceFactory = new SourceFactory.con2([]);
+    return context;
   }
   /**
    * Return the getter in the given type with the given name. Inherited getters are ignored.
@@ -606,8 +637,9 @@ main() {
 }
 
 class TestSource implements Source {
+  int get hashCode => 0;
   bool operator ==(Object object) {
-    return this == object;
+    return object is TestSource;
   }
   AnalysisContext get context {
     throw new UnsupportedOperationException();

@@ -7,7 +7,8 @@
 import 'package:analyzer_experimental/src/generated/java_io.dart';
 import 'package:analyzer_experimental/src/generated/source_io.dart';
 import 'package:analyzer_experimental/src/generated/ast.dart';
-import 'package:analyzer_experimental/src/generated/sdk.dart';
+import 'package:analyzer_experimental/src/generated/sdk.dart' show DartSdk;
+import 'package:analyzer_experimental/src/generated/sdk_io.dart' show DirectoryBasedDartSdk;
 import 'package:analyzer_experimental/src/generated/element.dart';
 import 'package:analyzer_experimental/src/generated/engine.dart';
 
@@ -23,7 +24,7 @@ main() {
   }
 
   JavaSystemIO.setProperty("com.google.dart.sdk", args[0]);
-  DartSdk sdk = DartSdk.defaultSdk;
+  DartSdk sdk = DirectoryBasedDartSdk.defaultSdk;
 
   AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
   context.sourceFactory = new SourceFactory.con2([new DartUriResolver(sdk), new FileUriResolver()]);

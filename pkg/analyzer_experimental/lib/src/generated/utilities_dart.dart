@@ -10,7 +10,7 @@ library engine.utilities.dart;
  * two kinds: positional optional and named optional.
  * @coverage dart.engine.utilities
  */
-class ParameterKind {
+class ParameterKind implements Comparable<ParameterKind> {
   static final ParameterKind REQUIRED = new ParameterKind('REQUIRED', 0, false);
   static final ParameterKind POSITIONAL = new ParameterKind('POSITIONAL', 1, true);
   static final ParameterKind NAMED = new ParameterKind('NAMED', 2, true);
@@ -34,5 +34,6 @@ class ParameterKind {
    * @return {@code true} if this is an optional parameter
    */
   bool isOptional() => _isOptional2;
+  int compareTo(ParameterKind other) => __ordinal - other.__ordinal;
   String toString() => __name;
 }

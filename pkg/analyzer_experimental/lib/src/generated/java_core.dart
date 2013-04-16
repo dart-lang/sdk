@@ -42,6 +42,11 @@ bool isInstanceOf(o, Type t) {
   if (oTypeName == "${tTypeName}Impl") {
     return true;
   }
+  if (tTypeName == "MethodElement") {
+    if (oTypeName == "MethodMember") {
+      return true;
+    }
+  }
   if (tTypeName == "ExecutableElement") {
     if (oTypeName == "MethodElementImpl" || oTypeName == "FunctionElementImpl") {
       return true;
@@ -291,6 +296,10 @@ class ListWrapper<E> extends ListBase<E> implements List<E> {
     elements.addAll(iterable);
   }
 
+  void setAll(int index, Iterable<E> iterable) {
+    elements.setAll(iterable);
+  }
+
   void sort([int compare(E a, E b)]) {
     elements.sort(compare);
   }
@@ -301,6 +310,10 @@ class ListWrapper<E> extends ListBase<E> implements List<E> {
 
   void insert(int index, E element) {
     elements.insert(index, element);
+  }
+
+  void insertAll(int index, Iterable<E> iterable) {
+    elements.insertAll(index, iterable);
   }
 
   int lastIndexOf(E element, [int start]) {
@@ -329,16 +342,20 @@ class ListWrapper<E> extends ListBase<E> implements List<E> {
 
   List<E> getRange(int start, int length) => sublist(start, start + length);
 
-  void setRange(int start, int length, List<E> from, [int startFrom]) {
-    elements.setRange(start, length, from, startFrom);
+  void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
+    elements.setRange(start, end, iterable, skipCount);
   }
 
-  void removeRange(int start, int length) {
-    elements.removeRange(start, length);
+  void removeRange(int start, int end) {
+    elements.removeRange(start, end);
   }
 
-  void insertRange(int start, int length, [E fill]) {
-    elements.insertRange(start, length, fill);
+  void replaceRange(int start, int end, Iterable<E> iterable) {
+    elements.replaceRange(start, end, iterable);
+  }
+
+  void fillRange(int start, int end, [E fillValue]) {
+    elements.fillRange(start, end, fillValue);
   }
 
   Map<int, E> asMap() {

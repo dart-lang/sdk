@@ -555,6 +555,10 @@ class CharBufferScannerTest extends AbstractScannerTest {
         final __test = new CharBufferScannerTest();
         runJUnitTest(__test, __test.test_keyword_with);
       });
+      _ut.test('test_lineInfo', () {
+        final __test = new CharBufferScannerTest();
+        runJUnitTest(__test, __test.test_lineInfo);
+      });
       _ut.test('test_lt', () {
         final __test = new CharBufferScannerTest();
         runJUnitTest(__test, __test.test_lt);
@@ -1202,6 +1206,10 @@ class StringScannerTest extends AbstractScannerTest {
         final __test = new StringScannerTest();
         runJUnitTest(__test, __test.test_keyword_with);
       });
+      _ut.test('test_lineInfo', () {
+        final __test = new StringScannerTest();
+        runJUnitTest(__test, __test.test_lineInfo);
+      });
       _ut.test('test_lt', () {
         final __test = new StringScannerTest();
         runJUnitTest(__test, __test.test_lt);
@@ -1458,8 +1466,8 @@ class TokenStreamValidator {
     Token currentToken = token;
     while (currentToken != null && currentToken.type != TokenType.EOF) {
       validateStream(builder, currentToken.precedingComments);
-      TokenType type30 = currentToken.type;
-      if (identical(type30, TokenType.OPEN_CURLY_BRACKET) || identical(type30, TokenType.OPEN_PAREN) || identical(type30, TokenType.OPEN_SQUARE_BRACKET) || identical(type30, TokenType.STRING_INTERPOLATION_EXPRESSION)) {
+      TokenType type38 = currentToken.type;
+      if (identical(type38, TokenType.OPEN_CURLY_BRACKET) || identical(type38, TokenType.OPEN_PAREN) || identical(type38, TokenType.OPEN_SQUARE_BRACKET) || identical(type38, TokenType.STRING_INTERPOLATION_EXPRESSION)) {
         if (currentToken is! BeginToken) {
           builder.append("\r\nExpected BeginToken, found ");
           builder.append(currentToken.runtimeType.toString());
@@ -1793,6 +1801,16 @@ abstract class AbstractScannerTest extends JUnitTestCase {
   }
   void test_keyword_with() {
     assertKeywordToken("with");
+  }
+  void test_lineInfo() {
+    String source = "/*\r *\r */";
+    GatheringErrorListener listener = new GatheringErrorListener();
+    Token token = scan(source, listener);
+    JUnitTestCase.assertSame(TokenType.MULTI_LINE_COMMENT, token.precedingComments.type);
+    listener.assertNoErrors();
+    LineInfo info = listener.getLineInfo(new TestSource());
+    JUnitTestCase.assertNotNull(info);
+    JUnitTestCase.assertEquals(3, info.getLocation(source.length - 1).lineNumber);
   }
   void test_lt() {
     assertToken(TokenType.LT, "<");

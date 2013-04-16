@@ -9,7 +9,7 @@ import 'dart:uri';
 import 'java_core.dart';
 import 'java_io.dart';
 import 'sdk.dart' show DartSdk;
-import 'engine.dart' show AnalysisContext;
+import 'engine.dart' show AnalysisContext, AnalysisEngine;
 export 'source.dart';
 
 /**
@@ -18,14 +18,18 @@ export 'source.dart';
  */
 class FileBasedSource implements Source {
   /**
-   * The source factory that created this source and that should be used to resolve URI's against
-   * this source.
+   * The content cache used to access the contents of this source if they have been overridden from
+   * what is on disk or cached.
    */
-  SourceFactory _factory;
+  ContentCache _contentCache;
   /**
    * The file represented by this source.
    */
   JavaFile _file;
+  /**
+   * The cached URI of the {@link #file}.
+   */
+  String _fileUriString;
   /**
    * A flag indicating whether this source is in one of the system libraries.
    */
@@ -33,46 +37,46 @@ class FileBasedSource implements Source {
   /**
    * Initialize a newly created source object. The source object is assumed to not be in a system
    * library.
-   * @param factory the source factory that created this source
+   * @param contentCache the content cache used to access the contents of this source
    * @param file the file represented by this source
    */
-  FileBasedSource.con1(SourceFactory factory, JavaFile file) {
-    _jtd_constructor_302_impl(factory, file);
+  FileBasedSource.con1(ContentCache contentCache, JavaFile file) {
+    _jtd_constructor_328_impl(contentCache, file);
   }
-  _jtd_constructor_302_impl(SourceFactory factory, JavaFile file) {
-    _jtd_constructor_303_impl(factory, file, false);
+  _jtd_constructor_328_impl(ContentCache contentCache, JavaFile file) {
+    _jtd_constructor_329_impl(contentCache, file, false);
   }
   /**
    * Initialize a newly created source object.
-   * @param factory the source factory that created this source
+   * @param contentCache the content cache used to access the contents of this source
    * @param file the file represented by this source
    * @param inSystemLibrary {@code true} if this source is in one of the system libraries
    */
-  FileBasedSource.con2(SourceFactory factory2, JavaFile file3, bool inSystemLibrary2) {
-    _jtd_constructor_303_impl(factory2, file3, inSystemLibrary2);
+  FileBasedSource.con2(ContentCache contentCache2, JavaFile file3, bool inSystemLibrary2) {
+    _jtd_constructor_329_impl(contentCache2, file3, inSystemLibrary2);
   }
-  _jtd_constructor_303_impl(SourceFactory factory2, JavaFile file3, bool inSystemLibrary2) {
-    this._factory = factory2;
+  _jtd_constructor_329_impl(ContentCache contentCache2, JavaFile file3, bool inSystemLibrary2) {
+    this._contentCache = contentCache2;
     this._file = file3;
     this._inSystemLibrary = inSystemLibrary2;
+    this._fileUriString = file3.toURI().toString();
   }
   bool operator ==(Object object) => object != null && identical(this.runtimeType, object.runtimeType) && _file == ((object as FileBasedSource))._file;
-  bool exists() => _factory.getContents(this) != null || (_file.exists() && !_file.isDirectory());
+  bool exists() => _contentCache.getContents(this) != null || (_file.exists() && !_file.isDirectory());
   void getContents(Source_ContentReceiver receiver) {
     {
-      String contents = _factory.getContents(this);
+      String contents = _contentCache.getContents(this);
       if (contents != null) {
-        receiver.accept2(contents);
+        receiver.accept2(contents, _contentCache.getModificationStamp(this));
         return;
       }
     }
-    receiver.accept2(_file.readAsStringSync());
+    receiver.accept2(_file.readAsStringSync(), _file.lastModified());
   }
-  AnalysisContext get context => _factory.context;
-  String get encoding => _file.toURI().toString();
+  String get encoding => _fileUriString;
   String get fullName => _file.getAbsolutePath();
   int get modificationStamp {
-    int stamp = _factory.getModificationStamp(this);
+    int stamp = _contentCache.getModificationStamp(this);
     if (stamp != null) {
       return stamp;
     }
@@ -81,11 +85,10 @@ class FileBasedSource implements Source {
   String get shortName => _file.getName();
   int get hashCode => _file.hashCode;
   bool isInSystemLibrary() => _inSystemLibrary;
-  Source resolve(String uri) => _factory.resolveUri(this, uri);
   Source resolveRelative(Uri containedUri) {
     try {
       Uri resolvedUri = file.toURI().resolveUri(containedUri);
-      return new FileBasedSource.con1(_factory, new JavaFile.fromUri(resolvedUri));
+      return new FileBasedSource.con2(_contentCache, new JavaFile.fromUri(resolvedUri), isInSystemLibrary());
     } catch (exception) {
     }
     return null;
@@ -104,46 +107,12 @@ class FileBasedSource implements Source {
   JavaFile get file => _file;
 }
 /**
- * Instances of the class {@code DartUriResolver} resolve {@code dart} URI's.
- * @coverage dart.engine.source
- */
-class DartUriResolver extends UriResolver {
-  /**
-   * The Dart SDK against which URI's are to be resolved.
-   */
-  DartSdk _sdk;
-  /**
-   * The name of the {@code dart} scheme.
-   */
-  static String _DART_SCHEME = "dart";
-  /**
-   * Return {@code true} if the given URI is a {@code dart:} URI.
-   * @param uri the URI being tested
-   * @return {@code true} if the given URI is a {@code dart:} URI
-   */
-  static bool isDartUri(Uri uri) => uri.scheme == _DART_SCHEME;
-  /**
-   * Initialize a newly created resolver to resolve Dart URI's against the given platform within the
-   * given Dart SDK.
-   * @param sdk the Dart SDK against which URI's are to be resolved
-   */
-  DartUriResolver(DartSdk sdk) {
-    this._sdk = sdk;
-  }
-  Source resolveAbsolute(SourceFactory factory, Uri uri) {
-    if (!isDartUri(uri)) {
-      return null;
-    }
-    JavaFile resolvedFile = _sdk.mapDartUri(uri.toString());
-    if (resolvedFile == null) {
-      return null;
-    }
-    return new FileBasedSource.con2(factory, resolvedFile, true);
-  }
-}
-/**
  * Instances of the class {@code PackageUriResolver} resolve {@code package} URI's in the context of
  * an application.
+ * <p>
+ * For the purposes of sharing analysis, the path to each package under the "packages" directory
+ * should be canonicalized, but to preserve relative links within a package, the remainder of the
+ * path from the package directory to the leaf should not.
  * @coverage dart.engine.source
  */
 class PackageUriResolver extends UriResolver {
@@ -173,7 +142,7 @@ class PackageUriResolver extends UriResolver {
     }
     this._packagesDirectories = packagesDirectories;
   }
-  Source resolveAbsolute(SourceFactory factory, Uri uri) {
+  Source resolveAbsolute(ContentCache contentCache, Uri uri) {
     if (!isPackageUri(uri)) {
       return null;
     }
@@ -184,13 +153,42 @@ class PackageUriResolver extends UriResolver {
         return null;
       }
     }
+    String pkgName;
+    String relPath;
+    int index = path4.indexOf('/');
+    if (index == -1) {
+      pkgName = path4;
+      relPath = "";
+    } else if (index == 0) {
+      return null;
+    } else {
+      pkgName = path4.substring(0, index);
+      relPath = path4.substring(index + 1);
+    }
     for (JavaFile packagesDirectory in _packagesDirectories) {
       JavaFile resolvedFile = new JavaFile.relative(packagesDirectory, path4);
       if (resolvedFile.exists()) {
-        return new FileBasedSource.con1(factory, resolvedFile);
+        return new FileBasedSource.con1(contentCache, getCanonicalFile(packagesDirectory, pkgName, relPath));
       }
     }
-    return new FileBasedSource.con1(factory, new JavaFile.relative(_packagesDirectories[0], path4));
+    return new FileBasedSource.con1(contentCache, getCanonicalFile(_packagesDirectories[0], pkgName, relPath));
+  }
+  /**
+   * Answer the canonical file for the specified package.
+   * @param packagesDirectory the "packages" directory (not {@code null})
+   * @param pkgName the package name (not {@code null}, not empty)
+   * @param relPath the path relative to the package directory (not {@code null}, no leading slash,
+   * but may be empty string)
+   * @return the file (not {@code null})
+   */
+  JavaFile getCanonicalFile(JavaFile packagesDirectory, String pkgName, String relPath) {
+    JavaFile pkgDir = new JavaFile.relative(packagesDirectory, pkgName);
+    try {
+      pkgDir = pkgDir.getCanonicalFile();
+    } on IOException catch (e) {
+      AnalysisEngine.instance.logger.logError2("Canonical failed: ${pkgDir}", e);
+    }
+    return new JavaFile.relative(pkgDir, relPath.replaceAll(0x2F, JavaFile.separatorChar));
   }
 }
 /**
@@ -221,19 +219,19 @@ class DirectoryBasedSourceContainer implements SourceContainer {
    * @param directory the directory (not {@code null})
    */
   DirectoryBasedSourceContainer.con1(JavaFile directory) {
-    _jtd_constructor_300_impl(directory);
+    _jtd_constructor_326_impl(directory);
   }
-  _jtd_constructor_300_impl(JavaFile directory) {
-    _jtd_constructor_301_impl(directory.getPath());
+  _jtd_constructor_326_impl(JavaFile directory) {
+    _jtd_constructor_327_impl(directory.getPath());
   }
   /**
    * Construct a container representing the specified path and containing any sources whose{@link Source#getFullName()} starts with the specified path.
    * @param path the path (not {@code null} and not empty)
    */
   DirectoryBasedSourceContainer.con2(String path3) {
-    _jtd_constructor_301_impl(path3);
+    _jtd_constructor_327_impl(path3);
   }
-  _jtd_constructor_301_impl(String path3) {
+  _jtd_constructor_327_impl(String path3) {
     this._path = appendFileSeparator(path3);
   }
   bool contains(Source source) => source.fullName.startsWith(_path);
@@ -266,10 +264,10 @@ class FileUriResolver extends UriResolver {
    */
   FileUriResolver() : super() {
   }
-  Source resolveAbsolute(SourceFactory factory, Uri uri) {
+  Source resolveAbsolute(ContentCache contentCache, Uri uri) {
     if (!isFileUri(uri)) {
       return null;
     }
-    return new FileBasedSource.con1(factory, new JavaFile.fromUri(uri));
+    return new FileBasedSource.con1(contentCache, new JavaFile.fromUri(uri));
   }
 }

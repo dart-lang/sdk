@@ -2,6 +2,17 @@ library java.engine;
 
 class StringUtilities {
   static List<String> EMPTY_ARRAY = new List(0);
+  static String intern(String s) => s;
+  static String substringBefore(String str, String separator) {
+    if (str == null || str.isEmpty) {
+      return str;
+    }
+    int pos = str.indexOf(separator);
+    if (pos < 0) {
+      return str;
+    }
+    return str.substring(0, pos);
+  }
 }
 
 class FileNameUtilities {
@@ -15,4 +26,20 @@ class FileNameUtilities {
     }
     return "";
   }
+}
+
+class ArrayUtils {
+  static List addAll(List target, List source) {
+    List result = new List.from(target);
+    result.addAll(source);
+    return result;
+  }
+}
+
+class UUID {
+  static int __nextId = 0;
+  final String id;
+  UUID(this.id);
+  String toString() => id;
+  static UUID randomUUID() => new UUID((__nextId).toString());
 }
