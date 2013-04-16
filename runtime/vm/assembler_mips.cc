@@ -208,6 +208,88 @@ void Assembler::CompareObject(Register rd, Register rn, const Object& object) {
 }
 
 
+// Preserves object and value registers.
+void Assembler::StoreIntoObjectFilterNoSmi(Register object,
+                                           Register value,
+                                           Label* no_update) {
+  COMPILE_ASSERT((kNewObjectAlignmentOffset == kWordSize) &&
+                 (kOldObjectAlignmentOffset == 0), young_alignment);
+
+  // Write-barrier triggers if the value is in the new space (has bit set) and
+  // the object is in the old space (has bit cleared).
+  // To check that, we compute value & ~object and skip the write barrier
+  // if the bit is not set. We can't destroy the object.
+  nor(TMP1, ZR, object);
+  and_(TMP1, value, TMP1);
+  andi(TMP1, TMP1, Immediate(kNewObjectAlignmentOffset));
+  beq(TMP1, ZR, no_update);
+}
+
+
+// Preserves object and value registers.
+void Assembler::StoreIntoObjectFilter(Register object,
+                                      Register value,
+                                      Label* no_update) {
+  // For the value we are only interested in the new/old bit and the tag bit.
+  // And the new bit with the tag bit. The resulting bit will be 0 for a Smi.
+  sll(TMP1, value, kObjectAlignmentLog2 - 1);
+  and_(TMP1, value, TMP1);
+  // And the result with the negated space bit of the object.
+  nor(TMP2, ZR, object);
+  and_(TMP1, TMP1, TMP2);
+  andi(TMP1, TMP1, Immediate(kNewObjectAlignmentOffset));
+  beq(TMP1, ZR, no_update);
+}
+
+
+void Assembler::StoreIntoObject(Register object,
+                                const Address& dest,
+                                Register value,
+                                bool can_value_be_smi) {
+  ASSERT(object != value);
+  sw(value, dest);
+  Label done;
+  if (can_value_be_smi) {
+    StoreIntoObjectFilter(object, value, &done);
+  } else {
+    StoreIntoObjectFilterNoSmi(object, value, &done);
+  }
+  // A store buffer update is required.
+  if (value != T0) Push(T0);  // Preserve T0.
+  if (object != T0) {
+    mov(T0, object);
+  }
+  BranchLink(&StubCode::UpdateStoreBufferLabel());
+  if (value != T0) Pop(T0);  // Restore T0.
+  Bind(&done);
+}
+
+
+void Assembler::StoreIntoObjectNoBarrier(Register object,
+                                         const Address& dest,
+                                         Register value) {
+  sw(value, dest);
+#if defined(DEBUG)
+  Label done;
+  StoreIntoObjectFilter(object, value, &done);
+  Stop("Store buffer update is required");
+  Bind(&done);
+#endif  // defined(DEBUG)
+  // No store buffer update.
+}
+
+
+void Assembler::StoreIntoObjectNoBarrier(Register object,
+                                         const Address& dest,
+                                         const Object& value) {
+  ASSERT(value.IsSmi() || value.InVMHeap() ||
+         (value.IsOld() && value.IsNotTemporaryScopedHandle()));
+  // No store buffer update.
+  LoadObject(TMP1, value);
+  sw(TMP1, dest);
+}
+
+
 void Assembler::LoadClassId(Register result, Register object) {
   ASSERT(RawObject::kClassIdTagBit == 16);
   ASSERT(RawObject::kClassIdTagSize == 16);
@@ -357,6 +439,79 @@ void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
     LoadImmediate(TMP1, ~(OS::ActivationFrameAlignment() - 1));
     and_(SP, SP, TMP1);
   }
+}
+
+
+void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
+  const intptr_t kPushedRegistersSize =
+      kDartVolatileCpuRegCount * kWordSize +
+      2 * kWordSize +  // FP and RA.
+      kDartVolatileFpuRegCount * kWordSize;
+
+  if (prologue_offset_ == -1) {
+    prologue_offset_ = CodeSize();
+  }
+
+  // Save volatile CPU and FPU registers on the stack:
+  // -------------
+  // FPU Registers
+  // CPU Registers
+  // RA
+  // FP
+  // -------------
+  // TODO(zra): It may be a problem for walking the stack that FP is below
+  //            the saved registers. If it turns out to be a problem in the
+  //            future, try pushing RA and FP before the volatile registers.
+  addiu(SP, SP, Immediate(-kPushedRegistersSize));
+  for (int i = kDartFirstVolatileFpuReg; i <= kDartLastVolatileFpuReg; i++) {
+    // These go above the volatile CPU registers.
+    const int slot =
+        (i - kDartFirstVolatileFpuReg) + kDartVolatileCpuRegCount + 2;
+    FRegister reg = static_cast<FRegister>(i);
+    swc1(reg, Address(SP, slot * kWordSize));
+  }
+  for (int i = kDartFirstVolatileCpuReg; i <= kDartLastVolatileCpuReg; i++) {
+    // + 2 because FP goes in slot 0.
+    const int slot = (i - kDartFirstVolatileCpuReg) + 2;
+    Register reg = static_cast<Register>(i);
+    sw(reg, Address(SP, slot * kWordSize));
+  }
+  sw(RA, Address(SP, 1 * kWordSize));
+  sw(FP, Address(SP, 0 * kWordSize));
+  mov(FP, SP);
+
+  ReserveAlignedFrameSpace(frame_space);
+}
+
+
+void Assembler::LeaveCallRuntimeFrame() {
+  const intptr_t kPushedRegistersSize =
+      kDartVolatileCpuRegCount * kWordSize +
+      2 * kWordSize +  // FP and RA.
+      kDartVolatileFpuRegCount * kWordSize;
+
+  // SP might have been modified to reserve space for arguments
+  // and ensure proper alignment of the stack frame.
+  // We need to restore it before restoring registers.
+  mov(SP, FP);
+
+  // Restore volatile CPU and FPU registers from the stack.
+  lw(FP, Address(SP, 0 * kWordSize));
+  lw(RA, Address(SP, 1 * kWordSize));
+  for (int i = kDartFirstVolatileCpuReg; i <= kDartLastVolatileCpuReg; i++) {
+    // + 2 because FP goes in slot 0.
+    const int slot = (i - kDartFirstVolatileCpuReg) + 2;
+    Register reg = static_cast<Register>(i);
+    lw(reg, Address(SP, slot * kWordSize));
+  }
+  for (int i = kDartFirstVolatileFpuReg; i <= kDartLastVolatileFpuReg; i++) {
+    // These go above the volatile CPU registers.
+    const int slot =
+        (i - kDartFirstVolatileFpuReg) + kDartVolatileCpuRegCount + 2;
+    FRegister reg = static_cast<FRegister>(i);
+    lwc1(reg, Address(SP, slot * kWordSize));
+  }
+  addiu(SP, SP, Immediate(kPushedRegistersSize));
 }
 
 

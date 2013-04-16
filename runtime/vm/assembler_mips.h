@@ -789,6 +789,12 @@ class Assembler : public ValueObject {
 
   void ReserveAlignedFrameSpace(intptr_t frame_space);
 
+  // Create a frame for calling into runtime that preserves all volatile
+  // registers.  Frame's SP is guaranteed to be correctly aligned and
+  // frame_space bytes are reserved under it.
+  void EnterCallRuntimeFrame(intptr_t frame_space);
+  void LeaveCallRuntimeFrame();
+
   void LoadWordFromPoolOffset(Register rd, int32_t offset);
   void LoadObject(Register rd, const Object& object);
   void PushObject(const Object& object);
@@ -800,6 +806,18 @@ class Assembler : public ValueObject {
   void LoadClassId(Register result, Register object);
   void LoadClassById(Register result, Register class_id);
   void LoadClass(Register result, Register object);
+
+  void StoreIntoObject(Register object,  // Object we are storing into.
+                       const Address& dest,  // Where we are storing into.
+                       Register value,  // Value we are storing.
+                       bool can_value_be_smi = true);
+
+  void StoreIntoObjectNoBarrier(Register object,
+                                const Address& dest,
+                                Register value);
+  void StoreIntoObjectNoBarrier(Register object,
+                                const Address& dest,
+                                const Object& value);
 
   void CallRuntime(const RuntimeEntry& entry);
 
@@ -955,6 +973,13 @@ class Assembler : public ValueObject {
     Emit(Instr::kNopInstruction);  // Branch delay NOP.
     delay_slot_available_ = true;
   }
+
+  void StoreIntoObjectFilter(Register object, Register value, Label* no_update);
+
+  // Shorter filtering sequence that assumes that value is not a smi.
+  void StoreIntoObjectFilterNoSmi(Register object,
+                                  Register value,
+                                  Label* no_update);
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Assembler);

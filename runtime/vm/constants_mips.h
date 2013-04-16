@@ -161,11 +161,23 @@ const RegList kAbiPreservedCpuRegs =
     (1 << S4) | (1 << S5) | (1 << S6) | (1 << S7);
 const int kAbiPreservedCpuRegCount = 8;
 
-
 // FPU registers 20 - 31 are preserved across calls.
 const FRegister kAbiFirstPreservedFpuReg = F20;
 const FRegister kAbiLastPreservedFpuReg =
     static_cast<FRegister>(kNumberOfFRegisters - 1);
+
+// CPU registers available to Dart allocator.
+const RegList kDartAvailableCpuRegs =
+    (1 << R2) | (1 << R3) | (1 << R4) | (1 << R5) |
+    (1 << R6) | (1 << R7) | (1 << R8) | (1 << R9) |
+    (1 << R10) | (1 << R11) | (1 << R12) | (1 << R13) |
+    (1 << R14) | (1 << R15) | (1 << R16) | (1 << R17) |
+    (1 << R18) | (1 << R19) | (1 << R20) | (1 << R21);
+const RegList kDartVolatileCpuRegs =
+    kDartAvailableCpuRegs & ~kAbiPreservedCpuRegs;
+const int kDartVolatileCpuRegCount = 14;
+const Register kDartFirstVolatileCpuReg = R2;
+const Register kDartLastVolatileCpuReg = R15;
 
 // FPU registers 0 - 19 are not preserved across calls.
 const FRegister kDartFirstVolatileFpuReg = F0;

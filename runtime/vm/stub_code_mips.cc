@@ -378,8 +378,58 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
 }
 
 
+DECLARE_LEAF_RUNTIME_ENTRY(void, StoreBufferBlockProcess, Isolate* isolate);
+
+
+// Helper stub to implement Assembler::StoreIntoObject.
+// Input parameters:
+//   T0: Address (i.e. object) being stored into.
 void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
-  __ Unimplemented("UpdateStoreBuffer stub");
+  // Save values being destroyed.
+  __ addiu(SP, SP, Immediate(-3 * kWordSize));
+  __ sw(T3, Address(SP, 2 * kWordSize));
+  __ sw(T2, Address(SP, 1 * kWordSize));
+  __ sw(T1, Address(SP, 0 * kWordSize));
+
+  // Load the isolate out of the context.
+  // Spilled: T1, T2, T3.
+  // T0: Address being stored.
+  __ lw(T1, FieldAddress(CTX, Context::isolate_offset()));
+
+  // Load top_ out of the StoreBufferBlock and add the address to the pointers_.
+  // T1: Isolate.
+  intptr_t store_buffer_offset = Isolate::store_buffer_block_offset();
+  __ lw(T2, Address(T1, store_buffer_offset + StoreBufferBlock::top_offset()));
+  __ sll(T3, T2, 1);
+  __ addu(T3, T1, T3);
+  __ sw(T0,
+        Address(T3, store_buffer_offset + StoreBufferBlock::pointers_offset()));
+
+  // Increment top_ and check for overflow.
+  // T2: top_
+  // T1: Isolate
+  Label L;
+  __ AddImmediate(T2, 1);
+  __ sw(T2, Address(T1, store_buffer_offset + StoreBufferBlock::top_offset()));
+  __ addiu(CMPRES, T2, Immediate(-StoreBufferBlock::kSize));
+  // Restore values.
+  __ lw(T1, Address(SP, 0 * kWordSize));
+  __ lw(T2, Address(SP, 1 * kWordSize));
+  __ lw(T3, Address(SP, 2 * kWordSize));
+  __ beq(CMPRES, ZR, &L);
+  __ delay_slot()->addiu(SP, SP, Immediate(3 * kWordSize));
+  __ Ret();
+
+  // Handle overflow: Call the runtime leaf function.
+  __ Bind(&L);
+  // Setup frame, push callee-saved registers.
+
+  __ EnterCallRuntimeFrame(0 * kWordSize);
+  __ lw(T0, FieldAddress(CTX, Context::isolate_offset()));
+  __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry);
+  // Restore callee-saved registers, tear down frame.
+  __ LeaveCallRuntimeFrame();
+  __ Ret();
 }
 
 
