@@ -232,7 +232,7 @@ class Debugger {
   struct DebuggerEvent {
     EventType type;
     union {
-      DebuggerStackTrace* stack_trace;
+      ActivationFrame* top_frame;
       SourceBreakpoint* breakpoint;
       const Object* exception;
       Dart_Port isolate_id;
@@ -291,7 +291,6 @@ class Debugger {
   Dart_Port GetIsolateId() { return isolate_id_; }
 
   static void SetEventHandler(EventHandler* handler);
-  static void SetBreakpointHandler(BreakpointHandler* handler);
 
   // Utility functions.
   static const char* QualifiedFunctionName(const Function& func);

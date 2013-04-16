@@ -28,27 +28,6 @@ namespace dart {
 DEFINE_FLAG(bool, verbose_debug, false, "Verbose debugger messages");
 
 
-static void DefaultBreakpointHandler(Dart_Port isolate_id,
-                                     SourceBreakpoint* bpt,
-                                     DebuggerStackTrace* stack) {
-  String& var_name = String::Handle();
-  Instance& value = Instance::Handle();
-  for (intptr_t i = 0; i < stack->Length(); i++) {
-    ActivationFrame* frame = stack->ActivationFrameAt(i);
-    OS::Print("   %"Pd". %s\n",
-              i + 1, frame->ToCString());
-    intptr_t num_locals = frame->NumLocalVariables();
-    for (intptr_t i = 0; i < num_locals; i++) {
-      intptr_t token_pos, end_pos;
-      frame->VariableAt(i, &var_name, &token_pos, &end_pos, &value);
-      OS::Print("      var %s (pos %"Pd") = %s\n",
-                var_name.ToCString(), token_pos, value.ToCString());
-    }
-  }
-}
-
-
-BreakpointHandler* Debugger::bp_handler_ = DefaultBreakpointHandler;
 Debugger::EventHandler* Debugger::event_handler_ = NULL;
 
 
@@ -1427,13 +1406,6 @@ void Debugger::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 }
 
 
-void Debugger::SetBreakpointHandler(BreakpointHandler* handler) {
-  if (bp_handler_ != NULL) {
-    bp_handler_ = handler;
-  }
-}
-
-
 void Debugger::SetEventHandler(EventHandler* handler) {
   event_handler_ = handler;
 }
@@ -1487,13 +1459,16 @@ void Debugger::SignalBpReached() {
 
   if (notify_frontend) {
     resume_action_ = kContinue;
-    if (bp_handler_ != NULL) {
-      SourceBreakpoint* src_bpt = bpt->src_bpt();
+    if (event_handler_ != NULL) {
       ASSERT(stack_trace_ == NULL);
       ASSERT(obj_cache_ == NULL);
       obj_cache_ = new RemoteObjectCache(64);
       stack_trace_ = stack_trace;
-      (*bp_handler_)(GetIsolateId(), src_bpt, stack_trace);
+      DebuggerEvent event;
+      event.type = kBreakpointReached;
+      ASSERT(stack_trace->Length() > 0);
+      event.top_frame = stack_trace->ActivationFrameAt(0);
+      (*event_handler_)(&event);
       stack_trace_ = NULL;
       obj_cache_ = NULL;  // Remote object cache is zone allocated.
       last_bpt_line_ = bpt->LineNumber();

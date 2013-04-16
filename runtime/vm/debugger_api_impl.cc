@@ -99,17 +99,12 @@ DART_EXPORT Dart_Handle Dart_GetActivationFrame(
   return Api::True(isolate);
 }
 
-
-DART_EXPORT void Dart_SetBreakpointHandler(Dart_BreakpointHandler bp_handler) {
-  BreakpointHandler* handler =
-      reinterpret_cast<BreakpointHandler*>(bp_handler);
-  Debugger::SetBreakpointHandler(handler);
-}
-
-
+static Dart_PausedEventHandler* paused_event_handler = NULL;
 static Dart_BreakpointResolvedHandler* bp_resolved_handler = NULL;
 static Dart_ExceptionThrownHandler* exc_thrown_handler = NULL;
 static Dart_IsolateEventHandler* isolate_event_handler = NULL;
+
+static Dart_BreakpointHandler* legacy_bp_handler = NULL;
 
 
 static void DebuggerEventHandler(Debugger::DebuggerEvent* event) {
@@ -117,7 +112,24 @@ static void DebuggerEventHandler(Debugger::DebuggerEvent* event) {
   ASSERT(isolate != NULL);
   ASSERT(isolate->debugger() != NULL);
   Dart_IsolateId isolate_id = isolate->debugger()->GetIsolateId();
-  if (event->type == Debugger::kBreakpointResolved) {
+  if (event->type == Debugger::kBreakpointReached) {
+    if (legacy_bp_handler != NULL) {
+      Dart_StackTrace stack_trace =
+          reinterpret_cast<Dart_StackTrace>(isolate->debugger()->StackTrace());
+      (*legacy_bp_handler)(isolate_id, NULL, stack_trace);
+      return;
+    }
+    if (paused_event_handler == NULL) {
+      return;
+    }
+    Dart_CodeLocation location;
+    ActivationFrame* top_frame = event->top_frame;
+    location.script_url = Api::NewHandle(isolate, top_frame->SourceUrl());
+    const Library& lib = Library::Handle(top_frame->Library());
+    location.library_id = lib.index();
+    location.token_pos = top_frame->TokenPos();
+    (*paused_event_handler)(isolate_id, location);
+  } else if (event->type == Debugger::kBreakpointResolved) {
     if (bp_resolved_handler == NULL) {
       return;
     }
@@ -148,6 +160,18 @@ static void DebuggerEventHandler(Debugger::DebuggerEvent* event) {
   } else {
     UNIMPLEMENTED();
   }
+}
+
+
+DART_EXPORT void Dart_SetBreakpointHandler(Dart_BreakpointHandler bp_handler) {
+  legacy_bp_handler = bp_handler;
+  Debugger::SetEventHandler(DebuggerEventHandler);
+}
+
+
+DART_EXPORT void Dart_SetPausedEventHandler(Dart_PausedEventHandler handler) {
+  paused_event_handler = handler;
+  Debugger::SetEventHandler(DebuggerEventHandler);
 }
 
 

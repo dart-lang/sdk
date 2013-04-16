@@ -25,6 +25,7 @@ typedef Dart_Port Dart_IsolateId;
  */
 #define ILLEGAL_ISOLATE_ID ILLEGAL_PORT
 
+// DEPRECATED -- use Dart_PausedEventHandler
 typedef void Dart_BreakpointHandler(Dart_IsolateId isolate_id,
                                     Dart_Breakpoint breakpoint,
                                     Dart_StackTrace stack_trace);
@@ -57,6 +58,10 @@ typedef struct {
 
 typedef void Dart_IsolateEventHandler(Dart_IsolateId isolate_id,
                                       Dart_IsolateEvent kind);
+
+typedef void Dart_PausedEventHandler(Dart_IsolateId isolate_id,
+                                     const Dart_CodeLocation& location);
+
 
 /**
  * Caches a given \object and returns an object id. The object id is only
@@ -276,6 +281,8 @@ DART_EXPORT Dart_Handle Dart_SetStepOut();
 
 
 /**
+ * DEPRECATED -- use Dart_SetPausedEventHandler
+ *
  * Installs a handler callback function that gets called by the VM
  * when a breakpoint has been reached.
  *
@@ -283,6 +290,17 @@ DART_EXPORT Dart_Handle Dart_SetStepOut();
  */
 DART_EXPORT void Dart_SetBreakpointHandler(
                             Dart_BreakpointHandler bp_handler);
+
+
+/**
+ * Installs a handler callback function that gets called by the VM
+ * when a breakpoint location has been reached or when stepping.
+ *
+ * Requires there to be a current isolate.
+ */
+DART_EXPORT void Dart_SetPausedEventHandler(
+                            Dart_PausedEventHandler handler);
+
 
 /**
  * Installs a callback function that gets called by the VM when
