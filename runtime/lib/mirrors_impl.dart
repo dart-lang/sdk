@@ -195,7 +195,7 @@ abstract class _LocalObjectMirrorImpl extends _LocalVMObjectMirrorImpl
     Completer<InstanceMirror> completer = new Completer<InstanceMirror>();
     try {
       completer.complete(
-          _invoke(this, _n(memberName), positionalArguments), true);
+          _invoke(this, _n(memberName), positionalArguments, true));
     } catch (exception, s) {
       completer.completeError(exception, s);
     }
