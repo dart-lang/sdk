@@ -9,6 +9,9 @@ event_test: Skip  # Issue 1996
 custom_elements_test: Skip # Not yet implemented.
 interactive_test: Skip # Must be run manually.
 
+[ $compiler == none && $runtime == drt && $system == windows ]
+worker_test/functional: Pass, Crash # Issue 9929.
+
 [ $compiler == dart2js]
 dom_isolates_test: Skip # Need to migrate to new spawnDomFunction.
 
