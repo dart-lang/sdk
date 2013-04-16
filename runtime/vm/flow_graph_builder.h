@@ -16,34 +16,34 @@ class FlowGraph;
 class Instruction;
 class ParsedFunction;
 
-// An InliningContext collects the exits from an inlined function during
-// graph construction so they can be plugged into the caller's flow graph.
-class InliningContext: public ValueObject {
+// An class to collect the exits from an inlined function during graph
+// construction so they can be plugged into the caller's flow graph.
+class InlineExitCollector: public ZoneAllocated {
  public:
-  InliningContext(FlowGraph* caller_graph, Definition* call)
+  InlineExitCollector(FlowGraph* caller_graph, Definition* call)
       : caller_graph_(caller_graph), call_(call), exits_(4) { }
 
   void AddExit(ReturnInstr* exit);
 
-  // Inline a flow graph at a call site.
+  // Before replacing a call with a graph, the outer environment needs to be
+  // attached to each instruction in the callee graph and the caller graph
+  // needs to have its block and instruction ID state updated.
+  void PrepareGraphs(FlowGraph* callee_graph);
+
+  // Inline a graph at a call site.
   //
-  // Assumes the callee graph was computed by BuildGraph with an inlining
-  // context and transformed to SSA with ComputeSSA with a correct virtual
-  // register number, and that the use lists have been correctly computed.
+  // Assumes the callee is in SSA with a correct dominator tree and use
+  // lists.
   //
   // After inlining the caller graph will have correctly adjusted the use
-  // lists.  The block orders will need to be recomputed, and the dominator
-  // tree will need to be recomputed if it is marked invalid in the caller
-  // graph.
-  void ReplaceCall(FlowGraph* callee_graph);
+  // lists.  The block orders will need to be recomputed.
+  void ReplaceCall(TargetEntryInstr* callee_entry);
 
  private:
   struct Data {
     BlockEntryInstr* exit_block;
     ReturnInstr* exit_return;
   };
-
-  void PrepareGraphs(FlowGraph* caller_graph);
 
   BlockEntryInstr* ExitBlockAt(intptr_t i) const {
     ASSERT(exits_[i].exit_block != NULL);
@@ -79,7 +79,7 @@ class FlowGraphBuilder: public ValueObject {
  public:
   // The inlining context is NULL if not inlining.
   FlowGraphBuilder(const ParsedFunction& parsed_function,
-                   InliningContext* inlining_context);
+                   InlineExitCollector* exit_collector);
 
   FlowGraph* BuildGraph();
 
@@ -112,8 +112,8 @@ class FlowGraphBuilder: public ValueObject {
     return num_stack_locals_;
   }
 
-  bool InInliningContext() const { return (inlining_context_ != NULL); }
-  InliningContext* inlining_context() const { return inlining_context_; }
+  bool IsInlining() const { return (exit_collector_ != NULL); }
+  InlineExitCollector* exit_collector() const { return exit_collector_; }
 
  private:
   intptr_t parameter_count() const {
@@ -128,7 +128,7 @@ class FlowGraphBuilder: public ValueObject {
   const intptr_t num_copied_params_;
   const intptr_t num_non_copied_params_;
   const intptr_t num_stack_locals_;  // Does not include any parameters.
-  InliningContext* const inlining_context_;
+  InlineExitCollector* const exit_collector_;
 
   intptr_t last_used_block_id_;
   intptr_t context_level_;

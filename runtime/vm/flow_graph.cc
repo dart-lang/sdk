@@ -410,8 +410,9 @@ void VariableLivenessAnalysis::ComputeInitialSets() {
 }
 
 
-void FlowGraph::ComputeSSA(intptr_t next_virtual_register_number,
-                           GrowableArray<Definition*>* inlining_parameters) {
+void FlowGraph::ComputeSSA(
+    intptr_t next_virtual_register_number,
+    ZoneGrowableArray<Definition*>* inlining_parameters) {
   ASSERT((next_virtual_register_number == 0) || (inlining_parameters != NULL));
   current_ssa_temp_index_ = next_virtual_register_number;
   GrowableArray<BitVector*> dominance_frontier;
@@ -611,7 +612,7 @@ void FlowGraph::InsertPhis(
 
 void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
                        VariableLivenessAnalysis* variable_liveness,
-                       GrowableArray<Definition*>* inlining_parameters) {
+                       ZoneGrowableArray<Definition*>* inlining_parameters) {
   // TODO(fschneider): Support catch-entry.
   if (graph_entry_->SuccessorCount() > 1) {
     Bailout("Catch-entry support in SSA.");

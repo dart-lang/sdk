@@ -124,7 +124,7 @@ class FlowGraph : public ZoneAllocated {
 
   // Operations on the flow graph.
   void ComputeSSA(intptr_t next_virtual_register_number,
-                  GrowableArray<Definition*>* inlining_parameters);
+                  ZoneGrowableArray<Definition*>* inlining_parameters);
 
   // Finds natural loops in the flow graph and attaches a list of loop
   // body blocks for each loop header.
@@ -156,8 +156,7 @@ class FlowGraph : public ZoneAllocated {
 
   void Rename(GrowableArray<PhiInstr*>* live_phis,
               VariableLivenessAnalysis* variable_liveness,
-              GrowableArray<Definition*>* inlining_parameters);
-
+              ZoneGrowableArray<Definition*>* inlining_parameters);
   void RenameRecursive(
       BlockEntryInstr* block_entry,
       GrowableArray<Definition*>* env,

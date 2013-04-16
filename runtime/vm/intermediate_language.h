@@ -1198,7 +1198,7 @@ class JoinEntryInstr : public BlockEntryInstr {
  private:
   // Classes that have access to predecessors_ when inlining.
   friend class BlockEntryInstr;
-  friend class InliningContext;
+  friend class InlineExitCollector;
 
   // Direct access to phis_ in order to resize it due to phi elimination.
   friend class ConstantPropagator;
