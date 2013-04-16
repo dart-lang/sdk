@@ -39,9 +39,9 @@ if [%FOUND_SDK%] == [0] (
 endlocal & set "DART_SDK=%DART_SDK%" & set "DART_SDK_HOME=%DART_SDK_HOME%"
 
 if exist "%DART_SDK_HOME%\util\dartanalyzer\dartanalyzer.jar" (
-  set DART_ANALYZER_LIBS=%DART_SDK_HOME%\util\dartanalyzer
+  set DART_ANALYZER_LIBS="%DART_SDK_HOME%\util\dartanalyzer"
 ) else if exist "%DART_ANALYZER_HOME%\util\dartanalyzer\dartanalyzer.jar" (
-  set DART_ANALYZER_LIBS=%DART_ANALYZER_HOME%\util\dartanalyzer
+  set DART_ANALYZER_LIBS="%DART_ANALYZER_HOME%\util\dartanalyzer"
 ) else (
   echo Configuration problem. Couldn't find dartanalyzer.jar.
   exit /b 1
@@ -54,5 +54,4 @@ if [%FOUND_BATCH%] == [1] (
 )
 endlocal & set "EXTRA_JVMARGS=%EXTRA_JVMARGS%"
 
-java %EXTRA_JVMARGS% %DART_JVMARGS% -ea -jar \
-  "%DART_ANALYZER_LIBS%\dartanalyzer.jar" %DART_SDK% %*
+java %EXTRA_JVMARGS% %DART_JVMARGS% -ea -jar "%DART_ANALYZER_LIBS%\dartanalyzer.jar" %DART_SDK% %*
