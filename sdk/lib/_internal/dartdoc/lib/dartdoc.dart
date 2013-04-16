@@ -143,7 +143,7 @@ Future compileScript(int mode, Path outputDir, Path libPath) {
     'libPath': libPath.toNativePath()
   }).then((result) {
     if (result.first == 'success') return;
-    throw new AsyncError(result[1], result[2]);
+    throw result[1];
   });
 }
 
