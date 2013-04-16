@@ -188,7 +188,7 @@ class GraphModel extends ObservableModel {
    * Returns the maximum total from all the samples.
    */
   int get maxTotal {
-    var max = 1;  // Must be non-zero.
+    var max = 0;
     _samples.forEach((Sample s) => max = (s.total() > max ? s.total() : max));
     return max;
   }

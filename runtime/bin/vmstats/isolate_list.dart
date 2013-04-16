@@ -17,7 +17,6 @@ class IsolateList {
   static const String NEW_SPACE = 'new_space';
   static const String OLD_SPACE = 'old_space';
   static const String STACK_FRAME = 'stack_frame';
-  static const String EMPTY_STACK_FRAME = 'empty_stack_frame';
   static const String STACK_LIMIT = 'stack_limit';
   static const String STACK_TRACE = 'stack_trace';
   static const String STACK_TRACE_TITLE = 'stack_trace_title';
@@ -59,7 +58,7 @@ class IsolateList {
         stacktrace.classes.addAll([STACK_TRACE, HIDDEN]);
         stacktraceCell.children.add(stacktrace);
 
-        isolateRow.onClick.listen((e) => toggleRow(isolateRow));
+        isolateRow.onClick.listen((e) => toggle(isolateRow));
         updateIsolateDetails(isolate, isolateRow);
       }
     }
@@ -74,28 +73,20 @@ class IsolateList {
     title.text = "Stack Trace";
     element.children.add(title);
 
-    var stackTrace = response['stacktrace'];
-    if (stackTrace.length > 0) {
-      var stackIterator = response['stacktrace'].iterator;
-      var i = 0;
-      while (stackIterator.moveNext()) {
-        i++;
-        var frame = stackIterator.current;
-        var frameElement = new DivElement();
-        var text = '$i: ${frame["url"]}:${frame["line"]}: ${frame["function"]}';
-        var code = frame["code"];
-        if (code['optimized']) {
-          text = '$text (optimized)';
-        }
-        frameElement.text = text;
-        frameElement.$dom_className = STACK_FRAME;
-        element.children.add(frameElement);
+    var stackIterator = response['stacktrace'].iterator;
+    var i = 0;
+    while (stackIterator.moveNext()) {
+      i++;
+      var frame = stackIterator.current;
+      var frameElement = new DivElement();
+      frameElement.$dom_className = STACK_FRAME;
+      var text = '$i: ${frame["url"]}:${frame["line"]}: ${frame["function"]}';
+      var code = frame["code"];
+      if (code['optimized']) {
+        text = '$text (optimized)';
       }
-    } else {
-      DivElement noStack = new DivElement();
-      noStack.$dom_className = EMPTY_STACK_FRAME;
-      noStack.text = "<no stack>";
-      element.children.add(noStack);
+      frameElement.text = text;
+      element.children.add(frameElement);
     }
   }
 
@@ -123,13 +114,12 @@ class IsolateList {
         (String response) => setStacktrace(stackTrace, response));
   }
 
-  void toggleRow(TableRowElement row) {
-    toggleElement(row.query('.$DETAILS'));
-    toggleElement(row.query('.$ISOLATE_STACKTRACE_COLUMN'));
-  }
-
-  void toggleElement(Element e) {
-    e.classes.toggle(VISIBLE);
-    e.classes.toggle(HIDDEN);
+  void toggle(TableRowElement row) {
+    var details = row.query('.$DETAILS');
+    details.classes.toggle(VISIBLE);
+    details.classes.toggle(HIDDEN);
+    var stacktrace = row.query('.$ISOLATE_STACKTRACE_COLUMN');
+    stacktrace.classes.toggle(VISIBLE);
+    stacktrace.classes.toggle(HIDDEN);
   }
 }
