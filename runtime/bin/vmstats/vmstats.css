@@ -44,10 +44,19 @@ h1, p {
 
 .hidden {
   visibility:hidden;
+  height: 0px;
 }
 
 .stack_trace_title {
   font-weight: bold;
+}
+
+.stack_frame {
+  font-family: "monospace";
+}
+
+.empty_stack_frame {
+  font-style: italic;
 }
 
 td {
