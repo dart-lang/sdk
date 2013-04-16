@@ -246,9 +246,11 @@ bool Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
 
   // Store backing array object in growable array object.
   __ movq(RCX, Address(RSP, kArrayOffset));  // data argument.
-  __ StoreIntoObject(RAX,
-                     FieldAddress(RAX, GrowableObjectArray::data_offset()),
-                     RCX);
+  // RAX is new, no barrier needed.
+  __ StoreIntoObjectNoBarrier(
+      RAX,
+      FieldAddress(RAX, GrowableObjectArray::data_offset()),
+      RCX);
 
   // RAX: new growable array object start as a tagged pointer.
   // Store the type argument field in the growable array object.

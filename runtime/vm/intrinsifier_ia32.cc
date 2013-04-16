@@ -290,9 +290,11 @@ bool Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
 
   // Store backing array object in growable array object.
   __ movl(EBX, Address(ESP, kArrayOffset));  // data argument.
-  __ StoreIntoObject(EAX,
-                     FieldAddress(EAX, GrowableObjectArray::data_offset()),
-                     EBX);
+  // EAX is new, no barrier needed.
+  __ StoreIntoObjectNoBarrier(
+      EAX,
+      FieldAddress(EAX, GrowableObjectArray::data_offset()),
+      EBX);
 
   // EAX: new growable array object start as a tagged pointer.
   // Store the type argument field in the growable array object.
