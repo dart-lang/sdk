@@ -116,7 +116,7 @@ class ClassElementImplementation extends AbstractNodeElement implements ClassNod
 
   @Override
   public DartDeclaration<?> getNode() {
-    return (DartClass) super.getNode();
+    return (DartDeclaration<?>) super.getNode();
   }
 
   @Override
