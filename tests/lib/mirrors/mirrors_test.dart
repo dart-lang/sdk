@@ -16,9 +16,18 @@ class Class<T> {
   Class.withInitialValue(this.field);
   var field;
   static var staticField;
+  m(a, b, c) => {"a": a, "b": b, "c": c};
 }
 
 typedef Typedef();
+
+testInvoke(mirrors) {
+  var instance = new Class();
+  var instMirror = reflect(instance);
+
+  expect(instMirror.invoke(const Symbol("m"),['A', 'B', instance]).reflectee,
+         equals({"a": 'A', "b":'B', "c": instance}));
+}
 
 testFieldAccess(mirrors) {
   var instance = new Class();
@@ -26,6 +35,11 @@ testFieldAccess(mirrors) {
   var libMirror = mirrors.libraries[const Symbol("MirrorsTest")];
   var classMirror = libMirror.classes[const Symbol("Class")];
   var instMirror = reflect(instance);
+
+  libMirror.setField(const Symbol('topLevelField'), [91]);
+  expect(libMirror.getField(const Symbol('topLevelField')).reflectee,
+         equals([91]));
+  expect(topLevelField, equals([91]));
 
   libMirror.setFieldAsync(new Symbol('topLevelField'), 42);
   var future = libMirror.getFieldAsync(new Symbol('topLevelField'));
@@ -59,6 +73,8 @@ testClosureMirrors(mirrors) {
   expect(funcMirror is MethodMirror, equals(true));
   expect(funcMirror.parameters.length, equals(3));
 
+  expect(mirror.apply([7, 8, 9]).reflectee, equals(24));
+
   var future = mirror.applyAsync([2, 4, 8]);
   future.then(expectAsync1((resultMirror) {
     expect(resultMirror.reflectee, equals(14));
@@ -68,6 +84,15 @@ testClosureMirrors(mirrors) {
 testInvokeConstructor(mirrors) {
   var libMirror = mirrors.libraries[const Symbol("MirrorsTest")];
   var classMirror = libMirror.classes[const Symbol("Class")];
+
+  var instanceMirror = classMirror.newInstance(const Symbol(''),[]);
+  expect(instanceMirror.reflectee is Class, equals(true));
+  expect(instanceMirror.reflectee.field, equals("default value"));
+
+  instanceMirror = classMirror.newInstance(const Symbol('withInitialValue'),
+                                           [45]);
+  expect(instanceMirror.reflectee is Class, equals(true));
+  expect(instanceMirror.reflectee.field, equals(45));
 
   var future = classMirror.newInstanceAsync(new Symbol(''), []);
   future.then(expectAsync1((resultMirror) {
@@ -117,7 +142,7 @@ testNames(mirrors) {
 
 main() {
   var mirrors = currentMirrorSystem();
-
+  test("Test reflective method invocation", () { testInvoke(mirrors); });
   test("Test field access", () { testFieldAccess(mirrors); });
   test("Test closure mirrors", () { testClosureMirrors(mirrors); });
   test("Test invoke constructor", () { testInvokeConstructor(mirrors); });

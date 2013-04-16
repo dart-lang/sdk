@@ -175,6 +175,36 @@ abstract class DeclarationMirror implements Mirror {
  * See [InstanceMirror], [ClassMirror], and [LibraryMirror].
  */
 abstract class ObjectMirror implements Mirror {
+
+  /**
+   * Invokes the named function and returns a mirror on the result.
+   * The arguments are objects local to the current isolate.
+   */
+  /* TODO(turnidge): Properly document.
+   * TODO(turnidge): Handle ambiguous names.
+   * TODO(turnidge): Handle optional & named arguments.
+   */
+  InstanceMirror invoke(Symbol memberName,
+                        List positionalArguments,
+                        [Map<Symbol,dynamic> namedArguments]);
+
+  /**
+   * Invokes a getter and returns a mirror on the result. The getter
+   * can be the implicit getter for a field or a user-defined getter
+   * method.
+   */
+  /* TODO(turnidge): Handle ambiguous names.*/
+  InstanceMirror getField(Symbol fieldName);
+
+  /**
+   * Invokes a setter and returns a mirror on the result. The setter
+   * may be either the implicit setter for a non-final field or a
+   * user-defined setter method.
+   * The argument is an object local to the current isolate.
+   */
+  /* TODO(turnidge): Handle ambiguous names.*/
+  InstanceMirror setField(Symbol fieldName, Object arg);
+
   /**
    * Invokes the named function and returns a mirror on the result.
    * The arguments must be instances of [InstanceMirror], [num],
@@ -259,6 +289,13 @@ abstract class ClosureMirror implements InstanceMirror {
    * TODO(turnidge): Would this just be available in function?
    */
   String get source;
+
+  /**
+   * Executes the closure.
+   * The arguments are objects local to the current isolate. 
+   */
+  InstanceMirror apply(List<Object> positionalArguments,
+                       [Map<Symbol,Object> namedArguments]);
 
   /**
    * Executes the closure.
@@ -437,8 +474,17 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
 
   /**
    * Invokes the named constructor and returns a mirror on the result.
+   * The arguments are objects local to the current isolate 
+   */
+  /* TODO(turnidge): Properly document.*/
+  InstanceMirror newInstance(Symbol constructorName,
+                             List positionalArguments,
+                             [Map<Symbol,dynamic> namedArguments]);
+
+  /**
+   * Invokes the named constructor and returns a mirror on the result.
    * The arguments must be instances of [InstanceMirror], [num],
-   * [String], or [bool].
+   * [String] or [bool].
    */
   /* TODO(turnidge): Properly document.*/
   Future<InstanceMirror> newInstanceAsync(Symbol constructorName,

@@ -162,6 +162,24 @@ abstract class _LocalObjectMirrorImpl extends _LocalVMObjectMirrorImpl
     implements ObjectMirror {
   _LocalObjectMirrorImpl(ref) : super(ref) {}
 
+  InstanceMirror invoke(Symbol memberName,
+                        List positionalArguments,
+                        [Map<Symbol, dynamic> namedArguments]) {
+    if (namedArguments != null) {
+      throw new UnimplementedError(
+          'named argument support is not implemented');
+    }
+    return _invoke(this, _n(memberName), positionalArguments, false); 
+  }
+
+  InstanceMirror getField(Symbol fieldName) {
+    return _getField(this, _n(fieldName)); 
+  }
+
+  InstanceMirror setField(Symbol fieldName, Object arg) {
+    return _setField(this, _n(fieldName), arg, false); 
+  }
+
   Future<InstanceMirror> invokeAsync(Symbol memberName,
                                      List positionalArguments,
                                      [Map<Symbol, dynamic> namedArguments]) {
@@ -177,7 +195,7 @@ abstract class _LocalObjectMirrorImpl extends _LocalVMObjectMirrorImpl
     Completer<InstanceMirror> completer = new Completer<InstanceMirror>();
     try {
       completer.complete(
-          _invoke(this, _n(memberName), positionalArguments));
+          _invoke(this, _n(memberName), positionalArguments), true);
     } catch (exception, s) {
       completer.completeError(exception, s);
     }
@@ -199,7 +217,7 @@ abstract class _LocalObjectMirrorImpl extends _LocalVMObjectMirrorImpl
 
     Completer<InstanceMirror> completer = new Completer<InstanceMirror>();
     try {
-      completer.complete(_setField(this, _n(fieldName), arg));
+      completer.complete(_setField(this, _n(fieldName), arg, true));
     } catch (exception, s) {
       completer.completeError(exception, s);
     }
@@ -219,13 +237,13 @@ abstract class _LocalObjectMirrorImpl extends _LocalVMObjectMirrorImpl
       }
   }
 
-  static _invoke(ref, memberName, positionalArguments)
+  static _invoke(ref, memberName, positionalArguments, async)
       native 'LocalObjectMirrorImpl_invoke';
 
-  static _getField(ref, fieldName)
+  static _getField(ref, fieldName) // same for sync and async versions
       native 'LocalObjectMirrorImpl_getField';
 
-  static _setField(ref, fieldName, value)
+  static _setField(ref, fieldName, value, async)
       native 'LocalObjectMirrorImpl_setField';
 }
 
@@ -325,6 +343,15 @@ class _LocalClosureMirrorImpl extends _LocalInstanceMirrorImpl
         'ClosureMirror.source is not implemented');
   }
 
+  InstanceMirror apply(List<Object> positionalArguments,
+                       [Map<Symbol, Object> namedArguments]) {
+    if (namedArguments != null) {
+      throw new UnimplementedError(
+          'named argument support is not implemented');
+    }
+    return _apply(this, positionalArguments, false);
+  }
+
   Future<InstanceMirror> applyAsync(List<Object> positionalArguments,
                                     [Map<Symbol, Object> namedArguments]) {
     if (namedArguments != null) {
@@ -339,7 +366,7 @@ class _LocalClosureMirrorImpl extends _LocalInstanceMirrorImpl
     Completer<InstanceMirror> completer = new Completer<InstanceMirror>();
     try {
       completer.complete(
-          _apply(this, positionalArguments));
+          _apply(this, positionalArguments, true));
     } catch (exception) {
       completer.completeError(exception);
     }
@@ -351,7 +378,7 @@ class _LocalClosureMirrorImpl extends _LocalInstanceMirrorImpl
         'ClosureMirror.findInContext() is not implemented');
   }
 
-  static _apply(ref, positionalArguments)
+  static _apply(ref, positionalArguments, async)
       native 'LocalClosureMirrorImpl_apply';
 }
 
@@ -522,6 +549,19 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
 
   String toString() => "ClassMirror on '$simpleName'";
 
+  InstanceMirror newInstance(Symbol constructorName,
+                             List positionalArguments,
+                             [Map<Symbol, dynamic> namedArguments]) {
+    if (namedArguments != null) {
+      throw new UnimplementedError(
+          'named argument support is not implemented');
+    }
+    return _invokeConstructor(this,
+                              _n(constructorName),
+                              positionalArguments,
+                              false);
+  }
+
   Future<InstanceMirror> newInstanceAsync(Symbol constructorName,
                                           List positionalArguments,
                                           [Map<Symbol, dynamic> namedArguments]) {
@@ -537,14 +577,17 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
     Completer<InstanceMirror> completer = new Completer<InstanceMirror>();
     try {
       completer.complete(
-          _invokeConstructor(this, _n(constructorName), positionalArguments));
+          _invokeConstructor(this,
+                             _n(constructorName),
+                             positionalArguments,
+                             true));
     } catch (exception) {
       completer.completeError(exception);
     }
     return completer.future;
   }
 
-  static _invokeConstructor(ref, constructorName, positionalArguments)
+  static _invokeConstructor(ref, constructorName, positionalArguments, async)
       native 'LocalClassMirrorImpl_invokeConstructor';
 }
 
