@@ -52,21 +52,128 @@ abstract class IOSink implements StreamSink<List<int>>, StringSink {
   Future get done;
 }
 
-
-class _IOSinkImpl implements IOSink {
-  final StreamConsumer<List<int>> _target;
+class _StreamSinkImpl<T> implements StreamSink<T> {
+  final StreamConsumer<T> _target;
   Completer _doneCompleter = new Completer();
   Future _doneFuture;
-  StreamController<List<int>> _controllerInstance;
+  StreamController<T> _controllerInstance;
   Completer _controllerCompleter;
-  Encoding _encoding;
   bool _isClosed = false;
   bool _isBound = false;
-  bool _encodingMutable = true;
 
-  _IOSinkImpl(StreamConsumer<List<int>> this._target, this._encoding) {
+  _StreamSinkImpl(StreamConsumer<T> this._target) {
     _doneFuture = _doneCompleter.future;
   }
+
+  void add(T data) {
+    _controller.add(data);
+  }
+
+  void addError(error) {
+    _controller.addError(error);
+  }
+
+  Future addStream(Stream<T> stream) {
+    if (_isBound) {
+      throw new StateError("StreamSink is already bound to a stream");
+    }
+    _isBound = true;
+    // Wait for any sync operations to complete.
+    Future targetAddStream() {
+      return _target.addStream(stream)
+          .whenComplete(() {
+            _isBound = false;
+          });
+    }
+    if (_controllerInstance == null) return targetAddStream();
+    var future = _controllerCompleter.future;
+    _controllerInstance.close();
+    return future.then((_) => targetAddStream());
+  }
+
+  Future close() {
+    if (_isBound) {
+      throw new StateError("StreamSink is bound to a stream");
+    }
+    if (!_isClosed) {
+      _isClosed = true;
+      if (_controllerInstance != null) {
+        _controllerInstance.close();
+      } else {
+        _closeTarget();
+      }
+    }
+    return done;
+  }
+
+  void _closeTarget() {
+    _target.close()
+        .then((value) => _completeDone(value: value),
+              onError: (error) => _completeDone(error: error));
+  }
+
+  Future get done => _doneFuture;
+
+  void _completeDone({value, error}) {
+    if (_doneCompleter == null) return;
+    var tmp = _doneCompleter;
+    _doneCompleter = null;
+    if (error == null) {
+      tmp.complete(value);
+    } else {
+      tmp.completeError(error);
+    }
+  }
+
+  StreamController<T> get _controller {
+    if (_isBound) {
+      throw new StateError("StreamSink is bound to a stream");
+    }
+    if (_isClosed) {
+      throw new StateError("StreamSink is closed");
+    }
+    if (_controllerInstance == null) {
+      _controllerInstance = new StreamController<T>();
+      _controllerCompleter = new Completer();
+      _target.addStream(_controller.stream)
+          .then(
+              (_) {
+                if (_isBound) {
+                  // A new stream takes over - forward values to that stream.
+                  var completer = _controllerCompleter;
+                  _controllerCompleter = null;
+                  _controllerInstance = null;
+                  completer.complete();
+                } else {
+                  // No new stream, .close was called. Close _target.
+                  _closeTarget();
+                }
+              },
+              onError: (error) {
+                if (_isBound) {
+                  // A new stream takes over - forward errors to that stream.
+                  var completer = _controllerCompleter;
+                  _controllerCompleter = null;
+                  _controllerInstance = null;
+                  completer.completeError(error);
+                } else {
+                  // No new stream. No need to close target, as it have already
+                  // failed.
+                  _completeDone(error: error);
+                }
+              });
+    }
+    return _controllerInstance;
+  }
+}
+
+
+class _IOSinkImpl extends _StreamSinkImpl<List<int>> implements IOSink {
+  Encoding _encoding;
+  bool _encodingMutable = true;
+
+  _IOSinkImpl(StreamConsumer<List<int>> target, this._encoding)
+      : super(target);
 
   Encoding get encoding => _encoding;
 
@@ -117,106 +224,5 @@ class _IOSinkImpl implements IOSink {
 
   void writeCharCode(int charCode) {
     write(new String.fromCharCode(charCode));
-  }
-
-  void add(List<int> data) {
-    _controller.add(data);
-  }
-
-  void addError(error) {
-    _controller.addError(error);
-  }
-
-  Future addStream(Stream<List<int>> stream) {
-    if (_isBound) {
-      throw new StateError("IOSink is already bound to a stream");
-    }
-    _isBound = true;
-    // Wait for any sync operations to complete.
-    Future targetAddStream() {
-      return _target.addStream(stream)
-          .whenComplete(() {
-            _isBound = false;
-          });
-    }
-    if (_controllerInstance == null) return targetAddStream();
-    var future = _controllerCompleter.future;
-    _controllerInstance.close();
-    return future.then((_) => targetAddStream());
-  }
-
-  Future close() {
-    if (_isBound) {
-      throw new StateError("IOSink is bound to a stream");
-    }
-    if (!_isClosed) {
-      _isClosed = true;
-      if (_controllerInstance != null) {
-        _controllerInstance.close();
-      } else {
-        _closeTarget();
-      }
-    }
-    return done;
-  }
-
-  void _closeTarget() {
-    _target.close()
-        .then((value) => _completeDone(value: value),
-              onError: (error) => _completeDone(error: error));
-  }
-
-  Future get done => _doneFuture;
-
-  void _completeDone({value, error}) {
-    if (_doneCompleter == null) return;
-    var tmp = _doneCompleter;
-    _doneCompleter = null;
-    if (error == null) {
-      tmp.complete(value);
-    } else {
-      tmp.completeError(error);
-    }
-  }
-
-  StreamController<List<int>> get _controller {
-    if (_isBound) {
-      throw new StateError("IOSink is bound to a stream");
-    }
-    if (_isClosed) {
-      throw new StateError("IOSink is closed");
-    }
-    if (_controllerInstance == null) {
-      _controllerInstance = new StreamController<List<int>>();
-      _controllerCompleter = new Completer();
-      _target.addStream(_controller.stream)
-          .then(
-              (_) {
-                if (_isBound) {
-                  // A new stream takes over - forward values to that stream.
-                  var completer = _controllerCompleter;
-                  _controllerCompleter = null;
-                  _controllerInstance = null;
-                  completer.complete();
-                } else {
-                  // No new stream, .close was called. Close _target.
-                  _closeTarget();
-                }
-              },
-              onError: (error) {
-                if (_isBound) {
-                  // A new stream takes over - forward errors to that stream.
-                  var completer = _controllerCompleter;
-                  _controllerCompleter = null;
-                  _controllerInstance = null;
-                  completer.completeError(error);
-                } else {
-                  // No new stream. No need to close target, as it have already
-                  // failed.
-                  _completeDone(error: error);
-                }
-              });
-    }
-    return _controllerInstance;
   }
 }

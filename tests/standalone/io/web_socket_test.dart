@@ -44,7 +44,7 @@ class SecurityConfiguration {
     createServer().then((server) {
       server.transform(new WebSocketTransformer()).listen((webSocket) {
         webSocket.listen(
-            webSocket.send,
+            webSocket.add,
             onDone: () {
               Expect.equals(closeStatus == null
                             ? WebSocketStatus.NO_STATUS_RECEIVED
@@ -58,13 +58,13 @@ class SecurityConfiguration {
       for (int i = 0; i < totalConnections; i++) {
         int messageCount = 0;
         createClient(server.port).then((webSocket) {
-          webSocket.send(messageText);
+          webSocket.add(messageText);
           webSocket.listen(
               (message) {
                 messageCount++;
                 if (messageCount < 1 ) {
                   Expect.equals(messageText, message);
-                  webSocket.send(message);
+                  webSocket.add(message);
                 } else {
                   webSocket.close(closeStatus, closeReason);
                 }
@@ -97,7 +97,7 @@ class SecurityConfiguration {
               messageCount++;
               if (messageCount < 10) {
                 Expect.equals(messageText, message);
-                webSocket.send(message);
+                webSocket.add(message);
               } else {
                 webSocket.close(closeStatus, closeReason);
               }
@@ -112,13 +112,13 @@ class SecurityConfiguration {
                 server.close();
               }
             });
-        webSocket.send(messageText);
+        webSocket.add(messageText);
       });
 
       for (int i = 0; i < totalConnections; i++) {
         createClient(server.port).then((webSocket) {
             webSocket.listen(
-                webSocket.send,
+                webSocket.add,
                 onDone: () {
                   Expect.equals(closeStatus == null
                                 ? WebSocketStatus.NO_STATUS_RECEIVED
@@ -140,7 +140,7 @@ class SecurityConfiguration {
         webSocket.listen(
             (message) {
               Expect.listEquals(originalMessage, message);
-              webSocket.send(message);
+              webSocket.add(message);
             });
       });
 
@@ -151,7 +151,7 @@ class SecurityConfiguration {
               webSocket.close();
             },
             onDone: server.close);
-        webSocket.send(originalMessage);
+        webSocket.add(originalMessage);
       });
     });
   }
@@ -273,7 +273,7 @@ class SecurityConfiguration {
               messageCount++;
               if (messageCount < 10) {
                 Expect.equals(messageText, message);
-                webSocket.send(message);
+                webSocket.add(message);
               } else {
                 webSocket.close(closeStatus, closeReason);
               }
@@ -286,7 +286,7 @@ class SecurityConfiguration {
                 server.close();
               }
             });
-        webSocket.send(messageText);
+        webSocket.add(messageText);
       });
 
       void webSocketConnection() {
@@ -306,7 +306,7 @@ class SecurityConfiguration {
                 Expect.isTrue(onopenCalled);
                 Expect.isFalse(oncloseCalled);
                 Expect.equals(WebSocket.OPEN, webSocket.readyState);
-                webSocket.send(message);
+                webSocket.add(message);
               },
               onDone: () {
                 Expect.isTrue(onopenCalled);
@@ -332,7 +332,7 @@ class SecurityConfiguration {
           if (WebSocketTransformer.isUpgradeRequest(request)) {
             WebSocketTransformer.upgrade(request).then((webSocket) {
                 webSocket.listen((_) { webSocket.close(); });
-                webSocket.send("Hello");
+                webSocket.add("Hello");
             });
           } else {
             Expect.isFalse(WebSocketTransformer.isUpgradeRequest(request));

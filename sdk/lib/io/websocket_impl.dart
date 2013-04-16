@@ -432,8 +432,175 @@ class _WebSocketTransformerImpl implements WebSocketTransformer {
 }
 
 
+class _WebSocketOutgoingTransformer extends StreamEventTransformer {
+  final _WebSocketImpl webSocket;
+
+  _WebSocketOutgoingTransformer(_WebSocketImpl this.webSocket);
+
+  void handleData(message, EventSink<List<int>> sink) {
+    List<int> data;
+    int opcode;
+    if (message != null) {
+      if (message is String) {
+        opcode = _WebSocketOpcode.TEXT;
+        data = _encodeString(message);
+      } else {
+        if (message is !List<int>) {
+          throw new ArgumentError(message);
+        }
+        opcode = _WebSocketOpcode.BINARY;
+        data = message;
+      }
+    } else {
+      opcode = _WebSocketOpcode.TEXT;
+    }
+    addFrame(opcode, data, sink);
+  }
+
+  void handleDone(EventSink<List<int>> sink) {
+    int code = webSocket._outCloseCode;
+    String reason = webSocket._outCloseReason;
+    List<int> data;
+    if (code != null) {
+      data = new List<int>();
+      data.add((code >> 8) & 0xFF);
+      data.add(code & 0xFF);
+      if (reason != null) {
+        data.addAll(_encodeString(reason));
+      }
+    }
+    addFrame(_WebSocketOpcode.CLOSE, data, sink);
+    sink.close();
+  }
+
+  void addFrame(int opcode, List<int> data, EventSink<List<int>> sink) {
+    bool mask = !webSocket._serverSide;  // Masking not implemented for server.
+    int dataLength = data == null ? 0 : data.length;
+    // Determine the header size.
+    int headerSize = (mask) ? 6 : 2;
+    if (dataLength > 65535) {
+      headerSize += 8;
+    } else if (dataLength > 125) {
+      headerSize += 2;
+    }
+    List<int> header = new List<int>(headerSize);
+    int index = 0;
+    // Set FIN and opcode.
+    header[index++] = 0x80 | opcode;
+    // Determine size and position of length field.
+    int lengthBytes = 1;
+    int firstLengthByte = 1;
+    if (dataLength > 65535) {
+      header[index++] = 127;
+      lengthBytes = 8;
+    } else if (dataLength > 125) {
+      header[index++] = 126;
+      lengthBytes = 2;
+    }
+    // Write the length in network byte order into the header.
+    for (int i = 0; i < lengthBytes; i++) {
+      header[index++] = dataLength >> (((lengthBytes - 1) - i) * 8) & 0xFF;
+    }
+    if (mask) {
+      header[1] |= 1 << 7;
+      var maskBytes = _IOCrypto.getRandomBytes(4);
+      header.setRange(index, index + 4, maskBytes);
+      index += 4;
+      if (data != null) {
+        var list = new Uint8List(data.length);
+        for (int i = 0; i < data.length; i++) {
+          list[i] = data[i] ^ maskBytes[i % 4];
+        }
+        data = list;
+      }
+    }
+    assert(index == headerSize);
+    sink.add(header);
+    if (data != null) {
+      sink.add(data);
+    }
+  }
+}
+
+
+class _WebSocketConsumer implements StreamConsumer {
+  final _WebSocketImpl webSocket;
+  final Socket socket;
+  StreamController _controller;
+  StreamSubscription _subscription;
+  Completer _closeCompleter = new Completer();
+  Completer _completer;
+
+  _WebSocketConsumer(_WebSocketImpl this.webSocket, Socket this.socket);
+
+  void _onListen() {
+    if (_subscription != null) {
+      _subscription.cancel();
+    }
+  }
+
+  _ensureController() {
+    if (_controller != null) return;
+    _controller = new StreamController(onPause: () => _subscription.pause(),
+                                       onResume: () => _subscription.resume(),
+                                       onCancel: _onListen);
+    var stream = _controller.stream.transform(
+        new _WebSocketOutgoingTransformer(webSocket));
+    socket.addStream(stream)
+        .then((_) {
+                _done();
+                _closeCompleter.complete(webSocket);
+              },
+              onError: (error) {
+                if (!_done(error)) {
+                  _closeCompleter.completeError(error);
+                }
+              });
+  }
+
+  bool _done([error]) {
+    if (_completer == null) return false;
+    var tmp = _completer;
+    _completer = null;
+    if (error != null) {
+      tmp.completeError(error);
+    } else {
+      tmp.complete(webSocket);
+    }
+    return true;
+  }
+
+  Future addStream(var stream) {
+    _ensureController();
+    _completer = new Completer();
+    _subscription = stream.listen(
+        (data) {
+          _controller.add(data);
+        },
+        onDone: () {
+          _done();
+        },
+        onError: (error) {
+          _done(error);
+        },
+        cancelOnError: true);
+    return _completer.future;
+  }
+
+  Future close() {
+    Future closeSocket() {
+      return socket.close().then((_) => webSocket);
+    }
+    if (_controller == null) return closeSocket();
+    _controller.close();
+    return _closeCompleter.future.then((_) => closeSocket());
+  }
+}
+
+
 class _WebSocketImpl extends Stream implements WebSocket {
   final StreamController _controller = new StreamController();
+  StreamSink _sink;
 
   final Socket _socket;
   final bool _serverSide;
@@ -441,6 +608,9 @@ class _WebSocketImpl extends Stream implements WebSocket {
   bool _writeClosed = false;
   int _closeCode;
   String _closeReason;
+
+  int _outCloseCode;
+  String _outCloseReason;
 
   static final HttpClient _httpClient = new HttpClient();
 
@@ -516,51 +686,33 @@ class _WebSocketImpl extends Stream implements WebSocket {
 
   _WebSocketImpl._fromSocket(Socket this._socket,
                              [bool this._serverSide = false]) {
+    _sink = new _StreamSinkImpl(new _WebSocketConsumer(this, _socket));
     _readyState = WebSocket.OPEN;
 
-    bool closed = false;
     var transformer = new _WebSocketProtocolTransformer(_serverSide);
     _socket.transform(transformer).listen(
         (data) {
           _controller.add(data);
         },
         onError: (error) {
-          if (closed) return;
-          closed = true;
           _controller.addError(error);
           _controller.close();
         },
         onDone: () {
-          if (closed) return;
-          closed = true;
           if (_readyState == WebSocket.OPEN) {
             _readyState = WebSocket.CLOSING;
             if (transformer.closeCode != WebSocketStatus.NO_STATUS_RECEIVED) {
-              _close(transformer.closeCode);
+              close(transformer.closeCode);
             } else {
-              _close();
+              close();
             }
             _readyState = WebSocket.CLOSED;
           }
           _closeCode = transformer.closeCode;
           _closeReason = transformer.closeReason;
           _controller.close();
-          if (_writeClosed) _socket.destroy();
         },
         cancelOnError: true);
-
-    _socket.done
-        .catchError((error) {
-          if (closed) return;
-          closed = true;
-          _readyState = WebSocket.CLOSED;
-          _closeCode = WebSocketStatus.ABNORMAL_CLOSURE;
-          _controller.addError(error);
-          _controller.close();
-        })
-        .whenComplete(() {
-          _writeClosed = true;
-        });
   }
 
   StreamSubscription listen(void onData(message),
@@ -580,117 +732,22 @@ class _WebSocketImpl extends Stream implements WebSocket {
   int get closeCode => _closeCode;
   String get closeReason => _closeReason;
 
-  void close([int code, String reason]) {
-    if (_readyState < WebSocket.CLOSING) _readyState = WebSocket.CLOSING;
-    if (code == WebSocketStatus.RESERVED_1004 ||
-        code == WebSocketStatus.NO_STATUS_RECEIVED ||
-        code == WebSocketStatus.RESERVED_1015) {
-      throw new WebSocketException("Reserved status code $code");
-    }
-    _close(code, reason);
-  }
+  void add(data) => _sink.add(data);
+  void addError(error) => _sink.addError(error);
+  Future addStream(Stream stream) => _sink.addStream(stream);
+  Future get done => _sink.done;
 
-  void _close([int code, String reason]) {
-    List<int> data;
-    if (code != null) {
-      data = new List<int>();
-      data.add((code >> 8) & 0xFF);
-      data.add(code & 0xFF);
-      if (reason != null) {
-        data.addAll(_encodeString(reason));
+  Future close([int code, String reason]) {
+    if (!_writeClosed) {
+      if (code == WebSocketStatus.RESERVED_1004 ||
+          code == WebSocketStatus.NO_STATUS_RECEIVED ||
+          code == WebSocketStatus.RESERVED_1015) {
+        throw new WebSocketException("Reserved status code $code");
       }
-    }
-    _sendFrame(_WebSocketOpcode.CLOSE, data);
-
-    if (_readyState == WebSocket.CLOSED) {
-      // Close the socket when the close frame has been sent - if it
-      // does not take too long.
-      // TODO(ajohnsen): Honor comment.
-      _socket.destroy();
-    } else {
-      // Half close the socket and expect a close frame in response
-      // before closing the socket. If a close frame does not arrive
-      // within a reasonable amount of time just close the socket.
-      // TODO(ajohnsen): Honor comment.
-      _socket.close();
-    }
-  }
-
-  void send(message) {
-    if (readyState != WebSocket.OPEN) {
-      throw new StateError("Connection not open");
-    }
-    List<int> data;
-    int opcode;
-    if (message != null) {
-      if (message is String) {
-        opcode = _WebSocketOpcode.TEXT;
-        data = _encodeString(message);
-      } else {
-        if (message is !List<int>) {
-          throw new ArgumentError(message);
-        }
-        opcode = _WebSocketOpcode.BINARY;
-        data = message;
-      }
-    } else {
-      opcode = _WebSocketOpcode.TEXT;
-    }
-    _sendFrame(opcode, data);
-  }
-
-  void _sendFrame(int opcode, [List<int> data]) {
-    if (_writeClosed) return;
-    bool mask = !_serverSide;  // Masking not implemented for server.
-    int dataLength = data == null ? 0 : data.length;
-    // Determine the header size.
-    int headerSize = (mask) ? 6 : 2;
-    if (dataLength > 65535) {
-      headerSize += 8;
-    } else if (dataLength > 125) {
-      headerSize += 2;
-    }
-    List<int> header = new List<int>(headerSize);
-    int index = 0;
-    // Set FIN and opcode.
-    header[index++] = 0x80 | opcode;
-    // Determine size and position of length field.
-    int lengthBytes = 1;
-    int firstLengthByte = 1;
-    if (dataLength > 65535) {
-      header[index++] = 127;
-      lengthBytes = 8;
-    } else if (dataLength > 125) {
-      header[index++] = 126;
-      lengthBytes = 2;
-    }
-    // Write the length in network byte order into the header.
-    for (int i = 0; i < lengthBytes; i++) {
-      header[index++] = dataLength >> (((lengthBytes - 1) - i) * 8) & 0xFF;
-    }
-    if (mask) {
-      header[1] |= 1 << 7;
-      var maskBytes = _IOCrypto.getRandomBytes(4);
-      header.setRange(index, index + 4, maskBytes);
-      index += 4;
-      if (data != null) {
-        var list = new Uint8List(data.length);
-        for (int i = 0; i < data.length; i++) {
-          list[i] = data[i] ^ maskBytes[i % 4];
-        }
-        data = list;
-      }
-    }
-    assert(index == headerSize);
-    try {
-      _socket.add(header);
-      if (data != null) {
-        _socket.add(data);
-      }
-    } catch (_) {
-      // The socket can be closed before _socket.done have a chance
-      // to complete.
+      _outCloseCode = code;
+      _outCloseReason = reason;
       _writeClosed = true;
     }
+    return _sink.close();
   }
 }
