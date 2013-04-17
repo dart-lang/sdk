@@ -171,6 +171,9 @@ patch class _ProcessUtils {
   patch static _sleep(int millis) {
     throw new UnsupportedError("ProcessUtils._sleep");
   }
+  patch static _pid(Process process) {
+    throw new UnsupportedError("ProcessUtils._pid");
+  }
 }
 
 patch class Process {
