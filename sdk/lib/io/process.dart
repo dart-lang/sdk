@@ -10,6 +10,7 @@ class _ProcessUtils {
   external static _exit(int status);
   external static _setExitCode(int status);
   external static _sleep(int millis);
+  external static int _pid(Process process);
 }
 
 /**
@@ -52,6 +53,11 @@ void sleep(Duration duration) {
   }
   _ProcessUtils._sleep(milliseconds);
 }
+
+/**
+ * Returns the PID if the current process.
+ */
+int get pid => _ProcessUtils._pid(null);
 
 /**
  * [Process] is used to start new processes using the static
@@ -118,6 +124,11 @@ abstract class Process {
   IOSink get stdin;
 
   /**
+   * Returns the process id of the process.
+   */
+  int get pid;
+
+  /**
    * Returns a [:Future:] which completes with the exit code of the process
    * when the process completes.
    *
@@ -162,6 +173,11 @@ abstract class ProcessResult {
    * Standard error from the process as a string.
    */
   String get stderr;
+
+  /**
+   * Process id from the process.
+   */
+  int get pid;
 }
 
 

@@ -34,6 +34,7 @@ patch class _ProcessUtils {
   /* patch */ static _exit(int status) native "Process_Exit";
   /* patch */ static _setExitCode(int status) native "Process_SetExitCode";
   /* patch */ static _sleep(int millis) native "Process_Sleep";
+  /* patch */ static _pid(Process process) native "Process_Pid";
 }
 
 
@@ -247,6 +248,8 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
 
   bool _kill(Process p, int signal) native "Process_Kill";
 
+  int get pid => _ProcessUtils._pid(this);
+
   String _path;
   List<String> _arguments;
   String _workingDirectory;
@@ -291,6 +294,8 @@ Future<ProcessResult> _runNonInteractiveProcess(String path,
 
   // Start the underlying process.
   return Process.start(path, arguments, options).then((Process p) {
+    int pid = p.pid;
+
     // Make sure the process stdin is closed.
     p.stdin.close();
 
@@ -314,7 +319,8 @@ Future<ProcessResult> _runNonInteractiveProcess(String path,
             });
 
     return Future.wait([p.exitCode, stdout, stderr]).then((result) {
-      return new _ProcessResult(result[0],
+      return new _ProcessResult(pid,
+                                result[0],
                                 result[1].toString(),
                                 result[2].toString());
     });
@@ -323,10 +329,12 @@ Future<ProcessResult> _runNonInteractiveProcess(String path,
 
 
 class _ProcessResult implements ProcessResult {
-  const _ProcessResult(int this.exitCode,
+  const _ProcessResult(int this.pid,
+                       int this.exitCode,
                        String this.stdout,
                        String this.stderr);
 
+  final int pid;
   final int exitCode;
   final String stdout;
   final String stderr;
