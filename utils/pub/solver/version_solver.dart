@@ -73,12 +73,14 @@ class VersionSolver {
   /// successful or an error if it failed to find a solution.
   Future<SolveResult> solve() {
     var stopwatch = new Stopwatch();
-    stopwatch.start();
 
-    // Pre-cache the root package's known pubspec.
-    cache.cache(new PackageId.root(root), root.pubspec);
+    return new Future(() {
+      stopwatch.start();
 
-    return runSolver().then((packages) {
+      // Pre-cache the root package's known pubspec.
+      cache.cache(new PackageId.root(root), root.pubspec);
+      return runSolver();
+    }).then((packages) {
       return new SolveResult(packages, null, attemptedSolutions);
     }).catchError((error) {
       if (error is! SolveFailure) throw error;
@@ -304,12 +306,13 @@ class SolveFailure implements Exception {
 /// Exception thrown when the [VersionSolver] fails to find a solution after a
 /// certain number of iterations.
 class CouldNotSolveException extends SolveFailure {
-  CouldNotSolveException()
-      : super(null, null);
+  CouldNotSolveException([String message])
+      : super(null, null),
+        _message = (message != null) ? message :
+            "Could not find a solution that met all constraints.";
 
   /// A message describing the specific kind of solve failure.
-  String get _message =>
-      "Could not find a solution that met all constraints.";
+  final String _message;
 }
 
 /// Exception thrown when the [VersionConstraint] used to match a package is

@@ -12,6 +12,7 @@ import 'package:unittest/unittest.dart';
 import '../../pub/lock_file.dart';
 import '../../pub/package.dart';
 import '../../pub/pubspec.dart';
+import '../../pub/sdk.dart' as sdk;
 import '../../pub/source.dart';
 import '../../pub/source_registry.dart';
 import '../../pub/system_cache.dart';
@@ -28,6 +29,10 @@ bool allowBacktracking;
 main() {
   initConfig();
 
+  // Since this test isn't run from the SDK, it can't find the "version" file
+  // to load. Instead, just manually inject a version.
+  sdk.version = new Version(1, 2, 3);
+
   for (allowBacktracking in [false, true]) {
     group(allowBacktracking ? 'BackTrackingSolver' : 'GreedySolver', () {
       group('basic graph', basicGraph);
@@ -38,6 +43,10 @@ main() {
       group('backtracking', backtracking);
     });
   }
+
+  // These tests are only valid with the backtracking solver.
+  allowBacktracking = true;
+  group('SDK constraint', sdkConstraint);
 }
 
 void basicGraph() {
@@ -546,6 +555,73 @@ backtracking() {
   //   ambiguous to nail down which order the backtracker tries solutions.
 }
 
+sdkConstraint() {
+  var badVersion = '0.0.0-nope';
+  var goodVersion = sdk.version.toString();
+
+  testResolve('root matches SDK', {
+    'myapp 0.0.0': {'sdk': goodVersion }
+  }, result: {
+    'myapp from root': '0.0.0'
+  });
+
+  testResolve('root does not match SDK', {
+    'myapp 0.0.0': {'sdk': badVersion }
+  }, error: couldNotSolve);
+
+  testResolve('dependency does not match SDK', {
+    'myapp 0.0.0': {'foo': 'any'},
+    'foo 0.0.0': {'sdk': badVersion }
+  }, error: couldNotSolve);
+
+  testResolve('transitive dependency does not match SDK', {
+    'myapp 0.0.0': {'foo': 'any'},
+    'foo 0.0.0': {'bar': 'any'},
+    'bar 0.0.0': {'sdk': badVersion }
+  }, error: couldNotSolve);
+
+  testResolve('selects a dependency version that allows the SDK', {
+    'myapp 0.0.0': {'foo': 'any'},
+    'foo 1.0.0': {'sdk': goodVersion },
+    'foo 2.0.0': {'sdk': goodVersion },
+    'foo 3.0.0': {'sdk': badVersion },
+    'foo 4.0.0': {'sdk': badVersion }
+  }, result: {
+    'myapp from root': '0.0.0',
+    'foo': '2.0.0'
+  }, maxTries: 3);
+
+  testResolve('selects a transitive dependency version that allows the SDK', {
+    'myapp 0.0.0': {'foo': 'any'},
+    'foo 1.0.0': {'bar': 'any'},
+    'bar 1.0.0': {'sdk': goodVersion },
+    'bar 2.0.0': {'sdk': goodVersion },
+    'bar 3.0.0': {'sdk': badVersion },
+    'bar 4.0.0': {'sdk': badVersion }
+  }, result: {
+    'myapp from root': '0.0.0',
+    'foo': '1.0.0',
+    'bar': '2.0.0'
+  }, maxTries: 3);
+
+  testResolve('selects a dependency version that allows a transitive '
+              'dependency that allows the SDK', {
+    'myapp 0.0.0': {'foo': 'any'},
+    'foo 1.0.0': {'bar': '1.0.0'},
+    'foo 2.0.0': {'bar': '2.0.0'},
+    'foo 3.0.0': {'bar': '3.0.0'},
+    'foo 4.0.0': {'bar': '4.0.0'},
+    'bar 1.0.0': {'sdk': goodVersion },
+    'bar 2.0.0': {'sdk': goodVersion },
+    'bar 3.0.0': {'sdk': badVersion },
+    'bar 4.0.0': {'sdk': badVersion }
+  }, result: {
+    'myapp from root': '0.0.0',
+    'foo': '2.0.0',
+    'bar': '2.0.0'
+  }, maxTries: 3);
+}
+
 testResolve(description, packages,
             {lockfile, result, FailMatcherBuilder error, int maxTries,
              bool hasGreedySolution}) {
@@ -858,6 +934,8 @@ class MockSource extends Source {
 
 Package mockPackage(String description, String version,
                     Map dependencyStrings) {
+  var sdkConstraint = null;
+
   // Build the pubspec dependencies.
   var dependencies = <PackageRef>[];
   var devDependencies = <PackageRef>[];
@@ -865,8 +943,14 @@ Package mockPackage(String description, String version,
   dependencyStrings.forEach((name, constraint) {
     parseSource(name, (isDev, name, source) {
       var packageName = name.replaceFirst(new RegExp(r"-[^-]+$"), "");
-      var ref = new PackageRef(packageName, source,
-          new VersionConstraint.parse(constraint), name);
+      constraint = new VersionConstraint.parse(constraint);
+
+      if (name == 'sdk') {
+        sdkConstraint = constraint;
+        return;
+      }
+
+      var ref = new PackageRef(packageName, source, constraint, name);
 
       if (isDev) {
         devDependencies.add(ref);
@@ -879,7 +963,7 @@ Package mockPackage(String description, String version,
   var name = description.replaceFirst(new RegExp(r"-[^-]+$"), "");
   var pubspec = new Pubspec(
       name, new Version.parse(version), dependencies, devDependencies,
-      new PubspecEnvironment());
+      new PubspecEnvironment(sdkConstraint));
   return new Package.inMemory(pubspec);
 }
 

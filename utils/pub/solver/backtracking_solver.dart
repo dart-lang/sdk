@@ -39,6 +39,8 @@ import 'dart:collection' show Queue;
 import '../lock_file.dart';
 import '../log.dart' as log;
 import '../package.dart';
+import '../pubspec.dart';
+import '../sdk.dart' as sdk;
 import '../source.dart';
 import '../source_registry.dart';
 import '../utils.dart';
@@ -74,7 +76,7 @@ class BacktrackingVersionSolver extends VersionSolver {
 
   /// The number of possible solutions that have been attempted.
   int get attemptedSolutions => _attemptedSolutions;
-  var _attemptedSolutions = 0;
+  var _attemptedSolutions = 1;
 
   BacktrackingVersionSolver(SourceRegistry sources, Package root,
       LockFile lockFile, List<String> useLatest)
@@ -84,7 +86,12 @@ class BacktrackingVersionSolver extends VersionSolver {
     _forceLatest.add(package);
   }
 
-  Future<List<PackageId>> runSolver() => _traverseSolution();
+  Future<List<PackageId>> runSolver() {
+    return new Future.sync(() {
+      _validateSdkConstraint(root.pubspec);
+      return _traverseSolution();
+    });
+  }
 
   /// Adds [versions], which is the list of all allowed versions of a given
   /// package, to the set of versions to consider for solutions. The first item
@@ -122,12 +129,13 @@ class BacktrackingVersionSolver extends VersionSolver {
   /// previous selections, and so on. If there is nothing left to backtrack to,
   /// completes to the last failure that occurred.
   Future<List<PackageId>> _traverseSolution() {
-    _attemptedSolutions++;
-
     return new Traverser(this).traverse().catchError((error) {
       if (error is! SolveFailure) throw error;
 
-      if (_backtrack(error)) return _traverseSolution();
+      if (_backtrack(error)) {
+        _attemptedSolutions++;
+        return _traverseSolution();
+      }
 
       // All out of solutions, so fail.
       throw error;
@@ -297,6 +305,8 @@ class Traverser {
     _visited.add(id);
 
     return _solver.cache.getPubspec(id).then((pubspec) {
+      _validateSdkConstraint(pubspec);
+
       var refs = pubspec.dependencies.toList();
 
       // Include dev dependencies of the root package.
@@ -533,4 +543,15 @@ class Traverser {
 
     return package;
   }
+}
+
+/// Ensures that if [pubspec] has an SDK constraint, then it is compatible
+/// with the current SDK. Throws a [SolverFailure] if not.
+void _validateSdkConstraint(Pubspec pubspec) {
+  if (pubspec.environment.sdkVersion.allows(sdk.version)) return;
+
+  throw new CouldNotSolveException(
+      'Package ${pubspec.name} requires SDK version '
+      '${pubspec.environment.sdkVersion} but the current SDK is '
+      '${sdk.version}.');
 }
