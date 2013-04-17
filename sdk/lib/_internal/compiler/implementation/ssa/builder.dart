@@ -4617,7 +4617,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     startTryBlock = graph.addNewBlock();
     open(startTryBlock);
     visit(node.tryBlock);
-    if (!isAborted()) endTryBlock = close(new HGoto());
+    // We use a [HExitTry] instead of a [HGoto] for the try block
+    // because it will have multiple successors: the join block, and
+    // the catch or finally block.
+    if (!isAborted()) endTryBlock = close(new HExitTry());
     SubGraph bodyGraph = new SubGraph(startTryBlock, lastOpenedBlock);
     SubGraph catchGraph = null;
     HLocalValue exception = null;
@@ -4776,6 +4779,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       assert(startCatchBlock != null || startFinallyBlock != null);
       endTryBlock.addSuccessor(
           startCatchBlock != null ? startCatchBlock : startFinallyBlock);
+      endTryBlock.addSuccessor(exitBlock);
     }
 
     // The catch block has either the finally or the exit block as
