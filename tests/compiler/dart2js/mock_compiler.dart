@@ -62,6 +62,7 @@ const String DEFAULT_HELPERLIB = r'''
   unwrapException(e) {}
   assertHelper(a){}
   createRuntimeType(a) {}
+  createInvocationMirror(a0, a1, a2, a3, a4, a5) {}
   throwNoSuchMethod(obj, name, arguments, expectedArgumentNames) {}
   throwAbstractClassInstantiationError(className) {}''';
 
@@ -74,6 +75,7 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
   class Interceptor {
     toString() {}
     bool operator==(other) => identical(this, other);
+    noSuchMethod(im) { throw im; }
   }
   class JSIndexable {}
   class JSArray extends Interceptor implements List, JSIndexable {
@@ -140,6 +142,7 @@ const String DEFAULT_CORELIB = r'''
   class Object {
     operator ==(other) {}
     String toString() { return null; }
+    noSuchMethod(im) { throw im; }
   }
   class Type {}
   class Function {}

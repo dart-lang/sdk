@@ -185,11 +185,6 @@ class Selector {
   Selector.callDefaultConstructor(LibraryElement library)
       : this(SelectorKind.CALL, const SourceString(""), library, 0, const []);
 
-  // TODO(kasperl): This belongs somewhere else.
-  Selector.noSuchMethod()
-      : this(SelectorKind.CALL, Compiler.NO_SUCH_METHOD, null,
-             Compiler.NO_SUCH_METHOD_ARG_COUNT);
-
   bool isGetter() => identical(kind, SelectorKind.GETTER);
   bool isSetter() => identical(kind, SelectorKind.SETTER);
   bool isCall() => identical(kind, SelectorKind.CALL);
@@ -441,20 +436,6 @@ class TypedSelector extends Selector {
 
   bool get hasExactMask => mask.isExact;
 
-  /**
-   * Check if [element] will be the one used at runtime when being
-   * invoked on an instance of [cls].
-   */
-  bool hasElementIn(ClassElement cls, Element element) {
-    // Use the [:implementation] of [cls] in case [element]
-    // is in the patch class. Also use [:implementation:] of [element]
-    // because our function set only stores declarations.
-    Element result = cls.implementation.lookupSelector(this);
-    return result == null
-        ? false
-        : result.implementation == element.implementation;
-  }
-
   bool appliesUnnamed(Element element, Compiler compiler) {
     assert(sameNameHack(element, compiler));
     // [TypedSelector] are only used after resolution.
@@ -466,53 +447,11 @@ class TypedSelector extends Selector {
     //   get foo => () => 42;
     //   bar() => foo(); // The call to 'foo' is a typed selector.
     // }
-    ClassElement other = element.getEnclosingClass();
-    if (identical(other.superclass, compiler.closureClass)) {
+    if (element.getEnclosingClass().isClosure()) {
       return appliesUntyped(element, compiler);
     }
 
-    if (mask.isEmpty) {
-      if (!mask.isNullable) return false;
-      return hasElementIn(compiler.backend.nullImplementation, element)
-          && appliesUntyped(element, compiler);
-    }
-
-    // TODO(kasperl): Can't we just avoid creating typed selectors
-    // based of function types?
-    Element self = mask.base.element;
-    if (self.isTypedef()) {
-      // A typedef is a function type that doesn't have any
-      // user-defined members.
-      return false;
-    }
-
-    if (compiler.backend.isNullImplementation(other)) {
-      return mask.isNullable && appliesUntyped(element, compiler);
-    } else if (mask.isExact) {
-      return hasElementIn(self, element) && appliesUntyped(element, compiler);
-    } else if (mask.isSubclass) {
-      return (hasElementIn(self, element)
-              || other.isSubclassOf(self)
-              || compiler.world.hasAnySubclassThatMixes(self, other))
-          && appliesUntyped(element, compiler);
-    } else {
-      assert(mask.isSubtype);
-      if (other.implementsInterface(self)
-          || other.isSubclassOf(self)
-          || compiler.world.hasAnySubclassThatMixes(self, other)
-          || compiler.world.hasAnySubclassThatImplements(other, mask.base)) {
-        return appliesUntyped(element, compiler);
-      }
-
-      // If [self] is a subclass of [other], it inherits the
-      // implementation of [element].
-      ClassElement cls = self;
-      if (cls.isSubclassOf(other)) {
-        // Resolve an invocation of [element.name] on [self]. If it
-        // is found, this selector is a candidate.
-        return hasElementIn(cls, element) && appliesUntyped(element, compiler);
-      }
-    }
-    return false;
+    if (!mask.canHit(element, this, compiler)) return false;
+    return appliesUntyped(element, compiler);
   }
 }

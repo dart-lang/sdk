@@ -2611,7 +2611,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
     // class. If so, we let the native emitter deal with it.
     if (compiler.enabledNoSuchMethod) {
       SourceString noSuchMethodName = Compiler.NO_SUCH_METHOD;
-      Selector noSuchMethodSelector = new Selector.noSuchMethod();
+      Selector noSuchMethodSelector = compiler.noSuchMethodSelector;
       for (ClassElement element in sortedClasses) {
         if (!element.isNative()) continue;
         Element member = element.lookupLocalMember(noSuchMethodName);

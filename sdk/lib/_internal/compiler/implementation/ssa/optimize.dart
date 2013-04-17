@@ -333,7 +333,11 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     Selector selector = receiverType.refine(node.selector, compiler);
     Element element = compiler.world.locateSingleElement(selector);
     // TODO(ngeoffray): Also fold if it's a getter or variable.
-    if (element != null && element.isFunction()) {
+    if (element != null
+        && element.isFunction()
+        // If we found out that the only target is a [:noSuchMethod:],
+        // we just ignore it.
+        && element.name == selector.name) {
       FunctionElement method = element;
 
       if (method.isNative()) {

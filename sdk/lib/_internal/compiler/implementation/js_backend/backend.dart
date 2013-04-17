@@ -1017,7 +1017,8 @@ class JavaScriptBackend extends Backend {
     types[0] = new HType.nonNullExact(
         compiler.jsInvocationMirrorClass.computeType(compiler),
         compiler);
-    argumentTypes.registerDynamicInvocation(types, new Selector.noSuchMethod());
+    argumentTypes.registerDynamicInvocation(
+        types, compiler.noSuchMethodSelector);
   }
 
   void registerInstantiatedClass(ClassElement cls,

@@ -622,7 +622,12 @@ class SimpleTypesInferrer extends TypesInferrer {
   }
 
   TypeMask typeOfElementWithSelector(Element element, Selector selector) {
-    if (selector.isGetter()) {
+    if (element.name == Compiler.NO_SUCH_METHOD
+        && selector.name != element.name) {
+      // An invocation can resolve to a [noSuchMethod], in which case
+      // we get the return type of [noSuchMethod].
+      return returnTypeOfElement(element);
+    } else if (selector.isGetter()) {
       if (element.isFunction()) {
         // [functionType] is null if the inferrer did not run.
         return functionType == null ? dynamicType : functionType;
@@ -745,6 +750,10 @@ class SimpleTypesInferrer extends TypesInferrer {
   void updateArgumentsType(FunctionElement element) {
     assert(hasAnalyzedAll);
     if (methodsThatCanBeClosurized.contains(element)) return;
+    // A [noSuchMethod] method can be the target of any call, with
+    // any number of arguments. For simplicity, we just do not
+    // infer any parameter types for [noSuchMethod].
+    if (element.name == Compiler.NO_SUCH_METHOD) return;
     FunctionSignature signature = element.computeSignature(compiler);
 
     if (typeOfArguments[element].isEmpty) {

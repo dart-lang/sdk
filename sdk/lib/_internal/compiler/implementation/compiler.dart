@@ -383,6 +383,8 @@ abstract class Compiler implements DiagnosticListener {
       new Selector.getter(const SourceString('current'), null);
   final Selector moveNextSelector =
       new Selector.call(const SourceString('moveNext'), null, 0);
+  final Selector noSuchMethodSelector = new Selector.call(
+      Compiler.NO_SUCH_METHOD, null, Compiler.NO_SUCH_METHOD_ARG_COUNT);
 
   bool enabledNoSuchMethod = false;
   bool enabledRuntimeType = false;
@@ -807,8 +809,7 @@ abstract class Compiler implements DiagnosticListener {
           isolateHelperLibrary.find(Compiler.START_ROOT_ISOLATE));
     }
     if (enabledNoSuchMethod) {
-      Selector selector = new Selector.noSuchMethod();
-      enqueuer.codegen.registerInvocation(NO_SUCH_METHOD, selector);
+      enqueuer.codegen.registerInvocation(NO_SUCH_METHOD, noSuchMethodSelector);
       enqueuer.codegen.addToWorkList(createInvocationMirrorElement);
     }
     processQueue(enqueuer.codegen, main);

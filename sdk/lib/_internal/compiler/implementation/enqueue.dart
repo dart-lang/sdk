@@ -523,7 +523,7 @@ class ResolutionEnqueuer extends Enqueuer {
     if (compiler.enabledNoSuchMethod) return;
     if (compiler.backend.isDefaultNoSuchMethodImplementation(element)) return;
 
-    Selector selector = new Selector.noSuchMethod();
+    Selector selector = compiler.noSuchMethodSelector;
     compiler.enabledNoSuchMethod = true;
     registerInvocation(Compiler.NO_SUCH_METHOD, selector);
 
