@@ -231,7 +231,7 @@ class DartiumBackend(HtmlDartGenerator):
         arguments,
         self._interface.id,
         False,
-        'ConstructorRaisesException' in ext_attrs)
+        'ConstructorRaisesException' in ext_attrs or 'RaisesException' in ext_attrs)
 
   def HasSupportCheck(self):
     # Need to omit a support check if it is conditional in JS.
@@ -357,7 +357,7 @@ class DartiumBackend(HtmlDartGenerator):
         [],
         attr.type.id,
         attr.type.nullable,
-        attr.get_raises)
+        attr.get_raises or 'GetterRaisesException' in attr.ext_attrs)
 
   def _AddSetter(self, attr, html_name):
     type_info = self._TypeInfo(attr.type.id)
@@ -387,7 +387,7 @@ class DartiumBackend(HtmlDartGenerator):
         [attr],
         'void',
         False,
-        attr.set_raises)
+        attr.set_raises or 'SetterRaisesException' in attr.ext_attrs)
 
   def AddIndexer(self, element_type):
     """Adds all the methods required to complete implementation of List."""
@@ -531,7 +531,7 @@ class DartiumBackend(HtmlDartGenerator):
         arguments,
         operation.type.id,
         operation.type.nullable,
-        operation.raises)
+        operation.raises or 'RaisesException' in operation.ext_attrs)
 
   def _GenerateNativeCallback(self,
       callback_name,

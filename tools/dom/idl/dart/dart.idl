@@ -273,7 +273,7 @@ interface Blob {
 [Supplemental,
   Constructor(float x, float y)
 ]
-interface WebKitPoint {
+interface DOMPoint {
 };
 
 [Supplemental, Callback] // Add missing Callback attribute.
@@ -352,6 +352,30 @@ interface XMLHttpRequest {
    [Custom] void send(in DOMFormData data)
        raises(DOMException);
 };
+
+
+[Suppressed]
+interface AbstractView {};
+
+
+[Suppressed]
+interface InjectedScriptHost {};
+
+
+[Suppressed]
+interface InspectorFrontendHost {};
+
+
+[Suppressed]
+interface JavaScriptCallFrame {};
+
+
+[Suppressed]
+interface ScriptProfile {};
+
+
+[Suppressed]
+interface ScriptProfileNode {};
 
 
 [Suppressed]
