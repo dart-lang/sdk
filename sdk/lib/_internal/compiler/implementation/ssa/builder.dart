@@ -3099,10 +3099,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     ClassElement cls = currentElement.getEnclosingClass();
     Element element = cls.lookupSuperMember(Compiler.NO_SUCH_METHOD);
     if (element.enclosingElement.declaration != compiler.objectClass) {
-      // Register the call as dynamic if [:noSuchMethod:] on the super class
-      // is _not_ the default implementation from [:Object:], in case
-      // the [:noSuchMethod:] implementation does an [:invokeOn:] on
-      // the invocation mirror.
+      // Register the call as dynamic if [noSuchMethod] on the super
+      // class is _not_ the default implementation from [Object], in
+      // case the [noSuchMethod] implementation calls
+      // [JSInvocationMirror._invokeOn].
       compiler.enqueuer.codegen.registerSelectorUse(selector);
     }
     HStatic target = new HStatic(element);

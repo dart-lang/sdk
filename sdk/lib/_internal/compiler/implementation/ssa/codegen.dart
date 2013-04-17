@@ -1521,7 +1521,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   Selector getOptimizedSelectorFor(HInvokeDynamic node, Selector selector) {
-    // If [JSInvocationMirror.invokeOn] has been called, we must not create a
+    // If [JSInvocationMirror._invokeOn] has been called, we must not create a
     // typed selector based on the receiver type.
     if (node.element == null && // Invocation is not exact.
         backend.compiler.enabledInvokeOn) {

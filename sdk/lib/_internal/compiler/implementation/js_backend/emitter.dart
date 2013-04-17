@@ -2812,11 +2812,11 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
   }
 
   /**
-   * If [:invokeOn:] has been compiled, emit all the possible selector names
-   * that are intercepted into the [:interceptedNames:] top-level
-   * variable. The implementation of [:invokeOn:] will use it to
-   * determine whether it should call the method with an extra
-   * parameter.
+   * If [JSInvocationMirror._invokeOn] has been compiled, emit all the
+   * possible selector names that are intercepted into the
+   * [interceptedNames] top-level variable. The implementation of
+   * [_invokeOn] will use it to determine whether it should call the
+   * method with an extra parameter.
    */
   void emitInterceptedNames(CodeBuffer buffer) {
     if (!compiler.enabledInvokeOn) return;

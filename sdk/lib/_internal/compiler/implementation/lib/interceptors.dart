@@ -140,7 +140,7 @@ getNativeInterceptor(object) {
 }
 
 /**
- * If [Invocation.invokeOn] is being used, this variable
+ * If [JSInvocationMirror._invokeOn] is being used, this variable
  * contains a JavaScript array with the names of methods that are
  * intercepted.
  */

@@ -277,6 +277,15 @@ abstract class InstanceMirror implements ObjectMirror {
    * exception is thrown.
    */
   get reflectee;
+
+  /**
+   * Perform [invocation] on [reflectee].
+   *
+   * If [reflectee] doesn't support the invocation, its [noSuchMethod]
+   * method will be called with either [invocation] or another
+   * equivalent instance of [Invocation].
+   */
+  delegate(Invocation invocation);
 }
 
 /**

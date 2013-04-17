@@ -372,7 +372,7 @@ abstract class Compiler implements DiagnosticListener {
   static const int NO_SUCH_METHOD_ARG_COUNT = 1;
   static const SourceString CREATE_INVOCATION_MIRROR =
       const SourceString('createInvocationMirror');
-  static const SourceString INVOKE_ON = const SourceString('invokeOn');
+  static const SourceString INVOKE_ON = const SourceString('_invokeOn');
   static const SourceString RUNTIME_TYPE = const SourceString('runtimeType');
   static const SourceString START_ROOT_ISOLATE =
       const SourceString('startRootIsolate');
@@ -699,8 +699,7 @@ abstract class Compiler implements DiagnosticListener {
     functionApplyMethod =
         functionClass.lookupLocalMember(const SourceString('apply'));
     jsInvocationMirrorClass.ensureResolved(this);
-    invokeOnMethod = jsInvocationMirrorClass.lookupLocalMember(
-        const SourceString('invokeOn'));
+    invokeOnMethod = jsInvocationMirrorClass.lookupLocalMember(INVOKE_ON);
 
     if (preserveComments) {
       var uri = new Uri.fromComponents(scheme: 'dart', path: 'mirrors');

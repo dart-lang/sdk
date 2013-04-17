@@ -2,13 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:mirrors" show reflect;
 import "package:expect/expect.dart";
 
 class GetName {
   foo(x, y, [z]) => "foo";
 }
 
-String getName(im) => im.invokeOn(new GetName());
+String getName(im) => reflect(new GetName()).delegate(im);
 
 class A native "*A" {
   bar() => 42;

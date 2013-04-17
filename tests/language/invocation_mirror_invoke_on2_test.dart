@@ -2,12 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:mirrors" show reflect;
 import "package:expect/expect.dart";
 
 class Proxy {
   final proxied;
   Proxy(this.proxied);
-  noSuchMethod(mirror) => mirror.invokeOn(proxied);
+  noSuchMethod(mirror) => reflect(proxied).delegate(mirror);
 }
 
 main() {

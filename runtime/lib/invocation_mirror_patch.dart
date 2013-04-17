@@ -126,8 +126,11 @@ class _InvocationMirror implements Invocation {
                  List arguments)
       native "InvocationMirror_invoke";
 
-  invokeOn(Object receiver) {
+  _invokeOn(Object receiver) {
     return _invoke(receiver, _functionName, _argumentsDescriptor, _arguments);
   }
-}
 
+  // TODO(ahe): This is a hack.  See _LocalInstanceMirrorImpl.delegate
+  // in mirrors_impl.dart
+  static final _invokeOnClosure = (x, y) => y._invokeOn(x);
+}

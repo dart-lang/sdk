@@ -298,6 +298,9 @@ String _dartEscape(String str) {
 
 class _LocalInstanceMirrorImpl extends _LocalObjectMirrorImpl
     implements InstanceMirror {
+  // TODO(ahe): This is a hack, see delegate below.
+  static Function _invokeOnClosure;
+
   _LocalInstanceMirrorImpl(ref,
                            this._type,
                            this._reflectee) : super(ref) {}
@@ -315,6 +318,21 @@ class _LocalInstanceMirrorImpl extends _LocalObjectMirrorImpl
 
   var _reflectee;
   get reflectee => _reflectee;
+
+  delegate(Invocation invocation) {
+    if (_invokeOnClosure == null) {
+      // TODO(ahe): This is a total hack.  We're using the mirror
+      // system to access a private field in a different library.  For
+      // some reason, that works.  On the other hand, calling a
+      // private method does not work.
+      _LocalInstanceMirrorImpl mirror =
+          _Mirrors.makeLocalInstanceMirror(invocation);
+      _invokeOnClosure =
+          _LocalObjectMirrorImpl._getField(mirror.type, '_invokeOnClosure')
+          .reflectee;
+    }
+    return _invokeOnClosure(reflectee, invocation);
+  }
 
   String toString() {
     if (_isSimpleValue(_reflectee)) {

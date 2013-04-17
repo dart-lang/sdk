@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:mirrors" show reflect;
 import "package:expect/expect.dart";
 
 // Checks that noSuchMethod is resolved in the super class and not in the
@@ -14,22 +15,22 @@ class C {
     if (im.memberName == const Symbol('foo')) {
       return im.positionalArguments.isEmpty &&
              im.namedArguments.isEmpty &&
-             im.invokeOn(e);
+             reflect(e).delegate(im);
     }
     if (im.memberName == const Symbol('bar')) {
       return im.positionalArguments.length == 1 &&
              im.namedArguments.isEmpty &&
-             im.invokeOn(e);
+             reflect(e).delegate(im);
     }
     if (im.memberName == const Symbol('baz')) {
       return im.positionalArguments.isEmpty &&
              im.namedArguments.length == 1 &&
-             im.invokeOn(e);
+             reflect(e).delegate(im);
     }
     if (im.memberName == const Symbol('boz')) {
       return im.positionalArguments.length == 1 &&
              im.namedArguments.length == 1 &&
-             im.invokeOn(e);
+             reflect(e).delegate(im);
     }
     return false;
   }

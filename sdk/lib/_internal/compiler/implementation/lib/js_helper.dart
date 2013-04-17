@@ -117,7 +117,7 @@ class JSInvocationMirror implements Invocation {
     return map;
   }
 
-  invokeOn(Object object) {
+  _invokeOn(Object object) {
     var interceptor = getInterceptor(object);
     var receiver = object;
     var name = _internalName;
@@ -133,6 +133,11 @@ class JSInvocationMirror implements Invocation {
       receiver = interceptor;
     }
     return JS("var", "#[#].apply(#, #)", receiver, name, receiver, arguments);
+  }
+
+  /// This method is called by [InstanceMirror.delegate].
+  static invokeFromMirror(JSInvocationMirror invocation, victim) {
+    return invocation._invokeOn(victim);
   }
 }
 

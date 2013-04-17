@@ -4,6 +4,7 @@
 
 // dart2js regression test for issue 8781.
 
+import "dart:mirrors" show reflect;
 import "package:expect/expect.dart";
 
 class N {
@@ -38,7 +39,7 @@ class L {
   final list;
   L(this.list);
   // Use noSuchMethod to defeat type inferencing.
-  noSuchMethod(mirror) => mirror.invokeOn(list);
+  noSuchMethod(mirror) => reflect(list).delegate(mirror);
 }
 
 main () {

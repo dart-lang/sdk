@@ -49,7 +49,6 @@ patch InstanceMirror reflect(Object reflectee) {
     _mirrorsEnabled = true;
     print(reflectee);
   }
-  _ensureEnabled();
   return new _InstanceMirror(reflectee);
 }
 
@@ -63,13 +62,12 @@ class _InstanceMirror extends InstanceMirror {
 
   final reflectee;
 
-  _InstanceMirror(this.reflectee) {
-    _ensureEnabled();
-  }
+  _InstanceMirror(this.reflectee);
 
   bool get hasReflectee => true;
 
   ClassMirror get type {
+    _ensureEnabled();
     String className = Primitives.objectTypeName(reflectee);
     var constructor = Primitives.getConstructor(className);
     var mirror = classMirrors[constructor];
@@ -83,6 +81,7 @@ class _InstanceMirror extends InstanceMirror {
   Future<InstanceMirror> invokeAsync(String memberName,
                                      List<Object> positionalArguments,
                                      [Map<String,Object> namedArguments]) {
+    _ensureEnabled();
     if (namedArguments != null && !namedArguments.isEmpty) {
       throw new UnsupportedError('Named arguments are not implemented');
     }
@@ -104,6 +103,10 @@ class _InstanceMirror extends InstanceMirror {
       }
     });
     return completer.future;
+  }
+
+  delegate(Invocation invocation) {
+    return JSInvocationMirror.invokeFromMirror(invocation, reflectee);
   }
 
   String toString() => 'InstanceMirror($reflectee)';
