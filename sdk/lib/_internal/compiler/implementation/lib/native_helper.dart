@@ -28,6 +28,7 @@ String typeNameInWebKitCommon(tag) {
   if (name == 'Oscillator') return 'OscillatorNode';
   if (name == 'RealtimeAnalyserNode') return 'AnalyserNode';
   if (name == 'IDBVersionChangeRequest') return 'IDBOpenDBRequest';
+  if (name == 'WebKitTransitionEvent') return 'TransitionEvent';
   return name;
 }
 
