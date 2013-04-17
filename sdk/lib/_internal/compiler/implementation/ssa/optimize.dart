@@ -380,7 +380,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     // preserve the number of arguments, so check only the actual arguments.
 
     List<HInstruction> inputs = node.inputs.sublist(1);
-    int inputPosition = 0;
+    int inputPosition = 1;  // Skip receiver.
     bool canInline = true;
     signature.forEachParameter((Element element) {
       if (inputPosition < inputs.length && canInline) {

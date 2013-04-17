@@ -7,20 +7,39 @@
 
 import "package:expect/expect.dart";
 
+typedef int Int2Int(int x);
+
 class A native "*A" {
   int foo([x, y, z]) native;
+
+  // Calls can be inlined provided they don't pass an argument.
+  int callFun([Int2Int fn]) native;
 }
 
 class B {
   static var g;
-  work(a) {
-    g = 'Sandwich';  // Tag to identify compiled JavaScript method.
+  method1(a) {
+    g = '(Method1Tag)';  // Tag to identify compiled JavaScript method.
     A x = makeA();
     // Call sites that are searched for in compiled JavaScript.
     x.foo();
     x.foo(1);
     x.foo(2, 10);
     return x.foo(3, 10, 30);
+  }
+  method2() {
+    g = '(Method2Tag)';
+    A x = makeA();
+    var r1 = x.callFun();  // Can be inlined.
+    var r2 = x.callFun();
+    return r1 + r2;
+  }
+  method3() {
+    g = '(Method3Tag)';
+    A x = makeA();
+    var r1 = x.callFun((x) => x * 2);   // Can't ne inlined due to conversion.
+    var r2 = x.callFun((x) => x * 0);
+    return r1 + r2;
   }
 }
 
@@ -31,6 +50,7 @@ String findMethodTextContaining(instance, string) native;
 void setup() native r"""
 function A() {}
 A.prototype.foo = function () { return arguments.length; };
+A.prototype.callFun = function (fn) { return fn ? fn(123) : 1; };
 
 makeA = function(){return new A;};
 
@@ -60,10 +80,34 @@ bool get isCheckedMode {
 void match(String s, String pattern1) {
   var pattern2 = pattern1.replaceAll(' ', '');
   Expect.isTrue(s.contains(pattern1) || s.contains(pattern2),
-      "$pattern1 or $pattern2");
+      "expected $pattern1 or $pattern2");
 }
 
-test() {
+void nomatch(String s, String pattern1) {
+  var pattern2 = pattern1.replaceAll(' ', '');
+  Expect.isFalse(s.contains(pattern1) || s.contains(pattern2),
+      "should not have $pattern1 or $pattern2");
+}
+
+test1() {
+  String method1 = findMethodTextContaining(new B(), '(Method1Tag)');
+  Expect.isNotNull(method1, 'No method found containing "(Method1Tag)"');
+
+  if (isCheckedMode) {
+    match(method1, r'foo()');
+    // TODO: inlining in checked mode.
+    nomatch(method1, r'foo(1)');
+    //  t1.foo$3(x, 3, 10, 30)  or  y.EL(z,3,10,30)
+    match(method1, r', 3, 10, 30)');
+  } else {
+    // Direct (inlined) calls don't have $3 or minified names.
+    match(method1, r'.foo()');
+    match(method1, r'.foo(1)');
+    match(method1, r'.foo(2, 10)');
+    match(method1, r'.foo(3, 10, 30)');
+  }
+
+  // Ensure the methods are compiled by calling them.
   var a = makeA();
 
   Expect.equals(0, a.foo());
@@ -72,26 +116,33 @@ test() {
   Expect.equals(3, a.foo(10, 20, 30));
 
   var b = new B();
-  var r = b.work(a);
+  var r = b.method1(a);
   Expect.equals(3, r);
+}
 
-  String text = findMethodTextContaining(b, 'Sandwich');
-  Expect.isNotNull(text, 'No method found containing "Sandwich"');
+test2() {
+  String method2 = findMethodTextContaining(new B(), '(Method2Tag)');
+  Expect.isNotNull(method2, 'No method found containing "(Method2Tag)"');
+  // Can always inline the zero-arg call.
+  match(method2, r'.callFun()');
 
-  if (isCheckedMode) {
-    // TODO: inlining in checked mode.
-    //  t1.foo$3(x, 3, 10, 30)  or  y.EL(z,3,10,30)
-    match(text, r', 3, 10, 30)');
-  } else {
-    // Direct (inlined) calls don't have $3 or minified names.
-    match(text, r'.foo()');
-    match(text, r'.foo(1)');
-    match(text, r'.foo(2, 10)');
-    match(text, r'.foo(3, 10, 30)');
-  }
+  String method3 = findMethodTextContaining(new B(), '(Method3Tag)');
+  Expect.isNotNull(method3, 'No method found containing "(Method3Tag)"');
+  // Don't inline native method with a function argument - should call a stub
+  // containing the conversion.
+  nomatch(method3, r'.callFun(');
+
+  // Ensure the methods are compiled by calling them.
+  var a = makeA();
+  Expect.equals(369, a.callFun((i) => 3 * i));
+
+  var b = new B();
+  Expect.equals(2, b.method2());
+  Expect.equals(246, b.method3());
 }
 
 main() {
   setup();
-  test();
+  test1();
+  test2();
 }
