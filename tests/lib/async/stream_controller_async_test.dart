@@ -125,6 +125,44 @@ testSingleController() {
 testExtraMethods() {
   Events sentEvents = new Events()..add(7)..add(9)..add(13)..add(87)..close();
 
+  test("forEach", () {
+    StreamController c = new StreamController();
+    Events actualEvents = new Events();
+    Future f = c.stream.forEach(actualEvents.add);
+    f.then(expectAsync1((_) {
+      actualEvents.close();
+      Expect.listEquals(sentEvents.events, actualEvents.events);
+    }));
+    sentEvents.replay(c);
+  });
+
+  test("forEachError", () {
+    Events sentEvents = new Events()..add(7)..error("bad")..add(87)..close();
+    StreamController c = new StreamController();
+    Events actualEvents = new Events();
+    Future f = c.stream.forEach(actualEvents.add);
+    f.catchError(expectAsync1((error) {
+      Expect.equals("bad", error);
+      Expect.listEquals((new Events()..add(7)).events, actualEvents.events);
+    }));
+    sentEvents.replay(c);
+  });
+
+  test("forEachError2", () {
+    Events sentEvents = new Events()..add(7)..add(9)..add(87)..close();
+    StreamController c = new StreamController();
+    Events actualEvents = new Events();
+    Future f = c.stream.forEach((x) {
+      if (x == 9) throw "bad";
+      actualEvents.add(x);
+    });
+    f.catchError(expectAsync1((error) {
+      Expect.equals("bad", error);
+      Expect.listEquals((new Events()..add(7)).events, actualEvents.events);
+    }));
+    sentEvents.replay(c);
+  });
+
   test("firstWhere", () {
     StreamController c = new StreamController();
     Future f = c.stream.firstWhere((x) => (x % 3) == 0);
@@ -373,7 +411,7 @@ class TestError { const TestError(); }
 
 testRethrow() {
   TestError error = const TestError();
-  
+
 
   testStream(name, streamValueTransform) {
     test("rethrow-$name-value", () {
@@ -416,6 +454,7 @@ testRethrow() {
   testStream("where", (s, act) => s.where(act));
   testStreamError("handleError", (s, act) => s.handleError(act));
   testStreamError("handleTest", (s, act) => s.handleError((v) {}, test: act));
+  testFuture("forEach", (s, act) => s.forEach(act));
   testFuture("every", (s, act) => s.every(act));
   testFuture("any", (s, act) => s.any(act));
   testFuture("reduce", (s, act) => s.reduce((a,b) => act(b)));

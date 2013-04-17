@@ -339,6 +339,34 @@ abstract class Stream<T> {
   }
 
   /**
+   * Executes [action] on each data event of the stream.
+   *
+   * Completes the returned [Future] when all events of the stream
+   * have been processed. Completes the future with an error if the
+   * stream has an error event, or if [action] throws.
+   */
+  Future forEach(void action(T element)) {
+    _FutureImpl future = new _FutureImpl();
+    StreamSubscription subscription;
+    subscription = this.listen(
+        // TODO(ahe): Restore type when feature is implemented in dart2js
+        // checked mode. http://dartbug.com/7733
+        (/*T*/ element) {
+          _runUserCode(
+            () => action(element),
+            (_) {},
+            _cancelAndError(subscription, future)
+          );
+        },
+        onError: future._setError,
+        onDone: () {
+          future._setValue(null);
+        },
+        cancelOnError: true);
+    return future;
+  }
+
+  /**
    * Checks whether [test] accepts all elements provided by this stream.
    *
    * Completes the [Future] when the answer is known.

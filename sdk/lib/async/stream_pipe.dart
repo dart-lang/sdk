@@ -414,6 +414,7 @@ class _SkipWhileStream<T> extends _ForwardingStream<T, T> {
   void _handleData(T inputEvent, _EventOutputSink<T> sink) {
     if (_hasFailed) {
       sink._sendData(inputEvent);
+      return;
     }
     bool satisfies;
     try {
