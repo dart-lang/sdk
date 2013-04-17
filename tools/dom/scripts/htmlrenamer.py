@@ -617,6 +617,7 @@ _removed_html_members = monitored.Set('htmlrenamer._removed_html_members', [
 # Manual dart: library name lookup.
 _library_names = monitored.Dict('htmlrenamer._library_names', {
   'DOMWindow': 'html',
+  'Database': 'web_sql',
   'Navigator': 'html',
   'WorkerContext': 'html',
 })
@@ -704,6 +705,8 @@ class HtmlRenamer(object):
     # so we can no longer determine the library based on the conditionals.
     if interface.id.startswith("IDB"):
       return 'indexed_db'
+    if interface.id.startswith("SQL"):
+      return 'web_sql'
 
     if 'Conditional' in interface.ext_attrs:
       if 'WEB_AUDIO' in interface.ext_attrs['Conditional']:
