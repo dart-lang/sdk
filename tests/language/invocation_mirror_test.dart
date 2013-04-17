@@ -6,6 +6,18 @@ import "package:expect/expect.dart";
 
 // Invocation and noSuchMethod testing.
 
+Map<Symbol, dynamic> listToNamedArguments(list) {
+  var iterator = list.iterator;
+  var result = new Map<Symbol, dynamic>();
+  while (iterator.moveNext()) {
+    Symbol key = iterator.current;
+    Expect.isTrue(iterator.moveNext());
+    result[key] = iterator.current;
+  }
+  return result;
+}
+
+
 /** Class with noSuchMethod that returns the mirror */
 class N {
   // Storage for the last argument to noSuchMethod.
@@ -33,8 +45,8 @@ class C extends N {
  * Call without optionals for getters, with only positional for setters,
  * and with both optionals for everything else.
  */
-testInvocationMirror(Invocation im, String name,
-                     [List positional, Map named]) {
+testInvocationMirror(Invocation im, Symbol name,
+                     [List positional, List named]) {
   Expect.isTrue(im is Invocation, "is Invocation");
   Expect.equals(name, im.memberName, "name");
   if (named == null) {
@@ -55,6 +67,7 @@ testInvocationMirror(Invocation im, String name,
     Expect.equals(0, im.namedArguments.length, "$name:#named");
     return;
   }
+  Map<Symbol, dynamic> namedArguments = listToNamedArguments(named);
   Expect.isTrue(im.isMethod, "$name:isMethod");
   Expect.isFalse(im.isAccessor, "$name:isAccessor");
   Expect.isFalse(im.isSetter, "$name:isSetter");
@@ -65,10 +78,12 @@ testInvocationMirror(Invocation im, String name,
     Expect.equals(positional[i], im.positionalArguments[i],
                   "$name:positional[$i]");
   }
-  Expect.equals(named.length, im.namedArguments.length, "$name:#named");
-  named.forEach((k, v) {
-    Expect.isTrue(im.namedArguments.containsKey(k), "$name:?named[$k]");
-    Expect.equals(v, im.namedArguments[k], "$name:named[$k]");
+  Expect.equals(namedArguments.length, im.namedArguments.length,
+                "$name:#named");
+  namedArguments.forEach((k, v) {
+    Expect.isTrue(im.namedArguments.containsKey(k),
+                  "$name:?namedArguments[$k]");
+    Expect.equals(v, im.namedArguments[k], "$name:namedArguments[$k]");
   });
 }
 
@@ -79,48 +94,60 @@ testInvocationMirrors() {
   var c = new C();
 
   // Missing property/method access.
-  testInvocationMirror(n.bar, 'bar');
-  testInvocationMirror((n..bar = 42).last, 'bar=', [42]);
-  testInvocationMirror(n.bar(), 'bar', [], {});
-  testInvocationMirror(n.bar(42), 'bar', [42], {});
-  testInvocationMirror(n.bar(x: 42), 'bar', [], {"x": 42});
-  testInvocationMirror(n.bar(37, x: 42), 'bar', [37], {"x": 42});
+  testInvocationMirror(n.bar, const Symbol('bar'));
+  testInvocationMirror((n..bar = 42).last, const Symbol('bar='), [42]);
+  testInvocationMirror(n.bar(), const Symbol('bar'), [], []);
+  testInvocationMirror(n.bar(42), const Symbol('bar'), [42], []);
+  testInvocationMirror(n.bar(x: 42), const Symbol('bar'), [],
+                       [const Symbol("x"),  42]);
+  testInvocationMirror(n.bar(37, x: 42), const Symbol('bar'), [37],
+                       [const Symbol("x"), 42]);
 
   // Missing operator access.
-  testInvocationMirror(n + 4, '+', [4], {});
-  testInvocationMirror(n - 4, '-', [4], {});
-  testInvocationMirror(-n, 'unary-', [], {});
-  testInvocationMirror(n[42], '[]', [42], {});
-  testInvocationMirror((n..[37] = 42).last, '[]=', [37, 42], {});
+  testInvocationMirror(n + 4, const Symbol('+'), [4], []);
+  testInvocationMirror(n - 4, const Symbol('-'), [4], []);
+  testInvocationMirror(-n, const Symbol('unary-'), [], []);
+  testInvocationMirror(n[42], const Symbol('[]'), [42], []);
+  testInvocationMirror((n..[37] = 42).last, const Symbol('[]='), [37, 42], []);
 
   // Calling as function when it's not.
-  testInvocationMirror(n(), 'call', [], {});
-  testInvocationMirror(n(42), 'call', [42], {});
-  testInvocationMirror(n(x: 42), 'call', [], {"x": 42});
-  testInvocationMirror(n(37, x: 42), 'call', [37], {"x": 42});
+  testInvocationMirror(n(), const Symbol('call'), [], []);
+  testInvocationMirror(n(42), const Symbol('call'), [42], []);
+  testInvocationMirror(n(x: 42), const Symbol('call'), [],
+                       [const Symbol("x"), 42]);
+  testInvocationMirror(n(37, x: 42), const Symbol('call'), [37],
+                       [const Symbol("x"), 42]);
 
   // Calling with arguments not matching existing call method.
-  testInvocationMirror(c(), 'call', [], {});
-  testInvocationMirror(c(37, 42), 'call', [37, 42], {});
-  testInvocationMirror(c(x: 42), 'call', [], {"x": 42});
-  testInvocationMirror(c(37, x: 42), 'call', [37], {"x": 42});
+  testInvocationMirror(c(), const Symbol('call'), [], []);
+  testInvocationMirror(c(37, 42), const Symbol('call'), [37, 42], []);
+  testInvocationMirror(c(x: 42), const Symbol('call'), [],
+                       [const Symbol("x"), 42]);
+  testInvocationMirror(c(37, x: 42), const Symbol('call'), [37],
+                       [const Symbol("x"), 42]);
 
   // Wrong arguments to existing function.
-  testInvocationMirror(n.flif(), "flif", [], {});
-  testInvocationMirror(n.flif(37, 42), "flif", [37, 42], {});
-  testInvocationMirror(n.flif(x: 42), "flif", [], {"x": 42});
-  testInvocationMirror(n.flif(37, x: 42), "flif", [37], {"x": 42});
-  testInvocationMirror((n..flif = 42).last, "flif=", [42]);
+  testInvocationMirror(n.flif(), const Symbol("flif"), [], []);
+  testInvocationMirror(n.flif(37, 42), const Symbol("flif"), [37, 42], []);
+  testInvocationMirror(n.flif(x: 42), const Symbol("flif"), [],
+                       [const Symbol("x"), 42]);
+  testInvocationMirror(n.flif(37, x: 42), const Symbol("flif"), [37],
+                       [const Symbol("x"), 42]);
+  testInvocationMirror((n..flif = 42).last, const Symbol("flif="), [42]);
 
-  testInvocationMirror(n.flaf(37, 42), "flaf", [37, 42], {});
-  testInvocationMirror(n.flaf(x: 42), "flaf", [], {"x": 42});
-  testInvocationMirror(n.flaf(37, x: 42), "flaf", [37], {"x": 42});
-  testInvocationMirror((n..flaf = 42).last, "flaf=", [42]);
+  testInvocationMirror(n.flaf(37, 42), const Symbol("flaf"), [37, 42], []);
+  testInvocationMirror(n.flaf(x: 42), const Symbol("flaf"), [],
+                       [const Symbol("x"), 42]);
+  testInvocationMirror(n.flaf(37, x: 42), const Symbol("flaf"), [37],
+                       [const Symbol("x"), 42]);
+  testInvocationMirror((n..flaf = 42).last, const Symbol("flaf="), [42]);
 
-  testInvocationMirror(n.flof(37, 42), "flof", [37, 42], {});
-  testInvocationMirror(n.flof(x: 42), "flof", [], {"x": 42});
-  testInvocationMirror(n.flof(37, y: 42), "flof", [37], {"y": 42});
-  testInvocationMirror((n..flof = 42).last, "flof=", [42]);
+  testInvocationMirror(n.flof(37, 42), const Symbol("flof"), [37, 42], []);
+  testInvocationMirror(n.flof(x: 42), const Symbol("flof"), [],
+                       [const Symbol("x"), 42]);
+  testInvocationMirror(n.flof(37, y: 42), const Symbol("flof"), [37],
+                       [const Symbol("y"), 42]);
+  testInvocationMirror((n..flof = 42).last, const Symbol("flof="), [42]);
 
   // Reading works.
   Expect.isTrue(n.flif is Function);
@@ -128,19 +155,22 @@ testInvocationMirrors() {
   Expect.isTrue(n.flof is Function);
 
   // Writing to read-only fields.
-  testInvocationMirror((n..wut = 42).last, "wut=", [42]);
-  testInvocationMirror((n..plif = 42).last, "plif=", [42]);
-  testInvocationMirror((n..plaf = 42).last, "plaf=", [42]);
+  testInvocationMirror((n..wut = 42).last, const Symbol("wut="), [42]);
+  testInvocationMirror((n..plif = 42).last, const Symbol("plif="), [42]);
+  testInvocationMirror((n..plaf = 42).last, const Symbol("plaf="), [42]);
 
   // Trick call to n.call - wut is a getter returning n again.
-  testInvocationMirror(n.wut(42), "call", [42], {});
+  testInvocationMirror(n.wut(42), const Symbol("call"), [42], []);
 
   // Calling noSuchMethod itself, badly.
-  testInvocationMirror(n.noSuchMethod(), "noSuchMethod", [], {});
-  testInvocationMirror(n.noSuchMethod(37, 42), "noSuchMethod", [37, 42], {});
+  testInvocationMirror(n.noSuchMethod(), const Symbol("noSuchMethod"), [], []);
+  testInvocationMirror(n.noSuchMethod(37, 42), const Symbol("noSuchMethod"),
+                       [37, 42], []);
   testInvocationMirror(n.noSuchMethod(37, x:42),
-                       "noSuchMethod", [37], {"x": 42});
-  testInvocationMirror(n.noSuchMethod(x:42), "noSuchMethod", [], {"x": 42});
+                       const Symbol("noSuchMethod"), [37],
+                       [const Symbol("x"), 42]);
+  testInvocationMirror(n.noSuchMethod(x:42), const Symbol("noSuchMethod"), [],
+                       [const Symbol("x"), 42]);
 
   // Closurizing a method means that calling it badly will not hit the
   // original receivers noSuchMethod, only the one inherited from Object
@@ -156,36 +186,52 @@ class M extends N {
 
   testSuperCalls() {
     // Missing property/method access.
-    testInvocationMirror(super.bar, 'bar');
-    testInvocationMirror((){super.bar = 42; return last;}(), 'bar=', [42]);
-    testInvocationMirror(super.bar(), 'bar', [], {});
-    testInvocationMirror(super.bar(42), 'bar', [42], {});
-    testInvocationMirror(super.bar(x: 42), 'bar', [], {"x": 42});
-    testInvocationMirror(super.bar(37, x: 42), 'bar', [37], {"x": 42});
+    testInvocationMirror(super.bar, const Symbol('bar'));
+    testInvocationMirror((){super.bar = 42; return last;}(),
+                         const Symbol('bar='), [42]);
+    testInvocationMirror(super.bar(), const Symbol('bar'), [], []);
+    testInvocationMirror(super.bar(42), const Symbol('bar'), [42], []);
+    testInvocationMirror(super.bar(x: 42), const Symbol('bar'), [],
+                         [const Symbol("x"), 42]);
+    testInvocationMirror(super.bar(37, x: 42), const Symbol('bar'), [37],
+                         [const Symbol("x"), 42]);
 
     // Missing operator access.
-    testInvocationMirror(super + 4, '+', [4], {});
-    testInvocationMirror(super - 4, '-', [4], {});
-    testInvocationMirror(-super, 'unary-', [], {});
-    testInvocationMirror(super[42], '[]', [42], {});
-    testInvocationMirror((){super[37] = 42; return last;}(), '[]=', [37, 42], {});
+    testInvocationMirror(super + 4, const Symbol('+'), [4], []);
+    testInvocationMirror(super - 4, const Symbol('-'), [4], []);
+    testInvocationMirror(-super, const Symbol('unary-'), [], []);
+    testInvocationMirror(super[42], const Symbol('[]'), [42], []);
+    testInvocationMirror((){super[37] = 42; return last;}(),
+                         const Symbol('[]='), [37, 42], []);
 
     // Wrong arguments to existing function.
-    testInvocationMirror(super.flif(), "flif", [], {});
-    testInvocationMirror(super.flif(37, 42), "flif", [37, 42], {});
-    testInvocationMirror(super.flif(x: 42), "flif", [], {"x": 42});
-    testInvocationMirror(super.flif(37, x: 42), "flif", [37], {"x": 42});
-    testInvocationMirror((){super.flif = 42; return last;}(), "flif=", [42]);
+    testInvocationMirror(super.flif(), const Symbol("flif"), [], []);
+    testInvocationMirror(super.flif(37, 42), const Symbol("flif"), [37, 42],
+                         []);
+    testInvocationMirror(super.flif(x: 42), const Symbol("flif"), [],
+                         [const Symbol("x"), 42]);
+    testInvocationMirror(super.flif(37, x: 42), const Symbol("flif"), [37],
+                         [const Symbol("x"), 42]);
+    testInvocationMirror((){super.flif = 42; return last;}(),
+                         const Symbol("flif="), [42]);
 
-    testInvocationMirror(super.flaf(37, 42), "flaf", [37, 42], {});
-    testInvocationMirror(super.flaf(x: 42), "flaf", [], {"x": 42});
-    testInvocationMirror(super.flaf(37, x: 42), "flaf", [37], {"x": 42});
-    testInvocationMirror((){super.flaf = 42; return last;}(), "flaf=", [42]);
+    testInvocationMirror(super.flaf(37, 42), const Symbol("flaf"), [37, 42],
+                         []);
+    testInvocationMirror(super.flaf(x: 42), const Symbol("flaf"), [],
+                         [const Symbol("x"), 42]);
+    testInvocationMirror(super.flaf(37, x: 42), const Symbol("flaf"), [37],
+                         [const Symbol("x"), 42]);
+    testInvocationMirror((){super.flaf = 42; return last;}(),
+                         const Symbol("flaf="), [42]);
 
-    testInvocationMirror(super.flof(37, 42), "flof", [37, 42], {});
-    testInvocationMirror(super.flof(x: 42), "flof", [], {"x": 42});
-    testInvocationMirror(super.flof(37, y: 42), "flof", [37], {"y": 42});
-    testInvocationMirror((){super.flof = 42; return last;}(), "flof=", [42]);
+    testInvocationMirror(super.flof(37, 42), const Symbol("flof"), [37, 42],
+                         []);
+    testInvocationMirror(super.flof(x: 42), const Symbol("flof"), [],
+                         [const Symbol("x"), 42]);
+    testInvocationMirror(super.flof(37, y: 42), const Symbol("flof"), [37],
+                         [const Symbol("y"), 42]);
+    testInvocationMirror((){super.flof = 42; return last;}(),
+                         const Symbol("flof="), [42]);
 
     // Reading works.
     Expect.isTrue(super.flif is Function);
@@ -193,18 +239,24 @@ class M extends N {
     Expect.isTrue(super.flof is Function);
 
     // Writing to read-only fields.
-    testInvocationMirror((){super.wut = 42; return last;}(), "wut=", [42]);
-    testInvocationMirror((){super.plif = 42; return last;}(), "plif=", [42]);
-    testInvocationMirror((){super.plaf = 42; return last;}(), "plaf=", [42]);
+    testInvocationMirror((){super.wut = 42; return last;}(),
+                         const Symbol("wut="), [42]);
+    testInvocationMirror((){super.plif = 42; return last;}(),
+                         const Symbol("plif="), [42]);
+    testInvocationMirror((){super.plaf = 42; return last;}(),
+                         const Symbol("plaf="), [42]);
 
     // Calling noSuchMethod itself, badly.
-    testInvocationMirror(super.noSuchMethod(), "noSuchMethod", [], {});
+    testInvocationMirror(super.noSuchMethod(), const Symbol("noSuchMethod"), [],
+                         []);
     testInvocationMirror(super.noSuchMethod(37, 42),
-                         "noSuchMethod", [37, 42], {});
+                         const Symbol("noSuchMethod"), [37, 42], []);
     testInvocationMirror(super.noSuchMethod(37, x:42),
-                         "noSuchMethod", [37], {"x": 42});
+                         const Symbol("noSuchMethod"), [37],
+                         [const Symbol("x"), 42]);
     testInvocationMirror(super.noSuchMethod(x:42),
-                         "noSuchMethod", [], {"x": 42});
+                         const Symbol("noSuchMethod"), [],
+                         [const Symbol("x"), 42]);
 
     // Closurizing a method means that calling it badly will not hit the
     // original receivers noSuchMethod, only the one inherited from Object

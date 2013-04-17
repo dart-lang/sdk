@@ -10,10 +10,10 @@ class A {
   var indexField = new List(2);
 
   noSuchMethod(Invocation im) {
-    if (im.memberName == '[]=') {
+    if (im.memberName == const Symbol('[]=')) {
       Expect.equals(2, im.positionalArguments.length);
       indexField[im.positionalArguments[0]] = im.positionalArguments[1];
-    } else if (im.memberName == '[]') {
+    } else if (im.memberName == const Symbol('[]')) {
       Expect.equals(1, im.positionalArguments.length);
       return indexField[im.positionalArguments[0]];
     } else {

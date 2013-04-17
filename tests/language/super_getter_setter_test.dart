@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:mirrors';
+
 import "package:expect/expect.dart";
 
 class A {
@@ -31,15 +33,16 @@ class B extends A {
   operator[]=(index, value) { indexField[index] = value; }
 
   noSuchMethod(Invocation im) {
-    if (im.memberName.startsWith('missingSetter')) {
+    String name = MirrorSystem.getName(im.memberName);
+    if (name.startsWith('missingSetter')) {
       Expect.isTrue(im.isSetter);
       missingSetterField = im.positionalArguments[0];
-    } else if (im.memberName.startsWith('missingGetter')) {
+    } else if (name.startsWith('missingGetter')) {
       Expect.isTrue(im.isGetter);
       return missingGetterField;
-    } else if (im.memberName.startsWith('missingAll') && im.isGetter) {
+    } else if (name.startsWith('missingAll') && im.isGetter) {
       return missingAllField;
-    } else if (im.memberName.startsWith('missingAll') && im.isSetter) {
+    } else if (name.startsWith('missingAll') && im.isSetter) {
       missingAllField = im.positionalArguments[0];
     } else {
       Expect.fail('Should not reach here');

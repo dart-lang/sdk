@@ -11,22 +11,22 @@ class C {
   E e = new E();
 
   bool noSuchMethod(Invocation im) {
-    if (im.memberName == 'foo') {
+    if (im.memberName == const Symbol('foo')) {
       return im.positionalArguments.isEmpty &&
              im.namedArguments.isEmpty &&
              im.invokeOn(e);
     }
-    if (im.memberName == 'bar') {
+    if (im.memberName == const Symbol('bar')) {
       return im.positionalArguments.length == 1 &&
              im.namedArguments.isEmpty &&
              im.invokeOn(e);
     }
-    if (im.memberName == 'baz') {
+    if (im.memberName == const Symbol('baz')) {
       return im.positionalArguments.isEmpty &&
              im.namedArguments.length == 1 &&
              im.invokeOn(e);
     }
-    if (im.memberName == 'boz') {
+    if (im.memberName == const Symbol('boz')) {
       return im.positionalArguments.length == 1 &&
              im.namedArguments.length == 1 &&
              im.invokeOn(e);

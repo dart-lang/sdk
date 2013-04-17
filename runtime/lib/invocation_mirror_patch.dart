@@ -29,25 +29,28 @@ class _InvocationMirror implements Invocation {
   final List _arguments;
 
   // External representation of the invocation mirror; populated on demand.
-  String _memberName;
+  Symbol _memberName;
   int _type;
   List _positionalArguments;
-  Map<String, dynamic> _namedArguments;
+  Map<Symbol, dynamic> _namedArguments;
 
   void _setMemberNameAndType() {
     if (_functionName.startsWith("get:")) {
       _type = _GETTER;
-      _memberName = _functionName.substring(4);
+      _memberName =
+          new _collection_dev.Symbol.unvalidated(_functionName.substring(4));
     } else if (_functionName.startsWith("set:")) {
       _type = _SETTER;
-      _memberName = _functionName.substring(4) + "=";
+      _memberName =
+          new _collection_dev.Symbol.unvalidated(
+              _functionName.substring(4) + "=");
     } else {
       _type = _METHOD;
-      _memberName = _functionName;
+      _memberName = new _collection_dev.Symbol.unvalidated(_functionName);
     }
   }
 
-  String get memberName {
+  Symbol get memberName {
     if (_memberName == null) {
       _setMemberNameAndType();
     }
@@ -63,16 +66,17 @@ class _InvocationMirror implements Invocation {
     return _positionalArguments;
   }
 
-  Map<String, dynamic> get namedArguments {
+  Map<Symbol, dynamic> get namedArguments {
     if (_namedArguments == null) {
-      _namedArguments = new Map<String, dynamic>();
+      _namedArguments = new Map<Symbol, dynamic>();
       int numArguments = _argumentsDescriptor[0] - 1;  // Exclude receiver.
       int numPositionalArguments = _argumentsDescriptor[1] - 1;
       int numNamedArguments = numArguments - numPositionalArguments;
       for (int i = 0; i < numNamedArguments; i++) {
         String arg_name = _argumentsDescriptor[2 + 2*i];
         var arg_value = _arguments[_argumentsDescriptor[3 + 2*i]];
-        _namedArguments[arg_name] = arg_value;
+        _namedArguments[new _collection_dev.Symbol.unvalidated(arg_name)] =
+            arg_value;
       }
     }
     return _namedArguments;

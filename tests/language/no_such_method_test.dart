@@ -22,7 +22,7 @@ class NoSuchMethodTest {
     Expect.equals("moo", getName(im));
     Expect.equals(0, im.positionalArguments.length);
     Expect.equals(1, im.namedArguments.length);
-    return foo(b:im.namedArguments["b"]);
+    return foo(b:im.namedArguments[const Symbol("b")]);
   }
 
   static testMain() {

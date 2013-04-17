@@ -35,10 +35,10 @@ patch class Object {
 
   /* patch */ noSuchMethod(Invocation invocation) {
     return _noSuchMethod(invocation.isMethod,
-                         invocation.memberName,
+                         _collection_dev.Symbol.getName(invocation.memberName),
                          invocation._type,
                          invocation.positionalArguments,
-                         invocation.namedArguments);
+                         _symbolMapToStringMap(invocation.namedArguments));
   }
 
   /* patch */ Type get runtimeType native "Object_runtimeType";
@@ -54,4 +54,12 @@ patch class Object {
   // Call this function instead of inlining 'as', thus collecting type
   // feedback. Returns receiver.
   _as(instantiator, instantiator_type_arguments, type) native "Object_as";
+
+  static _symbolMapToStringMap(Map<Symbol, dynamic> map) {
+    var result = new Map<String, dynamic>();
+    map.forEach((Symbol key, value) {
+      result[_collection_dev.Symbol.getName(key)] = value;
+    });
+    return result;
+  }
 }

@@ -544,6 +544,13 @@ LibTest/async/Completer/completeError_A01_t01: Fail # No AsyncError anymore. Iss
 LibTest/async/Future/Future.immediateError_A01_t01: Fail # No AsyncError anymore. Issue 407
 LibTest/async/Future/catchError_A02_t01: Fail # No AsyncError anymore. Issue 407
 
+Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A01_t02: Fail, OK # co19 issue 409
+Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t02: Fail, OK # co19 issue 409
+Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t03: Fail, OK # co19 issue 409
+Language/11_Expressions/18_Assignment_A05_t04: Fail, OK # co19 issue 409
+Language/11_Expressions/18_Assignment_A08_t04: Fail, OK # co19 issue 409
+
+
 [ $compiler == dart2js && $unchecked ]
 LibTest/core/List/setRange_A05_t01: Fail # setRange throws StateError if there aren't enough elements in the iterable. Issue 402
 

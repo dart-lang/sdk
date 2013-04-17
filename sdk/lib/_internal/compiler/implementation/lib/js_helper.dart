@@ -62,15 +62,20 @@ String S(value) {
   return res;
 }
 
-createInvocationMirror(name, internalName, type, arguments, argumentNames) =>
-    new JSInvocationMirror(name, internalName, type, arguments, argumentNames);
+createInvocationMirror(name, internalName, type, arguments, argumentNames) {
+  return new JSInvocationMirror(new Symbol(name),
+                                internalName,
+                                type,
+                                arguments,
+                                argumentNames);
+}
 
 class JSInvocationMirror implements Invocation {
   static const METHOD = 0;
   static const GETTER = 1;
   static const SETTER = 2;
 
-  final String memberName;
+  final Symbol memberName;
   final String _internalName;
   final int _kind;
   final List _arguments;
@@ -100,13 +105,14 @@ class JSInvocationMirror implements Invocation {
     return list;
   }
 
-  Map<String,dynamic> get namedArguments {
+  Map<Symbol,dynamic> get namedArguments {
     if (isAccessor) return null;
-    var map = <String,dynamic>{};
+    var map = new Map<Symbol, dynamic>();
     int namedArgumentCount = _namedArgumentNames.length;
     int namedArgumentsStartIndex = _arguments.length - namedArgumentCount;
     for (int i = 0; i < namedArgumentCount; i++) {
-      map[_namedArgumentNames[i]] = _arguments[namedArgumentsStartIndex + i];
+      map[new Symbol(_namedArgumentNames[i])] =
+          _arguments[namedArgumentsStartIndex + i];
     }
     return map;
   }

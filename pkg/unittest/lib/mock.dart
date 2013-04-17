@@ -90,6 +90,9 @@
  */
 
 library mock;
+
+import 'dart:mirrors' show MirrorSystem;
+
 import 'matcher.dart';
 
 /**
@@ -1293,7 +1296,7 @@ class Mock {
    * thrown.
    */
   noSuchMethod(Invocation invocation) {
-    var method = invocation.memberName;
+    var method = MirrorSystem.getName(invocation.memberName);
     var args = invocation.positionalArguments;
     if (invocation.isGetter) {
       method = 'get $method';
