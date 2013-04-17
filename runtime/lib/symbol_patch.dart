@@ -31,7 +31,6 @@ patch class Symbol {
                  r')$');
 
   static _validate(String name) {
-    if (name is! String) throw new ArgumentError('name must be a String');
     if (name.isEmpty) return name;
     if (name.startsWith('_')) {
       throw new ArgumentError('"$name" is a private identifier');
