@@ -175,7 +175,7 @@ class BacktrackingVersionSolver extends VersionSolver {
         return true;
       }
 
-      logSolve('${previous} is last version, backtracking');
+      logSolve('$previous is last version, backtracking');
 
       // That package has no more versions, so pop it and try the next one.
       _selected.removeLast();
@@ -189,40 +189,35 @@ class BacktrackingVersionSolver extends VersionSolver {
   /// Returns a string describing the dependency chain if it does, or `null` if
   /// there is no dependency.
   String _getDependencyPath(PackageId depender, String dependent) {
+    // TODO(rnystrom): This is O(n^2) where n is the number of selected
+    // packages. Could store the reverse dependency graph to address that. If
+    // we do that, we need to make sure it gets correctly rolled back when
+    // backtracking occurs.
     var visited = new Set<String>();
-    var resultPath;
-    var currentPath = '${depender.name}';
 
-    walkDeps(PackageId package) {
-      if (visited.contains(package.name)) return false;
+    walkDeps(PackageId package, String currentPath) {
+      if (visited.contains(package.name)) return null;
       visited.add(package.name);
 
       var pubspec = cache.getCachedPubspec(package);
-      if (pubspec == null) return false;
+      if (pubspec == null) return null;
 
       for (var dep in pubspec.dependencies) {
-        var previousPath = currentPath;
-        currentPath = '$currentPath -> ${dep.name}';
-
-        if (dep.name == dependent) {
-          resultPath = currentPath;
-          return true;
-        }
+        if (dep.name == dependent) return currentPath;
 
         var selected = getSelected(dep.name);
         // Ignore unselected dependencies. We haven't traversed into them yet,
         // so they can't affect backjumping.
         if (selected == null) continue;
 
-        if (walkDeps(selected)) return true;
-
-        currentPath = previousPath;
+        var depPath = walkDeps(selected, '$currentPath -> ${dep.name}');
+        if (depPath != null) return depPath;
       }
 
-      return false;
+      return null;
     }
 
-    return walkDeps(depender) ? resultPath : null;
+    return walkDeps(depender, depender.name);
   }
 
   /// Logs [message] in the context of the current selected packages. If
@@ -232,13 +227,8 @@ class BacktrackingVersionSolver extends VersionSolver {
       if (_selected.isEmpty) {
         message = "* start at root";
       } else {
-        var versions = _selected.last.map((id) => id.version).toList();
-        if (versions.length > 5) {
-          versions = versions.take(5).join(', ') + '...';
-        } else {
-          versions = versions.join(', ');
-        }
-        message = "* select ${_selected.last.first} (from $versions)";
+        var count = _selected.last.length;
+        message = "* select ${_selected.last.first} ($count versions)";
       }
     } else {
       // Otherwise, indent it under the current selected package.
@@ -327,6 +317,8 @@ class Traverser {
           // If it fails for any reason, just treat that as no versions. This
           // will sort this reference higher so that we can traverse into it
           // and report the error more properly.
+          log.solver("Could not get versions for $ref:\n$error\n\n"
+              "${getAttachedStackTrace(error)}");
           return new Pair<PackageRef, int>(ref, 0);
         });
       }
@@ -366,6 +358,8 @@ class Traverser {
     // Move onto the next package if we've traversed all of these references.
     if (refs.isEmpty) return _traversePackage();
 
+    // Pump the event loop to flatten the stack trace and workaround #9583.
+    // If that bug is fixed, this can be Future.sync() instead.
     return new Future(() {
       var ref = refs.removeFirst();
 
