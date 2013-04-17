@@ -360,6 +360,20 @@ testExtraMethods() {
 
 
   c = new StreamController();
+  expectedEvents = new Events()..add(2)..add(3)..close();
+  actualEvents = new Events.capture(c.stream.skipWhile((x) => x <= 1));
+  sentEvents.replay(c);
+  Expect.listEquals(expectedEvents.events, actualEvents.events);
+
+
+  c = new StreamController();
+  expectedEvents = new Events()..add(1)..add(2)..add(3)..close();
+  actualEvents = new Events.capture(c.stream.skipWhile((x) => false));
+  sentEvents.replay(c);
+  Expect.listEquals(expectedEvents.events, actualEvents.events);
+
+
+  c = new StreamController();
   expectedEvents = new Events()..add(1)..add(2)..close();
   actualEvents = new Events.capture(c.stream.take(2));
   sentEvents.replay(c);
