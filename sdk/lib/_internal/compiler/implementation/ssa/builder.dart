@@ -1188,8 +1188,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                              Map<Element, HInstruction> fieldValues,
                              FunctionElement inlinedFromElement,
                              Node callNode) {
+    constructor = constructor.implementation;
     compiler.withCurrentElement(constructor, () {
-      assert(invariant(constructor, constructor.isImplementation));
       constructors.add(constructor);
 
       List<HInstruction> compiledArguments = new List<HInstruction>();
@@ -1312,8 +1312,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           FunctionElement target = elements[call];
           Selector selector = elements.getSelector(call);
           Link<Node> arguments = call.arguments;
-          inlineSuperOrRedirect(target, selector, arguments, constructors,
-                                fieldValues, constructor, call);
+          inlineSuperOrRedirect(target,
+                                selector,
+                                arguments,
+                                constructors,
+                                fieldValues,
+                                constructor,
+                                call);
           foundSuperOrRedirect = true;
         } else {
           // A field initializer.
@@ -1343,7 +1348,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         if (target == null) {
           compiler.internalError("no default constructor available");
         }
-        inlineSuperOrRedirect(target.implementation,
+        inlineSuperOrRedirect(target,
                               selector,
                               const Link<Node>(),
                               constructors,
