@@ -76,6 +76,14 @@ external Future<MirrorSystem> mirrorSystemOf(SendPort port);
 external InstanceMirror reflect(Object reflectee);
 
 /**
+ * Returns a [ClassMirror] for the class represented by a Dart
+ * Type object.
+ *
+ * This only works with objects local to the current isolate.
+ */
+external ClassMirror reflectClass(Type key);
+
+/**
  * A [Mirror] reflects some Dart language entity.
  *
  * Every [Mirror] originates from some [MirrorSystem].

@@ -1047,7 +1047,11 @@ class _Mirrors {
     return makeLocalInstanceMirror(reflectee);
   }
 
-  static ClassMirror reflectClass(Type reflectee) {
-    throw new UnimplementedError('reflectClass is not implemented');
+  // Creates a new local ClassMirror.
+  static ClassMirror makeLocalClassMirror(Type key)
+      native "Mirrors_makeLocalClassMirror";
+
+  static ClassMirror reflectClass(Type key) {
+    return makeLocalClassMirror(key);
   }
 }

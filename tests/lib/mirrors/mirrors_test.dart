@@ -109,6 +109,17 @@ testInvokeConstructor(mirrors) {
   }));
 }
 
+testReflectClass(mirrors) {
+  var classMirror = reflectClass(Class);
+  expect(classMirror is ClassMirror, equals(true));
+  var symbolClassMirror = reflectClass(Symbol);
+  var symbolMirror = symbolClassMirror.newInstance(const Symbol(''),
+                                                   ['withInitialValue']);
+  var objectMirror = classMirror.newInstance(symbolMirror.reflectee,[1234]);
+  expect(objectMirror.reflectee is Class, equals(true));
+  expect(objectMirror.reflectee.field, equals(1234));
+}
+
 testNames(mirrors) {
   var libMirror = mirrors.libraries[const Symbol('MirrorsTest')];
   var classMirror = libMirror.classes[const Symbol('Class')];
@@ -146,5 +157,6 @@ main() {
   test("Test field access", () { testFieldAccess(mirrors); });
   test("Test closure mirrors", () { testClosureMirrors(mirrors); });
   test("Test invoke constructor", () { testInvokeConstructor(mirrors); });
+  test("Test reflect type", () { testReflectClass(mirrors); });
   test("Test simple and qualifiedName", () { testNames(mirrors); });
 }

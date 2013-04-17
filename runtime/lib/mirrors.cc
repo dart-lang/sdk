@@ -5,6 +5,7 @@
 #include "include/dart_api.h"
 #include "include/dart_debugger_api.h"
 #include "platform/json.h"
+#include "vm/dart_api_impl.h"
 #include "vm/bootstrap_natives.h"
 #include "vm/dart_entry.h"
 #include "vm/exceptions.h"
@@ -1072,6 +1073,43 @@ void NATIVE_ENTRY_FUNCTION(Mirrors_makeLocalInstanceMirror)(
   Dart_ExitScope();
 }
 
+
+void NATIVE_ENTRY_FUNCTION(Mirrors_makeLocalClassMirror)(
+    Dart_NativeArguments args) {
+  Dart_EnterScope();
+  Isolate* isolate = Isolate::Current();
+  Dart_Handle key = Dart_GetNativeArgument(args, 0);
+  if (Dart_IsError(key)) {
+    Dart_PropagateError(key);
+  }
+  const Type& type = Api::UnwrapTypeHandle(isolate, key);
+  const Class& cls = Class::Handle(type.type_class());
+  Dart_Handle cls_handle = Api::NewHandle(isolate, cls.raw());
+  if (Dart_IsError(cls_handle)) {
+    Dart_PropagateError(cls_handle);
+  }
+  Dart_Handle name_handle = Api::NewHandle(isolate, cls.Name());
+  if (Dart_IsError(name_handle)) {
+    Dart_PropagateError(name_handle);
+  }
+  Dart_Handle lib_handle = Api::NewHandle(isolate, cls.library());
+  if (Dart_IsError(lib_handle)) {
+    Dart_PropagateError(lib_handle);
+  }
+  Dart_Handle lib_mirror = CreateLibraryMirror(lib_handle);
+  if (Dart_IsError(lib_mirror)) {
+    Dart_PropagateError(lib_mirror);
+  }
+  Dart_Handle result = CreateClassMirror(cls_handle,
+                                         name_handle,
+                                         lib_handle,
+                                         lib_mirror);
+  if (Dart_IsError(result)) {
+    Dart_PropagateError(result);
+  }
+  Dart_SetReturnValue(args, result);
+  Dart_ExitScope();
+}
 
 void NATIVE_ENTRY_FUNCTION(LocalObjectMirrorImpl_invoke)(
     Dart_NativeArguments args) {
