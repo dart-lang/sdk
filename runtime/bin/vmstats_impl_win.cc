@@ -18,7 +18,7 @@ static void sig_handler(int sig) {
 
 void VmStats::Initialize() {
   // Enable SIGBREAK (ctrl-break) stack dumps.
-  if (signal(SIGBREAK sig_handler) == SIG_ERR) {
+  if (signal(SIGBREAK, sig_handler) == SIG_ERR) {
     perror("Adding SIGBREAK signal handler failed");
   }
 }
