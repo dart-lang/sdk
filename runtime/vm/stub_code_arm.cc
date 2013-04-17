@@ -220,29 +220,29 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
 
 
 // Input parameters:
-//   R2: Smi-tagged argument count, may be zero.
-//   FP[kLastParamSlotIndex]: Last argument.
+//   R2: smi-tagged argument count, may be zero.
+//   FP[kLastParamSlotIndex]: last argument.
 static void PushArgumentsArray(Assembler* assembler) {
   // Allocate array to store arguments of caller.
   __ LoadImmediate(R1, reinterpret_cast<intptr_t>(Object::null()));
-  // R1: Null element type for raw Array.
-  // R2: Smi-tagged argument count, may be zero.
+  // R1: null element type for raw Array.
+  // R2: smi-tagged argument count, may be zero.
   __ BranchLink(&StubCode::AllocateArrayLabel());
   // R0: newly allocated array.
-  // R2: Smi-tagged argument count, may be zero (was preserved by the stub).
+  // R2: smi-tagged argument count, may be zero (was preserved by the stub).
   __ Push(R0);  // Array is in R0 and on top of stack.
   __ add(R1, FP, ShifterOperand(R2, LSL, 1));
   __ AddImmediate(R1, (kLastParamSlotIndex - 1) * kWordSize);
   __ AddImmediate(R3, R0, Array::data_offset() - kHeapObjectTag);
-  Label loop, loop_condition;
-  __ b(&loop_condition);
+  // R1: address of first argument on stack.
+  // R3: address of first argument in array.
+  Label loop;
   __ Bind(&loop);
-  __ ldr(IP, Address(R1, 0));
-  __ str(IP, Address(R3, 0));
-  __ AddImmediate(R1, -kWordSize);
-  __ AddImmediate(R3, kWordSize);
-  __ Bind(&loop_condition);
   __ subs(R2, R2, ShifterOperand(Smi::RawValue(1)));  // R2 is Smi.
+  __ ldr(IP, Address(R1, 0), PL);
+  __ str(IP, Address(R3, 0), PL);
+  __ AddImmediate(R1, -kWordSize, PL);
+  __ AddImmediate(R3, kWordSize, PL);
   __ b(&loop, PL);
 }
 
@@ -270,7 +270,7 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
 // Called for inline allocation of arrays.
 // Input parameters:
 //   LR: return address.
-//   R2: Array length as Smi.
+//   R2: array length as Smi.
 //   R1: array element type (either NULL or an instantiated type).
 // NOTE: R2 cannot be clobbered here as the caller relies on it being saved.
 // The newly allocated object is returned in R0.
@@ -294,22 +294,23 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     // Calculate and align allocation size.
     // Load new object start and calculate next object start.
     // R1: array element type.
-    // R2: Array length as Smi.
-    // R8: Points to new space object.
+    // R2: array length as Smi.
+    // R8: points to new space object.
     __ LoadFromOffset(kLoadWord, R0, R8, Scavenger::top_offset());
     intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
-    __ LoadImmediate(R7, fixed_size);
-    __ add(R7, R7, ShifterOperand(R2, LSL, 1));  // R2 is Smi.
+    __ LoadImmediate(R3, fixed_size);
+    __ add(R3, R3, ShifterOperand(R2, LSL, 1));  // R2 is Smi.
     ASSERT(kSmiTagShift == 1);
-    __ bic(R7, R7, ShifterOperand(kObjectAlignment - 1));
-    __ add(R7, R7, ShifterOperand(R0));
+    __ bic(R3, R3, ShifterOperand(kObjectAlignment - 1));
+    __ add(R7, R3, ShifterOperand(R0));
 
     // Check if the allocation fits into the remaining space.
     // R0: potential new object start.
     // R1: array element type.
-    // R2: Array length as Smi.
+    // R2: array length as Smi.
+    // R3: array size.
     // R7: potential next object start.
-    // R8: Points to new space object.
+    // R8: points to new space object.
     __ LoadFromOffset(kLoadWord, IP, R8, Scavenger::end_offset());
     __ cmp(R7, ShifterOperand(IP));
     __ b(&slow_case, CS);  // Branch if unsigned higher or equal.
@@ -324,7 +325,8 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
 
     // R0: new object start as a tagged pointer.
     // R1: array element type.
-    // R2: Array length as Smi.
+    // R2: array length as Smi.
+    // R3: array size.
     // R7: new object end address.
 
     // Store the type argument field.
@@ -341,16 +343,13 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
 
     // Calculate the size tag.
     // R0: new object start as a tagged pointer.
-    // R2: Array length as Smi.
+    // R2: array length as Smi.
+    // R3: array size.
     // R7: new object end address.
-    __ LoadImmediate(R1, fixed_size);
-    __ add(R1, R1, ShifterOperand(R2, LSL, 1));  // R2 is Smi.
-    ASSERT(kSmiTagShift == 1);
-    __ bic(R1, R1, ShifterOperand(kObjectAlignment - 1));
     const intptr_t shift = RawObject::kSizeTagBit - kObjectAlignmentLog2;
-    __ CompareImmediate(R1, RawObject::SizeTag::kMaxSizeTag);
+    __ CompareImmediate(R3, RawObject::SizeTag::kMaxSizeTag);
     // If no size tag overflow, shift R1 left, else set R1 to zero.
-    __ mov(R1, ShifterOperand(R1, LSL, shift), LS);
+    __ mov(R1, ShifterOperand(R3, LSL, shift), LS);
     __ mov(R1, ShifterOperand(0), HI);
 
     // Get the class index and insert it into the tags.
@@ -361,24 +360,22 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     // Initialize all array elements to raw_null.
     // R0: new object start as a tagged pointer.
     // R7: new object end address.
-    // R2: Array length as Smi.
+    // R2: array length as Smi.
     __ AddImmediate(R1, R0, Array::data_offset() - kHeapObjectTag);
     // R1: iterator which initially points to the start of the variable
     // data area to be initialized.
     __ LoadImmediate(IP, reinterpret_cast<intptr_t>(Object::null()));
-    Label loop, test;
-    __ b(&test);
+    Label loop;
     __ Bind(&loop);
     // TODO(cshapiro): StoreIntoObjectNoBarrier
-    __ str(IP, Address(R1, 0));
-    __ AddImmediate(R1, kWordSize);
-    __ Bind(&test);
     __ cmp(R1, ShifterOperand(R7));
-    __ b(&loop, NE);
+    __ str(IP, Address(R1, 0), CC);  // Store if unsigned lower.
+    __ AddImmediate(R1, kWordSize, CC);
+    __ b(&loop, CS);
 
     // Done allocating and initializing the array.
     // R0: new object.
-    // R2: Array length as Smi (preserved for the caller.)
+    // R2: array length as Smi (preserved for the caller.)
     __ Ret();
   }
 
@@ -404,7 +401,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
 // Input parameters:
 //   LR: return address.
 //   SP: address of last argument.
-//   R4: Arguments descriptor array.
+//   R4: arguments descriptor array.
 // Note: The closure object is the first argument to the function being
 //       called, the stub accesses the closure from this location directly
 //       when trying to resolve the call.
@@ -459,8 +456,8 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   __ LeaveStubFrame();
 
   __ Bind(&function_compiled);
-  // R0: Code.
-  // R4: Arguments descriptor array.
+  // R0: code.
+  // R4: arguments descriptor array.
   __ ldr(R0, FieldAddress(R0, Code::instructions_offset()));
   __ AddImmediate(R0, Instructions::HeaderSize() - kHeapObjectTag);
   __ bx(R0);
@@ -485,13 +482,13 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   PushArgumentsArray(assembler);
 
   // Stack:
-  // TOS + 0: Argument array.
-  // TOS + 1: Arguments descriptor array.
-  // TOS + 2: Place for result from the call.
-  // TOS + 3: Saved FP of previous frame.
-  // TOS + 4: Dart code return address
-  // TOS + 5: PC marker (0 for stub).
-  // TOS + 6: Last argument of caller.
+  // TOS + 0: argument array.
+  // TOS + 1: arguments descriptor array.
+  // TOS + 2: place for result from the call.
+  // TOS + 3: saved FP of previous frame.
+  // TOS + 4: dart code return address
+  // TOS + 5: pc marker (0 for stub).
+  // TOS + 6: last argument of caller.
   // ....
   __ CallRuntime(kInvokeNonClosureRuntimeEntry);
   // Remove arguments.
@@ -681,7 +678,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // R0: new object.
     // R1: number of context variables.
     __ ldr(R2, FieldAddress(CTX, Context::isolate_offset()));
-    // R2: Isolate, not an object.
+    // R2: isolate, not an object.
     __ str(R2, FieldAddress(R0, Context::isolate_offset()));
 
     // Setup the parent field.
@@ -728,18 +725,18 @@ DECLARE_LEAF_RUNTIME_ENTRY(void, StoreBufferBlockProcess, Isolate* isolate);
 
 // Helper stub to implement Assembler::StoreIntoObject.
 // Input parameters:
-//   R0: Address (i.e. object) being stored into.
+//   R0: address (i.e. object) being stored into.
 void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Save values being destroyed.
   __ PushList((1 << R1) | (1 << R2) | (1 << R3));
 
   // Load the isolate out of the context.
   // Spilled: R1, R2, R3.
-  // R0: Address being stored.
+  // R0: address being stored.
   __ ldr(R1, FieldAddress(CTX, Context::isolate_offset()));
 
   // Load top_ out of the StoreBufferBlock and add the address to the pointers_.
-  // R1: Isolate.
+  // R1: isolate.
   intptr_t store_buffer_offset = Isolate::store_buffer_block_offset();
   __ LoadFromOffset(kLoadWord, R2, R1,
                     store_buffer_offset + StoreBufferBlock::top_offset());
@@ -748,8 +745,8 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
                    store_buffer_offset + StoreBufferBlock::pointers_offset());
 
   // Increment top_ and check for overflow.
-  // R2: top_
-  // R1: Isolate
+  // R2: top_.
+  // R1: isolate.
   Label L;
   __ add(R2, R2, ShifterOperand(1));
   __ StoreToOffset(kStoreWord, R2, R1,
@@ -1127,9 +1124,9 @@ void StubCode::GenerateUsageCounterIncrement(Assembler* assembler,
 
 
 // Generate inline cache check for 'num_args'.
-//  LR: return address
-//  R5: Inline cache data object.
-//  R4: Arguments descriptor array.
+//  LR: return address.
+//  R5: inline cache data object.
+//  R4: arguments descriptor array.
 // Control flow:
 // - If receiver is null -> jump to IC miss.
 // - If receiver is Smi -> load Smi class.
@@ -1258,7 +1255,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   __ Branch(&StubCode::InstanceFunctionLookupLabel());
 
   __ Bind(&found);
-  // R6: Pointer to an IC data check group.
+  // R6: pointer to an IC data check group.
   const intptr_t target_offset = ICData::TargetIndexFor(num_args) * kWordSize;
   const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
   __ LoadFromOffset(kLoadWord, R0, R6, target_offset);
@@ -1270,7 +1267,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   __ StoreToOffset(kStoreWord, R1, R6, count_offset);
 
   __ Bind(&call_target_function);
-  // R0: Target function.
+  // R0: target function.
   __ ldr(R0, FieldAddress(R0, Function::code_offset()));
   __ ldr(R0, FieldAddress(R0, Code::instructions_offset()));
   __ AddImmediate(R0, Instructions::HeaderSize() - kHeapObjectTag);
@@ -1291,9 +1288,9 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
 
 // Use inline cache data array to invoke the target or continue in inline
 // cache miss handler. Stub for 1-argument check (receiver class).
-//  LR: Return address.
-//  R5: Inline cache data object.
-//  R4: Arguments descriptor array.
+//  LR: return address.
+//  R5: inline cache data object.
+//  R4: arguments descriptor array.
 // Inline cache data object structure:
 // 0: function-name
 // 1: N, number of arguments checked.
@@ -1396,7 +1393,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   __ AddImmediate(R2, Array::data_offset() - kHeapObjectTag);
 
   Label loop, found, not_found, next_iteration;
-  // R2: Entry start.
+  // R2: entry start.
   // R3: instance class id.
   // R4: instance type arguments.
   __ SmiTag(R3);
