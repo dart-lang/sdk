@@ -1455,13 +1455,27 @@ void ExtractConstructorInstantiatorInstr::EmitNativeCode(
 
 
 LocationSummary* AllocateContextInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 0;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+  locs->set_temp(0, Location::RegisterLocation(R1));
+  locs->set_out(Location::RegisterLocation(R0));
+  return locs;
 }
 
 
 void AllocateContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  ASSERT(locs()->temp(0).reg() == R1);
+  ASSERT(locs()->out().reg() == R0);
+
+  __ LoadImmediate(R1, num_context_variables());
+  const ExternalLabel label("alloc_context",
+                            StubCode::AllocateContextEntryPoint());
+  compiler->GenerateCall(token_pos(),
+                         &label,
+                         PcDescriptors::kOther,
+                         locs());
 }
 
 

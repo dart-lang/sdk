@@ -281,7 +281,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     // and is computed as:
     // RoundedAllocationSize((array_length * kwordSize) + sizeof(RawArray)).
     // Assert that length is a Smi.
-    __ tst(R2, ShifterOperand(kSmiTagSize));
+    __ tst(R2, ShifterOperand(kSmiTagMask));
     if (FLAG_use_slow_path) {
       __ b(&slow_case);
     } else {
@@ -608,8 +608,119 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 }
 
 
+// Called for inline allocation of contexts.
+// Input:
+//   R1: number of context variables.
+// Output:
+//   R0: new allocated RawContext object.
 void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
-  __ Unimplemented("AllocateContext stub");
+  if (FLAG_inline_alloc) {
+    const Class& context_class = Class::ZoneHandle(Object::context_class());
+    Label slow_case;
+    Heap* heap = Isolate::Current()->heap();
+    // First compute the rounded instance size.
+    // R1: number of context variables.
+    intptr_t fixed_size = sizeof(RawContext) + kObjectAlignment - 1;
+    __ LoadImmediate(R2, fixed_size);
+    __ add(R2, R2, ShifterOperand(R1, LSL, 2));
+    ASSERT(kSmiTagShift == 1);
+    __ bic(R2, R2, ShifterOperand(kObjectAlignment - 1));
+
+    // Now allocate the object.
+    // R1: number of context variables.
+    // R2: object size.
+    __ LoadImmediate(R5, heap->TopAddress());
+    __ ldr(R0, Address(R5, 0));
+    __ add(R3, R2, ShifterOperand(R0));
+    // Check if the allocation fits into the remaining space.
+    // R0: potential new object.
+    // R1: number of context variables.
+    // R2: object size.
+    // R3: potential next object start.
+    __ LoadImmediate(IP, heap->EndAddress());
+    __ ldr(IP, Address(IP, 0));
+    __ cmp(R3, ShifterOperand(IP));
+    if (FLAG_use_slow_path) {
+      __ b(&slow_case);
+    } else {
+      __ b(&slow_case, CS);  // Branch if unsigned higher or equal.
+    }
+
+    // Successfully allocated the object, now update top to point to
+    // next object start and initialize the object.
+    // R0: new object.
+    // R1: number of context variables.
+    // R2: object size.
+    // R3: next object start.
+    __ str(R3, Address(R5, 0));
+    __ add(R0, R0, ShifterOperand(kHeapObjectTag));
+
+    // Calculate the size tag.
+    // R0: new object.
+    // R1: number of context variables.
+    // R2: object size.
+    const intptr_t shift = RawObject::kSizeTagBit - kObjectAlignmentLog2;
+    __ CompareImmediate(R2, RawObject::SizeTag::kMaxSizeTag);
+    // If no size tag overflow, shift R2 left, else set R2 to zero.
+    __ mov(R2, ShifterOperand(R2, LSL, shift), LS);
+    __ mov(R2, ShifterOperand(0), HI);
+
+    // Get the class index and insert it into the tags.
+    // R2: size and bit tags.
+    __ LoadImmediate(IP, RawObject::ClassIdTag::encode(context_class.id()));
+    __ orr(R2, R2, ShifterOperand(IP));
+    __ str(R2, FieldAddress(R0, Context::tags_offset()));
+
+    // Setup up number of context variables field.
+    // R0: new object.
+    // R1: number of context variables as integer value (not object).
+    __ str(R1, FieldAddress(R0, Context::num_variables_offset()));
+
+    // Setup isolate field.
+    // Load Isolate pointer from Context structure into R2.
+    // R0: new object.
+    // R1: number of context variables.
+    __ ldr(R2, FieldAddress(CTX, Context::isolate_offset()));
+    // R2: Isolate, not an object.
+    __ str(R2, FieldAddress(R0, Context::isolate_offset()));
+
+    // Setup the parent field.
+    // R0: new object.
+    // R1: number of context variables.
+    __ LoadImmediate(R2, reinterpret_cast<intptr_t>(Object::null()));
+    __ str(R2, FieldAddress(R0, Context::parent_offset()));
+
+    // Initialize the context variables.
+    // R0: new object.
+    // R1: number of context variables.
+    // R2: raw null.
+    Label loop;
+    __ AddImmediate(R3, R0, Context::variable_offset(0) - kHeapObjectTag);
+    __ Bind(&loop);
+    __ subs(R1, R1, ShifterOperand(1));
+    __ str(R2, Address(R3, R1, LSL, 2), PL);  // Store if R1 positive or zero.
+    __ b(&loop, NE);  // Loop if R1 not zero.
+
+    // Done allocating and initializing the context.
+    // R0: new object.
+    __ Ret();
+
+    __ Bind(&slow_case);
+  }
+  // Create a stub frame as we are pushing some objects on the stack before
+  // calling into the runtime.
+  __ EnterStubFrame();
+  // Setup space on stack for return value.
+  __ LoadImmediate(R2, reinterpret_cast<intptr_t>(Object::null()));
+  __ SmiTag(R1);
+  __ PushList((1 << R1) | (1 << R2));
+  __ CallRuntime(kAllocateContextRuntimeEntry);  // Allocate context.
+  __ Drop(1);  // Pop number of context variables argument.
+  __ Pop(R0);  // Pop the new context object.
+  // R0: new object
+  // Restore the frame pointer.
+  __ LeaveStubFrame();
+  __ Ret();
 }
 
 
@@ -700,6 +811,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // R2: potential new object start.
     // R3: potential next object start.
     __ LoadImmediate(IP, heap->EndAddress());
+    __ ldr(IP, Address(IP, 0));
     __ cmp(R3, ShifterOperand(IP));
     if (FLAG_use_slow_path) {
       __ b(&slow_case);
@@ -864,6 +976,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
     // R3: potential next object start.
     // R4: potential new context object (only if is_implicit_closure).
     __ LoadImmediate(IP, heap->EndAddress());
+    __ ldr(IP, Address(IP, 0));
     __ cmp(R3, ShifterOperand(IP));
     if (FLAG_use_slow_path) {
       __ b(&slow_case);

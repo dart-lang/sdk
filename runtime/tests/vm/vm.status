@@ -61,6 +61,7 @@ dart/inline_stack_frame_test: Fail # Issue: 7414
 [ $arch == simarm ]
 # Tests missing code generation support.
 cc/Dart2JSCompileAll: Skip
+cc/CorelibCompileAll: Skip
 # Tests needing Dart execution.
 dart/*: Skip
 
@@ -68,7 +69,8 @@ dart/*: Skip
 *: Skip
 
 [ $arch == simmips ]
-# Tests needing an assembler.
+# Tests missing code generation support.
+cc/CorelibCompileAll: Skip
 cc/Dart2JSCompileAll: Skip
 # Tests needing Dart execution.
 dart/*: Skip

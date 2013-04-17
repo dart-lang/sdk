@@ -39,7 +39,7 @@ bool Intrinsifier::ObjectArray_Allocate(Assembler* assembler) {
   // RoundedAllocationSize((array_length * kwordSize) + sizeof(RawArray)).
   __ movq(RDI, Address(RSP, kArrayLengthOffset));  // Array Length.
   // Check that length is a positive Smi.
-  __ testq(RDI, Immediate(kSmiTagSize));
+  __ testq(RDI, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, &fall_through);
   __ cmpq(RDI, Immediate(0));
   __ j(LESS, &fall_through);
@@ -417,7 +417,7 @@ bool Intrinsifier::GrowableArray_add(Assembler* assembler) {
   __ movq(RDI, Address(RSP, kArrayLengthStackOffset));  /* Array length. */    \
   /* Check that length is a positive Smi. */                                   \
   /* RDI: requested array length argument. */                                  \
-  __ testq(RDI, Immediate(kSmiTagSize));                                       \
+  __ testq(RDI, Immediate(kSmiTagMask));                                       \
   __ j(NOT_ZERO, &fall_through);                                               \
   __ cmpq(RDI, Immediate(0));                                                  \
   __ j(LESS, &fall_through);                                                   \

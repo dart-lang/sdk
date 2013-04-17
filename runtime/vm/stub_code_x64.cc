@@ -472,7 +472,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     // and is computed as:
     // RoundedAllocationSize((array_length * kwordSize) + sizeof(RawArray)).
     // Assert that length is a Smi.
-    __ testq(R10, Immediate(kSmiTagSize));
+    __ testq(R10, Immediate(kSmiTagMask));
     if (FLAG_use_slow_path) {
       __ jmp(&slow_case);
     } else {
