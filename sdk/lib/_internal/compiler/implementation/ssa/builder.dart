@@ -2429,28 +2429,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                                   HInstruction receiver) {
     assert(Elements.isInstanceSend(send, elements));
     assert(selector.isGetter());
-    SourceString getterName = selector.name;
-    Set<ClassElement> interceptedClasses =
-        backend.getInterceptedClassesOn(getterName);
-
-    bool hasGetter = compiler.world.hasAnyUserDefinedGetter(selector);
-    HInstruction instruction;
-    if (interceptedClasses != null) {
-      // If we're using an interceptor class, emit a call to the
-      // interceptor method and then the actual dynamic call on the
-      // interceptor object.
-      instruction =
-          invokeInterceptor(interceptedClasses, receiver, send);
-      instruction = new HInvokeDynamicGetter(
-          selector, null, instruction, !hasGetter);
-      // Add the receiver as an argument to the getter call on the
-      // interceptor.
-      instruction.inputs.add(receiver);
-    } else {
-      instruction = new HInvokeDynamicGetter(
-          selector, null, receiver, !hasGetter);
-    }
-    pushWithPosition(instruction, send);
+    HInstruction res = buildInvokeDynamic(send, selector, receiver, []);
+    pushWithPosition(res, send);
   }
 
   void generateGetter(Send send, Element element) {
@@ -2514,25 +2494,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       location = send;
     }
     assert(selector.isSetter());
-    bool hasSetter = compiler.world.hasAnyUserDefinedSetter(selector);
-    Set<ClassElement> interceptedClasses =
-        backend.getInterceptedClassesOn(selector.name);
-    HInstruction instruction;
-    if (interceptedClasses != null) {
-      // If we're using an interceptor class, emit a call to the
-      // getInterceptor method and then the actual dynamic call on the
-      // interceptor object.
-      instruction = invokeInterceptor(interceptedClasses, receiver, send);
-      instruction = new HInvokeDynamicSetter(
-          selector, null, instruction, receiver, !hasSetter);
-      // Add the value as an argument to the setter call on the
-      // interceptor.
-      instruction.inputs.add(value);
-    } else {
-      instruction = new HInvokeDynamicSetter(
-          selector, null, receiver, value, !hasSetter);
-    }
-    addWithPosition(instruction, location);
+    HInstruction res = buildInvokeDynamic(send, selector, receiver, [value]);
+    addWithPosition(res, location);
     stack.add(value);
   }
 
@@ -2581,7 +2544,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   HInstruction invokeInterceptor(Set<ClassElement> intercepted,
                                  HInstruction receiver,
-                                 Send send) {
+                                 Node node) {
     HInterceptor interceptor = new HInterceptor(intercepted, receiver);
     add(interceptor);
     return interceptor;
@@ -3666,10 +3629,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
   }
 
-  HInvokeDynamicMethod buildInvokeDynamic(Node node,
-                                          Selector selector,
-                                          HInstruction receiver,
-                                          List<HInstruction> arguments) {
+  HInstruction buildInvokeDynamic(Node node,
+                                  Selector selector,
+                                  HInstruction receiver,
+                                  List<HInstruction> arguments) {
     Set<ClassElement> interceptedClasses =
         backend.getInterceptedClassesOn(selector.name);
     List<HInstruction> inputs = <HInstruction>[];
@@ -3680,7 +3643,15 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     inputs.add(receiver);
     inputs.addAll(arguments);
-    return new HInvokeDynamicMethod(selector, inputs, isIntercepted);
+    if (selector.isGetter()) {
+      bool hasGetter = compiler.world.hasAnyUserDefinedGetter(selector);
+      return new HInvokeDynamicGetter(selector, null, inputs, !hasGetter);
+    } else if (selector.isSetter()) {
+      bool hasSetter = compiler.world.hasAnyUserDefinedSetter(selector);
+      return new HInvokeDynamicSetter(selector, null, inputs, !hasSetter);
+    } else {
+      return new HInvokeDynamicMethod(selector, inputs, isIntercepted);
+    }
   }
 
   void handleComplexOperatorSend(SendSet node,
@@ -4098,34 +4069,19 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     HInstruction iterator;
     void buildInitializer() {
       Selector selector = compiler.iteratorSelector;
-      Set<ClassElement> interceptedClasses =
-          backend.getInterceptedClassesOn(selector.name);
       visit(node.expression);
       HInstruction receiver = pop();
-      bool hasGetter = compiler.world.hasAnyUserDefinedGetter(selector);
-      if (interceptedClasses == null) {
-        iterator =
-            new HInvokeDynamicGetter(selector, null, receiver, !hasGetter);
-      } else {
-        HInterceptor interceptor =
-            invokeInterceptor(interceptedClasses, receiver, null);
-        iterator =
-            new HInvokeDynamicGetter(selector, null, interceptor, !hasGetter);
-        // Add the receiver as an argument to the getter call on the
-        // interceptor.
-        iterator.inputs.add(receiver);
-      }
+      iterator = buildInvokeDynamic(node, selector, receiver, []);
       add(iterator);
     }
     HInstruction buildCondition() {
       Selector selector = compiler.moveNextSelector;
-      push(new HInvokeDynamicMethod(selector, <HInstruction>[iterator]));
+      push(buildInvokeDynamic(node, selector, iterator, []));
       return popBoolified();
     }
     void buildBody() {
       Selector call = compiler.currentSelector;
-      bool hasGetter = compiler.world.hasAnyUserDefinedGetter(call);
-      push(new HInvokeDynamicGetter(call, null, iterator, !hasGetter));
+      push(buildInvokeDynamic(node, call, iterator, []));
 
       Node identifier = node.declaredIdentifier;
       Element variable = elements[identifier];

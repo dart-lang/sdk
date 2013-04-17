@@ -882,13 +882,17 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     // they have side effects.
     if (selector.isGetter()) {
       HInstruction res = new HInvokeDynamicGetter(
-          selector, node.element, constant, false);
-      res.inputs.add(node.inputs[1]);
+          selector,
+          node.element,
+          <HInstruction>[constant, node.inputs[1]],
+          false);
       return res;
     } else if (node.selector.isSetter()) {
       HInstruction res = new HInvokeDynamicSetter(
-          selector, node.element, constant, node.inputs[1], false);
-      res.inputs.add(node.inputs[2]);
+          selector,
+          node.element,
+          <HInstruction>[constant, node.inputs[1], node.inputs[2]],
+          false);
       return res;
     } else {
       List<HInstruction> inputs = new List<HInstruction>.from(node.inputs);
