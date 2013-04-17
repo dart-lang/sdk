@@ -7,9 +7,9 @@ part of dart.io;
 // TODO(ager): The only reason for this class is that we
 // cannot patch a top-level at this point.
 class _ProcessUtils {
-  external static _exit(int status);
-  external static _setExitCode(int status);
-  external static _sleep(int millis);
+  external static void _exit(int status);
+  external static void _setExitCode(int status);
+  external static void _sleep(int millis);
   external static int _pid(Process process);
 }
 

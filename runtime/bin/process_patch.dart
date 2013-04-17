@@ -31,10 +31,11 @@ patch class Process {
 
 
 patch class _ProcessUtils {
-  /* patch */ static _exit(int status) native "Process_Exit";
-  /* patch */ static _setExitCode(int status) native "Process_SetExitCode";
-  /* patch */ static _sleep(int millis) native "Process_Sleep";
-  /* patch */ static _pid(Process process) native "Process_Pid";
+  /* patch */ static void _exit(int status) native "Process_Exit";
+  /* patch */ static void _setExitCode(int status)
+      native "Process_SetExitCode";
+  /* patch */ static void _sleep(int millis) native "Process_Sleep";
+  /* patch */ static int _pid(Process process) native "Process_Pid";
 }
 
 
