@@ -2735,6 +2735,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     }
     if (loopVariableSelector != null) {
       mapping.setSelector(declaration, loopVariableSelector);
+      registerSend(loopVariableSelector, loopVariable);
     } else {
       // The selector may only be null if we reported an error.
       assert(invariant(declaration, compiler.compilationFailed));

@@ -2538,25 +2538,31 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   void generateNonInstanceSetter(SendSet send,
                                  Element element,
-                                 HInstruction value) {
-    assert(!Elements.isInstanceSend(send, elements));
+                                 HInstruction value,
+                                 {Node location}) {
+    assert(send == null || !Elements.isInstanceSend(send, elements));
+    if (location == null) {
+      assert(send != null);
+      location = send;
+    }
     if (Elements.isStaticOrTopLevelField(element)) {
       if (element.isSetter()) {
         HStatic target = new HStatic(element);
         add(target);
         addWithPosition(
             new HInvokeStatic(<HInstruction>[target, value], HType.UNKNOWN),
-            send);
+            location);
       } else {
         value = potentiallyCheckType(value, element.computeType(compiler));
-        addWithPosition(new HStaticStore(element, value), send);
+        addWithPosition(new HStaticStore(element, value), location);
       }
       stack.add(value);
     } else if (Elements.isErroneousElement(element)) {
       // An erroneous element indicates an unresolved static setter.
-      generateThrowNoSuchMethod(send,
-                                getTargetName(element, 'set'),
-                                argumentNodes: send.arguments);
+      generateThrowNoSuchMethod(
+          location,
+          getTargetName(element, 'set'),
+          argumentNodes: (send == null ? const Link<Node>() : send.arguments));
     } else {
       stack.add(value);
       // If the value does not already have a name, give it here.
@@ -4121,29 +4127,25 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       bool hasGetter = compiler.world.hasAnyUserDefinedGetter(call);
       push(new HInvokeDynamicGetter(call, null, iterator, !hasGetter));
 
-      Element variable = elements[node.declaredIdentifier];
-      Selector selector = elements.getSelector(node.declaredIdentifier);
+      Node identifier = node.declaredIdentifier;
+      Element variable = elements[identifier];
+      Selector selector = elements.getSelector(identifier);
 
-      HInstruction oldVariable = pop();
-      if (Elements.isUnresolved(variable)) {
-        if (Elements.isInStaticContext(currentElement)) {
-          generateThrowNoSuchMethod(
-              node.declaredIdentifier,
-              'set ${selector.name.slowToString()}',
-              argumentValues: <HInstruction>[oldVariable]);
-        } else {
-          // The setter may have been defined in a subclass.
-          generateInstanceSetterWithCompiledReceiver(
-              null,
-              localsHandler.readThis(),
-              oldVariable,
-              selector: selector,
-              location: node.declaredIdentifier);
-        }
-        pop();
+      HInstruction value = pop();
+      if (identifier.asSend() != null
+          && Elements.isInstanceSend(identifier, elements)) {
+        HInstruction receiver = generateInstanceSendReceiver(identifier);
+        assert(receiver != null);
+        generateInstanceSetterWithCompiledReceiver(
+            null,
+            receiver,
+            value,
+            selector: selector,
+            location: identifier);
       } else {
-        localsHandler.updateLocal(variable, oldVariable);
+        generateNonInstanceSetter(null, variable, value, location: identifier);
       }
+      pop(); // Pop the value pushed by the setter call.
 
       visit(node.body);
     }

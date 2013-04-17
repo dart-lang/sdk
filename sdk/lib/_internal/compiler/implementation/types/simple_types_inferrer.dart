@@ -670,7 +670,7 @@ class SimpleTypesInferrer extends TypesInferrer {
    * Registers that [caller] calls [callee] with the given
    * [arguments].
    */
-  void registerCalledElement(Send send,
+  void registerCalledElement(Node node,
                              Selector selector,
                              Element caller,
                              Element callee,
@@ -696,7 +696,7 @@ class SimpleTypesInferrer extends TypesInferrer {
     }
 
     if (selector.isSetter() && callee.isField()) {
-      recordNonFinalFieldElementType(send, callee, arguments.positional[0]);
+      recordNonFinalFieldElementType(node, callee, arguments.positional[0]);
       return;
     } else if (selector.isGetter()) {
       assert(arguments == null);
@@ -715,7 +715,7 @@ class SimpleTypesInferrer extends TypesInferrer {
     if (function.computeSignature(compiler).parameterCount == 0) return;
 
     assert(arguments != null);
-    bool isUseful = addArguments(send, callee, arguments);
+    bool isUseful = addArguments(node, callee, arguments);
     if (hasAnalyzedAll && isUseful) {
       updateArgumentsType(callee);
     }
@@ -800,7 +800,7 @@ class SimpleTypesInferrer extends TypesInferrer {
    * Registers that [caller] calls an element matching [selector]
    * with the given [arguments].
    */
-  TypeMask registerCalledSelector(Send send,
+  TypeMask registerCalledSelector(Node node,
                                   Selector selector,
                                   TypeMask receiverType,
                                   Element caller,
@@ -819,9 +819,9 @@ class SimpleTypesInferrer extends TypesInferrer {
       // whether [: element :] is a potential target for the type.
       if (true) {
         registerCalledElement(
-            send, typedSelector, caller, element, arguments, inLoop);
+            node, typedSelector, caller, element, arguments, inLoop);
       } else {
-        unregisterCalledElement(send, selector, caller, element);
+        unregisterCalledElement(node, selector, caller, element);
       }
       if (!selector.isSetter()) {
         TypeMask type = typeOfElementWithSelector(element, selector);
@@ -1595,7 +1595,7 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
     }
   }
 
-  TypeMask handlePlainAssignment(Send node,
+  TypeMask handlePlainAssignment(Node node,
                                  Element element,
                                  Selector setterSelector,
                                  TypeMask receiverType,
@@ -1622,7 +1622,7 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
       locals.update(element, rhsType);
     }
 
-    if (!Elements.isLocal(element)) {
+    if (node.asSend() != null && !Elements.isLocal(element)) {
       // Recognize a constraint of the form [: field = other.field :].
       // Note that we check if the right hand side is a local to
       // recognize the situation [: var a = 42; this.a = a; :]. Our
@@ -1633,7 +1633,7 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
           && send.isPropertyAccess
           && !Elements.isLocal(elements[rhs])
           && send.selector.asIdentifier().source
-               == node.selector.asIdentifier().source) {
+               == node.asSend().selector.asIdentifier().source) {
         // TODO(ngeoffray): We should update selectors in the
         // element tree and find out if the typed selector still
         // applies to the receiver type.
@@ -2037,15 +2037,12 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
       checkIfExposesThis(
           new TypedSelector(iteratorType, compiler.currentSelector));
     }
-    Element variable = elements[node.declaredIdentifier];
-    Selector selector = elements.getSelector(node.declaredIdentifier);
-    if (!Elements.isUnresolved(variable)) {
-      locals.update(variable, inferrer.dynamicType);
-    } else {
-      handlePlainAssignment(new Send(), variable, selector,
-                            inferrer.dynamicType, inferrer.dynamicType,
-                            node.expression);
-    }
+    Node identifier = node.declaredIdentifier;
+    Element variable = elements[identifier];
+    Selector selector = elements.getSelector(identifier);
+    handlePlainAssignment(identifier, variable, selector,
+                          inferrer.dynamicType, inferrer.dynamicType,
+                          node.expression);
     loopLevel++;
     do {
       LocalsHandler saved = new LocalsHandler.from(locals);
