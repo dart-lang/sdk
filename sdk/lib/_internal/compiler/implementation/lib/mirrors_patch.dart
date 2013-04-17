@@ -53,6 +53,11 @@ patch InstanceMirror reflect(Object reflectee) {
   return new _InstanceMirror(reflectee);
 }
 
+patch ClassMirror reflectClass(Type key) {
+  throw new UnimplementedError('reflectClass is not yet implemented'
+                               'in dart2js');
+}
+
 class _InstanceMirror extends InstanceMirror {
   static final Expando<ClassMirror> classMirrors = new Expando<ClassMirror>();
 
