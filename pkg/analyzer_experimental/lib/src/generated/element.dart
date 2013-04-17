@@ -1700,7 +1700,7 @@ class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitE
   CompilationUnitElementImpl(String name) : super.con2(name, -1) {
   }
   accept(ElementVisitor visitor) => visitor.visitCompilationUnitElement(this);
-  bool operator ==(Object object) => object != null && identical(runtimeType, object.runtimeType) && _source == ((object as CompilationUnitElementImpl)).source;
+  bool operator ==(Object object) => object != null && runtimeType == object.runtimeType && _source == ((object as CompilationUnitElementImpl)).source;
   List<PropertyAccessorElement> get accessors => _accessors;
   ElementImpl getChild(String identifier28) {
     for (PropertyAccessorElement accessor in _accessors) {
@@ -2039,7 +2039,7 @@ abstract class ElementImpl implements Element {
     this._name = StringUtilities.intern(name9);
     this._nameOffset = nameOffset2;
   }
-  bool operator ==(Object object) => object != null && identical(object.runtimeType, runtimeType) && ((object as Element)).location == location;
+  bool operator ==(Object object) => object != null && object.runtimeType == runtimeType && ((object as Element)).location == location;
   Element getAncestor(Type elementClass) {
     Element ancestor = _enclosingElement;
     while (ancestor != null && !isInstanceOf(ancestor, elementClass)) {
@@ -2865,7 +2865,7 @@ class HtmlElementImpl extends ElementImpl implements HtmlElement {
     this._context = context;
   }
   accept(ElementVisitor visitor) => visitor.visitHtmlElement(this);
-  bool operator ==(Object object) => identical(runtimeType, object.runtimeType) && _source == ((object as CompilationUnitElementImpl)).source;
+  bool operator ==(Object object) => runtimeType == object.runtimeType && _source == ((object as CompilationUnitElementImpl)).source;
   AnalysisContext get context => _context;
   ElementKind get kind => ElementKind.HTML;
   List<HtmlScriptElement> get scripts => _scripts;
@@ -3093,7 +3093,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     this._context = context;
   }
   accept(ElementVisitor visitor) => visitor.visitLibraryElement(this);
-  bool operator ==(Object object) => object != null && identical(runtimeType, object.runtimeType) && _definingCompilationUnit == ((object as LibraryElementImpl)).definingCompilationUnit;
+  bool operator ==(Object object) => object != null && runtimeType == object.runtimeType && _definingCompilationUnit == ((object as LibraryElementImpl)).definingCompilationUnit;
   ElementImpl getChild(String identifier31) {
     if (((_definingCompilationUnit as CompilationUnitElementImpl)).identifier == identifier31) {
       return _definingCompilationUnit as CompilationUnitElementImpl;

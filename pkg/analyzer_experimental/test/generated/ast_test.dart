@@ -23,6 +23,18 @@ class NodeLocatorTest extends ParserTestCase {
     CompilationUnit unit = ParserTestCase.parseCompilationUnit("library myLib;", []);
     assertLocate(unit, 10, SimpleIdentifier);
   }
+  void test_offsetAfterNode() {
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit(EngineTestCase.createSource(["class A {}", "class B {}"]), []);
+    NodeLocator locator = new NodeLocator.con2(1024, 1024);
+    ASTNode node = locator.searchWithin(unit.declarations[0]);
+    JUnitTestCase.assertNull(node);
+  }
+  void test_offsetBeforeNode() {
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit(EngineTestCase.createSource(["class A {}", "class B {}"]), []);
+    NodeLocator locator = new NodeLocator.con2(0, 0);
+    ASTNode node = locator.searchWithin(unit.declarations[1]);
+    JUnitTestCase.assertNull(node);
+  }
   void test_range() {
     CompilationUnit unit = ParserTestCase.parseCompilationUnit("library myLib;", []);
     assertLocate2(unit, 4, 10, LibraryDirective);
@@ -43,6 +55,14 @@ class NodeLocatorTest extends ParserTestCase {
       _ut.test('test_offset', () {
         final __test = new NodeLocatorTest();
         runJUnitTest(__test, __test.test_offset);
+      });
+      _ut.test('test_offsetAfterNode', () {
+        final __test = new NodeLocatorTest();
+        runJUnitTest(__test, __test.test_offsetAfterNode);
+      });
+      _ut.test('test_offsetBeforeNode', () {
+        final __test = new NodeLocatorTest();
+        runJUnitTest(__test, __test.test_offsetBeforeNode);
       });
       _ut.test('test_range', () {
         final __test = new NodeLocatorTest();
@@ -556,10 +576,10 @@ class SimpleIdentifierTest extends ParserTestCase {
    */
   ASTNode topMostNode(SimpleIdentifier identifier) {
     ASTNode child = identifier;
-    ASTNode parent19 = identifier.parent;
-    while (parent19 != null) {
-      child = parent19;
-      parent19 = parent19.parent;
+    ASTNode parent20 = identifier.parent;
+    while (parent20 != null) {
+      child = parent20;
+      parent20 = parent20.parent;
     }
     return child;
   }

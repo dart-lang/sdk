@@ -61,7 +61,7 @@ class FileBasedSource implements Source {
     this._inSystemLibrary = inSystemLibrary2;
     this._fileUriString = file3.toURI().toString();
   }
-  bool operator ==(Object object) => object != null && identical(this.runtimeType, object.runtimeType) && _file == ((object as FileBasedSource))._file;
+  bool operator ==(Object object) => object != null && this.runtimeType == object.runtimeType && _file == ((object as FileBasedSource))._file;
   bool exists() => _contentCache.getContents(this) != null || (_file.exists() && !_file.isDirectory());
   void getContents(Source_ContentReceiver receiver) {
     {

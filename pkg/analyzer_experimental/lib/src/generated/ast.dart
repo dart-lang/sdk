@@ -11716,6 +11716,14 @@ class NodeLocator extends GeneralizingASTVisitor<Object> {
     return _foundNode;
   }
   Object visitNode(ASTNode node) {
+    int start = node.offset;
+    int end = start + node.length;
+    if (end < _startOffset) {
+      return null;
+    }
+    if (start > _endOffset) {
+      return null;
+    }
     try {
       node.visitChildren(this);
     } on NodeLocator_NodeFoundException catch (exception) {
@@ -11723,8 +11731,6 @@ class NodeLocator extends GeneralizingASTVisitor<Object> {
     } catch (exception) {
       AnalysisEngine.instance.logger.logInformation2("Exception caught while traversing an AST structure.", exception);
     }
-    int start = node.offset;
-    int end = start + node.length;
     if (start <= _startOffset && _endOffset <= end) {
       _foundNode = node;
       throw new NodeLocator_NodeFoundException();

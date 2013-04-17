@@ -249,8 +249,7 @@ class TypePropagationTest extends ResolverTestCase {
     JUnitTestCase.assertSame(typeA, variableName.staticType);
   }
   void test_query() {
-    addSource("/html.dart", EngineTestCase.createSource(["library dart.dom.html;", "", "class Element {}", "class AnchorElement extends Element {}", "class BodyElement extends Element {}", "class ButtonElement extends Element {}", "class DivElement extends Element {}", "class Document extends Element {}", "class HtmlDocument extends Document {", "  Element query(String selector) { return null; }", "}", "class InputElement extends Element {}", "class SelectElement extends Element {}", "", "HtmlDocument document = null;", "", "Element query(String selector) { return null; }"]));
-    Source source = addSource("/test.dart", EngineTestCase.createSource(["import 'html.dart';", "", "main() {", "  var v1 = query('a');", "  var v2 = query('A');", "  var v3 = query('body:active');", "  var v4 = query('button[foo=\"bar\"]');", "  var v5 = query('div.class');", "  var v6 = query('input#id');", "  var v7 = query('select#id');", "  // invocation of method", "  var m1 = document.query('div');", " // unsupported currently", "  var b1 = query('noSuchTag');", "  var b2 = query('DART_EDITOR_NO_SUCH_TYPE');", "  var b3 = query('body div');", "  return [v1, v2, v3, v4, v5, v6, v7, m1, b1, b2, b3];", "}"]));
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["import 'dart:html';", "", "main() {", "  var v1 = query('a');", "  var v2 = query('A');", "  var v3 = query('body:active');", "  var v4 = query('button[foo=\"bar\"]');", "  var v5 = query('div.class');", "  var v6 = query('input#id');", "  var v7 = query('select#id');", "  // invocation of method", "  var m1 = document.query('div');", " // unsupported currently", "  var b1 = query('noSuchTag');", "  var b2 = query('DART_EDITOR_NO_SUCH_TYPE');", "  var b3 = query('body div');", "  return [v1, v2, v3, v4, v5, v6, v7, m1, b1, b2, b3];", "}"]));
     LibraryElement library = resolve(source, []);
     assertNoErrors();
     verify([source]);
@@ -523,6 +522,12 @@ class NonErrorResolverTest extends ResolverTestCase {
     assertNoErrors();
     verify([source]);
   }
+  void test_inconsistentCaseExpressionTypes() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["f(var p) {", "  switch (p) {", "    case 1:", "      break;", "    case 2:", "      break;", "  }", "}"]));
+    resolve(source, []);
+    assertNoErrors();
+    verify([source]);
+  }
   void test_initializingFormalForNonExistantField() {
     Source source = addSource("/test.dart", EngineTestCase.createSource(["class A {", "  int x;", "  A(this.x) {}", "}"]));
     resolve(source, []);
@@ -756,6 +761,10 @@ class NonErrorResolverTest extends ResolverTestCase {
       _ut.test('test_importOfNonLibrary_libraryNotDeclared', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_importOfNonLibrary_libraryNotDeclared);
+      });
+      _ut.test('test_inconsistentCaseExpressionTypes', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_inconsistentCaseExpressionTypes);
       });
       _ut.test('test_initializingFormalForNonExistantField', () {
         final __test = new NonErrorResolverTest();
@@ -1885,12 +1894,6 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     assertErrors([CompileTimeErrorCode.IMPORT_DUPLICATED_LIBRARY_NAME]);
     verify([source]);
   }
-  void fail_inconsistentCaseExpressionTypes() {
-    Source source = addSource("/test.dart", EngineTestCase.createSource(["f(var p) {", "  switch (p) {", "    case 3:", "      break;", "    case 'a':", "      break;", "  }", "}"]));
-    resolve(source, []);
-    assertErrors([CompileTimeErrorCode.INCONSITENT_CASE_EXPRESSION_TYPES]);
-    verify([source]);
-  }
   void fail_initializerForNonExistant_initializer() {
     Source source = addSource("/test.dart", EngineTestCase.createSource(["class A {", "  A() : x = 0 {}", "}"]));
     resolve(source, []);
@@ -2662,6 +2665,18 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     assertErrors([CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY]);
     verify([source]);
   }
+  void test_inconsistentCaseExpressionTypes() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["f(var p) {", "  switch (p) {", "    case 1:", "      break;", "    case 'a':", "      break;", "  }", "}"]));
+    resolve(source, []);
+    assertErrors([CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES]);
+    verify([source]);
+  }
+  void test_inconsistentCaseExpressionTypes_repeated() {
+    Source source = addSource("/test.dart", EngineTestCase.createSource(["f(var p) {", "  switch (p) {", "    case 1:", "      break;", "    case 'a':", "      break;", "    case 'b':", "      break;", "  }", "}"]));
+    resolve(source, []);
+    assertErrors([CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES, CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES]);
+    verify([source]);
+  }
   void test_initializingFormalForNonExistantField() {
     Source source = addSource("/test.dart", EngineTestCase.createSource(["class A {", "  A(this.x) {}", "}"]));
     resolve(source, []);
@@ -3021,6 +3036,14 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_importOfNonLibrary);
       });
+      _ut.test('test_inconsistentCaseExpressionTypes', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_inconsistentCaseExpressionTypes);
+      });
+      _ut.test('test_inconsistentCaseExpressionTypes_repeated', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_inconsistentCaseExpressionTypes_repeated);
+      });
       _ut.test('test_initializingFormalForNonExistantField', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_initializingFormalForNonExistantField);
@@ -3155,9 +3178,9 @@ class StaticTypeVerifier extends GeneralizingASTVisitor<Object> {
       writer.print(unresolvedTypeCount);
       writer.print("/");
       writer.print(_resolvedTypeCount + unresolvedTypeCount);
-      writer.printlnObject(" TypeNames.");
+      writer.println(" TypeNames.");
       if (unresolvedTypeCount > 0) {
-        writer.printlnObject("TypeNames:");
+        writer.println("TypeNames:");
         for (TypeName identifier in _unresolvedTypes) {
           writer.print("  ");
           writer.print(identifier.toString());
@@ -3165,11 +3188,11 @@ class StaticTypeVerifier extends GeneralizingASTVisitor<Object> {
           writer.print(getFileName(identifier));
           writer.print(" : ");
           writer.print(identifier.offset);
-          writer.printlnObject(")");
+          writer.println(")");
         }
       }
       if (unresolvedExpressionCount > 0) {
-        writer.printlnObject("Expressions:");
+        writer.println("Expressions:");
         for (Expression identifier in _unresolvedExpressions) {
           writer.print("  ");
           writer.print(identifier.toString());
@@ -3177,7 +3200,7 @@ class StaticTypeVerifier extends GeneralizingASTVisitor<Object> {
           writer.print(getFileName(identifier));
           writer.print(" : ");
           writer.print(identifier.offset);
-          writer.printlnObject(")");
+          writer.println(")");
         }
       }
       JUnitTestCase.fail(writer.toString());
@@ -3201,18 +3224,18 @@ class StaticTypeVerifier extends GeneralizingASTVisitor<Object> {
     return super.visitPrefixedIdentifier(node);
   }
   Object visitSimpleIdentifier(SimpleIdentifier node) {
-    ASTNode parent20 = node.parent;
-    if (parent20 is MethodInvocation && identical(node, ((parent20 as MethodInvocation)).methodName)) {
+    ASTNode parent21 = node.parent;
+    if (parent21 is MethodInvocation && identical(node, ((parent21 as MethodInvocation)).methodName)) {
       return null;
-    } else if (parent20 is RedirectingConstructorInvocation && identical(node, ((parent20 as RedirectingConstructorInvocation)).constructorName)) {
+    } else if (parent21 is RedirectingConstructorInvocation && identical(node, ((parent21 as RedirectingConstructorInvocation)).constructorName)) {
       return null;
-    } else if (parent20 is SuperConstructorInvocation && identical(node, ((parent20 as SuperConstructorInvocation)).constructorName)) {
+    } else if (parent21 is SuperConstructorInvocation && identical(node, ((parent21 as SuperConstructorInvocation)).constructorName)) {
       return null;
-    } else if (parent20 is ConstructorName && identical(node, ((parent20 as ConstructorName)).name)) {
+    } else if (parent21 is ConstructorName && identical(node, ((parent21 as ConstructorName)).name)) {
       return null;
-    } else if (parent20 is Label && identical(node, ((parent20 as Label)).label)) {
+    } else if (parent21 is Label && identical(node, ((parent21 as Label)).label)) {
       return null;
-    } else if (parent20 is ImportDirective && identical(node, ((parent20 as ImportDirective)).prefix)) {
+    } else if (parent21 is ImportDirective && identical(node, ((parent21 as ImportDirective)).prefix)) {
       return null;
     } else if (node.element is PrefixElement) {
       return null;
@@ -4553,6 +4576,16 @@ class AnalysisContextFactory {
     CompilationUnitElementImpl htmlUnit = new CompilationUnitElementImpl("html_dartium.dart");
     Source htmlSource = sourceFactory.forUri(DartSdk.DART_HTML);
     htmlUnit.source = htmlSource;
+    ClassElementImpl elementElement = ElementFactory.classElement2("Element", []);
+    InterfaceType elementType = elementElement.type;
+    ClassElementImpl documentElement = ElementFactory.classElement("Document", elementType, []);
+    ClassElementImpl htmlDocumentElement = ElementFactory.classElement("HtmlDocument", documentElement.type, []);
+    htmlDocumentElement.methods = <MethodElement> [ElementFactory.methodElement("query", elementType, <Type2> [provider.stringType])];
+    htmlUnit.types = <ClassElement> [ElementFactory.classElement("AnchorElement", elementType, []), ElementFactory.classElement("BodyElement", elementType, []), ElementFactory.classElement("ButtonElement", elementType, []), ElementFactory.classElement("DivElement", elementType, []), documentElement, elementElement, htmlDocumentElement, ElementFactory.classElement("InputElement", elementType, []), ElementFactory.classElement("SelectElement", elementType, [])];
+    htmlUnit.functions = <FunctionElement> [ElementFactory.functionElement3("query", elementElement, <ClassElement> [provider.stringType.element], ClassElementImpl.EMPTY_ARRAY)];
+    TopLevelVariableElementImpl document = ElementFactory.topLevelVariableElement2("document");
+    document.type = htmlDocumentElement.type;
+    htmlUnit.topLevelVariables = <TopLevelVariableElement> [document];
     LibraryElementImpl htmlLibrary = new LibraryElementImpl(context, ASTFactory.libraryIdentifier2(["dart", "dom", "html"]));
     htmlLibrary.definingCompilationUnit = htmlUnit;
     Map<Source, LibraryElement> elementMap = new Map<Source, LibraryElement>();
@@ -4710,13 +4743,13 @@ class ResolutionVerifier extends RecursiveASTVisitor<Object> {
       if (!_unresolvedNodes.isEmpty) {
         writer.print("Failed to resolve ");
         writer.print(_unresolvedNodes.length);
-        writer.printlnObject(" nodes:");
+        writer.println(" nodes:");
         printNodes(writer, _unresolvedNodes);
       }
       if (!_wrongTypedNodes.isEmpty) {
         writer.print("Resolved ");
         writer.print(_wrongTypedNodes.length);
-        writer.printlnObject(" to the wrong type of element:");
+        writer.println(" to the wrong type of element:");
         printNodes(writer, _wrongTypedNodes);
       }
       JUnitTestCase.fail(writer.toString());
@@ -4820,7 +4853,7 @@ class ResolutionVerifier extends RecursiveASTVisitor<Object> {
       writer.print(getFileName(identifier));
       writer.print(" : ");
       writer.print(identifier.offset);
-      writer.printlnObject(")");
+      writer.println(")");
     }
   }
 }

@@ -1013,7 +1013,22 @@ class DeclarationResolver extends RecursiveASTVisitor<Object> {
   }
   Object visitDefaultFormalParameter(DefaultFormalParameter node) {
     SimpleIdentifier parameterName = node.parameter.identifier;
-    ParameterElement element = find3(_enclosingExecutable.parameters, parameterName);
+    ParameterElement element = null;
+    if (_enclosingExecutable != null) {
+      element = find3(_enclosingExecutable.parameters, parameterName);
+    } else {
+      PrintStringWriter writer = new PrintStringWriter();
+      writer.println("Invalid state found in the Analysis Engine:");
+      writer.println("DeclarationResolver.visitDefaultFormalParameter() is visiting a parameter that does not appear to be in a method or function.");
+      writer.println("Ancestors:");
+      ASTNode parent14 = node.parent;
+      while (parent14 != null) {
+        writer.println(parent14.runtimeType.toString());
+        writer.println("---------");
+        parent14 = parent14.parent;
+      }
+      AnalysisEngine.instance.logger.logError2(writer.toString(), new AnalysisException());
+    }
     Expression defaultValue2 = node.defaultValue;
     if (defaultValue2 != null) {
       ExecutableElement outerExecutable = _enclosingExecutable;
@@ -1500,9 +1515,9 @@ class ElementResolver extends SimpleASTVisitor<Object> {
     if (type14 is DynamicTypeImpl) {
       return null;
     } else if (type14 is! InterfaceType) {
-      ASTNode parent14 = node.parent;
-      if (parent14 is InstanceCreationExpression) {
-        if (((parent14 as InstanceCreationExpression)).isConst()) {
+      ASTNode parent15 = node.parent;
+      if (parent15 is InstanceCreationExpression) {
+        if (((parent15 as InstanceCreationExpression)).isConst()) {
         } else {
         }
       } else {
@@ -3678,11 +3693,11 @@ class ResolverVisitor extends ScopedVisitor {
    * @param expression the expression being tested
    * @return {@code true} if the given expression terminates abruptly
    */
-  bool isAbruptTermination(Expression expression18) {
-    while (expression18 is ParenthesizedExpression) {
-      expression18 = ((expression18 as ParenthesizedExpression)).expression;
+  bool isAbruptTermination(Expression expression19) {
+    while (expression19 is ParenthesizedExpression) {
+      expression19 = ((expression19 as ParenthesizedExpression)).expression;
     }
-    return expression18 is ThrowExpression || expression18 is RethrowExpression;
+    return expression19 is ThrowExpression || expression19 is RethrowExpression;
   }
   /**
    * Return {@code true} if the given statement terminates abruptly (that is, if any statement
@@ -5107,8 +5122,8 @@ class StaticTypeAnalyzer extends SimpleASTVisitor<Object> {
    * @return {@code true} if the given node is not a type literal
    */
   bool isNotTypeLiteral(Identifier node) {
-    ASTNode parent15 = node.parent;
-    return parent15 is TypeName || (parent15 is PrefixedIdentifier && (parent15.parent is TypeName || identical(((parent15 as PrefixedIdentifier)).prefix, node))) || (parent15 is PropertyAccess && identical(((parent15 as PropertyAccess)).target, node)) || (parent15 is MethodInvocation && identical(node, ((parent15 as MethodInvocation)).target));
+    ASTNode parent16 = node.parent;
+    return parent16 is TypeName || (parent16 is PrefixedIdentifier && (parent16.parent is TypeName || identical(((parent16 as PrefixedIdentifier)).prefix, node))) || (parent16 is PropertyAccess && identical(((parent16 as PropertyAccess)).target, node)) || (parent16 is MethodInvocation && identical(node, ((parent16 as MethodInvocation)).target));
   }
   /**
    * If it is appropriate to do so, override the type of the given element. Use the static type and
@@ -5737,9 +5752,9 @@ class TypeResolverVisitor extends ScopedVisitor {
         node.type = voidType;
         return null;
       }
-      ASTNode parent16 = node.parent;
-      if (typeName is PrefixedIdentifier && parent16 is ConstructorName && argumentList == null) {
-        ConstructorName name = parent16 as ConstructorName;
+      ASTNode parent17 = node.parent;
+      if (typeName is PrefixedIdentifier && parent17 is ConstructorName && argumentList == null) {
+        ConstructorName name = parent17 as ConstructorName;
         if (name.name == null) {
           SimpleIdentifier prefix7 = ((typeName as PrefixedIdentifier)).prefix;
           element = nameScope.lookup(prefix7, definingLibrary);
@@ -5907,11 +5922,11 @@ class TypeResolverVisitor extends ScopedVisitor {
    * were provided
    */
   ErrorCode getInvalidTypeParametersErrorCode(TypeName node) {
-    ASTNode parent17 = node.parent;
-    if (parent17 is ConstructorName) {
-      parent17 = parent17.parent;
-      if (parent17 is InstanceCreationExpression) {
-        if (((parent17 as InstanceCreationExpression)).isConst()) {
+    ASTNode parent18 = node.parent;
+    if (parent18 is ConstructorName) {
+      parent18 = parent18.parent;
+      if (parent18 is InstanceCreationExpression) {
+        if (((parent18 as InstanceCreationExpression)).isConst()) {
           return CompileTimeErrorCode.CONST_WITH_INVALID_TYPE_PARAMETERS;
         } else {
           return CompileTimeErrorCode.NEW_WITH_INVALID_TYPE_PARAMETERS;
@@ -7140,6 +7155,7 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
   }
   Object visitSwitchStatement(SwitchStatement node) {
     checkForCaseExpressionTypeImplementsEquals(node);
+    checkForInconsistentCaseExpressionTypes(node);
     return super.visitSwitchStatement(node);
   }
   Object visitThrowExpression(ThrowExpression node) {
@@ -7494,9 +7510,9 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
    * @see CompileTimeErrorCode#FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR
    */
   bool checkForFieldInitializerOutsideConstructor(FieldFormalParameter node) {
-    ASTNode parent18 = node.parent;
-    if (parent18 != null) {
-      ASTNode grandparent = parent18.parent;
+    ASTNode parent19 = node.parent;
+    if (parent19 != null) {
+      ASTNode grandparent = parent19.parent;
       if (grandparent != null && grandparent is! ConstructorDeclaration && grandparent.parent is! ConstructorDeclaration) {
         _errorReporter.reportError(CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, node, []);
         return true;
@@ -7559,6 +7575,33 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
     bool foundError = false;
     for (TypeName type in implementsClause.interfaces) {
       foundError = javaBooleanOr(foundError, checkForExtendsOrImplementsDisallowedClass(type, CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS));
+    }
+    return foundError;
+  }
+  /**
+   * This verifies that the passed switch statement case expressions all have the same type.
+   * @param node the switch statement to evaluate
+   * @return return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#INCONSISTENT_CASE_EXPRESSION_TYPES
+   */
+  bool checkForInconsistentCaseExpressionTypes(SwitchStatement node) {
+    NodeList<SwitchMember> switchMembers = node.members;
+    bool foundError = false;
+    Type2 firstType = null;
+    for (SwitchMember switchMember in switchMembers) {
+      if (switchMember is SwitchCase) {
+        SwitchCase switchCase = switchMember as SwitchCase;
+        Expression expression17 = switchCase.expression;
+        if (firstType == null) {
+          firstType = expression17.staticType;
+        } else {
+          Type2 nType = expression17.staticType;
+          if (firstType != nType) {
+            _errorReporter.reportError(CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES, expression17, [expression17.toSource(), firstType.name]);
+            foundError = true;
+          }
+        }
+      }
     }
     return foundError;
   }

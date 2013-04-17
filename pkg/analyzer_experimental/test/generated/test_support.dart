@@ -289,7 +289,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
     for (AnalysisError error in expectedErrors) {
       Source source16 = error.source;
       LineInfo lineInfo = _lineInfoMap[source16];
-      writer.println();
+      writer.newLine();
       if (lineInfo == null) {
         int offset10 = error.offset;
         writer.printf("  %s %s (%d..%d)", [source16 == null ? "" : source16.shortName, error.errorCode, offset10, offset10 + error.length]);
@@ -298,14 +298,14 @@ class GatheringErrorListener implements AnalysisErrorListener {
         writer.printf("  %s %s (%d, %d/%d)", [source16 == null ? "" : source16.shortName, error.errorCode, location.lineNumber, location.columnNumber, error.length]);
       }
     }
-    writer.println();
+    writer.newLine();
     writer.print("found ");
     writer.print(_errors.length);
     writer.print(" errors:");
     for (AnalysisError error in _errors) {
       Source source17 = error.source;
       LineInfo lineInfo = _lineInfoMap[source17];
-      writer.println();
+      writer.newLine();
       if (lineInfo == null) {
         int offset11 = error.offset;
         writer.printf("  %s %s (%d..%d): %s", [source17 == null ? "" : source17.shortName, error.errorCode, offset11, offset11 + error.length, error.message]);
@@ -569,7 +569,7 @@ class EngineTestCase extends JUnitTestCase {
   static String createSource(List<String> lines) {
     PrintStringWriter writer = new PrintStringWriter();
     for (String line in lines) {
-      writer.printlnObject(line);
+      writer.println(line);
     }
     return writer.toString();
   }

@@ -176,13 +176,13 @@ String _printf(String fmt, List args) {
 abstract class PrintWriter {
   void print(x);
 
-  void println() {
+  void newLine() {
     this.print('\n');
   }
 
-  void printlnObject(String s) {
+  void println(String s) {
     this.print(s);
-    this.println();
+    this.newLine();
   }
 
   void printf(String fmt, List args) {

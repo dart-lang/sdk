@@ -6198,13 +6198,13 @@ class ASTValidator extends GeneralizingASTVisitor<Object> {
    * @param node the AST node being validated
    */
   void validate(ASTNode node) {
-    ASTNode parent21 = node.parent;
+    ASTNode parent22 = node.parent;
     if (node is CompilationUnit) {
-      if (parent21 != null) {
+      if (parent22 != null) {
         _errors.add("Compilation units should not have a parent");
       }
     } else {
-      if (parent21 == null) {
+      if (parent22 == null) {
         _errors.add("No parent for ${node.runtimeType.toString()}");
       }
     }
@@ -6219,15 +6219,15 @@ class ASTValidator extends GeneralizingASTVisitor<Object> {
     if (nodeStart < 0 || nodeLength < 0) {
       _errors.add("No source info for ${node.runtimeType.toString()}");
     }
-    if (parent21 != null) {
+    if (parent22 != null) {
       int nodeEnd = nodeStart + nodeLength;
-      int parentStart = parent21.offset;
-      int parentEnd = parentStart + parent21.length;
+      int parentStart = parent22.offset;
+      int parentEnd = parentStart + parent22.length;
       if (nodeStart < parentStart) {
-        _errors.add("Invalid source start (${nodeStart}) for ${node.runtimeType.toString()} inside ${parent21.runtimeType.toString()} (${parentStart})");
+        _errors.add("Invalid source start (${nodeStart}) for ${node.runtimeType.toString()} inside ${parent22.runtimeType.toString()} (${parentStart})");
       }
       if (nodeEnd > parentEnd) {
-        _errors.add("Invalid source end (${nodeEnd}) for ${node.runtimeType.toString()} inside ${parent21.runtimeType.toString()} (${parentStart})");
+        _errors.add("Invalid source end (${nodeEnd}) for ${node.runtimeType.toString()} inside ${parent22.runtimeType.toString()} (${parentStart})");
       }
     }
   }
@@ -7676,6 +7676,18 @@ class ErrorParserTest extends ParserTestCase {
   void test_staticTopLevelDeclaration_variable() {
     ParserTestCase.parse5("parseCompilationUnit", "static var x;", [ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION]);
   }
+  void test_switchHasCaseAfterDefaultCase() {
+    ParserTestCase.parse5("parseSwitchStatement", "switch (a) {default: return 0; case 1: return 1;}", [ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE]);
+  }
+  void test_switchHasCaseAfterDefaultCase_repeated() {
+    ParserTestCase.parse5("parseSwitchStatement", "switch (a) {default: return 0; case 1: return 1; case 2: return 2;}", [ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE, ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE]);
+  }
+  void test_switchHasMultipleDefaultCases() {
+    ParserTestCase.parse5("parseSwitchStatement", "switch (a) {default: return 0; default: return 1;}", [ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES]);
+  }
+  void test_switchHasMultipleDefaultCases_repeated() {
+    ParserTestCase.parse5("parseSwitchStatement", "switch (a) {default: return 0; default: return 1; default: return 2;}", [ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES, ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES]);
+  }
   void test_topLevelOperator_withoutType() {
     ParserTestCase.parse4("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "operator +(bool x, bool y) => x | y;", [ParserErrorCode.TOP_LEVEL_OPERATOR]);
   }
@@ -8336,6 +8348,22 @@ class ErrorParserTest extends ParserTestCase {
       _ut.test('test_staticTopLevelDeclaration_variable', () {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_staticTopLevelDeclaration_variable);
+      });
+      _ut.test('test_switchHasCaseAfterDefaultCase', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_switchHasCaseAfterDefaultCase);
+      });
+      _ut.test('test_switchHasCaseAfterDefaultCase_repeated', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_switchHasCaseAfterDefaultCase_repeated);
+      });
+      _ut.test('test_switchHasMultipleDefaultCases', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_switchHasMultipleDefaultCases);
+      });
+      _ut.test('test_switchHasMultipleDefaultCases_repeated', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_switchHasMultipleDefaultCases_repeated);
       });
       _ut.test('test_topLevelOperator_withType', () {
         final __test = new ErrorParserTest();
