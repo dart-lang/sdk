@@ -266,8 +266,8 @@ abstract class List<E> implements Iterable<E> {
 
   /**
    * Returns an [Iterable] that iterators over the elements in the range
-   * [start] to [end] (exclusive). The result of this function is backed by
-   * `this`.
+   * [start] to [end] exclusive. The result of this function
+   * is backed by `this`.
    *
    * It is an error if [end] is before [start].
    *
@@ -288,7 +288,7 @@ abstract class List<E> implements Iterable<E> {
 
   /**
    * Copies the elements of [iterable], skipping the [skipCount] first elements
-   * into the range [start] - [end] (excluding) of `this`.
+   * into the range [start] to [end] exclusive of `this`.
    *
    * If [start] equals [end] and represent a legal range, this method has
    * no effect.
@@ -302,7 +302,7 @@ abstract class List<E> implements Iterable<E> {
   void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]);
 
   /**
-   * Removes the elements in the range [start]..[end] (excluding).
+   * Removes the elements in the range [start] to [end] exclusive.
    *
    * It is an error if [start]..[end] is not a valid range pointing into the
    * `this`.
@@ -310,7 +310,7 @@ abstract class List<E> implements Iterable<E> {
   void removeRange(int start, int end);
 
   /**
-   * Sets the elements in the range [start]..[end] (excluding) to the given
+   * Sets the elements in the range [start] to [end] exclusive to the given
    * [fillValue].
    *
    * It is an error if [start]..[end] is not a valid range pointing into the
@@ -319,7 +319,7 @@ abstract class List<E> implements Iterable<E> {
   void fillRange(int start, int end, [E fillValue]);
 
   /**
-   * Removes the elements in the range [start]..[end] (excluding) and replaces
+   * Removes the elements in the range [start] to [end] exclusive and replaces
    * them with the contents of the [iterable].
    *
    * It is an error if [start]..[end] is not a valid range pointing into the
