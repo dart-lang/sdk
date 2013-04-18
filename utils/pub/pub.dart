@@ -259,11 +259,25 @@ abstract class PubCommand {
       }
 
       log.error(message);
-      if (globalOptions['trace'] && trace != null) {
-        log.error(trace);
+
+      if (trace != null) {
+        if (globalOptions['trace'] || !isUserFacingException(error)) {
+          log.error(trace);
+        } else {
+          log.fine(trace);
+        }
+      }
+
+      if (globalOptions['trace']) {
         log.dumpTranscript();
-      } else {
-        log.fine(trace);
+      } else if (!isUserFacingException(error)) {
+        log.error("""
+This is an unexpected error. Please run
+
+    pub --trace ${new Options().arguments.map((arg) => "'$arg'").join(' ')}
+
+and include the results in a bug report on http://dartbug.com/new.
+""");
       }
 
       exit(_chooseExitCode(error));

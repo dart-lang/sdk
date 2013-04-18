@@ -471,7 +471,7 @@ Future<Map> dependencyListToMap(List<Map> dependencies) {
         source = new PathSource();
         break;
       default:
-        throw 'Unknown source "$sourceName"';
+        throw new Exception('Unknown source "$sourceName"');
       }
 
       result[_packageName(sourceName, dependency[sourceName])] = dependency;

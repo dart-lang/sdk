@@ -87,8 +87,7 @@ class Entrypoint {
       } else {
         return id.source.install(id, packageDir).then((found) {
           if (found) return null;
-          // TODO(nweiz): More robust error-handling.
-          throw 'Package ${id.name} not found in source "${id.source.name}".';
+          fail('Package ${id.name} not found in source "${id.source.name}".');
         });
       }
     }).then((_) => id.resolved);

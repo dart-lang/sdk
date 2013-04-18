@@ -872,13 +872,15 @@ class MockSource extends Source {
     return new Future.sync(() {
       // Make sure the solver doesn't request the same thing twice.
       if (_requestedVersions.contains(description)) {
-        throw 'Version list for $description was already requested.';
+        throw new Exception('Version list for $description was already '
+            'requested.');
       }
 
       _requestedVersions.add(description);
 
       if (!_packages.containsKey(description)){
-        throw 'MockSource does not have a package matching "$description".';
+        throw new Exception('MockSource does not have a package matching '
+            '"$description".');
       }
       return _packages[description].keys.toList();
     });
@@ -889,7 +891,7 @@ class MockSource extends Source {
       // Make sure the solver doesn't request the same thing twice.
       if (_requestedPubspecs.containsKey(id.description) &&
           _requestedPubspecs[id.description].contains(id.version)) {
-        throw 'Pubspec for $id was already requested.';
+        throw new Exception('Pubspec for $id was already requested.');
       }
 
       _requestedPubspecs.putIfAbsent(id.description, () => new Set<Version>());
@@ -900,7 +902,7 @@ class MockSource extends Source {
   }
 
   Future<bool> install(PackageId id, String path) {
-    throw 'no';
+    throw new Exception('no');
   }
 
   void addPackage(String description, Package package) {

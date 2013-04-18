@@ -262,7 +262,9 @@ String relativeToPub(String target) {
   var utilDir = path.dirname(scriptPath);
   while (path.basename(utilDir) != 'utils' &&
          path.basename(utilDir) != 'util') {
-    if (path.basename(utilDir) == '') throw 'Could not find path to pub.';
+    if (path.basename(utilDir) == '') {
+      throw new Exception('Could not find path to pub.');
+    }
     utilDir = path.dirname(utilDir);
   }
 
@@ -544,8 +546,8 @@ Future<bool> extractTarGz(Stream<List<int>> stream, String destination) {
   }).then((results) {
     var exitCode = results[1];
     if (exitCode != 0) {
-      throw "Failed to extract .tar.gz stream to $destination (exit code "
-        "$exitCode).";
+      throw new Exception("Failed to extract .tar.gz stream to $destination "
+          "(exit code $exitCode).");
     }
     log.fine("Extracted .tar.gz stream to $destination. Exit code $exitCode.");
   });
@@ -576,25 +578,27 @@ Future<bool> _extractTarGzWindows(Stream<List<int>> stream,
       return runProcess(command, ['e', 'data.tar.gz'], workingDir: tempDir);
     }).then((result) {
       if (result.exitCode != 0) {
-        throw 'Could not un-gzip (exit code ${result.exitCode}). Error:\n'
+        throw new Exception('Could not un-gzip (exit code ${result.exitCode}). '
+                'Error:\n'
             '${result.stdout.join("\n")}\n'
-            '${result.stderr.join("\n")}';
+            '${result.stderr.join("\n")}');
       }
 
       // Find the tar file we just created since we don't know its name.
       var tarFile = listDir(tempDir).firstWhere(
           (file) => path.extension(file) == '.tar',
           orElse: () {
-        throw 'The gzip file did not contain a tar file.';
+        throw new FormatException('The gzip file did not contain a tar file.');
       });
 
       // Untar the archive into the destination directory.
       return runProcess(command, ['x', tarFile], workingDir: destination);
     }).then((result) {
       if (result.exitCode != 0) {
-        throw 'Could not un-tar (exit code ${result.exitCode}). Error:\n'
+        throw new Exception('Could not un-tar (exit code ${result.exitCode}). '
+                'Error:\n'
             '${result.stdout.join("\n")}\n'
-            '${result.stderr.join("\n")}';
+            '${result.stderr.join("\n")}');
       }
       return true;
     });
@@ -618,7 +622,7 @@ ByteStream createTarGz(List contents, {baseDir}) {
   contents = contents.map((entry) {
     entry = path.absolute(entry);
     if (!isBeneath(entry, baseDir)) {
-      throw 'Entry $entry is not inside $baseDir.';
+      throw new ArgumentError('Entry $entry is not inside $baseDir.');
     }
     return path.relative(entry, from: baseDir);
   }).toList();
