@@ -5,6 +5,7 @@
 // Patch library for dart:mirrors.
 
 import 'dart:_foreign_helper' show JS;
+import "dart:_collection-dev" as _symbol_dev;
 
 // Yeah, seriously: mirrors in dart2js are experimental...
 const String _MIRROR_OPT_IN_MESSAGE = """
@@ -25,8 +26,7 @@ bool _mirrorsEnabled = false;
 
 patch class MirrorSystem {
   patch static String getName(Symbol symbol) {
-    throw new UnimplementedError('MirrorSystem.getName is not yet implemented '
-                                 'in dart2js');
+    return _symbol_dev.Symbol.getName(symbol);
   }
 }
 

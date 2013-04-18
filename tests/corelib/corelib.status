@@ -54,14 +54,6 @@ string_base_vm_test: Fail, OK # VM specific test.
 
 string_replace_func_test: Skip # Bug 6554 - doesn't terminate.
 
-symbol_test/none: Fail
-symbol_test/02: Fail
-symbol_test/03: Fail
-
-
-[ $compiler == dart2js && $unchecked ]
-symbol_test/01: Fail # This passes for the wrong reason in checked mode.
-
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
@@ -74,10 +66,6 @@ string_base_vm_test: Fail # BUG(3304): Maybe this doesn't time out?
 [ $compiler == dart2dart ]
 compare_to2_test: Fail # inherited from VM
 unicode_test: Fail # inherited from VM
-
-symbol_test/01: Fail
-symbol_test/02: Fail
-symbol_test/03: Fail
 
 
 # Library changes

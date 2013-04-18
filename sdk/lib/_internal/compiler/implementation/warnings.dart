@@ -393,6 +393,27 @@ Length: #{length}''');
       "Error: Modifier static is only allowed on functions declared in"
       " a class.");
 
+  static const STATIC_FUNCTION_BLOAT = const MessageKind(
+      'Warning: Using "#{class}.#{name}" may result in larger output.');
+
+  static const NON_CONST_BLOAT = const MessageKind('''
+Warning: Using "new #{name}" may result in larger output.
+Use "const #{name}" if possible.''');
+
+  static const STRING_EXPECTED = const MessageKind(
+      'Error: Expected a "String", but got an instance of "#{type}".');
+
+  static const PRIVATE_IDENTIFIER = const MessageKind(
+      'Error: "#{value}" is not a valid Symbol name because it starts with '
+      '"_".');
+
+  static const INVALID_SYMBOL = const MessageKind('''
+Error: "#{value}" is not a valid Symbol name because is not:
+ * an empty String,
+ * a user defined operator,
+ * a qualified non-private identifier optionally followed by "=", or
+ * a qualified non-private identifier followed by "." and a user-defined operator.''');
+
   static const COMPILER_CRASHED = const MessageKind(
       "Error: The compiler crashed when compiling this element.");
 

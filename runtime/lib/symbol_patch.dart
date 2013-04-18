@@ -4,41 +4,5 @@
 
 patch class Symbol {
   /* patch */ const Symbol(String name)
-      : this._name = _validate(name);
-
-  static final RegExp _validationPattern =
-      new RegExp(r'^(?:[a-zA-Z$][a-zA-Z$0-9_]*\.)*(?:[a-zA-Z$][a-zA-Z$0-9_]*=?|'
-                 r'-|'
-                 r'unary-|'
-                 r'\[\]=|'
-                 r'~|'
-                 r'==|'
-                 r'\[\]|'
-                 r'\*|'
-                 r'/|'
-                 r'%|'
-                 r'~/|'
-                 r'\+|'
-                 r'<<|'
-                 r'>>|'
-                 r'>=|'
-                 r'>|'
-                 r'<=|'
-                 r'<|'
-                 r'&|'
-                 r'\^|'
-                 r'\|'
-                 r')$');
-
-  static _validate(String name) {
-    if (name.isEmpty) return name;
-    if (name.startsWith('_')) {
-      throw new ArgumentError('"$name" is a private identifier');
-    }
-    if (!_validationPattern.hasMatch(name)) {
-      throw new ArgumentError(
-          '"$name" is not an identifier or an empty String');
-    }
-    return name;
-  }
+      : this._name = validate(name);
 }

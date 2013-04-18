@@ -3339,6 +3339,18 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     FunctionElement functionElement = constructor;
     constructor = functionElement.redirectionTarget;
+    final bool isSymbolConstructor =
+        functionElement == compiler.symbolConstructor;
+
+    if (isSymbolConstructor) {
+      constructor = compiler.symbolValidatedConstructor;
+      assert(invariant(node, constructor != null,
+                       message: 'Constructor Symbol.validated is missing'));
+      selector = compiler.symbolValidatedConstructorSelector;
+      assert(invariant(node, selector != null,
+                       message: 'Constructor Symbol.validated is missing'));
+    }
+
     // TODO(5346): Try to avoid the need for calling [declaration] before
     // creating an [HStatic].
     HInstruction target = new HStatic(constructor.declaration);

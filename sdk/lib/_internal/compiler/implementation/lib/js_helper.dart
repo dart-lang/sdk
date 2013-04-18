@@ -20,6 +20,7 @@ import 'dart:_interceptors' show getInterceptor,
                                  setDispatchProperty,
                                  Interceptor,
                                  JSIndexable;
+import "dart:_collection-dev" as _symbol_dev;
 
 part 'constant_map.dart';
 part 'native_helper.dart';
@@ -63,7 +64,7 @@ String S(value) {
 }
 
 createInvocationMirror(name, internalName, type, arguments, argumentNames) {
-  return new JSInvocationMirror(new Symbol(name),
+  return new JSInvocationMirror(new _symbol_dev.Symbol.unvalidated(name),
                                 internalName,
                                 type,
                                 arguments,
@@ -111,7 +112,7 @@ class JSInvocationMirror implements Invocation {
     int namedArgumentCount = _namedArgumentNames.length;
     int namedArgumentsStartIndex = _arguments.length - namedArgumentCount;
     for (int i = 0; i < namedArgumentCount; i++) {
-      map[new Symbol(_namedArgumentNames[i])] =
+      map[new _symbol_dev.Symbol.unvalidated(_namedArgumentNames[i])] =
           _arguments[namedArgumentsStartIndex + i];
     }
     return map;

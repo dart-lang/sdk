@@ -16,7 +16,7 @@ typeddata/*: Skip
 
 [ $compiler == dart2js ]
 math/*: Skip
-mirrors/*: Skip
+mirrors/mirrors_test: Fail # TODO(ahe): I'm working on fixing this.
 async/run_async3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug.com/9002
 async/run_async4_test: Pass, Fail # no global exception handler in isolates. http://dartbug.com/9012
 

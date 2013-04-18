@@ -548,6 +548,7 @@ class ResolverTask extends CompilerTask {
             new ClassResolverVisitor(compiler, element);
         visitor.visit(tree);
         element.resolutionState = STATE_DONE;
+        compiler.onClassResolved(element);
       }));
       if (element.isPatched) {
         // Ensure handling patch after origin.
@@ -699,6 +700,7 @@ class ResolverTask extends CompilerTask {
       if (compiler.onDeprecatedFeature(member, 'conflicting constructor')) {
         compiler.reportMessage(
             compiler.spanFromElement(otherMember),
+            // Using GENERIC as this message is temporary.
             MessageKind.GENERIC.error({'text': 'This member conflicts with a'
                                                ' constructor.'}),
             Diagnostic.INFO);
@@ -1622,6 +1624,31 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   int allowedCategory = ElementCategory.VARIABLE | ElementCategory.FUNCTION
       | ElementCategory.IMPLIES_TYPE;
 
+  // TODO(ahe): Find a way to share this with runtime implementation.
+  static final RegExp symbolValidationPattern =
+      new RegExp(r'^(?:[a-zA-Z$][a-zA-Z$0-9_]*\.)*(?:[a-zA-Z$][a-zA-Z$0-9_]*=?|'
+                 r'-|'
+                 r'unary-|'
+                 r'\[\]=|'
+                 r'~|'
+                 r'==|'
+                 r'\[\]|'
+                 r'\*|'
+                 r'/|'
+                 r'%|'
+                 r'~/|'
+                 r'\+|'
+                 r'<<|'
+                 r'>>|'
+                 r'>=|'
+                 r'>|'
+                 r'<=|'
+                 r'<|'
+                 r'&|'
+                 r'\^|'
+                 r'\|'
+                 r')$');
+
   ResolverVisitor(Compiler compiler, Element element, this.mapping)
     : this.enclosingElement = element,
       // When the element is a field, we are actually resolving its
@@ -1985,6 +2012,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     Element target;
     SourceString name = node.selector.asIdentifier().source;
     if (identical(name.stringValue, 'this')) {
+      // TODO(ahe): Why is this using GENERIC?
       error(node.selector, MessageKind.GENERIC,
             {'text': "expected an identifier"});
     } else if (node.isSuperCall) {
@@ -2164,6 +2192,13 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     sendIsMemberAccess = node.isPropertyAccess || node.isCall;
     Element target = resolveSend(node);
     sendIsMemberAccess = oldSendIsMemberAccess;
+
+    if (target != null && target == compiler.mirrorSystemGetNameFunction) {
+      compiler.reportWarningCode(
+          node.selector, MessageKind.STATIC_FUNCTION_BLOAT,
+          {'class': compiler.mirrorSystemClass.name,
+           'name': compiler.mirrorSystemGetNameFunction.name});
+    }
 
     if (!Elements.isUnresolved(target)) {
       if (target.isAbstractField()) {
@@ -2414,6 +2449,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   void handleRedirectingFactoryBody(Return node) {
+    final isSymbolConstructor = enclosingElement == compiler.symbolConstructor;
     if (!enclosingElement.isFactoryConstructor()) {
       compiler.reportErrorCode(
           node, MessageKind.FACTORY_REDIRECTION_IN_NON_FACTORY);
@@ -2448,6 +2484,11 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     world.registerStaticUse(redirectionTarget);
     world.registerInstantiatedClass(
         redirectionTarget.enclosingElement.declaration, mapping);
+    if (isSymbolConstructor) {
+      // Make sure that collection_dev.Symbol.validated is registered.
+      assert(invariant(node, compiler.symbolValidatedConstructor != null));
+      world.registerStaticUse(compiler.symbolValidatedConstructor);
+    }
   }
 
   visitThrow(Throw node) {
@@ -2493,6 +2534,12 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   visitNewExpression(NewExpression node) {
     Node selector = node.send.selector;
     FunctionElement constructor = resolveConstructor(node);
+    final bool isSymbolConstructor = constructor == compiler.symbolConstructor;
+    if (!node.isConst() && isSymbolConstructor) {
+      compiler.reportWarningCode(
+          node.newToken, MessageKind.NON_CONST_BLOAT,
+          {'name': compiler.symbolClass.name});
+    }
     resolveSelector(node.send);
     resolveArguments(node.send.argumentsNode);
     useElement(node.send, constructor);
@@ -2535,8 +2582,36 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         },
         includeBackendMembers: false,
         includeSuperMembers: true);
+
+    if (node.isConst() && isSymbolConstructor) {
+      Node argumentNode = node.send.arguments.head;
+      Constant name = compiler.metadataHandler.compileNodeWithDefinitions(
+          argumentNode, mapping, isConst: true);
+      if (!name.isString()) {
+        DartType type = name.computeType(compiler);
+        compiler.reportErrorCode(argumentNode, MessageKind.STRING_EXPECTED,
+                                 {'type': type});
+      } else {
+        validateSymbol(argumentNode, name.toDartString().slowToString());
+      }
+    }
+
     return null;
   }
+
+  void validateSymbol(Node node, String name) {
+    if (name.isEmpty) return;
+    if (name.startsWith('_')) {
+      compiler.reportErrorCode(node, MessageKind.PRIVATE_IDENTIFIER,
+                               {'value': name});
+      return;
+    }
+    if (!symbolValidationPattern.hasMatch(name)) {
+      compiler.reportErrorCode(node, MessageKind.INVALID_SYMBOL,
+                               {'value': name});
+    }
+  }
+
 
   /**
    * Try to resolve the constructor that is referred to by [node].
