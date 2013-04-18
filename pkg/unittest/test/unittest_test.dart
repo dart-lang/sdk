@@ -292,11 +292,6 @@ runTest() {
       });
       test('foo6', () {
       });
-    } else if (testName == 'testCases immutable') {
-      test(testName, () {
-        expect(() => testCases.clear(), throwsUnsupportedError);
-        expect(() => testCases.removeLast(), throwsUnsupportedError);
-      });
     } else if (testName == 'runTests without tests') {
       runTests();
     }
@@ -353,8 +348,6 @@ main() {
         'fail2:failure:'
         'error2:Callback called more times than expected (1).:'
         'foo6'),
-    'testCases immutable':
-        buildStatusString(1, 0, 0, 'testCases immutable'),
     'runTests without tests': buildStatusString(0, 0, 0, null)
   };
 
