@@ -25,7 +25,7 @@ import 'backtracking_solver.dart';
 /// packages will be used. This is for forcing an update to one or more
 /// packages.
 Future<SolveResult> resolveVersions(SourceRegistry sources, Package root,
-    {LockFile lockFile, List<PackageRef> useLatest}) {
+    {LockFile lockFile, List<String> useLatest}) {
   log.message('Resolving dependencies...');
 
   if (lockFile == null) lockFile = new LockFile.empty();
