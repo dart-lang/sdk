@@ -46,7 +46,7 @@ class Package {
   String get readmePath {
     var readmes = listDir(dir).map(path.basename).
         where((entry) => entry.contains(_README_REGEXP));
-    if (readmes.isEmpty) return;
+    if (readmes.isEmpty) return null;
 
     return path.join(dir, readmes.reduce((readme1, readme2) {
       var extensions1 = ".".allMatches(readme1).length;

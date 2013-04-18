@@ -201,11 +201,9 @@ String _currentGroup = '';
 /** Separator used between group names and test names. */
 String groupSep = ' ';
 
+// TODO(nweiz): present an unmodifiable view of this once issue 8321 is fixed.
 /** Tests executed in this suite. */
-final List<TestCase> _testCases = new List<TestCase>();
-
-/** Get the list of tests. */
-final List<TestCase> testCases = new UnmodifiableListView(_testCases);
+final List<TestCase> testCases = new List<TestCase>();
 
 /** Setup function called before each test in a group */
 Function _testSetup;

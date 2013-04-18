@@ -75,12 +75,6 @@ abstract class MessageLookupByLibrary {
   bool _lookupInProgress = false;
 
   /**
-   * Return true if the locale exists, or if it is null. Null is treated
-   * as meaning that we use the default locale.
-   */
-  bool localeExists(localeName);
-
-  /**
    * Return the localized version of a message. We are passed the original
    * version of the message, which consists of a
    * [message_str] that will be translated, and which may be interpolated
