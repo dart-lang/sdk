@@ -155,6 +155,12 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   void HandleEqualityCompare(EqualityCompareInstr* comp,
                              T current_instruction);
 
+  static bool CanStrictifyEqualityCompare(EqualityCompareInstr* call);
+
+  template <typename T>
+  bool StrictifyEqualityCompare(EqualityCompareInstr* compare,
+                                T current_instruction) const;
+
   void OptimizeLeftShiftBitAndSmiOp(Definition* bit_and_instr,
                                     Definition* left_instr,
                                     Definition* right_instr);

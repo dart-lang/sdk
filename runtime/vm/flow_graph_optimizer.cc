@@ -70,6 +70,9 @@ void FlowGraphOptimizer::ApplyClassIds() {
         ComparisonInstr* compare = instr->AsBranch()->comparison();
         if (compare->IsStrictCompare()) {
           VisitStrictCompare(compare->AsStrictCompare());
+        } else if (compare->IsEqualityCompare()) {
+          StrictifyEqualityCompare(compare->AsEqualityCompare(),
+                                   instr->AsBranch());
         }
       }
     }
@@ -2184,24 +2187,78 @@ void FlowGraphOptimizer::VisitRelationalOp(RelationalOpInstr* instr) {
 }
 
 
+bool FlowGraphOptimizer::CanStrictifyEqualityCompare(
+    EqualityCompareInstr* compare) {
+  // If one of the inputs is null this is a strict comparison.
+  if (compare->left()->BindsToConstantNull() ||
+      compare->right()->BindsToConstantNull()) {
+    return true;
+  }
+
+  if (compare->left()->Type()->IsNone()) {
+    return false;  // We might be running prior to any type propagation passes.
+  }
+
+  // Try resolving target function using propagated cid for the receiver.
+  // If receiver is either null or has default equality operator then
+  // we can convert such comparison to a strict one.
+  const intptr_t receiver_cid =
+     compare->left()->Type()->ToNullableCid();
+
+  if (receiver_cid == kDynamicCid) {
+    return false;
+  }
+
+  const Class& receiver_class = Class::Handle(
+      Isolate::Current()->class_table()->At(receiver_cid));
+
+  // Resolve equality operator.
+  const Function& function = Function::Handle(
+      Resolver::ResolveDynamicForReceiverClass(
+          receiver_class,
+          Symbols::EqualOperator(),
+          2,
+          0));
+
+  if (function.IsNull()) {
+    return false;
+  }
+
+  // Default equality operator declared on the Object class just calls
+  // identical.
+  return (Class::Handle(function.Owner()).id() == kInstanceCid);
+}
+
+
 template <typename T>
-void FlowGraphOptimizer::HandleEqualityCompare(EqualityCompareInstr* comp,
-                                               T current_instruction) {
-  // If one of the inputs is null, no ICdata will be collected.
-  if (comp->left()->BindsToConstantNull() ||
-      comp->right()->BindsToConstantNull()) {
-    Token::Kind strict_kind = (comp->kind() == Token::kEQ) ?
+bool FlowGraphOptimizer::StrictifyEqualityCompare(
+    EqualityCompareInstr* compare,
+    T current_instruction) const {
+  if (CanStrictifyEqualityCompare(compare)) {
+    Token::Kind strict_kind = (compare->kind() == Token::kEQ) ?
         Token::kEQ_STRICT : Token::kNE_STRICT;
     StrictCompareInstr* strict_comp =
         new StrictCompareInstr(strict_kind,
-                               comp->left()->Copy(),
-                               comp->right()->Copy());
+                               compare->left()->CopyWithType(),
+                               compare->right()->CopyWithType());
     current_instruction->ReplaceWith(strict_comp, current_iterator());
+    return true;
+  }
+  return false;
+}
+
+
+template <typename T>
+void FlowGraphOptimizer::HandleEqualityCompare(EqualityCompareInstr* comp,
+                                               T current_instruction) {
+  if (StrictifyEqualityCompare(comp, current_instruction)) {
     return;
   }
+
   if (!comp->HasICData() || (comp->ic_data()->NumberOfChecks() == 0)) {
     return;
   }
+
   ASSERT(comp->ic_data()->num_args_tested() == 2);
   if (comp->ic_data()->NumberOfChecks() == 1) {
     GrowableArray<intptr_t> class_ids;
@@ -2265,6 +2322,8 @@ void FlowGraphOptimizer::HandleEqualityCompare(EqualityCompareInstr* comp,
     comp->set_receiver_class_id(kSmiCid);
   }
 }
+
+
 
 
 void FlowGraphOptimizer::VisitEqualityCompare(EqualityCompareInstr* instr) {
