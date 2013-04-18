@@ -232,11 +232,51 @@ void testConfigurations(List<Map> configurations) {
   }
 }
 
-void main() {
-  var optionsParser = new TestOptionsParser();
-  var configurations = optionsParser.parse(new Options().arguments);
-  if (configurations != null && configurations.length > 0) {
-    testConfigurations(configurations);
+Future deleteTemporaryDartDirectories() {
+  var completer = new Completer();
+  var environment = Platform.environment;
+  if (environment['DART_TESTING_DELETE_TEMPORARY_DIRECTORIES'] == '1') {
+    Directory getTempDir() {
+      // dir will be located in the system temporary directory.
+      var dir = new Directory('').createTempSync();
+      var path = new Path(dir.path).directoryPath;
+      dir.deleteSync();
+      return new Directory.fromPath(path);
+    }
+
+    // These are the patterns of temporary directory names created by
+    // 'Directory.createTempSync()' on linux/macos and windows.
+    var regExp;
+    if (['macos', 'linux'].contains(Platform.operatingSystem)) {
+      regExp = new RegExp(r'^temp_dir1_......$');
+    } else {
+      regExp = new RegExp(r'tempdir-........-....-....-....-............$');
+    }
+
+    getTempDir().list().listen((directoryEntry) {
+      if (directoryEntry is Directory) {
+        if (regExp.hasMatch(new Path(directoryEntry.path).filename)) {
+          try {
+            directoryEntry.deleteSync(recursive: true);
+          } catch (error) {
+            DebugLogger.error(error);
+          }
+        }
+      }
+    }, onDone: completer.complete());
+  } else {
+    completer.complete();
   }
+  return completer.future;
+}
+
+void main() {
+  deleteTemporaryDartDirectories().then((_) {
+    var optionsParser = new TestOptionsParser();
+    var configurations = optionsParser.parse(new Options().arguments);
+    if (configurations != null && configurations.length > 0) {
+      testConfigurations(configurations);
+    }
+  });
 }
 
