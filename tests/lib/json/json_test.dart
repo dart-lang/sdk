@@ -67,6 +67,7 @@ main() {
                    '"z":"hi","w":{"c":null,"d":true}, "v":null}'),
         equals({"x": {"a":3, "b": -4.5}, "y":[{}],
                    "z":"hi","w":{"c":null,"d":true}, "v":null}));
+  });
 
   test('stringify', () {
     // Scalars.
@@ -130,7 +131,6 @@ main() {
      * we try to stringify something that cannot be converted to json.
      */
     expect(() => json.stringify(new TestClass()), throwsJsonError);
-    });
   });
 
   test('stringify throws if toJson throws', () {

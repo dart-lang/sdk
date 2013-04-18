@@ -211,13 +211,10 @@ Function _testSetup;
 /** Teardown function called after each test in a group */
 Function _testTeardown;
 
-int _currentTestCaseIndex = 0;
+TestCase _currentTestCase = null;
 
 /** [TestCase] currently being executed. */
-TestCase get currentTestCase =>
-    (_currentTestCaseIndex >= 0 && _currentTestCaseIndex < testCases.length)
-        ? testCases[_currentTestCaseIndex]
-        : null;
+TestCase get currentTestCase => _currentTestCase;
 
 /** Whether the framework is in an initialized state. */
 bool _initialized = false;
@@ -292,10 +289,9 @@ class _SpreadArgsHelper {
   final int minExpectedCalls;
   final int maxExpectedCalls;
   final Function isDone;
-  final int testNum;
+  final TestCase testCase;
   final String id;
   int actualCalls = 0;
-  TestCase testCase;
   bool complete;
   static const sentinel = const _Sentinel();
 
@@ -307,19 +303,13 @@ class _SpreadArgsHelper {
             ? minExpected
             : maxExpected,
         this.isDone = isDone,
-        testNum = _currentTestCaseIndex,
+        this.testCase = currentTestCase,
         this.id = _makeCallbackId(id, callback) {
-    ensureInitialized();
-    if (!(_currentTestCaseIndex >= 0 &&
-           _currentTestCaseIndex < testCases.length &&
-           testCases[_currentTestCaseIndex] != null)) {
-      print("No valid test, did you forget to run your test inside a call "
-          "to test()?");
+    if(testCase == null) {
+      throw new StateError("No valid test, did you forget to run your test "
+          "inside a call to test()?");
     }
-    assert(_currentTestCaseIndex >= 0 &&
-           _currentTestCaseIndex < testCases.length &&
-           testCases[_currentTestCaseIndex] != null);
-    testCase = testCases[_currentTestCaseIndex];
+
     if (isDone != null || minExpected > 0) {
       testCase._callbackFunctionsOutstanding++;
       complete = false;
@@ -403,7 +393,7 @@ class _SpreadArgsHelper {
            '');
       }
     },
-    after, testNum);
+    after, testCase);
   }
 
   invoke0() {
@@ -413,7 +403,7 @@ class _SpreadArgsHelper {
             return callback();
           }
         },
-        after, testNum);
+        after, testCase);
   }
 
   invoke1(arg1) {
@@ -423,7 +413,7 @@ class _SpreadArgsHelper {
             return callback(arg1);
           }
         },
-        after, testNum);
+        after, testCase);
   }
 
   invoke2(arg1, arg2) {
@@ -433,23 +423,8 @@ class _SpreadArgsHelper {
             return callback(arg1, arg2);
           }
         },
-        after, testNum);
+        after, testCase);
   }
-}
-
-/**
- * Indicate that [callback] is expected to be called a [count] number of times
- * (by default 1). The unittest framework will wait for the callback to run the
- * specified [count] times before it continues with the following test.  Using
- * [_expectAsync] will also ensure that errors that occur within [callback] are
- * tracked and reported. [callback] should take between 0 and 4 positional
- * arguments (named arguments are not supported here). [id] can be used
- * to provide more descriptive error messages if the callback is called more
- * often than expected.
- */
-Function _expectAsync(Function callback,
-                     {int count: 1, int max: 0, String id}) {
-  return new _SpreadArgsHelper(callback, count, max, null, id).invoke;
 }
 
 /**
@@ -489,20 +464,6 @@ Function expectAsync2(Function callback,
 
 /**
  * Indicate that [callback] is expected to be called until [isDone] returns
- * true. The unittest framework checks [isDone] after each callback and only
- * when it returns true will it continue with the following test. Using
- * [expectAsyncUntil] will also ensure that errors that occur within
- * [callback] are tracked and reported. [callback] should take between 0 and
- * 4 positional arguments (named arguments are not supported). [id] can be
- * used to identify the callback in error messages (for example if it is called
- * after the test case is complete).
- */
-Function _expectAsyncUntil(Function callback, Function isDone, {String id}) {
-  return new _SpreadArgsHelper(callback, 0, -1, isDone, id).invoke;
-}
-
-/**
- * Indicate that [callback] is expected to be called until [isDone] returns
  * true. The unittest framework check [isDone] after each callback and only
  * when it returns true will it continue with the following test. Using
  * [expectAsyncUntil0] will also ensure that errors that occur within
@@ -530,19 +491,6 @@ Function expectAsyncUntil1(Function callback, Function isDone, {String id}) {
 // TODO(sigmund): deprecate this API when issue 2706 is fixed.
 Function expectAsyncUntil2(Function callback, Function isDone, {String id}) {
   return new _SpreadArgsHelper(callback, 0, -1, isDone, id).invoke2;
-}
-
-/**
- * Wraps the [callback] in a new function and returns that function. The new
- * function will be able to handle exceptions by directing them to the correct
- * test. This is thus similar to expectAsync0. Use it to wrap any callbacks that
- * might optionally be called but may never be called during the test.
- * [callback] should take between 0 and 4 positional arguments (named arguments
- * are not supported). [id] can be used to identify the callback in error
- * messages (for example if it is called after the test case is complete).
- */
-Function _protectAsync(Function callback, {String id}) {
-  return new _SpreadArgsHelper(callback, 0, -1, null, id).invoke;
 }
 
 /**
@@ -620,6 +568,7 @@ void group(String description, void body()) {
  * case it must return a [Future].
  */
 void setUp(Function setupTest) {
+  _requireNotRunning();
   _testSetup = setupTest;
 }
 
@@ -632,15 +581,8 @@ void setUp(Function setupTest) {
  * case it must return a [Future].
  */
 void tearDown(Function teardownTest) {
+  _requireNotRunning();
   _testTeardown = teardownTest;
-}
-
-/** Advance to the next test case. */
-void _nextTestCase() {
-  _defer(() {
-    _currentTestCaseIndex++;
-    _nextBatch();
-  });
 }
 
 /**
@@ -648,30 +590,15 @@ void _nextTestCase() {
  *  error was caught outside of this library.
  */
 void _reportTestError(String msg, String trace) {
- if (_currentTestCaseIndex < testCases.length) {
-    final testCase = testCases[_currentTestCaseIndex];
-    testCase.error(msg, trace);
+ if (currentTestCase != null) {
+   currentTestCase.error(msg, trace);
   } else {
     _uncaughtErrorMessage = "$msg: $trace";
   }
 }
 
-/**
- * Runs [callback] at the end of the event loop. Note that we don't wrap
- * the callback in guardAsync; this is for test framework functions which
- * should not be throwing unexpected exceptions that end up failing test
- * cases! Furthermore, we need the final exception to be thrown but not
- * caught by the test framework if any test cases failed. However, tests
- * that make use of a similar defer function *should* wrap the callback
- * (as we do in unitttest_test.dart).
- */
-_defer(void callback()) {
-  (new Future.value()).then((_) => callback());
-}
-
 void rerunTests() {
-  _uncaughtErrorMessage = null;
-  _initialized = true; // We don't want to reset the test array.
+  assert(_uncaughtErrorMessage == null);
   runTests();
 }
 
@@ -681,7 +608,8 @@ void rerunTests() {
  * in that it removes the tests completely.
  */
 void filterTests(testFilter) {
-  var filterFunction;
+  _requireNotRunning();
+  Function filterFunction;
   if (testFilter is String) {
     RegExp re = new RegExp(testFilter);
     filterFunction = (t) => re.hasMatch(t.description);
@@ -696,7 +624,8 @@ void filterTests(testFilter) {
 /** Runs all queued tests, one at a time. */
 void runTests() {
   _ensureInitialized(false);
-  _currentTestCaseIndex = 0;
+  assert(_currentTestCase == null);
+
   _currentGroup = '';
 
   // If we are soloing a test, remove all the others.
@@ -706,9 +635,7 @@ void runTests() {
 
   _config.onStart();
 
-  _defer(() {
-    _nextBatch();
-  });
+  new Future(_nextBatch);
 }
 
 /**
@@ -718,15 +645,15 @@ void runTests() {
  * The value returned by [tryBody] (if any) is returned by [guardAsync].
  */
 guardAsync(Function tryBody) {
-  return _guardAsync(tryBody, null, _currentTestCaseIndex);
+  return _guardAsync(tryBody, null, currentTestCase);
 }
 
-_guardAsync(Function tryBody, Function finallyBody, int testNum) {
-  assert(testNum >= 0);
+_guardAsync(Function tryBody, Function finallyBody, TestCase testCase) {
+  assert(testCase != null);
   try {
     return tryBody();
   } catch (e, trace) {
-    _registerException(testNum, e, trace);
+    _registerException(testCase, e, trace);
   } finally {
     if (finallyBody != null) finallyBody();
   }
@@ -736,48 +663,50 @@ _guardAsync(Function tryBody, Function finallyBody, int testNum) {
  * Registers that an exception was caught for the current test.
  */
 void registerException(e, [trace]) {
-  _registerException(_currentTestCaseIndex, e, trace);
+  _registerException(currentTestCase, e, trace);
 }
 
 /**
  * Registers that an exception was caught for the current test.
  */
-void _registerException(testNum, e, [trace]) {
+void _registerException(TestCase testCase, e, [trace]) {
+  assert(testCase != null);
   trace = trace == null ? '' : trace.toString();
   String message = (e is TestFailure) ? e.message : 'Caught $e';
-  if (testCases[testNum].result == null) {
-    testCases[testNum].fail(message, trace);
+  if (testCase.result == null) {
+    testCase.fail(message, trace);
   } else {
-    testCases[testNum].error(message, trace);
+    testCase.error(message, trace);
   }
 }
 
 /**
- * Runs a batch of tests, yielding whenever an asynchronous test starts
- * running. Tests will resume executing when such asynchronous test calls
- * [done] or if it fails with an exception.
+ * Executes tests in order starting with the provided index.
+ * If a test is synchronous, the following test is executed immediately
+ * For asynchronous tests, a Future is returned which completes with _nextBatch
+ * starting at the next index.
+ * Future.forEach is explicitly not used because it slows down synchronous tests
+ * noticeably
  */
-void _nextBatch() {
-  while (true) {
-    if (_currentTestCaseIndex >= testCases.length) {
-      _completeTests();
-      break;
+Future _nextBatch([int index = 0]) {
+  for(int i = index; i < testCases.length; i++) {
+    _currentTestCase = testCases[i];
+
+    Future f = guardAsync(_currentTestCase._run);
+
+    if(f != null) {
+      return f.then((_) => _nextBatch(i + 1));
     }
-    final testCase = testCases[_currentTestCaseIndex];
-    var f = _guardAsync(testCase._run, null, _currentTestCaseIndex);
-    if (f != null) {
-      f.whenComplete(() {
-        _nextTestCase(); // Schedule the next test.
-      });
-      break;
-    }
-    _currentTestCaseIndex++;
   }
+  _currentTestCase = null;
+  return new Future(_completeTests);
 }
 
 /** Publish results on the page and notify controller. */
 void _completeTests() {
-  if (!_initialized) return;
+  assert(_initialized);
+  assert(_currentTestCase == null);
+
   int passed = 0;
   int failed = 0;
   int errors = 0;
@@ -792,7 +721,8 @@ void _completeTests() {
   _config.onSummary(passed, failed, errors, testCases, _uncaughtErrorMessage);
   _config.onDone(passed > 0 && failed == 0 && errors == 0 &&
       _uncaughtErrorMessage == null);
-  _initialized = false;
+
+  _uncaughtErrorMessage = null;
 }
 
 String _fullSpec(String spec) {
@@ -807,7 +737,15 @@ void ensureInitialized() {
   _ensureInitialized(true);
 }
 
+void _requireNotRunning() {
+  if(_currentTestCase != null) {
+    throw new StateError("A forbidden operation occured "
+        "while tests were running");
+  }
+}
+
 void _ensureInitialized(bool configAutoStart) {
+  _requireNotRunning();
   if (_initialized) {
     return;
   }
@@ -825,7 +763,7 @@ void _ensureInitialized(bool configAutoStart) {
   if (configAutoStart && _config.autoStart) {
     // Immediately queue the suite up. It will run after a timeout (i.e. after
     // main() has returned).
-    _defer(runTests);
+    new Future(runTests);
   }
 }
 
