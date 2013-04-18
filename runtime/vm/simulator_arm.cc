@@ -1400,6 +1400,9 @@ void Simulator::SupervisorCall(Instr* instr) {
 
         // Return.
         set_pc(saved_lr);
+      } else {
+        // Coming via long jump from a throw. Continue to exception handler.
+        set_top_exit_frame_info(0);
       }
 
       break;

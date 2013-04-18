@@ -983,6 +983,9 @@ void Simulator::DoBreak(Instr *instr) {
 
       // Return. Subtract to account for pc_ increment after return.
       set_pc(saved_ra - Instr::kInstrSize);
+    } else {
+      // Coming via long jump from a throw. Continue to exception handler.
+      set_top_exit_frame_info(0);
     }
   } else {
     SimulatorDebugger dbg(this);
