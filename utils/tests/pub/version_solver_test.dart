@@ -24,8 +24,6 @@ import 'test_pub.dart';
 MockSource source1;
 MockSource source2;
 
-bool allowBacktracking;
-
 main() {
   initConfig();
 
@@ -33,19 +31,12 @@ main() {
   // to load. Instead, just manually inject a version.
   sdk.version = new Version(1, 2, 3);
 
-  for (allowBacktracking in [false, true]) {
-    group(allowBacktracking ? 'BackTrackingSolver' : 'GreedySolver', () {
-      group('basic graph', basicGraph);
-      group('with lockfile', withLockFile);
-      group('root dependency', rootDependency);
-      group('dev dependency', devDependency);
-      group('unsolvable', unsolvable);
-      group('backtracking', backtracking);
-    });
-  }
-
-  // These tests are only valid with the backtracking solver.
-  allowBacktracking = true;
+  group('basic graph', basicGraph);
+  group('with lockfile', withLockFile);
+  group('root dependency', rootDependency);
+  group('dev dependency', devDependency);
+  group('unsolvable', unsolvable);
+  group('backtracking', backtracking);
   group('SDK constraint', sdkConstraint);
 }
 
@@ -125,7 +116,7 @@ void basicGraph() {
     'foo': '1.0.1',
     'bar': '1.0.0',
     'bang': '1.0.0'
-  }, maxTries: 2, hasGreedySolution: true);
+  }, maxTries: 2);
 
   testResolve('circular dependency', {
     'myapp 1.0.0': {
@@ -227,7 +218,7 @@ withLockFile() {
     'baz': '2.0.0',
     'qux': '1.0.0',
     'newdep': '2.0.0'
-  }, maxTries: 3, hasGreedySolution: true);
+  }, maxTries: 3);
 }
 
 rootDependency() {
@@ -426,9 +417,9 @@ backtracking() {
     'a': '1.0.0'
   }, maxTries: 2);
 
-  /// The latest versions of a and b disagree on c. An older version of either
-  /// will resolve the problem. This test validates that b, which is farther
-  /// in the dependency graph from myapp is downgraded first.
+  // The latest versions of a and b disagree on c. An older version of either
+  // will resolve the problem. This test validates that b, which is farther
+  // in the dependency graph from myapp is downgraded first.
   testResolve('rolls back leaf versions first', {
     'myapp 0.0.0': {
       'a': 'any'
@@ -623,22 +614,8 @@ sdkConstraint() {
 }
 
 testResolve(description, packages,
-            {lockfile, result, FailMatcherBuilder error, int maxTries,
-             bool hasGreedySolution}) {
-  // Close over the top-level variable since it will be mutated.
-  var allowBacktracking_ = allowBacktracking;
-
+            {lockfile, result, FailMatcherBuilder error, int maxTries}) {
   if (maxTries == null) maxTries = 1;
-  if (hasGreedySolution == null) hasGreedySolution = maxTries == 1;
-
-  if (!allowBacktracking_) {
-    // The greedy solver should fail any graph that does expect multiple tries
-    // and isn't explicitly annotated to have a greedy solution.
-    if (!hasGreedySolution) {
-      result = null;
-      error = couldNotSolve;
-    }
-  }
 
   test(description, () {
     var cache = new SystemCache('.');
@@ -691,7 +668,7 @@ testResolve(description, packages,
 
     // Resolve the versions.
     var future = resolveVersions(cache.sources, root,
-        allowBacktracking: allowBacktracking_, lockFile: realLockFile);
+        lockFile: realLockFile);
 
     var matcher;
     if (result != null) {

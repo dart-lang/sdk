@@ -24,7 +24,6 @@ class UpdateCommand extends PubCommand {
       future = entrypoint.updateDependencies(commandOptions.rest);
     }
     return future
-        .then((_) => log.message("Dependencies updated!"))
-        .then((_) => entrypoint.validateSdkConstraints());
+        .then((_) => log.message("Dependencies updated!"));
   }
 }

@@ -15,7 +15,6 @@ import '../source.dart';
 import '../source_registry.dart';
 import '../version.dart';
 import 'backtracking_solver.dart';
-import 'greedy_solver.dart';
 
 /// Attempts to select the best concrete versions for all of the transitive
 /// dependencies of [root] taking into account all of the [VersionConstraint]s
@@ -25,87 +24,14 @@ import 'greedy_solver.dart';
 /// If [useLatest] is given, then only the latest versions of the referenced
 /// packages will be used. This is for forcing an update to one or more
 /// packages.
-///
-/// If [allowBacktracking] is `true` the backtracking version solver will
-/// be used. Otherwise, the non-backtracking one will be.
 Future<SolveResult> resolveVersions(SourceRegistry sources, Package root,
-    {LockFile lockFile, bool allowBacktracking, List<PackageRef> useLatest}) {
+    {LockFile lockFile, List<PackageRef> useLatest}) {
   log.message('Resolving dependencies...');
 
-  if (allowBacktracking == null) allowBacktracking = false;
   if (lockFile == null) lockFile = new LockFile.empty();
   if (useLatest == null) useLatest = [];
 
-  var solver;
-  if (allowBacktracking) {
-    solver = new BacktrackingVersionSolver(sources, root, lockFile, useLatest);
-  } else {
-    solver = new GreedyVersionSolver(sources, root, lockFile, useLatest);
-  }
-
-  return solver.solve();
-}
-
-/// Base class for an implementation of the version constraint solver.
-class VersionSolver {
-  final SourceRegistry sources;
-  final Package root;
-  final LockFile lockFile;
-  final PubspecCache cache;
-
-  VersionSolver(SourceRegistry sources, this.root, this.lockFile,
-                List<String> useLatest)
-      : sources = sources,
-        cache = new PubspecCache(sources) {
-    for (var package in useLatest) {
-      forceLatestVersion(package);
-      lockFile.packages.remove(package);
-    }
-  }
-
-  /// The number of solutions the solver has tried so far.
-  int get attemptedSolutions;
-
-  /// Force the solver to upgrade [package] to the latest available version.
-  void forceLatestVersion(String package);
-
-  /// Run the solver. Completes with a list of specific package versions if
-  /// successful or an error if it failed to find a solution.
-  Future<SolveResult> solve() {
-    var stopwatch = new Stopwatch();
-
-    return new Future(() {
-      stopwatch.start();
-
-      // Pre-cache the root package's known pubspec.
-      cache.cache(new PackageId.root(root), root.pubspec);
-      return runSolver();
-    }).then((packages) {
-      return new SolveResult(packages, null, attemptedSolutions);
-    }).catchError((error) {
-      if (error is! SolveFailure) throw error;
-
-      // Wrap a failure in a result so we can attach some other data.
-      return new SolveResult(null, error, attemptedSolutions);
-    }).whenComplete(() {
-      // Gather some solving metrics.
-      var buffer = new StringBuffer();
-      buffer.writeln('${runtimeType} took ${stopwatch.elapsed} seconds.');
-      buffer.writeln(
-          '- Requested ${cache.versionCacheMisses} version lists');
-      buffer.writeln(
-          '- Looked up ${cache.versionCacheHits} cached version lists');
-      buffer.writeln(
-          '- Requested ${cache.pubspecCacheMisses} pubspecs');
-      buffer.writeln(
-          '- Looked up ${cache.pubspecCacheHits} cached pubspecs');
-      log.solver(buffer);
-    });
-  }
-
-  /// Entrypoint for subclasses to actually begin solving. External code should
-  /// call [solve()].
-  Future<List<PackageId>> runSolver();
+  return new BacktrackingSolver(sources, root, lockFile, useLatest).solve();
 }
 
 /// The result of a version resolution.

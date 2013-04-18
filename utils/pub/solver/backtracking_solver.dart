@@ -31,7 +31,7 @@
 /// doing this, traversing and then backtracking when it meets a failure until
 /// a valid solution has been found or until all possible options for all
 /// speculative choices have been exhausted.
-library version_solver2;
+library solver.backtracking_solver;
 
 import 'dart:async';
 import 'dart:collection' show Queue;
@@ -50,7 +50,12 @@ import 'version_solver.dart';
 /// The top-level solver. Keeps track of the current potential solution, and
 /// the other possible versions for speculative package selections. Backtracks
 /// and advances to the next potential solution in the case of a failure.
-class BacktrackingVersionSolver extends VersionSolver {
+class BacktrackingSolver {
+  final SourceRegistry sources;
+  final Package root;
+  final LockFile lockFile;
+  final PubspecCache cache;
+
   /// The set of packages that are being explicitly updated. The solver will
   /// only allow the very latest version for each of these packages.
   final _forceLatest = new Set<String>();
@@ -74,23 +79,58 @@ class BacktrackingVersionSolver extends VersionSolver {
   /// trigger backtracking.
   final _selected = <Queue<PackageId>>[];
 
-  /// The number of possible solutions that have been attempted.
+  /// The number of solutions the solver has tried so far.
   int get attemptedSolutions => _attemptedSolutions;
   var _attemptedSolutions = 1;
 
-  BacktrackingVersionSolver(SourceRegistry sources, Package root,
-      LockFile lockFile, List<String> useLatest)
-      : super(sources, root, lockFile, useLatest);
+  BacktrackingSolver(SourceRegistry sources, this.root, this.lockFile,
+                     List<String> useLatest)
+      : sources = sources,
+        cache = new PubspecCache(sources) {
+    for (var package in useLatest) {
+      forceLatestVersion(package);
+      lockFile.packages.remove(package);
+    }
+  }
+
+  /// Run the solver. Completes with a list of specific package versions if
+  /// successful or an error if it failed to find a solution.
+  Future<SolveResult> solve() {
+    var stopwatch = new Stopwatch();
+
+    return new Future(() {
+      stopwatch.start();
+
+      // Pre-cache the root package's known pubspec.
+      cache.cache(new PackageId.root(root), root.pubspec);
+
+      _validateSdkConstraint(root.pubspec);
+      return _traverseSolution();
+    }).then((packages) {
+      return new SolveResult(packages, null, attemptedSolutions);
+    }).catchError((error) {
+      if (error is! SolveFailure) throw error;
+
+      // Wrap a failure in a result so we can attach some other data.
+      return new SolveResult(null, error, attemptedSolutions);
+    }).whenComplete(() {
+      // Gather some solving metrics.
+      var buffer = new StringBuffer();
+      buffer.writeln('${runtimeType} took ${stopwatch.elapsed} seconds.');
+      buffer.writeln(
+          '- Requested ${cache.versionCacheMisses} version lists');
+      buffer.writeln(
+          '- Looked up ${cache.versionCacheHits} cached version lists');
+      buffer.writeln(
+          '- Requested ${cache.pubspecCacheMisses} pubspecs');
+      buffer.writeln(
+          '- Looked up ${cache.pubspecCacheHits} cached pubspecs');
+      log.solver(buffer);
+    });
+  }
 
   void forceLatestVersion(String package) {
     _forceLatest.add(package);
-  }
-
-  Future<List<PackageId>> runSolver() {
-    return new Future.sync(() {
-      _validateSdkConstraint(root.pubspec);
-      return _traverseSolution();
-    });
   }
 
   /// Adds [versions], which is the list of all allowed versions of a given
@@ -258,7 +298,7 @@ class BacktrackingVersionSolver extends VersionSolver {
 /// solution by adding that package's set of allowed versions to the solver and
 /// then select the best one and continue.
 class Traverser {
-  final BacktrackingVersionSolver _solver;
+  final BacktrackingSolver _solver;
 
   /// The queue of packages left to traverse. We do a breadth-first traversal
   /// using an explicit queue just to avoid the code complexity of a recursive
