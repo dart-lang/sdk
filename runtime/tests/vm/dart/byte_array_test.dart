@@ -71,7 +71,7 @@ class ByteArrayTest {
       array[i] = i;
     }
     var copy = array.sublist(0, array.length);
-    Expect.isFalse(copy === array);
+    Expect.isFalse(identical(copy, array));
     Expect.isTrue(copy is Int8List);
     Expect.equals(10, copy.length);
     Expect.listEquals(array, copy);
@@ -145,7 +145,7 @@ class ByteArrayTest {
       array[i] = i;
     }
     var copy = array.sublist(0, array.length);
-    Expect.isFalse(copy === array);
+    Expect.isFalse(identical(copy, array));
     Expect.isTrue(copy is Uint8List);
     Expect.equals(10, copy.length);
     Expect.listEquals(array, copy);
@@ -217,7 +217,7 @@ class ByteArrayTest {
       array[i] = i;
     }
     var copy = array.sublist(0, array.length);
-    Expect.isFalse(copy === array);
+    Expect.isFalse(identical(copy, array));
     Expect.isTrue(copy is Uint8ClampedList);
     Expect.equals(10, copy.length);
     Expect.listEquals(array, copy);
@@ -303,7 +303,7 @@ class ByteArrayTest {
       array[i] = i;
     }
     var copy = array.sublist(0, array.length);
-    Expect.isFalse(copy === array);
+    Expect.isFalse(identical(copy, array));
     Expect.isTrue(copy is Int16List);
     Expect.equals(10, copy.length);
     Expect.listEquals(array, copy);
@@ -378,7 +378,7 @@ class ByteArrayTest {
       array[i] = i;
     }
     var copy = array.sublist(0, array.length);
-    Expect.isFalse(copy === array);
+    Expect.isFalse(identical(copy, array));
     Expect.isTrue(copy is Uint16List);
     Expect.equals(10, copy.length);
     Expect.listEquals(array, copy);
@@ -471,7 +471,7 @@ class ByteArrayTest {
       array[i] = i;
     }
     var copy = array.sublist(0, array.length);
-    Expect.isFalse(copy === array);
+    Expect.isFalse(identical(copy, array));
     Expect.isTrue(copy is Int32List);
     Expect.equals(10, copy.length);
     Expect.listEquals(array, copy);
@@ -549,7 +549,7 @@ class ByteArrayTest {
       array[i] = i;
     }
     var copy = array.sublist(0, array.length);
-    Expect.isFalse(copy === array);
+    Expect.isFalse(identical(copy, array));
     Expect.isTrue(copy is Uint32List);
     Expect.equals(10, copy.length);
     Expect.listEquals(array, copy);
@@ -645,7 +645,7 @@ class ByteArrayTest {
       array[i] = i;
     }
     var copy = array.sublist(0, array.length);
-    Expect.isFalse(copy === array);
+    Expect.isFalse(identical(copy, array));
     Expect.isTrue(copy is Int64List);
     Expect.equals(10, copy.length);
     Expect.listEquals(array, copy);
@@ -724,7 +724,7 @@ class ByteArrayTest {
       array[i] = i;
     }
     var copy = array.sublist(0, array.length);
-    Expect.isFalse(copy === array);
+    Expect.isFalse(identical(copy, array));
     Expect.isTrue(copy is Uint64List);
     Expect.equals(10, copy.length);
     Expect.listEquals(array, copy);
@@ -788,7 +788,7 @@ class ByteArrayTest {
       array[i] = i * 1.0;
     }
     var copy = array.sublist(0, array.length);
-    Expect.isFalse(copy === array);
+    Expect.isFalse(identical(copy, array));
     Expect.isTrue(copy is Float32List);
     Expect.equals(10, copy.length);
     Expect.listEquals(array, copy);
@@ -853,7 +853,7 @@ class ByteArrayTest {
       array[i] = i * 1.0;
     }
     var copy = array.sublist(0, array.length);
-    Expect.isFalse(copy === array);
+    Expect.isFalse(identical(copy, array));
     Expect.isTrue(copy is Float64List);
     Expect.equals(10, copy.length);
     Expect.listEquals(array, copy);
@@ -1135,7 +1135,7 @@ class ByteArrayTest {
       view[i] = i;
     }
     var copy = view.sublist(0, view.length);
-    Expect.isFalse(copy === view);
+    Expect.isFalse(identical(copy, view));
     Expect.isTrue(copy is Int8List);
     Expect.equals(10, copy.length);
     Expect.listEquals(view, copy);
@@ -1244,7 +1244,7 @@ class ByteArrayTest {
       view[i] = i;
     }
     var copy = view.sublist(0, view.length);
-    Expect.isFalse(copy === view);
+    Expect.isFalse(identical(copy, view));
     Expect.isTrue(copy is Uint8List);
     Expect.equals(10, copy.length);
     Expect.listEquals(view, copy);
@@ -1374,7 +1374,7 @@ class ByteArrayTest {
       view[i] = i;
     }
     var copy = view.sublist(0, view.length);
-    Expect.isFalse(copy === view);
+    Expect.isFalse(identical(copy, view));
     Expect.isTrue(copy is Int16List);
     Expect.equals(10, copy.length);
     Expect.listEquals(view, copy);
@@ -1487,7 +1487,7 @@ class ByteArrayTest {
       view[i] = i;
     }
     var copy = view.sublist(0, view.length);
-    Expect.isFalse(copy === view);
+    Expect.isFalse(identical(copy, view));
     Expect.isTrue(copy is Uint16List);
     Expect.equals(10, copy.length);
     Expect.listEquals(view, copy);
@@ -1643,7 +1643,7 @@ class ByteArrayTest {
       view[i] = i;
     }
     var copy = view.sublist(0, view.length);
-    Expect.isFalse(copy === view);
+    Expect.isFalse(identical(copy, view));
     Expect.isTrue(copy is Int32List);
     Expect.equals(10, copy.length);
     Expect.listEquals(view, copy);
@@ -1768,7 +1768,7 @@ class ByteArrayTest {
       view[i] = i;
     }
     var copy = view.sublist(0, view.length);
-    Expect.isFalse(copy === view);
+    Expect.isFalse(identical(copy, view));
     Expect.isTrue(copy is Uint32List);
     Expect.equals(10, copy.length);
     Expect.listEquals(view, copy);
@@ -1956,7 +1956,7 @@ class ByteArrayTest {
       view[i] = i;
     }
     var copy = view.sublist(0, view.length);
-    Expect.isFalse(copy === view);
+    Expect.isFalse(identical(copy, view));
     Expect.isTrue(copy is Int64List);
     Expect.equals(10, copy.length);
     Expect.listEquals(view, copy);
@@ -2114,7 +2114,7 @@ class ByteArrayTest {
       view[i] = i;
     }
     var copy = view.sublist(0, view.length);
-    Expect.isFalse(copy === view);
+    Expect.isFalse(identical(copy, view));
     Expect.isTrue(copy is Uint64List);
     Expect.equals(10, copy.length);
     Expect.listEquals(view, copy);
@@ -2222,7 +2222,7 @@ class ByteArrayTest {
       view[i] = i * 1.0;
     }
     var copy = view.sublist(0, view.length);
-    Expect.isFalse(copy === view);
+    Expect.isFalse(identical(copy, view));
     Expect.isTrue(copy is Float32List);
     Expect.equals(10, copy.length);
     Expect.listEquals(view, copy);
@@ -2325,7 +2325,7 @@ class ByteArrayTest {
       view[i] = i * 1.0;
     }
     var copy = view.sublist(0, view.length);
-    Expect.isFalse(copy === view);
+    Expect.isFalse(identical(copy, view));
     Expect.isTrue(copy is Float64List);
     Expect.equals(10, copy.length);
     Expect.listEquals(view, copy);
