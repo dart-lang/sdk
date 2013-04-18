@@ -2592,7 +2592,9 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         compiler.reportErrorCode(argumentNode, MessageKind.STRING_EXPECTED,
                                  {'type': type});
       } else {
-        validateSymbol(argumentNode, name.toDartString().slowToString());
+        StringConstant stringConstant = name;
+        validateSymbol(argumentNode,
+                       stringConstant.toDartString().slowToString());
       }
     }
 
