@@ -1511,7 +1511,7 @@ LocationSummary* StoreContextInstr::MakeLocationSummary() const {
 
 
 void StoreContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // Nothing to do.  Context register were loaded by register allocator.
+  // Nothing to do.  Context register was loaded by the register allocator.
   ASSERT(locs()->in(0).reg() == CTX);
 }
 

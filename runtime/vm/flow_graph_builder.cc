@@ -3383,9 +3383,9 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
                            CatchClauseNode::kInvalidTryIndex);
   graph_entry_ = new GraphEntryInstr(parsed_function(), normal_entry);
   EffectGraphVisitor for_effect(this, 0);
-  // TODO(kmillikin): We can eliminate stack checks in some cases (e.g., the
-  // stack check on entry for leaf routines).
-  Instruction* check = new CheckStackOverflowInstr(function.token_pos());
+  // This check may be deleted if the generated code is leaf.
+  CheckStackOverflowInstr* check =
+      new CheckStackOverflowInstr(function.token_pos());
   // If we are inlining don't actually attach the stack check. We must still
   // create the stack check in order to allocate a deopt id.
   if (!IsInlining()) for_effect.AddInstruction(check);

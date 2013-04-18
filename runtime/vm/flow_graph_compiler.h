@@ -552,6 +552,7 @@ class FlowGraphCompiler : public ValueObject {
 
   class Assembler* assembler_;
   const ParsedFunction& parsed_function_;
+  const FlowGraph& flow_graph_;
   const GrowableArray<BlockEntryInstr*>& block_order_;
 
   // Compiler specific per-block state.  Indexed by postorder block number

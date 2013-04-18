@@ -129,6 +129,7 @@ FlowGraphCompiler::FlowGraphCompiler(Assembler* assembler,
                                      bool is_optimizing)
     : assembler_(assembler),
       parsed_function_(flow_graph.parsed_function()),
+      flow_graph_(flow_graph),
       block_order_(flow_graph.reverse_postorder()),
       current_block_(NULL),
       exception_handlers_list_(NULL),
@@ -160,6 +161,8 @@ void FlowGraphCompiler::InitCompiler() {
   pc_descriptors_list_ = new DescriptorList(64);
   exception_handlers_list_ = new ExceptionHandlerList();
   block_info_.Clear();
+  bool is_leaf = !parsed_function().function().IsClosureFunction() &&
+                 is_optimizing();
   for (int i = 0; i < block_order_.length(); ++i) {
     block_info_.Add(new BlockInfo());
     if (is_optimizing()) {
@@ -185,8 +188,23 @@ void FlowGraphCompiler::InitCompiler() {
           may_reoptimize_ = true;
           break;
         }
+        if (is_leaf && !current->IsCheckStackOverflow()) {
+          // Note that we do no care if the code contains instructions that
+          // can deoptimize.
+          LocationSummary* locs = current->locs();
+          if ((locs != NULL) && locs->can_call()) {
+            is_leaf = false;
+          }
+        }
       }
     }
+  }
+  if (is_leaf) {
+    // Remove check stack overflow at entry.
+    CheckStackOverflowInstr* check = flow_graph_.graph_entry()->normal_entry()
+        ->next()->AsCheckStackOverflow();
+    ASSERT(check != NULL);
+    check->RemoveFromGraph();
   }
 }
 
