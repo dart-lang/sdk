@@ -17,6 +17,7 @@
 #endif
 
 #include "vm/constants_mips.h"
+#include "vm/object.h"
 
 namespace dart {
 
@@ -88,6 +89,12 @@ class Simulator {
     kNativeCall
   };
   static uword RedirectExternalReference(uword function, CallKind call_kind);
+
+  void Longjmp(uword pc,
+               uword sp,
+               uword fp,
+               RawObject* raw_exception,
+               RawObject* raw_stacktrace);
 
  private:
   // A pc value used to signal the simulator to stop execution.  Generally
@@ -171,6 +178,7 @@ class Simulator {
 
   friend class SimulatorDebugger;
   friend class SimulatorSetjmpBuffer;
+  DISALLOW_COPY_AND_ASSIGN(Simulator);
 };
 
 }  // namespace dart

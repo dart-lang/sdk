@@ -1262,7 +1262,7 @@ void Assembler::LoadWordFromPoolOffset(Register rd, int32_t offset) {
 
 
 void Assembler::LoadObject(Register rd, const Object& object) {
-  // Smi's and VM heap objects are never relocated; do not use object pool.
+  // Smis and VM heap objects are never relocated; do not use object pool.
   if (object.IsSmi()) {
     LoadImmediate(rd, reinterpret_cast<int32_t>(object.raw()));
   } else if (object.InVMHeap()) {

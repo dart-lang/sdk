@@ -51,7 +51,8 @@ class SimulatorSetjmpBuffer {
     simulator_ = sim;
     link_ = sim->last_setjmp_buffer();
     sim->set_last_setjmp_buffer(this);
-    sp_ = sim->get_register(SP);
+    sp_ = static_cast<uword>(sim->get_register(SP));
+    native_sp_ = reinterpret_cast<uword>(&sim);  // Current C++ stack pointer.
   }
 
   ~SimulatorSetjmpBuffer() {
@@ -61,10 +62,12 @@ class SimulatorSetjmpBuffer {
 
   SimulatorSetjmpBuffer* link() { return link_; }
 
-  int32_t sp() { return sp_; }
+  uword sp() { return sp_; }
+  uword native_sp() { return native_sp_; }
 
  private:
-  int32_t sp_;
+  uword sp_;
+  uword native_sp_;
   Simulator* simulator_;
   SimulatorSetjmpBuffer* link_;
   jmp_buf buffer_;
@@ -1827,6 +1830,42 @@ int64_t Simulator::Call(int32_t entry,
   // Restore the SP register and return R1:R0.
   set_register(SP, sp_before_call);
   return Utils::LowHighTo64Bits(get_register(V0), get_register(V1));
+}
+
+
+void Simulator::Longjmp(uword pc,
+                        uword sp,
+                        uword fp,
+                        RawObject* raw_exception,
+                        RawObject* raw_stacktrace) {
+  // Walk over all setjmp buffers (simulated --> C++ transitions)
+  // and try to find the setjmp associated with the simulated stack pointer.
+  SimulatorSetjmpBuffer* buf = last_setjmp_buffer();
+  while (buf->link() != NULL && buf->link()->sp() <= sp) {
+    buf = buf->link();
+  }
+  ASSERT(buf != NULL);
+
+  // The C++ caller has not cleaned up the stack memory of C++ frames.
+  // Prepare for unwinding frames by destroying all the stack resources
+  // in the previous C++ frames.
+  uword native_sp = buf->native_sp();
+  Isolate* isolate = Isolate::Current();
+  while (isolate->top_resource() != NULL &&
+         (reinterpret_cast<uword>(isolate->top_resource()) < native_sp)) {
+    isolate->top_resource()->~StackResource();
+  }
+
+  // Unwind the C++ stack and continue simulation in the target frame.
+  set_pc(static_cast<int32_t>(pc));
+  set_register(SP, static_cast<int32_t>(sp));
+  set_register(FP, static_cast<int32_t>(fp));
+  ASSERT(raw_exception != NULL);
+  set_register(kExceptionObjectReg, bit_cast<int32_t>(raw_exception));
+  if (raw_stacktrace != NULL) {
+    set_register(kStackTraceObjectReg, bit_cast<int32_t>(raw_stacktrace));
+  }
+  buf->Longjmp();
 }
 
 }  // namespace dart

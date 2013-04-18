@@ -1907,6 +1907,7 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
 // TOS + 4: error object
 // No Result.
 void StubCode::GenerateJumpToErrorHandlerStub(Assembler* assembler) {
+  ASSERT(kExceptionObjectReg == EAX);
   __ movl(EAX, Address(ESP, 4 * kWordSize));  // Load error object.
   __ movl(EBP, Address(ESP, 3 * kWordSize));  // Load target frame_pointer.
   __ movl(EBX, Address(ESP, 1 * kWordSize));  // Load target PC into EBX.

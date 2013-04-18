@@ -1474,16 +1474,40 @@ void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
 
 
 // Jump to the exception handler.
-// No Result.
+// LR: return address.
+// R0: program_counter.
+// R1: stack_pointer.
+// R2: frame_pointer.
+// R3: error object.
+// SP: address of stacktrace object.
+// Does not return.
 void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
-  __ Unimplemented("JumpToExceptionHandler Stub");
+  ASSERT(kExceptionObjectReg == R0);
+  ASSERT(kStackTraceObjectReg == R1);
+  __ mov(IP, ShifterOperand(R1));  // Stack pointer.
+  __ mov(LR, ShifterOperand(R0));  // Program counter.
+  __ mov(R0, ShifterOperand(R3));  // Exception object.
+  __ ldr(R1, Address(SP, 0));  // StackTrace object.
+  __ mov(FP, ShifterOperand(R2));  // Frame_pointer.
+  __ mov(SP, ShifterOperand(IP));  // Stack pointer.
+  __ bx(LR);  // Jump to the exception handler code.
 }
 
 
 // Jump to the error handler.
-// No Result.
+// LR: return address.
+// R0: program_counter.
+// R1: stack_pointer.
+// R2: frame_pointer.
+// R3: error object.
+// Does not return.
 void StubCode::GenerateJumpToErrorHandlerStub(Assembler* assembler) {
-  __ Unimplemented("JumpToErrorHandler Stub");
+  ASSERT(kExceptionObjectReg == R0);
+  __ mov(LR, ShifterOperand(R0));  // Program counter.
+  __ mov(R0, ShifterOperand(R3));  // Error object.
+  __ mov(FP, ShifterOperand(R2));  // Frame_pointer.
+  __ mov(SP, ShifterOperand(R1));  // Stack pointer.
+  __ bx(LR);  // Jump to the exception handler code.
 }
 
 

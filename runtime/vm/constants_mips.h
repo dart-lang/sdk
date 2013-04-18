@@ -150,6 +150,15 @@ const Register FPREG = FP;  // Frame pointer register.
 // CMPRES is used for the result of the comparison.
 const Register CMPRES = T8;
 
+// Exception object is passed in this register to the catch handlers when an
+// exception is thrown.
+const Register kExceptionObjectReg = A0;
+
+// Stack trace object is passed in this register to the catch handlers when
+// an exception is thrown.
+const Register kStackTraceObjectReg = A1;
+
+
 typedef uint32_t RegList;
 const RegList kAllCpuRegistersList = 0xFFFFFFFF;
 

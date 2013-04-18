@@ -1874,6 +1874,7 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
 // RCX: error object
 // No Result.
 void StubCode::GenerateJumpToErrorHandlerStub(Assembler* assembler) {
+  ASSERT(kExceptionObjectReg == RAX);
   __ movq(RAX, RCX);  // error object.
   __ movq(RBP, RDX);  // target frame_pointer.
   __ movq(RSP, RSI);  // target stack_pointer.
