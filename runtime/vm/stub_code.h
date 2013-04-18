@@ -38,7 +38,6 @@ class RawCode;
   V(Subtype3TestCache)                                                         \
   V(GetStackPointer)                                                           \
   V(JumpToExceptionHandler)                                                    \
-  V(JumpToErrorHandler)                                                        \
   V(IdenticalWithNumberCheck)                                                  \
 
 // Is it permitted for the stubs above to refer to Object::null(), which is

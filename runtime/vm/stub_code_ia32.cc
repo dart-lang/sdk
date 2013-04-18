@@ -1879,7 +1879,7 @@ void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
 }
 
 
-// Jump to the exception handler.
+// Jump to the exception or error handler.
 // TOS + 0: return address
 // TOS + 1: program_counter
 // TOS + 2: stack_pointer
@@ -1892,23 +1892,6 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   ASSERT(kStackTraceObjectReg == EDX);
   __ movl(kStackTraceObjectReg, Address(ESP, 5 * kWordSize));
   __ movl(kExceptionObjectReg, Address(ESP, 4 * kWordSize));
-  __ movl(EBP, Address(ESP, 3 * kWordSize));  // Load target frame_pointer.
-  __ movl(EBX, Address(ESP, 1 * kWordSize));  // Load target PC into EBX.
-  __ movl(ESP, Address(ESP, 2 * kWordSize));  // Load target stack_pointer.
-  __ jmp(EBX);  // Jump to the exception handler code.
-}
-
-
-// Jump to the error handler.
-// TOS + 0: return address
-// TOS + 1: program_counter
-// TOS + 2: stack_pointer
-// TOS + 3: frame_pointer
-// TOS + 4: error object
-// No Result.
-void StubCode::GenerateJumpToErrorHandlerStub(Assembler* assembler) {
-  ASSERT(kExceptionObjectReg == EAX);
-  __ movl(EAX, Address(ESP, 4 * kWordSize));  // Load error object.
   __ movl(EBP, Address(ESP, 3 * kWordSize));  // Load target frame_pointer.
   __ movl(EBX, Address(ESP, 1 * kWordSize));  // Load target PC into EBX.
   __ movl(ESP, Address(ESP, 2 * kWordSize));  // Load target stack_pointer.

@@ -207,11 +207,17 @@ static void FindErrorHandler(uword* handler_pc,
 }
 
 
-static void JumpToHandler(uword program_counter,
-                          uword stack_pointer,
-                          uword frame_pointer,
-                          RawObject* raw_exception,
-                          RawObject* raw_stacktrace) {
+static void JumpToExceptionHandler(uword program_counter,
+                                   uword stack_pointer,
+                                   uword frame_pointer,
+                                   const Object& exception_object,
+                                   const Object& stacktrace_object) {
+  // The no_gc StackResource is unwound through the tear down of
+  // stack resources below.
+  NoGCScope no_gc;
+  RawObject* raw_exception = exception_object.raw();
+  RawObject* raw_stacktrace = stacktrace_object.raw();
+
 #if defined(USING_SIMULATOR)
   // Unwinding of the C++ frames and destroying of their stack resources is done
   // by the simulator, because the target stack_pointer is a simulated stack
@@ -219,7 +225,7 @@ static void JumpToHandler(uword program_counter,
 
   // Continue simulating at the given pc in the given frame after setting up the
   // exception object in the kExceptionObjectReg register and the stacktrace
-  // object (if not NULL) in the kStackTraceObjectReg register.
+  // object (may be raw null) in the kStackTraceObjectReg register.
   Simulator::Current()->Longjmp(program_counter, stack_pointer, frame_pointer,
                                 raw_exception, raw_stacktrace);
 #else
@@ -231,64 +237,15 @@ static void JumpToHandler(uword program_counter,
     isolate->top_resource()->~StackResource();
   }
 
-  // TODO(regis): Can we safely merge both stubs and pass NULL as
-  // stacktrace_object in the case of an error handler?
-
-  // A NULL raw_stacktrace indicates that we are jumping to an ErrorHandler,
-  // rather than to an ExceptionHandler. TODO(regis): Merge these two cases.
-  if (raw_stacktrace == NULL) {
-    // Call a stub to set up the error object in kExceptionObjectReg and to
-    // continue execution at the given pc in the given frame.
-    typedef void (*ErrorHandler)(uword, uword, uword, RawObject*);
-    ErrorHandler func = reinterpret_cast<ErrorHandler>(
-        StubCode::JumpToErrorHandlerEntryPoint());
-    func(program_counter, stack_pointer, frame_pointer, raw_exception);
-  } else {
-    // Call a stub to set up the exception object in kExceptionObjectReg,
-    // to set up the stacktrace object in kStackTraceObjectReg, and to
-    // continue execution at the given pc in the given frame.
-    typedef void (*ExcpHandler)(uword, uword, uword, RawObject*, RawObject*);
-    ExcpHandler func = reinterpret_cast<ExcpHandler>(
-        StubCode::JumpToExceptionHandlerEntryPoint());
-    func(program_counter, stack_pointer, frame_pointer,
-         raw_exception, raw_stacktrace);
-  }
+  // Call a stub to set up the exception object in kExceptionObjectReg,
+  // to set up the stacktrace object in kStackTraceObjectReg, and to
+  // continue execution at the given pc in the given frame.
+  typedef void (*ExcpHandler)(uword, uword, uword, RawObject*, RawObject*);
+  ExcpHandler func = reinterpret_cast<ExcpHandler>(
+      StubCode::JumpToExceptionHandlerEntryPoint());
+  func(program_counter, stack_pointer, frame_pointer,
+       raw_exception, raw_stacktrace);
 #endif
-  UNREACHABLE();
-}
-
-
-static void JumpToExceptionHandler(uword program_counter,
-                                   uword stack_pointer,
-                                   uword frame_pointer,
-                                   const Instance& exception_object,
-                                   const Instance& stacktrace_object) {
-  // The no_gc StackResource is unwound through the tear down of
-  // stack resources below.
-  NoGCScope no_gc;
-  RawObject* raw_exception = exception_object.raw();
-  RawObject* raw_stacktrace = stacktrace_object.raw();
-
-  JumpToHandler(program_counter, stack_pointer, frame_pointer,
-                raw_exception, raw_stacktrace);
-
-  UNREACHABLE();
-}
-
-
-static void JumpToErrorHandler(uword program_counter,
-                               uword stack_pointer,
-                               uword frame_pointer,
-                               const Error& error_object) {
-  // The no_gc StackResource is unwound through the tear down of
-  // stack resources below.
-  NoGCScope no_gc;
-  ASSERT(!error_object.IsNull());
-  RawObject* raw_error = error_object.raw();
-
-  JumpToHandler(
-      program_counter, stack_pointer, frame_pointer, raw_error, NULL);
-
   UNREACHABLE();
 }
 
@@ -389,7 +346,12 @@ static void ThrowExceptionHelper(const Instance& incoming_exception,
     // the isolate etc.).
     const UnhandledException& unhandled_exception = UnhandledException::Handle(
         UnhandledException::New(exception, stacktrace));
-    JumpToErrorHandler(handler_pc, handler_sp, handler_fp, unhandled_exception);
+    stacktrace = Stacktrace::null();
+    JumpToExceptionHandler(handler_pc,
+                           handler_sp,
+                           handler_fp,
+                           unhandled_exception,
+                           stacktrace);
   }
   UNREACHABLE();
 }
@@ -553,7 +515,8 @@ void Exceptions::PropagateError(const Error& error) {
     uword handler_sp = 0;
     uword handler_fp = 0;
     FindErrorHandler(&handler_pc, &handler_sp, &handler_fp);
-    JumpToErrorHandler(handler_pc, handler_sp, handler_fp, error);
+    JumpToExceptionHandler(handler_pc, handler_sp, handler_fp, error,
+                           Stacktrace::Handle());  // Null stacktrace.
   }
   UNREACHABLE();
 }

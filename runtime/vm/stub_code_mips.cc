@@ -1015,17 +1015,10 @@ void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
 }
 
 
-// Jump to the exception handler.
+// Jump to the exception or error handler.
 // No Result.
 void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   __ Unimplemented("JumpToExceptionHandler Stub");
-}
-
-
-// Jump to the error handler.
-// No Result.
-void StubCode::GenerateJumpToErrorHandlerStub(Assembler* assembler) {
-  __ Unimplemented("JumpToErrorHandler Stub");
 }
 
 

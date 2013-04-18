@@ -1847,7 +1847,7 @@ void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
 }
 
 
-// Jump to the exception handler.
+// Jump to the exception or error handler.
 // TOS + 0: return address
 // RDI: program counter
 // RSI: stack pointer
@@ -1862,22 +1862,6 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   __ movq(kStackTraceObjectReg, R8);  // stacktrace object.
   __ movq(kExceptionObjectReg, RCX);  // exception object.
   __ movq(RSP, RSI);   // target stack_pointer.
-  __ jmp(RDI);  // Jump to the exception handler code.
-}
-
-
-// Jump to the error handler.
-// TOS + 0: return address
-// RDI: program_counter
-// RSI: stack_pointer
-// RDX: frame_pointer
-// RCX: error object
-// No Result.
-void StubCode::GenerateJumpToErrorHandlerStub(Assembler* assembler) {
-  ASSERT(kExceptionObjectReg == RAX);
-  __ movq(RAX, RCX);  // error object.
-  __ movq(RBP, RDX);  // target frame_pointer.
-  __ movq(RSP, RSI);  // target stack_pointer.
   __ jmp(RDI);  // Jump to the exception handler code.
 }
 
