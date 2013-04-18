@@ -2849,22 +2849,21 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // guaranteed type of the receiver after we've evaluated it, but
     // because of the way inlining currently works that is hard to do
     // with re-evaluating the receiver.
+    bool isClosureCall = false;
     if (isThisSend(node)) {
       HType receiverType = getTypeOfThis();
       selector = receiverType.refine(selector, compiler);
-    }
-
-    Element element = compiler.world.locateSingleElement(selector);
-    bool isClosureCall = false;
-    if (inline && element != null) {
-      if (tryInlineMethod(element, selector, node.arguments, node)) {
-        if (element.isGetter()) {
-          // If the element is a getter, we are doing a closure call
-          // on what this getter returns.
-          assert(selector.isCall());
-          isClosureCall = true;
-        } else {
-          return;
+      Element element = compiler.world.locateSingleElement(selector);
+      if (inline && element != null) {
+        if (tryInlineMethod(element, selector, node.arguments, node)) {
+          if (element.isGetter()) {
+            // If the element is a getter, we are doing a closure call
+            // on what this getter returns.
+            assert(selector.isCall());
+            isClosureCall = true;
+          } else {
+            return;
+          }
         }
       }
     }

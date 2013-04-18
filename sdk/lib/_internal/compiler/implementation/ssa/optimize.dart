@@ -314,7 +314,8 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         return result;
       }
     } else if (selector.isGetter()) {
-      if (selector.applies(backend.jsArrayLength, compiler)) {
+      if (selector.applies(backend.jsArrayLength, compiler)
+          || selector.applies(backend.jsStringLength, compiler)) {
         HInstruction optimized = tryOptimizeLengthInterceptedGetter(node);
         if (optimized != null) return optimized;
       }

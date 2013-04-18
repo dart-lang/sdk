@@ -913,6 +913,10 @@ class JavaScriptBackend extends Backend {
     jsArrayClass.ensureResolved(compiler);
     jsArrayLength = compiler.lookupElementIn(
         jsArrayClass, const SourceString('length'));
+    if (jsArrayLength != null && jsArrayLength.isAbstractField()) {
+      AbstractFieldElement element = jsArrayLength;
+      jsArrayLength = element.getter;
+    }
     jsArrayRemoveLast = compiler.lookupElementIn(
         jsArrayClass, const SourceString('removeLast'));
     jsArrayAdd = compiler.lookupElementIn(
@@ -921,6 +925,10 @@ class JavaScriptBackend extends Backend {
     jsStringClass.ensureResolved(compiler);
     jsStringLength = compiler.lookupElementIn(
         jsStringClass, const SourceString('length'));
+    if (jsStringLength != null && jsStringLength.isAbstractField()) {
+      AbstractFieldElement element = jsStringLength;
+      jsStringLength = element.getter;
+    }
     jsStringSplit = compiler.lookupElementIn(
         jsStringClass, const SourceString('split'));
     jsStringConcat = compiler.lookupElementIn(

@@ -17,6 +17,9 @@ abstract class TreeElements {
   Selector getOperatorSelectorInComplexSendSet(SendSet node);
   DartType getType(Node node);
   bool isParameterChecked(Element element);
+  void setSelector(Node node, Selector selector);
+  void setGetterSelectorInComplexSendSet(SendSet node, Selector selector);
+  void setOperatorSelectorInComplexSendSet(SendSet node, Selector selector);
 
   /// Register additional dependencies required by [currentElement].
   /// For example, elements that are used by a backend.
