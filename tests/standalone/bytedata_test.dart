@@ -26,7 +26,7 @@ testGetters() {
   var ba = list.buffer;
 
   ByteData bd = new ByteData.view(ba);
-  int value;
+  var value;
   int expected_value_be = -3598;
   int expected_value_le = -3343;
 
