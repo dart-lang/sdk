@@ -1028,17 +1028,35 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
    */
   InliningState enterInlinedMethod(PartialFunctionElement function,
                                    Selector selector,
-                                   Link<Node> arguments,
+                                   Link<Node> argumentsNodes,
+                                   List<HInstruction> providedArguments,
                                    Node currentNode) {
     assert(invariant(function, function.isImplementation));
 
-    // Once we start to compile the arguments we must be sure that we don't
-    // abort.
     List<HInstruction> compiledArguments = new List<HInstruction>();
-    bool succeeded = addStaticSendArgumentsToList(selector,
-                                                  arguments,
-                                                  function,
-                                                  compiledArguments);
+    bool succeeded;
+    bool isInstanceMember = function.isInstanceMember();
+
+    if (isInstanceMember) {
+      assert(providedArguments != null);
+      int argumentIndex = 1; // Skip receiver.
+      compiledArguments.add(providedArguments[0]);
+      succeeded = selector.addArgumentsToList(
+          argumentsNodes,
+          compiledArguments,
+          function,
+          (node) => providedArguments[argumentIndex++],
+          handleConstantForOptionalParameter,
+          compiler);
+    } else {
+      assert(providedArguments == null);
+      succeeded = addStaticSendArgumentsToList(selector,
+                                               argumentsNodes,
+                                               function,
+                                               compiledArguments);
+    }
+    // The caller of [enterInlinedMethod] has ensured the selector
+    // matches the element.
     assert(succeeded);
 
     // Create the inlining state after evaluating the arguments, that
@@ -1049,6 +1067,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     FunctionSignature signature = function.computeSignature(compiler);
     int index = 0;
+    if (isInstanceMember) index++;
     signature.orderedForEachParameter((Element parameter) {
       HInstruction argument = compiledArguments[index++];
       localsHandler.updateLocal(parameter, argument);
@@ -1108,7 +1127,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
    */
   bool tryInlineMethod(Element element,
                        Selector selector,
-                       Link<Node> arguments,
+                       Link<Node> argumentsNodes,
+                       List<HInstruction> providedArguments,
                        Node currentNode) {
     // We cannot inline a method from a deferred library into a method
     // which isn't deferred.
@@ -1157,7 +1177,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     assert(canBeInlined);
     InliningState state = enterInlinedMethod(
-        function, selector, arguments, currentNode);
+        function, selector, argumentsNodes, providedArguments, currentNode);
     inlinedFrom(element, () {
       functionExpression.body.accept(this);
     });
@@ -2375,7 +2395,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
 
     HInvokeDynamicMethod result =
-        buildInvokeDynamic(node, elements.getSelector(node), operand, []);
+        buildInvokeDynamic(node, elements.getSelector(node), [operand]);
     pushWithPosition(result, node);
   }
 
@@ -2396,7 +2416,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
 
     pushWithPosition(
-          buildInvokeDynamic(send, selector, left, [right]),
+          buildInvokeDynamic(send, selector, [left, right]),
           op);
     if (op.source.stringValue == '!=') {
       pushWithPosition(new HNot(popBoolified()), op);
@@ -2429,7 +2449,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                                   HInstruction receiver) {
     assert(Elements.isInstanceSend(send, elements));
     assert(selector.isGetter());
-    HInstruction res = buildInvokeDynamic(send, selector, receiver, []);
+    HInstruction res = buildInvokeDynamic(send, selector, [receiver]);
     pushWithPosition(res, send);
   }
 
@@ -2448,7 +2468,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       } else {
         if (element.isGetter()) {
           Selector selector = elements.getSelector(send);
-          if (tryInlineMethod(element, selector, const Link<Node>(), send)) {
+          if (tryInlineMethod(
+                element, selector, const Link<Node>(), null, send)) {
             return;
           }
         }
@@ -2494,7 +2515,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       location = send;
     }
     assert(selector.isSetter());
-    HInstruction res = buildInvokeDynamic(send, selector, receiver, [value]);
+    HInstruction res = buildInvokeDynamic(
+        location, selector, [receiver, value]);
     addWithPosition(res, location);
     stack.add(value);
   }
@@ -2792,6 +2814,19 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
   }
 
+  HInstruction handleConstantForOptionalParameter(Element parameter) {
+    Constant constant;
+    Element element = parameter.enclosingElement;
+    TreeElements calleeElements =
+        compiler.enqueuer.resolution.getCachedElements(element);
+    if (calleeElements.isParameterChecked(parameter)) {
+      constant = SentinelConstant.SENTINEL;
+    } else {
+      constant = compileConstant(parameter);
+    }
+    return graph.addConstant(constant);
+  }
+
   /**
    * Returns true if the arguments were compatible with the function signature.
    *
@@ -2808,23 +2843,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       return pop();
     }
 
-    HInstruction handleConstant(Element parameter) {
-      Constant constant;
-      TreeElements calleeElements =
-          compiler.enqueuer.resolution.getCachedElements(element);
-      if (calleeElements.isParameterChecked(parameter)) {
-        constant = SentinelConstant.SENTINEL;
-      } else {
-        constant = compileConstant(parameter);
-      }
-      return graph.addConstant(constant);
-    }
-
     return selector.addArgumentsToList(arguments,
                                        list,
                                        element,
                                        compileArgument,
-                                       handleConstant,
+                                       handleConstantForOptionalParameter,
                                        compiler);
   }
 
@@ -2845,52 +2868,27 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   visitDynamicSend(Send node, {bool inline: true}) {
     Selector selector = elements.getSelector(node);
 
-    // TODO(kasperl): It would be much better to try to get the
-    // guaranteed type of the receiver after we've evaluated it, but
-    // because of the way inlining currently works that is hard to do
-    // with re-evaluating the receiver.
-    bool isClosureCall = false;
+    List<HInstruction> inputs = <HInstruction>[];
+    HInstruction receiver = generateInstanceSendReceiver(node);
+    inputs.add(receiver);
+    addDynamicSendArgumentsToList(node, inputs);
+
+    // TODO(ngeoffray): Also inline for non-this sends. Currently, the
+    // inliner does not work when the receiver is not [:this:].
     if (isThisSend(node)) {
       HType receiverType = getTypeOfThis();
       selector = receiverType.refine(selector, compiler);
       Element element = compiler.world.locateSingleElement(selector);
-      if (inline && element != null) {
-        if (tryInlineMethod(element, selector, node.arguments, node)) {
-          if (element.isGetter()) {
-            // If the element is a getter, we are doing a closure call
-            // on what this getter returns.
-            assert(selector.isCall());
-            isClosureCall = true;
-          } else {
-            return;
-          }
+      // TODO(ngeoffray): If [element] is a getter, then this send is
+      // a closure send. We should teach that to [ResolvedVisitor].
+      if (inline && element != null && !element.isGetter()) {
+        if (tryInlineMethod(element, selector, node.arguments, inputs, node)) {
+          return;
         }
       }
     }
 
-    List<HInstruction> inputs = <HInstruction>[];
-    if (isClosureCall) inputs.add(pop());
-
-    HInstruction receiver;
-    if (!isClosureCall) {
-      if (node.receiver == null) {
-        receiver = localsHandler.readThis();
-      } else {
-        visit(node.receiver);
-        receiver = pop();
-      }
-    }
-
-    addDynamicSendArgumentsToList(node, inputs);
-
-    HInstruction invoke;
-    if (isClosureCall) {
-      Selector closureSelector = new Selector.callClosureFrom(selector);
-      invoke = new HInvokeClosure(closureSelector, inputs);
-    } else {
-      invoke = buildInvokeDynamic(node, selector, receiver, inputs);
-    }
-
+    HInstruction invoke = buildInvokeDynamic(node, selector, inputs);
     pushWithPosition(invoke, node);
   }
 
@@ -3415,7 +3413,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       bool isIdenticalFunction = element == compiler.identicalFunction;
 
       if (!isIdenticalFunction
-          && tryInlineMethod(element, selector, node.arguments, node)) {
+          && tryInlineMethod(element, selector, node.arguments, null, node)) {
         return;
       }
 
@@ -3621,7 +3619,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         Send send = node.send;
         Element constructor = elements[send];
         Selector selector = elements.getSelector(send);
-        if (!tryInlineMethod(constructor, selector, send.arguments, node)) {
+        if (!tryInlineMethod(
+              constructor, selector, send.arguments, null, node)) {
           visitNewSend(send, type);
         }
       }
@@ -3630,8 +3629,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   HInstruction buildInvokeDynamic(Node node,
                                   Selector selector,
-                                  HInstruction receiver,
                                   List<HInstruction> arguments) {
+    HInstruction receiver = arguments[0];
     Set<ClassElement> interceptedClasses =
         backend.getInterceptedClassesOn(selector.name);
     List<HInstruction> inputs = <HInstruction>[];
@@ -3640,7 +3639,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       assert(!interceptedClasses.isEmpty);
       inputs.add(invokeInterceptor(interceptedClasses, receiver, node));
     }
-    inputs.add(receiver);
     inputs.addAll(arguments);
     if (selector.isGetter()) {
       bool hasGetter = compiler.world.hasAnyUserDefinedGetter(selector);
@@ -3765,15 +3763,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         HInvokeDynamicMethod getterInstruction = buildInvokeDynamic(
             node,
             elements.getGetterSelectorInComplexSendSet(node),
-            receiver,
-            <HInstruction>[index]);
+            [receiver, index]);
         add(getterInstruction);
 
         handleComplexOperatorSend(node, getterInstruction, arguments);
         HInstruction value = pop();
 
         HInvokeDynamicMethod assign = buildInvokeDynamic(
-            node, elements.getSelector(node), receiver, [index, value]);
+            node, elements.getSelector(node), [receiver, index, value]);
         add(assign);
 
         if (node.isPostfix) {
@@ -4070,17 +4067,17 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       Selector selector = compiler.iteratorSelector;
       visit(node.expression);
       HInstruction receiver = pop();
-      iterator = buildInvokeDynamic(node, selector, receiver, []);
+      iterator = buildInvokeDynamic(node, selector, [receiver]);
       add(iterator);
     }
     HInstruction buildCondition() {
       Selector selector = compiler.moveNextSelector;
-      push(buildInvokeDynamic(node, selector, iterator, []));
+      push(buildInvokeDynamic(node, selector, [iterator]));
       return popBoolified();
     }
     void buildBody() {
       Selector call = compiler.currentSelector;
-      push(buildInvokeDynamic(node, call, iterator, []));
+      push(buildInvokeDynamic(node, call, [iterator]));
 
       Node identifier = node.declaredIdentifier;
       Element variable = elements[identifier];
