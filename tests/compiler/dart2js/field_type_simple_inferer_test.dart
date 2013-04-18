@@ -450,7 +450,7 @@ void doTest(String test, bool disableInlining, Map<String, Function> fields) {
       disableInlining,
       (inferrer, field) {
         TypeMask type = f(inferrer);
-        TypeMask inferredType = inferrer.typeOf[field];
+        TypeMask inferredType = inferrer.internal.typeOf[field];
         Expect.equals(type, inferredType, name);
     });
   });

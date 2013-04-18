@@ -4,7 +4,7 @@
 
 library simple_types_inferrer;
 
-import 'dart:collection' show Queue;
+import 'dart:collection' show Queue, LinkedHashSet;
 
 import '../closure.dart' show ClosureClassMap, ClosureScope;
 import '../dart_types.dart' show DartType, FunctionType, TypeKind;
@@ -118,7 +118,61 @@ class SentinelTypeMask extends TypeMask {
   String toString() => '$name sentinel type mask';
 }
 
+final OPTIMISTIC = 0;
+final RETRY = 1;
+final PESSIMISTIC = 2;
+
 class SimpleTypesInferrer extends TypesInferrer {
+  InternalSimpleTypesInferrer internal;
+  Compiler compiler;
+
+  SimpleTypesInferrer(Compiler compiler) :
+      compiler = compiler,
+      internal = new InternalSimpleTypesInferrer(compiler, OPTIMISTIC);
+
+  TypeMask get dynamicType => internal.dynamicType;
+  TypeMask get nullType => internal.nullType;
+  TypeMask get intType => internal.intType;
+  TypeMask get doubleType => internal.doubleType;
+  TypeMask get numType => internal.numType;
+  TypeMask get boolType => internal.boolType;
+  TypeMask get functionType => internal.functionType;
+  TypeMask get listType => internal.listType;
+  TypeMask get constListType => internal.constListType;
+  TypeMask get fixedListType => internal.fixedListType;
+  TypeMask get growableListType => internal.growableListType;
+  TypeMask get mapType => internal.mapType;
+  TypeMask get constMapType => internal.constMapType;
+  TypeMask get stringType => internal.stringType;
+  TypeMask get typeType => internal.typeType;
+
+  TypeMask getReturnTypeOfElement(Element element) {
+    return internal.getReturnTypeOfElement(element);
+  }
+  TypeMask getTypeOfElement(Element element) {
+    return internal.getTypeOfElement(element);
+  }
+  TypeMask getTypeOfNode(Element owner, Node node) {
+    return internal.getTypeOfNode(owner, node);
+  }
+  TypeMask getTypeOfSelector(Selector selector) {
+    return internal.getTypeOfSelector(selector);
+  }
+
+  bool analyzeMain(Element element) {
+    bool result = internal.analyzeMain(element);
+    if (internal.optimismState == OPTIMISTIC) return result;
+    assert(internal.optimismState == RETRY);
+
+    // Discard the inferrer and start again with a pessimistic one.
+    internal = new InternalSimpleTypesInferrer(compiler, PESSIMISTIC);
+    return internal.analyzeMain(element);
+  }
+}
+
+
+
+class InternalSimpleTypesInferrer extends TypesInferrer {
   /**
    * Maps an element to its callers.
    */
@@ -201,6 +255,8 @@ class SimpleTypesInferrer extends TypesInferrer {
    */
   final int MAX_ANALYSIS_COUNT_PER_ELEMENT = 5;
 
+  int optimismState;
+
   /**
    * Sentinel used by the inferrer to notify that it does not know
    * the type of a specific element.
@@ -223,6 +279,11 @@ class SimpleTypesInferrer extends TypesInferrer {
   TypeMask stringType;
   TypeMask typeType;
 
+  // TODO(erikcorry): Autogenerate the alphanumeric names in this set.
+  Set<String> RELATION_NAMES = ['identicalImplementation',
+                                'identical',
+                                '==', '<=', '>=', '<', '>'].toSet();
+
   final Compiler compiler;
 
   // Times the computation of re-analysis of methods.
@@ -241,11 +302,11 @@ class SimpleTypesInferrer extends TypesInferrer {
    */
   int numberOfElementsToAnalyze;
 
-  SimpleTypesInferrer(this.compiler);
+  InternalSimpleTypesInferrer(this.compiler, this.optimismState);
 
   /**
-   * Main entry point of the inferrer. Analyzes all elements that the
-   * resolver found as reachable. Returns whether it succeeded.
+   * Main entry point of the inferrer.  Analyzes all elements that the resolver
+   * found as reachable. Returns whether it succeeded.
    */
   bool analyzeMain(Element element) {
     initializeTypes();
@@ -267,15 +328,17 @@ class SimpleTypesInferrer extends TypesInferrer {
       }
       bool changed =
           compiler.withCurrentElement(element, () => analyze(element));
+      if (optimismState == RETRY) return true;  // Abort.
       analyzed++;
       if (wasAnalyzed) {
         recomputeWatch.stop();
       }
       checkAnalyzedAll();
-      if (!changed) continue;
-      // If something changed during the analysis of [element],
-      // put back callers of it in the work list.
-      enqueueCallersOf(element);
+      if (changed) {
+        // If something changed during the analysis of [element], put back
+        // callers of it in the work list.
+        enqueueCallersOf(element);
+      }
     } while (!workSet.isEmpty);
     dump();
     clear();
@@ -365,11 +428,24 @@ class SimpleTypesInferrer extends TypesInferrer {
         // mapping.
         if (mapping == null) return;
         if (element.isAbstract(compiler)) return;
-        int length = mapping.selectors.length;
-        max = length > max ? length : max;
-        Set<Element> set = methodSizes.putIfAbsent(
-            length, () => new Set<Element>());
-        set.add(element);
+        if (element.isFunction() &&
+            RELATION_NAMES.contains(element.name.slowToString())) {
+          // Add the relational operators, ==, !=, <, etc., before any others.
+          workSet.add(element);
+          // Optimistically assume that they return bool.  We may need to back
+          // out of this.
+          if (optimismState == OPTIMISTIC) {
+            returnTypeOf[element.implementation] = boolType;
+          }
+        } else {
+          // Put the other operators in buckets by length, later to be added in
+          // length order.
+          int length = mapping.selectors.length;
+          max = length > max ? length : max;
+          Set<Element> set = methodSizes.putIfAbsent(
+              length, () => new LinkedHashSet<Element>());
+          set.add(element);
+        }
     });
 
     // This iteration assumes the [WorkSet] is FIFO.
@@ -483,7 +559,7 @@ class SimpleTypesInferrer extends TypesInferrer {
     }
     if (element.isGenerativeConstructor()) {
       // We always know the return type of a generative constructor.
-      return false;
+      return false;  // Nothing changed.
     } else if (element.isField()) {
       Node node = element.parseNode(compiler);
       if (element.modifiers.isFinal() || element.modifiers.isConst()) {
@@ -522,6 +598,13 @@ class SimpleTypesInferrer extends TypesInferrer {
    * [analyzedElement].
    */
   bool recordReturnType(Element analyzedElement, TypeMask returnType) {
+    if (optimismState == OPTIMISTIC &&
+        returnType != boolType &&
+        RELATION_NAMES.contains(analyzedElement.name.slowToString())) {
+      // One of the relational operators (==, <, ...) turned out not to return
+      // boolean.  This means we need to restart the analysis.
+      optimismState = RETRY;
+    }
     return internalRecordType(analyzedElement, returnType, returnTypeOf);
   }
 
@@ -1029,7 +1112,7 @@ class ArgumentsTypes {
  * Placeholder for inferred types of local variables.
  */
 class LocalsHandler {
-  final SimpleTypesInferrer inferrer;
+  final InternalSimpleTypesInferrer inferrer;
   final Map<Element, TypeMask> locals;
   final Set<Element> capturedAndBoxed;
   final Map<Element, TypeMask> fieldsInitializedInConstructor;
@@ -1155,7 +1238,7 @@ class LocalsHandler {
 class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
   final Element analyzedElement;
   final Element outermostElement;
-  final SimpleTypesInferrer inferrer;
+  final InternalSimpleTypesInferrer inferrer;
   final Compiler compiler;
   LocalsHandler locals;
   TypeMask returnType;
@@ -1178,7 +1261,7 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
 
   factory SimpleTypeInferrerVisitor(Element element,
                                     Compiler compiler,
-                                    SimpleTypesInferrer inferrer,
+                                    InternalSimpleTypesInferrer inferrer,
                                     [LocalsHandler handler]) {
     Element outermostElement =
         element.getOutermostEnclosingMemberOrTopLevel().implementation;

@@ -316,6 +316,12 @@ abstract class Compiler implements DiagnosticListener {
   Element createInvocationMirrorElement;
 
   Element get currentElement => _currentElement;
+
+  /**
+   * Perform an operation, [f], returning the return value from [f].  If an
+   * error occurs then report it as having occurred during compilation of
+   * [element].  Can be nested.
+   */
   withCurrentElement(Element element, f()) {
     Element old = currentElement;
     _currentElement = element;

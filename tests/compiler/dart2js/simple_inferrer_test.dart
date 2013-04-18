@@ -137,7 +137,7 @@ void main() {
 
   checkReturn(String name, type) {
     var element = findElement(compiler, name);
-    Expect.equals(type, typesInferrer.returnTypeOf[element], name);
+    Expect.equals(type, typesInferrer.internal.returnTypeOf[element], name);
   }
   var interceptorType =
       findTypeMask(compiler, 'Interceptor', 'nonNullSubclass');
@@ -158,7 +158,7 @@ void main() {
   checkReturnInClass(String className, String methodName, type) {
     var cls = findElement(compiler, className);
     var element = cls.lookupLocalMember(buildSourceString(methodName));
-    Expect.equals(type, typesInferrer.returnTypeOf[element]);
+    Expect.equals(type, typesInferrer.internal.returnTypeOf[element]);
   }
 
   checkReturnInClass('A', 'returnNum1', typesInferrer.numType);
@@ -182,7 +182,7 @@ void main() {
     var cls = findElement(compiler, className);
     var element = cls.localLookup(buildSourceString(className));
     Expect.equals(new TypeMask.nonNullExact(cls.rawType),
-                  typesInferrer.returnTypeOf[element]);
+                  typesInferrer.internal.returnTypeOf[element]);
   }
   checkFactoryConstructor('A');
 }

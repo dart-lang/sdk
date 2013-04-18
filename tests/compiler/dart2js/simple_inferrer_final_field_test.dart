@@ -34,7 +34,7 @@ void main() {
   checkFieldTypeInClass(String className, String fieldName, type) {
     var cls = findElement(compiler, className);
     var element = cls.lookupLocalMember(buildSourceString(fieldName));
-    Expect.equals(type, typesInferrer.typeOf[element]);
+    Expect.equals(type, typesInferrer.internal.typeOf[element]);
   }
 
   checkFieldTypeInClass('A', 'intField', typesInferrer.intType);

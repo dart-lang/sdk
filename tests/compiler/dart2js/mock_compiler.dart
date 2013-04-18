@@ -140,7 +140,7 @@ const String DEFAULT_CORELIB = r'''
   class bool {}
   class String implements Pattern {}
   class Object {
-    operator ==(other) {}
+    operator ==(other) { return true; }
     String toString() { return null; }
     noSuchMethod(im) { throw im; }
   }
@@ -153,7 +153,7 @@ const String DEFAULT_CORELIB = r'''
     DateTime.utc(year);
   }
   abstract class Pattern {}
-  bool identical(Object a, Object b) { return null; }''';
+  bool identical(Object a, Object b) { return true; }''';
 
 const String DEFAULT_ISOLATE_HELPERLIB = r'''
   class _WorkerBase {}''';
