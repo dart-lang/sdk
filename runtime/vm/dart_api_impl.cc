@@ -4521,6 +4521,19 @@ DART_EXPORT Dart_Handle Dart_CompileAll() {
 }
 
 
+DART_EXPORT Dart_Handle Dart_CheckFunctionFingerprints() {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  Dart_Handle result = Api::CheckIsolateState(isolate);
+  if (::Dart_IsError(result)) {
+    return result;
+  }
+  CHECK_CALLBACK_STATE(isolate);
+  Library::CheckFunctionFingerprints();
+  return result;
+}
+
+
 DART_EXPORT bool Dart_IsLibrary(Dart_Handle object) {
   return Api::ClassId(object) == kLibraryCid;
 }

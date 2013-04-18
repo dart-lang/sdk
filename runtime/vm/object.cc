@@ -25,6 +25,7 @@
 #include "vm/exceptions.h"
 #include "vm/growable_array.h"
 #include "vm/heap.h"
+#include "vm/intermediate_language.h"
 #include "vm/intrinsifier.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
@@ -6856,6 +6857,66 @@ RawError* Library::CompileAll() {
     }
   }
   return error.raw();
+}
+
+struct FpDiff {
+  FpDiff(int32_t old_, int32_t new_): old_fp(old_), new_fp(new_) {}
+  int32_t old_fp;
+  int32_t new_fp;
+};
+
+void Library::CheckFunctionFingerprints() {
+  GrowableArray<FpDiff> collected_fp_diffs;
+  Library& lib = Library::Handle();
+  Class& cls = Class::Handle();
+  Function& func = Function::Handle();
+  String& str = String::Handle();
+  bool has_errors = false;
+
+#define CHECK_FINGERPRINTS(class_name, function_name, dest, fp)                \
+  func = Function::null();                                                     \
+  if (strcmp(#class_name, "::") == 0) {                                        \
+    str = Symbols::New(#function_name);                                        \
+    func = lib.LookupFunctionAllowPrivate(str);                                \
+  } else {                                                                     \
+    str = String::New(#class_name);                                            \
+    cls = lib.LookupClassAllowPrivate(str);                                    \
+    if (!cls.IsNull()) {                                                       \
+      if (#function_name[0] == '.') {                                          \
+        str = String::New(#class_name#function_name);                          \
+      } else {                                                                 \
+        str = String::New(#function_name);                                     \
+      }                                                                        \
+      func = cls.LookupFunctionAllowPrivate(str);                              \
+    }                                                                          \
+  }                                                                            \
+  if (!func.IsNull() && (func.SourceFingerprint() != fp)) {                    \
+    has_errors = true;                                                         \
+    OS::Print("Wrong fingerprint for '%s': expecting %d found %d\n",           \
+        func.ToFullyQualifiedCString(), fp, func.SourceFingerprint());         \
+    collected_fp_diffs.Add(FpDiff(fp, func.SourceFingerprint()));              \
+  }                                                                            \
+
+  lib = Library::CoreLibrary();
+  CORE_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
+
+  RECOGNIZED_LIST(CHECK_FINGERPRINTS);
+
+  lib = Library::MathLibrary();
+  MATH_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
+
+  lib = Library::TypedDataLibrary();
+  TYPEDDATA_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
+
+#undef CHECK_FINGERPRINTS
+  if (has_errors) {
+    for (intptr_t i = 0; i < collected_fp_diffs.length(); i++) {
+      OS::Print("s/%d/%d/\n",
+          collected_fp_diffs[i].old_fp, collected_fp_diffs[i].new_fp);
+    }
+    OS::Print("\n");
+    FATAL("Fingerprint mismatch.");
+  }
 }
 
 

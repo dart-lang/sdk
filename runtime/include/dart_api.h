@@ -2446,6 +2446,12 @@ DART_EXPORT Dart_Handle Dart_RootLibrary();
 DART_EXPORT Dart_Handle Dart_CompileAll();
 
 /**
+ * Check that all function fingerprints are OK.
+ *
+ */
+DART_EXPORT Dart_Handle Dart_CheckFunctionFingerprints();
+
+/**
  * Is this object a Library?
  */
 DART_EXPORT bool Dart_IsLibrary(Dart_Handle object);
