@@ -2882,7 +2882,7 @@ class _ByteDataView implements ByteData {
       _throwRangeError(byteOffset, length);
     }
     var result = _typeddata._getInt16(_offset + byteOffset);
-    if (endian === Endianness.HOST_ENDIAN) {
+    if (identical(endian, Endianness.HOST_ENDIAN)) {
       return result;
     }
     return _toEndianInt16(result, endian._littleEndian);
@@ -2894,7 +2894,7 @@ class _ByteDataView implements ByteData {
       _throwRangeError(byteOffset, length);
     }
     var set_value = _toInt16(value);
-    if (endian !== Endianness.HOST_ENDIAN) {
+    if (!identical(endian, Endianness.HOST_ENDIAN)) {
       set_value = _toEndianInt16(set_value, endian._littleEndian);
     }
     _typeddata._setInt16(_offset + byteOffset, set_value);
@@ -2905,7 +2905,7 @@ class _ByteDataView implements ByteData {
       _throwRangeError(byteOffset, length);
     }
     var result = _typeddata._getUint16(_offset + byteOffset);
-    if (endian === Endianness.HOST_ENDIAN) {
+    if (identical(endian, Endianness.HOST_ENDIAN)) {
       return result;
     }
     return _toEndianUint16(result, endian._littleEndian);
@@ -2917,7 +2917,7 @@ class _ByteDataView implements ByteData {
       _throwRangeError(byteOffset, length);
     }
     var set_value = _toUint16(value);
-    if (endian !== Endianness.HOST_ENDIAN) {
+    if (!identical(endian, Endianness.HOST_ENDIAN)) {
       set_value = _toEndianUint16(set_value, endian._littleEndian);
     }
     _typeddata._setUint16(_offset + byteOffset, set_value);
@@ -2928,7 +2928,7 @@ class _ByteDataView implements ByteData {
       _throwRangeError(byteOffset, length);
     }
     var result = _typeddata._getInt32(_offset + byteOffset);
-    if (endian === Endianness.HOST_ENDIAN) {
+    if (identical(endian, Endianness.HOST_ENDIAN)) {
       return result;
     }
     return _toEndianInt32(result, endian._littleEndian);
@@ -2940,7 +2940,7 @@ class _ByteDataView implements ByteData {
       _throwRangeError(byteOffset, length);
     }
     var set_value = _toInt32(value);
-    if (endian !== Endianness.HOST_ENDIAN) {
+    if (!identical(endian, Endianness.HOST_ENDIAN)) {
       set_value = _toEndianInt32(set_value, endian._littleEndian);
     }
     _typeddata._setInt32(_offset + byteOffset, set_value);
@@ -2951,7 +2951,7 @@ class _ByteDataView implements ByteData {
       _throwRangeError(byteOffset, length);
     }
     var result = _typeddata._getUint32(_offset + byteOffset);
-    if (endian === Endianness.HOST_ENDIAN) {
+    if (identical(endian, Endianness.HOST_ENDIAN)) {
       return result;
     }
     return _toEndianUint32(result, endian._littleEndian);
@@ -2963,7 +2963,7 @@ class _ByteDataView implements ByteData {
       _throwRangeError(byteOffset, length);
     }
     var set_value = _toUint32(value);
-    if (endian !== Endianness.HOST_ENDIAN) {
+    if (!identical(endian, Endianness.HOST_ENDIAN)) {
       set_value = _toEndianUint32(set_value, endian._littleEndian);
     }
     _typeddata._setUint32(_offset + byteOffset, set_value);
@@ -2974,7 +2974,7 @@ class _ByteDataView implements ByteData {
       _throwRangeError(byteOffset, length);
     }
     var result = _typeddata._getInt64(_offset + byteOffset);
-    if (endian === Endianness.HOST_ENDIAN) {
+    if (identical(endian, Endianness.HOST_ENDIAN)) {
       return result;
     }
     return _toEndianInt64(result, endian._littleEndian);
@@ -2986,7 +2986,7 @@ class _ByteDataView implements ByteData {
       _throwRangeError(byteOffset, length);
     }
     var set_value = _toInt64(value);
-    if (endian !== Endianness.HOST_ENDIAN) {
+    if (!identical(endian, Endianness.HOST_ENDIAN)) {
       set_value = _toEndianInt64(set_value, endian._littleEndian);
     }
     _typeddata._setInt64(_offset + byteOffset, set_value);
@@ -2997,7 +2997,7 @@ class _ByteDataView implements ByteData {
       _throwRangeError(byteOffset, length);
     }
     var result = _typeddata._getUint64(_offset + byteOffset);
-    if (endian === Endianness.HOST_ENDIAN) {
+    if (identical(endian, Endianness.HOST_ENDIAN)) {
       return result;
     }
     return _toEndianUint64(result, endian._littleEndian);
@@ -3009,7 +3009,7 @@ class _ByteDataView implements ByteData {
       _throwRangeError(byteOffset, length);
     }
     var set_value = _toUint64(value);
-    if (endian !== Endianness.HOST_ENDIAN) {
+    if (!identical(endian, Endianness.HOST_ENDIAN)) {
       set_value = _toEndianUint64(set_value, endian._littleEndian);
     }
     _typeddata._setUint64(_offset + byteOffset, set_value);
@@ -3021,7 +3021,7 @@ class _ByteDataView implements ByteData {
       _throwRangeError(byteOffset, length);
     }
     var result = _typeddata._getFloat32(_offset + byteOffset);
-    if (endian === Endianness.HOST_ENDIAN) {
+    if (identical(endian, Endianness.HOST_ENDIAN)) {
       return result;
     }
     return _toEndianFloat32(result, endian._littleEndian);
@@ -3033,7 +3033,7 @@ class _ByteDataView implements ByteData {
       _throwRangeError(byteOffset, length);
     }
     var set_value = value;
-    if (endian !== Endianness.HOST_ENDIAN) {
+    if (!identical(endian, Endianness.HOST_ENDIAN)) {
       set_value = _toEndianFloat32(set_value, endian._littleEndian);
     }
     _typeddata._setFloat32(_offset + byteOffset, set_value);
@@ -3045,7 +3045,7 @@ class _ByteDataView implements ByteData {
       _throwRangeError(byteOffset, length);
     }
     var result = _typeddata._getFloat64(_offset + byteOffset);
-    if (endian === Endianness.HOST_ENDIAN) {
+    if (identical(endian, Endianness.HOST_ENDIAN)) {
       return result;
     }
     return _toEndianFloat64(result, endian._littleEndian);
@@ -3057,7 +3057,7 @@ class _ByteDataView implements ByteData {
       _throwRangeError(byteOffset, length);
     }
     var set_value = value;
-    if (endian !== Endianness.HOST_ENDIAN) {
+    if (!identical(endian, Endianness.HOST_ENDIAN)) {
       set_value = _toEndianFloat64(set_value, endian._littleEndian);
     }
     _typeddata._setFloat64(_offset + byteOffset, set_value);
