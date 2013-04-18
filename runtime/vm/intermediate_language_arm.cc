@@ -84,9 +84,11 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // not optimized.
   if (!compiler->HasFinally()) {
     __ Comment("Stack Check");
-    const int sp_fp_dist = compiler->StackSize() + (-kFirstLocalSlotIndex - 1);
-    __ sub(R2, FP, ShifterOperand(SP));
-    __ CompareImmediate(R2, sp_fp_dist * kWordSize);
+    const intptr_t fp_sp_dist =
+        (kFirstLocalSlotIndex + 1 - compiler->StackSize()) * kWordSize;
+    ASSERT(fp_sp_dist <= 0);
+    __ sub(R2, SP, ShifterOperand(FP));
+    __ CompareImmediate(R2, fp_sp_dist);
     __ bkpt(0, NE);
   }
 #endif
@@ -1491,13 +1493,31 @@ void CloneContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* CatchEntryInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  return LocationSummary::Make(0,
+                               Location::NoLocation(),
+                               LocationSummary::kNoCall);
 }
 
 
+// Restore stack and initialize the two exception variables:
+// exception and stack trace variables.
 void CatchEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  // Restore SP from FP as we are coming from a throw and the code for
+  // popping arguments has not been run.
+  const intptr_t fp_sp_dist =
+      (kFirstLocalSlotIndex + 1 - compiler->StackSize()) * kWordSize;
+  ASSERT(fp_sp_dist <= 0);
+  __ AddImmediate(SP, FP, fp_sp_dist);
+
+  ASSERT(!exception_var().is_captured());
+  ASSERT(!stacktrace_var().is_captured());
+  __ StoreToOffset(kStoreWord, kExceptionObjectReg,
+                   FP, exception_var().index() * kWordSize);
+  __ StoreToOffset(kStoreWord, kStackTraceObjectReg,
+                   FP, stacktrace_var().index() * kWordSize);
+
+  // Restore the pool pointer.
+  __ LoadPoolPointer();
 }
 
 
@@ -2051,7 +2071,6 @@ LocationSummary* ThrowInstr::MakeLocationSummary() const {
 }
 
 
-
 void ThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->GenerateCallRuntime(token_pos(),
                                 deopt_id(),
@@ -2062,13 +2081,16 @@ void ThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* ReThrowInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  return new LocationSummary(0, 0, LocationSummary::kCall);
 }
 
 
 void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  compiler->GenerateCallRuntime(token_pos(),
+                                deopt_id(),
+                                kReThrowRuntimeEntry,
+                                locs());
+  __ bkpt(0);
 }
 
 

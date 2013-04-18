@@ -84,10 +84,12 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!compiler->HasFinally()) {
     __ Comment("Stack Check");
     Label done;
-    const int sp_fp_dist = compiler->StackSize() + (-kFirstLocalSlotIndex - 1);
-    __ movq(RDI, RBP);
-    __ subq(RDI, RSP);
-    __ cmpq(RDI, Immediate(sp_fp_dist * kWordSize));
+    const intptr_t fp_sp_dist =
+        (kFirstLocalSlotIndex + 1 - compiler->StackSize()) * kWordSize;
+    ASSERT(fp_sp_dist <= 0);
+    __ movq(RDI, RSP);
+    __ subq(RDI, RBP);
+    __ cmpq(RDI, Immediate(fp_sp_dist));
     __ j(EQUAL, &done, Assembler::kNearJump);
     __ int3();
     __ Bind(&done);
@@ -2071,11 +2073,10 @@ LocationSummary* CatchEntryInstr::MakeLocationSummary() const {
 void CatchEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Restore RSP from RBP as we are coming from a throw and the code for
   // popping arguments has not been run.
-  const intptr_t locals_space_size = compiler->StackSize() * kWordSize;
-  ASSERT(locals_space_size >= 0);
-  const intptr_t offset_size =
-      -locals_space_size + FlowGraphCompiler::kLocalsOffsetFromFP;
-  __ leaq(RSP, Address(RBP, offset_size));
+  const intptr_t fp_sp_dist =
+      (kFirstLocalSlotIndex + 1 - compiler->StackSize()) * kWordSize;
+  ASSERT(fp_sp_dist <= 0);
+  __ leaq(RSP, Address(RBP, fp_sp_dist));
 
   ASSERT(!exception_var().is_captured());
   ASSERT(!stacktrace_var().is_captured());

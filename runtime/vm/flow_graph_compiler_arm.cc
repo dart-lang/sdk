@@ -696,10 +696,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
       __ mov(R7, ShifterOperand(PP));
 
       // Temporarily setup pool pointer for this dart function.
-      const intptr_t object_pool_pc_dist =
-         Instructions::HeaderSize() - Instructions::object_pool_offset() +
-         assembler()->CodeSize() + Instr::kPCReadOffset;
-      __ ldr(PP, Address(PC, -object_pool_pc_dist));
+      __ LoadPoolPointer();
 
       // Load function object from object pool.
       __ LoadObject(function_reg, function);  // Uses PP.

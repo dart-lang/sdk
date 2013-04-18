@@ -429,8 +429,6 @@ class FlowGraphCompiler : public ValueObject {
 
   bool may_reoptimize() const { return may_reoptimize_; }
 
-  static const int kLocalsOffsetFromFP = (-1 * kWordSize);
-
   static Condition FlipCondition(Condition condition);
 
   static bool EvaluateCondition(Condition condition, intptr_t l, intptr_t r);
