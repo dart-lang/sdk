@@ -78,13 +78,14 @@ io/process_exit_negative_test: Fail  # This is a compilation-time negative test.
 
 [ $compiler == dart2js ]
 number_identity_test: Skip # Bigints and int/double diff. not supported.
-typed_data_test: Skip # This is a VM test
-typed_data_view_test: Skip # This is a VM test
-typed_data_isolate_test: Skip # This is a VM test
-typed_array_test: Skip # This is a VM test
-float_array_test: Skip # This is a VM test
-int_array_test: Skip  # This is a VM test
-byte_array_view_optimized_test: Skip # This is a VM test
+typed_data_test: Skip # dart:typeddata support needed.
+bytedata_test: Skip # dart:typeddata support needed.
+typed_data_view_test: Skip # dart:typeddata support needed.
+typed_data_isolate_test: Skip # dart:typeddata support needed.
+typed_array_test: Skip # dart:typeddata support needed.
+float_array_test: Skip # dart:typeddata support needed.
+int_array_test: Skip  # dart:typeddata support needed.
+byte_array_view_optimized_test: Skip # dart:typeddata support needed.
 io/web_socket_protocol_processor_test: Skip  # Importing code with external keyword
 int_array_load_elimination_test: Skip  # This is a VM test
 medium_integer_test: Fail, OK # Test fails with JS number semantics: issue 1533.

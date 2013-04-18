@@ -285,26 +285,147 @@ DEFINE_NATIVE_ENTRY(TypedData_##setter, 3) {                                   \
 }
 
 
-#define TYPED_DATA_NATIVES(name, getter, setter, object, get_object_value)     \
+#define TYPED_DATA_NATIVES(getter, setter, object, get_object_value)           \
   TYPED_DATA_GETTER(getter, object)                                            \
   TYPED_DATA_SETTER(setter, object, get_object_value)                          \
 
 
-#define TYPED_DATA_UINT64_NATIVES(name, getter, setter, object)                \
+#define TYPED_DATA_UINT64_NATIVES(getter, setter, object)                      \
   TYPED_DATA_UINT64_GETTER(getter, object)                                     \
   TYPED_DATA_UINT64_SETTER(setter, object)                                     \
 
 
-TYPED_DATA_NATIVES(Int8Array, GetInt8, SetInt8, Smi, Value)
-TYPED_DATA_NATIVES(Uint8Array, GetUint8, SetUint8, Smi, Value)
-TYPED_DATA_NATIVES(Int16Array, GetInt16, SetInt16, Smi, Value)
-TYPED_DATA_NATIVES(Uint16Array, GetUint16, SetUint16, Smi, Value)
-TYPED_DATA_NATIVES(Int32Array, GetInt32, SetInt32, Integer, AsInt64Value)
-TYPED_DATA_NATIVES(Uint32Array, GetUint32, SetUint32, Integer, AsInt64Value)
-TYPED_DATA_NATIVES(Int64Array, GetInt64, SetInt64, Integer, AsInt64Value)
-TYPED_DATA_UINT64_NATIVES(Uint64Array, GetUint64, SetUint64, Integer)
-TYPED_DATA_NATIVES(Float32Array, GetFloat32, SetFloat32, Double, value)
-TYPED_DATA_NATIVES(Float64Array, GetFloat64, SetFloat64, Double, value)
-TYPED_DATA_NATIVES(Float32x4Array, GetFloat32x4, SetFloat32x4, Float32x4, value)
+TYPED_DATA_NATIVES(GetInt8, SetInt8, Smi, Value)
+TYPED_DATA_NATIVES(GetUint8, SetUint8, Smi, Value)
+TYPED_DATA_NATIVES(GetInt16, SetInt16, Smi, Value)
+TYPED_DATA_NATIVES(GetUint16, SetUint16, Smi, Value)
+TYPED_DATA_NATIVES(GetInt32, SetInt32, Integer, AsInt64Value)
+TYPED_DATA_NATIVES(GetUint32, SetUint32, Integer, AsInt64Value)
+TYPED_DATA_NATIVES(GetInt64, SetInt64, Integer, AsInt64Value)
+TYPED_DATA_UINT64_NATIVES(GetUint64, SetUint64, Integer)
+TYPED_DATA_NATIVES(GetFloat32, SetFloat32, Double, value)
+TYPED_DATA_NATIVES(GetFloat64, SetFloat64, Double, value)
+TYPED_DATA_NATIVES(GetFloat32x4, SetFloat32x4, Float32x4, value)
+
+
+DEFINE_NATIVE_ENTRY(ByteData_ToEndianInt16, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, host_value, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Bool, little_endian, arguments->NativeArgAt(1));
+  int16_t value = host_value.Value();
+  if (little_endian.value()) {
+    value = Utils::HostToLittleEndian16(value);
+  } else {
+    value = Utils::HostToBigEndian16(value);
+  }
+  return Smi::New(value);
+}
+
+
+DEFINE_NATIVE_ENTRY(ByteData_ToEndianUint16, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, host_value, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Bool, little_endian, arguments->NativeArgAt(1));
+  uint16_t value = host_value.Value();
+  if (little_endian.value()) {
+    return Smi::New(Utils::HostToLittleEndian16(value));
+  }
+  return Smi::New(Utils::HostToBigEndian16(value));
+}
+
+
+DEFINE_NATIVE_ENTRY(ByteData_ToEndianInt32, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, host_value, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Bool, little_endian, arguments->NativeArgAt(1));
+  ASSERT(host_value.AsInt64Value() <= kMaxInt32);
+  int32_t value = host_value.AsInt64Value();
+  if (little_endian.value()) {
+    value = Utils::HostToLittleEndian32(value);
+  } else {
+    value = Utils::HostToBigEndian32(value);
+  }
+  return Integer::New(value);
+}
+
+
+DEFINE_NATIVE_ENTRY(ByteData_ToEndianUint32, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, host_value, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Bool, little_endian, arguments->NativeArgAt(1));
+  ASSERT(host_value.AsInt64Value() <= kMaxUint32);
+  uint32_t value = host_value.AsInt64Value();
+  if (little_endian.value()) {
+    value = Utils::HostToLittleEndian32(value);
+  } else {
+    value = Utils::HostToBigEndian32(value);
+  }
+  return Integer::New(value);
+}
+
+
+DEFINE_NATIVE_ENTRY(ByteData_ToEndianInt64, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, host_value, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Bool, little_endian, arguments->NativeArgAt(1));
+  int64_t value = host_value.AsInt64Value();
+  if (little_endian.value()) {
+    value = Utils::HostToLittleEndian64(value);
+  } else {
+    value = Utils::HostToBigEndian64(value);
+  }
+  return Integer::New(value);
+}
+
+
+DEFINE_NATIVE_ENTRY(ByteData_ToEndianUint64, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, host_value, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Bool, little_endian, arguments->NativeArgAt(1));
+  uint64_t value;
+  if (host_value.IsBigint()) {
+    const Bigint& bigint = Bigint::Cast(host_value);
+    ASSERT(BigintOperations::FitsIntoUint64(bigint));
+    value = BigintOperations::AbsToUint64(bigint);
+  } else {
+    ASSERT(host_value.IsMint() || host_value.IsSmi());
+    value = host_value.AsInt64Value();
+  }
+  if (little_endian.value()) {
+    value = Utils::HostToLittleEndian64(value);
+  } else {
+    value = Utils::HostToBigEndian64(value);
+  }
+  if (value > static_cast<uint64_t>(Mint::kMaxValue)) {
+    return BigintOperations::NewFromUint64(value);
+  } else if (value > static_cast<uint64_t>(Smi::kMaxValue)) {
+    return Mint::New(value);
+  }
+  return Smi::New(value);
+}
+
+
+DEFINE_NATIVE_ENTRY(ByteData_ToEndianFloat32, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Double, host_value, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Bool, little_endian, arguments->NativeArgAt(1));
+  float value = host_value.value();
+  if (little_endian.value()) {
+    value = bit_cast<float>(
+        Utils::HostToLittleEndian32(bit_cast<uint32_t>(value)));
+  } else {
+    value = bit_cast<float>(
+        Utils::HostToBigEndian32(bit_cast<uint32_t>(value)));
+  }
+  return Double::New(value);
+}
+
+
+DEFINE_NATIVE_ENTRY(ByteData_ToEndianFloat64, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Double, host_value, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Bool, little_endian, arguments->NativeArgAt(1));
+  double value = host_value.value();
+  if (little_endian.value()) {
+    value = bit_cast<double>(
+        Utils::HostToLittleEndian64(bit_cast<uint64_t>(value)));
+  } else {
+    value = bit_cast<double>(
+        Utils::HostToBigEndian64(bit_cast<uint64_t>(value)));
+  }
+  return Double::New(value);
+}
 
 }  // namespace dart

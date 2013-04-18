@@ -2874,126 +2874,234 @@ class _ByteDataView implements ByteData {
     if (byteOffset < 0 || byteOffset >= length) {
       _throwRangeError(byteOffset, length);
     }
-    _typeddata._setUint8(_offset + byteOffset,_toUint8( value));
+    _typeddata._setUint8(_offset + byteOffset, _toUint8(value));
   }
 
-  int getInt16(int byteOffset) {
+  int getInt16(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]) {
     if (byteOffset < 0 || byteOffset >= length) {
       _throwRangeError(byteOffset, length);
     }
-    return _typeddata._getInt16(_offset + byteOffset);
+    var result = _typeddata._getInt16(_offset + byteOffset);
+    if (endian === Endianness.HOST_ENDIAN) {
+      return result;
+    }
+    return _toEndianInt16(result, endian._littleEndian);
   }
-  void setInt16(int byteOffset, int value) {
+  void setInt16(int byteOffset,
+                int value,
+                [Endianness endian = Endianness.BIG_ENDIAN]) {
     if (byteOffset < 0 || byteOffset >= length) {
       _throwRangeError(byteOffset, length);
     }
-    _typeddata._setInt16(_offset + byteOffset, _toInt16(value));
-  }
-
-  int getUint16(int byteOffset) {
-    if (byteOffset < 0 || byteOffset >= length) {
-      _throwRangeError(byteOffset, length);
+    var set_value = _toInt16(value);
+    if (endian !== Endianness.HOST_ENDIAN) {
+      set_value = _toEndianInt16(set_value, endian._littleEndian);
     }
-    return _typeddata._getUint16(_offset + byteOffset);
-  }
-  void setUint16(int byteOffset, int value) {
-    if (byteOffset < 0 || byteOffset >= length) {
-      _throwRangeError(byteOffset, length);
-    }
-    _typeddata._setUint16(_offset + byteOffset, _toUint16(value));
+    _typeddata._setInt16(_offset + byteOffset, set_value);
   }
 
-  int getInt32(int byteOffset) {
+  int getUint16(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]) {
     if (byteOffset < 0 || byteOffset >= length) {
       _throwRangeError(byteOffset, length);
     }
-    return _typeddata._getInt32(_offset + byteOffset);
+    var result = _typeddata._getUint16(_offset + byteOffset);
+    if (endian === Endianness.HOST_ENDIAN) {
+      return result;
+    }
+    return _toEndianUint16(result, endian._littleEndian);
   }
-  void setInt32(int byteOffset, int value) {
+  void setUint16(int byteOffset,
+                 int value,
+                 [Endianness endian = Endianness.BIG_ENDIAN]) {
     if (byteOffset < 0 || byteOffset >= length) {
       _throwRangeError(byteOffset, length);
     }
-    _typeddata._setInt32(_offset + byteOffset, _toInt32(value));
-  }
-
-  int getUint32(int byteOffset) {
-    if (byteOffset < 0 || byteOffset >= length) {
-      _throwRangeError(byteOffset, length);
+    var set_value = _toUint16(value);
+    if (endian !== Endianness.HOST_ENDIAN) {
+      set_value = _toEndianUint16(set_value, endian._littleEndian);
     }
-    return _typeddata._getUint32(_offset + byteOffset);
-  }
-  void setUint32(int byteOffset, int value) {
-    if (byteOffset < 0 || byteOffset >= length) {
-      _throwRangeError(byteOffset, length);
-    }
-    _typeddata._setUint32(_offset + byteOffset, _toUint32(value));
+    _typeddata._setUint16(_offset + byteOffset, set_value);
   }
 
-  int getInt64(int byteOffset) {
+  int getInt32(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]) {
     if (byteOffset < 0 || byteOffset >= length) {
       _throwRangeError(byteOffset, length);
     }
-    return _typeddata._getInt64(_offset + byteOffset);
+    var result = _typeddata._getInt32(_offset + byteOffset);
+    if (endian === Endianness.HOST_ENDIAN) {
+      return result;
+    }
+    return _toEndianInt32(result, endian._littleEndian);
   }
-  void setInt64(int byteOffset, int value) {
+  void setInt32(int byteOffset,
+                int value,
+                [Endianness endian = Endianness.BIG_ENDIAN]) {
     if (byteOffset < 0 || byteOffset >= length) {
       _throwRangeError(byteOffset, length);
     }
-    _typeddata._setInt64(_offset + byteOffset, _toInt64(value));
-  }
-
-  int getUint64(int byteOffset) {
-    if (byteOffset < 0 || byteOffset >= length) {
-      _throwRangeError(byteOffset, length);
+    var set_value = _toInt32(value);
+    if (endian !== Endianness.HOST_ENDIAN) {
+      set_value = _toEndianInt32(set_value, endian._littleEndian);
     }
-    return _typeddata._getUint64(_offset + byteOffset);
-  }
-  void setUint64(int byteOffset, int value) {
-    if (byteOffset < 0 || byteOffset >= length) {
-      _throwRangeError(byteOffset, length);
-    }
-    _typeddata._setUint64(_offset + byteOffset, _toUint64(value));
+    _typeddata._setInt32(_offset + byteOffset, set_value);
   }
 
-  double getFloat32(int byteOffset) {
+  int getUint32(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]) {
     if (byteOffset < 0 || byteOffset >= length) {
       _throwRangeError(byteOffset, length);
     }
-    return _typeddata._getFloat32(_offset + byteOffset);
+    var result = _typeddata._getUint32(_offset + byteOffset);
+    if (endian === Endianness.HOST_ENDIAN) {
+      return result;
+    }
+    return _toEndianUint32(result, endian._littleEndian);
   }
-  void setFloat32(int byteOffset, double value) {
+  void setUint32(int byteOffset,
+                 int value,
+                 [Endianness endian = Endianness.BIG_ENDIAN]) {
     if (byteOffset < 0 || byteOffset >= length) {
       _throwRangeError(byteOffset, length);
     }
-    _typeddata._setFloat32(_offset + byteOffset, value);
-  }
-
-  double getFloat64(int byteOffset) {
-    if (byteOffset < 0 || byteOffset >= length) {
-      _throwRangeError(byteOffset, length);
+    var set_value = _toUint32(value);
+    if (endian !== Endianness.HOST_ENDIAN) {
+      set_value = _toEndianUint32(set_value, endian._littleEndian);
     }
-    return _typeddata._getFloat64(_offset + byteOffset);
-  }
-  void setFloat64(int byteOffset, double value) {
-    if (byteOffset < 0 || byteOffset >= length) {
-      _throwRangeError(byteOffset, length);
-    }
-    _typeddata._setFloat64(_offset + byteOffset, value);
+    _typeddata._setUint32(_offset + byteOffset, set_value);
   }
 
-  Float32x4 getFloat32x4(int byteOffset) {
+  int getInt64(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]) {
     if (byteOffset < 0 || byteOffset >= length) {
       _throwRangeError(byteOffset, length);
     }
+    var result = _typeddata._getInt64(_offset + byteOffset);
+    if (endian === Endianness.HOST_ENDIAN) {
+      return result;
+    }
+    return _toEndianInt64(result, endian._littleEndian);
+  }
+  void setInt64(int byteOffset,
+                int value,
+                [Endianness endian = Endianness.BIG_ENDIAN]) {
+    if (byteOffset < 0 || byteOffset >= length) {
+      _throwRangeError(byteOffset, length);
+    }
+    var set_value = _toInt64(value);
+    if (endian !== Endianness.HOST_ENDIAN) {
+      set_value = _toEndianInt64(set_value, endian._littleEndian);
+    }
+    _typeddata._setInt64(_offset + byteOffset, set_value);
+  }
+
+  int getUint64(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]) {
+    if (byteOffset < 0 || byteOffset >= length) {
+      _throwRangeError(byteOffset, length);
+    }
+    var result = _typeddata._getUint64(_offset + byteOffset);
+    if (endian === Endianness.HOST_ENDIAN) {
+      return result;
+    }
+    return _toEndianUint64(result, endian._littleEndian);
+  }
+  void setUint64(int byteOffset,
+                 int value,
+                 [Endianness endian = Endianness.BIG_ENDIAN]) {
+    if (byteOffset < 0 || byteOffset >= length) {
+      _throwRangeError(byteOffset, length);
+    }
+    var set_value = _toUint64(value);
+    if (endian !== Endianness.HOST_ENDIAN) {
+      set_value = _toEndianUint64(set_value, endian._littleEndian);
+    }
+    _typeddata._setUint64(_offset + byteOffset, set_value);
+  }
+
+  double getFloat32(int byteOffset,
+                    [Endianness endian = Endianness.BIG_ENDIAN]) {
+    if (byteOffset < 0 || byteOffset >= length) {
+      _throwRangeError(byteOffset, length);
+    }
+    var result = _typeddata._getFloat32(_offset + byteOffset);
+    if (endian === Endianness.HOST_ENDIAN) {
+      return result;
+    }
+    return _toEndianFloat32(result, endian._littleEndian);
+  }
+  void setFloat32(int byteOffset,
+                  double value,
+                  [Endianness endian = Endianness.BIG_ENDIAN]) {
+    if (byteOffset < 0 || byteOffset >= length) {
+      _throwRangeError(byteOffset, length);
+    }
+    var set_value = value;
+    if (endian !== Endianness.HOST_ENDIAN) {
+      set_value = _toEndianFloat32(set_value, endian._littleEndian);
+    }
+    _typeddata._setFloat32(_offset + byteOffset, set_value);
+  }
+
+  double getFloat64(int byteOffset,
+                    [Endianness endian = Endianness.BIG_ENDIAN]) {
+    if (byteOffset < 0 || byteOffset >= length) {
+      _throwRangeError(byteOffset, length);
+    }
+    var result = _typeddata._getFloat64(_offset + byteOffset);
+    if (endian === Endianness.HOST_ENDIAN) {
+      return result;
+    }
+    return _toEndianFloat64(result, endian._littleEndian);
+  }
+  void setFloat64(int byteOffset,
+                  double value,
+                  [Endianness endian = Endianness.BIG_ENDIAN]) {
+    if (byteOffset < 0 || byteOffset >= length) {
+      _throwRangeError(byteOffset, length);
+    }
+    var set_value = value;
+    if (endian !== Endianness.HOST_ENDIAN) {
+      set_value = _toEndianFloat64(set_value, endian._littleEndian);
+    }
+    _typeddata._setFloat64(_offset + byteOffset, set_value);
+  }
+
+  Float32x4 getFloat32x4(int byteOffset,
+                         [Endianness endian = Endianness.BIG_ENDIAN]) {
+    if (byteOffset < 0 || byteOffset >= length) {
+      _throwRangeError(byteOffset, length);
+    }
+    // TODO(johnmccutchan) : Need to resolve this for endianity.
     return _typeddata._getFloat32x4(_offset + byteOffset);
   }
-  void setFloat32x4(int byteOffset, Float32x4 value) {
+  void setFloat32x4(int byteOffset,
+                    Float32x4 value,
+                    [Endianness endian = Endianness.BIG_ENDIAN]) {
     if (byteOffset < 0 || byteOffset >= length) {
       _throwRangeError(byteOffset, length);
     }
+    // TODO(johnmccutchan) : Need to resolve this for endianity.
     _typeddata._setFloat32x4(_offset + byteOffset, value);
 
   }
+
+
+  // Internal utility methods.
+
+  static int _toEndianInt16(int host_value, bool little_endian)
+      native "ByteData_ToEndianInt16";
+  static int _toEndianUint16(int host_value, bool little_endian)
+      native "ByteData_ToEndianUint16";
+  static int _toEndianInt32(int host_value, bool little_endian)
+      native "ByteData_ToEndianInt32";
+  static int _toEndianUint32(int host_value, bool little_endian)
+      native "ByteData_ToEndianUint32";
+  static int _toEndianInt64(int host_value, bool little_endian)
+      native "ByteData_ToEndianInt64";
+  static int _toEndianUint64(int host_value, bool little_endian)
+      native "ByteData_ToEndianUint64";
+  static double _toEndianFloat32(double host_value, bool little_endian)
+      native "ByteData_ToEndianFloat32";
+  static double _toEndianFloat64(double host_value, bool little_endian)
+      native "ByteData_ToEndianFloat64";
+
 
   final TypedData _typeddata;
   final int _offset;
