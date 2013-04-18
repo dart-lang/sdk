@@ -277,11 +277,7 @@ class _WebSocketProtocolTransformer extends StreamEventTransformer {
           sink.add(_buffer.toString());
           break;
         case _WebSocketMessageType.BINARY:
-          if (_buffer.length == 0) {
-            sink.add(const []);
-          } else {
-            sink.add(_buffer.readBytes(_buffer.length));
-          }
+          sink.add(_buffer.readBytes());
           break;
       }
       _buffer = null;

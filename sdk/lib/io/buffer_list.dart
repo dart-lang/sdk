@@ -5,153 +5,91 @@
 part of dart.io;
 
 /**
- * Utility class that holds a number of byte buffers and can deliver
- * the bytes either one by one or in chunks.
+ * Utility class that can fast concatenate [List<int>]s of bytes. Use
+ * [readBytes] to get the final buffer.
  */
 class _BufferList {
+  const int _INIT_SIZE = 1 * 1024;
+
   _BufferList() {
     clear();
   }
 
-  /**
-   * Adds a new buffer to the list possibly with an offset of the
-   * first byte of interest. The offset can only be specified if the
-   * buffer list is empty.
-   */
-  void add(List<int> buffer, [int offset = 0]) {
-    assert(offset == 0 || _buffers.isEmpty);
-    _buffers.addLast(buffer);
-    _length += buffer.length;
-    if (offset != 0) _index = offset;
-  }
-
-  /** Alias for [add]. */
-  void write(List<int> buffer, [int offset = 0]) {
-    add(buffer, offset);
+  int pow2roundup(int x) {
+    --x;
+    x |= x >> 1;
+    x |= x >> 2;
+    x |= x >> 4;
+    x |= x >> 8;
+    x |= x >> 16;
+    return x + 1;
   }
 
   /**
-   * Returns the first buffer from the list. This returns the whole
-   * buffer and does not remove the buffer from the list. Use
-   * [index] to determine the index of the first byte in the buffer.
+   * Adds a new buffer to the list.
    */
-  List<int> get first => _buffers.first;
-
-  /**
-   * Returns the current index of the next byte. This will always be
-   * an index into the first buffer as when the index is advanced past
-   * the end of a buffer it is removed from the list.
-   */
-  int get index =>  _index;
-
-  /**
-   * Peek at the next available byte.
-   */
-  int peek() => _buffers.first[_index];
-
-  /**
-   * Returns the next available byte removing it from the buffers.
-   */
-  int next() {
-    int value = _buffers.first[_index++];
-    _length--;
-    if (_index == _buffers.first.length) {
-      _buffers.removeFirst();
-      _index = 0;
+  void add(List<int> buffer) {
+    int bufferLength = buffer.length;
+    int required = _length + bufferLength;
+    if (_buffer == null) {
+      int size = pow2roundup(required);
+      if (size < _INIT_SIZE) size = _INIT_SIZE;
+      _buffer = new Uint8List(size);
+    } else if (_buffer.length < required) {
+      // This will give is a list in the range of 2-4 times larger than
+      // required.
+      int size = pow2roundup(required) * 2;
+      Uint8List newBuffer = new Uint8List(size);
+      newBuffer.setRange(0, _buffer.length, _buffer);
+      _buffer = newBuffer;
     }
-    return value;
-  }
-
-  /**
-   * Read [count] bytes from the buffer list. If the number of bytes
-   * requested is not available null will be returned.
-   */
-  List<int> readBytes([int count]) {
-    if (count == null) count = length;
-    List<int> result;
-    if (_length == 0) return new Uint8List(0);
-    if (_length < count) return null;
-    if (_index == 0 && _buffers.first.length == count) {
-      result = _buffers.first;
-      _buffers.removeFirst();
-      _index = 0;
-      _length -= count;
-      return result;
+    assert(_buffer.length >= required);
+    if (buffer is Uint8List) {
+      _buffer.setRange(_length, required, buffer);
     } else {
-      int firstRemaining = _buffers.first.length - _index;
-      if (firstRemaining >= count) {
-        result = _buffers.first.sublist(_index, _index + count);
-        _index += count;
-        _length -= count;
-        if (_index == _buffers.first.length) {
-          _buffers.removeFirst();
-          _index = 0;
-        }
-        return result;
-      } else {
-        result = new Uint8List(count);
-        int remaining = count;
-        while (remaining > 0) {
-          int bytesInFirst = _buffers.first.length - _index;
-          if (bytesInFirst <= remaining) {
-            int startIndex = count - remaining;
-            int endIndex = startIndex + bytesInFirst;
-            result.setRange(startIndex, endIndex, _buffers.first, _index);
-            _buffers.removeFirst();
-            _index = 0;
-            _length -= bytesInFirst;
-            remaining -= bytesInFirst;
-          } else {
-            result.setRange(count - remaining, count, _buffers.first, _index);
-            _index = remaining;
-            _length -= remaining;
-            remaining = 0;
-            assert(_index < _buffers.first.length);
-          }
-        }
-        return result;
+      for (int i = 0; i < bufferLength; i++) {
+        _buffer[_length + i] = buffer[i];
       }
     }
+    _length = required;
   }
 
   /**
-   * Remove a number of bytes from the buffer list. Currently the
-   * number of bytes to remove must be confined to the first buffer.
+   * Same as [add].
    */
-  void removeBytes(int count) {
-    int firstRemaining = first.length - _index;
-    assert(count <= firstRemaining);
-    if (count == firstRemaining) {
-      _buffers.removeFirst();
-      _index = 0;
-    } else {
-      _index += count;
-    }
-    _length -= count;
+  void write(List<int> buffer) {
+    add(buffer);
   }
 
+  /**
+   * Read all the bytes from the buffer list. If it's empty, an empty list
+   * is returned. A call to [readBytes] will clear the buffer.
+   */
+  List<int> readBytes() {
+    if (_buffer == null) return new Uint8List(0);
+    var buffer = new Uint8List.view(_buffer.buffer, 0, _length);
+    clear();
+    return buffer;
+  }
 
   /**
-   * Returns the total number of bytes remaining in the buffers.
+   * Returns the total number of bytes in the buffer.
    */
   int get length => _length;
 
   /**
-   * Returns whether the buffer list is empty that is has no bytes
-   * available.
+   * Returns whether the buffer list is empty.
    */
-  bool get isEmpty => _buffers.isEmpty;
+  bool get isEmpty => _length == 0;
 
   /**
    * Clears the content of the buffer list.
    */
   void clear() {
-    _index = 0;
     _length = 0;
-    _buffers = new Queue();
+    _buffer = null;
   }
 
-  int _length;  // Total number of bytes remaining in the buffers.
-  Queue<List<int>> _buffers;  // List of data buffers.
-  int _index;  // Index of the next byte in the first buffer.
+  int _length;  // Total number of bytes in the buffer.
+  Uint8List _buffer;  // Internal buffer.
 }
