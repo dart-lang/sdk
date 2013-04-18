@@ -414,29 +414,29 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveASTVisitor<Object> {
   LibraryMap get librariesMap => _librariesMap;
   Object visitMapLiteralEntry(MapLiteralEntry node) {
     String libraryName = null;
-    Expression key3 = node.key;
-    if (key3 is SimpleStringLiteral) {
-      libraryName = "${_LIBRARY_PREFIX}${((key3 as SimpleStringLiteral)).value}";
+    Expression key2 = node.key;
+    if (key2 is SimpleStringLiteral) {
+      libraryName = "${_LIBRARY_PREFIX}${((key2 as SimpleStringLiteral)).value}";
     }
-    Expression value10 = node.value;
-    if (value10 is InstanceCreationExpression) {
+    Expression value2 = node.value;
+    if (value2 is InstanceCreationExpression) {
       SdkLibraryImpl library = new SdkLibraryImpl(libraryName);
-      List<Expression> arguments8 = ((value10 as InstanceCreationExpression)).argumentList.arguments;
-      for (Expression argument in arguments8) {
+      List<Expression> arguments2 = ((value2 as InstanceCreationExpression)).argumentList.arguments;
+      for (Expression argument in arguments2) {
         if (argument is SimpleStringLiteral) {
           library.path = ((argument as SimpleStringLiteral)).value;
         } else if (argument is NamedExpression) {
-          String name23 = ((argument as NamedExpression)).name.label.name;
-          Expression expression15 = ((argument as NamedExpression)).expression;
-          if (name23 == _CATEGORY) {
-            library.category = ((expression15 as SimpleStringLiteral)).value;
-          } else if (name23 == _IMPLEMENTATION) {
-            library.implementation = ((expression15 as BooleanLiteral)).value;
-          } else if (name23 == _DOCUMENTED) {
-            library.documented = ((expression15 as BooleanLiteral)).value;
-          } else if (name23 == _PLATFORMS) {
-            if (expression15 is SimpleIdentifier) {
-              String identifier = ((expression15 as SimpleIdentifier)).name;
+          String name2 = ((argument as NamedExpression)).name.label.name;
+          Expression expression2 = ((argument as NamedExpression)).expression;
+          if (name2 == _CATEGORY) {
+            library.category = ((expression2 as SimpleStringLiteral)).value;
+          } else if (name2 == _IMPLEMENTATION) {
+            library.implementation = ((expression2 as BooleanLiteral)).value;
+          } else if (name2 == _DOCUMENTED) {
+            library.documented = ((expression2 as BooleanLiteral)).value;
+          } else if (name2 == _PLATFORMS) {
+            if (expression2 is SimpleIdentifier) {
+              String identifier = ((expression2 as SimpleIdentifier)).name;
               if (identifier == _VM_PLATFORM) {
                 library.setVmLibrary();
               } else {

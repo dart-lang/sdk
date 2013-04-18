@@ -698,8 +698,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       if (htmlUnitInfo == null) {
         return null;
       }
-      HtmlElement element26 = htmlUnitInfo.element;
-      if (element26 == null) {
+      HtmlElement element2 = htmlUnitInfo.element;
+      if (element2 == null) {
         HtmlUnit unit = htmlUnitInfo.resolvedUnit;
         if (unit == null) {
           unit = htmlUnitInfo.parsedUnit;
@@ -708,11 +708,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           }
         }
         HtmlUnitBuilder builder = new HtmlUnitBuilder(this);
-        element26 = builder.buildHtmlElement2(source, unit);
+        element2 = builder.buildHtmlElement2(source, unit);
         htmlUnitInfo.resolvedUnit = unit;
-        htmlUnitInfo.element = element26;
+        htmlUnitInfo.element = element2;
       }
-      return element26;
+      return element2;
     }
   }
   SourceKind computeKindOf(Source source) {
@@ -735,22 +735,22 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       if (libraryInfo == null) {
         return null;
       }
-      LibraryElement element27 = libraryInfo.element;
-      if (element27 == null) {
+      LibraryElement element2 = libraryInfo.element;
+      if (element2 == null) {
         if (computeKindOf(source) != SourceKind.LIBRARY) {
           return null;
         }
         LibraryResolver resolver = new LibraryResolver.con1(this);
         try {
-          element27 = resolver.resolveLibrary(source, true);
-          if (element27 != null) {
-            libraryInfo.element = element27;
+          element2 = resolver.resolveLibrary(source, true);
+          if (element2 != null) {
+            libraryInfo.element = element2;
           }
         } on AnalysisException catch (exception) {
           AnalysisEngine.instance.logger.logError2("Could not resolve the library ${source.fullName}", exception);
         }
       }
-      return element27;
+      return element2;
     }
   }
   LineInfo computeLineInfo(Source source) {
@@ -759,20 +759,20 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       if (sourceInfo == null) {
         return null;
       }
-      LineInfo lineInfo4 = sourceInfo.lineInfo;
-      if (lineInfo4 == null) {
+      LineInfo lineInfo2 = sourceInfo.lineInfo;
+      if (lineInfo2 == null) {
         if (identical(sourceInfo, DartInfo.pendingInstance)) {
           sourceInfo = internalComputeKindOf(source);
         }
         if (sourceInfo is HtmlUnitInfo) {
           parseHtmlUnit(source);
-          lineInfo4 = sourceInfo.lineInfo;
+          lineInfo2 = sourceInfo.lineInfo;
         } else if (sourceInfo is CompilationUnitInfo) {
           parseCompilationUnit(source);
-          lineInfo4 = sourceInfo.lineInfo;
+          lineInfo2 = sourceInfo.lineInfo;
         }
       }
-      return lineInfo4;
+      return lineInfo2;
     }
   }
   CompilationUnit computeResolvableCompilationUnit(Source source) {
@@ -940,9 +940,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
   }
   Namespace getPublicNamespace(LibraryElement library) {
-    Source source11 = library.definingCompilationUnit.source;
+    Source source2 = library.definingCompilationUnit.source;
     {
-      LibraryInfo libraryInfo = getLibraryInfo(source11);
+      LibraryInfo libraryInfo = getLibraryInfo(source2);
       if (libraryInfo == null) {
         return null;
       }
@@ -1098,14 +1098,14 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
     }
   }
-  void recordResolutionErrors(Source source, List<AnalysisError> errors, LineInfo lineInfo5) {
+  void recordResolutionErrors(Source source, List<AnalysisError> errors, LineInfo lineInfo2) {
     {
       CompilationUnitInfo compilationUnitInfo = getCompilationUnitInfo(source);
       if (compilationUnitInfo != null) {
-        compilationUnitInfo.lineInfo = lineInfo5;
+        compilationUnitInfo.lineInfo = lineInfo2;
         compilationUnitInfo.resolutionErrors = errors;
       }
-      getNotice(source).setErrors(compilationUnitInfo.allErrors, lineInfo5);
+      getNotice(source).setErrors(compilationUnitInfo.allErrors, lineInfo2);
     }
   }
   void recordResolvedCompilationUnit(Source source, CompilationUnit unit) {
@@ -1118,11 +1118,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
     }
   }
-  CompilationUnit resolveCompilationUnit(Source source20, LibraryElement library) {
+  CompilationUnit resolveCompilationUnit(Source source2, LibraryElement library) {
     if (library == null) {
       return null;
     }
-    return resolveCompilationUnit2(source20, library.source);
+    return resolveCompilationUnit2(source2, library.source);
   }
   CompilationUnit resolveCompilationUnit2(Source unitSource, Source librarySource) {
     {
@@ -1490,11 +1490,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * @param kind the kind of sources to be returned
    * @return all of the sources known to this context that have the given kind
    */
-  List<Source> getSources(SourceKind kind3) {
+  List<Source> getSources(SourceKind kind2) {
     List<Source> sources = new List<Source>();
     {
       for (MapEntry<Source, SourceInfo> entry in getMapEntrySet(_sourceMap)) {
-        if (identical(entry.getValue().kind, kind3)) {
+        if (identical(entry.getValue().kind, kind2)) {
           sources.add(entry.getKey());
         }
       }
@@ -1807,15 +1807,15 @@ class Source_ContentReceiver_7 implements Source_ContentReceiver {
   AnalysisErrorListener errorListener;
   AnalysisContextImpl_ScanResult result;
   Source_ContentReceiver_7(this.source, this.errorListener, this.result);
-  void accept(CharBuffer contents, int modificationTime4) {
+  void accept(CharBuffer contents, int modificationTime2) {
     CharBufferScanner scanner = new CharBufferScanner(source, contents, errorListener);
-    result._modificationTime = modificationTime4;
+    result._modificationTime = modificationTime2;
     result._token = scanner.tokenize();
     result._lineStarts = scanner.lineStarts;
   }
-  void accept2(String contents, int modificationTime5) {
+  void accept2(String contents, int modificationTime2) {
     StringScanner scanner = new StringScanner(source, contents, errorListener);
-    result._modificationTime = modificationTime5;
+    result._modificationTime = modificationTime2;
     result._token = scanner.tokenize();
     result._lineStarts = scanner.lineStarts;
   }
@@ -1943,8 +1943,8 @@ class ChangeNoticeImpl implements ChangeNotice {
    * Set the fully resolved AST that changed as a result of the analysis to the given AST.
    * @param compilationUnit the fully resolved AST that changed as a result of the analysis
    */
-  void set compilationUnit(CompilationUnit compilationUnit9) {
-    this._compilationUnit = compilationUnit9;
+  void set compilationUnit(CompilationUnit compilationUnit2) {
+    this._compilationUnit = compilationUnit2;
   }
   /**
    * Set the errors that changed as a result of the analysis to the given errors and set the line
@@ -1952,9 +1952,9 @@ class ChangeNoticeImpl implements ChangeNotice {
    * @param errors the errors that changed as a result of the analysis
    * @param lineInfo the line information associated with the source
    */
-  void setErrors(List<AnalysisError> errors2, LineInfo lineInfo3) {
+  void setErrors(List<AnalysisError> errors2, LineInfo lineInfo2) {
     this._errors = errors2;
-    this._lineInfo = lineInfo3;
+    this._lineInfo = lineInfo2;
   }
 }
 /**
@@ -2331,8 +2331,8 @@ class DelegatingAnalysisContextImpl extends AnalysisContextImpl {
     }
   }
   Namespace getPublicNamespace(LibraryElement library) {
-    Source source12 = library.source;
-    if (source12.isInSystemLibrary()) {
+    Source source2 = library.source;
+    if (source2.isInSystemLibrary()) {
       return _sdkAnalysisContext.getPublicNamespace(library);
     } else {
       return super.getPublicNamespace(library);
@@ -2585,8 +2585,8 @@ class HtmlUnitInfo extends SourceInfo {
    * <b>Note:</b> Do not use this method to clear or invalidate the element. Use either{@link #clearElement()} or {@link #invalidateElement()}.
    * @param element the element representing the HTML file
    */
-  void set element(HtmlElement element19) {
-    this._element = element19;
+  void set element(HtmlElement element2) {
+    this._element = element2;
     _elementState = CacheState.VALID;
   }
   /**
@@ -3308,8 +3308,8 @@ class LibraryInfo extends CompilationUnitInfo {
    * <b>Note:</b> Do not use this method to clear or invalidate the element. Use either{@link #clearElement()} or {@link #invalidateElement()}.
    * @param element the element representing the library
    */
-  void set element(LibraryElement element20) {
-    this._element = element20;
+  void set element(LibraryElement element2) {
+    this._element = element2;
     _elementState = CacheState.VALID;
   }
   /**
@@ -3389,11 +3389,11 @@ class RecordingErrorListener implements AnalysisErrorListener {
     }
   }
   void onError(AnalysisError event) {
-    Source source13 = event.source;
-    List<AnalysisError> errorsForSource = _errors[source13];
-    if (_errors[source13] == null) {
+    Source source2 = event.source;
+    List<AnalysisError> errorsForSource = _errors[source2];
+    if (_errors[source2] == null) {
       errorsForSource = new List<AnalysisError>();
-      _errors[source13] = errorsForSource;
+      _errors[source2] = errorsForSource;
     }
     errorsForSource.add(event);
   }

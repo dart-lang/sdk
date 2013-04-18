@@ -52,14 +52,14 @@ class FileBasedSource implements Source {
    * @param file the file represented by this source
    * @param inSystemLibrary {@code true} if this source is in one of the system libraries
    */
-  FileBasedSource.con2(ContentCache contentCache2, JavaFile file3, bool inSystemLibrary2) {
-    _jtd_constructor_329_impl(contentCache2, file3, inSystemLibrary2);
+  FileBasedSource.con2(ContentCache contentCache2, JavaFile file2, bool inSystemLibrary2) {
+    _jtd_constructor_329_impl(contentCache2, file2, inSystemLibrary2);
   }
-  _jtd_constructor_329_impl(ContentCache contentCache2, JavaFile file3, bool inSystemLibrary2) {
+  _jtd_constructor_329_impl(ContentCache contentCache2, JavaFile file2, bool inSystemLibrary2) {
     this._contentCache = contentCache2;
-    this._file = file3;
+    this._file = file2;
     this._inSystemLibrary = inSystemLibrary2;
-    this._fileUriString = file3.toURI().toString();
+    this._fileUriString = file2.toURI().toString();
   }
   bool operator ==(Object object) => object != null && this.runtimeType == object.runtimeType && _file == ((object as FileBasedSource))._file;
   bool exists() => _contentCache.getContents(this) != null || (_file.exists() && !_file.isDirectory());
@@ -146,27 +146,27 @@ class PackageUriResolver extends UriResolver {
     if (!isPackageUri(uri)) {
       return null;
     }
-    String path4 = uri.path;
-    if (path4 == null) {
-      path4 = uri.path;
-      if (path4 == null) {
+    String path2 = uri.path;
+    if (path2 == null) {
+      path2 = uri.path;
+      if (path2 == null) {
         return null;
       }
     }
     String pkgName;
     String relPath;
-    int index = path4.indexOf('/');
+    int index = path2.indexOf('/');
     if (index == -1) {
-      pkgName = path4;
+      pkgName = path2;
       relPath = "";
     } else if (index == 0) {
       return null;
     } else {
-      pkgName = path4.substring(0, index);
-      relPath = path4.substring(index + 1);
+      pkgName = path2.substring(0, index);
+      relPath = path2.substring(index + 1);
     }
     for (JavaFile packagesDirectory in _packagesDirectories) {
-      JavaFile resolvedFile = new JavaFile.relative(packagesDirectory, path4);
+      JavaFile resolvedFile = new JavaFile.relative(packagesDirectory, path2);
       if (resolvedFile.exists()) {
         return new FileBasedSource.con1(contentCache, getCanonicalFile(packagesDirectory, pkgName, relPath));
       }
@@ -228,11 +228,11 @@ class DirectoryBasedSourceContainer implements SourceContainer {
    * Construct a container representing the specified path and containing any sources whose{@link Source#getFullName()} starts with the specified path.
    * @param path the path (not {@code null} and not empty)
    */
-  DirectoryBasedSourceContainer.con2(String path3) {
-    _jtd_constructor_327_impl(path3);
+  DirectoryBasedSourceContainer.con2(String path2) {
+    _jtd_constructor_327_impl(path2);
   }
-  _jtd_constructor_327_impl(String path3) {
-    this._path = appendFileSeparator(path3);
+  _jtd_constructor_327_impl(String path2) {
+    this._path = appendFileSeparator(path2);
   }
   bool contains(Source source) => source.fullName.startsWith(_path);
   bool operator ==(Object obj) => (obj is DirectoryBasedSourceContainer) && ((obj as DirectoryBasedSourceContainer)).path == path;

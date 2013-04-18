@@ -75,8 +75,8 @@ class Instrumentation {
    * Set the logger that should receive instrumentation information to the given logger.
    * @param logger the logger that should receive instrumentation information
    */
-  static void set logger(InstrumentationLogger logger3) {
-    _CURRENT_LOGGER = logger3 == null ? _NULL_LOGGER : logger3;
+  static void set logger(InstrumentationLogger logger2) {
+    _CURRENT_LOGGER = logger2 == null ? _NULL_LOGGER : logger2;
   }
   /**
    * Prevent the creation of instances of this class

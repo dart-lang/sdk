@@ -54,13 +54,13 @@ class Token {
    * @param offset the offset from the beginning of the file to the first character in the token
    * @param value the lexeme represented by this token (not {@code null})
    */
-  Token.con2(TokenType type4, int offset3, String value7) {
-    _jtd_constructor_151_impl(type4, offset3, value7);
+  Token.con2(TokenType type2, int offset2, String value2) {
+    _jtd_constructor_151_impl(type2, offset2, value2);
   }
-  _jtd_constructor_151_impl(TokenType type4, int offset3, String value7) {
-    this._type = type4;
-    this._value = StringUtilities.intern(value7);
-    this._offset = offset3;
+  _jtd_constructor_151_impl(TokenType type2, int offset2, String value2) {
+    this._type = type2;
+    this._value = StringUtilities.intern(value2);
+    this._offset = offset2;
   }
   /**
    * Return the offset from the beginning of the file to the character after last character of the
@@ -205,12 +205,12 @@ abstract class XmlNode {
    * @return the number of characters in the node's source range
    */
   int get length {
-    Token beginToken4 = beginToken;
-    Token endToken4 = endToken;
-    if (beginToken4 == null || endToken4 == null) {
+    Token beginToken2 = beginToken;
+    Token endToken2 = endToken;
+    if (beginToken2 == null || endToken2 == null) {
       return -1;
     }
-    return endToken4.offset + endToken4.length - beginToken4.offset;
+    return endToken2.offset + endToken2.length - beginToken2.offset;
   }
   /**
    * Return the offset from the beginning of the file to the first character in the node's source
@@ -219,8 +219,8 @@ abstract class XmlNode {
    * range
    */
   int get offset {
-    Token beginToken5 = beginToken;
-    if (beginToken5 == null) {
+    Token beginToken2 = beginToken;
+    if (beginToken2 == null) {
       return -1;
     }
     return beginToken.offset;
@@ -616,8 +616,8 @@ class StringScanner extends AbstractScanner {
     this._charOffset = -1;
   }
   int get offset => _charOffset;
-  void set offset(int offset12) {
-    _charOffset = offset12;
+  void set offset(int offset2) {
+    _charOffset = offset2;
   }
   int advance() {
     if (++_charOffset < _stringLength) {
@@ -703,18 +703,18 @@ class ToSourceVisitor implements XmlVisitor<Object> {
     return null;
   }
   Object visitXmlAttributeNode(XmlAttributeNode node) {
-    String name11 = node.name.lexeme;
-    Token value9 = node.value;
-    if (name11.length == 0) {
+    String name2 = node.name.lexeme;
+    Token value2 = node.value;
+    if (name2.length == 0) {
       _writer.print("__");
     } else {
-      _writer.print(name11);
+      _writer.print(name2);
     }
     _writer.print("=");
-    if (value9 == null) {
+    if (value2 == null) {
       _writer.print("__");
     } else {
-      _writer.print(value9.lexeme);
+      _writer.print(value2.lexeme);
     }
     return null;
   }
@@ -912,8 +912,8 @@ class HtmlScanner implements Source_ContentReceiver {
     _scanner.passThroughElements = _SCRIPT_TAG;
     _token = _scanner.tokenize();
   }
-  void accept2(String contents, int modificationTime3) {
-    this._modificationTime = modificationTime3;
+  void accept2(String contents, int modificationTime2) {
+    this._modificationTime = modificationTime2;
     _scanner = new StringScanner(_source, contents);
     _scanner.passThroughElements = _SCRIPT_TAG;
     _token = _scanner.tokenize();
@@ -1029,8 +1029,8 @@ class XmlParser {
    * @return a collection of zero or more attributes (not {@code null}, contains no {@code null}s)
    */
   List<XmlAttributeNode> parseAttributes() {
-    TokenType type11 = _currentToken.type;
-    if (identical(type11, TokenType.GT) || identical(type11, TokenType.SLASH_GT) || identical(type11, TokenType.EOF)) {
+    TokenType type2 = _currentToken.type;
+    if (identical(type2, TokenType.GT) || identical(type2, TokenType.SLASH_GT) || identical(type2, TokenType.EOF)) {
       return XmlTagNode.NO_ATTRIBUTES;
     }
     List<XmlAttributeNode> attributes = new List<XmlAttributeNode>();
@@ -1054,8 +1054,8 @@ class XmlParser {
    * @return a list of nodes (not {@code null}, contains no {@code null}s)
    */
   List<XmlTagNode> parseChildTagNodes() {
-    TokenType type12 = _currentToken.type;
-    if (identical(type12, TokenType.LT_SLASH) || identical(type12, TokenType.EOF)) {
+    TokenType type2 = _currentToken.type;
+    if (identical(type2, TokenType.LT_SLASH) || identical(type2, TokenType.EOF)) {
       return XmlTagNode.NO_TAG_NODES;
     }
     List<XmlTagNode> nodes = new List<XmlTagNode>();
@@ -1424,8 +1424,8 @@ class HtmlUnit extends XmlNode {
    * Set the element associated with this HTML unit.
    * @param element the element
    */
-  void set element(HtmlElementImpl element18) {
-    this._element = element18;
+  void set element(HtmlElementImpl element2) {
+    this._element = element2;
   }
   void visitChildren(XmlVisitor<Object> visitor) {
     for (XmlTagNode node in _tagNodes) {

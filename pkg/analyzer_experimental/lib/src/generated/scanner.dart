@@ -36,13 +36,13 @@ class KeywordState {
    * @param length the number of strings in the array that pass through the state being built
    * @return the state that was created
    */
-  static KeywordState computeKeywordStateTable(int start, List<String> strings, int offset, int length12) {
+  static KeywordState computeKeywordStateTable(int start, List<String> strings, int offset, int length2) {
     List<KeywordState> result = new List<KeywordState>(26);
-    assert(length12 != 0);
+    assert(length2 != 0);
     int chunk = 0x0;
     int chunkStart = -1;
     bool isLeaf = false;
-    for (int i = offset; i < offset + length12; i++) {
+    for (int i = offset; i < offset + length2; i++) {
       if (strings[i].length == start) {
         isLeaf = true;
       }
@@ -59,9 +59,9 @@ class KeywordState {
     }
     if (chunkStart != -1) {
       assert(result[chunk - 0x61] == null);
-      result[chunk - 0x61] = computeKeywordStateTable(start + 1, strings, chunkStart, offset + length12 - chunkStart);
+      result[chunk - 0x61] = computeKeywordStateTable(start + 1, strings, chunkStart, offset + length2 - chunkStart);
     } else {
-      assert(length12 == 1);
+      assert(length2 == 1);
       return new KeywordState(_EMPTY_TABLE, strings[offset]);
     }
     if (isLeaf) {
@@ -447,12 +447,12 @@ abstract class AbstractScanner {
       _lastComment = _lastComment.setNext(new StringToken(type, value, _tokenStart));
     }
   }
-  void appendEndToken(TokenType type42, TokenType beginType) {
+  void appendEndToken(TokenType type2, TokenType beginType) {
     Token token;
     if (_firstComment == null) {
-      token = new Token(type42, _tokenStart);
+      token = new Token(type2, _tokenStart);
     } else {
-      token = new TokenWithComment(type42, _tokenStart, _firstComment);
+      token = new TokenWithComment(type2, _tokenStart, _firstComment);
       _firstComment = null;
       _lastComment = null;
     }
@@ -545,8 +545,8 @@ abstract class AbstractScanner {
       return advance();
     }
     if (next == 0x72) {
-      int peek3 = peek();
-      if (peek3 == 0x22 || peek3 == 0x27) {
+      int peek2 = peek();
+      if (peek2 == 0x22 || peek2 == 0x27) {
         int start = offset;
         return tokenizeString(advance(), start, true);
       }
@@ -1428,8 +1428,8 @@ class Token {
    * offset.
    * @param offset the offset from the beginning of the file to the first character in the token
    */
-  void set offset(int offset4) {
-    this._offset = offset4;
+  void set offset(int offset2) {
+    this._offset = offset2;
   }
   String toString() => lexeme;
   /**
@@ -1442,8 +1442,8 @@ class Token {
    * Set the previous token in the token stream to the given token.
    * @param previous the previous token in the token stream
    */
-  void set previous(Token previous3) {
-    this._previous = previous3;
+  void set previous(Token previous2) {
+    this._previous = previous2;
   }
 }
 /**

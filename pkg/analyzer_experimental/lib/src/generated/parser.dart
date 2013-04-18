@@ -165,29 +165,29 @@ class Modifiers {
    * Set the token representing the keyword 'abstract' to the given token.
    * @param abstractKeyword the token representing the keyword 'abstract'
    */
-  void set abstractKeyword(Token abstractKeyword4) {
-    this._abstractKeyword = abstractKeyword4;
+  void set abstractKeyword(Token abstractKeyword2) {
+    this._abstractKeyword = abstractKeyword2;
   }
   /**
    * Set the token representing the keyword 'const' to the given token.
    * @param constKeyword the token representing the keyword 'const'
    */
-  void set constKeyword(Token constKeyword3) {
-    this._constKeyword = constKeyword3;
+  void set constKeyword(Token constKeyword2) {
+    this._constKeyword = constKeyword2;
   }
   /**
    * Set the token representing the keyword 'external' to the given token.
    * @param externalKeyword the token representing the keyword 'external'
    */
-  void set externalKeyword(Token externalKeyword5) {
-    this._externalKeyword = externalKeyword5;
+  void set externalKeyword(Token externalKeyword2) {
+    this._externalKeyword = externalKeyword2;
   }
   /**
    * Set the token representing the keyword 'factory' to the given token.
    * @param factoryKeyword the token representing the keyword 'factory'
    */
-  void set factoryKeyword(Token factoryKeyword3) {
-    this._factoryKeyword = factoryKeyword3;
+  void set factoryKeyword(Token factoryKeyword2) {
+    this._factoryKeyword = factoryKeyword2;
   }
   /**
    * Set the token representing the keyword 'final' to the given token.
@@ -568,8 +568,8 @@ class Parser {
     if (token == null) {
       return false;
     }
-    TokenType type26 = token.type;
-    return identical(type26, TokenType.EQ) || identical(type26, TokenType.COMMA) || identical(type26, TokenType.SEMICOLON) || matches3(token, Keyword.IN);
+    TokenType type2 = token.type;
+    return identical(type2, TokenType.EQ) || identical(type2, TokenType.COMMA) || identical(type2, TokenType.SEMICOLON) || matches3(token, Keyword.IN);
   }
   /**
    * Return {@code true} if the given token appears to be the beginning of an operator declaration.
@@ -596,8 +596,8 @@ class Parser {
       token = token.next.next;
     }
     if (identical(token.type, TokenType.KEYWORD)) {
-      Keyword keyword30 = ((token as KeywordToken)).keyword;
-      return identical(keyword30, Keyword.CASE) || identical(keyword30, Keyword.DEFAULT);
+      Keyword keyword2 = ((token as KeywordToken)).keyword;
+      return identical(keyword2, Keyword.CASE) || identical(keyword2, Keyword.DEFAULT);
     }
     return false;
   }
@@ -614,8 +614,8 @@ class Parser {
     int firstOffset = 2147483647;
     for (Token token in tokens) {
       if (token != null) {
-        int offset5 = token.offset;
-        if (offset5 < firstOffset) {
+        int offset2 = token.offset;
+        if (offset2 < firstOffset) {
           first = token;
         }
       }
@@ -640,14 +640,14 @@ class Parser {
    * @param keyword the keyword that is being tested for
    * @return {@code true} if the given token matches the given keyword
    */
-  bool matches3(Token token, Keyword keyword38) => identical(token.type, TokenType.KEYWORD) && identical(((token as KeywordToken)).keyword, keyword38);
+  bool matches3(Token token, Keyword keyword2) => identical(token.type, TokenType.KEYWORD) && identical(((token as KeywordToken)).keyword, keyword2);
   /**
    * Return {@code true} if the given token has the given type.
    * @param token the token being tested
    * @param type the type of token that is being tested for
    * @return {@code true} if the given token has the given type
    */
-  bool matches4(Token token, TokenType type40) => identical(token.type, type40);
+  bool matches4(Token token, TokenType type2) => identical(token.type, type2);
   /**
    * Return {@code true} if the current token has the given type. Note that this method, unlike
    * other variants, will modify the token stream if possible to match a wider range of tokens. In
@@ -656,33 +656,33 @@ class Parser {
    * @param type the type of token that can optionally appear in the current location
    * @return {@code true} if the current token has the given type
    */
-  bool matches5(TokenType type41) {
+  bool matches5(TokenType type2) {
     TokenType currentType = _currentToken.type;
-    if (currentType != type41) {
-      if (identical(type41, TokenType.GT)) {
+    if (currentType != type2) {
+      if (identical(type2, TokenType.GT)) {
         if (identical(currentType, TokenType.GT_GT)) {
-          int offset6 = _currentToken.offset;
-          Token first = new Token(TokenType.GT, offset6);
-          Token second = new Token(TokenType.GT, offset6 + 1);
+          int offset2 = _currentToken.offset;
+          Token first = new Token(TokenType.GT, offset2);
+          Token second = new Token(TokenType.GT, offset2 + 1);
           second.setNext(_currentToken.next);
           first.setNext(second);
           _currentToken.previous.setNext(first);
           _currentToken = first;
           return true;
         } else if (identical(currentType, TokenType.GT_EQ)) {
-          int offset7 = _currentToken.offset;
-          Token first = new Token(TokenType.GT, offset7);
-          Token second = new Token(TokenType.EQ, offset7 + 1);
+          int offset3 = _currentToken.offset;
+          Token first = new Token(TokenType.GT, offset3);
+          Token second = new Token(TokenType.EQ, offset3 + 1);
           second.setNext(_currentToken.next);
           first.setNext(second);
           _currentToken.previous.setNext(first);
           _currentToken = first;
           return true;
         } else if (identical(currentType, TokenType.GT_GT_EQ)) {
-          int offset8 = _currentToken.offset;
-          Token first = new Token(TokenType.GT, offset8);
-          Token second = new Token(TokenType.GT, offset8 + 1);
-          Token third = new Token(TokenType.EQ, offset8 + 2);
+          int offset4 = _currentToken.offset;
+          Token first = new Token(TokenType.GT, offset4);
+          Token second = new Token(TokenType.GT, offset4 + 1);
+          Token third = new Token(TokenType.EQ, offset4 + 2);
           third.setNext(_currentToken.next);
           second.setNext(third);
           first.setNext(second);
@@ -2252,11 +2252,11 @@ class Parser {
           if (variableList == null) {
             reportError4(ParserErrorCode.MISSING_VARIABLE_IN_FOR_EACH, []);
           } else {
-            NodeList<VariableDeclaration> variables4 = variableList.variables;
-            if (variables4.length > 1) {
-              reportError4(ParserErrorCode.MULTIPLE_VARIABLES_IN_FOR_EACH, [variables4.length.toString()]);
+            NodeList<VariableDeclaration> variables2 = variableList.variables;
+            if (variables2.length > 1) {
+              reportError4(ParserErrorCode.MULTIPLE_VARIABLES_IN_FOR_EACH, [variables2.length.toString()]);
             }
-            VariableDeclaration variable = variables4[0];
+            VariableDeclaration variable = variables2[0];
             if (variable.initializer != null) {
               reportError4(ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH, []);
             }
@@ -2969,34 +2969,34 @@ class Parser {
       }
       return parseBlock();
     } else if (matches5(TokenType.KEYWORD) && !((_currentToken as KeywordToken)).keyword.isPseudoKeyword()) {
-      Keyword keyword31 = ((_currentToken as KeywordToken)).keyword;
-      if (identical(keyword31, Keyword.ASSERT)) {
+      Keyword keyword2 = ((_currentToken as KeywordToken)).keyword;
+      if (identical(keyword2, Keyword.ASSERT)) {
         return parseAssertStatement();
-      } else if (identical(keyword31, Keyword.BREAK)) {
+      } else if (identical(keyword2, Keyword.BREAK)) {
         return parseBreakStatement();
-      } else if (identical(keyword31, Keyword.CONTINUE)) {
+      } else if (identical(keyword2, Keyword.CONTINUE)) {
         return parseContinueStatement();
-      } else if (identical(keyword31, Keyword.DO)) {
+      } else if (identical(keyword2, Keyword.DO)) {
         return parseDoStatement();
-      } else if (identical(keyword31, Keyword.FOR)) {
+      } else if (identical(keyword2, Keyword.FOR)) {
         return parseForStatement();
-      } else if (identical(keyword31, Keyword.IF)) {
+      } else if (identical(keyword2, Keyword.IF)) {
         return parseIfStatement();
-      } else if (identical(keyword31, Keyword.RETHROW)) {
+      } else if (identical(keyword2, Keyword.RETHROW)) {
         return new ExpressionStatement.full(parseRethrowExpression(), expect2(TokenType.SEMICOLON));
-      } else if (identical(keyword31, Keyword.RETURN)) {
+      } else if (identical(keyword2, Keyword.RETURN)) {
         return parseReturnStatement();
-      } else if (identical(keyword31, Keyword.SWITCH)) {
+      } else if (identical(keyword2, Keyword.SWITCH)) {
         return parseSwitchStatement();
-      } else if (identical(keyword31, Keyword.THROW)) {
+      } else if (identical(keyword2, Keyword.THROW)) {
         return new ExpressionStatement.full(parseThrowExpression(), expect2(TokenType.SEMICOLON));
-      } else if (identical(keyword31, Keyword.TRY)) {
+      } else if (identical(keyword2, Keyword.TRY)) {
         return parseTryStatement();
-      } else if (identical(keyword31, Keyword.WHILE)) {
+      } else if (identical(keyword2, Keyword.WHILE)) {
         return parseWhileStatement();
-      } else if (identical(keyword31, Keyword.VAR) || identical(keyword31, Keyword.FINAL)) {
+      } else if (identical(keyword2, Keyword.VAR) || identical(keyword2, Keyword.FINAL)) {
         return parseVariableDeclarationStatement(commentAndMetadata);
-      } else if (identical(keyword31, Keyword.VOID)) {
+      } else if (identical(keyword2, Keyword.VOID)) {
         TypeName returnType = parseReturnType();
         if (matchesIdentifier() && matchesAny(peek(), [TokenType.OPEN_PAREN, TokenType.OPEN_CURLY_BRACKET, TokenType.FUNCTION])) {
           return parseFunctionDeclarationStatement2(commentAndMetadata, returnType);
@@ -3012,7 +3012,7 @@ class Parser {
           reportError4(ParserErrorCode.MISSING_STATEMENT, []);
           return null;
         }
-      } else if (identical(keyword31, Keyword.CONST)) {
+      } else if (identical(keyword2, Keyword.CONST)) {
         if (matchesAny(peek(), [TokenType.LT, TokenType.OPEN_CURLY_BRACKET, TokenType.OPEN_SQUARE_BRACKET, TokenType.INDEX])) {
           return new ExpressionStatement.full(parseExpression2(), expect2(TokenType.SEMICOLON));
         } else if (matches4(peek(), TokenType.IDENTIFIER)) {
@@ -3024,7 +3024,7 @@ class Parser {
           }
         }
         return parseVariableDeclarationStatement(commentAndMetadata);
-      } else if (identical(keyword31, Keyword.NEW) || identical(keyword31, Keyword.TRUE) || identical(keyword31, Keyword.FALSE) || identical(keyword31, Keyword.NULL) || identical(keyword31, Keyword.SUPER) || identical(keyword31, Keyword.THIS)) {
+      } else if (identical(keyword2, Keyword.NEW) || identical(keyword2, Keyword.TRUE) || identical(keyword2, Keyword.FALSE) || identical(keyword2, Keyword.NULL) || identical(keyword2, Keyword.SUPER) || identical(keyword2, Keyword.THIS)) {
         return new ExpressionStatement.full(parseExpression2(), expect2(TokenType.SEMICOLON));
       } else {
         reportError4(ParserErrorCode.MISSING_STATEMENT, []);
@@ -3076,9 +3076,9 @@ class Parser {
       FormalParameterList parameters = parseFormalParameterList();
       return new FunctionTypedFormalParameter.full(commentAndMetadata.comment, commentAndMetadata.metadata, holder.type, identifier, parameters);
     }
-    TypeName type27 = holder.type;
-    if (type27 != null && matches3(type27.name.beginToken, Keyword.VOID)) {
-      reportError5(ParserErrorCode.VOID_PARAMETER, type27.name.beginToken, []);
+    TypeName type2 = holder.type;
+    if (type2 != null && matches3(type2.name.beginToken, Keyword.VOID)) {
+      reportError5(ParserErrorCode.VOID_PARAMETER, type2.name.beginToken, []);
     }
     if (thisKeyword != null) {
       return new FieldFormalParameter.full(commentAndMetadata.comment, commentAndMetadata.metadata, holder.keyword, holder.type, thisKeyword, period, identifier);
@@ -3113,9 +3113,9 @@ class Parser {
     }
     SimpleIdentifier name = new SimpleIdentifier.full(andAdvance);
     if (matches5(TokenType.EQ)) {
-      Token previous4 = _currentToken.previous;
-      if ((matches4(previous4, TokenType.EQ_EQ) || matches4(previous4, TokenType.BANG_EQ)) && _currentToken.offset == previous4.offset + 2) {
-        reportError4(ParserErrorCode.INVALID_OPERATOR, ["${previous4.lexeme}${_currentToken.lexeme}"]);
+      Token previous2 = _currentToken.previous;
+      if ((matches4(previous2, TokenType.EQ_EQ) || matches4(previous2, TokenType.BANG_EQ)) && _currentToken.offset == previous2.offset + 2) {
+        reportError4(ParserErrorCode.INVALID_OPERATOR, ["${previous2.lexeme}${_currentToken.lexeme}"]);
         advance();
       }
     }
@@ -3877,9 +3877,9 @@ class Parser {
           return new PrefixExpression.full(operator, parseUnaryExpression());
         }
         if (identical(operator.type, TokenType.MINUS_MINUS)) {
-          int offset9 = operator.offset;
-          Token firstOperator = new Token(TokenType.MINUS, offset9);
-          Token secondOperator = new Token(TokenType.MINUS, offset9 + 1);
+          int offset2 = operator.offset;
+          Token firstOperator = new Token(TokenType.MINUS, offset2);
+          Token secondOperator = new Token(TokenType.MINUS, offset2 + 1);
           secondOperator.setNext(_currentToken);
           firstOperator.setNext(secondOperator);
           operator.previous.setNext(firstOperator);
@@ -4080,15 +4080,15 @@ class Parser {
    */
   Token skipFinalConstVarOrType(Token startToken) {
     if (matches3(startToken, Keyword.FINAL) || matches3(startToken, Keyword.CONST)) {
-      Token next3 = startToken.next;
-      if (matchesIdentifier2(next3.next) || matches4(next3.next, TokenType.LT) || matches3(next3.next, Keyword.THIS)) {
-        return skipTypeName(next3);
+      Token next2 = startToken.next;
+      if (matchesIdentifier2(next2.next) || matches4(next2.next, TokenType.LT) || matches3(next2.next, Keyword.THIS)) {
+        return skipTypeName(next2);
       }
     } else if (matches3(startToken, Keyword.VAR)) {
       return startToken.next;
     } else if (matchesIdentifier2(startToken)) {
-      Token next4 = startToken.next;
-      if (matchesIdentifier2(next4) || matches4(next4, TokenType.LT) || matches3(next4, Keyword.THIS) || (matches4(next4, TokenType.PERIOD) && matchesIdentifier2(next4.next) && (matchesIdentifier2(next4.next.next) || matches4(next4.next.next, TokenType.LT) || matches3(next4.next.next, Keyword.THIS)))) {
+      Token next3 = startToken.next;
+      if (matchesIdentifier2(next3) || matches4(next3, TokenType.LT) || matches3(next3, Keyword.THIS) || (matches4(next3, TokenType.PERIOD) && matchesIdentifier2(next3.next) && (matchesIdentifier2(next3.next.next) || matches4(next3.next.next, TokenType.LT) || matches3(next3.next.next, Keyword.THIS)))) {
         return skipReturnType(startToken);
       }
     }
@@ -4129,20 +4129,20 @@ class Parser {
     if (!matches4(startToken, TokenType.OPEN_PAREN)) {
       return null;
     }
-    Token next5 = startToken.next;
-    if (matches4(next5, TokenType.CLOSE_PAREN)) {
-      return next5.next;
+    Token next2 = startToken.next;
+    if (matches4(next2, TokenType.CLOSE_PAREN)) {
+      return next2.next;
     }
-    if (matchesAny(next5, [TokenType.AT, TokenType.OPEN_SQUARE_BRACKET, TokenType.OPEN_CURLY_BRACKET]) || matches3(next5, Keyword.VOID) || (matchesIdentifier2(next5) && (matchesAny(next5.next, [TokenType.COMMA, TokenType.CLOSE_PAREN])))) {
+    if (matchesAny(next2, [TokenType.AT, TokenType.OPEN_SQUARE_BRACKET, TokenType.OPEN_CURLY_BRACKET]) || matches3(next2, Keyword.VOID) || (matchesIdentifier2(next2) && (matchesAny(next2.next, [TokenType.COMMA, TokenType.CLOSE_PAREN])))) {
       return skipPastMatchingToken(startToken);
     }
-    if (matchesIdentifier2(next5) && matches4(next5.next, TokenType.OPEN_PAREN)) {
-      Token afterParameters = skipFormalParameterList(next5.next);
+    if (matchesIdentifier2(next2) && matches4(next2.next, TokenType.OPEN_PAREN)) {
+      Token afterParameters = skipFormalParameterList(next2.next);
       if (afterParameters != null && (matchesAny(afterParameters, [TokenType.COMMA, TokenType.CLOSE_PAREN]))) {
         return skipPastMatchingToken(startToken);
       }
     }
-    Token afterType = skipFinalConstVarOrType(next5);
+    Token afterType = skipFinalConstVarOrType(next2);
     if (afterType == null) {
       return null;
     }
@@ -4242,20 +4242,20 @@ class Parser {
    */
   Token skipStringInterpolation(Token startToken) {
     Token token = startToken;
-    TokenType type28 = token.type;
-    while (identical(type28, TokenType.STRING_INTERPOLATION_EXPRESSION) || identical(type28, TokenType.STRING_INTERPOLATION_IDENTIFIER)) {
-      if (identical(type28, TokenType.STRING_INTERPOLATION_EXPRESSION)) {
+    TokenType type2 = token.type;
+    while (identical(type2, TokenType.STRING_INTERPOLATION_EXPRESSION) || identical(type2, TokenType.STRING_INTERPOLATION_IDENTIFIER)) {
+      if (identical(type2, TokenType.STRING_INTERPOLATION_EXPRESSION)) {
         token = token.next;
-        type28 = token.type;
+        type2 = token.type;
         int bracketNestingLevel = 1;
         while (bracketNestingLevel > 0) {
-          if (identical(type28, TokenType.EOF)) {
+          if (identical(type2, TokenType.EOF)) {
             return null;
-          } else if (identical(type28, TokenType.OPEN_CURLY_BRACKET)) {
+          } else if (identical(type2, TokenType.OPEN_CURLY_BRACKET)) {
             bracketNestingLevel++;
-          } else if (identical(type28, TokenType.CLOSE_CURLY_BRACKET)) {
+          } else if (identical(type2, TokenType.CLOSE_CURLY_BRACKET)) {
             bracketNestingLevel--;
-          } else if (identical(type28, TokenType.STRING)) {
+          } else if (identical(type2, TokenType.STRING)) {
             token = skipStringLiteral(token);
             if (token == null) {
               return null;
@@ -4263,10 +4263,10 @@ class Parser {
           } else {
             token = token.next;
           }
-          type28 = token.type;
+          type2 = token.type;
         }
         token = token.next;
-        type28 = token.type;
+        type2 = token.type;
       } else {
         token = token.next;
         if (token.type != TokenType.IDENTIFIER) {
@@ -4274,10 +4274,10 @@ class Parser {
         }
         token = token.next;
       }
-      type28 = token.type;
-      if (identical(type28, TokenType.STRING)) {
+      type2 = token.type;
+      if (identical(type2, TokenType.STRING)) {
         token = token.next;
-        type28 = token.type;
+        type2 = token.type;
       }
     }
     return token;
@@ -4300,8 +4300,8 @@ class Parser {
     Token token = startToken;
     while (token != null && matches4(token, TokenType.STRING)) {
       token = token.next;
-      TokenType type29 = token.type;
-      if (identical(type29, TokenType.STRING_INTERPOLATION_EXPRESSION) || identical(type29, TokenType.STRING_INTERPOLATION_IDENTIFIER)) {
+      TokenType type2 = token.type;
+      if (identical(type2, TokenType.STRING_INTERPOLATION_EXPRESSION) || identical(type2, TokenType.STRING_INTERPOLATION_IDENTIFIER)) {
         token = skipStringInterpolation(token);
       }
     }
@@ -4390,36 +4390,36 @@ class Parser {
       return null;
     }
     int depth = 1;
-    Token next6 = startToken.next;
+    Token next2 = startToken.next;
     while (depth > 0) {
-      if (matches4(next6, TokenType.EOF)) {
+      if (matches4(next2, TokenType.EOF)) {
         return null;
-      } else if (matches4(next6, TokenType.LT)) {
+      } else if (matches4(next2, TokenType.LT)) {
         depth++;
-      } else if (matches4(next6, TokenType.GT)) {
+      } else if (matches4(next2, TokenType.GT)) {
         depth--;
-      } else if (matches4(next6, TokenType.GT_EQ)) {
+      } else if (matches4(next2, TokenType.GT_EQ)) {
         if (depth == 1) {
-          Token fakeEquals = new Token(TokenType.EQ, next6.offset + 2);
-          fakeEquals.setNextWithoutSettingPrevious(next6.next);
+          Token fakeEquals = new Token(TokenType.EQ, next2.offset + 2);
+          fakeEquals.setNextWithoutSettingPrevious(next2.next);
           return fakeEquals;
         }
         depth--;
-      } else if (matches4(next6, TokenType.GT_GT)) {
+      } else if (matches4(next2, TokenType.GT_GT)) {
         depth -= 2;
-      } else if (matches4(next6, TokenType.GT_GT_EQ)) {
+      } else if (matches4(next2, TokenType.GT_GT_EQ)) {
         if (depth < 2) {
           return null;
         } else if (depth == 2) {
-          Token fakeEquals = new Token(TokenType.EQ, next6.offset + 2);
-          fakeEquals.setNextWithoutSettingPrevious(next6.next);
+          Token fakeEquals = new Token(TokenType.EQ, next2.offset + 2);
+          fakeEquals.setNextWithoutSettingPrevious(next2.next);
           return fakeEquals;
         }
         depth -= 2;
       }
-      next6 = next6.next;
+      next2 = next2.next;
     }
-    return next6;
+    return next2;
   }
   /**
    * Translate the characters at the given index in the given string, appending the translated
@@ -4435,10 +4435,10 @@ class Parser {
       builder.appendChar(currentChar);
       return index + 1;
     }
-    int length8 = lexeme.length;
+    int length2 = lexeme.length;
     int currentIndex = index + 1;
-    if (currentIndex >= length8) {
-      return length8;
+    if (currentIndex >= length2) {
+      return length2;
     }
     currentChar = lexeme.codeUnitAt(currentIndex);
     if (currentChar == 0x6E) {
@@ -4454,9 +4454,9 @@ class Parser {
     } else if (currentChar == 0x76) {
       builder.appendChar(0xB);
     } else if (currentChar == 0x78) {
-      if (currentIndex + 2 >= length8) {
+      if (currentIndex + 2 >= length2) {
         reportError4(ParserErrorCode.INVALID_HEX_ESCAPE, []);
-        return length8;
+        return length2;
       }
       int firstDigit = lexeme.codeUnitAt(currentIndex + 1);
       int secondDigit = lexeme.codeUnitAt(currentIndex + 2);
@@ -4468,16 +4468,16 @@ class Parser {
       return currentIndex + 3;
     } else if (currentChar == 0x75) {
       currentIndex++;
-      if (currentIndex >= length8) {
+      if (currentIndex >= length2) {
         reportError4(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
-        return length8;
+        return length2;
       }
       currentChar = lexeme.codeUnitAt(currentIndex);
       if (currentChar == 0x7B) {
         currentIndex++;
-        if (currentIndex >= length8) {
+        if (currentIndex >= length2) {
           reportError4(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
-          return length8;
+          return length2;
         }
         currentChar = lexeme.codeUnitAt(currentIndex);
         int digitCount = 0;
@@ -4486,7 +4486,7 @@ class Parser {
           if (!isHexDigit(currentChar)) {
             reportError4(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
             currentIndex++;
-            while (currentIndex < length8 && lexeme.codeUnitAt(currentIndex) != 0x7D) {
+            while (currentIndex < length2 && lexeme.codeUnitAt(currentIndex) != 0x7D) {
               currentIndex++;
             }
             return currentIndex + 1;
@@ -4494,9 +4494,9 @@ class Parser {
           digitCount++;
           value = (value << 4) + Character.digit(currentChar, 16);
           currentIndex++;
-          if (currentIndex >= length8) {
+          if (currentIndex >= length2) {
             reportError4(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
-            return length8;
+            return length2;
           }
           currentChar = lexeme.codeUnitAt(currentIndex);
         }
@@ -4506,9 +4506,9 @@ class Parser {
         appendScalarValue(builder, lexeme.substring(index, currentIndex + 1), value, index, currentIndex);
         return currentIndex + 1;
       } else {
-        if (currentIndex + 3 >= length8) {
+        if (currentIndex + 3 >= length2) {
           reportError4(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
-          return length8;
+          return length2;
         }
         int firstDigit = currentChar;
         int secondDigit = lexeme.codeUnitAt(currentIndex + 1);
@@ -4577,16 +4577,16 @@ class Parser {
     if (modifiers.varKeyword != null) {
       reportError5(ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE, modifiers.varKeyword, []);
     }
-    Token externalKeyword6 = modifiers.externalKeyword;
-    Token constKeyword4 = modifiers.constKeyword;
-    Token factoryKeyword4 = modifiers.factoryKeyword;
-    if (externalKeyword6 != null && constKeyword4 != null && constKeyword4.offset < externalKeyword6.offset) {
-      reportError5(ParserErrorCode.EXTERNAL_AFTER_CONST, externalKeyword6, []);
+    Token externalKeyword2 = modifiers.externalKeyword;
+    Token constKeyword2 = modifiers.constKeyword;
+    Token factoryKeyword2 = modifiers.factoryKeyword;
+    if (externalKeyword2 != null && constKeyword2 != null && constKeyword2.offset < externalKeyword2.offset) {
+      reportError5(ParserErrorCode.EXTERNAL_AFTER_CONST, externalKeyword2, []);
     }
-    if (externalKeyword6 != null && factoryKeyword4 != null && factoryKeyword4.offset < externalKeyword6.offset) {
-      reportError5(ParserErrorCode.EXTERNAL_AFTER_FACTORY, externalKeyword6, []);
+    if (externalKeyword2 != null && factoryKeyword2 != null && factoryKeyword2.offset < externalKeyword2.offset) {
+      reportError5(ParserErrorCode.EXTERNAL_AFTER_FACTORY, externalKeyword2, []);
     }
-    return constKeyword4;
+    return constKeyword2;
   }
   /**
    * Validate that the given set of modifiers is appropriate for a field and return the 'final',
@@ -4604,31 +4604,31 @@ class Parser {
     if (modifiers.factoryKeyword != null) {
       reportError5(ParserErrorCode.NON_CONSTRUCTOR_FACTORY, modifiers.factoryKeyword, []);
     }
-    Token staticKeyword3 = modifiers.staticKeyword;
-    Token constKeyword5 = modifiers.constKeyword;
-    Token finalKeyword3 = modifiers.finalKeyword;
-    Token varKeyword3 = modifiers.varKeyword;
-    if (constKeyword5 != null) {
-      if (finalKeyword3 != null) {
-        reportError5(ParserErrorCode.CONST_AND_FINAL, finalKeyword3, []);
+    Token staticKeyword2 = modifiers.staticKeyword;
+    Token constKeyword2 = modifiers.constKeyword;
+    Token finalKeyword2 = modifiers.finalKeyword;
+    Token varKeyword2 = modifiers.varKeyword;
+    if (constKeyword2 != null) {
+      if (finalKeyword2 != null) {
+        reportError5(ParserErrorCode.CONST_AND_FINAL, finalKeyword2, []);
       }
-      if (varKeyword3 != null) {
-        reportError5(ParserErrorCode.CONST_AND_VAR, varKeyword3, []);
+      if (varKeyword2 != null) {
+        reportError5(ParserErrorCode.CONST_AND_VAR, varKeyword2, []);
       }
-      if (staticKeyword3 != null && constKeyword5.offset < staticKeyword3.offset) {
-        reportError5(ParserErrorCode.STATIC_AFTER_CONST, staticKeyword3, []);
+      if (staticKeyword2 != null && constKeyword2.offset < staticKeyword2.offset) {
+        reportError5(ParserErrorCode.STATIC_AFTER_CONST, staticKeyword2, []);
       }
-    } else if (finalKeyword3 != null) {
-      if (varKeyword3 != null) {
-        reportError5(ParserErrorCode.FINAL_AND_VAR, varKeyword3, []);
+    } else if (finalKeyword2 != null) {
+      if (varKeyword2 != null) {
+        reportError5(ParserErrorCode.FINAL_AND_VAR, varKeyword2, []);
       }
-      if (staticKeyword3 != null && finalKeyword3.offset < staticKeyword3.offset) {
-        reportError5(ParserErrorCode.STATIC_AFTER_FINAL, staticKeyword3, []);
+      if (staticKeyword2 != null && finalKeyword2.offset < staticKeyword2.offset) {
+        reportError5(ParserErrorCode.STATIC_AFTER_FINAL, staticKeyword2, []);
       }
-    } else if (varKeyword3 != null && staticKeyword3 != null && varKeyword3.offset < staticKeyword3.offset) {
-      reportError5(ParserErrorCode.STATIC_AFTER_VAR, staticKeyword3, []);
+    } else if (varKeyword2 != null && staticKeyword2 != null && varKeyword2.offset < staticKeyword2.offset) {
+      reportError5(ParserErrorCode.STATIC_AFTER_VAR, staticKeyword2, []);
     }
-    return lexicallyFirst([constKeyword5, finalKeyword3, varKeyword3]);
+    return lexicallyFirst([constKeyword2, finalKeyword2, varKeyword2]);
   }
   /**
    * Validate that the given set of modifiers is appropriate for a getter, setter, or method.
@@ -4650,10 +4650,10 @@ class Parser {
     if (modifiers.varKeyword != null) {
       reportError5(ParserErrorCode.VAR_RETURN_TYPE, modifiers.varKeyword, []);
     }
-    Token externalKeyword7 = modifiers.externalKeyword;
-    Token staticKeyword4 = modifiers.staticKeyword;
-    if (externalKeyword7 != null && staticKeyword4 != null && staticKeyword4.offset < externalKeyword7.offset) {
-      reportError5(ParserErrorCode.EXTERNAL_AFTER_STATIC, externalKeyword7, []);
+    Token externalKeyword2 = modifiers.externalKeyword;
+    Token staticKeyword2 = modifiers.staticKeyword;
+    if (externalKeyword2 != null && staticKeyword2 != null && staticKeyword2.offset < externalKeyword2.offset) {
+      reportError5(ParserErrorCode.EXTERNAL_AFTER_STATIC, externalKeyword2, []);
     }
   }
   /**
@@ -4725,22 +4725,22 @@ class Parser {
     if (modifiers.externalKeyword != null) {
       reportError5(ParserErrorCode.EXTERNAL_FIELD, modifiers.externalKeyword, []);
     }
-    Token constKeyword6 = modifiers.constKeyword;
-    Token finalKeyword4 = modifiers.finalKeyword;
-    Token varKeyword4 = modifiers.varKeyword;
-    if (constKeyword6 != null) {
-      if (finalKeyword4 != null) {
-        reportError5(ParserErrorCode.CONST_AND_FINAL, finalKeyword4, []);
+    Token constKeyword2 = modifiers.constKeyword;
+    Token finalKeyword2 = modifiers.finalKeyword;
+    Token varKeyword2 = modifiers.varKeyword;
+    if (constKeyword2 != null) {
+      if (finalKeyword2 != null) {
+        reportError5(ParserErrorCode.CONST_AND_FINAL, finalKeyword2, []);
       }
-      if (varKeyword4 != null) {
-        reportError5(ParserErrorCode.CONST_AND_VAR, varKeyword4, []);
+      if (varKeyword2 != null) {
+        reportError5(ParserErrorCode.CONST_AND_VAR, varKeyword2, []);
       }
-    } else if (finalKeyword4 != null) {
-      if (varKeyword4 != null) {
-        reportError5(ParserErrorCode.FINAL_AND_VAR, varKeyword4, []);
+    } else if (finalKeyword2 != null) {
+      if (varKeyword2 != null) {
+        reportError5(ParserErrorCode.FINAL_AND_VAR, varKeyword2, []);
       }
     }
-    return lexicallyFirst([constKeyword6, finalKeyword4, varKeyword4]);
+    return lexicallyFirst([constKeyword2, finalKeyword2, varKeyword2]);
   }
   /**
    * Validate that the given set of modifiers is appropriate for a class and return the 'abstract'
@@ -5109,12 +5109,12 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
   }
   Object visitCommentReference(CommentReference node) => null;
   Object visitCompilationUnit(CompilationUnit node) {
-    ScriptTag scriptTag7 = node.scriptTag;
-    NodeList<Directive> directives5 = node.directives;
-    visit(scriptTag7);
-    String prefix = scriptTag7 == null ? "" : " ";
-    visitList7(prefix, directives5, "\n");
-    prefix = scriptTag7 == null && directives5.isEmpty ? "" : "\n\n";
+    ScriptTag scriptTag2 = node.scriptTag;
+    NodeList<Directive> directives2 = node.directives;
+    visit(scriptTag2);
+    String prefix = scriptTag2 == null ? "" : " ";
+    visitList7(prefix, directives2, "\n");
+    prefix = scriptTag2 == null && directives2.isEmpty ? "" : "\n\n";
     visitList7(prefix, node.declarations, "\n");
     return null;
   }
@@ -5246,10 +5246,10 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
   Object visitFormalParameterList(FormalParameterList node) {
     String groupEnd = null;
     _writer.print('(');
-    NodeList<FormalParameter> parameters16 = node.parameters;
-    int size8 = parameters16.length;
-    for (int i = 0; i < size8; i++) {
-      FormalParameter parameter = parameters16[i];
+    NodeList<FormalParameter> parameters2 = node.parameters;
+    int size2 = parameters2.length;
+    for (int i = 0; i < size2; i++) {
+      FormalParameter parameter = parameters2[i];
       if (i > 0) {
         _writer.print(", ");
       }
@@ -5271,10 +5271,10 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     return null;
   }
   Object visitForStatement(ForStatement node) {
-    Expression initialization4 = node.initialization;
+    Expression initialization2 = node.initialization;
     _writer.print("for (");
-    if (initialization4 != null) {
-      visit(initialization4);
+    if (initialization2 != null) {
+      visit(initialization2);
     } else {
       visit(node.variables);
     }
@@ -5541,12 +5541,12 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     return null;
   }
   Object visitReturnStatement(ReturnStatement node) {
-    Expression expression18 = node.expression;
-    if (expression18 == null) {
+    Expression expression2 = node.expression;
+    if (expression2 == null) {
       _writer.print("return;");
     } else {
       _writer.print("return ");
-      expression18.accept(this);
+      expression2.accept(this);
       _writer.print(";");
     }
     return null;
@@ -5769,8 +5769,8 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
    */
   void visitList5(NodeList<ASTNode> nodes, String separator) {
     if (nodes != null) {
-      int size9 = nodes.length;
-      for (int i = 0; i < size9; i++) {
+      int size2 = nodes.length;
+      for (int i = 0; i < size2; i++) {
         if ("\n" == separator) {
           _writer.print("\n");
           indent();
@@ -5789,9 +5789,9 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
    */
   void visitList6(NodeList<ASTNode> nodes, String separator, String suffix) {
     if (nodes != null) {
-      int size10 = nodes.length;
-      if (size10 > 0) {
-        for (int i = 0; i < size10; i++) {
+      int size2 = nodes.length;
+      if (size2 > 0) {
+        for (int i = 0; i < size2; i++) {
           if (i > 0) {
             _writer.print(separator);
           }
@@ -5809,10 +5809,10 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
    */
   void visitList7(String prefix, NodeList<ASTNode> nodes, String separator) {
     if (nodes != null) {
-      int size11 = nodes.length;
-      if (size11 > 0) {
+      int size2 = nodes.length;
+      if (size2 > 0) {
         _writer.print(prefix);
-        for (int i = 0; i < size11; i++) {
+        for (int i = 0; i < size2; i++) {
           if (i > 0) {
             _writer.print(separator);
           }

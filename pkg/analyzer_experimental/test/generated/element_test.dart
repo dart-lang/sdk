@@ -51,11 +51,11 @@ class ElementLocationImplTest extends EngineTestCase {
   void test_getComponents() {
     String encoding = "a;b;c";
     ElementLocationImpl location = new ElementLocationImpl.con2(encoding);
-    List<String> components3 = location.components;
-    EngineTestCase.assertLength(3, components3);
-    JUnitTestCase.assertEquals("a", components3[0]);
-    JUnitTestCase.assertEquals("b", components3[1]);
-    JUnitTestCase.assertEquals("c", components3[2]);
+    List<String> components2 = location.components;
+    EngineTestCase.assertLength(3, components2);
+    JUnitTestCase.assertEquals("a", components2[0]);
+    JUnitTestCase.assertEquals("b", components2[1]);
+    JUnitTestCase.assertEquals("c", components2[2]);
   }
   void test_getEncoding() {
     String encoding = "a;b;c;;d";
@@ -114,12 +114,12 @@ class LibraryElementImplTest extends EngineTestCase {
   }
   void test_getPrefixes() {
     AnalysisContext context = createAnalysisContext();
-    LibraryElementImpl library18 = ElementFactory.library(context, "l1");
+    LibraryElementImpl library2 = ElementFactory.library(context, "l1");
     PrefixElement prefixA = new PrefixElementImpl(ASTFactory.identifier3("a"));
     PrefixElement prefixB = new PrefixElementImpl(ASTFactory.identifier3("b"));
     List<ImportElementImpl> imports = [ElementFactory.importFor(ElementFactory.library(context, "l2"), null, []), ElementFactory.importFor(ElementFactory.library(context, "l3"), null, []), ElementFactory.importFor(ElementFactory.library(context, "l4"), prefixA, []), ElementFactory.importFor(ElementFactory.library(context, "l5"), prefixA, []), ElementFactory.importFor(ElementFactory.library(context, "l6"), prefixB, [])];
-    library18.imports = imports;
-    List<PrefixElement> prefixes2 = library18.prefixes;
+    library2.imports = imports;
+    List<PrefixElement> prefixes2 = library2.prefixes;
     EngineTestCase.assertLength(2, prefixes2);
     if (identical(prefixA, prefixes2[0])) {
       JUnitTestCase.assertSame(prefixB, prefixes2[1]);
@@ -131,10 +131,10 @@ class LibraryElementImplTest extends EngineTestCase {
   void test_isUpToDate() {
     AnalysisContext context = createAnalysisContext();
     context.sourceFactory = new SourceFactory.con2([]);
-    LibraryElement library19 = ElementFactory.library(context, "foo");
-    context.sourceFactory.setContents(library19.definingCompilationUnit.source, "sdfsdff");
-    JUnitTestCase.assertFalse(library19.isUpToDate2(0));
-    JUnitTestCase.assertTrue(library19.isUpToDate2(JavaSystem.currentTimeMillis() + 1000));
+    LibraryElement library2 = ElementFactory.library(context, "foo");
+    context.sourceFactory.setContents(library2.definingCompilationUnit.source, "sdfsdff");
+    JUnitTestCase.assertFalse(library2.isUpToDate2(0));
+    JUnitTestCase.assertTrue(library2.isUpToDate2(JavaSystem.currentTimeMillis() + 1000));
   }
   void test_setImports() {
     AnalysisContext context = createAnalysisContext();
@@ -357,13 +357,13 @@ class InterfaceTypeImplTest extends EngineTestCase {
     InterfaceType typeB = classB.type;
     ClassElementImpl classC = ElementFactory.classElement2("C", []);
     classC.interfaces = <InterfaceType> [typeA, typeB];
-    List<InterfaceType> interfaces7 = classC.type.interfaces;
-    EngineTestCase.assertLength(2, interfaces7);
-    if (identical(interfaces7[0], typeA)) {
-      JUnitTestCase.assertSame(typeB, interfaces7[1]);
+    List<InterfaceType> interfaces2 = classC.type.interfaces;
+    EngineTestCase.assertLength(2, interfaces2);
+    if (identical(interfaces2[0], typeA)) {
+      JUnitTestCase.assertSame(typeB, interfaces2[1]);
     } else {
-      JUnitTestCase.assertSame(typeB, interfaces7[0]);
-      JUnitTestCase.assertSame(typeA, interfaces7[1]);
+      JUnitTestCase.assertSame(typeB, interfaces2[0]);
+      JUnitTestCase.assertSame(typeA, interfaces2[1]);
     }
   }
   void test_getInterfaces_parameterized() {
@@ -376,9 +376,9 @@ class InterfaceTypeImplTest extends EngineTestCase {
     InterfaceType typeI = ElementFactory.classElement2("I", []).type;
     InterfaceTypeImpl typeBI = new InterfaceTypeImpl.con1(classB);
     typeBI.typeArguments = <Type2> [typeI];
-    List<InterfaceType> interfaces8 = typeBI.interfaces;
-    EngineTestCase.assertLength(1, interfaces8);
-    InterfaceType result = interfaces8[0];
+    List<InterfaceType> interfaces2 = typeBI.interfaces;
+    EngineTestCase.assertLength(1, interfaces2);
+    InterfaceType result = interfaces2[0];
     JUnitTestCase.assertSame(classA, result.element);
     JUnitTestCase.assertSame(typeI, result.typeArguments[0]);
   }
@@ -409,12 +409,12 @@ class InterfaceTypeImplTest extends EngineTestCase {
     JUnitTestCase.assertNull(interfaceType.getLeastUpperBound(functionType));
   }
   void test_getLeastUpperBound_ignoreTypeParameters() {
-    InterfaceType listType6 = _typeProvider.listType;
-    InterfaceType intType11 = _typeProvider.intType;
-    InterfaceType doubleType4 = _typeProvider.doubleType;
-    InterfaceType listOfIntType = listType6.substitute5(<Type2> [intType11]);
-    InterfaceType listOfDoubleType = listType6.substitute5(<Type2> [doubleType4]);
-    JUnitTestCase.assertEquals(listType6, listOfIntType.getLeastUpperBound(listOfDoubleType));
+    InterfaceType listType2 = _typeProvider.listType;
+    InterfaceType intType2 = _typeProvider.intType;
+    InterfaceType doubleType2 = _typeProvider.doubleType;
+    InterfaceType listOfIntType = listType2.substitute5(<Type2> [intType2]);
+    InterfaceType listOfDoubleType = listType2.substitute5(<Type2> [doubleType2]);
+    JUnitTestCase.assertEquals(listType2, listOfIntType.getLeastUpperBound(listOfDoubleType));
   }
   void test_getLeastUpperBound_mixinCase() {
     ClassElement classA = ElementFactory.classElement2("A", []);
@@ -661,13 +661,13 @@ class InterfaceTypeImplTest extends EngineTestCase {
     InterfaceType typeI = ElementFactory.classElement2("I", []).type;
     InterfaceTypeImpl typeBI = new InterfaceTypeImpl.con1(classB);
     typeBI.typeArguments = <Type2> [typeI];
-    InterfaceType superclass6 = typeBI.superclass;
-    JUnitTestCase.assertSame(classA, superclass6.element);
-    JUnitTestCase.assertSame(typeI, superclass6.typeArguments[0]);
+    InterfaceType superclass2 = typeBI.superclass;
+    JUnitTestCase.assertSame(classA, superclass2.element);
+    JUnitTestCase.assertSame(typeI, superclass2.typeArguments[0]);
   }
   void test_getTypeArguments_empty() {
-    InterfaceType type32 = ElementFactory.classElement2("A", []).type;
-    EngineTestCase.assertLength(0, type32.typeArguments);
+    InterfaceType type2 = ElementFactory.classElement2("A", []).type;
+    EngineTestCase.assertLength(0, type2.typeArguments);
   }
   void test_isDirectSupertypeOf_extends() {
     ClassElement classA = ElementFactory.classElement2("A", []);
@@ -701,8 +701,8 @@ class InterfaceTypeImplTest extends EngineTestCase {
     JUnitTestCase.assertTrue(typeA.isDirectSupertypeOf(typeB));
   }
   void test_isMoreSpecificThan_bottom() {
-    Type2 type33 = ElementFactory.classElement2("A", []).type;
-    JUnitTestCase.assertTrue(BottomTypeImpl.instance.isMoreSpecificThan(type33));
+    Type2 type2 = ElementFactory.classElement2("A", []).type;
+    JUnitTestCase.assertTrue(BottomTypeImpl.instance.isMoreSpecificThan(type2));
   }
   void test_isMoreSpecificThan_covariance() {
     ClassElement classA = ElementFactory.classElement2("A", ["E"]);
@@ -724,8 +724,8 @@ class InterfaceTypeImplTest extends EngineTestCase {
     JUnitTestCase.assertFalse(typeA.isMoreSpecificThan(typeB));
   }
   void test_isMoreSpecificThan_dynamic() {
-    InterfaceType type34 = ElementFactory.classElement2("A", []).type;
-    JUnitTestCase.assertTrue(type34.isMoreSpecificThan(DynamicTypeImpl.instance));
+    InterfaceType type2 = ElementFactory.classElement2("A", []).type;
+    JUnitTestCase.assertTrue(type2.isMoreSpecificThan(DynamicTypeImpl.instance));
   }
   void test_isMoreSpecificThan_indirectSupertype() {
     ClassElement classA = ElementFactory.classElement2("A", []);
@@ -736,8 +736,8 @@ class InterfaceTypeImplTest extends EngineTestCase {
     JUnitTestCase.assertTrue(typeC.isMoreSpecificThan(typeA));
   }
   void test_isMoreSpecificThan_self() {
-    InterfaceType type35 = ElementFactory.classElement2("A", []).type;
-    JUnitTestCase.assertTrue(type35.isMoreSpecificThan(type35));
+    InterfaceType type2 = ElementFactory.classElement2("A", []).type;
+    JUnitTestCase.assertTrue(type2.isMoreSpecificThan(type2));
   }
   void test_isSubtypeOf_directSubtype() {
     ClassElement classA = ElementFactory.classElement2("A", []);
@@ -895,10 +895,10 @@ class InterfaceTypeImplTest extends EngineTestCase {
     PropertyAccessorElement getterG = ElementFactory.getterElement(getterName, false, null);
     classA.accessors = <PropertyAccessorElement> [getterG];
     InterfaceType typeA = classA.type;
-    LibraryElementImpl library20 = ElementFactory.library(createAnalysisContext(), "lib");
-    CompilationUnitElement unit = library20.definingCompilationUnit;
+    LibraryElementImpl library2 = ElementFactory.library(createAnalysisContext(), "lib");
+    CompilationUnitElement unit = library2.definingCompilationUnit;
     ((unit as CompilationUnitElementImpl)).types = <ClassElement> [classA];
-    JUnitTestCase.assertSame(getterG, typeA.lookUpGetter(getterName, library20));
+    JUnitTestCase.assertSame(getterG, typeA.lookUpGetter(getterName, library2));
   }
   void test_lookUpGetter_inherited() {
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
@@ -907,18 +907,18 @@ class InterfaceTypeImplTest extends EngineTestCase {
     classA.accessors = <PropertyAccessorElement> [getterG];
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
     InterfaceType typeB = classB.type;
-    LibraryElementImpl library21 = ElementFactory.library(createAnalysisContext(), "lib");
-    CompilationUnitElement unit = library21.definingCompilationUnit;
+    LibraryElementImpl library2 = ElementFactory.library(createAnalysisContext(), "lib");
+    CompilationUnitElement unit = library2.definingCompilationUnit;
     ((unit as CompilationUnitElementImpl)).types = <ClassElement> [classA, classB];
-    JUnitTestCase.assertSame(getterG, typeB.lookUpGetter(getterName, library21));
+    JUnitTestCase.assertSame(getterG, typeB.lookUpGetter(getterName, library2));
   }
   void test_lookUpGetter_unimplemented() {
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     InterfaceType typeA = classA.type;
-    LibraryElementImpl library22 = ElementFactory.library(createAnalysisContext(), "lib");
-    CompilationUnitElement unit = library22.definingCompilationUnit;
+    LibraryElementImpl library2 = ElementFactory.library(createAnalysisContext(), "lib");
+    CompilationUnitElement unit = library2.definingCompilationUnit;
     ((unit as CompilationUnitElementImpl)).types = <ClassElement> [classA];
-    JUnitTestCase.assertNull(typeA.lookUpGetter("g", library22));
+    JUnitTestCase.assertNull(typeA.lookUpGetter("g", library2));
   }
   void test_lookUpMethod_implemented() {
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
@@ -926,10 +926,10 @@ class InterfaceTypeImplTest extends EngineTestCase {
     MethodElementImpl methodM = ElementFactory.methodElement(methodName, null, []);
     classA.methods = <MethodElement> [methodM];
     InterfaceType typeA = classA.type;
-    LibraryElementImpl library23 = ElementFactory.library(createAnalysisContext(), "lib");
-    CompilationUnitElement unit = library23.definingCompilationUnit;
+    LibraryElementImpl library2 = ElementFactory.library(createAnalysisContext(), "lib");
+    CompilationUnitElement unit = library2.definingCompilationUnit;
     ((unit as CompilationUnitElementImpl)).types = <ClassElement> [classA];
-    JUnitTestCase.assertSame(methodM, typeA.lookUpMethod(methodName, library23));
+    JUnitTestCase.assertSame(methodM, typeA.lookUpMethod(methodName, library2));
   }
   void test_lookUpMethod_inherited() {
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
@@ -938,10 +938,10 @@ class InterfaceTypeImplTest extends EngineTestCase {
     classA.methods = <MethodElement> [methodM];
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
     InterfaceType typeB = classB.type;
-    LibraryElementImpl library24 = ElementFactory.library(createAnalysisContext(), "lib");
-    CompilationUnitElement unit = library24.definingCompilationUnit;
+    LibraryElementImpl library2 = ElementFactory.library(createAnalysisContext(), "lib");
+    CompilationUnitElement unit = library2.definingCompilationUnit;
     ((unit as CompilationUnitElementImpl)).types = <ClassElement> [classA, classB];
-    JUnitTestCase.assertSame(methodM, typeB.lookUpMethod(methodName, library24));
+    JUnitTestCase.assertSame(methodM, typeB.lookUpMethod(methodName, library2));
   }
   void test_lookUpMethod_parameterized() {
     ClassElementImpl classA = ElementFactory.classElement2("A", ["E"]);
@@ -954,13 +954,13 @@ class InterfaceTypeImplTest extends EngineTestCase {
     InterfaceTypeImpl typeAF = new InterfaceTypeImpl.con1(classA);
     typeAF.typeArguments = <Type2> [typeB.typeArguments[0]];
     classB.supertype = typeAF;
-    LibraryElementImpl library25 = ElementFactory.library(createAnalysisContext(), "lib");
-    CompilationUnitElement unit = library25.definingCompilationUnit;
+    LibraryElementImpl library2 = ElementFactory.library(createAnalysisContext(), "lib");
+    CompilationUnitElement unit = library2.definingCompilationUnit;
     ((unit as CompilationUnitElementImpl)).types = <ClassElement> [classA];
     InterfaceType typeI = ElementFactory.classElement2("I", []).type;
     InterfaceTypeImpl typeBI = new InterfaceTypeImpl.con1(classB);
     typeBI.typeArguments = <Type2> [typeI];
-    MethodElement method = typeBI.lookUpMethod(methodName, library25);
+    MethodElement method = typeBI.lookUpMethod(methodName, library2);
     JUnitTestCase.assertNotNull(method);
     FunctionType methodType = method.type;
     JUnitTestCase.assertSame(typeI, methodType.returnType);
@@ -971,10 +971,10 @@ class InterfaceTypeImplTest extends EngineTestCase {
   void test_lookUpMethod_unimplemented() {
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     InterfaceType typeA = classA.type;
-    LibraryElementImpl library26 = ElementFactory.library(createAnalysisContext(), "lib");
-    CompilationUnitElement unit = library26.definingCompilationUnit;
+    LibraryElementImpl library2 = ElementFactory.library(createAnalysisContext(), "lib");
+    CompilationUnitElement unit = library2.definingCompilationUnit;
     ((unit as CompilationUnitElementImpl)).types = <ClassElement> [classA];
-    JUnitTestCase.assertNull(typeA.lookUpMethod("m", library26));
+    JUnitTestCase.assertNull(typeA.lookUpMethod("m", library2));
   }
   void test_lookUpSetter_implemented() {
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
@@ -982,10 +982,10 @@ class InterfaceTypeImplTest extends EngineTestCase {
     PropertyAccessorElement setterS = ElementFactory.setterElement(setterName, false, null);
     classA.accessors = <PropertyAccessorElement> [setterS];
     InterfaceType typeA = classA.type;
-    LibraryElementImpl library27 = ElementFactory.library(createAnalysisContext(), "lib");
-    CompilationUnitElement unit = library27.definingCompilationUnit;
+    LibraryElementImpl library2 = ElementFactory.library(createAnalysisContext(), "lib");
+    CompilationUnitElement unit = library2.definingCompilationUnit;
     ((unit as CompilationUnitElementImpl)).types = <ClassElement> [classA];
-    JUnitTestCase.assertSame(setterS, typeA.lookUpSetter(setterName, library27));
+    JUnitTestCase.assertSame(setterS, typeA.lookUpSetter(setterName, library2));
   }
   void test_lookUpSetter_inherited() {
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
@@ -994,24 +994,24 @@ class InterfaceTypeImplTest extends EngineTestCase {
     classA.accessors = <PropertyAccessorElement> [setterS];
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
     InterfaceType typeB = classB.type;
-    LibraryElementImpl library28 = ElementFactory.library(createAnalysisContext(), "lib");
-    CompilationUnitElement unit = library28.definingCompilationUnit;
+    LibraryElementImpl library2 = ElementFactory.library(createAnalysisContext(), "lib");
+    CompilationUnitElement unit = library2.definingCompilationUnit;
     ((unit as CompilationUnitElementImpl)).types = <ClassElement> [classA, classB];
-    JUnitTestCase.assertSame(setterS, typeB.lookUpSetter(setterName, library28));
+    JUnitTestCase.assertSame(setterS, typeB.lookUpSetter(setterName, library2));
   }
   void test_lookUpSetter_unimplemented() {
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     InterfaceType typeA = classA.type;
-    LibraryElementImpl library29 = ElementFactory.library(createAnalysisContext(), "lib");
-    CompilationUnitElement unit = library29.definingCompilationUnit;
+    LibraryElementImpl library2 = ElementFactory.library(createAnalysisContext(), "lib");
+    CompilationUnitElement unit = library2.definingCompilationUnit;
     ((unit as CompilationUnitElementImpl)).types = <ClassElement> [classA];
-    JUnitTestCase.assertNull(typeA.lookUpSetter("s", library29));
+    JUnitTestCase.assertNull(typeA.lookUpSetter("s", library2));
   }
   void test_setTypeArguments() {
-    InterfaceTypeImpl type36 = ElementFactory.classElement2("A", []).type as InterfaceTypeImpl;
+    InterfaceTypeImpl type2 = ElementFactory.classElement2("A", []).type as InterfaceTypeImpl;
     List<Type2> typeArguments = <Type2> [ElementFactory.classElement2("B", []).type, ElementFactory.classElement2("C", []).type];
-    type36.typeArguments = typeArguments;
-    JUnitTestCase.assertEquals(typeArguments, type36.typeArguments);
+    type2.typeArguments = typeArguments;
+    JUnitTestCase.assertEquals(typeArguments, type2.typeArguments);
   }
   void test_substitute_equal() {
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
@@ -1444,24 +1444,24 @@ class ElementFactory {
   }
   static ClassElementImpl classElement2(String typeName, List<String> parameterNames) => classElement(typeName, object.type, parameterNames);
   static ConstructorElementImpl constructorElement(String name) => new ConstructorElementImpl(name == null ? null : ASTFactory.identifier3(name));
-  static ExportElementImpl exportFor(LibraryElement exportedLibrary4, List<NamespaceCombinator> combinators4) {
+  static ExportElementImpl exportFor(LibraryElement exportedLibrary2, List<NamespaceCombinator> combinators2) {
     ExportElementImpl spec = new ExportElementImpl();
-    spec.exportedLibrary = exportedLibrary4;
-    spec.combinators = combinators4;
+    spec.exportedLibrary = exportedLibrary2;
+    spec.combinators = combinators2;
     return spec;
   }
-  static FieldElementImpl fieldElement(String name, bool isStatic, bool isFinal, bool isConst, Type2 type43) {
+  static FieldElementImpl fieldElement(String name, bool isStatic, bool isFinal, bool isConst, Type2 type2) {
     FieldElementImpl field = new FieldElementImpl.con1(ASTFactory.identifier3(name));
     field.const3 = isConst;
     field.final2 = isFinal;
     field.static = isStatic;
-    field.type = type43;
+    field.type = type2;
     PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl.con2(field);
     getter.getter = true;
     getter.synthetic = true;
     field.getter = getter;
     FunctionTypeImpl getterType = new FunctionTypeImpl.con1(getter);
-    getterType.returnType = type43;
+    getterType.returnType = type2;
     getter.type = getterType;
     if (!isConst && !isFinal) {
       PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl.con2(field);
@@ -1469,7 +1469,7 @@ class ElementFactory {
       setter.synthetic = true;
       field.setter = setter;
       FunctionTypeImpl setterType = new FunctionTypeImpl.con1(getter);
-      setterType.normalParameterTypes = <Type2> [type43];
+      setterType.normalParameterTypes = <Type2> [type2];
       setterType.returnType = VoidTypeImpl.instance;
       setter.type = setterType;
     }
@@ -1537,24 +1537,24 @@ class ElementFactory {
     }
     return _objectElement;
   }
-  static PropertyAccessorElementImpl getterElement(String name, bool isStatic, Type2 type44) {
+  static PropertyAccessorElementImpl getterElement(String name, bool isStatic, Type2 type2) {
     FieldElementImpl field = new FieldElementImpl.con1(ASTFactory.identifier3(name));
     field.static = isStatic;
     field.synthetic = true;
-    field.type = type44;
+    field.type = type2;
     PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl.con2(field);
     getter.getter = true;
     field.getter = getter;
     FunctionTypeImpl getterType = new FunctionTypeImpl.con1(getter);
-    getterType.returnType = type44;
+    getterType.returnType = type2;
     getter.type = getterType;
     return getter;
   }
-  static ImportElementImpl importFor(LibraryElement importedLibrary5, PrefixElement prefix13, List<NamespaceCombinator> combinators5) {
+  static ImportElementImpl importFor(LibraryElement importedLibrary2, PrefixElement prefix2, List<NamespaceCombinator> combinators2) {
     ImportElementImpl spec = new ImportElementImpl();
-    spec.importedLibrary = importedLibrary5;
-    spec.prefix = prefix13;
-    spec.combinators = combinators5;
+    spec.importedLibrary = importedLibrary2;
+    spec.prefix = prefix2;
+    spec.combinators = combinators2;
     return spec;
   }
   static LibraryElementImpl library(AnalysisContext context, String libraryName) {
@@ -1568,7 +1568,7 @@ class ElementFactory {
   }
   static LocalVariableElementImpl localVariableElement(Identifier name) => new LocalVariableElementImpl(name);
   static LocalVariableElementImpl localVariableElement2(String name) => new LocalVariableElementImpl(ASTFactory.identifier3(name));
-  static MethodElementImpl methodElement(String methodName, Type2 returnType16, List<Type2> argumentTypes) {
+  static MethodElementImpl methodElement(String methodName, Type2 returnType2, List<Type2> argumentTypes) {
     MethodElementImpl method = new MethodElementImpl.con1(ASTFactory.identifier3(methodName));
     int count = argumentTypes.length;
     List<ParameterElement> parameters = new List<ParameterElement>(count);
@@ -1581,7 +1581,7 @@ class ElementFactory {
     method.parameters = parameters;
     FunctionTypeImpl methodType = new FunctionTypeImpl.con1(method);
     methodType.normalParameterTypes = argumentTypes;
-    methodType.returnType = returnType16;
+    methodType.returnType = returnType2;
     method.type = methodType;
     return method;
   }
@@ -1601,23 +1601,23 @@ class ElementFactory {
     parameter.parameterKind = ParameterKind.REQUIRED;
     return parameter;
   }
-  static PropertyAccessorElementImpl setterElement(String name, bool isStatic, Type2 type45) {
+  static PropertyAccessorElementImpl setterElement(String name, bool isStatic, Type2 type2) {
     FieldElementImpl field = new FieldElementImpl.con1(ASTFactory.identifier3(name));
     field.static = isStatic;
     field.synthetic = true;
-    field.type = type45;
+    field.type = type2;
     PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl.con2(field);
     getter.getter = true;
     field.getter = getter;
     FunctionTypeImpl getterType = new FunctionTypeImpl.con1(getter);
-    getterType.returnType = type45;
+    getterType.returnType = type2;
     getter.type = getterType;
     PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl.con2(field);
     setter.setter = true;
     setter.synthetic = true;
     field.setter = setter;
     FunctionTypeImpl setterType = new FunctionTypeImpl.con1(getter);
-    setterType.normalParameterTypes = <Type2> [type45];
+    setterType.normalParameterTypes = <Type2> [type2];
     setterType.returnType = VoidTypeImpl.instance;
     setter.type = setterType;
     return setter;
@@ -1680,79 +1680,79 @@ class ClassElementImplTest extends EngineTestCase {
     JUnitTestCase.assertNull(classA.getMethod("${methodName}x"));
   }
   void test_lookUpGetter_declared() {
-    LibraryElementImpl library6 = ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library2 = ElementFactory.library(createAnalysisContext(), "lib");
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     String getterName = "g";
     PropertyAccessorElement getter = ElementFactory.getterElement(getterName, false, null);
     classA.accessors = <PropertyAccessorElement> [getter];
-    ((library6.definingCompilationUnit as CompilationUnitElementImpl)).types = <ClassElement> [classA];
-    JUnitTestCase.assertSame(getter, classA.lookUpGetter(getterName, library6));
+    ((library2.definingCompilationUnit as CompilationUnitElementImpl)).types = <ClassElement> [classA];
+    JUnitTestCase.assertSame(getter, classA.lookUpGetter(getterName, library2));
   }
   void test_lookUpGetter_inherited() {
-    LibraryElementImpl library7 = ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library2 = ElementFactory.library(createAnalysisContext(), "lib");
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     String getterName = "g";
     PropertyAccessorElement getter = ElementFactory.getterElement(getterName, false, null);
     classA.accessors = <PropertyAccessorElement> [getter];
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
-    ((library7.definingCompilationUnit as CompilationUnitElementImpl)).types = <ClassElement> [classA, classB];
-    JUnitTestCase.assertSame(getter, classB.lookUpGetter(getterName, library7));
+    ((library2.definingCompilationUnit as CompilationUnitElementImpl)).types = <ClassElement> [classA, classB];
+    JUnitTestCase.assertSame(getter, classB.lookUpGetter(getterName, library2));
   }
   void test_lookUpGetter_undeclared() {
-    LibraryElementImpl library8 = ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library2 = ElementFactory.library(createAnalysisContext(), "lib");
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    ((library8.definingCompilationUnit as CompilationUnitElementImpl)).types = <ClassElement> [classA];
-    JUnitTestCase.assertNull(classA.lookUpGetter("g", library8));
+    ((library2.definingCompilationUnit as CompilationUnitElementImpl)).types = <ClassElement> [classA];
+    JUnitTestCase.assertNull(classA.lookUpGetter("g", library2));
   }
   void test_lookUpMethod_declared() {
-    LibraryElementImpl library9 = ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library2 = ElementFactory.library(createAnalysisContext(), "lib");
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     String methodName = "m";
     MethodElement method = ElementFactory.methodElement(methodName, null, []);
     classA.methods = <MethodElement> [method];
-    ((library9.definingCompilationUnit as CompilationUnitElementImpl)).types = <ClassElement> [classA];
-    JUnitTestCase.assertSame(method, classA.lookUpMethod(methodName, library9));
+    ((library2.definingCompilationUnit as CompilationUnitElementImpl)).types = <ClassElement> [classA];
+    JUnitTestCase.assertSame(method, classA.lookUpMethod(methodName, library2));
   }
   void test_lookUpMethod_inherited() {
-    LibraryElementImpl library10 = ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library2 = ElementFactory.library(createAnalysisContext(), "lib");
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     String methodName = "m";
     MethodElement method = ElementFactory.methodElement(methodName, null, []);
     classA.methods = <MethodElement> [method];
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
-    ((library10.definingCompilationUnit as CompilationUnitElementImpl)).types = <ClassElement> [classA, classB];
-    JUnitTestCase.assertSame(method, classB.lookUpMethod(methodName, library10));
+    ((library2.definingCompilationUnit as CompilationUnitElementImpl)).types = <ClassElement> [classA, classB];
+    JUnitTestCase.assertSame(method, classB.lookUpMethod(methodName, library2));
   }
   void test_lookUpMethod_undeclared() {
-    LibraryElementImpl library11 = ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library2 = ElementFactory.library(createAnalysisContext(), "lib");
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    ((library11.definingCompilationUnit as CompilationUnitElementImpl)).types = <ClassElement> [classA];
-    JUnitTestCase.assertNull(classA.lookUpMethod("m", library11));
+    ((library2.definingCompilationUnit as CompilationUnitElementImpl)).types = <ClassElement> [classA];
+    JUnitTestCase.assertNull(classA.lookUpMethod("m", library2));
   }
   void test_lookUpSetter_declared() {
-    LibraryElementImpl library12 = ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library2 = ElementFactory.library(createAnalysisContext(), "lib");
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     String setterName = "s";
     PropertyAccessorElement setter = ElementFactory.setterElement(setterName, false, null);
     classA.accessors = <PropertyAccessorElement> [setter];
-    ((library12.definingCompilationUnit as CompilationUnitElementImpl)).types = <ClassElement> [classA];
-    JUnitTestCase.assertSame(setter, classA.lookUpSetter(setterName, library12));
+    ((library2.definingCompilationUnit as CompilationUnitElementImpl)).types = <ClassElement> [classA];
+    JUnitTestCase.assertSame(setter, classA.lookUpSetter(setterName, library2));
   }
   void test_lookUpSetter_inherited() {
-    LibraryElementImpl library13 = ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library2 = ElementFactory.library(createAnalysisContext(), "lib");
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     String setterName = "s";
     PropertyAccessorElement setter = ElementFactory.setterElement(setterName, false, null);
     classA.accessors = <PropertyAccessorElement> [setter];
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type, []);
-    ((library13.definingCompilationUnit as CompilationUnitElementImpl)).types = <ClassElement> [classA, classB];
-    JUnitTestCase.assertSame(setter, classB.lookUpSetter(setterName, library13));
+    ((library2.definingCompilationUnit as CompilationUnitElementImpl)).types = <ClassElement> [classA, classB];
+    JUnitTestCase.assertSame(setter, classB.lookUpSetter(setterName, library2));
   }
   void test_lookUpSetter_undeclared() {
-    LibraryElementImpl library14 = ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library2 = ElementFactory.library(createAnalysisContext(), "lib");
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    ((library14.definingCompilationUnit as CompilationUnitElementImpl)).types = <ClassElement> [classA];
-    JUnitTestCase.assertNull(classA.lookUpSetter("s", library14));
+    ((library2.definingCompilationUnit as CompilationUnitElementImpl)).types = <ClassElement> [classA];
+    JUnitTestCase.assertNull(classA.lookUpSetter("s", library2));
   }
   static dartSuite() {
     _ut.group('ClassElementImplTest', () {
@@ -1813,9 +1813,9 @@ class ClassElementImplTest extends EngineTestCase {
 }
 class ElementImplTest extends EngineTestCase {
   void test_equals() {
-    LibraryElementImpl library15 = ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library2 = ElementFactory.library(createAnalysisContext(), "lib");
     ClassElementImpl classElement = ElementFactory.classElement2("C", []);
-    ((library15.definingCompilationUnit as CompilationUnitElementImpl)).types = <ClassElement> [classElement];
+    ((library2.definingCompilationUnit as CompilationUnitElementImpl)).types = <ClassElement> [classElement];
     FieldElement field = ElementFactory.fieldElement("next", false, false, false, classElement.type);
     classElement.fields = <FieldElement> [field];
     JUnitTestCase.assertTrue(field == field);
@@ -1832,10 +1832,10 @@ class ElementImplTest extends EngineTestCase {
     JUnitTestCase.assertFalse(classElement.isAccessibleIn(library2));
   }
   void test_isAccessibleIn_private_sameLibrary() {
-    LibraryElementImpl library16 = ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library2 = ElementFactory.library(createAnalysisContext(), "lib");
     ClassElement classElement = ElementFactory.classElement2("_C", []);
-    ((library16.definingCompilationUnit as CompilationUnitElementImpl)).types = <ClassElement> [classElement];
-    JUnitTestCase.assertTrue(classElement.isAccessibleIn(library16));
+    ((library2.definingCompilationUnit as CompilationUnitElementImpl)).types = <ClassElement> [classElement];
+    JUnitTestCase.assertTrue(classElement.isAccessibleIn(library2));
   }
   void test_isAccessibleIn_public_differentLibrary() {
     AnalysisContextImpl context = createAnalysisContext();
@@ -1846,10 +1846,10 @@ class ElementImplTest extends EngineTestCase {
     JUnitTestCase.assertTrue(classElement.isAccessibleIn(library2));
   }
   void test_isAccessibleIn_public_sameLibrary() {
-    LibraryElementImpl library17 = ElementFactory.library(createAnalysisContext(), "lib");
+    LibraryElementImpl library2 = ElementFactory.library(createAnalysisContext(), "lib");
     ClassElement classElement = ElementFactory.classElement2("C", []);
-    ((library17.definingCompilationUnit as CompilationUnitElementImpl)).types = <ClassElement> [classElement];
-    JUnitTestCase.assertTrue(classElement.isAccessibleIn(library17));
+    ((library2.definingCompilationUnit as CompilationUnitElementImpl)).types = <ClassElement> [classElement];
+    JUnitTestCase.assertTrue(classElement.isAccessibleIn(library2));
   }
   static dartSuite() {
     _ut.group('ElementImplTest', () {
@@ -1897,8 +1897,8 @@ class FunctionTypeImplTest extends EngineTestCase {
   }
   void test_getReturnType() {
     FunctionTypeImpl type = new FunctionTypeImpl.con1(new FunctionElementImpl.con1(ASTFactory.identifier3("f")));
-    Type2 returnType12 = type.returnType;
-    JUnitTestCase.assertEquals(VoidTypeImpl.instance, returnType12);
+    Type2 returnType2 = type.returnType;
+    JUnitTestCase.assertEquals(VoidTypeImpl.instance, returnType2);
   }
   void test_getTypeArguments() {
     FunctionTypeImpl type = new FunctionTypeImpl.con1(new FunctionElementImpl.con1(ASTFactory.identifier3("f")));
@@ -2101,8 +2101,8 @@ class FunctionTypeImplTest extends EngineTestCase {
     FunctionTypeImpl type = new FunctionTypeImpl.con1(new FunctionElementImpl.con1(ASTFactory.identifier3("f")));
     Type2 expectedType = new InterfaceTypeImpl.con1(new ClassElementImpl(ASTFactory.identifier3("C")));
     type.returnType = expectedType;
-    Type2 returnType13 = type.returnType;
-    JUnitTestCase.assertEquals(expectedType, returnType13);
+    Type2 returnType2 = type.returnType;
+    JUnitTestCase.assertEquals(expectedType, returnType2);
   }
   void test_setTypeArguments() {
     FunctionTypeImpl type = new FunctionTypeImpl.con1(new FunctionElementImpl.con1(ASTFactory.identifier3("f")));

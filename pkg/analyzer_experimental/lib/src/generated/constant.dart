@@ -146,11 +146,11 @@ class ConstantFinder extends RecursiveASTVisitor<Object> {
   Map<VariableElement, VariableDeclaration> get variableMap => _variableMap;
   Object visitVariableDeclaration(VariableDeclaration node) {
     super.visitVariableDeclaration(node);
-    Expression initializer4 = node.initializer;
-    if (initializer4 != null && node.isConst()) {
-      VariableElement element23 = node.element;
-      if (element23 != null) {
-        _variableMap[element23] = node;
+    Expression initializer2 = node.initializer;
+    if (initializer2 != null && node.isConst()) {
+      VariableElement element2 = node.element;
+      if (element2 != null) {
+        _variableMap[element2] = node;
       }
     }
     return null;
@@ -233,9 +233,9 @@ class ConstantValueComputer {
     if (result is ErrorResult) {
       List<AnalysisError> errors = new List<AnalysisError>();
       for (ErrorResult_ErrorData data in ((result as ErrorResult)).errorData) {
-        ASTNode node3 = data.node;
-        Source source10 = variable.getAncestor(CompilationUnitElement).source;
-        errors.add(new AnalysisError.con2(source10, node3.offset, node3.length, data.errorCode, []));
+        ASTNode node2 = data.node;
+        Source source2 = variable.getAncestor(CompilationUnitElement).source;
+        errors.add(new AnalysisError.con2(source2, node2.offset, node2.length, data.errorCode, []));
       }
     }
   }
@@ -377,18 +377,18 @@ class ConstantVisitor extends GeneralizingASTVisitor<EvaluationResultImpl> {
     return ValidResult.RESULT_OBJECT;
   }
   EvaluationResultImpl visitMethodInvocation(MethodInvocation node) {
-    Element element24 = node.methodName.element;
-    if (element24 is FunctionElement) {
-      FunctionElement function = element24 as FunctionElement;
+    Element element2 = node.methodName.element;
+    if (element2 is FunctionElement) {
+      FunctionElement function = element2 as FunctionElement;
       if (function.name == "identical") {
-        NodeList<Expression> arguments3 = node.argumentList.arguments;
-        if (arguments3.length == 2) {
+        NodeList<Expression> arguments2 = node.argumentList.arguments;
+        if (arguments2.length == 2) {
           Element enclosingElement2 = function.enclosingElement;
           if (enclosingElement2 is CompilationUnitElement) {
-            LibraryElement library30 = ((enclosingElement2 as CompilationUnitElement)).library;
-            if (library30.isDartCore()) {
-              EvaluationResultImpl leftArgument = arguments3[0].accept(this);
-              EvaluationResultImpl rightArgument = arguments3[1].accept(this);
+            LibraryElement library2 = ((enclosingElement2 as CompilationUnitElement)).library;
+            if (library2.isDartCore()) {
+              EvaluationResultImpl leftArgument = arguments2[0].accept(this);
+              EvaluationResultImpl rightArgument = arguments2[1].accept(this);
               return leftArgument.equalEqual(node, rightArgument);
             }
           }
@@ -402,14 +402,14 @@ class ConstantVisitor extends GeneralizingASTVisitor<EvaluationResultImpl> {
   EvaluationResultImpl visitParenthesizedExpression(ParenthesizedExpression node) => node.expression.accept(this);
   EvaluationResultImpl visitPrefixedIdentifier(PrefixedIdentifier node) => getConstantValue(node, node.element);
   EvaluationResultImpl visitPrefixExpression(PrefixExpression node) {
-    EvaluationResultImpl operand3 = node.operand.accept(this);
+    EvaluationResultImpl operand2 = node.operand.accept(this);
     while (true) {
       if (node.operator.type == TokenType.BANG) {
-        return operand3.logicalNot(node);
+        return operand2.logicalNot(node);
       } else if (node.operator.type == TokenType.TILDE) {
-        return operand3.bitNot(node);
+        return operand2.bitNot(node);
       } else if (node.operator.type == TokenType.MINUS) {
-        return operand3.negated(node);
+        return operand2.negated(node);
       }
       break;
     }
@@ -842,12 +842,12 @@ class ReferenceFinder extends RecursiveASTVisitor<Object> {
     this._referenceGraph = referenceGraph;
   }
   Object visitSimpleIdentifier(SimpleIdentifier node) {
-    Element element25 = node.element;
-    if (element25 is PropertyAccessorElement) {
-      element25 = ((element25 as PropertyAccessorElement)).variable;
+    Element element2 = node.element;
+    if (element2 is PropertyAccessorElement) {
+      element2 = ((element2 as PropertyAccessorElement)).variable;
     }
-    if (element25 is VariableElement) {
-      VariableElement variable = element25 as VariableElement;
+    if (element2 is VariableElement) {
+      VariableElement variable = element2 as VariableElement;
       if (variable.isConst()) {
         _referenceGraph.addEdge(_source, variable);
       }
@@ -952,8 +952,8 @@ class ValidResult extends EvaluationResultImpl {
     return _value.toString();
   }
   EvaluationResultImpl addToError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
-  EvaluationResultImpl addToValid(BinaryExpression node, ValidResult leftOperand3) {
-    Object leftValue = leftOperand3.value;
+  EvaluationResultImpl addToValid(BinaryExpression node, ValidResult leftOperand2) {
+    Object leftValue = leftOperand2.value;
     if (leftValue == null) {
       return error(node.leftOperand);
     } else if (_value == null) {
@@ -978,8 +978,8 @@ class ValidResult extends EvaluationResultImpl {
     return error(node);
   }
   EvaluationResultImpl bitAndError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
-  EvaluationResultImpl bitAndValid(BinaryExpression node, ValidResult leftOperand4) {
-    Object leftValue = leftOperand4.value;
+  EvaluationResultImpl bitAndValid(BinaryExpression node, ValidResult leftOperand2) {
+    Object leftValue = leftOperand2.value;
     if (leftValue == null) {
       return error(node.leftOperand);
     } else if (_value == null) {
@@ -996,8 +996,8 @@ class ValidResult extends EvaluationResultImpl {
     return union(error(node.leftOperand), error(node.rightOperand));
   }
   EvaluationResultImpl bitOrError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
-  EvaluationResultImpl bitOrValid(BinaryExpression node, ValidResult leftOperand5) {
-    Object leftValue = leftOperand5.value;
+  EvaluationResultImpl bitOrValid(BinaryExpression node, ValidResult leftOperand2) {
+    Object leftValue = leftOperand2.value;
     if (leftValue == null) {
       return error(node.leftOperand);
     } else if (_value == null) {
@@ -1014,8 +1014,8 @@ class ValidResult extends EvaluationResultImpl {
     return union(error(node.leftOperand), error(node.rightOperand));
   }
   EvaluationResultImpl bitXorError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
-  EvaluationResultImpl bitXorValid(BinaryExpression node, ValidResult leftOperand6) {
-    Object leftValue = leftOperand6.value;
+  EvaluationResultImpl bitXorValid(BinaryExpression node, ValidResult leftOperand2) {
+    Object leftValue = leftOperand2.value;
     if (leftValue == null) {
       return error(node.leftOperand);
     } else if (_value == null) {
@@ -1040,8 +1040,8 @@ class ValidResult extends EvaluationResultImpl {
     return error(node);
   }
   EvaluationResultImpl divideError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
-  EvaluationResultImpl divideValid(BinaryExpression node, ValidResult leftOperand7) {
-    Object leftValue = leftOperand7.value;
+  EvaluationResultImpl divideValid(BinaryExpression node, ValidResult leftOperand2) {
+    Object leftValue = leftOperand2.value;
     if (leftValue == null) {
       return error(node.leftOperand);
     } else if (_value == null) {
@@ -1098,8 +1098,8 @@ class ValidResult extends EvaluationResultImpl {
   }
   EvaluationResultImpl greaterThanError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
   EvaluationResultImpl greaterThanOrEqualError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
-  EvaluationResultImpl greaterThanOrEqualValid(BinaryExpression node, ValidResult leftOperand8) {
-    Object leftValue = leftOperand8.value;
+  EvaluationResultImpl greaterThanOrEqualValid(BinaryExpression node, ValidResult leftOperand2) {
+    Object leftValue = leftOperand2.value;
     if (leftValue == null) {
       return error(node.leftOperand);
     } else if (_value == null) {
@@ -1119,8 +1119,8 @@ class ValidResult extends EvaluationResultImpl {
     }
     return error(node);
   }
-  EvaluationResultImpl greaterThanValid(BinaryExpression node, ValidResult leftOperand9) {
-    Object leftValue = leftOperand9.value;
+  EvaluationResultImpl greaterThanValid(BinaryExpression node, ValidResult leftOperand2) {
+    Object leftValue = leftOperand2.value;
     if (leftValue == null) {
       return error(node.leftOperand);
     } else if (_value == null) {
@@ -1141,8 +1141,8 @@ class ValidResult extends EvaluationResultImpl {
     return error(node);
   }
   EvaluationResultImpl integerDivideError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
-  EvaluationResultImpl integerDivideValid(BinaryExpression node, ValidResult leftOperand10) {
-    Object leftValue = leftOperand10.value;
+  EvaluationResultImpl integerDivideValid(BinaryExpression node, ValidResult leftOperand2) {
+    Object leftValue = leftOperand2.value;
     if (leftValue == null) {
       return error(node.leftOperand);
     } else if (_value == null) {
@@ -1170,8 +1170,8 @@ class ValidResult extends EvaluationResultImpl {
   }
   EvaluationResultImpl lessThanError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
   EvaluationResultImpl lessThanOrEqualError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
-  EvaluationResultImpl lessThanOrEqualValid(BinaryExpression node, ValidResult leftOperand11) {
-    Object leftValue = leftOperand11.value;
+  EvaluationResultImpl lessThanOrEqualValid(BinaryExpression node, ValidResult leftOperand2) {
+    Object leftValue = leftOperand2.value;
     if (leftValue == null) {
       return error(node.leftOperand);
     } else if (_value == null) {
@@ -1191,8 +1191,8 @@ class ValidResult extends EvaluationResultImpl {
     }
     return error(node);
   }
-  EvaluationResultImpl lessThanValid(BinaryExpression node, ValidResult leftOperand12) {
-    Object leftValue = leftOperand12.value;
+  EvaluationResultImpl lessThanValid(BinaryExpression node, ValidResult leftOperand2) {
+    Object leftValue = leftOperand2.value;
     if (leftValue == null) {
       return error(node.leftOperand);
     } else if (_value == null) {
@@ -1229,8 +1229,8 @@ class ValidResult extends EvaluationResultImpl {
     return booleanConversion(node.rightOperand, _value);
   }
   EvaluationResultImpl minusError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
-  EvaluationResultImpl minusValid(BinaryExpression node, ValidResult leftOperand13) {
-    Object leftValue = leftOperand13.value;
+  EvaluationResultImpl minusValid(BinaryExpression node, ValidResult leftOperand2) {
+    Object leftValue = leftOperand2.value;
     if (leftValue == null) {
       return error(node.leftOperand);
     } else if (_value == null) {
@@ -1283,8 +1283,8 @@ class ValidResult extends EvaluationResultImpl {
     return RESULT_TRUE;
   }
   EvaluationResultImpl remainderError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
-  EvaluationResultImpl remainderValid(BinaryExpression node, ValidResult leftOperand14) {
-    Object leftValue = leftOperand14.value;
+  EvaluationResultImpl remainderValid(BinaryExpression node, ValidResult leftOperand2) {
+    Object leftValue = leftOperand2.value;
     if (leftValue == null) {
       return error(node.leftOperand);
     } else if (_value == null) {
@@ -1308,8 +1308,8 @@ class ValidResult extends EvaluationResultImpl {
     return error(node);
   }
   EvaluationResultImpl shiftLeftError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
-  EvaluationResultImpl shiftLeftValid(BinaryExpression node, ValidResult leftOperand15) {
-    Object leftValue = leftOperand15.value;
+  EvaluationResultImpl shiftLeftValid(BinaryExpression node, ValidResult leftOperand2) {
+    Object leftValue = leftOperand2.value;
     if (leftValue == null) {
       return error(node.leftOperand);
     } else if (_value == null) {
@@ -1326,8 +1326,8 @@ class ValidResult extends EvaluationResultImpl {
     return union(error(node.leftOperand), error(node.rightOperand));
   }
   EvaluationResultImpl shiftRightError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
-  EvaluationResultImpl shiftRightValid(BinaryExpression node, ValidResult leftOperand16) {
-    Object leftValue = leftOperand16.value;
+  EvaluationResultImpl shiftRightValid(BinaryExpression node, ValidResult leftOperand2) {
+    Object leftValue = leftOperand2.value;
     if (leftValue == null) {
       return error(node.leftOperand);
     } else if (_value == null) {
@@ -1344,8 +1344,8 @@ class ValidResult extends EvaluationResultImpl {
     return union(error(node.leftOperand), error(node.rightOperand));
   }
   EvaluationResultImpl timesError(BinaryExpression node, ErrorResult leftOperand) => leftOperand;
-  EvaluationResultImpl timesValid(BinaryExpression node, ValidResult leftOperand17) {
-    Object leftValue = leftOperand17.value;
+  EvaluationResultImpl timesValid(BinaryExpression node, ValidResult leftOperand2) {
+    Object leftValue = leftOperand2.value;
     if (leftValue == null) {
       return error(node.leftOperand);
     } else if (_value == null) {

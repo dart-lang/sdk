@@ -230,7 +230,7 @@ class ASTFactory {
   static CompilationUnit compilationUnit5(String scriptTag) => compilationUnit8(scriptTag, null, null);
   static CompilationUnit compilationUnit6(String scriptTag, List<CompilationUnitMember> declarations) => compilationUnit8(scriptTag, null, list(declarations));
   static CompilationUnit compilationUnit7(String scriptTag, List<Directive> directives) => compilationUnit8(scriptTag, list(directives), null);
-  static CompilationUnit compilationUnit8(String scriptTag4, List<Directive> directives, List<CompilationUnitMember> declarations) => new CompilationUnit.full(TokenFactory.token3(TokenType.EOF), scriptTag4 == null ? null : scriptTag(scriptTag4), directives == null ? new List<Directive>() : directives, declarations == null ? new List<CompilationUnitMember>() : declarations, TokenFactory.token3(TokenType.EOF));
+  static CompilationUnit compilationUnit8(String scriptTag2, List<Directive> directives, List<CompilationUnitMember> declarations) => new CompilationUnit.full(TokenFactory.token3(TokenType.EOF), scriptTag2 == null ? null : scriptTag(scriptTag2), directives == null ? new List<Directive>() : directives, declarations == null ? new List<CompilationUnitMember>() : declarations, TokenFactory.token3(TokenType.EOF));
   static ConditionalExpression conditionalExpression(Expression condition, Expression thenExpression, Expression elseExpression) => new ConditionalExpression.full(condition, TokenFactory.token3(TokenType.QUESTION), thenExpression, TokenFactory.token3(TokenType.COLON), elseExpression);
   static ConstructorDeclaration constructorDeclaration(Identifier returnType, String name, FormalParameterList parameters, List<ConstructorInitializer> initializers) => new ConstructorDeclaration.full(null, null, TokenFactory.token(Keyword.EXTERNAL), null, null, returnType, name == null ? null : TokenFactory.token3(TokenType.PERIOD), name == null ? null : identifier3(name), parameters, initializers == null || initializers.isEmpty ? null : TokenFactory.token3(TokenType.PERIOD), initializers == null ? new List<ConstructorInitializer>() : initializers, null, emptyFunctionBody());
   static ConstructorDeclaration constructorDeclaration2(Keyword constKeyword, Keyword factoryKeyword, Identifier returnType, String name, FormalParameterList parameters, List<ConstructorInitializer> initializers, FunctionBody body) => new ConstructorDeclaration.full(null, null, null, constKeyword == null ? null : TokenFactory.token(constKeyword), factoryKeyword == null ? null : TokenFactory.token(factoryKeyword), returnType, name == null ? null : TokenFactory.token3(TokenType.PERIOD), name == null ? null : identifier3(name), parameters, initializers == null || initializers.isEmpty ? null : TokenFactory.token3(TokenType.PERIOD), initializers == null ? new List<ConstructorInitializer>() : initializers, null, body);
@@ -273,7 +273,7 @@ class ASTFactory {
     }
     return new HideCombinator.full(TokenFactory.token2("hide"), identifierList);
   }
-  static PrefixedIdentifier identifier(SimpleIdentifier prefix, SimpleIdentifier identifier11) => new PrefixedIdentifier.full(prefix, TokenFactory.token3(TokenType.PERIOD), identifier11);
+  static PrefixedIdentifier identifier(SimpleIdentifier prefix, SimpleIdentifier identifier2) => new PrefixedIdentifier.full(prefix, TokenFactory.token3(TokenType.PERIOD), identifier2);
   static SimpleIdentifier identifier3(String lexeme) => new SimpleIdentifier.full(TokenFactory.token4(TokenType.IDENTIFIER, lexeme));
   static PrefixedIdentifier identifier4(String prefix, SimpleIdentifier identifier) => new PrefixedIdentifier.full(identifier3(prefix), TokenFactory.token3(TokenType.PERIOD), identifier);
   static PrefixedIdentifier identifier5(String prefix, String identifier) => new PrefixedIdentifier.full(identifier3(prefix), TokenFactory.token3(TokenType.PERIOD), identifier3(identifier));
@@ -291,8 +291,8 @@ class ASTFactory {
   static InterpolationExpression interpolationExpression2(String identifier) => new InterpolationExpression.full(TokenFactory.token3(TokenType.STRING_INTERPOLATION_IDENTIFIER), identifier3(identifier), null);
   static InterpolationString interpolationString(String contents, String value) => new InterpolationString.full(TokenFactory.token2(contents), value);
   static IsExpression isExpression(Expression expression, bool negated, TypeName type) => new IsExpression.full(expression, TokenFactory.token(Keyword.IS), negated ? TokenFactory.token3(TokenType.BANG) : null, type);
-  static Label label(SimpleIdentifier label5) => new Label.full(label5, TokenFactory.token3(TokenType.COLON));
-  static Label label2(String label6) => label(identifier3(label6));
+  static Label label(SimpleIdentifier label2) => new Label.full(label2, TokenFactory.token3(TokenType.COLON));
+  static Label label2(String label22) => label(identifier3(label22));
   static LabeledStatement labeledStatement(List<Label> labels, Statement statement) => new LabeledStatement.full(labels, statement);
   static LibraryDirective libraryDirective(List<Annotation> metadata, LibraryIdentifier libraryName) => new LibraryDirective.full(null, metadata, TokenFactory.token(Keyword.LIBRARY), libraryName, TokenFactory.token3(TokenType.SEMICOLON));
   static LibraryDirective libraryDirective2(String libraryName) => libraryDirective(new List<Annotation>(), libraryIdentifier2([libraryName]));
@@ -339,7 +339,7 @@ class ASTFactory {
   static RedirectingConstructorInvocation redirectingConstructorInvocation2(String constructorName, List<Expression> arguments) => new RedirectingConstructorInvocation.full(TokenFactory.token(Keyword.THIS), constructorName == null ? null : TokenFactory.token3(TokenType.PERIOD), constructorName == null ? null : identifier3(constructorName), argumentList(arguments));
   static ReturnStatement returnStatement() => returnStatement2(null);
   static ReturnStatement returnStatement2(Expression expression) => new ReturnStatement.full(TokenFactory.token(Keyword.RETURN), expression, TokenFactory.token3(TokenType.SEMICOLON));
-  static ScriptTag scriptTag(String scriptTag5) => new ScriptTag.full(TokenFactory.token2(scriptTag5));
+  static ScriptTag scriptTag(String scriptTag2) => new ScriptTag.full(TokenFactory.token2(scriptTag2));
   static ShowCombinator showCombinator(List<SimpleIdentifier> identifiers) => new ShowCombinator.full(TokenFactory.token2("show"), list(identifiers));
   static ShowCombinator showCombinator2(List<String> identifiers) {
     List<SimpleIdentifier> identifierList = new List<SimpleIdentifier>();
@@ -380,11 +380,11 @@ class ASTFactory {
    * @param element the element defining the type represented by the type name
    * @return the type name that was created
    */
-  static TypeName typeName(ClassElement element70, List<TypeName> arguments) {
-    SimpleIdentifier name25 = identifier3(element70.name);
-    name25.element = element70;
-    TypeName typeName = typeName3(name25, arguments);
-    typeName.type = element70.type;
+  static TypeName typeName(ClassElement element2, List<TypeName> arguments) {
+    SimpleIdentifier name2 = identifier3(element2.name);
+    name2.element = element2;
+    TypeName typeName = typeName3(name2, arguments);
+    typeName.type = element2.type;
     return typeName;
   }
   static TypeName typeName3(Identifier name, List<TypeName> arguments) {
@@ -424,8 +424,8 @@ class ASTFactory {
 }
 class SimpleIdentifierTest extends ParserTestCase {
   void test_inDeclarationContext_argumentDefinition() {
-    SimpleIdentifier identifier16 = ASTFactory.argumentDefinitionTest("p").identifier;
-    JUnitTestCase.assertFalse(identifier16.inDeclarationContext());
+    SimpleIdentifier identifier2 = ASTFactory.argumentDefinitionTest("p").identifier;
+    JUnitTestCase.assertFalse(identifier2.inDeclarationContext());
   }
   void test_inDeclarationContext_catch_exception() {
     SimpleIdentifier identifier = ASTFactory.catchClause("e", []).exceptionParameter;
@@ -448,8 +448,8 @@ class SimpleIdentifierTest extends ParserTestCase {
     JUnitTestCase.assertTrue(identifier.inDeclarationContext());
   }
   void test_inDeclarationContext_fieldFormalParameter() {
-    SimpleIdentifier identifier17 = ASTFactory.fieldFormalParameter2("p").identifier;
-    JUnitTestCase.assertFalse(identifier17.inDeclarationContext());
+    SimpleIdentifier identifier2 = ASTFactory.fieldFormalParameter2("p").identifier;
+    JUnitTestCase.assertFalse(identifier2.inDeclarationContext());
   }
   void test_inDeclarationContext_functionDeclaration() {
     SimpleIdentifier identifier = ASTFactory.functionDeclaration(null, null, "f", null).name;
@@ -475,8 +475,8 @@ class SimpleIdentifierTest extends ParserTestCase {
     JUnitTestCase.assertTrue(identifier.inDeclarationContext());
   }
   void test_inDeclarationContext_simpleFormalParameter() {
-    SimpleIdentifier identifier18 = ASTFactory.simpleFormalParameter3("p").identifier;
-    JUnitTestCase.assertTrue(identifier18.inDeclarationContext());
+    SimpleIdentifier identifier2 = ASTFactory.simpleFormalParameter3("p").identifier;
+    JUnitTestCase.assertTrue(identifier2.inDeclarationContext());
   }
   void test_inDeclarationContext_typeParameter_bound() {
     TypeName bound = ASTFactory.typeName4("A", []);
@@ -576,10 +576,10 @@ class SimpleIdentifierTest extends ParserTestCase {
    */
   ASTNode topMostNode(SimpleIdentifier identifier) {
     ASTNode child = identifier;
-    ASTNode parent20 = identifier.parent;
-    while (parent20 != null) {
-      child = parent20;
-      parent20 = parent20.parent;
+    ASTNode parent2 = identifier.parent;
+    while (parent2 != null) {
+      child = parent2;
+      parent2 = parent2.parent;
     }
     return child;
   }

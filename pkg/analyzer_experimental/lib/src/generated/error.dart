@@ -123,8 +123,8 @@ class ErrorReporter {
    * the default source to be used.
    * @param source the source to be used when reporting errors
    */
-  void set source(Source source7) {
-    this._source = source7 == null ? _defaultSource : source7;
+  void set source(Source source2) {
+    this._source = source2 == null ? _defaultSource : source2;
   }
 }
 /**
@@ -188,13 +188,13 @@ class AnalysisError {
    * @param errorCode the error code to be associated with this error
    * @param arguments the arguments used to build the error message
    */
-  AnalysisError.con1(Source source2, ErrorCode errorCode3, List<Object> arguments) {
-    _jtd_constructor_131_impl(source2, errorCode3, arguments);
+  AnalysisError.con1(Source source2, ErrorCode errorCode2, List<Object> arguments) {
+    _jtd_constructor_131_impl(source2, errorCode2, arguments);
   }
-  _jtd_constructor_131_impl(Source source2, ErrorCode errorCode3, List<Object> arguments) {
+  _jtd_constructor_131_impl(Source source2, ErrorCode errorCode2, List<Object> arguments) {
     this._source = source2;
-    this._errorCode = errorCode3;
-    this._message = JavaString.format(errorCode3.message, arguments);
+    this._errorCode = errorCode2;
+    this._message = JavaString.format(errorCode2.message, arguments);
   }
   /**
    * Initialize a newly created analysis error for the specified source at the given location.
@@ -204,15 +204,15 @@ class AnalysisError {
    * @param errorCode the error code to be associated with this error
    * @param arguments the arguments used to build the error message
    */
-  AnalysisError.con2(Source source3, int offset2, int length11, ErrorCode errorCode4, List<Object> arguments) {
-    _jtd_constructor_132_impl(source3, offset2, length11, errorCode4, arguments);
+  AnalysisError.con2(Source source2, int offset2, int length2, ErrorCode errorCode2, List<Object> arguments) {
+    _jtd_constructor_132_impl(source2, offset2, length2, errorCode2, arguments);
   }
-  _jtd_constructor_132_impl(Source source3, int offset2, int length11, ErrorCode errorCode4, List<Object> arguments) {
-    this._source = source3;
+  _jtd_constructor_132_impl(Source source2, int offset2, int length2, ErrorCode errorCode2, List<Object> arguments) {
+    this._source = source2;
     this._offset = offset2;
-    this._length = length11;
-    this._errorCode = errorCode4;
-    this._message = JavaString.format(errorCode4.message, arguments);
+    this._length = length2;
+    this._errorCode = errorCode2;
+    this._message = JavaString.format(errorCode2.message, arguments);
   }
   /**
    * Return the error code associated with the error.
@@ -251,8 +251,8 @@ class AnalysisError {
    * Set the source in which the error occurred to the given source.
    * @param source the source in which the error occurred
    */
-  void set source(Source source4) {
-    this._source = source4;
+  void set source(Source source2) {
+    this._source = source2;
   }
   String toString() {
     JavaStringBuilder builder = new JavaStringBuilder();
@@ -641,15 +641,20 @@ class CompileTimeErrorCode implements Comparable<CompileTimeErrorCode>, ErrorCod
    * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It is a compile-time
    * error if <i>k</i>'s initializer list contains an initializer for a variable that is not an
    * instance variable declared in the immediately surrounding class.
+   * @param id the name of the initializing formal that is not an instance variable in the
+   * immediately enclosing class
    * @see #INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD
    */
-  static final CompileTimeErrorCode INITIALIZER_FOR_NON_EXISTANT_FIELD = new CompileTimeErrorCode('INITIALIZER_FOR_NON_EXISTANT_FIELD', 45, "");
+  static final CompileTimeErrorCode INITIALIZER_FOR_NON_EXISTANT_FIELD = new CompileTimeErrorCode('INITIALIZER_FOR_NON_EXISTANT_FIELD', 45, "'%s' is not a variable in the enclosing class");
   /**
    * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It is a compile-time
    * error if <i>k</i>'s initializer list contains an initializer for a variable that is not an
    * instance variable declared in the immediately surrounding class.
+   * @param id the name of the initializing formal that is a static variable in the immediately
+   * enclosing class
+   * @see #INITIALIZING_FORMAL_FOR_STATIC_FIELD
    */
-  static final CompileTimeErrorCode INITIALIZER_FOR_STATIC_FIELD = new CompileTimeErrorCode('INITIALIZER_FOR_STATIC_FIELD', 46, "");
+  static final CompileTimeErrorCode INITIALIZER_FOR_STATIC_FIELD = new CompileTimeErrorCode('INITIALIZER_FOR_STATIC_FIELD', 46, "'%s' is a static variable in the enclosing class, variables initialized in a constructor cannot be static");
   /**
    * 7.6.1 Generative Constructors: An initializing formal has the form <i>this.id</i>. It is a
    * compile-time error if <i>id</i> is not the name of an instance variable of the immediately
@@ -666,9 +671,9 @@ class CompileTimeErrorCode implements Comparable<CompileTimeErrorCode>, ErrorCod
    * enclosing class.
    * @param id the name of the initializing formal that is a static variable in the immediately
    * enclosing class
-   * @see #INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD
+   * @see #INITIALIZER_FOR_STATIC_FIELD
    */
-  static final CompileTimeErrorCode INITIALIZING_FORMAL_FOR_STATIC_FIELD = new CompileTimeErrorCode('INITIALIZING_FORMAL_FOR_STATIC_FIELD', 48, "'%s' is a static variable in the enclosing class, variable initialized in a constructor cannot be static");
+  static final CompileTimeErrorCode INITIALIZING_FORMAL_FOR_STATIC_FIELD = new CompileTimeErrorCode('INITIALIZING_FORMAL_FOR_STATIC_FIELD', 48, "'%s' is a static variable in the enclosing class, variables initialized in a constructor cannot be static");
   /**
    * TODO(brianwilkerson) Remove this when we have decided on how to report errors in compile-time
    * constants. Until then, this acts as a placeholder for more informative errors.
@@ -717,7 +722,7 @@ class CompileTimeErrorCode implements Comparable<CompileTimeErrorCode>, ErrorCod
    * 12.7 Maps: It is a compile-time error if the first type argument to a map literal is not
    * String.
    */
-  static final CompileTimeErrorCode INVALID_TYPE_ARGUMENT_FOR_KEY = new CompileTimeErrorCode('INVALID_TYPE_ARGUMENT_FOR_KEY', 57, "");
+  static final CompileTimeErrorCode INVALID_TYPE_ARGUMENT_FOR_KEY = new CompileTimeErrorCode('INVALID_TYPE_ARGUMENT_FOR_KEY', 57, "The first type argument to a map literal must be 'String'");
   /**
    * 12.6 Lists: It is a compile time error if the type argument of a constant list literal includes
    * a type parameter.

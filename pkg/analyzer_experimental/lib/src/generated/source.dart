@@ -30,11 +30,11 @@ class SourceFactory {
    * @param contentCache the cache holding content used to override the default content of a source
    * @param resolvers the resolvers used to resolve absolute URI's
    */
-  SourceFactory.con1(ContentCache contentCache3, List<UriResolver> resolvers2) {
-    _jtd_constructor_332_impl(contentCache3, resolvers2);
+  SourceFactory.con1(ContentCache contentCache2, List<UriResolver> resolvers2) {
+    _jtd_constructor_332_impl(contentCache2, resolvers2);
   }
-  _jtd_constructor_332_impl(ContentCache contentCache3, List<UriResolver> resolvers2) {
-    this._contentCache = contentCache3;
+  _jtd_constructor_332_impl(ContentCache contentCache2, List<UriResolver> resolvers2) {
+    this._contentCache = contentCache2;
     this._resolvers = resolvers2;
   }
   /**
