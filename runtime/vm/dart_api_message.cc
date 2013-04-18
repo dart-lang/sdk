@@ -809,10 +809,12 @@ void ApiMessageWriter::AddToForwardList(Dart_CObject* object) {
   if (forward_id_ >= forward_list_length_) {
     void* new_list = NULL;
     if (forward_list_length_ == 0) {
-      intptr_t new_size = 4 * sizeof(object);
+      forward_list_length_ = 4;
+      intptr_t new_size = forward_list_length_ * sizeof(object);
       new_list = ::malloc(new_size);
     } else {
-      intptr_t new_size = (forward_list_length_ * sizeof(object)) * 2;
+      forward_list_length_ *= 2;
+      intptr_t new_size = (forward_list_length_ * sizeof(object));
       new_list = ::realloc(forward_list_, new_size);
     }
     ASSERT(new_list != NULL);
