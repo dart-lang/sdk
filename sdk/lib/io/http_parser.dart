@@ -234,6 +234,15 @@ class _HttpParser
     return new Future.value(this);
   }
 
+  void _parse() {
+    try {
+      _doParse();
+    } catch (e, s) {
+      _state = _State.FAILURE;
+      error(e, s);
+    }
+  }
+
   // From RFC 2616.
   // generic-message = start-line
   //                   *(message-header CRLF)
@@ -243,201 +252,267 @@ class _HttpParser
   // Request-Line    = Method SP Request-URI SP HTTP-Version CRLF
   // Status-Line     = HTTP-Version SP Status-Code SP Reason-Phrase CRLF
   // message-header  = field-name ":" [ field-value ]
-  void _parse() {
+  void _doParse() {
     assert(!_parserCalled);
     _parserCalled = true;
-    try {
-      if (_state == _State.CLOSED) {
-        throw new HttpParserException("Data on closed connection");
+    if (_state == _State.CLOSED) {
+      throw new HttpParserException("Data on closed connection");
+    }
+    if (_state == _State.FAILURE) {
+      throw new HttpParserException("Data on failed connection");
+    }
+    while (_buffer != null &&
+           _index < _buffer.length &&
+           _state != _State.FAILURE &&
+           _state != _State.UPGRADED) {
+      if (_paused) {
+        _parserCalled = false;
+        return;
       }
-      if (_state == _State.FAILURE) {
-        throw new HttpParserException("Data on failed connection");
-      }
-      while (_buffer != null &&
-             _index < _buffer.length &&
-             _state != _State.FAILURE &&
-             _state != _State.UPGRADED) {
-        if (_paused) {
-          _parserCalled = false;
-          return;
-        }
-        int byte = _buffer[_index++];
-        switch (_state) {
-          case _State.START:
-            if (byte == _Const.HTTP[0]) {
-              // Start parsing method or HTTP version.
-              _httpVersionIndex = 1;
-              _state = _State.METHOD_OR_RESPONSE_HTTP_VERSION;
+      int byte = _buffer[_index++];
+      switch (_state) {
+        case _State.START:
+          if (byte == _Const.HTTP[0]) {
+            // Start parsing method or HTTP version.
+            _httpVersionIndex = 1;
+            _state = _State.METHOD_OR_RESPONSE_HTTP_VERSION;
+          } else {
+            // Start parsing method.
+            if (!_isTokenChar(byte)) {
+              throw new HttpParserException("Invalid request method");
+            }
+            _method_or_status_code.add(byte);
+            if (!_requestParser) {
+              throw new HttpParserException("Invalid response line");
+            }
+            _state = _State.REQUEST_LINE_METHOD;
+          }
+          break;
+
+        case _State.METHOD_OR_RESPONSE_HTTP_VERSION:
+          if (_httpVersionIndex < _Const.HTTP.length &&
+              byte == _Const.HTTP[_httpVersionIndex]) {
+            // Continue parsing HTTP version.
+            _httpVersionIndex++;
+          } else if (_httpVersionIndex == _Const.HTTP.length &&
+                     byte == _CharCode.SLASH) {
+            // HTTP/ parsed. As method is a token this cannot be a
+            // method anymore.
+            _httpVersionIndex++;
+            if (_requestParser) {
+              throw new HttpParserException("Invalid request line");
+            }
+            _state = _State.RESPONSE_HTTP_VERSION;
+          } else {
+            // Did not parse HTTP version. Expect method instead.
+            for (int i = 0; i < _httpVersionIndex; i++) {
+              _method_or_status_code.add(_Const.HTTP[i]);
+            }
+            if (byte == _CharCode.SP) {
+              _state = _State.REQUEST_LINE_URI;
             } else {
-              // Start parsing method.
-              if (!_isTokenChar(byte)) {
-                throw new HttpParserException("Invalid request method");
-              }
               _method_or_status_code.add(byte);
+              _httpVersion = _HttpVersion.UNDETERMINED;
               if (!_requestParser) {
                 throw new HttpParserException("Invalid response line");
               }
               _state = _State.REQUEST_LINE_METHOD;
             }
-            break;
+          }
+          break;
 
-          case _State.METHOD_OR_RESPONSE_HTTP_VERSION:
-            if (_httpVersionIndex < _Const.HTTP.length &&
-                byte == _Const.HTTP[_httpVersionIndex]) {
-              // Continue parsing HTTP version.
-              _httpVersionIndex++;
-            } else if (_httpVersionIndex == _Const.HTTP.length &&
-                       byte == _CharCode.SLASH) {
-              // HTTP/ parsed. As method is a token this cannot be a
-              // method anymore.
-              _httpVersionIndex++;
-              if (_requestParser) {
-                throw new HttpParserException("Invalid request line");
-              }
-              _state = _State.RESPONSE_HTTP_VERSION;
-            } else {
-              // Did not parse HTTP version. Expect method instead.
-              for (int i = 0; i < _httpVersionIndex; i++) {
-                _method_or_status_code.add(_Const.HTTP[i]);
-              }
-              if (byte == _CharCode.SP) {
-                _state = _State.REQUEST_LINE_URI;
-              } else {
-                _method_or_status_code.add(byte);
-                _httpVersion = _HttpVersion.UNDETERMINED;
-                if (!_requestParser) {
-                  throw new HttpParserException("Invalid response line");
-                }
-                _state = _State.REQUEST_LINE_METHOD;
-              }
+        case _State.RESPONSE_HTTP_VERSION:
+          if (_httpVersionIndex < _Const.HTTP1DOT.length) {
+            // Continue parsing HTTP version.
+            _expect(byte, _Const.HTTP1DOT[_httpVersionIndex]);
+            _httpVersionIndex++;
+          } else if (_httpVersionIndex == _Const.HTTP1DOT.length &&
+                     byte == _CharCode.ONE) {
+            // HTTP/1.1 parsed.
+            _httpVersion = _HttpVersion.HTTP11;
+            _persistentConnection = true;
+            _httpVersionIndex++;
+          } else if (_httpVersionIndex == _Const.HTTP1DOT.length &&
+                     byte == _CharCode.ZERO) {
+            // HTTP/1.0 parsed.
+            _httpVersion = _HttpVersion.HTTP10;
+            _persistentConnection = false;
+            _httpVersionIndex++;
+          } else if (_httpVersionIndex == _Const.HTTP1DOT.length + 1) {
+            _expect(byte, _CharCode.SP);
+            // HTTP version parsed.
+            _state = _State.RESPONSE_LINE_STATUS_CODE;
+          } else {
+            throw new HttpParserException("Invalid response line");
+          }
+          break;
+
+        case _State.REQUEST_LINE_METHOD:
+          if (byte == _CharCode.SP) {
+            _state = _State.REQUEST_LINE_URI;
+          } else {
+            if (_Const.SEPARATORS_AND_CR_LF.indexOf(byte) != -1) {
+              throw new HttpParserException("Invalid request method");
             }
-            break;
+            _method_or_status_code.add(byte);
+          }
+          break;
 
-          case _State.RESPONSE_HTTP_VERSION:
-            if (_httpVersionIndex < _Const.HTTP1DOT.length) {
-              // Continue parsing HTTP version.
-              _expect(byte, _Const.HTTP1DOT[_httpVersionIndex]);
-              _httpVersionIndex++;
-            } else if (_httpVersionIndex == _Const.HTTP1DOT.length &&
-                       byte == _CharCode.ONE) {
+        case _State.REQUEST_LINE_URI:
+          if (byte == _CharCode.SP) {
+            if (_uri_or_reason_phrase.length == 0) {
+              throw new HttpParserException("Invalid request URI");
+            }
+            _state = _State.REQUEST_LINE_HTTP_VERSION;
+            _httpVersionIndex = 0;
+          } else {
+            if (byte == _CharCode.CR || byte == _CharCode.LF) {
+              throw new HttpParserException("Invalid request URI");
+            }
+            _uri_or_reason_phrase.add(byte);
+          }
+          break;
+
+        case _State.REQUEST_LINE_HTTP_VERSION:
+          if (_httpVersionIndex < _Const.HTTP1DOT.length) {
+            _expect(byte, _Const.HTTP11[_httpVersionIndex]);
+            _httpVersionIndex++;
+          } else if (_httpVersionIndex == _Const.HTTP1DOT.length) {
+            if (byte == _CharCode.ONE) {
               // HTTP/1.1 parsed.
               _httpVersion = _HttpVersion.HTTP11;
               _persistentConnection = true;
               _httpVersionIndex++;
-            } else if (_httpVersionIndex == _Const.HTTP1DOT.length &&
-                       byte == _CharCode.ZERO) {
+            } else if (byte == _CharCode.ZERO) {
               // HTTP/1.0 parsed.
               _httpVersion = _HttpVersion.HTTP10;
               _persistentConnection = false;
               _httpVersionIndex++;
-            } else if (_httpVersionIndex == _Const.HTTP1DOT.length + 1) {
-              _expect(byte, _CharCode.SP);
-              // HTTP version parsed.
-              _state = _State.RESPONSE_LINE_STATUS_CODE;
             } else {
               throw new HttpParserException("Invalid response line");
             }
-            break;
+          } else {
+            _expect(byte, _CharCode.CR);
+            _state = _State.REQUEST_LINE_ENDING;
+          }
+          break;
 
-          case _State.REQUEST_LINE_METHOD:
-            if (byte == _CharCode.SP) {
-              _state = _State.REQUEST_LINE_URI;
-            } else {
-              if (_Const.SEPARATORS_AND_CR_LF.indexOf(byte) != -1) {
-                throw new HttpParserException("Invalid request method");
-              }
-              _method_or_status_code.add(byte);
+        case _State.REQUEST_LINE_ENDING:
+          _expect(byte, _CharCode.LF);
+          _messageType = _MessageType.REQUEST;
+          _state = _State.HEADER_START;
+          break;
+
+        case _State.RESPONSE_LINE_STATUS_CODE:
+          if (byte == _CharCode.SP) {
+            if (_method_or_status_code.length != 3) {
+              throw new HttpParserException("Invalid response status code");
             }
-            break;
-
-          case _State.REQUEST_LINE_URI:
-            if (byte == _CharCode.SP) {
-              if (_uri_or_reason_phrase.length == 0) {
-                throw new HttpParserException("Invalid request URI");
-              }
-              _state = _State.REQUEST_LINE_HTTP_VERSION;
-              _httpVersionIndex = 0;
-            } else {
-              if (byte == _CharCode.CR || byte == _CharCode.LF) {
-                throw new HttpParserException("Invalid request URI");
-              }
-              _uri_or_reason_phrase.add(byte);
-            }
-            break;
-
-          case _State.REQUEST_LINE_HTTP_VERSION:
-            if (_httpVersionIndex < _Const.HTTP1DOT.length) {
-              _expect(byte, _Const.HTTP11[_httpVersionIndex]);
-              _httpVersionIndex++;
-            } else if (_httpVersionIndex == _Const.HTTP1DOT.length) {
-              if (byte == _CharCode.ONE) {
-                // HTTP/1.1 parsed.
-                _httpVersion = _HttpVersion.HTTP11;
-                _persistentConnection = true;
-                _httpVersionIndex++;
-              } else if (byte == _CharCode.ZERO) {
-                // HTTP/1.0 parsed.
-                _httpVersion = _HttpVersion.HTTP10;
-                _persistentConnection = false;
-                _httpVersionIndex++;
-              } else {
-                throw new HttpParserException("Invalid response line");
-              }
-            } else {
-              _expect(byte, _CharCode.CR);
-              _state = _State.REQUEST_LINE_ENDING;
-            }
-            break;
-
-          case _State.REQUEST_LINE_ENDING:
-            _expect(byte, _CharCode.LF);
-            _messageType = _MessageType.REQUEST;
-            _state = _State.HEADER_START;
-            break;
-
-          case _State.RESPONSE_LINE_STATUS_CODE:
-            if (byte == _CharCode.SP) {
-              if (_method_or_status_code.length != 3) {
-                throw new HttpParserException("Invalid response status code");
-              }
-              _state = _State.RESPONSE_LINE_REASON_PHRASE;
-            } else {
-              if (byte < 0x30 && 0x39 < byte) {
-                throw new HttpParserException("Invalid response status code");
-              } else {
-                _method_or_status_code.add(byte);
-              }
-            }
-            break;
-
-          case _State.RESPONSE_LINE_REASON_PHRASE:
-            if (byte == _CharCode.CR) {
-              _state = _State.RESPONSE_LINE_ENDING;
-            } else {
-              if (byte == _CharCode.CR || byte == _CharCode.LF) {
-                throw new HttpParserException("Invalid response reason phrase");
-              }
-              _uri_or_reason_phrase.add(byte);
-            }
-            break;
-
-          case _State.RESPONSE_LINE_ENDING:
-            _expect(byte, _CharCode.LF);
-            _messageType == _MessageType.RESPONSE;
-            _statusCode = int.parse(
-                new String.fromCharCodes(_method_or_status_code));
-            if (_statusCode < 100 || _statusCode > 599) {
+            _state = _State.RESPONSE_LINE_REASON_PHRASE;
+          } else {
+            if (byte < 0x30 && 0x39 < byte) {
               throw new HttpParserException("Invalid response status code");
             } else {
-              // Check whether this response will never have a body.
-              _noMessageBody = _statusCode <= 199 || _statusCode == 204 ||
-                  _statusCode == 304;
+              _method_or_status_code.add(byte);
             }
-            _state = _State.HEADER_START;
-            break;
+          }
+          break;
 
-          case _State.HEADER_START:
-            _headers = new _HttpHeaders(version);
+        case _State.RESPONSE_LINE_REASON_PHRASE:
+          if (byte == _CharCode.CR) {
+            _state = _State.RESPONSE_LINE_ENDING;
+          } else {
+            if (byte == _CharCode.CR || byte == _CharCode.LF) {
+              throw new HttpParserException("Invalid response reason phrase");
+            }
+            _uri_or_reason_phrase.add(byte);
+          }
+          break;
+
+        case _State.RESPONSE_LINE_ENDING:
+          _expect(byte, _CharCode.LF);
+          _messageType == _MessageType.RESPONSE;
+          _statusCode = int.parse(
+              new String.fromCharCodes(_method_or_status_code));
+          if (_statusCode < 100 || _statusCode > 599) {
+            throw new HttpParserException("Invalid response status code");
+          } else {
+            // Check whether this response will never have a body.
+            _noMessageBody = _statusCode <= 199 || _statusCode == 204 ||
+                _statusCode == 304;
+          }
+          _state = _State.HEADER_START;
+          break;
+
+        case _State.HEADER_START:
+          _headers = new _HttpHeaders(version);
+          if (byte == _CharCode.CR) {
+            _state = _State.HEADER_ENDING;
+          } else {
+            // Start of new header field.
+            _headerField.add(_toLowerCase(byte));
+            _state = _State.HEADER_FIELD;
+          }
+          break;
+
+        case _State.HEADER_FIELD:
+          if (byte == _CharCode.COLON) {
+            _state = _State.HEADER_VALUE_START;
+          } else {
+            if (!_isTokenChar(byte)) {
+              throw new HttpParserException("Invalid header field name");
+            }
+            _headerField.add(_toLowerCase(byte));
+          }
+          break;
+
+        case _State.HEADER_VALUE_START:
+          if (byte == _CharCode.CR) {
+            _state = _State.HEADER_VALUE_FOLDING_OR_ENDING;
+          } else if (byte != _CharCode.SP && byte != _CharCode.HT) {
+            // Start of new header value.
+            _headerValue.add(byte);
+            _state = _State.HEADER_VALUE;
+          }
+          break;
+
+        case _State.HEADER_VALUE:
+          if (byte == _CharCode.CR) {
+            _state = _State.HEADER_VALUE_FOLDING_OR_ENDING;
+          } else {
+            _headerValue.add(byte);
+          }
+          break;
+
+        case _State.HEADER_VALUE_FOLDING_OR_ENDING:
+          _expect(byte, _CharCode.LF);
+          _state = _State.HEADER_VALUE_FOLD_OR_END;
+          break;
+
+        case _State.HEADER_VALUE_FOLD_OR_END:
+          if (byte == _CharCode.SP || byte == _CharCode.HT) {
+            _state = _State.HEADER_VALUE_START;
+          } else {
+            String headerField = new String.fromCharCodes(_headerField);
+            String headerValue = new String.fromCharCodes(_headerValue);
+            if (headerField == "transfer-encoding" &&
+                       headerValue.toLowerCase() == "chunked") {
+              _chunked = true;
+            }
+            if (headerField == "connection") {
+              List<String> tokens = _tokenizeFieldValue(headerValue);
+              for (int i = 0; i < tokens.length; i++) {
+                if (tokens[i].toLowerCase() == "upgrade") {
+                  _connectionUpgrade = true;
+                }
+                _headers.add(headerField, tokens[i]);
+              }
+            } else {
+              _headers.add(headerField, headerValue);
+            }
+            _headerField.clear();
+            _headerValue.clear();
+
             if (byte == _CharCode.CR) {
               _state = _State.HEADER_ENDING;
             } else {
@@ -445,231 +520,160 @@ class _HttpParser
               _headerField.add(_toLowerCase(byte));
               _state = _State.HEADER_FIELD;
             }
-            break;
+          }
+          break;
 
-          case _State.HEADER_FIELD:
-            if (byte == _CharCode.COLON) {
-              _state = _State.HEADER_VALUE_START;
-            } else {
-              if (!_isTokenChar(byte)) {
-                throw new HttpParserException("Invalid header field name");
-              }
-              _headerField.add(_toLowerCase(byte));
-            }
-            break;
+        case _State.HEADER_ENDING:
+          _expect(byte, _CharCode.LF);
+          _headers._mutable = false;
 
-          case _State.HEADER_VALUE_START:
-            if (byte == _CharCode.CR) {
-              _state = _State.HEADER_VALUE_FOLDING_OR_ENDING;
-            } else if (byte != _CharCode.SP && byte != _CharCode.HT) {
-              // Start of new header value.
-              _headerValue.add(byte);
-              _state = _State.HEADER_VALUE;
-            }
-            break;
+          _transferLength = _headers.contentLength;
+          // Ignore the Content-Length header if Transfer-Encoding
+          // is chunked (RFC 2616 section 4.4)
+          if (_chunked) _transferLength = -1;
 
-          case _State.HEADER_VALUE:
-            if (byte == _CharCode.CR) {
-              _state = _State.HEADER_VALUE_FOLDING_OR_ENDING;
-            } else {
-              _headerValue.add(byte);
-            }
-            break;
-
-          case _State.HEADER_VALUE_FOLDING_OR_ENDING:
-            _expect(byte, _CharCode.LF);
-            _state = _State.HEADER_VALUE_FOLD_OR_END;
-            break;
-
-          case _State.HEADER_VALUE_FOLD_OR_END:
-            if (byte == _CharCode.SP || byte == _CharCode.HT) {
-              _state = _State.HEADER_VALUE_START;
-            } else {
-              String headerField = new String.fromCharCodes(_headerField);
-              String headerValue = new String.fromCharCodes(_headerValue);
-              if (headerField == "transfer-encoding" &&
-                         headerValue.toLowerCase() == "chunked") {
-                _chunked = true;
-              }
-              if (headerField == "connection") {
-                List<String> tokens = _tokenizeFieldValue(headerValue);
-                for (int i = 0; i < tokens.length; i++) {
-                  if (tokens[i].toLowerCase() == "upgrade") {
-                    _connectionUpgrade = true;
-                  }
-                  _headers.add(headerField, tokens[i]);
-                }
-              } else {
-                _headers.add(headerField, headerValue);
-              }
-              _headerField.clear();
-              _headerValue.clear();
-
-              if (byte == _CharCode.CR) {
-                _state = _State.HEADER_ENDING;
-              } else {
-                // Start of new header field.
-                _headerField.add(_toLowerCase(byte));
-                _state = _State.HEADER_FIELD;
-              }
-            }
-            break;
-
-          case _State.HEADER_ENDING:
-            _expect(byte, _CharCode.LF);
-            _headers._mutable = false;
-
-            _transferLength = _headers.contentLength;
-            // Ignore the Content-Length header if Transfer-Encoding
-            // is chunked (RFC 2616 section 4.4)
-            if (_chunked) _transferLength = -1;
-
-            // If a request message has neither Content-Length nor
-            // Transfer-Encoding the message must not have a body (RFC
-            // 2616 section 4.3).
-            if (_messageType == _MessageType.REQUEST &&
-                _transferLength < 0 &&
-                _chunked == false) {
-              _transferLength = 0;
-            }
-            if (_connectionUpgrade) {
-              _state = _State.UPGRADED;
-              _transferLength = 0;
-            }
-            _createIncoming(_transferLength);
-            if (_requestParser) {
-              _incoming.method =
-                  new String.fromCharCodes(_method_or_status_code);
-              _incoming.uri =
-                  Uri.parse(
-                      new String.fromCharCodes(_uri_or_reason_phrase));
-            } else {
-              _incoming.statusCode = _statusCode;
-              _incoming.reasonPhrase =
-                  new String.fromCharCodes(_uri_or_reason_phrase);
-            }
-            _method_or_status_code.clear();
-            _uri_or_reason_phrase.clear();
-            if (_connectionUpgrade) {
-              _incoming.upgraded = true;
-              _controller.add(_incoming);
-              break;
-            }
-            if (_transferLength == 0 ||
-                (_messageType == _MessageType.RESPONSE &&
-                 (_noMessageBody || _responseToMethod == "HEAD"))) {
-              _reset();
-              var tmp = _incoming;
-              _closeIncoming();
-              _controller.add(tmp);
-              break;
-            } else if (_chunked) {
-              _state = _State.CHUNK_SIZE;
-              _remainingContent = 0;
-            } else if (_transferLength > 0) {
-              _remainingContent = _transferLength;
-              _state = _State.BODY;
-            } else {
-              // Neither chunked nor content length. End of body
-              // indicated by close.
-              _state = _State.BODY;
-            }
+          // If a request message has neither Content-Length nor
+          // Transfer-Encoding the message must not have a body (RFC
+          // 2616 section 4.3).
+          if (_messageType == _MessageType.REQUEST &&
+              _transferLength < 0 &&
+              _chunked == false) {
+            _transferLength = 0;
+          }
+          if (_connectionUpgrade) {
+            _state = _State.UPGRADED;
+            _transferLength = 0;
+          }
+          _createIncoming(_transferLength);
+          if (_requestParser) {
+            _incoming.method =
+                new String.fromCharCodes(_method_or_status_code);
+            _incoming.uri =
+                Uri.parse(
+                    new String.fromCharCodes(_uri_or_reason_phrase));
+          } else {
+            _incoming.statusCode = _statusCode;
+            _incoming.reasonPhrase =
+                new String.fromCharCodes(_uri_or_reason_phrase);
+          }
+          _method_or_status_code.clear();
+          _uri_or_reason_phrase.clear();
+          if (_connectionUpgrade) {
+            _incoming.upgraded = true;
             _controller.add(_incoming);
             break;
-
-          case _State.CHUNK_SIZE_STARTING_CR:
-            _expect(byte, _CharCode.CR);
-            _state = _State.CHUNK_SIZE_STARTING_LF;
-            break;
-
-          case _State.CHUNK_SIZE_STARTING_LF:
-            _expect(byte, _CharCode.LF);
-            _state = _State.CHUNK_SIZE;
-            break;
-
-          case _State.CHUNK_SIZE:
-            if (byte == _CharCode.CR) {
-              _state = _State.CHUNK_SIZE_ENDING;
-            } else if (byte == _CharCode.SEMI_COLON) {
-              _state = _State.CHUNK_SIZE_EXTENSION;
-            } else {
-              int value = _expectHexDigit(byte);
-              _remainingContent = _remainingContent * 16 + value;
-            }
-            break;
-
-          case _State.CHUNK_SIZE_EXTENSION:
-            if (byte == _CharCode.CR) {
-              _state = _State.CHUNK_SIZE_ENDING;
-            }
-            break;
-
-          case _State.CHUNK_SIZE_ENDING:
-            _expect(byte, _CharCode.LF);
-            if (_remainingContent > 0) {
-              _state = _State.BODY;
-            } else {
-              _state = _State.CHUNKED_BODY_DONE_CR;
-            }
-            break;
-
-          case _State.CHUNKED_BODY_DONE_CR:
-            _expect(byte, _CharCode.CR);
-            _state = _State.CHUNKED_BODY_DONE_LF;
-            break;
-
-          case _State.CHUNKED_BODY_DONE_LF:
-            _expect(byte, _CharCode.LF);
+          }
+          if (_transferLength == 0 ||
+              (_messageType == _MessageType.RESPONSE &&
+               (_noMessageBody || _responseToMethod == "HEAD"))) {
             _reset();
+            var tmp = _incoming;
             _closeIncoming();
+            _controller.add(tmp);
             break;
+          } else if (_chunked) {
+            _state = _State.CHUNK_SIZE;
+            _remainingContent = 0;
+          } else if (_transferLength > 0) {
+            _remainingContent = _transferLength;
+            _state = _State.BODY;
+          } else {
+            // Neither chunked nor content length. End of body
+            // indicated by close.
+            _state = _State.BODY;
+          }
+          _controller.add(_incoming);
+          break;
 
-          case _State.BODY:
-            // The body is not handled one byte at a time but in blocks.
-            _index--;
-            int dataAvailable = _buffer.length - _index;
-            List<int> data;
-            if (_remainingContent == null ||
-                dataAvailable <= _remainingContent) {
-              if (_index == 0) {
-                data = _buffer;
-              } else {
-                data = new Uint8List(dataAvailable);
-                data.setRange(0, dataAvailable, _buffer, _index);
-              }
+        case _State.CHUNK_SIZE_STARTING_CR:
+          _expect(byte, _CharCode.CR);
+          _state = _State.CHUNK_SIZE_STARTING_LF;
+          break;
+
+        case _State.CHUNK_SIZE_STARTING_LF:
+          _expect(byte, _CharCode.LF);
+          _state = _State.CHUNK_SIZE;
+          break;
+
+        case _State.CHUNK_SIZE:
+          if (byte == _CharCode.CR) {
+            _state = _State.CHUNK_SIZE_ENDING;
+          } else if (byte == _CharCode.SEMI_COLON) {
+            _state = _State.CHUNK_SIZE_EXTENSION;
+          } else {
+            int value = _expectHexDigit(byte);
+            _remainingContent = _remainingContent * 16 + value;
+          }
+          break;
+
+        case _State.CHUNK_SIZE_EXTENSION:
+          if (byte == _CharCode.CR) {
+            _state = _State.CHUNK_SIZE_ENDING;
+          }
+          break;
+
+        case _State.CHUNK_SIZE_ENDING:
+          _expect(byte, _CharCode.LF);
+          if (_remainingContent > 0) {
+            _state = _State.BODY;
+          } else {
+            _state = _State.CHUNKED_BODY_DONE_CR;
+          }
+          break;
+
+        case _State.CHUNKED_BODY_DONE_CR:
+          _expect(byte, _CharCode.CR);
+          _state = _State.CHUNKED_BODY_DONE_LF;
+          break;
+
+        case _State.CHUNKED_BODY_DONE_LF:
+          _expect(byte, _CharCode.LF);
+          _reset();
+          _closeIncoming();
+          break;
+
+        case _State.BODY:
+          // The body is not handled one byte at a time but in blocks.
+          _index--;
+          int dataAvailable = _buffer.length - _index;
+          List<int> data;
+          if (_remainingContent == null ||
+              dataAvailable <= _remainingContent) {
+            if (_index == 0) {
+              data = _buffer;
             } else {
-              data = new Uint8List(_remainingContent);
-              data.setRange(0, _remainingContent, _buffer, _index);
+              data = new Uint8List(dataAvailable);
+              data.setRange(0, dataAvailable, _buffer, _index);
             }
-            _bodyController.add(data);
-            if (_remainingContent != null) {
-              _remainingContent -= data.length;
+          } else {
+            data = new Uint8List(_remainingContent);
+            data.setRange(0, _remainingContent, _buffer, _index);
+          }
+          _bodyController.add(data);
+          if (_remainingContent != null) {
+            _remainingContent -= data.length;
+          }
+          _index += data.length;
+          if (_remainingContent == 0) {
+            if (!_chunked) {
+              _reset();
+              _closeIncoming();
+            } else {
+              _state = _State.CHUNK_SIZE_STARTING_CR;
             }
-            _index += data.length;
-            if (_remainingContent == 0) {
-              if (!_chunked) {
-                _reset();
-                _closeIncoming();
-              } else {
-                _state = _State.CHUNK_SIZE_STARTING_CR;
-              }
-            }
-            break;
+          }
+          break;
 
-          case _State.FAILURE:
-            // Should be unreachable.
-            assert(false);
-            break;
+        case _State.FAILURE:
+          // Should be unreachable.
+          assert(false);
+          break;
 
-          default:
-            // Should be unreachable.
-            assert(false);
-            break;
-        }
+        default:
+          // Should be unreachable.
+          assert(false);
+          break;
       }
-    } catch (e, s) {
-      _state = _State.FAILURE;
-      error(e, s);
     }
 
     _parserCalled = false;
