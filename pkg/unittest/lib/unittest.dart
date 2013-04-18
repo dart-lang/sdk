@@ -215,8 +215,8 @@ int _currentTestCaseIndex = 0;
 
 /** [TestCase] currently being executed. */
 TestCase get currentTestCase =>
-    (_currentTestCaseIndex >= 0 && _currentTestCaseIndex < _testCases.length)
-        ? _testCases[_currentTestCaseIndex]
+    (_currentTestCaseIndex >= 0 && _currentTestCaseIndex < testCases.length)
+        ? testCases[_currentTestCaseIndex]
         : null;
 
 /** Whether the framework is in an initialized state. */
@@ -252,8 +252,8 @@ Map testState = {};
  */
 void test(String spec, TestFunction body) {
   ensureInitialized();
-  _testCases.add(new TestCase._internal(_testCases.length + 1, _fullSpec(spec),
-                                        body));
+  testCases.add(new TestCase._internal(testCases.length + 1, _fullSpec(spec),
+                                       body));
 }
 
 /**
@@ -275,8 +275,8 @@ void solo_test(String spec, TestFunction body) {
 
   ensureInitialized();
 
-  _soloTest = new TestCase._internal(_testCases.length + 1, _fullSpec(spec), body);
-  _testCases.add(_soloTest);
+  _soloTest = new TestCase._internal(testCases.length + 1, _fullSpec(spec), body);
+  testCases.add(_soloTest);
 }
 
 /** Sentinel value for [_SpreadArgsHelper]. */
@@ -311,15 +311,15 @@ class _SpreadArgsHelper {
         this.id = _makeCallbackId(id, callback) {
     ensureInitialized();
     if (!(_currentTestCaseIndex >= 0 &&
-           _currentTestCaseIndex < _testCases.length &&
-           _testCases[_currentTestCaseIndex] != null)) {
+           _currentTestCaseIndex < testCases.length &&
+           testCases[_currentTestCaseIndex] != null)) {
       print("No valid test, did you forget to run your test inside a call "
           "to test()?");
     }
     assert(_currentTestCaseIndex >= 0 &&
-           _currentTestCaseIndex < _testCases.length &&
-           _testCases[_currentTestCaseIndex] != null);
-    testCase = _testCases[_currentTestCaseIndex];
+           _currentTestCaseIndex < testCases.length &&
+           testCases[_currentTestCaseIndex] != null);
+    testCase = testCases[_currentTestCaseIndex];
     if (isDone != null || minExpected > 0) {
       testCase._callbackFunctionsOutstanding++;
       complete = false;
@@ -648,8 +648,8 @@ void _nextTestCase() {
  *  error was caught outside of this library.
  */
 void _reportTestError(String msg, String trace) {
- if (_currentTestCaseIndex < _testCases.length) {
-    final testCase = _testCases[_currentTestCaseIndex];
+ if (_currentTestCaseIndex < testCases.length) {
+    final testCase = testCases[_currentTestCaseIndex];
     testCase.error(msg, trace);
   } else {
     _uncaughtErrorMessage = "$msg: $trace";
@@ -690,7 +690,7 @@ void filterTests(testFilter) {
   } else if (testFilter is Function) {
     filterFunction = testFilter;
   }
-  _testCases.retainWhere(filterFunction);
+  testCases.retainWhere(filterFunction);
 }
 
 /** Runs all queued tests, one at a time. */
@@ -745,10 +745,10 @@ void registerException(e, [trace]) {
 void _registerException(testNum, e, [trace]) {
   trace = trace == null ? '' : trace.toString();
   String message = (e is TestFailure) ? e.message : 'Caught $e';
-  if (_testCases[testNum].result == null) {
-    _testCases[testNum].fail(message, trace);
+  if (testCases[testNum].result == null) {
+    testCases[testNum].fail(message, trace);
   } else {
-    _testCases[testNum].error(message, trace);
+    testCases[testNum].error(message, trace);
   }
 }
 
@@ -759,11 +759,11 @@ void _registerException(testNum, e, [trace]) {
  */
 void _nextBatch() {
   while (true) {
-    if (_currentTestCaseIndex >= _testCases.length) {
+    if (_currentTestCaseIndex >= testCases.length) {
       _completeTests();
       break;
     }
-    final testCase = _testCases[_currentTestCaseIndex];
+    final testCase = testCases[_currentTestCaseIndex];
     var f = _guardAsync(testCase._run, null, _currentTestCaseIndex);
     if (f != null) {
       f.whenComplete(() {
@@ -782,7 +782,7 @@ void _completeTests() {
   int failed = 0;
   int errors = 0;
 
-  for (TestCase t in _testCases) {
+  for (TestCase t in testCases) {
     switch (t.result) {
       case PASS:  passed++; break;
       case FAIL:  failed++; break;
@@ -831,9 +831,9 @@ void _ensureInitialized(bool configAutoStart) {
 
 /** Select a solo test by ID. */
 void setSoloTest(int id) {
-  for (var i = 0; i < _testCases.length; i++) {
-    if (_testCases[i].id == id) {
-      _soloTest = _testCases[i];
+  for (var i = 0; i < testCases.length; i++) {
+    if (testCases[i].id == id) {
+      _soloTest = testCases[i];
       break;
     }
   }
@@ -842,12 +842,12 @@ void setSoloTest(int id) {
 /** Enable/disable a test by ID. */
 void _setTestEnabledState(int testId, bool state) {
   // Try fast path first.
-  if (_testCases.length > testId && _testCases[testId].id == testId) {
-    _testCases[testId].enabled = state;
+  if (testCases.length > testId && testCases[testId].id == testId) {
+    testCases[testId].enabled = state;
   } else {
-    for (var i = 0; i < _testCases.length; i++) {
-      if (_testCases[i].id == testId) {
-        _testCases[i].enabled = state;
+    for (var i = 0; i < testCases.length; i++) {
+      if (testCases[i].id == testId) {
+        testCases[i].enabled = state;
         break;
       }
     }
