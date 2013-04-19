@@ -131,6 +131,11 @@ bool Intrinsifier::Integer_modulo(Assembler* assembler) {
 }
 
 
+bool Intrinsifier::Integer_remainder(Assembler* assembler) {
+  return false;
+}
+
+
 bool Intrinsifier::Integer_truncDivide(Assembler* assembler) {
   return false;
 }
