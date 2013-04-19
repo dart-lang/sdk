@@ -38,10 +38,6 @@ static void RemoveOptimizedCode(
     const GrowableArray<intptr_t>& added_subclasses_to_cids) {
   ASSERT(FLAG_use_cha);
   if (added_subclasses_to_cids.is_empty()) return;
-  // TODO(regis): Reenable this code for mips when possible.
-#if defined(TARGET_ARCH_IA32) ||                                               \
-    defined(TARGET_ARCH_X64) ||                                                \
-    defined(TARGET_ARCH_ARM)
   // Deoptimize all live frames.
   DeoptimizeIfOwner(added_subclasses_to_cids);
   // Switch all functions' code to unoptimized.
@@ -63,7 +59,6 @@ static void RemoveOptimizedCode(
       }
     }
   }
-#endif
 }
 
 

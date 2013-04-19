@@ -12,6 +12,7 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, trace_sim);
 DEFINE_FLAG(bool, print_stop_message, false, "Print stop message.");
 
 
@@ -541,6 +542,18 @@ void Assembler::Stop(const char* message) {
   Emit(reinterpret_cast<int32_t>(message));
   Bind(&stop);
   break_(Instr::kStopMessageCode);
+}
+
+
+void Assembler::TraceSimMsg(const char* message) {
+  //  Don't bother adding in the messages unless tracing is enabled.
+  if (FLAG_trace_sim) {
+    Label msg;
+    b(&msg);
+    Emit(reinterpret_cast<int32_t>(message));
+    Bind(&msg);
+    break_(Instr::kMsgMessageCode);
+  }
 }
 
 }  // namespace dart

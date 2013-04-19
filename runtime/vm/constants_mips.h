@@ -400,6 +400,7 @@ class Instr {
   static const int32_t kNopInstruction = 0;
   static const int32_t kStopMessageCode = 1;
   static const int32_t kRedirectCode = 2;
+  static const int32_t kMsgMessageCode = 3;
 
   // Get the raw instruction bits.
   inline int32_t InstructionBits() const {

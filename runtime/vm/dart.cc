@@ -220,12 +220,8 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   Object::VerifyBuiltinVtables();
 
   StubCode::Init(isolate);
-  // TODO(regis): Reenable this code for mips when possible.
-#if defined(TARGET_ARCH_IA32) ||                                               \
-    defined(TARGET_ARCH_X64) ||                                                \
-    defined(TARGET_ARCH_ARM)
   isolate->megamorphic_cache_table()->InitMissHandler();
-#endif
+
   if (FLAG_heap_trace) {
     isolate->heap()->trace()->Init(isolate);
   }

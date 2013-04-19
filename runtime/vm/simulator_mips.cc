@@ -751,9 +751,9 @@ void Simulator::HandleIllegalAccess(uword addr, Instr* instr) {
 void Simulator::UnalignedAccess(const char* msg, uword addr, Instr* instr) {
   // The debugger will not be able to single step past this instruction, but
   // it will be possible to disassemble the code and inspect registers.
-  char buffer[64];
+  char buffer[128];
   snprintf(buffer, sizeof(buffer),
-           "unaligned %s at 0x%"Px", pc=%p\n", msg, addr, instr);
+           "pc=%p, unaligned %s at 0x%"Px"\n",  instr, msg, addr);
   SimulatorDebugger dbg(this);
   dbg.Stop(instr, buffer);
   // The debugger will return control in non-interactive mode.
@@ -905,6 +905,15 @@ void Simulator::DoBreak(Instr *instr) {
     dbg.Stop(instr, message);
     // Adjust for extra pc increment.
     set_pc(get_pc() - Instr::kInstrSize);
+  } else if (instr->BreakCodeField() == Instr::kMsgMessageCode) {
+    const char* message = *reinterpret_cast<const char**>(
+        reinterpret_cast<intptr_t>(instr) - Instr::kInstrSize);
+    if (FLAG_trace_sim) {
+      OS::Print("Message: %s\n", message);
+    } else {
+      OS::PrintErr("Bad break code: 0x%x\n", instr->InstructionBits());
+      UnimplementedInstruction(instr);
+    }
   } else if (instr->BreakCodeField() == Instr::kRedirectCode) {
     SimulatorSetjmpBuffer buffer(this);
 

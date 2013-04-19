@@ -66,6 +66,7 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
 void FlowGraphCompiler::GenerateBoolToJump(Register bool_register,
                                            Label* is_true,
                                            Label* is_false) {
+  __ TraceSimMsg("BoolToJump");
   Label fall_through;
   __ BranchEqual(bool_register, reinterpret_cast<intptr_t>(Object::null()),
                  &fall_through);
@@ -84,6 +85,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateCallSubtypeTestStub(
     Register temp_reg,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
+  __ TraceSimMsg("CallSubtypeTestStub");
   ASSERT(instance_reg == A0);
   ASSERT(temp_reg == kNoRegister);  // Unused on MIPS.
   const SubtypeTestCache& type_test_cache =
@@ -124,6 +126,7 @@ void FlowGraphCompiler::CheckClassIds(Register class_id_reg,
                                       const GrowableArray<intptr_t>& class_ids,
                                       Label* is_equal_lbl,
                                       Label* is_not_equal_lbl) {
+  __ TraceSimMsg("CheckClassIds");
   for (intptr_t i = 0; i < class_ids.length(); i++) {
     __ BranchEqual(class_id_reg, class_ids[i], is_equal_lbl);
   }
@@ -141,6 +144,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     const AbstractType& type,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
+  __ TraceSimMsg("InstantiatedTypeNoArgumentsTest");
   __ Comment("InstantiatedTypeNoArgumentsTest");
   ASSERT(type.IsInstantiated());
   const Class& type_class = Class::Handle(type.type_class());
@@ -206,6 +210,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
     const Class& type_class,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
+  __ TraceSimMsg("Subtype1TestCacheLookup");
   __ Comment("Subtype1TestCacheLookup");
   const Register kInstanceReg = A0;
   __ LoadClass(T0, kInstanceReg);
@@ -250,6 +255,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
     const AbstractType& type,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
+  __ TraceSimMsg("InlineInstanceof");
   __ Comment("InlineInstanceof");
   if (type.IsVoidType()) {
     // A non-null value is returned from a void function, which will result in a
@@ -330,6 +336,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
                                                  const AbstractType& dst_type,
                                                  const String& dst_name,
                                                  LocationSummary* locs) {
+  __ TraceSimMsg("AssertAssignable");
   ASSERT(token_pos >= 0);
   ASSERT(!dst_type.IsNull());
   ASSERT(dst_type.IsFinalized());
@@ -383,7 +390,6 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
   // Load instantiator and its type arguments.
   __ lw(A1, Address(SP, 0 * kWordSize));
   __ lw(A2, Address(SP, 1 * kWordSize));
-  __ addiu(SP, SP, Immediate(2 * kWordSize));
   __ PushObject(Object::ZoneHandle());  // Make room for the result.
   __ Push(A0);  // Push the source object.
   __ PushObject(dst_type);  // Push the type of the destination.
@@ -442,6 +448,7 @@ void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
 // Input parameters:
 //   S4: arguments descriptor array.
 void FlowGraphCompiler::CopyParameters() {
+  __ TraceSimMsg("CopyParameters");
   __ Comment("Copy parameters");
   const Function& function = parsed_function().function();
   LocalScope* scope = parsed_function().node_sequence()->scope();
@@ -482,12 +489,11 @@ void FlowGraphCompiler::CopyParameters() {
   // Let T0 point to the last copied positional argument, i.e. to
   // fp[kFirstLocalSlotIndex - (num_pos_args - 1)].
   __ AddImmediate(T0, FP, (kFirstLocalSlotIndex + 1) * kWordSize);
-  __ sll(T3, T2, 1);  // T2 is a Smi.
-  __ subu(T0, T0, T3);
+  __ sll(T2, T2, 1);  // T2 is a Smi.
 
   Label loop, loop_condition;
   __ b(&loop_condition);
-  __ delay_slot()->SmiUntag(T2);
+  __ delay_slot()->subu(T0, T0, T2);
   // We do not use the final allocation index of the variable here, i.e.
   // scope->VariableAt(i)->index(), because captured variables still need
   // to be copied to the context that is not yet allocated.
@@ -573,7 +579,7 @@ void FlowGraphCompiler::CopyParameters() {
     // Check that T0 now points to the null terminator in the array descriptor.
     __ lw(T3, Address(T0));
     __ BranchEqual(T3, reinterpret_cast<int32_t>(Object::null()),
-                &all_arguments_processed);
+                   &all_arguments_processed);
   } else {
     ASSERT(num_opt_pos_params > 0);
     __ lw(T2,
@@ -651,15 +657,18 @@ void FlowGraphCompiler::CopyParameters() {
 
   // S4 : arguments descriptor array.
   __ lw(T2, FieldAddress(S4, ArgumentsDescriptor::count_offset()));
-  __ SmiUntag(T2);
+  __ sll(T2, T2, 1);  // T2 is a Smi.
 
   __ LoadImmediate(T0, reinterpret_cast<intptr_t>(Object::null()));
   Label null_args_loop, null_args_loop_condition;
+
   __ b(&null_args_loop_condition);
   __ delay_slot()->addiu(T1, FP, Immediate(kLastParamSlotIndex * kWordSize));
+
   __ Bind(&null_args_loop);
   __ addu(T3, T1, T2);
   __ sw(T0, Address(T3));
+
   __ Bind(&null_args_loop_condition);
   __ addiu(T2, T2, Immediate(-kWordSize));
   __ bgez(T2, &null_args_loop);
@@ -667,16 +676,30 @@ void FlowGraphCompiler::CopyParameters() {
 
 
 void FlowGraphCompiler::GenerateInlinedGetter(intptr_t offset) {
-  UNIMPLEMENTED();
+  // RA: return address.
+  // SP: receiver.
+  // Sequence node has one return node, its input is load field node.
+  __ lw(V0, Address(SP, 0 * kWordSize));
+  __ lw(V0, Address(V0, offset - kHeapObjectTag));
+  __ Ret();
 }
 
 
 void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
-  UNIMPLEMENTED();
+  // RA: return address.
+  // SP+1: receiver.
+  // SP+0: value.
+  // Sequence node has one store node and one return NULL node.
+  __ lw(T0, Address(SP, 1 * kWordSize));  // Receiver.
+  __ lw(T1, Address(SP, 0 * kWordSize));  // Value.
+  __ StoreIntoObject(T0, FieldAddress(T0, offset), T1);
+  __ LoadImmediate(V0, reinterpret_cast<intptr_t>(Object::null()));
+  __ Ret();
 }
 
 
 void FlowGraphCompiler::EmitFrameEntry() {
+  __ TraceSimMsg("FrameEntry");
   const Function& function = parsed_function().function();
   if (CanOptimizeFunction() && function.is_optimizable()) {
     const bool can_optimize = !is_optimizing() || may_reoptimize();
@@ -786,6 +809,7 @@ void FlowGraphCompiler::CompileGraph() {
     const bool check_arguments = function.IsClosureFunction();
 #endif
     if (check_arguments) {
+      __ TraceSimMsg("Check argument count");
       __ Comment("Check argument count");
       // Check that exactly num_fixed arguments are passed in.
       Label correct_num_arguments, wrong_num_arguments;
@@ -858,6 +882,7 @@ void FlowGraphCompiler::CompileGraph() {
   // In unoptimized code, initialize (non-argument) stack allocated slots to
   // null. This does not cover the saved_args_desc_var slot.
   if (!is_optimizing() && (num_locals > 0)) {
+    __ TraceSimMsg("Initialize spill slots");
     __ Comment("Initialize spill slots");
     const intptr_t slot_base = parsed_function().first_stack_local_index();
     __ LoadImmediate(T0, reinterpret_cast<intptr_t>(Object::null()));
@@ -898,6 +923,7 @@ void FlowGraphCompiler::GenerateCall(intptr_t token_pos,
                                      const ExternalLabel* label,
                                      PcDescriptors::Kind kind,
                                      LocationSummary* locs) {
+  __ TraceSimMsg("Call");
   __ BranchLinkPatchable(label);
   AddCurrentDescriptor(kind, Isolate::kNoDeoptId, token_pos);
   RecordSafepoint(locs);
@@ -909,6 +935,7 @@ void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
                                          const ExternalLabel* label,
                                          PcDescriptors::Kind kind,
                                          LocationSummary* locs) {
+  __ TraceSimMsg("DartCall");
   __ BranchLinkPatchable(label);
   AddCurrentDescriptor(kind, deopt_id, token_pos);
   RecordSafepoint(locs);
@@ -931,6 +958,7 @@ void FlowGraphCompiler::GenerateCallRuntime(intptr_t token_pos,
                                             intptr_t deopt_id,
                                             const RuntimeEntry& entry,
                                             LocationSummary* locs) {
+  __ TraceSimMsg("CallRuntime");
   __ CallRuntime(entry);
   AddCurrentDescriptor(PcDescriptors::kOther, deopt_id, token_pos);
   RecordSafepoint(locs);
@@ -948,6 +976,7 @@ void FlowGraphCompiler::GenerateCallRuntime(intptr_t token_pos,
                            token_pos);
     }
   }
+  __ TraceSimMsg("CallRuntime return");
 }
 
 
@@ -970,6 +999,7 @@ void FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
                                          intptr_t deopt_id,
                                          intptr_t token_pos,
                                          LocationSummary* locs) {
+  __ TraceSimMsg("InstanceCall");
   __ LoadObject(S4, arguments_descriptor);
   __ LoadObject(S5, ic_data);
   GenerateDartCall(deopt_id,
@@ -977,6 +1007,7 @@ void FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
                    target_label,
                    PcDescriptors::kIcCall,
                    locs);
+  __ TraceSimMsg("InstanceCall return");
   __ Drop(argument_count);
 }
 
@@ -998,6 +1029,7 @@ void FlowGraphCompiler::EmitStaticCall(const Function& function,
                                        intptr_t deopt_id,
                                        intptr_t token_pos,
                                        LocationSummary* locs) {
+  __ TraceSimMsg("StaticCall");
   __ LoadObject(S4, arguments_descriptor);
   // Do not use the code from the function, but let the code be patched so that
   // we can record the outgoing edges to other code.
@@ -1021,6 +1053,7 @@ void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
 void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
                                                   Register right,
                                                   bool needs_number_check) {
+  __ TraceSimMsg("EqualityRegRegCompare");
   if (needs_number_check) {
     __ Push(left);
     __ Push(right);
@@ -1041,6 +1074,7 @@ void FlowGraphCompiler::EmitSuperEqualityCallPrologue(Register result,
 
 
 void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
+  __ TraceSimMsg("SaveLiveRegisters");
   // TODO(vegorov): consider saving only caller save (volatile) registers.
   const intptr_t fpu_registers = locs->live_registers()->fpu_registers();
   if (fpu_registers > 0) {
@@ -1068,6 +1102,7 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
 void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
   // General purpose registers have the lowest register number at the
   // lowest address.
+  __ TraceSimMsg("RestoreLiveRegisters");
   const intptr_t cpu_registers = locs->live_registers()->cpu_registers();
   ASSERT((cpu_registers & ~kAllCpuRegistersList) == 0);
   const int register_count = Utils::CountOneBits(cpu_registers);
@@ -1172,6 +1207,7 @@ Address FlowGraphCompiler::ExternalElementAddressForRegIndex(
 
 
 void ParallelMoveResolver::EmitMove(int index) {
+  __ TraceSimMsg("ParallelMoveResolver::EmitMove");
   MoveOperands* move = moves_[index];
   const Location source = move->src();
   const Location destination = move->dest();
@@ -1228,6 +1264,7 @@ void ParallelMoveResolver::EmitMove(int index) {
 
 
 void ParallelMoveResolver::EmitSwap(int index) {
+  __ TraceSimMsg("ParallelMoveResolver::EmitSwap");
   MoveOperands* move = moves_[index];
   const Location source = move->src();
   const Location destination = move->dest();
@@ -1303,18 +1340,21 @@ void ParallelMoveResolver::EmitSwap(int index) {
 
 void ParallelMoveResolver::MoveMemoryToMemory(const Address& dst,
                                               const Address& src) {
+  __ TraceSimMsg("ParallelMoveResolver::MoveMemoryToMemory");
   __ lw(TMP1, src);
   __ sw(TMP1, dst);
 }
 
 
 void ParallelMoveResolver::StoreObject(const Address& dst, const Object& obj) {
+  __ TraceSimMsg("ParallelMoveResolver::StoreObject");
   __ LoadObject(TMP1, obj);
   __ sw(TMP1, dst);
 }
 
 
 void ParallelMoveResolver::Exchange(Register reg, const Address& mem) {
+  __ TraceSimMsg("ParallelMoveResolver::Exchange ra");
   ASSERT(reg != TMP1);
   __ mov(TMP1, reg);
   __ lw(reg, mem);
@@ -1323,6 +1363,7 @@ void ParallelMoveResolver::Exchange(Register reg, const Address& mem) {
 
 
 void ParallelMoveResolver::Exchange(const Address& mem1, const Address& mem2) {
+  __ TraceSimMsg("ParallelMoveResolver::Exchange aa");
   ScratchRegisterScope ensure_scratch(this, TMP1);
   __ lw(ensure_scratch.reg(), mem1);
   __ lw(TMP1, mem2);
@@ -1332,22 +1373,26 @@ void ParallelMoveResolver::Exchange(const Address& mem1, const Address& mem2) {
 
 
 void ParallelMoveResolver::SpillScratch(Register reg) {
+  __ TraceSimMsg("ParallelMoveResolver::SpillScratch");
   __ Push(reg);
 }
 
 
 void ParallelMoveResolver::RestoreScratch(Register reg) {
+  __ TraceSimMsg("ParallelMoveResolver::RestoreScratch");
   __ Pop(reg);
 }
 
 
 void ParallelMoveResolver::SpillFpuScratch(FpuRegister reg) {
+  __ TraceSimMsg("ParallelMoveResolver::SpillFpuScratch");
   __ AddImmediate(SP, -kDoubleSize);
   __ sdc1(reg, Address(SP));
 }
 
 
 void ParallelMoveResolver::RestoreFpuScratch(FpuRegister reg) {
+  __ TraceSimMsg("ParallelMoveResolver::RestoreFpuScratch");
   __ ldc1(reg, Address(SP));
   __ AddImmediate(SP, kDoubleSize);
 }
