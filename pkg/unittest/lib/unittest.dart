@@ -5,9 +5,20 @@
 /**
  * A library for writing dart unit tests.
  *
- * To import this library, install the
- * [unittest package](http://pub.dartlang.org/packages/unittest) via the pub
- * package manager. See the [Getting Started](http://pub.dartlang.org/doc)
+ * ## Installing ##
+ *
+ * Use [pub][] to install this package. Add the following to your `pubspec.yaml`
+ * file.
+ *
+ *     dependencies:
+ *       unittest: any
+ *
+ * Then run `pub install`.
+ *
+ * For more information, see the
+ * [unittest package on pub.dartlang.org][pkg].
+ *
+ * See the [Getting Started](http://pub.dartlang.org/doc)
  * guide for more details.
  *
  * ##Concepts##
@@ -150,6 +161,8 @@
  *       });
  *     }
  *
+ * [pub]: http://pub.dartlang.org
+ * [pkg]: http://pub.dartlang.org/packages/unittest
  */
 library unittest;
 

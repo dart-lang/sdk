@@ -4,6 +4,19 @@
 
 /// A composable, [Future]-based library for making HTTP requests.
 ///
+/// ## Installing ##
+///
+/// Use [pub][] to install this package. Add the following to your
+/// `pubspec.yaml` file.
+///
+///     dependencies:
+///       http: any
+///
+/// Then run `pub install`.
+///
+/// For more information, see the
+/// [http package on pub.dartlang.org](http://pub.dartlang.org/packages/http).
+///
 /// The easiest way to use this library is via the top-level functions. They
 /// allow you to make individual HTTP requests with minimal hassle:
 ///
@@ -50,6 +63,8 @@
 ///         return _inner.send(request);
 ///       }
 ///     }
+///
+/// [pub]: http://pub.dartlang.org
 library http;
 
 import 'dart:async';

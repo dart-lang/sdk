@@ -7,6 +7,19 @@
 // TODO(nweiz): Port the non-Pub-specific scheduled test libraries from Pub.
 /// A package for writing readable tests of asynchronous behavior.
 ///
+/// ## Installing ##
+///
+/// Use [pub][] to install this package. Add the following to your
+/// `pubspec.yaml` file.
+///
+///     dependencies:
+///       scheduled_test: any
+///
+/// Then run `pub install`.
+///
+/// For more information, see the
+/// [scheduled_test package on pub.dartlang.org][pkg].
+///
 /// This package works by building up a queue of asynchronous tasks called a
 /// "schedule", then executing those tasks in order. This allows the tests to
 /// read like synchronous, linear code, despite executing asynchronously.
@@ -171,6 +184,9 @@
 /// If a single task might take a long time, you can also manually tell the
 /// [Schedule] that it's making progress by calling [Schedule.heartbeat], which
 /// will reset the timeout whenever it's called.
+///
+/// [pub]: http://pub.dartlang.org
+/// [pkg]: http://pub.dartlang.org/packages/scheduled_test
 library scheduled_test;
 
 import 'dart:async';

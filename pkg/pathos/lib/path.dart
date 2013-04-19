@@ -3,6 +3,22 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// A comprehensive, cross-platform path manipulation library.
+///
+/// ## Installing ##
+///
+/// Use [pub][] to install this package. Add the following to your
+/// `pubspec.yaml` file.
+///
+///     dependencies:
+///       pathos: any
+///
+/// Then run `pub install`.
+///
+/// For more information, see the
+/// [pathos package on pub.dartlang.org][pkg].
+///
+/// [pub]: http://pub.dartlang.org
+/// [pkg]: http://pub.dartlang.org/packages/pathos
 library path;
 
 import 'dart:io' as io;

@@ -4,6 +4,21 @@
 
 /// A parser for [YAML](http://www.yaml.org/).
 ///
+/// ## Installing ##
+///
+/// Use [pub][] to install this package. Add the following to your
+/// `pubspec.yaml` file.
+///
+///     dependencies:
+///       yaml: any
+///
+/// Then run `pub install`.
+///
+/// For more information, see the
+/// [yaml package on pub.dartlang.org][pkg].
+///
+/// ## Using ##
+///
 /// Use [loadYaml] to load a single document, or [loadYamlStream] to load a
 /// stream of documents. For example:
 ///
@@ -22,6 +37,9 @@
 ///       var doc = loadYaml("YAML: YAML Ain't Markup Language");
 ///       print(json.stringify(doc));
 ///     }
+///
+/// [pub]: http://pub.dartlang.org
+/// [pkg]: http://pub.dartlang.org/packages/yaml
 library yaml;
 
 import 'src/composer.dart';

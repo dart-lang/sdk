@@ -6,6 +6,21 @@
  * This library contains the definitions of annotations that provide additional
  * semantic information about the program being annotated. These annotations are
  * intended to be used by tools to provide a better user experience.
+ *
+ * ## Installing ##
+ *
+ * Use [pub][] to install this package. Add the following to your `pubspec.yaml`
+ * file.
+ *
+ *     dependencies:
+ *       meta: any
+ *
+ * Then run `pub install`.
+ *
+ * For more information, see the
+ * [meta package on pub.dartlang.org](http://pub.dartlang.org/packages/meta).
+ *
+ * [pub]: http://pub.dartlang.org
  */
 library meta;
 

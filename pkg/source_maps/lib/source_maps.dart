@@ -4,6 +4,21 @@
 
 /// Source maps library.
 ///
+/// ## Installing ##
+///
+/// Use [pub][] to install this package. Add the following to your
+/// `pubspec.yaml` file.
+///
+///     dependencies:
+///       source_maps: any
+///
+/// Then run `pub install`.
+///
+/// For more information, see the
+/// [source_maps package on pub.dartlang.org][pkg].
+///
+/// ## Using ##
+///
 /// Create a source map using [SourceMapBuilder]. For example:
 ///     var json = (new SourceMapBuilder()
 ///         ..add(inputSpan1, outputSpan1)
@@ -17,6 +32,9 @@
 /// object. For example:
 ///     var mapping = parse(json);
 ///     mapping.spanFor(outputSpan1.line, outputSpan1.column)
+///
+/// [pub]: http://pub.dartlang.org
+/// [pkg]: http://pub.dartlang.org/packages/source_maps
 library source_maps;
 
 export "builder.dart";

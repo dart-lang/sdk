@@ -7,6 +7,19 @@
  * [Serialization] is defined in terms of [SerializationRule]s and supports
  * reading and writing to different formats.
  *
+ * ## Installing ##
+ *
+ * Use [pub][] to install this package. Add the following to your `pubspec.yaml`
+ * file.
+ *
+ *     dependencies:
+ *       serialization: any
+ *
+ * Then run `pub install`.
+ *
+ * For more information, see the
+ * [serialization package on pub.dartlang.org][pkg].
+ *
  * Setup
  * =====
  * A simple example of usage is
@@ -181,6 +194,9 @@
  *     new Serialization()
  *       ..addRuleFor(new Person(), constructorFields: ["name"])
  *       ..namedObjects['Person'] = reflect(new Person()).type;
+ *
+ * [pub]: http://pub.dartlang.org
+ * [pkg]: http://pub.dartlang.org/packages/serialization
  */
 library serialization;
 

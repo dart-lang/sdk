@@ -6,6 +6,19 @@
  * This library lets you define parsers for parsing raw command-line arguments
  * into a set of options and values using [GNU][] and [POSIX][] style options.
  *
+ * ## Installing ##
+ *
+ * Use [pub][] to install this package. Add the following to your `pubspec.yaml`
+ * file.
+ *
+ *     dependencies:
+ *       args: any
+ *
+ * Then run `pub install`.
+ *
+ * For more information, see the
+ * [args package on pub.dartlang.org](http://pub.dartlang.org/packages/args).
+ *
  * ## Defining options ##
  *
  * To use this library, you create an [ArgParser] object which will contain
@@ -209,6 +222,7 @@
  *
  * [posix]: http://pubs.opengroup.org/onlinepubs/009695399/basedefs/xbd_chap12.html#tag_12_02
  * [gnu]: http://www.gnu.org/prep/standards/standards.html#Command_002dLine-Interfaces
+ * [pub]: http://pub.dartlang.org
  */
 library args;
 

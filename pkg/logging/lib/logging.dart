@@ -6,6 +6,22 @@
  * Provides APIs for debugging and error logging. This library introduces
  * abstractions similar to those used in other languages, such as the Closure JS
  * Logger and java.util.logging.Logger.
+ *
+ * ## Installing ##
+ *
+ * Use [pub][] to install this package. Add the following to your `pubspec.yaml`
+ * file.
+ *
+ *     dependencies:
+ *       logging: any
+ *
+ * Then run `pub install`.
+ *
+ * For more information, see the
+ * [logging package on pub.dartlang.org][pkg].
+ *
+ * [pub]: http://pub.dartlang.org
+ * [pkg]: http://pub.dartlang.org/packages/logging
  */
 library logging;
 

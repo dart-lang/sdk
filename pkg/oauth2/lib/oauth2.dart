@@ -6,6 +6,19 @@
 /// behalf of a user, and making authorized HTTP requests with the user's OAuth2
 /// credentials.
 ///
+/// ## Installing ##
+///
+/// Use [pub][] to install this package. Add the following to your
+/// `pubspec.yaml` file.
+///
+///     dependencies:
+///       oauth2: any
+///
+/// Then run `pub install`.
+///
+/// For more information, see the
+/// [oauth2 package on pub.dartlang.org][pkg].
+///
 /// OAuth2 allows a client (the program using this library) to access and
 /// manipulate a resource that's owned by a resource owner (the end user) and
 /// lives on a remote server. The client directs the resource owner to an
@@ -100,6 +113,9 @@
 ///         }).then((file) => file.close()).then((_) => result);
 ///       });
 ///     }).then(print);
+///
+/// [pub]: http://pub.dartlang.org
+/// [pkg]: http://pub.dartlang.org/packages/oauth2
 library oauth2;
 
 export 'src/authorization_code_grant.dart';

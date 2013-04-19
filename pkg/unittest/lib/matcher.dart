@@ -4,6 +4,22 @@
 /**
  * The matcher library provides a 3rd generation assertion mechanism, drawing
  * inspiration from [Hamcrest](http://code.google.com/p/hamcrest/).
+ *
+ * ## Installing ##
+ *
+ * Use [pub][] to install this package. Add the following to your `pubspec.yaml`
+ * file.
+ *
+ *     dependencies:
+ *       matcher: any
+ *
+ * Then run `pub install`.
+ *
+ * For more information, see the
+ * [matcher package on pub.dartlang.org][pkg].
+ *
+ * [pub]: http://pub.dartlang.org
+ * [pkg]: http://pub.dartlang.org/packages/matcher
  */
 library matcher;
 

@@ -5,6 +5,21 @@
 /**
  * A simple mocking/spy library.
  *
+ * ## Installing ##
+ *
+ * Use [pub][] to install this package. Add the following to your `pubspec.yaml`
+ * file.
+ *
+ *     dependencies:
+ *       mock: any
+ *
+ * Then run `pub install`.
+ *
+ * For more information, see the
+ * [mock package on pub.dartlang.org](http://pub.dartlang.org/packages/mock).
+ *
+ * ## Using ##
+ *
  * To create a mock objects for some class T, create a new class using:
  *
  *     class MockT extends Mock implements T {};
@@ -87,6 +102,7 @@
  *       }
  *     }
  *
+ * [pub]: http://pub.dartlang.org
  */
 
 library mock;
