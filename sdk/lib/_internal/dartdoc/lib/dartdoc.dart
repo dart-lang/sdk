@@ -143,7 +143,7 @@ Future compileScript(int mode, Path outputDir, Path libPath) {
     'libPath': libPath.toNativePath()
   }).then((result) {
     if (result.first == 'success') return;
-    throw result[1];
+    throw result[1] + (result[2] == null ? '' : '\n' + result[2]);
   });
 }
 
@@ -165,7 +165,7 @@ void _compileScript() {
       replyTo.send(['success']);
     }).catchError((error) {
       var trace = getAttachedStackTrace(error);
-      var traceString = trace == null ? "" : trace.toString();
+      var traceString = trace == null ? null : trace.toString();
       replyTo.send(['error', error.toString(), traceString]);
     });
   });
