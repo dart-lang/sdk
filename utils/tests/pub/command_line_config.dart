@@ -154,7 +154,7 @@ class _StackFrame {
     if (match == null) {
       match = coreRegExp.firstMatch(text);
       if (match == null) {
-        throw FormatException("Couldn't parse stack trace line '$text'.");
+        throw new FormatException("Couldn't parse stack trace line '$text'.");
       }
       isCore = true;
     }

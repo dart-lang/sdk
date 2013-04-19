@@ -37,6 +37,12 @@ String get rootDirectory {
 /// Gets the SDK's revision number formatted to be a semantic version.
 Version version = _getVersion();
 
+/// Is `true` if the current SDK is an unreleased bleeding edge version.
+bool get isBleedingEdge {
+  // The live build is locked to the magical old number "0.1.2+<stuff>".
+  return version.major == 0 && version.minor == 1 && version.patch == 2;
+}
+
 /// Determine the SDK's version number.
 Version _getVersion() {
   var revisionPath = path.join(rootDirectory, "version");

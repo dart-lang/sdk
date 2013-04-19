@@ -611,11 +611,19 @@ sdkConstraint() {
     'foo': '2.0.0',
     'bar': '2.0.0'
   }, maxTries: 3);
+
+  testResolve('ignores SDK constraints on bleeding edge', {
+    'myapp 0.0.0': {'sdk': badVersion }
+  }, result: {
+    'myapp from root': '0.0.0'
+  }, useBleedingEdgeSdkVersion: true);
 }
 
 testResolve(description, packages,
-            {lockfile, result, FailMatcherBuilder error, int maxTries}) {
+            {lockfile, result, FailMatcherBuilder error, int maxTries,
+             bool useBleedingEdgeSdkVersion}) {
   if (maxTries == null) maxTries = 1;
+  if (useBleedingEdgeSdkVersion == null) useBleedingEdgeSdkVersion = false;
 
   test(description, () {
     var cache = new SystemCache('.');
@@ -666,6 +674,12 @@ testResolve(description, packages,
       });
     }
 
+    // Make a version number like the continuous build's version.
+    var previousVersion = sdk.version;
+    if (useBleedingEdgeSdkVersion) {
+      sdk.version = new Version(0, 1, 2, build: '0_r12345_juser');
+    }
+
     // Resolve the versions.
     var future = resolveVersions(cache.sources, root,
         lockFile: realLockFile);
@@ -676,6 +690,12 @@ testResolve(description, packages,
     } else if (error != null) {
       matcher = error(maxTries);
     }
+
+    future = future.whenComplete(() {
+      if (useBleedingEdgeSdkVersion) {
+        sdk.version = previousVersion;
+      }
+    });
 
     expect(future, completion(matcher));
   });
