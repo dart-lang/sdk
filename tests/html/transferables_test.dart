@@ -14,7 +14,7 @@ main() {
       predicate((x) => x is ArrayBuffer, 'is an ArrayBuffer');
 
   test('TransferableTest', () {
-    if (!ArrayBuffer.supported) {
+    if (!Platform.supportsTypedData) {
       return;
     }
 

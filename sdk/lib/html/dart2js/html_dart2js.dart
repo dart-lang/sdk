@@ -413,9 +413,6 @@ class ArrayBuffer native "*ArrayBuffer" {
   }
   static ArrayBuffer _create_1(length) => JS('ArrayBuffer', 'new ArrayBuffer(#)', length);
 
-  /// Checks if this type is supported on the current platform.
-  static bool get supported => JS('bool', 'typeof window.ArrayBuffer != "undefined"');
-
   @DomName('ArrayBuffer.byteLength')
   @DocsEditable
   final int byteLength;
@@ -32066,6 +32063,14 @@ class _LocationWrapper implements Location {
 
   static _get(p, m) => JS('var', '#[#]', p, m);
   static _set(p, m, v) => JS('void', '#[#] = #', p, m, v);
+}
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+class Platform {
+  static final supportsTypedData = JS('bool', '!!(window.ArrayBuffer)');
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

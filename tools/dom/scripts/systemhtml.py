@@ -369,7 +369,6 @@ _js_support_checks_additional_element = [
 js_support_checks = dict({
     'AudioContext': "JS('bool', '!!(window.AudioContext ||"
         " window.webkitAudioContext)')",
-    'ArrayBuffer': "JS('bool', 'typeof window.ArrayBuffer != \"undefined\"')",
     'Crypto':
         "JS('bool', '!!(window.crypto && window.crypto.getRandomValues)')",
     'Database': "JS('bool', '!!(window.openDatabase)')",

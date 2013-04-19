@@ -522,9 +522,6 @@ class ArrayBuffer extends NativeFieldWrapperClass1 {
   @DocsEditable
   static ArrayBuffer _create(length) native "ArrayBuffer_constructorCallback";
 
-  /// Checks if this type is supported on the current platform.
-  static bool get supported => true;
-
   @DomName('ArrayBuffer.byteLength')
   @DocsEditable
   int get byteLength native "ArrayBuffer_byteLength_Getter";
@@ -33468,6 +33465,14 @@ class _TypedArrayFactoryProvider {
 
 class _TextFactoryProvider {
   static Text createText(String data) => document.$dom_createTextNode(data);
+}
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+class Platform {
+  static final supportsTypedData = true;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
