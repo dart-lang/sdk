@@ -391,6 +391,15 @@ void Scavenger::Epilogue(Isolate* isolate, bool invoke_api_callbacks) {
 
 void Scavenger::IterateStoreBuffers(Isolate* isolate,
                                     ScavengerVisitor* visitor) {
+  // Drain store buffer block into store buffer to deduplicate it. It might be
+  // full of large objects repeated multiple times.
+  // Use DrainBlock directly instead of ProcessBlock because we are in the
+  // middle of a scavenge cycle and thus do not care if we are temporary
+  // running over the max number of deduplication sets.
+  StoreBufferBlock* block = isolate->store_buffer_block();
+  heap_->RecordData(kStoreBufferBlockEntries, block->Count());
+  isolate->store_buffer()->DrainBlock(block);
+
   // Iterating through the store buffers.
   // Grab the deduplication sets out of the store buffer.
   StoreBuffer::DedupSet* pending = isolate->store_buffer()->DedupSets();
@@ -417,16 +426,6 @@ void Scavenger::IterateStoreBuffers(Isolate* isolate,
     pending = next;
   }
   heap_->RecordData(kStoreBufferEntries, entries);
-  StoreBufferBlock* block = isolate->store_buffer_block();
-  entries = block->Count();
-  for (intptr_t i = 0; i < entries; i++) {
-    RawObject* raw_object = reinterpret_cast<RawObject*>(block->At(i));
-    ASSERT(raw_object->IsHeapObject());
-    visitor->VisitingOldObject(raw_object);
-    raw_object->VisitPointers(visitor);
-  }
-  block->Reset();
-  heap_->RecordData(kStoreBufferBlockEntries, entries);
   // Done iterating through old objects remembered in the store buffers.
   visitor->VisitingOldObject(NULL);
 }

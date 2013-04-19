@@ -21,12 +21,7 @@ void StoreBufferBlock::ProcessBuffer() {
 
 
 void StoreBufferBlock::ProcessBuffer(Isolate* isolate) {
-  StoreBuffer* buffer = isolate->store_buffer();
-  int32_t end = top_;
-  for (int32_t i = 0; i < end; i++) {
-    buffer->AddPointer(pointers_[i]);
-  }
-  top_ = 0;  // Reset back to the beginning.
+  isolate->store_buffer()->ProcessBlock(this);
 }
 
 
@@ -61,19 +56,51 @@ void StoreBuffer::Reset() {
 }
 
 
-void StoreBuffer::AddPointer(uword address) {
+bool StoreBuffer::AddPointerInternal(uword address) {
   ASSERT(dedup_sets_ != NULL);
   ASSERT(Isolate::Current()->heap()->OldContains(address));
   ASSERT((address & kSmiTagMask) != kSmiTag);
   if (!dedup_sets_->set()->Add(address)) {
-    // Add a new DedupSet. Schedule an interrupt if we have run over the max
-    // number of DedupSets.
+    // Add a new DedupSet.
     dedup_sets_ = new DedupSet(dedup_sets_);
     count_++;
-    // TODO(iposva): Fix magic number.
-    if (count_ > 100) {
-      Isolate::Current()->ScheduleInterrupts(Isolate::kStoreBufferInterrupt);
-    }
+    return true;
+  }
+  return false;
+}
+
+
+void StoreBuffer::AddPointer(uword address) {
+  if (AddPointerInternal(address)) {
+    // Had to create a new DedupSet.
+    CheckThreshold();
+  }
+}
+
+
+bool StoreBuffer::DrainBlock(StoreBufferBlock* block) {
+  const intptr_t old_count = count_;
+  intptr_t entries = block->Count();
+  for (intptr_t i = 0; i < entries; i++) {
+    AddPointerInternal(block->At(i));
+  }
+  block->Reset();
+  return (count_ > old_count);
+}
+
+
+void StoreBuffer::CheckThreshold() {
+  // Schedule an interrupt if we have run over the max number of DedupSets.
+  // TODO(iposva): Fix magic number.
+  if (count_ > 100) {
+    Isolate::Current()->ScheduleInterrupts(Isolate::kStoreBufferInterrupt);
+  }
+}
+
+
+void StoreBuffer::ProcessBlock(StoreBufferBlock* block) {
+  if (DrainBlock(block)) {
+    CheckThreshold();
   }
 }
 
