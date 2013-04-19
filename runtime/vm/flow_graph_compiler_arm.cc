@@ -111,14 +111,68 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateCallSubtypeTestStub(
 }
 
 
+// Jumps to labels 'is_instance' or 'is_not_instance' respectively, if
+// type test is conclusive, otherwise fallthrough if a type test could not
+// be completed.
+// R0: instance being type checked (preserved).
+// Clobbers R2.
 RawSubtypeTestCache*
 FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
     intptr_t token_pos,
     const AbstractType& type,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
-  UNIMPLEMENTED();
-  return NULL;
+  __ Comment("InstantiatedTypeWithArgumentsTest");
+  ASSERT(type.IsInstantiated());
+  const Class& type_class = Class::ZoneHandle(type.type_class());
+  ASSERT(type_class.HasTypeArguments());
+  const Register kInstanceReg = R0;
+  // A Smi object cannot be the instance of a parameterized class.
+  __ tst(kInstanceReg, ShifterOperand(kSmiTagMask));
+  __ b(is_not_instance_lbl, EQ);
+  const AbstractTypeArguments& type_arguments =
+      AbstractTypeArguments::ZoneHandle(type.arguments());
+  const bool is_raw_type = type_arguments.IsNull() ||
+      type_arguments.IsRaw(type_arguments.Length());
+  if (is_raw_type) {
+    const Register kClassIdReg = R2;
+    // dynamic type argument, check only classes.
+    __ LoadClassId(kClassIdReg, kInstanceReg);
+    __ CompareImmediate(kClassIdReg, type_class.id());
+    __ b(is_instance_lbl, EQ);
+    // List is a very common case.
+    if (type_class.IsListClass()) {
+      GenerateListTypeCheck(kClassIdReg, is_instance_lbl);
+    }
+    return GenerateSubtype1TestCacheLookup(
+        token_pos, type_class, is_instance_lbl, is_not_instance_lbl);
+  }
+  // If one type argument only, check if type argument is Object or dynamic.
+  if (type_arguments.Length() == 1) {
+    const AbstractType& tp_argument = AbstractType::ZoneHandle(
+        type_arguments.TypeAt(0));
+    ASSERT(!tp_argument.IsMalformed());
+    if (tp_argument.IsType()) {
+      ASSERT(tp_argument.HasResolvedTypeClass());
+      // Check if type argument is dynamic or Object.
+      const Type& object_type = Type::Handle(Type::ObjectType());
+      if (object_type.IsSubtypeOf(tp_argument, NULL)) {
+        // Instance class test only necessary.
+        return GenerateSubtype1TestCacheLookup(
+            token_pos, type_class, is_instance_lbl, is_not_instance_lbl);
+      }
+    }
+  }
+  // Regular subtype test cache involving instance's type arguments.
+  const Register kTypeArgumentsReg = kNoRegister;
+  const Register kTempReg = kNoRegister;
+  // R0: instance (must be preserved).
+  return GenerateCallSubtypeTestStub(kTestTypeTwoArgs,
+                                     kInstanceReg,
+                                     kTypeArgumentsReg,
+                                     kTempReg,
+                                     is_instance_lbl,
+                                     is_not_instance_lbl);
 }
 
 

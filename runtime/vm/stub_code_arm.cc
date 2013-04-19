@@ -247,8 +247,47 @@ static void PushArgumentsArray(Assembler* assembler) {
 }
 
 
+// Input parameters:
+//   R5: ic-data.
+//   R4: arguments descriptor array.
+// Note: The receiver object is the first argument to the function being
+//       called, the stub accesses the receiver from this location directly
+//       when trying to resolve the call.
 void StubCode::GenerateInstanceFunctionLookupStub(Assembler* assembler) {
-  __ Unimplemented("InstanceFunctionLookup stub");
+  __ EnterStubFrame();
+
+  // Load the receiver.
+  __ ldr(R2, FieldAddress(R4, ArgumentsDescriptor::count_offset()));
+  __ add(IP, FP, ShifterOperand(R2, LSL, 1));  // R2 is Smi.
+  __ ldr(R6, Address(IP, (kLastParamSlotIndex - 1) * kWordSize));
+
+  // Push space for the return value.
+  // Push the receiver.
+  // Push IC data object.
+  // Push arguments descriptor array.
+  __ LoadImmediate(IP, reinterpret_cast<intptr_t>(Object::null()));
+  __ PushList((1 << R4) | (1 << R5) | (1 << R6) | (1 << IP));
+
+  // R2: Smi-tagged arguments array length.
+  PushArgumentsArray(assembler);
+
+  // Stack:
+  // TOS + 0: argument array.
+  // TOS + 1: arguments descriptor array.
+  // TOS + 2: IC data object.
+  // TOS + 3: Receiver.
+  // TOS + 4: place for result from the call.
+  // TOS + 5: saved FP of previous frame.
+  // TOS + 6: dart code return address
+  // TOS + 7: pc marker (0 for stub).
+  // TOS + 8: last argument of caller.
+  // ....
+  __ CallRuntime(kInstanceFunctionLookupRuntimeEntry);
+  // Remove arguments.
+  __ Drop(4);
+  __ Pop(R0);  // Get result into R0.
+  __ LeaveStubFrame();
+  __ Ret();
 }
 
 
