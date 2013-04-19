@@ -193,10 +193,10 @@ DEFINE_NATIVE_ENTRY(Integer_parse, 1) {
       // a) '+5' is not a valid integer (leading plus).
       if (cstr[0] != '+') {
         char* p_end = NULL;
-        const int64_t int_value = strtol(cstr, &p_end, 10);
+        const int64_t int_value = strtoll(cstr, &p_end, 10);
         if (p_end == (cstr + len)) {
-          if ((Smi::kMinValue <= int_value) && (int_value <= Smi::kMaxValue)) {
-            return Smi::New(int_value);
+          if ((int_value != LLONG_MIN) && (int_value != LLONG_MAX)) {
+            return Integer::New(int_value);
           }
         }
       }

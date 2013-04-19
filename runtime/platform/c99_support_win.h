@@ -65,4 +65,10 @@ static inline double round(double x) {
   }
 }
 
+// Windows does not have strtoll defined.
+#if defined(_MSC_VER)
+#define strtoll _strtoi64
+#endif
+
+
 #endif  // PLATFORM_C99_SUPPORT_WIN_H_
