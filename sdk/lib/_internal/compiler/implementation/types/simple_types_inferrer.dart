@@ -279,10 +279,19 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
   TypeMask stringType;
   TypeMask typeType;
 
+  /**
+   * These are methods that are expected to return only bool.  We optimistically
+   * assume that they do this.  If we later find a contradiction, we have to
+   * restart the simple types inferrer, because it normally goes from less
+   * optimistic to more optimistic as it refines its type information.  Without
+   * this optimization, method names that are mutually recursive in the tail
+   * position will be typed as dynamic.
+   */
   // TODO(erikcorry): Autogenerate the alphanumeric names in this set.
-  Set<String> RELATION_NAMES = ['identicalImplementation',
-                                'identical',
-                                '==', '<=', '>=', '<', '>'].toSet();
+  Set<String> PREDICATES = ['moveNext',
+                            'identicalImplementation',
+                            'identical',
+                            '==', '<=', '>=', '<', '>'].toSet();
 
   final Compiler compiler;
 
@@ -429,7 +438,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
         if (mapping == null) return;
         if (element.isAbstract(compiler)) return;
         if (element.isFunction() &&
-            RELATION_NAMES.contains(element.name.slowToString())) {
+            PREDICATES.contains(element.name.slowToString())) {
           // Add the relational operators, ==, !=, <, etc., before any others.
           workSet.add(element);
           // Optimistically assume that they return bool.  We may need to back
@@ -600,7 +609,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
   bool recordReturnType(Element analyzedElement, TypeMask returnType) {
     if (optimismState == OPTIMISTIC &&
         returnType != boolType &&
-        RELATION_NAMES.contains(analyzedElement.name.slowToString())) {
+        PREDICATES.contains(analyzedElement.name.slowToString())) {
       // One of the relational operators (==, <, ...) turned out not to return
       // boolean.  This means we need to restart the analysis.
       optimismState = RETRY;
