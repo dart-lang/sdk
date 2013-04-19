@@ -191,7 +191,6 @@ Language/07_Classes/6_Constructors_A01_t04: Fail # Inherited from dart2js
 Language/07_Classes/6_Constructors_A01_t05: Fail # Inherited from dart2js
 Language/07_Classes/6_Constructors_A01_t06: Fail # Inherited from dart2js
 Language/07_Classes/6_Constructors_A02_t01: Fail # http://dartbug.com/5519
-Language/11_Expressions/01_Constants_A03_t01: Fail # Inherited from dart2js
 Language/11_Expressions/01_Constants_A03_t02: Fail # http://dartbug.com/5519
 Language/11_Expressions/01_Constants_A03_t03: Fail # http://dartbug.com/5519
 Language/11_Expressions/01_Constants_A03_t04: Fail # http://dartbug.com/5519
@@ -199,7 +198,6 @@ Language/11_Expressions/01_Constants_A03_t05: Fail # http://dartbug.com/5519
 Language/11_Expressions/01_Constants_A05_t02: Fail # http://dartbug.com/5519
 Language/11_Expressions/01_Constants_A05_t03: Fail # http://dartbug.com/5810
 Language/11_Expressions/01_Constants_A05_t04: Fail # http://dartbug.com/5519
-Language/11_Expressions/01_Constants_A06_t01: Fail # inherited from VM
 Language/11_Expressions/01_Constants_A08_t02: Fail # http://dartbug.com/5519
 Language/11_Expressions/01_Constants_A09_t02: Fail # http://dartbug.com/5519
 Language/11_Expressions/01_Constants_A10_t02: Fail # http://dartbug.com/5519
@@ -213,8 +211,6 @@ Language/11_Expressions/01_Constants_A13_t02: Fail # http://dartbug.com/5519
 Language/11_Expressions/01_Constants_A13_t03: Fail # http://dartbug.com/5519
 Language/11_Expressions/01_Constants_A13_t04: Fail # http://dartbug.com/5519
 Language/11_Expressions/01_Constants_A13_t05: Fail # http://dartbug.com/5519
-Language/11_Expressions/01_Constants_A14_t01: Fail # inherited from VM
-Language/11_Expressions/01_Constants_A14_t01: Fail # inherited from dart2js
 Language/11_Expressions/01_Constants_A14_t02: Fail # http://dartbug.com/5810
 Language/11_Expressions/01_Constants_A15_t06: Fail # http://dartbug.com/5519
 Language/11_Expressions/01_Constants_A15_t07: Fail # http://dartbug.com/5519

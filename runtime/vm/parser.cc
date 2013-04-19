@@ -7350,6 +7350,16 @@ AstNode* Parser::ParseStaticCall(const Class& cls,
                                   func_name,
                                   InvocationMirror::kStatic,
                                   InvocationMirror::kMethod);
+  } else if (cls.IsTopLevel() &&
+      (cls.library() == Library::CoreLibrary()) &&
+      (func.name() == Symbols::Identical().raw())) {
+    // This is the predefined toplevel function identical(a,b). Create
+    // a comparison node instead.
+    ASSERT(num_arguments == 2);
+    return new ComparisonNode(ident_pos,
+                              Token::kEQ_STRICT,
+                              arguments->NodeAt(0),
+                              arguments->NodeAt(1));
   }
   return new StaticCallNode(call_pos, func, arguments);
 }

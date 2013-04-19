@@ -110,9 +110,6 @@ Language/07_Classes/6_Constructors/3_Constant_Constructors_A04_t02: Fail # Dart 
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A04_t03: Fail # Dart issue 811
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t01: Fail # Dart issue 811
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t02: Fail # Dart issue 811
-Language/11_Expressions/01_Constants_A03_t01: Fail # Dart issue 5214
-Language/11_Expressions/01_Constants_A06_t01: Fail # Dart issue 5214
-Language/11_Expressions/01_Constants_A14_t01: Fail # Dart issue 5214
 Language/11_Expressions/05_Strings/1_String_Interpolation_A01_t04: Fail # Dart issue 7246
 Language/11_Expressions/05_Strings/1_String_Interpolation_A01_t05: Fail # Dart issue 7246
 Language/11_Expressions/05_Strings/1_String_Interpolation_A01_t06: Fail # Dart issue 7246
