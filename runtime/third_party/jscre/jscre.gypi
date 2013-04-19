@@ -5,6 +5,7 @@
     {
       'target_name': 'libjscre',
       'type': 'static_library',
+      'toolsets':['target','host'],
       'dependencies': [
       ],
       'include_dirs': [

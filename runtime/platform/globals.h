@@ -130,6 +130,22 @@ typedef simd128_value_t fpu_register_t;
 #define ARCH_IS_32_BIT 1
 #define kFpuRegisterSize 8
 typedef double fpu_register_t;
+typedef struct {
+  union {
+    uint32_t u;
+    float    f;
+  } data_[4];
+} simd_value_t;
+#define simd_value_safe_load(addr)                                             \
+  (*reinterpret_cast<simd_value_t *>(addr))
+#define simd_value_safe_store(addr, value)                                     \
+  do {                                                                         \
+    reinterpret_cast<simd_value_t *>(addr)->data_[0] = value.data_[0];         \
+    reinterpret_cast<simd_value_t *>(addr)->data_[1] = value.data_[1];         \
+    reinterpret_cast<simd_value_t *>(addr)->data_[2] = value.data_[2];         \
+    reinterpret_cast<simd_value_t *>(addr)->data_[3] = value.data_[3];         \
+  } while (0)
+
 #elif defined(__MIPSEL__)
 #define HOST_ARCH_MIPS 1
 #define ARCH_IS_32_BIT 1

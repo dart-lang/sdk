@@ -46,12 +46,21 @@
       },
 
       'Dart_arm_Base': {
-        'cflags': [
-          '-march=armv7-a',
-          '-mfpu=vfp',
-          '-mfloat-abi=softfp',
-          '-fno-strict-overflow',
-        ],
+        'target_conditions': [
+        ['_toolset=="target"', {
+          'cflags': [
+            '-marm',
+            '-march=armv7-a',
+            '-mfpu=vfp',
+            '-mfloat-abi=softfp',
+            '-Wno-psabi', # suppresses va_list warning
+            '-fno-strict-overflow',
+          ],
+        }],
+        ['_toolset=="host"', {
+          'cflags': ['-m32', '-msse2'],
+          'ldflags': ['-m32'],
+        }]]
       },
 
       'Dart_simmips_Base': {

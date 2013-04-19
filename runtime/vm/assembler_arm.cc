@@ -40,19 +40,7 @@ void CPUFeatures::InitOnce() {
 #if defined(USING_SIMULATOR)
   integer_division_supported_ = true;
 #else
-  Assembler assembler;
-  __ mrc(R0, 15, 0, 0, 2, 0);
-  __ Lsr(R0, R0, 24);
-  __ and_(R0, R0, ShifterOperand(0xf));
-  __ Ret();
-
-  const Code& code =
-      Code::Handle(Code::FinalizeCode("DetectCPUFeatures", &assembler));
-  Instructions& instructions = Instructions::Handle(code.instructions());
-  typedef int32_t (*DetectCPUFeatures)();
-  int32_t features =
-      reinterpret_cast<DetectCPUFeatures>(instructions.EntryPoint())();
-  integer_division_supported_ = features != 0;
+  integer_division_supported_ = false;
 #endif  // defined(USING_SIMULATOR)
 #if defined(DEBUG)
   initialized_ = true;

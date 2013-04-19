@@ -7,6 +7,7 @@
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "vm/assembler.h"
+#include "vm/cpu.h"
 #include "vm/bigint_operations.h"
 #include "vm/bootstrap.h"
 #include "vm/class_finalizer.h"
@@ -7761,6 +7762,7 @@ RawCode* Code::FinalizeCode(const char* name,
   MemoryRegion region(reinterpret_cast<void*>(instrs.EntryPoint()),
                       instrs.size());
   assembler->FinalizeInstructions(region);
+  CPU::FlushICache(instrs.EntryPoint(), instrs.size());
 
   CodeObservers::NotifyAll(name,
                            instrs.EntryPoint(),

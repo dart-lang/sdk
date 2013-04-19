@@ -15,10 +15,22 @@ import utils
 
 HOST_OS = utils.GuessOS()
 HOST_CPUS = utils.GuessCpus()
-armcompilerlocation = '/opt/codesourcery/arm-2009q1'
 SCRIPT_DIR = os.path.dirname(sys.argv[0])
 DART_ROOT = os.path.realpath(os.path.join(SCRIPT_DIR, '..'))
 THIRD_PARTY_ROOT = os.path.join(DART_ROOT, 'third_party')
+
+arm_cc_error = """
+Couldn't find the arm cross compiler.
+To make sure that you have the arm cross compilation tools installed, run:
+
+$ wget http://src.chromium.org/chrome/trunk/src/build/install-build-deps.sh
+OR
+$ svn co http://src.chromium.org/chrome/trunk/src/build; cd build
+Then,
+$ chmod u+x install-build-deps.sh
+$ ./install-build-deps.sh --arm --no-chromeos-fonts
+"""
+DEFAULT_ARM_CROSS_COMPILER_PATH = '/usr'
 
 def BuildOptions():
   result = optparse.OptionParser()
@@ -107,14 +119,14 @@ def ProcessOptions(options, args):
 def SetTools(arch, toolchainprefix):
   toolsOverride = None
   if arch == 'arm' and toolchainprefix == None:
-    toolchainprefix = armcompilerlocation + "/bin/arm-none-linux-gnueabi"
+    toolchainprefix = DEFAULT_ARM_CROSS_COMPILER_PATH + "/bin/arm-linux-gnueabi"
   if toolchainprefix:
     toolsOverride = {
-      "CC"  :  toolchainprefix + "-gcc",
-      "CXX" :  toolchainprefix + "-g++",
-      "AR"  :  toolchainprefix + "-ar",
-      "LINK":  toolchainprefix + "-g++",
-      "NM"  :  toolchainprefix + "-nm",
+      "CC.target"  :  toolchainprefix + "-gcc",
+      "CXX.target" :  toolchainprefix + "-g++",
+      "AR.target"  :  toolchainprefix + "-ar",
+      "LINK.target":  toolchainprefix + "-g++",
+      "NM.target"  :  toolchainprefix + "-nm",
     }
   return toolsOverride
 
@@ -413,6 +425,13 @@ def Main():
             args.append(  k + "=" + v)
             if printToolOverrides:
               print k + " = " + v
+          if not os.path.isfile(toolsOverride['CC.target']):
+            if arch == 'arm':
+              print arm_cc_error
+            else:
+              print "Couldn't find compiler: %s" % toolsOverride['CC.target']
+            return 1
+
 
         print ' '.join(args)
         process = None

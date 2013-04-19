@@ -4,29 +4,30 @@
 
 {
   'variables': {
+    'gen_source_dir': '<(LIB_DIR)',
     'builtin_in_cc_file': '../bin/builtin_in.cc',
-    'async_cc_file': '<(SHARED_INTERMEDIATE_DIR)/async_gen.cc',
-    'async_patch_cc_file': '<(SHARED_INTERMEDIATE_DIR)/async_patch_gen.cc',
-    'corelib_cc_file': '<(SHARED_INTERMEDIATE_DIR)/corelib_gen.cc',
-    'corelib_patch_cc_file': '<(SHARED_INTERMEDIATE_DIR)/corelib_patch_gen.cc',
-    'collection_cc_file': '<(SHARED_INTERMEDIATE_DIR)/collection_gen.cc',
-    'collection_patch_cc_file': '<(SHARED_INTERMEDIATE_DIR)/collection_patch_gen.cc',
-    'collection_dev_cc_file': '<(SHARED_INTERMEDIATE_DIR)/collection_dev_gen.cc',
-    'collection_dev_patch_cc_file': '<(SHARED_INTERMEDIATE_DIR)/collection_dev_patch_gen.cc',
-    'crypto_cc_file': '<(SHARED_INTERMEDIATE_DIR)/crypto_gen.cc',
-    'math_cc_file': '<(SHARED_INTERMEDIATE_DIR)/math_gen.cc',
-    'math_patch_cc_file': '<(SHARED_INTERMEDIATE_DIR)/math_patch_gen.cc',
-    'mirrors_cc_file': '<(SHARED_INTERMEDIATE_DIR)/mirrors_gen.cc',
-    'mirrors_patch_cc_file': '<(SHARED_INTERMEDIATE_DIR)/mirrors_patch_gen.cc',
-    'isolate_cc_file': '<(SHARED_INTERMEDIATE_DIR)/isolate_gen.cc',
-    'isolate_patch_cc_file': '<(SHARED_INTERMEDIATE_DIR)/isolate_patch_gen.cc',
-    'json_cc_file': '<(SHARED_INTERMEDIATE_DIR)/json_gen.cc',
-    'json_patch_cc_file': '<(SHARED_INTERMEDIATE_DIR)/json_patch_gen.cc',
-    'typeddata_cc_file': '<(SHARED_INTERMEDIATE_DIR)/typeddata_gen.cc',
-    'typeddata_patch_cc_file': '<(SHARED_INTERMEDIATE_DIR)/typeddata_patch_gen.cc',
-    'uri_cc_file': '<(SHARED_INTERMEDIATE_DIR)/uri_gen.cc',
-    'utf_cc_file': '<(SHARED_INTERMEDIATE_DIR)/utf_gen.cc',
-    'snapshot_test_dat_file': '<(SHARED_INTERMEDIATE_DIR)/snapshot_test.dat',
+    'async_cc_file': '<(gen_source_dir)/async_gen.cc',
+    'async_patch_cc_file': '<(gen_source_dir)/async_patch_gen.cc',
+    'corelib_cc_file': '<(gen_source_dir)/corelib_gen.cc',
+    'corelib_patch_cc_file': '<(gen_source_dir)/corelib_patch_gen.cc',
+    'collection_cc_file': '<(gen_source_dir)/collection_gen.cc',
+    'collection_patch_cc_file': '<(gen_source_dir)/collection_patch_gen.cc',
+    'collection_dev_cc_file': '<(gen_source_dir)/collection_dev_gen.cc',
+    'collection_dev_patch_cc_file': '<(gen_source_dir)/collection_dev_patch_gen.cc',
+    'crypto_cc_file': '<(gen_source_dir)/crypto_gen.cc',
+    'math_cc_file': '<(gen_source_dir)/math_gen.cc',
+    'math_patch_cc_file': '<(gen_source_dir)/math_patch_gen.cc',
+    'mirrors_cc_file': '<(gen_source_dir)/mirrors_gen.cc',
+    'mirrors_patch_cc_file': '<(gen_source_dir)/mirrors_patch_gen.cc',
+    'isolate_cc_file': '<(gen_source_dir)/isolate_gen.cc',
+    'isolate_patch_cc_file': '<(gen_source_dir)/isolate_patch_gen.cc',
+    'json_cc_file': '<(gen_source_dir)/json_gen.cc',
+    'json_patch_cc_file': '<(gen_source_dir)/json_patch_gen.cc',
+    'typeddata_cc_file': '<(gen_source_dir)/typeddata_gen.cc',
+    'typeddata_patch_cc_file': '<(gen_source_dir)/typeddata_patch_gen.cc',
+    'uri_cc_file': '<(gen_source_dir)/uri_gen.cc',
+    'utf_cc_file': '<(gen_source_dir)/utf_gen.cc',
+    'snapshot_test_dat_file': '<(gen_source_dir)/snapshot_test.dat',
     'snapshot_test_in_dat_file': 'snapshot_test_in.dat',
     'snapshot_test_dart_file': 'snapshot_test.dart',
   },
@@ -34,6 +35,7 @@
     {
       'target_name': 'libdart_vm',
       'type': 'static_library',
+      'toolsets':['host', 'target'],
       'includes': [
         'vm_sources.gypi',
         '../platform/platform_headers.gypi',
@@ -91,6 +93,7 @@
     {
       'target_name': 'libdart_lib_withcore',
       'type': 'static_library',
+      'toolsets':['host', 'target'],
       'dependencies': [
         'generate_async_cc_file',
         'generate_async_patch_cc_file',
@@ -155,6 +158,7 @@
     {
       'target_name': 'libdart_lib',
       'type': 'static_library',
+      'toolsets':['host', 'target'],
       'includes': [
         '../lib/async_sources.gypi',
         '../lib/collection_sources.gypi',
@@ -174,8 +178,9 @@
     {
       'target_name': 'generate_async_cc_file',
       'type': 'none',
+      'toolsets':['host', 'target'],
       'variables': {
-        'async_dart': '<(SHARED_INTERMEDIATE_DIR)/async_gen.dart',
+        'async_dart': '<(gen_source_dir)/async_gen.dart',
       },
       'includes': [
         '../../sdk/lib/async/async_sources.gypi',
@@ -230,8 +235,9 @@
     {
       'target_name': 'generate_corelib_cc_file',
       'type': 'none',
+      'toolsets':['host', 'target'],
       'variables': {
-        'core_dart': '<(SHARED_INTERMEDIATE_DIR)/core_gen.dart',
+        'core_dart': '<(gen_source_dir)/core_gen.dart',
       },'includes': [
         # Load the shared core library sources.
         '../../sdk/lib/core/corelib_sources.gypi',
@@ -286,6 +292,7 @@
     {
       'target_name': 'generate_corelib_patch_cc_file',
       'type': 'none',
+      'toolsets':['host', 'target'],
       'includes': [
         # Load the runtime implementation sources.
         '../lib/lib_sources.gypi',
@@ -324,8 +331,9 @@
     {
       'target_name': 'generate_collection_cc_file',
       'type': 'none',
+      'toolsets':['host', 'target'],
       'variables': {
-        'collection_dart': '<(SHARED_INTERMEDIATE_DIR)/collection_gen.dart',
+        'collection_dart': '<(gen_source_dir)/collection_gen.dart',
       },
       'includes': [
         # Load the shared collection library sources.
@@ -381,6 +389,7 @@
     {
       'target_name': 'generate_collection_dev_patch_cc_file',
       'type': 'none',
+      'toolsets':['host', 'target'],
       'includes': [
         # Load the runtime implementation sources.
         '../lib/collection_dev_sources.gypi',
@@ -419,8 +428,9 @@
     {
       'target_name': 'generate_collection_dev_cc_file',
       'type': 'none',
+      'toolsets':['host', 'target'],
       'variables': {
-        'collection_dev_dart': '<(SHARED_INTERMEDIATE_DIR)/collection_dev_gen.dart',
+        'collection_dev_dart': '<(gen_source_dir)/collection_dev_gen.dart',
       },
       'includes': [
         # Load the shared collection_dev library sources.
@@ -476,8 +486,9 @@
     {
       'target_name': 'generate_crypto_cc_file',
       'type': 'none',
+      'toolsets':['host', 'target'],
       'variables': {
-        'crypto_dart': '<(SHARED_INTERMEDIATE_DIR)/crypto_gen.dart',
+        'crypto_dart': '<(gen_source_dir)/crypto_gen.dart',
       },
       'includes': [
         # Load the shared crypto sources.
@@ -526,8 +537,9 @@
     {
       'target_name': 'generate_math_cc_file',
       'type': 'none',
+      'toolsets':['host', 'target'],
       'variables': {
-        'math_dart': '<(SHARED_INTERMEDIATE_DIR)/math_gen.dart',
+        'math_dart': '<(gen_source_dir)/math_gen.dart',
       },
       'includes': [
         # Load the shared math library sources.
@@ -583,6 +595,7 @@
     {
       'target_name': 'generate_math_patch_cc_file',
       'type': 'none',
+      'toolsets':['host', 'target'],
       'includes': [
         # Load the shared math library sources.
         '../lib/math_sources.gypi',
@@ -621,8 +634,9 @@
     {
       'target_name': 'generate_mirrors_cc_file',
       'type': 'none',
+      'toolsets':['host', 'target'],
       'variables': {
-        'mirrors_dart': '<(SHARED_INTERMEDIATE_DIR)/mirrors_gen.dart',
+        'mirrors_dart': '<(gen_source_dir)/mirrors_gen.dart',
       },
       'includes': [
         # Load the shared core library sources.
@@ -678,6 +692,7 @@
     {
       'target_name': 'generate_mirrors_patch_cc_file',
       'type': 'none',
+      'toolsets':['host', 'target'],
       'includes': [
         # Load the patch sources.
         '../lib/mirrors_sources.gypi',
@@ -716,8 +731,9 @@
     {
       'target_name': 'generate_isolate_cc_file',
       'type': 'none',
+      'toolsets':['host', 'target'],
       'variables': {
-        'isolate_dart': '<(SHARED_INTERMEDIATE_DIR)/isolate_gen.dart',
+        'isolate_dart': '<(gen_source_dir)/isolate_gen.dart',
       },
       'includes': [
         # Load the runtime implementation sources.
@@ -773,6 +789,7 @@
     {
       'target_name': 'generate_async_patch_cc_file',
       'type': 'none',
+      'toolsets':['host', 'target'],
       'includes': [
         # Load the runtime implementation sources.
         '../lib/async_sources.gypi',
@@ -811,6 +828,7 @@
     {
       'target_name': 'generate_collection_patch_cc_file',
       'type': 'none',
+      'toolsets':['host', 'target'],
       'includes': [
         # Load the runtime implementation sources.
         '../lib/collection_sources.gypi',
@@ -849,6 +867,7 @@
     {
       'target_name': 'generate_isolate_patch_cc_file',
       'type': 'none',
+      'toolsets':['host', 'target'],
       'includes': [
         # Load the runtime implementation sources.
         '../lib/isolate_sources.gypi',
@@ -887,8 +906,9 @@
     {
       'target_name': 'generate_json_cc_file',
       'type': 'none',
+      'toolsets':['host', 'target'],
       'variables': {
-        'json_dart': '<(SHARED_INTERMEDIATE_DIR)/json_gen.dart',
+        'json_dart': '<(gen_source_dir)/json_gen.dart',
       },
       'includes': [
         # Load the shared json sources.
@@ -937,6 +957,7 @@
     {
       'target_name': 'generate_json_patch_cc_file',
       'type': 'none',
+      'toolsets':['host', 'target'],
       'includes': [
         # Load the shared json library sources.
         '../lib/json_sources.gypi',
@@ -975,8 +996,9 @@
     {
       'target_name': 'generate_typeddata_cc_file',
       'type': 'none',
+      'toolsets':['host', 'target'],
       'variables': {
-        'typeddata_dart': '<(SHARED_INTERMEDIATE_DIR)/typeddata_gen.dart',
+        'typeddata_dart': '<(gen_source_dir)/typeddata_gen.dart',
       },
       'includes': [
         # Load the shared library sources.
@@ -1032,6 +1054,7 @@
     {
       'target_name': 'generate_typeddata_patch_cc_file',
       'type': 'none',
+      'toolsets':['host', 'target'],
       'includes': [
         # Load the runtime implementation sources.
         '../lib/typeddata_sources.gypi',
@@ -1070,8 +1093,9 @@
     {
       'target_name': 'generate_uri_cc_file',
       'type': 'none',
+      'toolsets':['host', 'target'],
       'variables': {
-        'uri_dart': '<(SHARED_INTERMEDIATE_DIR)/uri_gen.dart',
+        'uri_dart': '<(gen_source_dir)/uri_gen.dart',
       },
       'includes': [
         # Load the shared uri sources.
@@ -1120,8 +1144,9 @@
     {
       'target_name': 'generate_utf_cc_file',
       'type': 'none',
+      'toolsets':['host', 'target'],
       'variables': {
-        'utf_dart': '<(SHARED_INTERMEDIATE_DIR)/utf_gen.dart',
+        'utf_dart': '<(gen_source_dir)/utf_gen.dart',
       },
       'includes': [
         # Load the shared utf sources.
@@ -1170,6 +1195,7 @@
     {
       'target_name': 'generate_snapshot_test_dat_file',
       'type': 'none',
+      'toolsets':['host', 'target'],
       'actions': [
         {
           'action_name': 'generate_snapshot_test_dat',

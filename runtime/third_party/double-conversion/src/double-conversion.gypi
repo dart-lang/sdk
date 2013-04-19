@@ -5,6 +5,7 @@
     {
       'target_name': 'libdouble_conversion',
       'type': 'static_library',
+      'toolsets':['target','host'],
       'dependencies': [
       ],
       'include_dirs': [

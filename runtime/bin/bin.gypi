@@ -4,19 +4,32 @@
 
 {
   'variables': {
-    'io_cc_file': '<(SHARED_INTERMEDIATE_DIR)/io_gen.cc',
-    'io_patch_cc_file': '<(SHARED_INTERMEDIATE_DIR)/io_patch_gen.cc',
+    # We place most generated source files in LIB_DIR (rather than, say
+    # SHARED_INTERMEDIATE_DIR) because it is toolset specific. This avoids
+    # two problems. First, if a generated source file has architecture specific
+    # code, we'll get two different files in two different directories. Second,
+    # if a generated source file is needed to build a target with multiple
+    # toolsets, we avoid having duplicate Makefile targets.
+    'gen_source_dir': '<(LIB_DIR)',
+
+    'io_cc_file': '<(gen_source_dir)/io_gen.cc',
+    'io_patch_cc_file': '<(gen_source_dir)/io_patch_gen.cc',
     'builtin_in_cc_file': 'builtin_in.cc',
-    'builtin_cc_file': '<(SHARED_INTERMEDIATE_DIR)/builtin_gen.cc',
+    'builtin_cc_file': '<(gen_source_dir)/builtin_gen.cc',
     'snapshot_in_cc_file': 'snapshot_in.cc',
-    'snapshot_bin_file': '<(SHARED_INTERMEDIATE_DIR)/snapshot_gen.bin',
+    'snapshot_bin_file': '<(gen_source_dir)/snapshot_gen.bin',
+    'resources_cc_file': '<(gen_source_dir)/resources_gen.cc',
+
+    # The program that creates snapshot_gen.cc is only built and run on the
+    # host, but it must be available when dart is built for the target. Thus,
+    # we keep it in a shared location.
     'snapshot_cc_file': '<(SHARED_INTERMEDIATE_DIR)/snapshot_gen.cc',
-    'resources_cc_file': '<(SHARED_INTERMEDIATE_DIR)/resources_gen.cc',
   },
   'targets': [
     {
       'target_name': 'generate_builtin_cc_file',
       'type': 'none',
+      'toolsets':['target','host'],
       'includes': [
         'builtin_sources.gypi',
       ],
@@ -47,8 +60,9 @@
     {
       'target_name': 'generate_io_cc_file',
       'type': 'none',
+      'toolsets':['target','host'],
       'variables': {
-        'io_dart': '<(SHARED_INTERMEDIATE_DIR)/io_gen.dart',
+        'io_dart': '<(gen_source_dir)/io_gen.dart',
       },
       'sources': [
         'io.dart',
@@ -99,6 +113,7 @@
     {
       'target_name': 'generate_io_patch_cc_file',
       'type': 'none',
+      'toolsets':['target','host'],
       'includes': [
         'io_sources.gypi',
       ],
@@ -129,6 +144,7 @@
     {
       'target_name': 'libdart_builtin',
       'type': 'static_library',
+      'toolsets':['target','host'],
       'dependencies': [
         'generate_builtin_cc_file',
         'generate_io_cc_file',
@@ -218,6 +234,7 @@
     {
       'target_name': 'libdart_withcore',
       'type': 'static_library',
+      'toolsets':['target','host'],
       'dependencies': [
         'libdart_lib_withcore',
         'libdart_vm',
@@ -243,6 +260,7 @@
       # Completely statically linked binary for generating snapshots.
       'target_name': 'gen_snapshot',
       'type': 'executable',
+      'toolsets':['host'],
       'dependencies': [
         'libdart_withcore',
         'libdart_builtin',
@@ -276,8 +294,9 @@
       # Generate snapshot bin file.
       'target_name': 'generate_snapshot_bin',
       'type': 'none',
+      'toolsets':['host'],
       'dependencies': [
-        'gen_snapshot',
+        'gen_snapshot#host',
       ],
       'actions': [
         {
@@ -305,8 +324,9 @@
       # Generate snapshot file.
       'target_name': 'generate_snapshot_file',
       'type': 'none',
+      'toolsets':['host'],
       'dependencies': [
-        'generate_snapshot_bin',
+        'generate_snapshot_bin#host',
       ],
       'actions': [
         {
@@ -365,7 +385,7 @@
         'libdart',
         'libdart_builtin',
         'libdart_io',
-        'generate_snapshot_file',
+        'generate_snapshot_file#host',
         'generate_resources_cc_file',
       ],
       'include_dirs': [
@@ -478,7 +498,7 @@
       ],
       'include_dirs': [
         '..',
-        '<(SHARED_INTERMEDIATE_DIR)',
+        '<(gen_source_dir)',
       ],
       'sources': [
         'run_vm_tests.cc',

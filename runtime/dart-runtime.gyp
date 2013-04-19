@@ -11,8 +11,9 @@
     'third_party/jscre/jscre.gypi',
   ],
   'variables': {
+    'gen_source_dir': '<(LIB_DIR)',
     'version_in_cc_file': 'vm/version_in.cc',
-    'version_cc_file': '<(SHARED_INTERMEDIATE_DIR)/version.cc',
+    'version_cc_file': '<(gen_source_dir)/version.cc',
 
     # Disable the OpenGLUI embedder by default on desktop OSes.  Note,
     # to build this on the desktop, you need GLUT installed.
@@ -61,6 +62,7 @@
     {
       'target_name': 'generate_version_cc_file',
       'type': 'none',
+      'toolsets':['target','host'],
       'dependencies': [
         'libdart_dependency_helper',
       ],
@@ -94,6 +96,7 @@
     {
       'target_name': 'libdart_dependency_helper',
       'type': 'executable',
+      'toolsets':['target','host'],
       # The dependencies here are the union of the dependencies of libdart and
       # libdart_withcore. 
       'dependencies': [
@@ -106,6 +109,7 @@
       'sources': [
         'vm/libdart_dependency_helper.cc',
       ],
+      'product_dir':'<(PRODUCT_DIR)/<(_toolset)'
     },
     {
       'target_name': 'runtime_packages',
