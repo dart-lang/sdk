@@ -210,8 +210,8 @@ static void FormatTextualValue(dart::TextBuffer* buf,
 
 
 static void FormatValue(dart::TextBuffer* buf, Dart_Handle object) {
-  if (Dart_IsInteger(object)) {
-    buf->Printf("\"kind\":\"integer\",");
+  if (Dart_IsNumber(object)) {
+    buf->Printf("\"kind\":\"number\",");
   } else if (Dart_IsString(object)) {
     buf->Printf("\"kind\":\"string\",");
   } else if (Dart_IsBoolean(object)) {
@@ -223,6 +223,11 @@ static void FormatValue(dart::TextBuffer* buf, Dart_Handle object) {
     buf->Printf("\"kind\":\"list\",\"length\":%"Pd",", len);
   } else {
     buf->Printf("\"kind\":\"object\",");
+    intptr_t class_id = 0;
+    Dart_Handle res = Dart_GetObjClassId(object, &class_id);
+    if (!Dart_IsError(res)) {
+      buf->Printf("\"classId\":%"Pd",", class_id);
+    }
   }
   buf->Printf("\"text\":\"");
   const intptr_t max_chars = 250;
@@ -1162,12 +1167,6 @@ void DbgMsgQueueList::BptResolvedHandler(Dart_IsolateId isolate_id,
   dart::TextBuffer msg(128);
   msg.Printf("{ \"event\": \"breakpointResolved\", \"params\": {");
   msg.Printf("\"breakpointId\": %"Pd"", bp_id);
-
-  // TODO(hausner): remove url and line elements.
-  msg.Printf(", \"url\":");
-  FormatEncodedString(&msg, location.script_url);
-  int line_number = GetIntValue(Dart_GetBreakpointLine(bp_id));
-  msg.Printf(",\"line\":%d", line_number);
 
   msg.Printf(", \"isolateId\":%"Pd64"", isolate_id);
   ASSERT(!Dart_IsNull(location.script_url));
