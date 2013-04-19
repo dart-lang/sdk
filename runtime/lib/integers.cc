@@ -189,15 +189,11 @@ DEFINE_NATIVE_ENTRY(Integer_parse, 1) {
     if (len > 0) {
       const char* cstr = value.ToCString();
       ASSERT(cstr != NULL);
-      // Dart differences from strtol:
-      // a) '+5' is not a valid integer (leading plus).
-      if (cstr[0] != '+') {
-        char* p_end = NULL;
-        const int64_t int_value = strtoll(cstr, &p_end, 10);
-        if (p_end == (cstr + len)) {
-          if ((int_value != LLONG_MIN) && (int_value != LLONG_MAX)) {
-            return Integer::New(int_value);
-          }
+      char* p_end = NULL;
+      const int64_t int_value = strtoll(cstr, &p_end, 10);
+      if (p_end == (cstr + len)) {
+        if ((int_value != LLONG_MIN) && (int_value != LLONG_MAX)) {
+          return Integer::New(int_value);
         }
       }
     }
