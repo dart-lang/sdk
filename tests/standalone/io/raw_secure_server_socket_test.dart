@@ -132,18 +132,61 @@ void testServerListenAfterConnect() {
   });
 }
 
-void testSimpleReadWrite() {
-  // This test creates a server and a client connects. The client then
-  // writes and the server echos. When the server has finished its
-  // echo it half-closes. When the client gets the close event is
-  // closes fully.
+// This test creates a server and a client connects. The client then
+// writes and the server echos. When the server has finished its echo
+// it half-closes. When the client gets the close event is closes
+// fully.
+//
+// The test can be run in different configurations based on
+// the boolean arguments:
+//
+// listenSecure
+// When this argument is true a secure server is used. When this is false
+// a non-secure server is used and the connections are secured after beeing
+// connected.
+//
+// connectSecure
+// When this argument is true a secure client connection is used. When this
+// is false a non-secure client connection is used and the connection is
+// secured after being connected.
+//
+// handshakeBeforeSecure
+// When this argument is true some initial clear text handshake is done
+// between client and server before the connection is secured. This argument
+// only makes sense when both listenSecure and connectSecure are false.
+//
+// postponeSecure
+// When this argument is false the securing of the server end will
+// happen as soon as the last byte of the handshake before securing
+// has been written. When this argument is true the securing of the
+// server will not happen until the first TLS handshake data has been
+// received from the client. This argument only takes effect when
+// handshakeBeforeSecure is true.
+void testSimpleReadWrite(bool listenSecure,
+                         bool connectSecure,
+                         bool handshakeBeforeSecure,
+                         [bool postponeSecure = false]) {
+  if (handshakeBeforeSecure == true &&
+      (listenSecure == true || connectSecure == true)) {
+    Expect.fails("Invalid arguments to testSimpleReadWrite");
+  }
+
   ReceivePort port = new ReceivePort();
 
   const messageSize = 1000;
+  const handshakeMessageSize = 100;
 
   List<int> createTestData() {
     List<int> data = new List<int>(messageSize);
     for (int i = 0; i < messageSize; i++) {
+      data[i] = i & 0xff;
+    }
+    return data;
+  }
+
+  List<int> createHandshakeTestData() {
+    List<int> data = new List<int>(handshakeMessageSize);
+    for (int i = 0; i < handshakeMessageSize; i++) {
       data[i] = i & 0xff;
     }
     return data;
@@ -157,91 +200,250 @@ void testSimpleReadWrite() {
     }
   }
 
-  RawSecureServerSocket.bind(SERVER_ADDRESS, 0, 5, CERTIFICATE).then((server) {
-    server.listen((client) {
-      int bytesRead = 0;
-      int bytesWritten = 0;
-      List<int> data = new List<int>(messageSize);
+  void verifyHandshakeTestData(List<int> data) {
+    Expect.equals(handshakeMessageSize, data.length);
+    List<int> expected = createHandshakeTestData();
+    for (int i = 0; i < handshakeMessageSize; i++) {
+      Expect.equals(expected[i], data[i]);
+    }
+  }
 
-      client.writeEventsEnabled = false;
-      client.listen((event) {
-        switch (event) {
-          case RawSocketEvent.READ:
+  Future runServer(RawSocket client) {
+    var completer = new Completer();
+    int bytesRead = 0;
+    int bytesWritten = 0;
+    List<int> data = new List<int>(messageSize);
+    client.writeEventsEnabled = false;
+    var subscription;
+    subscription = client.listen((event) {
+      switch (event) {
+        case RawSocketEvent.READ:
+          Expect.isTrue(bytesWritten == 0);
+          Expect.isTrue(client.available() > 0);
+          var buffer = client.read();
+          if (buffer != null) {
+            data.setRange(bytesRead, bytesRead + buffer.length, buffer);
+            bytesRead += buffer.length;
+            for (var value in buffer) {
+              Expect.isTrue(value is int);
+              Expect.isTrue(value < 256 && value >= 0);
+            }
+          }
+          if (bytesRead == data.length) {
+            verifyTestData(data);
+            client.writeEventsEnabled = true;
+          }
+          break;
+        case RawSocketEvent.WRITE:
+          Expect.isFalse(client.writeEventsEnabled);
+          Expect.equals(bytesRead, data.length);
+          for (int i = bytesWritten; i < data.length; ++i) {
+            Expect.isTrue(data[i] is int);
+            Expect.isTrue(data[i] < 256 && data[i] >= 0);
+          }
+          bytesWritten += client.write(
+              data, bytesWritten, data.length - bytesWritten);
+          if (bytesWritten < data.length) {
+            client.writeEventsEnabled = true;
+          }
+          if (bytesWritten == data.length) {
+            client.shutdown(SocketDirection.SEND);
+          }
+          break;
+        case RawSocketEvent.READ_CLOSED:
+          completer.complete(null);
+          break;
+        default: throw "Unexpected event $event";
+      }
+    });
+    return completer.future;
+  }
+
+  Future<RawSocket> runClient(RawSocket socket) {
+    var completer = new Completer();
+    int bytesRead = 0;
+    int bytesWritten = 0;
+    List<int> dataSent = createTestData();
+    List<int> dataReceived = new List<int>(dataSent.length);
+    socket.listen((event) {
+      switch (event) {
+        case RawSocketEvent.READ:
+          Expect.isTrue(socket.available() > 0);
+          var buffer = socket.read();
+          if (buffer != null) {
+            dataReceived.setRange(bytesRead, bytesRead + buffer.length, buffer);
+            bytesRead += buffer.length;
+          }
+          break;
+        case RawSocketEvent.WRITE:
+          Expect.isTrue(bytesRead == 0);
+          Expect.isFalse(socket.writeEventsEnabled);
+          bytesWritten += socket.write(
+              dataSent, bytesWritten, dataSent.length - bytesWritten);
+          if (bytesWritten < dataSent.length) {
+            socket.writeEventsEnabled = true;
+          }
+          break;
+        case RawSocketEvent.READ_CLOSED:
+          verifyTestData(dataReceived);
+          completer.complete(socket);
+          break;
+        default: throw "Unexpected event $event";
+      }
+    });
+    return completer.future;
+  }
+
+  Future runServerHandshake(RawSocket client) {
+    var completer = new Completer();
+    int bytesRead = 0;
+    int bytesWritten = 0;
+    List<int> data = new List<int>(handshakeMessageSize);
+    client.writeEventsEnabled = false;
+    var subscription;
+    subscription = client.listen((event) {
+      switch (event) {
+        case RawSocketEvent.READ:
+          if (bytesRead < data.length) {
             Expect.isTrue(bytesWritten == 0);
-            Expect.isTrue(client.available() > 0);
-            var buffer = client.read();
-            if (buffer != null) {
-              data.setRange(bytesRead, bytesRead + buffer.length, buffer);
-              bytesRead += buffer.length;
-              for (var value in buffer) {
-                Expect.isTrue(value is int);
-                Expect.isTrue(value < 256 && value >= 0);
-              }
-            }
+          }
+          Expect.isTrue(client.available() > 0);
+          var buffer = client.read();
+          if (buffer != null) {
             if (bytesRead == data.length) {
-              verifyTestData(data);
-              client.writeEventsEnabled = true;
+              // Read first part of TLS handshake from client.
+              Expect.isTrue(postponeSecure);
+              completer.complete([subscription, buffer]);
+              return;
             }
-            break;
-          case RawSocketEvent.WRITE:
-            Expect.isFalse(client.writeEventsEnabled);
-            Expect.equals(bytesRead, data.length);
-            for (int i = bytesWritten; i < data.length; ++i) {
-              Expect.isTrue(data[i] is int);
-              Expect.isTrue(data[i] < 256 && data[i] >= 0);
+            data.setRange(bytesRead, bytesRead + buffer.length, buffer);
+            bytesRead += buffer.length;
+            for (var value in buffer) {
+              Expect.isTrue(value is int);
+              Expect.isTrue(value < 256 && value >= 0);
             }
-            bytesWritten += client.write(
-                data, bytesWritten, data.length - bytesWritten);
-            if (bytesWritten < data.length) {
-              client.writeEventsEnabled = true;
+          }
+          if (bytesRead == data.length) {
+            verifyHandshakeTestData(data);
+            client.writeEventsEnabled = true;
+          }
+        if (bytesRead > data.length) print("XXX");
+          break;
+        case RawSocketEvent.WRITE:
+          Expect.isFalse(client.writeEventsEnabled);
+          Expect.equals(bytesRead, data.length);
+          for (int i = bytesWritten; i < data.length; ++i) {
+            Expect.isTrue(data[i] is int);
+            Expect.isTrue(data[i] < 256 && data[i] >= 0);
+          }
+          bytesWritten += client.write(
+              data, bytesWritten, data.length - bytesWritten);
+          if (bytesWritten < data.length) {
+            client.writeEventsEnabled = true;
+          }
+          if (bytesWritten == data.length) {
+            if (!postponeSecure) {
+              completer.complete([subscription, null]);
             }
-            if (bytesWritten == data.length) {
-              client.shutdown(SocketDirection.SEND);
+          }
+          break;
+        case RawSocketEvent.READ_CLOSED:
+          Expect.fail("Unexpected close");
+          break;
+        default: throw "Unexpected event $event";
+      }
+    });
+    return completer.future;
+  }
+
+  Future<RawSocket> runClientHandshake(RawSocket socket) {
+    var completer = new Completer();
+    int bytesRead = 0;
+    int bytesWritten = 0;
+    List<int> dataSent = createHandshakeTestData();
+    List<int> dataReceived = new List<int>(dataSent.length);
+    var subscription;
+    subscription = socket.listen((event) {
+      switch (event) {
+        case RawSocketEvent.READ:
+          Expect.isTrue(socket.available() > 0);
+          var buffer = socket.read();
+          if (buffer != null) {
+            dataReceived.setRange(bytesRead, bytesRead + buffer.length, buffer);
+            bytesRead += buffer.length;
+            if (bytesRead == dataSent.length) {
+              verifyHandshakeTestData(dataReceived);
+              completer.complete(subscription);
             }
-            break;
-          case RawSocketEvent.READ_CLOSED:
-            server.close();
-            break;
-          default: throw "Unexpected event $event";
-        }
+          }
+          break;
+        case RawSocketEvent.WRITE:
+          Expect.isTrue(bytesRead == 0);
+          Expect.isFalse(socket.writeEventsEnabled);
+          bytesWritten += socket.write(
+              dataSent, bytesWritten, dataSent.length - bytesWritten);
+          if (bytesWritten < dataSent.length) {
+            socket.writeEventsEnabled = true;
+          }
+          break;
+        case RawSocketEvent.READ_CLOSED:
+          Expect.fail("Unexpected close");
+          break;
+        default: throw "Unexpected event $event";
+      }
+    });
+    return completer.future;
+  }
+
+  Future<RawSecureSocket> connectClient(int port) {
+    if (connectSecure) {
+      return RawSecureSocket.connect(HOST_NAME, port);
+    } else if (!handshakeBeforeSecure) {
+      return RawSocket.connect(HOST_NAME, port).then((socket) {
+        return RawSecureSocket.secure(socket);
       });
+    } else {
+      return RawSocket.connect(HOST_NAME, port).then((socket) {
+        return runClientHandshake(socket).then((subscription) {
+            return RawSecureSocket.secure(socket, subscription: subscription);
+        });
+      });
+    }
+  }
+
+  serverReady(server) {
+    server.listen((client) {
+      if (listenSecure) {
+        runServer(client).then((_) => server.close());
+      } else if (!handshakeBeforeSecure) {
+        RawSecureSocket.secureServer(client, CERTIFICATE).then((client) {
+          runServer(client).then((_) => server.close());
+        });
+      } else {
+        runServerHandshake(client).then((secure) {
+            RawSecureSocket.secureServer(
+                client,
+                CERTIFICATE,
+                subscription: secure[0],
+                carryOverData: secure[1]).then((client) {
+            runServer(client).then((_) => server.close());
+          });
+        });
+      }
     });
 
-    RawSecureSocket.connect(HOST_NAME, server.port).then((socket) {
-      int bytesRead = 0;
-      int bytesWritten = 0;
-      List<int> dataSent = createTestData();
-      List<int> dataReceived = new List<int>(dataSent.length);
-      socket.listen((event) {
-        switch (event) {
-          case RawSocketEvent.READ:
-            Expect.isTrue(socket.available() > 0);
-            var buffer = socket.read();
-            if (buffer != null) {
-              int endIndex = bytesRead + buffer.length;
-              dataReceived.setRange(bytesRead, endIndex, buffer);
-              bytesRead += buffer.length;
-            }
-            break;
-          case RawSocketEvent.WRITE:
-            Expect.isTrue(bytesRead == 0);
-            Expect.isFalse(socket.writeEventsEnabled);
-            bytesWritten += socket.write(
-                dataSent, bytesWritten, dataSent.length - bytesWritten);
-            if (bytesWritten < dataSent.length) {
-              socket.writeEventsEnabled = true;
-            }
-            break;
-          case RawSocketEvent.READ_CLOSED:
-            verifyTestData(dataReceived);
-            socket.close();
-            port.close();
-            break;
-          default: throw "Unexpected event $event";
-        }
-      });
+    connectClient(server.port).then(runClient).then((socket) {
+      socket.close();
+      port.close();
     });
-  });
+  }
+
+  if (listenSecure) {
+    RawSecureServerSocket.bind(
+        SERVER_ADDRESS, 0, 5, CERTIFICATE).then(serverReady);
+  } else {
+    RawServerSocket.bind(SERVER_ADDRESS, 0, 5).then(serverReady);
+  }
 }
 
 main() {
@@ -258,5 +460,10 @@ main() {
   testSimpleConnectFail("not_a_nickname");
   testSimpleConnectFail("CN=notARealDistinguishedName");
   testServerListenAfterConnect();
-  testSimpleReadWrite();
+  testSimpleReadWrite(true, true, false);
+  testSimpleReadWrite(true, false, false);
+  testSimpleReadWrite(false, true, false);
+  testSimpleReadWrite(false, false, false);
+  testSimpleReadWrite(false, false, true, true);
+  testSimpleReadWrite(false, false, true, false);
 }

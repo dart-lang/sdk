@@ -144,6 +144,78 @@ abstract class RawSecureSocket implements RawSocket {
   }
 
   /**
+   * Takes an already connected [socket] and starts client side TLS
+   * handshake to make the communication secure. When the returned
+   * future completes the [RawSecureSocket] has completed the TLS
+   * handshake. Using this function requires that the other end of the
+   * connection is prepared for TLS handshake.
+   *
+   * If the [socket] already has a subscription, pass the existing
+   * subscription in the [subscription] parameter. The secure socket
+   * will take over the subscription and process any subsequent
+   * events.
+   *
+   * See [connect] for more information on the arguments.
+   *
+   */
+  static Future<RawSecureSocket> secure(
+      RawSocket socket,
+      {StreamSubscription subscription,
+       bool sendClientCertificate: false,
+       String certificateName,
+       bool onBadCertificate(X509Certificate certificate)}) {
+    return  _RawSecureSocket.connect(
+        socket.host,
+        socket.port,
+        certificateName,
+        is_server: false,
+        socket: socket,
+        subscription: subscription,
+        sendClientCertificate: sendClientCertificate,
+        onBadCertificate: onBadCertificate);
+  }
+
+  /**
+   * Takes an already connected [socket] and starts server side TLS
+   * handshake to make the communication secure. When the returned
+   * future completes the [RawSecureSocket] has completed the TLS
+   * handshake. Using this function requires that the other end of the
+   * connection is going to start the TLS handshake.
+   *
+   * If the [socket] already has a subscription, pass the existing
+   * subscription in the [subscription] parameter. The secure socket
+   * will take over the subscription and process any subsequent
+   * events.
+   *
+   * If some of the data of the TLS handshake has already been read
+   * from the socket this data can be passed in the [carryOverData]
+   * parameter. This data will be processed before any other data
+   * available on the socket.
+   *
+   * See [RawSecureServerSocket.bind] for more information on the
+   * arguments.
+   *
+   */
+  static Future<RawSecureSocket> secureServer(
+      RawSocket socket,
+      String certificateName,
+      {StreamSubscription subscription,
+       List<int> carryOverData,
+       bool requestClientCertificate: false,
+       bool requireClientCertificate: false}) {
+    return _RawSecureSocket.connect(
+        socket.remoteHost,
+        socket.remotePort,
+        certificateName,
+        is_server: true,
+        socket: socket,
+        subscription: subscription,
+        carryOverData: carryOverData,
+        requestClientCertificate: requestClientCertificate,
+        requireClientCertificate: requireClientCertificate);
+  }
+
+  /**
    * Get the peer certificate for a connected RawSecureSocket.  If this
    * RawSecureSocket is the server end of a secure socket connection,
    * [peerCertificate] will return the client certificate, or null, if no
@@ -192,6 +264,8 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   StreamController<RawSocketEvent> _controller;
   Stream<RawSocketEvent> _stream;
   StreamSubscription<RawSocketEvent> _socketSubscription;
+  List<int> _carryOverData;
+  int _carryOverDataIndex = 0;
   final String host;
   final bool is_server;
   final String certificateName;
@@ -218,6 +292,8 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       String certificateName,
       {bool is_server,
        RawSocket socket,
+       StreamSubscription subscription,
+       List<int> carryOverData,
        bool requestClientCertificate: false,
        bool requireClientCertificate: false,
        bool sendClientCertificate: false,
@@ -227,6 +303,8 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
                                  certificateName,
                                  is_server,
                                  socket,
+                                 subscription,
+                                 carryOverData,
                                  requestClientCertificate,
                                  requireClientCertificate,
                                  sendClientCertificate,
@@ -240,6 +318,8 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       String this.certificateName,
       bool this.is_server,
       RawSocket socket,
+      StreamSubscription this._socketSubscription,
+      List<int> this._carryOverData,
       bool this.requestClientCertificate,
       bool this.requireClientCertificate,
       bool this.sendClientCertificate,
@@ -254,6 +334,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     // errors will be reported through the future or the stream.
     _verifyFields();
     _secureFilter.init();
+    if (_carryOverData != null) _readFromCarryOver();
     _secureFilter.registerHandshakeCompleteCallback(
         _secureHandshakeCompleteHandler);
     if (onBadCertificate != null) {
@@ -268,9 +349,17 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     futureSocket.then((rawSocket) {
       rawSocket.writeEventsEnabled = false;
       _socket = rawSocket;
-      _socketSubscription = _socket.listen(_eventDispatcher,
-                                           onError: _errorHandler,
-                                           onDone: _doneHandler);
+      if (_socketSubscription == null) {
+        // If a current subscription is provided use this otherwise
+        // create a new one.
+        _socketSubscription = _socket.listen(_eventDispatcher,
+                                             onError: _errorHandler,
+                                             onDone: _doneHandler);
+      } else {
+        _socketSubscription.onData(_eventDispatcher);
+        _socketSubscription.onError(_errorHandler);
+        _socketSubscription.onDone(_doneHandler);
+      }
       _connectPending = true;
       _secureFilter.connect(host,
                             port,
@@ -526,6 +615,22 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     }
   }
 
+  void _readFromCarryOver() {
+    assert(_carryOverData != null);
+    var encrypted = _secureFilter.buffers[READ_ENCRYPTED];
+    var bytes = _carryOverData.length - _carryOverDataIndex;
+    int startIndex = encrypted.start + encrypted.length;
+    encrypted.data.setRange(startIndex,
+                            startIndex + bytes,
+                            _carryOverData,
+                            _carryOverDataIndex);
+    encrypted.length += bytes;
+    _carryOverDataIndex += bytes;
+    if (_carryOverData.length == _carryOverDataIndex) {
+      _carryOverData = null;
+    }
+  }
+
   void _readHandler() {
     if (_status == CLOSED) {
       return;
@@ -660,13 +765,18 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
         }
       }
       if (!_socketClosedRead && encrypted.free > 0) {
-        List<int> data = _socket.read(encrypted.free);
-        if (data != null) {
-          int bytes = data.length;
-          int startIndex = encrypted.start + encrypted.length;
-          encrypted.data.setRange(startIndex, startIndex + bytes, data);
-          encrypted.length += bytes;
+        if (_carryOverData != null) {
+          _readFromCarryOver();
           progress = true;
+        } else {
+          List<int> data = _socket.read(encrypted.free);
+          if (data != null) {
+            int bytes = data.length;
+            int startIndex = encrypted.start + encrypted.length;
+            encrypted.data.setRange(startIndex, startIndex + bytes, data);
+            encrypted.length += bytes;
+            progress = true;
+          }
         }
       }
     }

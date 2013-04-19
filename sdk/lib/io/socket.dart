@@ -181,6 +181,11 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
   int get remotePort;
 
   /**
+   * Returns the host used to connect this socket.
+   */
+  String get host;
+
+  /**
    * Returns the remote host connected to by this socket.
    */
   String get remoteHost;
@@ -254,9 +259,25 @@ abstract class Socket implements Stream<List<int>>, IOSink {
    */
   bool setOption(SocketOption option, bool enabled);
 
+  /**
+   * Returns the port used by this socket.
+   */
   int get port;
-  String get remoteHost;
+
+  /**
+   * Returns the remote port connected to by this socket.
+   */
   int get remotePort;
+
+  /**
+   * Returns the host used to connect this socket.
+   */
+  String get host;
+
+  /**
+   * Returns the remote host connected to by this socket.
+   */
+  String get remoteHost;
 }
 
 
