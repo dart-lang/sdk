@@ -33,7 +33,7 @@ interface TimeoutHandler {
 
 [Supplemental]
 interface CanvasRenderingContext2D {
-  [DartName=createImageDataFromImageData] ImageData createImageData(in ImageData imagedata) raises (DOMException);
+  [DartName=createImageDataFromImageData] ImageData createImageData(in ImageData imagedata);
 };
 
 [Supplemental]
@@ -43,8 +43,8 @@ interface Console {
 };
 
 interface HTMLCanvasElement {
-  [Suppressed] DOMString toDataURL([TreatNullAs=NullString, TreatUndefinedAs=NullString,Optional=DefaultIsUndefined] in DOMString type) raises(DOMException);
-  [Custom] DOMString toDataURL([TreatNullAs=NullString, TreatUndefinedAs=NullString,Optional=DefaultIsUndefined] in DOMString type, [Optional] in float quality) raises(DOMException);
+  [Suppressed] DOMString toDataURL([TreatNullAs=NullString, TreatUndefinedAs=NullString,Optional=DefaultIsUndefined] in DOMString type);
+  [Custom] DOMString toDataURL([TreatNullAs=NullString, TreatUndefinedAs=NullString,Optional=DefaultIsUndefined] in DOMString type, [Optional] in float quality);
 
   [Suppressed] any getContext(in DOMString contextId);
   [Custom] CanvasRenderingContext getContext(in DOMString contextId, [Optional] in Dictionary attrs);
@@ -106,23 +106,23 @@ interface WebGLRenderingContext {
   //void         compressedTexImage2D(in unsigned long target, in long level, in unsigned long internalformat, in unsigned long width, in unsigned long height, in long border, in unsigned long imageSize, const void* data);
   //void         compressedTexSubImage2D(in unsigned long target, in long level, in long xoffset, in long yoffset, in unsigned long width, in unsigned long height, in unsigned long format, in unsigned long imageSize, const void* data);
 
-  [Custom] any getBufferParameter(in unsigned long target, in unsigned long pname) raises(DOMException);
+  [Custom] any getBufferParameter(in unsigned long target, in unsigned long pname);
   [Suppressed, StrictTypeChecking, Custom] void getBufferParameter();
 
-  [Custom] any getFramebufferAttachmentParameter(in unsigned long target, in unsigned long attachment, in unsigned long pname) raises(DOMException);
+  [Custom] any getFramebufferAttachmentParameter(in unsigned long target, in unsigned long attachment, in unsigned long pname);
   [Suppressed, StrictTypeChecking, Custom] void getFramebufferAttachmentParameter();
 
-  [Custom] any getParameter(in unsigned long pname) raises(DOMException);
+  [Custom] any getParameter(in unsigned long pname);
   [Suppressed, StrictTypeChecking, Custom] void getParameter();
 
-  [Custom] any getProgramParameter(in WebGLProgram program, in unsigned long pname) raises(DOMException);
+  [Custom] any getProgramParameter(in WebGLProgram program, in unsigned long pname);
   [Suppressed, StrictTypeChecking, Custom] void getProgramParameter();
 
-  [Custom] any getRenderbufferParameter(in unsigned long target, in unsigned long pname) raises(DOMException);
+  [Custom] any getRenderbufferParameter(in unsigned long target, in unsigned long pname);
   [Suppressed, StrictTypeChecking, Custom] void getRenderbufferParameter();
 
-  [Custom] any getShaderParameter(in WebGLShader shader, in unsigned long pname) raises(DOMException);
-  [Suppressed, StrictTypeChecking, Custom] void getShaderParameter() raises(DOMException);
+  [Custom] any getShaderParameter(in WebGLShader shader, in unsigned long pname);
+  [Suppressed, StrictTypeChecking, Custom] void getShaderParameter();
 
   // TBD
   // void glGetShaderPrecisionFormat (GLenum shadertype, GLenum precisiontype, GLint* range, GLint* precision);
@@ -132,16 +132,15 @@ interface WebGLRenderingContext {
   [Custom] DOMString[] getSupportedExtensions();
   [Suppressed, StrictTypeChecking, Custom] void getSupportedExtensions();
 
-  [Custom] any getTexParameter(in unsigned long target, in unsigned long pname) raises(DOMException);
+  [Custom] any getTexParameter(in unsigned long target, in unsigned long pname);
   [Suppressed, StrictTypeChecking, Custom] void getTexParameter();
 
-  [Custom] any getUniform(in WebGLProgram program, in WebGLUniformLocation location) raises(DOMException);
+  [Custom] any getUniform(in WebGLProgram program, in WebGLUniformLocation location);
   [Suppressed, StrictTypeChecking, Custom] void getUniform();
 
-  [Custom] any getVertexAttrib(in unsigned long index, in unsigned long pname) raises(DOMException);
+  [Custom] any getVertexAttrib(in unsigned long index, in unsigned long pname);
   [Suppressed, StrictTypeChecking, Custom] void getVertexAttrib();
 };
-
 [Supplemental]
 interface CSSStyleDeclaration {
   void setProperty(in DOMString propertyName, in DOMString value, [Optional] in DOMString priority);
@@ -214,20 +213,16 @@ interface DataView {
   // uint8_t getUint8(in unsigned long byteOffset);
   [Suppressed] any getInt8();
   [Suppressed] any getUint8();
-  byte getInt8(in unsigned long byteOffset)
-      raises (DOMException);
-  octet getUint8(in unsigned long byteOffset)
-      raises (DOMException);
+  [RaisesException] byte getInt8(in unsigned long byteOffset);
+  [RaisesException] octet getUint8(in unsigned long byteOffset);
 
   // We have to use custom code because our code generator does not support uint8_t type.
   // void setInt8(in unsigned long byteOffset, in int8_t value);
   // void setUint8(in unsigned long byteOffset, in uint8_t value);
   [Suppressed] void setInt8();
   [Suppressed] void setUint8();
-  void setInt8(in unsigned long byteOffset, in byte value)
-      raises (DOMException);
-  void setUint8(in unsigned long byteOffset, in octet value)
-      raises (DOMException);
+  [RaisesException] void setInt8(in unsigned long byteOffset, in byte value);
+  [RaisesException] void setUint8(in unsigned long byteOffset, in octet value);
 };
 
 // TODO(vsm): Define new names for these (see b/4436830).
@@ -239,20 +234,17 @@ interface IDBCursor {
 interface IDBDatabase {
   // These variants are slated for removal from WebKit.  Suppress to bring our
   // API in line with the most recent spec.
-  [Suppressed, CallWith=ScriptExecutionContext] IDBTransaction transaction(in DOMStringList storeNames, in unsigned short mode)
-      raises (IDBDatabaseException);
-  [Suppressed, CallWith=ScriptExecutionContext] IDBTransaction transaction(in DOMString[] storeNames, in unsigned short mode)
-      raises (IDBDatabaseException);
-  [Suppressed, CallWith=ScriptExecutionContext] IDBTransaction transaction(in DOMString storeName, in unsigned short mode)
-      raises (IDBDatabaseException);
+  [Suppressed, CallWith=ScriptExecutionContext] IDBTransaction transaction(in DOMStringList storeNames, in unsigned short mode);
+  [Suppressed, CallWith=ScriptExecutionContext] IDBTransaction transaction(in DOMString[] storeNames, in unsigned short mode);
+  [Suppressed, CallWith=ScriptExecutionContext] IDBTransaction transaction(in DOMString storeName, in unsigned short mode);
 };
 
 [Supplemental]
 interface IDBKeyRange {
-  [DartName=only_] static IDBKeyRange only(in any value) raises (IDBDatabaseException);
-  [DartName=lowerBound_] static IDBKeyRange lowerBound(in any bound, [Optional] in boolean open) raises (IDBDatabaseException);
-  [DartName=upperBound_] static IDBKeyRange upperBound(in any bound, [Optional] in boolean open) raises (IDBDatabaseException);
-  [DartName=bound_] static IDBKeyRange bound(in any lower, in any upper, [Optional] in boolean lowerOpen, [Optional] in boolean upperOpen) raises (IDBDatabaseException);
+  [DartName=only_] static IDBKeyRange only(in any value);
+  [DartName=lowerBound_] static IDBKeyRange lowerBound(in any bound, [Optional] in boolean open);
+  [DartName=upperBound_] static IDBKeyRange upperBound(in any bound, [Optional] in boolean open);
+  [DartName=bound_] static IDBKeyRange bound(in any lower, in any upper, [Optional] in boolean lowerOpen, [Optional] in boolean upperOpen);
 };
 
 interface EntrySync {
@@ -298,8 +290,7 @@ interface SVGNumber {
 interface MutationObserver {
   // Rename 'observe' so we can define a new 'observe' API that calls the
   // original.
-  [DartName=_observe] void observe(in Node target, in Dictionary options)
-      raises(DOMException);
+  [DartName=_observe] void observe(in Node target, in Dictionary options);
 };
 
   [Supplemental,
@@ -324,33 +315,26 @@ interface SQLResultSetRowList {
 interface WebSocket {
   // Suppress the default since it has non-standard return type and add
   // overrides.
-  [Suppressed] boolean send(in ArrayBuffer data) raises(DOMException);
-  [Suppressed] boolean send(in ArrayBufferView data) raises(DOMException);
-  [Suppressed] boolean send(in Blob data) raises(DOMException);
-  [Suppressed] boolean send(in DOMString data) raises(DOMException);
+  [Suppressed] boolean send(in ArrayBuffer data);
+  [Suppressed] boolean send(in ArrayBufferView data);
+  [Suppressed] boolean send(in Blob data);
+  [Suppressed] boolean send(in DOMString data);
 
-  [Custom] void send(DOMString data) raises(DOMException);
-  [Custom] void send(Blob data) raises(DOMException);
-  [Custom] void send(ArrayBuffer data) raises(DOMException);
-  [Custom] void send(ArrayBufferView data) raises(DOMException);
+  [Custom] void send(DOMString data);
+  [Custom] void send(Blob data);
+  [Custom] void send(ArrayBuffer data);
+  [Custom] void send(ArrayBufferView data);
 };
 
 [Supplemental]
 interface XMLHttpRequest {
-   [Custom] void send()
-       raises(DOMException);
-   [Custom] void send(in ArrayBuffer data) // FIXME: this should be eventually deprecated.
-       raises(DOMException);
-   [Custom] void send(in ArrayBufferView data)
-       raises(DOMException);
-   [Custom] void send(in Blob data)
-       raises(DOMException);
-   [Custom] void send(in Document data)
-       raises(DOMException);
-   [Custom] void send([StrictTypeChecking] in DOMString data)
-       raises(DOMException);
-   [Custom] void send(in DOMFormData data)
-       raises(DOMException);
+   [Custom] void send();
+   [Custom] void send(in ArrayBuffer data); // FIXME: this should be eventually deprecated.
+   [Custom] void send(in ArrayBufferView data);
+   [Custom] void send(in Blob data);
+   [Custom] void send(in Document data);
+   [Custom] void send([StrictTypeChecking] in DOMString data);
+   [Custom] void send(in DOMFormData data);
 };
 
 

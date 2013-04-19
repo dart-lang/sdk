@@ -175,23 +175,16 @@ class IDLParser(object):
       return syntax_switch(
         # Web IDL:
         [MAYBE(ExtAttrs), MAYBE(Stringifier), MAYBE(ReadOnly),
-         'attribute', Type, Id, MAYBE(_AttrRaises), ';'],
+         'attribute', Type, Id, ';'],
         # WebKit:
         [
           MAYBE(Stringifier),
           MAYBE(ExtAttrs), MAYBE(Static), MAYBE(ReadOnly), 'attribute', MAYBE(ExtAttrs),
-          Type, Id, MAYBE(_AttrRaises), ';'],
+          Type, Id, ';'],
         # FremontCut:
         [MAYBE(_Annotations), MAYBE(ExtAttrs),
          MAYBE(_AttrGetterSetter), MAYBE(Stringifier), MAYBE(ReadOnly),
-         'attribute', Type, Id, MAYBE(_AttrRaises), ';'])
-
-    def _AttrRaises():
-      return syntax_switch(
-        # Web IDL:
-        MANY(OR(GetRaises, SetRaises)),
-        # WebKit:
-        MANY(OR(GetRaises, SetRaises, Raises), separator=','))
+         'attribute', Type, Id, ';'])
 
     # Special fremontcut feature:
     def _AttrGetterSetter():
@@ -206,35 +199,18 @@ class IDLParser(object):
     def ReadOnly():
       return 'readonly'
 
-    def GetRaises():
-      return syntax_switch(
-        # Web IDL:
-        ['getraises', '(', _ScopedNames, ')'],
-        # WebKit:
-        ['getter', 'raises', '(', _ScopedNames, ')'])
-
-    def SetRaises():
-      return syntax_switch(
-        # Web IDL:
-        ['setraises', '(', _ScopedNames, ')'],
-        # WebKit:
-        ['setter', 'raises', '(', _ScopedNames, ')'])
-
     # Operation:
     def Operation():
       return syntax_switch(
         # Web IDL:
         [MAYBE(ExtAttrs), MAYBE(Static), MAYBE(Stringifier), MAYBE(_Specials),
-         ReturnType, MAYBE(Id), '(', _Arguments, ')', MAYBE(Raises),
-         ';'],
+         ReturnType, MAYBE(Id), '(', _Arguments, ')', ';'],
         # WebKit:
         [MAYBE(ExtAttrs), MAYBE(Static),
-         ReturnType, MAYBE(Id), '(', _Arguments, ')',
-         MAYBE(Raises), ';'],
+         ReturnType, MAYBE(Id), '(', _Arguments, ')', ';'],
         # FremontCut:
         [MAYBE(_Annotations), MAYBE(ExtAttrs), MAYBE(Static), MAYBE(Stringifier),
-         MAYBE(_Specials), ReturnType, MAYBE(Id), '(', _Arguments, ')',
-         MAYBE(Raises), ';'])
+         MAYBE(_Specials), ReturnType, MAYBE(Id), '(', _Arguments, ')', ';'])
 
     def Static():
       return 'static'
@@ -247,9 +223,6 @@ class IDLParser(object):
 
     def Stringifier():
       return 'stringifier'
-
-    def Raises():
-      return ['raises', '(', _ScopedNames, ')']
 
     # Operation arguments:
     def _Arguments():

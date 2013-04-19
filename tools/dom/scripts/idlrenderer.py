@@ -153,13 +153,6 @@ def render(idl_node, indent_str='  '):
         w('?')
       w(' ')
       w(node.id)
-      if node.raises:
-        w(' raises (%s)' % node.raises.id)
-      else:
-        if node.get_raises:
-          w(' getraises (%s)' % node.get_raises.id)
-        if node.set_raises:
-          w(' setraises (%s)' % node.set_raises.id)
       wln(';')
     elif isinstance(node, IDLConstant):
       wsp(node.annotations)
@@ -181,8 +174,6 @@ def render(idl_node, indent_str='  '):
       w('(')
       w(node.arguments, ', ')
       w(')')
-      if node.raises:
-        w(' raises (%s)' % node.raises.id)
       wln(';')
     elif isinstance(node, IDLArgument):
       wsp(node.ext_attrs)

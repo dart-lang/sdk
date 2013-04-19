@@ -468,7 +468,6 @@ class IDLOperation(IDLMember):
     IDLMember.__init__(self, ast, doc_js_interface_name)
     self.type = self._convert_first(ast, 'ReturnType', IDLType)
     self.arguments = self._convert_all(ast, 'Argument', IDLArgument)
-    self.raises = self._convert_first(ast, 'Raises', IDLType)
     self.specials = self._find_all(ast, 'Special')
     self.is_stringifier = self._has(ast, 'Stringifier')
   def _extra_repr(self):
@@ -481,15 +480,9 @@ class IDLAttribute(IDLMember):
     IDLMember.__init__(self, ast, doc_js_interface_name)
     self.is_read_only = self._has(ast, 'ReadOnly')
     # There are various ways to define exceptions for attributes:
-    self.raises = self._convert_first(ast, 'Raises', IDLType)
-    self.get_raises = self.raises \
-      or self._convert_first(ast, 'GetRaises', IDLType)
-    self.set_raises = self.raises \
-      or self._convert_first(ast, 'SetRaises', IDLType)
   def _extra_repr(self):
     extra = []
     if self.is_read_only: extra.append('readonly')
-    if self.raises: extra.append('raises')
     return extra
 
 class IDLConstant(IDLMember):
