@@ -70,13 +70,16 @@ class SystemCache {
     // Try to get it from the system cache first.
     if (id.source.shouldCache) {
       return id.systemCacheDirectory.then((packageDir) {
-        if (!dirExists(packageDir)) return id.describe();
+        if (!fileExists(path.join(packageDir, "pubspec.yaml"))) {
+          return id.source.describe(id);
+        }
+
         return new Pubspec.load(id.name, packageDir, sources);
       });
     }
 
     // Not cached, so get it from the source.
-    return id.describe();
+    return id.source.describe(id);
   }
 
   /// Ensures that the package identified by [id] is installed to the cache,

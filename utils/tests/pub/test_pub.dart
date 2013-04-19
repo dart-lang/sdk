@@ -57,6 +57,10 @@ bool get runningOnBuildbot =>
 /// The current [HttpServer] created using [serve].
 var _server;
 
+/// The list of paths that have been requested from the server since the last
+/// call to [getRequestedPaths].
+final _requestedPaths = <String>[];
+
 /// The cached value for [_portCompleter].
 Completer<int> _portCompleterCache;
 
@@ -73,6 +77,16 @@ Completer<int> get _portCompleter {
 /// A future that will complete to the port used for the current server.
 Future<int> get port => _portCompleter.future;
 
+/// Gets the list of paths that have been requested from the server since the
+/// last time this was called (or since the server was first spun up).
+Future<List<String>> getRequestedPaths() {
+  return schedule(() {
+    var paths = _requestedPaths.toList();
+    _requestedPaths.clear();
+    return paths;
+  });
+}
+
 /// Creates an HTTP server to serve [contents] as static files. This server will
 /// exist only for the duration of the pub run.
 ///
@@ -88,6 +102,10 @@ void serve([List<d.Descriptor> contents]) {
           var response = request.response;
           try {
             var path = request.uri.path.replaceFirst("/", "");
+
+            if (_requestedPaths == null) _requestedPaths = <String>[];
+            _requestedPaths.add(path);
+
             response.persistentConnection = false;
             var stream = baseDir.load(path);
 

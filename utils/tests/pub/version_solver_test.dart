@@ -888,6 +888,10 @@ class MockSource extends Source {
 
   MockSource(this.name);
 
+  Future<String> systemCacheDirectory(PackageId id) {
+    return new Future.value('${id.name}-${id.version}');
+  }
+
   Future<List<Version>> getVersions(String name, String description) {
     return new Future.sync(() {
       // Make sure the solver doesn't request the same thing twice.

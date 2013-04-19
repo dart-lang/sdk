@@ -146,7 +146,7 @@ class PackageId implements Comparable<PackageId> {
   }
 
   /// Returns the pubspec for this package.
-  Future<Pubspec> describe() => source.describe(this);
+  Future<Pubspec> describe() => source.systemCache.describe(this);
 
   /// Returns a future that completes to the resovled [PackageId] for this id.
   Future<PackageId> get resolved => source.resolveId(this);

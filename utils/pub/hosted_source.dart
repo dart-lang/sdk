@@ -49,11 +49,16 @@ class HostedSource extends Source {
   /// Downloads and parses the pubspec for a specific version of a package that
   /// is available from the site.
   Future<Pubspec> describe(PackageId id) {
+    // Request it from the server.
     var url = _makeVersionUrl(id, (server, package, version) =>
         "$server/packages/$package/versions/$version.yaml");
 
     log.io("Describe package at $url.");
     return httpClient.read(url).then((yaml) {
+      // TODO(rnystrom): After this is pulled down, we could place it in
+      // a secondary cache of just pubspecs. This would let us have a
+      // persistent cache for pubspecs for packages that haven't actually
+      // been installed.
       return new Pubspec.parse(null, yaml, systemCache.sources);
     }).catchError((ex) {
       var parsed = _parseDescription(id.description);
@@ -122,11 +127,11 @@ class HostedSource extends Source {
     var cacheDir = path.join(systemCacheRoot,
                              _getSourceDirectory(_defaultUrl));
     if (!dirExists(cacheDir)) return [];
-  
+
     return listDir(path.join(cacheDir)).map((entry) =>
         new Package.load(null, entry, systemCache.sources)).toList();
   }
-  
+
   /// When an error occurs trying to read something about [package] from [url],
   /// this tries to translate into a more user friendly error message. Always
   /// throws an error, either the original one or a better one.
