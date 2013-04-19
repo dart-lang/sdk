@@ -285,13 +285,86 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
 }
 
 
+// Generates inlined check if 'type' is a type parameter or type itself
+// R0: instance (preserved).
 RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     intptr_t token_pos,
     const AbstractType& type,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
-  UNIMPLEMENTED();
-  return NULL;
+  __ Comment("UninstantiatedTypeTest");
+  ASSERT(!type.IsInstantiated());
+  // Skip check if destination is a dynamic type.
+  if (type.IsTypeParameter()) {
+    const TypeParameter& type_param = TypeParameter::Cast(type);
+    // Load instantiator (or null) and instantiator type arguments on stack.
+    __ ldr(R1, Address(SP, 0));  // Get instantiator type arguments.
+    // R1: instantiator type arguments.
+    // Check if type argument is dynamic.
+    __ CompareImmediate(R1, reinterpret_cast<intptr_t>(Object::null()));
+    __ b(is_instance_lbl, EQ);
+    // Can handle only type arguments that are instances of TypeArguments.
+    // (runtime checks canonicalize type arguments).
+    Label fall_through;
+    __ CompareClassId(R1, kTypeArgumentsCid, R2);
+    __ b(&fall_through, NE);
+    __ ldr(R2,
+        FieldAddress(R1, TypeArguments::type_at_offset(type_param.index())));
+    // R2: concrete type of type.
+    // Check if type argument is dynamic.
+    __ CompareObject(R2, Type::ZoneHandle(Type::DynamicType()));
+    __ b(is_instance_lbl, EQ);
+    __ CompareImmediate(R2, reinterpret_cast<intptr_t>(Object::null()));
+    __ b(is_instance_lbl, EQ);
+    const Type& object_type = Type::ZoneHandle(Type::ObjectType());
+    __ CompareObject(R2, object_type);
+    __ b(is_instance_lbl, EQ);
+
+    // For Smi check quickly against int and num interfaces.
+    Label not_smi;
+    __ tst(R0, ShifterOperand(kSmiTagMask));  // Value is Smi?
+    __ b(&not_smi, NE);
+    __ CompareObject(R2, Type::ZoneHandle(Type::IntType()));
+    __ b(is_instance_lbl, EQ);
+    __ CompareObject(R2, Type::ZoneHandle(Type::Number()));
+    __ b(is_instance_lbl, EQ);
+    // Smi must be handled in runtime.
+    __ b(&fall_through);
+
+    __ Bind(&not_smi);
+    // R1: instantiator type arguments.
+    // R0: instance.
+    const Register kInstanceReg = R0;
+    const Register kTypeArgumentsReg = R1;
+    const Register kTempReg = kNoRegister;
+    const SubtypeTestCache& type_test_cache =
+        SubtypeTestCache::ZoneHandle(
+            GenerateCallSubtypeTestStub(kTestTypeThreeArgs,
+                                        kInstanceReg,
+                                        kTypeArgumentsReg,
+                                        kTempReg,
+                                        is_instance_lbl,
+                                        is_not_instance_lbl));
+    __ Bind(&fall_through);
+    return type_test_cache.raw();
+  }
+  if (type.IsType()) {
+    const Register kInstanceReg = R0;
+    const Register kTypeArgumentsReg = R1;
+    __ tst(kInstanceReg, ShifterOperand(kSmiTagMask));  // Is instance Smi?
+    __ b(is_not_instance_lbl, EQ);
+    __ ldr(kTypeArgumentsReg, Address(SP, 0));  // Instantiator type args.
+    // Uninstantiated type class is known at compile time, but the type
+    // arguments are determined at runtime by the instantiator.
+    const Register kTempReg = kNoRegister;
+    return GenerateCallSubtypeTestStub(kTestTypeThreeArgs,
+                                       kInstanceReg,
+                                       kTypeArgumentsReg,
+                                       kTempReg,
+                                       is_instance_lbl,
+                                       is_not_instance_lbl);
+  }
+  return SubtypeTestCache::null();
 }
 
 
@@ -394,7 +467,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
   // Assignable check is skipped in FlowGraphBuilder, not here.
   ASSERT(dst_type.IsMalformed() ||
          (!dst_type.IsDynamicType() && !dst_type.IsObjectType()));
-  // Preserve instantiator and its type arguments.
+  // Preserve instantiator (R2) and its type arguments (R1).
   __ PushList((1 << R1) | (1 << R2));
   // A null object is always assignable and is returned as result.
   Label is_assignable, runtime_call;
@@ -425,7 +498,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
     __ bkpt(0);
 
     __ Bind(&is_assignable);  // For a null object.
-    // Restore instantiator and its type arguments.
+    // Restore instantiator (R2) and its type arguments (R1).
     __ PopList((1 << R1) | (1 << R2));
     return;
   }
@@ -436,12 +509,12 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
                                         &is_assignable, &runtime_call);
 
   __ Bind(&runtime_call);
-  // Load instantiator and its type arguments.
+  // Load instantiator (R2) and its type arguments (R1).
   __ ldm(IA, SP,  (1 << R1) | (1 << R2));
   __ PushObject(Object::ZoneHandle());  // Make room for the result.
   __ Push(R0);  // Push the source object.
   __ PushObject(dst_type);  // Push the type of the destination.
-  // Push instantiator and its type arguments.
+  // Push instantiator (R2) and its type arguments (R1).
   __ PushList((1 << R1) | (1 << R2));
   __ PushObject(dst_name);  // Push the name of the destination.
   __ LoadObject(R0, test_cache);
@@ -453,7 +526,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
   __ Pop(R0);
 
   __ Bind(&is_assignable);
-  // Restore instantiator and its type arguments.
+  // Restore instantiator (R2) and its type arguments (R1).
   __ PopList((1 << R1) | (1 << R2));
 }
 

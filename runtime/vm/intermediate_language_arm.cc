@@ -208,8 +208,8 @@ LocationSummary* AssertAssignableInstr::MakeLocationSummary() const {
   LocationSummary* summary =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
   summary->set_in(0, Location::RegisterLocation(R0));  // Value.
-  summary->set_in(1, Location::RegisterLocation(R1));  // Instantiator.
-  summary->set_in(2, Location::RegisterLocation(R2));  // Type arguments.
+  summary->set_in(1, Location::RegisterLocation(R2));  // Instantiator.
+  summary->set_in(2, Location::RegisterLocation(R1));  // Type arguments.
   summary->set_out(Location::RegisterLocation(R0));
   return summary;
 }
@@ -344,7 +344,7 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary() const {
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
   locs->set_in(0, Location::RegisterLocation(R1));
   locs->set_in(1, Location::RegisterLocation(R0));
-  locs->set_temp(0, Location::RegisterLocation(R6));
+  locs->set_temp(0, Location::RegisterLocation(R5));
   locs->set_out(Location::RegisterLocation(R0));
   return locs;
 }
@@ -352,7 +352,7 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary() const {
 
 // R1: left.
 // R0: right.
-// Uses R6 to load ic_call_data.
+// Uses R5 to load ic_call_data.
 static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
                                        intptr_t deopt_id,
                                        intptr_t token_pos,
@@ -405,13 +405,9 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
   Label equality_done;
   if (compiler->is_optimizing()) {
     // No need to update IC data.
-    Label is_true;
     __ cmp(R0, ShifterOperand(R1));
-    __ b(&is_true, EQ);
-    __ LoadObject(R0, (kind == Token::kEQ) ? Bool::False() : Bool::True());
-    __ b(&equality_done);
-    __ Bind(&is_true);
-    __ LoadObject(R0, (kind == Token::kEQ) ? Bool::True() : Bool::False());
+    __ LoadObject(R0, (kind == Token::kEQ) ? Bool::False() : Bool::True(), NE);
+    __ LoadObject(R0, (kind == Token::kEQ) ? Bool::True() : Bool::False(), EQ);
     if (kind == Token::kNE) {
       // Skip not-equal result conversion.
       __ b(&equality_done);
@@ -420,7 +416,7 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
     // Call stub, load IC data in register. The stub will update ICData if
     // necessary.
     Register ic_data_reg = locs->temp(0).reg();
-    ASSERT(ic_data_reg == R6);  // Stub depends on it.
+    ASSERT(ic_data_reg == R5);  // Stub depends on it.
     __ LoadObject(ic_data_reg, equality_ic_data);
     // Pass left in R1 and right in R0.
     compiler->GenerateCall(token_pos,
@@ -430,15 +426,10 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
   }
   __ Bind(&check_ne);
   if (kind == Token::kNE) {
-    Label true_label, done;
     // Negate the condition: true label returns false and vice versa.
     __ CompareObject(R0, Bool::True());
-    __ b(&true_label, EQ);
-    __ LoadObject(R0, Bool::True());
-    __ b(&done);
-    __ Bind(&true_label);
-    __ LoadObject(R0, Bool::False());
-    __ Bind(&done);
+    __ LoadObject(R0, Bool::True(), NE);
+    __ LoadObject(R0, Bool::False(), EQ);
   }
   __ Bind(&equality_done);
 }
@@ -488,6 +479,25 @@ static void EmitGenericEqualityCompare(FlowGraphCompiler* compiler,
 }
 
 
+static Condition NegateCondition(Condition condition) {
+  switch (condition) {
+    case EQ: return NE;
+    case NE: return EQ;
+    case LT: return GE;
+    case LE: return GT;
+    case GT: return LE;
+    case GE: return LT;
+    case CC: return CS;
+    case LS: return HI;
+    case HI: return LS;
+    case CS: return CC;
+    default:
+      UNIMPLEMENTED();
+      return EQ;
+  }
+}
+
+
 static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
                                 const LocationSummary& locs,
                                 Token::Kind kind,
@@ -511,13 +521,8 @@ static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
     branch->EmitBranchOnCondition(compiler, true_condition);
   } else {
     Register result = locs.out().reg();
-    Label done, is_true;
-    __ b(&is_true, true_condition);
-    __ LoadObject(result, Bool::False());
-    __ b(&done);
-    __ Bind(&is_true);
-    __ LoadObject(result, Bool::True());
-    __ Bind(&done);
+    __ LoadObject(result, Bool::True(), true_condition);
+    __ LoadObject(result, Bool::False(), NegateCondition(true_condition));
   }
 }
 
@@ -2120,26 +2125,6 @@ void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-static Condition NegateCondition(Condition condition) {
-  switch (condition) {
-    case EQ: return NE;
-    case NE: return EQ;
-    case LT: return GE;
-    case LE: return GT;
-    case GT: return LE;
-    case GE: return LT;
-    case CC: return CS;
-    case LS: return HI;
-    case HI: return LS;
-    case CS: return CC;
-    default:
-      OS::Print("Error %d\n", condition);
-      UNIMPLEMENTED();
-      return EQ;
-  }
-}
-
-
 void ControlInstruction::EmitBranchOnValue(FlowGraphCompiler* compiler,
                                            bool value) {
   if (value && !compiler->CanFallThroughTo(true_successor())) {
@@ -2221,14 +2206,9 @@ void StrictCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   Register result = locs()->out().reg();
-  Label load_true, done;
   Condition true_condition = (kind() == Token::kEQ_STRICT) ? EQ : NE;
-  __ b(&load_true, true_condition);
-  __ LoadObject(result, Bool::False());
-  __ b(&done);
-  __ Bind(&load_true);
-  __ LoadObject(result, Bool::True());
-  __ Bind(&done);
+  __ LoadObject(result, Bool::True(), true_condition);
+  __ LoadObject(result, Bool::False(), NegateCondition(true_condition));
 }
 
 
@@ -2275,12 +2255,9 @@ void BooleanNegateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
   Register result = locs()->out().reg();
 
-  Label done;
   __ LoadObject(result, Bool::True());
   __ cmp(result, ShifterOperand(value));
-  __ b(&done, NE);
-  __ LoadObject(result, Bool::False());
-  __ Bind(&done);
+  __ LoadObject(result, Bool::False(), EQ);
 }
 
 

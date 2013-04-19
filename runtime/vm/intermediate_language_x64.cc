@@ -128,7 +128,6 @@ static Condition NegateCondition(Condition condition) {
     case ABOVE:         return BELOW_EQUAL;
     case ABOVE_EQUAL:   return BELOW;
     default:
-      OS::Print("Error %d\n", condition);
       UNIMPLEMENTED();
       return EQUAL;
   }

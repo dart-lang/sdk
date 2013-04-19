@@ -1919,7 +1919,7 @@ void StubCode::GenerateEqualityWithNullArgStub(Assembler* assembler) {
   }
 #endif  // DEBUG
   // Check IC data, update if needed.
-  // EBX: IC data object (preserved).
+  // ECX: IC data object (preserved).
   __ movl(EBX, FieldAddress(ECX, ICData::ic_data_offset()));
   // EBX: ic_data_array with check entries: classes and target functions.
   __ leal(EBX, FieldAddress(EBX, Array::data_offset()));
