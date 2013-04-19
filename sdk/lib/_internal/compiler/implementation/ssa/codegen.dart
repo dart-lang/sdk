@@ -2537,26 +2537,28 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
     HInstruction input = node.guarded;
     DartType indexingBehavior =
         backend.jsIndexingBehaviorInterface.computeType(compiler);
+    String message;
+    js.Expression test;
     if (node.isInteger()) {
       // if (input is !int) bailout
       checkInt(input, '!==');
-      js.Statement then = bailout(node, 'Not an integer');
-      pushStatement(new js.If.noElse(pop(), then), node);
+      test = pop();
+      message = 'Not an integer';
     } else if (node.isNumber()) {
       // if (input is !num) bailout
       checkNum(input, '!==');
-      js.Statement then = bailout(node, 'Not a number');
-      pushStatement(new js.If.noElse(pop(), then), node);
+      test = pop();
+      message = 'Not a number';
     } else if (node.isBoolean()) {
       // if (input is !bool) bailout
       checkBool(input, '!==');
-      js.Statement then = bailout(node, 'Not a boolean');
-      pushStatement(new js.If.noElse(pop(), then), node);
+      test = pop();
+      message = 'Not a boolean';
     } else if (node.isString()) {
       // if (input is !string) bailout
       checkString(input, '!==');
-      js.Statement then = bailout(node, 'Not a string');
-      pushStatement(new js.If.noElse(pop(), then), node);
+      test = pop();
+      message = 'Not a string';
     } else if (node.isExtendableArray()) {
       // if (input is !Object || input is !Array || input.isFixed) bailout
       checkObject(input, '!==');
@@ -2564,10 +2566,9 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
       checkArray(input, '!==');
       js.Expression arrayTest = pop();
       checkFixedArray(input);
-      js.Binary test = new js.Binary('||', objectTest, arrayTest);
+      test = new js.Binary('||', objectTest, arrayTest);
       test = new js.Binary('||', test, pop());
-      js.Statement then = bailout(node, 'Not an extendable array');
-      pushStatement(new js.If.noElse(test, then), node);
+      message = 'Not an extendable array';
     } else if (node.isMutableArray()) {
       // if (input is !Object
       //     || ((input is !Array || input.isImmutable)
@@ -2580,9 +2581,8 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
       js.Binary notArrayOrImmutable = new js.Binary('||', arrayTest, pop());
       checkType(input, indexingBehavior, negative: true);
       js.Binary notIndexing = new js.Binary('&&', notArrayOrImmutable, pop());
-      js.Binary test = new js.Binary('||', objectTest, notIndexing);
-      js.Statement then = bailout(node, 'Not a mutable array');
-      pushStatement(new js.If.noElse(test, then), node);
+      test = new js.Binary('||', objectTest, notIndexing);
+      message = 'Not a mutable array';
     } else if (node.isReadableArray()) {
       // if (input is !Object
       //     || (input is !Array && input is !JsIndexingBehavior)) bailout
@@ -2592,9 +2592,8 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
       js.Expression arrayTest = pop();
       checkType(input, indexingBehavior, negative: true);
       js.Expression notIndexing = new js.Binary('&&', arrayTest, pop());
-      js.Binary test = new js.Binary('||', objectTest, notIndexing);
-      js.Statement then = bailout(node, 'Not an array');
-      pushStatement(new js.If.noElse(test, then), node);
+      test = new js.Binary('||', objectTest, notIndexing);
+      message = 'Not an array';
     } else if (node.isIndexablePrimitive()) {
       // if (input is !String
       //     && (input is !Object
@@ -2609,13 +2608,12 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
       js.Binary notIndexingTest = new js.Binary('&&', arrayTest, pop());
       js.Binary notObjectOrIndexingTest =
           new js.Binary('||', objectTest, notIndexingTest);
-      js.Binary test =
-          new js.Binary('&&', stringTest, notObjectOrIndexingTest);
-      js.Statement then = bailout(node, 'Not a string or array');
-      pushStatement(new js.If.noElse(test, then), node);
+      test = new js.Binary('&&', stringTest, notObjectOrIndexingTest);
+      message = 'Not a string or array';
     } else {
       compiler.internalError('Unexpected type guard', instruction: input);
     }
+    pushStatement(new js.If.noElse(test, bailout(node, message)), node);
   }
 
   void visitBailoutTarget(HBailoutTarget target) {
