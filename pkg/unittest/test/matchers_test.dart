@@ -238,22 +238,22 @@ void main() {
     });
 
     test('scalar type mismatch', () {
-      shouldFail('error', equals(5.0),
-          matches("^Expected: <5\.0>"
+      shouldFail('error', equals(5.1),
+          matches("^Expected: <5\.1>"
                   "     but: was .*:'error' \\(not type .*\\)\.\$"));
     });
 
     test('nested type mismatch', () {
-      shouldFail(['error'], equals([5.0]),
-          matches(r"^Expected: <\[5\.0\]>"
-                  "     but: expected double:<5\.0> "
+      shouldFail(['error'], equals([5.1]),
+          matches(r"^Expected: <\[5\.1\]>"
+                  "     but: expected double:<5\.1> "
                   "but was .*:'error' mismatch at position 0\.\$"));
     });
 
     test('doubly-nested type mismatch', () {
-      shouldFail([['error']], equals([[5.0]]),
-          matches(r"^Expected: <\[\[5\.0\]\]>"
-                  "     but: expected double:<5\.0> "
+      shouldFail([['error']], equals([[5.1]]),
+          matches(r"^Expected: <\[\[5\.1\]\]>"
+                  "     but: expected double:<5\.1> "
                   "but was .*:'error' mismatch at position 0 "
                   "mismatch at position 0\.\$"));
     });
