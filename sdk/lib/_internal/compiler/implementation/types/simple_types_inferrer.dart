@@ -288,10 +288,20 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
    * position will be typed as dynamic.
    */
   // TODO(erikcorry): Autogenerate the alphanumeric names in this set.
-  Set<String> PREDICATES = ['moveNext',
-                            'identicalImplementation',
-                            'identical',
-                            '==', '<=', '>=', '<', '>'].toSet();
+  Set<SourceString> PREDICATES = new Set<SourceString>.from([
+      const SourceString('=='),
+      const SourceString('<='),
+      const SourceString('>='),
+      const SourceString('>'),
+      const SourceString('<'),
+      const SourceString('moveNext')]);
+
+  bool shouldOptimisticallyOptimizeToBool(Element element) {
+    return element == compiler.identicalFunction.implementation
+        || (element.isFunction()
+            && element.isInstanceMember()
+            && PREDICATES.contains(element.name));
+  }
 
   final Compiler compiler;
 
@@ -437,9 +447,9 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
         // mapping.
         if (mapping == null) return;
         if (element.isAbstract(compiler)) return;
-        if (element.isFunction() &&
-            PREDICATES.contains(element.name.slowToString())) {
-          // Add the relational operators, ==, !=, <, etc., before any others.
+        // Add the relational operators, ==, !=, <, etc., before any
+        // others, as well as the identical function.
+        if (shouldOptimisticallyOptimizeToBool(element)) {
           workSet.add(element);
           // Optimistically assume that they return bool.  We may need to back
           // out of this.
@@ -607,11 +617,12 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
    * [analyzedElement].
    */
   bool recordReturnType(Element analyzedElement, TypeMask returnType) {
-    if (optimismState == OPTIMISTIC &&
-        returnType != boolType &&
-        PREDICATES.contains(analyzedElement.name.slowToString())) {
-      // One of the relational operators (==, <, ...) turned out not to return
-      // boolean.  This means we need to restart the analysis.
+    assert(analyzedElement.implementation == analyzedElement);
+    if (optimismState == OPTIMISTIC
+        && shouldOptimisticallyOptimizeToBool(analyzedElement)
+        && returnType != returnTypeOf[analyzedElement]) {
+      // One of the functions turned out not to return what we expected.
+      // This means we need to restart the analysis.
       optimismState = RETRY;
     }
     return internalRecordType(analyzedElement, returnType, returnTypeOf);
