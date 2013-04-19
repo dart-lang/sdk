@@ -201,9 +201,10 @@ String _currentGroup = '';
 /** Separator used between group names and test names. */
 String groupSep = ' ';
 
-// TODO(nweiz): present an unmodifiable view of this once issue 8321 is fixed.
+final List<TestCase> _testCases = new List<TestCase>();
+
 /** Tests executed in this suite. */
-final List<TestCase> testCases = new List<TestCase>();
+final List<TestCase> testCases = new UnmodifiableListView<TestCase>(_testCases);
 
 /** Setup function called before each test in a group */
 Function _testSetup;
@@ -252,8 +253,8 @@ Map testState = {};
  */
 void test(String spec, TestFunction body) {
   ensureInitialized();
-  testCases.add(new TestCase._internal(testCases.length + 1, _fullSpec(spec),
-                                       body));
+  _testCases.add(new TestCase._internal(testCases.length + 1, _fullSpec(spec),
+                                        body));
 }
 
 /**
@@ -275,8 +276,9 @@ void solo_test(String spec, TestFunction body) {
 
   ensureInitialized();
 
-  _soloTest = new TestCase._internal(testCases.length + 1, _fullSpec(spec), body);
-  testCases.add(_soloTest);
+  _soloTest = new TestCase._internal(testCases.length + 1, _fullSpec(spec),
+                                     body);
+  _testCases.add(_soloTest);
 }
 
 /** Sentinel value for [_SpreadArgsHelper]. */
@@ -690,7 +692,7 @@ void filterTests(testFilter) {
   } else if (testFilter is Function) {
     filterFunction = testFilter;
   }
-  testCases.retainWhere(filterFunction);
+  _testCases.retainWhere(filterFunction);
 }
 
 /** Runs all queued tests, one at a time. */
