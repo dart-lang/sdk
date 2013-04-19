@@ -30,6 +30,12 @@ class LiveInterval {
   final List<LiveRange> ranges;
   LiveInterval() : ranges = <LiveRange>[];
 
+  // We want [HCheck] instructions to have the same name as the
+  // instruction it checks, so both instructions should share the same
+  // live ranges.
+  LiveInterval.forCheck(this.start, LiveInterval checkedInterval)
+      : ranges = checkedInterval.ranges;
+
   /**
    * Update all ranges that are contained in [from, to[ to
    * die at [to].
@@ -114,24 +120,13 @@ class LiveEnvironment {
    * range: [id, / id contained in [liveInstructions] /].
    */
   void remove(HInstruction instruction, int id) {
-    // Special case the HCheck instruction to have the same live
-    // interval as the instruction it is checking.
-    if (instruction is HCheck) {
-      var input = instruction.checkedInput;
-      while (input is HCheck) input = input.checkedInput;
-      liveIntervals.putIfAbsent(input, () => new LiveInterval());
-      // Unconditionally force the live interval of the HCheck to
-      // be the live interval of the instruction it is checking.
-      liveIntervals[instruction] = liveIntervals[input];
-    } else {
-      LiveInterval range = liveIntervals.putIfAbsent(
-          instruction, () => new LiveInterval());
-      int lastId = liveInstructions[instruction];
-      // If [lastId] is null, then this instruction is not being used.
-      range.add(new LiveRange(id, lastId == null ? id : lastId));
-      // The instruction is defined at [id].
-      range.start = id;
-    }
+    LiveInterval interval = liveIntervals.putIfAbsent(
+        instruction, () => new LiveInterval());
+    int lastId = liveInstructions[instruction];
+    // If [lastId] is null, then this instruction is not being used.
+    interval.add(new LiveRange(id, lastId == null ? id : lastId));
+    // The instruction is defined at [id].
+    interval.start = id;
     liveInstructions.remove(instruction);
   }
 
@@ -143,13 +138,6 @@ class LiveEnvironment {
     // Note that we are visiting the graph in post-dominator order, so
     // the first time we see a variable is when it dies.
     liveInstructions.putIfAbsent(instruction, () => userId);
-    if (instruction is HCheck) {
-      // Special case the HCheck instruction to mark the actual
-      // checked instruction live.
-      var input = instruction.checkedInput;
-      while (input is HCheck) input = input.checkedInput;
-      liveInstructions.putIfAbsent(input, () => userId);
-    }
   }
 
   /**
@@ -234,13 +222,47 @@ class SsaLiveIntervalBuilder extends HBaseVisitor {
     }
   }
 
+  HInstruction unwrap(instruction) {
+    do {
+      instruction = instruction.checkedInput;
+    } while (instruction is HCheck);
+    return instruction;
+  }
+
   void markAsLiveInEnvironment(HInstruction instruction,
                                LiveEnvironment environment) {
-    if (environment.contains(instruction)) return;
-    environment.add(instruction, instructionId);
-    // HPhis are treated specially.
+    // The inputs of a [HPhi] are being handled at the entry of a
+    // block.
     if (generateAtUseSite.contains(instruction) && instruction is !HPhi) {
       markInputsAsLiveInEnvironment(instruction, environment);
+    } else {
+      environment.add(instruction, instructionId);
+      // Special case the HCheck instruction to mark the actual
+      // checked instruction live. The checked instruction and the
+      // [HCheck] will share the same live ranges.
+      if (instruction is HCheck) {
+        HInstruction checked = unwrap(instruction);
+        if (!generateAtUseSite.contains(checked)) {
+          environment.add(checked, instructionId);
+        }
+      }
+    }
+  }
+
+  void removeFromEnvironment(HInstruction instruction,
+                             LiveEnvironment environment) {
+    environment.remove(instruction, instructionId);
+    // Special case the HCheck instruction to have the same live
+    // interval as the instruction it is checking.
+    if (instruction is HCheck) {
+      HInstruction checked = unwrap(instruction);
+      if (!generateAtUseSite.contains(checked)) {
+        liveIntervals.putIfAbsent(checked, () => new LiveInterval());
+        // Unconditionally force the live ranges of the HCheck to
+        // be the live ranges of the instruction it is checking.
+        liveIntervals[instruction] =
+            new LiveInterval.forCheck(instructionId, liveIntervals[checked]);
+      }
     }
   }
 
@@ -269,10 +291,12 @@ class SsaLiveIntervalBuilder extends HBaseVisitor {
     // environment and add its inputs.
     HInstruction instruction = block.last;
     while (instruction != null) {
-      environment.remove(instruction, instructionId);
-      markInputsAsLiveInEnvironment(instruction, environment);
-      instruction = instruction.previous;
+      if (!generateAtUseSite.contains(instruction)) {
+        removeFromEnvironment(instruction, environment);
+        markInputsAsLiveInEnvironment(instruction, environment);
+      }
       instructionId--;
+      instruction = instruction.previous;
     }
 
     // We just remove the phis from the environment. The inputs of the
@@ -599,7 +623,7 @@ class SsaVariableAllocator extends HBaseVisitor {
 
   /**
    * Returns whether [instruction] needs a name. Instructions that
-   * have no users or that are generated at use site does not need a name.
+   * have no users or that are generated at use site do not need a name.
    */
   bool needsName(HInstruction instruction) {
     if (instruction is HThis) return false;
@@ -607,7 +631,7 @@ class SsaVariableAllocator extends HBaseVisitor {
     if (instruction.usedBy.isEmpty) return false;
     if (generateAtUseSite.contains(instruction)) return false;
     // A [HCheck] instruction that has control flow needs a name only if its
-    // checked input needs a name (e.g. a check [HConstant] does not
+    // checked input needs a name (for example, a checked [HConstant] does not
     // need a name).
     if (instruction is HCheck && instruction.isControlFlow()) {
       HCheck check = instruction;
@@ -629,15 +653,6 @@ class SsaVariableAllocator extends HBaseVisitor {
   void freeUsedNamesAt(HInstruction instruction,
                        HInstruction at,
                        VariableNamer namer) {
-    // TODO(ager): We cannot perform this check to free names for
-    // HCheck instructions because they are special cased to have the
-    // same live intervals as the instruction they are checking. This
-    // includes sharing the start id with the checked
-    // input. Therefore, for HCheck(checkedInput, otherInput) we would
-    // end up checking that otherInput dies not here, but at the
-    // location of checkedInput. We should preserve the start id for
-    // the check instruction.
-    if (at is HCheck) return;
     if (needsName(instruction)) {
       if (diesAt(instruction, at)) {
         namer.freeName(instruction);
@@ -653,6 +668,11 @@ class SsaVariableAllocator extends HBaseVisitor {
   }
 
   void handleInstruction(HInstruction instruction, VariableNamer namer) {
+    if (generateAtUseSite.contains(instruction)) {
+      assert(!liveIntervals.containsKey(instruction));
+      return;
+    }
+
     for (int i = 0, len = instruction.inputs.length; i < len; i++) {
       HInstruction input = instruction.inputs[i];
       freeUsedNamesAt(input, instruction, namer);

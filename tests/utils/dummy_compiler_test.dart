@@ -34,6 +34,7 @@ Future<String> provider(Uri uri) {
                   class Dynamic_ {}
                   class Null {}
                   class LinkedHashMap {}
+                  identical(a, b) => true;
                   getRuntimeTypeInfo(o) {}
                   setRuntimeTypeInfo(o, i) {}
                   eqNull(a) {}

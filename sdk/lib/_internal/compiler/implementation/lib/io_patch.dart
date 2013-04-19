@@ -162,14 +162,17 @@ patch class _Platform {
 }
 
 patch class _ProcessUtils {
-  patch static _exit(int status) {
+  patch static void _exit(int status) {
     throw new UnsupportedError("ProcessUtils._exit");
   }
-  patch static _setExitCode(int status) {
+  patch static void _setExitCode(int status) {
     throw new UnsupportedError("ProcessUtils._setExitCode");
   }
-  patch static _sleep(int millis) {
+  patch static void _sleep(int millis) {
     throw new UnsupportedError("ProcessUtils._sleep");
+  }
+  patch static int _pid(Process process) {
+    throw new UnsupportedError("ProcessUtils._pid");
   }
 }
 

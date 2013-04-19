@@ -962,6 +962,11 @@ CompileType BinaryDoubleOpInstr::ComputeType() const {
 }
 
 
+CompileType BinaryFloat32x4OpInstr::ComputeType() const {
+  return CompileType::FromCid(kFloat32x4Cid);
+}
+
+
 CompileType MathSqrtInstr::ComputeType() const {
   return CompileType::FromCid(kDoubleCid);
 }

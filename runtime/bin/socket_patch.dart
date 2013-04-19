@@ -74,6 +74,9 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   // Holds the port of the socket, null if not known.
   int localPort;
 
+  // Holds the host or address used to connect or bind the socket.
+  String localHost;
+
   // Native port for socket services.
   static SendPort socketService;
 
@@ -86,6 +89,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
             createError(response, "Failed host name lookup"));
       } else {
         var socket = new _NativeSocket.normal();
+        socket.localHost = host;
         var result = socket.nativeCreateConnect(response, port);
         if (result is OSError) {
           completer.completeError(createError(result, "Connection failed"));
@@ -113,6 +117,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
                                     int port,
                                     int backlog) {
     var socket = new _NativeSocket.listen();
+    socket.localHost = address;
     var result = socket.nativeCreateBindListen(address, port, backlog);
     if (result is OSError) {
       return new Future.error(
@@ -200,6 +205,8 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   int get remotePort {
     return nativeGetRemotePeer()[1];
   }
+
+  String get host => localHost;
 
   String get remoteHost {
     return nativeGetRemotePeer()[0];
@@ -563,6 +570,8 @@ class _RawSocket extends Stream<RawSocketEvent>
   int get port => _socket.port;
 
   int get remotePort => _socket.remotePort;
+
+  String get host => _socket.host;
 
   String get remoteHost => _socket.remoteHost;
 

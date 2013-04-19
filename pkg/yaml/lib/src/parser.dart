@@ -2,7 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of yaml;
+library parser;
+
+import 'dart:collection';
+
+import 'model.dart';
+import 'yaml_exception.dart';
+import 'yaml_map.dart';
 
 /// Translates a string of characters into a YAML serialization tree.
 ///
@@ -17,7 +23,7 @@ part of yaml;
 /// named `nb-ns-plain-in-line`, and the method implementing it is named
 /// `nb_ns_plainInLine`. The exception to that rule is methods that just
 /// recognize character classes; these are named `is*`.
-class _Parser {
+class Parser {
   static const TAB = 0x9;
   static const LF = 0xA;
   static const CR = 0xD;
@@ -111,84 +117,84 @@ class _Parser {
   static const CHOMPING_CLIP = 2;
 
   /// The source string being parsed.
-  final String s;
+  final String _s;
 
   /// The current position in the source string.
-  int pos = 0;
+  int _pos = 0;
 
   /// The length of the string being parsed.
-  final int len;
+  final int _len;
 
   /// The current (0-based) line in the source string.
-  int line = 0;
+  int _line = 0;
 
   /// The current (0-based) column in the source string.
-  int column = 0;
+  int _column = 0;
 
   /// Whether we're parsing a bare document (that is, one that doesn't begin
   /// with `---`). Bare documents don't allow `%` immediately following
   /// newlines.
-  bool inBareDocument = false;
+  bool _inBareDocument = false;
 
   /// The line number of the farthest position that has been parsed successfully
   /// before backtracking. Used for error reporting.
-  int farthestLine = 0;
+  int _farthestLine = 0;
 
   /// The column number of the farthest position that has been parsed
   /// successfully before backtracking. Used for error reporting.
-  int farthestColumn = 0;
+  int _farthestColumn = 0;
 
   /// The farthest position in the source string that has been parsed
   /// successfully before backtracking. Used for error reporting.
-  int farthestPos = 0;
+  int _farthestPos = 0;
 
   /// The name of the context of the farthest position that has been parsed
   /// successfully before backtracking. Used for error reporting.
-  String farthestContext = "document";
+  String _farthestContext = "document";
 
   /// A stack of the names of parse contexts. Used for error reporting.
-  List<String> contextStack;
+  List<String> _contextStack;
 
   /// Annotations attached to ranges of the source string that add extra
   /// information to any errors that occur in the annotated range.
-  _RangeMap<String> errorAnnotations;
+  _RangeMap<String> _errorAnnotations;
 
   /// The buffer containing the string currently being captured.
-  StringBuffer capturedString;
+  StringBuffer _capturedString;
 
   /// The beginning of the current section of the captured string.
-  int captureStart;
+  int _captureStart;
 
   /// Whether the current string capture is being overridden.
-  bool capturingAs = false;
+  bool _capturingAs = false;
 
-  _Parser(String s)
-    : this.s = s,
-      len = s.length,
-      contextStack = <String>["document"],
-      errorAnnotations = new _RangeMap();
+  Parser(String s)
+    : this._s = s,
+      _len = s.length,
+      _contextStack = <String>["document"],
+      _errorAnnotations = new _RangeMap();
 
   /// Return the character at the current position, then move that position
   /// forward one character. Also updates the current line and column numbers.
   int next() {
-    if (pos == len) return -1;
-    var char = s.codeUnitAt(pos++);
+    if (_pos == _len) return -1;
+    var char = _s.codeUnitAt(_pos++);
     if (isBreak(char)) {
-      line++;
-      column = 0;
+      _line++;
+      _column = 0;
     } else {
-      column++;
+      _column++;
     }
 
-    if (farthestLine < line) {
-      farthestLine = line;
-      farthestColumn = column;
-      farthestContext = contextStack.last;
-    } else if (farthestLine == line && farthestColumn < column) {
-      farthestColumn = column;
-      farthestContext = contextStack.last;
+    if (_farthestLine < _line) {
+      _farthestLine = _line;
+      _farthestColumn = _column;
+      _farthestContext = _contextStack.last;
+    } else if (_farthestLine == _line && _farthestColumn < _column) {
+      _farthestColumn = _column;
+      _farthestContext = _contextStack.last;
     }
-    farthestPos = pos;
+    _farthestPos = _pos;
 
     return char;
   }
@@ -199,8 +205,8 @@ class _Parser {
   /// Returns -1 if this would return a character after the end or before the
   /// beginning of the input string.
   int peek([int i = 0]) {
-    var peekPos = pos + i;
-    return (peekPos >= len || peekPos < 0) ? -1 : s.codeUnitAt(peekPos);
+    var peekPos = _pos + i;
+    return (peekPos >= _len || peekPos < 0) ? -1 : _s.codeUnitAt(peekPos);
   }
 
   /// The truthiness operator. Returns `false` if [obj] is `null` or `false`,
@@ -243,11 +249,11 @@ class _Parser {
   /// Conceptually, repeats a production any number of times.
   List zeroOrMore(consumer()) {
     var out = [];
-    var oldPos = pos;
+    var oldPos = _pos;
     while (true) {
       var el = consumer();
-      if (!truth(el) || oldPos == pos) return out;
-      oldPos = pos;
+      if (!truth(el) || oldPos == _pos) return out;
+      oldPos = _pos;
       out.add(el);
     }
     return null; // Unreachable.
@@ -270,20 +276,20 @@ class _Parser {
   /// Calls [consumer] and returns its result, but rolls back the parser state
   /// if [consumer] returns a falsey value.
   transaction(consumer()) {
-    var oldPos = pos;
-    var oldLine = line;
-    var oldColumn = column;
-    var oldCaptureStart = captureStart;
-    String capturedSoFar = capturedString == null ? null :
-      capturedString.toString();
+    var oldPos = _pos;
+    var oldLine = _line;
+    var oldColumn = _column;
+    var oldCaptureStart = _captureStart;
+    String capturedSoFar = _capturedString == null ? null :
+      _capturedString.toString();
     var res = consumer();
     if (truth(res)) return res;
 
-    pos = oldPos;
-    line = oldLine;
-    column = oldColumn;
-    captureStart = oldCaptureStart;
-    capturedString = capturedSoFar == null ? null :
+    _pos = oldPos;
+    _line = oldLine;
+    _column = oldColumn;
+    _captureStart = oldCaptureStart;
+    _capturedString = capturedSoFar == null ? null :
       new StringBuffer(capturedSoFar);
     return res;
   }
@@ -316,21 +322,21 @@ class _Parser {
   /// [consumer] in `transaction`.
   String captureString(consumer()) {
     // captureString calls may not be nested
-    assert(capturedString == null);
+    assert(_capturedString == null);
 
-    captureStart = pos;
-    capturedString = new StringBuffer();
+    _captureStart = _pos;
+    _capturedString = new StringBuffer();
     var res = transaction(consumer);
     if (!truth(res)) {
-      captureStart = null;
-      capturedString = null;
+      _captureStart = null;
+      _capturedString = null;
       return null;
     }
 
     flushCapture();
-    var result = capturedString.toString();
-    captureStart = null;
-    capturedString = null;
+    var result = _capturedString.toString();
+    _captureStart = null;
+    _capturedString = null;
     return result;
   }
 
@@ -338,27 +344,27 @@ class _Parser {
       captureAndTransform(consumer, (_) => replacement);
 
   captureAndTransform(consumer(), String transformation(String captured)) {
-    if (capturedString == null) return consumer();
-    if (capturingAs) return consumer();
+    if (_capturedString == null) return consumer();
+    if (_capturingAs) return consumer();
 
     flushCapture();
-    capturingAs = true;
+    _capturingAs = true;
     var res = consumer();
-    capturingAs = false;
+    _capturingAs = false;
     if (!truth(res)) return res;
 
-    capturedString.write(transformation(s.substring(captureStart, pos)));
-    captureStart = pos;
+    _capturedString.write(transformation(_s.substring(_captureStart, _pos)));
+    _captureStart = _pos;
     return res;
   }
 
   void flushCapture() {
-    capturedString.write(s.substring(captureStart, pos));
-    captureStart = pos;
+    _capturedString.write(_s.substring(_captureStart, _pos));
+    _captureStart = _pos;
   }
 
   /// Adds a tag and an anchor to [node], if they're defined.
-  _Node addProps(_Node node, _Pair<_Tag, String> props) {
+  Node addProps(Node node, _Pair<Tag, String> props) {
     if (props == null || node == null) return node;
     if (truth(props.first)) node.tag = props.first;
     if (truth(props.last)) node.anchor = props.last;
@@ -366,19 +372,19 @@ class _Parser {
   }
 
   /// Creates a MappingNode from [pairs].
-  _MappingNode map(List<_Pair<_Node, _Node>> pairs) {
-    var content = new Map<_Node, _Node>();
+  MappingNode map(List<_Pair<Node, Node>> pairs) {
+    var content = new Map<Node, Node>();
     pairs.forEach((pair) => content[pair.first] = pair.last);
-    return new _MappingNode("?", content);
+    return new MappingNode("?", content);
   }
 
   /// Runs [fn] in a context named [name]. Used for error reporting.
   context(String name, fn()) {
     try {
-      contextStack.add(name);
+      _contextStack.add(name);
       return fn();
     } finally {
-      var popped = contextStack.removeLast();
+      var popped = _contextStack.removeLast();
       assert(popped == name);
     }
   }
@@ -387,21 +393,21 @@ class _Parser {
   /// current position and the position of the cursor after running [fn]. The
   /// cursor is reset after [fn] is run.
   annotateError(String message, fn()) {
-    var start = pos;
+    var start = _pos;
     var end;
     transaction(() {
       fn();
-      end = pos;
+      end = _pos;
       return false;
     });
-    errorAnnotations[new _Range(start, end)] = message;
+    _errorAnnotations[new _Range(start, end)] = message;
   }
 
   /// Throws an error with additional context information.
   error(String message) {
     // Line and column should be one-based.
-    throw new SyntaxError(line + 1, column + 1,
-        "$message (in $farthestContext)");
+    throw new SyntaxError(_line + 1, _column + 1,
+        "$message (in $_farthestContext)");
   }
 
   /// If [result] is falsey, throws an error saying that [expected] was
@@ -411,13 +417,13 @@ class _Parser {
     error("expected $expected");
   }
 
-  /// Throws an error saying that the parse failed. Uses [farthestLine],
-  /// [farthestColumn], and [farthestContext] to provide additional information.
+  /// Throws an error saying that the parse failed. Uses [_farthestLine],
+  /// [_farthestColumn], and [_farthestContext] to provide additional information.
   parseFailed() {
-    var message = "invalid YAML in $farthestContext";
-    var extraError = errorAnnotations[farthestPos];
+    var message = "invalid YAML in $_farthestContext";
+    var extraError = _errorAnnotations[_farthestPos];
     if (extraError != null) message = "$message ($extraError)";
-    throw new SyntaxError(farthestLine + 1, farthestColumn + 1, message);
+    throw new SyntaxError(_farthestLine + 1, _farthestColumn + 1, message);
   }
 
   /// Returns the number of spaces after the current position.
@@ -439,7 +445,7 @@ class _Parser {
         spaces = captureString(() => zeroOrMore(() => consumeChar(SP))).length;
         if (spaces > maxSpaces) {
           maxSpaces = spaces;
-          maxSpacesLine = line;
+          maxSpacesLine = _line;
         }
       } while (b_break());
       return false;
@@ -462,10 +468,10 @@ class _Parser {
   }
 
   /// Returns whether the current position is at the beginning of a line.
-  bool get atStartOfLine => column == 0;
+  bool get atStartOfLine => _column == 0;
 
   /// Returns whether the current position is at the end of the input.
-  bool get atEndOfFile => pos == len;
+  bool get atEndOfFile => _pos == _len;
 
   /// Given an indicator character, returns the type of that indicator (or null
   /// if the indicator isn't found.
@@ -796,7 +802,7 @@ class _Parser {
   bool l_directive() => false; // TODO(nweiz): implement
 
   // 96
-  _Pair<_Tag, String> c_ns_properties(int indent, int ctx) {
+  _Pair<Tag, String> c_ns_properties(int indent, int ctx) {
     var tag, anchor;
     tag = c_ns_tagProperty();
     if (truth(tag)) {
@@ -804,7 +810,7 @@ class _Parser {
         if (!truth(s_separate(indent, ctx))) return null;
         return c_ns_anchorProperty();
       });
-      return new _Pair<_Tag, String>(tag, anchor);
+      return new _Pair<Tag, String>(tag, anchor);
     }
 
     anchor = c_ns_anchorProperty();
@@ -813,14 +819,14 @@ class _Parser {
         if (!truth(s_separate(indent, ctx))) return null;
         return c_ns_tagProperty();
       });
-      return new _Pair<_Tag, String>(tag, anchor);
+      return new _Pair<Tag, String>(tag, anchor);
     }
 
     return null;
   }
 
   // 97
-  _Tag c_ns_tagProperty() => null; // TODO(nweiz): implement
+  Tag c_ns_tagProperty() => null; // TODO(nweiz): implement
 
   // 101
   String c_ns_anchorProperty() => null; // TODO(nweiz): implement
@@ -833,17 +839,17 @@ class _Parser {
     captureString(() => oneOrMore(() => consume(isAnchorChar)));
 
   // 104
-  _Node c_ns_aliasNode() {
+  Node c_ns_aliasNode() {
     if (!truth(c_indicator(C_ALIAS))) return null;
     var name = expect(ns_anchorName(), 'anchor name');
-    return new _AliasNode(name);
+    return new AliasNode(name);
   }
 
   // 105
-  _ScalarNode e_scalar() => new _ScalarNode("?", content: "");
+  ScalarNode e_scalar() => new ScalarNode("?", content: "");
 
   // 106
-  _ScalarNode e_node() => e_scalar();
+  ScalarNode e_node() => e_scalar();
 
   // 107
   bool nb_doubleChar() => or([
@@ -855,12 +861,12 @@ class _Parser {
   bool ns_doubleChar() => !isSpace(peek()) && truth(nb_doubleChar());
 
   // 109
-  _Node c_doubleQuoted(int indent, int ctx) => context('string', () {
+  Node c_doubleQuoted(int indent, int ctx) => context('string', () {
     return transaction(() {
       if (!truth(c_indicator(C_DOUBLE_QUOTE))) return null;
       var contents = nb_doubleText(indent, ctx);
       if (!truth(c_indicator(C_DOUBLE_QUOTE))) return null;
-      return new _ScalarNode("!", content: contents);
+      return new ScalarNode("!", content: contents);
     });
   });
 
@@ -943,12 +949,12 @@ class _Parser {
   bool ns_singleChar() => !isSpace(peek()) && truth(nb_singleChar());
 
   // 120
-  _Node c_singleQuoted(int indent, int ctx) => context('string', () {
+  Node c_singleQuoted(int indent, int ctx) => context('string', () {
     return transaction(() {
       if (!truth(c_indicator(C_SINGLE_QUOTE))) return null;
       var contents = nb_singleText(indent, ctx);
       if (!truth(c_indicator(C_SINGLE_QUOTE))) return null;
-      return new _ScalarNode("!", content: contents);
+      return new ScalarNode("!", content: contents);
     });
   });
 
@@ -1110,18 +1116,18 @@ class _Parser {
   }
 
   // 137
-  _SequenceNode c_flowSequence(int indent, int ctx) => transaction(() {
+  SequenceNode c_flowSequence(int indent, int ctx) => transaction(() {
     if (!truth(c_indicator(C_SEQUENCE_START))) return null;
     zeroOrOne(() => s_separate(indent, ctx));
     var content = zeroOrOne(() => ns_s_flowSeqEntries(indent, inFlow(ctx)));
     if (!truth(c_indicator(C_SEQUENCE_END))) return null;
-    return new _SequenceNode("?", new List<_Node>.from(content));
+    return new SequenceNode("?", new List<Node>.from(content));
   });
 
   // 138
-  Iterable<_Node> ns_s_flowSeqEntries(int indent, int ctx) {
+  Iterable<Node> ns_s_flowSeqEntries(int indent, int ctx) {
     var first = ns_flowSeqEntry(indent, ctx);
-    if (!truth(first)) return new Queue<_Node>();
+    if (!truth(first)) return new Queue<Node>();
     zeroOrOne(() => s_separate(indent, ctx));
 
     var rest;
@@ -1130,25 +1136,25 @@ class _Parser {
       rest = zeroOrOne(() => ns_s_flowSeqEntries(indent, ctx));
     }
 
-    if (rest == null) rest = new Queue<_Node>();
+    if (rest == null) rest = new Queue<Node>();
     rest.addFirst(first);
 
     return rest;
   }
 
   // 139
-  _Node ns_flowSeqEntry(int indent, int ctx) => or([
+  Node ns_flowSeqEntry(int indent, int ctx) => or([
     () => ns_flowPair(indent, ctx),
     () => ns_flowNode(indent, ctx)
   ]);
 
   // 140
-  _Node c_flowMapping(int indent, int ctx) {
+  Node c_flowMapping(int indent, int ctx) {
     if (!truth(c_indicator(C_MAPPING_START))) return null;
     zeroOrOne(() => s_separate(indent, ctx));
     var content = zeroOrOne(() => ns_s_flowMapEntries(indent, inFlow(ctx)));
     if (!truth(c_indicator(C_MAPPING_END))) return null;
-    return new _MappingNode("?", content);
+    return new MappingNode("?", content);
   }
 
   // 141
@@ -1175,7 +1181,7 @@ class _Parser {
   }
 
   // 142
-  _Pair<_Node, _Node> ns_flowMapEntry(int indent, int ctx) => or([
+  _Pair<Node, Node> ns_flowMapEntry(int indent, int ctx) => or([
     () => transaction(() {
       if (!truth(c_indicator(C_MAPPING_KEY))) return false;
       if (!truth(s_separate(indent, ctx))) return false;
@@ -1185,20 +1191,20 @@ class _Parser {
   ]);
 
   // 143
-  _Pair<_Node, _Node> ns_flowMapExplicitEntry(int indent, int ctx) => or([
+  _Pair<Node, Node> ns_flowMapExplicitEntry(int indent, int ctx) => or([
     () => ns_flowMapImplicitEntry(indent, ctx),
-    () => new _Pair<_Node, _Node>(e_node(), e_node())
+    () => new _Pair<Node, Node>(e_node(), e_node())
   ]);
 
   // 144
-  _Pair<_Node, _Node> ns_flowMapImplicitEntry(int indent, int ctx) => or([
+  _Pair<Node, Node> ns_flowMapImplicitEntry(int indent, int ctx) => or([
     () => ns_flowMapYamlKeyEntry(indent, ctx),
     () => c_ns_flowMapEmptyKeyEntry(indent, ctx),
     () => c_ns_flowMapJsonKeyEntry(indent, ctx)
   ]);
 
   // 145
-  _Pair<_Node, _Node> ns_flowMapYamlKeyEntry(int indent, int ctx) {
+  _Pair<Node, Node> ns_flowMapYamlKeyEntry(int indent, int ctx) {
     var key = ns_flowYamlNode(indent, ctx);
     if (!truth(key)) return null;
     var value = or([
@@ -1208,18 +1214,18 @@ class _Parser {
       }),
       e_node
     ]);
-    return new _Pair<_Node, _Node>(key, value);
+    return new _Pair<Node, Node>(key, value);
   }
 
   // 146
-  _Pair<_Node, _Node> c_ns_flowMapEmptyKeyEntry(int indent, int ctx) {
+  _Pair<Node, Node> c_ns_flowMapEmptyKeyEntry(int indent, int ctx) {
     var value = c_ns_flowMapSeparateValue(indent, ctx);
     if (!truth(value)) return null;
-    return new _Pair<_Node, _Node>(e_node(), value);
+    return new _Pair<Node, Node>(e_node(), value);
   }
 
   // 147
-  _Node c_ns_flowMapSeparateValue(int indent, int ctx) => transaction(() {
+  Node c_ns_flowMapSeparateValue(int indent, int ctx) => transaction(() {
     if (!truth(c_indicator(C_MAPPING_VALUE))) return null;
     if (isPlainSafe(ctx, peek())) return null;
 
@@ -1233,7 +1239,7 @@ class _Parser {
   });
 
   // 148
-  _Pair<_Node, _Node> c_ns_flowMapJsonKeyEntry(int indent, int ctx) {
+  _Pair<Node, Node> c_ns_flowMapJsonKeyEntry(int indent, int ctx) {
     var key = c_flowJsonNode(indent, ctx);
     if (!truth(key)) return null;
     var value = or([
@@ -1243,11 +1249,11 @@ class _Parser {
       }),
       e_node
     ]);
-    return new _Pair<_Node, _Node>(key, value);
+    return new _Pair<Node, Node>(key, value);
   }
 
   // 149
-  _Node c_ns_flowMapAdjacentValue(int indent, int ctx) {
+  Node c_ns_flowMapAdjacentValue(int indent, int ctx) {
     if (!truth(c_indicator(C_MAPPING_VALUE))) return null;
     return or([
       () => transaction(() {
@@ -1259,7 +1265,7 @@ class _Parser {
   }
 
   // 150
-  _Node ns_flowPair(int indent, int ctx) {
+  Node ns_flowPair(int indent, int ctx) {
     var pair = or([
       () => transaction(() {
         if (!truth(c_indicator(C_MAPPING_KEY))) return null;
@@ -1274,34 +1280,34 @@ class _Parser {
   }
 
   // 151
-  _Pair<_Node, _Node> ns_flowPairEntry(int indent, int ctx) => or([
+  _Pair<Node, Node> ns_flowPairEntry(int indent, int ctx) => or([
     () => ns_flowPairYamlKeyEntry(indent, ctx),
     () => c_ns_flowMapEmptyKeyEntry(indent, ctx),
     () => c_ns_flowPairJsonKeyEntry(indent, ctx)
   ]);
 
   // 152
-  _Pair<_Node, _Node> ns_flowPairYamlKeyEntry(int indent, int ctx) =>
+  _Pair<Node, Node> ns_flowPairYamlKeyEntry(int indent, int ctx) =>
     transaction(() {
       var key = ns_s_implicitYamlKey(FLOW_KEY);
       if (!truth(key)) return null;
       var value = c_ns_flowMapSeparateValue(indent, ctx);
       if (!truth(value)) return null;
-      return new _Pair<_Node, _Node>(key, value);
+      return new _Pair<Node, Node>(key, value);
     });
 
   // 153
-  _Pair<_Node, _Node> c_ns_flowPairJsonKeyEntry(int indent, int ctx) =>
+  _Pair<Node, Node> c_ns_flowPairJsonKeyEntry(int indent, int ctx) =>
     transaction(() {
       var key = c_s_implicitJsonKey(FLOW_KEY);
       if (!truth(key)) return null;
       var value = c_ns_flowMapAdjacentValue(indent, ctx);
       if (!truth(value)) return null;
-      return new _Pair<_Node, _Node>(key, value);
+      return new _Pair<Node, Node>(key, value);
     });
 
   // 154
-  _Node ns_s_implicitYamlKey(int ctx) => transaction(() {
+  Node ns_s_implicitYamlKey(int ctx) => transaction(() {
     // TODO(nweiz): this is supposed to be limited to 1024 characters.
 
     // The indentation parameter is "null" since it's unused in this path
@@ -1312,7 +1318,7 @@ class _Parser {
   });
 
   // 155
-  _Node c_s_implicitJsonKey(int ctx) => transaction(() {
+  Node c_s_implicitJsonKey(int ctx) => transaction(() {
     // TODO(nweiz): this is supposed to be limited to 1024 characters.
 
     // The indentation parameter is "null" since it's unused in this path
@@ -1323,14 +1329,14 @@ class _Parser {
   });
 
   // 156
-  _Node ns_flowYamlContent(int indent, int ctx) {
+  Node ns_flowYamlContent(int indent, int ctx) {
     var str = ns_plain(indent, ctx);
     if (!truth(str)) return null;
-    return new _ScalarNode("?", content: str);
+    return new ScalarNode("?", content: str);
   }
 
   // 157
-  _Node c_flowJsonContent(int indent, int ctx) => or([
+  Node c_flowJsonContent(int indent, int ctx) => or([
     () => c_flowSequence(indent, ctx),
     () => c_flowMapping(indent, ctx),
     () => c_singleQuoted(indent, ctx),
@@ -1338,13 +1344,13 @@ class _Parser {
   ]);
 
   // 158
-  _Node ns_flowContent(int indent, int ctx) => or([
+  Node ns_flowContent(int indent, int ctx) => or([
     () => ns_flowYamlContent(indent, ctx),
     () => c_flowJsonContent(indent, ctx)
   ]);
 
   // 159
-  _Node ns_flowYamlNode(int indent, int ctx) => or([
+  Node ns_flowYamlNode(int indent, int ctx) => or([
     c_ns_aliasNode,
     () => ns_flowYamlContent(indent, ctx),
     () {
@@ -1362,7 +1368,7 @@ class _Parser {
   ]);
 
   // 160
-  _Node c_flowJsonNode(int indent, int ctx) => transaction(() {
+  Node c_flowJsonNode(int indent, int ctx) => transaction(() {
     var props;
     zeroOrOne(() => transaction(() {
         props = c_ns_properties(indent, ctx);
@@ -1374,7 +1380,7 @@ class _Parser {
   });
 
   // 161
-  _Node ns_flowNode(int indent, int ctx) => or([
+  Node ns_flowNode(int indent, int ctx) => or([
     c_ns_aliasNode,
     () => ns_flowContent(indent, ctx),
     () => transaction(() {
@@ -1471,7 +1477,7 @@ class _Parser {
   });
 
   // 170
-  _Node c_l_literal(int indent) => transaction(() {
+  Node c_l_literal(int indent) => transaction(() {
     if (!truth(c_indicator(C_LITERAL))) return null;
     var header = c_b_blockHeader();
     if (!truth(header)) return null;
@@ -1480,7 +1486,7 @@ class _Parser {
     var content = l_literalContent(indent + additionalIndent, header.chomping);
     if (!truth(content)) return null;
 
-    return new _ScalarNode("!", content: content);
+    return new ScalarNode("!", content: content);
   });
 
   // 171
@@ -1508,7 +1514,7 @@ class _Parser {
   });
 
   // 174
-  _Node c_l_folded(int indent) => transaction(() {
+  Node c_l_folded(int indent) => transaction(() {
     if (!truth(c_indicator(C_FOLDED))) return null;
     var header = c_b_blockHeader();
     if (!truth(header)) return null;
@@ -1517,7 +1523,7 @@ class _Parser {
     var content = l_foldedContent(indent + additionalIndent, header.chomping);
     if (!truth(content)) return null;
 
-    return new _ScalarNode("!", content: content);
+    return new ScalarNode("!", content: content);
   });
 
   // 175
@@ -1593,7 +1599,7 @@ class _Parser {
   });
 
   // 183
-  _SequenceNode l_blockSequence(int indent) => context('sequence', () {
+  SequenceNode l_blockSequence(int indent) => context('sequence', () {
     var additionalIndent = countIndentation() - indent;
     if (additionalIndent <= 0) return null;
 
@@ -1603,11 +1609,11 @@ class _Parser {
     }));
     if (!truth(content)) return null;
 
-    return new _SequenceNode("?", content);
+    return new SequenceNode("?", content);
   });
 
   // 184
-  _Node c_l_blockSeqEntry(int indent) => transaction(() {
+  Node c_l_blockSeqEntry(int indent) => transaction(() {
     if (!truth(c_indicator(C_SEQUENCE_ENTRY))) return null;
     if (isNonSpace(peek())) return null;
 
@@ -1615,7 +1621,7 @@ class _Parser {
   });
 
   // 185
-  _Node s_l_blockIndented(int indent, int ctx) {
+  Node s_l_blockIndented(int indent, int ctx) {
     var additionalIndent = countIndentation();
     return or([
       () => transaction(() {
@@ -1629,7 +1635,7 @@ class _Parser {
   }
 
   // 186
-  _Node ns_l_compactSequence(int indent) => context('sequence', () {
+  Node ns_l_compactSequence(int indent) => context('sequence', () {
     var first = c_l_blockSeqEntry(indent);
     if (!truth(first)) return null;
 
@@ -1639,11 +1645,11 @@ class _Parser {
       }));
     content.insert(0, first);
 
-    return new _SequenceNode("?", content);
+    return new SequenceNode("?", content);
   });
 
   // 187
-  _Node l_blockMapping(int indent) => context('mapping', () {
+  Node l_blockMapping(int indent) => context('mapping', () {
     var additionalIndent = countIndentation() - indent;
     if (additionalIndent <= 0) return null;
 
@@ -1657,13 +1663,13 @@ class _Parser {
   });
 
   // 188
-  _Pair<_Node, _Node> ns_l_blockMapEntry(int indent) => or([
+  _Pair<Node, Node> ns_l_blockMapEntry(int indent) => or([
     () => c_l_blockMapExplicitEntry(indent),
     () => ns_l_blockMapImplicitEntry(indent)
   ]);
 
   // 189
-  _Pair<_Node, _Node> c_l_blockMapExplicitEntry(int indent) {
+  _Pair<Node, Node> c_l_blockMapExplicitEntry(int indent) {
     var key = c_l_blockMapExplicitKey(indent);
     if (!truth(key)) return null;
 
@@ -1672,37 +1678,37 @@ class _Parser {
       e_node
     ]);
 
-    return new _Pair<_Node, _Node>(key, value);
+    return new _Pair<Node, Node>(key, value);
   }
 
   // 190
-  _Node c_l_blockMapExplicitKey(int indent) => transaction(() {
+  Node c_l_blockMapExplicitKey(int indent) => transaction(() {
     if (!truth(c_indicator(C_MAPPING_KEY))) return null;
     return s_l_blockIndented(indent, BLOCK_OUT);
   });
 
   // 191
-  _Node l_blockMapExplicitValue(int indent) => transaction(() {
+  Node l_blockMapExplicitValue(int indent) => transaction(() {
     if (!truth(s_indent(indent))) return null;
     if (!truth(c_indicator(C_MAPPING_VALUE))) return null;
     return s_l_blockIndented(indent, BLOCK_OUT);
   });
 
   // 192
-  _Pair<_Node, _Node> ns_l_blockMapImplicitEntry(int indent) => transaction(() {
+  _Pair<Node, Node> ns_l_blockMapImplicitEntry(int indent) => transaction(() {
     var key = or([ns_s_blockMapImplicitKey, e_node]);
     var value = c_l_blockMapImplicitValue(indent);
-    return truth(value) ? new _Pair<_Node, _Node>(key, value) : null;
+    return truth(value) ? new _Pair<Node, Node>(key, value) : null;
   });
 
   // 193
-  _Node ns_s_blockMapImplicitKey() => context('mapping key', () => or([
+  Node ns_s_blockMapImplicitKey() => context('mapping key', () => or([
     () => c_s_implicitJsonKey(BLOCK_KEY),
     () => ns_s_implicitYamlKey(BLOCK_KEY)
   ]));
 
   // 194
-  _Node c_l_blockMapImplicitValue(int indent) => context('mapping value', () =>
+  Node c_l_blockMapImplicitValue(int indent) => context('mapping value', () =>
     transaction(() {
       if (!truth(c_indicator(C_MAPPING_VALUE))) return null;
       return or([
@@ -1712,7 +1718,7 @@ class _Parser {
     }));
 
   // 195
-  _Node ns_l_compactMapping(int indent) => context('mapping', () {
+  Node ns_l_compactMapping(int indent) => context('mapping', () {
     var first = ns_l_blockMapEntry(indent);
     if (!truth(first)) return null;
 
@@ -1726,13 +1732,13 @@ class _Parser {
   });
 
   // 196
-  _Node s_l_blockNode(int indent, int ctx) => or([
+  Node s_l_blockNode(int indent, int ctx) => or([
     () => s_l_blockInBlock(indent, ctx),
     () => s_l_flowInBlock(indent)
   ]);
 
   // 197
-  _Node s_l_flowInBlock(int indent) => transaction(() {
+  Node s_l_flowInBlock(int indent) => transaction(() {
     if (!truth(s_separate(indent + 1, FLOW_OUT))) return null;
     var node = ns_flowNode(indent + 1, FLOW_OUT);
     if (!truth(node)) return null;
@@ -1741,13 +1747,13 @@ class _Parser {
   });
 
   // 198
-  _Node s_l_blockInBlock(int indent, int ctx) => or([
+  Node s_l_blockInBlock(int indent, int ctx) => or([
     () => s_l_blockScalar(indent, ctx),
     () => s_l_blockCollection(indent, ctx)
   ]);
 
   // 199
-  _Node s_l_blockScalar(int indent, int ctx) => transaction(() {
+  Node s_l_blockScalar(int indent, int ctx) => transaction(() {
     if (!truth(s_separate(indent + 1, ctx))) return null;
     var props = transaction(() {
       var innerProps = c_ns_properties(indent + 1, ctx);
@@ -1762,7 +1768,7 @@ class _Parser {
   });
 
   // 200
-  _Node s_l_blockCollection(int indent, int ctx) => transaction(() {
+  Node s_l_blockCollection(int indent, int ctx) => transaction(() {
     var props = transaction(() {
       if (!truth(s_separate(indent + 1, ctx))) return null;
       return c_ns_properties(indent + 1, ctx);
@@ -1796,7 +1802,7 @@ class _Parser {
 
   // 206
   bool c_forbidden() {
-    if (!inBareDocument || !atStartOfLine) return false;
+    if (!_inBareDocument || !atStartOfLine) return false;
     var forbidden = false;
     transaction(() {
       if (!truth(or([c_directivesEnd, c_documentEnd]))) return;
@@ -1808,17 +1814,17 @@ class _Parser {
   }
 
   // 207
-  _Node l_bareDocument() {
+  Node l_bareDocument() {
     try {
-      inBareDocument = true;
+      _inBareDocument = true;
       return s_l_blockNode(-1, BLOCK_IN);
     } finally {
-      inBareDocument = false;
+      _inBareDocument = false;
     }
   }
 
   // 208
-  _Node l_explicitDocument() {
+  Node l_explicitDocument() {
     if (!truth(c_directivesEnd())) return null;
     var doc = l_bareDocument();
     if (truth(doc)) return doc;
@@ -1829,7 +1835,7 @@ class _Parser {
   }
 
   // 209
-  _Node l_directiveDocument() {
+  Node l_directiveDocument() {
     if (!truth(oneOrMore(l_directive))) return null;
     var doc = l_explicitDocument();
     if (doc != null) return doc;
@@ -1838,11 +1844,11 @@ class _Parser {
   }
 
   // 210
-  _Node l_anyDocument() =>
+  Node l_anyDocument() =>
     or([l_directiveDocument, l_explicitDocument, l_bareDocument]);
 
   // 211
-  List<_Node> l_yamlStream() {
+  List<Node> l_yamlStream() {
     var docs = [];
     zeroOrMore(l_documentPrefix);
     var first = zeroOrOne(l_anyDocument);
@@ -1868,12 +1874,13 @@ class _Parser {
 }
 
 class SyntaxError extends YamlException {
-  final int line;
-  final int column;
+  final int _line;
+  final int _column;
 
-  SyntaxError(this.line, this.column, String msg) : super(msg);
+  SyntaxError(this._line, this._column, String msg) : super(msg);
 
-  String toString() => "Syntax error on line $line, column $column: $msg";
+  String toString() => "Syntax error on line $_line, column $_column: "
+      "${super.toString()}";
 }
 
 /// A pair of values.
@@ -1916,18 +1923,17 @@ class _Range {
 /// expensive.
 class _RangeMap<E> {
   /// The ranges and their associated elements.
-  final List<_Pair<_Range, E>> contents;
+  final List<_Pair<_Range, E>> _contents = <_Pair<_Range, E>>[];
 
-  _RangeMap() : this.contents = <_Pair<_Range, E>>[];
+  _RangeMap();
 
   /// Returns the value associated with the range in which [pos] lies, or null
   /// if there is no such range. If there's more than one such range, the most
   /// recently set one is used.
   E operator[](int pos) {
     // Iterate backwards through contents so the more recent range takes
-    // precedence. TODO(nweiz): clean this up when issue 2804 is fixed.
-    for (var i = contents.length - 1; i >= 0; i--) {
-      var pair = contents[i];
+    // precedence.
+    for (var pair in _contents.reversed) {
       if (pair.first.contains(pos)) return pair.last;
     }
     return null;
@@ -1935,5 +1941,5 @@ class _RangeMap<E> {
 
   /// Associates [value] with [range].
   operator[]=(_Range range, E value) =>
-    contents.add(new _Pair<_Range, E>(range, value));
+    _contents.add(new _Pair<_Range, E>(range, value));
 }

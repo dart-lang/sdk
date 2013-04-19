@@ -143,7 +143,7 @@ main() {
     });
 
     test('XHR.request responseType arraybuffer', () {
-      if (ArrayBuffer.supported) {
+      if (Platform.supportsTypedData) {
         HttpRequest.request(url, responseType: 'arraybuffer').then(
           expectAsync1((xhr) {
             expect(xhr.status, equals(200));
@@ -166,7 +166,7 @@ main() {
 
   group('xhr_requestBlob', () {
     test('XHR.request responseType blob', () {
-      if (ArrayBuffer.supported) {
+      if (Platform.supportsTypedData) {
         return HttpRequest.request(url, responseType: 'blob').then(
           (xhr) {
             expect(xhr.status, equals(200));

@@ -43,7 +43,9 @@ CODEGEN_TEST2_GENERATE(SimpleStaticCallCodegen, function, test) {
 CODEGEN_TEST2_RUN(SimpleStaticCallCodegen, SmiReturnCodegen, Smi::New(3))
 
 
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+#if defined(TARGET_ARCH_IA32) ||                                               \
+    defined(TARGET_ARCH_X64) ||                                                \
+    defined(TARGET_ARCH_ARM)
 
 
 // Helper to allocate and return a LocalVariable.
@@ -561,6 +563,6 @@ CODEGEN_TEST_RAW_RUN(AllocateNewObjectCodegen, function) {
   EXPECT_EQ(cls.raw(), result.clazz());
 }
 
-#endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+#endif  // TARGET_ARCH_IA32 || TARGET_ARCH_X64 || TARGET_ARCH_ARM
 
 }  // namespace dart

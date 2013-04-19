@@ -306,6 +306,23 @@ abstract class Compiler implements DiagnosticListener {
   ClassElement listClass;
   ClassElement typeClass;
   ClassElement mapClass;
+  ClassElement symbolClass;
+
+  // Initialized after mirrorSystemClass has been resolved.
+  FunctionElement symbolConstructor;
+
+  // Initialized when dart:mirrors is loaded.
+  ClassElement mirrorSystemClass;
+
+  // Initialized after mirrorSystemClass has been resolved.
+  FunctionElement mirrorSystemGetNameFunction;
+
+  // Initialized when dart:_collection-dev is loaded.
+  ClassElement symbolImplementationClass;
+
+  // Initialized when symbolImplementationClass has been resolved.
+  FunctionElement symbolValidatedConstructor;
+
   ClassElement jsInvocationMirrorClass;
   /// Document class from dart:mirrors.
   ClassElement documentClass;
@@ -316,6 +333,12 @@ abstract class Compiler implements DiagnosticListener {
   Element createInvocationMirrorElement;
 
   Element get currentElement => _currentElement;
+
+  /**
+   * Perform an operation, [f], returning the return value from [f].  If an
+   * error occurs then report it as having occurred during compilation of
+   * [element].  Can be nested.
+   */
   withCurrentElement(Element element, f()) {
     Element old = currentElement;
     _currentElement = element;
@@ -372,7 +395,7 @@ abstract class Compiler implements DiagnosticListener {
   static const int NO_SUCH_METHOD_ARG_COUNT = 1;
   static const SourceString CREATE_INVOCATION_MIRROR =
       const SourceString('createInvocationMirror');
-  static const SourceString INVOKE_ON = const SourceString('invokeOn');
+  static const SourceString INVOKE_ON = const SourceString('_invokeOn');
   static const SourceString RUNTIME_TYPE = const SourceString('runtimeType');
   static const SourceString START_ROOT_ISOLATE =
       const SourceString('startRootIsolate');
@@ -383,6 +406,10 @@ abstract class Compiler implements DiagnosticListener {
       new Selector.getter(const SourceString('current'), null);
   final Selector moveNextSelector =
       new Selector.call(const SourceString('moveNext'), null, 0);
+  final Selector noSuchMethodSelector = new Selector.call(
+      Compiler.NO_SUCH_METHOD, null, Compiler.NO_SUCH_METHOD_ARG_COUNT);
+  final Selector symbolValidatedConstructorSelector = new Selector.call(
+      const SourceString('validated'), null, 1);
 
   bool enabledNoSuchMethod = false;
   bool enabledRuntimeType = false;
@@ -614,6 +641,23 @@ abstract class Compiler implements DiagnosticListener {
         library.addToScope(dynamicClass, this);
       });
     }
+    if (uri == Uri.parse('dart:mirrors')) {
+      mirrorSystemClass = library.find(const SourceString('MirrorSystem'));
+    } else if (uri == Uri.parse('dart:_collection-dev')) {
+      symbolImplementationClass = library.find(const SourceString('Symbol'));
+    }
+  }
+
+  void onClassResolved(ClassElement cls) {
+    if (mirrorSystemClass == cls) {
+      mirrorSystemGetNameFunction =
+        cls.lookupLocalMember(const SourceString('getName'));
+    } else if (symbolClass == cls) {
+      symbolConstructor = cls.constructors.head;
+    } else if (symbolImplementationClass == cls) {
+      symbolValidatedConstructor = symbolImplementationClass.lookupConstructor(
+          symbolValidatedConstructorSelector);
+    }
   }
 
   LibraryElement scanBuiltinLibrary(String filename);
@@ -642,6 +686,11 @@ abstract class Compiler implements DiagnosticListener {
           'dart:core library does not contain required classes: '
           '$missingCoreClasses');
     }
+
+    // The Symbol class may not exist during unit testing.
+    // TODO(ahe): It is possible that we have to require the presence
+    // of Symbol as we change how we implement noSuchMethod.
+    symbolClass = lookupCoreClass('Symbol');
 
     final List missingHelperClasses = [];
     ClassElement lookupHelperClass(String name) {
@@ -697,8 +746,7 @@ abstract class Compiler implements DiagnosticListener {
     functionApplyMethod =
         functionClass.lookupLocalMember(const SourceString('apply'));
     jsInvocationMirrorClass.ensureResolved(this);
-    invokeOnMethod = jsInvocationMirrorClass.lookupLocalMember(
-        const SourceString('invokeOn'));
+    invokeOnMethod = jsInvocationMirrorClass.lookupLocalMember(INVOKE_ON);
 
     if (preserveComments) {
       var uri = new Uri.fromComponents(scheme: 'dart', path: 'mirrors');
@@ -807,8 +855,7 @@ abstract class Compiler implements DiagnosticListener {
           isolateHelperLibrary.find(Compiler.START_ROOT_ISOLATE));
     }
     if (enabledNoSuchMethod) {
-      Selector selector = new Selector.noSuchMethod();
-      enqueuer.codegen.registerInvocation(NO_SUCH_METHOD, selector);
+      enqueuer.codegen.registerInvocation(NO_SUCH_METHOD, noSuchMethodSelector);
       enqueuer.codegen.addToWorkList(createInvocationMirrorElement);
     }
     processQueue(enqueuer.codegen, main);
@@ -1011,6 +1058,14 @@ abstract class Compiler implements DiagnosticListener {
     reportMessage(spanFromSpannable(node),
                   errorCode.error(arguments),
                   api.Diagnostic.ERROR);
+  }
+
+  // TODO(ahe): Rename to reportWarning when that method has been removed.
+  void reportWarningCode(Spannable node, MessageKind errorCode,
+                         [Map arguments = const {}]) {
+    reportMessage(spanFromSpannable(node),
+                  errorCode.error(arguments),
+                  api.Diagnostic.WARNING);
   }
 
   void reportMessage(SourceSpan span, Diagnostic message, api.Diagnostic kind) {

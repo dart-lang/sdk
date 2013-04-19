@@ -54,7 +54,7 @@ class Pubspec {
 
       return pubspec;
     } on FormatException catch (ex) {
-      throw 'Could not parse $pubspecPath:\n${ex.message}';
+      fail('Could not parse $pubspecPath:\n${ex.message}');
     }
   }
 

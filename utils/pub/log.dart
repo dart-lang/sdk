@@ -5,6 +5,7 @@
 /// Message logging.
 library log;
 
+import 'dart:io';
 import 'dart:async';
 
 import 'io.dart';
@@ -35,6 +36,9 @@ class Level {
   /// Some interaction with the external world occurred, such as a network
   /// operation, process spawning, or file IO.
   static const IO = const Level._("IO  ");
+
+  /// Incremental output during pub's version constraint solver.
+  static const SOLVER = const Level._("SLVR");
 
   /// Fine-grained and verbose additional information. Can be used to provide
   /// program state context for other logs (such as what pub was doing when an
@@ -76,6 +80,9 @@ void message(message) => write(Level.MESSAGE, message);
 
 /// Logs [message] at [Level.IO].
 void io(message) => write(Level.IO, message);
+
+/// Logs [message] at [Level.SOLVER].
+void solver(message) => write(Level.SOLVER, message);
 
 /// Logs [message] at [Level.FINE].
 void fine(message) => write(Level.FINE, message);
@@ -164,11 +171,11 @@ void recordTranscript() {
 void dumpTranscript() {
   if (_transcript == null) return;
 
-  stderrSink.add('---- Log transcript ----\n'.codeUnits);
+  stderr.writeln('---- Log transcript ----');
   for (var entry in _transcript) {
     _logToStderrWithLabel(entry);
   }
-  stderrSink.add('---- End log transcript ----\n'.codeUnits);
+  stderr.writeln('---- End log transcript ----');
 }
 
 /// Sets the verbosity to "normal", which shows errors, warnings, and messages.
@@ -177,6 +184,7 @@ void showNormal() {
   _loggers[Level.WARNING] = _logToStderr;
   _loggers[Level.MESSAGE] = _logToStdout;
   _loggers[Level.IO]      = null;
+  _loggers[Level.SOLVER]  = null;
   _loggers[Level.FINE]    = null;
 }
 
@@ -187,6 +195,18 @@ void showIO() {
   _loggers[Level.WARNING] = _logToStderrWithLabel;
   _loggers[Level.MESSAGE] = _logToStdoutWithLabel;
   _loggers[Level.IO]      = _logToStderrWithLabel;
+  _loggers[Level.SOLVER]  = null;
+  _loggers[Level.FINE]    = null;
+}
+
+/// Sets the verbosity to "solver", which shows errors, warnings, messages, and
+/// solver logs.
+void showSolver() {
+  _loggers[Level.ERROR]   = _logToStderr;
+  _loggers[Level.WARNING] = _logToStderr;
+  _loggers[Level.MESSAGE] = _logToStdout;
+  _loggers[Level.IO]      = null;
+  _loggers[Level.SOLVER]  = _logToStdout;
   _loggers[Level.FINE]    = null;
 }
 
@@ -196,43 +216,42 @@ void showAll() {
   _loggers[Level.WARNING] = _logToStderrWithLabel;
   _loggers[Level.MESSAGE] = _logToStdoutWithLabel;
   _loggers[Level.IO]      = _logToStderrWithLabel;
+  _loggers[Level.SOLVER]  = _logToStderrWithLabel;
   _loggers[Level.FINE]    = _logToStderrWithLabel;
 }
 
 /// Log function that prints the message to stdout.
 void _logToStdout(Entry entry) {
-  _logToStream(stdoutSink, entry, showLabel: false);
+  _logToStream(stdout, entry, showLabel: false);
 }
 
 /// Log function that prints the message to stdout with the level name.
 void _logToStdoutWithLabel(Entry entry) {
-  _logToStream(stdoutSink, entry, showLabel: true);
+  _logToStream(stdout, entry, showLabel: true);
 }
 
 /// Log function that prints the message to stderr.
 void _logToStderr(Entry entry) {
-  _logToStream(stderrSink, entry, showLabel: false);
+  _logToStream(stderr, entry, showLabel: false);
 }
 
 /// Log function that prints the message to stderr with the level name.
 void _logToStderrWithLabel(Entry entry) {
-  _logToStream(stderrSink, entry, showLabel: true);
+  _logToStream(stderr, entry, showLabel: true);
 }
 
-void _logToStream(EventSink<List<int>> sink, Entry entry, {bool showLabel}) {
+void _logToStream(IOSink sink, Entry entry, {bool showLabel}) {
   bool firstLine = true;
   for (var line in entry.lines) {
     if (showLabel) {
       if (firstLine) {
-        sink.add(entry.level.name.codeUnits);
-        sink.add(': '.codeUnits);
+        sink.write('${entry.level.name}: ');
       } else {
-        sink.add('    | '.codeUnits);
+        sink.write('    | ');
       }
     }
 
-    sink.add(line.codeUnits);
-    sink.add('\n'.codeUnits);
+    sink.writeln(line);
 
     firstLine = false;
   }

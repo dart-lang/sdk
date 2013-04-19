@@ -6,6 +6,7 @@
 #define PLATFORM_UTILS_WIN_H_
 
 #include <intrin.h>
+#include <stdlib.h>
 
 namespace dart {
 
@@ -20,6 +21,36 @@ inline int Utils::CountTrailingZeros(uword x) {
 #endif
   return static_cast<int>(result);
 };
+
+
+inline uint16_t Utils::HostToBigEndian16(uint16_t value) {
+  return _byteswap_ushort(value);
+}
+
+
+inline uint32_t Utils::HostToBigEndian32(uint32_t value) {
+  return _byteswap_ulong(value);
+}
+
+
+inline uint64_t Utils::HostToBigEndian64(uint64_t value) {
+  return _byteswap_uint64(value);
+}
+
+
+inline uint16_t Utils::HostToLittleEndian16(uint16_t value) {
+  return value;
+}
+
+
+inline uint32_t Utils::HostToLittleEndian32(uint32_t value) {
+  return value;
+}
+
+
+inline uint64_t Utils::HostToLittleEndian64(uint64_t value) {
+  return value;
+}
 
 }  // namespace dart
 

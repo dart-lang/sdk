@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program testing that NoSuchMethod is properly called.
 
+import "dart:mirrors" show reflect;
 import "package:expect/expect.dart";
 
 class GetName {
@@ -10,7 +11,7 @@ class GetName {
   moo({b}) => "moo";
 }
 
-String getName(im) => im.invokeOn(new GetName());
+String getName(im) => reflect(new GetName()).delegate(im);
 
 class NoSuchMethodTest {
 
@@ -22,7 +23,7 @@ class NoSuchMethodTest {
     Expect.equals("moo", getName(im));
     Expect.equals(0, im.positionalArguments.length);
     Expect.equals(1, im.namedArguments.length);
-    return foo(b:im.namedArguments["b"]);
+    return foo(b:im.namedArguments[const Symbol("b")]);
   }
 
   static testMain() {

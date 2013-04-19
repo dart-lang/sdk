@@ -143,10 +143,13 @@ const Register PP = R10;  // Caches object pool pointer in generated code.
 const Register SPREG = SP;  // Stack pointer register.
 const Register FPREG = FP;  // Frame pointer register.
 
-
 // Exception object is passed in this register to the catch handlers when an
 // exception is thrown.
-const Register kExceptionObjectReg = R0;  // Unimplemented.
+const Register kExceptionObjectReg = R0;
+
+// Stack trace object is passed in this register to the catch handlers when
+// an exception is thrown.
+const Register kStackTraceObjectReg = R1;
 
 
 // List of registers used in load/store multiple.

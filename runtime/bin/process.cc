@@ -199,6 +199,21 @@ void FUNCTION_NAME(Process_Sleep)(Dart_NativeArguments args) {
 }
 
 
+void FUNCTION_NAME(Process_Pid)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  // Ignore result if passing invalid argument and just set exit code to 0.
+  intptr_t pid = -1;
+  Dart_Handle process = Dart_GetNativeArgument(args, 0);
+  if (Dart_IsNull(process)) {
+    pid = Process::CurrentProcessId();
+  } else {
+    Process::GetProcessIdNativeField(process, &pid);
+  }
+  Dart_SetReturnValue(args, Dart_NewInteger(pid));
+  Dart_ExitScope();
+}
+
+
 Dart_Handle Process::GetProcessIdNativeField(Dart_Handle process,
                                              intptr_t* pid) {
   return Dart_GetNativeInstanceField(process, kProcessIdNativeField, pid);

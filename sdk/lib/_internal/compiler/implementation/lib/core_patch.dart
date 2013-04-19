@@ -13,6 +13,16 @@ import 'dart:_js_helper' show checkNull,
                               stringJoinUnchecked;
 import "dart:_collection-dev" as _symbol_dev;
 
+String _symbolToString(Symbol symbol) => _symbol_dev.Symbol.getName(symbol);
+
+_symbolMapToStringMap(Map<Symbol, dynamic> map) {
+  var result = new Map<String, dynamic>();
+  map.forEach((Symbol key, value) {
+    result[_symbolToString(key)] = value;
+  });
+  return result;
+}
+
 patch void print(var object) {
   Primitives.printString(object.toString());
 }
@@ -24,10 +34,11 @@ patch class Object {
   patch String toString() => Primitives.objectToString(this);
 
   patch dynamic noSuchMethod(Invocation invocation) {
-    throw new NoSuchMethodError(this,
-                                invocation.memberName,
-                                invocation.positionalArguments,
-                                invocation.namedArguments);
+    throw new NoSuchMethodError(
+        this,
+        _symbolToString(invocation.memberName),
+        invocation.positionalArguments,
+        _symbolMapToStringMap(invocation.namedArguments));
   }
 
   patch Type get runtimeType {
@@ -50,7 +61,7 @@ patch class Function {
     if (namedArguments == null) return null;
     Map<String, dynamic> result = {};
     namedArguments.forEach((symbol, value) {
-      result[_symbol_dev.Symbol.getName(symbol)] = value;
+      result[_symbolToString(symbol)] = value;
     });
     return result;
   }

@@ -49,7 +49,7 @@ class AnalysisResult {
   BaseType nullType;
 
   AnalysisResult(MockCompiler compiler) : this.compiler = compiler {
-    inferrer = compiler.typesTask.typesInferrer;
+    inferrer = compiler.typesTask.concreteTypesInferrer;
     int = inferrer.baseTypes.intBaseType;
     double = inferrer.baseTypes.doubleBaseType;
     num = inferrer.baseTypes.numBaseType;
@@ -159,7 +159,7 @@ const String CORELIB = r'''
   class Object {}
   class Function {}
   abstract class List<E> {
-    factory List([int length]);
+    factory List([int length]) {}
     E operator [](int index);
     void operator []=(int index, E value);
   }
@@ -177,7 +177,7 @@ AnalysisResult analyze(String code, {int maxConcreteTypeSize: 1000}) {
       enableConcreteTypeInference: true,
       maxConcreteTypeSize: maxConcreteTypeSize);
   compiler.sourceFiles[uri.toString()] = new SourceFile(uri.toString(), code);
-  compiler.typesTask.typesInferrer.testMode = true;
+  compiler.typesTask.concreteTypesInferrer.testMode = true;
   compiler.runCompiler(uri);
   return new AnalysisResult(compiler);
 }

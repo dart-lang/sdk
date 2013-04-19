@@ -91,7 +91,7 @@ ERROR   : %s''' % (all_syntaxes[syntax], content, expected, actual, error))
     self._run_test(
       idlparser.WEBKIT_SYNTAX,
       '''interface I {
-        attribute boolean A setter raises (E), getter raises (E);
+        attribute boolean A;
       };''',
       [('Interface', [('Id', 'I'), ('Attribute', [('Type', [('BooleanType', None)]), ('Id', 'A'), ('SetRaises', [('ScopedName', 'E')]), ('GetRaises', [('ScopedName', 'E')])])])])
 

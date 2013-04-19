@@ -2189,6 +2189,10 @@ class Library : public Object {
   // Eagerly compile all classes and functions in the library.
   static RawError* CompileAll();
 
+  // Checks function fingerprints. Prints mismatches and aborts if
+  // mismatch found.
+  static void CheckFunctionFingerprints();
+
  private:
   static const int kInitialImportsCapacity = 4;
   static const int kImportsCapacityIncrement = 8;
@@ -4834,6 +4838,7 @@ class Array : public Instance {
 
   HEAP_OBJECT_IMPLEMENTATION(Array, Instance);
   friend class Class;
+  friend class Object;
   friend class String;
 };
 

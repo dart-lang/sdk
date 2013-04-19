@@ -237,6 +237,8 @@ static void VerifyStackTrace(Dart_StackTrace trace,
 }
 
 
+// TODO(hausner): Convert this one remaining use of the legacy
+// breakpoint handler once Dart_SetBreakpointHandler goes away.
 void TestBreakpointHandler(Dart_IsolateId isolate_id,
                            Dart_Breakpoint bpt,
                            Dart_StackTrace trace) {
@@ -288,8 +290,9 @@ TEST_CASE(Debug_Breakpoint) {
 
 
 void TestStepOutHandler(Dart_IsolateId isolate_id,
-                        Dart_Breakpoint bpt,
-                        Dart_StackTrace trace) {
+                        const Dart_CodeLocation& location) {
+  Dart_StackTrace trace;
+  Dart_GetStackTrace(&trace);
   const char* expected_bpts[] = {"f1", "foo", "main"};
   const intptr_t expected_bpts_length = ARRAY_SIZE(expected_bpts);
   intptr_t trace_len;
@@ -332,7 +335,7 @@ TEST_CASE(Debug_StepOut) {
       "}                        \n";
 
   LoadScript(kScriptChars);
-  Dart_SetBreakpointHandler(&TestStepOutHandler);
+  Dart_SetPausedEventHandler(&TestStepOutHandler);
 
   // Set a breakpoint in function f1, then repeatedly step out until
   // we get to main. We should see one breakpoint each in f1,
@@ -352,8 +355,9 @@ TEST_CASE(Debug_StepOut) {
 
 
 void TestStepIntoHandler(Dart_IsolateId isolate_id,
-                         Dart_Breakpoint bpt,
-                         Dart_StackTrace trace) {
+                         const Dart_CodeLocation& location) {
+  Dart_StackTrace trace;
+  Dart_GetStackTrace(&trace);
   const char* expected_bpts[] = {
       "main",
         "foo",
@@ -415,7 +419,7 @@ TEST_CASE(Debug_StepInto) {
       "}                        \n";
 
   LoadScript(kScriptChars);
-  Dart_SetBreakpointHandler(&TestStepIntoHandler);
+  Dart_SetPausedEventHandler(&TestStepIntoHandler);
 
   // Set a breakpoint in function f1, then repeatedly step out until
   // we get to main. We should see one breakpoint each in f1,
@@ -435,8 +439,9 @@ TEST_CASE(Debug_StepInto) {
 
 
 static void StepIntoHandler(Dart_IsolateId isolate_id,
-                            Dart_Breakpoint bpt,
-                            Dart_StackTrace trace) {
+                            const Dart_CodeLocation& location) {
+  Dart_StackTrace trace;
+  Dart_GetStackTrace(&trace);
   if (verbose) {
     OS::Print(">>> Breakpoint nr. %d in %s <<<\n",
               breakpoint_hit_counter, BreakpointInfo(trace));
@@ -463,7 +468,7 @@ TEST_CASE(Debug_IgnoreBP) {
       "}                        \n";
 
   LoadScript(kScriptChars);
-  Dart_SetBreakpointHandler(&StepIntoHandler);
+  Dart_SetPausedEventHandler(&StepIntoHandler);
 
   SetBreakpointAtEntry("", "main");
 
@@ -494,7 +499,7 @@ TEST_CASE(Debug_DeoptimizeFunction) {
       "}                                    \n";
 
   LoadScript(kScriptChars);
-  Dart_SetBreakpointHandler(&StepIntoHandler);
+  Dart_SetPausedEventHandler(&StepIntoHandler);
 
 
   // Cause function foo to be optimized before we set a BP.
@@ -518,8 +523,9 @@ TEST_CASE(Debug_DeoptimizeFunction) {
 
 
 void TestSingleStepHandler(Dart_IsolateId isolate_id,
-                           Dart_Breakpoint bpt,
-                           Dart_StackTrace trace) {
+                           const Dart_CodeLocation& location) {
+  Dart_StackTrace trace;
+  Dart_GetStackTrace(&trace);
   const char* expected_bpts[] = {
       "moo", "foo", "moo", "foo", "moo", "foo", "main"};
   const intptr_t expected_bpts_length = ARRAY_SIZE(expected_bpts);
@@ -563,7 +569,7 @@ TEST_CASE(Debug_SingleStep) {
       "}                         \n";
 
   LoadScript(kScriptChars);
-  Dart_SetBreakpointHandler(&TestSingleStepHandler);
+  Dart_SetPausedEventHandler(&TestSingleStepHandler);
 
   SetBreakpointAtEntry("", "moo");
 
@@ -576,8 +582,9 @@ TEST_CASE(Debug_SingleStep) {
 
 
 static void ClosureBreakpointHandler(Dart_IsolateId isolate_id,
-                                     Dart_Breakpoint bpt,
-                                     Dart_StackTrace trace) {
+                                     const Dart_CodeLocation& location) {
+  Dart_StackTrace trace;
+  Dart_GetStackTrace(&trace);
   const char* expected_trace[] = {"callback", "main"};
   const intptr_t expected_trace_length = 2;
   breakpoint_hit_counter++;
@@ -615,7 +622,7 @@ TEST_CASE(Debug_ClosureBreakpoint) {
       "}                      \n";
 
   LoadScript(kScriptChars);
-  Dart_SetBreakpointHandler(&ClosureBreakpointHandler);
+  Dart_SetPausedEventHandler(&ClosureBreakpointHandler);
 
   SetBreakpointAtEntry("", "callback");
 
@@ -630,8 +637,9 @@ TEST_CASE(Debug_ClosureBreakpoint) {
 
 
 static void ExprClosureBreakpointHandler(Dart_IsolateId isolate_id,
-                                         Dart_Breakpoint bpt,
-                                         Dart_StackTrace trace) {
+                                         const Dart_CodeLocation& location) {
+  Dart_StackTrace trace;
+  Dart_GetStackTrace(&trace);
   static const char* expected_trace[] = {"<anonymous closure>", "main"};
   Dart_Handle add_locals = Dart_NewList(4);
   Dart_ListSetAt(add_locals, 0, NewString("a"));
@@ -657,7 +665,7 @@ TEST_CASE(Debug_ExprClosureBreakpoint) {
       "}                      \n";
 
   LoadScript(kScriptChars);
-  Dart_SetBreakpointHandler(&ExprClosureBreakpointHandler);
+  Dart_SetPausedEventHandler(&ExprClosureBreakpointHandler);
 
   Dart_Handle script_url = NewString(TestCase::url());
   intptr_t line_no = 5;  // In closure 'add'.
@@ -678,8 +686,9 @@ TEST_CASE(Debug_ExprClosureBreakpoint) {
 static intptr_t bp_id_to_be_deleted;
 
 static void DeleteBreakpointHandler(Dart_IsolateId isolate_id,
-                                    Dart_Breakpoint bpt,
-                                    Dart_StackTrace trace) {
+                                    const Dart_CodeLocation& location) {
+  Dart_StackTrace trace;
+  Dart_GetStackTrace(&trace);
   const char* expected_trace[] = {"foo", "main"};
   const intptr_t expected_trace_length = 2;
   breakpoint_hit_counter++;
@@ -728,7 +737,7 @@ TEST_CASE(Debug_DeleteBreakpoint) {
   Dart_Handle script_url = NewString(TestCase::url());
   intptr_t line_no = 4;  // In function 'foo'.
 
-  Dart_SetBreakpointHandler(&DeleteBreakpointHandler);
+  Dart_SetPausedEventHandler(&DeleteBreakpointHandler);
 
   Dart_Handle res = Dart_SetBreakpoint(script_url, line_no);
   EXPECT_VALID(res);
@@ -748,8 +757,9 @@ TEST_CASE(Debug_DeleteBreakpoint) {
 
 
 static void InspectStaticFieldHandler(Dart_IsolateId isolate_id,
-                                      Dart_Breakpoint bpt,
-                                      Dart_StackTrace trace) {
+                                      const Dart_CodeLocation& location) {
+  Dart_StackTrace trace;
+  Dart_GetStackTrace(&trace);
   ASSERT(script_lib != NULL);
   ASSERT(!Dart_IsError(script_lib));
   ASSERT(Dart_IsLibrary(script_lib));
@@ -821,7 +831,7 @@ TEST_CASE(Debug_InspectStaticField) {
     " }                                         \n";
 
   LoadScript(kScriptChars);
-  Dart_SetBreakpointHandler(&InspectStaticFieldHandler);
+  Dart_SetPausedEventHandler(&InspectStaticFieldHandler);
   SetBreakpointAtEntry("", "debugBreak");
 
   breakpoint_hit_counter = 0;
@@ -1205,9 +1215,11 @@ TEST_CASE(Debug_InterruptIsolate) {
 }
 
 
-static void StackTraceDump1BreakpointHandler(Dart_IsolateId isolate_id,
-                                             Dart_Breakpoint bpt,
-                                             Dart_StackTrace trace) {
+static void StackTraceDump1BreakpointHandler(
+                Dart_IsolateId isolate_id,
+                const Dart_CodeLocation& location) {
+  Dart_StackTrace trace;
+  Dart_GetStackTrace(&trace);
   const int kStackTraceLen = 4;
   static const char* expected_trace[kStackTraceLen] = {
     "local_to_main",
@@ -1344,7 +1356,7 @@ TEST_CASE(Debug_StackTraceDump1) {
       "}\n";
 
   LoadScript(kScriptChars);
-  Dart_SetBreakpointHandler(&StackTraceDump1BreakpointHandler);
+  Dart_SetPausedEventHandler(&StackTraceDump1BreakpointHandler);
 
   Dart_Handle script_url = NewString(TestCase::url());
   intptr_t line_no = 34;  // In closure 'local_to_main'.

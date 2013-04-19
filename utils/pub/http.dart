@@ -69,10 +69,10 @@ class PubHttpClient extends http.BaseClient {
             error.osError.errorCode == -5 ||
             error.osError.errorCode == 11001 ||
             error.osError.errorCode == 11004) {
-          throw 'Could not resolve URL "${request.url.origin}".';
+          fail('Could not resolve URL "${request.url.origin}".');
         } else if (error.osError.errorCode == -12276) {
-          throw 'Unable to validate SSL certificate for '
-              '"${request.url.origin}".';
+          fail('Unable to validate SSL certificate for '
+              '"${request.url.origin}".');
         }
       }
       throw error;
@@ -187,9 +187,8 @@ Map parseJsonResponse(http.Response response) {
 }
 
 /// Throws an error describing an invalid response from the server.
-void invalidServerResponse(http.Response response) {
-  throw 'Invalid server response:\n${response.body}';
-}
+void invalidServerResponse(http.Response response) =>
+  fail('Invalid server response:\n${response.body}');
 
 /// Exception thrown when an HTTP operation fails.
 class PubHttpException implements Exception {

@@ -12,6 +12,7 @@
     'vmstats/packages/browser/dart.js',
     'vmstats/vmstats.css',
     'vmstats/vmstats.dart',
+    'vmstats/vmstats.dart.js',
     'vmstats/vmstats.html',
   ],
 }

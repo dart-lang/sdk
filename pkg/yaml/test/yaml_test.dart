@@ -8,7 +8,7 @@ library yaml_test;
 import "package:expect/expect.dart";
 import 'package:unittest/unittest.dart';
 import 'package:yaml/yaml.dart';
-import 'package:yaml/deep_equals.dart';
+import 'package:yaml/src/deep_equals.dart';
 // TODO(jmesserly): we should not be reaching outside the YAML package
 // The http package has a similar problem.
 import '../../../tests/utils/test_utils.dart';

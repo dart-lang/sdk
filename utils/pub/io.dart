@@ -144,29 +144,19 @@ List<String> listDir(String dir, {bool recursive: false,
 
     log.io("Listing directory $dir.");
 
-    var children = [];
-    for (var entity in new Directory(dir).listSync(followLinks: false)) {
-      var entityPath = entity.path;
-      if (!includeHidden && path.basename(entityPath).startsWith('.')) continue;
-
-      // TODO(nweiz): remove this when issue 9832 is fixed.
-      if (entity is Link) {
-        // We treat broken symlinks as files, in that we don't want to recurse
-        // into them.
-        entity = dirExists(entityPath)
-            ? new Directory(entityPath)
-            : new File(entityPath);
+    var children = <String>[];
+    for (var entity in new Directory(dir).listSync()) {
+      if (!includeHidden && path.basename(entity.path).startsWith('.')) {
+        continue;
       }
 
-      if (entity is File) {
-        contents.add(entityPath);
-      } else if (entity is Directory) {
-        contents.add(entityPath);
+      contents.add(entity.path);
+      if (entity is Directory) {
         // TODO(nweiz): don't manually recurse once issue 4794 is fixed.
         // Note that once we remove the manual recursion, we'll need to
         // explicitly filter out files in hidden directories.
         if (recursive) {
-          children.addAll(doList(entityPath, listedDirectories));
+          children.addAll(doList(entity.path, listedDirectories));
         }
       }
     }
@@ -272,37 +262,13 @@ String relativeToPub(String target) {
   var utilDir = path.dirname(scriptPath);
   while (path.basename(utilDir) != 'utils' &&
          path.basename(utilDir) != 'util') {
-    if (path.basename(utilDir) == '') throw 'Could not find path to pub.';
+    if (path.basename(utilDir) == '') {
+      throw new Exception('Could not find path to pub.');
+    }
     utilDir = path.dirname(utilDir);
   }
 
   return path.normalize(path.join(utilDir, 'pub', target));
-}
-
-// TODO(nweiz): add a ByteSink wrapper to make writing strings to stdout/stderr
-// nicer.
-
-/// A sink that writes to standard output. Errors piped to this stream will be
-/// surfaced to the top-level error handler.
-// TODO: Unrequired wrapper, stdout is now an EventSink<List<int>>.
-final EventSink<List<int>> stdoutSink = _wrapStdio(stdout, "stdout");
-
-/// A sink that writes to standard error. Errors piped to this stream will be
-/// surfaced to the top-level error handler.
-// TODO: Unrequired wrapper, stdout is now an EventSink<List<int>>.
-final EventSink<List<int>> stderrSink = _wrapStdio(stderr, "stderr");
-
-/// Wrap the standard output or error [stream] in a [EventSink]. Any errors are
-/// logged, and then the program is terminated. [name] is used for debugging.
-EventSink<List<int>> _wrapStdio(IOSink sink, String name) {
-  var pair = consumerToSink(sink);
-  pair.last.catchError((e) {
-    // This log may or may not work, depending on how the stream failed. Not
-    // much we can do about that.
-    log.error("Error writing to $name", e);
-    exit(exit_codes.IO);
-  });
-  return pair.first;
 }
 
 /// A line-by-line stream of standard input.
@@ -317,7 +283,7 @@ final Stream<String> stdinLines = streamToLines(
 /// should just be a fragment like, "Are you sure you want to proceed".
 Future<bool> confirm(String message) {
   log.fine('Showing confirm message: $message');
-  stdoutSink.add("$message (y/n)? ".codeUnits);
+  stdout.write("$message (y/n)? ");
   return streamFirst(stdinLines)
       .then((line) => new RegExp(r"^[yY]").hasMatch(line));
 }
@@ -571,8 +537,8 @@ Future<bool> extractTarGz(Stream<List<int>> stream, String destination) {
     // Ignore errors on process.std{out,err}. They'll be passed to
     // process.exitCode, and we don't want them being top-levelled by
     // std{out,err}Sink.
-    store(process.stdout.handleError((_) {}), stdoutSink, closeSink: false);
-    store(process.stderr.handleError((_) {}), stderrSink, closeSink: false);
+    store(process.stdout.handleError((_) {}), stdout, closeSink: false);
+    store(process.stderr.handleError((_) {}), stderr, closeSink: false);
     return Future.wait([
       store(stream, process.stdin),
       process.exitCode
@@ -580,8 +546,8 @@ Future<bool> extractTarGz(Stream<List<int>> stream, String destination) {
   }).then((results) {
     var exitCode = results[1];
     if (exitCode != 0) {
-      throw "Failed to extract .tar.gz stream to $destination (exit code "
-        "$exitCode).";
+      throw new Exception("Failed to extract .tar.gz stream to $destination "
+          "(exit code $exitCode).");
     }
     log.fine("Extracted .tar.gz stream to $destination. Exit code $exitCode.");
   });
@@ -612,25 +578,27 @@ Future<bool> _extractTarGzWindows(Stream<List<int>> stream,
       return runProcess(command, ['e', 'data.tar.gz'], workingDir: tempDir);
     }).then((result) {
       if (result.exitCode != 0) {
-        throw 'Could not un-gzip (exit code ${result.exitCode}). Error:\n'
+        throw new Exception('Could not un-gzip (exit code ${result.exitCode}). '
+                'Error:\n'
             '${result.stdout.join("\n")}\n'
-            '${result.stderr.join("\n")}';
+            '${result.stderr.join("\n")}');
       }
 
       // Find the tar file we just created since we don't know its name.
       var tarFile = listDir(tempDir).firstWhere(
           (file) => path.extension(file) == '.tar',
           orElse: () {
-        throw 'The gzip file did not contain a tar file.';
+        throw new FormatException('The gzip file did not contain a tar file.');
       });
 
       // Untar the archive into the destination directory.
       return runProcess(command, ['x', tarFile], workingDir: destination);
     }).then((result) {
       if (result.exitCode != 0) {
-        throw 'Could not un-tar (exit code ${result.exitCode}). Error:\n'
+        throw new Exception('Could not un-tar (exit code ${result.exitCode}). '
+                'Error:\n'
             '${result.stdout.join("\n")}\n'
-            '${result.stderr.join("\n")}';
+            '${result.stderr.join("\n")}');
       }
       return true;
     });
@@ -654,7 +622,7 @@ ByteStream createTarGz(List contents, {baseDir}) {
   contents = contents.map((entry) {
     entry = path.absolute(entry);
     if (!isBeneath(entry, baseDir)) {
-      throw 'Entry $entry is not inside $baseDir.';
+      throw new ArgumentError('Entry $entry is not inside $baseDir.');
     }
     return path.relative(entry, from: baseDir);
   }).toList();

@@ -1318,21 +1318,25 @@ void SnapshotWriter::ArrayWriteTo(intptr_t object_id,
 void SnapshotWriter::CheckIfSerializable(RawClass* cls) {
   if (Class::IsSignatureClass(cls)) {
     // We do not allow closure objects in an isolate message.
-    set_exception_type(Exceptions::kArgument);
-    // TODO(6726): Allocate these constant strings once in the VM isolate.
-    set_exception_msg("Illegal argument in isolate message"
+    SetWriteException(Exceptions::kArgument,
+                      "Illegal argument in isolate message"
                       " : (object is a closure)");
-    Isolate::Current()->long_jump_base()->Jump(1, *ErrorHandle());
   }
   if (cls->ptr()->num_native_fields_ != 0) {
     // We do not allow objects with native fields in an isolate message.
-    set_exception_type(Exceptions::kArgument);
-    // TODO(6726): Allocate these constant strings once in the VM isolate.
-    set_exception_msg("Illegal argument in isolate message"
+    SetWriteException(Exceptions::kArgument,
+                      "Illegal argument in isolate message"
                       " : (object extends NativeWrapper)");
-
-    Isolate::Current()->long_jump_base()->Jump(1, *ErrorHandle());
   }
+}
+
+
+void SnapshotWriter::SetWriteException(Exceptions::ExceptionType type,
+                                       const char* msg) {
+  set_exception_type(type);
+  // TODO(6726): Allocate these constant strings once in the VM isolate.
+  set_exception_msg(msg);
+  Isolate::Current()->long_jump_base()->Jump(1, *ErrorHandle());
 }
 
 

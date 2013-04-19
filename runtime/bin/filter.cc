@@ -278,6 +278,8 @@ intptr_t ZLibInflateFilter::Processed(uint8_t* buffer,
   stream_.avail_out = length;
   stream_.next_out = buffer;
   switch (inflate(&stream_, flush ? Z_SYNC_FLUSH : Z_NO_FLUSH)) {
+    case Z_STREAM_END:
+    case Z_BUF_ERROR:
     case Z_OK: {
       intptr_t processed = length - stream_.avail_out;
       if (processed == 0) {
@@ -289,13 +291,6 @@ intptr_t ZLibInflateFilter::Processed(uint8_t* buffer,
         return processed;
       }
     }
-
-    case Z_STREAM_END:
-    case Z_BUF_ERROR:
-      // We processed all available input data.
-      delete[] current_buffer_;
-      current_buffer_ = NULL;
-      return 0;
 
     default:
     case Z_MEM_ERROR:

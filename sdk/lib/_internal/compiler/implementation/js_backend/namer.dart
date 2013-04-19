@@ -364,8 +364,7 @@ class Namer implements ClosureNamer {
       assert(name == operatorNameToIdentifier(name));
       StringBuffer buffer = new StringBuffer();
       for (SourceString argumentName in selector.getOrderedNamedArguments()) {
-        buffer.write(r'$');
-        argumentName.printOn(buffer);
+        buffer.write('\$${safeName(argumentName.slowToString())}');
       }
       String suffix = '\$${selector.argumentCount}$buffer';
       // We don't mangle the closure invoking function name because it

@@ -1521,11 +1521,11 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   Selector getOptimizedSelectorFor(HInvokeDynamic node, Selector selector) {
-    // If [JSInvocationMirror.invokeOn] has been called, we must not create a
+    // If [JSInvocationMirror._invokeOn] has been called, we must not create a
     // typed selector based on the receiver type.
     if (node.element == null && // Invocation is not exact.
         backend.compiler.enabledInvokeOn) {
-      return selector;
+      return selector.asUntyped;
     }
     HType receiverType = node.getDartReceiver(compiler).instructionType;
     return receiverType.refine(selector, compiler);
@@ -1808,9 +1808,17 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void generateNot(HInstruction input) {
     bool canGenerateOptimizedComparison(HInstruction instruction) {
       if (instruction is !HRelational) return false;
+
       HRelational relational = instruction;
+      BinaryOperation operation = relational.operation(backend.constantSystem);
+
       HInstruction left = relational.left;
       HInstruction right = relational.right;
+      if (left.instructionType.isUseful() && left.isString() &&
+          right.instructionType.isUseful() && right.isString()) {
+        return true;
+      }
+
       // This optimization doesn't work for NaN, so we only do it if the
       // type is known to be an integer.
       return left.instructionType.isUseful() && left.isInteger()
@@ -1818,7 +1826,9 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
 
     bool generateAtUseSite = isGenerateAtUseSite(input);
-    if (input is HIdentity && generateAtUseSite) {
+    if (input is HIs) {
+      emitIs(input, '!==');
+    } else if (input is HIdentity && generateAtUseSite) {
       emitIdentityComparison(input.left, input.right, true);
     } else if (input is HBoolify && generateAtUseSite) {
       use(input.inputs[0]);
@@ -2119,8 +2129,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     use(input);
     js.Expression right = pop();
     // TODO(4984): Deal with infinity and -0.0.
-    push(new js.LiteralExpression.withData('Math.floor(#) === #',
-                                           <js.Expression>[left, right]));
+    push(js.js('Math.floor(#) $cmp #', <js.Expression>[left, right]));
   }
 
   void checkTypeOf(HInstruction input, String cmp, String typeName) {
@@ -2194,15 +2203,19 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     push(new js.Binary('!=', pop(), new js.LiteralNull()));
   }
 
-  void checkFunction(HInstruction input, DartType type) {
-    checkTypeOf(input, '===', 'function');
+  void checkFunction(HInstruction input,
+                     DartType type,
+                     { bool negative: false}) {
+    String relation = negative ? '!==' : '===';
+    checkTypeOf(input, relation, 'function');
     js.Expression functionTest = pop();
-    checkObject(input, '===');
+    checkObject(input, relation);
     js.Expression objectTest = pop();
-    checkType(input, type);
-    push(new js.Binary('||',
+    checkType(input, type, negative: negative);
+    String combiner = negative ? '||' : '&&';
+    push(new js.Binary(negative ? '&&' : '||',
                        functionTest,
-                       new js.Binary('&&', objectTest, pop())));
+                       new js.Binary(combiner, objectTest, pop())));
   }
 
   void checkType(HInstruction input, DartType type, {bool negative: false}) {
@@ -2243,69 +2256,86 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     js.PropertyAccess field =
         new js.PropertyAccess.field(pop(), backend.namer.operatorIs(element));
-    if (backend.emitter.nativeEmitter.requiresNativeIsCheck(element)) {
-      push(new js.Call(field, <js.Expression>[]));
-      if (negative) push(new js.Prefix('!', pop()));
-    } else {
-      // We always negate at least once so that the result is boolified.
-      push(new js.Prefix('!', field));
-      // If the result is not negated, put another '!' in front.
-      if (!negative) push(new js.Prefix('!', pop()));
-    }
-
+    // We always negate at least once so that the result is boolified.
+    push(new js.Prefix('!', field));
+    // If the result is not negated, put another '!' in front.
+    if (!negative) push(new js.Prefix('!', pop()));
   }
 
-  void handleNumberOrStringSupertypeCheck(HInstruction input, DartType type) {
+  void handleNumberOrStringSupertypeCheck(HInstruction input,
+                                          DartType type,
+                                          { bool negative: false }) {
     assert(!identical(type.element, compiler.listClass)
            && !Elements.isListSupertype(type.element, compiler)
            && !Elements.isStringOnlySupertype(type.element, compiler));
-    checkNum(input, '===');
+    String relation = negative ? '!==' : '===';
+    checkNum(input, relation);
     js.Expression numberTest = pop();
-    checkString(input, '===');
+    checkString(input, relation);
     js.Expression stringTest = pop();
-    checkObject(input, '===');
+    checkObject(input, relation);
     js.Expression objectTest = pop();
-    checkType(input, type);
-    push(new js.Binary('||',
-                       new js.Binary('||', numberTest, stringTest),
-                       new js.Binary('&&', objectTest, pop())));
+    checkType(input, type, negative: negative);
+    String combiner = negative ? '&&' : '||';
+    String combiner2 = negative ? '||' : '&&';
+    push(new js.Binary(combiner,
+                       new js.Binary(combiner, numberTest, stringTest),
+                       new js.Binary(combiner2, objectTest, pop())));
   }
 
-  void handleStringSupertypeCheck(HInstruction input, DartType type) {
+  void handleStringSupertypeCheck(HInstruction input,
+                                  DartType type,
+                                  { bool negative: false }) {
     assert(!identical(type.element, compiler.listClass)
            && !Elements.isListSupertype(type.element, compiler)
            && !Elements.isNumberOrStringSupertype(type.element, compiler));
-    checkString(input, '===');
+    String relation = negative ? '!==' : '===';
+    checkString(input, relation);
     js.Expression stringTest = pop();
-    checkObject(input, '===');
+    checkObject(input, relation);
     js.Expression objectTest = pop();
-    checkType(input, type);
-    push(new js.Binary('||',
+    checkType(input, type, negative: negative);
+    String combiner = negative ? '||' : '&&';
+    push(new js.Binary(negative ? '&&' : '||',
                        stringTest,
-                       new js.Binary('&&', objectTest, pop())));
+                       new js.Binary(combiner, objectTest, pop())));
   }
 
-  void handleListOrSupertypeCheck(HInstruction input, DartType type) {
+  void handleListOrSupertypeCheck(HInstruction input,
+                                  DartType type,
+                                  { bool negative: false }) {
     assert(!identical(type.element, compiler.stringClass)
            && !Elements.isStringOnlySupertype(type.element, compiler)
            && !Elements.isNumberOrStringSupertype(type.element, compiler));
-    checkObject(input, '===');
+    String relation = negative ? '!==' : '===';
+    checkObject(input, relation);
     js.Expression objectTest = pop();
-    checkArray(input, '===');
+    checkArray(input, relation);
     js.Expression arrayTest = pop();
-    checkType(input, type);
-    push(new js.Binary('&&',
+    checkType(input, type, negative: negative);
+    String combiner = negative ? '&&' : '||';
+    push(new js.Binary(negative ? '||' : '&&',
                        objectTest,
-                       new js.Binary('||', arrayTest, pop())));
+                       new js.Binary(combiner, arrayTest, pop())));
   }
 
   void visitIs(HIs node) {
+    emitIs(node, "===");
+  }
+
+  void emitIs(HIs node, String relation)  {
     DartType type = node.typeExpression;
     world.registerIsCheck(type, work.resolutionTree);
     HInstruction input = node.expression;
 
+    // If this is changed to single == there are several places below that must
+    // be changed to match.
+    assert(relation == '===' || relation == '!==');
+    bool negative = relation == '!==';
+
     if (node.isVariableCheck || node.isCompoundCheck) {
       use(node.checkCall);
+      if (negative) push(new js.Prefix('!', pop()));
     } else {
       assert(node.isRawCheck);
       LibraryElement coreLibrary = compiler.coreLibrary;
@@ -2316,59 +2346,68 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           identical(element, compiler.dynamicClass)) {
         // The constant folder also does this optimization, but we make
         // it safe by assuming it may have not run.
-        push(newLiteralBool(true), node);
+        push(newLiteralBool(!negative), node);
       } else if (element == compiler.stringClass) {
-        checkString(input, '===');
+        checkString(input, relation);
         attachLocationToLast(node);
       } else if (element == compiler.doubleClass) {
-        checkDouble(input, '===');
+        checkDouble(input, relation);
         attachLocationToLast(node);
       } else if (element == compiler.numClass) {
-        checkNum(input, '===');
+        checkNum(input, relation);
         attachLocationToLast(node);
       } else if (element == compiler.boolClass) {
-        checkBool(input, '===');
+        checkBool(input, relation);
         attachLocationToLast(node);
       } else if (element == compiler.functionClass) {
-        checkFunction(input, type);
+        checkFunction(input, type, negative: negative);
         attachLocationToLast(node);
       } else if (element == compiler.intClass) {
         // The is check in the code tells us that it might not be an
         // int. So we do a typeof first to avoid possible
         // deoptimizations on the JS engine due to the Math.floor check.
-        checkNum(input, '===');
+        checkNum(input, relation);
         js.Expression numTest = pop();
-        checkBigInt(input, '===');
-        push(new js.Binary('&&', numTest, pop()), node);
+        checkBigInt(input, relation);
+        push(new js.Binary(negative ? '||' : '&&', numTest, pop()), node);
       } else if (Elements.isNumberOrStringSupertype(element, compiler)) {
-        handleNumberOrStringSupertypeCheck(input, type);
+        handleNumberOrStringSupertypeCheck(input, type, negative: negative);
         attachLocationToLast(node);
       } else if (Elements.isStringOnlySupertype(element, compiler)) {
-        handleStringSupertypeCheck(input, type);
+        handleStringSupertypeCheck(input, type, negative: negative);
         attachLocationToLast(node);
       } else if (identical(element, compiler.listClass)
                  || Elements.isListSupertype(element, compiler)) {
-        handleListOrSupertypeCheck(input, type);
+        handleListOrSupertypeCheck(input, type, negative: negative);
         attachLocationToLast(node);
       } else if (element.isTypedef()) {
-        checkNonNull(input);
+        if (negative) {
+          checkNull(input);
+        } else {
+          checkNonNull(input);
+        }
         js.Expression nullTest = pop();
-        checkType(input, type);
-        push(new js.Binary('&&', nullTest, pop()));
+        checkType(input, type, negative: negative);
+        push(new js.Binary(negative ? '||' : '&&', nullTest, pop()));
         attachLocationToLast(node);
       } else if (input.canBePrimitive(compiler) || input.canBeNull()) {
-        checkObject(input, '===');
+        checkObject(input, relation);
         js.Expression objectTest = pop();
-        checkType(input, type);
-        push(new js.Binary('&&', objectTest, pop()), node);
+        checkType(input, type, negative: negative);
+        push(new js.Binary(negative ? '||' : '&&', objectTest, pop()), node);
       } else {
-        checkType(input, type);
+        checkType(input, type, negative: negative);
         attachLocationToLast(node);
       }
     }
     if (node.nullOk) {
-      checkNull(input);
-      push(new js.Binary('||', pop(), pop()), node);
+      if (negative) {
+        checkNonNull(input);
+        push(new js.Binary('&&', pop(), pop()), node);
+      } else {
+        checkNull(input);
+        push(new js.Binary('||', pop(), pop()), node);
+      }
     }
   }
 
@@ -2498,26 +2537,28 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
     HInstruction input = node.guarded;
     DartType indexingBehavior =
         backend.jsIndexingBehaviorInterface.computeType(compiler);
+    String message;
+    js.Expression test;
     if (node.isInteger()) {
       // if (input is !int) bailout
       checkInt(input, '!==');
-      js.Statement then = bailout(node, 'Not an integer');
-      pushStatement(new js.If.noElse(pop(), then), node);
+      test = pop();
+      message = 'Not an integer';
     } else if (node.isNumber()) {
       // if (input is !num) bailout
       checkNum(input, '!==');
-      js.Statement then = bailout(node, 'Not a number');
-      pushStatement(new js.If.noElse(pop(), then), node);
+      test = pop();
+      message = 'Not a number';
     } else if (node.isBoolean()) {
       // if (input is !bool) bailout
       checkBool(input, '!==');
-      js.Statement then = bailout(node, 'Not a boolean');
-      pushStatement(new js.If.noElse(pop(), then), node);
+      test = pop();
+      message = 'Not a boolean';
     } else if (node.isString()) {
       // if (input is !string) bailout
       checkString(input, '!==');
-      js.Statement then = bailout(node, 'Not a string');
-      pushStatement(new js.If.noElse(pop(), then), node);
+      test = pop();
+      message = 'Not a string';
     } else if (node.isExtendableArray()) {
       // if (input is !Object || input is !Array || input.isFixed) bailout
       checkObject(input, '!==');
@@ -2525,10 +2566,9 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
       checkArray(input, '!==');
       js.Expression arrayTest = pop();
       checkFixedArray(input);
-      js.Binary test = new js.Binary('||', objectTest, arrayTest);
+      test = new js.Binary('||', objectTest, arrayTest);
       test = new js.Binary('||', test, pop());
-      js.Statement then = bailout(node, 'Not an extendable array');
-      pushStatement(new js.If.noElse(test, then), node);
+      message = 'Not an extendable array';
     } else if (node.isMutableArray()) {
       // if (input is !Object
       //     || ((input is !Array || input.isImmutable)
@@ -2541,9 +2581,8 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
       js.Binary notArrayOrImmutable = new js.Binary('||', arrayTest, pop());
       checkType(input, indexingBehavior, negative: true);
       js.Binary notIndexing = new js.Binary('&&', notArrayOrImmutable, pop());
-      js.Binary test = new js.Binary('||', objectTest, notIndexing);
-      js.Statement then = bailout(node, 'Not a mutable array');
-      pushStatement(new js.If.noElse(test, then), node);
+      test = new js.Binary('||', objectTest, notIndexing);
+      message = 'Not a mutable array';
     } else if (node.isReadableArray()) {
       // if (input is !Object
       //     || (input is !Array && input is !JsIndexingBehavior)) bailout
@@ -2553,9 +2592,8 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
       js.Expression arrayTest = pop();
       checkType(input, indexingBehavior, negative: true);
       js.Expression notIndexing = new js.Binary('&&', arrayTest, pop());
-      js.Binary test = new js.Binary('||', objectTest, notIndexing);
-      js.Statement then = bailout(node, 'Not an array');
-      pushStatement(new js.If.noElse(test, then), node);
+      test = new js.Binary('||', objectTest, notIndexing);
+      message = 'Not an array';
     } else if (node.isIndexablePrimitive()) {
       // if (input is !String
       //     && (input is !Object
@@ -2570,13 +2608,12 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
       js.Binary notIndexingTest = new js.Binary('&&', arrayTest, pop());
       js.Binary notObjectOrIndexingTest =
           new js.Binary('||', objectTest, notIndexingTest);
-      js.Binary test =
-          new js.Binary('&&', stringTest, notObjectOrIndexingTest);
-      js.Statement then = bailout(node, 'Not a string or array');
-      pushStatement(new js.If.noElse(test, then), node);
+      test = new js.Binary('&&', stringTest, notObjectOrIndexingTest);
+      message = 'Not a string or array';
     } else {
       compiler.internalError('Unexpected type guard', instruction: input);
     }
+    pushStatement(new js.If.noElse(test, bailout(node, message)), node);
   }
 
   void visitBailoutTarget(HBailoutTarget target) {

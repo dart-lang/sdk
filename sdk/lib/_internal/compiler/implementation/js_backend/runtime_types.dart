@@ -254,7 +254,8 @@ class RuntimeTypes {
     InterfaceType interface = type;
     Link<DartType> variables = interface.element.typeVariables;
     if (variables.isEmpty) return name;
-    String arguments = variables.map((_) => 'dynamic').join(', ');
+    String arguments =
+        new List.filled(variables.slowLength(), 'dynamic').join(', ');
     return '$name<$arguments>';
   }
 
@@ -319,7 +320,7 @@ class RuntimeTypes {
     };
     InterfaceType type = cls.computeType(compiler);
     InterfaceType target = type.asInstanceOf(check);
-    String substitution = target.typeArguments
+    String substitution = target.typeArguments.toList()
         .map((type) => _getTypeRepresentation(type, onVariable))
         .join(', ');
     substitution = '[$substitution]';

@@ -28,10 +28,6 @@ void Benchmark::RunAll(const char* executable) {
 }
 
 
-// Compiler only implemented on IA32 and X64 now.
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
-
-
 //
 // Measure compile of all functions in dart core lib classes.
 //
@@ -49,8 +45,6 @@ BENCHMARK(CorelibCompileAll) {
   int64_t elapsed_time = timer.TotalElapsedTime();
   benchmark->set_score(elapsed_time);
 }
-
-#endif  // TARGET_ARCH_IA32 || TARGET_ARCH_X64
 
 
 //

@@ -169,7 +169,7 @@ class DbgMsgQueue {
   void SendQueuedMsgs();
 
   // Send breakpoint event message over to the debugger.
-  void SendBreakpointEvent(Dart_StackTrace trace);
+  void SendBreakpointEvent(const Dart_CodeLocation& location);
 
   // Send Exception event message over to the debugger.
   void SendExceptionEvent(Dart_Handle exception, Dart_StackTrace trace);
@@ -236,11 +236,9 @@ class DbgMsgQueueList {
   // resolution.
   static void BptResolvedHandler(Dart_IsolateId isolate_id,
                                  intptr_t bp_id,
-                                 Dart_Handle url,
-                                 intptr_t line_number);
-  static void BreakpointHandler(Dart_IsolateId isolate_id,
-                                Dart_Breakpoint bpt,
-                                Dart_StackTrace trace);
+                                 const Dart_CodeLocation& location);
+  static void PausedEventHandler(Dart_IsolateId isolate_id,
+                                 const Dart_CodeLocation& loc);
   static void ExceptionThrownHandler(Dart_IsolateId isolate_id,
                                      Dart_Handle exception,
                                      Dart_StackTrace stack_trace);

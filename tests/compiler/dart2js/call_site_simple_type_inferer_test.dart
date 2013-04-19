@@ -221,7 +221,8 @@ void doTest(String test, bool enableInlining, Function f) {
       var signature = element.computeSignature(inferrer.compiler);
       int index = 0;
       signature.forEachParameter((Element element) {
-        Expect.equals(expectedTypes[index++], inferrer.typeOf[element]);
+        Expect.equals(expectedTypes[index++],
+                      inferrer.internal.typeOf[element]);
       });
       Expect.equals(index, expectedTypes.length);
   });

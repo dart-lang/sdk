@@ -81,10 +81,6 @@ class LinkEntry<T> extends Link<T> {
 
   bool get isEmpty => false;
 
-  List<T> toList({ bool growable: true }) {
-    return new List<T>.from(this, growable: growable);
-  }
-
   void forEach(void f(T element)) {
     for (Link<T> link = this; !link.isEmpty; link = link.tail) {
       f(link.head);

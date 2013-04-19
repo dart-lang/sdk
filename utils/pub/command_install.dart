@@ -17,7 +17,6 @@ class InstallCommand extends PubCommand {
 
   Future onRun() {
     return entrypoint.installDependencies()
-        .then((_) => log.message("Dependencies installed!"))
-        .then((_) => entrypoint.validateSdkConstraints());
+        .then((_) => log.message("Dependencies installed!"));
   }
 }

@@ -10,8 +10,8 @@ main() {
 
   try {
     print(const Symbol(0)); /// 01: compile-time error
-  } on ArgumentError {
-    print('Caught ArgumentError');
+  } on NoSuchMethodError {
+    print('Caught NoSuchMethodError');
   } on TypeError {
     print('Caught TypeError');
   }
@@ -31,9 +31,9 @@ main() {
   try {
     var y = 0;
     print(new Symbol(y));
-    throw 'Expected an ArgumentError or a TypeError';
-  } on ArgumentError {
-    print('Caught ArgumentError');
+    throw 'Expected a NoSuchMethodError or a TypeError';
+  } on NoSuchMethodError {
+    print('Caught NoSuchMethodError');
   } on TypeError {
     print('Caught TypeError');
   }

@@ -22,9 +22,10 @@ final USAGE_STRING = """
         --[no-]trace      Print debugging information when an error occurs.
         --verbosity       Control output verbosity.
 
-              [all]       All output including internal tracing messages are shown.
-              [io]        IO operations are also shown.
-              [normal]    Errors, warnings, and user messages are shown.
+              [all]       Show all output including internal tracing messages.
+              [io]        Also show IO operations.
+              [normal]    Show errors, warnings, and user messages.
+              [solver]    Show steps during version resolution.
 
     -v, --verbose         Shortcut for "--verbosity=all"
 

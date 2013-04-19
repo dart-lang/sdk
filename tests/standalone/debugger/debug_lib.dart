@@ -341,8 +341,15 @@ class Debugger {
         }
       }
     } else if (msg["event"] == "breakpointResolved") {
-      // Ignore the event. We may want to maintain a table of
-      // breakpoints in the future.
+      var bpId = msg["params"]["breakpointId"];
+      assert(bpId != null);
+      var isolateId = msg["params"]["isolateId"];
+      assert(isolateId != null);
+      var location = msg["params"]["location"];
+      assert(location != null);
+      print("Isolate $isolateId: breakpoint $bpId resolved"
+            " at location $location");
+      // We may want to maintain a table of breakpoints in the future.
     } else if (msg["event"] == "paused") {
       isPaused = true;
     } else {

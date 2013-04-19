@@ -128,7 +128,9 @@ class _GrowableObjectArray<T> implements List<T> {
   factory _GrowableObjectArray(int length) {
     var data = new _ObjectArray((length == 0) ? 4 : length);
     var result = new _GrowableObjectArray<T>.withData(data);
-    result._setLength(length);
+    if (length > 0) {
+      result._setLength(length);
+    }
     return result;
   }
 

@@ -2514,7 +2514,10 @@ void RawStacktrace::WriteTo(SnapshotWriter* writer,
     SnapshotWriterVisitor visitor(writer);
     visitor.VisitPointers(from(), to());
   } else {
-    UNREACHABLE();  // Stacktraces are not supported for other snapshot forms.
+    // Stacktraces are not allowed in other snapshot forms.
+    writer->SetWriteException(Exceptions::kArgument,
+                              "Illegal argument in isolate message"
+                              " : (object is a stacktrace)");
   }
 }
 

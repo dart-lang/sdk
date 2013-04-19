@@ -165,7 +165,7 @@ class World {
   }
 
   Iterable<ClassElement> locateNoSuchMethodHolders(Selector selector) {
-    Selector noSuchMethodSelector = new Selector.noSuchMethod();
+    Selector noSuchMethodSelector = compiler.noSuchMethodSelector;
     ti.TypeMask mask = selector.mask;
     if (mask != null) {
       noSuchMethodSelector = new TypedSelector(mask, noSuchMethodSelector);

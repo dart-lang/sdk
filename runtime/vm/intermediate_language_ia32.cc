@@ -64,7 +64,7 @@ LocationSummary* ReturnInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* locs =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RegisterLocation(EAX));
   return locs;
 }
@@ -84,10 +84,12 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!compiler->HasFinally()) {
     __ Comment("Stack Check");
     Label done;
-    const int sp_fp_dist = compiler->StackSize() + (-kFirstLocalSlotIndex - 1);
-    __ movl(EDI, EBP);
-    __ subl(EDI, ESP);
-    __ cmpl(EDI, Immediate(sp_fp_dist * kWordSize));
+    const intptr_t fp_sp_dist =
+        (kFirstLocalSlotIndex + 1 - compiler->StackSize()) * kWordSize;
+    ASSERT(fp_sp_dist <= 0);
+    __ movl(EDI, ESP);
+    __ subl(EDI, EBP);
+    __ cmpl(EDI, Immediate(fp_sp_dist));
     __ j(EQUAL, &done, Assembler::kNearJump);
     __ int3();
     __ Bind(&done);
@@ -2023,7 +2025,7 @@ void ExtractConstructorInstantiatorInstr::EmitNativeCode(
 
     // Check if the instantiator type argument vector is a TypeArguments of a
     // matching length and, if so, use it as the instantiated type_arguments.
-    // No need to check the instantiator (RAX) for null here, because a null
+    // No need to check the instantiator for null here, because a null
     // instantiator will have the wrong class (Null instead of TypeArguments).
     __ CompareClassId(instantiator_reg, kTypeArgumentsCid, temp_reg);
     __ j(NOT_EQUAL, &done, Assembler::kNearJump);
@@ -2103,13 +2105,12 @@ LocationSummary* CatchEntryInstr::MakeLocationSummary() const {
 // Restore stack and initialize the two exception variables:
 // exception and stack trace variables.
 void CatchEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // Restore RSP from RBP as we are coming from a throw and the code for
+  // Restore ESP from EBP as we are coming from a throw and the code for
   // popping arguments has not been run.
-  const intptr_t locals_space_size = compiler->StackSize() * kWordSize;
-  ASSERT(locals_space_size >= 0);
-  const intptr_t offset_size =
-      -locals_space_size + FlowGraphCompiler::kLocalsOffsetFromFP;
-  __ leal(ESP, Address(EBP, offset_size));
+  const intptr_t fp_sp_dist =
+      (kFirstLocalSlotIndex + 1 - compiler->StackSize()) * kWordSize;
+  ASSERT(fp_sp_dist <= 0);
+  __ leal(ESP, Address(EBP, fp_sp_dist));
 
   ASSERT(!exception_var().is_captured());
   ASSERT(!stacktrace_var().is_captured());
@@ -2814,6 +2815,33 @@ void BinaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
+
+LocationSummary* BinaryFloat32x4OpInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_in(1, Location::RequiresFpuRegister());
+  summary->set_out(Location::SameAsFirstInput());
+  return summary;
+}
+
+
+void BinaryFloat32x4OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  XmmRegister left = locs()->in(0).fpu_reg();
+  XmmRegister right = locs()->in(1).fpu_reg();
+
+  ASSERT(locs()->out().fpu_reg() == left);
+
+  switch (op_kind()) {
+    case Token::kADD: __ addps(left, right); break;
+    case Token::kSUB: __ subps(left, right); break;
+    case Token::kMUL: __ mulps(left, right); break;
+    case Token::kDIV: __ divps(left, right); break;
+    default: UNREACHABLE();
+  }
+}
 
 LocationSummary* MathSqrtInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;

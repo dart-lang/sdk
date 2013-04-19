@@ -133,16 +133,16 @@ class HostedSource extends Source {
   void _throwFriendlyError(error, package, url) {
     if (error is PubHttpException &&
         error.response.statusCode == 404) {
-      throw 'Could not find package "$package" at $url.';
+      fail('Could not find package "$package" at $url.');
     }
 
     if (error is TimeoutException) {
-      throw 'Timed out trying to find package "$package" at $url.';
+      fail('Timed out trying to find package "$package" at $url.');
     }
 
     if (error is io.SocketIOException) {
-      throw 'Got socket error trying to find package "$package" at $url.\n'
-          '${error.osError}';
+      fail('Got socket error trying to find package "$package" at $url.\n'
+          '${error.osError}');
     }
 
     // Otherwise re-throw the original exception.

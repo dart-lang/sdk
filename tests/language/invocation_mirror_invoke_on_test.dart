@@ -2,9 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:mirrors" show reflect;
 import "package:expect/expect.dart";
 
-// Testing Invocation.invokeOn method; test of issue 7227.
+// Testing InstanceMirror.delegate method; test of issue 7227.
 
 var reachedSetX = 0;
 var reachedGetX = 0;
@@ -25,7 +26,7 @@ class A {
 
 class B {
   final a = new A();
-  noSuchMethod(mirror) => mirror.invokeOn(a);
+  noSuchMethod(mirror) => reflect(a).delegate(mirror);
 }
 
 main () {

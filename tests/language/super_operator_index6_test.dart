@@ -11,7 +11,7 @@ class A {
   operator[]=(index, value) { indexField[index] = value; }
 
   noSuchMethod(Invocation im) {
-    if (im.memberName == '[]') {
+    if (im.memberName == const Symbol('[]')) {
       Expect.equals(1, im.positionalArguments.length);
       return indexField[im.positionalArguments[0]];
     } else {

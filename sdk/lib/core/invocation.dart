@@ -13,13 +13,13 @@ part of dart.core;
  */
 abstract class Invocation {
   /** The name of the invoked member. */
-  String get memberName;
+  Symbol get memberName;
 
   /** An unmodifiable view of the positional arguments of the call. */
   List get positionalArguments;
 
   /** An unmodifiable view of the named arguments of the call. */
-  Map<String, dynamic> get namedArguments;
+  Map<Symbol, dynamic> get namedArguments;
 
   /** Whether the invocation was a method call. */
   bool get isMethod;
@@ -40,13 +40,4 @@ abstract class Invocation {
 
   /** Whether the invocation was a getter or a setter call. */
   bool get isAccessor => isGetter || isSetter;
-
-  /**
-   * Perform the invocation on the provided object.
-   *
-   * If the object doesn't support the invocation, its [noSuchMethod]
-   * method will be called with either this [InvocationMirror] or another
-   * equivalent [InvocationMirror].
-   */
-  invokeOn(Object receiver);
 }

@@ -16,12 +16,20 @@ abstract class RawServerSocket implements Stream<RawSocket> {
    * completes the server socket is bound to the given [address] and
    * [port] and has started listening on it.
    *
+   * The default value for [address] is 127.0.0.1, which will allow
+   * only incoming connections from the local host. To allow for
+   * incoming connection from the network use either the value 0.0.0.0
+   * to bind to all interfaces or the IP address of a specific
+   * interface.
+   *
    * If [port] has the value [:0:] (the default) an ephemeral port will
    * be chosen by the system. The actual port used can be retrieved
    * using the [:port:] getter.
    *
-   * If [backlog] has the value of [:0:] a reasonable value will be
-   * chosen by the system.
+   * The optional argument [backlog] can be used to specify the listen
+   * backlog for the underlying OS listen setup. If [backlog] has the
+   * value of [:0:] (the default) a reasonable value will be chosen by
+   * the system.
    */
   external static Future<RawServerSocket> bind([String address = "127.0.0.1",
                                                int port = 0,
@@ -51,12 +59,20 @@ abstract class ServerSocket implements Stream<Socket> {
    * completes the server socket is bound to the given [address] and
    * [port] and has started listening on it.
    *
+   * The default value for [address] is 127.0.0.1, which will allow
+   * only incoming connections from the local host. To allow for
+   * incoming connection from the network use either the value 0.0.0.0
+   * to bind to all interfaces or the IP address of a specific
+   * interface.
+   *
    * If [port] has the value [:0:] (the default) an ephemeral port will
    * be chosen by the system. The actual port used can be retrieved
    * using the [port] getter.
    *
-   * If [backlog] has the value of [:0:] a reasonable value will be
-   * chosen by the system.
+   * The optional argument [backlog] can be used to specify the listen
+   * backlog for the underlying OS listen setup. If [backlog] has the
+   * value of [:0:] (the default) a reasonable value will be chosen by
+   * the system.
    */
   external static Future<ServerSocket> bind([String address = "127.0.0.1",
                                              int port = 0,
@@ -165,6 +181,11 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
   int get remotePort;
 
   /**
+   * Returns the host used to connect this socket.
+   */
+  String get host;
+
+  /**
    * Returns the remote host connected to by this socket.
    */
   String get remoteHost;
@@ -238,9 +259,25 @@ abstract class Socket implements Stream<List<int>>, IOSink {
    */
   bool setOption(SocketOption option, bool enabled);
 
+  /**
+   * Returns the port used by this socket.
+   */
   int get port;
-  String get remoteHost;
+
+  /**
+   * Returns the remote port connected to by this socket.
+   */
   int get remotePort;
+
+  /**
+   * Returns the host used to connect this socket.
+   */
+  String get host;
+
+  /**
+   * Returns the remote host connected to by this socket.
+   */
+  String get remoteHost;
 }
 
 

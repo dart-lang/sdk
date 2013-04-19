@@ -478,8 +478,7 @@ class _File extends _FileBase implements File {
     openRead().listen(
       (d) => chunks.add(d),
       onDone: () {
-        var result = chunks.readBytes(chunks.length);
-        if (result == null) result = <int>[];
+        var result = chunks.readBytes();
         completer.complete(result);
       },
       onError: (e) {

@@ -35,6 +35,9 @@ typedef void DefineStubFunction(String invocationName, jsAst.Expression value);
 class ClassBuilder {
   final List<jsAst.Property> properties = <jsAst.Property>[];
 
+  /// Set to true by user if class is indistinguishable from its superclass.
+  bool isTrivial = false;
+
   // Has the same signature as [DefineStubFunction].
   void addProperty(String name, jsAst.Expression value) {
     properties.add(new jsAst.Property(js.string(name), value));
@@ -1172,17 +1175,11 @@ class CodeEmitterTask extends CompilerTask {
         includeSuperMembers: false);
 
     void generateIsTest(Element other) {
-      jsAst.Expression code;
       if (other == compiler.objectClass && other != classElement) {
         // Avoid emitting [:$isObject:] on all classes but [Object].
         return;
       }
-      if (nativeEmitter.requiresNativeIsCheck(other)) {
-        code = js.fun([], [js.return_(true)]);
-      } else {
-        code = js('true');
-      }
-      builder.addProperty(namer.operatorIs(other), code);
+      builder.addProperty(namer.operatorIs(other), js('true'));
     }
 
     void generateSubstitution(Element other, {bool emitNull: false}) {
@@ -1200,9 +1197,6 @@ class CodeEmitterTask extends CompilerTask {
         }
       }
       if (expression != null) {
-        if (needsNativeCheck) {
-          expression = js.fun([], js.return_(expression));
-        }
         builder.addProperty(namer.substitutionName(other), expression);
       }
     }
@@ -2617,7 +2611,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
     // class. If so, we let the native emitter deal with it.
     if (compiler.enabledNoSuchMethod) {
       SourceString noSuchMethodName = Compiler.NO_SUCH_METHOD;
-      Selector noSuchMethodSelector = new Selector.noSuchMethod();
+      Selector noSuchMethodSelector = compiler.noSuchMethodSelector;
       for (ClassElement element in sortedClasses) {
         if (!element.isNative()) continue;
         Element member = element.lookupLocalMember(noSuchMethodName);
@@ -2818,11 +2812,11 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
   }
 
   /**
-   * If [:invokeOn:] has been compiled, emit all the possible selector names
-   * that are intercepted into the [:interceptedNames:] top-level
-   * variable. The implementation of [:invokeOn:] will use it to
-   * determine whether it should call the method with an extra
-   * parameter.
+   * If [JSInvocationMirror._invokeOn] has been compiled, emit all the
+   * possible selector names that are intercepted into the
+   * [interceptedNames] top-level variable. The implementation of
+   * [_invokeOn] will use it to determine whether it should call the
+   * method with an extra parameter.
    */
   void emitInterceptedNames(CodeBuffer buffer) {
     if (!compiler.enabledInvokeOn) return;
@@ -2900,9 +2894,8 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
       final CodeBuffer nativeBuffer = new CodeBuffer();
       if (!nativeClasses.isEmpty) {
         addComment('Native classes', nativeBuffer);
-        for (ClassElement element in nativeClasses) {
-          nativeEmitter.generateNativeClass(element, mainBuffer);
-        }
+        addComment('Native classes', mainBuffer);
+        nativeEmitter.generateNativeClasses(nativeClasses, mainBuffer);
       }
       nativeEmitter.finishGenerateNativeClasses();
       nativeEmitter.assembleCode(nativeBuffer);

@@ -1838,6 +1838,8 @@ class _DetachedSocket extends Stream<List<int>> implements Socket {
 
   int get port => _socket.port;
 
+  String get host => _socket.host;
+
   String get remoteHost => _socket.remoteHost;
 
   int get remotePort => _socket.remotePort;

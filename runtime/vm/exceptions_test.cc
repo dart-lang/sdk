@@ -9,8 +9,12 @@
 
 namespace dart {
 
-// Only ia32 and x64 can run execution tests.
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+// Only ia32, x64, and arm can run execution tests.
+#if defined(TARGET_ARCH_IA32) ||                                               \
+    defined(TARGET_ARCH_X64) ||                                                \
+    defined(TARGET_ARCH_ARM)
+
+
 #define FUNCTION_NAME(name) UnhandledExcp_##name
 #define REGISTER_FUNCTION(name, count)                                         \
   { ""#name, FUNCTION_NAME(name), count },
@@ -129,6 +133,6 @@ TEST_CASE(UnhandledExceptions) {
       reinterpret_cast<Dart_NativeEntryResolver>(native_lookup));
   EXPECT_VALID(Dart_Invoke(lib, NewString("testMain"), 0, NULL));
 }
-#endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64).
+#endif  // TARGET_ARCH_IA32 || TARGET_ARCH_X64 || TARGET_ARCH_ARM
 
 }  // namespace dart

@@ -9,10 +9,6 @@ patch class Int8List {
     return new _Int8Array(length);
   }
 
-  /* patch */ factory Int8List.transferable(int length) {
-    return _newTransferable(length);
-  }
-
   /* patch */ factory Int8List.fromList(List<int> elements) {
     var result = new _Int8Array(elements.length);
     for (int i = 0; i < elements.length; i++) {
@@ -25,20 +21,12 @@ patch class Int8List {
                                     [int offsetInBytes = 0, int length]) {
     return new _Int8ArrayView(buffer, offsetInBytes, length);
   }
-
-  static _ExternalInt8Array _newTransferable(int length) {
-    return new _ExternalInt8Array(length);
-  }
 }
 
 
 patch class Uint8List {
   /* patch */ factory Uint8List(int length) {
     return new _Uint8Array(length);
-  }
-
-  /* patch */ factory Uint8List.transferable(int length) {
-    return _newTransferable(length);
   }
 
   /* patch */ factory Uint8List.fromList(List<int> elements) {
@@ -53,20 +41,12 @@ patch class Uint8List {
                                      [int offsetInBytes = 0, int length]) {
     return new _Uint8ArrayView(buffer, offsetInBytes, length);
   }
-
-  static _ExternalUint8Array _newTransferable(int length) {
-    return new _ExternalUint8Array(length);
-  }
 }
 
 
 patch class Uint8ClampedList {
   /* patch */ factory Uint8ClampedList(int length) {
     return new _Uint8ClampedArray(length);
-  }
-
-  /* patch */ factory Uint8ClampedList.transferable(int length) {
-    return _newTransferable(length);
   }
 
   /* patch */ factory Uint8ClampedList.fromList(List<int> elements) {
@@ -82,20 +62,12 @@ patch class Uint8ClampedList {
                                              int length]) {
     return new _Uint8ClampedArrayView(buffer, offsetInBytes, length);
   }
-
-  static _ExternalUint8ClampedArray _newTransferable(int length) {
-    return new _ExternalUint8ClampedArray(length);
-  }
 }
 
 
 patch class Int16List {
   /* patch */ factory Int16List(int length) {
     return new _Int16Array(length);
-  }
-
-  /* patch */ factory Int16List.transferable(int length) {
-    return _newTransferable(length);
   }
 
   /* patch */ factory Int16List.fromList(List<int> elements) {
@@ -110,20 +82,12 @@ patch class Int16List {
                                      [int offsetInBytes = 0, int length]) {
     return new _Int16ArrayView(buffer, offsetInBytes, length);
   }
-
-  static _ExternalInt16Array _newTransferable(int length) {
-    return new _ExternalInt16Array(length);
-  }
 }
 
 
 patch class Uint16List {
   /* patch */ factory Uint16List(int length) {
     return new _Uint16Array(length);
-  }
-
-  /* patch */ factory Uint16List.transferable(int length) {
-    return _newTransferable(length);
   }
 
   /* patch */ factory Uint16List.fromList(List<int> elements) {
@@ -138,20 +102,12 @@ patch class Uint16List {
                                       [int offsetInBytes = 0, int length]) {
     return new _Uint16ArrayView(buffer, offsetInBytes, length);
   }
-
-  static _ExternalUint16Array _newTransferable(int length) {
-    return new _ExternalUint16Array(length);
-  }
 }
 
 
 patch class Int32List {
   /* patch */ factory Int32List(int length) {
     return new _Int32Array(length);
-  }
-
-  /* patch */ factory Int32List.transferable(int length) {
-    return _newTransferable(length);
   }
 
   /* patch */ factory Int32List.fromList(List<int> elements) {
@@ -166,20 +122,12 @@ patch class Int32List {
                                      [int offsetInBytes = 0, int length]) {
     return new _Int32ArrayView(buffer, offsetInBytes, length);
   }
-
-  static _ExternalInt32Array _newTransferable(int length) {
-    return new _ExternalInt32Array(length);
-  }
 }
 
 
 patch class Uint32List {
   /* patch */ factory Uint32List(int length) {
     return new _Uint32Array(length);
-  }
-
-  /* patch */ factory Uint32List.transferable(int length) {
-    return _newTransferable(length);
   }
 
   /* patch */ factory Uint32List.fromList(List<int> elements) {
@@ -194,20 +142,12 @@ patch class Uint32List {
                                       [int offsetInBytes = 0, int length]) {
     return new _Uint32ArrayView(buffer, offsetInBytes, length);
   }
-
-  static _ExternalUint32Array _newTransferable(int length) {
-    return new _ExternalUint32Array(length);
-  }
 }
 
 
 patch class Int64List {
   /* patch */ factory Int64List(int length) {
     return new _Int64Array(length);
-  }
-
-  /* patch */ factory Int64List.transferable(int length) {
-    return _newTransferable(length);
   }
 
   /* patch */ factory Int64List.fromList(List<int> elements) {
@@ -222,20 +162,12 @@ patch class Int64List {
                                      [int offsetInBytes = 0, int length]) {
     return new _Int64ArrayView(buffer, offsetInBytes, length);
   }
-
-  static _ExternalInt64Array _newTransferable(int length) {
-    return new _ExternalInt64Array(length);
-  }
 }
 
 
 patch class Uint64List {
   /* patch */ factory Uint64List(int length) {
     return new _Uint64Array(length);
-  }
-
-  /* patch */ factory Uint64List.transferable(int length) {
-    return _newTransferable(length);
   }
 
   /* patch */ factory Uint64List.fromList(List<int> elements) {
@@ -250,20 +182,12 @@ patch class Uint64List {
                                       [int offsetInBytes = 0, int length]) {
     return new _Uint64ArrayView(buffer, offsetInBytes, length);
   }
-
-  static _ExternalUint64Array _newTransferable(int length) {
-    return new _ExternalUint64Array(length);
-  }
 }
 
 
 patch class Float32List {
   /* patch */ factory Float32List(int length) {
     return new _Float32Array(length);
-  }
-
-  /* patch */ factory Float32List.transferable(int length) {
-    return _newTransferable(length);
   }
 
   /* patch */ factory Float32List.fromList(List<double> elements) {
@@ -278,20 +202,12 @@ patch class Float32List {
                                        [int offsetInBytes = 0, int length]) {
     return new _Float32ArrayView(buffer, offsetInBytes, length);
   }
-
-  static _ExternalFloat32Array _newTransferable(int length) {
-    return new _ExternalFloat32Array(length);
-  }
 }
 
 
 patch class Float64List {
   /* patch */ factory Float64List(int length) {
     return new _Float64Array(length);
-  }
-
-  /* patch */ factory Float64List.transferable(int length) {
-    return _newTransferable(length);
   }
 
   /* patch */ factory Float64List.fromList(List<double> elements) {
@@ -306,10 +222,6 @@ patch class Float64List {
                                        [int offsetInBytes = 0, int length]) {
     return new _Float64ArrayView(buffer, offsetInBytes, length);
   }
-
-  static _ExternalFloat64Array _newTransferable(int length) {
-    return new _ExternalFloat64Array(length);
-  }
 }
 
 patch class Float32x4List {
@@ -317,17 +229,9 @@ patch class Float32x4List {
     return new _Float32x4Array(length);
   }
 
-  /* patch */ factory Float32x4List.transferable(int length) {
-    return _newTransferable(length);
-  }
-
   /* patch */ factory Float32x4List.view(ByteBuffer buffer,
                                          [int offsetInBytes = 0, int length]) {
     return new _Float32x4ArrayView(buffer, offsetInBytes, length);
-  }
-
-  static _ExternalFloat32x4Array _newTransferable(int length) {
-    return new _ExternalFloat32x4Array(length);
   }
 }
 
@@ -355,11 +259,6 @@ patch class Uint32x4 {
 patch class ByteData {
   /* patch */ factory ByteData(int length) {
     var list = new _Uint8Array(length);
-    return new _ByteDataView(list.buffer, 0, length);
-  }
-
-  /* patch */ factory ByteData.transferable(int length) {
-    var list = new _Uint8Array.transferable(length);
     return new _ByteDataView(list.buffer, 0, length);
   }
 
@@ -2975,126 +2874,234 @@ class _ByteDataView implements ByteData {
     if (byteOffset < 0 || byteOffset >= length) {
       _throwRangeError(byteOffset, length);
     }
-    _typeddata._setUint8(_offset + byteOffset,_toUint8( value));
+    _typeddata._setUint8(_offset + byteOffset, _toUint8(value));
   }
 
-  int getInt16(int byteOffset) {
+  int getInt16(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]) {
     if (byteOffset < 0 || byteOffset >= length) {
       _throwRangeError(byteOffset, length);
     }
-    return _typeddata._getInt16(_offset + byteOffset);
+    var result = _typeddata._getInt16(_offset + byteOffset);
+    if (identical(endian, Endianness.HOST_ENDIAN)) {
+      return result;
+    }
+    return _toEndianInt16(result, endian._littleEndian);
   }
-  void setInt16(int byteOffset, int value) {
+  void setInt16(int byteOffset,
+                int value,
+                [Endianness endian = Endianness.BIG_ENDIAN]) {
     if (byteOffset < 0 || byteOffset >= length) {
       _throwRangeError(byteOffset, length);
     }
-    _typeddata._setInt16(_offset + byteOffset, _toInt16(value));
-  }
-
-  int getUint16(int byteOffset) {
-    if (byteOffset < 0 || byteOffset >= length) {
-      _throwRangeError(byteOffset, length);
+    var set_value = _toInt16(value);
+    if (!identical(endian, Endianness.HOST_ENDIAN)) {
+      set_value = _toEndianInt16(set_value, endian._littleEndian);
     }
-    return _typeddata._getUint16(_offset + byteOffset);
-  }
-  void setUint16(int byteOffset, int value) {
-    if (byteOffset < 0 || byteOffset >= length) {
-      _throwRangeError(byteOffset, length);
-    }
-    _typeddata._setUint16(_offset + byteOffset, _toUint16(value));
+    _typeddata._setInt16(_offset + byteOffset, set_value);
   }
 
-  int getInt32(int byteOffset) {
+  int getUint16(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]) {
     if (byteOffset < 0 || byteOffset >= length) {
       _throwRangeError(byteOffset, length);
     }
-    return _typeddata._getInt32(_offset + byteOffset);
+    var result = _typeddata._getUint16(_offset + byteOffset);
+    if (identical(endian, Endianness.HOST_ENDIAN)) {
+      return result;
+    }
+    return _toEndianUint16(result, endian._littleEndian);
   }
-  void setInt32(int byteOffset, int value) {
+  void setUint16(int byteOffset,
+                 int value,
+                 [Endianness endian = Endianness.BIG_ENDIAN]) {
     if (byteOffset < 0 || byteOffset >= length) {
       _throwRangeError(byteOffset, length);
     }
-    _typeddata._setInt32(_offset + byteOffset, _toInt32(value));
-  }
-
-  int getUint32(int byteOffset) {
-    if (byteOffset < 0 || byteOffset >= length) {
-      _throwRangeError(byteOffset, length);
+    var set_value = _toUint16(value);
+    if (!identical(endian, Endianness.HOST_ENDIAN)) {
+      set_value = _toEndianUint16(set_value, endian._littleEndian);
     }
-    return _typeddata._getUint32(_offset + byteOffset);
-  }
-  void setUint32(int byteOffset, int value) {
-    if (byteOffset < 0 || byteOffset >= length) {
-      _throwRangeError(byteOffset, length);
-    }
-    _typeddata._setUint32(_offset + byteOffset, _toUint32(value));
+    _typeddata._setUint16(_offset + byteOffset, set_value);
   }
 
-  int getInt64(int byteOffset) {
+  int getInt32(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]) {
     if (byteOffset < 0 || byteOffset >= length) {
       _throwRangeError(byteOffset, length);
     }
-    return _typeddata._getInt64(_offset + byteOffset);
+    var result = _typeddata._getInt32(_offset + byteOffset);
+    if (identical(endian, Endianness.HOST_ENDIAN)) {
+      return result;
+    }
+    return _toEndianInt32(result, endian._littleEndian);
   }
-  void setInt64(int byteOffset, int value) {
+  void setInt32(int byteOffset,
+                int value,
+                [Endianness endian = Endianness.BIG_ENDIAN]) {
     if (byteOffset < 0 || byteOffset >= length) {
       _throwRangeError(byteOffset, length);
     }
-    _typeddata._setInt64(_offset + byteOffset, _toInt64(value));
-  }
-
-  int getUint64(int byteOffset) {
-    if (byteOffset < 0 || byteOffset >= length) {
-      _throwRangeError(byteOffset, length);
+    var set_value = _toInt32(value);
+    if (!identical(endian, Endianness.HOST_ENDIAN)) {
+      set_value = _toEndianInt32(set_value, endian._littleEndian);
     }
-    return _typeddata._getUint64(_offset + byteOffset);
-  }
-  void setUint64(int byteOffset, int value) {
-    if (byteOffset < 0 || byteOffset >= length) {
-      _throwRangeError(byteOffset, length);
-    }
-    _typeddata._setUint64(_offset + byteOffset, _toUint64(value));
+    _typeddata._setInt32(_offset + byteOffset, set_value);
   }
 
-  double getFloat32(int byteOffset) {
+  int getUint32(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]) {
     if (byteOffset < 0 || byteOffset >= length) {
       _throwRangeError(byteOffset, length);
     }
-    return _typeddata._getFloat32(_offset + byteOffset);
+    var result = _typeddata._getUint32(_offset + byteOffset);
+    if (identical(endian, Endianness.HOST_ENDIAN)) {
+      return result;
+    }
+    return _toEndianUint32(result, endian._littleEndian);
   }
-  void setFloat32(int byteOffset, double value) {
+  void setUint32(int byteOffset,
+                 int value,
+                 [Endianness endian = Endianness.BIG_ENDIAN]) {
     if (byteOffset < 0 || byteOffset >= length) {
       _throwRangeError(byteOffset, length);
     }
-    _typeddata._setFloat32(_offset + byteOffset, value);
-  }
-
-  double getFloat64(int byteOffset) {
-    if (byteOffset < 0 || byteOffset >= length) {
-      _throwRangeError(byteOffset, length);
+    var set_value = _toUint32(value);
+    if (!identical(endian, Endianness.HOST_ENDIAN)) {
+      set_value = _toEndianUint32(set_value, endian._littleEndian);
     }
-    return _typeddata._getFloat64(_offset + byteOffset);
-  }
-  void setFloat64(int byteOffset, double value) {
-    if (byteOffset < 0 || byteOffset >= length) {
-      _throwRangeError(byteOffset, length);
-    }
-    _typeddata._setFloat64(_offset + byteOffset, value);
+    _typeddata._setUint32(_offset + byteOffset, set_value);
   }
 
-  Float32x4 getFloat32x4(int byteOffset) {
+  int getInt64(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]) {
     if (byteOffset < 0 || byteOffset >= length) {
       _throwRangeError(byteOffset, length);
     }
+    var result = _typeddata._getInt64(_offset + byteOffset);
+    if (identical(endian, Endianness.HOST_ENDIAN)) {
+      return result;
+    }
+    return _toEndianInt64(result, endian._littleEndian);
+  }
+  void setInt64(int byteOffset,
+                int value,
+                [Endianness endian = Endianness.BIG_ENDIAN]) {
+    if (byteOffset < 0 || byteOffset >= length) {
+      _throwRangeError(byteOffset, length);
+    }
+    var set_value = _toInt64(value);
+    if (!identical(endian, Endianness.HOST_ENDIAN)) {
+      set_value = _toEndianInt64(set_value, endian._littleEndian);
+    }
+    _typeddata._setInt64(_offset + byteOffset, set_value);
+  }
+
+  int getUint64(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]) {
+    if (byteOffset < 0 || byteOffset >= length) {
+      _throwRangeError(byteOffset, length);
+    }
+    var result = _typeddata._getUint64(_offset + byteOffset);
+    if (identical(endian, Endianness.HOST_ENDIAN)) {
+      return result;
+    }
+    return _toEndianUint64(result, endian._littleEndian);
+  }
+  void setUint64(int byteOffset,
+                 int value,
+                 [Endianness endian = Endianness.BIG_ENDIAN]) {
+    if (byteOffset < 0 || byteOffset >= length) {
+      _throwRangeError(byteOffset, length);
+    }
+    var set_value = _toUint64(value);
+    if (!identical(endian, Endianness.HOST_ENDIAN)) {
+      set_value = _toEndianUint64(set_value, endian._littleEndian);
+    }
+    _typeddata._setUint64(_offset + byteOffset, set_value);
+  }
+
+  double getFloat32(int byteOffset,
+                    [Endianness endian = Endianness.BIG_ENDIAN]) {
+    if (byteOffset < 0 || byteOffset >= length) {
+      _throwRangeError(byteOffset, length);
+    }
+    var result = _typeddata._getFloat32(_offset + byteOffset);
+    if (identical(endian, Endianness.HOST_ENDIAN)) {
+      return result;
+    }
+    return _toEndianFloat32(result, endian._littleEndian);
+  }
+  void setFloat32(int byteOffset,
+                  double value,
+                  [Endianness endian = Endianness.BIG_ENDIAN]) {
+    if (byteOffset < 0 || byteOffset >= length) {
+      _throwRangeError(byteOffset, length);
+    }
+    var set_value = value;
+    if (!identical(endian, Endianness.HOST_ENDIAN)) {
+      set_value = _toEndianFloat32(set_value, endian._littleEndian);
+    }
+    _typeddata._setFloat32(_offset + byteOffset, set_value);
+  }
+
+  double getFloat64(int byteOffset,
+                    [Endianness endian = Endianness.BIG_ENDIAN]) {
+    if (byteOffset < 0 || byteOffset >= length) {
+      _throwRangeError(byteOffset, length);
+    }
+    var result = _typeddata._getFloat64(_offset + byteOffset);
+    if (identical(endian, Endianness.HOST_ENDIAN)) {
+      return result;
+    }
+    return _toEndianFloat64(result, endian._littleEndian);
+  }
+  void setFloat64(int byteOffset,
+                  double value,
+                  [Endianness endian = Endianness.BIG_ENDIAN]) {
+    if (byteOffset < 0 || byteOffset >= length) {
+      _throwRangeError(byteOffset, length);
+    }
+    var set_value = value;
+    if (!identical(endian, Endianness.HOST_ENDIAN)) {
+      set_value = _toEndianFloat64(set_value, endian._littleEndian);
+    }
+    _typeddata._setFloat64(_offset + byteOffset, set_value);
+  }
+
+  Float32x4 getFloat32x4(int byteOffset,
+                         [Endianness endian = Endianness.BIG_ENDIAN]) {
+    if (byteOffset < 0 || byteOffset >= length) {
+      _throwRangeError(byteOffset, length);
+    }
+    // TODO(johnmccutchan) : Need to resolve this for endianity.
     return _typeddata._getFloat32x4(_offset + byteOffset);
   }
-  void setFloat32x4(int byteOffset, Float32x4 value) {
+  void setFloat32x4(int byteOffset,
+                    Float32x4 value,
+                    [Endianness endian = Endianness.BIG_ENDIAN]) {
     if (byteOffset < 0 || byteOffset >= length) {
       _throwRangeError(byteOffset, length);
     }
+    // TODO(johnmccutchan) : Need to resolve this for endianity.
     _typeddata._setFloat32x4(_offset + byteOffset, value);
 
   }
+
+
+  // Internal utility methods.
+
+  static int _toEndianInt16(int host_value, bool little_endian)
+      native "ByteData_ToEndianInt16";
+  static int _toEndianUint16(int host_value, bool little_endian)
+      native "ByteData_ToEndianUint16";
+  static int _toEndianInt32(int host_value, bool little_endian)
+      native "ByteData_ToEndianInt32";
+  static int _toEndianUint32(int host_value, bool little_endian)
+      native "ByteData_ToEndianUint32";
+  static int _toEndianInt64(int host_value, bool little_endian)
+      native "ByteData_ToEndianInt64";
+  static int _toEndianUint64(int host_value, bool little_endian)
+      native "ByteData_ToEndianUint64";
+  static double _toEndianFloat32(double host_value, bool little_endian)
+      native "ByteData_ToEndianFloat32";
+  static double _toEndianFloat64(double host_value, bool little_endian)
+      native "ByteData_ToEndianFloat64";
+
 
   final TypedData _typeddata;
   final int _offset;

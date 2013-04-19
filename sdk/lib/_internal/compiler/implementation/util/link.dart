@@ -4,7 +4,7 @@
 
 part of org_dartlang_compiler_util;
 
-class Link<T> extends IterableBase<T> {
+class Link<T> {
   T get head => null;
   Link<T> get tail => null;
 
@@ -38,7 +38,20 @@ class Link<T> extends IterableBase<T> {
   void printOn(StringBuffer buffer, [separatedBy]) {
   }
 
-  List toList({ bool growable: true }) => growable ? <T>[] : new List<T>(0);
+  List<T> toList({ bool growable: true }) {
+    List<T> result;
+    if (!growable) {
+      result = new List<T>(slowLength());
+    } else {
+      result = new List<T>();
+      result.length = slowLength();
+    }
+    int i = 0;
+    for (Link<T> link = this; !link.isEmpty; link = link.tail) {
+      result[i++] = link.head;
+    }
+    return result;
+  }
 
   bool get isEmpty => true;
 
@@ -68,6 +81,27 @@ class Link<T> extends IterableBase<T> {
   }
 
   int slowLength() => 0;
+
+  // TODO(ahe): Remove this method?
+  bool contains(T element) {
+    for (Link<T> link = this; !link.isEmpty; link = link.tail) {
+      if (link.head == element) return true;
+    }
+    return false;
+  }
+
+  // TODO(ahe): Remove this method?
+  T get single {
+    if (isEmpty) throw new StateError('No elements');
+    if (!tail.isEmpty) throw new StateError('More than one element');
+    return head;
+  }
+
+  // TODO(ahe): Remove this method?
+  T get first {
+    if (isEmpty) throw new StateError('No elements');
+    return head;
+  }
 }
 
 abstract class LinkBuilder<T> {

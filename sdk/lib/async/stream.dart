@@ -929,25 +929,25 @@ abstract class StreamConsumer<S> {
 
 
 /**
- * A [StreamSink] unifies the asynchronous methods from [StreamConsumer<S>] and
- * the synchronous methods from [EventSink<S>].
+ * A [StreamSink] unifies the asynchronous methods from [StreamConsumer] and
+ * the synchronous methods from [EventSink].
  *
- * The [EventSink<S>] methods can't be used while the [addStream] is called.
+ * The [EventSink] methods can't be used while the [addStream] is called.
  * As soon as the [addStream]'s [Future] completes with a value, the
- * [EventSink<S>] methods can be used again.
+ * [EventSink] methods can be used again.
  *
- * If [addStream] is called after any of the [EventSink<S>] methods, it'll
+ * If [addStream] is called after any of the [EventSink] methods, it'll
  * be delayed until the underlying system has consumed the data added by the
- * [EventSink<S>] methods.
+ * [EventSink] methods.
  *
- * When [EventSink<S>] methods are used, the [done] [Future] can be used to
+ * When [EventSink] methods are used, the [done] [Future] can be used to
  * catch any errors.
  *
  * When [close] is called, it will return the [done] [Future].
  */
 abstract class StreamSink<S> implements StreamConsumer<S>, EventSink<S> {
   /**
-   * Close the [StreamSink<S>]. It'll return the [done] Future.
+   * Close the [StreamSink]. It'll return the [done] Future.
    */
   Future close();
 
@@ -955,7 +955,7 @@ abstract class StreamSink<S> implements StreamConsumer<S>, EventSink<S> {
    * The [done] Future completes with the same values as [close], except
    * for the following case:
    *
-   * * The synchronous methods of [EventSink<S>] were called, resulting in an
+   * * The synchronous methods of [EventSink] were called, resulting in an
    *   error. If there is no active future (like from an addStream call), the
    *   [done] future will complete with that error
    */

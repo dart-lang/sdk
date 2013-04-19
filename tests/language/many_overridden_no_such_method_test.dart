@@ -3,7 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library ManyOverriddenNoSuchMethodTest.dart;
+
+import "dart:mirrors" show reflect;
 import "package:expect/expect.dart";
+
 part "overridden_no_such_method.dart";
 
 class ManyOverriddenNoSuchMethodTest {

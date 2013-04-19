@@ -31,6 +31,16 @@ patch InstanceMirror reflect(Object reflectee) {
   return _Mirrors.reflect(reflectee);
 }
 
+/**
+ * Returns a [ClassMirror] for the class represented by a Dart
+ * Type object.
+ *
+ * This only works with objects local to the current isolate.
+ */
+patch ClassMirror reflectClass(Type key) {
+  return _Mirrors.reflectClass(key);
+}
+
 patch class MirrorSystem {
   /* patch */ static String getName(Symbol symbol) {
     return _symbol_dev.Symbol.getName(symbol);

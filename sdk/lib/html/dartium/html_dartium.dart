@@ -265,13 +265,13 @@ class AnchorElement extends _Element_Merged {
 class AnimationEvent extends Event {
   AnimationEvent.internal() : super.internal();
 
-  @DomName('WebKitAnimationEvent.animationName')
+  @DomName('AnimationEvent.animationName')
   @DocsEditable
-  String get animationName native "WebKitAnimationEvent_animationName_Getter";
+  String get animationName native "AnimationEvent_animationName_Getter";
 
-  @DomName('WebKitAnimationEvent.elapsedTime')
+  @DomName('AnimationEvent.elapsedTime')
   @DocsEditable
-  num get elapsedTime native "WebKitAnimationEvent_elapsedTime_Getter";
+  num get elapsedTime native "AnimationEvent_elapsedTime_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -521,9 +521,6 @@ class ArrayBuffer extends NativeFieldWrapperClass1 {
 
   @DocsEditable
   static ArrayBuffer _create(length) native "ArrayBuffer_constructorCallback";
-
-  /// Checks if this type is supported on the current platform.
-  static bool get supported => true;
 
   @DomName('ArrayBuffer.byteLength')
   @DocsEditable
@@ -6393,6 +6390,14 @@ class DataView extends ArrayBufferView {
 // WARNING: Do not edit - generated code.
 
 
+typedef void DatabaseCallback(database);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
 @DocsEditable
 @DomName('HTMLDetailsElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
@@ -6425,13 +6430,50 @@ class DetailsElement extends _Element_Merged {
 
 
 @DocsEditable
+@DomName('DeviceAcceleration')
+class DeviceAcceleration extends NativeFieldWrapperClass1 {
+  DeviceAcceleration.internal();
+
+  @DomName('DeviceAcceleration.x')
+  @DocsEditable
+  num get x native "DeviceAcceleration_x_Getter";
+
+  @DomName('DeviceAcceleration.y')
+  @DocsEditable
+  num get y native "DeviceAcceleration_y_Getter";
+
+  @DomName('DeviceAcceleration.z')
+  @DocsEditable
+  num get z native "DeviceAcceleration_z_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
 @DomName('DeviceMotionEvent')
 class DeviceMotionEvent extends Event {
   DeviceMotionEvent.internal() : super.internal();
 
+  @DomName('DeviceMotionEvent.acceleration')
+  @DocsEditable
+  DeviceAcceleration get acceleration native "DeviceMotionEvent_acceleration_Getter";
+
+  @DomName('DeviceMotionEvent.accelerationIncludingGravity')
+  @DocsEditable
+  DeviceAcceleration get accelerationIncludingGravity native "DeviceMotionEvent_accelerationIncludingGravity_Getter";
+
   @DomName('DeviceMotionEvent.interval')
   @DocsEditable
   num get interval native "DeviceMotionEvent_interval_Getter";
+
+  @DomName('DeviceMotionEvent.rotationRate')
+  @DocsEditable
+  DeviceRotationRate get rotationRate native "DeviceMotionEvent_rotationRate_Getter";
 
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -6472,6 +6514,31 @@ class DeviceOrientationEvent extends Event {
   @DomName('DeviceOrientationEvent.initDeviceOrientationEvent')
   @DocsEditable
   void $dom_initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma, bool absolute) native "DeviceOrientationEvent_initDeviceOrientationEvent_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('DeviceRotationRate')
+class DeviceRotationRate extends NativeFieldWrapperClass1 {
+  DeviceRotationRate.internal();
+
+  @DomName('DeviceRotationRate.alpha')
+  @DocsEditable
+  num get alpha native "DeviceRotationRate_alpha_Getter";
+
+  @DomName('DeviceRotationRate.beta')
+  @DocsEditable
+  num get beta native "DeviceRotationRate_beta_Getter";
+
+  @DomName('DeviceRotationRate.gamma')
+  @DocsEditable
+  num get gamma native "DeviceRotationRate_gamma_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7703,11 +7770,11 @@ class DomNamedFlowCollection extends NativeFieldWrapperClass1 {
 
   @DomName('DOMNamedFlowCollection.item')
   @DocsEditable
-  WebKitNamedFlow item(int index) native "DOMNamedFlowCollection_item_Callback";
+  NamedFlow item(int index) native "DOMNamedFlowCollection_item_Callback";
 
   @DomName('DOMNamedFlowCollection.namedItem')
   @DocsEditable
-  WebKitNamedFlow namedItem(String name) native "DOMNamedFlowCollection_namedItem_Callback";
+  NamedFlow namedItem(String name) native "DOMNamedFlowCollection_namedItem_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13195,6 +13262,10 @@ class HtmlFormControlsCollection extends HtmlCollection {
 class HtmlOptionsCollection extends HtmlCollection {
   HtmlOptionsCollection.internal() : super.internal();
 
+  @DomName('HTMLOptionsCollection.numericIndexGetter')
+  @DocsEditable
+  Node operator[](int index) native "HTMLOptionsCollection_numericIndexGetter_Callback";
+
   @DomName('HTMLOptionsCollection.numericIndexSetter')
   @DocsEditable
   void operator[]=(int index, Node value) native "HTMLOptionsCollection_numericIndexSetter_Callback";
@@ -13379,29 +13450,10 @@ class HttpRequest extends EventTarget {
   @DomName('XMLHttpRequest.readystatechangeEvent')
   @DocsEditable
   static const EventStreamProvider<ProgressEvent> readyStateChangeEvent = const EventStreamProvider<ProgressEvent>('readystatechange');
-
-  /**
-   * General constructor for any type of request (GET, POST, etc).
-   *
-   * This call is used in conjunction with [open]:
-   *
-   *     var request = new HttpRequest();
-   *     request.open('GET', 'http://dartlang.org')
-   *     request.on.load.add((event) => print('Request complete'));
-   *
-   * is the (more verbose) equivalent of
-   *
-   *     var request = new HttpRequest.get('http://dartlang.org',
-   *         (event) => print('Request complete'));
-   */
-  @DomName('XMLHttpRequest.XMLHttpRequest')
-  @DocsEditable
-  factory HttpRequest() {
-    return HttpRequest._create_1();
-  }
+  factory HttpRequest() => _create();
 
   @DocsEditable
-  static HttpRequest _create_1() native "XMLHttpRequest__create_1constructorCallback";
+  static HttpRequest _create() native "XMLHttpRequest_constructorCallback";
 
   static const int DONE = 4;
 
@@ -15896,77 +15948,6 @@ class Int8Array extends ArrayBufferView implements List<int> {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('JavaScriptCallFrame')
-class JavaScriptCallFrame extends NativeFieldWrapperClass1 {
-  JavaScriptCallFrame.internal();
-
-  static const int CATCH_SCOPE = 4;
-
-  static const int CLOSURE_SCOPE = 3;
-
-  static const int GLOBAL_SCOPE = 0;
-
-  static const int LOCAL_SCOPE = 1;
-
-  static const int WITH_SCOPE = 2;
-
-  @DomName('JavaScriptCallFrame.caller')
-  @DocsEditable
-  JavaScriptCallFrame get caller native "JavaScriptCallFrame_caller_Getter";
-
-  @DomName('JavaScriptCallFrame.column')
-  @DocsEditable
-  int get column native "JavaScriptCallFrame_column_Getter";
-
-  @DomName('JavaScriptCallFrame.functionName')
-  @DocsEditable
-  String get functionName native "JavaScriptCallFrame_functionName_Getter";
-
-  @DomName('JavaScriptCallFrame.line')
-  @DocsEditable
-  int get line native "JavaScriptCallFrame_line_Getter";
-
-  @DomName('JavaScriptCallFrame.scopeChain')
-  @DocsEditable
-  List get scopeChain native "JavaScriptCallFrame_scopeChain_Getter";
-
-  @DomName('JavaScriptCallFrame.sourceID')
-  @DocsEditable
-  int get sourceID native "JavaScriptCallFrame_sourceID_Getter";
-
-  @DomName('JavaScriptCallFrame.thisObject')
-  @DocsEditable
-  Object get thisObject native "JavaScriptCallFrame_thisObject_Getter";
-
-  @DomName('JavaScriptCallFrame.type')
-  @DocsEditable
-  String get type native "JavaScriptCallFrame_type_Getter";
-
-  @DomName('JavaScriptCallFrame.evaluate')
-  @DocsEditable
-  void evaluate(String script) native "JavaScriptCallFrame_evaluate_Callback";
-
-  @DomName('JavaScriptCallFrame.restart')
-  @DocsEditable
-  Object restart() native "JavaScriptCallFrame_restart_Callback";
-
-  @DomName('JavaScriptCallFrame.scopeType')
-  @DocsEditable
-  int scopeType(int scopeIndex) native "JavaScriptCallFrame_scopeType_Callback";
-
-  @DomName('JavaScriptCallFrame.setVariableValue')
-  @DocsEditable
-  Object setVariableValue(int scopeIndex, String variableName, Object newValue) native "JavaScriptCallFrame_setVariableValue_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 @DomName('KeyboardEvent')
 class KeyboardEvent extends UIEvent {
@@ -16402,6 +16383,10 @@ class Location extends NativeFieldWrapperClass1 implements LocationBase {
   @DomName('Location.toString')
   @DocsEditable
   String toString() native "Location_toString_Callback";
+
+  @DomName('Location.valueOf')
+  @DocsEditable
+  Object valueOf() native "Location_valueOf_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17619,15 +17604,10 @@ class MenuElement extends _Element_Merged {
 @DomName('MessageChannel')
 class MessageChannel extends NativeFieldWrapperClass1 {
   MessageChannel.internal();
-
-  @DomName('MessageChannel.MessageChannel')
-  @DocsEditable
-  factory MessageChannel() {
-    return MessageChannel._create_1();
-  }
+  factory MessageChannel() => _create();
 
   @DocsEditable
-  static MessageChannel _create_1() native "MessageChannel__create_1constructorCallback";
+  static MessageChannel _create() native "MessageChannel_constructorCallback";
 
   @DomName('MessageChannel.port1')
   @DocsEditable
@@ -18245,6 +18225,55 @@ class MutationRecord extends NativeFieldWrapperClass1 {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('WebKitNamedFlow')
+class NamedFlow extends EventTarget {
+  NamedFlow.internal() : super.internal();
+
+  @DomName('NamedFlow.firstEmptyRegionIndex')
+  @DocsEditable
+  int get firstEmptyRegionIndex native "NamedFlow_firstEmptyRegionIndex_Getter";
+
+  @DomName('NamedFlow.name')
+  @DocsEditable
+  String get name native "NamedFlow_name_Getter";
+
+  @DomName('NamedFlow.overset')
+  @DocsEditable
+  bool get overset native "NamedFlow_overset_Getter";
+
+  @DomName('NamedFlow.addEventListener')
+  @DocsEditable
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "NamedFlow_addEventListener_Callback";
+
+  @DomName('NamedFlow.dispatchEvent')
+  @DocsEditable
+  bool dispatchEvent(Event event) native "NamedFlow_dispatchEvent_Callback";
+
+  @DomName('NamedFlow.getContent')
+  @DocsEditable
+  List<Node> getContent() native "NamedFlow_getContent_Callback";
+
+  @DomName('NamedFlow.getRegions')
+  @DocsEditable
+  List<Node> getRegions() native "NamedFlow_getRegions_Callback";
+
+  @DomName('NamedFlow.getRegionsByContent')
+  @DocsEditable
+  List<Node> getRegionsByContent(Node contentNode) native "NamedFlow_getRegionsByContent_Callback";
+
+  @DomName('NamedFlow.removeEventListener')
+  @DocsEditable
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "NamedFlow_removeEventListener_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 @DomName('Navigator')
 class Navigator extends NativeFieldWrapperClass1 {
@@ -18322,6 +18351,10 @@ class Navigator extends NativeFieldWrapperClass1 {
   @DomName('Navigator.cookieEnabled')
   @DocsEditable
   bool get cookieEnabled native "Navigator_cookieEnabled_Getter";
+
+  @DomName('Navigator.doNotTrack')
+  @DocsEditable
+  String get doNotTrack native "Navigator_doNotTrack_Getter";
 
   @DomName('Navigator.geolocation')
   @DocsEditable
@@ -22695,6 +22728,10 @@ class SpeechRecognitionEvent extends Event {
   @DocsEditable
   Document get emma native "SpeechRecognitionEvent_emma_Getter";
 
+  @DomName('SpeechRecognitionEvent.interpretation')
+  @DocsEditable
+  Document get interpretation native "SpeechRecognitionEvent_interpretation_Getter";
+
   @DomName('SpeechRecognitionEvent.resultIndex')
   @DocsEditable
   int get resultIndex native "SpeechRecognitionEvent_resultIndex_Getter";
@@ -26375,55 +26412,6 @@ class WebKitCssRegionRule extends CssRule {
 
 
 @DocsEditable
-@DomName('WebKitNamedFlow')
-class WebKitNamedFlow extends EventTarget {
-  WebKitNamedFlow.internal() : super.internal();
-
-  @DomName('WebKitNamedFlow.firstEmptyRegionIndex')
-  @DocsEditable
-  int get firstEmptyRegionIndex native "WebKitNamedFlow_firstEmptyRegionIndex_Getter";
-
-  @DomName('WebKitNamedFlow.name')
-  @DocsEditable
-  String get name native "WebKitNamedFlow_name_Getter";
-
-  @DomName('WebKitNamedFlow.overset')
-  @DocsEditable
-  bool get overset native "WebKitNamedFlow_overset_Getter";
-
-  @DomName('WebKitNamedFlow.addEventListener')
-  @DocsEditable
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "WebKitNamedFlow_addEventListener_Callback";
-
-  @DomName('WebKitNamedFlow.dispatchEvent')
-  @DocsEditable
-  bool dispatchEvent(Event event) native "WebKitNamedFlow_dispatchEvent_Callback";
-
-  @DomName('WebKitNamedFlow.getContent')
-  @DocsEditable
-  List<Node> getContent() native "WebKitNamedFlow_getContent_Callback";
-
-  @DomName('WebKitNamedFlow.getRegions')
-  @DocsEditable
-  List<Node> getRegions() native "WebKitNamedFlow_getRegions_Callback";
-
-  @DomName('WebKitNamedFlow.getRegionsByContent')
-  @DocsEditable
-  List<Node> getRegionsByContent(Node contentNode) native "WebKitNamedFlow_getRegionsByContent_Callback";
-
-  @DomName('WebKitNamedFlow.removeEventListener')
-  @DocsEditable
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "WebKitNamedFlow_removeEventListener_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
 /**
  * Use the WebSocket interface to connect to a WebSocket,
  * and to send and receive data on that WebSocket.
@@ -27246,6 +27234,10 @@ class Window extends EventTarget implements WindowBase {
   @DomName('DOMWindow.stop')
   @DocsEditable
   void stop() native "DOMWindow_stop_Callback";
+
+  @DomName('DOMWindow.toString')
+  @DocsEditable
+  String toString() native "DOMWindow_toString_Callback";
 
   @DomName('DOMWindow.webkitConvertPointFromNodeToPage')
   @DocsEditable
@@ -28713,6 +28705,22 @@ abstract class _DOMFileSystemSync extends NativeFieldWrapperClass1 {
 
 
 @DocsEditable
+@DomName('DatabaseSync')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
+abstract class _DatabaseSync extends NativeFieldWrapperClass1 {
+  _DatabaseSync.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
 @DomName('DedicatedWorkerContext')
 abstract class _DedicatedWorkerContext extends _WorkerContext {
   _DedicatedWorkerContext.internal() : super.internal();
@@ -28761,26 +28769,26 @@ class _DomPoint extends NativeFieldWrapperClass1 {
   factory _DomPoint(num x, num y) => _create(x, y);
 
   @DocsEditable
-  static _DomPoint _create(x, y) native "WebKitPoint_constructorCallback";
+  static _DomPoint _create(x, y) native "DOMPoint_constructorCallback";
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
-  @DomName('WebKitPoint.x')
+  @DomName('DOMPoint.x')
   @DocsEditable
-  num get x native "WebKitPoint_x_Getter";
+  num get x native "DOMPoint_x_Getter";
 
-  @DomName('WebKitPoint.x')
+  @DomName('DOMPoint.x')
   @DocsEditable
-  void set x(num value) native "WebKitPoint_x_Setter";
+  void set x(num value) native "DOMPoint_x_Setter";
 
-  @DomName('WebKitPoint.y')
+  @DomName('DOMPoint.y')
   @DocsEditable
-  num get y native "WebKitPoint_y_Getter";
+  num get y native "DOMPoint_y_Getter";
 
-  @DomName('WebKitPoint.y')
+  @DomName('DOMPoint.y')
   @DocsEditable
-  void set y(num value) native "WebKitPoint_y_Setter";
+  void set y(num value) native "DOMPoint_y_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29757,7 +29765,9 @@ class _NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
   @DocsEditable
   int get length native "NamedNodeMap_length_Getter";
 
-  Node operator[](int index) native "NamedNodeMap_item_Callback";
+  @DomName('NamedNodeMap.numericIndexGetter')
+  @DocsEditable
+  Node operator[](int index) native "NamedNodeMap_numericIndexGetter_Callback";
 
   void operator[]=(int index, Node value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -30773,29 +30783,6 @@ abstract class _WebKitCSSMixFunctionValue extends _CssValueList {
 abstract class _WebKitCSSTransformValue extends _CssValueList {
   _WebKitCSSTransformValue.internal() : super.internal();
 
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-// This class maps WebKitTransitionEvent to TransitionEvent for older Chrome
-// browser versions.
-@DomName('WebKitTransitionEvent')
-class _WebKitTransitionEvent extends Event implements TransitionEvent  {
-  _WebKitTransitionEvent.internal() : super.internal();
-
-  @DomName('WebKitTransitionEvent.elapsedTime')
-  @DocsEditable
-  num get elapsedTime native "WebKitTransitionEvent_elapsedTime_Getter";
-
-  @DomName('WebKitTransitionEvent.propertyName')
-  @DocsEditable
-  String get propertyName native "WebKitTransitionEvent_propertyName_Getter";
-
-  @DomName('WebKitTransitionEvent.pseudoElement')
-  @DocsEditable
-  String get pseudoElement native "WebKitTransitionEvent_pseudoElement_Getter";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -33560,6 +33547,14 @@ class _TypedArrayFactoryProvider {
 
 class _TextFactoryProvider {
   static Text createText(String data) => document.$dom_createTextNode(data);
+}
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+class Platform {
+  static final supportsTypedData = true;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

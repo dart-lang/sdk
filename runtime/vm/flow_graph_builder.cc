@@ -41,7 +41,7 @@ static const String& PrivateCoreLibName(const String& str) {
 
 
 FlowGraphBuilder::FlowGraphBuilder(const ParsedFunction& parsed_function,
-                                   InliningContext* inlining_context)
+                                   InlineExitCollector* exit_collector)
   : parsed_function_(parsed_function),
     num_copied_params_(parsed_function.num_copied_params()),
     // All parameters are copied if any parameter is.
@@ -49,7 +49,7 @@ FlowGraphBuilder::FlowGraphBuilder(const ParsedFunction& parsed_function,
         ? parsed_function.function().num_fixed_parameters()
         : 0),
     num_stack_locals_(parsed_function.num_stack_locals()),
-    inlining_context_(inlining_context),
+    exit_collector_(exit_collector),
     last_used_block_id_(0),  // 0 is used for the graph entry.
     context_level_(0),
     last_used_try_index_(CatchClauseNode::kInvalidTryIndex),
@@ -62,7 +62,7 @@ void FlowGraphBuilder::AddCatchEntry(CatchBlockEntryInstr* entry) {
 }
 
 
-void InliningContext::PrepareGraphs(FlowGraph* callee_graph) {
+void InlineExitCollector::PrepareGraphs(FlowGraph* callee_graph) {
   ASSERT(callee_graph->graph_entry()->SuccessorCount() == 1);
   ASSERT(callee_graph->max_block_id() > caller_graph_->max_block_id());
   ASSERT(callee_graph->max_virtual_register_number() >
@@ -90,18 +90,18 @@ void InliningContext::PrepareGraphs(FlowGraph* callee_graph) {
 }
 
 
-void InliningContext::AddExit(ReturnInstr* exit) {
+void InlineExitCollector::AddExit(ReturnInstr* exit) {
   Data data = { NULL, exit };
   exits_.Add(data);
 }
 
 
-int InliningContext::LowestBlockIdFirst(const Data* a, const Data* b) {
+int InlineExitCollector::LowestBlockIdFirst(const Data* a, const Data* b) {
   return (a->exit_block->block_id() - b->exit_block->block_id());
 }
 
 
-void InliningContext::SortExits() {
+void InlineExitCollector::SortExits() {
   // Assign block entries here because we did not necessarily know them when
   // the return exit was added to the array.
   for (int i = 0; i < exits_.length(); ++i) {
@@ -111,8 +111,8 @@ void InliningContext::SortExits() {
 }
 
 
-Definition* InliningContext::JoinReturns(BlockEntryInstr** exit_block,
-                                         Instruction** last_instruction) {
+Definition* InlineExitCollector::JoinReturns(BlockEntryInstr** exit_block,
+                                             Instruction** last_instruction) {
   // First sort the list of exits by block id (caching return instruction
   // block entries as a side effect).
   SortExits();
@@ -217,13 +217,10 @@ Definition* InliningContext::JoinReturns(BlockEntryInstr** exit_block,
 }
 
 
-void InliningContext::ReplaceCall(FlowGraph* callee_graph) {
+void InlineExitCollector::ReplaceCall(TargetEntryInstr* callee_entry) {
   ASSERT(call_->previous() != NULL);
   ASSERT(call_->next() != NULL);
-  PrepareGraphs(callee_graph);
-
   BlockEntryInstr* call_block = call_->GetBlock();
-  TargetEntryInstr* callee_entry = callee_graph->graph_entry()->normal_entry();
 
   // Insert the callee graph into the caller graph.
   BlockEntryInstr* callee_exit = NULL;
@@ -350,9 +347,9 @@ void EffectGraphVisitor::AddReturnExit(intptr_t token_pos, Value* value) {
   ASSERT(is_open());
   ReturnInstr* return_instr = new ReturnInstr(token_pos, value);
   AddInstruction(return_instr);
-  InliningContext* inlining_context = owner()->inlining_context();
-  if (inlining_context != NULL) {
-    inlining_context->AddExit(return_instr);
+  InlineExitCollector* exit_collector = owner()->exit_collector();
+  if (exit_collector != NULL) {
+    exit_collector->AddExit(return_instr);
   }
   CloseFragment();
 }
@@ -710,7 +707,7 @@ void EffectGraphVisitor::Bailout(const char* reason) {
 
 void EffectGraphVisitor::InlineBailout(const char* reason) {
   owner()->parsed_function().function().set_is_inlinable(false);
-  if (owner()->InInliningContext()) owner()->Bailout(reason);
+  if (owner()->IsInlining()) owner()->Bailout(reason);
 }
 
 
@@ -1932,30 +1929,6 @@ static intptr_t GetResultCidOfNative(const Function& function) {
 // <Expression> ::= StaticCall { function: Function
 //                               arguments: <ArgumentList> }
 void EffectGraphVisitor::VisitStaticCallNode(StaticCallNode* node) {
-  if (node->function().name() == Symbols::Identical().raw()) {
-    // Attempt to replace top level defined 'identical' from the core
-    // library with strict equal early on.
-    // TODO(hausner): Evaluate if this can happen at AST building time.
-    const Class& cls = Class::Handle(node->function().Owner());
-    if (cls.IsTopLevel()) {
-      const Library& core_lib = Library::Handle(Library::CoreLibrary());
-      if (cls.library() == core_lib.raw()) {
-        ASSERT(node->arguments()->length() == 2);
-        ValueGraphVisitor for_left_value(owner(), temp_index());
-        node->arguments()->NodeAt(0)->Visit(&for_left_value);
-        Append(for_left_value);
-        ValueGraphVisitor for_right_value(owner(), temp_index());
-        node->arguments()->NodeAt(1)->Visit(&for_right_value);
-        Append(for_right_value);
-        StrictCompareInstr* comp = new StrictCompareInstr(
-            Token::kEQ_STRICT,
-            for_left_value.value(),
-            for_right_value.value());
-        ReturnDefinition(comp);
-        return;
-      }
-    }
-  }
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new ZoneGrowableArray<PushArgumentInstr*>(node->arguments()->length());
   BuildPushArguments(*node->arguments(), arguments);
@@ -2079,7 +2052,7 @@ void EffectGraphVisitor::BuildConstructorCall(
 #define RECOGNIZED_LIST_FACTORY_LIST(V)                                        \
   V(ObjectArrayFactory, kArrayCid, 97987288)                                   \
   V(GrowableObjectArrayWithData, kGrowableObjectArrayCid, 816132033)           \
-  V(GrowableObjectArrayFactory, kGrowableObjectArrayCid, 369608996)            \
+  V(GrowableObjectArrayFactory, kGrowableObjectArrayCid, 552407276)            \
   V(Int8ListFactory, kTypedDataInt8ArrayCid, 2066002614)                       \
   V(Uint8ListFactory, kTypedDataUint8ArrayCid, 1883551322)                     \
   V(Uint8ClampedListFactory, kTypedDataUint8ClampedArrayCid, 244333676)        \
@@ -3386,12 +3359,12 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
                            CatchClauseNode::kInvalidTryIndex);
   graph_entry_ = new GraphEntryInstr(parsed_function(), normal_entry);
   EffectGraphVisitor for_effect(this, 0);
-  // TODO(kmillikin): We can eliminate stack checks in some cases (e.g., the
-  // stack check on entry for leaf routines).
-  Instruction* check = new CheckStackOverflowInstr(function.token_pos());
+  // This check may be deleted if the generated code is leaf.
+  CheckStackOverflowInstr* check =
+      new CheckStackOverflowInstr(function.token_pos());
   // If we are inlining don't actually attach the stack check. We must still
-  // create the stack check inorder to allocate a deopt id.
-  if (!InInliningContext()) for_effect.AddInstruction(check);
+  // create the stack check in order to allocate a deopt id.
+  if (!IsInlining()) for_effect.AddInstruction(check);
   parsed_function().node_sequence()->Visit(&for_effect);
   AppendFragment(normal_entry, for_effect);
   // Check that the graph is properly terminated.

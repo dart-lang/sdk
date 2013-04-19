@@ -362,6 +362,127 @@ class TypeMask {
     }
   }
 
+  /**
+   * Returns whether [element] will be the one used at runtime when being
+   * invoked on an instance of [cls]. [selector] is used to ensure library
+   * privacy is taken into account.
+   */
+  static bool hasElementIn(ClassElement cls,
+                           Selector selector,
+                           Element element) {
+    // Use [:implementation:] of [element]
+    // because our function set only stores declarations.
+    Element result = findMatchIn(cls, selector);
+    return result == null
+        ? false
+        : result.implementation == element.implementation;
+  }
+
+  static Element findMatchIn(ClassElement cls, Selector selector) {
+    // Use the [:implementation] of [cls] in case the found [element]
+    // is in the patch class.
+    return cls.implementation.lookupSelector(selector);
+  }
+
+  /**
+   * Returns whether [element] is a potential target when being
+   * invoked on this type mask. [selector] is used to ensure library
+   * privacy is taken into account.
+   */
+  bool canHit(Element element, Selector selector, Compiler compiler) {
+    if (isEmpty) {
+      if (!isNullable) return false;
+      return hasElementIn(
+          compiler.backend.nullImplementation, selector, element);
+    }
+
+    // TODO(kasperl): Can't we just avoid creating typed selectors
+    // based of function types?
+    Element self = base.element;
+    if (self.isTypedef()) {
+      // A typedef is a function type that doesn't have any
+      // user-defined members.
+      return false;
+    }
+
+    ClassElement other = element.getEnclosingClass();
+    if (compiler.backend.isNullImplementation(other)) {
+      return isNullable;
+    } else if (isExact) {
+      return hasElementIn(self, selector, element);
+    } else if (isSubclass) {
+      return hasElementIn(self, selector, element)
+          || other.isSubclassOf(self)
+          || compiler.world.hasAnySubclassThatMixes(self, other);
+    } else {
+      assert(isSubtype);
+      if (other.implementsInterface(self)
+          || other.isSubclassOf(self)
+          || compiler.world.hasAnySubclassThatMixes(self, other)
+          || compiler.world.hasAnySubclassThatImplements(other, base)) {
+        return true;
+      }
+
+      // If [self] is a subclass of [other], it inherits the
+      // implementation of [element].
+      ClassElement cls = self;
+      if (cls.isSubclassOf(other)) {
+        // Resolve an invocation of [element.name] on [self]. If it
+        // is found, this selector is a candidate.
+        return hasElementIn(cls, selector, element);
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Returns whether a [selector] call on an instance of [cls]
+   * will hit a method at runtime, and not go through [noSuchMethod].
+   */
+  static bool hasConcreteMatch(ClassElement cls,
+                               Selector selector,
+                               Compiler compiler) {
+    Element element = findMatchIn(cls, selector);
+    return element != null
+        && !element.isAbstract(compiler)
+        && selector.appliesUntyped(element, compiler);
+  }
+
+  /**
+   * Returns whether a [selector] call will hit a method at runtime,
+   * and not go through [noSuchMethod].
+   */
+  bool willHit(Selector selector, Compiler compiler) {
+    Element cls;
+    if (isEmpty) {
+      if (!isNullable) return false;
+      cls = compiler.backend.nullImplementation;
+    } else {
+      cls = base.element;
+    }
+
+    if (!cls.isAbstract(compiler)) {
+      return hasConcreteMatch(cls, selector, compiler);
+    }
+
+    Set<ClassElement> subtypesToCheck;
+    if (isExact) {
+      return false;
+    } else if (isSubtype) {
+      subtypesToCheck = compiler.world.subtypes[cls];
+    } else {
+      assert(isSubclass);
+      subtypesToCheck = compiler.world.subclasses[cls];
+    }
+
+    return subtypesToCheck != null
+        && subtypesToCheck.every((ClassElement cls) {
+              return cls.isAbstract(compiler)
+                ? true
+                : hasConcreteMatch(cls, selector, compiler);
+           });
+  }
+
   bool operator ==(var other) {
     if (other is !TypeMask) return false;
     TypeMask otherMask = other;

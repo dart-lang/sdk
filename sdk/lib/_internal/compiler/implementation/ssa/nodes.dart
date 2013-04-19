@@ -1385,8 +1385,8 @@ abstract class HInvokeDynamicField extends HInvokeDynamic {
 }
 
 class HInvokeDynamicGetter extends HInvokeDynamicField {
-  HInvokeDynamicGetter(selector, element, receiver, isSideEffectFree)
-    : super(selector, element, [receiver], isSideEffectFree) {
+  HInvokeDynamicGetter(selector, element, inputs, isSideEffectFree)
+    : super(selector, element, inputs, isSideEffectFree) {
     clearAllSideEffects();
     if (isSideEffectFree) {
       setUseGvn();
@@ -1401,8 +1401,8 @@ class HInvokeDynamicGetter extends HInvokeDynamicField {
 }
 
 class HInvokeDynamicSetter extends HInvokeDynamicField {
-  HInvokeDynamicSetter(selector, element, receiver, value, isSideEffectFree)
-    : super(selector, element, [receiver, value], isSideEffectFree) {
+  HInvokeDynamicSetter(selector, element, inputs, isSideEffectFree)
+    : super(selector, element, inputs, isSideEffectFree) {
     clearAllSideEffects();
     if (isSideEffectFree) {
       setChangesInstanceProperty();

@@ -80,7 +80,9 @@ abstract class Source {
   /// pubspec. There is no default implementation for non-cached sources; they
   /// must implement it manually.
   Future<Pubspec> describe(PackageId id) {
-    if (!shouldCache) throw "Source $name must implement describe(id).";
+    if (!shouldCache) {
+      throw new UnimplementedError("Source $name must implement describe(id).");
+    }
     return installToSystemCache(id).then((package) => package.pubspec);
   }
 
@@ -99,8 +101,8 @@ abstract class Source {
   /// This doesn't need to be implemented if [installToSystemCache] is
   /// implemented.
   Future<bool> install(PackageId id, String path) {
-    throw "Either install or installToSystemCache must be implemented for "
-        "source $name.";
+    throw new UnimplementedError("Either install or installToSystemCache must "
+        "be implemented for source $name.");
   }
 
   /// Installs the package identified by [id] to the system cache. This is only
@@ -122,7 +124,7 @@ abstract class Source {
       ensureDir(path.dirname(packageDir));
       return install(id, packageDir);
     }).then((found) {
-      if (!found) throw 'Package $id not found.';
+      if (!found) fail('Package $id not found.');
       return new Package.load(id.name, packageDir, systemCache.sources);
     });
   }
@@ -210,7 +212,9 @@ abstract class Source {
   
   /// Returns the [Package]s that have been installed in the system cache.
   List<Package> getCachedPackages() {
-    if (shouldCache) throw "Source $name must implement this.";
+    if (shouldCache) {
+      throw new UnimplementedError("Source $name must implement this.");
+    }
   }
 
   /// Returns the source's name.

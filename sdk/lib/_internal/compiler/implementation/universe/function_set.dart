@@ -51,9 +51,18 @@ class FunctionSet {
   Iterable<Element> filter(Selector selector) {
     SourceString name = selector.name;
     FunctionSetNode node = nodes[name];
-    return (node != null)
-        ? node.query(selector, compiler).functions
-        : const <Element>[];
+    FunctionSetNode noSuchMethods = nodes[Compiler.NO_SUCH_METHOD];
+    if (node != null) {
+      return node.query(selector, compiler, noSuchMethods).functions;
+    }
+    // If there is no method that matches [selector] we know we can
+    // only hit [:noSuchMethod:].
+    if (noSuchMethods == null) return const <Element>[];
+    selector = (selector.mask == null)
+        ? compiler.noSuchMethodSelector
+        : new TypedSelector(selector.mask, compiler.noSuchMethodSelector);
+
+    return noSuchMethods.query(selector, compiler, null).functions;
   }
 
   void forEach(Function action) {
@@ -124,7 +133,17 @@ class FunctionSetNode {
     elements.forEach(action);
   }
 
-  FunctionSetQuery query(Selector selector, Compiler compiler) {
+  TypeMask getNonNullTypeMaskOfSelector(Selector selector, Compiler compiler) {
+    // TODO(ngeoffray): We should probably change untyped selector
+    // to always be a subclass of Object.
+    return selector.mask != null
+        ? selector.mask
+        : new TypeMask.subclass(compiler.objectClass.rawType);
+    }
+
+  FunctionSetQuery query(Selector selector,
+                         Compiler compiler,
+                         FunctionSetNode noSuchMethods) {
     assert(selector.name == name);
     FunctionSetQuery result = cache[selector];
     if (result != null) return result;
@@ -138,6 +157,24 @@ class FunctionSetNode {
           functions = <Element>[];
         }
         functions.add(element);
+      }
+    }
+
+    TypeMask mask = getNonNullTypeMaskOfSelector(selector, compiler);
+    // If we cannot ensure a method will be found at runtime, we also
+    // add [noSuchMethod] implementations that apply to [mask] as
+    // potential targets.
+    if (noSuchMethods != null && !mask.willHit(selector, compiler)) {
+      FunctionSetQuery noSuchMethodQuery = noSuchMethods.query(
+          new TypedSelector(mask, compiler.noSuchMethodSelector),
+          compiler,
+          null);
+      if (!noSuchMethodQuery.functions.isEmpty) {
+        if (functions == null) {
+          functions = new List<Element>.from(noSuchMethodQuery.functions);
+        } else {
+          functions.addAll(noSuchMethodQuery.functions);
+        }
       }
     }
     cache[selector] = result = (functions != null)

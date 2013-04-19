@@ -12,11 +12,11 @@ main() {
 
   var isnumList = predicate((x) => x is List<num>, 'is a List<num>');
   var isStringList = predicate((x) => x is List<String>, 'is a List<String>');
-  var expectation = ArrayBuffer.supported ? returnsNormally : throws;
+  var expectation = Platform.supportsTypedData ? returnsNormally : throws;
 
   group('supported', () {
     test('supported', () {
-      expect(ArrayBuffer.supported, true);
+      expect(Platform.supportsTypedData, true);
     });
   });
 

@@ -30,14 +30,6 @@ import 'dart:nativewrappers';
 // WARNING: Do not edit - generated code.
 
 
-typedef void DatabaseCallback(database);
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
 typedef void SqlStatementCallback(SqlTransaction transaction, SqlResultSet resultSet);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -448,22 +440,6 @@ class SqlTransaction extends NativeFieldWrapperClass1 {
   @DomName('SQLTransaction.executeSql')
   @DocsEditable
   void executeSql(String sqlStatement, List arguments, [SqlStatementCallback callback, SqlStatementErrorCallback errorCallback]) native "SQLTransaction_executeSql_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('DatabaseSync')
-@SupportedBrowser(SupportedBrowser.CHROME)
-@SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental
-abstract class _DatabaseSync extends NativeFieldWrapperClass1 {
-  _DatabaseSync.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

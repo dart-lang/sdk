@@ -46,6 +46,7 @@ part '$AUXILIARY_DIR/_HttpRequestUtils.dart';
 part '$AUXILIARY_DIR/shared_FactoryProviders.dart';
 part '$AUXILIARY_DIR/dartium_KeyEvent.dart';
 part '$AUXILIARY_DIR/dartium_FactoryProviders.dart';
+part '$AUXILIARY_DIR/dartium_Platform.dart';
 part '$AUXILIARY_DIR/Isolates.dart';
 part '$AUXILIARY_DIR/Microtask.dart';
 part '$AUXILIARY_DIR/Serialization.dart';

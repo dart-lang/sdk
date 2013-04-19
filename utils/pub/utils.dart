@@ -7,6 +7,7 @@ library utils;
 
 import 'dart:async';
 import 'dart:crypto';
+import 'dart:io';
 import 'dart:isolate';
 import 'dart:uri';
 
@@ -357,4 +358,35 @@ Future awaitObject(object) {
     }
     return map;
   });
+}
+
+/// An exception class for exceptions that are intended to be seen by the user.
+/// These exceptions won't have any debugging information printed when they're
+/// thrown.
+class ApplicationException implements Exception {
+  final String message;
+
+  ApplicationException(this.message);
+}
+
+/// Throw a [ApplicationException] with [message].
+void fail(String message) {
+  throw new ApplicationException(message);
+}
+
+/// Returns whether [error] is a user-facing error object. This includes both
+/// [ApplicationException] and any dart:io errors.
+bool isUserFacingException(error) {
+  return error is ApplicationException ||
+    // TODO(nweiz): clean up this branch when issue 9955 is fixed.
+    error is DirectoryIOException ||
+    error is FileIOException ||
+    error is HttpException ||
+    error is HttpParserException ||
+    error is LinkIOException ||
+    error is MimeParserException ||
+    error is OSError ||
+    error is ProcessException ||
+    error is SocketIOException ||
+    error is WebSocketException;
 }

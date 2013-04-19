@@ -110,9 +110,6 @@ Language/07_Classes/6_Constructors/3_Constant_Constructors_A04_t02: Fail # Dart 
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A04_t03: Fail # Dart issue 811
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t01: Fail # Dart issue 811
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t02: Fail # Dart issue 811
-Language/11_Expressions/01_Constants_A03_t01: Fail # Dart issue 5214
-Language/11_Expressions/01_Constants_A06_t01: Fail # Dart issue 5214
-Language/11_Expressions/01_Constants_A14_t01: Fail # Dart issue 5214
 Language/11_Expressions/05_Strings/1_String_Interpolation_A01_t04: Fail # Dart issue 7246
 Language/11_Expressions/05_Strings/1_String_Interpolation_A01_t05: Fail # Dart issue 7246
 Language/11_Expressions/05_Strings/1_String_Interpolation_A01_t06: Fail # Dart issue 7246
@@ -224,6 +221,16 @@ LibTest/async/Future/forEach_A03_t01: Fail # Future constructors have changed # 
 LibTest/async/Future/asStream_A01_t02: Fail # Future constructors have changed # issue 408
 LibTest/async/Future/Future.immediateError_A01_t01: Fail # Future constructors have changed # issue 408
 LibTest/async/Future/asStream_A02_t01: Fail # Future constructors have changed # issue 408
+
+Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A01_t02: Fail, OK # co19 issue 409
+Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t02: Fail, OK # co19 issue 409
+Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t03: Fail, OK # co19 issue 409
+Language/11_Expressions/17_Getter_Invocation_A02_t01: Fail, OK # co19 issue 409
+Language/11_Expressions/18_Assignment_A05_t02: Fail, OK # co19 issue 409
+Language/11_Expressions/18_Assignment_A05_t04: Fail, OK # co19 issue 409
+Language/11_Expressions/18_Assignment_A05_t05: Fail, OK # co19 issue 409
+Language/11_Expressions/18_Assignment_A08_t04: Fail, OK # co19 issue 409
+
 
 [ $compiler == none && $runtime == vm && $checked ]
 Language/12_Statements/09_Switch_A05_t01: Fail # TODO(vm-team): Please triage this failure.

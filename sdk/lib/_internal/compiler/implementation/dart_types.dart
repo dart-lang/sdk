@@ -298,6 +298,7 @@ class MalformedType extends DartType {
    *
    * For instance, for a resolved but malformed type like [: Map<String> :] the
    * [declaredType] is [: Map<String> :] whereas for an unresolved type
+   * [userProvidedBadType] is [: null :].
    */
   final DartType userProvidedBadType;
 

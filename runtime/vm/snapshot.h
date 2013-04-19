@@ -505,6 +505,7 @@ class SnapshotWriter : public BaseWriter {
                     RawAbstractTypeArguments* type_arguments,
                     RawObject* data[]);
   void CheckIfSerializable(RawClass* cls);
+  void SetWriteException(Exceptions::ExceptionType type, const char* msg);
   void WriteInstance(intptr_t object_id,
                      RawObject* raw,
                      RawClass* cls,
@@ -531,6 +532,7 @@ class SnapshotWriter : public BaseWriter {
   friend class RawLibrary;
   friend class RawLiteralToken;
   friend class RawScript;
+  friend class RawStacktrace;
   friend class RawTokenStream;
   friend class RawTypeArguments;
   friend class SnapshotWriterVisitor;

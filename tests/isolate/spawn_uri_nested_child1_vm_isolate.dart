@@ -7,7 +7,6 @@
 // other isolate's code.
 library NestedSpawnUriChild1Library;
 import 'dart:isolate';
-import '../../pkg/unittest/lib/unittest.dart';
 
 main() {
   ReceivePort port2 = new ReceivePort();

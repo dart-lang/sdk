@@ -5,6 +5,7 @@
 #include "include/dart_api.h"
 #include "include/dart_debugger_api.h"
 #include "platform/json.h"
+#include "vm/dart_api_impl.h"
 #include "vm/bootstrap_natives.h"
 #include "vm/dart_entry.h"
 #include "vm/exceptions.h"
@@ -198,6 +199,22 @@ static Dart_Handle UnwrapArgList(Dart_Handle arg_list,
   return Dart_True();
 }
 
+static Dart_Handle UnpackLocalArgList(Dart_Handle arg_list,
+                                      GrowableArray<Dart_Handle>* arg_array) {
+  intptr_t len = 0;
+  Dart_Handle result = Dart_ListLength(arg_list, &len);
+  if (Dart_IsError(result)) {
+    return result;
+  }
+  for (intptr_t i = 0; i < len; i++) {
+    Dart_Handle arg = Dart_ListGetAt(arg_list, i);
+    if (Dart_IsError(arg)) {
+      return arg;
+    }
+    arg_array->Add(arg);
+  }
+  return Dart_True();
+}
 
 static Dart_Handle CreateLazyMirror(Dart_Handle target);
 
@@ -1057,22 +1074,67 @@ void NATIVE_ENTRY_FUNCTION(Mirrors_makeLocalInstanceMirror)(
 }
 
 
+void NATIVE_ENTRY_FUNCTION(Mirrors_makeLocalClassMirror)(
+    Dart_NativeArguments args) {
+  Dart_EnterScope();
+  Isolate* isolate = Isolate::Current();
+  Dart_Handle key = Dart_GetNativeArgument(args, 0);
+  if (Dart_IsError(key)) {
+    Dart_PropagateError(key);
+  }
+  const Type& type = Api::UnwrapTypeHandle(isolate, key);
+  const Class& cls = Class::Handle(type.type_class());
+  Dart_Handle cls_handle = Api::NewHandle(isolate, cls.raw());
+  if (Dart_IsError(cls_handle)) {
+    Dart_PropagateError(cls_handle);
+  }
+  Dart_Handle name_handle = Api::NewHandle(isolate, cls.Name());
+  if (Dart_IsError(name_handle)) {
+    Dart_PropagateError(name_handle);
+  }
+  Dart_Handle lib_handle = Api::NewHandle(isolate, cls.library());
+  if (Dart_IsError(lib_handle)) {
+    Dart_PropagateError(lib_handle);
+  }
+  Dart_Handle lib_mirror = CreateLibraryMirror(lib_handle);
+  if (Dart_IsError(lib_mirror)) {
+    Dart_PropagateError(lib_mirror);
+  }
+  Dart_Handle result = CreateClassMirror(cls_handle,
+                                         name_handle,
+                                         lib_handle,
+                                         lib_mirror);
+  if (Dart_IsError(result)) {
+    Dart_PropagateError(result);
+  }
+  Dart_SetReturnValue(args, result);
+  Dart_ExitScope();
+}
+
 void NATIVE_ENTRY_FUNCTION(LocalObjectMirrorImpl_invoke)(
     Dart_NativeArguments args) {
   Dart_EnterScope();
   Dart_Handle mirror = Dart_GetNativeArgument(args, 0);
-  Dart_Handle member = Dart_GetNativeArgument(args, 1);
-  // The wrapped arguments are either simple values or instance mirrors.
-  Dart_Handle wrapped_invoke_args = Dart_GetNativeArgument(args, 2);
+  Dart_Handle member_name = Dart_GetNativeArgument(args, 1);
+  // The arguments are either simple values or instance mirrors.
+  Dart_Handle positional_arguments = Dart_GetNativeArgument(args, 2);
+  Dart_Handle async = Dart_GetNativeArgument(args, 3);
 
   Dart_Handle reflectee = UnwrapMirror(mirror);
+  Dart_Handle result;
   GrowableArray<Dart_Handle> invoke_args;
-  Dart_Handle result = UnwrapArgList(wrapped_invoke_args, &invoke_args);
+  if (Dart_IdentityEquals(async, Dart_True())) {
+    result = UnwrapArgList(positional_arguments, &invoke_args);
+  } else {
+    result = UnpackLocalArgList(positional_arguments, &invoke_args);
+  }
   if (Dart_IsError(result)) {
     Dart_PropagateError(result);
   }
-  result =
-      Dart_Invoke(reflectee, member, invoke_args.length(), invoke_args.data());
+  result = Dart_Invoke(reflectee,
+                       member_name,
+                       invoke_args.length(),
+                       invoke_args.data());
   if (Dart_IsError(result)) {
     // Instead of propagating the error from an invoke directly, we
     // provide reflective access to the error.
@@ -1116,11 +1178,16 @@ void NATIVE_ENTRY_FUNCTION(LocalObjectMirrorImpl_setField)(
   Dart_EnterScope();
   Dart_Handle mirror = Dart_GetNativeArgument(args, 0);
   Dart_Handle fieldName = Dart_GetNativeArgument(args, 1);
-  // The wrapped argument is either a simple value or instance mirror.
-  Dart_Handle wrapped_arg = Dart_GetNativeArgument(args, 2);
+  Dart_Handle value = Dart_GetNativeArgument(args, 2);
+  Dart_Handle async = Dart_GetNativeArgument(args, 3);
 
   Dart_Handle reflectee = UnwrapMirror(mirror);
-  Dart_Handle set_arg = UnwrapArg(wrapped_arg);
+  Dart_Handle set_arg;
+  if (Dart_IdentityEquals(async, Dart_True())) {
+    set_arg = UnwrapArg(value);
+  } else {
+    set_arg = value;
+  }
   if (Dart_IsError(set_arg)) {
     Dart_PropagateError(set_arg);
   }
@@ -1144,12 +1211,18 @@ void NATIVE_ENTRY_FUNCTION(LocalClosureMirrorImpl_apply)(
     Dart_NativeArguments args) {
   Dart_EnterScope();
   Dart_Handle mirror = Dart_GetNativeArgument(args, 0);
-  // The wrapped arguments are either simple values or instance mirrors.
-  Dart_Handle wrapped_invoke_args = Dart_GetNativeArgument(args, 1);
+  // The arguments are either simple values or instance mirrors.
+  Dart_Handle positional_arguments = Dart_GetNativeArgument(args, 1);
+  Dart_Handle async = Dart_GetNativeArgument(args, 2);
 
   Dart_Handle reflectee = UnwrapMirror(mirror);
   GrowableArray<Dart_Handle> invoke_args;
-  Dart_Handle result = UnwrapArgList(wrapped_invoke_args, &invoke_args);
+  Dart_Handle result;
+  if (Dart_IdentityEquals(async, Dart_True())) {
+    result = UnwrapArgList(positional_arguments, &invoke_args);
+  } else {
+    result = UnpackLocalArgList(positional_arguments, &invoke_args);
+  }
   if (Dart_IsError(result)) {
     Dart_PropagateError(result);
   }
@@ -1175,12 +1248,18 @@ void NATIVE_ENTRY_FUNCTION(LocalClassMirrorImpl_invokeConstructor)(
   Dart_EnterScope();
   Dart_Handle klass_mirror = Dart_GetNativeArgument(args, 0);
   Dart_Handle constructor_name = Dart_GetNativeArgument(args, 1);
-  // The wrapped arguments are either simple values or instance mirrors.
-  Dart_Handle wrapped_invoke_args = Dart_GetNativeArgument(args, 2);
+  // The arguments are either simple values or instance mirrors.
+  Dart_Handle positional_arguments = Dart_GetNativeArgument(args, 2);
+  Dart_Handle async = Dart_GetNativeArgument(args, 3);
 
   Dart_Handle klass = UnwrapMirror(klass_mirror);
   GrowableArray<Dart_Handle> invoke_args;
-  Dart_Handle result = UnwrapArgList(wrapped_invoke_args, &invoke_args);
+  Dart_Handle result;
+  if (Dart_IdentityEquals(async, Dart_True())) {
+    result = UnwrapArgList(positional_arguments, &invoke_args);
+  } else {
+    result = UnpackLocalArgList(positional_arguments, &invoke_args);
+  }
   if (Dart_IsError(result)) {
     Dart_PropagateError(result);
   }

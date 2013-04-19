@@ -913,6 +913,10 @@ class JavaScriptBackend extends Backend {
     jsArrayClass.ensureResolved(compiler);
     jsArrayLength = compiler.lookupElementIn(
         jsArrayClass, const SourceString('length'));
+    if (jsArrayLength != null && jsArrayLength.isAbstractField()) {
+      AbstractFieldElement element = jsArrayLength;
+      jsArrayLength = element.getter;
+    }
     jsArrayRemoveLast = compiler.lookupElementIn(
         jsArrayClass, const SourceString('removeLast'));
     jsArrayAdd = compiler.lookupElementIn(
@@ -921,6 +925,10 @@ class JavaScriptBackend extends Backend {
     jsStringClass.ensureResolved(compiler);
     jsStringLength = compiler.lookupElementIn(
         jsStringClass, const SourceString('length'));
+    if (jsStringLength != null && jsStringLength.isAbstractField()) {
+      AbstractFieldElement element = jsStringLength;
+      jsStringLength = element.getter;
+    }
     jsStringSplit = compiler.lookupElementIn(
         jsStringClass, const SourceString('split'));
     jsStringConcat = compiler.lookupElementIn(
@@ -1017,7 +1025,8 @@ class JavaScriptBackend extends Backend {
     types[0] = new HType.nonNullExact(
         compiler.jsInvocationMirrorClass.computeType(compiler),
         compiler);
-    argumentTypes.registerDynamicInvocation(types, new Selector.noSuchMethod());
+    argumentTypes.registerDynamicInvocation(
+        types, compiler.noSuchMethodSelector);
   }
 
   void registerInstantiatedClass(ClassElement cls,
@@ -1634,8 +1643,8 @@ class JavaScriptBackend extends Backend {
       } else {
         if (nativeCheck) {
           return typeCast
-              ? const SourceString("callTypeCast")
-              : const SourceString('callTypeCheck');
+              ? const SourceString("interceptedTypeCast")
+              : const SourceString('interceptedTypeCheck');
         } else {
           return typeCast
               ? const SourceString("propertyTypeCast")

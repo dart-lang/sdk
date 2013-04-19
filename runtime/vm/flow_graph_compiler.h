@@ -429,8 +429,6 @@ class FlowGraphCompiler : public ValueObject {
 
   bool may_reoptimize() const { return may_reoptimize_; }
 
-  static const int kLocalsOffsetFromFP = (-1 * kWordSize);
-
   static Condition FlipCondition(Condition condition);
 
   static bool EvaluateCondition(Condition condition, intptr_t l, intptr_t r);
@@ -552,6 +550,7 @@ class FlowGraphCompiler : public ValueObject {
 
   class Assembler* assembler_;
   const ParsedFunction& parsed_function_;
+  const FlowGraph& flow_graph_;
   const GrowableArray<BlockEntryInstr*>& block_order_;
 
   // Compiler specific per-block state.  Indexed by postorder block number

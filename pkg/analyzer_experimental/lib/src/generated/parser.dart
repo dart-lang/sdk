@@ -6,6 +6,7 @@ library engine.parser;
 import 'dart:collection';
 import 'java_core.dart';
 import 'java_engine.dart';
+import 'instrumentation.dart';
 import 'error.dart';
 import 'source.dart';
 import 'scanner.dart';
@@ -164,29 +165,29 @@ class Modifiers {
    * Set the token representing the keyword 'abstract' to the given token.
    * @param abstractKeyword the token representing the keyword 'abstract'
    */
-  void set abstractKeyword(Token abstractKeyword4) {
-    this._abstractKeyword = abstractKeyword4;
+  void set abstractKeyword(Token abstractKeyword2) {
+    this._abstractKeyword = abstractKeyword2;
   }
   /**
    * Set the token representing the keyword 'const' to the given token.
    * @param constKeyword the token representing the keyword 'const'
    */
-  void set constKeyword(Token constKeyword3) {
-    this._constKeyword = constKeyword3;
+  void set constKeyword(Token constKeyword2) {
+    this._constKeyword = constKeyword2;
   }
   /**
    * Set the token representing the keyword 'external' to the given token.
    * @param externalKeyword the token representing the keyword 'external'
    */
-  void set externalKeyword(Token externalKeyword5) {
-    this._externalKeyword = externalKeyword5;
+  void set externalKeyword(Token externalKeyword2) {
+    this._externalKeyword = externalKeyword2;
   }
   /**
    * Set the token representing the keyword 'factory' to the given token.
    * @param factoryKeyword the token representing the keyword 'factory'
    */
-  void set factoryKeyword(Token factoryKeyword3) {
-    this._factoryKeyword = factoryKeyword3;
+  void set factoryKeyword(Token factoryKeyword2) {
+    this._factoryKeyword = factoryKeyword2;
   }
   /**
    * Set the token representing the keyword 'final' to the given token.
@@ -268,6 +269,7 @@ class Parser {
   static String _OF = "of";
   static String _ON = "on";
   static String _SHOW = "show";
+  static String _NATIVE = "native";
   /**
    * Initialize a newly created parser.
    * @param source the source being parsed
@@ -284,8 +286,13 @@ class Parser {
    * @return the compilation unit that was parsed
    */
   CompilationUnit parseCompilationUnit(Token token) {
-    _currentToken = token;
-    return parseCompilationUnit2();
+    InstrumentationBuilder instrumentation = Instrumentation.builder2("dart.engine.Parser.parseCompilationUnit");
+    try {
+      _currentToken = token;
+      return parseCompilationUnit2();
+    } finally {
+      instrumentation.log();
+    }
   }
   /**
    * Parse an expression, starting with the given token.
@@ -294,8 +301,13 @@ class Parser {
    * recognizable expression
    */
   Expression parseExpression(Token token) {
-    _currentToken = token;
-    return parseExpression2();
+    InstrumentationBuilder instrumentation = Instrumentation.builder2("dart.engine.Parser.parseExpression");
+    try {
+      _currentToken = token;
+      return parseExpression2();
+    } finally {
+      instrumentation.log();
+    }
   }
   /**
    * Parse a statement, starting with the given token.
@@ -304,8 +316,13 @@ class Parser {
    * recognizable statement
    */
   Statement parseStatement(Token token) {
-    _currentToken = token;
-    return parseStatement2();
+    InstrumentationBuilder instrumentation = Instrumentation.builder2("dart.engine.Parser.parseStatement");
+    try {
+      _currentToken = token;
+      return parseStatement2();
+    } finally {
+      instrumentation.log();
+    }
   }
   /**
    * Parse a sequence of statements, starting with the given token.
@@ -314,8 +331,13 @@ class Parser {
    * recognizable sequence of statements
    */
   List<Statement> parseStatements(Token token) {
-    _currentToken = token;
-    return parseStatements2();
+    InstrumentationBuilder instrumentation = Instrumentation.builder2("dart.engine.Parser.parseStatements");
+    try {
+      _currentToken = token;
+      return parseStatements2();
+    } finally {
+      instrumentation.log();
+    }
   }
   void set currentToken(Token currentToken2) {
     this._currentToken = currentToken2;
@@ -385,17 +407,22 @@ class Parser {
    * Create a synthetic identifier.
    * @return the synthetic identifier that was created
    */
-  SimpleIdentifier createSyntheticIdentifier() => new SimpleIdentifier.full(createSyntheticToken(TokenType.IDENTIFIER));
+  SimpleIdentifier createSyntheticIdentifier() => new SimpleIdentifier.full(createSyntheticToken2(TokenType.IDENTIFIER));
   /**
    * Create a synthetic string literal.
    * @return the synthetic string literal that was created
    */
-  SimpleStringLiteral createSyntheticStringLiteral() => new SimpleStringLiteral.full(createSyntheticToken(TokenType.STRING), "");
+  SimpleStringLiteral createSyntheticStringLiteral() => new SimpleStringLiteral.full(createSyntheticToken2(TokenType.STRING), "");
+  /**
+   * Create a synthetic token representing the given keyword.
+   * @return the synthetic token that was created
+   */
+  Token createSyntheticToken(Keyword keyword) => new KeywordToken_11(keyword, _currentToken.offset);
   /**
    * Create a synthetic token with the given type.
    * @return the synthetic token that was created
    */
-  Token createSyntheticToken(TokenType type) => new StringToken(type, "", _currentToken.offset);
+  Token createSyntheticToken2(TokenType type) => new StringToken(type, "", _currentToken.offset);
   /**
    * Check that the given expression is assignable and report an error if it isn't.
    * <pre>
@@ -541,8 +568,23 @@ class Parser {
     if (token == null) {
       return false;
     }
-    TokenType type21 = token.type;
-    return identical(type21, TokenType.EQ) || identical(type21, TokenType.COMMA) || identical(type21, TokenType.SEMICOLON) || matches3(token, Keyword.IN);
+    TokenType type2 = token.type;
+    return identical(type2, TokenType.EQ) || identical(type2, TokenType.COMMA) || identical(type2, TokenType.SEMICOLON) || matches3(token, Keyword.IN);
+  }
+  /**
+   * Return {@code true} if the given token appears to be the beginning of an operator declaration.
+   * @param startToken the token that might be the start of an operator declaration
+   * @return {@code true} if the given token appears to be the beginning of an operator declaration
+   */
+  bool isOperator(Token startToken) {
+    if (startToken.isOperator()) {
+      Token token = startToken.next;
+      while (token.isOperator()) {
+        token = token.next;
+      }
+      return matches4(token, TokenType.OPEN_PAREN);
+    }
+    return false;
   }
   /**
    * Return {@code true} if the current token appears to be the beginning of a switch member.
@@ -554,8 +596,8 @@ class Parser {
       token = token.next.next;
     }
     if (identical(token.type, TokenType.KEYWORD)) {
-      Keyword keyword30 = ((token as KeywordToken)).keyword;
-      return identical(keyword30, Keyword.CASE) || identical(keyword30, Keyword.DEFAULT);
+      Keyword keyword2 = ((token as KeywordToken)).keyword;
+      return identical(keyword2, Keyword.CASE) || identical(keyword2, Keyword.DEFAULT);
     }
     return false;
   }
@@ -572,8 +614,8 @@ class Parser {
     int firstOffset = 2147483647;
     for (Token token in tokens) {
       if (token != null) {
-        int offset5 = token.offset;
-        if (offset5 < firstOffset) {
+        int offset2 = token.offset;
+        if (offset2 < firstOffset) {
           first = token;
         }
       }
@@ -598,14 +640,14 @@ class Parser {
    * @param keyword the keyword that is being tested for
    * @return {@code true} if the given token matches the given keyword
    */
-  bool matches3(Token token, Keyword keyword38) => identical(token.type, TokenType.KEYWORD) && identical(((token as KeywordToken)).keyword, keyword38);
+  bool matches3(Token token, Keyword keyword2) => identical(token.type, TokenType.KEYWORD) && identical(((token as KeywordToken)).keyword, keyword2);
   /**
    * Return {@code true} if the given token has the given type.
    * @param token the token being tested
    * @param type the type of token that is being tested for
    * @return {@code true} if the given token has the given type
    */
-  bool matches4(Token token, TokenType type31) => identical(token.type, type31);
+  bool matches4(Token token, TokenType type2) => identical(token.type, type2);
   /**
    * Return {@code true} if the current token has the given type. Note that this method, unlike
    * other variants, will modify the token stream if possible to match a wider range of tokens. In
@@ -614,33 +656,33 @@ class Parser {
    * @param type the type of token that can optionally appear in the current location
    * @return {@code true} if the current token has the given type
    */
-  bool matches5(TokenType type32) {
+  bool matches5(TokenType type2) {
     TokenType currentType = _currentToken.type;
-    if (currentType != type32) {
-      if (identical(type32, TokenType.GT)) {
+    if (currentType != type2) {
+      if (identical(type2, TokenType.GT)) {
         if (identical(currentType, TokenType.GT_GT)) {
-          int offset6 = _currentToken.offset;
-          Token first = new Token(TokenType.GT, offset6);
-          Token second = new Token(TokenType.GT, offset6 + 1);
+          int offset2 = _currentToken.offset;
+          Token first = new Token(TokenType.GT, offset2);
+          Token second = new Token(TokenType.GT, offset2 + 1);
           second.setNext(_currentToken.next);
           first.setNext(second);
           _currentToken.previous.setNext(first);
           _currentToken = first;
           return true;
         } else if (identical(currentType, TokenType.GT_EQ)) {
-          int offset7 = _currentToken.offset;
-          Token first = new Token(TokenType.GT, offset7);
-          Token second = new Token(TokenType.EQ, offset7 + 1);
+          int offset3 = _currentToken.offset;
+          Token first = new Token(TokenType.GT, offset3);
+          Token second = new Token(TokenType.EQ, offset3 + 1);
           second.setNext(_currentToken.next);
           first.setNext(second);
           _currentToken.previous.setNext(first);
           _currentToken = first;
           return true;
         } else if (identical(currentType, TokenType.GT_GT_EQ)) {
-          int offset8 = _currentToken.offset;
-          Token first = new Token(TokenType.GT, offset8);
-          Token second = new Token(TokenType.GT, offset8 + 1);
-          Token third = new Token(TokenType.EQ, offset8 + 2);
+          int offset4 = _currentToken.offset;
+          Token first = new Token(TokenType.GT, offset4);
+          Token second = new Token(TokenType.GT, offset4 + 1);
+          Token third = new Token(TokenType.EQ, offset4 + 2);
           third.setNext(_currentToken.next);
           second.setNext(third);
           first.setNext(second);
@@ -718,7 +760,7 @@ class Parser {
    * Parse an annotation.
    * <pre>
    * annotation ::=
-   * '@' qualified (‚Äò.‚Äô identifier)? arguments?
+   * '@' qualified ('.' identifier)? arguments?
    * </pre>
    * @return the annotation that was parsed
    */
@@ -1141,8 +1183,8 @@ class Parser {
       members = parseClassMembers(className, ((leftBracket as BeginToken)).endToken != null);
       rightBracket = expect2(TokenType.CLOSE_CURLY_BRACKET);
     } else {
-      leftBracket = createSyntheticToken(TokenType.OPEN_CURLY_BRACKET);
-      rightBracket = createSyntheticToken(TokenType.CLOSE_CURLY_BRACKET);
+      leftBracket = createSyntheticToken2(TokenType.OPEN_CURLY_BRACKET);
+      rightBracket = createSyntheticToken2(TokenType.CLOSE_CURLY_BRACKET);
       reportError4(ParserErrorCode.MISSING_CLASS_BODY, []);
     }
     return new ClassDeclaration.full(commentAndMetadata.comment, commentAndMetadata.metadata, abstractKeyword, keyword, name, typeParameters, extendsClause, withClause, implementsClause, leftBracket, members, rightBracket);
@@ -1168,7 +1210,7 @@ class Parser {
       } else if (matches(Keyword.SET) && matchesIdentifier2(peek())) {
         validateModifiersForGetterOrSetterOrMethod(modifiers);
         return parseSetter(commentAndMetadata, modifiers.externalKeyword, modifiers.staticKeyword, returnType);
-      } else if (matches(Keyword.OPERATOR) && peek().isOperator()) {
+      } else if (matches(Keyword.OPERATOR) && isOperator(peek())) {
         validateModifiersForOperator(modifiers);
         return parseOperator(commentAndMetadata, modifiers.externalKeyword, returnType);
       } else if (matchesIdentifier() && matchesAny(peek(), [TokenType.OPEN_PAREN, TokenType.OPEN_CURLY_BRACKET, TokenType.FUNCTION])) {
@@ -1181,6 +1223,11 @@ class Parser {
             return parseInitializedIdentifierList(commentAndMetadata, modifiers.staticKeyword, validateModifiersForField(modifiers), returnType);
           }
         }
+        if (isOperator(peek())) {
+          validateModifiersForOperator(modifiers);
+          return parseOperator(commentAndMetadata, modifiers.externalKeyword, returnType);
+        }
+        reportError5(ParserErrorCode.EXPECTED_EXECUTABLE, _currentToken, []);
         return null;
       }
     } else if (matches(Keyword.GET) && matchesIdentifier2(peek())) {
@@ -1189,10 +1236,15 @@ class Parser {
     } else if (matches(Keyword.SET) && matchesIdentifier2(peek())) {
       validateModifiersForGetterOrSetterOrMethod(modifiers);
       return parseSetter(commentAndMetadata, modifiers.externalKeyword, modifiers.staticKeyword, null);
-    } else if (matches(Keyword.OPERATOR) && peek().isOperator() && matches4(peek2(2), TokenType.OPEN_PAREN)) {
+    } else if (matches(Keyword.OPERATOR) && isOperator(peek())) {
       validateModifiersForOperator(modifiers);
       return parseOperator(commentAndMetadata, modifiers.externalKeyword, null);
     } else if (!matchesIdentifier()) {
+      if (isOperator(peek())) {
+        validateModifiersForOperator(modifiers);
+        return parseOperator(commentAndMetadata, modifiers.externalKeyword, null);
+      }
+      reportError5(ParserErrorCode.EXPECTED_CLASS_MEMBER, _currentToken, []);
       return null;
     } else if (matches4(peek(), TokenType.PERIOD) && matchesIdentifier2(peek2(2)) && matches4(peek2(3), TokenType.OPEN_PAREN)) {
       return parseConstructor(commentAndMetadata, modifiers.externalKeyword, validateModifiersForConstructor(modifiers), modifiers.factoryKeyword, parseSimpleIdentifier(), andAdvance, parseSimpleIdentifier(), parseFormalParameterList());
@@ -1215,10 +1267,19 @@ class Parser {
     } else if (matches(Keyword.SET) && matchesIdentifier2(peek())) {
       validateModifiersForGetterOrSetterOrMethod(modifiers);
       return parseSetter(commentAndMetadata, modifiers.externalKeyword, modifiers.staticKeyword, type);
-    } else if (matches(Keyword.OPERATOR) && peek().isOperator() && matches4(peek2(2), TokenType.OPEN_PAREN)) {
+    } else if (matches(Keyword.OPERATOR) && isOperator(peek())) {
       validateModifiersForOperator(modifiers);
       return parseOperator(commentAndMetadata, modifiers.externalKeyword, type);
     } else if (!matchesIdentifier()) {
+      if (matches5(TokenType.CLOSE_CURLY_BRACKET)) {
+        return parseInitializedIdentifierList(commentAndMetadata, modifiers.staticKeyword, validateModifiersForField(modifiers), type);
+      }
+      if (isOperator(peek())) {
+        validateModifiersForOperator(modifiers);
+        return parseOperator(commentAndMetadata, modifiers.externalKeyword, type);
+      }
+      reportError5(ParserErrorCode.EXPECTED_CLASS_MEMBER, _currentToken, []);
+      return null;
     } else if (matches4(peek(), TokenType.OPEN_PAREN)) {
       validateModifiersForGetterOrSetterOrMethod(modifiers);
       return parseMethodDeclaration(commentAndMetadata, modifiers.externalKeyword, modifiers.staticKeyword, type);
@@ -1281,7 +1342,10 @@ class Parser {
       abstractKeyword = andAdvance;
     }
     TypeName superclass = parseTypeName();
-    WithClause withClause = parseWithClause();
+    WithClause withClause = null;
+    if (matches(Keyword.WITH)) {
+      withClause = parseWithClause();
+    }
     ImplementsClause implementsClause = null;
     if (matches(Keyword.IMPLEMENTS)) {
       implementsClause = parseImplementsClause();
@@ -1351,7 +1415,7 @@ class Parser {
     }
     try {
       List<bool> errorFound = [false];
-      AnalysisErrorListener listener = new AnalysisErrorListener_8(errorFound);
+      AnalysisErrorListener listener = new AnalysisErrorListener_12(errorFound);
       StringScanner scanner = new StringScanner(null, referenceSource, listener);
       scanner.setSourceStart(1, 1, sourceOffset);
       Token firstToken = scanner.tokenize();
@@ -1539,11 +1603,12 @@ class Parser {
       if ((matches(Keyword.GET) || matches(Keyword.SET)) && matchesIdentifier2(peek())) {
         validateModifiersForTopLevelFunction(modifiers);
         return parseFunctionDeclaration(commentAndMetadata, modifiers.externalKeyword, null);
-      } else if (matches(Keyword.OPERATOR) && peek().isOperator()) {
+      } else if (matches(Keyword.OPERATOR) && isOperator(peek())) {
+        reportError5(ParserErrorCode.TOP_LEVEL_OPERATOR, _currentToken, []);
         return null;
       } else if (matchesIdentifier() && matchesAny(peek(), [TokenType.OPEN_PAREN, TokenType.OPEN_CURLY_BRACKET, TokenType.FUNCTION])) {
         validateModifiersForTopLevelFunction(modifiers);
-        return parseFunctionDeclaration(commentAndMetadata, modifiers.externalKeyword, null);
+        return parseFunctionDeclaration(commentAndMetadata, modifiers.externalKeyword, returnType);
       } else {
         if (matchesIdentifier()) {
           if (matchesAny(peek(), [TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON])) {
@@ -1551,14 +1616,17 @@ class Parser {
             return new TopLevelVariableDeclaration.full(commentAndMetadata.comment, commentAndMetadata.metadata, parseVariableDeclarationList2(null, validateModifiersForTopLevelVariable(modifiers), null), expect2(TokenType.SEMICOLON));
           }
         }
+        reportError5(ParserErrorCode.EXPECTED_EXECUTABLE, _currentToken, []);
         return null;
       }
     } else if ((matches(Keyword.GET) || matches(Keyword.SET)) && matchesIdentifier2(peek())) {
       validateModifiersForTopLevelFunction(modifiers);
       return parseFunctionDeclaration(commentAndMetadata, modifiers.externalKeyword, null);
-    } else if (matches(Keyword.OPERATOR) && peek().isOperator() && matches4(peek2(2), TokenType.OPEN_PAREN)) {
+    } else if (matches(Keyword.OPERATOR) && isOperator(peek())) {
+      reportError5(ParserErrorCode.TOP_LEVEL_OPERATOR, _currentToken, []);
       return null;
     } else if (!matchesIdentifier()) {
+      reportError5(ParserErrorCode.EXPECTED_EXECUTABLE, _currentToken, []);
       return null;
     } else if (matches4(peek(), TokenType.OPEN_PAREN)) {
       validateModifiersForTopLevelFunction(modifiers);
@@ -1570,7 +1638,11 @@ class Parser {
     if (matches(Keyword.GET) || matches(Keyword.SET)) {
       validateModifiersForTopLevelFunction(modifiers);
       return parseFunctionDeclaration(commentAndMetadata, modifiers.externalKeyword, returnType);
+    } else if (matches(Keyword.OPERATOR) && isOperator(peek())) {
+      reportError5(ParserErrorCode.TOP_LEVEL_OPERATOR, _currentToken, []);
+      return null;
     } else if (!matchesIdentifier()) {
+      reportError5(ParserErrorCode.EXPECTED_EXECUTABLE, _currentToken, []);
       return null;
     }
     if (matchesAny(peek(), [TokenType.OPEN_PAREN, TokenType.FUNCTION, TokenType.OPEN_CURLY_BRACKET])) {
@@ -2038,12 +2110,6 @@ class Parser {
    * @return the formal parameters that were parsed
    */
   FormalParameterList parseFormalParameterList() {
-    if (matches5(TokenType.EQ) && matches4(peek(), TokenType.OPEN_PAREN)) {
-      Token previous4 = _currentToken.previous;
-      if ((matches4(previous4, TokenType.EQ_EQ) || matches4(previous4, TokenType.BANG_EQ)) && _currentToken.offset == previous4.offset + 2) {
-        advance();
-      }
-    }
     Token leftParenthesis = expect2(TokenType.OPEN_PAREN);
     if (matches5(TokenType.CLOSE_PAREN)) {
       return new FormalParameterList.full(leftParenthesis, null, null, null, andAdvance);
@@ -2067,9 +2133,10 @@ class Parser {
       if (firstParameter) {
         firstParameter = false;
       } else if (!optional(TokenType.COMMA)) {
-        if (((leftParenthesis as BeginToken)).endToken != null) {
+        if ((leftParenthesis is BeginToken) && ((leftParenthesis as BeginToken)).endToken != null) {
           reportError4(ParserErrorCode.EXPECTED_TOKEN, [TokenType.COMMA.lexeme]);
         } else {
+          reportError5(ParserErrorCode.MISSING_CLOSING_PARENTHESIS, _currentToken.previous, []);
           break;
         }
       }
@@ -2185,11 +2252,11 @@ class Parser {
           if (variableList == null) {
             reportError4(ParserErrorCode.MISSING_VARIABLE_IN_FOR_EACH, []);
           } else {
-            NodeList<VariableDeclaration> variables3 = variableList.variables;
-            if (variables3.length > 1) {
-              reportError4(ParserErrorCode.MULTIPLE_VARIABLES_IN_FOR_EACH, [variables3.length.toString()]);
+            NodeList<VariableDeclaration> variables2 = variableList.variables;
+            if (variables2.length > 1) {
+              reportError4(ParserErrorCode.MULTIPLE_VARIABLES_IN_FOR_EACH, [variables2.length.toString()]);
             }
-            VariableDeclaration variable = variables3[0];
+            VariableDeclaration variable = variables2[0];
             if (variable.initializer != null) {
               reportError4(ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH, []);
             }
@@ -2255,13 +2322,13 @@ class Parser {
         return new ExpressionFunctionBody.full(functionDefinition, expression, semicolon);
       } else if (matches5(TokenType.OPEN_CURLY_BRACKET)) {
         return new BlockFunctionBody.full(parseBlock());
-      } else if (matches2("native")) {
-        advance();
-        parseStringLiteral();
-        return new EmptyFunctionBody.full(andAdvance);
+      } else if (matches2(_NATIVE)) {
+        Token nativeToken = andAdvance;
+        StringLiteral stringLiteral = parseStringLiteral();
+        return new NativeFunctionBody.full(nativeToken, stringLiteral, expect2(TokenType.SEMICOLON));
       } else {
         reportError4(ParserErrorCode.MISSING_FUNCTION_BODY, []);
-        return new EmptyFunctionBody.full(createSyntheticToken(TokenType.SEMICOLON));
+        return new EmptyFunctionBody.full(createSyntheticToken2(TokenType.SEMICOLON));
       }
     } finally {
       _inLoop = wasInLoop;
@@ -2337,7 +2404,7 @@ class Parser {
    * Parse a function expression.
    * <pre>
    * functionExpression ::=
-   * (returnType? identifier)? formalParameterList functionExpressionBody
+   * formalParameterList functionExpressionBody
    * </pre>
    * @return the function expression that was parsed
    */
@@ -2371,10 +2438,11 @@ class Parser {
     }
     if (matches5(TokenType.SEMICOLON) || matches5(TokenType.EOF)) {
       reportError4(ParserErrorCode.MISSING_TYPEDEF_PARAMETERS, []);
-      FormalParameterList parameters = new FormalParameterList.full(createSyntheticToken(TokenType.OPEN_PAREN), null, null, null, createSyntheticToken(TokenType.CLOSE_PAREN));
+      FormalParameterList parameters = new FormalParameterList.full(createSyntheticToken2(TokenType.OPEN_PAREN), null, null, null, createSyntheticToken2(TokenType.CLOSE_PAREN));
       Token semicolon = expect2(TokenType.SEMICOLON);
       return new FunctionTypeAlias.full(commentAndMetadata.comment, commentAndMetadata.metadata, keyword, returnType, name, typeParameters, parameters, semicolon);
     } else if (!matches5(TokenType.OPEN_PAREN)) {
+      reportError4(ParserErrorCode.MISSING_TYPEDEF_PARAMETERS, []);
       return null;
     }
     FormalParameterList parameters = parseFormalParameterList();
@@ -2643,7 +2711,7 @@ class Parser {
       return parseListLiteral(modifier, typeArguments);
     }
     reportError4(ParserErrorCode.EXPECTED_LIST_OR_MAP_LITERAL, []);
-    return new ListLiteral.full(modifier, typeArguments, createSyntheticToken(TokenType.OPEN_SQUARE_BRACKET), null, createSyntheticToken(TokenType.CLOSE_SQUARE_BRACKET));
+    return new ListLiteral.full(modifier, typeArguments, createSyntheticToken2(TokenType.OPEN_SQUARE_BRACKET), null, createSyntheticToken2(TokenType.CLOSE_SQUARE_BRACKET));
   }
   /**
    * Parse a logical and expression.
@@ -2901,34 +2969,34 @@ class Parser {
       }
       return parseBlock();
     } else if (matches5(TokenType.KEYWORD) && !((_currentToken as KeywordToken)).keyword.isPseudoKeyword()) {
-      Keyword keyword31 = ((_currentToken as KeywordToken)).keyword;
-      if (identical(keyword31, Keyword.ASSERT)) {
+      Keyword keyword2 = ((_currentToken as KeywordToken)).keyword;
+      if (identical(keyword2, Keyword.ASSERT)) {
         return parseAssertStatement();
-      } else if (identical(keyword31, Keyword.BREAK)) {
+      } else if (identical(keyword2, Keyword.BREAK)) {
         return parseBreakStatement();
-      } else if (identical(keyword31, Keyword.CONTINUE)) {
+      } else if (identical(keyword2, Keyword.CONTINUE)) {
         return parseContinueStatement();
-      } else if (identical(keyword31, Keyword.DO)) {
+      } else if (identical(keyword2, Keyword.DO)) {
         return parseDoStatement();
-      } else if (identical(keyword31, Keyword.FOR)) {
+      } else if (identical(keyword2, Keyword.FOR)) {
         return parseForStatement();
-      } else if (identical(keyword31, Keyword.IF)) {
+      } else if (identical(keyword2, Keyword.IF)) {
         return parseIfStatement();
-      } else if (identical(keyword31, Keyword.RETHROW)) {
+      } else if (identical(keyword2, Keyword.RETHROW)) {
         return new ExpressionStatement.full(parseRethrowExpression(), expect2(TokenType.SEMICOLON));
-      } else if (identical(keyword31, Keyword.RETURN)) {
+      } else if (identical(keyword2, Keyword.RETURN)) {
         return parseReturnStatement();
-      } else if (identical(keyword31, Keyword.SWITCH)) {
+      } else if (identical(keyword2, Keyword.SWITCH)) {
         return parseSwitchStatement();
-      } else if (identical(keyword31, Keyword.THROW)) {
+      } else if (identical(keyword2, Keyword.THROW)) {
         return new ExpressionStatement.full(parseThrowExpression(), expect2(TokenType.SEMICOLON));
-      } else if (identical(keyword31, Keyword.TRY)) {
+      } else if (identical(keyword2, Keyword.TRY)) {
         return parseTryStatement();
-      } else if (identical(keyword31, Keyword.WHILE)) {
+      } else if (identical(keyword2, Keyword.WHILE)) {
         return parseWhileStatement();
-      } else if (identical(keyword31, Keyword.VAR) || identical(keyword31, Keyword.FINAL)) {
+      } else if (identical(keyword2, Keyword.VAR) || identical(keyword2, Keyword.FINAL)) {
         return parseVariableDeclarationStatement(commentAndMetadata);
-      } else if (identical(keyword31, Keyword.VOID)) {
+      } else if (identical(keyword2, Keyword.VOID)) {
         TypeName returnType = parseReturnType();
         if (matchesIdentifier() && matchesAny(peek(), [TokenType.OPEN_PAREN, TokenType.OPEN_CURLY_BRACKET, TokenType.FUNCTION])) {
           return parseFunctionDeclarationStatement2(commentAndMetadata, returnType);
@@ -2938,10 +3006,13 @@ class Parser {
               reportError(ParserErrorCode.VOID_VARIABLE, returnType, []);
               return parseVariableDeclarationStatement(commentAndMetadata);
             }
+          } else if (matches5(TokenType.CLOSE_CURLY_BRACKET)) {
+            return parseVariableDeclarationStatement2(commentAndMetadata, null, returnType);
           }
+          reportError4(ParserErrorCode.MISSING_STATEMENT, []);
           return null;
         }
-      } else if (identical(keyword31, Keyword.CONST)) {
+      } else if (identical(keyword2, Keyword.CONST)) {
         if (matchesAny(peek(), [TokenType.LT, TokenType.OPEN_CURLY_BRACKET, TokenType.OPEN_SQUARE_BRACKET, TokenType.INDEX])) {
           return new ExpressionStatement.full(parseExpression2(), expect2(TokenType.SEMICOLON));
         } else if (matches4(peek(), TokenType.IDENTIFIER)) {
@@ -2953,9 +3024,10 @@ class Parser {
           }
         }
         return parseVariableDeclarationStatement(commentAndMetadata);
-      } else if (identical(keyword31, Keyword.NEW) || identical(keyword31, Keyword.TRUE) || identical(keyword31, Keyword.FALSE) || identical(keyword31, Keyword.NULL) || identical(keyword31, Keyword.SUPER) || identical(keyword31, Keyword.THIS)) {
+      } else if (identical(keyword2, Keyword.NEW) || identical(keyword2, Keyword.TRUE) || identical(keyword2, Keyword.FALSE) || identical(keyword2, Keyword.NULL) || identical(keyword2, Keyword.SUPER) || identical(keyword2, Keyword.THIS)) {
         return new ExpressionStatement.full(parseExpression2(), expect2(TokenType.SEMICOLON));
       } else {
+        reportError4(ParserErrorCode.MISSING_STATEMENT, []);
         return null;
       }
     } else if (matches5(TokenType.SEMICOLON)) {
@@ -2966,7 +3038,7 @@ class Parser {
       return parseFunctionDeclarationStatement();
     } else if (matches5(TokenType.CLOSE_CURLY_BRACKET)) {
       reportError4(ParserErrorCode.MISSING_STATEMENT, []);
-      return new EmptyStatement.full(createSyntheticToken(TokenType.SEMICOLON));
+      return new EmptyStatement.full(createSyntheticToken2(TokenType.SEMICOLON));
     } else {
       return new ExpressionStatement.full(parseExpression2(), expect2(TokenType.SEMICOLON));
     }
@@ -3004,9 +3076,9 @@ class Parser {
       FormalParameterList parameters = parseFormalParameterList();
       return new FunctionTypedFormalParameter.full(commentAndMetadata.comment, commentAndMetadata.metadata, holder.type, identifier, parameters);
     }
-    TypeName type22 = holder.type;
-    if (type22 != null && matches3(type22.name.beginToken, Keyword.VOID)) {
-      reportError5(ParserErrorCode.VOID_PARAMETER, type22.name.beginToken, []);
+    TypeName type2 = holder.type;
+    if (type2 != null && matches3(type2.name.beginToken, Keyword.VOID)) {
+      reportError5(ParserErrorCode.VOID_PARAMETER, type2.name.beginToken, []);
     }
     if (thisKeyword != null) {
       return new FieldFormalParameter.full(commentAndMetadata.comment, commentAndMetadata.metadata, holder.keyword, holder.type, thisKeyword, period, identifier);
@@ -3029,11 +3101,24 @@ class Parser {
    * @return the operator declaration that was parsed
    */
   MethodDeclaration parseOperator(CommentAndMetadata commentAndMetadata, Token externalKeyword, TypeName returnType) {
-    Token operatorKeyword = expect(Keyword.OPERATOR);
+    Token operatorKeyword;
+    if (matches(Keyword.OPERATOR)) {
+      operatorKeyword = andAdvance;
+    } else {
+      reportError5(ParserErrorCode.MISSING_KEYWORD_OPERATOR, _currentToken, []);
+      operatorKeyword = createSyntheticToken(Keyword.OPERATOR);
+    }
     if (!_currentToken.isUserDefinableOperator()) {
       reportError4(ParserErrorCode.NON_USER_DEFINABLE_OPERATOR, [_currentToken.lexeme]);
     }
     SimpleIdentifier name = new SimpleIdentifier.full(andAdvance);
+    if (matches5(TokenType.EQ)) {
+      Token previous2 = _currentToken.previous;
+      if ((matches4(previous2, TokenType.EQ_EQ) || matches4(previous2, TokenType.BANG_EQ)) && _currentToken.offset == previous2.offset + 2) {
+        reportError4(ParserErrorCode.INVALID_OPERATOR, ["${previous2.lexeme}${_currentToken.lexeme}"]);
+        advance();
+      }
+    }
     FormalParameterList parameters = parseFormalParameterList();
     validateFormalParameterList(parameters);
     FunctionBody body = parseFunctionBody(true, false);
@@ -3524,6 +3609,7 @@ class Parser {
       Expression expression = parseExpression2();
       Token rightParenthesis = expect2(TokenType.CLOSE_PAREN);
       Token leftBracket = expect2(TokenType.OPEN_CURLY_BRACKET);
+      Token defaultKeyword = null;
       List<SwitchMember> members = new List<SwitchMember>();
       while (!matches5(TokenType.EOF) && !matches5(TokenType.CLOSE_CURLY_BRACKET)) {
         List<Label> labels = new List<Label>();
@@ -3543,8 +3629,14 @@ class Parser {
           Expression caseExpression = parseExpression2();
           Token colon = expect2(TokenType.COLON);
           members.add(new SwitchCase.full(labels, caseKeyword, caseExpression, colon, parseStatements2()));
+          if (defaultKeyword != null) {
+            reportError5(ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE, caseKeyword, []);
+          }
         } else if (matches(Keyword.DEFAULT)) {
-          Token defaultKeyword = andAdvance;
+          if (defaultKeyword != null) {
+            reportError5(ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES, peek(), []);
+          }
+          defaultKeyword = andAdvance;
           Token colon = expect2(TokenType.COLON);
           members.add(new SwitchDefault.full(labels, defaultKeyword, colon, parseStatements2()));
         } else {
@@ -3785,9 +3877,9 @@ class Parser {
           return new PrefixExpression.full(operator, parseUnaryExpression());
         }
         if (identical(operator.type, TokenType.MINUS_MINUS)) {
-          int offset9 = operator.offset;
-          Token firstOperator = new Token(TokenType.MINUS, offset9);
-          Token secondOperator = new Token(TokenType.MINUS, offset9 + 1);
+          int offset2 = operator.offset;
+          Token firstOperator = new Token(TokenType.MINUS, offset2);
+          Token secondOperator = new Token(TokenType.MINUS, offset2 + 1);
           secondOperator.setNext(_currentToken);
           firstOperator.setNext(secondOperator);
           operator.previous.setNext(firstOperator);
@@ -3841,8 +3933,7 @@ class Parser {
    * variableDeclarationList ::=
    * finalConstVarOrType variableDeclaration (',' variableDeclaration)
    * </pre>
-   * @param commentAndMetadata the metadata to be associated with the variable declaration list, or
-   * <code>null</code> if there is no attempt at parsing the comment and metadata
+   * @param commentAndMetadata the metadata to be associated with the variable declaration list, or{@code null} if there is no attempt at parsing the comment and metadata
    * @param keyword the token representing the 'final', 'const' or 'var' keyword, or {@code null} if
    * there is no keyword
    * @param type the type of the variables in the list
@@ -3863,10 +3954,30 @@ class Parser {
    * variableDeclarationStatement ::=
    * variableDeclarationList ';'
    * </pre>
+   * @param commentAndMetadata the metadata to be associated with the variable declaration
+   * statement, or {@code null} if there is no attempt at parsing the comment and metadata
    * @return the variable declaration statement that was parsed
    */
   VariableDeclarationStatement parseVariableDeclarationStatement(CommentAndMetadata commentAndMetadata) {
     VariableDeclarationList variableList = parseVariableDeclarationList(commentAndMetadata);
+    Token semicolon = expect2(TokenType.SEMICOLON);
+    return new VariableDeclarationStatement.full(variableList, semicolon);
+  }
+  /**
+   * Parse a variable declaration statement.
+   * <pre>
+   * variableDeclarationStatement ::=
+   * variableDeclarationList ';'
+   * </pre>
+   * @param commentAndMetadata the metadata to be associated with the variable declaration
+   * statement, or {@code null} if there is no attempt at parsing the comment and metadata
+   * @param keyword the token representing the 'final', 'const' or 'var' keyword, or {@code null} if
+   * there is no keyword
+   * @param type the type of the variables in the list
+   * @return the variable declaration statement that was parsed
+   */
+  VariableDeclarationStatement parseVariableDeclarationStatement2(CommentAndMetadata commentAndMetadata, Token keyword, TypeName type) {
+    VariableDeclarationList variableList = parseVariableDeclarationList2(commentAndMetadata, keyword, type);
     Token semicolon = expect2(TokenType.SEMICOLON);
     return new VariableDeclarationStatement.full(variableList, semicolon);
   }
@@ -3969,15 +4080,15 @@ class Parser {
    */
   Token skipFinalConstVarOrType(Token startToken) {
     if (matches3(startToken, Keyword.FINAL) || matches3(startToken, Keyword.CONST)) {
-      Token next3 = startToken.next;
-      if (matchesIdentifier2(next3.next) || matches4(next3.next, TokenType.LT) || matches3(next3.next, Keyword.THIS)) {
-        return skipTypeName(next3);
+      Token next2 = startToken.next;
+      if (matchesIdentifier2(next2.next) || matches4(next2.next, TokenType.LT) || matches3(next2.next, Keyword.THIS)) {
+        return skipTypeName(next2);
       }
     } else if (matches3(startToken, Keyword.VAR)) {
       return startToken.next;
     } else if (matchesIdentifier2(startToken)) {
-      Token next4 = startToken.next;
-      if (matchesIdentifier2(next4) || matches4(next4, TokenType.LT) || matches3(next4, Keyword.THIS) || (matches4(next4, TokenType.PERIOD) && matchesIdentifier2(next4.next) && (matchesIdentifier2(next4.next.next) || matches4(next4.next.next, TokenType.LT) || matches3(next4.next.next, Keyword.THIS)))) {
+      Token next3 = startToken.next;
+      if (matchesIdentifier2(next3) || matches4(next3, TokenType.LT) || matches3(next3, Keyword.THIS) || (matches4(next3, TokenType.PERIOD) && matchesIdentifier2(next3.next) && (matchesIdentifier2(next3.next.next) || matches4(next3.next.next, TokenType.LT) || matches3(next3.next.next, Keyword.THIS)))) {
         return skipReturnType(startToken);
       }
     }
@@ -4018,20 +4129,20 @@ class Parser {
     if (!matches4(startToken, TokenType.OPEN_PAREN)) {
       return null;
     }
-    Token next5 = startToken.next;
-    if (matches4(next5, TokenType.CLOSE_PAREN)) {
-      return next5.next;
+    Token next2 = startToken.next;
+    if (matches4(next2, TokenType.CLOSE_PAREN)) {
+      return next2.next;
     }
-    if (matchesAny(next5, [TokenType.AT, TokenType.OPEN_SQUARE_BRACKET, TokenType.OPEN_CURLY_BRACKET]) || matches3(next5, Keyword.VOID) || (matchesIdentifier2(next5) && (matchesAny(next5.next, [TokenType.COMMA, TokenType.CLOSE_PAREN])))) {
+    if (matchesAny(next2, [TokenType.AT, TokenType.OPEN_SQUARE_BRACKET, TokenType.OPEN_CURLY_BRACKET]) || matches3(next2, Keyword.VOID) || (matchesIdentifier2(next2) && (matchesAny(next2.next, [TokenType.COMMA, TokenType.CLOSE_PAREN])))) {
       return skipPastMatchingToken(startToken);
     }
-    if (matchesIdentifier2(next5) && matches4(next5.next, TokenType.OPEN_PAREN)) {
-      Token afterParameters = skipFormalParameterList(next5.next);
+    if (matchesIdentifier2(next2) && matches4(next2.next, TokenType.OPEN_PAREN)) {
+      Token afterParameters = skipFormalParameterList(next2.next);
       if (afterParameters != null && (matchesAny(afterParameters, [TokenType.COMMA, TokenType.CLOSE_PAREN]))) {
         return skipPastMatchingToken(startToken);
       }
     }
-    Token afterType = skipFinalConstVarOrType(next5);
+    Token afterType = skipFinalConstVarOrType(next2);
     if (afterType == null) {
       return null;
     }
@@ -4131,20 +4242,20 @@ class Parser {
    */
   Token skipStringInterpolation(Token startToken) {
     Token token = startToken;
-    TokenType type23 = token.type;
-    while (identical(type23, TokenType.STRING_INTERPOLATION_EXPRESSION) || identical(type23, TokenType.STRING_INTERPOLATION_IDENTIFIER)) {
-      if (identical(type23, TokenType.STRING_INTERPOLATION_EXPRESSION)) {
+    TokenType type2 = token.type;
+    while (identical(type2, TokenType.STRING_INTERPOLATION_EXPRESSION) || identical(type2, TokenType.STRING_INTERPOLATION_IDENTIFIER)) {
+      if (identical(type2, TokenType.STRING_INTERPOLATION_EXPRESSION)) {
         token = token.next;
-        type23 = token.type;
+        type2 = token.type;
         int bracketNestingLevel = 1;
         while (bracketNestingLevel > 0) {
-          if (identical(type23, TokenType.EOF)) {
+          if (identical(type2, TokenType.EOF)) {
             return null;
-          } else if (identical(type23, TokenType.OPEN_CURLY_BRACKET)) {
+          } else if (identical(type2, TokenType.OPEN_CURLY_BRACKET)) {
             bracketNestingLevel++;
-          } else if (identical(type23, TokenType.CLOSE_CURLY_BRACKET)) {
+          } else if (identical(type2, TokenType.CLOSE_CURLY_BRACKET)) {
             bracketNestingLevel--;
-          } else if (identical(type23, TokenType.STRING)) {
+          } else if (identical(type2, TokenType.STRING)) {
             token = skipStringLiteral(token);
             if (token == null) {
               return null;
@@ -4152,10 +4263,10 @@ class Parser {
           } else {
             token = token.next;
           }
-          type23 = token.type;
+          type2 = token.type;
         }
         token = token.next;
-        type23 = token.type;
+        type2 = token.type;
       } else {
         token = token.next;
         if (token.type != TokenType.IDENTIFIER) {
@@ -4163,10 +4274,10 @@ class Parser {
         }
         token = token.next;
       }
-      type23 = token.type;
-      if (identical(type23, TokenType.STRING)) {
+      type2 = token.type;
+      if (identical(type2, TokenType.STRING)) {
         token = token.next;
-        type23 = token.type;
+        type2 = token.type;
       }
     }
     return token;
@@ -4189,8 +4300,8 @@ class Parser {
     Token token = startToken;
     while (token != null && matches4(token, TokenType.STRING)) {
       token = token.next;
-      TokenType type24 = token.type;
-      if (identical(type24, TokenType.STRING_INTERPOLATION_EXPRESSION) || identical(type24, TokenType.STRING_INTERPOLATION_IDENTIFIER)) {
+      TokenType type2 = token.type;
+      if (identical(type2, TokenType.STRING_INTERPOLATION_EXPRESSION) || identical(type2, TokenType.STRING_INTERPOLATION_IDENTIFIER)) {
         token = skipStringInterpolation(token);
       }
     }
@@ -4279,36 +4390,36 @@ class Parser {
       return null;
     }
     int depth = 1;
-    Token next6 = startToken.next;
+    Token next2 = startToken.next;
     while (depth > 0) {
-      if (matches4(next6, TokenType.EOF)) {
+      if (matches4(next2, TokenType.EOF)) {
         return null;
-      } else if (matches4(next6, TokenType.LT)) {
+      } else if (matches4(next2, TokenType.LT)) {
         depth++;
-      } else if (matches4(next6, TokenType.GT)) {
+      } else if (matches4(next2, TokenType.GT)) {
         depth--;
-      } else if (matches4(next6, TokenType.GT_EQ)) {
+      } else if (matches4(next2, TokenType.GT_EQ)) {
         if (depth == 1) {
-          Token fakeEquals = new Token(TokenType.EQ, next6.offset + 2);
-          fakeEquals.setNextWithoutSettingPrevious(next6.next);
+          Token fakeEquals = new Token(TokenType.EQ, next2.offset + 2);
+          fakeEquals.setNextWithoutSettingPrevious(next2.next);
           return fakeEquals;
         }
         depth--;
-      } else if (matches4(next6, TokenType.GT_GT)) {
+      } else if (matches4(next2, TokenType.GT_GT)) {
         depth -= 2;
-      } else if (matches4(next6, TokenType.GT_GT_EQ)) {
+      } else if (matches4(next2, TokenType.GT_GT_EQ)) {
         if (depth < 2) {
           return null;
         } else if (depth == 2) {
-          Token fakeEquals = new Token(TokenType.EQ, next6.offset + 2);
-          fakeEquals.setNextWithoutSettingPrevious(next6.next);
+          Token fakeEquals = new Token(TokenType.EQ, next2.offset + 2);
+          fakeEquals.setNextWithoutSettingPrevious(next2.next);
           return fakeEquals;
         }
         depth -= 2;
       }
-      next6 = next6.next;
+      next2 = next2.next;
     }
-    return next6;
+    return next2;
   }
   /**
    * Translate the characters at the given index in the given string, appending the translated
@@ -4324,10 +4435,10 @@ class Parser {
       builder.appendChar(currentChar);
       return index + 1;
     }
-    int length8 = lexeme.length;
+    int length2 = lexeme.length;
     int currentIndex = index + 1;
-    if (currentIndex >= length8) {
-      return length8;
+    if (currentIndex >= length2) {
+      return length2;
     }
     currentChar = lexeme.codeUnitAt(currentIndex);
     if (currentChar == 0x6E) {
@@ -4343,9 +4454,9 @@ class Parser {
     } else if (currentChar == 0x76) {
       builder.appendChar(0xB);
     } else if (currentChar == 0x78) {
-      if (currentIndex + 2 >= length8) {
+      if (currentIndex + 2 >= length2) {
         reportError4(ParserErrorCode.INVALID_HEX_ESCAPE, []);
-        return length8;
+        return length2;
       }
       int firstDigit = lexeme.codeUnitAt(currentIndex + 1);
       int secondDigit = lexeme.codeUnitAt(currentIndex + 2);
@@ -4357,16 +4468,16 @@ class Parser {
       return currentIndex + 3;
     } else if (currentChar == 0x75) {
       currentIndex++;
-      if (currentIndex >= length8) {
+      if (currentIndex >= length2) {
         reportError4(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
-        return length8;
+        return length2;
       }
       currentChar = lexeme.codeUnitAt(currentIndex);
       if (currentChar == 0x7B) {
         currentIndex++;
-        if (currentIndex >= length8) {
+        if (currentIndex >= length2) {
           reportError4(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
-          return length8;
+          return length2;
         }
         currentChar = lexeme.codeUnitAt(currentIndex);
         int digitCount = 0;
@@ -4375,7 +4486,7 @@ class Parser {
           if (!isHexDigit(currentChar)) {
             reportError4(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
             currentIndex++;
-            while (currentIndex < length8 && lexeme.codeUnitAt(currentIndex) != 0x7D) {
+            while (currentIndex < length2 && lexeme.codeUnitAt(currentIndex) != 0x7D) {
               currentIndex++;
             }
             return currentIndex + 1;
@@ -4383,9 +4494,9 @@ class Parser {
           digitCount++;
           value = (value << 4) + Character.digit(currentChar, 16);
           currentIndex++;
-          if (currentIndex >= length8) {
+          if (currentIndex >= length2) {
             reportError4(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
-            return length8;
+            return length2;
           }
           currentChar = lexeme.codeUnitAt(currentIndex);
         }
@@ -4395,9 +4506,9 @@ class Parser {
         appendScalarValue(builder, lexeme.substring(index, currentIndex + 1), value, index, currentIndex);
         return currentIndex + 1;
       } else {
-        if (currentIndex + 3 >= length8) {
+        if (currentIndex + 3 >= length2) {
           reportError4(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
-          return length8;
+          return length2;
         }
         int firstDigit = currentChar;
         int secondDigit = lexeme.codeUnitAt(currentIndex + 1);
@@ -4466,16 +4577,16 @@ class Parser {
     if (modifiers.varKeyword != null) {
       reportError5(ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE, modifiers.varKeyword, []);
     }
-    Token externalKeyword6 = modifiers.externalKeyword;
-    Token constKeyword4 = modifiers.constKeyword;
-    Token factoryKeyword4 = modifiers.factoryKeyword;
-    if (externalKeyword6 != null && constKeyword4 != null && constKeyword4.offset < externalKeyword6.offset) {
-      reportError5(ParserErrorCode.EXTERNAL_AFTER_CONST, externalKeyword6, []);
+    Token externalKeyword2 = modifiers.externalKeyword;
+    Token constKeyword2 = modifiers.constKeyword;
+    Token factoryKeyword2 = modifiers.factoryKeyword;
+    if (externalKeyword2 != null && constKeyword2 != null && constKeyword2.offset < externalKeyword2.offset) {
+      reportError5(ParserErrorCode.EXTERNAL_AFTER_CONST, externalKeyword2, []);
     }
-    if (externalKeyword6 != null && factoryKeyword4 != null && factoryKeyword4.offset < externalKeyword6.offset) {
-      reportError5(ParserErrorCode.EXTERNAL_AFTER_FACTORY, externalKeyword6, []);
+    if (externalKeyword2 != null && factoryKeyword2 != null && factoryKeyword2.offset < externalKeyword2.offset) {
+      reportError5(ParserErrorCode.EXTERNAL_AFTER_FACTORY, externalKeyword2, []);
     }
-    return constKeyword4;
+    return constKeyword2;
   }
   /**
    * Validate that the given set of modifiers is appropriate for a field and return the 'final',
@@ -4493,31 +4604,31 @@ class Parser {
     if (modifiers.factoryKeyword != null) {
       reportError5(ParserErrorCode.NON_CONSTRUCTOR_FACTORY, modifiers.factoryKeyword, []);
     }
-    Token staticKeyword3 = modifiers.staticKeyword;
-    Token constKeyword5 = modifiers.constKeyword;
-    Token finalKeyword3 = modifiers.finalKeyword;
-    Token varKeyword3 = modifiers.varKeyword;
-    if (constKeyword5 != null) {
-      if (finalKeyword3 != null) {
-        reportError5(ParserErrorCode.CONST_AND_FINAL, finalKeyword3, []);
+    Token staticKeyword2 = modifiers.staticKeyword;
+    Token constKeyword2 = modifiers.constKeyword;
+    Token finalKeyword2 = modifiers.finalKeyword;
+    Token varKeyword2 = modifiers.varKeyword;
+    if (constKeyword2 != null) {
+      if (finalKeyword2 != null) {
+        reportError5(ParserErrorCode.CONST_AND_FINAL, finalKeyword2, []);
       }
-      if (varKeyword3 != null) {
-        reportError5(ParserErrorCode.CONST_AND_VAR, varKeyword3, []);
+      if (varKeyword2 != null) {
+        reportError5(ParserErrorCode.CONST_AND_VAR, varKeyword2, []);
       }
-      if (staticKeyword3 != null && constKeyword5.offset < staticKeyword3.offset) {
-        reportError5(ParserErrorCode.STATIC_AFTER_CONST, staticKeyword3, []);
+      if (staticKeyword2 != null && constKeyword2.offset < staticKeyword2.offset) {
+        reportError5(ParserErrorCode.STATIC_AFTER_CONST, staticKeyword2, []);
       }
-    } else if (finalKeyword3 != null) {
-      if (varKeyword3 != null) {
-        reportError5(ParserErrorCode.FINAL_AND_VAR, varKeyword3, []);
+    } else if (finalKeyword2 != null) {
+      if (varKeyword2 != null) {
+        reportError5(ParserErrorCode.FINAL_AND_VAR, varKeyword2, []);
       }
-      if (staticKeyword3 != null && finalKeyword3.offset < staticKeyword3.offset) {
-        reportError5(ParserErrorCode.STATIC_AFTER_FINAL, staticKeyword3, []);
+      if (staticKeyword2 != null && finalKeyword2.offset < staticKeyword2.offset) {
+        reportError5(ParserErrorCode.STATIC_AFTER_FINAL, staticKeyword2, []);
       }
-    } else if (varKeyword3 != null && staticKeyword3 != null && varKeyword3.offset < staticKeyword3.offset) {
-      reportError5(ParserErrorCode.STATIC_AFTER_VAR, staticKeyword3, []);
+    } else if (varKeyword2 != null && staticKeyword2 != null && varKeyword2.offset < staticKeyword2.offset) {
+      reportError5(ParserErrorCode.STATIC_AFTER_VAR, staticKeyword2, []);
     }
-    return lexicallyFirst([constKeyword5, finalKeyword3, varKeyword3]);
+    return lexicallyFirst([constKeyword2, finalKeyword2, varKeyword2]);
   }
   /**
    * Validate that the given set of modifiers is appropriate for a getter, setter, or method.
@@ -4539,10 +4650,10 @@ class Parser {
     if (modifiers.varKeyword != null) {
       reportError5(ParserErrorCode.VAR_RETURN_TYPE, modifiers.varKeyword, []);
     }
-    Token externalKeyword7 = modifiers.externalKeyword;
-    Token staticKeyword4 = modifiers.staticKeyword;
-    if (externalKeyword7 != null && staticKeyword4 != null && staticKeyword4.offset < externalKeyword7.offset) {
-      reportError5(ParserErrorCode.EXTERNAL_AFTER_STATIC, externalKeyword7, []);
+    Token externalKeyword2 = modifiers.externalKeyword;
+    Token staticKeyword2 = modifiers.staticKeyword;
+    if (externalKeyword2 != null && staticKeyword2 != null && staticKeyword2.offset < externalKeyword2.offset) {
+      reportError5(ParserErrorCode.EXTERNAL_AFTER_STATIC, externalKeyword2, []);
     }
   }
   /**
@@ -4614,22 +4725,22 @@ class Parser {
     if (modifiers.externalKeyword != null) {
       reportError5(ParserErrorCode.EXTERNAL_FIELD, modifiers.externalKeyword, []);
     }
-    Token constKeyword6 = modifiers.constKeyword;
-    Token finalKeyword4 = modifiers.finalKeyword;
-    Token varKeyword4 = modifiers.varKeyword;
-    if (constKeyword6 != null) {
-      if (finalKeyword4 != null) {
-        reportError5(ParserErrorCode.CONST_AND_FINAL, finalKeyword4, []);
+    Token constKeyword2 = modifiers.constKeyword;
+    Token finalKeyword2 = modifiers.finalKeyword;
+    Token varKeyword2 = modifiers.varKeyword;
+    if (constKeyword2 != null) {
+      if (finalKeyword2 != null) {
+        reportError5(ParserErrorCode.CONST_AND_FINAL, finalKeyword2, []);
       }
-      if (varKeyword4 != null) {
-        reportError5(ParserErrorCode.CONST_AND_VAR, varKeyword4, []);
+      if (varKeyword2 != null) {
+        reportError5(ParserErrorCode.CONST_AND_VAR, varKeyword2, []);
       }
-    } else if (finalKeyword4 != null) {
-      if (varKeyword4 != null) {
-        reportError5(ParserErrorCode.FINAL_AND_VAR, varKeyword4, []);
+    } else if (finalKeyword2 != null) {
+      if (varKeyword2 != null) {
+        reportError5(ParserErrorCode.FINAL_AND_VAR, varKeyword2, []);
       }
     }
-    return lexicallyFirst([constKeyword6, finalKeyword4, varKeyword4]);
+    return lexicallyFirst([constKeyword2, finalKeyword2, varKeyword2]);
   }
   /**
    * Validate that the given set of modifiers is appropriate for a class and return the 'abstract'
@@ -4655,9 +4766,13 @@ class Parser {
     }
   }
 }
-class AnalysisErrorListener_8 implements AnalysisErrorListener {
+class KeywordToken_11 extends KeywordToken {
+  KeywordToken_11(Keyword arg0, int arg1) : super(arg0, arg1);
+  int get length => 0;
+}
+class AnalysisErrorListener_12 implements AnalysisErrorListener {
   List<bool> errorFound;
-  AnalysisErrorListener_8(this.errorFound);
+  AnalysisErrorListener_12(this.errorFound);
   void onError(AnalysisError error) {
     errorFound[0] = true;
   }
@@ -4669,7 +4784,7 @@ class AnalysisErrorListener_8 implements AnalysisErrorListener {
  * when appropriate, how the problem can be corrected.
  * @coverage dart.engine.parser
  */
-class ParserErrorCode implements ErrorCode {
+class ParserErrorCode implements Comparable<ParserErrorCode>, ErrorCode {
   static final ParserErrorCode ABSTRACT_CLASS_MEMBER = new ParserErrorCode.con2('ABSTRACT_CLASS_MEMBER', 0, "Members of classes cannot be declared to be 'abstract'");
   static final ParserErrorCode ABSTRACT_STATIC_METHOD = new ParserErrorCode.con2('ABSTRACT_STATIC_METHOD', 1, "Static methods cannot be declared to be 'abstract'");
   static final ParserErrorCode ABSTRACT_TOP_LEVEL_FUNCTION = new ParserErrorCode.con2('ABSTRACT_TOP_LEVEL_FUNCTION', 2, "Top-level functions cannot be declared to be 'abstract'");
@@ -4688,90 +4803,100 @@ class ParserErrorCode implements ErrorCode {
   static final ParserErrorCode DUPLICATE_LABEL_IN_SWITCH_STATEMENT = new ParserErrorCode.con2('DUPLICATE_LABEL_IN_SWITCH_STATEMENT', 15, "The label %s was already used in this switch statement");
   static final ParserErrorCode DUPLICATED_MODIFIER = new ParserErrorCode.con2('DUPLICATED_MODIFIER', 16, "The modifier '%s' was already specified.");
   static final ParserErrorCode EXPECTED_CASE_OR_DEFAULT = new ParserErrorCode.con2('EXPECTED_CASE_OR_DEFAULT', 17, "Expected 'case' or 'default'");
-  static final ParserErrorCode EXPECTED_LIST_OR_MAP_LITERAL = new ParserErrorCode.con2('EXPECTED_LIST_OR_MAP_LITERAL', 18, "Expected a list or map literal");
-  static final ParserErrorCode EXPECTED_STRING_LITERAL = new ParserErrorCode.con2('EXPECTED_STRING_LITERAL', 19, "Expected a string literal");
-  static final ParserErrorCode EXPECTED_TOKEN = new ParserErrorCode.con2('EXPECTED_TOKEN', 20, "Expected to find '%s'");
-  static final ParserErrorCode EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE = new ParserErrorCode.con2('EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE', 21, "Export directives must preceed part directives");
-  static final ParserErrorCode EXTERNAL_AFTER_CONST = new ParserErrorCode.con2('EXTERNAL_AFTER_CONST', 22, "The modifier 'external' should be before the modifier 'const'");
-  static final ParserErrorCode EXTERNAL_AFTER_FACTORY = new ParserErrorCode.con2('EXTERNAL_AFTER_FACTORY', 23, "The modifier 'external' should be before the modifier 'factory'");
-  static final ParserErrorCode EXTERNAL_AFTER_STATIC = new ParserErrorCode.con2('EXTERNAL_AFTER_STATIC', 24, "The modifier 'external' should be before the modifier 'static'");
-  static final ParserErrorCode EXTERNAL_CLASS = new ParserErrorCode.con2('EXTERNAL_CLASS', 25, "Classes cannot be declared to be 'external'");
-  static final ParserErrorCode EXTERNAL_CONSTRUCTOR_WITH_BODY = new ParserErrorCode.con2('EXTERNAL_CONSTRUCTOR_WITH_BODY', 26, "External constructors cannot have a body");
-  static final ParserErrorCode EXTERNAL_FIELD = new ParserErrorCode.con2('EXTERNAL_FIELD', 27, "Fields cannot be declared to be 'external'");
-  static final ParserErrorCode EXTERNAL_GETTER_WITH_BODY = new ParserErrorCode.con2('EXTERNAL_GETTER_WITH_BODY', 28, "External getters cannot have a body");
-  static final ParserErrorCode EXTERNAL_METHOD_WITH_BODY = new ParserErrorCode.con2('EXTERNAL_METHOD_WITH_BODY', 29, "External methods cannot have a body");
-  static final ParserErrorCode EXTERNAL_OPERATOR_WITH_BODY = new ParserErrorCode.con2('EXTERNAL_OPERATOR_WITH_BODY', 30, "External operators cannot have a body");
-  static final ParserErrorCode EXTERNAL_SETTER_WITH_BODY = new ParserErrorCode.con2('EXTERNAL_SETTER_WITH_BODY', 31, "External setters cannot have a body");
-  static final ParserErrorCode EXTERNAL_TYPEDEF = new ParserErrorCode.con2('EXTERNAL_TYPEDEF', 32, "Type aliases cannot be declared to be 'external'");
-  static final ParserErrorCode FACTORY_TOP_LEVEL_DECLARATION = new ParserErrorCode.con2('FACTORY_TOP_LEVEL_DECLARATION', 33, "Top-level declarations cannot be declared to be 'factory'");
-  static final ParserErrorCode FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR = new ParserErrorCode.con2('FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR', 34, "Field initializers can only be used in a constructor");
-  static final ParserErrorCode FINAL_AND_VAR = new ParserErrorCode.con2('FINAL_AND_VAR', 35, "Members cannot be declared to be both 'final' and 'var'");
-  static final ParserErrorCode FINAL_CLASS = new ParserErrorCode.con2('FINAL_CLASS', 36, "Classes cannot be declared to be 'final'");
-  static final ParserErrorCode FINAL_CONSTRUCTOR = new ParserErrorCode.con2('FINAL_CONSTRUCTOR', 37, "A constructor cannot be declared to be 'final'");
-  static final ParserErrorCode FINAL_METHOD = new ParserErrorCode.con2('FINAL_METHOD', 38, "Getters, setters and methods cannot be declared to be 'final'");
-  static final ParserErrorCode FINAL_TYPEDEF = new ParserErrorCode.con2('FINAL_TYPEDEF', 39, "Type aliases cannot be declared to be 'final'");
-  static final ParserErrorCode GETTER_WITH_PARAMETERS = new ParserErrorCode.con2('GETTER_WITH_PARAMETERS', 40, "Getter should be declared without a parameter list");
-  static final ParserErrorCode ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE = new ParserErrorCode.con2('ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE', 41, "Illegal assignment to non-assignable expression");
-  static final ParserErrorCode IMPLEMENTS_BEFORE_EXTENDS = new ParserErrorCode.con2('IMPLEMENTS_BEFORE_EXTENDS', 42, "The extends clause must be before the implements clause");
-  static final ParserErrorCode IMPLEMENTS_BEFORE_WITH = new ParserErrorCode.con2('IMPLEMENTS_BEFORE_WITH', 43, "The with clause must be before the implements clause");
-  static final ParserErrorCode IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE = new ParserErrorCode.con2('IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE', 44, "Import directives must preceed part directives");
-  static final ParserErrorCode INITIALIZED_VARIABLE_IN_FOR_EACH = new ParserErrorCode.con2('INITIALIZED_VARIABLE_IN_FOR_EACH', 45, "The loop variable in a for-each loop cannot be initialized");
-  static final ParserErrorCode INVALID_CODE_POINT = new ParserErrorCode.con2('INVALID_CODE_POINT', 46, "The escape sequence '%s' is not a valid code point");
-  static final ParserErrorCode INVALID_COMMENT_REFERENCE = new ParserErrorCode.con2('INVALID_COMMENT_REFERENCE', 47, "Comment references should contain a possibly prefixed identifier and can start with 'new', but should not contain anything else");
-  static final ParserErrorCode INVALID_HEX_ESCAPE = new ParserErrorCode.con2('INVALID_HEX_ESCAPE', 48, "An escape sequence starting with '\\x' must be followed by 2 hexidecimal digits");
-  static final ParserErrorCode INVALID_OPERATOR_FOR_SUPER = new ParserErrorCode.con2('INVALID_OPERATOR_FOR_SUPER', 49, "The operator '%s' cannot be used with 'super'");
-  static final ParserErrorCode INVALID_UNICODE_ESCAPE = new ParserErrorCode.con2('INVALID_UNICODE_ESCAPE', 50, "An escape sequence starting with '\\u' must be followed by 4 hexidecimal digits or from 1 to 6 digits between '{' and '}'");
-  static final ParserErrorCode LIBRARY_DIRECTIVE_NOT_FIRST = new ParserErrorCode.con2('LIBRARY_DIRECTIVE_NOT_FIRST', 51, "The library directive must appear before all other directives");
-  static final ParserErrorCode MISSING_ASSIGNABLE_SELECTOR = new ParserErrorCode.con2('MISSING_ASSIGNABLE_SELECTOR', 52, "Missing selector such as \".<identifier>\" or \"[0]\"");
-  static final ParserErrorCode MISSING_CATCH_OR_FINALLY = new ParserErrorCode.con2('MISSING_CATCH_OR_FINALLY', 53, "A try statement must have either a catch or finally clause");
-  static final ParserErrorCode MISSING_CLASS_BODY = new ParserErrorCode.con2('MISSING_CLASS_BODY', 54, "A class definition must have a body, even if it is empty");
-  static final ParserErrorCode MISSING_CONST_FINAL_VAR_OR_TYPE = new ParserErrorCode.con2('MISSING_CONST_FINAL_VAR_OR_TYPE', 55, "Variables must be declared using the keywords 'const', 'final', 'var' or a type name");
-  static final ParserErrorCode MISSING_EXPRESSION_IN_THROW = new ParserErrorCode.con2('MISSING_EXPRESSION_IN_THROW', 56, "Throw expressions must compute the object to be thrown");
-  static final ParserErrorCode MISSING_FUNCTION_BODY = new ParserErrorCode.con2('MISSING_FUNCTION_BODY', 57, "A function body must be provided");
-  static final ParserErrorCode MISSING_FUNCTION_PARAMETERS = new ParserErrorCode.con2('MISSING_FUNCTION_PARAMETERS', 58, "Functions must have an explicit list of parameters");
-  static final ParserErrorCode MISSING_IDENTIFIER = new ParserErrorCode.con2('MISSING_IDENTIFIER', 59, "Expected an identifier");
-  static final ParserErrorCode MISSING_NAME_IN_LIBRARY_DIRECTIVE = new ParserErrorCode.con2('MISSING_NAME_IN_LIBRARY_DIRECTIVE', 60, "Library directives must include a library name");
-  static final ParserErrorCode MISSING_NAME_IN_PART_OF_DIRECTIVE = new ParserErrorCode.con2('MISSING_NAME_IN_PART_OF_DIRECTIVE', 61, "Library directives must include a library name");
-  static final ParserErrorCode MISSING_STATEMENT = new ParserErrorCode.con2('MISSING_STATEMENT', 62, "Expected a statement");
-  static final ParserErrorCode MISSING_TERMINATOR_FOR_PARAMETER_GROUP = new ParserErrorCode.con2('MISSING_TERMINATOR_FOR_PARAMETER_GROUP', 63, "There is no '%s' to close the parameter group");
-  static final ParserErrorCode MISSING_TYPEDEF_PARAMETERS = new ParserErrorCode.con2('MISSING_TYPEDEF_PARAMETERS', 64, "Type aliases for functions must have an explicit list of parameters");
-  static final ParserErrorCode MISSING_VARIABLE_IN_FOR_EACH = new ParserErrorCode.con2('MISSING_VARIABLE_IN_FOR_EACH', 65, "A loop variable must be declared in a for-each loop before the 'in', but none were found");
-  static final ParserErrorCode MIXED_PARAMETER_GROUPS = new ParserErrorCode.con2('MIXED_PARAMETER_GROUPS', 66, "Cannot have both positional and named parameters in a single parameter list");
-  static final ParserErrorCode MULTIPLE_EXTENDS_CLAUSES = new ParserErrorCode.con2('MULTIPLE_EXTENDS_CLAUSES', 67, "Each class definition can have at most one extends clause");
-  static final ParserErrorCode MULTIPLE_IMPLEMENTS_CLAUSES = new ParserErrorCode.con2('MULTIPLE_IMPLEMENTS_CLAUSES', 68, "Each class definition can have at most one implements clause");
-  static final ParserErrorCode MULTIPLE_LIBRARY_DIRECTIVES = new ParserErrorCode.con2('MULTIPLE_LIBRARY_DIRECTIVES', 69, "Only one library directive may be declared in a file");
-  static final ParserErrorCode MULTIPLE_NAMED_PARAMETER_GROUPS = new ParserErrorCode.con2('MULTIPLE_NAMED_PARAMETER_GROUPS', 70, "Cannot have multiple groups of named parameters in a single parameter list");
-  static final ParserErrorCode MULTIPLE_PART_OF_DIRECTIVES = new ParserErrorCode.con2('MULTIPLE_PART_OF_DIRECTIVES', 71, "Only one part-of directive may be declared in a file");
-  static final ParserErrorCode MULTIPLE_POSITIONAL_PARAMETER_GROUPS = new ParserErrorCode.con2('MULTIPLE_POSITIONAL_PARAMETER_GROUPS', 72, "Cannot have multiple groups of positional parameters in a single parameter list");
-  static final ParserErrorCode MULTIPLE_VARIABLES_IN_FOR_EACH = new ParserErrorCode.con2('MULTIPLE_VARIABLES_IN_FOR_EACH', 73, "A single loop variable must be declared in a for-each loop before the 'in', but %s were found");
-  static final ParserErrorCode MULTIPLE_WITH_CLAUSES = new ParserErrorCode.con2('MULTIPLE_WITH_CLAUSES', 74, "Each class definition can have at most one with clause");
-  static final ParserErrorCode NAMED_PARAMETER_OUTSIDE_GROUP = new ParserErrorCode.con2('NAMED_PARAMETER_OUTSIDE_GROUP', 75, "Named parameters must be enclosed in curly braces ('{' and '}')");
-  static final ParserErrorCode NON_CONSTRUCTOR_FACTORY = new ParserErrorCode.con2('NON_CONSTRUCTOR_FACTORY', 76, "Only constructors can be declared to be a 'factory'");
-  static final ParserErrorCode NON_IDENTIFIER_LIBRARY_NAME = new ParserErrorCode.con2('NON_IDENTIFIER_LIBRARY_NAME', 77, "The name of a library must be an identifier");
-  static final ParserErrorCode NON_PART_OF_DIRECTIVE_IN_PART = new ParserErrorCode.con2('NON_PART_OF_DIRECTIVE_IN_PART', 78, "The part-of directive must be the only directive in a part");
-  static final ParserErrorCode NON_USER_DEFINABLE_OPERATOR = new ParserErrorCode.con2('NON_USER_DEFINABLE_OPERATOR', 79, "The operator '%s' is not user definable");
-  static final ParserErrorCode POSITIONAL_AFTER_NAMED_ARGUMENT = new ParserErrorCode.con2('POSITIONAL_AFTER_NAMED_ARGUMENT', 80, "Positional arguments must occur before named arguments");
-  static final ParserErrorCode POSITIONAL_PARAMETER_OUTSIDE_GROUP = new ParserErrorCode.con2('POSITIONAL_PARAMETER_OUTSIDE_GROUP', 81, "Positional parameters must be enclosed in square brackets ('[' and ']')");
-  static final ParserErrorCode STATIC_AFTER_CONST = new ParserErrorCode.con2('STATIC_AFTER_CONST', 82, "The modifier 'static' should be before the modifier 'const'");
-  static final ParserErrorCode STATIC_AFTER_FINAL = new ParserErrorCode.con2('STATIC_AFTER_FINAL', 83, "The modifier 'static' should be before the modifier 'final'");
-  static final ParserErrorCode STATIC_AFTER_VAR = new ParserErrorCode.con2('STATIC_AFTER_VAR', 84, "The modifier 'static' should be before the modifier 'var'");
-  static final ParserErrorCode STATIC_CONSTRUCTOR = new ParserErrorCode.con2('STATIC_CONSTRUCTOR', 85, "Constructors cannot be static");
-  static final ParserErrorCode STATIC_OPERATOR = new ParserErrorCode.con2('STATIC_OPERATOR', 86, "Operators cannot be static");
-  static final ParserErrorCode STATIC_TOP_LEVEL_DECLARATION = new ParserErrorCode.con2('STATIC_TOP_LEVEL_DECLARATION', 87, "Top-level declarations cannot be declared to be 'static'");
-  static final ParserErrorCode UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP = new ParserErrorCode.con2('UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP', 88, "There is no '%s' to open a parameter group");
-  static final ParserErrorCode UNEXPECTED_TOKEN = new ParserErrorCode.con2('UNEXPECTED_TOKEN', 89, "Unexpected token '%s'");
-  static final ParserErrorCode USE_OF_UNARY_PLUS_OPERATOR = new ParserErrorCode.con2('USE_OF_UNARY_PLUS_OPERATOR', 90, "There is no unary plus operator in Dart");
-  static final ParserErrorCode WITH_BEFORE_EXTENDS = new ParserErrorCode.con2('WITH_BEFORE_EXTENDS', 91, "The extends clause must be before the with clause");
-  static final ParserErrorCode WITH_WITHOUT_EXTENDS = new ParserErrorCode.con2('WITH_WITHOUT_EXTENDS', 92, "The with clause cannot be used without an extends clause");
-  static final ParserErrorCode WRONG_SEPARATOR_FOR_NAMED_PARAMETER = new ParserErrorCode.con2('WRONG_SEPARATOR_FOR_NAMED_PARAMETER', 93, "The default value of a named parameter should be preceeded by ':'");
-  static final ParserErrorCode WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER = new ParserErrorCode.con2('WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER', 94, "The default value of a positional parameter should be preceeded by '='");
-  static final ParserErrorCode WRONG_TERMINATOR_FOR_PARAMETER_GROUP = new ParserErrorCode.con2('WRONG_TERMINATOR_FOR_PARAMETER_GROUP', 95, "Expected '%s' to close parameter group");
-  static final ParserErrorCode VAR_CLASS = new ParserErrorCode.con2('VAR_CLASS', 96, "Classes cannot be declared to be 'var'");
-  static final ParserErrorCode VAR_RETURN_TYPE = new ParserErrorCode.con2('VAR_RETURN_TYPE', 97, "The return type cannot be 'var'");
-  static final ParserErrorCode VAR_TYPEDEF = new ParserErrorCode.con2('VAR_TYPEDEF', 98, "Type aliases cannot be declared to be 'var'");
-  static final ParserErrorCode VOID_PARAMETER = new ParserErrorCode.con2('VOID_PARAMETER', 99, "Parameters cannot have a type of 'void'");
-  static final ParserErrorCode VOID_VARIABLE = new ParserErrorCode.con2('VOID_VARIABLE', 100, "Variables cannot have a type of 'void'");
-  static final List<ParserErrorCode> values = [ABSTRACT_CLASS_MEMBER, ABSTRACT_STATIC_METHOD, ABSTRACT_TOP_LEVEL_FUNCTION, ABSTRACT_TOP_LEVEL_VARIABLE, ABSTRACT_TYPEDEF, BREAK_OUTSIDE_OF_LOOP, CONST_AND_FINAL, CONST_AND_VAR, CONST_CLASS, CONST_METHOD, CONST_TYPEDEF, CONSTRUCTOR_WITH_RETURN_TYPE, CONTINUE_OUTSIDE_OF_LOOP, CONTINUE_WITHOUT_LABEL_IN_CASE, DIRECTIVE_AFTER_DECLARATION, DUPLICATE_LABEL_IN_SWITCH_STATEMENT, DUPLICATED_MODIFIER, EXPECTED_CASE_OR_DEFAULT, EXPECTED_LIST_OR_MAP_LITERAL, EXPECTED_STRING_LITERAL, EXPECTED_TOKEN, EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE, EXTERNAL_AFTER_CONST, EXTERNAL_AFTER_FACTORY, EXTERNAL_AFTER_STATIC, EXTERNAL_CLASS, EXTERNAL_CONSTRUCTOR_WITH_BODY, EXTERNAL_FIELD, EXTERNAL_GETTER_WITH_BODY, EXTERNAL_METHOD_WITH_BODY, EXTERNAL_OPERATOR_WITH_BODY, EXTERNAL_SETTER_WITH_BODY, EXTERNAL_TYPEDEF, FACTORY_TOP_LEVEL_DECLARATION, FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, FINAL_AND_VAR, FINAL_CLASS, FINAL_CONSTRUCTOR, FINAL_METHOD, FINAL_TYPEDEF, GETTER_WITH_PARAMETERS, ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, IMPLEMENTS_BEFORE_EXTENDS, IMPLEMENTS_BEFORE_WITH, IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE, INITIALIZED_VARIABLE_IN_FOR_EACH, INVALID_CODE_POINT, INVALID_COMMENT_REFERENCE, INVALID_HEX_ESCAPE, INVALID_OPERATOR_FOR_SUPER, INVALID_UNICODE_ESCAPE, LIBRARY_DIRECTIVE_NOT_FIRST, MISSING_ASSIGNABLE_SELECTOR, MISSING_CATCH_OR_FINALLY, MISSING_CLASS_BODY, MISSING_CONST_FINAL_VAR_OR_TYPE, MISSING_EXPRESSION_IN_THROW, MISSING_FUNCTION_BODY, MISSING_FUNCTION_PARAMETERS, MISSING_IDENTIFIER, MISSING_NAME_IN_LIBRARY_DIRECTIVE, MISSING_NAME_IN_PART_OF_DIRECTIVE, MISSING_STATEMENT, MISSING_TERMINATOR_FOR_PARAMETER_GROUP, MISSING_TYPEDEF_PARAMETERS, MISSING_VARIABLE_IN_FOR_EACH, MIXED_PARAMETER_GROUPS, MULTIPLE_EXTENDS_CLAUSES, MULTIPLE_IMPLEMENTS_CLAUSES, MULTIPLE_LIBRARY_DIRECTIVES, MULTIPLE_NAMED_PARAMETER_GROUPS, MULTIPLE_PART_OF_DIRECTIVES, MULTIPLE_POSITIONAL_PARAMETER_GROUPS, MULTIPLE_VARIABLES_IN_FOR_EACH, MULTIPLE_WITH_CLAUSES, NAMED_PARAMETER_OUTSIDE_GROUP, NON_CONSTRUCTOR_FACTORY, NON_IDENTIFIER_LIBRARY_NAME, NON_PART_OF_DIRECTIVE_IN_PART, NON_USER_DEFINABLE_OPERATOR, POSITIONAL_AFTER_NAMED_ARGUMENT, POSITIONAL_PARAMETER_OUTSIDE_GROUP, STATIC_AFTER_CONST, STATIC_AFTER_FINAL, STATIC_AFTER_VAR, STATIC_CONSTRUCTOR, STATIC_OPERATOR, STATIC_TOP_LEVEL_DECLARATION, UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP, UNEXPECTED_TOKEN, USE_OF_UNARY_PLUS_OPERATOR, WITH_BEFORE_EXTENDS, WITH_WITHOUT_EXTENDS, WRONG_SEPARATOR_FOR_NAMED_PARAMETER, WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER, WRONG_TERMINATOR_FOR_PARAMETER_GROUP, VAR_CLASS, VAR_RETURN_TYPE, VAR_TYPEDEF, VOID_PARAMETER, VOID_VARIABLE];
+  static final ParserErrorCode EXPECTED_CLASS_MEMBER = new ParserErrorCode.con2('EXPECTED_CLASS_MEMBER', 18, "Expected a class member");
+  static final ParserErrorCode EXPECTED_EXECUTABLE = new ParserErrorCode.con2('EXPECTED_EXECUTABLE', 19, "Expected a method, getter, setter or operator declaration");
+  static final ParserErrorCode EXPECTED_LIST_OR_MAP_LITERAL = new ParserErrorCode.con2('EXPECTED_LIST_OR_MAP_LITERAL', 20, "Expected a list or map literal");
+  static final ParserErrorCode EXPECTED_STRING_LITERAL = new ParserErrorCode.con2('EXPECTED_STRING_LITERAL', 21, "Expected a string literal");
+  static final ParserErrorCode EXPECTED_TOKEN = new ParserErrorCode.con2('EXPECTED_TOKEN', 22, "Expected to find '%s'");
+  static final ParserErrorCode EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE = new ParserErrorCode.con2('EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE', 23, "Export directives must preceed part directives");
+  static final ParserErrorCode EXTERNAL_AFTER_CONST = new ParserErrorCode.con2('EXTERNAL_AFTER_CONST', 24, "The modifier 'external' should be before the modifier 'const'");
+  static final ParserErrorCode EXTERNAL_AFTER_FACTORY = new ParserErrorCode.con2('EXTERNAL_AFTER_FACTORY', 25, "The modifier 'external' should be before the modifier 'factory'");
+  static final ParserErrorCode EXTERNAL_AFTER_STATIC = new ParserErrorCode.con2('EXTERNAL_AFTER_STATIC', 26, "The modifier 'external' should be before the modifier 'static'");
+  static final ParserErrorCode EXTERNAL_CLASS = new ParserErrorCode.con2('EXTERNAL_CLASS', 27, "Classes cannot be declared to be 'external'");
+  static final ParserErrorCode EXTERNAL_CONSTRUCTOR_WITH_BODY = new ParserErrorCode.con2('EXTERNAL_CONSTRUCTOR_WITH_BODY', 28, "External constructors cannot have a body");
+  static final ParserErrorCode EXTERNAL_FIELD = new ParserErrorCode.con2('EXTERNAL_FIELD', 29, "Fields cannot be declared to be 'external'");
+  static final ParserErrorCode EXTERNAL_GETTER_WITH_BODY = new ParserErrorCode.con2('EXTERNAL_GETTER_WITH_BODY', 30, "External getters cannot have a body");
+  static final ParserErrorCode EXTERNAL_METHOD_WITH_BODY = new ParserErrorCode.con2('EXTERNAL_METHOD_WITH_BODY', 31, "External methods cannot have a body");
+  static final ParserErrorCode EXTERNAL_OPERATOR_WITH_BODY = new ParserErrorCode.con2('EXTERNAL_OPERATOR_WITH_BODY', 32, "External operators cannot have a body");
+  static final ParserErrorCode EXTERNAL_SETTER_WITH_BODY = new ParserErrorCode.con2('EXTERNAL_SETTER_WITH_BODY', 33, "External setters cannot have a body");
+  static final ParserErrorCode EXTERNAL_TYPEDEF = new ParserErrorCode.con2('EXTERNAL_TYPEDEF', 34, "Type aliases cannot be declared to be 'external'");
+  static final ParserErrorCode FACTORY_TOP_LEVEL_DECLARATION = new ParserErrorCode.con2('FACTORY_TOP_LEVEL_DECLARATION', 35, "Top-level declarations cannot be declared to be 'factory'");
+  static final ParserErrorCode FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR = new ParserErrorCode.con2('FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR', 36, "Field initializers can only be used in a constructor");
+  static final ParserErrorCode FINAL_AND_VAR = new ParserErrorCode.con2('FINAL_AND_VAR', 37, "Members cannot be declared to be both 'final' and 'var'");
+  static final ParserErrorCode FINAL_CLASS = new ParserErrorCode.con2('FINAL_CLASS', 38, "Classes cannot be declared to be 'final'");
+  static final ParserErrorCode FINAL_CONSTRUCTOR = new ParserErrorCode.con2('FINAL_CONSTRUCTOR', 39, "A constructor cannot be declared to be 'final'");
+  static final ParserErrorCode FINAL_METHOD = new ParserErrorCode.con2('FINAL_METHOD', 40, "Getters, setters and methods cannot be declared to be 'final'");
+  static final ParserErrorCode FINAL_TYPEDEF = new ParserErrorCode.con2('FINAL_TYPEDEF', 41, "Type aliases cannot be declared to be 'final'");
+  static final ParserErrorCode GETTER_WITH_PARAMETERS = new ParserErrorCode.con2('GETTER_WITH_PARAMETERS', 42, "Getter should be declared without a parameter list");
+  static final ParserErrorCode ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE = new ParserErrorCode.con2('ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE', 43, "Illegal assignment to non-assignable expression");
+  static final ParserErrorCode IMPLEMENTS_BEFORE_EXTENDS = new ParserErrorCode.con2('IMPLEMENTS_BEFORE_EXTENDS', 44, "The extends clause must be before the implements clause");
+  static final ParserErrorCode IMPLEMENTS_BEFORE_WITH = new ParserErrorCode.con2('IMPLEMENTS_BEFORE_WITH', 45, "The with clause must be before the implements clause");
+  static final ParserErrorCode IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE = new ParserErrorCode.con2('IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE', 46, "Import directives must preceed part directives");
+  static final ParserErrorCode INITIALIZED_VARIABLE_IN_FOR_EACH = new ParserErrorCode.con2('INITIALIZED_VARIABLE_IN_FOR_EACH', 47, "The loop variable in a for-each loop cannot be initialized");
+  static final ParserErrorCode INVALID_CODE_POINT = new ParserErrorCode.con2('INVALID_CODE_POINT', 48, "The escape sequence '%s' is not a valid code point");
+  static final ParserErrorCode INVALID_COMMENT_REFERENCE = new ParserErrorCode.con2('INVALID_COMMENT_REFERENCE', 49, "Comment references should contain a possibly prefixed identifier and can start with 'new', but should not contain anything else");
+  static final ParserErrorCode INVALID_HEX_ESCAPE = new ParserErrorCode.con2('INVALID_HEX_ESCAPE', 50, "An escape sequence starting with '\\x' must be followed by 2 hexidecimal digits");
+  static final ParserErrorCode INVALID_OPERATOR = new ParserErrorCode.con2('INVALID_OPERATOR', 51, "The string '%s' is not a valid operator");
+  static final ParserErrorCode INVALID_OPERATOR_FOR_SUPER = new ParserErrorCode.con2('INVALID_OPERATOR_FOR_SUPER', 52, "The operator '%s' cannot be used with 'super'");
+  static final ParserErrorCode INVALID_UNICODE_ESCAPE = new ParserErrorCode.con2('INVALID_UNICODE_ESCAPE', 53, "An escape sequence starting with '\\u' must be followed by 4 hexidecimal digits or from 1 to 6 digits between '{' and '}'");
+  static final ParserErrorCode LIBRARY_DIRECTIVE_NOT_FIRST = new ParserErrorCode.con2('LIBRARY_DIRECTIVE_NOT_FIRST', 54, "The library directive must appear before all other directives");
+  static final ParserErrorCode MISSING_ASSIGNABLE_SELECTOR = new ParserErrorCode.con2('MISSING_ASSIGNABLE_SELECTOR', 55, "Missing selector such as \".<identifier>\" or \"[0]\"");
+  static final ParserErrorCode MISSING_CATCH_OR_FINALLY = new ParserErrorCode.con2('MISSING_CATCH_OR_FINALLY', 56, "A try statement must have either a catch or finally clause");
+  static final ParserErrorCode MISSING_CLASS_BODY = new ParserErrorCode.con2('MISSING_CLASS_BODY', 57, "A class definition must have a body, even if it is empty");
+  static final ParserErrorCode MISSING_CLOSING_PARENTHESIS = new ParserErrorCode.con2('MISSING_CLOSING_PARENTHESIS', 58, "The closing parenthesis is missing");
+  static final ParserErrorCode MISSING_CONST_FINAL_VAR_OR_TYPE = new ParserErrorCode.con2('MISSING_CONST_FINAL_VAR_OR_TYPE', 59, "Variables must be declared using the keywords 'const', 'final', 'var' or a type name");
+  static final ParserErrorCode MISSING_EXPRESSION_IN_THROW = new ParserErrorCode.con2('MISSING_EXPRESSION_IN_THROW', 60, "Throw expressions must compute the object to be thrown");
+  static final ParserErrorCode MISSING_FUNCTION_BODY = new ParserErrorCode.con2('MISSING_FUNCTION_BODY', 61, "A function body must be provided");
+  static final ParserErrorCode MISSING_FUNCTION_PARAMETERS = new ParserErrorCode.con2('MISSING_FUNCTION_PARAMETERS', 62, "Functions must have an explicit list of parameters");
+  static final ParserErrorCode MISSING_IDENTIFIER = new ParserErrorCode.con2('MISSING_IDENTIFIER', 63, "Expected an identifier");
+  static final ParserErrorCode MISSING_KEYWORD_OPERATOR = new ParserErrorCode.con2('MISSING_KEYWORD_OPERATOR', 64, "Operator declarations must be preceeded by the keyword 'operator'");
+  static final ParserErrorCode MISSING_NAME_IN_LIBRARY_DIRECTIVE = new ParserErrorCode.con2('MISSING_NAME_IN_LIBRARY_DIRECTIVE', 65, "Library directives must include a library name");
+  static final ParserErrorCode MISSING_NAME_IN_PART_OF_DIRECTIVE = new ParserErrorCode.con2('MISSING_NAME_IN_PART_OF_DIRECTIVE', 66, "Library directives must include a library name");
+  static final ParserErrorCode MISSING_STATEMENT = new ParserErrorCode.con2('MISSING_STATEMENT', 67, "Expected a statement");
+  static final ParserErrorCode MISSING_TERMINATOR_FOR_PARAMETER_GROUP = new ParserErrorCode.con2('MISSING_TERMINATOR_FOR_PARAMETER_GROUP', 68, "There is no '%s' to close the parameter group");
+  static final ParserErrorCode MISSING_TYPEDEF_PARAMETERS = new ParserErrorCode.con2('MISSING_TYPEDEF_PARAMETERS', 69, "Type aliases for functions must have an explicit list of parameters");
+  static final ParserErrorCode MISSING_VARIABLE_IN_FOR_EACH = new ParserErrorCode.con2('MISSING_VARIABLE_IN_FOR_EACH', 70, "A loop variable must be declared in a for-each loop before the 'in', but none were found");
+  static final ParserErrorCode MIXED_PARAMETER_GROUPS = new ParserErrorCode.con2('MIXED_PARAMETER_GROUPS', 71, "Cannot have both positional and named parameters in a single parameter list");
+  static final ParserErrorCode MULTIPLE_EXTENDS_CLAUSES = new ParserErrorCode.con2('MULTIPLE_EXTENDS_CLAUSES', 72, "Each class definition can have at most one extends clause");
+  static final ParserErrorCode MULTIPLE_IMPLEMENTS_CLAUSES = new ParserErrorCode.con2('MULTIPLE_IMPLEMENTS_CLAUSES', 73, "Each class definition can have at most one implements clause");
+  static final ParserErrorCode MULTIPLE_LIBRARY_DIRECTIVES = new ParserErrorCode.con2('MULTIPLE_LIBRARY_DIRECTIVES', 74, "Only one library directive may be declared in a file");
+  static final ParserErrorCode MULTIPLE_NAMED_PARAMETER_GROUPS = new ParserErrorCode.con2('MULTIPLE_NAMED_PARAMETER_GROUPS', 75, "Cannot have multiple groups of named parameters in a single parameter list");
+  static final ParserErrorCode MULTIPLE_PART_OF_DIRECTIVES = new ParserErrorCode.con2('MULTIPLE_PART_OF_DIRECTIVES', 76, "Only one part-of directive may be declared in a file");
+  static final ParserErrorCode MULTIPLE_POSITIONAL_PARAMETER_GROUPS = new ParserErrorCode.con2('MULTIPLE_POSITIONAL_PARAMETER_GROUPS', 77, "Cannot have multiple groups of positional parameters in a single parameter list");
+  static final ParserErrorCode MULTIPLE_VARIABLES_IN_FOR_EACH = new ParserErrorCode.con2('MULTIPLE_VARIABLES_IN_FOR_EACH', 78, "A single loop variable must be declared in a for-each loop before the 'in', but %s were found");
+  static final ParserErrorCode MULTIPLE_WITH_CLAUSES = new ParserErrorCode.con2('MULTIPLE_WITH_CLAUSES', 79, "Each class definition can have at most one with clause");
+  static final ParserErrorCode NAMED_FUNCTION_EXPRESSION = new ParserErrorCode.con2('NAMED_FUNCTION_EXPRESSION', 80, "Function expressions cannot be named");
+  static final ParserErrorCode NAMED_PARAMETER_OUTSIDE_GROUP = new ParserErrorCode.con2('NAMED_PARAMETER_OUTSIDE_GROUP', 81, "Named parameters must be enclosed in curly braces ('{' and '}')");
+  static final ParserErrorCode NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE = new ParserErrorCode.con2('NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE', 82, "Native functions can only be declared in the SDK and code that is loaded through native extensions");
+  static final ParserErrorCode NON_CONSTRUCTOR_FACTORY = new ParserErrorCode.con2('NON_CONSTRUCTOR_FACTORY', 83, "Only constructors can be declared to be a 'factory'");
+  static final ParserErrorCode NON_IDENTIFIER_LIBRARY_NAME = new ParserErrorCode.con2('NON_IDENTIFIER_LIBRARY_NAME', 84, "The name of a library must be an identifier");
+  static final ParserErrorCode NON_PART_OF_DIRECTIVE_IN_PART = new ParserErrorCode.con2('NON_PART_OF_DIRECTIVE_IN_PART', 85, "The part-of directive must be the only directive in a part");
+  static final ParserErrorCode NON_USER_DEFINABLE_OPERATOR = new ParserErrorCode.con2('NON_USER_DEFINABLE_OPERATOR', 86, "The operator '%s' is not user definable");
+  static final ParserErrorCode POSITIONAL_AFTER_NAMED_ARGUMENT = new ParserErrorCode.con2('POSITIONAL_AFTER_NAMED_ARGUMENT', 87, "Positional arguments must occur before named arguments");
+  static final ParserErrorCode POSITIONAL_PARAMETER_OUTSIDE_GROUP = new ParserErrorCode.con2('POSITIONAL_PARAMETER_OUTSIDE_GROUP', 88, "Positional parameters must be enclosed in square brackets ('[' and ']')");
+  static final ParserErrorCode STATIC_AFTER_CONST = new ParserErrorCode.con2('STATIC_AFTER_CONST', 89, "The modifier 'static' should be before the modifier 'const'");
+  static final ParserErrorCode STATIC_AFTER_FINAL = new ParserErrorCode.con2('STATIC_AFTER_FINAL', 90, "The modifier 'static' should be before the modifier 'final'");
+  static final ParserErrorCode STATIC_AFTER_VAR = new ParserErrorCode.con2('STATIC_AFTER_VAR', 91, "The modifier 'static' should be before the modifier 'var'");
+  static final ParserErrorCode STATIC_CONSTRUCTOR = new ParserErrorCode.con2('STATIC_CONSTRUCTOR', 92, "Constructors cannot be static");
+  static final ParserErrorCode STATIC_OPERATOR = new ParserErrorCode.con2('STATIC_OPERATOR', 93, "Operators cannot be static");
+  static final ParserErrorCode STATIC_TOP_LEVEL_DECLARATION = new ParserErrorCode.con2('STATIC_TOP_LEVEL_DECLARATION', 94, "Top-level declarations cannot be declared to be 'static'");
+  static final ParserErrorCode SWITCH_HAS_CASE_AFTER_DEFAULT_CASE = new ParserErrorCode.con2('SWITCH_HAS_CASE_AFTER_DEFAULT_CASE', 95, "The 'default' case should be the last case in a switch statement");
+  static final ParserErrorCode SWITCH_HAS_MULTIPLE_DEFAULT_CASES = new ParserErrorCode.con2('SWITCH_HAS_MULTIPLE_DEFAULT_CASES', 96, "The 'default' case can only be declared once");
+  static final ParserErrorCode TOP_LEVEL_OPERATOR = new ParserErrorCode.con2('TOP_LEVEL_OPERATOR', 97, "Operators must be declared within a class");
+  static final ParserErrorCode UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP = new ParserErrorCode.con2('UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP', 98, "There is no '%s' to open a parameter group");
+  static final ParserErrorCode UNEXPECTED_TOKEN = new ParserErrorCode.con2('UNEXPECTED_TOKEN', 99, "Unexpected token '%s'");
+  static final ParserErrorCode USE_OF_UNARY_PLUS_OPERATOR = new ParserErrorCode.con2('USE_OF_UNARY_PLUS_OPERATOR', 100, "There is no unary plus operator in Dart");
+  static final ParserErrorCode WITH_BEFORE_EXTENDS = new ParserErrorCode.con2('WITH_BEFORE_EXTENDS', 101, "The extends clause must be before the with clause");
+  static final ParserErrorCode WITH_WITHOUT_EXTENDS = new ParserErrorCode.con2('WITH_WITHOUT_EXTENDS', 102, "The with clause cannot be used without an extends clause");
+  static final ParserErrorCode WRONG_SEPARATOR_FOR_NAMED_PARAMETER = new ParserErrorCode.con2('WRONG_SEPARATOR_FOR_NAMED_PARAMETER', 103, "The default value of a named parameter should be preceeded by ':'");
+  static final ParserErrorCode WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER = new ParserErrorCode.con2('WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER', 104, "The default value of a positional parameter should be preceeded by '='");
+  static final ParserErrorCode WRONG_TERMINATOR_FOR_PARAMETER_GROUP = new ParserErrorCode.con2('WRONG_TERMINATOR_FOR_PARAMETER_GROUP', 105, "Expected '%s' to close parameter group");
+  static final ParserErrorCode VAR_CLASS = new ParserErrorCode.con2('VAR_CLASS', 106, "Classes cannot be declared to be 'var'");
+  static final ParserErrorCode VAR_RETURN_TYPE = new ParserErrorCode.con2('VAR_RETURN_TYPE', 107, "The return type cannot be 'var'");
+  static final ParserErrorCode VAR_TYPEDEF = new ParserErrorCode.con2('VAR_TYPEDEF', 108, "Type aliases cannot be declared to be 'var'");
+  static final ParserErrorCode VOID_PARAMETER = new ParserErrorCode.con2('VOID_PARAMETER', 109, "Parameters cannot have a type of 'void'");
+  static final ParserErrorCode VOID_VARIABLE = new ParserErrorCode.con2('VOID_VARIABLE', 110, "Variables cannot have a type of 'void'");
+  static final List<ParserErrorCode> values = [ABSTRACT_CLASS_MEMBER, ABSTRACT_STATIC_METHOD, ABSTRACT_TOP_LEVEL_FUNCTION, ABSTRACT_TOP_LEVEL_VARIABLE, ABSTRACT_TYPEDEF, BREAK_OUTSIDE_OF_LOOP, CONST_AND_FINAL, CONST_AND_VAR, CONST_CLASS, CONST_METHOD, CONST_TYPEDEF, CONSTRUCTOR_WITH_RETURN_TYPE, CONTINUE_OUTSIDE_OF_LOOP, CONTINUE_WITHOUT_LABEL_IN_CASE, DIRECTIVE_AFTER_DECLARATION, DUPLICATE_LABEL_IN_SWITCH_STATEMENT, DUPLICATED_MODIFIER, EXPECTED_CASE_OR_DEFAULT, EXPECTED_CLASS_MEMBER, EXPECTED_EXECUTABLE, EXPECTED_LIST_OR_MAP_LITERAL, EXPECTED_STRING_LITERAL, EXPECTED_TOKEN, EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE, EXTERNAL_AFTER_CONST, EXTERNAL_AFTER_FACTORY, EXTERNAL_AFTER_STATIC, EXTERNAL_CLASS, EXTERNAL_CONSTRUCTOR_WITH_BODY, EXTERNAL_FIELD, EXTERNAL_GETTER_WITH_BODY, EXTERNAL_METHOD_WITH_BODY, EXTERNAL_OPERATOR_WITH_BODY, EXTERNAL_SETTER_WITH_BODY, EXTERNAL_TYPEDEF, FACTORY_TOP_LEVEL_DECLARATION, FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, FINAL_AND_VAR, FINAL_CLASS, FINAL_CONSTRUCTOR, FINAL_METHOD, FINAL_TYPEDEF, GETTER_WITH_PARAMETERS, ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, IMPLEMENTS_BEFORE_EXTENDS, IMPLEMENTS_BEFORE_WITH, IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE, INITIALIZED_VARIABLE_IN_FOR_EACH, INVALID_CODE_POINT, INVALID_COMMENT_REFERENCE, INVALID_HEX_ESCAPE, INVALID_OPERATOR, INVALID_OPERATOR_FOR_SUPER, INVALID_UNICODE_ESCAPE, LIBRARY_DIRECTIVE_NOT_FIRST, MISSING_ASSIGNABLE_SELECTOR, MISSING_CATCH_OR_FINALLY, MISSING_CLASS_BODY, MISSING_CLOSING_PARENTHESIS, MISSING_CONST_FINAL_VAR_OR_TYPE, MISSING_EXPRESSION_IN_THROW, MISSING_FUNCTION_BODY, MISSING_FUNCTION_PARAMETERS, MISSING_IDENTIFIER, MISSING_KEYWORD_OPERATOR, MISSING_NAME_IN_LIBRARY_DIRECTIVE, MISSING_NAME_IN_PART_OF_DIRECTIVE, MISSING_STATEMENT, MISSING_TERMINATOR_FOR_PARAMETER_GROUP, MISSING_TYPEDEF_PARAMETERS, MISSING_VARIABLE_IN_FOR_EACH, MIXED_PARAMETER_GROUPS, MULTIPLE_EXTENDS_CLAUSES, MULTIPLE_IMPLEMENTS_CLAUSES, MULTIPLE_LIBRARY_DIRECTIVES, MULTIPLE_NAMED_PARAMETER_GROUPS, MULTIPLE_PART_OF_DIRECTIVES, MULTIPLE_POSITIONAL_PARAMETER_GROUPS, MULTIPLE_VARIABLES_IN_FOR_EACH, MULTIPLE_WITH_CLAUSES, NAMED_FUNCTION_EXPRESSION, NAMED_PARAMETER_OUTSIDE_GROUP, NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, NON_CONSTRUCTOR_FACTORY, NON_IDENTIFIER_LIBRARY_NAME, NON_PART_OF_DIRECTIVE_IN_PART, NON_USER_DEFINABLE_OPERATOR, POSITIONAL_AFTER_NAMED_ARGUMENT, POSITIONAL_PARAMETER_OUTSIDE_GROUP, STATIC_AFTER_CONST, STATIC_AFTER_FINAL, STATIC_AFTER_VAR, STATIC_CONSTRUCTOR, STATIC_OPERATOR, STATIC_TOP_LEVEL_DECLARATION, SWITCH_HAS_CASE_AFTER_DEFAULT_CASE, SWITCH_HAS_MULTIPLE_DEFAULT_CASES, TOP_LEVEL_OPERATOR, UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP, UNEXPECTED_TOKEN, USE_OF_UNARY_PLUS_OPERATOR, WITH_BEFORE_EXTENDS, WITH_WITHOUT_EXTENDS, WRONG_SEPARATOR_FOR_NAMED_PARAMETER, WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER, WRONG_TERMINATOR_FOR_PARAMETER_GROUP, VAR_CLASS, VAR_RETURN_TYPE, VAR_TYPEDEF, VOID_PARAMETER, VOID_VARIABLE];
   String __name;
   int __ordinal = 0;
   int get ordinal => __ordinal;
@@ -4789,9 +4914,9 @@ class ParserErrorCode implements ErrorCode {
    * @param message the message template used to create the message to be displayed for the error
    */
   ParserErrorCode.con1(String ___name, int ___ordinal, ErrorSeverity severity2, String message2) {
-    _jtd_constructor_275_impl(___name, ___ordinal, severity2, message2);
+    _jtd_constructor_301_impl(___name, ___ordinal, severity2, message2);
   }
-  _jtd_constructor_275_impl(String ___name, int ___ordinal, ErrorSeverity severity2, String message2) {
+  _jtd_constructor_301_impl(String ___name, int ___ordinal, ErrorSeverity severity2, String message2) {
     __name = ___name;
     __ordinal = ___ordinal;
     this._severity = severity2;
@@ -4802,15 +4927,16 @@ class ParserErrorCode implements ErrorCode {
    * @param message the message template used to create the message to be displayed for the error
    */
   ParserErrorCode.con2(String ___name, int ___ordinal, String message) {
-    _jtd_constructor_276_impl(___name, ___ordinal, message);
+    _jtd_constructor_302_impl(___name, ___ordinal, message);
   }
-  _jtd_constructor_276_impl(String ___name, int ___ordinal, String message) {
-    _jtd_constructor_275_impl(___name, ___ordinal, ErrorSeverity.ERROR, message);
+  _jtd_constructor_302_impl(String ___name, int ___ordinal, String message) {
+    _jtd_constructor_301_impl(___name, ___ordinal, ErrorSeverity.ERROR, message);
   }
   ErrorSeverity get errorSeverity => _severity;
   String get message => _message;
   ErrorType get type => ErrorType.SYNTACTIC_ERROR;
   bool needsRecompilation() => true;
+  int compareTo(ParserErrorCode other) => __ordinal - other.__ordinal;
   String toString() => __name;
 }
 /**
@@ -4983,12 +5109,12 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
   }
   Object visitCommentReference(CommentReference node) => null;
   Object visitCompilationUnit(CompilationUnit node) {
-    ScriptTag scriptTag7 = node.scriptTag;
-    NodeList<Directive> directives4 = node.directives;
-    visit(scriptTag7);
-    String prefix = scriptTag7 == null ? "" : " ";
-    visitList7(prefix, directives4, "\n");
-    prefix = scriptTag7 == null && directives4.isEmpty ? "" : "\n\n";
+    ScriptTag scriptTag2 = node.scriptTag;
+    NodeList<Directive> directives2 = node.directives;
+    visit(scriptTag2);
+    String prefix = scriptTag2 == null ? "" : " ";
+    visitList7(prefix, directives2, "\n");
+    prefix = scriptTag2 == null && directives2.isEmpty ? "" : "\n\n";
     visitList7(prefix, node.declarations, "\n");
     return null;
   }
@@ -5120,10 +5246,10 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
   Object visitFormalParameterList(FormalParameterList node) {
     String groupEnd = null;
     _writer.print('(');
-    NodeList<FormalParameter> parameters14 = node.parameters;
-    int size7 = parameters14.length;
-    for (int i = 0; i < size7; i++) {
-      FormalParameter parameter = parameters14[i];
+    NodeList<FormalParameter> parameters2 = node.parameters;
+    int size2 = parameters2.length;
+    for (int i = 0; i < size2; i++) {
+      FormalParameter parameter = parameters2[i];
       if (i > 0) {
         _writer.print(", ");
       }
@@ -5145,10 +5271,10 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     return null;
   }
   Object visitForStatement(ForStatement node) {
-    Expression initialization4 = node.initialization;
+    Expression initialization2 = node.initialization;
     _writer.print("for (");
-    if (initialization4 != null) {
-      visit(initialization4);
+    if (initialization2 != null) {
+      visit(initialization2);
     } else {
       visit(node.variables);
     }
@@ -5351,6 +5477,12 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     visit7(" ", node.expression);
     return null;
   }
+  Object visitNativeFunctionBody(NativeFunctionBody node) {
+    _writer.print("native ");
+    visit(node.stringLiteral);
+    _writer.print(';');
+    return null;
+  }
   Object visitNullLiteral(NullLiteral node) {
     _writer.print("null");
     return null;
@@ -5409,12 +5541,12 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     return null;
   }
   Object visitReturnStatement(ReturnStatement node) {
-    Expression expression17 = node.expression;
-    if (expression17 == null) {
+    Expression expression2 = node.expression;
+    if (expression2 == null) {
       _writer.print("return;");
     } else {
       _writer.print("return ");
-      expression17.accept(this);
+      expression2.accept(this);
       _writer.print(";");
     }
     return null;
@@ -5637,8 +5769,8 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
    */
   void visitList5(NodeList<ASTNode> nodes, String separator) {
     if (nodes != null) {
-      int size8 = nodes.length;
-      for (int i = 0; i < size8; i++) {
+      int size2 = nodes.length;
+      for (int i = 0; i < size2; i++) {
         if ("\n" == separator) {
           _writer.print("\n");
           indent();
@@ -5657,9 +5789,9 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
    */
   void visitList6(NodeList<ASTNode> nodes, String separator, String suffix) {
     if (nodes != null) {
-      int size9 = nodes.length;
-      if (size9 > 0) {
-        for (int i = 0; i < size9; i++) {
+      int size2 = nodes.length;
+      if (size2 > 0) {
+        for (int i = 0; i < size2; i++) {
           if (i > 0) {
             _writer.print(separator);
           }
@@ -5677,10 +5809,10 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
    */
   void visitList7(String prefix, NodeList<ASTNode> nodes, String separator) {
     if (nodes != null) {
-      int size10 = nodes.length;
-      if (size10 > 0) {
+      int size2 = nodes.length;
+      if (size2 > 0) {
         _writer.print(prefix);
-        for (int i = 0; i < size10; i++) {
+        for (int i = 0; i < size2; i++) {
           if (i > 0) {
             _writer.print(separator);
           }

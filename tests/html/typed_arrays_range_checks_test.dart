@@ -11,7 +11,7 @@ main() {
   useHtmlConfiguration();
 
   // Only perform tests if ArrayBuffer is supported.
-  if (!ArrayBuffer.supported) {
+  if (!Platform.supportsTypedData) {
     return;
   }
 

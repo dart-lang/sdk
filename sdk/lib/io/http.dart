@@ -62,10 +62,22 @@ abstract class HttpServer implements Stream<HttpRequest> {
   // TODO(ajohnsen): Add HttpServer.secure.
   /**
    * Starts listening for HTTP requests on the specified [address] and
-   * [port]. If a [port] of 0 is specified the server will choose an
-   * ephemeral port. The optional argument [backlog] can be used to
-   * specify the listen backlog for the underlying OS listen
-   * setup.
+   * [port].
+   *
+   * The default value for [address] is 127.0.0.1, which will allow
+   * only incoming connections from the local host. To allow for
+   * incoming connection from the network use either the value 0.0.0.0
+   * to bind to all interfaces or the IP address of a specific
+   * interface.
+   *
+   * If [port] has the value [:0:] (the default) an ephemeral port
+   * will be chosen by the system. The actual port used can be
+   * retrieved using the [:port:] getter.
+   *
+   * The optional argument [backlog] can be used to specify the listen
+   * backlog for the underlying OS listen setup. If [backlog] has the
+   * value of [:0:] (the default) a reasonable value will be chosen by
+   * the system.
    */
   static Future<HttpServer> bind([String address = "127.0.0.1",
                                   int port = 0,

@@ -15,6 +15,7 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames', {
     'DOMCoreException': 'DomException',
     'DOMFileSystem': 'FileSystem',
     'DOMFormData': 'FormData',
+    'DOMPoint': '_DomPoint',
     'DOMURL': 'Url',
     'DOMWindow': 'Window',
     'EntryCallback': '_EntryCallback',
@@ -42,12 +43,9 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames', {
     'SVGGradientElement': '_GradientElement',
     'SVGSVGElement': 'SvgSvgElement', # Manual to avoid name conflicts.
     'WebGLVertexArrayObjectOES': 'VertexArrayObject',
-    'WebKitAnimationEvent': 'AnimationEvent',
     'WebKitCSSKeyframeRule': 'CssKeyframeRule',
     'WebKitCSSKeyframesRule': 'CssKeyframesRule',
     'WebKitCSSTransformValue': 'CssTransformValue',
-    'WebKitPoint': '_DomPoint',
-    'WebKitTransitionEvent': '_WebKitTransitionEvent',
     'XMLHttpRequest': 'HttpRequest',
     'XMLHttpRequestException': 'HttpRequestException',
     'XMLHttpRequestProgressEvent': 'HttpRequestProgressEvent',
@@ -359,8 +357,6 @@ _removed_html_members = monitored.Set('htmlrenamer._removed_html_members', [
     'CanvasRenderingContext2D.setMiterLimit',
     'CanvasRenderingContext2D.setShadow',
     'CanvasRenderingContext2D.setStrokeColor',
-    'CanvasRenderingContext2D.webkitLineDash',
-    'CanvasRenderingContext2D.webkitLineDashOffset',
     'CharacterData.remove',
     'DOMWindow.call:blur',
     'DOMWindow.call:focus',
@@ -621,6 +617,7 @@ _removed_html_members = monitored.Set('htmlrenamer._removed_html_members', [
 # Manual dart: library name lookup.
 _library_names = monitored.Dict('htmlrenamer._library_names', {
   'DOMWindow': 'html',
+  'Database': 'web_sql',
   'Navigator': 'html',
   'WorkerContext': 'html',
 })
@@ -708,6 +705,8 @@ class HtmlRenamer(object):
     # so we can no longer determine the library based on the conditionals.
     if interface.id.startswith("IDB"):
       return 'indexed_db'
+    if interface.id.startswith("SQL"):
+      return 'web_sql'
 
     if 'Conditional' in interface.ext_attrs:
       if 'WEB_AUDIO' in interface.ext_attrs['Conditional']:

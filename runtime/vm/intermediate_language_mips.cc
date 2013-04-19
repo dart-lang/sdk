@@ -65,7 +65,7 @@ LocationSummary* ReturnInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* locs =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RegisterLocation(V0));
   return locs;
 }
@@ -85,10 +85,12 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!compiler->HasFinally()) {
     Label stack_ok;
     __ Comment("Stack Check");
-    const int sp_fp_dist = compiler->StackSize() + (-kFirstLocalSlotIndex - 1);
-    __ subu(T2, FP, SP);
+    const intptr_t fp_sp_dist =
+        (kFirstLocalSlotIndex + 1 - compiler->StackSize()) * kWordSize;
+    ASSERT(fp_sp_dist <= 0);
+    __ subu(T2, SP, FP);
 
-    __ BranchEqual(T2, sp_fp_dist * kWordSize, &stack_ok);
+    __ BranchEqual(T2, fp_sp_dist, &stack_ok);
     __ break_(0);
 
     __ Bind(&stack_ok);
@@ -1329,6 +1331,17 @@ LocationSummary* BinaryDoubleOpInstr::MakeLocationSummary() const {
 
 
 void BinaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* BinaryFloat32x4OpInstr::MakeLocationSummary() const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void BinaryFloat32x4OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 

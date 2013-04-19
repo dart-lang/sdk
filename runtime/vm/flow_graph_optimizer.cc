@@ -70,6 +70,9 @@ void FlowGraphOptimizer::ApplyClassIds() {
         ComparisonInstr* compare = instr->AsBranch()->comparison();
         if (compare->IsStrictCompare()) {
           VisitStrictCompare(compare->AsStrictCompare());
+        } else if (compare->IsEqualityCompare()) {
+          StrictifyEqualityCompare(compare->AsEqualityCompare(),
+                                   instr->AsBranch());
         }
       }
     }
@@ -531,6 +534,11 @@ static bool HasOnlyTwoSmis(const ICData& ic_data) {
       ICDataHasReceiverArgumentClassIds(ic_data, kSmiCid, kSmiCid);
 }
 
+static bool HasOnlyTwoFloat32x4s(const ICData& ic_data) {
+  return (ic_data.NumberOfChecks() == 1) &&
+      ICDataHasReceiverArgumentClassIds(ic_data, kFloat32x4Cid, kFloat32x4Cid);
+}
+
 
 // Returns false if the ICData contains anything other than the 4 combinations
 // of Mint and Smi for the receiver and argument classes.
@@ -965,6 +973,8 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
         operands_type = kMintCid;
       } else if (ShouldSpecializeForDouble(ic_data)) {
         operands_type = kDoubleCid;
+      } else if (HasOnlyTwoFloat32x4s(ic_data)) {
+        operands_type = kFloat32x4Cid;
       } else {
         return false;
       }
@@ -978,6 +988,8 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
         operands_type = kSmiCid;
       } else if (ShouldSpecializeForDouble(ic_data)) {
         operands_type = kDoubleCid;
+      } else if (HasOnlyTwoFloat32x4s(ic_data)) {
+        operands_type = kFloat32x4Cid;
       } else {
         return false;
       }
@@ -985,6 +997,8 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
     case Token::kDIV:
       if (ShouldSpecializeForDouble(ic_data)) {
         operands_type = kDoubleCid;
+      } else if (HasOnlyTwoFloat32x4s(ic_data)) {
+        operands_type = kFloat32x4Cid;
       } else {
         return false;
       }
@@ -1071,6 +1085,26 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
                                 call);
       ReplaceCall(call, bin_op);
     }
+  } else if (operands_type == kFloat32x4Cid) {
+    // Type check left.
+    AddCheckClass(left,
+                  ICData::ZoneHandle(
+                      call->ic_data()->AsUnaryClassChecksForArgNr(0)),
+                  call->deopt_id(),
+                  call->env(),
+                  call);
+    // Type check right.
+    AddCheckClass(right,
+                  ICData::ZoneHandle(
+                      call->ic_data()->AsUnaryClassChecksForArgNr(1)),
+                  call->deopt_id(),
+                  call->env(),
+                  call);
+    // Replace call.
+    BinaryFloat32x4OpInstr* float32x4_bin_op =
+        new BinaryFloat32x4OpInstr(op_kind, new Value(left), new Value(right),
+                                   call);
+    ReplaceCall(call, float32x4_bin_op);
   } else if (op_kind == Token::kMOD) {
     // TODO(vegorov): implement fast path code for modulo.
     ASSERT(operands_type == kSmiCid);
@@ -2153,24 +2187,78 @@ void FlowGraphOptimizer::VisitRelationalOp(RelationalOpInstr* instr) {
 }
 
 
+bool FlowGraphOptimizer::CanStrictifyEqualityCompare(
+    EqualityCompareInstr* compare) {
+  // If one of the inputs is null this is a strict comparison.
+  if (compare->left()->BindsToConstantNull() ||
+      compare->right()->BindsToConstantNull()) {
+    return true;
+  }
+
+  if (compare->left()->Type()->IsNone()) {
+    return false;  // We might be running prior to any type propagation passes.
+  }
+
+  // Try resolving target function using propagated cid for the receiver.
+  // If receiver is either null or has default equality operator then
+  // we can convert such comparison to a strict one.
+  const intptr_t receiver_cid =
+     compare->left()->Type()->ToNullableCid();
+
+  if (receiver_cid == kDynamicCid) {
+    return false;
+  }
+
+  const Class& receiver_class = Class::Handle(
+      Isolate::Current()->class_table()->At(receiver_cid));
+
+  // Resolve equality operator.
+  const Function& function = Function::Handle(
+      Resolver::ResolveDynamicForReceiverClass(
+          receiver_class,
+          Symbols::EqualOperator(),
+          2,
+          0));
+
+  if (function.IsNull()) {
+    return false;
+  }
+
+  // Default equality operator declared on the Object class just calls
+  // identical.
+  return (Class::Handle(function.Owner()).id() == kInstanceCid);
+}
+
+
 template <typename T>
-void FlowGraphOptimizer::HandleEqualityCompare(EqualityCompareInstr* comp,
-                                               T current_instruction) {
-  // If one of the inputs is null, no ICdata will be collected.
-  if (comp->left()->BindsToConstantNull() ||
-      comp->right()->BindsToConstantNull()) {
-    Token::Kind strict_kind = (comp->kind() == Token::kEQ) ?
+bool FlowGraphOptimizer::StrictifyEqualityCompare(
+    EqualityCompareInstr* compare,
+    T current_instruction) const {
+  if (CanStrictifyEqualityCompare(compare)) {
+    Token::Kind strict_kind = (compare->kind() == Token::kEQ) ?
         Token::kEQ_STRICT : Token::kNE_STRICT;
     StrictCompareInstr* strict_comp =
         new StrictCompareInstr(strict_kind,
-                               comp->left()->Copy(),
-                               comp->right()->Copy());
+                               compare->left()->CopyWithType(),
+                               compare->right()->CopyWithType());
     current_instruction->ReplaceWith(strict_comp, current_iterator());
+    return true;
+  }
+  return false;
+}
+
+
+template <typename T>
+void FlowGraphOptimizer::HandleEqualityCompare(EqualityCompareInstr* comp,
+                                               T current_instruction) {
+  if (StrictifyEqualityCompare(comp, current_instruction)) {
     return;
   }
+
   if (!comp->HasICData() || (comp->ic_data()->NumberOfChecks() == 0)) {
     return;
   }
+
   ASSERT(comp->ic_data()->num_args_tested() == 2);
   if (comp->ic_data()->NumberOfChecks() == 1) {
     GrowableArray<intptr_t> class_ids;
@@ -2234,6 +2322,8 @@ void FlowGraphOptimizer::HandleEqualityCompare(EqualityCompareInstr* comp,
     comp->set_receiver_class_id(kSmiCid);
   }
 }
+
+
 
 
 void FlowGraphOptimizer::VisitEqualityCompare(EqualityCompareInstr* instr) {
@@ -4388,6 +4478,19 @@ void ConstantPropagator::VisitConstraint(ConstraintInstr* instr) {
 
 void ConstantPropagator::VisitBinaryDoubleOp(
     BinaryDoubleOpInstr* instr) {
+  const Object& left = instr->left()->definition()->constant_value();
+  const Object& right = instr->right()->definition()->constant_value();
+  if (IsNonConstant(left) || IsNonConstant(right)) {
+    SetValue(instr, non_constant_);
+  } else if (IsConstant(left) && IsConstant(right)) {
+    // TODO(kmillikin): Handle binary operation.
+    SetValue(instr, non_constant_);
+  }
+}
+
+
+void ConstantPropagator::VisitBinaryFloat32x4Op(
+    BinaryFloat32x4OpInstr* instr) {
   const Object& left = instr->left()->definition()->constant_value();
   const Object& right = instr->right()->definition()->constant_value();
   if (IsNonConstant(left) || IsNonConstant(right)) {

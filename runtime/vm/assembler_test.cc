@@ -11,10 +11,6 @@
 
 namespace dart {
 
-#if defined(TARGET_ARCH_IA32) ||                                               \
-    defined(TARGET_ARCH_X64) ||                                                \
-    defined(TARGET_ARCH_ARM)
-
 ASSEMBLER_TEST_EXTERN(StoreIntoObject);
 
 ASSEMBLER_TEST_RUN(StoreIntoObject, test) {
@@ -82,7 +78,5 @@ ASSEMBLER_TEST_RUN(StoreIntoObject, test) {
   EXPECT(!Isolate::Current()->store_buffer_block()->Contains(
       reinterpret_cast<uword>(grow_new_array.raw())));
 }
-
-#endif  // TARGET_ARCH_IA32 || TARGET_ARCH_X64 || TARGET_ARCH_ARM
 
 }  // namespace dart

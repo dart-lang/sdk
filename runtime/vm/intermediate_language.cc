@@ -1316,16 +1316,7 @@ Instruction* CheckClassInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
     return this;
   }
 
-  const intptr_t num_checks = unary_checks().NumberOfChecks();
-
-  for (intptr_t i = 0; i < num_checks; i++) {
-    if (value_cid == unary_checks().GetReceiverClassIdAt(i)) {
-      // No checks needed.
-      return NULL;
-    }
-  }
-
-  return this;
+  return unary_checks().HasReceiverClassId(value_cid) ? NULL : this;
 }
 
 
@@ -1511,7 +1502,7 @@ LocationSummary* StoreContextInstr::MakeLocationSummary() const {
 
 
 void StoreContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // Nothing to do.  Context register were loaded by register allocator.
+  // Nothing to do.  Context register was loaded by the register allocator.
   ASSERT(locs()->in(0).reg() == CTX);
 }
 

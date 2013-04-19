@@ -17,7 +17,7 @@ import 'sdk.dart' as sdk;
 import 'system_cache.dart';
 import 'utils.dart';
 import 'version.dart';
-import 'version_solver.dart';
+import 'solver/version_solver.dart';
 
 /// Pub operates over a directed graph of dependencies that starts at a root
 /// "entrypoint" package. This is typically the package where the current
@@ -87,8 +87,7 @@ class Entrypoint {
       } else {
         return id.source.install(id, packageDir).then((found) {
           if (found) return null;
-          // TODO(nweiz): More robust error-handling.
-          throw 'Package ${id.name} not found in source "${id.source.name}".';
+          fail('Package ${id.name} not found in source "${id.source.name}".');
         });
       }
     }).then((_) => id.resolved);
@@ -103,7 +102,7 @@ class Entrypoint {
   /// completes when all dependencies are installed.
   Future installDependencies() {
     return new Future.sync(() {
-      return resolveVersions(cache.sources, root, loadLockFile());
+      return resolveVersions(cache.sources, root, lockFile: loadLockFile());
     }).then(_installDependencies);
   }
 
@@ -111,8 +110,7 @@ class Entrypoint {
   /// package to its "package" directory, writing a new [LockFile]. Returns a
   /// [Future] that completes when all dependencies are installed.
   Future updateAllDependencies() {
-    return resolveVersions(cache.sources, root, new LockFile.empty())
-        .then(_installDependencies);
+    return resolveVersions(cache.sources, root).then(_installDependencies);
   }
 
   /// Installs the latest available versions of [dependencies], while leaving
@@ -120,20 +118,19 @@ class Entrypoint {
   /// [Future] that completes when all dependencies are installed.
   Future updateDependencies(List<String> dependencies) {
     return new Future.sync(() {
-      var solver = new VersionSolver(cache.sources, root, loadLockFile());
-      for (var dependency in dependencies) {
-        solver.useLatestVersion(dependency);
-      }
-      return solver.solve();
+      return resolveVersions(cache.sources, root,
+          lockFile: loadLockFile(), useLatest: dependencies);
     }).then(_installDependencies);
   }
 
   /// Removes the old packages directory, installs all dependencies listed in
-  /// [packageVersions], and writes a [LockFile].
-  Future _installDependencies(List<PackageId> packageVersions) {
+  /// [result], and writes a [LockFile].
+  Future _installDependencies(SolveResult result) {
     return new Future.sync(() {
+      if (!result.succeeded) throw result.error;
+
       cleanDir(packagesDir);
-      return Future.wait(packageVersions.map((id) {
+      return Future.wait(result.packages.map((id) {
         if (id.isRoot) return new Future.value(id);
         return install(id);
       }).toList());
@@ -141,70 +138,6 @@ class Entrypoint {
       _saveLockFile(ids);
       _installSelfReference();
       _linkSecondaryPackageDirs();
-    });
-  }
-
-  /// Traverses the root's package dependency graph and loads each of the
-  /// reached packages. This should only be called after the lockfile has been
-  /// successfully generated.
-  Future<List<Pubspec>> walkDependencies() {
-    return new Future.sync(() {
-      var lockFile = loadLockFile();
-      var group = new FutureGroup<Pubspec>();
-      var visited = new Set<String>();
-
-      // Include the root package in the results.
-      group.add(new Future.value(root.pubspec));
-
-      visitPackage(Pubspec pubspec) {
-        for (var ref in pubspec.dependencies) {
-          if (visited.contains(ref.name)) continue;
-
-          // Look up the concrete version.
-          var id = lockFile.packages[ref.name];
-
-          visited.add(ref.name);
-          var future;
-          if (ref.name == root.name) {
-            future = new Future<Pubspec>.value(root.pubspec);
-          } else {
-            future = cache.describe(id);
-          }
-          group.add(future.then(visitPackage));
-        }
-
-        return pubspec;
-      }
-
-      visited.add(root.name);
-      visitPackage(root.pubspec);
-      return group.future;
-    });
-  }
-
-  /// Validates that the current Dart SDK version matches the SDK constraints
-  /// of every package in the dependency graph. If a package's constraint does
-  /// not match, prints an error.
-  Future validateSdkConstraints() {
-    return walkDependencies().then((pubspecs) {
-      var errors = [];
-
-      for (var pubspec in pubspecs) {
-        var sdkConstraint = pubspec.environment.sdkVersion;
-        if (!sdkConstraint.allows(sdk.version)) {
-          errors.add("- '${pubspec.name}' requires ${sdkConstraint}");
-        }
-      }
-
-      if (errors.length > 0) {
-        log.error("Some packages that were installed are not compatible with "
-                "your SDK version ${sdk.version} and may not work:\n"
-            "${errors.join('\n')}\n\n"
-            "You may be able to resolve this by upgrading to the latest Dart "
-                "SDK\n"
-            "or adding a version constraint to use an older version of a "
-                "package.");
-      }
     });
   }
 

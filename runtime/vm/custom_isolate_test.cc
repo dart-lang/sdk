@@ -15,8 +15,10 @@
 
 namespace dart {
 
-// Only ia32 and x64 can run execution tests.
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+// Only ia32, x64, and arm can run execution tests.
+#if defined(TARGET_ARCH_IA32) ||                                               \
+    defined(TARGET_ARCH_X64) ||                                                \
+    defined(TARGET_ARCH_ARM)
 
 static void native_echo(Dart_NativeArguments args);
 static void CustomIsolateImpl_start(Dart_NativeArguments args);
@@ -342,6 +344,6 @@ UNIT_TEST_CASE(CustomIsolates) {
   delete event_queue;
 }
 
-#endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64).
+#endif  // TARGET_ARCH_IA32 || TARGET_ARCH_X64 || TARGET_ARCH_ARM
 
 }  // namespace dart

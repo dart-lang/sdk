@@ -18,7 +18,7 @@ DivElement _statusText;
 IsolateListModel _isolates;
 Timer _updater;
 
-final int _POLL_INTERVAL = const Duration(seconds: 1);
+final int _POLL_INTERVAL = const Duration(seconds: 3);
 final String CYAN = '#00EE76';
 final String GREEN = '#97FFFF';
 

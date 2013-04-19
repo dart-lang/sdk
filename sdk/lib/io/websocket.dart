@@ -80,7 +80,7 @@ abstract class WebSocketTransformer
  * messages received. A text message will be of type [:String:] and a
  * binary message will be of type [:List<int>:].
  */
-abstract class WebSocket implements Stream {
+abstract class WebSocket implements Stream, StreamSink {
   /**
    * Possible states of the connection.
    */
@@ -131,15 +131,25 @@ abstract class WebSocket implements Stream {
   String get closeReason;
 
   /**
-   * Closes the web socket connection.
+   * Closes the web socket connection. Set the optional [code] and [reason]
+   * arguments to send close information to the remote peer. If they are
+   * omitted, the peer will see [WebSocketStatus.NO_STATUS_RECEIVED] code
+   * with no reason.
    */
-  void close([int code, String reason]);
+  Future close([int code, String reason]);
 
   /**
    * Sends data on the web socket connection. The data in [data] must
    * be either a [:String:], or a [:List<int>:] holding bytes.
    */
-  void send(data);
+  void add(data);
+
+  /**
+   * Sends data from a stream on web socket connection. Each data event from
+   * [stream] will be send as a single WebSocket frame. The data from [stream]
+   * must be either [:String:]s, or [:List<int>:]s holding bytes.
+   */
+  Future addStream(Stream stream);
 }
 
 

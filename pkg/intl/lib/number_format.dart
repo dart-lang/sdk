@@ -475,7 +475,7 @@ class _NumberFormatParser {
       format._negativePrefix = _parseAffix();
       // Skip over the negative trunk, verifying that it's identical to the
       // positive trunk.
-      for (var each in _iterator(trunk)) {
+      for (var each in _iterable(trunk)) {
         if (pattern.current != each && pattern.current != null) {
           throw new FormatException(
               "Positive and negative trunks must be the same");
@@ -720,9 +720,26 @@ class _NumberFormatParser {
 }
 
 /**
+ * Returns an [Iterable] on the string as a list of substrings.
+ */
+Iterable _iterable(String s) => new _StringIterable(s);
+
+/**
  * Return an iterator on the string as a list of substrings.
  */
 Iterator _iterator(String s) => new _StringIterator(s);
+
+// TODO(nweiz): remove this when issue 3780 is fixed.
+/**
+ * Provides an Iterable that wraps [_iterator] so it can be used in a `for`
+ * loop.
+ */
+class _StringIterable extends Iterable<String> {
+  final Iterator<String> iterator;
+
+  _StringIterable(String s)
+      : iterator = _iterator(s);
+}
 
 /**
  * Provides an iterator over a string as a list of substrings, and also

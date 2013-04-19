@@ -5,6 +5,7 @@ library engine.html;
 
 import 'dart:collection';
 import 'java_core.dart';
+import 'java_engine.dart';
 import 'source.dart';
 import 'error.dart';
 import 'instrumentation.dart';
@@ -42,10 +43,10 @@ class Token {
    * @param offset the offset from the beginning of the file to the first character in the token
    */
   Token.con1(TokenType type, int offset) {
-    _jtd_constructor_148_impl(type, offset);
+    _jtd_constructor_150_impl(type, offset);
   }
-  _jtd_constructor_148_impl(TokenType type, int offset) {
-    _jtd_constructor_149_impl(type, offset, type.lexeme);
+  _jtd_constructor_150_impl(TokenType type, int offset) {
+    _jtd_constructor_151_impl(type, offset, type.lexeme);
   }
   /**
    * Initialize a newly created token.
@@ -53,13 +54,13 @@ class Token {
    * @param offset the offset from the beginning of the file to the first character in the token
    * @param value the lexeme represented by this token (not {@code null})
    */
-  Token.con2(TokenType type4, int offset3, String value7) {
-    _jtd_constructor_149_impl(type4, offset3, value7);
+  Token.con2(TokenType type2, int offset2, String value2) {
+    _jtd_constructor_151_impl(type2, offset2, value2);
   }
-  _jtd_constructor_149_impl(TokenType type4, int offset3, String value7) {
-    this._type = type4;
-    this._value = value7;
-    this._offset = offset3;
+  _jtd_constructor_151_impl(TokenType type2, int offset2, String value2) {
+    this._type = type2;
+    this._value = StringUtilities.intern(value2);
+    this._offset = offset2;
   }
   /**
    * Return the offset from the beginning of the file to the character after last character of the
@@ -134,7 +135,7 @@ class HtmlParseResult extends HtmlScanResult {
    * The unit containing the parsed information (not {@code null}).
    */
   HtmlUnit _unit;
-  HtmlParseResult(Token token, List<int> lineStarts, HtmlUnit unit) : super(token, lineStarts) {
+  HtmlParseResult(int modificationTime, Token token, List<int> lineStarts, HtmlUnit unit) : super(modificationTime, token, lineStarts) {
     this._unit = unit;
   }
   /**
@@ -204,12 +205,12 @@ abstract class XmlNode {
    * @return the number of characters in the node's source range
    */
   int get length {
-    Token beginToken4 = beginToken;
-    Token endToken4 = endToken;
-    if (beginToken4 == null || endToken4 == null) {
+    Token beginToken2 = beginToken;
+    Token endToken2 = endToken;
+    if (beginToken2 == null || endToken2 == null) {
       return -1;
     }
-    return endToken4.offset + endToken4.length - beginToken4.offset;
+    return endToken2.offset + endToken2.length - beginToken2.offset;
   }
   /**
    * Return the offset from the beginning of the file to the first character in the node's source
@@ -218,8 +219,8 @@ abstract class XmlNode {
    * range
    */
   int get offset {
-    Token beginToken5 = beginToken;
-    if (beginToken5 == null) {
+    Token beginToken2 = beginToken;
+    if (beginToken2 == null) {
       return -1;
     }
     return beginToken.offset;
@@ -232,6 +233,11 @@ abstract class XmlNode {
    * @return the parent of this node, or {@code null} if none
    */
   XmlNode get parent => _parent;
+  String toString() {
+    PrintStringWriter writer = new PrintStringWriter();
+    accept(new ToSourceVisitor(writer));
+    return writer.toString();
+  }
   /**
    * Use the given visitor to visit all of the children of this node. The children will be visited
    * in source order.
@@ -243,12 +249,13 @@ abstract class XmlNode {
    * @param children the nodes that will become the children of this node
    * @return the nodes that were made children of this node
    */
-  List<XmlNode> becomeParentOf(List<XmlNode> children) {
+  List becomeParentOf(List children) {
     if (children != null) {
-      for (JavaIterator<XmlNode> iter = new JavaIterator(children); iter.hasNext;) {
+      for (JavaIterator iter = new JavaIterator(children); iter.hasNext;) {
         XmlNode node = iter.next();
         node.parent = this;
       }
+      return new List.from(children);
     }
     return children;
   }
@@ -548,6 +555,10 @@ abstract class AbstractScanner {
  */
 class HtmlScanResult {
   /**
+   * The time at which the contents of the source were last set.
+   */
+  int _modificationTime = 0;
+  /**
    * The first token in the token stream (not {@code null}).
    */
   Token _token;
@@ -555,7 +566,8 @@ class HtmlScanResult {
    * The line start information that was produced.
    */
   List<int> _lineStarts;
-  HtmlScanResult(Token token, List<int> lineStarts) {
+  HtmlScanResult(int modificationTime, Token token, List<int> lineStarts) {
+    this._modificationTime = modificationTime;
     this._token = token;
     this._lineStarts = lineStarts;
   }
@@ -564,6 +576,11 @@ class HtmlScanResult {
    * @return an array of line starts (not {@code null})
    */
   List<int> get lineStarts => _lineStarts;
+  /**
+   * Return the time at which the contents of the source were last set.
+   * @return the time at which the contents of the source were last set
+   */
+  int get modificationTime => _modificationTime;
   /**
    * Answer the first token in the token stream.
    * @return the token (not {@code null})
@@ -599,8 +616,8 @@ class StringScanner extends AbstractScanner {
     this._charOffset = -1;
   }
   int get offset => _charOffset;
-  void set offset(int offset12) {
-    _charOffset = offset12;
+  void set offset(int offset2) {
+    _charOffset = offset2;
   }
   int advance() {
     if (++_charOffset < _stringLength) {
@@ -662,11 +679,80 @@ class CharBufferScanner extends AbstractScanner {
   }
 }
 /**
+ * Instances of the class {@code ToSourceVisitor} write a source representation of a visited XML
+ * node (and all of it's children) to a writer.
+ * @coverage dart.engine.html
+ */
+class ToSourceVisitor implements XmlVisitor<Object> {
+  /**
+   * The writer to which the source is to be written.
+   */
+  PrintWriter _writer;
+  /**
+   * Initialize a newly created visitor to write source code representing the visited nodes to the
+   * given writer.
+   * @param writer the writer to which the source is to be written
+   */
+  ToSourceVisitor(PrintWriter writer) {
+    this._writer = writer;
+  }
+  Object visitHtmlUnit(HtmlUnit node) {
+    for (XmlTagNode child in node.tagNodes) {
+      visit(child);
+    }
+    return null;
+  }
+  Object visitXmlAttributeNode(XmlAttributeNode node) {
+    String name2 = node.name.lexeme;
+    Token value2 = node.value;
+    if (name2.length == 0) {
+      _writer.print("__");
+    } else {
+      _writer.print(name2);
+    }
+    _writer.print("=");
+    if (value2 == null) {
+      _writer.print("__");
+    } else {
+      _writer.print(value2.lexeme);
+    }
+    return null;
+  }
+  Object visitXmlTagNode(XmlTagNode node) {
+    _writer.print("<");
+    String tagName = node.tag.lexeme;
+    _writer.print(tagName);
+    for (XmlAttributeNode attribute in node.attributes) {
+      _writer.print(" ");
+      visit(attribute);
+    }
+    _writer.print(node.attributeEnd.lexeme);
+    if (node.closingTag != null) {
+      for (XmlTagNode child in node.tagNodes) {
+        visit(child);
+      }
+      _writer.print("</");
+      _writer.print(tagName);
+      _writer.print(">");
+    }
+    return null;
+  }
+  /**
+   * Safely visit the given node.
+   * @param node the node to be visited
+   */
+  void visit(XmlNode node) {
+    if (node != null) {
+      node.accept(this);
+    }
+  }
+}
+/**
  * The enumeration {@code TokenType} defines the types of tokens that can be returned by the
  * scanner.
  * @coverage dart.engine.html
  */
-class TokenType {
+class TokenType implements Comparable<TokenType> {
   /**
    * The type of the token that marks the end of the input.
    */
@@ -700,6 +786,7 @@ class TokenType {
    * @return the lexeme that defines this type of token
    */
   String get lexeme => _lexeme;
+  int compareTo(TokenType other) => __ordinal - other.__ordinal;
   String toString() => __name;
 }
 class TokenType_EOF extends TokenType {
@@ -801,6 +888,10 @@ class HtmlScanner implements Source_ContentReceiver {
    */
   Source _source;
   /**
+   * The time at which the contents of the source were last set.
+   */
+  int _modificationTime = 0;
+  /**
    * The scanner used to scan the source
    */
   AbstractScanner _scanner;
@@ -815,12 +906,14 @@ class HtmlScanner implements Source_ContentReceiver {
   HtmlScanner(Source source) {
     this._source = source;
   }
-  accept(CharBuffer contents) {
+  void accept(CharBuffer contents, int modificationTime2) {
+    this._modificationTime = modificationTime2;
     _scanner = new CharBufferScanner(_source, contents);
     _scanner.passThroughElements = _SCRIPT_TAG;
     _token = _scanner.tokenize();
   }
-  void accept2(String contents) {
+  void accept2(String contents, int modificationTime2) {
+    this._modificationTime = modificationTime2;
     _scanner = new StringScanner(_source, contents);
     _scanner.passThroughElements = _SCRIPT_TAG;
     _token = _scanner.tokenize();
@@ -829,7 +922,7 @@ class HtmlScanner implements Source_ContentReceiver {
    * Answer the result of scanning the source
    * @return the result (not {@code null})
    */
-  HtmlScanResult get result => new HtmlScanResult(_token, _scanner.lineStarts);
+  HtmlScanResult get result => new HtmlScanResult(_modificationTime, _token, _scanner.lineStarts);
 }
 /**
  * Instances of the class {@code XmlParser} are used to parse tokens into a AST structure comprised
@@ -936,8 +1029,8 @@ class XmlParser {
    * @return a collection of zero or more attributes (not {@code null}, contains no {@code null}s)
    */
   List<XmlAttributeNode> parseAttributes() {
-    TokenType type11 = _currentToken.type;
-    if (identical(type11, TokenType.GT) || identical(type11, TokenType.SLASH_GT) || identical(type11, TokenType.EOF)) {
+    TokenType type2 = _currentToken.type;
+    if (identical(type2, TokenType.GT) || identical(type2, TokenType.SLASH_GT) || identical(type2, TokenType.EOF)) {
       return XmlTagNode.NO_ATTRIBUTES;
     }
     List<XmlAttributeNode> attributes = new List<XmlAttributeNode>();
@@ -961,8 +1054,8 @@ class XmlParser {
    * @return a list of nodes (not {@code null}, contains no {@code null}s)
    */
   List<XmlTagNode> parseChildTagNodes() {
-    TokenType type12 = _currentToken.type;
-    if (identical(type12, TokenType.LT_SLASH) || identical(type12, TokenType.EOF)) {
+    TokenType type2 = _currentToken.type;
+    if (identical(type2, TokenType.LT_SLASH) || identical(type2, TokenType.EOF)) {
       return XmlTagNode.NO_TAG_NODES;
     }
     List<XmlTagNode> nodes = new List<XmlTagNode>();
@@ -1122,9 +1215,9 @@ class XmlTagNode extends XmlNode {
   XmlTagNode(Token nodeStart, Token tag, List<XmlAttributeNode> attributes, Token attributeEnd, List<XmlTagNode> tagNodes, Token contentEnd, Token closingTag, Token nodeEnd) {
     this._nodeStart = nodeStart;
     this._tag = tag;
-    this._attributes = becomeParentOf(attributes);
+    this._attributes = becomeParentOfEmpty(attributes, NO_ATTRIBUTES);
     this._attributeEnd = attributeEnd;
-    this._tagNodes = becomeParentOf(tagNodes);
+    this._tagNodes = becomeParentOfEmpty(tagNodes, NO_TAG_NODES);
     this._contentEnd = contentEnd;
     this._closingTag = closingTag;
     this._nodeEnd = nodeEnd;
@@ -1234,6 +1327,15 @@ class XmlTagNode extends XmlNode {
       node.accept(visitor);
     }
   }
+  /**
+   * Same as {@link #becomeParentOf(List)}, but returns given "ifEmpty" if "children" is empty
+   */
+  List becomeParentOfEmpty(List children, List ifEmpty) {
+    if (children != null && children.isEmpty) {
+      return ifEmpty;
+    }
+    return becomeParentOf(children);
+  }
 }
 /**
  * Instances of the class {@code HtmlParser} are used to parse tokens into a AST structure comprised
@@ -1257,7 +1359,7 @@ class HtmlParser extends XmlParser {
     Token firstToken = scanResult.token;
     List<XmlTagNode> tagNodes = parseTopTagNodes(firstToken);
     HtmlUnit unit = new HtmlUnit(firstToken, tagNodes, currentToken);
-    return new HtmlParseResult(firstToken, scanResult.lineStarts, unit);
+    return new HtmlParseResult(scanResult.modificationTime, firstToken, scanResult.lineStarts, unit);
   }
   /**
    * Scan then parse the specified source.
@@ -1322,8 +1424,8 @@ class HtmlUnit extends XmlNode {
    * Set the element associated with this HTML unit.
    * @param element the element
    */
-  void set element(HtmlElementImpl element18) {
-    this._element = element18;
+  void set element(HtmlElementImpl element2) {
+    this._element = element2;
   }
   void visitChildren(XmlVisitor<Object> visitor) {
     for (XmlTagNode node in _tagNodes) {

@@ -39,7 +39,7 @@ bool Intrinsifier::ObjectArray_Allocate(Assembler* assembler) {
   // RoundedAllocationSize((array_length * kwordSize) + sizeof(RawArray)).
   __ movq(RDI, Address(RSP, kArrayLengthOffset));  // Array Length.
   // Check that length is a positive Smi.
-  __ testq(RDI, Immediate(kSmiTagSize));
+  __ testq(RDI, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, &fall_through);
   __ cmpq(RDI, Immediate(0));
   __ j(LESS, &fall_through);
@@ -246,9 +246,11 @@ bool Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
 
   // Store backing array object in growable array object.
   __ movq(RCX, Address(RSP, kArrayOffset));  // data argument.
-  __ StoreIntoObject(RAX,
-                     FieldAddress(RAX, GrowableObjectArray::data_offset()),
-                     RCX);
+  // RAX is new, no barrier needed.
+  __ StoreIntoObjectNoBarrier(
+      RAX,
+      FieldAddress(RAX, GrowableObjectArray::data_offset()),
+      RCX);
 
   // RAX: new growable array object start as a tagged pointer.
   // Store the type argument field in the growable array object.
@@ -415,7 +417,7 @@ bool Intrinsifier::GrowableArray_add(Assembler* assembler) {
   __ movq(RDI, Address(RSP, kArrayLengthStackOffset));  /* Array length. */    \
   /* Check that length is a positive Smi. */                                   \
   /* RDI: requested array length argument. */                                  \
-  __ testq(RDI, Immediate(kSmiTagSize));                                       \
+  __ testq(RDI, Immediate(kSmiTagMask));                                       \
   __ j(NOT_ZERO, &fall_through);                                               \
   __ cmpq(RDI, Immediate(0));                                                  \
   __ j(LESS, &fall_through);                                                   \
@@ -558,7 +560,7 @@ static void TestBothArgumentsSmis(Assembler* assembler, Label* not_smi) {
   __ movq(RCX, Address(RSP, + 2 * kWordSize));
   __ orq(RCX, RAX);
   __ testq(RCX, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, not_smi, Assembler::kNearJump);
+  __ j(NOT_ZERO, not_smi);
 }
 
 
@@ -629,30 +631,37 @@ bool Intrinsifier::Integer_mul(Assembler* assembler) {
 }
 
 
-bool Intrinsifier::Integer_modulo(Assembler* assembler) {
-  Label fall_through, return_zero, try_modulo, not_32bit;
-  TestBothArgumentsSmis(assembler, &fall_through);
-  // RAX: right argument (divisor)
-  // Check if modulo by zero -> exception thrown in main function.
+// Optimizations:
+// - result is 0 if:
+//   - left is 0
+//   - left equals right
+// - result is left if
+//   - left > 0 && left < right
+// RAX: Tagged left (dividend).
+// RCX: Tagged right (divisor).
+// RAX: Untagged result (remainder).
+void EmitRemainderOperation(Assembler* assembler) {
+  Label return_zero, try_modulo, not_32bit, done;
+  // Check for quick zero results.
   __ cmpq(RAX, Immediate(0));
-  __ j(EQUAL, &fall_through,  Assembler::kNearJump);
-  __ movq(RCX, Address(RSP, + 2 * kWordSize));  // Left argument (dividend).
-  __ cmpq(RCX, Immediate(0));
-  __ j(LESS, &fall_through, Assembler::kNearJump);
-  __ cmpq(RCX, RAX);
   __ j(EQUAL, &return_zero, Assembler::kNearJump);
-  __ j(GREATER, &try_modulo, Assembler::kNearJump);
-  __ movq(RAX, RCX);  // Return dividend as it is smaller than divisor.
+  __ cmpq(RAX, RCX);
+  __ j(EQUAL, &return_zero, Assembler::kNearJump);
+
+  // Check if result equals left.
+  __ cmpq(RAX, Immediate(0));
+  __ j(LESS, &try_modulo, Assembler::kNearJump);
+  // left is positive.
+  __ cmpq(RAX, RCX);
+  __ j(GREATER, &try_modulo,  Assembler::kNearJump);
+  // left is less than right, result is left (RAX).
   __ ret();
 
   __ Bind(&return_zero);
-  __ xorq(RAX, RAX);  // Return zero.
+  __ xorq(RAX, RAX);
   __ ret();
 
   __ Bind(&try_modulo);
-  // RAX: right (non-null divisor).
-  __ movq(RCX, RAX);
-  __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Left argument (dividend).
 
   // Check if both operands fit into 32bits as idiv with 64bit operands
   // requires twice as many cycles and has much higher latency. We are checking
@@ -660,10 +669,10 @@ bool Intrinsifier::Integer_modulo(Assembler* assembler) {
   // raises exception because quotient is too large for 32bit register.
   __ movsxd(RBX, RAX);
   __ cmpq(RBX, RAX);
-  __ j(NOT_EQUAL, &not_32bit);
+  __ j(NOT_EQUAL, &not_32bit, Assembler::kNearJump);
   __ movsxd(RBX, RCX);
   __ cmpq(RBX, RCX);
-  __ j(NOT_EQUAL, &not_32bit);
+  __ j(NOT_EQUAL, &not_32bit, Assembler::kNearJump);
 
   // Both operands are 31bit smis. Divide using 32bit idiv.
   __ SmiUntag(RAX);
@@ -671,8 +680,7 @@ bool Intrinsifier::Integer_modulo(Assembler* assembler) {
   __ cdq();
   __ idivl(RCX);
   __ movsxd(RAX, RDX);
-  __ SmiTag(RAX);
-  __ ret();
+  __ jmp(&done, Assembler::kNearJump);
 
   // Divide using 64bit idiv.
   __ Bind(&not_32bit);
@@ -681,9 +689,70 @@ bool Intrinsifier::Integer_modulo(Assembler* assembler) {
   __ cqo();
   __ idivq(RCX);
   __ movq(RAX, RDX);
+  __ Bind(&done);
+}
+
+
+// Implementation:
+//  res = left % right;
+//  if (res < 0) {
+//    if (right < 0) {
+//      res = res - right;
+//    } else {
+//      res = res + right;
+//    }
+//  }
+bool Intrinsifier::Integer_modulo(Assembler* assembler) {
+  Label fall_through, negative_result;
+  TestBothArgumentsSmis(assembler, &fall_through);
+  // RAX: right argument (divisor)
+  __ movq(RCX, RAX);
+  __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Left argument (dividend).
+  // RAX: Tagged left (dividend).
+  // RCX: Tagged right (divisor).
+  __ cmpq(RCX, Immediate(0));
+  __ j(EQUAL, &fall_through);
+  EmitRemainderOperation(assembler);
+  // Untagged remainder result in RAX.
+  __ cmpq(RAX, Immediate(0));
+  __ j(LESS, &negative_result, Assembler::kNearJump);
   __ SmiTag(RAX);
   __ ret();
 
+  __ Bind(&negative_result);
+  Label subtract;
+  // RAX: Untagged result.
+  // RCX: Untagged right.
+  __ cmpq(RCX, Immediate(0));
+  __ j(LESS, &subtract, Assembler::kNearJump);
+  __ addq(RAX, RCX);
+  __ SmiTag(RAX);
+  __ ret();
+
+  __ Bind(&subtract);
+  __ subq(RAX, RCX);
+  __ SmiTag(RAX);
+  __ ret();
+
+  __ Bind(&fall_through);
+  return false;
+}
+
+
+bool Intrinsifier::Integer_remainder(Assembler* assembler) {
+  Label fall_through;
+  TestBothArgumentsSmis(assembler, &fall_through);
+  // RAX: right argument (divisor)
+  __ movq(RCX, RAX);
+  __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Left argument (dividend).
+  // RAX: Tagged left (dividend).
+  // RCX: Tagged right (divisor).
+  __ cmpq(RCX, Immediate(0));
+  __ j(EQUAL, &fall_through);
+  EmitRemainderOperation(assembler);
+  // Untagged remainder result in RAX.
+  __ SmiTag(RAX);
+  __ ret();
   __ Bind(&fall_through);
   return false;
 }

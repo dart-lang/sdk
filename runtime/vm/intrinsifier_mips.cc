@@ -81,7 +81,7 @@ bool Intrinsifier::GrowableArray_add(Assembler* assembler) {
 
 
 bool Intrinsifier::TypedData_getLength(Assembler* assembler) {
-  return true;
+  return false;
 }
 
 
@@ -127,6 +127,11 @@ bool Intrinsifier::Integer_mul(Assembler* assembler) {
 
 
 bool Intrinsifier::Integer_modulo(Assembler* assembler) {
+  return false;
+}
+
+
+bool Intrinsifier::Integer_remainder(Assembler* assembler) {
   return false;
 }
 

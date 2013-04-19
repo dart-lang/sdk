@@ -51,30 +51,34 @@ testSetters() {
   blist.setUint8(0, 0xffff);
   Expect.equals(0xff, blist.getUint8(0));
   blist.setInt16(0, 0xffffffff);
-  Expect.equals(-1, blist.getInt16(0));
-  blist.setUint16(0, 0xffffffff);
-  Expect.equals(0xffff, blist.getUint16(0));
-  blist.setInt32(0, 0xffffffffffff);
-  Expect.equals(-1, blist.getInt32(0));
-  blist.setUint32(0, 0xffffffffffff);
-  Expect.equals(0xffffffff, blist.getUint32(0));
-  blist.setInt64(0, 0xffffffffffffffffff);
-  Expect.equals(-1, blist.getInt64(0));
-  blist.setUint64(0, 0xffffffffffffffffff);
-  Expect.equals(0xffffffffffffffff, blist.getUint64(0));
-  blist.setInt32(0, 18446744073709551614);
-  Expect.equals(-2, blist.getInt32(0));
-  blist.setUint32(0, 18446744073709551614);
-  Expect.equals(0xfffffffe, blist.getUint32(0));
-  blist.setInt64(0, 18446744073709551614);
-  Expect.equals(-2, blist.getInt64(0));
-  blist.setUint64(0, 18446744073709551614);
-  Expect.equals(0xfffffffffffffffe, blist.getUint64(0));
+  Expect.equals(-1, blist.getInt16(0, Endianness.LITTLE_ENDIAN));
+  blist.setUint16(0, 0xffffffff, Endianness.LITTLE_ENDIAN);
+  Expect.equals(0xffff, blist.getUint16(0, Endianness.LITTLE_ENDIAN));
+  blist.setInt32(0, 0xffffffffffff, Endianness.LITTLE_ENDIAN);
+  Expect.equals(-1, blist.getInt32(0, Endianness.LITTLE_ENDIAN));
+  blist.setUint32(0, 0xffffffffffff, Endianness.LITTLE_ENDIAN);
+  Expect.equals(0xffffffff, blist.getUint32(0, Endianness.LITTLE_ENDIAN));
+  blist.setInt64(0, 0xffffffffffffffffff, Endianness.LITTLE_ENDIAN);
+  Expect.equals(-1, blist.getInt64(0, Endianness.LITTLE_ENDIAN));
+  blist.setUint64(0, 0xffffffffffffffffff, Endianness.LITTLE_ENDIAN);
+  Expect.equals(0xffffffffffffffff,
+                blist.getUint64(0, Endianness.LITTLE_ENDIAN));
+  blist.setInt32(0, 18446744073709551614, Endianness.LITTLE_ENDIAN);
+  Expect.equals(-2, blist.getInt32(0, Endianness.LITTLE_ENDIAN));
+  blist.setUint32(0, 18446744073709551614, Endianness.LITTLE_ENDIAN);
+  Expect.equals(0xfffffffe, blist.getUint32(0, Endianness.LITTLE_ENDIAN));
+  blist.setInt64(0, 18446744073709551614, Endianness.LITTLE_ENDIAN);
+  Expect.equals(-2, blist.getInt64(0, Endianness.LITTLE_ENDIAN));
+  blist.setUint64(0, 18446744073709551614, Endianness.LITTLE_ENDIAN);
+  Expect.equals(0xfffffffffffffffe,
+                blist.getUint64(0, Endianness.LITTLE_ENDIAN));
 
-  blist.setFloat32(0, 18446744073709551614.0);
-  Expect.equals(18446744073709551614.0, blist.getFloat32(0));
-  blist.setFloat64(0, 18446744073709551614.0);
-  Expect.equals(18446744073709551614.0, blist.getFloat64(0));
+  blist.setFloat32(0, 18446744073709551614.0, Endianness.LITTLE_ENDIAN);
+  Expect.equals(18446744073709551614.0,
+                blist.getFloat32(0, Endianness.LITTLE_ENDIAN));
+  blist.setFloat64(0, 18446744073709551614.0, Endianness.LITTLE_ENDIAN);
+  Expect.equals(18446744073709551614.0,
+                blist.getFloat64(0, Endianness.LITTLE_ENDIAN));
 }
 
 main() {

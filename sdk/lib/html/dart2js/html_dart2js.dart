@@ -188,11 +188,11 @@ class AnchorElement extends Element native "*HTMLAnchorElement" {
 @DomName('WebKitAnimationEvent')
 class AnimationEvent extends Event native "*WebKitAnimationEvent" {
 
-  @DomName('WebKitAnimationEvent.animationName')
+  @DomName('AnimationEvent.animationName')
   @DocsEditable
   final String animationName;
 
-  @DomName('WebKitAnimationEvent.elapsedTime')
+  @DomName('AnimationEvent.elapsedTime')
   @DocsEditable
   final num elapsedTime;
 }
@@ -412,9 +412,6 @@ class ArrayBuffer native "*ArrayBuffer" {
     return ArrayBuffer._create_1(length);
   }
   static ArrayBuffer _create_1(length) => JS('ArrayBuffer', 'new ArrayBuffer(#)', length);
-
-  /// Checks if this type is supported on the current platform.
-  static bool get supported => JS('bool', 'typeof window.ArrayBuffer != "undefined"');
 
   @DomName('ArrayBuffer.byteLength')
   @DocsEditable
@@ -5719,6 +5716,14 @@ class DataView extends ArrayBufferView native "*DataView" {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// WARNING: Do not edit - generated code.
+
+
+typedef void DatabaseCallback(database);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 @DocsEditable
 @DomName('HTMLDetailsElement')
@@ -5744,12 +5749,45 @@ class DetailsElement extends Element native "*HTMLDetailsElement" {
 
 
 @DocsEditable
+@DomName('DeviceAcceleration')
+class DeviceAcceleration native "*DeviceAcceleration" {
+
+  @DomName('DeviceAcceleration.x')
+  @DocsEditable
+  final num x;
+
+  @DomName('DeviceAcceleration.y')
+  @DocsEditable
+  final num y;
+
+  @DomName('DeviceAcceleration.z')
+  @DocsEditable
+  final num z;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
 @DomName('DeviceMotionEvent')
 class DeviceMotionEvent extends Event native "*DeviceMotionEvent" {
+
+  @DomName('DeviceMotionEvent.acceleration')
+  @DocsEditable
+  final DeviceAcceleration acceleration;
+
+  @DomName('DeviceMotionEvent.accelerationIncludingGravity')
+  @DocsEditable
+  final DeviceAcceleration accelerationIncludingGravity;
 
   @DomName('DeviceMotionEvent.interval')
   @DocsEditable
   final num interval;
+
+  @DomName('DeviceMotionEvent.rotationRate')
+  @DocsEditable
+  final DeviceRotationRate rotationRate;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5790,6 +5828,27 @@ class DeviceOrientationEvent extends Event native "*DeviceOrientationEvent" {
   @DocsEditable
   void $dom_initDeviceOrientationEvent(String type, bool bubbles, bool cancelable, num alpha, num beta, num gamma, bool absolute) native;
 
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('DeviceRotationRate')
+class DeviceRotationRate native "*DeviceRotationRate" {
+
+  @DomName('DeviceRotationRate.alpha')
+  @DocsEditable
+  final num alpha;
+
+  @DomName('DeviceRotationRate.beta')
+  @DocsEditable
+  final num beta;
+
+  @DomName('DeviceRotationRate.gamma')
+  @DocsEditable
+  final num gamma;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7096,11 +7155,11 @@ class DomNamedFlowCollection native "*WebKitNamedFlowCollection" {
 
   @DomName('DOMNamedFlowCollection.item')
   @DocsEditable
-  WebKitNamedFlow item(int index) native;
+  NamedFlow item(int index) native;
 
   @DomName('DOMNamedFlowCollection.namedItem')
   @DocsEditable
-  WebKitNamedFlow namedItem(String name) native;
+  NamedFlow namedItem(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14836,73 +14895,6 @@ class Int8Array extends ArrayBufferView implements JavaScriptIndexingBehavior, L
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
-@DomName('JavaScriptCallFrame')
-class JavaScriptCallFrame native "*JavaScriptCallFrame" {
-
-  static const int CATCH_SCOPE = 4;
-
-  static const int CLOSURE_SCOPE = 3;
-
-  static const int GLOBAL_SCOPE = 0;
-
-  static const int LOCAL_SCOPE = 1;
-
-  static const int WITH_SCOPE = 2;
-
-  @DomName('JavaScriptCallFrame.caller')
-  @DocsEditable
-  final JavaScriptCallFrame caller;
-
-  @DomName('JavaScriptCallFrame.column')
-  @DocsEditable
-  final int column;
-
-  @DomName('JavaScriptCallFrame.functionName')
-  @DocsEditable
-  final String functionName;
-
-  @DomName('JavaScriptCallFrame.line')
-  @DocsEditable
-  final int line;
-
-  @DomName('JavaScriptCallFrame.scopeChain')
-  @DocsEditable
-  final List scopeChain;
-
-  @DomName('JavaScriptCallFrame.sourceID')
-  @DocsEditable
-  final int sourceID;
-
-  @DomName('JavaScriptCallFrame.thisObject')
-  @DocsEditable
-  final Object thisObject;
-
-  @DomName('JavaScriptCallFrame.type')
-  @DocsEditable
-  final String type;
-
-  @DomName('JavaScriptCallFrame.evaluate')
-  @DocsEditable
-  void evaluate(String script) native;
-
-  @DomName('JavaScriptCallFrame.restart')
-  @DocsEditable
-  Object restart() native;
-
-  @DomName('JavaScriptCallFrame.scopeType')
-  @DocsEditable
-  int scopeType(int scopeIndex) native;
-
-  @DomName('JavaScriptCallFrame.setVariableValue')
-  @DocsEditable
-  Object setVariableValue(int scopeIndex, String variableName, Object newValue) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
 @DomName('KeyboardEvent')
 class KeyboardEvent extends UIEvent native "*KeyboardEvent" {
 
@@ -15238,6 +15230,10 @@ class Location implements LocationBase native "*Location" {
   @DomName('Location.toString')
   @DocsEditable
   String toString() native;
+
+  @DomName('Location.valueOf')
+  @DocsEditable
+  Object valueOf() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16892,6 +16888,59 @@ class MutationRecord native "*MutationRecord" {
 // BSD-style license that can be found in the LICENSE file.
 
 
+@DocsEditable
+@DomName('WebKitNamedFlow')
+class NamedFlow extends EventTarget native "*WebKitNamedFlow" {
+
+  @DomName('NamedFlow.firstEmptyRegionIndex')
+  @DocsEditable
+  final int firstEmptyRegionIndex;
+
+  @DomName('NamedFlow.name')
+  @DocsEditable
+  final String name;
+
+  @DomName('NamedFlow.overset')
+  @DocsEditable
+  final bool overset;
+
+  @JSName('addEventListener')
+  @DomName('NamedFlow.addEventListener')
+  @DocsEditable
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  @DomName('NamedFlow.dispatchEvent')
+  @DocsEditable
+  bool dispatchEvent(Event event) native;
+
+  @DomName('NamedFlow.getContent')
+  @DocsEditable
+  @Returns('NodeList')
+  @Creates('NodeList')
+  List<Node> getContent() native;
+
+  @DomName('NamedFlow.getRegions')
+  @DocsEditable
+  @Returns('NodeList')
+  @Creates('NodeList')
+  List<Node> getRegions() native;
+
+  @DomName('NamedFlow.getRegionsByContent')
+  @DocsEditable
+  @Returns('NodeList')
+  @Creates('NodeList')
+  List<Node> getRegionsByContent(Node contentNode) native;
+
+  @JSName('removeEventListener')
+  @DomName('NamedFlow.removeEventListener')
+  @DocsEditable
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 @DomName('Navigator')
 class Navigator native "*Navigator" {
 
@@ -16982,6 +17031,10 @@ class Navigator native "*Navigator" {
   @DomName('Navigator.cookieEnabled')
   @DocsEditable
   final bool cookieEnabled;
+
+  @DomName('Navigator.doNotTrack')
+  @DocsEditable
+  final String doNotTrack;
 
   @DomName('Navigator.geolocation')
   @DocsEditable
@@ -20947,6 +21000,10 @@ class SpeechRecognitionEvent extends Event native "*SpeechRecognitionEvent" {
   @DocsEditable
   final Document emma;
 
+  @DomName('SpeechRecognitionEvent.interpretation')
+  @DocsEditable
+  final Document interpretation;
+
   @DomName('SpeechRecognitionEvent.resultIndex')
   @DocsEditable
   final int resultIndex;
@@ -24262,59 +24319,6 @@ class WebKitCssRegionRule extends CssRule native "*WebKitCSSRegionRule" {
 
 
 @DocsEditable
-@DomName('WebKitNamedFlow')
-class WebKitNamedFlow extends EventTarget native "*WebKitNamedFlow" {
-
-  @DomName('WebKitNamedFlow.firstEmptyRegionIndex')
-  @DocsEditable
-  final int firstEmptyRegionIndex;
-
-  @DomName('WebKitNamedFlow.name')
-  @DocsEditable
-  final String name;
-
-  @DomName('WebKitNamedFlow.overset')
-  @DocsEditable
-  final bool overset;
-
-  @JSName('addEventListener')
-  @DomName('WebKitNamedFlow.addEventListener')
-  @DocsEditable
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
-
-  @DomName('WebKitNamedFlow.dispatchEvent')
-  @DocsEditable
-  bool dispatchEvent(Event event) native;
-
-  @DomName('WebKitNamedFlow.getContent')
-  @DocsEditable
-  @Returns('NodeList')
-  @Creates('NodeList')
-  List<Node> getContent() native;
-
-  @DomName('WebKitNamedFlow.getRegions')
-  @DocsEditable
-  @Returns('NodeList')
-  @Creates('NodeList')
-  List<Node> getRegions() native;
-
-  @DomName('WebKitNamedFlow.getRegionsByContent')
-  @DocsEditable
-  @Returns('NodeList')
-  @Creates('NodeList')
-  List<Node> getRegionsByContent(Node contentNode) native;
-
-  @JSName('removeEventListener')
-  @DomName('WebKitNamedFlow.removeEventListener')
-  @DocsEditable
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
 /**
  * Use the WebSocket interface to connect to a WebSocket,
  * and to send and receive data on that WebSocket.
@@ -25385,6 +25389,10 @@ class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
   @DomName('DOMWindow.stop')
   @DocsEditable
   void stop() native;
+
+  @DomName('DOMWindow.toString')
+  @DocsEditable
+  String toString() native;
 
   @JSName('webkitConvertPointFromNodeToPage')
   @DomName('DOMWindow.webkitConvertPointFromNodeToPage')
@@ -26801,6 +26809,18 @@ abstract class _DOMFileSystemSync native "*DOMFileSystemSync" {
 
 
 @DocsEditable
+@DomName('DatabaseSync')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
+abstract class _DatabaseSync native "*DatabaseSync" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
 @DomName('DedicatedWorkerContext')
 abstract class _DedicatedWorkerContext extends _WorkerContext native "*DedicatedWorkerContext" {
 }
@@ -26834,7 +26854,7 @@ abstract class _DirectoryReaderSync native "*DirectoryReaderSync" {
 @Experimental
 class _DomPoint native "*WebKitPoint" {
 
-  @DomName('WebKitPoint.WebKitPoint')
+  @DomName('DOMPoint.DOMPoint')
   @DocsEditable
   factory _DomPoint(num x, num y) {
     return _DomPoint._create_1(x, y);
@@ -26844,11 +26864,11 @@ class _DomPoint native "*WebKitPoint" {
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.WebKitPoint)');
 
-  @DomName('WebKitPoint.x')
+  @DomName('DOMPoint.x')
   @DocsEditable
   num x;
 
-  @DomName('WebKitPoint.y')
+  @DomName('DOMPoint.y')
   @DocsEditable
   num y;
 }
@@ -28597,28 +28617,6 @@ abstract class _WebKitCSSMixFunctionValue extends _CssValueList native "*WebKitC
 @DocsEditable
 @DomName('WebKitCSSTransformValue')
 abstract class _WebKitCSSTransformValue extends _CssValueList native "*WebKitCSSTransformValue" {
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-// This class maps WebKitTransitionEvent to TransitionEvent for older Chrome
-// browser versions.
-@DomName('WebKitTransitionEvent')
-class _WebKitTransitionEvent extends Event implements TransitionEvent  native "*WebKitTransitionEvent" {
-
-  @DomName('WebKitTransitionEvent.elapsedTime')
-  @DocsEditable
-  final num elapsedTime;
-
-  @DomName('WebKitTransitionEvent.propertyName')
-  @DocsEditable
-  final String propertyName;
-
-  @DomName('WebKitTransitionEvent.pseudoElement')
-  @DocsEditable
-  final String pseudoElement;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -32134,6 +32132,14 @@ class _LocationWrapper implements Location {
 
   static _get(p, m) => JS('var', '#[#]', p, m);
   static _set(p, m, v) => JS('void', '#[#] = #', p, m, v);
+}
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+class Platform {
+  static final supportsTypedData = JS('bool', '!!(window.ArrayBuffer)');
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

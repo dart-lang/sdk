@@ -210,8 +210,8 @@ static void FormatTextualValue(dart::TextBuffer* buf,
 
 
 static void FormatValue(dart::TextBuffer* buf, Dart_Handle object) {
-  if (Dart_IsInteger(object)) {
-    buf->Printf("\"kind\":\"integer\",");
+  if (Dart_IsNumber(object)) {
+    buf->Printf("\"kind\":\"number\",");
   } else if (Dart_IsString(object)) {
     buf->Printf("\"kind\":\"string\",");
   } else if (Dart_IsBoolean(object)) {
@@ -223,6 +223,11 @@ static void FormatValue(dart::TextBuffer* buf, Dart_Handle object) {
     buf->Printf("\"kind\":\"list\",\"length\":%"Pd",", len);
   } else {
     buf->Printf("\"kind\":\"object\",");
+    intptr_t class_id = 0;
+    Dart_Handle res = Dart_GetObjClassId(object, &class_id);
+    if (!Dart_IsError(res)) {
+      buf->Printf("\"classId\":%"Pd",", class_id);
+    }
   }
   buf->Printf("\"text\":\"");
   const intptr_t max_chars = 250;
@@ -979,14 +984,18 @@ void DbgMsgQueue::SendQueuedMsgs() {
 }
 
 
-// TODO(hausner): Remove stack trace parameter once we remove the stack
-// trace from the paused event in the wire protocol.
-void DbgMsgQueue::SendBreakpointEvent(Dart_StackTrace trace) {
+void DbgMsgQueue::SendBreakpointEvent(const Dart_CodeLocation& location) {
   dart::TextBuffer msg(128);
   msg.Printf("{ \"event\": \"paused\", \"params\": { ");
   msg.Printf("\"reason\": \"breakpoint\", ");
   msg.Printf("\"isolateId\": %"Pd64"", isolate_id_);
-  FormatLocationFromTrace(&msg, trace, ", ");
+  if (!Dart_IsNull(location.script_url)) {
+    ASSERT(Dart_IsString(location.script_url));
+    msg.Printf(",\"location\": { \"url\":");
+    FormatEncodedString(&msg, location.script_url);
+    msg.Printf(",\"libraryId\":%d,", location.library_id);
+    msg.Printf("\"tokenOffset\":%d}", location.token_pos);
+  }
   msg.Printf("}}");
   DebuggerConnectionHandler::BroadcastMsg(&msg);
 }
@@ -1047,7 +1056,7 @@ void DbgMsgQueueList::Initialize() {
   // Setup handlers for isolate events, breakpoints, exceptions and
   // delayed breakpoints.
   Dart_SetIsolateEventHandler(IsolateEventHandler);
-  Dart_SetBreakpointHandler(BreakpointHandler);
+  Dart_SetPausedEventHandler(PausedEventHandler);
   Dart_SetBreakpointResolvedHandler(BptResolvedHandler);
   Dart_SetExceptionThrownHandler(ExceptionThrownHandler);
 }
@@ -1153,14 +1162,20 @@ void DbgMsgQueueList::RemoveIsolateMsgQueue(Dart_IsolateId isolate_id) {
 
 void DbgMsgQueueList::BptResolvedHandler(Dart_IsolateId isolate_id,
                                          intptr_t bp_id,
-                                         Dart_Handle url,
-                                         intptr_t line_number) {
+                                         const Dart_CodeLocation& location) {
   Dart_EnterScope();
   dart::TextBuffer msg(128);
   msg.Printf("{ \"event\": \"breakpointResolved\", \"params\": {");
-  msg.Printf("\"breakpointId\": %"Pd", \"url\":", bp_id);
-  FormatEncodedString(&msg, url);
-  msg.Printf(",\"line\": %"Pd" }}", line_number);
+  msg.Printf("\"breakpointId\": %"Pd"", bp_id);
+
+  msg.Printf(", \"isolateId\":%"Pd64"", isolate_id);
+  ASSERT(!Dart_IsNull(location.script_url));
+  ASSERT(Dart_IsString(location.script_url));
+  msg.Printf(", \"location\":{\"url\":");
+  FormatEncodedString(&msg, location.script_url);
+  msg.Printf(",\"libraryId\":%d", location.library_id);
+  msg.Printf(",\"tokenOffset\":%d}}}", location.token_pos);
+
   DbgMsgQueue* msg_queue = GetIsolateMsgQueue(isolate_id);
   ASSERT(msg_queue != NULL);
   msg_queue->QueueOutputMsg(&msg);
@@ -1168,15 +1183,14 @@ void DbgMsgQueueList::BptResolvedHandler(Dart_IsolateId isolate_id,
 }
 
 
-void DbgMsgQueueList::BreakpointHandler(Dart_IsolateId isolate_id,
-                                        Dart_Breakpoint bpt,
-                                        Dart_StackTrace trace) {
+void DbgMsgQueueList::PausedEventHandler(Dart_IsolateId isolate_id,
+                                         const Dart_CodeLocation& loc) {
   DebuggerConnectionHandler::WaitForConnection();
   Dart_EnterScope();
   DbgMsgQueue* msg_queue = GetIsolateMsgQueue(isolate_id);
   ASSERT(msg_queue != NULL);
   msg_queue->SendQueuedMsgs();
-  msg_queue->SendBreakpointEvent(trace);
+  msg_queue->SendBreakpointEvent(loc);
   msg_queue->HandleMessages();
   Dart_ExitScope();
 }

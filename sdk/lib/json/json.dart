@@ -21,8 +21,8 @@ class JsonUnsupportedObjectError implements Error {
   final unsupportedObject;
   /** The exception thrown by object's [:toJson:] method, if any. */
   final cause;
-  JsonUnsupportedObjectError(this.unsupportedObject) : cause = null;
-  JsonUnsupportedObjectError.withCause(this.unsupportedObject, this.cause);
+
+  JsonUnsupportedObjectError(this.unsupportedObject, { this.cause });
 
   String toString() {
     if (cause != null) {
@@ -31,6 +31,19 @@ class JsonUnsupportedObjectError implements Error {
       return "Object toJson method returns non-serializable value.";
     }
   }
+}
+
+
+/**
+ * Reports that an object could not be stringified due to cyclic references.
+ *
+ * An object that references itself cannot be serialized by [stringify].
+ * When the cycle is detected, a [JsonCyclicError] is thrown.
+ */
+class JsonCyclicError extends JsonUnsupportedObjectError {
+  /** The first object that was detected as part of a cycle. */
+  JsonCyclicError(Object object): super(object);
+  String toString() => "Cyclic error in JSON stringify";
 }
 
 
@@ -65,20 +78,26 @@ _parse(String json, reviver(var key, var value)) {
 /**
  * Serializes [object] into a JSON string.
  *
- * Directly serializable types are [num], [String], [bool], [Null], [List]
- * and [Map].
+ * Directly serializable values are [num], [String], [bool], and [Null], as well
+ * as some [List] and [Map] values.
  * For [List], the elements must all be serializable.
  * For [Map], the keys must be [String] and the values must be serializable.
+ *
  * If a value is any other type is attempted serialized, a "toJson()" method
  * is invoked on the object and the result, which must be a directly
- * serializable type, is serialized instead of the original value.
+ * serializable value, is serialized instead of the original value.
+ *
  * If the object does not support this method, throws, or returns a
  * value that is not directly serializable, a [JsonUnsupportedObjectError]
  * exception is thrown. If the call throws (including the case where there
  * is no nullary "toJson" method, the error is caught and stored in the
  * [JsonUnsupportedObjectError]'s [:cause:] field.
- *Json
- * Objects should not change during serialization.
+ *
+ * If a [List] or [Map] contains a reference to itself, directly or through
+ * other lists or maps, it cannot be serialized and a [JsonCyclicError] is
+ * thrown.
+ *
+ * Json Objects should not change during serialization.
  * If an object is serialized more than once, [stringify] is allowed to cache
  * the JSON text for it. I.e., if an object changes after it is first
  * serialized, the new values may or may not be reflected in the result.
@@ -717,7 +736,7 @@ class _JsonStringifier {
     // TODO: use Iterables.
     for (int i = 0; i < seen.length; i++) {
       if (identical(seen[i], object)) {
-        throw 'Cyclic structure';
+        throw new JsonCyclicError(object);
       }
     }
     seen.add(object);
@@ -736,7 +755,7 @@ class _JsonStringifier {
         }
         seen.removeLast();
       } catch (e) {
-        throw new JsonUnsupportedObjectError.withCause(object, e);
+        throw new JsonUnsupportedObjectError(object, cause: e);
       }
     }
   }

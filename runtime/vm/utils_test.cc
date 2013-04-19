@@ -180,4 +180,47 @@ UNIT_TEST_CASE(LowBits) {
   EXPECT_EQ(0x00ff0000ff00LL, Utils::LowHighTo64Bits(0xff00, 0x00ff));
 }
 
+
+UNIT_TEST_CASE(Endianity) {
+  uint16_t value16be = Utils::HostToBigEndian16(0xf1);
+  EXPECT_EQ(0x0, reinterpret_cast<uint8_t*>(&value16be)[0]);
+  EXPECT_EQ(0xf1, reinterpret_cast<uint8_t*>(&value16be)[1]);
+
+  uint16_t value16le = Utils::HostToLittleEndian16(0xf1);
+  EXPECT_EQ(0xf1, reinterpret_cast<uint8_t*>(&value16le)[0]);
+  EXPECT_EQ(0x0, reinterpret_cast<uint8_t*>(&value16le)[1]);
+
+  uint32_t value32be = Utils::HostToBigEndian32(0xf1f2);
+  EXPECT_EQ(0x0, reinterpret_cast<uint8_t*>(&value32be)[0]);
+  EXPECT_EQ(0x0, reinterpret_cast<uint8_t*>(&value32be)[1]);
+  EXPECT_EQ(0xf1, reinterpret_cast<uint8_t*>(&value32be)[2]);
+  EXPECT_EQ(0xf2, reinterpret_cast<uint8_t*>(&value32be)[3]);
+
+  uint32_t value32le = Utils::HostToLittleEndian32(0xf1f2);
+  EXPECT_EQ(0xf2, reinterpret_cast<uint8_t*>(&value32le)[0]);
+  EXPECT_EQ(0xf1, reinterpret_cast<uint8_t*>(&value32le)[1]);
+  EXPECT_EQ(0x0, reinterpret_cast<uint8_t*>(&value32le)[2]);
+  EXPECT_EQ(0x0, reinterpret_cast<uint8_t*>(&value32le)[3]);
+
+  uint64_t value64be = Utils::HostToBigEndian64(0xf1f2f3f4);
+  EXPECT_EQ(0x0, reinterpret_cast<uint8_t*>(&value64be)[0]);
+  EXPECT_EQ(0x0, reinterpret_cast<uint8_t*>(&value64be)[1]);
+  EXPECT_EQ(0x0, reinterpret_cast<uint8_t*>(&value64be)[2]);
+  EXPECT_EQ(0x0, reinterpret_cast<uint8_t*>(&value64be)[3]);
+  EXPECT_EQ(0xf1, reinterpret_cast<uint8_t*>(&value64be)[4]);
+  EXPECT_EQ(0xf2, reinterpret_cast<uint8_t*>(&value64be)[5]);
+  EXPECT_EQ(0xf3, reinterpret_cast<uint8_t*>(&value64be)[6]);
+  EXPECT_EQ(0xf4, reinterpret_cast<uint8_t*>(&value64be)[7]);
+
+  uint64_t value64le = Utils::HostToLittleEndian64(0xf1f2f3f4);
+  EXPECT_EQ(0xf4, reinterpret_cast<uint8_t*>(&value64le)[0]);
+  EXPECT_EQ(0xf3, reinterpret_cast<uint8_t*>(&value64le)[1]);
+  EXPECT_EQ(0xf2, reinterpret_cast<uint8_t*>(&value64le)[2]);
+  EXPECT_EQ(0xf1, reinterpret_cast<uint8_t*>(&value64le)[3]);
+  EXPECT_EQ(0x0, reinterpret_cast<uint8_t*>(&value64le)[4]);
+  EXPECT_EQ(0x0, reinterpret_cast<uint8_t*>(&value64le)[5]);
+  EXPECT_EQ(0x0, reinterpret_cast<uint8_t*>(&value64le)[6]);
+  EXPECT_EQ(0x0, reinterpret_cast<uint8_t*>(&value64le)[7]);
+}
+
 }  // namespace dart

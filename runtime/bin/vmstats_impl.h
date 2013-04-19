@@ -17,18 +17,28 @@
 
 class VmStats {
  public:
-  static void Start(int port, const char* root_dir);
+  static void Initialize();
+
+  static void Start(int port, const char* root_dir, bool verbose);
   static void Stop();
 
   // Add and remove functions for the isolate_table, called by main.cc.
   static void AddIsolate(IsolateData* isolate_data, Dart_Isolate isolate);
   static void RemoveIsolate(IsolateData* isolate_data);
 
- private:
-  VmStats() : root_directory_(NULL), running_(false), bind_address_(0) {}
+  // Print stack traces of current isolates to stdout.
+  static void DumpStack();
 
+ private:
+  explicit VmStats(bool verbose) :
+      root_directory_(NULL), running_(false), bind_address_(0) {
+    verbose_ = verbose;
+  }
+
+  static void StartServer(int port, const char* root_dir);
   static void WebServer(uword bind_address);
   static void Shutdown();
+  static void DumpStackThread(uword unused);
 
   // Status text generators.
   char* IsolatesStatus();
@@ -39,6 +49,7 @@ class VmStats {
   IsolateTable isolate_table_;
   bool running_;
   int64_t bind_address_;
+  bool verbose_;
 
   static VmStats* instance_;
   static dart::Monitor* instance_monitor_;

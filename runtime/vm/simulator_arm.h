@@ -86,7 +86,11 @@ class Simulator {
   };
   static uword RedirectExternalReference(uword function, CallKind call_kind);
 
-  void Longjmp(int32_t pc, int32_t sp, int32_t fp, const Instance& object);
+  void Longjmp(uword pc,
+               uword sp,
+               uword fp,
+               RawObject* raw_exception,
+               RawObject* raw_stacktrace);
 
  private:
   // Known bad pc value to ensure that the simulator does not execute

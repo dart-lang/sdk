@@ -243,7 +243,7 @@ main() {
   });
 
   group('constructors', () {
-    test('supported', () {
+    group('supported', () {
       testConstructor('a', (e) => e is svg.AElement);
       testConstructor('circle', (e) => e is svg.CircleElement);
       testConstructor('clipPath', (e) => e is svg.ClipPathElement);

@@ -92,7 +92,7 @@ class DeferredLoadTask extends CompilerTask {
     if (main == null) return;
     LibraryElement mainApp = main.getLibrary();
     measureElement(mainApp, () {
-      deferredLibraries.addAll(findDeferredLibraries(mainApp));
+      deferredLibraries.addAll(findDeferredLibraries(mainApp).toList());
       if (deferredLibraries.isEmpty) return;
 
       // TODO(ahe): Enforce the following invariants on

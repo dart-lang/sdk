@@ -42,7 +42,7 @@ class TarFileDescriptor extends DirectoryDescriptor {
   /// Validates that the `.tar.gz` file at [path] contains the expected
   /// contents.
   Future validate([String parent]) {
-    throw "TODO(nweiz): implement this";
+    throw new UnimplementedError("TODO(nweiz): implement this");
   }
 
   Stream<List<int>> read() {

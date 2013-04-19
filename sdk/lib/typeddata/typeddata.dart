@@ -49,6 +49,23 @@ abstract class TypedData {
 
 
 /**
+ * Describes endianness to be used when accessing or updating a
+ * sequence of bytes.
+ */
+class Endianness {
+  const Endianness._(this._littleEndian);
+
+  static const Endianness BIG_ENDIAN = const Endianness._(false);
+  static const Endianness LITTLE_ENDIAN = const Endianness._(true);
+  static final Endianness HOST_ENDIAN =
+    (new ByteData.view(new Uint16List.fromList([1]).buffer)).getInt8(0) == 1 ?
+    LITTLE_ENDIAN : BIG_ENDIAN;
+
+  final bool _littleEndian;
+}
+
+
+/**
  * A fixed-length, random-access sequence of bytes that also provides random
  * and unaligned access to the fixed-width integers and floating point
  * numbers represented by those bytes.
@@ -141,7 +158,7 @@ abstract class ByteData implements TypedData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 2` is greater than the length of this object.
    */
-  int getInt16(int byteOffset);
+  int getInt16(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]);
 
   /**
    * Sets the two bytes starting at the specified [byteOffset] in this
@@ -152,7 +169,9 @@ abstract class ByteData implements TypedData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 2` is greater than the length of this object.
    */
-  void setInt16(int byteOffset, int value);
+  void setInt16(int byteOffset,
+                int value,
+                [Endianness endian = Endianness.BIG_ENDIAN]);
 
   /**
    * Returns the positive integer represented by the two bytes starting
@@ -163,7 +182,7 @@ abstract class ByteData implements TypedData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 2` is greater than the length of this object.
    */
-  int getUint16(int byteOffset);
+  int getUint16(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]);
 
   /**
    * Sets the two bytes starting at the specified [byteOffset] in this object
@@ -174,7 +193,9 @@ abstract class ByteData implements TypedData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 2` is greater than the length of this object.
    */
-  void setUint16(int byteOffset, int value);
+  void setUint16(int byteOffset,
+                 int value,
+                 [Endianness endian = Endianness.BIG_ENDIAN]);
 
   /**
    * Returns the (possibly negative) integer represented by the four bytes at
@@ -186,7 +207,7 @@ abstract class ByteData implements TypedData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 4` is greater than the length of this object.
    */
-  int getInt32(int byteOffset);
+  int getInt32(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]);
 
   /**
    * Sets the four bytes starting at the specified [byteOffset] in this
@@ -197,7 +218,9 @@ abstract class ByteData implements TypedData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 4` is greater than the length of this object.
    */
-  void setInt32(int byteOffset, int value);
+  void setInt32(int byteOffset,
+                int value,
+                [Endianness endian = Endianness.BIG_ENDIAN]);
 
   /**
    * Returns the positive integer represented by the four bytes starting
@@ -206,7 +229,7 @@ abstract class ByteData implements TypedData {
    * The return value will be between 0 and  2<sup>32</sup> - 1, inclusive.
    *
    */
-  int getUint32(int byteOffset);
+  int getUint32(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]);
 
   /**
    * Sets the four bytes starting at the specified [byteOffset] in this object
@@ -217,7 +240,9 @@ abstract class ByteData implements TypedData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 4` is greater than the length of this object.
    */
-  void setUint32(int byteOffset, int value);
+  void setUint32(int byteOffset,
+                 int value,
+                 [Endianness endian = Endianness.BIG_ENDIAN]);
 
   /**
    * Returns the (possibly negative) integer represented by the eight bytes at
@@ -229,7 +254,7 @@ abstract class ByteData implements TypedData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 8` is greater than the length of this object.
    */
-  int getInt64(int byteOffset);
+  int getInt64(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]);
 
   /**
    * Sets the eight bytes starting at the specified [byteOffset] in this
@@ -240,7 +265,9 @@ abstract class ByteData implements TypedData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 8` is greater than the length of this object.
    */
-  void setInt64(int byteOffset, int value);
+  void setInt64(int byteOffset,
+                int value,
+                [Endianness endian = Endianness.BIG_ENDIAN]);
 
   /**
    * Returns the positive integer represented by the eight bytes starting
@@ -251,7 +278,7 @@ abstract class ByteData implements TypedData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 8` is greater than the length of this object.
    */
-  int getUint64(int byteOffset);
+  int getUint64(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]);
 
   /**
    * Sets the eight bytes starting at the specified [byteOffset] in this object
@@ -262,7 +289,9 @@ abstract class ByteData implements TypedData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 8` is greater than the length of this object.
    */
-  void setUint64(int byteOffset, int value);
+  void setUint64(int byteOffset,
+                 int value,
+                 [Endianness endian = Endianness.BIG_ENDIAN]);
 
   /**
    * Returns the floating point number represented by the four bytes at
@@ -272,7 +301,8 @@ abstract class ByteData implements TypedData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 4` is greater than the length of this object.
    */
-  double getFloat32(int byteOffset);
+  double getFloat32(int byteOffset,
+                    [Endianness endian = Endianness.BIG_ENDIAN]);
 
   /**
    * Sets the four bytes starting at the specified [byteOffset] in this
@@ -291,7 +321,9 @@ abstract class ByteData implements TypedData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 4` is greater than the length of this object.
    */
-  void setFloat32(int byteOffset, double value);
+  void setFloat32(int byteOffset,
+                  double value,
+                  [Endianness endian = Endianness.BIG_ENDIAN]);
 
   /**
    * Returns the floating point number represented by the eight bytes at
@@ -301,7 +333,8 @@ abstract class ByteData implements TypedData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 8` is greater than the length of this object.
    */
-  double getFloat64(int byteOffset);
+  double getFloat64(int byteOffset,
+                    [Endianness endian = Endianness.BIG_ENDIAN]);
 
   /**
    * Sets the eight bytes starting at the specified [byteOffset] in this
@@ -311,7 +344,9 @@ abstract class ByteData implements TypedData {
    * Throws [RangeError] if [byteOffset] is negative, or
    * `byteOffset + 8` is greater than the length of this object.
    */
-  void setFloat64(int byteOffset, double value);
+  void setFloat64(int byteOffset,
+                  double value,
+                  [Endianness endian = Endianness.BIG_ENDIAN]);
 }
 
 

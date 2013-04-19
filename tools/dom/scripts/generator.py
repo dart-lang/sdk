@@ -1409,7 +1409,6 @@ _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
     'void': TypeData(clazz='Primitive', dart_type='void'),
 
     'CSSRule': TypeData(clazz='Interface', conversion_includes=['CSSImportRule']),
-    'DOMException': TypeData(clazz='Interface', native_type='DOMCoreException'),
     'DOMStringMap': TypeData(clazz='Interface', dart_type='Map<String, String>'),
     'DOMWindow': TypeData(clazz='Interface', custom_to_dart=True),
     'Element': TypeData(clazz='Interface', merged_interface='HTMLElement',

@@ -2184,28 +2184,74 @@ static void CheckTypedData(Dart_CObject* object,
 }
 
 UNIT_TEST_CASE(DartGeneratedListMessagesWithTypedData) {
-  const int kArrayLength = 10;
   static const char* kScriptChars =
       "import 'dart:typeddata';\n"
-      "final int kArrayLength = 10;\n"
       "getTypedDataList() {\n"
-      "  var list = new List(kArrayLength);\n"
-      "  list[0] = new Int8List(256);\n"
-      "  list[1] = new Uint8List(256);\n"
-      "  list[2] = new Int16List(256);\n"
-      "  list[3] = new Uint16List(256);\n"
+      "  var list = new List(10);\n"
+      "  var index = 0;\n"
+      "  list[index++] = new Int8List(256);\n"
+      "  list[index++] = new Uint8List(256);\n"
+      "  list[index++] = new Int16List(256);\n"
+      "  list[index++] = new Uint16List(256);\n"
+      "  list[index++] = new Int32List(256);\n"
+      "  list[index++] = new Uint32List(256);\n"
+      "  list[index++] = new Int64List(256);\n"
+      "  list[index++] = new Uint64List(256);\n"
+      "  list[index++] = new Float32List(256);\n"
+      "  list[index++] = new Float64List(256);\n"
       "  return list;\n"
       "}\n"
       "getTypedDataViewList() {\n"
-      "  var list = new List(kArrayLength);\n"
-      "  list[0] = new Int8List.view(new Int8List(256));\n"
-      "  list[1] = new Uint8List.view(new Uint8List(256));\n"
-      "  list[2] = new Int16List.view(new Int16List(256));\n"
-      "  list[3] = new Uint16List.view(new Uint16List(256));\n"
-      "  list[4] = new Int8List.view(new Int16List(256));\n"
-      "  list[5] = new Uint8List.view(new Uint16List(256));\n"
-      "  list[6] = new Int16List.view(new Int8List(256));\n"
-      "  list[7] = new Uint16List.view(new Uint8List(256));\n"
+      "  var list = new List(30);\n"
+      "  var index = 0;\n"
+      "  list[index++] = new Int8List.view(new Int8List(256));\n"
+      "  list[index++] = new Uint8List.view(new Uint8List(256));\n"
+      "  list[index++] = new Int16List.view(new Int16List(256));\n"
+      "  list[index++] = new Uint16List.view(new Uint16List(256));\n"
+      "  list[index++] = new Int32List.view(new Int32List(256));\n"
+      "  list[index++] = new Uint32List.view(new Uint32List(256));\n"
+      "  list[index++] = new Int64List.view(new Int64List(256));\n"
+      "  list[index++] = new Uint64List.view(new Uint64List(256));\n"
+      "  list[index++] = new Float32List.view(new Float32List(256));\n"
+      "  list[index++] = new Float64List.view(new Float64List(256));\n"
+
+      "  list[index++] = new Int8List.view(new Int16List(256));\n"
+      "  list[index++] = new Uint8List.view(new Uint16List(256));\n"
+      "  list[index++] = new Int8List.view(new Int32List(256));\n"
+      "  list[index++] = new Uint8List.view(new Uint32List(256));\n"
+      "  list[index++] = new Int8List.view(new Int64List(256));\n"
+      "  list[index++] = new Uint8List.view(new Uint64List(256));\n"
+      "  list[index++] = new Int8List.view(new Float32List(256));\n"
+      "  list[index++] = new Uint8List.view(new Float32List(256));\n"
+      "  list[index++] = new Int8List.view(new Float64List(256));\n"
+      "  list[index++] = new Uint8List.view(new Float64List(256));\n"
+
+      "  list[index++] = new Int16List.view(new Int8List(256));\n"
+      "  list[index++] = new Uint16List.view(new Uint8List(256));\n"
+      "  list[index++] = new Int16List.view(new Int32List(256));\n"
+      "  list[index++] = new Uint16List.view(new Uint32List(256));\n"
+      "  list[index++] = new Int16List.view(new Int64List(256));\n"
+      "  list[index++] = new Uint16List.view(new Uint64List(256));\n"
+      "  list[index++] = new Int16List.view(new Float32List(256));\n"
+      "  list[index++] = new Uint16List.view(new Float32List(256));\n"
+      "  list[index++] = new Int16List.view(new Float64List(256));\n"
+      "  list[index++] = new Uint16List.view(new Float64List(256));\n"
+      "  return list;\n"
+      "}\n"
+      "getMultipleTypedDataViewList() {\n"
+      "  var list = new List(10);\n"
+      "  var index = 0;\n"
+      "  var data = new Uint8List(256);\n"
+      "  list[index++] = new Int8List.view(data);\n"
+      "  list[index++] = new Uint8List.view(data);\n"
+      "  list[index++] = new Int16List.view(data);\n"
+      "  list[index++] = new Uint16List.view(data);\n"
+      "  list[index++] = new Int32List.view(data);\n"
+      "  list[index++] = new Uint32List.view(data);\n"
+      "  list[index++] = new Int64List.view(data);\n"
+      "  list[index++] = new Uint64List.view(data);\n"
+      "  list[index++] = new Float32List.view(data);\n"
+      "  list[index++] = new Float64List.view(data);\n"
       "  return list;\n"
       "}\n";
 
@@ -2225,52 +2271,125 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithTypedData) {
       Dart_CObject* root = GetDeserializedDartMessage(lib, "getTypedDataList");
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject::kArray, root->type);
-      EXPECT_EQ(kArrayLength, root->value.as_array.length);
-      CheckTypedData(root->value.as_array.values[0],
-                     Dart_CObject::kInt8Array,
-                     256);
-      CheckTypedData(root->value.as_array.values[1],
-                     Dart_CObject::kUint8Array,
-                     256);
-      CheckTypedData(root->value.as_array.values[2],
-                     Dart_CObject::kInt16Array,
-                     512);
-      CheckTypedData(root->value.as_array.values[3],
-                     Dart_CObject::kUint16Array,
-                     512);
+      struct {
+        Dart_CObject::TypedDataType type;
+        int size;
+      } expected[] = {
+        { Dart_CObject::kInt8Array, 256},
+        { Dart_CObject::kUint8Array, 256},
+        { Dart_CObject::kInt16Array, 512},
+        { Dart_CObject::kUint16Array, 512},
+        { Dart_CObject::kInt32Array, 1024},
+        { Dart_CObject::kUint32Array, 1024},
+        { Dart_CObject::kInt64Array, 2048},
+        { Dart_CObject::kUint64Array, 2048},
+        { Dart_CObject::kFloat32Array, 1024},
+        { Dart_CObject::kFloat64Array, 2048},
+        { Dart_CObject::kNumberOfTypedDataTypes, -1 }
+      };
+
+      int i = 0;
+      while (expected[i].type != Dart_CObject::kNumberOfTypedDataTypes) {
+        CheckTypedData(root->value.as_array.values[i],
+                       expected[i].type,
+                       expected[i].size);
+        i++;
+      }
+      EXPECT_EQ(i, root->value.as_array.length);
     }
     {
       // Generate a list of Uint8List views from Dart code.
+
       ApiNativeScope scope;
       Dart_CObject* root =
           GetDeserializedDartMessage(lib, "getTypedDataViewList");
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject::kArray, root->type);
-      EXPECT_EQ(kArrayLength, root->value.as_array.length);
-      CheckTypedData(root->value.as_array.values[0],
-                     Dart_CObject::kInt8Array,
-                     256);
-      CheckTypedData(root->value.as_array.values[1],
-                     Dart_CObject::kUint8Array,
-                     256);
-      CheckTypedData(root->value.as_array.values[2],
-                     Dart_CObject::kInt16Array,
-                     512);
-      CheckTypedData(root->value.as_array.values[3],
-                     Dart_CObject::kUint16Array,
-                     512);
-      CheckTypedData(root->value.as_array.values[4],
-                     Dart_CObject::kInt8Array,
-                     512);
-      CheckTypedData(root->value.as_array.values[5],
-                     Dart_CObject::kUint8Array,
-                     512);
-      CheckTypedData(root->value.as_array.values[6],
-                     Dart_CObject::kInt16Array,
-                     256);
-      CheckTypedData(root->value.as_array.values[7],
-                     Dart_CObject::kUint16Array,
-                     256);
+      struct {
+        Dart_CObject::TypedDataType type;
+        int size;
+      } expected[] = {
+        { Dart_CObject::kInt8Array, 256},
+        { Dart_CObject::kUint8Array, 256},
+        { Dart_CObject::kInt16Array, 512},
+        { Dart_CObject::kUint16Array, 512},
+        { Dart_CObject::kInt32Array, 1024},
+        { Dart_CObject::kUint32Array, 1024},
+        { Dart_CObject::kInt64Array, 2048},
+        { Dart_CObject::kUint64Array, 2048},
+        { Dart_CObject::kFloat32Array, 1024},
+        { Dart_CObject::kFloat64Array, 2048},
+
+        { Dart_CObject::kInt8Array, 512},
+        { Dart_CObject::kUint8Array, 512},
+        { Dart_CObject::kInt8Array, 1024},
+        { Dart_CObject::kUint8Array, 1024},
+        { Dart_CObject::kInt8Array, 2048},
+        { Dart_CObject::kUint8Array, 2048},
+        { Dart_CObject::kInt8Array, 1024},
+        { Dart_CObject::kUint8Array, 1024},
+        { Dart_CObject::kInt8Array, 2048},
+        { Dart_CObject::kUint8Array, 2048},
+
+        { Dart_CObject::kInt16Array, 256},
+        { Dart_CObject::kUint16Array, 256},
+        { Dart_CObject::kInt16Array, 1024},
+        { Dart_CObject::kUint16Array, 1024},
+        { Dart_CObject::kInt16Array, 2048},
+        { Dart_CObject::kUint16Array, 2048},
+        { Dart_CObject::kInt16Array, 1024},
+        { Dart_CObject::kUint16Array, 1024},
+        { Dart_CObject::kInt16Array, 2048},
+        { Dart_CObject::kUint16Array, 2048},
+
+        { Dart_CObject::kNumberOfTypedDataTypes, -1 }
+      };
+
+      int i = 0;
+      while (expected[i].type != Dart_CObject::kNumberOfTypedDataTypes) {
+        CheckTypedData(root->value.as_array.values[i],
+                       expected[i].type,
+                       expected[i].size);
+        i++;
+      }
+      EXPECT_EQ(i, root->value.as_array.length);
+    }
+    {
+      // Generate a list of Uint8Lists from Dart code.
+      ApiNativeScope scope;
+      Dart_CObject* root =
+          GetDeserializedDartMessage(lib, "getMultipleTypedDataViewList");
+      EXPECT_NOTNULL(root);
+      EXPECT_EQ(Dart_CObject::kArray, root->type);
+      struct {
+        Dart_CObject::TypedDataType type;
+        int size;
+      } expected[] = {
+        { Dart_CObject::kInt8Array, 256},
+        { Dart_CObject::kUint8Array, 256},
+        { Dart_CObject::kInt16Array, 256},
+        { Dart_CObject::kUint16Array, 256},
+        { Dart_CObject::kInt32Array, 256},
+        { Dart_CObject::kUint32Array, 256},
+        { Dart_CObject::kInt64Array, 256},
+        { Dart_CObject::kUint64Array, 256},
+        { Dart_CObject::kFloat32Array, 256},
+        { Dart_CObject::kFloat64Array, 256},
+        { Dart_CObject::kNumberOfTypedDataTypes, -1 }
+      };
+
+      int i = 0;
+      while (expected[i].type != Dart_CObject::kNumberOfTypedDataTypes) {
+        CheckTypedData(root->value.as_array.values[i],
+                       expected[i].type,
+                       expected[i].size);
+
+        // All views point to the same data.
+        EXPECT_EQ(root->value.as_array.values[0]->value.as_typed_data.values,
+                  root->value.as_array.values[i]->value.as_typed_data.values);
+        i++;
+      }
+      EXPECT_EQ(i, root->value.as_array.length);
     }
   }
   Dart_ExitScope();

@@ -314,7 +314,8 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         return result;
       }
     } else if (selector.isGetter()) {
-      if (selector.applies(backend.jsArrayLength, compiler)) {
+      if (selector.applies(backend.jsArrayLength, compiler)
+          || selector.applies(backend.jsStringLength, compiler)) {
         HInstruction optimized = tryOptimizeLengthInterceptedGetter(node);
         if (optimized != null) return optimized;
       }
@@ -333,7 +334,11 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     Selector selector = receiverType.refine(node.selector, compiler);
     Element element = compiler.world.locateSingleElement(selector);
     // TODO(ngeoffray): Also fold if it's a getter or variable.
-    if (element != null && element.isFunction()) {
+    if (element != null
+        && element.isFunction()
+        // If we found out that the only target is a [:noSuchMethod:],
+        // we just ignore it.
+        && element.name == selector.name) {
       FunctionElement method = element;
 
       if (method.isNative()) {
@@ -380,7 +385,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     // preserve the number of arguments, so check only the actual arguments.
 
     List<HInstruction> inputs = node.inputs.sublist(1);
-    int inputPosition = 0;
+    int inputPosition = 1;  // Skip receiver.
     bool canInline = true;
     signature.forEachParameter((Element element) {
       if (inputPosition < inputs.length && canInline) {
@@ -878,13 +883,17 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     // they have side effects.
     if (selector.isGetter()) {
       HInstruction res = new HInvokeDynamicGetter(
-          selector, node.element, constant, false);
-      res.inputs.add(node.inputs[1]);
+          selector,
+          node.element,
+          <HInstruction>[constant, node.inputs[1]],
+          false);
       return res;
     } else if (node.selector.isSetter()) {
       HInstruction res = new HInvokeDynamicSetter(
-          selector, node.element, constant, node.inputs[1], false);
-      res.inputs.add(node.inputs[2]);
+          selector,
+          node.element,
+          <HInstruction>[constant, node.inputs[1], node.inputs[2]],
+          false);
       return res;
     } else {
       List<HInstruction> inputs = new List<HInstruction>.from(node.inputs);

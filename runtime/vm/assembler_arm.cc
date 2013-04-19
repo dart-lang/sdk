@@ -1261,8 +1261,16 @@ void Assembler::LoadWordFromPoolOffset(Register rd, int32_t offset) {
 }
 
 
+void Assembler::LoadPoolPointer() {
+  const intptr_t object_pool_pc_dist =
+     Instructions::HeaderSize() - Instructions::object_pool_offset() +
+     CodeSize() + Instr::kPCReadOffset;
+  LoadFromOffset(kLoadWord, PP, PC, -object_pool_pc_dist);
+}
+
+
 void Assembler::LoadObject(Register rd, const Object& object) {
-  // Smi's and VM heap objects are never relocated; do not use object pool.
+  // Smis and VM heap objects are never relocated; do not use object pool.
   if (object.IsSmi()) {
     LoadImmediate(rd, reinterpret_cast<int32_t>(object.raw()));
   } else if (object.InVMHeap()) {
@@ -1972,10 +1980,7 @@ void Assembler::EnterDartFrame(intptr_t frame_size) {
   }
 
   // Setup pool pointer for this dart function.
-  const intptr_t object_pool_pc_dist =
-     Instructions::HeaderSize() - Instructions::object_pool_offset() +
-     CodeSize() + Instr::kPCReadOffset;
-  ldr(PP, Address(PC, -object_pool_pc_dist));
+  LoadPoolPointer();
 
   // Reserve space for locals.
   AddImmediate(SP, -frame_size);
@@ -2000,10 +2005,7 @@ void Assembler::EnterStubFrame(bool uses_pp) {
   EnterFrame(regs, 0);
   if (uses_pp) {
     // Setup pool pointer for this stub.
-    const intptr_t object_pool_pc_dist =
-       Instructions::HeaderSize() - Instructions::object_pool_offset() +
-       CodeSize() + Instr::kPCReadOffset;
-    ldr(PP, Address(PC, -object_pool_pc_dist));
+    LoadPoolPointer();
   }
 }
 

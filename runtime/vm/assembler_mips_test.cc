@@ -1326,6 +1326,27 @@ ASSEMBLER_TEST_RUN(Adds_Inf, test) {
   EXPECT_EQ(isfinite(res), false);
 }
 
+
+// Called from assembler_test.cc.
+// RA: return address.
+// A0: context.
+// A1: value.
+// A2: growable array.
+ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
+  __ addiu(SP, SP, Immediate(-2 * kWordSize));
+  __ sw(CTX, Address(SP, 1 * kWordSize));
+  __ sw(RA, Address(SP, 0 * kWordSize));
+
+  __ mov(CTX, A0);
+  __ StoreIntoObject(A2,
+                     FieldAddress(A2, GrowableObjectArray::data_offset()),
+                     A1);
+  __ lw(RA, Address(SP, 0 * kWordSize));
+  __ lw(CTX, Address(SP, 1 * kWordSize));
+  __ addiu(SP, SP, Immediate(2 * kWordSize));
+  __ Ret();
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_MIPS

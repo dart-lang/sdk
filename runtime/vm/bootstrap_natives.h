@@ -161,6 +161,14 @@ namespace dart {
   V(TypedData_SetFloat64, 3)                                                   \
   V(TypedData_GetFloat32x4, 2)                                                 \
   V(TypedData_SetFloat32x4, 3)                                                 \
+  V(ByteData_ToEndianInt16, 2)                                                 \
+  V(ByteData_ToEndianUint16, 2)                                                \
+  V(ByteData_ToEndianInt32, 2)                                                 \
+  V(ByteData_ToEndianUint32, 2)                                                \
+  V(ByteData_ToEndianInt64, 2)                                                 \
+  V(ByteData_ToEndianUint64, 2)                                                \
+  V(ByteData_ToEndianFloat32, 2)                                               \
+  V(ByteData_ToEndianFloat64, 2)                                               \
   V(Float32x4_fromDoubles, 5)                                                  \
   V(Float32x4_zero, 1)                                                         \
   V(Float32x4_add, 2)                                                          \
@@ -223,12 +231,13 @@ namespace dart {
   V(isolate_spawnUri, 1)                                                       \
   V(Mirrors_isLocalPort, 1)                                                    \
   V(Mirrors_makeLocalInstanceMirror, 1)                                        \
+  V(Mirrors_makeLocalClassMirror, 1)                                        \
   V(Mirrors_makeLocalMirrorSystem, 0)                                          \
-  V(LocalObjectMirrorImpl_invoke, 3)                                           \
+  V(LocalObjectMirrorImpl_invoke, 4)                                           \
   V(LocalObjectMirrorImpl_getField, 2)                                         \
-  V(LocalObjectMirrorImpl_setField, 3)                                         \
-  V(LocalClosureMirrorImpl_apply, 2)                                           \
-  V(LocalClassMirrorImpl_invokeConstructor, 3)                                 \
+  V(LocalObjectMirrorImpl_setField, 4)                                         \
+  V(LocalClosureMirrorImpl_apply, 3)                                           \
+  V(LocalClassMirrorImpl_invokeConstructor, 4)                                 \
   V(GrowableObjectArray_allocate, 2)                                           \
   V(GrowableObjectArray_getIndexed, 2)                                         \
   V(GrowableObjectArray_setIndexed, 3)                                         \

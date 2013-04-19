@@ -9,6 +9,7 @@
 #include "vm/isolate.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
+#include "vm/simulator.h"
 #include "vm/symbols.h"
 #include "vm/unit_test.h"
 
@@ -2236,8 +2237,10 @@ TEST_CASE(CheckedHandle) {
 }
 
 
-// only ia32 and x64 can run execution tests.
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+// Only ia32, x64, and arm can run execution tests.
+#if defined(TARGET_ARCH_IA32) ||                                               \
+    defined(TARGET_ARCH_X64) ||                                                \
+    defined(TARGET_ARCH_ARM)
 
 static Function* CreateFunction(const char* name) {
   const String& class_name = String::Handle(Symbols::New("ownerClass"));
@@ -2259,9 +2262,16 @@ TEST_CASE(Code) {
   Code& code = Code::Handle(Code::FinalizeCode(
       *CreateFunction("Test_Code"), &_assembler_));
   Instructions& instructions = Instructions::Handle(code.instructions());
-  typedef int (*IncrementCode)();
-  EXPECT_EQ(2, reinterpret_cast<IncrementCode>(instructions.EntryPoint())());
   uword entry_point = instructions.EntryPoint();
+  intptr_t retval = 0;
+#if defined(USING_SIMULATOR)
+  retval = bit_copy<intptr_t, int64_t>(Simulator::Current()->Call(
+      static_cast<int32_t>(entry_point), 0, 0, 0, 0));
+#else
+  typedef intptr_t (*IncrementCode)();
+  retval = reinterpret_cast<IncrementCode>(entry_point)();
+#endif
+  EXPECT_EQ(2, retval);
   EXPECT_EQ(instructions.raw(), Instructions::FromEntryPoint(entry_point));
 }
 
@@ -2276,8 +2286,14 @@ TEST_CASE(EmbedStringInCode) {
   Code& code = Code::Handle(Code::FinalizeCode(
       *CreateFunction("Test_EmbedStringInCode"), &_assembler_));
   Instructions& instructions = Instructions::Handle(code.instructions());
+  uword retval = 0;
+#if defined(USING_SIMULATOR)
+  retval = bit_copy<uword, int64_t>(Simulator::Current()->Call(
+      static_cast<int32_t>(instructions.EntryPoint()), 0, 0, 0, 0));
+#else
   typedef uword (*EmbedStringCode)();
-  uword retval = reinterpret_cast<EmbedStringCode>(instructions.EntryPoint())();
+  retval = reinterpret_cast<EmbedStringCode>(instructions.EntryPoint())();
+#endif
   EXPECT((retval & kSmiTagMask) == kHeapObjectTag);
   String& string_object = String::Handle();
   string_object ^= reinterpret_cast<RawInstructions*>(retval);
@@ -2297,9 +2313,14 @@ TEST_CASE(EmbedSmiInCode) {
   Code& code = Code::Handle(Code::FinalizeCode(
       *CreateFunction("Test_EmbedSmiInCode"), &_assembler_));
   Instructions& instructions = Instructions::Handle(code.instructions());
+  intptr_t retval = 0;
+#if defined(USING_SIMULATOR)
+  retval = bit_copy<intptr_t, int64_t>(Simulator::Current()->Call(
+      static_cast<int32_t>(instructions.EntryPoint()), 0, 0, 0, 0));
+#else
   typedef intptr_t (*EmbedSmiCode)();
-  intptr_t retval =
-      reinterpret_cast<EmbedSmiCode>(instructions.EntryPoint())();
+  retval = reinterpret_cast<EmbedSmiCode>(instructions.EntryPoint())();
+#endif
   EXPECT((retval >> kSmiTagShift) == kSmiTestValue);
 }
 
@@ -2314,9 +2335,14 @@ TEST_CASE(EmbedSmiIn64BitCode) {
   Code& code = Code::Handle(Code::FinalizeCode(
       *CreateFunction("Test_EmbedSmiIn64BitCode"), &_assembler_));
   Instructions& instructions = Instructions::Handle(code.instructions());
+  intptr_t retval = 0;
+#if defined(USING_SIMULATOR)
+  retval = bit_copy<intptr_t, int64_t>(Simulator::Current()->Call(
+      static_cast<int32_t>(instructions.EntryPoint()), 0, 0, 0, 0));
+#else
   typedef intptr_t (*EmbedSmiCode)();
-  intptr_t retval =
-      reinterpret_cast<EmbedSmiCode>(instructions.EntryPoint())();
+  retval = reinterpret_cast<EmbedSmiCode>(instructions.EntryPoint())();
+#endif
   EXPECT((retval >> kSmiTagShift) == kSmiTestValue);
 }
 #endif
@@ -3182,6 +3208,6 @@ TEST_CASE(FunctionSourceFingerprint) {
   EXPECT_EQ(test6.SourceFingerprint(), test7.SourceFingerprint());
 }
 
-#endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64).
+#endif  // TARGET_ARCH_IA32 || TARGET_ARCH_X64 || TARGET_ARCH_ARM
 
 }  // namespace dart

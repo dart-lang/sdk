@@ -57,7 +57,7 @@ class SafeHttpServer extends StreamView<HttpRequest> implements HttpServer {
       // Manually handle cancelOnError so the above (ignored) errors don't
       // cause unsubscription.
       if (cancelOnError) subscription.cancel();
-      if (onError != null) onError(e);
+      if (onError != null) onError(error);
     }, onDone: onDone);
     return subscription;
   }
@@ -139,4 +139,5 @@ class _HttpResponseWrapper implements HttpResponse {
     _inner.writeAll(objects, separator);
   void writeCharCode(int charCode) => _inner.writeCharCode(charCode);
   void writeln([Object obj = ""]) => _inner.writeln(obj);
+  void addError(error) => _inner.addError(error);
 }

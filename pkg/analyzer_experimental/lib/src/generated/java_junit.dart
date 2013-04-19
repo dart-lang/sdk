@@ -28,6 +28,9 @@ class JUnitTestCase {
   static void assertNotNull(x) {
     expect(x, isNotNull);
   }
+  static void assertNotNullMsg(String msg, x) {
+    expect(x, isNotNullMsg(msg));
+  }
   static void assertEquals(expected, actual) {
     expect(actual, equals(expected));
   }
@@ -108,5 +111,21 @@ class _IsFalseWithMessage extends BaseMatcher {
   Description describeMismatch(item, Description mismatchDescription,
                                MatchState matchState, bool verbose) {
     return mismatchDescription.replace(msg).add(" $item is not false");
+  }
+}
+
+Matcher isNotNullMsg(String msg) => new _IsNotNullWithMessage(msg);
+class _IsNotNullWithMessage extends BaseMatcher {
+  final String msg;
+  const _IsNotNullWithMessage(this.msg);
+  bool matches(item, MatchState matchState) {
+    return item != null;
+  }
+  Description describe(Description mismatchDescription) {
+    return mismatchDescription.replace(msg);
+  }
+  Description describeMismatch(item, Description mismatchDescription,
+                               MatchState matchState, bool verbose) {
+    return mismatchDescription.replace(msg).add(" $item is null");
   }
 }

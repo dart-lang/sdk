@@ -49,7 +49,7 @@ static int debug_port = 0;
 
 // Global state that defines the VmStats web server port and root directory.
 static int vmstats_port = -1;
-static const char* vmstats_root = NULL;
+static const char* vmstats_root = "";
 
 // Value of the --package-root flag.
 // (This pointer points into an argv buffer and does not need to be
@@ -60,7 +60,9 @@ static const char* package_root = NULL;
 // Global flag that is used to indicate that we want to compile all the
 // dart functions and not run anything.
 static bool has_compile_all = false;
-
+// Global flag that is used to indicate that we want to check function
+// fingerprints.
+static bool has_check_function_fingerprints = false;
 
 // Global flag that is used to indicate that we want to print the source code
 // for script that is being run.
@@ -126,6 +128,16 @@ static bool ProcessCompileAllOption(const char* arg) {
     return false;
   }
   has_compile_all = true;
+  return true;
+}
+
+
+static bool ProcessFingerprintedFunctions(const char* arg) {
+  ASSERT(arg != NULL);
+  if (*arg != '\0') {
+    return false;
+  }
+  has_check_function_fingerprints = true;
   return true;
 }
 
@@ -228,6 +240,7 @@ static struct {
   { "--stats-root=", ProcessVmStatsRootOption },
   { "--stats", ProcessVmStatsOption },
   { "--print-script", ProcessPrintScriptOption },
+  { "--check-function-fingerprints", ProcessFingerprintedFunctions },
   { NULL, NULL }
 };
 
@@ -552,13 +565,10 @@ static void PrintUsage() {
 "  url:<line_num> e.g. test.dart:10\n"
 "  [<class_name>.]<function_name> e.g. B.foo\n"
 "\n"
-"--use-script-snapshot=<file_name>\n"
-"  executes Dart script present in the specified snapshot file\n"
-"\n"
 "--generate-script-snapshot=<file_name>\n"
 "  loads Dart script and generates a snapshot in the specified file\n"
 "\n"
-"--print-source\n"
+"--print-script\n"
 "  generates Dart source code back and prints it after parsing a Dart script\n"
 "\n"
 "--stats[:<port number>]\n"
@@ -736,6 +746,7 @@ int main(int argc, char** argv) {
       Log::Print("Debugger initialized\n");
     }
   }
+  VmStats::Start(vmstats_port, vmstats_root, verbose_debug_seen);
 
   // Call CreateIsolateAndSetup which creates an isolate and loads up
   // the specified application script.
@@ -760,10 +771,6 @@ int main(int argc, char** argv) {
 
   Dart_EnterScope();
 
-  if (vmstats_port >= 0) {
-    VmStats::Start(vmstats_port, vmstats_root);
-  }
-
   if (generate_script_snapshot) {
     // First create a snapshot.
     Dart_Handle result;
@@ -787,6 +794,13 @@ int main(int argc, char** argv) {
   } else {
     if (has_compile_all) {
       result = Dart_CompileAll();
+      if (Dart_IsError(result)) {
+        return ErrorExit("%s\n", Dart_GetError(result));
+      }
+    }
+
+    if (has_check_function_fingerprints) {
+      result = Dart_CheckFunctionFingerprints();
       if (Dart_IsError(result)) {
         return ErrorExit("%s\n", Dart_GetError(result));
       }
@@ -824,6 +838,7 @@ int main(int argc, char** argv) {
       if (Dart_IsError(result)) {
         return ErrorExit("%s\n", Dart_GetError(result));
       }
+
       // Keep handling messages until the last active receive port is closed.
       result = Dart_RunLoop();
       if (Dart_IsError(result)) {

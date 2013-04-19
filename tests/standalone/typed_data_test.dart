@@ -41,32 +41,6 @@ void testCreateClampedUint8TypedData() {
   }
 }
 
-void testCreateExternalClampedUint8TypedData() {
-  List typed_data;
-
-  typed_data = new Uint8ClampedList.transferable(0);
-  Expect.isTrue(typed_data is Uint8ClampedList);
-  Expect.isFalse(typed_data is Uint8List);
-  Expect.equals(0, typed_data.length);
-  Expect.equals(0, typed_data.lengthInBytes);
-
-  typed_data = new Uint8ClampedList.transferable(10);
-  Expect.equals(10, typed_data.length);
-  for (int i = 0; i < 10; i++) {
-    Expect.equals(0, typed_data[i]);
-  }
-
-  typed_data[0] = -1;
-  Expect.equals(0, typed_data[0]);
-
-  for (int i = 0; i < 10; i++) {
-    typed_data[i] = i + 250;
-  }
-  for (int i = 0; i < 10; i++) {
-    Expect.equals(i + 250 > 255 ? 255 : i + 250, typed_data[i]);
-  }
-}
-
 void testTypedDataRange(bool check_throws) {
   Int8List typed_data;
   typed_data = new Int8List(10);
@@ -141,11 +115,6 @@ void testClampedUnsignedTypedDataRange(bool check_throws) {
                                           check_throws);
 }
 
-void testExternalClampedUnsignedTypedDataRange(bool check_throws) {
-  testClampedUnsignedTypedDataRangeHelper(new Uint8ClampedList.transferable(10),
-                                          check_throws);
-}
-
 void testSetRangeHelper(typed_data) {
   List<int> list = [10, 11, 12];
   typed_data.setRange(0, 3, list);
@@ -169,9 +138,7 @@ void testSetRangeHelper(typed_data) {
 
 void testSetRange() {
   testSetRangeHelper(new Uint8List(3));
-  testSetRangeHelper(new Uint8List.transferable(3));
   testSetRangeHelper(new Uint8ClampedList(3));
-  testSetRangeHelper(new Uint8ClampedList.transferable(3));
 }
 
 void testIndexOutOfRangeHelper(typed_data) {
@@ -188,9 +155,7 @@ void testIndexOutOfRangeHelper(typed_data) {
 
 void testIndexOutOfRange() {
   testIndexOutOfRangeHelper(new Uint8List(3));
-  testIndexOutOfRangeHelper(new Uint8List.transferable(3));
   testIndexOutOfRangeHelper(new Uint8ClampedList(3));
-  testIndexOutOfRangeHelper(new Uint8ClampedList.transferable(3));
 }
 
 void testIndexOfHelper(list) {
@@ -213,9 +178,8 @@ void testIndexOfHelper(list) {
 }
 
 void testIndexOf() {
-  testIndexOfHelper(new Uint8List.transferable(10));
+  testIndexOfHelper(new Uint8List(10));
   testIndexOfHelper(new Uint8ClampedList(10));
-  testIndexOfHelper(new Uint8ClampedList.transferable(10));
 }
 
 void testGetAtIndex(TypedData list, num initial_value) {
@@ -225,18 +189,22 @@ void testGetAtIndex(TypedData list, num initial_value) {
     Expect.equals(42, bdata.getInt8(i));
   }
   for (int i = 0; i < bdata.lengthInBytes-1; i+=2) {
-    Expect.equals(10794, bdata.getUint16(i));
-    Expect.equals(10794, bdata.getInt16(i));
+    Expect.equals(10794, bdata.getUint16(i, Endianness.LITTLE_ENDIAN));
+    Expect.equals(10794, bdata.getInt16(i, Endianness.LITTLE_ENDIAN));
   }
   for (int i = 0; i < bdata.lengthInBytes-3; i+=4) {
-    Expect.equals(707406378, bdata.getUint32(i));
-    Expect.equals(707406378, bdata.getInt32(i));
-    Expect.equals(1.511366173271439e-13, bdata.getFloat32(i));
+    Expect.equals(707406378, bdata.getUint32(i, Endianness.LITTLE_ENDIAN));
+    Expect.equals(707406378, bdata.getInt32(i, Endianness.LITTLE_ENDIAN));
+    Expect.equals(1.511366173271439e-13,
+                  bdata.getFloat32(i, Endianness.LITTLE_ENDIAN));
   }
   for (int i = 0; i < bdata.lengthInBytes-7; i+=8) {
-    Expect.equals(3038287259199220266, bdata.getUint64(i));
-    Expect.equals(3038287259199220266, bdata.getInt64(i));
-    Expect.equals(1.4260258159703532e-105, bdata.getFloat64(i));
+    Expect.equals(3038287259199220266,
+                  bdata.getUint64(i, Endianness.LITTLE_ENDIAN));
+    Expect.equals(3038287259199220266,
+                  bdata.getInt64(i, Endianness.LITTLE_ENDIAN));
+    Expect.equals(1.4260258159703532e-105,
+                  bdata.getFloat64(i, Endianness.LITTLE_ENDIAN));
   }
 }
 
@@ -249,33 +217,44 @@ void testSetAtIndex(TypedData list,
     }
   }
   var bdata = new ByteData.view(list.buffer);
-  for (int i = 0; i < bdata.lengthInBytes; i++) bdata.setUint8(i, 42);
+  for (int i = 0; i < bdata.lengthInBytes; i++) {
+    bdata.setUint8(i, 42);
+  }
   validate();
-  for (int i = 0; i < bdata.lengthInBytes; i++) bdata.setInt8(i, 42);
+  for (int i = 0; i < bdata.lengthInBytes; i++) {
+    bdata.setInt8(i, 42);
+  }
   validate();
-  for (int i = 0; i < bdata.lengthInBytes-1; i+=2) bdata.setUint16(i, 10794);
+  for (int i = 0; i < bdata.lengthInBytes-1; i+=2) {
+    bdata.setUint16(i, 10794, Endianness.LITTLE_ENDIAN);
+  }
   validate();
-  for (int i = 0; i < bdata.lengthInBytes-1; i+=2) bdata.setInt16(i, 10794);
-  validate();
-  for (int i = 0; i < bdata.lengthInBytes-3; i+=4)
-    bdata.setUint32(i, 707406378);
-  validate();
-  for (int i = 0; i < bdata.lengthInBytes-3; i+=4) bdata.setInt32(i, 707406378);
+  for (int i = 0; i < bdata.lengthInBytes-1; i+=2) {
+    bdata.setInt16(i, 10794, Endianness.LITTLE_ENDIAN);
+  }
   validate();
   for (int i = 0; i < bdata.lengthInBytes-3; i+=4) {
-    bdata.setFloat32(i, 1.511366173271439e-13);
+    bdata.setUint32(i, 707406378, Endianness.LITTLE_ENDIAN);
+  }
+  validate();
+  for (int i = 0; i < bdata.lengthInBytes-3; i+=4) {
+    bdata.setInt32(i, 707406378, Endianness.LITTLE_ENDIAN);
+  }
+  validate();
+  for (int i = 0; i < bdata.lengthInBytes-3; i+=4) {
+    bdata.setFloat32(i, 1.511366173271439e-13, Endianness.LITTLE_ENDIAN);
   }
   validate();
   for (int i = 0; i < bdata.lengthInBytes-7; i+=8) {
-    bdata.setUint64(i, 3038287259199220266);
+    bdata.setUint64(i, 3038287259199220266, Endianness.LITTLE_ENDIAN);
   }
   validate();
   for (int i = 0; i < bdata.lengthInBytes-7; i+=8) {
-    bdata.setInt64(i, 3038287259199220266);
+    bdata.setInt64(i, 3038287259199220266, Endianness.LITTLE_ENDIAN);
   }
   validate();
   for (int i = 0; i < bdata.lengthInBytes-7; i+=8) {
-    bdata.setFloat64(i, 1.4260258159703532e-105);
+    bdata.setFloat64(i, 1.4260258159703532e-105, Endianness.LITTLE_ENDIAN);
   }
   validate(false);
 }
@@ -343,11 +322,9 @@ main() {
   for (int i = 0; i < 2000; i++) {
     testCreateUint8TypedData();
     testCreateClampedUint8TypedData();
-    testCreateExternalClampedUint8TypedData();
     testTypedDataRange(false);
     testUnsignedTypedDataRange(false);
     testClampedUnsignedTypedDataRange(false);
-    testExternalClampedUnsignedTypedDataRange(false);
     testSetRange();
     testIndexOutOfRange();
     testIndexOf();
@@ -394,7 +371,6 @@ main() {
   }
   testTypedDataRange(true);
   testUnsignedTypedDataRange(true);
-  testExternalClampedUnsignedTypedDataRange(true);
   testViewCreation();
   testWhere();
   testCreationFromList();

@@ -20,6 +20,7 @@ import 'dart:_interceptors' show getInterceptor,
                                  setDispatchProperty,
                                  Interceptor,
                                  JSIndexable;
+import "dart:_collection-dev" as _symbol_dev;
 
 part 'constant_map.dart';
 part 'native_helper.dart';
@@ -62,15 +63,20 @@ String S(value) {
   return res;
 }
 
-createInvocationMirror(name, internalName, type, arguments, argumentNames) =>
-    new JSInvocationMirror(name, internalName, type, arguments, argumentNames);
+createInvocationMirror(name, internalName, type, arguments, argumentNames) {
+  return new JSInvocationMirror(new _symbol_dev.Symbol.unvalidated(name),
+                                internalName,
+                                type,
+                                arguments,
+                                argumentNames);
+}
 
 class JSInvocationMirror implements Invocation {
   static const METHOD = 0;
   static const GETTER = 1;
   static const SETTER = 2;
 
-  final String memberName;
+  final Symbol memberName;
   final String _internalName;
   final int _kind;
   final List _arguments;
@@ -100,18 +106,19 @@ class JSInvocationMirror implements Invocation {
     return list;
   }
 
-  Map<String,dynamic> get namedArguments {
+  Map<Symbol,dynamic> get namedArguments {
     if (isAccessor) return null;
-    var map = <String,dynamic>{};
+    var map = new Map<Symbol, dynamic>();
     int namedArgumentCount = _namedArgumentNames.length;
     int namedArgumentsStartIndex = _arguments.length - namedArgumentCount;
     for (int i = 0; i < namedArgumentCount; i++) {
-      map[_namedArgumentNames[i]] = _arguments[namedArgumentsStartIndex + i];
+      map[new _symbol_dev.Symbol.unvalidated(_namedArgumentNames[i])] =
+          _arguments[namedArgumentsStartIndex + i];
     }
     return map;
   }
 
-  invokeOn(Object object) {
+  _invokeOn(Object object) {
     var interceptor = getInterceptor(object);
     var receiver = object;
     var name = _internalName;
@@ -127,6 +134,11 @@ class JSInvocationMirror implements Invocation {
       receiver = interceptor;
     }
     return JS("var", "#[#].apply(#, #)", receiver, name, receiver, arguments);
+  }
+
+  /// This method is called by [InstanceMirror.delegate].
+  static invokeFromMirror(JSInvocationMirror invocation, victim) {
+    return invocation._invokeOn(victim);
   }
 }
 
@@ -1139,28 +1151,28 @@ propertyTypeCast(value, property) {
 }
 
 /**
- * For types that are supertypes of native (eg DOM) types, we emit a
- * call because we cannot add a JS property to their prototype at load
- * time.
+ * For types that are supertypes of native (eg DOM) types, we use the
+ * interceptor for the class because we cannot add a JS property to the
+ * prototype at load time.
  */
-callTypeCheck(value, property) {
+interceptedTypeCheck(value, property) {
   if (value == null) return value;
   if ((identical(JS('String', 'typeof #', value), 'object'))
-      && JS('bool', '#[#]()', getInterceptor(value), property)) {
+      && JS('bool', '#[#]', getInterceptor(value), property)) {
     return value;
   }
   propertyTypeError(value, property);
 }
 
 /**
- * For types that are supertypes of native (eg DOM) types, we emit a
- * call because we cannot add a JS property to their prototype at load
- * time.
+ * For types that are supertypes of native (eg DOM) types, we use the
+ * interceptor for the class because we cannot add a JS property to the
+ * prototype at load time.
  */
-callTypeCast(value, property) {
+interceptedTypeCast(value, property) {
   if (value == null
       || ((JS('bool', 'typeof # === "object"', value))
-          && JS('bool', '#[#]()', getInterceptor(value), property))) {
+          && JS('bool', '#[#]', getInterceptor(value), property))) {
     return value;
   }
   propertyTypeCastError(value, property);
@@ -1188,7 +1200,7 @@ numberOrStringSuperNativeTypeCheck(value, property) {
   if (value == null) return value;
   if (value is String) return value;
   if (value is num) return value;
-  if (JS('bool', '#[#]()', value, property)) return value;
+  if (JS('bool', '#[#]', getInterceptor(value), property)) return value;
   propertyTypeError(value, property);
 }
 
@@ -1196,7 +1208,7 @@ numberOrStringSuperNativeTypeCast(value, property) {
   if (value == null) return value;
   if (value is String) return value;
   if (value is num) return value;
-  if (JS('bool', '#[#]()', value, property)) return value;
+  if (JS('bool', '#[#]', getInterceptor(value), property)) return value;
   propertyTypeCastError(value, property);
 }
 
@@ -1219,13 +1231,13 @@ stringSuperTypeCast(value, property) {
 stringSuperNativeTypeCheck(value, property) {
   if (value == null) return value;
   if (value is String) return value;
-  if (JS('bool', '#[#]()', value, property)) return value;
+  if (JS('bool', '#[#]', getInterceptor(value), property)) return value;
   propertyTypeError(value, property);
 }
 
 stringSuperNativeTypeCast(value, property) {
   if (value is String || value == null) return value;
-  if (JS('bool', '#[#]()', value, property)) return value;
+  if (JS('bool', '#[#]', getInterceptor(value), property)) return value;
   propertyTypeCastError(value, property);
 }
 
@@ -1260,13 +1272,13 @@ listSuperTypeCast(value, property) {
 listSuperNativeTypeCheck(value, property) {
   if (value == null) return value;
   if (value is List) return value;
-  if (JS('bool', '#[#]()', value, property)) return value;
+  if (JS('bool', '#[#]', getInterceptor(value), property)) return value;
   propertyTypeError(value, property);
 }
 
 listSuperNativeTypeCast(value, property) {
   if (value is List || value == null) return value;
-  if (JS('bool', '#[#]()', value, property)) return value;
+  if (JS('bool', '#[#]', getInterceptor(value), property)) return value;
   propertyTypeCastError(value, property);
 }
 

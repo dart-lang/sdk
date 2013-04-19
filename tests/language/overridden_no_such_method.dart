@@ -7,7 +7,7 @@ class GetName {
   foo(a, b) => "foo";
 }
 
-String getName(im) => im.invokeOn(new GetName());
+String getName(im) => reflect(new GetName()).delegate(im);
 
 class OverriddenNoSuchMethod {
 

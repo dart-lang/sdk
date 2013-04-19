@@ -21,8 +21,7 @@ class SourceRegistry {
   /// registered source.
   void setDefault(String name) {
     if (!_map.containsKey(name)) {
-      // TODO(nweiz): Real error-handling system
-      throw 'Default source $name is not in the registry';
+      throw new StateError('Default source $name is not in the registry');
     }
 
     _default = _map[name];
@@ -32,8 +31,8 @@ class SourceRegistry {
   /// that's already been registered.
   void register(Source source) {
     if (_map.containsKey(source.name)) {
-      // TODO(nweiz): Real error-handling system
-      throw 'Source registry already has a source named ${source.name}';
+      throw new StateError('Source registry already has a source named '
+          '${source.name}');
     }
 
     _map[source.name] = source;
@@ -47,10 +46,9 @@ class SourceRegistry {
   Source operator[](String name) {
     if (name == null) {
       if (defaultSource != null) return defaultSource;
-      // TODO(nweiz): Real error-handling system
-      throw 'No default source has been registered';
+      throw new StateError('No default source has been registered');
     }
     if (_map.containsKey(name)) return _map[name];
-    throw 'No source named $name is registered';
+    throw new ArgumentError('No source named $name is registered');
   }
 }

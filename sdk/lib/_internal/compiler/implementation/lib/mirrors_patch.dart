@@ -5,6 +5,7 @@
 // Patch library for dart:mirrors.
 
 import 'dart:_foreign_helper' show JS;
+import "dart:_collection-dev" as _symbol_dev;
 
 // Yeah, seriously: mirrors in dart2js are experimental...
 const String _MIRROR_OPT_IN_MESSAGE = """
@@ -25,8 +26,7 @@ bool _mirrorsEnabled = false;
 
 patch class MirrorSystem {
   patch static String getName(Symbol symbol) {
-    throw new UnimplementedError('MirrorSystem.getName is not yet implemented '
-                                 'in dart2js');
+    return _symbol_dev.Symbol.getName(symbol);
   }
 }
 
@@ -49,8 +49,12 @@ patch InstanceMirror reflect(Object reflectee) {
     _mirrorsEnabled = true;
     print(reflectee);
   }
-  _ensureEnabled();
   return new _InstanceMirror(reflectee);
+}
+
+patch ClassMirror reflectClass(Type key) {
+  throw new UnimplementedError('reflectClass is not yet implemented'
+                               'in dart2js');
 }
 
 class _InstanceMirror extends InstanceMirror {
@@ -58,13 +62,12 @@ class _InstanceMirror extends InstanceMirror {
 
   final reflectee;
 
-  _InstanceMirror(this.reflectee) {
-    _ensureEnabled();
-  }
+  _InstanceMirror(this.reflectee);
 
   bool get hasReflectee => true;
 
   ClassMirror get type {
+    _ensureEnabled();
     String className = Primitives.objectTypeName(reflectee);
     var constructor = Primitives.getConstructor(className);
     var mirror = classMirrors[constructor];
@@ -78,6 +81,7 @@ class _InstanceMirror extends InstanceMirror {
   Future<InstanceMirror> invokeAsync(String memberName,
                                      List<Object> positionalArguments,
                                      [Map<String,Object> namedArguments]) {
+    _ensureEnabled();
     if (namedArguments != null && !namedArguments.isEmpty) {
       throw new UnsupportedError('Named arguments are not implemented');
     }
@@ -99,6 +103,10 @@ class _InstanceMirror extends InstanceMirror {
       }
     });
     return completer.future;
+  }
+
+  delegate(Invocation invocation) {
+    return JSInvocationMirror.invokeFromMirror(invocation, reflectee);
   }
 
   String toString() => 'InstanceMirror($reflectee)';
