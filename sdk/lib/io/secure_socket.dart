@@ -347,8 +347,9 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       futureSocket = new Future.value(socket);
     }
     futureSocket.then((rawSocket) {
-      rawSocket.writeEventsEnabled = false;
       _socket = rawSocket;
+      _socket.readEventsEnabled = true;
+      _socket.writeEventsEnabled = false;
       if (_socketSubscription == null) {
         // If a current subscription is provided use this otherwise
         // create a new one.

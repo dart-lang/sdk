@@ -314,6 +314,7 @@ void testSimpleReadWrite(bool listenSecure,
               // Read first part of TLS handshake from client.
               Expect.isTrue(postponeSecure);
               completer.complete([subscription, buffer]);
+              client.readEventsEnabled = false;
               return;
             }
             data.setRange(bytesRead, bytesRead + buffer.length, buffer);
