@@ -158,7 +158,8 @@ void _compileScript() {
 
       return dart2js.compile(
           new Path(dartPath), new Path(message['libPath']),
-          options: const <String>['--categories=Client,Server']).then((jsCode) {
+          options: const <String>['--categories=Client,Server', '--minify'])
+      .then((jsCode) {
         writeString(new File(jsPath), jsCode);
       });
     }).then((_) {
