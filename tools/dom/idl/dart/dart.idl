@@ -371,12 +371,4 @@ interface JavaScriptCallFrame {};
 
 
 [Suppressed]
-interface ScriptProfile {};
-
-
-[Suppressed]
-interface ScriptProfileNode {};
-
-
-[Suppressed]
 interface Entity {};

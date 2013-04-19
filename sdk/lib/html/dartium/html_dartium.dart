@@ -2115,6 +2115,10 @@ class Console extends NativeFieldWrapperClass1 {
   @DocsEditable
   MemoryInfo get memory native "Console_memory_Getter";
 
+  @DomName('Console.profiles')
+  @DocsEditable
+  List<ScriptProfile> get profiles native "Console_profiles_Getter";
+
   @DomName('Console.assertCondition')
   @DocsEditable
   void assertCondition(bool condition, Object arg) native "Console_assertCondition_Callback";
@@ -21452,6 +21456,84 @@ class ScriptElement extends _Element_Merged {
   @DomName('HTMLScriptElement.type')
   @DocsEditable
   void set type(String value) native "HTMLScriptElement_type_Setter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('ScriptProfile')
+class ScriptProfile extends NativeFieldWrapperClass1 {
+  ScriptProfile.internal();
+
+  @DomName('ScriptProfile.head')
+  @DocsEditable
+  ScriptProfileNode get head native "ScriptProfile_head_Getter";
+
+  @DomName('ScriptProfile.idleTime')
+  @DocsEditable
+  num get idleTime native "ScriptProfile_idleTime_Getter";
+
+  @DomName('ScriptProfile.title')
+  @DocsEditable
+  String get title native "ScriptProfile_title_Getter";
+
+  @DomName('ScriptProfile.uid')
+  @DocsEditable
+  int get uid native "ScriptProfile_uid_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('ScriptProfileNode')
+class ScriptProfileNode extends NativeFieldWrapperClass1 {
+  ScriptProfileNode.internal();
+
+  @DomName('ScriptProfileNode.callUID')
+  @DocsEditable
+  int get callUid native "ScriptProfileNode_callUID_Getter";
+
+  @DomName('ScriptProfileNode.functionName')
+  @DocsEditable
+  String get functionName native "ScriptProfileNode_functionName_Getter";
+
+  @DomName('ScriptProfileNode.lineNumber')
+  @DocsEditable
+  int get lineNumber native "ScriptProfileNode_lineNumber_Getter";
+
+  @DomName('ScriptProfileNode.numberOfCalls')
+  @DocsEditable
+  int get numberOfCalls native "ScriptProfileNode_numberOfCalls_Getter";
+
+  @DomName('ScriptProfileNode.selfTime')
+  @DocsEditable
+  num get selfTime native "ScriptProfileNode_selfTime_Getter";
+
+  @DomName('ScriptProfileNode.totalTime')
+  @DocsEditable
+  num get totalTime native "ScriptProfileNode_totalTime_Getter";
+
+  @DomName('ScriptProfileNode.url')
+  @DocsEditable
+  String get url native "ScriptProfileNode_url_Getter";
+
+  @DomName('ScriptProfileNode.visible')
+  @DocsEditable
+  bool get visible native "ScriptProfileNode_visible_Getter";
+
+  @DomName('ScriptProfileNode.children')
+  @DocsEditable
+  List<ScriptProfileNode> children() native "ScriptProfileNode_children_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

@@ -1706,11 +1706,9 @@ class Console {
   MemoryInfo get memory => _isConsoleDefined ?
       JS('MemoryInfo', 'console.memory') : null;
 
-  /*
   @DomName('Console.profiles')
   List<ScriptProfile> get profiles => _isConsoleDefined ?
       JS('List<ScriptProfile>', 'console.profiles') : null;
-      */
 
   @DomName('Console.assertCondition')
   void assertCondition(bool condition, Object arg) => _isConsoleDefined ?
@@ -19909,6 +19907,77 @@ class ScriptElement extends Element native "*HTMLScriptElement" {
   @DomName('HTMLScriptElement.type')
   @DocsEditable
   String type;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('ScriptProfile')
+class ScriptProfile native "*ScriptProfile" {
+
+  @DomName('ScriptProfile.head')
+  @DocsEditable
+  final ScriptProfileNode head;
+
+  @DomName('ScriptProfile.idleTime')
+  @DocsEditable
+  final num idleTime;
+
+  @DomName('ScriptProfile.title')
+  @DocsEditable
+  final String title;
+
+  @DomName('ScriptProfile.uid')
+  @DocsEditable
+  final int uid;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('ScriptProfileNode')
+class ScriptProfileNode native "*ScriptProfileNode" {
+
+  @JSName('callUID')
+  @DomName('ScriptProfileNode.callUID')
+  @DocsEditable
+  final int callUid;
+
+  @DomName('ScriptProfileNode.functionName')
+  @DocsEditable
+  final String functionName;
+
+  @DomName('ScriptProfileNode.lineNumber')
+  @DocsEditable
+  final int lineNumber;
+
+  @DomName('ScriptProfileNode.numberOfCalls')
+  @DocsEditable
+  final int numberOfCalls;
+
+  @DomName('ScriptProfileNode.selfTime')
+  @DocsEditable
+  final num selfTime;
+
+  @DomName('ScriptProfileNode.totalTime')
+  @DocsEditable
+  final num totalTime;
+
+  @DomName('ScriptProfileNode.url')
+  @DocsEditable
+  final String url;
+
+  @DomName('ScriptProfileNode.visible')
+  @DocsEditable
+  final bool visible;
+
+  @DomName('ScriptProfileNode.children')
+  @DocsEditable
+  List<ScriptProfileNode> children() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
