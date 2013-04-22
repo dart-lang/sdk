@@ -63,7 +63,6 @@ global_error_handler_test: Pass, Fail # http://dartbug.com/9012 and http://dartb
 global_error_handler_stream_test: Pass, Fail # http://dartbug.com/9012 and http://dartbug.com/9024
 global_error_handler2_test: Pass, Fail # http://dartbug.com/9012 and http://dartbug.com/9024
 global_error_handler_stream2_test: Pass, Fail # http://dartbug.com/9012 and http://dartbug.com/9024
-typed_data_message_test: Fail # dart:typeddata not supported in dart2js yet.
 
 [ $runtime == safari ]
 cross_isolate_message_test: Skip      # Depends on 32/64 bit Safari. See Issue 1120
