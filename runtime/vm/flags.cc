@@ -102,9 +102,12 @@ bool Flags::Register_bool(bool* addr,
                           const char* name,
                           bool default_value,
                           const char* comment) {
-  ASSERT(Lookup(name) == NULL);
-
-  Flag* flag = new Flag(name, comment, addr, Flag::kBoolean);
+  Flag* flag = Lookup(name);
+  if (flag != NULL) {
+    ASSERT(flag->IsUnrecognized());
+    return default_value;
+  }
+  flag = new Flag(name, comment, addr, Flag::kBoolean);
   flag->next_ = Flags::flags_;
   Flags::flags_ = flag;
 
@@ -201,7 +204,7 @@ void Flags::Parse(const char* option) {
   if (flag == NULL) {
     // Collect unrecognized flags.
     char* new_flag = new char[name_len + 1];
-    strncpy(new_flag, name, name_len);
+    strncpy(new_flag, option, name_len);
     new_flag[name_len] = '\0';
     Flags::Register_bool(NULL, new_flag, true, NULL);
   } else {
