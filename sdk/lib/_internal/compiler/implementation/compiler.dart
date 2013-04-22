@@ -735,7 +735,7 @@ abstract class Compiler implements DiagnosticListener {
     // TODO(ngeoffray): Enable annotations on these classes.
     ClassElement cls =
         isolateHelperLibrary.find(const SourceString('_WorkerStub'));
-    cls.setNative('"*Worker"');
+    cls.setNative('"Worker"');
 
     assertMethod = jsHelperLibrary.find(const SourceString('assertHelper'));
     identicalFunction = coreLibrary.find(const SourceString('identical'));

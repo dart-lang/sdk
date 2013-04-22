@@ -47,7 +47,7 @@ List<Element> queryAll(String selector) => document.queryAll(selector);
 
 // Workaround for tags like <cite> that lack their own Element subclass --
 // Dart issue 1990.
-class _HTMLElement extends Element native "*HTMLElement" {
+class _HTMLElement extends Element native "HTMLElement" {
 }
 
 // Support for Send/ReceivePortSync.
@@ -71,7 +71,7 @@ spawnDomFunction(f) => IsolateNatives.spawnDomFunction(f);
 
 @DocsEditable
 @DomName('AbstractWorker')
-class AbstractWorker extends EventTarget native "*AbstractWorker" {
+class AbstractWorker extends EventTarget native "AbstractWorker" {
 
   @DomName('AbstractWorker.errorEvent')
   @DocsEditable
@@ -102,7 +102,7 @@ class AbstractWorker extends EventTarget native "*AbstractWorker" {
 
 @DocsEditable
 @DomName('HTMLAnchorElement')
-class AnchorElement extends Element native "*HTMLAnchorElement" {
+class AnchorElement extends Element native "HTMLAnchorElement" {
 
   @DomName('HTMLAnchorElement.HTMLAnchorElement')
   @DocsEditable
@@ -187,7 +187,7 @@ class AnchorElement extends Element native "*HTMLAnchorElement" {
 
 @DocsEditable
 @DomName('WebKitAnimationEvent')
-class AnimationEvent extends Event native "*WebKitAnimationEvent" {
+class AnimationEvent extends Event native "WebKitAnimationEvent" {
 
   @DomName('AnimationEvent.animationName')
   @DocsEditable
@@ -209,7 +209,7 @@ class AnimationEvent extends Event native "*WebKitAnimationEvent" {
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.OPERA)
 @SupportedBrowser(SupportedBrowser.SAFARI)
-class ApplicationCache extends EventTarget native "*DOMApplicationCache" {
+class ApplicationCache extends EventTarget native "ApplicationCache,DOMApplicationCache,OfflineResourceList" {
 
   @DomName('DOMApplicationCache.cachedEvent')
   @DocsEditable
@@ -337,7 +337,7 @@ class ApplicationCache extends EventTarget native "*DOMApplicationCache" {
  * on MDN.
  */
 @DomName('HTMLAreaElement')
-class AreaElement extends Element native "*HTMLAreaElement" {
+class AreaElement extends Element native "HTMLAreaElement" {
 
   @DomName('HTMLAreaElement.HTMLAreaElement')
   @DocsEditable
@@ -402,7 +402,7 @@ class AreaElement extends Element native "*HTMLAreaElement" {
 
 @DocsEditable
 @DomName('Attr')
-class Attr extends Node native "*Attr" {
+class Attr extends Node native "Attr" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -411,7 +411,7 @@ class Attr extends Node native "*Attr" {
 
 @DocsEditable
 @DomName('HTMLAudioElement')
-class AudioElement extends MediaElement native "*HTMLAudioElement" {
+class AudioElement extends MediaElement native "HTMLAudioElement" {
 
   @DomName('HTMLAudioElement.HTMLAudioElement')
   @DocsEditable
@@ -431,7 +431,7 @@ class AudioElement extends MediaElement native "*HTMLAudioElement" {
 
 @DocsEditable
 @DomName('AutocompleteErrorEvent')
-class AutocompleteErrorEvent extends Event native "*AutocompleteErrorEvent" {
+class AutocompleteErrorEvent extends Event native "AutocompleteErrorEvent" {
 
   @DomName('AutocompleteErrorEvent.reason')
   @DocsEditable
@@ -444,7 +444,7 @@ class AutocompleteErrorEvent extends Event native "*AutocompleteErrorEvent" {
 
 @DocsEditable
 @DomName('HTMLBRElement')
-class BRElement extends Element native "*HTMLBRElement" {
+class BRElement extends Element native "HTMLBRElement" {
 
   @DomName('HTMLBRElement.HTMLBRElement')
   @DocsEditable
@@ -457,7 +457,7 @@ class BRElement extends Element native "*HTMLBRElement" {
 
 @DocsEditable
 @DomName('BarInfo')
-class BarInfo native "*BarInfo" {
+class BarInfo native "BarInfo" {
 
   @DomName('BarInfo.visible')
   @DocsEditable
@@ -470,7 +470,7 @@ class BarInfo native "*BarInfo" {
 
 @DocsEditable
 @DomName('HTMLBaseElement')
-class BaseElement extends Element native "*HTMLBaseElement" {
+class BaseElement extends Element native "HTMLBaseElement" {
 
   @DomName('HTMLBaseElement.HTMLBaseElement')
   @DocsEditable
@@ -491,7 +491,7 @@ class BaseElement extends Element native "*HTMLBaseElement" {
 
 @DocsEditable
 @DomName('BeforeLoadEvent')
-class BeforeLoadEvent extends Event native "*BeforeLoadEvent" {
+class BeforeLoadEvent extends Event native "BeforeLoadEvent" {
 
   @DomName('BeforeLoadEvent.url')
   @DocsEditable
@@ -503,7 +503,7 @@ class BeforeLoadEvent extends Event native "*BeforeLoadEvent" {
 
 
 @DomName('Blob')
-class Blob native "*Blob" {
+class Blob native "Blob" {
 
   @DomName('Blob.size')
   @DocsEditable
@@ -544,7 +544,7 @@ class Blob native "*Blob" {
 
 @DocsEditable
 @DomName('HTMLBodyElement')
-class BodyElement extends Element native "*HTMLBodyElement" {
+class BodyElement extends Element native "HTMLBodyElement" {
 
   @DomName('HTMLBodyElement.blurEvent')
   @DocsEditable
@@ -653,7 +653,7 @@ class BodyElement extends Element native "*HTMLBodyElement" {
 
 @DocsEditable
 @DomName('HTMLButtonElement')
-class ButtonElement extends Element native "*HTMLButtonElement" {
+class ButtonElement extends Element native "HTMLButtonElement" {
 
   @DomName('HTMLButtonElement.HTMLButtonElement')
   @DocsEditable
@@ -736,7 +736,7 @@ class ButtonElement extends Element native "*HTMLButtonElement" {
 
 @DocsEditable
 @DomName('CDATASection')
-class CDataSection extends Text native "*CDATASection" {
+class CDataSection extends Text native "CDATASection" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -744,7 +744,7 @@ class CDataSection extends Text native "*CDATASection" {
 
 
 @DomName('HTMLCanvasElement')
-class CanvasElement extends Element implements CanvasImageSource native "*HTMLCanvasElement" {
+class CanvasElement extends Element implements CanvasImageSource native "HTMLCanvasElement" {
 
   @DomName('HTMLCanvasElement.HTMLCanvasElement')
   @DocsEditable
@@ -892,7 +892,7 @@ class CanvasElement extends Element implements CanvasImageSource native "*HTMLCa
  * * [CanvasGradient](http://www.w3.org/TR/2010/WD-2dcontext-20100304/#canvasgradient) from W3C.
  */
 @DomName('CanvasGradient')
-class CanvasGradient native "*CanvasGradient" {
+class CanvasGradient native "CanvasGradient" {
 
   /**
    * Adds a color stop to this gradient at the offset.
@@ -941,7 +941,7 @@ class CanvasGradient native "*CanvasGradient" {
  * * [CanvasPattern](http://www.w3.org/TR/2010/WD-2dcontext-20100304/#canvaspattern) from W3C.
  */
 @DomName('CanvasPattern')
-class CanvasPattern native "*CanvasPattern" {
+class CanvasPattern native "CanvasPattern" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -950,7 +950,7 @@ class CanvasPattern native "*CanvasPattern" {
 
 @DocsEditable
 @DomName('CanvasProxy')
-class CanvasProxy native "*CanvasProxy" {
+class CanvasProxy native "CanvasProxy" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -965,7 +965,7 @@ class CanvasProxy native "*CanvasProxy" {
  * [WebGLRenderingContext].
  */
 @DomName('CanvasRenderingContext')
-class CanvasRenderingContext native "*CanvasRenderingContext" {
+class CanvasRenderingContext native "CanvasRenderingContext" {
 
   /// Reference to the canvas element to which this context belongs.
   @DomName('CanvasRenderingContext.canvas')
@@ -978,7 +978,7 @@ class CanvasRenderingContext native "*CanvasRenderingContext" {
 
 
 @DomName('CanvasRenderingContext2D')
-class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRenderingContext2D" {
+class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRenderingContext2D" {
 
   @DomName('CanvasRenderingContext2D.currentPath')
   @DocsEditable
@@ -1522,7 +1522,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "*CanvasRen
 
 @DocsEditable
 @DomName('CharacterData')
-class CharacterData extends Node native "*CharacterData" {
+class CharacterData extends Node native "CharacterData" {
 
   @DomName('CharacterData.data')
   @DocsEditable
@@ -1559,7 +1559,7 @@ class CharacterData extends Node native "*CharacterData" {
 
 @DocsEditable
 @DomName('CloseEvent')
-class CloseEvent extends Event native "*CloseEvent" {
+class CloseEvent extends Event native "CloseEvent" {
 
   @DomName('CloseEvent.code')
   @DocsEditable
@@ -1580,7 +1580,7 @@ class CloseEvent extends Event native "*CloseEvent" {
 
 @DocsEditable
 @DomName('Comment')
-class Comment extends CharacterData native "*Comment" {
+class Comment extends CharacterData native "Comment" {
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1590,7 +1590,7 @@ class Comment extends CharacterData native "*Comment" {
 
 
 @DomName('CompositionEvent')
-class CompositionEvent extends UIEvent native "*CompositionEvent" {
+class CompositionEvent extends UIEvent native "CompositionEvent" {
   factory CompositionEvent(String type,
       {bool canBubble: false, bool cancelable: false, Window view,
       String data}) {
@@ -1726,7 +1726,7 @@ class Console {
 @DomName('HTMLContentElement')
 @SupportedBrowser(SupportedBrowser.CHROME, '26')
 @Experimental
-class ContentElement extends Element native "*HTMLContentElement" {
+class ContentElement extends Element native "HTMLContentElement" {
 
   @DomName('HTMLContentElement.HTMLContentElement')
   @DocsEditable
@@ -1756,7 +1756,7 @@ class ContentElement extends Element native "*HTMLContentElement" {
 
 @DocsEditable
 @DomName('Coordinates')
-class Coordinates native "*Coordinates" {
+class Coordinates native "Coordinates" {
 
   @DomName('Coordinates.accuracy')
   @DocsEditable
@@ -1796,7 +1796,7 @@ class Coordinates native "*Coordinates" {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
-class Crypto native "*Crypto" {
+class Crypto native "Crypto" {
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.crypto && window.crypto.getRandomValues)');
@@ -1814,7 +1814,7 @@ class Crypto native "*Crypto" {
 
 @DocsEditable
 @DomName('CSSCharsetRule')
-class CssCharsetRule extends CssRule native "*CSSCharsetRule" {
+class CssCharsetRule extends CssRule native "CSSCharsetRule" {
 
   @DomName('CSSCharsetRule.encoding')
   @DocsEditable
@@ -1827,7 +1827,7 @@ class CssCharsetRule extends CssRule native "*CSSCharsetRule" {
 
 @DocsEditable
 @DomName('CSSFontFaceLoadEvent')
-class CssFontFaceLoadEvent extends Event native "*CSSFontFaceLoadEvent" {
+class CssFontFaceLoadEvent extends Event native "CSSFontFaceLoadEvent" {
 
   @DomName('CSSFontFaceLoadEvent.error')
   @DocsEditable
@@ -1844,7 +1844,7 @@ class CssFontFaceLoadEvent extends Event native "*CSSFontFaceLoadEvent" {
 
 @DocsEditable
 @DomName('CSSFontFaceRule')
-class CssFontFaceRule extends CssRule native "*CSSFontFaceRule" {
+class CssFontFaceRule extends CssRule native "CSSFontFaceRule" {
 
   @DomName('CSSFontFaceRule.style')
   @DocsEditable
@@ -1859,7 +1859,7 @@ class CssFontFaceRule extends CssRule native "*CSSFontFaceRule" {
 @DomName('CSSHostRule')
 @SupportedBrowser(SupportedBrowser.CHROME, '26')
 @Experimental
-class CssHostRule extends CssRule native "*CSSHostRule" {
+class CssHostRule extends CssRule native "CSSHostRule" {
 
   @DomName('CSSHostRule.cssRules')
   @DocsEditable
@@ -1882,7 +1882,7 @@ class CssHostRule extends CssRule native "*CSSHostRule" {
 
 @DocsEditable
 @DomName('CSSImportRule')
-class CssImportRule extends CssRule native "*CSSImportRule" {
+class CssImportRule extends CssRule native "CSSImportRule" {
 
   @DomName('CSSImportRule.href')
   @DocsEditable
@@ -1903,7 +1903,7 @@ class CssImportRule extends CssRule native "*CSSImportRule" {
 
 @DocsEditable
 @DomName('WebKitCSSKeyframeRule')
-class CssKeyframeRule extends CssRule native "*WebKitCSSKeyframeRule" {
+class CssKeyframeRule extends CssRule native "WebKitCSSKeyframeRule" {
 
   @DomName('WebKitCSSKeyframeRule.keyText')
   @DocsEditable
@@ -1920,7 +1920,7 @@ class CssKeyframeRule extends CssRule native "*WebKitCSSKeyframeRule" {
 
 @DocsEditable
 @DomName('WebKitCSSKeyframesRule')
-class CssKeyframesRule extends CssRule native "*WebKitCSSKeyframesRule" {
+class CssKeyframesRule extends CssRule native "WebKitCSSKeyframesRule" {
 
   @DomName('WebKitCSSKeyframesRule.cssRules')
   @DocsEditable
@@ -1951,7 +1951,7 @@ class CssKeyframesRule extends CssRule native "*WebKitCSSKeyframesRule" {
 
 @DocsEditable
 @DomName('CSSMediaRule')
-class CssMediaRule extends CssRule native "*CSSMediaRule" {
+class CssMediaRule extends CssRule native "CSSMediaRule" {
 
   @DomName('CSSMediaRule.cssRules')
   @DocsEditable
@@ -1978,7 +1978,7 @@ class CssMediaRule extends CssRule native "*CSSMediaRule" {
 
 @DocsEditable
 @DomName('CSSPageRule')
-class CssPageRule extends CssRule native "*CSSPageRule" {
+class CssPageRule extends CssRule native "CSSPageRule" {
 
   @DomName('CSSPageRule.selectorText')
   @DocsEditable
@@ -1995,7 +1995,7 @@ class CssPageRule extends CssRule native "*CSSPageRule" {
 
 @DocsEditable
 @DomName('CSSRule')
-class CssRule native "*CSSRule" {
+class CssRule native "CSSRule" {
 
   static const int CHARSET_RULE = 2;
 
@@ -2043,7 +2043,7 @@ class CssRule native "*CSSRule" {
 
 
 @DomName('CSSStyleDeclaration')
-class CssStyleDeclaration native "*CSSStyleDeclaration" {
+class CssStyleDeclaration native "CSSStyleDeclaration" {
   factory CssStyleDeclaration() => _CssStyleDeclarationFactoryProvider.createCssStyleDeclaration();
   factory CssStyleDeclaration.css(String css) =>
       _CssStyleDeclarationFactoryProvider.createCssStyleDeclaration_css(css);
@@ -5280,7 +5280,7 @@ class CssStyleDeclaration native "*CSSStyleDeclaration" {
 
 @DocsEditable
 @DomName('CSSStyleRule')
-class CssStyleRule extends CssRule native "*CSSStyleRule" {
+class CssStyleRule extends CssRule native "CSSStyleRule" {
 
   @DomName('CSSStyleRule.selectorText')
   @DocsEditable
@@ -5297,7 +5297,7 @@ class CssStyleRule extends CssRule native "*CSSStyleRule" {
 
 @DocsEditable
 @DomName('CSSStyleSheet')
-class CssStyleSheet extends StyleSheet native "*CSSStyleSheet" {
+class CssStyleSheet extends StyleSheet native "CSSStyleSheet" {
 
   @DomName('CSSStyleSheet.cssRules')
   @DocsEditable
@@ -5338,7 +5338,7 @@ class CssStyleSheet extends StyleSheet native "*CSSStyleSheet" {
 
 @DocsEditable
 @DomName('CSSUnknownRule')
-class CssUnknownRule extends CssRule native "*CSSUnknownRule" {
+class CssUnknownRule extends CssRule native "CSSUnknownRule" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5347,7 +5347,7 @@ class CssUnknownRule extends CssRule native "*CSSUnknownRule" {
 
 @DocsEditable
 @DomName('CustomElementConstructor')
-class CustomElementConstructor native "*CustomElementConstructor" {
+class CustomElementConstructor native "CustomElementConstructor" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5357,7 +5357,7 @@ class CustomElementConstructor native "*CustomElementConstructor" {
 
 
 @DomName('CustomEvent')
-class CustomEvent extends Event native "*CustomEvent" {
+class CustomEvent extends Event native "CustomEvent" {
   factory CustomEvent(String type,
       {bool canBubble: true, bool cancelable: true, Object detail}) {
 
@@ -5384,7 +5384,7 @@ class CustomEvent extends Event native "*CustomEvent" {
 
 @DocsEditable
 @DomName('HTMLDListElement')
-class DListElement extends Element native "*HTMLDListElement" {
+class DListElement extends Element native "HTMLDListElement" {
 
   @DomName('HTMLDListElement.HTMLDListElement')
   @DocsEditable
@@ -5401,7 +5401,7 @@ class DListElement extends Element native "*HTMLDListElement" {
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-class DataListElement extends Element native "*HTMLDataListElement" {
+class DataListElement extends Element native "HTMLDataListElement" {
 
   @DomName('HTMLDataListElement.HTMLDataListElement')
   @DocsEditable
@@ -5421,7 +5421,7 @@ class DataListElement extends Element native "*HTMLDataListElement" {
 
 @DocsEditable
 @DomName('Clipboard')
-class DataTransfer native "*Clipboard" {
+class DataTransfer native "Clipboard" {
 
   @DomName('Clipboard.dropEffect')
   @DocsEditable
@@ -5484,7 +5484,7 @@ class DataTransfer native "*Clipboard" {
 
 @DocsEditable
 @DomName('DataTransferItem')
-class DataTransferItem native "*DataTransferItem" {
+class DataTransferItem native "DataTransferItem" {
 
   @DomName('DataTransferItem.kind')
   @DocsEditable
@@ -5528,7 +5528,7 @@ class DataTransferItem native "*DataTransferItem" {
 
 @DocsEditable
 @DomName('DataTransferItemList')
-class DataTransferItemList native "*DataTransferItemList" {
+class DataTransferItemList native "DataTransferItemList" {
 
   @DomName('DataTransferItemList.length')
   @DocsEditable
@@ -5564,7 +5564,7 @@ typedef void DatabaseCallback(database);
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
-class DetailsElement extends Element native "*HTMLDetailsElement" {
+class DetailsElement extends Element native "HTMLDetailsElement" {
 
   @DomName('HTMLDetailsElement.HTMLDetailsElement')
   @DocsEditable
@@ -5584,7 +5584,7 @@ class DetailsElement extends Element native "*HTMLDetailsElement" {
 
 @DocsEditable
 @DomName('DeviceAcceleration')
-class DeviceAcceleration native "*DeviceAcceleration" {
+class DeviceAcceleration native "DeviceAcceleration" {
 
   @DomName('DeviceAcceleration.x')
   @DocsEditable
@@ -5605,7 +5605,7 @@ class DeviceAcceleration native "*DeviceAcceleration" {
 
 @DocsEditable
 @DomName('DeviceMotionEvent')
-class DeviceMotionEvent extends Event native "*DeviceMotionEvent" {
+class DeviceMotionEvent extends Event native "DeviceMotionEvent" {
 
   @DomName('DeviceMotionEvent.acceleration')
   @DocsEditable
@@ -5631,7 +5631,7 @@ class DeviceMotionEvent extends Event native "*DeviceMotionEvent" {
 
 @DomName('DeviceOrientationEvent')
 
-class DeviceOrientationEvent extends Event native "*DeviceOrientationEvent" {
+class DeviceOrientationEvent extends Event native "DeviceOrientationEvent" {
   factory DeviceOrientationEvent(String type,
       {bool canBubble: true, bool cancelable: true, num alpha: 0, num beta: 0,
       num gamma: 0, bool absolute: false}) {
@@ -5670,7 +5670,7 @@ class DeviceOrientationEvent extends Event native "*DeviceOrientationEvent" {
 
 @DocsEditable
 @DomName('DeviceRotationRate')
-class DeviceRotationRate native "*DeviceRotationRate" {
+class DeviceRotationRate native "DeviceRotationRate" {
 
   @DomName('DeviceRotationRate.alpha')
   @DocsEditable
@@ -5691,7 +5691,7 @@ class DeviceRotationRate native "*DeviceRotationRate" {
 
 @DocsEditable
 @DomName('HTMLDialogElement')
-class DialogElement extends Element native "*HTMLDialogElement" {
+class DialogElement extends Element native "HTMLDialogElement" {
 
   @DomName('HTMLDialogElement.open')
   @DocsEditable
@@ -5715,7 +5715,7 @@ class DialogElement extends Element native "*HTMLDialogElement" {
 
 
 @DomName('DirectoryEntry')
-class DirectoryEntry extends Entry native "*DirectoryEntry" {
+class DirectoryEntry extends Entry native "DirectoryEntry" {
   
   /**
    * Create a new directory with the specified `path`. If `exclusive` is true,
@@ -5881,7 +5881,7 @@ class DirectoryEntry extends Entry native "*DirectoryEntry" {
 
 @DocsEditable
 @DomName('DirectoryReader')
-class DirectoryReader native "*DirectoryReader" {
+class DirectoryReader native "DirectoryReader" {
 
   @JSName('readEntries')
   @DomName('DirectoryReader.readEntries')
@@ -5927,7 +5927,7 @@ class DirectoryReader native "*DirectoryReader" {
  * * [Inline-level element](http://www.w3.org/TR/CSS2/visuren.html#inline-boxes) from W3C.
  */
 @DomName('HTMLDivElement')
-class DivElement extends Element native "*HTMLDivElement" {
+class DivElement extends Element native "HTMLDivElement" {
 
   @DomName('HTMLDivElement.HTMLDivElement')
   @DocsEditable
@@ -5948,7 +5948,7 @@ class DivElement extends Element native "*HTMLDivElement" {
  * [Target 2: Connect Dart & HTML](http://www.dartlang.org/docs/tutorials/connect-dart-html/).
  */
 @DomName('Document')
-class Document extends Node  native "*Document"
+class Document extends Node  native "Document"
 {
 
 
@@ -6541,7 +6541,7 @@ class Document extends Node  native "*Document"
 
 
 @DomName('DocumentFragment')
-class DocumentFragment extends Node native "*DocumentFragment" {
+class DocumentFragment extends Node native "DocumentFragment" {
   factory DocumentFragment() => _DocumentFragmentFactoryProvider.createDocumentFragment();
 
   factory DocumentFragment.html(String html) =>
@@ -6632,7 +6632,7 @@ class DocumentFragment extends Node native "*DocumentFragment" {
 
 @DocsEditable
 @DomName('DocumentType')
-class DocumentType extends Node native "*DocumentType" {
+class DocumentType extends Node native "DocumentType" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6641,7 +6641,7 @@ class DocumentType extends Node native "*DocumentType" {
 
 @DocsEditable
 @DomName('DOMError')
-class DomError native "*DOMError" {
+class DomError native "DOMError" {
 
   @DomName('DOMError.name')
   @DocsEditable
@@ -6653,7 +6653,7 @@ class DomError native "*DOMError" {
 
 
 @DomName('DOMException')
-class DomException native "*DOMException" {
+class DomException native "DOMException" {
 
   static const String INDEX_SIZE = 'IndexSizeError';
   static const String HIERARCHY_REQUEST = 'HierarchyRequestError';
@@ -6704,7 +6704,7 @@ class DomException native "*DOMException" {
 
 @DocsEditable
 @DomName('DOMImplementation')
-class DomImplementation native "*DOMImplementation" {
+class DomImplementation native "DOMImplementation" {
 
   @JSName('createCSSStyleSheet')
   @DomName('DOMImplementation.createCSSStyleSheet')
@@ -6735,7 +6735,7 @@ class DomImplementation native "*DOMImplementation" {
 
 @DocsEditable
 @DomName('MimeType')
-class DomMimeType native "*MimeType" {
+class DomMimeType native "MimeType" {
 
   @DomName('DOMMimeType.description')
   @DocsEditable
@@ -6760,7 +6760,7 @@ class DomMimeType native "*MimeType" {
 
 @DocsEditable
 @DomName('MimeTypeArray')
-class DomMimeTypeArray implements JavaScriptIndexingBehavior, List<DomMimeType> native "*MimeTypeArray" {
+class DomMimeTypeArray implements JavaScriptIndexingBehavior, List<DomMimeType> native "MimeTypeArray" {
 
   @DomName('DOMMimeTypeArray.length')
   @DocsEditable
@@ -6981,7 +6981,7 @@ class DomMimeTypeArray implements JavaScriptIndexingBehavior, List<DomMimeType> 
 
 @DocsEditable
 @DomName('WebKitNamedFlowCollection')
-class DomNamedFlowCollection native "*WebKitNamedFlowCollection" {
+class DomNamedFlowCollection native "WebKitNamedFlowCollection" {
 
   @DomName('DOMNamedFlowCollection.length')
   @DocsEditable
@@ -7002,7 +7002,7 @@ class DomNamedFlowCollection native "*WebKitNamedFlowCollection" {
 
 @DocsEditable
 @DomName('DOMParser')
-class DomParser native "*DOMParser" {
+class DomParser native "DOMParser" {
 
   @DomName('DOMParser.DOMParser')
   @DocsEditable
@@ -7022,7 +7022,7 @@ class DomParser native "*DOMParser" {
 
 @DocsEditable
 @DomName('Path')
-class DomPath native "*Path" {
+class DomPath native "Path" {
 
   @DomName('DOMPath.DOMPath')
   @DocsEditable
@@ -7081,7 +7081,7 @@ class DomPath native "*Path" {
 
 @DocsEditable
 @DomName('Plugin')
-class DomPlugin native "*Plugin" {
+class DomPlugin native "Plugin" {
 
   @DomName('DOMPlugin.description')
   @DocsEditable
@@ -7114,7 +7114,7 @@ class DomPlugin native "*Plugin" {
 
 @DocsEditable
 @DomName('PluginArray')
-class DomPluginArray implements JavaScriptIndexingBehavior, List<DomPlugin> native "*PluginArray" {
+class DomPluginArray implements JavaScriptIndexingBehavior, List<DomPlugin> native "PluginArray" {
 
   @DomName('DOMPluginArray.length')
   @DocsEditable
@@ -7339,7 +7339,7 @@ class DomPluginArray implements JavaScriptIndexingBehavior, List<DomPlugin> nati
 
 @DocsEditable
 @DomName('SecurityPolicy')
-class DomSecurityPolicy native "*SecurityPolicy" {
+class DomSecurityPolicy native "SecurityPolicy" {
 
   @DomName('DOMSecurityPolicy.allowsEval')
   @DocsEditable
@@ -7410,7 +7410,7 @@ class DomSecurityPolicy native "*SecurityPolicy" {
 
 @DocsEditable
 @DomName('Selection')
-class DomSelection native "*Selection" {
+class DomSelection native "Selection" {
 
   @DomName('DOMSelection.anchorNode')
   @DocsEditable
@@ -7523,7 +7523,7 @@ class DomSelection native "*Selection" {
 
 @DocsEditable
 @DomName('DOMSettableTokenList')
-class DomSettableTokenList extends DomTokenList native "*DOMSettableTokenList" {
+class DomSettableTokenList extends DomTokenList native "DOMSettableTokenList" {
 
   @DomName('DOMSettableTokenList.value')
   @DocsEditable
@@ -7536,7 +7536,7 @@ class DomSettableTokenList extends DomTokenList native "*DOMSettableTokenList" {
 
 @DocsEditable
 @DomName('DOMStringList')
-class DomStringList implements JavaScriptIndexingBehavior, List<String> native "*DOMStringList" {
+class DomStringList implements JavaScriptIndexingBehavior, List<String> native "DOMStringList" {
 
   @DomName('DOMStringList.length')
   @DocsEditable
@@ -7765,7 +7765,7 @@ abstract class DomStringMap {
 
 @DocsEditable
 @DomName('DOMTokenList')
-class DomTokenList native "*DOMTokenList" {
+class DomTokenList native "DOMTokenList" {
 
   @DomName('DOMTokenList.length')
   @DocsEditable
@@ -8189,7 +8189,7 @@ class _ElementCssClassSet extends CssClassSet {
  * An abstract class, which all HTML elements extend.
  */
 @DomName('Element')
-abstract class Element extends Node implements ElementTraversal native "*Element" {
+abstract class Element extends Node implements ElementTraversal native "Element" {
 
   /**
    * Creates an HTML element from a valid fragment of HTML.
@@ -9530,7 +9530,7 @@ abstract class ElementTraversal {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.IE)
 @SupportedBrowser(SupportedBrowser.SAFARI)
-class EmbedElement extends Element native "*HTMLEmbedElement" {
+class EmbedElement extends Element native "HTMLEmbedElement" {
 
   @DomName('HTMLEmbedElement.HTMLEmbedElement')
   @DocsEditable
@@ -9570,7 +9570,7 @@ class EmbedElement extends Element native "*HTMLEmbedElement" {
 
 @DocsEditable
 @DomName('EntityReference')
-class EntityReference extends Node native "*EntityReference" {
+class EntityReference extends Node native "EntityReference" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9587,7 +9587,7 @@ typedef void _EntriesCallback(List<Entry> entries);
 
 @DocsEditable
 @DomName('Entry')
-class Entry native "*Entry" {
+class Entry native "Entry" {
 
   @DomName('Entry.filesystem')
   @DocsEditable
@@ -9717,7 +9717,7 @@ typedef void _ErrorCallback(FileError error);
 
 @DocsEditable
 @DomName('ErrorEvent')
-class ErrorEvent extends Event native "*ErrorEvent" {
+class ErrorEvent extends Event native "ErrorEvent" {
 
   @DomName('ErrorEvent.filename')
   @DocsEditable
@@ -9739,7 +9739,7 @@ class ErrorEvent extends Event native "*ErrorEvent" {
 
 
 @DomName('Event')
-class Event native "*Event" {
+class Event native "Event" {
   // In JS, canBubble and cancelable are technically required parameters to
   // init*Event. In practice, though, if they aren't provided they simply
   // default to false (since that's Boolean(undefined)).
@@ -9883,7 +9883,7 @@ class Event native "*Event" {
 
 @DocsEditable
 @DomName('EventException')
-class EventException native "*EventException" {
+class EventException native "EventException" {
 
   static const int DISPATCH_REQUEST_ERR = 1;
 
@@ -9911,7 +9911,7 @@ class EventException native "*EventException" {
 
 
 @DomName('EventSource')
-class EventSource extends EventTarget native "*EventSource" {
+class EventSource extends EventTarget native "EventSource" {
   factory EventSource(String title, {withCredentials: false}) {
     var parsedOptions = {
       'withCredentials': withCredentials,
@@ -10051,7 +10051,7 @@ class Events {
  * for compile-time type checks and a more concise API.
  */
 @DomName('EventTarget')
-class EventTarget native "*EventTarget" {
+class EventTarget native "EventTarget" {
 
   /**
    * This is an ease-of-use accessor for event streams which should only be
@@ -10081,7 +10081,7 @@ class EventTarget native "*EventTarget" {
 
 @DocsEditable
 @DomName('HTMLFieldSetElement')
-class FieldSetElement extends Element native "*HTMLFieldSetElement" {
+class FieldSetElement extends Element native "HTMLFieldSetElement" {
 
   @DomName('HTMLFieldSetElement.HTMLFieldSetElement')
   @DocsEditable
@@ -10134,7 +10134,7 @@ class FieldSetElement extends Element native "*HTMLFieldSetElement" {
 
 @DocsEditable
 @DomName('File')
-class File extends Blob native "*File" {
+class File extends Blob native "File" {
 
   DateTime get lastModifiedDate => _convertNativeToDart_DateTime(this._get_lastModifiedDate);
   @JSName('lastModifiedDate')
@@ -10169,7 +10169,7 @@ typedef void _FileCallback(File file);
 
 @DocsEditable
 @DomName('FileEntry')
-class FileEntry extends Entry native "*FileEntry" {
+class FileEntry extends Entry native "FileEntry" {
 
   @JSName('createWriter')
   @DomName('FileEntry.createWriter')
@@ -10210,7 +10210,7 @@ class FileEntry extends Entry native "*FileEntry" {
 
 @DocsEditable
 @DomName('FileError')
-class FileError native "*FileError" {
+class FileError native "FileError" {
 
   static const int ABORT_ERR = 3;
 
@@ -10247,7 +10247,7 @@ class FileError native "*FileError" {
 
 @DocsEditable
 @DomName('FileException')
-class FileException native "*FileException" {
+class FileException native "FileException" {
 
   static const int ABORT_ERR = 3;
 
@@ -10296,7 +10296,7 @@ class FileException native "*FileException" {
 
 @DocsEditable
 @DomName('FileList')
-class FileList implements JavaScriptIndexingBehavior, List<File> native "*FileList" {
+class FileList implements JavaScriptIndexingBehavior, List<File> native "FileList" {
 
   @DomName('FileList.length')
   @DocsEditable
@@ -10513,7 +10513,7 @@ class FileList implements JavaScriptIndexingBehavior, List<File> native "*FileLi
 
 @DocsEditable
 @DomName('FileReader')
-class FileReader extends EventTarget native "*FileReader" {
+class FileReader extends EventTarget native "FileReader" {
 
   @DomName('FileReader.abortEvent')
   @DocsEditable
@@ -10633,7 +10633,7 @@ class FileReader extends EventTarget native "*FileReader" {
 @DomName('DOMFileSystem')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental
-class FileSystem native "*DOMFileSystem" {
+class FileSystem native "DOMFileSystem" {
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.webkitRequestFileSystem)');
@@ -10661,7 +10661,7 @@ typedef void _FileSystemCallback(FileSystem fileSystem);
 
 @DocsEditable
 @DomName('FileWriter')
-class FileWriter extends EventTarget native "*FileWriter" {
+class FileWriter extends EventTarget native "FileWriter" {
 
   @DomName('FileWriter.abortEvent')
   @DocsEditable
@@ -10778,7 +10778,7 @@ typedef void _FileWriterCallback(FileWriter fileWriter);
 
 @DocsEditable
 @DomName('FocusEvent')
-class FocusEvent extends UIEvent native "*FocusEvent" {
+class FocusEvent extends UIEvent native "FocusEvent" {
 
   EventTarget get relatedTarget => _convertNativeToDart_EventTarget(this._get_relatedTarget);
   @JSName('relatedTarget')
@@ -10793,7 +10793,7 @@ class FocusEvent extends UIEvent native "*FocusEvent" {
 
 @DocsEditable
 @DomName('FontLoader')
-class FontLoader extends EventTarget native "*FontLoader" {
+class FontLoader extends EventTarget native "FontLoader" {
 
   @DomName('FontLoader.errorEvent')
   @DocsEditable
@@ -10860,7 +10860,7 @@ class FontLoader extends EventTarget native "*FontLoader" {
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-class FormData native "*FormData" {
+class FormData native "FormData" {
 
   @DomName('DOMFormData.DOMFormData')
   @DocsEditable
@@ -10887,7 +10887,7 @@ class FormData native "*FormData" {
 
 @DocsEditable
 @DomName('HTMLFormElement')
-class FormElement extends Element native "*HTMLFormElement" {
+class FormElement extends Element native "HTMLFormElement" {
 
   @DomName('HTMLFormElement.HTMLFormElement')
   @DocsEditable
@@ -10956,7 +10956,7 @@ class FormElement extends Element native "*HTMLFormElement" {
 
 @DocsEditable
 @DomName('Gamepad')
-class Gamepad native "*Gamepad" {
+class Gamepad native "Gamepad" {
 
   @DomName('Gamepad.axes')
   @DocsEditable
@@ -10985,7 +10985,7 @@ class Gamepad native "*Gamepad" {
 
 @DocsEditable
 @DomName('Geolocation')
-class Geolocation native "*Geolocation" {
+class Geolocation native "Geolocation" {
 
   @DomName('Geolocation.getCurrentPosition')
   Future<Geoposition> getCurrentPosition({bool enableHighAccuracy,
@@ -11101,7 +11101,7 @@ class _GeopositionWrapper implements Geoposition {
 
 @DocsEditable
 @DomName('Geoposition')
-class Geoposition native "*Geoposition" {
+class Geoposition native "Geoposition" {
 
   @DomName('Geoposition.coords')
   @DocsEditable
@@ -11121,7 +11121,7 @@ class Geoposition native "*Geoposition" {
  * An `<hr>` tag.
  */
 @DomName('HTMLHRElement')
-class HRElement extends Element native "*HTMLHRElement" {
+class HRElement extends Element native "HTMLHRElement" {
 
   @DomName('HTMLHRElement.HTMLHRElement')
   @DocsEditable
@@ -11138,7 +11138,7 @@ class HRElement extends Element native "*HTMLHRElement" {
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 
-class HashChangeEvent extends Event native "*HashChangeEvent" {
+class HashChangeEvent extends Event native "HashChangeEvent" {
   factory HashChangeEvent(String type,
       {bool canBubble: true, bool cancelable: true, String oldUrl,
       String newUrl}) {
@@ -11173,7 +11173,7 @@ class HashChangeEvent extends Event native "*HashChangeEvent" {
 
 @DocsEditable
 @DomName('HTMLHeadElement')
-class HeadElement extends Element native "*HTMLHeadElement" {
+class HeadElement extends Element native "HTMLHeadElement" {
 
   @DomName('HTMLHeadElement.HTMLHeadElement')
   @DocsEditable
@@ -11186,7 +11186,7 @@ class HeadElement extends Element native "*HTMLHeadElement" {
 
 @DocsEditable
 @DomName('HTMLHeadingElement')
-class HeadingElement extends Element native "*HTMLHeadingElement" {
+class HeadingElement extends Element native "HTMLHeadingElement" {
 
   @DomName('HTMLHeadingElement.HTMLHeadingElement')
   @DocsEditable
@@ -11218,7 +11218,7 @@ class HeadingElement extends Element native "*HTMLHeadingElement" {
 
 
 @DomName('History')
-class History implements HistoryBase native "*History" {
+class History implements HistoryBase native "History" {
 
   /**
    * Checks if the State APIs are supported on the current platform.
@@ -11278,7 +11278,7 @@ class History implements HistoryBase native "*History" {
 
 @DocsEditable
 @DomName('HTMLAllCollection')
-class HtmlAllCollection implements JavaScriptIndexingBehavior, List<Node> native "*HTMLAllCollection" {
+class HtmlAllCollection implements JavaScriptIndexingBehavior, List<Node> native "HTMLAllCollection" {
 
   @DomName('HTMLAllCollection.length')
   @DocsEditable
@@ -11505,7 +11505,7 @@ class HtmlAllCollection implements JavaScriptIndexingBehavior, List<Node> native
 
 @DocsEditable
 @DomName('HTMLCollection')
-class HtmlCollection implements JavaScriptIndexingBehavior, List<Node> native "*HTMLCollection" {
+class HtmlCollection implements JavaScriptIndexingBehavior, List<Node> native "HTMLCollection" {
 
   @DomName('HTMLCollection.length')
   @DocsEditable
@@ -11727,7 +11727,7 @@ class HtmlCollection implements JavaScriptIndexingBehavior, List<Node> native "*
 
 
 @DomName('HTMLDocument')
-class HtmlDocument extends Document native "*HTMLDocument" {
+class HtmlDocument extends Document native "HTMLDocument" {
 
   @DomName('HTMLDocument.activeElement')
   @DocsEditable
@@ -11884,7 +11884,7 @@ class HtmlDocument extends Document native "*HTMLDocument" {
 
 @DocsEditable
 @DomName('HTMLHtmlElement')
-class HtmlElement extends Element native "*HTMLHtmlElement" {
+class HtmlElement extends Element native "HTMLHtmlElement" {
 
   @DomName('HTMLHtmlElement.HTMLHtmlElement')
   @DocsEditable
@@ -11897,7 +11897,7 @@ class HtmlElement extends Element native "*HTMLHtmlElement" {
 
 @DocsEditable
 @DomName('HTMLFormControlsCollection')
-class HtmlFormControlsCollection extends HtmlCollection native "*HTMLFormControlsCollection" {
+class HtmlFormControlsCollection extends HtmlCollection native "HTMLFormControlsCollection" {
 
   @DomName('HTMLFormControlsCollection.namedItem')
   @DocsEditable
@@ -11910,7 +11910,7 @@ class HtmlFormControlsCollection extends HtmlCollection native "*HTMLFormControl
 
 @DocsEditable
 @DomName('HTMLOptionsCollection')
-class HtmlOptionsCollection extends HtmlCollection native "*HTMLOptionsCollection" {
+class HtmlOptionsCollection extends HtmlCollection native "HTMLOptionsCollection" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11944,7 +11944,7 @@ class HtmlOptionsCollection extends HtmlCollection native "*HTMLOptionsCollectio
  * * [Using XMLHttpRequest](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest/Using_XMLHttpRequest)
  */
 @DomName('XMLHttpRequest')
-class HttpRequest extends EventTarget native "*XMLHttpRequest" {
+class HttpRequest extends EventTarget native "XMLHttpRequest" {
 
   /**
    * Creates a URL get request for the specified [url].
@@ -12409,7 +12409,7 @@ class HttpRequest extends EventTarget native "*XMLHttpRequest" {
 
 @DocsEditable
 @DomName('XMLHttpRequestException')
-class HttpRequestException native "*XMLHttpRequestException" {
+class HttpRequestException native "XMLHttpRequestException" {
 
   static const int ABORT_ERR = 102;
 
@@ -12441,7 +12441,7 @@ class HttpRequestException native "*XMLHttpRequestException" {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
-class HttpRequestProgressEvent extends ProgressEvent native "*XMLHttpRequestProgressEvent" {
+class HttpRequestProgressEvent extends ProgressEvent native "XMLHttpRequestProgressEvent" {
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => Device.isEventTypeSupported('XMLHttpRequestProgressEvent');
@@ -12461,7 +12461,7 @@ class HttpRequestProgressEvent extends ProgressEvent native "*XMLHttpRequestProg
 
 @DocsEditable
 @DomName('XMLHttpRequestUpload')
-class HttpRequestUpload extends EventTarget native "*XMLHttpRequestUpload" {
+class HttpRequestUpload extends EventTarget native "XMLHttpRequestUpload" {
 
   @DomName('XMLHttpRequestUpload.abortEvent')
   @DocsEditable
@@ -12532,7 +12532,7 @@ class HttpRequestUpload extends EventTarget native "*XMLHttpRequestUpload" {
 
 @DocsEditable
 @DomName('HTMLIFrameElement')
-class IFrameElement extends Element native "*HTMLIFrameElement" {
+class IFrameElement extends Element native "HTMLIFrameElement" {
 
   @DomName('HTMLIFrameElement.HTMLIFrameElement')
   @DocsEditable
@@ -12580,7 +12580,7 @@ class IFrameElement extends Element native "*HTMLIFrameElement" {
 
 @DomName('ImageData')
 
-class ImageData native "*ImageData" {
+class ImageData native "ImageData" {
 
 
   @DomName('ImageData.data')
@@ -12602,7 +12602,7 @@ class ImageData native "*ImageData" {
 
 
 @DomName('HTMLImageElement')
-class ImageElement extends Element implements CanvasImageSource native "*HTMLImageElement" {
+class ImageElement extends Element implements CanvasImageSource native "HTMLImageElement" {
 
   @DomName('HTMLImageElement.HTMLImageElement')
   @DocsEditable
@@ -12699,7 +12699,7 @@ class InputElement extends Element implements
     ImageButtonInputElement,
     ResetButtonInputElement,
     ButtonInputElement
-     native "*HTMLInputElement" {
+     native "HTMLInputElement" {
 
   factory InputElement({String type}) {
     var e = document.$dom_createElement("input");
@@ -13541,7 +13541,7 @@ abstract class ButtonInputElement implements InputElementBase {
 
 
 @DomName('KeyboardEvent')
-class KeyboardEvent extends UIEvent native "*KeyboardEvent" {
+class KeyboardEvent extends UIEvent native "KeyboardEvent" {
 
   factory KeyboardEvent(String type,
       {Window view, bool canBubble: true, bool cancelable: true,
@@ -13623,7 +13623,7 @@ class KeyboardEvent extends UIEvent native "*KeyboardEvent" {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
-class KeygenElement extends Element native "*HTMLKeygenElement" {
+class KeygenElement extends Element native "HTMLKeygenElement" {
 
   @DomName('HTMLKeygenElement.HTMLKeygenElement')
   @DocsEditable
@@ -13693,7 +13693,7 @@ class KeygenElement extends Element native "*HTMLKeygenElement" {
 
 @DocsEditable
 @DomName('HTMLLIElement')
-class LIElement extends Element native "*HTMLLIElement" {
+class LIElement extends Element native "HTMLLIElement" {
 
   @DomName('HTMLLIElement.HTMLLIElement')
   @DocsEditable
@@ -13714,7 +13714,7 @@ class LIElement extends Element native "*HTMLLIElement" {
 
 @DocsEditable
 @DomName('HTMLLabelElement')
-class LabelElement extends Element native "*HTMLLabelElement" {
+class LabelElement extends Element native "HTMLLabelElement" {
 
   @DomName('HTMLLabelElement.HTMLLabelElement')
   @DocsEditable
@@ -13739,7 +13739,7 @@ class LabelElement extends Element native "*HTMLLabelElement" {
 
 @DocsEditable
 @DomName('HTMLLegendElement')
-class LegendElement extends Element native "*HTMLLegendElement" {
+class LegendElement extends Element native "HTMLLegendElement" {
 
   @DomName('HTMLLegendElement.HTMLLegendElement')
   @DocsEditable
@@ -13756,7 +13756,7 @@ class LegendElement extends Element native "*HTMLLegendElement" {
 
 @DocsEditable
 @DomName('HTMLLinkElement')
-class LinkElement extends Element native "*HTMLLinkElement" {
+class LinkElement extends Element native "HTMLLinkElement" {
 
   @DomName('HTMLLinkElement.HTMLLinkElement')
   @DocsEditable
@@ -13803,7 +13803,7 @@ class LinkElement extends Element native "*HTMLLinkElement" {
 @DomName('LocalMediaStream')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental
-class LocalMediaStream extends MediaStream implements EventTarget native "*LocalMediaStream" {
+class LocalMediaStream extends MediaStream implements EventTarget native "LocalMediaStream" {
 
   @DomName('LocalMediaStream.stop')
   @DocsEditable
@@ -13816,7 +13816,7 @@ class LocalMediaStream extends MediaStream implements EventTarget native "*Local
 
 @DocsEditable
 @DomName('Location')
-class Location implements LocationBase native "*Location" {
+class Location implements LocationBase native "Location" {
 
   @DomName('Location.ancestorOrigins')
   @DocsEditable
@@ -13887,7 +13887,7 @@ class Location implements LocationBase native "*Location" {
 
 @DocsEditable
 @DomName('HTMLMapElement')
-class MapElement extends Element native "*HTMLMapElement" {
+class MapElement extends Element native "HTMLMapElement" {
 
   @DomName('HTMLMapElement.HTMLMapElement')
   @DocsEditable
@@ -13908,7 +13908,7 @@ class MapElement extends Element native "*HTMLMapElement" {
 
 @DocsEditable
 @DomName('MediaController')
-class MediaController extends EventTarget native "*MediaController" {
+class MediaController extends EventTarget native "MediaController" {
 
   @DomName('MediaController.MediaController')
   @DocsEditable
@@ -13994,7 +13994,7 @@ class MediaController extends EventTarget native "*MediaController" {
 
 @DocsEditable
 @DomName('HTMLMediaElement')
-class MediaElement extends Element native "*HTMLMediaElement" {
+class MediaElement extends Element native "HTMLMediaElement" {
 
   @DomName('HTMLMediaElement.canplayEvent')
   @DocsEditable
@@ -14425,7 +14425,7 @@ class MediaElement extends Element native "*HTMLMediaElement" {
 
 @DocsEditable
 @DomName('MediaError')
-class MediaError native "*MediaError" {
+class MediaError native "MediaError" {
 
   static const int MEDIA_ERR_ABORTED = 1;
 
@@ -14448,7 +14448,7 @@ class MediaError native "*MediaError" {
 
 @DocsEditable
 @DomName('MediaKeyError')
-class MediaKeyError native "*MediaKeyError" {
+class MediaKeyError native "MediaKeyError" {
 
   static const int MEDIA_KEYERR_CLIENT = 2;
 
@@ -14473,7 +14473,7 @@ class MediaKeyError native "*MediaKeyError" {
 
 @DocsEditable
 @DomName('MediaKeyEvent')
-class MediaKeyEvent extends Event native "*MediaKeyEvent" {
+class MediaKeyEvent extends Event native "MediaKeyEvent" {
 
   @JSName('defaultURL')
   @DomName('MediaKeyEvent.defaultURL')
@@ -14515,7 +14515,7 @@ class MediaKeyEvent extends Event native "*MediaKeyEvent" {
 
 @DocsEditable
 @DomName('MediaList')
-class MediaList native "*MediaList" {
+class MediaList native "MediaList" {
 
   @DomName('MediaList.length')
   @DocsEditable
@@ -14544,7 +14544,7 @@ class MediaList native "*MediaList" {
 
 @DocsEditable
 @DomName('MediaQueryList')
-class MediaQueryList native "*MediaQueryList" {
+class MediaQueryList native "MediaQueryList" {
 
   @DomName('MediaQueryList.matches')
   @DocsEditable
@@ -14579,7 +14579,7 @@ abstract class MediaQueryListListener {
 
 @DocsEditable
 @DomName('MediaSource')
-class MediaSource extends EventTarget native "*MediaSource" {
+class MediaSource extends EventTarget native "MediaSource" {
 
   @DomName('MediaSource.MediaSource')
   @DocsEditable
@@ -14642,7 +14642,7 @@ class MediaSource extends EventTarget native "*MediaSource" {
 @DomName('MediaStream')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental
-class MediaStream extends EventTarget native "*MediaStream" {
+class MediaStream extends EventTarget native "MediaStream" {
 
   @DomName('MediaStream.addtrackEvent')
   @DocsEditable
@@ -14757,7 +14757,7 @@ class MediaStream extends EventTarget native "*MediaStream" {
 @DomName('MediaStreamEvent')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental
-class MediaStreamEvent extends Event native "*MediaStreamEvent" {
+class MediaStreamEvent extends Event native "MediaStreamEvent" {
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => Device.isEventTypeSupported('MediaStreamEvent');
@@ -14775,7 +14775,7 @@ class MediaStreamEvent extends Event native "*MediaStreamEvent" {
 @DomName('MediaStreamTrack')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental
-class MediaStreamTrack extends EventTarget native "*MediaStreamTrack" {
+class MediaStreamTrack extends EventTarget native "MediaStreamTrack" {
 
   @DomName('MediaStreamTrack.endedEvent')
   @DocsEditable
@@ -14844,7 +14844,7 @@ class MediaStreamTrack extends EventTarget native "*MediaStreamTrack" {
 @DomName('MediaStreamTrackEvent')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental
-class MediaStreamTrackEvent extends Event native "*MediaStreamTrackEvent" {
+class MediaStreamTrackEvent extends Event native "MediaStreamTrackEvent" {
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => Device.isEventTypeSupported('MediaStreamTrackEvent');
@@ -14860,7 +14860,7 @@ class MediaStreamTrackEvent extends Event native "*MediaStreamTrackEvent" {
 
 @DocsEditable
 @DomName('MemoryInfo')
-class MemoryInfo native "*MemoryInfo" {
+class MemoryInfo native "MemoryInfo" {
 
   @DomName('MemoryInfo.jsHeapSizeLimit')
   @DocsEditable
@@ -14891,7 +14891,7 @@ class MemoryInfo native "*MemoryInfo" {
  *  * [Menu Element](http://www.w3.org/TR/html5/the-menu-element.html#the-menu-element) from the W3C.
  */
 @DomName('HTMLMenuElement')
-class MenuElement extends Element native "*HTMLMenuElement" {
+class MenuElement extends Element native "HTMLMenuElement" {
 
   @DomName('HTMLMenuElement.HTMLMenuElement')
   @DocsEditable
@@ -14904,7 +14904,7 @@ class MenuElement extends Element native "*HTMLMenuElement" {
 
 @DocsEditable
 @DomName('MessageChannel')
-class MessageChannel native "*MessageChannel" {
+class MessageChannel native "MessageChannel" {
 
   @DomName('MessageChannel.MessageChannel')
   @DocsEditable
@@ -14929,7 +14929,7 @@ class MessageChannel native "*MessageChannel" {
 
 
 @DomName('MessageEvent')
-class MessageEvent extends Event native "*MessageEvent" {
+class MessageEvent extends Event native "MessageEvent" {
   factory MessageEvent(String type,
       {bool canBubble: false, bool cancelable: false, Object data,
       String origin, String lastEventId,
@@ -14985,7 +14985,7 @@ class MessageEvent extends Event native "*MessageEvent" {
 
 @DocsEditable
 @DomName('MessagePort')
-class MessagePort extends EventTarget native "*MessagePort" {
+class MessagePort extends EventTarget native "MessagePort" {
 
   @DomName('MessagePort.messageEvent')
   @DocsEditable
@@ -15045,7 +15045,7 @@ class MessagePort extends EventTarget native "*MessagePort" {
 
 @DocsEditable
 @DomName('HTMLMetaElement')
-class MetaElement extends Element native "*HTMLMetaElement" {
+class MetaElement extends Element native "HTMLMetaElement" {
 
   @DomName('HTMLMetaElement.content')
   @DocsEditable
@@ -15066,7 +15066,7 @@ class MetaElement extends Element native "*HTMLMetaElement" {
 
 @DocsEditable
 @DomName('Metadata')
-class Metadata native "*Metadata" {
+class Metadata native "Metadata" {
 
   DateTime get modificationTime => _convertNativeToDart_DateTime(this._get_modificationTime);
   @JSName('modificationTime')
@@ -15096,7 +15096,7 @@ typedef void MetadataCallback(Metadata metadata);
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
-class MeterElement extends Element native "*HTMLMeterElement" {
+class MeterElement extends Element native "HTMLMeterElement" {
 
   @DomName('HTMLMeterElement.HTMLMeterElement')
   @DocsEditable
@@ -15142,7 +15142,7 @@ class MeterElement extends Element native "*HTMLMeterElement" {
 
 @DocsEditable
 @DomName('HTMLModElement')
-class ModElement extends Element native "*HTMLModElement" {
+class ModElement extends Element native "HTMLModElement" {
 
   @DomName('HTMLModElement.cite')
   @DocsEditable
@@ -15158,7 +15158,7 @@ class ModElement extends Element native "*HTMLModElement" {
 
 
 @DomName('MouseEvent')
-class MouseEvent extends UIEvent native "*MouseEvent" {
+class MouseEvent extends UIEvent native "MouseEvent" {
   factory MouseEvent(String type,
       {Window view, int detail: 0, int screenX: 0, int screenY: 0,
       int clientX: 0, int clientY: 0, int button: 0, bool canBubble: true,
@@ -15334,7 +15334,7 @@ typedef void MutationCallback(List<MutationRecord> mutations, MutationObserver o
 
 
 @DomName('MutationEvent')
-class MutationEvent extends Event native "*MutationEvent" {
+class MutationEvent extends Event native "MutationEvent" {
   factory MutationEvent(String type,
       {bool canBubble: false, bool cancelable: false, Node relatedNode,
       String prevValue, String newValue, String attrName, int attrChange: 0}) {
@@ -15390,7 +15390,7 @@ class MutationEvent extends Event native "*MutationEvent" {
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
-class MutationObserver native "*MutationObserver" {
+class MutationObserver native "MutationObserver,WebkitMutationObserver" {
 
   @DomName('MutationObserver.observe')
   @DocsEditable
@@ -15486,7 +15486,7 @@ class MutationObserver native "*MutationObserver" {
 
 @DocsEditable
 @DomName('MutationRecord')
-class MutationRecord native "*MutationRecord" {
+class MutationRecord native "MutationRecord" {
 
   @DomName('MutationRecord.addedNodes')
   @DocsEditable
@@ -15535,7 +15535,7 @@ class MutationRecord native "*MutationRecord" {
 
 @DocsEditable
 @DomName('WebKitNamedFlow')
-class NamedFlow extends EventTarget native "*WebKitNamedFlow" {
+class NamedFlow extends EventTarget native "WebKitNamedFlow" {
 
   @DomName('NamedFlow.firstEmptyRegionIndex')
   @DocsEditable
@@ -15587,7 +15587,7 @@ class NamedFlow extends EventTarget native "*WebKitNamedFlow" {
 
 
 @DomName('Navigator')
-class Navigator native "*Navigator" {
+class Navigator native "Navigator" {
 
   @DomName('Navigator.language')
   String get language => JS('String', '#.language || #.userLanguage', this,
@@ -15767,7 +15767,7 @@ class Navigator native "*Navigator" {
 
 @DocsEditable
 @DomName('NavigatorUserMediaError')
-class NavigatorUserMediaError native "*NavigatorUserMediaError" {
+class NavigatorUserMediaError native "NavigatorUserMediaError" {
 
   static const int PERMISSION_DENIED = 1;
 
@@ -15981,7 +15981,7 @@ class _ChildNodeListLazy extends ListBase<Node> {
 }
 
 @DomName('Node')
-class Node extends EventTarget native "*Node" {
+class Node extends EventTarget native "Node" {
   List<Node> get nodes {
     return new _ChildNodeListLazy(this);
   }
@@ -16279,7 +16279,7 @@ class Node extends EventTarget native "*Node" {
 
 @DocsEditable
 @DomName('NodeFilter')
-class NodeFilter native "*NodeFilter" {
+class NodeFilter native "NodeFilter" {
 
   static const int FILTER_ACCEPT = 1;
 
@@ -16324,7 +16324,7 @@ class NodeFilter native "*NodeFilter" {
 
 @DocsEditable
 @DomName('NodeIterator')
-class NodeIterator native "*NodeIterator" {
+class NodeIterator native "NodeIterator" {
 
   @DomName('NodeIterator.expandEntityReferences')
   @DocsEditable
@@ -16369,7 +16369,7 @@ class NodeIterator native "*NodeIterator" {
 
 @DocsEditable
 @DomName('NodeList')
-class NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeList" {
+class NodeList implements JavaScriptIndexingBehavior, List<Node> native "NodeList" {
 
   @DomName('NodeList.length')
   @DocsEditable
@@ -16587,7 +16587,7 @@ class NodeList implements JavaScriptIndexingBehavior, List<Node> native "*NodeLi
 
 @DocsEditable
 @DomName('Notation')
-class Notation extends Node native "*Notation" {
+class Notation extends Node native "Notation" {
 
   @DomName('Notation.publicId')
   @DocsEditable
@@ -16603,7 +16603,7 @@ class Notation extends Node native "*Notation" {
 
 
 @DomName('Notification')
-class Notification extends EventTarget native "*Notification" {
+class Notification extends EventTarget native "Notification" {
 
   factory Notification(String title, {String titleDir: null, String body: null, 
       String bodyDir: null, String tag: null, String iconUrl: null}) {
@@ -16737,7 +16737,7 @@ class Notification extends EventTarget native "*Notification" {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
-class NotificationCenter native "*NotificationCenter" {
+class NotificationCenter native "NotificationCenter" {
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.webkitNotifications)');
@@ -16785,7 +16785,7 @@ typedef void _NotificationPermissionCallback(String permission);
 
 @DocsEditable
 @DomName('HTMLOListElement')
-class OListElement extends Element native "*HTMLOListElement" {
+class OListElement extends Element native "HTMLOListElement" {
 
   @DomName('HTMLOListElement.HTMLOListElement')
   @DocsEditable
@@ -16813,7 +16813,7 @@ class OListElement extends Element native "*HTMLOListElement" {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.IE)
 @SupportedBrowser(SupportedBrowser.SAFARI)
-class ObjectElement extends Element native "*HTMLObjectElement" {
+class ObjectElement extends Element native "HTMLObjectElement" {
 
   @DomName('HTMLObjectElement.HTMLObjectElement')
   @DocsEditable
@@ -16881,7 +16881,7 @@ class ObjectElement extends Element native "*HTMLObjectElement" {
 
 @DocsEditable
 @DomName('HTMLOptGroupElement')
-class OptGroupElement extends Element native "*HTMLOptGroupElement" {
+class OptGroupElement extends Element native "HTMLOptGroupElement" {
 
   @DomName('HTMLOptGroupElement.HTMLOptGroupElement')
   @DocsEditable
@@ -16902,7 +16902,7 @@ class OptGroupElement extends Element native "*HTMLOptGroupElement" {
 
 @DocsEditable
 @DomName('HTMLOptionElement')
-class OptionElement extends Element native "*HTMLOptionElement" {
+class OptionElement extends Element native "HTMLOptionElement" {
 
   @DomName('HTMLOptionElement.HTMLOptionElement')
   @DocsEditable
@@ -16965,7 +16965,7 @@ class OptionElement extends Element native "*HTMLOptionElement" {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
-class OutputElement extends Element native "*HTMLOutputElement" {
+class OutputElement extends Element native "HTMLOutputElement" {
 
   @DomName('HTMLOutputElement.HTMLOutputElement')
   @DocsEditable
@@ -17031,7 +17031,7 @@ class OutputElement extends Element native "*HTMLOutputElement" {
 
 @DocsEditable
 @DomName('OverflowEvent')
-class OverflowEvent extends Event native "*OverflowEvent" {
+class OverflowEvent extends Event native "OverflowEvent" {
 
   static const int BOTH = 2;
 
@@ -17058,7 +17058,7 @@ class OverflowEvent extends Event native "*OverflowEvent" {
 
 @DocsEditable
 @DomName('PagePopupController')
-class PagePopupController native "*PagePopupController" {
+class PagePopupController native "PagePopupController" {
 
   @DomName('PagePopupController.closePopup')
   @DocsEditable
@@ -17095,7 +17095,7 @@ class PagePopupController native "*PagePopupController" {
 
 @DocsEditable
 @DomName('PageTransitionEvent')
-class PageTransitionEvent extends Event native "*PageTransitionEvent" {
+class PageTransitionEvent extends Event native "PageTransitionEvent" {
 
   @DomName('PageTransitionEvent.persisted')
   @DocsEditable
@@ -17108,7 +17108,7 @@ class PageTransitionEvent extends Event native "*PageTransitionEvent" {
 
 @DocsEditable
 @DomName('HTMLParagraphElement')
-class ParagraphElement extends Element native "*HTMLParagraphElement" {
+class ParagraphElement extends Element native "HTMLParagraphElement" {
 
   @DomName('HTMLParagraphElement.HTMLParagraphElement')
   @DocsEditable
@@ -17121,7 +17121,7 @@ class ParagraphElement extends Element native "*HTMLParagraphElement" {
 
 @DocsEditable
 @DomName('HTMLParamElement')
-class ParamElement extends Element native "*HTMLParamElement" {
+class ParamElement extends Element native "HTMLParamElement" {
 
   @DomName('HTMLParamElement.HTMLParamElement')
   @DocsEditable
@@ -17145,7 +17145,7 @@ class ParamElement extends Element native "*HTMLParamElement" {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE)
-class Performance extends EventTarget native "*Performance" {
+class Performance extends EventTarget native "Performance" {
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.performance)');
@@ -17245,7 +17245,7 @@ class Performance extends EventTarget native "*Performance" {
 
 @DocsEditable
 @DomName('PerformanceEntry')
-class PerformanceEntry native "*PerformanceEntry" {
+class PerformanceEntry native "PerformanceEntry" {
 
   @DomName('PerformanceEntry.duration')
   @DocsEditable
@@ -17270,7 +17270,7 @@ class PerformanceEntry native "*PerformanceEntry" {
 
 @DocsEditable
 @DomName('PerformanceEntryList')
-class PerformanceEntryList native "*PerformanceEntryList" {
+class PerformanceEntryList native "PerformanceEntryList" {
 
   @DomName('PerformanceEntryList.length')
   @DocsEditable
@@ -17287,7 +17287,7 @@ class PerformanceEntryList native "*PerformanceEntryList" {
 
 @DocsEditable
 @DomName('PerformanceMark')
-class PerformanceMark extends PerformanceEntry native "*PerformanceMark" {
+class PerformanceMark extends PerformanceEntry native "PerformanceMark" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17296,7 +17296,7 @@ class PerformanceMark extends PerformanceEntry native "*PerformanceMark" {
 
 @DocsEditable
 @DomName('PerformanceMeasure')
-class PerformanceMeasure extends PerformanceEntry native "*PerformanceMeasure" {
+class PerformanceMeasure extends PerformanceEntry native "PerformanceMeasure" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17305,7 +17305,7 @@ class PerformanceMeasure extends PerformanceEntry native "*PerformanceMeasure" {
 
 @DocsEditable
 @DomName('PerformanceNavigation')
-class PerformanceNavigation native "*PerformanceNavigation" {
+class PerformanceNavigation native "PerformanceNavigation" {
 
   static const int TYPE_BACK_FORWARD = 2;
 
@@ -17330,7 +17330,7 @@ class PerformanceNavigation native "*PerformanceNavigation" {
 
 @DocsEditable
 @DomName('PerformanceResourceTiming')
-class PerformanceResourceTiming extends PerformanceEntry native "*PerformanceResourceTiming" {
+class PerformanceResourceTiming extends PerformanceEntry native "PerformanceResourceTiming" {
 
   @DomName('PerformanceResourceTiming.connectEnd')
   @DocsEditable
@@ -17387,7 +17387,7 @@ class PerformanceResourceTiming extends PerformanceEntry native "*PerformanceRes
 
 @DocsEditable
 @DomName('PerformanceTiming')
-class PerformanceTiming native "*PerformanceTiming" {
+class PerformanceTiming native "PerformanceTiming" {
 
   @DomName('PerformanceTiming.connectEnd')
   @DocsEditable
@@ -17484,7 +17484,7 @@ class PerformanceTiming native "*PerformanceTiming" {
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-class PopStateEvent extends Event native "*PopStateEvent" {
+class PopStateEvent extends Event native "PopStateEvent" {
 
   dynamic get state => convertNativeToDart_SerializedScriptValue(this._get_state);
   @JSName('state')
@@ -17509,7 +17509,7 @@ typedef void _PositionCallback(Geoposition position);
 
 @DocsEditable
 @DomName('PositionError')
-class PositionError native "*PositionError" {
+class PositionError native "PositionError" {
 
   static const int PERMISSION_DENIED = 1;
 
@@ -17540,7 +17540,7 @@ typedef void _PositionErrorCallback(PositionError error);
 
 @DocsEditable
 @DomName('HTMLPreElement')
-class PreElement extends Element native "*HTMLPreElement" {
+class PreElement extends Element native "HTMLPreElement" {
 
   @DomName('HTMLPreElement.HTMLPreElement')
   @DocsEditable
@@ -17557,7 +17557,7 @@ class PreElement extends Element native "*HTMLPreElement" {
 
 @DocsEditable
 @DomName('ProcessingInstruction')
-class ProcessingInstruction extends Node native "*ProcessingInstruction" {
+class ProcessingInstruction extends Node native "ProcessingInstruction" {
 
   @DomName('ProcessingInstruction.data')
   @DocsEditable
@@ -17582,7 +17582,7 @@ class ProcessingInstruction extends Node native "*ProcessingInstruction" {
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-class ProgressElement extends Element native "*HTMLProgressElement" {
+class ProgressElement extends Element native "HTMLProgressElement" {
 
   @DomName('HTMLProgressElement.HTMLProgressElement')
   @DocsEditable
@@ -17616,7 +17616,7 @@ class ProgressElement extends Element native "*HTMLProgressElement" {
 
 @DocsEditable
 @DomName('ProgressEvent')
-class ProgressEvent extends Event native "*ProgressEvent" {
+class ProgressEvent extends Event native "ProgressEvent" {
 
   @DomName('ProgressEvent.lengthComputable')
   @DocsEditable
@@ -17637,7 +17637,7 @@ class ProgressEvent extends Event native "*ProgressEvent" {
 
 @DocsEditable
 @DomName('HTMLQuoteElement')
-class QuoteElement extends Element native "*HTMLQuoteElement" {
+class QuoteElement extends Element native "HTMLQuoteElement" {
 
   @DomName('HTMLQuoteElement.cite')
   @DocsEditable
@@ -17674,7 +17674,7 @@ typedef void RtcStatsCallback(RtcStatsResponse response);
 
 @DocsEditable
 @DomName('RadioNodeList')
-class RadioNodeList extends NodeList native "*RadioNodeList" {
+class RadioNodeList extends NodeList native "RadioNodeList" {
 
   @DomName('RadioNodeList.value')
   @DocsEditable
@@ -17688,7 +17688,7 @@ class RadioNodeList extends NodeList native "*RadioNodeList" {
 
 
 @DomName('Range')
-class Range native "*Range" {
+class Range native "Range" {
   factory Range() => document.$dom_createRange();
 
 
@@ -17842,7 +17842,7 @@ class Range native "*Range" {
 
 @DocsEditable
 @DomName('RangeException')
-class RangeException native "*RangeException" {
+class RangeException native "RangeException" {
 
   static const int BAD_BOUNDARYPOINTS_ERR = 1;
 
@@ -17879,7 +17879,7 @@ typedef void RequestAnimationFrameCallback(num highResTime);
 
 @DocsEditable
 @DomName('RTCDataChannel')
-class RtcDataChannel extends EventTarget native "*RTCDataChannel" {
+class RtcDataChannel extends EventTarget native "RTCDataChannel" {
 
   @DomName('RTCDataChannel.closeEvent')
   @DocsEditable
@@ -17962,7 +17962,7 @@ class RtcDataChannel extends EventTarget native "*RTCDataChannel" {
 
 @DocsEditable
 @DomName('RTCDataChannelEvent')
-class RtcDataChannelEvent extends Event native "*RTCDataChannelEvent" {
+class RtcDataChannelEvent extends Event native "RTCDataChannelEvent" {
 
   @DomName('RTCDataChannelEvent.channel')
   @DocsEditable
@@ -17975,7 +17975,7 @@ class RtcDataChannelEvent extends Event native "*RTCDataChannelEvent" {
 
 @DocsEditable
 @DomName('RTCDTMFSender')
-class RtcDtmfSender extends EventTarget native "*RTCDTMFSender" {
+class RtcDtmfSender extends EventTarget native "RTCDTMFSender" {
 
   @DomName('RTCDTMFSender.tonechangeEvent')
   @DocsEditable
@@ -18032,7 +18032,7 @@ class RtcDtmfSender extends EventTarget native "*RTCDTMFSender" {
 
 @DocsEditable
 @DomName('RTCDTMFToneChangeEvent')
-class RtcDtmfToneChangeEvent extends Event native "*RTCDTMFToneChangeEvent" {
+class RtcDtmfToneChangeEvent extends Event native "RTCDTMFToneChangeEvent" {
 
   @DomName('RTCDTMFToneChangeEvent.tone')
   @DocsEditable
@@ -18046,7 +18046,7 @@ class RtcDtmfToneChangeEvent extends Event native "*RTCDTMFToneChangeEvent" {
 @DomName('RTCIceCandidate')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental
-class RtcIceCandidate native "*RTCIceCandidate" {
+class RtcIceCandidate native "RTCIceCandidate" {
   factory RtcIceCandidate(Map dictionary) {
     return JS('RtcIceCandidate', 'new RTCIceCandidate(#)',
         convertDartToNative_SerializedScriptValue(dictionary));
@@ -18072,7 +18072,7 @@ class RtcIceCandidate native "*RTCIceCandidate" {
 
 @DocsEditable
 @DomName('RTCIceCandidateEvent')
-class RtcIceCandidateEvent extends Event native "*RTCIceCandidateEvent" {
+class RtcIceCandidateEvent extends Event native "RTCIceCandidateEvent" {
 
   @DomName('RTCIceCandidateEvent.candidate')
   @DocsEditable
@@ -18086,7 +18086,7 @@ class RtcIceCandidateEvent extends Event native "*RTCIceCandidateEvent" {
 @DomName('RTCPeerConnection')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental
-class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
+class RtcPeerConnection extends EventTarget native "RTCPeerConnection" {
   factory RtcPeerConnection(Map rtcIceServers, [Map mediaConstraints]) {
     var constructorName = JS('RtcPeerConnection', 'window[#]',
         '${Device.propertyPrefix}RTCPeerConnection');
@@ -18405,7 +18405,7 @@ class RtcPeerConnection extends EventTarget native "*RTCPeerConnection" {
 @DomName('RTCSessionDescription')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental
-class RtcSessionDescription native "*RTCSessionDescription" {
+class RtcSessionDescription native "RTCSessionDescription" {
   factory RtcSessionDescription(Map dictionary) {
     return JS('RtcSessionDescription', 'new RTCSessionDescription(#)',
         convertDartToNative_SerializedScriptValue(dictionary));
@@ -18427,7 +18427,7 @@ class RtcSessionDescription native "*RTCSessionDescription" {
 
 @DocsEditable
 @DomName('RTCStatsReport')
-class RtcStatsReport native "*RTCStatsReport" {
+class RtcStatsReport native "RTCStatsReport" {
 
   @DomName('RTCStatsReport.id')
   @DocsEditable
@@ -18466,7 +18466,7 @@ class RtcStatsReport native "*RTCStatsReport" {
 
 @DocsEditable
 @DomName('RTCStatsResponse')
-class RtcStatsResponse native "*RTCStatsResponse" {
+class RtcStatsResponse native "RTCStatsResponse" {
 
   @DomName('RTCStatsResponse.namedItem')
   @DocsEditable
@@ -18483,7 +18483,7 @@ class RtcStatsResponse native "*RTCStatsResponse" {
 
 @DocsEditable
 @DomName('Screen')
-class Screen native "*Screen" {
+class Screen native "Screen" {
 
   @DomName('Screen.availHeight')
   @DomName('Screen.availLeft')
@@ -18535,7 +18535,7 @@ class Screen native "*Screen" {
 
 @DocsEditable
 @DomName('HTMLScriptElement')
-class ScriptElement extends Element native "*HTMLScriptElement" {
+class ScriptElement extends Element native "HTMLScriptElement" {
 
   @DomName('HTMLScriptElement.HTMLScriptElement')
   @DocsEditable
@@ -18584,7 +18584,7 @@ class ScriptElement extends Element native "*HTMLScriptElement" {
 
 @DocsEditable
 @DomName('ScriptProfile')
-class ScriptProfile native "*ScriptProfile" {
+class ScriptProfile native "ScriptProfile" {
 
   @DomName('ScriptProfile.head')
   @DocsEditable
@@ -18609,7 +18609,7 @@ class ScriptProfile native "*ScriptProfile" {
 
 @DocsEditable
 @DomName('ScriptProfileNode')
-class ScriptProfileNode native "*ScriptProfileNode" {
+class ScriptProfileNode native "ScriptProfileNode" {
 
   @JSName('callUID')
   @DomName('ScriptProfileNode.callUID')
@@ -18655,7 +18655,7 @@ class ScriptProfileNode native "*ScriptProfileNode" {
 
 @DocsEditable
 @DomName('SecurityPolicyViolationEvent')
-class SecurityPolicyViolationEvent extends Event native "*SecurityPolicyViolationEvent" {
+class SecurityPolicyViolationEvent extends Event native "SecurityPolicyViolationEvent" {
 
   @JSName('blockedURI')
   @DomName('SecurityPolicyViolationEvent.blockedURI')
@@ -18697,7 +18697,7 @@ class SecurityPolicyViolationEvent extends Event native "*SecurityPolicyViolatio
 
 
 @DomName('HTMLSelectElement')
-class SelectElement extends Element native "*HTMLSelectElement" {
+class SelectElement extends Element native "HTMLSelectElement" {
 
   @DomName('HTMLSelectElement.HTMLSelectElement')
   @DocsEditable
@@ -18808,7 +18808,7 @@ class SelectElement extends Element native "*HTMLSelectElement" {
 @DomName('HTMLShadowElement')
 @SupportedBrowser(SupportedBrowser.CHROME, '26')
 @Experimental
-class ShadowElement extends Element native "*HTMLShadowElement" {
+class ShadowElement extends Element native "HTMLShadowElement" {
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('shadow');
@@ -18831,7 +18831,7 @@ class ShadowElement extends Element native "*HTMLShadowElement" {
 @DomName('ShadowRoot')
 @SupportedBrowser(SupportedBrowser.CHROME, '26')
 @Experimental
-class ShadowRoot extends DocumentFragment native "*ShadowRoot" {
+class ShadowRoot extends DocumentFragment native "ShadowRoot" {
 
   @DomName('ShadowRoot.activeElement')
   @DocsEditable
@@ -18889,7 +18889,7 @@ class ShadowRoot extends DocumentFragment native "*ShadowRoot" {
 
 @DocsEditable
 @DomName('SourceBuffer')
-class SourceBuffer native "*SourceBuffer" {
+class SourceBuffer native "SourceBuffer" {
 
   @DomName('SourceBuffer.buffered')
   @DocsEditable
@@ -18914,7 +18914,7 @@ class SourceBuffer native "*SourceBuffer" {
 
 @DocsEditable
 @DomName('SourceBufferList')
-class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior, List<SourceBuffer> native "*SourceBufferList" {
+class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior, List<SourceBuffer> native "SourceBufferList" {
 
   @DomName('SourceBufferList.length')
   @DocsEditable
@@ -19145,7 +19145,7 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
 
 @DocsEditable
 @DomName('HTMLSourceElement')
-class SourceElement extends Element native "*HTMLSourceElement" {
+class SourceElement extends Element native "HTMLSourceElement" {
 
   @DomName('HTMLSourceElement.HTMLSourceElement')
   @DocsEditable
@@ -19170,7 +19170,7 @@ class SourceElement extends Element native "*HTMLSourceElement" {
 
 @DocsEditable
 @DomName('HTMLSpanElement')
-class SpanElement extends Element native "*HTMLSpanElement" {
+class SpanElement extends Element native "HTMLSpanElement" {
 
   @DomName('HTMLSpanElement.HTMLSpanElement')
   @DocsEditable
@@ -19183,7 +19183,7 @@ class SpanElement extends Element native "*HTMLSpanElement" {
 
 @DocsEditable
 @DomName('SpeechGrammar')
-class SpeechGrammar native "*SpeechGrammar" {
+class SpeechGrammar native "SpeechGrammar" {
 
   @DomName('SpeechGrammar.SpeechGrammar')
   @DocsEditable
@@ -19207,7 +19207,7 @@ class SpeechGrammar native "*SpeechGrammar" {
 
 @DocsEditable
 @DomName('SpeechGrammarList')
-class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGrammar> native "*SpeechGrammarList" {
+class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGrammar> native "SpeechGrammarList" {
 
   @DomName('SpeechGrammarList.SpeechGrammarList')
   @DocsEditable
@@ -19439,7 +19439,7 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
 
 @DocsEditable
 @DomName('SpeechInputEvent')
-class SpeechInputEvent extends Event native "*SpeechInputEvent" {
+class SpeechInputEvent extends Event native "SpeechInputEvent" {
 
   @DomName('SpeechInputEvent.results')
   @DocsEditable
@@ -19454,7 +19454,7 @@ class SpeechInputEvent extends Event native "*SpeechInputEvent" {
 
 @DocsEditable
 @DomName('SpeechInputResult')
-class SpeechInputResult native "*SpeechInputResult" {
+class SpeechInputResult native "SpeechInputResult" {
 
   @DomName('SpeechInputResult.confidence')
   @DocsEditable
@@ -19472,7 +19472,7 @@ class SpeechInputResult native "*SpeechInputResult" {
 @DomName('SpeechRecognition')
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
 @Experimental
-class SpeechRecognition extends EventTarget native "*SpeechRecognition" {
+class SpeechRecognition extends EventTarget native "SpeechRecognition" {
 
   @DomName('SpeechRecognition.audioendEvent')
   @DocsEditable
@@ -19625,7 +19625,7 @@ class SpeechRecognition extends EventTarget native "*SpeechRecognition" {
 @DomName('SpeechRecognitionAlternative')
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
 @Experimental
-class SpeechRecognitionAlternative native "*SpeechRecognitionAlternative" {
+class SpeechRecognitionAlternative native "SpeechRecognitionAlternative" {
 
   @DomName('SpeechRecognitionAlternative.confidence')
   @DocsEditable
@@ -19644,7 +19644,7 @@ class SpeechRecognitionAlternative native "*SpeechRecognitionAlternative" {
 @DomName('SpeechRecognitionError')
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
 @Experimental
-class SpeechRecognitionError extends Event native "*SpeechRecognitionError" {
+class SpeechRecognitionError extends Event native "SpeechRecognitionError" {
 
   @DomName('SpeechRecognitionError.error')
   @DocsEditable
@@ -19663,7 +19663,7 @@ class SpeechRecognitionError extends Event native "*SpeechRecognitionError" {
 @DomName('SpeechRecognitionEvent')
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
 @Experimental
-class SpeechRecognitionEvent extends Event native "*SpeechRecognitionEvent" {
+class SpeechRecognitionEvent extends Event native "SpeechRecognitionEvent" {
 
   @DomName('SpeechRecognitionEvent.emma')
   @DocsEditable
@@ -19692,7 +19692,7 @@ class SpeechRecognitionEvent extends Event native "*SpeechRecognitionEvent" {
 @DomName('SpeechRecognitionResult')
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
 @Experimental
-class SpeechRecognitionResult native "*SpeechRecognitionResult" {
+class SpeechRecognitionResult native "SpeechRecognitionResult" {
 
   @DomName('SpeechRecognitionResult.isFinal')
   @DocsEditable
@@ -19738,7 +19738,7 @@ class SpeechRecognitionResult native "*SpeechRecognitionResult" {
  */
 @DomName('Storage')
 class Storage implements Map<String, String>
-     native "*Storage" {
+     native "Storage" {
 
   // TODO(nweiz): update this when maps support lazy iteration
   bool containsValue(String value) => values.any((e) => e == value);
@@ -19834,7 +19834,7 @@ typedef void StorageErrorCallback(DomException error);
 
 
 @DomName('StorageEvent')
-class StorageEvent extends Event native "*StorageEvent" {
+class StorageEvent extends Event native "StorageEvent" {
   factory StorageEvent(String type,
     {bool canBubble: false, bool cancelable: false, String key, String oldValue,
     String newValue, String url, Storage storageArea}) {
@@ -19877,7 +19877,7 @@ class StorageEvent extends Event native "*StorageEvent" {
 
 
 @DomName('StorageInfo')
-class StorageInfo native "*StorageInfo" {
+class StorageInfo native "StorageInfo" {
 
   static const int PERSISTENT = 1;
 
@@ -19932,7 +19932,7 @@ class StorageInfoUsage {
 
 @DocsEditable
 @DomName('StorageQuota')
-class StorageQuota native "*StorageQuota" {
+class StorageQuota native "StorageQuota" {
 
   @DomName('StorageQuota.queryUsageAndQuota')
   @DocsEditable
@@ -19973,7 +19973,7 @@ typedef void _StringCallback(String data);
 
 @DocsEditable
 @DomName('HTMLStyleElement')
-class StyleElement extends Element native "*HTMLStyleElement" {
+class StyleElement extends Element native "HTMLStyleElement" {
 
   @DomName('HTMLStyleElement.HTMLStyleElement')
   @DocsEditable
@@ -20006,7 +20006,7 @@ class StyleElement extends Element native "*HTMLStyleElement" {
 
 @DocsEditable
 @DomName('StyleMedia')
-class StyleMedia native "*StyleMedia" {
+class StyleMedia native "StyleMedia" {
 
   @DomName('StyleMedia.type')
   @DocsEditable
@@ -20023,7 +20023,7 @@ class StyleMedia native "*StyleMedia" {
 
 @DocsEditable
 @DomName('StyleSheet')
-class StyleSheet native "*StyleSheet" {
+class StyleSheet native "StyleSheet" {
 
   @DomName('StyleSheet.disabled')
   @DocsEditable
@@ -20060,7 +20060,7 @@ class StyleSheet native "*StyleSheet" {
 
 @DocsEditable
 @DomName('HTMLTableCaptionElement')
-class TableCaptionElement extends Element native "*HTMLTableCaptionElement" {
+class TableCaptionElement extends Element native "HTMLTableCaptionElement" {
 
   @DomName('HTMLTableCaptionElement.HTMLTableCaptionElement')
   @DocsEditable
@@ -20073,7 +20073,7 @@ class TableCaptionElement extends Element native "*HTMLTableCaptionElement" {
 
 @DocsEditable
 @DomName('HTMLTableCellElement')
-class TableCellElement extends Element native "*HTMLTableCellElement" {
+class TableCellElement extends Element native "HTMLTableCellElement" {
 
   @DomName('HTMLTableCellElement.HTMLTableCellElement')
   @DocsEditable
@@ -20102,7 +20102,7 @@ class TableCellElement extends Element native "*HTMLTableCellElement" {
 
 @DocsEditable
 @DomName('HTMLTableColElement')
-class TableColElement extends Element native "*HTMLTableColElement" {
+class TableColElement extends Element native "HTMLTableColElement" {
 
   @DomName('HTMLTableColElement.HTMLTableColElement')
   @DocsEditable
@@ -20119,7 +20119,7 @@ class TableColElement extends Element native "*HTMLTableColElement" {
 
 @DocsEditable
 @DomName('HTMLTableElement')
-class TableElement extends Element native "*HTMLTableElement" {
+class TableElement extends Element native "HTMLTableElement" {
 
   @DomName('HTMLTableElement.tBodies')
   List<TableSectionElement> get tBodies =>
@@ -20225,7 +20225,7 @@ class TableElement extends Element native "*HTMLTableElement" {
 
 @DocsEditable
 @DomName('HTMLTableRowElement')
-class TableRowElement extends Element native "*HTMLTableRowElement" {
+class TableRowElement extends Element native "HTMLTableRowElement" {
 
   @DomName('HTMLTableRowElement.cells')
   List<TableCellElement> get cells =>
@@ -20271,7 +20271,7 @@ class TableRowElement extends Element native "*HTMLTableRowElement" {
 
 @DocsEditable
 @DomName('HTMLTableSectionElement')
-class TableSectionElement extends Element native "*HTMLTableSectionElement" {
+class TableSectionElement extends Element native "HTMLTableSectionElement" {
 
   @DomName('HTMLTableSectionElement.rows')
   List<TableRowElement> get rows =>
@@ -20305,7 +20305,7 @@ class TableSectionElement extends Element native "*HTMLTableSectionElement" {
 
 @DocsEditable
 @DomName('HTMLTemplateElement')
-class TemplateElement extends Element native "*HTMLTemplateElement" {
+class TemplateElement extends Element native "HTMLTemplateElement" {
 
   @DomName('HTMLTemplateElement.content')
   @DocsEditable
@@ -20319,7 +20319,7 @@ class TemplateElement extends Element native "*HTMLTemplateElement" {
 
 
 @DomName('Text')
-class Text extends CharacterData native "*Text" {
+class Text extends CharacterData native "Text" {
   factory Text(String data) => _TextFactoryProvider.createText(data);
 
   @JSName('webkitInsertionParent')
@@ -20350,7 +20350,7 @@ class Text extends CharacterData native "*Text" {
 
 @DocsEditable
 @DomName('HTMLTextAreaElement')
-class TextAreaElement extends Element native "*HTMLTextAreaElement" {
+class TextAreaElement extends Element native "HTMLTextAreaElement" {
 
   @DomName('HTMLTextAreaElement.HTMLTextAreaElement')
   @DocsEditable
@@ -20478,7 +20478,7 @@ class TextAreaElement extends Element native "*HTMLTextAreaElement" {
 
 
 @DomName('TextEvent')
-class TextEvent extends UIEvent native "*TextEvent" {
+class TextEvent extends UIEvent native "TextEvent" {
   factory TextEvent(String type,
     {bool canBubble: false, bool cancelable: false, Window view, String data}) {
     if (view == null) {
@@ -20506,7 +20506,7 @@ class TextEvent extends UIEvent native "*TextEvent" {
 
 @DocsEditable
 @DomName('TextMetrics')
-class TextMetrics native "*TextMetrics" {
+class TextMetrics native "TextMetrics" {
 
   @DomName('TextMetrics.width')
   @DocsEditable
@@ -20519,7 +20519,7 @@ class TextMetrics native "*TextMetrics" {
 
 @DocsEditable
 @DomName('TextTrack')
-class TextTrack extends EventTarget native "*TextTrack" {
+class TextTrack extends EventTarget native "TextTrack" {
 
   @DomName('TextTrack.cuechangeEvent')
   @DocsEditable
@@ -20582,7 +20582,7 @@ class TextTrack extends EventTarget native "*TextTrack" {
 
 @DocsEditable
 @DomName('TextTrackCue')
-class TextTrackCue extends EventTarget native "*TextTrackCue" {
+class TextTrackCue extends EventTarget native "TextTrackCue" {
 
   @DomName('TextTrackCue.enterEvent')
   @DocsEditable
@@ -20681,7 +20681,7 @@ class TextTrackCue extends EventTarget native "*TextTrackCue" {
 
 @DocsEditable
 @DomName('TextTrackCueList')
-class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior native "*TextTrackCueList" {
+class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior native "TextTrackCueList" {
 
   @DomName('TextTrackCueList.length')
   @DocsEditable
@@ -20902,7 +20902,7 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
 
 @DocsEditable
 @DomName('TextTrackList')
-class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, List<TextTrack> native "*TextTrackList" {
+class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, List<TextTrack> native "TextTrackList" {
 
   @DomName('TextTrackList.addtrackEvent')
   @DocsEditable
@@ -21141,7 +21141,7 @@ class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, L
 
 @DocsEditable
 @DomName('TimeRanges')
-class TimeRanges native "*TimeRanges" {
+class TimeRanges native "TimeRanges" {
 
   @DomName('TimeRanges.length')
   @DocsEditable
@@ -21170,7 +21170,7 @@ typedef void TimeoutHandler();
 
 @DocsEditable
 @DomName('HTMLTitleElement')
-class TitleElement extends Element native "*HTMLTitleElement" {
+class TitleElement extends Element native "HTMLTitleElement" {
 
   @DomName('HTMLTitleElement.HTMLTitleElement')
   @DocsEditable
@@ -21183,7 +21183,7 @@ class TitleElement extends Element native "*HTMLTitleElement" {
 
 @DocsEditable
 @DomName('Touch')
-class Touch native "*Touch" {
+class Touch native "Touch" {
 
   @JSName('clientX')
   @DomName('Touch.clientX')
@@ -21280,7 +21280,7 @@ class Touch native "*Touch" {
 
 
 @DomName('TouchEvent')
-class TouchEvent extends UIEvent native "*TouchEvent" {
+class TouchEvent extends UIEvent native "TouchEvent" {
   factory TouchEvent(TouchList touches, TouchList targetTouches,
       TouchList changedTouches, String type,
       {Window view, int screenX: 0, int screenY: 0, int clientX: 0,
@@ -21350,7 +21350,7 @@ class TouchEvent extends UIEvent native "*TouchEvent" {
 
 
 @DomName('TouchList')
-class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*TouchList" {
+class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "TouchList" {
   /// NB: This constructor likely does not work as you might expect it to! This
   /// constructor will simply fail (returning null) if you are not on a device
   /// with touch enabled. See dartbug.com/8314.
@@ -21578,7 +21578,7 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "*Touc
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-class TrackElement extends Element native "*HTMLTrackElement" {
+class TrackElement extends Element native "HTMLTrackElement" {
 
   @DomName('HTMLTrackElement.HTMLTrackElement')
   @DocsEditable
@@ -21631,7 +21631,7 @@ class TrackElement extends Element native "*HTMLTrackElement" {
 
 @DocsEditable
 @DomName('TrackEvent')
-class TrackEvent extends Event native "*TrackEvent" {
+class TrackEvent extends Event native "TrackEvent" {
 
   @DomName('TrackEvent.track')
   @DocsEditable
@@ -21644,7 +21644,7 @@ class TrackEvent extends Event native "*TrackEvent" {
 
 @DocsEditable
 @DomName('TransitionEvent')
-class TransitionEvent extends Event native "*TransitionEvent" {
+class TransitionEvent extends Event native "TransitionEvent,WebkitTransitionEvent" {
 
   @DomName('TransitionEvent.elapsedTime')
   @DocsEditable
@@ -21665,7 +21665,7 @@ class TransitionEvent extends Event native "*TransitionEvent" {
 
 @DocsEditable
 @DomName('TreeWalker')
-class TreeWalker native "*TreeWalker" {
+class TreeWalker native "TreeWalker" {
 
   @DomName('TreeWalker.currentNode')
   @DocsEditable
@@ -21723,7 +21723,7 @@ class TreeWalker native "*TreeWalker" {
 
 
 @DomName('UIEvent')
-class UIEvent extends Event native "*UIEvent" {
+class UIEvent extends Event native "UIEvent" {
   // In JS, canBubble and cancelable are technically required parameters to
   // init*Event. In practice, though, if they aren't provided they simply
   // default to false (since that's Boolean(undefined)).
@@ -21818,7 +21818,7 @@ class UIEvent extends Event native "*UIEvent" {
 
 @DocsEditable
 @DomName('HTMLUListElement')
-class UListElement extends Element native "*HTMLUListElement" {
+class UListElement extends Element native "HTMLUListElement" {
 
   @DomName('HTMLUListElement.HTMLUListElement')
   @DocsEditable
@@ -21831,7 +21831,7 @@ class UListElement extends Element native "*HTMLUListElement" {
 
 @DocsEditable
 @DomName('HTMLUnknownElement')
-class UnknownElement extends Element native "*HTMLUnknownElement" {
+class UnknownElement extends Element native "HTMLUnknownElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21839,7 +21839,7 @@ class UnknownElement extends Element native "*HTMLUnknownElement" {
 
 
 @DomName('URL')
-class Url native "*URL" {
+class Url native "URL" {
 
   static String createObjectUrl(blob_OR_source_OR_stream) =>
       JS('String',
@@ -21858,7 +21858,7 @@ class Url native "*URL" {
 
 @DocsEditable
 @DomName('ValidityState')
-class ValidityState native "*ValidityState" {
+class ValidityState native "ValidityState" {
 
   @DomName('ValidityState.badInput')
   @DocsEditable
@@ -21906,7 +21906,7 @@ class ValidityState native "*ValidityState" {
 
 
 @DomName('HTMLVideoElement')
-class VideoElement extends MediaElement implements CanvasImageSource native "*HTMLVideoElement" {
+class VideoElement extends MediaElement implements CanvasImageSource native "HTMLVideoElement" {
 
   @DomName('HTMLVideoElement.HTMLVideoElement')
   @DocsEditable
@@ -22012,7 +22012,7 @@ typedef void VoidCallback();
 
 @DocsEditable
 @DomName('WebKitCSSFilterRule')
-class WebKitCssFilterRule extends CssRule native "*WebKitCSSFilterRule" {
+class WebKitCssFilterRule extends CssRule native "WebKitCSSFilterRule" {
 
   @DomName('WebKitCSSFilterRule.style')
   @DocsEditable
@@ -22025,7 +22025,7 @@ class WebKitCssFilterRule extends CssRule native "*WebKitCSSFilterRule" {
 
 @DocsEditable
 @DomName('WebKitCSSRegionRule')
-class WebKitCssRegionRule extends CssRule native "*WebKitCSSRegionRule" {
+class WebKitCssRegionRule extends CssRule native "WebKitCSSRegionRule" {
 
   @DomName('WebKitCSSRegionRule.cssRules')
   @DocsEditable
@@ -22078,7 +22078,7 @@ class WebKitCssRegionRule extends CssRule native "*WebKitCSSRegionRule" {
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-class WebSocket extends EventTarget native "*WebSocket" {
+class WebSocket extends EventTarget native "WebSocket" {
 
   @DomName('WebSocket.closeEvent')
   @DocsEditable
@@ -22198,7 +22198,7 @@ class WebSocket extends EventTarget native "*WebSocket" {
 
 
 @DomName('WheelEvent')
-class WheelEvent extends MouseEvent native "*WheelEvent" {
+class WheelEvent extends MouseEvent native "WheelEvent,MouseWheelEvent,MouseScrollEvent" {
 
   factory WheelEvent(String type,
       {Window view, int deltaX: 0, int deltaY: 0,
@@ -22430,7 +22430,7 @@ class WheelEvent extends MouseEvent native "*WheelEvent" {
 
 
 @DomName('Window')
-class Window extends EventTarget implements WindowBase native "@*DOMWindow" {
+class Window extends EventTarget implements WindowBase native "Window,DOMWindow" {
 
   /**
    * Executes a [callback] after the immediate execution stack has completed.
@@ -23458,7 +23458,7 @@ class _BeforeUnloadEventStreamProvider implements
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-class Worker extends AbstractWorker native "*Worker" {
+class Worker extends AbstractWorker native "Worker" {
 
   @DomName('Worker.messageEvent')
   @DocsEditable
@@ -23493,7 +23493,7 @@ class Worker extends AbstractWorker native "*Worker" {
 
 @DocsEditable
 @DomName('XPathEvaluator')
-class XPathEvaluator native "*XPathEvaluator" {
+class XPathEvaluator native "XPathEvaluator" {
 
   @DomName('XPathEvaluator.XPathEvaluator')
   @DocsEditable
@@ -23521,7 +23521,7 @@ class XPathEvaluator native "*XPathEvaluator" {
 
 @DocsEditable
 @DomName('XPathException')
-class XPathException native "*XPathException" {
+class XPathException native "XPathException" {
 
   static const int INVALID_EXPRESSION_ERR = 51;
 
@@ -23550,7 +23550,7 @@ class XPathException native "*XPathException" {
 
 @DocsEditable
 @DomName('XPathExpression')
-class XPathExpression native "*XPathExpression" {
+class XPathExpression native "XPathExpression" {
 
   @DomName('XPathExpression.evaluate')
   @DocsEditable
@@ -23563,7 +23563,7 @@ class XPathExpression native "*XPathExpression" {
 
 @DocsEditable
 @DomName('XPathNSResolver')
-class XPathNSResolver native "*XPathNSResolver" {
+class XPathNSResolver native "XPathNSResolver" {
 
   @JSName('lookupNamespaceURI')
   @DomName('XPathNSResolver.lookupNamespaceURI')
@@ -23577,7 +23577,7 @@ class XPathNSResolver native "*XPathNSResolver" {
 
 @DocsEditable
 @DomName('XPathResult')
-class XPathResult native "*XPathResult" {
+class XPathResult native "XPathResult" {
 
   static const int ANY_TYPE = 0;
 
@@ -23642,7 +23642,7 @@ class XPathResult native "*XPathResult" {
 
 @DocsEditable
 @DomName('XMLSerializer')
-class XmlSerializer native "*XMLSerializer" {
+class XmlSerializer native "XMLSerializer" {
 
   @DomName('XMLSerializer.XMLSerializer')
   @DocsEditable
@@ -23665,7 +23665,7 @@ class XmlSerializer native "*XMLSerializer" {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
-class XsltProcessor native "*XSLTProcessor" {
+class XsltProcessor native "XSLTProcessor" {
 
   @DomName('XSLTProcessor.XSLTProcessor')
   @DocsEditable
@@ -23716,7 +23716,7 @@ class XsltProcessor native "*XSLTProcessor" {
 
 @DocsEditable
 @DomName('CSSPrimitiveValue')
-abstract class _CSSPrimitiveValue extends _CSSValue native "*CSSPrimitiveValue" {
+abstract class _CSSPrimitiveValue extends _CSSValue native "CSSPrimitiveValue" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23725,7 +23725,7 @@ abstract class _CSSPrimitiveValue extends _CSSValue native "*CSSPrimitiveValue" 
 
 @DocsEditable
 @DomName('CSSValue')
-abstract class _CSSValue native "*CSSValue" {
+abstract class _CSSValue native "CSSValue" {
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23734,7 +23734,7 @@ abstract class _CSSValue native "*CSSValue" {
 
 @DocsEditable
 @DomName('ClientRect')
-class _ClientRect implements Rect native "*ClientRect" {
+class _ClientRect implements Rect native "ClientRect" {
 
   // NOTE! All code below should be common with Rect.
   // TODO(blois): implement with mixins when available.
@@ -23859,7 +23859,7 @@ class _ClientRect implements Rect native "*ClientRect" {
 
 @DocsEditable
 @DomName('ClientRectList')
-class _ClientRectList implements JavaScriptIndexingBehavior, List<Rect> native "*ClientRectList" {
+class _ClientRectList implements JavaScriptIndexingBehavior, List<Rect> native "ClientRectList" {
 
   @DomName('ClientRectList.length')
   @DocsEditable
@@ -24076,7 +24076,7 @@ class _ClientRectList implements JavaScriptIndexingBehavior, List<Rect> native "
 
 @DocsEditable
 @DomName('Counter')
-abstract class _Counter native "*Counter" {
+abstract class _Counter native "Counter" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24085,7 +24085,7 @@ abstract class _Counter native "*Counter" {
 
 @DocsEditable
 @DomName('CSSRuleList')
-class _CssRuleList implements JavaScriptIndexingBehavior, List<CssRule> native "*CSSRuleList" {
+class _CssRuleList implements JavaScriptIndexingBehavior, List<CssRule> native "CSSRuleList" {
 
   @DomName('CSSRuleList.length')
   @DocsEditable
@@ -24302,7 +24302,7 @@ class _CssRuleList implements JavaScriptIndexingBehavior, List<CssRule> native "
 
 @DocsEditable
 @DomName('CSSValueList')
-class _CssValueList extends _CSSValue implements JavaScriptIndexingBehavior, List<_CSSValue> native "*CSSValueList" {
+class _CssValueList extends _CSSValue implements JavaScriptIndexingBehavior, List<_CSSValue> native "CSSValueList" {
 
   @DomName('CSSValueList.length')
   @DocsEditable
@@ -24521,7 +24521,7 @@ class _CssValueList extends _CSSValue implements JavaScriptIndexingBehavior, Lis
 @DomName('DOMFileSystemSync')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental
-abstract class _DOMFileSystemSync native "*DOMFileSystemSync" {
+abstract class _DOMFileSystemSync native "DOMFileSystemSync" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24533,7 +24533,7 @@ abstract class _DOMFileSystemSync native "*DOMFileSystemSync" {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
-abstract class _DatabaseSync native "*DatabaseSync" {
+abstract class _DatabaseSync native "DatabaseSync" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24542,7 +24542,7 @@ abstract class _DatabaseSync native "*DatabaseSync" {
 
 @DocsEditable
 @DomName('DedicatedWorkerContext')
-abstract class _DedicatedWorkerContext extends _WorkerContext native "*DedicatedWorkerContext" {
+abstract class _DedicatedWorkerContext extends _WorkerContext native "DedicatedWorkerContext" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24551,7 +24551,7 @@ abstract class _DedicatedWorkerContext extends _WorkerContext native "*Dedicated
 
 @DocsEditable
 @DomName('DirectoryEntrySync')
-abstract class _DirectoryEntrySync extends _EntrySync native "*DirectoryEntrySync" {
+abstract class _DirectoryEntrySync extends _EntrySync native "DirectoryEntrySync" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24560,7 +24560,7 @@ abstract class _DirectoryEntrySync extends _EntrySync native "*DirectoryEntrySyn
 
 @DocsEditable
 @DomName('DirectoryReaderSync')
-abstract class _DirectoryReaderSync native "*DirectoryReaderSync" {
+abstract class _DirectoryReaderSync native "DirectoryReaderSync" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24572,7 +24572,7 @@ abstract class _DirectoryReaderSync native "*DirectoryReaderSync" {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
-class _DomPoint native "*WebKitPoint" {
+class _DomPoint native "WebKitPoint" {
 
   @DomName('DOMPoint.DOMPoint')
   @DocsEditable
@@ -24599,7 +24599,7 @@ class _DomPoint native "*WebKitPoint" {
 
 @DocsEditable
 @DomName('EntryArray')
-class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*EntryArray" {
+class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "EntryArray" {
 
   @DomName('EntryArray.length')
   @DocsEditable
@@ -24816,7 +24816,7 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "*En
 
 @DocsEditable
 @DomName('EntryArraySync')
-class _EntryArraySync implements JavaScriptIndexingBehavior, List<_EntrySync> native "*EntryArraySync" {
+class _EntryArraySync implements JavaScriptIndexingBehavior, List<_EntrySync> native "EntryArraySync" {
 
   @DomName('EntryArraySync.length')
   @DocsEditable
@@ -25033,7 +25033,7 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<_EntrySync> na
 
 @DocsEditable
 @DomName('EntrySync')
-abstract class _EntrySync native "*EntrySync" {
+abstract class _EntrySync native "EntrySync" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25042,7 +25042,7 @@ abstract class _EntrySync native "*EntrySync" {
 
 @DocsEditable
 @DomName('FileEntrySync')
-abstract class _FileEntrySync extends _EntrySync native "*FileEntrySync" {
+abstract class _FileEntrySync extends _EntrySync native "FileEntrySync" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25051,7 +25051,7 @@ abstract class _FileEntrySync extends _EntrySync native "*FileEntrySync" {
 
 @DocsEditable
 @DomName('FileReaderSync')
-abstract class _FileReaderSync native "*FileReaderSync" {
+abstract class _FileReaderSync native "FileReaderSync" {
 
   @DomName('FileReaderSync.FileReaderSync')
   @DocsEditable
@@ -25067,7 +25067,7 @@ abstract class _FileReaderSync native "*FileReaderSync" {
 
 @DocsEditable
 @DomName('FileWriterSync')
-abstract class _FileWriterSync native "*FileWriterSync" {
+abstract class _FileWriterSync native "FileWriterSync" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25076,7 +25076,7 @@ abstract class _FileWriterSync native "*FileWriterSync" {
 
 @DocsEditable
 @DomName('GamepadList')
-class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "*GamepadList" {
+class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "GamepadList" {
 
   @DomName('GamepadList.length')
   @DocsEditable
@@ -25293,7 +25293,7 @@ class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "
 
 @DocsEditable
 @DomName('HTMLAppletElement')
-abstract class _HTMLAppletElement extends Element native "*HTMLAppletElement" {
+abstract class _HTMLAppletElement extends Element native "HTMLAppletElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25302,7 +25302,7 @@ abstract class _HTMLAppletElement extends Element native "*HTMLAppletElement" {
 
 @DocsEditable
 @DomName('HTMLBaseFontElement')
-abstract class _HTMLBaseFontElement extends Element native "*HTMLBaseFontElement" {
+abstract class _HTMLBaseFontElement extends Element native "HTMLBaseFontElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25311,7 +25311,7 @@ abstract class _HTMLBaseFontElement extends Element native "*HTMLBaseFontElement
 
 @DocsEditable
 @DomName('HTMLDirectoryElement')
-abstract class _HTMLDirectoryElement extends Element native "*HTMLDirectoryElement" {
+abstract class _HTMLDirectoryElement extends Element native "HTMLDirectoryElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25320,7 +25320,7 @@ abstract class _HTMLDirectoryElement extends Element native "*HTMLDirectoryEleme
 
 @DocsEditable
 @DomName('HTMLFontElement')
-abstract class _HTMLFontElement extends Element native "*HTMLFontElement" {
+abstract class _HTMLFontElement extends Element native "HTMLFontElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25329,7 +25329,7 @@ abstract class _HTMLFontElement extends Element native "*HTMLFontElement" {
 
 @DocsEditable
 @DomName('HTMLFrameElement')
-abstract class _HTMLFrameElement extends Element native "*HTMLFrameElement" {
+abstract class _HTMLFrameElement extends Element native "HTMLFrameElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25338,7 +25338,7 @@ abstract class _HTMLFrameElement extends Element native "*HTMLFrameElement" {
 
 @DocsEditable
 @DomName('HTMLFrameSetElement')
-abstract class _HTMLFrameSetElement extends Element native "*HTMLFrameSetElement" {
+abstract class _HTMLFrameSetElement extends Element native "HTMLFrameSetElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25347,7 +25347,7 @@ abstract class _HTMLFrameSetElement extends Element native "*HTMLFrameSetElement
 
 @DocsEditable
 @DomName('HTMLMarqueeElement')
-abstract class _HTMLMarqueeElement extends Element native "*HTMLMarqueeElement" {
+abstract class _HTMLMarqueeElement extends Element native "HTMLMarqueeElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25356,7 +25356,7 @@ abstract class _HTMLMarqueeElement extends Element native "*HTMLMarqueeElement" 
 
 @DocsEditable
 @DomName('NamedNodeMap')
-class _NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*NamedNodeMap" {
+class _NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "NamedNodeMap" {
 
   @DomName('NamedNodeMap.length')
   @DocsEditable
@@ -25597,7 +25597,7 @@ class _NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "*N
 
 @DocsEditable
 @DomName('RGBColor')
-abstract class _RGBColor native "*RGBColor" {
+abstract class _RGBColor native "RGBColor" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25606,7 +25606,7 @@ abstract class _RGBColor native "*RGBColor" {
 
 @DocsEditable
 @DomName('Rect')
-abstract class _Rect native "*Rect" {
+abstract class _Rect native "Rect" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25615,7 +25615,7 @@ abstract class _Rect native "*Rect" {
 
 @DocsEditable
 @DomName('SharedWorker')
-abstract class _SharedWorker extends AbstractWorker native "*SharedWorker" {
+abstract class _SharedWorker extends AbstractWorker native "SharedWorker" {
 
   @DomName('SharedWorker.SharedWorker')
   @DocsEditable
@@ -25635,7 +25635,7 @@ abstract class _SharedWorker extends AbstractWorker native "*SharedWorker" {
 
 @DocsEditable
 @DomName('SharedWorkerContext')
-abstract class _SharedWorkerContext extends _WorkerContext native "*SharedWorkerContext" {
+abstract class _SharedWorkerContext extends _WorkerContext native "SharedWorkerContext" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25644,7 +25644,7 @@ abstract class _SharedWorkerContext extends _WorkerContext native "*SharedWorker
 
 @DocsEditable
 @DomName('SpeechInputResultList')
-class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechInputResult> native "*SpeechInputResultList" {
+class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechInputResult> native "SpeechInputResultList" {
 
   @DomName('SpeechInputResultList.length')
   @DocsEditable
@@ -25861,7 +25861,7 @@ class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechI
 
 @DocsEditable
 @DomName('SpeechRecognitionResultList')
-class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<SpeechRecognitionResult> native "*SpeechRecognitionResultList" {
+class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<SpeechRecognitionResult> native "SpeechRecognitionResultList" {
 
   @DomName('SpeechRecognitionResultList.length')
   @DocsEditable
@@ -26078,7 +26078,7 @@ class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<S
 
 @DocsEditable
 @DomName('StyleSheetList')
-class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> native "*StyleSheetList" {
+class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> native "StyleSheetList" {
 
   @DomName('StyleSheetList.length')
   @DocsEditable
@@ -26295,7 +26295,7 @@ class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> na
 
 @DocsEditable
 @DomName('WebKitCSSFilterValue')
-abstract class _WebKitCSSFilterValue extends _CssValueList native "*WebKitCSSFilterValue" {
+abstract class _WebKitCSSFilterValue extends _CssValueList native "WebKitCSSFilterValue" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26307,7 +26307,7 @@ abstract class _WebKitCSSFilterValue extends _CssValueList native "*WebKitCSSFil
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
-abstract class _WebKitCSSMatrix native "*WebKitCSSMatrix" {
+abstract class _WebKitCSSMatrix native "WebKitCSSMatrix" {
 
   @DomName('WebKitCSSMatrix.WebKitCSSMatrix')
   @DocsEditable
@@ -26327,7 +26327,7 @@ abstract class _WebKitCSSMatrix native "*WebKitCSSMatrix" {
 
 @DocsEditable
 @DomName('WebKitCSSMixFunctionValue')
-abstract class _WebKitCSSMixFunctionValue extends _CssValueList native "*WebKitCSSMixFunctionValue" {
+abstract class _WebKitCSSMixFunctionValue extends _CssValueList native "WebKitCSSMixFunctionValue" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26336,7 +26336,7 @@ abstract class _WebKitCSSMixFunctionValue extends _CssValueList native "*WebKitC
 
 @DocsEditable
 @DomName('WebKitCSSTransformValue')
-abstract class _WebKitCSSTransformValue extends _CssValueList native "*WebKitCSSTransformValue" {
+abstract class _WebKitCSSTransformValue extends _CssValueList native "WebKitCSSTransformValue" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26345,7 +26345,7 @@ abstract class _WebKitCSSTransformValue extends _CssValueList native "*WebKitCSS
 
 @DocsEditable
 @DomName('WorkerContext')
-abstract class _WorkerContext extends EventTarget native "*WorkerContext" {
+abstract class _WorkerContext extends EventTarget native "WorkerContext" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26354,7 +26354,7 @@ abstract class _WorkerContext extends EventTarget native "*WorkerContext" {
 
 @DocsEditable
 @DomName('WorkerLocation')
-abstract class _WorkerLocation native "*WorkerLocation" {
+abstract class _WorkerLocation native "WorkerLocation" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26363,7 +26363,7 @@ abstract class _WorkerLocation native "*WorkerLocation" {
 
 @DocsEditable
 @DomName('WorkerNavigator')
-abstract class _WorkerNavigator native "*WorkerNavigator" {
+abstract class _WorkerNavigator native "WorkerNavigator" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

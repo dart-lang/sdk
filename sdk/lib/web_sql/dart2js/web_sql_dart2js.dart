@@ -66,7 +66,7 @@ typedef void SqlTransactionErrorCallback(SqlError error);
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
-class SqlDatabase native "*Database" {
+class SqlDatabase native "Database" {
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.openDatabase)');
@@ -106,7 +106,7 @@ class SqlDatabase native "*Database" {
 
 @DocsEditable
 @DomName('SQLError')
-class SqlError native "*SQLError" {
+class SqlError native "SQLError" {
 
   static const int CONSTRAINT_ERR = 6;
 
@@ -139,7 +139,7 @@ class SqlError native "*SQLError" {
 
 @DocsEditable
 @DomName('SQLException')
-class SqlException native "*SQLException" {
+class SqlException native "SQLException" {
 
   static const int CONSTRAINT_ERR = 6;
 
@@ -172,7 +172,7 @@ class SqlException native "*SQLException" {
 
 @DocsEditable
 @DomName('SQLResultSet')
-class SqlResultSet native "*SQLResultSet" {
+class SqlResultSet native "SQLResultSet" {
 
   @DomName('SQLResultSet.insertId')
   @DocsEditable
@@ -193,7 +193,7 @@ class SqlResultSet native "*SQLResultSet" {
 
 @DocsEditable
 @DomName('SQLResultSetRowList')
-class SqlResultSetRowList implements JavaScriptIndexingBehavior, List<Map> native "*SQLResultSetRowList" {
+class SqlResultSetRowList implements JavaScriptIndexingBehavior, List<Map> native "SQLResultSetRowList" {
 
   @DomName('SQLResultSetRowList.length')
   @DocsEditable
@@ -421,7 +421,7 @@ class SqlResultSetRowList implements JavaScriptIndexingBehavior, List<Map> nativ
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
-class SqlTransaction native "*SQLTransaction" {
+class SqlTransaction native "SQLTransaction" {
 
   @DomName('SQLTransaction.executeSql')
   @DocsEditable
@@ -437,5 +437,5 @@ class SqlTransaction native "*SQLTransaction" {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
-abstract class _SQLTransactionSync native "*SQLTransactionSync" {
+abstract class _SQLTransactionSync native "SQLTransactionSync" {
 }

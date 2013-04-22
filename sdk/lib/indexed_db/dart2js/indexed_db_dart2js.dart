@@ -138,7 +138,7 @@ const _annotation_Returns_IDBKey = const Returns(_idbKey);
 
 
 @DomName('IDBCursor')
-class Cursor native "*IDBCursor" {
+class Cursor native "IDBCursor" {
   @DomName('IDBCursor.delete')
   Future delete() {
    try {
@@ -209,7 +209,7 @@ class Cursor native "*IDBCursor" {
 
 @DocsEditable
 @DomName('IDBCursorWithValue')
-class CursorWithValue extends Cursor native "*IDBCursorWithValue" {
+class CursorWithValue extends Cursor native "IDBCursorWithValue" {
 
   dynamic get value => _convertNativeToDart_IDBAny(this._get_value);
   @JSName('value')
@@ -230,7 +230,7 @@ class CursorWithValue extends Cursor native "*IDBCursorWithValue" {
 @SupportedBrowser(SupportedBrowser.FIREFOX, '15')
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @Experimental
-class Database extends EventTarget native "*IDBDatabase" {
+class Database extends EventTarget native "IDBDatabase" {
   @DomName('IDBDatabase.createObjectStore')
   @DocsEditable
   ObjectStore createObjectStore(String name,
@@ -352,7 +352,7 @@ class Database extends EventTarget native "*IDBDatabase" {
 @SupportedBrowser(SupportedBrowser.FIREFOX, '15')
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @Experimental
-class IdbFactory native "*IDBFactory" {
+class IdbFactory native "IDBFactory" {
   /**
    * Checks to see if Indexed DB is supported on the current platform.
    */
@@ -481,7 +481,7 @@ Future _completeRequest(Request request) {
 
 
 @DomName('IDBIndex')
-class Index native "*IDBIndex" {
+class Index native "IDBIndex" {
   @DomName('IDBIndex.count')
   Future<int> count([key_OR_range]) {
    try {
@@ -639,7 +639,7 @@ class Index native "*IDBIndex" {
 
 
 @DomName('IDBKeyRange')
-class KeyRange native "*IDBKeyRange" {
+class KeyRange native "IDBKeyRange" {
   @DomName('IDBKeyRange.only')
   factory KeyRange.only(/*Key*/ value) =>
       _KeyRangeFactoryProvider.createKeyRange_only(value);
@@ -702,7 +702,7 @@ class KeyRange native "*IDBKeyRange" {
 
 
 @DomName('IDBObjectStore')
-class ObjectStore native "*IDBObjectStore" {
+class ObjectStore native "IDBObjectStore" {
 
   @DomName('IDBObjectStore.add')
   Future add(value, [key]) {
@@ -1030,7 +1030,7 @@ class ObjectStore native "*IDBObjectStore" {
 
 @DocsEditable
 @DomName('IDBOpenDBRequest')
-class OpenDBRequest extends Request implements EventTarget native "*IDBOpenDBRequest" {
+class OpenDBRequest extends Request implements EventTarget native "IDBOpenDBRequest" {
 
   @DomName('IDBOpenDBRequest.blockedEvent')
   @DocsEditable
@@ -1055,7 +1055,7 @@ class OpenDBRequest extends Request implements EventTarget native "*IDBOpenDBReq
 
 @DocsEditable
 @DomName('IDBRequest')
-class Request extends EventTarget native "*IDBRequest" {
+class Request extends EventTarget native "IDBRequest" {
 
   @DomName('IDBRequest.errorEvent')
   @DocsEditable
@@ -1125,7 +1125,7 @@ class Request extends EventTarget native "*IDBRequest" {
 
 
 @DomName('IDBTransaction')
-class Transaction extends EventTarget native "*IDBTransaction" {
+class Transaction extends EventTarget native "IDBTransaction" {
 
   /**
    * Provides a Future which will be completed once the transaction has
@@ -1227,7 +1227,7 @@ class Transaction extends EventTarget native "*IDBTransaction" {
 
 @DocsEditable
 @DomName('IDBVersionChangeEvent')
-class VersionChangeEvent extends Event native "*IDBVersionChangeEvent" {
+class VersionChangeEvent extends Event native "IDBVersionChangeEvent" {
 
   @DomName('IDBVersionChangeEvent.newVersion')
   @DocsEditable
@@ -1244,5 +1244,5 @@ class VersionChangeEvent extends Event native "*IDBVersionChangeEvent" {
 
 @DocsEditable
 @DomName('IDBAny')
-abstract class _IDBAny native "*IDBAny" {
+abstract class _IDBAny native "IDBAny" {
 }
