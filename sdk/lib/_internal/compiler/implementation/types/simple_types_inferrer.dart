@@ -902,6 +902,33 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
     if (changed) enqueueAgain(element);
   }
 
+  TypeMask handleIntrisifiedSelector(Selector selector,
+                                     ArgumentsTypes arguments) {
+    if (selector.mask != intType) return null;
+    if (!selector.isCall() && !selector.isOperator()) return null;
+    if (!arguments.named.isEmpty) return null;
+    if (arguments.positional.length > 1) return null;
+
+    switch (selector.name) {
+      case const SourceString('*'):
+      case const SourceString('+'):
+      case const SourceString('%'):
+      case const SourceString('remainder'):
+        return arguments.hasOnePositionalArgumentWithType(intType)
+            ? intType
+            : null;
+
+      case const SourceString('-'):
+        if (arguments.hasNoArguments()) return intType;
+        if (arguments.hasOnePositionalArgumentWithType(intType)) return intType;
+        return null;
+
+      case const SourceString('abs'):
+        return arguments.hasNoArguments() ? intType : null;
+    }
+    return null;
+  }
+
   /**
    * Registers that [caller] calls an element matching [selector]
    * with the given [arguments].
@@ -927,7 +954,8 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
         unregisterCalledElement(node, selector.asUntyped, caller, element);
       }
       if (!selector.isSetter()) {
-        TypeMask type = typeOfElementWithSelector(element, selector);
+        TypeMask type = handleIntrisifiedSelector(selector, arguments);
+        if (type == null) type = typeOfElementWithSelector(element, selector);
         result = computeLUB(result, type);
       }
       return true;
@@ -1113,8 +1141,11 @@ class ArgumentsTypes {
   final Map<SourceString, TypeMask> named;
   ArgumentsTypes(this.positional, named)
     : this.named = (named == null) ? new Map<SourceString, TypeMask>() : named;
+
   int get length => positional.length + named.length;
+
   String toString() => "{ positional = $positional, named = $named }";
+
   bool operator==(other) {
     if (positional.length != other.positional.length) return false;
     if (named.length != other.named.length) return false;
@@ -1125,6 +1156,12 @@ class ArgumentsTypes {
       if (other.named[name] != type) return false;
     });
     return true;
+  }
+
+  bool hasNoArguments() => positional.isEmpty && named.isEmpty;
+
+  bool hasOnePositionalArgumentWithType(TypeMask type) {
+    return named.isEmpty && positional.length == 1 && positional[0] == type;
   }
 }
 

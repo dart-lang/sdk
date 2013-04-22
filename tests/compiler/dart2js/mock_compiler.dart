@@ -112,6 +112,9 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
     operator <(other) => true;
     operator <=(other) => true;
     operator ==(other) => true;
+
+    abs() => (this is JSInt) ? 42 : 42.0;
+    remainder(other) => (this is JSInt) ? 42 : 42.0;
   }
   class JSInt extends JSNumber implements int {
   }
