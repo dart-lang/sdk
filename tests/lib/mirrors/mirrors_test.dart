@@ -8,6 +8,7 @@
 library MirrorsTest;
 import "dart:mirrors";
 import "../../../pkg/unittest/lib/unittest.dart";
+import 'dart:uri';
 
 var topLevelField;
 
@@ -151,6 +152,13 @@ testNames(mirrors) {
          equals(const Symbol('MirrorsTest.Class.field')));
 }
 
+testLibraryUri(var value, bool check(Uri)) {
+  var valueMirror = reflect(value);
+  ClassMirror valueClass = valueMirror.type;
+  LibraryMirror valueLibrary = valueClass.owner;
+  expect(check(valueLibrary.uri), isTrue);
+}
+
 main() {
   var mirrors = currentMirrorSystem();
   test("Test reflective method invocation", () { testInvoke(mirrors); });
@@ -159,4 +167,11 @@ main() {
   test("Test invoke constructor", () { testInvokeConstructor(mirrors); });
   test("Test reflect type", () { testReflectClass(mirrors); });
   test("Test simple and qualifiedName", () { testNames(mirrors); });
+  test("Test current library uri", () {
+    testLibraryUri(new Class(),
+      (Uri uri) => uri.path.endsWith('/mirrors_test.dart'));
+  });
+  test("Test dart library uri", () {
+    testLibraryUri("test", (Uri uri) => uri == Uri.parse('dart:core'));
+  });
 }

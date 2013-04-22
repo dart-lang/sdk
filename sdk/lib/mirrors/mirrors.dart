@@ -16,6 +16,7 @@ library dart.mirrors;
 
 import 'dart:async';
 import 'dart:isolate';
+import 'dart:uri';
 
 /**
  * A [MirrorSystem] is the main interface used to reflect on a set of
@@ -336,13 +337,9 @@ abstract class ClosureMirror implements InstanceMirror {
  */
 abstract class LibraryMirror implements DeclarationMirror, ObjectMirror {
   /**
-   * The url of the library.
-   *
-   * TODO(turnidge): Document where this url comes from.  Will this
-   * value be sensible?
+   * The absolute uri of the library.
    */
-  // TODO(ahe): Change type to [Uri], rename to "uri"?
-  String get url;
+  Uri get uri;
 
   /**
    * An immutable map from from names to mirrors for all members in

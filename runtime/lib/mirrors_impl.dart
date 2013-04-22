@@ -772,10 +772,11 @@ class _LocalLibraryMirrorImpl extends _LocalObjectMirrorImpl
     implements LibraryMirror {
   _LocalLibraryMirrorImpl(ref,
                           String simpleName,
-                          this.url,
+                          String url,
                           Map<String, Mirror> members)
       : this.simpleName = _s(simpleName),
         this.members = _convertStringToSymbolMap(members),
+        this.uri = Uri.parse(url),
         super(ref);
 
   final Symbol simpleName;
@@ -797,7 +798,7 @@ class _LocalLibraryMirrorImpl extends _LocalObjectMirrorImpl
         'LibraryMirror.location is not implemented');
   }
 
-  final String url;
+  final Uri uri;
   final Map<Symbol, Mirror> members;
 
   Map<Symbol, ClassMirror> _classes = null;
