@@ -98,7 +98,7 @@
       'type': 'executable',
       'toolsets':['target','host'],
       # The dependencies here are the union of the dependencies of libdart and
-      # libdart_withcore. 
+      # libdart_withcore.
       'dependencies': [
         'libdart_lib_withcore',
         'libdart_lib',
@@ -109,7 +109,6 @@
       'sources': [
         'vm/libdart_dependency_helper.cc',
       ],
-      'product_dir':'<(PRODUCT_DIR)/<(_toolset)'
     },
     {
       'target_name': 'runtime_packages',
