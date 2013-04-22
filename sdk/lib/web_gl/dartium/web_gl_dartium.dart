@@ -6,7 +6,7 @@ import 'dart:_collection-dev';
 import 'dart:html';
 import 'dart:html_common';
 import 'dart:nativewrappers';
-import 'dart:typeddata' as _typeddata;
+import 'dart:typeddata';
 // DO NOT EDIT
 // Auto-generated dart:web_gl library.
 
@@ -1451,11 +1451,11 @@ class RenderingContext extends CanvasRenderingContext {
   void blendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha) native "WebGLRenderingContext_blendFuncSeparate_Callback";
 
   void bufferData(int target, data_OR_size, int usage) {
-    if ((target is int || target == null) && (data_OR_size is ArrayBufferView || data_OR_size is _typeddata.TypedData || data_OR_size == null) && (usage is int || usage == null)) {
+    if ((target is int || target == null) && (data_OR_size is TypedData || data_OR_size == null) && (usage is int || usage == null)) {
       _bufferData_1(target, data_OR_size, usage);
       return;
     }
-    if ((target is int || target == null) && (data_OR_size is ArrayBuffer || data_OR_size is _typeddata.ByteBuffer || data_OR_size == null) && (usage is int || usage == null)) {
+    if ((target is int || target == null) && (data_OR_size is ByteBuffer || data_OR_size == null) && (usage is int || usage == null)) {
       _bufferData_2(target, data_OR_size, usage);
       return;
     }
@@ -1479,11 +1479,11 @@ class RenderingContext extends CanvasRenderingContext {
   void _bufferData_3(target, data_OR_size, usage) native "WebGLRenderingContext__bufferData_3_Callback";
 
   void bufferSubData(int target, int offset, data) {
-    if ((target is int || target == null) && (offset is int || offset == null) && (data is ArrayBufferView || data is _typeddata.TypedData || data == null)) {
+    if ((target is int || target == null) && (offset is int || offset == null) && (data is TypedData || data == null)) {
       _bufferSubData_1(target, offset, data);
       return;
     }
-    if ((target is int || target == null) && (offset is int || offset == null) && (data is ArrayBuffer || data is _typeddata.ByteBuffer || data == null)) {
+    if ((target is int || target == null) && (offset is int || offset == null) && (data is ByteBuffer || data == null)) {
       _bufferSubData_2(target, offset, data);
       return;
     }
@@ -1851,7 +1851,7 @@ class RenderingContext extends CanvasRenderingContext {
   void stencilOpSeparate(int face, int fail, int zfail, int zpass) native "WebGLRenderingContext_stencilOpSeparate_Callback";
 
   void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format, int type, TypedData pixels]) {
-    if ((target is int || target == null) && (level is int || level == null) && (internalformat is int || internalformat == null) && (format_OR_width is int || format_OR_width == null) && (height_OR_type is int || height_OR_type == null) && (border_OR_canvas_OR_image_OR_pixels_OR_video is int || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && (format is int || format == null) && (type is int || type == null) && (pixels is ArrayBufferView || pixels is _typeddata.TypedData || pixels == null)) {
+    if ((target is int || target == null) && (level is int || level == null) && (internalformat is int || internalformat == null) && (format_OR_width is int || format_OR_width == null) && (height_OR_type is int || height_OR_type == null) && (border_OR_canvas_OR_image_OR_pixels_OR_video is int || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && (format is int || format == null) && (type is int || type == null) && (pixels is TypedData || pixels == null)) {
       _texImage2D_1(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels);
       return;
     }
@@ -1903,7 +1903,7 @@ class RenderingContext extends CanvasRenderingContext {
   void texParameteri(int target, int pname, int param) native "WebGLRenderingContext_texParameteri_Callback";
 
   void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type, TypedData pixels]) {
-    if ((target is int || target == null) && (level is int || level == null) && (xoffset is int || xoffset == null) && (yoffset is int || yoffset == null) && (format_OR_width is int || format_OR_width == null) && (height_OR_type is int || height_OR_type == null) && (canvas_OR_format_OR_image_OR_pixels_OR_video is int || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && (type is int || type == null) && (pixels is ArrayBufferView || pixels is _typeddata.TypedData || pixels == null)) {
+    if ((target is int || target == null) && (level is int || level == null) && (xoffset is int || xoffset == null) && (yoffset is int || yoffset == null) && (format_OR_width is int || format_OR_width == null) && (height_OR_type is int || height_OR_type == null) && (canvas_OR_format_OR_image_OR_pixels_OR_video is int || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && (type is int || type == null) && (pixels is TypedData || pixels == null)) {
       _texSubImage2D_1(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels);
       return;
     }

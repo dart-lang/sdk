@@ -10,7 +10,7 @@ import 'dart:isolate';
 import 'dart:json' as json;
 import 'dart:math';
 import 'dart:nativewrappers';
-import 'dart:typeddata' as _typeddata;
+import 'dart:typeddata';
 import 'dart:web_gl' as gl;
 import 'dart:web_sql';
 import 'dart:svg' as svg;
@@ -19224,11 +19224,11 @@ class RtcDataChannel extends EventTarget {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "RTCDataChannel_removeEventListener_Callback";
 
   void send(data) {
-    if ((data is ArrayBufferView || data is _typeddata.TypedData || data == null)) {
+    if ((data is TypedData || data == null)) {
       _send_1(data);
       return;
     }
-    if ((data is ArrayBuffer || data is _typeddata.ByteBuffer || data == null)) {
+    if ((data is ByteBuffer || data == null)) {
       _send_2(data);
       return;
     }
@@ -30889,74 +30889,6 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
-class _TypedArrayFactoryProvider {
-  static Float32Array createFloat32Array(int length) => _F32(length);
-  static Float32Array createFloat32Array_fromList(List<num> list) =>
-      _F32(ensureNative(list));
-  static Float32Array createFloat32Array_fromBuffer(ArrayBuffer buffer,
-      [int byteOffset = 0, int length]) => _F32(buffer, byteOffset, length);
-  static _F32(arg0, [arg1, arg2]) native "Float32Array_constructor_Callback";
-
-  static Float64Array createFloat64Array(int length) => _F64(length);
-  static Float64Array createFloat64Array_fromList(List<num> list) =>
-      _F64(ensureNative(list));
-  static Float64Array createFloat64Array_fromBuffer(ArrayBuffer buffer,
-      [int byteOffset = 0, int length]) => _F64(buffer, byteOffset, length);
-  static _F64(arg0, [arg1, arg2]) native "Float64Array_constructor_Callback";
-
-  static Int8Array createInt8Array(int length) => _I8(length);
-  static Int8Array createInt8Array_fromList(List<num> list) =>
-      _I8(ensureNative(list));
-  static Int8Array createInt8Array_fromBuffer(ArrayBuffer buffer,
-      [int byteOffset = 0, int length]) => _I8(buffer, byteOffset, length);
-  static _I8(arg0, [arg1, arg2]) native "Int8Array_constructor_Callback";
-
-  static Int16Array createInt16Array(int length) => _I16(length);
-  static Int16Array createInt16Array_fromList(List<num> list) =>
-      _I16(ensureNative(list));
-  static Int16Array createInt16Array_fromBuffer(ArrayBuffer buffer,
-      [int byteOffset = 0, int length]) => _I16(buffer, byteOffset, length);
-  static _I16(arg0, [arg1, arg2]) native "Int16Array_constructor_Callback";
-
-  static Int32Array createInt32Array(int length) => _I32(length);
-  static Int32Array createInt32Array_fromList(List<num> list) =>
-      _I32(ensureNative(list));
-  static Int32Array createInt32Array_fromBuffer(ArrayBuffer buffer,
-      [int byteOffset = 0, int length]) => _I32(buffer, byteOffset, length);
-  static _I32(arg0, [arg1, arg2]) native "Int32Array_constructor_Callback";
-
-  static Uint8Array createUint8Array(int length) => _U8(length);
-  static Uint8Array createUint8Array_fromList(List<num> list) =>
-      _U8(ensureNative(list));
-  static Uint8Array createUint8Array_fromBuffer(ArrayBuffer buffer,
-      [int byteOffset = 0, int length]) => _U8(buffer, byteOffset, length);
-  static _U8(arg0, [arg1, arg2]) native "Uint8Array_constructor_Callback";
-
-  static Uint16Array createUint16Array(int length) => _U16(length);
-  static Uint16Array createUint16Array_fromList(List<num> list) =>
-      _U16(ensureNative(list));
-  static Uint16Array createUint16Array_fromBuffer(ArrayBuffer buffer,
-      [int byteOffset = 0, int length]) => _U16(buffer, byteOffset, length);
-  static _U16(arg0, [arg1, arg2]) native "Uint16Array_constructor_Callback";
-
-  static Uint32Array createUint32Array(int length) => _U32(length);
-  static Uint32Array createUint32Array_fromList(List<num> list) =>
-      _U32(ensureNative(list));
-  static Uint32Array createUint32Array_fromBuffer(ArrayBuffer buffer,
-      [int byteOffset = 0, int length]) => _U32(buffer, byteOffset, length);
-  static _U32(arg0, [arg1, arg2]) native "Uint32Array_constructor_Callback";
-
-  static Uint8ClampedArray createUint8ClampedArray(int length) => _U8C(length);
-  static Uint8ClampedArray createUint8ClampedArray_fromList(
-      List<num> list) => _U8C(ensureNative(list));
-  static Uint8ClampedArray createUint8ClampedArray_fromBuffer(
-      ArrayBuffer buffer, [int byteOffset = 0, int length]) =>
-      _U8C(buffer, byteOffset, length);
-  static _U8C(arg0, [arg1, arg2]) native "Uint8ClampedArray_constructor_Callback";
-
-  static ensureNative(List list) => list;  // TODO: make sure.
-}
 
 class _TextFactoryProvider {
   static Text createText(String data) => document.$dom_createTextNode(data);
