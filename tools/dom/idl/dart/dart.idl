@@ -201,11 +201,7 @@ interface Uint8ClampedArray {
   [DartName=setElements, Custom] void set(in any array, [Optional] in unsigned long offset);
 };
 
-[Supplemental,
-  Constructor(in ArrayBuffer buffer,
-              [Optional] in unsigned long byteOffset,
-              [Optional] in unsigned long byteLength)
-  ]
+[Supplemental]
 interface DataView {
   // Undo this:
   // We have to use custom code because our code generator does not support int8_t type.

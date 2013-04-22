@@ -399,7 +399,7 @@ class AudioContext extends EventTarget {
 
   @DomName('AudioContext.decodeAudioData')
   @DocsEditable
-  void decodeAudioData(/*ArrayBuffer*/ audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback]) native "AudioContext_decodeAudioData_Callback";
+  void decodeAudioData(ByteBuffer audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback]) native "AudioContext_decodeAudioData_Callback";
 
   @DomName('AudioContext.startRendering')
   @DocsEditable

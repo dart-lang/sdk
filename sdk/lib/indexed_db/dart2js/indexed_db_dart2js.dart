@@ -3,6 +3,7 @@ library dart.dom.indexed_db;
 import 'dart:async';
 import 'dart:html';
 import 'dart:html_common';
+import 'dart:typeddata';
 import 'dart:_js_helper' show Creates, Returns, JSName, Null;
 import 'dart:_foreign_helper' show JS;
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

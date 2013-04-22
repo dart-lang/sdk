@@ -88,7 +88,7 @@ const Map<String, LibraryInfo> LIBRARIES = const {
 
   "typeddata": const LibraryInfo(
       "typeddata/typeddata.dart",
-      dart2jsPatchPath: "_internal/compiler/implementation/lib/typeddata_patch.dart"),
+      dart2jsPath: "typeddata/dart2js/typeddata_dart2js.dart"),
 
   "svg": const LibraryInfo(
         "svg/dartium/svg_dartium.dart",

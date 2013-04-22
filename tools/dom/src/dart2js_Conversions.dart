@@ -50,7 +50,7 @@ EventTarget _convertDartToNative_EventTarget(e) {
 // On Firefox, the returned ImageData is a plain object.
 
 class _TypedImageData implements ImageData {
-  final Uint8ClampedArray data;
+  final Uint8ClampedList data;
   final int height;
   final int width;
 

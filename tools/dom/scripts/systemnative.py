@@ -35,7 +35,7 @@ class DartiumBackend(HtmlDartGenerator):
     return {}
 
   def GenerateCallback(self, info):
-    if IsPureInterface(self._interface.id):
+    if IsPureInterface(self._interface.id) or IsCustomType(self._interface.id):
       return
 
     cpp_impl_includes = set()
@@ -115,7 +115,7 @@ class DartiumBackend(HtmlDartGenerator):
 
   def StartInterface(self, members_emitter):
     # Create emitters for c++ implementation.
-    if not IsPureInterface(self._interface.id):
+    if not IsPureInterface(self._interface.id) and not IsCustomType(self._interface.id):
       self._cpp_header_emitter = self._cpp_library_emitter.CreateHeaderEmitter(
           self._interface.id,
           self._renamer.GetLibraryName(self._interface))

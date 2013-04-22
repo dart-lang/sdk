@@ -6,6 +6,7 @@ library typed_arrays_5_test;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_config.dart';
 import 'dart:html';
+import 'dart:typeddata';
 
 main() {
   useHtmlConfiguration();
@@ -16,25 +17,25 @@ main() {
   }
 
   test('filter_dynamic', () {
-      var a = new Float32Array(1024);
+      var a = new Float32List(1024);
       for (int i = 0; i < a.length; i++) {
-        a[i] = i;
+        a[i] = i.toDouble();
       }
 
       expect(a.where((x) => x >= 1000).length, equals(24));
   });
 
   test('filter_typed', () {
-      Float32Array a = new Float32Array(1024);
+      Float32List a = new Float32List(1024);
       for (int i = 0; i < a.length; i++) {
-        a[i] = i;
+        a[i] = i.toDouble();
       }
 
       expect(a.where((x) => x >= 1000).length, equals(24));
   });
 
   test('contains', () {
-      var a = new Int16Array(1024);
+      var a = new Int16List(1024);
       for (int i = 0; i < a.length; i++) {
         a[i] = i;
       }

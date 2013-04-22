@@ -6,6 +6,7 @@ library TypedArrays3Test;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_config.dart';
 import 'dart:html';
+import 'dart:typeddata';
 
 main() {
   useHtmlConfiguration();
@@ -16,29 +17,29 @@ main() {
   }
 
   test('setElementsTest_dynamic', () {
-      var a1 = new Int8Array(1024);
+      var a1 = new Int8List(1024);
 
-      a1.setElements([0x50,0x60,0x70], 4);
+      a1.setRange(4, 7, [0x50,0x60,0x70]);
 
-      var a2 = new Uint32Array.fromBuffer(a1.buffer);
+      var a2 = new Uint32List.view(a1.buffer);
       expect(a2[0], 0x00000000);
       expect(a2[1], 0x00706050);
 
-      a2.setElements([0x01020304], 2);
+      a2.setRange(2, 3, [0x01020304]);
       expect(a1[8], 0x04);
       expect(a1[11], 0x01);
   });
 
   test('setElementsTest_typed', () {
-      Int8Array a1 = new Int8Array(1024);
+      Int8List a1 = new Int8List(1024);
 
-      a1.setElements([0x50,0x60,0x70], 4);
+      a1.setRange(4, 7, [0x50,0x60,0x70]);
 
-      Uint32Array a2 = new Uint32Array.fromBuffer(a1.buffer);
+      Uint32List a2 = new Uint32List.view(a1.buffer);
       expect(a2[0], 0x00000000);
       expect(a2[1], 0x00706050);
 
-      a2.setElements([0x01020304], 2);
+      a2.setRange(2, 3, [0x01020304]);
       expect(a1[8], 0x04);
       expect(a1[11], 0x01);
   });

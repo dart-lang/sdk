@@ -1478,7 +1478,7 @@ class RenderingContext extends CanvasRenderingContext {
   @DocsEditable
   void _bufferData_3(target, data_OR_size, usage) native "WebGLRenderingContext__bufferData_3_Callback";
 
-  void bufferSubData(int target, int offset, /*ArrayBuffer*/ data) {
+  void bufferSubData(int target, int offset, data) {
     if ((target is int || target == null) && (offset is int || offset == null) && (data is ArrayBufferView || data is _typeddata.TypedData || data == null)) {
       _bufferSubData_1(target, offset, data);
       return;
@@ -1528,11 +1528,11 @@ class RenderingContext extends CanvasRenderingContext {
 
   @DomName('WebGLRenderingContext.compressedTexImage2D')
   @DocsEditable
-  void compressedTexImage2D(int target, int level, int internalformat, int width, int height, int border, /*ArrayBufferView*/ data) native "WebGLRenderingContext_compressedTexImage2D_Callback";
+  void compressedTexImage2D(int target, int level, int internalformat, int width, int height, int border, TypedData data) native "WebGLRenderingContext_compressedTexImage2D_Callback";
 
   @DomName('WebGLRenderingContext.compressedTexSubImage2D')
   @DocsEditable
-  void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, /*ArrayBufferView*/ data) native "WebGLRenderingContext_compressedTexSubImage2D_Callback";
+  void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, TypedData data) native "WebGLRenderingContext_compressedTexSubImage2D_Callback";
 
   @DomName('WebGLRenderingContext.copyTexImage2D')
   @DocsEditable
@@ -1804,7 +1804,7 @@ class RenderingContext extends CanvasRenderingContext {
 
   @DomName('WebGLRenderingContext.readPixels')
   @DocsEditable
-  void readPixels(int x, int y, int width, int height, int format, int type, /*ArrayBufferView*/ pixels) native "WebGLRenderingContext_readPixels_Callback";
+  void readPixels(int x, int y, int width, int height, int format, int type, TypedData pixels) native "WebGLRenderingContext_readPixels_Callback";
 
   @DomName('WebGLRenderingContext.releaseShaderCompiler')
   @DocsEditable
@@ -1850,7 +1850,7 @@ class RenderingContext extends CanvasRenderingContext {
   @DocsEditable
   void stencilOpSeparate(int face, int fail, int zfail, int zpass) native "WebGLRenderingContext_stencilOpSeparate_Callback";
 
-  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format, int type, /*ArrayBufferView*/ pixels]) {
+  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format, int type, TypedData pixels]) {
     if ((target is int || target == null) && (level is int || level == null) && (internalformat is int || internalformat == null) && (format_OR_width is int || format_OR_width == null) && (height_OR_type is int || height_OR_type == null) && (border_OR_canvas_OR_image_OR_pixels_OR_video is int || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && (format is int || format == null) && (type is int || type == null) && (pixels is ArrayBufferView || pixels is _typeddata.TypedData || pixels == null)) {
       _texImage2D_1(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels);
       return;
@@ -1902,7 +1902,7 @@ class RenderingContext extends CanvasRenderingContext {
   @DocsEditable
   void texParameteri(int target, int pname, int param) native "WebGLRenderingContext_texParameteri_Callback";
 
-  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type, /*ArrayBufferView*/ pixels]) {
+  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type, TypedData pixels]) {
     if ((target is int || target == null) && (level is int || level == null) && (xoffset is int || xoffset == null) && (yoffset is int || yoffset == null) && (format_OR_width is int || format_OR_width == null) && (height_OR_type is int || height_OR_type == null) && (canvas_OR_format_OR_image_OR_pixels_OR_video is int || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && (type is int || type == null) && (pixels is ArrayBufferView || pixels is _typeddata.TypedData || pixels == null)) {
       _texSubImage2D_1(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels);
       return;

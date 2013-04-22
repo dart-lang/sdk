@@ -5,6 +5,7 @@ import 'dart:collection';
 import 'dart:_collection-dev';
 import 'dart:html';
 import 'dart:html_common';
+import 'dart:typeddata';
 import 'dart:_js_helper' show Creates, Returns, convertDartClosureToJS;
 import 'dart:_foreign_helper' show JS;
 // DO NOT EDIT - unless you are editing documentation as per:
@@ -45,15 +46,15 @@ class AnalyserNode extends AudioNode native "*AnalyserNode" {
 
   @DomName('AnalyserNode.getByteFrequencyData')
   @DocsEditable
-  void getByteFrequencyData(Uint8Array array) native;
+  void getByteFrequencyData(Uint8List array) native;
 
   @DomName('AnalyserNode.getByteTimeDomainData')
   @DocsEditable
-  void getByteTimeDomainData(Uint8Array array) native;
+  void getByteTimeDomainData(Uint8List array) native;
 
   @DomName('AnalyserNode.getFloatFrequencyData')
   @DocsEditable
-  void getFloatFrequencyData(Float32Array array) native;
+  void getFloatFrequencyData(Float32List array) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -86,8 +87,8 @@ class AudioBuffer native "*AudioBuffer" {
 
   @DomName('AudioBuffer.getChannelData')
   @DocsEditable
-  @Returns('Float32Array')
-  @Creates('Float32Array')
+  @Returns('Float32List')
+  @Creates('Float32List')
   List<double> getChannelData(int channelIndex) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -270,11 +271,11 @@ class AudioContext extends EventTarget native "*AudioContext" {
 
   @DomName('AudioContext.createWaveTable')
   @DocsEditable
-  WaveTable createWaveTable(Float32Array real, Float32Array imag) native;
+  WaveTable createWaveTable(Float32List real, Float32List imag) native;
 
   @DomName('AudioContext.decodeAudioData')
   @DocsEditable
-  void decodeAudioData(/*ArrayBuffer*/ audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback]) native;
+  void decodeAudioData(ByteBuffer audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback]) native;
 
   @DomName('AudioContext.startRendering')
   @DocsEditable
@@ -449,7 +450,7 @@ class AudioParam native "*AudioParam" {
 
   @DomName('AudioParam.setValueCurveAtTime')
   @DocsEditable
-  void setValueCurveAtTime(Float32Array values, num time, num duration) native;
+  void setValueCurveAtTime(Float32List values, num time, num duration) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -524,7 +525,7 @@ class BiquadFilterNode extends AudioNode native "*BiquadFilterNode" {
 
   @DomName('BiquadFilterNode.getFrequencyResponse')
   @DocsEditable
-  void getFrequencyResponse(Float32Array frequencyHz, Float32Array magResponse, Float32Array phaseResponse) native;
+  void getFrequencyResponse(Float32List frequencyHz, Float32List magResponse, Float32List phaseResponse) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -864,8 +865,8 @@ class WaveShaperNode extends AudioNode native "*WaveShaperNode" {
 
   @DomName('WaveShaperNode.curve')
   @DocsEditable
-  @Returns('Float32Array')
-  @Creates('Float32Array')
+  @Returns('Float32List')
+  @Creates('Float32List')
   List<double> curve;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

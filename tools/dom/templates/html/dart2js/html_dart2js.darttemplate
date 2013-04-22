@@ -17,11 +17,12 @@ import 'dart:indexed_db';
 import 'dart:isolate';
 import 'dart:json' as json;
 import 'dart:math';
-import 'dart:web_sql';
+import 'dart:typeddata';
 // Not actually used, but imported since dart:html can generate these objects.
 import 'dart:svg' as svg;
 import 'dart:web_audio' as web_audio;
 import 'dart:web_gl' as gl;
+import 'dart:web_sql';
 import 'dart:_js_helper' show convertDartClosureToJS, Creates, JavaScriptIndexingBehavior, JSName, Null, Returns;
 import 'dart:_isolate_helper' show IsolateNatives;
 import 'dart:_foreign_helper' show JS;
@@ -55,7 +56,6 @@ part '$AUXILIARY_DIR/dart2js_KeyEvent.dart';
 part '$AUXILIARY_DIR/dart2js_FactoryProviders.dart';
 part '$AUXILIARY_DIR/dart2js_LocationWrapper.dart';
 part '$AUXILIARY_DIR/dart2js_Platform.dart';
-part '$AUXILIARY_DIR/dart2js_TypedArrayFactoryProvider.dart';
 part '$AUXILIARY_DIR/_ListIterators.dart';
 
 

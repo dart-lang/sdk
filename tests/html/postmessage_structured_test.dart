@@ -7,6 +7,7 @@ import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_individual_config.dart';
 import 'dart:html';
 import 'dart:collection';  // SplayTreeMap
+import 'dart:typeddata';
 import 'utils.dart';
 
 injectSource(code) {
@@ -136,9 +137,9 @@ main() {
   });
 
   group('typed_arrays', () {
-    var array_buffer = new ArrayBuffer(16);
-    var view_a = new Float32Array.fromBuffer(array_buffer, 0, 4);
-    var view_b = new Uint8Array.fromBuffer(array_buffer, 1, 13);
+    var array_buffer = new Uint8List(16);
+    var view_a = new Float32List.view(array_buffer, 0, 4);
+    var view_b = new Uint8List.view(array_buffer, 1, 13);
     var typed_arrays_list = [view_a, array_buffer, view_b];
 
     // Note that FF is failing this test because in the sent message:

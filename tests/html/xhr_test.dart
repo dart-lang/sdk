@@ -8,6 +8,7 @@ import '../../pkg/unittest/lib/html_individual_config.dart';
 import 'dart:async';
 import 'dart:html';
 import 'dart:json' as json;
+import 'dart:typeddata';
 
 void fail(message) {
   guardAsync(() {
@@ -147,9 +148,9 @@ main() {
         HttpRequest.request(url, responseType: 'arraybuffer').then(
           expectAsync1((xhr) {
             expect(xhr.status, equals(200));
-            var arrayBuffer = xhr.response;
-            expect(arrayBuffer, new isInstanceOf<ArrayBuffer>());
-            expect(arrayBuffer, isNotNull);
+            var byteBuffer = xhr.response;
+            expect(byteBuffer, new isInstanceOf<ByteBuffer>());
+            expect(byteBuffer, isNotNull);
           }));
       }
     });

@@ -6,6 +6,7 @@ library typed_arrays_arraybuffer_test;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_config.dart';
 import 'dart:html';
+import 'dart:typeddata';
 
 main() {
   useHtmlConfiguration();
@@ -16,31 +17,28 @@ main() {
   }
 
   test('constructor', () {
-      var a = new ArrayBuffer(100);
-      expect(a.byteLength, 100);
+      var a = new Int8List(100);
+      expect(a.lengthInBytes, 100);
   });
 
-  test('slice1', () {
-      var a = new ArrayBuffer(100);
-      var s = a.slice(10, 40);
-      expect(s.byteLength, 30);
+  test('sublist1', () {
+      var a = new Int8List(100);
+      var s = a.sublist(10, 40);
+      expect(s.length, 30);
   });
 
-  test('slice2', () {
-      var a = new ArrayBuffer(100);
-      var s = a.slice(10, 400);
-      expect(s.byteLength, 90);  // indexes clamped to valid range.
+  test('sublist2', () {
+      var a = new Int8List(100);
+      expect(() => a.sublist(10, 400), throwsRangeError);
   });
 
-  test('slice3', () {
-      var a = new ArrayBuffer(100);
-      var s = a.slice(50, 10);
-      expect(s.byteLength, 0);   // end before start becomes empty range.
+  test('sublist3', () {
+      var a = new Int8List(100);
+      expect(() => a.sublist(50, 10), throwsRangeError);
   });
 
-  test('slice4', () {
-      var a = new ArrayBuffer(100);
-      var s = a.slice(-90, -30);
-      expect(s.byteLength, 60);  // negative indexes measure from end.
+  test('sublist4', () {
+      var a = new Int8List(100);
+      expect(() => a.sublist(-90, -30), throwsRangeError);
   });
 }

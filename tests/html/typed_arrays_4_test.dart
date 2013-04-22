@@ -6,6 +6,7 @@ library TypedArrays4Test;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_config.dart';
 import 'dart:html';
+import 'dart:typeddata';
 
 main() {
   useHtmlConfiguration();
@@ -16,7 +17,7 @@ main() {
   }
 
   test('indexOf_dynamic', () {
-      var a1 = new Uint8Array(1024);
+      var a1 = new Uint8List(1024);
       for (int i = 0; i < a1.length; i++) {
         a1[i] = i;
       }
@@ -31,7 +32,7 @@ main() {
   });
 
   test('indexOf_typed', () {
-      Uint8Array a1 = new Uint8Array(1024);
+      Uint8List a1 = new Uint8List(1024);
       for (int i = 0; i < a1.length; i++) {
         a1[i] = i;
       }

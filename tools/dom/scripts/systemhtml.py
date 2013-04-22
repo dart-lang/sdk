@@ -12,11 +12,10 @@ import os
 from generator import *
 from htmldartgenerator import *
 
-HTML_LIBRARY_NAMES = ['chrome', 'html', 'indexed_db', 'svg', 'web_audio',
-                      'web_gl', 'web_sql']
+HTML_LIBRARY_NAMES = ['chrome', 'html', 'indexed_db', 'svg',
+                      'web_audio', 'web_gl', 'web_sql']
 
 _js_custom_members = monitored.Set('systemhtml._js_custom_members', [
-    'ArrayBuffer.slice',
     'AudioBufferSourceNode.start',
     'AudioBufferSourceNode.stop',
     'AudioContext.createGain',
@@ -264,6 +263,7 @@ _element_constructors = {
   'html': _html_element_constructors,
   'indexed_db': {},
   'svg': _svg_element_constructors,
+  'typeddata': {},
   'web_audio': {},
   'web_gl': {},
   'web_sql': {},
@@ -281,6 +281,10 @@ _factory_ctr_strings = {
   'svg': {
     'provider_name': '_SvgElementFactoryProvider',
     'constructor_name': 'createSvgElement_tag',
+  },
+  'typeddata': {
+      'provider_name': 'document',
+      'constructor_name': '$dom_createElement'
   },
   'web_audio': {
     'provider_name': 'document',
@@ -424,7 +428,9 @@ class HtmlDartInterfaceGenerator(object):
     self._library_name = self._renamer.GetLibraryName(self._interface)
 
   def Generate(self):
-    if 'Callback' in self._interface.ext_attrs:
+    if IsCustomType(self._interface.id):
+      pass
+    elif 'Callback' in self._interface.ext_attrs:
       self.GenerateCallback()
     else:
       self.GenerateInterface()

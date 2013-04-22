@@ -6,19 +6,20 @@ library TransferableTest;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_config.dart';
 import 'dart:html';
+import 'dart:typeddata';
 
 main() {
   useHtmlConfiguration();
 
-  var isArrayBuffer =
-      predicate((x) => x is ArrayBuffer, 'is an ArrayBuffer');
+  var isByteBuffer =
+      predicate((x) => x is ByteBuffer, 'is an ByteBuffer');
 
   test('TransferableTest', () {
     if (!Platform.supportsTypedData) {
       return;
     }
 
-    final buffer = (new Float32Array(3)).buffer;
+    final buffer = (new Float32List(3)).buffer;
     window.postMessage({
         'id': 'transferable data',
         'buffer': buffer
@@ -28,7 +29,7 @@ main() {
       (e) {
         return e.data is Map && e.data['id'] == 'transferable data';
       }).then((messageEvent) {
-        expect(messageEvent.data['buffer'], isArrayBuffer);
+        expect(messageEvent.data['buffer'], isByteBuffer);
       });
   });
 }

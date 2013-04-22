@@ -6,6 +6,7 @@ library url_test;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_config.dart';
 import 'dart:html';
+import 'dart:typeddata';
 
 main() {
   useHtmlConfiguration();
@@ -23,8 +24,8 @@ main() {
     var byteString = window.atob(dataUri.split(',')[1]);
     var mimeString = dataUri.split(',')[0].split(':')[1].split(';')[0];
 
-    var arrayBuffer = new ArrayBuffer(byteString.length);
-    var dataArray = new Uint8Array.fromBuffer(arrayBuffer);
+    var arrayBuffer = new Uint8List(byteString.length);
+    var dataArray = new Uint8List.view(arrayBuffer.buffer);
     for (var i = 0; i < byteString.length; i++) {
       dataArray[i] = byteString.codeUnitAt(i);
     }

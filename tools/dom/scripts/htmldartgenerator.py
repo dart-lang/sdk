@@ -387,10 +387,10 @@ class HtmlDartGenerator(object):
           '    $FACTORY.create$(CTOR)(length);\n'
           '\n  $(LIST_ANNOTATIONS)factory $CTOR.fromList(List<$TYPE> list) =>\n'
           '    $FACTORY.create$(CTOR)_fromList(list);\n'
-          '\n  $(BUFFER_ANNOTATIONS)factory $CTOR.fromBuffer(ArrayBuffer buffer, '
+          '\n  $(BUFFER_ANNOTATIONS)factory $CTOR.view(ByteBuffer buffer, '
               '[int byteOffset, int length]) => \n'
           '    $FACTORY.create$(CTOR)_fromBuffer(buffer, byteOffset, length);\n',
-        CTOR=self._interface.id,
+        CTOR=self._renamer.RenameInterface(interface),
         ANNOTATIONS=annotations,
         LIST_ANNOTATIONS=fromListAnnotations,
         BUFFER_ANNOTATIONS=fromBufferAnnotations,
@@ -586,6 +586,8 @@ class HtmlDartGenerator(object):
     has_clear = any(op.id == 'clear' for op in self._interface.operations)
     has_length = False
     has_length_setter = False
+    typed_array = self._interface_type_info.is_typed_array()
+
     for attr in self._interface.attributes:
       if attr.id == 'length':
         has_length = True
@@ -599,6 +601,7 @@ class HtmlDartGenerator(object):
         {
           'DEFINE_CONTAINS': not has_contains,
           'DEFINE_CLEAR': not has_clear,
+          'DEFINE_IMMUTABLE': not typed_array,
           'DEFINE_LENGTH_AS_NUM_ITEMS': not has_length and has_num_items,
           'DEFINE_LENGTH_SETTER': not has_length_setter,
         })

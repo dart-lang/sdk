@@ -6,6 +6,7 @@ library blob_test;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_config.dart';
 import 'dart:html';
+import 'dart:typeddata';
 
 main() {
   useHtmlConfiguration();
@@ -55,7 +56,7 @@ main() {
     });
 
   test('fromArrayBuffer', () {
-      var a = new Uint8Array(100).buffer; // i.e. new ArrayBuffer(100);
+      var a = new Uint8List(100).buffer; // i.e. new ArrayBuffer(100);
       var b = new Blob([a, a]);
       expect(b.size, 200);
     });

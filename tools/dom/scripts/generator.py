@@ -11,7 +11,8 @@ import json
 import monitored
 import os
 import re
-from htmlrenamer import html_interface_renames, renamed_html_members
+from htmlrenamer import html_interface_renames, renamed_html_members, \
+     typed_array_renames
 
 # Set up json file for retrieving comments.
 _current_dir = os.path.dirname(__file__)
@@ -35,30 +36,20 @@ _pure_interfaces = monitored.Set('generator._pure_interfaces', [
     'SVGTransformable',
     'SVGURIReference',
     'SVGZoomAndPan',
-    'TimeoutHandler'])
+    'TimeoutHandler',
+    ])
 
 def IsPureInterface(interface_name):
   return interface_name in _pure_interfaces
 
+_custom_types = monitored.Set('generator._custom_types',
+                              typed_array_renames.keys())
+
+def IsCustomType(interface_name):
+  return interface_name in _custom_types
 
 _methods_with_named_formals = monitored.Set(
     'generator._methods_with_named_formals', [
-  'DataView.getFloat32',
-  'DataView.getFloat64',
-  'DataView.getInt16',
-  'DataView.getInt32',
-  'DataView.getInt8',
-  'DataView.getUint16',
-  'DataView.getUint32',
-  'DataView.getUint8',
-  'DataView.setFloat32',
-  'DataView.setFloat64',
-  'DataView.setInt16',
-  'DataView.setInt32',
-  'DataView.setInt8',
-  'DataView.setUint16',
-  'DataView.setUint32',
-  'DataView.setUint8',
   'DirectoryEntry.getDirectory',
   'DirectoryEntry.getFile',
   'Entry.copyTo',
@@ -79,15 +70,6 @@ _dart_attribute_renames = monitored.Dict('generator._dart_attribute_renames', {
 # factory provider.
 #
 interface_factories = monitored.Dict('generator.interface_factories', {
-    'Float32Array': '_TypedArrayFactoryProvider',
-    'Float64Array': '_TypedArrayFactoryProvider',
-    'Int8Array': '_TypedArrayFactoryProvider',
-    'Int16Array': '_TypedArrayFactoryProvider',
-    'Int32Array': '_TypedArrayFactoryProvider',
-    'Uint8Array': '_TypedArrayFactoryProvider',
-    'Uint8ClampedArray': '_TypedArrayFactoryProvider',
-    'Uint16Array': '_TypedArrayFactoryProvider',
-    'Uint32Array': '_TypedArrayFactoryProvider',
 })
 
 #
@@ -397,7 +379,7 @@ class OperationInfo(object):
       # hence ArrayBuffer is mapped to dynamic in arguments and return
       # values.  To compensate for that when generating ArrayBuffer itself,
       # we need to lie a bit:
-      if self.type_name == 'ArrayBuffer': return 'ArrayBuffer'
+      if self.type_name == 'ArrayBuffer': return 'ByteBuffer'
       return rename_type(self.type_name)
 
 def ConstantOutputOrder(a, b):
@@ -552,13 +534,13 @@ def FindConversion(idl_type, direction, interface, member):
 dart2js_annotations = monitored.Dict('generator.dart2js_annotations', {
 
     'ArrayBuffer': [
-      "@Creates('ArrayBuffer')",
-      "@Returns('ArrayBuffer|Null')",
+      "@Creates('ByteBuffer')",
+      "@Returns('ByteBuffer|Null')",
     ],
 
     'ArrayBufferView': [
-      "@Creates('ArrayBufferView')",
-      "@Returns('ArrayBufferView|Null')",
+      "@Creates('TypedData')",
+      "@Returns('TypedData|Null')",
     ],
 
     'CanvasRenderingContext2D.createImageData': [
@@ -618,7 +600,7 @@ dart2js_annotations = monitored.Dict('generator.dart2js_annotations', {
       "@Returns('Element|Document')",
     ],
 
-    'FileReader.result': ["@Creates('String|ArrayBuffer|Null')"],
+    'FileReader.result': ["@Creates('String|ByteBuffer|Null')"],
 
     # Rather than have the result of an IDBRequest as a union over all possible
     # results, we mark the result as instantiating any classes, and mark
@@ -687,14 +669,14 @@ dart2js_annotations = monitored.Dict('generator.dart2js_annotations', {
     'WebGLRenderingContext.getParameter': [
       # Taken from http://www.khronos.org/registry/webgl/specs/latest/
       # Section 5.14.3 Setting and getting state
-      "@Creates('Null|num|String|bool|=List|Float32Array|Int32Array|Uint32Array"
+      "@Creates('Null|num|String|bool|=List|Float32List|Int32List|Uint32List"
                 "|Framebuffer|Renderbuffer|Texture')",
-      "@Returns('Null|num|String|bool|=List|Float32Array|Int32Array|Uint32Array"
+      "@Returns('Null|num|String|bool|=List|Float32List|Int32List|Uint32List"
                 "|Framebuffer|Renderbuffer|Texture')",
     ],
 
     'XMLHttpRequest.response': [
-      "@Creates('ArrayBuffer|Blob|Document|=Object|=List|String|num')",
+      "@Creates('ByteBuffer|Blob|Document|=Object|=List|String|num')",
     ],
 }, dart2jsOnly=True)
 
@@ -1471,14 +1453,9 @@ _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
     'Uint8ClampedArray': TypedArrayTypeData('int'),
     'Uint16Array': TypedArrayTypeData('int'),
     'Uint32Array': TypedArrayTypeData('int'),
-    # TODO(antonm): temporary ugly hack.
-    # While in transition phase we allow both DOM's ArrayBuffer
-    # and dart:typeddata's ByteBuffer for IDLs' ArrayBuffers,
-    # hence ArrayBuffer is mapped to dynamic in arguments and return
-    # values.
-    'ArrayBufferView': TypeData(clazz='Interface', dart_type='dynamic',
+    'ArrayBufferView': TypeData(clazz='Interface',
         custom_to_native=True, custom_to_dart=True),
-    'ArrayBuffer': TypeData(clazz='Interface', dart_type='dynamic',
+    'ArrayBuffer': TypeData(clazz='Interface',
         custom_to_native=True, custom_to_dart=True),
 
     'SVGAngle': TypeData(clazz='SVGTearOff'),

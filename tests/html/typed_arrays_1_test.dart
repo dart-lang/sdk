@@ -6,6 +6,7 @@ library TypedArrays1Test;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_individual_config.dart';
 import 'dart:html';
+import 'dart:typeddata';
 
 main() {
   useHtmlIndividualConfiguration();
@@ -23,16 +24,19 @@ main() {
   group('arrays', () {
     test('createByLengthTest', () {
       expect(() {
-        var a = new Float32Array(10);
+        var a = new Float32List(10);
         expect(a.length, 10);
+        expect(a.lengthInBytes, 40);
         expect(a[4], 0);
       }, expectation);
     });
 
     test('aliasTest', () {
       expect(() {
-        var a1 = new Uint8Array.fromList([0,0,1,0x45]);
-        var a2 = new Float32Array.fromBuffer(a1.buffer);
+        var a1 = new Uint8List.fromList([0,0,1,0x45]);
+        var a2 = new Float32List.view(a1.buffer);
+
+        expect(a1.lengthInBytes, a2.lengthInBytes);
 
         expect(a2.length, 1);
 
@@ -57,7 +61,7 @@ main() {
     if (supportsTypeTest) {
       test('typeTests', () {
         expect(() {
-          var a = new Float32Array(10);
+          var a = new Float32List(10);
           expect(a, isList);
           expect(a, isnumList);
           expect(a, isNot(isStringList));
