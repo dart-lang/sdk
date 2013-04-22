@@ -12,12 +12,6 @@ Node makeNode() => new Element.tag('div');
 Node makeNodeWithChildren() =>
   new Element.html("<div>Foo<br/><!--baz--></div>");
 
-void testUnsupported(String name, void f()) {
-  test(name, () {
-    expect(f, throwsUnsupportedError);
-  });
-}
-
 main() {
   useHtmlIndividualConfiguration();
 
@@ -262,65 +256,9 @@ main() {
       expect(node.nodes.length, 1);
     });
 
-    test('getRange', () {
-      var items = makeNodeWithChildren().nodes.getRange(0, 1);
-      expect(items.length, 1);
-      expect(items.first, isText);
-    });
-
     test('sublist', () {
       var node = makeNodeWithChildren();
       expect(node.nodes.sublist(1, 3), isNodeList);
-    });
-
-    test('insertAll', () {
-      var node = makeNodeWithChildren();
-      var b = new DivElement();
-      b.nodes.addAll([
-        new HRElement(),
-        new ImageElement(),
-        new InputElement()
-      ]);
-      node.nodes.insertAll(1, b.nodes);
-      expect(node.nodes[0], isText);
-      expect(node.nodes[1], isHRElement);
-      expect(node.nodes[2], isImageElement);
-      expect(node.nodes[3], isInputElement);
-      expect(node.nodes[4], isBRElement);
-      expect(node.nodes[5], isComment);
-
-      var nodes = [
-        new HRElement(),
-        new ImageElement(),
-        new InputElement()
-      ];
-      node.nodes.insertAll(5, nodes);
-
-      expect(node.nodes[0], isText);
-      expect(node.nodes[1], isHRElement);
-      expect(node.nodes[2], isImageElement);
-      expect(node.nodes[3], isInputElement);
-      expect(node.nodes[4], isBRElement);
-      expect(node.nodes[5], isHRElement);
-      expect(node.nodes[6], isImageElement);
-      expect(node.nodes[7], isInputElement);
-      expect(node.nodes[8], isComment);
-    });
-
-    testUnsupported('removeRange', () {
-      makeNodeWithChildren().nodes.removeRange(0, 1);
-    });
-
-    testUnsupported('replaceRange', () {
-      makeNodeWithChildren().nodes.replaceRange(0, 1, [new InputElement()]);
-    });
-
-    testUnsupported('fillRange', () {
-      makeNodeWithChildren().nodes.fillRange(0, 1, null);
-    });
-
-    testUnsupported('setAll', () {
-      makeNodeWithChildren().nodes.setAll(0, [new InputElement()]);
     });
   });
 
