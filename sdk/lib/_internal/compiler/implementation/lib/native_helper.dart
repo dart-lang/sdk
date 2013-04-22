@@ -17,7 +17,9 @@ String typeNameInSafari(obj) {
 
 String typeNameInWebKitCommon(tag) {
   String name = JS('String', '#', tag);
+  if (name == 'Window') return 'DOMWindow';
   if (name == 'CanvasPixelArray') return 'Uint8ClampedArray';
+  if (name == 'WebKitMutationObserver') return 'MutationObserver';
   if (name == 'AudioChannelMerger') return 'ChannelMergerNode';
   if (name == 'AudioChannelSplitter') return 'ChannelSplitterNode';
   if (name == 'AudioGainNode') return 'GainNode';
@@ -26,21 +28,27 @@ String typeNameInWebKitCommon(tag) {
   if (name == 'Oscillator') return 'OscillatorNode';
   if (name == 'RealtimeAnalyserNode') return 'AnalyserNode';
   if (name == 'IDBVersionChangeRequest') return 'IDBOpenDBRequest';
+  if (name == 'WebKitTransitionEvent') return 'TransitionEvent';
   return name;
 }
 
 String typeNameInOpera(obj) {
   String name = JS('String', '#', constructorNameFallback(obj));
+  if (name == 'Window') return 'DOMWindow';
+  if (name == 'ApplicationCache') return 'DOMApplicationCache';
   return name;
 }
 
 String typeNameInFirefox(obj) {
   String name = JS('String', '#', constructorNameFallback(obj));
+  if (name == 'Window') return 'DOMWindow';
   if (name == 'BeforeUnloadEvent') return 'Event';
   if (name == 'CSS2Properties') return 'CSSStyleDeclaration';
   if (name == 'DataTransfer') return 'Clipboard';
   if (name == 'DragEvent') return 'MouseEvent';
   if (name == 'GeoGeolocation') return 'Geolocation';
+  if (name == 'MouseScrollEvent') return 'WheelEvent';
+  if (name == 'OfflineResourceList') return 'DOMApplicationCache';
   if (name == 'WorkerMessageEvent') return 'MessageEvent';
   if (name == 'XMLDocument') return 'Document';
   return name;
@@ -48,12 +56,14 @@ String typeNameInFirefox(obj) {
 
 String typeNameInIE(obj) {
   String name = JS('String', '#', constructorNameFallback(obj));
+  if (name == 'Window') return 'DOMWindow';
   if (name == 'Document') {
     // IE calls both HTML and XML documents 'Document', so we check for the
     // xmlVersion property, which is the empty string on HTML documents.
     if (JS('bool', '!!#.xmlVersion', obj)) return 'Document';
     return 'HTMLDocument';
   }
+  if (name == 'ApplicationCache') return 'DOMApplicationCache';
   if (name == 'BeforeUnloadEvent') return 'Event';
   if (name == 'CanvasPixelArray') return 'Uint8ClampedArray';
   if (name == 'DataTransfer') return 'Clipboard';
@@ -64,6 +74,7 @@ String typeNameInIE(obj) {
   if (name == 'HTMLTableHeaderCellElement') return 'HTMLTableCellElement';
   if (name == 'HTMLPhraseElement') return 'HTMLElement';
   if (name == 'MSStyleCSSProperties') return 'CSSStyleDeclaration';
+  if (name == 'MouseWheelEvent') return 'WheelEvent';
   if (name == 'Position') return 'Geoposition';
 
   // Patches for types which report themselves as Objects.

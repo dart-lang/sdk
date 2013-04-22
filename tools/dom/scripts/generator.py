@@ -77,20 +77,12 @@ interface_factories = monitored.Dict('generator.interface_factories', {
 #
 _dart2js_dom_custom_native_specs = monitored.Dict(
       'generator._dart2js_dom_custom_native_specs', {
+    # Decorate the singleton Console object, if present (workers do not have a
+    # console).
+    'Console': "=(typeof console == 'undefined' ? {} : console)",
 
-    # Nodes with different tags in different browsers can be listed as multiple
-    # tags here provided there is not conflict in usage (e.g. browser X has tag
-    # T and no other browser has tag T).
-
-    'DOMApplicationCache':
-        'ApplicationCache,DOMApplicationCache,OfflineResourceList',
-
-    'MutationObserver': 'MutationObserver,WebkitMutationObserver',
-
-    'TransitionEvent': 'TransitionEvent,WebkitTransitionEvent',
-
-    'WheelEvent': 'WheelEvent,MouseWheelEvent,MouseScrollEvent',
-
+    # DOMWindow aliased with global scope.
+    'Window': '@*DOMWindow',
 }, dart2jsOnly=True)
 
 def IsRegisteredType(type_name):
@@ -102,7 +94,7 @@ def MakeNativeSpec(javascript_binding_name):
   else:
     # Make the class 'hidden' so it is dynamically patched at runtime.  This
     # is useful for browser compat.
-    return javascript_binding_name
+    return '*' + javascript_binding_name
 
 
 def MatchSourceFilter(thing):

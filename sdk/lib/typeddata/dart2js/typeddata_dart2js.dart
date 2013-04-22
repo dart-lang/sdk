@@ -33,7 +33,7 @@ class Endianness {
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-class ByteBuffer native "ArrayBuffer" {
+class ByteBuffer native "*ArrayBuffer" {
   @JSName('byteLength')
   @DomName('ArrayBuffer.byteLength')
   @DocsEditable
@@ -45,7 +45,7 @@ class ByteBuffer native "ArrayBuffer" {
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-class TypedData native "ArrayBufferView" {
+class TypedData native "*ArrayBufferView" {
   @DomName('ArrayBufferView.buffer')
   @DocsEditable
   @Creates('ByteBuffer')
@@ -68,7 +68,7 @@ class TypedData native "ArrayBufferView" {
 
 @DocsEditable
 @DomName('DataView')
-class ByteData extends TypedData native "DataView" {
+class ByteData extends TypedData native "*DataView" {
   @DomName('DataView.DataView')
   @DocsEditable
   factory ByteData(int length) => JS('ByteData', 'new DataView(#)', length);
@@ -211,7 +211,7 @@ class ByteData extends TypedData native "DataView" {
 
 @DocsEditable
 @DomName('Float32Array')
-class Float32List extends TypedData implements JavaScriptIndexingBehavior, List<double> native "Float32Array" {
+class Float32List extends TypedData implements JavaScriptIndexingBehavior, List<double> native "*Float32Array" {
   @DomName('Float32Array.Float32Array')
   @DocsEditable
   factory Float32List(int length) =>
@@ -434,7 +434,7 @@ class Float32List extends TypedData implements JavaScriptIndexingBehavior, List<
 
 @DocsEditable
 @DomName('Float64Array')
-class Float64List extends TypedData implements JavaScriptIndexingBehavior, List<double> native "Float64Array" {
+class Float64List extends TypedData implements JavaScriptIndexingBehavior, List<double> native "*Float64Array" {
 
   @DomName('Float64Array.Float64Array')
   @DocsEditable
@@ -658,7 +658,7 @@ class Float64List extends TypedData implements JavaScriptIndexingBehavior, List<
 
 @DocsEditable
 @DomName('Int16Array')
-class Int16List extends TypedData implements JavaScriptIndexingBehavior, List<int> native "Int16Array" {
+class Int16List extends TypedData implements JavaScriptIndexingBehavior, List<int> native "*Int16Array" {
 
   @DomName('Int16Array.Int16Array')
   @DocsEditable
@@ -881,7 +881,7 @@ class Int16List extends TypedData implements JavaScriptIndexingBehavior, List<in
 
 @DocsEditable
 @DomName('Int32Array')
-class Int32List extends TypedData implements JavaScriptIndexingBehavior, List<int> native "Int32Array" {
+class Int32List extends TypedData implements JavaScriptIndexingBehavior, List<int> native "*Int32Array" {
 
   @DomName('Int32Array.Int32Array')
   @DocsEditable
@@ -1104,7 +1104,7 @@ class Int32List extends TypedData implements JavaScriptIndexingBehavior, List<in
 
 @DocsEditable
 @DomName('Int8Array')
-class Int8List extends TypedData implements JavaScriptIndexingBehavior, List<int> native "Int8Array" {
+class Int8List extends TypedData implements JavaScriptIndexingBehavior, List<int> native "*Int8Array" {
 
   @DomName('Int8Array.Int8Array')
   @DocsEditable
@@ -1327,7 +1327,7 @@ class Int8List extends TypedData implements JavaScriptIndexingBehavior, List<int
 
 @DocsEditable
 @DomName('Uint16Array')
-class Uint16List extends TypedData implements JavaScriptIndexingBehavior, List<int> native "Uint16Array" {
+class Uint16List extends TypedData implements JavaScriptIndexingBehavior, List<int> native "*Uint16Array" {
 
   @DomName('Uint16Array.Uint16Array')
   @DocsEditable
@@ -1550,7 +1550,7 @@ class Uint16List extends TypedData implements JavaScriptIndexingBehavior, List<i
 
 @DocsEditable
 @DomName('Uint32Array')
-class Uint32List extends TypedData implements JavaScriptIndexingBehavior, List<int> native "Uint32Array" {
+class Uint32List extends TypedData implements JavaScriptIndexingBehavior, List<int> native "*Uint32Array" {
 
   @DomName('Uint32Array.Uint32Array')
   @DocsEditable
@@ -1773,7 +1773,7 @@ class Uint32List extends TypedData implements JavaScriptIndexingBehavior, List<i
 
 @DocsEditable
 @DomName('Uint8ClampedArray')
-class Uint8ClampedList extends Uint8List implements JavaScriptIndexingBehavior, List<int> native "Uint8ClampedArray" {
+class Uint8ClampedList extends Uint8List implements JavaScriptIndexingBehavior, List<int> native "*Uint8ClampedArray" {
 
   @DomName('Uint8ClampedArray.Uint8ClampedArray')
   @DocsEditable
@@ -1993,7 +1993,7 @@ class Uint8ClampedList extends Uint8List implements JavaScriptIndexingBehavior, 
 
 @DocsEditable
 @DomName('Uint8Array')
-class Uint8List extends TypedData implements JavaScriptIndexingBehavior, List<int> native "Uint8Array" {
+class Uint8List extends TypedData implements JavaScriptIndexingBehavior, List<int> native "*Uint8Array" {
 
   @DomName('Uint8Array.Uint8Array')
   @DocsEditable

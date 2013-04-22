@@ -323,7 +323,7 @@ const int ZERO = RenderingContext.ZERO;
 
 @DocsEditable
 @DomName('WebGLActiveInfo')
-class ActiveInfo native "WebGLActiveInfo" {
+class ActiveInfo native "*WebGLActiveInfo" {
 
   @DomName('WebGLActiveInfo.name')
   @DocsEditable
@@ -344,7 +344,7 @@ class ActiveInfo native "WebGLActiveInfo" {
 
 @DocsEditable
 @DomName('WebGLBuffer')
-class Buffer native "WebGLBuffer" {
+class Buffer native "*WebGLBuffer" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -353,7 +353,7 @@ class Buffer native "WebGLBuffer" {
 
 @DocsEditable
 @DomName('WebGLCompressedTextureATC')
-class CompressedTextureAtc native "WebGLCompressedTextureATC" {
+class CompressedTextureAtc native "*WebGLCompressedTextureATC" {
 
   static const int COMPRESSED_RGBA_ATC_EXPLICIT_ALPHA_WEBGL = 0x8C93;
 
@@ -368,7 +368,7 @@ class CompressedTextureAtc native "WebGLCompressedTextureATC" {
 
 @DocsEditable
 @DomName('WebGLCompressedTexturePVRTC')
-class CompressedTexturePvrtc native "WebGLCompressedTexturePVRTC" {
+class CompressedTexturePvrtc native "*WebGLCompressedTexturePVRTC" {
 
   static const int COMPRESSED_RGBA_PVRTC_2BPPV1_IMG = 0x8C03;
 
@@ -385,7 +385,7 @@ class CompressedTexturePvrtc native "WebGLCompressedTexturePVRTC" {
 
 @DocsEditable
 @DomName('WebGLCompressedTextureS3TC')
-class CompressedTextureS3TC native "WebGLCompressedTextureS3TC" {
+class CompressedTextureS3TC native "*WebGLCompressedTextureS3TC" {
 
   static const int COMPRESSED_RGBA_S3TC_DXT1_EXT = 0x83F1;
 
@@ -402,7 +402,7 @@ class CompressedTextureS3TC native "WebGLCompressedTextureS3TC" {
 
 @DocsEditable
 @DomName('WebGLContextAttributes')
-class ContextAttributes native "WebGLContextAttributes" {
+class ContextAttributes native "*WebGLContextAttributes" {
 
   @DomName('WebGLContextAttributes.alpha')
   @DocsEditable
@@ -435,7 +435,7 @@ class ContextAttributes native "WebGLContextAttributes" {
 
 @DocsEditable
 @DomName('WebGLContextEvent')
-class ContextEvent extends Event native "WebGLContextEvent" {
+class ContextEvent extends Event native "*WebGLContextEvent" {
 
   @DomName('WebGLContextEvent.statusMessage')
   @DocsEditable
@@ -448,7 +448,7 @@ class ContextEvent extends Event native "WebGLContextEvent" {
 
 @DocsEditable
 @DomName('WebGLDebugRendererInfo')
-class DebugRendererInfo native "WebGLDebugRendererInfo" {
+class DebugRendererInfo native "*WebGLDebugRendererInfo" {
 
   static const int UNMASKED_RENDERER_WEBGL = 0x9246;
 
@@ -461,7 +461,7 @@ class DebugRendererInfo native "WebGLDebugRendererInfo" {
 
 @DocsEditable
 @DomName('WebGLDebugShaders')
-class DebugShaders native "WebGLDebugShaders" {
+class DebugShaders native "*WebGLDebugShaders" {
 
   @DomName('WebGLDebugShaders.getTranslatedShaderSource')
   @DocsEditable
@@ -474,7 +474,7 @@ class DebugShaders native "WebGLDebugShaders" {
 
 @DocsEditable
 @DomName('WebGLDepthTexture')
-class DepthTexture native "WebGLDepthTexture" {
+class DepthTexture native "*WebGLDepthTexture" {
 
   static const int UNSIGNED_INT_24_8_WEBGL = 0x84FA;
 }
@@ -485,7 +485,7 @@ class DepthTexture native "WebGLDepthTexture" {
 
 @DocsEditable
 @DomName('EXTDrawBuffers')
-class ExtDrawBuffers native "EXTDrawBuffers" {
+class ExtDrawBuffers native "*EXTDrawBuffers" {
 
   static const int COLOR_ATTACHMENT0_EXT = 0x8CE0;
 
@@ -562,7 +562,7 @@ class ExtDrawBuffers native "EXTDrawBuffers" {
 
 @DocsEditable
 @DomName('EXTTextureFilterAnisotropic')
-class ExtTextureFilterAnisotropic native "EXTTextureFilterAnisotropic" {
+class ExtTextureFilterAnisotropic native "*EXTTextureFilterAnisotropic" {
 
   static const int MAX_TEXTURE_MAX_ANISOTROPY_EXT = 0x84FF;
 
@@ -575,7 +575,7 @@ class ExtTextureFilterAnisotropic native "EXTTextureFilterAnisotropic" {
 
 @DocsEditable
 @DomName('WebGLFramebuffer')
-class Framebuffer native "WebGLFramebuffer" {
+class Framebuffer native "*WebGLFramebuffer" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -584,7 +584,7 @@ class Framebuffer native "WebGLFramebuffer" {
 
 @DocsEditable
 @DomName('WebGLLoseContext')
-class LoseContext native "WebGLLoseContext" {
+class LoseContext native "*WebGLLoseContext" {
 
   @DomName('WebGLLoseContext.loseContext')
   @DocsEditable
@@ -601,7 +601,7 @@ class LoseContext native "WebGLLoseContext" {
 
 @DocsEditable
 @DomName('OESElementIndexUint')
-class OesElementIndexUint native "OESElementIndexUint" {
+class OesElementIndexUint native "*OESElementIndexUint" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -610,7 +610,7 @@ class OesElementIndexUint native "OESElementIndexUint" {
 
 @DocsEditable
 @DomName('OESStandardDerivatives')
-class OesStandardDerivatives native "OESStandardDerivatives" {
+class OesStandardDerivatives native "*OESStandardDerivatives" {
 
   static const int FRAGMENT_SHADER_DERIVATIVE_HINT_OES = 0x8B8B;
 }
@@ -621,7 +621,7 @@ class OesStandardDerivatives native "OESStandardDerivatives" {
 
 @DocsEditable
 @DomName('OESTextureFloat')
-class OesTextureFloat native "OESTextureFloat" {
+class OesTextureFloat native "*OESTextureFloat" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -630,7 +630,7 @@ class OesTextureFloat native "OESTextureFloat" {
 
 @DocsEditable
 @DomName('OESTextureHalfFloat')
-class OesTextureHalfFloat native "OESTextureHalfFloat" {
+class OesTextureHalfFloat native "*OESTextureHalfFloat" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -639,7 +639,7 @@ class OesTextureHalfFloat native "OESTextureHalfFloat" {
 
 @DocsEditable
 @DomName('OESVertexArrayObject')
-class OesVertexArrayObject native "OESVertexArrayObject" {
+class OesVertexArrayObject native "*OESVertexArrayObject" {
 
   static const int VERTEX_ARRAY_BINDING_OES = 0x85B5;
 
@@ -670,7 +670,7 @@ class OesVertexArrayObject native "OESVertexArrayObject" {
 
 @DocsEditable
 @DomName('WebGLProgram')
-class Program native "WebGLProgram" {
+class Program native "*WebGLProgram" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -679,7 +679,7 @@ class Program native "WebGLProgram" {
 
 @DocsEditable
 @DomName('WebGLRenderbuffer')
-class Renderbuffer native "WebGLRenderbuffer" {
+class Renderbuffer native "*WebGLRenderbuffer" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -691,7 +691,7 @@ class Renderbuffer native "WebGLRenderbuffer" {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @Experimental
-class RenderingContext extends CanvasRenderingContext native "WebGLRenderingContext" {
+class RenderingContext extends CanvasRenderingContext native "*WebGLRenderingContext" {
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.WebGLRenderingContext)');
@@ -1939,7 +1939,7 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
 
 @DocsEditable
 @DomName('WebGLShader')
-class Shader native "WebGLShader" {
+class Shader native "*WebGLShader" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1948,7 +1948,7 @@ class Shader native "WebGLShader" {
 
 @DocsEditable
 @DomName('WebGLShaderPrecisionFormat')
-class ShaderPrecisionFormat native "WebGLShaderPrecisionFormat" {
+class ShaderPrecisionFormat native "*WebGLShaderPrecisionFormat" {
 
   @DomName('WebGLShaderPrecisionFormat.precision')
   @DocsEditable
@@ -1969,7 +1969,7 @@ class ShaderPrecisionFormat native "WebGLShaderPrecisionFormat" {
 
 @DocsEditable
 @DomName('WebGLTexture')
-class Texture native "WebGLTexture" {
+class Texture native "*WebGLTexture" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1978,7 +1978,7 @@ class Texture native "WebGLTexture" {
 
 @DocsEditable
 @DomName('WebGLUniformLocation')
-class UniformLocation native "WebGLUniformLocation" {
+class UniformLocation native "*WebGLUniformLocation" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1987,5 +1987,5 @@ class UniformLocation native "WebGLUniformLocation" {
 
 @DocsEditable
 @DomName('WebGLVertexArrayObjectOES')
-class VertexArrayObject native "WebGLVertexArrayObjectOES" {
+class VertexArrayObject native "*WebGLVertexArrayObjectOES" {
 }

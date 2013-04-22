@@ -99,9 +99,18 @@ class NativeEmitter {
     return backend.namer.isolateAccess(element);
   }
 
-  List<String> nativeTagsOfClass(ClassElement cls) {
+  bool isNativeGlobal(String quotedName) {
+    return identical(quotedName[1], '@');
+  }
+
+  String toNativeTag(ClassElement cls) {
     String quotedName = cls.nativeTagInfo.slowToString();
-    return quotedName.substring(1, quotedName.length - 1).split(',');
+    if (isNativeGlobal(quotedName)) {
+      // Global object, just be like the other types for now.
+      return quotedName.substring(3, quotedName.length - 1);
+    } else {
+      return quotedName.substring(2, quotedName.length - 1);
+    }
   }
 
   /**
@@ -176,8 +185,8 @@ class NativeEmitter {
       // proto chain.
       // TODO(9907): Fix DOM generation. We might need an annotation.
       if (classElement.isNative()) {
-        List<String> nativeTags = nativeTagsOfClass(classElement);
-        if (nativeTags.contains('HTMLElement')) {
+        String nativeTag = toNativeTag(classElement);
+        if (nativeTag == 'HTMLElement') {
           nonleafClasses.add(classElement);
           needed = true;
         }
@@ -198,12 +207,12 @@ class NativeEmitter {
         new Map<ClassElement, Set<String>>();
 
     for (ClassElement classElement in classes) {
-      List<String> nativeTags = nativeTagsOfClass(classElement);
+      String nativeTag = toNativeTag(classElement);
 
       if (nonleafClasses.contains(classElement)) {
         nonleafTags
             .putIfAbsent(classElement, () => new Set<String>())
-            .addAll(nativeTags);
+            .add(nativeTag);
       } else {
         ClassElement sufficingInterceptor = classElement;
         while (!neededClasses.contains(sufficingInterceptor)) {
@@ -214,7 +223,7 @@ class NativeEmitter {
         }
         leafTags
             .putIfAbsent(sufficingInterceptor, () => new Set<String>())
-            .addAll(nativeTags);
+            .add(nativeTag);
       }
     }
 
@@ -350,6 +359,7 @@ class NativeEmitter {
     //   foo(null, y).
 
     ClassElement classElement = member.enclosingElement;
+    String nativeTagInfo = classElement.nativeTagInfo.slowToString();
 
     List<jsAst.Statement> statements = <jsAst.Statement>[];
     potentiallyConvertDartClosuresToJs(statements, member, stubParameters);
