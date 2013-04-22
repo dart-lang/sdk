@@ -20,6 +20,12 @@ worker_test/functional: Pass, Crash # Issue 9929.
 dom_isolates_test: Skip # Need to migrate to new spawnDomFunction.
 typed_arrays_range_checks_test: Fail # TODO(vsm): Implement range checks.
 
+[ $compiler == dart2js && $runtime == d8 ]
+# d8 does not support ArrayBuffer so this test passes on d8
+# (because it doesn't run the code). TODO(vsm): Remove this
+# when range check are implemented.
+typed_arrays_range_checks_test: Pass
+
 [ $compiler == dart2js && $runtime == ie10 ]
 indexeddb_3_test: Pass, Timeout, Slow # Issue: http://dartbug.com/9437
 indexeddb_4_test: Pass, Timeout, Slow # Issue: http://dartbug.com/9437

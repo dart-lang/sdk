@@ -2214,6 +2214,41 @@ class Uint8List extends TypedData implements JavaScriptIndexingBehavior, List<in
   // -- end List<int> mixins.
 }
 
+
+class Int64List extends TypedData implements JavaScriptIndexingBehavior, List<int> {
+  factory Int64List(int length) {
+    throw new UnsupportedError("Int64List not supported by dart2js.");
+  }
+
+  factory Int64List.fromList(List<int> list) {
+    throw new UnsupportedError("Int64List not supported by dart2js.");
+  }
+
+  factory Int64List.view(ByteBuffer buffer, [int byteOffset, int length]) {
+    throw new UnsupportedError("Int64List not supported by dart2js.");
+  }
+
+  static const int BYTES_PER_ELEMENT = 8;
+}
+
+
+class Uint64List extends TypedData implements JavaScriptIndexingBehavior, List<int> {
+  factory Int64List(int length) {
+    throw new UnsupportedError("Int64List not supported by dart2js.");
+  }
+
+  factory Int64List.fromList(List<int> list) {
+    throw new UnsupportedError("Int64List not supported by dart2js.");
+  }
+
+  factory Int64List.view(ByteBuffer buffer, [int byteOffset, int length]) {
+    throw new UnsupportedError("Int64List not supported by dart2js.");
+  }
+
+  static const int BYTES_PER_ELEMENT = 8;
+}
+
+
 // TODO(vsm): Eliminate this class and just inline into above.
 class _TypedArrayFactoryProvider {
   static ByteData createByteData(int length) => _B8(length);
