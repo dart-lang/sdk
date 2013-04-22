@@ -234,25 +234,6 @@ class HtmlDartGenerator(object):
         argument = signatures[signature_index][i]
         parameter_name = parameter_names[i]
         test_type = self._DartType(argument.type.id)
-        # TODO(antonm): temporary ugly hack to be able to work with existing
-        # typed array types as well as dart:typeddata types until
-        # the transition to dart:typeddata is complete for both dart2js
-        # and dartium.
-        from systemnative import DartiumBackend
-        if isinstance(self, DartiumBackend):
-          if argument.type.id == 'ArrayBufferView':
-            checks.append(
-                '(%(name)s is ArrayBufferView '
-                '|| %(name)s is _typeddata.TypedData '
-                '|| %(name)s == null)' % {'name': parameter_name})
-            continue
-          if argument.type.id == 'ArrayBuffer':
-            checks.append(
-                '(%(name)s is ArrayBuffer '
-                '|| %(name)s is _typeddata.ByteBuffer '
-                '|| %(name)s == null)' % {'name': parameter_name})
-            continue
-        # end of ugly hack.
         if test_type in ['dynamic', 'Object']:
           checks.append('?%s' % parameter_name)
         elif not can_omit_type_check(test_type, i):

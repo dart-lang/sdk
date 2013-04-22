@@ -9,6 +9,10 @@ event_test: Skip  # Issue 1996
 custom_elements_test: Skip # Not yet implemented.
 interactive_test: Skip # Must be run manually.
 
+[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
+# postMessage in dartium always transfers the typed array buffer, never a view
+postmessage_structured_test/typed_arrays: Fail
+
 [ $compiler == none && $runtime == drt && $system == windows ]
 worker_test/functional: Pass, Crash # Issue 9929.
 

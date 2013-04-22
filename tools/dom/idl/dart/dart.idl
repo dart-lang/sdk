@@ -2,7 +2,25 @@
 
 [Supplemental,
  Constructor]
-interface AudioContext {};
+interface AudioContext {
+  // TODO(ager): Auto-generate this custom method when the info about retaining
+  // typed arrays is in the IDL.
+  [Custom] void decodeAudioData(in ArrayBuffer audioData, in AudioBufferCallback successCallback, in AudioBufferCallback errorCallback);
+};
+
+[Supplemental]
+interface WaveShaperNode {
+  // TODO(ager): Auto-generate this custom method when the info about retaining
+  // typed arrays is in the IDL.
+  [CustomSetter] attribute Float32Array curve;
+};
+
+[Supplemental]
+interface AudioParam {
+  // TODO(ager): Auto-generate this custom method when the info about retaining
+  // typed arrays is in the IDL.
+  [Custom] void setValueCurveAtTime(in Float32Array values, in float time, in float duration);
+};
 
 [Supplemental]
 interface Document {
