@@ -1595,9 +1595,23 @@ void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
 
 
 // Jump to the exception or error handler.
-// No Result.
+// RA: return address.
+// A0: program_counter.
+// A1: stack_pointer.
+// A2: frame_pointer.
+// A3: error object.
+// SP: address of stacktrace object.
+// Does not return.
 void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
-  __ Unimplemented("JumpToExceptionHandler Stub");
+  ASSERT(kExceptionObjectReg == A0);
+  ASSERT(kStackTraceObjectReg == A1);
+  __ mov(TMP1, A1);  // Stack pointer.
+  __ mov(RA, A0);  // Program counter.
+  __ mov(A0, A3);  // Exception object.
+  __ lw(A1, Address(SP, 0));  // StackTrace object.
+  __ mov(FP, A2);  // Frame_pointer.
+  __ mov(SP, TMP1);  // Stack pointer.
+  __ jr(RA);  // Jump to the exception handler code.
 }
 
 

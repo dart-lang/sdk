@@ -43,11 +43,6 @@ CODEGEN_TEST2_GENERATE(SimpleStaticCallCodegen, function, test) {
 CODEGEN_TEST2_RUN(SimpleStaticCallCodegen, SmiReturnCodegen, Smi::New(3))
 
 
-#if defined(TARGET_ARCH_IA32) ||                                               \
-    defined(TARGET_ARCH_X64) ||                                                \
-    defined(TARGET_ARCH_ARM)
-
-
 // Helper to allocate and return a LocalVariable.
 static LocalVariable* NewTestLocalVariable(const char* name) {
   const String& variable_name = String::ZoneHandle(Symbols::New(name));
@@ -562,7 +557,5 @@ CODEGEN_TEST_RAW_RUN(AllocateNewObjectCodegen, function) {
       app_lib.LookupClass(String::Handle(Symbols::New("A"))));
   EXPECT_EQ(cls.raw(), result.clazz());
 }
-
-#endif  // TARGET_ARCH_IA32 || TARGET_ARCH_X64 || TARGET_ARCH_ARM
 
 }  // namespace dart

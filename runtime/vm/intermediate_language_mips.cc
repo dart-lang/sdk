@@ -2316,13 +2316,20 @@ void StrictCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
 
 
 LocationSummary* BooleanNegateInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  return LocationSummary::Make(1,
+                               Location::RequiresRegister(),
+                               LocationSummary::kNoCall);
 }
 
 
 void BooleanNegateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register value = locs()->in(0).reg();
+  Register result = locs()->out().reg();
+
+  __ LoadObject(result, Bool::True());
+  __ LoadObject(TMP1, Bool::False());
+  __ subu(CMPRES, value, result);
+  __ movz(result, TMP1, CMPRES);  // If value is True, move False into result.
 }
 
 

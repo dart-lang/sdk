@@ -2237,11 +2237,6 @@ TEST_CASE(CheckedHandle) {
 }
 
 
-// Only ia32, x64, and arm can run execution tests.
-#if defined(TARGET_ARCH_IA32) ||                                               \
-    defined(TARGET_ARCH_X64) ||                                                \
-    defined(TARGET_ARCH_ARM)
-
 static Function* CreateFunction(const char* name) {
   const String& class_name = String::Handle(Symbols::New("ownerClass"));
   const Script& script = Script::Handle();
@@ -2253,6 +2248,7 @@ static Function* CreateFunction(const char* name) {
                     true, false, false, false, owner_class, 0));
   return &function;
 }
+
 
 // Test for Code and Instruction object creation.
 TEST_CASE(Code) {
@@ -2345,7 +2341,6 @@ TEST_CASE(EmbedSmiIn64BitCode) {
 #endif
   EXPECT((retval >> kSmiTagShift) == kSmiTestValue);
 }
-#endif
 
 
 TEST_CASE(ExceptionHandlers) {
