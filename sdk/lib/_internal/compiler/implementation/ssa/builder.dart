@@ -831,6 +831,16 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   final List<Element> sourceElementStack;
 
   Element get currentElement => sourceElementStack.last.declaration;
+  Element get currentNonClosureClass {
+    ClassElement cls = currentElement.getEnclosingClass();
+    if (cls != null && cls.isClosure()) {
+      var closureClass = cls;
+      return closureClass.methodElement.getEnclosingClass();
+    } else {
+      return cls;
+    }
+  }
+
   Compiler get compiler => builder.compiler;
   CodeEmitterTask get emitter => builder.emitter;
 
@@ -1039,15 +1049,28 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     if (isInstanceMember) {
       assert(providedArguments != null);
-      int argumentIndex = 1; // Skip receiver.
       compiledArguments.add(providedArguments[0]);
+      // [providedArguments] contains the arguments given in our
+      // internal order (see [addDynamicSendArgumentsToList]). So we
+      // call [Selector.addArgumentsToList] only for getting the
+      // default values of the optional parameters.
       succeeded = selector.addArgumentsToList(
           argumentsNodes,
           compiledArguments,
           function,
-          (node) => providedArguments[argumentIndex++],
+          (node) => null,
           handleConstantForOptionalParameter,
           compiler);
+      int argumentIndex = 1; // Skip receiver.
+      // [compiledArguments] now only contains the default values of
+      // the optional parameters that were not provided by
+      // [argumentsNodes]. So we iterate over [providedArguments] to fill
+      // in all the arguments.
+      for (int i = 1; i < compiledArguments.length; i++) {
+        if (compiledArguments[i] == null) {
+          compiledArguments[i] = providedArguments[argumentIndex++];
+        }
+      }
     } else {
       assert(providedArguments == null);
       succeeded = addStaticSendArgumentsToList(selector,
@@ -1063,14 +1086,20 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // may have an impact on the state of the current method.
     InliningState state = new InliningState(
         function, returnElement, returnType, elements, stack, localsHandler);
-    localsHandler = new LocalsHandler.from(localsHandler);
+    LocalsHandler newLocalsHandler = new LocalsHandler.from(localsHandler);
+    newLocalsHandler.closureData =
+        compiler.closureToClassMapper.computeClosureToClassMapping(
+            function, function.parseNode(compiler), elements);
+    int argumentIndex = 0;
+    if (isInstanceMember) {
+      newLocalsHandler.updateLocal(newLocalsHandler.closureData.thisElement,
+                                   compiledArguments[argumentIndex++]);
+    }
 
     FunctionSignature signature = function.computeSignature(compiler);
-    int index = 0;
-    if (isInstanceMember) index++;
     signature.orderedForEachParameter((Element parameter) {
-      HInstruction argument = compiledArguments[index++];
-      localsHandler.updateLocal(parameter, argument);
+      HInstruction argument = compiledArguments[argumentIndex++];
+      newLocalsHandler.updateLocal(parameter, argument);
       potentiallyCheckType(argument, parameter.computeType(compiler));
     });
 
@@ -1083,12 +1112,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         type.typeArguments.forEach((DartType argument) {
           HInstruction instruction =
               analyzeTypeArgument(argument, currentNode);
-          localsHandler.updateLocal(typeVariable.head.element, instruction);
+          newLocalsHandler.updateLocal(typeVariable.head.element, instruction);
           typeVariable = typeVariable.tail;
         });
         while (!typeVariable.isEmpty) {
-          localsHandler.updateLocal(typeVariable.head.element,
-                                    graph.addConstantNull(constantSystem));
+          newLocalsHandler.updateLocal(typeVariable.head.element,
+                                       graph.addConstantNull(constantSystem));
           typeVariable = typeVariable.tail;
         }
       }
@@ -1098,13 +1127,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     returnElement = new ElementX(const SourceString("result"),
                                  ElementKind.VARIABLE,
                                  function);
-    localsHandler.updateLocal(returnElement,
-                              graph.addConstantNull(constantSystem));
+    newLocalsHandler.updateLocal(returnElement,
+                                 graph.addConstantNull(constantSystem));
     elements = compiler.enqueuer.resolution.getCachedElements(function);
     assert(elements != null);
     returnType = signature.returnType;
     stack = <HInstruction>[];
     inliningStack.add(state);
+    localsHandler = newLocalsHandler;
     return state;
   }
 
@@ -2873,18 +2903,20 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     inputs.add(receiver);
     addDynamicSendArgumentsToList(node, inputs);
 
-    // TODO(ngeoffray): Also inline for non-this sends. Currently, the
-    // inliner does not work when the receiver is not [:this:].
-    if (isThisSend(node)) {
-      HType receiverType = getTypeOfThis();
-      selector = receiverType.refine(selector, compiler);
-      Element element = compiler.world.locateSingleElement(selector);
-      // TODO(ngeoffray): If [element] is a getter, then this send is
-      // a closure send. We should teach that to [ResolvedVisitor].
-      if (inline && element != null && !element.isGetter()) {
-        if (tryInlineMethod(element, selector, node.arguments, inputs, node)) {
-          return;
-        }
+    Element element = compiler.world.locateSingleElement(selector);
+    // TODO(ngeoffray): If [element] is a getter, then this send is
+    // a closure send. We should teach that to [ResolvedVisitor].
+    if (inline
+        && element != null
+        && !element.isGetter()
+        // This check is to ensure we don't regress compared to our
+        // previous limited inlining. We currently don't want to
+        // inline methods on intercepted classes because the
+        // optimizers apply their own optimizations on these methods.
+        && (!backend.interceptedClasses.contains(element.getEnclosingClass())
+            || isThisSend(node))) {
+      if (tryInlineMethod(element, selector, node.arguments, inputs, node)) {
+        return;
       }
     }
 
@@ -3142,7 +3174,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       inputs.add(self);
     }
     inputs.add(pop());
-    push(new HInvokeSuper(inputs));
+    push(new HInvokeSuper(currentNonClosureClass, inputs));
   }
 
   visitSend(Send node) {
@@ -3165,7 +3197,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     List<HInstruction> inputs = buildSuperAccessorInputs(element);
     if (node.isPropertyAccess) {
-      HInstruction invokeSuper = new HInvokeSuper(inputs);
+      HInstruction invokeSuper =
+          new HInvokeSuper(currentNonClosureClass, inputs);
       invokeSuper.instructionType =
           new HType.inferredTypeForElement(element, compiler);
       push(invokeSuper);
@@ -3178,13 +3211,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       if (!succeeded) {
         generateWrongArgumentCountError(node, element, node.arguments);
       } else {
-        HInstruction invokeSuper = new HInvokeSuper(inputs);
+        HInstruction invokeSuper =
+            new HInvokeSuper(currentNonClosureClass, inputs);
         invokeSuper.instructionType =
             new HType.inferredReturnTypeForElement(element, compiler);
         push(invokeSuper);
       }
     } else {
-      HInstruction target = new HInvokeSuper(inputs);
+      HInstruction target = new HInvokeSuper(currentNonClosureClass, inputs);
       target.instructionType =
           new HType.inferredTypeForElement(element, compiler);
       add(target);
@@ -3733,7 +3767,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
               getterInputs);
           getterInstruction = pop();
         } else {
-          getterInstruction = new HInvokeSuper(getterInputs);
+          getterInstruction = new HInvokeSuper(
+              currentNonClosureClass, getterInputs);
           add(getterInstruction);
         }
         handleComplexOperatorSend(node, getterInstruction, arguments);
@@ -3750,7 +3785,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
             node, elements.getSelector(node), setterInputs);
         pop();
       } else {
-        add(new HInvokeSuper(setterInputs, isSetter: true));
+        add(new HInvokeSuper(
+            currentNonClosureClass, setterInputs, isSetter: true));
       }
       stack.add(result);
     } else if (node.isIndex) {
@@ -4920,9 +4956,10 @@ class InlineWeeder extends Visitor {
   }
 
   visitLoop(Node node) {
-    if (!registerNode()) return;
-    node.visitChildren(this);
-    if (seenReturn) tooDifficult = true;
+    // It's actually not difficult to inline a method with a loop, but
+    // our measurements show that it's currently better to not inline a
+    // method that contains a loop.
+    tooDifficult = true;
   }
 
   void visitReturn(Return node) {

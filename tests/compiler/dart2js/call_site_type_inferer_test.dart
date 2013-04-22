@@ -211,14 +211,14 @@ const String TEST_18 = r"""
 """;
 
 void doTest(String test,
-            bool enableInlining,
+            bool disableInlining,
             List expectedTypes,  // HTypes, or functions constructing HTypes.
             OptionalParameterTypes defaultTypes) {
   compileAndFind(
     test,
     'A',
     'x',
-    enableInlining,
+    disableInlining,
     (compiler, x) {
       HTypeList types =
           compiler.backend.optimisticParameterTypes(x, defaultTypes);
@@ -238,7 +238,6 @@ void doTest(String test,
 void runTest(String test,
              [List<HType> expectedTypes,
               OptionalParameterTypes defaultTypes]) {
-  doTest(test, false, expectedTypes, defaultTypes);
   doTest(test, true, expectedTypes, defaultTypes);
 }
 

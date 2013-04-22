@@ -1620,12 +1620,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     Element superMethod = node.element;
     Element superClass = superMethod.getEnclosingClass();
     if (superMethod.kind == ElementKind.FIELD) {
-      ClassElement currentClass = work.element.getEnclosingClass();
-      if (currentClass.isClosure()) {
-        ClosureClassElement closure = currentClass;
-        currentClass = closure.methodElement.getEnclosingClass();
-      }
-      String fieldName = currentClass.isShadowedByField(superMethod)
+      String fieldName = node.caller.isShadowedByField(superMethod)
           ? backend.namer.shadowedFieldName(superMethod)
           : backend.namer.instanceFieldName(superMethod);
       use(node.inputs[1]);

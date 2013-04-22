@@ -442,7 +442,8 @@ class CompileTimeConstantEvaluator extends Visitor {
 
   Constant makeTypeConstant(Element element) {
     DartType elementType = element.computeType(compiler).asRaw();
-    DartType constantType = compiler.typeClass.computeType(compiler);
+    DartType constantType =
+        compiler.backend.typeImplementation.computeType(compiler);
     Constant constant = new TypeConstant(elementType, constantType);
     // If we use a type literal in a constant, the compile time
     // constant emitter will generate a call to the createRuntimeType
