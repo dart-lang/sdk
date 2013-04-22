@@ -127,6 +127,11 @@ class Symbols;
     }                                                                          \
   }                                                                            \
   /* Disallow allocation, copy constructors and override super assignment. */  \
+ public:  /* NOLINT */                                                         \
+  void operator delete(void* pointer) {                                        \
+    UNREACHABLE();                                                             \
+  }                                                                            \
+ private:  /* NOLINT */                                                        \
   void* operator new(size_t size);                                             \
   object(const object& value);                                                 \
   void operator=(Raw##super* value);                                           \
@@ -525,9 +530,7 @@ class Object {
   friend class ExternalOneByteString;
   friend class ExternalTwoByteString;
 
-  // Disallow allocation.
-  void* operator new(size_t size);
-  // Disallow copy constructor.
+  DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Object);
 };
 
