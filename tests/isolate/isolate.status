@@ -64,7 +64,7 @@ global_error_handler_stream_test: Pass, Fail # http://dartbug.com/9012 and http:
 global_error_handler2_test: Pass, Fail # http://dartbug.com/9012 and http://dartbug.com/9024
 global_error_handler_stream2_test: Pass, Fail # http://dartbug.com/9012 and http://dartbug.com/9024
 
-[ $compiler == dart2js && ($runtime == ff || $runtime == chrome || $runtime == ie9 || $runtime == ie10 || $runtime == safari) ]
+[ $compiler == dart2js && ($runtime == drt || $runtime == ff || $runtime == chrome || $runtime == ie9 || $runtime == ie10 || $runtime == safari) ]
 typed_data_message_test: Fail
 
 [ $runtime == safari ]
