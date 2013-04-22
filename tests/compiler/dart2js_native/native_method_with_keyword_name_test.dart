@@ -6,7 +6,7 @@ import "package:expect/expect.dart";
 
 // Make sure we can have a native with a name that is a JavaScript keyword.
 
-class A native "*A" {
+class A native "A" {
   int delete() native;
 }
 

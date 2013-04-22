@@ -9,18 +9,18 @@ import "package:expect/expect.dart";
 // superclass caches the method in the prototype, so shadowing the dispatcher
 // stored on Object.prototype.
 
-class A native "*A" {
+class A native "A" {
   foo([a=100]) native;
 }
 
-class B extends A native "*B" {
+class B extends A native "B" {
 }
 
-class C extends B native "*C" {
+class C extends B native "C" {
   foo([z=300]) native;
 }
 
-class D extends C native "*D" {
+class D extends C native "D" {
 }
 
 makeA() native;

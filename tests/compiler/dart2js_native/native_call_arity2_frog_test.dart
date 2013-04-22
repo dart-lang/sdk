@@ -7,11 +7,11 @@ import "package:expect/expect.dart";
 // This is a similar test to NativeCallArity1FrogTest, but makes sure
 // that subclasses also get the right number of arguments.
 
-class A native "*A" {
+class A native "A" {
   int foo([x, y]) native;
 }
 
-class B extends A native "*B" {
+class B extends A native "B" {
   int foo([x, y]) native;
 }
 

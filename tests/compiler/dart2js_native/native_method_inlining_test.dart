@@ -9,7 +9,7 @@ import "package:expect/expect.dart";
 
 typedef int Int2Int(int x);
 
-class A native "*A" {
+class A native "A" {
   int foo([x, y, z]) native;
 
   // Calls can be inlined provided they don't pass an argument.

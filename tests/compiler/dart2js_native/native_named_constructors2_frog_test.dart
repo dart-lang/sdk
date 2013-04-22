@@ -8,7 +8,7 @@ import "package:expect/expect.dart";
 
 
 
-class A native "*A" {
+class A native "A" {
 
   factory A(int len) => _construct(len);
 

@@ -7,7 +7,7 @@
 import "package:expect/expect.dart";
 import 'dart:_foreign_helper' show JS;
 
-class A native "*A" {
+class A native "A" {
 
   // Setters and getters should be similar to these methods:
   int getX() => JS('int', '#._x', this);

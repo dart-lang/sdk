@@ -4,11 +4,11 @@
 
 import "package:expect/expect.dart";
 
-class A native "*A" {
+class A native "A" {
   bar() => 42;
 }
 
-class B native "*B" {
+class B native "B" {
   foo() => 42;
 }
 

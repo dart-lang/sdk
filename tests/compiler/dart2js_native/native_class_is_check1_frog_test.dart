@@ -13,7 +13,7 @@ interface I {
 
 // Native implementation.
 
-class A implements I native "*A" {
+class A implements I native "A" {
   // The native class accepts only other native instances.
   A read() native;
   write(A x) native;

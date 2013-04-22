@@ -6,7 +6,7 @@ import "package:expect/expect.dart";
 
 // Test to see if novel HTML tags are interpreted as HTMLElement.
 
-class Element native "*HTMLElement" {
+class Element native "HTMLElement" {
   String dartMethod(int x) => 'dartMethod(${nativeMethod(x+1)})';
   String nativeMethod(int x) native;
 }

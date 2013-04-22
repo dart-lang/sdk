@@ -7,11 +7,11 @@ import "package:expect/expect.dart";
 // Test that we put native names and not Dart names into the dynamic
 // dispatch table.
 
-class A native "*NativeA" {
+class A native "NativeA" {
   foo() native;
 }
 
-class B extends A native "*NativeB" {
+class B extends A native "NativeB" {
 }
 
 A makeA() native { return new A(); }

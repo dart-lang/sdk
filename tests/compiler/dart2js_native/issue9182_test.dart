@@ -7,7 +7,7 @@
 
 import "package:expect/expect.dart";
 
-class Foo native "*A" {
+class Foo native "A" {
   factory Foo() => makeA();
   // Ensure the instance method 'Bar' uses interceptor convention.
   Bar() => 123;

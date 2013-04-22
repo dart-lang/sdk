@@ -12,11 +12,11 @@ import "package:expect/expect.dart";
 // * Optional positional arguments are passed in the correct position, so
 // require preceding arguments to be passed.
 
-class A native "*A" {
+class A native "A" {
   int foo(int x) native;
 }
 
-class B native "*B" {
+class B native "B" {
   int foo([x, y, z]) native;
 }
 

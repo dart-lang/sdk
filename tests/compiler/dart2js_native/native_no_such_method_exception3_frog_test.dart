@@ -11,11 +11,11 @@ class GetName {
 
 String getName(im) => reflect(new GetName()).delegate(im);
 
-class A native "*A" {
+class A native "A" {
   bar() => 42;
 }
 
-class B native "*B" {
+class B native "B" {
   foo() => 42;
 }
 

@@ -8,7 +8,7 @@ import "package:expect/expect.dart";
 // inheritance, the superclass method must not be reached by a call on the
 // subclass.
 
-class A native "*A" {
+class A native "A" {
   var _field;
 
   int get X => _field;
@@ -17,7 +17,7 @@ class A native "*A" {
   int method(int z) => _field + z;
 }
 
-class B extends A native "*B" {
+class B extends A native "B" {
   var _field2;
 
   int get X => _field2;

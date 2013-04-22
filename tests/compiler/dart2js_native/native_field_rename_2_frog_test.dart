@@ -13,7 +13,7 @@ interface I {
   int key;
 }
 
-class A implements I native "*A" {
+class A implements I native "A" {
   int key;                    //  jsname is 'key'
   int getKey() => key;
 }
@@ -24,7 +24,7 @@ class B implements I {
   int getKey() => key;
 }
 
-class X native "*X" {
+class X native "X" {
   @JSName('key')
   int native_key_method() native;
   // This should cause B.key to be renamed, but not A.key.

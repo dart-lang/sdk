@@ -8,7 +8,7 @@
 
 import "package:expect/expect.dart";
 
-class Node native "*Node" {
+class Node native "Node" {
 
   final Node parentNode;
 

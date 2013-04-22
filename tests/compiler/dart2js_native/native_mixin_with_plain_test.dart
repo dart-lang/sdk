@@ -7,13 +7,13 @@ import "package:expect/expect.dart";
 // Test that native classes and ordinary Dart classes can both use the same
 // ordinary Dart classes as a mixin.
 
-class A native "*A" {
+class A native "A" {
   final String aa;
   foo() => "A-foo $aa";
   baz() => "A-baz $aa";
 }
 
-class B extends A with M native "*B" {
+class B extends A with M native "B" {
   bar() => 'B-bar -> ${baz()}';
   get mm => 'B.mm($aa)';
 }

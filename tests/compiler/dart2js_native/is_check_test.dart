@@ -4,7 +4,7 @@
 
 import "package:expect/expect.dart";
 
-class A native "*A" {}
+class A native "A" {}
 
 main() {
   var a = [new Object()];
