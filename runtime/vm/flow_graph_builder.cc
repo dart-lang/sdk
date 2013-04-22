@@ -1917,6 +1917,7 @@ static intptr_t GetResultCidOfNative(const Function& function) {
       case kTypedDataUint64ArrayCid:
       case kTypedDataFloat32ArrayCid:
       case kTypedDataFloat64ArrayCid:
+      case kTypedDataFloat32x4ArrayCid:
         return function_class.id();
       default:
         return kDynamicCid;  // Unknown.
@@ -2048,7 +2049,6 @@ void EffectGraphVisitor::BuildConstructorCall(
 // List of recognized list factories in core lib:
 // (factory-name-symbol, result-cid, fingerprint).
 // TODO(srdjan): Store the values in the snapshot instead.
-// TODO(srdjan): Add Float32x4List.
 #define RECOGNIZED_LIST_FACTORY_LIST(V)                                        \
   V(ObjectArrayFactory, kArrayCid, 97987288)                                   \
   V(GrowableObjectArrayWithData, kGrowableObjectArrayCid, 816132033)           \
@@ -2064,6 +2064,7 @@ void EffectGraphVisitor::BuildConstructorCall(
   V(Uint64ListFactory, kTypedDataUint64ArrayCid, 1830907325)                   \
   V(Float64ListFactory, kTypedDataFloat64ArrayCid, 1236037424)                 \
   V(Float32ListFactory, kTypedDataFloat32ArrayCid, 570814412)                  \
+  V(Float32x4ListFactory, kTypedDataFloat32x4ArrayCid, 173774085)              \
 
 
 // Class that recognizes factories and returns corresponding result cid.

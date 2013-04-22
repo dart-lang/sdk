@@ -1166,6 +1166,7 @@ bool LoadFieldInstr::IsFixedLengthArrayCid(intptr_t cid) {
     case kTypedDataUint64ArrayCid:
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
+    case kTypedDataFloat32x4ArrayCid:
       return true;
     default:
       return false;

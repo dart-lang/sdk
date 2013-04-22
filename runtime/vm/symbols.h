@@ -147,6 +147,7 @@ class ObjectPointerVisitor;
   V(Uint64List, "Uint64List")                                                  \
   V(Uint64ListFactory, "Uint64List.")                                          \
   V(Float32x4List, "Float32x4List")                                            \
+  V(Float32x4ListFactory, "Float32x4List.")                                    \
   V(Float32List, "Float32List")                                                \
   V(Float32ListFactory, "Float32List.")                                        \
   V(Float64List, "Float64List")                                                \
