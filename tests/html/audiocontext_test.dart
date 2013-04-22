@@ -2,6 +2,7 @@ library AudioContextTest;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_individual_config.dart';
 import 'dart:html';
+import 'dart:typeddata';
 import 'dart:web_audio';
 import 'dart:async';
 
@@ -30,12 +31,12 @@ main() {
     test('createBuffer', () {
       if(AudioContext.supported) {
         var ctx = new AudioContext();
-        ArrayBufferView arrayBufferView = new Float32Array.fromList([]);
+        Float32List view = new Float32List.fromList([]);
         try {
           // Test that native overload is chosen correctly. Native
           // implementation should throw 'SyntaxError' DomException because the
           // buffer is empty.
-          AudioBuffer buffer = ctx.createBuffer(arrayBufferView.buffer, false);
+          AudioBuffer buffer = ctx.createBuffer(view.buffer, false);
         } catch (e) {
           expect(e.name, DomException.SYNTAX);
         }
