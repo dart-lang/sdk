@@ -205,6 +205,12 @@ void set unittestConfiguration(Configuration value) {
 void logMessage(String message) =>
     _config.onLogMessage(currentTestCase, message);
 
+/**
+ * Description text of the current test group. If multiple groups are nested,
+ * this will contain all of their text concatenated.
+ */
+String _currentGroup = '';
+
 /** Separator used between group names and test names. */
 String groupSep = ' ';
 
@@ -213,29 +219,11 @@ final List<TestCase> _testCases = new List<TestCase>();
 /** Tests executed in this suite. */
 final List<TestCase> testCases = new UnmodifiableListView<TestCase>(_testCases);
 
-/**
- * Setup and teardown functions for a group and its parents, the latter
- * for chaining.
- */
-class GroupContext {
-  /** Setup function called before each test in a group. */
-  Function testSetup = null;
+/** Setup function called before each test in a group */
+Function _testSetup;
 
-  /** Teardown function called after each test in a group. */
-  Function testTeardown = null;
-
-  /** Setup and teardown functions of parent group, for chaining. */
-  Function parentSetup = null;
-  Function parentTeardown = null;
-
-  /**
-   * Description text of the current test group. If multiple groups are nested,
-   * this will contain all of their text concatenated.
-   */
-  String groupName = '';
-}
-
-GroupContext _currentContext = new GroupContext();
+/** Teardown function called after each test in a group */
+Function _testTeardown;
 
 int _currentTestCaseIndex = 0;
 
@@ -608,55 +596,46 @@ Function protectAsync2(Function callback, {String id}) {
  */
 void group(String description, void body()) {
   ensureInitialized();
-  // Groups can be nested, so we need to preserve the current
-  // settings for test setup/teardown. We use a local copy here so we
-  // can nest multiple levels; we also have the global parent variables
-  // which are used for chaining.
-  var oldContext = _currentContext;
-  _currentContext = new GroupContext();
-  _currentContext.testSetup = _currentContext.parentSetup =
-      oldContext.testSetup;
-  _currentContext.testTeardown = _currentContext.parentTeardown =
-      oldContext.testTeardown;
-
   // Concatenate the new group.
-  if (oldContext.groupName != '') {
+  final parentGroup = _currentGroup;
+  if (_currentGroup != '') {
     // Add a space.
-    _currentContext.groupName = '${oldContext.groupName}$groupSep$description';
+    _currentGroup = '$_currentGroup$groupSep$description';
   } else {
     // The first group.
-    _currentContext.groupName = description;
+    _currentGroup = description;
   }
 
+  // Groups can be nested, so we need to preserve the current
+  // settings for test setup/teardown.
+  Function parentSetup = _testSetup;
+  Function parentTeardown = _testTeardown;
 
   try {
+    _testSetup = null;
+    _testTeardown = null;
     body();
   } catch (e, trace) {
     var stack = (trace == null) ? '' : ': ${trace.toString()}';
     _uncaughtErrorMessage = "${e.toString()}$stack";
   } finally {
     // Now that the group is over, restore the previous one.
-    _currentContext = oldContext;
+    _currentGroup = parentGroup;
+    _testSetup = parentSetup;
+    _testTeardown = parentTeardown;
   }
 }
 
 /**
  * Register a [setUp] function for a test [group]. This function will
- * be called before each test in the group is run.
+ * be called before each test in the group is run. Note that if groups
+ * are nested only the most locally scoped [setUpTest] function will be run.
  * [setUp] and [tearDown] should be called within the [group] before any
  * calls to [test]. The [setupTest] function can be asynchronous; in this
  * case it must return a [Future].
  */
 void setUp(Function setupTest) {
-  var parent = _currentContext.parentSetup;
-  _currentContext.testSetup = () {
-    var f = parent == null ? null : parent();
-    if (f is Future) {
-      return f.then((_) => setupTest());
-    } else {
-      return setupTest();
-    }
-  };
+  _testSetup = setupTest;
 }
 
 /**
@@ -668,19 +647,7 @@ void setUp(Function setupTest) {
  * case it must return a [Future].
  */
 void tearDown(Function teardownTest) {
-  var parent = _currentContext.parentTeardown;
-  _currentContext.testTeardown = () {
-    var f = teardownTest();
-    if (parent == null) return f;
-    if (f is Future) {
-      // TODO(gram): as _parentTeardown is a global, do we need
-      // to first take a local copy so the value is fixed at the
-      // point that tearDown is called?
-      return f.then((_) => parent());
-    } else {
-      return parent();
-    }
-  };
+  _testTeardown = teardownTest;
 }
 
 /** Advance to the next test case. */
@@ -745,7 +712,7 @@ void filterTests(testFilter) {
 void runTests() {
   _ensureInitialized(false);
   _currentTestCaseIndex = 0;
-  _currentContext = new GroupContext();
+  _currentGroup = '';
 
   // If we are soloing a test, remove all the others.
   if (_soloTest != null) {
@@ -844,9 +811,8 @@ void _completeTests() {
 }
 
 String _fullSpec(String spec) {
-  var group = '${_currentContext.groupName}';
-  if (spec == null) return group;
-  return group != '' ? '$group$groupSep$spec' : spec;
+  if (spec == null) return '$_currentGroup';
+  return _currentGroup != '' ? '$_currentGroup$groupSep$spec' : spec;
 }
 
 /**
