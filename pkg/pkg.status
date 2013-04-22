@@ -32,7 +32,7 @@ webdriver/test/webdriver_test: Skip
 unittest/test/unittest_test: Pass, Fail, Crash # Bug in v8, http://dartbug.com/9407
 
 
-[ $compiler == dart2js && $runtime == d8 ]
+[ $runtime == d8 || $runtime == jsshell ]
 unittest/test/unittest_test: Pass, Fail # http://dartbug.com/10109
 
 [$compiler == dart2dart]
