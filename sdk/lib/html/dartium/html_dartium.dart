@@ -17251,6 +17251,30 @@ class Node extends EventTarget {
 
   Node.internal() : super.internal();
 
+  static const int ATTRIBUTE_NODE = 2;
+
+  static const int CDATA_SECTION_NODE = 4;
+
+  static const int COMMENT_NODE = 8;
+
+  static const int DOCUMENT_FRAGMENT_NODE = 11;
+
+  static const int DOCUMENT_NODE = 9;
+
+  static const int DOCUMENT_TYPE_NODE = 10;
+
+  static const int ELEMENT_NODE = 1;
+
+  static const int ENTITY_NODE = 6;
+
+  static const int ENTITY_REFERENCE_NODE = 5;
+
+  static const int NOTATION_NODE = 12;
+
+  static const int PROCESSING_INSTRUCTION_NODE = 7;
+
+  static const int TEXT_NODE = 3;
+
   @DomName('Node.childNodes')
   @DocsEditable
   List<Node> get $dom_childNodes native "Node_childNodes_Getter";
