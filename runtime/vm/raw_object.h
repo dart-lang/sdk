@@ -172,6 +172,12 @@ enum {
   kSmiTagShift = 1,
 };
 
+enum TypeDataElementType {
+#define V(name) k##name##Element,
+CLASS_LIST_TYPED_DATA(V)
+#undef V
+};
+
 #define SNAPSHOT_WRITER_SUPPORT()                                              \
   void WriteTo(                                                                \
       SnapshotWriter* writer, intptr_t object_id, Snapshot::Kind kind);        \

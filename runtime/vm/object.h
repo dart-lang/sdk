@@ -5043,6 +5043,12 @@ class TypedData : public Instance {
     return ElementSizeInBytes(cid);
   }
 
+
+  TypeDataElementType ElementType() const {
+    intptr_t cid = raw()->GetClassId();
+    return ElementType(cid);
+  }
+
   intptr_t LengthInBytes() const {
     intptr_t cid = raw()->GetClassId();
     return (ElementSizeInBytes(cid) * Length());
@@ -5092,7 +5098,13 @@ class TypedData : public Instance {
 
   static intptr_t ElementSizeInBytes(intptr_t class_id) {
     ASSERT(RawObject::IsTypedDataClassId(class_id));
-    return element_size[class_id - kTypedDataInt8ArrayCid];
+    return element_size[ElementType(class_id)];
+  }
+
+  static TypeDataElementType ElementType(intptr_t class_id) {
+    ASSERT(RawObject::IsTypedDataClassId(class_id));
+    return static_cast<TypeDataElementType>(
+        class_id - kTypedDataInt8ArrayCid);
   }
 
   static intptr_t MaxElements(intptr_t class_id) {
@@ -5104,11 +5116,26 @@ class TypedData : public Instance {
                            intptr_t len,
                            Heap::Space space = Heap::kNew);
 
-  static void Copy(const TypedData& dst,
-                   intptr_t dst_offset_in_bytes,
-                   const TypedData& src,
-                   intptr_t src_offset_in_bytes,
-                   intptr_t length_in_bytes);
+  template <typename DstType, typename SrcType>
+  static void Copy(const DstType& dst, intptr_t dst_offset_in_bytes,
+                   const SrcType& src, intptr_t src_offset_in_bytes,
+                   intptr_t length_in_bytes) {
+    ASSERT(dst.ElementType() == src.ElementType());
+    ASSERT(Utils::RangeCheck(src_offset_in_bytes,
+                             length_in_bytes,
+                             src.LengthInBytes()));
+    ASSERT(Utils::RangeCheck(dst_offset_in_bytes,
+                             length_in_bytes,
+                             dst.LengthInBytes()));
+    {
+      NoGCScope no_gc;
+      if (length_in_bytes > 0) {
+        memmove(dst.DataAddr(dst_offset_in_bytes),
+                src.DataAddr(src_offset_in_bytes),
+                length_in_bytes);
+      }
+    }
+  }
 
   static bool IsTypedData(const Instance& obj) {
     ASSERT(!obj.IsNull());
@@ -5141,6 +5168,11 @@ class ExternalTypedData : public Instance {
   intptr_t ElementSizeInBytes() const {
     intptr_t cid = raw()->GetClassId();
     return ElementSizeInBytes(cid);
+  }
+
+  TypeDataElementType ElementType() const {
+    intptr_t cid = raw()->GetClassId();
+    return ElementType(cid);
   }
 
   intptr_t LengthInBytes() const {
@@ -5193,7 +5225,13 @@ class ExternalTypedData : public Instance {
 
   static intptr_t ElementSizeInBytes(intptr_t class_id) {
     ASSERT(RawObject::IsExternalTypedDataClassId(class_id));
-    return TypedData::element_size[class_id - kExternalTypedDataInt8ArrayCid];
+    return TypedData::element_size[ElementType(class_id)];
+  }
+
+  static TypeDataElementType ElementType(intptr_t class_id) {
+    ASSERT(RawObject::IsExternalTypedDataClassId(class_id));
+    return static_cast<TypeDataElementType>(
+        class_id - kExternalTypedDataInt8ArrayCid);
   }
 
   static intptr_t MaxElements(intptr_t class_id) {
@@ -5205,12 +5243,6 @@ class ExternalTypedData : public Instance {
                                    uint8_t* data,
                                    intptr_t len,
                                    Heap::Space space = Heap::kNew);
-
-  static void Copy(const ExternalTypedData& dst,
-                   intptr_t dst_offset_in_bytes,
-                   const ExternalTypedData& src,
-                   intptr_t src_offset_in_bytes,
-                   intptr_t length_in_bytes);
 
   static bool IsExternalTypedData(const Instance& obj) {
     ASSERT(!obj.IsNull());
