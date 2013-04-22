@@ -22,6 +22,7 @@
 /*.sln
 /*.suo
 /*.target.mk
+*.host.mk
 /*.vcproj
 /*.vcxproj
 /*.vcxproj.filters
