@@ -719,8 +719,9 @@ void RelationalOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // explicitly pushing arguments to the call here.
   Register left = locs()->in(0).reg();
   Register right = locs()->in(1).reg();
-  __ Push(left);
-  __ Push(right);
+  __ addiu(SP, SP, Immediate(-2 * kWordSize));
+  __ sw(left, Address(SP, 1 * kWordSize));
+  __ sw(right, Address(SP, 0 * kWordSize));
   if (HasICData() && (ic_data()->NumberOfChecks() > 0)) {
     Label* deopt = compiler->AddDeoptStub(deopt_id(), kDeoptRelationalOp);
     // Load class into A2.
@@ -1150,8 +1151,9 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ lw(TMP1, FieldAddress(field_reg, Field::guarded_cid_offset()));
     __ BranchEqual(TMP1, kDynamicCid, &ok);
 
-    __ Push(field_reg);
-    __ Push(value_reg);
+    __ addiu(SP, SP, Immediate(-2 * kWordSize));
+    __ sw(field_reg, Address(SP, 1 * kWordSize));
+    __ sw(value_reg, Address(SP, 0 * kWordSize));
     __ CallRuntime(kUpdateFieldCidRuntimeEntry);
     __ Drop(2);  // Drop the field and the value.
   }
@@ -1344,15 +1346,22 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
     __ Bind(&type_arguments_uninstantiated);
   }
   // A runtime call to instantiate the type arguments is required.
-  __ PushObject(Object::ZoneHandle());  // Make room for the result.
-  __ PushObject(type_arguments());
-  __ Push(instantiator_reg);  // Push instantiator type arguments.
+  __ addiu(SP, SP, Immediate(-3 * kWordSize));
+  __ LoadObject(TMP1, Object::ZoneHandle());
+  __ LoadObject(TMP2, type_arguments());
+  __ sw(TMP1, Address(SP, 2 * kWordSize));  // Make room for the result.
+  __ sw(TMP2, Address(SP, 1 * kWordSize));
+  // Push instantiator type arguments.
+  __ sw(instantiator_reg, Address(SP, 0 * kWordSize));
+
   compiler->GenerateCallRuntime(token_pos(),
                                 deopt_id(),
                                 kInstantiateTypeArgumentsRuntimeEntry,
                                 locs());
-  __ Drop(2);  // Drop instantiator and uninstantiated type arguments.
-  __ Pop(result_reg);  // Pop instantiated type arguments.
+  // Pop instantiated type arguments.
+  __ lw(result_reg, Address(SP, 2 * kWordSize));
+  // Drop instantiator and uninstantiated type arguments.
+  __ addiu(SP, SP, Immediate(3 * kWordSize));
   __ Bind(&type_arguments_instantiated);
   ASSERT(instantiator_reg == result_reg);
   // 'result_reg': Instantiated type arguments.
@@ -1481,13 +1490,29 @@ void ExtractConstructorInstantiatorInstr::EmitNativeCode(
 
 
 LocationSummary* AllocateContextInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 0;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+  locs->set_temp(0, Location::RegisterLocation(T1));
+  locs->set_out(Location::RegisterLocation(V0));
+  return locs;
 }
 
 
 void AllocateContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register temp = T1;
+  ASSERT(locs()->temp(0).reg() == temp);
+  ASSERT(locs()->out().reg() == V0);
+
+  __ TraceSimMsg("AllocateContextInstr");
+  __ LoadImmediate(temp, num_context_variables());
+  const ExternalLabel label("alloc_context",
+                            StubCode::AllocateContextEntryPoint());
+  compiler->GenerateCall(token_pos(),
+                         &label,
+                         PcDescriptors::kOther,
+                         locs());
 }
 
 

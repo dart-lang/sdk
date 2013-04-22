@@ -362,10 +362,16 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
     const Error& error = Error::Handle(dst_type.malformed_error());
     const String& error_message = String::ZoneHandle(
         Symbols::New(error.ToErrorCString()));
-    __ PushObject(Object::ZoneHandle());  // Make room for the result.
-    __ Push(A0);  // Push the source object.
-    __ PushObject(dst_name);  // Push the name of the destination.
-    __ PushObject(error_message);
+
+    __ addiu(SP, SP, Immediate(-4 * kWordSize));
+    __ LoadObject(TMP1, Object::ZoneHandle());
+    __ sw(TMP1, Address(SP, 3 * kWordSize));  // Make room for the result.
+    __ sw(A0, Address(SP, 2 * kWordSize));  // Push the source object.
+    __ LoadObject(TMP1, dst_name);
+    __ sw(TMP1, Address(SP, 1 * kWordSize));  // Push the destination name.
+    __ LoadObject(TMP1, error_message);
+    __ sw(TMP1, Address(SP, 0 * kWordSize));
+
     GenerateCallRuntime(token_pos,
                         deopt_id,
                         kMalformedTypeErrorRuntimeEntry,
@@ -390,21 +396,24 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
   // Load instantiator and its type arguments.
   __ lw(A1, Address(SP, 0 * kWordSize));
   __ lw(A2, Address(SP, 1 * kWordSize));
-  __ PushObject(Object::ZoneHandle());  // Make room for the result.
-  __ Push(A0);  // Push the source object.
-  __ PushObject(dst_type);  // Push the type of the destination.
-  // Push instantiator and its type arguments.
-  __ addiu(SP, SP, Immediate(-2 * kWordSize));
-  __ sw(A2, Address(SP, 1 * kWordSize));
-  __ sw(A1, Address(SP, 0 * kWordSize));
-  __ PushObject(dst_name);  // Push the name of the destination.
-  __ LoadObject(T0, test_cache);
-  __ Push(T0);
+
+  __ addiu(SP, SP, Immediate(-7 * kWordSize));
+  __ LoadObject(TMP1, Object::ZoneHandle());
+  __ sw(TMP1, Address(SP, 6 * kWordSize));  // Make room for the result.
+  __ sw(A0, Address(SP, 5 * kWordSize));  // Push the source object.
+  __ LoadObject(TMP1, dst_type);
+  __ sw(TMP1, Address(SP, 4 * kWordSize));  // Push the type of the destination.
+  __ sw(A2, Address(SP, 3 * kWordSize));  // Push instantiator.
+  __ sw(A1, Address(SP, 2 * kWordSize));  // Push type arguments.
+  __ LoadObject(TMP1, dst_name);
+  __ sw(TMP1, Address(SP, 1 * kWordSize));  // Push the name of the destination.
+  __ sw(T0, Address(SP, 0 * kWordSize));
+
   GenerateCallRuntime(token_pos, deopt_id, kTypeCheckRuntimeEntry, locs);
   // Pop the parameters supplied to the runtime entry. The result of the
   // type check runtime call is the checked value.
-  __ Drop(6);
-  __ Pop(A0);
+  __ lw(A0, Address(SP, 6 * kWordSize));
+  __ addiu(SP, SP, Immediate(7 * kWordSize));
 
   __ Bind(&is_assignable);
   // Restore instantiator and its type arguments.
@@ -1055,12 +1064,15 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
                                                   bool needs_number_check) {
   __ TraceSimMsg("EqualityRegRegCompare");
   if (needs_number_check) {
-    __ Push(left);
-    __ Push(right);
+    __ addiu(SP, SP, Immediate(-2 * kWordSize));
+    __ sw(left, Address(SP, 1 * kWordSize));
+    __ sw(right, Address(SP, 0 * kWordSize));
     __ BranchLink(&StubCode::IdenticalWithNumberCheckLabel());
+    __ TraceSimMsg("EqualityRegRegCompare return");
     // Stub returns result in CMPRES. If it is 0, then left and right are equal.
-    __ Pop(right);
-    __ Pop(left);
+    __ lw(right, Address(SP, 0 * kWordSize));
+    __ lw(left, Address(SP, 1 * kWordSize));
+    __ addiu(SP, SP, Immediate(2 * kWordSize));
   } else {
     __ subu(CMPRES, left, right);
   }
