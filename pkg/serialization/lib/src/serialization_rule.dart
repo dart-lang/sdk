@@ -392,19 +392,20 @@ class NamedObjectRule extends SerializationRule {
  */
 class MirrorRule extends NamedObjectRule {
   bool appliesTo(object, Writer writer) => object is DeclarationMirror;
-  nameFor(DeclarationMirror object, Writer writer) => object.qualifiedName;
+  nameFor(DeclarationMirror object, Writer writer) =>
+      MirrorSystem.getName(object.qualifiedName);
 
   inflateEssential(state, Reader r) {
     var qualifiedName = r.resolveReference(state.first);
     var lookupFull = r.objectNamed(qualifiedName, (x) => null);
     if (lookupFull != null) return lookupFull;
     var separatorIndex = qualifiedName.lastIndexOf(".");
-    var lib = qualifiedName.substring(0, separatorIndex);
+    var lib = new Symbol(qualifiedName.substring(0, separatorIndex));
     var type = qualifiedName.substring(separatorIndex + 1);
     var lookup = r.objectNamed(type, (x) => null);
     if (lookup != null) return lookup;
     var libMirror = currentMirrorSystem().libraries[lib];
-    return libMirror.classes[type];
+    return libMirror.classes[new Symbol(type)];
   }
 }
 
@@ -467,6 +468,16 @@ abstract class CustomRule extends SerializationRule {
   // separately, so write it out for each object, even though they're all
   // expected to be the same length.
   get hasVariableLengthEntries => true;
+}
+
+/** A hard-coded rule for serializing Symbols. */
+class SymbolRule extends CustomRule {
+  bool appliesTo(instance, _) => instance is Symbol;
+  getState(instance) => [MirrorSystem.getName(instance)];
+  create(state) => new Symbol(state[0]);
+  setState(symbol, state) {}
+  int get dataLength => 1;
+  bool get hasVariableLengthEntries => false;
 }
 
 /** Create a lazy list/map that will inflate its items on demand in [r]. */

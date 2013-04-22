@@ -335,6 +335,7 @@ class Serialization {
     // it will always find the first one.
     addRule(new ListRuleEssential());
     addRule(new MapRule());
+    addRule(new SymbolRule());
   }
 
   /**
@@ -461,7 +462,8 @@ class Serialization {
             'constructorFields', 'regularFields', []],
           fields: [])
       ..addRule(new NamedObjectRule())
-      ..addRule(new MirrorRule());
+      ..addRule(new MirrorRule())
+      ..addRule(new SymbolRule());
     meta.namedObjects = namedObjects;
     return meta;
   }

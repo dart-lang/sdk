@@ -94,7 +94,7 @@ class BasicRule extends SerializationRule {
    */
   setFieldWith(String fieldName, SetWithFunction setWith) {
     fields.addAllByName([fieldName]);
-    _NamedField field = fields.named(fieldName);
+    _NamedField field = fields.named(_asSymbol(fieldName));
     Function setter = (setWith == null) ? field.defaultSetter : setWith;
     field.customSetter = setter;
   }
@@ -310,9 +310,9 @@ abstract class _Field implements Comparable<_Field> {
    * [fieldList] models.
    */
   static bool _isReallyAField(value, _FieldList fieldList) {
-    if (!(value is String)) return false;
-    return hasField(value, fieldList.mirror) ||
-        hasGetter(value, fieldList.mirror);
+    var symbol = _asSymbol(value);
+    return hasField(symbol, fieldList.mirror) ||
+        hasGetter(symbol, fieldList.mirror);
   }
 
   /** Private constructor. */
@@ -352,14 +352,26 @@ abstract class _Field implements Comparable<_Field> {
  */
 class _NamedField extends _Field {
   /** The name of the field (or getter) */
-  final name;
+  String _name;
+  Symbol nameSymbol;
 
-  /** The special way to set this value registered, if this has a value. */
+  /**
+   * If this is set, then it is used as a way to set the value rather than
+   * using the default mechanism.
+   */
   Function customSetter;
 
-  _NamedField._internal(this.name, fieldList) : super._internal(fieldList);
+  _NamedField._internal(fieldName, fieldList) : super._internal(fieldList) {
+    nameSymbol = _asSymbol(fieldName);
+    if (nameSymbol == null) {
+      throw new SerializationException("Invalid field name $fieldName");
+    }
+  }
 
-  operator ==(x) => x is _NamedField && (name == x.name);
+  String get name =>
+      _name == null ? _name = MirrorSystem.getName(nameSymbol) : _name;
+
+  operator ==(x) => x is _NamedField && (nameSymbol == x.nameSymbol);
   int get hashCode => name.hashCode;
 
   /**
@@ -374,16 +386,15 @@ class _NamedField extends _Field {
     setter(object, value);
   }
 
-  valueIn(InstanceMirror mirror) =>
-      deprecatedFutureValue(mirror.getFieldAsync(name)).reflectee;
+  valueIn(InstanceMirror mirror) => mirror.getField(nameSymbol).reflectee;
 
   /** Return the function to use to set our value. */
   Function get setter =>
       (customSetter != null) ? customSetter : defaultSetter;
 
-  /** Return a default setter function. */
+  /** The default setter function. */
   void defaultSetter(InstanceMirror object, value) {
-    object.setFieldAsync(name, reflect(value));
+    object.setField(nameSymbol, value);
   }
 
   String toString() => 'Field($name)';
@@ -421,8 +432,8 @@ class _ConstantField extends _Field {
  */
 class _FieldList extends IterableBase {
   /**
-   * All of our fields, indexed by name. Note that the names are not
-   * necessarily strings.
+   * All of our fields, indexed by name. Note that the names are
+   * typically Symbols, but can also be arbitrary constants.
    */
   Map<dynamic, _Field> allFields = new Map<dynamic, _Field>();
 
@@ -434,7 +445,7 @@ class _FieldList extends IterableBase {
   List _constructorFields = const [];
 
   /** The list of fields to exclude if we are computing the list ourselves. */
-  List<String> _excludeFields = const [];
+  List<Symbol> _excludedFieldNames = const [];
 
   /** The mirror we will use to compute the fields. */
   final ClassMirror mirror;
@@ -448,15 +459,17 @@ class _FieldList extends IterableBase {
   _FieldList(this.mirror);
 
   /** Look up a field by [name]. */
-  _Field named(String name) => allFields[name];
+  _Field named(name) => allFields[name];
 
   /** Set the fields to be used in the constructor. */
   set constructorFields(List fieldNames) {
     if (fieldNames == null || fieldNames.isEmpty) return;
     _constructorFields = [];
     for (var each in fieldNames) {
-      var field = new _Field(each, this)..usedInConstructor = true;
-      allFields[each] = field;
+      var symbol = _asSymbol(each);
+      var name = _Field._isReallyAField(symbol, this) ? symbol : each;
+      var field = new _Field(name, this)..usedInConstructor = true;
+      allFields[name] = field;
       _constructorFields.add(field);
     }
     invalidate();
@@ -478,7 +491,7 @@ class _FieldList extends IterableBase {
     if (allFields.length > _constructorFields.length) {
       throw "You can't specify both excludeFields and regular fields";
     }
-    _excludeFields = fields;
+    _excludedFieldNames = fields.map((x) => new Symbol(x)).toList();
   }
 
   int get length => allFields.length;
@@ -487,14 +500,16 @@ class _FieldList extends IterableBase {
   void addAllNotExplicitlyExcluded(Iterable<String> aCollection) {
     if (aCollection == null) return;
     var names = aCollection;
-    names = names.where((x) => !_excludeFields.contains(x));
+    names = names.where((x) => !_excludedFieldNames.contains(x));
     addAllByName(names);
   }
 
   /** Add all the fields with the given names without any special properties. */
   void addAllByName(Iterable<String> names) {
     for (var each in names) {
-      allFields.putIfAbsent(each, () => new _Field(each, this));
+      var symbol = _asSymbol(each);
+      var field = new _Field(symbol, this);
+      allFields.putIfAbsent(symbol, () => new _Field(symbol, this));
     }
     invalidate();
   }
@@ -562,7 +577,8 @@ class _FieldList extends IterableBase {
     var fields = publicFields(mirror);
     var getters = publicGetters(mirror);
     var gettersWithSetters = getters.where( (each)
-        => mirror.setters["${each.simpleName}="] != null);
+        => mirror.setters[
+            new Symbol("${MirrorSystem.getName(each.simpleName)}=")] != null);
     var gettersThatMatchConstructor = getters.where((each)
         => (named(each.simpleName) != null) &&
             (named(each.simpleName).usedInConstructor)).toList();
@@ -590,6 +606,7 @@ class Constructor {
 
   /** The name of the constructor to use, if not the default constructor.*/
   String name;
+  Symbol nameSymbol;
 
   /**
    * The indices of the fields used as constructor arguments. We will look
@@ -604,6 +621,7 @@ class Constructor {
    */
   Constructor(this.type, this.name, this.fieldNumbers) {
     if (name == null) name = '';
+    nameSymbol = new Symbol(name);
     if (fieldNumbers == null) fieldNumbers = const [];
   }
 
@@ -614,9 +632,16 @@ class Constructor {
   constructFrom(state, Reader r) {
     // TODO(alanknight): Handle named parameters
     Iterable inflated = fieldNumbers.map(
-        (x) => (x is int) ? reflect(r.inflateReference(state[x])) : reflect(x));
-    var result = type.newInstanceAsync(name, inflated.toList());
-    return deprecatedFutureValue(result);
+        (x) => (x is int) ? r.inflateReference(state[x]) : x);
+    var result;
+    try {
+      result = type.newInstance(nameSymbol, inflated.toList());
+    } on MirroredError catch (e) {
+      // Mirrored "compile-time" errors do not get treated as exceptions
+      // in the debugger, so explicitly re-throw. Issue dartbug.com/10054.
+      throw e;
+    }
+    return result;
   }
 }
 
@@ -636,4 +661,22 @@ class _MapWrapper {
   get length => _map.length;
 
   asMap() => _map;
+}
+
+/**
+ * Return a symbol corresponding to [value], which may be a String or a
+ * Symbol. If it is any other type, or if the string is an
+ * invalid symbol, return null;
+ */
+_asSymbol(value) {
+  if (value is Symbol) return value;
+  if (value is String) {
+    try {
+      return new Symbol(value);
+    } on ArgumentError {
+      return null;
+    };
+  } else {
+    return null;
+  }
 }
