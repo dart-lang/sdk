@@ -27,7 +27,6 @@ namespace dart {
 
 DEFINE_FLAG(bool, heap_profile_initialize, false,
             "Writes a heap profile on isolate initialization.");
-DECLARE_FLAG(bool, heap_trace);
 DECLARE_FLAG(bool, print_bootstrap);
 DECLARE_FLAG(bool, print_class_table);
 DECLARE_FLAG(bool, trace_isolates);
@@ -134,9 +133,6 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
   Isolate::SetInterruptCallback(interrupt);
   Isolate::SetUnhandledExceptionCallback(unhandled);
   Isolate::SetShutdownCallback(shutdown);
-  if (FLAG_heap_trace) {
-    HeapTrace::InitOnce(file_open, file_write, file_close);
-  }
   return NULL;
 }
 
@@ -222,9 +218,6 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   StubCode::Init(isolate);
   isolate->megamorphic_cache_table()->InitMissHandler();
 
-  if (FLAG_heap_trace) {
-    isolate->heap()->trace()->Init(isolate);
-  }
   isolate->heap()->EnableGrowthControl();
   isolate->set_init_callback_data(data);
   Api::SetupAcquiredError(isolate);

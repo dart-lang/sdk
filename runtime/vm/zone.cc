@@ -8,7 +8,6 @@
 #include "platform/utils.h"
 #include "vm/flags.h"
 #include "vm/heap.h"
-#include "vm/heap_trace.h"
 #include "vm/isolate.h"
 #include "vm/os.h"
 
@@ -98,10 +97,6 @@ Zone::~Zone() {
   }
 #endif
   DeleteAll();
-  if (HeapTrace::is_enabled()) {
-    Isolate* isolate = Isolate::Current();
-    isolate->heap()->trace()->TraceDeleteZone(this);
-  }
 }
 
 

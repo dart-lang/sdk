@@ -1689,22 +1689,6 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t,
 END_LEAF_RUNTIME_ENTRY
 
 
-DEFINE_LEAF_RUNTIME_ENTRY(void,
-                          HeapTraceStore,
-                          RawObject* object,
-                          uword field_addr,
-                          RawObject* value) {
-  if (!(object->IsHeapObject() && value->IsHeapObject())) {
-    return;
-  }
-  HeapTrace* heap_trace = Isolate::Current()->heap()->trace();
-  heap_trace->TraceStoreIntoObject(RawObject::ToAddr(object),
-                                   field_addr,
-                                   RawObject::ToAddr(value));
-}
-END_LEAF_RUNTIME_ENTRY
-
-
 double DartModulo(double left, double right) {
   double remainder = fmod_ieee(left, right);
   if (remainder == 0.0) {

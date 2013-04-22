@@ -6,7 +6,6 @@
 #define VM_HANDLES_IMPL_H_
 
 #include "vm/heap.h"
-#include "vm/heap_trace.h"
 #include "vm/visitor.h"
 
 namespace dart {
@@ -116,10 +115,6 @@ uword Handles<kHandleSizeInWords,
   Handles* handles = isolate->current_zone()->handles();
   ASSERT(handles != NULL);
   uword address = handles->AllocateHandleInZone();
-  if (HeapTrace::is_enabled()) {
-    uword zone_addr = reinterpret_cast<uword>(isolate->current_zone());
-    isolate->heap()->trace()->TraceAllocateZoneHandle(address, zone_addr);
-  }
   return address;
 }
 
@@ -153,13 +148,6 @@ void Handles<kHandleSizeInWords,
   zone_blocks_ = NULL;
 
   // Delete all the scoped handle blocks.
-  // Do not trace if there is no  current isolate. This can happen during
-  // isolate shutdown.
-  if (HeapTrace::is_enabled() && Isolate::Current() != NULL) {
-    Isolate::Current()->heap()->trace()->TraceDeleteScopedHandles();
-  }
-
-
   scoped_blocks_ = first_scoped_block_.next_block();
   DeleteHandleBlocks(scoped_blocks_);
   first_scoped_block_.ReInit();

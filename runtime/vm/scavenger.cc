@@ -178,9 +178,6 @@ class ScavengerVisitor : public ObjectPointerVisitor {
         // Not a survivor of a previous scavenge. Just copy the object into the
         // to space.
         new_addr = scavenger_->TryAllocate(size);
-        if (HeapTrace::is_enabled()) {
-          heap_->trace()->TraceCopy(raw_addr, new_addr);
-        }
       } else {
         // TODO(iposva): Experiment with less aggressive promotion. For example
         // a coin toss determines if an object is promoted or whether it should
@@ -194,9 +191,6 @@ class ScavengerVisitor : public ObjectPointerVisitor {
           // be traversed later.
           scavenger_->PushToPromotedStack(new_addr);
           bytes_promoted_ += size;
-          if (HeapTrace::is_enabled()) {
-            heap_->trace()->TracePromotion(raw_addr, new_addr);
-          }
         } else if (!scavenger_->had_promotion_failure_) {
           // Signal a promotion failure and set the growth policy for
           // this, and all subsequent promotion allocations, to force
@@ -207,24 +201,15 @@ class ScavengerVisitor : public ObjectPointerVisitor {
           if (new_addr != 0) {
             scavenger_->PushToPromotedStack(new_addr);
             bytes_promoted_ += size;
-            if (HeapTrace::is_enabled()) {
-              heap_->trace()->TracePromotion(raw_addr, new_addr);
-            }
           } else {
             // Promotion did not succeed. Copy into the to space
             // instead.
             new_addr = scavenger_->TryAllocate(size);
-            if (HeapTrace::is_enabled()) {
-              heap_->trace()->TraceCopy(raw_addr, new_addr);
-            }
           }
         } else {
           ASSERT(growth_policy_ == PageSpace::kForceGrowth);
           // Promotion did not succeed. Copy into the to space instead.
           new_addr = scavenger_->TryAllocate(size);
-          if (HeapTrace::is_enabled()) {
-            heap_->trace()->TraceCopy(raw_addr, new_addr);
-          }
         }
       }
       // During a scavenge we always succeed to at least copy all of the
@@ -641,9 +626,6 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
     OS::PrintErr(" done.\n");
   }
 
-  uword prev_first_obj_start = FirstObjectStart();
-  uword prev_top_addr = *(TopAddress());
-
   // Setup the visitor and run a scavenge.
   ScavengerVisitor visitor(isolate, this);
   Prologue(isolate, invoke_api_callbacks);
@@ -665,10 +647,6 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
     OS::PrintErr("Verifying after Scavenge...");
     heap_->Verify();
     OS::PrintErr(" done.\n");
-  }
-
-  if (HeapTrace::is_enabled()) {
-    heap_->trace()->TraceDeathRange(prev_first_obj_start, prev_top_addr);
   }
 
   // Done scavenging. Reset the marker.
