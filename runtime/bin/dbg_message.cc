@@ -1160,6 +1160,21 @@ void DbgMsgQueueList::RemoveIsolateMsgQueue(Dart_IsolateId isolate_id) {
 }
 
 
+void DbgMsgQueueList::ListIsolateIds(dart::TextBuffer* msg) {
+  MutexLocker ml(&msg_queue_list_lock_);
+  if (list_ == NULL) {
+    return;  // No items in the list.
+  }
+  DbgMsgQueue* queue = list_;
+  msg->Printf("%"Pd64"", queue->isolate_id());
+  queue = queue->next();
+  while (queue != NULL) {
+    msg->Printf(",%"Pd64"", queue->isolate_id());
+    queue = queue->next();
+  }
+}
+
+
 void DbgMsgQueueList::BptResolvedHandler(Dart_IsolateId isolate_id,
                                          intptr_t bp_id,
                                          const Dart_CodeLocation& location) {

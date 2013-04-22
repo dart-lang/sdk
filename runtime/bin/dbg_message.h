@@ -245,6 +245,9 @@ class DbgMsgQueueList {
   static void IsolateEventHandler(Dart_IsolateId isolate_id,
                                   Dart_IsolateEvent kind);
 
+  // Print list of isolate ids of all message queues into text buffer.
+  static void ListIsolateIds(dart::TextBuffer* msg);
+
  private:
   static DbgMsgQueue* GetIsolateMsgQueueLocked(Dart_IsolateId isolate_id);
 

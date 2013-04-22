@@ -180,7 +180,7 @@ struct JSONDebuggerCommand {
 void DebuggerConnectionHandler::HandleMessages() {
   static JSONDebuggerCommand generic_debugger_commands[] = {
     { "interrupt", HandleInterruptCmd },
-    { "isolates", HandleIsolatesListCmd },
+    { "getIsolateIds", HandleIsolatesListCmd },
     { NULL, NULL }
   };
 
@@ -404,7 +404,11 @@ void DebuggerConnectionHandler::HandleIsolatesListCmd(DbgMessage* in_msg) {
   MessageParser msg_parser(in_msg->buffer(), in_msg->buffer_len());
   int msg_id = msg_parser.MessageId();
   ASSERT(msg_id >= 0);
-  in_msg->SendErrorReply(msg_id, "isolate list command unimplemented");
+  dart::TextBuffer msg(64);
+  msg.Printf("{ \"id\": %d, \"result\": { \"isolateIds\": [", msg_id);
+  DbgMsgQueueList::ListIsolateIds(&msg);
+  msg.Printf("]}}");
+  in_msg->SendReply(&msg);
 }
 
 
