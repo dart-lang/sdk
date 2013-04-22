@@ -64,6 +64,9 @@ global_error_handler_stream_test: Pass, Fail # http://dartbug.com/9012 and http:
 global_error_handler2_test: Pass, Fail # http://dartbug.com/9012 and http://dartbug.com/9024
 global_error_handler_stream2_test: Pass, Fail # http://dartbug.com/9012 and http://dartbug.com/9024
 
+[ $compiler == dart2js && ($runtime == ff || $runtime == chrome || $runtime == ie9 || $runtime == ie10 || $runtime == safari) ]
+typed_data_message_test: Fail
+
 [ $runtime == safari ]
 cross_isolate_message_test: Skip      # Depends on 32/64 bit Safari. See Issue 1120
 mixed_test: Pass,Fail               # Depends on 32/64 bit Safari. See Issue 1120
