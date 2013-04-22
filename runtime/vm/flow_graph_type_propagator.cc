@@ -734,11 +734,9 @@ bool AssertAssignableInstr::RecomputeType() {
     return false;
   }
 
-  if (value_type->IsMoreSpecificThan(dst_type())) {
-    return UpdateType(*value_type);
-  }
-
-  return false;
+  return UpdateType(value_type->IsMoreSpecificThan(dst_type())
+      ? *value_type
+      : CompileType::FromAbstractType(dst_type()));
 }
 
 
