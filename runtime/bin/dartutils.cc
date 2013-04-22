@@ -391,6 +391,9 @@ Dart_Handle DartUtils::LoadScript(const char* script_uri,
     return Dart_LoadScriptFromSnapshot(text_buffer, len);
   } else {
     Dart_Handle source = Dart_NewStringFromUTF8(text_buffer, len);
+    if (Dart_IsError(source)) {
+      return source;
+    }
     return Dart_LoadScript(resolved_script_uri, source, 0, 0);
   }
 }
