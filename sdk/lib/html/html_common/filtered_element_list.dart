@@ -49,8 +49,6 @@ class FilteredElementList extends ListBase<Element> {
     removeRange(newLength, len);
   }
 
-  String join([String separator = ""]) => _filtered.join(separator);
-
   void add(Element value) {
     _childNodes.add(value);
   }
@@ -62,26 +60,26 @@ class FilteredElementList extends ListBase<Element> {
   }
 
   bool contains(Element element) {
-    return element is Element && _childNodes.contains(element);
+    return _node.contains(element);
   }
 
   Iterable<Element> get reversed => _filtered.reversed;
 
   void sort([int compare(Element a, Element b)]) {
-    throw new UnsupportedError('TODO(jacobr): should we impl?');
+    throw new UnsupportedError('Cannot sort filtered list');
   }
 
   void setRange(int start, int end, Iterable<Element> iterable,
                 [int skipCount = 0]) {
-    throw new UnimplementedError();
+    throw new UnsupportedError('Cannot setRange on filtered list');
   }
 
   void fillRange(int start, int end, [Element fillValue]) {
-    throw new UnimplementedError();
+    throw new UnsupportedError('Cannot fillRange on filtered list');
   }
 
   void replaceRange(int start, int end, Iterable<Element> iterable) {
-    throw new UnimplementedError();
+    throw new UnsupportedError('Cannot replaceRange on filtered list');
   }
 
   void removeRange(int start, int end) {
@@ -101,10 +99,6 @@ class FilteredElementList extends ListBase<Element> {
     }
     return result;
   }
-
-  Iterable map(f(Element element)) => _filtered.map(f);
-  Iterable<Element> where(bool f(Element element)) => _filtered.where(f);
-  Iterable expand(Iterable f(Element element)) => _filtered.expand(f);
 
   void insert(int index, Element value) {
     _childNodes.insert(index, value);
@@ -131,80 +125,7 @@ class FilteredElementList extends ListBase<Element> {
     }
   }
 
-
-  Element reduce(Element combine(Element value, Element element)) {
-    return _filtered.reduce(combine);
-  }
-
-  dynamic fold(dynamic initialValue,
-      dynamic combine(dynamic previousValue, Element element)) {
-    return _filtered.fold(initialValue, combine);
-  }
-
-  bool every(bool f(Element element)) => _filtered.every(f);
-  bool any(bool f(Element element)) => _filtered.any(f);
-  List<Element> toList({ bool growable: true }) =>
-      new List<Element>.from(this, growable: growable);
-  Set<Element> toSet() => new Set<Element>.from(this);
-  Element firstWhere(bool test(Element value), {Element orElse()}) {
-    return _filtered.firstWhere(test, orElse: orElse);
-  }
-
-  Element lastWhere(bool test(Element value), {Element orElse()}) {
-    return _filtered.lastWhere(test, orElse: orElse);
-  }
-
-  Element singleWhere(bool test(Element value)) {
-    return _filtered.singleWhere(test);
-  }
-
-  Element elementAt(int index) {
-    return this[index];
-  }
-
-  bool get isEmpty => _filtered.isEmpty;
   int get length => _filtered.length;
   Element operator [](int index) => _filtered[index];
   Iterator<Element> get iterator => _filtered.iterator;
-  List<Element> sublist(int start, [int end]) =>
-    _filtered.sublist(start, end);
-  Iterable<Element> getRange(int start, int end) =>
-    _filtered.getRange(start, end);
-  int indexOf(Element element, [int start = 0]) =>
-    _filtered.indexOf(element, start);
-
-  int lastIndexOf(Element element, [int start = null]) {
-    if (start == null) start = length - 1;
-    return _filtered.lastIndexOf(element, start);
-  }
-
-  List<Element> take(int n) {
-    return IterableMixinWorkaround.takeList(this, n);
-  }
-
-  Iterable<Element> takeWhile(bool test(Element value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
-  }
-
-  List<Element> skip(int n) {
-    return IterableMixinWorkaround.skipList(this, n);
-  }
-
-  Iterable<Element> skipWhile(bool test(Element value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
-  }
-
-  Element get first => _filtered.first;
-
-  Element get last => _filtered.last;
-
-  Element get single => _filtered.single;
-
-  Element min([int compare(Element a, Element b)]) => _filtered.min(compare);
-
-  Element max([int compare(Element a, Element b)]) => _filtered.max(compare);
-
-  Map<int, Element> asMap() {
-    return IterableMixinWorkaround.asMapList(this);
-  }
 }
