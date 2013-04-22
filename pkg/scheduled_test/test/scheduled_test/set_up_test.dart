@@ -79,46 +79,6 @@ void main() {
     test('test 2', () => expect(onExceptionRun, isTrue));
   }, passing: ['test 2']);
 
-  expectTestsPass("setUp doesn't apply to child groups", () {
-    var setUpRun = false;
-    setUp(() {
-      setUpRun = true;
-      currentSchedule.onComplete.schedule(() {
-        setUpRun = false;
-      });
-    });
-
-    test('outer', () {
-      expect(setUpRun, isTrue);
-    });
-
-    group('group', () {
-      test('inner', () {
-        expect(setUpRun, isFalse);
-      });
-    });
-  });
-
-  expectTestsPass("setUp doesn't apply to parent groups", () {
-    var setUpRun = false;
-    group('group', () {
-      setUp(() {
-        setUpRun = true;
-        currentSchedule.onComplete.schedule(() {
-          setUpRun = false;
-        });
-      });
-
-      test('inner', () {
-        expect(setUpRun, isTrue);
-      });
-    });
-
-    test('outer', () {
-      expect(setUpRun, isFalse);
-    });
-  });
-
   expectTestsPass("setUp doesn't apply to sibling groups", () {
     var setUpRun = false;
     group('group 1', () {
