@@ -12878,7 +12878,8 @@ class HttpRequest extends EventTarget {
    * Send the request with any given `data`.
    *
    * See also:
-   * [send() docs](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#send())
+   *
+   *   * [send](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#send%28%29)
    * from MDN.
    */
   @DomName('XMLHttpRequest.send')
