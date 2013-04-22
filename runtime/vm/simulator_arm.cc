@@ -196,7 +196,7 @@ bool SimulatorDebugger::GetValue(char* desc, uint32_t* value) {
     }
     return true;
   }
-  if ((desc[0] == '*')) {
+  if (desc[0] == '*') {
     uint32_t addr;
     if (GetValue(desc + 1, &addr)) {
       if (Simulator::IsIllegalAddress(addr)) {
@@ -220,7 +220,7 @@ bool SimulatorDebugger::GetFValue(char* desc, float* value) {
     *value = sim_->get_sregister(sreg);
     return true;
   }
-  if ((desc[0] == '*')) {
+  if (desc[0] == '*') {
     uint32_t addr;
     if (GetValue(desc + 1, &addr)) {
       if (Simulator::IsIllegalAddress(addr)) {
@@ -240,7 +240,7 @@ bool SimulatorDebugger::GetDValue(char* desc, double* value) {
     *value = sim_->get_dregister(dreg);
     return true;
   }
-  if ((desc[0] == '*')) {
+  if (desc[0] == '*') {
     uint32_t addr;
     if (GetValue(desc + 1, &addr)) {
       if (Simulator::IsIllegalAddress(addr)) {

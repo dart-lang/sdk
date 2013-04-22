@@ -223,7 +223,7 @@ intptr_t ServerSocket::CreateBindListen(const char* host,
   }
 
   if (TEMP_FAILURE_RETRY(listen(fd, backlog > 0 ? backlog : SOMAXCONN)) != 0) {
-    TEMP_FAILURE_RETRY(close(fd));
+    VOID_TEMP_FAILURE_RETRY(close(fd));
     return -1;
   }
 

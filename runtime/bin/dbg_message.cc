@@ -805,7 +805,7 @@ bool DbgMessage::HandleGetLineNumbersCmd(DbgMessage* in_msg) {
   msg.Printf("{ \"id\": %d, ", msg_id);
   msg.Printf("\"result\": { \"lines\": [");
   Dart_Handle elem;
-  bool num_elems = 0;
+  intptr_t num_elems = 0;
   for (intptr_t i = 0; i < info_len; i++) {
     elem = Dart_ListGetAt(info, i);
     if (Dart_IsNull(elem)) {
