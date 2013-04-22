@@ -80,10 +80,9 @@ void parseCommandLine(List<OptionHandler> handlers, List<String> argv) {
 
 void compile(List<String> argv) {
   bool isWindows = (Platform.operatingSystem == 'windows');
-  Uri cwd = getCurrentDirectory();
-  Uri libraryRoot = cwd;
-  Uri out = cwd.resolve('out.js');
-  Uri sourceMapOut = cwd.resolve('out.js.map');
+  Uri libraryRoot = currentDirectory;
+  Uri out = currentDirectory.resolve('out.js');
+  Uri sourceMapOut = currentDirectory.resolve('out.js.map');
   Uri packageRoot = null;
   List<String> options = new List<String>();
   bool explicitOut = false;
@@ -102,16 +101,16 @@ void compile(List<String> argv) {
   }
 
   setLibraryRoot(String argument) {
-    libraryRoot = cwd.resolve(extractPath(argument));
+    libraryRoot = currentDirectory.resolve(extractPath(argument));
   }
 
   setPackageRoot(String argument) {
-    packageRoot = cwd.resolve(extractPath(argument));
+    packageRoot = currentDirectory.resolve(extractPath(argument));
   }
 
   setOutput(String argument) {
     explicitOut = true;
-    out = cwd.resolve(nativeToUriPath(extractParameter(argument)));
+    out = currentDirectory.resolve(nativeToUriPath(extractParameter(argument)));
     sourceMapOut = Uri.parse('$out.map');
   }
 
@@ -119,8 +118,8 @@ void compile(List<String> argv) {
     if (argument == '--output-type=dart') {
       outputLanguage = OUTPUT_LANGUAGE_DART;
       if (!explicitOut) {
-        out = cwd.resolve('out.dart');
-        sourceMapOut = cwd.resolve('out.dart.map');
+        out = currentDirectory.resolve('out.dart');
+        sourceMapOut = currentDirectory.resolve('out.dart.map');
       }
     }
     passThrough(argument);
@@ -254,7 +253,7 @@ void compile(List<String> argv) {
     diagnosticHandler.diagnosticHandler(uri, begin, end, message, kind);
   }
 
-  Uri uri = cwd.resolve(arguments[0]);
+  Uri uri = currentDirectory.resolve(arguments[0]);
   if (packageRoot == null) {
     packageRoot = uri.resolve('./packages/');
   }
@@ -273,10 +272,10 @@ void compile(List<String> argv) {
     diagnosticHandler.info(
          'compiled ${inputProvider.dartCharactersRead} characters Dart '
          '-> $charactersWritten characters $outputLanguage '
-         'in ${relativize(cwd, out, isWindows)}');
+         'in ${relativize(currentDirectory, out, isWindows)}');
     if (!explicitOut) {
       String input = uriPathToNative(arguments[0]);
-      String output = relativize(cwd, out, isWindows);
+      String output = relativize(currentDirectory, out, isWindows);
       print('Dart file $input compiled to $outputLanguage: $output');
     }
   }

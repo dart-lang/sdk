@@ -17,8 +17,16 @@ abstract class MirrorSystem {
   /**
    * Returns an unmodifiable map of all libraries in this mirror system.
    */
-  // TODO(johnniwinther): Change to Map<Uri, LibraryMirror>.
-  Map<String, LibraryMirror> get libraries;
+  Map<Uri, LibraryMirror> get libraries;
+
+  /**
+   * Returns an iterable of all libraries in the mirror system whose library
+   * name is [libraryName].
+   */
+  Iterable<LibraryMirror> findLibrary(String libraryName) {
+    return libraries.values.where(
+        (library) => library.simpleName == libraryName);
+  }
 
   /**
    * A mirror on the [:dynamic:] type.

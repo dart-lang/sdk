@@ -10,6 +10,7 @@ library html_diff;
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:uri';
 
 import 'lib/metadata.dart';
 
@@ -17,22 +18,18 @@ import 'lib/metadata.dart';
 import '../../sdk/lib/_internal/compiler/implementation/mirrors/dart2js_mirror.dart';
 import '../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors.dart';
 import '../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.dart';
+import '../../sdk/lib/_internal/compiler/implementation/source_file_provider.dart';
 import '../../sdk/lib/_internal/dartdoc/lib/dartdoc.dart';
 import '../../sdk/lib/html/html_common/metadata.dart';
 
 // TODO(amouravski): There is currently magic that looks at dart:* libraries
 // rather than the declared library names. This changed due to recent syntax
 // changes. We should only need to look at the library 'html'.
-const List<String> HTML_LIBRARY_NAMES = const [
-    'dart:html',
-    'dart:indexed_db',
-    'dart:svg',
-    'dart:web_audio'];
-const List<String> HTML_DECLARED_NAMES = const [
-    'dart.dom.html',
-    'dart.dom.indexed_db',
-    'dart.dom.svg',
-    'dart.dom.web_audio'];
+const List<Uri> HTML_LIBRARY_URIS = const [
+    const Uri.fromComponents(scheme: 'dart', path: 'html'),
+    const Uri.fromComponents(scheme: 'dart', path: 'indexed_db'),
+    const Uri.fromComponents(scheme: 'dart', path: 'svg'),
+    const Uri.fromComponents(scheme: 'dart', path: 'web_audio')];
 
 /**
  * A class for computing a many-to-many mapping between the types and
@@ -92,17 +89,19 @@ class HtmlDiff {
    * should be initialized (via [parseOptions] and [initializeWorld]) and
    * [HtmlDiff.initialize] should be called.
    */
-  Future run(Path libDir) {
+  Future run(Uri libraryRoot) {
     var result = new Completer();
-    var paths = <Path>[];
-    for (var libraryName in HTML_LIBRARY_NAMES) {
-      paths.add(new Path(libraryName));
-    }
-    analyze(paths, libDir).then((MirrorSystem mirrors) {
-      for (var libraryName in HTML_DECLARED_NAMES) {
-        var library = mirrors.libraries[libraryName];
+    var provider = new SourceFileProvider();
+    var handler = new FormattingDiagnosticHandler(provider);
+    Future<MirrorSystem> analysis = analyzeUri(
+        HTML_LIBRARY_URIS, libraryRoot, null,
+        provider.readStringFromUri,
+        handler.diagnosticHandler);
+    analysis.then((MirrorSystem mirrors) {
+      for (var libraryUri in HTML_LIBRARY_URIS) {
+        var library = mirrors.libraries[libraryUri];
         if (library == null) {
-          warn('Could not find $libraryName');
+          warn('Could not find $libraryUri');
           result.complete(false);
         }
         for (ClassMirror type in library.classes.values) {

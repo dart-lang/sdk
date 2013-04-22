@@ -6,6 +6,7 @@ import 'package:expect/expect.dart';
 import 'dart:async';
 import 'dart:io';
 import 'dart:uri';
+import 'package:expect/expect.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/filenames.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/mirrors/dart2js_mirror.dart';
@@ -13,15 +14,15 @@ import '../../../sdk/lib/_internal/compiler/implementation/source_file_provider.
 import 'mock_compiler.dart';
 
 const String SOURCE = 'source';
+const Uri SOURCE_URI = const Uri.fromComponents(scheme: SOURCE, path: SOURCE);
 
 MirrorSystem createMirrorSystem(String source) {
-  Uri sourceUri = new Uri.fromComponents(scheme: SOURCE, path: SOURCE);
   MockCompiler compiler = new MockCompiler(
       analyzeOnly: true,
       analyzeAll: true,
       preserveComments: true);
-  compiler.registerSource(sourceUri, source);
-  compiler.librariesToAnalyzeWhenRun = <Uri>[sourceUri];
+  compiler.registerSource(SOURCE_URI, source);
+  compiler.librariesToAnalyzeWhenRun = <Uri>[SOURCE_URI];
   compiler.runCompiler(null);
   return new Dart2JsMirrorSystem(compiler);
 }
@@ -32,7 +33,7 @@ void validateDeclarationComment(String code,
                                 bool isDocComment,
                                 List<String> declarationNames) {
   MirrorSystem mirrors = createMirrorSystem(code);
-  LibraryMirror library = mirrors.libraries[SOURCE];
+  LibraryMirror library = mirrors.libraries[SOURCE_URI];
   Expect.isNotNull(library);
   for (String declarationName in declarationNames) {
     DeclarationMirror declaration = library.members[declarationName];

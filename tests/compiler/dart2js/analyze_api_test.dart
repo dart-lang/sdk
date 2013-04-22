@@ -107,8 +107,7 @@ class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
 }
 
 void main() {
-  Uri currentWorkingDirectory = getCurrentDirectory();
-  var libraryRoot = currentWorkingDirectory.resolve('sdk/');
+  var libraryRoot = currentDirectory.resolve('sdk/');
   var uriList = new List<Uri>();
   LIBRARIES.forEach((String name, LibraryInfo info) {
     if (info.documented) {

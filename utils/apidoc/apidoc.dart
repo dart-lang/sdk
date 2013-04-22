@@ -24,6 +24,7 @@ import 'html_diff.dart';
 // TODO(rnystrom): Use "package:" URL (#4968).
 import '../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors.dart';
 import '../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.dart';
+import '../../sdk/lib/_internal/compiler/implementation/filenames.dart';
 import '../../sdk/lib/_internal/dartdoc/lib/dartdoc.dart';
 import '../../sdk/lib/_internal/libraries.dart';
 import 'package:pathos/path.dart' as pathos;
@@ -101,7 +102,7 @@ void main() {
   // TODO(amouravski): move HtmlDiff inside of the future chain below to re-use
   // the MirrorSystem already analyzed.
   _diff = new HtmlDiff(printWarnings:false);
-  Future htmlDiff = _diff.run(libPath);
+  Future htmlDiff = _diff.run(currentDirectory.resolve(libPath.toString()));
 
   // TODO(johnniwinther): Libraries for the compilation seem to be more like
   // URIs. Perhaps Path should have a toURI() method.
@@ -353,7 +354,7 @@ class Apidoc extends Dartdoc {
     }
 
     var typeString = '';
-    if (HTML_LIBRARY_NAMES.contains(displayName(type.library))) {
+    if (HTML_LIBRARY_URIS.contains(type.library.uri)) {
       // If it's an HTML type, try to map it to a base DOM type so we can find
       // the MDN docs.
       final domTypes = _diff.htmlTypesToDom[type.qualifiedName];
@@ -390,7 +391,7 @@ class Apidoc extends Dartdoc {
   MdnComment includeMdnMemberComment(MemberMirror member) {
     var library = findLibrary(member);
     var memberString = '';
-    if (HTML_LIBRARY_NAMES.contains(displayName(library))) {
+    if (HTML_LIBRARY_URIS.contains(library.uri)) {
       // If it's an HTML type, try to map it to a DOM type name so we can find
       // the MDN docs.
       final domMembers = _diff.htmlToDom[member.qualifiedName];
@@ -443,7 +444,7 @@ class Apidoc extends Dartdoc {
   String _linkMember(MemberMirror member) {
     final typeName = member.owner.simpleName;
     var memberName = '$typeName.${member.simpleName}';
-    if (member is MethodMirror && (member.isConstructor || member.isFactory)) {
+    if (member is MethodMirror && member.isConstructor) {
       final separator = member.constructorName == '' ? '' : '.';
       memberName = 'new $typeName$separator${member.constructorName}';
     }

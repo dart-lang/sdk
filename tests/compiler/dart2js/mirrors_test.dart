@@ -8,6 +8,10 @@ import '../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.
 import '../../../sdk/lib/_internal/compiler/implementation/mirrors/dart2js_mirror.dart';
 
 import 'dart:io';
+import 'dart:uri';
+
+const Uri DART_MIRRORS_URI =
+  const Uri.fromComponents(scheme: 'dart', path: 'mirrors');
 
 int count(Iterable iterable) {
   var count = 0;
@@ -26,7 +30,7 @@ bool containsType(TypeMirror expected, Iterable<TypeMirror> iterable) {
   return false;
 }
 
-DeclarationMirror findMirror(List<DeclarationMirror> list, String name) {
+DeclarationMirror findMirror(Iterable<DeclarationMirror> list, String name) {
   for (DeclarationMirror mirror in list) {
     if (mirror.simpleName == name) {
       return mirror;
@@ -54,12 +58,13 @@ void test(MirrorSystem mirrors) {
   Expect.isNotNull(libraries, "No libraries map returned");
   Expect.isFalse(libraries.isEmpty, "Empty libraries map returned");
 
-  var helperLibrary = libraries["mirrors_helper"];
+  var helperLibrary = findMirror(libraries.values, "mirrors_helper");
   Expect.isNotNull(helperLibrary, "Library 'mirrors_helper' not found");
   Expect.stringEquals("mirrors_helper", helperLibrary.simpleName,
     "Unexpected library simple name");
   Expect.stringEquals("mirrors_helper", helperLibrary.qualifiedName,
     "Unexpected library qualified name");
+  Expect.equals(helperLibrary, mirrors.findLibrary('mirrors_helper').single);
 
   var helperLibraryLocation = helperLibrary.location;
   Expect.isNotNull(helperLibraryLocation);
@@ -181,7 +186,7 @@ void testFoo(MirrorSystem system, LibraryMirror helperLibrary,
   var metadataListIndex = 0;
   var metadata;
 
-  var dartMirrorsLibrary = system.libraries['dart.mirrors'];
+  var dartMirrorsLibrary = system.libraries[DART_MIRRORS_URI];
   Expect.isNotNull(dartMirrorsLibrary);
   var commentType = dartMirrorsLibrary.classes['Comment'];
   Expect.isNotNull(commentType);

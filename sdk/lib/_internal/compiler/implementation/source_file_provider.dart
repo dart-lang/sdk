@@ -27,7 +27,7 @@ String readAll(String filename) {
 
 class SourceFileProvider {
   bool isWindows = (Platform.operatingSystem == 'windows');
-  Uri cwd = getCurrentDirectory();
+  Uri cwd = currentDirectory;
   Map<String, SourceFile> sourceFiles = <String, SourceFile>{};
   int dartCharactersRead = 0;
 
@@ -43,8 +43,8 @@ class SourceFileProvider {
             '(${ex.osError}).';
     }
     dartCharactersRead += source.length;
-    sourceFiles[resourceUri.toString()] =
-      new SourceFile(relativize(cwd, resourceUri, isWindows), source);
+    sourceFiles[resourceUri.toString()] = new SourceFile(
+        relativize(cwd, resourceUri, isWindows), source);
     return new Future.value(source);
   }
 }

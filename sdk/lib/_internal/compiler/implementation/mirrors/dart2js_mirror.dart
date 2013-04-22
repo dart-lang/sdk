@@ -209,17 +209,16 @@ Future<String> compile(Path script,
                        {Path packageRoot,
                         List<String> options: const <String>[],
                         api.DiagnosticHandler diagnosticHandler}) {
-  Uri cwd = getCurrentDirectory();
   SourceFileProvider provider = new SourceFileProvider();
   if (diagnosticHandler == null) {
     diagnosticHandler =
         new FormattingDiagnosticHandler(provider).diagnosticHandler;
   }
-  Uri scriptUri = cwd.resolve(script.toString());
-  Uri libraryUri = cwd.resolve(appendSlash('$libraryRoot'));
+  Uri scriptUri = currentDirectory.resolve(script.toString());
+  Uri libraryUri = currentDirectory.resolve(appendSlash('$libraryRoot'));
   Uri packageUri = null;
   if (packageRoot != null) {
-    packageUri = cwd.resolve(appendSlash('$packageRoot'));
+    packageUri = currentDirectory.resolve(appendSlash('$packageRoot'));
   }
   return api.compile(scriptUri, libraryUri, packageUri,
       provider.readStringFromUri, diagnosticHandler, options);
@@ -282,20 +281,19 @@ Future<MirrorSystem> analyze(List<Path> libraries,
                              {Path packageRoot,
                               List<String> options: const <String>[],
                               api.DiagnosticHandler diagnosticHandler}) {
-  Uri cwd = getCurrentDirectory();
   SourceFileProvider provider = new SourceFileProvider();
   if (diagnosticHandler == null) {
     diagnosticHandler =
         new FormattingDiagnosticHandler(provider).diagnosticHandler;
   }
-  Uri libraryUri = cwd.resolve(appendSlash('$libraryRoot'));
+  Uri libraryUri = currentDirectory.resolve(appendSlash('$libraryRoot'));
   Uri packageUri = null;
   if (packageRoot != null) {
-    packageUri = cwd.resolve(appendSlash('$packageRoot'));
+    packageUri = currentDirectory.resolve(appendSlash('$packageRoot'));
   }
   List<Uri> librariesUri = <Uri>[];
   for (Path library in libraries) {
-    librariesUri.add(cwd.resolve(library.toString()));
+    librariesUri.add(currentDirectory.resolve(library.toString()));
   }
   return analyzeUri(librariesUri, libraryUri, packageUri,
                     provider.readStringFromUri, diagnosticHandler, options);
@@ -465,9 +463,9 @@ abstract class Dart2JsMemberMirror extends Dart2JsElementMirror
 // Mirror system implementation.
 //------------------------------------------------------------------------------
 
-class Dart2JsMirrorSystem implements MirrorSystem {
+class Dart2JsMirrorSystem extends MirrorSystem {
   final Compiler compiler;
-  Map<String, Dart2JsLibraryMirror> _libraries;
+  Map<Uri, Dart2JsLibraryMirror> _libraries;
   Map<LibraryElement, Dart2JsLibraryMirror> _libraryMap;
 
   Dart2JsMirrorSystem(this.compiler)
@@ -475,18 +473,18 @@ class Dart2JsMirrorSystem implements MirrorSystem {
 
   void _ensureLibraries() {
     if (_libraries == null) {
-      _libraries = <String, Dart2JsLibraryMirror>{};
+      _libraries = new Map<Uri, Dart2JsLibraryMirror>();
       compiler.libraries.forEach((_, LibraryElement v) {
         var mirror = new Dart2JsLibraryMirror(mirrors, v);
-        _libraries[mirror.simpleName] = mirror;
+        _libraries[mirror.uri] = mirror;
         _libraryMap[v] = mirror;
       });
     }
   }
 
-  Map<String, LibraryMirror> get libraries {
+  Map<Uri, LibraryMirror> get libraries {
     _ensureLibraries();
-    return new ImmutableMapWrapper<String, LibraryMirror>(_libraries);
+    return new ImmutableMapWrapper<Uri, LibraryMirror>(_libraries);
   }
 
   Dart2JsLibraryMirror _getLibrary(LibraryElement element) =>

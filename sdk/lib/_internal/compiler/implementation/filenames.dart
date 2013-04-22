@@ -21,9 +21,8 @@ String uriPathToNative(String path) {
   return new Path(path).toNativePath();
 }
 
-Uri getCurrentDirectory() {
-  final String dir = nativeToUriPath(new File('.').fullPathSync());
-  return new Uri.fromComponents(scheme: 'file', path: appendSlash(dir));
-}
+final Uri currentDirectory = new Uri.fromComponents(
+    scheme: 'file',
+    path: appendSlash(nativeToUriPath(new File('.').fullPathSync())));
 
 String appendSlash(String path) => path.endsWith('/') ? path : '$path/';
