@@ -22,8 +22,8 @@ class Server {
     var x = new Completer();
     Future f = secure
         ? HttpServer.bindSecure(
-            "localhost", 0, certificateName: 'localhost_cert')
-        : HttpServer.bind("localhost");
+            "127.0.0.1", 0, certificateName: 'localhost_cert')
+        : HttpServer.bind();
     return f.then((s) {
       server = s;
       x.complete(this);
@@ -97,7 +97,7 @@ class ProxyServer {
 
   Future<ProxyServer> start() {
     var x = new Completer();
-    HttpServer.bind("localhost").then((s) {
+    HttpServer.bind().then((s) {
       server = s;
       x.complete(this);
       server.listen((HttpRequest request) {
@@ -196,7 +196,7 @@ void testDirectProxy() {
     };
 
     for (int i = 0; i < proxy.length; i++) {
-      client.getUrl(Uri.parse("http://localhost:${server.port}/$i"))
+      client.getUrl(Uri.parse("http://127.0.0.1:${server.port}/$i"))
         .then((HttpClientRequest clientRequest) {
           String content = "$i$i$i";
           clientRequest.contentLength = content.length;
@@ -254,7 +254,7 @@ void testProxy() {
       test(bool secure) {
         String url = secure
             ? "https://localhost:${secureServer.port}/$i"
-            : "http://localhost:${server.port}/$i";
+            : "http://127.0.0.1:${server.port}/$i";
 
         client.postUrl(Uri.parse(url))
           .then((HttpClientRequest clientRequest) {
@@ -290,7 +290,7 @@ void testProxyChain() {
   // Setup two proxy servers having the first using the second as its proxy.
   setupProxyServer().then((proxyServer1) {
   setupProxyServer().then((proxyServer2) {
-  proxyServer1.client.findProxy = (_) => "PROXY localhost:${proxyServer2.port}";
+  proxyServer1.client.findProxy = (_) => "PROXY 127.0.0.1:${proxyServer2.port}";
 
   setupServer(2, directRequestPaths: ["/4"]).then((server) {
     HttpClient client = new HttpClient();
@@ -322,7 +322,7 @@ void testProxyChain() {
     };
 
     for (int i = 0; i < proxy.length; i++) {
-      client.getUrl(Uri.parse("http://localhost:${server.port}/$i"))
+      client.getUrl(Uri.parse("http://127.0.0.1:${server.port}/$i"))
         .then((HttpClientRequest clientRequest) {
           String content = "$i$i$i";
           clientRequest.contentLength = content.length;
@@ -366,7 +366,7 @@ void testProxyFromEnviroment() {
       test(bool secure) {
         String url = secure
             ? "https://localhost:${secureServer.port}/$i"
-            : "http://localhost:${server.port}/$i";
+            : "http://127.0.0.1:${server.port}/$i";
 
         client.postUrl(Uri.parse(url))
           .then((HttpClientRequest clientRequest) {
@@ -420,7 +420,7 @@ void testProxyAuthenticate() {
       test(bool secure) {
         String url = secure
             ? "https://localhost:${secureServer.port}/$i"
-            : "http://localhost:${server.port}/$i";
+            : "http://127.0.0.1:${server.port}/$i";
 
         client.postUrl(Uri.parse(url))
           .then((HttpClientRequest clientRequest) {
@@ -456,7 +456,7 @@ void testProxyAuthenticate() {
         test(bool secure) {
           String url = secure
               ? "https://localhost:${secureServer.port}/$i"
-              : "http://localhost:${server.port}/$i";
+              : "http://127.0.0.1:${server.port}/$i";
 
           client.postUrl(Uri.parse(url))
             .then((HttpClientRequest clientRequest) {
@@ -501,7 +501,7 @@ void testProxyAuthenticate() {
         test(bool secure) {
           String url = secure
               ? "https://localhost:${secureServer.port}/A"
-              : "http://localhost:${server.port}/A";
+              : "http://127.0.0.1:${server.port}/A";
 
           client.postUrl(Uri.parse(url))
             .then((HttpClientRequest clientRequest) {
@@ -556,7 +556,7 @@ void testRealProxy() {
     };
 
     for (int i = 0; i < proxy.length; i++) {
-      client.getUrl(Uri.parse("http://localhost:${server.port}/$i"))
+      client.getUrl(Uri.parse("http://127.0.0.1:${server.port}/$i"))
         .then((HttpClientRequest clientRequest) {
           String content = "$i$i$i";
           clientRequest.contentLength = content.length;
@@ -594,7 +594,7 @@ void testRealProxyAuth() {
     };
 
     for (int i = 0; i < proxy.length; i++) {
-      client.getUrl(Uri.parse("http://localhost:${server.port}/$i"))
+      client.getUrl(Uri.parse("http://127.0.0.1:${server.port}/$i"))
         .then((HttpClientRequest clientRequest) {
           String content = "$i$i$i";
           clientRequest.contentLength = content.length;

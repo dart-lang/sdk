@@ -55,15 +55,15 @@ void VmStats::StartServer(int port, const char* root_dir) {
   // TODO(tball): allow host to be specified.
   char* host = const_cast<char*>(DEFAULT_HOST);
   OSError* os_error;
-  SocketAddresses* addresses = Socket::LookupAddress(host, -1, &os_error);
-  if (addresses == NULL) {
+  const char* host_ip = Socket::LookupIPv4Address(host, &os_error);
+  if (host_ip == NULL) {
     Log::PrintErr("Failed IP lookup of VmStats host %s: %s\n",
                   host, os_error->message());
     return;
   }
+
   const intptr_t BACKLOG = 128;  // Default value from HttpServer.dart
-  int64_t address = ServerSocket::CreateBindListen(
-      addresses->GetAt(0)->addr(), port, BACKLOG);
+  int64_t address = ServerSocket::CreateBindListen(host_ip, port, BACKLOG);
   if (address < 0) {
     Log::PrintErr("Failed binding VmStats socket: %s:%d\n", host, port);
     return;

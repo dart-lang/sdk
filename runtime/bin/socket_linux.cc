@@ -19,54 +19,18 @@
 #include "bin/socket.h"
 
 
-#define SOCKADDR_STORAGE_GET_PORT(addr) \
-    addr.ss_family == AF_INET ? \
-    ntohs(reinterpret_cast<struct sockaddr_in*>(&addr)->sin_port) : \
-    ntohs(reinterpret_cast<struct sockaddr_in6*>(&addr)->sin6_port)
-
-
-typedef union {
-  struct sockaddr sa;
-  struct sockaddr_in sa_in;
-  struct sockaddr_in6 sa_in6;
-  struct sockaddr_storage sa_stor;
-} address;
-
-
-static void SetPort(sockaddr_storage* addr, int port) {
-  address* ptr = reinterpret_cast<address*>(addr);
-  if (ptr->sa_stor.ss_family == AF_INET) {
-    ptr->sa_in.sin_port = htons(port);
-  } else { \
-    ptr->sa_in6.sin6_port = htons(port);
-  }
-}
-
-
-SocketAddress::SocketAddress(struct addrinfo* addrinfo) {
-  ASSERT(INET6_ADDRSTRLEN >= INET_ADDRSTRLEN);
-  sockaddr_in *sockaddr = reinterpret_cast<sockaddr_in *>(addrinfo->ai_addr);
-  const char* result = inet_ntop(addrinfo->ai_family,
-                                 &sockaddr->sin_addr,
-                                 as_string_,
-                                 INET6_ADDRSTRLEN);
-  if (result == NULL) as_string_[0] = 0;
-  memmove(reinterpret_cast<void *>(&addr_),
-          addrinfo->ai_addr,
-          addrinfo->ai_addrlen);
-}
-
-
 bool Socket::Initialize() {
   // Nothing to do on Linux.
   return true;
 }
 
 
-intptr_t Socket::CreateConnect(sockaddr_storage addr, const intptr_t port) {
+intptr_t Socket::CreateConnect(const char* host, const intptr_t port) {
   intptr_t fd;
+  struct hostent server;
+  struct sockaddr_in server_address;
 
-  fd = TEMP_FAILURE_RETRY(socket(addr.ss_family, SOCK_STREAM, 0));
+  fd = TEMP_FAILURE_RETRY(socket(AF_INET, SOCK_STREAM, 0));
   if (fd < 0) {
     Log::PrintErr("Error CreateConnect: %s\n", strerror(errno));
     return -1;
@@ -75,15 +39,28 @@ intptr_t Socket::CreateConnect(sockaddr_storage addr, const intptr_t port) {
   FDUtils::SetCloseOnExec(fd);
   Socket::SetNonBlocking(fd);
 
-  SetPort(&addr, port);
+  static const size_t kTempBufSize = 1024;
+  char temp_buf[kTempBufSize];
+  struct hostent *unused;
+  int err;
+  if (gethostbyname_r(
+          host, &server, temp_buf, kTempBufSize, &unused, &err) != 0) {
+    TEMP_FAILURE_RETRY(close(fd));
+    Log::PrintErr("Error CreateConnect: %s\n", strerror(errno));
+    return -1;
+  }
+
+  server_address.sin_family = AF_INET;
+  server_address.sin_port = htons(port);
+  bcopy(server.h_addr, &server_address.sin_addr.s_addr, server.h_length);
+  memset(&server_address.sin_zero, 0, sizeof(server_address.sin_zero));
   intptr_t result = TEMP_FAILURE_RETRY(
       connect(fd,
-              reinterpret_cast<struct sockaddr*>(&addr),
-              SocketAddress::GetAddrLength(addr)));
+              reinterpret_cast<struct sockaddr *>(&server_address),
+              sizeof(server_address)));
   if (result == 0 || errno == EINPROGRESS) {
     return fd;
   }
-  TEMP_FAILURE_RETRY(close(fd));
   return -1;
 }
 
@@ -121,7 +98,7 @@ int Socket::Write(intptr_t fd, const void* buffer, intptr_t num_bytes) {
 
 intptr_t Socket::GetPort(intptr_t fd) {
   ASSERT(fd >= 0);
-  struct sockaddr_storage socket_address;
+  struct sockaddr_in socket_address;
   socklen_t size = sizeof(socket_address);
   if (TEMP_FAILURE_RETRY(
           getsockname(fd,
@@ -130,13 +107,13 @@ intptr_t Socket::GetPort(intptr_t fd) {
     Log::PrintErr("Error getsockname: %s\n", strerror(errno));
     return 0;
   }
-  return SOCKADDR_STORAGE_GET_PORT(socket_address);
+  return ntohs(socket_address.sin_port);
 }
 
 
 bool Socket::GetRemotePeer(intptr_t fd, char *host, intptr_t *port) {
   ASSERT(fd >= 0);
-  struct sockaddr_storage socket_address;
+  struct sockaddr_in socket_address;
   socklen_t size = sizeof(socket_address);
   if (TEMP_FAILURE_RETRY(
           getpeername(fd,
@@ -145,24 +122,14 @@ bool Socket::GetRemotePeer(intptr_t fd, char *host, intptr_t *port) {
     Log::PrintErr("Error getpeername: %s\n", strerror(errno));
     return false;
   }
-  const void* src;
-  if (socket_address.ss_family == AF_INET6) {
-    const sockaddr_in6* in6 =
-        reinterpret_cast<const sockaddr_in6*>(&socket_address);
-    src = reinterpret_cast<const void*>(&in6->sin6_addr);
-  } else {
-    const sockaddr_in* in =
-        reinterpret_cast<const sockaddr_in*>(&socket_address);
-    src = reinterpret_cast<const void*>(&in->sin_addr);
-  }
-  if (inet_ntop(socket_address.ss_family,
-                src,
+  if (inet_ntop(socket_address.sin_family,
+                reinterpret_cast<const void *>(&socket_address.sin_addr),
                 host,
                 INET_ADDRSTRLEN) == NULL) {
     Log::PrintErr("Error inet_ntop: %s\n", strerror(errno));
     return false;
   }
-  *port = SOCKADDR_STORAGE_GET_PORT(socket_address);
+  *port = ntohs(socket_address.sin_port);
   return true;
 }
 
@@ -194,15 +161,12 @@ intptr_t Socket::GetStdioHandle(int num) {
 }
 
 
-SocketAddresses* Socket::LookupAddress(const char* host,
-                                       int type,
-                                       OSError** os_error) {
-  // Perform a name lookup for a host name.
+const char* Socket::LookupIPv4Address(char* host, OSError** os_error) {
+  // Perform a name lookup for an IPv4 address.
   struct addrinfo hints;
   memset(&hints, 0, sizeof(hints));
-  hints.ai_family = SocketAddress::FromType(type);
+  hints.ai_family = AF_INET;
   hints.ai_socktype = SOCK_STREAM;
-  hints.ai_flags = 0;
   hints.ai_protocol = IPPROTO_TCP;
   struct addrinfo* info = NULL;
   int status = getaddrinfo(host, 0, &hints, &info);
@@ -213,29 +177,34 @@ SocketAddresses* Socket::LookupAddress(const char* host,
                             OSError::kGetAddressInfo);
     return NULL;
   }
-  intptr_t count = 0;
-  for (struct addrinfo* c = info; c != NULL; c = c->ai_next) {
-    if (c->ai_family == AF_INET || c->ai_family == AF_INET6) count++;
+  // Convert the address into IPv4 dotted decimal notation.
+  char* buffer = reinterpret_cast<char*>(malloc(INET_ADDRSTRLEN));
+  sockaddr_in *sockaddr = reinterpret_cast<sockaddr_in *>(info->ai_addr);
+  const char* result = inet_ntop(AF_INET,
+                                 reinterpret_cast<void *>(&sockaddr->sin_addr),
+                                 buffer,
+                                 INET_ADDRSTRLEN);
+  if (result == NULL) {
+    free(buffer);
+    return NULL;
   }
-  SocketAddresses* addresses = new SocketAddresses(count);
-  intptr_t i = 0;
-  for (struct addrinfo* c = info; c != NULL; c = c->ai_next) {
-    if (c->ai_family == AF_INET || c->ai_family == AF_INET6) {
-      addresses->SetAt(i, new SocketAddress(c));
-      i++;
-    }
-  }
-  freeaddrinfo(info);
-  return addresses;
+  ASSERT(result == buffer);
+  return buffer;
 }
 
 
-intptr_t ServerSocket::CreateBindListen(sockaddr_storage addr,
+intptr_t ServerSocket::CreateBindListen(const char* host,
                                         intptr_t port,
                                         intptr_t backlog) {
   intptr_t fd;
+  struct sockaddr_in server_address;
 
-  fd = TEMP_FAILURE_RETRY(socket(addr.ss_family, SOCK_STREAM, 0));
+  in_addr_t s_addr = inet_addr(host);
+  if (s_addr == INADDR_NONE) {
+    return -5;
+  }
+
+  fd = TEMP_FAILURE_RETRY(socket(AF_INET, SOCK_STREAM, 0));
   if (fd < 0) return -1;
 
   FDUtils::SetCloseOnExec(fd);
@@ -244,17 +213,15 @@ intptr_t ServerSocket::CreateBindListen(sockaddr_storage addr,
   TEMP_FAILURE_RETRY(
       setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)));
 
-  if (addr.ss_family == AF_INET6) {
-    optval = 0;
-    TEMP_FAILURE_RETRY(
-        setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, &optval, sizeof(optval)));
-  }
+  server_address.sin_family = AF_INET;
+  server_address.sin_port = htons(port);
+  server_address.sin_addr.s_addr = s_addr;
+  memset(&server_address.sin_zero, 0, sizeof(server_address.sin_zero));
 
-  SetPort(&addr, port);
   if (TEMP_FAILURE_RETRY(
           bind(fd,
-               reinterpret_cast<struct sockaddr*>(&addr),
-               SocketAddress::GetAddrLength(addr))) < 0) {
+               reinterpret_cast<struct sockaddr *>(&server_address),
+               sizeof(server_address))) < 0) {
     TEMP_FAILURE_RETRY(close(fd));
     return -1;
   }

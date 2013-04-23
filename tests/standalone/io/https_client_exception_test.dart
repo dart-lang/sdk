@@ -19,6 +19,11 @@ void testBadHostName() {
       });
 }
 
+void InitializeSSL() {
+  SecureSocket.initialize();
+}
+
 void main() {
   testBadHostName();
+  Expect.throws(InitializeSSL);
 }

@@ -12,6 +12,7 @@ import "dart:async";
 import "dart:io";
 import "dart:isolate";
 
+const SERVER_ADDRESS = "127.0.0.1";
 const HOST_NAME = "localhost";
 const CERTIFICATE = "localhost_cert";
 
@@ -24,7 +25,7 @@ void testCloseOneEnd(String toClose) {
       .then((_) {
         port.close();
       });
-  SecureServerSocket.bind(HOST_NAME, 0, 5, CERTIFICATE).then((server) {
+  SecureServerSocket.bind(SERVER_ADDRESS, 0, 5, CERTIFICATE).then((server) {
     server.listen((serverConnection) {
       serverConnection.listen(
         (data) {
@@ -60,7 +61,7 @@ void testCloseOneEnd(String toClose) {
 
 void testCloseBothEnds() {
   ReceivePort port = new ReceivePort();
-  SecureServerSocket.bind(HOST_NAME, 0, 5, CERTIFICATE).then((server) {
+  SecureServerSocket.bind(SERVER_ADDRESS, 0, 5, CERTIFICATE).then((server) {
     var clientEndFuture = SecureSocket.connect(HOST_NAME, server.port);
     server.listen((serverEnd) {
       clientEndFuture.then((clientEnd) {
@@ -80,7 +81,7 @@ testPauseServerSocket() {
 
   ReceivePort port = new ReceivePort();
 
-  SecureServerSocket.bind(HOST_NAME,
+  SecureServerSocket.bind(SERVER_ADDRESS,
                           0,
                           2 * socketCount,
                           CERTIFICATE).then((server) {
@@ -124,7 +125,7 @@ testCloseServer() {
   ReceivePort port = new ReceivePort();
   List ends = [];
 
-  SecureServerSocket.bind(HOST_NAME, 0, 15, CERTIFICATE).then((server) {
+  SecureServerSocket.bind(SERVER_ADDRESS, 0, 15, CERTIFICATE).then((server) {
     Expect.isTrue(server.port > 0);
     void checkDone() {
       if (ends.length < 2 * socketCount) return;

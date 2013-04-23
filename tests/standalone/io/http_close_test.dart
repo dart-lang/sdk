@@ -30,7 +30,7 @@ void testClientAndServerCloseNoListen(int connections) {
     });
     var client = new HttpClient();
     for (int i = 0; i < connections; i++) {
-      client.get("127.0.0.1", server.port, "/")
+      client.get("localhost", server.port, "/")
           .then((request) => request.close())
           .then((response) {
           });
@@ -61,7 +61,7 @@ void testClientCloseServerListen(int connections) {
     });
     var client = new HttpClient();
     for (int i = 0; i < connections; i++) {
-      client.get("127.0.0.1", server.port, "/")
+      client.get("localhost", server.port, "/")
           .then((request) => request.close())
           .then((response) => check());
     }
@@ -95,7 +95,7 @@ void testClientCloseSendingResponse(int connections) {
     });
     var client = new HttpClient();
     for (int i = 0; i < connections; i++) {
-      client.get("127.0.0.1", server.port, "/")
+      client.get("localhost", server.port, "/")
           .then((request) => request.close())
           .then((response) {
             // Ensure we don't accept the response until we have send the entire
