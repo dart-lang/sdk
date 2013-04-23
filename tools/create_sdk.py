@@ -53,7 +53,6 @@
 # ......dartanalyzer/
 # ........dartanalyzer.jar
 # ........(third-party libraries for dart_analyzer)
-# ......pub/
 # ......(more will come here)
 
 
@@ -115,8 +114,7 @@ def CopyShellScript(src_file, dest_dir):
 
 
 def CopyDartScripts(home, sdk_root):
-  # TODO(dgrove) - add pub once issue 6619 is fixed
-  for executable in ['dart2js', 'dartanalyzer', 'dartdoc']:
+  for executable in ['dart2js', 'dartanalyzer', 'dartdoc', 'pub']:
     CopyShellScript(os.path.join(home, 'sdk', 'bin', executable),
                     os.path.join(sdk_root, 'bin'))
 
@@ -183,11 +181,6 @@ def Main(argv):
       'dart_analyzer' + analyzer_file_extension)
   copyfile(dart_analyzer_src_binary, dart_analyzer_dest_binary)
   copymode(dart_analyzer_src_binary, dart_analyzer_dest_binary)
-
-  # Create pub shell script.
-  # TODO(dgrove) - delete this once issue 6619 is fixed
-  pub_src_script = join(HOME, 'utils', 'pub', 'sdk', 'pub')
-  CopyShellScript(pub_src_script, BIN)
 
   #
   # Create and populate sdk/include.
@@ -275,21 +268,20 @@ def Main(argv):
   for jarFile in jarFiles:
     copyfile(jarFile, join(DARTANALYZER_DEST, os.path.basename(jarFile)))
   
-  # Create and populate util/pub.
-  copytree(join(HOME, 'utils', 'pub'), join(UTIL, 'pub'),
-           ignore=ignore_patterns('.svn', 'sdk'))
+  PUB_DEST = join(SDK_tmp, 'lib', '_internal', 'pub')
+
 
   # Copy in 7zip for Windows.
   if HOST_OS == 'win32':
     copytree(join(HOME, 'third_party', '7zip'),
-             join(join(UTIL, 'pub'), '7zip'),
+             join(PUB_DEST, 'resource', '7zip'),
              ignore=ignore_patterns('.svn'))
 
   ReplaceInFiles([
-      join(UTIL, 'pub', 'io.dart'),
+      join(PUB_DEST, 'lib', 'src', 'io.dart'),
     ], [
-      ("../../third_party/7zip/7za.exe",
-       "7zip/7za.exe"),
+      ("../../../../third_party/7zip/7za.exe",
+       "resource/7zip/7za.exe"),
     ])
 
   # Copy dart2js/dartdoc/pub.

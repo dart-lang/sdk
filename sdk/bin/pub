@@ -8,6 +8,5 @@
 BIN_DIR="$(cd "${0%/*}" ; pwd -P)"
 export DART_SDK="$(cd "${BIN_DIR%/*}" ; pwd -P)"
 
-# TODO(dgrove): This doesn't work yet. It will once dartbug.com/6619 is
-# fixed.
-exec "$BIN_DIR"/dart "$DART_SDK"/lib/_internal/pub/pub.dart $@
+exec "$BIN_DIR"/dart --package-root="$DART_SDK"/packages/ \
+    "$DART_SDK"/lib/_internal/pub/bin/pub.dart $@
