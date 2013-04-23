@@ -103,6 +103,24 @@ class TypeMask {
   }
 
   /**
+   * Returns the [ClassElement] if this type represents a single class,
+   * otherwise returns `null`.  This method is conservative.
+   */
+  ClassElement singleClass(Compiler compiler) {
+    if (isEmpty) return null;
+    if (isNullable) return null;  // It is Null and some other class.
+    ClassElement element = base.element;
+    if (isExact) {
+      return element;
+    } else if (isSubclass) {
+      return compiler.world.hasAnySubclass(element) ? null : element;
+    } else {
+      assert(isSubtype);
+      return null;
+    }
+  }
+
+  /**
    * Returns whether or not this type mask contains all types.
    */
   bool containsAll(Compiler compiler) {

@@ -29,7 +29,8 @@ library _foreign_helper;
  * by vertical bar `|` symbols, e.g.  `"num|String"` describes the union of
  * numbers and Strings.  There is no type in Dart that is this precise.  The
  * Dart alternative would be `Object` or `dynamic`, but these types imply that
- * the JS-code might also be creating instances of all the DOM types.  The
+ * the JS-code might also be creating instances of all the DOM types.  If `null`
+ * is possible, it must be specified explicitly, e.g. `"String|Null"`.
  * [typeDescription] has several extensions to help describe the behavior more
  * accurately.  In addition to the union type already described:
  *

@@ -418,9 +418,13 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     HInvokeDynamicMethod result =
         new HInvokeDynamicMethod(node.selector, inputs);
     result.element = method;
-    // TODO(sra): Can the instruction type be strengthened to help optimize
-    // dependent instructions?
-    result.instructionType = node.instructionType;
+
+    // Strengthen instruction type from annotations to help optimize
+    // dependent instructions.
+    native.NativeBehavior nativeBehavior =
+        native.NativeBehavior.ofMethod(method, compiler);
+    HType returnType = new HType.fromNativeBehavior(nativeBehavior, compiler);
+    result.instructionType = returnType;
     return result;
   }
 
@@ -865,6 +869,25 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       if (!intercepted.contains(backend.jsIntClass)
           && !intercepted.contains(backend.jsDoubleClass)) {
         constantInterceptor = backend.jsNumberClass;
+      }
+    } else {
+      // Try to find constant interceptor for a native class.  If the receiver
+      // is constrained to a leaf native class, we can use the class's
+      // interceptor directly.
+
+      // TODO(sra): Key DOM classes like Node, Element and Event are not leaf
+      // classes.  When the receiver type is not a leaf class, we might still be
+      // able to use the receiver class as a constant interceptor.  It is
+      // usually the case that methods defined on a non-leaf class don't test
+      // for a subclass or call methods defined on a subclass.  Provided the
+      // code is completely insensitive to the specific instance subclasses, we
+      // can use the non-leaf class directly.
+
+      if (!type.canBeNull()) {
+        ClassElement element = type.computeMask(compiler).singleClass(compiler);
+        if (element != null && element.isNative()) {
+          constantInterceptor = element;
+        }
       }
     }
 

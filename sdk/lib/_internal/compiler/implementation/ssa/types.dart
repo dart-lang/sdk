@@ -129,6 +129,8 @@ abstract class HType {
           compiler.objectClass.computeType(compiler), compiler);
     } else if (type == native.SpecialType.JsArray) {
       return HType.READABLE_ARRAY;
+    } else if (type.isVoid) {
+      return HType.UNKNOWN;  // Maybe use HType.NULL.
     } else if (type.element == compiler.nullClass) {
       return HType.NULL;
     } else {
@@ -138,10 +140,10 @@ abstract class HType {
 
   factory HType.fromNativeBehavior(native.NativeBehavior nativeBehavior,
                                    Compiler compiler) {
-    if (nativeBehavior.typesInstantiated.isEmpty) return HType.UNKNOWN;
+    if (nativeBehavior.typesReturned.isEmpty) return HType.UNKNOWN;
 
     HType ssaType = HType.CONFLICTING;
-    for (final type in nativeBehavior.typesInstantiated) {
+    for (final type in nativeBehavior.typesReturned) {
       ssaType = ssaType.union(
           new HType.fromNativeType(type, compiler), compiler);
     }

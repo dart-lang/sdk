@@ -510,19 +510,22 @@ void maybeEnableNative(Compiler compiler,
  * declared return type, and a callback argument may be called with instances of
  * the callback parameter type (e.g. Event).
  *
- * If there is one or more @Creates annotations, the union of the named types
+ * If there is one or more `@Creates` annotations, the union of the named types
  * replaces the inferred instantiated type, and the return type is ignored for
  * the purpose of inferring instantiated types.
  *
- *     @Creates(IDBCursor)    // Created asynchronously.
- *     @Creates(IDBRequest)   // Created synchronously (for return value).
- *     IDBRequest request = objectStore.openCursor();
+ *     @Creates('IDBCursor')    // Created asynchronously.
+ *     @Creates('IDBRequest')   // Created synchronously (for return value).
+ *     IDBRequest openCursor();
  *
- * If there is one or more @Returns annotations, the union of the named types
+ * If there is one or more `@Returns` annotations, the union of the named types
  * replaces the declared return type.
  *
- *     @Returns(IDBRequest)
- *     IDBRequest request = objectStore.openCursor();
+ *     @Returns('IDBRequest')
+ *     IDBRequest openCursor();
+ *
+ * Types in annotations are non-nullable, so include `@Returns('Null')` if
+ * `null` may be returned.
  */
 class NativeBehavior {
 
@@ -582,6 +585,10 @@ class NativeBehavior {
     FunctionType type = method.computeType(compiler);
     var behavior = new NativeBehavior();
     behavior.typesReturned.add(type.returnType);
+    if (!type.returnType.isVoid) {
+      // Declared types are nullable.
+      behavior.typesReturned.add(compiler.nullClass.computeType(compiler));
+    }
     behavior._capture(type, compiler);
 
     // TODO(sra): Optional arguments are currently missing from the
@@ -600,6 +607,8 @@ class NativeBehavior {
     DartType type = field.computeType(compiler);
     var behavior = new NativeBehavior();
     behavior.typesReturned.add(type);
+    // Declared types are nullable.
+    behavior.typesReturned.add(compiler.nullClass.computeType(compiler));
     behavior._capture(type, compiler);
     behavior._overrideWithAnnotations(field, compiler);
     return behavior;
