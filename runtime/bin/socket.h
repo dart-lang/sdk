@@ -23,6 +23,66 @@
 #error Unknown target os.
 #endif
 
+class SocketAddress {
+ public:
+  enum {
+    TYPE_ANY = -1,
+    TYPE_IPV4,
+    TYPE_IPV6,
+  };
+
+  explicit SocketAddress(struct addrinfo* addrinfo);
+
+  int GetType() {
+    if (addr_.ss_family == AF_INET6) return TYPE_IPV6;
+    return TYPE_IPV4;
+  }
+
+  const char* as_string() const { return as_string_; }
+  const sockaddr_storage& addr() const { return addr_; }
+
+  static intptr_t GetAddrLength(const sockaddr_storage& addr) {
+    return addr.ss_family == AF_INET6 ?
+        sizeof(struct sockaddr_in6) : sizeof(struct sockaddr_in);
+  }
+
+  static int16_t FromType(int type) {
+    if (type == TYPE_ANY) return AF_UNSPEC;
+    if (type == TYPE_IPV4) return AF_INET;
+    ASSERT(type == TYPE_IPV6 && "Invalid type");
+    return AF_INET6;
+  }
+
+ private:
+  char as_string_[INET6_ADDRSTRLEN];
+  sockaddr_storage addr_;
+
+  DISALLOW_COPY_AND_ASSIGN(SocketAddress);
+};
+
+class SocketAddresses {
+ public:
+  explicit SocketAddresses(intptr_t count)
+      : count_(count),
+        addresses_(new SocketAddress*[count_]) {}
+
+  ~SocketAddresses() {
+    for (intptr_t i = 0; i < count_; i++) {
+      delete addresses_[i];
+    }
+    delete[] addresses_;
+  }
+
+  intptr_t count() const { return count_; }
+  SocketAddress* GetAt(intptr_t i) const { return addresses_[i]; }
+  void SetAt(intptr_t i, SocketAddress* addr) { addresses_[i] = addr; }
+
+ private:
+  const intptr_t count_;
+  SocketAddress** addresses_;
+
+  DISALLOW_COPY_AND_ASSIGN(SocketAddresses);
+};
 
 class Socket {
  public:
@@ -34,7 +94,8 @@ class Socket {
   static intptr_t Available(intptr_t fd);
   static int Read(intptr_t fd, void* buffer, intptr_t num_bytes);
   static int Write(intptr_t fd, const void* buffer, intptr_t num_bytes);
-  static intptr_t CreateConnect(const char* host, const intptr_t port);
+  static intptr_t CreateConnect(sockaddr_storage addr,
+                                const intptr_t port);
   static intptr_t GetPort(intptr_t fd);
   static bool GetRemotePeer(intptr_t fd, char* host, intptr_t* port);
   static void GetError(intptr_t fd, OSError* os_error);
@@ -45,9 +106,10 @@ class Socket {
   static bool SetBlocking(intptr_t fd);
   static bool SetNoDelay(intptr_t fd, bool enabled);
 
-  // Perform a IPv4 hostname lookup. Returns the hostname string in
-  // IPv4 dotted-decimal format.
-  static const char* LookupIPv4Address(char* host, OSError** os_error);
+  // Perform a hostname lookup. Returns the SocketAddresses.
+  static SocketAddresses* LookupAddress(const char* host,
+                                        int type,
+                                        OSError** os_error);
 
   static Dart_Port GetServicePort();
 
@@ -76,7 +138,7 @@ class ServerSocket {
   //
   //   -1: system error (errno set)
   //   -5: invalid bindAddress
-  static intptr_t CreateBindListen(const char* bindAddress,
+  static intptr_t CreateBindListen(sockaddr_storage addr,
                                    intptr_t port,
                                    intptr_t backlog);
 

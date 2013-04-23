@@ -8,12 +8,11 @@ import "dart:io";
 import "dart:uri";
 import "dart:isolate";
 
-const SERVER_ADDRESS = "127.0.0.1";
 const HOST_NAME = "localhost";
 
 void testListenOn() {
   void test(void onDone()) {
-    HttpServer.bindSecure(SERVER_ADDRESS,
+    HttpServer.bindSecure(HOST_NAME,
                           0,
                           backlog: 5,
                           certificateName: 'localhost_cert').then((server) {
