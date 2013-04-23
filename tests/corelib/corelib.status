@@ -62,6 +62,7 @@ string_replace_func_test: Skip # Bug 6554 - doesn't terminate.
 date_time7_test: Fail # BUG(3304): Maybe this doesn't time out?
 json_strict_test: Fail # IE parses slightly harmless no-standard JSON.
 string_base_vm_test: Fail # BUG(3304): Maybe this doesn't time out?
+list_test: Fail # IE doesn't support typed data.
 
 [ $compiler == dart2dart ]
 compare_to2_test: Fail # inherited from VM
