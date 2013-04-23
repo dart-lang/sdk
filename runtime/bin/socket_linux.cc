@@ -19,18 +19,20 @@
 #include "bin/socket.h"
 
 
-#define SOCKADDR_STORAGE_SET_PORT(addr, port) \
-    if (addr.ss_family == AF_INET) { \
-      reinterpret_cast<struct sockaddr_in*>(&addr)->sin_port = htons(port); \
-    } else { \
-      reinterpret_cast<struct sockaddr_in6*>(&addr)->sin6_port = htons(port); \
-    }
-
-
 #define SOCKADDR_STORAGE_GET_PORT(addr) \
     addr.ss_family == AF_INET ? \
     ntohs(reinterpret_cast<struct sockaddr_in*>(&addr)->sin_port) : \
     ntohs(reinterpret_cast<struct sockaddr_in6*>(&addr)->sin6_port)
+
+
+static void SetPort(sockaddr_storage* addr, int port) {
+  char* ptr = reinterpret_cast<char*>(addr);
+  if (addr->ss_family == AF_INET) {
+    reinterpret_cast<struct sockaddr_in*>(ptr)->sin_port = htons(port);
+  } else { \
+    reinterpret_cast<struct sockaddr_in6*>(ptr)->sin6_port = htons(port);
+  }
+}
 
 
 SocketAddress::SocketAddress(struct addrinfo* addrinfo) {
@@ -65,7 +67,7 @@ intptr_t Socket::CreateConnect(sockaddr_storage addr, const intptr_t port) {
   FDUtils::SetCloseOnExec(fd);
   Socket::SetNonBlocking(fd);
 
-  SOCKADDR_STORAGE_SET_PORT(addr, port);
+  SetPort(&addr, port);
   intptr_t result = TEMP_FAILURE_RETRY(
       connect(fd,
               reinterpret_cast<struct sockaddr*>(&addr),
@@ -240,7 +242,7 @@ intptr_t ServerSocket::CreateBindListen(sockaddr_storage addr,
         setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, &optval, sizeof(optval)));
   }
 
-  SOCKADDR_STORAGE_SET_PORT(addr, port);
+  SetPort(&addr, port);
   if (TEMP_FAILURE_RETRY(
           bind(fd,
                reinterpret_cast<struct sockaddr*>(&addr),
