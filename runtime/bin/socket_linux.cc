@@ -25,12 +25,20 @@
     ntohs(reinterpret_cast<struct sockaddr_in6*>(&addr)->sin6_port)
 
 
+typedef union {
+  struct sockaddr sa;
+  struct sockaddr_in sa_in;
+  struct sockaddr_in6 sa_in6;
+  struct sockaddr_storage sa_stor;
+} address;
+
+
 static void SetPort(sockaddr_storage* addr, int port) {
-  char* ptr = reinterpret_cast<char*>(addr);
-  if (addr->ss_family == AF_INET) {
-    reinterpret_cast<struct sockaddr_in*>(ptr)->sin_port = htons(port);
+  address* ptr = reinterpret_cast<address*>(addr);
+  if (ptr->sa_stor.ss_family == AF_INET) {
+    ptr->sa_in.sin_port = htons(port);
   } else { \
-    reinterpret_cast<struct sockaddr_in6*>(ptr)->sin6_port = htons(port);
+    ptr->sa_in6.sin6_port = htons(port);
   }
 }
 
