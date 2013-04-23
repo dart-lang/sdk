@@ -8,7 +8,6 @@ import 'dart:utf';
 import 'package:expect/expect.dart';
 
 void testHttpClientResponseBody() {
-  new HttpBodyHandler();
   void test(String mimeType,
             List<int> content,
             dynamic expectedBody,
@@ -164,7 +163,6 @@ void testHttpServerRequestBody() {
 
   test(null, "body".codeUnits, "body".codeUnits, "binary");
 }
-
 
 void main() {
   testHttpClientResponseBody();

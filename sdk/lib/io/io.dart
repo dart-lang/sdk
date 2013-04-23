@@ -36,6 +36,8 @@ part 'file.dart';
 part 'file_impl.dart';
 part 'file_system_entity.dart';
 part 'http.dart';
+part 'http_body.dart';
+part 'http_body_impl.dart';
 part 'http_headers.dart';
 part 'http_impl.dart';
 part 'http_parser.dart';
