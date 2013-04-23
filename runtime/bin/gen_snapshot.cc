@@ -296,6 +296,11 @@ static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
     return ResolveUri(library_url_string, url_string);
   }
 
+  if (DartUtils::IsDartIOLibURL(url_string) && mapped_url_string == NULL) {
+    // No url mapping for dart:io. Load original version.
+    return Builtin::LoadAndCheckLibrary(Builtin::kIOLibrary);
+  }
+
   Dart_Handle resolved_url = url;
   if (mapped_url_string != NULL) {
     // Mapped urls are relative to working directory.
