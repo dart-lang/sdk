@@ -2057,7 +2057,7 @@ void EffectGraphVisitor::BuildConstructorCall(
   V(Uint8ListFactory, kTypedDataUint8ArrayCid, 1883551322)                     \
   V(Uint8ClampedListFactory, kTypedDataUint8ClampedArrayCid, 244333676)        \
   V(Int16ListFactory, kTypedDataInt16ArrayCid, 335889889)                      \
-  V(Uint16ListFactory, kTypedDataUint16ArrayCid, 1552801708)                   \
+  V(Uint16ListFactory, kTypedDataUint16ArrayCid, 1374024153)                   \
   V(Int32ListFactory, kTypedDataInt32ArrayCid, 1615677219)                     \
   V(Uint32ListFactory, kTypedDataUint32ArrayCid, 1239540305)                   \
   V(Int64ListFactory, kTypedDataInt64ArrayCid, 993438946)                      \
