@@ -194,11 +194,11 @@ class ObjectStore {
   RawType* uint32x4_type() const { return uint32x4_type_; }
   void set_uint32x4_type(const Type& value) { uint32x4_type_ = value.raw(); }
 
-  RawArray* typeddata_classes() const {
-    return typeddata_classes_;
+  RawArray* typed_data_classes() const {
+    return typed_data_classes_;
   }
-  void set_typeddata_classes(const Array& value) {
-    typeddata_classes_ = value.raw();
+  void set_typed_data_classes(const Array& value) {
+    typed_data_classes_ = value.raw();
   }
 
   RawClass* stacktrace_class() const {
@@ -319,11 +319,11 @@ class ObjectStore {
     root_library_ = value.raw();
   }
 
-  RawLibrary* typeddata_library() const {
-    return typeddata_library_;
+  RawLibrary* typed_data_library() const {
+    return typed_data_library_;
   }
-  void set_typeddata_library(const Library& value) {
-    typeddata_library_ = value.raw();
+  void set_typed_data_library(const Library& value) {
+    typed_data_library_ = value.raw();
   }
 
   RawLibrary* uri_library() const {
@@ -464,7 +464,7 @@ class ObjectStore {
   RawClass* growable_object_array_class_;
   RawClass* float32x4_class_;
   RawClass* uint32x4_class_;
-  RawArray* typeddata_classes_;
+  RawArray* typed_data_classes_;
   RawClass* stacktrace_class_;
   RawClass* jsregexp_class_;
   RawClass* weak_property_class_;
@@ -483,7 +483,7 @@ class ObjectStore {
   RawLibrary* mirrors_library_;
   RawLibrary* native_wrappers_library_;
   RawLibrary* root_library_;
-  RawLibrary* typeddata_library_;
+  RawLibrary* typed_data_library_;
   RawLibrary* uri_library_;
   RawLibrary* utf_library_;
   RawGrowableObjectArray* libraries_;

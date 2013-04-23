@@ -263,7 +263,7 @@ _element_constructors = {
   'html': _html_element_constructors,
   'indexed_db': {},
   'svg': _svg_element_constructors,
-  'typeddata': {},
+  'typed_data': {},
   'web_audio': {},
   'web_gl': {},
   'web_sql': {},
@@ -282,7 +282,7 @@ _factory_ctr_strings = {
     'provider_name': '_SvgElementFactoryProvider',
     'constructor_name': 'createSvgElement_tag',
   },
-  'typeddata': {
+  'typed_data': {
       'provider_name': 'document',
       'constructor_name': '$dom_createElement'
   },

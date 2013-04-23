@@ -4,14 +4,14 @@
 
 async/stream_periodic4_test: Fail, Pass # floitsch: Marking as flaky while collection debug information. http://dartbug.com/9619
 
-# The typeddata library is not supported by dart2js or dart2dart yet.
+# The typed_data library is not supported by dart2js or dart2dart yet.
 [ $compiler == dart2js  || $compiler == dart2dart ]
-typeddata/*: Fail
+typed_data/*: Fail
 
 
-# The typeddata library is not supported by dart2js or dart2dart yet.
+# The typed_data library is not supported by dart2js or dart2dart yet.
 [ $compiler == dart2js  || $compiler == dart2dart ]
-typeddata/*: Skip
+typed_data/*: Skip
 
 
 [ $compiler == dart2js ]

@@ -4,7 +4,7 @@ import 'dart:collection';
 import 'dart:_collection-dev';
 import 'dart:html';
 import 'dart:html_common';
-import 'dart:typeddata';
+import 'dart:typed_data';
 import 'dart:_js_helper' show Creates, JSName, Null, Returns, convertDartClosureToJS;
 import 'dart:_foreign_helper' show JS;
 // DO NOT EDIT - unless you are editing documentation as per:

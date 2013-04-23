@@ -7,7 +7,7 @@
 library float32x4_unbox_regress_test;
 
 import 'package:expect/expect.dart';
-import 'dart:typeddata';
+import 'dart:typed_data';
 
 testListStore(array, index, value) {
   array[index] = value;

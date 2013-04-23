@@ -400,7 +400,7 @@ BENCHMARK(CoreSnapshotSize) {
       "import 'dart:math';\n"
       "import 'dart:isolate';\n"
       "import 'dart:mirrors';\n"
-      "import 'dart:typeddata';\n"
+      "import 'dart:typed_data';\n"
       "\n";
 
   // Start an Isolate, load a script and create a full snapshot.
@@ -426,7 +426,7 @@ BENCHMARK(StandaloneSnapshotSize) {
       "import 'dart:math';\n"
       "import 'dart:isolate';\n"
       "import 'dart:mirrors';\n"
-      "import 'dart:typeddata';\n"
+      "import 'dart:typed_data';\n"
       "import 'dart:uri';\n"
       "import 'dart:utf';\n"
       "import 'dart:json';\n"

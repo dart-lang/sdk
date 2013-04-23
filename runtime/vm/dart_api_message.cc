@@ -244,7 +244,7 @@ static Dart_CObject::TypedDataType GetTypedDataTypeFromView(
       object->cls->internal.as_class.library_url->value.as_string;
   char* class_name =
       object->cls->internal.as_class.class_name->value.as_string;
-  if (strcmp("dart:typeddata", library_url) != 0) {
+  if (strcmp("dart:typed_data", library_url) != 0) {
     return Dart_CObject::kNumberOfTypedDataTypes;
   }
   int i = 0;

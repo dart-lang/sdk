@@ -8,7 +8,7 @@
 library FloatArrayTest;
 
 import "package:expect/expect.dart";
-import 'dart:typeddata';
+import 'dart:typed_data';
 
 void testCreateFloat32Array() {
   Float32List floatArray;

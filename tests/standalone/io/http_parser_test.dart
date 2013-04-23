@@ -5,7 +5,7 @@
 import "package:expect/expect.dart";
 import 'dart:async';
 import 'dart:math';
-import 'dart:typeddata';
+import 'dart:typed_data';
 import 'dart:isolate';
 import 'dart:uri';
 

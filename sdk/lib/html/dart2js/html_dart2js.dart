@@ -9,7 +9,7 @@ import 'dart:indexed_db';
 import 'dart:isolate';
 import 'dart:json' as json;
 import 'dart:math';
-import 'dart:typeddata';
+import 'dart:typed_data';
 import 'dart:svg' as svg;
 import 'dart:web_audio' as web_audio;
 import 'dart:web_gl' as gl;

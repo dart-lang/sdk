@@ -8,7 +8,7 @@ import '../../pkg/unittest/lib/html_individual_config.dart';
 import 'dart:async';
 import 'dart:html';
 import 'dart:json' as json;
-import 'dart:typeddata';
+import 'dart:typed_data';
 
 void fail(message) {
   guardAsync(() {

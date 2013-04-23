@@ -10,7 +10,7 @@ import 'dart:isolate';
 import 'dart:json' as json;
 import 'dart:math';
 import 'dart:nativewrappers';
-import 'dart:typeddata';
+import 'dart:typed_data';
 import 'dart:web_gl' as gl;
 import 'dart:web_sql';
 import 'dart:svg' as svg;

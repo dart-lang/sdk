@@ -10,7 +10,7 @@
 import "package:expect/expect.dart";
 import "dart:async";
 import "dart:io";
-import "dart:typeddata";
+import "dart:typed_data";
 
 void testServerRequest(void handler(server, request), {int bytes}) {
   HttpServer.bind().then((server) {

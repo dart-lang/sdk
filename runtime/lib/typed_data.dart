@@ -2206,7 +2206,7 @@ class _TypedListIterator<E> implements Iterator<E> {
 
 class _TypedListView extends _TypedListBase implements TypedData {
   _TypedListView(ByteBuffer _buffer, int _offset, int _length)
-    : _typeddata = _buffer,  // This assignment is type safe.
+    : _typedData = _buffer,  // This assignment is type safe.
       offsetInBytes = _offset,
       length = _length {
   }
@@ -2219,10 +2219,10 @@ class _TypedListView extends _TypedListBase implements TypedData {
   }
 
   ByteBuffer get buffer {
-    return _typeddata.buffer;
+    return _typedData.buffer;
   }
 
-  final TypedData _typeddata;
+  final TypedData _typedData;
   final int offsetInBytes;
   final int length;
 }
@@ -2247,7 +2247,7 @@ class _Int8ArrayView extends _TypedListView implements Int8List {
     if (index < 0 || index >= length) {
       _throwRangeError(index, length);
     }
-    return _typeddata._getInt8(offsetInBytes +
+    return _typedData._getInt8(offsetInBytes +
                                (index * Int8List.BYTES_PER_ELEMENT));
   }
 
@@ -2255,7 +2255,7 @@ class _Int8ArrayView extends _TypedListView implements Int8List {
     if (index < 0 || index >= length) {
       _throwRangeError(index, length);
     }
-    _typeddata._setInt8(offsetInBytes + (index * Int8List.BYTES_PER_ELEMENT),
+    _typedData._setInt8(offsetInBytes + (index * Int8List.BYTES_PER_ELEMENT),
                         _toInt8(value));
   }
 
@@ -2298,7 +2298,7 @@ class _Uint8ArrayView extends _TypedListView implements Uint8List {
     if (index < 0 || index >= length) {
       _throwRangeError(index, length);
     }
-    return _typeddata._getUint8(offsetInBytes +
+    return _typedData._getUint8(offsetInBytes +
                                 (index * Uint8List.BYTES_PER_ELEMENT));
   }
 
@@ -2306,7 +2306,7 @@ class _Uint8ArrayView extends _TypedListView implements Uint8List {
     if (index < 0 || index >= length) {
       _throwRangeError(index, length);
     }
-    _typeddata._setUint8(offsetInBytes + (index * Uint8List.BYTES_PER_ELEMENT),
+    _typedData._setUint8(offsetInBytes + (index * Uint8List.BYTES_PER_ELEMENT),
                          _toUint8(value));
   }
 
@@ -2350,7 +2350,7 @@ class _Uint8ClampedArrayView extends _TypedListView implements Uint8ClampedList 
     if (index < 0 || index >= length) {
       _throwRangeError(index, length);
     }
-    return _typeddata._getUint8(offsetInBytes +
+    return _typedData._getUint8(offsetInBytes +
                                 (index * Uint8List.BYTES_PER_ELEMENT));
   }
 
@@ -2358,7 +2358,7 @@ class _Uint8ClampedArrayView extends _TypedListView implements Uint8ClampedList 
     if (index < 0 || index >= length) {
       _throwRangeError(index, length);
     }
-    _typeddata._setUint8(offsetInBytes + (index * Uint8List.BYTES_PER_ELEMENT),
+    _typedData._setUint8(offsetInBytes + (index * Uint8List.BYTES_PER_ELEMENT),
                          _toClampedUint8(value));
   }
 
@@ -2401,7 +2401,7 @@ class _Int16ArrayView extends _TypedListView implements Int16List {
     if (index < 0 || index >= length) {
       _throwRangeError(index, length);
     }
-    return _typeddata._getInt16(offsetInBytes +
+    return _typedData._getInt16(offsetInBytes +
                                 (index * Int16List.BYTES_PER_ELEMENT));
   }
 
@@ -2409,7 +2409,7 @@ class _Int16ArrayView extends _TypedListView implements Int16List {
     if (index < 0 || index >= length) {
       _throwRangeError(index, length);
     }
-    _typeddata._setInt16(offsetInBytes + (index * Int16List.BYTES_PER_ELEMENT),
+    _typedData._setInt16(offsetInBytes + (index * Int16List.BYTES_PER_ELEMENT),
                          _toInt16(value));
   }
 
@@ -2452,7 +2452,7 @@ class _Uint16ArrayView extends _TypedListView implements Uint16List {
     if (index < 0 || index >= length) {
       _throwRangeError(index, length);
     }
-    return _typeddata._getUint16(offsetInBytes +
+    return _typedData._getUint16(offsetInBytes +
                                  (index * Uint16List.BYTES_PER_ELEMENT));
   }
 
@@ -2460,7 +2460,7 @@ class _Uint16ArrayView extends _TypedListView implements Uint16List {
     if (index < 0 || index >= length) {
       _throwRangeError(index, length);
     }
-    _typeddata._setUint16(offsetInBytes + (index * Uint16List.BYTES_PER_ELEMENT),
+    _typedData._setUint16(offsetInBytes + (index * Uint16List.BYTES_PER_ELEMENT),
                           _toUint16(value));
   }
 
@@ -2503,7 +2503,7 @@ class _Int32ArrayView extends _TypedListView implements Int32List {
     if (index < 0 || index >= length) {
       _throwRangeError(index, length);
     }
-    return _typeddata._getInt32(offsetInBytes +
+    return _typedData._getInt32(offsetInBytes +
                                 (index * Int32List.BYTES_PER_ELEMENT));
   }
 
@@ -2511,7 +2511,7 @@ class _Int32ArrayView extends _TypedListView implements Int32List {
     if (index < 0 || index >= length) {
       _throwRangeError(index, length);
     }
-    _typeddata._setInt32(offsetInBytes + (index * Int32List.BYTES_PER_ELEMENT),
+    _typedData._setInt32(offsetInBytes + (index * Int32List.BYTES_PER_ELEMENT),
                          _toInt32(value));
   }
 
@@ -2554,7 +2554,7 @@ class _Uint32ArrayView extends _TypedListView implements Uint32List {
     if (index < 0 || index >= length) {
       _throwRangeError(index, length);
     }
-    return _typeddata._getUint32(offsetInBytes +
+    return _typedData._getUint32(offsetInBytes +
                                  (index * Uint32List.BYTES_PER_ELEMENT));
   }
 
@@ -2562,7 +2562,7 @@ class _Uint32ArrayView extends _TypedListView implements Uint32List {
     if (index < 0 || index >= length) {
       _throwRangeError(index, length);
     }
-    _typeddata._setUint32(offsetInBytes + (index * Uint32List.BYTES_PER_ELEMENT),
+    _typedData._setUint32(offsetInBytes + (index * Uint32List.BYTES_PER_ELEMENT),
                           _toUint32(value));
   }
 
@@ -2605,7 +2605,7 @@ class _Int64ArrayView extends _TypedListView implements Int64List {
     if (index < 0 || index >= length) {
       _throwRangeError(index, length);
     }
-    return _typeddata._getInt64(offsetInBytes +
+    return _typedData._getInt64(offsetInBytes +
                                 (index * Int64List.BYTES_PER_ELEMENT));
   }
 
@@ -2613,7 +2613,7 @@ class _Int64ArrayView extends _TypedListView implements Int64List {
     if (index < 0 || index >= length) {
       _throwRangeError(index, length);
     }
-    _typeddata._setInt64(offsetInBytes + (index * Int64List.BYTES_PER_ELEMENT),
+    _typedData._setInt64(offsetInBytes + (index * Int64List.BYTES_PER_ELEMENT),
                          _toInt64(value));
   }
 
@@ -2656,7 +2656,7 @@ class _Uint64ArrayView extends _TypedListView implements Uint64List {
     if (index < 0 || index >= length) {
       _throwRangeError(index, length);
     }
-    return _typeddata._getUint64(offsetInBytes +
+    return _typedData._getUint64(offsetInBytes +
                                  (index * Uint64List.BYTES_PER_ELEMENT));
   }
 
@@ -2664,7 +2664,7 @@ class _Uint64ArrayView extends _TypedListView implements Uint64List {
     if (index < 0 || index >= length) {
       _throwRangeError(index, length);
     }
-    _typeddata._setUint64(offsetInBytes + (index * Uint64List.BYTES_PER_ELEMENT),
+    _typedData._setUint64(offsetInBytes + (index * Uint64List.BYTES_PER_ELEMENT),
                           _toUint64(value));
   }
 
@@ -2707,7 +2707,7 @@ class _Float32ArrayView extends _TypedListView implements Float32List {
     if (index < 0 || index >= length) {
       _throwRangeError(index, length);
     }
-    return _typeddata._getFloat32(offsetInBytes +
+    return _typedData._getFloat32(offsetInBytes +
                                   (index * Float32List.BYTES_PER_ELEMENT));
   }
 
@@ -2715,7 +2715,7 @@ class _Float32ArrayView extends _TypedListView implements Float32List {
     if (index < 0 || index >= length) {
       _throwRangeError(index, length);
     }
-    _typeddata._setFloat32(offsetInBytes +
+    _typedData._setFloat32(offsetInBytes +
                            (index * Float32List.BYTES_PER_ELEMENT), value);
   }
 
@@ -2758,7 +2758,7 @@ class _Float64ArrayView extends _TypedListView implements Float64List {
     if (index < 0 || index >= length) {
       _throwRangeError(index, length);
     }
-    return _typeddata._getFloat64(offsetInBytes +
+    return _typedData._getFloat64(offsetInBytes +
                                   (index * Float64List.BYTES_PER_ELEMENT));
   }
 
@@ -2766,7 +2766,7 @@ class _Float64ArrayView extends _TypedListView implements Float64List {
     if (index < 0 || index >= length) {
       _throwRangeError(index, length);
     }
-    _typeddata._setFloat64(offsetInBytes +
+    _typedData._setFloat64(offsetInBytes +
                           (index * Float64List.BYTES_PER_ELEMENT), value);
   }
 
@@ -2809,7 +2809,7 @@ class _Float32x4ArrayView extends _TypedListView implements Float32x4List {
     if (index < 0 || index >= length) {
       _throwRangeError(index, length);
     }
-    return _typeddata._getFloat32x4(offsetInBytes +
+    return _typedData._getFloat32x4(offsetInBytes +
                                   (index * Float32x4List.BYTES_PER_ELEMENT));
   }
 
@@ -2817,7 +2817,7 @@ class _Float32x4ArrayView extends _TypedListView implements Float32x4List {
     if (index < 0 || index >= length) {
       _throwRangeError(index, length);
     }
-    _typeddata._setFloat32x4(offsetInBytes +
+    _typedData._setFloat32x4(offsetInBytes +
                              (index * Float32x4List.BYTES_PER_ELEMENT), value);
   }
 
@@ -2843,7 +2843,7 @@ class _Float32x4ArrayView extends _TypedListView implements Float32x4List {
 
 class _ByteDataView implements ByteData {
   _ByteDataView(ByteBuffer _buffer, int _offsetInBytes, int _lengthInBytes)
-    : _typeddata = _buffer,  // _buffer is guaranteed to be a TypedData here.
+    : _typedData = _buffer,  // _buffer is guaranteed to be a TypedData here.
       _offset = _offsetInBytes,
       length = _lengthInBytes {
     _rangeCheck(_buffer.lengthInBytes, _offset, length);
@@ -2853,7 +2853,7 @@ class _ByteDataView implements ByteData {
   // Method(s) implementing TypedData interface.
 
   ByteBuffer get buffer {
-    return _typeddata.buffer;
+    return _typedData.buffer;
   }
 
   int get lengthInBytes {
@@ -2870,33 +2870,33 @@ class _ByteDataView implements ByteData {
     if (byteOffset < 0 || byteOffset >= length) {
       _throwRangeError(byteOffset, length);
     }
-    return _typeddata._getInt8(_offset + byteOffset);
+    return _typedData._getInt8(_offset + byteOffset);
   }
   void setInt8(int byteOffset, int value) {
     if (byteOffset < 0 || byteOffset >= length) {
       _throwRangeError(byteOffset, length);
     }
-    _typeddata._setInt8(_offset + byteOffset, _toInt8(value));
+    _typedData._setInt8(_offset + byteOffset, _toInt8(value));
   }
 
   int getUint8(int byteOffset) {
     if (byteOffset < 0 || byteOffset >= length) {
       _throwRangeError(byteOffset, length);
     }
-    return _typeddata._getUint8(_offset + byteOffset);
+    return _typedData._getUint8(_offset + byteOffset);
   }
   void setUint8(int byteOffset, int value) {
     if (byteOffset < 0 || byteOffset >= length) {
       _throwRangeError(byteOffset, length);
     }
-    _typeddata._setUint8(_offset + byteOffset, _toUint8(value));
+    _typedData._setUint8(_offset + byteOffset, _toUint8(value));
   }
 
   int getInt16(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]) {
     if (byteOffset < 0 || byteOffset >= length) {
       _throwRangeError(byteOffset, length);
     }
-    var result = _typeddata._getInt16(_offset + byteOffset);
+    var result = _typedData._getInt16(_offset + byteOffset);
     if (identical(endian, Endianness.HOST_ENDIAN)) {
       return result;
     }
@@ -2912,14 +2912,14 @@ class _ByteDataView implements ByteData {
     if (!identical(endian, Endianness.HOST_ENDIAN)) {
       set_value = _toEndianInt16(set_value, endian._littleEndian);
     }
-    _typeddata._setInt16(_offset + byteOffset, set_value);
+    _typedData._setInt16(_offset + byteOffset, set_value);
   }
 
   int getUint16(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]) {
     if (byteOffset < 0 || byteOffset >= length) {
       _throwRangeError(byteOffset, length);
     }
-    var result = _typeddata._getUint16(_offset + byteOffset);
+    var result = _typedData._getUint16(_offset + byteOffset);
     if (identical(endian, Endianness.HOST_ENDIAN)) {
       return result;
     }
@@ -2935,14 +2935,14 @@ class _ByteDataView implements ByteData {
     if (!identical(endian, Endianness.HOST_ENDIAN)) {
       set_value = _toEndianUint16(set_value, endian._littleEndian);
     }
-    _typeddata._setUint16(_offset + byteOffset, set_value);
+    _typedData._setUint16(_offset + byteOffset, set_value);
   }
 
   int getInt32(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]) {
     if (byteOffset < 0 || byteOffset >= length) {
       _throwRangeError(byteOffset, length);
     }
-    var result = _typeddata._getInt32(_offset + byteOffset);
+    var result = _typedData._getInt32(_offset + byteOffset);
     if (identical(endian, Endianness.HOST_ENDIAN)) {
       return result;
     }
@@ -2958,14 +2958,14 @@ class _ByteDataView implements ByteData {
     if (!identical(endian, Endianness.HOST_ENDIAN)) {
       set_value = _toEndianInt32(set_value, endian._littleEndian);
     }
-    _typeddata._setInt32(_offset + byteOffset, set_value);
+    _typedData._setInt32(_offset + byteOffset, set_value);
   }
 
   int getUint32(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]) {
     if (byteOffset < 0 || byteOffset >= length) {
       _throwRangeError(byteOffset, length);
     }
-    var result = _typeddata._getUint32(_offset + byteOffset);
+    var result = _typedData._getUint32(_offset + byteOffset);
     if (identical(endian, Endianness.HOST_ENDIAN)) {
       return result;
     }
@@ -2981,14 +2981,14 @@ class _ByteDataView implements ByteData {
     if (!identical(endian, Endianness.HOST_ENDIAN)) {
       set_value = _toEndianUint32(set_value, endian._littleEndian);
     }
-    _typeddata._setUint32(_offset + byteOffset, set_value);
+    _typedData._setUint32(_offset + byteOffset, set_value);
   }
 
   int getInt64(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]) {
     if (byteOffset < 0 || byteOffset >= length) {
       _throwRangeError(byteOffset, length);
     }
-    var result = _typeddata._getInt64(_offset + byteOffset);
+    var result = _typedData._getInt64(_offset + byteOffset);
     if (identical(endian, Endianness.HOST_ENDIAN)) {
       return result;
     }
@@ -3004,14 +3004,14 @@ class _ByteDataView implements ByteData {
     if (!identical(endian, Endianness.HOST_ENDIAN)) {
       set_value = _toEndianInt64(set_value, endian._littleEndian);
     }
-    _typeddata._setInt64(_offset + byteOffset, set_value);
+    _typedData._setInt64(_offset + byteOffset, set_value);
   }
 
   int getUint64(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]) {
     if (byteOffset < 0 || byteOffset >= length) {
       _throwRangeError(byteOffset, length);
     }
-    var result = _typeddata._getUint64(_offset + byteOffset);
+    var result = _typedData._getUint64(_offset + byteOffset);
     if (identical(endian, Endianness.HOST_ENDIAN)) {
       return result;
     }
@@ -3027,7 +3027,7 @@ class _ByteDataView implements ByteData {
     if (!identical(endian, Endianness.HOST_ENDIAN)) {
       set_value = _toEndianUint64(set_value, endian._littleEndian);
     }
-    _typeddata._setUint64(_offset + byteOffset, set_value);
+    _typedData._setUint64(_offset + byteOffset, set_value);
   }
 
   double getFloat32(int byteOffset,
@@ -3035,7 +3035,7 @@ class _ByteDataView implements ByteData {
     if (byteOffset < 0 || byteOffset >= length) {
       _throwRangeError(byteOffset, length);
     }
-    var result = _typeddata._getFloat32(_offset + byteOffset);
+    var result = _typedData._getFloat32(_offset + byteOffset);
     if (identical(endian, Endianness.HOST_ENDIAN)) {
       return result;
     }
@@ -3051,7 +3051,7 @@ class _ByteDataView implements ByteData {
     if (!identical(endian, Endianness.HOST_ENDIAN)) {
       set_value = _toEndianFloat32(set_value, endian._littleEndian);
     }
-    _typeddata._setFloat32(_offset + byteOffset, set_value);
+    _typedData._setFloat32(_offset + byteOffset, set_value);
   }
 
   double getFloat64(int byteOffset,
@@ -3059,7 +3059,7 @@ class _ByteDataView implements ByteData {
     if (byteOffset < 0 || byteOffset >= length) {
       _throwRangeError(byteOffset, length);
     }
-    var result = _typeddata._getFloat64(_offset + byteOffset);
+    var result = _typedData._getFloat64(_offset + byteOffset);
     if (identical(endian, Endianness.HOST_ENDIAN)) {
       return result;
     }
@@ -3075,7 +3075,7 @@ class _ByteDataView implements ByteData {
     if (!identical(endian, Endianness.HOST_ENDIAN)) {
       set_value = _toEndianFloat64(set_value, endian._littleEndian);
     }
-    _typeddata._setFloat64(_offset + byteOffset, set_value);
+    _typedData._setFloat64(_offset + byteOffset, set_value);
   }
 
   Float32x4 getFloat32x4(int byteOffset,
@@ -3084,7 +3084,7 @@ class _ByteDataView implements ByteData {
       _throwRangeError(byteOffset, length);
     }
     // TODO(johnmccutchan) : Need to resolve this for endianity.
-    return _typeddata._getFloat32x4(_offset + byteOffset);
+    return _typedData._getFloat32x4(_offset + byteOffset);
   }
   void setFloat32x4(int byteOffset,
                     Float32x4 value,
@@ -3093,7 +3093,7 @@ class _ByteDataView implements ByteData {
       _throwRangeError(byteOffset, length);
     }
     // TODO(johnmccutchan) : Need to resolve this for endianity.
-    _typeddata._setFloat32x4(_offset + byteOffset, value);
+    _typedData._setFloat32x4(_offset + byteOffset, value);
 
   }
 
@@ -3118,7 +3118,7 @@ class _ByteDataView implements ByteData {
       native "ByteData_ToEndianFloat64";
 
 
-  final TypedData _typeddata;
+  final TypedData _typedData;
   final int _offset;
   final int length;
 }

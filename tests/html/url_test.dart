@@ -6,7 +6,7 @@ library url_test;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_config.dart';
 import 'dart:html';
-import 'dart:typeddata';
+import 'dart:typed_data';
 
 main() {
   useHtmlConfiguration();

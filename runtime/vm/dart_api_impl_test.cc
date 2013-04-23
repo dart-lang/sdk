@@ -905,7 +905,7 @@ static Dart_NativeFunction ByteDataNativeResolver(Dart_Handle name,
 
 TEST_CASE(ByteDataAccess) {
   const char* kScriptChars =
-      "import 'dart:typeddata';\n"
+      "import 'dart:typed_data';\n"
       "class Expect {\n"
       "  static equals(a, b) {\n"
       "    if (a != b) {\n"
@@ -967,7 +967,7 @@ TEST_CASE(ExternalByteDataAccess) {
   // TODO(asiva): Once we have getInt16LE and getInt16BE support use the
   // appropriate getter instead of the host endian format used now.
   const char* kScriptChars =
-      "import 'dart:typeddata';\n"
+      "import 'dart:typed_data';\n"
       "class Expect {\n"
       "  static equals(a, b) {\n"
       "    if (a != b) {\n"
@@ -1086,7 +1086,7 @@ static void TestDirectAccess(Dart_Handle lib,
 
 TEST_CASE(TypedDataDirectAccess1) {
   const char* kScriptChars =
-      "import 'dart:typeddata';\n"
+      "import 'dart:typed_data';\n"
       "class Expect {\n"
       "  static equals(a, b) {\n"
       "    if (a != b) {\n"
@@ -1133,7 +1133,7 @@ TEST_CASE(TypedDataDirectAccess1) {
 
 TEST_CASE(TypedDataViewDirectAccess) {
   const char* kScriptChars =
-      "import 'dart:typeddata';\n"
+      "import 'dart:typed_data';\n"
       "class Expect {\n"
       "  static equals(a, b) {\n"
       "    if (a != b) {\n"
@@ -1172,7 +1172,7 @@ TEST_CASE(TypedDataViewDirectAccess) {
 
 TEST_CASE(ByteDataDirectAccess) {
   const char* kScriptChars =
-      "import 'dart:typeddata';\n"
+      "import 'dart:typed_data';\n"
       "class Expect {\n"
       "  static equals(a, b) {\n"
       "    if (a != b) {\n"
@@ -1377,7 +1377,7 @@ static void CheckFloat32x4Data(Dart_Handle obj) {
 
 TEST_CASE(Float32x4List) {
     const char* kScriptChars =
-      "import 'dart:typeddata';\n"
+      "import 'dart:typed_data';\n"
       "Float32x4List float32x4() {\n"
       "  return new Float32x4List(10);\n"
       "}\n";

@@ -1964,7 +1964,7 @@ void ClassFinalizer::VerifyImplicitFieldOffsets() {
     field ^= fields_array.At(0);
     ASSERT(field.Offset() == TypedDataView::data_offset());
     name ^= field.name();
-    expected_name ^= String::New("_typeddata");
+    expected_name ^= String::New("_typed_data");
     ASSERT(String::EqualsIgnoringPrivateKey(name, expected_name));
     field ^= fields_array.At(1);
     ASSERT(field.Offset() == TypedDataView::offset_in_bytes_offset());
@@ -1983,7 +1983,7 @@ void ClassFinalizer::VerifyImplicitFieldOffsets() {
   field ^= fields_array.At(0);
   ASSERT(field.Offset() == TypedDataView::data_offset());
   name ^= field.name();
-  expected_name ^= String::New("_typeddata");
+  expected_name ^= String::New("_typed_data");
   ASSERT(String::EqualsIgnoringPrivateKey(name, expected_name));
   field ^= fields_array.At(1);
   ASSERT(field.Offset() == TypedDataView::offset_in_bytes_offset());

@@ -7,7 +7,7 @@
 library float32x4_list_test;
 
 import 'package:expect/expect.dart';
-import 'dart:typeddata';
+import 'dart:typed_data';
 
 testLoadStore(array) {
   Expect.equals(8, array.length);

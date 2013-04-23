@@ -943,8 +943,8 @@ DART_EXPORT bool Dart_Post(Dart_Port port_id, Dart_Handle object);
  *
  * The string encoding in the 'value.as_string' is UTF-8.
  *
- * All the different types from dart:typeddata are exposed as type
- * kTypedData. The specific type from dart:typeddata is in the type
+ * All the different types from dart:typed_data are exposed as type
+ * kTypedData. The specific type from dart:typed_data is in the type
  * field of the as_typed_data structure. The length in the
  * as_typed_data structure is always in bytes.
  */

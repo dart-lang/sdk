@@ -9,7 +9,7 @@ import 'dart:_collection-dev';
 import 'dart:html';
 import 'dart:html_common';
 import 'dart:nativewrappers';
-import 'dart:typeddata';
+import 'dart:typed_data';
 
 part '$AUXILIARY_DIR/WebGLConstants.dart';
 

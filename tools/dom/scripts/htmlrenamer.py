@@ -727,7 +727,7 @@ class HtmlRenamer(object):
         return 'web_gl'
 
     if interface.id in typed_array_renames:
-      return 'typeddata'
+      return 'typed_data'
 
     return 'html'
 

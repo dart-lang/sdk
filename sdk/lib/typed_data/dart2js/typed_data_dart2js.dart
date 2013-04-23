@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// The Dart TypedData library.
-library dart.typeddata;
+library dart.typed_data;
 
 import 'dart:collection';
 import 'dart:_collection-dev';

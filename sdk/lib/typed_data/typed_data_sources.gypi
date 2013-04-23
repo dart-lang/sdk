@@ -2,13 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# Sources visible via dart:typeddata library.
-
 {
   'sources': [
-    'typeddata.cc',
-    'typeddata.dart',
-    'simd128.cc',
+    'typed_data.dart',
+    # The above file needs to be first if additional parts are added to the lib.
   ],
 }
-

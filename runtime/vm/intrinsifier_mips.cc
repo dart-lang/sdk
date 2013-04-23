@@ -85,15 +85,15 @@ bool Intrinsifier::TypedData_getLength(Assembler* assembler) {
 }
 
 
-#define TYPEDDATA_ALLOCATOR(clazz)                                             \
+#define TYPED_DATA_ALLOCATOR(clazz)                                            \
 bool Intrinsifier::TypedData_##clazz##_new(Assembler* assembler) {             \
   return false;                                                                \
 }                                                                              \
 bool Intrinsifier::TypedData_##clazz##_factory(Assembler* assembler) {         \
   return false;                                                                \
 }
-CLASS_LIST_TYPED_DATA(TYPEDDATA_ALLOCATOR)
-#undef TYPEDDATA_ALLOCATOR
+CLASS_LIST_TYPED_DATA(TYPED_DATA_ALLOCATOR)
+#undef TYPED_DATA_ALLOCATOR
 
 
 bool Intrinsifier::Integer_addFromInteger(Assembler* assembler) {

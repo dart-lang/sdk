@@ -2,7 +2,7 @@ library TestUtils;
 
 import 'dart:async';
 import 'dart:html';
-import 'dart:typeddata';
+import 'dart:typed_data';
 import '../../pkg/unittest/lib/unittest.dart';
 
 /**

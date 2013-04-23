@@ -889,20 +889,20 @@ RawError* Object::Init(Isolate* isolate) {
   Library::InitNativeWrappersLibrary(isolate);
   ASSERT(isolate->object_store()->native_wrappers_library() != Library::null());
 
-  // Pre-register the typeddata library so the native class implementations
+  // Pre-register the typed_data library so the native class implementations
   // can be hooked up before compiling it.
-  LOAD_LIBRARY(TypedData, typeddata);
+  LOAD_LIBRARY(TypedData, typed_data);
   ASSERT(!lib.IsNull());
   ASSERT(lib.raw() == Library::TypedDataLibrary());
-  const intptr_t typeddata_class_array_length =
+  const intptr_t typed_data_class_array_length =
       RawObject::NumberOfTypedDataClasses();
-  Array& typeddata_classes =
-      Array::Handle(Array::New(typeddata_class_array_length));
+  Array& typed_data_classes =
+      Array::Handle(Array::New(typed_data_class_array_length));
   int index = 0;
 #define REGISTER_TYPED_DATA_CLASS(clazz)                                       \
   cls = Class::NewTypedDataClass(kTypedData##clazz##Cid);                      \
   index = kTypedData##clazz##Cid - kTypedDataInt8ArrayCid;                     \
-  typeddata_classes.SetAt(index, cls);                                         \
+  typed_data_classes.SetAt(index, cls);                                        \
   RegisterPrivateClass(cls, Symbols::_##clazz(), lib);                         \
 
   CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_CLASS);
@@ -910,21 +910,21 @@ RawError* Object::Init(Isolate* isolate) {
 #define REGISTER_TYPED_DATA_VIEW_CLASS(clazz)                                  \
   cls = Class::NewTypedDataViewClass(kTypedData##clazz##ViewCid);              \
   index = kTypedData##clazz##ViewCid - kTypedDataInt8ArrayCid;                 \
-  typeddata_classes.SetAt(index, cls);                                         \
+  typed_data_classes.SetAt(index, cls);                                        \
   RegisterPrivateClass(cls, Symbols::_##clazz##View(), lib);                   \
   pending_classes.Add(cls, Heap::kOld);                                        \
 
   CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_VIEW_CLASS);
   cls = Class::NewTypedDataViewClass(kByteDataViewCid);
   index = kByteDataViewCid - kTypedDataInt8ArrayCid;
-  typeddata_classes.SetAt(index, cls);
+  typed_data_classes.SetAt(index, cls);
   RegisterPrivateClass(cls, Symbols::_ByteDataView(), lib);
   pending_classes.Add(cls, Heap::kOld);
 #undef REGISTER_TYPED_DATA_VIEW_CLASS
 #define REGISTER_EXT_TYPED_DATA_CLASS(clazz)                                   \
   cls = Class::NewExternalTypedDataClass(kExternalTypedData##clazz##Cid);      \
   index = kExternalTypedData##clazz##Cid - kTypedDataInt8ArrayCid;             \
-  typeddata_classes.SetAt(index, cls);                                         \
+  typed_data_classes.SetAt(index, cls);                                        \
   RegisterPrivateClass(cls, Symbols::_External##clazz(), lib);                 \
 
   CLASS_LIST_TYPED_DATA(REGISTER_EXT_TYPED_DATA_CLASS);
@@ -950,7 +950,7 @@ RawError* Object::Init(Isolate* isolate) {
   type = Type::NewNonParameterizedType(cls);
   object_store->set_uint32x4_type(type);
 
-  object_store->set_typeddata_classes(typeddata_classes);
+  object_store->set_typed_data_classes(typed_data_classes);
 
   // Set the super type of class Stacktrace to Object type so that the
   // 'toString' method is implemented.
@@ -1043,7 +1043,7 @@ RawError* Object::Init(Isolate* isolate) {
   INIT_LIBRARY(Json, json, true);
   INIT_LIBRARY(Math, math, true);
   INIT_LIBRARY(Mirrors, mirrors, true);
-  INIT_LIBRARY(TypedData, typeddata, true);
+  INIT_LIBRARY(TypedData, typed_data, true);
   INIT_LIBRARY(Utf, utf, false);
   INIT_LIBRARY(Uri, uri, false);
 
@@ -6617,7 +6617,7 @@ RawLibrary* Library::NativeWrappersLibrary() {
 
 
 RawLibrary* Library::TypedDataLibrary() {
-  return Isolate::Current()->object_store()->typeddata_library();
+  return Isolate::Current()->object_store()->typed_data_library();
 }
 
 
@@ -6907,7 +6907,7 @@ void Library::CheckFunctionFingerprints() {
   MATH_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
 
   lib = Library::TypedDataLibrary();
-  TYPEDDATA_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
+  TYPED_DATA_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
 
 #undef CHECK_FINGERPRINTS
   if (has_errors) {

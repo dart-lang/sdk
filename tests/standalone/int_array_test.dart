@@ -8,7 +8,7 @@
 library IntArrayTest;
 
 import "package:expect/expect.dart";
-import 'dart:typeddata';
+import 'dart:typed_data';
 
 void testInt16() {
   Int16List intArray = new Int16List(4);

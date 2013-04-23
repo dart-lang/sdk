@@ -86,9 +86,9 @@ const Map<String, LibraryInfo> LIBRARIES = const {
       documented: false,
       platforms: VM_PLATFORM),
 
-  "typeddata": const LibraryInfo(
-      "typeddata/typeddata.dart",
-      dart2jsPath: "typeddata/dart2js/typeddata_dart2js.dart"),
+  "typed_data": const LibraryInfo(
+      "typed_data/typed_data.dart",
+      dart2jsPath: "typed_data/dart2js/typed_data_dart2js.dart"),
 
   "svg": const LibraryInfo(
         "svg/dartium/svg_dartium.dart",

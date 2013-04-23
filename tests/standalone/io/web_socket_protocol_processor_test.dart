@@ -7,7 +7,7 @@ import "dart:utf";
 import "dart:math";
 import "dart:async";
 import "dart:collection";
-import "dart:typeddata";
+import "dart:typed_data";
 import "dart:isolate";
 
 part "../../../sdk/lib/io/http.dart";

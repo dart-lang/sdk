@@ -9,7 +9,7 @@ import '../../../tools/testing/dart/test_suite.dart';
 
 class AnalyzeLibraryTestSuite extends DartcCompilationTestSuite {
   final libraries = [ 'async', 'core', 'crypto', 'io', 'isolate', 'json',
-                      'math', 'mirrors', 'typeddata', 'uri',
+                      'math', 'mirrors', 'typed_data', 'uri',
                       'utf' ];
 
   AnalyzeLibraryTestSuite(Map configuration)

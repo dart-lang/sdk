@@ -8,7 +8,7 @@
 library ByteArrayViewOptimizedTest;
 
 import "package:expect/expect.dart";
-import "dart:typeddata";
+import "dart:typed_data";
 
 li16(v) => v[0];
 

@@ -489,7 +489,7 @@ void maybeEnableNative(Compiler compiler,
       || libraryName == 'dart:html_common'
       || libraryName == 'dart:indexed_db'
       || libraryName == 'dart:svg'
-      || libraryName == 'dart:typeddata'
+      || libraryName == 'dart:typed_data'
       || libraryName == 'dart:web_audio'
       || libraryName == 'dart:web_gl'
       || libraryName == 'dart:web_sql') {

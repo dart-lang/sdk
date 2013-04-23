@@ -23,8 +23,8 @@
     'isolate_patch_cc_file': '<(gen_source_dir)/isolate_patch_gen.cc',
     'json_cc_file': '<(gen_source_dir)/json_gen.cc',
     'json_patch_cc_file': '<(gen_source_dir)/json_patch_gen.cc',
-    'typeddata_cc_file': '<(gen_source_dir)/typeddata_gen.cc',
-    'typeddata_patch_cc_file': '<(gen_source_dir)/typeddata_patch_gen.cc',
+    'typed_data_cc_file': '<(gen_source_dir)/typed_data_gen.cc',
+    'typed_data_patch_cc_file': '<(gen_source_dir)/typed_data_patch_gen.cc',
     'uri_cc_file': '<(gen_source_dir)/uri_gen.cc',
     'utf_cc_file': '<(gen_source_dir)/utf_gen.cc',
     'snapshot_test_dat_file': '<(gen_source_dir)/snapshot_test.dat',
@@ -112,8 +112,8 @@
         'generate_json_patch_cc_file',
         'generate_mirrors_cc_file',
         'generate_mirrors_patch_cc_file',
-        'generate_typeddata_cc_file',
-        'generate_typeddata_patch_cc_file',
+        'generate_typed_data_cc_file',
+        'generate_typed_data_patch_cc_file',
         'generate_uri_cc_file',
         'generate_utf_cc_file',
       ],
@@ -124,7 +124,7 @@
         '../lib/isolate_sources.gypi',
         '../lib/math_sources.gypi',
         '../lib/mirrors_sources.gypi',
-        '../lib/typeddata_sources.gypi',
+        '../lib/typed_data_sources.gypi',
       ],
       'sources': [
         'bootstrap.cc',
@@ -146,8 +146,8 @@
         '<(json_patch_cc_file)',
         '<(mirrors_cc_file)',
         '<(mirrors_patch_cc_file)',
-        '<(typeddata_cc_file)',
-        '<(typeddata_patch_cc_file)',
+        '<(typed_data_cc_file)',
+        '<(typed_data_patch_cc_file)',
         '<(uri_cc_file)',
         '<(utf_cc_file)',
       ],
@@ -166,7 +166,7 @@
         '../lib/isolate_sources.gypi',
         '../lib/math_sources.gypi',
         '../lib/mirrors_sources.gypi',
-        '../lib/typeddata_sources.gypi',
+        '../lib/typed_data_sources.gypi',
       ],
       'sources': [
         'bootstrap_nocorelib.cc',
@@ -994,15 +994,15 @@
       ]
     },
     {
-      'target_name': 'generate_typeddata_cc_file',
+      'target_name': 'generate_typed_data_cc_file',
       'type': 'none',
       'toolsets':['host', 'target'],
       'variables': {
-        'typeddata_dart': '<(gen_source_dir)/typeddata_gen.dart',
+        'typed_data_dart': '<(gen_source_dir)/typed_data_gen.dart',
       },
       'includes': [
         # Load the shared library sources.
-        '../../sdk/lib/typeddata/typeddata_sources.gypi',
+        '../../sdk/lib/typed_data/typed_data_sources.gypi',
       ],
       'sources/': [
         # Exclude all .[cc|h] files.
@@ -1013,51 +1013,51 @@
       ],
       'actions': [
         {
-          'action_name': 'generate_typeddata_dart',
+          'action_name': 'generate_typed_data_dart',
           'inputs': [
             '../tools/concat_library.py',
             '<@(_sources)',
           ],
           'outputs': [
-            '<(typeddata_dart)',
+            '<(typed_data_dart)',
           ],
           'action': [
             'python',
             '<@(_inputs)',
-            '--output', '<(typeddata_dart)',
+            '--output', '<(typed_data_dart)',
           ],
-          'message': 'Generating ''<(typeddata_dart)'' file.',
+          'message': 'Generating ''<(typed_data_dart)'' file.',
         },
         {
-          'action_name': 'generate_typeddata_cc',
+          'action_name': 'generate_typed_data_cc',
           'inputs': [
             '../tools/create_string_literal.py',
             '<(builtin_in_cc_file)',
-            '<(typeddata_dart)',
+            '<(typed_data_dart)',
           ],
           'outputs': [
-            '<(typeddata_cc_file)',
+            '<(typed_data_cc_file)',
           ],
           'action': [
             'python',
             'tools/create_string_literal.py',
-            '--output', '<(typeddata_cc_file)',
+            '--output', '<(typed_data_cc_file)',
             '--input_cc', '<(builtin_in_cc_file)',
             '--include', 'vm/bootstrap.h',
-            '--var_name', 'dart::Bootstrap::typeddata_source_',
-            '<(typeddata_dart)',
+            '--var_name', 'dart::Bootstrap::typed_data_source_',
+            '<(typed_data_dart)',
           ],
-          'message': 'Generating ''<(typeddata_cc_file)'' file.'
+          'message': 'Generating ''<(typed_data_cc_file)'' file.'
         },
       ]
     },
     {
-      'target_name': 'generate_typeddata_patch_cc_file',
+      'target_name': 'generate_typed_data_patch_cc_file',
       'type': 'none',
       'toolsets':['host', 'target'],
       'includes': [
         # Load the runtime implementation sources.
-        '../lib/typeddata_sources.gypi',
+        '../lib/typed_data_sources.gypi',
       ],
       'sources/': [
         # Exclude all .[cc|h] files.
@@ -1068,25 +1068,25 @@
       ],
       'actions': [
         {
-          'action_name': 'generate_typeddata_patch_cc',
+          'action_name': 'generate_typed_data_patch_cc',
           'inputs': [
             '../tools/create_string_literal.py',
             '<(builtin_in_cc_file)',
             '<@(_sources)',
           ],
           'outputs': [
-            '<(typeddata_patch_cc_file)',
+            '<(typed_data_patch_cc_file)',
           ],
           'action': [
             'python',
             'tools/create_string_literal.py',
-            '--output', '<(typeddata_patch_cc_file)',
+            '--output', '<(typed_data_patch_cc_file)',
             '--input_cc', '<(builtin_in_cc_file)',
             '--include', 'vm/bootstrap.h',
-            '--var_name', 'dart::Bootstrap::typeddata_patch_',
+            '--var_name', 'dart::Bootstrap::typed_data_patch_',
             '<@(_sources)',
           ],
-          'message': 'Generating ''<(typeddata_patch_cc_file)'' file.'
+          'message': 'Generating ''<(typed_data_patch_cc_file)'' file.'
         },
       ]
     },

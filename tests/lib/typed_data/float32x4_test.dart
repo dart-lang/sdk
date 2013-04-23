@@ -6,7 +6,7 @@
 library float32x4_test;
 
 import "package:expect/expect.dart";
-import 'dart:typeddata';
+import 'dart:typed_data';
 
 testAdd() {
   var m = new Float32x4(-1.0, -2.0, -3.0, -4.0);

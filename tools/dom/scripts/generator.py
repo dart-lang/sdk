@@ -385,7 +385,7 @@ class OperationInfo(object):
     else:
       # TODO(antonm): temporary ugly hack.
       # While in transition phase we allow both DOM's ArrayBuffer
-      # and dart:typeddata's ByteBuffer for IDLs' ArrayBuffers,
+      # and dart:typed_data's ByteBuffer for IDLs' ArrayBuffers,
       # hence ArrayBuffer is mapped to dynamic in arguments and return
       # values.  To compensate for that when generating ArrayBuffer itself,
       # we need to lie a bit:
@@ -1379,7 +1379,7 @@ class TypeData(object):
 def TypedListTypeData(item_type):
   return TypeData(
       clazz='TypedList',
-      dart_type='List<%s>' % item_type, # TODO(antonm): proper typeddata interfaces.
+      dart_type='List<%s>' % item_type, # TODO(antonm): proper typed_data interfaces.
       item_type=item_type,
       is_typed_array=True)
 

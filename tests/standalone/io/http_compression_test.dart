@@ -9,7 +9,7 @@
 
 import 'package:expect/expect.dart';
 import 'dart:io';
-import 'dart:typeddata';
+import 'dart:typed_data';
 
 void testServerCompress() {
   void test(List<int> data) {

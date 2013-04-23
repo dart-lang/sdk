@@ -11,7 +11,7 @@ import "package:expect/expect.dart";
 import "dart:async";
 import "dart:io";
 import "dart:isolate";
-import "dart:typeddata";
+import "dart:typed_data";
 import "dart:uri";
 
 const String CERT_NAME = 'localhost_cert';

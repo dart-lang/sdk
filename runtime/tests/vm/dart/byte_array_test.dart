@@ -6,7 +6,7 @@
 library byte_array_test;
 
 import "package:expect/expect.dart";
-import 'dart:typeddata';
+import 'dart:typed_data';
 
 class ByteArrayTest {
   static testInt8ListImpl(Int8List array) {

@@ -7,7 +7,7 @@ library utils;
 import 'dart:async';
 import 'dart:crypto';
 import 'dart:io';
-import 'dart:typeddata';
+import 'dart:typed_data';
 import 'dart:uri';
 import 'dart:utf';
 

@@ -1775,7 +1775,7 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessages) {
 UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
   const int kArrayLength = 10;
   static const char* kScriptChars =
-      "import 'dart:typeddata';\n"
+      "import 'dart:typed_data';\n"
       "final int kArrayLength = 10;\n"
       "getStringList() {\n"
       "  var s = 'Hello, world!';\n"
@@ -1974,7 +1974,7 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
 UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
   const int kArrayLength = 10;
   static const char* kScriptChars =
-      "import 'dart:typeddata';\n"
+      "import 'dart:typed_data';\n"
       "final int kArrayLength = 10;\n"
       "getStringList() {\n"
       "  var s = 'Hello, world!';\n"
@@ -2185,7 +2185,7 @@ static void CheckTypedData(Dart_CObject* object,
 
 UNIT_TEST_CASE(DartGeneratedListMessagesWithTypedData) {
   static const char* kScriptChars =
-      "import 'dart:typeddata';\n"
+      "import 'dart:typed_data';\n"
       "getTypedDataList() {\n"
       "  var list = new List(10);\n"
       "  var index = 0;\n"

@@ -7,7 +7,7 @@ import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_individual_config.dart';
 import 'dart:html';
 import 'dart:collection';  // SplayTreeMap
-import 'dart:typeddata';
+import 'dart:typed_data';
 import 'utils.dart';
 
 injectSource(code) {

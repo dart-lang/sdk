@@ -6,7 +6,7 @@ library byte_stream;
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:typeddata';
+import 'dart:typed_data';
 
 import 'utils.dart';
 

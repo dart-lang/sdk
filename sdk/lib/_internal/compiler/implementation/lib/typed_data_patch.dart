@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// This is an empty dummy patch file for the VM dart:typeddata library.
+// This is an empty dummy patch file for the VM dart:typed_data library.
 // This is needed in order to be able to generate documentation for the
-// typeddata library.
+// typed_data library.
 
 patch class Int8List {
   patch factory Int8List(int length) {
