@@ -68,6 +68,26 @@ class TestConfiguration extends Configuration {
   }
 }
 
+makeDelayedSetup(index, s) => () {
+  return new Future.delayed(new Duration(milliseconds:1), () {
+    s.write('l$index U ');
+  });
+};
+
+makeDelayedTeardown(index, s) => () {
+  return new Future.delayed(new Duration(milliseconds:1), () {
+    s.write('l$index D ');
+  });
+};
+
+makeImmediateSetup(index, s) => () {
+  s.write('l$index U ');
+};
+
+makeImmediateTeardown(index, s) => () {
+  s.write('l$index D ');
+};
+
 runTest() {
   port.receive((String testName, sendport) {
     var testConfig = new TestConfiguration(sendport);
@@ -299,6 +319,31 @@ runTest() {
       });
     } else if (testName == 'runTests without tests') {
       runTests();
+    } else if (testName == 'nested groups setup/teardown') {
+      StringBuffer s = new StringBuffer();
+      group('level 1', () {
+        setUp(makeDelayedSetup(1, s));
+        group('level 2', () {
+          setUp(makeImmediateSetup(2, s));
+          tearDown(makeDelayedTeardown(2, s));
+          group('level 3', () {
+            group('level 4', () {
+              setUp(makeDelayedSetup(4, s));
+              tearDown(makeImmediateTeardown(4, s));
+              group('level 5', () {
+                setUp(makeImmediateSetup(5, s));
+                group('level 6', () {
+                  tearDown(makeDelayedTeardown(6, s));
+                  test('inner', () {});
+                });
+              });
+            });
+          });
+        });
+      });
+      test('after nest', () {
+        expect(s.toString(), "l1 U l2 U l4 U l5 U l6 D l4 D l2 D ");
+      });
     }
   });
 }
@@ -355,7 +400,10 @@ main() {
         'foo6'),
     'testCases immutable':
         buildStatusString(1, 0, 0, 'testCases immutable'),
-    'runTests without tests': buildStatusString(0, 0, 0, null)
+    'runTests without tests': buildStatusString(0, 0, 0, null),
+    'nested groups setup/teardown':
+        buildStatusString(2, 0, 0,
+            'level 1 level 2 level 3 level 4 level 5 level 6 inner::after nest')
   };
 
   tests.forEach((String name, String expected) {

@@ -258,10 +258,11 @@ bool _inGroup = false;
 /// Creates a new named group of tests. This has the same semantics as
 /// [unittest.group].
 void group(String description, void body()) {
+  _ensureInitialized();
+  _ensureSetUpForTopLevel();
   unittest.group(description, () {
     var wasInGroup = _inGroup;
     _inGroup = true;
-    _setUpScheduledTest();
     body();
     _inGroup = wasInGroup;
   });
@@ -311,20 +312,38 @@ void _ensureSetUpForTopLevel() {
 /// Registers callbacks for [unittest.setUp] and [unittest.tearDown] that set up
 /// and tear down the scheduled test infrastructure.
 void _setUpScheduledTest([void setUpFn()]) {
-  if (!_inGroup) _setUpForTopLevel = true;
-
-  unittest.setUp(() {
-    if (currentSchedule != null) {
-      throw new StateError('There seems to be another scheduled test '
-          'still running.');
-    }
-    _currentSchedule = new Schedule();
-    _setUpFn = setUpFn;
-  });
-
-  unittest.tearDown(() {
-    _currentSchedule = null;
-  });
+  if (!_inGroup) {
+    _setUpForTopLevel = true;
+    unittest.setUp(() {
+      if (currentSchedule != null) {
+        throw new StateError('There seems to be another scheduled test '
+            'still running.');
+      }
+      _currentSchedule = new Schedule();
+      if (_setUpFn != null) {
+        var parentFn = _setUpFn;
+        _setUpFn = () { parentFn(); setUpFn(); };
+      } else {
+        _setUpFn = setUpFn;
+      }
+    });
+ 
+    unittest.tearDown(() {
+      _currentSchedule = null;
+      _setUpFn = null;
+    });
+  } else {
+    unittest.setUp(() {
+      if (currentSchedule == null) {
+        throw new StateError('No schedule allocated.');
+      } else if (_setUpFn != null) {
+        var parentFn = _setUpFn;
+        _setUpFn = () { parentFn(); setUpFn(); };
+      } else {
+        _setUpFn = setUpFn;
+      }
+    });
+  }
 }
 
 /// Ensures that the global configuration for `scheduled_test` has been
