@@ -124,7 +124,6 @@ class SsaTypeGuardInserter extends SsaNonSpeculativeTypePropagator
                  && user.getDartReceiver(compiler) == instruction
                  && !speculativeType.computeMask(compiler).willHit(
                         user.selector, compiler)) {
-        print('$speculativeType and ${user.selector} disagree');
         return true;
       }
     }
