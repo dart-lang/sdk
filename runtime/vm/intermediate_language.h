@@ -2319,6 +2319,8 @@ class CurrentContextInstr : public TemplateDefinition<0> {
 
   virtual bool HasSideEffect() const { return false; }
 
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
  private:
   DISALLOW_COPY_AND_ASSIGN(CurrentContextInstr);
 };

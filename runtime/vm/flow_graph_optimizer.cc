@@ -3063,52 +3063,216 @@ static bool IsLoadEliminationCandidate(Definition* def) {
   // in the DominatorBasedCSE pass.
   // TODO(fschneider): Extend to other load instructions.
   return (def->IsLoadField() && def->AffectedBySideEffect())
-      || def->IsLoadIndexed();
+      || def->IsLoadIndexed()
+      || def->IsLoadStaticField()
+      || def->IsCurrentContext();
 }
 
 
-static intptr_t ComputeLoadOffsetInWords(Definition* defn) {
-  if (defn->IsLoadIndexed()) {
-    // We are assuming that LoadField is never used to load the first word.
-    return 0;
+// Alias represents a family of locations. It is used to capture aliasing
+// between stores and loads. Store can alias another load or store if and only
+// if they have the same alias.
+class Alias : public ValueObject {
+ public:
+  Alias(const Alias& other) : ValueObject(), alias_(other.alias_) { }
+
+  // All indexed load/stores alias each other.
+  // TODO(vegorov): incorporate type of array into alias to disambiguate
+  // different typed data and normal arrays.
+  static Alias Indexes() {
+    return Alias(kIndexesAlias);
   }
 
-  LoadFieldInstr* load_field = defn->AsLoadField();
-  if (load_field != NULL) {
-    const intptr_t idx = load_field->offset_in_bytes() / kWordSize;
-    ASSERT(idx > 0);
-    return idx;
+  // Field load/stores alias each other when field offset matches.
+  // TODO(vegorov): use field information to disambiguate load/stores into
+  // different fields that by accident share offset.
+  static Alias Field(intptr_t offset_in_bytes) {
+    const intptr_t idx = offset_in_bytes / kWordSize;
+    ASSERT(idx >= kFirstFieldAlias);
+    return Alias(idx * 2);
   }
 
-  UNREACHABLE();
-  return 0;
-}
-
-
-static bool IsInterferingStore(Instruction* instr,
-                               intptr_t* offset_in_words) {
-  if (instr->IsStoreIndexed()) {
-    // We are assuming that LoadField is never used to load the first word.
-    *offset_in_words = 0;
-    return true;
+  // Static field load/stores alias each other.
+  // AliasedSet assigns ids to static fields during optimization phase.
+  static Alias StaticField(intptr_t id) {
+    ASSERT(id >= kFirstFieldAlias);
+    return Alias(id * 2 + 1);
   }
 
-  StoreInstanceFieldInstr* store_instance_field = instr->AsStoreInstanceField();
-  if (store_instance_field != NULL) {
-    ASSERT(store_instance_field->field().Offset() != 0);
-    *offset_in_words = store_instance_field->field().Offset() / kWordSize;
-    return true;
+  // Current context load/stores alias each other.
+  static Alias CurrentContext() {
+    return Alias(kCurrentContextAlias);
   }
 
-  StoreVMFieldInstr* store_vm_field = instr->AsStoreVMField();
-  if (store_vm_field != NULL) {
-    ASSERT(store_vm_field->offset_in_bytes() != 0);
-    *offset_in_words = store_vm_field->offset_in_bytes() / kWordSize;
-    return true;
+  // Operation does not alias anything.
+  static Alias None() {
+    return Alias(kNoneAlias);
   }
 
-  return false;
-}
+  bool IsNone() const {
+    return alias_ == kNoneAlias;
+  }
+
+  // Convert this alias to a positive array index.
+  intptr_t ToIndex() const {
+    ASSERT(!IsNone());
+    return alias_ - kAliasBase;
+  }
+
+ private:
+  explicit Alias(intptr_t alias) : alias_(alias) { }
+
+  enum {
+    kNoneAlias = -2,
+    kCurrentContextAlias = -1,
+    kIndexesAlias = 0,
+    kFirstFieldAlias = kIndexesAlias + 1,
+    kAliasBase = kCurrentContextAlias
+  };
+
+  const intptr_t alias_;
+};
+
+
+// Set mapping alias to a list of loads sharing this alias.
+class AliasedSet : public ZoneAllocated {
+ public:
+  explicit AliasedSet(intptr_t max_expr_id)
+      : max_expr_id_(max_expr_id),
+        sets_(),
+        field_ids_(),
+        max_field_id_(0) { }
+
+  Alias ComputeAliasForLoad(Definition* defn) {
+    if (defn->IsLoadIndexed()) {
+      // We are assuming that LoadField is never used to load the first word.
+      return Alias::Indexes();
+    }
+
+    LoadFieldInstr* load_field = defn->AsLoadField();
+    if (load_field != NULL) {
+      return Alias::Field(load_field->offset_in_bytes());
+    }
+
+    if (defn->IsCurrentContext()) {
+      return Alias::CurrentContext();
+    }
+
+    LoadStaticFieldInstr* load_static_field = defn->AsLoadStaticField();
+    if (load_static_field != NULL) {
+      return Alias::StaticField(GetFieldId(load_static_field->field()));
+    }
+
+    UNREACHABLE();
+    return Alias::None();
+  }
+
+  Alias ComputeAliasForStore(Instruction* instr) {
+    if (instr->IsStoreIndexed()) {
+      return Alias::Indexes();
+    }
+
+    StoreInstanceFieldInstr* store_instance_field =
+        instr->AsStoreInstanceField();
+    if (store_instance_field != NULL) {
+      return Alias::Field(store_instance_field->field().Offset());
+    }
+
+    StoreVMFieldInstr* store_vm_field = instr->AsStoreVMField();
+    if (store_vm_field != NULL) {
+      return Alias::Field(store_vm_field->offset_in_bytes());
+    }
+
+    if (instr->IsStoreContext() || instr->IsChainContext()) {
+      return Alias::CurrentContext();
+    }
+
+    StoreStaticFieldInstr* store_static_field = instr->AsStoreStaticField();
+    if (store_static_field != NULL) {
+      return Alias::StaticField(GetFieldId(store_static_field->field()));
+    }
+
+    return Alias::None();
+  }
+
+  bool Contains(const Alias alias) {
+    const intptr_t idx = alias.ToIndex();
+    return (idx < sets_.length()) && (sets_[idx] != NULL);
+  }
+
+  BitVector* Get(const Alias alias) {
+    ASSERT(Contains(alias));
+    return sets_[alias.ToIndex()];
+  }
+
+  void Add(const Alias alias, intptr_t ssa_index) {
+    const intptr_t idx = alias.ToIndex();
+
+    while (sets_.length() <= idx) {
+      sets_.Add(NULL);
+    }
+
+    if (sets_[idx] == NULL) {
+      sets_[idx] = new BitVector(max_expr_id_);
+    }
+
+    sets_[idx]->Add(ssa_index);
+  }
+
+  intptr_t max_expr_id() const { return max_expr_id_; }
+  bool IsEmpty() const { return max_expr_id_ == 0; }
+
+ private:
+  const intptr_t max_expr_id_;
+
+  // Maps alias index to a set of ssa indexes corresponding to loads with the
+  // given alias.
+  GrowableArray<BitVector*> sets_;
+
+  // Get id assigned to the given field. Assign a new id if the field is seen
+  // for the first time.
+  intptr_t GetFieldId(const Field& field) {
+    intptr_t id = field_ids_.Lookup(&field);
+    if (id == 0) {
+      id = ++max_field_id_;
+      field_ids_.Insert(FieldIdPair(&field, id));
+    }
+    return id;
+  }
+
+  class FieldIdPair {
+   public:
+    typedef const Field* Key;
+    typedef intptr_t Value;
+    typedef FieldIdPair Pair;
+
+    FieldIdPair(Key key, Value value) : key_(key), value_(value) { }
+
+    static Key KeyOf(Pair kv) {
+      return kv.key_;
+    }
+
+    static Value ValueOf(Pair kv) {
+      return kv.value_;
+    }
+
+    static intptr_t Hashcode(Key key) {
+      return String::Handle(key->name()).Hash();
+    }
+
+    static inline bool IsKeyEqual(Pair kv, Key key) {
+      return KeyOf(kv)->raw() == key->raw();
+    }
+
+   private:
+    Key key_;
+    Value value_;
+  };
+
+  // Table mapping static field to their id used during optimization pass.
+  DirectChainedHashMap<FieldIdPair> field_ids_;
+  intptr_t max_field_id_;
+};
 
 
 static Definition* GetStoredValue(Instruction* instr) {
@@ -3126,6 +3290,15 @@ static Definition* GetStoredValue(Instruction* instr) {
     return store_vm_field->value()->definition();
   }
 
+  StoreStaticFieldInstr* store_static_field = instr->AsStoreStaticField();
+  if (store_static_field != NULL) {
+    return store_static_field->value()->definition();
+  }
+
+  if (instr->IsStoreContext() || instr->IsChainContext()) {
+    return instr->InputAt(0)->definition();
+  }
+
   UNREACHABLE();  // Should only be called for supported store instructions.
   return NULL;
 }
@@ -3136,7 +3309,7 @@ static Definition* GetStoredValue(Instruction* instr) {
 class LoadKeyValueTrait {
  public:
   typedef Definition* Value;
-  typedef Definition* Key;
+  typedef Instruction* Key;
   typedef Definition* Pair;
 
   static Key KeyOf(Pair kv) {
@@ -3171,6 +3344,16 @@ class LoadKeyValueTrait {
       StoreVMFieldInstr* store_field = key->AsStoreVMField();
       object = store_field->dest()->definition()->ssa_temp_index();
       location = store_field->offset_in_bytes();
+    } else if (key->IsLoadStaticField()) {
+      LoadStaticFieldInstr* load_static_field = key->AsLoadStaticField();
+      object = String::Handle(load_static_field->field().name()).Hash();
+    } else if (key->IsStoreStaticField()) {
+      StoreStaticFieldInstr* store_static_field = key->AsStoreStaticField();
+      object = String::Handle(store_static_field->field().name()).Hash();
+    } else {
+      ASSERT(key->IsStoreContext() ||
+             key->IsCurrentContext() ||
+             key->IsChainContext());
     }
 
     return object * 31 + location;
@@ -3187,6 +3370,20 @@ class LoadKeyValueTrait {
                load_indexed->index()->Equals(store_indexed->index());
       }
       return false;
+    }
+
+    if (kv->IsLoadStaticField()) {
+      if (key->IsStoreStaticField()) {
+        LoadStaticFieldInstr* load_static_field = kv->AsLoadStaticField();
+        StoreStaticFieldInstr* store_static_field = key->AsStoreStaticField();
+        return load_static_field->field().raw() ==
+            store_static_field->field().raw();
+      }
+      return false;
+    }
+
+    if (kv->IsCurrentContext()) {
+      return key->IsStoreContext() || key->IsChainContext();
     }
 
     ASSERT(kv->IsLoadField());
@@ -3206,10 +3403,9 @@ class LoadKeyValueTrait {
 };
 
 
-static intptr_t NumberLoadExpressions(
+static AliasedSet* NumberLoadExpressions(
     FlowGraph* graph,
-    DirectChainedHashMap<LoadKeyValueTrait>* map,
-    GrowableArray<BitVector*>* kill_by_offs) {
+    DirectChainedHashMap<LoadKeyValueTrait>* map) {
   intptr_t expr_id = 0;
 
   // Loads representing different expression ids will be collected and
@@ -3238,35 +3434,24 @@ static intptr_t NumberLoadExpressions(
     }
   }
 
-  // Build per offset kill sets. Any store interferes only with loads from
-  // the same offset.
+  // Build aliasing sets mapping aliases to loads.
+  AliasedSet* aliased_set = new AliasedSet(expr_id);
   for (intptr_t i = 0; i < loads.length(); i++) {
     Definition* defn = loads[i];
-
-    const intptr_t offset_in_words = ComputeLoadOffsetInWords(defn);
-    while (kill_by_offs->length() <= offset_in_words) {
-      kill_by_offs->Add(NULL);
-    }
-    if ((*kill_by_offs)[offset_in_words] == NULL) {
-      (*kill_by_offs)[offset_in_words] = new BitVector(expr_id);
-    }
-    (*kill_by_offs)[offset_in_words]->Add(defn->expr_id());
+    aliased_set->Add(aliased_set->ComputeAliasForLoad(defn), defn->expr_id());
   }
-
-  return expr_id;
+  return aliased_set;
 }
 
 
 class LoadOptimizer : public ValueObject {
  public:
   LoadOptimizer(FlowGraph* graph,
-                intptr_t max_expr_id,
-                DirectChainedHashMap<LoadKeyValueTrait>* map,
-                const GrowableArray<BitVector*>& kill_by_offset)
+                AliasedSet* aliased_set,
+                DirectChainedHashMap<LoadKeyValueTrait>* map)
       : graph_(graph),
         map_(map),
-        max_expr_id_(max_expr_id),
-        kill_by_offset_(kill_by_offset),
+        aliased_set_(aliased_set),
         in_(graph_->preorder().length()),
         out_(graph_->preorder().length()),
         gen_(graph_->preorder().length()),
@@ -3275,24 +3460,26 @@ class LoadOptimizer : public ValueObject {
         out_values_(graph_->preorder().length()),
         phis_(5),
         worklist_(5),
-        in_worklist_(NULL) {
+        in_worklist_(NULL),
+        forwarded_(false) {
     const intptr_t num_blocks = graph_->preorder().length();
     for (intptr_t i = 0; i < num_blocks; i++) {
-      out_.Add(new BitVector(max_expr_id_));
-      gen_.Add(new BitVector(max_expr_id_));
-      kill_.Add(new BitVector(max_expr_id_));
-      in_.Add(new BitVector(max_expr_id_));
+      out_.Add(new BitVector(aliased_set_->max_expr_id()));
+      gen_.Add(new BitVector(aliased_set_->max_expr_id()));
+      kill_.Add(new BitVector(aliased_set_->max_expr_id()));
+      in_.Add(new BitVector(aliased_set_->max_expr_id()));
 
       exposed_values_.Add(NULL);
       out_values_.Add(NULL);
     }
   }
 
-  void Optimize() {
+  bool Optimize() {
     ComputeInitialSets();
     ComputeOutValues();
     ForwardLoads();
     EmitPhis();
+    return forwarded_;
   }
 
  private:
@@ -3320,16 +3507,16 @@ class LoadOptimizer : public ValueObject {
            instr_it.Advance()) {
         Instruction* instr = instr_it.Current();
 
-        intptr_t offset_in_words = 0;
-        if (IsInterferingStore(instr, &offset_in_words)) {
+        const Alias alias = aliased_set_->ComputeAliasForStore(instr);
+        if (!alias.IsNone()) {
           // Interfering stores kill only loads from the same offset.
-          if ((offset_in_words < kill_by_offset_.length()) &&
-              (kill_by_offset_[offset_in_words] != NULL)) {
-            kill->AddAll(kill_by_offset_[offset_in_words]);
+          if (aliased_set_->Contains(alias)) {
+            BitVector* killed = aliased_set_->Get(alias);
+            kill->AddAll(killed);
             // There is no need to clear out_values when clearing GEN set
             // because only those values that are in the GEN set
             // will ever be used.
-            gen->RemoveAll(kill_by_offset_[offset_in_words]);
+            gen->RemoveAll(killed);
 
             // Only forward stores to normal arrays and float64 arrays
             // to loads because other array stores (intXX/uintXX/float32)
@@ -3338,7 +3525,7 @@ class LoadOptimizer : public ValueObject {
             if (array_store == NULL ||
                 array_store->class_id() == kArrayCid ||
                 array_store->class_id() == kTypedDataFloat64ArrayCid) {
-              Definition* load = map_->Lookup(instr->AsDefinition());
+              Definition* load = map_->Lookup(instr);
               if (load != NULL) {
                 // Store has a corresponding numbered load. Try forwarding
                 // stored value to it.
@@ -3348,7 +3535,7 @@ class LoadOptimizer : public ValueObject {
               }
             }
           }
-          ASSERT(instr->IsDefinition() &&
+          ASSERT(!instr->IsDefinition() ||
                  !IsLoadEliminationCandidate(instr->AsDefinition()));
           continue;
         }
@@ -3383,6 +3570,7 @@ class LoadOptimizer : public ValueObject {
 
           defn->ReplaceUsesWith(replacement);
           instr_it.RemoveCurrentFromGraph();
+          forwarded_ = true;
           continue;
         } else if (!kill->Contains(expr_id)) {
           // This is an exposed load: it is the first representative of a
@@ -3391,7 +3579,8 @@ class LoadOptimizer : public ValueObject {
           if (exposed_values == NULL) {
             static const intptr_t kMaxExposedValuesInitialSize = 5;
             exposed_values = new ZoneGrowableArray<Definition*>(
-                Utils::Minimum(kMaxExposedValuesInitialSize, max_expr_id_));
+                Utils::Minimum(kMaxExposedValuesInitialSize,
+                               aliased_set_->max_expr_id()));
           }
 
           exposed_values->Add(defn);
@@ -3417,7 +3606,7 @@ class LoadOptimizer : public ValueObject {
   // These phis are not inserted at the graph immediately because some of them
   // might become redundant after load forwarding is done.
   void ComputeOutValues() {
-    BitVector* temp = new BitVector(max_expr_id_);
+    BitVector* temp = new BitVector(aliased_set_->max_expr_id());
 
     bool changed = true;
     while (changed) {
@@ -3591,6 +3780,7 @@ class LoadOptimizer : public ValueObject {
           load->ReplaceUsesWith(replacement);
           load->RemoveFromGraph();
           load->SetReplacement(replacement);
+          forwarded_ = true;
         }
       }
     }
@@ -3668,8 +3858,8 @@ class LoadOptimizer : public ValueObject {
 
   ZoneGrowableArray<Definition*>* CreateBlockOutValues() {
     ZoneGrowableArray<Definition*>* out =
-        new ZoneGrowableArray<Definition*>(max_expr_id_);
-    for (intptr_t i = 0; i < max_expr_id_; i++) {
+        new ZoneGrowableArray<Definition*>(aliased_set_->max_expr_id());
+    for (intptr_t i = 0; i < aliased_set_->max_expr_id(); i++) {
       out->Add(NULL);
     }
     return out;
@@ -3677,11 +3867,10 @@ class LoadOptimizer : public ValueObject {
 
   FlowGraph* graph_;
   DirectChainedHashMap<LoadKeyValueTrait>* map_;
-  const intptr_t max_expr_id_;
 
   // Mapping between field offsets in words and expression ids of loads from
   // that offset.
-  const GrowableArray<BitVector*>& kill_by_offset_;
+  AliasedSet* aliased_set_;
 
   // Per block sets of expression ids for loads that are: incoming (available
   // on the entry), outgoing (available on the exit), generated and killed.
@@ -3706,6 +3895,9 @@ class LoadOptimizer : public ValueObject {
   GrowableArray<PhiInstr*> worklist_;
   BitVector* in_worklist_;
 
+  // True if any load was eliminated.
+  bool forwarded_;
+
   DISALLOW_COPY_AND_ASSIGN(LoadOptimizer);
 };
 
@@ -3715,11 +3907,16 @@ bool DominatorBasedCSE::Optimize(FlowGraph* graph) {
   if (FLAG_load_cse) {
     GrowableArray<BitVector*> kill_by_offs(10);
     DirectChainedHashMap<LoadKeyValueTrait> map;
-    const intptr_t max_expr_id =
-        NumberLoadExpressions(graph, &map, &kill_by_offs);
-    if (max_expr_id > 0) {
-      LoadOptimizer load_optimizer(graph, max_expr_id, &map, kill_by_offs);
-      load_optimizer.Optimize();
+    AliasedSet* aliased_set = NumberLoadExpressions(graph, &map);
+    if (!aliased_set->IsEmpty()) {
+      // If any loads were forwarded return true from Optimize to run load
+      // forwarding again. This will allow to forward chains of loads.
+      // This is especially important for context variables as they are built
+      // as loads from loaded context.
+      // TODO(vegorov): renumber newly discovered congruences during the
+      // forwarding to forward chains without running whole pass twice.
+      LoadOptimizer load_optimizer(graph, aliased_set, &map);
+      changed = load_optimizer.Optimize() || changed;
     }
   }
 
