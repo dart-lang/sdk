@@ -38,23 +38,23 @@ class Range;
   V(_ObjectArray, get:length, ObjectArrayLength, 405297088)                    \
   V(_ImmutableArray, get:length, ImmutableArrayLength, 433698233)              \
   V(_TypedList, get:length, TypedDataLength, 1004567191)                       \
-  V(_TypedList, _getInt8, ByteArrayBaseGetInt8, 380843687)                     \
-  V(_TypedList, _getUint8, ByteArrayBaseGetUint8, 380843687)                   \
-  V(_TypedList, _getInt16, ByteArrayBaseGetInt16, 380843687)                   \
-  V(_TypedList, _getUint16, ByteArrayBaseGetUint16, 380843687)                 \
-  V(_TypedList, _getInt32, ByteArrayBaseGetInt32, 380843687)                   \
-  V(_TypedList, _getUint32, ByteArrayBaseGetUint32, 380843687)                 \
-  V(_TypedList, _getFloat32, ByteArrayBaseGetFloat32, 979971573)               \
-  V(_TypedList, _getFloat64, ByteArrayBaseGetFloat64, 979971573)               \
+  V(_TypedList, _getInt8, ByteArrayBaseGetInt8, 728842615)                     \
+  V(_TypedList, _getUint8, ByteArrayBaseGetUint8, 728842615)                   \
+  V(_TypedList, _getInt16, ByteArrayBaseGetInt16, 728842615)                   \
+  V(_TypedList, _getUint16, ByteArrayBaseGetUint16, 728842615)                 \
+  V(_TypedList, _getInt32, ByteArrayBaseGetInt32, 728842615)                   \
+  V(_TypedList, _getUint32, ByteArrayBaseGetUint32, 728842615)                 \
+  V(_TypedList, _getFloat32, ByteArrayBaseGetFloat32, 1067360925)              \
+  V(_TypedList, _getFloat64, ByteArrayBaseGetFloat64, 1067360925)              \
   V(_TypedList, _getFloat32x4, ByteArrayBaseGetFloat32x4, 690339584)           \
-  V(_TypedList, _setInt8, ByteArrayBaseSetInt8, 287047804)                     \
-  V(_TypedList, _setUint8, ByteArrayBaseSetUint8, 287047804)                   \
-  V(_TypedList, _setInt16, ByteArrayBaseSetInt16, 287047804)                   \
-  V(_TypedList, _setUint16, ByteArrayBaseSetUint16, 287047804)                 \
-  V(_TypedList, _setInt32, ByteArrayBaseSetInt32, 287047804)                   \
-  V(_TypedList, _setUint32, ByteArrayBaseSetUint32, 287047804)                 \
-  V(_TypedList, _setFloat32, ByteArrayBaseSetFloat32, 1032541114)              \
-  V(_TypedList, _setFloat64, ByteArrayBaseSetFloat64, 1032541114)              \
+  V(_TypedList, _setInt8, ByteArrayBaseSetInt8, 427754869)                     \
+  V(_TypedList, _setUint8, ByteArrayBaseSetUint8, 427754869)                   \
+  V(_TypedList, _setInt16, ByteArrayBaseSetInt16, 427754869)                   \
+  V(_TypedList, _setUint16, ByteArrayBaseSetUint16, 427754869)                 \
+  V(_TypedList, _setInt32, ByteArrayBaseSetInt32, 427754869)                   \
+  V(_TypedList, _setUint32, ByteArrayBaseSetUint32, 427754869)                 \
+  V(_TypedList, _setFloat32, ByteArrayBaseSetFloat32, 637235443)               \
+  V(_TypedList, _setFloat64, ByteArrayBaseSetFloat64, 637235443)               \
   V(_TypedList, _setFloat32x4, ByteArrayBaseSetFloat32x4, 1016704782)          \
   V(_GrowableObjectArray, get:length, GrowableArrayLength, 725548050)          \
   V(_GrowableObjectArray, get:_capacity, GrowableArrayCapacity, 725548050)     \

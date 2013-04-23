@@ -2053,18 +2053,18 @@ void EffectGraphVisitor::BuildConstructorCall(
   V(ObjectArrayFactory, kArrayCid, 97987288)                                   \
   V(GrowableObjectArrayWithData, kGrowableObjectArrayCid, 816132033)           \
   V(GrowableObjectArrayFactory, kGrowableObjectArrayCid, 552407276)            \
-  V(Int8ListFactory, kTypedDataInt8ArrayCid, 2066002614)                       \
+  V(Int8ListFactory, kTypedDataInt8ArrayCid, 1299195009)                       \
   V(Uint8ListFactory, kTypedDataUint8ArrayCid, 1493118613)                     \
-  V(Uint8ClampedListFactory, kTypedDataUint8ClampedArrayCid, 244333676)        \
-  V(Int16ListFactory, kTypedDataInt16ArrayCid, 335889889)                      \
+  V(Uint8ClampedListFactory, kTypedDataUint8ClampedArrayCid, 642014193)        \
+  V(Int16ListFactory, kTypedDataInt16ArrayCid, 1346619471)                     \
   V(Uint16ListFactory, kTypedDataUint16ArrayCid, 1374024153)                   \
-  V(Int32ListFactory, kTypedDataInt32ArrayCid, 1615677219)                     \
-  V(Uint32ListFactory, kTypedDataUint32ArrayCid, 1239540305)                   \
-  V(Int64ListFactory, kTypedDataInt64ArrayCid, 993438946)                      \
-  V(Uint64ListFactory, kTypedDataUint64ArrayCid, 1830907325)                   \
-  V(Float64ListFactory, kTypedDataFloat64ArrayCid, 1236037424)                 \
-  V(Float32ListFactory, kTypedDataFloat32ArrayCid, 570814412)                  \
-  V(Float32x4ListFactory, kTypedDataFloat32x4ArrayCid, 173774085)              \
+  V(Int32ListFactory, kTypedDataInt32ArrayCid, 1583592980)                     \
+  V(Uint32ListFactory, kTypedDataUint32ArrayCid, 1940214615)                   \
+  V(Int64ListFactory, kTypedDataInt64ArrayCid, 108181413)                      \
+  V(Uint64ListFactory, kTypedDataUint64ArrayCid, 375587484)                    \
+  V(Float64ListFactory, kTypedDataFloat64ArrayCid, 919047725)                  \
+  V(Float32ListFactory, kTypedDataFloat32ArrayCid, 1038684997)                 \
+  V(Float32x4ListFactory, kTypedDataFloat32x4ArrayCid, 801641591)              \
 
 
 // Class that recognizes factories and returns corresponding result cid.
