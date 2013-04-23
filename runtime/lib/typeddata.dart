@@ -373,6 +373,16 @@ abstract class _TypedListBase {
         "Cannot add to a non-extendable array");
   }
 
+  void insert(int index, value) {
+    throw new UnsupportedError(
+        "Cannot insert into a non-extendable array");
+  }
+
+  void insertAll(int index, Iterable values) {
+    throw new UnsupportedError(
+        "Cannot insert into a non-extendable array");
+  }
+
   void sort([int compare(var a, var b)]) {
     return IterableMixinWorkaround.sortList(this, compare);
   }
@@ -395,7 +405,12 @@ abstract class _TypedListBase {
         "Cannot remove from a non-extendable array");
   }
 
-  void remove(Object element) {
+  bool remove(Object element) {
+    throw new UnsupportedError(
+        "Cannot remove from a non-extendable array");
+  }
+
+  bool removeAt(int index) {
     throw new UnsupportedError(
         "Cannot remove from a non-extendable array");
   }

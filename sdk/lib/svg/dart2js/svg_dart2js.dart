@@ -3164,7 +3164,7 @@ class LengthList implements JavaScriptIndexingBehavior, List<Length> native "SVG
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -3808,7 +3808,7 @@ class NumberList implements JavaScriptIndexingBehavior, List<Number> native "SVG
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -4683,7 +4683,7 @@ class PathSegList implements JavaScriptIndexingBehavior, List<PathSeg> native "S
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -5588,7 +5588,7 @@ class StringList implements JavaScriptIndexingBehavior, List<String> native "SVG
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -6766,7 +6766,7 @@ class TransformList implements List<Transform>, JavaScriptIndexingBehavior nativ
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -7305,7 +7305,7 @@ class _ElementInstanceList implements JavaScriptIndexingBehavior, List<ElementIn
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 

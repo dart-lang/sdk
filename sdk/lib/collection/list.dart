@@ -242,14 +242,15 @@ abstract class ListMixin<E> implements List<E> {
     }
   }
 
-  void remove(Object element) {
+  bool remove(Object element) {
     for (int i = 0; i < this.length; i++) {
       if (this[i] == element) {
-        this.setRange(i, i + this.length - 1, this, i + 1);
+        this.setRange(i, this.length - 1, this, i + 1);
         this.length -= 1;
-        return;
+        return true;
       }
     }
+    return false;
   }
 
   void removeWhere(bool test(E element)) {
@@ -294,6 +295,7 @@ abstract class ListMixin<E> implements List<E> {
   }
 
   void sort([Comparator<E> compare]) {
+    if (compare == null) compare = Comparable.compare;
     Sort.sort(this, compare);
   }
 

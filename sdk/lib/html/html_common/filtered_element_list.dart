@@ -120,15 +120,16 @@ class FilteredElementList extends ListBase<Element> {
     return result;
   }
 
-  void remove(Object element) {
+  bool remove(Object element) {
     if (element is! Element) return;
     for (int i = 0; i < length; i++) {
       Element indexElement = this[i];
       if (identical(indexElement, element)) {
         indexElement.remove();
-        return;
+        return true;
       }
     }
+    return false;
   }
 
 

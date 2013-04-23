@@ -222,7 +222,9 @@ abstract class QueueTest {
       testLength(35 - i, queue);
     }
 
-    queue.remove(10);
+    Expect.isTrue(queue.remove(10));
+    testLength(29, queue);
+    Expect.isFalse(queue.remove(999));
     testLength(29, queue);
 
     queue.removeWhere((x) => x == 7);
@@ -267,7 +269,7 @@ abstract class QueueTest {
     }
     Expect.equals(N - 1000, queue.length);
 
-    queue.remove(N >> 1);
+    Expect.isTrue(queue.remove(N >> 1));
     Expect.equals(N - 1001, queue.length);
 
     queue.clear();

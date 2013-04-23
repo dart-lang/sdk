@@ -179,13 +179,15 @@ class _ChildrenElementList extends ListBase<Element> {
     throw new UnimplementedError();
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     if (object is Element) {
       Element element = object;
       if (identical(element.parentNode, _element)) {
         _element.$dom_removeChild(element);
+        return true;
       }
     }
+    return false;
   }
 
   void removeWhere(bool test(Element element)) {
@@ -346,7 +348,7 @@ class _FrozenElementList extends ListBase {
     throw new UnsupportedError('');
   }
 
-  void remove(Object element) {
+  bool remove(Object element) {
     throw new UnsupportedError('');
   }
 

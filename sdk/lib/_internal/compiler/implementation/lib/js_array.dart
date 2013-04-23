@@ -52,14 +52,15 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     return JS('var', r'#.pop()', this);
   }
 
-  void remove(Object element) {
+  bool remove(Object element) {
     checkGrowable(this, 'remove');
     for (int i = 0; i < this.length; i++) {
       if (this[i] == element) {
         JS('var', r'#.splice(#, 1)', this, i);
-        return;
+        return true;
       }
     }
+    return false;
   }
 
   void removeWhere(bool test(E element)) {

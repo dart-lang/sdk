@@ -6918,7 +6918,7 @@ class DomMimeTypeArray implements JavaScriptIndexingBehavior, List<DomMimeType> 
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -7272,7 +7272,7 @@ class DomPluginArray implements JavaScriptIndexingBehavior, List<DomPlugin> nati
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -7694,7 +7694,7 @@ class DomStringList implements JavaScriptIndexingBehavior, List<String> native "
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -7967,13 +7967,15 @@ class _ChildrenElementList extends ListBase<Element> {
     throw new UnimplementedError();
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     if (object is Element) {
       Element element = object;
       if (identical(element.parentNode, _element)) {
         _element.$dom_removeChild(element);
+        return true;
       }
     }
+    return false;
   }
 
   void removeWhere(bool test(Element element)) {
@@ -8134,7 +8136,7 @@ class _FrozenElementList extends ListBase {
     throw new UnsupportedError('');
   }
 
-  void remove(Object element) {
+  bool remove(Object element) {
     throw new UnsupportedError('');
   }
 
@@ -10454,7 +10456,7 @@ class FileList implements JavaScriptIndexingBehavior, List<File> native "FileLis
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -11436,7 +11438,7 @@ class HtmlAllCollection implements JavaScriptIndexingBehavior, List<Node> native
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -11663,7 +11665,7 @@ class HtmlCollection implements JavaScriptIndexingBehavior, List<Node> native "H
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -15879,11 +15881,12 @@ class _ChildNodeListLazy extends ListBase<Node> {
     return result;
   }
 
-  void remove(Object object) {
-    if (object is! Node) return;
+  bool remove(Object object) {
+    if (object is! Node) return false;
     Node node = object;
-    if (!identical(_this, node.parentNode)) return;
+    if (!identical(_this, node.parentNode)) return false;
     _this.$dom_removeChild(node);
+    return true;
   }
 
   void _filter(bool test(Node node), bool removeMatching) {
@@ -16527,7 +16530,7 @@ class NodeList implements JavaScriptIndexingBehavior, List<Node> native "NodeLis
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -19059,7 +19062,7 @@ class SourceBufferList extends EventTarget implements JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -19359,7 +19362,7 @@ class SpeechGrammarList implements JavaScriptIndexingBehavior, List<SpeechGramma
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -20826,7 +20829,7 @@ class TextTrackCueList implements List<TextTrackCue>, JavaScriptIndexingBehavior
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -21051,7 +21054,7 @@ class TextTrackList extends EventTarget implements JavaScriptIndexingBehavior, L
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -21502,7 +21505,7 @@ class TouchList implements JavaScriptIndexingBehavior, List<Touch> native "Touch
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -24004,7 +24007,7 @@ class _ClientRectList implements JavaScriptIndexingBehavior, List<Rect> native "
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -24230,7 +24233,7 @@ class _CssRuleList implements JavaScriptIndexingBehavior, List<CssRule> native "
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -24447,7 +24450,7 @@ class _CssValueList extends _CSSValue implements JavaScriptIndexingBehavior, Lis
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -24744,7 +24747,7 @@ class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "Ent
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -24961,7 +24964,7 @@ class _EntryArraySync implements JavaScriptIndexingBehavior, List<_EntrySync> na
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -25221,7 +25224,7 @@ class _GamepadList implements JavaScriptIndexingBehavior, List<Gamepad> native "
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -25501,7 +25504,7 @@ class _NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "Na
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -25798,7 +25801,7 @@ class _SpeechInputResultList implements JavaScriptIndexingBehavior, List<SpeechI
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -26015,7 +26018,7 @@ class _SpeechRecognitionResultList implements JavaScriptIndexingBehavior, List<S
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -26232,7 +26235,7 @@ class _StyleSheetList implements JavaScriptIndexingBehavior, List<StyleSheet> na
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 

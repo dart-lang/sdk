@@ -7401,7 +7401,7 @@ class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeT
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -7783,7 +7783,7 @@ class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin>
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -8223,7 +8223,7 @@ class DomStringList extends NativeFieldWrapperClass1 implements List<String> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -8517,13 +8517,15 @@ class _ChildrenElementList extends ListBase<Element> {
     throw new UnimplementedError();
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     if (object is Element) {
       Element element = object;
       if (identical(element.parentNode, _element)) {
         _element.$dom_removeChild(element);
+        return true;
       }
     }
+    return false;
   }
 
   void removeWhere(bool test(Element element)) {
@@ -8684,7 +8686,7 @@ class _FrozenElementList extends ListBase {
     throw new UnsupportedError('');
   }
 
-  void remove(Object element) {
+  bool remove(Object element) {
     throw new UnsupportedError('');
   }
 
@@ -10928,7 +10930,7 @@ class FileList extends NativeFieldWrapperClass1 implements List<File> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -11963,7 +11965,7 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -12192,7 +12194,7 @@ class HtmlCollection extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -16993,11 +16995,12 @@ class _ChildNodeListLazy extends ListBase<Node> {
     return result;
   }
 
-  void remove(Object object) {
-    if (object is! Node) return;
+  bool remove(Object object) {
+    if (object is! Node) return false;
     Node node = object;
-    if (!identical(_this, node.parentNode)) return;
+    if (!identical(_this, node.parentNode)) return false;
     _this.$dom_removeChild(node);
+    return true;
   }
 
   void _filter(bool test(Node node), bool removeMatching) {
@@ -17639,7 +17642,7 @@ class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -20457,7 +20460,7 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -20795,7 +20798,7 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -22552,7 +22555,7 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -22781,7 +22784,7 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -23227,7 +23230,7 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -25591,7 +25594,7 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<Rect> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -25825,7 +25828,7 @@ class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -26046,7 +26049,7 @@ class _CssValueList extends _CSSValue implements List<_CSSValue> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -26519,7 +26522,7 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -26740,7 +26743,7 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<_EntrySyn
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -27022,7 +27025,7 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -27336,7 +27339,7 @@ class _NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -27652,7 +27655,7 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -27873,7 +27876,7 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -28094,7 +28097,7 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 

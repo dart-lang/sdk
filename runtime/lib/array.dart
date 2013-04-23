@@ -43,7 +43,7 @@ class _ObjectArray<E> implements List<E> {
         "Cannot remove element of a non-extendable array");
   }
 
-  void remove(Object element) {
+  bool remove(Object element) {
     throw new UnsupportedError(
         "Cannot remove element of a non-extendable array");
   }
@@ -310,7 +310,7 @@ class _ImmutableArray<E> implements List<E> {
         "Cannot modify an immutable array");
   }
 
-  void remove(Object element) {
+  bool remove(Object element) {
     throw new UnsupportedError(
         "Cannot modify an immutable array");
   }

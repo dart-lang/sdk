@@ -43,13 +43,14 @@ class _GrowableObjectArray<T> implements List<T> {
     return result;
   }
 
-  void remove(Object element) {
+  bool remove(Object element) {
     for (int i = 0; i < this.length; i++) {
       if (this[i] == element) {
         removeAt(i);
-        return;
+        return true;
       }
     }
+    return false;
   }
 
   void insertAll(int index, Iterable<T> iterable) {
