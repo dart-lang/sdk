@@ -18971,27 +18971,6 @@ typedef void RtcStatsCallback(RtcStatsResponse response);
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
-@DomName('RadioNodeList')
-class RadioNodeList extends NodeList {
-  RadioNodeList.internal() : super.internal();
-
-  @DomName('RadioNodeList.value')
-  @DocsEditable
-  String get value native "RadioNodeList_value_Getter";
-
-  @DomName('RadioNodeList.value')
-  @DocsEditable
-  void set value(String value) native "RadioNodeList_value_Setter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
 @DomName('Range')
 class Range extends NativeFieldWrapperClass1 {
   factory Range() => document.$dom_createRange();
@@ -27445,6 +27424,16 @@ class _NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
 @DomName('RGBColor')
 abstract class _RGBColor extends NativeFieldWrapperClass1 {
   _RGBColor.internal();
+
+}
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DomName('RadioNodeList')
+class _RadioNodeList extends NodeList {
+  _RadioNodeList.internal() : super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

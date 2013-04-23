@@ -93,6 +93,7 @@ _removed_html_interfaces = [
   'HTMLMarqueeElement',
   'IDBAny',
   'RGBColor',
+  'RadioNodeList',  # Folded onto NodeList in dart2js.
   'Rect',
   'SQLTransactionSync', # Workers
   'SQLTransactionSyncCallback', # Workers

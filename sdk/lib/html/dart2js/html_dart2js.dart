@@ -16369,7 +16369,7 @@ class NodeIterator native "NodeIterator" {
 
 @DocsEditable
 @DomName('NodeList')
-class NodeList implements JavaScriptIndexingBehavior, List<Node> native "NodeList" {
+class NodeList implements JavaScriptIndexingBehavior, List<Node> native "NodeList,RadioNodeList" {
 
   @DomName('NodeList.length')
   @DocsEditable
@@ -17667,19 +17667,6 @@ typedef void _RtcSessionDescriptionCallback(RtcSessionDescription sdp);
 
 
 typedef void RtcStatsCallback(RtcStatsResponse response);
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('RadioNodeList')
-class RadioNodeList extends NodeList native "RadioNodeList" {
-
-  @DomName('RadioNodeList.value')
-  @DocsEditable
-  String value;
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -25599,6 +25586,15 @@ class _NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "Na
 @DomName('RGBColor')
 abstract class _RGBColor native "RGBColor" {
 }
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+// Omit RadioNodeList for dart2js.  The Dart Form and FieldSet APIs don't
+// currently expose an API the returns RadioNodeList.  The only use of a
+// RadioNodeList is to get the selected value and it will be cleaner to
+// introduce a different API for that purpose.
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
