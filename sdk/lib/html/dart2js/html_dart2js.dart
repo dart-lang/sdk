@@ -22611,7 +22611,7 @@ class Window extends EventTarget implements WindowBase native "Window,DOMWindow"
   @SupportedBrowser(SupportedBrowser.IE, '10.0')
   @Experimental
   IdbFactory get indexedDB =>
-      JS('IdbFactory',
+      JS('IdbFactory|Null',
          '#.indexedDB || #.webkitIndexedDB || #.mozIndexedDB',
          this, this, this);
 

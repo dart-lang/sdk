@@ -200,7 +200,7 @@ $if DART2JS
   @SupportedBrowser(SupportedBrowser.IE, '10.0')
   @Experimental
   IdbFactory get indexedDB =>
-      JS('IdbFactory',
+      JS('IdbFactory|Null',  // If not supported, returns `null`.
          '#.indexedDB || #.webkitIndexedDB || #.mozIndexedDB',
          this, this, this);
 
