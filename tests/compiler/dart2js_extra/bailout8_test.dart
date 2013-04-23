@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Test that the right exception for dart2js is thrown in the presence of
+// bailouts.
+
 import "package:expect/expect.dart";
 
 var a;
@@ -22,6 +25,7 @@ main() {
     a = null;
     Expect.throws(foo, (e) => e is NoSuchMethodError);
     a = null;
+    // dart2js throws [ArgumentError], VM throws [NoSuchMethodError].
     Expect.throws(bar, (e) => e is ArgumentError);
   }
 }
