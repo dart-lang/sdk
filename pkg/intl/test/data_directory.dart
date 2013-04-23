@@ -27,7 +27,7 @@ String get intlDirectory {
   /**
    * A helper function that returns false (indicating we should stop iterating)
    * if the argument to the previous call was 'intl' and also sets
-   * the outer scope [foundIntl].
+   * the outer scope [foundIntlDir].
    */
   bool checkForIntlDir(String each) {
     if (foundIntlDir) return false;

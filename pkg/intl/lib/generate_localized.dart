@@ -106,7 +106,8 @@ void generateIndividualMessageFile(String locale,
 }
 
 /**
- * This returns the mostly constant string used in [generated] for the
+ * This returns the mostly constant string used in
+ * [generateIndividualMessageFile] for the
  * beginning of the file, parameterized by [locale].
  */
 String prologue(String locale) => """
@@ -172,7 +173,7 @@ import 'package:$intlImportPath/intl.dart';
 """;
 
 /**
- * Constant string used in [generateMainImportfile] as the end of the file.
+ * Constant string used in [generateMainImportFile] as the end of the file.
  */
 const closing = """
     default: return null;

@@ -562,7 +562,7 @@ class _NumberFormatParser {
     return true;
   }
 
-  /** Variables used in [parseTrunk] and [parseTrunkCharacter]. */
+  /** Variables used in [_parseTrunk] and [parseTrunkCharacter]. */
   var decimalPos;
   var digitLeftCount;
   var zeroDigitCount;

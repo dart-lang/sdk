@@ -256,7 +256,7 @@ class Intl {
    *
    * In either case, the purpose of this is to delay calling [message_function]
    * until the proper locale has been set. This returns the result of calling
-   * [msg_function], which could be of an arbitrary type.
+   * [message_function], which could be of an arbitrary type.
    */
   static withLocale(String locale, Function message_function) {
     // We have to do this silliness because Locale is not known at compile time,

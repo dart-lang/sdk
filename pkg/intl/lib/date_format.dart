@@ -16,11 +16,14 @@ part of intl;
  * date-time strings under certain locales. Date elements that vary across
  * locales include month name, weekname, field, order, etc.
  *
- * The actual date for the locales must be obtained. This can currently be done
- * in one of three ways, determined by which library you import. If you only
- * want to use en_US formatting you can use it directly, as a copy of that
- * locale is hard-coded into the formatter. In all other cases,
- * the [initializeDateFormatting] method must be called and will return a future
+ * Formatting dates in the default "en_US" format does not require any
+ * initialization. e.g.
+ *       print(new DateFormat.yMMMd().format(new Date.now()));
+ *
+ * But for other locales, the formatting data for the locale must be
+ * obtained. This can currently be done
+ * in one of three ways, determined by which library you import. In all cases,
+ * the "initializeDateFormatting" method must be called and will return a future
  * that is complete once the locale data is available. The result of the future
  * isn't important, but the data for that locale is available to the date
  * formatting and parsing once it completes.
@@ -28,7 +31,7 @@ part of intl;
  * The easiest option is that the data may be available locally, imported in a
  * library that contains data for all the locales.
  *       import 'package:intl/date_symbol_data_local.dart';
- *       initializeDateFormatting("en_US", null).then((_) => runMyCode());
+ *       initializeDateFormatting("fr_FR", null).then((_) => runMyCode());
  *
  * If we are running outside of a browser, we may want to read the data
  * from files in the file system.
@@ -473,7 +476,7 @@ class DateFormat {
    * A series of regular expressions used to parse a format string into its
    * component fields.
    */
-  static List<Pattern> _matchers = [
+  static List<RegExp> _matchers = [
       // Quoted String - anything between single quotes, with escaping
       //   of single quotes by doubling them.
       // e.g. in the pattern "hh 'o''clock'" will match 'o''clock'
