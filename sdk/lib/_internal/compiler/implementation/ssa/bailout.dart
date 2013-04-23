@@ -67,6 +67,7 @@ class SsaTypeGuardInserter extends SsaNonSpeculativeTypePropagator
   final CodegenWorkItem work;
   bool calledInLoop = false;
   bool isRecursiveMethod = false;
+  bool hasInsertedChecks = false;
   int stateId = 1;
   Map<HInstruction, HType> savedTypes = new Map<HInstruction, HType>();
 
@@ -113,6 +114,23 @@ class SsaTypeGuardInserter extends SsaNonSpeculativeTypePropagator
 
   bool get hasTypeGuards => work.guards.length != 0;
 
+  bool isUsedWithIncompatibleSelector(HInstruction instruction,
+                                      HType speculativeType) {
+    for (HInstruction user in instruction.usedBy) {
+      if (user is HCheck
+          && isUsedWithIncompatibleSelector(user, speculativeType)) {
+        return true;
+      } else if (user.selector != null
+                 && user.getDartReceiver(compiler) == instruction
+                 && !speculativeType.computeMask(compiler).willHit(
+                        user.selector, compiler)) {
+        print('$speculativeType and ${user.selector} disagree');
+        return true;
+      }
+    }
+    return false;
+  }
+
   bool typeGuardWouldBeValuable(HInstruction instruction,
                                 HType speculativeType) {
     // If the type itself is not valuable, do not generate a guard for it.
@@ -131,6 +149,12 @@ class SsaTypeGuardInserter extends SsaNonSpeculativeTypePropagator
           return false;
         }
       }
+    }
+
+    // Do not insert a type guard if one of the calls on it will hit
+    // [NoSuchMethodError].
+    if (isUsedWithIncompatibleSelector(instruction, speculativeType)) {
+      return false;
     }
 
     // Insert type guards for recursive methods.
@@ -190,6 +214,30 @@ class SsaTypeGuardInserter extends SsaNonSpeculativeTypePropagator
     return calledInLoop;
   }
 
+  // Returns whether an invocation of [selector] on [receiver] will throw a
+  // [ArgumentError] if the argument is not of the right type.
+  bool willThrowArgumentError(Selector selector, HInstruction receiver) {
+    if (receiver != null && (receiver.isInteger() || receiver.isString())) {
+      return selector.isOperator() && selector.name != const SourceString('==');
+    }
+    return false;
+  }
+
+  // Returns whether an invocation of [selector] will throw a
+  // [NoSuchMethodError] if the receiver is not of the type
+  // [speculativeType].
+  bool willThrowNoSuchMethodErrorIfNot(Selector selector,
+                                       HType speculativeType) {
+    return compiler.world.hasSingleMatch(selector)
+        // In some cases, we want the receiver to be an integer,
+        // but that does not mean we will get a NoSuchMethodError
+        // if it's not: the receiver could be a double.
+        && !speculativeType.isInteger()
+        // We speculate on the [operator==] instruction, but we know it
+        // will never throw a [NoSuchMethodError].
+        && selector.name != const SourceString('==');
+  }
+
   bool shouldInsertTypeGuard(HInstruction instruction, HType speculativeType) {
     if (!speculativeType.isUseful()) return false;
     // If the types agree we don't need to check.
@@ -199,12 +247,77 @@ class SsaTypeGuardInserter extends SsaNonSpeculativeTypePropagator
     return typeGuardWouldBeValuable(instruction, speculativeType);
   }
 
+  HInstruction computeFirstDominatingUserWithSelector(
+      HInstruction instruction) {
+    // TODO(ngeoffray): We currently only look at the instruction's
+    // block, so that we know it will be executed. We should lift this
+    // limitation.
+
+    // For a parameter, we look at the first block that contains
+    // user instructions.
+    HBasicBlock userMustBeInBlock = instruction is HParameterValue
+        ? instruction.block.successors[0]
+        : instruction.block;
+
+    HInstruction firstUser;
+    for (HInstruction user in instruction.usedBy) {
+      if (user.block == userMustBeInBlock && user.selector != null) {
+        if (firstUser == null || user.dominates(firstUser)) {
+          firstUser = user;
+        }
+      }
+    }
+    return firstUser;
+  }
+
+  /**
+   * Tries to insert a type conversion instruction for [instruction]
+   * instead of a type guard if we know an user will throw. Returns
+   * whether it succeeded at adding a type conversion instruction.
+   */
+  bool tryTypeConversion(HInstruction instruction, HType speculativeType) {
+    HInstruction firstUser =
+        computeFirstDominatingUserWithSelector(instruction);
+    if (firstUser == null) return false;
+
+    // If we have found a user with a selector, we find out if it
+    // will throw [NoSuchMethodError] or [ArgumentError].
+    Selector selector = firstUser.selector;
+    Selector receiverSelectorOnThrow = null;
+    HInstruction receiver = firstUser.getDartReceiver(compiler);
+    bool willThrow = false;
+    if (receiver == instruction) {
+      if (willThrowNoSuchMethodErrorIfNot(selector, speculativeType)) {
+        receiverSelectorOnThrow = selector;
+        willThrow = true;
+      }
+    } else if (willThrowArgumentError(selector, receiver)) {
+      willThrow = true;
+    }
+
+    if (!willThrow) return false;
+
+    HTypeConversion check = new HTypeConversion(
+            null,
+            receiverSelectorOnThrow == null
+                ? HTypeConversion.ARGUMENT_TYPE_CHECK
+                : HTypeConversion.RECEIVER_TYPE_CHECK,
+            speculativeType,
+            instruction,
+            receiverSelectorOnThrow);
+    hasInsertedChecks = true;
+    firstUser.block.addBefore(firstUser, check);
+    instruction.replaceAllUsersDominatedBy(firstUser, check);
+    return true;
+  }
+
   bool updateType(HInstruction instruction) {
     bool hasChanged = super.updateType(instruction);
     HType speculativeType = savedTypes[instruction];
     if (speculativeType == null) return hasChanged;
 
-    if (shouldInsertTypeGuard(instruction, speculativeType)) {
+    if (shouldInsertTypeGuard(instruction, speculativeType)
+        && !tryTypeConversion(instruction, speculativeType)) {
       HInstruction insertionPoint;
       if (instruction is HPhi) {
         insertionPoint = instruction.block.first;

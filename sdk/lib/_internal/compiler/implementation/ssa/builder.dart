@@ -2494,7 +2494,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       if (value != null) {
         stack.add(graph.addConstant(value));
       } else if (element.isField() && isLazilyInitialized(element)) {
-        push(new HLazyStatic(element));
+        HInstruction instruction = new HLazyStatic(element);
+        instruction.instructionType =
+            new HType.inferredTypeForElement(element, compiler);
+        push(instruction);
       } else {
         if (element.isGetter()) {
           Selector selector = elements.getSelector(send);
@@ -2505,9 +2508,16 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         }
         // TODO(5346): Try to avoid the need for calling [declaration] before
         // creating an [HStatic].
-        push(new HStatic(element.declaration));
+        HInstruction instruction = new HStatic(element.declaration);
         if (element.isGetter()) {
-          push(new HInvokeStatic(<HInstruction>[pop()], HType.UNKNOWN));
+          add(instruction);
+          push(new HInvokeStatic(
+              <HInstruction>[instruction],
+              new HType.inferredReturnTypeForElement(element, compiler)));
+        } else {
+          instruction.instructionType =
+              new HType.inferredTypeForElement(element, compiler);
+          push(instruction);
         }
       }
     } else if (Elements.isInstanceSend(send, elements)) {

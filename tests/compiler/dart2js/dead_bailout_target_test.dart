@@ -14,7 +14,12 @@ main() {
   foo([]);
 }
 
+class A {
+  operator -() => this;
+}
+
 foo(a) {
+  new A(); // Force having another operator-
   // Make the method recursive to always enable bailouts
   // and force a list instantiation.
   foo([]);

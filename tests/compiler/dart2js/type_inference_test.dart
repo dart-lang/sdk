@@ -111,6 +111,7 @@ main() {
   generated = compile(TEST_SIX, entry: 'foo');
   regexp = new RegExp('a.constructor !== Array');
   Expect.isTrue(regexp.hasMatch(generated));
-  Expect.isTrue(!generated.contains('index'));
+  Expect.isTrue(!generated.contains('index(0)'));
+  Expect.isTrue(!generated.contains('index(1)'));
   Expect.isTrue(!generated.contains('indexSet'));
 }

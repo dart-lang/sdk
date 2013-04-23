@@ -266,5 +266,5 @@ class JSNull extends Interceptor implements Null {
  * have a type mask that contains the primitive objects that we can
  * use the [] operator on.
  */
-class JSIndexable {
+abstract class JSIndexable {
 }

@@ -315,7 +315,7 @@ class SsaSpeculativeTypePropagator extends SsaTypePropagator {
   }
 
   HType computeDesiredType(HInstruction instruction) {
-    HType desiredType = HType.UNKNOWN;
+    HType desiredType = instruction.instructionType;
     for (final user in instruction.usedBy) {
       HType userDesiredType =  desiredTypeVisitor.computeDesiredTypeForInput(
           user, instruction);

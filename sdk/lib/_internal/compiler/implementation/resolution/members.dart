@@ -435,6 +435,9 @@ class ResolverTask extends CompilerTask {
         // TODO(ngeoffray): We could do better here by using the
         // constant handler to figure out if it's a lazy field or not.
         compiler.backend.registerLazyField(visitor.mapping);
+      } else {
+        compiler.enqueuer.resolution.registerInstantiatedClass(
+            compiler.nullClass, visitor.mapping);
       }
     }
 

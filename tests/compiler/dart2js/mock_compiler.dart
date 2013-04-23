@@ -77,7 +77,7 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
     bool operator==(other) => identical(this, other);
     noSuchMethod(im) { throw im; }
   }
-  class JSIndexable {}
+  abstract class JSIndexable {}
   class JSArray extends Interceptor implements List, JSIndexable {
     var length;
     operator[](index) {}

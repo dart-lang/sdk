@@ -102,7 +102,8 @@ class IndexAssignSpecializer extends InvokeDynamicSpecializer {
     if (instruction.inputs[1].isMutableArray()) {
       return new HIndexAssign(instruction.inputs[1],
                               instruction.inputs[2],
-                              instruction.inputs[3]);
+                              instruction.inputs[3],
+                              instruction.selector);
     }
     return null;
   }
@@ -129,7 +130,8 @@ class IndexSpecializer extends InvokeDynamicSpecializer {
   HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
                                    Compiler compiler) {
     if (instruction.inputs[1].isIndexablePrimitive()) {
-      return new HIndex(instruction.inputs[1], instruction.inputs[2]);
+      return new HIndex(
+          instruction.inputs[1], instruction.inputs[2], instruction.selector);
     }
     return null;
   }
@@ -165,7 +167,7 @@ class BitNotSpecializer extends InvokeDynamicSpecializer {
   HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
                                    Compiler compiler) {
     HInstruction input = instruction.inputs[1];
-    if (input.isNumber()) return new HBitNot(input);
+    if (input.isNumber()) return new HBitNot(input, instruction.selector);
     return null;
   }
 }
@@ -201,7 +203,7 @@ class UnaryNegateSpecializer extends InvokeDynamicSpecializer {
   HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
                                    Compiler compiler) {
     HInstruction input = instruction.inputs[1];
-    if (input.isNumber()) return new HNegate(input);
+    if (input.isNumber()) return new HNegate(input, instruction.selector);
     return null;
   }
 }
@@ -257,8 +259,7 @@ abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
   HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
                                    Compiler compiler) {
     if (isBuiltin(instruction)) {
-      HInstruction builtin =
-          newBuiltinVariant(instruction.inputs[1], instruction.inputs[2]);
+      HInstruction builtin = newBuiltinVariant(instruction);
       if (builtin != null) return builtin;
       // Even if there is no builtin equivalent instruction, we know
       // the instruction does not have any side effect, and that it
@@ -270,7 +271,7 @@ abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
     return null;
   }
 
-  HInstruction newBuiltinVariant(HInstruction left, HInstruction right);
+  HInstruction newBuiltinVariant(HInvokeDynamic instruction);
 }
 
 class AddSpecializer extends BinaryArithmeticSpecializer {
@@ -280,8 +281,9 @@ class AddSpecializer extends BinaryArithmeticSpecializer {
     return constantSystem.add;
   }
 
-  HInstruction newBuiltinVariant(HInstruction left, HInstruction right) {
-    return new HAdd(left, right);
+  HInstruction newBuiltinVariant(HInvokeDynamic instruction) {
+    return new HAdd(
+        instruction.inputs[1], instruction.inputs[2], instruction.selector);
   }
 }
 
@@ -309,8 +311,9 @@ class DivideSpecializer extends BinaryArithmeticSpecializer {
         instruction, input, compiler);
   }
 
-  HInstruction newBuiltinVariant(HInstruction left, HInstruction right) {
-    return new HDivide(left, right);
+  HInstruction newBuiltinVariant(HInvokeDynamic instruction) {
+    return new HDivide(
+        instruction.inputs[1], instruction.inputs[2], instruction.selector);
   }
 }
 
@@ -321,7 +324,7 @@ class ModuloSpecializer extends BinaryArithmeticSpecializer {
     return constantSystem.modulo;
   }
 
-  HInstruction newBuiltinVariant(HInstruction left, HInstruction right) {
+  HInstruction newBuiltinVariant(HInvokeDynamic instruction) {
     // Modulo cannot be mapped to the native operator (different semantics).    
     return null;
   }
@@ -334,8 +337,9 @@ class MultiplySpecializer extends BinaryArithmeticSpecializer {
     return constantSystem.multiply;
   }
 
-  HInstruction newBuiltinVariant(HInstruction left, HInstruction right) {
-    return new HMultiply(left, right);
+  HInstruction newBuiltinVariant(HInvokeDynamic instruction) {
+    return new HMultiply(
+        instruction.inputs[1], instruction.inputs[2], instruction.selector);
   }
 }
 
@@ -346,8 +350,9 @@ class SubtractSpecializer extends BinaryArithmeticSpecializer {
     return constantSystem.subtract;
   }
 
-  HInstruction newBuiltinVariant(HInstruction left, HInstruction right) {
-    return new HSubtract(left, right);
+  HInstruction newBuiltinVariant(HInvokeDynamic instruction) {
+    return new HSubtract(
+        instruction.inputs[1], instruction.inputs[2], instruction.selector);
   }
 }
 
@@ -358,7 +363,7 @@ class TruncatingDivideSpecializer extends BinaryArithmeticSpecializer {
     return constantSystem.truncatingDivide;
   }
 
-  HInstruction newBuiltinVariant(HInstruction left, HInstruction right) {
+  HInstruction newBuiltinVariant(HInvokeDynamic instruction) {
     // Truncating divide does not have a JS equivalent.    
     return null;
   }
@@ -407,20 +412,21 @@ class ShiftLeftSpecializer extends BinaryBitOpSpecializer {
     IntConstant intConstant = rightConstant.constant;
     int count = intConstant.value;
     if (count >= 0 && count <= 31) {
-      return newBuiltinVariant(left, right);
+      return newBuiltinVariant(instruction);
     }
     return null;
   }
 
-  HInstruction newBuiltinVariant(HInstruction left, HInstruction right) {
-    return new HShiftLeft(left, right);
+  HInstruction newBuiltinVariant(HInvokeDynamic instruction) {
+    return new HShiftLeft(
+        instruction.inputs[1], instruction.inputs[2], instruction.selector);
   }
 }
 
 class ShiftRightSpecializer extends BinaryBitOpSpecializer {
   const ShiftRightSpecializer();
 
-  HInstruction newBuiltinVariant(HInstruction left, HInstruction right) {
+  HInstruction newBuiltinVariant(HInvokeDynamic instruction) {
     // Shift right cannot be mapped to the native operator easily.    
     return null;
   }
@@ -437,8 +443,9 @@ class BitOrSpecializer extends BinaryBitOpSpecializer {
     return constantSystem.bitOr;
   }
 
-  HInstruction newBuiltinVariant(HInstruction left, HInstruction right) {
-    return new HBitOr(left, right);
+  HInstruction newBuiltinVariant(HInvokeDynamic instruction) {
+    return new HBitOr(
+        instruction.inputs[1], instruction.inputs[2], instruction.selector);
   }
 }
 
@@ -449,8 +456,9 @@ class BitAndSpecializer extends BinaryBitOpSpecializer {
     return constantSystem.bitAnd;
   }
 
-  HInstruction newBuiltinVariant(HInstruction left, HInstruction right) {
-    return new HBitAnd(left, right);
+  HInstruction newBuiltinVariant(HInvokeDynamic instruction) {
+    return new HBitAnd(
+        instruction.inputs[1], instruction.inputs[2], instruction.selector);
   }
 }
 
@@ -461,8 +469,9 @@ class BitXorSpecializer extends BinaryBitOpSpecializer {
     return constantSystem.bitXor;
   }
 
-  HInstruction newBuiltinVariant(HInstruction left, HInstruction right) {
-    return new HBitXor(left, right);
+  HInstruction newBuiltinVariant(HInvokeDynamic instruction) {
+    return new HBitXor(
+        instruction.inputs[1], instruction.inputs[2], instruction.selector);
   }
 }
 
@@ -499,12 +508,12 @@ abstract class RelationalSpecializer extends InvokeDynamicSpecializer {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
     if (left.isNumber() && right.isNumber()) {
-      return newBuiltinVariant(left, right);
+      return newBuiltinVariant(instruction);
     }
     return null;
   }
 
-  HInstruction newBuiltinVariant(HInstruction left, HInstruction right);
+  HInstruction newBuiltinVariant(HInvokeDynamic instruction);
 }
 
 class EqualsSpecializer extends RelationalSpecializer {
@@ -542,7 +551,7 @@ class EqualsSpecializer extends RelationalSpecializer {
     HInstruction right = instruction.inputs[2];
     HType instructionType = left.instructionType;
     if (right.isConstantNull() || instructionType.isPrimitiveOrNull()) {
-      return newBuiltinVariant(left, right);
+      return newBuiltinVariant(instruction);
     }
     TypeMask mask = instructionType.computeMask(compiler);
     Selector selector = new TypedSelector(mask, instruction.selector);
@@ -553,7 +562,7 @@ class EqualsSpecializer extends RelationalSpecializer {
     // implemented because if the selector matches by subtype, it still will be
     // a regular object or an interceptor.
     if (matches.every(backend.isDefaultEqualityImplementation)) {
-      return newBuiltinVariant(left, right);
+      return newBuiltinVariant(instruction);
     }
     return null;
   }
@@ -562,8 +571,9 @@ class EqualsSpecializer extends RelationalSpecializer {
     return constantSystem.equal;
   }
 
-  HInstruction newBuiltinVariant(HInstruction left, HInstruction right) {
-    return new HIdentity(left, right);
+  HInstruction newBuiltinVariant(HInvokeDynamic instruction) {
+    return new HIdentity(
+        instruction.inputs[1], instruction.inputs[2], instruction.selector);
   }
 }
 
@@ -574,8 +584,9 @@ class LessSpecializer extends RelationalSpecializer {
     return constantSystem.less;
   }
 
-  HInstruction newBuiltinVariant(HInstruction left, HInstruction right) {
-    return new HLess(left, right);
+  HInstruction newBuiltinVariant(HInvokeDynamic instruction) {
+    return new HLess(
+        instruction.inputs[1], instruction.inputs[2], instruction.selector);
   }
 }
 
@@ -586,8 +597,9 @@ class GreaterSpecializer extends RelationalSpecializer {
     return constantSystem.greater;
   }
 
-  HInstruction newBuiltinVariant(HInstruction left, HInstruction right) {
-    return new HGreater(left, right);
+  HInstruction newBuiltinVariant(HInvokeDynamic instruction) {
+    return new HGreater(
+        instruction.inputs[1], instruction.inputs[2], instruction.selector);
   }
 }
 
@@ -598,8 +610,9 @@ class GreaterEqualSpecializer extends RelationalSpecializer {
     return constantSystem.greaterEqual;
   }
 
-  HInstruction newBuiltinVariant(HInstruction left, HInstruction right) {
-    return new HGreaterEqual(left, right);
+  HInstruction newBuiltinVariant(HInvokeDynamic instruction) {
+    return new HGreaterEqual(
+        instruction.inputs[1], instruction.inputs[2], instruction.selector);
   }
 }
 
@@ -610,7 +623,8 @@ class LessEqualSpecializer extends RelationalSpecializer {
     return constantSystem.lessEqual;
   }
 
-  HInstruction newBuiltinVariant(HInstruction left, HInstruction right) {
-    return new HLessEqual(left, right);
+  HInstruction newBuiltinVariant(HInvokeDynamic instruction) {
+    return new HLessEqual(
+        instruction.inputs[1], instruction.inputs[2], instruction.selector);
   }
 }

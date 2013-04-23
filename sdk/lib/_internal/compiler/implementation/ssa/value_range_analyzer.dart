@@ -785,10 +785,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     cursor.block.addBefore(cursor, newInstruction);
     // Update the users of the instruction dominated by [cursor] to
     // use the new instruction, that has an narrower range.
-    Set<HInstruction> dominatedUsers = instruction.dominatedUsers(cursor);
-    for (HInstruction user in dominatedUsers) {
-      user.changeUse(instruction, newInstruction);
-    }
+    instruction.replaceAllUsersDominatedBy(cursor, newInstruction);
     return newInstruction;
   }
 

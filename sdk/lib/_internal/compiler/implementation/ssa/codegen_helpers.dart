@@ -108,7 +108,8 @@ class SsaInstructionMerger extends HBaseVisitor {
   void visitTypeConversion(HTypeConversion instruction) {
     if (!instruction.isChecked) {
       markAsGenerateAtUseSite(instruction);
-    } else if (!instruction.isArgumentTypeCheck) {
+    } else if (!instruction.isArgumentTypeCheck
+               && !instruction.isReceiverTypeCheck) {
       assert(instruction.isCheckedModeCheck || instruction.isCastTypeCheck);
       // Checked mode checks and cast checks compile to code that
       // only use their input once, so we can safely visit them

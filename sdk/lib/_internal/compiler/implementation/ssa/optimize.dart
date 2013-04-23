@@ -73,15 +73,24 @@ class SsaOptimizerTask extends CompilerTask {
     }
     JavaScriptItemCompilationContext context = work.compilationContext;
     return measure(() {
+      SsaTypeGuardInserter inserter = new SsaTypeGuardInserter(compiler, work);
+
       // Run the phases that will generate type guards.
       List<OptimizationPhase> phases = <OptimizationPhase>[
-          new SsaTypeGuardInserter(compiler, work),
+          inserter,
           new SsaEnvironmentBuilder(compiler),
           // Then run the [SsaCheckInserter] because the type propagator also
           // propagated types non-speculatively. For example, it might have
           // propagated the type array for a call to the List constructor.
           new SsaCheckInserter(backend, work, context.boundsChecked)];
       runPhases(graph, phases);
+
+      if (work.guards.isEmpty && inserter.hasInsertedChecks) {
+        // If there is no guard, and we have inserted type checks
+        // instead, we can do the optimizations right away and avoid
+        // the bailout method.
+        optimize(work, graph, false);
+      }
       return !work.guards.isEmpty;
     });
   }
@@ -950,10 +959,7 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
   HIntegerCheck insertIntegerCheck(HInstruction node, HInstruction value) {
     HIntegerCheck check = new HIntegerCheck(value);
     node.block.addBefore(node, check);
-    Set<HInstruction> dominatedUsers = value.dominatedUsers(node);
-    for (HInstruction user in dominatedUsers) {
-      user.changeUse(value, check);
-    }
+    value.replaceAllUsersDominatedBy(node, check);
     return check;
   }
 
