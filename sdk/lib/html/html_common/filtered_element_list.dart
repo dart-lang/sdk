@@ -121,7 +121,7 @@ class FilteredElementList extends ListBase<Element> {
   }
 
   bool remove(Object element) {
-    if (element is! Element) return;
+    if (element is! Element) return false;
     for (int i = 0; i < length; i++) {
       Element indexElement = this[i];
       if (identical(indexElement, element)) {
