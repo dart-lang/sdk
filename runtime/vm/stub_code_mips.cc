@@ -235,8 +235,87 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
 }
 
 
+// Input parameters:
+//   A1: Smi-tagged argument count, may be zero.
+//   FP[kLastParamSlotIndex]: Last argument.
+static void PushArgumentsArray(Assembler* assembler) {
+  __ TraceSimMsg("PushArgumentsArray");
+  // Allocate array to store arguments of caller.
+  __ LoadImmediate(A0, reinterpret_cast<intptr_t>(Object::null()));
+  // A0: Null element type for raw Array.
+  // A1: Smi-tagged argument count, may be zero.
+  __ BranchLink(&StubCode::AllocateArrayLabel());
+  __ TraceSimMsg("PushArgumentsArray return");
+  // V0: newly allocated array.
+  // A1: Smi-tagged argument count, may be zero (was preserved by the stub).
+  __ Push(V0);  // Array is in V0 and on top of stack.
+  __ sll(T1, A1, 1);
+  __ addu(T1, FP, T1);
+  __ AddImmediate(T1, (kLastParamSlotIndex - 1) * kWordSize);
+  __ AddImmediate(T2, V0, Array::data_offset() - kHeapObjectTag);
+  // T1: address of first argument on stack.
+  // T2: address of first argument in array.
+  Label loop, loop_condition;
+  __ b(&loop_condition);
+  __ Bind(&loop);
+  __ lw(TMP, Address(T1));
+  __ sw(TMP, Address(T2));
+  __ AddImmediate(T1, -kWordSize);
+  __ AddImmediate(T2, kWordSize);
+  __ Bind(&loop_condition);
+  __ AddImmediate(A1, -Smi::RawValue(1));  // A1 is Smi.
+  __ BranchGreaterEqual(A1, ZR, &loop);
+}
+
+
+// Input parameters:
+//   S5: ic-data.
+//   S4: arguments descriptor array.
+// Note: The receiver object is the first argument to the function being
+//       called, the stub accesses the receiver from this location directly
+//       when trying to resolve the call.
 void StubCode::GenerateInstanceFunctionLookupStub(Assembler* assembler) {
-  __ Unimplemented("InstanceFunctionLookup stub");
+  __ TraceSimMsg("InstanceFunctionLookupStub");
+  __ EnterStubFrame();
+
+  // Load the receiver.
+  __ lw(A1, FieldAddress(S4, ArgumentsDescriptor::count_offset()));
+  __ sll(TMP1, A1, 1);  // A1 is Smi.
+  __ addu(TMP1, FP, TMP1);
+  __ lw(T1, Address(TMP1, (kLastParamSlotIndex - 1) * kWordSize));
+
+  // Push space for the return value.
+  // Push the receiver.
+  // Push TMP1 data object.
+  // Push arguments descriptor array.
+  __ LoadImmediate(TMP1, reinterpret_cast<intptr_t>(Object::null()));
+  __ addiu(SP, SP, Immediate(-4 * kWordSize));
+  __ sw(TMP1, Address(SP, 3 * kWordSize));
+  __ sw(T1, Address(SP, 2 * kWordSize));
+  __ sw(S5, Address(SP, 1 * kWordSize));
+  __ sw(S4, Address(SP, 0 * kWordSize));
+
+  // A1: Smi-tagged arguments array length.
+  PushArgumentsArray(assembler);
+  __ TraceSimMsg("InstanceFunctionLookupStub return");
+
+  // Stack:
+  // TOS + 0: argument array.
+  // TOS + 1: arguments descriptor array.
+  // TOS + 2: IC data object.
+  // TOS + 3: Receiver.
+  // TOS + 4: place for result from the call.
+  // TOS + 5: saved FP of previous frame.
+  // TOS + 6: dart code return address
+  // TOS + 7: pc marker (0 for stub).
+  // TOS + 8: last argument of caller.
+  // ....
+  __ CallRuntime(kInstanceFunctionLookupRuntimeEntry);
+  // Remove arguments.
+  __ lw(V0, Address(SP, 4 * kWordSize));
+  __ addiu(SP, SP, Immediate(5 * kWordSize));  // Get result into V0.
+  __ LeaveStubFrame();
+  __ Ret();
 }
 
 
@@ -394,36 +473,6 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ mov(V0, TMP1);
   __ LeaveStubFrame();
   __ Ret();
-}
-
-
-// Input parameters:
-//   A1: Smi-tagged argument count, may be zero.
-//   FP[kLastParamSlotIndex]: Last argument.
-static void PushArgumentsArray(Assembler* assembler) {
-  // Allocate array to store arguments of caller.
-  __ LoadImmediate(A0, reinterpret_cast<intptr_t>(Object::null()));
-  // A0: Null element type for raw Array.
-  // A1: Smi-tagged argument count, may be zero.
-  __ BranchLink(&StubCode::AllocateArrayLabel());
-  // V0: newly allocated array.
-  // A1: Smi-tagged argument count, may be zero (was preserved by the stub).
-  __ Push(V0);  // Array is in V0 and on top of stack.
-  __ sll(T1, A1, 1);
-  __ addu(T1, FP, T1);
-  __ AddImmediate(T1, (kLastParamSlotIndex - 1) * kWordSize);
-  __ AddImmediate(T2, V0, Array::data_offset() - kHeapObjectTag);
-
-  Label loop, loop_condition;
-  __ b(&loop_condition);
-  __ Bind(&loop);
-  __ lw(TMP, Address(T1));
-  __ sw(TMP, Address(T2));
-  __ AddImmediate(T1, -kWordSize);
-  __ AddImmediate(T3, kWordSize);
-  __ Bind(&loop_condition);
-  __ AddImmediate(A1, -Smi::RawValue(1));  // A1 is Smi.
-  __ BranchGreaterEqual(A1, ZR, &loop);
 }
 
 
@@ -1605,13 +1654,11 @@ void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
 void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   ASSERT(kExceptionObjectReg == V0);
   ASSERT(kStackTraceObjectReg == V1);
-  __ mov(TMP1, A1);  // Stack pointer.
-  __ mov(RA, A0);  // Program counter.
   __ mov(V0, A3);  // Exception object.
   __ lw(V1, Address(SP, 0));  // StackTrace object.
   __ mov(FP, A2);  // Frame_pointer.
-  __ mov(SP, TMP1);  // Stack pointer.
-  __ jr(RA);  // Jump to the exception handler code.
+  __ mov(SP, A1);  // Stack pointer.
+  __ jr(A0);  // Jump to the exception handler code.
 }
 
 
