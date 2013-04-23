@@ -75,6 +75,9 @@ cc/Dart2JSCompileAll: Skip
 # Tests needing Dart execution.
 dart/*: Skip
 
+[ $arch == simmips && $checked ]
+cc/ValidateNoSuchMethodStackFrameIteration: Skip
+
 # TODO(ajohnsen): Fix this as part of library changes.
 [ $compiler == none ]
 cc/CustomIsolates: Skip # Bug 6890
