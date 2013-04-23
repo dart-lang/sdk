@@ -965,6 +965,17 @@ CompileType BinaryFloat32x4OpInstr::ComputeType() const {
 }
 
 
+CompileType Float32x4ShuffleInstr::ComputeType() const {
+  if ((op_kind() == MethodRecognizer::kFloat32x4ShuffleX) ||
+      (op_kind() == MethodRecognizer::kFloat32x4ShuffleY) ||
+      (op_kind() == MethodRecognizer::kFloat32x4ShuffleZ) ||
+      (op_kind() == MethodRecognizer::kFloat32x4ShuffleW)) {
+    return CompileType::FromCid(kDoubleCid);
+  }
+  return CompileType::FromCid(kFloat32x4Cid);
+}
+
+
 CompileType MathSqrtInstr::ComputeType() const {
   return CompileType::FromCid(kDoubleCid);
 }

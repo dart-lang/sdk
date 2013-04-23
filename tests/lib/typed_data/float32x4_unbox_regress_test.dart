@@ -50,7 +50,31 @@ void testAddDeopt() {
   } catch (_) {}
 }
 
+
+testGet(a) {
+  var c = a.x + a.y + a.z + a.w;
+  Expect.equals(10.0, c);
+}
+
+void testGetDeopt() {
+  var a = new Float32x4(1.0, 2.0, 3.0, 4.0);
+  var smi = 12;
+  for (int i = 0; i < 3000; i++) {
+    testGet(a);
+  }
+
+  try {
+    testGet(12);
+  } catch (_) {
+  }
+
+  for (int i = 0; i < 3000; i++) {
+    testGet(a);
+  }
+}
+
 main() {
   testListStoreDeopt();
   testAddDeopt();
+  testGetDeopt();
 }

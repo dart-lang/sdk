@@ -71,6 +71,14 @@ class Range;
   V(_Double, pow, DoublePow, 631903778)                                        \
   V(_Double, _modulo, DoubleMod, 437099337)                                    \
   V(::, sqrt, MathSqrt, 1662640002)                                            \
+  V(_Float32x4, get:xxxx, Float32x4ShuffleXXXX, 42621627)                      \
+  V(_Float32x4, get:yyyy, Float32x4ShuffleYYYY, 42621627)                      \
+  V(_Float32x4, get:zzzz, Float32x4ShuffleZZZZ, 42621627)                      \
+  V(_Float32x4, get:wwww, Float32x4ShuffleWWWW, 42621627)                      \
+  V(_Float32x4, get:x, Float32x4ShuffleX, 211144022)                           \
+  V(_Float32x4, get:y, Float32x4ShuffleY, 211144022)                           \
+  V(_Float32x4, get:z, Float32x4ShuffleZ, 211144022)                           \
+  V(_Float32x4, get:w, Float32x4ShuffleW, 211144022)                           \
 
 // Class that recognizes the name and owner of a function and returns the
 // corresponding enum. See RECOGNIZED_LIST above for list of recognizable
@@ -505,6 +513,7 @@ class EmbeddedArray<T, 0> {
   M(GuardField)                                                                \
   M(IfThenElse)                                                                \
   M(BinaryFloat32x4Op)                                                         \
+  M(Float32x4Shuffle)                                                          \
 
 #define FORWARD_DECLARATION(type) class type##Instr;
 FOR_EACH_INSTRUCTION(FORWARD_DECLARATION)
@@ -755,6 +764,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class UnboxFloat32x4Instr;
   friend class BinaryDoubleOpInstr;
   friend class BinaryFloat32x4OpInstr;
+  friend class Float32x4ShuffleInstr;
   friend class BinaryMintOpInstr;
   friend class BinarySmiOpInstr;
   friend class UnarySmiOpInstr;
@@ -4137,6 +4147,62 @@ class BinaryFloat32x4OpInstr : public TemplateDefinition<2> {
   const Token::Kind op_kind_;
 
   DISALLOW_COPY_AND_ASSIGN(BinaryFloat32x4OpInstr);
+};
+
+
+class Float32x4ShuffleInstr : public TemplateDefinition<1> {
+ public:
+  Float32x4ShuffleInstr(MethodRecognizer::Kind op_kind, Value* value,
+                        InstanceCallInstr* instance_call)
+      : op_kind_(op_kind) {
+    SetInputAt(0, value);
+    deopt_id_ = instance_call->deopt_id();
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  MethodRecognizer::Kind op_kind() const { return op_kind_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
+
+  virtual bool AffectedBySideEffect() const { return false; }
+
+  virtual bool AttributesEqual(Instruction* other) const {
+    return op_kind() == other->AsFloat32x4Shuffle()->op_kind();
+  }
+
+  virtual Representation representation() const {
+    if ((op_kind_ == MethodRecognizer::kFloat32x4ShuffleX) ||
+        (op_kind_ == MethodRecognizer::kFloat32x4ShuffleY) ||
+        (op_kind_ == MethodRecognizer::kFloat32x4ShuffleZ) ||
+        (op_kind_ == MethodRecognizer::kFloat32x4ShuffleW)) {
+      return kUnboxedDouble;
+    }
+    return kUnboxedFloat32x4;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kUnboxedFloat32x4;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return deopt_id_;
+  }
+
+  DECLARE_INSTRUCTION(Float32x4Shuffle)
+  virtual CompileType ComputeType() const;
+
+ private:
+  const MethodRecognizer::Kind op_kind_;
+
+  DISALLOW_COPY_AND_ASSIGN(Float32x4ShuffleInstr);
 };
 
 

@@ -1393,6 +1393,23 @@ static intptr_t OffsetForLengthGetter(MethodRecognizer::Kind kind) {
 }
 
 
+bool FlowGraphOptimizer::InlineFloat32x4Getter(InstanceCallInstr* call,
+                                               MethodRecognizer::Kind getter) {
+  AddCheckClass(call->ArgumentAt(0),
+                ICData::ZoneHandle(
+                    call->ic_data()->AsUnaryClassChecksForArgNr(0)),
+                call->deopt_id(),
+                call->env(),
+                call);
+  Float32x4ShuffleInstr* instr = new Float32x4ShuffleInstr(
+      getter,
+      new Value(call->ArgumentAt(0)),
+      call);
+  ReplaceCall(call, instr);
+  return true;
+}
+
+
 // Only unique implicit instance getters can be currently handled.
 bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
@@ -1454,6 +1471,19 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
       }
       InlineStringIsEmptyGetter(call);
       return true;
+    case MethodRecognizer::kFloat32x4ShuffleXXXX:
+    case MethodRecognizer::kFloat32x4ShuffleYYYY:
+    case MethodRecognizer::kFloat32x4ShuffleZZZZ:
+    case MethodRecognizer::kFloat32x4ShuffleWWWW:
+    case MethodRecognizer::kFloat32x4ShuffleX:
+    case MethodRecognizer::kFloat32x4ShuffleY:
+    case MethodRecognizer::kFloat32x4ShuffleZ:
+    case MethodRecognizer::kFloat32x4ShuffleW:
+      if (!ic_data.HasReceiverClassId(kFloat32x4Cid) ||
+          !ic_data.HasOneTarget()) {
+        return false;
+      }
+      return InlineFloat32x4Getter(call, recognized_kind);
     default:
       ASSERT(recognized_kind == MethodRecognizer::kUnknown);
   }
@@ -4696,6 +4726,11 @@ void ConstantPropagator::VisitBinaryFloat32x4Op(
     // TODO(kmillikin): Handle binary operation.
     SetValue(instr, non_constant_);
   }
+}
+
+
+void ConstantPropagator::VisitFloat32x4Shuffle(Float32x4ShuffleInstr* instr) {
+  SetValue(instr, non_constant_);
 }
 
 
