@@ -994,6 +994,8 @@ void Simulator::DoBreak(Instr *instr) {
     } else {
       // Coming via long jump from a throw. Continue to exception handler.
       set_top_exit_frame_info(0);
+      // Adjust for extra pc increment.
+      set_pc(get_pc() - Instr::kInstrSize);
     }
   } else {
     SimulatorDebugger dbg(this);
@@ -1838,7 +1840,7 @@ int64_t Simulator::Call(int32_t entry,
   set_register(R22, r22_val);
   set_register(R23, r23_val);
 
-  // Restore the SP register and return R1:R0.
+  // Restore the SP register and return V1:V0.
   set_register(SP, sp_before_call);
   return Utils::LowHighTo64Bits(get_register(V0), get_register(V1));
 }

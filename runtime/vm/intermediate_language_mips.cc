@@ -1528,13 +1528,44 @@ void CloneContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* CatchEntryInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  return LocationSummary::Make(0,
+                               Location::NoLocation(),
+                               LocationSummary::kNoCall);
 }
 
 
+// Restore stack and initialize the two exception variables:
+// exception and stack trace variables.
 void CatchEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  // Restore SP from FP as we are coming from a throw and the code for
+  // popping arguments has not been run.
+  const intptr_t fp_sp_dist =
+      (kFirstLocalSlotIndex + 1 - compiler->StackSize()) * kWordSize;
+  ASSERT(fp_sp_dist <= 0);
+  __ AddImmediate(SP, FP, fp_sp_dist);
+
+  ASSERT(!exception_var().is_captured());
+  ASSERT(!stacktrace_var().is_captured());
+
+  __ sw(kExceptionObjectReg,
+        Address(FP, exception_var().index() * kWordSize));
+  __ sw(kStackTraceObjectReg,
+        Address(FP, stacktrace_var().index() * kWordSize));
+
+  Label next;
+  __ mov(TMP1, RA);  // Save return adress.
+  // Restore the pool pointer.
+  __ bal(&next);  // Branch and link to next instruction to get PC in RA.
+  __ delay_slot()->mov(TMP2, RA);  // Save PC of the following mov.
+
+  // Calculate offset of pool pointer from the PC.
+  const intptr_t object_pool_pc_dist =
+     Instructions::HeaderSize() - Instructions::object_pool_offset() +
+     compiler->assembler()->CodeSize();
+
+  __ Bind(&next);
+  __ mov(RA, TMP1);  // Restore return address.
+  __ lw(PP, Address(TMP2, -object_pool_pc_dist));
 }
 
 
@@ -2119,13 +2150,16 @@ void ThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* ReThrowInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  return new LocationSummary(0, 0, LocationSummary::kCall);
 }
 
 
 void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  compiler->GenerateCallRuntime(token_pos(),
+                                deopt_id(),
+                                kReThrowRuntimeEntry,
+                                locs());
+  __ break_(0);
 }
 
 

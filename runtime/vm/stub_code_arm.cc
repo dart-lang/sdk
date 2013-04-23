@@ -604,7 +604,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // kExitLinkOffsetInEntryFrame must be kept in sync with the code below.
   __ PushList((1 << R4) | (1 << R5));
 
-  // The stack pointer is restore after the call to this location.
+  // The stack pointer is restored after the call to this location.
   const intptr_t kSavedContextOffsetInEntryFrame = -10 * kWordSize;
 
   // Load arguments descriptor array into R4, which is passed to Dart code.

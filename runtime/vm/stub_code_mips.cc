@@ -595,8 +595,8 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ sw(T0, Address(SP, 1 * kWordSize));
   __ sw(T1, Address(SP, 0 * kWordSize));
 
-  // after the call, The stack pointer is restored to this location.
-  // Pushed A3, S0-7, S4, S5 = 11.
+  // After the call, The stack pointer is restored to this location.
+  // Pushed A3, S0-7, T0, T1 = 11.
   const intptr_t kSavedContextOffsetInEntryFrame = -11 * kWordSize;
 
   // Load arguments descriptor array into S4, which is passed to Dart code.
@@ -652,7 +652,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
     Register r = static_cast<Register>(i);
     __ lw(r, Address(SP, (i - S0 + 3) * kWordSize));
   }
-  __ lw(A3, Address(SP));
+  __ lw(A3, Address(SP, 2 * kWordSize));
   __ addiu(SP, SP, Immediate((3 + kAbiPreservedCpuRegCount) * kWordSize));
 
   // Restore the frame pointer and return.
@@ -1603,12 +1603,12 @@ void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
 // SP: address of stacktrace object.
 // Does not return.
 void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
-  ASSERT(kExceptionObjectReg == A0);
-  ASSERT(kStackTraceObjectReg == A1);
+  ASSERT(kExceptionObjectReg == V0);
+  ASSERT(kStackTraceObjectReg == V1);
   __ mov(TMP1, A1);  // Stack pointer.
   __ mov(RA, A0);  // Program counter.
-  __ mov(A0, A3);  // Exception object.
-  __ lw(A1, Address(SP, 0));  // StackTrace object.
+  __ mov(V0, A3);  // Exception object.
+  __ lw(V1, Address(SP, 0));  // StackTrace object.
   __ mov(FP, A2);  // Frame_pointer.
   __ mov(SP, TMP1);  // Stack pointer.
   __ jr(RA);  // Jump to the exception handler code.
