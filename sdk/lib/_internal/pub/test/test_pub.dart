@@ -272,12 +272,8 @@ void _integration(String description, void body(), [Function testFn]) {
 
 /// Get the path to the root "pub/test" directory containing the pub
 /// tests.
-String get testDirectory {
-  var dir = new Options().script;
-  while (path.basename(dir) != 'test') dir = path.dirname(dir);
-
-  return path.absolute(dir);
-}
+String get testDirectory =>
+  path.absolute(path.dirname(libraryPath('test_pub')));
 
 /// Schedules renaming (moving) the directory at [from] to [to], both of which
 /// are assumed to be relative to [sandboxDir].

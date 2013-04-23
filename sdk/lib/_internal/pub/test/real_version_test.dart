@@ -6,6 +6,8 @@ library pub_tests;
 
 import 'dart:io';
 
+import '../lib/src/sdk.dart' as sdk;
+
 import 'package:pathos/path.dart' as path;
 import 'package:scheduled_test/scheduled_process.dart';
 import 'package:scheduled_test/scheduled_test.dart';
@@ -28,9 +30,8 @@ main() {
   // the built SDK directory, and not the live pub code directly in the repo.
   integration('parse the real SDK "version" file', () {
     // Get the path to the pub binary in the SDK.
-    var dartPath = new Options().executable;
-    var pubPath = path.join(path.dirname(dartPath), "pub");
-    if (Platform.operatingSystem == "windows") pubPath = '$pubPath.bat';
+    var pubPath = path.join(sdk.rootDirectory, 'bin',
+        Platform.operatingSystem == "windows" ? "pub.bat" : "pub");
 
     var pub = new ScheduledProcess.start(pubPath, ['version']);
     expect(pub.nextLine(), completion(startsWith("Pub")));

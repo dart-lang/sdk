@@ -28,8 +28,8 @@ String get rootDirectory {
     return dir;
   }
 
-  throw new Exception('DART_SDK environment variable not set, unable to find '
-      'the SDK.');
+  // Assume the Dart executable is always coming from the SDK.
+  return path.dirname(path.dirname(new Options().executable));
 }
 
 /// Gets the SDK's revision number formatted to be a semantic version.

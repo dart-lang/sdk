@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Helper functionality to make working with IO easier.
-library io;
+library pub.io;
 
 import 'dart:async';
 import 'dart:io';
@@ -253,22 +253,8 @@ void createPackageSymlink(String name, String target, String symlink,
 }
 
 /// Resolves [target] relative to the root directory of pub.
-String relativeToPub(String target) {
-  var scriptPath = new File(new Options().script).fullPathSync();
-
-  // Walk up until we hit the "internal(s)" directory. This lets us figure out
-  // where we are if this function is called from pub.dart, one of the tests, or
-  // from the SDK.
-  var internalDir = path.dirname(scriptPath);
-  while (path.basename(internalDir) != '_internal') {
-    if (path.basename(internalDir) == '') {
-      throw new Exception('Could not find path to pub.');
-    }
-    internalDir = path.dirname(internalDir);
-  }
-
-  return path.normalize(path.join(internalDir, 'pub', target));
-}
+String relativeToPub(String target) => path.normalize(path.join(
+    path.dirname(libraryPath('pub.io')), '..', '..', target));
 
 /// A line-by-line stream of standard input.
 final Stream<String> stdinLines = streamToLines(

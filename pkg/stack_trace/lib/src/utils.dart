@@ -15,7 +15,14 @@ String fileUriToPath(Uri uri) {
     throw new ArgumentError("Uri $uri must have scheme 'file:'.");
   }
   if (Platform.operatingSystem != 'windows') return uri.path;
-  return uri.path.replaceFirst("/", "").replaceAll("/", "\\");
+  if (uri.path.startsWith("/")) {
+    // Drive-letter paths look like "file:///C:/path/to/file". The replaceFirst
+    // removes the extra initial slash.
+    return uri.path.replaceFirst("/", "").replaceAll("/", "\\");
+  } else {
+    // Network paths look like "file://hostname/path/to/file".
+    return "\\\\${uri.path.replaceAll("/", "\\")}";
+  }
 }
 
 /// Converts a local path string to a `file:` [Uri].
@@ -23,7 +30,11 @@ Uri pathToFileUri(String pathString) {
   pathString = path.absolute(pathString);
   if (Platform.operatingSystem != 'windows') {
     return Uri.parse('file://$pathString');
+  } else if (path.rootPrefix(path).startsWith('\\\\')) {
+    // Network paths become "file://hostname/path/to/file".
+    return Uri.parse('file:${pathString.replaceAll("\\", "/")}');
   } else {
+    // Drive-letter paths become "file:///C:/path/to/file".
     return Uri.parse('file:///${pathString.replaceAll("\\", "/")}');
   }
 }

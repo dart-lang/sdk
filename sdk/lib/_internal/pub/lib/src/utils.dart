@@ -9,6 +9,7 @@ import 'dart:async';
 import 'dart:crypto';
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:mirrors';
 import 'dart:uri';
 
 /// A pair of values.
@@ -358,6 +359,27 @@ Future awaitObject(object) {
     }
     return map;
   });
+}
+
+/// Returns the path to the library named [libraryName]. The library name must
+/// be globally unique, or the wrong library path may be returned.
+String libraryPath(String libraryName) =>
+  fileUriToPath(currentMirrorSystem().libraries[new Symbol(libraryName)].uri);
+
+/// Converts a `file:` [Uri] to a local path string.
+String fileUriToPath(Uri uri) {
+  if (uri.scheme != 'file') {
+    throw new ArgumentError("Uri $uri must have scheme 'file:'.");
+  }
+  if (Platform.operatingSystem != 'windows') return uri.path;
+  if (uri.path.startsWith("/")) {
+    // Drive-letter paths look like "file:///C:/path/to/file". The replaceFirst
+    // removes the extra initial slash.
+    return uri.path.replaceFirst("/", "").replaceAll("/", "\\");
+  } else {
+    // Network paths look like "file://hostname/path/to/file".
+    return "\\\\${uri.path.replaceAll("/", "\\")}";
+  }
 }
 
 /// An exception class for exceptions that are intended to be seen by the user.
