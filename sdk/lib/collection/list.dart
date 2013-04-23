@@ -294,8 +294,11 @@ abstract class ListMixin<E> implements List<E> {
     return result;
   }
 
-  void sort([Comparator<E> compare]) {
-    if (compare == null) compare = Comparable.compare;
+  void sort([int compare(E a, E b)]) {
+    if (compare == null) {
+      var defaultCompare = Comparable.compare;
+      compare = defaultCompare;
+    }
     Sort.sort(this, compare);
   }
 
