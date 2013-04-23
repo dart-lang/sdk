@@ -1073,7 +1073,7 @@ class BlockEntryInstr : public Instruction {
 class ForwardInstructionIterator : public ValueObject {
  public:
   explicit ForwardInstructionIterator(BlockEntryInstr* block_entry)
-      : block_entry_(block_entry), current_(block_entry) {
+      : current_(block_entry) {
     Advance();
   }
 
@@ -1090,7 +1090,6 @@ class ForwardInstructionIterator : public ValueObject {
   Instruction* Current() const { return current_; }
 
  private:
-  BlockEntryInstr* block_entry_;
   Instruction* current_;
 };
 
