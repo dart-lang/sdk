@@ -37,7 +37,7 @@ class Range;
 #define RECOGNIZED_LIST(V)                                                     \
   V(_ObjectArray, get:length, ObjectArrayLength, 405297088)                    \
   V(_ImmutableArray, get:length, ImmutableArrayLength, 433698233)              \
-  V(_TypedList, get:length, TypedDataLength, 231908172)                        \
+  V(_TypedList, get:length, TypedDataLength, 1004567191)                       \
   V(_TypedList, _getInt8, ByteArrayBaseGetInt8, 380843687)                     \
   V(_TypedList, _getUint8, ByteArrayBaseGetUint8, 380843687)                   \
   V(_TypedList, _getInt16, ByteArrayBaseGetInt16, 380843687)                   \
