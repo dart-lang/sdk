@@ -49,6 +49,85 @@ abstract class SecureSocket implements Socket {
   }
 
   /**
+   * Takes an already connected [socket] and starts client side TLS
+   * handshake to make the communication secure. When the returned
+   * future completes the [SecureSocket] has completed the TLS
+   * handshake. Using this function requires that the other end of the
+   * connection is prepared for TLS handshake.
+   *
+   * If the [socket] already has a subscription, this subscription
+   * will no longer receive and events. In most cases calling
+   * [:pause:] on this subscription before starting TLS handshake is
+   * the right thing to do.
+   *
+   * See [connect] for more information on the arguments.
+   *
+   */
+  static Future<SecureSocket> secure(
+      Socket socket,
+      {bool sendClientCertificate: false,
+       String certificateName,
+       bool onBadCertificate(X509Certificate certificate)}) {
+    var completer = new Completer();
+    (socket as dynamic)._detachRaw()
+        .then((detachedRaw) {
+          return RawSecureSocket.secure(
+            detachedRaw[0],
+            subscription: detachedRaw[1],
+            sendClientCertificate: sendClientCertificate,
+            onBadCertificate: onBadCertificate);
+          })
+        .then((raw) {
+          completer.complete(new SecureSocket._(raw));
+        });
+    return completer.future;
+  }
+
+  /**
+   * Takes an already connected [socket] and starts server side TLS
+   * handshake to make the communication secure. When the returned
+   * future completes the [SecureSocket] has completed the TLS
+   * handshake. Using this function requires that the other end of the
+   * connection is going to start the TLS handshake.
+   *
+   * If the [socket] already has a subscription, this subscription
+   * will no longer receive and events. In most cases calling
+   * [:pause:] on this subscription before starting TLS handshake is
+   * the right thing to do.
+   *
+   * If some of the data of the TLS handshake has already been read
+   * from the socket this data can be passed in the [carryOverData]
+   * parameter. This data will be processed before any other data
+   * available on the socket.
+   *
+   * See [SecureServerSocket.bind] for more information on the
+   * arguments.
+   *
+   */
+  static Future<SecureSocket> secureServer(
+      Socket socket,
+      String certificateName,
+      {List<int> carryOverData,
+       bool requestClientCertificate: false,
+       bool requireClientCertificate: false}) {
+    var completer = new Completer();
+    (socket as dynamic)._detachRaw()
+        .then((detachedRaw) {
+          return RawSecureSocket.secureServer(
+            detachedRaw[0],
+            certificateName,
+            subscription: detachedRaw[1],
+            carryOverData: carryOverData,
+            requestClientCertificate: requestClientCertificate,
+            requireClientCertificate: requireClientCertificate);
+          })
+        .then((raw) {
+          completer.complete(new SecureSocket._(raw));
+        });
+    return completer.future;
+  }
+
+  /**
    * Get the peer certificate for a connected SecureSocket.  If this
    * SecureSocket is the server end of a secure socket connection,
    * [peerCertificate] will return the client certificate, or null, if no

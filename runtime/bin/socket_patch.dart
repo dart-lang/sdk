@@ -771,6 +771,7 @@ class _Socket extends Stream<List<int>> implements Socket {
   _SocketStreamConsumer _consumer;
   IOSink _sink;
   var _subscription;
+  var _detachReady;
 
   _Socket(RawSocket this._raw) {
     _controller = new StreamController<List<int>>(
@@ -850,6 +851,17 @@ class _Socket extends Stream<List<int>> implements Socket {
   int get port => _raw.port;
   String get remoteHost => _raw.remoteHost;
   int get remotePort => _raw.remotePort;
+
+  Future _detachRaw() {
+    _detachReady = new Completer();
+    _sink.close();
+    return _detachReady.future.then((_) {
+      assert(_consumer.buffer == null);
+      var raw = _raw;
+      _raw = null;
+      return [raw, _subscription];
+    });
+  }
 
   // Ensure a subscription on the raw socket. Both the stream and the
   // consumer needs a subscription as they share the error and done
@@ -938,9 +950,13 @@ class _Socket extends Stream<List<int>> implements Socket {
   }
 
   void _consumerDone() {
-    if (_raw != null) {
-      _raw.shutdown(SocketDirection.SEND);
-      _disableWriteEvent();
+    if (_detachReady != null) {
+      _detachReady.complete(null);
+    } else {
+      if (_raw != null) {
+        _raw.shutdown(SocketDirection.SEND);
+        _disableWriteEvent();
+      }
     }
   }
 }
