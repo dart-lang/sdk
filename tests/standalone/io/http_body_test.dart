@@ -32,6 +32,7 @@ void testHttpClientResponseBody() {
           .then((body) {
             if (shouldFail) Expect.fail("Error expected");
             Expect.equals(type, body.type);
+            Expect.isNotNull(body.response);
             switch (type) {
               case "text":
                 Expect.equals(expectedBody, body.body);

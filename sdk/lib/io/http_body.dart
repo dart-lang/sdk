@@ -39,7 +39,9 @@ part of dart.io;
  */
 class HttpBodyHandler
     implements StreamTransformer<HttpRequest, HttpRequestBody> {
-  factory HttpBodyHandler() => new _HttpBodyHandler();
+  var _transformer;
+
+  HttpBodyHandler() : _transformer = new _HttpBodyHandlerTransformer();
 
   /**
    * Process and parse an incoming [HttpRequest]. The returned [HttpRequestBody]
@@ -55,6 +57,10 @@ class HttpBodyHandler
   static Future<HttpClientResponseBody> processResponse(
       HttpClientResponse response) {
     return _HttpBodyHandler.processResponse(response);
+  }
+
+  Stream<HttpRequestBody> bind(Stream<HttpRequest> stream) {
+    return _transformer.bind(stream);
   }
 }
 
