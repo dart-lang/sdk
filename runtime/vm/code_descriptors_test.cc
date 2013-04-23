@@ -4,7 +4,6 @@
 
 #include "platform/assert.h"
 #include "vm/globals.h"
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 
 #include "vm/ast.h"
 #include "vm/assembler.h"
@@ -17,6 +16,10 @@
 #include "vm/unit_test.h"
 
 namespace dart {
+
+#if defined(TARGET_ARCH_IA32) ||                                               \
+    defined(TARGET_ARCH_X64) ||                                                \
+    defined(TARGET_ARCH_ARM)
 
 static const intptr_t kPos = Scanner::kDummyTokenIndex;
 
@@ -282,6 +285,7 @@ TEST_CASE(StackmapGC) {
   EXPECT(!result.IsError());
 }
 
+#endif  // TARGET_ARCH_IA32 || TARGET_ARCH_X64 || TARGET_ARCH_ARM
+
 }  // namespace dart
 
-#endif  // defined TARGET_ARCH_IA32 || defined(TARGET_ARCH_X64)

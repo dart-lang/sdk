@@ -46,7 +46,7 @@ void CodeBreakpoint::PatchFunctionReturn() {
   uword stub_addr = StubCode::BreakpointReturnEntryPoint();
   code[0] = 0xE8;
   *reinterpret_cast<uword*>(&code[1]) = stub_addr - pc_;
-  CPU::FlushICache(pc_, 5);
+  CPU::FlushICache(pc_ - 5, 5);
 }
 
 
@@ -58,7 +58,7 @@ void CodeBreakpoint::RestoreFunctionReturn() {
   code[2] = 0x5D;  // pop ebp
   code[3] = 0xC3;  // ret
   code[4] = 0x90;  // nop
-  CPU::FlushICache(pc_, 5);
+  CPU::FlushICache(pc_ - 5, 5);
 }
 
 

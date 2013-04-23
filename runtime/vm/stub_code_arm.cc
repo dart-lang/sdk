@@ -198,6 +198,8 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 // Input parameters:
 //   R4: arguments descriptor array.
 void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
+  // Create a stub frame as we are pushing some objects on the stack before
+  // calling into the runtime.
   __ EnterStubFrame();
   // Setup space on stack for return value and preserve arguments descriptor.
   __ LoadImmediate(R0, reinterpret_cast<intptr_t>(Object::null()));
@@ -205,17 +207,34 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
   __ CallRuntime(kPatchStaticCallRuntimeEntry);
   // Get Code object result and restore arguments descriptor array.
   __ PopList((1 << R0) | (1 << R4));
-  // Remove the stub frame as we are about to jump to the dart function.
+  // Remove the stub frame.
   __ LeaveStubFrame();
-
+  // Jump to the dart function.
   __ ldr(R0, FieldAddress(R0, Code::instructions_offset()));
   __ AddImmediate(R0, R0, Instructions::HeaderSize() - kHeapObjectTag);
   __ bx(R0);
 }
 
 
+// Called from a static call only when an invalid code has been entered
+// (invalid because its function was optimized or deoptimized).
+// R4: arguments descriptor array.
 void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
-  __ Unimplemented("FixCallersTarget stub");
+  // Create a stub frame as we are pushing some objects on the stack before
+  // calling into the runtime.
+  __ EnterStubFrame();
+  // Setup space on stack for return value and preserve arguments descriptor.
+  __ LoadImmediate(R0, reinterpret_cast<intptr_t>(Object::null()));
+  __ PushList((1 << R0) | (1 << R4));
+  __ CallRuntime(kFixCallersTargetRuntimeEntry);
+  // Get Code object result and restore arguments descriptor array.
+  __ PopList((1 << R0) | (1 << R4));
+  // Remove the stub frame.
+  __ LeaveStubFrame();
+  // Jump to the dart function.
+  __ ldr(R0, FieldAddress(R0, Code::instructions_offset()));
+  __ AddImmediate(R0, R0, Instructions::HeaderSize() - kHeapObjectTag);
+  __ bx(R0);
 }
 
 
@@ -1385,18 +1404,66 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
 }
 
 
+//  LR: return address (Dart code).
+//  R4: Arguments descriptor array.
 void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
-  __ Unimplemented("BreakpointStatic stub");
+  // Create a stub frame as we are pushing some objects on the stack before
+  // calling into the runtime.
+  __ EnterStubFrame();
+  __ LoadImmediate(R0, reinterpret_cast<intptr_t>(Object::null()));
+  // // Preserve arguments descriptor and make room for result.
+  __ PushList((1 << R0) | (1 << R4));
+  __ CallRuntime(kBreakpointStaticHandlerRuntimeEntry);
+  // Pop code object result and restore arguments descriptor.
+  __ PopList((1 << R0) | (1 << R4));
+  __ LeaveStubFrame();
+
+  // Now call the static function. The breakpoint handler function
+  // ensures that the call target is compiled.
+  __ ldr(R0, FieldAddress(R0, Code::instructions_offset()));
+  __ AddImmediate(R0, Instructions::HeaderSize() - kHeapObjectTag);
+  __ bx(R0);
 }
 
 
+//  R0: return value.
 void StubCode::GenerateBreakpointReturnStub(Assembler* assembler) {
-  __ Unimplemented("BreakpointReturn stub");
+  // Create a stub frame as we are pushing some objects on the stack before
+  // calling into the runtime.
+  __ EnterStubFrame();
+  __ Push(R0);
+  __ CallRuntime(kBreakpointReturnHandlerRuntimeEntry);
+  __ Pop(R0);
+  __ LeaveStubFrame();
+
+  // Instead of returning to the patched Dart function, emulate the
+  // smashed return code pattern and return to the function's caller.
+  __ LeaveDartFrame();
+  __ Ret();
 }
 
 
+//  LR: return address (Dart code).
+//  R5: Inline cache data array.
+//  R4: Arguments descriptor array.
 void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
-  __ Unimplemented("BreakpointDynamic stub");
+  // Create a stub frame as we are pushing some objects on the stack before
+  // calling into the runtime.
+  __ EnterStubFrame();
+  __ PushList((1 << R4) | (1 << R5));
+  __ CallRuntime(kBreakpointDynamicHandlerRuntimeEntry);
+  __ PopList((1 << R4) | (1 << R5));
+  __ LeaveStubFrame();
+
+  // Find out which dispatch stub to call.
+  __ ldr(IP, FieldAddress(R5, ICData::num_args_tested_offset()));
+  __ cmp(IP, ShifterOperand(1));
+  __ Branch(&StubCode::OneArgCheckInlineCacheLabel(), EQ);
+  __ cmp(IP, ShifterOperand(2));
+  __ Branch(&StubCode::TwoArgsCheckInlineCacheLabel(), EQ);
+  __ cmp(IP, ShifterOperand(3));
+  __ Branch(&StubCode::ThreeArgsCheckInlineCacheLabel(), EQ);
+  __ Stop("Unsupported number of arguments tested.");
 }
 
 

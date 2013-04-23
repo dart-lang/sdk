@@ -616,7 +616,7 @@ ASSEMBLER_TEST_RUN(QuotientRemainder, test) {
 }
 
 
-ASSEMBLER_TEST_GENERATE(LongMultiply, assembler) {
+ASSEMBLER_TEST_GENERATE(Multiply64To64, assembler) {
   __ Push(R4);
   __ Mov(IP, R0);
   __ mul(R4, R2, R1);
@@ -628,10 +628,25 @@ ASSEMBLER_TEST_GENERATE(LongMultiply, assembler) {
 }
 
 
-ASSEMBLER_TEST_RUN(LongMultiply, test) {
+ASSEMBLER_TEST_RUN(Multiply64To64, test) {
   EXPECT(test != NULL);
-  typedef int64_t (*LongMultiply)(int64_t operand0, int64_t operand1);
-  EXPECT_EQ(6, EXECUTE_TEST_CODE_INT64_LL(LongMultiply, test->entry(), -3, -2));
+  typedef int64_t (*Multiply64To64)(int64_t operand0, int64_t operand1);
+  EXPECT_EQ(6,
+            EXECUTE_TEST_CODE_INT64_LL(Multiply64To64, test->entry(), -3, -2));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Multiply32To64, assembler) {
+  __ smull(R0, R1, R0, R2);
+  __ mov(PC, ShifterOperand(LR));
+}
+
+
+ASSEMBLER_TEST_RUN(Multiply32To64, test) {
+  EXPECT(test != NULL);
+  typedef int64_t (*Multiply32To64)(int64_t operand0, int64_t operand1);
+  EXPECT_EQ(6,
+            EXECUTE_TEST_CODE_INT64_LL(Multiply32To64, test->entry(), -3, -2));
 }
 
 

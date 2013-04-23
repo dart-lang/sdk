@@ -5,30 +5,58 @@
 #include "vm/globals.h"
 #if defined(TARGET_ARCH_ARM)
 
+#include "vm/cpu.h"
 #include "vm/debugger.h"
+#include "vm/instructions.h"
+#include "vm/stub_code.h"
 
 namespace dart {
 
+// TODO(hausner): Handle captured variables.
 RawInstance* ActivationFrame::GetLocalVarValue(intptr_t slot_index) {
-  UNIMPLEMENTED();
-  return NULL;
+  uword var_address = fp() + slot_index * kWordSize;
+  return reinterpret_cast<RawInstance*>(
+             *reinterpret_cast<uword*>(var_address));
 }
 
 
 RawInstance* ActivationFrame::GetInstanceCallReceiver(
                  intptr_t num_actual_args) {
-  UNIMPLEMENTED();
-  return NULL;
+  ASSERT(num_actual_args > 0);  // At minimum we have a receiver on the stack.
+  // Stack pointer points to last argument that was pushed on the stack.
+  uword receiver_addr = sp() + ((num_actual_args - 1) * kWordSize);
+  return reinterpret_cast<RawInstance*>(
+             *reinterpret_cast<uword*>(receiver_addr));
 }
 
 
 void CodeBreakpoint::PatchFunctionReturn() {
-  UNIMPLEMENTED();
+  uword* code = reinterpret_cast<uword*>(pc_ - 3 * Instr::kInstrSize);
+  ASSERT(code[0] == 0xe8bd4c00);  // ldmia sp!, {pp, fp, lr}
+  ASSERT(code[1] == 0xe28dd004);  // add sp, sp, #4
+  ASSERT(code[2] == 0xe12fff1e);  // bx lr
+
+  // Smash code with call instruction and target address.
+  uword stub_addr = StubCode::BreakpointReturnEntryPoint();
+  uint16_t target_lo = stub_addr & 0xffff;
+  uint16_t target_hi = stub_addr >> 16;
+  uword movw = 0xe300c000 | ((target_lo >> 12) << 16) | (target_lo & 0xfff);
+  uword movt = 0xe340c000 | ((target_hi >> 12) << 16) | (target_hi & 0xfff);
+  uword blx =  0xe12fff3c;
+  code[0] = movw;  // movw ip, #target_lo
+  code[1] = movt;  // movt ip, #target_hi
+  code[2] = blx;    // blx ip
+  CPU::FlushICache(pc_ - 3 * Instr::kInstrSize, 3 * Instr::kInstrSize);
 }
 
 
 void CodeBreakpoint::RestoreFunctionReturn() {
-  UNIMPLEMENTED();
+  uword* code = reinterpret_cast<uword*>(pc_ - 3 * Instr::kInstrSize);
+  ASSERT((code[0] & 0xfff0f000) == 0xe300c000);
+  code[0] = 0xe8bd4c00;  // ldmia sp!, {pp, fp, lr}
+  code[1] = 0xe28dd004;  // add sp, sp, #4
+  code[2] = 0xe12fff1e;  // bx lr
+  CPU::FlushICache(pc_ - 3 * Instr::kInstrSize, 3 * Instr::kInstrSize);
 }
 
 }  // namespace dart

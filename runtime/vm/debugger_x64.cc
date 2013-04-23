@@ -49,7 +49,7 @@ void CodeBreakpoint::PatchFunctionReturn() {
   code[10] = 0x41;
   code[11] = 0xff;
   code[12] = 0xd3;
-  CPU::FlushICache(pc_, 5);
+  CPU::FlushICache(pc_ - 13, 13);
 }
 
 
@@ -69,7 +69,7 @@ void CodeBreakpoint::RestoreFunctionReturn() {
   code[10] = 0x90;  // nop
   code[11] = 0x90;  // nop
   code[12] = 0x90;  // nop
-  CPU::FlushICache(pc_, 5);
+  CPU::FlushICache(pc_ - 13, 13);
 }
 
 }  // namespace dart

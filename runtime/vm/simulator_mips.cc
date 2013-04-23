@@ -468,8 +468,7 @@ char* SimulatorDebugger::ReadLine(const char* prompt) {
   char line_buf[256];
   int offset = 0;
   bool keep_going = true;
-  fprintf(stdout, "%s", prompt);
-  fflush(stdout);
+  OS::Print("%s", prompt);
   while (keep_going) {
     if (fgets(line_buf, sizeof(line_buf), stdin) == NULL) {
       // fgets got an error. Just give up.

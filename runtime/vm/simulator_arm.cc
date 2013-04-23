@@ -505,8 +505,7 @@ char* SimulatorDebugger::ReadLine(const char* prompt) {
   char line_buf[256];
   int offset = 0;
   bool keep_going = true;
-  fprintf(stdout, "%s", prompt);
-  fflush(stdout);
+  OS::Print("%s", prompt);
   while (keep_going) {
     if (fgets(line_buf, sizeof(line_buf), stdin) == NULL) {
       // fgets got an error. Just give up.
@@ -1541,6 +1540,27 @@ void Simulator::DecodeType01(Instr* instr) {
             uint64_t left_op  = static_cast<uint32_t>(rm_val);
             uint64_t right_op = static_cast<uint32_t>(rs_val);
             uint64_t result = left_op * right_op;
+            int32_t hi_res = Utils::High32Bits(result);
+            int32_t lo_res = Utils::Low32Bits(result);
+            set_register(rd, lo_res);
+            set_register(rn, hi_res);
+            if (instr->HasS()) {
+              if (lo_res != 0) {
+                // Collapse bits 0..31 into bit 32 so that 32-bit Z check works.
+                hi_res |= 1;
+              }
+              ASSERT((result == 0) == (hi_res == 0));  // Z bit
+              ASSERT(((result & (1LL << 63)) != 0) == (hi_res < 0));  // N bit
+              SetNZFlags(hi_res);
+            }
+            break;
+          }
+          case 6: {
+            // Registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
+            // Format(instr, "smull'cond's 'rd, 'rn, 'rm, 'rs");
+            int64_t left_op  = static_cast<int32_t>(rm_val);
+            int64_t right_op = static_cast<int32_t>(rs_val);
+            int64_t result = left_op * right_op;
             int32_t hi_res = Utils::High32Bits(result);
             int32_t lo_res = Utils::Low32Bits(result);
             set_register(rd, lo_res);

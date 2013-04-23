@@ -95,10 +95,9 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LeaveDartFrame();
   __ Ret();
 
-  // Generate 2 NOP instructions so that the debugger can patch the return
-  // pattern (1 instruction) with a call to the debug stub (3 instructions).
-  __ nop();
-  __ nop();
+  // No need to generate NOP instructions so that the debugger can patch the
+  // return pattern (3 instructions) with a call to the debug stub (also 3
+  // instructions).
   compiler->AddCurrentDescriptor(PcDescriptors::kReturn,
                                  Isolate::kNoDeoptId,
                                  token_pos());
@@ -1630,14 +1629,24 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       case Token::kMUL: {
         // Keep left value tagged and untag right value.
         const intptr_t value = Smi::Cast(constant).Value();
-        if (value == 2) {
-          __ mov(result, ShifterOperand(left, LSL, 1));
+        if (deopt == NULL) {
+          if (value == 2) {
+            __ mov(result, ShifterOperand(left, LSL, 1));
+          } else {
+            __ LoadImmediate(IP, value);
+            __ mul(result, left, IP);
+          }
         } else {
-          __ LoadImmediate(IP, value);
-          __ mul(result, left, IP);
-        }
-        if (deopt != NULL) {
-          UNIMPLEMENTED();
+          if (value == 2) {
+            __ mov(IP, ShifterOperand(left, ASR, 31));  // IP = sign of left.
+            __ mov(result, ShifterOperand(left, LSL, 1));
+          } else {
+            __ LoadImmediate(IP, value);
+            __ smull(result, IP, left, IP);
+          }
+          // IP: result bits 32..63.
+          __ cmp(IP, ShifterOperand(result, ASR, 31));
+          __ b(deopt, NE);
         }
         break;
       }
@@ -2262,24 +2271,47 @@ void BooleanNegateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* ChainContextInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  return LocationSummary::Make(1,
+                               Location::NoLocation(),
+                               LocationSummary::kNoCall);
 }
 
 
 void ChainContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register context_value = locs()->in(0).reg();
+
+  // Chain the new context in context_value to its parent in CTX.
+  __ StoreIntoObject(context_value,
+                     FieldAddress(context_value, Context::parent_offset()),
+                     CTX);
+  // Set new context as current context.
+  __ mov(CTX, ShifterOperand(context_value));
 }
 
 
 LocationSummary* StoreVMFieldInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  locs->set_in(0, value()->NeedsStoreBuffer() ? Location::WritableRegister()
+                                              : Location::RequiresRegister());
+  locs->set_in(1, Location::RequiresRegister());
+  return locs;
 }
 
 
 void StoreVMFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register value_reg = locs()->in(0).reg();
+  Register dest_reg = locs()->in(1).reg();
+
+  if (value()->NeedsStoreBuffer()) {
+    __ StoreIntoObject(dest_reg, FieldAddress(dest_reg, offset_in_bytes()),
+                       value_reg);
+  } else {
+    __ StoreIntoObjectNoBarrier(
+        dest_reg, FieldAddress(dest_reg, offset_in_bytes()), value_reg);
+  }
 }
 
 

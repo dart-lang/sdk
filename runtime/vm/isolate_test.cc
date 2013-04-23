@@ -17,8 +17,11 @@ UNIT_TEST_CASE(IsolateCurrent) {
   delete isolate;
 }
 
-// Only ia32 and x64 can run dart execution tests.
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+
+#if defined(TARGET_ARCH_IA32) ||                                               \
+    defined(TARGET_ARCH_X64) ||                                                \
+    defined(TARGET_ARCH_ARM)
+
 // Test to ensure that an exception is thrown if no isolate creation
 // callback has been set by the embedder when an isolate is spawned.
 TEST_CASE(IsolateSpawn) {
@@ -40,6 +43,7 @@ TEST_CASE(IsolateSpawn) {
   Dart_Handle exception_result = Dart_ErrorGetException(result);
   EXPECT_VALID(exception_result);
 }
-#endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64).
+
+#endif  // TARGET_ARCH_IA32 || TARGET_ARCH_X64 || TARGET_ARCH_ARM
 
 }  // namespace dart

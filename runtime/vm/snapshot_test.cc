@@ -905,8 +905,11 @@ TEST_CASE(GenerateSource) {
 }
 
 
-// Only ia32 and x64 can run execution tests.
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+#if defined(TARGET_ARCH_IA32) ||                                               \
+    defined(TARGET_ARCH_X64) ||                                                \
+    defined(TARGET_ARCH_ARM)
+
+
 UNIT_TEST_CASE(FullSnapshot) {
   const char* kScriptChars =
       "class Fields  {\n"
@@ -2494,6 +2497,6 @@ UNIT_TEST_CASE(PostCObject) {
   Dart_ExitScope();
 }
 
-#endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64).
+#endif  // TARGET_ARCH_IA32 || TARGET_ARCH_X64 || TARGET_ARCH_ARM
 
 }  // namespace dart

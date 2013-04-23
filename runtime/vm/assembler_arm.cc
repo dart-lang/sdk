@@ -465,6 +465,13 @@ void Assembler::mls(Register rd, Register rn,
 }
 
 
+void Assembler::smull(Register rd_lo, Register rd_hi,
+                      Register rn, Register rm, Condition cond) {
+  // Assembler registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
+  EmitMulOp(cond, B23 | B22, rd_lo, rd_hi, rn, rm);
+}
+
+
 void Assembler::umull(Register rd_lo, Register rd_hi,
                       Register rn, Register rm, Condition cond) {
   // Assembler registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
