@@ -608,13 +608,6 @@ Note: currently only implemented for dart2js.''',
             timeout *= 2;
           }
 
-          const BROWSERS = const [
-            'ie9', 'ie10', 'ff', 'chrome', 'safari', 'opera'
-          ];
-
-          if (BROWSERS.contains(configuration['runtime'])) {
-            timeout *= 8; // Allow additional time for browser testing to run.
-          }
           break;
         default:
           if (configuration['mode'] == 'debug') {
