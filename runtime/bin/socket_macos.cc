@@ -59,7 +59,7 @@ intptr_t Socket::CreateConnect(RawAddr addr, const intptr_t port) {
   if (result == 0 || errno == EINPROGRESS) {
     return fd;
   }
-  TEMP_FAILURE_RETRY(close(fd));
+  VOID_TEMP_FAILURE_RETRY(close(fd));
   return -1;
 }
 
