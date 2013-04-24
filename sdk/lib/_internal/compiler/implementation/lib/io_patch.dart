@@ -192,7 +192,7 @@ patch class Process {
 
 patch class InternetAddress {
   patch static Future<List<InternetAddress>> lookup(
-      String host, {InternetAddressType type: InternetAddressType.ANY}) {
+      String host, {InternetAddressType type: InternetAddressType.IPv4}) {
     throw new UnsupportedError("InternetAddress.lookup");
   }
 }
