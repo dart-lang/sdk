@@ -128,8 +128,16 @@ class HostedSource extends Source {
                              _getSourceDirectory(_defaultUrl));
     if (!dirExists(cacheDir)) return [];
 
-    return listDir(path.join(cacheDir)).map((entry) =>
-        new Package.load(null, entry, systemCache.sources)).toList();
+    return listDir(path.join(cacheDir)).map((entry) {
+      // TODO(keertip): instead of catching exception in pubspec parse with
+      // sdk dependency, fix to parse and report usage of sdk dependency. 
+      // dartbug.com/10190
+      try {
+        return new Package.load(null, entry, systemCache.sources);
+      }  on ArgumentError catch (e) {
+        log.error(e);         
+      }
+    }).where((package) => package != null).toList();
   }
 
   /// When an error occurs trying to read something about [package] from [url],
