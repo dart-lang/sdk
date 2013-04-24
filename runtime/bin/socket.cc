@@ -21,19 +21,37 @@ int Socket::service_ports_size_ = 0;
 Dart_Port* Socket::service_ports_ = NULL;
 int Socket::service_ports_index_ = 0;
 
+
+static Dart_Handle GetSockAddr(Dart_Handle obj, RawAddr* addr) {
+  Dart_TypedData_Type data_type;
+  uint8_t* data = NULL;
+  intptr_t len;
+  Dart_Handle result = Dart_TypedDataAcquireData(
+      obj, &data_type, reinterpret_cast<void**>(&data), &len);
+  if (Dart_IsError(result)) return result;
+  memmove(reinterpret_cast<void *>(addr), data, len);
+  return Dart_Null();
+}
+
+
 void FUNCTION_NAME(Socket_CreateConnect)(Dart_NativeArguments args) {
   Dart_EnterScope();
   Dart_Handle socket_obj = Dart_GetNativeArgument(args, 0);
-  const char* host = DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
+  Dart_Handle host_obj = Dart_GetNativeArgument(args, 1);
+  RawAddr addr;
+  Dart_Handle result = GetSockAddr(host_obj, &addr);
   int64_t port = 0;
-  if (DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 2), &port)) {
-    intptr_t socket = Socket::CreateConnect(host, port);
+  if (!Dart_IsError(result) &&
+      DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 2), &port)) {
+    intptr_t socket = Socket::CreateConnect(addr, port);
+    OSError error;
+    Dart_TypedDataReleaseData(host_obj);
     if (socket >= 0) {
       Dart_Handle err = Socket::SetSocketIdNativeField(socket_obj, socket);
       if (Dart_IsError(err)) Dart_PropagateError(err);
       Dart_SetReturnValue(args, Dart_True());
     } else {
-      Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+      Dart_SetReturnValue(args, DartUtils::NewDartOSError(&error));
     }
   } else {
     OSError os_error(-1, "Invalid argument", OSError::kUnknown);
@@ -251,7 +269,8 @@ void FUNCTION_NAME(Socket_GetRemotePeer)(Dart_NativeArguments args) {
   if (Dart_IsError(err)) Dart_PropagateError(err);
   OSError os_error;
   intptr_t port = 0;
-  char host[INET_ADDRSTRLEN];
+  ASSERT(INET6_ADDRSTRLEN >= INET_ADDRSTRLEN);
+  char host[INET6_ADDRSTRLEN];
   if (Socket::GetRemotePeer(socket, host, &port)) {
     Dart_Handle list = Dart_NewList(2);
     Dart_ListSetAt(list, 0, Dart_NewStringFromCString(host));
@@ -310,17 +329,19 @@ void FUNCTION_NAME(Socket_GetStdioHandle)(Dart_NativeArguments args) {
 void FUNCTION_NAME(ServerSocket_CreateBindListen)(Dart_NativeArguments args) {
   Dart_EnterScope();
   Dart_Handle socket_obj = Dart_GetNativeArgument(args, 0);
-  Dart_Handle bind_address_obj = Dart_GetNativeArgument(args, 1);
+  Dart_Handle host_obj = Dart_GetNativeArgument(args, 1);
+  RawAddr addr;
+  Dart_Handle result = GetSockAddr(host_obj, &addr);
   Dart_Handle port_obj = Dart_GetNativeArgument(args, 2);
   Dart_Handle backlog_obj = Dart_GetNativeArgument(args, 3);
   int64_t port = 0;
   int64_t backlog = 0;
-  if (Dart_IsString(bind_address_obj) &&
+  if (!Dart_IsError(result) &&
       DartUtils::GetInt64Value(port_obj, &port) &&
       DartUtils::GetInt64Value(backlog_obj, &backlog)) {
-    const char* bind_address = DartUtils::GetStringValue(bind_address_obj);
-    intptr_t socket =
-        ServerSocket::CreateBindListen(bind_address, port, backlog);
+    intptr_t socket = ServerSocket::CreateBindListen(addr, port, backlog);
+    OSError error;
+    Dart_TypedDataReleaseData(host_obj);
     if (socket >= 0) {
       Dart_Handle err = Socket::SetSocketIdNativeField(socket_obj, socket);
       if (Dart_IsError(err)) Dart_PropagateError(err);
@@ -330,7 +351,7 @@ void FUNCTION_NAME(ServerSocket_CreateBindListen)(Dart_NativeArguments args) {
         OSError os_error(-1, "Invalid host", OSError::kUnknown);
         Dart_SetReturnValue(args, DartUtils::NewDartOSError(&os_error));
       } else {
-        Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+        Dart_SetReturnValue(args, DartUtils::NewDartOSError(&error));
       }
     }
   } else {
@@ -366,15 +387,43 @@ void FUNCTION_NAME(ServerSocket_Accept)(Dart_NativeArguments args) {
 
 
 static CObject* LookupRequest(const CObjectArray& request) {
-  if (request.Length() == 2 && request[1]->IsString()) {
+  if (request.Length() == 3 &&
+      request[1]->IsString() &&
+      request[2]->IsInt32()) {
     CObjectString host(request[1]);
+    CObjectInt32 type(request[2]);
     CObject* result = NULL;
     OSError* os_error = NULL;
-    const char* ip_address =
-        Socket::LookupIPv4Address(host.CString(), &os_error);
-    if (ip_address != NULL) {
-      result = new CObjectString(CObject::NewString(ip_address));
-      free(const_cast<char*>(ip_address));
+    SocketAddresses* addresses =
+        Socket::LookupAddress(host.CString(), type.Value(), &os_error);
+    if (addresses != NULL) {
+      CObjectArray* array = new CObjectArray(
+          CObject::NewArray(addresses->count() + 1));
+      array->SetAt(0, new CObjectInt32(CObject::NewInt32(0)));
+      for (intptr_t i = 0; i < addresses->count(); i++) {
+        SocketAddress* addr = addresses->GetAt(i);
+        CObjectArray* entry = new CObjectArray(CObject::NewArray(3));
+
+        CObjectInt32* type = new CObjectInt32(
+            CObject::NewInt32(addr->GetType()));
+        entry->SetAt(0, type);
+
+        CObjectString* as_string = new CObjectString(CObject::NewString(
+            addr->as_string()));
+        entry->SetAt(1, as_string);
+
+        RawAddr raw = addr->addr();
+        CObjectUint8Array* data = new CObjectUint8Array(CObject::NewUint8Array(
+            SocketAddress::GetAddrLength(raw)));
+        memmove(data->Buffer(),
+                reinterpret_cast<void *>(&raw),
+                SocketAddress::GetAddrLength(raw));
+
+        entry->SetAt(2, data);
+        array->SetAt(i + 1, entry);
+      }
+      result = array;
+      delete addresses;
     } else {
       result = CObject::NewOSError(os_error);
       delete os_error;

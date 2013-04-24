@@ -35,7 +35,7 @@ abstract class SecureSocket implements Socket {
    * to continue the [SecureSocket] connection.
    */
   static Future<SecureSocket> connect(
-      String host,
+      host,
       int port,
       {bool sendClientCertificate: false,
        String certificateName,
@@ -208,7 +208,7 @@ abstract class RawSecureSocket implements RawSocket {
    * to continue the [RawSecureSocket] connection.
    */
   static Future<RawSecureSocket> connect(
-      String host,
+      host,
       int port,
       {bool sendClientCertificate: false,
        String certificateName,
@@ -244,7 +244,7 @@ abstract class RawSecureSocket implements RawSocket {
        String certificateName,
        bool onBadCertificate(X509Certificate certificate)}) {
     return  _RawSecureSocket.connect(
-        socket.host,
+        socket.address,
         socket.port,
         certificateName,
         is_server: false,
@@ -345,7 +345,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   StreamSubscription<RawSocketEvent> _socketSubscription;
   List<int> _carryOverData;
   int _carryOverDataIndex = 0;
-  final String host;
+  final InternetAddress address;
   final bool is_server;
   final String certificateName;
   final bool requestClientCertificate;
@@ -366,7 +366,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   _SecureFilter _secureFilter = new _SecureFilter();
 
   static Future<_RawSecureSocket> connect(
-      String host,
+      host,
       int requestedPort,
       String certificateName,
       {bool is_server,
@@ -376,8 +376,15 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
        bool requestClientCertificate: false,
        bool requireClientCertificate: false,
        bool sendClientCertificate: false,
-       bool onBadCertificate(X509Certificate certificate)}){
-     return new _RawSecureSocket(host,
+       bool onBadCertificate(X509Certificate certificate)}) {
+    var future;
+    if (host is String) {
+      future = InternetAddress.lookup(host).then((addrs) => addrs.first);
+    } else {
+      future = new Future.value(host);
+    }
+    return future.then((addr) {
+     return new _RawSecureSocket(addr,
                                  requestedPort,
                                  certificateName,
                                  is_server,
@@ -389,10 +396,11 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
                                  sendClientCertificate,
                                  onBadCertificate)
          ._handshakeComplete.future;
+    });
   }
 
   _RawSecureSocket(
-      String this.host,
+      InternetAddress this.address,
       int requestedPort,
       String this.certificateName,
       bool this.is_server,
@@ -421,7 +429,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     }
     var futureSocket;
     if (socket == null) {
-      futureSocket = RawSocket.connect(host, requestedPort);
+      futureSocket = RawSocket.connect(address, requestedPort);
     } else {
       futureSocket = new Future.value(socket);
     }
@@ -441,7 +449,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
         _socketSubscription.onDone(_doneHandler);
       }
       _connectPending = true;
-      _secureFilter.connect(host,
+      _secureFilter.connect(rawSocket.address.host,
                             port,
                             is_server,
                             certificateName,
@@ -475,9 +483,9 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   void _verifyFields() {
     assert(is_server is bool);
     assert(_socket == null || _socket is RawSocket);
-    if (host is! String) {
+    if (address is! InternetAddress) {
       throw new ArgumentError(
-          "RawSecureSocket constructor: host is not a String");
+          "RawSecureSocket constructor: host is not an InternetAddress");
     }
     if (certificateName != null && certificateName is! String) {
       throw new ArgumentError("certificateName is not null or a String");

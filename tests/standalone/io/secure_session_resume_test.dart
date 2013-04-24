@@ -21,11 +21,10 @@ import "dart:async";
 import "dart:io";
 import "dart:isolate";
 
-const SERVER_ADDRESS = "127.0.0.1";
 const HOST_NAME = "localhost";
 const CERTIFICATE = "localhost_cert";
 Future<SecureServerSocket> startServer() {
-  return SecureServerSocket.bind(SERVER_ADDRESS,
+  return SecureServerSocket.bind(HOST_NAME,
                                  0,
                                  5,
                                  CERTIFICATE).then((server) {

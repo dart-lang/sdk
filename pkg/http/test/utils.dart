@@ -27,7 +27,7 @@ Uri get dummyUrl => Uri.parse('http://dartlang.org/');
 
 /// Starts a new HTTP server.
 Future startServer() {
-  return SafeHttpServer.bind("127.0.0.1", 0).then((s) {
+  return SafeHttpServer.bind("localhost", 0).then((s) {
     _server = s;
     s.listen((request) {
       var path = request.uri.path;
