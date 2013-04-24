@@ -108,8 +108,10 @@ Future startServer() {
 
 /// Stops the current HTTP server.
 void stopServer() {
-  _server.close();
-  _server = null;
+  if (_server != null) {
+    _server.close();
+    _server = null;
+  }
 }
 
 /// Removes eight spaces of leading indentation from a multiline string.
