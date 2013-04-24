@@ -5,10 +5,11 @@
 // Patch file for dart:core classes.
 import 'dart:_interceptors';
 import 'dart:_js_helper' show checkNull,
-                              getRuntimeType,
+                              getRuntimeTypeString,
                               isJsArray,
                               JSSyntaxRegExp,
                               Primitives,
+                              TypeImpl,
                               stringJoinUnchecked;
 import "dart:_collection-dev" as _symbol_dev;
 
@@ -40,7 +41,10 @@ patch class Object {
         _symbolMapToStringMap(invocation.namedArguments));
   }
 
-  patch Type get runtimeType => getRuntimeType(this);
+  patch Type get runtimeType {
+    String type = getRuntimeTypeString(this);
+    return new TypeImpl(type);
+  }
 }
 
 // Patch for Function implementation.
