@@ -5,7 +5,10 @@
 library command_version;
 
 import 'dart:async';
-import 'pub.dart';
+
+import 'command.dart';
+import 'log.dart' as log;
+import 'sdk.dart' as sdk;
 
 /// Handles the `version` pub command. 
 class VersionCommand extends PubCommand {
@@ -14,6 +17,6 @@ class VersionCommand extends PubCommand {
   bool get requiresEntrypoint => false;
 
   Future onRun() {
-    printVersion();
+    log.message('Pub ${sdk.version}');
   }
 }

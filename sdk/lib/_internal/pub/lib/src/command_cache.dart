@@ -8,10 +8,9 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:json' as json;
 
+import 'command.dart';
 import 'exit_codes.dart' as exit_codes;
 import 'log.dart' as log;
-import 'pub.dart';
-
 
 /// Handles the `cache` pub command.
 class CacheCommand extends PubCommand {

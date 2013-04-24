@@ -13,6 +13,7 @@ import 'package:args/args.dart';
 import 'package:http/http.dart' as http;
 import 'package:pathos/path.dart' as path;
 
+import 'command.dart';
 import 'directory_tree.dart';
 import 'exit_codes.dart' as exit_codes;
 import 'git.dart' as git;
@@ -20,7 +21,6 @@ import 'http.dart';
 import 'io.dart';
 import 'log.dart' as log;
 import 'oauth2.dart' as oauth2;
-import 'pub.dart';
 import 'utils.dart';
 import 'validator.dart';
 

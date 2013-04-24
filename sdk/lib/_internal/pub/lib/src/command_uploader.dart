@@ -11,13 +11,13 @@ import 'dart:uri';
 import 'package:args/args.dart';
 import 'package:pathos/path.dart' as path;
 
+import 'command.dart';
 import 'entrypoint.dart';
 import 'exit_codes.dart' as exit_codes;
 import 'http.dart';
 import 'io.dart';
 import 'log.dart' as log;
 import 'oauth2.dart' as oauth2;
-import 'pub.dart';
 import 'utils.dart';
 
 /// Handles the `uploader` pub command.

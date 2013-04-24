@@ -5,9 +5,10 @@
 library command_update;
 
 import 'dart:async';
+
+import 'command.dart';
 import 'entrypoint.dart';
 import 'log.dart' as log;
-import 'pub.dart';
 
 /// Handles the `update` pub command.
 class UpdateCommand extends PubCommand {

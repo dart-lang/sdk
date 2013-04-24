@@ -6,10 +6,11 @@ library command_help;
 
 import 'dart:async';
 import 'dart:io' as io;
+
+import 'command.dart';
 import 'exit_codes.dart' as exit_codes;
 import 'io.dart';
 import 'log.dart' as log;
-import 'pub.dart';
 
 /// Handles the `help` pub command. 
 class HelpCommand extends PubCommand {
@@ -22,7 +23,7 @@ class HelpCommand extends PubCommand {
       printUsage();
     } else {
       var name = commandOptions.rest[0];
-      var command = pubCommands[name];
+      var command = PubCommand.commands[name];
       if (command == null) {
         log.error('Could not find a command named "$name".');
         log.error('Run "pub help" to see available commands.');
