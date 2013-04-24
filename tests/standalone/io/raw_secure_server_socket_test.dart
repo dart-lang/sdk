@@ -318,7 +318,6 @@ void testSimpleReadWrite(bool listenSecure,
             verifyHandshakeTestData(data);
             client.writeEventsEnabled = true;
           }
-        if (bytesRead > data.length) print("XXX");
           break;
         case RawSocketEvent.WRITE:
           Expect.isFalse(client.writeEventsEnabled);
@@ -334,6 +333,7 @@ void testSimpleReadWrite(bool listenSecure,
           }
           if (bytesWritten == data.length) {
             if (!postponeSecure) {
+              client.readEventsEnabled = true;
               completer.complete([subscription, null]);
             }
           }
