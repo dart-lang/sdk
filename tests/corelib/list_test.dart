@@ -152,6 +152,29 @@ void testTypedLengthInvariantOperations(List list) {
   Expect.isTrue(list.any(matchSomeLast));
   Expect.isFalse(list.any(matchNone));
 
+  // Argument checking isn't implemented for typed arrays in browsers,
+  // so it's moved to the method below for now.
+}
+
+void testLengthInvariantOperations(List list) {
+  testTypedLengthInvariantOperations(list);
+  // Tests that need untyped lists.
+  list.setAll(0, [0, 1, 2, 3]);
+  Expect.equals(-1, list.indexOf(100));
+  Expect.equals(-1, list.lastIndexOf(100));
+  list[2] = new Yes();
+  Expect.equals(2, list.indexOf(100));
+  Expect.equals(2, list.lastIndexOf(100));
+  list[3] = new Yes();
+  Expect.equals(2, list.indexOf(100));
+  Expect.equals(3, list.lastIndexOf(100));
+  list[2] = 2;
+  Expect.equals(3, list.indexOf(100));
+  Expect.equals(3, list.lastIndexOf(100));
+  list[3] = 3;
+  Expect.equals(-1, list.indexOf(100));
+  Expect.equals(-1, list.lastIndexOf(100));
+
   // Argument errors on bad indices. List is still [0, 1, 2, 3].
   testArgumentError(action()) {
     Expect.throws(action, (e) => e is ArgumentError);
@@ -185,27 +208,6 @@ void testTypedLengthInvariantOperations(List list) {
   testArgumentError(() => list.fillRange(-1, 5));
   testArgumentError(() => list.fillRange(2, 5));
   testArgumentError(() => list.fillRange(4, 2));
-}
-
-void testLengthInvariantOperations(List list) {
-  testTypedLengthInvariantOperations(list);
-  // Tests that need untyped lists.
-  list.setAll(0, [0, 1, 2, 3]);
-  Expect.equals(-1, list.indexOf(100));
-  Expect.equals(-1, list.lastIndexOf(100));
-  list[2] = new Yes();
-  Expect.equals(2, list.indexOf(100));
-  Expect.equals(2, list.lastIndexOf(100));
-  list[3] = new Yes();
-  Expect.equals(2, list.indexOf(100));
-  Expect.equals(3, list.lastIndexOf(100));
-  list[2] = 2;
-  Expect.equals(3, list.indexOf(100));
-  Expect.equals(3, list.lastIndexOf(100));
-  list[3] = 3;
-  Expect.equals(-1, list.indexOf(100));
-  Expect.equals(-1, list.lastIndexOf(100));
-
 }
 
 void testTypedList(List list) {

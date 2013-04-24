@@ -64,6 +64,8 @@ json_strict_test: Fail # IE parses slightly harmless no-standard JSON.
 string_base_vm_test: Fail # BUG(3304): Maybe this doesn't time out?
 list_test: Fail # IE doesn't support typed data.
 
+[ $compiler == dart2js && ($runtime == firefox || $runtime == safari || $runtime == chrome || $runtime == drt) ]
+
 [ $compiler == dart2dart ]
 compare_to2_test: Fail # inherited from VM
 unicode_test: Fail # inherited from VM
