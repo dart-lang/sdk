@@ -99,7 +99,6 @@ Language/05_Variables/05_Variables_A01_t12: Fail # http://dartbug.com/5519
 Language/05_Variables/05_Variables_A01_t13: Fail # http://dartbug.com/5519
 Language/05_Variables/05_Variables_A01_t14: Fail # http://dartbug.com/5519
 Language/05_Variables/05_Variables_A01_t15: Fail # http://dartbug.com/5519
-Language/05_Variables/05_Variables_A04_t01: Fail # http://dartbug.com/5519
 Language/05_Variables/05_Variables_A05_t04: Fail # Inherited from dart2js
 Language/05_Variables/05_Variables_A05_t05: Fail # Inherited from dart2js
 Language/05_Variables/05_Variables_A05_t06: Fail # Inherited from dart2js
@@ -120,7 +119,6 @@ Language/05_Variables/05_Variables_A08_t01: Fail # Inherited from dart2js
 Language/05_Variables/05_Variables_A08_t02: Fail # Inherited from dart2js
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t02: Fail # Inherited from VM (circular initialization?).
 Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t05: Fail # Inherited from dart2js
-Language/06_Functions/06_Functions_A01_t22: Fail # inherited from VM
 Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t03: Fail # http://dartbug.com/5519
 Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t04: Fail # http://dartbug.com/5519
 Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t05: Fail # http://dartbug.com/5519
@@ -253,7 +251,6 @@ Language/11_Expressions/06_Lists_A04_t01: Fail # http://dartbug.com/5519
 Language/11_Expressions/07_Maps_A01_t01: Skip # co19 issue 91: map literals illegal at statement beginning.
 Language/11_Expressions/07_Maps_A02_t01: Fail # http://dartbug.com/5519
 Language/11_Expressions/07_Maps_A02_t02: Fail # http://dartbug.com/5519
-Language/11_Expressions/08_Throw_A01_t01: Fail # inherited from dart2js
 Language/11_Expressions/11_Instance_Creation/1_New_A01_t04: Fail, OK # co19 issue 241
 Language/11_Expressions/11_Instance_Creation/1_New_A02_t03: Fail # inherited from dart2js
 Language/11_Expressions/11_Instance_Creation/1_New_A02_t05: Fail # inherited from dart2js
@@ -310,10 +307,8 @@ Language/11_Expressions/30_Identifier_Reference_A02_t01: Fail # Pseudo keyword "
 Language/11_Expressions/30_Identifier_Reference_A04_t09: Fail # Inherited from dart2js
 Language/11_Expressions/30_Identifier_Reference_A05_t01: Fail # Inherited from dart2js
 Language/11_Expressions/30_Identifier_Reference_A05_t12: Fail # Inherited from dart2js
-Language/11_Expressions/30_Identifier_Reference_A06_t02: Fail # Inherited from VM (error returning typedef).
 Language/11_Expressions/30_Identifier_Reference_A07_t01: Fail # http://dartbug.com/5519
 Language/11_Expressions/30_Identifier_Reference_A08_t02: Fail # Inhertited from VM.
-Language/11_Expressions/31_Type_Test_A01_t04: Fail # Inherited from dart2js
 Language/11_Expressions/31_Type_Test_A04_t01: Fail # Inherited from dart2js
 Language/11_Expressions/32_Type_Cast_A03_t01: Fail # Inherited from dart2js
 Language/11_Expressions/32_Type_Cast_A03_t02: Fail # Inherited from dart2js

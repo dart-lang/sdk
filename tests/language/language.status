@@ -386,8 +386,6 @@ call_nonexistent_constructor_test: Fail
 bad_override_test/01: Fail
 bad_override_test/02: Fail
 
-first_class_types_constants_test: Fail # Issue 6282
-
 # Missing compile-time error when modifying final local variables
 final_variable_assignment_test/01: Fail
 final_variable_assignment_test/02: Fail
