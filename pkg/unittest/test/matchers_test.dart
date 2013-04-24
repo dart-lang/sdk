@@ -30,7 +30,7 @@ class Widget {
 }
 
 class HasPrice extends CustomMatcher {
-  const HasPrice(matcher) :
+  HasPrice(matcher) :
     super("Widget with a price that is", "price", matcher);
   featureValueOf(actual) => actual.price;
 }
