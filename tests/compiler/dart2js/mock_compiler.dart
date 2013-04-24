@@ -59,6 +59,7 @@ const String DEFAULT_HELPERLIB = r'''
   class ConstantMap {}
   class TypeImpl {}
   S() {}
+  throwExpression(e) {}
   unwrapException(e) {}
   assertHelper(a){}
   createRuntimeType(a) {}
