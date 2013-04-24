@@ -4177,14 +4177,17 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level) {
              field_name->ToCString());
   }
 
+  intptr_t accessor_end_pos = accessor_pos;
   if (is_external) {
     ExpectSemicolon();
   } else if (CurrentToken() == Token::kLBRACE) {
     SkipBlock();
+    accessor_end_pos = TokenPos() - 1;
   } else if (CurrentToken() == Token::kARROW) {
     ConsumeToken();
     SkipExpr();
     ExpectSemicolon();
+    accessor_end_pos = TokenPos() - 1;
   } else if (IsLiteral("native")) {
     ParseNativeDeclaration();
   } else {
@@ -4201,6 +4204,7 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level) {
                     current_class(),
                     accessor_pos));
   func.set_result_type(result_type);
+  func.set_end_token_pos(accessor_end_pos);
   AddFormalParamsToFunction(&params, func);
   top_level->functions.Add(func);
   if (!is_patch) {
