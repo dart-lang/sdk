@@ -35,8 +35,16 @@ abstract class MirrorSystem {
    * An immutable map from from library names to mirrors for all
    * libraries known to this mirror system.
    */
-  // TODO(ahe): [libraries] should be Map<Uri, LibraryMirror>.
-  Map<Symbol, LibraryMirror> get libraries;
+  Map<Uri, LibraryMirror> get libraries;
+
+  /**
+   * Returns an iterable of all libraries in the mirror system whose library
+   * name is [libraryName].
+   */
+  Iterable<LibraryMirror> findLibrary(Symbol libraryName) {
+    return libraries.values.where(
+        (library) => library.simpleName == libraryName);
+  }
 
   /**
    * A mirror on the isolate associated with this [MirrorSystem].

@@ -272,7 +272,7 @@ static Dart_Handle CreateLazyMirror(Dart_Handle target) {
   if (Dart_IsLibrary(target)) {
     Dart_Handle cls_name = NewString("_LazyLibraryMirror");
     Dart_Handle cls = Dart_GetClass(MirrorLib(), cls_name);
-    Dart_Handle args[] = { Dart_LibraryName(target) };
+    Dart_Handle args[] = { Dart_LibraryUrl(target) };
     return Dart_New(cls, Dart_Null(), ARRAY_SIZE(args), args);
   }
 
@@ -296,13 +296,13 @@ static Dart_Handle CreateLazyMirror(Dart_Handle target) {
       Dart_Handle cls_name = NewString("_LazyTypeMirror");
       Dart_Handle cls = Dart_GetClass(MirrorLib(), cls_name);
       Dart_Handle lib = Dart_ClassGetLibrary(target);
-      Dart_Handle lib_name;
+      Dart_Handle lib_url;
       if (Dart_IsNull(lib)) {
-        lib_name = Dart_Null();
+        lib_url = Dart_Null();
       } else {
-        lib_name = Dart_LibraryName(lib);
+        lib_url = Dart_LibraryUrl(lib);
       }
-      Dart_Handle args[] = { lib_name, Dart_ClassName(target) };
+      Dart_Handle args[] = { lib_url, Dart_ClassName(target) };
       return Dart_New(cls, Dart_Null(), ARRAY_SIZE(args), args);
     }
   }
@@ -871,13 +871,11 @@ static Dart_Handle CreateLibrariesMap() {
     if (Dart_IsError(lib)) {
       return lib;
     }
-    Dart_Handle lib_key = Dart_LibraryName(lib);
     Dart_Handle lib_mirror = CreateLibraryMirror(lib);
     if (Dart_IsError(lib_mirror)) {
       return lib_mirror;
     }
-    // TODO(turnidge): Check for duplicate library names.
-    result = MapAdd(map, lib_key, lib_mirror);
+    result = MapAdd(map, lib_url, lib_mirror);
   }
   return map;
 }

@@ -62,14 +62,21 @@ String _makeSignatureString(TypeMirror returnType,
   return buf.toString();
 }
 
-class _LocalMirrorSystemImpl implements MirrorSystem {
-  // TODO(ahe): [libraries] should be Map<Uri, LibraryMirror>.
+Map<Uri, LibraryMirror> _createLibrariesMap(Map<String, LibraryMirror> map) {
+    var result = new Map<Uri, LibraryMirror>();
+    map.forEach((String url, LibraryMirror mirror) {
+      result[Uri.parse(url)] = mirror;
+    });
+    return result;
+}
+
+class _LocalMirrorSystemImpl extends MirrorSystem {
   // Change parameter back to "this.libraries" when native code is changed.
   _LocalMirrorSystemImpl(Map<String, LibraryMirror> libraries, this.isolate)
-      : _functionTypes = new Map<String, FunctionTypeMirror>(),
-        this.libraries = _convertStringToSymbolMap(libraries);
+      : this.libraries = _createLibrariesMap(libraries),
+        _functionTypes = new Map<String, FunctionTypeMirror>();
 
-  final Map<Symbol, LibraryMirror> libraries;
+  final Map<Uri, LibraryMirror> libraries;
   final IsolateMirror isolate;
 
   TypeMirror _dynamicType = null;
@@ -401,12 +408,11 @@ class _LocalClosureMirrorImpl extends _LocalInstanceMirrorImpl
 }
 
 class _LazyTypeMirror {
-  _LazyTypeMirror(String libraryName, String typeName)
-      : this.libraryName = _s(libraryName),
-        this.typeName = _s(typeName);
+  _LazyTypeMirror(String this.libraryUrl, String typeName)
+      : this.typeName = _s(typeName);
 
   TypeMirror resolve(MirrorSystem mirrors) {
-    if (libraryName == null) {
+    if (libraryUrl == null) {
       if (typeName == const Symbol('dynamic')) {
         return mirrors.dynamicType;
       } else if (typeName == const Symbol('void')) {
@@ -416,7 +422,7 @@ class _LazyTypeMirror {
             "Mirror for type '$typeName' is not implemented");
       }
     }
-    var resolved = mirrors.libraries[libraryName].members[typeName];
+    var resolved = mirrors.libraries[Uri.parse(libraryUrl)].members[typeName];
     if (resolved == null) {
       throw new UnimplementedError(
           "Mirror for type '$typeName' is not implemented");
@@ -424,7 +430,7 @@ class _LazyTypeMirror {
     return resolved;
   }
 
-  final Symbol libraryName;
+  final String libraryUrl;
   final Symbol typeName;
 }
 
@@ -758,14 +764,13 @@ class _LocalTypedefMirrorImpl extends _LocalMirrorImpl
 
 
 class _LazyLibraryMirror {
-  _LazyLibraryMirror(String libraryName)
-      : this.libraryName = _s(libraryName);
+  _LazyLibraryMirror(String this.libraryUrl);
 
   LibraryMirror resolve(MirrorSystem mirrors) {
-    return mirrors.libraries[libraryName];
+    return mirrors.libraries[Uri.parse(libraryUrl)];
   }
 
-  final Symbol libraryName;
+  final String libraryUrl;
 }
 
 class _LocalLibraryMirrorImpl extends _LocalObjectMirrorImpl

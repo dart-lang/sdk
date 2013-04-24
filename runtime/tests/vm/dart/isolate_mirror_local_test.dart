@@ -13,6 +13,7 @@ import "package:expect/expect.dart";
 import 'dart:async';
 import 'dart:isolate';
 import 'dart:mirrors';
+import 'dart:uri';
 
 ReceivePort exit_port;
 Set expectedTests;
@@ -300,10 +301,10 @@ void testRootLibraryMirror(LibraryMirror lib_mirror) {
 
 void testLibrariesMap(Map libraries) {
   // Just look for a couple of well-known libs.
-  LibraryMirror core_lib = libraries[const Symbol('dart.core')];
+  LibraryMirror core_lib = libraries[Uri.parse('dart:core')];
   Expect.isTrue(core_lib is LibraryMirror);
 
-  LibraryMirror mirror_lib = libraries[const Symbol('dart.mirrors')];
+  LibraryMirror mirror_lib = libraries[Uri.parse('dart:mirrors')];
   Expect.isTrue(mirror_lib is LibraryMirror);
 
   // Lookup an interface from a library and make sure it is sane.
