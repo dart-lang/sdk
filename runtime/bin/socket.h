@@ -54,42 +54,45 @@ class SocketAddress {
   }
 
   static void SetAddrPort(struct sockaddr_storage* addr, intptr_t port) {
+    sock_addr_ *sock_addr = reinterpret_cast<sock_addr_*>(addr);
     if (addr->ss_family == AF_INET) {
-      GetAsSockAddrIn(GetAsSockAddr(addr))->sin_port = htons(port);
+      sock_addr->in.sin_port = htons(port);
     } else {
-      GetAsSockAddrIn6(GetAsSockAddr(addr))->sin6_port = htons(port);
+      sock_addr->in6.sin6_port = htons(port);
     }
   }
 
   static intptr_t GetAddrPort(struct sockaddr_storage* addr) {
+    sock_addr_ *sock_addr = reinterpret_cast<sock_addr_*>(addr);
     if (addr->ss_family == AF_INET) {
-      return ntohs(GetAsSockAddrIn(GetAsSockAddr(addr))->sin_port);
+      return ntohs(sock_addr->in.sin_port);
     } else {
-      return ntohs(GetAsSockAddrIn6(GetAsSockAddr(addr))->sin6_port);
+      return ntohs(sock_addr->in6.sin6_port);
     }
   }
 
   static struct sockaddr* GetAsSockAddr(struct sockaddr_storage* addr) {
-    uint8_t* data = reinterpret_cast<uint8_t*>(addr);
-    return reinterpret_cast<struct sockaddr*>(data);
+    sock_addr_ *sock_addr = reinterpret_cast<sock_addr_*>(addr);
+    return reinterpret_cast<sockaddr*>(sock_addr);
   }
 
   static struct sockaddr_in* GetAsSockAddrIn(struct sockaddr* addr) {
-    uint8_t* data = reinterpret_cast<uint8_t*>(addr);
-    return reinterpret_cast<struct sockaddr_in*>(data);
+    sock_addr_ *sock_addr = reinterpret_cast<sock_addr_*>(addr);
+    return reinterpret_cast<sockaddr_in*>(sock_addr);
   }
 
   static struct sockaddr_in6* GetAsSockAddrIn6(struct sockaddr* addr) {
-    uint8_t* data = reinterpret_cast<uint8_t*>(addr);
-    return reinterpret_cast<struct sockaddr_in6*>(data);
+    sock_addr_ *sock_addr = reinterpret_cast<sock_addr_*>(addr);
+    return reinterpret_cast<sockaddr_in6*>(sock_addr);
   }
 
  private:
   union sock_addr_ {
-    struct sockaddr_storage* storage;
-    struct sockaddr_in* in;
-    struct sockaddr_in6* in6;
-    struct sockaddr* addr;
+    struct sockaddr_storage storage;
+    struct sockaddr_in in;
+    struct sockaddr_in6 in6;
+    struct sockaddr addr;
+    char raw[sizeof(sockaddr_storage)];
   };
 
   char as_string_[INET6_ADDRSTRLEN];
