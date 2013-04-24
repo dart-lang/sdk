@@ -688,7 +688,7 @@ void tearDown(Function teardownTest) {
 
 /** Advance to the next test case. */
 void _nextTestCase() {
-  _defer(() {
+  runAsync(() {
     _currentTestCaseIndex++;
     _nextBatch();
   });
@@ -705,19 +705,6 @@ void _reportTestError(String msg, String trace) {
   } else {
     _uncaughtErrorMessage = "$msg: $trace";
   }
-}
-
-/**
- * Runs [callback] at the end of the event loop. Note that we don't wrap
- * the callback in guardAsync; this is for test framework functions which
- * should not be throwing unexpected exceptions that end up failing test
- * cases! Furthermore, we need the final exception to be thrown but not
- * caught by the test framework if any test cases failed. However, tests
- * that make use of a similar defer function *should* wrap the callback
- * (as we do in unitttest_test.dart).
- */
-_defer(void callback()) {
-  (new Future.value()).then((_) => callback());
 }
 
 void rerunTests() {
@@ -756,7 +743,7 @@ void runTests() {
 
   _config.onStart();
 
-  _defer(() {
+  runAsync(() {
     _nextBatch();
   });
 }
@@ -876,7 +863,7 @@ void _ensureInitialized(bool configAutoStart) {
   if (configAutoStart && _config.autoStart) {
     // Immediately queue the suite up. It will run after a timeout (i.e. after
     // main() has returned).
-    _defer(runTests);
+    runAsync(runTests);
   }
 }
 
