@@ -2913,6 +2913,26 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     inputs.add(receiver);
     addDynamicSendArgumentsToList(node, inputs);
 
+    // We prefer to not inline certain operations on indexables,
+    // because the constant folder will handle them better and turn
+    // them into simpler instructions that allow further
+    // optimizations.
+    bool isOptimizableOperationOnIndexable(Selector selector, Element element) {
+      bool isLength = selector.isGetter()
+          && selector.name == const SourceString("length");
+      if (isLength || selector.isIndex()) {
+        DartType classType = element.getEnclosingClass().computeType(compiler);
+        HType type = new HType.nonNullExact(classType, compiler);
+        return type.isIndexable(compiler);
+      } else if (selector.isIndexSet()) {
+        DartType classType = element.getEnclosingClass().computeType(compiler);
+        HType type = new HType.nonNullExact(classType, compiler);
+        return type.isMutableIndexable(compiler);
+      } else {
+        return false;
+      }
+    }
+
     Element element = compiler.world.locateSingleElement(selector);
     // TODO(ngeoffray): If [element] is a getter, then this send is
     // a closure send. We should teach that to [ResolvedVisitor].
@@ -2924,7 +2944,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         // inline methods on intercepted classes because the
         // optimizers apply their own optimizations on these methods.
         && (!backend.interceptedClasses.contains(element.getEnclosingClass())
-            || isThisSend(node))) {
+            || isThisSend(node))
+        // Avoid inlining optimizable operations on indexables.
+        && !isOptimizableOperationOnIndexable(selector, element)) {
       if (tryInlineMethod(element, selector, node.arguments, inputs, node)) {
         return;
       }
@@ -3372,7 +3394,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         ClassElement cls = element.getEnclosingClass();
         return new HType.nonNullExact(cls.thisType, compiler);
       } else {
-        return HType.UNKNOWN;
+        return new HType.inferredTypeForElement(originalElement, compiler);
       }
     }
 

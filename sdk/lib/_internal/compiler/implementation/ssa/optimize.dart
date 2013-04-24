@@ -982,7 +982,6 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
   }
 
   void visitIndexAssign(HIndexAssign node) {
-    if (!node.receiver.isMutableArray()) return;
     if (boundsChecked.contains(node)) return;
     HInstruction index = node.index;
     if (!node.index.isInteger()) {

@@ -197,10 +197,15 @@ abstract class HType {
   // TODO(kasperl): Get rid of this one.
   bool isIndexablePrimitive() => false;
 
-  bool isIndexable(Compiler compiler) =>
-      implementsInterface(compiler.backend.jsIndexableClass, compiler);
-  bool isMutableIndexable(Compiler compiler) =>
-      implementsInterface(compiler.backend.jsMutableIndexableClass, compiler);
+  bool isIndexable(Compiler compiler) {
+    JavaScriptBackend backend = compiler.backend;
+    return implementsInterface(backend.jsIndexableClass, compiler);
+  }
+
+  bool isMutableIndexable(Compiler compiler) {
+    JavaScriptBackend backend = compiler.backend;
+    return implementsInterface(backend.jsMutableIndexableClass, compiler);
+  }
 
   bool implementsInterface(ClassElement interfaceElement, Compiler compiler) {
     DartType interfaceType = interfaceElement.computeType(compiler);

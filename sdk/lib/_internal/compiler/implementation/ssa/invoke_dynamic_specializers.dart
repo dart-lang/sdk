@@ -130,8 +130,11 @@ class IndexSpecializer extends InvokeDynamicSpecializer {
   HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
                                    Compiler compiler) {
     if (instruction.inputs[1].isIndexable(compiler)) {
-      return new HIndex(
+      HInstruction index = new HIndex(
           instruction.inputs[1], instruction.inputs[2], instruction.selector);
+      index.instructionType =
+          new HType.inferredTypeForSelector(instruction.selector, compiler);
+      return index;
     }
     return null;
   }
