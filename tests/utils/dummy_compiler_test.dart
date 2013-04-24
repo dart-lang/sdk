@@ -46,6 +46,7 @@ Future<String> provider(Uri uri) {
                   class JSIndexable {
                     get length;
                   }
+                  class JSMutableIndexable {}
                   class JSArray {
                     var removeLast;
                     var add;

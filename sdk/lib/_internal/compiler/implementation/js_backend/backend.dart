@@ -652,6 +652,8 @@ class JavaScriptBackend extends Backend {
   ClassElement jsBoolClass;
 
   ClassElement jsIndexableClass;
+  ClassElement jsMutableIndexableClass;
+
   ClassElement jsMutableArrayClass;
   ClassElement jsFixedArrayClass;
   ClassElement jsExtendableArrayClass;
@@ -898,6 +900,8 @@ class JavaScriptBackend extends Backend {
 
     jsIndexableClass =
         compiler.findInterceptor(const SourceString('JSIndexable'));
+    jsMutableIndexableClass =
+        compiler.findInterceptor(const SourceString('JSMutableIndexable'));
 
     // TODO(kasperl): Some tests do not define the special JSArray
     // subclasses, so we check to see if they are defined before

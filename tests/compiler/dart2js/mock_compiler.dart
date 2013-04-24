@@ -81,13 +81,14 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
   abstract class JSIndexable {
     get length;
   }
+  abstract class JSMutableIndexable extends JSIndexable {}
   class JSArray extends Interceptor implements List, JSIndexable {
     var length;
     operator[](index) {}
     operator[]=(index, value) {}
     var add;
   }
-  class JSMutableArray extends JSArray {}
+  class JSMutableArray extends JSArray implements JSMutableIndexable {}
   class JSFixedArray extends JSMutableArray {}
   class JSExtendableArray extends JSMutableArray {}
   class JSString extends Interceptor implements String, JSIndexable {

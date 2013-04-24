@@ -99,7 +99,7 @@ class IndexAssignSpecializer extends InvokeDynamicSpecializer {
 
   HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
                                    Compiler compiler) {
-    if (instruction.inputs[1].isMutableArray()) {
+    if (instruction.inputs[1].isMutableIndexable(compiler)) {
       return new HIndexAssign(instruction.inputs[1],
                               instruction.inputs[2],
                               instruction.inputs[3],
@@ -129,7 +129,7 @@ class IndexSpecializer extends InvokeDynamicSpecializer {
 
   HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
                                    Compiler compiler) {
-    if (instruction.inputs[1].isIndexablePrimitive()) {
+    if (instruction.inputs[1].isIndexable(compiler)) {
       return new HIndex(
           instruction.inputs[1], instruction.inputs[2], instruction.selector);
     }

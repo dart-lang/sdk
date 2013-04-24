@@ -181,7 +181,6 @@ abstract class HType {
   bool isInteger() => false;
   bool isDouble() => false;
   bool isString() => false;
-  bool isIndexablePrimitive() => false;
   bool isFixedArray() => false;
   bool isReadableArray() => false;
   bool isMutableArray() => false;
@@ -194,6 +193,20 @@ abstract class HType {
   bool isDoubleOrNull() => false;
   bool isStringOrNull() => false;
   bool isPrimitiveOrNull() => false;
+
+  // TODO(kasperl): Get rid of this one.
+  bool isIndexablePrimitive() => false;
+
+  bool isIndexable(Compiler compiler) =>
+      implementsInterface(compiler.backend.jsIndexableClass, compiler);
+  bool isMutableIndexable(Compiler compiler) =>
+      implementsInterface(compiler.backend.jsMutableIndexableClass, compiler);
+
+  bool implementsInterface(ClassElement interfaceElement, Compiler compiler) {
+    DartType interfaceType = interfaceElement.computeType(compiler);
+    TypeMask mask = new TypeMask.subtype(interfaceType);
+    return mask == mask.union(computeMask(compiler), compiler);
+  }
 
   bool canBeNull() => false;
   bool canBePrimitive(Compiler compiler) => false;

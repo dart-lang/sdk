@@ -550,13 +550,14 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
    */
   final Map<HInstruction, Range> ranges = new Map<HInstruction, Range>();
 
+  final Compiler compiler;
   final ConstantSystem constantSystem;
   final ValueRangeInfo info;
 
   CodegenWorkItem work;
   HGraph graph;
 
-  SsaValueRangeAnalyzer(constantSystem, this.work)
+  SsaValueRangeAnalyzer(this.compiler, constantSystem, this.work)
       : info = new ValueRangeInfo(constantSystem),
         this.constantSystem = constantSystem;
 
@@ -629,7 +630,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
 
   Range visitFieldGet(HFieldGet fieldGet) {
     if (!fieldGet.isInteger()) return info.newUnboundRange();
-    if (!fieldGet.receiver.isIndexablePrimitive()) {
+    if (!fieldGet.receiver.isIndexable(compiler)) {
       return visitInstruction(fieldGet);
     }
     LengthValue value = info.newLengthValue(fieldGet);

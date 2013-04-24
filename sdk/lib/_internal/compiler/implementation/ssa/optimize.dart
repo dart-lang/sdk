@@ -53,7 +53,7 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaReceiverSpecialization(compiler),
           new SsaGlobalValueNumberer(compiler),
           new SsaCodeMotion(),
-          new SsaValueRangeAnalyzer(constantSystem, work),
+          new SsaValueRangeAnalyzer(compiler, constantSystem, work),
           // Previous optimizations may have generated new
           // opportunities for constant folding.
           new SsaConstantFolder(constantSystem, backend, work),
@@ -234,16 +234,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
   HInstruction tryOptimizeLengthInterceptedGetter(HInvokeDynamic node) {
     HInstruction actualReceiver = node.inputs[1];
-
-    // TODO(kasperl): Get rid of HType.isIndexablePrimitive() and use
-    // something like this everywhere instead.
-    TypeMask mask = actualReceiver.instructionType.computeMask(compiler);
-    DartType base = backend.jsIndexableClass.computeType(compiler);
-    TypeMask indexable = new TypeMask.nonNullSubtype(base);
-    TypeMask union = indexable.union(mask, compiler);
-    bool isIndexable = (union == indexable);
-
-    if (isIndexable) {
+    if (actualReceiver.isIndexable(compiler)) {
       if (actualReceiver.isConstantString()) {
         HConstant constantInput = actualReceiver;
         StringConstant constant = constantInput.constant;

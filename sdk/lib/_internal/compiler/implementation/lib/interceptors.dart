@@ -263,9 +263,19 @@ class JSNull extends Interceptor implements Null {
 
 /**
  * The supertype for JSString and JSArray. Used by the backend as to
- * have a type mask that contains the primitive objects that we can
- * use the [] operator on.
+ * have a type mask that contains the objects that we can use the
+ * native JS [] operator and length on.
  */
 abstract class JSIndexable {
   int get length;
+  operator[](int index);
+}
+
+/**
+ * The supertype for JSMutableArray and
+ * JavaScriptIndexingBehavior. Used by the backend to have a type mask
+ * that contains the objects we can use the JS []= operator on.
+ */
+abstract class JSMutableIndexable extends JSIndexable {
+  operator[]=(int index, var value);
 }

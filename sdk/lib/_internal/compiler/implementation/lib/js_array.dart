@@ -294,6 +294,6 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
  * Dummy subclasses that allow the backend to track more precise
  * information about arrays through their type.
  */
-class JSMutableArray extends JSArray {}
+class JSMutableArray extends JSArray implements JSMutableIndexable {}
 class JSFixedArray extends JSMutableArray {}
 class JSExtendableArray extends JSMutableArray {}

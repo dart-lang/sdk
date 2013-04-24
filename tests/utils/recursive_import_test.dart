@@ -39,6 +39,7 @@ library interceptors;
 class JSIndexable {
   get length;
 }
+class JSMutableIndexable {}
 class JSArray {
   removeLast() => null;
   add(x) { }

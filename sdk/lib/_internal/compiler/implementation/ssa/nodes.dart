@@ -892,11 +892,18 @@ abstract class HInstruction implements Spannable {
   bool isNumber() => instructionType.isNumber();
   bool isNumberOrNull() => instructionType.isNumberOrNull();
   bool isString() => instructionType.isString();
-  bool isIndexablePrimitive() => instructionType.isIndexablePrimitive();
   bool isPrimitive() => instructionType.isPrimitive();
   bool canBeNull() => instructionType.canBeNull();
   bool canBePrimitive(Compiler compiler) =>
       instructionType.canBePrimitive(compiler);
+
+  bool isIndexable(Compiler compiler) =>
+      instructionType.isIndexable(compiler);
+  bool isMutableIndexable(Compiler compiler) =>
+      instructionType.isMutableIndexable(compiler);
+
+  // TODO(kasperl): Get rid of this one.
+  bool isIndexablePrimitive() => instructionType.isIndexablePrimitive();
 
   /**
    * Type of the unstruction.
