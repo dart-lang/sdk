@@ -6,18 +6,25 @@ library mirrors_dart2js;
 
 import 'dart:async';
 import 'dart:collection' show LinkedHashMap;
+import 'dart:io' show Path;
 import 'dart:uri';
 
 import '../../compiler.dart' as api;
 import '../elements/elements.dart';
+import '../resolution/resolution.dart' show ResolverTask, ResolverVisitor;
 import '../apiimpl.dart' as apiimpl;
 import '../scanner/scannerlib.dart' hide SourceString;
+import '../ssa/ssa.dart';
 import '../dart2jslib.dart';
 import '../dart_types.dart';
+import '../filenames.dart';
 import '../source_file.dart';
 import '../tree/tree.dart';
-import '../util/util.dart' show Spannable, Link;
-import '../util/characters.dart' show $CR, $LF;
+import '../util/util.dart';
+import '../util/uri_extras.dart';
+import '../dart2js.dart';
+import '../util/characters.dart';
+import '../source_file_provider.dart';
 
 import 'mirrors.dart';
 import 'mirrors_util.dart';
@@ -185,20 +192,50 @@ String _getOperatorFromOperatorName(String name) {
 }
 
 //------------------------------------------------------------------------------
-// Analysis entry point.
+// Compilation implementation
 //------------------------------------------------------------------------------
+
+// TODO(johnniwinther): Support client configurable providers.
+
+/**
+ * Returns a future that completes to a non-null String when [script]
+ * has been successfully compiled.
+ *
+ * TODO(johnniwinther): The method is deprecated but here to support [Path]
+ * which is used through dartdoc.
+ */
+Future<String> compile(Path script,
+                       Path libraryRoot,
+                       {Path packageRoot,
+                        List<String> options: const <String>[],
+                        api.DiagnosticHandler diagnosticHandler}) {
+  SourceFileProvider provider = new SourceFileProvider();
+  if (diagnosticHandler == null) {
+    diagnosticHandler =
+        new FormattingDiagnosticHandler(provider).diagnosticHandler;
+  }
+  Uri scriptUri = currentDirectory.resolve(script.toString());
+  Uri libraryUri = currentDirectory.resolve(appendSlash('$libraryRoot'));
+  Uri packageUri = null;
+  if (packageRoot != null) {
+    packageUri = currentDirectory.resolve(appendSlash('$packageRoot'));
+  }
+  return api.compile(scriptUri, libraryUri, packageUri,
+      provider.readStringFromUri, diagnosticHandler, options);
+}
 
 /**
  * Analyzes set of libraries and provides a mirror system which can be used for
  * static inspection of the source code.
  */
-// TODO(johnniwinther): Move this to [compiler/compiler.dart].
-Future<MirrorSystem> analyze(List<Uri> libraries,
-                             Uri libraryRoot,
-                             Uri packageRoot,
-                             api.CompilerInputProvider inputProvider,
-                             api.DiagnosticHandler diagnosticHandler,
-                             [List<String> options = const <String>[]]) {
+// TODO(johnniwinther): Move this to [compiler/compiler.dart] and rename to
+// [:analyze:].
+Future<MirrorSystem> analyzeUri(List<Uri> libraries,
+                                Uri libraryRoot,
+                                Uri packageRoot,
+                                api.CompilerInputProvider inputProvider,
+                                api.DiagnosticHandler diagnosticHandler,
+                                [List<String> options = const <String>[]]) {
   if (!libraryRoot.path.endsWith("/")) {
     throw new ArgumentError("libraryRoot must end with a /");
   }
@@ -231,6 +268,35 @@ Future<MirrorSystem> analyze(List<Uri> libraries,
   } else {
     return new Future<MirrorSystem>.error('Failed to create mirror system.');
   }
+}
+
+/**
+ * Analyzes set of libraries and provides a mirror system which can be used for
+ * static inspection of the source code.
+ */
+// TODO(johnniwinther): Move dart:io dependent parts outside
+// dart2js_mirror.dart.
+Future<MirrorSystem> analyze(List<Path> libraries,
+                             Path libraryRoot,
+                             {Path packageRoot,
+                              List<String> options: const <String>[],
+                              api.DiagnosticHandler diagnosticHandler}) {
+  SourceFileProvider provider = new SourceFileProvider();
+  if (diagnosticHandler == null) {
+    diagnosticHandler =
+        new FormattingDiagnosticHandler(provider).diagnosticHandler;
+  }
+  Uri libraryUri = currentDirectory.resolve(appendSlash('$libraryRoot'));
+  Uri packageUri = null;
+  if (packageRoot != null) {
+    packageUri = currentDirectory.resolve(appendSlash('$packageRoot'));
+  }
+  List<Uri> librariesUri = <Uri>[];
+  for (Path library in libraries) {
+    librariesUri.add(currentDirectory.resolve(library.toString()));
+  }
+  return analyzeUri(librariesUri, libraryUri, packageUri,
+                    provider.readStringFromUri, diagnosticHandler, options);
 }
 
 //------------------------------------------------------------------------------
