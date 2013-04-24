@@ -4,73 +4,6 @@
 
 part of dart.io;
 
-
-/**
- * [InternetAddressType] is the type an [InternetAddress]. Currently, IPv4 and
- * IPv6 are supported.
- */
-class InternetAddressType {
-  static const InternetAddressType IPv4 = const InternetAddressType._(0);
-  static const InternetAddressType IPv6 = const InternetAddressType._(1);
-  static const InternetAddressType ANY = const InternetAddressType._(-1);
-
-  final int _value;
-
-  const InternetAddressType._(int this._value);
-
-  factory InternetAddressType._from(int value) {
-    if (value == 0) return IPv4;
-    if (value == 1) return IPv6;
-    throw new ArgumentError("Invalid type: $value");
-  }
-
-  /**
-   * Get the name of the type, e.g. "IPv4" or "IPv6".
-   */
-  String get name {
-    switch (_value) {
-      case -1: return "ANY";
-      case 0: return "IPv4";
-      case 1: return "IPv6";
-      default: throw new ArgumentError("Invalid InternetAddress");
-    }
-  }
-
-  String toString() => "InternetAddressType($name)";
-}
-
-
-/**
- * The [InternetAddress] is an object reflecting either a remote or a local
- * address, for wich a socket can be connected to or bound on.
- *
- */
-abstract class InternetAddress {
-  /**
-   * The [type] of the [InternetAddress] specified what IP procotol.
-   */
-  InternetAddressType type;
-
-  /**
-   * The resolved address of the host.
-   */
-  String get address;
-
-  /**
-   * The host used to lookup the address.
-   */
-  String get host;
-
-  /**
-   * Lookup a host, returning a Future of a list of [InternetAddress]s. If
-   * [type] is [InternetAddressType.ANY], it will lookup both IPv4 and IPv6
-   * addresses. The order of the list depends on the local machine and the DNS
-   * lookup performed, and can as such change over time.
-   */
-  external static Future<List<InternetAddress>> lookup(
-      String host, {InternetAddressType type: InternetAddressType.ANY});
-}
-
 /**
  * The RawServerSocket is a server socket, providing a stream of low-level
  * [RawSocket]s.
@@ -99,8 +32,8 @@ abstract class RawServerSocket implements Stream<RawSocket> {
    * the system.
    */
   external static Future<RawServerSocket> bind([String address = "127.0.0.1",
-                                                int port = 0,
-                                                int backlog = 0]);
+                                               int port = 0,
+                                               int backlog = 0]);
 
   /**
    * Returns the port used by this socket.
@@ -211,12 +144,8 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
    * Creates a new socket connection to the host and port and returns a [Future]
    * that will complete with either a [RawSocket] once connected or an error
    * if the host-lookup or connection failed.
-   *
-   * [host] can either be a [String] or an [InternetAddress]. If [host] is a
-   * [String], [connect] will perform a [InternetAddress.lookup] and use
-   * the first value in the list.
    */
-  external static Future<RawSocket> connect(host, int port);
+  external static Future<RawSocket> connect(String host, int port);
 
   /**
    * Returns the number of received and non-read bytes in the socket that
@@ -252,9 +181,9 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
   int get remotePort;
 
   /**
-   * Returns the [InternetAddress] used to connect this socket.
+   * Returns the host used to connect this socket.
    */
-  InternetAddress get address;
+  String get host;
 
   /**
    * Returns the remote host connected to by this socket.
@@ -309,12 +238,8 @@ abstract class Socket implements Stream<List<int>>, IOSink {
    * Creats a new socket connection to the host and port and returns a [Future]
    * that will complete with either a [Socket] once connected or an error
    * if the host-lookup or connection failed.
-   *
-   * [host] can either be a [String] or an [InternetAddress]. If [host] is a
-   * [String], [connect] will perform a [InternetAddress.lookup] and use
-   * the first value in the list.
    */
-  external static Future<Socket> connect(host, int port);
+  external static Future<Socket> connect(String host, int port);
 
   /**
    * Destroy the socket in both directions. Calling [destroy] will make the
@@ -345,9 +270,9 @@ abstract class Socket implements Stream<List<int>>, IOSink {
   int get remotePort;
 
   /**
-   * Returns the [InternetAddress] used to connect this socket.
+   * Returns the host used to connect this socket.
    */
-  InternetAddress get address;
+  String get host;
 
   /**
    * Returns the remote host connected to by this socket.

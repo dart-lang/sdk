@@ -12,7 +12,7 @@ import "dart:async";
 import "dart:io";
 
 Future getData(HttpClient client, int port, bool chunked, int length) {
-  return client.get("127.0.0.1", port, "/?chunked=$chunked&length=$length")
+  return client.get("localhost", port, "/?chunked=$chunked&length=$length")
       .then((request) => request.close())
       .then((response) {
         return response.fold(0, (bytes, data) => bytes + data.length)

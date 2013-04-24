@@ -12,6 +12,7 @@ import "dart:async";
 import "dart:io";
 import "dart:isolate";
 
+const SERVER_ADDRESS = "127.0.0.1";
 const HOST_NAME = "localhost";
 const CERTIFICATE = "localhost_cert";
 
@@ -194,7 +195,7 @@ void test(bool handshakeBeforeSecure,
     });
   }
 
-  ServerSocket.bind(HOST_NAME, 0, 5).then(serverReady);
+  ServerSocket.bind(SERVER_ADDRESS, 0, 5).then(serverReady);
 }
 
 main() {

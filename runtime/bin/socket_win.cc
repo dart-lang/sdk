@@ -11,40 +11,6 @@
 #include "bin/log.h"
 #include "bin/socket.h"
 
-#define SOCKADDR_STORAGE_SET_PORT(addr, port) \
-    if (addr.ss_family == AF_INET) { \
-      reinterpret_cast<struct sockaddr_in*>(&addr)->sin_port = htons(port); \
-    } else { \
-      reinterpret_cast<struct sockaddr_in6*>(&addr)->sin6_port = htons(port); \
-    }
-
-#define SOCKADDR_STORAGE_GET_PORT(addr) \
-    addr.ss_family == AF_INET ? \
-    ntohs(reinterpret_cast<struct sockaddr_in*>(&addr)->sin_port) : \
-    ntohs(reinterpret_cast<struct sockaddr_in6*>(&addr)->sin6_port)
-
-SocketAddress::SocketAddress(struct addrinfo* addrinfo) {
-  ASSERT(INET6_ADDRSTRLEN >= INET_ADDRSTRLEN);
-  sockaddr_storage *sockaddr =
-      reinterpret_cast<sockaddr_storage *>(addrinfo->ai_addr);
-
-  // Clear the port before calling WSAAddressToString as WSAAddressToString
-  // includes the port in the formatted string.
-  DWORD len = INET6_ADDRSTRLEN;
-  int err = WSAAddressToStringA(reinterpret_cast<LPSOCKADDR>(sockaddr),
-                                sizeof(sockaddr_storage),
-                                NULL,
-                                as_string_,
-                                &len);
-
-  if (err != 0) {
-    as_string_[0] = 0;
-  }
-  memmove(reinterpret_cast<void *>(&addr_),
-          addrinfo->ai_addr,
-          addrinfo->ai_addrlen);
-}
-
 bool Socket::Initialize() {
   static bool socket_initialized = false;
   if (socket_initialized) return true;
@@ -81,34 +47,34 @@ intptr_t Socket::Write(intptr_t fd, const void* buffer, intptr_t num_bytes) {
 intptr_t Socket::GetPort(intptr_t fd) {
   ASSERT(reinterpret_cast<Handle*>(fd)->is_socket());
   SocketHandle* socket_handle = reinterpret_cast<SocketHandle*>(fd);
-  struct sockaddr_storage socket_address;
+  struct sockaddr_in socket_address;
   socklen_t size = sizeof(socket_address);
   if (getsockname(socket_handle->socket(),
                   reinterpret_cast<struct sockaddr *>(&socket_address),
-                  &size) == SOCKET_ERROR) {
-    Log::PrintErr("Error getsockname: %d\n", WSAGetLastError());
+                  &size)) {
+    Log::PrintErr("Error getsockname: %s\n", strerror(errno));
     return 0;
   }
-  return SOCKADDR_STORAGE_GET_PORT(socket_address);
+  return ntohs(socket_address.sin_port);
 }
 
 
 bool Socket::GetRemotePeer(intptr_t fd, char *host, intptr_t *port) {
   ASSERT(reinterpret_cast<Handle*>(fd)->is_socket());
   SocketHandle* socket_handle = reinterpret_cast<SocketHandle*>(fd);
-  struct sockaddr_storage socket_address;
-  socklen_t size = sizeof(sockaddr_storage);
+  struct sockaddr_in socket_address;
+  socklen_t size = sizeof(socket_address);
   if (getpeername(socket_handle->socket(),
                   reinterpret_cast<struct sockaddr *>(&socket_address),
                   &size)) {
-    Log::PrintErr("Error getpeername: %d\n", WSAGetLastError());
+    Log::PrintErr("Error getpeername: %s\n", strerror(errno));
     return false;
   }
-  *port = SOCKADDR_STORAGE_GET_PORT(socket_address);
+  *port = ntohs(socket_address.sin_port);
   // Clear the port before calling WSAAddressToString as WSAAddressToString
   // includes the port in the formatted string.
-  SOCKADDR_STORAGE_SET_PORT(socket_address, 0);
-  DWORD len = INET6_ADDRSTRLEN;
+  socket_address.sin_port = 0;
+  DWORD len = INET_ADDRSTRLEN;
   int err = WSAAddressToStringA(reinterpret_cast<LPSOCKADDR>(&socket_address),
                                 sizeof(socket_address),
                                 NULL,
@@ -121,8 +87,8 @@ bool Socket::GetRemotePeer(intptr_t fd, char *host, intptr_t *port) {
   return true;
 }
 
-intptr_t Socket::CreateConnect(sockaddr_storage addr, const intptr_t port) {
-  SOCKET s = socket(addr.ss_family, SOCK_STREAM, 0);
+intptr_t Socket::CreateConnect(const char* host, const intptr_t port) {
+  SOCKET s = socket(AF_INET, SOCK_STREAM, 0);
   if (s == INVALID_SOCKET) {
     return -1;
   }
@@ -139,11 +105,29 @@ intptr_t Socket::CreateConnect(sockaddr_storage addr, const intptr_t port) {
     FATAL("Failed setting SO_LINGER on socket");
   }
 
-  SOCKADDR_STORAGE_SET_PORT(addr, port);
+  // Perform a name lookup for an IPv4 address.
+  struct addrinfo hints;
+  memset(&hints, 0, sizeof(hints));
+  hints.ai_family = AF_INET;
+  hints.ai_socktype = SOCK_STREAM;
+  hints.ai_protocol = IPPROTO_TCP;
+  struct addrinfo* result = NULL;
+  status = getaddrinfo(host, 0, &hints, &result);
+  if (status != NO_ERROR) {
+    return -1;
+  }
+
+  // Copy IPv4 address and set the port.
+  struct sockaddr_in server_address;
+  memcpy(&server_address,
+         reinterpret_cast<sockaddr_in *>(result->ai_addr),
+         sizeof(server_address));
+  server_address.sin_port = htons(port);
+  freeaddrinfo(result);  // Free data allocated by getaddrinfo.
   status = connect(
       s,
-      reinterpret_cast<struct sockaddr*>(&addr),
-      SocketAddress::GetAddrLength(addr));
+      reinterpret_cast<struct sockaddr*>(&server_address),
+      sizeof(server_address));
   if (status == SOCKET_ERROR) {
     DWORD rc = WSAGetLastError();
     closesocket(s);
@@ -208,17 +192,13 @@ intptr_t ServerSocket::Accept(intptr_t fd) {
 }
 
 
-SocketAddresses* Socket::LookupAddress(const char* host,
-                                       int type,
-                                       OSError** os_error) {
+const char* Socket::LookupIPv4Address(char* host, OSError** os_error) {
+  // Perform a name lookup for an IPv4 address.
   Initialize();
-
-  // Perform a name lookup for a host name.
   struct addrinfo hints;
   memset(&hints, 0, sizeof(hints));
-  hints.ai_family = SocketAddress::FromType(type);
+  hints.ai_family = AF_INET;
   hints.ai_socktype = SOCK_STREAM;
-  hints.ai_flags = 0;
   hints.ai_protocol = IPPROTO_TCP;
   struct addrinfo* info = NULL;
   int status = getaddrinfo(host, 0, &hints, &info);
@@ -229,27 +209,35 @@ SocketAddresses* Socket::LookupAddress(const char* host,
     *os_error = new OSError();
     return NULL;
   }
-  intptr_t count = 0;
-  for (struct addrinfo* c = info; c != NULL; c = c->ai_next) {
-    if (c->ai_family == AF_INET || c->ai_family == AF_INET6) count++;
+  // Convert the address into IPv4 dotted decimal notation.
+  char* buffer = reinterpret_cast<char*>(malloc(INET_ADDRSTRLEN));
+  sockaddr_in *sockaddr = reinterpret_cast<sockaddr_in *>(info->ai_addr);
+
+  // Clear the port before calling WSAAddressToString as WSAAddressToString
+  // includes the port in the formatted string.
+  DWORD len = INET_ADDRSTRLEN;
+  int err = WSAAddressToStringA(reinterpret_cast<LPSOCKADDR>(sockaddr),
+                                sizeof(sockaddr_in),
+                                NULL,
+                                buffer,
+                                &len);
+  if (err != 0) {
+    free(buffer);
+    return NULL;
   }
-  SocketAddresses* addresses = new SocketAddresses(count);
-  intptr_t i = 0;
-  for (struct addrinfo* c = info; c != NULL; c = c->ai_next) {
-    if (c->ai_family == AF_INET || c->ai_family == AF_INET6) {
-      addresses->SetAt(i, new SocketAddress(c));
-      i++;
-    }
-  }
-  freeaddrinfo(info);
-  return addresses;
+  return buffer;
 }
 
 
-intptr_t ServerSocket::CreateBindListen(sockaddr_storage addr,
+intptr_t ServerSocket::CreateBindListen(const char* host,
                                         intptr_t port,
                                         intptr_t backlog) {
-  SOCKET s = socket(addr.ss_family, SOCK_STREAM, IPPROTO_TCP);
+  unsigned long socket_addr = inet_addr(host);  // NOLINT
+  if (socket_addr == INADDR_NONE) {
+    return -5;
+  }
+
+  SOCKET s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
   if (s == INVALID_SOCKET) {
     return -1;
   }
@@ -267,19 +255,14 @@ intptr_t ServerSocket::CreateBindListen(sockaddr_storage addr,
     return -1;
   }
 
-  if (addr.ss_family == AF_INET6) {
-    optval = false;
-    setsockopt(s,
-               IPPROTO_IPV6,
-               IPV6_V6ONLY,
-               reinterpret_cast<const char*>(&optval),
-               sizeof(optval));
-  }
-
-  SOCKADDR_STORAGE_SET_PORT(addr, port);
+  sockaddr_in addr;
+  memset(&addr, 0, sizeof(addr));
+  addr.sin_family = AF_INET;
+  addr.sin_addr.s_addr = socket_addr;
+  addr.sin_port = htons(port);
   status = bind(s,
                 reinterpret_cast<struct sockaddr *>(&addr),
-                SocketAddress::GetAddrLength(addr));
+                sizeof(addr));
   if (status == SOCKET_ERROR) {
     DWORD rc = WSAGetLastError();
     closesocket(s);

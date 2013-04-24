@@ -146,7 +146,7 @@ void testEarlyClose3() {
             server.close();
           });
     });
-    Socket.connect("127.0.0.1", server.port)
+    Socket.connect("localhost", server.port)
         .then((socket) {
           socket.write("GET / HTTP/1.1\r\n");
           socket.write("Content-Length: 10\r\n");

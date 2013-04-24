@@ -15,6 +15,7 @@ import "dart:typed_data";
 import "dart:uri";
 
 const String CERT_NAME = 'localhost_cert';
+const String SERVER_ADDRESS = '127.0.0.1';
 const String HOST_NAME = 'localhost';
 
 /**
@@ -26,11 +27,11 @@ class SecurityConfiguration {
   SecurityConfiguration({bool this.secure});
 
   Future<HttpServer> createServer({int backlog: 0}) =>
-      secure ? HttpServer.bindSecure(HOST_NAME,
+      secure ? HttpServer.bindSecure(SERVER_ADDRESS,
                                      0,
                                      backlog: backlog,
                                      certificateName: CERT_NAME)
-             : HttpServer.bind(HOST_NAME,
+             : HttpServer.bind(SERVER_ADDRESS,
                                0,
                                backlog);
 

@@ -560,17 +560,19 @@ void SSLFilter::Connect(const char* host_name,
 
   // SetPeerAddress
   PRNetAddr host_address;
-  PRAddrInfo* info = PR_GetAddrInfoByName(host_name,
-                                          PR_AF_UNSPEC,
-                                          PR_AI_ADDRCONFIG);
-  if (info == NULL) {
-    ThrowPRException("Failed PR_GetAddrInfoByName call");
+  char host_entry_buffer[PR_NETDB_BUF_SIZE];
+  PRHostEnt host_entry;
+  PRStatus rv = PR_GetHostByName(host_name, host_entry_buffer,
+                                 PR_NETDB_BUF_SIZE, &host_entry);
+  if (rv != PR_SUCCESS) {
+    ThrowPRException("Failed PR_GetHostByName call");
   }
 
-  PR_EnumerateAddrInfo(0, info, port, &host_address);
-
+  int index = PR_EnumerateHostEnt(0, &host_entry, port, &host_address);
+  if (index == -1 || index == 0) {
+    ThrowPRException("Failed PR_EnumerateHostEnt call");
+  }
   memio_SetPeerName(filter_, &host_address);
-  PR_FreeAddrInfo(info);
 }
 
 
