@@ -5,37 +5,47 @@
 import 'dart:io';
 import 'dart:isolate';
 
+const ANY = InternetAddressType.ANY;
+
 void testIPv6toIPv6() {
-  ServerSocket.bind("::0").then((server) {
-    server.listen((socket) {
-      socket.destroy();
-      server.close();
-    });
-    Socket.connect("::1", server.port).then((socket) {
-      socket.destroy();
+  InternetAddress.lookup("::0", type: ANY).then((serverAddr) {
+    InternetAddress.lookup("::1", type: ANY).then((clientAddr) {
+      ServerSocket.bind(serverAddr.first).then((server) {
+        server.listen((socket) {
+          socket.destroy();
+          server.close();
+        });
+        Socket.connect(clientAddr.first, server.port).then((socket) {
+          socket.destroy();
+        });
+      });
     });
   });
 }
 
 void testIPv4toIPv6() {
-  ServerSocket.bind("::0").then((server) {
-    server.listen((socket) {
-      socket.destroy();
-      server.close();
-    });
-    Socket.connect("127.0.0.1", server.port).then((socket) {
-      socket.destroy();
+  InternetAddress.lookup("::0", type: ANY).then((serverAddr) {
+    ServerSocket.bind(serverAddr.first).then((server) {
+      server.listen((socket) {
+        socket.destroy();
+        server.close();
+      });
+      Socket.connect("127.0.0.1", server.port).then((socket) {
+        socket.destroy();
+      });
     });
   });
 }
 
 void testIPv6toIPv4() {
-  ServerSocket.bind("127.0.0.1").then((server) {
-    server.listen((socket) {
-      throw "Unexpected socket";
-    });
-    Socket.connect("::1", server.port).catchError((e) {
-      server.close();
+  InternetAddress.lookup("::1", type: ANY).then((clientAddr) {
+    ServerSocket.bind("127.0.0.1").then((server) {
+      server.listen((socket) {
+        throw "Unexpected socket";
+      });
+      Socket.connect(clientAddr.first, server.port).catchError((e) {
+        server.close();
+      });
     });
   });
 }
@@ -54,7 +64,7 @@ void testIPv4toIPv4() {
 
 void testIPv6Lookup() {
   var port = new ReceivePort();
-  InternetAddress.lookup("::0").then((list) {
+  InternetAddress.lookup("::0", type: ANY).then((list) {
     if (list.length < 0) throw "no address";
     for (var entry in list) {
       if (entry.type != InternetAddressType.IPv6) {

@@ -68,7 +68,7 @@ abstract class InternetAddress {
    * lookup performed, and can as such change over time.
    */
   external static Future<List<InternetAddress>> lookup(
-      String host, {InternetAddressType type: InternetAddressType.ANY});
+      String host, {InternetAddressType type: InternetAddressType.IPv4});
 }
 
 /**
@@ -98,7 +98,7 @@ abstract class RawServerSocket implements Stream<RawSocket> {
    * value of [:0:] (the default) a reasonable value will be chosen by
    * the system.
    */
-  external static Future<RawServerSocket> bind([String address = "127.0.0.1",
+  external static Future<RawServerSocket> bind([address = "127.0.0.1",
                                                 int port = 0,
                                                 int backlog = 0]);
 
@@ -141,7 +141,7 @@ abstract class ServerSocket implements Stream<Socket> {
    * value of [:0:] (the default) a reasonable value will be chosen by
    * the system.
    */
-  external static Future<ServerSocket> bind([String address = "127.0.0.1",
+  external static Future<ServerSocket> bind([address = "127.0.0.1",
                                              int port = 0,
                                              int backlog = 0]);
 
