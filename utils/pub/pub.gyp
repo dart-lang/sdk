@@ -9,6 +9,7 @@
       'type': 'none',
       'dependencies': [
         '../../runtime/dart-runtime.gyp:dart',
+        '../../pkg/pkg.gyp:pkg_packages',
       ],
       'actions': [
         {
