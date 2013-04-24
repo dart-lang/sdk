@@ -21,13 +21,10 @@ def main():
     major = int(matches[0][0])
     minor = int(matches[0][1])
 
-    if major == 3 and minor >= 1:
-      return '4.2'
-    elif major == 4 and minor < 5:
+    if major >= 4:
       return 'com.apple.compilers.llvmgcc42'
-    elif major == 4 and minor >= 5:
-      # XCode seems to select the specific clang version automatically
-      return 'com.apple.compilers.llvm.clang.1_0'
+    elif major == 3 and minor >= 1:
+      return '4.2'
     else:
       raise Exception('Unknown XCode Version "%s"' % version_match)
   else:
