@@ -50,6 +50,7 @@
       'dependencies': [
         'runtime/dart-runtime.gyp:dart',
         'utils/compiler/compiler.gyp:dart2js',
+        'utils/pub/pub.gyp:pub',
         'analyzer',
         'compiler',
       ],
@@ -62,6 +63,7 @@
             'tools/create_sdk.py',
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
             '<(SHARED_INTERMEDIATE_DIR)/utils_wrapper.dart.snapshot',
+            '<(SHARED_INTERMEDIATE_DIR)/pub.dart.snapshot',
             '<(PRODUCT_DIR)/analyzer/bin/dart_analyzer',
             '<(PRODUCT_DIR)/dartanalyzer/dartanalyzer.jar',
           ],
@@ -72,8 +74,7 @@
             'python',
             'tools/create_sdk.py',
             '--sdk_output_dir', '<(PRODUCT_DIR)/dart-sdk',
-            '--utils_snapshot_location',
-             '<(SHARED_INTERMEDIATE_DIR)/utils_wrapper.dart.snapshot'
+            '--snapshot_location', '<(SHARED_INTERMEDIATE_DIR)/'
           ],
           'message': 'Creating SDK.',
         },

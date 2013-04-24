@@ -389,22 +389,12 @@ ScheduledProcess startPub({List args, Future<Uri> tokenEndpoint}) {
       description: args.isEmpty ? 'pub' : 'pub ${args.first}');
 }
 
-/// Whether pub is running from within the Dart SDK, as opposed to from the Dart
-/// source repository.
-bool get _runningFromSdk =>
-  fileExists(relativeToPub(path.join('..', '..', '..', '..', 'version')));
-
 // TODO(nweiz): use the built-in mechanism for accessing this once it exists
 // (issue 9119).
 /// The path to the `packages` directory from which pub loads its dependencies.
 String get _packageRoot {
-  if (_runningFromSdk) {
-    return path.absolute(relativeToPub(
-        path.join('..', '..', '..', '..', 'packages')));
-  } else {
-    return path.absolute(path.join(
-        path.dirname(new Options().executable), '..', '..', 'packages'));
-  }
+  return path.absolute(path.join(
+      path.dirname(new Options().executable), '..', '..', 'packages'));
 }
 
 /// Skips the current test if Git is not installed. This validates that the

@@ -16,6 +16,7 @@ import 'package:http/http.dart' show ByteStream;
 import 'error_group.dart';
 import 'exit_codes.dart' as exit_codes;
 import 'log.dart' as log;
+import 'sdk.dart' as sdk;
 import 'utils.dart';
 
 export 'package:http/http.dart' show ByteStream;
@@ -252,9 +253,30 @@ void createPackageSymlink(String name, String target, String symlink,
   }
 }
 
-/// Resolves [target] relative to the root directory of pub.
-String relativeToPub(String target) => path.normalize(path.join(
-    path.dirname(libraryPath('pub.io')), '..', '..', target));
+/// Whether pub is running from within the Dart SDK, as opposed to from the Dart
+/// source repository.
+bool get runningFromSdk => path.extension(new Options().script) == 'snapshot';
+
+/// Resolves [target] relative to the path to pub's `resource` directory.
+String resourcePath(String target) {
+  if (runningFromSdk) {
+    return path.join(
+        sdk.rootDirectory, 'lib', '_internal', 'pub', 'resource', target);
+  } else {
+    return path.join(
+        path.dirname(libraryPath('pub.io')), '..', '..', 'resource', target);
+  }
+}
+
+/// Returns the path to the root of the Dart repository. This will throw a
+/// [StateError] if it's called when running pub from the SDK.
+String get repoRoot {
+  if (runningFromSdk) {
+    throw new StateError("Can't get the repo root from the SDK.");
+  }
+  return path.join(
+      path.dirname(libraryPath('pub.io')), '..', '..', '..', '..', '..', '..');
+}
 
 /// A line-by-line stream of standard input.
 final Stream<String> stdinLines = streamToLines(
@@ -538,6 +560,11 @@ Future<bool> extractTarGz(Stream<List<int>> stream, String destination) {
   });
 }
 
+String get pathTo7zip {
+  if (runningFromSdk) return resourcePath(path.join('7zip', '7za.exe'));
+  return path.join(repoRoot, 'third_party', '7zip', '7za.exe');
+}
+
 Future<bool> _extractTarGzWindows(Stream<List<int>> stream,
     String destination) {
   // TODO(rnystrom): In the repo's history, there is an older implementation of
@@ -547,11 +574,6 @@ Future<bool> _extractTarGzWindows(Stream<List<int>> stream,
   // read from stdin instead of a file. Consider resurrecting that version if
   // we can figure out why it fails.
 
-  // Note: This line of code gets munged by create_sdk.py to be the correct
-  // relative path to 7zip in the SDK.
-  var pathTo7zip = '../../../../third_party/7zip/7za.exe';
-  var command = relativeToPub(pathTo7zip);
-
   return withTempDir((tempDir) {
     // Write the archive to a temp file.
     var dataFile = path.join(tempDir, 'data.tar.gz');
@@ -560,7 +582,7 @@ Future<bool> _extractTarGzWindows(Stream<List<int>> stream,
       // first we un-gzip it to a tar file.
       // Note: Setting the working directory instead of passing in a full file
       // path because 7zip says "A full path is not allowed here."
-      return runProcess(command, ['e', 'data.tar.gz'], workingDir: tempDir);
+      return runProcess(pathTo7zip, ['e', 'data.tar.gz'], workingDir: tempDir);
     }).then((result) {
       if (result.exitCode != 0) {
         throw new Exception('Could not un-gzip (exit code ${result.exitCode}). '
@@ -577,7 +599,7 @@ Future<bool> _extractTarGzWindows(Stream<List<int>> stream,
       });
 
       // Untar the archive into the destination directory.
-      return runProcess(command, ['x', tarFile], workingDir: destination);
+      return runProcess(pathTo7zip, ['x', tarFile], workingDir: destination);
     }).then((result) {
       if (result.exitCode != 0) {
         throw new Exception('Could not un-tar (exit code ${result.exitCode}). '
@@ -635,20 +657,15 @@ ByteStream createTarGz(List contents, {baseDir}) {
     var args = ["a", "-w$baseDir", tarFile];
     args.addAll(contents.map((entry) => '-i!"$entry"'));
 
-    // Note: This line of code gets munged by create_sdk.py to be the correct
-    // relative path to 7zip in the SDK.
-    var pathTo7zip = '../../../../third_party/7zip/7za.exe';
-    var command = relativeToPub(pathTo7zip);
-
     // We're passing 'baseDir' both as '-w' and setting it as the working
     // directory explicitly here intentionally. The former ensures that the
     // files added to the archive have the correct relative path in the archive.
     // The latter enables relative paths in the "-i" args to be resolved.
-    return runProcess(command, args, workingDir: baseDir).then((_) {
+    return runProcess(pathTo7zip, args, workingDir: baseDir).then((_) {
       // GZIP it. 7zip doesn't support doing both as a single operation. Send
       // the output to stdout.
       args = ["a", "unused", "-tgzip", "-so", tarFile];
-      return startProcess(command, args);
+      return startProcess(pathTo7zip, args);
     }).then((process) {
       // Ignore 7zip's stderr. 7zip writes its normal output to stderr. We don't
       // want to show that since it's meaningless.

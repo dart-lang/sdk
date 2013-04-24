@@ -115,7 +115,7 @@ void run() {
       break;
   }
 
-  SecureSocket.initialize(database: relativeToPub('resource/certs'));
+  SecureSocket.initialize(database: resourcePath('certs'));
 
   var cacheDir;
   if (Platform.environment.containsKey('PUB_CACHE')) {

@@ -20,6 +20,7 @@
 # ......pub
 # ......snapshots/
 # ........utils_wrapper.dart.snapshot
+# ........pub.dart.snapshot
 # ....include/
 # ......dart_api.h
 # ......dart_debugger_api.h
@@ -78,8 +79,8 @@ def GetOptions():
   options = optparse.OptionParser(usage='usage: %prog [options]')
   options.add_option("--sdk_output_dir",
       help='Where to output the sdk')
-  options.add_option("--utils_snapshot_location",
-      help='Location of the utils snapshot.')
+  options.add_option("--snapshot_location",
+      help='Location of the snapshots.')
   return options.parse_args()
 
 
@@ -119,8 +120,11 @@ def CopyDartScripts(home, sdk_root):
                     os.path.join(sdk_root, 'bin'))
 
 
-def CopySnapshots(snapshot, sdk_root):
-  copyfile(snapshot, join(sdk_root, 'bin', 'snapshots', basename(snapshot)))
+def CopySnapshots(snapshots, sdk_root):
+  for snapshot in ['utils_wrapper', 'pub']:
+    snapshot += '.dart.snapshot'
+    copyfile(join(snapshots, snapshot),
+             join(sdk_root, 'bin', 'snapshots', snapshot))
 
 
 def Main(argv):
@@ -132,7 +136,7 @@ def Main(argv):
   SDK = options.sdk_output_dir
   SDK_tmp = '%s.tmp' % SDK
 
-  SNAPSHOT = options.utils_snapshot_location
+  SNAPSHOT = options.snapshot_location
 
   # TODO(dgrove) - deal with architectures that are not ia32.
 
@@ -205,7 +209,9 @@ def Main(argv):
 
   os.makedirs(join(LIB, 'html'))
 
-  for library in ['_internal',
+  for library in [join('_internal', 'compiler'),
+                  join('_internal', 'dartdoc'),
+                  join('_internal', 'pub', 'resource'),
                   'async', 'collection', '_collection_dev', 'core',
                   'crypto', 'io', 'isolate',
                   join('chrome', 'dart2js'), join('chrome', 'dartium'),
@@ -219,7 +225,12 @@ def Main(argv):
                   join('web_gl', 'dart2js'), join('web_gl', 'dartium'),
                   join('web_sql', 'dart2js'), join('web_sql', 'dartium')]:
     copytree(join(HOME, 'sdk', 'lib', library), join(LIB, library),
-             ignore=ignore_patterns('*.svn', 'doc', '*.py', '*.gypi', '*.sh'))
+             ignore=ignore_patterns('*.svn', 'doc', '*.py', '*.gypi', '*.sh',
+                                    '.gitignore'))
+
+  # Copy lib/_internal/libraries.dart.
+  copyfile(join(HOME, 'sdk', 'lib', '_internal', 'libraries.dart'),
+           join(LIB, '_internal', 'libraries.dart'))
 
   # Create and copy packages.
   PACKAGES = join(SDK_tmp, 'packages')
@@ -268,21 +279,11 @@ def Main(argv):
   for jarFile in jarFiles:
     copyfile(jarFile, join(DARTANALYZER_DEST, os.path.basename(jarFile)))
   
-  PUB_DEST = join(SDK_tmp, 'lib', '_internal', 'pub')
-
-
   # Copy in 7zip for Windows.
   if HOST_OS == 'win32':
     copytree(join(HOME, 'third_party', '7zip'),
-             join(PUB_DEST, 'resource', '7zip'),
+             join(SDK_tmp, 'lib', '_internal', 'pub', 'resource', '7zip'),
              ignore=ignore_patterns('.svn'))
-
-  ReplaceInFiles([
-      join(PUB_DEST, 'lib', 'src', 'io.dart'),
-    ], [
-      ("../../../../third_party/7zip/7za.exe",
-       "resource/7zip/7za.exe"),
-    ])
 
   # Copy dart2js/dartdoc/pub.
   CopyDartScripts(HOME, SDK_tmp)

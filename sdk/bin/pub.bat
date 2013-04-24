@@ -13,4 +13,4 @@ if %SCRIPTPATH:~-1%==\ set SCRIPTPATH=%SCRIPTPATH:~0,-1%
 
 :: The trailing forward slash in --package-root is required because of issue
 :: 9499.
-"%SCRIPTPATH%\dart.exe" --package-root="%SCRIPTPATH%\..\packages/" "%SCRIPTPATH%\..\lib\_internal\pub\bin\pub.dart" %*
+"%SCRIPTPATH%\dart.exe" "%SCRIPTPATH%\..\bin\snapshots\pub.dart.snapshot" %*
