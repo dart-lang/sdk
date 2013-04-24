@@ -15,14 +15,13 @@ import 'dart:_js_helper' show allMatchesInStringUnchecked,
                               checkNull,
                               checkNum,
                               checkString,
-                              getRuntimeTypeString,
+                              getRuntimeType,
                               regExpGetNative,
                               stringContainsUnchecked,
                               stringLastIndexOfUnchecked,
                               stringReplaceAllFuncUnchecked,
                               stringReplaceAllUnchecked,
                               stringReplaceFirstUnchecked,
-                              TypeImpl,
                               lookupDispatchRecord;
 import 'dart:_foreign_helper' show JS;
 
@@ -210,7 +209,7 @@ abstract class Interceptor {
                                 invocation.namedArguments);
   }
 
-  Type get runtimeType;
+  Type get runtimeType => getRuntimeType(this);
 }
 
 /**

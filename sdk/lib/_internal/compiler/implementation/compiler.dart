@@ -177,6 +177,8 @@ abstract class Backend {
   ClassElement get boolImplementation => compiler.boolClass;
   ClassElement get nullImplementation => compiler.nullClass;
 
+  ClassElement defaultSuperclass(ClassElement element) => compiler.objectClass;
+
   bool isDefaultNoSuchMethodImplementation(Element element) {
     assert(element.name == Compiler.NO_SUCH_METHOD);
     ClassElement classElement = element.getEnclosingClass();
