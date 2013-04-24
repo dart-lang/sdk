@@ -25,10 +25,9 @@
 
 
 union RawAddr {
-  // ss_family is always at ofset 0, thus we can add it here.
-  uint16_t ss_family;
   struct sockaddr_in in;
   struct sockaddr_in6 in6;
+  struct sockaddr_storage ss;
   struct sockaddr addr;
 };
 
@@ -43,7 +42,7 @@ class SocketAddress {
   explicit SocketAddress(struct addrinfo* addrinfo);
 
   int GetType() {
-    if (addr_.ss_family == AF_INET6) return TYPE_IPV6;
+    if (addr_.ss.ss_family == AF_INET6) return TYPE_IPV6;
     return TYPE_IPV4;
   }
 
@@ -51,7 +50,7 @@ class SocketAddress {
   const RawAddr& addr() const { return addr_; }
 
   static intptr_t GetAddrLength(const RawAddr& addr) {
-    return addr.ss_family == AF_INET6 ?
+    return addr.ss.ss_family == AF_INET6 ?
         sizeof(struct sockaddr_in6) : sizeof(struct sockaddr_in);
   }
 
@@ -63,7 +62,7 @@ class SocketAddress {
   }
 
   static void SetAddrPort(RawAddr* addr, intptr_t port) {
-    if (addr->ss_family == AF_INET) {
+    if (addr->ss.ss_family == AF_INET) {
       addr->in.sin_port = htons(port);
     } else {
       addr->in6.sin6_port = htons(port);
@@ -71,7 +70,7 @@ class SocketAddress {
   }
 
   static intptr_t GetAddrPort(RawAddr* addr) {
-    if (addr->ss_family == AF_INET) {
+    if (addr->ss.ss_family == AF_INET) {
       return ntohs(addr->in.sin_port);
     } else {
       return ntohs(addr->in6.sin6_port);

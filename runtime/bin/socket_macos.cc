@@ -42,7 +42,7 @@ bool Socket::Initialize() {
 intptr_t Socket::CreateConnect(RawAddr addr, const intptr_t port) {
   intptr_t fd;
 
-  fd = TEMP_FAILURE_RETRY(socket(addr.ss_family, SOCK_STREAM, 0));
+  fd = TEMP_FAILURE_RETRY(socket(addr.ss.ss_family, SOCK_STREAM, 0));
   if (fd < 0) {
     Log::PrintErr("Error CreateConnect: %s\n", strerror(errno));
     return -1;
@@ -122,12 +122,12 @@ bool Socket::GetRemotePeer(intptr_t fd, char *host, intptr_t *port) {
     return false;
   }
   const void* src;
-  if (raw.ss_family == AF_INET6) {
+  if (raw.ss.ss_family == AF_INET6) {
     src = reinterpret_cast<const void*>(&raw.in6.sin6_addr);
   } else {
     src = reinterpret_cast<const void*>(&raw.in.sin_addr);
   }
-  if (inet_ntop(raw.ss_family,
+  if (inet_ntop(raw.ss.ss_family,
                 src,
                 host,
                 INET_ADDRSTRLEN) == NULL) {
@@ -207,7 +207,7 @@ intptr_t ServerSocket::CreateBindListen(RawAddr addr,
                                         intptr_t backlog) {
   intptr_t fd;
 
-  fd = TEMP_FAILURE_RETRY(socket(addr.ss_family, SOCK_STREAM, 0));
+  fd = TEMP_FAILURE_RETRY(socket(addr.ss.ss_family, SOCK_STREAM, 0));
   if (fd < 0) return -1;
 
   FDUtils::SetCloseOnExec(fd);
@@ -216,7 +216,7 @@ intptr_t ServerSocket::CreateBindListen(RawAddr addr,
   VOID_TEMP_FAILURE_RETRY(
       setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)));
 
-  if (addr.ss_family == AF_INET6) {
+  if (addr.ss.ss_family == AF_INET6) {
     optval = 0;
     VOID_TEMP_FAILURE_RETRY(
         setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, &optval, sizeof(optval)));

@@ -110,7 +110,7 @@ bool Socket::GetRemotePeer(intptr_t fd, char *host, intptr_t *port) {
 }
 
 intptr_t Socket::CreateConnect(RawAddr addr, const intptr_t port) {
-  SOCKET s = socket(addr.ss_family, SOCK_STREAM, 0);
+  SOCKET s = socket(addr.ss.ss_family, SOCK_STREAM, 0);
   if (s == INVALID_SOCKET) {
     return -1;
   }
@@ -237,7 +237,7 @@ SocketAddresses* Socket::LookupAddress(const char* host,
 intptr_t ServerSocket::CreateBindListen(RawAddr addr,
                                         intptr_t port,
                                         intptr_t backlog) {
-  SOCKET s = socket(addr.ss_family, SOCK_STREAM, IPPROTO_TCP);
+  SOCKET s = socket(addr.ss.ss_family, SOCK_STREAM, IPPROTO_TCP);
   if (s == INVALID_SOCKET) {
     return -1;
   }
@@ -255,7 +255,7 @@ intptr_t ServerSocket::CreateBindListen(RawAddr addr,
     return -1;
   }
 
-  if (addr.ss_family == AF_INET6) {
+  if (addr.ss.ss_family == AF_INET6) {
     optval = false;
     setsockopt(s,
                IPPROTO_IPV6,
