@@ -21,7 +21,7 @@ def Main(argv):
   pkgs_to_publish = []
   for name in os.listdir('pkg'):
     if os.path.isdir(os.path.join('pkg', name)):
-      if (name != '.svn' and name != 'fixnum' and name != 'expect':
+      if (name != '.svn' and name != 'fixnum' and name != 'expect'):
         pkgs_to_publish.append(os.path.join('pkg', name))
 
   # Publish dart2js as an "unsupported" package.
