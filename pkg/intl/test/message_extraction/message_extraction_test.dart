@@ -48,8 +48,13 @@ final vmArgs = (packageDir == null) ? [] : ['--package-root=$packageDir'];
  * Translate a file path into this test directory, regardless of the
  * working directory.
  */
-String dir([String s]) =>
-    path.join(intlDirectory, 'test', 'message_extraction', s);
+String dir([String s]) {
+  if (s != null && s.startsWith("--")) { // Don't touch command-line options.
+    return s;
+  } else {
+   return path.join(intlDirectory, 'test', 'message_extraction', s);
+  }
+}
 
 main() {
   test("Test round trip message extraction, translation, code generation, "
@@ -68,8 +73,8 @@ main() {
 
 void deleteGeneratedFiles() {
   var files = [dir('intl_messages.json'), dir('translation_fr.json'),
-      dir('messages_fr.dart'), dir('messages_de_DE.dart'),
-      dir('translation_de_DE.json'), dir('messages_all.dart')];
+      dir('foo_messages_fr.dart'), dir('foo_messages_de_DE.dart'),
+      dir('translation_de_DE.json'), dir('foo_messages_all.dart')];
   files.map((name) => new File(name)).forEach((x) {
     if (x.existsSync()) x.deleteSync();});
 }
@@ -107,7 +112,7 @@ Future<ProcessResult> run(ProcessResult previousResult, List<String> filenames)
 
 Future<ProcessResult> extractMessages(ProcessResult previousResult) => run(
     previousResult,
-    ['extract_to_json.dart', 'sample_with_messages.dart',
+    ['extract_to_json.dart', '--suppress-warnings', 'sample_with_messages.dart',
         'part_of_sample_with_messages.dart']);
 
 Future<ProcessResult> generateTranslationFiles(ProcessResult previousResult) =>
@@ -118,7 +123,8 @@ Future<ProcessResult> generateTranslationFiles(ProcessResult previousResult) =>
 Future<ProcessResult> generateCodeFromTranslation(ProcessResult previousResult)
     => run(
         previousResult,
-        ['generate_from_json.dart', 'sample_with_messages.dart',
+        ['generate_from_json.dart', '--generated-file-prefix=foo_',
+         'sample_with_messages.dart',
              'part_of_sample_with_messages.dart', 'translation_fr.json',
              'translation_de_DE.json' ]);
 
@@ -135,9 +141,8 @@ verifyResult(results) {
 
   var output = results.stdout;
   var lines = output.split("\n");
-  // If it looks like these are CRLF delimited, then use that. Wish strings
-  // just implemented last.
-  if (lines.first.codeUnits.last == "\r".codeUnits.first) {
+  // If it looks like these are CRLF delimited, then use that.
+  if (lines.first.endsWith("\r")) {
     lines = output.split("\r\n");
   }
   lineIterator = lines.iterator..moveNext();

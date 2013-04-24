@@ -47,6 +47,12 @@ String importForGeneratedFile(String file) =>
 List<String> allLocales = [];
 
 /**
+ * If we have more than one set of messages to generate in a particular
+ * directory we may want to prefix some to distinguish them.
+ */
+String generatedFilePrefix = '';
+
+/**
  * This represents a message and its translation. We assume that the translation
  * has some identifier that allows us to figure out the original message it
  * corresponds to, and that it may want to transform the translated text in
@@ -101,14 +107,15 @@ void generateIndividualMessageFile(String locale,
   result.write(entries.join(",\n"));
   result.write("\n  };\n}");
 
-  var output = new File(path.join(targetDir, "messages_$locale.dart"));
+  var output = new File(path.join(targetDir,
+      "${generatedFilePrefix}messages_$locale.dart"));
   output.writeAsStringSync(result.toString());
 }
 
 /**
  * This returns the mostly constant string used in
- * [generateIndividualMessageFile] for the
- * beginning of the file, parameterized by [locale].
+ * [generateIndividualMessageFile] for the beginning of the file,
+ * parameterized by [locale].
  */
 String prologue(String locale) => """
 /**
@@ -137,7 +144,7 @@ String generateMainImportFile() {
   var output = new StringBuffer();
   output.write(mainPrologue);
   for (var each in allLocales) {
-    var baseFile = 'messages_$each.dart';
+    var baseFile = '${generatedFilePrefix}messages_$each.dart';
     var file = importForGeneratedFile(baseFile);
     output.write("import '$file' as ${asLibraryName(each)};\n");
   }

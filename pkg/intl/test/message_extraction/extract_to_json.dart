@@ -25,10 +25,19 @@ import 'package:intl/extract_messages.dart';
 import 'dart:json' as json;
 import 'package:pathos/path.dart' as path;
 import 'package:intl/src/intl_message.dart';
-import 'find_output_directory.dart';
+import 'package:args/args.dart';
 
 main() {
   var args = new Options().arguments;
+  var targetDir;
+  var parser = new ArgParser();
+  parser.addFlag("suppress-warnings", defaultsTo: false,
+      callback: (x) => suppressWarnings = x);
+
+  void setTargetDir(value) => targetDir = value;
+
+  parser.addOption("output-dir", defaultsTo: '.', callback: setTargetDir);
+  parser.parse(args);
   if (args.length == 0) {
     print('Usage: extract_to_json [--output-dir=<dir>] [files.dart]');
     print('Accepts Dart files and produces intl_messages.json');
@@ -39,7 +48,6 @@ main() {
     var messages = parseFile(new File(arg));
     messages.forEach((k, v) => allMessages.add(toJson(v)));
   }
-  var targetDir = findOutputDirectory(args);
   var file = new File(path.join(targetDir, 'intl_messages.json'));
   file.writeAsStringSync(json.stringify(allMessages));
 }

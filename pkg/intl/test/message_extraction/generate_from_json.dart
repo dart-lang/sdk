@@ -22,7 +22,7 @@ import 'extract_to_json.dart';
 import 'package:intl/generate_localized.dart';
 import 'dart:json' as json;
 import 'package:pathos/path.dart' as path;
-import 'find_output_directory.dart';
+import 'package:args/args.dart';
 
 /**
  * Keeps track of all the messages we have processed so far, keyed by message
@@ -31,19 +31,29 @@ import 'find_output_directory.dart';
 Map<String, IntlMessage> messages;
 
 main() {
+  var targetDir;
   var args = new Options().arguments;
+  var parser = new ArgParser();
+  parser.addFlag("suppress-warnings", defaultsTo: false,
+      callback: (x) => suppressWarnings = x);
+  parser.addOption("output-dir", defaultsTo: '.',
+      callback: (x) => targetDir = x);
+  parser.addOption("generated-file-prefix", defaultsTo: '',
+      callback: (x) => generatedFilePrefix = x);
+  parser.parse(args);
   if (args.length == 0) {
-    print('Usage: generate_from_json [--output-dir=<dir>] [originalFiles.dart]'
-        ' [translationFiles.json]');
+    print('Usage: generate_from_json [--output-dir=<dir>]'
+        ' [generated-file-prefix=<prefix>] file1.dart file2.dart ...'
+        ' outputFile.json');
     exit(0);
   }
 
-  var targetDir = findOutputDirectory(args);
-  var isDart = new RegExp(r'\.dart');
-  var isJson = new RegExp(r'\.json');
-  var dartFiles = args.where(isDart.hasMatch).toList();
-  var jsonFiles = args.where(isJson.hasMatch).toList();
+  var dartFiles = args.where((x) => x.endsWith("dart")).toList();
+  var jsonFiles = args.where((x) => x.endsWith(".json")).toList();
 
+  // We're re-parsing the original files to find the corresponding messages,
+  // so if there are warnings extracting the messages, suppress them.
+  suppressWarnings = true;
   var allMessages = dartFiles.map((each) => parseFile(new File(each)));
 
   messages = new Map();
@@ -51,11 +61,12 @@ main() {
     eachMap.forEach((key, value) => messages[key] = value);
   }
   for (var arg in jsonFiles) {
-    var file = new File(path.join(targetDir, arg));
-    var translations = generateLocaleFile(file, targetDir);
+    var file = new File(arg);
+    generateLocaleFile(file, targetDir);
   }
 
-  var mainImportFile = new File(path.join(targetDir, 'messages_all.dart'));
+  var mainImportFile = new File(path.join(targetDir,
+      '${generatedFilePrefix}messages_all.dart'));
   mainImportFile.writeAsStringSync(generateMainImportFile());
 }
 
