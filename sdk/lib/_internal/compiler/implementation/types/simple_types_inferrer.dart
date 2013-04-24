@@ -675,10 +675,8 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
         if (elementType.kind != TypeKind.FUNCTION) {
           return dynamicType;
         }
-        DartType returnType = elementType.returnType;
-        return returnType.isVoid
-            ? nullType
-            : new TypeMask.subtype(returnType.asRaw());
+        return typeOfNativeBehavior(
+            native.NativeBehavior.ofMethod(element, compiler));
       });
     }
     TypeMask returnType = returnTypeOf[element];
@@ -688,6 +686,48 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
     assert(returnType != null);
     return returnType;
   }
+
+  TypeMask typeOfNativeBehavior(native.NativeBehavior nativeBehavior) {
+    if (nativeBehavior == null) return dynamicType;
+    List typesReturned = nativeBehavior.typesReturned;
+    if (typesReturned.isEmpty) return dynamicType;
+    TypeMask returnType;
+    for (var type in typesReturned) {
+      TypeMask mappedType;
+      if (type == native.SpecialType.JsObject) {
+        mappedType = new TypeMask.nonNullExact(rawTypeOf(compiler.objectClass));
+      } else if (type == native.SpecialType.JsArray) {
+        mappedType = listType;
+      } else if (type.element == compiler.stringClass) {
+        mappedType = stringType;
+      } else if (type.element == compiler.intClass) {
+        mappedType = intType;
+      } else if (type.element == compiler.doubleClass) {
+        mappedType = doubleType;
+      } else if (type.element == compiler.numClass) {
+        mappedType = numType;
+      } else if (type.element == compiler.boolClass) {
+        mappedType = boolType;
+      } else if (type.element == compiler.nullClass) {
+        mappedType = nullType;
+      } else if (type.isVoid) {
+        mappedType = nullType;
+      } else if (compiler.world.hasAnySubclass(type.element)) {
+        mappedType = new TypeMask.nonNullSubclass(rawTypeOf(type.element));
+      } else if (compiler.world.hasAnySubtype(type.element)) {
+        mappedType = new TypeMask.nonNullSubtype(rawTypeOf(type.element));
+      } else {
+        mappedType = new TypeMask.nonNullExact(rawTypeOf(type.element));
+      }
+      returnType = computeLUB(returnType, mappedType);
+      if (!isTypeValuable(returnType)) {
+        returnType = dynamicType;
+        break;
+      }
+    }
+    return returnType;
+  }
+
 
   /**
    * Returns the type of [element]. Returns [:dynamic:] if
@@ -1872,46 +1912,7 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
     if (name == const SourceString('JS')) {
       native.NativeBehavior nativeBehavior =
           compiler.enqueuer.resolution.nativeEnqueuer.getNativeBehaviorOf(node);
-      if (nativeBehavior == null) return inferrer.dynamicType;
-      List typesReturned = nativeBehavior.typesReturned;
-      if (typesReturned.isEmpty) return inferrer.dynamicType;
-      TypeMask returnType;
-      for (var type in typesReturned) {
-        TypeMask mappedType;
-        if (type == native.SpecialType.JsObject) {
-          mappedType = new TypeMask.nonNullExact(
-              inferrer.rawTypeOf(compiler.objectClass));
-        } else if (type == native.SpecialType.JsArray) {
-          mappedType = inferrer.listType;
-        } else if (type.element == compiler.stringClass) {
-          mappedType = inferrer.stringType;
-        } else if (type.element == compiler.intClass) {
-          mappedType = inferrer.intType;
-        } else if (type.element == compiler.doubleClass) {
-          mappedType = inferrer.doubleType;
-        } else if (type.element == compiler.numClass) {
-          mappedType = inferrer.numType;
-        } else if (type.element == compiler.boolClass) {
-          mappedType = inferrer.boolType;
-        } else if (type.element == compiler.nullClass) {
-          mappedType = inferrer.nullType;
-        } else if (compiler.world.hasAnySubclass(type.element)) {
-          mappedType = new TypeMask.nonNullSubclass(
-              inferrer.rawTypeOf(type.element));
-        } else if (compiler.world.hasAnySubtype(type.element)) {
-          mappedType = new TypeMask.nonNullSubtype(
-              inferrer.rawTypeOf(type.element));
-        } else {
-          mappedType = new TypeMask.nonNullExact(
-              inferrer.rawTypeOf(type.element));
-        }
-        returnType = inferrer.computeLUB(returnType, mappedType);
-        if (!inferrer.isTypeValuable(returnType)) {
-          returnType = inferrer.dynamicType;
-          break;
-        }
-      }
-      return returnType;
+      return inferrer.typeOfNativeBehavior(nativeBehavior);
     } else if (name == const SourceString('JS_OPERATOR_IS_PREFIX')
                || name == const SourceString('JS_OPERATOR_AS_PREFIX')) {
       return inferrer.stringType;
