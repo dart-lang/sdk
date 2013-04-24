@@ -52,6 +52,8 @@ abstract class List<E> implements Iterable<E> {
    *
    * The list is a fixed-length list if [length] is provided, and an empty
    * growable list if [length] is omitted.
+   *
+   * It is an error if [length] is not a non-negative integer.
    */
   external factory List([int length]);
 
@@ -62,8 +64,10 @@ abstract class List<E> implements Iterable<E> {
   external factory List.filled(int length, E fill);
 
   /**
-   * Creates an list with the elements of [other]. The order in
-   * the list will be the order provided by the iterator of [other].
+   * Creates an list with the elements of [other].
+   *
+   * The order in the list will be
+   * the order provided by the iterator of [other].
    *
    * The returned list is growable if [growable] is true, otherwise it's
    * a fixed length list.
@@ -83,11 +87,12 @@ abstract class List<E> implements Iterable<E> {
   }
 
   /**
-   * Generate a `List` of elements.
+   * Generate a `List` of values.
    *
-   * Generates a list of values, where the values are created by
-   * calling the [generator] function for each index in the range
-   * 0 .. [length] - 1.
+   * Creates a list with [length] positions
+   * and fills them by values created by calling [generator]
+   * for each index in the range `0` .. `[length] - 1`
+   * in increasing order.
    *
    * The created length's length is fixed unless [growable] is true.
    */
