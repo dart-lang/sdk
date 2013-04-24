@@ -36,13 +36,14 @@ class JSInvocationMirror {}  // Should be in helper.
 
 const INTERCEPTORS_LIB = """
 library interceptors;
+class JSIndexable {
+  get length;
+}
 class JSArray {
-  get length => null;
   removeLast() => null;
   add(x) { }
 }
 class JSString {
-  get length => null;
   split(x) => null;
   concat(x) => null;
   toString() => null;

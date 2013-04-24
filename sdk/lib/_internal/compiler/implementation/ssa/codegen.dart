@@ -1648,7 +1648,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitFieldGet(HFieldGet node) {
     use(node.receiver);
     Element element = node.element;
-    if (element == backend.jsArrayLength || element == backend.jsStringLength) {
+    if (element == backend.jsIndexableLength) {
       // We're accessing a native JavaScript property called 'length'
       // on a JS String or a JS array. Therefore, the name of that
       // property should not be mangled.

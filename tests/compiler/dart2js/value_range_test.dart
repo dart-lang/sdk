@@ -222,7 +222,9 @@ const String DEFAULT_CORELIB_WITH_LIST_INTERFACE = r'''
   bool identical(Object a, Object b) {}''';
 
 const String INTERCEPTORSLIB_WITH_MEMBERS = r'''
-  class JSIndexable {}
+  abstract class JSIndexable {
+    get length;
+  }
   class JSArray implements JSIndexable {
     var length;
     var removeLast;

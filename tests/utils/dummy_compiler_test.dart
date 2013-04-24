@@ -43,15 +43,16 @@ Future<String> provider(Uri uri) {
       source = '';
     } else if (uri.path.endsWith('interceptors.dart')) {
       source = """class ObjectInterceptor {}
+                  class JSIndexable {
+                    get length;
+                  }
                   class JSArray {
-                    var length;
                     var removeLast;
                     var add;
                   }
                   class JSFixedArray {}
                   class JSExtendableArray {}
                   class JSString {
-                    var length;
                     var split;
                     var concat;
                     var toString;

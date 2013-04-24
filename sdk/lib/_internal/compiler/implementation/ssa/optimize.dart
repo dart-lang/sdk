@@ -234,7 +234,16 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
   HInstruction tryOptimizeLengthInterceptedGetter(HInvokeDynamic node) {
     HInstruction actualReceiver = node.inputs[1];
-    if (actualReceiver.isIndexablePrimitive()) {
+
+    // TODO(kasperl): Get rid of HType.isIndexablePrimitive() and use
+    // something like this everywhere instead.
+    TypeMask mask = actualReceiver.instructionType.computeMask(compiler);
+    DartType base = backend.jsIndexableClass.computeType(compiler);
+    TypeMask indexable = new TypeMask.nonNullSubtype(base);
+    TypeMask union = indexable.union(mask, compiler);
+    bool isIndexable = (union == indexable);
+
+    if (isIndexable) {
       if (actualReceiver.isConstantString()) {
         HConstant constantInput = actualReceiver;
         StringConstant constant = constantInput.constant;
@@ -244,15 +253,9 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         ListConstant constant = constantInput.constant;
         return graph.addConstantInt(constant.length, constantSystem);
       }
-      Element element;
-      bool isAssignable;
-      if (actualReceiver.isString()) {
-        element = backend.jsStringLength;
-        isAssignable = false;
-      } else {
-        element = backend.jsArrayLength;
-        isAssignable = !actualReceiver.isFixedArray();
-      }
+      Element element = backend.jsIndexableLength;
+      bool isAssignable = !actualReceiver.isFixedArray() &&
+          !actualReceiver.isString();
       HFieldGet result = new HFieldGet(
           element, actualReceiver, isAssignable: isAssignable);
       result.instructionType = HType.INTEGER;
@@ -323,8 +326,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         return result;
       }
     } else if (selector.isGetter()) {
-      if (selector.applies(backend.jsArrayLength, compiler)
-          || selector.applies(backend.jsStringLength, compiler)) {
+      if (selector.asUntyped.applies(backend.jsIndexableLength, compiler)) {
         HInstruction optimized = tryOptimizeLengthInterceptedGetter(node);
         if (optimized != null) return optimized;
       }
@@ -629,7 +631,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   }
 
   HInstruction visitFieldGet(HFieldGet node) {
-    if (node.element == backend.jsArrayLength) {
+    if (node.element == backend.jsIndexableLength) {
       if (node.receiver is HInvokeStatic) {
         // Try to recognize the length getter with input
         // [:new List(int):].
@@ -644,16 +646,12 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
             && call.inputs[1].isInteger()) {
           return call.inputs[1];
         }
-      } else if (node.receiver.isConstantList()) {
+      } else if (node.receiver.isConstantList() ||
+                 node.receiver.isConstantString()) {
         var instruction = node.receiver;
         return graph.addConstantInt(
             instruction.constant.length, backend.constantSystem);
       }
-    } else if (node.element == backend.jsStringLength
-               && node.receiver.isConstantString()) {
-        var instruction = node.receiver;
-        return graph.addConstantInt(
-            instruction.constant.length, backend.constantSystem);
     }
     return node;
   }
@@ -964,12 +962,8 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
                                  HInstruction receiver,
                                  HInstruction index) {
     bool isAssignable = !receiver.isFixedArray() && !receiver.isString();
-    Element element = receiver.isString()
-        ? backend.jsStringLength
-        : backend.jsArrayLength;
     HFieldGet length = new HFieldGet(
-        element, receiver, isAssignable: isAssignable);
-    length.instructionType = HType.INTEGER;
+        backend.jsIndexableLength, receiver, isAssignable: isAssignable);
     length.instructionType = HType.INTEGER;
     node.block.addBefore(node, length);
 

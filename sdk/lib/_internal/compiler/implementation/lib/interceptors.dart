@@ -267,4 +267,5 @@ class JSNull extends Interceptor implements Null {
  * use the [] operator on.
  */
 abstract class JSIndexable {
+  int get length;
 }
