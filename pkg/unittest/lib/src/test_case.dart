@@ -83,7 +83,10 @@ class TestCase {
     --_callbackFunctionsOutstanding;
     if (f is Future) {
       return f.then((_) => _finishTest())
-       .catchError((error) => fail("${error}"));
+        .catchError((error) {
+          var stack = getAttachedStackTrace(error);
+          _registerException(this, error, stack);
+        });
     } else {
       _finishTest();
       return null;
@@ -118,7 +121,8 @@ class TestCase {
           // a failed setUp. There is no right answer, but doing it
           // seems to be the more conservative approach, because
           // unittest will not stop at a test failure.
-          error("$description: Test setup failed: $e");
+          var stack = getAttachedStackTrace(e);
+          error("$description: Test setup failed: $e", "$stack");
         });
     } else {
       var f = _runTest();

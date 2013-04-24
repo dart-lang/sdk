@@ -367,10 +367,9 @@ class _SpreadArgsHelper {
   final int minExpectedCalls;
   final int maxExpectedCalls;
   final Function isDone;
-  final int testNum;
   final String id;
   int actualCalls = 0;
-  TestCase testCase;
+  final TestCase testCase;
   bool complete;
   static const sentinel = const _Sentinel();
 
@@ -382,19 +381,15 @@ class _SpreadArgsHelper {
             ? minExpected
             : maxExpected,
         this.isDone = isDone,
-        testNum = _currentTestCaseIndex,
+        this.testCase = currentTestCase,
         this.id = _makeCallbackId(id, callback) {
     ensureInitialized();
-    if (!(_currentTestCaseIndex >= 0 &&
-           _currentTestCaseIndex < testCases.length &&
-           testCases[_currentTestCaseIndex] != null)) {
+    if (testCase == null) {
       print("No valid test, did you forget to run your test inside a call "
           "to test()?");
     }
-    assert(_currentTestCaseIndex >= 0 &&
-           _currentTestCaseIndex < testCases.length &&
-           testCases[_currentTestCaseIndex] != null);
-    testCase = testCases[_currentTestCaseIndex];
+    assert(testCase != null);
+
     if (isDone != null || minExpected > 0) {
       testCase._callbackFunctionsOutstanding++;
       complete = false;
@@ -478,7 +473,7 @@ class _SpreadArgsHelper {
            '');
       }
     },
-    after, testNum);
+    after, testCase);
   }
 
   invoke0() {
@@ -488,7 +483,7 @@ class _SpreadArgsHelper {
             return callback();
           }
         },
-        after, testNum);
+        after, testCase);
   }
 
   invoke1(arg1) {
@@ -498,7 +493,7 @@ class _SpreadArgsHelper {
             return callback(arg1);
           }
         },
-        after, testNum);
+        after, testCase);
   }
 
   invoke2(arg1, arg2) {
@@ -508,7 +503,7 @@ class _SpreadArgsHelper {
             return callback(arg1, arg2);
           }
         },
-        after, testNum);
+        after, testCase);
   }
 }
 
@@ -773,15 +768,15 @@ void runTests() {
  * The value returned by [tryBody] (if any) is returned by [guardAsync].
  */
 guardAsync(Function tryBody) {
-  return _guardAsync(tryBody, null, _currentTestCaseIndex);
+  return _guardAsync(tryBody, null, currentTestCase);
 }
 
-_guardAsync(Function tryBody, Function finallyBody, int testNum) {
-  assert(testNum >= 0);
+_guardAsync(Function tryBody, Function finallyBody, TestCase testCase) {
+  assert(testCase != null);
   try {
     return tryBody();
   } catch (e, trace) {
-    _registerException(testNum, e, trace);
+    _registerException(testCase, e, trace);
   } finally {
     if (finallyBody != null) finallyBody();
   }
@@ -791,19 +786,19 @@ _guardAsync(Function tryBody, Function finallyBody, int testNum) {
  * Registers that an exception was caught for the current test.
  */
 void registerException(e, [trace]) {
-  _registerException(_currentTestCaseIndex, e, trace);
+  _registerException(currentTestCase, e, trace);
 }
 
 /**
  * Registers that an exception was caught for the current test.
  */
-void _registerException(testNum, e, [trace]) {
+void _registerException(TestCase testCase, e, [trace]) {
   trace = trace == null ? '' : trace.toString();
   String message = (e is TestFailure) ? e.message : 'Caught $e';
-  if (testCases[testNum].result == null) {
-    testCases[testNum].fail(message, trace);
+  if (testCase.result == null) {
+    testCase.fail(message, trace);
   } else {
-    testCases[testNum].error(message, trace);
+    testCase.error(message, trace);
   }
 }
 
@@ -819,7 +814,7 @@ void _nextBatch() {
       break;
     }
     final testCase = testCases[_currentTestCaseIndex];
-    var f = _guardAsync(testCase._run, null, _currentTestCaseIndex);
+    var f = _guardAsync(testCase._run, null, testCase);
     if (f != null) {
       f.whenComplete(() {
         _nextTestCase(); // Schedule the next test.
