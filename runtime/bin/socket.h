@@ -54,41 +54,34 @@ class SocketAddress {
   }
 
   static void SetAddrPort(struct sockaddr_storage* addr, intptr_t port) {
-    sock_addr_ sock_addr;
-    sock_addr.storage = addr;
-    if (sock_addr.storage->ss_family == AF_INET) {
-      sock_addr.in->sin_port = htons(port);
+    if (addr->ss_family == AF_INET) {
+      GetAsSockAddrIn(GetAsSockAddr(addr))->sin_port = htons(port);
     } else {
-      sock_addr.in6->sin6_port = htons(port);
+      GetAsSockAddrIn6(GetAsSockAddr(addr))->sin6_port = htons(port);
     }
   }
 
   static intptr_t GetAddrPort(struct sockaddr_storage* addr) {
-    sock_addr_ sock_addr;
-    sock_addr.storage = addr;
-    if (sock_addr.storage->ss_family == AF_INET) {
-      return ntohs(sock_addr.in->sin_port);
+    if (addr->ss_family == AF_INET) {
+      return ntohs(GetAsSockAddrIn(GetAsSockAddr(addr))->sin_port);
     } else {
-      return ntohs(sock_addr.in6->sin6_port);
+      return ntohs(GetAsSockAddrIn6(GetAsSockAddr(addr))->sin6_port);
     }
   }
 
   static struct sockaddr* GetAsSockAddr(struct sockaddr_storage* addr) {
-    sock_addr_ sock_addr;
-    sock_addr.storage = addr;
-    return sock_addr.addr;
+    uint8_t* data = reinterpret_cast<uint8_t*>(addr);
+    return reinterpret_cast<struct sockaddr*>(data);
   }
 
   static struct sockaddr_in* GetAsSockAddrIn(struct sockaddr* addr) {
-    sock_addr_ sock_addr;
-    sock_addr.addr = addr;
-    return sock_addr.in;
+    uint8_t* data = reinterpret_cast<uint8_t*>(addr);
+    return reinterpret_cast<struct sockaddr_in*>(data);
   }
 
   static struct sockaddr_in6* GetAsSockAddrIn6(struct sockaddr* addr) {
-    sock_addr_ sock_addr;
-    sock_addr.addr = addr;
-    return sock_addr.in6;
+    uint8_t* data = reinterpret_cast<uint8_t*>(addr);
+    return reinterpret_cast<struct sockaddr_in6*>(data);
   }
 
  private:
