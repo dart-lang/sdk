@@ -190,6 +190,13 @@ patch class Process {
   }
 }
 
+patch class InternetAddress {
+  patch static Future<List<InternetAddress>> lookup(
+      String host, {InternetAddressType type: InternetAddressType.ANY}) {
+    throw new UnsupportedError("InternetAddress.lookup");
+  }
+}
+
 patch class RawServerSocket {
   patch static Future<RawServerSocket> bind([String address = "127.0.0.1",
                                              int port = 0,

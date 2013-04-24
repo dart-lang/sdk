@@ -7,13 +7,12 @@ import "dart:async";
 import "dart:io";
 import "dart:isolate";
 
-const SERVER_ADDRESS = "127.0.0.1";
 const HOST_NAME = "localhost";
 const CERTIFICATE = "localhost_cert";
 
 void testClientCertificate() {
   ReceivePort port = new ReceivePort();
-  SecureServerSocket.bind(SERVER_ADDRESS,
+  SecureServerSocket.bind(HOST_NAME,
                           0,
                           5,
                           CERTIFICATE,
@@ -42,7 +41,7 @@ void testClientCertificate() {
 
 void testRequiredClientCertificate() {
   ReceivePort port = new ReceivePort();
-  SecureServerSocket.bind(SERVER_ADDRESS,
+  SecureServerSocket.bind(HOST_NAME,
                           0,
                           5,
                           CERTIFICATE,
@@ -71,7 +70,7 @@ void testRequiredClientCertificate() {
 
 void testNoClientCertificate() {
   ReceivePort port = new ReceivePort();
-  SecureServerSocket.bind(SERVER_ADDRESS,
+  SecureServerSocket.bind(HOST_NAME,
                           0,
                           5,
                           CERTIFICATE,
@@ -94,7 +93,7 @@ void testNoClientCertificate() {
 void testNoRequiredClientCertificate() {
   ReceivePort port = new ReceivePort();
   bool clientError = false;
-  SecureServerSocket.bind(SERVER_ADDRESS,
+  SecureServerSocket.bind(HOST_NAME,
                           0,
                           5,
                           CERTIFICATE,

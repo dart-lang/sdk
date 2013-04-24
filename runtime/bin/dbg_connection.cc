@@ -294,7 +294,11 @@ void DebuggerConnectionHandler::StartHandler(const char* address,
   // listen, accept connections from debuggers, read and handle/dispatch
   // debugger commands received on these connections.
   ASSERT(listener_fd_ == -1);
-  listener_fd_ = ServerSocket::CreateBindListen(address, port_number, 1);
+
+  OSError *os_error;
+  SocketAddresses* addresses = Socket::LookupAddress(address, -1, &os_error);
+  listener_fd_ = ServerSocket::CreateBindListen(
+      addresses->GetAt(0)->addr(), port_number, 1);
   DebuggerConnectionImpl::StartHandler(port_number);
 }
 

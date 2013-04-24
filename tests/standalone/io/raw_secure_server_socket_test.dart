@@ -12,13 +12,12 @@ import "dart:async";
 import "dart:io";
 import "dart:isolate";
 
-const SERVER_ADDRESS = "127.0.0.1";
 const HOST_NAME = "localhost";
 const CERTIFICATE = "localhost_cert";
 
 void testSimpleBind() {
   ReceivePort port = new ReceivePort();
-  RawSecureServerSocket.bind(SERVER_ADDRESS, 0, 5, CERTIFICATE).then((s) {
+  RawSecureServerSocket.bind(HOST_NAME, 0, 5, CERTIFICATE).then((s) {
     Expect.isTrue(s.port > 0);
     s.close();
     port.close();
@@ -50,8 +49,8 @@ void testInvalidBind() {
   // Either an error or a successful bind is allowed.
   // Windows platforms allow multiple binding to the same socket, with
   // unpredictable results.
-  RawSecureServerSocket.bind(SERVER_ADDRESS, 0, 5, CERTIFICATE).then((s) {
-    RawSecureServerSocket.bind(SERVER_ADDRESS,
+  RawSecureServerSocket.bind(HOST_NAME, 0, 5, CERTIFICATE).then((s) {
+    RawSecureServerSocket.bind(HOST_NAME,
                                s.port,
                                5,
                                CERTIFICATE).then((t) {
@@ -72,7 +71,7 @@ void testInvalidBind() {
 
 void testSimpleConnect(String certificate) {
   ReceivePort port = new ReceivePort();
-  RawSecureServerSocket.bind(SERVER_ADDRESS, 0, 5, certificate).then((server) {
+  RawSecureServerSocket.bind(HOST_NAME, 0, 5, certificate).then((server) {
     var clientEndFuture = RawSecureSocket.connect(HOST_NAME, server.port);
     server.listen((serverEnd) {
       clientEndFuture.then((clientEnd) {
@@ -87,7 +86,7 @@ void testSimpleConnect(String certificate) {
 
 void testSimpleConnectFail(String certificate) {
   ReceivePort port = new ReceivePort();
-  RawSecureServerSocket.bind(SERVER_ADDRESS, 0, 5, certificate).then((server) {
+  RawSecureServerSocket.bind(HOST_NAME, 0, 5, certificate).then((server) {
     var clientEndFuture = RawSecureSocket.connect(HOST_NAME, server.port)
       .then((clientEnd) {
         Expect.fail("No client connection expected.");
@@ -107,7 +106,7 @@ void testSimpleConnectFail(String certificate) {
 
 void testServerListenAfterConnect() {
   ReceivePort port = new ReceivePort();
-  RawSecureServerSocket.bind(SERVER_ADDRESS, 0, 5, CERTIFICATE).then((server) {
+  RawSecureServerSocket.bind(HOST_NAME, 0, 5, CERTIFICATE).then((server) {
     Expect.isTrue(server.port > 0);
     var clientEndFuture = RawSecureSocket.connect(HOST_NAME, server.port);
     new Timer(const Duration(milliseconds: 500), () {
@@ -432,9 +431,9 @@ void testSimpleReadWrite(bool listenSecure,
 
   if (listenSecure) {
     RawSecureServerSocket.bind(
-        SERVER_ADDRESS, 0, 5, CERTIFICATE).then(serverReady);
+        HOST_NAME, 0, 5, CERTIFICATE).then(serverReady);
   } else {
-    RawServerSocket.bind(SERVER_ADDRESS, 0, 5).then(serverReady);
+    RawServerSocket.bind(HOST_NAME, 0, 5).then(serverReady);
   }
 }
 
