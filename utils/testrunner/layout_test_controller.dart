@@ -124,177 +124,223 @@ complete() {
   notifyDone(failCount > 0 ? -1 : 0);
 }
 
+/*
+ * Run an external process [cmd] with command line arguments [args].
+ * [timeout] can be used to forcefully terminate the process after
+ * some number of seconds. This is used by runCommand and startProcess.
+ * If [procId] is non-zero (i.e. called from startProcess) then a reference
+ * to the [Process] will be put in a map with key [procId]; in this case
+ * the process can be terminated later by calling [stopProcess] and
+ * passing in the [procId].
+ * [outputMonitor] is an optional function that will be called back with each
+ * line of output from the process.
+ * Returns a [Future] for when the process terminates.
+ */
+Future _processHelper(String command, List<String> args,
+    List stdout, List stderr,
+    int timeout, int procId, Function outputMonitor, bool raw) {
+  var timer = null;
+  return Process.start(command, args).then((process) {
+
+    timer = new Timer(new Duration(seconds: timeout), () {
+      timer = null;
+      process.kill();
+    });
+
+    if (raw) {
+      process.stdout.listen((c) { stdout.addAll(c); });
+    } else {
+      _pipeStream(process.stdout, stdout, outputMonitor);
+    }
+    _pipeStream(process.stderr, stderr, outputMonitor);
+    return process.exitCode;
+  }).then((exitCode) {
+    if (timer != null) {
+      timer.cancel();
+    }
+    return exitCode;
+  })
+  .catchError((e) {
+    stderr.add("#Error starting process $command: ${e.error}");
+  });
+}
+
+void _pipeStream(Stream stream, List<String> destination,
+                 Function outputMonitor) {
+  stream
+      .transform(new StringDecoder())
+      .transform(new LineTransformer())
+      .listen((String line) {
+        if (outputMonitor != null) {
+          outputMonitor(line);
+        }
+        destination.add(line);
+      });
+}
+
+/**
+ * Run an external process [cmd] with command line arguments [args].
+ * [timeout] can be used to forcefully terminate the process after
+ * some number of seconds.
+ * Returns a [Future] for when the process terminates.
+ */
+Future runCommand(String command, List<String> args,
+                  List stdout, List stderr,
+                  {int timeout: 300, Function outputMonitor,
+                   bool raw: false}) {
+  return _processHelper(command, args, stdout, stderr, 
+      timeout, 0, outputMonitor, raw);
+}
+
+String parseLabel(String line) {
+  if (line.startsWith('CONSOLE MESSAGE')) {
+    var idx = line.indexOf('#TEST ');
+    if (idx > 0) {
+      return line.substring(idx + 6);
+    }
+  }
+  return null;
+}
+
 runTextLayoutTest(testNum) {
   var url = '$baseUrl?test=$testNum';
   var stdout = new List();
+  var stderr = new List();
   start = new DateTime.now();
-  Process.start(drt, [url]).then((process) {
-    // Drain stderr to not leak resources.
-    process.stderr.onData = process.stderr.read;
-    StringInputStream stdoutStringStream =
-        new StringInputStream(process.stdout);
-    stdoutStringStream.onLine = () {
-      if (stdoutStringStream.closed) return;
-      var line = stdoutStringStream.readLine();
-      while (null != line) {
-        stdout.add(line);
-        line = stdoutStringStream.readLine();
-      }
-    };
-    process.onExit = (exitCode) {
-      process.close();
-      if (stdout.length > 0 && stdout[stdout.length-1].startsWith('#EOF')) {
-        stdout.removeLast();
-      }
-      var done = false;
-      var i = 0;
-      var label = null;
-      var labelMarker = 'CONSOLE MESSAGE: #TEST ';
-      var contentMarker = 'layer at ';
-      while (i < stdout.length) {
-        if (label == null && stdout[i].startsWith(labelMarker)) {
-          label = stdout[i].substring(labelMarker.length);
-          if (label == 'NONEXISTENT') {
-            complete();
-          }
-        } else if (stdout[i].startsWith(contentMarker)) {
-          if (label == null) {
-            complete();
-          }
-          var expectedFileName =
-              '$sourceDir${Platform.pathSeparator}'
-              '${label.replaceAll("###", "_")
-                      .replaceAll(new RegExp("[^A-Za-z0-9]"),"_")}.txt';
-          var expected = new File(expectedFileName);
-          if (regenerate) {
-            var ostream = expected.openOutputStream(FileMode.WRITE);
-            while (i < stdout.length) {
-              ostream.writeString(stdout[i]);
-              ostream.writeString('\n');
-              i++;
-            }
-            ostream.close();
-            pass(start, label);
-          } else if (!expected.existsSync()) {
-            fail(start, label, 'No expectation file');
-          } else {
-            var lines = expected.readAsLinesSync();
-            var actualLength = stdout.length - i;
-            var compareCount = min(lines.length, actualLength);
-            var match = true;
-            for (var j = 0; j < compareCount; j++) {
-              if (lines[j] != stdout[i + j]) {
-                fail(start, label, 'Expectation differs at line ${j + 1}');
-                match = false;
-                break;
-              }
-            }
-            if (match) {
-              if (lines.length != actualLength) {
-                fail(start, label, 'Expectation file has wrong length');
-              } else {
-                pass(start, label);
-              }
-            }
-          }
-          done = true;
-          break;
+  runCommand(drt, [url], stdout, stderr).then((e) {
+    if (stdout.length > 0 && stdout[stdout.length-1].startsWith('#EOF')) {
+      stdout.removeLast();
+    }
+    var done = false;
+    var i = 0;
+    var label = null;
+    var contentMarker = 'layer at ';
+    while (i < stdout.length) {
+      if (label == null && (label = parseLabel(stdout[i])) != null) {
+        if (label == 'NONEXISTENT') {
+          complete();
+          return;
         }
-        i++;
+      } else if (stdout[i].startsWith(contentMarker)) {
+        if (label == null) {
+          complete();
+          return;
+        }
+        var expectedFileName =
+            '$sourceDir${Platform.pathSeparator}'
+            '${label.replaceAll("###", "_")
+                    .replaceAll(new RegExp("[^A-Za-z0-9]"),"_")}.txt';
+        var expected = new File(expectedFileName);
+        if (regenerate) {
+          var osink = expected.openWrite();
+          while (i < stdout.length) {
+            osink.write(stdout[i]);
+            osink.write('\n');
+            i++;
+          }
+          osink.close();
+          pass(start, label);
+        } else if (!expected.existsSync()) {
+          fail(start, label, 'No expectation file');
+        } else {
+          var lines = expected.readAsLinesSync();
+          var actualLength = stdout.length - i;
+          var compareCount = min(lines.length, actualLength);
+          var match = true;
+          for (var j = 0; j < compareCount; j++) {
+            if (lines[j] != stdout[i + j]) {
+              fail(start, label, 'Expectation differs at line ${j + 1}');
+              match = false;
+              break;
+            }
+          }
+          if (match) {
+            if (lines.length != actualLength) {
+              fail(start, label, 'Expectation file has wrong length');
+            } else {
+              pass(start, label);
+            }
+          }
+        }
+        done = true;
+        break;
       }
-      if (label != null) {
-        if (!done) error(start, label, 'Failed to parse output');
-        runTextLayoutTest(testNum + 1);
-      }
-    };
+      i++;
+    }
+    if (label != null) {
+      if (!done) error(start, label, 'Failed to parse output');
+      runTextLayoutTest(testNum + 1);
+    }
   });
 }
 
 runPixelLayoutTest(int testNum) {
   var url = '$baseUrl?test=$testNum';
   var stdout = new List();
+  var stderr = new List();
   start = new DateTime.now();
-  Process.start(drt, ["$url'-p"]).then((process) {
-    // Drain stderr to not leak resources.
-    process.stderr.onData = process.stderr.read;
-    ListInputStream stdoutStream = process.stdout;
-    stdoutStream.onData = () {
-      if (!stdoutStream.closed) {
-        var data = stdoutStream.read();
-        stdout.addAll(data);
+  runCommand(drt, ["$url'-p"], stdout, stderr, raw:true).then((exitCode) {
+    var contentMarker = 'Content-Length: ';
+    var eol = '\n'.codeUnitAt(0);
+    var pos = 0;
+    var label = null;
+    var done = false;
+
+    while(pos < stdout.length) {
+      StringBuffer sb = new StringBuffer();
+      while (pos < stdout.length && stdout[pos] != eol) {
+        sb.writeCharCode(stdout[pos++]);
       }
-    };
-    stdoutStream.onError = (e) {
-      print(e);
-    };
-    process.onExit = (exitCode) {
-      stdout.addAll(process.stdout.read());
-      process.close();
-      var labelMarker = 'CONSOLE MESSAGE: #TEST ';
-      var contentMarker = 'Content-Length: ';
-      var eol = '\n'.codeUnitAt(0);
-      var pos = -1;
-      var label = null;
-      var done = false;
+      if (++pos >= stdout.length && line == '') break;
+      var line = sb.toString();
 
-      while(pos < stdout.length) {
-        var idx = stdout.indexOf(eol, ++pos);
-        if (idx < 0) break;
-        StringBuffer sb = new StringBuffer();
-        for (var i = pos; i < idx; i++) {
-          sb.writeCharCode(stdout[i]);
+      if (label == null && (label = parseLabel(line)) != null) {
+        if (label == 'NONEXISTENT') {
+          complete();
         }
-        var line = sb.toString();
-
-        if (label == null && line.startsWith(labelMarker)) {
-          label = line.substring(labelMarker.length);
-          if (label == 'NONEXISTENT') {
-            complete();
-          }
-        } else if (line.startsWith(contentMarker)) {
-          if (label == null) {
-            complete();
-          }
-          var len = int.parse(line.substring(contentMarker.length));
-          pos = idx + 1;
-          var expectedFileName =
-              '$sourceDir${Platform.pathSeparator}'
-              '${label.replaceAll("###","_").
-                       replaceAll(new RegExp("[^A-Za-z0-9]"),"_")}.png';
-          var expected = new File(expectedFileName);
-          if (regenerate) {
-            var ostream = expected.openOutputStream(FileMode.WRITE);
-            ostream.writeFrom(stdout, pos, len);
-            ostream.close();
-            pass(start, label);
-          } else if (!expected.existsSync()) {
-            fail(start, label, 'No expectation file');
+      } else if (line.startsWith(contentMarker)) {
+        if (label == null) {
+          complete();
+        }
+        var len = int.parse(line.substring(contentMarker.length));
+        var expectedFileName =
+            '$sourceDir${Platform.pathSeparator}'
+            '${label.replaceAll("###","_").
+                     replaceAll(new RegExp("[^A-Za-z0-9]"),"_")}.png';
+        var expected = new File(expectedFileName);
+        if (regenerate) {
+          var osink = expected.openWrite();
+          stdout.removeRange(0, pos);
+          stdout.length = len;
+          osink.add(stdout);
+          osink.close();
+          pass(start, label);
+        } else if (!expected.existsSync()) {
+          fail(start, label, 'No expectation file');
+        } else {
+          var bytes = expected.readAsBytesSync();
+          if (bytes.length != len) {
+            fail(start, label, 'Expectation file has wrong length');
           } else {
-            var bytes = expected.readAsBytesSync();
-            if (bytes.length != len) {
-              fail(start, label, 'Expectation file has wrong length');
-            } else {
-              var match = true;
-              for (var j = 0; j < len; j++) {
-                if (bytes[j] != stdout[pos + j]) {
-                  fail(start, label, 'Expectation differs at byte ${j + 1}');
-                  match = false;
-                  break;
-                }
+            var match = true;
+            for (var j = 0; j < len; j++) {
+              if (bytes[j] != stdout[pos + j]) {
+                fail(start, label, 'Expectation differs at byte ${j + 1}');
+                match = false;
+                break;
               }
-              if (match) pass(start, label);
             }
+            if (match) pass(start, label);
           }
-          done = true;
-          break;
         }
-        pos = idx;
+        done = true;
+        break;
       }
-      if (label != null) {
-        if (!done) error(start, label, 'Failed to parse output');
-        runPixelLayoutTest(testNum + 1);
-      }
-    };
+    }
+    if (label != null) {
+      if (!done) error(start, label, 'Failed to parse output');
+      runPixelLayoutTest(testNum + 1);
+    }
   });
 }
 

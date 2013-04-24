@@ -10,7 +10,7 @@
  * of the removed features are:
  *
  *   - No support for test.status files. The assumption is that tests are
- *     expected to pass.
+ *     expected to pass. Status file support will be added in the future.
  *   - A restricted set of runtimes. The assumption here is that the Dart
  *     libraries deal with platform dependencies, and so the primary
  *     SKUs that a user of this app would be concerned with would be
@@ -43,7 +43,7 @@
  *   vm - run native Dart in the VM; i.e. using $DARTSDK/dart-sdk/bin/dart.
  *   drt-dart - run native Dart in DumpRenderTree, the headless version of
  *       Dartium, which is located in $DARTSDK/chromium/DumpRenderTree, if
- *       you intsalled the SDK that is bundled with the editor, or available
+ *       you installed the SDK that is bundled with the editor, or available
  *       from http://gsdview.appspot.com/dartium-archive/continuous/
  *       otherwise.
  *
@@ -67,10 +67,27 @@
  * which is run in an isolate. The `--pipeline` argument can be used to
  * specify a different script for running a test file pipeline, allowing
  * customization of the pipeline.
+ *
+ * Wrapper files are created for tests in the tmp directory, which can be
+ * overridden with --tempdir. These files are not removed after the tests
+ * are complete, primarily to reduce the amount of times pub must be 
+ * executed. You can use --clean-files to force file cleanup. The temp 
+ * directories will have pubspec.yaml files auto-generated unless the 
+ * original test file directories have such files; in that case the existing
+ * files will be copied. Whenever a new pubspec file is copied or 
+ * created pub will be run (but not otherwise - so if you want to do 
+ * the equivelent of pub update you should use --clean-files and the rerun
+ * the tests).
+ *
+ * TODO(gram): if the user has a pubspec.yaml file,  we should inspect the
+ * pubspec.lock file and give useful errors:
+ *  - if the lock file doesn't exit, then run pub install
+ *  - if it exists and it doesn't have the required packages (unittest or
+ *    browser), ask the user to add them and run pub install again.
  */
 
-// TODO - layout tests that use PNGs rather than DRT text render dumps.
 library testrunner;
+import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:math';
@@ -91,18 +108,24 @@ int _numTasks;
 /** The index of the next pipeline runner to execute. */
 int _nextTask;
 
-/** The stream to use for high-value messages, like test results. */
-OutputStream _outStream;
+/** The sink to use for high-value messages, like test results. */
+IOSink _outSink;
 
-/** The stream to use for low-value messages, like verbose output. */
-OutputStream _logStream;
+/** The sink to use for low-value messages, like verbose output. */
+IOSink _logSink;
 
 /**
- * The user can specify output streams on the command line, using 'none',
- * 'stdout', 'stderr', or a file path; [getStream] will take such a name
- * and return an appropriate [OutputStream].
+ * The last temp test directory we accessed; we use this to know if we
+ * need to check the pub configuration.
  */
-OutputStream getStream(String name) {
+String _testDir;
+    
+/**
+ * The user can specify output streams on the command line, using 'none',
+ * 'stdout', 'stderr', or a file path; [getSink] will take such a name
+ * and return an appropriate [IOSink].
+ */
+IOSink getSink(String name) {
   if (name == null || name == 'none') {
     return null;
   }
@@ -112,7 +135,8 @@ OutputStream getStream(String name) {
   if (name == 'stderr') {
     return stderr;
   }
-  return new File(name).openOutputStream(FileMode.WRITE);
+  var f = new File(name);
+  return f.openWrite();
 }
 
 /**
@@ -120,13 +144,13 @@ OutputStream getStream(String name) {
  * and execute pipelines for the files.
  */
 void processTests(Map config, List testFiles) {
-  _outStream = getStream(config['out']);
-  _logStream = getStream(config['log']);
+  _outSink = getSink(config['out']);
+  _logSink = getSink(config['log']);
   if (config['list-files']) {
-    if (_outStream != null) {
+    if (_outSink != null) {
       for (var i = 0; i < testFiles.length; i++) {
-        _outStream.writeString(testFiles[i]);
-        _outStream.writeString('\n');
+        _outSink.write(testFiles[i]);
+        _outSink.write('\n');
       }
     }
   } else {
@@ -135,6 +159,69 @@ void processTests(Map config, List testFiles) {
     _nextTask = 0;
     spawnTasks(config, testFiles);
   }
+}
+
+/**
+ * Create or update a pubspec for the target test directory. We use the
+ * source directory pubspec if available; otherwise we create a minimal one.
+ * We return a Future if we are running pub install, or null otherwise.
+ */
+Future doPubConfig(Path sourcePath, String sourceDir,
+                   Path targetPath, String targetDir,
+                   String pub, String runtime) {
+  // Make sure the target directory exists.
+  var d = new Directory(targetDir);
+  if (!d.existsSync()) {
+    d.createSync(recursive: true);
+  }
+
+  // If the source has no pubspec, but the dest does, leave 
+  // things as they are. If neither do, create one in dest.
+
+  var sourcePubSpecName = new Path(sourceDir).append("pubspec.yaml").
+      toNativePath();
+  var targetPubSpecName = new Path(targetDir).append("pubspec.yaml").
+      toNativePath();
+  var sourcePubSpec = new File(sourcePubSpecName);
+  var targetPubSpec = new File(targetPubSpecName);
+
+  if (!sourcePubSpec.existsSync()) {
+    if (targetPubSpec.existsSync()) {
+      return null;
+    } else {
+      // Create one.
+      if (runtime == 'vm') {
+        writeFile(targetPubSpecName,
+          "name: testrunner\ndependencies:\n  unittest: any\n");
+      } else {
+        writeFile(targetPubSpecName,
+          "name: testrunner\ndependencies:\n  unittest: any\n  browser: any\n");
+      }
+    }
+  } else {
+    if (targetPubSpec.existsSync()) {
+      // If there is a source one, and it is older than the target,
+      // leave the target as is.
+      if (sourcePubSpec.lastModifiedSync().millisecondsSinceEpoch <
+          targetPubSpec.lastModifiedSync().millisecondsSinceEpoch) {
+        return null;
+      }
+    }
+    // Source exists and is newer than target or there is no target;
+    // copy the source to the target. If there is a pubspec.lock file,
+    // copy that too.
+    var s = sourcePubSpec.readAsStringSync();
+    targetPubSpec.writeAsStringSync(s);
+    var sourcePubLock = new File(sourcePubSpecName.replaceAll(".yaml", ".lock"));
+    if (sourcePubLock.existsSync()) {
+      var targetPubLock =
+          new File(targetPubSpecName.replaceAll(".yaml", ".lock"));
+      s = sourcePubLock.readAsStringSync();
+      targetPubLock.writeAsStringSync(s);
+    }
+  }
+  // A new target pubspec was created so run pub install.
+  return _processHelper(pub, [ 'install' ], workingDir: targetDir);
 }
 
 /** Execute as many tasks as possible up to the maxTasks limit. */
@@ -154,12 +241,12 @@ void spawnTasks(Map config, List testFiles) {
       List stderr = msg[1];
       List log = msg[2];
       int exitCode = msg[3];
-      writelog(stdout, _outStream, _logStream, verbose, skipNonVerbose);
-      writelog(stderr, _outStream, _logStream, true, skipNonVerbose);
-      writelog(log, _outStream, _logStream, verbose, skipNonVerbose);
+      writelog(stdout, _outSink, _logSink, verbose, skipNonVerbose);
+      writelog(stderr, _outSink, _logSink, true, skipNonVerbose);
+      writelog(log, _outSink, _logSink, verbose, skipNonVerbose);
       port.close();
       --_numTasks;
-      if (exitCode == 0 || !config['stopOnFailure']) {
+      if (exitCode == 0 || !config['stop-on-failure']) {
         spawnTasks(config, testFiles);
       }
       if (_numTasks == 0) {
@@ -168,74 +255,129 @@ void spawnTasks(Map config, List testFiles) {
       }
     });
     SendPort s = spawnUri(config['pipeline']);
-    s.send(config, port.toSendPort());
+
+    // Get the names of the source and target test files and containing
+    // directories.
+    var testPath = new Path(testfile);
+    var sourcePath = testPath.directoryPath;
+    var sourceDir = sourcePath.toNativePath();
+
+    var targetPath = new Path(config["tempdir"]);
+    var normalizedTarget = testPath.directoryPath.toNativePath()
+        .replaceAll(Platform.pathSeparator, '_')
+        .replaceAll(':', '_');
+    targetPath = targetPath.append("${normalizedTarget}_${config['runtime']}");
+    var targetDir = targetPath.toNativePath();
+
+    config['targetDir'] = targetDir;
+    // If this is a new target dir, we need to redo the pub check.
+    var f = null;
+    if (targetDir != _testDir) {
+      f = doPubConfig(sourcePath, sourceDir, targetPath, targetDir,
+          config['pub'], config['runtime']);
+      _testDir = targetDir;
+    }
+    if (f == null) {
+      s.send(config, port.toSendPort());
+    } else {
+      f.then((_) {
+        s.send(config, port.toSendPort());
+      });
+      break; // Don't do any more until pub is done.
+    }
   }
 }
 
 /**
  * Our tests are configured so that critical messages have a '###' prefix.
- * [writeLog] takes the output from a pipeline execution and writes it to
- * our output streams. It will strip the '###' if necessary on critical
+ * [writelog] takes the output from a pipeline execution and writes it to
+ * our output sinks. It will strip the '###' if necessary on critical
  * messages; other messages will only be written if verbose output was
  * specified.
  */
-void writelog(List messages, OutputStream out, OutputStream log,
+void writelog(List messages, IOSink out, IOSink log,
               bool includeVerbose, bool skipNonVerbose) {
   for (var i = 0; i < messages.length; i++) {
     var msg = messages[i];
     if (msg.startsWith('###')) {
       if (!skipNonVerbose && out != null) {
-        out.writeString(msg.substring(3));
-        out.writeString('\n');
+        out.write(msg.substring(3));
+        out.write('\n');
       }
     } else if (msg.startsWith('CONSOLE MESSAGE:')) {
       if (!skipNonVerbose && out != null) {
         int idx = msg.indexOf('###');
         if (idx > 0) {
-          out.writeString(msg.substring(idx + 3));
-          out.writeString('\n');
+          out.write(msg.substring(idx + 3));
+          out.write('\n');
         }
       }
     } else if (includeVerbose && log != null) {
-      log.writeString(msg);
-      log.writeString('\n');
+      log.write(msg);
+      log.write('\n');
     }
   }
 }
 
-sanitizeConfig(Map config, ArgParser parser) {
+normalizeFilter(List filter) {
+  // We want the filter to be a quoted string or list of quoted
+  // strings.
+  for (var i = 0; i < filter.length; i++) {
+    var f = filter[i];
+    if (f[0] != "'" && f[0] != '"') {
+      filter[i] = "'$f'"; // TODO(gram): Quote embedded quotes.
+    }
+  }
+  return filter;
+}
+
+void sanitizeConfig(Map config, ArgParser parser) {
   config['layout'] = config['layout-text'] || config['layout-pixel'];
-
-  // TODO - check if next three are actually used.
-  config['runInBrowser'] = (config['runtime'] != 'vm');
   config['verbose'] = (config['log'] != 'none' && !config['list-groups']);
-  config['filtering'] = (config['include'].length > 0 ||
-      config['exclude'].length > 0);
-
   config['timeout'] = int.parse(config['timeout']);
   config['tasks'] = int.parse(config['tasks']);
 
   var dartsdk = config['dartsdk'];
   var pathSep = Platform.pathSeparator;
 
-  if (dartsdk != null) {
-    if (parser.getDefault('dart2js') == config['dart2js']) {
-      config['dart2js'] =
-          '$dartsdk${pathSep}dart-sdk${pathSep}bin${pathSep}dart2js';
+  if (dartsdk == null) {
+    var opt = new Options();
+    var runner = opt.executable;
+    var idx = runner.indexOf('dart-sdk');
+    if (idx < 0) {
+      print("Please use --dartsdk option or run using the dart executable "
+          "from the Dart SDK");
+      exit(0);
     }
-    if (parser.getDefault('dart') == config['dart']) {
-      config['dart'] = '$dartsdk${pathSep}dart-sdk${pathSep}bin${pathSep}dart';
-    }
-    if (parser.getDefault('drt') == config['drt']) {
-      config['drt'] = '$dartsdk${pathSep}chromium${pathSep}DumpRenderTree';
-    }
+    dartsdk = runner.substring(0, idx);
+  }
+  if (Platform.operatingSystem == 'macos') {
+    config['dart2js'] =
+        '$dartsdk${pathSep}dart-sdk${pathSep}bin${pathSep}dart2js';
+    config['dart'] = '$dartsdk${pathSep}dart-sdk${pathSep}bin${pathSep}dart';
+    config['pub'] = '$dartsdk${pathSep}dart-sdk${pathSep}bin${pathSep}pub';
+    config['drt'] = 
+      '$dartsdk/chromium/DumpRenderTree.app/Contents/MacOS/DumpRenderTree';
+  } else if (Platform.operatingSystem == 'linux') {
+    config['dart2js'] =
+        '$dartsdk${pathSep}dart-sdk${pathSep}bin${pathSep}dart2js';
+    config['dart'] = '$dartsdk${pathSep}dart-sdk${pathSep}bin${pathSep}dart';
+    config['pub'] = '$dartsdk${pathSep}dart-sdk${pathSep}bin${pathSep}pub';
+    config['drt'] = '$dartsdk${pathSep}chromium${pathSep}DumpRenderTree';
+  } else {
+    config['dart2js'] =
+        '$dartsdk${pathSep}dart-sdk${pathSep}bin${pathSep}dart2js.bat';
+    config['dart'] = '$dartsdk${pathSep}dart-sdk${pathSep}bin${pathSep}dart.exe';
+    config['pub'] = '$dartsdk${pathSep}dart-sdk${pathSep}bin${pathSep}pub.bat';
+    config['drt'] = '$dartsdk${pathSep}chromium${pathSep}DumpRenderTree.exe';
   }
 
-  config['unittest'] = makePathAbsolute(config['unittest']);
-  config['drt'] = makePathAbsolute(config['drt']);
-  config['dart'] = makePathAbsolute(config['dart']);
-  config['dart2js'] = makePathAbsolute(config['dart2js']);
+  for (var prog in [ 'drt', 'dart', 'pub', 'dart2js' ]) {
+    config[prog] = makePathAbsolute(config[prog]);
+  }
   config['runnerDir'] = runnerDirectory;
+  config['include'] = normalizeFilter(config['include']);
+  config['exclude'] = normalizeFilter(config['exclude']);
 }
 
 main() {
@@ -245,7 +387,7 @@ main() {
     if (options['list-options']) {
       printOptions(optionsParser, options, false, stdout);
     } else if (options['list-all-options']) {
-        printOptions(optionsParser, options, true, stdout);
+      printOptions(optionsParser, options, true, stdout);
     } else {
       var config = new Map();
       for (var option in options.options) {
@@ -273,9 +415,10 @@ main() {
       if (dirs.length == 0) {
         dirs.add('.'); // Use current working directory as default.
       }
-      buildFileList(dirs,
-          new RegExp(options['test-file-pattern']), options['recurse'],
-          (f) => processTests(config, f));
+      var f = buildFileList(dirs,
+          new RegExp(config['test-file-pattern']), config['recurse']);
+      if (config['sort']) f.sort();
+      processTests(config, f);
     }
   }
 }

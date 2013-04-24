@@ -4,6 +4,12 @@
 
 part of testrunner;
 
+/** Create a file [fileName] and populate it with [contents]. */
+void writeFile(String fileName, String contents) {
+  var file = new File(fileName);
+  file.writeAsStringSync(contents);
+}
+
 /**
  * Read the contents of a file [fileName] into a [List] of [String]s.
  * If the file does not exist and [errorIfNoFile] is true, throw an
@@ -28,32 +34,24 @@ List<String> getFileContents(String filename, bool errorIfNoFile) {
 String makePathAbsolute(String path) {
   var p = new Path(path).canonicalize();
   if (p.isAbsolute) {
-    return p.toString();
+    return p.toNativePath();
   } else {
     var cwd = new Path((new Directory.current()).path);
-    return cwd.join(p).toString();
+    return cwd.join(p).toNativePath();
   }
 }
 
 /**
  * Create the list of all the files in a set of directories
  * ([dirs]) whose names match [filePat]. If [recurse] is true
- * look at subdirectories too. Once they have all been enumerated,
- * call [onComplete]. An optional [excludePat] can be supplied
+ * look at subdirectories too. An optional [excludePat] can be supplied
  * and files or directories that match that will be excluded.
+ * [includeSymLinks] controls whether or not to include files that
+ * have symlinks in the traversed tree.
  */
- // TODO(gram): The key thing here is we want to avoid package
- // directories, which have symlinks. excludePat was added for
- // that but can't currently be used because the symlinked files
- // have canonicalized paths. So instead we exploit that fact and
- // assert that every file must have a prefix that matches the
- // directory. If this changes then we will need to switch to using
- // the exclude pattern or some other mechanism.
-void buildFileList(List dirs, RegExp filePat, bool recurse,
-                   Function onComplete,
+List buildFileList(List dirs, RegExp filePat, bool recurse,
                    [RegExp excludePat, bool includeSymLinks = false]) {
   var files = new List();
-  var dirCount = 1;
   for (var i = 0; i < dirs.length; i++) {
     var path = dirs[i];
     if (excludePat != null && excludePat.hasMatch(path)) {
@@ -69,33 +67,24 @@ void buildFileList(List dirs, RegExp filePat, bool recurse,
       path = makePathAbsolute(path);
       Directory d = new Directory(path);
       if (d.existsSync()) {
-        ++dirCount;
-        d.list(recursive: recurse).listen(
-            (entity) {
-              if (entity is File) {
-                var file = entity.name;
-                if (filePat.hasMatch(file)) {
-                  if (excludePat == null || !excludePat.hasMatch(file)) {
-                    if (includeSymLinks || file.startsWith(path)) {
-                      files.add(file);
-                    }
-                  }
-                }
+        var contents = d.listSync(recursive: recurse,
+            followLinks: includeSymLinks);
+        for (var entity in contents) {
+          if (entity is File) {
+            var file = entity.path;
+            if (filePat.hasMatch(file)) {
+              if (excludePat == null || !excludePat.hasMatch(file)) {
+                files.add(file);
               }
-            },
-            onDone: () {
-              if (complete && --dirCount == 0) {
-                onComplete(files);
-              }
-            });
+            }
+          }
+        }
       } else { // Does not exist.
         print('$path does not exist.');
       }
     }
   }
-  if (--dirCount == 0) {
-    onComplete(files);
-  }
+  return files;
 }
 
 /**
@@ -108,3 +97,22 @@ String get runnerDirectory {
   return libDirectory.substring(0,
       libDirectory.lastIndexOf(Platform.pathSeparator));
 }
+
+/*
+ * Run an external process [cmd] with command line arguments [args].
+ * Returns a [Future] for when the process terminates.
+ */
+Future _processHelper(String command, List<String> args,
+    {String workingDir}) {
+  var options = null;
+  if (workingDir != null) {
+    options = new ProcessOptions();
+    options.workingDirectory = workingDir;
+  }
+  return Process.run(command, args, options)
+      .then((result) => result.exitCode)
+      .catchError((e) {
+        print("$command ${args.join(' ')}: ${e.toString()}");
+      });
+}
+

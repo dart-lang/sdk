@@ -25,6 +25,9 @@ ArgParser getOptionParser() {
   parser.addFlag('checked', defaultsTo: false,
       help: 'Run tests in checked mode.');
 
+  parser.addFlag('sort', defaultsTo: false,
+      help: 'Sort test files before running.');
+
   parser.addFlag('layout-text', defaultsTo: false,
       help: 'Run text layout tests.');
 
@@ -78,8 +81,8 @@ ArgParser getOptionParser() {
   parser.addFlag('list-groups', defaultsTo: false,
       help: 'List test groups only, do not run tests.');
 
-  parser.addFlag('keep-files', defaultsTo: false,
-      help: 'Keep the generated files in the temporary directory.');
+  parser.addFlag('clean-files', defaultsTo: false,
+      help: 'Remove the generated files from the temporary directory.');
 
   parser.addFlag('list-options', defaultsTo: false,
       help: 'Print non-default option settings, usable as a test.config.');
@@ -92,7 +95,7 @@ ArgParser getOptionParser() {
       defaultsTo: false);
 
   parser.addFlag('stop-on-failure', defaultsTo: false,
-      help: 'Stop execution upon first failure.');
+      help: 'Stop execution after first file with failures.');
 
   parser.addFlag('isolate', defaultsTo: false,
       help: 'Runs each test in a separate isolate.');
@@ -101,18 +104,14 @@ ArgParser getOptionParser() {
 
   parser.addOption('dartsdk', help: 'Path to dart SDK.');
 
-  // The defaults here should be the name of the executable, with
-  // the assumption that it is available on the PATH.
-  parser.addOption('dart2js', help: 'Path to dart2js executable.',
-      defaultsTo: 'dart2js');
-  parser.addOption('dart',    help: 'Path to dart executable.',
-      defaultsTo: 'dart');
-  parser.addOption('drt',     help: 'Path to DumpRenderTree executable.',
-      defaultsTo: 'drt');
-
+  var tmp;
+  if (Platform.operatingSystem == 'windows') {
+    tmp = "c:\\tmp\\test";
+  } else {
+    tmp = "/tmp/test";
+  }
   parser.addOption('tempdir', help: 'Directory to store temp files.',
-      defaultsTo: '${Platform.pathSeparator}tmp'
-                  '${Platform.pathSeparator}testrunner');
+        defaultsTo: tmp);
 
   parser.addOption('test-file-pattern',
       help: 'A regular expression that test file names must match '
@@ -147,8 +146,6 @@ ArgParser getOptionParser() {
   parser.addOption('root',
       help: 'Root directory for HTTP server for static files');
 
-  parser.addOption('unittest',  help: '#import path for unit test library.');
-
   parser.addOption('pipeline',
       help: 'Pipeline script to use to run each test file.',
       defaultsTo: 'run_pipeline.dart');
@@ -157,34 +154,34 @@ ArgParser getOptionParser() {
 }
 
 /** Print a value option, quoting it if it has embedded spaces. */
-_printValueOption(String name, value, OutputStream stream) {
+_printValueOption(String name, value, IOSink dest) {
   if (value.indexOf(' ') >= 0) {
-    stream.writeString("--$name='$value'\n");
+    dest.write("--$name='$value'\n");
   } else {
-    stream.writeString("--$name=$value\n");
+    dest.write("--$name=$value\n");
   }
 }
 
 /** Print the current option values. */
 printOptions(ArgParser parser, ArgResults arguments,
-             bool includeDefaults, OutputStream stream) {
-  if (stream == null) return;
+             bool includeDefaults, IOSink dest) {
+  if (dest == null) return;
   for (var name in arguments.options) {
     if (!name.startsWith('list-')) {
       var value = arguments[name];
       var defaultValue = parser.getDefault(name);
       if (value is bool) {
         if (includeDefaults || (value != defaultValue)) {
-          stream.writeString('--${value ? "" : "no-"}$name\n');
+          dest.write('--${value ? "" : "no-"}$name\n');
         }
       } else if (value is List) {
         if (value.length > 0) {
           for (var v in value) {
-            _printValueOption(name, v, stream);
+            _printValueOption(name, v, dest);
           }
         }
       } else if (value != null && (includeDefaults || value != defaultValue)) {
-        _printValueOption(name, value, stream);
+        _printValueOption(name, value, dest);
       }
     }
   }
@@ -206,6 +203,7 @@ ArgResults loadConfiguration(optionsParser) {
   // multi-valued they will take precedence over the ones in test.config.
   var commandLineArgs = new Options().arguments;
   var cfgarg = '--configfile';
+  var cfgarge = '--configfile=';
   for (var i = 0; i < commandLineArgs.length; i++) {
     if (commandLineArgs[i].startsWith(cfgarg)) {
       if (commandLineArgs[i] == cfgarg) {
@@ -214,9 +212,9 @@ ArgResults loadConfiguration(optionsParser) {
         }
         options.addAll(getFileContents(commandLineArgs[++i], true).
             where((e) => e.trim().length > 0 && e[0] != '#'));
-      } else if (commandLineArgs[i].startsWith('$cfgarg=')) {
+      } else if (commandLineArgs[i].startsWith(cfgarge)) {
         options.addAll(
-            getFileContents(commandLineArgs[i].substring(cfgarg.length), true).
+            getFileContents(commandLineArgs[i].substring(cfgarge.length), true).
                 where((e) => e.trim().length > 0 && e[0] != '#'));
       } else {
         throw new Exception('Missing argument to $cfgarg');
@@ -245,10 +243,6 @@ bool isSane(ArgResults config) {
   }
   if (config['runtime'] == null) {
     print('Missing required option --runtime');
-    return false;
-  }
-  if (config['unittest'] == null) {
-    print('Missing required option --unittest');
     return false;
   }
   if (config['include'].length > 0 &&

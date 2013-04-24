@@ -21,6 +21,8 @@ ArgParser getOptionParser() {
 /** A simple HTTP server. Currently handles serving static files. */
 class HttpTestServer {
   HttpServer server;
+  List<Function> matchers = [];
+  List<Function> handlers = [];
 
   /** If set, serve up static files from this directory. */
   String staticFileDirectory;
@@ -52,21 +54,20 @@ class HttpTestServer {
   };
 
   HttpTestServer(int port, this.staticFileDirectory) {
-    server = new HttpServer();
-    try {
-      server.listen("127.0.0.1", port);
+    HttpServer.bind("127.0.0.1", port).then((s) {
+      server = s;
       print('Server listening on port $port');
-    } catch (e) {
-      print('Server listen on port $port failed');
-      throw e;
-    }
-    server.onError = (e) {
-    };
-    server.defaultRequestHandler =
-      (HttpRequest request, HttpResponse response) {
+      server.listen((HttpRequest request) {
+        for (var i = 0; i < matchers.length; i++) {
+          if (matchers[i](request)) {
+            handlers[i](request);
+            return;
+          }
+        }
+        HttpResponse response = request.response;
         try {
           if (staticFileDirectory != null) {
-            String fname = request.path;
+            String fname = request.uri.path;
             String path = '$staticFileDirectory$fname';
             File f = new File(path);
             if (f.existsSync()) {
@@ -78,31 +79,30 @@ class HttpTestServer {
                     new ContentType(ct.substring(0, idx),
                         ct.substring(idx + 1));
               }
-              f.openInputStream().pipe(response.outputStream);
+              response.addStream(f.openRead()).then((_) => response.close());
             } else {
               response.statusCode = HttpStatus.NOT_FOUND;
               response.reasonPhrase = '$path does not exist';
-              response.outputStream.close();
+              response.close();
             }
           }
         } catch(e,s) {
           response.statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
           response.reasonPhrase = "$e";
-          response.outputStream.writeString(s.toString());
-          response.outputStream.close();
+          response.write(s);
+          response.close();
         }
-      };
+      });
+    });
   }
 
-  void addHandler(Function matcher, handler) {
-    if (handler is Function) {
-      server.addRequestHandler(matcher, handler);
-    } else {
-      server.addRequestHandler(matcher, handler.onRequest);
-    }
+  void addHandler(Function matcher, Function handler) {
+    matchers.add(matcher);
+    handlers.add(handler);
   }
 
   void close() {
     server.close();
   }
 }
+
