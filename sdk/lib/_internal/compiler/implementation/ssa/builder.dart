@@ -3951,6 +3951,17 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     open(newBlock);
   }
 
+  visitRethrow(Rethrow node) {
+    HInstruction exception = rethrowableException;
+    if (exception == null) {
+      exception = graph.addConstantNull(constantSystem);
+      compiler.internalError(
+          'rethrowableException should not be null', node: node);
+    }
+    handleInTryStatement();
+    closeAndGotoExit(new HThrow(exception, isRethrow: true));
+  }
+
   visitReturn(Return node) {
     if (identical(node.getBeginToken().stringValue, 'native')) {
       native.handleSsaNative(this, node.expression);
@@ -3976,27 +3987,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   visitThrow(Throw node) {
-    if (node.expression == null) {
-      HInstruction exception = rethrowableException;
-      if (exception == null) {
-        exception = graph.addConstantNull(constantSystem);
-        compiler.internalError(
-            'rethrowableException should not be null', node: node);
-      }
+    visit(node.expression);
+    if (isReachable) {
       handleInTryStatement();
-      closeAndGotoExit(new HThrow(exception, isRethrow: true));
-    } else {
-      visit(node.expression);
-      handleInTryStatement();
-      if (inliningStack.isEmpty) {
-        closeAndGotoExit(new HThrow(pop()));
-      } else if (isReachable) {
-        // We don't close the block when we are inlining, because we could be
-        // inside an expression, and it is rather complicated to close the
-        // block at an arbitrary place in an expression.
-        add(new HThrowExpression(pop()));
-        isReachable = false;
-      }
+      push(new HThrowExpression(pop()));
+      isReachable = false;
     }
   }
 
@@ -4972,6 +4967,11 @@ class InlineWeeder extends Visitor {
     tooDifficult = true;
   }
 
+  void visitRethrow(Rethrow node) {
+    if (!registerNode()) return;
+    tooDifficult = true;
+  }
+
   void visitReturn(Return node) {
     if (!registerNode()) return;
     if (seenReturn
@@ -4991,9 +4991,9 @@ class InlineWeeder extends Visitor {
 
   void visitThrow(Throw node) {
     if (!registerNode()) return;
-    // We can't inline rethrows and we don't want to handle throw after a return
-    // even if it is in an "if".
-    if (seenReturn || node.expression == null) tooDifficult = true;
+    // For now, we don't want to handle throw after a return even if
+    // it is in an "if".
+    if (seenReturn) tooDifficult = true;
   }
 }
 

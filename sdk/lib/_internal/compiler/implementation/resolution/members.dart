@@ -2455,6 +2455,12 @@ class ResolverVisitor extends MappingVisitor<Element> {
     unimplemented(node, 'operator');
   }
 
+  visitRethrow(Rethrow node) {
+    if (!inCatchBlock) {
+      error(node, MessageKind.THROW_WITHOUT_EXPRESSION);
+    }
+  }
+
   visitReturn(Return node) {
     if (node.isRedirectingFactoryBody) {
       handleRedirectingFactoryBody(node);
@@ -2507,12 +2513,9 @@ class ResolverVisitor extends MappingVisitor<Element> {
   }
 
   visitThrow(Throw node) {
-    if (!inCatchBlock && node.expression == null) {
-      error(node, MessageKind.THROW_WITHOUT_EXPRESSION);
-    }
-    // We don't know ahead of time whether we will need the throw in a statement
-    // context or an expression context, so we register both here, even though
-    // we may not need ThrowExpression.
+    // We don't know ahead of time whether we will need the throw in a
+    // statement context or an expression context, so we register both
+    // here, even though we may not need ThrowExpression.
     compiler.backend.registerWrapException(mapping);
     compiler.backend.registerThrowExpression(mapping);
     visit(node.expression);

@@ -266,6 +266,10 @@ class Unparser implements Visitor {
     visitIdentifier(node);
   }
 
+  visitRethrow(Rethrow node) {
+    sb.write('rethrow;');
+  }
+
   visitReturn(Return node) {
     if (node.isRedirectingFactoryBody) {
       sb.write(' ');
@@ -336,11 +340,8 @@ class Unparser implements Visitor {
 
   visitThrow(Throw node) {
     add(node.throwToken.value);
-    if (node.expression != null) {
-      sb.write(' ');
-      visit(node.expression);
-    }
-    node.endToken.value.printOn(sb);
+    sb.write(' ');
+    visit(node.expression);
   }
 
   visitTypeAnnotation(TypeAnnotation node) {

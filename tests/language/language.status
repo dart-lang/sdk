@@ -425,7 +425,6 @@ named_parameters_aggregated_test/01: Fail # http://dartbug.com/5519
 named_parameters_aggregated_test/03: Fail # http://dartbug.com/5519
 not_enough_positional_arguments_test/01: Fail # http://dartbug.com/5519
 
-throw_expr_test: Fail
 metadata_test: Fail
 # Fails in conservative mode, issue 4935, passes in minifinying mode.
 bad_constructor_test/04: Fail
@@ -554,8 +553,6 @@ execute_finally10_test: Fail # VM bug: issue 430
 execute_finally11_test: Fail # VM bug: issue 430
 
 [ $compiler == dart2dart && $minified ]
-
-rethrow_test: Fail
 
 # TODO(tball): Assign proper bug numbers.
 class_literal_test/none: Fail

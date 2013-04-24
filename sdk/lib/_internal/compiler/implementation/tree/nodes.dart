@@ -64,6 +64,7 @@ abstract class Visitor<R> {
   R visitPartOf(PartOf node) => visitNode(node);
   R visitPostfix(Postfix node) => visitNodeList(node);
   R visitPrefix(Prefix node) => visitNodeList(node);
+  R visitRethrow(Rethrow node) => visitStatement(node);
   R visitReturn(Return node) => visitStatement(node);
   R visitScriptTag(ScriptTag node) => visitNode(node);
   R visitSend(Send node) => visitExpression(node);
@@ -76,7 +77,7 @@ abstract class Visitor<R> {
   }
   R visitSwitchCase(SwitchCase node) => visitNode(node);
   R visitSwitchStatement(SwitchStatement node) => visitStatement(node);
-  R visitThrow(Throw node) => visitStatement(node);
+  R visitThrow(Throw node) => visitExpression(node);
   R visitTryStatement(TryStatement node) => visitStatement(node);
   R visitTypeAnnotation(TypeAnnotation node) => visitNode(node);
   R visitTypedef(Typedef node) => visitNode(node);
@@ -178,6 +179,7 @@ abstract class Node extends TreeElementMixin implements Spannable {
   ParenthesizedExpression asParenthesizedExpression() => null;
   Part asPart() => null;
   PartOf asPartOf() => null;
+  Rethrow asRethrow() => null;
   Return asReturn() => null;
   ScriptTag asScriptTag() => null;
   Send asSend() => null;
@@ -1004,7 +1006,7 @@ class ExpressionStatement extends Statement {
   Token getEndToken() => endToken;
 }
 
-class Throw extends Statement {
+class Throw extends Expression {
   final Expression expression;
 
   final Token throwToken;
@@ -1017,11 +1019,26 @@ class Throw extends Statement {
   accept(Visitor visitor) => visitor.visitThrow(this);
 
   visitChildren(Visitor visitor) {
-    if (expression != null) expression.accept(visitor);
+    expression.accept(visitor);
   }
 
   Token getBeginToken() => throwToken;
 
+  Token getEndToken() => endToken;
+}
+
+class Rethrow extends Statement {
+  final Token throwToken;
+  final Token endToken;
+
+  Rethrow(this.throwToken, this.endToken);
+
+  Rethrow asRethrow() => this;
+
+  accept(Visitor visitor) => visitor.visitRethrow(this);
+  visitChildren(Visitor visitor) { }
+
+  Token getBeginToken() => throwToken;
   Token getEndToken() => endToken;
 }
 

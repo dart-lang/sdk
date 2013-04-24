@@ -305,6 +305,10 @@ class PrettyPrinter implements Visitor {
     visitNodeWithChildren(node, "ParenthesizedExpression");
   }
 
+  visitRethrow(Rethrow node) {
+    visitNodeWithChildren(node, "Rethrow");
+  }
+
   visitReturn(Return node) {
     openNode(node, "Return");
     visitChildNode(node.expression, "expression");
