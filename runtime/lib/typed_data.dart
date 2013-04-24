@@ -461,8 +461,8 @@ abstract class _TypedListBase {
         "Cannot remove from a non-extendable array");
   }
 
-  List toList() {
-    return new List.from(this);
+  List toList({bool growable: true}) {
+    return new List.from(this, growable: growable);
   }
 
   Set toSet() {

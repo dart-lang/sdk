@@ -238,10 +238,10 @@ class _GrowableObjectArray<T> implements List<T> {
   }
 
   void forEach(f(T element)) {
-    // TODO(srdjan): Use IterableMixinWorkaround.forEach(this, f);
-    // Accessing the list directly improves DeltaBlue performance by 25%.
+    int initialLength = length;
     for (int i = 0; i < length; i++) {
       f(this[i]);
+      if (length != initialLength) throw new ConcurrentModificationError(this);
     }
   }
 

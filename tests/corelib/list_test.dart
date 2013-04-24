@@ -7,6 +7,14 @@ import "dart:typed_data";
 import "package:expect/expect.dart";
 
 void main() {
+  // Typed lists - fixed length and can only contain integers.
+  testTypedList(new Uint8List(4));
+  testTypedList(new Int8List(4));
+  testTypedList(new Uint16List(4));
+  testTypedList(new Int16List(4));
+  testTypedList(new Uint32List(4));
+  testTypedList(new Int32List(4));
+
   // Fixed length lists, length 4.
   testFixedLengthList(new List(4));
   testFixedLengthList(new List(4).toList(growable: false));
@@ -15,13 +23,12 @@ void main() {
   testFixedLengthList(new MyFixedList(new List(4)));
   testFixedLengthList(new MyFixedList(new List(4)).toList(growable: false));
 
-
-  testTypedList(new Uint8List(4));
-  testTypedList(new Int8List(4));
-  testTypedList(new Uint16List(4));
-  testTypedList(new Int16List(4));
-  testTypedList(new Uint32List(4));
-  testTypedList(new Int32List(4));
+  testFixedLengthList(new Uint8List(4).toList(growable: false));
+  testFixedLengthList(new Int8List(4).toList(growable: false));
+  testFixedLengthList(new Uint16List(4).toList(growable: false));
+  testFixedLengthList(new Int16List(4).toList(growable: false));
+  testFixedLengthList(new Uint32List(4).toList(growable: false));
+  testFixedLengthList(new Int32List(4).toList(growable: false));
 
   // Growable lists. Initial length 0.
   testGrowableList(new List());
@@ -31,6 +38,12 @@ void main() {
   testGrowableList((const []).toList());
   testGrowableList(new MyList([]));
   testGrowableList(new MyList([]).toList());
+  testGrowableList(new Uint8List(0).toList());
+  testGrowableList(new Int8List(0).toList());
+  testGrowableList(new Uint16List(0).toList());
+  testGrowableList(new Int16List(0).toList());
+  testGrowableList(new Uint32List(0).toList());
+  testGrowableList(new Int32List(0).toList());
 }
 
 void testLength(int length, List list) {
@@ -82,6 +95,16 @@ void testTypedLengthInvariantOperations(List list) {
   list.setAll(1, [0, 1]);
   Expect.listEquals([3, 0, 1, 1], list);
 
+  // fillRange.
+  list.fillRange(1, 3, 7);
+  Expect.listEquals([3, 7, 7, 1], list);
+  list.fillRange(0, 0, 9);
+  Expect.listEquals([3, 7, 7, 1], list);
+  list.fillRange(4, 4, 9);
+  Expect.listEquals([3, 7, 7, 1], list);
+  list.fillRange(0, 4, 9);
+  Expect.listEquals([9, 9, 9, 9], list);
+
   // sort.
   list.setRange(0, 4, [3, 2, 1, 0]);
   list.sort();
@@ -128,6 +151,40 @@ void testTypedLengthInvariantOperations(List list) {
   Expect.isTrue(list.any(matchSomeFirst));
   Expect.isTrue(list.any(matchSomeLast));
   Expect.isFalse(list.any(matchNone));
+
+  // Argument errors on bad indices. List is still [0, 1, 2, 3].
+  testArgumentError(action()) {
+    Expect.throws(action, (e) => e is ArgumentError);
+  }
+
+  // Direct indices (0 <= index < length).
+  testArgumentError(() => list[-1]);
+  testArgumentError(() => list[4]);
+  testArgumentError(() => list[-1] = 99);
+  testArgumentError(() => list[4] = 99);
+  testArgumentError(() => list.elementAt(-1));
+  testArgumentError(() => list.elementAt(4));
+  // Ranges (0 <= start <= end <= length).
+  testArgumentError(() => list.sublist(-1, 2));
+  testArgumentError(() => list.sublist(-1, 5));
+  testArgumentError(() => list.sublist(2, 5));
+  testArgumentError(() => list.sublist(4, 2));
+  testArgumentError(() => list.getRange(-1, 2));
+  testArgumentError(() => list.getRange(-1, 5));
+  testArgumentError(() => list.getRange(2, 5));
+  testArgumentError(() => list.getRange(4, 2));
+  testArgumentError(() => list.setRange(-1, 2, [1, 2, 3]));
+  testArgumentError(() => list.setRange(-1, 5, [1, 2, 3, 4, 5, 6]));
+  testArgumentError(() => list.setRange(2, 5, [1, 2, 3]));
+  testArgumentError(() => list.setRange(4, 2, [1, 2]));
+  // for setAll, end is implictly start + values.length.
+  testArgumentError(() => list.setAll(-1, []));
+  testArgumentError(() => list.setAll(5, []));
+  testArgumentError(() => list.setAll(2, [1, 2, 3]));
+  testArgumentError(() => list.fillRange(-1, 2));
+  testArgumentError(() => list.fillRange(-1, 5));
+  testArgumentError(() => list.fillRange(2, 5));
+  testArgumentError(() => list.fillRange(4, 2));
 }
 
 void testLengthInvariantOperations(List list) {
@@ -298,7 +355,103 @@ void testGrowableList(List list) {
 
   list.replaceRange(6, 8, []);
   Expect.listEquals([1, 2, 6, 6, 5, 0, 2, 3, 2, 1], list);
- }
+
+  // Operations that change the length cause ConcurrentModificationError.
+  void testConcurrentModification(action()) {
+    testIterator(int when) {
+      list.length = 4;
+      list.setAll(0, [0, 1, 2, 3]);
+      Expect.throws(() {
+        for (var element in list) {
+          if (element == when) action();
+        }
+      }, (e) => e is ConcurrentModificationError);
+    }
+    testForEach(int when) {
+      list.length = 4;
+      list.setAll(0, [0, 1, 2, 3]);
+      Expect.throws(() {
+        list.forEach((var element) {
+          if (element == when) action();
+        });
+      }, (e) => e is ConcurrentModificationError);
+    }
+    // Test the change at different points of the iteration.
+    testIterator(0);
+    testIterator(1);
+    testIterator(3);
+    testForEach(0);
+    testForEach(1);
+    testForEach(3);
+  }
+
+  testConcurrentModification(() => list.add(5));
+  testConcurrentModification(() => list.addAll([5, 6]));
+  testConcurrentModification(() => list.removeLast());
+  for (int i = 0; i < 4; i++) {
+    testConcurrentModification(() => list.remove(i));
+    testConcurrentModification(() => list.removeAt(i));
+    testConcurrentModification(() => list.removeWhere((x) => x == i));
+    testConcurrentModification(() => list.retainWhere((x) => x != i));
+    testConcurrentModification(() => list.insert(i, 5));
+    testConcurrentModification(() => list.insertAll(i, [5, 6]));
+    testConcurrentModification(() => list.removeRange(i, i + 1));
+    testConcurrentModification(() => list.replaceRange(i, i + 1, [5, 6]));
+  }
+
+  // Any operation that doesn't change the length should be safe for iteration.
+  testSafeConcurrentModification(action()) {
+    list.length = 4;
+    list.setAll(0, [0, 1, 2, 3]);
+    for (var i in list) {
+      action();
+    }
+    list.forEach((e) => action());
+  }
+
+  testSafeConcurrentModification(() {
+    list.add(5);
+    list.removeLast();
+  });
+  testSafeConcurrentModification(() {
+    list.add(list[0]);
+    list.removeAt(0);
+  });
+  testSafeConcurrentModification(() {
+    list.insert(0, list.removeLast());
+  });
+  testSafeConcurrentModification(() {
+    list.replaceRange(1, 3, list.sublist(1, 3).reversed);
+  });
+
+  // Argument errors on bad indices for methods that are only allowed
+  // on growable lists.
+  list.length = 4;
+  list.setAll(0, [0, 1, 2, 3]);
+  testArgumentError(action()) {
+    Expect.throws(action, (e) => e is ArgumentError);
+  }
+
+  // Direct indices (0 <= index < length).
+  testArgumentError(() => list.removeAt(-1));
+  testArgumentError(() => list.removeAt(4));
+  // Direct indices including end (0 <= index <= length).
+  testArgumentError(() => list.insert(-1, 0));
+  testArgumentError(() => list.insert(5, 0));
+  testArgumentError(() => list.insertAll(-1, [0]));
+  testArgumentError(() => list.insertAll(5, [0]));
+  testArgumentError(() => list.insertAll(-1, [0]));
+  testArgumentError(() => list.insertAll(5, [0]));
+  // Ranges (0 <= start <= end <= length).
+  testArgumentError(() => list.removeRange(-1, 2));
+  testArgumentError(() => list.removeRange(2, 5));
+  testArgumentError(() => list.removeRange(-1, 5));
+  testArgumentError(() => list.removeRange(4, 2));
+  testArgumentError(() => list.replaceRange(-1, 2, [9]));
+  testArgumentError(() => list.replaceRange(2, 5, [9]));
+  testArgumentError(() => list.replaceRange(-1, 5, [9]));
+  testArgumentError(() => list.replaceRange(4, 2, [9]));
+}
 
 class Yes {
   operator ==(var other) => true;

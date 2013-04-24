@@ -33,6 +33,18 @@ part of dart.core;
  *    unmodifiableList.length = 0;  // throws.
  *    unmodifiableList.add(499);  // throws
  *    unmodifiableList[0] = 87;  // throws.
+ *
+ * Lists are [Iterable].
+ * List iteration iterates over values in index order.
+ * Changing the values will not affect iteration,
+ * but changing the valid indices -
+ * that is, changing the list's length -
+ * between iteration steps
+ * will cause a [ConcurrentModificationError].
+ * This means that only growable lists can throw [ConcurrentModificationError].
+ * If the length changes temporarily
+ * and is restored before continuing the iteration,
+ * the iterator will not detect it.
  */
 abstract class List<E> implements Iterable<E> {
   /**

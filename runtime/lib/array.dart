@@ -67,7 +67,7 @@ class _ObjectArray<E> implements List<E> {
     if (start < 0 || start > this.length) {
       throw new RangeError.range(start, 0, this.length);
     }
-    if (end < 0 || end > this.length) {
+    if (end < start || end > this.length) {
       throw new RangeError.range(end, start, this.length);
     }
     int length = end - start;
