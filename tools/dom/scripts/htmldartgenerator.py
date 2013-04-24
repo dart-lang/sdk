@@ -282,7 +282,7 @@ class HtmlDartGenerator(object):
           check = '?%s' % parameter_names[argument_position]
           # argument_count instead of argument_position + 1 is used here to cover one
           # complicated case with the effectively optional argument in the middle.
-          # Consider foo(x, [Optional] y, [Optional=DefaultIsNullString] z)
+          # Consider foo(x, optional y, [Default=NullString] optional z)
           # (as of now it's modelled after HTMLMediaElement.webkitAddKey).
           # y is optional in WebCore, while z is not.
           # In this case, if y was actually passed, we'd like to emit foo(x, y, z) invocation,

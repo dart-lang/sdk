@@ -308,7 +308,7 @@ class IDLExtAttrs(IDLDictNode):
 
       func_value = self._find_first(value, 'ExtAttrFunctionValue')
       if func_value:
-        # E.g. NamedConstructor=Audio(in [Optional] DOMString src)
+        # E.g. NamedConstructor=Audio(optional DOMString src)
         self[name] = IDLExtAttrFunctionValue(
             func_value,
             self._find_first(func_value, 'ExtAttrArgList'))
@@ -497,6 +497,7 @@ class IDLArgument(IDLNode):
   def __init__(self, ast):
     IDLNode.__init__(self, ast)
     self.type = self._convert_first(ast, 'Type', IDLType)
+    self.optional = self._has(ast, 'Optional')
     self._convert_ext_attrs(ast)
 
   def __repr__(self):

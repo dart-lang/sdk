@@ -234,8 +234,9 @@ class IDLParser(object):
         [MAYBE(ExtAttrs), MAYBE(Optional), MAYBE('in'),
          MAYBE(Optional), Type, MAYBE(AnEllipsis), Id],
         # WebKit:
+        # TODO(antonm): cleanup this mess.
         [MAYBE(Optional), MAYBE('in'), MAYBE(Optional),
-         MAYBE(ExtAttrs), Type, Id])
+         MAYBE(ExtAttrs), MAYBE(Optional), Type, Id])
 
     def Optional():
       return 'optional'

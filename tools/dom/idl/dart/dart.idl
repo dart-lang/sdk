@@ -61,21 +61,21 @@ interface Console {
 };
 
 interface HTMLCanvasElement {
-  [Suppressed] DOMString toDataURL([TreatNullAs=NullString, TreatUndefinedAs=NullString,Optional=DefaultIsUndefined] in DOMString type);
-  [Custom] DOMString toDataURL([TreatNullAs=NullString, TreatUndefinedAs=NullString,Optional=DefaultIsUndefined] in DOMString type, [Optional] in float quality);
+  [Suppressed] DOMString toDataURL([TreatNullAs=NullString, TreatUndefinedAs=NullString,Default=Undefined] in DOMString type);
+  [Custom] DOMString toDataURL([TreatNullAs=NullString, TreatUndefinedAs=NullString,Default=Undefined] in DOMString type, optional float quality);
 
   [Suppressed] any getContext(in DOMString contextId);
-  [Custom] CanvasRenderingContext getContext(in DOMString contextId, [Optional] in Dictionary attrs);
+  [Custom] CanvasRenderingContext getContext(in DOMString contextId, optional Dictionary attrs);
 };
 
 [Supplemental]
 interface HTMLOptionsCollection {
-  [Suppressed] void add([Optional] in HTMLOptionElement element, [Optional] in long before);
+  [Suppressed] void add(optional HTMLOptionElement element, optional long before);
 };
 
 [Supplemental]
 interface HTMLSelectElement {
-  [Suppressed] void add([Optional=DefaultIsUndefined] in HTMLElement element, [Optional=DefaultIsUndefined] in HTMLElement before);
+  [Suppressed] void add([Default=Undefined] in HTMLElement element, [Default=Undefined] in HTMLElement before);
   [Suppressed, Custom] void remove();
 };
 
@@ -112,10 +112,10 @@ interface HTMLMediaElement {
 
 [Supplemental]
 interface WebGLContextEvent {
-  [Suppressed] void initEvent([Optional] in DOMString eventTypeArg,
-                              [Optional] in boolean canBubbleArg,
-                              [Optional] in boolean cancelableArg,
-                              [Optional] in DOMString statusMessageArg);
+  [Suppressed] void initEvent(optional DOMString eventTypeArg,
+                              optional boolean canBubbleArg,
+                              optional boolean cancelableArg,
+                              optional DOMString statusMessageArg);
 };
 
 [Supplemental]
@@ -161,7 +161,7 @@ interface WebGLRenderingContext {
 };
 [Supplemental]
 interface CSSStyleDeclaration {
-  void setProperty(in DOMString propertyName, in DOMString value, [Optional] in DOMString priority);
+  void setProperty(in DOMString propertyName, in DOMString value, in optional DOMString priority);
   [DartName=_getPropertyValue] DOMString getPropertyValue(in DOMString propertyName);
 };
 
@@ -172,42 +172,42 @@ interface ArrayBuffer {
 [Supplemental]
 interface Float32Array {
   [Suppressed] void set();
-  [DartName=setElements, Custom] void set(in any array, [Optional] in unsigned long offset);
+  [DartName=setElements, Custom] void set(in any array, optional unsigned long offset);
 };
 [Supplemental]
 interface Float64Array {
   [Suppressed] void set();
-  [DartName=setElements, Custom] void set(in any array, [Optional] in unsigned long offset);
+  [DartName=setElements, Custom] void set(in any array, optional unsigned long offset);
 };
 [Supplemental]
 interface Int16Array {
   [Suppressed] void set();
-  [DartName=setElements, Custom] void set(in any array, [Optional] in unsigned long offset);
+  [DartName=setElements, Custom] void set(in any array, optional unsigned long offset);
 };
 [Supplemental]
 interface Int32Array {
   [Suppressed] void set();
-  [DartName=setElements, Custom] void set(in any array, [Optional] in unsigned long offset);
+  [DartName=setElements, Custom] void set(in any array, optional unsigned long offset);
 };
 [Supplemental]
 interface Int8Array {
   [Suppressed] void set();
-  [DartName=setElements, Custom] void set(in any array, [Optional] in unsigned long offset);
+  [DartName=setElements, Custom] void set(in any array, optional unsigned long offset);
 };
 [Supplemental]
 interface Uint16Array {
   [Suppressed] void set();
-  [DartName=setElements, Custom] void set(in any array, [Optional] in unsigned long offset);
+  [DartName=setElements, Custom] void set(in any array, optional unsigned long offset);
 };
 [Supplemental]
 interface Uint32Array {
   [Suppressed] void set();
-  [DartName=setElements, Custom] void set(in any array, [Optional] in unsigned long offset);
+  [DartName=setElements, Custom] void set(in any array, optional unsigned long offset);
 };
 [Supplemental]
 interface Uint8Array {
   [Suppressed] void set();
-  [DartName=setElements, Custom] void set(in any array, [Optional] in unsigned long offset);
+  [DartName=setElements, Custom] void set(in any array, optional unsigned long offset);
 };
 
 [Supplemental]
@@ -216,7 +216,7 @@ interface Uint8ClampedArray {
   [Suppressed] const long BYTES_PER_ELEMENT = 1;
 
   [Suppressed] void set();
-  [DartName=setElements, Custom] void set(in any array, [Optional] in unsigned long offset);
+  [DartName=setElements, Custom] void set(in any array, optional unsigned long offset);
 };
 
 [Supplemental]
@@ -242,7 +242,8 @@ interface DataView {
 // TODO(vsm): Define new names for these (see b/4436830).
 [Supplemental]
 interface IDBCursor {
-  [DartName=next] void continue([Optional] in any key);
+  [Suppressed, CallWith=ScriptExecutionContext, ImplementedAs=continueFunction, RaisesException] void continue([Default=Undefined] optional any key);
+  [CallWith=ScriptExecutionContext, ImplementedAs=continueFunction, RaisesException] void next([Default=Undefined] optional any key);
 };
 [Supplemental]
 interface IDBDatabase {
@@ -256,9 +257,9 @@ interface IDBDatabase {
 [Supplemental]
 interface IDBKeyRange {
   [DartName=only_] static IDBKeyRange only(in any value);
-  [DartName=lowerBound_] static IDBKeyRange lowerBound(in any bound, [Optional] in boolean open);
-  [DartName=upperBound_] static IDBKeyRange upperBound(in any bound, [Optional] in boolean open);
-  [DartName=bound_] static IDBKeyRange bound(in any lower, in any upper, [Optional] in boolean lowerOpen, [Optional] in boolean upperOpen);
+  [DartName=lowerBound_] static IDBKeyRange lowerBound(in any bound, optional boolean open);
+  [DartName=upperBound_] static IDBKeyRange upperBound(in any bound, optional boolean open);
+  [DartName=bound_] static IDBKeyRange bound(in any lower, in any upper, optional boolean lowerOpen, optional boolean upperOpen);
 };
 
 interface EntrySync {
@@ -270,8 +271,7 @@ interface EntrySync {
 
 [Supplemental,
   CustomConstructor,
-  Constructor(in Array blobParts,
-              [Optional] in DOMString type, [Optional] in DOMString endings)
+  Constructor(in Array blobParts, optional DOMString type, optional DOMString endings)
   ]
 interface Blob {
 };
@@ -310,11 +310,11 @@ interface MutationObserver {
   [Supplemental,
     CustomConstructor,
     // Provide missing constructor signature.
-    Constructor([Optional] in HTMLFormElement form)]
+    Constructor(optional HTMLFormElement form)]
   interface DOMFormData {
     [Suppressed] void append(in DOMString name, in DOMString value, in DOMString filename);
     [Custom] void append(in DOMString name, in DOMString value);
-    [Custom] void append(in DOMString name, in Blob value, [Optional] in DOMString filename);
+    [Custom] void append(in DOMString name, in Blob value, optional DOMString filename);
   };
 
 [Supplemental]

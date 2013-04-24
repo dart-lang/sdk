@@ -10,6 +10,7 @@ import emitter
 import os
 from generator import *
 from htmldartgenerator import *
+from idlnode import IDLArgument
 from systemhtml import js_support_checks, GetCallbackInfo, HTML_LIBRARY_NAMES
 
 class DartiumBackend(HtmlDartGenerator):
@@ -680,6 +681,7 @@ class DartiumBackend(HtmlDartGenerator):
 
     if requires_stack_info:
       self._cpp_impl_includes.add('"ScriptArguments.h"')
+      self._cpp_impl_includes.add('"ScriptCallStack.h"')
       body_emitter.Emit(
           '\n'
           '        ScriptState* currentState = ScriptState::current();\n'
@@ -718,9 +720,10 @@ class DartiumBackend(HtmlDartGenerator):
       argument_expression_template, type, cls, function = \
           type_info.to_native_info(argument, self._interface.id)
 
-      if ((IsOptional(argument) and not self._IsArgumentOptionalInWebCore(node, argument)) or
-          (argument.ext_attrs.get('Optional') == 'DefaultIsNullString') or
-          _IsOptionalStringArgumentInInitEventMethod(self._interface, node, argument)):
+      if (isinstance(argument, IDLArgument) and (
+          (IsOptional(argument) and not self._IsArgumentOptionalInWebCore(node, argument)) or
+           (argument.ext_attrs.get('Default') == 'NullString') or
+           _IsOptionalStringArgumentInInitEventMethod(self._interface, node, argument))):
         function += 'WithNullCheck'
 
       argument_name = DartDomNameOfAttribute(argument)
@@ -922,5 +925,5 @@ def _IsOptionalStringArgumentInInitEventMethod(interface, operation, argument):
   return (
       interface.id.endswith('Event') and
       operation.id.startswith('init') and
-      argument.ext_attrs.get('Optional') == 'DefaultIsUndefined' and
+      argument.ext_attrs.get('Default') == 'Undefined' and
       argument.type.id == 'DOMString')

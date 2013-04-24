@@ -143,12 +143,12 @@ def GetCallbackInfo(interface):
 def _BuildArguments(args, interface, constructor=False):
   def IsOptional(argument):
     if 'Callback' in argument.ext_attrs:
-      # Callbacks with 'Optional=XXX' are treated as optional arguments.
-      return 'Optional' in argument.ext_attrs
+      # Optional callbacks arguments are treated as optional arguments.
+      return argument.optional
     if constructor:
-      # FIXME: Constructors with 'Optional=XXX' shouldn't be treated as
+      # FIXME: Optional constructors arguments should not be treated as
       # optional arguments.
-      return 'Optional' in argument.ext_attrs
+      return argument.optional
     return False
 
   # Given a list of overloaded arguments, choose a suitable name.
@@ -182,8 +182,7 @@ def _BuildArguments(args, interface, constructor=False):
   return result
 
 def IsOptional(argument):
-  return ('Optional' in argument.ext_attrs and
-          argument.ext_attrs['Optional'] == None)
+  return argument.optional and ('Default' not in argument.ext_attrs)
 
 def AnalyzeOperation(interface, operations):
   """Makes operation calling convention decision for a set of overloads.

@@ -651,7 +651,7 @@ class Dart2JSBackend(HtmlDartGenerator):
     return self._interface.doc_js_name in _js_custom_constructors
 
   def IsConstructorArgumentOptional(self, argument):
-    return 'Optional' in argument.ext_attrs
+    return argument.optional
 
   def EmitStaticFactoryOverload(self, constructor_info, name, arguments):
     index = len(arguments)
@@ -994,7 +994,7 @@ class Dart2JSBackend(HtmlDartGenerator):
         parameter_names,
         declaration,
         GenerateCall,
-        self._IsOptional,
+        lambda _, argument: IsOptional(argument),
         can_omit_type_check=lambda type, pos: type == parameter_types[pos])
 
   def _AddInterfaceOperation(self, info, html_name):
@@ -1004,9 +1004,6 @@ class Dart2JSBackend(HtmlDartGenerator):
         TYPE=self.SecureOutputType(info.type_name),
         NAME=info.name,
         PARAMS=info.ParametersDeclaration(self._NarrowInputType))
-
-  def _IsOptional(self, operation, argument):
-    return IsOptional(argument)
 
 
   def _OperationRequiresConversions(self, operation):
