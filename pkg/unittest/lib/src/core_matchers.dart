@@ -708,8 +708,8 @@ class CustomMatcher extends BaseMatcher {
   final String _featureName;
   final Matcher _matcher;
 
-  const CustomMatcher(this._featureDescription, this._featureName,
-      this._matcher);
+  const CustomMatcher(this._featureDescription, this._featureName, matcher)
+      : this._matcher = wrapMatcher(matcher);
 
   /** Override this to extract the interesting feature.*/
   featureValueOf(actual) => actual;

@@ -707,6 +707,7 @@ void main() {
     test("Feature Matcher", () {
       var w = new Widget();
       w.price = 10;
+      shouldPass(w, new HasPrice(10));
       shouldPass(w, new HasPrice(greaterThan(0)));
       shouldFail(w, new HasPrice(greaterThan(10)),
           'Expected: Widget with a price that is a value greater than <10> '
