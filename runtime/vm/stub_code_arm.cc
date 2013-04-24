@@ -310,13 +310,100 @@ void StubCode::GenerateInstanceFunctionLookupStub(Assembler* assembler) {
 }
 
 
+DECLARE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
+                           intptr_t deopt_reason,
+                           uword saved_registers_address);
+
+DECLARE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp);
+
+
+// Used by eager and lazy deoptimization. Preserve result in R0 if necessary.
+// This stub translates optimized frame into unoptimized frame. The optimized
+// frame can contain values in registers and on stack, the unoptimized
+// frame contains all values on stack.
+// Deoptimization occurs in following steps:
+// - Push all registers that can contain values.
+// - Call C routine to copy the stack and saved registers into temporary buffer.
+// - Adjust caller's frame to correct unoptimized frame size.
+// - Fill the unoptimized frame.
+// - Materialize objects that require allocation (e.g. Double instances).
+// GC can occur only after frame is fully rewritten.
+// Stack after EnterFrame(...) below:
+//   +------------------+
+//   | Saved FP         | <- TOS
+//   +------------------+
+//   | return-address   |  (deoptimization point)
+//   +------------------+
+//   | optimized frame  |
+//   |  ...             |
+//
+// Parts of the code cannot GC, part of the code can GC.
+static void GenerateDeoptimizationSequence(Assembler* assembler,
+                                           bool preserve_result) {
+  __ EnterFrame((1 << FP) | (1 << LR), 0);
+  // The code in this frame may not cause GC. kDeoptimizeCopyFrameRuntimeEntry
+  // and kDeoptimizeFillFrameRuntimeEntry are leaf runtime calls.
+  const intptr_t saved_r0_offset_from_fp = -(kNumberOfCpuRegisters - R0);
+  // Result in R0 is preserved as part of pushing all registers below.
+
+  // Push registers in their enumeration order: lowest register number at
+  // lowest address.
+  __ PushList(kAllCpuRegistersList);
+  ASSERT(kFpuRegisterSize == 2 * kWordSize);
+  __ vstmd(DB_W, SP, D0, static_cast<DRegister>(kNumberOfDRegisters - 1));
+
+  __ mov(R0, ShifterOperand(SP));  // Pass address of saved registers block.
+  __ ReserveAlignedFrameSpace(0);
+  __ CallRuntime(kDeoptimizeCopyFrameRuntimeEntry);
+  // Result (R0) is stack-size (FP - SP) in bytes, incl. the return address.
+
+  if (preserve_result) {
+    // Restore result into R1 temporarily.
+    __ ldr(R1, Address(FP, saved_r0_offset_from_fp * kWordSize));
+  }
+
+  __ LeaveFrame((1 << FP) | (1 << LR));
+  __ sub(SP, FP, ShifterOperand(R0));
+
+  __ EnterFrame((1 << FP) | (1 << LR), 0);
+  __ mov(R0, ShifterOperand(SP));  // Get last FP address.
+  if (preserve_result) {
+    __ Push(R1);  // Preserve result.
+  }
+  __ ReserveAlignedFrameSpace(0);
+  __ CallRuntime(kDeoptimizeFillFrameRuntimeEntry);  // Pass last FP in R0.
+  // Result (R0) is our FP.
+  if (preserve_result) {
+    // Restore result into R1.
+    __ ldr(R1, Address(FP, -1 * kWordSize));
+  }
+  // Code above cannot cause GC.
+  __ LeaveFrame((1 << FP) | (1 << LR));
+  __ mov(FP, ShifterOperand(R0));
+
+  // Frame is fully rewritten at this point and it is safe to perform a GC.
+  // Materialize any objects that were deferred by FillFrame because they
+  // require allocation.
+  __ EnterStubFrame();
+  if (preserve_result) {
+    __ Push(R1);  // Preserve result, it will be GC-d here.
+  }
+  __ CallRuntime(kDeoptimizeMaterializeDoublesRuntimeEntry);
+  if (preserve_result) {
+    __ Pop(R0);  // Restore result.
+  }
+  __ LeaveStubFrame();
+  __ Ret();
+}
+
+
 void StubCode::GenerateDeoptimizeLazyStub(Assembler* assembler) {
   __ Unimplemented("DeoptimizeLazy stub");
 }
 
 
 void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
-  __ Unimplemented("Deoptimize stub");
+  GenerateDeoptimizationSequence(assembler, false);  // Don't preserve R0.
 }
 
 
@@ -1151,8 +1238,35 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
 }
 
 
+//  R6: function object.
+//  R5: inline cache data object.
+//  R4: arguments descriptor array.
 void StubCode::GenerateOptimizedUsageCounterIncrement(Assembler* assembler) {
-  __ Unimplemented("OptimizedUsageCounterIncrement stub");
+  Register ic_reg = R5;
+  Register func_reg = R6;
+  if (FLAG_trace_optimized_ic_calls) {
+    __ EnterStubFrame();
+    __ PushList((1 << R4) | (1 << R5) | (1 << R6));  // Preserve.
+    __ Push(ic_reg);  // Argument.
+    __ Push(func_reg);  // Argument.
+    __ CallRuntime(kTraceICCallRuntimeEntry);
+    __ Drop(2);  // Discard argument;
+    __ PushList((1 << R4) | (1 << R5) | (1 << R6));  // Restore.
+    __ LeaveStubFrame();
+  }
+  __ ldr(R7, FieldAddress(func_reg, Function::usage_counter_offset()));
+  Label is_hot;
+  if (FlowGraphCompiler::CanOptimize()) {
+    ASSERT(FLAG_optimization_counter_threshold > 1);
+    __ CompareImmediate(R7, FLAG_optimization_counter_threshold);
+    __ b(&is_hot, GE);
+    // As long as VM has no OSR do not optimize in the middle of the function
+    // but only at exit so that we have collected all type feedback before
+    // optimizing.
+  }
+  __ add(R7, R7, ShifterOperand(1));
+  __ str(R7, FieldAddress(func_reg, Function::usage_counter_offset()));
+  __ Bind(&is_hot);
 }
 
 
@@ -1405,7 +1519,7 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
 
 
 //  LR: return address (Dart code).
-//  R4: Arguments descriptor array.
+//  R4: arguments descriptor array.
 void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
@@ -1444,8 +1558,8 @@ void StubCode::GenerateBreakpointReturnStub(Assembler* assembler) {
 
 
 //  LR: return address (Dart code).
-//  R5: Inline cache data array.
-//  R4: Arguments descriptor array.
+//  R5: inline cache data array.
+//  R4: arguments descriptor array.
 void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.

@@ -1073,7 +1073,21 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(
     intptr_t deopt_id,
     intptr_t token_pos,
     LocationSummary* locs) {
-  UNIMPLEMENTED();
+  // Each ICData propagated from unoptimized to optimized code contains the
+  // function that corresponds to the Dart function of that IC call. Due
+  // to inlining in optimized code, that function may not correspond to the
+  // top-level function (parsed_function().function()) which could be
+  // reoptimized and which counter needs to be incremented.
+  // Pass the function explicitly, it is used in IC stub.
+  __ LoadObject(R6, parsed_function().function());
+  __ LoadObject(R4, arguments_descriptor);
+  __ LoadObject(R5, ic_data);
+  GenerateDartCall(deopt_id,
+                   token_pos,
+                   target_label,
+                   PcDescriptors::kIcCall,
+                   locs);
+  __ Drop(argument_count);
 }
 
 
@@ -1128,7 +1142,17 @@ void FlowGraphCompiler::EmitStaticCall(const Function& function,
 void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
                                                     const Object& obj,
                                                     bool needs_number_check) {
-  UNIMPLEMENTED();
+  if (needs_number_check &&
+      (obj.IsMint() || obj.IsDouble() || obj.IsBigint())) {
+    __ Push(reg);
+    __ PushObject(obj);
+    __ BranchLink(&StubCode::IdenticalWithNumberCheckLabel());
+    __ Drop(1);  // Discard constant.
+    __ Pop(reg);  // Restore 'reg'.
+    return;
+  }
+
+  __ CompareObject(reg, obj);
 }
 
 

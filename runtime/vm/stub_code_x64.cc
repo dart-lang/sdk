@@ -316,9 +316,9 @@ DECLARE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp);
 // - Fill the unoptimized frame.
 // - Materialize objects that require allocation (e.g. Double instances).
 // GC can occur only after frame is fully rewritten.
-// Stack:
+// Stack after EnterFrame(0) below:
 //   +------------------+
-//   | Saved FP         |
+//   | Saved FP         | <- TOS
 //   +------------------+
 //   | return-address   |  (deoptimization point)
 //   +------------------+
@@ -347,11 +347,8 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
     offset += kFpuRegisterSize;
   }
 
-  __ movq(RCX, RSP);  // Saved saved registers block.
+  __ movq(RDI, RSP);  // Pass address of saved registers block.
   __ ReserveAlignedFrameSpace(0);
-  __ SmiUntag(RAX);
-  __ movq(RDI, RCX);  // Set up argument 1 saved_registers_address.
-
   __ CallRuntime(kDeoptimizeCopyFrameRuntimeEntry);
   // Result (RAX) is stack-size (FP - SP) in bytes, incl. the return address.
 

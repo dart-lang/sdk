@@ -17,8 +17,9 @@ namespace dart {
 
 DECLARE_FLAG(bool, enable_type_checks);
 
-// Only ia32 and x64 can run execution tests.
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+#if defined(TARGET_ARCH_IA32) ||                                               \
+    defined(TARGET_ARCH_X64) ||                                                \
+    defined(TARGET_ARCH_ARM)
 
 TEST_CASE(ErrorHandleBasics) {
   const char* kScriptChars =
@@ -166,7 +167,7 @@ TEST_CASE(Dart_PropagateError) {
   EXPECT_SUBSTRING("myException", Dart_GetError(result));
 }
 
-#endif
+#endif  // TARGET_ARCH_IA32 || TARGET_ARCH_X64 || TARGET_ARCH_ARM
 
 
 TEST_CASE(Dart_Error) {
@@ -215,8 +216,9 @@ TEST_CASE(IdentityEquals) {
 }
 
 
-// Only ia32 and x64 can run execution tests.
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+#if defined(TARGET_ARCH_IA32) ||                                               \
+    defined(TARGET_ARCH_X64) ||                                                \
+    defined(TARGET_ARCH_ARM)
 
 TEST_CASE(ObjectEquals) {
   bool equal = false;
@@ -237,7 +239,7 @@ TEST_CASE(ObjectEquals) {
   EXPECT(!equal);
 }
 
-#endif
+#endif  // TARGET_ARCH_IA32 || TARGET_ARCH_X64 || TARGET_ARCH_ARM
 
 
 TEST_CASE(InstanceValues) {
@@ -336,8 +338,9 @@ TEST_CASE(DoubleValues) {
 }
 
 
-// Only ia32 and x64 can run execution tests.
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+#if defined(TARGET_ARCH_IA32) ||                                               \
+    defined(TARGET_ARCH_X64) ||                                                \
+    defined(TARGET_ARCH_ARM)
 
 TEST_CASE(NumberValues) {
   // TODO(antonm): add various kinds of ints (smi, mint, bigint).
@@ -371,7 +374,7 @@ TEST_CASE(NumberValues) {
   EXPECT(!Dart_IsNumber(result));
 }
 
-#endif
+#endif  // TARGET_ARCH_IA32 || TARGET_ARCH_X64 || TARGET_ARCH_ARM
 
 
 TEST_CASE(IntegerValues) {
@@ -636,8 +639,9 @@ TEST_CASE(ExternalStringGetPeer) {
 }
 
 
-// Only ia32 and x64 can run execution tests.
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+#if defined(TARGET_ARCH_IA32) ||                                               \
+    defined(TARGET_ARCH_X64) ||                                                \
+    defined(TARGET_ARCH_ARM)
 
 static void ExternalStringCallbackFinalizer(void* peer) {
   *static_cast<int*>(peer) *= 2;
@@ -1408,7 +1412,7 @@ TEST_CASE(Float32x4List) {
 }
 
 
-#endif
+#endif  // TARGET_ARCH_IA32 || TARGET_ARCH_X64 || TARGET_ARCH_ARM
 
 
 // Unit test for entering a scope, creating a local handle and exiting
@@ -1543,8 +1547,9 @@ class GCTestHelper : public AllStatic {
 };
 
 
-// Only ia32 and x64 can run execution tests.
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+#if defined(TARGET_ARCH_IA32) ||                                               \
+    defined(TARGET_ARCH_X64) ||                                                \
+    defined(TARGET_ARCH_ARM)
 
 TEST_CASE(WeakPersistentHandle) {
   Dart_Handle weak_new_ref = Dart_Null();
@@ -2409,7 +2414,7 @@ TEST_CASE(MultipleGarbageCollectionCallbacks) {
   EXPECT_EQ(7, global_epilogue_callback_status);
 }
 
-#endif
+#endif  // TARGET_ARCH_IA32 || TARGET_ARCH_X64 || TARGET_ARCH_ARM
 
 
 // Unit test for creating multiple scopes and local handles within them.
@@ -2581,8 +2586,9 @@ UNIT_TEST_CASE(SetMessageCallbacks) {
 }
 
 
-// Only ia32 and x64 can run execution tests.
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+#if defined(TARGET_ARCH_IA32) ||                                               \
+    defined(TARGET_ARCH_X64) ||                                                \
+    defined(TARGET_ARCH_ARM)
 
 TEST_CASE(ClassTypedefsEtc) {
   const char* kScriptChars =
@@ -7645,6 +7651,6 @@ TEST_CASE(ExternalStringDeoptimize) {
   EXPECT_EQ(260, value);
 }
 
-#endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64).
+#endif  // TARGET_ARCH_IA32 || TARGET_ARCH_X64 || TARGET_ARCH_ARM
 
 }  // namespace dart

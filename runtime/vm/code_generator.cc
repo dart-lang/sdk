@@ -38,8 +38,14 @@ DEFINE_FLAG(bool, trace_ic_miss_in_optimized, false,
     "Trace IC miss in optimized code");
 DEFINE_FLAG(bool, trace_patching, false, "Trace patching of code.");
 DEFINE_FLAG(bool, trace_runtime_calls, false, "Trace runtime calls");
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 DEFINE_FLAG(int, optimization_counter_threshold, 3000,
     "Function's usage-counter value before it is optimized, -1 means never");
+#else
+// TODO(regis): Enable optimization on ARM and MIPS.
+DEFINE_FLAG(int, optimization_counter_threshold, -1,
+    "Function's usage-counter value before it is optimized, -1 means never");
+#endif
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, trace_type_checks);
 DECLARE_FLAG(bool, report_usage_count);
