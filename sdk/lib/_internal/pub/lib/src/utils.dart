@@ -363,8 +363,10 @@ Future awaitObject(object) {
 
 /// Returns the path to the library named [libraryName]. The library name must
 /// be globally unique, or the wrong library path may be returned.
-String libraryPath(String libraryName) =>
-  fileUriToPath(currentMirrorSystem().libraries[new Symbol(libraryName)].uri);
+String libraryPath(String libraryName) {
+  var libraries = currentMirrorSystem().findLibrary(new Symbol(libraryName));
+  return fileUriToPath(libraries.single.uri);
+}
 
 /// Converts a `file:` [Uri] to a local path string.
 String fileUriToPath(Uri uri) {
