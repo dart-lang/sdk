@@ -1021,7 +1021,7 @@ abstract class Compiler implements DiagnosticListener {
 
   void resolveTypedef(TypedefElement element) {
     withCurrentElement(element,
-                       () => resolver.resolveTypedef(element));
+                       () => resolver.resolve(element));
   }
 
   FunctionType computeFunctionType(Element element,

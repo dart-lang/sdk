@@ -443,6 +443,14 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
     Map<int, Set<Element>> methodSizes = new Map<int, Set<Element>>();
     compiler.enqueuer.resolution.resolvedElements.forEach(
       (Element element, TreeElementMapping mapping) {
+        if (element.impliesType()) return;
+        assert(invariant(element,
+            element.isField() ||
+            element.isFunction() ||
+            element.isGenerativeConstructor() ||
+            element.isGetter() ||
+            element.isSetter(),
+            message: 'Unexpected element kind: ${element.kind}'));
         // TODO(ngeoffray): Not sure why the resolver would put a null
         // mapping.
         if (mapping == null) return;
