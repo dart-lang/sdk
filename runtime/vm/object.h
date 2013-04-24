@@ -3086,7 +3086,8 @@ class ICData : public Object {
   // Adds sorted so that Smi is the first class-id. Use only for
   // num_args_tested == 1.
   void AddReceiverCheck(intptr_t receiver_class_id,
-                        const Function& target) const;
+                        const Function& target,
+                        intptr_t count = 1) const;
 
   // Retrieving checks.
 
@@ -3102,6 +3103,8 @@ class ICData : public Object {
   RawFunction* GetTargetAt(intptr_t index) const;
   RawFunction* GetTargetForReceiverClassId(intptr_t class_id) const;
 
+  void IncrementCountAt(intptr_t index, intptr_t value) const;
+  void SetCountAt(intptr_t index, intptr_t value) const;
   intptr_t GetCountAt(intptr_t index) const;
   intptr_t AggregateCount() const;
 

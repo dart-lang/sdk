@@ -8248,7 +8248,8 @@ void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
 
 
 void ICData::AddReceiverCheck(intptr_t receiver_class_id,
-                              const Function& target) const {
+                              const Function& target,
+                              intptr_t count) const {
 #if defined(DEBUG)
   GrowableArray<intptr_t> class_ids(1);
   class_ids.Add(receiver_class_id);
@@ -8275,7 +8276,7 @@ void ICData::AddReceiverCheck(intptr_t receiver_class_id,
   }
   data.SetAt(data_pos, Smi::Handle(Smi::New(receiver_class_id)));
   data.SetAt(data_pos + 1, target);
-  data.SetAt(data_pos + 2, Smi::Handle(Smi::New(1)));
+  data.SetAt(data_pos + 2, Smi::Handle(Smi::New(count)));
 }
 
 
@@ -8338,6 +8339,24 @@ RawFunction* ICData::GetTargetAt(intptr_t index) const {
 }
 
 
+void ICData::IncrementCountAt(intptr_t index, intptr_t value) const {
+  ASSERT(0 <= value);
+  ASSERT(value <= Smi::kMaxValue);
+  SetCountAt(index, Utils::Minimum(GetCountAt(index) + value, Smi::kMaxValue));
+}
+
+
+void ICData::SetCountAt(intptr_t index, intptr_t value) const {
+  ASSERT(0 <= value);
+  ASSERT(value <= Smi::kMaxValue);
+
+  const Array& data = Array::Handle(ic_data());
+  const intptr_t data_pos = index * TestEntryLength() +
+      CountIndexFor(num_args_tested());
+  data.SetAt(data_pos, Smi::Handle(Smi::New(value)));
+}
+
+
 intptr_t ICData::GetCountAt(intptr_t index) const {
   const Array& data = Array::Handle(ic_data());
   const intptr_t data_pos = index * TestEntryLength() +
@@ -8385,6 +8404,7 @@ RawICData* ICData::AsUnaryClassChecksForArgNr(intptr_t arg_nr) const {
   const intptr_t len = NumberOfChecks();
   for (intptr_t i = 0; i < len; i++) {
     const intptr_t class_id = GetClassIdAt(i, arg_nr);
+    const intptr_t count = GetCountAt(i);
     intptr_t duplicate_class_id = -1;
     const intptr_t result_len = result.NumberOfChecks();
     for (intptr_t k = 0; k < result_len; k++) {
@@ -8397,10 +8417,12 @@ RawICData* ICData::AsUnaryClassChecksForArgNr(intptr_t arg_nr) const {
       // This check is valid only when checking the receiver.
       ASSERT((arg_nr != 0) ||
              (result.GetTargetAt(duplicate_class_id) == GetTargetAt(i)));
+      result.IncrementCountAt(duplicate_class_id, count);
     } else {
       // This will make sure that Smi is first if it exists.
       result.AddReceiverCheck(class_id,
-                              Function::Handle(GetTargetAt(i)));
+                              Function::Handle(GetTargetAt(i)),
+                              count);
     }
   }
   return result.raw();
