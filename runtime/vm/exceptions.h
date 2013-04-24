@@ -63,6 +63,9 @@ class Exceptions : AllStatic {
   };
 
   static void ThrowByType(ExceptionType type, const Array& arguments);
+  static void ThrowOOM();
+  static void ThrowStackOverflow();
+
   // Returns a RawInstance if the exception is successfully created,
   // otherwise returns a RawError.
   static RawObject* Create(ExceptionType type, const Array& arguments);

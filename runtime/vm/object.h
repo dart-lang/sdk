@@ -329,6 +329,10 @@ class Object {
     ASSERT(bool_false_ != NULL);
     return *bool_false_;
   }
+  static const LanguageError& snapshot_writer_error() {
+    ASSERT(snapshot_writer_error_ != NULL);
+    return *snapshot_writer_error_;
+  }
 
   static RawClass* class_class() { return class_class_; }
   static RawClass* null_class() { return null_class_; }
@@ -520,6 +524,7 @@ class Object {
   static Instance* transition_sentinel_;
   static Bool* bool_true_;
   static Bool* bool_false_;
+  static LanguageError* snapshot_writer_error_;
 
   friend void ClassTable::Register(const Class& cls);
   friend void RawObject::Validate(Isolate* isolate) const;

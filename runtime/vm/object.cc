@@ -72,6 +72,7 @@ Instance* Object::sentinel_ = NULL;
 Instance* Object::transition_sentinel_ = NULL;
 Bool* Object::bool_true_ = NULL;
 Bool* Object::bool_false_ = NULL;
+LanguageError* Object::snapshot_writer_error_ = NULL;
 
 RawObject* Object::null_ = reinterpret_cast<RawObject*>(RAW_NULL);
 RawClass* Object::class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -321,6 +322,7 @@ void Object::InitOnce() {
   transition_sentinel_ = Instance::ReadOnlyHandle(isolate);
   bool_true_ = Bool::ReadOnlyHandle(isolate);
   bool_false_ = Bool::ReadOnlyHandle(isolate);
+  snapshot_writer_error_ = LanguageError::ReadOnlyHandle(isolate);
 
   // Allocate and initialize the null instance.
   // 'null_' must be the first object allocated as it is used in allocation to
@@ -511,6 +513,10 @@ void Object::InitOnce() {
   isolate->object_store()->set_bool_class(cls);
   *bool_true_ = Bool::New(true);
   *bool_false_ = Bool::New(false);
+
+  *snapshot_writer_error_ =
+      LanguageError::New(String::Handle(String::New("SnapshotWriter Error")));
+
   ASSERT(!empty_array_->IsSmi());
   ASSERT(empty_array_->IsArray());
   ASSERT(!sentinel_->IsSmi());
@@ -521,6 +527,8 @@ void Object::InitOnce() {
   ASSERT(bool_true_->IsBool());
   ASSERT(!bool_false_->IsSmi());
   ASSERT(bool_false_->IsBool());
+  ASSERT(!snapshot_writer_error_->IsSmi());
+  ASSERT(snapshot_writer_error_->IsLanguageError());
 }
 
 
@@ -8829,9 +8837,14 @@ void UnhandledException::set_stacktrace(const Instance& stacktrace) const {
 
 const char* UnhandledException::ToErrorCString() const {
   Isolate* isolate = Isolate::Current();
+  if (exception() == isolate->object_store()->out_of_memory()) {
+    return "Unhandled exception:\nOut of memory";
+  }
+  if (exception() == isolate->object_store()->stack_overflow()) {
+    return "Unhandled exception:\nStack overflow";
+  }
   HANDLESCOPE(isolate);
   Object& strtmp = Object::Handle();
-
   const Instance& exc = Instance::Handle(exception());
   strtmp = DartLibraryCalls::ToString(exc);
   const char* exc_str =
