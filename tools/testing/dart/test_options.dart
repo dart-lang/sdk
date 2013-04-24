@@ -12,7 +12,7 @@ import "test_suite.dart";
 List<String> defaultTestSelectors =
     const ['dartc', 'samples', 'standalone', 'corelib', 'co19', 'language',
            'isolate', 'vm', 'html', 'json', 'benchmark_smoke',
-           'utils', 'lib', 'pkg', 'analyze_library'];
+           'utils', 'lib', 'pkg', 'analyze_library', 'analyze_tests'];
 
 /**
  * Specification of a single test option.
@@ -523,7 +523,7 @@ Note: currently only implemented for dart2js.''',
     String compiler = configuration['compiler'];
     configuration['browser'] = TestUtils.isBrowserRuntime(runtime);
     configuration['analyzer'] = TestUtils.isCommandLineAnalyzer(compiler);
-    
+
     // Set the javascript command line flag for less verbose status files.
     configuration['jscl'] = TestUtils.isJsCommandLineRuntime(runtime);
 

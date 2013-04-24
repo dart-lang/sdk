@@ -29,3 +29,20 @@ class AnalyzeLibraryTestSuite extends DartcCompilationTestSuite {
 
   bool get listRecursively => true;
 }
+
+
+class AnalyzeTestsTestSuite extends DartcCompilationTestSuite {
+  AnalyzeTestsTestSuite(Map configuration)
+      : super(configuration,
+              'analyze_tests',
+              'tests',
+              [ 'standalone' ],
+              ['tests/lib/analyzer/analyze_tests.status'],
+              allStaticClean: true);
+
+  bool isTestFile(String filename) {
+    return filename.endsWith('_test.dart');
+  }
+
+  bool get listRecursively => true;
+}

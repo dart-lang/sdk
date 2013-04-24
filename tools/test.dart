@@ -158,6 +158,9 @@ void testConfigurations(List<Map> configurations) {
         if (key == 'analyze_library') {
           testSuites.add(new AnalyzeLibraryTestSuite(conf));
         }
+        if (key == 'analyze_tests') {
+          testSuites.add(new AnalyzeTestsTestSuite(conf));
+        }
       }
     }
 

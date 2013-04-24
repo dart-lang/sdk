@@ -10,7 +10,8 @@ import 'dart:collection';
 import 'dart:io';
 import 'dart:isolate';
 
-class MyListOfOneElement extends Object with ListMixin {
+class MyListOfOneElement
+    extends Object with ListMixin<int>, UnmodifiableListMixin {
   int _value;
   MyListOfOneElement(this._value);
   int get length => 1;
