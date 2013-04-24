@@ -133,7 +133,7 @@ Uri pathToFileUri(String pathString) {
   pathString = pathos.absolute(pathString);
   if (Platform.operatingSystem != 'windows') {
     return Uri.parse('file://$pathString');
-  } else if (pathos.rootPrefix(path).startsWith('\\\\')) {
+  } else if (pathos.rootPrefix(pathString).startsWith('\\\\')) {
     // Network paths become "file://hostname/path/to/file".
     return Uri.parse('file:${pathString.replaceAll("\\", "/")}');
   } else {

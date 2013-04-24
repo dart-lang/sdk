@@ -30,7 +30,7 @@ Uri pathToFileUri(String pathString) {
   pathString = path.absolute(pathString);
   if (Platform.operatingSystem != 'windows') {
     return Uri.parse('file://$pathString');
-  } else if (path.rootPrefix(path).startsWith('\\\\')) {
+  } else if (path.rootPrefix(pathString).startsWith('\\\\')) {
     // Network paths become "file://hostname/path/to/file".
     return Uri.parse('file:${pathString.replaceAll("\\", "/")}');
   } else {
