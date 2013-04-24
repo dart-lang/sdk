@@ -385,10 +385,9 @@ class _SpreadArgsHelper {
         this.id = _makeCallbackId(id, callback) {
     ensureInitialized();
     if (testCase == null) {
-      print("No valid test, did you forget to run your test inside a call "
-          "to test()?");
+      throw new StateError("No valid test. Did you forget to run your test "
+          "inside a call to test()?");
     }
-    assert(testCase != null);
 
     if (isDone != null || minExpected > 0) {
       testCase._callbackFunctionsOutstanding++;
@@ -398,7 +397,7 @@ class _SpreadArgsHelper {
     }
   }
 
-  static _makeCallbackId(String id, Function callback) {
+  static String _makeCallbackId(String id, Function callback) {
     // Try to create a reasonable id.
     if (id != null) {
       return "$id ";
@@ -419,7 +418,7 @@ class _SpreadArgsHelper {
     return '';
   }
 
-  shouldCallBack() {
+  bool shouldCallBack() {
     ++actualCalls;
     if (testCase.isComplete) {
       // Don't run if the test is done. We don't throw here as this is not
@@ -439,7 +438,7 @@ class _SpreadArgsHelper {
     return true;
   }
 
-  after() {
+  void after() {
     if (!complete) {
       if (minExpectedCalls > 0 && actualCalls < minExpectedCalls) return;
       if (isDone != null && !isDone()) return;
@@ -449,31 +448,6 @@ class _SpreadArgsHelper {
       complete = true;
       testCase._markCallbackComplete();
     }
-  }
-
-  invoke([arg0 = sentinel, arg1 = sentinel, arg2 = sentinel,
-          arg3 = sentinel, arg4 = sentinel]) {
-    return _guardAsync(() {
-      if (!shouldCallBack()) {
-        return;
-      } else if (arg0 == sentinel) {
-        return callback();
-      } else if (arg1 == sentinel) {
-        return callback(arg0);
-      } else if (arg2 == sentinel) {
-        return callback(arg0, arg1);
-      } else if (arg3 == sentinel) {
-        return callback(arg0, arg1, arg2);
-      } else if (arg4 == sentinel) {
-        return callback(arg0, arg1, arg2, arg3);
-      } else {
-        testCase.error(
-           'unittest lib does not support callbacks with more than'
-              ' 4 arguments.',
-           '');
-      }
-    },
-    after, testCase);
   }
 
   invoke0() {
@@ -505,21 +479,6 @@ class _SpreadArgsHelper {
         },
         after, testCase);
   }
-}
-
-/**
- * Indicate that [callback] is expected to be called a [count] number of times
- * (by default 1). The unittest framework will wait for the callback to run the
- * specified [count] times before it continues with the following test.  Using
- * [_expectAsync] will also ensure that errors that occur within [callback] are
- * tracked and reported. [callback] should take between 0 and 4 positional
- * arguments (named arguments are not supported here). [id] can be used
- * to provide more descriptive error messages if the callback is called more
- * often than expected.
- */
-Function _expectAsync(Function callback,
-                     {int count: 1, int max: 0, String id}) {
-  return new _SpreadArgsHelper(callback, count, max, null, id).invoke;
 }
 
 /**
@@ -559,20 +518,6 @@ Function expectAsync2(Function callback,
 
 /**
  * Indicate that [callback] is expected to be called until [isDone] returns
- * true. The unittest framework checks [isDone] after each callback and only
- * when it returns true will it continue with the following test. Using
- * [expectAsyncUntil] will also ensure that errors that occur within
- * [callback] are tracked and reported. [callback] should take between 0 and
- * 4 positional arguments (named arguments are not supported). [id] can be
- * used to identify the callback in error messages (for example if it is called
- * after the test case is complete).
- */
-Function _expectAsyncUntil(Function callback, Function isDone, {String id}) {
-  return new _SpreadArgsHelper(callback, 0, -1, isDone, id).invoke;
-}
-
-/**
- * Indicate that [callback] is expected to be called until [isDone] returns
  * true. The unittest framework check [isDone] after each callback and only
  * when it returns true will it continue with the following test. Using
  * [expectAsyncUntil0] will also ensure that errors that occur within
@@ -600,19 +545,6 @@ Function expectAsyncUntil1(Function callback, Function isDone, {String id}) {
 // TODO(sigmund): deprecate this API when issue 2706 is fixed.
 Function expectAsyncUntil2(Function callback, Function isDone, {String id}) {
   return new _SpreadArgsHelper(callback, 0, -1, isDone, id).invoke2;
-}
-
-/**
- * Wraps the [callback] in a new function and returns that function. The new
- * function will be able to handle exceptions by directing them to the correct
- * test. This is thus similar to expectAsync0. Use it to wrap any callbacks that
- * might optionally be called but may never be called during the test.
- * [callback] should take between 0 and 4 positional arguments (named arguments
- * are not supported). [id] can be used to identify the callback in error
- * messages (for example if it is called after the test case is complete).
- */
-Function _protectAsync(Function callback, {String id}) {
-  return new _SpreadArgsHelper(callback, 0, -1, null, id).invoke;
 }
 
 /**
