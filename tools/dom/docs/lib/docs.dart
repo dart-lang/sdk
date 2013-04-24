@@ -10,7 +10,7 @@
 
 library docs;
 
-import '../../../../sdk/lib/_internal/compiler/implementation/mirrors/dart2js_mirror.dart';
+import '../../../../sdk/lib/_internal/dartdoc/lib/src/dart2js_mirrors.dart';
 import '../../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors.dart';
 import '../../../../sdk/lib/_internal/dartdoc/lib/dartdoc.dart';
 import '../../../../sdk/lib/_internal/dartdoc/lib/src/json_serializer.dart';

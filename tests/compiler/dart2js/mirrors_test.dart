@@ -6,6 +6,9 @@ import "package:expect/expect.dart";
 import '../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/mirrors/dart2js_mirror.dart';
+import '../../../sdk/lib/_internal/compiler/implementation/filenames.dart'
+       show currentDirectory, nativeToUriPath;
+import '../../../sdk/lib/_internal/compiler/implementation/source_file_provider.dart';
 
 import 'dart:io';
 import 'dart:uri';
@@ -40,12 +43,16 @@ DeclarationMirror findMirror(Iterable<DeclarationMirror> list, String name) {
 }
 
 main() {
-  var scriptPath = new Path(new Options().script);
-  var dirPath = scriptPath.directoryPath;
-  var libPath = dirPath.join(new Path('../../../sdk/'));
-  var inputPath = dirPath.join(new Path('mirrors_helper.dart'));
-  var result = analyze([inputPath], libPath,
-                       options: <String>['--preserve-comments']);
+  Uri scriptUri =
+      currentDirectory.resolve(nativeToUriPath(new Options().script));
+  Uri libUri = scriptUri.resolve('../../../sdk/');
+  Uri inputUri = scriptUri.resolve('mirrors_helper.dart');
+  var provider = new SourceFileProvider();
+  var diagnosticHandler =
+        new FormattingDiagnosticHandler(provider).diagnosticHandler;
+  var result = analyze([inputUri], libUri, null,
+                       provider.readStringFromUri, diagnosticHandler,
+                       <String>['--preserve-comments']);
   result.then((MirrorSystem mirrors) {
     test(mirrors);
   });
