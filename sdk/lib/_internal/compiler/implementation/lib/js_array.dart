@@ -258,11 +258,6 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
 
   int get hashCode => Primitives.objectHashCode(this);
 
-  Type get runtimeType {
-    // Call getRuntimeTypeString to get the name including type arguments.
-    return new TypeImpl(getRuntimeTypeString(this));
-  }
-
   int get length => JS('int', r'#.length', this);
 
   void set length(int newLength) {

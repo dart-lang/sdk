@@ -3207,17 +3207,22 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
         element.supertype = resolveSupertype(element, node.superclass);
       }
     }
-
-    // If the super type isn't specified, we make it Object.
-    final objectElement = compiler.objectClass;
-    if (!identical(element, objectElement) && element.supertype == null) {
-      if (objectElement == null) {
-        compiler.internalError("Internal error: cannot resolve Object",
-                               node: node);
-      } else {
-        objectElement.ensureResolved(compiler);
+    // If the super type isn't specified, we provide a default.  The language
+    // specifies [Object] but the backend can pick a specific 'implementation'
+    // of Object - the JavaScript backend chooses between Object and
+    // Interceptor.
+    if (element.supertype == null) {
+      ClassElement superElement = compiler.backend.defaultSuperclass(element);
+      // Avoid making the superclass (usually Object) extend itself.
+      if (element != superElement) {
+        if (superElement == null) {
+          compiler.internalError("Internal error: cannot resolve Object",
+              node: node);
+        } else {
+          superElement.ensureResolved(compiler);
+        }
+        element.supertype = superElement.computeType(compiler);
       }
-      element.supertype = objectElement.computeType(compiler);
     }
 
     assert(element.interfaces == null);

@@ -978,6 +978,7 @@ class JavaScriptBackend extends Backend {
           Set<Element> set = interceptedElements.putIfAbsent(
               member.name, () => new Set<Element>());
           set.add(member);
+          if (classElement == jsInterceptorClass) return;
           if (!classElement.isNative()) {
             MixinApplicationElement mixinApplication = classElement;
             assert(member.getEnclosingClass() == mixinApplication.mixin);
@@ -1365,6 +1366,11 @@ class JavaScriptBackend extends Backend {
 
   native.NativeEnqueuer nativeCodegenEnqueuer(Enqueuer world) {
     return new native.NativeCodegenEnqueuer(world, compiler, emitter);
+  }
+
+  ClassElement defaultSuperclass(ClassElement element) {
+    // Native classes inherit from Interceptor.
+    return element.isNative() ? jsInterceptorClass : compiler.objectClass;
   }
 
   /**
