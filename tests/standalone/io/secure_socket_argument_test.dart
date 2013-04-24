@@ -5,9 +5,23 @@
 import "package:expect/expect.dart";
 import "dart:io";
 
-void main() {
+void testInitialzeArguments() {
   Expect.throws(() => SecureSocket.initialize(database: "foo.txt"));
   Expect.throws(() => SecureSocket.initialize(password: false));
   Expect.throws(() => SecureSocket.initialize(useBuiltinRoots: 7));
+}
+
+void testServerSocketArguments() {
+  Expect.throws(() =>
+      SecureServerSocket.bind(SERVER_ADDRESS, 65536, 5, CERTIFICATE));
+  Expect.throws(() =>
+      SecureServerSocket.bind(SERVER_ADDRESS, -1, CERTIFICATE));
+  Expect.throws(() =>
+      SecureServerSocket.bind(SERVER_ADDRESS, 0, -1, CERTIFICATE));
+}
+
+void main() {
+  testInitialzeArguments();
   SecureSocket.initialize();
+  testServerSocketArguments();
 }

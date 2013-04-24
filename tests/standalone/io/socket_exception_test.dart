@@ -53,7 +53,7 @@ class SocketExceptionTest {
       Socket.connect("127.0.0.1", server.port).then((socket) {
         server.listen(
           (incoming) => server.close(),
-          onDone: port.close());
+          onDone: port.close);
       });
     });
   }

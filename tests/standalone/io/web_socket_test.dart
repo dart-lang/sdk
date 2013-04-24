@@ -193,12 +193,16 @@ class SecurityConfiguration {
         WebSocketTransformer.upgrade(request)
             .then((webSocket) {
               webSocket.close();
-              webSocket.listen((_) { Expect.fail(); }, onDone: server.close);
+              webSocket.listen(
+                  (_) { Expect.fail("Unexpected message"); },
+                  onDone: server.close);
             });
       });
 
       createClient(server.port).then((webSocket) {
-          webSocket.listen((_) { Expect.fail(); }, onDone: webSocket.close);
+          webSocket.listen(
+              (_) { Expect.fail("Unexpected message"); },
+              onDone: webSocket.close);
         });
     });
   }
@@ -209,7 +213,9 @@ class SecurityConfiguration {
       server.listen((request) {
         WebSocketTransformer.upgrade(request)
             .then((webSocket) {
-              webSocket.listen((_) { Expect.fail(); }, onDone: () {
+              webSocket.listen(
+                  (_) { Expect.fail("Unexpected message"); },
+                  onDone: () {
                 server.close();
                 webSocket.close();
               });
@@ -218,7 +224,9 @@ class SecurityConfiguration {
 
       createClient(server.port).then((webSocket) {
           webSocket.close();
-          webSocket.listen((_) { Expect.fail(); }, onDone: webSocket.close);
+          webSocket.listen(
+              (_) { Expect.fail("Unexpected message"); },
+              onDone: webSocket.close);
         });
     });
   }

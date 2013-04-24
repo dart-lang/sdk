@@ -223,15 +223,15 @@ void testLocalServerBasic() {
     return new Future.value(true);
   };
 
-  HttpClientConnection conn =
-      client.getUrl(Uri.parse("http://127.0.0.1/basic/test"));
-  conn.onResponse = (HttpClientResponse response) {
-    Expect.equals(HttpStatus.OK, response.statusCode);
-    response.inputStream.onData = () => response.inputStream.read();
-    response.inputStream.onClosed = () {
-      client.shutdown();
-    };
-  };
+  client.getUrl(Uri.parse("http://127.0.0.1/basic/test"))
+      .then((HttpClientRequest request) => request.close())
+      .then((HttpClientResponse response) {
+        Expect.equals(HttpStatus.OK, response.statusCode);
+        response.fold(null, (x, y) {})
+            .then((_) {
+              client.close();
+            });
+      });
 }
 
 void testLocalServerDigest() {
@@ -246,15 +246,15 @@ void testLocalServerDigest() {
     return new Future.value(true);
   };
 
-  HttpClientConnection conn =
-      client.getUrl(Uri.parse("http://127.0.0.1/digest/test"));
-  conn.onResponse = (HttpClientResponse response) {
-    Expect.equals(HttpStatus.OK, response.statusCode);
-    response.inputStream.onData = () => response.inputStream.read();
-    response.inputStream.onClosed = () {
-      client.shutdown();
-    };
-  };
+  client.getUrl(Uri.parse("http://127.0.0.1/digest/test"))
+      .then((HttpClientRequest request) => request.close())
+      .then((HttpClientResponse response) {
+        Expect.equals(HttpStatus.OK, response.statusCode);
+        response.fold(null, (x, y) {})
+            .then((_) {
+              client.close();
+            });
+      });
 }
 
 main() {

@@ -6,10 +6,11 @@
 
 import "package:expect/expect.dart";
 import 'dart:async';
+import 'dart:collection';
 import 'dart:io';
 import 'dart:isolate';
 
-class MyListOfOneElement implements List {
+class MyListOfOneElement extends Object with ListMixin {
   int _value;
   MyListOfOneElement(this._value);
   int get length => 1;

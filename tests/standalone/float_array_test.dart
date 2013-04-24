@@ -26,7 +26,7 @@ void testCreateFloat32Array() {
 void testSetRange32() {
   Float32List floatArray = new Float32List(3);
 
-  List<num> list = [10.0, 11.0, 12.0];
+  List<double> list = [10.0, 11.0, 12.0];
   floatArray.setRange(0, 3, list);
   for (int i = 0; i < 3; i++) {
     Expect.equals(10 + i, floatArray[i]);
@@ -49,7 +49,7 @@ void testSetRange32() {
 
 void testIndexOutOfRange32() {
   Float32List floatArray = new Float32List(3);
-  List<num> list = const [0.0, 1.0, 2.0, 3.0];
+  List<double> list = const [0.0, 1.0, 2.0, 3.0];
 
   Expect.throws(() {
     floatArray[5] = 2.0;
@@ -110,7 +110,7 @@ void testCreateFloat64Array() {
 void testSetRange64() {
   Float64List floatArray = new Float64List(3);
 
-  List<num> list = [10.0, 11.0, 12.0];
+  List<double> list = [10.0, 11.0, 12.0];
   floatArray.setRange(0, 3, list);
   for (int i = 0; i < 3; i++) {
     Expect.equals(10 + i, floatArray[i]);
@@ -133,7 +133,7 @@ void testSetRange64() {
 
 void testIndexOutOfRange64() {
   Float64List floatArray = new Float64List(3);
-  List<num> list = const [0.0, 1.0, 2.0, 3.0];
+  List<double> list = const [0.0, 1.0, 2.0, 3.0];
 
   Expect.throws(() {
     floatArray[5] = 2.0;

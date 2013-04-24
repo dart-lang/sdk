@@ -16,15 +16,6 @@ const SERVER_ADDRESS = "127.0.0.1";
 const HOST_NAME = "localhost";
 const CERTIFICATE = "localhost_cert";
 
-void testArguments() {
-  Expect.throws(() =>
-      SecureServerSocket.bind(SERVER_ADDRESS, 65536, 5, CERTIFICATE));
-  Expect.throws(() =>
-      SecureServerSocket.bind(SERVER_ADDRESS, -1, CERTIFICATE));
-  Expect.throws(() =>
-      SecureServerSocket.bind(SERVER_ADDRESS, 0, -1, CERTIFICATE));
-}
-
 void testSimpleBind() {
   ReceivePort port = new ReceivePort();
   SecureServerSocket.bind(SERVER_ADDRESS, 0, 5, CERTIFICATE).then((s) {
@@ -205,7 +196,6 @@ main() {
   SecureSocket.initialize(database: certificateDatabase.toNativePath(),
                           password: 'dartdart',
                           useBuiltinRoots: false);
-  testArguments();
   testSimpleBind();
   testInvalidBind();
   testSimpleConnect(CERTIFICATE);

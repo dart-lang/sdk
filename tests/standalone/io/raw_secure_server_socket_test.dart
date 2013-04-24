@@ -16,15 +16,6 @@ const SERVER_ADDRESS = "127.0.0.1";
 const HOST_NAME = "localhost";
 const CERTIFICATE = "localhost_cert";
 
-void testArguments() {
-  Expect.throws(() =>
-      RawSecureServerSocket.bind(SERVER_ADDRESS, 65536, 5, CERTIFICATE));
-  Expect.throws(() =>
-      RawSecureServerSocket.bind(SERVER_ADDRESS, -1, CERTIFICATE));
-  Expect.throws(() =>
-      RawSecureServerSocket.bind(SERVER_ADDRESS, 0, -1, CERTIFICATE));
-}
-
 void testSimpleBind() {
   ReceivePort port = new ReceivePort();
   RawSecureServerSocket.bind(SERVER_ADDRESS, 0, 5, CERTIFICATE).then((s) {
@@ -168,7 +159,7 @@ void testSimpleReadWrite(bool listenSecure,
                          [bool postponeSecure = false]) {
   if (handshakeBeforeSecure == true &&
       (listenSecure == true || connectSecure == true)) {
-    Expect.fails("Invalid arguments to testSimpleReadWrite");
+    Expect.fail("Invalid arguments to testSimpleReadWrite");
   }
 
   ReceivePort port = new ReceivePort();
@@ -453,7 +444,6 @@ main() {
   SecureSocket.initialize(database: certificateDatabase.toNativePath(),
                           password: 'dartdart',
                           useBuiltinRoots: false);
-  testArguments();
   testSimpleBind();
   testInvalidBind();
   testSimpleConnect(CERTIFICATE);

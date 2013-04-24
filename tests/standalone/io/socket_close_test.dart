@@ -90,7 +90,7 @@ class SocketClose {
       }
     }
 
-    void errorHandler(Exception e) {
+    void errorHandler(Socket socket) {
       _errorEvents++;
       socket.close();
     }
