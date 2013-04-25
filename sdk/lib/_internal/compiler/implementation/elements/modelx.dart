@@ -1228,7 +1228,7 @@ class FunctionElementX extends ElementX implements FunctionElement {
     if (super.isAbstract(compiler)) return true;
     if (modifiers.isExternal()) return false;
     if (isFunction() || isAccessor()) {
-      return !parseNode(compiler).hasBody();
+      compiler.withCurrentElement(this, () => !parseNode(compiler).hasBody());
     }
     return false;
   }
