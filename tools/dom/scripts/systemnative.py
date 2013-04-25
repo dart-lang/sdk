@@ -261,15 +261,27 @@ class DartiumBackend(HtmlDartGenerator):
   def _GenerateCPPHeader(self):
     to_native_emitter = emitter.Emitter()
     if self._interface_type_info.custom_to_native():
-      to_native_emitter.Emit(
-          '    static PassRefPtr<NativeType> toNative(Dart_Handle handle, Dart_Handle& exception);\n')
+      return_type = 'PassRefPtr<NativeType>'
+      to_native_body = ';'
     else:
-      to_native_emitter.Emit(
-          '    static NativeType* toNative(Dart_Handle handle, Dart_Handle& exception)\n'
+      return_type = 'NativeType*'
+      to_native_body = emitter.Format(
+          '\n'
           '    {\n'
           '        return DartDOMWrapper::unwrapDartWrapper<Dart$INTERFACE>(handle, exception);\n'
-          '    }\n',
+          '    }',
           INTERFACE=self._interface.id)
+
+    to_native_emitter.Emit(
+        '    static $RETURN_TYPE toNative(Dart_Handle handle, Dart_Handle& exception)$TO_NATIVE_BODY\n'
+        '\n'
+        '    static $RETURN_TYPE toNativeWithNullCheck(Dart_Handle handle, Dart_Handle& exception)\n'
+        '    {\n'
+        '        return Dart_IsNull(handle) ? 0 : toNative(handle, exception);\n'
+        '    }\n',
+        RETURN_TYPE=return_type,
+        TO_NATIVE_BODY=to_native_body,
+        INTERFACE=self._interface.id)
 
     to_dart_emitter = emitter.Emitter()
 
@@ -851,9 +863,7 @@ class DartiumBackend(HtmlDartGenerator):
       return False
     if operation.id in ['addEventListener', 'removeEventListener'] and argument.id == 'useCapture':
       return False
-    # Another option would be to adjust in IDLs, but let's keep it here for now
-    # as it's a single instance.
-    if self._interface.id == 'CSSStyleDeclaration' and operation.id == 'setProperty' and argument.id == 'priority':
+    if 'ForceOptional' in argument.ext_attrs:
       return False
     if argument.type.id == 'Dictionary':
       return False
