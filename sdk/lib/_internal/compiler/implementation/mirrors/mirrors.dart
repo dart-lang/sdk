@@ -7,9 +7,6 @@ library mirrors;
 import 'dart:async';
 import 'dart:uri';
 
-// TODO(rnystrom): Use "package:" URL (#4968).
-import 'dart2js_mirror.dart';
-
 /**
  * The main interface for the whole mirror system.
  */
@@ -125,7 +122,7 @@ abstract class ObjectMirror implements Mirror {
    * can be the implicit getter for a field or a user-defined getter
    * method.
    */
-  Future<InstanceMirror> getField(String fieldName);
+  InstanceMirror getField(String fieldName);
 }
 
 /**
@@ -166,7 +163,15 @@ abstract class InstanceMirror implements ObjectMirror {
  * Specialized [InstanceMirror] used for reflection on constant lists.
  */
 abstract class ListInstanceMirror implements InstanceMirror {
-  Future<InstanceMirror> operator[](int index);
+  /**
+   * Returns an instance mirror of the value at [index] or throws a [RangeError]
+   * if the [index] is out of bounds.
+   */
+  InstanceMirror operator[](int index);
+
+  /**
+   * The number of elements in the list.
+   */
   int get length;
 }
 
@@ -180,10 +185,10 @@ abstract class MapInstanceMirror implements InstanceMirror {
   Iterable<String> get keys;
 
   /**
-   * Returns a future on the instance mirror of the value for the given key or
+   * Returns an instance mirror of the value for the given key or
    * null if key is not in the map.
    */
-  Future<InstanceMirror> operator[](String key);
+  InstanceMirror operator[](String key);
 
   /**
    * The number of {key, value} pairs in the map.

@@ -180,7 +180,7 @@ List<String> domNames(DeclarationMirror mirror) {
 
   if (domNameMetadata != null) {
     var domNames = <String>[];
-    var tags = deprecatedFutureValue(domNameMetadata.getField('name'));
+    var tags = domNameMetadata.getField('name');
     for (var s in tags.reflectee.split(',')) {
       domNames.add(s.trim());
     }

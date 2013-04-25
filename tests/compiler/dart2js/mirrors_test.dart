@@ -266,11 +266,10 @@ void testFoo(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isFalse(metadata.hasReflectee);
   Expect.throws(() => metadata.reflectee, (_) => true);
   Expect.equals(metadataType.originalDeclaration, metadata.type);
-  metadata.getField('data').then((InstanceMirror data) {
-    Expect.isNotNull(data);
-    Expect.isTrue(data.hasReflectee);
-    Expect.isNull(data.reflectee);
-  });
+  InstanceMirror data = metadata.getField('data');
+  Expect.isNotNull(data);
+  Expect.isTrue(data.hasReflectee);
+  Expect.isNull(data.reflectee);
 
   // @Metadata(true)
   metadata = metadataList[metadataListIndex++];
@@ -278,11 +277,10 @@ void testFoo(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isFalse(metadata.hasReflectee);
   Expect.throws(() => metadata.reflectee, (_) => true);
   Expect.equals(metadataType.originalDeclaration, metadata.type);
-  metadata.getField('data').then((InstanceMirror data) {
-    Expect.isNotNull(data);
-    Expect.isTrue(data.hasReflectee);
-    Expect.isTrue(data.reflectee);
-  });
+  data = metadata.getField('data');
+  Expect.isNotNull(data);
+  Expect.isTrue(data.hasReflectee);
+  Expect.isTrue(data.reflectee);
 
   // @Metadata(false)
   metadata = metadataList[metadataListIndex++];
@@ -290,11 +288,10 @@ void testFoo(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isFalse(metadata.hasReflectee);
   Expect.throws(() => metadata.reflectee, (_) => true);
   Expect.equals(metadataType.originalDeclaration, metadata.type);
-  metadata.getField('data').then((InstanceMirror data) {
-    Expect.isNotNull(data);
-    Expect.isTrue(data.hasReflectee);
-    Expect.isFalse(data.reflectee);
-  });
+  data = metadata.getField('data');
+  Expect.isNotNull(data);
+  Expect.isTrue(data.hasReflectee);
+  Expect.isFalse(data.reflectee);
 
   // @Metadata(0)
   metadata = metadataList[metadataListIndex++];
@@ -302,11 +299,10 @@ void testFoo(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isFalse(metadata.hasReflectee);
   Expect.throws(() => metadata.reflectee, (_) => true);
   Expect.equals(metadataType.originalDeclaration, metadata.type);
-  metadata.getField('data').then((InstanceMirror data) {
-    Expect.isNotNull(data);
-    Expect.isTrue(data.hasReflectee);
-    Expect.equals(0, data.reflectee);
-  });
+  data = metadata.getField('data');
+  Expect.isNotNull(data);
+  Expect.isTrue(data.hasReflectee);
+  Expect.equals(0, data.reflectee);
 
   // @Metadata(1.5)
   metadata = metadataList[metadataListIndex++];
@@ -314,11 +310,10 @@ void testFoo(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isFalse(metadata.hasReflectee);
   Expect.throws(() => metadata.reflectee, (_) => true);
   Expect.equals(metadataType.originalDeclaration, metadata.type);
-  metadata.getField('data').then((InstanceMirror data) {
-    Expect.isNotNull(data);
-    Expect.isTrue(data.hasReflectee);
-    Expect.equals(1.5, data.reflectee);
-  });
+  data = metadata.getField('data');
+  Expect.isNotNull(data);
+  Expect.isTrue(data.hasReflectee);
+  Expect.equals(1.5, data.reflectee);
 
   // @Metadata("Foo")
   metadata = metadataList[metadataListIndex++];
@@ -326,11 +321,10 @@ void testFoo(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isFalse(metadata.hasReflectee);
   Expect.throws(() => metadata.reflectee, (_) => true);
   Expect.equals(metadataType.originalDeclaration, metadata.type);
-  metadata.getField('data').then((InstanceMirror data) {
-    Expect.isNotNull(data);
-    Expect.isTrue(data.hasReflectee);
-    Expect.stringEquals("Foo", data.reflectee);
-  });
+  data = metadata.getField('data');
+  Expect.isNotNull(data);
+  Expect.isTrue(data.hasReflectee);
+  Expect.stringEquals("Foo", data.reflectee);
 
   // @Metadata(const ["Foo"])
   metadata = metadataList[metadataListIndex++];
@@ -338,18 +332,16 @@ void testFoo(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isFalse(metadata.hasReflectee);
   Expect.throws(() => metadata.reflectee, (_) => true);
   Expect.equals(metadataType.originalDeclaration, metadata.type);
-  metadata.getField('data').then((InstanceMirror data) {
-    Expect.isTrue(data is ListInstanceMirror);
-    Expect.isFalse(data.hasReflectee);
-    Expect.throws(() => data.reflectee, (_) => true);
-    ListInstanceMirror listData = data;
-    Expect.equals(1, listData.length);
-    listData[0].then((InstanceMirror element) {
-      Expect.isNotNull(element);
-      Expect.isTrue(element.hasReflectee);
-      Expect.stringEquals("Foo", element.reflectee);
-    });
-  });
+  data = metadata.getField('data');
+  Expect.isTrue(data is ListInstanceMirror);
+  Expect.isFalse(data.hasReflectee);
+  Expect.throws(() => data.reflectee, (_) => true);
+  ListInstanceMirror listData = data;
+  Expect.equals(1, listData.length);
+  InstanceMirror element = listData[0];
+  Expect.isNotNull(element);
+  Expect.isTrue(element.hasReflectee);
+  Expect.stringEquals("Foo", element.reflectee);
 
   // @Metadata(/* Inline comment */ const {'foo':"Foo"})
   metadata = metadataList[metadataListIndex++];
@@ -357,22 +349,20 @@ void testFoo(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isFalse(metadata.hasReflectee);
   Expect.throws(() => metadata.reflectee, (_) => true);
   Expect.equals(metadataType.originalDeclaration, metadata.type);
-  metadata.getField('data').then((InstanceMirror data) {
-    Expect.isTrue(data is MapInstanceMirror);
-    Expect.isFalse(data.hasReflectee);
-    Expect.throws(() => data.reflectee, (_) => true);
-    MapInstanceMirror mapData = data;
-    Expect.equals(1, mapData.length);
-    var it = mapData.keys.iterator;
-    Expect.isTrue(it.moveNext());
-    Expect.stringEquals('foo', it.current);
-    mapData['foo'].then((InstanceMirror element) {
-      Expect.isNotNull(element);
-      Expect.isTrue(element.hasReflectee);
-      Expect.stringEquals("Foo", element.reflectee);
-    });
-    Expect.isNull(mapData['bar']);
-  });
+  data = metadata.getField('data');
+  Expect.isTrue(data is MapInstanceMirror);
+  Expect.isFalse(data.hasReflectee);
+  Expect.throws(() => data.reflectee, (_) => true);
+  MapInstanceMirror mapData = data;
+  Expect.equals(1, mapData.length);
+  var it = mapData.keys.iterator;
+  Expect.isTrue(it.moveNext());
+  Expect.stringEquals('foo', it.current);
+  element = mapData['foo'];
+  Expect.isNotNull(element);
+  Expect.isTrue(element.hasReflectee);
+  Expect.stringEquals("Foo", element.reflectee);
+  Expect.isNull(mapData['bar']);
 
   // @metadata
   metadata = metadataList[metadataListIndex++];
@@ -380,11 +370,10 @@ void testFoo(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isFalse(metadata.hasReflectee);
   Expect.throws(() => metadata.reflectee, (_) => true);
   Expect.equals(metadataType.originalDeclaration, metadata.type);
-  metadata.getField('data').then((InstanceMirror data) {
-    Expect.isNotNull(data);
-    Expect.isTrue(data.hasReflectee);
-    Expect.isNull(data.reflectee);
-  });
+  data = metadata.getField('data');
+  Expect.isNotNull(data);
+  Expect.isTrue(data.hasReflectee);
+  Expect.isNull(data.reflectee);
 
   // /** Multiline doc comment. */
   metadata = metadataList[metadataListIndex++];

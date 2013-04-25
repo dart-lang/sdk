@@ -1483,7 +1483,7 @@ class Dart2JsConstantMirror extends InstanceMirror {
     throw new UnsupportedError('InstanceMirror does not have a reflectee');
   }
 
-  Future<InstanceMirror> getField(String fieldName) {
+  InstanceMirror getField(String fieldName) {
     // TODO(johnniwinther): Which exception/error should be thrown here?
     throw new UnsupportedError('InstanceMirror does not have a reflectee');
   }
@@ -1553,11 +1553,10 @@ class Dart2JsListConstantMirror extends Dart2JsConstantMirror
 
   int get length => _constant.length;
 
-  Future<InstanceMirror> operator[](int index) {
+  InstanceMirror operator[](int index) {
     if (index < 0) throw new RangeError('Negative index');
     if (index >= _constant.length) throw new RangeError('Index out of bounds');
-    return new Future<InstanceMirror>.value(
-        _convertConstantToInstanceMirror(mirrors, _constant.entries[index]));
+    return _convertConstantToInstanceMirror(mirrors, _constant.entries[index]);
   }
 }
 
@@ -1590,11 +1589,10 @@ class Dart2JsMapConstantMirror extends Dart2JsConstantMirror
     return new List<String>.from(_list);
   }
 
-  Future<InstanceMirror> operator[](String key) {
+  InstanceMirror operator[](String key) {
     int index = _list.indexOf(key);
     if (index == -1) return null;
-    return new Future<InstanceMirror>.value(
-        _convertConstantToInstanceMirror(mirrors, _constant.values[index]));
+    return _convertConstantToInstanceMirror(mirrors, _constant.values[index]);
   }
 }
 
@@ -1636,11 +1634,10 @@ class Dart2JsConstructedConstantMirror extends Dart2JsConstantMirror {
     return _fieldMapCache;
   }
 
-  Future<InstanceMirror> getField(String fieldName) {
+  InstanceMirror getField(String fieldName) {
     Constant fieldConstant = _fieldMap[fieldName];
     if (fieldConstant != null) {
-      return new Future<InstanceMirror>.value(
-          _convertConstantToInstanceMirror(mirrors, fieldConstant));
+      return _convertConstantToInstanceMirror(mirrors, fieldConstant);
     }
     return super.getField(fieldName);
   }
@@ -1673,16 +1670,13 @@ class Dart2JsCommentInstanceMirror implements CommentInstanceMirror {
     throw new UnsupportedError('InstanceMirror does not have a reflectee');
   }
 
-  Future<InstanceMirror> getField(String fieldName) {
+  InstanceMirror getField(String fieldName) {
     if (fieldName == 'isDocComment') {
-      return new Future.value(
-          new Dart2JsBoolConstantMirror.fromBool(mirrors, isDocComment));
+      return new Dart2JsBoolConstantMirror.fromBool(mirrors, isDocComment);
     } else if (fieldName == 'text') {
-      return new Future.value(
-          new Dart2JsStringConstantMirror.fromString(mirrors, text));
+      return new Dart2JsStringConstantMirror.fromString(mirrors, text);
     } else if (fieldName == 'trimmedText') {
-      return new Future.value(
-          new Dart2JsStringConstantMirror.fromString(mirrors, trimmedText));
+      return new Dart2JsStringConstantMirror.fromString(mirrors, trimmedText);
     }
     // TODO(johnniwinther): Which exception/error should be thrown here?
     throw new UnsupportedError('InstanceMirror does not have a reflectee');
