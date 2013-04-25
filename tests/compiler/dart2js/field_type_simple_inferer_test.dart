@@ -486,7 +486,7 @@ void test() {
 
   runTest(TEST_8, {'f': (inferrer) => inferrer.stringType.nullable()});
   runTest(TEST_9, {'f': (inferrer) => inferrer.stringType.nullable()});
-  runTest(TEST_10, {'f': (inferrer) => inferrer.intType});
+  runTest(TEST_10, {'f': subclassOfInterceptor});
   runTest(TEST_11, {'fs': (inferrer) => inferrer.intType});
 
   // TODO(ngeoffray): We should try to infer that the initialization
