@@ -999,6 +999,19 @@ class SubtypeVisitor extends DartTypeVisitor<bool, DartType> {
     if (s is !FunctionType) return false;
     FunctionType tf = t;
     FunctionType sf = s;
+    if (!identical(sf.returnType, voidType) &&
+        !isAssignable(tf.returnType, sf.returnType)) {
+      return false;
+    }
+
+    // TODO(johnniwinther): Rewrite the function subtyping to be more readable
+    // but still as efficient.
+
+    // For the comments we use the following abbreviations:
+    //  x.p     : parameterTypes on [:x:],
+    //  x.o     : optionalParameterTypes on [:x:], and
+    //  len(xs) : length of list [:xs:].
+
     Link<DartType> tps = tf.parameterTypes;
     Link<DartType> sps = sf.parameterTypes;
     while (!tps.isEmpty && !sps.isEmpty) {
@@ -1006,15 +1019,18 @@ class SubtypeVisitor extends DartTypeVisitor<bool, DartType> {
       tps = tps.tail;
       sps = sps.tail;
     }
-    if (!tps.isEmpty || !sps.isEmpty) return false;
-    if (!identical(sf.returnType, voidType) &&
-        !isAssignable(tf.returnType, sf.returnType)) {
+    if (!tps.isEmpty) {
+      // We must have [: len(t.p) <= len(s.p) :].
       return false;
     }
     if (!sf.namedParameters.isEmpty) {
+      if (!sps.isEmpty) {
+        // We must have [: len(t.p) == len(s.p) :].
+        return false;
+      }
       // Since named parameters are globally ordered we can determine the
-      // subset relation with a linear search for [:sf.NamedParameters:]
-      // within [:tf.NamedParameters:].
+      // subset relation with a linear search for [:sf.namedParameters:]
+      // within [:tf.namedParameters:].
       Link<SourceString> tNames = tf.namedParameters;
       Link<DartType> tTypes = tf.namedParameterTypes;
       Link<SourceString> sNames = sf.namedParameters;
@@ -1033,22 +1049,36 @@ class SubtypeVisitor extends DartTypeVisitor<bool, DartType> {
         // We didn't find all names.
         return false;
       }
-    }
-    if (!sf.optionalParameterTypes.isEmpty) {
-      Link<DartType> tOptionalParameterType = tf.optionalParameterTypes;
-      Link<DartType> sOptionalParameterType = sf.optionalParameterTypes;
-      while (!tOptionalParameterType.isEmpty &&
-             !sOptionalParameterType.isEmpty) {
-        if (!isAssignable(tOptionalParameterType.head,
-                          sOptionalParameterType.head)) {
+    } else {
+      // Check the remaining [: s.p :] against [: t.o :].
+      tps = tf.optionalParameterTypes;
+      while (!tps.isEmpty && !sps.isEmpty) {
+        if (!isAssignable(tps.head, sps.head)) return false;
+        tps = tps.tail;
+        sps = sps.tail;
+      }
+      if (!sps.isEmpty) {
+        // We must have [: len(t.p) + len(t.o) >= len(s.p) :].
+        return false;
+      }
+      if (!sf.optionalParameterTypes.isEmpty) {
+        // Check the remaining [: s.o :] against the remaining [: t.o :].
+        sps = sf.optionalParameterTypes;
+        while (!tps.isEmpty && !sps.isEmpty) {
+          if (!isAssignable(tps.head, sps.head)) return false;
+          tps = tps.tail;
+          sps = sps.tail;
+        }
+        if (!sps.isEmpty) {
+          // We didn't find enough parameters:
+          // We must have [: len(t.p) + len(t.o) <= len(s.p) + len(s.o) :].
           return false;
         }
-        sOptionalParameterType = sOptionalParameterType.tail;
-        tOptionalParameterType = tOptionalParameterType.tail;
-      }
-      if (!sOptionalParameterType.isEmpty) {
-        // We didn't find enough optional parameters.
-        return false;
+      } else {
+        if (!sps.isEmpty) {
+          // We must have [: len(t.p) + len(t.o) >= len(s.p) :].
+          return false;
+        }
       }
     }
     return true;

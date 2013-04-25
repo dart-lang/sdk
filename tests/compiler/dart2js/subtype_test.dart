@@ -362,8 +362,10 @@ testFunctionSubtypingOptional() {
       void void___Object([Object o]) {}
       void void__int__int(int i1, [int i2]) {}
       void void__int__int2(int i1, [int i2]) {}
+      void void__int__int_int(int i1, [int i2, int i3]);
       void void___double(double d) {}
       void void___int_int([int i1, int i2]) {}
+      void void___int_int_int([int i1, int i2, int i3]);
       void void___Object_int([Object o, int i]) {}
       """);
   functionSubtypingOptionalHelper(env);
@@ -378,8 +380,10 @@ testTypedefSubtypingOptional() {
       typedef void void___Object([Object o]);
       typedef void void__int__int(int i1, [int i2]);
       typedef void void__int__int2(int i1, [int i2]);
+      typedef void void__int__int_int(int i1, [int i2, int i3]);
       typedef void void___double(double d);
       typedef void void___int_int([int i1, int i2]);
+      typedef void void___int_int_int([int i1, int i2, int i3]);
       typedef void void___Object_int([Object o, int i]);
       """);
   functionSubtypingOptionalHelper(env);
@@ -396,7 +400,7 @@ functionSubtypingOptionalHelper(TypeEnvironment env) {
   // Test ([int])->void <: ()->void.
   expect(true, 'void___int', 'void_');
   // Test ([int])->void <: (int)->void.
-  expect(false, 'void___int', 'void__int');
+  expect(true, 'void___int', 'void__int');
   // Test (int)->void <: ([int])->void.
   expect(false, 'void__int', 'void___int');
   // Test ([int])->void <: ([int])->void.
@@ -405,8 +409,20 @@ functionSubtypingOptionalHelper(TypeEnvironment env) {
   expect(true, 'void___Object', 'void___int');
   // Test ([int])->void <: ([Object])->void.
   expect(true, 'void___int', 'void___Object');
+  // Test (int,[int])->void <: (int)->void.
+  expect(true, 'void__int__int', 'void__int');
   // Test (int,[int])->void <: (int,[int])->void.
   expect(true, 'void__int__int', 'void__int__int2');
+  // Test (int)->void <: ([int])->void.
+  expect(false, 'void__int', 'void___int');
+  // Test ([int,int])->void <: (int)->void.
+  expect(true, 'void___int_int', 'void__int');
+  // Test ([int,int])->void <: (int,[int])->void.
+  expect(true, 'void___int_int', 'void__int__int');
+  // Test ([int,int])->void <: (int,[int,int])->void.
+  expect(false, 'void___int_int', 'void__int__int_int');
+  // Test ([int,int,int])->void <: (int,[int,int])->void.
+  expect(true, 'void___int_int_int', 'void__int__int_int');
   // Test ([int])->void <: ([double])->void.
   expect(false, 'void___int', 'void___double');
   // Test ([int])->void <: ([int,int])->void.
