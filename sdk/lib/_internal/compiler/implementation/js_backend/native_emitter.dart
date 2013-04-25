@@ -264,12 +264,12 @@ class NativeEmitter {
     ClassBuilder builder = new ClassBuilder();
     emitter.emitClassConstructor(classElement, builder);
     emitter.emitSuper(superName, builder);
-    bool hasFields = emitter.emitClassFields(classElement, builder,
-        classIsNative: true,
-        superClass: superName);
+    bool hasFields = emitter.emitClassFields(
+        classElement, builder, superName, classIsNative: true);
     int propertyCount = builder.properties.length;
     emitter.emitClassGettersSetters(classElement, builder);
     emitter.emitInstanceMembers(classElement, builder);
+    emitter.emitIsTests(classElement, builder);
 
     if (!hasFields && builder.properties.length == propertyCount) {
       builder.isTrivial = true;

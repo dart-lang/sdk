@@ -57,6 +57,7 @@ class ClassBuilder {
 class CodeEmitterTask extends CompilerTask {
   bool needsInheritFunction = false;
   bool needsDefineClass = false;
+  bool needsMixinSupport = false;
   bool needsClosureClass = false;
   bool needsLazyInitializer = false;
   final Namer namer;
@@ -157,6 +158,15 @@ class CodeEmitterTask extends CompilerTask {
         checkedTypedefs.add(t.element);
       }
     });
+  }
+
+  ClassElement computeMixinClass(MixinApplicationElement mixinApplication) {
+    ClassElement mixin = mixinApplication.mixin;
+    while (mixin.isMixinApplication) {
+      mixinApplication = mixin;
+      mixin = mixinApplication.mixin;
+    }
+    return mixin;
   }
 
   jsAst.Expression constantReference(Constant value) {
@@ -606,34 +616,40 @@ class CodeEmitterTask extends CompilerTask {
            * Super;field1,field2 from the null-string property on the
            * descriptor.
            */
-          // var fields = desc[""], supr;
           js('var fields = desc[""], supr'),
 
           js.if_('typeof fields == "string"', [
             js('var s = fields.split(";")'),
-            js('supr = s[0]'),
             js('fields = s[1] == "" ? [] : s[1].split(",")'),
+            js('supr = s[0]'),
           ], /* else */ [
-            js('supr = desc.super')
+            js('supr = desc.super'),
           ]),
 
-          js('isolateProperties[cls] = defineClass(cls, fields, desc)'),
+          optional(needsMixinSupport, js.if_('supr && supr.indexOf("+") > 0', [
+            js('s = supr.split("+")'),
+            js('supr = s[0]'),
+            js('var mixin = collectedClasses[s[1]]'),
+            js.forIn('d', 'mixin', [
+              js.if_('hasOwnProperty.call(mixin, d)'
+                     '&& !hasOwnProperty.call(desc, d)',
+                js('desc[d] = mixin[d]'))
+            ]),
+          ])),
 
-          // if (supr) pendingClasses[cls] = supr;
+          js('isolateProperties[cls] = defineClass(cls, fields, desc)'),
           js.if_('supr', js('pendingClasses[cls] = supr'))
         ])
       ]),
 
       js('var finishedClasses = {}'),
 
-      // function finishClass(cls) { ... }
       buildFinishClass(),
     ];
 
     addTrivialNsmHandlers(statements);
 
     statements.add(
-      // for (var cls in pendingClasses) finishClass(cls);
       js.forIn('cls', 'pendingClasses', js('finishClass(cls)'))
     );
     // function(collectedClasses,
@@ -641,6 +657,10 @@ class CodeEmitterTask extends CompilerTask {
     //          existingIsolateProperties)
     return js.fun(['collectedClasses', 'isolateProperties',
                    'existingIsolateProperties'], statements);
+  }
+
+  jsAst.Node optional(bool condition, jsAst.Node node) {
+    return condition ? node : new jsAst.EmptyStatement();
   }
 
   jsAst.FunctionDeclaration buildFinishClass() {
@@ -1174,6 +1194,21 @@ class CodeEmitterTask extends CompilerTask {
         includeBackendMembers: true,
         includeSuperMembers: false);
 
+    if (identical(classElement, compiler.objectClass)
+        && compiler.enabledNoSuchMethod) {
+      // Emit the noSuchMethod handlers on the Object prototype now,
+      // so that the code in the dynamicFunction helper can find
+      // them. Note that this helper is invoked before analyzing the
+      // full JS script.
+      if (!nativeEmitter.handleNoSuchMethod) {
+        emitNoSuchMethodHandlers(builder.addProperty);
+      }
+    }
+  }
+
+  void emitIsTests(ClassElement classElement, ClassBuilder builder) {
+    assert(invariant(classElement, classElement.isDeclaration));
+
     void generateIsTest(Element other) {
       if (other == compiler.objectClass && other != classElement) {
         // Avoid emitting [:$isObject:] on all classes but [Object].
@@ -1202,17 +1237,6 @@ class CodeEmitterTask extends CompilerTask {
     }
 
     generateIsTestsOn(classElement, generateIsTest, generateSubstitution);
-
-    if (identical(classElement, compiler.objectClass)
-        && compiler.enabledNoSuchMethod) {
-      // Emit the noSuchMethod handlers on the Object prototype now,
-      // so that the code in the dynamicFunction helper can find
-      // them. Note that this helper is invoked before analyzing the
-      // full JS script.
-      if (!nativeEmitter.handleNoSuchMethod) {
-        emitNoSuchMethodHandlers(builder.addProperty);
-      }
-    }
   }
 
   void emitRuntimeTypeSupport(CodeBuffer buffer) {
@@ -1430,13 +1454,11 @@ class CodeEmitterTask extends CompilerTask {
   /// Returns `true` if fields added.
   bool emitClassFields(ClassElement classElement,
                        ClassBuilder builder,
-                       { String superClass,
-                         bool classIsNative: false }) {
+                       String superName,
+                       { bool classIsNative: false }) {
+    assert(superName != null);
     String separator = '';
-    StringBuffer buffer = new StringBuffer();
-    if (superClass != null) {
-      buffer.write('$superClass;');
-    }
+    StringBuffer buffer = new StringBuffer('$superName;');
     int bufferClassLength = buffer.length;
 
     visitClassFields(classElement, (Element member,
@@ -1545,14 +1567,21 @@ class CodeEmitterTask extends CompilerTask {
       superName = namer.getName(superclass);
     }
 
-    ClassBuilder builder = new ClassBuilder();
+    if (classElement.isMixinApplication) {
+      String mixinName = namer.getName(computeMixinClass(classElement));
+      superName = '$superName+$mixinName';
+      needsMixinSupport = true;
+    }
 
+    ClassBuilder builder = new ClassBuilder();
     emitClassConstructor(classElement, builder);
     emitSuper(superName, builder);
-    emitClassFields(classElement, builder,
-                    superClass: superName, classIsNative: false);
+    emitClassFields(classElement, builder, superName);
     emitClassGettersSetters(classElement, builder);
-    emitInstanceMembers(classElement, builder);
+    if (!classElement.isMixinApplication) {
+      emitInstanceMembers(classElement, builder);
+    }
+    emitIsTests(classElement, builder);
 
     jsAst.Expression init =
         js('$classesCollector.$className = #', builder.toObjectInitializer());
@@ -2602,6 +2631,13 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
         neededClasses.add(superclass);
       }
     }
+
+    // Then add all classes used as mixins.
+    Set<ClassElement> mixinClasses = neededClasses
+        .where((ClassElement element) => element.isMixinApplication)
+        .map(computeMixinClass)
+        .toSet();
+    neededClasses.addAll(mixinClasses);
 
     // Finally, sort the classes.
     List<ClassElement> sortedClasses = Elements.sortedByPosition(neededClasses);

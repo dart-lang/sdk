@@ -42,7 +42,11 @@ class JsBuilder {
     if (statement is Block) {
       return statement;
     } else if (statement is List) {
-      return new Block(statement.map(toStatement).toList());
+      List<Statement> statements = statement
+          .map(toStatement)
+          .where((s) => s is !EmptyStatement)
+          .toList();
+      return new Block(statements);
     } else {
       return new Block(<Statement>[toStatement(statement)]);
     }
@@ -81,7 +85,7 @@ class JsBuilder {
 
   Statement toStatement(statement) {
     if (statement is List) {
-      return new Block(statement.map(toStatement).toList());
+      return block(statement);
     } else if (statement is Node) {
       return statement.toStatement();
     } else {

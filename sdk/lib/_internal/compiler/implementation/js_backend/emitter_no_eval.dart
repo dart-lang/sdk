@@ -30,8 +30,8 @@ class CodeEmitterNoEvalTask extends CodeEmitterTask {
 
   bool emitClassFields(ClassElement classElement,
                        ClassBuilder builder,
-                       { String superClass: "",
-                         bool classIsNative: false }) {
+                       String superName,
+                       { bool classIsNative: false }) {
     // Class fields are dynamically generated so they have to be
     // emitted using getters and setters instead.
     return false;
