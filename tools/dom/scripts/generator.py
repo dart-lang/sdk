@@ -545,11 +545,6 @@ def FindConversion(idl_type, direction, interface, member):
 
 dart2js_annotations = monitored.Dict('generator.dart2js_annotations', {
 
-    'ArrayBuffer': [
-      "@Creates('ByteBuffer')",
-      "@Returns('ByteBuffer|Null')",
-    ],
-
     'ArrayBufferView': [
       "@Creates('TypedData')",
       "@Returns('TypedData|Null')",
@@ -765,8 +760,6 @@ _webkit_experimental_annotations = [
 #   INTERFACE:     annotations to be added to the interface declaration
 #   INTERFACE.MEMBER: annotation to be added to the member declaration
 dart_annotations = monitored.Dict('generator.dart_annotations', {
-  'ArrayBuffer': _all_but_ie9_annotations,
-  'ArrayBufferView': _all_but_ie9_annotations,
   'CSSHostRule': _shadow_dom_annotations,
   'Crypto': _webkit_experimental_annotations,
   'Database': _web_sql_annotations,
@@ -1029,9 +1022,6 @@ class IDLTypeInfo(object):
   def list_item_type(self):
     raise NotImplementedError()
 
-  def is_typed_array(self):
-    raise NotImplementedError()
-
   def merged_interface(self):
     return None
 
@@ -1157,9 +1147,6 @@ class InterfaceIDLTypeInfo(IDLTypeInfo):
 
   def list_item_type(self):
     return self._data.item_type
-
-  def is_typed_array(self):
-    return self._data.is_typed_array
 
   def merged_interface(self):
     # All constants, attributes, and operations of merged interface should be
@@ -1362,7 +1349,7 @@ class TypeData(object):
                conversion_includes=None,
                webcore_getter_name='getAttribute',
                webcore_setter_name='setAttribute',
-               item_type=None, suppress_interface=False, is_typed_array=False):
+               item_type=None, suppress_interface=False):
     self.clazz = clazz
     self.dart_type = dart_type
     self.native_type = native_type
@@ -1375,23 +1362,19 @@ class TypeData(object):
     self.webcore_setter_name = webcore_setter_name
     self.item_type = item_type
     self.suppress_interface = suppress_interface
-    self.is_typed_array = is_typed_array
 
 
 def TypedListTypeData(item_type):
   return TypeData(
       clazz='TypedList',
       dart_type='List<%s>' % item_type, # TODO(antonm): proper typed_data interfaces.
-      item_type=item_type,
-      is_typed_array=True)
+      item_type=item_type)
 
 
 _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
     'boolean': TypeData(clazz='Primitive', dart_type='bool', native_type='bool',
                         webcore_getter_name='hasAttribute',
                         webcore_setter_name='setBooleanAttribute'),
-    'byte': TypeData(clazz='Primitive', dart_type='int', native_type='int'),
-    'octet': TypeData(clazz='Primitive', dart_type='int', native_type='int'),
     'short': TypeData(clazz='Primitive', dart_type='int', native_type='int'),
     'unsigned short': TypeData(clazz='Primitive', dart_type='int',
         native_type='int'),

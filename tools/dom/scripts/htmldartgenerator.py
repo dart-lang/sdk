@@ -320,10 +320,7 @@ class HtmlDartGenerator(object):
   def AdditionalImplementedInterfaces(self):
     # TODO: Include all implemented interfaces, including other Lists.
     implements = []
-    if self._interface_type_info.is_typed_array():
-      element_type = self._interface_type_info.list_item_type()
-      implements.append('List<%s>' % element_type)
-    elif self._interface_type_info.list_item_type():
+    if self._interface_type_info.list_item_type():
       item_type_info = self._type_registry.TypeInfo(
           self._interface_type_info.list_item_type())
       implements.append('List<%s>' % item_type_info.dart_type())
@@ -342,41 +339,6 @@ class HtmlDartGenerator(object):
     for constructor_info in constructors:
       self._AddConstructor(
           constructor_info, factory_name, factory_constructor_name)
-
-    typed_array_type = None
-    for interface in self._database.Hierarchy(self._interface):
-      type_info = self._type_registry.TypeInfo(interface.id)
-      if type_info.is_typed_array():
-        typed_array_type = type_info.list_item_type()
-        break
-
-    annotations = FormatAnnotationsAndComments(
-        GetAnnotationsAndComments(self._library_name, self._interface.id,
-                                  self._interface.id), '  ')
-
-    fromListAnnotations = FormatAnnotationsAndComments(
-        GetAnnotationsAndComments(self._library_name, self._interface.id,
-                                  'fromList'), '  ')
-
-    fromBufferAnnotations = FormatAnnotationsAndComments(
-        GetAnnotationsAndComments(self._library_name, self._interface.id,
-                                  'fromBuffer'), '  ')
-
-    if typed_array_type:
-      self._members_emitter.Emit(
-          '\n  $(ANNOTATIONS)factory $CTOR(int length) =>\n'
-          '    $FACTORY.create$(CTOR)(length);\n'
-          '\n  $(LIST_ANNOTATIONS)factory $CTOR.fromList(List<$TYPE> list) =>\n'
-          '    $FACTORY.create$(CTOR)_fromList(list);\n'
-          '\n  $(BUFFER_ANNOTATIONS)factory $CTOR.view(ByteBuffer buffer, '
-              '[int byteOffset, int length]) => \n'
-          '    $FACTORY.create$(CTOR)_fromBuffer(buffer, byteOffset, length);\n',
-        CTOR=self._renamer.RenameInterface(interface),
-        ANNOTATIONS=annotations,
-        LIST_ANNOTATIONS=fromListAnnotations,
-        BUFFER_ANNOTATIONS=fromBufferAnnotations,
-        TYPE=self._DartType(typed_array_type),
-        FACTORY=factory_name)
 
   def _AddConstructor(self,
       constructor_info, factory_name, factory_constructor_name):
@@ -567,7 +529,6 @@ class HtmlDartGenerator(object):
     has_clear = any(op.id == 'clear' for op in self._interface.operations)
     has_length = False
     has_length_setter = False
-    typed_array = self._interface_type_info.is_typed_array()
 
     for attr in self._interface.attributes:
       if attr.id == 'length':
@@ -582,7 +543,6 @@ class HtmlDartGenerator(object):
         {
           'DEFINE_CONTAINS': not has_contains,
           'DEFINE_CLEAR': not has_clear,
-          'DEFINE_IMMUTABLE': not typed_array,
           'DEFINE_LENGTH_AS_NUM_ITEMS': not has_length and has_num_items,
           'DEFINE_LENGTH_SETTER': not has_length_setter,
         })
