@@ -219,12 +219,6 @@ class DesiredTypeVisitor extends HBaseVisitor {
     return HType.UNKNOWN;
   }
 
-  HType visitIntegerCheck(HIntegerCheck instruction) {
-    // If the desired type of the input is already a number, we want
-    // to specialize it to an integer.
-    return input.isNumber() ? HType.INTEGER : HType.UNKNOWN;
-  }
-
   HType visitInvokeDynamic(HInvokeDynamic instruction) {
     return instruction.specializer.computeDesiredTypeForInput(
         instruction, input, compiler);
@@ -242,10 +236,10 @@ class DesiredTypeVisitor extends HBaseVisitor {
 
     // If the incoming type of a phi is an integer, we don't want to
     // be too restrictive for the back edge and desire an integer
-    // too. Therefore we only return integer if the phi is used by an
-    // integer check.
+    // too. Therefore we only return integer if the phi is used by a
+    // bounds check, which includes an integer check.
     if (propagatedType.isInteger()) {
-      if (phi.usedBy.any((user) => user is HIntegerCheck)) {
+      if (phi.usedBy.any((user) => user is HBoundsCheck && user.index == phi)) {
         return propagatedType;
       }
       return HType.NUMBER;

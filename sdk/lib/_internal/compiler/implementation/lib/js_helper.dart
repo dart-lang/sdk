@@ -579,9 +579,11 @@ iae(argument) {
 /**
  * Called by generated code to throw an index-out-of-range exception,
  * for example, if a bounds check fails in an optimized indexed
- * access.
+ * access.  This may also be called when the index is not an integer, in
+ * which case it throws an illegal-argument exception instead, like [iae].
  */
 ioore(index) {
+  if (index is !int) iae(index);
   throw new RangeError.value(index);
 }
 

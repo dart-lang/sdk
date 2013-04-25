@@ -1929,7 +1929,15 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       js.Expression over;
       if (node.staticChecks != HBoundsCheck.ALWAYS_ABOVE_ZERO) {
         use(node.index);
-        under = new js.Binary("<", pop(), new js.LiteralNumber("0"));
+        if (node.index.isInteger()) {
+          under = js.js("# < 0", pop());
+        } else {
+          js.Expression jsIndex = pop();
+          under = js.js("# >>> 0 !== #", [jsIndex, jsIndex]);
+        }
+      } else if (!node.index.isInteger()) {
+        checkInt(node.index, '!==');
+        under = pop();
       }
       if (node.staticChecks != HBoundsCheck.ALWAYS_BELOW_LENGTH) {
         var index = node.index;
@@ -1953,22 +1961,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       pushStatement(new js.If.noElse(underOver, thenBody), node);
     } else {
       generateThrowWithHelper('ioore', node.index);
-    }
-  }
-
-  visitIntegerCheck(HIntegerCheck node) {
-    if (!node.alwaysFalse) {
-      checkInt(node.value, '!==');
-      js.Expression test = pop();
-      js.Statement thenBody = new js.Block.empty();
-      js.Block oldContainer = currentContainer;
-      currentContainer = thenBody;
-      generateThrowWithHelper('iae', node.value);
-      currentContainer = oldContainer;
-      thenBody = unwrapStatement(thenBody);
-      pushStatement(new js.If.noElse(test, thenBody), node);
-    } else {
-      generateThrowWithHelper('iae', node.value);
     }
   }
 

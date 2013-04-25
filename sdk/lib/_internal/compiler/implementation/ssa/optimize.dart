@@ -421,15 +421,15 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     return result;
   }
 
-  HInstruction visitIntegerCheck(HIntegerCheck node) {
-    HInstruction value = node.value;
-    if (value.isInteger()) return value;
-    if (value.isConstant()) {
-      HConstant constantInstruction = value;
+  HInstruction visitBoundsCheck(HBoundsCheck node) {
+    HInstruction index = node.index;
+    if (index.isInteger()) return node;
+    if (index.isConstant()) {
+      HConstant constantInstruction = index;
       assert(!constantInstruction.constant.isInt());
       if (!constantSystem.isInt(constantInstruction.constant)) {
         // -0.0 is a double but will pass the runtime integer check.
-        node.alwaysFalse = true;
+        node.staticChecks = HBoundsCheck.ALWAYS_FALSE;
       }
     }
     return node;
@@ -950,46 +950,32 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
     }
   }
 
-  HBoundsCheck insertBoundsCheck(HInstruction node,
-                                 HInstruction receiver,
-                                 HInstruction index) {
-    bool isAssignable = !receiver.isFixedArray() && !receiver.isString();
+  HBoundsCheck insertBoundsCheck(HInstruction indexNode,
+                                 HInstruction array,
+                                 HInstruction indexArgument) {
+    bool isAssignable = !array.isFixedArray() && !array.isString();
     HFieldGet length = new HFieldGet(
-        backend.jsIndexableLength, receiver, isAssignable: isAssignable);
+        backend.jsIndexableLength, array, isAssignable: isAssignable);
     length.instructionType = HType.INTEGER;
-    node.block.addBefore(node, length);
+    indexNode.block.addBefore(indexNode, length);
 
-    HBoundsCheck check = new HBoundsCheck(index, length);
-    node.block.addBefore(node, check);
-    boundsChecked.add(node);
-    return check;
-  }
-
-  HIntegerCheck insertIntegerCheck(HInstruction node, HInstruction value) {
-    HIntegerCheck check = new HIntegerCheck(value);
-    node.block.addBefore(node, check);
-    value.replaceAllUsersDominatedBy(node, check);
+    HBoundsCheck check = new HBoundsCheck(indexArgument, length);
+    indexNode.block.addBefore(indexNode, check);
+    indexArgument.replaceAllUsersDominatedBy(indexNode, check);
+    boundsChecked.add(indexNode);
     return check;
   }
 
   void visitIndex(HIndex node) {
     if (boundsChecked.contains(node)) return;
     HInstruction index = node.index;
-    if (!node.index.isInteger()) {
-      index = insertIntegerCheck(node, index);
-    }
     index = insertBoundsCheck(node, node.receiver, index);
-    node.changeUse(node.index, index);
   }
 
   void visitIndexAssign(HIndexAssign node) {
     if (boundsChecked.contains(node)) return;
     HInstruction index = node.index;
-    if (!node.index.isInteger()) {
-      index = insertIntegerCheck(node, index);
-    }
     index = insertBoundsCheck(node, node.receiver, index);
-    node.changeUse(node.index, index);
   }
 
   void visitInvokeDynamicMethod(HInvokeDynamicMethod node) {

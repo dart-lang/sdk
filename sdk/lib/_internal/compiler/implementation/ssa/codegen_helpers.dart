@@ -85,10 +85,6 @@ class SsaInstructionMerger extends HBaseVisitor {
     analyzeInputs(instruction, 1);
   }
 
-  // An integer check method must not have its input generated at use site,
-  // because it's using it twice.
-  void visitIntegerCheck(HIntegerCheck instruction) {}
-
   // A type guard should not generate its input at use site, otherwise
   // they would not be alive.
   void visitTypeGuard(HTypeGuard instruction) {}

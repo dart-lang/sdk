@@ -30,7 +30,6 @@ abstract class HVisitor<R> {
   R visitIf(HIf node);
   R visitIndex(HIndex node);
   R visitIndexAssign(HIndexAssign node);
-  R visitIntegerCheck(HIntegerCheck node);
   R visitInterceptor(HInterceptor node);
   R visitInvokeClosure(HInvokeClosure node);
   R visitInvokeDynamicGetter(HInvokeDynamicGetter node);
@@ -301,7 +300,6 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitIf(HIf node) => visitConditionalBranch(node);
   visitIndex(HIndex node) => visitInstruction(node);
   visitIndexAssign(HIndexAssign node) => visitInstruction(node);
-  visitIntegerCheck(HIntegerCheck node) => visitCheck(node);
   visitInterceptor(HInterceptor node) => visitInstruction(node);
   visitInvokeClosure(HInvokeClosure node)
       => visitInvokeDynamic(node);
@@ -1278,22 +1276,6 @@ class HBoundsCheck extends HCheck {
   accept(HVisitor visitor) => visitor.visitBoundsCheck(this);
   int typeCode() => HInstruction.BOUNDS_CHECK_TYPECODE;
   bool typeEquals(other) => other is HBoundsCheck;
-  bool dataEquals(HInstruction other) => true;
-}
-
-class HIntegerCheck extends HCheck {
-  bool alwaysFalse = false;
-
-  HIntegerCheck(value) : super(<HInstruction>[value]) {
-    instructionType = HType.INTEGER;
-  }
-
-  HInstruction get value => inputs[0];
-  bool isControlFlow() => true;
-
-  accept(HVisitor visitor) => visitor.visitIntegerCheck(this);
-  int typeCode() => HInstruction.INTEGER_CHECK_TYPECODE;
-  bool typeEquals(other) => other is HIntegerCheck;
   bool dataEquals(HInstruction other) => true;
 }
 
