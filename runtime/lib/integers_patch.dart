@@ -6,7 +6,63 @@
 // VM implementation of int.
 
 patch class int {
-  static int _parse(String str) native "Integer_parse";
+
+  static bool _isWhitespace(int codePoint) {
+    return
+      (codePoint == 32) || // Space.
+      ((9 <= codePoint) && (codePoint <= 13)); // CR, LF, TAB, etc.
+  }
+
+  static int _tryParseSmi(String str) {
+    if (str.isEmpty) return null;
+    var ix = 0;
+    var endIx = str.length - 1;
+    // Find first and last non-whitespace.
+    while (ix <= endIx) {
+      if (!_isWhitespace(str.codeUnitAt(ix))) break;
+      ix++;
+    }
+    if (endIx < ix) {
+      return null;  // Empty.
+    }
+    while (endIx > ix) {
+      if (!_isWhitespace(str.codeUnitAt(endIx))) break;
+      endIx--;
+    }
+
+    var isNegative = false;
+    var c = str.codeUnitAt(ix);
+    // Check for leading '+' or '-'.
+    if ((c == 0x2b) || (c == 0x2d)) {
+      ix++;
+      isNegative = (c == 0x2d);
+      if (ix > endIx) {
+        return null;  // Empty.
+      }
+    }
+    if ((endIx - ix) >= 9) {
+      return null;  // May not fit into a Smi.
+    }
+    var result = 0;
+    for (int i = ix; i <= endIx; i++) {
+      var c = str.codeUnitAt(i) - 0x30;
+      if ((c > 9) || (c < 0)) {
+        return null;
+      }
+      result = result * 10 + c;
+    }
+    return isNegative ? -result : result;
+  }
+
+  static int _parse(String str) {
+    int res = _tryParseSmi(str);
+    if (res == null) {
+      res = _native_parse(str);
+    }
+    return res;
+  }
+
+  static int _native_parse(String str) native "Integer_parse";
 
   static int _throwFormatException(String source) {
     throw new FormatException(source);
