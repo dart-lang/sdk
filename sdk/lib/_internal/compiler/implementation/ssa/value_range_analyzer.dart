@@ -694,6 +694,9 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
       Range newIndexRange = indexRange.intersection(
           info.newNormalizedRange(info.intZero, maxIndex));
       if (indexRange == newIndexRange) return indexRange;
+      // Explicitly attach the range information to the index instruction,
+      // which may be used by other instructions.  Returning the new range will
+      // attach it to this instruction.
       HInstruction instruction = createRangeConversion(next, check.index);
       ranges[instruction] = newIndexRange;
       return newIndexRange;

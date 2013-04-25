@@ -961,7 +961,16 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
 
     HBoundsCheck check = new HBoundsCheck(indexArgument, length);
     indexNode.block.addBefore(indexNode, check);
-    indexArgument.replaceAllUsersDominatedBy(indexNode, check);
+    // If the index input to the bounds check was not known to be an integer
+    // then we replace its uses with the bounds check, which is known to be an
+    // integer.  However, if the input was already an integer we don't do this
+    // because putting in a check instruction might obscure the real nature of
+    // the index eg. if it is a constant.  The range information from the
+    // BoundsCheck instruction is attached to the input directly by
+    // visitBoundsCheck in the SsaValueRangeAnalyzer.
+    if (!indexArgument.isInteger()) {
+      indexArgument.replaceAllUsersDominatedBy(indexNode, check);
+    }
     boundsChecked.add(indexNode);
     return check;
   }
