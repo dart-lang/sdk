@@ -17199,7 +17199,7 @@ class Performance extends EventTarget native "Performance" {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
-  PerformanceEntryList getEntries() native;
+  List<PerformanceEntry> getEntries() native;
 
   @JSName('webkitGetEntriesByName')
   @DomName('Performance.webkitGetEntriesByName')
@@ -17207,7 +17207,7 @@ class Performance extends EventTarget native "Performance" {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
-  PerformanceEntryList getEntriesByName(String name, String entryType) native;
+  List<PerformanceEntry> getEntriesByName(String name, String entryType) native;
 
   @JSName('webkitGetEntriesByType')
   @DomName('Performance.webkitGetEntriesByType')
@@ -17215,7 +17215,7 @@ class Performance extends EventTarget native "Performance" {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
-  PerformanceEntryList getEntriesByType(String entryType) native;
+  List<PerformanceEntry> getEntriesByType(String entryType) native;
 
   @JSName('webkitMark')
   @DomName('Performance.webkitMark')
@@ -22611,7 +22611,7 @@ class Window extends EventTarget implements WindowBase native "Window,DOMWindow"
   @SupportedBrowser(SupportedBrowser.IE, '10.0')
   @Experimental
   IdbFactory get indexedDB =>
-      JS('IdbFactory|Null',
+      JS('IdbFactory|Null',  // If not supported, returns `null`.
          '#.indexedDB || #.webkitIndexedDB || #.mozIndexedDB',
          this, this, this);
 

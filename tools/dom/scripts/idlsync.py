@@ -30,7 +30,7 @@ WHITELIST = [
 # WebKit / WebCore info.
 WEBKIT_URL_PATTERN = r'"dartium_webkit_trunk": "(\S+)",'
 WEBKIT_REV_PATTERN = r'"dartium_webkit_revision": "(\d+)",'
-WEBCORE_SUBPATH = 'Source/WebCore'
+WEBCORE_SUBPATH = 'Source/core'
 MODULES_SUBPATH = 'Source/modules'
 LOCAL_WEBKIT_IDL_PATH = os.path.join(DART_PATH, 'third_party', 'WebCore')
 LOCAL_WEBKIT_README = """\
@@ -88,7 +88,8 @@ UPDATE_LIST = [
     # (component, remote subpath, local path, local readme file, depth)
 
     # WebKit IDL.
-    ('webkit', WEBCORE_SUBPATH, LOCAL_WEBKIT_IDL_PATH, LOCAL_WEBKIT_README,
+    ('webkit', WEBCORE_SUBPATH, os.path.join(LOCAL_WEBKIT_IDL_PATH, 'core'), LOCAL_WEBKIT_README,
+
      DEPTH_INFINITY),
     ('webkit', MODULES_SUBPATH, os.path.join(LOCAL_WEBKIT_IDL_PATH, 'modules'), LOCAL_WEBKIT_README,
      DEPTH_INFINITY),

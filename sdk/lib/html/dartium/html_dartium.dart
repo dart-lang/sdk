@@ -18430,21 +18430,21 @@ class Performance extends EventTarget {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
-  PerformanceEntryList getEntries() native "Performance_webkitGetEntries_Callback";
+  List<PerformanceEntry> getEntries() native "Performance_webkitGetEntries_Callback";
 
   @DomName('Performance.webkitGetEntriesByName')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
-  PerformanceEntryList getEntriesByName(String name, String entryType) native "Performance_webkitGetEntriesByName_Callback";
+  List<PerformanceEntry> getEntriesByName(String name, String entryType) native "Performance_webkitGetEntriesByName_Callback";
 
   @DomName('Performance.webkitGetEntriesByType')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
-  PerformanceEntryList getEntriesByType(String entryType) native "Performance_webkitGetEntriesByType_Callback";
+  List<PerformanceEntry> getEntriesByType(String entryType) native "Performance_webkitGetEntriesByType_Callback";
 
   @DomName('Performance.webkitMark')
   @DocsEditable
@@ -27185,9 +27185,7 @@ class _NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
   @DocsEditable
   int get length native "NamedNodeMap_length_Getter";
 
-  @DomName('NamedNodeMap.numericIndexGetter')
-  @DocsEditable
-  Node operator[](int index) native "NamedNodeMap_numericIndexGetter_Callback";
+  Node operator[](int index) native "NamedNodeMap_item_Callback";
 
   void operator[]=(int index, Node value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");

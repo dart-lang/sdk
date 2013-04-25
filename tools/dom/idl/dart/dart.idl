@@ -161,7 +161,7 @@ interface WebGLRenderingContext {
 };
 [Supplemental]
 interface CSSStyleDeclaration {
-  void setProperty(in DOMString propertyName, in DOMString value, in optional DOMString priority);
+  void setProperty(in DOMString propertyName, in DOMString value, [ForceOptional] optional DOMString priority);
   [DartName=_getPropertyValue] DOMString getPropertyValue(in DOMString propertyName);
 };
 
@@ -242,8 +242,18 @@ interface DataView {
 // TODO(vsm): Define new names for these (see b/4436830).
 [Supplemental]
 interface IDBCursor {
-  [Suppressed, CallWith=ScriptExecutionContext, ImplementedAs=continueFunction, RaisesException] void continue([Default=Undefined] optional any key);
-  [CallWith=ScriptExecutionContext, ImplementedAs=continueFunction, RaisesException] void next([Default=Undefined] optional any key);
+  [DartName=next, CallWith=ScriptExecutionContext, ImplementedAs=continueFunction, RaisesException] void continue([ForceOptional] optional any key);
+};
+[Supplemental]
+interface IDBIndex {
+    [CallWith=ScriptExecutionContext, RaisesException] IDBRequest openCursor([ForceOptional] optional IDBKeyRange? range, [ForceOptional] optional DOMString direction);
+    [CallWith=ScriptExecutionContext, RaisesException] IDBRequest openCursor(any key, [ForceOptional] optional DOMString direction);
+    [CallWith=ScriptExecutionContext, RaisesException] IDBRequest openKeyCursor([ForceOptional] optional IDBKeyRange? range, [ForceOptional] optional DOMString  direction);
+    [CallWith=ScriptExecutionContext, RaisesException] IDBRequest openKeyCursor(any key,
+    [ForceOptional] optional DOMString direction);
+
+    [CallWith=ScriptExecutionContext, RaisesException] IDBRequest count([ForceOptional] optional IDBKeyRange? range);
+    [CallWith=ScriptExecutionContext, RaisesException] IDBRequest count(any key);
 };
 [Supplemental]
 interface IDBDatabase {
@@ -257,9 +267,18 @@ interface IDBDatabase {
 [Supplemental]
 interface IDBKeyRange {
   [DartName=only_] static IDBKeyRange only(in any value);
-  [DartName=lowerBound_] static IDBKeyRange lowerBound(in any bound, optional boolean open);
-  [DartName=upperBound_] static IDBKeyRange upperBound(in any bound, optional boolean open);
-  [DartName=bound_] static IDBKeyRange bound(in any lower, in any upper, optional boolean lowerOpen, optional boolean upperOpen);
+  [DartName=lowerBound_] static IDBKeyRange lowerBound(in any bound, [ForceOptional] optional boolean open);
+  [DartName=upperBound_] static IDBKeyRange upperBound(in any bound, [ForceOptional] optional boolean open);
+  [DartName=bound_] static IDBKeyRange bound(in any lower, in any upper, [ForceOptional] optional boolean lowerOpen, [ForceOptional] optional boolean upperOpen);
+};
+[Supplemental]
+interface IDBObjectStore {
+    [CallWith=ScriptState, RaisesException] IDBRequest put(any value, [ForceOptional] optional any key);
+    [CallWith=ScriptState, RaisesException] IDBRequest add(any value, [ForceOptional] optional any key);
+    [CallWith=ScriptExecutionContext, RaisesException] IDBRequest openCursor([ForceOptional] optional IDBKeyRange? range, [ForceOptional] optional DOMString direction);
+    [CallWith=ScriptExecutionContext, RaisesException] IDBRequest openCursor(any key, [ForceOptional] optional DOMString direction);
+    [CallWith=ScriptExecutionContext, RaisesException] IDBRequest count([ForceOptional] optional IDBKeyRange? range);
+    [CallWith=ScriptExecutionContext, RaisesException] IDBRequest count(any key);
 };
 
 interface EntrySync {
