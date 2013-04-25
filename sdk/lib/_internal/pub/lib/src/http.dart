@@ -24,13 +24,21 @@ final HTTP_TIMEOUT = 30 * 1000;
 /// Headers and field names that should be censored in the log output.
 final _CENSORED_FIELDS = const ['refresh_token', 'authorization'];
 
+/// Whether dart:io's SecureSocket has been initialized with pub's resources
+/// yet.
+bool _initializedSecureSocket = false;
+
 /// An HTTP client that transforms 40* errors and socket exceptions into more
 /// user-friendly error messages.
 class PubHttpClient extends http.BaseClient {
   http.Client inner;
 
   PubHttpClient([http.Client inner])
-    : this.inner = inner == null ? new http.Client() : inner;
+      : this.inner = inner == null ? new http.Client() : inner {
+    if (!_initializedSecureSocket) {
+      SecureSocket.initialize(database: resourcePath('certs'));
+    }
+  }
 
   Future<http.StreamedResponse> send(http.BaseRequest request) {
     _logRequest(request);
