@@ -1185,6 +1185,60 @@ testIntDoubleNum() {
   result.checkNodeHasType('c', [result.num]);
 }
 
+testConcreteTypeToTypeMask() {
+  final String source = r"""
+      class A {}
+      class B extends A {}
+      class C extends A {}
+      class D implements A {}
+      main() {
+        new A();
+        new B();
+        new C();
+        new D();
+      }
+      """;
+  AnalysisResult result = analyze(source);
+
+  convert(ConcreteType type) {
+    return result.compiler.typesTask.concreteTypesInferrer
+        .concreteTypeToTypeMask(type);
+  }
+
+  final nullSingleton =
+      result.compiler.typesTask.concreteTypesInferrer.singletonConcreteType(
+          new NullBaseType());
+
+  singleton(ClassElement element) {
+    return result.compiler.typesTask.concreteTypesInferrer
+        .singletonConcreteType(new ClassBaseType(element));
+  }
+
+  ClassElement a = findElement(result.compiler, 'A');
+  ClassElement b = findElement(result.compiler, 'B');
+  ClassElement c = findElement(result.compiler, 'C');
+  ClassElement d = findElement(result.compiler, 'D');
+
+  for (ClassElement cls in [a, b, c, d]) {
+    Expect.equals(convert(singleton(cls)),
+                  new TypeMask.exact(cls.rawType).nonNullable());
+  }
+
+  for (ClassElement cls in [a, b, c, d]) {
+    Expect.equals(convert(singleton(cls).union(nullSingleton)),
+                  new TypeMask.exact(cls.rawType));
+  }
+
+  Expect.equals(convert(singleton(a).union(singleton(b))),
+                new TypeMask.subclass(a.rawType).nonNullable());
+
+  Expect.equals(convert(singleton(a).union(singleton(b)).union(nullSingleton)),
+                new TypeMask.subclass(a.rawType));
+
+  Expect.equals(convert(singleton(b).union(singleton(d))),
+                new TypeMask.subtype(a.rawType).nonNullable());
+}
+
 void main() {
   testDynamicBackDoor();
   testLiterals();
@@ -1232,4 +1286,5 @@ void main() {
   testSeenClasses();
   testGoodGuys();
   testIntDoubleNum();
+  testConcreteTypeToTypeMask();
 }

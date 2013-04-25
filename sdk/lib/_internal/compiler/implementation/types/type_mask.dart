@@ -507,6 +507,10 @@ class TypeMask {
     return (flags == otherMask.flags) && (base == otherMask.base);
   }
 
+  int get hashCode {
+    return (base == null ? 0 : base.hashCode) + 31 * flags.hashCode;
+  }
+
   String toString() {
     if (isEmpty) return isNullable ? '[null]' : '[empty]';
     StringBuffer buffer = new StringBuffer();

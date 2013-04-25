@@ -328,7 +328,7 @@ class ConcreteTypesEnvironment {
   final BaseType typeOfThis;
 
   ConcreteTypesEnvironment(this.inferrer, [this.typeOfThis]) :
-    this.environment = new Map<Element, ConcreteType>();
+      environment = new Map<Element, ConcreteType>();
   ConcreteTypesEnvironment.of(this.inferrer, this.environment, this.typeOfThis);
 
   ConcreteType lookupType(Element element) => environment[element];
@@ -536,6 +536,12 @@ class ConcreteTypesInferrer extends TypesInferrer {
    */
   final Map<VariableElement, ConcreteType> inferredParameterTypes;
 
+  /**
+   * A map from selectors to their inferred type masks, indexed by the mask
+   * of the receiver. It plays no role in the analysis, it is write only.
+   */
+  final Map<Selector, Map<TypeMask, TypeMask>> inferredSelectorTypes;
+
   ConcreteTypesInferrer(Compiler compiler)
       : this.compiler = compiler,
         cache = new Map<FunctionElement,
@@ -549,7 +555,8 @@ class ConcreteTypesInferrer extends TypesInferrer {
         callers = new Map<FunctionElement, Set<Element>>(),
         readers = new Map<Element, Set<Element>>(),
         seenClasses = new Set<ClassElement>(),
-        dynamicCallers = new Map<SourceString, Set<FunctionElement>>() {
+        dynamicCallers = new Map<SourceString, Set<FunctionElement>>(),
+        inferredSelectorTypes = new Map<Selector, Map<TypeMask, TypeMask>>() {
     unknownConcreteType = new ConcreteType.unknown();
   }
 
@@ -648,18 +655,43 @@ class ConcreteTypesInferrer extends TypesInferrer {
   }
 
   /**
+   * Sets the concrete type associated to [selector] to the union of the
+   * inferred concrete type so far and [type].
+   * Precondition: [:typeOfThis != null:]
+   */
+  void augmentInferredSelectorType(Selector selector, TypeMask typeOfThis,
+                                   TypeMask returnType) {
+    assert(typeOfThis != null);
+    selector = selector.asUntyped;
+    Map<TypeMask, TypeMask> currentMap = inferredSelectorTypes.putIfAbsent(
+        selector, () => new Map<TypeMask, TypeMask>());
+    TypeMask currentReturnType = currentMap[typeOfThis];
+    currentMap[typeOfThis] = (currentReturnType == null)
+        ? returnType
+        : currentReturnType.union(returnType, compiler);
+  }
+
+  /**
    * Returns the current inferred concrete type of [field].
    */
-  ConcreteType getFieldType(Element field) {
+  ConcreteType getFieldType(Selector selector, Element field) {
     ConcreteType result = inferredFieldTypes[field];
-    if (result != null) {
-      return result;
-    } else {
+    if (result == null) {
       // field is a toplevel variable, we trigger its analysis because no object
-      // creation is never going to trigger it
+      // creation is ever going to trigger it
       result = analyzeFieldInitialization(field);
       return (result == null) ? emptyConcreteType : result;
     }
+    if (selector != null) {
+      Element enclosing = field.enclosingElement;
+      if (enclosing.isClass()) {
+        ClassElement cls = enclosing;
+        TypeMask receiverMask = new TypeMask.exact(cls.rawType);
+        TypeMask resultMask = concreteTypeToTypeMask(result);
+        augmentInferredSelectorType(selector, receiverMask, resultMask);
+      }
+    }
+    return result;
   }
 
   /**
@@ -787,42 +819,46 @@ class ConcreteTypesInferrer extends TypesInferrer {
 
   // -- query --
 
-  TypeMask fromClassBaseTypeToTypeMask(ClassBaseType baseType) {
-    ClassBaseType classBaseType = baseType;
-    ClassElement cls = classBaseType.element;
-    return new TypeMask.nonNullExact(cls.rawType);
+  /**
+   * Returns the [TypeMask] representation of [baseType].
+   */
+  TypeMask baseTypeToTypeMask(BaseType baseType) {
+    if (baseType.isUnknown()) {
+      return null;
+    } else if (baseType.isNull()) {
+      return new TypeMask.empty();
+    } else {
+      ClassBaseType classBaseType = baseType;
+      final element = classBaseType.element;
+      if (element != null) {
+        if (element == compiler.numClass) {
+          return new TypeMask.nonNullSubclass(compiler.numClass.rawType);
+        } else {
+          return new TypeMask.nonNullExact(element.rawType);
+        }
+      } else {
+        return null;
+      }
+    }
   }
 
   /**
-   * Returns the [TypeMask] representation of [concreteType]. Returns [:null:]
-   * if and only if [:concreteType.isUnknown():].
+   * Returns the [TypeMask] representation of [concreteType].
    */
-  TypeMask fromConcreteToTypeMask(ConcreteType concreteType) {
+  TypeMask concreteTypeToTypeMask(ConcreteType concreteType) {
     if (concreteType == null) return null;
-    TypeMask typeMask;
-    bool nullable = false;
+    TypeMask typeMask = new TypeMask.nonNullEmpty();
     for (BaseType baseType in concreteType.baseTypes) {
-      if (baseType.isUnknown()) {
-        return null;
-      } else if (baseType.isNull()) {
-        nullable = true;
-      } else {
-        TypeMask current = fromClassBaseTypeToTypeMask(baseType);
-        typeMask = typeMask == null
-            ? current
-            : typeMask.union(current, compiler);
-      }
+      typeMask = typeMask.union(baseTypeToTypeMask(baseType), compiler);
     }
-    return nullable
-        ? typeMask == null ? null : typeMask.nullable()
-        : typeMask;
+    return typeMask;
   }
 
   /**
    * Get the inferred concrete type of [node].
    */
   TypeMask getTypeOfNode(Element owner, Node node) {
-    return fromConcreteToTypeMask(inferredTypes[node]);
+    return concreteTypeToTypeMask(inferredTypes[node]);
   }
 
   /**
@@ -830,7 +866,7 @@ class ConcreteTypesInferrer extends TypesInferrer {
    */
   TypeMask getTypeOfElement(Element element) {
     if (!element.isParameter()) return null;
-    return fromConcreteToTypeMask(inferredParameterTypes[element]);
+    return concreteTypeToTypeMask(inferredParameterTypes[element]);
   }
 
   /**
@@ -844,14 +880,34 @@ class ConcreteTypesInferrer extends TypesInferrer {
     templates.forEach((_, concreteType) {
       returnType = returnType.union(concreteType);
     });
-    return fromConcreteToTypeMask(returnType);
+    return concreteTypeToTypeMask(returnType);
   }
 
   /**
-   * Get the inferred concrete type of [selector].
+   * Get the inferred concrete type of [selector]. A null return value means
+   * "I don't know".
    */
   TypeMask getTypeOfSelector(Selector selector) {
-    return null;
+    Map<TypeMask, TypeMask> candidates =
+        inferredSelectorTypes[selector.asUntyped];
+    if (candidates == null) {
+      return null;
+    }
+    TypeMask result = new TypeMask.nonNullEmpty();
+    if (selector.mask == null) {
+      candidates.forEach((TypeMask receiverType, TypeMask returnType) {
+        result = result.union(returnType, compiler);
+      });
+    } else {
+      candidates.forEach((TypeMask receiverType, TypeMask returnType) {
+        TypeMask intersection =
+            receiverType.intersection(selector.mask, compiler);
+        if (!intersection.isEmpty || intersection.isNullable) {
+          result = result.union(returnType, compiler);
+        }
+      });
+    }
+    return result;
   }
 
   // --- analysis ---
@@ -862,7 +918,8 @@ class ConcreteTypesInferrer extends TypesInferrer {
    * [receiverType] must be null, else [function] must be a member of the class
    * of [receiverType].
    */
-  ConcreteType getSendReturnType(FunctionElement function,
+  ConcreteType getSendReturnType(Selector selector,
+                                 FunctionElement function,
                                  ClassElement receiverType,
                                  ArgumentsTypes argumentsTypes) {
     ConcreteType result = emptyConcreteType;
@@ -880,6 +937,13 @@ class ConcreteTypesInferrer extends TypesInferrer {
       result =
           result.union(getMonomorphicSendReturnType(function, environment));
     }
+
+    if (selector != null && receiverType != null) {
+      TypeMask receiverMask = new TypeMask.exact(receiverType.rawType);
+      TypeMask resultMask = concreteTypeToTypeMask(result);
+      augmentInferredSelectorType(selector, receiverMask, resultMask);
+    }
+
     return result;
   }
 
@@ -1089,10 +1153,11 @@ class ConcreteTypesInferrer extends TypesInferrer {
    * [element] must be either a field with an initializing expression,
    * a generative constructor or a function.
    */
-  ConcreteType analyze(Element element,
+  ConcreteType analyze(Selector selector,
+                       Element element,
                        ConcreteTypesEnvironment environment) {
     if (element.isGenerativeConstructor()) {
-      return analyzeConstructor(element, environment);
+      return analyzeConstructor(selector, element, environment);
     } else if (element.isField()) {
       analyzeFieldInitialization(element);
       return emptyConcreteType;
@@ -1137,7 +1202,8 @@ class ConcreteTypesInferrer extends TypesInferrer {
     return type;
   }
 
-  ConcreteType analyzeConstructor(FunctionElement element,
+  ConcreteType analyzeConstructor(Selector selector,
+                                  FunctionElement element,
                                   ConcreteTypesEnvironment environment) {
     Set<Element> uninitializedFields = new Set<Element>();
 
@@ -1197,7 +1263,7 @@ class ConcreteTypesInferrer extends TypesInferrer {
                 .implementation;
         final superClassConcreteType = singletonConcreteType(
             new ClassBaseType(enclosingClass));
-        getSendReturnType(target, enclosingClass,
+        getSendReturnType(selector, target, enclosingClass,
             new ArgumentsTypes(new List(), new Map()));
       }
     }
@@ -1260,7 +1326,7 @@ class ConcreteTypesInferrer extends TypesInferrer {
       while (!workQueue.isEmpty) {
         InferenceWorkItem item = workQueue.removeFirst();
         ConcreteType concreteType =
-            analyze(item.methodOrField, item.environment);
+            analyze(null, item.methodOrField, item.environment);
         if (item.methodOrField.isField()) continue;
         var template = cache[item.methodOrField];
         if (template[item.environment] == concreteType) continue;
@@ -1299,6 +1365,13 @@ class ConcreteTypesInferrer extends TypesInferrer {
     print("inferredParameterTypes:");
     inferredParameterTypes.forEach((k,v) {
       print("  $k: $v");
+    });
+    print("inferred selector types:");
+    inferredSelectorTypes.forEach((selector, map) {
+      print("  $selector:");
+      map.forEach((k, v) {
+        print("    $k: $v");
+      });
     });
     print("cache:");
     cache.forEach((k,v) {
@@ -1463,7 +1536,8 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
     inferrer.fail(node, 'not yet implemented');
   }
 
-  ConcreteType analyzeSetElement(Element receiver, ConcreteType argumentType) {
+  ConcreteType analyzeSetElement(Selector selector,
+                                 Element receiver, ConcreteType argumentType) {
     environment = environment.put(receiver, argumentType);
     if (receiver.isField()) {
       inferrer.augmentFieldType(receiver, argumentType);
@@ -1475,13 +1549,14 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
       // exceptions for instance, we need to do it by uncommenting the following
       // line.
       // inferrer.addCaller(setter, currentMethod);
-      inferrer.getSendReturnType(setter, receiver.enclosingElement,
+      inferrer.getSendReturnType(selector, setter, receiver.enclosingElement,
           new ArgumentsTypes([argumentType], new Map()));
     }
     return argumentType;
   }
 
-  ConcreteType analyzeSetNode(Node receiver, ConcreteType argumentType,
+  ConcreteType analyzeSetNode(Selector selector,
+                              Node receiver, ConcreteType argumentType,
                               SourceString name) {
     ConcreteType receiverType = analyze(receiver);
 
@@ -1497,7 +1572,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
         // exceptions for instance, we need to do it by uncommenting the
         // following line.
         // inferrer.addCaller(setter, currentMethod);
-        inferrer.getSendReturnType(setter, receiverType,
+        inferrer.getSendReturnType(selector, setter, receiverType,
             new ArgumentsTypes([argumentType], new Map()));
       }
       // since this is a sendSet we ignore non-fields
@@ -1542,8 +1617,8 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
     if (node.selector.asIdentifier().source.stringValue == '[]') {
       ConcreteType receiverType = analyze(node.receiver);
       ArgumentsTypes argumentsTypes = analyzeArguments(node.arguments);
-      analyzeDynamicSend(receiverType, const SourceString('[]='),
-                         argumentsTypes);
+      analyzeDynamicSend(elements.getSelector(node), receiverType,
+                         const SourceString('[]='), argumentsTypes);
       return argumentsTypes.positional[1];
     }
 
@@ -1555,7 +1630,8 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
         canonicalizeCompoundOperator(node.assignmentOperator.source);
     // ++, --, +=, -=, ...
     if (compoundOperatorName != null) {
-      ConcreteType receiverType = visitGetterSend(node);
+      ConcreteType receiverType = visitGetterSendForSelector(node,
+          elements.getGetterSelectorInComplexSendSet(node));
       // argumentsTypes is either computed from the actual arguments or [{int}]
       // in case of ++ or --.
       ArgumentsTypes argumentsTypes;
@@ -1567,8 +1643,11 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
       } else {
         argumentsTypes = analyzeArguments(node.arguments);
       }
-      argumentType = analyzeDynamicSend(receiverType, compoundOperatorName,
-                                        argumentsTypes);
+      argumentType = analyzeDynamicSend(
+          elements.getOperatorSelectorInComplexSendSet(node),
+          receiverType,
+          compoundOperatorName,
+          argumentsTypes);
     // The simple assignment case: receiver = argument.
     } else {
       argumentType = analyze(node.argumentsNode);
@@ -1576,9 +1655,11 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
 
     Element element = elements[node];
     if (element != null) {
-      return analyzeSetElement(element, argumentType);
+      return analyzeSetElement(elements.getSelector(node),
+                               element, argumentType);
     } else {
-      return analyzeSetNode(node.receiver, argumentType,
+      return analyzeSetNode(elements.getSelector(node),
+                            node.receiver, argumentType,
                             node.selector.asIdentifier().source);
     }
   }
@@ -1625,7 +1706,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
     Element constructor = elements[node.send];
     inferrer.addCaller(constructor, currentMethodOrField);
     ClassElement cls = constructor.enclosingElement;
-    return inferrer.getSendReturnType(constructor, cls,
+    return inferrer.getSendReturnType(null, constructor, cls,
                                       analyzeArguments(node.send.arguments));
   }
 
@@ -1805,20 +1886,25 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
     return visitDynamicSend(node);
   }
 
-  ConcreteType analyzeFieldRead(Element field) {
+  ConcreteType analyzeFieldRead(Selector selector, Element field) {
     inferrer.addReader(field, currentMethodOrField);
-    return inferrer.getFieldType(field);
+    return inferrer.getFieldType(selector, field);
   }
 
-  ConcreteType analyzeGetterSend(ClassElement receiverType,
+  ConcreteType analyzeGetterSend(Selector selector,
+                                 ClassElement receiverType,
                                  FunctionElement getter) {
       inferrer.addCaller(getter, currentMethodOrField);
-      return inferrer.getSendReturnType(getter,
-                                        receiverType,
+      return inferrer.getSendReturnType(selector, getter, receiverType,
                                         new ArgumentsTypes([], new Map()));
   }
 
   ConcreteType visitGetterSend(Send node) {
+    Selector selector = elements.getSelector(node);
+    return visitGetterSendForSelector(node, selector);
+  }
+
+  ConcreteType visitGetterSendForSelector(Send node, Selector selector) {
     Element element = elements[node];
     if (element != null) {
       // node is a local variable or a field of this
@@ -1829,11 +1915,11 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
       } else {
         // node is a field or a getter of this
         if (element.isField()) {
-          return analyzeFieldRead(element);
+          return analyzeFieldRead(selector, element);
         } else {
           assert(element.isGetter());
           ClassElement receiverType = element.enclosingElement;
-          return analyzeGetterSend(receiverType, element);
+          return analyzeGetterSend(selector, receiverType, element);
         }
       }
     } else {
@@ -1843,12 +1929,13 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
       ConcreteType result = inferrer.emptyConcreteType;
       void augmentResult(ClassElement baseReceiverType, Element member) {
         if (member.isField()) {
-          result = result.union(analyzeFieldRead(member));
+          result = result.union(analyzeFieldRead(selector, member));
         } else if (member.isAbstractField()){
           // call to a getter
           AbstractFieldElement abstractField = member;
           result = result.union(
-              analyzeGetterSend(baseReceiverType, abstractField.getter));
+              analyzeGetterSend(selector,
+                                baseReceiverType, abstractField.getter));
         }
         // since this is a get we ignore non-fields
       }
@@ -1884,7 +1971,8 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
     inferrer.fail(node, 'not implemented');
   }
 
-  ConcreteType analyzeDynamicSend(ConcreteType receiverType,
+  ConcreteType analyzeDynamicSend(Selector selector,
+                                  ConcreteType receiverType,
                                   SourceString canonicalizedMethodName,
                                   ArgumentsTypes argumentsTypes) {
     ConcreteType result = inferrer.emptyConcreteType;
@@ -1901,7 +1989,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
         inferrer.addCaller(method, currentMethodOrField);
         Element cls = method.enclosingElement;
         result = result.union(
-            inferrer.getSendReturnType(method, cls, argumentsTypes));
+            inferrer.getSendReturnType(selector, method, cls, argumentsTypes));
       }
 
     } else {
@@ -1914,7 +2002,8 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
             method = method.implementation;
             inferrer.addCaller(method, currentMethodOrField);
             result = result.union(
-                inferrer.getSendReturnType(method, cls, argumentsTypes));
+                inferrer.getSendReturnType(selector, method, cls,
+                                           argumentsTypes));
           }
         }
       }
@@ -1939,14 +2028,16 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
         canonicalizeMethodName(node.selector.asIdentifier().source);
     ArgumentsTypes argumentsTypes = analyzeArguments(node.arguments);
     if (name.stringValue == '!=') {
-      ConcreteType returnType = analyzeDynamicSend(receiverType,
+      ConcreteType returnType = analyzeDynamicSend(elements.getSelector(node),
+                                                   receiverType,
                                                    const SourceString('=='),
                                                    argumentsTypes);
       return returnType.isEmpty()
           ? returnType
           : inferrer.singletonConcreteType(inferrer.baseTypes.boolBaseType);
     } else {
-      return analyzeDynamicSend(receiverType, name, argumentsTypes);
+      return analyzeDynamicSend(elements.getSelector(node),
+                                receiverType, name, argumentsTypes);
     }
   }
 
@@ -1960,8 +2051,9 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
     }
     Element element = elements[node].implementation;
     inferrer.addCaller(element, currentMethodOrField);
-    return inferrer.getSendReturnType(element, null,
-        analyzeArguments(node.arguments));
+    return inferrer.getSendReturnType(elements.getSelector(node),
+                                      element, null,
+                                      analyzeArguments(node.arguments));
   }
 
   void internalError(String reason, {Node node}) {

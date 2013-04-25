@@ -37,8 +37,8 @@ class TypesTask extends CompilerTask {
   static final bool DUMP_SURPRISING_RESULTS = false;
 
   final String name = 'Type inference';
-  TypesInferrer typesInferrer;
-  TypesInferrer concreteTypesInferrer;
+  SimpleTypesInferrer typesInferrer;
+  ConcreteTypesInferrer concreteTypesInferrer;
 
   TypesTask(Compiler compiler) : super(compiler) {
     typesInferrer = new SimpleTypesInferrer(compiler);
