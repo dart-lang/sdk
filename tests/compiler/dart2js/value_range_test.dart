@@ -300,7 +300,7 @@ expect(String code, int kind) {
       break;
 
     case ONE_ZERO_CHECK:
-      RegExp regexp = new RegExp('< 0');
+      RegExp regexp = new RegExp('< 0|>>> 0 !==');
       Iterator matches = regexp.allMatches(generated).iterator;
       checkNumberOfMatches(matches, 1);
       break;

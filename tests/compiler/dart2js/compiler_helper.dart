@@ -160,7 +160,8 @@ ssa.HType findHType(compiler, String name, [String how = 'nonNullExact']) {
 String anyIdentifier = "[a-zA-Z][a-zA-Z0-9]*";
 
 String getIntTypeCheck(String variable) {
-  return "\\($variable ?!== ?\\($variable ?\\| ?0\\)\\)";
+  return "\\($variable ?!== ?\\($variable ?\\| ?0\\)|"
+         "\\($variable ?>>> ?0 ?!== ?$variable";
 }
 
 String getNumberTypeCheck(String variable) {

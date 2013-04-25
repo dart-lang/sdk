@@ -219,6 +219,13 @@ class DesiredTypeVisitor extends HBaseVisitor {
     return HType.UNKNOWN;
   }
 
+  HType visitBoundsCheck(HBoundsCheck boundsCheck) {
+    // If the desired type of the input is already a number, we want
+    // to specialize it to an integer.
+    if (input == boundsCheck.index && input.isNumber()) return HType.INTEGER;
+    return HType.UNKNOWN;
+  }
+
   HType visitInvokeDynamic(HInvokeDynamic instruction) {
     return instruction.specializer.computeDesiredTypeForInput(
         instruction, input, compiler);
