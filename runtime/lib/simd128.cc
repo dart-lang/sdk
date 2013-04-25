@@ -26,6 +26,15 @@ DEFINE_NATIVE_ENTRY(Float32x4_fromDoubles, 5) {
 }
 
 
+DEFINE_NATIVE_ENTRY(Float32x4_splat, 2) {
+  ASSERT(AbstractTypeArguments::CheckedHandle(
+      arguments->NativeArgAt(0)).IsNull());
+  GET_NON_NULL_NATIVE_ARGUMENT(Double, v, arguments->NativeArgAt(1));
+  float _v = v.value();
+  return Float32x4::New(_v, _v, _v, _v);
+}
+
+
 DEFINE_NATIVE_ENTRY(Float32x4_zero, 1) {
   ASSERT(AbstractTypeArguments::CheckedHandle(
       arguments->NativeArgAt(0)).IsNull());

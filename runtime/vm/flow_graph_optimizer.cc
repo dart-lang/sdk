@@ -2107,6 +2107,21 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
     MathSqrtInstr* sqrt =
         new MathSqrtInstr(new Value(call->ArgumentAt(0)), call);
     ReplaceCall(call, sqrt);
+  } else if (recognized_kind == MethodRecognizer::kFloat32x4Zero) {
+    Float32x4ZeroInstr* zero = new Float32x4ZeroInstr(call);
+    ReplaceCall(call, zero);
+  } else if (recognized_kind == MethodRecognizer::kFloat32x4Splat) {
+    Float32x4SplatInstr* splat =
+        new Float32x4SplatInstr(new Value(call->ArgumentAt(1)), call);
+    ReplaceCall(call, splat);
+  } else if (recognized_kind == MethodRecognizer::kFloat32x4Constructor) {
+    Float32x4ConstructorInstr* con =
+        new Float32x4ConstructorInstr(new Value(call->ArgumentAt(1)),
+                                      new Value(call->ArgumentAt(2)),
+                                      new Value(call->ArgumentAt(3)),
+                                      new Value(call->ArgumentAt(4)),
+                                      call);
+    ReplaceCall(call, con);
   }
 }
 
@@ -4729,7 +4744,23 @@ void ConstantPropagator::VisitBinaryFloat32x4Op(
 }
 
 
+void ConstantPropagator::VisitFloat32x4Constructor(
+    Float32x4ConstructorInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
 void ConstantPropagator::VisitFloat32x4Shuffle(Float32x4ShuffleInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitFloat32x4Zero(Float32x4ZeroInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitFloat32x4Splat(Float32x4SplatInstr* instr) {
   SetValue(instr, non_constant_);
 }
 

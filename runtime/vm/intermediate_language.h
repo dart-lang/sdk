@@ -71,6 +71,9 @@ class Range;
   V(_Double, pow, DoublePow, 631903778)                                        \
   V(_Double, _modulo, DoubleMod, 437099337)                                    \
   V(::, sqrt, MathSqrt, 1662640002)                                            \
+  V(Float32x4, Float32x4., Float32x4Constructor, 1327837070)                   \
+  V(Float32x4, Float32x4.zero, Float32x4Zero, 927169529)                       \
+  V(Float32x4, Float32x4.splat, Float32x4Splat, 1778587275)                    \
   V(_Float32x4, get:xxxx, Float32x4ShuffleXXXX, 42621627)                      \
   V(_Float32x4, get:yyyy, Float32x4ShuffleYYYY, 42621627)                      \
   V(_Float32x4, get:zzzz, Float32x4ShuffleZZZZ, 42621627)                      \
@@ -514,6 +517,10 @@ class EmbeddedArray<T, 0> {
   M(IfThenElse)                                                                \
   M(BinaryFloat32x4Op)                                                         \
   M(Float32x4Shuffle)                                                          \
+  M(Float32x4Constructor)                                                      \
+  M(Float32x4Zero)                                                             \
+  M(Float32x4Splat)                                                            \
+
 
 #define FORWARD_DECLARATION(type) class type##Instr;
 FOR_EACH_INSTRUCTION(FORWARD_DECLARATION)
@@ -764,7 +771,10 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class UnboxFloat32x4Instr;
   friend class BinaryDoubleOpInstr;
   friend class BinaryFloat32x4OpInstr;
+  friend class Float32x4ZeroInstr;
+  friend class Float32x4SplatInstr;
   friend class Float32x4ShuffleInstr;
+  friend class Float32x4ConstructorInstr;
   friend class BinaryMintOpInstr;
   friend class BinarySmiOpInstr;
   friend class UnarySmiOpInstr;
@@ -4203,6 +4213,138 @@ class Float32x4ShuffleInstr : public TemplateDefinition<1> {
   const MethodRecognizer::Kind op_kind_;
 
   DISALLOW_COPY_AND_ASSIGN(Float32x4ShuffleInstr);
+};
+
+
+class Float32x4ConstructorInstr : public TemplateDefinition<4> {
+ public:
+  Float32x4ConstructorInstr(Value* value0, Value* value1, Value* value2,
+                            Value* value3, StaticCallInstr* static_call) {
+    SetInputAt(0, value0);
+    SetInputAt(1, value1);
+    SetInputAt(2, value2);
+    SetInputAt(3, value3);
+    deopt_id_ = static_call->deopt_id();
+  }
+
+  Value* value0() const { return inputs_[0]; }
+  Value* value1() const { return inputs_[1]; }
+  Value* value2() const { return inputs_[2]; }
+  Value* value3() const { return inputs_[3]; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
+
+  virtual bool AffectedBySideEffect() const { return false; }
+
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual Representation representation() const {
+    return kUnboxedFloat32x4;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx >= 0 && idx < 4);
+    return kUnboxedDouble;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return deopt_id_;
+  }
+
+  DECLARE_INSTRUCTION(Float32x4Constructor)
+  virtual CompileType ComputeType() const;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(Float32x4ConstructorInstr);
+};
+
+
+class Float32x4SplatInstr : public TemplateDefinition<1> {
+ public:
+  Float32x4SplatInstr(Value* value, StaticCallInstr* static_call) {
+    SetInputAt(0, value);
+    deopt_id_ = static_call->deopt_id();
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
+
+  virtual bool AffectedBySideEffect() const { return false; }
+
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual Representation representation() const {
+    return kUnboxedFloat32x4;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kUnboxedDouble;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return deopt_id_;
+  }
+
+  DECLARE_INSTRUCTION(Float32x4Splat)
+  virtual CompileType ComputeType() const;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(Float32x4SplatInstr);
+};
+
+
+class Float32x4ZeroInstr : public TemplateDefinition<0> {
+ public:
+  explicit Float32x4ZeroInstr(StaticCallInstr* static_call) {
+    deopt_id_ = static_call->deopt_id();
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
+
+  virtual bool AffectedBySideEffect() const { return false; }
+
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual Representation representation() const {
+    return kUnboxedFloat32x4;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    UNIMPLEMENTED();
+    return kUnboxedFloat32x4;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return deopt_id_;
+  }
+
+  DECLARE_INSTRUCTION(Float32x4Zero)
+  virtual CompileType ComputeType() const;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(Float32x4ZeroInstr);
 };
 
 

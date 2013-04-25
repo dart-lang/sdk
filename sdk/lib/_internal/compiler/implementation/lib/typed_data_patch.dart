@@ -199,6 +199,9 @@ patch class Float32x4 {
   patch factory Float32x4(double x, double y, double z, double w) {
     throw new UnsupportedError('Float32x4');
   }
+  patch factory Float32x4.splat(double v) {
+    throw new UnsupportedError('Float32x4.splat');
+  }
   patch factory Float32x4.zero() {
     throw new UnsupportedError('Float32x4.zero');
   }

@@ -240,6 +240,9 @@ patch class Float32x4 {
   /* patch */ factory Float32x4(double x, double y, double z, double w) {
     return new _Float32x4(x, y, z, w);
   }
+  /* patch */ factory Float32x4.splat(double v) {
+    return new _Float32x4.splat(v);
+  }
   /* patch */ factory Float32x4.zero() {
     return new _Float32x4.zero();
   }
@@ -2030,6 +2033,7 @@ class _ExternalFloat32x4Array extends _TypedList implements Float32x4List {
 class _Float32x4 implements Float32x4 {
   factory _Float32x4(double x, double y, double z, double w)
       native "Float32x4_fromDoubles";
+  factory _Float32x4.splat(double v) native "Float32x4_splat";
   factory _Float32x4.zero() native "Float32x4_zero";
   Float32x4 operator +(Float32x4 other) {
     return _add(other);

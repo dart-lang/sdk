@@ -350,8 +350,36 @@ testGetters() {
   Expect.equals(false, m.flagW);
 }
 
+void testSplat() {
+  var f = new Float32x4.splat(2.0);
+  Expect.equals(2.0, f.x);
+  Expect.equals(2.0, f.y);
+  Expect.equals(2.0, f.z);
+  Expect.equals(2.0, f.w);
+}
+
+void testZero() {
+  var f = new Float32x4.zero();
+  Expect.equals(0.0, f.x);
+  Expect.equals(0.0, f.y);
+  Expect.equals(0.0, f.z);
+  Expect.equals(0.0, f.w);
+}
+
+void testConstructor() {
+  var f = new Float32x4(1.0, 2.0, 3.0, 4.0);
+  Expect.equals(1.0, f.x);
+  Expect.equals(2.0, f.y);
+  Expect.equals(3.0, f.z);
+  Expect.equals(4.0, f.w);
+}
+
+
 main() {
-  for (int i = 0; i < 3000; i++) {
+  for (int i = 0; i < 4000; i++) {
+    testConstructor();
+    testSplat();
+    testZero();
     testAdd();
     testGetters();
     testSetters();

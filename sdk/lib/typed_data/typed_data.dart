@@ -826,6 +826,7 @@ abstract class Float32x4List implements List<Float32x4>, TypedData {
  */
 abstract class Float32x4 {
   external factory Float32x4(double x, double y, double z, double w);
+  external factory Float32x4.splat(double v);
   external factory Float32x4.zero();
 
   /// Addition operator.

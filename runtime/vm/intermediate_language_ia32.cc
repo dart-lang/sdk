@@ -2895,6 +2895,80 @@ void Float32x4ShuffleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* Float32x4ConstructorInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 4;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_in(1, Location::RequiresFpuRegister());
+  summary->set_in(2, Location::RequiresFpuRegister());
+  summary->set_in(3, Location::RequiresFpuRegister());
+  summary->set_out(Location::SameAsFirstInput());
+  return summary;
+}
+
+
+void Float32x4ConstructorInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  XmmRegister v0 = locs()->in(0).fpu_reg();
+  XmmRegister v1 = locs()->in(1).fpu_reg();
+  XmmRegister v2 = locs()->in(2).fpu_reg();
+  XmmRegister v3 = locs()->in(3).fpu_reg();
+  ASSERT(v0 == locs()->out().fpu_reg());
+  __ subl(ESP, Immediate(16));
+  __ cvtsd2ss(v0, v0);
+  __ movss(Address(ESP, -16), v0);
+  __ movsd(v0, v1);
+  __ cvtsd2ss(v0, v0);
+  __ movss(Address(ESP, -12), v0);
+  __ movsd(v0, v2);
+  __ cvtsd2ss(v0, v0);
+  __ movss(Address(ESP, -8), v0);
+  __ movsd(v0, v3);
+  __ cvtsd2ss(v0, v0);
+  __ movss(Address(ESP, -4), v0);
+  __ movups(v0, Address(ESP, -16));
+  __ addl(ESP, Immediate(16));
+}
+
+
+LocationSummary* Float32x4ZeroInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 0;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_out(Location::RequiresFpuRegister());
+  return summary;
+}
+
+
+void Float32x4ZeroInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  XmmRegister value = locs()->out().fpu_reg();
+  __ xorps(value, value);
+}
+
+
+LocationSummary* Float32x4SplatInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_out(Location::SameAsFirstInput());
+  return summary;
+}
+
+
+void Float32x4SplatInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  XmmRegister value = locs()->out().fpu_reg();
+  ASSERT(locs()->in(0).fpu_reg() == locs()->out().fpu_reg());
+  // Convert to Float32.
+  __ cvtsd2ss(value, value);
+  // Splat across all lanes.
+  __ shufps(value, value, Immediate(0x00));
+}
+
+
 LocationSummary* MathSqrtInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;

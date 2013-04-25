@@ -976,6 +976,21 @@ CompileType Float32x4ShuffleInstr::ComputeType() const {
 }
 
 
+CompileType Float32x4ConstructorInstr::ComputeType() const {
+  return CompileType::FromCid(kFloat32x4Cid);
+}
+
+
+CompileType Float32x4ZeroInstr::ComputeType() const {
+  return CompileType::FromCid(kFloat32x4Cid);
+}
+
+
+CompileType Float32x4SplatInstr::ComputeType() const {
+  return CompileType::FromCid(kFloat32x4Cid);
+}
+
+
 CompileType MathSqrtInstr::ComputeType() const {
   return CompileType::FromCid(kDoubleCid);
 }
