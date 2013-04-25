@@ -77,23 +77,25 @@
  *        }
  *      }
  *
- * The class needs four different methods. The [appliesTo] method tells us if
+ * The class needs four different methods. The [CustomRule.appliesTo]
+ * method tells us if
  * the rule should be used to write an object. In this example we use a test
  * based on runtimeType. We could also use an "is Address" test, but if Address
  * has subclasses that would find those as well, and we want a separate rule
- * for each. The [getState] method should
+ * for each. The [CustomRule.getState] method should
  * return all the state of the object that we want to recreate,
  * and should be either a Map or a List. If you want to write to human-readable
  * formats where it's useful to be able to look at the data as a map from
  * field names to values, then it's better to return it as a map. Otherwise it's
  * more efficient to return it as a list. You just need to be sure that the
- * [create] and [setState] methods interpret the same way as [getState] does.
+ * [CustomRule.create] and [CustomRule.setState] methods interpret the data the
+ * same way as [CustomRule.getState] does.
  *
- * The [create] method will create the new object and return it. While it's
+ * The [CustomRule.create] method will create the new object and return it. While it's
  * possible to create the object and set all its state in this one method, that
  * increases the likelihood of problems with cycles. So it's better to use the
- * minimum necessary information in [create] and do more of the work in
- * [setState].
+ * minimum necessary information in [CustomRule.create] and do more of the work
+ * in [CustomRule.setState].
  *
  * The other way to do this is not creating a subclass, but by using a
  * [ClosureRule] and giving it functions for how to create
@@ -146,7 +148,8 @@
  * isolate.
  *
  * We can write objects in different formats by passing a [Format] object to
- * the [write] method or by getting a [Writer] object. The available formats
+ * the [Serialization.write] method or by getting a [Writer] object.
+ * The available formats
  * include the default, a simple "flat" format that doesn't include field names,
  * and a simple JSON format that produces output more suitable for talking to
  * services that expect JSON in a predefined format. Examples of these are
@@ -162,7 +165,7 @@
  *
  * Reading
  * =======
- * To read objects, the corresponding [read] method can be used.
+ * To read objects, the corresponding [Serialization.read] method can be used.
  *
  *       Address input = serialization.read(input);
  *
@@ -171,13 +174,15 @@
  * rules to be different, but they need to be able to read the same
  * representation. For most practical purposes right now they should be the
  * same. The simplest way to achieve this is by having the serialization
- * variable [selfDescribing] be true. In that case the rules themselves are also
+ * variable [Serialization.selfDescribing] be true. In that case the rules
+ * themselves are also
  * stored along with the serialized data, and can be read back on the receiving
  * end. Note that this may not work for all rules or all formats. The
- * [selfDescribing] variable is true by default, but the [SimpleJsonFormat] does
- * not support it, since the point is to provide a representation in a form
+ * [Serialization.selfDescribing] variable is true by default, but the
+ * [SimpleJsonFormat] does not support it, since the point is to provide a
+ * representation in a form
  * other services might expect. Using CustomRule or ClosureRule also does not
- * yet work with the [selfDescribing] variable.
+ * yet work with the [Serialization.selfDescribing] variable.
  *
  * Named Objects
  * =============
@@ -187,7 +192,7 @@
  * take a [ClassMirror] in their constructor, and we cannot serialize those. So
  * when we read the rules, we must provide a Map<String, Object> which maps from
  * the simple name of classes we are interested in to a [ClassMirror]. This can
- * be provided either in the [namedObjects] variable of the Serialization,
+ * be provided either in the [Serialization.namedObjects],
  * or as an additional parameter to the reading and writing methods on the
  * [Reader] or [Writer] respectively.
  *

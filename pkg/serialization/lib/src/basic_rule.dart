@@ -224,8 +224,8 @@ class BasicRule extends SerializationRule {
     return mirror.reflectee;
   }
 
-  /** For all [state] not required in the constructor, set it in the [object],
-   * resolving references in the context of [reader].
+  /** For all [rawState] not required in the constructor, set it in the
+   * [object], resolving references in the context of [reader].
    */
   inflateNonEssential(rawState, object, Reader reader) {
     InstanceMirror mirror = reflect(object);
@@ -284,7 +284,7 @@ abstract class _Field implements Comparable<_Field> {
   final _FieldList fieldList;
 
   /**
-   * Our position in the [contents] collection of [fieldList]. This is used
+   * Our position in the [fieldList._contents] collection. This is used
    * to index into the state, so it's extremely important.
    */
   int index;
@@ -332,7 +332,7 @@ abstract class _Field implements Comparable<_Field> {
   /**
    * Return true if this field is treated as essential state, either because
    * it is used in the constructor, or because it's been designated
-   * using [setFieldWith].
+   * using [BasicRule.setFieldWith].
    */
   bool get isEssential => usedInConstructor;
 
@@ -377,7 +377,7 @@ class _NamedField extends _Field {
   /**
    * Return true if this field is treated as essential state, either because
    * it is used in the constructor, or because it's been designated
-   * using [setFieldWith].
+   * using [BasicRule.setFieldWith].
    */
   bool get isEssential => super.isEssential || customSetter != null;
 
@@ -610,8 +610,8 @@ class Constructor {
 
   /**
    * The indices of the fields used as constructor arguments. We will look
-   * these up in the state by number. These correspond to the index in the
-   * [contents] of the FieldList, which will be alphabetically sorted.
+   * these up in the state by number. The index is according to a list of the
+   * fields in alphabetical order by name.
    */
   List<int> fieldNumbers;
 

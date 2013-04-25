@@ -82,7 +82,7 @@ class SimpleMapFormat extends Format {
  * with nesting of those.
  * Note that since the classes of objects aren't normally stored, this isn't
  * enough information to read back the objects. However, if the
- * If the [storeRoundTripData] field of the format is set to true, then this
+ * If the [storeRoundTripInfo] field of the format is set to true, then this
  * will store the rule number along with the data, allowing reconstruction.
  */
 class SimpleJsonFormat extends Format {
@@ -195,7 +195,7 @@ class SimpleJsonFormat extends Format {
   }
 
   /**
-   * Convert nested references in [data] into [Reference] objects.
+   * Convert nested references in [input] into [Reference] objects.
    */
   recursivelyFixUp(input, Reader r, List result) {
     var data = input;

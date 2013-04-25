@@ -387,7 +387,7 @@ class NamedObjectRule extends SerializationRule {
  * qualifiedName and attempts to look it up in both the namedObjects
  * collection, or if it's not found there, by looking it up in the mirror
  * system. When reading, the user is responsible for supplying the appropriate
- * values in [namedObjects] or in the [externals] paramter to
+ * values in [Serialization.namedObjects] or in the [externals] paramter to
  * [Serialization.read].
  */
 class MirrorRule extends NamedObjectRule {
@@ -404,7 +404,7 @@ class MirrorRule extends NamedObjectRule {
     var type = qualifiedName.substring(separatorIndex + 1);
     var lookup = r.objectNamed(type, (x) => null);
     if (lookup != null) return lookup;
-    var libMirror = currentMirrorSystem().libraries[lib];
+    var libMirror = currentMirrorSystem().findLibrary(lib).first;
     return libMirror.classes[new Symbol(type)];
   }
 }

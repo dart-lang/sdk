@@ -517,6 +517,15 @@ main() {
     expect(new Reader(s).asReference(map["person"]) is Reference, isTrue);
   });
 
+  test("MirrorRule with lookup by qualified name rather than named object", () {
+    var s = new Serialization()..addRule(new MirrorRule());
+    var m = reflectClass(Address);
+    var output = s.write(m);
+    var input = s.read(output);
+    expect(input is ClassMirror, isTrue);
+    expect(MirrorSystem.getName(input.simpleName), "Address");
+  });
+
 }
 
 /******************************************************************************
@@ -658,7 +667,7 @@ Serialization nodeSerializerNonReflective(Node n) {
 
 /**
  * Run a round-trip test on a simple tree of nodes, using a serialization
- * that's returned by the [serializerSetup] function.
+ * that's returned by the [serializerSetUp] function.
  */
 runRoundTripTest(Function serializerSetUp) {
   Node n1 = new Node("1"), n2 = new Node("2"), n3 = new Node("3");
