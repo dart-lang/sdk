@@ -121,34 +121,36 @@ abstract class HType {
         compiler);
   }
 
+  factory HType.fromNativeBehavior(native.NativeBehavior nativeBehavior,
+                                   Compiler compiler) {
+    if (nativeBehavior.typesReturned.isEmpty) return HType.UNKNOWN;
+
+    HType result = nativeBehavior.typesReturned
+        .map((type) => fromNativeType(type, compiler))
+        .reduce((t1, t2) => t1.union(t2, compiler));
+    assert(!result.isConflicting());
+    return result;
+  }
+
   // [type] is either an instance of [DartType] or special objects
   // like [native.SpecialType.JsObject], or [native.SpecialType.JsArray].
-  factory HType.fromNativeType(type, Compiler compiler) {
+  static HType fromNativeType(type, Compiler compiler) {
     if (type == native.SpecialType.JsObject) {
       return new HType.nonNullExact(
           compiler.objectClass.computeType(compiler), compiler);
     } else if (type == native.SpecialType.JsArray) {
       return HType.READABLE_ARRAY;
     } else if (type.isVoid) {
-      return HType.UNKNOWN;  // Maybe use HType.NULL.
+      return HType.NULL;
     } else if (type.element == compiler.nullClass) {
       return HType.NULL;
-    } else {
+    } else if (compiler.world.hasAnySubtype(type.element)) {
+      return new HType.nonNullSubtype(type, compiler);
+    } else if (compiler.world.hasAnySubclass(type.element)) {
       return new HType.nonNullSubclass(type, compiler);
+    } else {
+      return new HType.nonNullExact(type, compiler);
     }
-  }
-
-  factory HType.fromNativeBehavior(native.NativeBehavior nativeBehavior,
-                                   Compiler compiler) {
-    if (nativeBehavior.typesReturned.isEmpty) return HType.UNKNOWN;
-
-    HType ssaType = HType.CONFLICTING;
-    for (final type in nativeBehavior.typesReturned) {
-      ssaType = ssaType.union(
-          new HType.fromNativeType(type, compiler), compiler);
-    }
-    assert(!ssaType.isConflicting());
-    return ssaType;
   }
 
   static const HType CONFLICTING = const HConflictingType();

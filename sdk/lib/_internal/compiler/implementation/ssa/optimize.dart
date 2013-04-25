@@ -690,8 +690,9 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         field, receiver, isAssignable: isAssignable);
 
     if (field.getEnclosingClass().isNative()) {
-      result.instructionType =
-          new HType.subtype(field.computeType(compiler), compiler);
+      result.instructionType = new HType.fromNativeBehavior(
+          native.NativeBehavior.ofFieldLoad(field, compiler),
+          compiler);
     } else {
       HType type = new HType.inferredTypeForElement(field, compiler);
       if (type.isUnknown()) {
