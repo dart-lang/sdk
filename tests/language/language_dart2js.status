@@ -143,7 +143,6 @@ compile_time_constant8_test: Fail # We don't take the generic type into account 
 canonical_const_test: Fail # We don't take the generic type into account yet.
 
 # Support for optional parameters not conform to latest spec.
-typedef_is_test: Fail # http://dartbug.com/9058
 function_type_alias_test: Fail # http://dartbug.com/9058
 function_type_alias2_test: Fail
 named_parameters_type_test: Fail
