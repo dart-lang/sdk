@@ -408,6 +408,7 @@ class TypeMask {
    * privacy is taken into account.
    */
   bool canHit(Element element, Selector selector, Compiler compiler) {
+    assert(element.name == selector.name);
     if (isEmpty) {
       if (!isNullable) return false;
       return hasElementIn(

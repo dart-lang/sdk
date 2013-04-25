@@ -265,8 +265,14 @@ patch class HashMap<K, V> {
     // We only store non-null entries in the table, so we have to
     // change null values to refer to the table itself. Such values
     // will be recognized and mapped back to null on access.
-    if (value == null) value = table;
-    JS('void', '#[#] = #', table, key, value);
+    if (value == null) {
+      // Do not update [value] with [table], otherwise our
+      // optimizations could be confused by this opaque object being
+      // now used for more things than storing and fetching from it.
+      JS('void', '#[#] = #', table, key, table);
+    } else {
+      JS('void', '#[#] = #', table, key, value);
+    }
   }
 
   static void _deleteTableEntry(var table, var key) {
