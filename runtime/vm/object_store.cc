@@ -104,10 +104,7 @@ bool ObjectStore::PreallocateObjects() {
   ASSERT(this->stack_overflow() == Instance::null());
   ASSERT(this->out_of_memory() == Instance::null());
   ASSERT(this->preallocated_stack_trace() == Stacktrace::null());
-  // TODO(regis): Reenable this code for mips when possible.
-#if defined(TARGET_ARCH_IA32) ||                                               \
-    defined(TARGET_ARCH_X64) ||                                                \
-    defined(TARGET_ARCH_ARM)
+
   Object& result = Object::Handle();
 
   result = Exceptions::Create(Exceptions::kStackOverflow,
@@ -133,7 +130,7 @@ bool ObjectStore::PreallocateObjects() {
       Array::New(Stacktrace::kPreallocatedStackdepth, Heap::kOld));
   result = Stacktrace::New(func_array, code_array, pc_offset_array);
   set_preallocated_stack_trace(Stacktrace::Cast(result));
-#endif
+
   return true;
 }
 

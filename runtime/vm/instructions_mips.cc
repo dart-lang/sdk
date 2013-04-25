@@ -73,7 +73,7 @@ int CallPattern::DecodeLoadWordImmediate(int end, Register* reg, int* value) {
   instr = Instr::At(reinterpret_cast<uword>(&i));
   ASSERT(instr->OpcodeField() == LUI);
   ASSERT(instr->RtField() == *reg);
-  imm |= instr->UImmField();
+  imm |= (instr->UImmField() << 16);
   *value = imm;
   return end;
 }

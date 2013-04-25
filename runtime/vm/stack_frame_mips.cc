@@ -11,6 +11,7 @@ namespace dart {
 
 // The constant kExitLinkOffsetInEntryFrame must be kept in sync with the
 // code in the InvokeDartCode stub.
+static const int kSavedContextOffsetInEntryFrame = -11 * kWordSize;
 static const int kExitLinkOffsetInEntryFrame = -10 * kWordSize;
 static const int kPcAddressOffsetFromSp = -2 * kWordSize;
 static const int kEntrypointMarkerOffsetFromFp = 2 * kWordSize;
@@ -43,8 +44,7 @@ intptr_t EntryFrame::ExitLinkOffset() const {
 
 
 intptr_t EntryFrame::SavedContextOffset() const {
-  UNIMPLEMENTED();
-  return 0;
+  return kSavedContextOffsetInEntryFrame;
 }
 
 

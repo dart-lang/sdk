@@ -5,6 +5,8 @@
 #ifndef VM_CONSTANTS_MIPS_H_
 #define VM_CONSTANTS_MIPS_H_
 
+#include "platform/assert.h"
+
 namespace dart {
 
 enum Register {
@@ -412,6 +414,25 @@ class Instr {
     *reinterpret_cast<int32_t*>(this) = value;
   }
 
+  inline void SetImmInstrBits(Opcode op, Register rs, Register rt,
+                              uint16_t imm) {
+    SetInstructionBits(
+        op << kOpcodeShift |
+        rs << kRsShift |
+        rt << kRtShift |
+        imm << kImmShift);
+  }
+
+  inline void SetSpecialInstrBits(SpecialFunction f,
+                                  Register rs, Register rt, Register rd) {
+    SetInstructionBits(
+        SPECIAL << kOpcodeShift |
+        f << kFunctionShift |
+        rs << kRsShift |
+        rt << kRtShift |
+        rd << kRdShift);
+  }
+
   // Read one particular bit out of the instruction bits.
   inline int32_t Bit(int nr) const {
     return (InstructionBits() >> nr) & 1;
@@ -501,6 +522,21 @@ class Instr {
   // to allocate or create instances of class Instr.
   // Use the At(pc) function to create references to Instr.
   static Instr* At(uword pc) { return reinterpret_cast<Instr*>(pc); }
+
+#if defined(DEBUG)
+  inline void AssertIsImmInstr(Opcode op, Register rs, Register rt,
+                              int32_t imm) {
+    ASSERT((OpcodeField() == op) && (RsField() == rs) && (RtField() == rt) &&
+           (SImmField() == imm));
+  }
+
+  inline void AssertIsSpecialInstr(SpecialFunction f, Register rs, Register rt,
+                                   Register rd) {
+    ASSERT((OpcodeField() == SPECIAL) && (FunctionField() == f) &&
+           (RsField() == rs) && (RtField() == rt) &&
+           (RdField() == rd));
+  }
+#endif  // defined(DEBUG)
 
  private:
   DISALLOW_ALLOCATION();

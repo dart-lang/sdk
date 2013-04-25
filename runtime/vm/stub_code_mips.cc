@@ -230,8 +230,29 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
 }
 
 
+// Called from a static call only when an invalid code has been entered
+// (invalid because its function was optimized or deoptimized).
+// S4: arguments descriptor array.
 void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
-  __ Unimplemented("FixCallersTarget stub");
+  // Create a stub frame as we are pushing some objects on the stack before
+  // calling into the runtime.
+  __ EnterStubFrame();
+  // Setup space on stack for return value and preserve arguments descriptor.
+  __ LoadImmediate(T0, reinterpret_cast<intptr_t>(Object::null()));
+  __ addiu(SP, SP, Immediate(-2 * kWordSize));
+  __ sw(S4, Address(SP, 1 * kWordSize));
+  __ sw(T0, Address(SP, 0 * kWordSize));
+  __ CallRuntime(kFixCallersTargetRuntimeEntry);
+  // Get Code object result and restore arguments descriptor array.
+  __ lw(T0, Address(SP, 0 * kWordSize));
+  __ lw(S4, Address(SP, 1 * kWordSize));
+  __ addiu(SP, SP, Immediate(2 * kWordSize));
+  // Remove the stub frame.
+  __ LeaveStubFrame();
+  // Jump to the dart function.
+  __ lw(T0, FieldAddress(T0, Code::instructions_offset()));
+  __ AddImmediate(T0, T0, Instructions::HeaderSize() - kHeapObjectTag);
+  __ jr(T0);
 }
 
 
@@ -578,7 +599,7 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   // TOS + 1: Arguments descriptor array.
   // TOS + 2: Place for result from the call.
   // TOS + 3: Saved FP of previous frame.
-  // TOS + 4: Dart code return address
+  // TOS + 4: Dart code return address.
   // TOS + 5: PC marker (0 for stub).
   // TOS + 6: Last argument of caller.
   // ....
@@ -1517,18 +1538,83 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
 }
 
 
+//  RA: return address (Dart code).
+//  S4: Arguments descriptor array.
 void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
-  __ Unimplemented("BreakpointStatic stub");
+  __ TraceSimMsg("BreakpointStaticStub");
+  // Create a stub frame as we are pushing some objects on the stack before
+  // calling into the runtime.
+  __ EnterStubFrame();
+  __ LoadImmediate(T0, reinterpret_cast<intptr_t>(Object::null()));
+  // Preserve arguments descriptor and make room for result.
+  __ addiu(SP, SP, Immediate(-2 * kWordSize));
+  __ sw(S4, Address(SP, 1 * kWordSize));
+  __ sw(T0, Address(SP, 0 * kWordSize));
+  __ CallRuntime(kBreakpointStaticHandlerRuntimeEntry);
+  // Pop code object result and restore arguments descriptor.
+  __ lw(T0, Address(SP, 0 * kWordSize));
+  __ lw(S4, Address(SP, 1 * kWordSize));
+  __ addiu(SP, SP, Immediate(2 * kWordSize));
+  __ LeaveStubFrame();
+
+  // Now call the static function. The breakpoint handler function
+  // ensures that the call target is compiled.
+  __ lw(T0, FieldAddress(T0, Code::instructions_offset()));
+  __ AddImmediate(T0, Instructions::HeaderSize() - kHeapObjectTag);
+  __ jr(T0);
 }
 
 
+//  V0: return value.
 void StubCode::GenerateBreakpointReturnStub(Assembler* assembler) {
-  __ Unimplemented("BreakpointReturn stub");
+  __ TraceSimMsg("BreakpoingReturnStub");
+  // Create a stub frame as we are pushing some objects on the stack before
+  // calling into the runtime.
+  __ EnterStubFrame();
+  __ Push(V0);
+  __ CallRuntime(kBreakpointReturnHandlerRuntimeEntry);
+  __ Pop(V0);
+  __ LeaveStubFrame();
+
+  // Instead of returning to the patched Dart function, emulate the
+  // smashed return code pattern and return to the function's caller.
+  __ LeaveDartFrame();
+  __ Ret();
 }
 
 
+//  RA: return address (Dart code).
+//  S5: Inline cache data array.
+//  S4: Arguments descriptor array.
 void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
-  __ Unimplemented("BreakpointDynamic stub");
+  // Create a stub frame as we are pushing some objects on the stack before
+  // calling into the runtime.
+  __ EnterStubFrame();
+  __ addiu(SP, SP, Immediate(-2 * kWordSize));
+  __ sw(S5, Address(SP, 1 * kWordSize));
+  __ sw(S4, Address(SP, 0 * kWordSize));
+  __ CallRuntime(kBreakpointDynamicHandlerRuntimeEntry);
+  __ lw(S4, Address(SP, 0 * kWordSize));
+  __ lw(S5, Address(SP, 1 * kWordSize));
+  __ addiu(SP, SP, Immediate(2 * kWordSize));
+  __ LeaveStubFrame();
+
+  // Find out which dispatch stub to call.
+  __ lw(TMP1, FieldAddress(S5, ICData::num_args_tested_offset()));
+
+  Label one_arg, two_args, three_args;
+  __ BranchEqual(TMP1, 1, &one_arg);
+  __ BranchEqual(TMP1, 2, &two_args);
+  __ BranchEqual(TMP1, 3, &three_args);
+  __ Stop("Unsupported number of arguments tested.");
+
+  __ Bind(&one_arg);
+  __ Branch(&StubCode::OneArgCheckInlineCacheLabel());
+  __ Bind(&two_args);
+  __ Branch(&StubCode::TwoArgsCheckInlineCacheLabel());
+  __ Bind(&three_args);
+  __ Branch(&StubCode::ThreeArgsCheckInlineCacheLabel());
+  __ break_(0);
 }
 
 

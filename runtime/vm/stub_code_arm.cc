@@ -1525,7 +1525,7 @@ void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
   // calling into the runtime.
   __ EnterStubFrame();
   __ LoadImmediate(R0, reinterpret_cast<intptr_t>(Object::null()));
-  // // Preserve arguments descriptor and make room for result.
+  // Preserve arguments descriptor and make room for result.
   __ PushList((1 << R0) | (1 << R4));
   __ CallRuntime(kBreakpointStaticHandlerRuntimeEntry);
   // Pop code object result and restore arguments descriptor.

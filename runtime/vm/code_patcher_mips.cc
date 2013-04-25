@@ -33,7 +33,8 @@ void CodePatcher::PatchInstanceCallAt(uword return_address,
                                       const Code& code,
                                       uword new_target) {
   ASSERT(code.ContainsInstructionAt(return_address));
-  UNIMPLEMENTED();
+  CallPattern call(return_address, code);
+  call.SetTargetAddress(new_target);
 }
 
 

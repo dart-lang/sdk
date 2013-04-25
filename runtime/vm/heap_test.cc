@@ -9,10 +9,6 @@
 
 namespace dart {
 
-#if defined(TARGET_ARCH_IA32) ||                                               \
-    defined(TARGET_ARCH_X64) ||                                                \
-    defined(TARGET_ARCH_ARM)
-
 TEST_CASE(OldGC) {
   const char* kScriptChars =
   "main() {\n"
@@ -50,6 +46,4 @@ TEST_CASE(LargeSweep) {
   Dart_ExitScope();
   heap->CollectGarbage(Heap::kOld);
 }
-
-#endif  // TARGET_ARCH_IA32 || TARGET_ARCH_X64 || TARGET_ARCH_ARM
 }

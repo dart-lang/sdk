@@ -331,9 +331,9 @@ void Assembler::EnterStubFrame(bool uses_pp) {
     addiu(SP, SP, Immediate(-4 * kWordSize));
     sw(ZR, Address(SP, 3 * kWordSize));  // PC marker is 0 in stubs.
     sw(RA, Address(SP, 2 * kWordSize));
-    sw(PP, Address(SP, 1 * kWordSize));
-    sw(FP, Address(SP, 0 * kWordSize));
-    mov(FP, SP);
+    sw(FP, Address(SP, 1 * kWordSize));
+    sw(PP, Address(SP, 0 * kWordSize));
+    addiu(FP, SP, Immediate(1 * kWordSize));
     // Setup pool pointer for this stub.
     Label next;
     bal(&next);
@@ -356,13 +356,14 @@ void Assembler::EnterStubFrame(bool uses_pp) {
 
 
 void Assembler::LeaveStubFrame(bool uses_pp) {
-  mov(SP, FP);
   if (uses_pp) {
+    addiu(SP, FP, Immediate(-1 * kWordSize));
     lw(RA, Address(SP, 2 * kWordSize));
-    lw(PP, Address(SP, 1 * kWordSize));
-    lw(FP, Address(SP, 0 * kWordSize));
+    lw(FP, Address(SP, 1 * kWordSize));
+    lw(PP, Address(SP, 0 * kWordSize));
     addiu(SP, SP, Immediate(4 * kWordSize));
   } else {
+    mov(SP, FP);
     lw(RA, Address(SP, 1 * kWordSize));
     lw(FP, Address(SP, 0 * kWordSize));
     addiu(SP, SP, Immediate(3 * kWordSize));
@@ -449,6 +450,8 @@ void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
       2 * kWordSize +  // FP and RA.
       kDartVolatileFpuRegCount * kWordSize;
 
+  TraceSimMsg("EnterCallRuntimeFrame");
+
   if (prologue_offset_ == -1) {
     prologue_offset_ = CodeSize();
   }
@@ -490,6 +493,8 @@ void Assembler::LeaveCallRuntimeFrame() {
       kDartVolatileCpuRegCount * kWordSize +
       2 * kWordSize +  // FP and RA.
       kDartVolatileFpuRegCount * kWordSize;
+
+  TraceSimMsg("LeaveCallRuntimeFrame");
 
   // SP might have been modified to reserve space for arguments
   // and ensure proper alignment of the stack frame.

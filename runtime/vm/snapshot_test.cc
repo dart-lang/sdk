@@ -905,11 +905,6 @@ TEST_CASE(GenerateSource) {
 }
 
 
-#if defined(TARGET_ARCH_IA32) ||                                               \
-    defined(TARGET_ARCH_X64) ||                                                \
-    defined(TARGET_ARCH_ARM)
-
-
 UNIT_TEST_CASE(FullSnapshot) {
   const char* kScriptChars =
       "class Fields  {\n"
@@ -2496,7 +2491,5 @@ UNIT_TEST_CASE(PostCObject) {
 
   Dart_ExitScope();
 }
-
-#endif  // TARGET_ARCH_IA32 || TARGET_ARCH_X64 || TARGET_ARCH_ARM
 
 }  // namespace dart

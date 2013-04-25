@@ -10,10 +10,6 @@
 
 namespace dart {
 
-#if defined(TARGET_ARCH_IA32) ||                                               \
-    defined(TARGET_ARCH_X64) ||                                                \
-    defined(TARGET_ARCH_ARM)
-
 static bool breakpoint_hit = false;
 static int  breakpoint_hit_counter = 0;
 static Dart_Handle script_lib = NULL;
@@ -1533,7 +1529,5 @@ TEST_CASE(Debug_StackTraceDump2) {
   EXPECT(Dart_IsUnhandledExceptionError(retval));
   EXPECT_EQ(1, breakpoint_hit_counter);
 }
-
-#endif  // TARGET_ARCH_IA32 || TARGET_ARCH_X64 || TARGET_ARCH_ARM
 
 }  // namespace dart

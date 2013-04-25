@@ -17,10 +17,6 @@
 
 namespace dart {
 
-#if defined(TARGET_ARCH_IA32) ||                                               \
-    defined(TARGET_ARCH_X64) ||                                                \
-    defined(TARGET_ARCH_ARM)
-
 static const intptr_t kPos = Scanner::kDummyTokenIndex;
 
 
@@ -284,8 +280,6 @@ TEST_CASE(StackmapGC) {
       DartEntry::InvokeFunction(function_foo, Object::empty_array()));
   EXPECT(!result.IsError());
 }
-
-#endif  // TARGET_ARCH_IA32 || TARGET_ARCH_X64 || TARGET_ARCH_ARM
 
 }  // namespace dart
 
