@@ -177,7 +177,6 @@ def render(idl_node, indent_str='  '):
       wln(';')
     elif isinstance(node, IDLArgument):
       wsp(node.ext_attrs)
-      w('in ')
       if (node.optional):
         w('optional ')
       w('%s %s' % (node.type.id, node.id))
