@@ -31,10 +31,6 @@ url_test: Fail # Issue 10096
 postmessage_structured_test/typed_arrays: Fail # Issue 10097
 postmessage_structured_test/primitives: Fail # Issue 10097
 
-[ $compiler == dart2js && $csp && $runtime == drt && $unchecked ]
-indexeddb_2_test: Fail, Crash, Pass # Bug in v8, http://dartbug.com/9407
-async_test: Fail, Crash, Pass # Bug in v8, http://dartbug.com/9407
-
 # Layout tests are only supported on DRT.
 [ $runtime == ie9 || $runtime == ie10 || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera ]
 *layout_test: Skip
