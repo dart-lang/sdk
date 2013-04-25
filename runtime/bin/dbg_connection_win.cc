@@ -9,6 +9,10 @@
 
 #include "bin/eventhandler.h"
 
+
+namespace dart {
+namespace bin {
+
 void DebuggerConnectionImpl::ThreadEntry(uword args) {
   ListenSocket* listen_socket =
       reinterpret_cast<ListenSocket*>(DebuggerConnectionHandler::listener_fd_);
@@ -42,5 +46,8 @@ intptr_t DebuggerConnectionImpl::Receive(intptr_t socket, char* buf, int len) {
   ClientSocket* client_socket = reinterpret_cast<ClientSocket*>(socket);
   return recv(client_socket->socket(), buf, len, 0);
 }
+
+}  // namespace bin
+}  // namespace dart
 
 #endif  // defined(TARGET_OS_WINDOWS)

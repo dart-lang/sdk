@@ -50,7 +50,7 @@
             '--output', '<(builtin_cc_file)',
             '--input_cc', '<(builtin_in_cc_file)',
             '--include', 'bin/builtin.h',
-            '--var_name', 'Builtin::builtin_source_',
+            '--var_name', 'dart::bin::Builtin::builtin_source_',
             '<@(_sources)',
           ],
           'message': 'Generating ''<(builtin_cc_file)'' file.'
@@ -103,7 +103,7 @@
             '--output', '<(io_cc_file)',
             '--input_cc', '<(builtin_in_cc_file)',
             '--include', 'bin/builtin.h',
-            '--var_name', 'Builtin::io_source_',
+            '--var_name', 'dart::bin::Builtin::io_source_',
             '<(io_dart)',
           ],
           'message': 'Generating ''<(io_cc_file)'' file.'
@@ -134,7 +134,7 @@
             '--output', '<(io_patch_cc_file)',
             '--input_cc', '<(builtin_in_cc_file)',
             '--include', 'bin/builtin.h',
-            '--var_name', 'Builtin::io_patch_',
+            '--var_name', 'dart::bin::Builtin::io_patch_',
             '<@(_sources)',
           ],
           'message': 'Generating ''<(io_patch_cc_file)'' file.'

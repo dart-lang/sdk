@@ -9,6 +9,10 @@
 #include "platform/globals.h"
 #include "platform/thread.h"
 
+
+namespace dart {
+namespace bin {
+
 // Utility class to set up a native service and allocate Dart native
 // ports to interact with it from Dart code. The number of native ports
 // allocated for each service is limited.
@@ -41,5 +45,8 @@ class NativeService {
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(NativeService);
 };
+
+}  // namespace bin
+}  // namespace dart
 
 #endif  // BIN_NATIVE_SERVICE_H_

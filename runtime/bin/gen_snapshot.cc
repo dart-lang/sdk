@@ -18,6 +18,10 @@
 
 #include "platform/globals.h"
 
+
+namespace dart {
+namespace bin {
+
 #define CHECK_RESULT(result)                                                   \
   if (Dart_IsError(result)) {                                                  \
     free(snapshot_buffer);                                                     \
@@ -527,4 +531,11 @@ int main(int argc, char** argv) {
     CreateAndWriteSnapshot();
   }
   return 0;
+}
+
+}  // namespace bin
+}  // namespace dart
+
+int main(int argc, char** argv) {
+  return dart::bin::main(argc, argv);
 }

@@ -8,6 +8,10 @@
 #include "platform/assert.h"
 #include "platform/thread.h"
 
+
+namespace dart {
+namespace bin {
+
 class MutexLocker  {
  public:
   explicit MutexLocker(dart::Mutex* mutex) : mutex_(mutex) {
@@ -54,5 +58,8 @@ class MonitorLocker {
 
   DISALLOW_COPY_AND_ASSIGN(MonitorLocker);
 };
+
+}  // namespace bin
+}  // namespace dart
 
 #endif  // BIN_THREAD_H_

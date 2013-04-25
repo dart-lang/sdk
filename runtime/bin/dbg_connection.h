@@ -27,6 +27,9 @@
 #endif
 
 
+namespace dart {
+namespace bin {
+
 // Forward declarations.
 class DbgMessage;
 class MessageBuffer;
@@ -104,5 +107,8 @@ class DebuggerConnectionHandler {
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(DebuggerConnectionHandler);
 };
+
+}  // namespace bin
+}  // namespace dart
 
 #endif  // BIN_DBG_CONNECTION_H_

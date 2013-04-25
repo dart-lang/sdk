@@ -9,6 +9,10 @@
 #include "bin/log.h"
 #include "bin/socket.h"
 
+
+namespace dart {
+namespace bin {
+
 bool Platform::Initialize() {
   // Nothing to do on Windows.
   return true;
@@ -58,5 +62,8 @@ void Platform::FreeEnvironment(char** env, int count) {
   for (int i = 0; i < count; i++) free(env[i]);
   delete[] env;
 }
+
+}  // namespace bin
+}  // namespace dart
 
 #endif  // defined(TARGET_OS_WINDOWS)

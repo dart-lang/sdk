@@ -13,4 +13,11 @@ typedef unsigned __int8 uint8_t;
 #endif
 #include <stddef.h>
 
+
+namespace dart {
+namespace bin {
+
 const uint8_t* snapshot_buffer = NULL;
+
+}  // namespace bin
+}  // namespace dart

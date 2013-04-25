@@ -20,6 +20,10 @@
 #include "platform/globals.h"
 #include "platform/thread.h"
 
+
+namespace dart {
+namespace bin {
+
 static void ThrowException(const char* message) {
   Dart_Handle socket_io_exception =
       DartUtils::NewDartSocketIOException(message, Dart_Null());
@@ -119,5 +123,8 @@ class SSLFilter {
 
   DISALLOW_COPY_AND_ASSIGN(SSLFilter);
 };
+
+}  // namespace bin
+}  // namespace dart
 
 #endif  // BIN_SECURE_SOCKET_H_

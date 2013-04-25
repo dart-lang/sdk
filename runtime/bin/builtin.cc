@@ -10,6 +10,9 @@
 #include "bin/dartutils.h"
 #include "bin/io_natives.h"
 
+namespace dart {
+namespace bin {
+
 Builtin::builtin_lib_props Builtin::builtin_libraries_[] = {
   /* { url_, source_, patch_url_, patch_source_, has_natives_ } */
   { DartUtils::kBuiltinLibURL, builtin_source_, NULL, NULL, true },
@@ -64,3 +67,6 @@ Dart_Handle Builtin::LoadAndCheckLibrary(BuiltinLibraryId id) {
   DART_CHECK_VALID(library);
   return library;
 }
+
+}  // namespace bin
+}  // namespace dart

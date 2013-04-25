@@ -12,6 +12,9 @@
 #include "platform/assert.h"
 
 
+namespace dart {
+namespace bin {
+
 // Lists the native functions implementing basic functionality in
 // standalone dart, such as printing, file I/O, and platform information.
 // Advanced I/O classes like sockets and process management are implemented
@@ -109,3 +112,6 @@ void FUNCTION_NAME(Logger_PrintString)(Dart_NativeArguments args) {
   Builtin::PrintString(stdout, Dart_GetNativeArgument(args, 0));
   Dart_ExitScope();
 }
+
+}  // namespace bin
+}  // namespace dart

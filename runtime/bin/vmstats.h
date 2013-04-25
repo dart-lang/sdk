@@ -7,6 +7,10 @@
 
 #include "include/dart_api.h"
 
+
+namespace dart {
+namespace bin {
+
 /**
  * A VM status callback. Status plug-ins implement and register this
  * function using Dart_RegisterStatusPlugin. When Dart_GetVMStatus is
@@ -33,5 +37,8 @@ typedef char* (*Dart_VmStatusCallback)(const char* request);
  * \return 0 if the plug-in was registered, or -1 if there is an error.
  */
 DART_EXPORT int Dart_RegisterVmStatusPlugin(Dart_VmStatusCallback callback);
+
+}  // namespace bin
+}  // namespace dart
 
 #endif  // BIN_VMSTATS_H_

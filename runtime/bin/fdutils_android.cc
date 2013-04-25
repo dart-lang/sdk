@@ -13,6 +13,9 @@
 #include "bin/fdutils.h"
 
 
+namespace dart {
+namespace bin {
+
 bool FDUtils::SetCloseOnExec(intptr_t fd) {
   intptr_t status;
   status = TEMP_FAILURE_RETRY(fcntl(fd, F_GETFD));
@@ -135,5 +138,8 @@ ssize_t FDUtils::WriteToBlocking(int fd, const void* buffer, size_t count) {
   }
   return count;
 }
+
+}  // namespace bin
+}  // namespace dart
 
 #endif  // defined(TARGET_OS_ANDROID)

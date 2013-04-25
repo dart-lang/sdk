@@ -18,6 +18,9 @@
 #include "include/dart_api.h"
 
 
+namespace dart {
+namespace bin {
+
 int DebuggerConnectionHandler::listener_fd_ = -1;
 dart::Monitor DebuggerConnectionHandler::handler_lock_;
 
@@ -446,3 +449,6 @@ bool DebuggerConnectionHandler::IsConnected() {
   // Return true if a connection has been established.
   return singleton_handler != NULL;
 }
+
+}  // namespace bin
+}  // namespace dart

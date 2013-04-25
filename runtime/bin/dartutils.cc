@@ -12,6 +12,9 @@
 #include "platform/assert.h"
 #include "platform/globals.h"
 
+namespace dart {
+namespace bin {
+
 const char* DartUtils::original_working_directory = NULL;
 const char* DartUtils::kDartScheme = "dart:";
 const char* DartUtils::kDartExtensionScheme = "dart-ext:";
@@ -749,3 +752,6 @@ CObject* CObject::NewOSError(OSError* os_error) {
   result->SetAt(2, error_message);
   return result;
 }
+
+}  // namespace bin
+}  // namespace dart

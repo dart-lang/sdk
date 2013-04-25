@@ -8,6 +8,10 @@
 #include "include/dart_api.h"
 #include "platform/globals.h"
 
+
+namespace dart {
+namespace bin {
+
 class Extensions {
  public:
   // TODO(whesse): Make extension load from a relative path relative to
@@ -27,5 +31,8 @@ class Extensions {
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Extensions);
 };
+
+}  // namespace bin
+}  // namespace dart
 
 #endif  // BIN_EXTENSIONS_H_

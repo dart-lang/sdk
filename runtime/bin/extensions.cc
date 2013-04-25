@@ -12,6 +12,10 @@
 #include "bin/dartutils.h"
 #include "bin/file.h"
 
+
+namespace dart {
+namespace bin {
+
 Dart_Handle Extensions::LoadExtension(const char* extension_url,
                                       Dart_Handle parent_library) {
   char* library_path = strdup(extension_url);
@@ -62,3 +66,6 @@ char* Extensions::Concatenate(const char** strings) {
   ASSERT(result[size - 1] == '\0');
   return result;
 }
+
+}  // namespace bin
+}  // namespace dart

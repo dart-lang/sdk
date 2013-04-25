@@ -10,9 +10,14 @@
 #endif
 
 #include <unistd.h>
+#include <sys/event.h>  // NOLINT
 #include <sys/socket.h>
 
 #include "platform/hashmap.h"
+
+
+namespace dart {
+namespace bin {
 
 class InterruptMessage {
  public:
@@ -130,5 +135,7 @@ class EventHandlerImplementation {
   int kqueue_fd_;
 };
 
+}  // namespace bin
+}  // namespace dart
 
 #endif  // BIN_EVENTHANDLER_MACOS_H_

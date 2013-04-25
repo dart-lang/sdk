@@ -10,6 +10,9 @@
 #include "platform/globals.h"
 
 
+namespace dart {
+namespace bin {
+
 class Process {
  public:
   // Start a new process providing access to stdin, stdout, stderr and
@@ -58,5 +61,8 @@ class Process {
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Process);
 };
+
+}  // namespace bin
+}  // namespace dart
 
 #endif  // BIN_PROCESS_H_

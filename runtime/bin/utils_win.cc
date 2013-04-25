@@ -11,6 +11,10 @@
 #include "bin/utils.h"
 #include "bin/log.h"
 
+
+namespace dart {
+namespace bin {
+
 static void FormatMessageIntoBuffer(DWORD code,
                                     wchar_t* buffer,
                                     int buffer_length) {
@@ -144,5 +148,8 @@ int64_t TimerUtils::GetCurrentTimeMicros() {
 void TimerUtils::Sleep(int64_t millis) {
   ::Sleep(millis);
 }
+
+}  // namespace bin
+}  // namespace dart
 
 #endif  // defined(TARGET_OS_WINDOWS)

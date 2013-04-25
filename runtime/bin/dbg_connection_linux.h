@@ -10,6 +10,9 @@
 #include <sys/socket.h>
 
 
+namespace dart {
+namespace bin {
+
 class DebuggerConnectionImpl {
  public:
   static void StartHandler(int port_number);
@@ -27,5 +30,8 @@ class DebuggerConnectionImpl {
   // File descriptor for the polling queue.
   static int epoll_fd_;
 };
+
+}  // namespace bin
+}  // namespace dart
 
 #endif  // BIN_DBG_CONNECTION_LINUX_H_

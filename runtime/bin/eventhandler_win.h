@@ -15,6 +15,9 @@
 #include "bin/builtin.h"
 
 
+namespace dart {
+namespace bin {
+
 // Forward declarations.
 class EventHandlerImplementation;
 class Handle;
@@ -392,5 +395,7 @@ class EventHandlerImplementation {
   HANDLE completion_port_;
 };
 
+}  // namespace bin
+}  // namespace dart
 
 #endif  // BIN_EVENTHANDLER_WIN_H_

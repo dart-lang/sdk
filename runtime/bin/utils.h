@@ -11,6 +11,10 @@
 #include "include/dart_api.h"
 #include "platform/globals.h"
 
+
+namespace dart {
+namespace bin {
+
 class OSError {
  public:
   enum SubSystem {
@@ -84,5 +88,8 @@ class TimerUtils {
   static int64_t GetCurrentTimeMilliseconds();
   static void Sleep(int64_t millis);
 };
+
+}  // namespace bin
+}  // namespace dart
 
 #endif  // BIN_UTILS_H_

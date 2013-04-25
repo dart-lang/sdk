@@ -62,7 +62,10 @@ def makeFile(output_file, root_dir, input_files):
 
 ''' % date.today().year
   cc_text += '#include "bin/resources.h"\n\n'
+  cc_text += 'namespace dart {\n'
+  cc_text += 'namespace bin {\n'
   cc_text += makeResources(root_dir, input_files)
+  cc_text += '}  // namespace bin\n} // namespace dart\n'
   open(output_file, 'w').write(cc_text)
   return True
 

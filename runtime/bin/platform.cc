@@ -6,6 +6,8 @@
 #include "bin/platform.h"
 #include "include/dart_api.h"
 
+namespace dart {
+namespace bin {
 
 void FUNCTION_NAME(Platform_NumberOfProcessors)(Dart_NativeArguments args) {
   Dart_EnterScope();
@@ -73,3 +75,6 @@ void FUNCTION_NAME(Platform_Environment)(Dart_NativeArguments args) {
   }
   Dart_ExitScope();
 }
+
+}  // namespace bin
+}  // namespace dart

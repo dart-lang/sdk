@@ -4,6 +4,10 @@
 
 #include "bin/io_buffer.h"
 
+
+namespace dart {
+namespace bin {
+
 Dart_Handle IOBuffer::Allocate(intptr_t size, uint8_t **buffer) {
   uint8_t* data = Allocate(size);
   Dart_Handle result = Dart_NewExternalTypedData(kUint8,
@@ -22,3 +26,6 @@ Dart_Handle IOBuffer::Allocate(intptr_t size, uint8_t **buffer) {
 uint8_t* IOBuffer::Allocate(intptr_t size) {
   return new uint8_t[size];
 }
+
+}  // namespace bin
+}  // namespace dart

@@ -13,6 +13,10 @@ typedef unsigned __int8 uint8_t;
 #endif
 #include <stddef.h>
 
+
+namespace dart {
+namespace bin {
+
 // The string on the next line will be filled in with the contents of the
 // generated snapshot binary file.
 // This string forms the content of a snapshot which is loaded in by dart.
@@ -20,3 +24,6 @@ static const uint8_t snapshot_buffer_[] = {
   %s
 };
 const uint8_t* snapshot_buffer = snapshot_buffer_;
+
+}  // namespace bin
+}  // namespace dart

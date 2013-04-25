@@ -10,6 +10,9 @@
 #include "include/dart_api.h"
 #include "platform/globals.h"
 
+namespace dart {
+namespace bin {
+
 // Forward declarations.
 class File;
 
@@ -493,5 +496,8 @@ class CObjectExternalUint8Array : public CObject {
  private:
   DISALLOW_COPY_AND_ASSIGN(CObjectExternalUint8Array);
 };
+
+}  // namespace bin
+}  // namespace dart
 
 #endif  // BIN_DARTUTILS_H_

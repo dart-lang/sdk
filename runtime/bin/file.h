@@ -16,6 +16,10 @@
 #include "platform/globals.h"
 #include "platform/thread.h"
 
+
+namespace dart {
+namespace bin {
+
 // Forward declaration.
 class FileHandle;
 
@@ -163,5 +167,8 @@ class File {
 
   DISALLOW_COPY_AND_ASSIGN(File);
 };
+
+}  // namespace bin
+}  // namespace dart
 
 #endif  // BIN_FILE_H_

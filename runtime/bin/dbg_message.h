@@ -15,6 +15,9 @@
 #include "platform/thread.h"
 
 
+namespace dart {
+namespace bin {
+
 // TODO(hausner): Need better error handling.
 #define ASSERT_NOT_ERROR(handle)          \
   ASSERT(!Dart_IsError(handle))
@@ -257,5 +260,8 @@ class DbgMsgQueueList {
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(DbgMsgQueueList);
 };
+
+}  // namespace bin
+}  // namespace dart
 
 #endif  // BIN_DBG_MESSAGE_H_

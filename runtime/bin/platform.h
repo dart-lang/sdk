@@ -7,6 +7,10 @@
 
 #include "bin/builtin.h"
 
+
+namespace dart {
+namespace bin {
+
 class Platform {
  public:
   // Perform platform specific initialization.
@@ -34,5 +38,8 @@ class Platform {
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Platform);
 };
+
+}  // namespace bin
+}  // namespace dart
 
 #endif  // BIN_PLATFORM_H_

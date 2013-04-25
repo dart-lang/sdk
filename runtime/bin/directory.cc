@@ -10,6 +10,9 @@
 #include "platform/assert.h"
 
 
+namespace dart {
+namespace bin {
+
 // Forward declaration.
 static void DirectoryService(Dart_Port, Dart_Port, Dart_CObject*);
 
@@ -375,3 +378,6 @@ bool SyncDirectoryListing::HandleError(const char* dir_name) {
       args));
   return true;
 }
+
+}  // namespace bin
+}  // namespace dart

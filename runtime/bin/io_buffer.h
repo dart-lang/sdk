@@ -9,6 +9,10 @@
 
 #include "include/dart_api.h"
 
+
+namespace dart {
+namespace bin {
+
 class IOBuffer {
  public:
   // Allocate an IO buffer dart object (of type Uint8List) backed by
@@ -36,5 +40,8 @@ class IOBuffer {
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(IOBuffer);
 };
+
+}  // namespace bin
+}  // namespace dart
 
 #endif  // BIN_IO_BUFFER_H_

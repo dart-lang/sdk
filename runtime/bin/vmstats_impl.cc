@@ -14,6 +14,10 @@
 #include "include/dart_debugger_api.h"
 #include "platform/json.h"
 
+
+namespace dart {
+namespace bin {
+
 #define BUFSIZE 8192
 #define RETRY_PAUSE 100  // milliseconds
 
@@ -472,3 +476,6 @@ char* VmStatusService::GetVmStatus(const char* request) {
   }
   return NULL;
 }
+
+}  // namespace bin
+}  // namespace dart

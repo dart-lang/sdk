@@ -14,6 +14,10 @@
 
 #include "include/dart_api.h"
 
+
+namespace dart {
+namespace bin {
+
 static const int kSocketIdNativeField = 0;
 
 dart::Mutex Socket::mutex_;
@@ -529,3 +533,6 @@ Dart_Handle Socket::SetSocketIdNativeField(Dart_Handle socket, intptr_t id) {
 Dart_Handle Socket::GetSocketIdNativeField(Dart_Handle socket, intptr_t* id) {
   return Dart_GetNativeInstanceField(socket, kSocketIdNativeField, id);
 }
+
+}  // namespace bin
+}  // namespace dart

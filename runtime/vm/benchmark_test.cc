@@ -12,6 +12,8 @@
 #include "vm/stack_frame.h"
 #include "vm/unit_test.h"
 
+using dart::bin::File;
+
 namespace dart {
 
 Benchmark* Benchmark::first_ = NULL;

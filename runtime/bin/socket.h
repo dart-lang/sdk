@@ -24,6 +24,9 @@
 #endif
 
 
+namespace dart {
+namespace bin {
+
 union RawAddr {
   struct sockaddr_in in;
   struct sockaddr_in6 in6;
@@ -169,5 +172,8 @@ class ServerSocket {
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(ServerSocket);
 };
+
+}  // namespace bin
+}  // namespace dart
 
 #endif  // BIN_SOCKET_H_

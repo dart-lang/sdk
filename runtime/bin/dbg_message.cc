@@ -15,6 +15,10 @@
 
 #include "include/dart_api.h"
 
+
+namespace dart {
+namespace bin {
+
 bool MessageParser::IsValidMessage() const {
   if (buf_length_ == 0) {
     return false;
@@ -1246,3 +1250,6 @@ void DbgMsgQueueList::IsolateEventHandler(Dart_IsolateId isolate_id,
   }
   Dart_ExitScope();
 }
+
+}  // namespace bin
+}  // namespace dart

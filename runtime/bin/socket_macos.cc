@@ -19,6 +19,9 @@
 #include "bin/socket.h"
 
 
+namespace dart {
+namespace bin {
+
 SocketAddress::SocketAddress(struct addrinfo* addrinfo) {
   ASSERT(INET6_ADDRSTRLEN >= INET_ADDRSTRLEN);
   RawAddr* raw = reinterpret_cast<RawAddr*>(addrinfo->ai_addr);
@@ -291,5 +294,8 @@ bool Socket::SetNoDelay(intptr_t fd, bool enabled) {
                                        reinterpret_cast<char *>(&on),
                                        sizeof(on))) == 0;
 }
+
+}  // namespace bin
+}  // namespace dart
 
 #endif  // defined(TARGET_OS_MACOS)

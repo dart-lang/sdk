@@ -21,6 +21,9 @@
 #include "platform/utils.h"
 
 
+namespace dart {
+namespace bin {
+
 #define INVALID_FD -1
 
 int DebuggerConnectionImpl::kqueue_fd_ = INVALID_FD;
@@ -172,5 +175,8 @@ intptr_t DebuggerConnectionImpl::Send(intptr_t socket,
 intptr_t DebuggerConnectionImpl::Receive(intptr_t socket, char* buf, int len) {
   return TEMP_FAILURE_RETRY(read(socket, buf, len));
 }
+
+}  // namespace bin
+}  // namespace dart
 
 #endif  // defined(TARGET_OS_MACOS)

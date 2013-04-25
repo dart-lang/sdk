@@ -30,6 +30,10 @@
 
 #include "include/dart_api.h"
 
+
+namespace dart {
+namespace bin {
+
 bool SSLFilter::library_initialized_ = false;
 dart::Mutex SSLFilter::mutex_;  // To protect library initialization.
 // The password is needed when creating secure server sockets.  It can
@@ -714,3 +718,6 @@ intptr_t SSLFilter::ProcessBuffer(int buffer_index) {
   }
   return bytes_processed;
 }
+
+}  // namespace bin
+}  // namespace dart

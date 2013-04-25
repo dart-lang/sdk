@@ -8,6 +8,10 @@
 #include "bin/builtin.h"
 #include "platform/globals.h"
 
+
+namespace dart {
+namespace bin {
+
 class FDUtils {
  public:
   static bool SetCloseOnExec(intptr_t fd);
@@ -40,5 +44,8 @@ class FDUtils {
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(FDUtils);
 };
+
+}  // namespace bin
+}  // namespace dart
 
 #endif  // BIN_FDUTILS_H_

@@ -5,6 +5,10 @@
 
 #include "include/dart_api.h"
 
+
+namespace dart {
+namespace bin {
+
 Dart_NativeFunction ResolveName(Dart_Handle name, int argc);
 
 DART_EXPORT Dart_Handle test_extension_Init(Dart_Handle parent_library) {
@@ -50,3 +54,6 @@ Dart_NativeFunction ResolveName(Dart_Handle name, int argc) {
   }
   return NULL;
 }
+
+}  // namespace bin
+}  // namespace dart

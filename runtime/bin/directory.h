@@ -11,6 +11,10 @@
 #include "platform/globals.h"
 #include "platform/thread.h"
 
+
+namespace dart {
+namespace bin {
+
 class DirectoryListing {
  public:
   virtual ~DirectoryListing() {}
@@ -114,5 +118,7 @@ class Directory {
   DISALLOW_IMPLICIT_CONSTRUCTORS(Directory);
 };
 
+}  // namespace bin
+}  // namespace dart
 
 #endif  // BIN_DIRECTORY_H_

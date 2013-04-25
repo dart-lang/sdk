@@ -14,6 +14,10 @@
 #include "bin/thread.h"
 #include "bin/utils.h"
 
+
+namespace dart {
+namespace bin {
+
 static const int kReadHandle = 0;
 static const int kWriteHandle = 1;
 
@@ -662,5 +666,8 @@ void Process::TerminateExitCodeHandler() {
 intptr_t Process::CurrentProcessId() {
   return static_cast<intptr_t>(GetCurrentProcessId());
 }
+
+}  // namespace bin
+}  // namespace dart
 
 #endif  // defined(TARGET_OS_WINDOWS)

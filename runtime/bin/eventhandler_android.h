@@ -15,6 +15,10 @@
 
 #include "platform/hashmap.h"
 
+
+namespace dart {
+namespace bin {
+
 class InterruptMessage {
  public:
   intptr_t id;
@@ -118,5 +122,7 @@ class EventHandlerImplementation {
   int epoll_fd_;
 };
 
+}  // namespace bin
+}  // namespace dart
 
 #endif  // BIN_EVENTHANDLER_ANDROID_H_

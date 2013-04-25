@@ -10,6 +10,9 @@
 #include <signal.h>  // NOLINT
 
 
+namespace dart {
+namespace bin {
+
 static void sig_handler(int sig) {
   if (sig == SIGBREAK) {
     VmStats::DumpStack();
@@ -22,5 +25,8 @@ void VmStats::Initialize() {
     perror("Adding SIGBREAK signal handler failed");
   }
 }
+
+}  // namespace bin
+}  // namespace dart
 
 #endif  // defined(TARGET_OS_WINDOWS)

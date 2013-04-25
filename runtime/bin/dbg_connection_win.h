@@ -5,6 +5,9 @@
 #ifndef BIN_DBG_CONNECTION_WIN_H_
 #define BIN_DBG_CONNECTION_WIN_H_
 
+namespace dart {
+namespace bin {
+
 class DebuggerConnectionImpl {
  public:
   static void StartHandler(int port_number);
@@ -14,5 +17,8 @@ class DebuggerConnectionImpl {
  private:
   static void ThreadEntry(uword args);
 };
+
+}  // namespace bin
+}  // namespace dart
 
 #endif  // BIN_DBG_CONNECTION_WIN_H_
