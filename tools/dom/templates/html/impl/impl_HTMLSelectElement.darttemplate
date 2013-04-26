@@ -11,14 +11,14 @@ $!MEMBERS
   // does not operate as a List.
   List<OptionElement> get options {
     var options = this.children.where((e) => e is OptionElement).toList();
-    return new UnmodifiableListView<OptionElement>(options);
+    return new UnmodifiableListView(options);
   }
 
   List<OptionElement> get selectedOptions {
     // IE does not change the selected flag for single-selection items.
     if (this.multiple) {
       var options = this.options.where((o) => o.selected).toList();
-      return new UnmodifiableListView<OptionElement>(options);
+      return new UnmodifiableListView(options);
     } else {
       return [this.options[this.selectedIndex]];
     }

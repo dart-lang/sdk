@@ -4,8 +4,6 @@
 
 part of $LIBRARYNAME;
 
-// TODO(jacobr): use _Lists.dart to remove some of the duplicated
-// functionality.
 class _ChildrenElementList extends ListBase<Element> {
   // Raw Element.
   final Element _element;
@@ -15,104 +13,11 @@ class _ChildrenElementList extends ListBase<Element> {
     : _childElements = element.$dom_children,
       _element = element;
 
-  List<Element> toList({ bool growable: true }) {
-    List<Element> output;
-    if (growable) {
-      output = <Element>[];
-      output.length = _childElements.length;
-    } else {
-      output = new List<Element>(_childElements.length);
-    }
-    for (int i = 0, len = _childElements.length; i < len; i++) {
-      output[i] = _childElements[i];
-    }
-    return output;
-  }
-
-  Set<Element> toSet() {
-    final output = new Set<Element>();
-    for (int i = 0, len = _childElements.length; i < len; i++) {
-      output.add(_childElements[i]);
-    }
-    return output;
-  }
-
   bool contains(Element element) => _childElements.contains(element);
 
-  void forEach(void f(Element element)) {
-    for (Element element in _childElements) {
-      f(element);
-    }
-  }
-
-  bool every(bool f(Element element)) {
-    for (Element element in this) {
-      if (!f(element)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  bool any(bool f(Element element)) {
-    for (Element element in this) {
-      if (f(element)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  String join([String separator = ""]) {
-    return _childElements.join(separator);
-  }
-
-  Iterable map(f(Element element)) {
-    return _childElements.map(f);
-  }
-
-  Iterable<Element> where(bool f(Element element)) {
-    return _childElements.where(f);
-  }
-
-  Iterable expand(Iterable f(Element element)) {
-    return _childElements.expand(f);
-  }
 
   bool get isEmpty {
     return _element.$dom_firstElementChild == null;
-  }
-
-  Iterable<Element> take(int n) {
-    return _childElements.take(n);
-  }
-
-  Iterable<Element> takeWhile(bool test(Element value)) {
-    return _childElements.takeWhile(test);
-  }
-
-  Iterable<Element> skip(int n) {
-    return _childElements.skip(n);
-  }
-
-  Iterable<Element> skipWhile(bool test(Element value)) {
-    return _childElements.skipWhile(test);
-  }
-
-  Element firstWhere(bool test(Element value), {Element orElse()}) {
-    return _childElements.firstWhere(test, orElse: orElse);
-  }
-
-  Element lastWhere(bool test(Element value), {Element orElse()}) {
-    return _childElements.lastWhere(test, orElse: orElse);
-  }
-
-  Element singleWhere(bool test(Element value)) {
-    return _childElements.singleWhere(test);
-  }
-
-  Element elementAt(int index) {
-    return this[index];
   }
 
   int get length {
@@ -129,7 +34,7 @@ class _ChildrenElementList extends ListBase<Element> {
 
   void set length(int newLength) {
     // TODO(jacobr): remove children when length is reduced.
-    throw new UnsupportedError('');
+    throw new UnsupportedError('Cannot resize element lists');
   }
 
   Element add(Element value) {
@@ -149,21 +54,8 @@ class _ChildrenElementList extends ListBase<Element> {
     }
   }
 
-  Iterable<Element> get reversed {
-    return _childElements.reversed;
-  }
-
   void sort([int compare(Element a, Element b)]) {
-    throw new UnsupportedError('TODO(jacobr): should we impl?');
-  }
-
-  Element reduce(Element combine(Element value, Element element)) {
-    return _childElements.reduce(combine);
-  }
-
-  dynamic fold(dynamic initialValue,
-      dynamic combine(dynamic previousValue, Element element)) {
-    return _childElements.fold(initialValue, combine);
+    throw new UnsupportedError('Cannot sort element lists');
   }
 
   void setRange(int start, int end, Iterable<Element> iterable,
@@ -190,36 +82,6 @@ class _ChildrenElementList extends ListBase<Element> {
     return false;
   }
 
-  void removeWhere(bool test(Element element)) {
-    _childElements.removeWhere(test);
-  }
-
-  void retainWhere(bool test(Element element)) {
-    _childElements.retainWhere(test);
-  }
-
-  void removeRange(int start, int end) {
-    throw new UnimplementedError();
-  }
-
-  Iterable getRange(int start, int end)  {
-    throw new UnimplementedError();
-  }
-
-  List sublist(int start, [int end]) {
-    if (end == null) end = length;
-    return new _FrozenElementList._wrap(Lists.getRange(this, start, end, []));
-  }
-
-  int indexOf(Element element, [int start = 0]) {
-    return Lists.indexOf(this, element, start, this.length);
-  }
-
-  int lastIndexOf(Element element, [int start = null]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
   void insert(int index, Element element) {
     if (index < 0 || index > length) {
       throw new RangeError.range(index, 0, length);
@@ -229,10 +91,6 @@ class _ChildrenElementList extends ListBase<Element> {
     } else {
       _element.insertBefore(element, this[index]);
     }
-  }
-
-  void insertAll(int index, Iterable<Element> iterable) {
-    throw new UnimplementedError();
   }
 
   void setAll(int index, Iterable<Element> iterable) {
@@ -277,24 +135,13 @@ class _ChildrenElementList extends ListBase<Element> {
     if (length > 1) throw new StateError("More than one element");
     return first;
   }
-
-  Map<int, Element> asMap() {
-    return _childElements.asMap();
-  }
-
-  String toString() {
-    StringBuffer buffer = new StringBuffer('[');
-    buffer.writeAll(this, ', ');
-    buffer.write(']');
-    return buffer.toString();
-  }
 }
 
 // TODO(jacobr): this is an inefficient implementation but it is hard to see
 // a better option given that we cannot quite force NodeList to be an
 // ElementList as there are valid cases where a NodeList JavaScript object
 // contains Node objects that are not Elements.
-class _FrozenElementList extends ListBase {
+class _FrozenElementList<T extends Element> extends ListBase<T> {
   final List<Node> _nodeList;
 
   _FrozenElementList._wrap(this._nodeList);
@@ -304,60 +151,15 @@ class _FrozenElementList extends ListBase {
   Element operator [](int index) => _nodeList[index];
 
   void operator []=(int index, Element value) {
-    throw new UnsupportedError('');
+    throw new UnsupportedError('Cannot modify list');
   }
 
   void set length(int newLength) {
-    _nodeList.length = newLength;
+    throw new UnsupportedError('Cannot modify list');
   }
 
-  void add(Element value) {
-    throw new UnsupportedError('');
-  }
-
-  void addAll(Iterable<Element> iterable) {
-    throw new UnsupportedError('');
-  }
-
-  void sort([int compare(Element a, Element b)]) {
-    throw new UnsupportedError('');
-  }
-
-  void setRange(int start, int end, Iterable<Element> iterable,
-                [int skipCount = 0]) {
-    throw new UnsupportedError('');
-  }
-
-  void removeRange(int start, int end) {
-    throw new UnsupportedError('');
-  }
-
-  List<Element> sublist(int start, [int end]) {
-    return new _FrozenElementList._wrap(_nodeList.sublist(start, end));
-  }
-
-  void clear() {
-    throw new UnsupportedError('');
-  }
-
-  Element removeAt(int index) {
-    throw new UnsupportedError('');
-  }
-
-  Element removeLast() {
-    throw new UnsupportedError('');
-  }
-
-  bool remove(Object element) {
-    throw new UnsupportedError('');
-  }
-
-  void removeWhere(bool test(Element element)) {
-    throw new UnsupportedError('');
-  }
-
-  void retainWhere(bool test(Element element)) {
-    throw new UnsupportedError('');
+  void sort([Comparator<Element> compare]) {
+    throw new UnsupportedError('Cannot sort list');
   }
 
   Element get first => _nodeList.first;
@@ -365,13 +167,6 @@ class _FrozenElementList extends ListBase {
   Element get last => _nodeList.last;
 
   Element get single => _nodeList.single;
-
-  String toString() {
-    StringBuffer buffer = new StringBuffer('[');
-    buffer.writeAll(this, ', ');
-    buffer.write(']');
-    return buffer.toString();
-  }
 }
 
 class _ElementCssClassSet extends CssClassSet {
