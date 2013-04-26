@@ -259,7 +259,7 @@ void LocalScope::CollectLocalVariables(GrowableArray<VarDesc>* vars,
         desc.info.index = var->index();
         vars->Add(desc);
       } else if (var->name().Equals(
-            Symbols::Name(Symbols::kSavedCurrentContextVarId))) {
+            Symbols::Name(Symbols::kSavedEntryContextVarId))) {
         // This is the local variable in which the function saves the
         // caller's chain of closure contexts (caller's CTX register).
         VarDesc desc;

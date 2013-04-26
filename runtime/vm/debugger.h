@@ -159,7 +159,7 @@ class ActivationFrame : public ZoneAllocated {
                   Instance* value);
 
   RawArray* GetLocalVariables();
-  RawContext* GetSavedContext();
+  RawContext* GetSavedContext(const Context& ctx);
 
  private:
   intptr_t PcDescIndex();
