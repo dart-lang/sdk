@@ -442,13 +442,20 @@ class TypeMask {
         return true;
       }
 
-      // If [self] is a subclass of [other], it inherits the
-      // implementation of [element].
+      // If [self] is a subclass of [other], it inherits the implementation of
+      // [element].
       ClassElement cls = self;
       if (cls.isSubclassOf(other)) {
         // Resolve an invocation of [element.name] on [self]. If it
         // is found, this selector is a candidate.
         return hasElementIn(cls, selector, element);
+      }
+
+      // If one of the classes that is a subtype of [self] is a subclass of a
+      // mixin of [other], it inherits the implementation of [element].
+      if (compiler.world.isUsedAsMixin(other)) {
+        // TODO(10216): Implement the correct predicate.
+        return true;
       }
     }
     return false;

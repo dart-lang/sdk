@@ -845,7 +845,22 @@ class JavaScriptBackend extends Backend {
       Set<ClassElement> result = new Set<ClassElement>();
       for (Element element in intercepted) {
         ClassElement classElement = element.getEnclosingClass();
-        result.add(classElement);
+        if (classElement.isNative()
+            || interceptedClasses.contains(classElement)) {
+          result.add(classElement);
+        }
+        if (classesMixedIntoNativeClasses.contains(classElement)) {
+          // Add all native subclasses of mixin applications of [classElement].
+          Set<MixinApplicationElement> uses =
+              compiler.world.mixinUses[classElement];
+          for (MixinApplicationElement use in uses) {
+            for (ClassElement subclass in compiler.world.subclasses[use]) {
+              if (subclass.isNative()) {
+                result.add(subclass);
+              }
+            }
+          }
+        }
       }
       return result;
     });
