@@ -1845,43 +1845,31 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
 
   // 'instantiator_reg' is the instantiator AbstractTypeArguments object
   // (or null).
-  // If the instantiator is null and if the type argument vector
-  // instantiated from null becomes a vector of dynamic, then use null as
-  // the type arguments.
-  Label type_arguments_instantiated;
-  const intptr_t len = type_arguments().Length();
-  if (type_arguments().IsRawInstantiatedRaw(len)) {
-    const Immediate& raw_null =
-        Immediate(reinterpret_cast<intptr_t>(Object::null()));
-    __ cmpq(instantiator_reg, raw_null);
-    __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
+  if (!type_arguments().IsUninstantiatedIdentity()) {
+    // If the instantiator is null and if the type argument vector
+    // instantiated from null becomes a vector of dynamic, then use null as
+    // the type arguments.
+    Label type_arguments_instantiated;
+    const intptr_t len = type_arguments().Length();
+    if (type_arguments().IsRawInstantiatedRaw(len)) {
+      const Immediate& raw_null =
+          Immediate(reinterpret_cast<intptr_t>(Object::null()));
+      __ cmpq(instantiator_reg, raw_null);
+      __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
+    }
+    // Instantiate non-null type arguments.
+    // A runtime call to instantiate the type arguments is required.
+    __ PushObject(Object::ZoneHandle());  // Make room for the result.
+    __ PushObject(type_arguments());
+    __ pushq(instantiator_reg);  // Push instantiator type arguments.
+    compiler->GenerateCallRuntime(token_pos(),
+                                  deopt_id(),
+                                  kInstantiateTypeArgumentsRuntimeEntry,
+                                  locs());
+    __ Drop(2);  // Drop instantiator and uninstantiated type arguments.
+    __ popq(result_reg);  // Pop instantiated type arguments.
+    __ Bind(&type_arguments_instantiated);
   }
-  // Instantiate non-null type arguments.
-  if (type_arguments().IsUninstantiatedIdentity()) {
-    // Check if the instantiator type argument vector is a TypeArguments of a
-    // matching length and, if so, use it as the instantiated type_arguments.
-    // No need to check the instantiator ('instantiator_reg') for null here,
-    // because a null instantiator will have the wrong class (Null instead of
-    // TypeArguments).
-    Label type_arguments_uninstantiated;
-    __ CompareClassId(instantiator_reg, kTypeArgumentsCid);
-    __ j(NOT_EQUAL, &type_arguments_uninstantiated, Assembler::kNearJump);
-    __ cmpq(FieldAddress(instantiator_reg, TypeArguments::length_offset()),
-            Immediate(Smi::RawValue(len)));
-    __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
-    __ Bind(&type_arguments_uninstantiated);
-  }
-  // A runtime call to instantiate the type arguments is required.
-  __ PushObject(Object::ZoneHandle());  // Make room for the result.
-  __ PushObject(type_arguments());
-  __ pushq(instantiator_reg);  // Push instantiator type arguments.
-  compiler->GenerateCallRuntime(token_pos(),
-                                deopt_id(),
-                                kInstantiateTypeArgumentsRuntimeEntry,
-                                locs());
-  __ Drop(2);  // Drop instantiator and uninstantiated type arguments.
-  __ popq(result_reg);  // Pop instantiated type arguments.
-  __ Bind(&type_arguments_instantiated);
   ASSERT(instantiator_reg == result_reg);
   // 'result_reg': Instantiated type arguments.
 }
@@ -1907,38 +1895,26 @@ void ExtractConstructorTypeArgumentsInstr::EmitNativeCode(
 
   // instantiator_reg is the instantiator type argument vector, i.e. an
   // AbstractTypeArguments object (or null).
-  // If the instantiator is null and if the type argument vector
-  // instantiated from null becomes a vector of dynamic, then use null as
-  // the type arguments.
-  Label type_arguments_instantiated;
-  const intptr_t len = type_arguments().Length();
-  if (type_arguments().IsRawInstantiatedRaw(len)) {
-    const Immediate& raw_null =
-        Immediate(reinterpret_cast<intptr_t>(Object::null()));
-    __ cmpq(instantiator_reg, raw_null);
-    __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
+  if (!type_arguments().IsUninstantiatedIdentity()) {
+    // If the instantiator is null and if the type argument vector
+    // instantiated from null becomes a vector of dynamic, then use null as
+    // the type arguments.
+    Label type_arguments_instantiated;
+    const intptr_t len = type_arguments().Length();
+    if (type_arguments().IsRawInstantiatedRaw(len)) {
+      const Immediate& raw_null =
+          Immediate(reinterpret_cast<intptr_t>(Object::null()));
+      __ cmpq(instantiator_reg, raw_null);
+      __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
+    }
+    // Instantiate non-null type arguments.
+    // In the non-factory case, we rely on the allocation stub to
+    // instantiate the type arguments.
+    __ LoadObject(result_reg, type_arguments());
+    // result_reg: uninstantiated type arguments.
+    __ Bind(&type_arguments_instantiated);
   }
-  // Instantiate non-null type arguments.
-  if (type_arguments().IsUninstantiatedIdentity()) {
-    // Check if the instantiator type argument vector is a TypeArguments of a
-    // matching length and, if so, use it as the instantiated type_arguments.
-    // No need to check instantiator_reg for null here, because a null
-    // instantiator will have the wrong class (Null instead of TypeArguments).
-    Label type_arguments_uninstantiated;
-    __ CompareClassId(instantiator_reg, kTypeArgumentsCid);
-    __ j(NOT_EQUAL, &type_arguments_uninstantiated, Assembler::kNearJump);
-    const Immediate& arguments_length =
-        Immediate(Smi::RawValue(type_arguments().Length()));
-    __ cmpq(FieldAddress(instantiator_reg, TypeArguments::length_offset()),
-        arguments_length);
-    __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
-    __ Bind(&type_arguments_uninstantiated);
-  }
-  // In the non-factory case, we rely on the allocation stub to
-  // instantiate the type arguments.
-  __ LoadObject(result_reg, type_arguments());
-  // result_reg: uninstantiated type arguments.
-  __ Bind(&type_arguments_instantiated);
+  ASSERT(instantiator_reg == result_reg);
   // result_reg: uninstantiated or instantiated type arguments.
 }
 
@@ -1961,50 +1937,30 @@ void ExtractConstructorInstantiatorInstr::EmitNativeCode(
   ASSERT(locs()->out().reg() == instantiator_reg);
 
   // instantiator_reg is the instantiator AbstractTypeArguments object
-  // (or null).  If the instantiator is null and if the type argument vector
-  // instantiated from null becomes a vector of dynamic, then use null as
-  // the type arguments and do not pass the instantiator.
-  Label done;
-  const intptr_t len = type_arguments().Length();
-  if (type_arguments().IsRawInstantiatedRaw(len)) {
-    const Immediate& raw_null =
-        Immediate(reinterpret_cast<intptr_t>(Object::null()));
-    Label instantiator_not_null;
-    __ cmpq(instantiator_reg, raw_null);
-    __ j(NOT_EQUAL, &instantiator_not_null, Assembler::kNearJump);
-    // Null was used in VisitExtractConstructorTypeArguments as the
-    // instantiated type arguments, no proper instantiator needed.
-    __ movq(instantiator_reg,
-            Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
-    __ jmp(&done);
-    __ Bind(&instantiator_not_null);
-  }
-  // Instantiate non-null type arguments.
+  // (or null).
   if (type_arguments().IsUninstantiatedIdentity()) {
-    // TODO(regis): The following emitted code is duplicated in
-    // VisitExtractConstructorTypeArguments above. The reason is that the code
-    // is split between two computations, so that each one produces a
-    // single value, rather than producing a pair of values.
-    // If this becomes an issue, we should expose these tests at the IL level.
-
-    // Check if the instantiator type argument vector is a TypeArguments of a
-    // matching length and, if so, use it as the instantiated type_arguments.
-    // No need to check the instantiator ('instantiator_reg') for null here,
-    // because a null instantiator will have the wrong class (Null instead of
-    // TypeArguments).
-    __ CompareClassId(instantiator_reg, kTypeArgumentsCid);
-    __ j(NOT_EQUAL, &done, Assembler::kNearJump);
-    const Immediate& arguments_length =
-        Immediate(Smi::RawValue(type_arguments().Length()));
-    __ cmpq(FieldAddress(instantiator_reg, TypeArguments::length_offset()),
-        arguments_length);
-    __ j(NOT_EQUAL, &done, Assembler::kNearJump);
     // The instantiator was used in VisitExtractConstructorTypeArguments as the
     // instantiated type arguments, no proper instantiator needed.
     __ movq(instantiator_reg,
             Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
+  } else {
+    // If the instantiator is null and if the type argument vector
+    // instantiated from null becomes a vector of dynamic, then use null as
+    // the type arguments and do not pass the instantiator.
+    const intptr_t len = type_arguments().Length();
+    if (type_arguments().IsRawInstantiatedRaw(len)) {
+      const Immediate& raw_null =
+          Immediate(reinterpret_cast<intptr_t>(Object::null()));
+      Label instantiator_not_null;
+      __ cmpq(instantiator_reg, raw_null);
+      __ j(NOT_EQUAL, &instantiator_not_null, Assembler::kNearJump);
+      // Null was used in VisitExtractConstructorTypeArguments as the
+      // instantiated type arguments, no proper instantiator needed.
+      __ movq(instantiator_reg,
+              Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
+      __ Bind(&instantiator_not_null);
+    }
   }
-  __ Bind(&done);
   // instantiator_reg: instantiator or kNoInstantiator.
 }
 

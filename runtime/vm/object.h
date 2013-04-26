@@ -4781,7 +4781,10 @@ class Array : public Instance {
     return raw_ptr()->type_arguments_;
   }
   virtual void SetTypeArguments(const AbstractTypeArguments& value) const {
-    ASSERT(value.IsNull() || ((value.Length() == 1) && value.IsInstantiated()));
+    // An Array is raw or takes one type argument. However, its type argument
+    // vector may be longer than 1 due to a type optimization reusing the type
+    // argument vector of the instantiator.
+    ASSERT(value.IsNull() || ((value.Length() >= 1) && value.IsInstantiated()));
     StorePointer(&raw_ptr()->type_arguments_, value.raw());
   }
 
@@ -4909,7 +4912,10 @@ class GrowableObjectArray : public Instance {
     return raw_ptr()->type_arguments_;
   }
   virtual void SetTypeArguments(const AbstractTypeArguments& value) const {
-    ASSERT(value.IsNull() || ((value.Length() == 1) && value.IsInstantiated()));
+    // A GrowableObjectArray is raw or takes one type argument. However, its
+    // type argument vector may be longer than 1 due to a type optimization
+    // reusing the type argument vector of the instantiator.
+    ASSERT(value.IsNull() || ((value.Length() >= 1) && value.IsInstantiated()));
     const Array& contents = Array::Handle(data());
     contents.SetTypeArguments(value);
     StorePointer(&raw_ptr()->type_arguments_, value.raw());

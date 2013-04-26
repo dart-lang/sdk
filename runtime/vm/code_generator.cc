@@ -98,9 +98,11 @@ DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
   arguments.SetReturn(array);
   AbstractTypeArguments& element_type =
       AbstractTypeArguments::CheckedHandle(arguments.ArgAt(1));
-  // An Array is raw or takes only one type argument.
+  // An Array is raw or takes one type argument. However, its type argument
+  // vector may be longer than 1 due to a type optimization reusing the type
+  // argument vector of the instantiator.
   ASSERT(element_type.IsNull() ||
-         ((element_type.Length() == 1) && element_type.IsInstantiated()));
+         ((element_type.Length() >= 1) && element_type.IsInstantiated()));
   array.SetTypeArguments(element_type);  // May be null.
 }
 
@@ -122,40 +124,29 @@ DEFINE_RUNTIME_ENTRY(AllocateObject, 3) {
   }
   AbstractTypeArguments& type_arguments =
       AbstractTypeArguments::CheckedHandle(arguments.ArgAt(1));
-  ASSERT(type_arguments.IsNull() ||
-         (type_arguments.Length() == cls.NumTypeArguments()));
   // If no instantiator is provided, set the type arguments and return.
   if (Object::Handle(arguments.ArgAt(2)).IsSmi()) {
     ASSERT(Smi::CheckedHandle(arguments.ArgAt(2)).Value() ==
            StubCode::kNoInstantiator);
+    // Unless null (for a raw type), the type argument vector may be longer than
+    // necessary due to a type optimization reusing the type argument vector of
+    // the instantiator.
+    ASSERT(type_arguments.IsNull() ||
+           (type_arguments.IsInstantiated() &&
+            (type_arguments.Length() >= cls.NumTypeArguments())));
     instance.SetTypeArguments(type_arguments);  // May be null.
     return;
   }
-  ASSERT(!type_arguments.IsInstantiated());
+  // A still uninstantiated type argument vector must have the correct length.
+  ASSERT(!type_arguments.IsInstantiated() &&
+         (type_arguments.Length() == cls.NumTypeArguments()));
   const AbstractTypeArguments& instantiator =
       AbstractTypeArguments::CheckedHandle(arguments.ArgAt(2));
   ASSERT(instantiator.IsNull() || instantiator.IsInstantiated());
-  if (instantiator.IsNull()) {
-    type_arguments =
-        InstantiatedTypeArguments::New(type_arguments, instantiator);
-  } else if (instantiator.IsTypeArguments()) {
-    // Code inlined in the caller should have optimized the case where the
-    // instantiator is a TypeArguments and can be used as type argument vector.
-    ASSERT(!type_arguments.IsUninstantiatedIdentity() ||
-           (instantiator.Length() != type_arguments.Length()));
-    type_arguments =
-        InstantiatedTypeArguments::New(type_arguments, instantiator);
-  } else {
-    // If possible, use the instantiator as the type argument vector.
-    if (type_arguments.IsUninstantiatedIdentity() &&
-        (instantiator.Length() == type_arguments.Length())) {
-      type_arguments = instantiator.raw();
-    } else {
-      type_arguments =
-          InstantiatedTypeArguments::New(type_arguments, instantiator);
-    }
-  }
-  ASSERT(type_arguments.IsInstantiated());
+  // Code inlined in the caller should have optimized the case where the
+  // instantiator can be reused as type argument vector.
+  ASSERT(instantiator.IsNull() || !type_arguments.IsUninstantiatedIdentity());
+  type_arguments = InstantiatedTypeArguments::New(type_arguments, instantiator);
   instance.SetTypeArguments(type_arguments);
 }
 
@@ -185,38 +176,28 @@ DEFINE_RUNTIME_ENTRY(AllocateObjectWithBoundsCheck, 3) {
   ASSERT(cls.HasTypeArguments());
   AbstractTypeArguments& type_arguments =
       AbstractTypeArguments::CheckedHandle(arguments.ArgAt(1));
-  ASSERT(type_arguments.IsNull() ||
-         (type_arguments.Length() == cls.NumTypeArguments()));
   if (Object::Handle(arguments.ArgAt(2)).IsSmi()) {
     ASSERT(Smi::CheckedHandle(arguments.ArgAt(2)).Value() ==
            StubCode::kNoInstantiator);
+    // Unless null (for a raw type), the type argument vector may be longer than
+    // necessary due to a type optimization reusing the type argument vector of
+    // the instantiator.
+    ASSERT(type_arguments.IsNull() ||
+           (type_arguments.IsInstantiated() &&
+            (type_arguments.Length() >= cls.NumTypeArguments())));
   } else {
-    ASSERT(!type_arguments.IsInstantiated());
+    // A still uninstantiated type argument vector must have the correct length.
+    ASSERT(!type_arguments.IsInstantiated() &&
+           (type_arguments.Length() == cls.NumTypeArguments()));
     const AbstractTypeArguments& instantiator =
         AbstractTypeArguments::CheckedHandle(arguments.ArgAt(2));
     ASSERT(instantiator.IsNull() || instantiator.IsInstantiated());
     Error& malformed_error = Error::Handle();
-    if (instantiator.IsNull()) {
-      type_arguments = type_arguments.InstantiateFrom(instantiator,
-                                                      &malformed_error);
-    } else if (instantiator.IsTypeArguments()) {
-      // Code inlined in the caller should have optimized the case where the
-      // instantiator is a TypeArguments and can be used as type argument
-      // vector.
-      ASSERT(!type_arguments.IsUninstantiatedIdentity() ||
-             (instantiator.Length() != type_arguments.Length()));
-      type_arguments = type_arguments.InstantiateFrom(instantiator,
-                                                      &malformed_error);
-    } else {
-      // If possible, use the instantiator as the type argument vector.
-      if (type_arguments.IsUninstantiatedIdentity() &&
-          (instantiator.Length() == type_arguments.Length())) {
-        type_arguments = instantiator.raw();
-      } else {
-        type_arguments = type_arguments.InstantiateFrom(instantiator,
-                                                        &malformed_error);
-      }
-    }
+    // Code inlined in the caller should have optimized the case where the
+    // instantiator can be reused as type argument vector.
+  ASSERT(instantiator.IsNull() || !type_arguments.IsUninstantiatedIdentity());
+    type_arguments = type_arguments.InstantiateFrom(instantiator,
+                                                    &malformed_error);
     if (!malformed_error.IsNull()) {
       // Throw a dynamic type error.
       const intptr_t location = GetCallerLocation();
@@ -247,11 +228,8 @@ DEFINE_RUNTIME_ENTRY(InstantiateTypeArguments, 2) {
   ASSERT(!type_arguments.IsNull() && !type_arguments.IsInstantiated());
   ASSERT(instantiator.IsNull() || instantiator.IsInstantiated());
   // Code inlined in the caller should have optimized the case where the
-  // instantiator can be used as type argument vector.
-  ASSERT(instantiator.IsNull() ||
-         !type_arguments.IsUninstantiatedIdentity() ||
-         !instantiator.IsTypeArguments() ||
-         (instantiator.Length() != type_arguments.Length()));
+  // instantiator can be reused as type argument vector.
+  ASSERT(instantiator.IsNull() || !type_arguments.IsUninstantiatedIdentity());
   type_arguments = InstantiatedTypeArguments::New(type_arguments, instantiator);
   ASSERT(type_arguments.IsInstantiated());
   arguments.SetReturn(type_arguments);

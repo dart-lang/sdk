@@ -4552,10 +4552,7 @@ void ConstantPropagator::VisitInstantiateTypeArguments(
       SetValue(instr, object);
       return;
     }
-    if (instr->type_arguments().IsUninstantiatedIdentity() &&
-        !object.IsNull() &&
-        object.IsTypeArguments() &&
-        (TypeArguments::Cast(object).Length() == len)) {
+    if (instr->type_arguments().IsUninstantiatedIdentity()) {
       SetValue(instr, object);
       return;
     }

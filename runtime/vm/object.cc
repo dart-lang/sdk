@@ -9023,16 +9023,16 @@ bool Instance::IsInstanceOf(const AbstractType& other,
       type_arguments = type_arguments.Canonicalize();
       SetTypeArguments(type_arguments);
     }
-    // Verify that the number of type arguments in the instance matches the
-    // number of type arguments expected by the instance class.
+    // The number of type arguments in the instance must be greater or equal to
+    // the number of type arguments expected by the instance class.
     // A discrepancy is allowed for closures, which borrow the type argument
     // vector of their instantiator, which may be of a subclass of the class
     // defining the closure. Truncating the vector to the correct length on
     // instantiation is unnecessary. The vector may therefore be longer.
+    // Also, an optimization reuses the type argument vector of the instantiator
+    // of generic instances when its layout is compatible.
     ASSERT(type_arguments.IsNull() ||
-           (type_arguments.Length() == num_type_arguments) ||
-           (cls.IsSignatureClass() &&
-            (type_arguments.Length() > num_type_arguments)));
+           (type_arguments.Length() >= num_type_arguments));
   }
   Class& other_class = Class::Handle();
   AbstractTypeArguments& other_type_arguments = AbstractTypeArguments::Handle();
