@@ -4640,25 +4640,30 @@ class CheckStackOverflowInstr : public TemplateInstruction<0> {
 };
 
 
-class SmiToDoubleInstr : public TemplateDefinition<0> {
+class SmiToDoubleInstr : public TemplateDefinition<1> {
  public:
-  explicit SmiToDoubleInstr(InstanceCallInstr* instance_call)
-      : instance_call_(instance_call) { }
+  explicit SmiToDoubleInstr(Value* value) {
+    SetInputAt(0, value);
+  }
 
-  InstanceCallInstr* instance_call() const { return instance_call_; }
+  Value* value() const { return inputs_[0]; }
 
   DECLARE_INSTRUCTION(SmiToDouble)
   virtual CompileType ComputeType() const;
 
+  virtual Representation representation() const {
+    return kUnboxedDouble;
+  }
+
   virtual intptr_t ArgumentCount() const { return 1; }
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool CanDeoptimize() const { return false; }
 
   virtual bool HasSideEffect() const { return false; }
+  virtual bool AffectedBySideEffect() const { return false; }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
 
  private:
-  InstanceCallInstr* instance_call_;
-
   DISALLOW_COPY_AND_ASSIGN(SmiToDoubleInstr);
 };
 
@@ -4739,6 +4744,10 @@ class DoubleToDoubleInstr : public TemplateDefinition<1> {
   virtual bool CanDeoptimize() const { return false; }
 
   virtual bool HasSideEffect() const { return false; }
+  virtual bool AffectedBySideEffect() const { return false; }
+  virtual bool AttributesEqual(Instruction* other) const {
+    return other->AsDoubleToDouble()->recognized_kind() == recognized_kind();
+  }
 
   virtual Representation representation() const {
     return kUnboxedDouble;
@@ -4777,6 +4786,10 @@ class InvokeMathCFunctionInstr : public Definition {
   virtual bool CanDeoptimize() const { return false; }
 
   virtual bool HasSideEffect() const { return false; }
+  virtual bool AffectedBySideEffect() const { return false; }
+  virtual bool AttributesEqual(Instruction* other) const {
+    return other->AsDoubleToDouble()->recognized_kind() == recognized_kind();
+  }
 
   virtual Representation representation() const {
     return kUnboxedDouble;

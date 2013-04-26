@@ -2969,37 +2969,21 @@ void UnarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* SmiToDoubleInstr::MakeLocationSummary() const {
-  return MakeCallSummary();  // Calls a stub to allocate result.
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* result =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  result->set_in(0, Location::WritableRegister());
+  result->set_out(Location::RequiresFpuRegister());
+  return result;
 }
 
 
 void SmiToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register result = locs()->out().reg();
-
-  Label* deopt = compiler->AddDeoptStub(instance_call()->deopt_id(),
-                                        kDeoptIntegerToDouble);
-
-  const Class& double_class = compiler->double_class();
-  const Code& stub =
-      Code::Handle(StubCode::GetAllocationStubForClass(double_class));
-  const ExternalLabel label(double_class.ToCString(), stub.EntryPoint());
-
-  // TODO(vegorov): allocate box in the driver loop to avoid spilling.
-  compiler->GenerateCall(instance_call()->token_pos(),
-                         &label,
-                         PcDescriptors::kOther,
-                         locs());
-  ASSERT(result == EAX);
-  Register value = EBX;
-  // Preserve argument on the stack until after the deoptimization point.
-  __ movl(value, Address(ESP, 0));
-
-  __ testl(value, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, deopt);  // Deoptimize if not Smi.
+  Register value = locs()->in(0).reg();
+  FpuRegister result = locs()->out().fpu_reg();
   __ SmiUntag(value);
-  __ cvtsi2sd(XMM0, value);
-  __ movsd(FieldAddress(result, Double::value_offset()), XMM0);
-  __ Drop(1);
+  __ cvtsi2sd(result, value);
 }
 
 
@@ -3063,8 +3047,6 @@ void DoubleToSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register result = locs()->out().reg();
   XmmRegister value = locs()->in(0).fpu_reg();
   __ cvttsd2si(result, value);
-  // Overflow is signalled with minint.
-  Label do_call, done;
   // Check for overflow and that it fits into Smi.
   __ cmpl(result, Immediate(0xC0000000));
   __ j(NEGATIVE, deopt);

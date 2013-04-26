@@ -1605,11 +1605,10 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
   }
 
   if ((recognized_kind == MethodRecognizer::kIntegerToDouble) &&
+      (ic_data.NumberOfChecks() == 1) &&
       (class_ids[0] == kSmiCid)) {
-    SmiToDoubleInstr* s2d_instr = new SmiToDoubleInstr(call);
-    call->ReplaceWith(s2d_instr, current_iterator());
-    // Pushed arguments are not removed because SmiToDouble is implemented
-    // as a call.
+    AddReceiverCheck(call);
+    ReplaceCall(call, new SmiToDoubleInstr(new Value(call->ArgumentAt(0))));
     return true;
   }
 
@@ -4675,8 +4674,13 @@ void ConstantPropagator::VisitUnarySmiOp(UnarySmiOpInstr* instr) {
 
 
 void ConstantPropagator::VisitSmiToDouble(SmiToDoubleInstr* instr) {
-  // TODO(kmillikin): Handle conversion.
-  SetValue(instr, non_constant_);
+  const Object& value = instr->value()->definition()->constant_value();
+  if (IsConstant(value) && value.IsInteger()) {
+    SetValue(instr, Double::Handle(
+        Double::New(Integer::Cast(value).AsDoubleValue(), Heap::kOld)));
+  } else if (IsNonConstant(value)) {
+    SetValue(instr, non_constant_);
+  }
 }
 
 

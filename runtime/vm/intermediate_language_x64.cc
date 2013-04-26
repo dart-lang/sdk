@@ -2989,38 +2989,21 @@ void UnarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* SmiToDoubleInstr::MakeLocationSummary() const {
-  return MakeCallSummary();  // Calls a stub to allocate result.
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* result =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  result->set_in(0, Location::WritableRegister());
+  result->set_out(Location::RequiresFpuRegister());
+  return result;
 }
 
 
 void SmiToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register result = locs()->out().reg();
-
-  Label* deopt = compiler->AddDeoptStub(instance_call()->deopt_id(),
-                                        kDeoptIntegerToDouble);
-
-  const Class& double_class = compiler->double_class();
-  const Code& stub =
-    Code::Handle(StubCode::GetAllocationStubForClass(double_class));
-  const ExternalLabel label(double_class.ToCString(), stub.EntryPoint());
-
-  // TODO(fschneider): Inline new-space allocation and move the call into
-  // deferred code.
-  compiler->GenerateCall(instance_call()->token_pos(),
-                         &label,
-                         PcDescriptors::kOther,
-                         locs());
-  ASSERT(result == RAX);
-  Register value = RBX;
-  // Preserve argument on the stack until after the deoptimization point.
-  __ movq(value, Address(RSP, 0));
-
-  __ testq(value, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, deopt);  // Deoptimize if not Smi.
+  Register value = locs()->in(0).reg();
+  FpuRegister result = locs()->out().fpu_reg();
   __ SmiUntag(value);
-  __ cvtsi2sd(XMM0, value);
-  __ movsd(FieldAddress(result, Double::value_offset()), XMM0);
-  __ Drop(1);
+  __ cvtsi2sd(result, value);
 }
 
 
