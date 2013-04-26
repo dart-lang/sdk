@@ -58,7 +58,7 @@ class Heap {
     switch (space) {
       case kNew:
         // Do not attempt to allocate very large objects in new space.
-        if (!PageSpace::IsPageAllocatableSize(size)) {
+        if (!IsAllocatableInNewSpace(size)) {
           return AllocateOld(size, HeapPage::kData);
         }
         return AllocateNew(size);
@@ -192,6 +192,10 @@ class Heap {
 
   bool gc_in_progress() const { return gc_in_progress_; }
 
+  static bool IsAllocatableInNewSpace(intptr_t size) {
+    return size <= kNewAllocatableSize;
+  }
+
  private:
   class GCStats : public ValueObject {
    public:
@@ -223,6 +227,8 @@ class Heap {
 
     DISALLOW_COPY_AND_ASSIGN(GCStats);
   };
+
+  static const intptr_t kNewAllocatableSize = 256 * KB;
 
   Heap();
 

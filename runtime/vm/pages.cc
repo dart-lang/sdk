@@ -32,15 +32,13 @@ HeapPage* HeapPage::Initialize(VirtualMemory* memory, PageType type) {
   HeapPage* result = reinterpret_cast<HeapPage*>(memory->address());
   result->memory_ = memory;
   result->next_ = NULL;
-  result->used_ = 0;
   result->executable_ = is_executable;
   return result;
 }
 
 
 HeapPage* HeapPage::Allocate(intptr_t size, PageType type) {
-  VirtualMemory* memory =
-      VirtualMemory::ReserveAligned(size, PageSpace::kPageAlignment);
+  VirtualMemory* memory = VirtualMemory::Reserve(size);
   return Initialize(memory, type);
 }
 

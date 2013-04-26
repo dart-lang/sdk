@@ -14,33 +14,21 @@ namespace dart {
 intptr_t GCSweeper::SweepPage(HeapPage* page, FreeList* freelist) {
   // Keep track of the discovered live object sizes to be able to finish
   // sweeping early. Reset the per page in_use count for the next marking phase.
-  intptr_t in_use_swept = 0;
-  intptr_t in_use = page->used();
-  page->set_used(0);
-
-  // Whole page is empty. Do not enter anything into the freelist.
-  if (in_use == 0) {
-    return 0;
-  }
+  intptr_t in_use = 0;
 
   bool is_executable = (page->type() == HeapPage::kExecutable);
-  uword current = page->object_start();
+  uword start = page->object_start();
   uword end = page->object_end();
+  uword current = start;
 
   while (current < end) {
     intptr_t obj_size;
-    if (in_use_swept == in_use) {
-      // No more marked objects will be found on this page.
-      obj_size = end - current;
-      freelist->Free(current, obj_size);
-      break;
-    }
     RawObject* raw_obj = RawObject::FromAddr(current);
     if (raw_obj->IsMarked()) {
       // Found marked object. Clear the mark bit and update swept bytes.
       raw_obj->ClearMarkBit();
       obj_size = raw_obj->Size();
-      in_use_swept += obj_size;
+      in_use += obj_size;
     } else {
       uword free_end = current + raw_obj->Size();
       while (free_end < end) {
@@ -56,12 +44,16 @@ intptr_t GCSweeper::SweepPage(HeapPage* page, FreeList* freelist) {
       if (is_executable) {
         memset(reinterpret_cast<void*>(current), 0xcc, obj_size);
       }
-      freelist->Free(current, obj_size);
+      if ((current != start) || (free_end != end)) {
+        // Only add to the free list if not covering the whole page.
+        freelist->Free(current, obj_size);
+      }
     }
     current += obj_size;
   }
+  ASSERT(current == end);
 
-  return in_use_swept;
+  return in_use;
 }
 
 

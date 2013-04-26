@@ -10,6 +10,7 @@
 #include "vm/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/flow_graph_compiler.h"
+#include "vm/heap.h"
 #include "vm/instructions.h"
 #include "vm/object_store.h"
 #include "vm/stack_frame.h"
@@ -933,7 +934,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   ASSERT(instance_size > 0);
   const intptr_t type_args_size = InstantiatedTypeArguments::InstanceSize();
   if (FLAG_inline_alloc &&
-      PageSpace::IsPageAllocatableSize(instance_size + type_args_size)) {
+      Heap::IsAllocatableInNewSpace(instance_size + type_args_size)) {
     Label slow_case;
     Heap* heap = Isolate::Current()->heap();
     __ LoadImmediate(R5, heap->TopAddress());
@@ -1103,7 +1104,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
   const intptr_t closure_size = Closure::InstanceSize();
   const intptr_t context_size = Context::InstanceSize(1);  // Captured receiver.
   if (FLAG_inline_alloc &&
-      PageSpace::IsPageAllocatableSize(closure_size + context_size)) {
+      Heap::IsAllocatableInNewSpace(closure_size + context_size)) {
     Label slow_case;
     Heap* heap = Isolate::Current()->heap();
     __ LoadImmediate(R5, heap->TopAddress());
