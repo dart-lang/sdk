@@ -300,7 +300,7 @@ def ConfigureJava():
                             stderr=subprocess.PIPE)
     (stdout, stderr) = proc.communicate()
     if proc.wait() != 0:
-      raise ToolError('non-zero exit code from ' + java_home)
+      return None
     new = stdout.strip()
     current = os.getenv('JAVA_HOME', default=new)
     if current != new:

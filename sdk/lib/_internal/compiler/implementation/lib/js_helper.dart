@@ -19,7 +19,7 @@ import 'dart:_interceptors' show getInterceptor,
                                  makeDispatchRecord,
                                  setDispatchProperty,
                                  Interceptor,
-                                 JSIndexable;
+                                 JSMutableIndexable;
 import "dart:_collection-dev" as _symbol_dev;
 
 part 'constant_map.dart';
@@ -579,9 +579,11 @@ iae(argument) {
 /**
  * Called by generated code to throw an index-out-of-range exception,
  * for example, if a bounds check fails in an optimized indexed
- * access.
+ * access.  This may also be called when the index is not an integer, in
+ * which case it throws an illegal-argument exception instead, like [iae].
  */
 ioore(index) {
+  if (index is !int) iae(index);
   throw new RangeError.value(index);
 }
 
@@ -1302,7 +1304,7 @@ malformedTypeCast(value, type, reasons) {
  * objects that support integer indexing. This interface is not
  * visible to anyone, and is only injected into special libraries.
  */
-abstract class JavaScriptIndexingBehavior extends JSIndexable {
+abstract class JavaScriptIndexingBehavior extends JSMutableIndexable {
 }
 
 // TODO(lrn): These exceptions should be implemented in core.

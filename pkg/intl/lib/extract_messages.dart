@@ -32,6 +32,12 @@ import 'dart:io';
 import 'package:intl/src/intl_message.dart';
 
 /**
+ * If this is true, print warnings for skipped messages. Otherwise, warnings
+ * are suppressed.
+ */
+bool suppressWarnings = false;
+
+/**
  * Parse the dart program represented in [sourceCode] and return a Map from
  * message names to [IntlMessage] instances. The [origin] is a string
  * describing where the source came from, and is used in error messages.
@@ -195,9 +201,9 @@ class MessageFindingVisitor extends GeneralizingASTVisitor {
   void addIntlMessage(MethodInvocation node) {
     if (!looksLikeIntlMessage(node)) return;
     var reason = checkValidity(node);
-    if (!(reason == null)) {
+    if (reason != null && !suppressWarnings) {
       print("Skipping invalid Intl.message invocation\n    <$node>");
-      print("  reason: $reason");
+      print("    reason: $reason");
       reportErrorLocation(node);
       return;
     }
@@ -227,11 +233,11 @@ class MessageFindingVisitor extends GeneralizingASTVisitor {
   }
 
   void reportErrorLocation(ASTNode node) {
-    if (origin != null) print("from $origin");
+    if (origin != null) print("    from $origin");
     LineInfo info = root.lineInfo;
     if (info != null) {
       LineInfo_Location line = info.getLocation(node.offset);
-      print("line: ${line.lineNumber}, column: ${line.columnNumber}");
+      print("    line: ${line.lineNumber}, column: ${line.columnNumber}");
     }
   }
 }

@@ -127,6 +127,11 @@ class Symbols;
     }                                                                          \
   }                                                                            \
   /* Disallow allocation, copy constructors and override super assignment. */  \
+ public:  /* NOLINT */                                                         \
+  void operator delete(void* pointer) {                                        \
+    UNREACHABLE();                                                             \
+  }                                                                            \
+ private:  /* NOLINT */                                                        \
   void* operator new(size_t size);                                             \
   object(const object& value);                                                 \
   void operator=(Raw##super* value);                                           \
@@ -324,6 +329,10 @@ class Object {
     ASSERT(bool_false_ != NULL);
     return *bool_false_;
   }
+  static const LanguageError& snapshot_writer_error() {
+    ASSERT(snapshot_writer_error_ != NULL);
+    return *snapshot_writer_error_;
+  }
 
   static RawClass* class_class() { return class_class_; }
   static RawClass* null_class() { return null_class_; }
@@ -515,6 +524,7 @@ class Object {
   static Instance* transition_sentinel_;
   static Bool* bool_true_;
   static Bool* bool_false_;
+  static LanguageError* snapshot_writer_error_;
 
   friend void ClassTable::Register(const Class& cls);
   friend void RawObject::Validate(Isolate* isolate) const;
@@ -525,9 +535,7 @@ class Object {
   friend class ExternalOneByteString;
   friend class ExternalTwoByteString;
 
-  // Disallow allocation.
-  void* operator new(size_t size);
-  // Disallow copy constructor.
+  DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Object);
 };
 
@@ -3083,7 +3091,8 @@ class ICData : public Object {
   // Adds sorted so that Smi is the first class-id. Use only for
   // num_args_tested == 1.
   void AddReceiverCheck(intptr_t receiver_class_id,
-                        const Function& target) const;
+                        const Function& target,
+                        intptr_t count = 1) const;
 
   // Retrieving checks.
 
@@ -3099,6 +3108,8 @@ class ICData : public Object {
   RawFunction* GetTargetAt(intptr_t index) const;
   RawFunction* GetTargetForReceiverClassId(intptr_t class_id) const;
 
+  void IncrementCountAt(intptr_t index, intptr_t value) const;
+  void SetCountAt(intptr_t index, intptr_t value) const;
   intptr_t GetCountAt(intptr_t index) const;
   intptr_t AggregateCount() const;
 
@@ -4770,7 +4781,10 @@ class Array : public Instance {
     return raw_ptr()->type_arguments_;
   }
   virtual void SetTypeArguments(const AbstractTypeArguments& value) const {
-    ASSERT(value.IsNull() || ((value.Length() == 1) && value.IsInstantiated()));
+    // An Array is raw or takes one type argument. However, its type argument
+    // vector may be longer than 1 due to a type optimization reusing the type
+    // argument vector of the instantiator.
+    ASSERT(value.IsNull() || ((value.Length() >= 1) && value.IsInstantiated()));
     StorePointer(&raw_ptr()->type_arguments_, value.raw());
   }
 
@@ -4898,7 +4912,10 @@ class GrowableObjectArray : public Instance {
     return raw_ptr()->type_arguments_;
   }
   virtual void SetTypeArguments(const AbstractTypeArguments& value) const {
-    ASSERT(value.IsNull() || ((value.Length() == 1) && value.IsInstantiated()));
+    // A GrowableObjectArray is raw or takes one type argument. However, its
+    // type argument vector may be longer than 1 due to a type optimization
+    // reusing the type argument vector of the instantiator.
+    ASSERT(value.IsNull() || ((value.Length() >= 1) && value.IsInstantiated()));
     const Array& contents = Array::Handle(data());
     contents.SetTypeArguments(value);
     StorePointer(&raw_ptr()->type_arguments_, value.raw());
@@ -5040,6 +5057,12 @@ class TypedData : public Instance {
     return ElementSizeInBytes(cid);
   }
 
+
+  TypeDataElementType ElementType() const {
+    intptr_t cid = raw()->GetClassId();
+    return ElementType(cid);
+  }
+
   intptr_t LengthInBytes() const {
     intptr_t cid = raw()->GetClassId();
     return (ElementSizeInBytes(cid) * Length());
@@ -5089,7 +5112,13 @@ class TypedData : public Instance {
 
   static intptr_t ElementSizeInBytes(intptr_t class_id) {
     ASSERT(RawObject::IsTypedDataClassId(class_id));
-    return element_size[class_id - kTypedDataInt8ArrayCid];
+    return element_size[ElementType(class_id)];
+  }
+
+  static TypeDataElementType ElementType(intptr_t class_id) {
+    ASSERT(RawObject::IsTypedDataClassId(class_id));
+    return static_cast<TypeDataElementType>(
+        class_id - kTypedDataInt8ArrayCid);
   }
 
   static intptr_t MaxElements(intptr_t class_id) {
@@ -5101,11 +5130,26 @@ class TypedData : public Instance {
                            intptr_t len,
                            Heap::Space space = Heap::kNew);
 
-  static void Copy(const TypedData& dst,
-                   intptr_t dst_offset_in_bytes,
-                   const TypedData& src,
-                   intptr_t src_offset_in_bytes,
-                   intptr_t length_in_bytes);
+  template <typename DstType, typename SrcType>
+  static void Copy(const DstType& dst, intptr_t dst_offset_in_bytes,
+                   const SrcType& src, intptr_t src_offset_in_bytes,
+                   intptr_t length_in_bytes) {
+    ASSERT(dst.ElementType() == src.ElementType());
+    ASSERT(Utils::RangeCheck(src_offset_in_bytes,
+                             length_in_bytes,
+                             src.LengthInBytes()));
+    ASSERT(Utils::RangeCheck(dst_offset_in_bytes,
+                             length_in_bytes,
+                             dst.LengthInBytes()));
+    {
+      NoGCScope no_gc;
+      if (length_in_bytes > 0) {
+        memmove(dst.DataAddr(dst_offset_in_bytes),
+                src.DataAddr(src_offset_in_bytes),
+                length_in_bytes);
+      }
+    }
+  }
 
   static bool IsTypedData(const Instance& obj) {
     ASSERT(!obj.IsNull());
@@ -5138,6 +5182,11 @@ class ExternalTypedData : public Instance {
   intptr_t ElementSizeInBytes() const {
     intptr_t cid = raw()->GetClassId();
     return ElementSizeInBytes(cid);
+  }
+
+  TypeDataElementType ElementType() const {
+    intptr_t cid = raw()->GetClassId();
+    return ElementType(cid);
   }
 
   intptr_t LengthInBytes() const {
@@ -5190,7 +5239,13 @@ class ExternalTypedData : public Instance {
 
   static intptr_t ElementSizeInBytes(intptr_t class_id) {
     ASSERT(RawObject::IsExternalTypedDataClassId(class_id));
-    return TypedData::element_size[class_id - kExternalTypedDataInt8ArrayCid];
+    return TypedData::element_size[ElementType(class_id)];
+  }
+
+  static TypeDataElementType ElementType(intptr_t class_id) {
+    ASSERT(RawObject::IsExternalTypedDataClassId(class_id));
+    return static_cast<TypeDataElementType>(
+        class_id - kExternalTypedDataInt8ArrayCid);
   }
 
   static intptr_t MaxElements(intptr_t class_id) {
@@ -5202,12 +5257,6 @@ class ExternalTypedData : public Instance {
                                    uint8_t* data,
                                    intptr_t len,
                                    Heap::Space space = Heap::kNew);
-
-  static void Copy(const ExternalTypedData& dst,
-                   intptr_t dst_offset_in_bytes,
-                   const ExternalTypedData& src,
-                   intptr_t src_offset_in_bytes,
-                   intptr_t length_in_bytes);
 
   static bool IsExternalTypedData(const Instance& obj) {
     ASSERT(!obj.IsNull());

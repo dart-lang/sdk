@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(gram): dart2js is not handling 'part of' properly yet; when it does
-// uncomment this.
-//part of test_controller;
+part of test_controller;
 
 /** Path to DRT executable. */
 String drt;
@@ -40,6 +38,12 @@ Function notifyDone;
 /** The action function to use. */
 Function action;
 
+/**
+ * A special marker string used to separate group names and
+ * identify non-debug output.
+ */ 
+final marker = '###';
+
 class Macros {
   static const String testTime = '<TIME>';
   static const String testfile = '<FILENAME>';
@@ -49,9 +53,11 @@ class Macros {
   static const String testStacktrace = '<STACK>';
 }
 
-class TestRunnerConfiguration extends unittest.Configuration {
+class TestRunnerConfiguration extends Configuration {
   get name => 'Minimal test runner configuration';
   get autoStart => false;
+
+  void onInit() {}
 
   String formatMessage(filename, groupname,
       [ testname = '', testTime = '', result = '',
@@ -68,7 +74,7 @@ class TestRunnerConfiguration extends unittest.Configuration {
         replaceAll(Macros.testStacktrace, stack);
   }
 
-  String elapsed(unittest.TestCase t) {
+  String elapsed(TestCase t) {
     if (includeTime) {
       double duration = t.runningTime.inMilliseconds.toDouble();
       duration /= 1000;
@@ -78,11 +84,11 @@ class TestRunnerConfiguration extends unittest.Configuration {
     }
   }
 
-  void dumpTestResult(source, unittest.TestCase t) {
+  void dumpTestResult(source, TestCase t) {
     var groupName = '', testName = '';
-    var idx = t.description.lastIndexOf('###');
+    var idx = t.description.lastIndexOf(marker);
     if (idx >= 0) {
-        groupName = t.description.substring(0, idx).replaceAll('###', ' ');
+        groupName = t.description.substring(0, idx).replaceAll(marker, ' ');
         testName = t.description.substring(idx+3);
     } else {
         testName = t.description;
@@ -94,7 +100,7 @@ class TestRunnerConfiguration extends unittest.Configuration {
         duration, t.result, message, stack));
   }
 
-  void onTestResult(unittest.TestCase testCase) {
+  void onTestResult(TestCase testCase) {
     if (immediate) {
       dumpTestResult('$testfile ', testCase);
     }
@@ -116,7 +122,7 @@ class TestRunnerConfiguration extends unittest.Configuration {
   }
 
   void onSummary(int passed, int failed, int errors,
-      List<unittest.TestCase> results, String uncaughtError) {
+      List<TestCase> results, String uncaughtError) {
     if (!immediate) {
       for (final testCase in results) {
         dumpTestResult('$testfile ', testCase);
@@ -134,12 +140,6 @@ class TestRunnerConfiguration extends unittest.Configuration {
   }
 }
 
-// Support for listing tests and groups. We use a minimal config.
-class MinimalTestRunnerConfiguration extends unittest.Configuration {
-  get name => 'Minimal test runner configuration';
-  get autoStart => false;
-}
-
 String formatListMessage(filename, groupname, [ testname = '']) {
   return listFormat.
       replaceAll(Macros.testfile, filename).
@@ -148,13 +148,13 @@ String formatListMessage(filename, groupname, [ testname = '']) {
 }
 
 listGroups() {
-  List tests = unittest.testCases;
+  List tests = testCases;
   Map groups = {};
   for (var t in tests) {
     var groupName, testName = '';
-    var idx = t.description.lastIndexOf('###');
+    var idx = t.description.lastIndexOf(marker);
     if (idx >= 0) {
-      groupName = t.description.substring(0, idx).replaceAll('###', ' ');
+      groupName = t.description.substring(0, idx).replaceAll(marker, ' ');
       if (!groups.containsKey(groupName)) {
         groups[groupName] = '';
       }
@@ -162,7 +162,7 @@ listGroups() {
   }
   for (var g in groups.keys) {
     var msg = formatListMessage('$testfile ', '$g ');
-    print('###$msg');
+    print('$marker$msg');
   }
   if (notifyDone != null) {
     notifyDone(0);
@@ -170,19 +170,19 @@ listGroups() {
 }
 
 listTests() {
-  List tests = unittest.testCases;
+  List tests = testCases;
   for (var t in tests) {
     var groupName, testName = '';
-    var idx = t.description.lastIndexOf('###');
+    var idx = t.description.lastIndexOf(marker);
     if (idx >= 0) {
-      groupName = t.description.substring(0, idx).replaceAll('###', ' ');
+      groupName = t.description.substring(0, idx).replaceAll(marker, ' ');
       testName = t.description.substring(idx+3);
     } else {
       groupName = '';
       testName = t.description;
     }
     var msg = formatListMessage('$testfile ', '$groupName ', '$testName ');
-    print('###$msg');
+    print('$marker$msg');
   }
   if (notifyDone != null) {
     notifyDone(0);
@@ -191,13 +191,13 @@ listTests() {
 
 // Support for running in isolates.
 
-class TestRunnerChildConfiguration extends unittest.Configuration {
+class TestRunnerChildConfiguration extends Configuration {
   get name => 'Test runner child configuration';
   get autoStart => false;
 
   void onSummary(int passed, int failed, int errors,
-      List<unittest.TestCase> results, String uncaughtError) {
-    unittest.TestCase test = results[0];
+      List<TestCase> results, String uncaughtError) {
+    TestCase test = results[0];
     parentPort.send([test.result, test.runningTime.inMilliseconds,
                      test.message, test.stackTrace]);
   }
@@ -207,59 +207,43 @@ var parentPort;
 runChildTest() {
   port.receive((testName, sendport) {
     parentPort = sendport;
-    unittest.configure(new TestRunnerChildConfiguration());
-    unittest.groupSep = '###';
-    unittest.group('', test.main);
-    unittest.filterTests(testName);
-    unittest.runTests();
+    unittestConfiguration = new TestRunnerChildConfiguration();
+    groupSep = marker;
+    group('', test.main);
+    filterTests(testName);
+    runTests();
   });
 }
 
-var testNum;
-var failed;
-var errors;
-var passed;
-
-runParentTest() {
-  var tests = unittest.testCases;
-  tests[testNum].startTime = new DateTime.now();
+isolatedTestParentWrapper(testCase) => () {
   SendPort childPort = spawnFunction(runChildTest);
-  childPort.call(tests[testNum].description).then((results) {
+  var f = childPort.call(testCase.description);
+  f.then((results) {
     var result = results[0];
     var duration = new Duration(milliseconds: results[1]);
     var message = results[2];
     var stack = results[3];
-    if (result == 'pass') {
-      tests[testNum].pass();
-      ++passed;
-    } else if (result == 'fail') {
-      tests[testNum].fail(message, stack);
-      ++failed;
-    } else {
-      tests[testNum].error(message, stack);
-      ++errors;
-    }
-    tests[testNum].runningTime = duration;
-    ++testNum;
-    if (testNum < tests.length) {
-      runParentTest();
-    } else {
-      unittest.config.onDone(passed, failed, errors,
-          unittest.testCases, null);
+    if (result == 'fail') {
+      testCase.fail(message, stack);
+    } else if (result == 'error') {
+      testCase.error(message, stack);
     }
   });
-}
+  return f;
+};
 
 runIsolateTests() {
-  testNum = 0;
-  passed = failed = errors = 0;
-  runParentTest();
+  // Replace each test with a wrapped version first.
+  for (var i = 0; i < testCases.length; i++) {
+    testCases[i].testFunction = isolatedTestParentWrapper(testCases[i]);
+  }
+  runTests();
 }
 
 // Main
 
 filterTest(t) {
-  var name = t.description.replaceAll("###", " ");
+  var name = t.description.replaceAll(marker, " ");
   if (includeFilters.length > 0) {
     for (var f in includeFilters) {
       if (name.indexOf(f) >= 0) return true;
@@ -276,10 +260,10 @@ filterTest(t) {
 }
 
 process(testMain, action) {
-  unittest.groupSep = '###';
-  unittest.configure(new TestRunnerConfiguration());
-  unittest.group('', testMain);
+  groupSep = marker;
+  unittestConfiguration = new TestRunnerConfiguration();
+  group('', testMain);
   // Do any user-specified test filtering.
-  unittest.filterTests(filterTest);
+  filterTests(filterTest);
   action();
 }

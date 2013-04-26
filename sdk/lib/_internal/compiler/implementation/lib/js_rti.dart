@@ -32,7 +32,7 @@ class TypeImpl implements Type {
 }
 
 String getClassName(var object) {
-  return JS('String', r'#.constructor.builtin$cls', object);
+  return JS('String', r'#.constructor.builtin$cls', getInterceptor(object));
 }
 
 String getRuntimeTypeAsString(List runtimeType) {
@@ -78,6 +78,11 @@ String getRuntimeTypeString(var object) {
   String className = isJsArray(object) ? 'List' : getClassName(object);
   var typeInfo = JS('var', r'#.$builtinTypeInfo', object);
   return "$className${joinArguments(typeInfo, 0)}";
+}
+
+Type getRuntimeType(var object) {
+  String type = getRuntimeTypeString(object);
+  return new TypeImpl(type);
 }
 
 bool isJsFunction(var o) => JS('bool', r'typeof # == "function"', o);

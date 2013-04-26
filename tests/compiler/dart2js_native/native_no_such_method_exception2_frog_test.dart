@@ -4,10 +4,10 @@
 
 import "package:expect/expect.dart";
 
-class A native "*A" {
+class A native "A" {
 }
 
-class B extends A native "*B" {
+class B extends A native "B" {
   foo() native;
 }
 

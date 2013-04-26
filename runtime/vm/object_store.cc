@@ -41,7 +41,7 @@ ObjectStore::ObjectStore()
     growable_object_array_class_(Class::null()),
     float32x4_class_(Class::null()),
     uint32x4_class_(Class::null()),
-    typeddata_classes_(Array::null()),
+    typed_data_classes_(Array::null()),
     stacktrace_class_(Class::null()),
     jsregexp_class_(Class::null()),
     weak_property_class_(Class::null()),
@@ -58,7 +58,7 @@ ObjectStore::ObjectStore()
     mirrors_library_(Library::null()),
     native_wrappers_library_(Library::null()),
     root_library_(Library::null()),
-    typeddata_library_(Library::null()),
+    typed_data_library_(Library::null()),
     uri_library_(Library::null()),
     utf_library_(Library::null()),
     libraries_(GrowableObjectArray::null()),
@@ -104,8 +104,7 @@ bool ObjectStore::PreallocateObjects() {
   ASSERT(this->stack_overflow() == Instance::null());
   ASSERT(this->out_of_memory() == Instance::null());
   ASSERT(this->preallocated_stack_trace() == Stacktrace::null());
-  // TODO(regis): Reenable this code for arm and mips when possible.
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+
   Object& result = Object::Handle();
 
   result = Exceptions::Create(Exceptions::kStackOverflow,
@@ -131,7 +130,7 @@ bool ObjectStore::PreallocateObjects() {
       Array::New(Stacktrace::kPreallocatedStackdepth, Heap::kOld));
   result = Stacktrace::New(func_array, code_array, pc_offset_array);
   set_preallocated_stack_trace(Stacktrace::Cast(result));
-#endif
+
   return true;
 }
 

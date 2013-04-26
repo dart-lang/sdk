@@ -9,7 +9,7 @@
 
 import 'package:expect/expect.dart';
 import 'dart:io';
-import 'dart:typeddata';
+import 'dart:typed_data';
 
 void testServerCompress() {
   void test(List<int> data) {
@@ -19,7 +19,7 @@ void testServerCompress() {
         request.response.close();
       });
       var client = new HttpClient();
-      client.get("localhost", server.port, "/")
+      client.get("127.0.0.1", server.port, "/")
           .then((request) {
             request.headers.set(HttpHeaders.ACCEPT_ENCODING, "gzip,deflate");
             return request.close();
@@ -55,7 +55,7 @@ void testAcceptEncodingHeader() {
         request.response.close();
       });
       var client = new HttpClient();
-      client.get("localhost", server.port, "/")
+      client.get("127.0.0.1", server.port, "/")
           .then((request) {
             request.headers.set(HttpHeaders.ACCEPT_ENCODING, encoding);
             return request.close();

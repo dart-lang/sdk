@@ -11,11 +11,10 @@ import "package:expect/expect.dart";
 import "dart:async";
 import "dart:io";
 import "dart:isolate";
-import "dart:typeddata";
+import "dart:typed_data";
 import "dart:uri";
 
 const String CERT_NAME = 'localhost_cert';
-const String SERVER_ADDRESS = '127.0.0.1';
 const String HOST_NAME = 'localhost';
 
 /**
@@ -27,11 +26,11 @@ class SecurityConfiguration {
   SecurityConfiguration({bool this.secure});
 
   Future<HttpServer> createServer({int backlog: 0}) =>
-      secure ? HttpServer.bindSecure(SERVER_ADDRESS,
+      secure ? HttpServer.bindSecure(HOST_NAME,
                                      0,
                                      backlog: backlog,
                                      certificateName: CERT_NAME)
-             : HttpServer.bind(SERVER_ADDRESS,
+             : HttpServer.bind(HOST_NAME,
                                0,
                                backlog);
 
@@ -193,12 +192,16 @@ class SecurityConfiguration {
         WebSocketTransformer.upgrade(request)
             .then((webSocket) {
               webSocket.close();
-              webSocket.listen((_) { Expect.fail(); }, onDone: server.close);
+              webSocket.listen(
+                  (_) { Expect.fail("Unexpected message"); },
+                  onDone: server.close);
             });
       });
 
       createClient(server.port).then((webSocket) {
-          webSocket.listen((_) { Expect.fail(); }, onDone: webSocket.close);
+          webSocket.listen(
+              (_) { Expect.fail("Unexpected message"); },
+              onDone: webSocket.close);
         });
     });
   }
@@ -209,7 +212,9 @@ class SecurityConfiguration {
       server.listen((request) {
         WebSocketTransformer.upgrade(request)
             .then((webSocket) {
-              webSocket.listen((_) { Expect.fail(); }, onDone: () {
+              webSocket.listen(
+                  (_) { Expect.fail("Unexpected message"); },
+                  onDone: () {
                 server.close();
                 webSocket.close();
               });
@@ -218,7 +223,9 @@ class SecurityConfiguration {
 
       createClient(server.port).then((webSocket) {
           webSocket.close();
-          webSocket.listen((_) { Expect.fail(); }, onDone: webSocket.close);
+          webSocket.listen(
+              (_) { Expect.fail("Unexpected message"); },
+              onDone: webSocket.close);
         });
     });
   }

@@ -13,6 +13,9 @@
 #include "platform/assert.h"
 
 
+namespace dart {
+namespace bin {
+
 // Lists the native functions implementing advanced dart:io classes.
 // Some classes, like File and Directory, list their implementations in
 // builtin_natives.cc instead.
@@ -91,3 +94,6 @@ Dart_NativeFunction IONativeLookup(Dart_Handle name,
   }
   return NULL;
 }
+
+}  // namespace bin
+}  // namespace dart

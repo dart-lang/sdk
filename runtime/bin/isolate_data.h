@@ -8,6 +8,10 @@
 #include "include/dart_api.h"
 #include "platform/globals.h"
 
+
+namespace dart {
+namespace bin {
+
 // Forward declaration.
 class EventHandler;
 
@@ -29,5 +33,8 @@ class IsolateData {
  private:
   DISALLOW_COPY_AND_ASSIGN(IsolateData);
 };
+
+}  // namespace bin
+}  // namespace dart
 
 #endif  // BIN_ISOLATE_DATA_H_

@@ -27,10 +27,10 @@ class Task {
   /// The queue to which this [Task] belongs.
   final TaskQueue queue;
 
-  // TODO(nweiz): make this a read-only view when issue 8321 is fixed.
   /// Child tasks that have been spawned while running this task. This will be
   /// empty if this task is a nested task.
-  final children = new Queue<Task>();
+  List<Task> get children => new UnmodifiableListView(_children);
+  final _children = new Queue<Task>();
 
   /// A [FutureGroup] that will complete once all current child tasks are
   /// finished running. This will be null if no child tasks are currently
@@ -110,7 +110,7 @@ class Task {
   /// finished.
   Future runChild(fn(), String description) {
     var task = new Task._child(fn, description, this);
-    children.add(task);
+    _children.add(task);
     if (_childGroup == null || _childGroup.completed) {
       _childGroup = new FutureGroup();
     }

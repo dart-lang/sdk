@@ -7,7 +7,7 @@
 import "package:expect/expect.dart";
 import 'dart:_js_helper' show JSName;
 
-class A native "*A" {
+class A native "A" {
   @JSName('fooA')
   int foo() native;
 

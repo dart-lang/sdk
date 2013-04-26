@@ -234,25 +234,6 @@ class HtmlDartGenerator(object):
         argument = signatures[signature_index][i]
         parameter_name = parameter_names[i]
         test_type = self._DartType(argument.type.id)
-        # TODO(antonm): temporary ugly hack to be able to work with existing
-        # typed array types as well as dart:typeddata types until
-        # the transition to dart:typeddata is complete for both dart2js
-        # and dartium.
-        from systemnative import DartiumBackend
-        if isinstance(self, DartiumBackend):
-          if argument.type.id == 'ArrayBufferView':
-            checks.append(
-                '(%(name)s is ArrayBufferView '
-                '|| %(name)s is _typeddata.TypedData '
-                '|| %(name)s == null)' % {'name': parameter_name})
-            continue
-          if argument.type.id == 'ArrayBuffer':
-            checks.append(
-                '(%(name)s is ArrayBuffer '
-                '|| %(name)s is _typeddata.ByteBuffer '
-                '|| %(name)s == null)' % {'name': parameter_name})
-            continue
-        # end of ugly hack.
         if test_type in ['dynamic', 'Object']:
           checks.append('?%s' % parameter_name)
         elif not can_omit_type_check(test_type, i):
@@ -301,7 +282,7 @@ class HtmlDartGenerator(object):
           check = '?%s' % parameter_names[argument_position]
           # argument_count instead of argument_position + 1 is used here to cover one
           # complicated case with the effectively optional argument in the middle.
-          # Consider foo(x, [Optional] y, [Optional=DefaultIsNullString] z)
+          # Consider foo(x, optional y, [Default=NullString] optional z)
           # (as of now it's modelled after HTMLMediaElement.webkitAddKey).
           # y is optional in WebCore, while z is not.
           # In this case, if y was actually passed, we'd like to emit foo(x, y, z) invocation,
@@ -339,10 +320,7 @@ class HtmlDartGenerator(object):
   def AdditionalImplementedInterfaces(self):
     # TODO: Include all implemented interfaces, including other Lists.
     implements = []
-    if self._interface_type_info.is_typed_array():
-      element_type = self._interface_type_info.list_item_type()
-      implements.append('List<%s>' % element_type)
-    elif self._interface_type_info.list_item_type():
+    if self._interface_type_info.list_item_type():
       item_type_info = self._type_registry.TypeInfo(
           self._interface_type_info.list_item_type())
       implements.append('List<%s>' % item_type_info.dart_type())
@@ -361,41 +339,6 @@ class HtmlDartGenerator(object):
     for constructor_info in constructors:
       self._AddConstructor(
           constructor_info, factory_name, factory_constructor_name)
-
-    typed_array_type = None
-    for interface in self._database.Hierarchy(self._interface):
-      type_info = self._type_registry.TypeInfo(interface.id)
-      if type_info.is_typed_array():
-        typed_array_type = type_info.list_item_type()
-        break
-
-    annotations = FormatAnnotationsAndComments(
-        GetAnnotationsAndComments(self._library_name, self._interface.id,
-                                  self._interface.id), '  ')
-
-    fromListAnnotations = FormatAnnotationsAndComments(
-        GetAnnotationsAndComments(self._library_name, self._interface.id,
-                                  'fromList'), '  ')
-
-    fromBufferAnnotations = FormatAnnotationsAndComments(
-        GetAnnotationsAndComments(self._library_name, self._interface.id,
-                                  'fromBuffer'), '  ')
-
-    if typed_array_type:
-      self._members_emitter.Emit(
-          '\n  $(ANNOTATIONS)factory $CTOR(int length) =>\n'
-          '    $FACTORY.create$(CTOR)(length);\n'
-          '\n  $(LIST_ANNOTATIONS)factory $CTOR.fromList(List<$TYPE> list) =>\n'
-          '    $FACTORY.create$(CTOR)_fromList(list);\n'
-          '\n  $(BUFFER_ANNOTATIONS)factory $CTOR.fromBuffer(ArrayBuffer buffer, '
-              '[int byteOffset, int length]) => \n'
-          '    $FACTORY.create$(CTOR)_fromBuffer(buffer, byteOffset, length);\n',
-        CTOR=self._interface.id,
-        ANNOTATIONS=annotations,
-        LIST_ANNOTATIONS=fromListAnnotations,
-        BUFFER_ANNOTATIONS=fromBufferAnnotations,
-        TYPE=self._DartType(typed_array_type),
-        FACTORY=factory_name)
 
   def _AddConstructor(self,
       constructor_info, factory_name, factory_constructor_name):
@@ -586,6 +529,7 @@ class HtmlDartGenerator(object):
     has_clear = any(op.id == 'clear' for op in self._interface.operations)
     has_length = False
     has_length_setter = False
+
     for attr in self._interface.attributes:
       if attr.id == 'length':
         has_length = True

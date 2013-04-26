@@ -85,10 +85,6 @@ class SsaInstructionMerger extends HBaseVisitor {
     analyzeInputs(instruction, 1);
   }
 
-  // An integer check method must not have its input generated at use site,
-  // because it's using it twice.
-  void visitIntegerCheck(HIntegerCheck instruction) {}
-
   // A type guard should not generate its input at use site, otherwise
   // they would not be alive.
   void visitTypeGuard(HTypeGuard instruction) {}
@@ -108,7 +104,8 @@ class SsaInstructionMerger extends HBaseVisitor {
   void visitTypeConversion(HTypeConversion instruction) {
     if (!instruction.isChecked) {
       markAsGenerateAtUseSite(instruction);
-    } else if (!instruction.isArgumentTypeCheck) {
+    } else if (!instruction.isArgumentTypeCheck
+               && !instruction.isReceiverTypeCheck) {
       assert(instruction.isCheckedModeCheck || instruction.isCastTypeCheck);
       // Checked mode checks and cast checks compile to code that
       // only use their input once, so we can safely visit them

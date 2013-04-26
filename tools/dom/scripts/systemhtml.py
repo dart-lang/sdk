@@ -12,11 +12,10 @@ import os
 from generator import *
 from htmldartgenerator import *
 
-HTML_LIBRARY_NAMES = ['chrome', 'html', 'indexed_db', 'svg', 'web_audio',
-                      'web_gl', 'web_sql']
+HTML_LIBRARY_NAMES = ['chrome', 'html', 'indexed_db', 'svg',
+                      'web_audio', 'web_gl', 'web_sql']
 
 _js_custom_members = monitored.Set('systemhtml._js_custom_members', [
-    'ArrayBuffer.slice',
     'AudioBufferSourceNode.start',
     'AudioBufferSourceNode.stop',
     'AudioContext.createGain',
@@ -264,6 +263,7 @@ _element_constructors = {
   'html': _html_element_constructors,
   'indexed_db': {},
   'svg': _svg_element_constructors,
+  'typed_data': {},
   'web_audio': {},
   'web_gl': {},
   'web_sql': {},
@@ -281,6 +281,10 @@ _factory_ctr_strings = {
   'svg': {
     'provider_name': '_SvgElementFactoryProvider',
     'constructor_name': 'createSvgElement_tag',
+  },
+  'typed_data': {
+      'provider_name': 'document',
+      'constructor_name': '$dom_createElement'
   },
   'web_audio': {
     'provider_name': 'document',
@@ -424,7 +428,9 @@ class HtmlDartInterfaceGenerator(object):
     self._library_name = self._renamer.GetLibraryName(self._interface)
 
   def Generate(self):
-    if 'Callback' in self._interface.ext_attrs:
+    if IsCustomType(self._interface.id):
+      pass
+    elif 'Callback' in self._interface.ext_attrs:
       self.GenerateCallback()
     else:
       self.GenerateInterface()
@@ -645,7 +651,7 @@ class Dart2JSBackend(HtmlDartGenerator):
     return self._interface.doc_js_name in _js_custom_constructors
 
   def IsConstructorArgumentOptional(self, argument):
-    return 'Optional' in argument.ext_attrs
+    return argument.optional
 
   def EmitStaticFactoryOverload(self, constructor_info, name, arguments):
     index = len(arguments)
@@ -988,7 +994,7 @@ class Dart2JSBackend(HtmlDartGenerator):
         parameter_names,
         declaration,
         GenerateCall,
-        self._IsOptional,
+        lambda _, argument: IsOptional(argument),
         can_omit_type_check=lambda type, pos: type == parameter_types[pos])
 
   def _AddInterfaceOperation(self, info, html_name):
@@ -998,9 +1004,6 @@ class Dart2JSBackend(HtmlDartGenerator):
         TYPE=self.SecureOutputType(info.type_name),
         NAME=info.name,
         PARAMS=info.ParametersDeclaration(self._NarrowInputType))
-
-  def _IsOptional(self, operation, argument):
-    return IsOptional(argument)
 
 
   def _OperationRequiresConversions(self, operation):

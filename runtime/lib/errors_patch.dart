@@ -125,10 +125,14 @@ patch class NoSuchMethodError {
     }
     var args_mismatch = _existingArgumentNames != null;
     StringBuffer msg_buf = new StringBuffer(_developerMessage(args_mismatch));
+    String receiver_str = Error.safeToString(_receiver);
+    if ("Type: class '::'" == receiver_str) {
+      receiver_str = "top-level";
+    }
     if (!args_mismatch) {
       msg_buf.write(
           "NoSuchMethodError : method not found: '$_memberName'\n"
-          "Receiver: ${Error.safeToString(_receiver)}\n"
+          "Receiver: $receiver_str\n"
           "Arguments: [$actual_buf]");
     } else {
       String actualParameters = actual_buf.toString();
@@ -143,7 +147,7 @@ patch class NoSuchMethodError {
       msg_buf.write(
           "NoSuchMethodError: incorrect number of arguments passed to "
           "method named '$_memberName'\n"
-          "Receiver: ${Error.safeToString(_receiver)}\n"
+          "Receiver: $receiver_str\n"
           "Tried calling: $_memberName($actualParameters)\n"
           "Found: $_memberName($formalParameters)");
     }

@@ -15,6 +15,10 @@
 
 #include "include/dart_api.h"
 
+
+namespace dart {
+namespace bin {
+
 bool MessageParser::IsValidMessage() const {
   if (buf_length_ == 0) {
     return false;
@@ -805,7 +809,7 @@ bool DbgMessage::HandleGetLineNumbersCmd(DbgMessage* in_msg) {
   msg.Printf("{ \"id\": %d, ", msg_id);
   msg.Printf("\"result\": { \"lines\": [");
   Dart_Handle elem;
-  bool num_elems = 0;
+  intptr_t num_elems = 0;
   for (intptr_t i = 0; i < info_len; i++) {
     elem = Dart_ListGetAt(info, i);
     if (Dart_IsNull(elem)) {
@@ -1160,6 +1164,21 @@ void DbgMsgQueueList::RemoveIsolateMsgQueue(Dart_IsolateId isolate_id) {
 }
 
 
+void DbgMsgQueueList::ListIsolateIds(dart::TextBuffer* msg) {
+  MutexLocker ml(&msg_queue_list_lock_);
+  if (list_ == NULL) {
+    return;  // No items in the list.
+  }
+  DbgMsgQueue* queue = list_;
+  msg->Printf("%"Pd64"", queue->isolate_id());
+  queue = queue->next();
+  while (queue != NULL) {
+    msg->Printf(",%"Pd64"", queue->isolate_id());
+    queue = queue->next();
+  }
+}
+
+
 void DbgMsgQueueList::BptResolvedHandler(Dart_IsolateId isolate_id,
                                          intptr_t bp_id,
                                          const Dart_CodeLocation& location) {
@@ -1231,3 +1250,6 @@ void DbgMsgQueueList::IsolateEventHandler(Dart_IsolateId isolate_id,
   }
   Dart_ExitScope();
 }
+
+}  // namespace bin
+}  // namespace dart

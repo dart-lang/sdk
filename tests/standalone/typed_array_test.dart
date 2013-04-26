@@ -8,7 +8,7 @@
 library TypedArray;
 import "package:expect/expect.dart";
 import 'dart:isolate';
-import 'dart:typeddata';
+import 'dart:typed_data';
 
 void main() {
   int8_receiver();

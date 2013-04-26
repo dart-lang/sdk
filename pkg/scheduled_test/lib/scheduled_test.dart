@@ -7,6 +7,19 @@
 // TODO(nweiz): Port the non-Pub-specific scheduled test libraries from Pub.
 /// A package for writing readable tests of asynchronous behavior.
 ///
+/// ## Installing ##
+///
+/// Use [pub][] to install this package. Add the following to your
+/// `pubspec.yaml` file.
+///
+///     dependencies:
+///       scheduled_test: any
+///
+/// Then run `pub install`.
+///
+/// For more information, see the
+/// [scheduled_test package on pub.dartlang.org][pkg].
+///
 /// This package works by building up a queue of asynchronous tasks called a
 /// "schedule", then executing those tasks in order. This allows the tests to
 /// read like synchronous, linear code, despite executing asynchronously.
@@ -171,6 +184,9 @@
 /// If a single task might take a long time, you can also manually tell the
 /// [Schedule] that it's making progress by calling [Schedule.heartbeat], which
 /// will reset the timeout whenever it's called.
+///
+/// [pub]: http://pub.dartlang.org
+/// [pkg]: http://pub.dartlang.org/packages/scheduled_test
 library scheduled_test;
 
 import 'dart:async';
@@ -242,10 +258,11 @@ bool _inGroup = false;
 /// Creates a new named group of tests. This has the same semantics as
 /// [unittest.group].
 void group(String description, void body()) {
+  _ensureInitialized();
+  _ensureSetUpForTopLevel();
   unittest.group(description, () {
     var wasInGroup = _inGroup;
     _inGroup = true;
-    _setUpScheduledTest();
     body();
     _inGroup = wasInGroup;
   });
@@ -295,20 +312,38 @@ void _ensureSetUpForTopLevel() {
 /// Registers callbacks for [unittest.setUp] and [unittest.tearDown] that set up
 /// and tear down the scheduled test infrastructure.
 void _setUpScheduledTest([void setUpFn()]) {
-  if (!_inGroup) _setUpForTopLevel = true;
-
-  unittest.setUp(() {
-    if (currentSchedule != null) {
-      throw new StateError('There seems to be another scheduled test '
-          'still running.');
-    }
-    _currentSchedule = new Schedule();
-    _setUpFn = setUpFn;
-  });
-
-  unittest.tearDown(() {
-    _currentSchedule = null;
-  });
+  if (!_inGroup) {
+    _setUpForTopLevel = true;
+    unittest.setUp(() {
+      if (currentSchedule != null) {
+        throw new StateError('There seems to be another scheduled test '
+            'still running.');
+      }
+      _currentSchedule = new Schedule();
+      if (_setUpFn != null) {
+        var parentFn = _setUpFn;
+        _setUpFn = () { parentFn(); setUpFn(); };
+      } else {
+        _setUpFn = setUpFn;
+      }
+    });
+ 
+    unittest.tearDown(() {
+      _currentSchedule = null;
+      _setUpFn = null;
+    });
+  } else {
+    unittest.setUp(() {
+      if (currentSchedule == null) {
+        throw new StateError('No schedule allocated.');
+      } else if (_setUpFn != null) {
+        var parentFn = _setUpFn;
+        _setUpFn = () { parentFn(); setUpFn(); };
+      } else {
+        _setUpFn = setUpFn;
+      }
+    });
+  }
 }
 
 /// Ensures that the global configuration for `scheduled_test` has been

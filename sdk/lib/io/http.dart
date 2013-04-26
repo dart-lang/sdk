@@ -393,6 +393,11 @@ abstract class HttpHeaders {
    * Gets and sets the persistent connection header value.
    */
   bool persistentConnection;
+
+  /**
+   * Gets and sets the chunked transfer encoding header value.
+   */
+  bool chunkedTransferEncoding;
 }
 
 

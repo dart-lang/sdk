@@ -13,7 +13,7 @@ import "package:intl/intl.dart";
 import "package:intl/message_lookup_by_library.dart";
 import "dart:async";
 import "package:intl/src/intl_helpers.dart";
-import "messages_all.dart";
+import "foo_messages_all.dart";
 
 part 'part_of_sample_with_messages.dart';
 

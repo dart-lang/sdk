@@ -6,6 +6,9 @@
 #include "bin/isolate_data.h"
 #include "include/dart_api.h"
 
+namespace dart {
+namespace bin {
+
 void FUNCTION_NAME(Common_IsBuiltinList)(Dart_NativeArguments args) {
   Dart_EnterScope();
   Dart_Handle list = Dart_GetNativeArgument(args, 0);
@@ -54,3 +57,6 @@ void FUNCTION_NAME(Common_IsBuiltinList)(Dart_NativeArguments args) {
   Dart_SetReturnValue(args, Dart_NewBoolean(builtin_array));
   Dart_ExitScope();
 }
+
+}  // namespace bin
+}  // namespace dart

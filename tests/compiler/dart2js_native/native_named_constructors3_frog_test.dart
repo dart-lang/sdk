@@ -8,7 +8,7 @@ import "package:expect/expect.dart";
 // Regression test.
 
 
-class A native "*A" {
+class A native "A" {
 
   // No static methods in this class.
 

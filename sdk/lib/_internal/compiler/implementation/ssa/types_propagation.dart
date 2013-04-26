@@ -219,10 +219,11 @@ class DesiredTypeVisitor extends HBaseVisitor {
     return HType.UNKNOWN;
   }
 
-  HType visitIntegerCheck(HIntegerCheck instruction) {
+  HType visitBoundsCheck(HBoundsCheck boundsCheck) {
     // If the desired type of the input is already a number, we want
     // to specialize it to an integer.
-    return input.isNumber() ? HType.INTEGER : HType.UNKNOWN;
+    if (input == boundsCheck.index && input.isNumber()) return HType.INTEGER;
+    return HType.UNKNOWN;
   }
 
   HType visitInvokeDynamic(HInvokeDynamic instruction) {
@@ -235,10 +236,21 @@ class DesiredTypeVisitor extends HBaseVisitor {
   }
 
   HType visitPhi(HPhi phi) {
-    HType propagatedType = phi.instructionType;
     // Best case scenario for a phi is, when all inputs have the same type. If
     // there is no desired outgoing type we therefore try to unify the input
     // types (which is basically the [likelyType]).
+    HType propagatedType = phi.instructionType;
+
+    // If the incoming type of a phi is an integer, we don't want to
+    // be too restrictive for the back edge and desire an integer
+    // too. Therefore we only return integer if the phi is used by a
+    // bounds check, which includes an integer check.
+    if (propagatedType.isInteger()) {
+      if (phi.usedBy.any((user) => user is HBoundsCheck && user.index == phi)) {
+        return propagatedType;
+      }
+      return HType.NUMBER;
+    }
     if (propagatedType.isUnknown()) return computeLikelyType(phi);
     // When the desired outgoing type is conflicting we don't need to give any
     // requirements on the inputs.
@@ -304,7 +316,7 @@ class SsaSpeculativeTypePropagator extends SsaTypePropagator {
   }
 
   HType computeDesiredType(HInstruction instruction) {
-    HType desiredType = HType.UNKNOWN;
+    HType desiredType = instruction.instructionType;
     for (final user in instruction.usedBy) {
       HType userDesiredType =  desiredTypeVisitor.computeDesiredTypeForInput(
           user, instruction);

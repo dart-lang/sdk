@@ -170,6 +170,7 @@ namespace dart {
   V(ByteData_ToEndianFloat32, 2)                                               \
   V(ByteData_ToEndianFloat64, 2)                                               \
   V(Float32x4_fromDoubles, 5)                                                  \
+  V(Float32x4_splat, 2)                                                        \
   V(Float32x4_zero, 1)                                                         \
   V(Float32x4_add, 2)                                                          \
   V(Float32x4_negate, 1)                                                       \

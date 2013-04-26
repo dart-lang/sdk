@@ -860,8 +860,7 @@ SnapshotWriter::SnapshotWriter(Snapshot::Kind kind,
       class_table_(Isolate::Current()->class_table()),
       forward_list_(),
       exception_type_(Exceptions::kNone),
-      exception_msg_(NULL),
-      error_(LanguageError::Handle()) {
+      exception_msg_(NULL) {
 }
 
 
@@ -1036,9 +1035,6 @@ void FullSnapshotWriter::WriteFullSnapshot() {
   LongJump* base = isolate->long_jump_base();
   LongJump jump;
   isolate->set_long_jump_base(&jump);
-  // TODO(6726): Allocate these constant strings once in the VM isolate.
-  *ErrorHandle() = LanguageError::New(
-      String::Handle(String::New("Error while writing full snapshot")));
   if (setjmp(*jump.Set()) == 0) {
     NoGCScope no_gc;
 
@@ -1334,9 +1330,10 @@ void SnapshotWriter::CheckIfSerializable(RawClass* cls) {
 void SnapshotWriter::SetWriteException(Exceptions::ExceptionType type,
                                        const char* msg) {
   set_exception_type(type);
-  // TODO(6726): Allocate these constant strings once in the VM isolate.
   set_exception_msg(msg);
-  Isolate::Current()->long_jump_base()->Jump(1, *ErrorHandle());
+  // The more specific error is set up in SnapshotWriter::ThrowException().
+  Isolate::Current()->long_jump_base()->
+      Jump(1, Object::snapshot_writer_error());
 }
 
 
@@ -1400,10 +1397,14 @@ void SnapshotWriter::ThrowException(Exceptions::ExceptionType type,
                                     const char* msg) {
   Isolate::Current()->object_store()->clear_sticky_error();
   UnmarkAll();
-  const String& msg_obj = String::Handle(String::New(msg));
-  const Array& args = Array::Handle(Array::New(1));
-  args.SetAt(0, msg_obj);
-  Exceptions::ThrowByType(type, args);
+  if (msg != NULL) {
+    const String& msg_obj = String::Handle(String::New(msg));
+    const Array& args = Array::Handle(Array::New(1));
+    args.SetAt(0, msg_obj);
+    Exceptions::ThrowByType(type, args);
+  } else {
+    Exceptions::ThrowByType(type, Object::empty_array());
+  }
   UNREACHABLE();
 }
 
@@ -1419,8 +1420,6 @@ void ScriptSnapshotWriter::WriteScriptSnapshot(const Library& lib) {
   LongJump* base = isolate->long_jump_base();
   LongJump jump;
   isolate->set_long_jump_base(&jump);
-  *ErrorHandle() = LanguageError::New(
-      String::Handle(String::New("Error while writing script snapshot")));
   if (setjmp(*jump.Set()) == 0) {
     // Write out the library object.
     NoGCScope no_gc;
@@ -1458,8 +1457,6 @@ void MessageWriter::WriteMessage(const Object& obj) {
   LongJump* base = isolate->long_jump_base();
   LongJump jump;
   isolate->set_long_jump_base(&jump);
-  *ErrorHandle() = LanguageError::New(
-      String::Handle(String::New("Error while writing message")));
   if (setjmp(*jump.Set()) == 0) {
     NoGCScope no_gc;
     WriteObject(obj.raw());

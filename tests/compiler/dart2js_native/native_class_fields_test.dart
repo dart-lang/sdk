@@ -5,7 +5,7 @@
 import "package:expect/expect.dart";
 
 // Verify that native fields on classes are not renamed by the minifier.
-class A native "*A" {
+class A native "A" {
   int myLongPropertyName;
   int getValue;
 
@@ -58,4 +58,3 @@ main() {
     Expect.equals(11, gotten);
   }
 }
-

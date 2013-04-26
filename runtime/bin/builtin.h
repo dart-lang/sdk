@@ -12,6 +12,9 @@
 #include "platform/assert.h"
 #include "platform/globals.h"
 
+namespace dart {
+namespace bin {
+
 #define FUNCTION_NAME(name) Builtin_##name
 #define REGISTER_FUNCTION(name, count)                                         \
   { ""#name, FUNCTION_NAME(name), count },
@@ -59,5 +62,7 @@ class Builtin {
   DISALLOW_IMPLICIT_CONSTRUCTORS(Builtin);
 };
 
+}  // namespace bin
+}  // namespace dart
 
 #endif  // BIN_BUILTIN_H_

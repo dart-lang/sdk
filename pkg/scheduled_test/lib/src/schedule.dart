@@ -62,7 +62,6 @@ class Schedule {
   ScheduleState get state => _state;
   ScheduleState _state = ScheduleState.SET_UP;
 
-  // TODO(nweiz): make this a read-only view once issue 8321 is fixed.
   /// Errors thrown by the task queues.
   ///
   /// When running tasks in [tasks], this will always be empty. If an error
@@ -74,11 +73,13 @@ class Schedule {
   ///
   /// Any out-of-band callbacks that throw errors will also have those errors
   /// added to this list.
-  final errors = <ScheduleError>[];
+  List<ScheduleError> get errors =>
+      new UnmodifiableListView<ScheduleError>(_errors);
+  final _errors = <ScheduleError>[];
 
-  // TODO(nweiz): make this a read-only view once issue 8321 is fixed.
   /// Additional debugging info registered via [addDebugInfo].
-  final debugInfo = <String>[];
+  List<String> get debugInfo => new UnmodifiableListView<String>(_debugInfo);
+  final _debugInfo = <String>[];
 
   /// The task queue that's currently being run. One of [tasks], [onException],
   /// or [onComplete]. This starts as [tasks], and can only be `null` after the
@@ -212,7 +213,7 @@ class Schedule {
   /// fails. Unlike [signalError], this won't cause the test to fail, nor will
   /// it short-circuit the current [TaskQueue]; it's just useful for providing
   /// additional information that may not fit cleanly into an existing error.
-  void addDebugInfo(String info) => debugInfo.add(info);
+  void addDebugInfo(String info) => _debugInfo.add(info);
 
   /// Notifies the schedule of an error that occurred in a task or out-of-band
   /// callback after the appropriate queue has timed out. If this schedule is
@@ -318,7 +319,7 @@ class Schedule {
   /// [ScheduleError].
   void _addError(error) {
     if (error is ScheduleError && errors.contains(error)) return;
-    errors.add(new ScheduleError.from(this, error));
+    _errors.add(new ScheduleError.from(this, error));
   }
 }
 
@@ -346,9 +347,8 @@ class ScheduleState {
 
 /// A queue of asynchronous tasks to execute in order.
 class TaskQueue {
-  // TODO(nweiz): make this a read-only view when issue 8321 is fixed.
   /// The tasks in the queue.
-  Iterable<Task> get contents => _contents;
+  List<Task> get contents => new UnmodifiableListView<Task>(_contents);
   final _contents = new Queue<Task>();
 
   /// The name of the queue, for debugging purposes.
@@ -377,10 +377,10 @@ class TaskQueue {
   /// Whether to stop running after the current task.
   bool _aborted = false;
 
-  // TODO(nweiz): make this a read-only view when issue 8321 is fixed.
   /// The descriptions of all callbacks that are blocking the completion of
   /// [this].
-  Iterable<String> get pendingCallbacks => _pendingCallbacks;
+  List<String> get pendingCallbacks =>
+      new UnmodifiableListView<String>(_pendingCallbacks);
   final _pendingCallbacks = new Queue<String>();
 
   /// A completer that will be completed once [_pendingCallbacks] becomes empty

@@ -9,6 +9,9 @@
 #include "bin/utils.h"
 
 
+namespace dart {
+namespace bin {
+
 class Crypto {
  public:
   static bool GetRandomBytes(intptr_t count, uint8_t* buffer);
@@ -17,6 +20,9 @@ class Crypto {
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Crypto);
 };
+
+}  // namespace bin
+}  // namespace dart
 
 #endif  // BIN_CRYPTO_H_
 

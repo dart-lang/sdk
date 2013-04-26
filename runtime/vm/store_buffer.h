@@ -95,6 +95,12 @@ class StoreBuffer {
 
   void AddPointer(uword address);
 
+  // Drain StoreBufferBlock into deduplication sets.
+  // Returns true if new sets were created.
+  bool DrainBlock(StoreBufferBlock* block);
+
+  // Drain StoreBufferBlock into deduplication sets.
+  // Schedule an interrupt if we run over the max number of deduplication sets.
   void ProcessBlock(StoreBufferBlock* block);
 
   DedupSet* DedupSets() {
@@ -105,6 +111,14 @@ class StoreBuffer {
   }
 
  private:
+  // Add pointer to deduplication sets. Returns true if the current set is full
+  // and a new set was created.
+  bool AddPointerInternal(uword address);
+
+  // Check if we run over the max number of deduplication sets.
+  // If we did schedule an interrupt.
+  void CheckThreshold();
+
   DedupSet* dedup_sets_;
   intptr_t count_;
 

@@ -191,6 +191,10 @@ class Assembler : public ValueObject {
 
   // Debugging and bringup support.
   void Stop(const char* message);
+
+  // TODO(zra): TraceSimMsg enables printing of helpful messages when
+  // --trace_sim is given. Eventually these calls will be changed to Comment.
+  void TraceSimMsg(const char* message);
   void Unimplemented(const char* message);
   void Untested(const char* message);
   void Unreachable(const char* message);
@@ -682,87 +686,91 @@ class Assembler : public ValueObject {
   }
 
   void BranchEqual(Register rd, int32_t value, Label* l) {
-    LoadImmediate(TMP1, value);
-    beq(rd, TMP1, l);
+    ASSERT(rd != CMPRES);
+    LoadImmediate(CMPRES, value);
+    beq(rd, CMPRES, l);
   }
 
   void BranchEqual(Register rd, const Object& object, Label* l) {
-    LoadObject(TMP1, object);
-    beq(rd, TMP1, l);
+    ASSERT(rd != CMPRES);
+    LoadObject(CMPRES, object);
+    beq(rd, CMPRES, l);
   }
 
   void BranchNotEqual(Register rd, int32_t value, Label* l) {
-    LoadImmediate(TMP1, value);
-    bne(rd, TMP1, l);
+    ASSERT(rd != CMPRES);
+    LoadImmediate(CMPRES, value);
+    bne(rd, CMPRES, l);
   }
 
   void BranchNotEqual(Register rd, const Object& object, Label* l) {
-    LoadObject(TMP1, object);
-    bne(rd, TMP1, l);
+    ASSERT(rd != CMPRES);
+    LoadObject(CMPRES, object);
+    bne(rd, CMPRES, l);
   }
 
   void BranchGreater(Register rd, int32_t value, Label* l) {
     if (Utils::IsInt(kImmBits, -value)) {
-      addiu(TMP1, rd, Immediate(-value));
-      bgtz(TMP1, l);
+      addiu(CMPRES, rd, Immediate(-value));
+      bgtz(CMPRES, l);
     } else {
-      LoadImmediate(TMP1, value);
-      subu(TMP1, rd, TMP1);
-      bgtz(TMP1, l);
+      LoadImmediate(CMPRES, value);
+      subu(CMPRES, rd, CMPRES);
+      bgtz(CMPRES, l);
     }
   }
 
   void BranchGreater(Register rd, Register rs, Label* l) {
-    subu(TMP1, rd, rs);
-    bgtz(TMP1, l);
+    subu(CMPRES, rd, rs);
+    bgtz(CMPRES, l);
   }
 
   void BranchGreaterEqual(Register rd, int32_t value, Label* l) {
     if (Utils::IsInt(kImmBits, -value)) {
-      addiu(TMP1, rd, Immediate(-value));
-      bgez(TMP1, l);
+      addiu(CMPRES, rd, Immediate(-value));
+      bgez(CMPRES, l);
     } else {
-      LoadImmediate(TMP1, value);
-      subu(TMP1, rd, TMP1);
-      bgez(TMP1, l);
+      LoadImmediate(CMPRES, value);
+      subu(CMPRES, rd, CMPRES);
+      bgez(CMPRES, l);
     }
   }
 
   void BranchGreaterEqual(Register rd, Register rs, Label* l) {
-    subu(TMP1, rd, rs);
-    bgez(TMP1, l);
+    subu(CMPRES, rd, rs);
+    bgez(CMPRES, l);
   }
 
   void BranchLess(Register rd, int32_t value, Label* l) {
     if (Utils::IsInt(kImmBits, -value)) {
-      addiu(TMP1, rd, Immediate(-value));
-      bltz(TMP1, l);
+      addiu(CMPRES, rd, Immediate(-value));
+      bltz(CMPRES, l);
     } else {
-      LoadImmediate(TMP1, value);
-      subu(TMP1, rd, TMP1);
-      bltz(TMP1, l);
+      LoadImmediate(CMPRES, value);
+      subu(CMPRES, rd, CMPRES);
+      bltz(CMPRES, l);
     }
   }
 
   void BranchLess(Register rd, Register rs, Label* l) {
-    subu(TMP1, rd, rs);
-    bltz(TMP1, l);
+    subu(CMPRES, rd, rs);
+    bltz(CMPRES, l);
   }
 
   void BranchLessEqual(Register rd, int32_t value, Label* l) {
     if (Utils::IsInt(kImmBits, -value)) {
-      addiu(TMP1, rd, Immediate(-value));
-      blez(TMP1, l);
+      addiu(CMPRES, rd, Immediate(-value));
+      blez(CMPRES, l);
     } else {
-      LoadImmediate(TMP1, value);
-      subu(TMP1, rd, TMP1);
-      blez(TMP1, l);
+      LoadImmediate(CMPRES, value);
+      subu(CMPRES, rd, CMPRES);
+      blez(CMPRES, l);
     }
   }
 
   void BranchLessEqual(Register rd, Register rs, Label* l) {
-    subu(TMP1, rd, rs);
-    blez(TMP1, l);
+    subu(CMPRES, rd, rs);
+    blez(CMPRES, l);
   }
 
   void Push(Register rt) {

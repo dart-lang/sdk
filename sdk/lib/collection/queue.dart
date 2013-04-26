@@ -50,6 +50,15 @@ abstract class Queue<E> implements Iterable<E> {
   void add(E value);
 
   /**
+   * Remove a single instance of [value] from the queue.
+   *
+   * Returns `true` if a value was removed, or `false` if the queue
+   * contained no element equal to [value].
+   */
+  bool remove(Object object);
+
+
+  /**
    * Adds all elements of [iterable] at the end of the queue. The
    * length of the queue is extended by the length of [iterable].
    */
@@ -212,41 +221,24 @@ class DoubleLinkedQueue<E> extends IterableBase<E> implements Queue<E> {
     return result;
   }
 
-  void remove(Object o) {
+  bool remove(Object o) {
     DoubleLinkedQueueEntry<E> entry = firstEntry();
     while (!identical(entry, _sentinel)) {
       if (entry.element == o) {
         entry.remove();
         _elementCount--;
-        return;
+        return true;
       }
       entry = entry._next;
     }
+    return false;
   }
 
-  void retainAll(Iterable elements) {
-    _filterIterable(elements, true);
-  }
-
-  void removeAll(Iterable elements) {
-    _filterIterable(elements, false);
-  }
-
-  void _filterIterable(Iterable elements, bool retainMatching) {
-    Set elementSet;
-    if (elements is Set) {
-      elementSet = elements;
-    } else {
-      elementSet = elements.toSet();
-    }
-    _filter(elementSet.contains, retainMatching);
-  }
-
-  void _filter(bool test(E element), bool retainMatching) {
+  void _filter(bool test(E element), bool removeMatching) {
     DoubleLinkedQueueEntry<E> entry = firstEntry();
     while (!identical(entry, _sentinel)) {
       DoubleLinkedQueueEntry<E> next = entry._next;
-      if (test(entry.element) != retainMatching) {
+      if (identical(removeMatching, test(entry.element))) {
         entry.remove();
         _elementCount--;
       }
@@ -255,11 +247,11 @@ class DoubleLinkedQueue<E> extends IterableBase<E> implements Queue<E> {
   }
 
   void removeWhere(bool test(E element)) {
-    _filter(test, false);
+    _filter(test, true);
   }
 
   void retainWhere(bool test(E element)) {
-    _filter(test, true);
+    _filter(test, false);
   }
 
   E get first {
@@ -479,15 +471,16 @@ class ListQueue<E> extends IterableBase<E> implements Queue<E> {
     }
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     for (int i = _head; i != _tail; i = (i + 1) & (_table.length - 1)) {
       E element = _table[i];
       if (element == object) {
         _remove(i);
-        return;
+        _modificationCount++;
+        return true;
       }
     }
-    _modificationCount++;
+    return false;
   }
 
   void _filterWhere(bool test(E element), bool removeMatching) {
@@ -496,7 +489,7 @@ class ListQueue<E> extends IterableBase<E> implements Queue<E> {
     int i = _head;
     while (i != _tail) {
       E element = _table[i];
-      bool remove = (test(element) == removeMatching);
+      bool remove = identical(removeMatching, test(element));
       _checkModification(modificationCount);
       if (remove) {
         i = _remove(i);

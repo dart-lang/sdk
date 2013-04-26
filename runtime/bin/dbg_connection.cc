@@ -18,6 +18,9 @@
 #include "include/dart_api.h"
 
 
+namespace dart {
+namespace bin {
+
 int DebuggerConnectionHandler::listener_fd_ = -1;
 dart::Monitor DebuggerConnectionHandler::handler_lock_;
 
@@ -180,7 +183,7 @@ struct JSONDebuggerCommand {
 void DebuggerConnectionHandler::HandleMessages() {
   static JSONDebuggerCommand generic_debugger_commands[] = {
     { "interrupt", HandleInterruptCmd },
-    { "isolates", HandleIsolatesListCmd },
+    { "getIsolateIds", HandleIsolatesListCmd },
     { NULL, NULL }
   };
 
@@ -294,7 +297,11 @@ void DebuggerConnectionHandler::StartHandler(const char* address,
   // listen, accept connections from debuggers, read and handle/dispatch
   // debugger commands received on these connections.
   ASSERT(listener_fd_ == -1);
-  listener_fd_ = ServerSocket::CreateBindListen(address, port_number, 1);
+
+  OSError *os_error;
+  SocketAddresses* addresses = Socket::LookupAddress(address, -1, &os_error);
+  listener_fd_ = ServerSocket::CreateBindListen(
+      addresses->GetAt(0)->addr(), port_number, 1);
   DebuggerConnectionImpl::StartHandler(port_number);
 }
 
@@ -404,7 +411,11 @@ void DebuggerConnectionHandler::HandleIsolatesListCmd(DbgMessage* in_msg) {
   MessageParser msg_parser(in_msg->buffer(), in_msg->buffer_len());
   int msg_id = msg_parser.MessageId();
   ASSERT(msg_id >= 0);
-  in_msg->SendErrorReply(msg_id, "isolate list command unimplemented");
+  dart::TextBuffer msg(64);
+  msg.Printf("{ \"id\": %d, \"result\": { \"isolateIds\": [", msg_id);
+  DbgMsgQueueList::ListIsolateIds(&msg);
+  msg.Printf("]}}");
+  in_msg->SendReply(&msg);
 }
 
 
@@ -438,3 +449,6 @@ bool DebuggerConnectionHandler::IsConnected() {
   // Return true if a connection has been established.
   return singleton_handler != NULL;
 }
+
+}  // namespace bin
+}  // namespace dart

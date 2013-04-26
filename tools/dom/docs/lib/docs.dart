@@ -10,7 +10,7 @@
 
 library docs;
 
-import '../../../../sdk/lib/_internal/compiler/implementation/mirrors/dart2js_mirror.dart';
+import '../../../../sdk/lib/_internal/dartdoc/lib/src/dart2js_mirrors.dart';
 import '../../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors.dart';
 import '../../../../sdk/lib/_internal/dartdoc/lib/dartdoc.dart';
 import '../../../../sdk/lib/_internal/dartdoc/lib/src/json_serializer.dart';
@@ -180,7 +180,7 @@ List<String> domNames(DeclarationMirror mirror) {
 
   if (domNameMetadata != null) {
     var domNames = <String>[];
-    var tags = deprecatedFutureValue(domNameMetadata.getField('name'));
+    var tags = domNameMetadata.getField('name');
     for (var s in tags.reflectee.split(',')) {
       domNames.add(s.trim());
     }

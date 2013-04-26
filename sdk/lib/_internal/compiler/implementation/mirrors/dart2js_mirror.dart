@@ -6,25 +6,18 @@ library mirrors_dart2js;
 
 import 'dart:async';
 import 'dart:collection' show LinkedHashMap;
-import 'dart:io' show Path;
 import 'dart:uri';
 
 import '../../compiler.dart' as api;
 import '../elements/elements.dart';
-import '../resolution/resolution.dart' show ResolverTask, ResolverVisitor;
 import '../apiimpl.dart' as apiimpl;
 import '../scanner/scannerlib.dart' hide SourceString;
-import '../ssa/ssa.dart';
 import '../dart2jslib.dart';
 import '../dart_types.dart';
-import '../filenames.dart';
 import '../source_file.dart';
 import '../tree/tree.dart';
-import '../util/util.dart';
-import '../util/uri_extras.dart';
-import '../dart2js.dart';
-import '../util/characters.dart';
-import '../source_file_provider.dart';
+import '../util/util.dart' show Spannable, Link;
+import '../util/characters.dart' show $CR, $LF;
 
 import 'mirrors.dart';
 import 'mirrors_util.dart';
@@ -192,51 +185,20 @@ String _getOperatorFromOperatorName(String name) {
 }
 
 //------------------------------------------------------------------------------
-// Compilation implementation
+// Analysis entry point.
 //------------------------------------------------------------------------------
-
-// TODO(johnniwinther): Support client configurable providers.
-
-/**
- * Returns a future that completes to a non-null String when [script]
- * has been successfully compiled.
- *
- * TODO(johnniwinther): The method is deprecated but here to support [Path]
- * which is used through dartdoc.
- */
-Future<String> compile(Path script,
-                       Path libraryRoot,
-                       {Path packageRoot,
-                        List<String> options: const <String>[],
-                        api.DiagnosticHandler diagnosticHandler}) {
-  Uri cwd = getCurrentDirectory();
-  SourceFileProvider provider = new SourceFileProvider();
-  if (diagnosticHandler == null) {
-    diagnosticHandler =
-        new FormattingDiagnosticHandler(provider).diagnosticHandler;
-  }
-  Uri scriptUri = cwd.resolve(script.toString());
-  Uri libraryUri = cwd.resolve(appendSlash('$libraryRoot'));
-  Uri packageUri = null;
-  if (packageRoot != null) {
-    packageUri = cwd.resolve(appendSlash('$packageRoot'));
-  }
-  return api.compile(scriptUri, libraryUri, packageUri,
-      provider.readStringFromUri, diagnosticHandler, options);
-}
 
 /**
  * Analyzes set of libraries and provides a mirror system which can be used for
  * static inspection of the source code.
  */
-// TODO(johnniwinther): Move this to [compiler/compiler.dart] and rename to
-// [:analyze:].
-Future<MirrorSystem> analyzeUri(List<Uri> libraries,
-                                Uri libraryRoot,
-                                Uri packageRoot,
-                                api.CompilerInputProvider inputProvider,
-                                api.DiagnosticHandler diagnosticHandler,
-                                [List<String> options = const <String>[]]) {
+// TODO(johnniwinther): Move this to [compiler/compiler.dart].
+Future<MirrorSystem> analyze(List<Uri> libraries,
+                             Uri libraryRoot,
+                             Uri packageRoot,
+                             api.CompilerInputProvider inputProvider,
+                             api.DiagnosticHandler diagnosticHandler,
+                             [List<String> options = const <String>[]]) {
   if (!libraryRoot.path.endsWith("/")) {
     throw new ArgumentError("libraryRoot must end with a /");
   }
@@ -269,36 +231,6 @@ Future<MirrorSystem> analyzeUri(List<Uri> libraries,
   } else {
     return new Future<MirrorSystem>.error('Failed to create mirror system.');
   }
-}
-
-/**
- * Analyzes set of libraries and provides a mirror system which can be used for
- * static inspection of the source code.
- */
-// TODO(johnniwinther): Move dart:io dependent parts outside
-// dart2js_mirror.dart.
-Future<MirrorSystem> analyze(List<Path> libraries,
-                             Path libraryRoot,
-                             {Path packageRoot,
-                              List<String> options: const <String>[],
-                              api.DiagnosticHandler diagnosticHandler}) {
-  Uri cwd = getCurrentDirectory();
-  SourceFileProvider provider = new SourceFileProvider();
-  if (diagnosticHandler == null) {
-    diagnosticHandler =
-        new FormattingDiagnosticHandler(provider).diagnosticHandler;
-  }
-  Uri libraryUri = cwd.resolve(appendSlash('$libraryRoot'));
-  Uri packageUri = null;
-  if (packageRoot != null) {
-    packageUri = cwd.resolve(appendSlash('$packageRoot'));
-  }
-  List<Uri> librariesUri = <Uri>[];
-  for (Path library in libraries) {
-    librariesUri.add(cwd.resolve(library.toString()));
-  }
-  return analyzeUri(librariesUri, libraryUri, packageUri,
-                    provider.readStringFromUri, diagnosticHandler, options);
 }
 
 //------------------------------------------------------------------------------
@@ -465,9 +397,9 @@ abstract class Dart2JsMemberMirror extends Dart2JsElementMirror
 // Mirror system implementation.
 //------------------------------------------------------------------------------
 
-class Dart2JsMirrorSystem implements MirrorSystem {
+class Dart2JsMirrorSystem extends MirrorSystem {
   final Compiler compiler;
-  Map<String, Dart2JsLibraryMirror> _libraries;
+  Map<Uri, Dart2JsLibraryMirror> _libraries;
   Map<LibraryElement, Dart2JsLibraryMirror> _libraryMap;
 
   Dart2JsMirrorSystem(this.compiler)
@@ -475,18 +407,18 @@ class Dart2JsMirrorSystem implements MirrorSystem {
 
   void _ensureLibraries() {
     if (_libraries == null) {
-      _libraries = <String, Dart2JsLibraryMirror>{};
+      _libraries = new Map<Uri, Dart2JsLibraryMirror>();
       compiler.libraries.forEach((_, LibraryElement v) {
         var mirror = new Dart2JsLibraryMirror(mirrors, v);
-        _libraries[mirror.simpleName] = mirror;
+        _libraries[mirror.uri] = mirror;
         _libraryMap[v] = mirror;
       });
     }
   }
 
-  Map<String, LibraryMirror> get libraries {
+  Map<Uri, LibraryMirror> get libraries {
     _ensureLibraries();
-    return new ImmutableMapWrapper<String, LibraryMirror>(_libraries);
+    return new ImmutableMapWrapper<Uri, LibraryMirror>(_libraries);
   }
 
   Dart2JsLibraryMirror _getLibrary(LibraryElement element) =>
@@ -1551,7 +1483,7 @@ class Dart2JsConstantMirror extends InstanceMirror {
     throw new UnsupportedError('InstanceMirror does not have a reflectee');
   }
 
-  Future<InstanceMirror> getField(String fieldName) {
+  InstanceMirror getField(String fieldName) {
     // TODO(johnniwinther): Which exception/error should be thrown here?
     throw new UnsupportedError('InstanceMirror does not have a reflectee');
   }
@@ -1621,11 +1553,10 @@ class Dart2JsListConstantMirror extends Dart2JsConstantMirror
 
   int get length => _constant.length;
 
-  Future<InstanceMirror> operator[](int index) {
+  InstanceMirror operator[](int index) {
     if (index < 0) throw new RangeError('Negative index');
     if (index >= _constant.length) throw new RangeError('Index out of bounds');
-    return new Future<InstanceMirror>.value(
-        _convertConstantToInstanceMirror(mirrors, _constant.entries[index]));
+    return _convertConstantToInstanceMirror(mirrors, _constant.entries[index]);
   }
 }
 
@@ -1658,11 +1589,10 @@ class Dart2JsMapConstantMirror extends Dart2JsConstantMirror
     return new List<String>.from(_list);
   }
 
-  Future<InstanceMirror> operator[](String key) {
+  InstanceMirror operator[](String key) {
     int index = _list.indexOf(key);
     if (index == -1) return null;
-    return new Future<InstanceMirror>.value(
-        _convertConstantToInstanceMirror(mirrors, _constant.values[index]));
+    return _convertConstantToInstanceMirror(mirrors, _constant.values[index]);
   }
 }
 
@@ -1704,11 +1634,10 @@ class Dart2JsConstructedConstantMirror extends Dart2JsConstantMirror {
     return _fieldMapCache;
   }
 
-  Future<InstanceMirror> getField(String fieldName) {
+  InstanceMirror getField(String fieldName) {
     Constant fieldConstant = _fieldMap[fieldName];
     if (fieldConstant != null) {
-      return new Future<InstanceMirror>.value(
-          _convertConstantToInstanceMirror(mirrors, fieldConstant));
+      return _convertConstantToInstanceMirror(mirrors, fieldConstant);
     }
     return super.getField(fieldName);
   }
@@ -1741,16 +1670,13 @@ class Dart2JsCommentInstanceMirror implements CommentInstanceMirror {
     throw new UnsupportedError('InstanceMirror does not have a reflectee');
   }
 
-  Future<InstanceMirror> getField(String fieldName) {
+  InstanceMirror getField(String fieldName) {
     if (fieldName == 'isDocComment') {
-      return new Future.value(
-          new Dart2JsBoolConstantMirror.fromBool(mirrors, isDocComment));
+      return new Dart2JsBoolConstantMirror.fromBool(mirrors, isDocComment);
     } else if (fieldName == 'text') {
-      return new Future.value(
-          new Dart2JsStringConstantMirror.fromString(mirrors, text));
+      return new Dart2JsStringConstantMirror.fromString(mirrors, text);
     } else if (fieldName == 'trimmedText') {
-      return new Future.value(
-          new Dart2JsStringConstantMirror.fromString(mirrors, trimmedText));
+      return new Dart2JsStringConstantMirror.fromString(mirrors, trimmedText);
     }
     // TODO(johnniwinther): Which exception/error should be thrown here?
     throw new UnsupportedError('InstanceMirror does not have a reflectee');

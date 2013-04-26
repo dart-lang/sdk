@@ -20,6 +20,9 @@
 #include "platform/thread.h"
 
 
+namespace dart {
+namespace bin {
+
 static const int kBufferSize = 32 * 1024;
 
 static const int kInfinityTimeout = -1;
@@ -990,5 +993,8 @@ void EventHandlerImplementation::Start(EventHandler* handler) {
 void EventHandlerImplementation::Shutdown() {
   SendData(kShutdownId, 0, 0);
 }
+
+}  // namespace bin
+}  // namespace dart
 
 #endif  // defined(TARGET_OS_WINDOWS)

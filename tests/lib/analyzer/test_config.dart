@@ -9,7 +9,7 @@ import '../../../tools/testing/dart/test_suite.dart';
 
 class AnalyzeLibraryTestSuite extends DartcCompilationTestSuite {
   final libraries = [ 'async', 'core', 'crypto', 'io', 'isolate', 'json',
-                      'math', 'mirrors', 'typeddata', 'uri',
+                      'math', 'mirrors', 'typed_data', 'uri',
                       'utf' ];
 
   AnalyzeLibraryTestSuite(Map configuration)
@@ -25,6 +25,23 @@ class AnalyzeLibraryTestSuite extends DartcCompilationTestSuite {
     return libraries.any((String lib) {
       return filename.endsWith('lib$sep$lib$sep$lib.dart');
     });
+  }
+
+  bool get listRecursively => true;
+}
+
+
+class AnalyzeTestsTestSuite extends DartcCompilationTestSuite {
+  AnalyzeTestsTestSuite(Map configuration)
+      : super(configuration,
+              'analyze_tests',
+              'tests',
+              [ 'standalone' ],
+              ['tests/lib/analyzer/analyze_tests.status'],
+              allStaticClean: true);
+
+  bool isTestFile(String filename) {
+    return filename.endsWith('_test.dart');
   }
 
   bool get listRecursively => true;

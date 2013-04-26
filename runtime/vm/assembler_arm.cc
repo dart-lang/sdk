@@ -40,19 +40,7 @@ void CPUFeatures::InitOnce() {
 #if defined(USING_SIMULATOR)
   integer_division_supported_ = true;
 #else
-  Assembler assembler;
-  __ mrc(R0, 15, 0, 0, 2, 0);
-  __ Lsr(R0, R0, 24);
-  __ and_(R0, R0, ShifterOperand(0xf));
-  __ Ret();
-
-  const Code& code =
-      Code::Handle(Code::FinalizeCode("DetectCPUFeatures", &assembler));
-  Instructions& instructions = Instructions::Handle(code.instructions());
-  typedef int32_t (*DetectCPUFeatures)();
-  int32_t features =
-      reinterpret_cast<DetectCPUFeatures>(instructions.EntryPoint())();
-  integer_division_supported_ = features != 0;
+  integer_division_supported_ = false;
 #endif  // defined(USING_SIMULATOR)
 #if defined(DEBUG)
   initialized_ = true;
@@ -474,6 +462,13 @@ void Assembler::mls(Register rd, Register rn,
                     Register rm, Register ra, Condition cond) {
   // Assembler registers rd, rn, rm, ra are encoded as rn, rm, rs, rd.
   EmitMulOp(cond, B22 | B21, ra, rd, rn, rm);
+}
+
+
+void Assembler::smull(Register rd_lo, Register rd_hi,
+                      Register rn, Register rm, Condition cond) {
+  // Assembler registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
+  EmitMulOp(cond, B23 | B22, rd_lo, rd_hi, rn, rm);
 }
 
 
@@ -1236,27 +1231,29 @@ void Assembler::Drop(intptr_t stack_elements) {
 
 
 // Uses a code sequence that can easily be decoded.
-void Assembler::LoadWordFromPoolOffset(Register rd, int32_t offset) {
+void Assembler::LoadWordFromPoolOffset(Register rd,
+                                       int32_t offset,
+                                       Condition cond) {
   ASSERT(rd != PP);
   int32_t offset_mask = 0;
   if (Address::CanHoldLoadOffset(kLoadWord, offset, &offset_mask)) {
-    ldr(rd, Address(PP, offset));
+    ldr(rd, Address(PP, offset), cond);
   } else {
     int32_t offset_hi = offset & ~offset_mask;  // signed
     uint32_t offset_lo = offset & offset_mask;  // unsigned
     // Inline a simplified version of AddImmediate(rd, PP, offset_hi).
     ShifterOperand shifter_op;
     if (ShifterOperand::CanHold(offset_hi, &shifter_op)) {
-      add(rd, PP, shifter_op);
+      add(rd, PP, shifter_op, cond);
     } else {
       movw(rd, Utils::Low16Bits(offset_hi));
       const uint16_t value_high = Utils::High16Bits(offset_hi);
       if (value_high != 0) {
-        movt(rd, value_high);
+        movt(rd, value_high, cond);
       }
-      add(rd, PP, ShifterOperand(LR));
+      add(rd, PP, ShifterOperand(LR), cond);
     }
-    ldr(rd, Address(rd, offset_lo));
+    ldr(rd, Address(rd, offset_lo), cond);
   }
 }
 
@@ -1269,24 +1266,24 @@ void Assembler::LoadPoolPointer() {
 }
 
 
-void Assembler::LoadObject(Register rd, const Object& object) {
+void Assembler::LoadObject(Register rd, const Object& object, Condition cond) {
   // Smis and VM heap objects are never relocated; do not use object pool.
   if (object.IsSmi()) {
-    LoadImmediate(rd, reinterpret_cast<int32_t>(object.raw()));
+    LoadImmediate(rd, reinterpret_cast<int32_t>(object.raw()), cond);
   } else if (object.InVMHeap()) {
     // Make sure that class CallPattern is able to decode this load immediate.
     const int32_t object_raw = reinterpret_cast<int32_t>(object.raw());
-    movw(rd, Utils::Low16Bits(object_raw));
+    movw(rd, Utils::Low16Bits(object_raw), cond);
     const uint16_t value_high = Utils::High16Bits(object_raw);
     if (value_high != 0) {
-      movt(rd, value_high);
+      movt(rd, value_high, cond);
     }
   } else {
     // Make sure that class CallPattern is able to decode this load from the
     // object pool.
     const int32_t offset =
         Array::data_offset() + 4*AddObject(object) - kHeapObjectTag;
-    LoadWordFromPoolOffset(rd, offset);
+    LoadWordFromPoolOffset(rd, offset, cond);
   }
 }
 

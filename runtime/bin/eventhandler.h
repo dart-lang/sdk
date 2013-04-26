@@ -8,6 +8,9 @@
 #include "bin/builtin.h"
 #include "bin/isolate_data.h"
 
+namespace dart {
+namespace bin {
+
 // Flags used to provide information and actions to the eventhandler
 // when sending a message about a file descriptor. These flags should
 // be kept in sync with the constants in socket_impl.dart. For more
@@ -24,6 +27,8 @@ enum MessageFlags {
   kPipe = 17,
 };
 
+}  // namespace bin
+}  // namespace dart
 
 // The event handler delegation class is OS specific.
 #if defined(TARGET_OS_ANDROID)
@@ -37,6 +42,9 @@ enum MessageFlags {
 #else
 #error Unknown target os.
 #endif
+
+namespace dart {
+namespace bin {
 
 class EventHandler {
  public:
@@ -62,5 +70,7 @@ class EventHandler {
   EventHandlerImplementation delegate_;
 };
 
+}  // namespace bin
+}  // namespace dart
 
 #endif  // BIN_EVENTHANDLER_H_

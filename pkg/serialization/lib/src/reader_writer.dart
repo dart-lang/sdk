@@ -211,7 +211,8 @@ class Writer implements ReaderOrWriter {
   }
 
   /**
-   * Return true if the [namedObjects] collection has a reference to [object].
+   * Return true if the [Serialization.namedObjects] collection has a
+   * reference to [object].
    */
   // TODO(alanknight): Should the writer also have its own namedObjects
   // collection specific to the particular write, or is that just adding
@@ -219,7 +220,8 @@ class Writer implements ReaderOrWriter {
   hasNameFor(object) => serialization._hasNameFor(object);
 
   /**
-   * Return the name we have for this object in the [namedObjects] collection.
+   * Return the name we have for this object in the [Serialization.namedObjects]
+   * collection.
    */
   nameFor(object) => serialization._nameFor(object);
 
@@ -278,7 +280,7 @@ class Reader implements ReaderOrWriter {
 
   /**
    * The resulting objects, indexed according to the same scheme as
-   * [data], where each rule has a number, and rules keep track of the objects
+   * _data, where each rule has a number, and rules keep track of the objects
    * that they serialize, in order.
    */
   List<List> objects;
@@ -579,7 +581,7 @@ class Reference {
   /**
    * Convert the reference to a map in JSON format. This is specific to the
    * custom JSON format we define, and must be consistent with the
-   * [asReference] method.
+   * [Reader.asReference] method.
    */
   // TODO(alanknight): This is a hack both in defining a toJson specific to a
   // particular representation, and the use of a bogus sentinel "__Ref"

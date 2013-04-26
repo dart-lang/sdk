@@ -23,6 +23,6 @@ main() {
   Expect.isFalse(generated.contains('iae'));
   // Also make sure that we are not just in bailout mode without speculative
   // types by grepping for the integer-bailout check on argument j.
-  RegExp regexp = new RegExp(getIntTypeCheck('[aj]'));
+  RegExp regexp = new RegExp(getIntTypeCheck('[aji]'));
   Expect.isTrue(regexp.hasMatch(generated));
 }

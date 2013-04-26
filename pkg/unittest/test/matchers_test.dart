@@ -30,7 +30,7 @@ class Widget {
 }
 
 class HasPrice extends CustomMatcher {
-  const HasPrice(matcher) :
+  HasPrice(matcher) :
     super("Widget with a price that is", "price", matcher);
   featureValueOf(actual) => actual.price;
 }
@@ -237,20 +237,25 @@ void main() {
       shouldPass(b, hasLength(2));
     });
 
-    test('type mismatch', () {
-      var a = new DateTime.utc(2000);
-      var b = a.toString();
-      // We should get something like:
-      //    Expected: '2000-01-01 00:00:00.000Z'
-      //    but: expected String:'2000-01-01 00:00:00.000Z'
-      //    but was DateTime:<2000-01-01 00:00:00.000Z>.
-      // However, if minification is applied, then the type names
-      // will be shortened to two letters. The key thing is that
-      // there will be a "but: expected" part in the middle;
-      // this only happens with type mismatches or mismatches
-      // inside container types.
-      shouldFail(a, equals(b),
-          matches(new RegExp("^Expected.*but: expected .*but was.*\$")));
+    test('scalar type mismatch', () {
+      shouldFail('error', equals(5.1),
+          matches("^Expected: <5\.1>"
+                  "     but: was .*:'error' \\(not type .*\\)\.\$"));
+    });
+
+    test('nested type mismatch', () {
+      shouldFail(['error'], equals([5.1]),
+          matches(r"^Expected: <\[5\.1\]>"
+                  "     but: expected double:<5\.1> "
+                  "but was .*:'error' mismatch at position 0\.\$"));
+    });
+
+    test('doubly-nested type mismatch', () {
+      shouldFail([['error']], equals([[5.1]]),
+          matches(r"^Expected: <\[\[5\.1\]\]>"
+                  "     but: expected double:<5\.1> "
+                  "but was .*:'error' mismatch at position 0 "
+                  "mismatch at position 0\.\$"));
     });
   });
 
@@ -502,7 +507,7 @@ void main() {
       shouldPass(d, orderedEquals([1, 2]));
       shouldFail(d, orderedEquals([2, 1]),
           "Expected: equals <[2, 1]> ordered "
-          "but: was <1> mismatch at position 0.");
+          "but: expected <2> but was <1> mismatch at position 0.");
     });
 
     test('unorderedEquals', () {
@@ -702,6 +707,7 @@ void main() {
     test("Feature Matcher", () {
       var w = new Widget();
       w.price = 10;
+      shouldPass(w, new HasPrice(10));
       shouldPass(w, new HasPrice(greaterThan(0)));
       shouldFail(w, new HasPrice(greaterThan(10)),
           'Expected: Widget with a price that is a value greater than <10> '

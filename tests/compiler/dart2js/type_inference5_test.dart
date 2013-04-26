@@ -25,6 +25,6 @@ main() {
   var argname =
       new RegExp(r'function(?: [a-z]+)?\(([a-zA-Z0-9_]+)\)').firstMatch(generated)[1];
   print(argname);
-  RegExp regexp = new RegExp(getIntTypeCheck(argname));
+  RegExp regexp = new RegExp(getIntTypeCheck("(i|$argname)"));
   Expect.isTrue(regexp.hasMatch(generated));
 }

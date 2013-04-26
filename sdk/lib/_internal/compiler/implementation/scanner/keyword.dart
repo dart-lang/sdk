@@ -28,6 +28,7 @@ class Keyword extends IterableBase<int> implements SourceString {
       const Keyword("in"),
       const Keyword("new"),
       const Keyword("null"),
+      const Keyword("rethrow"),
       const Keyword("return"),
       const Keyword("super"),
       const Keyword("switch"),

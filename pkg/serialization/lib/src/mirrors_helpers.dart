@@ -30,7 +30,8 @@ Iterable<VariableMirror> publicFields(ClassMirror mirror) {
 
 /** Return true if the class has a field named [name]. Note that this
  * includes private fields, but excludes statics. */
-bool hasField(String name, ClassMirror mirror) {
+bool hasField(Symbol name, ClassMirror mirror) {
+  if (name == null) return false;
   var field = mirror.variables[name];
   if (field != null && !field.isStatic) return true;
   var superclass = mirror.superclass;
@@ -53,7 +54,8 @@ Iterable<MethodMirror> publicGetters(ClassMirror mirror) {
 }
 
 /** Return true if the class has a getter named [name] */
-bool hasGetter(String name, ClassMirror mirror) {
+bool hasGetter(Symbol name, ClassMirror mirror) {
+  if (name == null) return false;
   var getter = mirror.getters[name];
   if (getter != null && !getter.isStatic) return true;
   var superclass = mirror.superclass;

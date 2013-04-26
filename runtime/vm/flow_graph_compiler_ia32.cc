@@ -296,7 +296,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
 }
 
 
-// Generates inlined check if 'type' is a type parameter or type itsef
+// Generates inlined check if 'type' is a type parameter or type itself
 // EAX: instance (preserved).
 // Clobbers EDX, EDI, ECX.
 RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(

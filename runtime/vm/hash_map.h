@@ -57,9 +57,12 @@ template <typename KeyValueTrait>
 typename KeyValueTrait::Value
     DirectChainedHashMap<KeyValueTrait>::
         Lookup(typename KeyValueTrait::Key key) const {
+  const typename KeyValueTrait::Value kNoValue =
+      static_cast<typename KeyValueTrait::Value>(0);
+
   uword hash = static_cast<uword>(KeyValueTrait::Hashcode(key));
   uword pos = Bound(hash);
-  if (KeyValueTrait::ValueOf(array_[pos].kv) != NULL) {
+  if (KeyValueTrait::ValueOf(array_[pos].kv) != kNoValue) {
     if (KeyValueTrait::IsKeyEqual(array_[pos].kv, key)) {
       return KeyValueTrait::ValueOf(array_[pos].kv);
     }
@@ -72,7 +75,7 @@ typename KeyValueTrait::Value
       next = lists_[next].next;
     }
   }
-  return NULL;
+  return kNoValue;
 }
 
 
@@ -95,6 +98,9 @@ DirectChainedHashMap<KeyValueTrait>::
 
 template <typename KeyValueTrait>
 void DirectChainedHashMap<KeyValueTrait>::Resize(intptr_t new_size) {
+  const typename KeyValueTrait::Value kNoValue =
+      static_cast<typename KeyValueTrait::Value>(0);
+
   ASSERT(new_size > count_);
   // Hashing the values into the new array has no more collisions than in the
   // old hash map, so we can use the existing lists_ array, if we are careful.
@@ -119,7 +125,7 @@ void DirectChainedHashMap<KeyValueTrait>::Resize(intptr_t new_size) {
   if (old_array != NULL) {
     // Iterate over all the elements in lists, rehashing them.
     for (intptr_t i = 0; i < old_size; ++i) {
-      if (KeyValueTrait::ValueOf(old_array[i].kv) != NULL) {
+      if (KeyValueTrait::ValueOf(old_array[i].kv) != kNoValue) {
         intptr_t current = old_array[i].next;
         while (current != kNil) {
           Insert(lists_[current].kv);
@@ -166,14 +172,17 @@ void DirectChainedHashMap<T>::ResizeLists(intptr_t new_size) {
 template <typename KeyValueTrait>
 void DirectChainedHashMap<KeyValueTrait>::
     Insert(typename KeyValueTrait::Pair kv) {
-  ASSERT(KeyValueTrait::ValueOf(kv) != NULL);
+  const typename KeyValueTrait::Value kNoValue =
+      static_cast<typename KeyValueTrait::Value>(0);
+
+  ASSERT(KeyValueTrait::ValueOf(kv) != kNoValue);
   // Resizing when half of the hashtable is filled up.
   if (count_ >= array_size_ >> 1) Resize(array_size_ << 1);
   ASSERT(count_ < array_size_);
   count_++;
   uword pos = Bound(
       static_cast<uword>(KeyValueTrait::Hashcode(KeyValueTrait::KeyOf(kv))));
-  if (KeyValueTrait::ValueOf(array_[pos].kv) == NULL) {
+  if (KeyValueTrait::ValueOf(array_[pos].kv) == kNoValue) {
     array_[pos].kv = kv;
     array_[pos].next = kNil;
   } else {
@@ -186,7 +195,7 @@ void DirectChainedHashMap<KeyValueTrait>::
     lists_[new_element_pos].kv = kv;
     lists_[new_element_pos].next = array_[pos].next;
     ASSERT(array_[pos].next == kNil ||
-           KeyValueTrait::ValueOf(lists_[array_[pos].next].kv) != NULL);
+           KeyValueTrait::ValueOf(lists_[array_[pos].next].kv) != kNoValue);
     array_[pos].next = new_element_pos;
   }
 }

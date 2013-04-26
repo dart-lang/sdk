@@ -603,6 +603,37 @@ void BinaryFloat32x4OpInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
+void Float32x4ShuffleInstr::PrintOperandsTo(BufferFormatter* f) const {
+  // TODO(johnmccutchan): Add proper string enumeration of shuffle.
+  f->Print("SHUFFLE ");
+  value()->PrintTo(f);
+}
+
+
+void Float32x4ZeroInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("ZERO ");
+}
+
+
+void Float32x4SplatInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("SPLAT ");
+  value()->PrintTo(f);
+}
+
+
+void Float32x4ConstructorInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("Float32x4(");
+  value0()->PrintTo(f);
+  f->Print(", ");
+  value1()->PrintTo(f);
+  f->Print(", ");
+  value2()->PrintTo(f);
+  f->Print(", ");
+  value3()->PrintTo(f);
+  f->Print(")");
+}
+
+
 void BinaryMintOpInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s, ", Token::Str(op_kind()));
   left()->PrintTo(f);

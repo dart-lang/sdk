@@ -12,6 +12,10 @@
 #include "bin/isolate_data.h"
 #include "platform/thread.h"
 
+
+namespace dart {
+namespace bin {
+
 // VmStats is a HTTP singleton service that reports status information
 // of the running VM.
 
@@ -104,5 +108,9 @@ class VmStatusService {
 
   DISALLOW_COPY_AND_ASSIGN(VmStatusService);
 };
+
+
+}  // namespace bin
+}  // namespace dart
 
 #endif  // BIN_VMSTATS_IMPL_H_

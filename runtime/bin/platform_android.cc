@@ -12,6 +12,9 @@
 #include <unistd.h>  // NOLINT
 
 
+namespace dart {
+namespace bin {
+
 bool Platform::Initialize() {
   // Turn off the signal handler for SIGPIPE as it causes the process
   // to terminate on writing to a closed pipe. Without the signal
@@ -68,5 +71,8 @@ char** Platform::Environment(intptr_t* count) {
 void Platform::FreeEnvironment(char** env, intptr_t count) {
   delete[] env;
 }
+
+}  // namespace bin
+}  // namespace dart
 
 #endif  // defined(TARGET_OS_ANDROID)

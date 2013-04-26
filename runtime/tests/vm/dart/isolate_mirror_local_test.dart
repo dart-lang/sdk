@@ -13,6 +13,7 @@ import "package:expect/expect.dart";
 import 'dart:async';
 import 'dart:isolate';
 import 'dart:mirrors';
+import 'dart:uri';
 
 ReceivePort exit_port;
 Set expectedTests;
@@ -115,7 +116,7 @@ void testRootLibraryMirror(LibraryMirror lib_mirror) {
                 lib_mirror.qualifiedName);
   Expect.equals(null, lib_mirror.owner);
   Expect.isFalse(lib_mirror.isPrivate);
-  Expect.isTrue(lib_mirror.url.contains('isolate_mirror_local_test.dart'));
+  Expect.isTrue(lib_mirror.uri.path.contains('isolate_mirror_local_test.dart'));
   // TODO(ahe): toString() test disabled for now as Symbols are 100% opaque.
   // Expect.equals("LibraryMirror on 'isolate_mirror_local_test'",
   //               lib_mirror.toString());
@@ -300,10 +301,10 @@ void testRootLibraryMirror(LibraryMirror lib_mirror) {
 
 void testLibrariesMap(Map libraries) {
   // Just look for a couple of well-known libs.
-  LibraryMirror core_lib = libraries[const Symbol('dart.core')];
+  LibraryMirror core_lib = libraries[Uri.parse('dart:core')];
   Expect.isTrue(core_lib is LibraryMirror);
 
-  LibraryMirror mirror_lib = libraries[const Symbol('dart.mirrors')];
+  LibraryMirror mirror_lib = libraries[Uri.parse('dart:mirrors')];
   Expect.isTrue(mirror_lib is LibraryMirror);
 
   // Lookup an interface from a library and make sure it is sane.

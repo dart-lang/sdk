@@ -176,7 +176,7 @@
         'targets': [
           {
             'target_name': 'emulator_embedder',
-            'type': 'shared_library',
+            'type': 'static_library',
             'dependencies': [
               'skia-desktop',
               'libdart_lib_withcore',

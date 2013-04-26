@@ -734,11 +734,9 @@ bool AssertAssignableInstr::RecomputeType() {
     return false;
   }
 
-  if (value_type->IsMoreSpecificThan(dst_type())) {
-    return UpdateType(*value_type);
-  }
-
-  return false;
+  return UpdateType(value_type->IsMoreSpecificThan(dst_type())
+      ? *value_type
+      : CompileType::FromAbstractType(dst_type()));
 }
 
 
@@ -963,6 +961,32 @@ CompileType BinaryDoubleOpInstr::ComputeType() const {
 
 
 CompileType BinaryFloat32x4OpInstr::ComputeType() const {
+  return CompileType::FromCid(kFloat32x4Cid);
+}
+
+
+CompileType Float32x4ShuffleInstr::ComputeType() const {
+  if ((op_kind() == MethodRecognizer::kFloat32x4ShuffleX) ||
+      (op_kind() == MethodRecognizer::kFloat32x4ShuffleY) ||
+      (op_kind() == MethodRecognizer::kFloat32x4ShuffleZ) ||
+      (op_kind() == MethodRecognizer::kFloat32x4ShuffleW)) {
+    return CompileType::FromCid(kDoubleCid);
+  }
+  return CompileType::FromCid(kFloat32x4Cid);
+}
+
+
+CompileType Float32x4ConstructorInstr::ComputeType() const {
+  return CompileType::FromCid(kFloat32x4Cid);
+}
+
+
+CompileType Float32x4ZeroInstr::ComputeType() const {
+  return CompileType::FromCid(kFloat32x4Cid);
+}
+
+
+CompileType Float32x4SplatInstr::ComputeType() const {
   return CompileType::FromCid(kFloat32x4Cid);
 }
 

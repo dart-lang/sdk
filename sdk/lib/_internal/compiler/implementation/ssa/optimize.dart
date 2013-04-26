@@ -53,7 +53,7 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaReceiverSpecialization(compiler),
           new SsaGlobalValueNumberer(compiler),
           new SsaCodeMotion(),
-          new SsaValueRangeAnalyzer(constantSystem, work),
+          new SsaValueRangeAnalyzer(compiler, constantSystem, work),
           // Previous optimizations may have generated new
           // opportunities for constant folding.
           new SsaConstantFolder(constantSystem, backend, work),
@@ -73,15 +73,24 @@ class SsaOptimizerTask extends CompilerTask {
     }
     JavaScriptItemCompilationContext context = work.compilationContext;
     return measure(() {
+      SsaTypeGuardInserter inserter = new SsaTypeGuardInserter(compiler, work);
+
       // Run the phases that will generate type guards.
       List<OptimizationPhase> phases = <OptimizationPhase>[
-          new SsaTypeGuardInserter(compiler, work),
+          inserter,
           new SsaEnvironmentBuilder(compiler),
           // Then run the [SsaCheckInserter] because the type propagator also
           // propagated types non-speculatively. For example, it might have
           // propagated the type array for a call to the List constructor.
           new SsaCheckInserter(backend, work, context.boundsChecked)];
       runPhases(graph, phases);
+
+      if (work.guards.isEmpty && inserter.hasInsertedChecks) {
+        // If there is no guard, and we have inserted type checks
+        // instead, we can do the optimizations right away and avoid
+        // the bailout method.
+        optimize(work, graph, false);
+      }
       return !work.guards.isEmpty;
     });
   }
@@ -225,7 +234,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
   HInstruction tryOptimizeLengthInterceptedGetter(HInvokeDynamic node) {
     HInstruction actualReceiver = node.inputs[1];
-    if (actualReceiver.isIndexablePrimitive()) {
+    if (actualReceiver.isIndexable(compiler)) {
       if (actualReceiver.isConstantString()) {
         HConstant constantInput = actualReceiver;
         StringConstant constant = constantInput.constant;
@@ -235,15 +244,9 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         ListConstant constant = constantInput.constant;
         return graph.addConstantInt(constant.length, constantSystem);
       }
-      Element element;
-      bool isAssignable;
-      if (actualReceiver.isString()) {
-        element = backend.jsStringLength;
-        isAssignable = false;
-      } else {
-        element = backend.jsArrayLength;
-        isAssignable = !actualReceiver.isFixedArray();
-      }
+      Element element = backend.jsIndexableLength;
+      bool isAssignable = !actualReceiver.isFixedArray() &&
+          !actualReceiver.isString();
       HFieldGet result = new HFieldGet(
           element, actualReceiver, isAssignable: isAssignable);
       result.instructionType = HType.INTEGER;
@@ -314,8 +317,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         return result;
       }
     } else if (selector.isGetter()) {
-      if (selector.applies(backend.jsArrayLength, compiler)
-          || selector.applies(backend.jsStringLength, compiler)) {
+      if (selector.asUntyped.applies(backend.jsIndexableLength, compiler)) {
         HInstruction optimized = tryOptimizeLengthInterceptedGetter(node);
         if (optimized != null) return optimized;
       }
@@ -409,21 +411,25 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     HInvokeDynamicMethod result =
         new HInvokeDynamicMethod(node.selector, inputs);
     result.element = method;
-    // TODO(sra): Can the instruction type be strengthened to help optimize
-    // dependent instructions?
-    result.instructionType = node.instructionType;
+
+    // Strengthen instruction type from annotations to help optimize
+    // dependent instructions.
+    native.NativeBehavior nativeBehavior =
+        native.NativeBehavior.ofMethod(method, compiler);
+    HType returnType = new HType.fromNativeBehavior(nativeBehavior, compiler);
+    result.instructionType = returnType;
     return result;
   }
 
-  HInstruction visitIntegerCheck(HIntegerCheck node) {
-    HInstruction value = node.value;
-    if (value.isInteger()) return value;
-    if (value.isConstant()) {
-      HConstant constantInstruction = value;
+  HInstruction visitBoundsCheck(HBoundsCheck node) {
+    HInstruction index = node.index;
+    if (index.isInteger()) return node;
+    if (index.isConstant()) {
+      HConstant constantInstruction = index;
       assert(!constantInstruction.constant.isInt());
       if (!constantSystem.isInt(constantInstruction.constant)) {
         // -0.0 is a double but will pass the runtime integer check.
-        node.alwaysFalse = true;
+        node.staticChecks = HBoundsCheck.ALWAYS_FALSE;
       }
     }
     return node;
@@ -616,7 +622,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   }
 
   HInstruction visitFieldGet(HFieldGet node) {
-    if (node.element == backend.jsArrayLength) {
+    if (node.element == backend.jsIndexableLength) {
       if (node.receiver is HInvokeStatic) {
         // Try to recognize the length getter with input
         // [:new List(int):].
@@ -631,16 +637,12 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
             && call.inputs[1].isInteger()) {
           return call.inputs[1];
         }
-      } else if (node.receiver.isConstantList()) {
+      } else if (node.receiver.isConstantList() ||
+                 node.receiver.isConstantString()) {
         var instruction = node.receiver;
         return graph.addConstantInt(
             instruction.constant.length, backend.constantSystem);
       }
-    } else if (node.element == backend.jsStringLength
-               && node.receiver.isConstantString()) {
-        var instruction = node.receiver;
-        return graph.addConstantInt(
-            instruction.constant.length, backend.constantSystem);
     }
     return node;
   }
@@ -688,8 +690,9 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         field, receiver, isAssignable: isAssignable);
 
     if (field.getEnclosingClass().isNative()) {
-      result.instructionType =
-          new HType.subtype(field.computeType(compiler), compiler);
+      result.instructionType = new HType.fromNativeBehavior(
+          native.NativeBehavior.ofFieldLoad(field, compiler),
+          compiler);
     } else {
       HType type = new HType.inferredTypeForElement(field, compiler);
       if (type.isUnknown()) {
@@ -857,6 +860,25 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
           && !intercepted.contains(backend.jsDoubleClass)) {
         constantInterceptor = backend.jsNumberClass;
       }
+    } else {
+      // Try to find constant interceptor for a native class.  If the receiver
+      // is constrained to a leaf native class, we can use the class's
+      // interceptor directly.
+
+      // TODO(sra): Key DOM classes like Node, Element and Event are not leaf
+      // classes.  When the receiver type is not a leaf class, we might still be
+      // able to use the receiver class as a constant interceptor.  It is
+      // usually the case that methods defined on a non-leaf class don't test
+      // for a subclass or call methods defined on a subclass.  Provided the
+      // code is completely insensitive to the specific instance subclasses, we
+      // can use the non-leaf class directly.
+
+      if (!type.canBeNull()) {
+        ClassElement element = type.computeMask(compiler).singleClass(compiler);
+        if (element != null && element.isNative()) {
+          constantInterceptor = element;
+        }
+      }
     }
 
     if (constantInterceptor == null) return null;
@@ -928,54 +950,41 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
     }
   }
 
-  HBoundsCheck insertBoundsCheck(HInstruction node,
-                                 HInstruction receiver,
-                                 HInstruction index) {
-    bool isAssignable = !receiver.isFixedArray() && !receiver.isString();
-    Element element = receiver.isString()
-        ? backend.jsStringLength
-        : backend.jsArrayLength;
+  HBoundsCheck insertBoundsCheck(HInstruction indexNode,
+                                 HInstruction array,
+                                 HInstruction indexArgument) {
+    bool isAssignable = !array.isFixedArray() && !array.isString();
     HFieldGet length = new HFieldGet(
-        element, receiver, isAssignable: isAssignable);
+        backend.jsIndexableLength, array, isAssignable: isAssignable);
     length.instructionType = HType.INTEGER;
-    length.instructionType = HType.INTEGER;
-    node.block.addBefore(node, length);
+    indexNode.block.addBefore(indexNode, length);
 
-    HBoundsCheck check = new HBoundsCheck(index, length);
-    node.block.addBefore(node, check);
-    boundsChecked.add(node);
-    return check;
-  }
-
-  HIntegerCheck insertIntegerCheck(HInstruction node, HInstruction value) {
-    HIntegerCheck check = new HIntegerCheck(value);
-    node.block.addBefore(node, check);
-    Set<HInstruction> dominatedUsers = value.dominatedUsers(node);
-    for (HInstruction user in dominatedUsers) {
-      user.changeUse(value, check);
+    HBoundsCheck check = new HBoundsCheck(indexArgument, length);
+    indexNode.block.addBefore(indexNode, check);
+    // If the index input to the bounds check was not known to be an integer
+    // then we replace its uses with the bounds check, which is known to be an
+    // integer.  However, if the input was already an integer we don't do this
+    // because putting in a check instruction might obscure the real nature of
+    // the index eg. if it is a constant.  The range information from the
+    // BoundsCheck instruction is attached to the input directly by
+    // visitBoundsCheck in the SsaValueRangeAnalyzer.
+    if (!indexArgument.isInteger()) {
+      indexArgument.replaceAllUsersDominatedBy(indexNode, check);
     }
+    boundsChecked.add(indexNode);
     return check;
   }
 
   void visitIndex(HIndex node) {
     if (boundsChecked.contains(node)) return;
     HInstruction index = node.index;
-    if (!node.index.isInteger()) {
-      index = insertIntegerCheck(node, index);
-    }
     index = insertBoundsCheck(node, node.receiver, index);
-    node.changeUse(node.index, index);
   }
 
   void visitIndexAssign(HIndexAssign node) {
-    if (!node.receiver.isMutableArray()) return;
     if (boundsChecked.contains(node)) return;
     HInstruction index = node.index;
-    if (!node.index.isInteger()) {
-      index = insertIntegerCheck(node, index);
-    }
     index = insertBoundsCheck(node, node.receiver, index);
-    node.changeUse(node.index, index);
   }
 
   void visitInvokeDynamicMethod(HInvokeDynamicMethod node) {

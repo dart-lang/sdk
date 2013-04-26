@@ -8,7 +8,7 @@ typedef void Callback0();
 typedef void Callback1(arg1);
 typedef void Callback2(arg1, arg2);
 
-class A native "*A" {
+class A native "A" {
   foo1(Callback1 closure, [arg1 = 0]) native;
   foo2(Callback2 closure, [arg1 = 0, arg2 = 1]) native;
 }

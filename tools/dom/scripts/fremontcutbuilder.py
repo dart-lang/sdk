@@ -17,9 +17,7 @@ FEATURE_DISABLED = [
     'ENABLE_CUSTOM_SCHEME_HANDLER',
     'ENABLE_ENCRYPTED_MEDIA_V2',
     'ENABLE_MEDIA_CAPTURE', # Only enabled on Android.
-    'ENABLE_MICRODATA',
     'ENABLE_ORIENTATION_EVENTS', # Only enabled on Android.
-    'ENABLE_PROXIMITY_EVENTS',
     'ENABLE_SPEECH_SYNTHESIS',
     'ENABLE_WEBVTT_REGIONS',
     'ENABLE_XHR_TIMEOUT',
@@ -28,13 +26,10 @@ FEATURE_DISABLED = [
 FEATURE_DEFINES = [
     'ENABLE_CALENDAR_PICKER',
     'ENABLE_CANVAS_PROXY',
-    'ENABLE_CSS_FILTERS',
     'ENABLE_CSS_REGIONS',
     'ENABLE_CUSTOM_ELEMENTS',
     'ENABLE_DATALIST_ELEMENT',
-    'ENABLE_DETAILS_ELEMENT',
     'ENABLE_DIALOG_ELEMENT',
-    'ENABLE_DIRECTORY_UPLOAD',
     'ENABLE_ENCRYPTED_MEDIA',
     'ENABLE_FONT_LOAD_EVENTS',
     'ENABLE_GAMEPAD',
@@ -44,19 +39,15 @@ FEATURE_DEFINES = [
     'ENABLE_NAVIGATOR_CONTENT_UTILS',
     'ENABLE_NOTIFICATIONS',
     'ENABLE_PAGE_POPUP',
-    'ENABLE_SCRIPTED_SPEECH',
     'ENABLE_SHARED_WORKERS',
     'ENABLE_SVG',
     'ENABLE_SVG_FONTS',
-    'ENABLE_TOUCH_EVENTS',
     'ENABLE_VIDEO',
-    'ENABLE_VIDEO_TRACK',
     'ENABLE_WEB_AUDIO',
     'ENABLE_WEBGL',
-    'ENABLE_XSLT',
 ]
 
-def build_database(idl_files, database_dir, parallel=False):
+def build_database(idl_files, database_dir, feature_defines=None, parallel=False):
   """This code reconstructs the FremontCut IDL database from W3C,
   WebKit and Dart IDL files."""
   current_dir = os.path.dirname(__file__)
@@ -77,10 +68,13 @@ def build_database(idl_files, database_dir, parallel=False):
   # generation.  We need to recheck this periodically for now.
   webkit_defines = [ 'LANGUAGE_DART', 'LANGUAGE_JAVASCRIPT' ]
 
+  if feature_defines is None:
+    feature_defines = FEATURE_DEFINES
+
   webkit_options = databasebuilder.DatabaseBuilderOptions(
       idl_syntax=idlparser.WEBKIT_SYNTAX,
       # TODO(vsm): What else should we define as on when processing IDL?
-      idl_defines=webkit_defines + FEATURE_DEFINES,
+      idl_defines=webkit_defines + feature_defines,
       source='WebKit',
       source_attributes={'revision': webkit_revision})
 

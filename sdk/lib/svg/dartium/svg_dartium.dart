@@ -3425,7 +3425,7 @@ class LengthList extends NativeFieldWrapperClass1 implements List<Length> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -3437,7 +3437,7 @@ class LengthList extends NativeFieldWrapperClass1 implements List<Length> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int end, Iterable<Length> iterable, [int skipCount]) {
+  void setRange(int start, int end, Iterable<Length> iterable, [int skipCount=0]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -4146,7 +4146,7 @@ class NumberList extends NativeFieldWrapperClass1 implements List<Number> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -4158,7 +4158,7 @@ class NumberList extends NativeFieldWrapperClass1 implements List<Number> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int end, Iterable<Number> iterable, [int skipCount]) {
+  void setRange(int start, int end, Iterable<Number> iterable, [int skipCount=0]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -5294,7 +5294,7 @@ class PathSegList extends NativeFieldWrapperClass1 implements List<PathSeg> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -5306,7 +5306,7 @@ class PathSegList extends NativeFieldWrapperClass1 implements List<PathSeg> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int end, Iterable<PathSeg> iterable, [int skipCount]) {
+  void setRange(int start, int end, Iterable<PathSeg> iterable, [int skipCount=0]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -6296,7 +6296,7 @@ class StringList extends NativeFieldWrapperClass1 implements List<String> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -6308,7 +6308,7 @@ class StringList extends NativeFieldWrapperClass1 implements List<String> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int end, Iterable<String> iterable, [int skipCount]) {
+  void setRange(int start, int end, Iterable<String> iterable, [int skipCount=0]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -7563,7 +7563,7 @@ class TransformList extends NativeFieldWrapperClass1 implements List<Transform> 
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -7575,7 +7575,7 @@ class TransformList extends NativeFieldWrapperClass1 implements List<Transform> 
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int end, Iterable<Transform> iterable, [int skipCount]) {
+  void setRange(int start, int end, Iterable<Transform> iterable, [int skipCount=0]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -8156,7 +8156,7 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 implements List<Elem
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -8168,7 +8168,7 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 implements List<Elem
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int end, Iterable<ElementInstance> iterable, [int skipCount]) {
+  void setRange(int start, int end, Iterable<ElementInstance> iterable, [int skipCount=0]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 

@@ -6,7 +6,7 @@ import "package:expect/expect.dart";
 
 typedef void MyFunctionType();
 
-class A native "*A" {
+class A native "A" {
   setClosure(MyFunctionType f) native;
   check(MyFunctionType f) native;
   invoke() native;

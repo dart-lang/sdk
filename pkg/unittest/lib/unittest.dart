@@ -5,9 +5,20 @@
 /**
  * A library for writing dart unit tests.
  *
- * To import this library, install the
- * [unittest package](http://pub.dartlang.org/packages/unittest) via the pub
- * package manager. See the [Getting Started](http://pub.dartlang.org/doc)
+ * ## Installing ##
+ *
+ * Use [pub][] to install this package. Add the following to your `pubspec.yaml`
+ * file.
+ *
+ *     dependencies:
+ *       unittest: any
+ *
+ * Then run `pub install`.
+ *
+ * For more information, see the
+ * [unittest package on pub.dartlang.org][pkg].
+ *
+ * See the [Getting Started](http://pub.dartlang.org/doc)
  * guide for more details.
  *
  * ##Concepts##
@@ -150,6 +161,8 @@
  *       });
  *     }
  *
+ * [pub]: http://pub.dartlang.org
+ * [pkg]: http://pub.dartlang.org/packages/unittest
  */
 library unittest;
 
@@ -192,24 +205,85 @@ void set unittestConfiguration(Configuration value) {
 void logMessage(String message) =>
     _config.onLogMessage(currentTestCase, message);
 
-/**
- * Description text of the current test group. If multiple groups are nested,
- * this will contain all of their text concatenated.
- */
-String _currentGroup = '';
-
 /** Separator used between group names and test names. */
 String groupSep = ' ';
 
-// TODO(nweiz): present an unmodifiable view of this once issue 8321 is fixed.
+final List<TestCase> _testCases = new List<TestCase>();
+
 /** Tests executed in this suite. */
-final List<TestCase> testCases = new List<TestCase>();
+final List<TestCase> testCases = new UnmodifiableListView<TestCase>(_testCases);
 
-/** Setup function called before each test in a group */
-Function _testSetup;
+/**
+ * Setup and teardown functions for a group and its parents, the latter
+ * for chaining.
+ */
+class GroupContext {
+  final GroupContext parent;
 
-/** Teardown function called after each test in a group */
-Function _testTeardown;
+  /** Description text of the current test group. */
+  final String _name;
+
+  /** Setup function called before each test in a group. */
+  Function _testSetup;
+
+  get testSetup => _testSetup;
+
+  get parentSetup => (parent == null) ? null : parent.testSetup;
+
+  set testSetup(Function setup) {
+    var preSetup = parentSetup;
+    if (preSetup == null) {
+      _testSetup = setup;
+    } else {
+      _testSetup = () {
+        var f = preSetup();
+        if (f is Future) {
+          return f.then((_) => setup());
+        } else {
+          return setup();
+        }
+      };
+    }
+  }
+
+  /** Teardown function called after each test in a group. */
+  Function _testTeardown;
+
+  get testTeardown => _testTeardown;
+
+  get parentTeardown => (parent == null) ? null : parent.testTeardown;
+
+  set testTeardown(Function teardown) {
+    var postTeardown = parentTeardown;
+    if (postTeardown == null) {
+      _testTeardown = teardown;
+    } else {
+      _testTeardown = () {
+        var f = teardown();
+        if (f is Future) {
+          return f.then((_) => postTeardown());
+        } else {
+          return postTeardown();
+        }
+      };
+    }
+  }
+
+  String get fullName => (parent == null || parent == _rootContext)
+      ? _name
+      : "${parent.fullName}$groupSep$_name";
+
+  GroupContext([this.parent, this._name = '']) {
+    _testSetup = parentSetup;
+    _testTeardown = parentTeardown;
+  }
+}
+
+// We use a 'dummy' context for the top level to eliminate null
+// checks when querying the context. This allows us to easily
+//  support top-level setUp/tearDown functions as well.
+GroupContext _rootContext = new GroupContext();
+GroupContext _currentContext = _rootContext;
 
 int _currentTestCaseIndex = 0;
 
@@ -252,8 +326,8 @@ Map testState = {};
  */
 void test(String spec, TestFunction body) {
   ensureInitialized();
-  testCases.add(new TestCase._internal(testCases.length + 1, _fullSpec(spec),
-                                       body));
+  _testCases.add(new TestCase._internal(testCases.length + 1, _fullSpec(spec),
+                                        body));
 }
 
 /**
@@ -275,8 +349,9 @@ void solo_test(String spec, TestFunction body) {
 
   ensureInitialized();
 
-  _soloTest = new TestCase._internal(testCases.length + 1, _fullSpec(spec), body);
-  testCases.add(_soloTest);
+  _soloTest = new TestCase._internal(testCases.length + 1, _fullSpec(spec),
+                                     body);
+  _testCases.add(_soloTest);
 }
 
 /** Sentinel value for [_SpreadArgsHelper]. */
@@ -292,10 +367,9 @@ class _SpreadArgsHelper {
   final int minExpectedCalls;
   final int maxExpectedCalls;
   final Function isDone;
-  final int testNum;
   final String id;
   int actualCalls = 0;
-  TestCase testCase;
+  final TestCase testCase;
   bool complete;
   static const sentinel = const _Sentinel();
 
@@ -307,19 +381,14 @@ class _SpreadArgsHelper {
             ? minExpected
             : maxExpected,
         this.isDone = isDone,
-        testNum = _currentTestCaseIndex,
+        this.testCase = currentTestCase,
         this.id = _makeCallbackId(id, callback) {
     ensureInitialized();
-    if (!(_currentTestCaseIndex >= 0 &&
-           _currentTestCaseIndex < testCases.length &&
-           testCases[_currentTestCaseIndex] != null)) {
-      print("No valid test, did you forget to run your test inside a call "
-          "to test()?");
+    if (testCase == null) {
+      throw new StateError("No valid test. Did you forget to run your test "
+          "inside a call to test()?");
     }
-    assert(_currentTestCaseIndex >= 0 &&
-           _currentTestCaseIndex < testCases.length &&
-           testCases[_currentTestCaseIndex] != null);
-    testCase = testCases[_currentTestCaseIndex];
+
     if (isDone != null || minExpected > 0) {
       testCase._callbackFunctionsOutstanding++;
       complete = false;
@@ -328,7 +397,7 @@ class _SpreadArgsHelper {
     }
   }
 
-  static _makeCallbackId(String id, Function callback) {
+  static String _makeCallbackId(String id, Function callback) {
     // Try to create a reasonable id.
     if (id != null) {
       return "$id ";
@@ -349,7 +418,7 @@ class _SpreadArgsHelper {
     return '';
   }
 
-  shouldCallBack() {
+  bool shouldCallBack() {
     ++actualCalls;
     if (testCase.isComplete) {
       // Don't run if the test is done. We don't throw here as this is not
@@ -369,7 +438,7 @@ class _SpreadArgsHelper {
     return true;
   }
 
-  after() {
+  void after() {
     if (!complete) {
       if (minExpectedCalls > 0 && actualCalls < minExpectedCalls) return;
       if (isDone != null && !isDone()) return;
@@ -381,31 +450,6 @@ class _SpreadArgsHelper {
     }
   }
 
-  invoke([arg0 = sentinel, arg1 = sentinel, arg2 = sentinel,
-          arg3 = sentinel, arg4 = sentinel]) {
-    return _guardAsync(() {
-      if (!shouldCallBack()) {
-        return;
-      } else if (arg0 == sentinel) {
-        return callback();
-      } else if (arg1 == sentinel) {
-        return callback(arg0);
-      } else if (arg2 == sentinel) {
-        return callback(arg0, arg1);
-      } else if (arg3 == sentinel) {
-        return callback(arg0, arg1, arg2);
-      } else if (arg4 == sentinel) {
-        return callback(arg0, arg1, arg2, arg3);
-      } else {
-        testCase.error(
-           'unittest lib does not support callbacks with more than'
-              ' 4 arguments.',
-           '');
-      }
-    },
-    after, testNum);
-  }
-
   invoke0() {
     return _guardAsync(
         () {
@@ -413,7 +457,7 @@ class _SpreadArgsHelper {
             return callback();
           }
         },
-        after, testNum);
+        after, testCase);
   }
 
   invoke1(arg1) {
@@ -423,7 +467,7 @@ class _SpreadArgsHelper {
             return callback(arg1);
           }
         },
-        after, testNum);
+        after, testCase);
   }
 
   invoke2(arg1, arg2) {
@@ -433,23 +477,8 @@ class _SpreadArgsHelper {
             return callback(arg1, arg2);
           }
         },
-        after, testNum);
+        after, testCase);
   }
-}
-
-/**
- * Indicate that [callback] is expected to be called a [count] number of times
- * (by default 1). The unittest framework will wait for the callback to run the
- * specified [count] times before it continues with the following test.  Using
- * [_expectAsync] will also ensure that errors that occur within [callback] are
- * tracked and reported. [callback] should take between 0 and 4 positional
- * arguments (named arguments are not supported here). [id] can be used
- * to provide more descriptive error messages if the callback is called more
- * often than expected.
- */
-Function _expectAsync(Function callback,
-                     {int count: 1, int max: 0, String id}) {
-  return new _SpreadArgsHelper(callback, count, max, null, id).invoke;
 }
 
 /**
@@ -489,20 +518,6 @@ Function expectAsync2(Function callback,
 
 /**
  * Indicate that [callback] is expected to be called until [isDone] returns
- * true. The unittest framework checks [isDone] after each callback and only
- * when it returns true will it continue with the following test. Using
- * [expectAsyncUntil] will also ensure that errors that occur within
- * [callback] are tracked and reported. [callback] should take between 0 and
- * 4 positional arguments (named arguments are not supported). [id] can be
- * used to identify the callback in error messages (for example if it is called
- * after the test case is complete).
- */
-Function _expectAsyncUntil(Function callback, Function isDone, {String id}) {
-  return new _SpreadArgsHelper(callback, 0, -1, isDone, id).invoke;
-}
-
-/**
- * Indicate that [callback] is expected to be called until [isDone] returns
  * true. The unittest framework check [isDone] after each callback and only
  * when it returns true will it continue with the following test. Using
  * [expectAsyncUntil0] will also ensure that errors that occur within
@@ -530,19 +545,6 @@ Function expectAsyncUntil1(Function callback, Function isDone, {String id}) {
 // TODO(sigmund): deprecate this API when issue 2706 is fixed.
 Function expectAsyncUntil2(Function callback, Function isDone, {String id}) {
   return new _SpreadArgsHelper(callback, 0, -1, isDone, id).invoke2;
-}
-
-/**
- * Wraps the [callback] in a new function and returns that function. The new
- * function will be able to handle exceptions by directing them to the correct
- * test. This is thus similar to expectAsync0. Use it to wrap any callbacks that
- * might optionally be called but may never be called during the test.
- * [callback] should take between 0 and 4 positional arguments (named arguments
- * are not supported). [id] can be used to identify the callback in error
- * messages (for example if it is called after the test case is complete).
- */
-Function _protectAsync(Function callback, {String id}) {
-  return new _SpreadArgsHelper(callback, 0, -1, null, id).invoke;
 }
 
 /**
@@ -581,46 +583,27 @@ Function protectAsync2(Function callback, {String id}) {
  */
 void group(String description, void body()) {
   ensureInitialized();
-  // Concatenate the new group.
-  final parentGroup = _currentGroup;
-  if (_currentGroup != '') {
-    // Add a space.
-    _currentGroup = '$_currentGroup$groupSep$description';
-  } else {
-    // The first group.
-    _currentGroup = description;
-  }
-
-  // Groups can be nested, so we need to preserve the current
-  // settings for test setup/teardown.
-  Function parentSetup = _testSetup;
-  Function parentTeardown = _testTeardown;
-
+  _currentContext = new GroupContext(_currentContext, description);
   try {
-    _testSetup = null;
-    _testTeardown = null;
     body();
   } catch (e, trace) {
     var stack = (trace == null) ? '' : ': ${trace.toString()}';
     _uncaughtErrorMessage = "${e.toString()}$stack";
   } finally {
     // Now that the group is over, restore the previous one.
-    _currentGroup = parentGroup;
-    _testSetup = parentSetup;
-    _testTeardown = parentTeardown;
+    _currentContext = _currentContext.parent;
   }
 }
 
 /**
  * Register a [setUp] function for a test [group]. This function will
- * be called before each test in the group is run. Note that if groups
- * are nested only the most locally scoped [setUpTest] function will be run.
+ * be called before each test in the group is run.
  * [setUp] and [tearDown] should be called within the [group] before any
  * calls to [test]. The [setupTest] function can be asynchronous; in this
  * case it must return a [Future].
  */
 void setUp(Function setupTest) {
-  _testSetup = setupTest;
+  _currentContext.testSetup = setupTest;
 }
 
 /**
@@ -632,12 +615,12 @@ void setUp(Function setupTest) {
  * case it must return a [Future].
  */
 void tearDown(Function teardownTest) {
-  _testTeardown = teardownTest;
+  _currentContext.testTeardown = teardownTest;
 }
 
 /** Advance to the next test case. */
 void _nextTestCase() {
-  _defer(() {
+  runAsync(() {
     _currentTestCaseIndex++;
     _nextBatch();
   });
@@ -654,19 +637,6 @@ void _reportTestError(String msg, String trace) {
   } else {
     _uncaughtErrorMessage = "$msg: $trace";
   }
-}
-
-/**
- * Runs [callback] at the end of the event loop. Note that we don't wrap
- * the callback in guardAsync; this is for test framework functions which
- * should not be throwing unexpected exceptions that end up failing test
- * cases! Furthermore, we need the final exception to be thrown but not
- * caught by the test framework if any test cases failed. However, tests
- * that make use of a similar defer function *should* wrap the callback
- * (as we do in unitttest_test.dart).
- */
-_defer(void callback()) {
-  (new Future.value()).then((_) => callback());
 }
 
 void rerunTests() {
@@ -690,14 +660,13 @@ void filterTests(testFilter) {
   } else if (testFilter is Function) {
     filterFunction = testFilter;
   }
-  testCases.retainWhere(filterFunction);
+  _testCases.retainWhere(filterFunction);
 }
 
 /** Runs all queued tests, one at a time. */
 void runTests() {
   _ensureInitialized(false);
   _currentTestCaseIndex = 0;
-  _currentGroup = '';
 
   // If we are soloing a test, remove all the others.
   if (_soloTest != null) {
@@ -706,7 +675,7 @@ void runTests() {
 
   _config.onStart();
 
-  _defer(() {
+  runAsync(() {
     _nextBatch();
   });
 }
@@ -718,15 +687,15 @@ void runTests() {
  * The value returned by [tryBody] (if any) is returned by [guardAsync].
  */
 guardAsync(Function tryBody) {
-  return _guardAsync(tryBody, null, _currentTestCaseIndex);
+  return _guardAsync(tryBody, null, currentTestCase);
 }
 
-_guardAsync(Function tryBody, Function finallyBody, int testNum) {
-  assert(testNum >= 0);
+_guardAsync(Function tryBody, Function finallyBody, TestCase testCase) {
+  assert(testCase != null);
   try {
     return tryBody();
   } catch (e, trace) {
-    _registerException(testNum, e, trace);
+    _registerException(testCase, e, trace);
   } finally {
     if (finallyBody != null) finallyBody();
   }
@@ -736,19 +705,19 @@ _guardAsync(Function tryBody, Function finallyBody, int testNum) {
  * Registers that an exception was caught for the current test.
  */
 void registerException(e, [trace]) {
-  _registerException(_currentTestCaseIndex, e, trace);
+  _registerException(currentTestCase, e, trace);
 }
 
 /**
  * Registers that an exception was caught for the current test.
  */
-void _registerException(testNum, e, [trace]) {
+void _registerException(TestCase testCase, e, [trace]) {
   trace = trace == null ? '' : trace.toString();
   String message = (e is TestFailure) ? e.message : 'Caught $e';
-  if (testCases[testNum].result == null) {
-    testCases[testNum].fail(message, trace);
+  if (testCase.result == null) {
+    testCase.fail(message, trace);
   } else {
-    testCases[testNum].error(message, trace);
+    testCase.error(message, trace);
   }
 }
 
@@ -764,7 +733,7 @@ void _nextBatch() {
       break;
     }
     final testCase = testCases[_currentTestCaseIndex];
-    var f = _guardAsync(testCase._run, null, _currentTestCaseIndex);
+    var f = _guardAsync(testCase._run, null, testCase);
     if (f != null) {
       f.whenComplete(() {
         _nextTestCase(); // Schedule the next test.
@@ -796,8 +765,9 @@ void _completeTests() {
 }
 
 String _fullSpec(String spec) {
-  if (spec == null) return '$_currentGroup';
-  return _currentGroup != '' ? '$_currentGroup$groupSep$spec' : spec;
+  var group = '${_currentContext.fullName}';
+  if (spec == null) return group;
+  return group != '' ? '$group$groupSep$spec' : spec;
 }
 
 /**
@@ -825,7 +795,7 @@ void _ensureInitialized(bool configAutoStart) {
   if (configAutoStart && _config.autoStart) {
     // Immediately queue the suite up. It will run after a timeout (i.e. after
     // main() has returned).
-    _defer(runTests);
+    runAsync(runTests);
   }
 }
 

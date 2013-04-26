@@ -466,7 +466,6 @@ class SnapshotWriter : public BaseWriter {
   void set_exception_msg(const char* msg) {
     exception_msg_ = msg;
   }
-  LanguageError* ErrorHandle() { return &error_; }
   void ThrowException(Exceptions::ExceptionType type, const char* msg);
 
  protected:
@@ -521,7 +520,6 @@ class SnapshotWriter : public BaseWriter {
   GrowableArray<ForwardObjectNode*> forward_list_;
   Exceptions::ExceptionType exception_type_;  // Exception type.
   const char* exception_msg_;  // Message associated with exception.
-  LanguageError& error_;  // Error handle.
 
   friend class RawArray;
   friend class RawClass;

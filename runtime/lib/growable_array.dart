@@ -43,13 +43,14 @@ class _GrowableObjectArray<T> implements List<T> {
     return result;
   }
 
-  void remove(Object element) {
+  bool remove(Object element) {
     for (int i = 0; i < this.length; i++) {
       if (this[i] == element) {
         removeAt(i);
-        return;
+        return true;
       }
     }
+    return false;
   }
 
   void insertAll(int index, Iterable<T> iterable) {
@@ -237,10 +238,10 @@ class _GrowableObjectArray<T> implements List<T> {
   }
 
   void forEach(f(T element)) {
-    // TODO(srdjan): Use IterableMixinWorkaround.forEach(this, f);
-    // Accessing the list directly improves DeltaBlue performance by 25%.
+    int initialLength = length;
     for (int i = 0; i < length; i++) {
       f(this[i]);
+      if (length != initialLength) throw new ConcurrentModificationError(this);
     }
   }
 

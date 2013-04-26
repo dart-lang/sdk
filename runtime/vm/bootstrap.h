@@ -52,8 +52,8 @@ class Bootstrap : public AllStatic {
   static const char math_patch_[];
   static const char mirrors_source_[];
   static const char mirrors_patch_[];
-  static const char typeddata_source_[];
-  static const char typeddata_patch_[];
+  static const char typed_data_source_[];
+  static const char typed_data_patch_[];
   static const char uri_source_[];
   static const char utf_source_[];
 };

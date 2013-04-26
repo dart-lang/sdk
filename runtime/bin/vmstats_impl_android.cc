@@ -10,6 +10,9 @@
 #include <signal.h>  // NOLINT
 
 
+namespace dart {
+namespace bin {
+
 static void sig_handler(int sig, siginfo_t* siginfo, void*) {
   if (sig == SIGQUIT) {
     VmStats::DumpStack();
@@ -28,6 +31,9 @@ void VmStats::Initialize() {
     perror("sigaction");
   }
 }
+
+}  // namespace bin
+}  // namespace dart
 
 #endif  // defined(TARGET_OS_ANDROID)
 

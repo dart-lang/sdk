@@ -42,16 +42,20 @@ Future<String> provider(Uri uri) {
     } else if (uri.path.endsWith('_patch.dart')) {
       source = '';
     } else if (uri.path.endsWith('interceptors.dart')) {
-      source = """class ObjectInterceptor {}
+      source = """class Interceptor {
+                    operator==(other) {}
+                  }
+                  class JSIndexable {
+                    get length;
+                  }
+                  class JSMutableIndexable {}
                   class JSArray {
-                    var length;
                     var removeLast;
                     var add;
                   }
                   class JSFixedArray {}
                   class JSExtendableArray {}
                   class JSString {
-                    var length;
                     var split;
                     var concat;
                     var toString;

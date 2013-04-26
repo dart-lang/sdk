@@ -8,6 +8,10 @@
 #include "bin/extensions.h"
 #include <dlfcn.h>  // NOLINT
 
+
+namespace dart {
+namespace bin {
+
 void* Extensions::LoadExtensionLibrary(const char* library_path,
                                        const char* extension_name) {
   const char* strings[] = { library_path, "/lib",
@@ -24,5 +28,8 @@ void* Extensions::ResolveSymbol(void* lib_handle, const char* symbol) {
   if (dlerror() != NULL) return NULL;
   return result;
 }
+
+}  // namespace bin
+}  // namespace dart
 
 #endif  // defined(TARGET_OS_LINUX)

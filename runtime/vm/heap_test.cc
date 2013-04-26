@@ -9,8 +9,6 @@
 
 namespace dart {
 
-// Only ia32 and x64 can run execution tests.
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 TEST_CASE(OldGC) {
   const char* kScriptChars =
   "main() {\n"
@@ -48,6 +46,4 @@ TEST_CASE(LargeSweep) {
   Dart_ExitScope();
   heap->CollectGarbage(Heap::kOld);
 }
-
-#endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64).
 }

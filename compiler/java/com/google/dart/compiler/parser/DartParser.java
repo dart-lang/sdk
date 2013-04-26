@@ -5628,7 +5628,7 @@ public class DartParser extends CompletionHooksParserBase {
         && !Elements.isLibrarySource(source, "/crypto/crypto.dart")
         && !Elements.isLibrarySource(source, "/uri/uri.dart")
         && !Elements.isLibrarySource(source, "/utf/utf.dart")
-        && !Elements.isLibrarySource(source, "/typeddata/typeddata.dart")
+        && !Elements.isLibrarySource(source, "/typed_data/typed_data.dart")
         ) {
       super.reportError(position, errorCode);
     }

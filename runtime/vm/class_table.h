@@ -6,7 +6,6 @@
 #define VM_CLASS_TABLE_H_
 
 #include "platform/assert.h"
-#include "platform/globals.h"
 #include "vm/globals.h"
 
 namespace dart {

@@ -623,12 +623,9 @@ abstract class TypedefElement extends Element
   Link<DartType> get typeVariables;
 
   bool get isResolved;
-  bool get isBeingResolved;
 
   // TODO(kasperl): Try to get rid of these setters.
   void set alias(DartType value);
-  void set isResolved(bool value);
-  void set isBeingResolved(bool value);
   void set functionSignature(FunctionSignature value);
 }
 

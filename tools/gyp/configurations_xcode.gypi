@@ -51,7 +51,7 @@
 
           'GCC_ENABLE_PASCAL_STRINGS': 'NO',
           'GCC_ENABLE_TRIGRAPHS': 'NO',
-          'PREBINDING': 'NO',
+          'COMBINE_HIDPI_IMAGES': 'YES',
         },
       },
     },

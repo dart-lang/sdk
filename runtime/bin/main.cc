@@ -23,10 +23,12 @@
 #include "bin/vmstats_impl.h"
 #include "platform/globals.h"
 
+namespace dart {
+namespace bin {
+
 // snapshot_buffer points to a snapshot if we link in a snapshot otherwise
 // it is initialized to NULL.
 extern const uint8_t* snapshot_buffer;
-
 
 // Global state that stores a pointer to the application script snapshot.
 static bool generate_script_snapshot = false;
@@ -861,4 +863,11 @@ int main(int argc, char** argv) {
   }
 
   return Process::GlobalExitCode();
+}
+
+}  // namespace bin
+}  // namespace dart
+
+int main(int argc, char** argv) {
+  return dart::bin::main(argc, argv);
 }

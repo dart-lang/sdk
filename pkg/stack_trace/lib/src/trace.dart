@@ -4,6 +4,7 @@
 
 library trace;
 
+import 'dart:collection';
 import 'dart:uri';
 import 'dart:math' as math;
 
@@ -13,7 +14,6 @@ final _patchRegExp = new RegExp(r"-patch$");
 
 /// A stack trace, comprised of a list of stack frames.
 class Trace implements StackTrace {
-  // TODO(nweiz): make this read-only once issue 8321 is fixed.
   /// The stack frames that comprise this stack trace.
   final List<Frame> frames;
 
@@ -63,7 +63,7 @@ class Trace implements StackTrace {
 
   /// Returns a new [Trace] comprised of [frames].
   Trace(Iterable<Frame> frames)
-      : frames = frames.toList();
+      : frames = new UnmodifiableListView<Frame>(frames.toList());
 
   // TODO(nweiz): Keep track of which [Frame]s are part of the partial stack
   // trace and only print them.

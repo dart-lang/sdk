@@ -50,11 +50,11 @@ class VMGlue {
 
   static Dart_Handle CheckError(Dart_Handle);
 
-  static bool CreateIsolateAndSetupHelper(const char* script_uri,
+  static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
                                           const char* main,
                                           void* data,
                                           char** error);
-  static bool CreateIsolateAndSetup(const char* script_uri,
+  static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
                                     const char* main,
                                     void* data, char** error);
   static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,

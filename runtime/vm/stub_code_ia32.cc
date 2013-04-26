@@ -10,8 +10,8 @@
 #include "vm/dart_entry.h"
 #include "vm/flow_graph_compiler.h"
 #include "vm/instructions.h"
+#include "vm/heap.h"
 #include "vm/object_store.h"
-#include "vm/pages.h"
 #include "vm/resolver.h"
 #include "vm/scavenger.h"
 #include "vm/stub_code.h"
@@ -322,7 +322,7 @@ DECLARE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp);
 // - Fill the unoptimized frame.
 // - Materialize objects that require allocation (e.g. Double instances).
 // GC can occur only after frame is fully rewritten.
-// Stack:
+// Stack after EnterFrame(0) below:
 //   +------------------+
 //   | Saved FP         | <- TOS
 //   +------------------+
@@ -353,9 +353,8 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
     offset += kFpuRegisterSize;
   }
 
-  __ movl(ECX, ESP);  // Saved saved registers block.
+  __ movl(ECX, ESP);  // Preserve saved registers block.
   __ ReserveAlignedFrameSpace(1 * kWordSize);
-  __ SmiUntag(EAX);
   __ movl(Address(ESP, 0), ECX);  // Start of register block.
   __ CallRuntime(kDeoptimizeCopyFrameRuntimeEntry);
   // Result (EAX) is stack-size (FP - SP) in bytes, incl. the return address.
@@ -1030,7 +1029,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   ASSERT(instance_size > 0);
   const intptr_t type_args_size = InstantiatedTypeArguments::InstanceSize();
   if (FLAG_inline_alloc &&
-      PageSpace::IsPageAllocatableSize(instance_size + type_args_size)) {
+      Heap::IsAllocatableInNewSpace(instance_size + type_args_size)) {
     Label slow_case;
     Heap* heap = Isolate::Current()->heap();
     __ movl(EAX, Address::Absolute(heap->TopAddress()));
@@ -1203,7 +1202,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
   const intptr_t closure_size = Closure::InstanceSize();
   const intptr_t context_size = Context::InstanceSize(1);  // Captured receiver.
   if (FLAG_inline_alloc &&
-      PageSpace::IsPageAllocatableSize(closure_size + context_size)) {
+      Heap::IsAllocatableInNewSpace(closure_size + context_size)) {
     Label slow_case;
     Heap* heap = Isolate::Current()->heap();
     __ movl(EAX, Address::Absolute(heap->TopAddress()));
@@ -1919,7 +1918,7 @@ void StubCode::GenerateEqualityWithNullArgStub(Assembler* assembler) {
   }
 #endif  // DEBUG
   // Check IC data, update if needed.
-  // EBX: IC data object (preserved).
+  // ECX: IC data object (preserved).
   __ movl(EBX, FieldAddress(ECX, ICData::ic_data_offset()));
   // EBX: ic_data_array with check entries: classes and target functions.
   __ leal(EBX, FieldAddress(EBX, Array::data_offset()));

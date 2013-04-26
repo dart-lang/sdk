@@ -7,7 +7,7 @@ import "package:expect/expect.dart";
 // Test for values of some basic types.
 
 
-class A native "*A" {
+class A native "A" {
   returnNull() native;
   returnUndefined() native;
   returnEmptyString() native;

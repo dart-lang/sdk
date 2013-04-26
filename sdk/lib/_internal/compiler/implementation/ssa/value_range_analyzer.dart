@@ -550,13 +550,14 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
    */
   final Map<HInstruction, Range> ranges = new Map<HInstruction, Range>();
 
+  final Compiler compiler;
   final ConstantSystem constantSystem;
   final ValueRangeInfo info;
 
   CodegenWorkItem work;
   HGraph graph;
 
-  SsaValueRangeAnalyzer(constantSystem, this.work)
+  SsaValueRangeAnalyzer(this.compiler, constantSystem, this.work)
       : info = new ValueRangeInfo(constantSystem),
         this.constantSystem = constantSystem;
 
@@ -629,7 +630,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
 
   Range visitFieldGet(HFieldGet fieldGet) {
     if (!fieldGet.isInteger()) return info.newUnboundRange();
-    if (!fieldGet.receiver.isIndexablePrimitive()) {
+    if (!fieldGet.receiver.isIndexable(compiler)) {
       return visitInstruction(fieldGet);
     }
     LengthValue value = info.newLengthValue(fieldGet);
@@ -645,7 +646,10 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     HInstruction next = check.next;
     Range indexRange = ranges[check.index];
     Range lengthRange = ranges[check.length];
-    assert(check.index.isInteger());
+    if (indexRange == null) {
+      indexRange = info.newUnboundRange();
+      assert(!check.index.isInteger());
+    }
     assert(check.length.isInteger());
 
     // Check if the index is strictly below the upper bound of the length
@@ -690,6 +694,9 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
       Range newIndexRange = indexRange.intersection(
           info.newNormalizedRange(info.intZero, maxIndex));
       if (indexRange == newIndexRange) return indexRange;
+      // Explicitly attach the range information to the index instruction,
+      // which may be used by other instructions.  Returning the new range will
+      // attach it to this instruction.
       HInstruction instruction = createRangeConversion(next, check.index);
       ranges[instruction] = newIndexRange;
       return newIndexRange;
@@ -785,10 +792,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     cursor.block.addBefore(cursor, newInstruction);
     // Update the users of the instruction dominated by [cursor] to
     // use the new instruction, that has an narrower range.
-    Set<HInstruction> dominatedUsers = instruction.dominatedUsers(cursor);
-    for (HInstruction user in dominatedUsers) {
-      user.changeUse(instruction, newInstruction);
-    }
+    instruction.replaceAllUsersDominatedBy(cursor, newInstruction);
     return newInstruction;
   }
 

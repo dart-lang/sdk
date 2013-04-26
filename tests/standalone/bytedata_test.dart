@@ -8,7 +8,7 @@
 library ByteDataTest;
 
 import "package:expect/expect.dart";
-import 'dart:typeddata';
+import 'dart:typed_data';
 
 testGetters() {
   bool host_is_little_endian = 

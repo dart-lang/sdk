@@ -10,9 +10,14 @@
 #endif
 
 #include <unistd.h>
+#include <sys/epoll.h>
 #include <sys/socket.h>
 
 #include "platform/hashmap.h"
+
+
+namespace dart {
+namespace bin {
 
 class InterruptMessage {
  public:
@@ -117,5 +122,7 @@ class EventHandlerImplementation {
   int epoll_fd_;
 };
 
+}  // namespace bin
+}  // namespace dart
 
 #endif  // BIN_EVENTHANDLER_LINUX_H_

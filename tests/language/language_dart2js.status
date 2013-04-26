@@ -135,8 +135,6 @@ not_enough_positional_arguments_test/01: Fail # http://dartbug.com/5519
 
 constructor_negative_test: Pass # Wrong reason: the expression 'C()' is valid with class literals.
 
-throw_expr_test: Fail
-rethrow_test: Fail
 metadata_test: Fail # Metadata on type parameters not supported.
 infinity_test: Fail # Issue 4984
 positive_bit_operations_test: Fail # (floitsch): This will be fixed when dart2js uses unsigned input for >>.
@@ -145,7 +143,6 @@ compile_time_constant8_test: Fail # We don't take the generic type into account 
 canonical_const_test: Fail # We don't take the generic type into account yet.
 
 # Support for optional parameters not conform to latest spec.
-typedef_is_test: Fail # http://dartbug.com/9058
 function_type_alias_test: Fail # http://dartbug.com/9058
 function_type_alias2_test: Fail
 named_parameters_type_test: Fail

@@ -40,9 +40,11 @@ class B extends A {
 }
 
 main() {
-  var both = [new A(inscrutable(0) == 0 ? 42 : "fish"),
-              new B(0, inscrutable(0) == 0 ? 2 : "horse")];
-  if (both[1] == both[0]) {
+  var a = new A(inscrutable(0) == 0 ? 42 : "fish");
+  var b = new B(0, inscrutable(0) == 0 ? 2 : "horse");
+  var c = inscrutable(0) == 0 ? a : "kurt";
+  var d = inscrutable(0) == 0 ? b : "gert";
+  if (c == d) {
     print("hestfisk");
   }
 }
@@ -50,7 +52,7 @@ main() {
 
 void main() {
   String generated = compileAll(TEST);
-  if (!generated.contains(r'if ($.$eq(both[1], both[0]))')) {
+  if (!generated.contains(r'if ($.$eq(c, d))')) {
     print(generated);
     Expect.fail("missing elision of '=== true'");
   }

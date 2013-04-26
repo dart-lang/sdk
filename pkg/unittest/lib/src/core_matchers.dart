@@ -177,9 +177,8 @@ class _DeepMatcher extends BaseMatcher {
         var aType = typeName(actual);
         var includeTypes = eType != aType;
         // If we have recursed, show the expected value too; if not,
-        // expect() will show it for us. As expect will not show type
-        // mismatches at the top level we handle those here too.
-        if (includeTypes || depth > 1) {
+        // expect() will show it for us.
+        if (depth > 0) {
           reason.add('expected ');
           if (includeTypes) {
             reason.add(eType).add(':');
@@ -191,6 +190,9 @@ class _DeepMatcher extends BaseMatcher {
           reason.add(aType).add(':');
         }
         reason.addDescriptionOf(actual);
+        if (includeTypes && depth == 0) {
+          reason.add(' (not type ').add(eType).add(')');
+        }
       }
     }
     if (reason != null && location.length > 0) {
@@ -706,8 +708,8 @@ class CustomMatcher extends BaseMatcher {
   final String _featureName;
   final Matcher _matcher;
 
-  const CustomMatcher(this._featureDescription, this._featureName,
-      this._matcher);
+  CustomMatcher(this._featureDescription, this._featureName, matcher)
+      : this._matcher = wrapMatcher(matcher);
 
   /** Override this to extract the interesting feature.*/
   featureValueOf(actual) => actual;

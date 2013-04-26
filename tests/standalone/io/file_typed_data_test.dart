@@ -8,7 +8,7 @@ import "package:expect/expect.dart";
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:typeddata';
+import 'dart:typed_data';
 
 void testWriteInt8ListAndView() {
   ReceivePort port = new ReceivePort();

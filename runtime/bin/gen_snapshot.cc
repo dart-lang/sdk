@@ -18,6 +18,10 @@
 
 #include "platform/globals.h"
 
+
+namespace dart {
+namespace bin {
+
 #define CHECK_RESULT(result)                                                   \
   if (Dart_IsError(result)) {                                                  \
     free(snapshot_buffer);                                                     \
@@ -296,6 +300,11 @@ static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
     return ResolveUri(library_url_string, url_string);
   }
 
+  if (DartUtils::IsDartIOLibURL(url_string) && mapped_url_string == NULL) {
+    // No url mapping for dart:io. Load original version.
+    return Builtin::LoadAndCheckLibrary(Builtin::kIOLibrary);
+  }
+
   Dart_Handle resolved_url = url;
   if (mapped_url_string != NULL) {
     // Mapped urls are relative to working directory.
@@ -428,13 +437,8 @@ static void SetupForUriResolution() {
 static void SetupForGenericSnapshotCreation() {
   SetupForUriResolution();
 
-  // TODO(regis): Reenable this code for mips when possible.
-#if defined(TARGET_ARCH_IA32) ||                                               \
-    defined(TARGET_ARCH_X64) ||                                                \
-    defined(TARGET_ARCH_ARM)
   Dart_Handle library = LoadGenericSnapshotCreationScript(Builtin::kIOLibrary);
   VerifyLoaded(library);
-#endif
 }
 
 
@@ -527,4 +531,11 @@ int main(int argc, char** argv) {
     CreateAndWriteSnapshot();
   }
   return 0;
+}
+
+}  // namespace bin
+}  // namespace dart
+
+int main(int argc, char** argv) {
+  return dart::bin::main(argc, argv);
 }

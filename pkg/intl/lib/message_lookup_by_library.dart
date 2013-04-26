@@ -6,7 +6,7 @@
  * Message/plural format library with locale support. This can have different
  * implementations based on the mechanism for finding the localized versions
  * of messages. This version expects them to be in a library named e.g.
- * 'messages_en_US'. The prefix is set in the [initializeMessages] call, which
+ * 'messages_en_US'. The prefix is set in the "initializeMessages" call, which
  * must be made for a locale before any lookups can be done.
  *
  * See Intl class comment or `tests/message_format_test.dart` for more examples.

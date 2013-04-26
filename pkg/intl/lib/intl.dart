@@ -7,12 +7,27 @@
  * message formatting and replacement, date and number formatting and parsing,
  * and utilities for working with Bidirectional text.
  *
+ * ## Installing ##
+ *
+ * Use [pub][] to install this package. Add the following to your `pubspec.yaml`
+ * file.
+ *
+ *     dependencies:
+ *       intl: any
+ *
+ * Then run `pub install`.
+ *
+ * For more information, see the
+ * [intl package on pub.dartlang.org](http://pub.dartlang.org/packages/intl).
+ *
  * For things that require locale or other data, there are multiple different
  * ways of making that data available, which may require importing different
  * libraries. See the class comments for more details.
  *
  * There is also a simple example application that can be found in the
  * `example/basic` directory.
+ *
+ * [pub]: http://pub.dartlang.org
  */
 library intl;
 
@@ -241,7 +256,7 @@ class Intl {
    *
    * In either case, the purpose of this is to delay calling [message_function]
    * until the proper locale has been set. This returns the result of calling
-   * [msg_function], which could be of an arbitrary type.
+   * [message_function], which could be of an arbitrary type.
    */
   static withLocale(String locale, Function message_function) {
     // We have to do this silliness because Locale is not known at compile time,

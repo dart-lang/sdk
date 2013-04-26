@@ -24,6 +24,9 @@
 #include "platform/utils.h"
 
 
+namespace dart {
+namespace bin {
+
 static const int kInterruptMessageSize = sizeof(InterruptMessage);
 static const int kInfinityTimeout = -1;
 static const int kTimerId = -1;
@@ -424,5 +427,8 @@ uint32_t EventHandlerImplementation::GetHashmapHashFromFd(intptr_t fd) {
   // The hashmap does not support keys with value 0.
   return dart::Utils::WordHash(fd + 1);
 }
+
+}  // namespace bin
+}  // namespace dart
 
 #endif  // defined(TARGET_OS_ANDROID)

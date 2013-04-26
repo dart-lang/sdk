@@ -8,6 +8,10 @@
 #include "bin/extensions.h"
 #include "bin/utils.h"
 
+
+namespace dart {
+namespace bin {
+
 void* Extensions::LoadExtensionLibrary(const char* library_path,
                                        const char* extension_name) {
   const char* strings[] = { library_path, "/", extension_name, ".dll", NULL };
@@ -22,5 +26,8 @@ void* Extensions::LoadExtensionLibrary(const char* library_path,
 void* Extensions::ResolveSymbol(void* lib_handle, const char* symbol) {
   return GetProcAddress(reinterpret_cast<HMODULE>(lib_handle), symbol);
 }
+
+}  // namespace bin
+}  // namespace dart
 
 #endif  // defined(TARGET_OS_WINDOWS)

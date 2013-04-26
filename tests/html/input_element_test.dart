@@ -177,4 +177,12 @@ main() {
       check(new ButtonInputElement(), 'button');
     });
   });
+
+  group('attributes', () {
+    test('valueSetNull', () {
+      final e = new TextInputElement();
+      e.value = null;
+      expect(e.value, '');
+    });
+  });
 }

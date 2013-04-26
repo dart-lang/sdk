@@ -106,11 +106,12 @@ $endif
     return result;
   }
 
-  void remove(Object object) {
-    if (object is! Node) return;
+  bool remove(Object object) {
+    if (object is! Node) return false;
     Node node = object;
-    if (!identical(_this, node.parentNode)) return;
+    if (!identical(_this, node.parentNode)) return false;
     _this.$dom_removeChild(node);
+    return true;
   }
 
   void _filter(bool test(Node node), bool removeMatching) {

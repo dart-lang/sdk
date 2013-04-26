@@ -163,6 +163,9 @@ class CloningVisitor implements Visitor<Node> {
   visitParenthesizedExpression(ParenthesizedExpression node) =>
       new ParenthesizedExpression(visit(node.expression), node.beginToken);
 
+  visitRethrow(Rethrow node) => new Rethrow(
+      node.throwToken, node.endToken);
+
   visitReturn(Return node) => new Return(
       node.beginToken, node.endToken, visit(node.expression));
 

@@ -8,21 +8,21 @@ import "package:expect/expect.dart";
 // interferes with subsequent resolving of the method.  This might happen if the
 // noSuchMethod is cached on Object.prototype.
 
-class A1 native "*A1" {
+class A1 native "A1" {
 }
 
-class B1 extends A1 native "*B1" {
+class B1 extends A1 native "B1" {
 }
 
 makeA1() native;
 makeB1() native;
 
 
-class A2 native "*A2" {
+class A2 native "A2" {
   foo([a=99]) native;
 }
 
-class B2 extends A2 native "*B2" {
+class B2 extends A2 native "B2" {
 }
 
 makeA2() native;

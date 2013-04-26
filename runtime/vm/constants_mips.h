@@ -5,6 +5,8 @@
 #ifndef VM_CONSTANTS_MIPS_H_
 #define VM_CONSTANTS_MIPS_H_
 
+#include "platform/assert.h"
+
 namespace dart {
 
 enum Register {
@@ -152,11 +154,11 @@ const Register CMPRES = T8;
 
 // Exception object is passed in this register to the catch handlers when an
 // exception is thrown.
-const Register kExceptionObjectReg = A0;
+const Register kExceptionObjectReg = V0;
 
 // Stack trace object is passed in this register to the catch handlers when
 // an exception is thrown.
-const Register kStackTraceObjectReg = A1;
+const Register kStackTraceObjectReg = V1;
 
 
 typedef uint32_t RegList;
@@ -400,6 +402,7 @@ class Instr {
   static const int32_t kNopInstruction = 0;
   static const int32_t kStopMessageCode = 1;
   static const int32_t kRedirectCode = 2;
+  static const int32_t kMsgMessageCode = 3;
 
   // Get the raw instruction bits.
   inline int32_t InstructionBits() const {
@@ -409,6 +412,25 @@ class Instr {
   // Set the raw instruction bits to value.
   inline void SetInstructionBits(int32_t value) {
     *reinterpret_cast<int32_t*>(this) = value;
+  }
+
+  inline void SetImmInstrBits(Opcode op, Register rs, Register rt,
+                              uint16_t imm) {
+    SetInstructionBits(
+        op << kOpcodeShift |
+        rs << kRsShift |
+        rt << kRtShift |
+        imm << kImmShift);
+  }
+
+  inline void SetSpecialInstrBits(SpecialFunction f,
+                                  Register rs, Register rt, Register rd) {
+    SetInstructionBits(
+        SPECIAL << kOpcodeShift |
+        f << kFunctionShift |
+        rs << kRsShift |
+        rt << kRtShift |
+        rd << kRdShift);
   }
 
   // Read one particular bit out of the instruction bits.
@@ -500,6 +522,21 @@ class Instr {
   // to allocate or create instances of class Instr.
   // Use the At(pc) function to create references to Instr.
   static Instr* At(uword pc) { return reinterpret_cast<Instr*>(pc); }
+
+#if defined(DEBUG)
+  inline void AssertIsImmInstr(Opcode op, Register rs, Register rt,
+                              int32_t imm) {
+    ASSERT((OpcodeField() == op) && (RsField() == rs) && (RtField() == rt) &&
+           (SImmField() == imm));
+  }
+
+  inline void AssertIsSpecialInstr(SpecialFunction f, Register rs, Register rt,
+                                   Register rd) {
+    ASSERT((OpcodeField() == SPECIAL) && (FunctionField() == f) &&
+           (RsField() == rs) && (RtField() == rt) &&
+           (RdField() == rd));
+  }
+#endif  // defined(DEBUG)
 
  private:
   DISALLOW_ALLOCATION();

@@ -6,7 +6,7 @@ import "package:expect/expect.dart";
 
 // Additional Dart code may be 'placed on' hidden native classes.
 
-class A native "*A" {
+class A native "A" {
 
   var _field;
 

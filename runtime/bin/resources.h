@@ -11,6 +11,9 @@
 #include "platform/assert.h"
 
 
+namespace dart {
+namespace bin {
+
 class Resources {
  public:
   static const int kNoSuchInstance = -1;
@@ -49,5 +52,8 @@ class Resources {
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Resources);
 };
+
+}  // namespace bin
+}  // namespace dart
 
 #endif  // BIN_RESOURCES_H_

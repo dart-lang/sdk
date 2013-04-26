@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 patch class RawServerSocket  {
-  /* patch */ static Future<RawServerSocket> bind([String address = "127.0.0.1",
+  /* patch */ static Future<RawServerSocket> bind([address = "127.0.0.1",
                                                    int port = 0,
                                                    int backlog = 0]) {
     return _RawServerSocket.bind(address, port, backlog);
@@ -12,8 +12,32 @@ patch class RawServerSocket  {
 
 
 patch class RawSocket {
-  /* patch */ static Future<RawSocket> connect(String host, int port) {
+  /* patch */ static Future<RawSocket> connect(host, int port) {
     return _RawSocket.connect(host, port);
+  }
+}
+
+
+patch class InternetAddress {
+  /* patch */ static Future<List<InternetAddress>> lookup(
+      String host, {InternetAddressType type: InternetAddressType.IPv4}) {
+    return _NativeSocket.lookup(host, type: type);
+  }
+}
+
+class _InternetAddress implements InternetAddress {
+  final InternetAddressType type;
+  final String address;
+  final String host;
+  final Uint8List _sockaddr_storage;
+
+  _InternetAddress(InternetAddressType this.type,
+                   String this.address,
+                   String this.host,
+                   List<int> this._sockaddr_storage);
+
+  String toString() {
+    return "InternetAddress('$address', ${type.name})";
   }
 }
 
@@ -74,57 +98,95 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   // Holds the port of the socket, null if not known.
   int localPort;
 
-  // Holds the host or address used to connect or bind the socket.
-  String localHost;
+  // Holds the address used to connect or bind the socket.
+  InternetAddress address;
 
   // Native port for socket services.
   static SendPort socketService;
 
-  static Future<_NativeSocket> connect(String host, int port) {
-    var completer = new Completer();
+  static Future<List<InternetAddress>> lookup(
+      String host, {InternetAddressType type: InternetAddressType.IPv4}) {
     ensureSocketService();
-    socketService.call([HOST_NAME_LOOKUP, host]).then((response) {
-      if (isErrorResponse(response)) {
-        completer.completeError(
-            createError(response, "Failed host name lookup"));
-      } else {
-        var socket = new _NativeSocket.normal();
-        socket.localHost = host;
-        var result = socket.nativeCreateConnect(response, port);
-        if (result is OSError) {
-          completer.completeError(createError(result, "Connection failed"));
-        } else {
-          // Setup handlers for receiving the first write event which
-          // indicate that the socket is fully connected.
-          socket.setHandlers(
-              write: () {
-                socket.setListening(read: false, write: false);
-                completer.complete(socket);
-              },
-              error: (e) {
-                socket.close();
-                completer.completeError(createError(e, "Connection failed"));
-              }
-          );
-          socket.setListening(read: false, write: true);
-        }
-      }
-    });
-    return completer.future;
+    return socketService.call([HOST_NAME_LOOKUP, host, type._value])
+        .then((response) {
+          if (isErrorResponse(response)) {
+            throw createError(response, "Failed host name lookup");
+          } else {
+            return response.skip(1).map((result) {
+              var type = new InternetAddressType._from(result[0]);
+              return new _InternetAddress(type, result[1], host, result[2]);
+            }).toList();
+          }
+        });
   }
 
-  static Future<_NativeSocket> bind(String address,
+  static Future<_NativeSocket> connect(host, int port) {
+    return new Future.value(host)
+        .then((host) {
+          if (host is _InternetAddress) return host;
+          return lookup(host)
+              .then((list) {
+                if (list.length == 0) {
+                  throw createError(response, "Failed host name lookup");
+                }
+                return list[0];
+              });
+        })
+        .then((address) {
+          ensureSocketService();
+          var socket = new _NativeSocket.normal();
+          socket.address = address;
+          var result = socket.nativeCreateConnect(
+              address._sockaddr_storage, port);
+          if (result is OSError) {
+            throw createError(result, "Connection failed");
+          } else {
+            var completer = new Completer();
+            // Setup handlers for receiving the first write event which
+            // indicate that the socket is fully connected.
+            socket.setHandlers(
+                write: () {
+                  socket.setListening(read: false, write: false);
+                  completer.complete(socket);
+                },
+                error: (e) {
+                  socket.close();
+                  completer.completeError(createError(e, "Connection failed"));
+                }
+            );
+            socket.setListening(read: false, write: true);
+            return completer.future;
+          }
+        });
+  }
+
+  static Future<_NativeSocket> bind(host,
                                     int port,
                                     int backlog) {
-    var socket = new _NativeSocket.listen();
-    socket.localHost = address;
-    var result = socket.nativeCreateBindListen(address, port, backlog);
-    if (result is OSError) {
-      return new Future.error(
-          new SocketIOException("Failed to create server socket", result));
-    }
-    if (port != 0) socket.localPort = port;
-    return new Future.value(socket);
+    return new Future.value(host)
+        .then((host) {
+          if (host is _InternetAddress) return host;
+          return lookup(host)
+              .then((list) {
+                if (list.length == 0) {
+                  throw createError(response, "Failed host name lookup");
+                }
+                return list[0];
+              });
+        })
+        .then((address) {
+          var socket = new _NativeSocket.listen();
+          socket.address = address;
+          var result = socket.nativeCreateBindListen(address._sockaddr_storage,
+                                                     port,
+                                                     backlog);
+          if (result is OSError) {
+            throw new SocketIOException(
+                "Failed to create server socket", result);
+          }
+          if (port != 0) socket.localPort = port;
+          return socket;
+        });
   }
 
   _NativeSocket.normal() : typeFlags = TYPE_NORMAL_SOCKET {
@@ -194,6 +256,8 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   _NativeSocket accept() {
     var socket = new _NativeSocket.normal();
     if (nativeAccept(socket) != true) return null;
+    socket.localPort = localPort;
+    socket.address = address;
     return socket;
   }
 
@@ -205,8 +269,6 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   int get remotePort {
     return nativeGetRemotePeer()[1];
   }
-
-  String get host => localHost;
 
   String get remoteHost {
     return nativeGetRemotePeer()[0];
@@ -409,8 +471,9 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   nativeRead(int len) native "Socket_Read";
   nativeWrite(List<int> buffer, int offset, int bytes)
       native "Socket_WriteList";
-  nativeCreateConnect(String host, int port) native "Socket_CreateConnect";
-  nativeCreateBindListen(String address, int port, int backlog)
+  nativeCreateConnect(List<int> addr,
+                      int port) native "Socket_CreateConnect";
+  nativeCreateBindListen(List<int> addr, int port, int backlog)
       native "ServerSocket_CreateBindListen";
   nativeAccept(_NativeSocket socket) native "ServerSocket_Accept";
   int nativeGetPort() native "Socket_GetPort";
@@ -427,7 +490,7 @@ class _RawServerSocket extends Stream<RawSocket>
   final _NativeSocket _socket;
   StreamController<RawSocket> _controller;
 
-  static Future<_RawServerSocket> bind(String address,
+  static Future<_RawServerSocket> bind(address,
                                        int port,
                                        int backlog) {
     if (port < 0 || port > 0xFFFF)
@@ -503,7 +566,7 @@ class _RawSocket extends Stream<RawSocketEvent>
   bool _readEventsEnabled = true;
   bool _writeEventsEnabled = true;
 
-  static Future<RawSocket> connect(String host, int port) {
+  static Future<RawSocket> connect(host, int port) {
     return _NativeSocket.connect(host, port)
         .then((socket) => new _RawSocket(socket));
   }
@@ -571,7 +634,7 @@ class _RawSocket extends Stream<RawSocketEvent>
 
   int get remotePort => _socket.remotePort;
 
-  String get host => _socket.host;
+  InternetAddress get address => _socket.address;
 
   String get remoteHost => _socket.remoteHost;
 
@@ -621,7 +684,7 @@ class _RawSocket extends Stream<RawSocketEvent>
 
 
 patch class ServerSocket {
-  /* patch */ static Future<ServerSocket> bind([String address = "127.0.0.1",
+  /* patch */ static Future<ServerSocket> bind([address = "127.0.0.1",
                                                 int port = 0,
                                                 int backlog = 0]) {
     return _ServerSocket.bind(address, port, backlog);
@@ -632,7 +695,7 @@ class _ServerSocket extends Stream<Socket>
                     implements ServerSocket {
   final _socket;
 
-  static Future<_ServerSocket> bind(String address,
+  static Future<_ServerSocket> bind(address,
                                     int port,
                                     int backlog) {
     return _RawServerSocket.bind(address, port, backlog)
@@ -659,7 +722,7 @@ class _ServerSocket extends Stream<Socket>
 
 
 patch class Socket {
-  /* patch */ static Future<Socket> connect(String host, int port) {
+  /* patch */ static Future<Socket> connect(host, int port) {
     return RawSocket.connect(host, port).then(
         (socket) => new _Socket(socket));
   }
@@ -771,6 +834,7 @@ class _Socket extends Stream<List<int>> implements Socket {
   _SocketStreamConsumer _consumer;
   IOSink _sink;
   var _subscription;
+  var _detachReady;
 
   _Socket(RawSocket this._raw) {
     _controller = new StreamController<List<int>>(
@@ -850,6 +914,17 @@ class _Socket extends Stream<List<int>> implements Socket {
   int get port => _raw.port;
   String get remoteHost => _raw.remoteHost;
   int get remotePort => _raw.remotePort;
+
+  Future _detachRaw() {
+    _detachReady = new Completer();
+    _sink.close();
+    return _detachReady.future.then((_) {
+      assert(_consumer.buffer == null);
+      var raw = _raw;
+      _raw = null;
+      return [raw, _subscription];
+    });
+  }
 
   // Ensure a subscription on the raw socket. Both the stream and the
   // consumer needs a subscription as they share the error and done
@@ -938,9 +1013,13 @@ class _Socket extends Stream<List<int>> implements Socket {
   }
 
   void _consumerDone() {
-    if (_raw != null) {
-      _raw.shutdown(SocketDirection.SEND);
-      _disableWriteEvent();
+    if (_detachReady != null) {
+      _detachReady.complete(null);
+    } else {
+      if (_raw != null) {
+        _raw.shutdown(SocketDirection.SEND);
+        _disableWriteEvent();
+      }
     }
   }
 }

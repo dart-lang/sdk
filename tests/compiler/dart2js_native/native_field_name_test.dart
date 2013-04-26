@@ -6,7 +6,7 @@ import "package:expect/expect.dart";
 
 // Check that native fields are not incorrectly renamed.
 
-class A native "*A" {
+class A native "A" {
   int myLongPropertyName;
   int getValue;
 
@@ -62,4 +62,3 @@ main() {
     Expect.equals(11, gotten);
   }
 }
-

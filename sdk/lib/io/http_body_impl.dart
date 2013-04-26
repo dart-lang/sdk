@@ -12,11 +12,7 @@ class _HttpBodyHandlerTransformer
   }
 }
 
-class _HttpBodyHandler implements HttpBodyHandler {
-  Stream<HttpRequestBody> bind(Stream<HttpRequest> stream) {
-    return new _HttpBodyHandlerTransformer().bind(stream);
-  }
-
+class _HttpBodyHandler {
   static Future<HttpRequestBody> processRequest(HttpRequest request) {
     return process(request, request.headers)
         .then((body) => new _HttpRequestBody(request, body),
@@ -110,13 +106,15 @@ class _HttpRequestBody extends _HttpBody implements HttpRequestBody {
 
 class _HttpClientResponseBody
     extends _HttpBody implements HttpClientResponseBody {
-  final int statusCode;
-  final String reasonPhrase;
-  final HttpHeaders headers;
+  final HttpClientResponse response;
 
   _HttpClientResponseBody(HttpClientResponse response, HttpBody body)
       : super(body.mimeType, body.type, body.body),
-        statusCode = response.statusCode,
-        reasonPhrase = response.reasonPhrase,
-        headers = response.headers;
+        this.response = response;
+
+  int get statusCode => response.statusCode;
+
+  String get reasonPhrase => response.reasonPhrase;
+
+  HttpHeaders get headers => response.headers;
 }

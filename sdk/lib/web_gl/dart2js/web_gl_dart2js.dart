@@ -4,6 +4,7 @@ import 'dart:collection';
 import 'dart:_collection-dev';
 import 'dart:html';
 import 'dart:html_common';
+import 'dart:typed_data';
 import 'dart:_js_helper' show Creates, JSName, Null, Returns, convertDartClosureToJS;
 import 'dart:_foreign_helper' show JS;
 // DO NOT EDIT - unless you are editing documentation as per:
@@ -322,7 +323,7 @@ const int ZERO = RenderingContext.ZERO;
 
 @DocsEditable
 @DomName('WebGLActiveInfo')
-class ActiveInfo native "*WebGLActiveInfo" {
+class ActiveInfo native "WebGLActiveInfo" {
 
   @DomName('WebGLActiveInfo.name')
   @DocsEditable
@@ -343,7 +344,7 @@ class ActiveInfo native "*WebGLActiveInfo" {
 
 @DocsEditable
 @DomName('WebGLBuffer')
-class Buffer native "*WebGLBuffer" {
+class Buffer native "WebGLBuffer" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -352,7 +353,7 @@ class Buffer native "*WebGLBuffer" {
 
 @DocsEditable
 @DomName('WebGLCompressedTextureATC')
-class CompressedTextureAtc native "*WebGLCompressedTextureATC" {
+class CompressedTextureAtc native "WebGLCompressedTextureATC" {
 
   static const int COMPRESSED_RGBA_ATC_EXPLICIT_ALPHA_WEBGL = 0x8C93;
 
@@ -367,7 +368,7 @@ class CompressedTextureAtc native "*WebGLCompressedTextureATC" {
 
 @DocsEditable
 @DomName('WebGLCompressedTexturePVRTC')
-class CompressedTexturePvrtc native "*WebGLCompressedTexturePVRTC" {
+class CompressedTexturePvrtc native "WebGLCompressedTexturePVRTC" {
 
   static const int COMPRESSED_RGBA_PVRTC_2BPPV1_IMG = 0x8C03;
 
@@ -384,7 +385,7 @@ class CompressedTexturePvrtc native "*WebGLCompressedTexturePVRTC" {
 
 @DocsEditable
 @DomName('WebGLCompressedTextureS3TC')
-class CompressedTextureS3TC native "*WebGLCompressedTextureS3TC" {
+class CompressedTextureS3TC native "WebGLCompressedTextureS3TC" {
 
   static const int COMPRESSED_RGBA_S3TC_DXT1_EXT = 0x83F1;
 
@@ -401,7 +402,7 @@ class CompressedTextureS3TC native "*WebGLCompressedTextureS3TC" {
 
 @DocsEditable
 @DomName('WebGLContextAttributes')
-class ContextAttributes native "*WebGLContextAttributes" {
+class ContextAttributes native "WebGLContextAttributes" {
 
   @DomName('WebGLContextAttributes.alpha')
   @DocsEditable
@@ -434,7 +435,7 @@ class ContextAttributes native "*WebGLContextAttributes" {
 
 @DocsEditable
 @DomName('WebGLContextEvent')
-class ContextEvent extends Event native "*WebGLContextEvent" {
+class ContextEvent extends Event native "WebGLContextEvent" {
 
   @DomName('WebGLContextEvent.statusMessage')
   @DocsEditable
@@ -447,7 +448,7 @@ class ContextEvent extends Event native "*WebGLContextEvent" {
 
 @DocsEditable
 @DomName('WebGLDebugRendererInfo')
-class DebugRendererInfo native "*WebGLDebugRendererInfo" {
+class DebugRendererInfo native "WebGLDebugRendererInfo" {
 
   static const int UNMASKED_RENDERER_WEBGL = 0x9246;
 
@@ -460,7 +461,7 @@ class DebugRendererInfo native "*WebGLDebugRendererInfo" {
 
 @DocsEditable
 @DomName('WebGLDebugShaders')
-class DebugShaders native "*WebGLDebugShaders" {
+class DebugShaders native "WebGLDebugShaders" {
 
   @DomName('WebGLDebugShaders.getTranslatedShaderSource')
   @DocsEditable
@@ -473,7 +474,7 @@ class DebugShaders native "*WebGLDebugShaders" {
 
 @DocsEditable
 @DomName('WebGLDepthTexture')
-class DepthTexture native "*WebGLDepthTexture" {
+class DepthTexture native "WebGLDepthTexture" {
 
   static const int UNSIGNED_INT_24_8_WEBGL = 0x84FA;
 }
@@ -484,7 +485,7 @@ class DepthTexture native "*WebGLDepthTexture" {
 
 @DocsEditable
 @DomName('EXTDrawBuffers')
-class ExtDrawBuffers native "*EXTDrawBuffers" {
+class ExtDrawBuffers native "EXTDrawBuffers" {
 
   static const int COLOR_ATTACHMENT0_EXT = 0x8CE0;
 
@@ -561,7 +562,7 @@ class ExtDrawBuffers native "*EXTDrawBuffers" {
 
 @DocsEditable
 @DomName('EXTTextureFilterAnisotropic')
-class ExtTextureFilterAnisotropic native "*EXTTextureFilterAnisotropic" {
+class ExtTextureFilterAnisotropic native "EXTTextureFilterAnisotropic" {
 
   static const int MAX_TEXTURE_MAX_ANISOTROPY_EXT = 0x84FF;
 
@@ -574,7 +575,7 @@ class ExtTextureFilterAnisotropic native "*EXTTextureFilterAnisotropic" {
 
 @DocsEditable
 @DomName('WebGLFramebuffer')
-class Framebuffer native "*WebGLFramebuffer" {
+class Framebuffer native "WebGLFramebuffer" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -583,7 +584,7 @@ class Framebuffer native "*WebGLFramebuffer" {
 
 @DocsEditable
 @DomName('WebGLLoseContext')
-class LoseContext native "*WebGLLoseContext" {
+class LoseContext native "WebGLLoseContext" {
 
   @DomName('WebGLLoseContext.loseContext')
   @DocsEditable
@@ -600,7 +601,7 @@ class LoseContext native "*WebGLLoseContext" {
 
 @DocsEditable
 @DomName('OESElementIndexUint')
-class OesElementIndexUint native "*OESElementIndexUint" {
+class OesElementIndexUint native "OESElementIndexUint" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -609,7 +610,7 @@ class OesElementIndexUint native "*OESElementIndexUint" {
 
 @DocsEditable
 @DomName('OESStandardDerivatives')
-class OesStandardDerivatives native "*OESStandardDerivatives" {
+class OesStandardDerivatives native "OESStandardDerivatives" {
 
   static const int FRAGMENT_SHADER_DERIVATIVE_HINT_OES = 0x8B8B;
 }
@@ -620,7 +621,7 @@ class OesStandardDerivatives native "*OESStandardDerivatives" {
 
 @DocsEditable
 @DomName('OESTextureFloat')
-class OesTextureFloat native "*OESTextureFloat" {
+class OesTextureFloat native "OESTextureFloat" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -629,7 +630,7 @@ class OesTextureFloat native "*OESTextureFloat" {
 
 @DocsEditable
 @DomName('OESTextureHalfFloat')
-class OesTextureHalfFloat native "*OESTextureHalfFloat" {
+class OesTextureHalfFloat native "OESTextureHalfFloat" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -638,7 +639,7 @@ class OesTextureHalfFloat native "*OESTextureHalfFloat" {
 
 @DocsEditable
 @DomName('OESVertexArrayObject')
-class OesVertexArrayObject native "*OESVertexArrayObject" {
+class OesVertexArrayObject native "OESVertexArrayObject" {
 
   static const int VERTEX_ARRAY_BINDING_OES = 0x85B5;
 
@@ -669,7 +670,7 @@ class OesVertexArrayObject native "*OESVertexArrayObject" {
 
 @DocsEditable
 @DomName('WebGLProgram')
-class Program native "*WebGLProgram" {
+class Program native "WebGLProgram" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -678,7 +679,7 @@ class Program native "*WebGLProgram" {
 
 @DocsEditable
 @DomName('WebGLRenderbuffer')
-class Renderbuffer native "*WebGLRenderbuffer" {
+class Renderbuffer native "WebGLRenderbuffer" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -690,7 +691,7 @@ class Renderbuffer native "*WebGLRenderbuffer" {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @Experimental
-class RenderingContext extends CanvasRenderingContext native "*WebGLRenderingContext" {
+class RenderingContext extends CanvasRenderingContext native "WebGLRenderingContext" {
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.WebGLRenderingContext)');
@@ -1349,7 +1350,7 @@ class RenderingContext extends CanvasRenderingContext native "*WebGLRenderingCon
 
   @DomName('WebGLRenderingContext.bufferSubData')
   @DocsEditable
-  void bufferSubData(int target, int offset, /*ArrayBuffer*/ data) native;
+  void bufferSubData(int target, int offset, data) native;
 
   @DomName('WebGLRenderingContext.checkFramebufferStatus')
   @DocsEditable
@@ -1381,11 +1382,11 @@ class RenderingContext extends CanvasRenderingContext native "*WebGLRenderingCon
 
   @DomName('WebGLRenderingContext.compressedTexImage2D')
   @DocsEditable
-  void compressedTexImage2D(int target, int level, int internalformat, int width, int height, int border, /*ArrayBufferView*/ data) native;
+  void compressedTexImage2D(int target, int level, int internalformat, int width, int height, int border, TypedData data) native;
 
   @DomName('WebGLRenderingContext.compressedTexSubImage2D')
   @DocsEditable
-  void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, /*ArrayBufferView*/ data) native;
+  void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, TypedData data) native;
 
   @DomName('WebGLRenderingContext.copyTexImage2D')
   @DocsEditable
@@ -1549,8 +1550,8 @@ class RenderingContext extends CanvasRenderingContext native "*WebGLRenderingCon
 
   @DomName('WebGLRenderingContext.getParameter')
   @DocsEditable
-  @Creates('Null|num|String|bool|=List|Float32Array|Int32Array|Uint32Array|Framebuffer|Renderbuffer|Texture')
-  @Returns('Null|num|String|bool|=List|Float32Array|Int32Array|Uint32Array|Framebuffer|Renderbuffer|Texture')
+  @Creates('Null|num|String|bool|=List|Float32List|Int32List|Uint32List|Framebuffer|Renderbuffer|Texture')
+  @Returns('Null|num|String|bool|=List|Float32List|Int32List|Uint32List|Framebuffer|Renderbuffer|Texture')
   Object getParameter(int pname) native;
 
   @DomName('WebGLRenderingContext.getProgramInfoLog')
@@ -1659,7 +1660,7 @@ class RenderingContext extends CanvasRenderingContext native "*WebGLRenderingCon
 
   @DomName('WebGLRenderingContext.readPixels')
   @DocsEditable
-  void readPixels(int x, int y, int width, int height, int format, int type, /*ArrayBufferView*/ pixels) native;
+  void readPixels(int x, int y, int width, int height, int format, int type, TypedData pixels) native;
 
   @DomName('WebGLRenderingContext.releaseShaderCompiler')
   @DocsEditable
@@ -1707,8 +1708,8 @@ class RenderingContext extends CanvasRenderingContext native "*WebGLRenderingCon
 
   @DomName('WebGLRenderingContext.texImage2D')
   @DocsEditable
-  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format, int type, /*ArrayBufferView*/ pixels]) {
-    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is int || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && ?pixels) {
+  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format, int type, TypedData pixels]) {
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is int || border_OR_canvas_OR_image_OR_pixels_OR_video == null)) {
       _texImage2D_1(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels);
       return;
     }
@@ -1734,7 +1735,7 @@ class RenderingContext extends CanvasRenderingContext native "*WebGLRenderingCon
   @JSName('texImage2D')
   @DomName('WebGLRenderingContext.texImage2D')
   @DocsEditable
-  void _texImage2D_1(target, level, internalformat, width, height, int border, format, type, pixels) native;
+  void _texImage2D_1(target, level, internalformat, width, height, int border, format, type, TypedData pixels) native;
   @JSName('texImage2D')
   @DomName('WebGLRenderingContext.texImage2D')
   @DocsEditable
@@ -1762,8 +1763,8 @@ class RenderingContext extends CanvasRenderingContext native "*WebGLRenderingCon
 
   @DomName('WebGLRenderingContext.texSubImage2D')
   @DocsEditable
-  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type, /*ArrayBufferView*/ pixels]) {
-    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is int || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && ?pixels) {
+  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type, TypedData pixels]) {
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is int || canvas_OR_format_OR_image_OR_pixels_OR_video == null)) {
       _texSubImage2D_1(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels);
       return;
     }
@@ -1789,7 +1790,7 @@ class RenderingContext extends CanvasRenderingContext native "*WebGLRenderingCon
   @JSName('texSubImage2D')
   @DomName('WebGLRenderingContext.texSubImage2D')
   @DocsEditable
-  void _texSubImage2D_1(target, level, xoffset, yoffset, width, height, int format, type, pixels) native;
+  void _texSubImage2D_1(target, level, xoffset, yoffset, width, height, int format, type, TypedData pixels) native;
   @JSName('texSubImage2D')
   @DomName('WebGLRenderingContext.texSubImage2D')
   @DocsEditable
@@ -1813,7 +1814,7 @@ class RenderingContext extends CanvasRenderingContext native "*WebGLRenderingCon
 
   @DomName('WebGLRenderingContext.uniform1fv')
   @DocsEditable
-  void uniform1fv(UniformLocation location, Float32Array v) native;
+  void uniform1fv(UniformLocation location, Float32List v) native;
 
   @DomName('WebGLRenderingContext.uniform1i')
   @DocsEditable
@@ -1821,7 +1822,7 @@ class RenderingContext extends CanvasRenderingContext native "*WebGLRenderingCon
 
   @DomName('WebGLRenderingContext.uniform1iv')
   @DocsEditable
-  void uniform1iv(UniformLocation location, Int32Array v) native;
+  void uniform1iv(UniformLocation location, Int32List v) native;
 
   @DomName('WebGLRenderingContext.uniform2f')
   @DocsEditable
@@ -1829,7 +1830,7 @@ class RenderingContext extends CanvasRenderingContext native "*WebGLRenderingCon
 
   @DomName('WebGLRenderingContext.uniform2fv')
   @DocsEditable
-  void uniform2fv(UniformLocation location, Float32Array v) native;
+  void uniform2fv(UniformLocation location, Float32List v) native;
 
   @DomName('WebGLRenderingContext.uniform2i')
   @DocsEditable
@@ -1837,7 +1838,7 @@ class RenderingContext extends CanvasRenderingContext native "*WebGLRenderingCon
 
   @DomName('WebGLRenderingContext.uniform2iv')
   @DocsEditable
-  void uniform2iv(UniformLocation location, Int32Array v) native;
+  void uniform2iv(UniformLocation location, Int32List v) native;
 
   @DomName('WebGLRenderingContext.uniform3f')
   @DocsEditable
@@ -1845,7 +1846,7 @@ class RenderingContext extends CanvasRenderingContext native "*WebGLRenderingCon
 
   @DomName('WebGLRenderingContext.uniform3fv')
   @DocsEditable
-  void uniform3fv(UniformLocation location, Float32Array v) native;
+  void uniform3fv(UniformLocation location, Float32List v) native;
 
   @DomName('WebGLRenderingContext.uniform3i')
   @DocsEditable
@@ -1853,7 +1854,7 @@ class RenderingContext extends CanvasRenderingContext native "*WebGLRenderingCon
 
   @DomName('WebGLRenderingContext.uniform3iv')
   @DocsEditable
-  void uniform3iv(UniformLocation location, Int32Array v) native;
+  void uniform3iv(UniformLocation location, Int32List v) native;
 
   @DomName('WebGLRenderingContext.uniform4f')
   @DocsEditable
@@ -1861,7 +1862,7 @@ class RenderingContext extends CanvasRenderingContext native "*WebGLRenderingCon
 
   @DomName('WebGLRenderingContext.uniform4fv')
   @DocsEditable
-  void uniform4fv(UniformLocation location, Float32Array v) native;
+  void uniform4fv(UniformLocation location, Float32List v) native;
 
   @DomName('WebGLRenderingContext.uniform4i')
   @DocsEditable
@@ -1869,19 +1870,19 @@ class RenderingContext extends CanvasRenderingContext native "*WebGLRenderingCon
 
   @DomName('WebGLRenderingContext.uniform4iv')
   @DocsEditable
-  void uniform4iv(UniformLocation location, Int32Array v) native;
+  void uniform4iv(UniformLocation location, Int32List v) native;
 
   @DomName('WebGLRenderingContext.uniformMatrix2fv')
   @DocsEditable
-  void uniformMatrix2fv(UniformLocation location, bool transpose, Float32Array array) native;
+  void uniformMatrix2fv(UniformLocation location, bool transpose, Float32List array) native;
 
   @DomName('WebGLRenderingContext.uniformMatrix3fv')
   @DocsEditable
-  void uniformMatrix3fv(UniformLocation location, bool transpose, Float32Array array) native;
+  void uniformMatrix3fv(UniformLocation location, bool transpose, Float32List array) native;
 
   @DomName('WebGLRenderingContext.uniformMatrix4fv')
   @DocsEditable
-  void uniformMatrix4fv(UniformLocation location, bool transpose, Float32Array array) native;
+  void uniformMatrix4fv(UniformLocation location, bool transpose, Float32List array) native;
 
   @DomName('WebGLRenderingContext.useProgram')
   @DocsEditable
@@ -1897,7 +1898,7 @@ class RenderingContext extends CanvasRenderingContext native "*WebGLRenderingCon
 
   @DomName('WebGLRenderingContext.vertexAttrib1fv')
   @DocsEditable
-  void vertexAttrib1fv(int indx, Float32Array values) native;
+  void vertexAttrib1fv(int indx, Float32List values) native;
 
   @DomName('WebGLRenderingContext.vertexAttrib2f')
   @DocsEditable
@@ -1905,7 +1906,7 @@ class RenderingContext extends CanvasRenderingContext native "*WebGLRenderingCon
 
   @DomName('WebGLRenderingContext.vertexAttrib2fv')
   @DocsEditable
-  void vertexAttrib2fv(int indx, Float32Array values) native;
+  void vertexAttrib2fv(int indx, Float32List values) native;
 
   @DomName('WebGLRenderingContext.vertexAttrib3f')
   @DocsEditable
@@ -1913,7 +1914,7 @@ class RenderingContext extends CanvasRenderingContext native "*WebGLRenderingCon
 
   @DomName('WebGLRenderingContext.vertexAttrib3fv')
   @DocsEditable
-  void vertexAttrib3fv(int indx, Float32Array values) native;
+  void vertexAttrib3fv(int indx, Float32List values) native;
 
   @DomName('WebGLRenderingContext.vertexAttrib4f')
   @DocsEditable
@@ -1921,7 +1922,7 @@ class RenderingContext extends CanvasRenderingContext native "*WebGLRenderingCon
 
   @DomName('WebGLRenderingContext.vertexAttrib4fv')
   @DocsEditable
-  void vertexAttrib4fv(int indx, Float32Array values) native;
+  void vertexAttrib4fv(int indx, Float32List values) native;
 
   @DomName('WebGLRenderingContext.vertexAttribPointer')
   @DocsEditable
@@ -1938,7 +1939,7 @@ class RenderingContext extends CanvasRenderingContext native "*WebGLRenderingCon
 
 @DocsEditable
 @DomName('WebGLShader')
-class Shader native "*WebGLShader" {
+class Shader native "WebGLShader" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1947,7 +1948,7 @@ class Shader native "*WebGLShader" {
 
 @DocsEditable
 @DomName('WebGLShaderPrecisionFormat')
-class ShaderPrecisionFormat native "*WebGLShaderPrecisionFormat" {
+class ShaderPrecisionFormat native "WebGLShaderPrecisionFormat" {
 
   @DomName('WebGLShaderPrecisionFormat.precision')
   @DocsEditable
@@ -1968,7 +1969,7 @@ class ShaderPrecisionFormat native "*WebGLShaderPrecisionFormat" {
 
 @DocsEditable
 @DomName('WebGLTexture')
-class Texture native "*WebGLTexture" {
+class Texture native "WebGLTexture" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1977,7 +1978,7 @@ class Texture native "*WebGLTexture" {
 
 @DocsEditable
 @DomName('WebGLUniformLocation')
-class UniformLocation native "*WebGLUniformLocation" {
+class UniformLocation native "WebGLUniformLocation" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1986,5 +1987,5 @@ class UniformLocation native "*WebGLUniformLocation" {
 
 @DocsEditable
 @DomName('WebGLVertexArrayObjectOES')
-class VertexArrayObject native "*WebGLVertexArrayObjectOES" {
+class VertexArrayObject native "WebGLVertexArrayObjectOES" {
 }

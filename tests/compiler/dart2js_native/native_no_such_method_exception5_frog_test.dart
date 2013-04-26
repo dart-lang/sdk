@@ -12,12 +12,12 @@ class GetName {
 
 String getName(im) => reflect(new GetName()).delegate(im);
 
-class A native "*A" {
+class A native "A" {
   bar() => 42;
   noSuchMethod(x) => "native(${getName(x)}:${x.positionalArguments})";
 }
 
-class B native "*B" {
+class B native "B" {
   baz() => 42;
 }
 

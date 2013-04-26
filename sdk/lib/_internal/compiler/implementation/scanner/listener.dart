@@ -339,10 +339,13 @@ class Listener {
   void endSwitchBlock(int caseCount, Token beginToken, Token endToken) {
   }
 
-  void beginThrowStatement(Token token) {
+  void beginThrowExpression(Token token) {
   }
 
-  void endThrowStatement(Token throwToken, Token endToken) {
+  void endThrowExpression(Token throwToken, Token endToken) {
+  }
+
+  void beginRethrowStatement(Token token) {
   }
 
   void endRethrowStatement(Token throwToken, Token endToken) {
@@ -1580,13 +1583,16 @@ class NodeListener extends ElementListener {
     pushNode(new Block(makeNodeList(count, beginToken, endToken, null)));
   }
 
-  void endThrowStatement(Token throwToken, Token endToken) {
+  void endThrowExpression(Token throwToken, Token endToken) {
     Expression expression = popNode();
     pushNode(new Throw(expression, throwToken, endToken));
   }
 
   void endRethrowStatement(Token throwToken, Token endToken) {
-    pushNode(new Throw(null, throwToken, endToken));
+    pushNode(new Rethrow(throwToken, endToken));
+    if (identical(throwToken.stringValue, 'throw')) {
+      listener.onDeprecatedFeature(throwToken, 'throw without an expression');
+    }
   }
 
   void handleUnaryPrefixExpression(Token token) {

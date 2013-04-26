@@ -12,8 +12,10 @@
 
 #include "include/dart_api.h"
 
-static const int kMSPerSecond = 1000;
+namespace dart {
+namespace bin {
 
+static const int kMSPerSecond = 1000;
 
 // Forward declaration.
 static void FileService(Dart_Port, Dart_Port, Dart_CObject*);
@@ -1169,3 +1171,6 @@ void FUNCTION_NAME(File_NewServicePort)(Dart_NativeArguments args) {
   }
   Dart_ExitScope();
 }
+
+}  // namespace bin
+}  // namespace dart

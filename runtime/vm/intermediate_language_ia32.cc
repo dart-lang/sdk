@@ -1859,11 +1859,10 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* InstantiateTypeArgumentsInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 1;
+  const intptr_t kNumTemps = 0;
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
   locs->set_in(0, Location::RegisterLocation(EAX));
-  locs->set_temp(0, Location::RegisterLocation(ECX));
   locs->set_out(Location::RegisterLocation(EAX));
   return locs;
 }
@@ -1872,48 +1871,35 @@ LocationSummary* InstantiateTypeArgumentsInstr::MakeLocationSummary() const {
 void InstantiateTypeArgumentsInstr::EmitNativeCode(
     FlowGraphCompiler* compiler) {
   Register instantiator_reg = locs()->in(0).reg();
-  Register temp = locs()->temp(0).reg();
   Register result_reg = locs()->out().reg();
 
   // 'instantiator_reg' is the instantiator AbstractTypeArguments object
   // (or null).
-  // If the instantiator is null and if the type argument vector
-  // instantiated from null becomes a vector of dynamic, then use null as
-  // the type arguments.
-  Label type_arguments_instantiated;
-  const intptr_t len = type_arguments().Length();
-  if (type_arguments().IsRawInstantiatedRaw(len)) {
-    const Immediate& raw_null =
-        Immediate(reinterpret_cast<intptr_t>(Object::null()));
-    __ cmpl(instantiator_reg, raw_null);
-    __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
+  if (!type_arguments().IsUninstantiatedIdentity()) {
+    // If the instantiator is null and if the type argument vector
+    // instantiated from null becomes a vector of dynamic, then use null as
+    // the type arguments.
+    Label type_arguments_instantiated;
+    const intptr_t len = type_arguments().Length();
+    if (type_arguments().IsRawInstantiatedRaw(len)) {
+      const Immediate& raw_null =
+          Immediate(reinterpret_cast<intptr_t>(Object::null()));
+      __ cmpl(instantiator_reg, raw_null);
+      __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
+    }
+    // Instantiate non-null type arguments.
+    // A runtime call to instantiate the type arguments is required.
+    __ PushObject(Object::ZoneHandle());  // Make room for the result.
+    __ PushObject(type_arguments());
+    __ pushl(instantiator_reg);  // Push instantiator type arguments.
+    compiler->GenerateCallRuntime(token_pos(),
+                                  deopt_id(),
+                                  kInstantiateTypeArgumentsRuntimeEntry,
+                                  locs());
+    __ Drop(2);  // Drop instantiator and uninstantiated type arguments.
+    __ popl(result_reg);  // Pop instantiated type arguments.
+    __ Bind(&type_arguments_instantiated);
   }
-  // Instantiate non-null type arguments.
-  if (type_arguments().IsUninstantiatedIdentity()) {
-    // Check if the instantiator type argument vector is a TypeArguments of a
-    // matching length and, if so, use it as the instantiated type_arguments.
-    // No need to check the instantiator ('instantiator_reg') for null here,
-    // because a null instantiator will have the wrong class (Null instead of
-    // TypeArguments).
-    Label type_arguments_uninstantiated;
-    __ CompareClassId(instantiator_reg, kTypeArgumentsCid, temp);
-    __ j(NOT_EQUAL, &type_arguments_uninstantiated, Assembler::kNearJump);
-    __ cmpl(FieldAddress(instantiator_reg, TypeArguments::length_offset()),
-            Immediate(Smi::RawValue(len)));
-    __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
-    __ Bind(&type_arguments_uninstantiated);
-  }
-  // A runtime call to instantiate the type arguments is required.
-  __ PushObject(Object::ZoneHandle());  // Make room for the result.
-  __ PushObject(type_arguments());
-  __ pushl(instantiator_reg);  // Push instantiator type arguments.
-  compiler->GenerateCallRuntime(token_pos(),
-                                deopt_id(),
-                                kInstantiateTypeArgumentsRuntimeEntry,
-                                locs());
-  __ Drop(2);  // Drop instantiator and uninstantiated type arguments.
-  __ popl(result_reg);  // Pop instantiated type arguments.
-  __ Bind(&type_arguments_instantiated);
   ASSERT(instantiator_reg == result_reg);
   // 'result_reg': Instantiated type arguments.
 }
@@ -1922,12 +1908,11 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
 LocationSummary*
 ExtractConstructorTypeArgumentsInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 1;
+  const intptr_t kNumTemps = 0;
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
   locs->set_out(Location::SameAsFirstInput());
-  locs->set_temp(0, Location::RequiresRegister());
   return locs;
 }
 
@@ -1937,42 +1922,29 @@ void ExtractConstructorTypeArgumentsInstr::EmitNativeCode(
   Register instantiator_reg = locs()->in(0).reg();
   Register result_reg = locs()->out().reg();
   ASSERT(instantiator_reg == result_reg);
-  Register temp_reg = locs()->temp(0).reg();
 
   // instantiator_reg is the instantiator type argument vector, i.e. an
   // AbstractTypeArguments object (or null).
-  // If the instantiator is null and if the type argument vector
-  // instantiated from null becomes a vector of dynamic, then use null as
-  // the type arguments.
-  Label type_arguments_instantiated;
-  const intptr_t len = type_arguments().Length();
-  if (type_arguments().IsRawInstantiatedRaw(len)) {
-    const Immediate& raw_null =
-        Immediate(reinterpret_cast<intptr_t>(Object::null()));
-    __ cmpl(instantiator_reg, raw_null);
-    __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
+  if (!type_arguments().IsUninstantiatedIdentity()) {
+    // If the instantiator is null and if the type argument vector
+    // instantiated from null becomes a vector of dynamic, then use null as
+    // the type arguments.
+    Label type_arguments_instantiated;
+    const intptr_t len = type_arguments().Length();
+    if (type_arguments().IsRawInstantiatedRaw(len)) {
+      const Immediate& raw_null =
+          Immediate(reinterpret_cast<intptr_t>(Object::null()));
+      __ cmpl(instantiator_reg, raw_null);
+      __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
+    }
+    // Instantiate non-null type arguments.
+    // In the non-factory case, we rely on the allocation stub to
+    // instantiate the type arguments.
+    __ LoadObject(result_reg, type_arguments());
+    // result_reg: uninstantiated type arguments.
+    __ Bind(&type_arguments_instantiated);
   }
-  // Instantiate non-null type arguments.
-  if (type_arguments().IsUninstantiatedIdentity()) {
-    // Check if the instantiator type argument vector is a TypeArguments of a
-    // matching length and, if so, use it as the instantiated type_arguments.
-    // No need to check instantiator_reg for null here, because a null
-    // instantiator will have the wrong class (Null instead of TypeArguments).
-    Label type_arguments_uninstantiated;
-    __ CompareClassId(instantiator_reg, kTypeArgumentsCid, temp_reg);
-    __ j(NOT_EQUAL, &type_arguments_uninstantiated, Assembler::kNearJump);
-    const Immediate& arguments_length =
-        Immediate(Smi::RawValue(type_arguments().Length()));
-    __ cmpl(FieldAddress(instantiator_reg, TypeArguments::length_offset()),
-        arguments_length);
-    __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
-    __ Bind(&type_arguments_uninstantiated);
-  }
-  // In the non-factory case, we rely on the allocation stub to
-  // instantiate the type arguments.
-  __ LoadObject(result_reg, type_arguments());
-  // result_reg: uninstantiated type arguments.
-  __ Bind(&type_arguments_instantiated);
+  ASSERT(instantiator_reg == result_reg);
   // result_reg: uninstantiated or instantiated type arguments.
 }
 
@@ -1980,12 +1952,11 @@ void ExtractConstructorTypeArgumentsInstr::EmitNativeCode(
 LocationSummary*
 ExtractConstructorInstantiatorInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 1;
+  const intptr_t kNumTemps = 0;
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
   locs->set_out(Location::SameAsFirstInput());
-  locs->set_temp(0, Location::RequiresRegister());
   return locs;
 }
 
@@ -1994,52 +1965,32 @@ void ExtractConstructorInstantiatorInstr::EmitNativeCode(
     FlowGraphCompiler* compiler) {
   Register instantiator_reg = locs()->in(0).reg();
   ASSERT(locs()->out().reg() == instantiator_reg);
-  Register temp_reg = locs()->temp(0).reg();
 
   // instantiator_reg is the instantiator AbstractTypeArguments object
-  // (or null).  If the instantiator is null and if the type argument vector
-  // instantiated from null becomes a vector of dynamic, then use null as
-  // the type arguments and do not pass the instantiator.
-  Label done;
-  const intptr_t len = type_arguments().Length();
-  if (type_arguments().IsRawInstantiatedRaw(len)) {
-    const Immediate& raw_null =
-        Immediate(reinterpret_cast<intptr_t>(Object::null()));
-    Label instantiator_not_null;
-    __ cmpl(instantiator_reg, raw_null);
-    __ j(NOT_EQUAL, &instantiator_not_null, Assembler::kNearJump);
-    // Null was used in VisitExtractConstructorTypeArguments as the
-    // instantiated type arguments, no proper instantiator needed.
-    __ movl(instantiator_reg,
-            Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
-    __ jmp(&done);
-    __ Bind(&instantiator_not_null);
-  }
-  // Instantiate non-null type arguments.
+  // (or null).
   if (type_arguments().IsUninstantiatedIdentity()) {
-    // TODO(regis): The following emitted code is duplicated in
-    // VisitExtractConstructorTypeArguments above. The reason is that the code
-    // is split between two computations, so that each one produces a
-    // single value, rather than producing a pair of values.
-    // If this becomes an issue, we should expose these tests at the IL level.
-
-    // Check if the instantiator type argument vector is a TypeArguments of a
-    // matching length and, if so, use it as the instantiated type_arguments.
-    // No need to check the instantiator for null here, because a null
-    // instantiator will have the wrong class (Null instead of TypeArguments).
-    __ CompareClassId(instantiator_reg, kTypeArgumentsCid, temp_reg);
-    __ j(NOT_EQUAL, &done, Assembler::kNearJump);
-    const Immediate& arguments_length =
-        Immediate(Smi::RawValue(type_arguments().Length()));
-    __ cmpl(FieldAddress(instantiator_reg, TypeArguments::length_offset()),
-        arguments_length);
-    __ j(NOT_EQUAL, &done, Assembler::kNearJump);
     // The instantiator was used in VisitExtractConstructorTypeArguments as the
     // instantiated type arguments, no proper instantiator needed.
     __ movl(instantiator_reg,
             Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
+  } else {
+    // If the instantiator is null and if the type argument vector
+    // instantiated from null becomes a vector of dynamic, then use null as
+    // the type arguments and do not pass the instantiator.
+    const intptr_t len = type_arguments().Length();
+    if (type_arguments().IsRawInstantiatedRaw(len)) {
+      const Immediate& raw_null =
+          Immediate(reinterpret_cast<intptr_t>(Object::null()));
+      Label instantiator_not_null;
+      __ cmpl(instantiator_reg, raw_null);
+      __ j(NOT_EQUAL, &instantiator_not_null, Assembler::kNearJump);
+      // Null was used in VisitExtractConstructorTypeArguments as the
+      // instantiated type arguments, no proper instantiator needed.
+      __ movl(instantiator_reg,
+              Immediate(Smi::RawValue(StubCode::kNoInstantiator)));
+      __ Bind(&instantiator_not_null);
+    }
   }
-  __ Bind(&done);
   // instantiator_reg: instantiator or kNoInstantiator.
 }
 
@@ -2843,6 +2794,132 @@ void BinaryFloat32x4OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
+
+LocationSummary* Float32x4ShuffleInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_out(Location::SameAsFirstInput());
+  return summary;
+}
+
+
+void Float32x4ShuffleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  XmmRegister value = locs()->in(0).fpu_reg();
+
+  ASSERT(locs()->out().fpu_reg() == value);
+
+  switch (op_kind()) {
+    case MethodRecognizer::kFloat32x4ShuffleXXXX:
+      __ shufps(value, value, Immediate(0x00));
+      break;
+    case MethodRecognizer::kFloat32x4ShuffleYYYY:
+      __ shufps(value, value, Immediate(0x55));
+      break;
+    case MethodRecognizer::kFloat32x4ShuffleZZZZ:
+      __ shufps(value, value, Immediate(0xAA));
+      break;
+    case MethodRecognizer::kFloat32x4ShuffleWWWW:
+      __ shufps(value, value, Immediate(0xFF));
+      break;
+    case MethodRecognizer::kFloat32x4ShuffleX:
+      __ shufps(value, value, Immediate(0x00));
+      __ cvtss2sd(value, value);
+      break;
+    case MethodRecognizer::kFloat32x4ShuffleY:
+      __ shufps(value, value, Immediate(0x55));
+      __ cvtss2sd(value, value);
+      break;
+    case MethodRecognizer::kFloat32x4ShuffleZ:
+      __ shufps(value, value, Immediate(0xAA));
+      __ cvtss2sd(value, value);
+      break;
+    case MethodRecognizer::kFloat32x4ShuffleW:
+      __ shufps(value, value, Immediate(0xFF));
+      __ cvtss2sd(value, value);
+      break;
+
+    default: UNREACHABLE();
+  }
+}
+
+
+LocationSummary* Float32x4ConstructorInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 4;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_in(1, Location::RequiresFpuRegister());
+  summary->set_in(2, Location::RequiresFpuRegister());
+  summary->set_in(3, Location::RequiresFpuRegister());
+  summary->set_out(Location::SameAsFirstInput());
+  return summary;
+}
+
+
+void Float32x4ConstructorInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  XmmRegister v0 = locs()->in(0).fpu_reg();
+  XmmRegister v1 = locs()->in(1).fpu_reg();
+  XmmRegister v2 = locs()->in(2).fpu_reg();
+  XmmRegister v3 = locs()->in(3).fpu_reg();
+  ASSERT(v0 == locs()->out().fpu_reg());
+  __ subl(ESP, Immediate(16));
+  __ cvtsd2ss(v0, v0);
+  __ movss(Address(ESP, -16), v0);
+  __ movsd(v0, v1);
+  __ cvtsd2ss(v0, v0);
+  __ movss(Address(ESP, -12), v0);
+  __ movsd(v0, v2);
+  __ cvtsd2ss(v0, v0);
+  __ movss(Address(ESP, -8), v0);
+  __ movsd(v0, v3);
+  __ cvtsd2ss(v0, v0);
+  __ movss(Address(ESP, -4), v0);
+  __ movups(v0, Address(ESP, -16));
+  __ addl(ESP, Immediate(16));
+}
+
+
+LocationSummary* Float32x4ZeroInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 0;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_out(Location::RequiresFpuRegister());
+  return summary;
+}
+
+
+void Float32x4ZeroInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  XmmRegister value = locs()->out().fpu_reg();
+  __ xorps(value, value);
+}
+
+
+LocationSummary* Float32x4SplatInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_out(Location::SameAsFirstInput());
+  return summary;
+}
+
+
+void Float32x4SplatInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  XmmRegister value = locs()->out().fpu_reg();
+  ASSERT(locs()->in(0).fpu_reg() == locs()->out().fpu_reg());
+  // Convert to Float32.
+  __ cvtsd2ss(value, value);
+  // Splat across all lanes.
+  __ shufps(value, value, Immediate(0x00));
+}
+
+
 LocationSummary* MathSqrtInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
@@ -3599,7 +3676,6 @@ static Condition NegateCondition(Condition condition) {
     case ABOVE:         return BELOW_EQUAL;
     case ABOVE_EQUAL:   return BELOW;
     default:
-      OS::Print("Error %d\n", condition);
       UNIMPLEMENTED();
       return EQUAL;
   }

@@ -164,6 +164,11 @@ class World {
     return (receiverTypeElement.isSubclassOf(enclosing)) ? result : null;
   }
 
+  bool hasSingleMatch(Selector selector) {
+    Iterable<Element> targets = allFunctions.filter(selector);
+    return targets.length == 1;
+  }
+
   Iterable<ClassElement> locateNoSuchMethodHolders(Selector selector) {
     Selector noSuchMethodSelector = compiler.noSuchMethodSelector;
     ti.TypeMask mask = selector.mask;

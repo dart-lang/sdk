@@ -27,7 +27,7 @@ Uri get dummyUrl => Uri.parse('http://dartlang.org/');
 
 /// Starts a new HTTP server.
 Future startServer() {
-  return SafeHttpServer.bind("127.0.0.1", 0).then((s) {
+  return SafeHttpServer.bind("localhost", 0).then((s) {
     _server = s;
     s.listen((request) {
       var path = request.uri.path;
@@ -108,8 +108,10 @@ Future startServer() {
 
 /// Stops the current HTTP server.
 void stopServer() {
-  _server.close();
-  _server = null;
+  if (_server != null) {
+    _server.close();
+    _server = null;
+  }
 }
 
 /// Removes eight spaces of leading indentation from a multiline string.

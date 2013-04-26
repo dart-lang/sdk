@@ -4,7 +4,6 @@
 
 #include "platform/assert.h"
 #include "vm/globals.h"
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 
 #include "vm/ast.h"
 #include "vm/assembler.h"
@@ -284,4 +283,3 @@ TEST_CASE(StackmapGC) {
 
 }  // namespace dart
 
-#endif  // defined TARGET_ARCH_IA32 || defined(TARGET_ARCH_X64)

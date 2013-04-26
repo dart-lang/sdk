@@ -1620,12 +1620,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     Element superMethod = node.element;
     Element superClass = superMethod.getEnclosingClass();
     if (superMethod.kind == ElementKind.FIELD) {
-      ClassElement currentClass = work.element.getEnclosingClass();
-      if (currentClass.isClosure()) {
-        ClosureClassElement closure = currentClass;
-        currentClass = closure.methodElement.getEnclosingClass();
-      }
-      String fieldName = currentClass.isShadowedByField(superMethod)
+      String fieldName = node.caller.isShadowedByField(superMethod)
           ? backend.namer.shadowedFieldName(superMethod)
           : backend.namer.instanceFieldName(superMethod);
       use(node.inputs[1]);
@@ -1653,7 +1648,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitFieldGet(HFieldGet node) {
     use(node.receiver);
     Element element = node.element;
-    if (element == backend.jsArrayLength || element == backend.jsStringLength) {
+    if (element == backend.jsIndexableLength) {
       // We're accessing a native JavaScript property called 'length'
       // on a JS String or a JS array. Therefore, the name of that
       // property should not be mangled.
@@ -1934,7 +1929,15 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       js.Expression over;
       if (node.staticChecks != HBoundsCheck.ALWAYS_ABOVE_ZERO) {
         use(node.index);
-        under = new js.Binary("<", pop(), new js.LiteralNumber("0"));
+        if (node.index.isInteger()) {
+          under = js.js("# < 0", pop());
+        } else {
+          js.Expression jsIndex = pop();
+          under = js.js("# >>> 0 !== #", [jsIndex, jsIndex]);
+        }
+      } else if (!node.index.isInteger()) {
+        checkInt(node.index, '!==');
+        under = pop();
       }
       if (node.staticChecks != HBoundsCheck.ALWAYS_BELOW_LENGTH) {
         var index = node.index;
@@ -1958,22 +1961,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       pushStatement(new js.If.noElse(underOver, thenBody), node);
     } else {
       generateThrowWithHelper('ioore', node.index);
-    }
-  }
-
-  visitIntegerCheck(HIntegerCheck node) {
-    if (!node.alwaysFalse) {
-      checkInt(node.value, '!==');
-      js.Expression test = pop();
-      js.Statement thenBody = new js.Block.empty();
-      js.Block oldContainer = currentContainer;
-      currentContainer = thenBody;
-      generateThrowWithHelper('iae', node.value);
-      currentContainer = oldContainer;
-      thenBody = unwrapStatement(thenBody);
-      pushStatement(new js.If.noElse(test, thenBody), node);
-    } else {
-      generateThrowWithHelper('iae', node.value);
     }
   }
 
@@ -2411,20 +2398,96 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
+  js.Expression generateTest(HCheck node) {
+    HInstruction input = node.checkedInput;
+    DartType indexingBehavior =
+        backend.jsIndexingBehaviorInterface.computeType(compiler);
+    js.Expression test;
+    if (node.isInteger()) {
+      // input is !int
+      checkInt(input, '!==');
+      test = pop();
+    } else if (node.isNumber()) {
+      // input is !num
+      checkNum(input, '!==');
+      test = pop();
+    } else if (node.isBoolean()) {
+      // input is !bool
+      checkBool(input, '!==');
+      test = pop();
+    } else if (node.isString()) {
+      // input is !string
+      checkString(input, '!==');
+      test = pop();
+    } else if (node.isExtendableArray()) {
+      // input is !Object || input is !Array || input.isFixed
+      checkObject(input, '!==');
+      js.Expression objectTest = pop();
+      checkArray(input, '!==');
+      js.Expression arrayTest = pop();
+      checkFixedArray(input);
+      test = new js.Binary('||', objectTest, arrayTest);
+      test = new js.Binary('||', test, pop());
+    } else if (node.isMutableArray()) {
+      // input is !Object
+      // || ((input is !Array || input.isImmutable)
+      //     && input is !JsIndexingBehavior)
+      checkObject(input, '!==');
+      js.Expression objectTest = pop();
+      checkArray(input, '!==');
+      js.Expression arrayTest = pop();
+      checkImmutableArray(input);
+      js.Binary notArrayOrImmutable = new js.Binary('||', arrayTest, pop());
+      checkType(input, indexingBehavior, negative: true);
+      js.Binary notIndexing = new js.Binary('&&', notArrayOrImmutable, pop());
+      test = new js.Binary('||', objectTest, notIndexing);
+    } else if (node.isReadableArray()) {
+      // input is !Object
+      // || (input is !Array && input is !JsIndexingBehavior)
+      checkObject(input, '!==');
+      js.Expression objectTest = pop();
+      checkArray(input, '!==');
+      js.Expression arrayTest = pop();
+      checkType(input, indexingBehavior, negative: true);
+      js.Expression notIndexing = new js.Binary('&&', arrayTest, pop());
+      test = new js.Binary('||', objectTest, notIndexing);
+    } else if (node.isIndexablePrimitive()) {
+      // input is !String
+      // && (input is !Object
+      //     || (input is !Array && input is !JsIndexingBehavior))
+      checkString(input, '!==');
+      js.Expression stringTest = pop();
+      checkObject(input, '!==');
+      js.Expression objectTest = pop();
+      checkArray(input, '!==');
+      js.Expression arrayTest = pop();
+      checkType(input, indexingBehavior, negative: true);
+      js.Binary notIndexingTest = new js.Binary('&&', arrayTest, pop());
+      js.Binary notObjectOrIndexingTest =
+          new js.Binary('||', objectTest, notIndexingTest);
+      test = new js.Binary('&&', stringTest, notObjectOrIndexingTest);
+    } else {
+      compiler.internalError('Unexpected type guard', instruction: input);
+    }
+    return test;
+  }
+
   void visitTypeConversion(HTypeConversion node) {
     if (node.isChecked) {
-      if (node.isArgumentTypeCheck) {
-        if (node.isInteger()) {
-          checkInt(node.checkedInput, '!==');
-        } else {
-          assert(node.isNumber());
-          checkNum(node.checkedInput, '!==');
-        }
-        js.Expression test = pop();
+      if (node.isArgumentTypeCheck || node.isReceiverTypeCheck) {
+        js.Expression test = generateTest(node);
         js.Block oldContainer = currentContainer;
         js.Statement body = new js.Block.empty();
         currentContainer = body;
-        generateThrowWithHelper('iae', node.checkedInput);
+        if (node.isArgumentTypeCheck) {
+          generateThrowWithHelper('iae', node.checkedInput);
+        } else if (node.isReceiverTypeCheck) {
+          use(node.checkedInput);
+          String methodName =
+              backend.namer.invocationName(node.receiverTypeCheckSelector);
+          js.Expression call = jsPropertyCall(pop(), methodName, []);
+          pushStatement(new js.Throw(call));
+        }
         currentContainer = oldContainer;
         body = unwrapStatement(body);
         pushStatement(new js.If.noElse(test, body), node);
@@ -2493,7 +2556,7 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
 
   // Called by visitTypeGuard to generate the actual bailout call, something
   // like "return $.foo$bailout(t0, t1);"
-  js.Statement bailout(HTypeGuard guard, String reason) {
+  js.Statement bailout(HTypeGuard guard) {
     HBailoutTarget target = guard.bailoutTarget;
     List<js.Expression> arguments = <js.Expression>[];
     arguments.add(new js.LiteralNumber("${guard.state}"));
@@ -2534,86 +2597,8 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
   // Generate a type guard, something like "if (typeof t0 == 'number')" and the
   // corresponding bailout call, something like "return $.foo$bailout(t0, t1);"
   void visitTypeGuard(HTypeGuard node) {
-    HInstruction input = node.guarded;
-    DartType indexingBehavior =
-        backend.jsIndexingBehaviorInterface.computeType(compiler);
-    String message;
-    js.Expression test;
-    if (node.isInteger()) {
-      // if (input is !int) bailout
-      checkInt(input, '!==');
-      test = pop();
-      message = 'Not an integer';
-    } else if (node.isNumber()) {
-      // if (input is !num) bailout
-      checkNum(input, '!==');
-      test = pop();
-      message = 'Not a number';
-    } else if (node.isBoolean()) {
-      // if (input is !bool) bailout
-      checkBool(input, '!==');
-      test = pop();
-      message = 'Not a boolean';
-    } else if (node.isString()) {
-      // if (input is !string) bailout
-      checkString(input, '!==');
-      test = pop();
-      message = 'Not a string';
-    } else if (node.isExtendableArray()) {
-      // if (input is !Object || input is !Array || input.isFixed) bailout
-      checkObject(input, '!==');
-      js.Expression objectTest = pop();
-      checkArray(input, '!==');
-      js.Expression arrayTest = pop();
-      checkFixedArray(input);
-      test = new js.Binary('||', objectTest, arrayTest);
-      test = new js.Binary('||', test, pop());
-      message = 'Not an extendable array';
-    } else if (node.isMutableArray()) {
-      // if (input is !Object
-      //     || ((input is !Array || input.isImmutable)
-      //         && input is !JsIndexingBehavior)) bailout
-      checkObject(input, '!==');
-      js.Expression objectTest = pop();
-      checkArray(input, '!==');
-      js.Expression arrayTest = pop();
-      checkImmutableArray(input);
-      js.Binary notArrayOrImmutable = new js.Binary('||', arrayTest, pop());
-      checkType(input, indexingBehavior, negative: true);
-      js.Binary notIndexing = new js.Binary('&&', notArrayOrImmutable, pop());
-      test = new js.Binary('||', objectTest, notIndexing);
-      message = 'Not a mutable array';
-    } else if (node.isReadableArray()) {
-      // if (input is !Object
-      //     || (input is !Array && input is !JsIndexingBehavior)) bailout
-      checkObject(input, '!==');
-      js.Expression objectTest = pop();
-      checkArray(input, '!==');
-      js.Expression arrayTest = pop();
-      checkType(input, indexingBehavior, negative: true);
-      js.Expression notIndexing = new js.Binary('&&', arrayTest, pop());
-      test = new js.Binary('||', objectTest, notIndexing);
-      message = 'Not an array';
-    } else if (node.isIndexablePrimitive()) {
-      // if (input is !String
-      //     && (input is !Object
-      //         || (input is !Array && input is !JsIndexingBehavior))) bailout
-      checkString(input, '!==');
-      js.Expression stringTest = pop();
-      checkObject(input, '!==');
-      js.Expression objectTest = pop();
-      checkArray(input, '!==');
-      js.Expression arrayTest = pop();
-      checkType(input, indexingBehavior, negative: true);
-      js.Binary notIndexingTest = new js.Binary('&&', arrayTest, pop());
-      js.Binary notObjectOrIndexingTest =
-          new js.Binary('||', objectTest, notIndexingTest);
-      test = new js.Binary('&&', stringTest, notObjectOrIndexingTest);
-      message = 'Not a string or array';
-    } else {
-      compiler.internalError('Unexpected type guard', instruction: input);
-    }
-    pushStatement(new js.If.noElse(test, bailout(node, message)), node);
+    js.Expression test = generateTest(node);
+    pushStatement(new js.If.noElse(test, bailout(node)), node);
   }
 
   void visitBailoutTarget(HBailoutTarget target) {

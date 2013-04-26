@@ -15,7 +15,6 @@
 namespace dart {
 
 // Forward declarations.
-class HeapTrace;
 class Isolate;
 class ObjectPointerVisitor;
 class ObjectSet;
@@ -59,7 +58,7 @@ class Heap {
     switch (space) {
       case kNew:
         // Do not attempt to allocate very large objects in new space.
-        if (!PageSpace::IsPageAllocatableSize(size)) {
+        if (!IsAllocatableInNewSpace(size)) {
           return AllocateOld(size, HeapPage::kData);
         }
         return AllocateNew(size);
@@ -151,10 +150,6 @@ class Heap {
   // Verify that all pointers in the heap point to the heap.
   bool Verify() const;
 
-  // Accessor function to get the HeapTrace used for tracing.  There
-  // should only ever be one of these per isolate
-  HeapTrace* trace() const { return heap_trace_; }
-
   // Print heap sizes.
   void PrintSizes() const;
 
@@ -197,6 +192,10 @@ class Heap {
 
   bool gc_in_progress() const { return gc_in_progress_; }
 
+  static bool IsAllocatableInNewSpace(intptr_t size) {
+    return size <= kNewAllocatableSize;
+  }
+
  private:
   class GCStats : public ValueObject {
    public:
@@ -229,6 +228,8 @@ class Heap {
     DISALLOW_COPY_AND_ASSIGN(GCStats);
   };
 
+  static const intptr_t kNewAllocatableSize = 256 * KB;
+
   Heap();
 
   uword AllocateNew(intptr_t size);
@@ -245,9 +246,6 @@ class Heap {
 
   // GC stats collection.
   GCStats stats_;
-
-  // The active heap trace.
-  HeapTrace* heap_trace_;
 
   // This heap is in read-only mode: No allocation is allowed.
   bool read_only_;

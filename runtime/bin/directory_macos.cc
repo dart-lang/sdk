@@ -17,6 +17,10 @@
 #include "bin/file.h"
 #include "bin/platform.h"
 
+
+namespace dart {
+namespace bin {
+
 class PathBuffer {
  public:
   PathBuffer() : length(0) {
@@ -481,5 +485,8 @@ bool Directory::Rename(const char* path, const char* new_path) {
   if (exists != EXISTS) return false;
   return (TEMP_FAILURE_RETRY(rename(path, new_path)) == 0);
 }
+
+}  // namespace bin
+}  // namespace dart
 
 #endif  // defined(TARGET_OS_MACOS)

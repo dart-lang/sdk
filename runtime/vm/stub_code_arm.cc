@@ -10,6 +10,7 @@
 #include "vm/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/flow_graph_compiler.h"
+#include "vm/heap.h"
 #include "vm/instructions.h"
 #include "vm/object_store.h"
 #include "vm/stack_frame.h"
@@ -198,6 +199,8 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 // Input parameters:
 //   R4: arguments descriptor array.
 void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
+  // Create a stub frame as we are pushing some objects on the stack before
+  // calling into the runtime.
   __ EnterStubFrame();
   // Setup space on stack for return value and preserve arguments descriptor.
   __ LoadImmediate(R0, reinterpret_cast<intptr_t>(Object::null()));
@@ -205,17 +208,34 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
   __ CallRuntime(kPatchStaticCallRuntimeEntry);
   // Get Code object result and restore arguments descriptor array.
   __ PopList((1 << R0) | (1 << R4));
-  // Remove the stub frame as we are about to jump to the dart function.
+  // Remove the stub frame.
   __ LeaveStubFrame();
-
+  // Jump to the dart function.
   __ ldr(R0, FieldAddress(R0, Code::instructions_offset()));
   __ AddImmediate(R0, R0, Instructions::HeaderSize() - kHeapObjectTag);
   __ bx(R0);
 }
 
 
+// Called from a static call only when an invalid code has been entered
+// (invalid because its function was optimized or deoptimized).
+// R4: arguments descriptor array.
 void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
-  __ Unimplemented("FixCallersTarget stub");
+  // Create a stub frame as we are pushing some objects on the stack before
+  // calling into the runtime.
+  __ EnterStubFrame();
+  // Setup space on stack for return value and preserve arguments descriptor.
+  __ LoadImmediate(R0, reinterpret_cast<intptr_t>(Object::null()));
+  __ PushList((1 << R0) | (1 << R4));
+  __ CallRuntime(kFixCallersTargetRuntimeEntry);
+  // Get Code object result and restore arguments descriptor array.
+  __ PopList((1 << R0) | (1 << R4));
+  // Remove the stub frame.
+  __ LeaveStubFrame();
+  // Jump to the dart function.
+  __ ldr(R0, FieldAddress(R0, Code::instructions_offset()));
+  __ AddImmediate(R0, R0, Instructions::HeaderSize() - kHeapObjectTag);
+  __ bx(R0);
 }
 
 
@@ -291,13 +311,100 @@ void StubCode::GenerateInstanceFunctionLookupStub(Assembler* assembler) {
 }
 
 
+DECLARE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
+                           intptr_t deopt_reason,
+                           uword saved_registers_address);
+
+DECLARE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp);
+
+
+// Used by eager and lazy deoptimization. Preserve result in R0 if necessary.
+// This stub translates optimized frame into unoptimized frame. The optimized
+// frame can contain values in registers and on stack, the unoptimized
+// frame contains all values on stack.
+// Deoptimization occurs in following steps:
+// - Push all registers that can contain values.
+// - Call C routine to copy the stack and saved registers into temporary buffer.
+// - Adjust caller's frame to correct unoptimized frame size.
+// - Fill the unoptimized frame.
+// - Materialize objects that require allocation (e.g. Double instances).
+// GC can occur only after frame is fully rewritten.
+// Stack after EnterFrame(...) below:
+//   +------------------+
+//   | Saved FP         | <- TOS
+//   +------------------+
+//   | return-address   |  (deoptimization point)
+//   +------------------+
+//   | optimized frame  |
+//   |  ...             |
+//
+// Parts of the code cannot GC, part of the code can GC.
+static void GenerateDeoptimizationSequence(Assembler* assembler,
+                                           bool preserve_result) {
+  __ EnterFrame((1 << FP) | (1 << LR), 0);
+  // The code in this frame may not cause GC. kDeoptimizeCopyFrameRuntimeEntry
+  // and kDeoptimizeFillFrameRuntimeEntry are leaf runtime calls.
+  const intptr_t saved_r0_offset_from_fp = -(kNumberOfCpuRegisters - R0);
+  // Result in R0 is preserved as part of pushing all registers below.
+
+  // Push registers in their enumeration order: lowest register number at
+  // lowest address.
+  __ PushList(kAllCpuRegistersList);
+  ASSERT(kFpuRegisterSize == 2 * kWordSize);
+  __ vstmd(DB_W, SP, D0, static_cast<DRegister>(kNumberOfDRegisters - 1));
+
+  __ mov(R0, ShifterOperand(SP));  // Pass address of saved registers block.
+  __ ReserveAlignedFrameSpace(0);
+  __ CallRuntime(kDeoptimizeCopyFrameRuntimeEntry);
+  // Result (R0) is stack-size (FP - SP) in bytes, incl. the return address.
+
+  if (preserve_result) {
+    // Restore result into R1 temporarily.
+    __ ldr(R1, Address(FP, saved_r0_offset_from_fp * kWordSize));
+  }
+
+  __ LeaveFrame((1 << FP) | (1 << LR));
+  __ sub(SP, FP, ShifterOperand(R0));
+
+  __ EnterFrame((1 << FP) | (1 << LR), 0);
+  __ mov(R0, ShifterOperand(SP));  // Get last FP address.
+  if (preserve_result) {
+    __ Push(R1);  // Preserve result.
+  }
+  __ ReserveAlignedFrameSpace(0);
+  __ CallRuntime(kDeoptimizeFillFrameRuntimeEntry);  // Pass last FP in R0.
+  // Result (R0) is our FP.
+  if (preserve_result) {
+    // Restore result into R1.
+    __ ldr(R1, Address(FP, -1 * kWordSize));
+  }
+  // Code above cannot cause GC.
+  __ LeaveFrame((1 << FP) | (1 << LR));
+  __ mov(FP, ShifterOperand(R0));
+
+  // Frame is fully rewritten at this point and it is safe to perform a GC.
+  // Materialize any objects that were deferred by FillFrame because they
+  // require allocation.
+  __ EnterStubFrame();
+  if (preserve_result) {
+    __ Push(R1);  // Preserve result, it will be GC-d here.
+  }
+  __ CallRuntime(kDeoptimizeMaterializeDoublesRuntimeEntry);
+  if (preserve_result) {
+    __ Pop(R0);  // Restore result.
+  }
+  __ LeaveStubFrame();
+  __ Ret();
+}
+
+
 void StubCode::GenerateDeoptimizeLazyStub(Assembler* assembler) {
   __ Unimplemented("DeoptimizeLazy stub");
 }
 
 
 void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
-  __ Unimplemented("Deoptimize stub");
+  GenerateDeoptimizationSequence(assembler, false);  // Don't preserve R0.
 }
 
 
@@ -585,7 +692,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // kExitLinkOffsetInEntryFrame must be kept in sync with the code below.
   __ PushList((1 << R4) | (1 << R5));
 
-  // The stack pointer is restore after the call to this location.
+  // The stack pointer is restored after the call to this location.
   const intptr_t kSavedContextOffsetInEntryFrame = -10 * kWordSize;
 
   // Load arguments descriptor array into R4, which is passed to Dart code.
@@ -827,7 +934,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   ASSERT(instance_size > 0);
   const intptr_t type_args_size = InstantiatedTypeArguments::InstanceSize();
   if (FLAG_inline_alloc &&
-      PageSpace::IsPageAllocatableSize(instance_size + type_args_size)) {
+      Heap::IsAllocatableInNewSpace(instance_size + type_args_size)) {
     Label slow_case;
     Heap* heap = Isolate::Current()->heap();
     __ LoadImmediate(R5, heap->TopAddress());
@@ -997,7 +1104,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
   const intptr_t closure_size = Closure::InstanceSize();
   const intptr_t context_size = Context::InstanceSize(1);  // Captured receiver.
   if (FLAG_inline_alloc &&
-      PageSpace::IsPageAllocatableSize(closure_size + context_size)) {
+      Heap::IsAllocatableInNewSpace(closure_size + context_size)) {
     Label slow_case;
     Heap* heap = Isolate::Current()->heap();
     __ LoadImmediate(R5, heap->TopAddress());
@@ -1132,8 +1239,35 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
 }
 
 
+//  R6: function object.
+//  R5: inline cache data object.
+//  R4: arguments descriptor array.
 void StubCode::GenerateOptimizedUsageCounterIncrement(Assembler* assembler) {
-  __ Unimplemented("OptimizedUsageCounterIncrement stub");
+  Register ic_reg = R5;
+  Register func_reg = R6;
+  if (FLAG_trace_optimized_ic_calls) {
+    __ EnterStubFrame();
+    __ PushList((1 << R4) | (1 << R5) | (1 << R6));  // Preserve.
+    __ Push(ic_reg);  // Argument.
+    __ Push(func_reg);  // Argument.
+    __ CallRuntime(kTraceICCallRuntimeEntry);
+    __ Drop(2);  // Discard argument;
+    __ PushList((1 << R4) | (1 << R5) | (1 << R6));  // Restore.
+    __ LeaveStubFrame();
+  }
+  __ ldr(R7, FieldAddress(func_reg, Function::usage_counter_offset()));
+  Label is_hot;
+  if (FlowGraphCompiler::CanOptimize()) {
+    ASSERT(FLAG_optimization_counter_threshold > 1);
+    __ CompareImmediate(R7, FLAG_optimization_counter_threshold);
+    __ b(&is_hot, GE);
+    // As long as VM has no OSR do not optimize in the middle of the function
+    // but only at exit so that we have collected all type feedback before
+    // optimizing.
+  }
+  __ add(R7, R7, ShifterOperand(1));
+  __ str(R7, FieldAddress(func_reg, Function::usage_counter_offset()));
+  __ Bind(&is_hot);
 }
 
 
@@ -1385,18 +1519,66 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
 }
 
 
+//  LR: return address (Dart code).
+//  R4: arguments descriptor array.
 void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
-  __ Unimplemented("BreakpointStatic stub");
+  // Create a stub frame as we are pushing some objects on the stack before
+  // calling into the runtime.
+  __ EnterStubFrame();
+  __ LoadImmediate(R0, reinterpret_cast<intptr_t>(Object::null()));
+  // Preserve arguments descriptor and make room for result.
+  __ PushList((1 << R0) | (1 << R4));
+  __ CallRuntime(kBreakpointStaticHandlerRuntimeEntry);
+  // Pop code object result and restore arguments descriptor.
+  __ PopList((1 << R0) | (1 << R4));
+  __ LeaveStubFrame();
+
+  // Now call the static function. The breakpoint handler function
+  // ensures that the call target is compiled.
+  __ ldr(R0, FieldAddress(R0, Code::instructions_offset()));
+  __ AddImmediate(R0, Instructions::HeaderSize() - kHeapObjectTag);
+  __ bx(R0);
 }
 
 
+//  R0: return value.
 void StubCode::GenerateBreakpointReturnStub(Assembler* assembler) {
-  __ Unimplemented("BreakpointReturn stub");
+  // Create a stub frame as we are pushing some objects on the stack before
+  // calling into the runtime.
+  __ EnterStubFrame();
+  __ Push(R0);
+  __ CallRuntime(kBreakpointReturnHandlerRuntimeEntry);
+  __ Pop(R0);
+  __ LeaveStubFrame();
+
+  // Instead of returning to the patched Dart function, emulate the
+  // smashed return code pattern and return to the function's caller.
+  __ LeaveDartFrame();
+  __ Ret();
 }
 
 
+//  LR: return address (Dart code).
+//  R5: inline cache data array.
+//  R4: arguments descriptor array.
 void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
-  __ Unimplemented("BreakpointDynamic stub");
+  // Create a stub frame as we are pushing some objects on the stack before
+  // calling into the runtime.
+  __ EnterStubFrame();
+  __ PushList((1 << R4) | (1 << R5));
+  __ CallRuntime(kBreakpointDynamicHandlerRuntimeEntry);
+  __ PopList((1 << R4) | (1 << R5));
+  __ LeaveStubFrame();
+
+  // Find out which dispatch stub to call.
+  __ ldr(IP, FieldAddress(R5, ICData::num_args_tested_offset()));
+  __ cmp(IP, ShifterOperand(1));
+  __ Branch(&StubCode::OneArgCheckInlineCacheLabel(), EQ);
+  __ cmp(IP, ShifterOperand(2));
+  __ Branch(&StubCode::TwoArgsCheckInlineCacheLabel(), EQ);
+  __ cmp(IP, ShifterOperand(3));
+  __ Branch(&StubCode::ThreeArgsCheckInlineCacheLabel(), EQ);
+  __ Stop("Unsupported number of arguments tested.");
 }
 
 
@@ -1533,8 +1715,89 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
 }
 
 
+// Implements equality operator when one of the arguments is null
+// (identity check) and updates ICData if necessary.
+// LR: return address.
+// R1: left argument.
+// R0: right argument.
+// R5: ICData.
+// R0: result.
+// TODO(srdjan): Move to VM stubs once Boolean objects become VM objects.
 void StubCode::GenerateEqualityWithNullArgStub(Assembler* assembler) {
-  __ Unimplemented("EqualityWithNullArg Stub");
+  __ EnterStubFrame();
+  static const intptr_t kNumArgsTested = 2;
+#if defined(DEBUG)
+  { Label ok;
+    __ ldr(IP, FieldAddress(R5, ICData::num_args_tested_offset()));
+    __ cmp(IP, ShifterOperand(kNumArgsTested));
+    __ b(&ok, EQ);
+    __ Stop("Incorrect ICData for equality");
+    __ Bind(&ok);
+  }
+#endif  // DEBUG
+  // Check IC data, update if needed.
+  // R5: IC data object (preserved).
+  __ ldr(R6, FieldAddress(R5, ICData::ic_data_offset()));
+  // R6: ic_data_array with check entries: classes and target functions.
+  __ AddImmediate(R6, Array::data_offset() - kHeapObjectTag);
+  // R6: points directly to the first ic data array element.
+
+  Label get_class_id_as_smi, no_match, loop, found;
+  __ Bind(&loop);
+  // Check left.
+  __ mov(R2, ShifterOperand(R1));
+  __ bl(&get_class_id_as_smi);
+  __ ldr(R3, Address(R6, 0 * kWordSize));
+  __ cmp(R2, ShifterOperand(R3));  // Class id match?
+  __ b(&no_match, NE);
+  // Check right.
+  __ mov(R2, ShifterOperand(R0));
+  __ bl(&get_class_id_as_smi);
+  __ ldr(R3, Address(R6, 1 * kWordSize));
+  __ cmp(R2, ShifterOperand(R3));  // Class id match?
+  __ b(&found, EQ);
+  __ Bind(&no_match);
+  // Next check group.
+  __ AddImmediate(R6, kWordSize * ICData::TestEntryLengthFor(kNumArgsTested));
+  __ CompareImmediate(R3, Smi::RawValue(kIllegalCid));  // Done?
+  __ b(&loop, NE);
+  Label update_ic_data;
+  __ b(&update_ic_data);
+
+  __ Bind(&found);
+  const intptr_t count_offset =
+      ICData::CountIndexFor(kNumArgsTested) * kWordSize;
+  __ ldr(IP, Address(R6, count_offset));
+  __ adds(IP, IP, ShifterOperand(Smi::RawValue(1)));
+  __ LoadImmediate(IP, Smi::RawValue(Smi::kMaxValue), VS);  // If overflow.
+  __ str(IP, Address(R6, count_offset));
+
+  Label compute_result;
+  __ Bind(&compute_result);
+  __ cmp(R0, ShifterOperand(R1));
+  __ LoadObject(R0, Bool::False(), NE);
+  __ LoadObject(R0, Bool::True(), EQ);
+  __ LeaveStubFrame();
+  __ Ret();
+
+  __ Bind(&get_class_id_as_smi);
+  // Test if Smi -> load Smi class for comparison.
+  __ tst(R2, ShifterOperand(kSmiTagMask));
+  __ mov(R2, ShifterOperand(Smi::RawValue(kSmiCid)), EQ);
+  __ bx(LR, EQ);
+  __ LoadClassId(R2, R2);
+  __ SmiTag(R2);
+  __ bx(LR);
+
+  __ Bind(&update_ic_data);
+  // R5: ICData
+  __ PushList((1 << R0) | (1 << R1));
+  __ PushObject(Symbols::EqualOperator());  // Target's name.
+  __ Push(R5);  // ICData
+  __ CallRuntime(kUpdateICDataTwoArgsRuntimeEntry);  // Clobbers R4, R5.
+  __ Drop(2);
+  __ PopList((1 << R0) | (1 << R1));
+  __ b(&compute_result);
 }
 
 

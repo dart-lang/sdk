@@ -586,6 +586,10 @@ class TypeCheckerVisitor implements Visitor<DartType> {
     fail(node, 'internal error');
   }
 
+  DartType visitRethrow(Rethrow node) {
+    return StatementType.RETURNING;
+  }
+
   /** Dart Programming Language Specification: 11.10 Return */
   DartType visitReturn(Return node) {
     if (identical(node.getBeginToken().stringValue, 'native')) {
@@ -625,7 +629,7 @@ class TypeCheckerVisitor implements Visitor<DartType> {
   }
 
   DartType visitThrow(Throw node) {
-    if (node.expression != null) analyze(node.expression);
+    analyze(node.expression);
     return StatementType.RETURNING;
   }
 

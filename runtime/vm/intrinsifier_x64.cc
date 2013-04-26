@@ -534,7 +534,7 @@ static ScaleFactor GetScaleFactor(intptr_t size) {
 };
 
 
-#define TYPEDDATA_ALLOCATOR(clazz)                                             \
+#define TYPED_DATA_ALLOCATOR(clazz)                                            \
 bool Intrinsifier::TypedData_##clazz##_new(Assembler* assembler) {             \
   intptr_t size = TypedData::ElementSizeInBytes(kTypedData##clazz##Cid);       \
   intptr_t max_len = TypedData::MaxElements(kTypedData##clazz##Cid);           \
@@ -549,8 +549,8 @@ bool Intrinsifier::TypedData_##clazz##_factory(Assembler* assembler) {         \
   TYPED_ARRAY_ALLOCATION(TypedData, kTypedData##clazz##Cid, max_len, scale);   \
   return false;                                                                \
 }
-CLASS_LIST_TYPED_DATA(TYPEDDATA_ALLOCATOR)
-#undef TYPEDDATA_ALLOCATOR
+CLASS_LIST_TYPED_DATA(TYPED_DATA_ALLOCATOR)
+#undef TYPED_DATA_ALLOCATOR
 
 
 // Tests if two top most arguments are smis, jumps to label not_smi if not.

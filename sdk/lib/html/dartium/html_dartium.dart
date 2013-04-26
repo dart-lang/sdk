@@ -10,7 +10,7 @@ import 'dart:isolate';
 import 'dart:json' as json;
 import 'dart:math';
 import 'dart:nativewrappers';
-import 'dart:typeddata' as _typeddata;
+import 'dart:typed_data';
 import 'dart:web_gl' as gl;
 import 'dart:web_sql';
 import 'dart:svg' as svg;
@@ -500,75 +500,6 @@ class AreaElement extends _Element_Merged {
   @DomName('HTMLAreaElement.target')
   @DocsEditable
   void set target(String value) native "HTMLAreaElement_target_Setter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('ArrayBuffer')
-@SupportedBrowser(SupportedBrowser.CHROME)
-@SupportedBrowser(SupportedBrowser.FIREFOX)
-@SupportedBrowser(SupportedBrowser.IE, '10')
-@SupportedBrowser(SupportedBrowser.SAFARI)
-class ArrayBuffer extends NativeFieldWrapperClass1 {
-  ArrayBuffer.internal();
-  factory ArrayBuffer(int length) => _create(length);
-
-  @DocsEditable
-  static ArrayBuffer _create(length) native "ArrayBuffer_constructorCallback";
-
-  @DomName('ArrayBuffer.byteLength')
-  @DocsEditable
-  int get byteLength native "ArrayBuffer_byteLength_Getter";
-
-  dynamic slice(int begin, [int end]) {
-    if (?end) {
-      return _slice_1(begin, end);
-    }
-    return _slice_2(begin);
-  }
-
-  @DomName('ArrayBuffer._slice_1')
-  @DocsEditable
-  dynamic _slice_1(begin, end) native "ArrayBuffer__slice_1_Callback";
-
-  @DomName('ArrayBuffer._slice_2')
-  @DocsEditable
-  dynamic _slice_2(begin) native "ArrayBuffer__slice_2_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('ArrayBufferView')
-@SupportedBrowser(SupportedBrowser.CHROME)
-@SupportedBrowser(SupportedBrowser.FIREFOX)
-@SupportedBrowser(SupportedBrowser.IE, '10')
-@SupportedBrowser(SupportedBrowser.SAFARI)
-class ArrayBufferView extends NativeFieldWrapperClass1 {
-  ArrayBufferView.internal();
-
-  @DomName('ArrayBufferView.buffer')
-  @DocsEditable
-  dynamic get buffer native "ArrayBufferView_buffer_Getter";
-
-  @DomName('ArrayBufferView.byteLength')
-  @DocsEditable
-  int get byteLength native "ArrayBufferView_byteLength_Getter";
-
-  @DomName('ArrayBufferView.byteOffset')
-  @DocsEditable
-  int get byteOffset native "ArrayBufferView_byteOffset_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2307,7 +2238,7 @@ class Crypto extends NativeFieldWrapperClass1 {
 
   @DomName('Crypto.getRandomValues')
   @DocsEditable
-  dynamic getRandomValues(/*ArrayBufferView*/ array) native "Crypto_getRandomValues_Callback";
+  TypedData getRandomValues(TypedData array) native "Crypto_getRandomValues_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6165,231 +6096,6 @@ class DataTransferItemList extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
-@DomName('DataView')
-class DataView extends ArrayBufferView {
-  DataView.internal() : super.internal();
-  factory DataView(/*ArrayBuffer*/ buffer, [int byteOffset, int byteLength]) => _create(buffer, byteOffset, byteLength);
-
-  @DocsEditable
-  static DataView _create(buffer, byteOffset, byteLength) native "DataView_constructorCallback";
-
-  num getFloat32(int byteOffset, {bool littleEndian}) {
-    if (?littleEndian) {
-      return _getFloat32_1(byteOffset, littleEndian);
-    }
-    return _getFloat32_2(byteOffset);
-  }
-
-  @DomName('DataView._getFloat32_1')
-  @DocsEditable
-  num _getFloat32_1(byteOffset, littleEndian) native "DataView__getFloat32_1_Callback";
-
-  @DomName('DataView._getFloat32_2')
-  @DocsEditable
-  num _getFloat32_2(byteOffset) native "DataView__getFloat32_2_Callback";
-
-  num getFloat64(int byteOffset, {bool littleEndian}) {
-    if (?littleEndian) {
-      return _getFloat64_1(byteOffset, littleEndian);
-    }
-    return _getFloat64_2(byteOffset);
-  }
-
-  @DomName('DataView._getFloat64_1')
-  @DocsEditable
-  num _getFloat64_1(byteOffset, littleEndian) native "DataView__getFloat64_1_Callback";
-
-  @DomName('DataView._getFloat64_2')
-  @DocsEditable
-  num _getFloat64_2(byteOffset) native "DataView__getFloat64_2_Callback";
-
-  int getInt16(int byteOffset, {bool littleEndian}) {
-    if (?littleEndian) {
-      return _getInt16_1(byteOffset, littleEndian);
-    }
-    return _getInt16_2(byteOffset);
-  }
-
-  @DomName('DataView._getInt16_1')
-  @DocsEditable
-  int _getInt16_1(byteOffset, littleEndian) native "DataView__getInt16_1_Callback";
-
-  @DomName('DataView._getInt16_2')
-  @DocsEditable
-  int _getInt16_2(byteOffset) native "DataView__getInt16_2_Callback";
-
-  int getInt32(int byteOffset, {bool littleEndian}) {
-    if (?littleEndian) {
-      return _getInt32_1(byteOffset, littleEndian);
-    }
-    return _getInt32_2(byteOffset);
-  }
-
-  @DomName('DataView._getInt32_1')
-  @DocsEditable
-  int _getInt32_1(byteOffset, littleEndian) native "DataView__getInt32_1_Callback";
-
-  @DomName('DataView._getInt32_2')
-  @DocsEditable
-  int _getInt32_2(byteOffset) native "DataView__getInt32_2_Callback";
-
-  @DomName('DataView.getInt8')
-  @DocsEditable
-  int getInt8(int byteOffset) native "DataView_getInt8_Callback";
-
-  int getUint16(int byteOffset, {bool littleEndian}) {
-    if (?littleEndian) {
-      return _getUint16_1(byteOffset, littleEndian);
-    }
-    return _getUint16_2(byteOffset);
-  }
-
-  @DomName('DataView._getUint16_1')
-  @DocsEditable
-  int _getUint16_1(byteOffset, littleEndian) native "DataView__getUint16_1_Callback";
-
-  @DomName('DataView._getUint16_2')
-  @DocsEditable
-  int _getUint16_2(byteOffset) native "DataView__getUint16_2_Callback";
-
-  int getUint32(int byteOffset, {bool littleEndian}) {
-    if (?littleEndian) {
-      return _getUint32_1(byteOffset, littleEndian);
-    }
-    return _getUint32_2(byteOffset);
-  }
-
-  @DomName('DataView._getUint32_1')
-  @DocsEditable
-  int _getUint32_1(byteOffset, littleEndian) native "DataView__getUint32_1_Callback";
-
-  @DomName('DataView._getUint32_2')
-  @DocsEditable
-  int _getUint32_2(byteOffset) native "DataView__getUint32_2_Callback";
-
-  @DomName('DataView.getUint8')
-  @DocsEditable
-  int getUint8(int byteOffset) native "DataView_getUint8_Callback";
-
-  void setFloat32(int byteOffset, num value, {bool littleEndian}) {
-    if (?littleEndian) {
-      _setFloat32_1(byteOffset, value, littleEndian);
-      return;
-    }
-    _setFloat32_2(byteOffset, value);
-    return;
-  }
-
-  @DomName('DataView._setFloat32_1')
-  @DocsEditable
-  void _setFloat32_1(byteOffset, value, littleEndian) native "DataView__setFloat32_1_Callback";
-
-  @DomName('DataView._setFloat32_2')
-  @DocsEditable
-  void _setFloat32_2(byteOffset, value) native "DataView__setFloat32_2_Callback";
-
-  void setFloat64(int byteOffset, num value, {bool littleEndian}) {
-    if (?littleEndian) {
-      _setFloat64_1(byteOffset, value, littleEndian);
-      return;
-    }
-    _setFloat64_2(byteOffset, value);
-    return;
-  }
-
-  @DomName('DataView._setFloat64_1')
-  @DocsEditable
-  void _setFloat64_1(byteOffset, value, littleEndian) native "DataView__setFloat64_1_Callback";
-
-  @DomName('DataView._setFloat64_2')
-  @DocsEditable
-  void _setFloat64_2(byteOffset, value) native "DataView__setFloat64_2_Callback";
-
-  void setInt16(int byteOffset, int value, {bool littleEndian}) {
-    if (?littleEndian) {
-      _setInt16_1(byteOffset, value, littleEndian);
-      return;
-    }
-    _setInt16_2(byteOffset, value);
-    return;
-  }
-
-  @DomName('DataView._setInt16_1')
-  @DocsEditable
-  void _setInt16_1(byteOffset, value, littleEndian) native "DataView__setInt16_1_Callback";
-
-  @DomName('DataView._setInt16_2')
-  @DocsEditable
-  void _setInt16_2(byteOffset, value) native "DataView__setInt16_2_Callback";
-
-  void setInt32(int byteOffset, int value, {bool littleEndian}) {
-    if (?littleEndian) {
-      _setInt32_1(byteOffset, value, littleEndian);
-      return;
-    }
-    _setInt32_2(byteOffset, value);
-    return;
-  }
-
-  @DomName('DataView._setInt32_1')
-  @DocsEditable
-  void _setInt32_1(byteOffset, value, littleEndian) native "DataView__setInt32_1_Callback";
-
-  @DomName('DataView._setInt32_2')
-  @DocsEditable
-  void _setInt32_2(byteOffset, value) native "DataView__setInt32_2_Callback";
-
-  @DomName('DataView.setInt8')
-  @DocsEditable
-  void setInt8(int byteOffset, int value) native "DataView_setInt8_Callback";
-
-  void setUint16(int byteOffset, int value, {bool littleEndian}) {
-    if (?littleEndian) {
-      _setUint16_1(byteOffset, value, littleEndian);
-      return;
-    }
-    _setUint16_2(byteOffset, value);
-    return;
-  }
-
-  @DomName('DataView._setUint16_1')
-  @DocsEditable
-  void _setUint16_1(byteOffset, value, littleEndian) native "DataView__setUint16_1_Callback";
-
-  @DomName('DataView._setUint16_2')
-  @DocsEditable
-  void _setUint16_2(byteOffset, value) native "DataView__setUint16_2_Callback";
-
-  void setUint32(int byteOffset, int value, {bool littleEndian}) {
-    if (?littleEndian) {
-      _setUint32_1(byteOffset, value, littleEndian);
-      return;
-    }
-    _setUint32_2(byteOffset, value);
-    return;
-  }
-
-  @DomName('DataView._setUint32_1')
-  @DocsEditable
-  void _setUint32_1(byteOffset, value, littleEndian) native "DataView__setUint32_1_Callback";
-
-  @DomName('DataView._setUint32_2')
-  @DocsEditable
-  void _setUint32_2(byteOffset, value) native "DataView__setUint32_2_Callback";
-
-  @DomName('DataView.setUint8')
-  @DocsEditable
-  void setUint8(int byteOffset, int value) native "DataView_setUint8_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
 typedef void DatabaseCallback(database);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7695,7 +7401,7 @@ class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeT
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -7707,7 +7413,7 @@ class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeT
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int end, Iterable<DomMimeType> iterable, [int skipCount]) {
+  void setRange(int start, int end, Iterable<DomMimeType> iterable, [int skipCount=0]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -8077,7 +7783,7 @@ class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin>
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -8089,7 +7795,7 @@ class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin>
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int end, Iterable<DomPlugin> iterable, [int skipCount]) {
+  void setRange(int start, int end, Iterable<DomPlugin> iterable, [int skipCount=0]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -8517,7 +8223,7 @@ class DomStringList extends NativeFieldWrapperClass1 implements List<String> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -8529,7 +8235,7 @@ class DomStringList extends NativeFieldWrapperClass1 implements List<String> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int end, Iterable<String> iterable, [int skipCount]) {
+  void setRange(int start, int end, Iterable<String> iterable, [int skipCount=0]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -8811,13 +8517,15 @@ class _ChildrenElementList extends ListBase<Element> {
     throw new UnimplementedError();
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     if (object is Element) {
       Element element = object;
       if (identical(element.parentNode, _element)) {
         _element.$dom_removeChild(element);
+        return true;
       }
     }
+    return false;
   }
 
   void removeWhere(bool test(Element element)) {
@@ -8978,7 +8686,7 @@ class _FrozenElementList extends ListBase {
     throw new UnsupportedError('');
   }
 
-  void remove(Object element) {
+  bool remove(Object element) {
     throw new UnsupportedError('');
   }
 
@@ -11222,7 +10930,7 @@ class FileList extends NativeFieldWrapperClass1 implements List<File> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -11234,7 +10942,7 @@ class FileList extends NativeFieldWrapperClass1 implements List<File> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int end, Iterable<File> iterable, [int skipCount]) {
+  void setRange(int start, int end, Iterable<File> iterable, [int skipCount=0]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -11561,516 +11269,6 @@ class FileWriter extends EventTarget {
 
 
 typedef void _FileWriterCallback(FileWriter fileWriter);
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('Float32Array')
-class Float32Array extends ArrayBufferView implements List<double> {
-  Float32Array.internal() : super.internal();
-
-  @DomName('Float32Array.Float32Array')
-  @DocsEditable
-  factory Float32Array(int length) =>
-    _TypedArrayFactoryProvider.createFloat32Array(length);
-
-  @DomName('Float32Array.fromList')
-  @DocsEditable
-  factory Float32Array.fromList(List<num> list) =>
-    _TypedArrayFactoryProvider.createFloat32Array_fromList(list);
-
-  @DomName('Float32Array.fromBuffer')
-  @DocsEditable
-  factory Float32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
-    _TypedArrayFactoryProvider.createFloat32Array_fromBuffer(buffer, byteOffset, length);
-
-  static const int BYTES_PER_ELEMENT = 4;
-
-  @DomName('Float32Array.length')
-  @DocsEditable
-  int get length native "Float32Array_length_Getter";
-
-  @DomName('Float32Array.numericIndexGetter')
-  @DocsEditable
-  num operator[](int index) native "Float32Array_numericIndexGetter_Callback";
-
-  @DomName('Float32Array.numericIndexSetter')
-  @DocsEditable
-  void operator[]=(int index, num value) native "Float32Array_numericIndexSetter_Callback";
-  // -- start List<num> mixins.
-  // num is the element type.
-
-  // From Iterable<num>:
-
-  Iterator<num> get iterator {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<num>(this);
-  }
-
-  num reduce(num combine(num value, num element)) {
-    return IterableMixinWorkaround.reduce(this, combine);
-  }
-
-  dynamic fold(dynamic initialValue,
-               dynamic combine(dynamic previousValue, num element)) {
-    return IterableMixinWorkaround.fold(this, initialValue, combine);
-  }
-
-  bool contains(num element) => IterableMixinWorkaround.contains(this, element);
-
-  void forEach(void f(num element)) => IterableMixinWorkaround.forEach(this, f);
-
-  String join([String separator = ""]) =>
-      IterableMixinWorkaround.joinList(this, separator);
-
-  Iterable map(f(num element)) =>
-      IterableMixinWorkaround.mapList(this, f);
-
-  Iterable<num> where(bool f(num element)) =>
-      IterableMixinWorkaround.where(this, f);
-
-  Iterable expand(Iterable f(num element)) =>
-      IterableMixinWorkaround.expand(this, f);
-
-  bool every(bool f(num element)) => IterableMixinWorkaround.every(this, f);
-
-  bool any(bool f(num element)) => IterableMixinWorkaround.any(this, f);
-
-  List<num> toList({ bool growable: true }) =>
-      new List<num>.from(this, growable: growable);
-
-  Set<num> toSet() => new Set<num>.from(this);
-
-  bool get isEmpty => this.length == 0;
-
-  Iterable<num> take(int n) => IterableMixinWorkaround.takeList(this, n);
-
-  Iterable<num> takeWhile(bool test(num value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
-  }
-
-  Iterable<num> skip(int n) => IterableMixinWorkaround.skipList(this, n);
-
-  Iterable<num> skipWhile(bool test(num value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
-  }
-
-  num firstWhere(bool test(num value), { num orElse() }) {
-    return IterableMixinWorkaround.firstWhere(this, test, orElse);
-  }
-
-  num lastWhere(bool test(num value), {num orElse()}) {
-    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
-  }
-
-  num singleWhere(bool test(num value)) {
-    return IterableMixinWorkaround.singleWhere(this, test);
-  }
-
-  num elementAt(int index) {
-    return this[index];
-  }
-
-  // From Collection<num>:
-
-  void add(num value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Iterable<num> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  // From List<num>:
-  void set length(int value) {
-    throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  void clear() {
-    throw new UnsupportedError("Cannot clear immutable List.");
-  }
-
-  Iterable<num> get reversed {
-    return IterableMixinWorkaround.reversedList(this);
-  }
-
-  void sort([int compare(num a, num b)]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(num element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(num element, [int start]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
-  num get first {
-    if (this.length > 0) return this[0];
-    throw new StateError("No elements");
-  }
-
-  num get last {
-    if (this.length > 0) return this[this.length - 1];
-    throw new StateError("No elements");
-  }
-
-  num get single {
-    if (length == 1) return this[0];
-    if (length == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  void insert(int index, num element) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void insertAll(int index, Iterable<num> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void setAll(int index, Iterable<num> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  num removeAt(int pos) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  num removeLast() {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeWhere(bool test(num element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainWhere(bool test(num element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void setRange(int start, int end, Iterable<num> iterable, [int skipCount]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int end) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void replaceRange(int start, int end, Iterable<num> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  void fillRange(int start, int end, [num fillValue]) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  Iterable<num> getRange(int start, int end) =>
-    IterableMixinWorkaround.getRangeList(this, start, end);
-
-  List<num> sublist(int start, [int end]) {
-    if (end == null) end = length;
-    return Lists.getRange(this, start, end, <num>[]);
-  }
-
-  Map<int, num> asMap() =>
-    IterableMixinWorkaround.asMapList(this);
-
-  String toString() {
-    StringBuffer buffer = new StringBuffer('[');
-    buffer.writeAll(this, ', ');
-    buffer.write(']');
-    return buffer.toString();
-  }
-
-  // -- end List<num> mixins.
-
-  @DomName('Float32Array.setElements')
-  @DocsEditable
-  void setElements(Object array, [int offset]) native "Float32Array_setElements_Callback";
-
-  List<double> subarray(int start, [int end]) {
-    if (?end) {
-      return _subarray_1(start, end);
-    }
-    return _subarray_2(start);
-  }
-
-  @DomName('Float32Array._subarray_1')
-  @DocsEditable
-  List<double> _subarray_1(start, end) native "Float32Array__subarray_1_Callback";
-
-  @DomName('Float32Array._subarray_2')
-  @DocsEditable
-  List<double> _subarray_2(start) native "Float32Array__subarray_2_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('Float64Array')
-class Float64Array extends ArrayBufferView implements List<double> {
-  Float64Array.internal() : super.internal();
-
-  @DomName('Float64Array.Float64Array')
-  @DocsEditable
-  factory Float64Array(int length) =>
-    _TypedArrayFactoryProvider.createFloat64Array(length);
-
-  @DomName('Float64Array.fromList')
-  @DocsEditable
-  factory Float64Array.fromList(List<num> list) =>
-    _TypedArrayFactoryProvider.createFloat64Array_fromList(list);
-
-  @DomName('Float64Array.fromBuffer')
-  @DocsEditable
-  factory Float64Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
-    _TypedArrayFactoryProvider.createFloat64Array_fromBuffer(buffer, byteOffset, length);
-
-  static const int BYTES_PER_ELEMENT = 8;
-
-  @DomName('Float64Array.length')
-  @DocsEditable
-  int get length native "Float64Array_length_Getter";
-
-  @DomName('Float64Array.numericIndexGetter')
-  @DocsEditable
-  num operator[](int index) native "Float64Array_numericIndexGetter_Callback";
-
-  @DomName('Float64Array.numericIndexSetter')
-  @DocsEditable
-  void operator[]=(int index, num value) native "Float64Array_numericIndexSetter_Callback";
-  // -- start List<num> mixins.
-  // num is the element type.
-
-  // From Iterable<num>:
-
-  Iterator<num> get iterator {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<num>(this);
-  }
-
-  num reduce(num combine(num value, num element)) {
-    return IterableMixinWorkaround.reduce(this, combine);
-  }
-
-  dynamic fold(dynamic initialValue,
-               dynamic combine(dynamic previousValue, num element)) {
-    return IterableMixinWorkaround.fold(this, initialValue, combine);
-  }
-
-  bool contains(num element) => IterableMixinWorkaround.contains(this, element);
-
-  void forEach(void f(num element)) => IterableMixinWorkaround.forEach(this, f);
-
-  String join([String separator = ""]) =>
-      IterableMixinWorkaround.joinList(this, separator);
-
-  Iterable map(f(num element)) =>
-      IterableMixinWorkaround.mapList(this, f);
-
-  Iterable<num> where(bool f(num element)) =>
-      IterableMixinWorkaround.where(this, f);
-
-  Iterable expand(Iterable f(num element)) =>
-      IterableMixinWorkaround.expand(this, f);
-
-  bool every(bool f(num element)) => IterableMixinWorkaround.every(this, f);
-
-  bool any(bool f(num element)) => IterableMixinWorkaround.any(this, f);
-
-  List<num> toList({ bool growable: true }) =>
-      new List<num>.from(this, growable: growable);
-
-  Set<num> toSet() => new Set<num>.from(this);
-
-  bool get isEmpty => this.length == 0;
-
-  Iterable<num> take(int n) => IterableMixinWorkaround.takeList(this, n);
-
-  Iterable<num> takeWhile(bool test(num value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
-  }
-
-  Iterable<num> skip(int n) => IterableMixinWorkaround.skipList(this, n);
-
-  Iterable<num> skipWhile(bool test(num value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
-  }
-
-  num firstWhere(bool test(num value), { num orElse() }) {
-    return IterableMixinWorkaround.firstWhere(this, test, orElse);
-  }
-
-  num lastWhere(bool test(num value), {num orElse()}) {
-    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
-  }
-
-  num singleWhere(bool test(num value)) {
-    return IterableMixinWorkaround.singleWhere(this, test);
-  }
-
-  num elementAt(int index) {
-    return this[index];
-  }
-
-  // From Collection<num>:
-
-  void add(num value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Iterable<num> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  // From List<num>:
-  void set length(int value) {
-    throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  void clear() {
-    throw new UnsupportedError("Cannot clear immutable List.");
-  }
-
-  Iterable<num> get reversed {
-    return IterableMixinWorkaround.reversedList(this);
-  }
-
-  void sort([int compare(num a, num b)]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(num element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(num element, [int start]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
-  num get first {
-    if (this.length > 0) return this[0];
-    throw new StateError("No elements");
-  }
-
-  num get last {
-    if (this.length > 0) return this[this.length - 1];
-    throw new StateError("No elements");
-  }
-
-  num get single {
-    if (length == 1) return this[0];
-    if (length == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  void insert(int index, num element) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void insertAll(int index, Iterable<num> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void setAll(int index, Iterable<num> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  num removeAt(int pos) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  num removeLast() {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeWhere(bool test(num element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainWhere(bool test(num element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void setRange(int start, int end, Iterable<num> iterable, [int skipCount]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int end) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void replaceRange(int start, int end, Iterable<num> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  void fillRange(int start, int end, [num fillValue]) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  Iterable<num> getRange(int start, int end) =>
-    IterableMixinWorkaround.getRangeList(this, start, end);
-
-  List<num> sublist(int start, [int end]) {
-    if (end == null) end = length;
-    return Lists.getRange(this, start, end, <num>[]);
-  }
-
-  Map<int, num> asMap() =>
-    IterableMixinWorkaround.asMapList(this);
-
-  String toString() {
-    StringBuffer buffer = new StringBuffer('[');
-    buffer.writeAll(this, ', ');
-    buffer.write(']');
-    return buffer.toString();
-  }
-
-  // -- end List<num> mixins.
-
-  @DomName('Float64Array.setElements')
-  @DocsEditable
-  void setElements(Object array, [int offset]) native "Float64Array_setElements_Callback";
-
-  List<double> subarray(int start, [int end]) {
-    if (?end) {
-      return _subarray_1(start, end);
-    }
-    return _subarray_2(start);
-  }
-
-  @DomName('Float64Array._subarray_1')
-  @DocsEditable
-  List<double> _subarray_1(start, end) native "Float64Array__subarray_1_Callback";
-
-  @DomName('Float64Array._subarray_2')
-  @DocsEditable
-  List<double> _subarray_2(start) native "Float64Array__subarray_2_Callback";
-
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -12767,7 +11965,7 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -12779,7 +11977,7 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int end, Iterable<Node> iterable, [int skipCount]) {
+  void setRange(int start, int end, Iterable<Node> iterable, [int skipCount=0]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -12996,7 +12194,7 @@ class HtmlCollection extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -13008,7 +12206,7 @@ class HtmlCollection extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int end, Iterable<Node> iterable, [int skipCount]) {
+  void setRange(int start, int end, Iterable<Node> iterable, [int skipCount=0]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -13682,7 +12880,8 @@ class HttpRequest extends EventTarget {
    * Send the request with any given `data`.
    *
    * See also:
-   * [send() docs](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#send())
+   *
+   *   * [send](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#send%28%29)
    * from MDN.
    */
   @DomName('XMLHttpRequest.send')
@@ -15179,771 +14378,6 @@ abstract class ButtonInputElement implements InputElementBase {
   factory ButtonInputElement() => new InputElement(type: 'button');
 }
 
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('Int16Array')
-class Int16Array extends ArrayBufferView implements List<int> {
-  Int16Array.internal() : super.internal();
-
-  @DomName('Int16Array.Int16Array')
-  @DocsEditable
-  factory Int16Array(int length) =>
-    _TypedArrayFactoryProvider.createInt16Array(length);
-
-  @DomName('Int16Array.fromList')
-  @DocsEditable
-  factory Int16Array.fromList(List<int> list) =>
-    _TypedArrayFactoryProvider.createInt16Array_fromList(list);
-
-  @DomName('Int16Array.fromBuffer')
-  @DocsEditable
-  factory Int16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
-    _TypedArrayFactoryProvider.createInt16Array_fromBuffer(buffer, byteOffset, length);
-
-  static const int BYTES_PER_ELEMENT = 2;
-
-  @DomName('Int16Array.length')
-  @DocsEditable
-  int get length native "Int16Array_length_Getter";
-
-  @DomName('Int16Array.numericIndexGetter')
-  @DocsEditable
-  int operator[](int index) native "Int16Array_numericIndexGetter_Callback";
-
-  @DomName('Int16Array.numericIndexSetter')
-  @DocsEditable
-  void operator[]=(int index, int value) native "Int16Array_numericIndexSetter_Callback";
-  // -- start List<int> mixins.
-  // int is the element type.
-
-  // From Iterable<int>:
-
-  Iterator<int> get iterator {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<int>(this);
-  }
-
-  int reduce(int combine(int value, int element)) {
-    return IterableMixinWorkaround.reduce(this, combine);
-  }
-
-  dynamic fold(dynamic initialValue,
-               dynamic combine(dynamic previousValue, int element)) {
-    return IterableMixinWorkaround.fold(this, initialValue, combine);
-  }
-
-  bool contains(int element) => IterableMixinWorkaround.contains(this, element);
-
-  void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
-
-  String join([String separator = ""]) =>
-      IterableMixinWorkaround.joinList(this, separator);
-
-  Iterable map(f(int element)) =>
-      IterableMixinWorkaround.mapList(this, f);
-
-  Iterable<int> where(bool f(int element)) =>
-      IterableMixinWorkaround.where(this, f);
-
-  Iterable expand(Iterable f(int element)) =>
-      IterableMixinWorkaround.expand(this, f);
-
-  bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
-
-  bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
-
-  List<int> toList({ bool growable: true }) =>
-      new List<int>.from(this, growable: growable);
-
-  Set<int> toSet() => new Set<int>.from(this);
-
-  bool get isEmpty => this.length == 0;
-
-  Iterable<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
-
-  Iterable<int> takeWhile(bool test(int value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
-  }
-
-  Iterable<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
-
-  Iterable<int> skipWhile(bool test(int value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
-  }
-
-  int firstWhere(bool test(int value), { int orElse() }) {
-    return IterableMixinWorkaround.firstWhere(this, test, orElse);
-  }
-
-  int lastWhere(bool test(int value), {int orElse()}) {
-    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
-  }
-
-  int singleWhere(bool test(int value)) {
-    return IterableMixinWorkaround.singleWhere(this, test);
-  }
-
-  int elementAt(int index) {
-    return this[index];
-  }
-
-  // From Collection<int>:
-
-  void add(int value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Iterable<int> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  // From List<int>:
-  void set length(int value) {
-    throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  void clear() {
-    throw new UnsupportedError("Cannot clear immutable List.");
-  }
-
-  Iterable<int> get reversed {
-    return IterableMixinWorkaround.reversedList(this);
-  }
-
-  void sort([int compare(int a, int b)]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(int element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(int element, [int start]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
-  int get first {
-    if (this.length > 0) return this[0];
-    throw new StateError("No elements");
-  }
-
-  int get last {
-    if (this.length > 0) return this[this.length - 1];
-    throw new StateError("No elements");
-  }
-
-  int get single {
-    if (length == 1) return this[0];
-    if (length == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  void insert(int index, int element) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void insertAll(int index, Iterable<int> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void setAll(int index, Iterable<int> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  int removeAt(int pos) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  int removeLast() {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeWhere(bool test(int element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainWhere(bool test(int element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void setRange(int start, int end, Iterable<int> iterable, [int skipCount]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int end) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void replaceRange(int start, int end, Iterable<int> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  void fillRange(int start, int end, [int fillValue]) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  Iterable<int> getRange(int start, int end) =>
-    IterableMixinWorkaround.getRangeList(this, start, end);
-
-  List<int> sublist(int start, [int end]) {
-    if (end == null) end = length;
-    return Lists.getRange(this, start, end, <int>[]);
-  }
-
-  Map<int, int> asMap() =>
-    IterableMixinWorkaround.asMapList(this);
-
-  String toString() {
-    StringBuffer buffer = new StringBuffer('[');
-    buffer.writeAll(this, ', ');
-    buffer.write(']');
-    return buffer.toString();
-  }
-
-  // -- end List<int> mixins.
-
-  @DomName('Int16Array.setElements')
-  @DocsEditable
-  void setElements(Object array, [int offset]) native "Int16Array_setElements_Callback";
-
-  List<int> subarray(int start, [int end]) {
-    if (?end) {
-      return _subarray_1(start, end);
-    }
-    return _subarray_2(start);
-  }
-
-  @DomName('Int16Array._subarray_1')
-  @DocsEditable
-  List<int> _subarray_1(start, end) native "Int16Array__subarray_1_Callback";
-
-  @DomName('Int16Array._subarray_2')
-  @DocsEditable
-  List<int> _subarray_2(start) native "Int16Array__subarray_2_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('Int32Array')
-class Int32Array extends ArrayBufferView implements List<int> {
-  Int32Array.internal() : super.internal();
-
-  @DomName('Int32Array.Int32Array')
-  @DocsEditable
-  factory Int32Array(int length) =>
-    _TypedArrayFactoryProvider.createInt32Array(length);
-
-  @DomName('Int32Array.fromList')
-  @DocsEditable
-  factory Int32Array.fromList(List<int> list) =>
-    _TypedArrayFactoryProvider.createInt32Array_fromList(list);
-
-  @DomName('Int32Array.fromBuffer')
-  @DocsEditable
-  factory Int32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
-    _TypedArrayFactoryProvider.createInt32Array_fromBuffer(buffer, byteOffset, length);
-
-  static const int BYTES_PER_ELEMENT = 4;
-
-  @DomName('Int32Array.length')
-  @DocsEditable
-  int get length native "Int32Array_length_Getter";
-
-  @DomName('Int32Array.numericIndexGetter')
-  @DocsEditable
-  int operator[](int index) native "Int32Array_numericIndexGetter_Callback";
-
-  @DomName('Int32Array.numericIndexSetter')
-  @DocsEditable
-  void operator[]=(int index, int value) native "Int32Array_numericIndexSetter_Callback";
-  // -- start List<int> mixins.
-  // int is the element type.
-
-  // From Iterable<int>:
-
-  Iterator<int> get iterator {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<int>(this);
-  }
-
-  int reduce(int combine(int value, int element)) {
-    return IterableMixinWorkaround.reduce(this, combine);
-  }
-
-  dynamic fold(dynamic initialValue,
-               dynamic combine(dynamic previousValue, int element)) {
-    return IterableMixinWorkaround.fold(this, initialValue, combine);
-  }
-
-  bool contains(int element) => IterableMixinWorkaround.contains(this, element);
-
-  void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
-
-  String join([String separator = ""]) =>
-      IterableMixinWorkaround.joinList(this, separator);
-
-  Iterable map(f(int element)) =>
-      IterableMixinWorkaround.mapList(this, f);
-
-  Iterable<int> where(bool f(int element)) =>
-      IterableMixinWorkaround.where(this, f);
-
-  Iterable expand(Iterable f(int element)) =>
-      IterableMixinWorkaround.expand(this, f);
-
-  bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
-
-  bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
-
-  List<int> toList({ bool growable: true }) =>
-      new List<int>.from(this, growable: growable);
-
-  Set<int> toSet() => new Set<int>.from(this);
-
-  bool get isEmpty => this.length == 0;
-
-  Iterable<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
-
-  Iterable<int> takeWhile(bool test(int value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
-  }
-
-  Iterable<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
-
-  Iterable<int> skipWhile(bool test(int value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
-  }
-
-  int firstWhere(bool test(int value), { int orElse() }) {
-    return IterableMixinWorkaround.firstWhere(this, test, orElse);
-  }
-
-  int lastWhere(bool test(int value), {int orElse()}) {
-    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
-  }
-
-  int singleWhere(bool test(int value)) {
-    return IterableMixinWorkaround.singleWhere(this, test);
-  }
-
-  int elementAt(int index) {
-    return this[index];
-  }
-
-  // From Collection<int>:
-
-  void add(int value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Iterable<int> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  // From List<int>:
-  void set length(int value) {
-    throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  void clear() {
-    throw new UnsupportedError("Cannot clear immutable List.");
-  }
-
-  Iterable<int> get reversed {
-    return IterableMixinWorkaround.reversedList(this);
-  }
-
-  void sort([int compare(int a, int b)]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(int element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(int element, [int start]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
-  int get first {
-    if (this.length > 0) return this[0];
-    throw new StateError("No elements");
-  }
-
-  int get last {
-    if (this.length > 0) return this[this.length - 1];
-    throw new StateError("No elements");
-  }
-
-  int get single {
-    if (length == 1) return this[0];
-    if (length == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  void insert(int index, int element) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void insertAll(int index, Iterable<int> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void setAll(int index, Iterable<int> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  int removeAt(int pos) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  int removeLast() {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeWhere(bool test(int element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainWhere(bool test(int element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void setRange(int start, int end, Iterable<int> iterable, [int skipCount]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int end) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void replaceRange(int start, int end, Iterable<int> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  void fillRange(int start, int end, [int fillValue]) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  Iterable<int> getRange(int start, int end) =>
-    IterableMixinWorkaround.getRangeList(this, start, end);
-
-  List<int> sublist(int start, [int end]) {
-    if (end == null) end = length;
-    return Lists.getRange(this, start, end, <int>[]);
-  }
-
-  Map<int, int> asMap() =>
-    IterableMixinWorkaround.asMapList(this);
-
-  String toString() {
-    StringBuffer buffer = new StringBuffer('[');
-    buffer.writeAll(this, ', ');
-    buffer.write(']');
-    return buffer.toString();
-  }
-
-  // -- end List<int> mixins.
-
-  @DomName('Int32Array.setElements')
-  @DocsEditable
-  void setElements(Object array, [int offset]) native "Int32Array_setElements_Callback";
-
-  List<int> subarray(int start, [int end]) {
-    if (?end) {
-      return _subarray_1(start, end);
-    }
-    return _subarray_2(start);
-  }
-
-  @DomName('Int32Array._subarray_1')
-  @DocsEditable
-  List<int> _subarray_1(start, end) native "Int32Array__subarray_1_Callback";
-
-  @DomName('Int32Array._subarray_2')
-  @DocsEditable
-  List<int> _subarray_2(start) native "Int32Array__subarray_2_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('Int8Array')
-class Int8Array extends ArrayBufferView implements List<int> {
-  Int8Array.internal() : super.internal();
-
-  @DomName('Int8Array.Int8Array')
-  @DocsEditable
-  factory Int8Array(int length) =>
-    _TypedArrayFactoryProvider.createInt8Array(length);
-
-  @DomName('Int8Array.fromList')
-  @DocsEditable
-  factory Int8Array.fromList(List<int> list) =>
-    _TypedArrayFactoryProvider.createInt8Array_fromList(list);
-
-  @DomName('Int8Array.fromBuffer')
-  @DocsEditable
-  factory Int8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
-    _TypedArrayFactoryProvider.createInt8Array_fromBuffer(buffer, byteOffset, length);
-
-  static const int BYTES_PER_ELEMENT = 1;
-
-  @DomName('Int8Array.length')
-  @DocsEditable
-  int get length native "Int8Array_length_Getter";
-
-  @DomName('Int8Array.numericIndexGetter')
-  @DocsEditable
-  int operator[](int index) native "Int8Array_numericIndexGetter_Callback";
-
-  @DomName('Int8Array.numericIndexSetter')
-  @DocsEditable
-  void operator[]=(int index, int value) native "Int8Array_numericIndexSetter_Callback";
-  // -- start List<int> mixins.
-  // int is the element type.
-
-  // From Iterable<int>:
-
-  Iterator<int> get iterator {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<int>(this);
-  }
-
-  int reduce(int combine(int value, int element)) {
-    return IterableMixinWorkaround.reduce(this, combine);
-  }
-
-  dynamic fold(dynamic initialValue,
-               dynamic combine(dynamic previousValue, int element)) {
-    return IterableMixinWorkaround.fold(this, initialValue, combine);
-  }
-
-  bool contains(int element) => IterableMixinWorkaround.contains(this, element);
-
-  void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
-
-  String join([String separator = ""]) =>
-      IterableMixinWorkaround.joinList(this, separator);
-
-  Iterable map(f(int element)) =>
-      IterableMixinWorkaround.mapList(this, f);
-
-  Iterable<int> where(bool f(int element)) =>
-      IterableMixinWorkaround.where(this, f);
-
-  Iterable expand(Iterable f(int element)) =>
-      IterableMixinWorkaround.expand(this, f);
-
-  bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
-
-  bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
-
-  List<int> toList({ bool growable: true }) =>
-      new List<int>.from(this, growable: growable);
-
-  Set<int> toSet() => new Set<int>.from(this);
-
-  bool get isEmpty => this.length == 0;
-
-  Iterable<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
-
-  Iterable<int> takeWhile(bool test(int value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
-  }
-
-  Iterable<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
-
-  Iterable<int> skipWhile(bool test(int value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
-  }
-
-  int firstWhere(bool test(int value), { int orElse() }) {
-    return IterableMixinWorkaround.firstWhere(this, test, orElse);
-  }
-
-  int lastWhere(bool test(int value), {int orElse()}) {
-    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
-  }
-
-  int singleWhere(bool test(int value)) {
-    return IterableMixinWorkaround.singleWhere(this, test);
-  }
-
-  int elementAt(int index) {
-    return this[index];
-  }
-
-  // From Collection<int>:
-
-  void add(int value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Iterable<int> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  // From List<int>:
-  void set length(int value) {
-    throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  void clear() {
-    throw new UnsupportedError("Cannot clear immutable List.");
-  }
-
-  Iterable<int> get reversed {
-    return IterableMixinWorkaround.reversedList(this);
-  }
-
-  void sort([int compare(int a, int b)]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(int element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(int element, [int start]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
-  int get first {
-    if (this.length > 0) return this[0];
-    throw new StateError("No elements");
-  }
-
-  int get last {
-    if (this.length > 0) return this[this.length - 1];
-    throw new StateError("No elements");
-  }
-
-  int get single {
-    if (length == 1) return this[0];
-    if (length == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  void insert(int index, int element) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void insertAll(int index, Iterable<int> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void setAll(int index, Iterable<int> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  int removeAt(int pos) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  int removeLast() {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeWhere(bool test(int element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainWhere(bool test(int element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void setRange(int start, int end, Iterable<int> iterable, [int skipCount]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int end) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void replaceRange(int start, int end, Iterable<int> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  void fillRange(int start, int end, [int fillValue]) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  Iterable<int> getRange(int start, int end) =>
-    IterableMixinWorkaround.getRangeList(this, start, end);
-
-  List<int> sublist(int start, [int end]) {
-    if (end == null) end = length;
-    return Lists.getRange(this, start, end, <int>[]);
-  }
-
-  Map<int, int> asMap() =>
-    IterableMixinWorkaround.asMapList(this);
-
-  String toString() {
-    StringBuffer buffer = new StringBuffer('[');
-    buffer.writeAll(this, ', ');
-    buffer.write(']');
-    return buffer.toString();
-  }
-
-  // -- end List<int> mixins.
-
-  @DomName('Int8Array.setElements')
-  @DocsEditable
-  void setElements(Object array, [int offset]) native "Int8Array_setElements_Callback";
-
-  List<int> subarray(int start, [int end]) {
-    if (?end) {
-      return _subarray_1(start, end);
-    }
-    return _subarray_2(start);
-  }
-
-  @DomName('Int8Array._subarray_1')
-  @DocsEditable
-  List<int> _subarray_1(start, end) native "Int8Array__subarray_1_Callback";
-
-  @DomName('Int8Array._subarray_2')
-  @DocsEditable
-  List<int> _subarray_2(start) native "Int8Array__subarray_2_Callback";
-
-}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -18561,11 +16995,12 @@ class _ChildNodeListLazy extends ListBase<Node> {
     return result;
   }
 
-  void remove(Object object) {
-    if (object is! Node) return;
+  bool remove(Object object) {
+    if (object is! Node) return false;
     Node node = object;
-    if (!identical(_this, node.parentNode)) return;
+    if (!identical(_this, node.parentNode)) return false;
     _this.$dom_removeChild(node);
+    return true;
   }
 
   void _filter(bool test(Node node), bool removeMatching) {
@@ -18819,6 +17254,30 @@ class Node extends EventTarget {
       (nodeValue == null ? super.toString() : nodeValue) : localName;
 
   Node.internal() : super.internal();
+
+  static const int ATTRIBUTE_NODE = 2;
+
+  static const int CDATA_SECTION_NODE = 4;
+
+  static const int COMMENT_NODE = 8;
+
+  static const int DOCUMENT_FRAGMENT_NODE = 11;
+
+  static const int DOCUMENT_NODE = 9;
+
+  static const int DOCUMENT_TYPE_NODE = 10;
+
+  static const int ELEMENT_NODE = 1;
+
+  static const int ENTITY_NODE = 6;
+
+  static const int ENTITY_REFERENCE_NODE = 5;
+
+  static const int NOTATION_NODE = 12;
+
+  static const int PROCESSING_INSTRUCTION_NODE = 7;
+
+  static const int TEXT_NODE = 3;
 
   @DomName('Node.childNodes')
   @DocsEditable
@@ -19183,7 +17642,7 @@ class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -19195,7 +17654,7 @@ class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int end, Iterable<Node> iterable, [int skipCount]) {
+  void setRange(int start, int end, Iterable<Node> iterable, [int skipCount=0]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -19971,21 +18430,21 @@ class Performance extends EventTarget {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
-  PerformanceEntryList getEntries() native "Performance_webkitGetEntries_Callback";
+  List<PerformanceEntry> getEntries() native "Performance_webkitGetEntries_Callback";
 
   @DomName('Performance.webkitGetEntriesByName')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
-  PerformanceEntryList getEntriesByName(String name, String entryType) native "Performance_webkitGetEntriesByName_Callback";
+  List<PerformanceEntry> getEntriesByName(String name, String entryType) native "Performance_webkitGetEntriesByName_Callback";
 
   @DomName('Performance.webkitGetEntriesByType')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
-  PerformanceEntryList getEntriesByType(String entryType) native "Performance_webkitGetEntriesByType_Callback";
+  List<PerformanceEntry> getEntriesByType(String entryType) native "Performance_webkitGetEntriesByType_Callback";
 
   @DomName('Performance.webkitMark')
   @DocsEditable
@@ -20515,27 +18974,6 @@ typedef void RtcStatsCallback(RtcStatsResponse response);
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
-@DomName('RadioNodeList')
-class RadioNodeList extends NodeList {
-  RadioNodeList.internal() : super.internal();
-
-  @DomName('RadioNodeList.value')
-  @DocsEditable
-  String get value native "RadioNodeList_value_Getter";
-
-  @DomName('RadioNodeList.value')
-  @DocsEditable
-  void set value(String value) native "RadioNodeList_value_Setter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
 @DomName('Range')
 class Range extends NativeFieldWrapperClass1 {
   factory Range() => document.$dom_createRange();
@@ -20793,11 +19231,11 @@ class RtcDataChannel extends EventTarget {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "RTCDataChannel_removeEventListener_Callback";
 
   void send(data) {
-    if ((data is ArrayBufferView || data is _typeddata.TypedData || data == null)) {
+    if ((data is TypedData || data == null)) {
       _send_1(data);
       return;
     }
-    if ((data is ArrayBuffer || data is _typeddata.ByteBuffer || data == null)) {
+    if ((data is ByteBuffer || data == null)) {
       _send_2(data);
       return;
     }
@@ -22022,7 +20460,7 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -22034,7 +20472,7 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int end, Iterable<SourceBuffer> iterable, [int skipCount]) {
+  void setRange(int start, int end, Iterable<SourceBuffer> iterable, [int skipCount=0]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -22360,7 +20798,7 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -22372,7 +20810,7 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int end, Iterable<SpeechGrammar> iterable, [int skipCount]) {
+  void setRange(int start, int end, Iterable<SpeechGrammar> iterable, [int skipCount=0]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -24117,7 +22555,7 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -24129,7 +22567,7 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int end, Iterable<TextTrackCue> iterable, [int skipCount]) {
+  void setRange(int start, int end, Iterable<TextTrackCue> iterable, [int skipCount=0]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -24346,7 +22784,7 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -24358,7 +22796,7 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int end, Iterable<TextTrack> iterable, [int skipCount]) {
+  void setRange(int start, int end, Iterable<TextTrack> iterable, [int skipCount=0]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -24792,7 +23230,7 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -24804,7 +23242,7 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int end, Iterable<Touch> iterable, [int skipCount]) {
+  void setRange(int start, int end, Iterable<Touch> iterable, [int skipCount=0]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -25132,1024 +23570,6 @@ class UListElement extends _Element_Merged {
   @DomName('HTMLUListElement.HTMLUListElement')
   @DocsEditable
   factory UListElement() => document.$dom_createElement("ul");
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('Uint16Array')
-class Uint16Array extends ArrayBufferView implements List<int> {
-  Uint16Array.internal() : super.internal();
-
-  @DomName('Uint16Array.Uint16Array')
-  @DocsEditable
-  factory Uint16Array(int length) =>
-    _TypedArrayFactoryProvider.createUint16Array(length);
-
-  @DomName('Uint16Array.fromList')
-  @DocsEditable
-  factory Uint16Array.fromList(List<int> list) =>
-    _TypedArrayFactoryProvider.createUint16Array_fromList(list);
-
-  @DomName('Uint16Array.fromBuffer')
-  @DocsEditable
-  factory Uint16Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
-    _TypedArrayFactoryProvider.createUint16Array_fromBuffer(buffer, byteOffset, length);
-
-  static const int BYTES_PER_ELEMENT = 2;
-
-  @DomName('Uint16Array.length')
-  @DocsEditable
-  int get length native "Uint16Array_length_Getter";
-
-  @DomName('Uint16Array.numericIndexGetter')
-  @DocsEditable
-  int operator[](int index) native "Uint16Array_numericIndexGetter_Callback";
-
-  @DomName('Uint16Array.numericIndexSetter')
-  @DocsEditable
-  void operator[]=(int index, int value) native "Uint16Array_numericIndexSetter_Callback";
-  // -- start List<int> mixins.
-  // int is the element type.
-
-  // From Iterable<int>:
-
-  Iterator<int> get iterator {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<int>(this);
-  }
-
-  int reduce(int combine(int value, int element)) {
-    return IterableMixinWorkaround.reduce(this, combine);
-  }
-
-  dynamic fold(dynamic initialValue,
-               dynamic combine(dynamic previousValue, int element)) {
-    return IterableMixinWorkaround.fold(this, initialValue, combine);
-  }
-
-  bool contains(int element) => IterableMixinWorkaround.contains(this, element);
-
-  void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
-
-  String join([String separator = ""]) =>
-      IterableMixinWorkaround.joinList(this, separator);
-
-  Iterable map(f(int element)) =>
-      IterableMixinWorkaround.mapList(this, f);
-
-  Iterable<int> where(bool f(int element)) =>
-      IterableMixinWorkaround.where(this, f);
-
-  Iterable expand(Iterable f(int element)) =>
-      IterableMixinWorkaround.expand(this, f);
-
-  bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
-
-  bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
-
-  List<int> toList({ bool growable: true }) =>
-      new List<int>.from(this, growable: growable);
-
-  Set<int> toSet() => new Set<int>.from(this);
-
-  bool get isEmpty => this.length == 0;
-
-  Iterable<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
-
-  Iterable<int> takeWhile(bool test(int value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
-  }
-
-  Iterable<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
-
-  Iterable<int> skipWhile(bool test(int value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
-  }
-
-  int firstWhere(bool test(int value), { int orElse() }) {
-    return IterableMixinWorkaround.firstWhere(this, test, orElse);
-  }
-
-  int lastWhere(bool test(int value), {int orElse()}) {
-    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
-  }
-
-  int singleWhere(bool test(int value)) {
-    return IterableMixinWorkaround.singleWhere(this, test);
-  }
-
-  int elementAt(int index) {
-    return this[index];
-  }
-
-  // From Collection<int>:
-
-  void add(int value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Iterable<int> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  // From List<int>:
-  void set length(int value) {
-    throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  void clear() {
-    throw new UnsupportedError("Cannot clear immutable List.");
-  }
-
-  Iterable<int> get reversed {
-    return IterableMixinWorkaround.reversedList(this);
-  }
-
-  void sort([int compare(int a, int b)]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(int element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(int element, [int start]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
-  int get first {
-    if (this.length > 0) return this[0];
-    throw new StateError("No elements");
-  }
-
-  int get last {
-    if (this.length > 0) return this[this.length - 1];
-    throw new StateError("No elements");
-  }
-
-  int get single {
-    if (length == 1) return this[0];
-    if (length == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  void insert(int index, int element) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void insertAll(int index, Iterable<int> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void setAll(int index, Iterable<int> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  int removeAt(int pos) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  int removeLast() {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeWhere(bool test(int element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainWhere(bool test(int element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void setRange(int start, int end, Iterable<int> iterable, [int skipCount]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int end) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void replaceRange(int start, int end, Iterable<int> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  void fillRange(int start, int end, [int fillValue]) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  Iterable<int> getRange(int start, int end) =>
-    IterableMixinWorkaround.getRangeList(this, start, end);
-
-  List<int> sublist(int start, [int end]) {
-    if (end == null) end = length;
-    return Lists.getRange(this, start, end, <int>[]);
-  }
-
-  Map<int, int> asMap() =>
-    IterableMixinWorkaround.asMapList(this);
-
-  String toString() {
-    StringBuffer buffer = new StringBuffer('[');
-    buffer.writeAll(this, ', ');
-    buffer.write(']');
-    return buffer.toString();
-  }
-
-  // -- end List<int> mixins.
-
-  @DomName('Uint16Array.setElements')
-  @DocsEditable
-  void setElements(Object array, [int offset]) native "Uint16Array_setElements_Callback";
-
-  List<int> subarray(int start, [int end]) {
-    if (?end) {
-      return _subarray_1(start, end);
-    }
-    return _subarray_2(start);
-  }
-
-  @DomName('Uint16Array._subarray_1')
-  @DocsEditable
-  List<int> _subarray_1(start, end) native "Uint16Array__subarray_1_Callback";
-
-  @DomName('Uint16Array._subarray_2')
-  @DocsEditable
-  List<int> _subarray_2(start) native "Uint16Array__subarray_2_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('Uint32Array')
-class Uint32Array extends ArrayBufferView implements List<int> {
-  Uint32Array.internal() : super.internal();
-
-  @DomName('Uint32Array.Uint32Array')
-  @DocsEditable
-  factory Uint32Array(int length) =>
-    _TypedArrayFactoryProvider.createUint32Array(length);
-
-  @DomName('Uint32Array.fromList')
-  @DocsEditable
-  factory Uint32Array.fromList(List<int> list) =>
-    _TypedArrayFactoryProvider.createUint32Array_fromList(list);
-
-  @DomName('Uint32Array.fromBuffer')
-  @DocsEditable
-  factory Uint32Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
-    _TypedArrayFactoryProvider.createUint32Array_fromBuffer(buffer, byteOffset, length);
-
-  static const int BYTES_PER_ELEMENT = 4;
-
-  @DomName('Uint32Array.length')
-  @DocsEditable
-  int get length native "Uint32Array_length_Getter";
-
-  @DomName('Uint32Array.numericIndexGetter')
-  @DocsEditable
-  int operator[](int index) native "Uint32Array_numericIndexGetter_Callback";
-
-  @DomName('Uint32Array.numericIndexSetter')
-  @DocsEditable
-  void operator[]=(int index, int value) native "Uint32Array_numericIndexSetter_Callback";
-  // -- start List<int> mixins.
-  // int is the element type.
-
-  // From Iterable<int>:
-
-  Iterator<int> get iterator {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<int>(this);
-  }
-
-  int reduce(int combine(int value, int element)) {
-    return IterableMixinWorkaround.reduce(this, combine);
-  }
-
-  dynamic fold(dynamic initialValue,
-               dynamic combine(dynamic previousValue, int element)) {
-    return IterableMixinWorkaround.fold(this, initialValue, combine);
-  }
-
-  bool contains(int element) => IterableMixinWorkaround.contains(this, element);
-
-  void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
-
-  String join([String separator = ""]) =>
-      IterableMixinWorkaround.joinList(this, separator);
-
-  Iterable map(f(int element)) =>
-      IterableMixinWorkaround.mapList(this, f);
-
-  Iterable<int> where(bool f(int element)) =>
-      IterableMixinWorkaround.where(this, f);
-
-  Iterable expand(Iterable f(int element)) =>
-      IterableMixinWorkaround.expand(this, f);
-
-  bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
-
-  bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
-
-  List<int> toList({ bool growable: true }) =>
-      new List<int>.from(this, growable: growable);
-
-  Set<int> toSet() => new Set<int>.from(this);
-
-  bool get isEmpty => this.length == 0;
-
-  Iterable<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
-
-  Iterable<int> takeWhile(bool test(int value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
-  }
-
-  Iterable<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
-
-  Iterable<int> skipWhile(bool test(int value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
-  }
-
-  int firstWhere(bool test(int value), { int orElse() }) {
-    return IterableMixinWorkaround.firstWhere(this, test, orElse);
-  }
-
-  int lastWhere(bool test(int value), {int orElse()}) {
-    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
-  }
-
-  int singleWhere(bool test(int value)) {
-    return IterableMixinWorkaround.singleWhere(this, test);
-  }
-
-  int elementAt(int index) {
-    return this[index];
-  }
-
-  // From Collection<int>:
-
-  void add(int value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Iterable<int> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  // From List<int>:
-  void set length(int value) {
-    throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  void clear() {
-    throw new UnsupportedError("Cannot clear immutable List.");
-  }
-
-  Iterable<int> get reversed {
-    return IterableMixinWorkaround.reversedList(this);
-  }
-
-  void sort([int compare(int a, int b)]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(int element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(int element, [int start]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
-  int get first {
-    if (this.length > 0) return this[0];
-    throw new StateError("No elements");
-  }
-
-  int get last {
-    if (this.length > 0) return this[this.length - 1];
-    throw new StateError("No elements");
-  }
-
-  int get single {
-    if (length == 1) return this[0];
-    if (length == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  void insert(int index, int element) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void insertAll(int index, Iterable<int> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void setAll(int index, Iterable<int> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  int removeAt(int pos) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  int removeLast() {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeWhere(bool test(int element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainWhere(bool test(int element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void setRange(int start, int end, Iterable<int> iterable, [int skipCount]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int end) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void replaceRange(int start, int end, Iterable<int> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  void fillRange(int start, int end, [int fillValue]) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  Iterable<int> getRange(int start, int end) =>
-    IterableMixinWorkaround.getRangeList(this, start, end);
-
-  List<int> sublist(int start, [int end]) {
-    if (end == null) end = length;
-    return Lists.getRange(this, start, end, <int>[]);
-  }
-
-  Map<int, int> asMap() =>
-    IterableMixinWorkaround.asMapList(this);
-
-  String toString() {
-    StringBuffer buffer = new StringBuffer('[');
-    buffer.writeAll(this, ', ');
-    buffer.write(']');
-    return buffer.toString();
-  }
-
-  // -- end List<int> mixins.
-
-  @DomName('Uint32Array.setElements')
-  @DocsEditable
-  void setElements(Object array, [int offset]) native "Uint32Array_setElements_Callback";
-
-  List<int> subarray(int start, [int end]) {
-    if (?end) {
-      return _subarray_1(start, end);
-    }
-    return _subarray_2(start);
-  }
-
-  @DomName('Uint32Array._subarray_1')
-  @DocsEditable
-  List<int> _subarray_1(start, end) native "Uint32Array__subarray_1_Callback";
-
-  @DomName('Uint32Array._subarray_2')
-  @DocsEditable
-  List<int> _subarray_2(start) native "Uint32Array__subarray_2_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('Uint8Array')
-class Uint8Array extends ArrayBufferView implements List<int> {
-  Uint8Array.internal() : super.internal();
-
-  @DomName('Uint8Array.Uint8Array')
-  @DocsEditable
-  factory Uint8Array(int length) =>
-    _TypedArrayFactoryProvider.createUint8Array(length);
-
-  @DomName('Uint8Array.fromList')
-  @DocsEditable
-  factory Uint8Array.fromList(List<int> list) =>
-    _TypedArrayFactoryProvider.createUint8Array_fromList(list);
-
-  @DomName('Uint8Array.fromBuffer')
-  @DocsEditable
-  factory Uint8Array.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
-    _TypedArrayFactoryProvider.createUint8Array_fromBuffer(buffer, byteOffset, length);
-
-  static const int BYTES_PER_ELEMENT = 1;
-
-  @DomName('Uint8Array.length')
-  @DocsEditable
-  int get length native "Uint8Array_length_Getter";
-
-  @DomName('Uint8Array.numericIndexGetter')
-  @DocsEditable
-  int operator[](int index) native "Uint8Array_numericIndexGetter_Callback";
-
-  @DomName('Uint8Array.numericIndexSetter')
-  @DocsEditable
-  void operator[]=(int index, int value) native "Uint8Array_numericIndexSetter_Callback";
-  // -- start List<int> mixins.
-  // int is the element type.
-
-  // From Iterable<int>:
-
-  Iterator<int> get iterator {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<int>(this);
-  }
-
-  int reduce(int combine(int value, int element)) {
-    return IterableMixinWorkaround.reduce(this, combine);
-  }
-
-  dynamic fold(dynamic initialValue,
-               dynamic combine(dynamic previousValue, int element)) {
-    return IterableMixinWorkaround.fold(this, initialValue, combine);
-  }
-
-  bool contains(int element) => IterableMixinWorkaround.contains(this, element);
-
-  void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
-
-  String join([String separator = ""]) =>
-      IterableMixinWorkaround.joinList(this, separator);
-
-  Iterable map(f(int element)) =>
-      IterableMixinWorkaround.mapList(this, f);
-
-  Iterable<int> where(bool f(int element)) =>
-      IterableMixinWorkaround.where(this, f);
-
-  Iterable expand(Iterable f(int element)) =>
-      IterableMixinWorkaround.expand(this, f);
-
-  bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
-
-  bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
-
-  List<int> toList({ bool growable: true }) =>
-      new List<int>.from(this, growable: growable);
-
-  Set<int> toSet() => new Set<int>.from(this);
-
-  bool get isEmpty => this.length == 0;
-
-  Iterable<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
-
-  Iterable<int> takeWhile(bool test(int value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
-  }
-
-  Iterable<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
-
-  Iterable<int> skipWhile(bool test(int value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
-  }
-
-  int firstWhere(bool test(int value), { int orElse() }) {
-    return IterableMixinWorkaround.firstWhere(this, test, orElse);
-  }
-
-  int lastWhere(bool test(int value), {int orElse()}) {
-    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
-  }
-
-  int singleWhere(bool test(int value)) {
-    return IterableMixinWorkaround.singleWhere(this, test);
-  }
-
-  int elementAt(int index) {
-    return this[index];
-  }
-
-  // From Collection<int>:
-
-  void add(int value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Iterable<int> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  // From List<int>:
-  void set length(int value) {
-    throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  void clear() {
-    throw new UnsupportedError("Cannot clear immutable List.");
-  }
-
-  Iterable<int> get reversed {
-    return IterableMixinWorkaround.reversedList(this);
-  }
-
-  void sort([int compare(int a, int b)]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(int element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(int element, [int start]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
-  int get first {
-    if (this.length > 0) return this[0];
-    throw new StateError("No elements");
-  }
-
-  int get last {
-    if (this.length > 0) return this[this.length - 1];
-    throw new StateError("No elements");
-  }
-
-  int get single {
-    if (length == 1) return this[0];
-    if (length == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  void insert(int index, int element) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void insertAll(int index, Iterable<int> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void setAll(int index, Iterable<int> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  int removeAt(int pos) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  int removeLast() {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeWhere(bool test(int element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainWhere(bool test(int element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void setRange(int start, int end, Iterable<int> iterable, [int skipCount]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int end) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void replaceRange(int start, int end, Iterable<int> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  void fillRange(int start, int end, [int fillValue]) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  Iterable<int> getRange(int start, int end) =>
-    IterableMixinWorkaround.getRangeList(this, start, end);
-
-  List<int> sublist(int start, [int end]) {
-    if (end == null) end = length;
-    return Lists.getRange(this, start, end, <int>[]);
-  }
-
-  Map<int, int> asMap() =>
-    IterableMixinWorkaround.asMapList(this);
-
-  String toString() {
-    StringBuffer buffer = new StringBuffer('[');
-    buffer.writeAll(this, ', ');
-    buffer.write(']');
-    return buffer.toString();
-  }
-
-  // -- end List<int> mixins.
-
-  @DomName('Uint8Array.setElements')
-  @DocsEditable
-  void setElements(Object array, [int offset]) native "Uint8Array_setElements_Callback";
-
-  List<int> subarray(int start, [int end]) {
-    if (?end) {
-      return _subarray_1(start, end);
-    }
-    return _subarray_2(start);
-  }
-
-  @DomName('Uint8Array._subarray_1')
-  @DocsEditable
-  List<int> _subarray_1(start, end) native "Uint8Array__subarray_1_Callback";
-
-  @DomName('Uint8Array._subarray_2')
-  @DocsEditable
-  List<int> _subarray_2(start) native "Uint8Array__subarray_2_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('Uint8ClampedArray')
-class Uint8ClampedArray extends Uint8Array implements List<int> {
-  Uint8ClampedArray.internal() : super.internal();
-
-  @DomName('Uint8ClampedArray.Uint8ClampedArray')
-  @DocsEditable
-  factory Uint8ClampedArray(int length) =>
-    _TypedArrayFactoryProvider.createUint8ClampedArray(length);
-
-  @DomName('Uint8ClampedArray.fromList')
-  @DocsEditable
-  factory Uint8ClampedArray.fromList(List<int> list) =>
-    _TypedArrayFactoryProvider.createUint8ClampedArray_fromList(list);
-
-  @DomName('Uint8ClampedArray.fromBuffer')
-  @DocsEditable
-  factory Uint8ClampedArray.fromBuffer(ArrayBuffer buffer, [int byteOffset, int length]) => 
-    _TypedArrayFactoryProvider.createUint8ClampedArray_fromBuffer(buffer, byteOffset, length);
-
-  @DomName('Uint8ClampedArray.length')
-  @DocsEditable
-  int get length native "Uint8ClampedArray_length_Getter";
-
-  @DomName('Uint8ClampedArray.numericIndexGetter')
-  @DocsEditable
-  int operator[](int index) native "Uint8ClampedArray_numericIndexGetter_Callback";
-
-  @DomName('Uint8ClampedArray.numericIndexSetter')
-  @DocsEditable
-  void operator[]=(int index, int value) native "Uint8ClampedArray_numericIndexSetter_Callback";
-  // -- start List<int> mixins.
-  // int is the element type.
-
-  // From Iterable<int>:
-
-  Iterator<int> get iterator {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<int>(this);
-  }
-
-  int reduce(int combine(int value, int element)) {
-    return IterableMixinWorkaround.reduce(this, combine);
-  }
-
-  dynamic fold(dynamic initialValue,
-               dynamic combine(dynamic previousValue, int element)) {
-    return IterableMixinWorkaround.fold(this, initialValue, combine);
-  }
-
-  bool contains(int element) => IterableMixinWorkaround.contains(this, element);
-
-  void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
-
-  String join([String separator = ""]) =>
-      IterableMixinWorkaround.joinList(this, separator);
-
-  Iterable map(f(int element)) =>
-      IterableMixinWorkaround.mapList(this, f);
-
-  Iterable<int> where(bool f(int element)) =>
-      IterableMixinWorkaround.where(this, f);
-
-  Iterable expand(Iterable f(int element)) =>
-      IterableMixinWorkaround.expand(this, f);
-
-  bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
-
-  bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
-
-  List<int> toList({ bool growable: true }) =>
-      new List<int>.from(this, growable: growable);
-
-  Set<int> toSet() => new Set<int>.from(this);
-
-  bool get isEmpty => this.length == 0;
-
-  Iterable<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
-
-  Iterable<int> takeWhile(bool test(int value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
-  }
-
-  Iterable<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
-
-  Iterable<int> skipWhile(bool test(int value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
-  }
-
-  int firstWhere(bool test(int value), { int orElse() }) {
-    return IterableMixinWorkaround.firstWhere(this, test, orElse);
-  }
-
-  int lastWhere(bool test(int value), {int orElse()}) {
-    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
-  }
-
-  int singleWhere(bool test(int value)) {
-    return IterableMixinWorkaround.singleWhere(this, test);
-  }
-
-  int elementAt(int index) {
-    return this[index];
-  }
-
-  // From Collection<int>:
-
-  void add(int value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Iterable<int> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  // From List<int>:
-  void set length(int value) {
-    throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  void clear() {
-    throw new UnsupportedError("Cannot clear immutable List.");
-  }
-
-  Iterable<int> get reversed {
-    return IterableMixinWorkaround.reversedList(this);
-  }
-
-  void sort([int compare(int a, int b)]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(int element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(int element, [int start]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
-  int get first {
-    if (this.length > 0) return this[0];
-    throw new StateError("No elements");
-  }
-
-  int get last {
-    if (this.length > 0) return this[this.length - 1];
-    throw new StateError("No elements");
-  }
-
-  int get single {
-    if (length == 1) return this[0];
-    if (length == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  void insert(int index, int element) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void insertAll(int index, Iterable<int> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void setAll(int index, Iterable<int> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  int removeAt(int pos) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  int removeLast() {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeWhere(bool test(int element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainWhere(bool test(int element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void setRange(int start, int end, Iterable<int> iterable, [int skipCount]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int end) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void replaceRange(int start, int end, Iterable<int> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  void fillRange(int start, int end, [int fillValue]) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  Iterable<int> getRange(int start, int end) =>
-    IterableMixinWorkaround.getRangeList(this, start, end);
-
-  List<int> sublist(int start, [int end]) {
-    if (end == null) end = length;
-    return Lists.getRange(this, start, end, <int>[]);
-  }
-
-  Map<int, int> asMap() =>
-    IterableMixinWorkaround.asMapList(this);
-
-  String toString() {
-    StringBuffer buffer = new StringBuffer('[');
-    buffer.writeAll(this, ', ');
-    buffer.write(']');
-    return buffer.toString();
-  }
-
-  // -- end List<int> mixins.
-
-  @DomName('Uint8ClampedArray.setElements')
-  @DocsEditable
-  void setElements(Object array, [int offset]) native "Uint8ClampedArray_setElements_Callback";
-
-  List<int> subarray(int start, [int end]) {
-    if (?end) {
-      return _subarray_1(start, end);
-    }
-    return _subarray_2(start);
-  }
-
-  @DomName('Uint8ClampedArray._subarray_1')
-  @DocsEditable
-  List<int> _subarray_1(start, end) native "Uint8ClampedArray__subarray_1_Callback";
-
-  @DomName('Uint8ClampedArray._subarray_2')
-  @DocsEditable
-  List<int> _subarray_2(start) native "Uint8ClampedArray__subarray_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28174,7 +25594,7 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<Rect> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -28186,7 +25606,7 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<Rect> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int end, Iterable<Rect> iterable, [int skipCount]) {
+  void setRange(int start, int end, Iterable<Rect> iterable, [int skipCount=0]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -28408,7 +25828,7 @@ class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -28420,7 +25840,7 @@ class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int end, Iterable<CssRule> iterable, [int skipCount]) {
+  void setRange(int start, int end, Iterable<CssRule> iterable, [int skipCount=0]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -28629,7 +26049,7 @@ class _CssValueList extends _CSSValue implements List<_CSSValue> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -28641,7 +26061,7 @@ class _CssValueList extends _CSSValue implements List<_CSSValue> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int end, Iterable<_CSSValue> iterable, [int skipCount]) {
+  void setRange(int start, int end, Iterable<_CSSValue> iterable, [int skipCount=0]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -29102,7 +26522,7 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -29114,7 +26534,7 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int end, Iterable<Entry> iterable, [int skipCount]) {
+  void setRange(int start, int end, Iterable<Entry> iterable, [int skipCount=0]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -29323,7 +26743,7 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<_EntrySyn
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -29335,7 +26755,7 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<_EntrySyn
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int end, Iterable<_EntrySync> iterable, [int skipCount]) {
+  void setRange(int start, int end, Iterable<_EntrySync> iterable, [int skipCount=0]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -29605,7 +27025,7 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -29617,7 +27037,7 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int end, Iterable<Gamepad> iterable, [int skipCount]) {
+  void setRange(int start, int end, Iterable<Gamepad> iterable, [int skipCount=0]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -29765,9 +27185,7 @@ class _NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
   @DocsEditable
   int get length native "NamedNodeMap_length_Getter";
 
-  @DomName('NamedNodeMap.numericIndexGetter')
-  @DocsEditable
-  Node operator[](int index) native "NamedNodeMap_numericIndexGetter_Callback";
+  Node operator[](int index) native "NamedNodeMap_item_Callback";
 
   void operator[]=(int index, Node value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -29919,7 +27337,7 @@ class _NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -29931,7 +27349,7 @@ class _NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int end, Iterable<Node> iterable, [int skipCount]) {
+  void setRange(int start, int end, Iterable<Node> iterable, [int skipCount=0]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -30007,6 +27425,16 @@ class _NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
 @DomName('RGBColor')
 abstract class _RGBColor extends NativeFieldWrapperClass1 {
   _RGBColor.internal();
+
+}
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DomName('RadioNodeList')
+class _RadioNodeList extends NodeList {
+  _RadioNodeList.internal() : super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30225,7 +27653,7 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -30237,7 +27665,7 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int end, Iterable<SpeechInputResult> iterable, [int skipCount]) {
+  void setRange(int start, int end, Iterable<SpeechInputResult> iterable, [int skipCount=0]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -30446,7 +27874,7 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -30458,7 +27886,7 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int end, Iterable<SpeechRecognitionResult> iterable, [int skipCount]) {
+  void setRange(int start, int end, Iterable<SpeechRecognitionResult> iterable, [int skipCount=0]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -30667,7 +28095,7 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -30679,7 +28107,7 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int end, Iterable<StyleSheet> iterable, [int skipCount]) {
+  void setRange(int start, int end, Iterable<StyleSheet> iterable, [int skipCount=0]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -33476,74 +30904,6 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
-class _TypedArrayFactoryProvider {
-  static Float32Array createFloat32Array(int length) => _F32(length);
-  static Float32Array createFloat32Array_fromList(List<num> list) =>
-      _F32(ensureNative(list));
-  static Float32Array createFloat32Array_fromBuffer(ArrayBuffer buffer,
-      [int byteOffset = 0, int length]) => _F32(buffer, byteOffset, length);
-  static _F32(arg0, [arg1, arg2]) native "Float32Array_constructor_Callback";
-
-  static Float64Array createFloat64Array(int length) => _F64(length);
-  static Float64Array createFloat64Array_fromList(List<num> list) =>
-      _F64(ensureNative(list));
-  static Float64Array createFloat64Array_fromBuffer(ArrayBuffer buffer,
-      [int byteOffset = 0, int length]) => _F64(buffer, byteOffset, length);
-  static _F64(arg0, [arg1, arg2]) native "Float64Array_constructor_Callback";
-
-  static Int8Array createInt8Array(int length) => _I8(length);
-  static Int8Array createInt8Array_fromList(List<num> list) =>
-      _I8(ensureNative(list));
-  static Int8Array createInt8Array_fromBuffer(ArrayBuffer buffer,
-      [int byteOffset = 0, int length]) => _I8(buffer, byteOffset, length);
-  static _I8(arg0, [arg1, arg2]) native "Int8Array_constructor_Callback";
-
-  static Int16Array createInt16Array(int length) => _I16(length);
-  static Int16Array createInt16Array_fromList(List<num> list) =>
-      _I16(ensureNative(list));
-  static Int16Array createInt16Array_fromBuffer(ArrayBuffer buffer,
-      [int byteOffset = 0, int length]) => _I16(buffer, byteOffset, length);
-  static _I16(arg0, [arg1, arg2]) native "Int16Array_constructor_Callback";
-
-  static Int32Array createInt32Array(int length) => _I32(length);
-  static Int32Array createInt32Array_fromList(List<num> list) =>
-      _I32(ensureNative(list));
-  static Int32Array createInt32Array_fromBuffer(ArrayBuffer buffer,
-      [int byteOffset = 0, int length]) => _I32(buffer, byteOffset, length);
-  static _I32(arg0, [arg1, arg2]) native "Int32Array_constructor_Callback";
-
-  static Uint8Array createUint8Array(int length) => _U8(length);
-  static Uint8Array createUint8Array_fromList(List<num> list) =>
-      _U8(ensureNative(list));
-  static Uint8Array createUint8Array_fromBuffer(ArrayBuffer buffer,
-      [int byteOffset = 0, int length]) => _U8(buffer, byteOffset, length);
-  static _U8(arg0, [arg1, arg2]) native "Uint8Array_constructor_Callback";
-
-  static Uint16Array createUint16Array(int length) => _U16(length);
-  static Uint16Array createUint16Array_fromList(List<num> list) =>
-      _U16(ensureNative(list));
-  static Uint16Array createUint16Array_fromBuffer(ArrayBuffer buffer,
-      [int byteOffset = 0, int length]) => _U16(buffer, byteOffset, length);
-  static _U16(arg0, [arg1, arg2]) native "Uint16Array_constructor_Callback";
-
-  static Uint32Array createUint32Array(int length) => _U32(length);
-  static Uint32Array createUint32Array_fromList(List<num> list) =>
-      _U32(ensureNative(list));
-  static Uint32Array createUint32Array_fromBuffer(ArrayBuffer buffer,
-      [int byteOffset = 0, int length]) => _U32(buffer, byteOffset, length);
-  static _U32(arg0, [arg1, arg2]) native "Uint32Array_constructor_Callback";
-
-  static Uint8ClampedArray createUint8ClampedArray(int length) => _U8C(length);
-  static Uint8ClampedArray createUint8ClampedArray_fromList(
-      List<num> list) => _U8C(ensureNative(list));
-  static Uint8ClampedArray createUint8ClampedArray_fromBuffer(
-      ArrayBuffer buffer, [int byteOffset = 0, int length]) =>
-      _U8C(buffer, byteOffset, length);
-  static _U8C(arg0, [arg1, arg2]) native "Uint8ClampedArray_constructor_Callback";
-
-  static ensureNative(List list) => list;  // TODO: make sure.
-}
 
 class _TextFactoryProvider {
   static Text createText(String data) => document.$dom_createTextNode(data);

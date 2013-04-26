@@ -791,8 +791,10 @@ class TypedefElementX extends ElementX implements TypedefElement {
    */
   DartType alias;
 
-  bool isResolved = false;
-  bool isBeingResolved = false;
+  bool get isResolved => mapping != null;
+
+  // TODO(johnniwinther): Store the mapping in the resolution enqueuer instead.
+  TreeElements mapping;
 
   TypedefElementX(SourceString name, Element enclosing)
       : super(name, ElementKind.TYPEDEF, enclosing);
@@ -1226,7 +1228,8 @@ class FunctionElementX extends ElementX implements FunctionElement {
     if (super.isAbstract(compiler)) return true;
     if (modifiers.isExternal()) return false;
     if (isFunction() || isAccessor()) {
-      return !parseNode(compiler).hasBody();
+      return compiler.withCurrentElement(this,
+          () => !parseNode(compiler).hasBody());
     }
     return false;
   }

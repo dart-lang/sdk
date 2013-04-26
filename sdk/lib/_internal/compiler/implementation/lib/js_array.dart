@@ -52,14 +52,15 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     return JS('var', r'#.pop()', this);
   }
 
-  void remove(Object element) {
+  bool remove(Object element) {
     checkGrowable(this, 'remove');
     for (int i = 0; i < this.length; i++) {
       if (this[i] == element) {
         JS('var', r'#.splice(#, 1)', this, i);
-        return;
+        return true;
       }
     }
+    return false;
   }
 
   void removeWhere(bool test(E element)) {
@@ -257,11 +258,6 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
 
   int get hashCode => Primitives.objectHashCode(this);
 
-  Type get runtimeType {
-    // Call getRuntimeTypeString to get the name including type arguments.
-    return new TypeImpl(getRuntimeTypeString(this));
-  }
-
   int get length => JS('int', r'#.length', this);
 
   void set length(int newLength) {
@@ -293,6 +289,6 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
  * Dummy subclasses that allow the backend to track more precise
  * information about arrays through their type.
  */
-class JSMutableArray extends JSArray {}
+class JSMutableArray extends JSArray implements JSMutableIndexable {}
 class JSFixedArray extends JSMutableArray {}
 class JSExtendableArray extends JSMutableArray {}

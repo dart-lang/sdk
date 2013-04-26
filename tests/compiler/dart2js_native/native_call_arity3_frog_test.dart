@@ -8,11 +8,11 @@ import "package:expect/expect.dart";
 // parameters set to null. These parameters should be treated as if they
 // do not have a default value for the native methods.
 
-class A native "*A" {
+class A native "A" {
   int foo(int x) native;
 }
 
-class B native "*B" {
+class B native "B" {
   int foo([x = null, y, z = null]) native;
 }
 

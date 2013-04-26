@@ -2,14 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+part of layout_test;
+
 // The filters must be set by the caller that #sources this file.
 List includeFilters;
-
-// TODO(gram): dart2js is not handling 'part of' properly yet; when it
-// does uncomment this.
-//part of layout_test;
-
 List excludeFilters;
+
+/**
+ * A special marker string used to separate group names and
+ * identify non-debug output.
+ */ 
+final marker = '###';
 
 class LayoutTestConfiguration extends unittest.Configuration {
   get autoStart => false;
@@ -19,7 +22,7 @@ class LayoutTestConfiguration extends unittest.Configuration {
 }
 
 filterTest(t) {
-  var name = t.description.replaceAll("###", " ");
+  var name = t.description.replaceAll(marker, " ");
   if (includeFilters.length > 0) {
     for (var f in includeFilters) {
       if (name.indexOf(f) >= 0) return true;
@@ -36,8 +39,8 @@ filterTest(t) {
 }
 
 runTests(testMain) {
-  unittest.groupSep = '###';
-  unittest.configure(new LayoutTestConfiguration());
+  unittest.groupSep = marker;
+  unittest.unittestConfiguration = new LayoutTestConfiguration();
 
   // Create the set of test cases.
   unittest.group('', testMain);

@@ -5,7 +5,7 @@
 // Test that a closure call on a native field is recognized by the
 // type inferrer.
 
-class Node native "*Node" {
+class Node native "Node" {
   final parentNode;
 }
 

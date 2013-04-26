@@ -103,6 +103,24 @@ class TypeMask {
   }
 
   /**
+   * Returns the [ClassElement] if this type represents a single class,
+   * otherwise returns `null`.  This method is conservative.
+   */
+  ClassElement singleClass(Compiler compiler) {
+    if (isEmpty) return null;
+    if (isNullable) return null;  // It is Null and some other class.
+    ClassElement element = base.element;
+    if (isExact) {
+      return element;
+    } else if (isSubclass) {
+      return compiler.world.hasAnySubclass(element) ? null : element;
+    } else {
+      assert(isSubtype);
+      return null;
+    }
+  }
+
+  /**
    * Returns whether or not this type mask contains all types.
    */
   bool containsAll(Compiler compiler) {
@@ -390,6 +408,7 @@ class TypeMask {
    * privacy is taken into account.
    */
   bool canHit(Element element, Selector selector, Compiler compiler) {
+    assert(element.name == selector.name);
     if (isEmpty) {
       if (!isNullable) return false;
       return hasElementIn(
@@ -487,6 +506,10 @@ class TypeMask {
     if (other is !TypeMask) return false;
     TypeMask otherMask = other;
     return (flags == otherMask.flags) && (base == otherMask.base);
+  }
+
+  int get hashCode {
+    return (base == null ? 0 : base.hashCode) + 31 * flags.hashCode;
   }
 
   String toString() {

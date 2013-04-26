@@ -123,9 +123,16 @@ main() {
     var stream = new Stream([3,4,5]);
     expect((stream..next()).next(), 4);
     expect(stream.position, 2);
+    // The Symbol class does not allow us to create symbols for private
+    // variables. However, the mirror system uses them. So we get the symbol
+    // we want from the mirror.
+    // TODO(alanknight): Either delete this test and decide we shouldn't
+    // attempt to access private variables or fix this properly.
+    var _collectionSym = reflect(stream).type.variables.keys.firstWhere(
+        (x) => MirrorSystem.getName(x) == "_collection");
     var s = new Serialization()
       ..addRuleFor(stream,
-          constructorFields: ['_collection']);
+          constructorFields: [_collectionSym]);
     var state = states(stream, s).first;
     // Define names for the variable offsets to make this more readable.
     var _collection = 0, position = 1;
@@ -211,7 +218,7 @@ main() {
     var w = new Writer(s);
     w.trace = new Trace(w);
     w.write(n1);
-    expect(w.states.length, 5); // prims, lists, essential lists, basic
+    expect(w.states.length, 6); // prims, lists, essential lists, basic, symbol
     var children = 0, name = 1, parent = 2;
     var nodeRule = s.rules.firstWhere((x) => x is BasicRule);
     List rootNode = w.states[nodeRule.number].where(
@@ -510,6 +517,15 @@ main() {
     expect(new Reader(s).asReference(map["person"]) is Reference, isTrue);
   });
 
+  test("MirrorRule with lookup by qualified name rather than named object", () {
+    var s = new Serialization()..addRule(new MirrorRule());
+    var m = reflectClass(Address);
+    var output = s.write(m);
+    var input = s.read(output);
+    expect(input is ClassMirror, isTrue);
+    expect(MirrorSystem.getName(input.simpleName), "Address");
+  });
+
 }
 
 /******************************************************************************
@@ -651,7 +667,7 @@ Serialization nodeSerializerNonReflective(Node n) {
 
 /**
  * Run a round-trip test on a simple tree of nodes, using a serialization
- * that's returned by the [serializerSetup] function.
+ * that's returned by the [serializerSetUp] function.
  */
 runRoundTripTest(Function serializerSetUp) {
   Node n1 = new Node("1"), n2 = new Node("2"), n3 = new Node("3");

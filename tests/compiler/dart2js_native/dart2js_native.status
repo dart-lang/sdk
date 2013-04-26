@@ -9,6 +9,7 @@
 native_null_closure_frog_test: Fail
 native_no_such_method_exception4_frog_test: Fail  # Issue 9631
 native_no_such_method_exception5_frog_test: Fail  # Issue 9631
+super_call_test: Fail  # Issue 10166
 
 [ $compiler == dart2js && $checked ]
 native_no_such_method_exception3_frog_test: Fail # TODO(ahe): investigate.

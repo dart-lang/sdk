@@ -79,7 +79,7 @@ void main() {
     test('test 2', () => expect(onExceptionRun, isTrue));
   }, passing: ['test 2']);
 
-  expectTestsPass("setUp doesn't apply to child groups", () {
+  expectTestsPass("setUp applies to child groups", () {
     var setUpRun = false;
     setUp(() {
       setUpRun = true;
@@ -94,7 +94,7 @@ void main() {
 
     group('group', () {
       test('inner', () {
-        expect(setUpRun, isFalse);
+        expect(setUpRun, isTrue);
       });
     });
   });
@@ -140,4 +140,41 @@ void main() {
       });
     });
   });
+
+  expectTestsPass("setUp calls are chained", () {
+    var setUpOuterRun = false;
+    var setUpInnerRun = false;
+    group('outer group', () {
+      setUp(() {
+        setUpOuterRun = true;
+        currentSchedule.onComplete.schedule(() {
+          setUpOuterRun = false;
+        });
+      });
+      group('intermediate group with no setUp', () {
+        group('inner group', () {
+          setUp(() {
+            setUpInnerRun = true;
+            currentSchedule.onComplete.schedule(() {
+              setUpInnerRun = false;
+            });
+          });
+          test('inner', () {
+            expect(setUpOuterRun, isTrue);
+            expect(setUpInnerRun, isTrue);
+          });
+        });
+      });
+      test('outer', () {
+        expect(setUpOuterRun, isTrue);
+        expect(setUpInnerRun, isFalse);
+      });
+    });
+
+    test('top', () {
+      expect(setUpOuterRun, isFalse);
+      expect(setUpInnerRun, isFalse);
+    });
+  });
+
 }

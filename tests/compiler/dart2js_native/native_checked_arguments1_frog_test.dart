@@ -6,12 +6,12 @@ import "package:expect/expect.dart";
 
 // Test that type checks occur on native methods.
 
-class A native "*A" {
+class A native "A" {
   int foo(int x) native;
   int cmp(A other) native;
 }
 
-class B native "*B" {
+class B native "B" {
   String foo(String x) native;
   int cmp(B other) native;
 }

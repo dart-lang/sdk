@@ -386,8 +386,6 @@ call_nonexistent_constructor_test: Fail
 bad_override_test/01: Fail
 bad_override_test/02: Fail
 
-first_class_types_constants_test: Fail # Issue 6282
-
 # Missing compile-time error when modifying final local variables
 final_variable_assignment_test/01: Fail
 final_variable_assignment_test/02: Fail
@@ -425,7 +423,6 @@ named_parameters_aggregated_test/01: Fail # http://dartbug.com/5519
 named_parameters_aggregated_test/03: Fail # http://dartbug.com/5519
 not_enough_positional_arguments_test/01: Fail # http://dartbug.com/5519
 
-throw_expr_test: Fail
 metadata_test: Fail
 # Fails in conservative mode, issue 4935, passes in minifinying mode.
 bad_constructor_test/04: Fail
@@ -554,8 +551,6 @@ execute_finally10_test: Fail # VM bug: issue 430
 execute_finally11_test: Fail # VM bug: issue 430
 
 [ $compiler == dart2dart && $minified ]
-
-rethrow_test: Fail
 
 # TODO(tball): Assign proper bug numbers.
 class_literal_test/none: Fail

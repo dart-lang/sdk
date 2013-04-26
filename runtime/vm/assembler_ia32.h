@@ -626,10 +626,6 @@ class Assembler : public ValueObject {
                                 const Address& dest,
                                 const Object& value);
 
-  void TraceStoreIntoObject(Register object,
-                            const Address& dest,
-                            Register value);
-
   void DoubleNegate(XmmRegister d);
   void FloatNegate(XmmRegister f);
 

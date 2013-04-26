@@ -89,7 +89,7 @@ Dart_Handle VMGlue::LibraryTagHandler(Dart_LibraryTag tag,
 }
 
 // Returns true on success, false on failure.
-bool VMGlue::CreateIsolateAndSetupHelper(const char* script_uri,
+Dart_Isolate VMGlue::CreateIsolateAndSetupHelper(const char* script_uri,
                                          const char* main,
                                          void* data,
                                          char** error) {
@@ -98,7 +98,7 @@ bool VMGlue::CreateIsolateAndSetupHelper(const char* script_uri,
       Dart_CreateIsolate(script_uri, main, NULL, data, error);
   if (isolate == NULL) {
     LOGE("Couldn't create isolate: %s", *error);
-    return false;
+    return NULL;
   }
 
   LOGI("Entering scope");
@@ -110,10 +110,10 @@ bool VMGlue::CreateIsolateAndSetupHelper(const char* script_uri,
   CHECK_RESULT(result);
 
   Dart_ExitScope();
-  return true;
+  return isolate;
 }
 
-bool VMGlue::CreateIsolateAndSetup(const char* script_uri,
+Dart_Isolate VMGlue::CreateIsolateAndSetup(const char* script_uri,
   const char* main,
   void* data, char** error) {
   return CreateIsolateAndSetupHelper(script_uri,

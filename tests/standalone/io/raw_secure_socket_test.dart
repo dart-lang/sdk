@@ -14,7 +14,7 @@ import "dart:isolate";
 
 Future<HttpServer> startServer() {
   return HttpServer.bindSecure(
-      "127.0.0.1",
+      "localhost",
       0,
       backlog: 5,
       certificateName: 'localhost_cert').then((server) {

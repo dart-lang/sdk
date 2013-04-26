@@ -17,14 +17,14 @@ import "package:expect/expect.dart";
 
 
 // The exception type.
-class E native "*E" {
+class E native "E" {
   E._used() native;  // Bogus native constructor, called only from fake body.
 
   final int code;
 }
 
 // Type with exception-throwing methods.
-class A native "*A" {
+class A native "A" {
   op(int x) native {
     // Fake body calls constructor to mark the exception class (E) as used.
     throw new E._used();

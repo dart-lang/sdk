@@ -10,6 +10,7 @@ import emitter
 import os
 from generator import *
 from htmldartgenerator import *
+from idlnode import IDLArgument
 from systemhtml import js_support_checks, GetCallbackInfo, HTML_LIBRARY_NAMES
 
 class DartiumBackend(HtmlDartGenerator):
@@ -35,7 +36,7 @@ class DartiumBackend(HtmlDartGenerator):
     return {}
 
   def GenerateCallback(self, info):
-    if IsPureInterface(self._interface.id):
+    if IsPureInterface(self._interface.id) or IsCustomType(self._interface.id):
       return
 
     cpp_impl_includes = set()
@@ -115,7 +116,7 @@ class DartiumBackend(HtmlDartGenerator):
 
   def StartInterface(self, members_emitter):
     # Create emitters for c++ implementation.
-    if not IsPureInterface(self._interface.id):
+    if not IsPureInterface(self._interface.id) and not IsCustomType(self._interface.id):
       self._cpp_header_emitter = self._cpp_library_emitter.CreateHeaderEmitter(
           self._interface.id,
           self._renamer.GetLibraryName(self._interface))
@@ -260,15 +261,27 @@ class DartiumBackend(HtmlDartGenerator):
   def _GenerateCPPHeader(self):
     to_native_emitter = emitter.Emitter()
     if self._interface_type_info.custom_to_native():
-      to_native_emitter.Emit(
-          '    static PassRefPtr<NativeType> toNative(Dart_Handle handle, Dart_Handle& exception);\n')
+      return_type = 'PassRefPtr<NativeType>'
+      to_native_body = ';'
     else:
-      to_native_emitter.Emit(
-          '    static NativeType* toNative(Dart_Handle handle, Dart_Handle& exception)\n'
+      return_type = 'NativeType*'
+      to_native_body = emitter.Format(
+          '\n'
           '    {\n'
           '        return DartDOMWrapper::unwrapDartWrapper<Dart$INTERFACE>(handle, exception);\n'
-          '    }\n',
+          '    }',
           INTERFACE=self._interface.id)
+
+    to_native_emitter.Emit(
+        '    static $RETURN_TYPE toNative(Dart_Handle handle, Dart_Handle& exception)$TO_NATIVE_BODY\n'
+        '\n'
+        '    static $RETURN_TYPE toNativeWithNullCheck(Dart_Handle handle, Dart_Handle& exception)\n'
+        '    {\n'
+        '        return Dart_IsNull(handle) ? 0 : toNative(handle, exception);\n'
+        '    }\n',
+        RETURN_TYPE=return_type,
+        TO_NATIVE_BODY=to_native_body,
+        INTERFACE=self._interface.id)
 
     to_dart_emitter = emitter.Emitter()
 
@@ -680,6 +693,7 @@ class DartiumBackend(HtmlDartGenerator):
 
     if requires_stack_info:
       self._cpp_impl_includes.add('"ScriptArguments.h"')
+      self._cpp_impl_includes.add('"ScriptCallStack.h"')
       body_emitter.Emit(
           '\n'
           '        ScriptState* currentState = ScriptState::current();\n'
@@ -718,9 +732,22 @@ class DartiumBackend(HtmlDartGenerator):
       argument_expression_template, type, cls, function = \
           type_info.to_native_info(argument, self._interface.id)
 
-      if ((IsOptional(argument) and not self._IsArgumentOptionalInWebCore(node, argument)) or
-          (argument.ext_attrs.get('Optional') == 'DefaultIsNullString') or
-          _IsOptionalStringArgumentInInitEventMethod(self._interface, node, argument)):
+      def AllowsNull():
+        assert argument.ext_attrs.get('TreatNullAs', 'NullString') == 'NullString'
+        if argument.ext_attrs.get('TreatNullAs') == 'NullString':
+          return True
+
+        if isinstance(argument, IDLArgument):
+          if IsOptional(argument) and not self._IsArgumentOptionalInWebCore(node, argument):
+            return True
+          if argument.ext_attrs.get('Default') == 'NullString':
+            return True
+          if _IsOptionalStringArgumentInInitEventMethod(self._interface, node, argument):
+            return True
+
+        return False
+
+      if AllowsNull():
         function += 'WithNullCheck'
 
       argument_name = DartDomNameOfAttribute(argument)
@@ -848,9 +875,7 @@ class DartiumBackend(HtmlDartGenerator):
       return False
     if operation.id in ['addEventListener', 'removeEventListener'] and argument.id == 'useCapture':
       return False
-    # Another option would be to adjust in IDLs, but let's keep it here for now
-    # as it's a single instance.
-    if self._interface.id == 'CSSStyleDeclaration' and operation.id == 'setProperty' and argument.id == 'priority':
+    if 'ForceOptional' in argument.ext_attrs:
       return False
     if argument.type.id == 'Dictionary':
       return False
@@ -922,5 +947,5 @@ def _IsOptionalStringArgumentInInitEventMethod(interface, operation, argument):
   return (
       interface.id.endswith('Event') and
       operation.id.startswith('init') and
-      argument.ext_attrs.get('Optional') == 'DefaultIsUndefined' and
+      argument.ext_attrs.get('Default') == 'Undefined' and
       argument.type.id == 'DOMString')

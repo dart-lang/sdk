@@ -6,7 +6,7 @@ import "package:expect/expect.dart";
 
 // Verify that methods are not renamed to clash with native field names
 // that are known from the DOM (like x, y, z).
-class A native "*A" {
+class A native "A" {
   int x;
   int y;
   int z;
@@ -110,4 +110,3 @@ main() {
   Expect.equals(42, x.z);
   Expect.equals(1, x.gettersCalled);
 }
-

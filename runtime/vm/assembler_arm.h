@@ -393,6 +393,8 @@ class Assembler : public ValueObject {
            Condition cond = AL);
   void mls(Register rd, Register rn, Register rm, Register ra,
            Condition cond = AL);
+  void smull(Register rd_lo, Register rd_hi, Register rn, Register rm,
+             Condition cond = AL);
   void umull(Register rd_lo, Register rd_hi, Register rn, Register rm,
              Condition cond = AL);
 
@@ -552,7 +554,7 @@ class Assembler : public ValueObject {
 
   void LoadPoolPointer();
 
-  void LoadObject(Register rd, const Object& object);
+  void LoadObject(Register rd, const Object& object, Condition cond = AL);
   void PushObject(const Object& object);
   void CompareObject(Register rn, const Object& object);
 
@@ -573,7 +575,7 @@ class Assembler : public ValueObject {
   void LoadClass(Register result, Register object, Register scratch);
   void CompareClassId(Register object, intptr_t class_id, Register scratch);
 
-  void LoadWordFromPoolOffset(Register rd, int32_t offset);
+  void LoadWordFromPoolOffset(Register rd, int32_t offset, Condition cond = AL);
   void LoadFromOffset(LoadOperandType type,
                       Register reg,
                       Register base,

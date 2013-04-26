@@ -2442,7 +2442,7 @@ static RawObject* GetByteDataConstructor(Isolate* isolate,
                                          const String& constructor_name,
                                          intptr_t num_args) {
   const Library& lib =
-      Library::Handle(isolate->object_store()->typeddata_library());
+      Library::Handle(isolate->object_store()->typed_data_library());
   ASSERT(!lib.IsNull());
   const Class& cls =
       Class::Handle(isolate, lib.LookupClassAllowPrivate(Symbols::ByteData()));

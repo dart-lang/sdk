@@ -8,7 +8,6 @@
 #include "vm/compiler_stats.h"
 #include "vm/gc_marker.h"
 #include "vm/gc_sweeper.h"
-#include "vm/heap_trace.h"
 #include "vm/object.h"
 #include "vm/virtual_memory.h"
 
@@ -33,15 +32,13 @@ HeapPage* HeapPage::Initialize(VirtualMemory* memory, PageType type) {
   HeapPage* result = reinterpret_cast<HeapPage*>(memory->address());
   result->memory_ = memory;
   result->next_ = NULL;
-  result->used_ = 0;
   result->executable_ = is_executable;
   return result;
 }
 
 
 HeapPage* HeapPage::Allocate(intptr_t size, PageType type) {
-  VirtualMemory* memory =
-      VirtualMemory::ReserveAligned(size, PageSpace::kPageAlignment);
+  VirtualMemory* memory = VirtualMemory::Reserve(size);
   return Initialize(memory, type);
 }
 
@@ -408,10 +405,6 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
   Isolate* isolate = Isolate::Current();
   NoHandleScope no_handles(isolate);
 
-  if (HeapTrace::is_enabled()) {
-    isolate->heap()->trace()->TraceMarkSweepStart();
-  }
-
   if (FLAG_print_free_list_before_gc) {
     OS::Print("Data Freelist (before GC):\n");
     freelist_[HeapPage::kData].Print();
@@ -501,10 +494,6 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
     OS::PrintErr("Verifying after MarkSweep...");
     heap_->Verify();
     OS::PrintErr(" done.\n");
-  }
-
-  if (HeapTrace::is_enabled()) {
-    isolate->heap()->trace()->TraceMarkSweepFinish();
   }
 
   // Done, reset the marker.

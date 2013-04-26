@@ -535,6 +535,22 @@ void Exceptions::ThrowByType(ExceptionType type, const Array& arguments) {
 }
 
 
+void Exceptions::ThrowOOM() {
+  Isolate* isolate = Isolate::Current();
+  const Instance& oom = Instance::Handle(
+      isolate, isolate->object_store()->out_of_memory());
+  Throw(oom);
+}
+
+
+void Exceptions::ThrowStackOverflow() {
+  Isolate* isolate = Isolate::Current();
+  const Instance& stack_overflow = Instance::Handle(
+      isolate, isolate->object_store()->stack_overflow());
+  Throw(stack_overflow);
+}
+
+
 RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
   Library& library = Library::Handle();
   const String* class_name = NULL;

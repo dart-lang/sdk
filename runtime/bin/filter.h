@@ -10,6 +10,10 @@
 
 #include "../third_party/zlib/zlib.h"
 
+
+namespace dart {
+namespace bin {
+
 class Filter {
  public:
   virtual ~Filter() {}
@@ -80,5 +84,7 @@ class ZLibInflateFilter : public Filter {
   DISALLOW_COPY_AND_ASSIGN(ZLibInflateFilter);
 };
 
-#endif  // BIN_FILTER_H_
+}  // namespace bin
+}  // namespace dart
 
+#endif  // BIN_FILTER_H_

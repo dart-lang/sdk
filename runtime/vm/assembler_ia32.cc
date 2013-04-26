@@ -8,7 +8,6 @@
 #include "vm/assembler.h"
 #include "vm/code_generator.h"
 #include "vm/heap.h"
-#include "vm/heap_trace.h"
 #include "vm/memory_region.h"
 #include "vm/runtime_entry.h"
 #include "vm/stub_code.h"
@@ -1911,7 +1910,6 @@ void Assembler::StoreIntoObject(Register object,
                                 Register value,
                                 bool can_value_be_smi) {
   ASSERT(object != value);
-  TraceStoreIntoObject(object, dest, value);
   movl(dest, value);
   Label done;
   if (can_value_be_smi) {
@@ -1933,7 +1931,6 @@ void Assembler::StoreIntoObject(Register object,
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
                                          Register value) {
-  TraceStoreIntoObject(object, dest, value);
   movl(dest, value);
 #if defined(DEBUG)
   Label done;
@@ -1953,7 +1950,6 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   if (value.IsSmi() || value.InVMHeap()) {
     movl(dest, Immediate(reinterpret_cast<int32_t>(value.raw())));
   } else {
-    // No heap trace for an old object store.
     ASSERT(value.IsOld());
     AssemblerBuffer::EnsureCapacity ensured(&buffer_);
     EmitUint8(0xC7);
@@ -1961,23 +1957,6 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
     buffer_.EmitObject(value);
   }
   // No store buffer update.
-}
-
-
-void Assembler::TraceStoreIntoObject(Register object,
-                                     const Address& dest,
-                                     Register value) {
-  if (HeapTrace::is_enabled()) {
-    pushal();
-    EnterCallRuntimeFrame(3 * kWordSize);
-    movl(Address(ESP, 0 * kWordSize), object);
-    leal(EAX, dest);
-    movl(Address(ESP, 1 * kWordSize), EAX);
-    movl(Address(ESP, 2 * kWordSize), value);
-    CallRuntime(kHeapTraceStoreRuntimeEntry);
-    LeaveCallRuntimeFrame();
-    popal();
-  }
 }
 
 

@@ -875,9 +875,10 @@ void WrappedRandomArray(Dart_Port dest_port_id,
 
       if (values != NULL) {
         Dart_CObject result;
-        result.type = Dart_CObject::kUint8Array;
-        result.value.as_byte_array.values = values;
-        result.value.as_byte_array.length = length;
+        result.type = Dart_CObject::kTypedData;
+        result.value.as_typed_data.type = Dart_CObject::kUint8Array;
+        result.value.as_typed_data.values = values;
+        result.value.as_typed_data.length = length;
         Dart_PostCObject(reply_port_id, &result);
         free(values);
         // It is OK that result is destroyed when function exits.

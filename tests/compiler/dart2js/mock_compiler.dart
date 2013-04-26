@@ -59,6 +59,7 @@ const String DEFAULT_HELPERLIB = r'''
   class ConstantMap {}
   class TypeImpl {}
   S() {}
+  throwExpression(e) {}
   unwrapException(e) {}
   assertHelper(a){}
   createRuntimeType(a) {}
@@ -77,14 +78,17 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
     bool operator==(other) => identical(this, other);
     noSuchMethod(im) { throw im; }
   }
-  class JSIndexable {}
+  abstract class JSIndexable {
+    get length;
+  }
+  abstract class JSMutableIndexable extends JSIndexable {}
   class JSArray extends Interceptor implements List, JSIndexable {
     var length;
     operator[](index) {}
     operator[]=(index, value) {}
     var add;
   }
-  class JSMutableArray extends JSArray {}
+  class JSMutableArray extends JSArray implements JSMutableIndexable {}
   class JSFixedArray extends JSMutableArray {}
   class JSExtendableArray extends JSMutableArray {}
   class JSString extends Interceptor implements String, JSIndexable {
@@ -112,6 +116,9 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
     operator <(other) => true;
     operator <=(other) => true;
     operator ==(other) => true;
+
+    abs() => (this is JSInt) ? 42 : 42.0;
+    remainder(other) => (this is JSInt) ? 42 : 42.0;
   }
   class JSInt extends JSNumber implements int {
   }

@@ -13,6 +13,11 @@
 
 #include "bin/log.h"
 
+#undef DeleteFile
+
+namespace dart {
+namespace bin {
+
 class PathBuffer {
  public:
   PathBuffer() : length(0) {
@@ -523,5 +528,8 @@ bool Directory::Rename(const char* path, const char* new_path) {
   free(const_cast<wchar_t*>(system_new_path));
   return (move_status != 0);
 }
+
+}  // namespace bin
+}  // namespace dart
 
 #endif  // defined(TARGET_OS_WINDOWS)

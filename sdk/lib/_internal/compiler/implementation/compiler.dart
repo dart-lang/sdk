@@ -177,6 +177,8 @@ abstract class Backend {
   ClassElement get boolImplementation => compiler.boolClass;
   ClassElement get nullImplementation => compiler.nullClass;
 
+  ClassElement defaultSuperclass(ClassElement element) => compiler.objectClass;
+
   bool isDefaultNoSuchMethodImplementation(Element element) {
     assert(element.name == Compiler.NO_SUCH_METHOD);
     ClassElement classElement = element.getEnclosingClass();
@@ -735,7 +737,7 @@ abstract class Compiler implements DiagnosticListener {
     // TODO(ngeoffray): Enable annotations on these classes.
     ClassElement cls =
         isolateHelperLibrary.find(const SourceString('_WorkerStub'));
-    cls.setNative('"*Worker"');
+    cls.setNative('"Worker"');
 
     assertMethod = jsHelperLibrary.find(const SourceString('assertHelper'));
     identicalFunction = coreLibrary.find(const SourceString('identical'));
@@ -1021,7 +1023,7 @@ abstract class Compiler implements DiagnosticListener {
 
   void resolveTypedef(TypedefElement element) {
     withCurrentElement(element,
-                       () => resolver.resolveTypedef(element));
+                       () => resolver.resolve(element));
   }
 
   FunctionType computeFunctionType(Element element,

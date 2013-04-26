@@ -7,7 +7,14 @@
 
 #include "include/dart_api.h"
 
+
+namespace dart {
+namespace bin {
+
 Dart_NativeFunction IONativeLookup(Dart_Handle name,
                                    int argument_count);
+
+}  // namespace bin
+}  // namespace dart
 
 #endif  // BIN_IO_NATIVES_H_

@@ -14,6 +14,6 @@ import "dart:isolate";
 import 'dart:json' as JSON;
 import "dart:math";
 import "dart:nativewrappers";
-import "dart:typeddata";
+import "dart:typed_data";
 import "dart:uri";
 import "dart:utf";

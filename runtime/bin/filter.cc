@@ -8,6 +8,10 @@
 
 #include "include/dart_api.h"
 
+
+namespace dart {
+namespace bin {
+
 const int kZlibFlagMemUsage = 8;
 const int kZLibFlagWindowBits = 15;
 const int kZLibFlagUseGZipHeader = 16;
@@ -304,3 +308,5 @@ intptr_t ZLibInflateFilter::Processed(uint8_t* buffer,
   }
 }
 
+}  // namespace bin
+}  // namespace dart

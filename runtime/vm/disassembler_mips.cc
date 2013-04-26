@@ -596,6 +596,10 @@ void MIPSDecoder::InstructionDecode(Instr* instr) {
       Format(instr, "lh 'rt, 'imms('rs)");
       break;
     }
+    case LHU: {
+      Format(instr, "lhu 'rt, 'imms('rs)");
+      break;
+    }
     case LUI: {
       Format(instr, "lui 'rt, 'immu");
       break;

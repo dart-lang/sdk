@@ -20,7 +20,8 @@ import '../elements/modelx.dart'
          FunctionSignatureX,
          LabelElementX,
          TargetElementX,
-         MixinApplicationElementX;
+         MixinApplicationElementX,
+         TypedefElementX;
 import '../util/util.dart';
 import '../scanner/scannerlib.dart' show PartialMetadataAnnotation;
 

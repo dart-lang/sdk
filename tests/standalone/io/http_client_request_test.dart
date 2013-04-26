@@ -5,7 +5,7 @@
 import "package:expect/expect.dart";
 import "dart:io";
 import "dart:isolate";
-import "dart:typeddata";
+import "dart:typed_data";
 
 void testClientRequest(void handler(request)) {
   HttpServer.bind().then((server) {

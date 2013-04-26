@@ -187,10 +187,6 @@ class MarkingVisitor : public ObjectPointerVisitor {
     }
     marking_stack_->Push(raw_obj);
 
-    // Update the number of used bytes on this page for fast accounting.
-    HeapPage* page = PageSpace::PageFor(raw_obj);
-    page->AddUsed(raw_obj->Size());
-
     // TODO(iposva): Should we mark the classes early?
     MarkObject(raw_class, NULL);
   }

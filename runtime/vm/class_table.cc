@@ -5,7 +5,6 @@
 #include "vm/class_table.h"
 #include "vm/flags.h"
 #include "vm/freelist.h"
-#include "vm/heap_trace.h"
 #include "vm/object.h"
 #include "vm/raw_object.h"
 #include "vm/visitor.h"
@@ -50,9 +49,6 @@ void ClassTable::Register(const Class& cls) {
     ASSERT(table_[index] == 0);
     ASSERT(index < capacity_);
     table_[index] = cls.raw();
-    if (HeapTrace::is_enabled()) {
-      Isolate::Current()->heap()->trace()->TraceRegisterClass(cls);
-    }
     // Add the vtable for this predefined class into the static vtable registry
     // if it has not been setup yet.
     cpp_vtable cls_vtable = cls.handle_vtable();
@@ -76,9 +72,6 @@ void ClassTable::Register(const Class& cls) {
     ASSERT(top_ < capacity_);
     cls.set_id(top_);
     table_[top_] = cls.raw();
-    if (HeapTrace::is_enabled()) {
-      Isolate::Current()->heap()->trace()->TraceRegisterClass(cls);
-    }
     top_++;  // Increment next index.
   }
 }

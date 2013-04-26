@@ -15,14 +15,13 @@ import 'dart:_js_helper' show allMatchesInStringUnchecked,
                               checkNull,
                               checkNum,
                               checkString,
-                              getRuntimeTypeString,
+                              getRuntimeType,
                               regExpGetNative,
                               stringContainsUnchecked,
                               stringLastIndexOfUnchecked,
                               stringReplaceAllFuncUnchecked,
                               stringReplaceAllUnchecked,
                               stringReplaceFirstUnchecked,
-                              TypeImpl,
                               lookupDispatchRecord;
 import 'dart:_foreign_helper' show JS;
 
@@ -210,7 +209,7 @@ abstract class Interceptor {
                                 invocation.namedArguments);
   }
 
-  Type get runtimeType;
+  Type get runtimeType => getRuntimeType(this);
 }
 
 /**
@@ -263,8 +262,19 @@ class JSNull extends Interceptor implements Null {
 
 /**
  * The supertype for JSString and JSArray. Used by the backend as to
- * have a type mask that contains the primitive objects that we can
- * use the [] operator on.
+ * have a type mask that contains the objects that we can use the
+ * native JS [] operator and length on.
  */
-class JSIndexable {
+abstract class JSIndexable {
+  int get length;
+  operator[](int index);
+}
+
+/**
+ * The supertype for JSMutableArray and
+ * JavaScriptIndexingBehavior. Used by the backend to have a type mask
+ * that contains the objects we can use the JS []= operator on.
+ */
+abstract class JSMutableIndexable extends JSIndexable {
+  operator[]=(int index, var value);
 }

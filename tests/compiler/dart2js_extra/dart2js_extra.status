@@ -41,3 +41,4 @@ timer_test: Fail # Issue 7728.
 
 [ $runtime == none ]
 timer_negative_test: Fail, OK # A negative runtime test.
+bailout8_test: Fail, OK # Mismatch in thrown exception.

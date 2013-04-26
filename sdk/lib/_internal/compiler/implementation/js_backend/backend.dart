@@ -652,12 +652,13 @@ class JavaScriptBackend extends Backend {
   ClassElement jsBoolClass;
 
   ClassElement jsIndexableClass;
+  ClassElement jsMutableIndexableClass;
+
   ClassElement jsMutableArrayClass;
   ClassElement jsFixedArrayClass;
   ClassElement jsExtendableArrayClass;
 
-  Element jsArrayLength;
-  Element jsStringLength;
+  Element jsIndexableLength;
   Element jsArrayRemoveLast;
   Element jsArrayAdd;
   Element jsStringSplit;
@@ -899,6 +900,8 @@ class JavaScriptBackend extends Backend {
 
     jsIndexableClass =
         compiler.findInterceptor(const SourceString('JSIndexable'));
+    jsMutableIndexableClass =
+        compiler.findInterceptor(const SourceString('JSMutableIndexable'));
 
     // TODO(kasperl): Some tests do not define the special JSArray
     // subclasses, so we check to see if they are defined before
@@ -910,25 +913,21 @@ class JavaScriptBackend extends Backend {
       jsExtendableArrayClass.ensureResolved(compiler);
     }
 
-    jsArrayClass.ensureResolved(compiler);
-    jsArrayLength = compiler.lookupElementIn(
-        jsArrayClass, const SourceString('length'));
-    if (jsArrayLength != null && jsArrayLength.isAbstractField()) {
-      AbstractFieldElement element = jsArrayLength;
-      jsArrayLength = element.getter;
+    jsIndexableClass.ensureResolved(compiler);
+    jsIndexableLength = compiler.lookupElementIn(
+        jsIndexableClass, const SourceString('length'));
+    if (jsIndexableLength != null && jsIndexableLength.isAbstractField()) {
+      AbstractFieldElement element = jsIndexableLength;
+      jsIndexableLength = element.getter;
     }
+
+    jsArrayClass.ensureResolved(compiler);
     jsArrayRemoveLast = compiler.lookupElementIn(
         jsArrayClass, const SourceString('removeLast'));
     jsArrayAdd = compiler.lookupElementIn(
         jsArrayClass, const SourceString('add'));
 
     jsStringClass.ensureResolved(compiler);
-    jsStringLength = compiler.lookupElementIn(
-        jsStringClass, const SourceString('length'));
-    if (jsStringLength != null && jsStringLength.isAbstractField()) {
-      AbstractFieldElement element = jsStringLength;
-      jsStringLength = element.getter;
-    }
     jsStringSplit = compiler.lookupElementIn(
         jsStringClass, const SourceString('split'));
     jsStringConcat = compiler.lookupElementIn(
@@ -960,6 +959,7 @@ class JavaScriptBackend extends Backend {
   void validateInterceptorImplementsAllObjectMethods(
       ClassElement interceptorClass) {
     if (interceptorClass == null) return;
+    interceptorClass.ensureResolved(compiler);
     compiler.objectClass.forEachMember((_, Element member) {
       if (member.isGenerativeConstructor()) return;
       Element interceptorMember = interceptorClass.lookupMember(member.name);
@@ -979,6 +979,7 @@ class JavaScriptBackend extends Backend {
           Set<Element> set = interceptedElements.putIfAbsent(
               member.name, () => new Set<Element>());
           set.add(member);
+          if (classElement == jsInterceptorClass) return;
           if (!classElement.isNative()) {
             MixinApplicationElement mixinApplication = classElement;
             assert(member.getEnclosingClass() == mixinApplication.mixin);
@@ -1366,6 +1367,11 @@ class JavaScriptBackend extends Backend {
 
   native.NativeEnqueuer nativeCodegenEnqueuer(Enqueuer world) {
     return new native.NativeCodegenEnqueuer(world, compiler, emitter);
+  }
+
+  ClassElement defaultSuperclass(ClassElement element) {
+    // Native classes inherit from Interceptor.
+    return element.isNative() ? jsInterceptorClass : compiler.objectClass;
   }
 
   /**

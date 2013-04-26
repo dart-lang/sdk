@@ -132,6 +132,9 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   bool InstanceCallNeedsClassCheck(InstanceCallInstr* call) const;
   bool MethodExtractorNeedsClassCheck(InstanceCallInstr* call) const;
 
+  bool InlineFloat32x4Getter(InstanceCallInstr* call,
+                             MethodRecognizer::Kind getter);
+
   void InlineImplicitInstanceGetter(InstanceCallInstr* call);
   void InlineArrayLengthGetter(InstanceCallInstr* call,
                                intptr_t length_offset,

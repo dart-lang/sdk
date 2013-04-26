@@ -10,6 +10,9 @@
 #include "bin/crypto.h"
 
 
+namespace dart {
+namespace bin {
+
 bool Crypto::GetRandomBytes(intptr_t count, uint8_t* buffer) {
   uint32_t num;
   intptr_t read = 0;
@@ -24,5 +27,8 @@ bool Crypto::GetRandomBytes(intptr_t count, uint8_t* buffer) {
   }
   return true;
 }
+
+}  // namespace bin
+}  // namespace dart
 
 #endif  // defined(TARGET_OS_WINDOWS)

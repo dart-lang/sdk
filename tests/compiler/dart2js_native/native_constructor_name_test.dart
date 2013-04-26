@@ -13,7 +13,7 @@ import "package:expect/expect.dart";
 class A {
 }
 
-class Z native "*A" {
+class Z native "A" {
   foo() => 100;
 }
 

@@ -124,7 +124,7 @@ var icuFormatNamesToTest = const [
  * Exercise all of the formats we have explicitly defined on a particular
  * locale. [expectedResults] is a map from ICU format names to the
  * expected result of formatting [date] according to that format in
- * [locale].
+ * [localeName].
  */
 testLocale(String localeName, Map expectedResults, DateTime date) {
   var intl = new Intl(localeName);

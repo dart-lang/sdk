@@ -8,7 +8,6 @@
 #include "platform/utils.h"
 #include "vm/flags.h"
 #include "vm/heap_profiler.h"
-#include "vm/heap_trace.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
 #include "vm/object_set.h"
@@ -41,7 +40,6 @@ Heap::Heap() : read_only_(false), gc_in_progress_(false) {
                              kNewObjectAlignmentOffset);
   old_space_ = new PageSpace(this, (FLAG_old_gen_heap_size * MB));
   stats_.num_ = 0;
-  heap_trace_ = new HeapTrace;
 }
 
 
@@ -61,9 +59,6 @@ uword Heap::AllocateNew(intptr_t size) {
       return AllocateOld(size, HeapPage::kData);
     }
   }
-  if (HeapTrace::is_enabled()) {
-    heap_trace_->TraceAllocation(addr, size);
-  }
   return addr;
 }
 
@@ -79,9 +74,6 @@ uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
                    size);
       return 0;
     }
-  }
-  if (HeapTrace::is_enabled()) {
-    heap_trace_->TraceAllocation(addr, size);
   }
   return addr;
 }

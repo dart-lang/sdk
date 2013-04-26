@@ -14,6 +14,21 @@ part 'src/base64decoder.dart';
 /**
  * WebDriver bindings for Dart.
  *
+* ## Installing ##
+ *
+ * Use [pub][] to install this package. Add the following to your `pubspec.yaml`
+ * file.
+ *
+ *     dependencies:
+ *       webdriver: any
+ *
+ * Then run `pub install`.
+ *
+ * For more information, see the
+ * [webdriver package on pub.dartlang.org][pkg].
+ *
+ * ## Using ##
+ *
  * These bindings are based on the WebDriver JSON wire protocol spec
  * (http://code.google.com/p/selenium/wiki/JsonWireProtocol). Not
  * all of these commands are implemented yet by WebDriver itself.
@@ -50,6 +65,9 @@ part 'src/base64decoder.dart';
  *    }).then((_) {
  *      session = null;
  *    });
+ *
+ * [pub]: http://pub.dartlang.org
+ * [pkg]: http://pub.dartlang.org/packages/webdriver
  */
 
 void writeStringToFile(String fileName, String contents) {

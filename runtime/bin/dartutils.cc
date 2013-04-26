@@ -12,6 +12,9 @@
 #include "platform/assert.h"
 #include "platform/globals.h"
 
+namespace dart {
+namespace bin {
+
 const char* DartUtils::original_working_directory = NULL;
 const char* DartUtils::kDartScheme = "dart:";
 const char* DartUtils::kDartExtensionScheme = "dart-ext:";
@@ -391,6 +394,9 @@ Dart_Handle DartUtils::LoadScript(const char* script_uri,
     return Dart_LoadScriptFromSnapshot(text_buffer, len);
   } else {
     Dart_Handle source = Dart_NewStringFromUTF8(text_buffer, len);
+    if (Dart_IsError(source)) {
+      return source;
+    }
     return Dart_LoadScript(resolved_script_uri, source, 0, 0);
   }
 }
@@ -746,3 +752,6 @@ CObject* CObject::NewOSError(OSError* os_error) {
   result->SetAt(2, error_message);
   return result;
 }
+
+}  // namespace bin
+}  // namespace dart

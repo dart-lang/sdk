@@ -16,6 +16,7 @@ library dart.mirrors;
 
 import 'dart:async';
 import 'dart:isolate';
+import 'dart:uri';
 
 /**
  * A [MirrorSystem] is the main interface used to reflect on a set of
@@ -34,8 +35,16 @@ abstract class MirrorSystem {
    * An immutable map from from library names to mirrors for all
    * libraries known to this mirror system.
    */
-  // TODO(ahe): [libraries] should be Map<Uri, LibraryMirror>.
-  Map<Symbol, LibraryMirror> get libraries;
+  Map<Uri, LibraryMirror> get libraries;
+
+  /**
+   * Returns an iterable of all libraries in the mirror system whose library
+   * name is [libraryName].
+   */
+  Iterable<LibraryMirror> findLibrary(Symbol libraryName) {
+    return libraries.values.where(
+        (library) => library.simpleName == libraryName);
+  }
 
   /**
    * A mirror on the isolate associated with this [MirrorSystem].
@@ -336,13 +345,9 @@ abstract class ClosureMirror implements InstanceMirror {
  */
 abstract class LibraryMirror implements DeclarationMirror, ObjectMirror {
   /**
-   * The url of the library.
-   *
-   * TODO(turnidge): Document where this url comes from.  Will this
-   * value be sensible?
+   * The absolute uri of the library.
    */
-  // TODO(ahe): Change type to [Uri], rename to "uri"?
-  String get url;
+  Uri get uri;
 
   /**
    * An immutable map from from names to mirrors for all members in

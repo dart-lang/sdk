@@ -12,6 +12,9 @@
 #include "bin/crypto.h"
 
 
+namespace dart {
+namespace bin {
+
 bool Crypto::GetRandomBytes(intptr_t count, uint8_t* buffer) {
   intptr_t fd = TEMP_FAILURE_RETRY(open("/dev/urandom", O_RDONLY));
   if (fd < 0) return false;
@@ -19,5 +22,8 @@ bool Crypto::GetRandomBytes(intptr_t count, uint8_t* buffer) {
   close(fd);
   return bytes_read == count;
 }
+
+}  // namespace bin
+}  // namespace dart
 
 #endif  // defined(TARGET_OS_ANDROID)

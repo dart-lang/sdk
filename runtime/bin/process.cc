@@ -9,6 +9,10 @@
 
 #include "include/dart_api.h"
 
+
+namespace dart {
+namespace bin {
+
 static const int kProcessIdNativeField = 0;
 
 int Process::global_exit_code_ = 0;
@@ -260,3 +264,6 @@ void FUNCTION_NAME(StringToSystemEncoding)(Dart_NativeArguments args) {
   Dart_SetReturnValue(args, external_array);
   Dart_ExitScope();
 }
+
+}  // namespace bin
+}  // namespace dart

@@ -8,6 +8,7 @@
 #include "platform/assert.h"
 #include "platform/utils.h"
 #include "vm/allocation.h"
+#include "vm/exceptions.h"
 #include "vm/globals.h"
 
 namespace dart {
@@ -148,7 +149,9 @@ class WriteStream : public ValueObject {
     *buffer_ = reinterpret_cast<uint8_t*>(alloc_(NULL,
                                                  0,
                                                  initial_size_));
-    ASSERT(*buffer_ != NULL);
+    if (*buffer_ == NULL) {
+      Exceptions::ThrowOOM();
+    }
     current_ = *buffer_;
     current_size_ = initial_size_;
     end_ = *buffer_ + initial_size_;
@@ -243,7 +246,9 @@ class WriteStream : public ValueObject {
     *buffer_ = reinterpret_cast<uint8_t*>(alloc_(*buffer_,
                                                  current_size_,
                                                  new_size));
-    ASSERT(*buffer_ != NULL);
+    if (*buffer_ == NULL) {
+      Exceptions::ThrowOOM();
+    }
     current_ = *buffer_ + position;
     current_size_ = new_size;
     end_ = *buffer_ + new_size;

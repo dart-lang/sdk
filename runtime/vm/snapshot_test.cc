@@ -905,8 +905,6 @@ TEST_CASE(GenerateSource) {
 }
 
 
-// Only ia32 and x64 can run execution tests.
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 UNIT_TEST_CASE(FullSnapshot) {
   const char* kScriptChars =
       "class Fields  {\n"
@@ -1775,7 +1773,7 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessages) {
 UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
   const int kArrayLength = 10;
   static const char* kScriptChars =
-      "import 'dart:typeddata';\n"
+      "import 'dart:typed_data';\n"
       "final int kArrayLength = 10;\n"
       "getStringList() {\n"
       "  var s = 'Hello, world!';\n"
@@ -1974,7 +1972,7 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
 UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
   const int kArrayLength = 10;
   static const char* kScriptChars =
-      "import 'dart:typeddata';\n"
+      "import 'dart:typed_data';\n"
       "final int kArrayLength = 10;\n"
       "getStringList() {\n"
       "  var s = 'Hello, world!';\n"
@@ -2185,7 +2183,7 @@ static void CheckTypedData(Dart_CObject* object,
 
 UNIT_TEST_CASE(DartGeneratedListMessagesWithTypedData) {
   static const char* kScriptChars =
-      "import 'dart:typeddata';\n"
+      "import 'dart:typed_data';\n"
       "getTypedDataList() {\n"
       "  var list = new List(10);\n"
       "  var index = 0;\n"
@@ -2493,7 +2491,5 @@ UNIT_TEST_CASE(PostCObject) {
 
   Dart_ExitScope();
 }
-
-#endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64).
 
 }  // namespace dart

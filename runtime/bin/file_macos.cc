@@ -18,6 +18,10 @@
 #include "bin/fdutils.h"
 #include "bin/log.h"
 
+
+namespace dart {
+namespace bin {
+
 class FileHandle {
  public:
   explicit FileHandle(int fd) : fd_(fd) { }
@@ -323,5 +327,8 @@ File::Identical File::AreIdentical(const char* file_1, const char* file_2) {
       File::kIdentical :
       File::kDifferent;
 }
+
+}  // namespace bin
+}  // namespace dart
 
 #endif  // defined(TARGET_OS_MACOS)

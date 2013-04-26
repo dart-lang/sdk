@@ -18,21 +18,37 @@ namespace dart {
 // Generate a simple dart code sequence.
 // This is used to test Code and Instruction object creation.
 void GenerateIncrement(Assembler* assembler) {
-  __ Unimplemented("GenerateIncrement");
+  __ Push(ZR);
+  __ lw(TMP1, Address(SP, 0));
+  __ addiu(TMP1, TMP1, Immediate(1));
+  __ sw(TMP1, Address(SP, 0));
+  __ lw(TMP1, Address(SP, 0));
+  __ addiu(TMP1, TMP1, Immediate(1));
+  __ Pop(V0);
+  __ mov(V0, TMP1);
+  __ Ret();
 }
 
 
 // Generate a dart code sequence that embeds a string object in it.
 // This is used to test Embedded String objects in the instructions.
 void GenerateEmbedStringInCode(Assembler* assembler, const char* str) {
-  __ Unimplemented("GenerateEmbedStringInCode");
+  __ EnterDartFrame(0);  // To setup pp.
+  const String& string_object =
+      String::ZoneHandle(String::New(str, Heap::kOld));
+  __ LoadObject(V0, string_object);
+  __ LeaveDartFrame();
+  __ Ret();
 }
 
 
 // Generate a dart code sequence that embeds a smi object in it.
 // This is used to test Embedded Smi objects in the instructions.
 void GenerateEmbedSmiInCode(Assembler* assembler, intptr_t value) {
-  __ Unimplemented("GenerateEmbedSmiInCode");
+  // No need to setup pp, since Smis are not stored in the object pool.
+  const Smi& smi_object = Smi::ZoneHandle(Smi::New(value));
+  __ LoadObject(V0, smi_object);
+  __ Ret();
 }
 
 }  // namespace dart

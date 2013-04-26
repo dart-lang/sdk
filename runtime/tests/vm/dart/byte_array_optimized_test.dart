@@ -6,7 +6,7 @@
 library byte_array_test;
 
 import "package:expect/expect.dart";
-import 'dart:typeddata';
+import 'dart:typed_data';
 
 // This test exercises optimized [] and []= operators
 // on byte array views.

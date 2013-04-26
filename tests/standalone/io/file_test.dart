@@ -6,14 +6,24 @@
 
 import "package:expect/expect.dart";
 import 'dart:async';
+import 'dart:collection';
 import 'dart:io';
 import 'dart:isolate';
 
-class MyListOfOneElement implements List {
+class MyListOfOneElement
+    extends Object with ListMixin<int> implements List<int> {
   int _value;
   MyListOfOneElement(this._value);
   int get length => 1;
   operator [](int index) => _value;
+  void set length(int index) { throw "Unsupported"; }
+  operator []=(int index, value) {
+    if (index != 0) {
+      throw "Unsupported";
+    } else {
+      _value = value;
+    }
+  }
 }
 
 class FileTest {

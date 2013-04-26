@@ -329,11 +329,6 @@ class HInstructionStringifier implements HVisitor<String> {
     return "IndexAssign: $receiver[$index] = $value";
   }
 
-  String visitIntegerCheck(HIntegerCheck node) {
-    String value = temporaryId(node.value);
-    return "Integer check: $value";
-  }
-
   String visitInterceptor(HInterceptor node) {
     String value = temporaryId(node.inputs[0]);
     return "Intercept: $value";

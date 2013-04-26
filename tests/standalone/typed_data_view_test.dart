@@ -8,7 +8,7 @@
 library TypedDataTest;
 
 import "package:expect/expect.dart";
-import 'dart:typeddata';
+import 'dart:typed_data';
 
 validate(TypedData list, num expected) {
   for (int i = 0; i < list.length; i++) {

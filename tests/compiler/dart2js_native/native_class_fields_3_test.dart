@@ -12,7 +12,7 @@ import "package:expect/expect.dart";
 // names for clashes because it's hard - subclasses can force superclasses
 // to rename getters, and that can force unrelated classes to change their
 // getters too if they have a property that has the same name.
-class A native "*A" {
+class A native "A" {
   int bar;
   int g;
   int s;

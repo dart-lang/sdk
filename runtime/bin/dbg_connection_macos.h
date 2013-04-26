@@ -10,6 +10,9 @@
 #include <sys/socket.h>
 
 
+namespace dart {
+namespace bin {
+
 class DebuggerConnectionImpl {
  public:
   static void StartHandler(int port_number);
@@ -42,5 +45,7 @@ class DebuggerConnectionImpl {
   static int kqueue_fd_;
 };
 
+}  // namespace bin
+}  // namespace dart
 
 #endif  // BIN_DBG_CONNECTION_MACOS_H_

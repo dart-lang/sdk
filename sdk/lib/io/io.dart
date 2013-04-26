@@ -23,7 +23,7 @@ import 'dart:json' as JSON;
 import 'dart:math';
 import 'dart:uri';
 import 'dart:utf';
-import 'dart:typeddata';
+import 'dart:typed_data';
 
 part 'base64.dart';
 part 'buffer_list.dart';
@@ -36,6 +36,8 @@ part 'file.dart';
 part 'file_impl.dart';
 part 'file_system_entity.dart';
 part 'http.dart';
+part 'http_body.dart';
+part 'http_body_impl.dart';
 part 'http_headers.dart';
 part 'http_impl.dart';
 part 'http_parser.dart';

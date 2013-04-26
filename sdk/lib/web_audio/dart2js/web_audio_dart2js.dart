@@ -5,6 +5,7 @@ import 'dart:collection';
 import 'dart:_collection-dev';
 import 'dart:html';
 import 'dart:html_common';
+import 'dart:typed_data';
 import 'dart:_js_helper' show Creates, Returns, convertDartClosureToJS;
 import 'dart:_foreign_helper' show JS;
 // DO NOT EDIT - unless you are editing documentation as per:
@@ -21,7 +22,7 @@ import 'dart:_foreign_helper' show JS;
 
 @DocsEditable
 @DomName('AnalyserNode')
-class AnalyserNode extends AudioNode native "*AnalyserNode" {
+class AnalyserNode extends AudioNode native "AnalyserNode" {
 
   @DomName('AnalyserNode.fftSize')
   @DocsEditable
@@ -45,15 +46,15 @@ class AnalyserNode extends AudioNode native "*AnalyserNode" {
 
   @DomName('AnalyserNode.getByteFrequencyData')
   @DocsEditable
-  void getByteFrequencyData(Uint8Array array) native;
+  void getByteFrequencyData(Uint8List array) native;
 
   @DomName('AnalyserNode.getByteTimeDomainData')
   @DocsEditable
-  void getByteTimeDomainData(Uint8Array array) native;
+  void getByteTimeDomainData(Uint8List array) native;
 
   @DomName('AnalyserNode.getFloatFrequencyData')
   @DocsEditable
-  void getFloatFrequencyData(Float32Array array) native;
+  void getFloatFrequencyData(Float32List array) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -62,7 +63,7 @@ class AnalyserNode extends AudioNode native "*AnalyserNode" {
 
 @DocsEditable
 @DomName('AudioBuffer')
-class AudioBuffer native "*AudioBuffer" {
+class AudioBuffer native "AudioBuffer" {
 
   @DomName('AudioBuffer.duration')
   @DocsEditable
@@ -86,8 +87,8 @@ class AudioBuffer native "*AudioBuffer" {
 
   @DomName('AudioBuffer.getChannelData')
   @DocsEditable
-  @Returns('Float32Array')
-  @Creates('Float32Array')
+  @Returns('Float32List')
+  @Creates('Float32List')
   List<double> getChannelData(int channelIndex) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -104,7 +105,7 @@ typedef void AudioBufferCallback(AudioBuffer audioBuffer);
 
 
 @DomName('AudioBufferSourceNode')
-class AudioBufferSourceNode extends AudioSourceNode native "*AudioBufferSourceNode" {
+class AudioBufferSourceNode extends AudioSourceNode native "AudioBufferSourceNode" {
 
   // TODO(efortuna): Remove these methods when Chrome stable also uses start
   // instead of noteOn.
@@ -179,7 +180,7 @@ class AudioBufferSourceNode extends AudioSourceNode native "*AudioBufferSourceNo
 
 
 @DomName('AudioContext')
-class AudioContext extends EventTarget native "*AudioContext" {
+class AudioContext extends EventTarget native "AudioContext" {
 
   @DomName('AudioContext.completeEvent')
   @DocsEditable
@@ -270,11 +271,11 @@ class AudioContext extends EventTarget native "*AudioContext" {
 
   @DomName('AudioContext.createWaveTable')
   @DocsEditable
-  WaveTable createWaveTable(Float32Array real, Float32Array imag) native;
+  WaveTable createWaveTable(Float32List real, Float32List imag) native;
 
   @DomName('AudioContext.decodeAudioData')
   @DocsEditable
-  void decodeAudioData(/*ArrayBuffer*/ audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback]) native;
+  void decodeAudioData(ByteBuffer audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback]) native;
 
   @DomName('AudioContext.startRendering')
   @DocsEditable
@@ -318,7 +319,7 @@ class AudioContext extends EventTarget native "*AudioContext" {
 
 @DocsEditable
 @DomName('AudioDestinationNode')
-class AudioDestinationNode extends AudioNode native "*AudioDestinationNode" {
+class AudioDestinationNode extends AudioNode native "AudioDestinationNode" {
 
   @DomName('AudioDestinationNode.maxChannelCount')
   @DocsEditable
@@ -331,7 +332,7 @@ class AudioDestinationNode extends AudioNode native "*AudioDestinationNode" {
 
 @DocsEditable
 @DomName('AudioListener')
-class AudioListener native "*AudioListener" {
+class AudioListener native "AudioListener" {
 
   @DomName('AudioListener.dopplerFactor')
   @DocsEditable
@@ -360,7 +361,7 @@ class AudioListener native "*AudioListener" {
 
 @DocsEditable
 @DomName('AudioNode')
-class AudioNode native "*AudioNode" {
+class AudioNode native "AudioNode" {
 
   @DomName('AudioNode.channelCount')
   @DocsEditable
@@ -401,7 +402,7 @@ class AudioNode native "*AudioNode" {
 
 @DocsEditable
 @DomName('AudioParam')
-class AudioParam native "*AudioParam" {
+class AudioParam native "AudioParam" {
 
   @DomName('AudioParam.defaultValue')
   @DocsEditable
@@ -449,7 +450,7 @@ class AudioParam native "*AudioParam" {
 
   @DomName('AudioParam.setValueCurveAtTime')
   @DocsEditable
-  void setValueCurveAtTime(Float32Array values, num time, num duration) native;
+  void setValueCurveAtTime(Float32List values, num time, num duration) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -458,7 +459,7 @@ class AudioParam native "*AudioParam" {
 
 @DocsEditable
 @DomName('AudioProcessingEvent')
-class AudioProcessingEvent extends Event native "*AudioProcessingEvent" {
+class AudioProcessingEvent extends Event native "AudioProcessingEvent" {
 
   @DomName('AudioProcessingEvent.inputBuffer')
   @DocsEditable
@@ -475,7 +476,7 @@ class AudioProcessingEvent extends Event native "*AudioProcessingEvent" {
 
 @DocsEditable
 @DomName('AudioSourceNode')
-class AudioSourceNode extends AudioNode native "*AudioSourceNode" {
+class AudioSourceNode extends AudioNode native "AudioSourceNode" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -484,7 +485,7 @@ class AudioSourceNode extends AudioNode native "*AudioSourceNode" {
 
 @DocsEditable
 @DomName('BiquadFilterNode')
-class BiquadFilterNode extends AudioNode native "*BiquadFilterNode" {
+class BiquadFilterNode extends AudioNode native "BiquadFilterNode" {
 
   static const int ALLPASS = 7;
 
@@ -524,7 +525,7 @@ class BiquadFilterNode extends AudioNode native "*BiquadFilterNode" {
 
   @DomName('BiquadFilterNode.getFrequencyResponse')
   @DocsEditable
-  void getFrequencyResponse(Float32Array frequencyHz, Float32Array magResponse, Float32Array phaseResponse) native;
+  void getFrequencyResponse(Float32List frequencyHz, Float32List magResponse, Float32List phaseResponse) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -533,7 +534,7 @@ class BiquadFilterNode extends AudioNode native "*BiquadFilterNode" {
 
 @DocsEditable
 @DomName('ChannelMergerNode')
-class ChannelMergerNode extends AudioNode native "*ChannelMergerNode" {
+class ChannelMergerNode extends AudioNode native "ChannelMergerNode" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -542,7 +543,7 @@ class ChannelMergerNode extends AudioNode native "*ChannelMergerNode" {
 
 @DocsEditable
 @DomName('ChannelSplitterNode')
-class ChannelSplitterNode extends AudioNode native "*ChannelSplitterNode" {
+class ChannelSplitterNode extends AudioNode native "ChannelSplitterNode" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -551,7 +552,7 @@ class ChannelSplitterNode extends AudioNode native "*ChannelSplitterNode" {
 
 @DocsEditable
 @DomName('ConvolverNode')
-class ConvolverNode extends AudioNode native "*ConvolverNode" {
+class ConvolverNode extends AudioNode native "ConvolverNode" {
 
   @DomName('ConvolverNode.buffer')
   @DocsEditable
@@ -568,7 +569,7 @@ class ConvolverNode extends AudioNode native "*ConvolverNode" {
 
 @DocsEditable
 @DomName('DelayNode')
-class DelayNode extends AudioNode native "*DelayNode" {
+class DelayNode extends AudioNode native "DelayNode" {
 
   @DomName('DelayNode.delayTime')
   @DocsEditable
@@ -581,7 +582,7 @@ class DelayNode extends AudioNode native "*DelayNode" {
 
 @DocsEditable
 @DomName('DynamicsCompressorNode')
-class DynamicsCompressorNode extends AudioNode native "*DynamicsCompressorNode" {
+class DynamicsCompressorNode extends AudioNode native "DynamicsCompressorNode" {
 
   @DomName('DynamicsCompressorNode.attack')
   @DocsEditable
@@ -614,7 +615,7 @@ class DynamicsCompressorNode extends AudioNode native "*DynamicsCompressorNode" 
 
 @DocsEditable
 @DomName('GainNode')
-class GainNode extends AudioNode native "*GainNode" {
+class GainNode extends AudioNode native "GainNode" {
 
   @DomName('GainNode.gain')
   @DocsEditable
@@ -627,7 +628,7 @@ class GainNode extends AudioNode native "*GainNode" {
 
 @DocsEditable
 @DomName('MediaElementAudioSourceNode')
-class MediaElementAudioSourceNode extends AudioSourceNode native "*MediaElementAudioSourceNode" {
+class MediaElementAudioSourceNode extends AudioSourceNode native "MediaElementAudioSourceNode" {
 
   @DomName('MediaElementAudioSourceNode.mediaElement')
   @DocsEditable
@@ -640,7 +641,7 @@ class MediaElementAudioSourceNode extends AudioSourceNode native "*MediaElementA
 
 @DocsEditable
 @DomName('MediaStreamAudioDestinationNode')
-class MediaStreamAudioDestinationNode extends AudioSourceNode native "*MediaStreamAudioDestinationNode" {
+class MediaStreamAudioDestinationNode extends AudioSourceNode native "MediaStreamAudioDestinationNode" {
 
   @DomName('MediaStreamAudioDestinationNode.stream')
   @DocsEditable
@@ -653,7 +654,7 @@ class MediaStreamAudioDestinationNode extends AudioSourceNode native "*MediaStre
 
 @DocsEditable
 @DomName('MediaStreamAudioSourceNode')
-class MediaStreamAudioSourceNode extends AudioSourceNode native "*MediaStreamAudioSourceNode" {
+class MediaStreamAudioSourceNode extends AudioSourceNode native "MediaStreamAudioSourceNode" {
 
   @DomName('MediaStreamAudioSourceNode.mediaStream')
   @DocsEditable
@@ -666,7 +667,7 @@ class MediaStreamAudioSourceNode extends AudioSourceNode native "*MediaStreamAud
 
 @DocsEditable
 @DomName('OfflineAudioCompletionEvent')
-class OfflineAudioCompletionEvent extends Event native "*OfflineAudioCompletionEvent" {
+class OfflineAudioCompletionEvent extends Event native "OfflineAudioCompletionEvent" {
 
   @DomName('OfflineAudioCompletionEvent.renderedBuffer')
   @DocsEditable
@@ -679,7 +680,7 @@ class OfflineAudioCompletionEvent extends Event native "*OfflineAudioCompletionE
 
 @DocsEditable
 @DomName('OfflineAudioContext')
-class OfflineAudioContext extends AudioContext implements EventTarget native "*OfflineAudioContext" {
+class OfflineAudioContext extends AudioContext implements EventTarget native "OfflineAudioContext" {
 
   @DomName('OfflineAudioContext.OfflineAudioContext')
   @DocsEditable
@@ -695,7 +696,7 @@ class OfflineAudioContext extends AudioContext implements EventTarget native "*O
 
 @DocsEditable
 @DomName('OscillatorNode')
-class OscillatorNode extends AudioSourceNode native "*OscillatorNode" {
+class OscillatorNode extends AudioSourceNode native "OscillatorNode" {
 
   static const int CUSTOM = 4;
 
@@ -750,7 +751,7 @@ class OscillatorNode extends AudioSourceNode native "*OscillatorNode" {
 
 @DocsEditable
 @DomName('PannerNode')
-class PannerNode extends AudioNode native "*PannerNode" {
+class PannerNode extends AudioNode native "PannerNode" {
 
   static const int EQUALPOWER = 0;
 
@@ -814,7 +815,7 @@ class PannerNode extends AudioNode native "*PannerNode" {
 
 
 @DomName('ScriptProcessorNode')
-class ScriptProcessorNode extends AudioNode native "*ScriptProcessorNode" {
+class ScriptProcessorNode extends AudioNode native "ScriptProcessorNode" {
   Stream<AudioProcessingEvent> _eventStream;
 
   /**
@@ -860,12 +861,12 @@ class ScriptProcessorNode extends AudioNode native "*ScriptProcessorNode" {
 
 @DocsEditable
 @DomName('WaveShaperNode')
-class WaveShaperNode extends AudioNode native "*WaveShaperNode" {
+class WaveShaperNode extends AudioNode native "WaveShaperNode" {
 
   @DomName('WaveShaperNode.curve')
   @DocsEditable
-  @Returns('Float32Array')
-  @Creates('Float32Array')
+  @Returns('Float32List')
+  @Creates('Float32List')
   List<double> curve;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -875,5 +876,5 @@ class WaveShaperNode extends AudioNode native "*WaveShaperNode" {
 
 @DocsEditable
 @DomName('WaveTable')
-class WaveTable native "*WaveTable" {
+class WaveTable native "WaveTable" {
 }

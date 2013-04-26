@@ -8,6 +8,9 @@
 #include "include/dart_api.h"
 
 
+namespace dart {
+namespace bin {
+
 void FUNCTION_NAME(Crypto_GetRandomBytes)(Dart_NativeArguments args) {
   Dart_EnterScope();
   Dart_Handle count_obj = Dart_GetNativeArgument(args, 0);
@@ -34,3 +37,6 @@ void FUNCTION_NAME(Crypto_GetRandomBytes)(Dart_NativeArguments args) {
   delete[] buffer;
   Dart_ExitScope();
 }
+
+}  // namespace bin
+}  // namespace dart

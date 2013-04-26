@@ -6,16 +6,16 @@ import "package:expect/expect.dart";
 
 var inscrutable = (int x) => x == 0 ? 0 : x | inscrutable(x & (x - 1));
 
-class A native "*A" {
+class A native "A" {
 }
 
-class B implements Comparable native "*B" {
+class B implements Comparable native "B" {
 }
 
-class C implements Pattern native "*C" {
+class C implements Pattern native "C" {
 }
 
-class D implements Pattern, Comparable native "*D" {
+class D implements Pattern, Comparable native "D" {
 }
 
 makeA() native;

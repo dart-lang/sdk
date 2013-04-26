@@ -4,7 +4,7 @@
 
 part of pipeline;
 
-List stdout, stderr, log;
+List log;
 var replyPort;
 int _procId = 1;
 Map _procs = {};
@@ -14,7 +14,7 @@ Map _procs = {};
  * [tmpDir] directory, with name [basis], but with any extension
  * stripped and replaced by [suffix].
  */
-String createTempName(String tmpDir, String basis, String suffix) {
+String createTempName(String tmpDir, String basis, [String suffix='']) {
   var p = new Path(basis);
   return '$tmpDir${Platform.pathSeparator}'
       '${p.filenameWithoutExtension}${suffix}';
@@ -41,9 +41,7 @@ String getDirectory(String file) =>
 /** Create a file [fileName] and populate it with [contents]. */
 void writeFile(String fileName, String contents) {
   var file = new File(fileName);
-  var ostream = file.openOutputStream(FileMode.WRITE);
-  ostream.writeString(contents);
-  ostream.close();
+  file.writeAsStringSync(contents);
 }
 
 /*
@@ -59,62 +57,62 @@ void writeFile(String fileName, String contents) {
  * Returns a [Future] for when the process terminates.
  */
 Future _processHelper(String command, List<String> args,
-    [int timeout = 300, int procId = 0, Function outputMonitor]) {
-  var completer = procId == 0 ? new Completer() : null;
-  log.add('Running $command ${args.join(" ")}');
+    List stdout, List stderr,
+    [int timeout = 30, int procId = 0, Function outputMonitor]) {
   var timer = null;
-  var stdoutHandler, stderrHandler;
-  var processFuture = Process.start(command, args);
-  processFuture.then((process) {
-    _procs[procId] = process;
+  if (Platform.operatingSystem == 'windows' && command.endsWith('.bat')) {
+    var oldArgs = args;
+    args = new List();
+    args.add('/c');
+    // TODO(gram): We may need some escaping here if any of the
+    // components contain spaces.
+    args.add("$command ${oldArgs.join(' ')}");
+    command='cmd.exe';
+  }
+  log.add('Running $command ${args.join(" ")}');
+  
+  return Process.start(command, args)
+      .then((process) {
+        _procs[procId.toString()] = process;
 
-    timer = new Timer(new Duration(seconds: timeout), () {
-      timer = null;
-      process.kill();
-    });
+        var stdoutFuture = _pipeStream(process.stdout, stdout, outputMonitor);
+        var stderrFuture = _pipeStream(process.stderr, stderr, outputMonitor);
 
-    process.onExit = (exitCode) {
-      if (timer != null) {
-        timer.cancel();
-      }
-      process.close();
-      if (completer != null) {
-        completer.complete(exitCode);
-      }
-    };
-
-    _pipeStream(process.stdout, stdout, outputMonitor);
-    _pipeStream(process.stderr, stderr, outputMonitor);
-  });
-  processFuture.handleException((e) {
-    stderr.add("Error starting process:");
-    stderr.add("  Command: $command");
-    stderr.add("  Error: $e");
-    completePipeline(-1);
-    return true;
-  });
-
-  return completer.future;
+        timer = new Timer(new Duration(seconds: timeout), () {
+          timer = null;
+          process.kill();
+        });
+        return Future.wait([process.exitCode, stdoutFuture, stderrFuture])
+            .then((values) {
+              if (timer != null) {
+                timer.cancel();
+              }
+              return values[0];
+            });
+      })
+      .catchError((e) {
+        stderr.add("Error starting process:");
+        stderr.add("  Command: $command");
+        stderr.add("  Error: ${e.toString()}");
+        return new Future.value(-1);
+      });
 }
 
-void _pipeStream(InputStream stream, List<String> destination,
+Future _pipeStream(Stream stream, List<String> destination,
                  Function outputMonitor) {
-  var source = new StringInputStream(stream);
-  source.onLine = () {
-    if (source.available() == 0) return;
-    var line = source.readLine();
-    while (null != line) {
+  return stream
+    .transform(new StringDecoder())
+    .transform(new LineTransformer())
+    .listen((String line) {
       if (config["immediate"] && line.startsWith('###')) {
-        // TODO - when we dump the list later skip '###' messages if immediate.
         print(line.substring(3));
       }
       if (outputMonitor != null) {
         outputMonitor(line);
       }
       destination.add(line);
-      line = source.readLine();
-    }
-  };
+    })
+    .asFuture();
 }
 
 /**
@@ -124,26 +122,32 @@ void _pipeStream(InputStream stream, List<String> destination,
  * Returns a [Future] for when the process terminates.
  */
 Future runCommand(String command, List<String> args,
-                  [int timeout = 300, Function outputMonitor]) {
-  return _processHelper(command, args, timeout, outputMonitor:outputMonitor);
+                  List stdout, List stderr,
+                  [int timeout = 30, Function outputMonitor]) {
+  return _processHelper(command, args, stdout, stderr, 
+      timeout, 0, outputMonitor);
 }
 
 /**
  * Start an external process [cmd] with command line arguments [args].
  * Returns an ID by which it can later be stopped.
  */
-int startProcess(String command, List<String> args, [Function outputMonitor]) {
+int startProcess(String command, List<String> args, List stdout, List stderr,
+                 [Function outputMonitor]) {
   int id = _procId++;
-  _processHelper(command, args, 3000, id,
-      outputMonitor:outputMonitor).then((e) {
-    _procs.remove(id);
-  });
+  var f = _processHelper(command, args, stdout, stderr, 3000, id,
+      outputMonitor);
+  if (f != null) {
+    f.then((e) {
+      _procs.remove(id.toString());
+    });
+  }
   return id;
 }
 
 /** Checks if a process is still running. */
 bool isProcessRunning(int id) {
-  return _procs.containsKey(id);
+  return _procs.containsKey(id.toString());
 }
 
 /**
@@ -151,20 +155,37 @@ bool isProcessRunning(int id) {
  * given the id string.
  */
 void stopProcess(int id) {
-  if (_procs.containsKey(id)) {
-    Process p = _procs.remove(id);
+  var sid = id.toString();
+  if (_procs.containsKey(sid)) {
+    Process p = _procs.remove(sid);
     p.kill();
   }
 }
 
 /** Delete a file named [fname] if it exists. */
 bool cleanup(String fname) {
-  if (fname != null && !config['keep-files']) {
+  if (fname != null && config['clean-files']) {
     var f = new File(fname);
     try {
       if (f.existsSync()) {
         logMessage('Removing $fname');
         f.deleteSync();
+      }
+    } catch (e) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/** Delete a directory named [dname] if it exists. */
+bool cleanupDir(String dname) {
+  if (dname != null && config['clean-files']) {
+    var d = new Directory(dname);
+    try {
+      if (d.existsSync()) {
+        logMessage('Removing $dname');
+        d.deleteSync(recursive: true);
       }
     } catch (e) {
       return false;
@@ -180,9 +201,12 @@ initPipeline(port) {
   log = new List();
 }
 
-void completePipeline([exitCode = 0]) {
+void completePipeline(List stdout, List stderr, [exitCode = 0]) {
   replyPort.send([stdout, stderr, log, exitCode]);
 }
 
 /** Utility function to log diagnostic messages. */
 void logMessage(msg) => log.add(msg);
+
+/** Turn file paths into standard form with forward slashes. */
+String normalizePath(String p) => (new Path(p)).toString();

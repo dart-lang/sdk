@@ -13,7 +13,7 @@
 import 'dart:io';
 import 'dart:json' as json;
 import 'package:pathos/path.dart' as path;
-import 'find_output_directory.dart';
+import 'package:args/args.dart';
 
 /** A list of the French translations that we will produce. */
 var french = {
@@ -95,8 +95,11 @@ main() {
         '[originalFile.dart]');
     exit(0);
   }
+  var parser = new ArgParser();
+  parser.addOption("output-dir", defaultsTo: '.',
+      callback: (value) => targetDir = value);
+  parser.parse(args);
 
-  targetDir = findOutputDirectory(args);
   var fileArgs = args.where((x) => x.contains('.json'));
 
   var messages = json.parse(new File(fileArgs.first).readAsStringSync());

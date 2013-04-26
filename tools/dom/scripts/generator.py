@@ -11,7 +11,8 @@ import json
 import monitored
 import os
 import re
-from htmlrenamer import html_interface_renames, renamed_html_members
+from htmlrenamer import html_interface_renames, renamed_html_members, \
+     typed_array_renames
 
 # Set up json file for retrieving comments.
 _current_dir = os.path.dirname(__file__)
@@ -35,30 +36,20 @@ _pure_interfaces = monitored.Set('generator._pure_interfaces', [
     'SVGTransformable',
     'SVGURIReference',
     'SVGZoomAndPan',
-    'TimeoutHandler'])
+    'TimeoutHandler',
+    ])
 
 def IsPureInterface(interface_name):
   return interface_name in _pure_interfaces
 
+_custom_types = monitored.Set('generator._custom_types',
+                              typed_array_renames.keys())
+
+def IsCustomType(interface_name):
+  return interface_name in _custom_types
 
 _methods_with_named_formals = monitored.Set(
     'generator._methods_with_named_formals', [
-  'DataView.getFloat32',
-  'DataView.getFloat64',
-  'DataView.getInt16',
-  'DataView.getInt32',
-  'DataView.getInt8',
-  'DataView.getUint16',
-  'DataView.getUint32',
-  'DataView.getUint8',
-  'DataView.setFloat32',
-  'DataView.setFloat64',
-  'DataView.setInt16',
-  'DataView.setInt32',
-  'DataView.setInt8',
-  'DataView.setUint16',
-  'DataView.setUint32',
-  'DataView.setUint8',
   'DirectoryEntry.getDirectory',
   'DirectoryEntry.getFile',
   'Entry.copyTo',
@@ -79,15 +70,6 @@ _dart_attribute_renames = monitored.Dict('generator._dart_attribute_renames', {
 # factory provider.
 #
 interface_factories = monitored.Dict('generator.interface_factories', {
-    'Float32Array': '_TypedArrayFactoryProvider',
-    'Float64Array': '_TypedArrayFactoryProvider',
-    'Int8Array': '_TypedArrayFactoryProvider',
-    'Int16Array': '_TypedArrayFactoryProvider',
-    'Int32Array': '_TypedArrayFactoryProvider',
-    'Uint8Array': '_TypedArrayFactoryProvider',
-    'Uint8ClampedArray': '_TypedArrayFactoryProvider',
-    'Uint16Array': '_TypedArrayFactoryProvider',
-    'Uint32Array': '_TypedArrayFactoryProvider',
 })
 
 #
@@ -95,12 +77,22 @@ interface_factories = monitored.Dict('generator.interface_factories', {
 #
 _dart2js_dom_custom_native_specs = monitored.Dict(
       'generator._dart2js_dom_custom_native_specs', {
-    # Decorate the singleton Console object, if present (workers do not have a
-    # console).
-    'Console': "=(typeof console == 'undefined' ? {} : console)",
 
-    # DOMWindow aliased with global scope.
-    'Window': '@*DOMWindow',
+    # Nodes with different tags in different browsers can be listed as multiple
+    # tags here provided there is not conflict in usage (e.g. browser X has tag
+    # T and no other browser has tag T).
+
+    'DOMApplicationCache':
+        'ApplicationCache,DOMApplicationCache,OfflineResourceList',
+
+    'MutationObserver': 'MutationObserver,WebKitMutationObserver',
+
+    'NodeList': 'NodeList,RadioNodeList',
+
+    'TransitionEvent': 'TransitionEvent,WebKitTransitionEvent',
+
+    'WheelEvent': 'WheelEvent,MouseWheelEvent,MouseScrollEvent',
+
 }, dart2jsOnly=True)
 
 def IsRegisteredType(type_name):
@@ -112,7 +104,7 @@ def MakeNativeSpec(javascript_binding_name):
   else:
     # Make the class 'hidden' so it is dynamically patched at runtime.  This
     # is useful for browser compat.
-    return '*' + javascript_binding_name
+    return javascript_binding_name
 
 
 def MatchSourceFilter(thing):
@@ -151,12 +143,14 @@ def GetCallbackInfo(interface):
 def _BuildArguments(args, interface, constructor=False):
   def IsOptional(argument):
     if 'Callback' in argument.ext_attrs:
-      # Callbacks with 'Optional=XXX' are treated as optional arguments.
-      return 'Optional' in argument.ext_attrs
+      # Optional callbacks arguments are treated as optional arguments.
+      return argument.optional
     if constructor:
-      # FIXME: Constructors with 'Optional=XXX' shouldn't be treated as
+      # FIXME: Optional constructors arguments should not be treated as
       # optional arguments.
-      return 'Optional' in argument.ext_attrs
+      return argument.optional
+    if 'ForceOptional' in argument.ext_attrs:
+      return True
     return False
 
   # Given a list of overloaded arguments, choose a suitable name.
@@ -190,8 +184,8 @@ def _BuildArguments(args, interface, constructor=False):
   return result
 
 def IsOptional(argument):
-  return ('Optional' in argument.ext_attrs and
-          argument.ext_attrs['Optional'] == None)
+  return argument.optional and ('Default' not in argument.ext_attrs)\
+      or 'ForceOptional' in argument.ext_attrs
 
 def AnalyzeOperation(interface, operations):
   """Makes operation calling convention decision for a set of overloads.
@@ -393,11 +387,11 @@ class OperationInfo(object):
     else:
       # TODO(antonm): temporary ugly hack.
       # While in transition phase we allow both DOM's ArrayBuffer
-      # and dart:typeddata's ByteBuffer for IDLs' ArrayBuffers,
+      # and dart:typed_data's ByteBuffer for IDLs' ArrayBuffers,
       # hence ArrayBuffer is mapped to dynamic in arguments and return
       # values.  To compensate for that when generating ArrayBuffer itself,
       # we need to lie a bit:
-      if self.type_name == 'ArrayBuffer': return 'ArrayBuffer'
+      if self.type_name == 'ArrayBuffer': return 'ByteBuffer'
       return rename_type(self.type_name)
 
 def ConstantOutputOrder(a, b):
@@ -551,14 +545,9 @@ def FindConversion(idl_type, direction, interface, member):
 
 dart2js_annotations = monitored.Dict('generator.dart2js_annotations', {
 
-    'ArrayBuffer': [
-      "@Creates('ArrayBuffer')",
-      "@Returns('ArrayBuffer|Null')",
-    ],
-
     'ArrayBufferView': [
-      "@Creates('ArrayBufferView')",
-      "@Returns('ArrayBufferView|Null')",
+      "@Creates('TypedData')",
+      "@Returns('TypedData|Null')",
     ],
 
     'CanvasRenderingContext2D.createImageData': [
@@ -618,7 +607,7 @@ dart2js_annotations = monitored.Dict('generator.dart2js_annotations', {
       "@Returns('Element|Document')",
     ],
 
-    'FileReader.result': ["@Creates('String|ArrayBuffer|Null')"],
+    'FileReader.result': ["@Creates('String|ByteBuffer|Null')"],
 
     # Rather than have the result of an IDBRequest as a union over all possible
     # results, we mark the result as instantiating any classes, and mark
@@ -687,14 +676,14 @@ dart2js_annotations = monitored.Dict('generator.dart2js_annotations', {
     'WebGLRenderingContext.getParameter': [
       # Taken from http://www.khronos.org/registry/webgl/specs/latest/
       # Section 5.14.3 Setting and getting state
-      "@Creates('Null|num|String|bool|=List|Float32Array|Int32Array|Uint32Array"
+      "@Creates('Null|num|String|bool|=List|Float32List|Int32List|Uint32List"
                 "|Framebuffer|Renderbuffer|Texture')",
-      "@Returns('Null|num|String|bool|=List|Float32Array|Int32Array|Uint32Array"
+      "@Returns('Null|num|String|bool|=List|Float32List|Int32List|Uint32List"
                 "|Framebuffer|Renderbuffer|Texture')",
     ],
 
     'XMLHttpRequest.response': [
-      "@Creates('ArrayBuffer|Blob|Document|=Object|=List|String|num')",
+      "@Creates('ByteBuffer|Blob|Document|=Object|=List|String|num')",
     ],
 }, dart2jsOnly=True)
 
@@ -771,8 +760,6 @@ _webkit_experimental_annotations = [
 #   INTERFACE:     annotations to be added to the interface declaration
 #   INTERFACE.MEMBER: annotation to be added to the member declaration
 dart_annotations = monitored.Dict('generator.dart_annotations', {
-  'ArrayBuffer': _all_but_ie9_annotations,
-  'ArrayBufferView': _all_but_ie9_annotations,
   'CSSHostRule': _shadow_dom_annotations,
   'Crypto': _webkit_experimental_annotations,
   'Database': _web_sql_annotations,
@@ -1035,9 +1022,6 @@ class IDLTypeInfo(object):
   def list_item_type(self):
     raise NotImplementedError()
 
-  def is_typed_array(self):
-    raise NotImplementedError()
-
   def merged_interface(self):
     return None
 
@@ -1163,9 +1147,6 @@ class InterfaceIDLTypeInfo(IDLTypeInfo):
 
   def list_item_type(self):
     return self._data.item_type
-
-  def is_typed_array(self):
-    return self._data.is_typed_array
 
   def merged_interface(self):
     # All constants, attributes, and operations of merged interface should be
@@ -1329,6 +1310,38 @@ class SVGTearOffIDLTypeInfo(InterfaceIDLTypeInfo):
     return name if interface_name.endswith('List') else '%s->propertyReference()' % name
 
 
+class TypedListIDLTypeInfo(InterfaceIDLTypeInfo):
+  def __init__(self, idl_type, data, interface_name, type_registry):
+    super(TypedListIDLTypeInfo, self).__init__(
+        idl_type, data, interface_name, type_registry)
+
+  def conversion_includes(self):
+    return [ '"wtf/%s.h"' % self._idl_type ]
+
+  def to_dart_conversion(self, value, interface_name, attributes):
+    return 'DartUtilities::arrayBufferViewToDart(%s)' % value
+
+  def to_native_info(self, idl_node, interface_name):
+    return '%s.get()', 'RefPtr<%s>' % self._idl_type, 'DartUtilities', 'dartTo%s' % self._idl_type
+
+
+class BasicTypedListIDLTypeInfo(InterfaceIDLTypeInfo):
+  def __init__(self, idl_type, data, interface_name, type_registry):
+    super(BasicTypedListIDLTypeInfo, self).__init__(
+        idl_type, data, interface_name, type_registry)
+
+  def conversion_includes(self):
+    return []
+
+  def to_dart_conversion(self, value, interface_name, attributes):
+    function_name = 'DartUtilities::%sToDart' % self._idl_type
+    function_name = function_name[0].lower() + function_name[1:]
+    return '%s(%s)' % (function_name, value)
+
+  def to_native_info(self, idl_node, interface_name):
+    return '%s.get()', 'RefPtr<%s>' % self._idl_type, 'DartUtilities', 'dartTo%s' % self._idl_type
+
+
 class TypeData(object):
   def __init__(self, clazz, dart_type=None, native_type=None,
                merged_interface=None, merged_into=None,
@@ -1336,7 +1349,7 @@ class TypeData(object):
                conversion_includes=None,
                webcore_getter_name='getAttribute',
                webcore_setter_name='setAttribute',
-               item_type=None, suppress_interface=False, is_typed_array=False):
+               item_type=None, suppress_interface=False):
     self.clazz = clazz
     self.dart_type = dart_type
     self.native_type = native_type
@@ -1349,25 +1362,19 @@ class TypeData(object):
     self.webcore_setter_name = webcore_setter_name
     self.item_type = item_type
     self.suppress_interface = suppress_interface
-    self.is_typed_array = is_typed_array
 
 
-def TypedArrayTypeData(item_type):
+def TypedListTypeData(item_type):
   return TypeData(
-      clazz='Interface',
-      dart_type='List<%s>' % item_type, # TODO(antonm): proper typeddata interfaces.
-      item_type=item_type,
-      # TODO(antonm): should be autogenerated. Let the dust settle down.
-      custom_to_dart=True, custom_to_native=True,
-      is_typed_array=True)
+      clazz='TypedList',
+      dart_type='List<%s>' % item_type, # TODO(antonm): proper typed_data interfaces.
+      item_type=item_type)
 
 
 _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
     'boolean': TypeData(clazz='Primitive', dart_type='bool', native_type='bool',
                         webcore_getter_name='hasAttribute',
                         webcore_setter_name='setBooleanAttribute'),
-    'byte': TypeData(clazz='Primitive', dart_type='int', native_type='int'),
-    'octet': TypeData(clazz='Primitive', dart_type='int', native_type='int'),
     'short': TypeData(clazz='Primitive', dart_type='int', native_type='int'),
     'unsigned short': TypeData(clazz='Primitive', dart_type='int',
         native_type='int'),
@@ -1462,24 +1469,18 @@ _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
     'TextTrackList': TypeData(clazz='Interface', item_type='TextTrack'),
     'TouchList': TypeData(clazz='Interface', item_type='Touch'),
 
-    'Float32Array': TypedArrayTypeData('double'),
-    'Float64Array': TypedArrayTypeData('double'),
-    'Int8Array': TypedArrayTypeData('int'),
-    'Int16Array': TypedArrayTypeData('int'),
-    'Int32Array': TypedArrayTypeData('int'),
-    'Uint8Array': TypedArrayTypeData('int'),
-    'Uint8ClampedArray': TypedArrayTypeData('int'),
-    'Uint16Array': TypedArrayTypeData('int'),
-    'Uint32Array': TypedArrayTypeData('int'),
-    # TODO(antonm): temporary ugly hack.
-    # While in transition phase we allow both DOM's ArrayBuffer
-    # and dart:typeddata's ByteBuffer for IDLs' ArrayBuffers,
-    # hence ArrayBuffer is mapped to dynamic in arguments and return
-    # values.
-    'ArrayBufferView': TypeData(clazz='Interface', dart_type='dynamic',
-        custom_to_native=True, custom_to_dart=True),
-    'ArrayBuffer': TypeData(clazz='Interface', dart_type='dynamic',
-        custom_to_native=True, custom_to_dart=True),
+    'Float32Array': TypedListTypeData('double'),
+    'Float64Array': TypedListTypeData('double'),
+    'Int8Array': TypedListTypeData('int'),
+    'Int16Array': TypedListTypeData('int'),
+    'Int32Array': TypedListTypeData('int'),
+    'Uint8Array': TypedListTypeData('int'),
+    'Uint8ClampedArray': TypedListTypeData('int'),
+    'Uint16Array': TypedListTypeData('int'),
+    'Uint32Array': TypedListTypeData('int'),
+
+    'ArrayBufferView': TypeData(clazz='BasicTypedList'),
+    'ArrayBuffer': TypeData(clazz='BasicTypedList'),
 
     'SVGAngle': TypeData(clazz='SVGTearOff'),
     'SVGLength': TypeData(clazz='SVGTearOff'),
@@ -1562,6 +1563,18 @@ class TypeRegistry(object):
       dart_interface_name = self._renamer.RenameInterface(
           self._database.GetInterface(type_name))
       return SVGTearOffIDLTypeInfo(
+          type_name, type_data, dart_interface_name, self)
+
+    if type_data.clazz == 'TypedList':
+      dart_interface_name = self._renamer.RenameInterface(
+          self._database.GetInterface(type_name))
+      return TypedListIDLTypeInfo(
+          type_name, type_data, dart_interface_name, self)
+
+    if type_data.clazz == 'BasicTypedList':
+      dart_interface_name = self._renamer.RenameInterface(
+          self._database.GetInterface(type_name))
+      return BasicTypedListIDLTypeInfo(
           type_name, type_data, dart_interface_name, self)
 
     class_name = '%sIDLTypeInfo' % type_data.clazz

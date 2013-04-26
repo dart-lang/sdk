@@ -23,6 +23,10 @@
 
 extern char **environ;
 
+
+namespace dart {
+namespace bin {
+
 // ProcessInfo is used to map a process id to the file descriptor for
 // the pipe used to communicate the exit code of the process to Dart.
 // ProcessInfo objects are kept in the static singly-linked
@@ -565,5 +569,8 @@ void Process::TerminateExitCodeHandler() {
 intptr_t Process::CurrentProcessId() {
   return static_cast<intptr_t>(getpid());
 }
+
+}  // namespace bin
+}  // namespace dart
 
 #endif  // defined(TARGET_OS_LINUX)

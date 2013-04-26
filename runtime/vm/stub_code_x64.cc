@@ -9,9 +9,9 @@
 #include "vm/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/flow_graph_compiler.h"
+#include "vm/heap.h"
 #include "vm/instructions.h"
 #include "vm/object_store.h"
-#include "vm/pages.h"
 #include "vm/resolver.h"
 #include "vm/scavenger.h"
 #include "vm/stub_code.h"
@@ -316,9 +316,9 @@ DECLARE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp);
 // - Fill the unoptimized frame.
 // - Materialize objects that require allocation (e.g. Double instances).
 // GC can occur only after frame is fully rewritten.
-// Stack:
+// Stack after EnterFrame(0) below:
 //   +------------------+
-//   | Saved FP         |
+//   | Saved FP         | <- TOS
 //   +------------------+
 //   | return-address   |  (deoptimization point)
 //   +------------------+
@@ -347,11 +347,8 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
     offset += kFpuRegisterSize;
   }
 
-  __ movq(RCX, RSP);  // Saved saved registers block.
+  __ movq(RDI, RSP);  // Pass address of saved registers block.
   __ ReserveAlignedFrameSpace(0);
-  __ SmiUntag(RAX);
-  __ movq(RDI, RCX);  // Set up argument 1 saved_registers_address.
-
   __ CallRuntime(kDeoptimizeCopyFrameRuntimeEntry);
   // Result (RAX) is stack-size (FP - SP) in bytes, incl. the return address.
 
@@ -1013,7 +1010,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   ASSERT(instance_size > 0);
   const intptr_t type_args_size = InstantiatedTypeArguments::InstanceSize();
   if (FLAG_inline_alloc &&
-      PageSpace::IsPageAllocatableSize(instance_size + type_args_size)) {
+      Heap::IsAllocatableInNewSpace(instance_size + type_args_size)) {
     Label slow_case;
     Heap* heap = Isolate::Current()->heap();
     __ movq(RAX, Immediate(heap->TopAddress()));
@@ -1187,7 +1184,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
   const intptr_t closure_size = Closure::InstanceSize();
   const intptr_t context_size = Context::InstanceSize(1);  // Captured receiver.
   if (FLAG_inline_alloc &&
-      PageSpace::IsPageAllocatableSize(closure_size + context_size)) {
+      Heap::IsAllocatableInNewSpace(closure_size + context_size)) {
     Label slow_case;
     Heap* heap = Isolate::Current()->heap();
     __ movq(RAX, Immediate(heap->TopAddress()));

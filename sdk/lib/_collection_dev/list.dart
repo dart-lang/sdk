@@ -35,7 +35,7 @@ abstract class FixedLengthListMixin<E>  {
         "Cannot add to a fixed-length list");
   }
 
-  void remove(E element) {
+  bool remove(E element) {
     throw new UnsupportedError(
         "Cannot remove from a fixed-length list");
   }
@@ -112,7 +112,7 @@ abstract class UnmodifiableListMixin<E> {
 
   void add(E value) {
     throw new UnsupportedError(
-        "Cannot add to an unmodifiable list");
+      "Cannot add to an unmodifiable list");
   }
 
   E insert(int index, E value) {
@@ -130,7 +130,7 @@ abstract class UnmodifiableListMixin<E> {
         "Cannot add to an unmodifiable list");
   }
 
-  void remove(E element) {
+  bool remove(E element) {
     throw new UnsupportedError(
         "Cannot remove from an unmodifiable list");
   }

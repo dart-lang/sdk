@@ -35,7 +35,7 @@ import 'src/export_map.dart';
 import 'src/json_serializer.dart' as json_serializer;
 
 // TODO(rnystrom): Use "package:" URL (#4968).
-import '../../compiler/implementation/mirrors/dart2js_mirror.dart' as dart2js;
+import 'src/dart2js_mirrors.dart' as dart2js;
 import '../../compiler/implementation/mirrors/mirrors.dart';
 import '../../compiler/implementation/mirrors/mirrors_util.dart';
 import '../../libraries.dart';
@@ -158,7 +158,8 @@ void _compileScript() {
 
       return dart2js.compile(
           new Path(dartPath), new Path(message['libPath']),
-          options: const <String>['--categories=Client,Server']).then((jsCode) {
+          options: const <String>['--categories=Client,Server', '--minify'])
+      .then((jsCode) {
         writeString(new File(jsPath), jsCode);
       });
     }).then((_) {

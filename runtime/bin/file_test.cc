@@ -8,6 +8,9 @@
 #include "vm/unit_test.h"
 
 
+namespace dart {
+namespace bin {
+
 // Helper method to be able to run the test from the runtime
 // directory, or the top directory.
 static const char* GetFileName(const char* name) {
@@ -56,3 +59,6 @@ UNIT_TEST_CASE(FilePosition) {
   EXPECT_EQ(18, file->Position());
   delete file;
 }
+
+}  // namespace bin
+}  // namespace dart

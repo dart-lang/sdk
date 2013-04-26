@@ -139,9 +139,9 @@ _convertDartToNative_PrepareForStructuredClone(value) {
 
     // TODO(sra): Firefox: How to convert _TypedImageData on the other end?
     if (e is ImageData) return e;
-    if (e is ArrayBuffer) return e;
+    if (e is ByteBuffer) return e;
 
-    if (e is ArrayBufferView) return e;
+    if (e is TypedData) return e;
 
     if (e is Map) {
       var slot = findSlot(e);
@@ -328,7 +328,7 @@ bool isImmutableJavaScriptArray(value) =>
 const String _serializedScriptValue =
     'num|String|bool|'
     '=List|=Object|'
-    'Blob|File|ArrayBuffer|ArrayBufferView'
+    'Blob|File|ByteBuffer|TypedData'
     // TODO(sra): Add Date, RegExp.
     ;
 const annotation_Creates_SerializedScriptValue =

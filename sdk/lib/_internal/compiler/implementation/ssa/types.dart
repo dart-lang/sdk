@@ -121,32 +121,36 @@ abstract class HType {
         compiler);
   }
 
+  factory HType.fromNativeBehavior(native.NativeBehavior nativeBehavior,
+                                   Compiler compiler) {
+    if (nativeBehavior.typesReturned.isEmpty) return HType.UNKNOWN;
+
+    HType result = nativeBehavior.typesReturned
+        .map((type) => fromNativeType(type, compiler))
+        .reduce((t1, t2) => t1.union(t2, compiler));
+    assert(!result.isConflicting());
+    return result;
+  }
+
   // [type] is either an instance of [DartType] or special objects
   // like [native.SpecialType.JsObject], or [native.SpecialType.JsArray].
-  factory HType.fromNativeType(type, Compiler compiler) {
+  static HType fromNativeType(type, Compiler compiler) {
     if (type == native.SpecialType.JsObject) {
       return new HType.nonNullExact(
           compiler.objectClass.computeType(compiler), compiler);
     } else if (type == native.SpecialType.JsArray) {
       return HType.READABLE_ARRAY;
+    } else if (type.isVoid) {
+      return HType.NULL;
     } else if (type.element == compiler.nullClass) {
       return HType.NULL;
-    } else {
+    } else if (compiler.world.hasAnySubtype(type.element)) {
+      return new HType.nonNullSubtype(type, compiler);
+    } else if (compiler.world.hasAnySubclass(type.element)) {
       return new HType.nonNullSubclass(type, compiler);
+    } else {
+      return new HType.nonNullExact(type, compiler);
     }
-  }
-
-  factory HType.fromNativeBehavior(native.NativeBehavior nativeBehavior,
-                                   Compiler compiler) {
-    if (nativeBehavior.typesInstantiated.isEmpty) return HType.UNKNOWN;
-
-    HType ssaType = HType.CONFLICTING;
-    for (final type in nativeBehavior.typesInstantiated) {
-      ssaType = ssaType.union(
-          new HType.fromNativeType(type, compiler), compiler);
-    }
-    assert(!ssaType.isConflicting());
-    return ssaType;
   }
 
   static const HType CONFLICTING = const HConflictingType();
@@ -179,7 +183,6 @@ abstract class HType {
   bool isInteger() => false;
   bool isDouble() => false;
   bool isString() => false;
-  bool isIndexablePrimitive() => false;
   bool isFixedArray() => false;
   bool isReadableArray() => false;
   bool isMutableArray() => false;
@@ -192,6 +195,25 @@ abstract class HType {
   bool isDoubleOrNull() => false;
   bool isStringOrNull() => false;
   bool isPrimitiveOrNull() => false;
+
+  // TODO(kasperl): Get rid of this one.
+  bool isIndexablePrimitive() => false;
+
+  bool isIndexable(Compiler compiler) {
+    JavaScriptBackend backend = compiler.backend;
+    return implementsInterface(backend.jsIndexableClass, compiler);
+  }
+
+  bool isMutableIndexable(Compiler compiler) {
+    JavaScriptBackend backend = compiler.backend;
+    return implementsInterface(backend.jsMutableIndexableClass, compiler);
+  }
+
+  bool implementsInterface(ClassElement interfaceElement, Compiler compiler) {
+    DartType interfaceType = interfaceElement.computeType(compiler);
+    TypeMask mask = new TypeMask.subtype(interfaceType);
+    return mask == mask.union(computeMask(compiler), compiler);
+  }
 
   bool canBeNull() => false;
   bool canBePrimitive(Compiler compiler) => false;

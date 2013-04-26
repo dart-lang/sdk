@@ -35,7 +35,7 @@ abstract class SecureSocket implements Socket {
    * to continue the [SecureSocket] connection.
    */
   static Future<SecureSocket> connect(
-      String host,
+      host,
       int port,
       {bool sendClientCertificate: false,
        String certificateName,
@@ -46,6 +46,85 @@ abstract class SecureSocket implements Socket {
                                    certificateName: certificateName,
                                    onBadCertificate: onBadCertificate)
         .then((rawSocket) => new SecureSocket._(rawSocket));
+  }
+
+  /**
+   * Takes an already connected [socket] and starts client side TLS
+   * handshake to make the communication secure. When the returned
+   * future completes the [SecureSocket] has completed the TLS
+   * handshake. Using this function requires that the other end of the
+   * connection is prepared for TLS handshake.
+   *
+   * If the [socket] already has a subscription, this subscription
+   * will no longer receive and events. In most cases calling
+   * [:pause:] on this subscription before starting TLS handshake is
+   * the right thing to do.
+   *
+   * See [connect] for more information on the arguments.
+   *
+   */
+  static Future<SecureSocket> secure(
+      Socket socket,
+      {bool sendClientCertificate: false,
+       String certificateName,
+       bool onBadCertificate(X509Certificate certificate)}) {
+    var completer = new Completer();
+    (socket as dynamic)._detachRaw()
+        .then((detachedRaw) {
+          return RawSecureSocket.secure(
+            detachedRaw[0],
+            subscription: detachedRaw[1],
+            sendClientCertificate: sendClientCertificate,
+            onBadCertificate: onBadCertificate);
+          })
+        .then((raw) {
+          completer.complete(new SecureSocket._(raw));
+        });
+    return completer.future;
+  }
+
+  /**
+   * Takes an already connected [socket] and starts server side TLS
+   * handshake to make the communication secure. When the returned
+   * future completes the [SecureSocket] has completed the TLS
+   * handshake. Using this function requires that the other end of the
+   * connection is going to start the TLS handshake.
+   *
+   * If the [socket] already has a subscription, this subscription
+   * will no longer receive and events. In most cases calling
+   * [:pause:] on this subscription before starting TLS handshake is
+   * the right thing to do.
+   *
+   * If some of the data of the TLS handshake has already been read
+   * from the socket this data can be passed in the [carryOverData]
+   * parameter. This data will be processed before any other data
+   * available on the socket.
+   *
+   * See [SecureServerSocket.bind] for more information on the
+   * arguments.
+   *
+   */
+  static Future<SecureSocket> secureServer(
+      Socket socket,
+      String certificateName,
+      {List<int> carryOverData,
+       bool requestClientCertificate: false,
+       bool requireClientCertificate: false}) {
+    var completer = new Completer();
+    (socket as dynamic)._detachRaw()
+        .then((detachedRaw) {
+          return RawSecureSocket.secureServer(
+            detachedRaw[0],
+            certificateName,
+            subscription: detachedRaw[1],
+            carryOverData: carryOverData,
+            requestClientCertificate: requestClientCertificate,
+            requireClientCertificate: requireClientCertificate);
+          })
+        .then((raw) {
+          completer.complete(new SecureSocket._(raw));
+        });
+    return completer.future;
   }
 
   /**
@@ -129,7 +208,7 @@ abstract class RawSecureSocket implements RawSocket {
    * to continue the [RawSecureSocket] connection.
    */
   static Future<RawSecureSocket> connect(
-      String host,
+      host,
       int port,
       {bool sendClientCertificate: false,
        String certificateName,
@@ -165,7 +244,7 @@ abstract class RawSecureSocket implements RawSocket {
        String certificateName,
        bool onBadCertificate(X509Certificate certificate)}) {
     return  _RawSecureSocket.connect(
-        socket.host,
+        socket.address,
         socket.port,
         certificateName,
         is_server: false,
@@ -266,7 +345,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   StreamSubscription<RawSocketEvent> _socketSubscription;
   List<int> _carryOverData;
   int _carryOverDataIndex = 0;
-  final String host;
+  final InternetAddress address;
   final bool is_server;
   final String certificateName;
   final bool requestClientCertificate;
@@ -287,7 +366,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   _SecureFilter _secureFilter = new _SecureFilter();
 
   static Future<_RawSecureSocket> connect(
-      String host,
+      host,
       int requestedPort,
       String certificateName,
       {bool is_server,
@@ -297,8 +376,15 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
        bool requestClientCertificate: false,
        bool requireClientCertificate: false,
        bool sendClientCertificate: false,
-       bool onBadCertificate(X509Certificate certificate)}){
-     return new _RawSecureSocket(host,
+       bool onBadCertificate(X509Certificate certificate)}) {
+    var future;
+    if (host is String) {
+      future = InternetAddress.lookup(host).then((addrs) => addrs.first);
+    } else {
+      future = new Future.value(host);
+    }
+    return future.then((addr) {
+     return new _RawSecureSocket(addr,
                                  requestedPort,
                                  certificateName,
                                  is_server,
@@ -310,10 +396,11 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
                                  sendClientCertificate,
                                  onBadCertificate)
          ._handshakeComplete.future;
+    });
   }
 
   _RawSecureSocket(
-      String this.host,
+      InternetAddress this.address,
       int requestedPort,
       String this.certificateName,
       bool this.is_server,
@@ -342,7 +429,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     }
     var futureSocket;
     if (socket == null) {
-      futureSocket = RawSocket.connect(host, requestedPort);
+      futureSocket = RawSocket.connect(address, requestedPort);
     } else {
       futureSocket = new Future.value(socket);
     }
@@ -362,7 +449,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
         _socketSubscription.onDone(_doneHandler);
       }
       _connectPending = true;
-      _secureFilter.connect(host,
+      _secureFilter.connect(rawSocket.address.host,
                             port,
                             is_server,
                             certificateName,
@@ -396,9 +483,9 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   void _verifyFields() {
     assert(is_server is bool);
     assert(_socket == null || _socket is RawSocket);
-    if (host is! String) {
+    if (address is! InternetAddress) {
       throw new ArgumentError(
-          "RawSecureSocket constructor: host is not a String");
+          "RawSecureSocket constructor: host is not an InternetAddress");
     }
     if (certificateName != null && certificateName is! String) {
       throw new ArgumentError("certificateName is not null or a String");

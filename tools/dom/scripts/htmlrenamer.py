@@ -6,7 +6,23 @@ import logging
 import monitored
 import re
 
-html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames', {
+typed_array_renames = {
+    'ArrayBuffer': 'ByteBuffer',
+    'ArrayBufferView': 'TypedData',
+    'DataView': 'ByteData',
+    'Float32Array': 'Float32List',
+    'Float64Array': 'Float64List',
+    'Int8Array': 'Int8List',
+    'Int16Array': 'Int16List',
+    'Int32Array': 'Int32List',
+    'Uint8Array': 'Uint8List',
+    'Uint8ClampedArray': 'Uint8ClampedList',
+    'Uint16Array': 'Uint16List',
+    'Uint32Array': 'Uint32List',
+}
+
+html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames',
+                                        dict({
     'CDATASection': 'CDataSection',
     'Clipboard': 'DataTransfer',
     'Database': 'SqlDatabase', # Avoid conflict with Index DB's Database.
@@ -50,7 +66,7 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames', {
     'XMLHttpRequestException': 'HttpRequestException',
     'XMLHttpRequestProgressEvent': 'HttpRequestProgressEvent',
     'XMLHttpRequestUpload': 'HttpRequestUpload',
-})
+}, **typed_array_renames))
 
 # Interfaces that are suppressed, but need to still exist for Dartium and to
 # properly wrap DOM objects if/when encountered.
@@ -60,6 +76,7 @@ _removed_html_interfaces = [
   'Counter',
   'DOMFileSystemSync', # Workers
   'DatabaseSync', # Workers
+  'DataView', # Typed arrays
   'DedicatedWorkerContext', # Workers
   'DirectoryEntrySync', # Workers
   'DirectoryReaderSync', # Workers
@@ -76,6 +93,7 @@ _removed_html_interfaces = [
   'HTMLMarqueeElement',
   'IDBAny',
   'RGBColor',
+  'RadioNodeList',  # Folded onto NodeList in dart2js.
   'Rect',
   'SQLTransactionSync', # Workers
   'SQLTransactionSyncCallback', # Workers
@@ -326,8 +344,8 @@ renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
     'StorageInfo.queryUsageAndQuota': '_queryUsageAndQuota',
     'SVGElement.className': '$dom_svgClassName',
     'SVGStopElement.offset': 'gradientOffset',
-    #'WorkerContext.webkitRequestFileSystem': '_requestFileSystem', # Workers
-    #'WorkerContext.webkitRequestFileSystemSync': '_requestFileSystemSync', # Workers
+    #'WorkerContext.webkitRequestFileSystem': '_requestFileSystem',
+    #'WorkerContext.webkitRequestFileSystemSync': '_requestFileSystemSync',
 })
 
 for member in convert_to_future_members:
@@ -574,24 +592,12 @@ _removed_html_members = monitored.Set('htmlrenamer._removed_html_members', [
     'MouseEvent.x',
     'MouseEvent.y',
     'Node.compareDocumentPosition',
-    'Node.get:ATTRIBUTE_NODE',
-    'Node.get:CDATA_SECTION_NODE',
-    'Node.get:COMMENT_NODE',
-    'Node.get:DOCUMENT_FRAGMENT_NODE',
-    'Node.get:DOCUMENT_NODE',
     'Node.get:DOCUMENT_POSITION_CONTAINED_BY',
     'Node.get:DOCUMENT_POSITION_CONTAINS',
     'Node.get:DOCUMENT_POSITION_DISCONNECTED',
     'Node.get:DOCUMENT_POSITION_FOLLOWING',
     'Node.get:DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC',
     'Node.get:DOCUMENT_POSITION_PRECEDING',
-    'Node.get:DOCUMENT_TYPE_NODE',
-    'Node.get:ELEMENT_NODE',
-    'Node.get:ENTITY_NODE',
-    'Node.get:ENTITY_REFERENCE_NODE',
-    'Node.get:NOTATION_NODE',
-    'Node.get:PROCESSING_INSTRUCTION_NODE',
-    'Node.get:TEXT_NODE',
     'Node.get:baseURI',
     'Node.get:nodeName',
     'Node.get:prefix',
@@ -719,6 +725,9 @@ class HtmlRenamer(object):
         return 'web_sql'
       if 'WEBGL' in interface.ext_attrs['Conditional']:
         return 'web_gl'
+
+    if interface.id in typed_array_renames:
+      return 'typed_data'
 
     return 'html'
 

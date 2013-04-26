@@ -12,6 +12,10 @@
 #include "bin/utils.h"
 #include "platform/assert.h"
 
+
+namespace dart {
+namespace bin {
+
 OSError::OSError() : sub_system_(kSystem), code_(0), message_(NULL) {
   set_sub_system(kSystem);
   set_code(errno);
@@ -90,5 +94,8 @@ int64_t TimerUtils::GetCurrentTimeMicros() {
 void TimerUtils::Sleep(int64_t millis) {
   usleep(millis * 1000);
 }
+
+}  // namespace bin
+}  // namespace dart
 
 #endif  // defined(TARGET_OS_ANDROID)

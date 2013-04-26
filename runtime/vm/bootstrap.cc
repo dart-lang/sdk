@@ -92,8 +92,8 @@ RawScript* Bootstrap::LoadMirrorsScript(bool patch)  {
 
 
 RawScript* Bootstrap::LoadTypedDataScript(bool patch) {
-  const char* url = patch ? "dart:typeddata_patch" : "dart:typeddata";
-  const char* source = patch ? typeddata_patch_ : typeddata_source_;
+  const char* url = patch ? "dart:typed_data_patch" : "dart:typed_data";
+  const char* source = patch ? typed_data_patch_ : typed_data_source_;
   return LoadScript(url, source, patch);
 }
 

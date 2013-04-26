@@ -6,12 +6,12 @@ import "package:expect/expect.dart";
 
 // Test that hidden native class names are not used by generated code.
 
-class A native "*B" {
+class A native "B" {
   get name => 'A';
   static A create() => makeA();
 }
 
-class B native "*C" {
+class B native "C" {
   get name => 'B';
   static B create() => makeB();
 }

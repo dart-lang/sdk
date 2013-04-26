@@ -2,12 +2,30 @@
 
 [Supplemental,
  Constructor]
-interface AudioContext {};
+interface AudioContext {
+  // TODO(ager): Auto-generate this custom method when the info about retaining
+  // typed arrays is in the IDL.
+  [Custom] void decodeAudioData(ArrayBuffer audioData, AudioBufferCallback successCallback, AudioBufferCallback errorCallback);
+};
+
+[Supplemental]
+interface WaveShaperNode {
+  // TODO(ager): Auto-generate this custom method when the info about retaining
+  // typed arrays is in the IDL.
+  [CustomSetter] attribute Float32Array curve;
+};
+
+[Supplemental]
+interface AudioParam {
+  // TODO(ager): Auto-generate this custom method when the info about retaining
+  // typed arrays is in the IDL.
+  [Custom] void setValueCurveAtTime(Float32Array values, float time, float duration);
+};
 
 [Supplemental]
 interface Document {
-  [Suppressed] DOMObject getCSSCanvasContext(in DOMString contextId, in DOMString name, in long width, in long height);
-  CanvasRenderingContext getCSSCanvasContext(in DOMString contextId, in DOMString name, in long width, in long height);
+  [Suppressed] DOMObject getCSSCanvasContext(DOMString contextId, DOMString name, long width, long height);
+  CanvasRenderingContext getCSSCanvasContext(DOMString contextId, DOMString name, long width, long height);
 };
 
 [Supplemental]
@@ -33,31 +51,31 @@ interface TimeoutHandler {
 
 [Supplemental]
 interface CanvasRenderingContext2D {
-  [DartName=createImageDataFromImageData] ImageData createImageData(in ImageData imagedata);
+  [DartName=createImageDataFromImageData] ImageData createImageData(ImageData imagedata);
 };
 
 [Supplemental]
 interface Console {
-  [Suppressed] void assert(in boolean condition);
+  [Suppressed] void assert(boolean condition);
   [CallWith=ScriptArguments|ScriptState] void assertCondition(boolean condition);
 };
 
 interface HTMLCanvasElement {
-  [Suppressed] DOMString toDataURL([TreatNullAs=NullString, TreatUndefinedAs=NullString,Optional=DefaultIsUndefined] in DOMString type);
-  [Custom] DOMString toDataURL([TreatNullAs=NullString, TreatUndefinedAs=NullString,Optional=DefaultIsUndefined] in DOMString type, [Optional] in float quality);
+  [Suppressed] DOMString toDataURL([TreatNullAs=NullString, TreatUndefinedAs=NullString,Default=Undefined] DOMString type);
+  [Custom] DOMString toDataURL([TreatNullAs=NullString, TreatUndefinedAs=NullString,Default=Undefined] DOMString type, optional float quality);
 
-  [Suppressed] any getContext(in DOMString contextId);
-  [Custom] CanvasRenderingContext getContext(in DOMString contextId, [Optional] in Dictionary attrs);
+  [Suppressed] any getContext(DOMString contextId);
+  [Custom] CanvasRenderingContext getContext(DOMString contextId, optional Dictionary attrs);
 };
 
 [Supplemental]
 interface HTMLOptionsCollection {
-  [Suppressed] void add([Optional] in HTMLOptionElement element, [Optional] in long before);
+  [Suppressed] void add(optional HTMLOptionElement element, optional long before);
 };
 
 [Supplemental]
 interface HTMLSelectElement {
-  [Suppressed] void add([Optional=DefaultIsUndefined] in HTMLElement element, [Optional=DefaultIsUndefined] in HTMLElement before);
+  [Suppressed] void add([Default=Undefined] HTMLElement element, [Default=Undefined] HTMLElement before);
   [Suppressed, Custom] void remove();
 };
 
@@ -94,34 +112,34 @@ interface HTMLMediaElement {
 
 [Supplemental]
 interface WebGLContextEvent {
-  [Suppressed] void initEvent([Optional] in DOMString eventTypeArg,
-                              [Optional] in boolean canBubbleArg,
-                              [Optional] in boolean cancelableArg,
-                              [Optional] in DOMString statusMessageArg);
+  [Suppressed] void initEvent(optional DOMString eventTypeArg,
+                              optional boolean canBubbleArg,
+                              optional boolean cancelableArg,
+                              optional DOMString statusMessageArg);
 };
 
 [Supplemental]
 interface WebGLRenderingContext {
 
-  //void         compressedTexImage2D(in unsigned long target, in long level, in unsigned long internalformat, in unsigned long width, in unsigned long height, in long border, in unsigned long imageSize, const void* data);
-  //void         compressedTexSubImage2D(in unsigned long target, in long level, in long xoffset, in long yoffset, in unsigned long width, in unsigned long height, in unsigned long format, in unsigned long imageSize, const void* data);
+  //void         compressedTexImage2D(unsigned long target, long level, unsigned long internalformat, unsigned long width, unsigned long height, long border, unsigned long imageSize, const void* data);
+  //void         compressedTexSubImage2D(unsigned long target, long level, long xoffset, long yoffset, unsigned long width, unsigned long height, unsigned long format, unsigned long imageSize, const void* data);
 
-  [Custom] any getBufferParameter(in unsigned long target, in unsigned long pname);
+  [Custom] any getBufferParameter(unsigned long target, unsigned long pname);
   [Suppressed, StrictTypeChecking, Custom] void getBufferParameter();
 
-  [Custom] any getFramebufferAttachmentParameter(in unsigned long target, in unsigned long attachment, in unsigned long pname);
+  [Custom] any getFramebufferAttachmentParameter(unsigned long target, unsigned long attachment, unsigned long pname);
   [Suppressed, StrictTypeChecking, Custom] void getFramebufferAttachmentParameter();
 
-  [Custom] any getParameter(in unsigned long pname);
+  [Custom] any getParameter(unsigned long pname);
   [Suppressed, StrictTypeChecking, Custom] void getParameter();
 
-  [Custom] any getProgramParameter(in WebGLProgram program, in unsigned long pname);
+  [Custom] any getProgramParameter(WebGLProgram program, unsigned long pname);
   [Suppressed, StrictTypeChecking, Custom] void getProgramParameter();
 
-  [Custom] any getRenderbufferParameter(in unsigned long target, in unsigned long pname);
+  [Custom] any getRenderbufferParameter(unsigned long target, unsigned long pname);
   [Suppressed, StrictTypeChecking, Custom] void getRenderbufferParameter();
 
-  [Custom] any getShaderParameter(in WebGLShader shader, in unsigned long pname);
+  [Custom] any getShaderParameter(WebGLShader shader, unsigned long pname);
   [Suppressed, StrictTypeChecking, Custom] void getShaderParameter();
 
   // TBD
@@ -132,119 +150,61 @@ interface WebGLRenderingContext {
   [Custom] DOMString[] getSupportedExtensions();
   [Suppressed, StrictTypeChecking, Custom] void getSupportedExtensions();
 
-  [Custom] any getTexParameter(in unsigned long target, in unsigned long pname);
+  [Custom] any getTexParameter(unsigned long target, unsigned long pname);
   [Suppressed, StrictTypeChecking, Custom] void getTexParameter();
 
-  [Custom] any getUniform(in WebGLProgram program, in WebGLUniformLocation location);
+  [Custom] any getUniform(WebGLProgram program, WebGLUniformLocation location);
   [Suppressed, StrictTypeChecking, Custom] void getUniform();
 
-  [Custom] any getVertexAttrib(in unsigned long index, in unsigned long pname);
+  [Custom] any getVertexAttrib(unsigned long index, unsigned long pname);
   [Suppressed, StrictTypeChecking, Custom] void getVertexAttrib();
 };
 [Supplemental]
 interface CSSStyleDeclaration {
-  void setProperty(in DOMString propertyName, in DOMString value, [Optional] in DOMString priority);
-  [DartName=_getPropertyValue] DOMString getPropertyValue(in DOMString propertyName);
-};
-
-[Supplemental,
-  Constructor(in long length)]  // Add constructor signature.
-interface ArrayBuffer {
-};
-[Supplemental]
-interface Float32Array {
-  [Suppressed] void set();
-  [DartName=setElements, Custom] void set(in any array, [Optional] in unsigned long offset);
-};
-[Supplemental]
-interface Float64Array {
-  [Suppressed] void set();
-  [DartName=setElements, Custom] void set(in any array, [Optional] in unsigned long offset);
-};
-[Supplemental]
-interface Int16Array {
-  [Suppressed] void set();
-  [DartName=setElements, Custom] void set(in any array, [Optional] in unsigned long offset);
-};
-[Supplemental]
-interface Int32Array {
-  [Suppressed] void set();
-  [DartName=setElements, Custom] void set(in any array, [Optional] in unsigned long offset);
-};
-[Supplemental]
-interface Int8Array {
-  [Suppressed] void set();
-  [DartName=setElements, Custom] void set(in any array, [Optional] in unsigned long offset);
-};
-[Supplemental]
-interface Uint16Array {
-  [Suppressed] void set();
-  [DartName=setElements, Custom] void set(in any array, [Optional] in unsigned long offset);
-};
-[Supplemental]
-interface Uint32Array {
-  [Suppressed] void set();
-  [DartName=setElements, Custom] void set(in any array, [Optional] in unsigned long offset);
-};
-[Supplemental]
-interface Uint8Array {
-  [Suppressed] void set();
-  [DartName=setElements, Custom] void set(in any array, [Optional] in unsigned long offset);
-};
-
-[Supplemental]
-interface Uint8ClampedArray {
-  // Avoid 'overriding static member BYTES_PER_ELEMENT'.
-  [Suppressed] const long BYTES_PER_ELEMENT = 1;
-
-  [Suppressed] void set();
-  [DartName=setElements, Custom] void set(in any array, [Optional] in unsigned long offset);
-};
-
-[Supplemental,
-  Constructor(in ArrayBuffer buffer,
-              [Optional] in unsigned long byteOffset,
-              [Optional] in unsigned long byteLength)
-  ]
-interface DataView {
-  // Undo this:
-  // We have to use custom code because our code generator does not support int8_t type.
-  // int8_t getInt8(in unsigned long byteOffset);
-  // uint8_t getUint8(in unsigned long byteOffset);
-  [Suppressed] any getInt8();
-  [Suppressed] any getUint8();
-  [RaisesException] byte getInt8(in unsigned long byteOffset);
-  [RaisesException] octet getUint8(in unsigned long byteOffset);
-
-  // We have to use custom code because our code generator does not support uint8_t type.
-  // void setInt8(in unsigned long byteOffset, in int8_t value);
-  // void setUint8(in unsigned long byteOffset, in uint8_t value);
-  [Suppressed] void setInt8();
-  [Suppressed] void setUint8();
-  [RaisesException] void setInt8(in unsigned long byteOffset, in byte value);
-  [RaisesException] void setUint8(in unsigned long byteOffset, in octet value);
+  void setProperty(DOMString propertyName, DOMString value, [ForceOptional] optional DOMString priority);
+  [DartName=_getPropertyValue] DOMString getPropertyValue(DOMString propertyName);
 };
 
 // TODO(vsm): Define new names for these (see b/4436830).
 [Supplemental]
 interface IDBCursor {
-  [DartName=next] void continue([Optional] in any key);
+  [DartName=next, CallWith=ScriptExecutionContext, ImplementedAs=continueFunction, RaisesException] void continue([ForceOptional] optional any key);
+};
+[Supplemental]
+interface IDBIndex {
+    [CallWith=ScriptExecutionContext, RaisesException] IDBRequest openCursor([ForceOptional] optional IDBKeyRange? range, [ForceOptional] optional DOMString direction);
+    [CallWith=ScriptExecutionContext, RaisesException] IDBRequest openCursor(any key, [ForceOptional] optional DOMString direction);
+    [CallWith=ScriptExecutionContext, RaisesException] IDBRequest openKeyCursor([ForceOptional] optional IDBKeyRange? range, [ForceOptional] optional DOMString  direction);
+    [CallWith=ScriptExecutionContext, RaisesException] IDBRequest openKeyCursor(any key,
+    [ForceOptional] optional DOMString direction);
+
+    [CallWith=ScriptExecutionContext, RaisesException] IDBRequest count([ForceOptional] optional IDBKeyRange? range);
+    [CallWith=ScriptExecutionContext, RaisesException] IDBRequest count(any key);
 };
 [Supplemental]
 interface IDBDatabase {
   // These variants are slated for removal from WebKit.  Suppress to bring our
   // API in line with the most recent spec.
-  [Suppressed, CallWith=ScriptExecutionContext] IDBTransaction transaction(in DOMStringList storeNames, in unsigned short mode);
-  [Suppressed, CallWith=ScriptExecutionContext] IDBTransaction transaction(in DOMString[] storeNames, in unsigned short mode);
-  [Suppressed, CallWith=ScriptExecutionContext] IDBTransaction transaction(in DOMString storeName, in unsigned short mode);
+  [Suppressed, CallWith=ScriptExecutionContext] IDBTransaction transaction(DOMStringList storeNames, unsigned short mode);
+  [Suppressed, CallWith=ScriptExecutionContext] IDBTransaction transaction(DOMString[] storeNames, unsigned short mode);
+  [Suppressed, CallWith=ScriptExecutionContext] IDBTransaction transaction(DOMString storeName, unsigned short mode);
 };
 
 [Supplemental]
 interface IDBKeyRange {
-  [DartName=only_] static IDBKeyRange only(in any value);
-  [DartName=lowerBound_] static IDBKeyRange lowerBound(in any bound, [Optional] in boolean open);
-  [DartName=upperBound_] static IDBKeyRange upperBound(in any bound, [Optional] in boolean open);
-  [DartName=bound_] static IDBKeyRange bound(in any lower, in any upper, [Optional] in boolean lowerOpen, [Optional] in boolean upperOpen);
+  [DartName=only_] static IDBKeyRange only(any value);
+  [DartName=lowerBound_] static IDBKeyRange lowerBound(any bound, [ForceOptional] optional boolean open);
+  [DartName=upperBound_] static IDBKeyRange upperBound(any bound, [ForceOptional] optional boolean open);
+  [DartName=bound_] static IDBKeyRange bound(any lower, any upper, [ForceOptional] optional boolean lowerOpen, [ForceOptional] optional boolean upperOpen);
+};
+[Supplemental]
+interface IDBObjectStore {
+    [CallWith=ScriptState, RaisesException] IDBRequest put(any value, [ForceOptional] optional any key);
+    [CallWith=ScriptState, RaisesException] IDBRequest add(any value, [ForceOptional] optional any key);
+    [CallWith=ScriptExecutionContext, RaisesException] IDBRequest openCursor([ForceOptional] optional IDBKeyRange? range, [ForceOptional] optional DOMString direction);
+    [CallWith=ScriptExecutionContext, RaisesException] IDBRequest openCursor(any key, [ForceOptional] optional DOMString direction);
+    [CallWith=ScriptExecutionContext, RaisesException] IDBRequest count([ForceOptional] optional IDBKeyRange? range);
+    [CallWith=ScriptExecutionContext, RaisesException] IDBRequest count(any key);
 };
 
 interface EntrySync {
@@ -256,8 +216,7 @@ interface EntrySync {
 
 [Supplemental,
   CustomConstructor,
-  Constructor(in Array blobParts,
-              [Optional] in DOMString type, [Optional] in DOMString endings)
+  Constructor(Array blobParts, optional DOMString type, optional DOMString endings)
   ]
 interface Blob {
 };
@@ -280,7 +239,7 @@ interface SVGNumber {
 [
   Callback
 ] interface MutationCallback {
-  [Custom] boolean handleEvent(in MutationRecordArray mutations, in MutationObserver observer);
+  [Custom] boolean handleEvent(MutationRecordArray mutations, MutationObserver observer);
 };
 
 [Supplemental,
@@ -290,35 +249,35 @@ interface SVGNumber {
 interface MutationObserver {
   // Rename 'observe' so we can define a new 'observe' API that calls the
   // original.
-  [DartName=_observe] void observe(in Node target, in Dictionary options);
+  [DartName=_observe] void observe(Node target, Dictionary options);
 };
 
   [Supplemental,
     CustomConstructor,
     // Provide missing constructor signature.
-    Constructor([Optional] in HTMLFormElement form)]
+    Constructor(optional HTMLFormElement form)]
   interface DOMFormData {
-    [Suppressed] void append(in DOMString name, in DOMString value, in DOMString filename);
-    [Custom] void append(in DOMString name, in DOMString value);
-    [Custom] void append(in DOMString name, in Blob value, [Optional] in DOMString filename);
+    [Suppressed] void append(DOMString name, DOMString value, DOMString filename);
+    [Custom] void append(DOMString name, DOMString value);
+    [Custom] void append(DOMString name, Blob value, optional DOMString filename);
   };
 
 [Supplemental]
 interface SQLResultSetRowList {
   // Change the return type to Dictionary so that rows are exposed in the Dart
   // API as a Maps, with the appropriate conversion in JavaScript.
-  [Suppressed] any item(in unsigned long index);
-  [Custom] Dictionary item(in unsigned long index);
+  [Suppressed] any item(unsigned long index);
+  [Custom] Dictionary item(unsigned long index);
 };
 
 [Supplemental]
 interface WebSocket {
   // Suppress the default since it has non-standard return type and add
   // overrides.
-  [Suppressed] boolean send(in ArrayBuffer data);
-  [Suppressed] boolean send(in ArrayBufferView data);
-  [Suppressed] boolean send(in Blob data);
-  [Suppressed] boolean send(in DOMString data);
+  [Suppressed] boolean send(ArrayBuffer data);
+  [Suppressed] boolean send(ArrayBufferView data);
+  [Suppressed] boolean send(Blob data);
+  [Suppressed] boolean send(DOMString data);
 
   [Custom] void send(DOMString data);
   [Custom] void send(Blob data);
@@ -329,12 +288,12 @@ interface WebSocket {
 [Supplemental]
 interface XMLHttpRequest {
    [Custom] void send();
-   [Custom] void send(in ArrayBuffer data); // FIXME: this should be eventually deprecated.
-   [Custom] void send(in ArrayBufferView data);
-   [Custom] void send(in Blob data);
-   [Custom] void send(in Document data);
-   [Custom] void send([StrictTypeChecking] in DOMString data);
-   [Custom] void send(in DOMFormData data);
+   [Custom] void send(ArrayBuffer data); // FIXME: this should be eventually deprecated.
+   [Custom] void send(ArrayBufferView data);
+   [Custom] void send(Blob data);
+   [Custom] void send(Document data);
+   [Custom] void send([StrictTypeChecking] DOMString data);
+   [Custom] void send(DOMFormData data);
 };
 
 

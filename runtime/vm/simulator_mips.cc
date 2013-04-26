@@ -184,7 +184,7 @@ bool SimulatorDebugger::GetValue(char* desc, uint32_t* value) {
     *value = sim_->get_register(reg);
     return true;
   }
-  if ((desc[0] == '*')) {
+  if (desc[0] == '*') {
     uint32_t addr;
     if (GetValue(desc + 1, &addr)) {
       if (Simulator::IsIllegalAddress(addr)) {
@@ -212,7 +212,7 @@ bool SimulatorDebugger::GetFValue(char* desc, double* value) {
     *value = sim_->get_fregister(freg);
     return true;
   }
-  if ((desc[0] == '*')) {
+  if (desc[0] == '*') {
     uint32_t addr;
     if (GetValue(desc + 1, &addr)) {
       if (Simulator::IsIllegalAddress(addr)) {
@@ -468,8 +468,7 @@ char* SimulatorDebugger::ReadLine(const char* prompt) {
   char line_buf[256];
   int offset = 0;
   bool keep_going = true;
-  fprintf(stdout, "%s", prompt);
-  fflush(stdout);
+  OS::Print("%s", prompt);
   while (keep_going) {
     if (fgets(line_buf, sizeof(line_buf), stdin) == NULL) {
       // fgets got an error. Just give up.
@@ -751,9 +750,9 @@ void Simulator::HandleIllegalAccess(uword addr, Instr* instr) {
 void Simulator::UnalignedAccess(const char* msg, uword addr, Instr* instr) {
   // The debugger will not be able to single step past this instruction, but
   // it will be possible to disassemble the code and inspect registers.
-  char buffer[64];
+  char buffer[128];
   snprintf(buffer, sizeof(buffer),
-           "unaligned %s at 0x%"Px", pc=%p\n", msg, addr, instr);
+           "pc=%p, unaligned %s at 0x%"Px"\n",  instr, msg, addr);
   SimulatorDebugger dbg(this);
   dbg.Stop(instr, buffer);
   // The debugger will return control in non-interactive mode.
@@ -905,6 +904,15 @@ void Simulator::DoBreak(Instr *instr) {
     dbg.Stop(instr, message);
     // Adjust for extra pc increment.
     set_pc(get_pc() - Instr::kInstrSize);
+  } else if (instr->BreakCodeField() == Instr::kMsgMessageCode) {
+    const char* message = *reinterpret_cast<const char**>(
+        reinterpret_cast<intptr_t>(instr) - Instr::kInstrSize);
+    if (FLAG_trace_sim) {
+      OS::Print("Message: %s\n", message);
+    } else {
+      OS::PrintErr("Bad break code: 0x%x\n", instr->InstructionBits());
+      UnimplementedInstruction(instr);
+    }
   } else if (instr->BreakCodeField() == Instr::kRedirectCode) {
     SimulatorSetjmpBuffer buffer(this);
 
@@ -986,6 +994,8 @@ void Simulator::DoBreak(Instr *instr) {
     } else {
       // Coming via long jump from a throw. Continue to exception handler.
       set_top_exit_frame_info(0);
+      // Adjust for extra pc increment.
+      set_pc(get_pc() - Instr::kInstrSize);
     }
   } else {
     SimulatorDebugger dbg(this);
@@ -1830,7 +1840,7 @@ int64_t Simulator::Call(int32_t entry,
   set_register(R22, r22_val);
   set_register(R23, r23_val);
 
-  // Restore the SP register and return R1:R0.
+  // Restore the SP register and return V1:V0.
   set_register(SP, sp_before_call);
   return Utils::LowHighTo64Bits(get_register(V0), get_register(V1));
 }

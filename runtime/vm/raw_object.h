@@ -172,6 +172,12 @@ enum {
   kSmiTagShift = 1,
 };
 
+enum TypeDataElementType {
+#define V(name) k##name##Element,
+CLASS_LIST_TYPED_DATA(V)
+#undef V
+};
+
 #define SNAPSHOT_WRITER_SUPPORT()                                              \
   void WriteTo(                                                                \
       SnapshotWriter* writer, intptr_t object_id, Snapshot::Kind kind);        \
@@ -415,10 +421,6 @@ class RawObject {
   friend class Heap;
   friend class HeapProfiler;
   friend class HeapProfilerRootVisitor;
-  friend class HeapTrace;
-  friend class HeapTraceDebugObjectVisitor;
-  friend class HeapTraceHandleVisitor;
-  friend class HeapTraceVisitor;
   friend class MarkingVisitor;
   friend class Object;
   friend class RawExternalTypedData;
@@ -477,7 +479,6 @@ class RawClass : public RawObject {
   intptr_t token_pos_;
   uint8_t state_bits_;  // state, is_const, is_implemented.
 
-  friend class HeapTrace;
   friend class Instance;
   friend class Object;
   friend class RawInstance;
@@ -1240,8 +1241,6 @@ class RawString : public RawInstance {
   RawSmi* length_;
   RawSmi* hash_;
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->hash_); }
-
-  friend class HeapTrace;
 };
 
 
@@ -1252,7 +1251,6 @@ class RawOneByteString : public RawString {
   uint8_t data_[0];
 
   friend class ApiMessageReader;
-  friend class HeapTrace;
   friend class SnapshotReader;
 };
 
@@ -1263,7 +1261,6 @@ class RawTwoByteString : public RawString {
   // Variable length data follows here.
   uint16_t data_[0];
 
-  friend class HeapTrace;
   friend class SnapshotReader;
 };
 
@@ -1343,7 +1340,6 @@ class RawArray : public RawInstance {
 class RawImmutableArray : public RawArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ImmutableArray);
 
-  friend class HeapTrace;
   friend class SnapshotReader;
 };
 

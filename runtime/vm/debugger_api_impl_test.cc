@@ -10,9 +10,6 @@
 
 namespace dart {
 
-// Only ia32 and x64 can run execution tests.
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
-
 static bool breakpoint_hit = false;
 static int  breakpoint_hit_counter = 0;
 static Dart_Handle script_lib = NULL;
@@ -1532,7 +1529,5 @@ TEST_CASE(Debug_StackTraceDump2) {
   EXPECT(Dart_IsUnhandledExceptionError(retval));
   EXPECT_EQ(1, breakpoint_hit_counter);
 }
-
-#endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64).
 
 }  // namespace dart

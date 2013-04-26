@@ -7,6 +7,7 @@
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "vm/assembler.h"
+#include "vm/cpu.h"
 #include "vm/bigint_operations.h"
 #include "vm/bootstrap.h"
 #include "vm/class_finalizer.h"
@@ -71,6 +72,7 @@ Instance* Object::sentinel_ = NULL;
 Instance* Object::transition_sentinel_ = NULL;
 Bool* Object::bool_true_ = NULL;
 Bool* Object::bool_false_ = NULL;
+LanguageError* Object::snapshot_writer_error_ = NULL;
 
 RawObject* Object::null_ = reinterpret_cast<RawObject*>(RAW_NULL);
 RawClass* Object::class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -320,6 +322,7 @@ void Object::InitOnce() {
   transition_sentinel_ = Instance::ReadOnlyHandle(isolate);
   bool_true_ = Bool::ReadOnlyHandle(isolate);
   bool_false_ = Bool::ReadOnlyHandle(isolate);
+  snapshot_writer_error_ = LanguageError::ReadOnlyHandle(isolate);
 
   // Allocate and initialize the null instance.
   // 'null_' must be the first object allocated as it is used in allocation to
@@ -510,6 +513,10 @@ void Object::InitOnce() {
   isolate->object_store()->set_bool_class(cls);
   *bool_true_ = Bool::New(true);
   *bool_false_ = Bool::New(false);
+
+  *snapshot_writer_error_ =
+      LanguageError::New(String::Handle(String::New("SnapshotWriter Error")));
+
   ASSERT(!empty_array_->IsSmi());
   ASSERT(empty_array_->IsArray());
   ASSERT(!sentinel_->IsSmi());
@@ -520,6 +527,8 @@ void Object::InitOnce() {
   ASSERT(bool_true_->IsBool());
   ASSERT(!bool_false_->IsSmi());
   ASSERT(bool_false_->IsBool());
+  ASSERT(!snapshot_writer_error_->IsSmi());
+  ASSERT(snapshot_writer_error_->IsLanguageError());
 }
 
 
@@ -888,20 +897,20 @@ RawError* Object::Init(Isolate* isolate) {
   Library::InitNativeWrappersLibrary(isolate);
   ASSERT(isolate->object_store()->native_wrappers_library() != Library::null());
 
-  // Pre-register the typeddata library so the native class implementations
+  // Pre-register the typed_data library so the native class implementations
   // can be hooked up before compiling it.
-  LOAD_LIBRARY(TypedData, typeddata);
+  LOAD_LIBRARY(TypedData, typed_data);
   ASSERT(!lib.IsNull());
   ASSERT(lib.raw() == Library::TypedDataLibrary());
-  const intptr_t typeddata_class_array_length =
+  const intptr_t typed_data_class_array_length =
       RawObject::NumberOfTypedDataClasses();
-  Array& typeddata_classes =
-      Array::Handle(Array::New(typeddata_class_array_length));
+  Array& typed_data_classes =
+      Array::Handle(Array::New(typed_data_class_array_length));
   int index = 0;
 #define REGISTER_TYPED_DATA_CLASS(clazz)                                       \
   cls = Class::NewTypedDataClass(kTypedData##clazz##Cid);                      \
   index = kTypedData##clazz##Cid - kTypedDataInt8ArrayCid;                     \
-  typeddata_classes.SetAt(index, cls);                                         \
+  typed_data_classes.SetAt(index, cls);                                        \
   RegisterPrivateClass(cls, Symbols::_##clazz(), lib);                         \
 
   CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_CLASS);
@@ -909,21 +918,21 @@ RawError* Object::Init(Isolate* isolate) {
 #define REGISTER_TYPED_DATA_VIEW_CLASS(clazz)                                  \
   cls = Class::NewTypedDataViewClass(kTypedData##clazz##ViewCid);              \
   index = kTypedData##clazz##ViewCid - kTypedDataInt8ArrayCid;                 \
-  typeddata_classes.SetAt(index, cls);                                         \
+  typed_data_classes.SetAt(index, cls);                                        \
   RegisterPrivateClass(cls, Symbols::_##clazz##View(), lib);                   \
   pending_classes.Add(cls, Heap::kOld);                                        \
 
   CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_VIEW_CLASS);
   cls = Class::NewTypedDataViewClass(kByteDataViewCid);
   index = kByteDataViewCid - kTypedDataInt8ArrayCid;
-  typeddata_classes.SetAt(index, cls);
+  typed_data_classes.SetAt(index, cls);
   RegisterPrivateClass(cls, Symbols::_ByteDataView(), lib);
   pending_classes.Add(cls, Heap::kOld);
 #undef REGISTER_TYPED_DATA_VIEW_CLASS
 #define REGISTER_EXT_TYPED_DATA_CLASS(clazz)                                   \
   cls = Class::NewExternalTypedDataClass(kExternalTypedData##clazz##Cid);      \
   index = kExternalTypedData##clazz##Cid - kTypedDataInt8ArrayCid;             \
-  typeddata_classes.SetAt(index, cls);                                         \
+  typed_data_classes.SetAt(index, cls);                                        \
   RegisterPrivateClass(cls, Symbols::_External##clazz(), lib);                 \
 
   CLASS_LIST_TYPED_DATA(REGISTER_EXT_TYPED_DATA_CLASS);
@@ -949,7 +958,7 @@ RawError* Object::Init(Isolate* isolate) {
   type = Type::NewNonParameterizedType(cls);
   object_store->set_uint32x4_type(type);
 
-  object_store->set_typeddata_classes(typeddata_classes);
+  object_store->set_typed_data_classes(typed_data_classes);
 
   // Set the super type of class Stacktrace to Object type so that the
   // 'toString' method is implemented.
@@ -1042,7 +1051,7 @@ RawError* Object::Init(Isolate* isolate) {
   INIT_LIBRARY(Json, json, true);
   INIT_LIBRARY(Math, math, true);
   INIT_LIBRARY(Mirrors, mirrors, true);
-  INIT_LIBRARY(TypedData, typeddata, true);
+  INIT_LIBRARY(TypedData, typed_data, true);
   INIT_LIBRARY(Utf, utf, false);
   INIT_LIBRARY(Uri, uri, false);
 
@@ -6616,7 +6625,7 @@ RawLibrary* Library::NativeWrappersLibrary() {
 
 
 RawLibrary* Library::TypedDataLibrary() {
-  return Isolate::Current()->object_store()->typeddata_library();
+  return Isolate::Current()->object_store()->typed_data_library();
 }
 
 
@@ -6906,7 +6915,7 @@ void Library::CheckFunctionFingerprints() {
   MATH_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
 
   lib = Library::TypedDataLibrary();
-  TYPEDDATA_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
+  TYPED_DATA_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
 
 #undef CHECK_FINGERPRINTS
   if (has_errors) {
@@ -7761,6 +7770,7 @@ RawCode* Code::FinalizeCode(const char* name,
   MemoryRegion region(reinterpret_cast<void*>(instrs.EntryPoint()),
                       instrs.size());
   assembler->FinalizeInstructions(region);
+  CPU::FlushICache(instrs.EntryPoint(), instrs.size());
 
   CodeObservers::NotifyAll(name,
                            instrs.EntryPoint(),
@@ -8246,7 +8256,8 @@ void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
 
 
 void ICData::AddReceiverCheck(intptr_t receiver_class_id,
-                              const Function& target) const {
+                              const Function& target,
+                              intptr_t count) const {
 #if defined(DEBUG)
   GrowableArray<intptr_t> class_ids(1);
   class_ids.Add(receiver_class_id);
@@ -8273,7 +8284,7 @@ void ICData::AddReceiverCheck(intptr_t receiver_class_id,
   }
   data.SetAt(data_pos, Smi::Handle(Smi::New(receiver_class_id)));
   data.SetAt(data_pos + 1, target);
-  data.SetAt(data_pos + 2, Smi::Handle(Smi::New(1)));
+  data.SetAt(data_pos + 2, Smi::Handle(Smi::New(count)));
 }
 
 
@@ -8336,6 +8347,24 @@ RawFunction* ICData::GetTargetAt(intptr_t index) const {
 }
 
 
+void ICData::IncrementCountAt(intptr_t index, intptr_t value) const {
+  ASSERT(0 <= value);
+  ASSERT(value <= Smi::kMaxValue);
+  SetCountAt(index, Utils::Minimum(GetCountAt(index) + value, Smi::kMaxValue));
+}
+
+
+void ICData::SetCountAt(intptr_t index, intptr_t value) const {
+  ASSERT(0 <= value);
+  ASSERT(value <= Smi::kMaxValue);
+
+  const Array& data = Array::Handle(ic_data());
+  const intptr_t data_pos = index * TestEntryLength() +
+      CountIndexFor(num_args_tested());
+  data.SetAt(data_pos, Smi::Handle(Smi::New(value)));
+}
+
+
 intptr_t ICData::GetCountAt(intptr_t index) const {
   const Array& data = Array::Handle(ic_data());
   const intptr_t data_pos = index * TestEntryLength() +
@@ -8383,6 +8412,7 @@ RawICData* ICData::AsUnaryClassChecksForArgNr(intptr_t arg_nr) const {
   const intptr_t len = NumberOfChecks();
   for (intptr_t i = 0; i < len; i++) {
     const intptr_t class_id = GetClassIdAt(i, arg_nr);
+    const intptr_t count = GetCountAt(i);
     intptr_t duplicate_class_id = -1;
     const intptr_t result_len = result.NumberOfChecks();
     for (intptr_t k = 0; k < result_len; k++) {
@@ -8395,10 +8425,12 @@ RawICData* ICData::AsUnaryClassChecksForArgNr(intptr_t arg_nr) const {
       // This check is valid only when checking the receiver.
       ASSERT((arg_nr != 0) ||
              (result.GetTargetAt(duplicate_class_id) == GetTargetAt(i)));
+      result.IncrementCountAt(duplicate_class_id, count);
     } else {
       // This will make sure that Smi is first if it exists.
       result.AddReceiverCheck(class_id,
-                              Function::Handle(GetTargetAt(i)));
+                              Function::Handle(GetTargetAt(i)),
+                              count);
     }
   }
   return result.raw();
@@ -8805,9 +8837,14 @@ void UnhandledException::set_stacktrace(const Instance& stacktrace) const {
 
 const char* UnhandledException::ToErrorCString() const {
   Isolate* isolate = Isolate::Current();
+  if (exception() == isolate->object_store()->out_of_memory()) {
+    return "Unhandled exception:\nOut of memory";
+  }
+  if (exception() == isolate->object_store()->stack_overflow()) {
+    return "Unhandled exception:\nStack overflow";
+  }
   HANDLESCOPE(isolate);
   Object& strtmp = Object::Handle();
-
   const Instance& exc = Instance::Handle(exception());
   strtmp = DartLibraryCalls::ToString(exc);
   const char* exc_str =
@@ -8986,16 +9023,16 @@ bool Instance::IsInstanceOf(const AbstractType& other,
       type_arguments = type_arguments.Canonicalize();
       SetTypeArguments(type_arguments);
     }
-    // Verify that the number of type arguments in the instance matches the
-    // number of type arguments expected by the instance class.
+    // The number of type arguments in the instance must be greater or equal to
+    // the number of type arguments expected by the instance class.
     // A discrepancy is allowed for closures, which borrow the type argument
     // vector of their instantiator, which may be of a subclass of the class
     // defining the closure. Truncating the vector to the correct length on
     // instantiation is unnecessary. The vector may therefore be longer.
+    // Also, an optimization reuses the type argument vector of the instantiator
+    // of generic instances when its layout is compatible.
     ASSERT(type_arguments.IsNull() ||
-           (type_arguments.Length() == num_type_arguments) ||
-           (cls.IsSignatureClass() &&
-            (type_arguments.Length() > num_type_arguments)));
+           (type_arguments.Length() >= num_type_arguments));
   }
   Class& other_class = Class::Handle();
   AbstractTypeArguments& other_type_arguments = AbstractTypeArguments::Handle();
@@ -12687,28 +12724,6 @@ const intptr_t TypedData::element_size[] = {
 };
 
 
-void TypedData::Copy(const TypedData& dst,
-                     intptr_t dst_offset_in_bytes,
-                     const TypedData& src,
-                     intptr_t src_offset_in_bytes,
-                     intptr_t length_in_bytes) {
-  ASSERT(Utils::RangeCheck(src_offset_in_bytes,
-                           length_in_bytes,
-                           src.LengthInBytes()));
-  ASSERT(Utils::RangeCheck(dst_offset_in_bytes,
-                           length_in_bytes,
-                           dst.LengthInBytes()));
-  {
-    NoGCScope no_gc;
-    if (length_in_bytes > 0) {
-      memmove(dst.DataAddr(dst_offset_in_bytes),
-              src.DataAddr(src_offset_in_bytes),
-              length_in_bytes);
-    }
-  }
-}
-
-
 RawTypedData* TypedData::New(intptr_t class_id,
                              intptr_t len,
                              Heap::Space space) {
@@ -12743,28 +12758,6 @@ FinalizablePersistentHandle* ExternalTypedData::AddFinalizer(
     void* peer, Dart_WeakPersistentHandleFinalizer callback) const {
   SetPeer(peer);
   return dart::AddFinalizer(*this, peer, callback);
-}
-
-
-void ExternalTypedData::Copy(const ExternalTypedData& dst,
-                             intptr_t dst_offset_in_bytes,
-                             const ExternalTypedData& src,
-                             intptr_t src_offset_in_bytes,
-                             intptr_t length_in_bytes) {
-  ASSERT(Utils::RangeCheck(src_offset_in_bytes,
-                           length_in_bytes,
-                           src.LengthInBytes()));
-  ASSERT(Utils::RangeCheck(dst_offset_in_bytes,
-                           length_in_bytes,
-                           dst.LengthInBytes()));
-  {
-    NoGCScope no_gc;
-    if (length_in_bytes > 0) {
-      memmove(dst.DataAddr(dst_offset_in_bytes),
-              src.DataAddr(src_offset_in_bytes),
-              length_in_bytes);
-    }
-  }
 }
 
 

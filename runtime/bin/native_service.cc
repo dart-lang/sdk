@@ -8,6 +8,9 @@
 #include "bin/thread.h"
 
 
+namespace dart {
+namespace bin {
+
 NativeService::NativeService(const char* name,
                              Dart_NativeMessageHandler handler,
                              int number_of_ports)
@@ -38,3 +41,6 @@ Dart_Port NativeService::GetServicePort() {
   service_ports_index_ = (service_ports_index_ + 1) % service_ports_size_;
   return result;
 }
+
+}  // namespace bin
+}  // namespace dart

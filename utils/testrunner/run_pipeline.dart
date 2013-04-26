@@ -4,8 +4,10 @@
 
 /** The default pipeline code for running a test file. */
 library pipeline;
-import 'dart:isolate';
+import 'dart:async';
 import 'dart:io';
+import 'dart:isolate';
+import 'dart:math';
 part 'pipeline_utils.dart';
 
 /**
@@ -49,16 +51,26 @@ String serverPath;
 /** Number of attempts we will make to start the HTTP server. */
 const int MAX_SERVER_TRIES = 10;
 
+/** Pipeline output. */
+List stdout;
+
+/** Pipeline errors. */
+List stderr;
+
+/** Directory where test wrappers are created. */
+String tmpDir;
+
 void main() {
   port.receive((cfg, replyPort) {
     config = cfg;
+    stdout = new List();
+    stderr = new List();
     initPipeline(replyPort);
     startHTTPServerStage();
   });
 }
 
 /** Initial pipeline stage - starts the HTTP server, if appropriate. */
-
 startHTTPServerStage() {
   if (config["server"]) {
     serverPath = config["testfile"];
@@ -86,7 +98,8 @@ startHTTPServerStage() {
         serverPort = int.parse(config["port"]);
         // Start the HTTP server.
         serverId = startProcess(config["dart"],
-            [ serverPath, '--port=$serverPort', '--root=$serverRoot']);
+            [ serverPath, '--port=$serverPort', '--root=$serverRoot'],
+            stdout, stderr);
       }
     }
   }
@@ -100,6 +113,7 @@ void tryStartHTTPServer(Random r, int remainingAttempts) {
       '--root=$serverRoot');
   serverId = startProcess(config["dart"],
       [ serverPath, '--port=$serverPort', '--root=$serverRoot'],
+      stdout, stderr,
       (line) {
         if (line.startsWith('Server listening')) {
           wrapStage();
@@ -115,14 +129,8 @@ void tryStartHTTPServer(Random r, int remainingAttempts) {
 
 /** Initial pipeline stage - generates Dart and HTML wrapper files. */
 wrapStage() {
-  var tmpDir = config["tempdir"];
+  tmpDir = config["targetDir"];
   var testFile = config["testfile"];
-
-  // Make sure the temp dir exists.
-  var d = new Directory(tmpDir);
-  if (!d.existsSync()) {
-    d.createSync();
-  }
 
   // Generate names for the generated wrapper files.
   tempDartFile = createTempName(tmpDir, testFile, '.dart');
@@ -146,50 +154,52 @@ wrapStage() {
 
   if (config["layout"]) {
     directives = '''
-      import 'dart:uri';
-      import 'dart:io';
-      import 'dart:math';
-      part '${config["runnerDir"]}/layout_test_controller.dart';
+import 'dart:async';
+import 'dart:io';
+import 'dart:math';
+import 'dart:uri';
+part '${normalizePath('${config["runnerDir"]}/layout_test_controller.dart')}';
     ''';
     extras = '''
-      sourceDir = '${config["expectedDirectory"]}';
-      baseUrl = 'file://$tempHtmlFile';
-      tprint = (msg) => print('###\$msg');
-      notifyDone = (e) => exit(e);
+  baseUrl = 'file://${normalizePath('$tempHtmlFile')}';
+  tprint = (msg) => print('###\$msg');
+  notifyDone = (e) => exit(e);
     ''';
   } else if (config["runtime"] == "vm") {
     directives = '''
-      import 'dart:io';
-      import 'dart:isolate';
-      import '${config["unittest"]}' as unittest;
-      import '${config["testfile"]}' as test;
-      part '${config["runnerDir"]}/standard_test_runner.dart';
+import 'dart:async';
+import 'dart:io';
+import 'dart:isolate';
+import 'package:unittest/unittest.dart';
+import '${normalizePath('${config["testfile"]}')}' as test;
+part '${normalizePath('${config["runnerDir"]}/standard_test_runner.dart')}';
     ''';
     extras = '''
-      includeFilters = ${config["include"]};
-      excludeFilters = ${config["exclude"]};
-      tprint = (msg) => print('###\$msg');
-      notifyDone = (e) {};
-      unittest.testState["port"] = $serverPort;
+  includeFilters = ${config["include"]};
+  excludeFilters = ${config["exclude"]};
+  tprint = (msg) => print('###\$msg');
+  notifyDone = (e) { exit(e); };
+  testState["port"] = $serverPort;
     ''';
   } else {
     directives = '''
-      import 'dart:html';
-      import 'dart:isolate';
-      import '${config["unittest"]}' as unittest;
-      import '${config["testfile"]}' as test;
-      part '${config["runnerDir"]}/standard_test_runner.dart';
+import 'dart:async';
+import 'dart:html';
+import 'dart:isolate';
+import 'package:unittest/unittest.dart';
+import '${normalizePath('${config["testfile"]}')}' as test;
+part '${normalizePath('${config["runnerDir"]}/standard_test_runner.dart')}';
     ''';
     extras = '''
-      includeFilters = ${config["include"]};
-      excludeFilters = ${config["exclude"]};
-      tprint = (msg) => query('#console').addText('###\$msg\\n');
-      notifyDone = (e) => window.postMessage('done', '*');
-      unittest.testState["port"] = $serverPort;
+  includeFilters = ${config["include"]};
+  excludeFilters = ${config["exclude"]};
+  tprint = (msg) => query('#console').appendText('###\$msg\\n');
+  notifyDone = (e) => window.postMessage('done', '*');
+  testState["port"] = $serverPort;
     ''';
   }
 
-  var action = 'process(test.main, unittest.runTests)';
+  var action = 'process(test.main, runTests)';
   if (config["layout-text"]) {
     action = 'runTextLayoutTests()';
   } else if (config["layout-pixel"]) {
@@ -204,44 +214,44 @@ wrapStage() {
 
   logMessage('Creating $tempDartFile');
   writeFile(tempDartFile, '''
-    library test_controller;
-    $directives
+library test_controller;
+$directives
 
-    main() {
-      immediate = ${config["immediate"]};
-      includeTime = ${config["time"]};
-      passFormat = '${config["pass-format"]}';
-      failFormat = '${config["fail-format"]}';
-      errorFormat = '${config["error-format"]}';
-      listFormat = '${config["list-format"]}';
-      regenerate = ${config["regenerate"]};
-      summarize = ${config["summary"]};
-      testfile = '$testFile';
-      drt = '${config["drt"]}';
-      $extras
-      $action;
-    }
+main() {
+  immediate = ${config["immediate"]};
+  includeTime = ${config["time"]};
+  passFormat = '${config["pass-format"]}';
+  failFormat = '${config["fail-format"]}';
+  errorFormat = '${config["error-format"]}';
+  listFormat = '${config["list-format"]}';
+  regenerate = ${config["regenerate"]};
+  summarize = ${config["summary"]};
+  testfile = '${testFile.replaceAll("\\","\\\\")}';
+  drt = '${config["drt"].replaceAll("\\","\\\\")}';
+$extras
+  $action;
+}
   ''');
 
   // Create the child wrapper for layout tests.
   if (config["layout"]) {
     logMessage('Creating $tempChildDartFile');
     writeFile(tempChildDartFile, '''
-        library layout_test;
-        import 'dart:math';
-        import 'dart:isolate';
-        import 'dart:html';
-        import 'dart:uri';
-        import '${config["unittest"]}' as 'unittest' ;
-        import '$testFile', prefix: 'test' ;
-        part '${config["runnerDir"]}/layout_test_runner.dart';
+library layout_test;
+import 'dart:math';
+import 'dart:isolate';
+import 'dart:html';
+import 'dart:uri';
+import 'package:unittest/unittest.dart' as unittest;
+import '${normalizePath('$testFile')}' as test;
+part '${normalizePath('${config["runnerDir"]}/layout_test_runner.dart')}';
 
-        main() {
-          includeFilters = ${config["include"]};
-          excludeFilters = ${config["exclude"]};
-          unittest.testState["port"] = $serverPort;
-          runTests(test.main);
-        }
+main() {
+  includeFilters = ${config["include"]};
+  excludeFilters = ${config["exclude"]};
+  unittest.testState["port"] = $serverPort;
+  runTests(test.main);
+}
     ''');
   }
 
@@ -258,7 +268,7 @@ wrapStage() {
       sourceFile = tempDartFile;
       scriptFile = isJavascript ? tempJsFile : tempDartFile;
       bodyElements = '<div id="container"></div><pre id="console"></pre>';
-      runAsText = "window.testRunner.dumpAsText();";
+      runAsText = "testRunner.dumpAsText();";
     }
     scriptType = isJavascript ? 'text/javascript' : 'application/dart';
 
@@ -272,13 +282,14 @@ wrapStage() {
     <title>$testFile</title>
     <link rel="stylesheet" href="${config["runnerDir"]}/testrunner.css">
     <script type='text/javascript'>
-      if (window.testRunner) {
+      var testRunner = window.testRunner || window.layoutTestController;
+      if (testRunner) {
         function handleMessage(m) {
           if (m.data == 'done') {
-            window.testRunner.notifyDone();
+            testRunner.notifyDone();
           }
         }
-        window.testRunner.waitUntilDone();
+        testRunner.waitUntilDone();
         $runAsText
         window.addEventListener("message", handleMessage, false);
       }
@@ -291,9 +302,6 @@ wrapStage() {
   $bodyElements
   <script type='$scriptType' src='$scriptFile'></script>
   </script>
-  <script
-src="http://dart.googlecode.com/svn/branches/bleeding_edge/dart/client/dart.js">
-  </script>
 </body>
 </html>
 ''');
@@ -305,14 +313,15 @@ src="http://dart.googlecode.com/svn/branches/bleeding_edge/dart/client/dart.js">
 /** Second stage of pipeline - compiles Dart to Javascript if needed. */
 compileStage(isJavascript) {
   if (isJavascript) { // Compile the Dart file.
+    var cmd = config["dart2js"];
+    var input = sourceFile.replaceAll('/', Platform.pathSeparator);
+    var output = scriptFile.replaceAll('/', Platform.pathSeparator);
     if (config["checked"]) {
-      runCommand(config["dart2js"],
-          [ '--enable_checked_mode', '--out=$scriptFile', '$sourceFile' ]).
-          then(runTestStage);
+      runCommand(cmd, [ '-c', '-o$output', '$input' ], stdout, stderr)
+          .then(runTestStage);
     } else {
-      runCommand(config["dart2js"],
-          [ '--out=$scriptFile', '$sourceFile' ]).
-          then(runTestStage);
+      runCommand(cmd, [ '-o$output', '$input' ], stdout, stderr)
+          .then(runTestStage);
     }
   } else {
     runTestStage(0);
@@ -334,7 +343,7 @@ runTestStage(_) {
     cmd = config["drt"];
     args = [ '--no-timeout', tempHtmlFile ];
   }
-  runCommand(cmd, args, config["timeout"]).then(cleanupStage);
+  runCommand(cmd, args, stdout, stderr, config["timeout"]).then(cleanupStage);
 }
 
 /**
@@ -346,12 +355,15 @@ cleanupStage(exitcode) {
     stopProcess(serverId);
   }
 
-  if (!config["keep-files"]) { // Remove the temporary files.
+  if (config["clean-files"]) { // Remove the temporary files.
     cleanup(tempDartFile);
     cleanup(tempHtmlFile);
     cleanup(tempJsFile);
     cleanup(tempChildDartFile);
     cleanup(tempChildJsFile);
+    cleanup(createTempName(tmpDir, "pubspec", "yaml"));
+    cleanup(createTempName(tmpDir, "pubspec", "lock"));
+    cleanupDir(createTempName(tmpDir, "packages"));
   }
-  completePipeline(exitcode);
+  completePipeline(stdout, stderr, exitcode);
 }

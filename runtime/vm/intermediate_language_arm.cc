@@ -95,10 +95,9 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LeaveDartFrame();
   __ Ret();
 
-  // Generate 2 NOP instructions so that the debugger can patch the return
-  // pattern (1 instruction) with a call to the debug stub (3 instructions).
-  __ nop();
-  __ nop();
+  // No need to generate NOP instructions so that the debugger can patch the
+  // return pattern (3 instructions) with a call to the debug stub (also 3
+  // instructions).
   compiler->AddCurrentDescriptor(PcDescriptors::kReturn,
                                  Isolate::kNoDeoptId,
                                  token_pos());
@@ -208,8 +207,8 @@ LocationSummary* AssertAssignableInstr::MakeLocationSummary() const {
   LocationSummary* summary =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
   summary->set_in(0, Location::RegisterLocation(R0));  // Value.
-  summary->set_in(1, Location::RegisterLocation(R1));  // Instantiator.
-  summary->set_in(2, Location::RegisterLocation(R2));  // Type arguments.
+  summary->set_in(1, Location::RegisterLocation(R2));  // Instantiator.
+  summary->set_in(2, Location::RegisterLocation(R1));  // Type arguments.
   summary->set_out(Location::RegisterLocation(R0));
   return summary;
 }
@@ -344,7 +343,7 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary() const {
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
   locs->set_in(0, Location::RegisterLocation(R1));
   locs->set_in(1, Location::RegisterLocation(R0));
-  locs->set_temp(0, Location::RegisterLocation(R6));
+  locs->set_temp(0, Location::RegisterLocation(R5));
   locs->set_out(Location::RegisterLocation(R0));
   return locs;
 }
@@ -352,7 +351,7 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary() const {
 
 // R1: left.
 // R0: right.
-// Uses R6 to load ic_call_data.
+// Uses R5 to load ic_call_data.
 static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
                                        intptr_t deopt_id,
                                        intptr_t token_pos,
@@ -405,13 +404,9 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
   Label equality_done;
   if (compiler->is_optimizing()) {
     // No need to update IC data.
-    Label is_true;
     __ cmp(R0, ShifterOperand(R1));
-    __ b(&is_true, EQ);
-    __ LoadObject(R0, (kind == Token::kEQ) ? Bool::False() : Bool::True());
-    __ b(&equality_done);
-    __ Bind(&is_true);
-    __ LoadObject(R0, (kind == Token::kEQ) ? Bool::True() : Bool::False());
+    __ LoadObject(R0, (kind == Token::kEQ) ? Bool::False() : Bool::True(), NE);
+    __ LoadObject(R0, (kind == Token::kEQ) ? Bool::True() : Bool::False(), EQ);
     if (kind == Token::kNE) {
       // Skip not-equal result conversion.
       __ b(&equality_done);
@@ -420,7 +415,7 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
     // Call stub, load IC data in register. The stub will update ICData if
     // necessary.
     Register ic_data_reg = locs->temp(0).reg();
-    ASSERT(ic_data_reg == R6);  // Stub depends on it.
+    ASSERT(ic_data_reg == R5);  // Stub depends on it.
     __ LoadObject(ic_data_reg, equality_ic_data);
     // Pass left in R1 and right in R0.
     compiler->GenerateCall(token_pos,
@@ -430,15 +425,10 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
   }
   __ Bind(&check_ne);
   if (kind == Token::kNE) {
-    Label true_label, done;
     // Negate the condition: true label returns false and vice versa.
     __ CompareObject(R0, Bool::True());
-    __ b(&true_label, EQ);
-    __ LoadObject(R0, Bool::True());
-    __ b(&done);
-    __ Bind(&true_label);
-    __ LoadObject(R0, Bool::False());
-    __ Bind(&done);
+    __ LoadObject(R0, Bool::True(), NE);
+    __ LoadObject(R0, Bool::False(), EQ);
   }
   __ Bind(&equality_done);
 }
@@ -488,6 +478,25 @@ static void EmitGenericEqualityCompare(FlowGraphCompiler* compiler,
 }
 
 
+static Condition NegateCondition(Condition condition) {
+  switch (condition) {
+    case EQ: return NE;
+    case NE: return EQ;
+    case LT: return GE;
+    case LE: return GT;
+    case GT: return LE;
+    case GE: return LT;
+    case CC: return CS;
+    case LS: return HI;
+    case HI: return LS;
+    case CS: return CC;
+    default:
+      UNIMPLEMENTED();
+      return EQ;
+  }
+}
+
+
 static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
                                 const LocationSummary& locs,
                                 Token::Kind kind,
@@ -511,13 +520,8 @@ static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
     branch->EmitBranchOnCondition(compiler, true_condition);
   } else {
     Register result = locs.out().reg();
-    Label done, is_true;
-    __ b(&is_true, true_condition);
-    __ LoadObject(result, Bool::False());
-    __ b(&done);
-    __ Bind(&is_true);
-    __ LoadObject(result, Bool::True());
-    __ Bind(&done);
+    __ LoadObject(result, Bool::True(), true_condition);
+    __ LoadObject(result, Bool::False(), NegateCondition(true_condition));
   }
 }
 
@@ -837,25 +841,192 @@ void LoadUntaggedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 CompileType LoadIndexedInstr::ComputeType() const {
-  UNIMPLEMENTED();
-  return CompileType::Dynamic();
+  switch (class_id_) {
+    case kArrayCid:
+    case kImmutableArrayCid:
+      return CompileType::Dynamic();
+
+    case kTypedDataFloat32ArrayCid:
+    case kTypedDataFloat64ArrayCid:
+      return CompileType::FromCid(kDoubleCid);
+    case kTypedDataFloat32x4ArrayCid:
+      return CompileType::FromCid(kFloat32x4Cid);
+
+    case kTypedDataInt8ArrayCid:
+    case kTypedDataUint8ArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
+    case kExternalTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid:
+    case kTypedDataInt16ArrayCid:
+    case kTypedDataUint16ArrayCid:
+    case kOneByteStringCid:
+    case kTwoByteStringCid:
+      return CompileType::FromCid(kSmiCid);
+
+    case kTypedDataInt32ArrayCid:
+    case kTypedDataUint32ArrayCid:
+      // Result can be Smi or Mint when boxed.
+      // Instruction can deoptimize if we optimistically assumed that the result
+      // fits into Smi.
+      return CanDeoptimize() ? CompileType::FromCid(kSmiCid)
+                             : CompileType::Int();
+
+    default:
+      UNIMPLEMENTED();
+      return CompileType::Dynamic();
+  }
 }
 
 
 Representation LoadIndexedInstr::representation() const {
-  UNIMPLEMENTED();
-  return kTagged;
+  switch (class_id_) {
+    case kArrayCid:
+    case kImmutableArrayCid:
+    case kTypedDataInt8ArrayCid:
+    case kTypedDataUint8ArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
+    case kExternalTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid:
+    case kTypedDataInt16ArrayCid:
+    case kTypedDataUint16ArrayCid:
+    case kOneByteStringCid:
+    case kTwoByteStringCid:
+      return kTagged;
+    case kTypedDataInt32ArrayCid:
+    case kTypedDataUint32ArrayCid:
+      // Instruction can deoptimize if we optimistically assumed that the result
+      // fits into Smi.
+      return CanDeoptimize() ? kTagged : kUnboxedMint;
+    case kTypedDataFloat32ArrayCid:
+    case kTypedDataFloat64ArrayCid:
+      return kUnboxedDouble;
+    case kTypedDataFloat32x4ArrayCid:
+      return kUnboxedFloat32x4;
+    default:
+      UNIMPLEMENTED();
+      return kTagged;
+  }
 }
 
 
 LocationSummary* LoadIndexedInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  locs->set_in(0, Location::RequiresRegister());
+  // The smi index is either untagged (element size == 1), or it is left smi
+  // tagged (for all element sizes > 1).
+  // TODO(regis): Revisit and see if the index can be immediate.
+  locs->set_in(1, Location::WritableRegister());
+  if (representation() == kUnboxedDouble) {
+    locs->set_out(Location::RequiresFpuRegister());
+  } else {
+    locs->set_out(Location::RequiresRegister());
+  }
+  return locs;
 }
 
 
 void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register array = locs()->in(0).reg();
+  Location index = locs()->in(1);
+
+  Address element_address(kNoRegister, 0);
+  if (IsExternal()) {
+    UNIMPLEMENTED();
+  } else {
+    ASSERT(this->array()->definition()->representation() == kTagged);
+    ASSERT(index.IsRegister());  // TODO(regis): Revisit.
+    // Note that index is expected smi-tagged, (i.e, times 2) for all arrays
+    // with index scale factor > 1. E.g., for Uint8Array and OneByteString the
+    // index is expected to be untagged before accessing.
+    ASSERT(kSmiTagShift == 1);
+    switch (index_scale()) {
+      case 1: {
+        __ SmiUntag(index.reg());
+        break;
+      }
+      case 2: {
+        break;
+      }
+      case 4: {
+        __ mov(index.reg(), ShifterOperand(index.reg(), LSL, 1));
+        break;
+      }
+      case 8: {
+        __ mov(index.reg(), ShifterOperand(index.reg(), LSL, 2));
+        break;
+      }
+      case 16: {
+        __ mov(index.reg(), ShifterOperand(index.reg(), LSL, 3));
+        break;
+      }
+      default:
+        UNREACHABLE();
+    }
+    __ AddImmediate(index.reg(),
+        FlowGraphCompiler::DataOffsetFor(class_id()) - kHeapObjectTag);
+    element_address = Address(array, index.reg(), LSL, 0);
+  }
+
+  if ((representation() == kUnboxedDouble) ||
+      (representation() == kUnboxedMint) ||
+      (representation() == kUnboxedFloat32x4)) {
+    UNIMPLEMENTED();
+  }
+
+  Register result = locs()->out().reg();
+  if ((index_scale() == 1) && index.IsRegister()) {
+    __ SmiUntag(index.reg());
+  }
+  switch (class_id()) {
+    case kTypedDataInt8ArrayCid:
+      ASSERT(index_scale() == 1);
+      __ ldrsb(result, element_address);
+      __ SmiTag(result);
+      break;
+    case kTypedDataUint8ArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
+    case kExternalTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid:
+    case kOneByteStringCid:
+      ASSERT(index_scale() == 1);
+      __ ldrb(result, element_address);
+      __ SmiTag(result);
+      break;
+    case kTypedDataInt16ArrayCid:
+      __ ldrsh(result, element_address);
+      __ SmiTag(result);
+      break;
+    case kTypedDataUint16ArrayCid:
+    case kTwoByteStringCid:
+      __ ldrh(result, element_address);
+      __ SmiTag(result);
+      break;
+    case kTypedDataInt32ArrayCid: {
+        Label* deopt = compiler->AddDeoptStub(deopt_id(), kDeoptInt32Load);
+        __ ldr(result, element_address);
+        // Verify that the signed value in 'result' can fit inside a Smi.
+        __ CompareImmediate(result, 0xC0000000);
+        __ b(deopt, MI);
+        __ SmiTag(result);
+      }
+      break;
+    case kTypedDataUint32ArrayCid: {
+        Label* deopt = compiler->AddDeoptStub(deopt_id(), kDeoptUint32Load);
+        __ ldr(result, element_address);
+        // Verify that the unsigned value in 'result' can fit inside a Smi.
+        __ tst(result, ShifterOperand(0xC0000000));
+        __ b(deopt, NE);
+        __ SmiTag(result);
+      }
+      break;
+    default:
+      ASSERT((class_id() == kArrayCid) || (class_id() == kImmutableArrayCid));
+      __ ldr(result, element_address);
+      break;
+  }
 }
 
 
@@ -1039,28 +1210,25 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     FieldAddress field_nullability_operand(
         field_reg, Field::is_nullable_offset());
 
+    if (value_cid_reg == kNoRegister) {
+      ASSERT(!compiler->is_optimizing());
+      value_cid_reg = R3;
+      ASSERT((value_cid_reg != value_reg) && (field_reg != value_cid_reg));
+    }
+
     if (value_cid == kDynamicCid) {
-      if (value_cid_reg == kNoRegister) {
-        ASSERT(!compiler->is_optimizing());
-        value_cid_reg = R3;
-        ASSERT((value_cid_reg != value_reg) && (field_reg != value_cid_reg));
-      }
-
       LoadValueCid(compiler, value_cid_reg, value_reg);
-
       __ ldr(IP, field_cid_operand);
       __ cmp(value_cid_reg, ShifterOperand(IP));
       __ b(&ok, EQ);
       __ ldr(IP, field_nullability_operand);
       __ cmp(value_cid_reg, ShifterOperand(IP));
     } else if (value_cid == kNullCid) {
-      // TODO(regis): IP may conflict. Revisit.
-      __ ldr(IP, field_nullability_operand);
-      __ CompareImmediate(IP, value_cid);
+      __ ldr(value_cid_reg, field_nullability_operand);
+      __ CompareImmediate(value_cid_reg, value_cid);
     } else {
-      // TODO(regis): IP may conflict. Revisit.
-      __ ldr(IP, field_cid_operand);
-      __ CompareImmediate(IP, value_cid);
+      __ ldr(value_cid_reg, field_cid_operand);
+      __ CompareImmediate(value_cid_reg, value_cid);
     }
     __ b(&ok, EQ);
 
@@ -1274,11 +1442,10 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* InstantiateTypeArgumentsInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 1;
+  const intptr_t kNumTemps = 0;
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
   locs->set_in(0, Location::RegisterLocation(R0));
-  locs->set_temp(0, Location::RegisterLocation(R1));
   locs->set_out(Location::RegisterLocation(R0));
   return locs;
 }
@@ -1287,48 +1454,34 @@ LocationSummary* InstantiateTypeArgumentsInstr::MakeLocationSummary() const {
 void InstantiateTypeArgumentsInstr::EmitNativeCode(
     FlowGraphCompiler* compiler) {
   Register instantiator_reg = locs()->in(0).reg();
-  Register temp = locs()->temp(0).reg();
   Register result_reg = locs()->out().reg();
 
   // 'instantiator_reg' is the instantiator AbstractTypeArguments object
   // (or null).
-  // If the instantiator is null and if the type argument vector
-  // instantiated from null becomes a vector of dynamic, then use null as
-  // the type arguments.
-  Label type_arguments_instantiated;
-  const intptr_t len = type_arguments().Length();
-  if (type_arguments().IsRawInstantiatedRaw(len)) {
-    __ LoadImmediate(IP, reinterpret_cast<intptr_t>(Object::null()));
-    __ cmp(instantiator_reg, ShifterOperand(IP));
-    __ b(&type_arguments_instantiated, EQ);
+  if (!type_arguments().IsUninstantiatedIdentity()) {
+    // If the instantiator is null and if the type argument vector
+    // instantiated from null becomes a vector of dynamic, then use null as
+    // the type arguments.
+    Label type_arguments_instantiated;
+    const intptr_t len = type_arguments().Length();
+    if (type_arguments().IsRawInstantiatedRaw(len)) {
+      __ LoadImmediate(IP, reinterpret_cast<intptr_t>(Object::null()));
+      __ cmp(instantiator_reg, ShifterOperand(IP));
+      __ b(&type_arguments_instantiated, EQ);
+    }
+    // Instantiate non-null type arguments.
+    // A runtime call to instantiate the type arguments is required.
+    __ PushObject(Object::ZoneHandle());  // Make room for the result.
+    __ PushObject(type_arguments());
+    __ Push(instantiator_reg);  // Push instantiator type arguments.
+    compiler->GenerateCallRuntime(token_pos(),
+                                  deopt_id(),
+                                  kInstantiateTypeArgumentsRuntimeEntry,
+                                  locs());
+    __ Drop(2);  // Drop instantiator and uninstantiated type arguments.
+    __ Pop(result_reg);  // Pop instantiated type arguments.
+    __ Bind(&type_arguments_instantiated);
   }
-  // Instantiate non-null type arguments.
-  if (type_arguments().IsUninstantiatedIdentity()) {
-    // Check if the instantiator type argument vector is a TypeArguments of a
-    // matching length and, if so, use it as the instantiated type_arguments.
-    // No need to check the instantiator ('instantiator_reg') for null here,
-    // because a null instantiator will have the wrong class (Null instead of
-    // TypeArguments).
-    Label type_arguments_uninstantiated;
-    __ CompareClassId(instantiator_reg, kTypeArgumentsCid, temp);
-    __ b(&type_arguments_uninstantiated, NE);
-    __ ldr(temp,
-           FieldAddress(instantiator_reg, TypeArguments::length_offset()));
-    __ CompareImmediate(temp, Smi::RawValue(len));
-    __ b(&type_arguments_instantiated, EQ);
-    __ Bind(&type_arguments_uninstantiated);
-  }
-  // A runtime call to instantiate the type arguments is required.
-  __ PushObject(Object::ZoneHandle());  // Make room for the result.
-  __ PushObject(type_arguments());
-  __ Push(instantiator_reg);  // Push instantiator type arguments.
-  compiler->GenerateCallRuntime(token_pos(),
-                                deopt_id(),
-                                kInstantiateTypeArgumentsRuntimeEntry,
-                                locs());
-  __ Drop(2);  // Drop instantiator and uninstantiated type arguments.
-  __ Pop(result_reg);  // Pop instantiated type arguments.
-  __ Bind(&type_arguments_instantiated);
   ASSERT(instantiator_reg == result_reg);
   // 'result_reg': Instantiated type arguments.
 }
@@ -1337,12 +1490,11 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
 LocationSummary*
 ExtractConstructorTypeArgumentsInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 1;
+  const intptr_t kNumTemps = 0;
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
   locs->set_out(Location::SameAsFirstInput());
-  locs->set_temp(0, Location::RequiresRegister());
   return locs;
 }
 
@@ -1352,40 +1504,28 @@ void ExtractConstructorTypeArgumentsInstr::EmitNativeCode(
   Register instantiator_reg = locs()->in(0).reg();
   Register result_reg = locs()->out().reg();
   ASSERT(instantiator_reg == result_reg);
-  Register temp_reg = locs()->temp(0).reg();
 
   // instantiator_reg is the instantiator type argument vector, i.e. an
   // AbstractTypeArguments object (or null).
-  // If the instantiator is null and if the type argument vector
-  // instantiated from null becomes a vector of dynamic, then use null as
-  // the type arguments.
-  Label type_arguments_instantiated;
-  const intptr_t len = type_arguments().Length();
-  if (type_arguments().IsRawInstantiatedRaw(len)) {
-    __ CompareImmediate(instantiator_reg,
-                        reinterpret_cast<intptr_t>(Object::null()));
-    __ b(&type_arguments_instantiated, EQ);
+  if (!type_arguments().IsUninstantiatedIdentity()) {
+    // If the instantiator is null and if the type argument vector
+    // instantiated from null becomes a vector of dynamic, then use null as
+    // the type arguments.
+    Label type_arguments_instantiated;
+    const intptr_t len = type_arguments().Length();
+    if (type_arguments().IsRawInstantiatedRaw(len)) {
+      __ CompareImmediate(instantiator_reg,
+                          reinterpret_cast<intptr_t>(Object::null()));
+      __ b(&type_arguments_instantiated, EQ);
+    }
+    // Instantiate non-null type arguments.
+    // In the non-factory case, we rely on the allocation stub to
+    // instantiate the type arguments.
+    __ LoadObject(result_reg, type_arguments());
+    // result_reg: uninstantiated type arguments.
+    __ Bind(&type_arguments_instantiated);
   }
-  // Instantiate non-null type arguments.
-  if (type_arguments().IsUninstantiatedIdentity()) {
-    // Check if the instantiator type argument vector is a TypeArguments of a
-    // matching length and, if so, use it as the instantiated type_arguments.
-    // No need to check instantiator_reg for null here, because a null
-    // instantiator will have the wrong class (Null instead of TypeArguments).
-    Label type_arguments_uninstantiated;
-    __ CompareClassId(instantiator_reg, kTypeArgumentsCid, temp_reg);
-    __ b(&type_arguments_uninstantiated, NE);
-    __ ldr(temp_reg,
-           FieldAddress(instantiator_reg, TypeArguments::length_offset()));
-    __ CompareImmediate(temp_reg, Smi::RawValue(type_arguments().Length()));
-    __ b(&type_arguments_instantiated, EQ);
-    __ Bind(&type_arguments_uninstantiated);
-  }
-  // In the non-factory case, we rely on the allocation stub to
-  // instantiate the type arguments.
-  __ LoadObject(result_reg, type_arguments());
-  // result_reg: uninstantiated type arguments.
-  __ Bind(&type_arguments_instantiated);
+  ASSERT(instantiator_reg == result_reg);
   // result_reg: uninstantiated or instantiated type arguments.
 }
 
@@ -1393,12 +1533,11 @@ void ExtractConstructorTypeArgumentsInstr::EmitNativeCode(
 LocationSummary*
 ExtractConstructorInstantiatorInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 1;
+  const intptr_t kNumTemps = 0;
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
   locs->set_out(Location::SameAsFirstInput());
-  locs->set_temp(0, Location::RequiresRegister());
   return locs;
 }
 
@@ -1407,51 +1546,31 @@ void ExtractConstructorInstantiatorInstr::EmitNativeCode(
     FlowGraphCompiler* compiler) {
   Register instantiator_reg = locs()->in(0).reg();
   ASSERT(locs()->out().reg() == instantiator_reg);
-  Register temp_reg = locs()->temp(0).reg();
 
   // instantiator_reg is the instantiator AbstractTypeArguments object
-  // (or null).  If the instantiator is null and if the type argument vector
-  // instantiated from null becomes a vector of dynamic, then use null as
-  // the type arguments and do not pass the instantiator.
-  Label done;
-  const intptr_t len = type_arguments().Length();
-  if (type_arguments().IsRawInstantiatedRaw(len)) {
-    Label instantiator_not_null;
-    __ CompareImmediate(instantiator_reg,
-                        reinterpret_cast<intptr_t>(Object::null()));
-    __ b(&instantiator_not_null, NE);
-    // Null was used in VisitExtractConstructorTypeArguments as the
-    // instantiated type arguments, no proper instantiator needed.
-    __ LoadImmediate(instantiator_reg,
-                     Smi::RawValue(StubCode::kNoInstantiator));
-    __ b(&done);
-    __ Bind(&instantiator_not_null);
-  }
-  // Instantiate non-null type arguments.
+  // (or null).
   if (type_arguments().IsUninstantiatedIdentity()) {
-    // TODO(regis): The following emitted code is duplicated in
-    // VisitExtractConstructorTypeArguments above. The reason is that the code
-    // is split between two computations, so that each one produces a
-    // single value, rather than producing a pair of values.
-    // If this becomes an issue, we should expose these tests at the IL level.
-
-    // Check if the instantiator type argument vector is a TypeArguments of a
-    // matching length and, if so, use it as the instantiated type_arguments.
-    // No need to check the instantiator ('instantiator_reg') for null here,
-    // because a null instantiator will have the wrong class (Null instead of
-    // TypeArguments).
-    __ CompareClassId(instantiator_reg, kTypeArgumentsCid, temp_reg);
-    __ b(&done, NE);
-    __ ldr(temp_reg,
-           FieldAddress(instantiator_reg, TypeArguments::length_offset()));
-    __ CompareImmediate(temp_reg, Smi::RawValue(type_arguments().Length()));
-    __ b(&done, NE);
     // The instantiator was used in VisitExtractConstructorTypeArguments as the
     // instantiated type arguments, no proper instantiator needed.
     __ LoadImmediate(instantiator_reg,
                      Smi::RawValue(StubCode::kNoInstantiator));
+  } else {
+    // If the instantiator is null and if the type argument vector
+    // instantiated from null becomes a vector of dynamic, then use null as
+    // the type arguments and do not pass the instantiator.
+    const intptr_t len = type_arguments().Length();
+    if (type_arguments().IsRawInstantiatedRaw(len)) {
+      Label instantiator_not_null;
+      __ CompareImmediate(instantiator_reg,
+                          reinterpret_cast<intptr_t>(Object::null()));
+      __ b(&instantiator_not_null, NE);
+      // Null was used in VisitExtractConstructorTypeArguments as the
+      // instantiated type arguments, no proper instantiator needed.
+      __ LoadImmediate(instantiator_reg,
+                       Smi::RawValue(StubCode::kNoInstantiator));
+      __ Bind(&instantiator_not_null);
+    }
   }
-  __ Bind(&done);
   // instantiator_reg: instantiator or kNoInstantiator.
 }
 
@@ -1625,14 +1744,24 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       case Token::kMUL: {
         // Keep left value tagged and untag right value.
         const intptr_t value = Smi::Cast(constant).Value();
-        if (value == 2) {
-          __ mov(result, ShifterOperand(left, LSL, 1));
+        if (deopt == NULL) {
+          if (value == 2) {
+            __ mov(result, ShifterOperand(left, LSL, 1));
+          } else {
+            __ LoadImmediate(IP, value);
+            __ mul(result, left, IP);
+          }
         } else {
-          __ LoadImmediate(IP, value);
-          __ mul(result, left, IP);
-        }
-        if (deopt != NULL) {
-          UNIMPLEMENTED();
+          if (value == 2) {
+            __ mov(IP, ShifterOperand(left, ASR, 31));  // IP = sign of left.
+            __ mov(result, ShifterOperand(left, LSL, 1));
+          } else {
+            __ LoadImmediate(IP, value);
+            __ smull(result, IP, left, IP);
+          }
+          // IP: result bits 32..63.
+          __ cmp(IP, ShifterOperand(result, ASR, 31));
+          __ b(deopt, NE);
         }
         break;
       }
@@ -1840,6 +1969,50 @@ void BinaryFloat32x4OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* Float32x4ShuffleInstr::MakeLocationSummary() const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void Float32x4ShuffleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* Float32x4ConstructorInstr::MakeLocationSummary() const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void Float32x4ConstructorInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* Float32x4ZeroInstr::MakeLocationSummary() const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void Float32x4ZeroInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* Float32x4SplatInstr::MakeLocationSummary() const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void Float32x4SplatInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
 LocationSummary* MathSqrtInstr::MakeLocationSummary() const {
   UNIMPLEMENTED();
   return NULL;
@@ -1971,13 +2144,56 @@ void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* CheckClassInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  if (!null_check()) {
+    summary->AddTemp(Location::RequiresRegister());
+  }
+  return summary;
 }
 
 
 void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  if (null_check()) {
+    Label* deopt = compiler->AddDeoptStub(deopt_id(),
+                                          kDeoptCheckClass);
+    __ CompareImmediate(locs()->in(0).reg(),
+                        reinterpret_cast<intptr_t>(Object::null()));
+    __ b(deopt, EQ);
+    return;
+  }
+
+  ASSERT((unary_checks().GetReceiverClassIdAt(0) != kSmiCid) ||
+         (unary_checks().NumberOfChecks() > 1));
+  Register value = locs()->in(0).reg();
+  Register temp = locs()->temp(0).reg();
+  Label* deopt = compiler->AddDeoptStub(deopt_id(),
+                                        kDeoptCheckClass);
+  Label is_ok;
+  intptr_t cix = 0;
+  if (unary_checks().GetReceiverClassIdAt(cix) == kSmiCid) {
+    __ tst(value, ShifterOperand(kSmiTagMask));
+    __ b(&is_ok, EQ);
+    cix++;  // Skip first check.
+  } else {
+    __ tst(value, ShifterOperand(kSmiTagMask));
+    __ b(deopt, EQ);
+  }
+  __ LoadClassId(temp, value);
+  const intptr_t num_checks = unary_checks().NumberOfChecks();
+  for (intptr_t i = cix; i < num_checks; i++) {
+    ASSERT(unary_checks().GetReceiverClassIdAt(i) != kSmiCid);
+    __ CompareImmediate(temp, unary_checks().GetReceiverClassIdAt(i));
+    if (i == (num_checks - 1)) {
+      __ b(deopt, NE);
+    } else {
+      __ b(&is_ok, EQ);
+    }
+  }
+  __ Bind(&is_ok);
 }
 
 
@@ -2001,13 +2217,44 @@ void CheckSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* CheckArrayBoundInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  locs->set_in(0, Location::RegisterOrSmiConstant(length()));
+  locs->set_in(1, Location::RegisterOrSmiConstant(index()));
+  return locs;
 }
 
 
 void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Label* deopt = compiler->AddDeoptStub(deopt_id(),
+                                        kDeoptCheckArrayBound);
+  if (locs()->in(0).IsConstant() && locs()->in(1).IsConstant()) {
+    // Unconditionally deoptimize for constant bounds checks because they
+    // only occur only when index is out-of-bounds.
+    __ b(deopt);
+    return;
+  }
+
+  if (locs()->in(1).IsConstant()) {
+    Register length = locs()->in(0).reg();
+    const Object& constant = locs()->in(1).constant();
+    ASSERT(constant.IsSmi());
+    __ CompareImmediate(length, reinterpret_cast<int32_t>(constant.raw()));
+    __ b(deopt, LS);
+  } else if (locs()->in(0).IsConstant()) {
+    ASSERT(locs()->in(0).constant().IsSmi());
+    const Smi& smi_const = Smi::Cast(locs()->in(0).constant());
+    Register index = locs()->in(1).reg();
+    __ CompareImmediate(index, reinterpret_cast<int32_t>(smi_const.raw()));
+    __ b(deopt, CS);
+  } else {
+    Register length = locs()->in(0).reg();
+    Register index = locs()->in(1).reg();
+    __ cmp(index, ShifterOperand(length));
+    __ b(deopt, CS);
+  }
 }
 
 
@@ -2120,26 +2367,6 @@ void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-static Condition NegateCondition(Condition condition) {
-  switch (condition) {
-    case EQ: return NE;
-    case NE: return EQ;
-    case LT: return GE;
-    case LE: return GT;
-    case GT: return LE;
-    case GE: return LT;
-    case CC: return CS;
-    case LS: return HI;
-    case HI: return LS;
-    case CS: return CC;
-    default:
-      OS::Print("Error %d\n", condition);
-      UNIMPLEMENTED();
-      return EQ;
-  }
-}
-
-
 void ControlInstruction::EmitBranchOnValue(FlowGraphCompiler* compiler,
                                            bool value) {
   if (value && !compiler->CanFallThroughTo(true_successor())) {
@@ -2221,14 +2448,9 @@ void StrictCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   Register result = locs()->out().reg();
-  Label load_true, done;
   Condition true_condition = (kind() == Token::kEQ_STRICT) ? EQ : NE;
-  __ b(&load_true, true_condition);
-  __ LoadObject(result, Bool::False());
-  __ b(&done);
-  __ Bind(&load_true);
-  __ LoadObject(result, Bool::True());
-  __ Bind(&done);
+  __ LoadObject(result, Bool::True(), true_condition);
+  __ LoadObject(result, Bool::False(), NegateCondition(true_condition));
 }
 
 
@@ -2275,34 +2497,54 @@ void BooleanNegateInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
   Register result = locs()->out().reg();
 
-  Label done;
   __ LoadObject(result, Bool::True());
   __ cmp(result, ShifterOperand(value));
-  __ b(&done, NE);
-  __ LoadObject(result, Bool::False());
-  __ Bind(&done);
+  __ LoadObject(result, Bool::False(), EQ);
 }
 
 
 LocationSummary* ChainContextInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  return LocationSummary::Make(1,
+                               Location::NoLocation(),
+                               LocationSummary::kNoCall);
 }
 
 
 void ChainContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register context_value = locs()->in(0).reg();
+
+  // Chain the new context in context_value to its parent in CTX.
+  __ StoreIntoObject(context_value,
+                     FieldAddress(context_value, Context::parent_offset()),
+                     CTX);
+  // Set new context as current context.
+  __ mov(CTX, ShifterOperand(context_value));
 }
 
 
 LocationSummary* StoreVMFieldInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  locs->set_in(0, value()->NeedsStoreBuffer() ? Location::WritableRegister()
+                                              : Location::RequiresRegister());
+  locs->set_in(1, Location::RequiresRegister());
+  return locs;
 }
 
 
 void StoreVMFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register value_reg = locs()->in(0).reg();
+  Register dest_reg = locs()->in(1).reg();
+
+  if (value()->NeedsStoreBuffer()) {
+    __ StoreIntoObject(dest_reg, FieldAddress(dest_reg, offset_in_bytes()),
+                       value_reg);
+  } else {
+    __ StoreIntoObjectNoBarrier(
+        dest_reg, FieldAddress(dest_reg, offset_in_bytes()), value_reg);
+  }
 }
 
 

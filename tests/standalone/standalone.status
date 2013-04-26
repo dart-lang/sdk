@@ -14,6 +14,8 @@ io/raw_socket_test: Pass, Fail # Issue 8901
 [ $runtime == vm ]
 package/package_isolate_test: Fail # http://dartbug.com/7520.
 io/raw_server_socket_cancel_test: Pass, Fail, Timeout # Issue 8675
+io/raw_secure_server_socket_test: Pass, Fail # Issue 10177
+io/socket_upgrade_to_secure_test: Pass, Fail # Issue 10177
 
 [ $runtime == vm && $checked ]
 # These tests have type errors on purpose.
@@ -78,14 +80,14 @@ io/process_exit_negative_test: Fail  # This is a compilation-time negative test.
 
 [ $compiler == dart2js ]
 number_identity_test: Skip # Bigints and int/double diff. not supported.
-typed_data_test: Skip # dart:typeddata support needed.
-bytedata_test: Skip # dart:typeddata support needed.
-typed_data_view_test: Skip # dart:typeddata support needed.
-typed_data_isolate_test: Skip # dart:typeddata support needed.
-typed_array_test: Skip # dart:typeddata support needed.
-float_array_test: Skip # dart:typeddata support needed.
-int_array_test: Skip  # dart:typeddata support needed.
-byte_array_view_optimized_test: Skip # dart:typeddata support needed.
+typed_data_test: Skip # dart:typed_data support needed.
+bytedata_test: Skip # dart:typed_data support needed.
+typed_data_view_test: Skip # dart:typed_data support needed.
+typed_data_isolate_test: Skip # dart:typed_data support needed.
+typed_array_test: Skip # dart:typed_data support needed.
+float_array_test: Skip # dart:typed_data support needed.
+int_array_test: Skip  # dart:typed_data support needed.
+byte_array_view_optimized_test: Skip # dart:typed_data support needed.
 io/web_socket_protocol_processor_test: Skip  # Importing code with external keyword
 int_array_load_elimination_test: Skip  # This is a VM test
 medium_integer_test: Fail, OK # Test fails with JS number semantics: issue 1533.
@@ -99,7 +101,6 @@ assert_test: Fail, OK # Assumes unspecified fields on the AssertionError.
 byte_array_test: Fail, OK # ByteArray
 deoptimization_test: Fail, OK # Requires bigint.
 out_of_memory_test: Fail, OK # d8 handles much larger arrays than Dart VM.
-io/http_parser_test: Fail, OK # ByteArray
 io/options_test: Fail, OK # Cannot pass options to d8.
 
 [ $compiler == dart2js && $runtime == none ]

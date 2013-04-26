@@ -222,13 +222,16 @@ const String DEFAULT_CORELIB_WITH_LIST_INTERFACE = r'''
   bool identical(Object a, Object b) {}''';
 
 const String INTERCEPTORSLIB_WITH_MEMBERS = r'''
-  class JSIndexable {}
+  abstract class JSIndexable {
+    get length;
+  }
+  abstract class JSMutableIndexable extends JSIndexable {}
   class JSArray implements JSIndexable {
     var length;
     var removeLast;
     operator[] (_) {}
   }
-  class JSMutableArray extends JSArray {}
+  class JSMutableArray extends JSArray implements JSMutableIndexable {}
   class JSFixedArray extends JSMutableArray {}
   class JSExtendableArray extends JSMutableArray {}
   class JSString implements JSIndexable {
@@ -297,7 +300,7 @@ expect(String code, int kind) {
       break;
 
     case ONE_ZERO_CHECK:
-      RegExp regexp = new RegExp('< 0');
+      RegExp regexp = new RegExp('< 0|>>> 0 !==');
       Iterator matches = regexp.allMatches(generated).iterator;
       checkNumberOfMatches(matches, 1);
       break;

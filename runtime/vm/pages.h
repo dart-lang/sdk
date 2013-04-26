@@ -41,12 +41,6 @@ class HeapPage {
     return object_end_;
   }
 
-  void set_used(uword used) { used_ = used; }
-  uword used() const { return used_; }
-  void AddUsed(uword size) {
-    used_ += size;
-  }
-
   PageType type() const {
     return executable_ ? kExecutable : kData;
   }
@@ -77,7 +71,6 @@ class HeapPage {
 
   VirtualMemory* memory_;
   HeapPage* next_;
-  uword used_;
   uword object_end_;
   bool executable_;
 
@@ -190,9 +183,6 @@ class PageSpace {
   bool IsValidAddress(uword addr) const {
     return Contains(addr);
   }
-  static bool IsPageAllocatableSize(intptr_t size) {
-    return size <= kAllocatablePageSize;
-  }
 
   void VisitObjects(ObjectVisitor* visitor) const;
   void VisitObjectPointers(ObjectPointerVisitor* visitor) const;
@@ -202,11 +192,6 @@ class PageSpace {
 
   // Collect the garbage in the page space using mark-sweep.
   void MarkSweep(bool invoke_api_callbacks);
-
-  static HeapPage* PageFor(RawObject* raw_obj) {
-    return reinterpret_cast<HeapPage*>(
-        RawObject::ToAddr(raw_obj) & ~(kPageSize -1));
-  }
 
   void StartEndAddress(uword* start, uword* end) const;
 
@@ -245,7 +230,7 @@ class PageSpace {
     kAllowedGrowth = 3
   };
 
-  static const intptr_t kAllocatablePageSize = kPageSize - sizeof(HeapPage);
+  static const intptr_t kAllocatablePageSize = 64 * KB;
 
   HeapPage* AllocatePage(HeapPage::PageType type);
   void FreePage(HeapPage* page, HeapPage* previous_page);

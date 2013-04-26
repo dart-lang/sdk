@@ -9,6 +9,10 @@
 
 #include <stdio.h>  // NOLINT
 
+
+namespace dart {
+namespace bin {
+
 void Log::VPrint(const char* format, va_list args) {
   vfprintf(stdout, format, args);
   fflush(stdout);
@@ -18,5 +22,8 @@ void Log::VPrintErr(const char* format, va_list args) {
   vfprintf(stderr, format, args);
   fflush(stderr);
 }
+
+}  // namespace bin
+}  // namespace dart
 
 #endif  // defined(TARGET_OS_MACOS)

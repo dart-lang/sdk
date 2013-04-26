@@ -9,6 +9,10 @@
 
 #include "platform/globals.h"
 
+
+namespace dart {
+namespace bin {
+
 class Log {
  public:
   // Print formatted output for debugging.
@@ -33,5 +37,8 @@ class Log {
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Log);
 };
+
+}  // namespace bin
+}  // namespace dart
 
 #endif  // BIN_LOG_H_

@@ -37,25 +37,25 @@ class Range;
 #define RECOGNIZED_LIST(V)                                                     \
   V(_ObjectArray, get:length, ObjectArrayLength, 405297088)                    \
   V(_ImmutableArray, get:length, ImmutableArrayLength, 433698233)              \
-  V(_TypedList, get:length, TypedDataLength, 231908172)                        \
-  V(_TypedList, _getInt8, ByteArrayBaseGetInt8, 380843687)                     \
-  V(_TypedList, _getUint8, ByteArrayBaseGetUint8, 380843687)                   \
-  V(_TypedList, _getInt16, ByteArrayBaseGetInt16, 380843687)                   \
-  V(_TypedList, _getUint16, ByteArrayBaseGetUint16, 380843687)                 \
-  V(_TypedList, _getInt32, ByteArrayBaseGetInt32, 380843687)                   \
-  V(_TypedList, _getUint32, ByteArrayBaseGetUint32, 380843687)                 \
-  V(_TypedList, _getFloat32, ByteArrayBaseGetFloat32, 979971573)               \
-  V(_TypedList, _getFloat64, ByteArrayBaseGetFloat64, 979971573)               \
-  V(_TypedList, _getFloat32x4, ByteArrayBaseGetFloat32x4, 690339584)           \
-  V(_TypedList, _setInt8, ByteArrayBaseSetInt8, 287047804)                     \
-  V(_TypedList, _setUint8, ByteArrayBaseSetUint8, 287047804)                   \
-  V(_TypedList, _setInt16, ByteArrayBaseSetInt16, 287047804)                   \
-  V(_TypedList, _setUint16, ByteArrayBaseSetUint16, 287047804)                 \
-  V(_TypedList, _setInt32, ByteArrayBaseSetInt32, 287047804)                   \
-  V(_TypedList, _setUint32, ByteArrayBaseSetUint32, 287047804)                 \
-  V(_TypedList, _setFloat32, ByteArrayBaseSetFloat32, 1032541114)              \
-  V(_TypedList, _setFloat64, ByteArrayBaseSetFloat64, 1032541114)              \
-  V(_TypedList, _setFloat32x4, ByteArrayBaseSetFloat32x4, 1016704782)          \
+  V(_TypedList, get:length, TypedDataLength, 1004567191)                       \
+  V(_TypedList, _getInt8, ByteArrayBaseGetInt8, 728842615)                     \
+  V(_TypedList, _getUint8, ByteArrayBaseGetUint8, 728842615)                   \
+  V(_TypedList, _getInt16, ByteArrayBaseGetInt16, 728842615)                   \
+  V(_TypedList, _getUint16, ByteArrayBaseGetUint16, 728842615)                 \
+  V(_TypedList, _getInt32, ByteArrayBaseGetInt32, 728842615)                   \
+  V(_TypedList, _getUint32, ByteArrayBaseGetUint32, 728842615)                 \
+  V(_TypedList, _getFloat32, ByteArrayBaseGetFloat32, 1067360925)              \
+  V(_TypedList, _getFloat64, ByteArrayBaseGetFloat64, 1067360925)              \
+  V(_TypedList, _getFloat32x4, ByteArrayBaseGetFloat32x4, 279982060)           \
+  V(_TypedList, _setInt8, ByteArrayBaseSetInt8, 427754869)                     \
+  V(_TypedList, _setUint8, ByteArrayBaseSetUint8, 427754869)                   \
+  V(_TypedList, _setInt16, ByteArrayBaseSetInt16, 427754869)                   \
+  V(_TypedList, _setUint16, ByteArrayBaseSetUint16, 427754869)                 \
+  V(_TypedList, _setInt32, ByteArrayBaseSetInt32, 427754869)                   \
+  V(_TypedList, _setUint32, ByteArrayBaseSetUint32, 427754869)                 \
+  V(_TypedList, _setFloat32, ByteArrayBaseSetFloat32, 637235443)               \
+  V(_TypedList, _setFloat64, ByteArrayBaseSetFloat64, 637235443)               \
+  V(_TypedList, _setFloat32x4, ByteArrayBaseSetFloat32x4, 780994886)           \
   V(_GrowableObjectArray, get:length, GrowableArrayLength, 725548050)          \
   V(_GrowableObjectArray, get:_capacity, GrowableArrayCapacity, 725548050)     \
   V(_StringBase, get:length, StringBaseLength, 320803993)                      \
@@ -71,6 +71,17 @@ class Range;
   V(_Double, pow, DoublePow, 631903778)                                        \
   V(_Double, _modulo, DoubleMod, 437099337)                                    \
   V(::, sqrt, MathSqrt, 1662640002)                                            \
+  V(Float32x4, Float32x4., Float32x4Constructor, 1327837070)                   \
+  V(Float32x4, Float32x4.zero, Float32x4Zero, 927169529)                       \
+  V(Float32x4, Float32x4.splat, Float32x4Splat, 1778587275)                    \
+  V(_Float32x4, get:xxxx, Float32x4ShuffleXXXX, 42621627)                      \
+  V(_Float32x4, get:yyyy, Float32x4ShuffleYYYY, 42621627)                      \
+  V(_Float32x4, get:zzzz, Float32x4ShuffleZZZZ, 42621627)                      \
+  V(_Float32x4, get:wwww, Float32x4ShuffleWWWW, 42621627)                      \
+  V(_Float32x4, get:x, Float32x4ShuffleX, 211144022)                           \
+  V(_Float32x4, get:y, Float32x4ShuffleY, 211144022)                           \
+  V(_Float32x4, get:z, Float32x4ShuffleZ, 211144022)                           \
+  V(_Float32x4, get:w, Float32x4ShuffleW, 211144022)                           \
 
 // Class that recognizes the name and owner of a function and returns the
 // corresponding enum. See RECOGNIZED_LIST above for list of recognizable
@@ -505,6 +516,11 @@ class EmbeddedArray<T, 0> {
   M(GuardField)                                                                \
   M(IfThenElse)                                                                \
   M(BinaryFloat32x4Op)                                                         \
+  M(Float32x4Shuffle)                                                          \
+  M(Float32x4Constructor)                                                      \
+  M(Float32x4Zero)                                                             \
+  M(Float32x4Splat)                                                            \
+
 
 #define FORWARD_DECLARATION(type) class type##Instr;
 FOR_EACH_INSTRUCTION(FORWARD_DECLARATION)
@@ -755,6 +771,10 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class UnboxFloat32x4Instr;
   friend class BinaryDoubleOpInstr;
   friend class BinaryFloat32x4OpInstr;
+  friend class Float32x4ZeroInstr;
+  friend class Float32x4SplatInstr;
+  friend class Float32x4ShuffleInstr;
+  friend class Float32x4ConstructorInstr;
   friend class BinaryMintOpInstr;
   friend class BinarySmiOpInstr;
   friend class UnarySmiOpInstr;
@@ -1073,7 +1093,7 @@ class BlockEntryInstr : public Instruction {
 class ForwardInstructionIterator : public ValueObject {
  public:
   explicit ForwardInstructionIterator(BlockEntryInstr* block_entry)
-      : block_entry_(block_entry), current_(block_entry) {
+      : current_(block_entry) {
     Advance();
   }
 
@@ -1090,7 +1110,6 @@ class ForwardInstructionIterator : public ValueObject {
   Instruction* Current() const { return current_; }
 
  private:
-  BlockEntryInstr* block_entry_;
   Instruction* current_;
 };
 
@@ -2318,6 +2337,8 @@ class CurrentContextInstr : public TemplateDefinition<0> {
   virtual bool CanDeoptimize() const { return false; }
 
   virtual bool HasSideEffect() const { return false; }
+
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(CurrentContextInstr);
@@ -4136,6 +4157,194 @@ class BinaryFloat32x4OpInstr : public TemplateDefinition<2> {
   const Token::Kind op_kind_;
 
   DISALLOW_COPY_AND_ASSIGN(BinaryFloat32x4OpInstr);
+};
+
+
+class Float32x4ShuffleInstr : public TemplateDefinition<1> {
+ public:
+  Float32x4ShuffleInstr(MethodRecognizer::Kind op_kind, Value* value,
+                        InstanceCallInstr* instance_call)
+      : op_kind_(op_kind) {
+    SetInputAt(0, value);
+    deopt_id_ = instance_call->deopt_id();
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  MethodRecognizer::Kind op_kind() const { return op_kind_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
+
+  virtual bool AffectedBySideEffect() const { return false; }
+
+  virtual bool AttributesEqual(Instruction* other) const {
+    return op_kind() == other->AsFloat32x4Shuffle()->op_kind();
+  }
+
+  virtual Representation representation() const {
+    if ((op_kind_ == MethodRecognizer::kFloat32x4ShuffleX) ||
+        (op_kind_ == MethodRecognizer::kFloat32x4ShuffleY) ||
+        (op_kind_ == MethodRecognizer::kFloat32x4ShuffleZ) ||
+        (op_kind_ == MethodRecognizer::kFloat32x4ShuffleW)) {
+      return kUnboxedDouble;
+    }
+    return kUnboxedFloat32x4;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kUnboxedFloat32x4;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return deopt_id_;
+  }
+
+  DECLARE_INSTRUCTION(Float32x4Shuffle)
+  virtual CompileType ComputeType() const;
+
+ private:
+  const MethodRecognizer::Kind op_kind_;
+
+  DISALLOW_COPY_AND_ASSIGN(Float32x4ShuffleInstr);
+};
+
+
+class Float32x4ConstructorInstr : public TemplateDefinition<4> {
+ public:
+  Float32x4ConstructorInstr(Value* value0, Value* value1, Value* value2,
+                            Value* value3, StaticCallInstr* static_call) {
+    SetInputAt(0, value0);
+    SetInputAt(1, value1);
+    SetInputAt(2, value2);
+    SetInputAt(3, value3);
+    deopt_id_ = static_call->deopt_id();
+  }
+
+  Value* value0() const { return inputs_[0]; }
+  Value* value1() const { return inputs_[1]; }
+  Value* value2() const { return inputs_[2]; }
+  Value* value3() const { return inputs_[3]; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
+
+  virtual bool AffectedBySideEffect() const { return false; }
+
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual Representation representation() const {
+    return kUnboxedFloat32x4;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx >= 0 && idx < 4);
+    return kUnboxedDouble;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return deopt_id_;
+  }
+
+  DECLARE_INSTRUCTION(Float32x4Constructor)
+  virtual CompileType ComputeType() const;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(Float32x4ConstructorInstr);
+};
+
+
+class Float32x4SplatInstr : public TemplateDefinition<1> {
+ public:
+  Float32x4SplatInstr(Value* value, StaticCallInstr* static_call) {
+    SetInputAt(0, value);
+    deopt_id_ = static_call->deopt_id();
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
+
+  virtual bool AffectedBySideEffect() const { return false; }
+
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual Representation representation() const {
+    return kUnboxedFloat32x4;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kUnboxedDouble;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return deopt_id_;
+  }
+
+  DECLARE_INSTRUCTION(Float32x4Splat)
+  virtual CompileType ComputeType() const;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(Float32x4SplatInstr);
+};
+
+
+class Float32x4ZeroInstr : public TemplateDefinition<0> {
+ public:
+  explicit Float32x4ZeroInstr(StaticCallInstr* static_call) {
+    deopt_id_ = static_call->deopt_id();
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
+
+  virtual bool AffectedBySideEffect() const { return false; }
+
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual Representation representation() const {
+    return kUnboxedFloat32x4;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    UNIMPLEMENTED();
+    return kUnboxedFloat32x4;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return deopt_id_;
+  }
+
+  DECLARE_INSTRUCTION(Float32x4Zero)
+  virtual CompileType ComputeType() const;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(Float32x4ZeroInstr);
 };
 
 

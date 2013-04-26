@@ -147,6 +147,7 @@ class ObjectPointerVisitor;
   V(Uint64List, "Uint64List")                                                  \
   V(Uint64ListFactory, "Uint64List.")                                          \
   V(Float32x4List, "Float32x4List")                                            \
+  V(Float32x4ListFactory, "Float32x4List.")                                    \
   V(Float32List, "Float32List")                                                \
   V(Float32ListFactory, "Float32List.")                                        \
   V(Float64List, "Float64List")                                                \
@@ -237,7 +238,7 @@ class ObjectPointerVisitor;
   V(DartMath, "dart:math")                                                     \
   V(DartIsolate, "dart:isolate")                                               \
   V(DartMirrors, "dart:mirrors")                                               \
-  V(DartTypedData, "dart:typeddata")                                           \
+  V(DartTypedData, "dart:typed_data")                                          \
   V(DartNativeWrappers, "dart:nativewrappers")                                 \
   V(DartAsync, "dart:async")                                                   \
   V(DartUri, "dart:uri")                                                       \

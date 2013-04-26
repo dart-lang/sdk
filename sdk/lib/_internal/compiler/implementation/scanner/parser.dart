@@ -1197,8 +1197,11 @@ class Parser {
       return parseIfStatement(token);
     } else if (identical(value, 'for')) {
       return parseForStatement(token);
-    } else if (identical(value, 'throw')) {
-      return parseThrowStatement(token);
+    } else if (identical(value, 'rethrow')) {
+      return parseRethrowStatement(token);
+    } else if (identical(value, 'throw') && optional(';', token.next)) {
+      // TODO(kasperl): Stop dealing with throw here.
+      return parseRethrowStatement(token);
     } else if (identical(value, 'void')) {
       return parseExpressionStatementOrDeclaration(token);
     } else if (identical(value, 'while')) {
@@ -1351,11 +1354,15 @@ class Parser {
   }
 
   Token parseExpression(Token token) {
-    return parsePrecedenceExpression(token, ASSIGNMENT_PRECEDENCE, true);
+    return optional('throw', token)
+        ? parseThrowExpression(token, true)
+        : parsePrecedenceExpression(token, ASSIGNMENT_PRECEDENCE, true);
   }
 
   Token parseExpressionWithoutCascade(Token token) {
-    return parsePrecedenceExpression(token, ASSIGNMENT_PRECEDENCE, false);
+    return optional('throw', token)
+        ? parseThrowExpression(token, false)
+        : parsePrecedenceExpression(token, ASSIGNMENT_PRECEDENCE, false);
   }
 
   Token parseConditionalExpressionRest(Token token) {
@@ -2035,18 +2042,28 @@ class Parser {
     return expect('}', token);
   }
 
-  Token parseThrowStatement(Token token) {
+  Token parseThrowExpression(Token token, bool allowCascades) {
     Token throwToken = token;
-    listener.beginThrowStatement(throwToken);
+    listener.beginThrowExpression(throwToken);
     token = expect('throw', token);
-    if (optional(';', token)) {
-      listener.endRethrowStatement(throwToken, token);
-      return token.next;
+    token = allowCascades
+        ? parseExpression(token)
+        : parseExpressionWithoutCascade(token);
+    listener.endThrowExpression(throwToken, token);
+    return token;
+  }
+
+  Token parseRethrowStatement(Token token) {
+    Token throwToken = token;
+    listener.beginRethrowStatement(throwToken);
+    // TODO(kasperl): Disallow throw here.
+    if (identical(throwToken.stringValue, 'throw')) {
+      token = expect('throw', token);
     } else {
-      token = parseExpression(token);
-      listener.endThrowStatement(throwToken, token);
-      return expectSemicolon(token);
+      token = expect('rethrow', token);
     }
+    listener.endRethrowStatement(throwToken, token);
+    return expectSemicolon(token);
   }
 
   Token parseTryStatement(Token token) {

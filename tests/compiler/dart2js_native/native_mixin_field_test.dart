@@ -7,11 +7,11 @@ import "package:expect/expect.dart";
 // Test that native classes can use ordinary Dart classes with fields
 // as mixins.
 
-class A native "*A" {
+class A native "A" {
   var foo;
 }
 
-class B extends A with M1, M2 native "*B" {
+class B extends A with M1, M2 native "B" {
   var bar;
 }
 

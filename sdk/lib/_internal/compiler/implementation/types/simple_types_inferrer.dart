@@ -443,6 +443,14 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
     Map<int, Set<Element>> methodSizes = new Map<int, Set<Element>>();
     compiler.enqueuer.resolution.resolvedElements.forEach(
       (Element element, TreeElementMapping mapping) {
+        if (element.impliesType()) return;
+        assert(invariant(element,
+            element.isField() ||
+            element.isFunction() ||
+            element.isGenerativeConstructor() ||
+            element.isGetter() ||
+            element.isSetter(),
+            message: 'Unexpected element kind: ${element.kind}'));
         // TODO(ngeoffray): Not sure why the resolver would put a null
         // mapping.
         if (mapping == null) return;
@@ -667,10 +675,8 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
         if (elementType.kind != TypeKind.FUNCTION) {
           return dynamicType;
         }
-        DartType returnType = elementType.returnType;
-        return returnType.isVoid
-            ? nullType
-            : new TypeMask.subtype(returnType.asRaw());
+        return typeOfNativeBehavior(
+            native.NativeBehavior.ofMethod(element, compiler));
       });
     }
     TypeMask returnType = returnTypeOf[element];
@@ -680,6 +686,48 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
     assert(returnType != null);
     return returnType;
   }
+
+  TypeMask typeOfNativeBehavior(native.NativeBehavior nativeBehavior) {
+    if (nativeBehavior == null) return dynamicType;
+    List typesReturned = nativeBehavior.typesReturned;
+    if (typesReturned.isEmpty) return dynamicType;
+    TypeMask returnType;
+    for (var type in typesReturned) {
+      TypeMask mappedType;
+      if (type == native.SpecialType.JsObject) {
+        mappedType = new TypeMask.nonNullExact(rawTypeOf(compiler.objectClass));
+      } else if (type == native.SpecialType.JsArray) {
+        mappedType = listType;
+      } else if (type.element == compiler.stringClass) {
+        mappedType = stringType;
+      } else if (type.element == compiler.intClass) {
+        mappedType = intType;
+      } else if (type.element == compiler.doubleClass) {
+        mappedType = doubleType;
+      } else if (type.element == compiler.numClass) {
+        mappedType = numType;
+      } else if (type.element == compiler.boolClass) {
+        mappedType = boolType;
+      } else if (type.element == compiler.nullClass) {
+        mappedType = nullType;
+      } else if (type.isVoid) {
+        mappedType = nullType;
+      } else if (compiler.world.hasAnySubclass(type.element)) {
+        mappedType = new TypeMask.nonNullSubclass(rawTypeOf(type.element));
+      } else if (compiler.world.hasAnySubtype(type.element)) {
+        mappedType = new TypeMask.nonNullSubtype(rawTypeOf(type.element));
+      } else {
+        mappedType = new TypeMask.nonNullExact(rawTypeOf(type.element));
+      }
+      returnType = computeLUB(returnType, mappedType);
+      if (!isTypeValuable(returnType)) {
+        returnType = dynamicType;
+        break;
+      }
+    }
+    return returnType;
+  }
+
 
   /**
    * Returns the type of [element]. Returns [:dynamic:] if
@@ -823,7 +871,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
     assert(arguments != null);
     bool isUseful = addArguments(node, callee, arguments);
     if (hasAnalyzedAll && isUseful) {
-      updateArgumentsType(callee);
+      enqueueAgain(callee);
     }
   }
 
@@ -838,13 +886,13 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
         types.remove(send);
         if (hasAnalyzedAll) updateNonFinalFieldType(callee);
       }
-    } if (callee.isGetter()) {
+    } else if (callee.isGetter()) {
       return;
     } else {
       Map<Node, ArgumentsTypes> types = typeOfArguments[callee];
       if (types == null || !types.containsKey(send)) return;
       types.remove(send);
-      if (hasAnalyzedAll) updateArgumentsType(callee);
+      if (hasAnalyzedAll) enqueueAgain(callee);
     }
   }
 
@@ -862,7 +910,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
     if (element.name == Compiler.NO_SUCH_METHOD) return;
     FunctionSignature signature = element.computeSignature(compiler);
 
-    if (typeOfArguments[element].isEmpty) {
+    if (typeOfArguments[element] == null || typeOfArguments[element].isEmpty) {
       signature.forEachParameter((Element parameter) {
         typeOf.remove(parameter);
       });
@@ -902,6 +950,52 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
     if (changed) enqueueAgain(element);
   }
 
+  TypeMask handleIntrisifiedSelector(Selector selector,
+                                     ArgumentsTypes arguments) {
+    if (selector.mask != intType) return null;
+    if (!selector.isCall() && !selector.isOperator()) return null;
+    if (!arguments.named.isEmpty) return null;
+    if (arguments.positional.length > 1) return null;
+
+    switch (selector.name) {
+      case const SourceString('*'):
+      case const SourceString('+'):
+      case const SourceString('%'):
+      case const SourceString('remainder'):
+        return arguments.hasOnePositionalArgumentWithType(intType)
+            ? intType
+            : null;
+
+      case const SourceString('-'):
+        if (arguments.hasNoArguments()) return intType;
+        if (arguments.hasOnePositionalArgumentWithType(intType)) return intType;
+        return null;
+
+      case const SourceString('abs'):
+        return arguments.hasNoArguments() ? intType : null;
+    }
+    return null;
+  }
+
+  bool isTargetFor(TypeMask receiverType, Selector selector, Element element) {
+    bool isReceiverDynamic = isDynamicType(receiverType);
+    assert(selector.mask == receiverType
+           || (selector.mask == null && isReceiverDynamic));
+    // TODO(ngeoffray) : The following noSuchMethod handling is a bit
+    // convoluted, we should make it easier to know what we are sure
+    // we cannot hit.
+    if (element.name != selector.name) {
+      assert(element.name == Compiler.NO_SUCH_METHOD);
+      return isReceiverDynamic
+          || (!receiverType.willHit(selector, compiler)
+              && receiverType.canHit(
+                    element, compiler.noSuchMethodSelector, compiler));
+    } else {
+      return isReceiverDynamic
+          || receiverType.canHit(element, selector, compiler);
+    }
+  }
+
   /**
    * Registers that [caller] calls an element matching [selector]
    * with the given [arguments].
@@ -914,21 +1008,20 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
                                   Selector constraint,
                                   bool inLoop) {
     TypeMask result;
-    iterateOverElements(selector, (Element element) {
+    iterateOverElements(selector.asUntyped, (Element element) {
       assert(element.isImplementation);
-      // TODO(ngeoffray): Enable unregistering by having a
-      // [: TypeMask.appliesTo(element) :] method, that will return
-      // whether [: element :] is a potential target for the type.
-      if (true) {
+      if (isTargetFor(receiverType, selector, element)) {
         registerCalledElement(
             node, selector, caller, element, arguments,
             constraint, inLoop);
+
+        if (!selector.isSetter()) {
+          TypeMask type = handleIntrisifiedSelector(selector, arguments);
+          if (type == null) type = typeOfElementWithSelector(element, selector);
+          result = computeLUB(result, type);
+        }
       } else {
-        unregisterCalledElement(node, selector.asUntyped, caller, element);
-      }
-      if (!selector.isSetter()) {
-        TypeMask type = typeOfElementWithSelector(element, selector);
-        result = computeLUB(result, type);
+        unregisterCalledElement(node, selector, caller, element);
       }
       return true;
     });
@@ -1024,6 +1117,11 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
     if (isNativeElement(element)) return;
     assert(hasAnalyzedAll);
 
+    if (typeOfFields[element] == null || typeOfFields[element].isEmpty) {
+      typeOf.remove(element);
+      return;
+    }
+
     TypeMask fieldType = computeFieldTypeWithConstraints(
         element, typeOfFields[element]);
 
@@ -1113,8 +1211,11 @@ class ArgumentsTypes {
   final Map<SourceString, TypeMask> named;
   ArgumentsTypes(this.positional, named)
     : this.named = (named == null) ? new Map<SourceString, TypeMask>() : named;
+
   int get length => positional.length + named.length;
+
   String toString() => "{ positional = $positional, named = $named }";
+
   bool operator==(other) {
     if (positional.length != other.positional.length) return false;
     if (named.length != other.named.length) return false;
@@ -1125,6 +1226,12 @@ class ArgumentsTypes {
       if (other.named[name] != type) return false;
     });
     return true;
+  }
+
+  bool hasNoArguments() => positional.isEmpty && named.isEmpty;
+
+  bool hasOnePositionalArgumentWithType(TypeMask type) {
+    return named.isEmpty && positional.length == 1 && positional[0] == type;
   }
 }
 
@@ -1319,6 +1426,9 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
     }
 
     FunctionElement function = analyzedElement;
+    if (inferrer.hasAnalyzedAll) {
+      inferrer.updateArgumentsType(function);
+    }
     FunctionSignature signature = function.computeSignature(compiler);
     signature.forEachOptionalParameter((element) {
       Node node = element.parseNode(compiler);
@@ -1827,46 +1937,7 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
     if (name == const SourceString('JS')) {
       native.NativeBehavior nativeBehavior =
           compiler.enqueuer.resolution.nativeEnqueuer.getNativeBehaviorOf(node);
-      if (nativeBehavior == null) return inferrer.dynamicType;
-      List typesReturned = nativeBehavior.typesReturned;
-      if (typesReturned.isEmpty) return inferrer.dynamicType;
-      TypeMask returnType;
-      for (var type in typesReturned) {
-        TypeMask mappedType;
-        if (type == native.SpecialType.JsObject) {
-          mappedType = new TypeMask.nonNullExact(
-              inferrer.rawTypeOf(compiler.objectClass));
-        } else if (type == native.SpecialType.JsArray) {
-          mappedType = inferrer.listType;
-        } else if (type.element == compiler.stringClass) {
-          mappedType = inferrer.stringType;
-        } else if (type.element == compiler.intClass) {
-          mappedType = inferrer.intType;
-        } else if (type.element == compiler.doubleClass) {
-          mappedType = inferrer.doubleType;
-        } else if (type.element == compiler.numClass) {
-          mappedType = inferrer.numType;
-        } else if (type.element == compiler.boolClass) {
-          mappedType = inferrer.boolType;
-        } else if (type.element == compiler.nullClass) {
-          mappedType = inferrer.nullType;
-        } else if (compiler.world.hasAnySubclass(type.element)) {
-          mappedType = new TypeMask.nonNullSubclass(
-              inferrer.rawTypeOf(type.element));
-        } else if (compiler.world.hasAnySubtype(type.element)) {
-          mappedType = new TypeMask.nonNullSubtype(
-              inferrer.rawTypeOf(type.element));
-        } else {
-          mappedType = new TypeMask.nonNullExact(
-              inferrer.rawTypeOf(type.element));
-        }
-        returnType = inferrer.computeLUB(returnType, mappedType);
-        if (!inferrer.isTypeValuable(returnType)) {
-          returnType = inferrer.dynamicType;
-          break;
-        }
-      }
-      return returnType;
+      return inferrer.typeOfNativeBehavior(nativeBehavior);
     } else if (name == const SourceString('JS_OPERATOR_IS_PREFIX')
                || name == const SourceString('JS_OPERATOR_AS_PREFIX')) {
       return inferrer.stringType;

@@ -18,6 +18,8 @@
 #include "vm/symbols.h"
 #include "vm/virtual_memory.h"
 
+using dart::bin::Builtin;
+using dart::bin::DartUtils;
 
 namespace dart {
 

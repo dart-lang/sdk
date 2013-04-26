@@ -6,11 +6,11 @@ import "package:expect/expect.dart";
 
 // Test that type checks occur on assignment to fields of native methods.
 
-class A native "*A" {
+class A native "A" {
   int foo;
 }
 
-class B native "*B" {
+class B native "B" {
   String foo;
 }
 

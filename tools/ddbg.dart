@@ -48,6 +48,7 @@ void printHelp() {
   gs <lib_id> <script_url> Get source text of script in library
   tok <lib_id> <script_url> Get line and token table of script in library
   epi <none|all|unhandled>  Set exception pause info
+  li List ids of all isolates in the VM
   i <id> Interrupt execution of given isolate id
   h   Print help
 """);
@@ -193,6 +194,9 @@ void processCommand(String cmdLine) {
                 "params": { "isolateId" : isolate_id,
                             "exceptions": args[1] } };
     sendCmd(cmd).then((result) => handleGenericResponse(result));
+  } else if (command == "li") {
+    var cmd = { "id": seqNum, "command": "getIsolateIds" };
+    sendCmd(cmd).then((result) => handleGetIsolatesResponse(result));
   } else if (command == "i" && args.length == 2) {
     var cmd = { "id": seqNum,
                 "command": "interrupt",
@@ -334,6 +338,12 @@ handleGetLineTableResponse(response) {
   Map result = response["result"];
   var info = result["lines"];
   print("Line info table:\n$info");
+}
+
+
+handleGetIsolatesResponse(response) {
+  Map result = response["result"];
+  print("Isolates: ${result["isolateIds"]}");
 }
 
 

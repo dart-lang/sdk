@@ -9,6 +9,9 @@
 #include "include/dart_api.h"
 
 
+namespace dart {
+namespace bin {
+
 static const int kNativeEventHandlerFieldIndex = 0;
 static const intptr_t kTimerId = -1;
 static const intptr_t kInvalidId = -2;
@@ -76,3 +79,6 @@ void FUNCTION_NAME(EventHandler_SendData)(Dart_NativeArguments args) {
   event_handler->SendData(id, dart_port, data);
   Dart_ExitScope();
 }
+
+}  // namespace bin
+}  // namespace dart

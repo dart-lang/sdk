@@ -5,8 +5,12 @@
 import 'dart:io';
 
 Future<String> getVersion(var options, var rootPath) {
+  var os = Platform.operatingSystem;
+  var suffix = os == 'windows' ? '.exe' : '';
+  var checkedInBinary =
+      rootPath.join(new Path('tools/testing/bin/$os/dart$suffix'));
   var versionPath = rootPath.append("tools").append("version.dart");
-  return Process.run(options.executable,
+  return Process.run(checkedInBinary.toNativePath(),
                      [versionPath.toNativePath()])
       .then((result) {
         if (result.exitCode != 0) {
@@ -20,7 +24,7 @@ Future<String> getSnapshotGenerationFile(var options, var args, var rootPath) {
   var dart2js = rootPath.append(args["dart2js_main"]);
 
   return getVersion(options, rootPath).then((version) {
-    var snapshotGenerationText = 
+    var snapshotGenerationText =
 """
 import '${dart2js}' as dart2jsMain;
 import 'dart:io';
@@ -63,7 +67,7 @@ Future createSnapshot(var options, var dart_file) {
  * --output_dir=val     The full path to the output_dir.
  * --dart2js_main=val   The path to the dart2js main script releative to root.
  */
-void main() { 
+void main() {
   Options options = new Options();
   var validArguments = ["--output_dir", "--dart2js_main"];
   var args = {};
@@ -79,7 +83,7 @@ void main() {
   if (!args.containsKey("output_dir")) throw "Please specify output_dir";
 
   var scriptFile = new File(options.script);
-  var path = new Path(scriptFile.directorySync().path); 
+  var path = new Path(scriptFile.directorySync().path);
   var rootPath = path.directoryPath.directoryPath;
 
   getSnapshotGenerationFile(options, args, rootPath).then((result) {
