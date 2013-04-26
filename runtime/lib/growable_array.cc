@@ -15,8 +15,6 @@ namespace dart {
 DEFINE_NATIVE_ENTRY(GrowableObjectArray_allocate, 2) {
   const AbstractTypeArguments& type_arguments =
       AbstractTypeArguments::CheckedHandle(arguments->NativeArgAt(0));
-  ASSERT(type_arguments.IsNull() ||
-         (type_arguments.IsInstantiated() && (type_arguments.Length() == 1)));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, data, arguments->NativeArgAt(1));
   if ((data.Length() <= 0)) {
     const Integer& index = Integer::Handle(Integer::New(data.Length()));
