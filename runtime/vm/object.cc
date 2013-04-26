@@ -945,15 +945,14 @@ RawError* Object::Init(Isolate* isolate) {
   object_store->set_uint32x4_class(cls);
   RegisterPrivateClass(cls, Symbols::_Uint32x4(), lib);
 
-  cls = Class::New<Instance>(Symbols::Float32x4(), script,
-                             Scanner::kDummyTokenIndex);
+  cls = Class::New<Instance>(kIllegalCid);
   RegisterClass(cls, Symbols::Float32x4(), lib);
   pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_float32x4_type(type);
 
-  cls = Class::New<Instance>(Symbols::Uint32x4(), script,
-                             Scanner::kDummyTokenIndex);
+  cls = Class::New<Instance>(kIllegalCid);
+  RegisterClass(cls, Symbols::Uint32x4(), lib);
   pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_uint32x4_type(type);
