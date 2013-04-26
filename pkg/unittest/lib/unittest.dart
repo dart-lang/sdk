@@ -214,6 +214,15 @@ final List<TestCase> _testCases = new List<TestCase>();
 final List<TestCase> testCases = new UnmodifiableListView<TestCase>(_testCases);
 
 /**
+ * The set of tests to run can be restricted by using [solo_test] and
+ * [solo_group].
+ * As groups can be nested we use a counter to keep track of the nest level
+ * of soloing, and a flag to tell if we have seen any solo tests.
+ */
+int _soloNestingLevel = 0;
+bool _soloTestSeen = false;
+
+/**
  * Setup and teardown functions for a group and its parents, the latter
  * for chaining.
  */
@@ -307,9 +316,6 @@ const PASS  = 'pass';
 const FAIL  = 'fail';
 const ERROR = 'error';
 
-/** If set, then all other test cases will be ignored. */
-TestCase _soloTest;
-
 /**
  * A map that can be used to communicate state between a test driver
  * or main() function and the tests, particularly when these two
@@ -326,32 +332,45 @@ Map testState = {};
  */
 void test(String spec, TestFunction body) {
   ensureInitialized();
-  _testCases.add(new TestCase._internal(testCases.length + 1, _fullSpec(spec),
-                                        body));
+  if (!_soloTestSeen || _soloNestingLevel > 0) {
+    var testcase = new TestCase._internal(testCases.length + 1, _fullSpec(spec),
+                                        body);
+    _testCases.add(testcase);
+  }
 }
+
+/** Convenience function for skipping a test. */
+void skip_test(String spec, TestFunction body){}
 
 /**
  * Creates a new test case with the given description and body. The
  * description will include the descriptions of any surrounding group()
  * calls.
  *
- * "solo_" means that this will be the only test that is run. All other tests
- * will be skipped. This is a convenience function to let you quickly isolate
- * a single test by adding "solo_" before it to temporarily disable all other
- * tests.
+ * If we use [solo_test] (or [solo_group]) instead of test, then all non-solo
+ * tests will be disabled. Note that if we use [solo_group], all tests in
+ * the group will be enabled, regardless of whether they use [test] or
+ * [solo_test], or whether they are in a nested [group] vs [solo_group]. Put
+ * another way, if there are any calls to [solo_test] or [solo_group] in a test
+ * file, all tests that are not inside a [solo_group] will be disabled unless
+ * they are [solo_test]s.
+ *
+ * [skip_test] and [skip_group] take precedence over soloing, by virtue of the
+ * fact that they are effectively no-ops.
  */
 void solo_test(String spec, TestFunction body) {
-  // TODO(rnystrom): Support multiple solos. If more than one test is solo-ed,
-  // all of the solo-ed tests and none of the non-solo-ed ones should run.
-  if (_soloTest != null) {
-    throw new Exception('Only one test can be soloed right now.');
-  }
-
   ensureInitialized();
-
-  _soloTest = new TestCase._internal(testCases.length + 1, _fullSpec(spec),
-                                     body);
-  _testCases.add(_soloTest);
+  if (!_soloTestSeen) {
+    _soloTestSeen = true;
+    // This is the first solo-ed test. Discard all tests up to now.
+    _testCases.clear();
+  }
+  ++_soloNestingLevel;
+  try {
+    test(spec, body);
+  } finally {
+    --_soloNestingLevel;
+  }
 }
 
 /** Sentinel value for [_SpreadArgsHelper]. */
@@ -595,6 +614,25 @@ void group(String description, void body()) {
   }
 }
 
+/** Like [skip_test], but for groups. */
+void skip_group(String description, void body()) {}
+
+/** Like [solo_test], but for groups. */
+void solo_group(String description, void body()) {
+  ensureInitialized();
+  if (!_soloTestSeen) {
+    _soloTestSeen = true;
+    // This is the first solo-ed group. Discard all tests up to now.
+    _testCases.clear();
+  }
+  ++_soloNestingLevel;
+  try {
+    group(description, body);
+  } finally {
+    --_soloNestingLevel;
+  }
+}
+
 /**
  * Register a [setUp] function for a test [group]. This function will
  * be called before each test in the group is run.
@@ -667,11 +705,6 @@ void filterTests(testFilter) {
 void runTests() {
   _ensureInitialized(false);
   _currentTestCaseIndex = 0;
-
-  // If we are soloing a test, remove all the others.
-  if (_soloTest != null) {
-    filterTests((t) => t == _soloTest);
-  }
 
   _config.onStart();
 
@@ -800,14 +833,8 @@ void _ensureInitialized(bool configAutoStart) {
 }
 
 /** Select a solo test by ID. */
-void setSoloTest(int id) {
-  for (var i = 0; i < testCases.length; i++) {
-    if (testCases[i].id == id) {
-      _soloTest = testCases[i];
-      break;
-    }
-  }
-}
+void setSoloTest(int id) =>
+  _testCases.retainWhere((t) => t.id == id);
 
 /** Enable/disable a test by ID. */
 void _setTestEnabledState(int testId, bool state) {

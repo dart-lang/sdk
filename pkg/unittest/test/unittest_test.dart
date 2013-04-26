@@ -344,6 +344,59 @@ runTest() {
       test('after nest', () {
         expect(s.toString(), "l1 U l2 U l4 U l5 U l6 D l4 D l2 D ");
       });
+    } else if (testName == 'skipped/soloed nested groups with setup/teardown') {
+      StringBuffer s = null;
+      setUp(() {
+        if (s == null) 
+          s = new StringBuffer();
+      });
+      test('top level', () {
+        s.write('A');
+      });
+      skip_test('skipped top level', () {
+        s.write('B');
+      });
+      skip_group('skipped top level group', () {
+        setUp(() {
+          s.write('C');
+        });
+        solo_test('skipped solo nested test', () {
+          s.write('D');
+        });
+      });
+      group('non-solo group', () {
+        setUp(() {
+          s.write('E');
+        });
+        test('in non-solo group', () {
+          s.write('F');
+        });
+        solo_test('solo_test in non-solo group', () {
+          s.write('G');
+        });
+      });
+      solo_group('solo group', () {
+        setUp(() {
+          s.write('H');
+        });
+        test('solo group non-solo test', () {
+          s.write('I');
+        });
+        solo_test('solo group solo test', () {
+          s.write('J');
+        });
+        group('nested non-solo group in solo group', () {
+          test('nested non-solo group non-solo test', () {
+            s.write('K');
+          });
+          solo_test('nested non-solo group solo test', () {
+            s.write('L');
+          });
+        });
+      });
+      solo_test('final', () {
+        expect(s.toString(), "EGHIHJHKHL");
+      });
     }
   });
 }
@@ -403,7 +456,18 @@ main() {
     'runTests without tests': buildStatusString(0, 0, 0, null),
     'nested groups setup/teardown':
         buildStatusString(2, 0, 0,
-            'level 1 level 2 level 3 level 4 level 5 level 6 inner::after nest')
+            'level 1 level 2 level 3 level 4 level 5 level 6 inner::'
+            'after nest'),
+    'skipped/soloed nested groups with setup/teardown':
+        buildStatusString(6, 0, 0,
+            'non-solo group solo_test in non-solo group::'
+            'solo group solo group non-solo test::'
+            'solo group solo group solo test::'
+            'solo group nested non-solo group in solo group nested non-'
+            'solo group non-solo test::'
+            'solo group nested non-solo group in solo'
+            ' group nested non-solo group solo test::'
+            'final')
   };
 
   tests.forEach((String name, String expected) {
