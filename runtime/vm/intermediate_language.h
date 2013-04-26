@@ -4788,7 +4788,8 @@ class InvokeMathCFunctionInstr : public Definition {
   virtual bool HasSideEffect() const { return false; }
   virtual bool AffectedBySideEffect() const { return false; }
   virtual bool AttributesEqual(Instruction* other) const {
-    return other->AsDoubleToDouble()->recognized_kind() == recognized_kind();
+    InvokeMathCFunctionInstr* other_invoke = other->AsInvokeMathCFunction();
+    return other_invoke->recognized_kind() == recognized_kind();
   }
 
   virtual Representation representation() const {
