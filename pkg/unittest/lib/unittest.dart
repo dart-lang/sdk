@@ -226,8 +226,8 @@ bool _soloTestSeen = false;
  * Setup and teardown functions for a group and its parents, the latter
  * for chaining.
  */
-class GroupContext {
-  final GroupContext parent;
+class _GroupContext {
+  final _GroupContext parent;
 
   /** Description text of the current test group. */
   final String _name;
@@ -282,7 +282,7 @@ class GroupContext {
       ? _name
       : "${parent.fullName}$groupSep$_name";
 
-  GroupContext([this.parent, this._name = '']) {
+  _GroupContext([this.parent, this._name = '']) {
     _testSetup = parentSetup;
     _testTeardown = parentTeardown;
   }
@@ -291,8 +291,8 @@ class GroupContext {
 // We use a 'dummy' context for the top level to eliminate null
 // checks when querying the context. This allows us to easily
 //  support top-level setUp/tearDown functions as well.
-GroupContext _rootContext = new GroupContext();
-GroupContext _currentContext = _rootContext;
+final _rootContext = new _GroupContext();
+_GroupContext _currentContext = _rootContext;
 
 int _currentTestCaseIndex = 0;
 
@@ -602,7 +602,7 @@ Function protectAsync2(Function callback, {String id}) {
  */
 void group(String description, void body()) {
   ensureInitialized();
-  _currentContext = new GroupContext(_currentContext, description);
+  _currentContext = new _GroupContext(_currentContext, description);
   try {
     body();
   } catch (e, trace) {
