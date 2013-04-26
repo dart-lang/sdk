@@ -732,10 +732,22 @@ class DartiumBackend(HtmlDartGenerator):
       argument_expression_template, type, cls, function = \
           type_info.to_native_info(argument, self._interface.id)
 
-      if (isinstance(argument, IDLArgument) and (
-          (IsOptional(argument) and not self._IsArgumentOptionalInWebCore(node, argument)) or
-           (argument.ext_attrs.get('Default') == 'NullString') or
-           _IsOptionalStringArgumentInInitEventMethod(self._interface, node, argument))):
+      def AllowsNull():
+        assert argument.ext_attrs.get('TreatNullAs', 'NullString') == 'NullString'
+        if argument.ext_attrs.get('TreatNullAs') == 'NullString':
+          return True
+
+        if isinstance(argument, IDLArgument):
+          if IsOptional(argument) and not self._IsArgumentOptionalInWebCore(node, argument):
+            return True
+          if argument.ext_attrs.get('Default') == 'NullString':
+            return True
+          if _IsOptionalStringArgumentInInitEventMethod(self._interface, node, argument):
+            return True
+
+        return False
+
+      if AllowsNull():
         function += 'WithNullCheck'
 
       argument_name = DartDomNameOfAttribute(argument)
