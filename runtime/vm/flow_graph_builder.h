@@ -16,6 +16,27 @@ class FlowGraph;
 class Instruction;
 class ParsedFunction;
 
+// List of recognized list factories:
+// (factory-name-symbol, result-cid, fingerprint).
+// TODO(srdjan): Store the values in the snapshot instead.
+#define RECOGNIZED_LIST_FACTORY_LIST(V)                                        \
+  V(ObjectArrayFactory, kArrayCid, 97987288)                                   \
+  V(GrowableObjectArrayWithData, kGrowableObjectArrayCid, 816132033)           \
+  V(GrowableObjectArrayFactory, kGrowableObjectArrayCid, 552407276)            \
+  V(_Int8ArrayFactory, kTypedDataInt8ArrayCid, 974805301)                      \
+  V(_Uint8ArrayFactory, kTypedDataUint8ArrayCid, 839639001)                    \
+  V(_Uint8ClampedArrayFactory, kTypedDataUint8ClampedArrayCid, 1947193032)     \
+  V(_Int16ArrayFactory, kTypedDataInt16ArrayCid, 1492289327)                   \
+  V(_Uint16ArrayFactory, kTypedDataUint16ArrayCid, 358109132)                  \
+  V(_Int32ArrayFactory, kTypedDataInt32ArrayCid, 1238390459)                   \
+  V(_Uint32ArrayFactory, kTypedDataUint32ArrayCid, 1091191177)                 \
+  V(_Int64ArrayFactory, kTypedDataInt64ArrayCid, 569474614)                    \
+  V(_Uint64ArrayFactory, kTypedDataUint64ArrayCid, 1778132384)                 \
+  V(_Float64ArrayFactory, kTypedDataFloat64ArrayCid, 740945295)                \
+  V(_Float32ArrayFactory, kTypedDataFloat32ArrayCid, 630024167)                \
+  V(_Float32x4ArrayFactory, kTypedDataFloat32x4ArrayCid, 1881134784)           \
+
+
 // An class to collect the exits from an inlined function during graph
 // construction so they can be plugged into the caller's flow graph.
 class InlineExitCollector: public ZoneAllocated {

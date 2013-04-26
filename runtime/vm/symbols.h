@@ -153,17 +153,29 @@ class ObjectPointerVisitor;
   V(Float64List, "Float64List")                                                \
   V(Float64ListFactory, "Float64List.")                                        \
   V(_Int8Array, "_Int8Array")                                                  \
+  V(_Int8ArrayFactory, "_Int8Array.")                                          \
   V(_Uint8Array, "_Uint8Array")                                                \
+  V(_Uint8ArrayFactory, "_Uint8Array.")                                        \
   V(_Uint8ClampedArray, "_Uint8ClampedArray")                                  \
+  V(_Uint8ClampedArrayFactory, "_Uint8ClampedArray.")                          \
   V(_Int16Array, "_Int16Array")                                                \
+  V(_Int16ArrayFactory, "_Int16Array.")                                        \
   V(_Uint16Array, "_Uint16Array")                                              \
+  V(_Uint16ArrayFactory, "_Uint16Array.")                                      \
   V(_Int32Array, "_Int32Array")                                                \
+  V(_Int32ArrayFactory, "_Int32Array.")                                        \
   V(_Uint32Array, "_Uint32Array")                                              \
+  V(_Uint32ArrayFactory, "_Uint32Array.")                                      \
   V(_Int64Array, "_Int64Array")                                                \
+  V(_Int64ArrayFactory, "_Int64Array.")                                        \
   V(_Uint64Array, "_Uint64Array")                                              \
+  V(_Uint64ArrayFactory, "_Uint64Array.")                                      \
   V(_Float32x4Array, "_Float32x4Array")                                        \
+  V(_Float32x4ArrayFactory, "_Float32x4Array.")                                \
   V(_Float32Array, "_Float32Array")                                            \
+  V(_Float32ArrayFactory, "_Float32Array.")                                    \
   V(_Float64Array, "_Float64Array")                                            \
+  V(_Float64ArrayFactory, "_Float64Array.")                                    \
   V(_Int8ArrayView, "_Int8ArrayView")                                          \
   V(_Uint8ArrayView, "_Uint8ArrayView")                                        \
   V(_Uint8ClampedArrayView, "_Uint8ClampedArrayView")                          \

@@ -24,6 +24,7 @@
 #include "vm/deopt_instructions.h"
 #include "vm/double_conversion.h"
 #include "vm/exceptions.h"
+#include "vm/flow_graph_builder.h"
 #include "vm/growable_array.h"
 #include "vm/heap.h"
 #include "vm/intermediate_language.h"
@@ -6867,11 +6868,13 @@ RawError* Library::CompileAll() {
   return error.raw();
 }
 
+
 struct FpDiff {
   FpDiff(int32_t old_, int32_t new_): old_fp(old_), new_fp(new_) {}
   int32_t old_fp;
   int32_t new_fp;
 };
+
 
 void Library::CheckFunctionFingerprints() {
   GrowableArray<FpDiff> collected_fp_diffs;
@@ -6917,6 +6920,21 @@ void Library::CheckFunctionFingerprints() {
   TYPED_DATA_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
 
 #undef CHECK_FINGERPRINTS
+
+#define CHECK_FACTORY_FINGERPRINTS(factory_symbol, cid, fp)                    \
+  cls = Isolate::Current()->class_table()->At(cid);                            \
+  func = cls.LookupFunctionAllowPrivate(Symbols::factory_symbol());            \
+  ASSERT(!func.IsNull());                                                      \
+  if (func.SourceFingerprint() != fp) {                                        \
+    has_errors = true;                                                         \
+    OS::Print("Wrong fingerprint for '%s': expecting %d found %d\n",           \
+        func.ToFullyQualifiedCString(), fp, func.SourceFingerprint());         \
+    collected_fp_diffs.Add(FpDiff(fp, func.SourceFingerprint()));              \
+  }                                                                            \
+
+  RECOGNIZED_LIST_FACTORY_LIST(CHECK_FACTORY_FINGERPRINTS);
+
+#undef CHECK_FACTORY_FINGERPRINTS
   if (has_errors) {
     for (intptr_t i = 0; i < collected_fp_diffs.length(); i++) {
       OS::Print("s/%d/%d/\n",
