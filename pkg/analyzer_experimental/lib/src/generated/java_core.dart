@@ -130,7 +130,18 @@ class CharBuffer extends CharSequence {
 
 class JavaString {
   static String format(String fmt, List args) {
-    return fmt;
+    var index = 0;
+    return fmt.replaceAllMapped(new RegExp(r'%(.)'), (match) {
+      switch (match.group(1)) {
+        case '%': return '%';
+        case 's':
+          if (index >= args.length) {
+            throw new MissingFormatArgumentException(match.group(0));
+          }
+          return args[index++].toString();
+        default: return match.group(1);
+      }
+    });
   }
 }
 
@@ -261,6 +272,14 @@ class URISyntaxException implements Exception {
 
 class IOException implements Exception {
   String toString() => "IOException";
+}
+
+class MissingFormatArgumentException implements Exception {
+  final String s;
+
+  String toString() => "MissingFormatArgumentException: $s";
+
+  MissingFormatArgumentException(this.s);
 }
 
 class ListWrapper<E> extends ListBase<E> implements List<E> {
