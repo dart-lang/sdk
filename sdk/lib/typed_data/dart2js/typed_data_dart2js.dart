@@ -211,7 +211,7 @@ class ByteData extends TypedData native "DataView" {
 
 @DocsEditable
 @DomName('Float32Array')
-class Float32List extends TypedData with ListMixin<double>, FixedLengthListMixin<double> implements JavaScriptIndexingBehavior, List<double> native "Float32Array" {
+class Float32List extends TypedData implements JavaScriptIndexingBehavior, List<double> native "Float32Array" {
   @DomName('Float32Array.Float32Array')
   @DocsEditable
   factory Float32List(int length) =>
@@ -236,11 +236,205 @@ class Float32List extends TypedData with ListMixin<double>, FixedLengthListMixin
   num operator[](int index) => JS("num", "#[#]", this, index);
 
   void operator[]=(int index, num value) { JS("void", "#[#] = #", this, index, value); }
+  // -- start List<num> mixins.
+  // num is the element type.
+
+  // From Iterable<num>:
+
+  Iterator<num> get iterator {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new FixedSizeListIterator<num>(this);
+  }
+
+  num reduce(num combine(num value, num element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
+  }
+
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, num element)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
+  bool contains(num element) => IterableMixinWorkaround.contains(this, element);
+
+  void forEach(void f(num element)) => IterableMixinWorkaround.forEach(this, f);
+
+  String join([String separator = ""]) =>
+      IterableMixinWorkaround.joinList(this, separator);
+
+  Iterable map(f(num element)) =>
+      IterableMixinWorkaround.mapList(this, f);
+
+  Iterable<num> where(bool f(num element)) =>
+      IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(num element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
+  bool every(bool f(num element)) => IterableMixinWorkaround.every(this, f);
+
+  bool any(bool f(num element)) => IterableMixinWorkaround.any(this, f);
+
+  List<num> toList({ bool growable: true }) =>
+      new List<num>.from(this, growable: growable);
+
+  Set<num> toSet() => new Set<num>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  Iterable<num> take(int n) => IterableMixinWorkaround.takeList(this, n);
+
+  Iterable<num> takeWhile(bool test(num value)) {
+    return IterableMixinWorkaround.takeWhile(this, test);
+  }
+
+  Iterable<num> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+
+  Iterable<num> skipWhile(bool test(num value)) {
+    return IterableMixinWorkaround.skipWhile(this, test);
+  }
+
+  num firstWhere(bool test(num value), { num orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
+  }
+
+  num lastWhere(bool test(num value), {num orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
+  }
+
+  num singleWhere(bool test(num value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
+  }
+
+  num elementAt(int index) {
+    return this[index];
+  }
+
+  // From Collection<num>:
+
+  void add(num value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addAll(Iterable<num> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  // From List<num>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
+
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  Iterable<num> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
+
+  void sort([int compare(num a, num b)]) {
+    throw new UnsupportedError("Cannot sort immutable List.");
+  }
+
+  int indexOf(num element, [int start = 0]) =>
+      Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(num element, [int start]) {
+    if (start == null) start = length - 1;
+    return Lists.lastIndexOf(this, element, start);
+  }
+
+  num get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
+
+  num get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  num get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  void insert(int index, num element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void insertAll(int index, Iterable<num> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<num> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  num removeAt(int pos) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  num removeLast() {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeWhere(bool test(num element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainWhere(bool test(num element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void setRange(int start, int end, Iterable<num> iterable, [int skipCount=0]) {
+    IterableMixinWorkaround.setRangeList(this, start, end, iterable, skipCount);
+  }
+
+  void removeRange(int start, int end) {
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void replaceRange(int start, int end, Iterable<num> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [num fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  Iterable<num> getRange(int start, int end) =>
+    IterableMixinWorkaround.getRangeList(this, start, end);
+
+  List<num> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <num>[]);
+  }
+
+  Map<int, num> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
+
+  // -- end List<num> mixins.
 }
 
 @DocsEditable
 @DomName('Float64Array')
-class Float64List extends TypedData with ListMixin<double>, FixedLengthListMixin<double> implements JavaScriptIndexingBehavior, List<double> native "Float64Array" {
+class Float64List extends TypedData implements JavaScriptIndexingBehavior, List<double> native "Float64Array" {
 
   @DomName('Float64Array.Float64Array')
   @DocsEditable
@@ -266,11 +460,205 @@ class Float64List extends TypedData with ListMixin<double>, FixedLengthListMixin
   num operator[](int index) => JS("num", "#[#]", this, index);
 
   void operator[]=(int index, num value) { JS("void", "#[#] = #", this, index, value); }
+  // -- start List<num> mixins.
+  // num is the element type.
+
+  // From Iterable<num>:
+
+  Iterator<num> get iterator {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new FixedSizeListIterator<num>(this);
+  }
+
+  num reduce(num combine(num value, num element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
+  }
+
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, num element)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
+  bool contains(num element) => IterableMixinWorkaround.contains(this, element);
+
+  void forEach(void f(num element)) => IterableMixinWorkaround.forEach(this, f);
+
+  String join([String separator = ""]) =>
+      IterableMixinWorkaround.joinList(this, separator);
+
+  Iterable map(f(num element)) =>
+      IterableMixinWorkaround.mapList(this, f);
+
+  Iterable<num> where(bool f(num element)) =>
+      IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(num element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
+  bool every(bool f(num element)) => IterableMixinWorkaround.every(this, f);
+
+  bool any(bool f(num element)) => IterableMixinWorkaround.any(this, f);
+
+  List<num> toList({ bool growable: true }) =>
+      new List<num>.from(this, growable: growable);
+
+  Set<num> toSet() => new Set<num>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  Iterable<num> take(int n) => IterableMixinWorkaround.takeList(this, n);
+
+  Iterable<num> takeWhile(bool test(num value)) {
+    return IterableMixinWorkaround.takeWhile(this, test);
+  }
+
+  Iterable<num> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+
+  Iterable<num> skipWhile(bool test(num value)) {
+    return IterableMixinWorkaround.skipWhile(this, test);
+  }
+
+  num firstWhere(bool test(num value), { num orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
+  }
+
+  num lastWhere(bool test(num value), {num orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
+  }
+
+  num singleWhere(bool test(num value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
+  }
+
+  num elementAt(int index) {
+    return this[index];
+  }
+
+  // From Collection<num>:
+
+  void add(num value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addAll(Iterable<num> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  // From List<num>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
+
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  Iterable<num> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
+
+  void sort([int compare(num a, num b)]) {
+    throw new UnsupportedError("Cannot sort immutable List.");
+  }
+
+  int indexOf(num element, [int start = 0]) =>
+      Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(num element, [int start]) {
+    if (start == null) start = length - 1;
+    return Lists.lastIndexOf(this, element, start);
+  }
+
+  num get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
+
+  num get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  num get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  void insert(int index, num element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void insertAll(int index, Iterable<num> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<num> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  num removeAt(int pos) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  num removeLast() {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeWhere(bool test(num element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainWhere(bool test(num element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void setRange(int start, int end, Iterable<num> iterable, [int skipCount=0]) {
+    IterableMixinWorkaround.setRangeList(this, start, end, iterable, skipCount);
+  }
+
+  void removeRange(int start, int end) {
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void replaceRange(int start, int end, Iterable<num> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [num fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  Iterable<num> getRange(int start, int end) =>
+    IterableMixinWorkaround.getRangeList(this, start, end);
+
+  List<num> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <num>[]);
+  }
+
+  Map<int, num> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
+
+  // -- end List<num> mixins.
 }
 
 @DocsEditable
 @DomName('Int16Array')
-class Int16List extends TypedData with ListMixin<int>, FixedLengthListMixin<int> implements JavaScriptIndexingBehavior, List<int> native "Int16Array" {
+class Int16List extends TypedData implements JavaScriptIndexingBehavior, List<int> native "Int16Array" {
 
   @DomName('Int16Array.Int16Array')
   @DocsEditable
@@ -295,12 +683,205 @@ class Int16List extends TypedData with ListMixin<int>, FixedLengthListMixin<int>
 
   int operator[](int index) => JS("int", "#[#]", this, index);
 
-  void operator[]=(int index, int value) { JS("void", "#[#] = #", this, index, value); }
+  void operator[]=(int index, int value) { JS("void", "#[#] = #", this, index, value); }  // -- start List<int> mixins.
+  // int is the element type.
+
+  // From Iterable<int>:
+
+  Iterator<int> get iterator {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new FixedSizeListIterator<int>(this);
+  }
+
+  int reduce(int combine(int value, int element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
+  }
+
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, int element)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
+  bool contains(int element) => IterableMixinWorkaround.contains(this, element);
+
+  void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
+
+  String join([String separator = ""]) =>
+      IterableMixinWorkaround.joinList(this, separator);
+
+  Iterable map(f(int element)) =>
+      IterableMixinWorkaround.mapList(this, f);
+
+  Iterable<int> where(bool f(int element)) =>
+      IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(int element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
+  bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
+
+  bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
+
+  List<int> toList({ bool growable: true }) =>
+      new List<int>.from(this, growable: growable);
+
+  Set<int> toSet() => new Set<int>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  Iterable<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
+
+  Iterable<int> takeWhile(bool test(int value)) {
+    return IterableMixinWorkaround.takeWhile(this, test);
+  }
+
+  Iterable<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+
+  Iterable<int> skipWhile(bool test(int value)) {
+    return IterableMixinWorkaround.skipWhile(this, test);
+  }
+
+  int firstWhere(bool test(int value), { int orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
+  }
+
+  int lastWhere(bool test(int value), {int orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
+  }
+
+  int singleWhere(bool test(int value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
+  }
+
+  int elementAt(int index) {
+    return this[index];
+  }
+
+  // From Collection<int>:
+
+  void add(int value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addAll(Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  // From List<int>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
+
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  Iterable<int> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
+
+  void sort([int compare(int a, int b)]) {
+    throw new UnsupportedError("Cannot sort immutable List.");
+  }
+
+  int indexOf(int element, [int start = 0]) =>
+      Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(int element, [int start]) {
+    if (start == null) start = length - 1;
+    return Lists.lastIndexOf(this, element, start);
+  }
+
+  int get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
+
+  int get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  int get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  void insert(int index, int element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void insertAll(int index, Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  int removeAt(int pos) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  int removeLast() {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeWhere(bool test(int element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainWhere(bool test(int element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void setRange(int start, int end, Iterable<int> iterable, [int skipCount=0]) {
+    IterableMixinWorkaround.setRangeList(this, start, end, iterable, skipCount);
+  }
+
+  void removeRange(int start, int end) {
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void replaceRange(int start, int end, Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [int fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  Iterable<int> getRange(int start, int end) =>
+    IterableMixinWorkaround.getRangeList(this, start, end);
+
+  List<int> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <int>[]);
+  }
+
+  Map<int, int> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
+
+  // -- end List<int> mixins.
 }
 
 @DocsEditable
 @DomName('Int32Array')
-class Int32List extends TypedData with ListMixin<int>, FixedLengthListMixin<int> implements JavaScriptIndexingBehavior, List<int> native "Int32Array" {
+class Int32List extends TypedData implements JavaScriptIndexingBehavior, List<int> native "Int32Array" {
 
   @DomName('Int32Array.Int32Array')
   @DocsEditable
@@ -325,12 +906,205 @@ class Int32List extends TypedData with ListMixin<int>, FixedLengthListMixin<int>
 
   int operator[](int index) => JS("int", "#[#]", this, index);
 
-  void operator[]=(int index, int value) { JS("void", "#[#] = #", this, index, value); }
+  void operator[]=(int index, int value) { JS("void", "#[#] = #", this, index, value); }  // -- start List<int> mixins.
+  // int is the element type.
+
+  // From Iterable<int>:
+
+  Iterator<int> get iterator {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new FixedSizeListIterator<int>(this);
+  }
+
+  int reduce(int combine(int value, int element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
+  }
+
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, int element)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
+  bool contains(int element) => IterableMixinWorkaround.contains(this, element);
+
+  void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
+
+  String join([String separator = ""]) =>
+      IterableMixinWorkaround.joinList(this, separator);
+
+  Iterable map(f(int element)) =>
+      IterableMixinWorkaround.mapList(this, f);
+
+  Iterable<int> where(bool f(int element)) =>
+      IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(int element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
+  bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
+
+  bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
+
+  List<int> toList({ bool growable: true }) =>
+      new List<int>.from(this, growable: growable);
+
+  Set<int> toSet() => new Set<int>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  Iterable<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
+
+  Iterable<int> takeWhile(bool test(int value)) {
+    return IterableMixinWorkaround.takeWhile(this, test);
+  }
+
+  Iterable<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+
+  Iterable<int> skipWhile(bool test(int value)) {
+    return IterableMixinWorkaround.skipWhile(this, test);
+  }
+
+  int firstWhere(bool test(int value), { int orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
+  }
+
+  int lastWhere(bool test(int value), {int orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
+  }
+
+  int singleWhere(bool test(int value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
+  }
+
+  int elementAt(int index) {
+    return this[index];
+  }
+
+  // From Collection<int>:
+
+  void add(int value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addAll(Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  // From List<int>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
+
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  Iterable<int> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
+
+  void sort([int compare(int a, int b)]) {
+    throw new UnsupportedError("Cannot sort immutable List.");
+  }
+
+  int indexOf(int element, [int start = 0]) =>
+      Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(int element, [int start]) {
+    if (start == null) start = length - 1;
+    return Lists.lastIndexOf(this, element, start);
+  }
+
+  int get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
+
+  int get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  int get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  void insert(int index, int element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void insertAll(int index, Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  int removeAt(int pos) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  int removeLast() {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeWhere(bool test(int element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainWhere(bool test(int element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void setRange(int start, int end, Iterable<int> iterable, [int skipCount=0]) {
+    IterableMixinWorkaround.setRangeList(this, start, end, iterable, skipCount);
+  }
+
+  void removeRange(int start, int end) {
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void replaceRange(int start, int end, Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [int fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  Iterable<int> getRange(int start, int end) =>
+    IterableMixinWorkaround.getRangeList(this, start, end);
+
+  List<int> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <int>[]);
+  }
+
+  Map<int, int> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
+
+  // -- end List<int> mixins.
 }
 
 @DocsEditable
 @DomName('Int8Array')
-class Int8List extends TypedData with ListMixin<int>, FixedLengthListMixin<int> implements JavaScriptIndexingBehavior, List<int> native "Int8Array" {
+class Int8List extends TypedData implements JavaScriptIndexingBehavior, List<int> native "Int8Array" {
 
   @DomName('Int8Array.Int8Array')
   @DocsEditable
@@ -355,12 +1129,205 @@ class Int8List extends TypedData with ListMixin<int>, FixedLengthListMixin<int> 
 
   int operator[](int index) => JS("int", "#[#]", this, index);
 
-  void operator[]=(int index, int value) { JS("void", "#[#] = #", this, index, value); }
+  void operator[]=(int index, int value) { JS("void", "#[#] = #", this, index, value); }  // -- start List<int> mixins.
+  // int is the element type.
+
+  // From Iterable<int>:
+
+  Iterator<int> get iterator {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new FixedSizeListIterator<int>(this);
+  }
+
+  int reduce(int combine(int value, int element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
+  }
+
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, int element)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
+  bool contains(int element) => IterableMixinWorkaround.contains(this, element);
+
+  void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
+
+  String join([String separator = ""]) =>
+      IterableMixinWorkaround.joinList(this, separator);
+
+  Iterable map(f(int element)) =>
+      IterableMixinWorkaround.mapList(this, f);
+
+  Iterable<int> where(bool f(int element)) =>
+      IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(int element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
+  bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
+
+  bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
+
+  List<int> toList({ bool growable: true }) =>
+      new List<int>.from(this, growable: growable);
+
+  Set<int> toSet() => new Set<int>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  Iterable<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
+
+  Iterable<int> takeWhile(bool test(int value)) {
+    return IterableMixinWorkaround.takeWhile(this, test);
+  }
+
+  Iterable<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+
+  Iterable<int> skipWhile(bool test(int value)) {
+    return IterableMixinWorkaround.skipWhile(this, test);
+  }
+
+  int firstWhere(bool test(int value), { int orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
+  }
+
+  int lastWhere(bool test(int value), {int orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
+  }
+
+  int singleWhere(bool test(int value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
+  }
+
+  int elementAt(int index) {
+    return this[index];
+  }
+
+  // From Collection<int>:
+
+  void add(int value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addAll(Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  // From List<int>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
+
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  Iterable<int> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
+
+  void sort([int compare(int a, int b)]) {
+    throw new UnsupportedError("Cannot sort immutable List.");
+  }
+
+  int indexOf(int element, [int start = 0]) =>
+      Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(int element, [int start]) {
+    if (start == null) start = length - 1;
+    return Lists.lastIndexOf(this, element, start);
+  }
+
+  int get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
+
+  int get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  int get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  void insert(int index, int element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void insertAll(int index, Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  int removeAt(int pos) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  int removeLast() {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeWhere(bool test(int element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainWhere(bool test(int element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void setRange(int start, int end, Iterable<int> iterable, [int skipCount=0]) {
+    IterableMixinWorkaround.setRangeList(this, start, end, iterable, skipCount);
+  }
+
+  void removeRange(int start, int end) {
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void replaceRange(int start, int end, Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [int fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  Iterable<int> getRange(int start, int end) =>
+    IterableMixinWorkaround.getRangeList(this, start, end);
+
+  List<int> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <int>[]);
+  }
+
+  Map<int, int> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
+
+  // -- end List<int> mixins.
 }
 
 @DocsEditable
 @DomName('Uint16Array')
-class Uint16List extends TypedData with ListMixin<int>, FixedLengthListMixin<int> implements JavaScriptIndexingBehavior, List<int> native "Uint16Array" {
+class Uint16List extends TypedData implements JavaScriptIndexingBehavior, List<int> native "Uint16Array" {
 
   @DomName('Uint16Array.Uint16Array')
   @DocsEditable
@@ -385,12 +1352,205 @@ class Uint16List extends TypedData with ListMixin<int>, FixedLengthListMixin<int
 
   int operator[](int index) => JS("int", "#[#]", this, index);
 
-  void operator[]=(int index, int value) { JS("void", "#[#] = #", this, index, value); }
+  void operator[]=(int index, int value) { JS("void", "#[#] = #", this, index, value); }  // -- start List<int> mixins.
+  // int is the element type.
+
+  // From Iterable<int>:
+
+  Iterator<int> get iterator {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new FixedSizeListIterator<int>(this);
+  }
+
+  int reduce(int combine(int value, int element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
+  }
+
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, int element)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
+  bool contains(int element) => IterableMixinWorkaround.contains(this, element);
+
+  void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
+
+  String join([String separator = ""]) =>
+      IterableMixinWorkaround.joinList(this, separator);
+
+  Iterable map(f(int element)) =>
+      IterableMixinWorkaround.mapList(this, f);
+
+  Iterable<int> where(bool f(int element)) =>
+      IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(int element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
+  bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
+
+  bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
+
+  List<int> toList({ bool growable: true }) =>
+      new List<int>.from(this, growable: growable);
+
+  Set<int> toSet() => new Set<int>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  Iterable<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
+
+  Iterable<int> takeWhile(bool test(int value)) {
+    return IterableMixinWorkaround.takeWhile(this, test);
+  }
+
+  Iterable<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+
+  Iterable<int> skipWhile(bool test(int value)) {
+    return IterableMixinWorkaround.skipWhile(this, test);
+  }
+
+  int firstWhere(bool test(int value), { int orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
+  }
+
+  int lastWhere(bool test(int value), {int orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
+  }
+
+  int singleWhere(bool test(int value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
+  }
+
+  int elementAt(int index) {
+    return this[index];
+  }
+
+  // From Collection<int>:
+
+  void add(int value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addAll(Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  // From List<int>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
+
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  Iterable<int> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
+
+  void sort([int compare(int a, int b)]) {
+    throw new UnsupportedError("Cannot sort immutable List.");
+  }
+
+  int indexOf(int element, [int start = 0]) =>
+      Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(int element, [int start]) {
+    if (start == null) start = length - 1;
+    return Lists.lastIndexOf(this, element, start);
+  }
+
+  int get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
+
+  int get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  int get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  void insert(int index, int element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void insertAll(int index, Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  int removeAt(int pos) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  int removeLast() {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeWhere(bool test(int element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainWhere(bool test(int element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void setRange(int start, int end, Iterable<int> iterable, [int skipCount=0]) {
+    IterableMixinWorkaround.setRangeList(this, start, end, iterable, skipCount);
+  }
+
+  void removeRange(int start, int end) {
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void replaceRange(int start, int end, Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [int fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  Iterable<int> getRange(int start, int end) =>
+    IterableMixinWorkaround.getRangeList(this, start, end);
+
+  List<int> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <int>[]);
+  }
+
+  Map<int, int> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
+
+  // -- end List<int> mixins.
 }
 
 @DocsEditable
 @DomName('Uint32Array')
-class Uint32List extends TypedData with ListMixin<int>, FixedLengthListMixin<int> implements JavaScriptIndexingBehavior, List<int> native "Uint32Array" {
+class Uint32List extends TypedData implements JavaScriptIndexingBehavior, List<int> native "Uint32Array" {
 
   @DomName('Uint32Array.Uint32Array')
   @DocsEditable
@@ -415,7 +1575,200 @@ class Uint32List extends TypedData with ListMixin<int>, FixedLengthListMixin<int
 
   int operator[](int index) => JS("int", "#[#]", this, index);
 
-  void operator[]=(int index, int value) { JS("void", "#[#] = #", this, index, value); }
+  void operator[]=(int index, int value) { JS("void", "#[#] = #", this, index, value); }  // -- start List<int> mixins.
+  // int is the element type.
+
+  // From Iterable<int>:
+
+  Iterator<int> get iterator {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new FixedSizeListIterator<int>(this);
+  }
+
+  int reduce(int combine(int value, int element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
+  }
+
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, int element)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
+  bool contains(int element) => IterableMixinWorkaround.contains(this, element);
+
+  void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
+
+  String join([String separator = ""]) =>
+      IterableMixinWorkaround.joinList(this, separator);
+
+  Iterable map(f(int element)) =>
+      IterableMixinWorkaround.mapList(this, f);
+
+  Iterable<int> where(bool f(int element)) =>
+      IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(int element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
+  bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
+
+  bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
+
+  List<int> toList({ bool growable: true }) =>
+      new List<int>.from(this, growable: growable);
+
+  Set<int> toSet() => new Set<int>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  Iterable<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
+
+  Iterable<int> takeWhile(bool test(int value)) {
+    return IterableMixinWorkaround.takeWhile(this, test);
+  }
+
+  Iterable<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+
+  Iterable<int> skipWhile(bool test(int value)) {
+    return IterableMixinWorkaround.skipWhile(this, test);
+  }
+
+  int firstWhere(bool test(int value), { int orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
+  }
+
+  int lastWhere(bool test(int value), {int orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
+  }
+
+  int singleWhere(bool test(int value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
+  }
+
+  int elementAt(int index) {
+    return this[index];
+  }
+
+  // From Collection<int>:
+
+  void add(int value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addAll(Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  // From List<int>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
+
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  Iterable<int> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
+
+  void sort([int compare(int a, int b)]) {
+    throw new UnsupportedError("Cannot sort immutable List.");
+  }
+
+  int indexOf(int element, [int start = 0]) =>
+      Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(int element, [int start]) {
+    if (start == null) start = length - 1;
+    return Lists.lastIndexOf(this, element, start);
+  }
+
+  int get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
+
+  int get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  int get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  void insert(int index, int element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void insertAll(int index, Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  int removeAt(int pos) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  int removeLast() {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeWhere(bool test(int element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainWhere(bool test(int element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void setRange(int start, int end, Iterable<int> iterable, [int skipCount=0]) {
+    IterableMixinWorkaround.setRangeList(this, start, end, iterable, skipCount);
+  }
+
+  void removeRange(int start, int end) {
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void replaceRange(int start, int end, Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [int fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  Iterable<int> getRange(int start, int end) =>
+    IterableMixinWorkaround.getRangeList(this, start, end);
+
+  List<int> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <int>[]);
+  }
+
+  Map<int, int> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
+
+  // -- end List<int> mixins.
 }
 
 @DocsEditable
@@ -442,12 +1795,205 @@ class Uint8ClampedList extends Uint8List implements JavaScriptIndexingBehavior, 
 
   int operator[](int index) => JS("int", "#[#]", this, index);
 
-  void operator[]=(int index, int value) { JS("void", "#[#] = #", this, index, value); }
+  void operator[]=(int index, int value) { JS("void", "#[#] = #", this, index, value); }  // -- start List<int> mixins.
+  // int is the element type.
+
+  // From Iterable<int>:
+
+  Iterator<int> get iterator {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new FixedSizeListIterator<int>(this);
+  }
+
+  int reduce(int combine(int value, int element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
+  }
+
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, int element)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
+  bool contains(int element) => IterableMixinWorkaround.contains(this, element);
+
+  void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
+
+  String join([String separator = ""]) =>
+      IterableMixinWorkaround.joinList(this, separator);
+
+  Iterable map(f(int element)) =>
+      IterableMixinWorkaround.mapList(this, f);
+
+  Iterable<int> where(bool f(int element)) =>
+      IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(int element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
+  bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
+
+  bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
+
+  List<int> toList({ bool growable: true }) =>
+      new List<int>.from(this, growable: growable);
+
+  Set<int> toSet() => new Set<int>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  Iterable<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
+
+  Iterable<int> takeWhile(bool test(int value)) {
+    return IterableMixinWorkaround.takeWhile(this, test);
+  }
+
+  Iterable<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+
+  Iterable<int> skipWhile(bool test(int value)) {
+    return IterableMixinWorkaround.skipWhile(this, test);
+  }
+
+  int firstWhere(bool test(int value), { int orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
+  }
+
+  int lastWhere(bool test(int value), {int orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
+  }
+
+  int singleWhere(bool test(int value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
+  }
+
+  int elementAt(int index) {
+    return this[index];
+  }
+
+  // From Collection<int>:
+
+  void add(int value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addAll(Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  // From List<int>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
+
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  Iterable<int> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
+
+  void sort([int compare(int a, int b)]) {
+    throw new UnsupportedError("Cannot sort immutable List.");
+  }
+
+  int indexOf(int element, [int start = 0]) =>
+      Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(int element, [int start]) {
+    if (start == null) start = length - 1;
+    return Lists.lastIndexOf(this, element, start);
+  }
+
+  int get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
+
+  int get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  int get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  void insert(int index, int element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void insertAll(int index, Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  int removeAt(int pos) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  int removeLast() {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeWhere(bool test(int element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainWhere(bool test(int element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void setRange(int start, int end, Iterable<int> iterable, [int skipCount=0]) {
+    IterableMixinWorkaround.setRangeList(this, start, end, iterable, skipCount);
+  }
+
+  void removeRange(int start, int end) {
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void replaceRange(int start, int end, Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [int fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  Iterable<int> getRange(int start, int end) =>
+    IterableMixinWorkaround.getRangeList(this, start, end);
+
+  List<int> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <int>[]);
+  }
+
+  Map<int, int> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
+
+  // -- end List<int> mixins.
 }
 
 @DocsEditable
 @DomName('Uint8Array')
-class Uint8List extends TypedData with ListMixin<int>, FixedLengthListMixin<int> implements JavaScriptIndexingBehavior, List<int> native "Uint8Array" {
+class Uint8List extends TypedData implements JavaScriptIndexingBehavior, List<int> native "Uint8Array" {
 
   @DomName('Uint8Array.Uint8Array')
   @DocsEditable
@@ -472,11 +2018,204 @@ class Uint8List extends TypedData with ListMixin<int>, FixedLengthListMixin<int>
 
   int operator[](int index) => JS("int", "#[#]", this, index);
 
-  void operator[]=(int index, int value) { JS("void", "#[#] = #", this, index, value); }
+  void operator[]=(int index, int value) { JS("void", "#[#] = #", this, index, value); }  // -- start List<int> mixins.
+  // int is the element type.
+
+  // From Iterable<int>:
+
+  Iterator<int> get iterator {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new FixedSizeListIterator<int>(this);
+  }
+
+  int reduce(int combine(int value, int element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
+  }
+
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, int element)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
+  bool contains(int element) => IterableMixinWorkaround.contains(this, element);
+
+  void forEach(void f(int element)) => IterableMixinWorkaround.forEach(this, f);
+
+  String join([String separator = ""]) =>
+      IterableMixinWorkaround.joinList(this, separator);
+
+  Iterable map(f(int element)) =>
+      IterableMixinWorkaround.mapList(this, f);
+
+  Iterable<int> where(bool f(int element)) =>
+      IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(int element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
+  bool every(bool f(int element)) => IterableMixinWorkaround.every(this, f);
+
+  bool any(bool f(int element)) => IterableMixinWorkaround.any(this, f);
+
+  List<int> toList({ bool growable: true }) =>
+      new List<int>.from(this, growable: growable);
+
+  Set<int> toSet() => new Set<int>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  Iterable<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
+
+  Iterable<int> takeWhile(bool test(int value)) {
+    return IterableMixinWorkaround.takeWhile(this, test);
+  }
+
+  Iterable<int> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+
+  Iterable<int> skipWhile(bool test(int value)) {
+    return IterableMixinWorkaround.skipWhile(this, test);
+  }
+
+  int firstWhere(bool test(int value), { int orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
+  }
+
+  int lastWhere(bool test(int value), {int orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
+  }
+
+  int singleWhere(bool test(int value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
+  }
+
+  int elementAt(int index) {
+    return this[index];
+  }
+
+  // From Collection<int>:
+
+  void add(int value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addAll(Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  // From List<int>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
+
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  Iterable<int> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
+
+  void sort([int compare(int a, int b)]) {
+    throw new UnsupportedError("Cannot sort immutable List.");
+  }
+
+  int indexOf(int element, [int start = 0]) =>
+      Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(int element, [int start]) {
+    if (start == null) start = length - 1;
+    return Lists.lastIndexOf(this, element, start);
+  }
+
+  int get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
+
+  int get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  int get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  void insert(int index, int element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void insertAll(int index, Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  int removeAt(int pos) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  int removeLast() {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeWhere(bool test(int element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainWhere(bool test(int element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void setRange(int start, int end, Iterable<int> iterable, [int skipCount=0]) {
+    IterableMixinWorkaround.setRangeList(this, start, end, iterable, skipCount);
+  }
+
+  void removeRange(int start, int end) {
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void replaceRange(int start, int end, Iterable<int> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [int fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  Iterable<int> getRange(int start, int end) =>
+    IterableMixinWorkaround.getRangeList(this, start, end);
+
+  List<int> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <int>[]);
+  }
+
+  Map<int, int> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
+
+  // -- end List<int> mixins.
 }
 
 
-class Int64List extends TypedData with ListMixin<int>, FixedLengthListMixin<int> implements JavaScriptIndexingBehavior, List<int> {
+class Int64List extends TypedData implements JavaScriptIndexingBehavior, List<int> {
   factory Int64List(int length) {
     throw new UnsupportedError("Int64List not supported by dart2js.");
   }
@@ -493,7 +2232,7 @@ class Int64List extends TypedData with ListMixin<int>, FixedLengthListMixin<int>
 }
 
 
-class Uint64List extends TypedData with ListMixin<int>, FixedLengthListMixin<int> implements JavaScriptIndexingBehavior, List<int> {
+class Uint64List extends TypedData implements JavaScriptIndexingBehavior, List<int> {
   factory Int64List(int length) {
     throw new UnsupportedError("Int64List not supported by dart2js.");
   }
