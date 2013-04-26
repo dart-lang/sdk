@@ -47,7 +47,7 @@ FEATURE_DEFINES = [
     'ENABLE_WEBGL',
 ]
 
-def build_database(idl_files, database_dir, parallel=False):
+def build_database(idl_files, database_dir, feature_defines=None, parallel=False):
   """This code reconstructs the FremontCut IDL database from W3C,
   WebKit and Dart IDL files."""
   current_dir = os.path.dirname(__file__)
@@ -68,10 +68,13 @@ def build_database(idl_files, database_dir, parallel=False):
   # generation.  We need to recheck this periodically for now.
   webkit_defines = [ 'LANGUAGE_DART', 'LANGUAGE_JAVASCRIPT' ]
 
+  if feature_defines is None:
+    feature_defines = FEATURE_DEFINES
+
   webkit_options = databasebuilder.DatabaseBuilderOptions(
       idl_syntax=idlparser.WEBKIT_SYNTAX,
       # TODO(vsm): What else should we define as on when processing IDL?
-      idl_defines=webkit_defines + FEATURE_DEFINES,
+      idl_defines=webkit_defines + feature_defines,
       source='WebKit',
       source_attributes={'revision': webkit_revision})
 
