@@ -105,18 +105,18 @@ namespace dart {
   V(_Float32Array, _new, TypedData_Float32Array_new, 723829075)                \
   V(_Float64Array, _new, TypedData_Float64Array_new, 111654177)                \
   V(_Float32x4Array, _new, TypedData_Float32x4Array_new, 984763738)            \
-  V(_Int8Array, ., TypedData_Int8Array_factory, 974805301)                     \
-  V(_Uint8Array, ., TypedData_Uint8Array_factory, 839639001)                   \
-  V(_Uint8ClampedArray, ., TypedData_Uint8ClampedArray_factory, 1947193032)    \
-  V(_Int16Array, ., TypedData_Int16Array_factory, 1492289327)                  \
-  V(_Uint16Array, ., TypedData_Uint16Array_factory, 358109132)                 \
-  V(_Int32Array, ., TypedData_Int32Array_factory, 1238390459)                  \
-  V(_Uint32Array, ., TypedData_Uint32Array_factory, 1091191177)                \
-  V(_Int64Array, ., TypedData_Int64Array_factory, 569474614)                   \
-  V(_Uint64Array, ., TypedData_Uint64Array_factory, 1778132384)                \
-  V(_Float32Array, ., TypedData_Float32Array_factory, 630024167)               \
-  V(_Float64Array, ., TypedData_Float64Array_factory, 740945295)               \
-  V(_Float32x4Array, ., TypedData_Float32x4Array_factory, 1881134784)          \
+  V(_Int8Array, ., TypedData_Int8Array_factory, 1168404493)                    \
+  V(_Uint8Array, ., TypedData_Uint8Array_factory, 2094565809)                  \
+  V(_Uint8ClampedArray, ., TypedData_Uint8ClampedArray_factory, 1449285088)    \
+  V(_Int16Array, ., TypedData_Int16Array_factory, 1430476167)                  \
+  V(_Uint16Array, ., TypedData_Uint16Array_factory, 996241892)                 \
+  V(_Int32Array, ., TypedData_Int32Array_factory, 360797715)                   \
+  V(_Uint32Array, ., TypedData_Uint32Array_factory, 995053409)                 \
+  V(_Int64Array, ., TypedData_Int64Array_factory, 570248142)                   \
+  V(_Uint64Array, ., TypedData_Uint64Array_factory, 1114332856)                \
+  V(_Float32Array, ., TypedData_Float32Array_factory, 1719636031)              \
+  V(_Float64Array, ., TypedData_Float64Array_factory, 1896334311)              \
+  V(_Float32x4Array, ., TypedData_Float32x4Array_factory, 1768466392)          \
 
 // TODO(srdjan): Implement _FixedSizeArrayIterator, get:current and
 //   _FixedSizeArrayIterator, moveNext.
