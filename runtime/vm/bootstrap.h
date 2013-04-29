@@ -10,30 +10,12 @@
 namespace dart {
 
 // Forward declarations.
-class Library;
 class RawError;
-class RawScript;
-class Script;
 
 class Bootstrap : public AllStatic {
  public:
-  static RawScript* LoadAsyncScript(bool patch);
-  static RawScript* LoadCoreScript(bool patch);
-  static RawScript* LoadCollectionScript(bool patch);
-  static RawScript* LoadCollectionDevScript(bool patch);
-  static RawScript* LoadCryptoScript(bool patch);
-  static RawScript* LoadIsolateScript(bool patch);
-  static RawScript* LoadJsonScript(bool patch);
-  static RawScript* LoadMathScript(bool patch);
-  static RawScript* LoadMirrorsScript(bool patch);
-  static RawScript* LoadTypedDataScript(bool patch);
-  static RawScript* LoadUriScript(bool patch);
-  static RawScript* LoadUtfScript(bool patch);
-  static RawError* Compile(const Library& library, const Script& script);
+  static RawError* LoadandCompileScripts();
   static void SetupNativeResolver();
-
- private:
-  static RawScript* LoadScript(const char* url, const char* source, bool patch);
 
   static const char async_source_[];
   static const char async_patch_[];

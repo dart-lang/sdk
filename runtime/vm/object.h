@@ -907,9 +907,6 @@ class Class : public Object {
 
   // Allocate an instance class which has a VM implementation.
   template <class FakeInstance> static RawClass* New(intptr_t id);
-  template <class FakeInstance> static RawClass* New(const String& name,
-                                                     const Script& script,
-                                                     intptr_t token_pos);
 
   // Check the subtype or 'more specific' relationship.
   bool TypeTest(TypeTestKind test_kind,
@@ -2223,12 +2220,13 @@ class Library : public Object {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Library, Object);
 
-  friend class Object;
+  friend class Bootstrap;
   friend class Class;
   friend class Debugger;
   friend class DictionaryIterator;
   friend class Isolate;
   friend class Namespace;
+  friend class Object;
 };
 
 

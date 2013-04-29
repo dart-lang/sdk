@@ -244,19 +244,19 @@ class ObjectPointerVisitor;
   V(_New, "_new")                                                              \
   V(DartScheme, "dart:")                                                       \
   V(DartSchemePrivate, "dart:_")                                               \
+  V(DartNativeWrappers, "dart:nativewrappers")                                 \
+  V(DartAsync, "dart:async")                                                   \
   V(DartCore, "dart:core")                                                     \
   V(DartCollection, "dart:collection")                                         \
   V(DartCollectionDev, "dart:_collection-dev")                                 \
-  V(DartMath, "dart:math")                                                     \
+  V(DartCrypto, "dart:crypto")                                                 \
   V(DartIsolate, "dart:isolate")                                               \
+  V(DartJson, "dart:json")                                                     \
+  V(DartMath, "dart:math")                                                     \
   V(DartMirrors, "dart:mirrors")                                               \
   V(DartTypedData, "dart:typed_data")                                          \
-  V(DartNativeWrappers, "dart:nativewrappers")                                 \
-  V(DartAsync, "dart:async")                                                   \
   V(DartUri, "dart:uri")                                                       \
   V(DartUtf, "dart:utf")                                                       \
-  V(DartCrypto, "dart:crypto")                                                 \
-  V(DartJson, "dart:json")                                                     \
 
 
 // Contains a list of frequently used strings in a canonicalized form. This

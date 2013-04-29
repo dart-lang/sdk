@@ -19,6 +19,22 @@ class ObjectPointerVisitor;
 // by snapshots eventually.
 class ObjectStore {
  public:
+  enum {
+    kNone = 0,
+    kAsync,
+    kCore,
+    kCollection,
+    kCollectionDev,
+    kCrypto,
+    kIsolate,
+    kJson,
+    kMath,
+    kMirrors,
+    kTypedData,
+    kUtf,
+    kUri,
+  };
+
   ~ObjectStore();
 
   RawClass* object_class() const {
@@ -239,72 +255,65 @@ class ObjectStore {
   }
 
   RawLibrary* async_library() const { return async_library_; }
-  void set_async_library(const Library& value) {
-    async_library_ = value.raw();
-  }
-
-  RawLibrary* builtin_library() const {
-    return builtin_library_;
-  }
-  void set_builtin_library(const Library& value) {
-    builtin_library_ = value.raw();
-  }
-
+  RawLibrary* builtin_library() const { return builtin_library_; }
   RawLibrary* core_library() const { return core_library_; }
-  void set_core_library(const Library& value) {
-    core_library_ = value.raw();
-  }
-
-  RawLibrary* core_impl_library() const { return core_impl_library_; }
-  void set_core_impl_library(const Library& value) {
-    core_impl_library_ = value.raw();
-  }
-
-  RawLibrary* collection_library() const {
-    return collection_library_;
-  }
-  void set_collection_library(const Library& value) {
-    collection_library_ = value.raw();
-  }
-
+  RawLibrary* collection_library() const { return collection_library_; }
   RawLibrary* collection_dev_library() const {
     return collection_dev_library_;
   }
-  void set_collection_dev_library(const Library& value) {
-    collection_dev_library_ = value.raw();
-  }
-
-  RawLibrary* crypto_library() const {
-    return crypto_library_;
-  }
-  void set_crypto_library(const Library& value) {
-    crypto_library_ = value.raw();
-  }
-
-  RawLibrary* isolate_library() const {
-    return isolate_library_;
-  }
-  void set_isolate_library(const Library& value) {
-    isolate_library_ = value.raw();
-  }
-
-  RawLibrary* json_library() const {
-    return json_library_;
-  }
-  void set_json_library(const Library& value) {
-    json_library_ = value.raw();
-  }
-
-  RawLibrary* math_library() const {
-    return math_library_;
-  }
-  void set_math_library(const Library& value) {
-    math_library_ = value.raw();
-  }
-
+  RawLibrary* crypto_library() const { return crypto_library_; }
+  RawLibrary* isolate_library() const { return isolate_library_; }
+  RawLibrary* json_library() const { return json_library_; }
+  RawLibrary* math_library() const { return math_library_; }
   RawLibrary* mirrors_library() const { return mirrors_library_; }
-  void set_mirrors_library(const Library& value) {
-    mirrors_library_ = value.raw();
+  RawLibrary* typed_data_library() const { return typed_data_library_; }
+  RawLibrary* uri_library() const { return uri_library_; }
+  RawLibrary* utf_library() const { return utf_library_; }
+  void set_bootstrap_library(intptr_t index, const Library& value) {
+    switch (index) {
+      case kAsync:
+        async_library_ = value.raw();
+        break;
+      case kCore:
+        core_library_ = value.raw();
+        break;
+      case kCollection:
+        collection_library_ = value.raw();
+        break;
+      case kCollectionDev:
+        collection_dev_library_ = value.raw();
+        break;
+      case kCrypto:
+        crypto_library_ = value.raw();
+        break;
+      case kIsolate:
+        isolate_library_ = value.raw();
+        break;
+      case kJson:
+        json_library_ = value.raw();
+        break;
+      case kMath:
+        math_library_ = value.raw();
+        break;
+      case kMirrors:
+        mirrors_library_ = value.raw();
+        break;
+      case kTypedData:
+        typed_data_library_ = value.raw();
+        break;
+      case kUtf:
+        utf_library_ = value.raw();
+        break;
+      case kUri:
+        uri_library_ = value.raw();
+        break;
+      default:
+        UNREACHABLE();
+    }
+  }
+
+  void set_builtin_library(const Library& value) {
+    builtin_library_ = value.raw();
   }
 
   RawLibrary* native_wrappers_library() const {
@@ -317,27 +326,6 @@ class ObjectStore {
   RawLibrary* root_library() const { return root_library_; }
   void set_root_library(const Library& value) {
     root_library_ = value.raw();
-  }
-
-  RawLibrary* typed_data_library() const {
-    return typed_data_library_;
-  }
-  void set_typed_data_library(const Library& value) {
-    typed_data_library_ = value.raw();
-  }
-
-  RawLibrary* uri_library() const {
-    return uri_library_;
-  }
-  void set_uri_library(const Library& value) {
-    uri_library_ = value.raw();
-  }
-
-  RawLibrary* utf_library() const {
-    return utf_library_;
-  }
-  void set_utf_library(const Library& value) {
-    utf_library_ = value.raw();
   }
 
   RawGrowableObjectArray* libraries() const { return libraries_; }
@@ -473,7 +461,6 @@ class ObjectStore {
   RawLibrary* async_library_;
   RawLibrary* builtin_library_;
   RawLibrary* core_library_;
-  RawLibrary* core_impl_library_;
   RawLibrary* collection_library_;
   RawLibrary* collection_dev_library_;
   RawLibrary* crypto_library_;
