@@ -10004,7 +10004,7 @@ class Event extends NativeFieldWrapperClass1 {
   factory Event(String type,
       {bool canBubble: true, bool cancelable: true}) {
     return new Event.eventType('Event', type, canBubble: canBubble,
-        cancelable: canBubble);
+        cancelable: cancelable);
   }
 
   /**
