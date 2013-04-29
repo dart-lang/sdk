@@ -978,13 +978,13 @@ void EffectGraphVisitor::BuildTypecheckPushArguments(
     // No instantiator when inside factory.
     *push_instantiator_result = PushArgument(BuildNullValue());
     instantiator_type_arguments =
-        BuildInstantiatorTypeArguments(token_pos, NULL);
+        BuildInstantiatorTypeArguments(token_pos, instantiator_class, NULL);
   } else {
     instantiator = Bind(BuildStoreExprTemp(instantiator));
     *push_instantiator_result = PushArgument(instantiator);
     Value* loaded = Bind(BuildLoadExprTemp());
     instantiator_type_arguments =
-        BuildInstantiatorTypeArguments(token_pos, loaded);
+        BuildInstantiatorTypeArguments(token_pos, instantiator_class, loaded);
   }
   *push_instantiator_type_arguments_result =
       PushArgument(instantiator_type_arguments);
@@ -1007,13 +1007,13 @@ void EffectGraphVisitor::BuildTypecheckArguments(
     // No instantiator when inside factory.
     instantiator = BuildNullValue();
     instantiator_type_arguments =
-        BuildInstantiatorTypeArguments(token_pos, NULL);
+        BuildInstantiatorTypeArguments(token_pos, instantiator_class, NULL);
   } else {
     // Preserve instantiator.
     instantiator = Bind(BuildStoreExprTemp(instantiator));
     Value* loaded = Bind(BuildLoadExprTemp());
     instantiator_type_arguments =
-        BuildInstantiatorTypeArguments(token_pos, loaded);
+        BuildInstantiatorTypeArguments(token_pos, instantiator_class, loaded);
   }
   *instantiator_result = instantiator;
   *instantiator_type_arguments_result = instantiator_type_arguments;
@@ -1843,7 +1843,11 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
   Value* type_arguments = NULL;
   if (requires_type_arguments) {
     ASSERT(!function.IsImplicitStaticClosureFunction());
-    type_arguments = BuildInstantiatorTypeArguments(node->token_pos(), NULL);
+    const Class& instantiator_class = Class::Handle(
+        owner()->parsed_function().function().Owner());
+    type_arguments = BuildInstantiatorTypeArguments(node->token_pos(),
+                                                    instantiator_class,
+                                                    NULL);
   } else {
     type_arguments = BuildNullValue();
   }
@@ -2161,9 +2165,9 @@ Value* EffectGraphVisitor::BuildInstantiator() {
 // 'expression_temp_var' may not be used inside this method if 'instantiator'
 // is not NULL.
 Value* EffectGraphVisitor::BuildInstantiatorTypeArguments(
-    intptr_t token_pos, Value* instantiator) {
-  const Class& instantiator_class = Class::Handle(
-      owner()->parsed_function().function().Owner());
+    intptr_t token_pos,
+    const Class& instantiator_class,
+    Value* instantiator) {
   if (instantiator_class.NumTypeParameters() == 0) {
     // The type arguments are compile time constants.
     AbstractTypeArguments& type_arguments = AbstractTypeArguments::ZoneHandle();
@@ -2216,10 +2220,13 @@ Value* EffectGraphVisitor::BuildInstantiatedTypeArguments(
     return Bind(new ConstantInstr(type_arguments));
   }
   // The type arguments are uninstantiated.
+  const Class& instantiator_class = Class::ZoneHandle(
+      owner()->parsed_function().function().Owner());
   Value* instantiator_value =
-      BuildInstantiatorTypeArguments(token_pos, NULL);
+      BuildInstantiatorTypeArguments(token_pos, instantiator_class, NULL);
   return Bind(new InstantiateTypeArgumentsInstr(token_pos,
                                                 type_arguments,
+                                                instantiator_class,
                                                 instantiator_value));
 }
 
@@ -2265,8 +2272,10 @@ void EffectGraphVisitor::BuildConstructorTypeArguments(
   ASSERT(owner()->parsed_function().expression_temp_var() != NULL);
   const LocalVariable& t1 = *owner()->parsed_function().expression_temp_var();
   const LocalVariable& t2 = node->allocated_object_var();
+  const Class& instantiator_class = Class::Handle(
+      owner()->parsed_function().function().Owner());
   Value* instantiator_type_arguments = BuildInstantiatorTypeArguments(
-      node->token_pos(), NULL);
+      node->token_pos(), instantiator_class, NULL);
   Value* stored_instantiator =
       Bind(BuildStoreTemp(t1, instantiator_type_arguments));
   // t1: instantiator type arguments.
@@ -2275,6 +2284,7 @@ void EffectGraphVisitor::BuildConstructorTypeArguments(
       new ExtractConstructorTypeArgumentsInstr(
           node->token_pos(),
           node->type_arguments(),
+          instantiator_class,
           stored_instantiator));
 
   Do(BuildStoreTemp(t2, extract_type_arguments));
@@ -2282,7 +2292,9 @@ void EffectGraphVisitor::BuildConstructorTypeArguments(
   Value* load_instantiator = Bind(BuildLoadLocal(t1));
 
   Value* extract_instantiator =
-      Bind(new ExtractConstructorInstantiatorInstr(node, load_instantiator));
+      Bind(new ExtractConstructorInstantiatorInstr(node,
+                                                   instantiator_class,
+                                                   load_instantiator));
   Do(BuildStoreTemp(t1, extract_instantiator));
   // t2: extracted constructor type arguments.
   // t1: extracted constructor instantiator.

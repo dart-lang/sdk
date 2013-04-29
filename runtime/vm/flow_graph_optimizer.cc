@@ -4587,7 +4587,9 @@ void ConstantPropagator::VisitInstantiateTypeArguments(
       SetValue(instr, object);
       return;
     }
-    if (instr->type_arguments().IsUninstantiatedIdentity()) {
+    if (instr->type_arguments().IsUninstantiatedIdentity() ||
+        instr->type_arguments().CanShareInstantiatorTypeArguments(
+            instr->instantiator_class())) {
       SetValue(instr, object);
       return;
     }

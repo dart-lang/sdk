@@ -274,6 +274,7 @@ class EffectGraphVisitor : public AstNodeVisitor {
                                Value** instantiator_type_arguments);
   Value* BuildInstantiator();
   Value* BuildInstantiatorTypeArguments(intptr_t token_pos,
+                                        const Class& instantiator_class,
                                         Value* instantiator);
 
   // Perform a type check on the given value.

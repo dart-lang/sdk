@@ -3621,9 +3621,11 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<1> {
  public:
   InstantiateTypeArgumentsInstr(intptr_t token_pos,
                                 const AbstractTypeArguments& type_arguments,
+                                const Class& instantiator_class,
                                 Value* instantiator)
       : token_pos_(token_pos),
-        type_arguments_(type_arguments) {
+        type_arguments_(type_arguments),
+        instantiator_class_(instantiator_class) {
     ASSERT(type_arguments.IsZoneHandle());
     SetInputAt(0, instantiator);
   }
@@ -3634,6 +3636,7 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<1> {
   const AbstractTypeArguments& type_arguments() const {
     return type_arguments_;
   }
+  const Class& instantiator_class() const { return instantiator_class_; }
   intptr_t token_pos() const { return token_pos_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
@@ -3645,6 +3648,7 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<1> {
  private:
   const intptr_t token_pos_;
   const AbstractTypeArguments& type_arguments_;
+  const Class& instantiator_class_;
 
   DISALLOW_COPY_AND_ASSIGN(InstantiateTypeArgumentsInstr);
 };
@@ -3655,9 +3659,11 @@ class ExtractConstructorTypeArgumentsInstr : public TemplateDefinition<1> {
   ExtractConstructorTypeArgumentsInstr(
       intptr_t token_pos,
       const AbstractTypeArguments& type_arguments,
+      const Class& instantiator_class,
       Value* instantiator)
       : token_pos_(token_pos),
-        type_arguments_(type_arguments) {
+        type_arguments_(type_arguments),
+        instantiator_class_(instantiator_class) {
     SetInputAt(0, instantiator);
   }
 
@@ -3667,6 +3673,7 @@ class ExtractConstructorTypeArgumentsInstr : public TemplateDefinition<1> {
   const AbstractTypeArguments& type_arguments() const {
     return type_arguments_;
   }
+  const Class& instantiator_class() const { return instantiator_class_; }
   intptr_t token_pos() const { return token_pos_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
@@ -3678,6 +3685,7 @@ class ExtractConstructorTypeArgumentsInstr : public TemplateDefinition<1> {
  private:
   const intptr_t token_pos_;
   const AbstractTypeArguments& type_arguments_;
+  const Class& instantiator_class_;
 
   DISALLOW_COPY_AND_ASSIGN(ExtractConstructorTypeArgumentsInstr);
 };
@@ -3686,8 +3694,9 @@ class ExtractConstructorTypeArgumentsInstr : public TemplateDefinition<1> {
 class ExtractConstructorInstantiatorInstr : public TemplateDefinition<1> {
  public:
   ExtractConstructorInstantiatorInstr(ConstructorCallNode* ast_node,
+                                      const Class& instantiator_class,
                                       Value* instantiator)
-      : ast_node_(*ast_node) {
+      : ast_node_(*ast_node), instantiator_class_(instantiator_class) {
     SetInputAt(0, instantiator);
   }
 
@@ -3698,6 +3707,7 @@ class ExtractConstructorInstantiatorInstr : public TemplateDefinition<1> {
     return ast_node_.type_arguments();
   }
   const Function& constructor() const { return ast_node_.constructor(); }
+  const Class& instantiator_class() const { return instantiator_class_; }
   intptr_t token_pos() const { return ast_node_.token_pos(); }
 
   virtual bool CanDeoptimize() const { return false; }
@@ -3706,6 +3716,7 @@ class ExtractConstructorInstantiatorInstr : public TemplateDefinition<1> {
 
  private:
   const ConstructorCallNode& ast_node_;
+  const Class& instantiator_class_;
 
   DISALLOW_COPY_AND_ASSIGN(ExtractConstructorInstantiatorInstr);
 };

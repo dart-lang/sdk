@@ -2619,6 +2619,14 @@ bool AbstractTypeArguments::IsUninstantiatedIdentity() const {
 }
 
 
+bool AbstractTypeArguments::CanShareInstantiatorTypeArguments(
+      const Class& instantiator_class) const {
+  // AbstractTypeArguments is an abstract class.
+  UNREACHABLE();
+  return false;
+}
+
+
 bool AbstractTypeArguments::IsBounded() const {
   // AbstractTypeArguments is an abstract class.
   UNREACHABLE();
@@ -2848,7 +2856,7 @@ bool TypeArguments::IsInstantiated() const {
 bool TypeArguments::IsUninstantiatedIdentity() const {
   ASSERT(!IsInstantiated());
   AbstractType& type = AbstractType::Handle();
-  intptr_t num_types = Length();
+  const intptr_t num_types = Length();
   for (intptr_t i = 0; i < num_types; i++) {
     type = TypeAt(i);
     if (!type.IsTypeParameter()) {
@@ -2866,6 +2874,62 @@ bool TypeArguments::IsUninstantiatedIdentity() const {
     const AbstractType& bound = AbstractType::Handle(type_param.bound());
     ASSERT(bound.IsResolved());
     if (!bound.IsObjectType() && !bound.IsDynamicType()) {
+      return false;
+    }
+  }
+  return true;
+  // Note that it is not necessary to verify at runtime that the instantiator
+  // type vector is long enough, since this uninstantiated vector contains as
+  // many different type parameters as it is long.
+}
+
+
+bool TypeArguments::CanShareInstantiatorTypeArguments(
+      const Class& instantiator_class) const {
+  ASSERT(!IsInstantiated());
+  const intptr_t num_instantiator_type_args =
+      instantiator_class.NumTypeArguments();
+  const intptr_t num_instantiator_type_params =
+      instantiator_class.NumTypeParameters();
+  const intptr_t num_super_instantiator_type_args =
+      num_instantiator_type_args - num_instantiator_type_params;
+  const intptr_t num_type_args = Length();
+  // As a first requirement in order to share the instantiator type argument
+  // vector, this type argument vector must refer to the type parameters of the
+  // instantiator class in declaration order. It does not need to contain all
+  // type parameters.
+  if (num_type_args < num_super_instantiator_type_args) {
+    return false;
+  }
+  AbstractType& type_arg = AbstractType::Handle();
+  for (intptr_t i = num_super_instantiator_type_args; i < num_type_args; i++) {
+    type_arg = TypeAt(i);
+    if (!type_arg.IsTypeParameter()) {
+      return false;
+    }
+    const TypeParameter& type_param = TypeParameter::Cast(type_arg);
+    ASSERT(type_param.IsFinalized());
+    if ((type_param.index() != i)) {
+      return false;
+    }
+  }
+  // As a second requirement, the type arguments corresponding to the super type
+  // must be identical.
+  if (num_super_instantiator_type_args == 0) {
+    return true;
+  }
+  AbstractType& super_type = AbstractType::Handle(
+      instantiator_class.super_type());
+  const AbstractTypeArguments& super_type_args = AbstractTypeArguments::Handle(
+      super_type.arguments());
+  if (super_type_args.IsNull()) {
+    return false;
+  }
+  AbstractType& super_type_arg = AbstractType::Handle();
+  for (intptr_t i = 0; i < num_super_instantiator_type_args; i++) {
+    type_arg = TypeAt(i);
+    super_type_arg = super_type_args.TypeAt(i);
+    if (!type_arg.Equals(super_type_arg)) {
       return false;
     }
   }
