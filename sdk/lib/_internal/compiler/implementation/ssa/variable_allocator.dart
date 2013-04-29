@@ -231,9 +231,7 @@ class SsaLiveIntervalBuilder extends HBaseVisitor {
 
   void markAsLiveInEnvironment(HInstruction instruction,
                                LiveEnvironment environment) {
-    // The inputs of a [HPhi] are being handled at the entry of a
-    // block.
-    if (generateAtUseSite.contains(instruction) && instruction is !HPhi) {
+    if (generateAtUseSite.contains(instruction)) {
       markInputsAsLiveInEnvironment(instruction, environment);
     } else {
       environment.add(instruction, instructionId);
@@ -302,7 +300,9 @@ class SsaLiveIntervalBuilder extends HBaseVisitor {
     // We just remove the phis from the environment. The inputs of the
     // phis will be put in the environment of the predecessors.
     for (HPhi phi = block.phis.first; phi != null; phi = phi.next) {
-      environment.remove(phi, instructionId);
+      if (!generateAtUseSite.contains(phi)) {
+        environment.remove(phi, instructionId);
+      }
     }
 
     // Save the liveInstructions of that block.
