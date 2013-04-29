@@ -885,14 +885,12 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
 
   void _writeHeader() {
     var buffer = new _BufferList();
+
     writeSP() => buffer.add(const [_CharCode.SP]);
+
     writeCRLF() => buffer.add(const [_CharCode.CR, _CharCode.LF]);
 
-    buffer.add(method.codeUnits);
-    writeSP();
-    // Send the path for direct connections and the whole URL for
-    // proxy connections.
-    if (_proxy.isDirect) {
+    void writePath() {
       String path = uri.path;
       if (path.length == 0) path = "/";
       if (uri.query != "") {
@@ -903,8 +901,29 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
         }
       }
       buffer.add(path.codeUnits);
+    }
+
+    // Write the request method.
+    buffer.add(method.codeUnits);
+    writeSP();
+    // Write the request URI.
+    if (_proxy.isDirect) {
+      writePath();
     } else {
-      buffer.add(uri.toString().codeUnits);
+      if (method == "CONNECT") {
+        // For the connect method the request URI is the host:port of
+        // the requested destination of the tunnel (see RFC 2817
+        // section 5.2)
+        buffer.add(uri.domain.codeUnits);
+        buffer.add(const [_CharCode.COLON]);
+        buffer.add(uri.port.toString().codeUnits);
+      } else {
+        if (_httpClientConnection._proxyTunnel) {
+          writePath();
+        } else {
+          buffer.add(uri.toString().codeUnits);
+        }
+      }
     }
     writeSP();
     buffer.add(_Const.HTTP11);
@@ -1024,20 +1043,22 @@ class _HttpOutgoing implements StreamConsumer<List<int>> {
   Future get done => _doneCompleter.future;
 }
 
-
 class _HttpClientConnection {
   final String key;
   final Socket _socket;
+  final bool _proxyTunnel;
   final _HttpParser _httpParser;
   StreamSubscription _subscription;
   final _HttpClient _httpClient;
+  bool _dispose = false;
 
   Completer<_HttpIncoming> _nextResponseCompleter;
   Future _streamFuture;
 
   _HttpClientConnection(String this.key,
                         Socket this._socket,
-                        _HttpClient this._httpClient)
+                        _HttpClient this._httpClient,
+                        [this._proxyTunnel = false])
       : _httpParser = new _HttpParser.responseParser() {
     _socket.pipe(_httpParser);
 
@@ -1116,7 +1137,8 @@ class _HttpClientConnection {
           _nextResponseCompleter.future
               .then((incoming) {
                 incoming.dataDone.then((_) {
-                  if (incoming.headers.persistentConnection &&
+                  if (!_dispose &&
+                      incoming.headers.persistentConnection &&
                       request.persistentConnection) {
                     // Return connection, now we are done.
                     _httpClient._returnConnection(this);
@@ -1167,7 +1189,41 @@ class _HttpClientConnection {
         .then((_) => _socket.destroy());
   }
 
+  Future<_HttpClientConnection> createProxyTunnel(host, port, proxy) {
+    _HttpClientRequest request =
+        send(new Uri.fromComponents(domain: host, port: port),
+             port,
+             "CONNECT",
+             proxy);
+    if (proxy.isAuthenticated) {
+      // If the proxy configuration contains user information use that
+      // for proxy basic authorization.
+      String auth = CryptoUtils.bytesToBase64(
+          _encodeString("${proxy.username}:${proxy.password}"));
+      request.headers.set(HttpHeaders.PROXY_AUTHORIZATION, "Basic $auth");
+    }
+    return request.close()
+        .then((response) {
+          if (response.statusCode != HttpStatus.OK) {
+            throw "Proxy failed to establish tunnel "
+                  "(${response.statusCode} ${response.reasonPhrase})";
+          }
+          var socket = response._httpRequest._httpClientConnection._socket;
+          return SecureSocket.secure(socket, host: host);
+        })
+        .then((secureSocket) {
+          String key = _HttpClientConnection.makeKey(true, host, port);
+          return new _HttpClientConnection(
+              key, secureSocket, request._httpClient, true);
+        });
+  }
+
   HttpConnectionInfo get connectionInfo => _HttpConnectionInfo.create(_socket);
+
+  static makeKey(bool isSecure, String host, int port) {
+    return isSecure ? "ssh:$host:$port" : "$host:$port";
+  }
+
 }
 
 class _ConnnectionInfo {
@@ -1275,8 +1331,11 @@ class _HttpClient implements HttpClient {
     if (method == null) {
       throw new ArgumentError(method);
     }
-    if (uri.domain.isEmpty || (uri.scheme != "http" && uri.scheme != "https")) {
-      throw new ArgumentError("Unsupported scheme '${uri.scheme}' in $uri");
+    if (method != "CONNECT") {
+      if (uri.domain.isEmpty ||
+          (uri.scheme != "http" && uri.scheme != "https")) {
+        throw new ArgumentError("Unsupported scheme '${uri.scheme}' in $uri");
+      }
     }
 
     bool isSecure = (uri.scheme == "https");
@@ -1364,7 +1423,7 @@ class _HttpClient implements HttpClient {
       _Proxy proxy = proxies.current;
       String host = proxy.isDirect ? uriHost: proxy.host;
       int port = proxy.isDirect ? uriPort: proxy.port;
-      String key = isSecure ? "ssh:$host:$port" : "$host:$port";
+      String key = _HttpClientConnection.makeKey(isSecure, host, port);
       if (_idleConnections.containsKey(key)) {
         var connection = _idleConnections[key].first;
         _idleConnections[key].remove(connection);
@@ -1382,8 +1441,17 @@ class _HttpClient implements HttpClient {
         .then((socket) {
           socket.setOption(SocketOption.TCP_NODELAY, true);
           var connection = new _HttpClientConnection(key, socket, this);
-          _activeConnections.add(connection);
-          return new _ConnnectionInfo(connection, proxy);
+          if (isSecure && !proxy.isDirect) {
+            connection._dispose = true;
+            return connection.createProxyTunnel(uriHost, uriPort, proxy)
+                .then((tunnel) {
+                  _activeConnections.add(tunnel);
+                  return new _ConnnectionInfo(tunnel, proxy);
+                });
+          } else {
+            _activeConnections.add(connection);
+            return new _ConnnectionInfo(connection, proxy);
+          }
         }, onError: (error) {
           // Continue with next proxy.
           return connect(error);
