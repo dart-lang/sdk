@@ -8479,7 +8479,7 @@ class _ChildrenElementList extends ListBase<Element> {
 // a better option given that we cannot quite force NodeList to be an
 // ElementList as there are valid cases where a NodeList JavaScript object
 // contains Node objects that are not Elements.
-class _FrozenElementList extends ListBase<Element> {
+class _FrozenElementList<T extends Element> extends ListBase<T> {
   final List<Node> _nodeList;
 
   _FrozenElementList._wrap(this._nodeList);
@@ -19914,14 +19914,14 @@ class SelectElement extends _Element_Merged {
   // does not operate as a List.
   List<OptionElement> get options {
     var options = this.children.where((e) => e is OptionElement).toList();
-    return new UnmodifiableListView<OptionElement>(options);
+    return new UnmodifiableListView(options);
   }
 
   List<OptionElement> get selectedOptions {
     // IE does not change the selected flag for single-selection items.
     if (this.multiple) {
       var options = this.options.where((o) => o.selected).toList();
-      return new UnmodifiableListView<OptionElement>(options);
+      return new UnmodifiableListView(options);
     } else {
       return [this.options[this.selectedIndex]];
     }
@@ -31297,6 +31297,15 @@ class _Utils {
     if (map['premultipliedAlpha'] == true) result |= 0x10;
     if (map['preserveDrawingBuffer'] == true) result |= 0x20;
 
+    return result;
+  }
+
+  static List parseStackTrace(StackTrace stackTrace) {
+    final regExp = new RegExp(r'#\d\s+(.*) \((.*):(\d+):(\d+)\)');
+    List result = [];
+    for (var match in regExp.allMatches(stackTrace.toString())) {
+      result.add([match.group(1), match.group(2), int.parse(match.group(3)), int.parse(match.group(4))]);
+    }
     return result;
   }
 
