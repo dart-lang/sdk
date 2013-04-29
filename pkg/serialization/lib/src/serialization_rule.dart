@@ -567,6 +567,8 @@ class _LazyList extends IterableBase implements List {
   sort([f]) => _throw();
   clear() => _throw();
   insert(x, y) => _throw();
+  insertAll(x, y) => _throw();
+  fillRange(x, y, [z]) => _throw();
   removeAt(x) => _throw();
   remove(x) => _throw();
   removeLast() => _throw();
@@ -574,8 +576,10 @@ class _LazyList extends IterableBase implements List {
   retainAll(x) => _throw();
   removeWhere(x) => _throw();
   retainWhere(x) => _throw();
+  replaceRange(x, y, z) => _throw();
   getRange(x, y) => _throw();
-  setRange(x, y, z, [a]) => _throw();
+  setRange(x, y, z, [a = 0]) => _throw();
+  setAll(x, y) => _throw();
   removeRange(x, y) => _throw();
   get reversed => _throw();
   void set length(x) => _throw();
