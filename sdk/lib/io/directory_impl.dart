@@ -20,7 +20,7 @@ class _Directory implements Directory {
   _Directory.fromPath(Path path) : this(path.toNativePath());
 
   external static String _current();
-  external static _setCurrent(String path);
+  external static _setCurrent(path);
   external static _createTemp(String template);
   external static int _exists(String path);
   external static _create(String path);
