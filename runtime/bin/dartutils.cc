@@ -566,9 +566,13 @@ Dart_Handle DartUtils::NewDartExceptionWithMessage(const char* library_url,
                                                    const char* message) {
   // Create a Dart Exception object with a message.
   Dart_Handle clazz = GetDartClass(library_url, exception_name);
-  Dart_Handle args[1];
-  args[0] = NewString(message);
-  return Dart_New(clazz, Dart_Null(), 1, args);
+  if (message != NULL) {
+    Dart_Handle args[1];
+    args[0] = NewString(message);
+    return Dart_New(clazz, Dart_Null(), 1, args);
+  } else {
+    return Dart_New(clazz, Dart_Null(), 0, NULL);
+  }
 }
 
 

@@ -40,7 +40,7 @@ void _growListFront(List list, int length, fillValue) {
 }
 
 /// Gets the path to the current working directory.
-String get current => new io.Directory.current().path;
+String get current => io.Directory.current.path;
 
 /// Gets the path separator for the current platform. On Mac and Linux, this
 /// is `/`. On Windows, it's `\`.

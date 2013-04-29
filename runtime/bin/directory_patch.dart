@@ -4,6 +4,7 @@
 
 patch class _Directory {
   /* patch */ static String _current() native "Directory_Current";
+  /* patch */ static _setCurrent(String path) native "Directory_SetCurrent";
   /* patch */ static _createTemp(String template) native "Directory_CreateTemp";
   /* patch */ static int _exists(String path) native "Directory_Exists";
   /* patch */ static _create(String path) native "Directory_Create";

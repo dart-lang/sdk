@@ -512,7 +512,7 @@ main() {
           '--recurse',
           '--server',
           '--port=3456',
-          '--root=${new Directory.current().path}',
+          '--root=${Directory.current.path}',
           'http_client_tests' ],
         [ '?PASS .*/http_client_tests/http_client_test.dart  test1',
           '?PASS .*/http_client_tests/http_client_test.dart  test2' ]);

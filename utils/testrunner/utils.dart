@@ -36,7 +36,7 @@ String makePathAbsolute(String path) {
   if (p.isAbsolute) {
     return p.toNativePath();
   } else {
-    var cwd = new Path((new Directory.current()).path);
+    var cwd = new Path(Directory.current.path);
     return cwd.join(p).toNativePath();
   }
 }

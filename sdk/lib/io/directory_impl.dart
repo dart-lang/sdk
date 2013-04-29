@@ -18,9 +18,9 @@ class _Directory implements Directory {
 
   _Directory(String this._path);
   _Directory.fromPath(Path path) : this(path.toNativePath());
-  _Directory.current() : this(_current());
 
   external static String _current();
+  external static _setCurrent(String path);
   external static _createTemp(String template);
   external static int _exists(String path);
   external static _create(String path);
@@ -28,6 +28,18 @@ class _Directory implements Directory {
   external static _rename(String path, String newPath);
   external static List _list(String path, bool recursive, bool followLinks);
   external static SendPort _newServicePort();
+
+  static Directory get current => new _Directory(_current());
+
+  static void set current(path) {
+    if (path is Directory) path = path.path;
+    var result = _setCurrent(path);
+    if (result is ArgumentError) throw result;
+    if (result is OSError) {
+      throw new DirectoryIOException(
+          "Setting current working directory failed", path, result);
+    }
+  }
 
   Future<bool> exists() {
     _ensureDirectoryService();

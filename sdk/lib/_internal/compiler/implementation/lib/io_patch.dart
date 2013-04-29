@@ -12,6 +12,9 @@ patch class _Directory {
   patch static String _current() {
     throw new UnsupportedError("Directory._current");
   }
+  patch static _setCurrent(String path) {
+    throw new UnsupportedError("Directory_SetCurrent");
+  }
   patch static _createTemp(String template) {
     throw new UnsupportedError("Directory._createTemp");
   }
