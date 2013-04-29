@@ -45,17 +45,17 @@ class GatheringErrorListener implements AnalysisErrorListener {
    * Initialize a newly created error listener to collect errors.
    */
   GatheringErrorListener() : super() {
-    _jtd_constructor_347_impl();
+    _jtd_constructor_349_impl();
   }
-  _jtd_constructor_347_impl() {
+  _jtd_constructor_349_impl() {
   }
   /**
    * Initialize a newly created error listener to collect errors.
    */
   GatheringErrorListener.con1(String rawSource2) {
-    _jtd_constructor_348_impl(rawSource2);
+    _jtd_constructor_350_impl(rawSource2);
   }
-  _jtd_constructor_348_impl(String rawSource2) {
+  _jtd_constructor_350_impl(String rawSource2) {
     this._rawSource = rawSource2;
     this._markedSource = rawSource2;
   }
@@ -259,14 +259,14 @@ class GatheringErrorListener implements AnalysisErrorListener {
    * @param secondError the second error being compared
    * @return {@code true} if the two errors are equivalent
    */
-  bool equals(AnalysisError firstError, AnalysisError secondError) => identical(firstError.errorCode, secondError.errorCode) && firstError.offset == secondError.offset && firstError.length == secondError.length && equals3(firstError.source, secondError.source);
+  bool equals3(AnalysisError firstError, AnalysisError secondError) => identical(firstError.errorCode, secondError.errorCode) && firstError.offset == secondError.offset && firstError.length == secondError.length && equals4(firstError.source, secondError.source);
   /**
    * Return {@code true} if the two sources are equivalent.
    * @param firstSource the first source being compared
    * @param secondSource the second source being compared
    * @return {@code true} if the two sources are equivalent
    */
-  bool equals3(Source firstSource, Source secondSource) {
+  bool equals4(Source firstSource, Source secondSource) {
     if (firstSource == null) {
       return secondSource == null;
     } else if (secondSource == null) {
@@ -325,7 +325,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
    */
   bool foundAndRemoved(List<AnalysisError> errors, AnalysisError targetError) {
     for (AnalysisError error in errors) {
-      if (equals(error, targetError)) {
+      if (equals3(error, targetError)) {
         errors.remove(error);
         return true;
       }
@@ -672,7 +672,7 @@ class TestSource implements Source {
 }
 
 /**
- * Wrapper around [Function] which should be called with [target] and [arguments].
+ * Wrapper around [Function] which should be called with "target" and "arguments".
  */
 class MethodTrampoline {
   int parameterCount;

@@ -143,6 +143,9 @@ class JavaString {
       }
     });
   }
+  static bool startsWithBefore(String s, String other, int start) {
+    return s.indexOf(other, start) != -1;
+  }
 }
 
 /**

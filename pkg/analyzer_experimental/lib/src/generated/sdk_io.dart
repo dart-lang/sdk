@@ -164,6 +164,7 @@ class DirectoryBasedDartSdk implements DartSdk {
     }
     _analysisContext.applyChanges(changeSet);
   }
+  Source fromEncoding(ContentCache contentCache, UriKind kind, Uri uri) => new FileBasedSource.con2(contentCache, new JavaFile.fromUri(uri), kind);
   AnalysisContext get context => _analysisContext;
   /**
    * Return the file containing the Dartium executable, or {@code null} if it does not exist.
@@ -277,7 +278,7 @@ class DirectoryBasedDartSdk implements DartSdk {
     if (library == null) {
       return null;
     }
-    return new FileBasedSource.con2(contentCache, new JavaFile.relative(libraryDirectory, library.path), true);
+    return new FileBasedSource.con2(contentCache, new JavaFile.relative(libraryDirectory, library.path), UriKind.DART_URI);
   }
   /**
    * Ensure that the dart VM is executable. If it is not, make it executable and log that it was
@@ -361,7 +362,7 @@ class SdkLibrariesReader {
   LibraryMap readFrom(JavaFile librariesFile, String libraryFileContents) {
     List<bool> foundError = [false];
     AnalysisErrorListener errorListener = new AnalysisErrorListener_10(foundError);
-    Source source = new FileBasedSource.con2(null, librariesFile, false);
+    Source source = new FileBasedSource.con2(null, librariesFile, UriKind.FILE_URI);
     StringScanner scanner = new StringScanner(source, libraryFileContents, errorListener);
     Parser parser = new Parser(source, errorListener);
     CompilationUnit unit = parser.parseCompilationUnit(scanner.tokenize());

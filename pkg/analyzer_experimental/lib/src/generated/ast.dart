@@ -1478,7 +1478,7 @@ class BreakStatement extends Statement {
  * cascadeSection ::=
  * '..'  (cascadeSelector arguments*) (assignableSelector arguments*)* (assignmentOperator expressionWithoutCascade)?
  * cascadeSelector ::=
- * '[ ' expression '] '
+ * '\[ ' expression '\] '
  * | identifier
  * </pre>
  * @coverage dart.engine.ast
@@ -1960,7 +1960,7 @@ class ClassDeclaration extends CompilationUnitMember {
     this._withClause = becomeParentOf(withClause2);
   }
   void visitChildren(ASTVisitor<Object> visitor) {
-    safelyVisitChild(documentationComment, visitor);
+    super.visitChildren(visitor);
     safelyVisitChild(_name, visitor);
     safelyVisitChild(_typeParameters, visitor);
     safelyVisitChild(_extendsClause, visitor);
@@ -2349,7 +2349,7 @@ class CommentType implements Comparable<CommentType> {
  * found within a documentation comment.
  * <pre>
  * commentReference ::=
- * '[' 'new'? {@link Identifier identifier} ']'
+ * '\[' 'new'? {@link Identifier identifier} '\]'
  * </pre>
  * @coverage dart.engine.ast
  */
@@ -5003,7 +5003,7 @@ abstract class FormalParameter extends ASTNode {
  * optionalPositionalFormalParameters
  * | namedFormalParameters
  * optionalPositionalFormalParameters ::=
- * '[' {@link DefaultFormalParameter positionalFormalParameter} (',' {@link DefaultFormalParameter positionalFormalParameter})* ']'
+ * '\[' {@link DefaultFormalParameter positionalFormalParameter} (',' {@link DefaultFormalParameter positionalFormalParameter})* '\]'
  * namedFormalParameters ::=
  * '{' {@link DefaultFormalParameter namedFormalParameter} (',' {@link DefaultFormalParameter namedFormalParameter})* '}'
  * </pre>
@@ -5019,11 +5019,11 @@ class FormalParameterList extends ASTNode {
    */
   NodeList<FormalParameter> _parameters;
   /**
-   * The left square bracket ('[') or left curly brace ('{') introducing the optional parameters.
+   * The left square bracket ('\[') or left curly brace ('{') introducing the optional parameters.
    */
   Token _leftDelimiter;
   /**
-   * The right square bracket (']') or right curly brace ('}') introducing the optional parameters.
+   * The right square bracket ('\]') or right curly brace ('}') introducing the optional parameters.
    */
   Token _rightDelimiter;
   /**
@@ -5072,9 +5072,9 @@ class FormalParameterList extends ASTNode {
   }
   Token get endToken => _rightParenthesis;
   /**
-   * Return the left square bracket ('[') or left curly brace ('{') introducing the optional
+   * Return the left square bracket ('\[') or left curly brace ('{') introducing the optional
    * parameters.
-   * @return the left square bracket ('[') or left curly brace ('{') introducing the optional
+   * @return the left square bracket ('\[') or left curly brace ('{') introducing the optional
    * parameters
    */
   Token get leftDelimiter => _leftDelimiter;
@@ -5089,9 +5089,9 @@ class FormalParameterList extends ASTNode {
    */
   NodeList<FormalParameter> get parameters => _parameters;
   /**
-   * Return the right square bracket (']') or right curly brace ('}') introducing the optional
+   * Return the right square bracket ('\]') or right curly brace ('}') introducing the optional
    * parameters.
-   * @return the right square bracket (']') or right curly brace ('}') introducing the optional
+   * @return the right square bracket ('\]') or right curly brace ('}') introducing the optional
    * parameters
    */
   Token get rightDelimiter => _rightDelimiter;
@@ -5101,7 +5101,7 @@ class FormalParameterList extends ASTNode {
    */
   Token get rightParenthesis => _rightParenthesis;
   /**
-   * Set the left square bracket ('[') or left curly brace ('{') introducing the optional parameters
+   * Set the left square bracket ('\[') or left curly brace ('{') introducing the optional parameters
    * to the given token.
    * @param bracket the left delimiter introducing the optional parameters
    */
@@ -5116,7 +5116,7 @@ class FormalParameterList extends ASTNode {
     _leftParenthesis = parenthesis;
   }
   /**
-   * Set the right square bracket (']') or right curly brace ('}') introducing the optional
+   * Set the right square bracket ('\]') or right curly brace ('}') introducing the optional
    * parameters to the given token.
    * @param bracket the right delimiter introducing the optional parameters
    */
@@ -5233,6 +5233,16 @@ class FunctionDeclaration extends CompilationUnitMember {
    * @return the return type of the function
    */
   TypeName get returnType => _returnType;
+  /**
+   * Return {@code true} if this function declares a getter.
+   * @return {@code true} if this function declares a getter
+   */
+  bool isGetter() => _propertyKeyword != null && identical(((_propertyKeyword as KeywordToken)).keyword, Keyword.GET);
+  /**
+   * Return {@code true} if this function declares a setter.
+   * @return {@code true} if this function declares a setter
+   */
+  bool isSetter() => _propertyKeyword != null && identical(((_propertyKeyword as KeywordToken)).keyword, Keyword.SET);
   /**
    * Set the token representing the 'external' keyword to the given token.
    * @param externalKeyword the token representing the 'external' keyword
@@ -6079,7 +6089,7 @@ class ImportDirective extends NamespaceDirective {
 /**
  * Instances of the class {@code IndexExpression} represent an index expression.
  * <pre>
- * indexExpression ::={@link Expression target} '[' {@link Expression index} ']'
+ * indexExpression ::={@link Expression target} '\[' {@link Expression index} '\]'
  * </pre>
  * @coverage dart.engine.ast
  */
@@ -6228,7 +6238,7 @@ class IndexExpression extends Expression {
    * <p>
    * Note that {@link #inGetterContext()} and {@link #inSetterContext()} are not opposites, nor are
    * they mutually exclusive. In other words, it is possible for both methods to return {@code true}when invoked on the same node.
-   * @return {@code true} if this expression is in a context where the operator '[]' will be invoked
+   * @return {@code true} if this expression is in a context where the operator '\[\]' will be invoked
    */
   bool inGetterContext() {
     ASTNode parent2 = parent;
@@ -6245,7 +6255,7 @@ class IndexExpression extends Expression {
    * <p>
    * Note that {@link #inGetterContext()} and {@link #inSetterContext()} are not opposites, nor are
    * they mutually exclusive. In other words, it is possible for both methods to return {@code true}when invoked on the same node.
-   * @return {@code true} if this expression is in a context where the operator '[]=' will be
+   * @return {@code true} if this expression is in a context where the operator '\[\]=' will be
    * invoked
    */
   bool inSetterContext() {
@@ -7015,7 +7025,7 @@ class LibraryIdentifier extends Identifier {
  * Instances of the class {@code ListLiteral} represent a list literal.
  * <pre>
  * listLiteral ::=
- * 'const'? ('<' {@link TypeName type} '>')? '[' ({@link Expression expressionList} ','?)? ']'
+ * 'const'? ('<' {@link TypeName type} '>')? '\[' ({@link Expression expressionList} ','?)? '\]'
  * </pre>
  * @coverage dart.engine.ast
  */
@@ -11483,7 +11493,24 @@ class ElementLocator_ElementMapper extends GeneralizingASTVisitor<Element> {
   Element visitCompilationUnit(CompilationUnit node) => node.element;
   Element visitConstructorDeclaration(ConstructorDeclaration node) => node.element;
   Element visitFunctionDeclaration(FunctionDeclaration node) => node.element;
-  Element visitIdentifier(Identifier node) => node.element;
+  Element visitIdentifier(Identifier node) {
+    ASTNode parent2 = node.parent;
+    if (parent2 is ConstructorDeclaration) {
+      ConstructorDeclaration decl = parent2 as ConstructorDeclaration;
+      Identifier returnType2 = decl.returnType;
+      if (identical(returnType2, node)) {
+        SimpleIdentifier name2 = decl.name;
+        if (name2 != null) {
+          return name2.element;
+        }
+        Element element2 = node.element;
+        if (element2 is ClassElement) {
+          return ((element2 as ClassElement)).unnamedConstructor;
+        }
+      }
+    }
+    return node.element;
+  }
   Element visitImportDirective(ImportDirective node) => node.element;
   Element visitIndexExpression(IndexExpression node) => node.element;
   Element visitInstanceCreationExpression(InstanceCreationExpression node) => node.element;
@@ -13096,134 +13123,134 @@ class ToSourceVisitor implements ASTVisitor<Object> {
  * results or properties associated with the nodes.
  */
 class ASTCloner implements ASTVisitor<ASTNode> {
-  AdjacentStrings visitAdjacentStrings(AdjacentStrings node) => new AdjacentStrings.full(clone2(node.strings));
-  Annotation visitAnnotation(Annotation node) => new Annotation.full(node.atSign, clone(node.name), node.period, clone(node.constructorName), clone(node.arguments));
-  ArgumentDefinitionTest visitArgumentDefinitionTest(ArgumentDefinitionTest node) => new ArgumentDefinitionTest.full(node.question, clone(node.identifier));
-  ArgumentList visitArgumentList(ArgumentList node) => new ArgumentList.full(node.leftParenthesis, clone2(node.arguments), node.rightParenthesis);
-  AsExpression visitAsExpression(AsExpression node) => new AsExpression.full(clone(node.expression), node.asOperator, clone(node.type));
-  ASTNode visitAssertStatement(AssertStatement node) => new AssertStatement.full(node.keyword, node.leftParenthesis, clone(node.condition), node.rightParenthesis, node.semicolon);
-  AssignmentExpression visitAssignmentExpression(AssignmentExpression node) => new AssignmentExpression.full(clone(node.leftHandSide), node.operator, clone(node.rightHandSide));
-  BinaryExpression visitBinaryExpression(BinaryExpression node) => new BinaryExpression.full(clone(node.leftOperand), node.operator, clone(node.rightOperand));
-  Block visitBlock(Block node) => new Block.full(node.leftBracket, clone2(node.statements), node.rightBracket);
-  BlockFunctionBody visitBlockFunctionBody(BlockFunctionBody node) => new BlockFunctionBody.full(clone(node.block));
+  AdjacentStrings visitAdjacentStrings(AdjacentStrings node) => new AdjacentStrings.full(clone3(node.strings));
+  Annotation visitAnnotation(Annotation node) => new Annotation.full(node.atSign, clone2(node.name), node.period, clone2(node.constructorName), clone2(node.arguments));
+  ArgumentDefinitionTest visitArgumentDefinitionTest(ArgumentDefinitionTest node) => new ArgumentDefinitionTest.full(node.question, clone2(node.identifier));
+  ArgumentList visitArgumentList(ArgumentList node) => new ArgumentList.full(node.leftParenthesis, clone3(node.arguments), node.rightParenthesis);
+  AsExpression visitAsExpression(AsExpression node) => new AsExpression.full(clone2(node.expression), node.asOperator, clone2(node.type));
+  ASTNode visitAssertStatement(AssertStatement node) => new AssertStatement.full(node.keyword, node.leftParenthesis, clone2(node.condition), node.rightParenthesis, node.semicolon);
+  AssignmentExpression visitAssignmentExpression(AssignmentExpression node) => new AssignmentExpression.full(clone2(node.leftHandSide), node.operator, clone2(node.rightHandSide));
+  BinaryExpression visitBinaryExpression(BinaryExpression node) => new BinaryExpression.full(clone2(node.leftOperand), node.operator, clone2(node.rightOperand));
+  Block visitBlock(Block node) => new Block.full(node.leftBracket, clone3(node.statements), node.rightBracket);
+  BlockFunctionBody visitBlockFunctionBody(BlockFunctionBody node) => new BlockFunctionBody.full(clone2(node.block));
   BooleanLiteral visitBooleanLiteral(BooleanLiteral node) => new BooleanLiteral.full(node.literal, node.value);
-  BreakStatement visitBreakStatement(BreakStatement node) => new BreakStatement.full(node.keyword, clone(node.label), node.semicolon);
-  CascadeExpression visitCascadeExpression(CascadeExpression node) => new CascadeExpression.full(clone(node.target), clone2(node.cascadeSections));
-  CatchClause visitCatchClause(CatchClause node) => new CatchClause.full(node.onKeyword, clone(node.exceptionType), node.catchKeyword, node.leftParenthesis, clone(node.exceptionParameter), node.comma, clone(node.stackTraceParameter), node.rightParenthesis, clone(node.body));
-  ClassDeclaration visitClassDeclaration(ClassDeclaration node) => new ClassDeclaration.full(clone(node.documentationComment), clone2(node.metadata), node.abstractKeyword, node.classKeyword, clone(node.name), clone(node.typeParameters), clone(node.extendsClause), clone(node.withClause), clone(node.implementsClause), node.leftBracket, clone2(node.members), node.rightBracket);
-  ClassTypeAlias visitClassTypeAlias(ClassTypeAlias node) => new ClassTypeAlias.full(clone(node.documentationComment), clone2(node.metadata), node.keyword, clone(node.name), clone(node.typeParameters), node.equals, node.abstractKeyword, clone(node.superclass), clone(node.withClause), clone(node.implementsClause), node.semicolon);
+  BreakStatement visitBreakStatement(BreakStatement node) => new BreakStatement.full(node.keyword, clone2(node.label), node.semicolon);
+  CascadeExpression visitCascadeExpression(CascadeExpression node) => new CascadeExpression.full(clone2(node.target), clone3(node.cascadeSections));
+  CatchClause visitCatchClause(CatchClause node) => new CatchClause.full(node.onKeyword, clone2(node.exceptionType), node.catchKeyword, node.leftParenthesis, clone2(node.exceptionParameter), node.comma, clone2(node.stackTraceParameter), node.rightParenthesis, clone2(node.body));
+  ClassDeclaration visitClassDeclaration(ClassDeclaration node) => new ClassDeclaration.full(clone2(node.documentationComment), clone3(node.metadata), node.abstractKeyword, node.classKeyword, clone2(node.name), clone2(node.typeParameters), clone2(node.extendsClause), clone2(node.withClause), clone2(node.implementsClause), node.leftBracket, clone3(node.members), node.rightBracket);
+  ClassTypeAlias visitClassTypeAlias(ClassTypeAlias node) => new ClassTypeAlias.full(clone2(node.documentationComment), clone3(node.metadata), node.keyword, clone2(node.name), clone2(node.typeParameters), node.equals, node.abstractKeyword, clone2(node.superclass), clone2(node.withClause), clone2(node.implementsClause), node.semicolon);
   Comment visitComment(Comment node) {
     if (node.isDocumentation()) {
-      return Comment.createDocumentationComment2(node.tokens, clone2(node.references));
+      return Comment.createDocumentationComment2(node.tokens, clone3(node.references));
     } else if (node.isBlock()) {
       return Comment.createBlockComment(node.tokens);
     }
     return Comment.createEndOfLineComment(node.tokens);
   }
-  CommentReference visitCommentReference(CommentReference node) => new CommentReference.full(node.newKeyword, clone(node.identifier));
+  CommentReference visitCommentReference(CommentReference node) => new CommentReference.full(node.newKeyword, clone2(node.identifier));
   CompilationUnit visitCompilationUnit(CompilationUnit node) {
-    CompilationUnit clone22 = new CompilationUnit.full(node.beginToken, clone(node.scriptTag), clone2(node.directives), clone2(node.declarations), node.endToken);
-    clone22.lineInfo = node.lineInfo;
-    clone22.parsingErrors = node.parsingErrors;
-    clone22.resolutionErrors = node.resolutionErrors;
-    return clone22;
+    CompilationUnit clone = new CompilationUnit.full(node.beginToken, clone2(node.scriptTag), clone3(node.directives), clone3(node.declarations), node.endToken);
+    clone.lineInfo = node.lineInfo;
+    clone.parsingErrors = node.parsingErrors;
+    clone.resolutionErrors = node.resolutionErrors;
+    return clone;
   }
-  ConditionalExpression visitConditionalExpression(ConditionalExpression node) => new ConditionalExpression.full(clone(node.condition), node.question, clone(node.thenExpression), node.colon, clone(node.elseExpression));
-  ConstructorDeclaration visitConstructorDeclaration(ConstructorDeclaration node) => new ConstructorDeclaration.full(clone(node.documentationComment), clone2(node.metadata), node.externalKeyword, node.constKeyword, node.factoryKeyword, clone(node.returnType), node.period, clone(node.name), clone(node.parameters), node.separator, clone2(node.initializers), clone(node.redirectedConstructor), clone(node.body));
-  ConstructorFieldInitializer visitConstructorFieldInitializer(ConstructorFieldInitializer node) => new ConstructorFieldInitializer.full(node.keyword, node.period, clone(node.fieldName), node.equals, clone(node.expression));
-  ConstructorName visitConstructorName(ConstructorName node) => new ConstructorName.full(clone(node.type), node.period, clone(node.name));
-  ContinueStatement visitContinueStatement(ContinueStatement node) => new ContinueStatement.full(node.keyword, clone(node.label), node.semicolon);
-  DeclaredIdentifier visitDeclaredIdentifier(DeclaredIdentifier node) => new DeclaredIdentifier.full(clone(node.documentationComment), clone2(node.metadata), node.keyword, clone(node.type), clone(node.identifier));
-  DefaultFormalParameter visitDefaultFormalParameter(DefaultFormalParameter node) => new DefaultFormalParameter.full(clone(node.parameter), node.kind, node.separator, clone(node.defaultValue));
-  DoStatement visitDoStatement(DoStatement node) => new DoStatement.full(node.doKeyword, clone(node.body), node.whileKeyword, node.leftParenthesis, clone(node.condition), node.rightParenthesis, node.semicolon);
+  ConditionalExpression visitConditionalExpression(ConditionalExpression node) => new ConditionalExpression.full(clone2(node.condition), node.question, clone2(node.thenExpression), node.colon, clone2(node.elseExpression));
+  ConstructorDeclaration visitConstructorDeclaration(ConstructorDeclaration node) => new ConstructorDeclaration.full(clone2(node.documentationComment), clone3(node.metadata), node.externalKeyword, node.constKeyword, node.factoryKeyword, clone2(node.returnType), node.period, clone2(node.name), clone2(node.parameters), node.separator, clone3(node.initializers), clone2(node.redirectedConstructor), clone2(node.body));
+  ConstructorFieldInitializer visitConstructorFieldInitializer(ConstructorFieldInitializer node) => new ConstructorFieldInitializer.full(node.keyword, node.period, clone2(node.fieldName), node.equals, clone2(node.expression));
+  ConstructorName visitConstructorName(ConstructorName node) => new ConstructorName.full(clone2(node.type), node.period, clone2(node.name));
+  ContinueStatement visitContinueStatement(ContinueStatement node) => new ContinueStatement.full(node.keyword, clone2(node.label), node.semicolon);
+  DeclaredIdentifier visitDeclaredIdentifier(DeclaredIdentifier node) => new DeclaredIdentifier.full(clone2(node.documentationComment), clone3(node.metadata), node.keyword, clone2(node.type), clone2(node.identifier));
+  DefaultFormalParameter visitDefaultFormalParameter(DefaultFormalParameter node) => new DefaultFormalParameter.full(clone2(node.parameter), node.kind, node.separator, clone2(node.defaultValue));
+  DoStatement visitDoStatement(DoStatement node) => new DoStatement.full(node.doKeyword, clone2(node.body), node.whileKeyword, node.leftParenthesis, clone2(node.condition), node.rightParenthesis, node.semicolon);
   DoubleLiteral visitDoubleLiteral(DoubleLiteral node) => new DoubleLiteral.full(node.literal, node.value);
   EmptyFunctionBody visitEmptyFunctionBody(EmptyFunctionBody node) => new EmptyFunctionBody.full(node.semicolon);
   EmptyStatement visitEmptyStatement(EmptyStatement node) => new EmptyStatement.full(node.semicolon);
-  ExportDirective visitExportDirective(ExportDirective node) => new ExportDirective.full(clone(node.documentationComment), clone2(node.metadata), node.keyword, clone(node.uri), clone2(node.combinators), node.semicolon);
-  ExpressionFunctionBody visitExpressionFunctionBody(ExpressionFunctionBody node) => new ExpressionFunctionBody.full(node.functionDefinition, clone(node.expression), node.semicolon);
-  ExpressionStatement visitExpressionStatement(ExpressionStatement node) => new ExpressionStatement.full(clone(node.expression), node.semicolon);
-  ExtendsClause visitExtendsClause(ExtendsClause node) => new ExtendsClause.full(node.keyword, clone(node.superclass));
-  FieldDeclaration visitFieldDeclaration(FieldDeclaration node) => new FieldDeclaration.full(clone(node.documentationComment), clone2(node.metadata), node.keyword, clone(node.fields), node.semicolon);
-  FieldFormalParameter visitFieldFormalParameter(FieldFormalParameter node) => new FieldFormalParameter.full(clone(node.documentationComment), clone2(node.metadata), node.keyword, clone(node.type), node.thisToken, node.period, clone(node.identifier));
-  ForEachStatement visitForEachStatement(ForEachStatement node) => new ForEachStatement.full(node.forKeyword, node.leftParenthesis, clone(node.loopVariable), node.inKeyword, clone(node.iterator), node.rightParenthesis, clone(node.body));
-  FormalParameterList visitFormalParameterList(FormalParameterList node) => new FormalParameterList.full(node.leftParenthesis, clone2(node.parameters), node.leftDelimiter, node.rightDelimiter, node.rightParenthesis);
-  ForStatement visitForStatement(ForStatement node) => new ForStatement.full(node.forKeyword, node.leftParenthesis, clone(node.variables), clone(node.initialization), node.leftSeparator, clone(node.condition), node.rightSeparator, clone2(node.updaters), node.rightParenthesis, clone(node.body));
-  FunctionDeclaration visitFunctionDeclaration(FunctionDeclaration node) => new FunctionDeclaration.full(clone(node.documentationComment), clone2(node.metadata), node.externalKeyword, clone(node.returnType), node.propertyKeyword, clone(node.name), clone(node.functionExpression));
-  FunctionDeclarationStatement visitFunctionDeclarationStatement(FunctionDeclarationStatement node) => new FunctionDeclarationStatement.full(clone(node.functionDeclaration));
-  FunctionExpression visitFunctionExpression(FunctionExpression node) => new FunctionExpression.full(clone(node.parameters), clone(node.body));
-  FunctionExpressionInvocation visitFunctionExpressionInvocation(FunctionExpressionInvocation node) => new FunctionExpressionInvocation.full(clone(node.function), clone(node.argumentList));
-  FunctionTypeAlias visitFunctionTypeAlias(FunctionTypeAlias node) => new FunctionTypeAlias.full(clone(node.documentationComment), clone2(node.metadata), node.keyword, clone(node.returnType), clone(node.name), clone(node.typeParameters), clone(node.parameters), node.semicolon);
-  FunctionTypedFormalParameter visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) => new FunctionTypedFormalParameter.full(clone(node.documentationComment), clone2(node.metadata), clone(node.returnType), clone(node.identifier), clone(node.parameters));
-  HideCombinator visitHideCombinator(HideCombinator node) => new HideCombinator.full(node.keyword, clone2(node.hiddenNames));
-  IfStatement visitIfStatement(IfStatement node) => new IfStatement.full(node.ifKeyword, node.leftParenthesis, clone(node.condition), node.rightParenthesis, clone(node.thenStatement), node.elseKeyword, clone(node.elseStatement));
-  ImplementsClause visitImplementsClause(ImplementsClause node) => new ImplementsClause.full(node.keyword, clone2(node.interfaces));
-  ImportDirective visitImportDirective(ImportDirective node) => new ImportDirective.full(clone(node.documentationComment), clone2(node.metadata), node.keyword, clone(node.uri), node.asToken, clone(node.prefix), clone2(node.combinators), node.semicolon);
+  ExportDirective visitExportDirective(ExportDirective node) => new ExportDirective.full(clone2(node.documentationComment), clone3(node.metadata), node.keyword, clone2(node.uri), clone3(node.combinators), node.semicolon);
+  ExpressionFunctionBody visitExpressionFunctionBody(ExpressionFunctionBody node) => new ExpressionFunctionBody.full(node.functionDefinition, clone2(node.expression), node.semicolon);
+  ExpressionStatement visitExpressionStatement(ExpressionStatement node) => new ExpressionStatement.full(clone2(node.expression), node.semicolon);
+  ExtendsClause visitExtendsClause(ExtendsClause node) => new ExtendsClause.full(node.keyword, clone2(node.superclass));
+  FieldDeclaration visitFieldDeclaration(FieldDeclaration node) => new FieldDeclaration.full(clone2(node.documentationComment), clone3(node.metadata), node.keyword, clone2(node.fields), node.semicolon);
+  FieldFormalParameter visitFieldFormalParameter(FieldFormalParameter node) => new FieldFormalParameter.full(clone2(node.documentationComment), clone3(node.metadata), node.keyword, clone2(node.type), node.thisToken, node.period, clone2(node.identifier));
+  ForEachStatement visitForEachStatement(ForEachStatement node) => new ForEachStatement.full(node.forKeyword, node.leftParenthesis, clone2(node.loopVariable), node.inKeyword, clone2(node.iterator), node.rightParenthesis, clone2(node.body));
+  FormalParameterList visitFormalParameterList(FormalParameterList node) => new FormalParameterList.full(node.leftParenthesis, clone3(node.parameters), node.leftDelimiter, node.rightDelimiter, node.rightParenthesis);
+  ForStatement visitForStatement(ForStatement node) => new ForStatement.full(node.forKeyword, node.leftParenthesis, clone2(node.variables), clone2(node.initialization), node.leftSeparator, clone2(node.condition), node.rightSeparator, clone3(node.updaters), node.rightParenthesis, clone2(node.body));
+  FunctionDeclaration visitFunctionDeclaration(FunctionDeclaration node) => new FunctionDeclaration.full(clone2(node.documentationComment), clone3(node.metadata), node.externalKeyword, clone2(node.returnType), node.propertyKeyword, clone2(node.name), clone2(node.functionExpression));
+  FunctionDeclarationStatement visitFunctionDeclarationStatement(FunctionDeclarationStatement node) => new FunctionDeclarationStatement.full(clone2(node.functionDeclaration));
+  FunctionExpression visitFunctionExpression(FunctionExpression node) => new FunctionExpression.full(clone2(node.parameters), clone2(node.body));
+  FunctionExpressionInvocation visitFunctionExpressionInvocation(FunctionExpressionInvocation node) => new FunctionExpressionInvocation.full(clone2(node.function), clone2(node.argumentList));
+  FunctionTypeAlias visitFunctionTypeAlias(FunctionTypeAlias node) => new FunctionTypeAlias.full(clone2(node.documentationComment), clone3(node.metadata), node.keyword, clone2(node.returnType), clone2(node.name), clone2(node.typeParameters), clone2(node.parameters), node.semicolon);
+  FunctionTypedFormalParameter visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) => new FunctionTypedFormalParameter.full(clone2(node.documentationComment), clone3(node.metadata), clone2(node.returnType), clone2(node.identifier), clone2(node.parameters));
+  HideCombinator visitHideCombinator(HideCombinator node) => new HideCombinator.full(node.keyword, clone3(node.hiddenNames));
+  IfStatement visitIfStatement(IfStatement node) => new IfStatement.full(node.ifKeyword, node.leftParenthesis, clone2(node.condition), node.rightParenthesis, clone2(node.thenStatement), node.elseKeyword, clone2(node.elseStatement));
+  ImplementsClause visitImplementsClause(ImplementsClause node) => new ImplementsClause.full(node.keyword, clone3(node.interfaces));
+  ImportDirective visitImportDirective(ImportDirective node) => new ImportDirective.full(clone2(node.documentationComment), clone3(node.metadata), node.keyword, clone2(node.uri), node.asToken, clone2(node.prefix), clone3(node.combinators), node.semicolon);
   IndexExpression visitIndexExpression(IndexExpression node) {
     Token period2 = node.period;
     if (period2 == null) {
-      return new IndexExpression.forTarget_full(clone(node.array), node.leftBracket, clone(node.index), node.rightBracket);
+      return new IndexExpression.forTarget_full(clone2(node.array), node.leftBracket, clone2(node.index), node.rightBracket);
     } else {
-      return new IndexExpression.forCascade_full(period2, node.leftBracket, clone(node.index), node.rightBracket);
+      return new IndexExpression.forCascade_full(period2, node.leftBracket, clone2(node.index), node.rightBracket);
     }
   }
-  InstanceCreationExpression visitInstanceCreationExpression(InstanceCreationExpression node) => new InstanceCreationExpression.full(node.keyword, clone(node.constructorName), clone(node.argumentList));
+  InstanceCreationExpression visitInstanceCreationExpression(InstanceCreationExpression node) => new InstanceCreationExpression.full(node.keyword, clone2(node.constructorName), clone2(node.argumentList));
   IntegerLiteral visitIntegerLiteral(IntegerLiteral node) => new IntegerLiteral.full(node.literal, node.value);
-  InterpolationExpression visitInterpolationExpression(InterpolationExpression node) => new InterpolationExpression.full(node.leftBracket, clone(node.expression), node.rightBracket);
+  InterpolationExpression visitInterpolationExpression(InterpolationExpression node) => new InterpolationExpression.full(node.leftBracket, clone2(node.expression), node.rightBracket);
   InterpolationString visitInterpolationString(InterpolationString node) => new InterpolationString.full(node.contents, node.value);
-  IsExpression visitIsExpression(IsExpression node) => new IsExpression.full(clone(node.expression), node.isOperator, node.notOperator, clone(node.type));
-  Label visitLabel(Label node) => new Label.full(clone(node.label), node.colon);
-  LabeledStatement visitLabeledStatement(LabeledStatement node) => new LabeledStatement.full(clone2(node.labels), clone(node.statement));
-  LibraryDirective visitLibraryDirective(LibraryDirective node) => new LibraryDirective.full(clone(node.documentationComment), clone2(node.metadata), node.libraryToken, clone(node.name), node.semicolon);
-  LibraryIdentifier visitLibraryIdentifier(LibraryIdentifier node) => new LibraryIdentifier.full(clone2(node.components));
-  ListLiteral visitListLiteral(ListLiteral node) => new ListLiteral.full(node.modifier, clone(node.typeArguments), node.leftBracket, clone2(node.elements), node.rightBracket);
-  MapLiteral visitMapLiteral(MapLiteral node) => new MapLiteral.full(node.modifier, clone(node.typeArguments), node.leftBracket, clone2(node.entries), node.rightBracket);
-  MapLiteralEntry visitMapLiteralEntry(MapLiteralEntry node) => new MapLiteralEntry.full(clone(node.key), node.separator, clone(node.value));
-  MethodDeclaration visitMethodDeclaration(MethodDeclaration node) => new MethodDeclaration.full(clone(node.documentationComment), clone2(node.metadata), node.externalKeyword, node.modifierKeyword, clone(node.returnType), node.propertyKeyword, node.operatorKeyword, clone(node.name), clone(node.parameters), clone(node.body));
-  MethodInvocation visitMethodInvocation(MethodInvocation node) => new MethodInvocation.full(clone(node.target), node.period, clone(node.methodName), clone(node.argumentList));
-  NamedExpression visitNamedExpression(NamedExpression node) => new NamedExpression.full(clone(node.name), clone(node.expression));
-  NativeFunctionBody visitNativeFunctionBody(NativeFunctionBody node) => new NativeFunctionBody.full(node.nativeToken, clone(node.stringLiteral), node.semicolon);
+  IsExpression visitIsExpression(IsExpression node) => new IsExpression.full(clone2(node.expression), node.isOperator, node.notOperator, clone2(node.type));
+  Label visitLabel(Label node) => new Label.full(clone2(node.label), node.colon);
+  LabeledStatement visitLabeledStatement(LabeledStatement node) => new LabeledStatement.full(clone3(node.labels), clone2(node.statement));
+  LibraryDirective visitLibraryDirective(LibraryDirective node) => new LibraryDirective.full(clone2(node.documentationComment), clone3(node.metadata), node.libraryToken, clone2(node.name), node.semicolon);
+  LibraryIdentifier visitLibraryIdentifier(LibraryIdentifier node) => new LibraryIdentifier.full(clone3(node.components));
+  ListLiteral visitListLiteral(ListLiteral node) => new ListLiteral.full(node.modifier, clone2(node.typeArguments), node.leftBracket, clone3(node.elements), node.rightBracket);
+  MapLiteral visitMapLiteral(MapLiteral node) => new MapLiteral.full(node.modifier, clone2(node.typeArguments), node.leftBracket, clone3(node.entries), node.rightBracket);
+  MapLiteralEntry visitMapLiteralEntry(MapLiteralEntry node) => new MapLiteralEntry.full(clone2(node.key), node.separator, clone2(node.value));
+  MethodDeclaration visitMethodDeclaration(MethodDeclaration node) => new MethodDeclaration.full(clone2(node.documentationComment), clone3(node.metadata), node.externalKeyword, node.modifierKeyword, clone2(node.returnType), node.propertyKeyword, node.operatorKeyword, clone2(node.name), clone2(node.parameters), clone2(node.body));
+  MethodInvocation visitMethodInvocation(MethodInvocation node) => new MethodInvocation.full(clone2(node.target), node.period, clone2(node.methodName), clone2(node.argumentList));
+  NamedExpression visitNamedExpression(NamedExpression node) => new NamedExpression.full(clone2(node.name), clone2(node.expression));
+  NativeFunctionBody visitNativeFunctionBody(NativeFunctionBody node) => new NativeFunctionBody.full(node.nativeToken, clone2(node.stringLiteral), node.semicolon);
   NullLiteral visitNullLiteral(NullLiteral node) => new NullLiteral.full(node.literal);
-  ParenthesizedExpression visitParenthesizedExpression(ParenthesizedExpression node) => new ParenthesizedExpression.full(node.leftParenthesis, clone(node.expression), node.rightParenthesis);
-  PartDirective visitPartDirective(PartDirective node) => new PartDirective.full(clone(node.documentationComment), clone2(node.metadata), node.partToken, clone(node.uri), node.semicolon);
-  PartOfDirective visitPartOfDirective(PartOfDirective node) => new PartOfDirective.full(clone(node.documentationComment), clone2(node.metadata), node.partToken, node.ofToken, clone(node.libraryName), node.semicolon);
-  PostfixExpression visitPostfixExpression(PostfixExpression node) => new PostfixExpression.full(clone(node.operand), node.operator);
-  PrefixedIdentifier visitPrefixedIdentifier(PrefixedIdentifier node) => new PrefixedIdentifier.full(clone(node.prefix), node.period, clone(node.identifier));
-  PrefixExpression visitPrefixExpression(PrefixExpression node) => new PrefixExpression.full(node.operator, clone(node.operand));
-  PropertyAccess visitPropertyAccess(PropertyAccess node) => new PropertyAccess.full(clone(node.target), node.operator, clone(node.propertyName));
-  RedirectingConstructorInvocation visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) => new RedirectingConstructorInvocation.full(node.keyword, node.period, clone(node.constructorName), clone(node.argumentList));
+  ParenthesizedExpression visitParenthesizedExpression(ParenthesizedExpression node) => new ParenthesizedExpression.full(node.leftParenthesis, clone2(node.expression), node.rightParenthesis);
+  PartDirective visitPartDirective(PartDirective node) => new PartDirective.full(clone2(node.documentationComment), clone3(node.metadata), node.partToken, clone2(node.uri), node.semicolon);
+  PartOfDirective visitPartOfDirective(PartOfDirective node) => new PartOfDirective.full(clone2(node.documentationComment), clone3(node.metadata), node.partToken, node.ofToken, clone2(node.libraryName), node.semicolon);
+  PostfixExpression visitPostfixExpression(PostfixExpression node) => new PostfixExpression.full(clone2(node.operand), node.operator);
+  PrefixedIdentifier visitPrefixedIdentifier(PrefixedIdentifier node) => new PrefixedIdentifier.full(clone2(node.prefix), node.period, clone2(node.identifier));
+  PrefixExpression visitPrefixExpression(PrefixExpression node) => new PrefixExpression.full(node.operator, clone2(node.operand));
+  PropertyAccess visitPropertyAccess(PropertyAccess node) => new PropertyAccess.full(clone2(node.target), node.operator, clone2(node.propertyName));
+  RedirectingConstructorInvocation visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) => new RedirectingConstructorInvocation.full(node.keyword, node.period, clone2(node.constructorName), clone2(node.argumentList));
   RethrowExpression visitRethrowExpression(RethrowExpression node) => new RethrowExpression.full(node.keyword);
-  ReturnStatement visitReturnStatement(ReturnStatement node) => new ReturnStatement.full(node.keyword, clone(node.expression), node.semicolon);
+  ReturnStatement visitReturnStatement(ReturnStatement node) => new ReturnStatement.full(node.keyword, clone2(node.expression), node.semicolon);
   ScriptTag visitScriptTag(ScriptTag node) => new ScriptTag.full(node.scriptTag);
-  ShowCombinator visitShowCombinator(ShowCombinator node) => new ShowCombinator.full(node.keyword, clone2(node.shownNames));
-  SimpleFormalParameter visitSimpleFormalParameter(SimpleFormalParameter node) => new SimpleFormalParameter.full(clone(node.documentationComment), clone2(node.metadata), node.keyword, clone(node.type), clone(node.identifier));
+  ShowCombinator visitShowCombinator(ShowCombinator node) => new ShowCombinator.full(node.keyword, clone3(node.shownNames));
+  SimpleFormalParameter visitSimpleFormalParameter(SimpleFormalParameter node) => new SimpleFormalParameter.full(clone2(node.documentationComment), clone3(node.metadata), node.keyword, clone2(node.type), clone2(node.identifier));
   SimpleIdentifier visitSimpleIdentifier(SimpleIdentifier node) => new SimpleIdentifier.full(node.token);
   SimpleStringLiteral visitSimpleStringLiteral(SimpleStringLiteral node) => new SimpleStringLiteral.full(node.literal, node.value);
-  StringInterpolation visitStringInterpolation(StringInterpolation node) => new StringInterpolation.full(clone2(node.elements));
-  SuperConstructorInvocation visitSuperConstructorInvocation(SuperConstructorInvocation node) => new SuperConstructorInvocation.full(node.keyword, node.period, clone(node.constructorName), clone(node.argumentList));
+  StringInterpolation visitStringInterpolation(StringInterpolation node) => new StringInterpolation.full(clone3(node.elements));
+  SuperConstructorInvocation visitSuperConstructorInvocation(SuperConstructorInvocation node) => new SuperConstructorInvocation.full(node.keyword, node.period, clone2(node.constructorName), clone2(node.argumentList));
   SuperExpression visitSuperExpression(SuperExpression node) => new SuperExpression.full(node.keyword);
-  SwitchCase visitSwitchCase(SwitchCase node) => new SwitchCase.full(clone2(node.labels), node.keyword, clone(node.expression), node.colon, clone2(node.statements));
-  SwitchDefault visitSwitchDefault(SwitchDefault node) => new SwitchDefault.full(clone2(node.labels), node.keyword, node.colon, clone2(node.statements));
-  SwitchStatement visitSwitchStatement(SwitchStatement node) => new SwitchStatement.full(node.keyword, node.leftParenthesis, clone(node.expression), node.rightParenthesis, node.leftBracket, clone2(node.members), node.rightBracket);
+  SwitchCase visitSwitchCase(SwitchCase node) => new SwitchCase.full(clone3(node.labels), node.keyword, clone2(node.expression), node.colon, clone3(node.statements));
+  SwitchDefault visitSwitchDefault(SwitchDefault node) => new SwitchDefault.full(clone3(node.labels), node.keyword, node.colon, clone3(node.statements));
+  SwitchStatement visitSwitchStatement(SwitchStatement node) => new SwitchStatement.full(node.keyword, node.leftParenthesis, clone2(node.expression), node.rightParenthesis, node.leftBracket, clone3(node.members), node.rightBracket);
   ThisExpression visitThisExpression(ThisExpression node) => new ThisExpression.full(node.keyword);
-  ThrowExpression visitThrowExpression(ThrowExpression node) => new ThrowExpression.full(node.keyword, clone(node.expression));
-  TopLevelVariableDeclaration visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) => new TopLevelVariableDeclaration.full(clone(node.documentationComment), clone2(node.metadata), clone(node.variables), node.semicolon);
-  TryStatement visitTryStatement(TryStatement node) => new TryStatement.full(node.tryKeyword, clone(node.body), clone2(node.catchClauses), node.finallyKeyword, clone(node.finallyClause));
-  TypeArgumentList visitTypeArgumentList(TypeArgumentList node) => new TypeArgumentList.full(node.leftBracket, clone2(node.arguments), node.rightBracket);
-  TypeName visitTypeName(TypeName node) => new TypeName.full(clone(node.name), clone(node.typeArguments));
-  TypeParameter visitTypeParameter(TypeParameter node) => new TypeParameter.full(clone(node.documentationComment), clone2(node.metadata), clone(node.name), node.keyword, clone(node.bound));
-  TypeParameterList visitTypeParameterList(TypeParameterList node) => new TypeParameterList.full(node.leftBracket, clone2(node.typeParameters), node.rightBracket);
-  VariableDeclaration visitVariableDeclaration(VariableDeclaration node) => new VariableDeclaration.full(clone(node.documentationComment), clone2(node.metadata), clone(node.name), node.equals, clone(node.initializer));
-  VariableDeclarationList visitVariableDeclarationList(VariableDeclarationList node) => new VariableDeclarationList.full(clone(node.documentationComment), clone2(node.metadata), node.keyword, clone(node.type), clone2(node.variables));
-  VariableDeclarationStatement visitVariableDeclarationStatement(VariableDeclarationStatement node) => new VariableDeclarationStatement.full(clone(node.variables), node.semicolon);
-  WhileStatement visitWhileStatement(WhileStatement node) => new WhileStatement.full(node.keyword, node.leftParenthesis, clone(node.condition), node.rightParenthesis, clone(node.body));
-  WithClause visitWithClause(WithClause node) => new WithClause.full(node.withKeyword, clone2(node.mixinTypes));
-  ASTNode clone(ASTNode node) {
+  ThrowExpression visitThrowExpression(ThrowExpression node) => new ThrowExpression.full(node.keyword, clone2(node.expression));
+  TopLevelVariableDeclaration visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) => new TopLevelVariableDeclaration.full(clone2(node.documentationComment), clone3(node.metadata), clone2(node.variables), node.semicolon);
+  TryStatement visitTryStatement(TryStatement node) => new TryStatement.full(node.tryKeyword, clone2(node.body), clone3(node.catchClauses), node.finallyKeyword, clone2(node.finallyClause));
+  TypeArgumentList visitTypeArgumentList(TypeArgumentList node) => new TypeArgumentList.full(node.leftBracket, clone3(node.arguments), node.rightBracket);
+  TypeName visitTypeName(TypeName node) => new TypeName.full(clone2(node.name), clone2(node.typeArguments));
+  TypeParameter visitTypeParameter(TypeParameter node) => new TypeParameter.full(clone2(node.documentationComment), clone3(node.metadata), clone2(node.name), node.keyword, clone2(node.bound));
+  TypeParameterList visitTypeParameterList(TypeParameterList node) => new TypeParameterList.full(node.leftBracket, clone3(node.typeParameters), node.rightBracket);
+  VariableDeclaration visitVariableDeclaration(VariableDeclaration node) => new VariableDeclaration.full(clone2(node.documentationComment), clone3(node.metadata), clone2(node.name), node.equals, clone2(node.initializer));
+  VariableDeclarationList visitVariableDeclarationList(VariableDeclarationList node) => new VariableDeclarationList.full(clone2(node.documentationComment), clone3(node.metadata), node.keyword, clone2(node.type), clone3(node.variables));
+  VariableDeclarationStatement visitVariableDeclarationStatement(VariableDeclarationStatement node) => new VariableDeclarationStatement.full(clone2(node.variables), node.semicolon);
+  WhileStatement visitWhileStatement(WhileStatement node) => new WhileStatement.full(node.keyword, node.leftParenthesis, clone2(node.condition), node.rightParenthesis, clone2(node.body));
+  WithClause visitWithClause(WithClause node) => new WithClause.full(node.withKeyword, clone3(node.mixinTypes));
+  ASTNode clone2(ASTNode node) {
     if (node == null) {
       return null;
     }
     return node.accept(this) as ASTNode;
   }
-  List clone2(NodeList nodes) {
+  List clone3(NodeList nodes) {
     List clonedNodes = new List();
     for (ASTNode node in nodes) {
       clonedNodes.add((node.accept(this) as ASTNode));

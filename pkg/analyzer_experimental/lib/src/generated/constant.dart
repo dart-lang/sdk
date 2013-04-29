@@ -96,7 +96,7 @@ class EvaluationResult {
   List<AnalysisError> _errors;
   /**
    * Initialize a newly created result object with the given state. Clients should use one of the
-   * factory methods: {@link #forErrors(AnalysisError[])} and {@link #forValue(Object)}.
+   * factory methods: {@link #forErrors(AnalysisError\[\])} and {@link #forValue(Object)}.
    * @param value the value of the expression
    * @param errors the errors that should be reported for the expression(s) that were evaluated
    */
@@ -632,9 +632,9 @@ class ErrorResult extends EvaluationResultImpl {
    * @param errorCode the error code for the error to be generated
    */
   ErrorResult.con1(ASTNode node, ErrorCode errorCode) {
-    _jtd_constructor_162_impl(node, errorCode);
+    _jtd_constructor_168_impl(node, errorCode);
   }
-  _jtd_constructor_162_impl(ASTNode node, ErrorCode errorCode) {
+  _jtd_constructor_168_impl(ASTNode node, ErrorCode errorCode) {
     _errors.add(new ErrorResult_ErrorData(node, errorCode));
   }
   /**
@@ -644,9 +644,9 @@ class ErrorResult extends EvaluationResultImpl {
    * @param secondResult the second set of results being merged
    */
   ErrorResult.con2(ErrorResult firstResult, ErrorResult secondResult) {
-    _jtd_constructor_163_impl(firstResult, secondResult);
+    _jtd_constructor_169_impl(firstResult, secondResult);
   }
-  _jtd_constructor_163_impl(ErrorResult firstResult, ErrorResult secondResult) {
+  _jtd_constructor_169_impl(ErrorResult firstResult, ErrorResult secondResult) {
     _errors.addAll(firstResult._errors);
     _errors.addAll(secondResult._errors);
   }

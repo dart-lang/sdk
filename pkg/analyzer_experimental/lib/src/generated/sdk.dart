@@ -6,7 +6,7 @@ library engine.sdk;
 import 'dart:uri';
 import 'java_core.dart';
 import 'java_engine.dart';
-import 'source.dart' show Source, ContentCache;
+import 'source.dart' show ContentCache, Source, UriKind;
 import 'engine.dart' show AnalysisContext;
 
 /**
@@ -216,6 +216,15 @@ abstract class DartSdk {
    * The short name of the dart SDK html library.
    */
   static String DART_HTML = "dart:html";
+  /**
+   * Return the source representing the file with the given URI.
+   * @param contentCache the content cache used to access the contents of the mapped source
+   * @param kind the kind of URI that was originally resolved in order to produce an encoding with
+   * the given URI
+   * @param uri the URI of the file to be returned
+   * @return the source representing the specified file
+   */
+  Source fromEncoding(ContentCache contentCache, UriKind kind, Uri uri);
   /**
    * Return the {@link AnalysisContext} used for all of the sources in this {@link DartSdk}.
    * @return the {@link AnalysisContext} used for all of the sources in this {@link DartSdk}

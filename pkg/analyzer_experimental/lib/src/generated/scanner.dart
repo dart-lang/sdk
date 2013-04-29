@@ -259,10 +259,10 @@ class Keyword implements Comparable<Keyword> {
    * @param syntax the lexeme for the keyword
    */
   Keyword.con1(String ___name, int ___ordinal, String syntax) {
-    _jtd_constructor_308_impl(___name, ___ordinal, syntax);
+    _jtd_constructor_309_impl(___name, ___ordinal, syntax);
   }
-  _jtd_constructor_308_impl(String ___name, int ___ordinal, String syntax) {
-    _jtd_constructor_309_impl(___name, ___ordinal, syntax, false);
+  _jtd_constructor_309_impl(String ___name, int ___ordinal, String syntax) {
+    _jtd_constructor_310_impl(___name, ___ordinal, syntax, false);
   }
   /**
    * Initialize a newly created keyword to have the given syntax. The keyword is a pseudo-keyword if
@@ -271,9 +271,9 @@ class Keyword implements Comparable<Keyword> {
    * @param isPseudoKeyword {@code true} if this keyword is a pseudo-keyword
    */
   Keyword.con2(String ___name, int ___ordinal, String syntax2, bool isPseudoKeyword) {
-    _jtd_constructor_309_impl(___name, ___ordinal, syntax2, isPseudoKeyword);
+    _jtd_constructor_310_impl(___name, ___ordinal, syntax2, isPseudoKeyword);
   }
-  _jtd_constructor_309_impl(String ___name, int ___ordinal, String syntax2, bool isPseudoKeyword) {
+  _jtd_constructor_310_impl(String ___name, int ___ordinal, String syntax2, bool isPseudoKeyword) {
     __name = ___name;
     __ordinal = ___ordinal;
     this._syntax = syntax2;
@@ -705,7 +705,7 @@ abstract class AbstractScanner {
    * @param arguments any arguments needed to complete the error message
    */
   void reportError(ScannerErrorCode errorCode, List<Object> arguments) {
-    _errorListener.onError(new AnalysisError.con2(source, offset, 1, errorCode, [arguments]));
+    _errorListener.onError(new AnalysisError.con2(source, offset, 1, errorCode, arguments));
   }
   int select(int choice, TokenType yesType, TokenType noType) {
     int next = advance();
@@ -1568,7 +1568,7 @@ class KeywordToken extends Token {
 }
 /**
  * Instances of the class {@code BeginToken} represent the opening half of a grouping pair of
- * tokens. This is used for curly brackets ('{'), parentheses ('('), and square brackets ('[').
+ * tokens. This is used for curly brackets ('{'), parentheses ('('), and square brackets ('\[').
  * @coverage dart.engine.parser
  */
 class BeginToken extends Token {
@@ -1676,15 +1676,15 @@ class TokenClass implements Comparable<TokenClass> {
    */
   int _precedence = 0;
   TokenClass.con1(String ___name, int ___ordinal) {
-    _jtd_constructor_318_impl(___name, ___ordinal);
+    _jtd_constructor_319_impl(___name, ___ordinal);
   }
-  _jtd_constructor_318_impl(String ___name, int ___ordinal) {
-    _jtd_constructor_319_impl(___name, ___ordinal, 0);
+  _jtd_constructor_319_impl(String ___name, int ___ordinal) {
+    _jtd_constructor_320_impl(___name, ___ordinal, 0);
   }
   TokenClass.con2(String ___name, int ___ordinal, int precedence2) {
-    _jtd_constructor_319_impl(___name, ___ordinal, precedence2);
+    _jtd_constructor_320_impl(___name, ___ordinal, precedence2);
   }
-  _jtd_constructor_319_impl(String ___name, int ___ordinal, int precedence2) {
+  _jtd_constructor_320_impl(String ___name, int ___ordinal, int precedence2) {
     __name = ___name;
     __ordinal = ___ordinal;
     this._precedence = precedence2;
@@ -1811,15 +1811,15 @@ class TokenType implements Comparable<TokenType> {
    */
   String _lexeme;
   TokenType.con1(String ___name, int ___ordinal) {
-    _jtd_constructor_320_impl(___name, ___ordinal);
+    _jtd_constructor_321_impl(___name, ___ordinal);
   }
-  _jtd_constructor_320_impl(String ___name, int ___ordinal) {
-    _jtd_constructor_321_impl(___name, ___ordinal, TokenClass.NO_CLASS, null);
+  _jtd_constructor_321_impl(String ___name, int ___ordinal) {
+    _jtd_constructor_322_impl(___name, ___ordinal, TokenClass.NO_CLASS, null);
   }
   TokenType.con2(String ___name, int ___ordinal, TokenClass tokenClass2, String lexeme2) {
-    _jtd_constructor_321_impl(___name, ___ordinal, tokenClass2, lexeme2);
+    _jtd_constructor_322_impl(___name, ___ordinal, tokenClass2, lexeme2);
   }
-  _jtd_constructor_321_impl(String ___name, int ___ordinal, TokenClass tokenClass2, String lexeme2) {
+  _jtd_constructor_322_impl(String ___name, int ___ordinal, TokenClass tokenClass2, String lexeme2) {
     __name = ___name;
     __ordinal = ___ordinal;
     this._tokenClass = tokenClass2 == null ? TokenClass.NO_CLASS : tokenClass2;
