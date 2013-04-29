@@ -522,13 +522,13 @@ void FlowGraphAllocator::BuildLiveRanges() {
         spill_slots_.Add(range->End());
         quad_spill_slots_.Add(false);
       }
-      AssignSafepoints(range);
     } else {
       ConstantInstr* constant = defn->AsConstant();
       ASSERT(constant != NULL);
       range->set_assigned_location(Location::Constant(constant->value()));
       range->set_spill_slot(Location::Constant(constant->value()));
     }
+    AssignSafepoints(range);
     range->finger()->Initialize(range);
     UsePosition* use =
         range->finger()->FirstRegisterBeneficialUse(graph_entry->start_pos());

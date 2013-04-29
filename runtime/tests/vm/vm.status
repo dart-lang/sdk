@@ -20,10 +20,6 @@ cc/Sleep: Pass, Fail  # Flaky on buildbot. Issue 5133.
 
 # The following section refers to the dart vm tests which live under
 # runtime/tests/vm/dart.
-
-[ $system == windows && $mode == release && $checked ]
-dart/byte_array_test: Pass, Fail  # Fails.  Issue 10272.
-
 [ $system == windows ]
 cc/Dart2JSCompileAll: Skip
 cc/ExternalizeConstantStrings: Skip
