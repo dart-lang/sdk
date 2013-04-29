@@ -3520,8 +3520,10 @@ class ClassSupertypeResolver extends CommonResolverVisitor {
   }
 
   void visitNodeList(NodeList node) {
-    for (Link<Node> link = node.nodes; !link.isEmpty; link = link.tail) {
-      link.head.accept(this);
+    if (node != null) {
+      for (Link<Node> link = node.nodes; !link.isEmpty; link = link.tail) {
+        link.head.accept(this);
+      }
     }
   }
 
@@ -3539,6 +3541,12 @@ class ClassSupertypeResolver extends CommonResolverVisitor {
   void visitMixinApplication(MixinApplication node) {
     node.superclass.accept(this);
     visitNodeList(node.mixins);
+  }
+
+  void visitNamedMixinApplication(NamedMixinApplication node) {
+    node.superclass.accept(this);
+    visitNodeList(node.mixins);
+    visitNodeList(node.interfaces);
   }
 
   void visitTypeAnnotation(TypeAnnotation node) {
