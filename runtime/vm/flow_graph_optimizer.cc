@@ -374,6 +374,13 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
     converted = new UnboxFloat32x4Instr(use->CopyWithType(), deopt_id);
   } else if ((from == kUnboxedFloat32x4) && (to == kTagged)) {
     converted = new BoxFloat32x4Instr(use->CopyWithType());
+  } else if ((from == kTagged) && (to == kUnboxedUint32x4)) {
+    ASSERT((deopt_target != NULL) || (use->Type()->ToCid() == kUint32x4Cid));
+    const intptr_t deopt_id = (deopt_target != NULL) ?
+        deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
+    converted = new UnboxUint32x4Instr(use->CopyWithType(), deopt_id);
+  } else if ((from == kUnboxedUint32x4) && (to == kTagged)) {
+    converted = new BoxUint32x4Instr(use->CopyWithType());
   }
   ASSERT(converted != NULL);
   use->BindTo(converted);
@@ -1726,6 +1733,35 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
             call, class_ids[0], kTypedDataFloat32x4ArrayCid);
       default:
         // Unsupported method.
+        return false;
+    }
+  }
+
+  if ((class_ids[0] == kFloat32x4Cid) && (ic_data.NumberOfChecks() == 1)) {
+    switch (recognized_kind) {
+      case MethodRecognizer::kFloat32x4Equal:
+      case MethodRecognizer::kFloat32x4GreaterThan:
+      case MethodRecognizer::kFloat32x4GreaterThanOrEqual:
+      case MethodRecognizer::kFloat32x4LessThan:
+      case MethodRecognizer::kFloat32x4LessThanOrEqual:
+      case MethodRecognizer::kFloat32x4NotEqual: {
+        Definition* left = call->ArgumentAt(0);
+        Definition* right = call->ArgumentAt(1);
+        // Type check left.
+        AddCheckClass(left,
+                      ICData::ZoneHandle(
+                          call->ic_data()->AsUnaryClassChecksForArgNr(0)),
+                      call->deopt_id(),
+                      call->env(),
+                      call);
+        // Replace call.
+        Float32x4ComparisonInstr* cmp =
+            new Float32x4ComparisonInstr(recognized_kind, new Value(left),
+                                         new Value(right), call);
+        ReplaceCall(call, cmp);
+        return true;
+      }
+      default:
         return false;
     }
   }
@@ -4766,6 +4802,12 @@ void ConstantPropagator::VisitFloat32x4Splat(Float32x4SplatInstr* instr) {
 }
 
 
+void ConstantPropagator::VisitFloat32x4Comparison(
+    Float32x4ComparisonInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
 void ConstantPropagator::VisitMathSqrt(MathSqrtInstr* instr) {
   const Object& value = instr->value()->definition()->constant_value();
   if (IsNonConstant(value)) {
@@ -4811,6 +4853,28 @@ void ConstantPropagator::VisitUnboxFloat32x4(UnboxFloat32x4Instr* instr) {
 
 
 void ConstantPropagator::VisitBoxFloat32x4(BoxFloat32x4Instr* instr) {
+  const Object& value = instr->value()->definition()->constant_value();
+  if (IsNonConstant(value)) {
+    SetValue(instr, non_constant_);
+  } else if (IsConstant(value)) {
+    // TODO(kmillikin): Handle conversion.
+    SetValue(instr, non_constant_);
+  }
+}
+
+
+void ConstantPropagator::VisitUnboxUint32x4(UnboxUint32x4Instr* instr) {
+  const Object& value = instr->value()->definition()->constant_value();
+  if (IsNonConstant(value)) {
+    SetValue(instr, non_constant_);
+  } else if (IsConstant(value)) {
+    // TODO(kmillikin): Handle conversion.
+    SetValue(instr, non_constant_);
+  }
+}
+
+
+void ConstantPropagator::VisitBoxUint32x4(BoxUint32x4Instr* instr) {
   const Object& value = instr->value()->definition()->constant_value();
   if (IsNonConstant(value)) {
     SetValue(instr, non_constant_);

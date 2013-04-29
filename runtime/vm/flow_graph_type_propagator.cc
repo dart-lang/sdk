@@ -991,6 +991,11 @@ CompileType Float32x4SplatInstr::ComputeType() const {
 }
 
 
+CompileType Float32x4ComparisonInstr::ComputeType() const {
+  return CompileType::FromCid(kUint32x4Cid);
+}
+
+
 CompileType MathSqrtInstr::ComputeType() const {
   return CompileType::FromCid(kDoubleCid);
 }
@@ -1013,6 +1018,16 @@ CompileType UnboxFloat32x4Instr::ComputeType() const {
 
 CompileType BoxFloat32x4Instr::ComputeType() const {
   return CompileType::FromCid(kFloat32x4Cid);
+}
+
+
+CompileType UnboxUint32x4Instr::ComputeType() const {
+  return CompileType::FromCid(kUint32x4Cid);
+}
+
+
+CompileType BoxUint32x4Instr::ComputeType() const {
+  return CompileType::FromCid(kUint32x4Cid);
 }
 
 

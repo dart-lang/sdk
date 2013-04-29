@@ -2719,11 +2719,16 @@ void BoxFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* UnboxFloat32x4Instr::MakeLocationSummary() const {
+  const intptr_t value_cid = value()->Type()->ToCid();
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
+  const intptr_t kNumTemps = value_cid == kFloat32x4Cid ? 0 : 1;
   LocationSummary* summary =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
+  if (kNumTemps > 0) {
+    ASSERT(kNumTemps == 1);
+    summary->set_temp(0, Location::RequiresRegister());
+  }
   summary->set_out(Location::RequiresFpuRegister());
   return summary;
 }
@@ -2734,9 +2739,111 @@ void UnboxFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register value = locs()->in(0).reg();
   const XmmRegister result = locs()->out().fpu_reg();
 
-  ASSERT(value_cid == kFloat32x4Cid);
+  if (value_cid != kFloat32x4Cid) {
+    const Register temp = locs()->temp(0).reg();
+    Label* deopt = compiler->AddDeoptStub(deopt_id_, kDeoptCheckClass);
+    __ testl(value, Immediate(kSmiTagMask));
+    __ j(ZERO, deopt);
+    __ CompareClassId(value, kFloat32x4Cid, temp);
+    __ j(NOT_EQUAL, deopt);
+  }
   __ movups(result, FieldAddress(value, Float32x4::value_offset()));
 }
+
+
+LocationSummary* BoxUint32x4Instr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs,
+                          kNumTemps,
+                          LocationSummary::kCallOnSlowPath);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_out(Location::RequiresRegister());
+  return summary;
+}
+
+
+class BoxUint32x4SlowPath : public SlowPathCode {
+ public:
+  explicit BoxUint32x4SlowPath(BoxUint32x4Instr* instruction)
+      : instruction_(instruction) { }
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
+    __ Comment("BoxUint32x4SlowPath");
+    __ Bind(entry_label());
+    const Class& uint32x4_class = compiler->uint32x4_class();
+    const Code& stub =
+        Code::Handle(StubCode::GetAllocationStubForClass(uint32x4_class));
+    const ExternalLabel label(uint32x4_class.ToCString(), stub.EntryPoint());
+
+    LocationSummary* locs = instruction_->locs();
+    locs->live_registers()->Remove(locs->out());
+
+    compiler->SaveLiveRegisters(locs);
+    compiler->GenerateCall(Scanner::kDummyTokenIndex,  // No token position.
+                           &label,
+                           PcDescriptors::kOther,
+                           locs);
+    __ MoveRegister(locs->out().reg(), EAX);
+    compiler->RestoreLiveRegisters(locs);
+
+    __ jmp(exit_label());
+  }
+
+ private:
+  BoxUint32x4Instr* instruction_;
+};
+
+
+void BoxUint32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  BoxUint32x4SlowPath* slow_path = new BoxUint32x4SlowPath(this);
+  compiler->AddSlowPathCode(slow_path);
+
+  Register out_reg = locs()->out().reg();
+  XmmRegister value = locs()->in(0).fpu_reg();
+
+  __ TryAllocate(compiler->uint32x4_class(),
+                 slow_path->entry_label(),
+                 Assembler::kFarJump,
+                 out_reg);
+  __ Bind(slow_path->exit_label());
+  __ movups(FieldAddress(out_reg, Uint32x4::value_offset()), value);
+}
+
+
+LocationSummary* UnboxUint32x4Instr::MakeLocationSummary() const {
+  const intptr_t value_cid = value()->Type()->ToCid();
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = value_cid == kUint32x4Cid ? 0 : 1;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  if (kNumTemps > 0) {
+    ASSERT(kNumTemps == 1);
+    summary->set_temp(0, Location::RequiresRegister());
+  }
+  summary->set_out(Location::RequiresFpuRegister());
+  return summary;
+}
+
+
+void UnboxUint32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const intptr_t value_cid = value()->Type()->ToCid();
+  const Register value = locs()->in(0).reg();
+  const XmmRegister result = locs()->out().fpu_reg();
+
+  if (value_cid != kUint32x4Cid) {
+    const Register temp = locs()->temp(0).reg();
+    Label* deopt = compiler->AddDeoptStub(deopt_id_, kDeoptCheckClass);
+    __ testl(value, Immediate(kSmiTagMask));
+    __ j(ZERO, deopt);
+    __ CompareClassId(value, kUint32x4Cid, temp);
+    __ j(NOT_EQUAL, deopt);
+  }
+  __ movups(result, FieldAddress(value, Uint32x4::value_offset()));
+}
+
 
 
 LocationSummary* BinaryDoubleOpInstr::MakeLocationSummary() const {
@@ -2917,6 +3024,49 @@ void Float32x4SplatInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ cvtsd2ss(value, value);
   // Splat across all lanes.
   __ shufps(value, value, Immediate(0x00));
+}
+
+
+LocationSummary* Float32x4ComparisonInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_in(1, Location::RequiresFpuRegister());
+  summary->set_out(Location::SameAsFirstInput());
+  return summary;
+}
+
+
+void Float32x4ComparisonInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  XmmRegister left = locs()->in(0).fpu_reg();
+  XmmRegister right = locs()->in(1).fpu_reg();
+
+  ASSERT(locs()->out().fpu_reg() == left);
+
+  switch (op_kind()) {
+    case MethodRecognizer::kFloat32x4Equal:
+      __ cmppseq(left, right);
+      break;
+    case MethodRecognizer::kFloat32x4NotEqual:
+      __ cmppsneq(left, right);
+      break;
+    case MethodRecognizer::kFloat32x4GreaterThan:
+      __ cmppsnle(left, right);
+      break;
+    case MethodRecognizer::kFloat32x4GreaterThanOrEqual:
+      __ cmppsnlt(left, right);
+      break;
+    case MethodRecognizer::kFloat32x4LessThan:
+      __ cmppslt(left, right);
+      break;
+    case MethodRecognizer::kFloat32x4LessThanOrEqual:
+      __ cmppsle(left, right);
+      break;
+
+    default: UNREACHABLE();
+  }
 }
 
 

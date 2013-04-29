@@ -82,6 +82,12 @@ class Range;
   V(_Float32x4, get:y, Float32x4ShuffleY, 211144022)                           \
   V(_Float32x4, get:z, Float32x4ShuffleZ, 211144022)                           \
   V(_Float32x4, get:w, Float32x4ShuffleW, 211144022)                           \
+  V(_Float32x4, _cmpequal, Float32x4Equal, 548944488)                          \
+  V(_Float32x4, _cmpgt, Float32x4GreaterThan, 548944488)                       \
+  V(_Float32x4, _cmpgte, Float32x4GreaterThanOrEqual, 548944488)               \
+  V(_Float32x4, _cmplt, Float32x4LessThan, 548944488)                          \
+  V(_Float32x4, _cmplte, Float32x4LessThanOrEqual, 548944488)                  \
+  V(_Float32x4, _cmpnequal, Float32x4NotEqual, 548944488)                      \
 
 // Class that recognizes the name and owner of a function and returns the
 // corresponding enum. See RECOGNIZED_LIST above for list of recognizable
@@ -504,6 +510,8 @@ class EmbeddedArray<T, 0> {
   M(BoxDouble)                                                                 \
   M(BoxFloat32x4)                                                              \
   M(UnboxFloat32x4)                                                            \
+  M(BoxUint32x4)                                                               \
+  M(UnboxUint32x4)                                                             \
   M(UnboxInteger)                                                              \
   M(BoxInteger)                                                                \
   M(BinaryMintOp)                                                              \
@@ -520,6 +528,7 @@ class EmbeddedArray<T, 0> {
   M(Float32x4Constructor)                                                      \
   M(Float32x4Zero)                                                             \
   M(Float32x4Splat)                                                            \
+  M(Float32x4Comparison)                                                       \
 
 
 #define FORWARD_DECLARATION(type) class type##Instr;
@@ -769,12 +778,14 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class UnboxIntegerInstr;
   friend class UnboxDoubleInstr;
   friend class UnboxFloat32x4Instr;
+  friend class UnboxUint32x4Instr;
   friend class BinaryDoubleOpInstr;
   friend class BinaryFloat32x4OpInstr;
   friend class Float32x4ZeroInstr;
   friend class Float32x4SplatInstr;
   friend class Float32x4ShuffleInstr;
   friend class Float32x4ConstructorInstr;
+  friend class Float32x4ComparisonInstr;
   friend class BinaryMintOpInstr;
   friend class BinarySmiOpInstr;
   friend class UnarySmiOpInstr;
@@ -3888,6 +3899,34 @@ class BoxFloat32x4Instr : public TemplateDefinition<1> {
 };
 
 
+class BoxUint32x4Instr : public TemplateDefinition<1> {
+ public:
+  explicit BoxUint32x4Instr(Value* value) {
+    SetInputAt(0, value);
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
+
+  virtual bool AffectedBySideEffect() const { return false; }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kUnboxedUint32x4;
+  }
+
+  DECLARE_INSTRUCTION(BoxUint32x4)
+  virtual CompileType ComputeType() const;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(BoxUint32x4Instr);
+};
+
+
 class BoxIntegerInstr : public TemplateDefinition<1> {
  public:
   explicit BoxIntegerInstr(Value* value) {
@@ -3974,6 +4013,36 @@ class UnboxFloat32x4Instr : public TemplateDefinition<1> {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(UnboxFloat32x4Instr);
+};
+
+
+class UnboxUint32x4Instr : public TemplateDefinition<1> {
+ public:
+  UnboxUint32x4Instr(Value* value, intptr_t deopt_id) {
+    SetInputAt(0, value);
+    deopt_id_ = deopt_id;
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  virtual bool CanDeoptimize() const {
+    return (value()->Type()->ToCid() != kUint32x4Cid);
+  }
+
+  virtual bool HasSideEffect() const { return false; }
+
+  virtual Representation representation() const {
+    return kUnboxedUint32x4;
+  }
+
+  virtual bool AffectedBySideEffect() const { return false; }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  DECLARE_INSTRUCTION(UnboxUint32x4)
+  virtual CompileType ComputeType() const;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(UnboxUint32x4Instr);
 };
 
 
@@ -4345,6 +4414,58 @@ class Float32x4ZeroInstr : public TemplateDefinition<0> {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Float32x4ZeroInstr);
+};
+
+
+class Float32x4ComparisonInstr : public TemplateDefinition<2> {
+ public:
+  Float32x4ComparisonInstr(MethodRecognizer::Kind op_kind, Value* left,
+                           Value* right, InstanceCallInstr* instance_call)
+        : op_kind_(op_kind) {
+    SetInputAt(0, left);
+    SetInputAt(1, right);
+    deopt_id_ = instance_call->deopt_id();
+  }
+
+  Value* left() const { return inputs_[0]; }
+  Value* right() const { return inputs_[1]; }
+
+  MethodRecognizer::Kind op_kind() const { return op_kind_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool HasSideEffect() const { return false; }
+
+  virtual bool AffectedBySideEffect() const { return false; }
+
+  virtual bool AttributesEqual(Instruction* other) const {
+    return op_kind() == other->AsFloat32x4Comparison()->op_kind();
+  }
+
+  virtual Representation representation() const {
+    return kUnboxedUint32x4;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT((idx == 0) || (idx == 1));
+    return kUnboxedFloat32x4;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return deopt_id_;
+  }
+
+  DECLARE_INSTRUCTION(Float32x4Comparison)
+  virtual CompileType ComputeType() const;
+
+ private:
+  const MethodRecognizer::Kind op_kind_;
+
+  DISALLOW_COPY_AND_ASSIGN(Float32x4ComparisonInstr);
 };
 
 

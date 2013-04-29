@@ -2002,6 +2002,28 @@ void UnboxFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* BoxUint32x4Instr::MakeLocationSummary() const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void BoxUint32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* UnboxUint32x4Instr::MakeLocationSummary() const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void UnboxUint32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
 LocationSummary* BinaryDoubleOpInstr::MakeLocationSummary() const {
   UNIMPLEMENTED();
   return NULL;
@@ -2064,6 +2086,17 @@ LocationSummary* Float32x4SplatInstr::MakeLocationSummary() const {
 
 
 void Float32x4SplatInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* Float32x4ComparisonInstr::MakeLocationSummary() const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void Float32x4ComparisonInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 

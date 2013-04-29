@@ -73,8 +73,45 @@ void testGetDeopt() {
   }
 }
 
+void testComparison(a, b) {
+  Uint32x4 r = a.equal(b);
+  Expect.equals(true, r.flagX);
+  Expect.equals(false, r.flagY);
+  Expect.equals(false, r.flagZ);
+  Expect.equals(true, r.flagW);
+}
+
+void testComparisonDeopt() {
+  var a = new Float32x4(1.0, 2.0, 3.0, 4.0);
+  var b = new Float32x4(1.0, 2.1, 3.1, 4.0);
+  var smi = 12;
+
+  for (int i = 0; i < 2000; i++) {
+    testComparison(a, b);
+  }
+
+  try {
+    testComparison(a, smi);
+  } catch (_) {
+  }
+
+  for (int i = 0; i < 2000; i++) {
+    testComparison(a, b);
+  }
+
+  try {
+    testComparison(smi, a);
+  } catch (_) {
+  }
+
+  for (int i = 0; i < 2000; i++) {
+    testComparison(a, b);
+  }
+}
+
 main() {
   testListStoreDeopt();
   testAddDeopt();
   testGetDeopt();
+  testComparisonDeopt();
 }

@@ -634,6 +634,14 @@ void Float32x4ConstructorInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
+void Float32x4ComparisonInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("Float32x4 Comparison %d", op_kind());
+  left()->PrintTo(f);
+  f->Print(", ");
+  right()->PrintTo(f);
+}
+
+
 void BinaryMintOpInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s, ", Token::Str(op_kind()));
   left()->PrintTo(f);
