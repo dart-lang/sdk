@@ -8,6 +8,25 @@ import '../../pkg/unittest/lib/html_config.dart';
 import 'dart:html';
 import 'dart:typed_data';
 
+const N = 1024;
+
+class _TestList {
+  _TestList(int n);
+
+  operator[](int i) => i;
+  operator[]=(int i, v) {}
+}
+
+_obfuscatedList() {
+  var a = new Uint8List(N);
+  var b = new _TestList(N);
+  var k = 0;
+  for (int i = 0; i < 10; ++i) {
+    k += i;
+  }
+  return (k == 45) ? a : b;
+}
+
 main() {
   useHtmlConfiguration();
 
@@ -17,44 +36,42 @@ main() {
   }
 
   test('outOfRangeAccess_dynamic', () {
-      var a = new Uint8List(1024);
+      var a = _obfuscatedList();
 
       expect(() => a[a.length], throws);
       expect(() => a[a.length + 1], throws);
-      expect(() => a[a.length + 1024], throws);
+      expect(() => a[a.length + N], throws);
 
-      // expect(a[-1], isNull);
-      // expect(a[-2], isNull);
-      // expect(a[-1024], isNull);
+      expect(() => a[-1], throws);
+      expect(() => a[1.5], throws);
+      expect(() => a['length'], throws);
 
-      // It's harder to test out of range setters, but let's do some minimum.
-      expect(() => a[a.length] = 0xdeadbeaf, throws);
-      expect(() => a[a.length + 1] = 0xdeadbeaf, throws);
-      expect(() => a[a.length + 1024] = 0xdeadbeaf, throws);
+      expect(() => a[a.length] = 0xdeadbeef, throws);
+      expect(() => a[a.length + 1] = 0xdeadbeef, throws);
+      expect(() => a[a.length + N] = 0xdeadbeef, throws);
 
-      // a[-1] = 0xdeadbeaf;
-      // a[-2] = 0xdeadbeaf;
-      // a[-1024] = 0xdeadbeaf;
+      expect(() => a[-1] = 0xdeadbeef, throws);
+      expect(() => a[1.5] = 0xdeadbeef, throws);
+      expect(() => a['length'] = 1, throws);
   });
 
   test('outOfRange_typed', () {
-      Uint8List a = new Uint8List(1024);
+      Uint8List a = new Uint8List(N);
 
       expect(() => a[a.length], throws);
       expect(() => a[a.length + 1], throws);
-      expect(() => a[a.length + 1024], throws);
+      expect(() => a[a.length + N], throws);
 
-      // expect(a[-1], isNull);
-      // expect(a[-2], isNull);
-      // expect(a[-1024], isNull);
+      expect(() => a[-1], throws);
+      expect(() => a[1.5], throws);
+      expect(() => a['length'], throws);
 
-      // It's harder to test out of range setters, but let's do some minimum.
-      expect(() => a[a.length] = 0xdeadbeaf, throws);
-      expect(() => a[a.length + 1] = 0xdeadbeaf, throws);
-      expect(() => a[a.length + 1024] = 0xdeadbeaf, throws);
+      expect(() => a[a.length] = 0xdeadbeef, throws);
+      expect(() => a[a.length + 1] = 0xdeadbeef, throws);
+      expect(() => a[a.length + N] = 0xdeadbeef, throws);
 
-      // a[-1] = 0xdeadbeaf;
-      // a[-2] = 0xdeadbeaf;
-      // a[-1024] = 0xdeadbeaf;
+      expect(() => a[-1] = 0xdeadbeef, throws);
+      expect(() => a[1.5] = 0xdeadbeef, throws);
+      expect(() => a['length'] = 1, throws);
   });
 }
