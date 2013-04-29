@@ -112,6 +112,7 @@ _html_event_types = monitored.Dict('htmleventgenerator._html_event_types', {
   '*.webkitTransitionEnd': ('transitionEnd', 'TransitionEvent'),
   '*.webkitfullscreenchange': ('fullscreenChange', 'Event'),
   '*.webkitfullscreenerror': ('fullscreenError', 'Event'),
+  'AbstractWorker.error': ('error', 'ErrorEvent'),
   'AudioContext.complete': ('complete', 'Event'),
   'DOMApplicationCache.cached': ('cached', 'Event'),
   'DOMApplicationCache.checking': ('checking', 'Event'),

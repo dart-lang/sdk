@@ -75,7 +75,7 @@ class AbstractWorker extends EventTarget native "AbstractWorker" {
 
   @DomName('AbstractWorker.errorEvent')
   @DocsEditable
-  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+  static const EventStreamProvider<ErrorEvent> errorEvent = const EventStreamProvider<ErrorEvent>('error');
 
   @JSName('addEventListener')
   @DomName('AbstractWorker.addEventListener')
@@ -93,7 +93,7 @@ class AbstractWorker extends EventTarget native "AbstractWorker" {
 
   @DomName('AbstractWorker.onerror')
   @DocsEditable
-  Stream<Event> get onError => errorEvent.forTarget(this);
+  Stream<ErrorEvent> get onError => errorEvent.forTarget(this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
