@@ -845,10 +845,36 @@ class JavaScriptBackend extends Backend {
       Set<ClassElement> result = new Set<ClassElement>();
       for (Element element in intercepted) {
         ClassElement classElement = element.getEnclosingClass();
-        result.add(classElement);
+        if (classElement.isNative()
+            || interceptedClasses.contains(classElement)) {
+          result.add(classElement);
+        }
+        if (classesMixedIntoNativeClasses.contains(classElement)) {
+          Set<ClassElement> nativeSubclasses =
+              nativeSubclassesOfMixin(classElement);
+          if (nativeSubclasses != null) result.addAll(nativeSubclasses);
+        }
       }
       return result;
     });
+  }
+
+  Set<ClassElement> nativeSubclassesOfMixin(ClassElement mixin) {
+    Set<MixinApplicationElement> uses = compiler.world.mixinUses[mixin];
+    if (uses == null) return null;
+    Set<ClassElement> result = null;
+    for (MixinApplicationElement use in uses) {
+      Iterable<ClassElement> subclasses = compiler.world.subclasses[use];
+      if (subclasses != null) {
+        for (ClassElement subclass in subclasses) {
+          if (subclass.isNative()) {
+            if (result == null) result = new Set<ClassElement>();
+            result.add(subclass);
+          }
+        }
+      }
+    }
+    return result;
   }
 
   bool operatorEqHandlesNullArgument(FunctionElement operatorEqfunction) {
