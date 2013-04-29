@@ -18,7 +18,7 @@ class Tupe {
 class Node {
   final selector = null;
   var inputs = {"a": const Tupe(), "b": const Tupe() };
-  bool isCallOnInterceptor;
+  bool isCallOnInterceptor = false;
 
   getDartReceiver() {
     return isCallOnInterceptor ? inputs["a"] : inputs["b"];
