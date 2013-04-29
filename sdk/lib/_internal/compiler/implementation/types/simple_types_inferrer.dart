@@ -829,6 +829,11 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
                              ArgumentsTypes arguments,
                              Selector constraint,
                              bool inLoop) {
+    // Bailout for closure calls. We're not tracking types of
+    // arguments for closures.
+    if (callee.isInstanceMember() && selector.isClosureCall()) {
+      return;
+    }
     if (inLoop) {
       // For instance methods, we only register a selector called in a
       // loop if it is a typed selector, to avoid marking too many

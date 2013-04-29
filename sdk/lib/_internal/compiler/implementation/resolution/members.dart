@@ -1079,7 +1079,7 @@ class InitializerResolver {
     // Resolve the selector and the arguments.
     ResolverTask resolver = visitor.compiler.resolver;
     visitor.inStaticContext(() {
-      visitor.resolveSelector(call);
+      visitor.resolveSelector(call, null);
       visitor.resolveArguments(call.argumentsNode);
     });
     Selector selector = visitor.mapping.getSelector(call);
@@ -1997,7 +1997,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
   }
 
   Element resolveSend(Send node) {
-    Selector selector = resolveSelector(node);
+    Selector selector = resolveSelector(node, null);
     if (node.isSuperCall) mapping.superUses.add(node);
 
     if (node.receiver == null) {
@@ -2120,7 +2120,9 @@ class ResolverVisitor extends MappingVisitor<Element> {
     return resolveTypeRequired(node);
   }
 
-  static Selector computeSendSelector(Send node, LibraryElement library) {
+  static Selector computeSendSelector(Send node,
+                                      LibraryElement library,
+                                      Element element) {
     // First determine if this is part of an assignment.
     bool isSet = node.asSendSet() != null;
 
@@ -2169,15 +2171,20 @@ class ResolverVisitor extends MappingVisitor<Element> {
       arity++;
     }
 
+    if (element != null && element.isConstructor()) {
+      return new Selector.callConstructor(
+          element.name, library, arity, named);
+    }
+
     // If we're invoking a closure, we do not have an identifier.
     return (identifier == null)
         ? new Selector.callClosure(arity, named)
         : new Selector.call(identifier.source, library, arity, named);
   }
 
-  Selector resolveSelector(Send node) {
+  Selector resolveSelector(Send node, Element element) {
     LibraryElement library = enclosingElement.getLibrary();
-    Selector selector = computeSendSelector(node, library);
+    Selector selector = computeSendSelector(node, library, element);
     if (selector != null) mapping.setSelector(node, selector);
     return selector;
   }
@@ -2558,7 +2565,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
           node.newToken, MessageKind.NON_CONST_BLOAT,
           {'name': compiler.symbolClass.name});
     }
-    resolveSelector(node.send);
+    resolveSelector(node.send, constructor);
     resolveArguments(node.send.argumentsNode);
     useElement(node.send, constructor);
     if (Elements.isUnresolved(constructor)) return constructor;

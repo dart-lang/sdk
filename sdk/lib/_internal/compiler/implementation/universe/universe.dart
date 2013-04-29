@@ -175,12 +175,14 @@ class Selector {
              selector.argumentCount, selector.namedArguments);
 
   Selector.callConstructor(SourceString constructorName,
-                           LibraryElement library)
+                           LibraryElement library,
+                           [int arity = 0,
+                            List<SourceString> named = const []])
       : this(SelectorKind.CALL,
              constructorName,
              library,
-             0,
-             const []);
+             arity,
+             named);
 
   Selector.callDefaultConstructor(LibraryElement library)
       : this(SelectorKind.CALL, const SourceString(""), library, 0, const []);
