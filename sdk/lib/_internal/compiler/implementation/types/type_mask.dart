@@ -435,23 +435,12 @@ class TypeMask {
           || compiler.world.hasAnySubclassThatMixes(self, other);
     } else {
       assert(isSubtype);
-      if (other.implementsInterface(self)
+      return hasElementIn(self, selector, element)
+          || other.implementsInterface(self)
           || other.isSubclassOf(self)
           || compiler.world.hasAnySubclassThatMixes(self, other)
-          || compiler.world.hasAnySubclassThatImplements(other, base)) {
-        return true;
-      }
-
-      // If [self] is a subclass of [other], it inherits the
-      // implementation of [element].
-      ClassElement cls = self;
-      if (cls.isSubclassOf(other)) {
-        // Resolve an invocation of [element.name] on [self]. If it
-        // is found, this selector is a candidate.
-        return hasElementIn(cls, selector, element);
-      }
+          || compiler.world.hasAnySubclassThatImplements(other, base);
     }
-    return false;
   }
 
   /**
