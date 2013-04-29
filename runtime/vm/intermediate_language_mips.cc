@@ -859,25 +859,192 @@ void LoadUntaggedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 CompileType LoadIndexedInstr::ComputeType() const {
-  UNIMPLEMENTED();
-  return CompileType::Dynamic();
+  switch (class_id_) {
+    case kArrayCid:
+    case kImmutableArrayCid:
+      return CompileType::Dynamic();
+
+    case kTypedDataFloat32ArrayCid:
+    case kTypedDataFloat64ArrayCid:
+      return CompileType::FromCid(kDoubleCid);
+    case kTypedDataFloat32x4ArrayCid:
+      return CompileType::FromCid(kFloat32x4Cid);
+
+    case kTypedDataInt8ArrayCid:
+    case kTypedDataUint8ArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
+    case kExternalTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid:
+    case kTypedDataInt16ArrayCid:
+    case kTypedDataUint16ArrayCid:
+    case kOneByteStringCid:
+    case kTwoByteStringCid:
+      return CompileType::FromCid(kSmiCid);
+
+    case kTypedDataInt32ArrayCid:
+    case kTypedDataUint32ArrayCid:
+      // Result can be Smi or Mint when boxed.
+      // Instruction can deoptimize if we optimistically assumed that the result
+      // fits into Smi.
+      return CanDeoptimize() ? CompileType::FromCid(kSmiCid)
+                             : CompileType::Int();
+
+    default:
+      UNIMPLEMENTED();
+      return CompileType::Dynamic();
+  }
 }
 
 
 Representation LoadIndexedInstr::representation() const {
-  UNIMPLEMENTED();
-  return kTagged;
+  switch (class_id_) {
+    case kArrayCid:
+    case kImmutableArrayCid:
+    case kTypedDataInt8ArrayCid:
+    case kTypedDataUint8ArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
+    case kExternalTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid:
+    case kTypedDataInt16ArrayCid:
+    case kTypedDataUint16ArrayCid:
+    case kOneByteStringCid:
+    case kTwoByteStringCid:
+      return kTagged;
+    case kTypedDataInt32ArrayCid:
+    case kTypedDataUint32ArrayCid:
+      // Instruction can deoptimize if we optimistically assumed that the result
+      // fits into Smi.
+      return CanDeoptimize() ? kTagged : kUnboxedMint;
+    case kTypedDataFloat32ArrayCid:
+    case kTypedDataFloat64ArrayCid:
+      return kUnboxedDouble;
+    case kTypedDataFloat32x4ArrayCid:
+      return kUnboxedFloat32x4;
+    default:
+      UNIMPLEMENTED();
+      return kTagged;
+  }
 }
 
 
 LocationSummary* LoadIndexedInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  locs->set_in(0, Location::RequiresRegister());
+  // The smi index is either untagged (element size == 1), or it is left smi
+  // tagged (for all element sizes > 1).
+  // TODO(regis): Revisit and see if the index can be immediate.
+  locs->set_in(1, Location::WritableRegister());
+  if (representation() == kUnboxedDouble) {
+    locs->set_out(Location::RequiresFpuRegister());
+  } else {
+    locs->set_out(Location::RequiresRegister());
+  }
+  return locs;
 }
 
 
 void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register array = locs()->in(0).reg();
+  Location index = locs()->in(1);
+
+  Address element_address(kNoRegister, 0);
+  if (IsExternal()) {
+    UNIMPLEMENTED();
+  } else {
+    ASSERT(this->array()->definition()->representation() == kTagged);
+    ASSERT(index.IsRegister());  // TODO(regis): Revisit.
+    // Note that index is expected smi-tagged, (i.e, times 2) for all arrays
+    // with index scale factor > 1. E.g., for Uint8Array and OneByteString the
+    // index is expected to be untagged before accessing.
+    ASSERT(kSmiTagShift == 1);
+    switch (index_scale()) {
+      case 1: {
+        __ SmiUntag(index.reg());
+        break;
+      }
+      case 2: {
+        break;
+      }
+      case 4: {
+        __ sll(index.reg(), index.reg(), 1);
+        break;
+      }
+      case 8: {
+        __ sll(index.reg(), index.reg(), 2);
+        break;
+      }
+      case 16: {
+        __ sll(index.reg(), index.reg(), 3);
+        break;
+      }
+      default:
+        UNREACHABLE();
+    }
+    __ AddImmediate(index.reg(),
+        FlowGraphCompiler::DataOffsetFor(class_id()) - kHeapObjectTag);
+    element_address = Address(array, index.reg());
+  }
+
+  if ((representation() == kUnboxedDouble) ||
+      (representation() == kUnboxedMint) ||
+      (representation() == kUnboxedFloat32x4)) {
+    UNIMPLEMENTED();
+  }
+
+  Register result = locs()->out().reg();
+  if ((index_scale() == 1) && index.IsRegister()) {
+    __ SmiUntag(index.reg());
+  }
+  switch (class_id()) {
+    case kTypedDataInt8ArrayCid:
+      ASSERT(index_scale() == 1);
+      __ lb(result, element_address);
+      __ SmiTag(result);
+      break;
+    case kTypedDataUint8ArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
+    case kExternalTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid:
+    case kOneByteStringCid:
+      ASSERT(index_scale() == 1);
+      __ lbu(result, element_address);
+      __ SmiTag(result);
+      break;
+    case kTypedDataInt16ArrayCid:
+      __ lh(result, element_address);
+      __ SmiTag(result);
+      break;
+    case kTypedDataUint16ArrayCid:
+    case kTwoByteStringCid:
+      __ lhu(result, element_address);
+      __ SmiTag(result);
+      break;
+    case kTypedDataInt32ArrayCid: {
+        Label* deopt = compiler->AddDeoptStub(deopt_id(), kDeoptInt32Load);
+        __ lw(result, element_address);
+        // Verify that the signed value in 'result' can fit inside a Smi.
+        __ BranchLess(result, 0xC0000000, deopt);
+        __ SmiTag(result);
+      }
+      break;
+    case kTypedDataUint32ArrayCid: {
+        Label* deopt = compiler->AddDeoptStub(deopt_id(), kDeoptUint32Load);
+        __ lw(result, element_address);
+        // Verify that the unsigned value in 'result' can fit inside a Smi.
+        __ LoadImmediate(TMP1, 0xC0000000);
+        __ and_(CMPRES, result, TMP1);
+        __ bne(CMPRES, ZR, deopt);
+        __ SmiTag(result);
+      }
+      break;
+    default:
+      ASSERT((class_id() == kArrayCid) || (class_id() == kImmutableArrayCid));
+      __ lw(result, element_address);
+      break;
+  }
 }
 
 
@@ -2034,13 +2201,56 @@ void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* CheckClassInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  if (!null_check()) {
+    summary->AddTemp(Location::RequiresRegister());
+  }
+  return summary;
 }
 
 
 void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  if (null_check()) {
+    Label* deopt = compiler->AddDeoptStub(deopt_id(),
+                                          kDeoptCheckClass);
+    __ BranchEqual(locs()->in(0).reg(),
+                  reinterpret_cast<intptr_t>(Object::null()), deopt);
+    return;
+  }
+
+  ASSERT((unary_checks().GetReceiverClassIdAt(0) != kSmiCid) ||
+         (unary_checks().NumberOfChecks() > 1));
+  Register value = locs()->in(0).reg();
+  Register temp = locs()->temp(0).reg();
+  Label* deopt = compiler->AddDeoptStub(deopt_id(),
+                                        kDeoptCheckClass);
+  Label is_ok;
+  intptr_t cix = 0;
+  if (unary_checks().GetReceiverClassIdAt(cix) == kSmiCid) {
+    __ andi(CMPRES, value, Immediate(kSmiTagMask));
+    __ beq(CMPRES, ZR, &is_ok);
+    cix++;  // Skip first check.
+  } else {
+    __ andi(CMPRES, value, Immediate(kSmiTagMask));
+    __ beq(CMPRES, ZR, deopt);
+  }
+  __ LoadClassId(temp, value);
+  const intptr_t num_checks = unary_checks().NumberOfChecks();
+  for (intptr_t i = cix; i < num_checks; i++) {
+    ASSERT(unary_checks().GetReceiverClassIdAt(i) != kSmiCid);
+    __ LoadImmediate(TMP1, unary_checks().GetReceiverClassIdAt(i));
+    __ subu(CMPRES, temp, TMP1);
+    if (i == (num_checks - 1)) {
+      __ bne(CMPRES, ZR, deopt);
+    } else {
+      __ beq(CMPRES, ZR, &is_ok);
+    }
+  }
+  __ Bind(&is_ok);
 }
 
 
@@ -2065,13 +2275,43 @@ void CheckSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* CheckArrayBoundInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  locs->set_in(0, Location::RegisterOrSmiConstant(length()));
+  locs->set_in(1, Location::RegisterOrSmiConstant(index()));
+  return locs;
 }
 
 
 void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Label* deopt = compiler->AddDeoptStub(deopt_id(),
+                                        kDeoptCheckArrayBound);
+  if (locs()->in(0).IsConstant() && locs()->in(1).IsConstant()) {
+    // Unconditionally deoptimize for constant bounds checks because they
+    // only occur only when index is out-of-bounds.
+    __ b(deopt);
+    return;
+  }
+
+  if (locs()->in(1).IsConstant()) {
+    Register length = locs()->in(0).reg();
+    const Object& constant = locs()->in(1).constant();
+    ASSERT(constant.IsSmi());
+    __ BranchLessEqual(length, reinterpret_cast<int32_t>(constant.raw()),
+                      deopt);
+  } else if (locs()->in(0).IsConstant()) {
+    ASSERT(locs()->in(0).constant().IsSmi());
+    const Smi& smi_const = Smi::Cast(locs()->in(0).constant());
+    Register index = locs()->in(1).reg();
+    __ BranchGreaterEqual(index, reinterpret_cast<int32_t>(smi_const.raw()),
+                          deopt);
+  } else {
+    Register length = locs()->in(0).reg();
+    Register index = locs()->in(1).reg();
+    __ BranchGreaterEqual(index, length, deopt);
+  }
 }
 
 

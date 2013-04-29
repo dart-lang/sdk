@@ -341,13 +341,129 @@ void StubCode::GenerateInstanceFunctionLookupStub(Assembler* assembler) {
 }
 
 
+DECLARE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
+                           intptr_t deopt_reason,
+                           uword saved_registers_address);
+
+DECLARE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp);
+
+
+// Used by eager and lazy deoptimization. Preserve result in V0 if necessary.
+// This stub translates optimized frame into unoptimized frame. The optimized
+// frame can contain values in registers and on stack, the unoptimized
+// frame contains all values on stack.
+// Deoptimization occurs in following steps:
+// - Push all registers that can contain values.
+// - Call C routine to copy the stack and saved registers into temporary buffer.
+// - Adjust caller's frame to correct unoptimized frame size.
+// - Fill the unoptimized frame.
+// - Materialize objects that require allocation (e.g. Double instances).
+// GC can occur only after frame is fully rewritten.
+// Stack after EnterFrame(...) below:
+//   +------------------+
+//   | Saved FP         | <- TOS
+//   +------------------+
+//   | return-address   |  (deoptimization point)
+//   +------------------+
+//   | optimized frame  |
+//   |  ...             |
+//
+// Parts of the code cannot GC, part of the code can GC.
+static void GenerateDeoptimizationSequence(Assembler* assembler,
+                                           bool preserve_result) {
+  const intptr_t kPushedRegistersSize =
+      kNumberOfCpuRegisters * kWordSize +
+      2 * kWordSize +  // FP and RA.
+      kNumberOfFRegisters * kWordSize;
+
+  __ addiu(SP, SP, Immediate(-kPushedRegistersSize * kWordSize));
+  __ sw(RA, Address(SP, kPushedRegistersSize - 1 * kWordSize));
+  __ sw(FP, Address(SP, kPushedRegistersSize - 2 * kWordSize));
+  __ addiu(FP, SP, Immediate(kPushedRegistersSize - 2 * kWordSize));
+
+
+  // The code in this frame may not cause GC. kDeoptimizeCopyFrameRuntimeEntry
+  // and kDeoptimizeFillFrameRuntimeEntry are leaf runtime calls.
+  const intptr_t saved_v0_offset_from_fp = -(kNumberOfCpuRegisters - V0);
+  // Result in V0 is preserved as part of pushing all registers below.
+
+  // Push registers in their enumeration order: lowest register number at
+  // lowest address.
+  for (int i = 0; i < kNumberOfCpuRegisters; i++) {
+    const int slot = 2 + kNumberOfCpuRegisters - i;
+    Register reg = static_cast<Register>(i);
+    __ sw(reg, Address(SP, kPushedRegistersSize - slot * kWordSize));
+  }
+  for (int i = 0; i < kNumberOfFRegisters; i++) {
+    // These go below the CPU registers.
+    const int slot = 2 + kNumberOfCpuRegisters + kNumberOfFRegisters - i;
+    FRegister reg = static_cast<FRegister>(i);
+    __ swc1(reg, Address(SP, kPushedRegistersSize - slot * kWordSize));
+  }
+
+  __ mov(A0, SP);  // Pass address of saved registers block.
+  __ ReserveAlignedFrameSpace(0);
+  __ CallRuntime(kDeoptimizeCopyFrameRuntimeEntry);
+  // Result (V0) is stack-size (FP - SP) in bytes, incl. the return address.
+
+  if (preserve_result) {
+    // Restore result into T1 temporarily.
+    __ lw(T1, Address(FP, saved_v0_offset_from_fp * kWordSize));
+  }
+
+  __ mov(SP, FP);
+  __ lw(FP, Address(SP, 0 * kWordSize));
+  __ lw(RA, Address(SP, 1 * kWordSize));
+  __ addiu(SP, SP, Immediate(2 * kWordSize));
+
+  __ subu(SP, FP, V0);
+
+  __ addiu(SP, SP, Immediate(-2 * kWordSize));
+  __ sw(RA, Address(SP, 1 * kWordSize));
+  __ sw(FP, Address(SP, 0 * kWordSize));
+  __ mov(FP, SP);
+
+  __ mov(A0, SP);  // Get last FP address.
+  if (preserve_result) {
+    __ Push(T1);  // Preserve result.
+  }
+  __ ReserveAlignedFrameSpace(0);
+  __ CallRuntime(kDeoptimizeFillFrameRuntimeEntry);  // Pass last FP in A0.
+  // Result (V0) is our FP.
+  if (preserve_result) {
+    // Restore result into T1.
+    __ lw(T1, Address(FP, -1 * kWordSize));
+  }
+  // Code above cannot cause GC.
+  __ mov(SP, FP);
+  __ lw(FP, Address(SP, 0 * kWordSize));
+  __ lw(RA, Address(SP, 1 * kWordSize));
+  __ addiu(SP, SP, Immediate(2 * kWordSize));
+  __ mov(FP, V0);
+
+  // Frame is fully rewritten at this point and it is safe to perform a GC.
+  // Materialize any objects that were deferred by FillFrame because they
+  // require allocation.
+  __ EnterStubFrame();
+  if (preserve_result) {
+    __ Push(T1);  // Preserve result, it will be GC-d here.
+  }
+  __ CallRuntime(kDeoptimizeMaterializeDoublesRuntimeEntry);
+  if (preserve_result) {
+    __ Pop(V0);  // Restore result.
+  }
+  __ LeaveStubFrame();
+  __ Ret();
+}
+
+
 void StubCode::GenerateDeoptimizeLazyStub(Assembler* assembler) {
   __ Unimplemented("DeoptimizeLazy stub");
 }
 
 
 void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
-  __ Unimplemented("Deoptimize stub");
+  GenerateDeoptimizationSequence(assembler, false);  // Don't preserve V0.
 }
 
 
@@ -1261,8 +1377,40 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
 }
 
 
+//  T0: function object.
+//  S5: inline cache data object.
+//  S4: arguments descriptor array.
 void StubCode::GenerateOptimizedUsageCounterIncrement(Assembler* assembler) {
-  __ Unimplemented("OptimizedUsageCounterIncrement stub");
+  __ TraceSimMsg("OptimizedUsageCounterIncrement");
+  Register ic_reg = S5;
+  Register func_reg = T0;
+  if (FLAG_trace_optimized_ic_calls) {
+    __ EnterStubFrame();
+    __ addiu(SP, SP, Immediate(-5 * kWordSize));
+    __ sw(T0, Address(SP, 4 * kWordSize));
+    __ sw(S5, Address(SP, 3 * kWordSize));
+    __ sw(S4, Address(SP, 2 * kWordSize));  // Preserve.
+    __ sw(ic_reg, Address(SP, 1 * kWordSize));  // Argument.
+    __ sw(func_reg, Address(SP, 0 * kWordSize));  // Argument.
+    __ CallRuntime(kTraceICCallRuntimeEntry);
+    __ lw(S4, Address(SP, 2 * kWordSize));  // Restore.
+    __ lw(S5, Address(SP, 3 * kWordSize));
+    __ lw(T0, Address(SP, 4 * kWordSize));
+    __ addiu(SP, SP, Immediate(5 * kWordSize));  // Discard argument;
+    __ LeaveStubFrame();
+  }
+  __ lw(T7, FieldAddress(func_reg, Function::usage_counter_offset()));
+  Label is_hot;
+  if (FlowGraphCompiler::CanOptimize()) {
+    ASSERT(FLAG_optimization_counter_threshold > 1);
+    __ BranchGreaterEqual(T7, FLAG_optimization_counter_threshold, &is_hot);
+    // As long as VM has no OSR do not optimize in the middle of the function
+    // but only at exit so that we have collected all type feedback before
+    // optimizing.
+  }
+  __ addiu(T7, T7, Immediate(1));
+  __ sw(T7, FieldAddress(func_reg, Function::usage_counter_offset()));
+  __ Bind(&is_hot);
 }
 
 
