@@ -1865,8 +1865,15 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   visitExpressionStatement(ExpressionStatement node) {
     assert(isReachable);
-    visit(node.expression);
-    pop();
+    Throw throwExpression = node.expression.asThrow();
+    if (throwExpression != null && inliningStack.isEmpty) {
+      visit(throwExpression.expression);
+      handleInTryStatement();
+      closeAndGotoExit(new HThrow(pop()));
+    } else {
+      visit(node.expression);
+      pop();
+    }
   }
 
   /**
