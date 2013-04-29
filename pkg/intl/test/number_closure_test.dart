@@ -90,20 +90,20 @@ void testNegativePercentage() {
 
 void testCustomPercentage() {
   var fmt = new NumberFormat.percentPattern();
-  fmt.setMaximumFractionDigits(1);
-  fmt.setMinimumFractionDigits(1);
+  fmt.maximumFractionDigits = 1;
+  fmt.minimumFractionDigits = 1;
   var str = fmt.format(0.1291);
   expect('12.9%', str);
-  fmt.setMaximumFractionDigits(2);
-  fmt.setMinimumFractionDigits(1);
+  fmt.maximumFractionDigits = 2;
+  fmt.minimumFractionDigits = 1;
   str = fmt.format(0.129);
   expect('12.9%', str);
-  fmt.setMaximumFractionDigits(2);
-  fmt.setMinimumFractionDigits(1);
+  fmt.maximumFractionDigits = 2;
+  fmt.minimumFractionDigits = 1;
   str = fmt.format(0.12);
   expect('12.0%', str);
-  fmt.setMaximumFractionDigits(2);
-  fmt.setMinimumFractionDigits(1);
+  fmt.maximumFractionDigits = 2;
+  fmt.minimumFractionDigits = 1;
   str = fmt.format(0.12911);
   expect('12.91%', str);
 }

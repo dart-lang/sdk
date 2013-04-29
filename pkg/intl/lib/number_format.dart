@@ -8,18 +8,18 @@ part of intl;
  * format is specified as a pattern using a subset of the ICU formatting
  * patterns.
  *
- * 0 - A single digit
- * # - A single digit, omitted if the value is zero
- * . - Decimal separator
- * - - Minus sign
- * , - Grouping separator
- * E - Separates mantissa and expontent
- * + - Before an exponent, indicates it should be prefixed with a plus sign.
- * % - In prefix or suffix, multiply by 100 and show as percentage
- * \u2030 - In prefix or suffix, multiply by 1000 and show as per mille
- * \u00A4 - Currency sign, replaced by currency name
- * ' - Used to quote special characters
- * ; - Used to separate the positive and negative patterns if both are present
+ * - `0` A single digit
+ * - `#` A single digit, omitted if the value is zero
+ * - `.` Decimal separator
+ * - `-` Minus sign
+ * - `,` Grouping separator
+ * - `E` Separates mantissa and expontent
+ * - `+` - Before an exponent, indicates it should be prefixed with a plus sign.
+ * - `%` - In prefix or suffix, multiply by 100 and show as percentage
+ * - `‰ (\u2030)` In prefix or suffix, multiply by 1000 and show as per mille
+ * - `¤ (\u00A4)` Currency sign, replaced by currency name
+ * - `'` Used to quote special characters
+ * - `;` Used to separate the positive and negative patterns if both are present
  *
  * For example,
  *       var f = new NumberFormat("###.0#", "en_US");
@@ -32,7 +32,7 @@ part of intl;
  * There are also standard patterns available via the special constructors. e.g.
  *       var symbols = new NumberFormat.percentFormat("ar");
  * There are four such constructors: decimalFormat, percentFormat,
- * scientificFormat and currencyForamt. However, at the moment,
+ * scientificFormat and currencyFormat. However, at the moment,
  * scientificFormat prints only as equivalent to "#E0" and does not take
  * into account significant digits. currencyFormat will always use the name
  * of the currency rather than the symbol.
@@ -55,11 +55,11 @@ class NumberFormat {
   bool _useSignForPositiveExponent = false;
   bool _useExponentialNotation = false;
 
-  int _maximumIntegerDigits = 40;
-  int _minimumIntegerDigits = 1;
-  int _maximumFractionDigits = 3;
-  int _minimumFractionDigits = 0;
-  int _minimumExponentDigits = 0;
+  int maximumIntegerDigits = 40;
+  int minimumIntegerDigits = 1;
+  int maximumFractionDigits = 3;
+  int minimumFractionDigits = 0;
+  int minimumExponentDigits = 0;
 
   int _multiplier = 1;
 
@@ -68,41 +68,6 @@ class NumberFormat {
    * is helpful in debugging.
    */
   String _pattern;
-  /**
-   * Set the maximum digits printed to the left of the decimal point.
-   * Normally this is computed from the pattern, but it's exposed here for
-   * testing purposes and for rare cases where you want to force it explicitly.
-   */
-  void setMaximumIntegerDigits(int max) {
-    _maximumIntegerDigits = max;
-  }
-
-  /**
-   * Set the minimum number of digits printed to the left of the decimal point.
-   * Normally this is computed from the pattern, but it's exposed here for
-   * testing purposes and for rare cases where you want to force it explicitly.
-   */
-  void setMinimumIntegerDigits(int min) {
-    _minimumIntegerDigits = min;
-  }
-
-  /**
-   * Set the maximum number of digits printed to the right of the decimal point.
-   * Normally this is computed from the pattern, but it's exposed here for
-   * testing purposes and for rare cases where you want to force it explicitly.
-   */
-  void setMaximumFractionDigits(int max) {
-    _maximumFractionDigits = max;
-  }
-
-  /**
-   * Set the minimum digits printed to the left of the decimal point.
-   * Normally this is computed from the pattern, but it's exposed here for
-   * testing purposes and for rare cases where you want to force it explicitly.
-   */
-  void setMinimumFractionDigits(int max) {
-    _minimumFractionDigits = max;
-  }
 
   /** The locale in which we print numbers. */
   final String _locale;
@@ -216,27 +181,27 @@ class NumberFormat {
     var exponent = (log(number) / log(10)).floor();
     var mantissa = number / pow(10.0, exponent);
 
-    var minIntDigits = _minimumIntegerDigits;
-    if (_maximumIntegerDigits > 1 &&
-        _maximumIntegerDigits > _minimumIntegerDigits) {
+    var minIntDigits = minimumIntegerDigits;
+    if (maximumIntegerDigits > 1 &&
+        maximumIntegerDigits > minimumIntegerDigits) {
       // A repeating range is defined; adjust to it as follows.
       // If repeat == 3, we have 6,5,4=>3; 3,2,1=>0; 0,-1,-2=>-3;
       // -3,-4,-5=>-6, etc. This takes into account that the
       // exponent we have here is off by one from what we expect;
       // it is for the format 0.MMMMMx10^n.
-      while ((exponent % _maximumIntegerDigits) != 0) {
+      while ((exponent % maximumIntegerDigits) != 0) {
         mantissa *= 10;
         exponent--;
       }
       minIntDigits = 1;
     } else {
       // No repeating range is defined, use minimum integer digits.
-      if (_minimumIntegerDigits < 1) {
+      if (minimumIntegerDigits < 1) {
         exponent++;
         mantissa /= 10;
       } else {
-        exponent -= _minimumIntegerDigits - 1;
-        mantissa *= pow(10, _minimumIntegerDigits - 1);
+        exponent -= minimumIntegerDigits - 1;
+        mantissa *= pow(10, minimumIntegerDigits - 1);
       }
     }
     _formatFixed(mantissa);
@@ -254,7 +219,7 @@ class NumberFormat {
     } else if (_useSignForPositiveExponent) {
       _add(symbols.PLUS_SIGN);
     }
-    _pad(_minimumExponentDigits, exponent.toString());
+    _pad(minimumExponentDigits, exponent.toString());
   }
 
   /** Used to test if we have exceeded Javascript integer limits. */
@@ -265,7 +230,7 @@ class NumberFormat {
    */
   void _formatFixed(num number) {
     // Very fussy math to get integer and fractional parts.
-    var power = pow(10, _maximumFractionDigits);
+    var power = pow(10, maximumFractionDigits);
     var shiftedNumber = (number * power);
     // We must not roundToDouble() an int or it will lose precision. We must not
     // round() a large double or it will take its loss of precision and
@@ -283,7 +248,7 @@ class NumberFormat {
       intValue = shiftedNumber.round() ~/ power;
       fracValue = (shiftedNumber - intValue * power).floor();
     }
-    var fractionPresent = _minimumFractionDigits > 0 || fracValue > 0;
+    var fractionPresent = minimumFractionDigits > 0 || fracValue > 0;
 
     // If the int part is larger than 2^52 and we're on Javascript (so it's
     // really a float) it will lose precision, so pad out the rest of it
@@ -301,7 +266,7 @@ class NumberFormat {
     var digitLength = integerDigits.length;
 
     if (_hasPrintableIntegerPart(intValue)) {
-      _pad(_minimumIntegerDigits - digitLength);
+      _pad(minimumIntegerDigits - digitLength);
       for (var i = 0; i < digitLength; i++) {
         _addDigit(integerDigits[i]);
         _group(digitLength, i);
@@ -322,7 +287,7 @@ class NumberFormat {
     var fractionCodes = fractionPart.codeUnits;
     var fractionLength = fractionPart.length;
     while(fractionCodes[fractionLength - 1] == _zero &&
-           fractionLength > _minimumFractionDigits + 1) {
+           fractionLength > minimumFractionDigits + 1) {
       fractionLength--;
     }
     for (var i = 1; i < fractionLength; i++) {
@@ -343,7 +308,7 @@ class NumberFormat {
    * a minimum number of printable digits greater than 1.
    */
   bool _hasPrintableIntegerPart(int intValue) {
-    return intValue > 0 || _minimumIntegerDigits > 0;
+    return intValue > 0 || minimumIntegerDigits > 0;
   }
 
   /**
@@ -607,13 +572,13 @@ class _NumberFormatParser {
     }
     var totalDigits = digitLeftCount + zeroDigitCount + digitRightCount;
 
-    format._maximumFractionDigits =
+    format.maximumFractionDigits =
         decimalPos >= 0 ? totalDigits - decimalPos : 0;
     if (decimalPos >= 0) {
-      format._minimumFractionDigits =
+      format.minimumFractionDigits =
           digitLeftCount + zeroDigitCount - decimalPos;
-      if (format._minimumFractionDigits < 0) {
-        format._minimumFractionDigits = 0;
+      if (format.minimumFractionDigits < 0) {
+        format.minimumFractionDigits = 0;
       }
     }
 
@@ -621,15 +586,15 @@ class _NumberFormatParser {
     // if there is no decimal. Note that if decimalPos<0, then digitTotalCount
     // == digitLeftCount + zeroDigitCount.
     var effectiveDecimalPos = decimalPos >= 0 ? decimalPos : totalDigits;
-    format._minimumIntegerDigits = effectiveDecimalPos - digitLeftCount;
+    format.minimumIntegerDigits = effectiveDecimalPos - digitLeftCount;
     if (format._useExponentialNotation) {
-      format._maximumIntegerDigits =
-          digitLeftCount + format._minimumIntegerDigits;
+      format.maximumIntegerDigits =
+          digitLeftCount + format.minimumIntegerDigits;
 
       // In exponential display, we need to at least show something.
-      if (format._maximumFractionDigits == 0 &&
-          format._minimumIntegerDigits == 0) {
-        format._minimumIntegerDigits = 1;
+      if (format.maximumFractionDigits == 0 &&
+          format.minimumIntegerDigits == 0) {
+        format.minimumIntegerDigits = 1;
       }
     }
 
@@ -685,7 +650,7 @@ class _NumberFormatParser {
               'Multiple exponential symbols in pattern "$pattern"');
         }
         format._useExponentialNotation = true;
-        format._minimumExponentDigits = 0;
+        format.minimumExponentDigits = 0;
 
         // exponent pattern can have a optional '+'.
         pattern.moveNext();
@@ -701,11 +666,11 @@ class _NumberFormatParser {
         while (pattern.current == _PATTERN_ZERO_DIGIT) {
           trunk.write(pattern.current);
           pattern.moveNext();
-          format._minimumExponentDigits++;
+          format.minimumExponentDigits++;
         }
 
         if ((digitLeftCount + zeroDigitCount) < 1 ||
-            format._minimumExponentDigits < 1) {
+            format.minimumExponentDigits < 1) {
           throw new FormatException(
               'Malformed exponential pattern "$pattern"');
         }
