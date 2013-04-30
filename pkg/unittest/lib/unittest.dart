@@ -167,8 +167,9 @@
 library unittest;
 
 import 'dart:async';
-import 'dart:isolate';
 import 'dart:collection';
+import 'dart:isolate';
+import 'dart:math' show max;
 import 'matcher.dart';
 export 'matcher.dart';
 
@@ -181,8 +182,17 @@ part 'src/test_case.dart';
 
 Configuration _config;
 
-/** [Configuration] used by the unittest library. */
-Configuration get unittestConfiguration => _config;
+/**
+ * [Configuration] used by the unittest library. Note that if a 
+ * configuration has not been set, calling this getter will create
+ * a default configuration.
+ */
+Configuration get unittestConfiguration {
+  if (_config == null) {
+    _config = new Configuration();
+  }
+  return _config;
+}
 
 /**
  * Sets the [Configuration] used by the unittest library.
@@ -820,10 +830,7 @@ void _ensureInitialized(bool configAutoStart) {
 
   _uncaughtErrorMessage = null;
 
-  if (_config == null) {
-    unittestConfiguration = new Configuration();
-  }
-  _config.onInit();
+  unittestConfiguration.onInit();
 
   if (configAutoStart && _config.autoStart) {
     // Immediately queue the suite up. It will run after a timeout (i.e. after
@@ -859,3 +866,80 @@ void disableTest(int testId) => _setTestEnabledState(testId, false);
 
 /** Signature for a test function. */
 typedef dynamic TestFunction();
+
+// Stack formatting utility. Strips extraneous content from a stack trace.
+// Stack frame lines are parsed with a regexp, which has been tested
+// in Chrome, Firefox and the VM. If a line fails to be parsed it is 
+// included in the output to be conservative.
+//
+// The output stack consists of everything after the call to TestCase._run.
+// If we see an 'expect' in the frame we will prune everything above that
+// as well.
+final _frameRegExp = new RegExp(
+    r'^\s*' // Skip leading spaces.
+    r'(?:'  // Group of choices for the prefix.
+      r'(?:#\d+\s*)|' // Skip VM's #<frameNumber>.
+      r'(?:at )|'     // Skip Firefox's 'at '.
+      r'(?:))'        // Other environments have nothing here.
+    r'(.+)'           // Extract the function/method.
+    r'\s*[@\(]'       // Skip space and @ or (.
+    r'('              // This group of choices is for the source file.
+      r'(?:.+:\/\/.+\/[^:]*)|' // Handle file:// or http:// URLs.
+      r'(?:dart:[^:]*)|'  // Handle dart:<lib>.
+      r'(?:package:[^:]*)' // Handle package:<path>
+    r'):([:\d]+)[\)]?$'); // Get the line number and optional column number.
+
+String _formatStack(stack) {
+  var lines;
+  if (stack is StackTrace) {
+    lines = stack.toString().split('\n');
+  } else if (stack is String) {
+    lines = stack.split('\n');
+  } else {
+    return stack.toString();
+  }
+ 
+  // Calculate the max width of first column so we can 
+  // pad to align the second columns.
+  int padding = lines.fold(0, (n, line) {
+    var match = _frameRegExp.firstMatch(line);
+    if (match == null) return n;
+    return max(n, match[1].length + 1);
+  });
+
+  // We remove all entries that have a location in unittest.
+  // We strip out anything before _nextBatch too.
+  var sb = new StringBuffer();
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i];
+    if (line == '') continue;
+    var match = _frameRegExp.firstMatch(line);
+    if (match == null) {
+      sb.write(line);
+      sb.write('\n');
+    } else {
+      var member = match[1];
+      var location = match[2];
+      var position = match[3];
+      if (member.indexOf('TestCase._runTest') >= 0) {
+        // Don't include anything after this.
+        break;
+      } else if (member.indexOf('expect') >= 0) {
+        // It looks like this was an expect() failure;
+        // drop all the frames up to here.
+        sb.clear();
+      } else {
+        sb.write(member);
+        // Pad second column to a fixed position.
+        for (var j = 0; j <= padding - member.length; j++) {
+          sb.write(' ');
+        }
+        sb.write(location);
+        sb.write(' ');
+        sb.write(position);
+        sb.write('\n');
+      }
+    }
+  }
+  return sb.toString();
+}
