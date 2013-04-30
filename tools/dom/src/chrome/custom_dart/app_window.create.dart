@@ -7,7 +7,7 @@ void create(String url,
             [AppWindowCreateWindowOptions options,
             void callback(AppWindowAppWindow created_window)]) {
   void __proxy_callback(created_window) {
-    if (?callback)
+    if (callback != null)
       callback(new AppWindowAppWindow._proxy(created_window));
   }
   JS('void', '#.create(#, #, #)', this._jsObject, url, convertArgument(options),

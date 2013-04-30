@@ -17800,7 +17800,7 @@ class RtcPeerConnection extends EventTarget native "RTCPeerConnection" {
   factory RtcPeerConnection(Map rtcIceServers, [Map mediaConstraints]) {
     var constructorName = JS('RtcPeerConnection', 'window[#]',
         '${Device.propertyPrefix}RTCPeerConnection');
-    if (?mediaConstraints) {
+    if (mediaConstraints != null) {
       return JS('RtcPeerConnection', 'new #(#,#)', constructorName,
           convertDartToNative_SerializedScriptValue(rtcIceServers),
           convertDartToNative_SerializedScriptValue(mediaConstraints));

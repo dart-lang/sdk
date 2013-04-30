@@ -227,7 +227,7 @@ class Event {
                 [void callback(List<Rule> rules)]) {
     // proxy the callback
     void __proxy_callback(List rules) {
-      if (?callback) {
+      if (callback != null) {
         List<Rule> __proxy_rules = new List<Rule>();
 
         for (Object o in rules)
@@ -256,7 +256,7 @@ class Event {
                                    void callback(List<Rule> rules)]) {
     // proxy the callback
     void __proxy_callback(List rules) {
-      if (?callback) {
+      if (callback != null) {
         List<Rule> __proxy_rules = new List<Rule>();
 
         for (Object o in rules)

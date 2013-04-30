@@ -390,7 +390,7 @@ class HtmlDartGenerator(object):
           for index, param_info in enumerate(constructor_info.param_infos):
             if param_info.is_optional:
               dispatcher_emitter.Emit(
-                '    if (!?$OPT_PARAM_NAME) {\n'
+                '    if ($OPT_PARAM_NAME == null) {\n'
                 '      return $FACTORY._create($FACTORY_PARAMS);\n'
                 '    }\n',
                 OPT_PARAM_NAME=param_info.name,
