@@ -29,6 +29,7 @@ namespace bin {
   V(Filter_End, 1)                                                             \
   V(Filter_Process, 2)                                                         \
   V(Filter_Processed, 2)                                                       \
+  V(InternetAddress_Fixed, 1)                                                  \
   V(Platform_NumberOfProcessors, 0)                                            \
   V(Platform_OperatingSystem, 0)                                               \
   V(Platform_PathSeparator, 0)                                                 \

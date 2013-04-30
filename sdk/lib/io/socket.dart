@@ -6,12 +6,12 @@ part of dart.io;
 
 
 /**
- * [InternetAddressType] is the type an [InternetAddress]. Currently, IPv4 and
- * IPv6 are supported.
+ * [InternetAddressType] is the type an [InternetAddress]. Currently,
+ * IP version 4 (IPv4) and IP version 6 (IPv6) are supported.
  */
 class InternetAddressType {
-  static const InternetAddressType IPv4 = const InternetAddressType._(0);
-  static const InternetAddressType IPv6 = const InternetAddressType._(1);
+  static const InternetAddressType IP_V4 = const InternetAddressType._(0);
+  static const InternetAddressType IP_V6 = const InternetAddressType._(1);
   static const InternetAddressType ANY = const InternetAddressType._(-1);
 
   final int _value;
@@ -19,35 +19,60 @@ class InternetAddressType {
   const InternetAddressType._(int this._value);
 
   factory InternetAddressType._from(int value) {
-    if (value == 0) return IPv4;
-    if (value == 1) return IPv6;
+    if (value == 0) return IP_V4;
+    if (value == 1) return IP_V6;
     throw new ArgumentError("Invalid type: $value");
   }
 
   /**
-   * Get the name of the type, e.g. "IPv4" or "IPv6".
+   * Get the name of the type, e.g. "IP_V4" or "IP_V6".
    */
   String get name {
     switch (_value) {
       case -1: return "ANY";
-      case 0: return "IPv4";
-      case 1: return "IPv6";
+      case 0: return "IP_V4";
+      case 1: return "IP_V6";
       default: throw new ArgumentError("Invalid InternetAddress");
     }
   }
 
-  String toString() => "InternetAddressType($name)";
+  String toString() => "InternetAddressType: $name";
 }
 
 
 /**
- * The [InternetAddress] is an object reflecting either a remote or a local
- * address, for wich a socket can be connected to or bound on.
- *
+ * The [InternetAddress] is an object reflecting either a remote or a
+ * local address. When combined with a port number, this represents a
+ * endpoint that a socket can connect to or a listening socket can
+ * bind to.
  */
 abstract class InternetAddress {
   /**
-   * The [type] of the [InternetAddress] specified what IP procotol.
+   * IP version 4 loopback address. Use this address when listening on
+   * or connecting to the loopback adapter using IP version 4 (IPv4).
+   */
+  external static InternetAddress get LOOPBACK_IP_V4;
+
+  /**
+   * IP version 6 loopback address. Use this address when listening on
+   * or connecting to the loopback adapter using IP version 6 (IPv6).
+   */
+  external static InternetAddress get LOOPBACK_IP_V6;
+
+  /**
+   * IP version 4 any address. Use this address when listening on
+   * all adapters IP addresses using IP version 4 (IPv4).
+   */
+  external static InternetAddress get ANY_IP_V4;
+
+  /**
+   * IP version 6 any address. Use this address when listening on
+   * all adapters IP addresses using IP version 6 (IPv6).
+   */
+  external static InternetAddress get ANY_IP_V6;
+
+  /**
+   * The [type] of the [InternetAddress] specified what IP protocol.
    */
   InternetAddressType type;
 
@@ -62,13 +87,16 @@ abstract class InternetAddress {
   String get host;
 
   /**
-   * Lookup a host, returning a Future of a list of [InternetAddress]s. If
-   * [type] is [InternetAddressType.ANY], it will lookup both IPv4 and IPv6
-   * addresses. The order of the list depends on the local machine and the DNS
-   * lookup performed, and can as such change over time.
+   * Lookup a host, returning a Future of a list of
+   * [InternetAddress]s. If [type] is [InternetAddressType.ANY], it
+   * will lookup both IP version 4 (IPv4) and IP version 6 (IPv6)
+   * addresses. If [type] is either [InternetAddressType.IP_V4] or
+   * [InternetAddressType.IP_V6] it will only lookup addresses of the
+   * specified type. The order of the list can, and most likely will,
+   * change over time.
    */
   external static Future<List<InternetAddress>> lookup(
-      String host, {InternetAddressType type: InternetAddressType.IPv4});
+      String host, {InternetAddressType type: InternetAddressType.IP_V4});
 }
 
 /**
