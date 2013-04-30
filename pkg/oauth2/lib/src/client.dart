@@ -109,7 +109,8 @@ class Client extends http.BaseClient {
       if (!params.containsKey('error')) return response;
 
       throw new AuthorizationException(
-          params['error'], params['error_description'], params['error_uri']);
+          params['error'], params['error_description'],
+          Uri.parse(params['error_uri']));
     });
   }
 
