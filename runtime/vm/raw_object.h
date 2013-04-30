@@ -885,7 +885,8 @@ class RawLocalVarDescriptors : public RawObject {
     kStackVar = 1,
     kContextVar,
     kContextLevel,
-    kContextChain
+    kSavedEntryContext,
+    kSavedCurrentContext
   };
 
   struct VarInfo {

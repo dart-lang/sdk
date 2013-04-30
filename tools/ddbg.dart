@@ -393,10 +393,10 @@ void handleStackTraceResponse(response) {
 
 void printStackFrame(frame_num, Map frame) {
   var fname = frame["functionName"];
-  var libId = frame["libraryId"];
+  var libId = frame["location"]["libraryId"];
   var url = frame["location"]["url"];
-  var line = frame["location"]["lineNumber"];
-  print("$frame_num  $fname ($url:$line) (lib $libId)");
+  var toff = frame["location"]["tokenOffset"];
+  print("$frame_num  $fname (url: $url token: $toff lib: $libId)");
   List locals = frame["locals"];
   for (int i = 0; i < locals.length; i++) {
     printNamedObject(locals[i]);
