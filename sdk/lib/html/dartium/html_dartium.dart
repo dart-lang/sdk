@@ -6669,6 +6669,10 @@ class Document extends Node
   @DocsEditable
   Event $dom_createEvent(String eventType) native "Document_createEvent_Callback";
 
+  @DomName('Document.createNodeIterator')
+  @DocsEditable
+  NodeIterator $dom_createNodeIterator(Node root, int whatToShow, NodeFilter filter, bool expandEntityReferences) native "Document_createNodeIterator_Callback";
+
   @DomName('Document.createRange')
   @DocsEditable
   Range $dom_createRange() native "Document_createRange_Callback";
@@ -6685,6 +6689,10 @@ class Document extends Node
   @DomName('Document.createTouchList')
   @DocsEditable
   TouchList $dom_createTouchList() native "Document_createTouchList_Callback";
+
+  @DomName('Document.createTreeWalker')
+  @DocsEditable
+  TreeWalker $dom_createTreeWalker(Node root, int whatToShow, NodeFilter filter, bool expandEntityReferences) native "Document_createTreeWalker_Callback";
 
   @DomName('Document.elementFromPoint')
   @DocsEditable
@@ -9799,19 +9807,6 @@ class EmbedElement extends _Element_Merged {
   @DomName('HTMLEmbedElement.width')
   @DocsEditable
   void set width(String value) native "HTMLEmbedElement_width_Setter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('EntityReference')
-class EntityReference extends Node {
-  EntityReference.internal() : super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17185,30 +17180,18 @@ class NodeFilter extends NativeFieldWrapperClass1 {
 
   static const int SHOW_TEXT = 0x00000004;
 
-  @DomName('NodeFilter.acceptNode')
-  @DocsEditable
-  int acceptNode(Node n) native "NodeFilter_acceptNode_Callback";
-
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
 
-
-@DocsEditable
 @DomName('NodeIterator')
 class NodeIterator extends NativeFieldWrapperClass1 {
+  factory NodeIterator(Node root, int whatToShow) {
+    return document.$dom_createNodeIterator(root, whatToShow, null, false);
+  }
   NodeIterator.internal();
-
-  @DomName('NodeIterator.expandEntityReferences')
-  @DocsEditable
-  bool get expandEntityReferences native "NodeIterator_expandEntityReferences_Getter";
-
-  @DomName('NodeIterator.filter')
-  @DocsEditable
-  NodeFilter get filter native "NodeIterator_filter_Getter";
 
   @DomName('NodeIterator.pointerBeforeReferenceNode')
   @DocsEditable
@@ -23169,16 +23152,16 @@ class TransitionEvent extends Event {
   String get pseudoElement native "TransitionEvent_pseudoElement_Getter";
 
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
 
-
-@DocsEditable
 @DomName('TreeWalker')
 class TreeWalker extends NativeFieldWrapperClass1 {
+  factory TreeWalker(Node root, int whatToShow) {
+    return document.$dom_createTreeWalker(root, whatToShow, null, false);
+  }
   TreeWalker.internal();
 
   @DomName('TreeWalker.currentNode')
@@ -26117,6 +26100,19 @@ class _Element_Merged extends Element {
   @DomName('HTMLElement.insertAdjacentText')
   @DocsEditable
   void insertAdjacentText(String where, String text) native "HTMLElement_insertAdjacentText_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('EntityReference')
+abstract class _EntityReference extends Node {
+  _EntityReference.internal() : super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

@@ -6146,6 +6146,11 @@ class Document extends Node  native "Document"
   @DocsEditable
   Event $dom_createEvent(String eventType) native;
 
+  @JSName('createNodeIterator')
+  @DomName('Document.createNodeIterator')
+  @DocsEditable
+  NodeIterator $dom_createNodeIterator(Node root, int whatToShow, NodeFilter filter, bool expandEntityReferences) native;
+
   @JSName('createRange')
   @DomName('Document.createRange')
   @DocsEditable
@@ -6172,6 +6177,11 @@ class Document extends Node  native "Document"
   @DomName('Document.createTouchList')
   @DocsEditable
   TouchList $dom_createTouchList() native;
+
+  @JSName('createTreeWalker')
+  @DomName('Document.createTreeWalker')
+  @DocsEditable
+  TreeWalker $dom_createTreeWalker(Node root, int whatToShow, NodeFilter filter, bool expandEntityReferences) native;
 
   @JSName('elementFromPoint')
   @DomName('Document.elementFromPoint')
@@ -9359,15 +9369,6 @@ class EmbedElement extends Element native "HTMLEmbedElement" {
   @DomName('HTMLEmbedElement.width')
   @DocsEditable
   String width;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('EntityReference')
-class EntityReference extends Node native "EntityReference" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16080,27 +16081,17 @@ class NodeFilter native "NodeFilter" {
   static const int SHOW_PROCESSING_INSTRUCTION = 0x00000040;
 
   static const int SHOW_TEXT = 0x00000004;
-
-  @DomName('NodeFilter.acceptNode')
-  @DocsEditable
-  int acceptNode(Node n) native;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('NodeIterator')
 class NodeIterator native "NodeIterator" {
-
-  @DomName('NodeIterator.expandEntityReferences')
-  @DocsEditable
-  final bool expandEntityReferences;
-
-  @DomName('NodeIterator.filter')
-  @DocsEditable
-  final NodeFilter filter;
+  factory NodeIterator(Node root, int whatToShow) {
+    return document.$dom_createNodeIterator(root, whatToShow, null, false);
+  }
 
   @DomName('NodeIterator.pointerBeforeReferenceNode')
   @DocsEditable
@@ -16129,6 +16120,7 @@ class NodeIterator native "NodeIterator" {
   @DomName('NodeIterator.previousNode')
   @DocsEditable
   Node previousNode() native;
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21413,14 +21405,16 @@ class TransitionEvent extends Event native "TransitionEvent,WebKitTransitionEven
   @DocsEditable
   final String pseudoElement;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('TreeWalker')
 class TreeWalker native "TreeWalker" {
+  factory TreeWalker(Node root, int whatToShow) {
+    return document.$dom_createTreeWalker(root, whatToShow, null, false);
+  }
 
   @DomName('TreeWalker.currentNode')
   @DocsEditable
@@ -21469,6 +21463,7 @@ class TreeWalker native "TreeWalker" {
   @DomName('TreeWalker.previousSibling')
   @DocsEditable
   Node previousSibling() native;
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24346,6 +24341,15 @@ class _DomPoint native "WebKitPoint" {
   @DomName('DOMPoint.y')
   @DocsEditable
   num y;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('EntityReference')
+abstract class _EntityReference extends Node native "EntityReference" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

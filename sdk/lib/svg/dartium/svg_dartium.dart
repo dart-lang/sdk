@@ -6458,6 +6458,10 @@ class StyledElement extends SvgElement {
   @DocsEditable
   CssStyleDeclaration get style native "SVGStyledElement_style_Getter";
 
+  @DomName('SVGStyledElement.getPresentationAttribute')
+  @DocsEditable
+  _CSSValue getPresentationAttribute(String name) native "SVGStyledElement_getPresentationAttribute_Callback";
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

@@ -347,4 +347,20 @@ main() {
       expect(range[1], isComment);
     });
   });
+
+  group('iterating', () {
+    test('NodeIterator', () {
+      var root = makeNodeWithChildren();
+      var nodeIterator = new NodeIterator(root, NodeFilter.SHOW_COMMENT);
+      expect(nodeIterator.nextNode(), isComment);
+      expect(nodeIterator.nextNode(), isNull);
+    });
+
+    test('TreeWalker', () {
+      var root = makeNodeWithChildren();
+      var treeWalker = new TreeWalker(root, NodeFilter.SHOW_COMMENT);
+      expect(treeWalker.nextNode(), isComment);
+      expect(treeWalker.nextNode(), isNull);
+    });
+  });
 }

@@ -80,6 +80,7 @@ _removed_html_interfaces = [
   'DedicatedWorkerContext', # Workers
   'DirectoryEntrySync', # Workers
   'DirectoryReaderSync', # Workers
+  'EntityReference',
   'EntrySync', # Workers
   'FileEntrySync', # Workers
   'FileReaderSync', # Workers
@@ -169,10 +170,12 @@ _private_html_members = monitored.Set('htmlrenamer._private_html_members', [
   'Document.createElement',
   'Document.createElementNS',
   'Document.createEvent',
+  'Document.createNodeIterator',
   'Document.createRange',
   'Document.createTextNode',
   'Document.createTouch',
   'Document.createTouchList',
+  'Document.createTreeWalker',
   'Document.querySelectorAll',
 
   # Moved to HTMLDocument.
@@ -400,9 +403,7 @@ _removed_html_members = monitored.Set('htmlrenamer._removed_html_members', [
     'Document.createEntityReference',
     'Document.createExpression',
     'Document.createNSResolver',
-    'Document.createNodeIterator',
     'Document.createProcessingInstruction',
-    'Document.createTreeWalker',
     'Document.designMode',
     'Document.dir',
     'Document.evaluate',
@@ -610,9 +611,11 @@ _removed_html_members = monitored.Set('htmlrenamer._removed_html_members', [
     'Node.lookupPrefix',
     'Node.normalize',
     'Node.set:nodeValue',
+    'NodeFilter.acceptNode',
+    'NodeIterator.expandEntityReferences',
+    'NodeIterator.filter',
     'NodeList.item',
     'ShadowRoot.getElementsByTagNameNS',
-    'SVGStyledElement.getPresentationAttribute',
     'WheelEvent.wheelDelta',
     'WorkerContext.webkitIndexedDB',
 # TODO(jacobr): should these be removed?
