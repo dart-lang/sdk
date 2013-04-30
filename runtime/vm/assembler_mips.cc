@@ -387,7 +387,6 @@ void Assembler::EnterDartFrame(intptr_t frame_size) {
   Label next;
   // Branch and link to the instruction after the delay slot to get the PC.
   bal(&next);
-
   // RA is the address of the sw instruction below. Save it in T0.
   delay_slot()->mov(T0, RA);
 

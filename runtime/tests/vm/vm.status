@@ -71,8 +71,6 @@ dart/*: Skip
 # Tests missing code generation support.
 cc/CorelibCompileAll: Skip
 cc/Dart2JSCompileAll: Skip
-cc/IsolateInterrupt: Skip
-cc/Debug_InterruptIsolate: Skip
 # Tests needing Dart execution.
 dart/*: Skip
 

@@ -1026,7 +1026,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         Label* deopt = compiler->AddDeoptStub(deopt_id(), kDeoptInt32Load);
         __ lw(result, element_address);
         // Verify that the signed value in 'result' can fit inside a Smi.
-        __ BranchLess(result, 0xC0000000, deopt);
+        __ BranchSignedLess(result, 0xC0000000, deopt);
         __ SmiTag(result);
       }
       break;
@@ -1741,7 +1741,7 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LoadImmediate(TMP1, Isolate::Current()->stack_limit_address());
 
   __ lw(TMP1, Address(TMP1));
-  __ BranchLessEqual(SP, TMP1, slow_path->entry_label());
+  __ BranchUnsignedLessEqual(SP, TMP1, slow_path->entry_label());
 
   __ Bind(slow_path->exit_label());
 }
@@ -2338,18 +2338,18 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     Register length = locs()->in(0).reg();
     const Object& constant = locs()->in(1).constant();
     ASSERT(constant.IsSmi());
-    __ BranchLessEqual(length, reinterpret_cast<int32_t>(constant.raw()),
-                      deopt);
+    __ BranchUnsignedLessEqual(
+        length, reinterpret_cast<int32_t>(constant.raw()), deopt);
   } else if (locs()->in(0).IsConstant()) {
     ASSERT(locs()->in(0).constant().IsSmi());
     const Smi& smi_const = Smi::Cast(locs()->in(0).constant());
     Register index = locs()->in(1).reg();
-    __ BranchGreaterEqual(index, reinterpret_cast<int32_t>(smi_const.raw()),
-                          deopt);
+    __ BranchUnsignedGreaterEqual(
+        index, reinterpret_cast<int32_t>(smi_const.raw()), deopt);
   } else {
     Register length = locs()->in(0).reg();
     Register index = locs()->in(1).reg();
-    __ BranchGreaterEqual(index, length, deopt);
+    __ BranchUnsignedGreaterEqual(index, length, deopt);
   }
 }
 

@@ -286,7 +286,7 @@ static void PushArgumentsArray(Assembler* assembler) {
   __ AddImmediate(T2, kWordSize);
   __ Bind(&loop_condition);
   __ AddImmediate(A1, -Smi::RawValue(1));  // A1 is Smi.
-  __ BranchGreaterEqual(A1, ZR, &loop);
+  __ BranchSignedGreaterEqual(A1, ZR, &loop);
 }
 
 
@@ -520,7 +520,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     // T2: potential next object start.
     // T3: array size.
     __ lw(TMP1, Address(T0, Scavenger::end_offset()));
-    __ BranchGreaterEqual(T2, TMP1, &slow_case);
+    __ BranchUnsignedGreaterEqual(T2, TMP1, &slow_case);
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
@@ -806,7 +806,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ lw(A3, Address(A2));
   __ Push(A3);
   __ addiu(A1, A1, Immediate(1));
-  __ BranchLess(A1, T1, &push_arguments);
+  __ BranchSignedLess(A1, T1, &push_arguments);
   __ delay_slot()->addiu(A2, A2, Immediate(kWordSize));
 
   __ Bind(&done_push_arguments);
@@ -885,7 +885,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     if (FLAG_use_slow_path) {
       __ b(&slow_case);
     } else {
-      __ BranchGreaterEqual(T3, TMP1, &slow_case);
+      __ BranchUnsignedGreaterEqual(T3, TMP1, &slow_case);
     }
 
     // Successfully allocated the object, now update top to point to
@@ -1079,7 +1079,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     if (FLAG_use_slow_path) {
       __ b(&slow_case);
     } else {
-      __ BranchGreaterEqual(T3, TMP1, &slow_case);
+      __ BranchUnsignedGreaterEqual(T3, TMP1, &slow_case);
     }
 
     // Successfully allocated the object(s), now update top to point to
@@ -1155,7 +1155,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
       Label init_loop;
       Label done;
       __ Bind(&init_loop);
-      __ BranchGreaterEqual(T4, T3, &done);  // Done if T4 >= T3.
+      __ BranchUnsignedGreaterEqual(T4, T3, &done);  // Done if T4 >= T3.
       __ sw(T0, Address(T4));
       __ AddImmediate(T4, kWordSize);
       __ b(&init_loop);
@@ -1250,7 +1250,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
     if (FLAG_use_slow_path) {
       __ b(&slow_case);
     } else {
-      __ BranchGreaterEqual(T3, TMP1, &slow_case);
+      __ BranchUnsignedGreaterEqual(T3, TMP1, &slow_case);
     }
 
     // Successfully allocated the object, now update top to point to
@@ -1403,7 +1403,8 @@ void StubCode::GenerateOptimizedUsageCounterIncrement(Assembler* assembler) {
   Label is_hot;
   if (FlowGraphCompiler::CanOptimize()) {
     ASSERT(FLAG_optimization_counter_threshold > 1);
-    __ BranchGreaterEqual(T7, FLAG_optimization_counter_threshold, &is_hot);
+    __ BranchSignedGreaterEqual(T7, FLAG_optimization_counter_threshold,
+                                &is_hot);
     // As long as VM has no OSR do not optimize in the middle of the function
     // but only at exit so that we have collected all type feedback before
     // optimizing.
