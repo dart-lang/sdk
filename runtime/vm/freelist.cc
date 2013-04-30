@@ -21,7 +21,6 @@ FreeListElement* FreeListElement::AsElement(uword addr, intptr_t size) {
   FreeListElement* result = reinterpret_cast<FreeListElement*>(addr);
 
   uword tags = 0;
-  tags = RawObject::FreeBit::update(true, tags);
   tags = RawObject::SizeTag::update(size, tags);
   tags = RawObject::ClassIdTag::update(kFreeListElement, tags);
 
