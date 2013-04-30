@@ -88,6 +88,12 @@ class Range;
   V(_Float32x4, _cmplt, Float32x4LessThan, 548944488)                          \
   V(_Float32x4, _cmplte, Float32x4LessThanOrEqual, 548944488)                  \
   V(_Float32x4, _cmpnequal, Float32x4NotEqual, 548944488)                      \
+  V(_Float32x4, _min, Float32x4Min, 342800599)                                 \
+  V(_Float32x4, _max, Float32x4Max, 342800599)                                 \
+  V(_Float32x4, _scale, Float32x4Scale, 219466242)                             \
+  V(_Float32x4, _sqrt, Float32x4Sqrt, 42621627)                                \
+  V(_Float32x4, _reciprocalSqrt, Float32x4ReciprocalSqrt, 42621627)            \
+  V(_Float32x4, _reciprocal, Float32x4Reciprocal, 42621627)                    \
 
 // Class that recognizes the name and owner of a function and returns the
 // corresponding enum. See RECOGNIZED_LIST above for list of recognizable
@@ -562,6 +568,9 @@ class EmbeddedArray<T, 0> {
   M(Float32x4Zero)                                                             \
   M(Float32x4Splat)                                                            \
   M(Float32x4Comparison)                                                       \
+  M(Float32x4MinMax)                                                           \
+  M(Float32x4Scale)                                                            \
+  M(Float32x4Sqrt)                                                             \
 
 
 #define FORWARD_DECLARATION(type) class type##Instr;
@@ -823,6 +832,9 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class Float32x4ShuffleInstr;
   friend class Float32x4ConstructorInstr;
   friend class Float32x4ComparisonInstr;
+  friend class Float32x4MinMaxInstr;
+  friend class Float32x4ScaleInstr;
+  friend class Float32x4SqrtInstr;
   friend class BinaryMintOpInstr;
   friend class BinarySmiOpInstr;
   friend class UnarySmiOpInstr;
@@ -4476,7 +4488,7 @@ class Float32x4ComparisonInstr : public TemplateDefinition<2> {
  public:
   Float32x4ComparisonInstr(MethodRecognizer::Kind op_kind, Value* left,
                            Value* right, InstanceCallInstr* instance_call)
-        : op_kind_(op_kind) {
+      : op_kind_(op_kind) {
     SetInputAt(0, left);
     SetInputAt(1, right);
     deopt_id_ = instance_call->deopt_id();
@@ -4520,6 +4532,159 @@ class Float32x4ComparisonInstr : public TemplateDefinition<2> {
   const MethodRecognizer::Kind op_kind_;
 
   DISALLOW_COPY_AND_ASSIGN(Float32x4ComparisonInstr);
+};
+
+
+class Float32x4MinMaxInstr : public TemplateDefinition<2> {
+ public:
+  Float32x4MinMaxInstr(MethodRecognizer::Kind op_kind, Value* left,
+                       Value* right, InstanceCallInstr* instance_call)
+      : op_kind_(op_kind) {
+    SetInputAt(0, left);
+    SetInputAt(1, right);
+    deopt_id_ = instance_call->deopt_id();
+  }
+
+  Value* left() const { return inputs_[0]; }
+  Value* right() const { return inputs_[1]; }
+
+  MethodRecognizer::Kind op_kind() const { return op_kind_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual Representation representation() const {
+    return kUnboxedFloat32x4;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT((idx == 0) || (idx == 1));
+    return kUnboxedFloat32x4;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return deopt_id_;
+  }
+
+  DECLARE_INSTRUCTION(Float32x4MinMax)
+  virtual CompileType ComputeType() const;
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const {
+    return op_kind() == other->AsFloat32x4MinMax()->op_kind();
+  }
+
+ private:
+  const MethodRecognizer::Kind op_kind_;
+
+  DISALLOW_COPY_AND_ASSIGN(Float32x4MinMaxInstr);
+};
+
+
+class Float32x4ScaleInstr : public TemplateDefinition<2> {
+ public:
+  Float32x4ScaleInstr(MethodRecognizer::Kind op_kind, Value* left,
+                      Value* right, InstanceCallInstr* instance_call)
+      : op_kind_(op_kind) {
+    SetInputAt(0, left);
+    SetInputAt(1, right);
+    deopt_id_ = instance_call->deopt_id();
+  }
+
+  Value* left() const { return inputs_[0]; }
+  Value* right() const { return inputs_[1]; }
+
+  MethodRecognizer::Kind op_kind() const { return op_kind_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual Representation representation() const {
+    return kUnboxedFloat32x4;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT((idx == 0) || (idx == 1));
+    if (idx == 0) {
+      return kUnboxedDouble;
+    }
+    return kUnboxedFloat32x4;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return deopt_id_;
+  }
+
+  DECLARE_INSTRUCTION(Float32x4Scale)
+  virtual CompileType ComputeType() const;
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const {
+    return op_kind() == other->AsFloat32x4Scale()->op_kind();
+  }
+
+ private:
+  const MethodRecognizer::Kind op_kind_;
+
+  DISALLOW_COPY_AND_ASSIGN(Float32x4ScaleInstr);
+};
+
+
+class Float32x4SqrtInstr : public TemplateDefinition<1> {
+ public:
+  Float32x4SqrtInstr(MethodRecognizer::Kind op_kind, Value* left,
+                     InstanceCallInstr* instance_call) : op_kind_(op_kind) {
+    SetInputAt(0, left);
+    deopt_id_ = instance_call->deopt_id();
+  }
+
+  Value* left() const { return inputs_[0]; }
+
+  MethodRecognizer::Kind op_kind() const { return op_kind_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual Representation representation() const {
+    return kUnboxedFloat32x4;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kUnboxedFloat32x4;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return deopt_id_;
+  }
+
+  DECLARE_INSTRUCTION(Float32x4Sqrt)
+  virtual CompileType ComputeType() const;
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const {
+    return op_kind() == other->AsFloat32x4Sqrt()->op_kind();
+  }
+
+ private:
+  const MethodRecognizer::Kind op_kind_;
+
+  DISALLOW_COPY_AND_ASSIGN(Float32x4SqrtInstr);
 };
 
 

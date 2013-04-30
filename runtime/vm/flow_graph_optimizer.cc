@@ -1761,6 +1761,57 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
         ReplaceCall(call, cmp);
         return true;
       }
+      case MethodRecognizer::kFloat32x4Min:
+      case MethodRecognizer::kFloat32x4Max: {
+        Definition* left = call->ArgumentAt(0);
+        Definition* right = call->ArgumentAt(1);
+        // Type check left.
+        AddCheckClass(left,
+                      ICData::ZoneHandle(
+                          call->ic_data()->AsUnaryClassChecksForArgNr(0)),
+                      call->deopt_id(),
+                      call->env(),
+                      call);
+        Float32x4MinMaxInstr* minmax =
+            new Float32x4MinMaxInstr(recognized_kind, new Value(left),
+                                     new Value(right), call);
+        ReplaceCall(call, minmax);
+        return true;
+      }
+      case MethodRecognizer::kFloat32x4Scale: {
+        Definition* left = call->ArgumentAt(0);
+        Definition* right = call->ArgumentAt(1);
+        // Type check left.
+        AddCheckClass(left,
+                      ICData::ZoneHandle(
+                          call->ic_data()->AsUnaryClassChecksForArgNr(0)),
+                      call->deopt_id(),
+                      call->env(),
+                      call);
+        // Left and right values are swapped when handed to the instruction,
+        // this is done so that the double value is loaded into the output
+        // register and can be destroyed.
+        Float32x4ScaleInstr* scale =
+            new Float32x4ScaleInstr(recognized_kind, new Value(right),
+                                    new Value(left), call);
+        ReplaceCall(call, scale);
+        return true;
+      }
+      case MethodRecognizer::kFloat32x4Sqrt:
+      case MethodRecognizer::kFloat32x4ReciprocalSqrt:
+      case MethodRecognizer::kFloat32x4Reciprocal: {
+        Definition* left = call->ArgumentAt(0);
+        AddCheckClass(left,
+              ICData::ZoneHandle(
+                  call->ic_data()->AsUnaryClassChecksForArgNr(0)),
+              call->deopt_id(),
+              call->env(),
+              call);
+        Float32x4SqrtInstr* sqrt =
+            new Float32x4SqrtInstr(recognized_kind, new Value(left), call);
+        ReplaceCall(call, sqrt);
+        return true;
+      }
       default:
         return false;
     }
@@ -4867,6 +4918,21 @@ void ConstantPropagator::VisitFloat32x4Splat(Float32x4SplatInstr* instr) {
 
 void ConstantPropagator::VisitFloat32x4Comparison(
     Float32x4ComparisonInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitFloat32x4MinMax(Float32x4MinMaxInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitFloat32x4Scale(Float32x4ScaleInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitFloat32x4Sqrt(Float32x4SqrtInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
