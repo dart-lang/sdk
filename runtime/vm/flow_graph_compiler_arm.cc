@@ -756,6 +756,8 @@ void FlowGraphCompiler::CopyParameters() {
   // R5 : ic-data.
   // R4 : arguments descriptor array.
   __ BranchLink(&StubCode::CallNoSuchMethodFunctionLabel());
+  // Emit descriptors in order to provide correct postion in stacktrace.
+  AddCurrentDescriptor(PcDescriptors::kOther, -1, function.token_pos());
   if (is_optimizing()) {
     stackmap_table_builder_->AddEntry(assembler()->CodeSize(),
                                       empty_stack_bitmap,
@@ -940,6 +942,8 @@ void FlowGraphCompiler::CompileGraph() {
         // R5 : ic-data.
         // R4 : arguments descriptor array.
         __ BranchLink(&StubCode::CallNoSuchMethodFunctionLabel());
+        // Emit descriptors in order to provide correct postion in stacktrace.
+        AddCurrentDescriptor(PcDescriptors::kOther, -1, function.token_pos());
         if (is_optimizing()) {
           stackmap_table_builder_->AddEntry(assembler()->CodeSize(),
                                             empty_stack_bitmap,
