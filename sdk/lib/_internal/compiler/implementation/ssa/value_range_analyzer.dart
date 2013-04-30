@@ -688,21 +688,18 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
       }
     }
 
-    if (!belowLength) {
-      // Update the range of the index if using the maximum index
-      // narrows it.
-      Range newIndexRange = indexRange.intersection(
-          info.newNormalizedRange(info.intZero, maxIndex));
-      if (indexRange == newIndexRange) return indexRange;
-      // Explicitly attach the range information to the index instruction,
-      // which may be used by other instructions.  Returning the new range will
-      // attach it to this instruction.
-      HInstruction instruction = createRangeConversion(next, check.index);
-      ranges[instruction] = newIndexRange;
-      return newIndexRange;
-    }
-
-    return indexRange;
+    // Update the range of the index if using the maximum index
+    // narrows it. Use that new range for this instruction as well.
+    Range newIndexRange = indexRange.intersection(
+        info.newNormalizedRange(info.intZero, maxIndex));
+    return newIndexRange;
+    if (indexRange == newIndexRange) return indexRange;
+    // Explicitly attach the range information to the index instruction,
+    // which may be used by other instructions.  Returning the new range will
+    // attach it to this instruction.
+    HInstruction instruction = createRangeConversion(next, check.index);
+    ranges[instruction] = newIndexRange;
+    return newIndexRange;
   }
 
   Range visitRelational(HRelational relational) {
