@@ -612,14 +612,13 @@ class CodeEmitterTask extends CompilerTask {
            * when printing the runtime type string.  It is used, for example, to
            * print the runtime type JSInt as 'int'.
            */
-          js('var classData = desc[""], supr, name, fields'),
-          js('var split = classData.split("/")'),
-          js.if_('split.length == 2', [
-            js('name = split[0]'),
-            js('fields = split[1]')
-          ], /* else */ [
-            js('name = cls'),
-            js('fields = classData')
+          js('var classData = desc[""], supr, name = cls, fields = classData'),
+          js.if_('typeof classData == "string"', [
+            js('var split = classData.split("/")'),
+            js.if_('split.length == 2', [
+              js('name = split[0]'),
+              js('fields = split[1]')
+            ])
           ]),
 
           js.if_('typeof fields == "string"', [
@@ -628,6 +627,7 @@ class CodeEmitterTask extends CompilerTask {
             js('supr = s[0]'),
           ], /* else */ [
             js('supr = desc.super'),
+            js.if_(r'!!desc.$name', js(r'name = desc.$name'))
           ]),
 
           optional(needsMixinSupport, js.if_('supr && supr.indexOf("+") > 0', [
@@ -1418,6 +1418,10 @@ class CodeEmitterTask extends CompilerTask {
     /* Do nothing. */
   }
 
+  void emitRuntimeName(String runtimeName, ClassBuilder builder) {
+    /* Do nothing. */
+  }
+
   /// Returns `true` if fields added.
   bool emitClassFields(ClassElement classElement,
                        ClassBuilder builder,
@@ -1538,6 +1542,8 @@ class CodeEmitterTask extends CompilerTask {
     if (superclass != null) {
       superName = namer.getName(superclass);
     }
+    String runtimeName =
+        namer.getPrimitiveInterceptorRuntimeName(classElement);
 
     if (classElement.isMixinApplication) {
       String mixinName = namer.getName(computeMixinClass(classElement));
@@ -1548,6 +1554,7 @@ class CodeEmitterTask extends CompilerTask {
     ClassBuilder builder = new ClassBuilder();
     emitClassConstructor(classElement, builder);
     emitSuper(superName, builder);
+    emitRuntimeName(runtimeName, builder);
     emitClassFields(classElement, builder, superName);
     emitClassGettersSetters(classElement, builder);
     if (!classElement.isMixinApplication) {
