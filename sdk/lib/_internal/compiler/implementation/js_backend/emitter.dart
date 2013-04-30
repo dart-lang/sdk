@@ -300,20 +300,16 @@ class CodeEmitterTask extends CompilerTask {
     //  },
     // });
 
-    // function(cls, fields, prototype) {
-    var defineClass = js.fun(['cls', 'fields', 'prototype'], [
+    var defineClass = js.fun(['name', 'cls', 'fields', 'prototype'], [
       js('var constructor'),
 
-      // if (typeof fields == "function") {
       js.if_(js('typeof fields == "function"'), [
         js('constructor = fields')
       ], /* else */ [
         js('var str = "function " + cls + "("'),
         js('var body = ""'),
 
-        // for (var i = 0; i < fields.length; i++) {
         js.for_('var i = 0', 'i < fields.length', 'i++', [
-          // if (i != 0) str += ", ";
           js.if_('i != 0', js('str += ", "')),
 
           js('var field = fields[i]'),
@@ -328,9 +324,8 @@ class CodeEmitterTask extends CompilerTask {
       ]),
 
       js('constructor.prototype = prototype'),
-      js('constructor.builtin\$cls = cls'),
+      js(r'constructor.builtin$cls = name'),
 
-      // return constructor;
       js.return_('constructor')
     ]);
     // Declare a function called "generateAccessor".  This is used in
@@ -356,7 +351,7 @@ class CodeEmitterTask extends CompilerTask {
 
     return [
       js('var $supportsProtoName = false'),
-      js('var tmp = defineClass("c", ["f?"], {}).prototype'),
+      js('var tmp = defineClass("c", "c", ["f?"], {}).prototype'),
 
       js.if_(js('tmp.__proto__'), [
         js('tmp.__proto__ = {}'),
@@ -604,19 +599,28 @@ class CodeEmitterTask extends CompilerTask {
 
       js('var hasOwnProperty = Object.prototype.hasOwnProperty'),
 
-      // for (var cls in collectedClasses)
       js.forIn('cls', 'collectedClasses', [
-        // if (hasOwnProperty.call(collectedClasses, cls))
         js.if_('hasOwnProperty.call(collectedClasses, cls)', [
           js('var desc = collectedClasses[cls]'),
 
           /* The 'fields' are either a constructor function or a
            * string encoding fields, constructor and superclass.  Get
            * the superclass and the fields in the format
-           * Super;field1,field2 from the null-string property on the
-           * descriptor.
+           *   '[name/]Super;field1,field2'
+           * from the null-string property on the descriptor.
+           * The 'name/' is optional and contains the name that should be used
+           * when printing the runtime type string.  It is used, for example, to
+           * print the runtime type JSInt as 'int'.
            */
-          js('var fields = desc[""], supr'),
+          js('var classData = desc[""], supr, name, fields'),
+          js('var split = classData.split("/")'),
+          js.if_('split.length == 2', [
+            js('name = split[0]'),
+            js('fields = split[1]')
+          ], /* else */ [
+            js('name = cls'),
+            js('fields = classData')
+          ]),
 
           js.if_('typeof fields == "string"', [
             js('var s = fields.split(";")'),
@@ -637,7 +641,7 @@ class CodeEmitterTask extends CompilerTask {
             ]),
           ])),
 
-          js('isolateProperties[cls] = defineClass(cls, fields, desc)'),
+          js('isolateProperties[cls] = defineClass(name, cls, fields, desc)'),
           js.if_('supr', js('pendingClasses[cls] = supr'))
         ])
       ]),
@@ -1214,6 +1218,7 @@ class CodeEmitterTask extends CompilerTask {
         // Avoid emitting [:$isObject:] on all classes but [Object].
         return;
       }
+      other = backend.getImplementationClass(other);
       builder.addProperty(namer.operatorIs(other), js('true'));
     }
 
@@ -1241,49 +1246,11 @@ class CodeEmitterTask extends CompilerTask {
 
   void emitRuntimeTypeSupport(CodeBuffer buffer) {
     RuntimeTypes rti = backend.rti;
-    TypeChecks typeChecks = rti.getRequiredChecks();
+    TypeChecks typeChecks = rti.requiredChecks;
 
-    /// Classes that are not instantiated and native classes need a holder
-    /// object for their checks, because there will be no class defined for
-    /// them.
-
-    // TODO(9556): Get rid of holders.
-    //
-    //  - For primitive classes, use the interceptors (e.g JSInt).
-    //
-    //  - For uninstantiated classes, define the class anyway.  It will not need
-    //    fields or a constructor, or any methods, so the class definition will
-    //    be smaller than a holder.
-
-    bool needsHolder(ClassElement cls) {
-      return !neededClasses.contains(cls) ||
-        rti.isJsNative(cls);
-    }
-
-    /**
-     * Generates a holder object if it is needed.  A holder is a JavaScript
-     * object literal with a field [builtin$cls] that contains the name of the
-     * class as a string (just like object constructors do).  The is-checks for
-     * the class are are added to the holder object later.
-     */
-    void maybeGenerateHolder(ClassElement cls) {
-      if (!needsHolder(cls)) return;
-      String holder = namer.isolateAccess(cls);
-      String name = namer.getRuntimeTypeName(cls);
-      buffer.write('$holder$_=$_{builtin\$cls:$_"$name"');
-      buffer.write('}$N');
-    }
-
-    // Create representation objects for classes that we do not have a class
-    // definition for (because they are uninstantiated or native).
-    for (ClassElement cls in rti.allArguments) {
-      maybeGenerateHolder(cls);
-    }
-
-    // Add checks to the constructors of instantiated classes or to the created
-    // holder object.
+    // Add checks to the constructors of instantiated classes.
     for (ClassElement cls in typeChecks) {
-      String holder = namer.isolateAccess(cls);
+      String holder = namer.isolateAccess(backend.getImplementationClass(cls));
       for (ClassElement check in typeChecks[cls]) {
         buffer.write('$holder.${namer.operatorIs(check)}$_=${_}true$N');
         String body = rti.getSupertypeSubstitution(cls, check);
@@ -1458,7 +1425,12 @@ class CodeEmitterTask extends CompilerTask {
                        { bool classIsNative: false }) {
     assert(superName != null);
     String separator = '';
-    StringBuffer buffer = new StringBuffer('$superName;');
+    String nativeName = namer.getPrimitiveInterceptorRuntimeName(classElement);
+    StringBuffer buffer = new StringBuffer();
+    if (nativeName != null) {
+      buffer.write('$nativeName/');
+    }
+    buffer.write('$superName;');
     int bufferClassLength = buffer.length;
 
     visitClassFields(classElement, (Element member,
@@ -2618,9 +2590,18 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
         compiler.codegenWorld.instantiatedClasses.where(computeClassFilter())
             .toSet();
 
-    // The set of classes that must be emitted are based on instantiated
-    // classes.
+    RuntimeTypes rti = backend.rti;
+
+    // We need to generate classes that are instantiated or used as a type
+    // arguments.
     neededClasses.addAll(instantiatedClasses);
+    rti.allArguments.forEach((ClassElement c) {
+      // Types that we represent with JS native types (like int and String) do
+      // not need a class definition as we use the interceptor classes instead.
+      if (!rti.isJsNative(c)) {
+        neededClasses.add(c);
+      }
+    });
 
     // Then add all superclasses of these classes.
     for (ClassElement element in neededClasses.toList() /* copy */) {
@@ -2889,11 +2870,11 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
 
   String assembleProgram() {
     measure(() {
-      computeNeededClasses();
-
       // Compute the required type checks to know which classes need a
       // 'is$' method.
       computeRequiredTypeChecks();
+
+      computeNeededClasses();
 
       mainBuffer.add(GENERATED_BY);
       addComment(HOOKS_API_USAGE, mainBuffer);

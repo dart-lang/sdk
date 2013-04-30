@@ -2801,8 +2801,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       HInstruction representations =
         buildTypeArgumentRepresentations(type);
       add(representations);
-      HInstruction isFieldName =
-          addConstantString(node, backend.namer.operatorIs(element));
+      String operator =
+          backend.namer.operatorIs(backend.getImplementationClass(element));
+      HInstruction isFieldName = addConstantString(node, operator);
       // TODO(karlklose): use [:null:] for [asField] if [element] does not
       // have a subclass.
       HInstruction asFieldName =

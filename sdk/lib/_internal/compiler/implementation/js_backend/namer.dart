@@ -636,12 +636,32 @@ class Namer implements ClosureNamer {
 
   /// Returns the runtime name for [element].  The result is not safe as an id.
   String getRuntimeTypeName(Element element) {
-    if (element == compiler.intClass) {
+    JavaScriptBackend backend = compiler.backend;
+    element = backend.getImplementationClass(element);
+    String name = getPrimitiveInterceptorRuntimeName(element);
+    return name != null ? name : getName(element);
+  }
+
+  /**
+   * Return a string to be used as the runtime name of this class (instead of
+   * the class name) or [null] if the class name should be used.
+   */
+  String getPrimitiveInterceptorRuntimeName(Element cls) {
+    JavaScriptBackend backend = compiler.backend;
+    if (cls == backend.jsIntClass) {
       return 'int';
-    } else if (element == compiler.doubleClass) {
+    } else if (cls == backend.jsNumberClass) {
+      return 'num';
+    } else if (cls == backend.jsBoolClass) {
+      return 'bool';
+    } else if (cls == backend.jsDoubleClass) {
       return 'double';
+    } else if (cls == backend.jsStringClass) {
+      return 'String';
+    } else if (cls == backend.jsArrayClass) {
+      return 'List';
     } else {
-      return getName(element);
+      return null;
     }
   }
 

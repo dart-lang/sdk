@@ -33,7 +33,7 @@ class RuntimeTypes {
 
   /// Contains the classes of all arguments that have been used in
   /// instantiations and checks.
-  Set<ClassElement> allArguments;
+  Set<ClassElement> cachedAllArguments;
 
   bool isJsNative(Element element) {
     return (element == compiler.intClass ||
@@ -42,6 +42,14 @@ class RuntimeTypes {
             element == compiler.doubleClass ||
             element == compiler.stringClass ||
             element == compiler.listClass);
+  }
+
+  Set<ClassElement> get allArguments {
+    if (cachedRequiredChecks == null) {
+      computeRequiredChecks();
+    }
+    assert(cachedAllArguments != null);
+    return cachedAllArguments;
   }
 
   void registerRtiDependency(Element element, Element dependency) {
@@ -165,9 +173,12 @@ class RuntimeTypes {
 
   TypeChecks cachedRequiredChecks;
 
-  TypeChecks getRequiredChecks() {
-    if (cachedRequiredChecks != null) return cachedRequiredChecks;
+  TypeChecks get requiredChecks {
+    assert(cachedRequiredChecks != null);
+    return cachedRequiredChecks;
+  }
 
+  void computeRequiredChecks() {
     // Get all types used in type arguments of instantiated types.
     Set<ClassElement> instantiatedArguments =
         getInstantiatedArguments(compiler.codegenWorld);
@@ -177,7 +188,7 @@ class RuntimeTypes {
         getCheckedArguments(compiler.codegenWorld);
 
     // Precompute the set of all seen type arguments for use in the emitter.
-    allArguments = new Set<ClassElement>.from(instantiatedArguments)
+    cachedAllArguments = new Set<ClassElement>.from(instantiatedArguments)
         ..addAll(checkedArguments);
 
     // Finally, run through the combination of instantiated and checked
@@ -198,7 +209,7 @@ class RuntimeTypes {
       }
     }
 
-    return cachedRequiredChecks = requiredChecks;
+    cachedRequiredChecks = requiredChecks;
   }
 
   /**
@@ -209,7 +220,7 @@ class RuntimeTypes {
    * the type arguments.
    */
   Set<ClassElement> getInstantiatedArguments(Universe universe) {
-    ArgumentCollector collector = new ArgumentCollector();
+    ArgumentCollector collector = new ArgumentCollector(backend);
     for (DartType type in universe.instantiatedTypes) {
       collector.collect(type);
       ClassElement cls = type.element;
@@ -227,7 +238,7 @@ class RuntimeTypes {
 
   /// Collects all type arguments used in is-checks.
   Set<ClassElement> getCheckedArguments(Universe universe) {
-    ArgumentCollector collector = new ArgumentCollector();
+    ArgumentCollector collector = new ArgumentCollector(backend);
     for (DartType type in universe.isChecks) {
       collector.collect(type);
     }
@@ -235,13 +246,6 @@ class RuntimeTypes {
   }
 
   /// Return the unique name for the element as an unquoted string.
-  String getNameAsString(Element element) {
-    JavaScriptBackend backend = compiler.backend;
-    return backend.namer.getName(element);
-  }
-
-  /// Return the unique JS name for the element, which is a quoted string for
-  /// native classes and the isolate acccess to the constructor for classes.
   String getJsName(Element element) {
     JavaScriptBackend backend = compiler.backend;
     Namer namer = backend.namer;
@@ -249,7 +253,7 @@ class RuntimeTypes {
   }
 
   String getRawTypeRepresentation(DartType type) {
-    String name = getNameAsString(type.element);
+    String name = getJsName(type.element);
     if (!type.element.isClass()) return name;
     InterfaceType interface = type;
     Link<DartType> variables = interface.element.typeVariables;
@@ -390,7 +394,7 @@ class TypeRepresentationGenerator extends DartTypeVisitor {
   String getJsName(Element element) {
     JavaScriptBackend backend = compiler.backend;
     Namer namer = backend.namer;
-    return namer.isolateAccess(element);
+    return namer.isolateAccess(backend.getImplementationClass(element));
   }
 
   visit(DartType type) {
@@ -502,7 +506,10 @@ class TypeCheckMapping implements TypeChecks {
 }
 
 class ArgumentCollector extends DartTypeVisitor {
+  final JavaScriptBackend backend;
   final Set<ClassElement> classes = new Set<ClassElement>();
+
+  ArgumentCollector(this.backend);
 
   collect(DartType type) {
     type.accept(this, false);
@@ -518,7 +525,7 @@ class ArgumentCollector extends DartTypeVisitor {
 
   visitInterfaceType(InterfaceType type, bool isTypeArgument) {
     if (isTypeArgument) {
-      classes.add(type.element);
+      classes.add(backend.getImplementationClass(type.element));
     }
     type.visitChildren(this, true);
   }

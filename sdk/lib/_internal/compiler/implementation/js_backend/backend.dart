@@ -1561,6 +1561,24 @@ class JavaScriptBackend extends Backend {
     return fieldTypes.optimisticFieldType(element);
   }
 
+  Element getImplementationClass(Element element) {
+    if (element == compiler.intClass) {
+      return jsIntClass;
+    } else if (element == compiler.boolClass) {
+      return jsBoolClass;
+    } else if (element == compiler.numClass) {
+      return jsNumberClass;
+    } else if (element == compiler.doubleClass) {
+      return jsDoubleClass;
+    } else if (element == compiler.stringClass) {
+      return jsStringClass;
+    } else if (element == compiler.listClass) {
+      return jsArrayClass;
+    } else {
+      return element;
+    }
+  }
+
   /**
    * Returns the checked mode helper that will be needed to do a type check/type
    * cast on [type] at runtime. Note that this method is being called both by
