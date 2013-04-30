@@ -209,7 +209,7 @@ abstract class Source {
   ///
   /// By default, this just returns [id].
   Future<PackageId> resolveId(PackageId id) => new Future.value(id);
-  
+
   /// Returns the [Package]s that have been installed in the system cache.
   List<Package> getCachedPackages() {
     if (shouldCache) {

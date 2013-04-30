@@ -347,33 +347,32 @@ class Traverser {
     return _solver.cache.getPubspec(id).then((pubspec) {
       _validateSdkConstraint(pubspec);
 
-      var refs = pubspec.dependencies.toList();
+      var deps = pubspec.dependencies.toList();
 
       // Include dev dependencies of the root package.
-      if (id.isRoot) refs.addAll(pubspec.devDependencies);
+      if (id.isRoot) deps.addAll(pubspec.devDependencies);
 
-      // Given a package ref, returns a future that completes to a pair of the
-      // ref and the number of versions available for it.
-      getNumVersions(PackageRef ref) {
+      // Given a package dep, returns a future that completes to a pair of the
+      // dep and the number of versions available for it.
+      getNumVersions(PackageDep dep) {
         // There is only ever one version of the root package.
-        if (ref.isRoot) {
-          return new Future.value(new Pair<PackageRef, int>(ref, 1));
+        if (dep.isRoot) {
+          return new Future.value(new Pair<PackageDep, int>(dep, 1));
         }
 
-        return _solver.cache.getVersions(ref.name, ref.source, ref.description)
-            .then((versions) {
-          return new Pair<PackageRef, int>(ref, versions.length);
+        return _solver.cache.getVersions(dep.toRef()).then((versions) {
+          return new Pair<PackageDep, int>(dep, versions.length);
         }).catchError((error) {
           // If it fails for any reason, just treat that as no versions. This
           // will sort this reference higher so that we can traverse into it
           // and report the error more properly.
-          log.solver("Could not get versions for $ref:\n$error\n\n"
+          log.solver("Could not get versions for $dep:\n$error\n\n"
               "${getAttachedStackTrace(error)}");
-          return new Pair<PackageRef, int>(ref, 0);
+          return new Pair<PackageDep, int>(dep, 0);
         });
       }
 
-      return Future.wait(refs.map(getNumVersions)).then((pairs) {
+      return Future.wait(deps.map(getNumVersions)).then((pairs) {
         // Future.wait() returns an immutable list, so make a copy.
         pairs = pairs.toList();
 
@@ -393,8 +392,8 @@ class Traverser {
           return a.first.name.compareTo(b.first.name);
         });
 
-        var queue = new Queue<PackageRef>.from(pairs.map((pair) => pair.first));
-        return _traverseRefs(id.name, queue);
+        var queue = new Queue<PackageDep>.from(pairs.map((pair) => pair.first));
+        return _traverseDeps(id.name, queue);
       });
     });
   }
@@ -403,135 +402,134 @@ class Traverser {
   /// Desctructively modifies [refs]. Completes to a list of packages if the
   /// traversal is complete. Completes it to an error if a failure occurred.
   /// Otherwise, recurses.
-  Future<List<PackageId>> _traverseRefs(String depender,
-      Queue<PackageRef> refs) {
+  Future<List<PackageId>> _traverseDeps(String depender,
+      Queue<PackageDep> deps) {
     // Move onto the next package if we've traversed all of these references.
-    if (refs.isEmpty) return _traversePackage();
+    if (deps.isEmpty) return _traversePackage();
 
     // Pump the event loop to flatten the stack trace and workaround #9583.
     // If that bug is fixed, this can be Future.sync() instead.
     return new Future(() {
-      var ref = refs.removeFirst();
+      var dep = deps.removeFirst();
 
-      _validateDependency(ref, depender);
-      var constraint = _addConstraint(ref, depender);
+      _validateDependency(dep, depender);
+      var constraint = _addConstraint(dep, depender);
 
-      var selected = _validateSelected(ref, constraint);
+      var selected = _validateSelected(dep, constraint);
       if (selected != null) {
         // The selected package version is good, so enqueue it to traverse into
         // it.
         _packages.add(selected);
-        return _traverseRefs(depender, refs);
+        return _traverseDeps(depender, deps);
       }
 
       // We haven't selected a version. Get all of the versions that match the
       // constraints we currently have for this package and add them to the
       // set of solutions to try.
-      return _selectPackage(ref, constraint).then(
-          (_) => _traverseRefs(depender, refs));
+      return _selectPackage(dep, constraint).then(
+          (_) => _traverseDeps(depender, deps));
     });
   }
 
-  /// Ensures that dependency [ref] from [depender] is consistent with the
+  /// Ensures that dependency [dep] from [depender] is consistent with the
   /// other dependencies on the same package. Throws a [SolverFailure]
   /// exception if not. Only validates sources and descriptions, not the
   /// version.
-  void _validateDependency(PackageRef ref, String depender) {
+  void _validateDependency(PackageDep dep, String depender) {
     // Make sure the dependencies agree on source and description.
-    var required = _getRequired(ref.name);
+    var required = _getRequired(dep.name);
     if (required == null) return;
 
     // Make sure all of the existing sources match the new reference.
-    if (required.ref.source.name != ref.source.name) {
-      _solver.logSolve('source mismatch on ${ref.name}: ${required.ref.source} '
-                       '!= ${ref.source}');
-      throw new SourceMismatchException(ref.name,
-          [required, new Dependency(depender, ref)]);
+    if (required.dep.source.name != dep.source.name) {
+      _solver.logSolve('source mismatch on ${dep.name}: ${required.dep.source} '
+                       '!= ${dep.source}');
+      throw new SourceMismatchException(dep.name,
+          [required, new Dependency(depender, dep)]);
     }
 
     // Make sure all of the existing descriptions match the new reference.
-    if (!ref.descriptionEquals(required.ref)) {
-      _solver.logSolve('description mismatch on ${ref.name}: '
-                       '${required.ref.description} != ${ref.description}');
-      throw new DescriptionMismatchException(ref.name,
-          [required, new Dependency(depender, ref)]);
+    if (!dep.descriptionEquals(required.dep)) {
+      _solver.logSolve('description mismatch on ${dep.name}: '
+                       '${required.dep.description} != ${dep.description}');
+      throw new DescriptionMismatchException(dep.name,
+          [required, new Dependency(depender, dep)]);
     }
   }
 
-  /// Adds the version constraint that [depender] places on [ref] to the
-  /// overall constraint that all shared dependencies place on [ref]. Throws a
+  /// Adds the version constraint that [depender] places on [dep] to the
+  /// overall constraint that all shared dependencies place on [dep]. Throws a
   /// [SolverFailure] if that results in an unsolvable constraints.
   ///
   /// Returns the combined [VersionConstraint] that all dependers place on the
   /// package.
-  VersionConstraint _addConstraint(PackageRef ref, String depender) {
+  VersionConstraint _addConstraint(PackageDep dep, String depender) {
     // Add the dependency.
-    var dependencies = _getDependencies(ref.name);
-    dependencies.add(new Dependency(depender, ref));
+    var dependencies = _getDependencies(dep.name);
+    dependencies.add(new Dependency(depender, dep));
 
     // Determine the overall version constraint.
     var constraint = dependencies
-        .map((dep) => dep.ref.constraint)
+        .map((dep) => dep.dep.constraint)
         .fold(VersionConstraint.any, (a, b) => a.intersect(b));
 
     // See if it's possible for a package to match that constraint.
     if (constraint.isEmpty) {
-      _solver.logSolve('disjoint constraints on ${ref.name}');
-      throw new DisjointConstraintException(ref.name, dependencies);
+      _solver.logSolve('disjoint constraints on ${dep.name}');
+      throw new DisjointConstraintException(dep.name, dependencies);
     }
 
     return constraint;
   }
 
   /// Validates the currently selected package against the new dependency that
-  /// [ref] and [constraint] place on it. Returns `null` if there is no
+  /// [dep] and [constraint] place on it. Returns `null` if there is no
   /// currently selected package, throws a [SolverFailure] if the new reference
   /// it not does not allow the previously selected version, or returns the
   /// selected package if successful.
-  PackageId _validateSelected(PackageRef ref, VersionConstraint constraint) {
-    var selected = _solver.getSelected(ref.name);
+  PackageId _validateSelected(PackageDep dep, VersionConstraint constraint) {
+    var selected = _solver.getSelected(dep.name);
     if (selected == null) return null;
 
     // Make sure it meets the constraint.
-    if (!ref.constraint.allows(selected.version)) {
+    if (!dep.constraint.allows(selected.version)) {
       _solver.logSolve('selection $selected does not match $constraint');
-      throw new NoVersionException(ref.name, constraint,
-                                   _getDependencies(ref.name));
+      throw new NoVersionException(dep.name, constraint,
+                                   _getDependencies(dep.name));
     }
 
     return selected;
   }
 
-  /// Tries to select a package that matches [ref] and [constraint]. Updates
+  /// Tries to select a package that matches [dep] and [constraint]. Updates
   /// the solver state so that we can backtrack from this decision if it turns
   /// out wrong, but continues traversing with the new selection.
   ///
   /// Returns a future that completes with a [SolverFailure] if a version
   /// could not be selected or that completes successfully if a package was
   /// selected and traversing should continue.
-  Future _selectPackage(PackageRef ref, VersionConstraint constraint) {
-    return _solver.cache.getVersions(ref.name, ref.source, ref.description)
-        .then((versions) {
+  Future _selectPackage(PackageDep dep, VersionConstraint constraint) {
+    return _solver.cache.getVersions(dep.toRef()).then((versions) {
       var allowed = versions.where((id) => constraint.allows(id.version));
 
       // See if it's in the lockfile. If so, try that version first. If the
       // locked version doesn't match our constraint, just ignore it.
-      var locked = _getValidLocked(ref.name, constraint);
+      var locked = _getValidLocked(dep.name, constraint);
       if (locked != null) {
-        allowed = allowed.where((ref) => ref.version != locked.version)
+        allowed = allowed.where((dep) => dep.version != locked.version)
             .toList();
         allowed.insert(0, locked);
       }
 
       if (allowed.isEmpty) {
-        _solver.logSolve('no versions for ${ref.name} match $constraint');
-        throw new NoVersionException(ref.name, constraint,
-                                     _getDependencies(ref.name));
+        _solver.logSolve('no versions for ${dep.name} match $constraint');
+        throw new NoVersionException(dep.name, constraint,
+                                     _getDependencies(dep.name));
       }
 
       // If we're doing an upgrade on this package, only allow the latest
       // version.
-      if (_solver._forceLatest.contains(ref.name)) allowed = [allowed.first];
+      if (_solver._forceLatest.contains(dep.name)) allowed = [allowed.first];
 
       // Try the first package in the allowed set and keep track of the list of
       // other possible versions in case that fails.
@@ -558,7 +556,7 @@ class Traverser {
   /// they all agree with each other.
   Dependency _getRequired(String name) {
     return _getDependencies(name)
-        .firstWhere((dep) => !dep.ref.isRoot, orElse: () => null);
+        .firstWhere((dep) => !dep.dep.isRoot, orElse: () => null);
   }
 
   /// Gets the package [name] that's currently contained in the lockfile if it
@@ -577,8 +575,8 @@ class Traverser {
 
     var required = _getRequired(name);
     if (required != null) {
-      if (package.source.name != required.ref.source.name) return null;
-      if (!package.descriptionEquals(required.ref)) return null;
+      if (package.source.name != required.dep.source.name) return null;
+      if (!package.descriptionEquals(required.dep)) return null;
     }
 
     return package;

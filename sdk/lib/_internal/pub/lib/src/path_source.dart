@@ -18,7 +18,6 @@ import 'version.dart';
 import 'source.dart';
 import 'utils.dart';
 
-// TODO(rnystrom): Support relative paths. (See comment in _validatePath().)
 /// A package [Source] that installs packages from a given local file path.
 class PathSource extends Source {
   final name = 'path';

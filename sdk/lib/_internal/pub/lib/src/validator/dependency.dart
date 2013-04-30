@@ -41,9 +41,9 @@ class DependencyValidator extends Validator {
   }
 
   /// Warn that dependencies should use the hosted source.
-  Future _warnAboutSource(PackageRef ref) {
+  Future _warnAboutSource(PackageDep dep) {
     return entrypoint.cache.sources['hosted']
-        .getVersions(ref.name, ref.name)
+        .getVersions(dep.name, dep.name)
         .catchError((e) => <Version>[])
         .then((versions) {
       var constraint;
@@ -51,23 +51,23 @@ class DependencyValidator extends Validator {
       if (primary != null) {
         constraint = _constraintForVersion(primary);
       } else {
-        constraint = ref.constraint.toString();
-        if (!ref.constraint.isAny && ref.constraint is! Version) {
+        constraint = dep.constraint.toString();
+        if (!dep.constraint.isAny && dep.constraint is! Version) {
           constraint = '"$constraint"';
         }
       }
 
       // Path sources are errors. Other sources are just warnings.
       var messages = warnings;
-      if (ref.source is PathSource) {
+      if (dep.source is PathSource) {
         messages = errors;
       }
 
-      messages.add('Don\'t depend on "${ref.name}" from the ${ref.source.name} '
+      messages.add('Don\'t depend on "${dep.name}" from the ${dep.source.name} '
               'source. Use the hosted source instead. For example:\n'
           '\n'
           'dependencies:\n'
-          '  ${ref.name}: $constraint\n'
+          '  ${dep.name}: $constraint\n'
           '\n'
           'Using the hosted source ensures that everyone can download your '
               'package\'s dependencies along with your package.');
@@ -75,20 +75,20 @@ class DependencyValidator extends Validator {
   }
 
   /// Warn that dependencies should have version constraints.
-  void _warnAboutConstraint(PackageRef ref) {
+  void _warnAboutConstraint(PackageDep dep) {
     var lockFile = entrypoint.loadLockFile();
-    var message = 'Your dependency on "${ref.name}" should have a version '
+    var message = 'Your dependency on "${dep.name}" should have a version '
         'constraint.';
-    var locked = lockFile.packages[ref.name];
+    var locked = lockFile.packages[dep.name];
     if (locked != null) {
       message = '$message For example:\n'
         '\n'
         'dependencies:\n'
-        '  ${ref.name}: ${_constraintForVersion(locked.version)}\n';
+        '  ${dep.name}: ${_constraintForVersion(locked.version)}\n';
     }
     warnings.add("$message\n"
         "Without a constraint, you're promising to support all future "
-        "versions of ${ref.name}.");
+        "versions of ${dep.name}.");
   }
 
   /// Returns the suggested version constraint for a dependency that was tested

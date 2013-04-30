@@ -23,10 +23,10 @@ class Pubspec {
   final Version version;
 
   /// The packages this package depends on.
-  final List<PackageRef> dependencies;
+  final List<PackageDep> dependencies;
 
   /// The packages this package depends on when it is the root package.
-  final List<PackageRef> devDependencies;
+  final List<PackageDep> devDependencies;
 
   /// The environment-related metadata.
   final PubspecEnvironment environment;
@@ -65,8 +65,8 @@ class Pubspec {
   Pubspec.empty()
     : name = null,
       version = Version.none,
-      dependencies = <PackageRef>[],
-      devDependencies = <PackageRef>[],
+      dependencies = <PackageDep>[],
+      devDependencies = <PackageDep>[],
       environment = new PubspecEnvironment(),
       fields = {};
 
@@ -233,9 +233,9 @@ void _validateFieldUrl(url, String field) {
   }
 }
 
-List<PackageRef> _parseDependencies(String pubspecPath, SourceRegistry sources,
+List<PackageDep> _parseDependencies(String pubspecPath, SourceRegistry sources,
     yaml) {
-  var dependencies = <PackageRef>[];
+  var dependencies = <PackageDep>[];
 
   // Allow an empty dependencies key.
   if (yaml == null) return dependencies;
@@ -283,7 +283,7 @@ List<PackageRef> _parseDependencies(String pubspecPath, SourceRegistry sources,
     description = source.parseDescription(pubspecPath, description,
         fromLockFile: false);
 
-    dependencies.add(new PackageRef(
+    dependencies.add(new PackageDep(
         name, source, versionConstraint, description));
   });
 

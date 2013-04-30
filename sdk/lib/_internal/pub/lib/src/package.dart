@@ -36,7 +36,7 @@ class Package {
 
   /// The ids of the packages that this package depends on. This is what is
   /// specified in the pubspec when this package depends on another.
-  List<PackageRef> get dependencies => pubspec.dependencies;
+  List<PackageDep> get dependencies => pubspec.dependencies;
 
   /// Returns the path to the README file at the root of the entrypoint, or null
   /// if no README file is found. If multiple READMEs are found, this uses the
@@ -77,23 +77,19 @@ class Package {
   String toString() => '$name $version ($dir)';
 }
 
-/// An unambiguous resolved reference to a package. A package ID contains enough
-/// information to correctly install the package.
-///
-/// Note that it's possible for multiple distinct package IDs to point to
-/// different directories that happen to contain identical packages. For
-/// example, the same package may be available from multiple sources. As far as
-/// Pub is concerned, those packages are different.
-class PackageId implements Comparable<PackageId> {
+/// This is the private base class of [PackageRef], [PackageID], and
+/// [PackageDep]. It contains functionality and state that those classes share
+/// but is private so that from outside of this library, there is no type
+/// relationship between those three types.
+class _PackageName {
+  _PackageName(this.name, this.source, this.description);
+
   /// The name of the package being identified.
   final String name;
 
   /// The [Source] used to look up this package given its [description]. If
-  /// this is a root package ID, this will be `null`.
+  /// this is a root package, this will be `null`.
   final Source source;
-
-  /// The package's version.
-  final Version version;
 
   /// The metadata used by the package's [source] to identify and locate it. It
   /// contains whatever [Source]-specific data it needs to be able to install
@@ -101,30 +97,87 @@ class PackageId implements Comparable<PackageId> {
   /// by the URL "git://github.com/dart/uilib.git".
   final description;
 
-  PackageId(this.name, this.source, this.version, this.description);
-
-  /// Creates an ID for the given root package.
-  PackageId.root(Package package)
-      : name = package.name,
-        source = null,
-        version = package.version,
-        description = package.name;
-
-  /// Whether this ID identifies the root package.
+  /// Whether this package is the root package.
   bool get isRoot => source == null;
-
-  int get hashCode => name.hashCode ^ source.hashCode ^ version.hashCode;
 
   /// Gets the directory where this package is or would be found in the
   /// [SystemCache].
   Future<String> get systemCacheDirectory => source.systemCacheDirectory(this);
 
+  String toString() {
+    if (isRoot) return "$name (root)";
+    if (source.isDefault) return name;
+    return "$name from $source";
+  }
+
+  /// Returns a [PackageRef] with this one's [name], [source], and
+  /// [description].
+  PackageRef toRef() => new PackageRef(name, source, description);
+
+  /// Returns a [PackageId] for this package with the given concrete version.
+  PackageId atVersion(Version version) =>
+    new PackageId(name, source, version, description);
+
+  /// Returns `true` if this package's description matches [other]'s.
+  bool descriptionEquals(PackageDep other) {
+    return source.descriptionsEqual(description, other.description);
+  }
+}
+
+/// A reference to a [Package], but not any particular version(s) of it.
+class PackageRef extends _PackageName {
+  PackageRef(String name, Source source, description)
+      : super(name, source, description);
+
+  int get hashCode => name.hashCode ^ source.hashCode;
+
   bool operator ==(other) {
-    if (other is! PackageId) return false;
-    // TODO(rnystrom): We're assuming here the name/version/source tuple is
-    // enough to uniquely identify the package and that we don't need to delve
-    // into the description.
-    return other.name == name &&
+    // TODO(rnystrom): We're assuming here that we don't need to delve into the
+    // description.
+    return other is PackageRef &&
+           other.name == name &&
+           other.source == source;
+  }
+
+  /// Gets the list of ids of all versions of the package that are described by
+  /// this reference.
+  Future<List<PackageId>> getVersions() {
+    if (isRoot) {
+      throw new StateError("Cannot get versions for the root package.");
+    }
+
+    return source.getVersions(name, description).then((versions) {
+      return versions.map((version) => atVersion(version)).toList();
+    });
+  }
+}
+
+/// A reference to a specific version of a package. A package ID contains
+/// enough information to correctly install the package.
+///
+/// Note that it's possible for multiple distinct package IDs to point to
+/// different packages that have identical contents. For example, the same
+/// package may be available from multiple sources. As far as Pub is concerned,
+/// those packages are different.
+class PackageId extends _PackageName {
+  /// The package's version.
+  final Version version;
+
+  PackageId(String name, Source source, this.version, description)
+      : super(name, source, description);
+
+  /// Creates an ID for the given root package.
+  PackageId.root(Package package)
+      : version = package.version,
+        super(package.name, null, package.name);
+
+  int get hashCode => name.hashCode ^ source.hashCode ^ version.hashCode;
+
+  bool operator ==(other) {
+    // TODO(rnystrom): We're assuming here that we don't need to delve into the
+    // description.
+    return other is PackageId &&
+           other.name == name &&
            other.source == source &&
            other.version == version;
   }
@@ -135,78 +188,35 @@ class PackageId implements Comparable<PackageId> {
     return "$name $version from $source";
   }
 
-  int compareTo(PackageId other) {
-    var sourceComp = source.name.compareTo(other.source.name);
-    if (sourceComp != 0) return sourceComp;
-
-    var nameComp = name.compareTo(other.name);
-    if (nameComp != 0) return nameComp;
-
-    return version.compareTo(other.version);
-  }
-
   /// Returns the pubspec for this package.
   Future<Pubspec> describe() => source.systemCache.describe(this);
 
-  /// Returns a future that completes to the resovled [PackageId] for this id.
+  /// Returns a future that completes to the resolved [PackageId] for this id.
   Future<PackageId> get resolved => source.resolveId(this);
-
-  /// Returns a [PackageRef] that references this package and constrains its
-  /// version to exactly match [version].
-  PackageRef toRef() {
-    return new PackageRef(name, source, version, description);
-  }
-
-  /// Returns `true` if this id's description matches [other]'s.
-  bool descriptionEquals(PackageRef other) {
-    return source.descriptionsEqual(description, other.description);
-  }
 }
 
-/// A reference to a package. Unlike a [PackageId], a PackageRef may not
-/// unambiguously refer to a single package. It may describe a range of allowed
-/// packages.
-class PackageRef {
-  /// The name of the package being identified.
-  final String name;
-
-  /// The [Source] used to look up the package. If this refers to a root
-  /// package, this will be `null`.
-  final Source source;
-
+/// A reference to a constrained range of versions of one package.
+class PackageDep extends _PackageName {
   /// The allowed package versions.
   final VersionConstraint constraint;
 
-  /// The metadata used to identify the package being referenced. The
-  /// interpretation of this will vary based on the [source].
-  final description;
-
-  PackageRef(this.name, this.source, this.constraint, this.description);
-
-  // TODO(rnystrom): Remove this if the old version solver is removed.
-  /// Creates a reference to the given root package.
-  PackageRef.root(Package package)
-      : name = package.name,
-        source = null,
-        constraint = package.version,
-        description = package.name;
-
-  /// Whether this refers to the root package.
-  bool get isRoot => source == null;
+  PackageDep(String name, Source source, this.constraint, description)
+      : super(name, source, description);
 
   String toString() {
     if (isRoot) return "$name $constraint (root)";
     return "$name $constraint from $source ($description)";
   }
 
-  /// Returns a [PackageId] generated from this [PackageRef] with the given
-  /// concrete version.
-  PackageId atVersion(Version version) =>
-    new PackageId(name, source, version, description);
+  int get hashCode => name.hashCode ^ source.hashCode;
 
-  /// Returns `true` if this reference's description matches [other]'s.
-  bool descriptionEquals(PackageRef other) {
-    return source.descriptionsEqual(description, other.description);
+  bool operator ==(other) {
+    // TODO(rnystrom): We're assuming here that we don't need to delve into the
+    // description.
+    return other is PackageDep &&
+           other.name == name &&
+           other.source == source &&
+           other.constraint == constraint;
   }
 }
 
