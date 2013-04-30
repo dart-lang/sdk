@@ -5,6 +5,7 @@
 library lock_file;
 
 import 'dart:json' as json;
+import 'dart:collection';
 
 import 'package:yaml/yaml.dart';
 
@@ -88,12 +89,16 @@ class LockFile {
 
   /// Returns the serialized YAML text of the lock file.
   String serialize() {
-    var packagesObj = <String, Map>{};
-    packages.forEach((name, id) {
+    var packagesObj = new LinkedHashMap<String, Map>();
+
+    // Sort the packages by name.
+    var sortedKeys = packages.keys.toList();
+    sortedKeys.sort();
+    sortedKeys.forEach((name) {
       packagesObj[name] = {
-        'version': id.version.toString(),
-        'source': id.source.name,
-        'description': id.description
+        'version': packages[name].version.toString(),
+        'source': packages[name].source.name,
+        'description': packages[name].description
       };
     });
 
