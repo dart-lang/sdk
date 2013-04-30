@@ -367,7 +367,6 @@ RawContext* ActivationFrame::GetSavedCurrentContext() {
       return reinterpret_cast<RawContext*>(GetLocalVarValue(var_info.index));
     }
   }
-  UNREACHABLE();
   return Context::null();
 }
 
@@ -917,6 +916,21 @@ DebuggerStackTrace* Debugger::CollectStackTrace() {
             stack_trace->ActivationFrameAt(stack_trace->Length() - 1);
         if (callee_frame->function().IsClosureFunction()) {
           ctx = activation->GetSavedCurrentContext();
+          if (FLAG_verbose_debug && ctx.IsNull()) {
+            const Function& caller = activation->function();
+            const Function& callee = callee_frame->function();
+            const Script& script =
+                Script::Handle(Class::Handle(caller.Owner()).script());
+            intptr_t line, col;
+            script.GetTokenLocation(activation->TokenPos(), &line, &col);
+            printf("CollectStackTrace error: no saved context in function "
+                "'%s' which calls closure '%s' "
+                " in line %"Pd" column %"Pd"\n",
+                caller.ToFullyQualifiedCString(),
+                callee.ToFullyQualifiedCString(),
+                line, col);
+          }
+          ASSERT(!ctx.IsNull());
         }
       }
       if (optimized_frame_found || code.is_optimized()) {
@@ -1670,7 +1684,6 @@ CodeBreakpoint* Debugger::GetCodeBreakpoint(uword breakpoint_address) {
 // Remove and delete the source breakpoint bpt and its associated
 // code breakpoints.
 void Debugger::RemoveBreakpoint(intptr_t bp_id) {
-  ASSERT(src_breakpoints_ != NULL);
   SourceBreakpoint* prev_bpt = NULL;
   SourceBreakpoint* curr_bpt = src_breakpoints_;
   while (curr_bpt != NULL) {
