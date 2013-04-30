@@ -333,7 +333,6 @@ void testSimpleReadWrite(bool listenSecure,
           }
           if (bytesWritten == data.length) {
             if (!postponeSecure) {
-              client.readEventsEnabled = true;
               completer.complete([subscription, null]);
             }
           }

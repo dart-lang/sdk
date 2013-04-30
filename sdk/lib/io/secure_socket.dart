@@ -251,6 +251,8 @@ abstract class RawSecureSocket implements RawSocket {
        bool sendClientCertificate: false,
        String certificateName,
        bool onBadCertificate(X509Certificate certificate)}) {
+    socket.readEventsEnabled = false;
+    socket.writeEventsEnabled = false;
     return  _RawSecureSocket.connect(
         host != null ? host : socket.address,
         socket.port,
@@ -290,6 +292,8 @@ abstract class RawSecureSocket implements RawSocket {
        List<int> carryOverData,
        bool requestClientCertificate: false,
        bool requireClientCertificate: false}) {
+    socket.readEventsEnabled = false;
+    socket.writeEventsEnabled = false;
     return _RawSecureSocket.connect(
         socket.remoteHost,
         socket.remotePort,
