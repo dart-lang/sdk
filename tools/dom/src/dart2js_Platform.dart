@@ -5,5 +5,17 @@
 part of html;
 
 class Platform {
+  /**
+   * Returns true if dart:typed_data types are supported on this
+   * browser.  If false, using these types will generate a runtime
+   * error.
+   */
   static final supportsTypedData = JS('bool', '!!(window.ArrayBuffer)');
+
+  /**
+   * Returns true if SIMD types in dart:typed_data types are supported
+   * on this browser.  If false, using these types will generate a runtime
+   * error.
+   */
+  static final supportsSimd = false;
 }

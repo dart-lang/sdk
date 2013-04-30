@@ -30597,7 +30597,19 @@ class _TextFactoryProvider {
 
 
 class Platform {
+  /**
+   * Returns true if dart:typed_data types are supported on this
+   * browser.  If false, using these types will generate a runtime
+   * error.
+   */
   static final supportsTypedData = true;
+
+  /**
+   * Returns true if SIMD types in dart:typed_data types are supported
+   * on this browser.  If false, using these types will generate a runtime
+   * error.
+   */
+  static final supportsSimd = true;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

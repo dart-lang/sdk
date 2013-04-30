@@ -2344,6 +2344,43 @@ class Uint64List extends TypedData implements JavaScriptIndexingBehavior, List<i
 }
 
 
+abstract class Float32x4List implements List<Float32x4>, TypedData {
+  factory Float32x4List(int length) {
+    throw new UnsupportedError("Float32x4List not supported by dart2js.");
+  }
+
+  factory Float32x4List.view(ByteBuffer buffer,
+			     [int offsetInBytes = 0, int length]) {
+    throw new UnsupportedError("Float32x4List not supported by dart2js.");
+  }
+
+  static const int BYTES_PER_ELEMENT = 16;
+}
+
+
+abstract class Float32x4 {
+  factory Float32x4(double x, double y, double z, double w) {
+    throw new UnsupportedError("Float32x4 not supported by dart2js.");
+  }
+  factory Float32x4.splat(double v) {
+    throw new UnsupportedError("Float32x4 not supported by dart2js.");
+  }
+  factory Float32x4.zero() {
+    throw new UnsupportedError("Float32x4 not supported by dart2js.");
+  }
+}
+
+
+abstract class Uint32x4 {
+  factory Uint32x4(int x, int y, int z, int w) {
+    throw new UnsupportedError("Uint32x4 not supported by dart2js.");
+  }
+  factory Uint32x4.bool(bool x, bool y, bool z, bool w) {
+    throw new UnsupportedError("Uint32x4 not supported by dart2js.");
+  }
+}
+
+
 // TODO(vsm): Eliminate this class and just inline into above.
 class _TypedArrayFactoryProvider {
   static ByteData createByteData(int length) => _B8(length);
