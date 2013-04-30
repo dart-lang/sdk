@@ -1854,7 +1854,6 @@ bool FlowGraphOptimizer::BuildByteArrayViewStore(
     default:
       // Array cids are already checked in the caller.
       UNREACHABLE();
-      return NULL;
   }
 
   Definition* index = call->ArgumentAt(1);
