@@ -110,7 +110,7 @@ class Client extends http.BaseClient {
 
       throw new AuthorizationException(
           params['error'], params['error_description'],
-          Uri.parse(params['error_uri']));
+          params['error_uri'] == null ? null : Uri.parse(params['error_uri']));
     });
   }
 
