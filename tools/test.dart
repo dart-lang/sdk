@@ -128,7 +128,8 @@ void testConfigurations(List<Map> configurations) {
       // server for cross-domain tests can be found by calling
       // getCrossOriginPortNumber().
       var servers = new TestingServers(new Path(TestUtils.buildDir(conf)),
-                                       useContentSecurityPolicy);
+                                       useContentSecurityPolicy,
+                                       conf['runtime']);
       serverFutures.add(servers.startServers('127.0.0.1'));
       conf['_servers_'] = servers;
     }
