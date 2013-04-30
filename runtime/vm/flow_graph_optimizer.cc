@@ -3110,7 +3110,9 @@ void LICM::Optimize() {
            !it.Done();
            it.Advance()) {
         Instruction* current = it.Current();
-        if (!current->IsPushArgument() && !current->AffectedBySideEffect()) {
+        if (!current->IsPushArgument() &&
+            current->AllowsCSE() &&
+            flow_graph()->block_effects()->CanBeMovedTo(current, pre_header)) {
           bool inputs_loop_invariant = true;
           for (int i = 0; i < current->InputCount(); ++i) {
             Definition* input_def = current->InputAt(i)->definition();
@@ -3141,7 +3143,7 @@ static bool IsLoadEliminationCandidate(Definition* def) {
   // Immutable loads (not affected by side effects) are handled
   // in the DominatorBasedCSE pass.
   // TODO(fschneider): Extend to other load instructions.
-  return (def->IsLoadField() && def->AffectedBySideEffect())
+  return (def->IsLoadField() && !def->Dependencies().IsNone())
       || def->IsLoadIndexed()
       || def->IsLoadStaticField()
       || def->IsCurrentContext();
@@ -3620,7 +3622,7 @@ class LoadOptimizer : public ValueObject {
         }
 
         // Other instructions with side effects kill all loads.
-        if (instr->HasSideEffect()) {
+        if (!instr->Effects().IsNone()) {
           kill->SetAll();
           // There is no need to clear out_values when clearing GEN set
           // because only those values that are in the GEN set
@@ -3981,6 +3983,56 @@ class LoadOptimizer : public ValueObject {
 };
 
 
+class CSEInstructionMap : public ValueObject {
+ public:
+  // Right now CSE and LICM track a single effect: possible externalization of
+  // strings.
+  // Other effects like modifications of fields are tracked in a separate load
+  // forwarding pass via Alias structure.
+  COMPILE_ASSERT(EffectSet::kLastEffect == 1, single_effect_is_tracked);
+
+  CSEInstructionMap() : independent_(), dependent_() { }
+  explicit CSEInstructionMap(const CSEInstructionMap& other)
+      : ValueObject(),
+        independent_(other.independent_),
+        dependent_(other.dependent_) {
+  }
+
+  void RemoveAffected(EffectSet effects) {
+    if (!effects.IsNone()) {
+      dependent_.Clear();
+    }
+  }
+
+  Instruction* Lookup(Instruction* other) const {
+    return GetMapFor(other)->Lookup(other);
+  }
+
+  void Insert(Instruction* instr) {
+    return GetMapFor(instr)->Insert(instr);
+  }
+
+ private:
+  typedef DirectChainedHashMap<PointerKeyValueTrait<Instruction> >  Map;
+
+  Map* GetMapFor(Instruction* instr) {
+    return instr->Dependencies().IsNone() ? &independent_ : &dependent_;
+  }
+
+  const Map* GetMapFor(Instruction* instr) const {
+    return instr->Dependencies().IsNone() ? &independent_ : &dependent_;
+  }
+
+  // All computations that are not affected by any side-effect.
+  // Majority of computations are not affected by anything and will be in
+  // this map.
+  Map independent_;
+
+  // All computations that are affected by side effect.
+  Map dependent_;
+};
+
+
 bool DominatorBasedCSE::Optimize(FlowGraph* graph) {
   bool changed = false;
   if (FLAG_load_cse) {
@@ -3999,7 +4051,7 @@ bool DominatorBasedCSE::Optimize(FlowGraph* graph) {
     }
   }
 
-  DirectChainedHashMap<PointerKeyValueTrait<Instruction> > map;
+  CSEInstructionMap map;
   changed = OptimizeRecursive(graph, graph->graph_entry(), &map) || changed;
 
   return changed;
@@ -4009,19 +4061,29 @@ bool DominatorBasedCSE::Optimize(FlowGraph* graph) {
 bool DominatorBasedCSE::OptimizeRecursive(
     FlowGraph* graph,
     BlockEntryInstr* block,
-    DirectChainedHashMap<PointerKeyValueTrait<Instruction> >* map) {
+    CSEInstructionMap* map) {
   bool changed = false;
   for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
     Instruction* current = it.Current();
-    if (current->AffectedBySideEffect()) continue;
-    Instruction* replacement = map->Lookup(current);
-    if (replacement == NULL) {
+    if (current->AllowsCSE()) {
+      Instruction* replacement = map->Lookup(current);
+      if ((replacement != NULL) &&
+          graph->block_effects()->IsAvailableAt(replacement, block)) {
+        // Replace current with lookup result.
+        ReplaceCurrentInstruction(&it, current, replacement, graph);
+        changed = true;
+        continue;
+      }
+
+      // For simplicity we assume that instruction either does not depend on
+      // anything or does not affect anything. If this is not the case then
+      // we should first remove affected instructions from the map and
+      // then add instruction to the map so that it does not kill itself.
+      ASSERT(current->Effects().IsNone() || current->Dependencies().IsNone());
       map->Insert(current);
-      continue;
     }
-    // Replace current with lookup result.
-    ReplaceCurrentInstruction(&it, current, replacement, graph);
-    changed = true;
+
+    map->RemoveAffected(current->Effects());
   }
 
   // Process children in the dominator tree recursively.
@@ -4030,7 +4092,7 @@ bool DominatorBasedCSE::OptimizeRecursive(
     BlockEntryInstr* child = block->dominated_blocks()[i];
     if (i  < num_children - 1) {
       // Copy map.
-      DirectChainedHashMap<PointerKeyValueTrait<Instruction> > child_map(*map);
+      CSEInstructionMap child_map(*map);
       changed = OptimizeRecursive(graph, child, &child_map) || changed;
     } else {
       // Reuse map for the last child.

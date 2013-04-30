@@ -256,7 +256,7 @@ void FlowGraphTypePropagator::VisitCheckSmi(CheckSmiInstr* check) {
 
 void FlowGraphTypePropagator::VisitCheckClass(CheckClassInstr* check) {
   if ((check->unary_checks().NumberOfChecks() != 1) ||
-      check->AffectedBySideEffect()) {
+      !check->Dependencies().IsNone()) {
     // TODO(vegorov): If check is affected by side-effect we can still propagate
     // the type further but not the cid.
     return;

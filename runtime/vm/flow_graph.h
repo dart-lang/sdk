@@ -11,6 +11,7 @@
 
 namespace dart {
 
+class BlockEffects;
 class FlowGraphBuilder;
 class ValueInliningContext;
 class VariableLivenessAnalysis;
@@ -140,6 +141,11 @@ class FlowGraph : public ZoneAllocated {
 
   void DiscoverBlocks();
 
+  // Compute information about effects occuring in different blocks and
+  // discover side-effect free paths.
+  void ComputeBlockEffects();
+  BlockEffects* block_effects() const { return block_effects_; }
+
  private:
   friend class IfConverter;
   friend class BranchSimplifier;
@@ -193,6 +199,8 @@ class FlowGraph : public ZoneAllocated {
   GrowableArray<BlockEntryInstr*> postorder_;
   GrowableArray<BlockEntryInstr*> reverse_postorder_;
   ConstantInstr* constant_null_;
+
+  BlockEffects* block_effects_;
 };
 
 
@@ -265,6 +273,35 @@ class LivenessAnalysis : public ValueObject {
   // that are used by this block or its successors.
   GrowableArray<BitVector*> live_in_;
 };
+
+
+// Information about side effect free paths between blocks.
+class BlockEffects : public ZoneAllocated {
+ public:
+  explicit BlockEffects(FlowGraph* flow_graph);
+
+  // Return true if the given instruction is not affected by anything between
+  // its current block and target block. Used by CSE to determine if
+  // a computation is available in the given block.
+  bool IsAvailableAt(Instruction* instr, BlockEntryInstr* block) const;
+
+  // Return true if the given instruction is not affected by anything between
+  // the given block and its current block. Used by LICM to determine if
+  // a computation can be moved to loop's preheader and remain available at
+  // its current location.
+  bool CanBeMovedTo(Instruction* instr, BlockEntryInstr* block) const;
+
+ private:
+  // Returns true if from dominates to and all paths between from and to are
+  // free of side effects.
+  bool IsSideEffectFreePath(BlockEntryInstr* from, BlockEntryInstr* to) const;
+
+  // Per block sets of available blocks. Block A is available at the block B if
+  // and only if A dominates B and all paths from A to B are free of side
+  // effects.
+  GrowableArray<BitVector*> available_at_;
+};
+
 
 }  // namespace dart
 
