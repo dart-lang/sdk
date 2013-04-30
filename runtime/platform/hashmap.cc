@@ -4,7 +4,6 @@
 
 #include "platform/hashmap.h"
 
-#include "bin/builtin.h"
 #include "platform/utils.h"
 
 HashMap::HashMap(MatchFun match,
