@@ -93,6 +93,7 @@ _removed_html_interfaces = [
   'HTMLFrameSetElement',
   'HTMLMarqueeElement',
   'IDBAny',
+  'PagePopupController',
   'RGBColor',
   'RadioNodeList',  # Folded onto NodeList in dart2js.
   'Rect',
@@ -385,6 +386,7 @@ _removed_html_members = monitored.Set('htmlrenamer._removed_html_members', [
     'DOMWindow.get:frames',
     'DOMWindow.get:length',
     'DOMWindow.on:beforeUnload',
+    'DOMWindow.pagePopupController',
     'DOMWindow.prompt',
     'DOMWindow.webkitCancelAnimationFrame',
     'DOMWindow.webkitCancelRequestAnimationFrame',

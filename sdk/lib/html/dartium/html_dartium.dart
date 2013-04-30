@@ -18018,47 +18018,6 @@ class OverflowEvent extends Event {
 
 
 @DocsEditable
-@DomName('PagePopupController')
-class PagePopupController extends NativeFieldWrapperClass1 {
-  PagePopupController.internal();
-
-  @DomName('PagePopupController.closePopup')
-  @DocsEditable
-  void closePopup() native "PagePopupController_closePopup_Callback";
-
-  @DomName('PagePopupController.formatMonth')
-  @DocsEditable
-  String formatMonth(int year, int zeroBaseMonth) native "PagePopupController_formatMonth_Callback";
-
-  @DomName('PagePopupController.formatShortMonth')
-  @DocsEditable
-  String formatShortMonth(int year, int zeroBaseMonth) native "PagePopupController_formatShortMonth_Callback";
-
-  @DomName('PagePopupController.histogramEnumeration')
-  @DocsEditable
-  void histogramEnumeration(String name, int sample, int boundaryValue) native "PagePopupController_histogramEnumeration_Callback";
-
-  @DomName('PagePopupController.localizeNumberString')
-  @DocsEditable
-  String localizeNumberString(String numberString) native "PagePopupController_localizeNumberString_Callback";
-
-  @DomName('PagePopupController.setValue')
-  @DocsEditable
-  void setValue(String value) native "PagePopupController_setValue_Callback";
-
-  @DomName('PagePopupController.setValueAndClosePopup')
-  @DocsEditable
-  void setValueAndClosePopup(int numberValue, String stringValue) native "PagePopupController_setValueAndClosePopup_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
 @DomName('PageTransitionEvent')
 class PageTransitionEvent extends Event {
   PageTransitionEvent.internal() : super.internal();
@@ -24155,10 +24114,6 @@ class Window extends EventTarget implements WindowBase {
   @DocsEditable
   int get outerWidth native "DOMWindow_outerWidth_Getter";
 
-  @DomName('DOMWindow.pagePopupController')
-  @DocsEditable
-  PagePopupController get pagePopupController native "DOMWindow_pagePopupController_Getter";
-
   @DomName('DOMWindow.pageXOffset')
   @DocsEditable
   int get pageXOffset native "DOMWindow_pageXOffset_Getter";
@@ -27173,6 +27128,19 @@ class _NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
   @DomName('NamedNodeMap.setNamedItemNS')
   @DocsEditable
   Node setNamedItemNS(Node node) native "NamedNodeMap_setNamedItemNS_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('PagePopupController')
+abstract class _PagePopupController extends NativeFieldWrapperClass1 {
+  _PagePopupController.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

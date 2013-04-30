@@ -16817,43 +16817,6 @@ class OverflowEvent extends Event native "OverflowEvent" {
 
 
 @DocsEditable
-@DomName('PagePopupController')
-class PagePopupController native "PagePopupController" {
-
-  @DomName('PagePopupController.closePopup')
-  @DocsEditable
-  void closePopup() native;
-
-  @DomName('PagePopupController.formatMonth')
-  @DocsEditable
-  String formatMonth(int year, int zeroBaseMonth) native;
-
-  @DomName('PagePopupController.formatShortMonth')
-  @DocsEditable
-  String formatShortMonth(int year, int zeroBaseMonth) native;
-
-  @DomName('PagePopupController.histogramEnumeration')
-  @DocsEditable
-  void histogramEnumeration(String name, int sample, int boundaryValue) native;
-
-  @DomName('PagePopupController.localizeNumberString')
-  @DocsEditable
-  String localizeNumberString(String numberString) native;
-
-  @DomName('PagePopupController.setValue')
-  @DocsEditable
-  void setValue(String value) native;
-
-  @DomName('PagePopupController.setValueAndClosePopup')
-  @DocsEditable
-  void setValueAndClosePopup(int numberValue, String stringValue) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
 @DomName('PageTransitionEvent')
 class PageTransitionEvent extends Event native "PageTransitionEvent" {
 
@@ -22582,10 +22545,6 @@ class Window extends EventTarget implements WindowBase native "Window,DOMWindow"
   @DocsEditable
   final int outerWidth;
 
-  @DomName('DOMWindow.pagePopupController')
-  @DocsEditable
-  final PagePopupController pagePopupController;
-
   @DomName('DOMWindow.pageXOffset')
   @DocsEditable
   final int pageXOffset;
@@ -25348,6 +25307,15 @@ class _NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "Na
   @DomName('NamedNodeMap.setNamedItemNS')
   @DocsEditable
   Node setNamedItemNS(Node node) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('PagePopupController')
+abstract class _PagePopupController native "PagePopupController" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
