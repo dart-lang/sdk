@@ -168,7 +168,7 @@ class BacktrackingSolver {
   /// version of it. If there are no more versions, continues to backtrack to
   /// previous selections, and so on. If there is nothing left to backtrack to,
   /// completes to the last failure that occurred.
-  Future<List<PackageId>> _traverseSolution() {
+  Future<List<PackageId>> _traverseSolution() => resetStack(() {
     return new Traverser(this).traverse().catchError((error) {
       if (error is! SolveFailure) throw error;
 
@@ -180,7 +180,7 @@ class BacktrackingSolver {
       // All out of solutions, so fail.
       throw error;
     });
-  }
+  });
 
   /// Backtracks from the current failed solution and determines the next
   /// solution to try. If possible, it will backjump based on the cause of the
@@ -407,9 +407,7 @@ class Traverser {
     // Move onto the next package if we've traversed all of these references.
     if (deps.isEmpty) return _traversePackage();
 
-    // Pump the event loop to flatten the stack trace and workaround #9583.
-    // If that bug is fixed, this can be Future.sync() instead.
-    return new Future(() {
+    return resetStack(() {
       var dep = deps.removeFirst();
 
       _validateDependency(dep, depender);

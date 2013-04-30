@@ -384,6 +384,31 @@ String fileUriToPath(Uri uri) {
   }
 }
 
+/// Wraps [fn] to guard against several different kinds of stack overflow
+/// exceptions:
+///
+/// * A sufficiently long [Future] chain can cause a stack overflow if there are
+///   no asynchronous operations in it (issue 9583).
+/// * A recursive function that recurses too deeply without an asynchronous
+///   operation can cause a stack overflow.
+/// * Even if the former is guarded against by adding asynchronous operations,
+///   returning a value through the [Future] chain can still cause a stack
+///   overflow.
+Future resetStack(fn()) {
+  // Using a [Completer] breaks the [Future] chain for the return value and
+  // avoids the third case described above.
+  var completer = new Completer();
+
+  // Using [new Future] adds an asynchronous operation that works around the
+  // first and second cases described above.
+  new Future(fn).then((val) {
+    runAsync(() => completer.complete(val));
+  }).catchError((err) {
+    runAsync(() => completer.completeError(err));
+  });
+  return completer.future;
+}
+
 /// An exception class for exceptions that are intended to be seen by the user.
 /// These exceptions won't have any debugging information printed when they're
 /// thrown.
