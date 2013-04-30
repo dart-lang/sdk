@@ -616,6 +616,7 @@ _removed_html_members = monitored.Set('htmlrenamer._removed_html_members', [
     'NodeIterator.filter',
     'NodeList.item',
     'ShadowRoot.getElementsByTagNameNS',
+    'SVGStyledElement.getPresentationAttribute',
     'WheelEvent.wheelDelta',
     'WorkerContext.webkitIndexedDB',
 # TODO(jacobr): should these be removed?
