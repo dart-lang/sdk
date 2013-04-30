@@ -2341,6 +2341,7 @@ TEST_CASE(EmbedSmiIn64BitCode) {
 #endif
   EXPECT((retval >> kSmiTagShift) == kSmiTestValue);
 }
+#endif  // ARCH_IS_64_BIT
 
 
 TEST_CASE(ExceptionHandlers) {
@@ -3202,7 +3203,5 @@ TEST_CASE(FunctionSourceFingerprint) {
   EXPECT_NE(test5.SourceFingerprint(), test6.SourceFingerprint());
   EXPECT_EQ(test6.SourceFingerprint(), test7.SourceFingerprint());
 }
-
-#endif  // TARGET_ARCH_IA32 || TARGET_ARCH_X64 || TARGET_ARCH_ARM
 
 }  // namespace dart

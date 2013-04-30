@@ -23,7 +23,12 @@ patch class NoSuchMethodError {
     numPositionalArguments -= numNamedArguments;
     List positionalArguments;
     if (numPositionalArguments == 0) {
-      positionalArguments = [];
+      // Differ between no arguments specified and 0 arguments.
+      // TODO(srdjan): This can currently occur for unresolvable static methods.
+      // In that case, the arguments are evaluated but not passed to the
+      // throwing stub (see EffectGraphVisitor::BuildThrowNoSuchMethodError and
+      // Parser::ThrowNoSuchMethodError)).
+      positionalArguments = argumentNames == null ? null : [];
     } else {
       positionalArguments = arguments.sublist(0, numPositionalArguments);
     }
@@ -79,8 +84,13 @@ patch class NoSuchMethodError {
           msg = "The null object does not have a $type_str '$_memberName'"
               "$args_message.";
         } else {
-          msg = "Class '${_receiver.runtimeType}' has no instance $type_str "
-              "'$_memberName'$args_message.";
+          if (_receiver is Function) {
+            msg = "Closure call with mismatched arguments: "
+                "function '$_memberName'";
+          } else {
+            msg = "Class '${_receiver.runtimeType}' has no instance $type_str "
+                "'$_memberName'$args_message.";
+          }
         }
         break;
       }
@@ -94,7 +104,7 @@ patch class NoSuchMethodError {
         break;
       }
       case _InvocationMirror._TOP_LEVEL: {
-        msg = "No top-level $type_str '$_memberName' declared.";
+        msg = "No top-level $type_str '$_memberName'$args_message declared.";
         break;
       }
     }
@@ -104,7 +114,12 @@ patch class NoSuchMethodError {
   /* patch */ String toString() {
     StringBuffer actual_buf = new StringBuffer();
     int i = 0;
-    if (_arguments != null) {
+    if (_arguments == null) {
+      // Actual arguments unknown.
+      // TODO(srdjan): Remove once arguments are passed for unresolvable
+      // static methods.
+      actual_buf.write("...");
+    } else {
       for (; i < _arguments.length; i++) {
         if (i > 0) {
           actual_buf.write(", ");

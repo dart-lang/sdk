@@ -5923,7 +5923,7 @@ TEST_CASE(ParsePatchLibrary) {
   EXPECT_VALID(result);
 
   result = Dart_Invoke(test_script, NewString("e1"), 0, NULL);
-  EXPECT_ERROR(result, "method not found: 'unpatched'");
+  EXPECT_ERROR(result, "No top-level method 'unpatched'");
 
   int64_t value = 0;
   result = Dart_Invoke(test_script, NewString("m1"), 0, NULL);

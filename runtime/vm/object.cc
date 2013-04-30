@@ -12364,7 +12364,14 @@ void Array::MakeImmutable() const {
 
 
 const char* Array::ToCString() const {
-  return "Array";
+  if (IsNull()) {
+    return "Array NULL";
+  }
+  const char* format = "Array len:%"Pd"";
+  intptr_t len = OS::SNPrint(NULL, 0, format, Length()) + 1;
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
+  OS::SNPrint(chars, len, format, Length());
+  return chars;
 }
 
 
@@ -12429,7 +12436,14 @@ RawImmutableArray* ImmutableArray::New(intptr_t len,
 
 
 const char* ImmutableArray::ToCString() const {
-  return "ImmutableArray";
+  if (IsNull()) {
+    return "ImmutableArray NULL";
+  }
+  const char* format = "ImmutableArray len:%"Pd"";
+  intptr_t len = OS::SNPrint(NULL, 0, format, Length()) + 1;
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
+  OS::SNPrint(chars, len, format, Length());
+  return chars;
 }
 
 
@@ -12540,7 +12554,14 @@ RawGrowableObjectArray* GrowableObjectArray::New(const Array& array,
 
 
 const char* GrowableObjectArray::ToCString() const {
-  return "GrowableObjectArray";
+  if (IsNull()) {
+    return "GrowableObjectArray NULL";
+  }
+  const char* format = "GrowableObjectArray len:%"Pd"";
+  intptr_t len = OS::SNPrint(NULL, 0, format, Length()) + 1;
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
+  OS::SNPrint(chars, len, format, Length());
+  return chars;
 }
 
 

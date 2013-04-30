@@ -40,13 +40,17 @@ DEFINE_NATIVE_ENTRY(Object_noSuchMethod, 6) {
   if (is_method.value()) {
     // Report if a function with same name (but different arguments) has been
     // found.
-    Class& instance_class = Class::Handle(instance.clazz());
-    Function& function =
-        Function::Handle(instance_class.LookupDynamicFunction(member_name));
-    while (function.IsNull()) {
-      instance_class = instance_class.SuperClass();
-      if (instance_class.IsNull()) break;
+    Function& function = Function::Handle();
+    if (instance.IsClosure()) {
+      function = Closure::function(instance);
+    } else {
+      Class& instance_class = Class::Handle(instance.clazz());
       function = instance_class.LookupDynamicFunction(member_name);
+      while (function.IsNull()) {
+        instance_class = instance_class.SuperClass();
+        if (instance_class.IsNull()) break;
+        function = instance_class.LookupDynamicFunction(member_name);
+      }
     }
     if (!function.IsNull()) {
       const int total_num_parameters = function.NumParameters();
