@@ -122,6 +122,7 @@ class TestCase {
           // seems to be the more conservative approach, because
           // unittest will not stop at a test failure.
           var stack = getAttachedStackTrace(e);
+          if (stack == null) stack = '';
           error("$description: Test setup failed: $e", "$stack");
         });
     } else {
@@ -148,7 +149,7 @@ class TestCase {
   // is the first time the result is being set.
   void _setResult(String testResult, String messageText, String stack) {
     _message = messageText;
-    _stackTrace = stack;
+    _stackTrace = _formatStack(stack);
     if (result == null) {
       _result = testResult;
       _config.onTestResult(this);
@@ -199,6 +200,7 @@ class TestCase {
   }
 
   void fail(String messageText, [String stack = '']) {
+    assert(stack != null);
     if (result != null) {
       String newMessage = (result == PASS)
           ? 'Test failed after initially passing: $messageText'
@@ -211,6 +213,7 @@ class TestCase {
   }
 
   void error(String messageText, [String stack = '']) {
+    assert(stack != null);
     _complete(ERROR, messageText, stack);
   }
 

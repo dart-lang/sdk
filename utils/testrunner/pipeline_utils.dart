@@ -29,7 +29,7 @@ Path getAbsolutePath(String file) {
   if (p.isAbsolute) {
     return p;
   } else {
-    var cwd = new Path((new Directory.current()).path);
+    var cwd = new Path(Directory.current.path);
     return cwd.join(p);
   }
 }

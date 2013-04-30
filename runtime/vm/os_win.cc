@@ -137,8 +137,8 @@ word OS::ActivationFrameAlignment() {
 
 
 word OS::PreferredCodeAlignment() {
-  ASSERT(16 <= OS::kMaxPreferredCodeAlignment);
-  return 16;
+  ASSERT(32 <= OS::kMaxPreferredCodeAlignment);
+  return 32;
 }
 
 

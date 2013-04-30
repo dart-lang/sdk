@@ -34,7 +34,7 @@ class Server {
         bool direct = directRequestPaths.fold(
             false,
             (prev, path) => prev ? prev : path == request.uri.path);
-        if (!direct && proxyHops > 0) {
+        if (!secure && !direct && proxyHops > 0) {
           Expect.isNotNull(request.headers[HttpHeaders.VIA]);
           Expect.equals(1, request.headers[HttpHeaders.VIA].length);
           Expect.equals(
@@ -122,28 +122,41 @@ class ProxyServer {
           }
         }
         // Open the connection from the proxy.
-        client.openUrl(request.method, request.uri)
-          .then((HttpClientRequest clientRequest) {
-            // Forward all headers.
-            request.headers.forEach((String name, List<String> values) {
-              values.forEach((String value) {
-                if (name != "content-length" && name != "via") {
-                  clientRequest.headers.add(name, value);
-                }
+        if (request.method == "CONNECT") {
+          var tmp = request.uri.toString().split(":");
+          Socket.connect(tmp[0], int.parse(tmp[1]))
+              .then((socket) {
+                request.response.reasonPhrase = "Connection established";
+                request.response.detachSocket()
+                    .then((detached) {
+                      socket.pipe(detached);
+                      detached.pipe(socket);
+                    });
               });
+        } else {
+          client.openUrl(request.method, request.uri)
+            .then((HttpClientRequest clientRequest) {
+              // Forward all headers.
+              request.headers.forEach((String name, List<String> values) {
+                values.forEach((String value) {
+                  if (name != "content-length" && name != "via") {
+                    clientRequest.headers.add(name, value);
+                  }
+                });
+              });
+              // Special handling of Content-Length and Via.
+              clientRequest.contentLength = request.contentLength;
+              List<String> via = request.headers[HttpHeaders.VIA];
+              String viaPrefix = via == null ? "" : "${via[0]}, ";
+              clientRequest.headers.add(
+                  HttpHeaders.VIA, "${viaPrefix}1.1 localhost:$port");
+              // Copy all content.
+              return request.pipe(clientRequest);
+            })
+            .then((HttpClientResponse clientResponse) {
+              clientResponse.pipe(request.response);
             });
-            // Special handling of Content-Length and Via.
-            clientRequest.contentLength = request.contentLength;
-            List<String> via = request.headers[HttpHeaders.VIA];
-            String viaPrefix = via == null ? "" : "${via[0]}, ";
-            clientRequest.headers.add(
-                HttpHeaders.VIA, "${viaPrefix}1.1 localhost:$port");
-            // Copy all content.
-            return request.pipe(clientRequest);
-          })
-          .then((HttpClientResponse clientResponse) {
-            clientResponse.pipe(request.response);
-          });
+        }
       });
     });
     return x.future;
@@ -429,23 +442,21 @@ void testProxyAuthenticate() {
             return clientRequest.close();
           })
           .then((HttpClientResponse response) {
-            response.listen((_) {}, onDone: () {
-              testProxyAuthenticateCount++;
-              Expect.equals(HttpStatus.PROXY_AUTHENTICATION_REQUIRED,
-                            response.statusCode);
-              if (testProxyAuthenticateCount == loopCount * 2) {
-                Expect.equals(0, server.requestCount);
-                Expect.equals(0, secureServer.requestCount);
-                step1.complete(null);
-              }
-            });
-          });
+            Expect.fail("No response expected");
+          }).
+          catchError((e) {
+            testProxyAuthenticateCount++;
+            if (testProxyAuthenticateCount == loopCount * 2) {
+              Expect.equals(0, server.requestCount);
+              Expect.equals(0, secureServer.requestCount);
+              step1.complete(null);
+            }
+        });
       }
 
       test(false);
       test(true);
     }
-
     step1.future.then((_) {
       testProxyAuthenticateCount = 0;
       client.findProxy = (Uri uri) {

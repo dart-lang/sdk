@@ -7,6 +7,8 @@
 #include "platform/hashmap.h"
 #include "vm/unit_test.h"
 
+namespace dart {
+
 // Default initial size of hashmaps used in these tests.
 static intptr_t kInitialSize = 8;
 
@@ -167,3 +169,5 @@ UNIT_TEST_CASE(Set) {
   TestSet(CollisionHash3, 50);
   TestSet(CollisionHash4, 50);
 }
+
+}  // namespace dart

@@ -65,6 +65,7 @@ type_parameter_literal_test: Fail # Issue 7551
 on_catch_malformed_type_test: Fail # Issue 8601
 
 mixin_mixin_test: Fail
+mixin_issue10216_2_test: Fail
 
 type_variable_field_initializer_closure_test: Crash # issue 8847
 
@@ -298,6 +299,7 @@ call_through_getter_test: Fail
 
 # test issue 8127 (using mixin application as mixin)
 mixin_mixin_test: Fail
+mixin_issue10216_2_test: Fail
 
 # test issue 8801
 super_operator_index_test/04: Fail
@@ -370,6 +372,7 @@ mixin_type_parameters_errors_test/*: Skip
 
 # Mixins fail on the VM.
 mixin_mixin_test: Fail                      # VM issue
+mixin_issue10216_2_test: Fail               # VM issue
 mixin_illegal_constructor_test/none: Fail   # VM issue
 
 

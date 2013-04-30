@@ -43,6 +43,15 @@ class _Utils {
     return result;
   }
 
+  static List parseStackTrace(StackTrace stackTrace) {
+    final regExp = new RegExp(r'#\d\s+(.*) \((.*):(\d+):(\d+)\)');
+    List result = [];
+    for (var match in regExp.allMatches(stackTrace.toString())) {
+      result.add([match.group(1), match.group(2), int.parse(match.group(3)), int.parse(match.group(4))]);
+    }
+    return result;
+  }
+
   static void populateMap(Map result, List list) {
     for (int i = 0; i < list.length; i += 2) {
       result[list[i]] = list[i + 1];

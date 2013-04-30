@@ -40,7 +40,7 @@ main() {
 
     test('uses the current working directory if root is omitted', () {
       var builder = new path.Builder();
-      expect(builder.root, new io.Directory.current().path);
+      expect(builder.root, io.Directory.current.path);
     });
 
     test('uses the host OS if style is omitted', () {
@@ -54,6 +54,6 @@ main() {
   });
 
   test('current', () {
-    expect(path.current, new io.Directory.current().path);
+    expect(path.current, io.Directory.current.path);
   });
 }

@@ -146,6 +146,8 @@ FlowGraphCompiler::FlowGraphCompiler(Assembler* assembler,
           Isolate::Current()->object_store()->double_class())),
       float32x4_class_(Class::ZoneHandle(
           Isolate::Current()->object_store()->float32x4_class())),
+      uint32x4_class_(Class::ZoneHandle(
+          Isolate::Current()->object_store()->uint32x4_class())),
       parallel_move_resolver_(this),
       pending_deoptimization_env_(NULL) {
   ASSERT(assembler != NULL);

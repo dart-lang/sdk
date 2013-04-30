@@ -601,10 +601,12 @@ void FlowGraphCompiler::CopyParameters() {
   __ lw(T2, FieldAddress(S4, ArgumentsDescriptor::positional_count_offset()));
   // Check that min_num_pos_args <= num_pos_args.
   Label wrong_num_arguments;
-  __ BranchLess(T2, Smi::RawValue(min_num_pos_args), &wrong_num_arguments);
+  __ BranchSignedLess(T2, Smi::RawValue(min_num_pos_args),
+                      &wrong_num_arguments);
 
   // Check that num_pos_args <= max_num_pos_args.
-  __ BranchGreater(T2, Smi::RawValue(max_num_pos_args), &wrong_num_arguments);
+  __ BranchSignedGreater(T2, Smi::RawValue(max_num_pos_args),
+                         &wrong_num_arguments);
 
   // Copy positional arguments.
   // Argument i passed at fp[kLastParamSlotIndex + num_args - 1 - i] is copied
@@ -724,7 +726,7 @@ void FlowGraphCompiler::CopyParameters() {
       // arguments have been passed, where k is param_pos, the position of this
       // optional parameter in the formal parameter list.
       const int param_pos = num_fixed_params + i;
-      __ BranchGreater(T2, param_pos, &next_parameter);
+      __ BranchSignedGreater(T2, param_pos, &next_parameter);
       // Load T3 with default argument.
       const Object& value = Object::ZoneHandle(
           parsed_function().default_parameter_values().At(i));
@@ -885,7 +887,8 @@ void FlowGraphCompiler::EmitFrameEntry() {
 
       // Skip Branch if T1 is less than the threshold.
       Label dont_branch;
-      __ BranchLess(T1, FLAG_optimization_counter_threshold, &dont_branch);
+      __ BranchSignedLess(T1, FLAG_optimization_counter_threshold,
+                          &dont_branch);
 
       ASSERT(function_reg == T0);
       __ Branch(&StubCode::OptimizeFunctionLabel());
@@ -1121,7 +1124,21 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(
     intptr_t deopt_id,
     intptr_t token_pos,
     LocationSummary* locs) {
-  UNIMPLEMENTED();
+  // Each ICData propagated from unoptimized to optimized code contains the
+  // function that corresponds to the Dart function of that IC call. Due
+  // to inlining in optimized code, that function may not correspond to the
+  // top-level function (parsed_function().function()) which could be
+  // reoptimized and which counter needs to be incremented.
+  // Pass the function explicitly, it is used in IC stub.
+  __ LoadObject(T0, parsed_function().function());
+  __ LoadObject(S4, arguments_descriptor);
+  __ LoadObject(S5, ic_data);
+  GenerateDartCall(deopt_id,
+                   token_pos,
+                   target_label,
+                   PcDescriptors::kIcCall,
+                   locs);
+  __ Drop(argument_count);
 }
 
 
@@ -1179,7 +1196,18 @@ void FlowGraphCompiler::EmitStaticCall(const Function& function,
 void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
                                                     const Object& obj,
                                                     bool needs_number_check) {
-  UNIMPLEMENTED();
+  if (needs_number_check &&
+      (obj.IsMint() || obj.IsDouble() || obj.IsBigint())) {
+    __ addiu(SP, SP, Immediate(-2 * kWordSize));
+    __ sw(reg, Address(SP, 1 * kWordSize));
+    __ LoadObject(TMP1, obj);
+    __ sw(TMP1, Address(SP, 0 * kWordSize));
+    __ BranchLink(&StubCode::IdenticalWithNumberCheckLabel());
+    __ lw(reg, Address(SP, 1 * kWordSize));  // Restore 'reg'.
+    __ addiu(SP, SP, Immediate(2 * kWordSize));  // Discard constant.
+    return;
+  }
+  __ CompareObject(CMPRES, reg, obj);
 }
 
 

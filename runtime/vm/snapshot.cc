@@ -122,11 +122,10 @@ const Snapshot* Snapshot::SetupFromBuffer(const void* raw_memory) {
   ASSERT(kLengthIndex == length_offset());
   ASSERT((kSnapshotFlagIndex * sizeof(int32_t)) == kind_offset());
   ASSERT((kHeapObjectTag & kInlined));
-  // No object can have kFreeBit and kMarkBit set simultaneously. If kFreeBit
-  // is set then the rest of tags is a pointer to the next FreeListElement which
-  // is kObjectAlignment aligned and has at least 2 lower bits set to zero.
+  // The kWatchedBit and kMarkBit are only set during GC operations. This
+  // allows the two low bits in the header to be used for snapshotting.
   ASSERT(kObjectId ==
-         ((1 << RawObject::kFreeBit) | (1 << RawObject::kMarkBit)));
+         ((1 << RawObject::kWatchedBit) | (1 << RawObject::kMarkBit)));
   ASSERT((kObjectAlignmentMask & kObjectId) == kObjectId);
   const Snapshot* snapshot = reinterpret_cast<const Snapshot*>(raw_memory);
   return snapshot;

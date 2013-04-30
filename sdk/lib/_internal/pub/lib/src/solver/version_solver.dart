@@ -70,7 +70,7 @@ class SolveResult {
 /// Used to avoid requesting the same pubspec from the server repeatedly.
 class PubspecCache {
   final SourceRegistry _sources;
-  final _versions = new Map<PackageId, List<PackageId>>();
+  final _versions = new Map<PackageRef, List<PackageId>>();
   final _pubspecs = new Map<PackageId, Pubspec>();
 
   /// The number of times a version list was requested and it wasn't cached and
@@ -119,32 +119,21 @@ class PubspecCache {
   Pubspec getCachedPubspec(PackageId id) => _pubspecs[id];
 
   /// Gets the list of versions for [package] in descending order.
-  Future<List<PackageId>> getVersions(String package, Source source,
-      description) {
-    // Create a fake ID to use as a key.
-    // TODO(rnystrom): Create a separate type for (name, source, description)
-    // without a version.
-    var id = new PackageId(package, source, Version.none, description);
-
+  Future<List<PackageId>> getVersions(PackageRef package) {
     // See if we have it cached.
-    var versions = _versions[id];
+    var versions = _versions[package];
     if (versions != null) {
       versionCacheHits++;
       return new Future.value(versions);
     }
 
     versionCacheMisses++;
-    return source.getVersions(package, description).then((versions) {
-      var ids = versions
-          .map((version) => new PackageId(package, source, version,
-              description))
-          .toList();
-
+    return package.getVersions().then((ids) {
       // Sort by descending version so we try newer versions first.
       ids.sort((a, b) => b.version.compareTo(a.version));
 
       log.solver('requested $package version list');
-      _versions[id] = ids;
+      _versions[package] = ids;
       return ids;
     });
   }
@@ -155,12 +144,12 @@ class Dependency {
   /// The name of the package that has this dependency.
   final String depender;
 
-  /// The referenced dependent package.
-  final PackageRef ref;
+  /// The package being depended on.
+  final PackageDep dep;
 
-  Dependency(this.depender, this.ref);
+  Dependency(this.depender, this.dep);
 
-  String toString() => '$depender -> $ref';
+  String toString() => '$depender -> $dep';
 }
 
 /// Base class for all failures that can occur while trying to resolve versions.
@@ -180,10 +169,10 @@ class SolveFailure implements Exception {
   /// passed, it will be called for each dependency and the result will be
   /// written next to the dependency.
   void writeDependencies(StringBuffer buffer,
-      [String describe(PackageRef ref)]) {
+      [String describe(PackageDep dep)]) {
     var map = {};
     for (var dep in dependencies) {
-      map[dep.depender] = dep.ref;
+      map[dep.depender] = dep.dep;
     }
 
     var names = map.keys.toList();
@@ -207,7 +196,7 @@ class SolveFailure implements Exception {
 
     var map = {};
     for (var dep in dependencies) {
-      map[dep.depender] = dep.ref;
+      map[dep.depender] = dep.dep;
     }
 
     var names = map.keys.toList();
@@ -224,9 +213,9 @@ class SolveFailure implements Exception {
   String get _message;
 
   /// Describes a dependencie's reference in the output message. Override this
-  /// to highlight which aspect of [ref] led to the failure.
-  String _describeDependency(PackageRef ref) =>
-      "depends on version ${ref.constraint}";
+  /// to highlight which aspect of [dep] led to the failure.
+  String _describeDependency(PackageDep dep) =>
+      "depends on version ${dep.constraint}";
 }
 
 /// Exception thrown when the [VersionSolver] fails to find a solution after a
@@ -288,8 +277,8 @@ class SourceMismatchException extends SolveFailure {
 
   String get _message => "Incompatible dependencies on '$package'";
 
-  String _describeDependency(PackageRef ref) =>
-      "depends on it from source ${ref.source}";
+  String _describeDependency(PackageDep dep) =>
+      "depends on it from source ${dep.source}";
 }
 
 /// Exception thrown when two packages with the same name and source but
@@ -301,8 +290,8 @@ class DescriptionMismatchException extends SolveFailure {
 
   String get _message => "Incompatible dependencies on '$package'";
 
-  String _describeDependency(PackageRef ref) {
+  String _describeDependency(PackageDep dep) {
     // TODO(nweiz): Dump descriptions to YAML when that's supported.
-    return "depends on it with description ${json.stringify(ref.description)}";
+    return "depends on it with description ${json.stringify(dep.description)}";
   }
 }

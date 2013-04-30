@@ -42,7 +42,6 @@ static void SetRangeCheck(intptr_t offset_in_bytes,
 
 // Checks to see if a length will not result in an OOM error.
 static void LengthCheck(intptr_t len, intptr_t max) {
-  ASSERT(len >= 0);
   if (len > max) {
     const String& error = String::Handle(String::NewFormatted(
         "insufficient memory to allocate a TypedData object of length (%"Pd")",
@@ -50,6 +49,12 @@ static void LengthCheck(intptr_t len, intptr_t max) {
     const Array& args = Array::Handle(Array::New(1));
     args.SetAt(0, error);
     Exceptions::ThrowByType(Exceptions::kOutOfMemory, args);
+  } else if (len < 0) {
+    const String& error = String::Handle(String::NewFormatted(
+        "%"Pd" must be greater than 0", len));
+    const Array& args = Array::Handle(Array::New(1));
+    args.SetAt(0, error);
+    Exceptions::ThrowByType(Exceptions::kArgument, args);
   }
 }
 

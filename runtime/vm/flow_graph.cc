@@ -28,7 +28,8 @@ FlowGraph::FlowGraph(const FlowGraphBuilder& builder,
     graph_entry_(graph_entry),
     preorder_(),
     postorder_(),
-    reverse_postorder_() {
+    reverse_postorder_(),
+    block_effects_(NULL) {
   DiscoverBlocks();
 }
 
@@ -99,6 +100,9 @@ void FlowGraph::DiscoverBlocks() {
   for (intptr_t i = 0; i < block_count; ++i) {
     reverse_postorder_.Add(postorder_[block_count - i - 1]);
   }
+
+  // Block effects are using postorder numbering. Discard computed information.
+  block_effects_ = NULL;
 }
 
 
@@ -921,6 +925,116 @@ intptr_t FlowGraph::InstructionCount() const {
     }
   }
   return size;
+}
+
+
+void FlowGraph::ComputeBlockEffects() {
+  block_effects_ = new BlockEffects(this);
+}
+
+
+BlockEffects::BlockEffects(FlowGraph* flow_graph)
+    : available_at_(flow_graph->postorder().length()) {
+  // We are tracking a single effect.
+  ASSERT(EffectSet::kLastEffect == 1);
+
+  const intptr_t block_count = flow_graph->postorder().length();
+
+  // Set of blocks that contain side-effects.
+  BitVector* kill = new BitVector(block_count);
+
+  // Per block available-after sets. Block A is available after the block B if
+  // and only if A is either equal to B or A is available at B and B contains no
+  // side-effects. Initially we consider all blocks available after all other
+  // blocks.
+  GrowableArray<BitVector*> available_after(block_count);
+
+  // Discover all blocks with side-effects.
+  for (BlockIterator it = flow_graph->postorder_iterator();
+       !it.Done();
+       it.Advance()) {
+    available_at_.Add(NULL);
+    available_after.Add(NULL);
+
+    BlockEntryInstr* block = it.Current();
+    for (ForwardInstructionIterator it(block);
+         !it.Done();
+         it.Advance()) {
+      if (!it.Current()->Effects().IsNone()) {
+        kill->Add(block->postorder_number());
+        break;
+      }
+    }
+  }
+
+  BitVector* temp = new BitVector(block_count);
+
+  // Recompute available-at based on predecessors' available-after until the fix
+  // point is reached.
+  bool changed;
+  do {
+    changed = false;
+
+    for (BlockIterator it = flow_graph->reverse_postorder_iterator();
+         !it.Done();
+         it.Advance()) {
+      BlockEntryInstr* block = it.Current();
+      const intptr_t block_num = block->postorder_number();
+
+      if (block->IsGraphEntry()) {
+        temp->Clear();  // Nothing is live-in into graph entry.
+      } else {
+        // Available-at is an intersection of all predecessors' available-after
+        // sets.
+        temp->SetAll();
+        for (intptr_t i = 0; i < block->PredecessorCount(); i++) {
+          const intptr_t pred = block->PredecessorAt(i)->postorder_number();
+          if (available_after[pred] != NULL) {
+            temp->Intersect(available_after[pred]);
+          }
+        }
+      }
+
+      BitVector* current = available_at_[block_num];
+      if ((current == NULL) || !current->Equals(*temp)) {
+        // Available-at changed: update it and recompute available-after.
+        if (available_at_[block_num] == NULL) {
+          current = available_at_[block_num] = new BitVector(block_count);
+          available_after[block_num] = new BitVector(block_count);
+          // Block is always available after itself.
+          available_after[block_num]->Add(block_num);
+        }
+        current->CopyFrom(temp);
+        if (!kill->Contains(block_num)) {
+          available_after[block_num]->CopyFrom(temp);
+          // Block is always available after itself.
+          available_after[block_num]->Add(block_num);
+        }
+        changed = true;
+      }
+    }
+  } while (changed);
+}
+
+
+bool BlockEffects::IsAvailableAt(Instruction* instr,
+                                 BlockEntryInstr* block) const {
+  return (instr->Dependencies().IsNone()) ||
+      IsSideEffectFreePath(instr->GetBlock(), block);
+}
+
+
+bool BlockEffects::CanBeMovedTo(Instruction* instr,
+                                BlockEntryInstr* block) const {
+  return (instr->Dependencies().IsNone()) ||
+      IsSideEffectFreePath(block, instr->GetBlock());
+}
+
+
+bool BlockEffects::IsSideEffectFreePath(BlockEntryInstr* from,
+                                        BlockEntryInstr* to) const {
+  return available_at_[to->postorder_number()]->Contains(
+      from->postorder_number());
 }
 
 }  // namespace dart

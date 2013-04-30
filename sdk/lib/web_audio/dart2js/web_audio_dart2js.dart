@@ -111,17 +111,17 @@ class AudioBufferSourceNode extends AudioSourceNode native "AudioBufferSourceNod
   // instead of noteOn.
   void start(num when, [num grainOffset, num grainDuration]) {
     if (JS('bool', '!!#.start', this)) {
-      if (?grainDuration) {
+      if (grainDuration != null) {
         JS('void', '#.start(#, #, #)', this, when, grainOffset, grainDuration);
-      } else if (?grainOffset) {
+      } else if (grainOffset != null) {
         JS('void', '#.start(#, #)', this, when, grainOffset);
       } else {
         JS('void', '#.start(#)', this, when);
       }
     } else {
-      if (?grainDuration) {
+      if (grainDuration != null) {
         JS('void', '#.noteOn(#, #, #)', this, when, grainOffset, grainDuration);
-      } else if (?grainOffset) {
+      } else if (grainOffset != null) {
         JS('void', '#.noteOn(#, #)', this, when, grainOffset);
       } else {
         JS('void', '#.noteOn(#)', this, when);
@@ -300,10 +300,10 @@ class AudioContext extends EventTarget native "AudioContext" {
       [int numberOfInputChannels, int numberOfOutputChannels]) {
     var function = JS('dynamic', '#.createScriptProcessor || '
         '#.createJavaScriptNode', this, this);
-    if (?numberOfOutputChannels) {
+    if (numberOfOutputChannels != null) {
       return JS('ScriptProcessorNode', '#.call(#, #, #, #)', function, this,
           bufferSize, numberOfInputChannels, numberOfOutputChannels);
-    } else if (?numberOfInputChannels) {
+    } else if (numberOfInputChannels != null) {
       return JS('ScriptProcessorNode', '#.call(#, #, #)', function, this,
           bufferSize, numberOfInputChannels);
     } else {

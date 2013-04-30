@@ -75,7 +75,7 @@ class AbstractWorker extends EventTarget native "AbstractWorker" {
 
   @DomName('AbstractWorker.errorEvent')
   @DocsEditable
-  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+  static const EventStreamProvider<ErrorEvent> errorEvent = const EventStreamProvider<ErrorEvent>('error');
 
   @JSName('addEventListener')
   @DomName('AbstractWorker.addEventListener')
@@ -93,7 +93,7 @@ class AbstractWorker extends EventTarget native "AbstractWorker" {
 
   @DomName('AbstractWorker.onerror')
   @DocsEditable
-  Stream<Event> get onError => errorEvent.forTarget(this);
+  Stream<ErrorEvent> get onError => errorEvent.forTarget(this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6146,6 +6146,11 @@ class Document extends Node  native "Document"
   @DocsEditable
   Event $dom_createEvent(String eventType) native;
 
+  @JSName('createNodeIterator')
+  @DomName('Document.createNodeIterator')
+  @DocsEditable
+  NodeIterator $dom_createNodeIterator(Node root, int whatToShow, NodeFilter filter, bool expandEntityReferences) native;
+
   @JSName('createRange')
   @DomName('Document.createRange')
   @DocsEditable
@@ -6172,6 +6177,11 @@ class Document extends Node  native "Document"
   @DomName('Document.createTouchList')
   @DocsEditable
   TouchList $dom_createTouchList() native;
+
+  @JSName('createTreeWalker')
+  @DomName('Document.createTreeWalker')
+  @DocsEditable
+  TreeWalker $dom_createTreeWalker(Node root, int whatToShow, NodeFilter filter, bool expandEntityReferences) native;
 
   @JSName('elementFromPoint')
   @DomName('Document.elementFromPoint')
@@ -7792,8 +7802,6 @@ class DomTokenList native "DOMTokenList" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-// TODO(jacobr): use _Lists.dart to remove some of the duplicated
-// functionality.
 class _ChildrenElementList extends ListBase<Element> {
   // Raw Element.
   final Element _element;
@@ -7803,104 +7811,11 @@ class _ChildrenElementList extends ListBase<Element> {
     : _childElements = element.$dom_children,
       _element = element;
 
-  List<Element> toList({ bool growable: true }) {
-    List<Element> output;
-    if (growable) {
-      output = <Element>[];
-      output.length = _childElements.length;
-    } else {
-      output = new List<Element>(_childElements.length);
-    }
-    for (int i = 0, len = _childElements.length; i < len; i++) {
-      output[i] = _childElements[i];
-    }
-    return output;
-  }
-
-  Set<Element> toSet() {
-    final output = new Set<Element>();
-    for (int i = 0, len = _childElements.length; i < len; i++) {
-      output.add(_childElements[i]);
-    }
-    return output;
-  }
-
   bool contains(Element element) => _childElements.contains(element);
 
-  void forEach(void f(Element element)) {
-    for (Element element in _childElements) {
-      f(element);
-    }
-  }
-
-  bool every(bool f(Element element)) {
-    for (Element element in this) {
-      if (!f(element)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  bool any(bool f(Element element)) {
-    for (Element element in this) {
-      if (f(element)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  String join([String separator = ""]) {
-    return _childElements.join(separator);
-  }
-
-  Iterable map(f(Element element)) {
-    return _childElements.map(f);
-  }
-
-  Iterable<Element> where(bool f(Element element)) {
-    return _childElements.where(f);
-  }
-
-  Iterable expand(Iterable f(Element element)) {
-    return _childElements.expand(f);
-  }
 
   bool get isEmpty {
     return _element.$dom_firstElementChild == null;
-  }
-
-  Iterable<Element> take(int n) {
-    return _childElements.take(n);
-  }
-
-  Iterable<Element> takeWhile(bool test(Element value)) {
-    return _childElements.takeWhile(test);
-  }
-
-  Iterable<Element> skip(int n) {
-    return _childElements.skip(n);
-  }
-
-  Iterable<Element> skipWhile(bool test(Element value)) {
-    return _childElements.skipWhile(test);
-  }
-
-  Element firstWhere(bool test(Element value), {Element orElse()}) {
-    return _childElements.firstWhere(test, orElse: orElse);
-  }
-
-  Element lastWhere(bool test(Element value), {Element orElse()}) {
-    return _childElements.lastWhere(test, orElse: orElse);
-  }
-
-  Element singleWhere(bool test(Element value)) {
-    return _childElements.singleWhere(test);
-  }
-
-  Element elementAt(int index) {
-    return this[index];
   }
 
   int get length {
@@ -7917,7 +7832,7 @@ class _ChildrenElementList extends ListBase<Element> {
 
   void set length(int newLength) {
     // TODO(jacobr): remove children when length is reduced.
-    throw new UnsupportedError('');
+    throw new UnsupportedError('Cannot resize element lists');
   }
 
   Element add(Element value) {
@@ -7937,21 +7852,8 @@ class _ChildrenElementList extends ListBase<Element> {
     }
   }
 
-  Iterable<Element> get reversed {
-    return _childElements.reversed;
-  }
-
   void sort([int compare(Element a, Element b)]) {
-    throw new UnsupportedError('TODO(jacobr): should we impl?');
-  }
-
-  Element reduce(Element combine(Element value, Element element)) {
-    return _childElements.reduce(combine);
-  }
-
-  dynamic fold(dynamic initialValue,
-      dynamic combine(dynamic previousValue, Element element)) {
-    return _childElements.fold(initialValue, combine);
+    throw new UnsupportedError('Cannot sort element lists');
   }
 
   void setRange(int start, int end, Iterable<Element> iterable,
@@ -7978,36 +7880,6 @@ class _ChildrenElementList extends ListBase<Element> {
     return false;
   }
 
-  void removeWhere(bool test(Element element)) {
-    _childElements.removeWhere(test);
-  }
-
-  void retainWhere(bool test(Element element)) {
-    _childElements.retainWhere(test);
-  }
-
-  void removeRange(int start, int end) {
-    throw new UnimplementedError();
-  }
-
-  Iterable getRange(int start, int end)  {
-    throw new UnimplementedError();
-  }
-
-  List sublist(int start, [int end]) {
-    if (end == null) end = length;
-    return new _FrozenElementList._wrap(Lists.getRange(this, start, end, []));
-  }
-
-  int indexOf(Element element, [int start = 0]) {
-    return Lists.indexOf(this, element, start, this.length);
-  }
-
-  int lastIndexOf(Element element, [int start = null]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
   void insert(int index, Element element) {
     if (index < 0 || index > length) {
       throw new RangeError.range(index, 0, length);
@@ -8017,10 +7889,6 @@ class _ChildrenElementList extends ListBase<Element> {
     } else {
       _element.insertBefore(element, this[index]);
     }
-  }
-
-  void insertAll(int index, Iterable<Element> iterable) {
-    throw new UnimplementedError();
   }
 
   void setAll(int index, Iterable<Element> iterable) {
@@ -8065,24 +7933,13 @@ class _ChildrenElementList extends ListBase<Element> {
     if (length > 1) throw new StateError("More than one element");
     return first;
   }
-
-  Map<int, Element> asMap() {
-    return _childElements.asMap();
-  }
-
-  String toString() {
-    StringBuffer buffer = new StringBuffer('[');
-    buffer.writeAll(this, ', ');
-    buffer.write(']');
-    return buffer.toString();
-  }
 }
 
 // TODO(jacobr): this is an inefficient implementation but it is hard to see
 // a better option given that we cannot quite force NodeList to be an
 // ElementList as there are valid cases where a NodeList JavaScript object
 // contains Node objects that are not Elements.
-class _FrozenElementList extends ListBase {
+class _FrozenElementList<T extends Element> extends ListBase<T> {
   final List<Node> _nodeList;
 
   _FrozenElementList._wrap(this._nodeList);
@@ -8092,60 +7949,15 @@ class _FrozenElementList extends ListBase {
   Element operator [](int index) => _nodeList[index];
 
   void operator []=(int index, Element value) {
-    throw new UnsupportedError('');
+    throw new UnsupportedError('Cannot modify list');
   }
 
   void set length(int newLength) {
-    _nodeList.length = newLength;
+    throw new UnsupportedError('Cannot modify list');
   }
 
-  void add(Element value) {
-    throw new UnsupportedError('');
-  }
-
-  void addAll(Iterable<Element> iterable) {
-    throw new UnsupportedError('');
-  }
-
-  void sort([int compare(Element a, Element b)]) {
-    throw new UnsupportedError('');
-  }
-
-  void setRange(int start, int end, Iterable<Element> iterable,
-                [int skipCount = 0]) {
-    throw new UnsupportedError('');
-  }
-
-  void removeRange(int start, int end) {
-    throw new UnsupportedError('');
-  }
-
-  List<Element> sublist(int start, [int end]) {
-    return new _FrozenElementList._wrap(_nodeList.sublist(start, end));
-  }
-
-  void clear() {
-    throw new UnsupportedError('');
-  }
-
-  Element removeAt(int index) {
-    throw new UnsupportedError('');
-  }
-
-  Element removeLast() {
-    throw new UnsupportedError('');
-  }
-
-  bool remove(Object element) {
-    throw new UnsupportedError('');
-  }
-
-  void removeWhere(bool test(Element element)) {
-    throw new UnsupportedError('');
-  }
-
-  void retainWhere(bool test(Element element)) {
-    throw new UnsupportedError('');
+  void sort([Comparator<Element> compare]) {
+    throw new UnsupportedError('Cannot sort list');
   }
 
   Element get first => _nodeList.first;
@@ -8153,13 +7965,6 @@ class _FrozenElementList extends ListBase {
   Element get last => _nodeList.last;
 
   Element get single => _nodeList.single;
-
-  String toString() {
-    StringBuffer buffer = new StringBuffer('[');
-    buffer.writeAll(this, ', ');
-    buffer.write(']');
-    return buffer.toString();
-  }
 }
 
 class _ElementCssClassSet extends CssClassSet {
@@ -9569,15 +9374,6 @@ class EmbedElement extends Element native "HTMLEmbedElement" {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
-@DocsEditable
-@DomName('EntityReference')
-class EntityReference extends Node native "EntityReference" {
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 // WARNING: Do not edit - generated code.
 
 
@@ -9751,7 +9547,7 @@ class Event native "Event" {
   factory Event(String type,
       {bool canBubble: true, bool cancelable: true}) {
     return new Event.eventType('Event', type, canBubble: canBubble,
-        cancelable: canBubble);
+        cancelable: cancelable);
   }
 
   /**
@@ -15858,11 +15654,12 @@ class _ChildNodeListLazy extends ListBase<Node> {
   }
 
   void insertAll(int index, Iterable<Node> iterable) {
-    throw new UnimplementedError();
+    var item = this[index];
+    _this.insertAllBefore(iterable, item);
   }
 
   void setAll(int index, Iterable<Node> iterable) {
-    throw new UnimplementedError();
+    throw new UnsupportedError("Cannot setAll on Node list");
   }
 
   Node removeLast() {
@@ -15921,53 +15718,22 @@ class _ChildNodeListLazy extends ListBase<Node> {
 
   Iterator<Node> get iterator => _this.$dom_childNodes.iterator;
 
-  List<Node> toList({ bool growable: true }) =>
-      new List<Node>.from(this, growable: growable);
-  Set<Node> toSet() => new Set<Node>.from(this);
-
-  bool get isEmpty => this.length == 0;
-
   // From List<Node>:
 
   // TODO(jacobr): this could be implemented for child node lists.
   // The exception we throw here is misleading.
-  void sort([int compare(Node a, Node b)]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
+  void sort([Comparator<Node> compare]) {
+    throw new UnsupportedError("Cannot sort Node list");
   }
 
   // FIXME: implement these.
   void setRange(int start, int end, Iterable<Node> iterable,
                 [int skipCount = 0]) {
-    throw new UnsupportedError(
-        "Cannot setRange on immutable List.");
-  }
-  void removeRange(int start, int end) {
-    throw new UnsupportedError(
-        "Cannot removeRange on immutable List.");
+    throw new UnsupportedError("Cannot setRange on Node list");
   }
 
-  Iterable<Node> getRange(int start, int end) {
-    throw new UnimplementedError("NodeList.getRange");
-  }
-
-  void replaceRange(int start, int end, Iterable<Node> iterable) {
-    throw new UnimplementedError("NodeList.replaceRange");
-  }
-
-  void fillRange(int start, int end, [Node fillValue]) {
-    throw new UnimplementedError("NodeList.fillRange");
-  }
-
-  List<Node> sublist(int start, [int end]) {
-    if (end == null) end == length;
-    return Lists.getRange(this, start, end, <Node>[]);
-  }
-
-  String toString() {
-    StringBuffer buffer = new StringBuffer('[');
-    buffer.writeAll(this, ', ');
-    buffer.write(']');
-    return buffer.toString();
+  void fillRange(int start, int end, [Node fill]) {
+    throw new UnsupportedError("Cannot fillRange on Node list");
   }
   // -- end List<Node> mixins.
 
@@ -16315,27 +16081,17 @@ class NodeFilter native "NodeFilter" {
   static const int SHOW_PROCESSING_INSTRUCTION = 0x00000040;
 
   static const int SHOW_TEXT = 0x00000004;
-
-  @DomName('NodeFilter.acceptNode')
-  @DocsEditable
-  int acceptNode(Node n) native;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('NodeIterator')
 class NodeIterator native "NodeIterator" {
-
-  @DomName('NodeIterator.expandEntityReferences')
-  @DocsEditable
-  final bool expandEntityReferences;
-
-  @DomName('NodeIterator.filter')
-  @DocsEditable
-  final NodeFilter filter;
+  factory NodeIterator(Node root, int whatToShow) {
+    return document.$dom_createNodeIterator(root, whatToShow, null, false);
+  }
 
   @DomName('NodeIterator.pointerBeforeReferenceNode')
   @DocsEditable
@@ -16364,6 +16120,7 @@ class NodeIterator native "NodeIterator" {
   @DomName('NodeIterator.previousNode')
   @DocsEditable
   Node previousNode() native;
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17053,43 +16810,6 @@ class OverflowEvent extends Event native "OverflowEvent" {
   @DomName('OverflowEvent.verticalOverflow')
   @DocsEditable
   final bool verticalOverflow;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('PagePopupController')
-class PagePopupController native "PagePopupController" {
-
-  @DomName('PagePopupController.closePopup')
-  @DocsEditable
-  void closePopup() native;
-
-  @DomName('PagePopupController.formatMonth')
-  @DocsEditable
-  String formatMonth(int year, int zeroBaseMonth) native;
-
-  @DomName('PagePopupController.formatShortMonth')
-  @DocsEditable
-  String formatShortMonth(int year, int zeroBaseMonth) native;
-
-  @DomName('PagePopupController.histogramEnumeration')
-  @DocsEditable
-  void histogramEnumeration(String name, int sample, int boundaryValue) native;
-
-  @DomName('PagePopupController.localizeNumberString')
-  @DocsEditable
-  String localizeNumberString(String numberString) native;
-
-  @DomName('PagePopupController.setValue')
-  @DocsEditable
-  void setValue(String value) native;
-
-  @DomName('PagePopupController.setValueAndClosePopup')
-  @DocsEditable
-  void setValueAndClosePopup(int numberValue, String stringValue) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18080,7 +17800,7 @@ class RtcPeerConnection extends EventTarget native "RTCPeerConnection" {
   factory RtcPeerConnection(Map rtcIceServers, [Map mediaConstraints]) {
     var constructorName = JS('RtcPeerConnection', 'window[#]',
         '${Device.propertyPrefix}RTCPeerConnection');
-    if (?mediaConstraints) {
+    if (mediaConstraints != null) {
       return JS('RtcPeerConnection', 'new #(#,#)', constructorName,
           convertDartToNative_SerializedScriptValue(rtcIceServers),
           convertDartToNative_SerializedScriptValue(mediaConstraints));
@@ -18776,14 +18496,14 @@ class SelectElement extends Element native "HTMLSelectElement" {
   // does not operate as a List.
   List<OptionElement> get options {
     var options = this.children.where((e) => e is OptionElement).toList();
-    return new UnmodifiableListView<OptionElement>(options);
+    return new UnmodifiableListView(options);
   }
 
   List<OptionElement> get selectedOptions {
     // IE does not change the selected flag for single-selection items.
     if (this.multiple) {
       var options = this.options.where((o) => o.selected).toList();
-      return new UnmodifiableListView<OptionElement>(options);
+      return new UnmodifiableListView(options);
     } else {
       return [this.options[this.selectedIndex]];
     }
@@ -21648,14 +21368,16 @@ class TransitionEvent extends Event native "TransitionEvent,WebKitTransitionEven
   @DocsEditable
   final String pseudoElement;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable
 @DomName('TreeWalker')
 class TreeWalker native "TreeWalker" {
+  factory TreeWalker(Node root, int whatToShow) {
+    return document.$dom_createTreeWalker(root, whatToShow, null, false);
+  }
 
   @DomName('TreeWalker.currentNode')
   @DocsEditable
@@ -21704,6 +21426,7 @@ class TreeWalker native "TreeWalker" {
   @DomName('TreeWalker.previousSibling')
   @DocsEditable
   Node previousSibling() native;
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22821,10 +22544,6 @@ class Window extends EventTarget implements WindowBase native "Window,DOMWindow"
   @DomName('DOMWindow.outerWidth')
   @DocsEditable
   final int outerWidth;
-
-  @DomName('DOMWindow.pagePopupController')
-  @DocsEditable
-  final PagePopupController pagePopupController;
 
   @DomName('DOMWindow.pageXOffset')
   @DocsEditable
@@ -24588,6 +24307,15 @@ class _DomPoint native "WebKitPoint" {
 
 
 @DocsEditable
+@DomName('EntityReference')
+abstract class _EntityReference extends Node native "EntityReference" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
 @DomName('EntryArray')
 class _EntryArray implements JavaScriptIndexingBehavior, List<Entry> native "EntryArray" {
 
@@ -25579,6 +25307,15 @@ class _NamedNodeMap implements JavaScriptIndexingBehavior, List<Node> native "Na
   @DomName('NamedNodeMap.setNamedItemNS')
   @DocsEditable
   Node setNamedItemNS(Node node) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('PagePopupController')
+abstract class _PagePopupController native "PagePopupController" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29268,7 +29005,7 @@ class _WrappedEvent implements Event {
  * A list which just wraps another list, for either intercepting list calls or
  * retyping the list (for example, from List<A> to List<B> where B extends A).
  */
-class _WrappedList<E> implements List<E> {
+class _WrappedList<E> extends ListBase<E> {
   final List _list;
 
   _WrappedList(this._list);
@@ -29277,72 +29014,13 @@ class _WrappedList<E> implements List<E> {
 
   Iterator<E> get iterator => new _WrappedIterator(_list.iterator);
 
-  Iterable map(f(E element)) => _list.map(f);
-
-  Iterable<E> where(bool f(E element)) => _list.where(f);
-
-  Iterable expand(Iterable f(E element)) => _list.expand(f);
-
-  bool contains(E element) => _list.contains(element);
-
-  void forEach(void f(E element)) { _list.forEach(f); }
-
-  E reduce(E combine(E value, E element)) =>
-      _list.reduce(combine);
-
-  dynamic fold(initialValue, combine(previousValue, E element)) =>
-      _list.fold(initialValue, combine);
-
-  bool every(bool f(E element)) => _list.every(f);
-
-  String join([String separator = ""]) => _list.join(separator);
-
-  bool any(bool f(E element)) => _list.any(f);
-
-  List<E> toList({ bool growable: true }) =>
-      new List.from(_list, growable: growable);
-
-  Set<E> toSet() => _list.toSet();
-
   int get length => _list.length;
-
-  bool get isEmpty => _list.isEmpty;
-
-  Iterable<E> take(int n) => _list.take(n);
-
-  Iterable<E> takeWhile(bool test(E value)) => _list.takeWhile(test);
-
-  Iterable<E> skip(int n) => _list.skip(n);
-
-  Iterable<E> skipWhile(bool test(E value)) => _list.skipWhile(test);
-
-  E get first => _list.first;
-
-  E get last => _list.last;
-
-  E get single => _list.single;
-
-  E firstWhere(bool test(E value), { E orElse() }) =>
-      _list.firstWhere(test, orElse: orElse);
-
-  E lastWhere(bool test(E value), {E orElse()}) =>
-      _list.lastWhere(test, orElse: orElse);
-
-  E singleWhere(bool test(E value)) => _list.singleWhere(test);
-
-  E elementAt(int index) => _list.elementAt(index);
 
   // Collection APIs
 
   void add(E element) { _list.add(element); }
 
-  void addAll(Iterable<E> elements) { _list.addAll(elements); }
-
   void remove(Object element) { _list.remove(element); }
-
-  void removeWhere(bool test(E element)) { _list.removeWhere(test); }
-
-  void retainWhere(bool test(E element)) { _list.retainWhere(test); }
 
   void clear() { _list.clear(); }
 
@@ -29354,8 +29032,6 @@ class _WrappedList<E> implements List<E> {
 
   void set length(int newLength) { _list.length = newLength; }
 
-  Iterable<E> get reversed => _list.reversed;
-
   void sort([int compare(E a, E b)]) { _list.sort(compare); }
 
   int indexOf(E element, [int start = 0]) => _list.indexOf(element, start);
@@ -29364,19 +29040,7 @@ class _WrappedList<E> implements List<E> {
 
   void insert(int index, E element) => _list.insert(index, element);
 
-  void insertAll(int index, Iterable<E> iterable) =>
-      _list.insertAll(index, iterable);
-
-  void setAll(int index, Iterable<E> iterable) =>
-      _list.setAll(index, iterable);
-
   E removeAt(int index) => _list.removeAt(index);
-
-  E removeLast() => _list.removeLast();
-
-  List<E> sublist(int start, [int end]) => _list.sublist(start, end);
-
-  Iterable<E> getRange(int start, int end) => _list.getRange(start, end);
 
   void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
     _list.setRange(start, end, iterable, skipCount);
@@ -29390,15 +29054,6 @@ class _WrappedList<E> implements List<E> {
 
   void fillRange(int start, int end, [E fillValue]) {
     _list.fillRange(start, end, fillValue);
-  }
-
-  Map<int, E> asMap() => _list.asMap();
-
-  String toString() {
-    StringBuffer buffer = new StringBuffer('[');
-    buffer.writeAll(this, ', ');
-    buffer.write(']');
-    return buffer.toString();
   }
 }
 
@@ -29858,7 +29513,19 @@ class _LocationWrapper implements Location {
 
 
 class Platform {
+  /**
+   * Returns true if dart:typed_data types are supported on this
+   * browser.  If false, using these types will generate a runtime
+   * error.
+   */
   static final supportsTypedData = JS('bool', '!!(window.ArrayBuffer)');
+
+  /**
+   * Returns true if SIMD types in dart:typed_data types are supported
+   * on this browser.  If false, using these types will generate a runtime
+   * error.
+   */
+  static final supportsSimd = false;
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

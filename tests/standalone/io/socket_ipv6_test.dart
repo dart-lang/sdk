@@ -67,7 +67,7 @@ void testIPv6Lookup() {
   InternetAddress.lookup("::0", type: ANY).then((list) {
     if (list.length < 0) throw "no address";
     for (var entry in list) {
-      if (entry.type != InternetAddressType.IPv6) {
+      if (entry.type != InternetAddressType.IP_V6) {
         throw "Wrong IP type";
       }
     }
@@ -80,7 +80,7 @@ void testIPv4Lookup() {
   InternetAddress.lookup("127.0.0.1").then((list) {
     if (list.length < 0) throw "no addresse";
     for (var entry in list) {
-      if (entry.type != InternetAddressType.IPv4) {
+      if (entry.type != InternetAddressType.IP_V4) {
         throw "Wrong IP type";
       }
     }

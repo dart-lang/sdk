@@ -9,6 +9,7 @@
 import os
 import subprocess
 import sys
+from sys import argv
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 import utils
@@ -97,7 +98,8 @@ def compile_dart2js(dart_file, checked):
 
 def gen():
   os.chdir(os.path.join('tools', 'dom', 'scripts'))
-  return call(os.path.join(os.getcwd(), 'go.sh'))
+  return call([os.path.join(os.getcwd(), 'dartdomgenerator.py'),
+      '--rebuild', '--parallel', '--systems=htmldart2js,htmldartium'])
 
 def http_server():
   print('Browse tests at '
@@ -190,7 +192,7 @@ commands = {
       'running browser tests.'],
 }
 
-def main(argv):
+def main():
   success = True
   argv.pop(0)
 
@@ -212,4 +214,4 @@ def main(argv):
   sys.exit(not success)
 
 if __name__ == '__main__':
-  main(sys.argv)
+  main()

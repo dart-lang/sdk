@@ -31,9 +31,9 @@ class SourceFactory {
    * @param resolvers the resolvers used to resolve absolute URI's
    */
   SourceFactory.con1(ContentCache contentCache2, List<UriResolver> resolvers2) {
-    _jtd_constructor_332_impl(contentCache2, resolvers2);
+    _jtd_constructor_333_impl(contentCache2, resolvers2);
   }
-  _jtd_constructor_332_impl(ContentCache contentCache2, List<UriResolver> resolvers2) {
+  _jtd_constructor_333_impl(ContentCache contentCache2, List<UriResolver> resolvers2) {
     this._contentCache = contentCache2;
     this._resolvers = resolvers2;
   }
@@ -42,10 +42,10 @@ class SourceFactory {
    * @param resolvers the resolvers used to resolve absolute URI's
    */
   SourceFactory.con2(List<UriResolver> resolvers) {
-    _jtd_constructor_333_impl(resolvers);
+    _jtd_constructor_334_impl(resolvers);
   }
-  _jtd_constructor_333_impl(List<UriResolver> resolvers) {
-    _jtd_constructor_332_impl(new ContentCache(), resolvers);
+  _jtd_constructor_334_impl(List<UriResolver> resolvers) {
+    _jtd_constructor_333_impl(new ContentCache(), resolvers);
   }
   /**
    * Return a source object representing the given absolute URI, or {@code null} if the URI is not a
@@ -64,12 +64,33 @@ class SourceFactory {
     return null;
   }
   /**
-   * Return a source object that is equal to the source object used to obtain the given encoding, or{@code null} if the argument is not a valid encoding.
+   * Return a source object that is equal to the source object used to obtain the given encoding.
    * @param encoding the encoding of a source object
    * @return a source object that is described by the given encoding
+   * @throws IllegalArgumentException if the argument is not a valid encoding
    * @see Source#getEncoding()
    */
-  Source fromEncoding(String encoding) => forUri(encoding);
+  Source fromEncoding(String encoding) {
+    if (encoding.length < 2) {
+      throw new IllegalArgumentException("Invalid encoding length");
+    }
+    UriKind kind = UriKind.fromEncoding(encoding.codeUnitAt(0));
+    if (kind == null) {
+      throw new IllegalArgumentException("Invalid source kind in encoding: ${kind}");
+    }
+    try {
+      Uri uri = new Uri(encoding.substring(1));
+      for (UriResolver resolver in _resolvers) {
+        Source result = resolver.fromEncoding(_contentCache, kind, uri);
+        if (result != null) {
+          return result;
+        }
+      }
+      throw new IllegalArgumentException("No resolver for kind: ${kind}");
+    } catch (exception) {
+      throw new IllegalArgumentException("Invalid URI in encoding");
+    }
+  }
   /**
    * Return a cache of content used to override the default content of a source.
    * @return a cache of content used to override the default content of a source
@@ -183,11 +204,22 @@ abstract class UriResolver {
   UriResolver() : super() {
   }
   /**
+   * If this resolver should be used for URI's of the given kind, resolve the given absolute URI.
+   * The URI does not need to have the scheme handled by this resolver if the kind matches. Return a{@link Source source} representing the file to which it was resolved, or {@code null} if it
+   * could not be resolved.
+   * @param contentCache the content cache used to access the contents of the returned source
+   * @param kind the kind of URI that was originally resolved in order to produce an encoding with
+   * the given URI
+   * @param uri the URI to be resolved
+   * @return a {@link Source source} representing the file to which given URI was resolved
+   */
+  Source fromEncoding(ContentCache contentCache, UriKind kind, Uri uri);
+  /**
    * Resolve the given absolute URI. Return a {@link Source source} representing the file to which
    * it was resolved, or {@code null} if it could not be resolved.
    * @param contentCache the content cache used to access the contents of the returned source
    * @param uri the URI to be resolved
-   * @return a {@link Source source} representing the URI to which given URI was resolved
+   * @return a {@link Source source} representing the file to which given URI was resolved
    */
   Source resolveAbsolute(ContentCache contentCache, Uri uri);
 }
@@ -253,6 +285,14 @@ abstract class Source {
    * @return a name that can be displayed to the user to denote this source
    */
   String get shortName;
+  /**
+   * Return the kind of URI from which this source was originally derived. If this source was
+   * created from an absolute URI, then the returned kind will reflect the scheme of the absolute
+   * URI. If it was created from a relative URI, then the returned kind will be the same as the kind
+   * of the source against which the relative URI was resolved.
+   * @return the kind of URI from which this source was originally derived
+   */
+  UriKind get uriKind;
   /**
    * Return a hash code for this source.
    * @return a hash code for this source
@@ -331,6 +371,66 @@ class SourceKind implements Comparable<SourceKind> {
   String toString() => __name;
 }
 /**
+ * The enumeration {@code UriKind} defines the different kinds of URI's that are known to the
+ * analysis engine. These are used to keep track of the kind of URI associated with a given source.
+ * @coverage dart.engine.source
+ */
+class UriKind implements Comparable<UriKind> {
+  /**
+   * A 'dart:' URI.
+   */
+  static final UriKind DART_URI = new UriKind('DART_URI', 0, 0x64);
+  /**
+   * A 'file:' URI.
+   */
+  static final UriKind FILE_URI = new UriKind('FILE_URI', 1, 0x66);
+  /**
+   * A 'package:' URI.
+   */
+  static final UriKind PACKAGE_URI = new UriKind('PACKAGE_URI', 2, 0x70);
+  static final List<UriKind> values = [DART_URI, FILE_URI, PACKAGE_URI];
+  final String __name;
+  final int __ordinal;
+  int get ordinal => __ordinal;
+  /**
+   * The single character encoding used to identify this kind of URI.
+   */
+  int _encoding = 0;
+  /**
+   * Initialize a newly created URI kind to have the given encoding.
+   * @param encoding the single character encoding used to identify this kind of URI.
+   */
+  UriKind(this.__name, this.__ordinal, int encoding) {
+    this._encoding = encoding;
+  }
+  /**
+   * Return the URI kind represented by the given encoding, or {@code null} if there is no kind with
+   * the given encoding.
+   * @param encoding the single character encoding used to identify the URI kind to be returned
+   * @return the URI kind represented by the given encoding
+   */
+  static UriKind fromEncoding(int encoding) {
+    while (true) {
+      if (encoding == 0x64) {
+        return DART_URI;
+      } else if (encoding == 0x66) {
+        return FILE_URI;
+      } else if (encoding == 0x70) {
+        return PACKAGE_URI;
+      }
+      break;
+    }
+    return null;
+  }
+  /**
+   * Return the single character encoding used to identify this kind of URI.
+   * @return the single character encoding used to identify this kind of URI
+   */
+  int get encoding => _encoding;
+  int compareTo(UriKind other) => __ordinal - other.__ordinal;
+  String toString() => __name;
+}
+/**
  * A source range defines an {@link Element}'s source coordinates relative to its {@link Source}.
  * @coverage dart.engine.utilities
  */
@@ -355,7 +455,7 @@ class SourceRange {
     this._length = length;
   }
   /**
-   * @return {@code true} if <code>x</code> is in [offset, offset + length) interval.
+   * @return {@code true} if <code>x</code> is in \[offset, offset + length) interval.
    */
   bool contains(int x) => _offset <= x && x < _offset + _length;
   /**
@@ -484,6 +584,12 @@ class DartUriResolver extends UriResolver {
    */
   DartUriResolver(DartSdk sdk) {
     this._sdk = sdk;
+  }
+  Source fromEncoding(ContentCache contentCache, UriKind kind, Uri uri) {
+    if (identical(kind, UriKind.DART_URI)) {
+      return _sdk.fromEncoding(contentCache, kind, uri);
+    }
+    return null;
   }
   /**
    * Return the {@link DartSdk} against which URIs are to be resolved.

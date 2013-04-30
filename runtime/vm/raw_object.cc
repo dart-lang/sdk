@@ -180,7 +180,6 @@ intptr_t RawObject::SizeFromClass() const {
         break;
       }
       case kFreeListElement: {
-        ASSERT(FreeBit::decode(ptr()->tags_));
         uword addr = RawObject::ToAddr(const_cast<RawObject*>(this));
         FreeListElement* element = reinterpret_cast<FreeListElement*>(addr);
         instance_size = element->Size();
@@ -247,7 +246,6 @@ intptr_t RawObject::VisitPointers(ObjectPointerVisitor* visitor) {
       }
 #undef RAW_VISITPOINTERS
       case kFreeListElement: {
-        ASSERT(FreeBit::decode(ptr()->tags_));
         uword addr = RawObject::ToAddr(const_cast<RawObject*>(this));
         FreeListElement* element = reinterpret_cast<FreeListElement*>(addr);
         size = element->Size();

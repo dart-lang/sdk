@@ -189,20 +189,30 @@ class Version {
     return username;
   }
 
-  bool isGitRepository() {
+  RepositoryType get repositoryType {
+    bool isWindows = Platform.operatingSystem == 'windows';
+    bool hasDirectory(path, name) {
+      return new Directory.fromPath(path.append(name)).existsSync();
+    }
+    bool isFileSystemRoot(absolutePath) {
+      if (isWindows) {
+        return "${absolutePath.directoryPath}" == '/';
+      }
+      return "$absolutePath" == '/';
+    }
+
     var currentPath = new Path(new Directory.current().path);
-    while (!new Directory.fromPath(currentPath.append(".git")).existsSync()) {
-      currentPath = currentPath.directoryPath;
-      if (currentPath.toString() == "/") {
+    while (true) {
+      if (hasDirectory(currentPath, '.svn')) {
+        return RepositoryType.SVN;
+      } else if (hasDirectory(currentPath, '.git')) {
+        return RepositoryType.GIT;
+      }
+      if (isFileSystemRoot(currentPath)) {
         break;
       }
+      currentPath = currentPath.directoryPath;
     }
-    return new Directory.fromPath(currentPath.append(".git")).existsSync();
-  }
-
-  RepositoryType get repositoryType {
-    if (new Directory(".svn").existsSync()) return RepositoryType.SVN;
-    if (isGitRepository()) return RepositoryType.GIT;
     return RepositoryType.UNKNOWN;
   }
 }

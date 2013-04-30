@@ -167,8 +167,9 @@
 library unittest;
 
 import 'dart:async';
-import 'dart:isolate';
 import 'dart:collection';
+import 'dart:isolate';
+import 'dart:math' show max;
 import 'matcher.dart';
 export 'matcher.dart';
 
@@ -181,8 +182,17 @@ part 'src/test_case.dart';
 
 Configuration _config;
 
-/** [Configuration] used by the unittest library. */
-Configuration get unittestConfiguration => _config;
+/**
+ * [Configuration] used by the unittest library. Note that if a 
+ * configuration has not been set, calling this getter will create
+ * a default configuration.
+ */
+Configuration get unittestConfiguration {
+  if (_config == null) {
+    _config = new Configuration();
+  }
+  return _config;
+}
 
 /**
  * Sets the [Configuration] used by the unittest library.
@@ -214,11 +224,20 @@ final List<TestCase> _testCases = new List<TestCase>();
 final List<TestCase> testCases = new UnmodifiableListView<TestCase>(_testCases);
 
 /**
+ * The set of tests to run can be restricted by using [solo_test] and
+ * [solo_group].
+ * As groups can be nested we use a counter to keep track of the nest level
+ * of soloing, and a flag to tell if we have seen any solo tests.
+ */
+int _soloNestingLevel = 0;
+bool _soloTestSeen = false;
+
+/**
  * Setup and teardown functions for a group and its parents, the latter
  * for chaining.
  */
-class GroupContext {
-  final GroupContext parent;
+class _GroupContext {
+  final _GroupContext parent;
 
   /** Description text of the current test group. */
   final String _name;
@@ -273,7 +292,7 @@ class GroupContext {
       ? _name
       : "${parent.fullName}$groupSep$_name";
 
-  GroupContext([this.parent, this._name = '']) {
+  _GroupContext([this.parent, this._name = '']) {
     _testSetup = parentSetup;
     _testTeardown = parentTeardown;
   }
@@ -282,8 +301,8 @@ class GroupContext {
 // We use a 'dummy' context for the top level to eliminate null
 // checks when querying the context. This allows us to easily
 //  support top-level setUp/tearDown functions as well.
-GroupContext _rootContext = new GroupContext();
-GroupContext _currentContext = _rootContext;
+final _rootContext = new _GroupContext();
+_GroupContext _currentContext = _rootContext;
 
 int _currentTestCaseIndex = 0;
 
@@ -307,9 +326,6 @@ const PASS  = 'pass';
 const FAIL  = 'fail';
 const ERROR = 'error';
 
-/** If set, then all other test cases will be ignored. */
-TestCase _soloTest;
-
 /**
  * A map that can be used to communicate state between a test driver
  * or main() function and the tests, particularly when these two
@@ -326,32 +342,45 @@ Map testState = {};
  */
 void test(String spec, TestFunction body) {
   ensureInitialized();
-  _testCases.add(new TestCase._internal(testCases.length + 1, _fullSpec(spec),
-                                        body));
+  if (!_soloTestSeen || _soloNestingLevel > 0) {
+    var testcase = new TestCase._internal(testCases.length + 1, _fullSpec(spec),
+                                        body);
+    _testCases.add(testcase);
+  }
 }
+
+/** Convenience function for skipping a test. */
+void skip_test(String spec, TestFunction body){}
 
 /**
  * Creates a new test case with the given description and body. The
  * description will include the descriptions of any surrounding group()
  * calls.
  *
- * "solo_" means that this will be the only test that is run. All other tests
- * will be skipped. This is a convenience function to let you quickly isolate
- * a single test by adding "solo_" before it to temporarily disable all other
- * tests.
+ * If we use [solo_test] (or [solo_group]) instead of test, then all non-solo
+ * tests will be disabled. Note that if we use [solo_group], all tests in
+ * the group will be enabled, regardless of whether they use [test] or
+ * [solo_test], or whether they are in a nested [group] vs [solo_group]. Put
+ * another way, if there are any calls to [solo_test] or [solo_group] in a test
+ * file, all tests that are not inside a [solo_group] will be disabled unless
+ * they are [solo_test]s.
+ *
+ * [skip_test] and [skip_group] take precedence over soloing, by virtue of the
+ * fact that they are effectively no-ops.
  */
 void solo_test(String spec, TestFunction body) {
-  // TODO(rnystrom): Support multiple solos. If more than one test is solo-ed,
-  // all of the solo-ed tests and none of the non-solo-ed ones should run.
-  if (_soloTest != null) {
-    throw new Exception('Only one test can be soloed right now.');
-  }
-
   ensureInitialized();
-
-  _soloTest = new TestCase._internal(testCases.length + 1, _fullSpec(spec),
-                                     body);
-  _testCases.add(_soloTest);
+  if (!_soloTestSeen) {
+    _soloTestSeen = true;
+    // This is the first solo-ed test. Discard all tests up to now.
+    _testCases.clear();
+  }
+  ++_soloNestingLevel;
+  try {
+    test(spec, body);
+  } finally {
+    --_soloNestingLevel;
+  }
 }
 
 /** Sentinel value for [_SpreadArgsHelper]. */
@@ -583,7 +612,7 @@ Function protectAsync2(Function callback, {String id}) {
  */
 void group(String description, void body()) {
   ensureInitialized();
-  _currentContext = new GroupContext(_currentContext, description);
+  _currentContext = new _GroupContext(_currentContext, description);
   try {
     body();
   } catch (e, trace) {
@@ -592,6 +621,25 @@ void group(String description, void body()) {
   } finally {
     // Now that the group is over, restore the previous one.
     _currentContext = _currentContext.parent;
+  }
+}
+
+/** Like [skip_test], but for groups. */
+void skip_group(String description, void body()) {}
+
+/** Like [solo_test], but for groups. */
+void solo_group(String description, void body()) {
+  ensureInitialized();
+  if (!_soloTestSeen) {
+    _soloTestSeen = true;
+    // This is the first solo-ed group. Discard all tests up to now.
+    _testCases.clear();
+  }
+  ++_soloNestingLevel;
+  try {
+    group(description, body);
+  } finally {
+    --_soloNestingLevel;
   }
 }
 
@@ -667,11 +715,6 @@ void filterTests(testFilter) {
 void runTests() {
   _ensureInitialized(false);
   _currentTestCaseIndex = 0;
-
-  // If we are soloing a test, remove all the others.
-  if (_soloTest != null) {
-    filterTests((t) => t == _soloTest);
-  }
 
   _config.onStart();
 
@@ -787,10 +830,7 @@ void _ensureInitialized(bool configAutoStart) {
 
   _uncaughtErrorMessage = null;
 
-  if (_config == null) {
-    unittestConfiguration = new Configuration();
-  }
-  _config.onInit();
+  unittestConfiguration.onInit();
 
   if (configAutoStart && _config.autoStart) {
     // Immediately queue the suite up. It will run after a timeout (i.e. after
@@ -800,14 +840,8 @@ void _ensureInitialized(bool configAutoStart) {
 }
 
 /** Select a solo test by ID. */
-void setSoloTest(int id) {
-  for (var i = 0; i < testCases.length; i++) {
-    if (testCases[i].id == id) {
-      _soloTest = testCases[i];
-      break;
-    }
-  }
-}
+void setSoloTest(int id) =>
+  _testCases.retainWhere((t) => t.id == id);
 
 /** Enable/disable a test by ID. */
 void _setTestEnabledState(int testId, bool state) {
@@ -832,3 +866,80 @@ void disableTest(int testId) => _setTestEnabledState(testId, false);
 
 /** Signature for a test function. */
 typedef dynamic TestFunction();
+
+// Stack formatting utility. Strips extraneous content from a stack trace.
+// Stack frame lines are parsed with a regexp, which has been tested
+// in Chrome, Firefox and the VM. If a line fails to be parsed it is 
+// included in the output to be conservative.
+//
+// The output stack consists of everything after the call to TestCase._run.
+// If we see an 'expect' in the frame we will prune everything above that
+// as well.
+final _frameRegExp = new RegExp(
+    r'^\s*' // Skip leading spaces.
+    r'(?:'  // Group of choices for the prefix.
+      r'(?:#\d+\s*)|' // Skip VM's #<frameNumber>.
+      r'(?:at )|'     // Skip Firefox's 'at '.
+      r'(?:))'        // Other environments have nothing here.
+    r'(.+)'           // Extract the function/method.
+    r'\s*[@\(]'       // Skip space and @ or (.
+    r'('              // This group of choices is for the source file.
+      r'(?:.+:\/\/.+\/[^:]*)|' // Handle file:// or http:// URLs.
+      r'(?:dart:[^:]*)|'  // Handle dart:<lib>.
+      r'(?:package:[^:]*)' // Handle package:<path>
+    r'):([:\d]+)[\)]?$'); // Get the line number and optional column number.
+
+String _formatStack(stack) {
+  var lines;
+  if (stack is StackTrace) {
+    lines = stack.toString().split('\n');
+  } else if (stack is String) {
+    lines = stack.split('\n');
+  } else {
+    return stack.toString();
+  }
+ 
+  // Calculate the max width of first column so we can 
+  // pad to align the second columns.
+  int padding = lines.fold(0, (n, line) {
+    var match = _frameRegExp.firstMatch(line);
+    if (match == null) return n;
+    return max(n, match[1].length + 1);
+  });
+
+  // We remove all entries that have a location in unittest.
+  // We strip out anything before _nextBatch too.
+  var sb = new StringBuffer();
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i];
+    if (line == '') continue;
+    var match = _frameRegExp.firstMatch(line);
+    if (match == null) {
+      sb.write(line);
+      sb.write('\n');
+    } else {
+      var member = match[1];
+      var location = match[2];
+      var position = match[3];
+      if (member.indexOf('TestCase._runTest') >= 0) {
+        // Don't include anything after this.
+        break;
+      } else if (member.indexOf('expect') >= 0) {
+        // It looks like this was an expect() failure;
+        // drop all the frames up to here.
+        sb.clear();
+      } else {
+        sb.write(member);
+        // Pad second column to a fixed position.
+        for (var j = 0; j <= padding - member.length; j++) {
+          sb.write(' ');
+        }
+        sb.write(location);
+        sb.write(' ');
+        sb.write(position);
+        sb.write('\n');
+      }
+    }
+  }
+  return sb.toString();
+}

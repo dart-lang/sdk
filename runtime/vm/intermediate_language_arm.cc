@@ -1458,7 +1458,9 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
 
   // 'instantiator_reg' is the instantiator AbstractTypeArguments object
   // (or null).
-  if (!type_arguments().IsUninstantiatedIdentity()) {
+  if (!type_arguments().IsUninstantiatedIdentity() &&
+      !type_arguments().CanShareInstantiatorTypeArguments(
+          instantiator_class())) {
     // If the instantiator is null and if the type argument vector
     // instantiated from null becomes a vector of dynamic, then use null as
     // the type arguments.
@@ -1507,7 +1509,9 @@ void ExtractConstructorTypeArgumentsInstr::EmitNativeCode(
 
   // instantiator_reg is the instantiator type argument vector, i.e. an
   // AbstractTypeArguments object (or null).
-  if (!type_arguments().IsUninstantiatedIdentity()) {
+  if (!type_arguments().IsUninstantiatedIdentity() &&
+      !type_arguments().CanShareInstantiatorTypeArguments(
+          instantiator_class())) {
     // If the instantiator is null and if the type argument vector
     // instantiated from null becomes a vector of dynamic, then use null as
     // the type arguments.
@@ -1549,7 +1553,9 @@ void ExtractConstructorInstantiatorInstr::EmitNativeCode(
 
   // instantiator_reg is the instantiator AbstractTypeArguments object
   // (or null).
-  if (type_arguments().IsUninstantiatedIdentity()) {
+  if (type_arguments().IsUninstantiatedIdentity() ||
+      type_arguments().CanShareInstantiatorTypeArguments(
+          instantiator_class())) {
     // The instantiator was used in VisitExtractConstructorTypeArguments as the
     // instantiated type arguments, no proper instantiator needed.
     __ LoadImmediate(instantiator_reg,
@@ -1947,6 +1953,28 @@ void UnboxFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* BoxUint32x4Instr::MakeLocationSummary() const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void BoxUint32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* UnboxUint32x4Instr::MakeLocationSummary() const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void UnboxUint32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
 LocationSummary* BinaryDoubleOpInstr::MakeLocationSummary() const {
   UNIMPLEMENTED();
   return NULL;
@@ -2009,6 +2037,50 @@ LocationSummary* Float32x4SplatInstr::MakeLocationSummary() const {
 
 
 void Float32x4SplatInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* Float32x4ComparisonInstr::MakeLocationSummary() const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void Float32x4ComparisonInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* Float32x4MinMaxInstr::MakeLocationSummary() const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void Float32x4MinMaxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* Float32x4SqrtInstr::MakeLocationSummary() const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void Float32x4SqrtInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* Float32x4ScaleInstr::MakeLocationSummary() const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void Float32x4ScaleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 

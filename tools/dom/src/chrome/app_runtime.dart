@@ -57,9 +57,9 @@ class AppRuntimeLaunchItem extends ChromeObject {
    * Public constructor
    */
   AppRuntimeLaunchItem({FileEntry entry, String type}) {
-    if (?entry)
+    if (entry != null)
       this.entry = entry;
-    if (?type)
+    if (type != null)
       this.type = type;
   }
 
@@ -92,11 +92,11 @@ class AppRuntimeLaunchData extends ChromeObject {
    * Public constructor
    */
   AppRuntimeLaunchData({AppRuntimeIntent intent, String id, List<AppRuntimeLaunchItem> items}) {
-    if (?intent)
+    if (intent != null)
       this.intent = intent;
-    if (?id)
+    if (id != null)
       this.id = id;
-    if (?items)
+    if (items != null)
       this.items = items;
   }
 
@@ -140,11 +140,11 @@ class AppRuntimeIntentResponse extends ChromeObject {
    * Public constructor
    */
   AppRuntimeIntentResponse({int intentId, bool success, Object data}) {
-    if (?intentId)
+    if (intentId != null)
       this.intentId = intentId;
-    if (?success)
+    if (success != null)
       this.success = success;
-    if (?data)
+    if (data != null)
       this.data = data;
   }
 
@@ -188,7 +188,7 @@ class AppRuntimeIntentResponse extends ChromeObject {
 class Event_app_runtime_onLaunched extends Event {
   void addListener(void callback(AppRuntimeLaunchData launchData)) {
     void __proxy_callback(launchData) {
-      if (?callback) {
+      if (callback != null) {
         callback(new AppRuntimeLaunchData._proxy(launchData));
       }
     }
@@ -197,7 +197,7 @@ class Event_app_runtime_onLaunched extends Event {
 
   void removeListener(void callback(AppRuntimeLaunchData launchData)) {
     void __proxy_callback(launchData) {
-      if (?callback) {
+      if (callback != null) {
         callback(new AppRuntimeLaunchData._proxy(launchData));
       }
     }
@@ -206,7 +206,7 @@ class Event_app_runtime_onLaunched extends Event {
 
   bool hasListener(void callback(AppRuntimeLaunchData launchData)) {
     void __proxy_callback(launchData) {
-      if (?callback) {
+      if (callback != null) {
         callback(new AppRuntimeLaunchData._proxy(launchData));
       }
     }

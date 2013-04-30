@@ -38,6 +38,51 @@ static Dart_Handle GetSockAddr(Dart_Handle obj, RawAddr* addr) {
 }
 
 
+void FUNCTION_NAME(InternetAddress_Fixed)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  Dart_Handle id_obj = Dart_GetNativeArgument(args, 0);
+  ASSERT(!Dart_IsError(id_obj));
+  int64_t id = 0;
+  bool ok = DartUtils::GetInt64Value(id_obj, &id);
+  ASSERT(ok);
+  USE(ok);
+  RawAddr raw;
+  memset(&raw, 0, sizeof(raw));
+  switch (id) {
+    case SocketAddress::ADDRESS_LOOPBACK_IP_V4: {
+      raw.in.sin_family = AF_INET;
+      raw.in.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+      break;
+    }
+    case SocketAddress::ADDRESS_LOOPBACK_IP_V6: {
+      raw.in6.sin6_family = AF_INET6;
+      raw.in6.sin6_addr = in6addr_any;
+      break;
+    }
+    case SocketAddress::ADDRESS_ANY_IP_V4: {
+      raw.in.sin_family = AF_INET;
+      raw.in.sin_addr.s_addr = INADDR_ANY;
+      break;
+    }
+    case SocketAddress::ADDRESS_ANY_IP_V6: {
+      raw.in6.sin6_family = AF_INET6;
+      raw.in6.sin6_addr = in6addr_loopback;
+      break;
+    }
+    default:
+      Dart_Handle error = DartUtils::NewDartArgumentError("");
+      if (Dart_IsError(error)) Dart_PropagateError(error);
+      Dart_ThrowException(error);
+  }
+  int len = SocketAddress::GetAddrLength(raw);
+  Dart_Handle result = Dart_NewTypedData(kUint8, len);
+  if (Dart_IsError(result)) Dart_PropagateError(result);
+  Dart_ListSetAsBytes(result, 0, reinterpret_cast<uint8_t *>(&raw), len);
+  Dart_SetReturnValue(args, result);
+  Dart_ExitScope();
+}
+
+
 void FUNCTION_NAME(Socket_CreateConnect)(Dart_NativeArguments args) {
   Dart_EnterScope();
   Dart_Handle socket_obj = Dart_GetNativeArgument(args, 0);

@@ -7,6 +7,8 @@
 
 #include "platform/globals.h"
 
+namespace dart {
+
 class HashMap {
  public:
   typedef bool (*MatchFun) (void* key1, void* key2);
@@ -72,5 +74,7 @@ class HashMap {
 
   friend class IntSet;  // From hashmap_test.cc
 };
+
+}  // namespace dart
 
 #endif  // PLATFORM_HASHMAP_H_

@@ -940,8 +940,8 @@ Package mockPackage(String description, String version,
   var sdkConstraint = null;
 
   // Build the pubspec dependencies.
-  var dependencies = <PackageRef>[];
-  var devDependencies = <PackageRef>[];
+  var dependencies = <PackageDep>[];
+  var devDependencies = <PackageDep>[];
 
   dependencyStrings.forEach((name, constraint) {
     parseSource(name, (isDev, name, source) {
@@ -953,12 +953,12 @@ Package mockPackage(String description, String version,
         return;
       }
 
-      var ref = new PackageRef(packageName, source, constraint, name);
+      var dep = new PackageDep(packageName, source, constraint, name);
 
       if (isDev) {
-        devDependencies.add(ref);
+        devDependencies.add(dep);
       } else {
-        dependencies.add(ref);
+        dependencies.add(dep);
       }
     });
   });

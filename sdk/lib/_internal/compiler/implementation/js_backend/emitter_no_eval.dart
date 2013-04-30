@@ -19,6 +19,12 @@ class CodeEmitterNoEvalTask extends CodeEmitterTask {
     }
   }
 
+  void emitRuntimeName(String runtimeName, ClassBuilder builder) {
+    if (runtimeName != null) {
+      builder.addProperty(r'$name', js.string(runtimeName));
+    }
+  }
+
   void emitBoundClosureClassHeader(String mangledName,
                                    String superName,
                                    List<String> fieldNames,
@@ -66,9 +72,9 @@ class CodeEmitterNoEvalTask extends CodeEmitterTask {
   List get defineClassFunction {
     return [new jsAst.FunctionDeclaration(
         new jsAst.VariableDeclaration('defineClass'),
-        js.fun(['cls', 'constructor', 'prototype'],
+        js.fun(['name', 'cls', 'constructor', 'prototype'],
                [js(r'constructor.prototype = prototype'),
-                js(r'constructor.builtin$cls = cls'),
+                js(r'constructor.builtin$cls = name'),
                 js.return_('constructor')]))];
   }
 

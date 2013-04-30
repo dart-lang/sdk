@@ -425,6 +425,14 @@ char* Directory::Current() {
 }
 
 
+bool Directory::SetCurrent(const char* path) {
+  const wchar_t* system_path = StringUtils::Utf8ToWide(path);
+  bool result = SetCurrentDirectoryW(system_path) != 0;
+  free(const_cast<wchar_t*>(system_path));
+  return result;
+}
+
+
 bool Directory::Create(const char* dir_name) {
   const wchar_t* system_name = StringUtils::Utf8ToWide(dir_name);
   int create_status = CreateDirectoryW(system_name, NULL);

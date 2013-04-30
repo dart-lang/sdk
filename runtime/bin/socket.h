@@ -42,6 +42,15 @@ class SocketAddress {
     TYPE_IPV6,
   };
 
+  enum {
+    ADDRESS_LOOPBACK_IP_V4,
+    ADDRESS_LOOPBACK_IP_V6,
+    ADDRESS_ANY_IP_V4,
+    ADDRESS_ANY_IP_V6,
+    ADDRESS_FIRST = ADDRESS_LOOPBACK_IP_V4,
+    ADDRESS_LAST = ADDRESS_ANY_IP_V6,
+  };
+
   explicit SocketAddress(struct addrinfo* addrinfo);
 
   int GetType() {

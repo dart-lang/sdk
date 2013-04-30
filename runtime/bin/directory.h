@@ -105,6 +105,7 @@ class Directory {
                    DirectoryListing* listing);
   static ExistsResult Exists(const char* path);
   static char* Current();
+  static bool SetCurrent(const char* path);
   static bool Create(const char* path);
   static char* CreateTemp(const char* const_template);
   static bool Delete(const char* path, bool recursive);

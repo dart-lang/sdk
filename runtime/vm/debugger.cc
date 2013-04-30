@@ -339,7 +339,7 @@ intptr_t ActivationFrame::ContextLevel() {
 }
 
 
-RawContext* ActivationFrame::GetSavedContext() {
+RawContext* ActivationFrame::GetSavedContext(const Context& ctx) {
   GetVarDescriptors();
   intptr_t var_desc_len = var_descriptors_.Length();
   for (int i = 0; i < var_desc_len; i++) {
@@ -349,8 +349,7 @@ RawContext* ActivationFrame::GetSavedContext() {
       return reinterpret_cast<RawContext*>(GetLocalVarValue(var_info.index));
     }
   }
-  UNREACHABLE();
-  return Context::null();
+  return ctx.raw();
 }
 
 
@@ -883,7 +882,6 @@ DebuggerStackTrace* Debugger::CollectStackTrace() {
   Code& code = Code::Handle(isolate);
   StackFrameIterator iterator(false);
   StackFrame* frame = iterator.NextFrame();
-  bool get_saved_context = false;
   bool optimized_frame_found = false;
   while (frame != NULL) {
     ASSERT(frame->IsValid());
@@ -898,16 +896,12 @@ DebuggerStackTrace* Debugger::CollectStackTrace() {
         activation->SetContext(Context::Handle());
         optimized_frame_found = true;
       } else {
-        if (get_saved_context) {
-          ctx = activation->GetSavedContext();
-        }
         activation->SetContext(ctx);
+        ctx = activation->GetSavedContext(ctx);
       }
       stack_trace->AddActivation(activation);
-      get_saved_context = activation->function().IsClosureFunction();
     } else if (frame->IsEntryFrame()) {
       ctx = reinterpret_cast<EntryFrame*>(frame)->SavedContext();
-      get_saved_context = false;
     }
     frame = iterator.NextFrame();
   }

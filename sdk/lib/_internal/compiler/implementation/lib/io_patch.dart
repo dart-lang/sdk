@@ -12,6 +12,9 @@ patch class _Directory {
   patch static String _current() {
     throw new UnsupportedError("Directory._current");
   }
+  patch static _setCurrent(path) {
+    throw new UnsupportedError("Directory_SetCurrent");
+  }
   patch static _createTemp(String template) {
     throw new UnsupportedError("Directory._createTemp");
   }
@@ -191,8 +194,20 @@ patch class Process {
 }
 
 patch class InternetAddress {
+  patch static InternetAddress get LOOPBACK_IP_V4 {
+    throw new UnsupportedError("InternetAddress.LOOPBACK_IP_V4");
+  }
+  patch static InternetAddress get LOOPBACK_IP_V6 {
+    throw new UnsupportedError("InternetAddress.LOOPBACK_IP_V6");
+  }
+  patch static InternetAddress get ANY_IP_V4 {
+    throw new UnsupportedError("InternetAddress.ANY_IP_V4");
+  }
+  patch static InternetAddress get ANY_IP_V6 {
+    throw new UnsupportedError("InternetAddress.ANY_IP_V6");
+  }
   patch static Future<List<InternetAddress>> lookup(
-      String host, {InternetAddressType type: InternetAddressType.IPv4}) {
+      String host, {InternetAddressType type: InternetAddressType.IP_V4}) {
     throw new UnsupportedError("InternetAddress.lookup");
   }
 }

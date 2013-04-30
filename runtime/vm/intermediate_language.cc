@@ -103,21 +103,17 @@ bool CheckClassInstr::AttributesEqual(Instruction* other) const {
 }
 
 
-bool CheckClassInstr::AffectedBySideEffect() const {
-  // The class-id of string objects is not invariant: Externalization of strings
-  // via the API can change the class-id.
-  return unary_checks().HasReceiverClassId(kOneByteStringCid)
-      || unary_checks().HasReceiverClassId(kTwoByteStringCid);
+EffectSet CheckClassInstr::Dependencies() const {
+  // Externalization of strings via the API can change the class-id.
+  const bool externalizable =
+      unary_checks().HasReceiverClassId(kOneByteStringCid) ||
+      unary_checks().HasReceiverClassId(kTwoByteStringCid);
+  return externalizable ? EffectSet::Externalization() : EffectSet::None();
 }
 
 
 bool GuardFieldInstr::AttributesEqual(Instruction* other) const {
   return field().raw() == other->AsGuardField()->field().raw();
-}
-
-
-bool GuardFieldInstr::AffectedBySideEffect() const {
-  return false;
 }
 
 
@@ -153,12 +149,22 @@ bool BinarySmiOpInstr::AttributesEqual(Instruction* other) const {
 }
 
 
+EffectSet LoadFieldInstr::Dependencies() const {
+  return immutable_ ? EffectSet::None() : EffectSet::All();
+}
+
+
 bool LoadFieldInstr::AttributesEqual(Instruction* other) const {
   LoadFieldInstr* other_load = other->AsLoadField();
   ASSERT(other_load != NULL);
   ASSERT((offset_in_bytes() != other_load->offset_in_bytes()) ||
          ((immutable_ == other_load->immutable_)));
   return offset_in_bytes() == other_load->offset_in_bytes();
+}
+
+
+EffectSet LoadStaticFieldInstr::Dependencies() const {
+  return field().is_final() ? EffectSet::None() : EffectSet::All();
 }
 
 
@@ -169,6 +175,11 @@ bool LoadStaticFieldInstr::AttributesEqual(Instruction* other) const {
   ASSERT(field().value() != Object::sentinel().raw());
   ASSERT(field().value() != Object::transition_sentinel().raw());
   return field().raw() == other_load->field().raw();
+}
+
+
+EffectSet LoadIndexedInstr::Dependencies() const {
+  return EffectSet::All();
 }
 
 
@@ -1710,8 +1721,10 @@ static bool AreEqualDefinitions(Definition* a, Definition* b) {
   a = UnwrapConstraint(a);
   b = UnwrapConstraint(b);
   return (a == b) ||
-      (!a->AffectedBySideEffect() &&
-       !b->AffectedBySideEffect() &&
+      (a->AllowsCSE() &&
+       a->Dependencies().IsNone() &&
+       b->AllowsCSE() &&
+       b->Dependencies().IsNone() &&
        a->Equals(b));
 }
 

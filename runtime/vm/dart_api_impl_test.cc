@@ -17,10 +17,6 @@ namespace dart {
 
 DECLARE_FLAG(bool, enable_type_checks);
 
-#if defined(TARGET_ARCH_IA32) ||                                               \
-    defined(TARGET_ARCH_X64) ||                                                \
-    defined(TARGET_ARCH_ARM)
-
 TEST_CASE(ErrorHandleBasics) {
   const char* kScriptChars =
       "void testMain() {\n"
@@ -167,8 +163,6 @@ TEST_CASE(Dart_PropagateError) {
   EXPECT_SUBSTRING("myException", Dart_GetError(result));
 }
 
-#endif  // TARGET_ARCH_IA32 || TARGET_ARCH_X64 || TARGET_ARCH_ARM
-
 
 TEST_CASE(Dart_Error) {
   Dart_Handle error = Dart_Error("An %s", "error");
@@ -216,10 +210,6 @@ TEST_CASE(IdentityEquals) {
 }
 
 
-#if defined(TARGET_ARCH_IA32) ||                                               \
-    defined(TARGET_ARCH_X64) ||                                                \
-    defined(TARGET_ARCH_ARM)
-
 TEST_CASE(ObjectEquals) {
   bool equal = false;
   Dart_Handle five = NewString("5");
@@ -238,8 +228,6 @@ TEST_CASE(ObjectEquals) {
   EXPECT_VALID(Dart_ObjectEquals(five, seven, &equal));
   EXPECT(!equal);
 }
-
-#endif  // TARGET_ARCH_IA32 || TARGET_ARCH_X64 || TARGET_ARCH_ARM
 
 
 TEST_CASE(InstanceValues) {
@@ -338,10 +326,6 @@ TEST_CASE(DoubleValues) {
 }
 
 
-#if defined(TARGET_ARCH_IA32) ||                                               \
-    defined(TARGET_ARCH_X64) ||                                                \
-    defined(TARGET_ARCH_ARM)
-
 TEST_CASE(NumberValues) {
   // TODO(antonm): add various kinds of ints (smi, mint, bigint).
   const char* kScriptChars =
@@ -373,8 +357,6 @@ TEST_CASE(NumberValues) {
   EXPECT_VALID(result);
   EXPECT(!Dart_IsNumber(result));
 }
-
-#endif  // TARGET_ARCH_IA32 || TARGET_ARCH_X64 || TARGET_ARCH_ARM
 
 
 TEST_CASE(IntegerValues) {
@@ -638,10 +620,6 @@ TEST_CASE(ExternalStringGetPeer) {
   EXPECT(peer == NULL);
 }
 
-
-#if defined(TARGET_ARCH_IA32) ||                                               \
-    defined(TARGET_ARCH_X64) ||                                                \
-    defined(TARGET_ARCH_ARM)
 
 static void ExternalStringCallbackFinalizer(void* peer) {
   *static_cast<int*>(peer) *= 2;
@@ -1412,9 +1390,6 @@ TEST_CASE(Float32x4List) {
 }
 
 
-#endif  // TARGET_ARCH_IA32 || TARGET_ARCH_X64 || TARGET_ARCH_ARM
-
-
 // Unit test for entering a scope, creating a local handle and exiting
 // the scope.
 UNIT_TEST_CASE(EnterExitScope) {
@@ -1546,10 +1521,6 @@ class GCTestHelper : public AllStatic {
   }
 };
 
-
-#if defined(TARGET_ARCH_IA32) ||                                               \
-    defined(TARGET_ARCH_X64) ||                                                \
-    defined(TARGET_ARCH_ARM)
 
 TEST_CASE(WeakPersistentHandle) {
   Dart_Handle weak_new_ref = Dart_Null();
@@ -2414,8 +2385,6 @@ TEST_CASE(MultipleGarbageCollectionCallbacks) {
   EXPECT_EQ(7, global_epilogue_callback_status);
 }
 
-#endif  // TARGET_ARCH_IA32 || TARGET_ARCH_X64 || TARGET_ARCH_ARM
-
 
 // Unit test for creating multiple scopes and local handles within them.
 // Ensure that the local handles get all cleaned out when exiting the
@@ -2585,10 +2554,6 @@ UNIT_TEST_CASE(SetMessageCallbacks) {
   Dart_ShutdownIsolate();
 }
 
-
-#if defined(TARGET_ARCH_IA32) ||                                               \
-    defined(TARGET_ARCH_X64) ||                                                \
-    defined(TARGET_ARCH_ARM)
 
 TEST_CASE(ClassTypedefsEtc) {
   const char* kScriptChars =
@@ -7650,7 +7615,5 @@ TEST_CASE(ExternalStringDeoptimize) {
   EXPECT_VALID(result);
   EXPECT_EQ(260, value);
 }
-
-#endif  // TARGET_ARCH_IA32 || TARGET_ARCH_X64 || TARGET_ARCH_ARM
 
 }  // namespace dart

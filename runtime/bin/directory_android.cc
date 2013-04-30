@@ -429,6 +429,12 @@ char* Directory::Current() {
 }
 
 
+bool Directory::SetCurrent(const char* path) {
+  int result = TEMP_FAILURE_RETRY(chdir(path));
+  return result == 0;
+}
+
+
 bool Directory::Create(const char* dir_name) {
   // Create the directory with the permissions specified by the
   // process umask.

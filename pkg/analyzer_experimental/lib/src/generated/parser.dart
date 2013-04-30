@@ -431,7 +431,7 @@ class Parser {
    * | 'super' assignableSelector
    * | identifier
    * assignableSelector ::=
-   * '[' expression ']'
+   * '\[' expression '\]'
    * | '.' identifier
    * </pre>
    * @param expression the expression being checked
@@ -472,6 +472,23 @@ class Parser {
     return _currentToken;
   }
   /**
+   * Search the given list of ranges for a range that contains the given index. Return the range
+   * that was found, or {@code null} if none of the ranges contain the index.
+   * @param ranges the ranges to be searched
+   * @param index the index contained in the returned range
+   * @return the range that was found
+   */
+  List<int> findRange(List<List<int>> ranges, int index) {
+    for (List<int> range in ranges) {
+      if (range[0] <= index && index <= range[1]) {
+        return range;
+      } else if (index < range[0]) {
+        return null;
+      }
+    }
+    return null;
+  }
+  /**
    * Advance to the next token in the token stream, making it the new current token.
    * @return the token that was current before this method was invoked
    */
@@ -479,6 +496,47 @@ class Parser {
     Token token = _currentToken;
     advance();
     return token;
+  }
+  /**
+   * Return a list of the ranges of characters in the given comment string that should be treated as
+   * code blocks.
+   * @param comment the comment being processed
+   * @return the ranges of characters that should be treated as code blocks
+   */
+  List<List<int>> getCodeBlockRanges(String comment) {
+    List<List<int>> ranges = new List<List<int>>();
+    int length2 = comment.length;
+    int index = 0;
+    if (comment.startsWith("/**") || comment.startsWith("///")) {
+      index = 3;
+    }
+    while (index < length2) {
+      int currentChar = comment.codeUnitAt(index);
+      if (currentChar == 0xD || currentChar == 0xA) {
+        index = index + 1;
+        while (index < length2 && Character.isWhitespace(comment.codeUnitAt(index))) {
+          index = index + 1;
+        }
+        if (JavaString.startsWithBefore(comment, "*     ", index)) {
+          int end = index + 6;
+          while (end < length2 && comment.codeUnitAt(end) != 0xD && comment.codeUnitAt(end) != 0xA) {
+            end = end + 1;
+          }
+          ranges.add(<int> [index, end]);
+          index = end;
+        }
+      } else if (JavaString.startsWithBefore(comment, "[:", index)) {
+        int end = comment.indexOf(":]", index + 2);
+        if (end < 0) {
+          end = length2;
+        }
+        ranges.add(<int> [index, end]);
+        index = end + 1;
+      } else {
+        index = index + 1;
+      }
+    }
+    return ranges;
   }
   /**
    * Return {@code true} if the current token is the first token of a return type that is followed
@@ -570,6 +628,36 @@ class Parser {
     }
     TokenType type2 = token.type;
     return identical(type2, TokenType.EQ) || identical(type2, TokenType.COMMA) || identical(type2, TokenType.SEMICOLON) || matches3(token, Keyword.IN);
+  }
+  /**
+   * Given that we have just found bracketed text within a comment, look to see whether that text is
+   * (a) followed by a parenthesized link address, (b) followed by a colon, or (c) followed by
+   * optional whitespace and another square bracket.
+   * <p>
+   * This method uses the syntax described by the <a
+   * href="http://daringfireball.net/projects/markdown/syntax">markdown</a> project.
+   * @param comment the comment text in which the bracketed text was found
+   * @param rightIndex the index of the right bracket
+   * @return {@code true} if the bracketed text is followed by a link address
+   */
+  bool isLinkText(String comment, int rightIndex) {
+    int length2 = comment.length;
+    int index = rightIndex + 1;
+    if (index >= length2) {
+      return false;
+    }
+    int nextChar = comment.codeUnitAt(index);
+    if (nextChar == 0x28 || nextChar == 0x3A) {
+      return true;
+    }
+    while (Character.isWhitespace(nextChar)) {
+      index = index + 1;
+      if (index >= length2) {
+        return false;
+      }
+      nextChar = comment.codeUnitAt(index);
+    }
+    return nextChar == 0x5B;
   }
   /**
    * Return {@code true} if the given token appears to be the beginning of an operator declaration.
@@ -916,7 +1004,7 @@ class Parser {
    * Parse an assignable selector.
    * <pre>
    * assignableSelector ::=
-   * '[' expression ']'
+   * '\[' expression '\]'
    * | '.' identifier
    * </pre>
    * @param prefix the expression preceding the selector
@@ -1057,7 +1145,7 @@ class Parser {
    * cascadeSection ::=
    * '..' (cascadeSelector arguments*) (assignableSelector arguments*)* cascadeAssignment?
    * cascadeSelector ::=
-   * '[' expression ']'
+   * '\[' expression '\]'
    * | identifier
    * cascadeAssignment ::=
    * assignmentOperator expressionWithoutCascade
@@ -1174,6 +1262,10 @@ class Parser {
     }
     if (withClause != null && extendsClause == null) {
       reportError5(ParserErrorCode.WITH_WITHOUT_EXTENDS, withClause.withKeyword, []);
+    }
+    if (matches2(_NATIVE) && matches4(peek(), TokenType.STRING)) {
+      advance();
+      advance();
     }
     Token leftBracket = null;
     List<ClassMember> members = null;
@@ -1419,32 +1511,32 @@ class Parser {
       StringScanner scanner = new StringScanner(null, referenceSource, listener);
       scanner.setSourceStart(1, 1, sourceOffset);
       Token firstToken = scanner.tokenize();
-      if (!errorFound[0]) {
-        Token newKeyword = null;
-        if (matches3(firstToken, Keyword.NEW)) {
-          newKeyword = firstToken;
-          firstToken = firstToken.next;
-        }
-        if (matchesIdentifier2(firstToken)) {
-          Token secondToken = firstToken.next;
-          Token thirdToken = secondToken.next;
-          Token nextToken;
-          Identifier identifier;
-          if (matches4(secondToken, TokenType.PERIOD) && matchesIdentifier2(thirdToken)) {
-            identifier = new PrefixedIdentifier.full(new SimpleIdentifier.full(firstToken), secondToken, new SimpleIdentifier.full(thirdToken));
-            nextToken = thirdToken.next;
-          } else {
-            identifier = new SimpleIdentifier.full(firstToken);
-            nextToken = firstToken.next;
-          }
-          if (nextToken.type != TokenType.EOF) {
-          }
-          return new CommentReference.full(newKeyword, identifier);
-        } else if (matches3(firstToken, Keyword.THIS) || matches3(firstToken, Keyword.NULL) || matches3(firstToken, Keyword.TRUE) || matches3(firstToken, Keyword.FALSE)) {
-          return null;
-        } else if (matches4(firstToken, TokenType.STRING)) {
+      if (errorFound[0]) {
+        return null;
+      }
+      Token newKeyword = null;
+      if (matches3(firstToken, Keyword.NEW)) {
+        newKeyword = firstToken;
+        firstToken = firstToken.next;
+      }
+      if (matchesIdentifier2(firstToken)) {
+        Token secondToken = firstToken.next;
+        Token thirdToken = secondToken.next;
+        Token nextToken;
+        Identifier identifier;
+        if (matches4(secondToken, TokenType.PERIOD) && matchesIdentifier2(thirdToken)) {
+          identifier = new PrefixedIdentifier.full(new SimpleIdentifier.full(firstToken), secondToken, new SimpleIdentifier.full(thirdToken));
+          nextToken = thirdToken.next;
         } else {
+          identifier = new SimpleIdentifier.full(firstToken);
+          nextToken = firstToken.next;
         }
+        if (nextToken.type != TokenType.EOF) {
+          return null;
+        }
+        return new CommentReference.full(newKeyword, identifier);
+      } else if (matches3(firstToken, Keyword.THIS) || matches3(firstToken, Keyword.NULL) || matches3(firstToken, Keyword.TRUE) || matches3(firstToken, Keyword.FALSE)) {
+        return null;
       }
     } catch (exception) {
     }
@@ -1454,7 +1546,7 @@ class Parser {
    * Parse all of the comment references occurring in the given array of documentation comments.
    * <pre>
    * commentReference ::=
-   * '[' 'new'? qualified ']' libraryReference?
+   * '\[' 'new'? qualified '\]' libraryReference?
    * libraryReference ::=
    * '(' stringLiteral ')'
    * </pre>
@@ -1465,21 +1557,31 @@ class Parser {
     List<CommentReference> references = new List<CommentReference>();
     for (Token token in tokens) {
       String comment = token.lexeme;
+      int length2 = comment.length;
+      List<List<int>> codeBlockRanges = getCodeBlockRanges(comment);
       int leftIndex = comment.indexOf('[');
-      while (leftIndex >= 0) {
-        int rightIndex = comment.indexOf(']', leftIndex);
-        if (rightIndex >= 0) {
-          int firstChar = comment.codeUnitAt(leftIndex + 1);
-          if (firstChar != 0x27 && firstChar != 0x22 && firstChar != 0x3A) {
-            CommentReference reference = parseCommentReference(comment.substring(leftIndex + 1, rightIndex), token.offset + leftIndex + 1);
-            if (reference != null) {
-              references.add(reference);
+      while (leftIndex >= 0 && leftIndex + 1 < length2) {
+        List<int> range = findRange(codeBlockRanges, leftIndex);
+        if (range == null) {
+          int rightIndex = comment.indexOf(']', leftIndex);
+          if (rightIndex >= 0) {
+            int firstChar = comment.codeUnitAt(leftIndex + 1);
+            if (firstChar != 0x27 && firstChar != 0x22) {
+              if (isLinkText(comment, rightIndex)) {
+              } else {
+                CommentReference reference = parseCommentReference(comment.substring(leftIndex + 1, rightIndex), token.offset + leftIndex + 1);
+                if (reference != null) {
+                  references.add(reference);
+                }
+              }
             }
+          } else {
+            rightIndex = leftIndex + 1;
           }
+          leftIndex = comment.indexOf('[', rightIndex);
         } else {
-          rightIndex = leftIndex + 1;
+          leftIndex = comment.indexOf('[', range[1] + 1);
         }
-        leftIndex = comment.indexOf('[', rightIndex);
       }
     }
     return references;
@@ -2103,7 +2205,7 @@ class Parser {
    * optionalPositionalFormalParameters
    * | namedFormalParameters
    * optionalPositionalFormalParameters ::=
-   * '[' defaultFormalParameter (',' defaultFormalParameter)* ']'
+   * '\[' defaultFormalParameter (',' defaultFormalParameter)* '\]'
    * namedFormalParameters ::=
    * '{' defaultNamedParameter (',' defaultNamedParameter)* '}'
    * </pre>
@@ -2324,7 +2426,10 @@ class Parser {
         return new BlockFunctionBody.full(parseBlock());
       } else if (matches2(_NATIVE)) {
         Token nativeToken = andAdvance;
-        StringLiteral stringLiteral = parseStringLiteral();
+        StringLiteral stringLiteral = null;
+        if (matches5(TokenType.STRING)) {
+          stringLiteral = parseStringLiteral();
+        }
         return new NativeFunctionBody.full(nativeToken, stringLiteral, expect2(TokenType.SEMICOLON));
       } else {
         reportError4(ParserErrorCode.MISSING_FUNCTION_BODY, []);
@@ -2655,7 +2760,7 @@ class Parser {
    * Parse a list literal.
    * <pre>
    * listLiteral ::=
-   * 'const'? typeArguments? '[' (expressionList ','?)? ']'
+   * 'const'? typeArguments? '\[' (expressionList ','?)? '\]'
    * </pre>
    * @param modifier the 'const' modifier appearing before the literal, or {@code null} if there is
    * no modifier
@@ -4044,7 +4149,7 @@ class Parser {
    * @param arguments the arguments to the error, used to compose the error message
    */
   void reportError(ParserErrorCode errorCode, ASTNode node, List<Object> arguments) {
-    _errorListener.onError(new AnalysisError.con2(_source, node.offset, node.length, errorCode, [arguments]));
+    _errorListener.onError(new AnalysisError.con2(_source, node.offset, node.length, errorCode, arguments));
   }
   /**
    * Report an error with the given error code and arguments.
@@ -4061,7 +4166,7 @@ class Parser {
    * @param arguments the arguments to the error, used to compose the error message
    */
   void reportError5(ParserErrorCode errorCode, Token token, List<Object> arguments) {
-    _errorListener.onError(new AnalysisError.con2(_source, token.offset, token.length, errorCode, [arguments]));
+    _errorListener.onError(new AnalysisError.con2(_source, token.offset, token.length, errorCode, arguments));
   }
   /**
    * Parse the 'final', 'const', 'var' or type preceding a variable declaration, starting at the
@@ -4118,7 +4223,7 @@ class Parser {
    * optionalPositionalFormalParameters
    * | namedFormalParameters
    * optionalPositionalFormalParameters ::=
-   * '[' defaultFormalParameter (',' defaultFormalParameter)* ']'
+   * '\[' defaultFormalParameter (',' defaultFormalParameter)* '\]'
    * namedFormalParameters ::=
    * '{' defaultNamedParameter (',' defaultNamedParameter)* '}'
    * </pre>
@@ -4914,9 +5019,9 @@ class ParserErrorCode implements Comparable<ParserErrorCode>, ErrorCode {
    * @param message the message template used to create the message to be displayed for the error
    */
   ParserErrorCode.con1(String ___name, int ___ordinal, ErrorSeverity severity2, String message2) {
-    _jtd_constructor_301_impl(___name, ___ordinal, severity2, message2);
+    _jtd_constructor_302_impl(___name, ___ordinal, severity2, message2);
   }
-  _jtd_constructor_301_impl(String ___name, int ___ordinal, ErrorSeverity severity2, String message2) {
+  _jtd_constructor_302_impl(String ___name, int ___ordinal, ErrorSeverity severity2, String message2) {
     __name = ___name;
     __ordinal = ___ordinal;
     this._severity = severity2;
@@ -4927,10 +5032,10 @@ class ParserErrorCode implements Comparable<ParserErrorCode>, ErrorCode {
    * @param message the message template used to create the message to be displayed for the error
    */
   ParserErrorCode.con2(String ___name, int ___ordinal, String message) {
-    _jtd_constructor_302_impl(___name, ___ordinal, message);
+    _jtd_constructor_303_impl(___name, ___ordinal, message);
   }
-  _jtd_constructor_302_impl(String ___name, int ___ordinal, String message) {
-    _jtd_constructor_301_impl(___name, ___ordinal, ErrorSeverity.ERROR, message);
+  _jtd_constructor_303_impl(String ___name, int ___ordinal, String message) {
+    _jtd_constructor_302_impl(___name, ___ordinal, ErrorSeverity.ERROR, message);
   }
   ErrorSeverity get errorSeverity => _severity;
   String get message => _message;

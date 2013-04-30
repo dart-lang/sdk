@@ -4,11 +4,11 @@
 
 #include "platform/hashmap.h"
 
-#include "bin/builtin.h"
 #include "platform/utils.h"
 
-HashMap::HashMap(MatchFun match,
-                 uint32_t initial_capacity) {
+namespace dart {
+
+HashMap::HashMap(MatchFun match, uint32_t initial_capacity) {
   match_ = match;
   Initialize(initial_capacity);
 }
@@ -188,3 +188,5 @@ void HashMap::Resize() {
   // Delete old map.
   free(map);
 }
+
+}  // namespace dart

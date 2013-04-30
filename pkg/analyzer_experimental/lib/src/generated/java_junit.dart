@@ -52,8 +52,7 @@ runJUnitTest(testInstance, Function testFunction) {
 }
 
 /**
- * Returns a matches that matches if the value is not the same instance
- * as [object] (`!==`).
+ * Returns a matches that matches if the value is not the same instance as "object" (`!==`).
  */
 Matcher notSame(expected) => new _IsNotSameAs(expected);
 

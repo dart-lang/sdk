@@ -18,6 +18,12 @@ expectLargeRect(Rect rect) {
   expect(rect.right, rect.left + rect.width);
 }
 
+void testUnsupported(String name, void f()) {
+  test(name, () {
+    expect(f, throwsUnsupportedError);
+  });
+}
+
 main() {
   useHtmlIndividualConfiguration();
 
@@ -488,6 +494,36 @@ main() {
       var el = makeElementWithChildren();
       expect(el.children.sublist(1, 2), isElementList);
     });
+
+    test('getRange', () {
+      var el = makeElementWithChildren();
+      expect(el.children.getRange(1, 2).length, 1);
+    });
+
+    testUnsupported('sort', () {
+      var l = makeElementWithChildren().children;
+      l.sort();
+    });
+
+    testUnsupported('setRange', () {
+      var l = makeElementWithChildren().children;
+      l.setRange(0, 0, []);
+    });
+
+    testUnsupported('replaceRange', () {
+      var l = makeElementWithChildren().children;
+      l.replaceRange(0, 0, []);
+    });
+
+    testUnsupported('removeRange', () {
+      var l = makeElementWithChildren().children;
+      l.removeRange(0, 1);
+    });
+
+    testUnsupported('insertAll', () {
+      var l = makeElementWithChildren().children;
+      l.insertAll(0, []);
+    });
   });
 
   group('matches', () {
@@ -517,12 +553,6 @@ main() {
     }
 
     List<Element> getEmptyQueryAll() => new Element.tag('div').queryAll('img');
-
-    void testUnsupported(String name, void f()) {
-      test(name, () {
-        expect(f, throwsUnsupportedError);
-      });
-    }
 
     test('last', () {
       expect(getQueryAll().last, isHRElement);
@@ -604,7 +634,9 @@ main() {
 
     testUnsupported('sort', () => getQueryAll().sort((a1, a2) => true));
 
-    testUnsupported('setRange', () => getQueryAll().setRange(0, 0, []));
+    testUnsupported('setRange', () {
+      getQueryAll().setRange(0, 1, [new BRElement()]);
+    });
 
     testUnsupported('removeRange', () => getQueryAll().removeRange(0, 1));
 

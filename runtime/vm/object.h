@@ -907,9 +907,6 @@ class Class : public Object {
 
   // Allocate an instance class which has a VM implementation.
   template <class FakeInstance> static RawClass* New(intptr_t id);
-  template <class FakeInstance> static RawClass* New(const String& name,
-                                                     const Script& script,
-                                                     intptr_t token_pos);
 
   // Check the subtype or 'more specific' relationship.
   bool TypeTest(TypeTestKind test_kind,
@@ -1027,6 +1024,8 @@ class AbstractTypeArguments : public Object {
   virtual bool IsResolved() const;
   virtual bool IsInstantiated() const;
   virtual bool IsUninstantiatedIdentity() const;
+  virtual bool CanShareInstantiatorTypeArguments(
+      const Class& instantiator_class) const;
   virtual bool IsBounded() const;
 
   virtual intptr_t Hash() const;
@@ -1070,6 +1069,8 @@ class TypeArguments : public AbstractTypeArguments {
   virtual bool IsResolved() const;
   virtual bool IsInstantiated() const;
   virtual bool IsUninstantiatedIdentity() const;
+  virtual bool CanShareInstantiatorTypeArguments(
+      const Class& instantiator_class) const;
   virtual bool IsBounded() const;
   // Canonicalize only if instantiated, otherwise returns 'this'.
   virtual RawAbstractTypeArguments* Canonicalize() const;
@@ -1126,7 +1127,15 @@ class InstantiatedTypeArguments : public AbstractTypeArguments {
   virtual void SetTypeAt(intptr_t index, const AbstractType& value) const;
   virtual bool IsResolved() const { return true; }
   virtual bool IsInstantiated() const { return true; }
-  virtual bool IsUninstantiatedIdentity() const  { return false; }
+  virtual bool IsUninstantiatedIdentity() const {
+    UNREACHABLE();
+    return false;
+  }
+  virtual bool CanShareInstantiatorTypeArguments(
+      const Class& instantiator_class) const {
+    UNREACHABLE();
+    return false;
+  }
   virtual bool IsBounded() const { return false; }  // Bounds were checked.
 
   RawAbstractTypeArguments* uninstantiated_type_arguments() const {
@@ -2223,12 +2232,13 @@ class Library : public Object {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Library, Object);
 
-  friend class Object;
+  friend class Bootstrap;
   friend class Class;
   friend class Debugger;
   friend class DictionaryIterator;
   friend class Isolate;
   friend class Namespace;
+  friend class Object;
 };
 
 

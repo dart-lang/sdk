@@ -579,10 +579,6 @@ class _Int8Array extends _TypedList implements Int8List {
   // Factory constructors.
 
   factory _Int8Array(int length) {
-    if (length < 0) {
-      String message = "$length must be greater than 0";
-      throw new ArgumentError(message);
-    }
     return _new(length);
   }
 
@@ -637,10 +633,6 @@ class _Uint8Array extends _TypedList implements Uint8List {
   // Factory constructors.
 
   factory _Uint8Array(int length) {
-    if (length < 0) {
-      String message = "$length must be greater than 0";
-      throw new ArgumentError(message);
-    }
     return _new(length);
   }
 
@@ -693,10 +685,6 @@ class _Uint8ClampedArray extends _TypedList implements Uint8ClampedList {
   // Factory constructors.
 
   factory _Uint8ClampedArray(int length) {
-    if (length < 0) {
-      String message = "$length must be greater than 0";
-      throw new ArgumentError(message);
-    }
     return _new(length);
   }
 
@@ -751,10 +739,6 @@ class _Int16Array extends _TypedList implements Int16List {
   // Factory constructors.
 
   factory _Int16Array(int length) {
-    if (length < 0) {
-      String message = "$length must be greater than 0";
-      throw new ArgumentError(message);
-    }
     return _new(length);
   }
 
@@ -818,10 +802,6 @@ class _Uint16Array extends _TypedList implements Uint16List {
   // Factory constructors.
 
   factory _Uint16Array(int length) {
-    if (length < 0) {
-      String message = "$length must be greater than 0";
-      throw new ArgumentError(message);
-    }
     return _new(length);
   }
 
@@ -885,10 +865,6 @@ class _Int32Array extends _TypedList implements Int32List {
   // Factory constructors.
 
   factory _Int32Array(int length) {
-    if (length < 0) {
-      String message = "$length must be greater than 0";
-      throw new ArgumentError(message);
-    }
     return _new(length);
   }
 
@@ -952,10 +928,6 @@ class _Uint32Array extends _TypedList implements Uint32List {
   // Factory constructors.
 
   factory _Uint32Array(int length) {
-    if (length < 0) {
-      String message = "$length must be greater than 0";
-      throw new ArgumentError(message);
-    }
     return _new(length);
   }
 
@@ -1019,10 +991,6 @@ class _Int64Array extends _TypedList implements Int64List {
   // Factory constructors.
 
   factory _Int64Array(int length) {
-    if (length < 0) {
-      String message = "$length must be greater than 0";
-      throw new ArgumentError(message);
-    }
     return _new(length);
   }
 
@@ -1086,10 +1054,6 @@ class _Uint64Array extends _TypedList implements Uint64List {
   // Factory constructors.
 
   factory _Uint64Array(int length) {
-    if (length < 0) {
-      String message = "$length must be greater than 0";
-      throw new ArgumentError(message);
-    }
     return _new(length);
   }
 
@@ -1153,10 +1117,6 @@ class _Float32Array extends _TypedList implements Float32List {
   // Factory constructors.
 
   factory _Float32Array(int length) {
-    if (length < 0) {
-      String message = "$length must be greater than 0";
-      throw new ArgumentError(message);
-    }
     return _new(length);
   }
 
@@ -1220,10 +1180,6 @@ class _Float64Array extends _TypedList implements Float64List {
   // Factory constructors.
 
   factory _Float64Array(int length) {
-    if (length < 0) {
-      String message = "$length must be greater than 0";
-      throw new ArgumentError(message);
-    }
     return _new(length);
   }
 
@@ -1286,10 +1242,6 @@ class _Float32x4Array extends _TypedList implements Float32x4List {
   // Factory constructors.
 
   factory _Float32x4Array(int length) {
-    if (length < 0) {
-      String message = "$length must be greater than 0";
-      throw new ArgumentError(message);
-    }
     return _new(length);
   }
 
@@ -1351,10 +1303,6 @@ class _ExternalInt8Array extends _TypedList implements Int8List {
   // Factory constructors.
 
   factory _ExternalInt8Array(int length) {
-    if (length < 0) {
-      String message = "$length must be greater than 0";
-      throw new ArgumentError(message);
-    }
     return _new(length);
   }
 
@@ -1401,10 +1349,6 @@ class _ExternalUint8Array extends _TypedList implements Uint8List {
   // Factory constructors.
 
   factory _ExternalUint8Array(int length) {
-    if (length < 0) {
-      String message = "$length must be greater than 0";
-      throw new ArgumentError(message);
-    }
     return _new(length);
   }
 
@@ -1452,10 +1396,6 @@ class _ExternalUint8ClampedArray extends _TypedList implements Uint8ClampedList 
   // Factory constructors.
 
   factory _ExternalUint8ClampedArray(int length) {
-    if (length < 0) {
-      String message = "$length must be greater than 0";
-      throw new ArgumentError(message);
-    }
     return _new(length);
   }
 
@@ -1503,10 +1443,6 @@ class _ExternalInt16Array extends _TypedList implements Int16List {
   // Factory constructors.
 
   factory _ExternalInt16Array(int length) {
-    if (length < 0) {
-      String message = "$length must be greater than 0";
-      throw new ArgumentError(message);
-    }
     return _new(length);
   }
 
@@ -1562,10 +1498,6 @@ class _ExternalUint16Array extends _TypedList implements Uint16List {
   // Factory constructors.
 
   factory _ExternalUint16Array(int length) {
-    if (length < 0) {
-      String message = "$length must be greater than 0";
-      throw new ArgumentError(message);
-    }
     return _new(length);
   }
 
@@ -1621,10 +1553,6 @@ class _ExternalInt32Array extends _TypedList implements Int32List {
   // Factory constructors.
 
   factory _ExternalInt32Array(int length) {
-    if (length < 0) {
-      String message = "$length must be greater than 0";
-      throw new ArgumentError(message);
-    }
     return _new(length);
   }
 
@@ -1680,10 +1608,6 @@ class _ExternalUint32Array extends _TypedList implements Uint32List {
   // Factory constructors.
 
   factory _ExternalUint32Array(int length) {
-    if (length < 0) {
-      String message = "$length must be greater than 0";
-      throw new ArgumentError(message);
-    }
     return _new(length);
   }
 
@@ -1739,10 +1663,6 @@ class _ExternalInt64Array extends _TypedList implements Int64List {
   // Factory constructors.
 
   factory _ExternalInt64Array(int length) {
-    if (length < 0) {
-      String message = "$length must be greater than 0";
-      throw new ArgumentError(message);
-    }
     return _new(length);
   }
 
@@ -1798,10 +1718,6 @@ class _ExternalUint64Array extends _TypedList implements Uint64List {
   // Factory constructors.
 
   factory _ExternalUint64Array(int length) {
-    if (length < 0) {
-      String message = "$length must be greater than 0";
-      throw new ArgumentError(message);
-    }
     return _new(length);
   }
 
@@ -1857,10 +1773,6 @@ class _ExternalFloat32Array extends _TypedList implements Float32List {
   // Factory constructors.
 
   factory _ExternalFloat32Array(int length) {
-    if (length < 0) {
-      String message = "$length must be greater than 0";
-      throw new ArgumentError(message);
-    }
     return _new(length);
   }
 
@@ -1916,10 +1828,6 @@ class _ExternalFloat64Array extends _TypedList implements Float64List {
   // Factory constructors.
 
   factory _ExternalFloat64Array(int length) {
-    if (length < 0) {
-      String message = "$length must be greater than 0";
-      throw new ArgumentError(message);
-    }
     return _new(length);
   }
 
@@ -1975,10 +1883,6 @@ class _ExternalFloat32x4Array extends _TypedList implements Float32x4List {
   // Factory constructors.
 
   factory _ExternalFloat32x4Array(int length) {
-    if (length < 0) {
-      String message = "$length must be greater than 0";
-      throw new ArgumentError(message);
-    }
     return _new(length);
   }
 

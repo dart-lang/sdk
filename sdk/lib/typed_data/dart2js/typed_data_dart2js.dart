@@ -64,6 +64,20 @@ class TypedData native "ArrayBufferView" {
 
   @JSName('BYTES_PER_ELEMENT')
   final int elementSizeInBytes;
+
+  void _invalidIndex(int index, int length) {
+    if (index < 0 || index >= length) {
+      throw new RangeError.range(index, 0, length);
+    } else {
+      throw new ArgumentError('Invalid list index $index');
+    }
+  }
+
+  void _checkBounds(int index, int length) {
+    if (JS('bool', '(# >>> 0 != #)', index, index) || index >= length) {
+      _invalidIndex(index, length);
+    }
+  }
 }
 
 @DocsEditable
@@ -126,6 +140,11 @@ class ByteData extends TypedData native "DataView" {
   @Returns('int')
   int _getInt32(int byteOffset, [bool littleEndian]) native;
 
+  @DocsEditable
+  int getInt64(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]) {
+    throw new UnsupportedError("Int64 accessor not supported by dart2js.");
+  }
+
   @DomName('DataView.getInt8')
   @DocsEditable
   int getInt8(int byteOffset) native;
@@ -147,6 +166,11 @@ class ByteData extends TypedData native "DataView" {
   @JSName('getUint32')
   @Returns('int')
   int _getUint32(int byteOffset, [bool littleEndian]) native;
+
+  @DocsEditable
+  int getUint64(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]) {
+    throw new UnsupportedError("Uint64 accessor not supported by dart2js.");
+  }
 
   @DomName('DataView.getUint8')
   @DocsEditable
@@ -184,6 +208,11 @@ class ByteData extends TypedData native "DataView" {
   @JSName('setInt32')
   void _setInt32(int byteOffset, int value, [bool littleEndian]) native;
 
+  @DocsEditable
+  void setInt64(int byteOffset, int value, [Endianness endian=Endianness.BIG_ENDIAN]) {
+    throw new UnsupportedError("Int64 accessor not supported by dart2js.");
+  }
+
   @DomName('DataView.setInt8')
   @DocsEditable
   void setInt8(int byteOffset, int value) native;
@@ -203,6 +232,11 @@ class ByteData extends TypedData native "DataView" {
 
   @JSName('setUint32')
   void _setUint32(int byteOffset, int value, [bool littleEndian]) native;
+
+  @DocsEditable
+  void setUint64(int byteOffset, int value, [Endianness endian=Endianness.BIG_ENDIAN]) {
+    throw new UnsupportedError("Uint64 accessor not supported by dart2js.");
+  }
 
   @DomName('DataView.setUint8')
   @DocsEditable
@@ -233,9 +267,15 @@ class Float32List extends TypedData implements JavaScriptIndexingBehavior, List<
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  num operator[](int index) => JS("num", "#[#]", this, index);
+  num operator[](int index) {
+    _checkBounds(index, length);
+    return JS("num", "#[#]", this, index);
+  }
 
-  void operator[]=(int index, num value) { JS("void", "#[#] = #", this, index, value); }
+  void operator[]=(int index, num value) {
+    _checkBounds(index, length);
+    JS("void", "#[#] = #", this, index, value);
+  }
   // -- start List<num> mixins.
   // num is the element type.
 
@@ -457,9 +497,15 @@ class Float64List extends TypedData implements JavaScriptIndexingBehavior, List<
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  num operator[](int index) => JS("num", "#[#]", this, index);
+  num operator[](int index) {
+    _checkBounds(index, length);
+    return JS("num", "#[#]", this, index);
+  }
 
-  void operator[]=(int index, num value) { JS("void", "#[#] = #", this, index, value); }
+  void operator[]=(int index, num value) {
+    _checkBounds(index, length);
+    JS("void", "#[#] = #", this, index, value);
+  }
   // -- start List<num> mixins.
   // num is the element type.
 
@@ -681,9 +727,16 @@ class Int16List extends TypedData implements JavaScriptIndexingBehavior, List<in
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  int operator[](int index) => JS("int", "#[#]", this, index);
+  int operator[](int index) {
+    _checkBounds(index, length);
+    return JS("int", "#[#]", this, index);
+  }
 
-  void operator[]=(int index, int value) { JS("void", "#[#] = #", this, index, value); }  // -- start List<int> mixins.
+  void operator[]=(int index, int value) {
+    _checkBounds(index, length);
+    JS("void", "#[#] = #", this, index, value);
+  }
+  // -- start List<int> mixins.
   // int is the element type.
 
   // From Iterable<int>:
@@ -904,9 +957,16 @@ class Int32List extends TypedData implements JavaScriptIndexingBehavior, List<in
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  int operator[](int index) => JS("int", "#[#]", this, index);
+  int operator[](int index) {
+    _checkBounds(index, length);
+    return JS("int", "#[#]", this, index);
+  }
 
-  void operator[]=(int index, int value) { JS("void", "#[#] = #", this, index, value); }  // -- start List<int> mixins.
+  void operator[]=(int index, int value) {
+    _checkBounds(index, length);
+    JS("void", "#[#] = #", this, index, value);
+  }
+  // -- start List<int> mixins.
   // int is the element type.
 
   // From Iterable<int>:
@@ -1127,9 +1187,16 @@ class Int8List extends TypedData implements JavaScriptIndexingBehavior, List<int
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  int operator[](int index) => JS("int", "#[#]", this, index);
+  int operator[](int index) {
+    _checkBounds(index, length);
+    return JS("int", "#[#]", this, index);
+  }
 
-  void operator[]=(int index, int value) { JS("void", "#[#] = #", this, index, value); }  // -- start List<int> mixins.
+  void operator[]=(int index, int value) {
+    _checkBounds(index, length);
+    JS("void", "#[#] = #", this, index, value);
+  }
+  // -- start List<int> mixins.
   // int is the element type.
 
   // From Iterable<int>:
@@ -1350,9 +1417,16 @@ class Uint16List extends TypedData implements JavaScriptIndexingBehavior, List<i
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  int operator[](int index) => JS("int", "#[#]", this, index);
+  int operator[](int index) {
+    _checkBounds(index, length);
+    return JS("int", "#[#]", this, index);
+  }
 
-  void operator[]=(int index, int value) { JS("void", "#[#] = #", this, index, value); }  // -- start List<int> mixins.
+  void operator[]=(int index, int value) {
+    _checkBounds(index, length);
+    JS("void", "#[#] = #", this, index, value);
+  }
+  // -- start List<int> mixins.
   // int is the element type.
 
   // From Iterable<int>:
@@ -1573,9 +1647,16 @@ class Uint32List extends TypedData implements JavaScriptIndexingBehavior, List<i
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  int operator[](int index) => JS("int", "#[#]", this, index);
+  int operator[](int index) {
+    _checkBounds(index, length);
+    return JS("int", "#[#]", this, index);
+  }
 
-  void operator[]=(int index, int value) { JS("void", "#[#] = #", this, index, value); }  // -- start List<int> mixins.
+  void operator[]=(int index, int value) {
+    _checkBounds(index, length);
+    JS("void", "#[#] = #", this, index, value);
+  }
+  // -- start List<int> mixins.
   // int is the element type.
 
   // From Iterable<int>:
@@ -1793,9 +1874,16 @@ class Uint8ClampedList extends Uint8List implements JavaScriptIndexingBehavior, 
   // Use implementation from Uint8Array.
   // final int length;
 
-  int operator[](int index) => JS("int", "#[#]", this, index);
+  int operator[](int index) {
+    _checkBounds(index, length);
+    return JS("int", "#[#]", this, index);
+  }
 
-  void operator[]=(int index, int value) { JS("void", "#[#] = #", this, index, value); }  // -- start List<int> mixins.
+  void operator[]=(int index, int value) {
+    _checkBounds(index, length);
+    JS("void", "#[#] = #", this, index, value);
+  }
+  // -- start List<int> mixins.
   // int is the element type.
 
   // From Iterable<int>:
@@ -2016,9 +2104,16 @@ class Uint8List extends TypedData implements JavaScriptIndexingBehavior, List<in
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  int operator[](int index) => JS("int", "#[#]", this, index);
+  int operator[](int index) {
+    _checkBounds(index, length);
+    return JS("int", "#[#]", this, index);
+  }
 
-  void operator[]=(int index, int value) { JS("void", "#[#] = #", this, index, value); }  // -- start List<int> mixins.
+  void operator[]=(int index, int value) {
+    _checkBounds(index, length);
+    JS("void", "#[#] = #", this, index, value);
+  }
+  // -- start List<int> mixins.
   // int is the element type.
 
   // From Iterable<int>:
@@ -2246,6 +2341,43 @@ class Uint64List extends TypedData implements JavaScriptIndexingBehavior, List<i
   }
 
   static const int BYTES_PER_ELEMENT = 8;
+}
+
+
+abstract class Float32x4List implements List<Float32x4>, TypedData {
+  factory Float32x4List(int length) {
+    throw new UnsupportedError("Float32x4List not supported by dart2js.");
+  }
+
+  factory Float32x4List.view(ByteBuffer buffer,
+			     [int offsetInBytes = 0, int length]) {
+    throw new UnsupportedError("Float32x4List not supported by dart2js.");
+  }
+
+  static const int BYTES_PER_ELEMENT = 16;
+}
+
+
+abstract class Float32x4 {
+  factory Float32x4(double x, double y, double z, double w) {
+    throw new UnsupportedError("Float32x4 not supported by dart2js.");
+  }
+  factory Float32x4.splat(double v) {
+    throw new UnsupportedError("Float32x4 not supported by dart2js.");
+  }
+  factory Float32x4.zero() {
+    throw new UnsupportedError("Float32x4 not supported by dart2js.");
+  }
+}
+
+
+abstract class Uint32x4 {
+  factory Uint32x4(int x, int y, int z, int w) {
+    throw new UnsupportedError("Uint32x4 not supported by dart2js.");
+  }
+  factory Uint32x4.bool(bool x, bool y, bool z, bool w) {
+    throw new UnsupportedError("Uint32x4 not supported by dart2js.");
+  }
 }
 
 

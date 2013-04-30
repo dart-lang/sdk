@@ -10,9 +10,9 @@
 
 namespace dart {
 
+class CSEInstructionMap;
 template <typename T> class GrowableArray;
-template <typename T> class DirectChainedHashMap;
-template <typename T> class PointerKeyValueTrait;
+class ParsedFunction;
 
 class FlowGraphOptimizer : public FlowGraphVisitor {
  public:
@@ -177,9 +177,6 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 };
 
 
-class ParsedFunction;
-
-
 // Loop invariant code motion.
 class LICM : public ValueObject {
  public:
@@ -215,7 +212,7 @@ class DominatorBasedCSE : public AllStatic {
   static bool OptimizeRecursive(
       FlowGraph* graph,
       BlockEntryInstr* entry,
-      DirectChainedHashMap<PointerKeyValueTrait<Instruction> >* map);
+      CSEInstructionMap* map);
 };
 
 

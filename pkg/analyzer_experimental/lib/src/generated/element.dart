@@ -123,6 +123,22 @@ abstract class ClassElement implements Element {
    */
   bool isValidMixin();
   /**
+   * Return the executable element representing the method, getter or setter that results from
+   * looking up the given member in this class with respect to the given library, or {@code null} if
+   * the look up fails. This method is used to determine what member the passed name is inherited
+   * from. The behavior of this method is defined by the Dart Language Specification in section
+   * 8.1.1: Let <i>C</i> be a class declared in library <i>L</i> with superclass <i>S</i> and let
+   * <i>C</i> declare an instance member <i>m</i>, and assume <i>S</i> declares an instance member
+   * </i>m'</i> with the same name as m. Then <i>m</i> overrides m'</i> iff <i>m'</i> is accessible
+   * to <i>L</i>, <i>m</i> has the same name as <i>m'</i> and neither <i>m</i> nor <i>m'</i> are
+   * fields.
+   * @param memberName the name of the member being looked up
+   * @param library the library with respect to which the lookup is being performed
+   * @return the result of looking up the given member in this class with respect to the given
+   * library
+   */
+  ExecutableElement lookUpExecutable(String memberName, LibraryElement library);
+  /**
    * Return the element representing the getter that results from looking up the given getter in
    * this class with respect to the given library, or {@code null} if the look up fails. The
    * behavior of this method is defined by the Dart Language Specification in section 12.15.1:
@@ -283,6 +299,16 @@ abstract class Element {
    */
   accept(ElementVisitor visitor);
   /**
+   * Return the documentation comment for this element as it appears in the original source
+   * (complete with the beginning and ending delimiters), or {@code null} if this element does not
+   * have a documentation comment associated with it. This can be a long-running operation if the
+   * information needed to access the comment is not cached.
+   * @return this element's documentation comment
+   * @throws AnalysisException if the documentation comment could not be determined because the
+   * analysis could not be performed
+   */
+  String computeDocumentationComment();
+  /**
    * Return the element of the given class that most immediately encloses this element, or{@code null} if there is no enclosing element of the given class.
    * @param elementClass the class of the element to be returned
    * @return the element that encloses this element
@@ -397,11 +423,31 @@ class ElementKind implements Comparable<ElementKind> {
   final String __name;
   final int __ordinal;
   int get ordinal => __ordinal;
+  /**
+   * Return the kind of the given element, or {@link #ERROR} if the element is {@code null}. This is
+   * a utility method that can reduce the need for null checks in other places.
+   * @param element the element whose kind is to be returned
+   * @return the kind of the given element
+   */
+  static ElementKind of(Element element) {
+    if (element == null) {
+      return ERROR;
+    }
+    return element.kind;
+  }
+  /**
+   * The name displayed in the UI for this kind of element.
+   */
   String _displayName;
+  /**
+   * Initialize a newly created element kind to have the given display name.
+   * @param displayName the name displayed in the UI for this kind of element
+   */
   ElementKind(this.__name, this.__ordinal, String displayName) {
     this._displayName = displayName;
   }
   /**
+   * Return the name displayed in the UI for this kind of element.
    * @return the name of this {@link ElementKind} to display in UI.
    */
   String get displayName => _displayName;
@@ -1354,6 +1400,21 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   }
   List<ConstructorElement> get constructors => _constructors;
   /**
+   * Return the executable elemement representing the getter, setter or method with the given name
+   * that is declared in this class, or {@code null} if this class does not declare a member with
+   * the given name.
+   * @param memberName the name of the getter to be returned
+   * @return the member declared in this class with the given name
+   */
+  ExecutableElement getExecutable(String memberName) {
+    for (PropertyAccessorElement accessor in _accessors) {
+      if (accessor.name == memberName) {
+        return accessor;
+      }
+    }
+    return getMethod(memberName);
+  }
+  /**
    * Given some name, this returns the {@link FieldElement} with the matching name, if there is no
    * such field, then {@code null} is returned.
    * @param name some name to lookup a field element with
@@ -1438,6 +1499,29 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   bool isAbstract() => hasModifier(Modifier.ABSTRACT);
   bool isTypedef() => hasModifier(Modifier.TYPEDEF);
   bool isValidMixin() => hasModifier(Modifier.MIXIN);
+  ExecutableElement lookUpExecutable(String memberName, LibraryElement library) {
+    ExecutableElement element = getExecutable(memberName);
+    if (element != null && element.isAccessibleIn(library)) {
+      return element;
+    }
+    for (InterfaceType mixin in _mixins) {
+      ClassElement mixinElement = mixin.element;
+      if (mixinElement != null) {
+        ClassElementImpl mixinElementImpl = mixinElement as ClassElementImpl;
+        element = mixinElementImpl.getExecutable(memberName);
+        if (element != null && element.isAccessibleIn(library)) {
+          return element;
+        }
+      }
+    }
+    if (_supertype != null) {
+      ClassElement supertypeElement = _supertype.element;
+      if (supertypeElement != null) {
+        return supertypeElement.lookUpExecutable(memberName, library);
+      }
+    }
+    return null;
+  }
   PropertyAccessorElement lookUpGetter(String getterName, LibraryElement library) {
     PropertyAccessorElement element = getGetter(getterName);
     if (element != null && element.isAccessibleIn(library)) {
@@ -1455,10 +1539,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     if (_supertype != null) {
       ClassElement supertypeElement = _supertype.element;
       if (supertypeElement != null) {
-        element = supertypeElement.lookUpGetter(getterName, library);
-        if (element != null && element.isAccessibleIn(library)) {
-          return element;
-        }
+        return supertypeElement.lookUpGetter(getterName, library);
       }
     }
     return null;
@@ -1480,10 +1561,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     if (_supertype != null) {
       ClassElement supertypeElement = _supertype.element;
       if (supertypeElement != null) {
-        element = supertypeElement.lookUpMethod(methodName, library);
-        if (element != null && element.isAccessibleIn(library)) {
-          return element;
-        }
+        return supertypeElement.lookUpMethod(methodName, library);
       }
     }
     return null;
@@ -1505,10 +1583,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     if (_supertype != null) {
       ClassElement supertypeElement = _supertype.element;
       if (supertypeElement != null) {
-        element = supertypeElement.lookUpSetter(setterName, library);
-        if (element != null && element.isAccessibleIn(library)) {
-          return element;
-        }
+        return supertypeElement.lookUpSetter(setterName, library);
       }
     }
     return null;
@@ -2021,10 +2096,10 @@ abstract class ElementImpl implements Element {
    * @param name the name of this element
    */
   ElementImpl.con1(Identifier name2) {
-    _jtd_constructor_188_impl(name2);
+    _jtd_constructor_189_impl(name2);
   }
-  _jtd_constructor_188_impl(Identifier name2) {
-    _jtd_constructor_189_impl(name2 == null ? "" : name2.name, name2 == null ? -1 : name2.offset);
+  _jtd_constructor_189_impl(Identifier name2) {
+    _jtd_constructor_190_impl(name2 == null ? "" : name2.name, name2 == null ? -1 : name2.offset);
   }
   /**
    * Initialize a newly created element to have the given name.
@@ -2033,11 +2108,18 @@ abstract class ElementImpl implements Element {
    * declaration of this element
    */
   ElementImpl.con2(String name2, int nameOffset2) {
-    _jtd_constructor_189_impl(name2, nameOffset2);
+    _jtd_constructor_190_impl(name2, nameOffset2);
   }
-  _jtd_constructor_189_impl(String name2, int nameOffset2) {
+  _jtd_constructor_190_impl(String name2, int nameOffset2) {
     this._name = StringUtilities.intern(name2);
     this._nameOffset = nameOffset2;
+  }
+  String computeDocumentationComment() {
+    AnalysisContext context2 = context;
+    if (context2 == null) {
+      return null;
+    }
+    return context2.computeDocumentationComment(this);
   }
   bool operator ==(Object object) => object != null && object.runtimeType == runtimeType && ((object as Element)).location == location;
   Element getAncestor(Type elementClass) {
@@ -2208,9 +2290,9 @@ class ElementLocationImpl implements ElementLocation {
    * @param element the element whose location is being represented
    */
   ElementLocationImpl.con1(Element element) {
-    _jtd_constructor_190_impl(element);
+    _jtd_constructor_191_impl(element);
   }
-  _jtd_constructor_190_impl(Element element) {
+  _jtd_constructor_191_impl(Element element) {
     List<String> components = new List<String>();
     Element ancestor = element;
     while (ancestor != null) {
@@ -2224,9 +2306,9 @@ class ElementLocationImpl implements ElementLocation {
    * @param encoding the encoded form of a location
    */
   ElementLocationImpl.con2(String encoding) {
-    _jtd_constructor_191_impl(encoding);
+    _jtd_constructor_192_impl(encoding);
   }
-  _jtd_constructor_191_impl(String encoding) {
+  _jtd_constructor_192_impl(String encoding) {
     this._components = decode(encoding);
   }
   bool operator ==(Object object) {
@@ -2365,9 +2447,9 @@ abstract class ExecutableElementImpl extends ElementImpl implements ExecutableEl
    * @param name the name of this element
    */
   ExecutableElementImpl.con1(Identifier name) : super.con1(name) {
-    _jtd_constructor_193_impl(name);
+    _jtd_constructor_194_impl(name);
   }
-  _jtd_constructor_193_impl(Identifier name) {
+  _jtd_constructor_194_impl(Identifier name) {
   }
   /**
    * Initialize a newly created executable element to have the given name.
@@ -2376,9 +2458,9 @@ abstract class ExecutableElementImpl extends ElementImpl implements ExecutableEl
    * declaration of this element
    */
   ExecutableElementImpl.con2(String name, int nameOffset) : super.con2(name, nameOffset) {
-    _jtd_constructor_194_impl(name, nameOffset);
+    _jtd_constructor_195_impl(name, nameOffset);
   }
-  _jtd_constructor_194_impl(String name, int nameOffset) {
+  _jtd_constructor_195_impl(String name, int nameOffset) {
   }
   ElementImpl getChild(String identifier2) {
     for (ExecutableElement function in _functions) {
@@ -2522,6 +2604,7 @@ class ExportElementImpl extends ElementImpl implements ExportElement {
     builder.append("export ");
     ((_exportedLibrary as LibraryElementImpl)).appendTo(builder);
   }
+  String get identifier => _exportedLibrary.name;
 }
 /**
  * Instances of the class {@code ExternalHtmlScriptElementImpl} implement an{@link ExternalHtmlScriptElement}.
@@ -2563,18 +2646,18 @@ class FieldElementImpl extends PropertyInducingElementImpl implements FieldEleme
    * @param name the name of this element
    */
   FieldElementImpl.con1(Identifier name) : super.con1(name) {
-    _jtd_constructor_197_impl(name);
+    _jtd_constructor_198_impl(name);
   }
-  _jtd_constructor_197_impl(Identifier name) {
+  _jtd_constructor_198_impl(Identifier name) {
   }
   /**
    * Initialize a newly created synthetic field element to have the given name.
    * @param name the name of this element
    */
   FieldElementImpl.con2(String name) : super.con2(name) {
-    _jtd_constructor_198_impl(name);
+    _jtd_constructor_199_impl(name);
   }
-  _jtd_constructor_198_impl(String name) {
+  _jtd_constructor_199_impl(String name) {
   }
   accept(ElementVisitor visitor) => visitor.visitFieldElement(this);
   ClassElement get enclosingElement => super.enclosingElement as ClassElement;
@@ -2635,9 +2718,9 @@ class FunctionElementImpl extends ExecutableElementImpl implements FunctionEleme
    * Initialize a newly created synthetic function element.
    */
   FunctionElementImpl() : super.con2("", -1) {
-    _jtd_constructor_200_impl();
+    _jtd_constructor_201_impl();
   }
-  _jtd_constructor_200_impl() {
+  _jtd_constructor_201_impl() {
     synthetic = true;
   }
   /**
@@ -2645,9 +2728,9 @@ class FunctionElementImpl extends ExecutableElementImpl implements FunctionEleme
    * @param name the name of this element
    */
   FunctionElementImpl.con1(Identifier name) : super.con1(name) {
-    _jtd_constructor_201_impl(name);
+    _jtd_constructor_202_impl(name);
   }
-  _jtd_constructor_201_impl(Identifier name) {
+  _jtd_constructor_202_impl(Identifier name) {
   }
   /**
    * Initialize a newly created function element to have no name and the given offset. This is used
@@ -2656,9 +2739,9 @@ class FunctionElementImpl extends ExecutableElementImpl implements FunctionEleme
    * declaration of this element
    */
   FunctionElementImpl.con2(int nameOffset) : super.con2("", nameOffset) {
-    _jtd_constructor_202_impl(nameOffset);
+    _jtd_constructor_203_impl(nameOffset);
   }
-  _jtd_constructor_202_impl(int nameOffset) {
+  _jtd_constructor_203_impl(int nameOffset) {
   }
   accept(ElementVisitor visitor) => visitor.visitFunctionElement(this);
   String get identifier => name;
@@ -2979,6 +3062,7 @@ class ImportElementImpl extends ElementImpl implements ImportElement {
     builder.append("import ");
     ((_importedLibrary as LibraryElementImpl)).appendTo(builder);
   }
+  String get identifier => "${_importedLibrary.name}:${(_prefix == null ? "" : _prefix.name)}";
 }
 /**
  * Instances of the class {@code LabelElementImpl} implement a {@code LabelElement}.
@@ -3101,6 +3185,16 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     for (CompilationUnitElement part in _parts) {
       if (((part as CompilationUnitElementImpl)).identifier == identifier2) {
         return part as CompilationUnitElementImpl;
+      }
+    }
+    for (ImportElement importElement in _imports) {
+      if (((importElement as ImportElementImpl)).identifier == identifier2) {
+        return importElement as ImportElementImpl;
+      }
+    }
+    for (ExportElement exportElement in _exports) {
+      if (((exportElement as ExportElementImpl)).identifier == identifier2) {
+        return exportElement as ExportElementImpl;
       }
     }
     return null;
@@ -3317,9 +3411,9 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
    * @param name the name of this element
    */
   MethodElementImpl.con1(Identifier name) : super.con1(name) {
-    _jtd_constructor_211_impl(name);
+    _jtd_constructor_212_impl(name);
   }
-  _jtd_constructor_211_impl(Identifier name) {
+  _jtd_constructor_212_impl(Identifier name) {
   }
   /**
    * Initialize a newly created method element to have the given name.
@@ -3328,9 +3422,9 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
    * declaration of this element
    */
   MethodElementImpl.con2(String name, int nameOffset) : super.con2(name, nameOffset) {
-    _jtd_constructor_212_impl(name, nameOffset);
+    _jtd_constructor_213_impl(name, nameOffset);
   }
-  _jtd_constructor_212_impl(String name, int nameOffset) {
+  _jtd_constructor_213_impl(String name, int nameOffset) {
   }
   accept(ElementVisitor visitor) => visitor.visitMethodElement(this);
   ClassElement get enclosingElement => super.enclosingElement as ClassElement;
@@ -3421,6 +3515,7 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
     _conflictingElements = computeConflictingElements(firstElement, secondElement);
   }
   accept(ElementVisitor visitor) => visitor.visitMultiplyDefinedElement(this);
+  String computeDocumentationComment() => null;
   Element getAncestor(Type elementClass) => null;
   List<Element> get conflictingElements => _conflictingElements;
   AnalysisContext get context => _context;
@@ -3645,9 +3740,9 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl implements Prope
    * @param name the name of this element
    */
   PropertyAccessorElementImpl.con1(Identifier name) : super.con1(name) {
-    _jtd_constructor_217_impl(name);
+    _jtd_constructor_218_impl(name);
   }
-  _jtd_constructor_217_impl(Identifier name) {
+  _jtd_constructor_218_impl(Identifier name) {
   }
   /**
    * Initialize a newly created synthetic property accessor element to be associated with the given
@@ -3655,9 +3750,9 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl implements Prope
    * @param variable the variable with which this access is associated
    */
   PropertyAccessorElementImpl.con2(PropertyInducingElementImpl variable2) : super.con2(variable2.name, -1) {
-    _jtd_constructor_218_impl(variable2);
+    _jtd_constructor_219_impl(variable2);
   }
-  _jtd_constructor_218_impl(PropertyInducingElementImpl variable2) {
+  _jtd_constructor_219_impl(PropertyInducingElementImpl variable2) {
     this._variable = variable2;
     synthetic = true;
   }
@@ -3722,18 +3817,18 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl implement
    * @param name the name of this element
    */
   PropertyInducingElementImpl.con1(Identifier name) : super.con1(name) {
-    _jtd_constructor_219_impl(name);
+    _jtd_constructor_220_impl(name);
   }
-  _jtd_constructor_219_impl(Identifier name) {
+  _jtd_constructor_220_impl(Identifier name) {
   }
   /**
    * Initialize a newly created synthetic element to have the given name.
    * @param name the name of this element
    */
   PropertyInducingElementImpl.con2(String name) : super.con2(name, -1) {
-    _jtd_constructor_220_impl(name);
+    _jtd_constructor_221_impl(name);
   }
-  _jtd_constructor_220_impl(String name) {
+  _jtd_constructor_221_impl(String name) {
     synthetic = true;
   }
   PropertyAccessorElement get getter => _getter;
@@ -3804,18 +3899,18 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl implements
    * @param name the name of this element
    */
   TopLevelVariableElementImpl.con1(Identifier name) : super.con1(name) {
-    _jtd_constructor_222_impl(name);
+    _jtd_constructor_223_impl(name);
   }
-  _jtd_constructor_222_impl(Identifier name) {
+  _jtd_constructor_223_impl(Identifier name) {
   }
   /**
    * Initialize a newly created synthetic top-level variable element to have the given name.
    * @param name the name of this element
    */
   TopLevelVariableElementImpl.con2(String name) : super.con2(name) {
-    _jtd_constructor_223_impl(name);
+    _jtd_constructor_224_impl(name);
   }
-  _jtd_constructor_223_impl(String name) {
+  _jtd_constructor_224_impl(String name) {
   }
   accept(ElementVisitor visitor) => visitor.visitTopLevelVariableElement(this);
   ElementKind get kind => ElementKind.TOP_LEVEL_VARIABLE;
@@ -3894,9 +3989,9 @@ abstract class VariableElementImpl extends ElementImpl implements VariableElemen
    * @param name the name of this element
    */
   VariableElementImpl.con1(Identifier name) : super.con1(name) {
-    _jtd_constructor_225_impl(name);
+    _jtd_constructor_226_impl(name);
   }
-  _jtd_constructor_225_impl(Identifier name) {
+  _jtd_constructor_226_impl(Identifier name) {
   }
   /**
    * Initialize a newly created variable element to have the given name.
@@ -3905,9 +4000,9 @@ abstract class VariableElementImpl extends ElementImpl implements VariableElemen
    * declaration of this element
    */
   VariableElementImpl.con2(String name, int nameOffset) : super.con2(name, nameOffset) {
-    _jtd_constructor_226_impl(name, nameOffset);
+    _jtd_constructor_227_impl(name, nameOffset);
   }
-  _jtd_constructor_226_impl(String name, int nameOffset) {
+  _jtd_constructor_227_impl(String name, int nameOffset) {
   }
   /**
    * Return the result of evaluating this variable's initializer as a compile-time constant
@@ -4081,6 +4176,7 @@ abstract class Member implements Element {
     this._baseElement = baseElement;
     this._definingType = definingType;
   }
+  String computeDocumentationComment() => _baseElement.computeDocumentationComment();
   Element getAncestor(Type elementClass) => baseElement.getAncestor(elementClass);
   /**
    * Return the element on which the parameterized element was created.
@@ -4512,9 +4608,9 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
    * @param element the element representing the declaration of the function type
    */
   FunctionTypeImpl.con1(ExecutableElement element) : super(element, element == null ? null : element.name) {
-    _jtd_constructor_290_impl(element);
+    _jtd_constructor_291_impl(element);
   }
-  _jtd_constructor_290_impl(ExecutableElement element) {
+  _jtd_constructor_291_impl(ExecutableElement element) {
   }
   /**
    * Initialize a newly created function type to be declared by the given element and to have the
@@ -4522,9 +4618,9 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
    * @param element the element representing the declaration of the function type
    */
   FunctionTypeImpl.con2(FunctionTypeAliasElement element) : super(element, element == null ? null : element.name) {
-    _jtd_constructor_291_impl(element);
+    _jtd_constructor_292_impl(element);
   }
-  _jtd_constructor_291_impl(FunctionTypeAliasElement element) {
+  _jtd_constructor_292_impl(FunctionTypeAliasElement element) {
   }
   bool operator ==(Object object) {
     if (object is! FunctionTypeImpl) {
@@ -4805,6 +4901,59 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return set;
   }
   /**
+   * Return the intersection of the given sets of types, where intersection is based on the equality
+   * of the elements of the types rather than on the equality of the types themselves. In cases
+   * where two non-equal types have equal elements, which only happens when the class is
+   * parameterized, the type that is added to the intersection is the base type with type arguments
+   * that are the least upper bound of the type arguments of the two types.
+   * @param first the first set of types to be intersected
+   * @param second the second set of types to be intersected
+   * @return the intersection of the given sets of types
+   */
+  static List<InterfaceType> intersection(Set<InterfaceType> first, Set<InterfaceType> second) {
+    Map<ClassElement, InterfaceType> firstMap = new Map<ClassElement, InterfaceType>();
+    for (InterfaceType firstType in first) {
+      firstMap[firstType.element] = firstType;
+    }
+    Set<InterfaceType> result = new Set<InterfaceType>();
+    for (InterfaceType secondType in second) {
+      InterfaceType firstType = firstMap[secondType.element];
+      if (firstType != null) {
+        javaSetAdd(result, leastUpperBound(firstType, secondType));
+      }
+    }
+    return new List.from(result);
+  }
+  /**
+   * Return the "least upper bound" of the given types under the assumption that the types have the
+   * same element and differ only in terms of the type arguments. The resulting type is composed by
+   * using the least upper bound of the corresponding type arguments.
+   * @param firstType the first type
+   * @param secondType the second type
+   * @return the "least upper bound" of the given types
+   */
+  static InterfaceType leastUpperBound(InterfaceType firstType, InterfaceType secondType) {
+    if (firstType == secondType) {
+      return firstType;
+    }
+    List<Type2> firstArguments = firstType.typeArguments;
+    List<Type2> secondArguments = secondType.typeArguments;
+    int argumentCount = firstArguments.length;
+    if (argumentCount == 0) {
+      return firstType;
+    }
+    List<Type2> lubArguments = new List<Type2>(argumentCount);
+    for (int i = 0; i < argumentCount; i++) {
+      lubArguments[i] = firstArguments[i].getLeastUpperBound(secondArguments[i]);
+      if (lubArguments[i] == null) {
+        lubArguments[i] = DynamicTypeImpl.instance;
+      }
+    }
+    InterfaceTypeImpl lub = new InterfaceTypeImpl.con1(firstType.element);
+    lub.typeArguments = lubArguments;
+    return lub;
+  }
+  /**
    * An array containing the actual types of the type arguments.
    */
   List<Type2> _typeArguments = TypeImpl.EMPTY_ARRAY;
@@ -4813,9 +4962,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * @param element the element representing the declaration of the type
    */
   InterfaceTypeImpl.con1(ClassElement element) : super(element, element.name) {
-    _jtd_constructor_292_impl(element);
+    _jtd_constructor_293_impl(element);
   }
-  _jtd_constructor_292_impl(ClassElement element) {
+  _jtd_constructor_293_impl(ClassElement element) {
   }
   /**
    * Initialize a newly created type to have the given name. This constructor should only be used in
@@ -4823,9 +4972,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * @param name the name of the type
    */
   InterfaceTypeImpl.con2(String name) : super(null, name) {
-    _jtd_constructor_293_impl(name);
+    _jtd_constructor_294_impl(name);
   }
-  _jtd_constructor_293_impl(String name) {
+  _jtd_constructor_294_impl(String name) {
   }
   bool operator ==(Object object) {
     if (object is! InterfaceTypeImpl) {
@@ -4850,27 +4999,25 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
     return typedInterfaces;
   }
-  Type2 getLeastUpperBound(Type2 type2) {
+  Type2 getLeastUpperBound(Type2 type) {
     Type2 dynamicType = DynamicTypeImpl.instance;
-    if (identical(this, dynamicType) || identical(type2, dynamicType)) {
+    if (identical(this, dynamicType) || identical(type, dynamicType)) {
       return dynamicType;
     }
-    if (type2 == null || type2 is! InterfaceType) {
+    if (type is! InterfaceType) {
       return null;
     }
     InterfaceType i = this;
-    InterfaceType j = type2 as InterfaceType;
+    InterfaceType j = type as InterfaceType;
     Set<InterfaceType> si = computeSuperinterfaceSet(i);
     Set<InterfaceType> sj = computeSuperinterfaceSet(j);
-    javaSetAdd(si, i.element.type);
-    javaSetAdd(sj, j.element.type);
-    si.retainAll(sj);
-    Set<InterfaceType> s = si;
-    List<InterfaceType> sn = new List.from(s);
-    List<int> depths = new List<int>.filled(sn.length, 0);
+    javaSetAdd(si, i);
+    javaSetAdd(sj, j);
+    List<InterfaceType> s = intersection(si, sj);
+    List<int> depths = new List<int>.filled(s.length, 0);
     int maxDepth = 0;
-    for (int n = 0; n < sn.length; n++) {
-      depths[n] = computeLongestInheritancePathToObject(sn[n]);
+    for (int n = 0; n < s.length; n++) {
+      depths[n] = computeLongestInheritancePathToObject(s[n]);
       if (depths[n] > maxDepth) {
         maxDepth = depths[n];
       }
@@ -4885,7 +5032,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         }
       }
       if (numberOfTypesAtMaxDepth == 1) {
-        return sn[indexOfLeastUpperBound];
+        return s[indexOfLeastUpperBound];
       }
     }
     return null;
@@ -5052,6 +5199,12 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       if (element != null && element.isAccessibleIn(library)) {
         return element;
       }
+      for (InterfaceType mixin in supertype.mixins) {
+        element = mixin.getGetter(getterName);
+        if (element != null && element.isAccessibleIn(library)) {
+          return element;
+        }
+      }
       supertype = supertype.superclass;
     }
     return null;
@@ -5073,6 +5226,12 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       if (element != null && element.isAccessibleIn(library)) {
         return element;
       }
+      for (InterfaceType mixin in supertype.mixins) {
+        element = mixin.getMethod(methodName);
+        if (element != null && element.isAccessibleIn(library)) {
+          return element;
+        }
+      }
       supertype = supertype.superclass;
     }
     return null;
@@ -5093,6 +5252,12 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       element = supertype.getSetter(setterName);
       if (element != null && element.isAccessibleIn(library)) {
         return element;
+      }
+      for (InterfaceType mixin in supertype.mixins) {
+        element = mixin.getSetter(setterName);
+        if (element != null && element.isAccessibleIn(library)) {
+          return element;
+        }
       }
       supertype = supertype.superclass;
     }
@@ -5281,7 +5446,7 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
  * <li>The types of functions that only have required parameters. These have the general form
  * <i>(T<sub>1</sub>, &hellip;, T<sub>n</sub>) &rarr; T</i>.</li>
  * <li>The types of functions with optional positional parameters. These have the general form
- * <i>(T<sub>1</sub>, &hellip;, T<sub>n</sub>, [T<sub>n+1</sub>, &hellip;, T<sub>n+k</sub>]) &rarr;
+ * <i>(T<sub>1</sub>, &hellip;, T<sub>n</sub>, \[T<sub>n+1</sub>, &hellip;, T<sub>n+k</sub>\]) &rarr;
  * T</i>.</li>
  * <li>The types of functions with named positional parameters. These have the general form
  * <i>(T<sub>1</sub>, &hellip;, T<sub>n</sub>, {T<sub>x1</sub> x1, &hellip;, T<sub>xk</sub> xk})
@@ -5341,9 +5506,9 @@ abstract class FunctionType implements Type2 {
    * </li>
    * <li>For all <i>i</i>, 1 <= <i>i</i> <= <i>n</i>, <i>T<sub>i</sub> &hArr; S<sub>i</sub></i>.</li>
    * </ul>
-   * A function type <i>(T<sub>1</sub>, &hellip;, T<sub>n</sub>, [T<sub>n+1</sub>, &hellip;,
-   * T<sub>n+k</sub>]) &rarr; T</i> is a subtype of the function type <i>(S<sub>1</sub>, &hellip;,
-   * S<sub>n</sub>, [S<sub>n+1</sub>, &hellip;, S<sub>n+m</sub>]) &rarr; S</i>, if all of the
+   * A function type <i>(T<sub>1</sub>, &hellip;, T<sub>n</sub>, \[T<sub>n+1</sub>, &hellip;,
+   * T<sub>n+k</sub>\]) &rarr; T</i> is a subtype of the function type <i>(S<sub>1</sub>, &hellip;,
+   * S<sub>n</sub>, \[S<sub>n+1</sub>, &hellip;, S<sub>n+m</sub>\]) &rarr; S</i>, if all of the
    * following conditions are met:
    * <ul>
    * <li>Either
@@ -5374,14 +5539,14 @@ abstract class FunctionType implements Type2 {
    * </ul>
    * In addition, the following subtype rules apply:
    * <p>
-   * <i>(T<sub>1</sub>, &hellip;, T<sub>n</sub>, []) &rarr; T <: (T<sub>1</sub>, &hellip;,
+   * <i>(T<sub>1</sub>, &hellip;, T<sub>n</sub>, \[\]) &rarr; T <: (T<sub>1</sub>, &hellip;,
    * T<sub>n</sub>) &rarr; T.</i><br>
    * <i>(T<sub>1</sub>, &hellip;, T<sub>n</sub>) &rarr; T <: (T<sub>1</sub>, &hellip;,
    * T<sub>n</sub>, {}) &rarr; T.</i><br>
    * <i>(T<sub>1</sub>, &hellip;, T<sub>n</sub>, {}) &rarr; T <: (T<sub>1</sub>, &hellip;,
    * T<sub>n</sub>) &rarr; T.</i><br>
    * <i>(T<sub>1</sub>, &hellip;, T<sub>n</sub>) &rarr; T <: (T<sub>1</sub>, &hellip;,
-   * T<sub>n</sub>, []) &rarr; T.</i>
+   * T<sub>n</sub>, \[\]) &rarr; T.</i>
    * <p>
    * All functions implement the class {@code Function}. However not all function types are a
    * subtype of {@code Function}. If an interface type <i>I</i> includes a method named{@code call()}, and the type of {@code call()} is the function type <i>F</i>, then <i>I</i> is
@@ -5512,7 +5677,7 @@ abstract class InterfaceType implements Type2 {
   /**
    * Return {@code true} if this type is a subtype of the given type. An interface type <i>T</i> is
    * a subtype of an interface type <i>S</i>, written <i>T</i> <: <i>S</i>, iff
-   * <i>[bottom/dynamic]T</i> &laquo; <i>S</i> (<i>T</i> is more specific than <i>S</i>). If an
+   * <i>\[bottom/dynamic\]T</i> &laquo; <i>S</i> (<i>T</i> is more specific than <i>S</i>). If an
    * interface type <i>I</i> includes a method named <i>call()</i>, and the type of <i>call()</i> is
    * the function type <i>F</i>, then <i>I</i> is considered to be a subtype of <i>F</i>.
    * @param type the type being compared with this type
@@ -5660,7 +5825,7 @@ abstract class Type2 {
   /**
    * Return the type resulting from substituting the given arguments for the given parameters in
    * this type. The specification defines this operation in section 2: <blockquote> The notation
-   * <i>[x<sub>1</sub>, ..., x<sub>n</sub>/y<sub>1</sub>, ..., y<sub>n</sub>]E</i> denotes a copy of
+   * <i>\[x<sub>1</sub>, ..., x<sub>n</sub>/y<sub>1</sub>, ..., y<sub>n</sub>\]E</i> denotes a copy of
    * <i>E</i> in which all occurrences of <i>y<sub>i</sub>, 1 <= i <= n</i> have been replaced with
    * <i>x<sub>i</sub></i>.</blockquote> Note that, contrary to the specification, this method will
    * not create a copy of this type if no substitutions were required, but will return this type

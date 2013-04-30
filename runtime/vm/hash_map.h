@@ -28,7 +28,20 @@ class DirectChainedHashMap: public ValueObject {
 
   bool IsEmpty() const { return count_ == 0; }
 
- private:
+  void Clear() {
+    if (!IsEmpty()) {
+      count_ = 0;
+      memset(array_, 0, sizeof(HashMapListElement) * array_size_);
+      memset(lists_, 0, sizeof(HashMapListElement) * lists_size_);
+      lists_[0].next = kNil;
+      for (intptr_t i = 1; i < lists_size_; ++i) {
+        lists_[i].next = i - 1;
+      }
+      free_list_head_ = lists_size_ - 1;
+    }
+  }
+
+ protected:
   // A linked list of T values.  Stored in arrays.
   struct HashMapListElement {
     typename KeyValueTrait::Pair kv;

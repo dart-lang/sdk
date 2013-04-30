@@ -27,13 +27,13 @@ class FileBasedSource implements Source {
    */
   JavaFile _file;
   /**
-   * The cached URI of the {@link #file}.
+   * The cached encoding for this source.
    */
-  String _fileUriString;
+  String _encoding;
   /**
-   * A flag indicating whether this source is in one of the system libraries.
+   * The kind of URI from which this source was originally derived.
    */
-  bool _inSystemLibrary = false;
+  UriKind _uriKind;
   /**
    * Initialize a newly created source object. The source object is assumed to not be in a system
    * library.
@@ -41,25 +41,25 @@ class FileBasedSource implements Source {
    * @param file the file represented by this source
    */
   FileBasedSource.con1(ContentCache contentCache, JavaFile file) {
-    _jtd_constructor_328_impl(contentCache, file);
+    _jtd_constructor_329_impl(contentCache, file);
   }
-  _jtd_constructor_328_impl(ContentCache contentCache, JavaFile file) {
-    _jtd_constructor_329_impl(contentCache, file, false);
+  _jtd_constructor_329_impl(ContentCache contentCache, JavaFile file) {
+    _jtd_constructor_330_impl(contentCache, file, UriKind.FILE_URI);
   }
   /**
    * Initialize a newly created source object.
    * @param contentCache the content cache used to access the contents of this source
    * @param file the file represented by this source
-   * @param inSystemLibrary {@code true} if this source is in one of the system libraries
+   * @param flags {@code true} if this source is in one of the system libraries
    */
-  FileBasedSource.con2(ContentCache contentCache2, JavaFile file2, bool inSystemLibrary2) {
-    _jtd_constructor_329_impl(contentCache2, file2, inSystemLibrary2);
+  FileBasedSource.con2(ContentCache contentCache2, JavaFile file2, UriKind uriKind2) {
+    _jtd_constructor_330_impl(contentCache2, file2, uriKind2);
   }
-  _jtd_constructor_329_impl(ContentCache contentCache2, JavaFile file2, bool inSystemLibrary2) {
+  _jtd_constructor_330_impl(ContentCache contentCache2, JavaFile file2, UriKind uriKind2) {
     this._contentCache = contentCache2;
     this._file = file2;
-    this._inSystemLibrary = inSystemLibrary2;
-    this._fileUriString = file2.toURI().toString();
+    this._uriKind = uriKind2;
+    this._encoding = "${uriKind2.encoding}${file2.toURI().toString()}";
   }
   bool operator ==(Object object) => object != null && this.runtimeType == object.runtimeType && _file == ((object as FileBasedSource))._file;
   bool exists() => _contentCache.getContents(this) != null || (_file.exists() && !_file.isDirectory());
@@ -73,7 +73,7 @@ class FileBasedSource implements Source {
     }
     receiver.accept2(_file.readAsStringSync(), _file.lastModified());
   }
-  String get encoding => _fileUriString;
+  String get encoding => _encoding;
   String get fullName => _file.getAbsolutePath();
   int get modificationStamp {
     int stamp = _contentCache.getModificationStamp(this);
@@ -83,12 +83,13 @@ class FileBasedSource implements Source {
     return _file.lastModified();
   }
   String get shortName => _file.getName();
+  UriKind get uriKind => _uriKind;
   int get hashCode => _file.hashCode;
-  bool isInSystemLibrary() => _inSystemLibrary;
+  bool isInSystemLibrary() => identical(_uriKind, UriKind.DART_URI);
   Source resolveRelative(Uri containedUri) {
     try {
       Uri resolvedUri = file.toURI().resolveUri(containedUri);
-      return new FileBasedSource.con2(_contentCache, new JavaFile.fromUri(resolvedUri), isInSystemLibrary());
+      return new FileBasedSource.con2(_contentCache, new JavaFile.fromUri(resolvedUri), _uriKind);
     } catch (exception) {
     }
     return null;
@@ -142,6 +143,12 @@ class PackageUriResolver extends UriResolver {
     }
     this._packagesDirectories = packagesDirectories;
   }
+  Source fromEncoding(ContentCache contentCache, UriKind kind, Uri uri) {
+    if (identical(kind, UriKind.PACKAGE_URI)) {
+      return new FileBasedSource.con2(contentCache, new JavaFile.fromUri(uri), kind);
+    }
+    return null;
+  }
   Source resolveAbsolute(ContentCache contentCache, Uri uri) {
     if (!isPackageUri(uri)) {
       return null;
@@ -168,10 +175,10 @@ class PackageUriResolver extends UriResolver {
     for (JavaFile packagesDirectory in _packagesDirectories) {
       JavaFile resolvedFile = new JavaFile.relative(packagesDirectory, path2);
       if (resolvedFile.exists()) {
-        return new FileBasedSource.con1(contentCache, getCanonicalFile(packagesDirectory, pkgName, relPath));
+        return new FileBasedSource.con2(contentCache, getCanonicalFile(packagesDirectory, pkgName, relPath), UriKind.PACKAGE_URI);
       }
     }
-    return new FileBasedSource.con1(contentCache, getCanonicalFile(_packagesDirectories[0], pkgName, relPath));
+    return new FileBasedSource.con2(contentCache, getCanonicalFile(_packagesDirectories[0], pkgName, relPath), UriKind.PACKAGE_URI);
   }
   /**
    * Answer the canonical file for the specified package.
@@ -219,19 +226,19 @@ class DirectoryBasedSourceContainer implements SourceContainer {
    * @param directory the directory (not {@code null})
    */
   DirectoryBasedSourceContainer.con1(JavaFile directory) {
-    _jtd_constructor_326_impl(directory);
+    _jtd_constructor_327_impl(directory);
   }
-  _jtd_constructor_326_impl(JavaFile directory) {
-    _jtd_constructor_327_impl(directory.getPath());
+  _jtd_constructor_327_impl(JavaFile directory) {
+    _jtd_constructor_328_impl(directory.getPath());
   }
   /**
    * Construct a container representing the specified path and containing any sources whose{@link Source#getFullName()} starts with the specified path.
    * @param path the path (not {@code null} and not empty)
    */
   DirectoryBasedSourceContainer.con2(String path2) {
-    _jtd_constructor_327_impl(path2);
+    _jtd_constructor_328_impl(path2);
   }
-  _jtd_constructor_327_impl(String path2) {
+  _jtd_constructor_328_impl(String path2) {
     this._path = appendFileSeparator(path2);
   }
   bool contains(Source source) => source.fullName.startsWith(_path);
@@ -242,6 +249,7 @@ class DirectoryBasedSourceContainer implements SourceContainer {
    */
   String get path => _path;
   int get hashCode => _path.hashCode;
+  String toString() => "SourceContainer[${_path}]";
 }
 /**
  * Instances of the class {@code FileUriResolver} resolve {@code file} URI's.
@@ -263,6 +271,12 @@ class FileUriResolver extends UriResolver {
    * directory.
    */
   FileUriResolver() : super() {
+  }
+  Source fromEncoding(ContentCache contentCache, UriKind kind, Uri uri) {
+    if (identical(kind, UriKind.FILE_URI)) {
+      return new FileBasedSource.con2(contentCache, new JavaFile.fromUri(uri), kind);
+    }
+    return null;
   }
   Source resolveAbsolute(ContentCache contentCache, Uri uri) {
     if (!isFileUri(uri)) {

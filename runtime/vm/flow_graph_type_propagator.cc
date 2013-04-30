@@ -256,7 +256,7 @@ void FlowGraphTypePropagator::VisitCheckSmi(CheckSmiInstr* check) {
 
 void FlowGraphTypePropagator::VisitCheckClass(CheckClassInstr* check) {
   if ((check->unary_checks().NumberOfChecks() != 1) ||
-      check->AffectedBySideEffect()) {
+      !check->Dependencies().IsNone()) {
     // TODO(vegorov): If check is affected by side-effect we can still propagate
     // the type further but not the cid.
     return;
@@ -991,6 +991,26 @@ CompileType Float32x4SplatInstr::ComputeType() const {
 }
 
 
+CompileType Float32x4ComparisonInstr::ComputeType() const {
+  return CompileType::FromCid(kUint32x4Cid);
+}
+
+
+CompileType Float32x4MinMaxInstr::ComputeType() const {
+  return CompileType::FromCid(kFloat32x4Cid);
+}
+
+
+CompileType Float32x4ScaleInstr::ComputeType() const {
+  return CompileType::FromCid(kFloat32x4Cid);
+}
+
+
+CompileType Float32x4SqrtInstr::ComputeType() const {
+  return CompileType::FromCid(kFloat32x4Cid);
+}
+
+
 CompileType MathSqrtInstr::ComputeType() const {
   return CompileType::FromCid(kDoubleCid);
 }
@@ -1013,6 +1033,16 @@ CompileType UnboxFloat32x4Instr::ComputeType() const {
 
 CompileType BoxFloat32x4Instr::ComputeType() const {
   return CompileType::FromCid(kFloat32x4Cid);
+}
+
+
+CompileType UnboxUint32x4Instr::ComputeType() const {
+  return CompileType::FromCid(kUint32x4Cid);
+}
+
+
+CompileType BoxUint32x4Instr::ComputeType() const {
+  return CompileType::FromCid(kUint32x4Cid);
 }
 
 

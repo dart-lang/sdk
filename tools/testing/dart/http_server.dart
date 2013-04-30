@@ -55,6 +55,9 @@ main() {
       defaultsTo: '127.0.0.1');
   parser.addFlag('csp', help: 'Use Content Security Policy restrictions.',
       defaultsTo: false);
+  parser.addOption('runtime', help: 'The runtime we are using (for csp flags).',
+      defaultsTo: 'none');
+
   var args = parser.parse(new Options().arguments);
   if (args['help']) {
     print(parser.getUsage());
@@ -68,7 +71,8 @@ main() {
         .canonicalize()
         .toNativePath();
     var servers = new TestingServers(new Path(args['build-directory']),
-                                     args['csp']);
+                                     args['csp'],
+                                     args['runtime']);
     var port = int.parse(args['port']);
     var crossOriginPort = int.parse(args['crossOriginPort']);
     servers.startServers(args['network'],
@@ -88,8 +92,11 @@ class TestingServers {
   List _serverList = [];
   Path _buildDirectory = null;
   final bool useContentSecurityPolicy;
+  final String runtime;
 
-  TestingServers(Path buildDirectory, this.useContentSecurityPolicy) {
+  TestingServers(Path buildDirectory,
+                 this.useContentSecurityPolicy,
+                 [String this.runtime = 'none']) {
     _buildDirectory = TestUtils.absolutePath(buildDirectory);
   }
 
@@ -118,9 +125,8 @@ class TestingServers {
     var script = dartDir.join(new Path("tools/testing/dart/http_server.dart"));
     var buildDirectory = _buildDirectory.toNativePath();
     var csp = useContentSecurityPolicy ? '--csp ' : '';
-
     return '$dart $script -p $port -c $crossOriginPort $csp'
-           '--build-directory=$buildDirectory';
+           '--build-directory=$buildDirectory --runtime=$runtime';
   }
 
   void stopServers() {
@@ -320,10 +326,13 @@ class TestingServers {
       // Chrome respects the standardized Content-Security-Policy header,
       // whereas Firefox and IE10 use X-Content-Security-Policy. Safari
       // still uses the WebKit- prefixed version.
+      var content_header_value = "script-src 'self'; object-src 'self'";
       for (var header in ["Content-Security-Policy",
-                          "X-Content-Security-Policy",
-                          "X-WebKit-CSP"]) {
-        response.headers.set(header, "script-src 'self'; object-src 'self'");
+                          "X-Content-Security-Policy"]) {
+        response.headers.set(header, content_header_value);
+      }
+      if (const ["safari"].contains(runtime)) {
+        response.headers.set("X-WebKit-CSP", content_header_value);
       }
     }
     if (path.filename.endsWith('.html')) {

@@ -1040,6 +1040,11 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNull(commentAndMetadata.comment);
     EngineTestCase.assertSize(0, commentAndMetadata.metadata);
   }
+  void test_parseCommentAndMetadata_singleLine() {
+    CommentAndMetadata commentAndMetadata = ParserTestCase.parse5("parseCommentAndMetadata", EngineTestCase.createSource(["/// 1", "/// 2", "void"]), []);
+    JUnitTestCase.assertNotNull(commentAndMetadata.comment);
+    EngineTestCase.assertSize(0, commentAndMetadata.metadata);
+  }
   void test_parseCommentReference_new_prefixed() {
     CommentReference reference = ParserTestCase.parse("parseCommentReference", <Object> ["new a.b", 7], "");
     PrefixedIdentifier prefixedIdentifier = EngineTestCase.assertInstanceOf(PrefixedIdentifier, reference.identifier);
@@ -1109,6 +1114,51 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(reference);
     JUnitTestCase.assertNotNull(reference.identifier);
     JUnitTestCase.assertEquals(35, reference.offset);
+  }
+  void test_parseCommentReferences_skipCodeBlock_bracketed() {
+    List<Token> tokens = <Token> [new StringToken(TokenType.MULTI_LINE_COMMENT, "/** [:xxx [a] yyy:] [b] zzz */", 3)];
+    List<CommentReference> references = ParserTestCase.parse("parseCommentReferences", <Object> [tokens], "");
+    EngineTestCase.assertSize(1, references);
+    CommentReference reference = references[0];
+    JUnitTestCase.assertNotNull(reference);
+    JUnitTestCase.assertNotNull(reference.identifier);
+    JUnitTestCase.assertEquals(24, reference.offset);
+  }
+  void test_parseCommentReferences_skipCodeBlock_spaces() {
+    List<Token> tokens = <Token> [new StringToken(TokenType.MULTI_LINE_COMMENT, "/**\n *     a[i]\n * xxx [i] zzz\n */", 3)];
+    List<CommentReference> references = ParserTestCase.parse("parseCommentReferences", <Object> [tokens], "");
+    EngineTestCase.assertSize(1, references);
+    CommentReference reference = references[0];
+    JUnitTestCase.assertNotNull(reference);
+    JUnitTestCase.assertNotNull(reference.identifier);
+    JUnitTestCase.assertEquals(27, reference.offset);
+  }
+  void test_parseCommentReferences_skipLinkDefinition() {
+    List<Token> tokens = <Token> [new StringToken(TokenType.MULTI_LINE_COMMENT, "/** [a]: http://www.google.com (Google) [b] zzz */", 3)];
+    List<CommentReference> references = ParserTestCase.parse("parseCommentReferences", <Object> [tokens], "");
+    EngineTestCase.assertSize(1, references);
+    CommentReference reference = references[0];
+    JUnitTestCase.assertNotNull(reference);
+    JUnitTestCase.assertNotNull(reference.identifier);
+    JUnitTestCase.assertEquals(44, reference.offset);
+  }
+  void test_parseCommentReferences_skipLinked() {
+    List<Token> tokens = <Token> [new StringToken(TokenType.MULTI_LINE_COMMENT, "/** [a](http://www.google.com) [b] zzz */", 3)];
+    List<CommentReference> references = ParserTestCase.parse("parseCommentReferences", <Object> [tokens], "");
+    EngineTestCase.assertSize(1, references);
+    CommentReference reference = references[0];
+    JUnitTestCase.assertNotNull(reference);
+    JUnitTestCase.assertNotNull(reference.identifier);
+    JUnitTestCase.assertEquals(35, reference.offset);
+  }
+  void test_parseCommentReferences_skipReferenceLink() {
+    List<Token> tokens = <Token> [new StringToken(TokenType.MULTI_LINE_COMMENT, "/** [a][c] [b] zzz */", 3)];
+    List<CommentReference> references = ParserTestCase.parse("parseCommentReferences", <Object> [tokens], "");
+    EngineTestCase.assertSize(1, references);
+    CommentReference reference = references[0];
+    JUnitTestCase.assertNotNull(reference);
+    JUnitTestCase.assertNotNull(reference.identifier);
+    JUnitTestCase.assertEquals(15, reference.offset);
   }
   void test_parseCompilationUnit_abstractAsPrefix_parameterized() {
     CompilationUnit unit = ParserTestCase.parse5("parseCompilationUnit", "abstract<dynamic> _abstract = new abstract.A();", []);
@@ -4310,6 +4360,10 @@ class SimpleParserTest extends ParserTestCase {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseCommentAndMetadata_none);
       });
+      _ut.test('test_parseCommentAndMetadata_singleLine', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseCommentAndMetadata_singleLine);
+      });
       _ut.test('test_parseCommentReference_new_prefixed', () {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseCommentReference_new_prefixed);
@@ -4333,6 +4387,26 @@ class SimpleParserTest extends ParserTestCase {
       _ut.test('test_parseCommentReferences_singleLine', () {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseCommentReferences_singleLine);
+      });
+      _ut.test('test_parseCommentReferences_skipCodeBlock_bracketed', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseCommentReferences_skipCodeBlock_bracketed);
+      });
+      _ut.test('test_parseCommentReferences_skipCodeBlock_spaces', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseCommentReferences_skipCodeBlock_spaces);
+      });
+      _ut.test('test_parseCommentReferences_skipLinkDefinition', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseCommentReferences_skipLinkDefinition);
+      });
+      _ut.test('test_parseCommentReferences_skipLinked', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseCommentReferences_skipLinked);
+      });
+      _ut.test('test_parseCommentReferences_skipReferenceLink', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseCommentReferences_skipReferenceLink);
       });
       _ut.test('test_parseCompilationUnitMember_abstractAsPrefix', () {
         final __test = new SimpleParserTest();
@@ -8471,11 +8545,14 @@ Map<String, MethodTrampoline> _methodTable_Parser = <String, MethodTrampoline> {
   'createSyntheticToken_1': new MethodTrampoline(1, (Parser target, arg0) => target.createSyntheticToken(arg0)),
   'ensureAssignable_1': new MethodTrampoline(1, (Parser target, arg0) => target.ensureAssignable(arg0)),
   'expect_1': new MethodTrampoline(1, (Parser target, arg0) => target.expect(arg0)),
+  'findRange_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.findRange(arg0, arg1)),
+  'getCodeBlockRanges_1': new MethodTrampoline(1, (Parser target, arg0) => target.getCodeBlockRanges(arg0)),
   'hasReturnTypeInTypeAlias_0': new MethodTrampoline(0, (Parser target) => target.hasReturnTypeInTypeAlias()),
   'isFunctionDeclaration_0': new MethodTrampoline(0, (Parser target) => target.isFunctionDeclaration()),
   'isFunctionExpression_1': new MethodTrampoline(1, (Parser target, arg0) => target.isFunctionExpression(arg0)),
   'isHexDigit_1': new MethodTrampoline(1, (Parser target, arg0) => target.isHexDigit(arg0)),
   'isInitializedVariableDeclaration_0': new MethodTrampoline(0, (Parser target) => target.isInitializedVariableDeclaration()),
+  'isLinkText_2': new MethodTrampoline(2, (Parser target, arg0, arg1) => target.isLinkText(arg0, arg1)),
   'isOperator_1': new MethodTrampoline(1, (Parser target, arg0) => target.isOperator(arg0)),
   'isSwitchMember_0': new MethodTrampoline(0, (Parser target) => target.isSwitchMember()),
   'lexicallyFirst_1': new MethodTrampoline(1, (Parser target, arg0) => target.lexicallyFirst(arg0)),

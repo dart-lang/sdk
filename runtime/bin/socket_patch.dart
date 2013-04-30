@@ -19,13 +19,43 @@ patch class RawSocket {
 
 
 patch class InternetAddress {
+  /* patch */ static InternetAddress get LOOPBACK_IP_V4 {
+    return _InternetAddress.LOOPBACK_IP_V4;
+  }
+
+  /* patch */ static InternetAddress get LOOPBACK_IP_V6 {
+    return _InternetAddress.LOOPBACK_IP_V6;
+  }
+
+  /* patch */ static InternetAddress get ANY_IP_V4 {
+    return _InternetAddress.ANY_IP_V4;
+  }
+
+  /* patch */ static InternetAddress get ANY_IP_V6 {
+    return _InternetAddress.ANY_IP_V6;
+  }
+
   /* patch */ static Future<List<InternetAddress>> lookup(
-      String host, {InternetAddressType type: InternetAddressType.IPv4}) {
+      String host, {InternetAddressType type: InternetAddressType.IP_V4}) {
     return _NativeSocket.lookup(host, type: type);
   }
 }
 
 class _InternetAddress implements InternetAddress {
+  static const int _ADDRESS_LOOPBACK_IP_V4 = 0;
+  static const int _ADDRESS_LOOPBACK_IP_V6 = 1;
+  static const int _ADDRESS_ANY_IP_V4 = 2;
+  static const int _ADDRESS_ANY_IP_V6 = 3;
+
+  static _InternetAddress LOOPBACK_IP_V4 =
+      new _InternetAddress.fixed(_ADDRESS_LOOPBACK_IP_V4);
+  static _InternetAddress LOOPBACK_IP_V6 =
+      new _InternetAddress.fixed(_ADDRESS_LOOPBACK_IP_V6);
+  static _InternetAddress ANY_IP_V4 =
+      new _InternetAddress.fixed(_ADDRESS_ANY_IP_V4);
+  static _InternetAddress ANY_IP_V6 =
+      new _InternetAddress.fixed(_ADDRESS_ANY_IP_V6);
+
   final InternetAddressType type;
   final String address;
   final String host;
@@ -36,9 +66,32 @@ class _InternetAddress implements InternetAddress {
                    String this.host,
                    List<int> this._sockaddr_storage);
 
+  factory _InternetAddress.fixed(int id) {
+    var sockaddr = _fixed(id);
+    switch (id) {
+      case _ADDRESS_LOOPBACK_IP_V4:
+        return new _InternetAddress(
+            InternetAddressType.IP_V4, "127.0.0.1", "localhost", sockaddr);
+      case _ADDRESS_LOOPBACK_IP_V6:
+        return new _InternetAddress(
+            InternetAddressType.IP_V6, "::1", "ip6-localhost", sockaddr);
+      case _ADDRESS_ANY_IP_V4:
+        return new _InternetAddress(
+            InternetAddressType.IP_V4, "0.0.0.0", "0.0.0.0", sockaddr);
+      case _ADDRESS_ANY_IP_V6:
+        return new _InternetAddress(
+            InternetAddressType.IP_V6, "::", "::", sockaddr);
+      default:
+        assert(false);
+        throw new ArgumentError();
+    }
+  }
+
   String toString() {
     return "InternetAddress('$address', ${type.name})";
   }
+
+  static Uint8List _fixed(int id) native "InternetAddress_Fixed";
 }
 
 
@@ -105,7 +158,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   static SendPort socketService;
 
   static Future<List<InternetAddress>> lookup(
-      String host, {InternetAddressType type: InternetAddressType.IPv4}) {
+      String host, {InternetAddressType type: InternetAddressType.IP_V4}) {
     ensureSocketService();
     return socketService.call([HOST_NAME_LOOKUP, host, type._value])
         .then((response) {

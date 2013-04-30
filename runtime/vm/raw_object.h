@@ -219,13 +219,12 @@ class RawObject {
   // The tags field which is a part of the object header uses the following
   // bit fields for storing tags.
   enum TagBits {
-    kFreeBit = 0,
+    kWatchedBit = 0,
     kMarkBit = 1,
     kCanonicalBit = 2,
     kFromSnapshotBit = 3,
-    kWatchedBit = 4,
-    kReservedTagBit = 5,  // kReservedBit{10K,100K,1M,10M}
-    kReservedTagSize = 3,
+    kReservedTagBit = 4,  // kReservedBit{1K, 10K,100K,1M,10M}
+    kReservedTagSize = 4,
     kSizeTagBit = 8,
     kSizeTagSize = 8,
     kClassIdTagBit = kSizeTagBit + kSizeTagSize,
@@ -386,11 +385,9 @@ class RawObject {
  private:
   uword tags_;  // Various object tags (bits).
 
-  class FreeBit : public BitField<bool, kFreeBit, 1> {};
+  class WatchedBit : public BitField<bool, kWatchedBit, 1> {};
 
   class MarkBit : public BitField<bool, kMarkBit, 1> {};
-
-  class WatchedBit : public BitField<bool, kWatchedBit, 1> {};
 
   class CanonicalObjectTag : public BitField<bool, kCanonicalBit, 1> {};
 

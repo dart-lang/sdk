@@ -183,19 +183,19 @@ testSqrt() {
 testReciprocal() {
   var m = new Float32x4(1.0, 4.0, 9.0, 16.0);
   m = m.reciprocal();
-  Expect.approxEquals(1.0, m.x);
-  Expect.approxEquals(0.25, m.y);
-  Expect.approxEquals(0.1111111, m.z);
-  Expect.approxEquals(0.0625, m.w);
+  Expect.approxEquals(1.0, m.x, 0.001);
+  Expect.approxEquals(0.25, m.y, 0.001);
+  Expect.approxEquals(0.1111111, m.z, 0.001);
+  Expect.approxEquals(0.0625, m.w, 0.001);
 }
 
 testReciprocalSqrt() {
   var m = new Float32x4(1.0, 0.25, 0.111111, 0.0625);
   m = m.reciprocalSqrt();
-  Expect.approxEquals(1.0, m.x);
-  Expect.approxEquals(2.0, m.y);
-  Expect.approxEquals(3.0, m.z);
-  Expect.approxEquals(4.0, m.w);
+  Expect.approxEquals(1.0, m.x, 0.001);
+  Expect.approxEquals(2.0, m.y, 0.001);
+  Expect.approxEquals(3.0, m.z, 0.001);
+  Expect.approxEquals(4.0, m.w, 0.001);
 }
 
 testSelect() {

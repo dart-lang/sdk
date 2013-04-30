@@ -82,6 +82,18 @@ class Range;
   V(_Float32x4, get:y, Float32x4ShuffleY, 211144022)                           \
   V(_Float32x4, get:z, Float32x4ShuffleZ, 211144022)                           \
   V(_Float32x4, get:w, Float32x4ShuffleW, 211144022)                           \
+  V(_Float32x4, _cmpequal, Float32x4Equal, 548944488)                          \
+  V(_Float32x4, _cmpgt, Float32x4GreaterThan, 548944488)                       \
+  V(_Float32x4, _cmpgte, Float32x4GreaterThanOrEqual, 548944488)               \
+  V(_Float32x4, _cmplt, Float32x4LessThan, 548944488)                          \
+  V(_Float32x4, _cmplte, Float32x4LessThanOrEqual, 548944488)                  \
+  V(_Float32x4, _cmpnequal, Float32x4NotEqual, 548944488)                      \
+  V(_Float32x4, _min, Float32x4Min, 342800599)                                 \
+  V(_Float32x4, _max, Float32x4Max, 342800599)                                 \
+  V(_Float32x4, _scale, Float32x4Scale, 219466242)                             \
+  V(_Float32x4, _sqrt, Float32x4Sqrt, 42621627)                                \
+  V(_Float32x4, _reciprocalSqrt, Float32x4ReciprocalSqrt, 42621627)            \
+  V(_Float32x4, _reciprocal, Float32x4Reciprocal, 42621627)                    \
 
 // Class that recognizes the name and owner of a function and returns the
 // corresponding enum. See RECOGNIZED_LIST above for list of recognizable
@@ -278,6 +290,39 @@ class NotNullConstrainedCompileType : public ConstrainedCompileType {
 
  private:
   CompileType* source_;
+};
+
+
+class EffectSet : public ValueObject {
+ public:
+  enum Effects {
+    kNoEffects = 0,
+    kExternalization = 1,
+    kLastEffect = kExternalization
+  };
+
+  EffectSet(const EffectSet& other)
+      : ValueObject(), effects_(other.effects_) {
+  }
+
+  bool IsNone() const { return effects_ == kNoEffects; }
+
+  static EffectSet None() { return EffectSet(kNoEffects); }
+  static EffectSet All() {
+    ASSERT(EffectSet::kLastEffect == 1);
+    return EffectSet(kExternalization);
+  }
+
+  static EffectSet Externalization() {
+    return EffectSet(kExternalization);
+  }
+
+  bool ToInt() { return effects_; }
+
+ private:
+  explicit EffectSet(intptr_t effects) : effects_(effects) { }
+
+  intptr_t effects_;
 };
 
 
@@ -504,6 +549,8 @@ class EmbeddedArray<T, 0> {
   M(BoxDouble)                                                                 \
   M(BoxFloat32x4)                                                              \
   M(UnboxFloat32x4)                                                            \
+  M(BoxUint32x4)                                                               \
+  M(UnboxUint32x4)                                                             \
   M(UnboxInteger)                                                              \
   M(BoxInteger)                                                                \
   M(BinaryMintOp)                                                              \
@@ -520,6 +567,10 @@ class EmbeddedArray<T, 0> {
   M(Float32x4Constructor)                                                      \
   M(Float32x4Zero)                                                             \
   M(Float32x4Splat)                                                            \
+  M(Float32x4Comparison)                                                       \
+  M(Float32x4MinMax)                                                           \
+  M(Float32x4Scale)                                                            \
+  M(Float32x4Sqrt)                                                             \
 
 
 #define FORWARD_DECLARATION(type) class type##Instr;
@@ -593,9 +644,6 @@ class Instruction : public ZoneAllocated {
 
   // Returns true, if this instruction can deoptimize.
   virtual bool CanDeoptimize() const = 0;
-
-  // Returns true if the instruction may have side effects.
-  virtual bool HasSideEffect() const  = 0;
 
   // Visiting support.
   virtual void Accept(FlowGraphVisitor* visitor) = 0;
@@ -713,12 +761,19 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   // Insert this instruction after 'prev' after use lists are computed.
   void InsertAfter(Instruction* prev);
 
-  // Returns true if the instruction is affected by side effects.
-  // Only instructions that are not affected by side effects can participate
-  // in redundancy elimination or loop invariant code motion.
-  // TODO(fschneider): Make this abstract and implement for all instructions
-  // instead of returning the safe default (true).
-  virtual bool AffectedBySideEffect() const { return true; }
+  // Returns true if CSE and LICM are allowed for this instruction.
+  virtual bool AllowsCSE() const {
+    return false;
+  }
+
+  // Returns set of effects created by this instruction.
+  virtual EffectSet Effects() const = 0;
+
+  // Returns set of effects that affect this instruction.
+  virtual EffectSet Dependencies() const {
+    UNREACHABLE();
+    return EffectSet::All();
+  }
 
   // Get the block entry for this instruction.
   virtual BlockEntryInstr* GetBlock() const;
@@ -769,12 +824,17 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class UnboxIntegerInstr;
   friend class UnboxDoubleInstr;
   friend class UnboxFloat32x4Instr;
+  friend class UnboxUint32x4Instr;
   friend class BinaryDoubleOpInstr;
   friend class BinaryFloat32x4OpInstr;
   friend class Float32x4ZeroInstr;
   friend class Float32x4SplatInstr;
   friend class Float32x4ShuffleInstr;
   friend class Float32x4ConstructorInstr;
+  friend class Float32x4ComparisonInstr;
+  friend class Float32x4MinMaxInstr;
+  friend class Float32x4ScaleInstr;
+  friend class Float32x4SqrtInstr;
   friend class BinaryMintOpInstr;
   friend class BinarySmiOpInstr;
   friend class UnarySmiOpInstr;
@@ -908,7 +968,15 @@ class ParallelMoveInstr : public TemplateInstruction<0> {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool HasSideEffect() const { return false; }
+  virtual EffectSet Effects() const {
+    UNREACHABLE();  // This instruction never visited by optimization passes.
+    return EffectSet::None();
+  }
+
+  virtual EffectSet Dependencies() const {
+    UNREACHABLE();  // This instruction never visited by optimization passes.
+    return EffectSet::None();
+  }
 
   MoveOperands* AddMove(Location dest, Location src) {
     MoveOperands* move = new MoveOperands(dest, src);
@@ -1027,7 +1095,8 @@ class BlockEntryInstr : public Instruction {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool HasSideEffect() const { return false; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
 
   intptr_t try_index() const { return try_index_; }
 
@@ -1215,6 +1284,9 @@ class JoinEntryInstr : public BlockEntryInstr {
   void InsertPhi(PhiInstr* phi);
 
   virtual void PrintTo(BufferFormatter* f) const;
+
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
 
  private:
   // Classes that have access to predecessors_ when inlining.
@@ -1526,7 +1598,7 @@ class PhiInstr : public Definition {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool HasSideEffect() const { return false; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
 
   // Phi is alive if it reaches a non-environment use.
   bool is_alive() const { return is_alive_; }
@@ -1603,7 +1675,8 @@ class ParameterInstr : public Definition {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool HasSideEffect() const { return false; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
 
   virtual intptr_t Hashcode() const {
     UNREACHABLE();
@@ -1659,7 +1732,7 @@ class PushArgumentInstr : public Definition {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool HasSideEffect() const { return false; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -1703,7 +1776,7 @@ class ReturnInstr : public TemplateInstruction<1> {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool HasSideEffect() const { return false; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
 
  private:
   const intptr_t token_pos_;
@@ -1724,7 +1797,7 @@ class ThrowInstr : public TemplateInstruction<0> {
 
   virtual bool CanDeoptimize() const { return true; }
 
-  virtual bool HasSideEffect() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
 
  private:
   const intptr_t token_pos_;
@@ -1745,7 +1818,7 @@ class ReThrowInstr : public TemplateInstruction<0> {
 
   virtual bool CanDeoptimize() const { return true; }
 
-  virtual bool HasSideEffect() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
 
  private:
   const intptr_t token_pos_;
@@ -1777,7 +1850,7 @@ class GotoInstr : public TemplateInstruction<0> {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool HasSideEffect() const { return false; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
 
   ParallelMoveInstr* parallel_move() const {
     return parallel_move_;
@@ -1845,7 +1918,7 @@ class BranchInstr : public ControlInstruction {
   virtual bool CanDeoptimize() const;
   virtual bool CanBeDeoptimizationTarget() const;
 
-  virtual bool HasSideEffect() const;
+  virtual EffectSet Effects() const;
 
   ComparisonInstr* comparison() const { return comparison_; }
   void SetComparison(ComparisonInstr* comp);
@@ -1918,7 +1991,7 @@ class StoreContextInstr : public TemplateInstruction<1> {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool HasSideEffect() const { return false; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(StoreContextInstr);
@@ -2135,7 +2208,7 @@ class ConstraintInstr : public TemplateDefinition<2> {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool HasSideEffect() const { return false; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
 
   virtual bool AttributesEqual(Instruction* other) const {
     UNREACHABLE();
@@ -2193,12 +2266,12 @@ class ConstantInstr : public TemplateDefinition<0> {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool HasSideEffect() const { return false; }
-
-  virtual bool AttributesEqual(Instruction* other) const;
-  virtual bool AffectedBySideEffect() const { return false; }
-
   virtual void InferRange();
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const;
 
  private:
   const Object& value_;
@@ -2244,12 +2317,12 @@ class AssertAssignableInstr : public TemplateDefinition<3> {
 
   virtual bool CanDeoptimize() const { return true; }
 
-  virtual bool HasSideEffect() const { return false; }
-
-  virtual bool AffectedBySideEffect() const { return false; }
-  virtual bool AttributesEqual(Instruction* other) const;
-
   virtual Definition* Canonicalize(FlowGraphOptimizer* optimizer);
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const;
 
  private:
   const intptr_t token_pos_;
@@ -2277,12 +2350,12 @@ class AssertBooleanInstr : public TemplateDefinition<1> {
 
   virtual bool CanDeoptimize() const { return true; }
 
-  virtual bool HasSideEffect() const { return false; }
-
-  virtual bool AffectedBySideEffect() const { return false; }
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
-
   virtual Definition* Canonicalize(FlowGraphOptimizer* optimizer);
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
 
  private:
   const intptr_t token_pos_;
@@ -2316,7 +2389,7 @@ class ArgumentDefinitionTestInstr : public TemplateDefinition<1> {
 
   virtual bool CanDeoptimize() const { return true; }
 
-  virtual bool HasSideEffect() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
 
  private:
   const ArgumentDefinitionTestNode& ast_node_;
@@ -2336,8 +2409,8 @@ class CurrentContextInstr : public TemplateDefinition<0> {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool HasSideEffect() const { return false; }
-
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
  private:
@@ -2366,7 +2439,7 @@ class ClosureCallInstr : public TemplateDefinition<0> {
 
   virtual bool CanDeoptimize() const { return true; }
 
-  virtual bool HasSideEffect() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::All(); }
 
  private:
   const ClosureCallNode& ast_node_;
@@ -2428,7 +2501,7 @@ class InstanceCallInstr : public TemplateDefinition<0> {
 
   virtual bool CanDeoptimize() const { return true; }
 
-  virtual bool HasSideEffect() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::All(); }
 
  protected:
   friend class FlowGraphOptimizer;
@@ -2474,7 +2547,7 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0> {
 
   virtual bool CanDeoptimize() const { return true; }
 
-  virtual bool HasSideEffect() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::All(); }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -2542,8 +2615,8 @@ inline bool BranchInstr::CanBeDeoptimizationTarget() const {
 }
 
 
-inline bool BranchInstr::HasSideEffect() const {
-  return comparison()->HasSideEffect();
+inline EffectSet BranchInstr::Effects() const {
+  return comparison()->Effects();
 }
 
 
@@ -2585,11 +2658,6 @@ class StrictCompareInstr : public ComparisonInstr {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool HasSideEffect() const { return false; }
-
-  virtual bool AttributesEqual(Instruction* other) const;
-  virtual bool AffectedBySideEffect() const { return false; }
-
   virtual Definition* Canonicalize(FlowGraphOptimizer* optimizer);
 
   virtual void EmitBranchCode(FlowGraphCompiler* compiler,
@@ -2598,6 +2666,11 @@ class StrictCompareInstr : public ComparisonInstr {
   bool needs_number_check() const { return needs_number_check_; }
   void set_needs_number_check(bool value) { needs_number_check_ = value; }
   void set_kind(Token::Kind value) { kind_ = value; }
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const;
 
  private:
   // True if the comparison must check for double, Mint or Bigint and
@@ -2650,10 +2723,6 @@ class EqualityCompareInstr : public ComparisonInstr {
     return !IsInlinedNumericComparison();
   }
 
-  virtual bool HasSideEffect() const {
-    return !IsInlinedNumericComparison();
-  }
-
   virtual void EmitBranchCode(FlowGraphCompiler* compiler,
                               BranchInstr* branch);
 
@@ -2669,6 +2738,10 @@ class EqualityCompareInstr : public ComparisonInstr {
   }
 
   bool IsPolymorphic() const;
+
+  virtual EffectSet Effects() const {
+    return IsInlinedNumericComparison() ? EffectSet::None() : EffectSet::All();
+  }
 
  private:
   const ICData* ic_data_;
@@ -2724,9 +2797,6 @@ class RelationalOpInstr : public ComparisonInstr {
   virtual bool CanDeoptimize() const {
     return !IsInlinedNumericComparison();
   }
-  virtual bool HasSideEffect() const {
-    return !IsInlinedNumericComparison();
-  }
 
   virtual void EmitBranchCode(FlowGraphCompiler* compiler,
                               BranchInstr* branch);
@@ -2741,6 +2811,10 @@ class RelationalOpInstr : public ComparisonInstr {
     if (operands_class_id() == kDoubleCid) return kUnboxedDouble;
     if (operands_class_id() == kMintCid) return kUnboxedMint;
     return kTagged;
+  }
+
+  virtual EffectSet Effects() const {
+    return IsInlinedNumericComparison() ? EffectSet::None() : EffectSet::All();
   }
 
  private:
@@ -2785,18 +2859,6 @@ class IfThenElseInstr : public TemplateDefinition<2> {
   virtual void InferRange();
 
   virtual bool CanDeoptimize() const { return false; }
-  virtual bool HasSideEffect() const { return false; }
-
-  virtual bool AttributesEqual(Instruction* other) const {
-    IfThenElseInstr* other_if_then_else = other->AsIfThenElse();
-    return (kind_ == other_if_then_else->kind_) &&
-           (if_true_ == other_if_then_else->if_true_) &&
-           (if_false_ == other_if_then_else->if_false_);
-  }
-
-  virtual bool AffectedBySideEffect() const {
-    return false;
-  }
 
   Value* left() const { return inputs_[0]; }
   Value* right() const { return inputs_[1]; }
@@ -2804,6 +2866,16 @@ class IfThenElseInstr : public TemplateDefinition<2> {
   intptr_t if_false() const { return if_false_; }
 
   Token::Kind kind() const { return kind_; }
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const {
+    IfThenElseInstr* other_if_then_else = other->AsIfThenElse();
+    return (kind_ == other_if_then_else->kind_) &&
+           (if_true_ == other_if_then_else->if_true_) &&
+           (if_false_ == other_if_then_else->if_false_);
+  }
 
  private:
   const Token::Kind kind_;
@@ -2847,7 +2919,7 @@ class StaticCallInstr : public TemplateDefinition<0> {
 
   virtual bool CanDeoptimize() const { return true; }
 
-  virtual bool HasSideEffect() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::All(); }
 
   void set_result_cid(intptr_t value) { result_cid_ = value; }
 
@@ -2884,9 +2956,9 @@ class LoadLocalInstr : public TemplateDefinition<0> {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool HasSideEffect() const {
-    UNREACHABLE();
-    return false;
+  virtual EffectSet Effects() const {
+    UNREACHABLE();  // Eliminated by SSA construction.
+    return EffectSet::None();
   }
 
   void mark_last() { is_last_ = true; }
@@ -2917,16 +2989,16 @@ class StoreLocalInstr : public TemplateDefinition<1> {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool HasSideEffect() const {
-    UNREACHABLE();
-    return false;
-  }
-
   void mark_dead() { is_dead_ = true; }
   bool is_dead() const { return is_dead_; }
 
   void mark_last() { is_last_ = true; }
   bool is_last() const { return is_last_; }
+
+  virtual EffectSet Effects() const {
+    UNREACHABLE();  // Eliminated by SSA construction.
+    return EffectSet::None();
+  }
 
  private:
   const LocalVariable& local_;
@@ -2960,7 +3032,7 @@ class NativeCallInstr : public TemplateDefinition<0> {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool HasSideEffect() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::All(); }
 
  private:
   const NativeBodyNode& ast_node_;
@@ -3003,7 +3075,10 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2> {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool HasSideEffect() const { return true; }
+  // Currently CSE/LICM don't operate on any instructions that can be affected
+  // by stores/loads. LoadOptimizer handles loads separately. Hence stores
+  // are marked as having no side-effects.
+  virtual EffectSet Effects() const { return EffectSet::None(); }
 
  private:
   bool CanValueBeSmi() const {
@@ -3030,25 +3105,24 @@ class GuardFieldInstr : public TemplateInstruction<1> {
     SetInputAt(0, value);
   }
 
+  Value* value() const { return inputs_[0]; }
+
+  const Field& field() const { return field_; }
+
   DECLARE_INSTRUCTION(GuardField)
 
   virtual intptr_t ArgumentCount() const { return 0; }
 
   virtual bool CanDeoptimize() const { return true; }
 
-  virtual bool HasSideEffect() const { return false; }
-
-  virtual bool AttributesEqual(Instruction* other) const;
-
-  virtual bool AffectedBySideEffect() const;
-
-  Value* value() const { return inputs_[0]; }
-
   virtual Instruction* Canonicalize(FlowGraphOptimizer* optimizer);
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  const Field& field() const { return field_; }
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const;
 
  private:
   const Field& field_;
@@ -3070,9 +3144,9 @@ class LoadStaticFieldInstr : public TemplateDefinition<0> {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool HasSideEffect() const { return false; }
-
-  virtual bool AffectedBySideEffect() const { return !field().is_final(); }
+  virtual bool AllowsCSE() const { return field_.is_final(); }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const;
   virtual bool AttributesEqual(Instruction* other) const;
 
  private:
@@ -3100,7 +3174,10 @@ class StoreStaticFieldInstr : public TemplateDefinition<1> {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool HasSideEffect() const { return true; }
+  // Currently CSE/LICM don't operate on any instructions that can be affected
+  // by stores/loads. LoadOptimizer handles loads separately. Hence stores
+  // are marked as having no side-effects.
+  virtual EffectSet Effects() const { return EffectSet::None(); }
 
  private:
   bool CanValueBeSmi() const {
@@ -3152,15 +3229,14 @@ class LoadIndexedInstr : public TemplateDefinition<2> {
     return deopt_id_ != Isolate::kNoDeoptId;
   }
 
-  virtual bool HasSideEffect() const { return false; }
 
   virtual Representation representation() const;
-
-  virtual bool AttributesEqual(Instruction* other) const;
-
-  virtual bool AffectedBySideEffect() const { return true; }
-
   virtual void InferRange();
+
+  virtual bool AllowsCSE() const { return false; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const;
+  virtual bool AttributesEqual(Instruction* other) const;
 
  private:
   const intptr_t index_scale_;
@@ -3187,11 +3263,12 @@ class StringFromCharCodeInstr : public TemplateDefinition<1> {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool HasSideEffect() const { return false; }
-
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  virtual bool AffectedBySideEffect() const { return false; }
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const {
+    return other->AsStringFromCharCode()->cid_ == cid_;
+  }
 
  private:
   const intptr_t cid_;
@@ -3233,8 +3310,6 @@ class StoreIndexedInstr : public TemplateDefinition<3> {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool HasSideEffect() const { return true; }
-
   virtual Representation RequiredInputRepresentation(intptr_t idx) const;
 
   bool IsExternal() const {
@@ -3246,6 +3321,8 @@ class StoreIndexedInstr : public TemplateDefinition<3> {
     // was inherited from another instruction that could deoptimize.
     return deopt_id_;
   }
+
+  virtual EffectSet Effects() const { return EffectSet::None(); }
 
  private:
   const StoreBarrierType emit_store_barrier_;
@@ -3270,7 +3347,7 @@ class BooleanNegateInstr : public TemplateDefinition<1> {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool HasSideEffect() const { return false; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BooleanNegateInstr);
@@ -3311,7 +3388,7 @@ class InstanceOfInstr : public TemplateDefinition<3> {
 
   virtual bool CanDeoptimize() const { return true; }
 
-  virtual bool HasSideEffect() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
 
  private:
   const intptr_t token_pos_;
@@ -3351,7 +3428,7 @@ class AllocateObjectInstr : public TemplateDefinition<0> {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool HasSideEffect() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
 
  private:
   const ConstructorCallNode& ast_node_;
@@ -3381,7 +3458,7 @@ class AllocateObjectWithBoundsCheckInstr : public TemplateDefinition<2> {
 
   virtual bool CanDeoptimize() const { return true; }
 
-  virtual bool HasSideEffect() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
 
  private:
   const ConstructorCallNode& ast_node_;
@@ -3418,7 +3495,7 @@ class CreateArrayInstr : public TemplateDefinition<1> {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool HasSideEffect() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
 
  private:
   const intptr_t token_pos_;
@@ -3453,7 +3530,7 @@ class CreateClosureInstr : public TemplateDefinition<0> {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool HasSideEffect() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
 
  private:
   const Function& function_;
@@ -3481,14 +3558,13 @@ class LoadUntaggedInstr : public TemplateDefinition<1> {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool HasSideEffect() const { return false; }
-
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
-
   // This instruction must not be moved without the indexed access that
   // depends on it (e.g. out of loops). GC may cause collect
   // the array while the external data-array is still accessed.
-  virtual bool AffectedBySideEffect() const { return true; }
+  virtual bool AllowsCSE() const { return false; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
 
  private:
   intptr_t offset_;
@@ -3514,26 +3590,17 @@ class LoadFieldInstr : public TemplateDefinition<1> {
     SetInputAt(0, value);
   }
 
-  DECLARE_INSTRUCTION(LoadField)
-  virtual CompileType ComputeType() const;
-
   Value* value() const { return inputs_[0]; }
   intptr_t offset_in_bytes() const { return offset_in_bytes_; }
   const AbstractType& type() const { return type_; }
   void set_result_cid(intptr_t value) { result_cid_ = value; }
   intptr_t result_cid() const { return result_cid_; }
 
-  virtual void PrintOperandsTo(BufferFormatter* f) const;
+  void set_field_name(const char* name) { field_name_ = name; }
+  const char* field_name() const { return field_name_; }
 
-  virtual bool CanDeoptimize() const { return false; }
-
-  virtual bool HasSideEffect() const { return false; }
-
-  virtual bool AttributesEqual(Instruction* other) const;
-
-  virtual bool AffectedBySideEffect() const { return !immutable_; }
-
-  virtual void InferRange();
+  Field* field() const { return field_; }
+  void set_field(Field* field) { field_ = field; }
 
   void set_recognized_kind(MethodRecognizer::Kind kind) {
     recognized_kind_ = kind;
@@ -3543,6 +3610,15 @@ class LoadFieldInstr : public TemplateDefinition<1> {
     return recognized_kind_;
   }
 
+  DECLARE_INSTRUCTION(LoadField)
+  virtual CompileType ComputeType() const;
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual void InferRange();
+
   bool IsImmutableLengthLoad() const;
 
   virtual Definition* Canonicalize(FlowGraphOptimizer* optimizer);
@@ -3551,11 +3627,10 @@ class LoadFieldInstr : public TemplateDefinition<1> {
 
   static bool IsFixedLengthArrayCid(intptr_t cid);
 
-  void set_field_name(const char* name) { field_name_ = name; }
-  const char* field_name() const { return field_name_; }
-
-  Field* field() const { return field_; }
-  void set_field(Field* field) { field_ = field; }
+  virtual bool AllowsCSE() const { return immutable_; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const;
+  virtual bool AttributesEqual(Instruction* other) const;
 
  private:
   const intptr_t offset_in_bytes_;
@@ -3596,7 +3671,7 @@ class StoreVMFieldInstr : public TemplateDefinition<2> {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool HasSideEffect() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
 
  private:
   const intptr_t offset_in_bytes_;
@@ -3610,9 +3685,11 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<1> {
  public:
   InstantiateTypeArgumentsInstr(intptr_t token_pos,
                                 const AbstractTypeArguments& type_arguments,
+                                const Class& instantiator_class,
                                 Value* instantiator)
       : token_pos_(token_pos),
-        type_arguments_(type_arguments) {
+        type_arguments_(type_arguments),
+        instantiator_class_(instantiator_class) {
     ASSERT(type_arguments.IsZoneHandle());
     SetInputAt(0, instantiator);
   }
@@ -3623,17 +3700,19 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<1> {
   const AbstractTypeArguments& type_arguments() const {
     return type_arguments_;
   }
+  const Class& instantiator_class() const { return instantiator_class_; }
   intptr_t token_pos() const { return token_pos_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return true; }
 
-  virtual bool HasSideEffect() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
 
  private:
   const intptr_t token_pos_;
   const AbstractTypeArguments& type_arguments_;
+  const Class& instantiator_class_;
 
   DISALLOW_COPY_AND_ASSIGN(InstantiateTypeArgumentsInstr);
 };
@@ -3644,9 +3723,11 @@ class ExtractConstructorTypeArgumentsInstr : public TemplateDefinition<1> {
   ExtractConstructorTypeArgumentsInstr(
       intptr_t token_pos,
       const AbstractTypeArguments& type_arguments,
+      const Class& instantiator_class,
       Value* instantiator)
       : token_pos_(token_pos),
-        type_arguments_(type_arguments) {
+        type_arguments_(type_arguments),
+        instantiator_class_(instantiator_class) {
     SetInputAt(0, instantiator);
   }
 
@@ -3656,17 +3737,19 @@ class ExtractConstructorTypeArgumentsInstr : public TemplateDefinition<1> {
   const AbstractTypeArguments& type_arguments() const {
     return type_arguments_;
   }
+  const Class& instantiator_class() const { return instantiator_class_; }
   intptr_t token_pos() const { return token_pos_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool HasSideEffect() const { return false; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
 
  private:
   const intptr_t token_pos_;
   const AbstractTypeArguments& type_arguments_;
+  const Class& instantiator_class_;
 
   DISALLOW_COPY_AND_ASSIGN(ExtractConstructorTypeArgumentsInstr);
 };
@@ -3675,8 +3758,9 @@ class ExtractConstructorTypeArgumentsInstr : public TemplateDefinition<1> {
 class ExtractConstructorInstantiatorInstr : public TemplateDefinition<1> {
  public:
   ExtractConstructorInstantiatorInstr(ConstructorCallNode* ast_node,
+                                      const Class& instantiator_class,
                                       Value* instantiator)
-      : ast_node_(*ast_node) {
+      : ast_node_(*ast_node), instantiator_class_(instantiator_class) {
     SetInputAt(0, instantiator);
   }
 
@@ -3687,14 +3771,16 @@ class ExtractConstructorInstantiatorInstr : public TemplateDefinition<1> {
     return ast_node_.type_arguments();
   }
   const Function& constructor() const { return ast_node_.constructor(); }
+  const Class& instantiator_class() const { return instantiator_class_; }
   intptr_t token_pos() const { return ast_node_.token_pos(); }
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool HasSideEffect() const { return false; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
 
  private:
   const ConstructorCallNode& ast_node_;
+  const Class& instantiator_class_;
 
   DISALLOW_COPY_AND_ASSIGN(ExtractConstructorInstantiatorInstr);
 };
@@ -3717,7 +3803,7 @@ class AllocateContextInstr : public TemplateDefinition<0> {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool HasSideEffect() const { return false; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
 
  private:
   const intptr_t token_pos_;
@@ -3741,7 +3827,7 @@ class ChainContextInstr : public TemplateInstruction<1> {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool HasSideEffect() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(ChainContextInstr);
@@ -3763,7 +3849,7 @@ class CloneContextInstr : public TemplateDefinition<1> {
 
   virtual bool CanDeoptimize() const { return true; }
 
-  virtual bool HasSideEffect() const { return false; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
 
  private:
   const intptr_t token_pos_;
@@ -3789,7 +3875,7 @@ class CatchEntryInstr : public TemplateInstruction<0> {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool HasSideEffect() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::All(); }
 
  private:
   const LocalVariable& exception_var_;
@@ -3809,23 +3895,21 @@ class CheckEitherNonSmiInstr : public TemplateInstruction<2> {
     deopt_id_ = instance_call->deopt_id();
   }
 
+  Value* left() const { return inputs_[0]; }
+  Value* right() const { return inputs_[1]; }
+
   DECLARE_INSTRUCTION(CheckEitherNonSmi)
 
   virtual intptr_t ArgumentCount() const { return 0; }
 
   virtual bool CanDeoptimize() const { return true; }
 
-  virtual bool HasSideEffect() const { return false; }
-
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  virtual bool AffectedBySideEffect() const { return false; }
-
-  Value* left() const { return inputs_[0]; }
-
-  Value* right() const { return inputs_[1]; }
-
   virtual Instruction* Canonicalize(FlowGraphOptimizer* optimizer);
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(CheckEitherNonSmiInstr);
@@ -3840,20 +3924,20 @@ class BoxDoubleInstr : public TemplateDefinition<1> {
 
   Value* value() const { return inputs_[0]; }
 
+  DECLARE_INSTRUCTION(BoxDouble)
+  virtual CompileType ComputeType() const;
+
   virtual bool CanDeoptimize() const { return false; }
-
-  virtual bool HasSideEffect() const { return false; }
-
-  virtual bool AffectedBySideEffect() const { return false; }
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT(idx == 0);
     return kUnboxedDouble;
   }
 
-  DECLARE_INSTRUCTION(BoxDouble)
-  virtual CompileType ComputeType() const;
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BoxDoubleInstr);
@@ -3870,11 +3954,6 @@ class BoxFloat32x4Instr : public TemplateDefinition<1> {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool HasSideEffect() const { return false; }
-
-  virtual bool AffectedBySideEffect() const { return false; }
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
-
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT(idx == 0);
     return kUnboxedFloat32x4;
@@ -3883,8 +3962,41 @@ class BoxFloat32x4Instr : public TemplateDefinition<1> {
   DECLARE_INSTRUCTION(BoxFloat32x4)
   virtual CompileType ComputeType() const;
 
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
  private:
   DISALLOW_COPY_AND_ASSIGN(BoxFloat32x4Instr);
+};
+
+
+class BoxUint32x4Instr : public TemplateDefinition<1> {
+ public:
+  explicit BoxUint32x4Instr(Value* value) {
+    SetInputAt(0, value);
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kUnboxedUint32x4;
+  }
+
+  DECLARE_INSTRUCTION(BoxUint32x4)
+  virtual CompileType ComputeType() const;
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(BoxUint32x4Instr);
 };
 
 
@@ -3898,11 +4010,6 @@ class BoxIntegerInstr : public TemplateDefinition<1> {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool HasSideEffect() const { return false; }
-
-  virtual bool AffectedBySideEffect() const { return false; }
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
-
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT(idx == 0);
     return kUnboxedMint;
@@ -3910,6 +4017,11 @@ class BoxIntegerInstr : public TemplateDefinition<1> {
 
   DECLARE_INSTRUCTION(BoxInteger)
   virtual CompileType ComputeType() const;
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BoxIntegerInstr);
@@ -3930,17 +4042,17 @@ class UnboxDoubleInstr : public TemplateDefinition<1> {
         && (value()->Type()->ToCid() != kSmiCid);
   }
 
-  virtual bool HasSideEffect() const { return false; }
-
   virtual Representation representation() const {
     return kUnboxedDouble;
   }
 
-  virtual bool AffectedBySideEffect() const { return false; }
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
-
   DECLARE_INSTRUCTION(UnboxDouble)
   virtual CompileType ComputeType() const;
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(UnboxDoubleInstr);
@@ -3960,20 +4072,52 @@ class UnboxFloat32x4Instr : public TemplateDefinition<1> {
     return (value()->Type()->ToCid() != kFloat32x4Cid);
   }
 
-  virtual bool HasSideEffect() const { return false; }
-
   virtual Representation representation() const {
     return kUnboxedFloat32x4;
   }
 
-  virtual bool AffectedBySideEffect() const { return false; }
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
-
   DECLARE_INSTRUCTION(UnboxFloat32x4)
   virtual CompileType ComputeType() const;
 
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
  private:
   DISALLOW_COPY_AND_ASSIGN(UnboxFloat32x4Instr);
+};
+
+
+class UnboxUint32x4Instr : public TemplateDefinition<1> {
+ public:
+  UnboxUint32x4Instr(Value* value, intptr_t deopt_id) {
+    SetInputAt(0, value);
+    deopt_id_ = deopt_id;
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  virtual bool CanDeoptimize() const {
+    return (value()->Type()->ToCid() != kUint32x4Cid);
+  }
+
+  virtual bool HasSideEffect() const { return false; }
+
+  virtual Representation representation() const {
+    return kUnboxedUint32x4;
+  }
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  DECLARE_INSTRUCTION(UnboxUint32x4)
+  virtual CompileType ComputeType() const;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(UnboxUint32x4Instr);
 };
 
 
@@ -3991,19 +4135,18 @@ class UnboxIntegerInstr : public TemplateDefinition<1> {
         && (value()->Type()->ToCid() != kMintCid);
   }
 
-  virtual bool HasSideEffect() const { return false; }
-
-  virtual CompileType ComputeType() const;
-
   virtual Representation representation() const {
     return kUnboxedMint;
   }
 
 
-  virtual bool AffectedBySideEffect() const { return false; }
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
-
   DECLARE_INSTRUCTION(UnboxInteger)
+  virtual CompileType ComputeType() const;
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(UnboxIntegerInstr);
@@ -4020,12 +4163,6 @@ class MathSqrtInstr : public TemplateDefinition<1> {
   Value* value() const { return inputs_[0]; }
 
   virtual bool CanDeoptimize() const { return false; }
-
-  virtual bool HasSideEffect() const { return false; }
-
-  virtual bool AttributesEqual(Instruction* other) const {
-    return true;
-  }
 
   virtual Representation representation() const {
     return kUnboxedDouble;
@@ -4044,6 +4181,11 @@ class MathSqrtInstr : public TemplateDefinition<1> {
 
   DECLARE_INSTRUCTION(MathSqrt)
   virtual CompileType ComputeType() const;
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(MathSqrtInstr);
@@ -4071,14 +4213,6 @@ class BinaryDoubleOpInstr : public TemplateDefinition<2> {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool HasSideEffect() const { return false; }
-
-  virtual bool AffectedBySideEffect() const { return false; }
-
-  virtual bool AttributesEqual(Instruction* other) const {
-    return op_kind() == other->AsBinaryDoubleOp()->op_kind();
-  }
-
   virtual Representation representation() const {
     return kUnboxedDouble;
   }
@@ -4098,6 +4232,13 @@ class BinaryDoubleOpInstr : public TemplateDefinition<2> {
   virtual CompileType ComputeType() const;
 
   virtual Definition* Canonicalize(FlowGraphOptimizer* optimizer);
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const {
+    return op_kind() == other->AsBinaryDoubleOp()->op_kind();
+  }
 
  private:
   const Token::Kind op_kind_;
@@ -4127,14 +4268,6 @@ class BinaryFloat32x4OpInstr : public TemplateDefinition<2> {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool HasSideEffect() const { return false; }
-
-  virtual bool AffectedBySideEffect() const { return false; }
-
-  virtual bool AttributesEqual(Instruction* other) const {
-    return op_kind() == other->AsBinaryFloat32x4Op()->op_kind();
-  }
-
   virtual Representation representation() const {
     return kUnboxedFloat32x4;
   }
@@ -4152,6 +4285,13 @@ class BinaryFloat32x4OpInstr : public TemplateDefinition<2> {
 
   DECLARE_INSTRUCTION(BinaryFloat32x4Op)
   virtual CompileType ComputeType() const;
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const {
+    return op_kind() == other->AsBinaryFloat32x4Op()->op_kind();
+  }
 
  private:
   const Token::Kind op_kind_;
@@ -4177,14 +4317,6 @@ class Float32x4ShuffleInstr : public TemplateDefinition<1> {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool HasSideEffect() const { return false; }
-
-  virtual bool AffectedBySideEffect() const { return false; }
-
-  virtual bool AttributesEqual(Instruction* other) const {
-    return op_kind() == other->AsFloat32x4Shuffle()->op_kind();
-  }
-
   virtual Representation representation() const {
     if ((op_kind_ == MethodRecognizer::kFloat32x4ShuffleX) ||
         (op_kind_ == MethodRecognizer::kFloat32x4ShuffleY) ||
@@ -4208,6 +4340,13 @@ class Float32x4ShuffleInstr : public TemplateDefinition<1> {
 
   DECLARE_INSTRUCTION(Float32x4Shuffle)
   virtual CompileType ComputeType() const;
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const {
+    return op_kind() == other->AsFloat32x4Shuffle()->op_kind();
+  }
 
  private:
   const MethodRecognizer::Kind op_kind_;
@@ -4236,12 +4375,6 @@ class Float32x4ConstructorInstr : public TemplateDefinition<4> {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool HasSideEffect() const { return false; }
-
-  virtual bool AffectedBySideEffect() const { return false; }
-
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
-
   virtual Representation representation() const {
     return kUnboxedFloat32x4;
   }
@@ -4259,6 +4392,11 @@ class Float32x4ConstructorInstr : public TemplateDefinition<4> {
 
   DECLARE_INSTRUCTION(Float32x4Constructor)
   virtual CompileType ComputeType() const;
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Float32x4ConstructorInstr);
@@ -4278,12 +4416,6 @@ class Float32x4SplatInstr : public TemplateDefinition<1> {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool HasSideEffect() const { return false; }
-
-  virtual bool AffectedBySideEffect() const { return false; }
-
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
-
   virtual Representation representation() const {
     return kUnboxedFloat32x4;
   }
@@ -4302,6 +4434,11 @@ class Float32x4SplatInstr : public TemplateDefinition<1> {
   DECLARE_INSTRUCTION(Float32x4Splat)
   virtual CompileType ComputeType() const;
 
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
  private:
   DISALLOW_COPY_AND_ASSIGN(Float32x4SplatInstr);
 };
@@ -4318,12 +4455,6 @@ class Float32x4ZeroInstr : public TemplateDefinition<0> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
-
-  virtual bool HasSideEffect() const { return false; }
-
-  virtual bool AffectedBySideEffect() const { return false; }
-
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
 
   virtual Representation representation() const {
     return kUnboxedFloat32x4;
@@ -4343,8 +4474,217 @@ class Float32x4ZeroInstr : public TemplateDefinition<0> {
   DECLARE_INSTRUCTION(Float32x4Zero)
   virtual CompileType ComputeType() const;
 
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
  private:
   DISALLOW_COPY_AND_ASSIGN(Float32x4ZeroInstr);
+};
+
+
+class Float32x4ComparisonInstr : public TemplateDefinition<2> {
+ public:
+  Float32x4ComparisonInstr(MethodRecognizer::Kind op_kind, Value* left,
+                           Value* right, InstanceCallInstr* instance_call)
+      : op_kind_(op_kind) {
+    SetInputAt(0, left);
+    SetInputAt(1, right);
+    deopt_id_ = instance_call->deopt_id();
+  }
+
+  Value* left() const { return inputs_[0]; }
+  Value* right() const { return inputs_[1]; }
+
+  MethodRecognizer::Kind op_kind() const { return op_kind_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual Representation representation() const {
+    return kUnboxedUint32x4;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT((idx == 0) || (idx == 1));
+    return kUnboxedFloat32x4;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return deopt_id_;
+  }
+
+  DECLARE_INSTRUCTION(Float32x4Comparison)
+  virtual CompileType ComputeType() const;
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const {
+    return op_kind() == other->AsFloat32x4Comparison()->op_kind();
+  }
+
+ private:
+  const MethodRecognizer::Kind op_kind_;
+
+  DISALLOW_COPY_AND_ASSIGN(Float32x4ComparisonInstr);
+};
+
+
+class Float32x4MinMaxInstr : public TemplateDefinition<2> {
+ public:
+  Float32x4MinMaxInstr(MethodRecognizer::Kind op_kind, Value* left,
+                       Value* right, InstanceCallInstr* instance_call)
+      : op_kind_(op_kind) {
+    SetInputAt(0, left);
+    SetInputAt(1, right);
+    deopt_id_ = instance_call->deopt_id();
+  }
+
+  Value* left() const { return inputs_[0]; }
+  Value* right() const { return inputs_[1]; }
+
+  MethodRecognizer::Kind op_kind() const { return op_kind_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual Representation representation() const {
+    return kUnboxedFloat32x4;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT((idx == 0) || (idx == 1));
+    return kUnboxedFloat32x4;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return deopt_id_;
+  }
+
+  DECLARE_INSTRUCTION(Float32x4MinMax)
+  virtual CompileType ComputeType() const;
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const {
+    return op_kind() == other->AsFloat32x4MinMax()->op_kind();
+  }
+
+ private:
+  const MethodRecognizer::Kind op_kind_;
+
+  DISALLOW_COPY_AND_ASSIGN(Float32x4MinMaxInstr);
+};
+
+
+class Float32x4ScaleInstr : public TemplateDefinition<2> {
+ public:
+  Float32x4ScaleInstr(MethodRecognizer::Kind op_kind, Value* left,
+                      Value* right, InstanceCallInstr* instance_call)
+      : op_kind_(op_kind) {
+    SetInputAt(0, left);
+    SetInputAt(1, right);
+    deopt_id_ = instance_call->deopt_id();
+  }
+
+  Value* left() const { return inputs_[0]; }
+  Value* right() const { return inputs_[1]; }
+
+  MethodRecognizer::Kind op_kind() const { return op_kind_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual Representation representation() const {
+    return kUnboxedFloat32x4;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT((idx == 0) || (idx == 1));
+    if (idx == 0) {
+      return kUnboxedDouble;
+    }
+    return kUnboxedFloat32x4;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return deopt_id_;
+  }
+
+  DECLARE_INSTRUCTION(Float32x4Scale)
+  virtual CompileType ComputeType() const;
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const {
+    return op_kind() == other->AsFloat32x4Scale()->op_kind();
+  }
+
+ private:
+  const MethodRecognizer::Kind op_kind_;
+
+  DISALLOW_COPY_AND_ASSIGN(Float32x4ScaleInstr);
+};
+
+
+class Float32x4SqrtInstr : public TemplateDefinition<1> {
+ public:
+  Float32x4SqrtInstr(MethodRecognizer::Kind op_kind, Value* left,
+                     InstanceCallInstr* instance_call) : op_kind_(op_kind) {
+    SetInputAt(0, left);
+    deopt_id_ = instance_call->deopt_id();
+  }
+
+  Value* left() const { return inputs_[0]; }
+
+  MethodRecognizer::Kind op_kind() const { return op_kind_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual Representation representation() const {
+    return kUnboxedFloat32x4;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kUnboxedFloat32x4;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return deopt_id_;
+  }
+
+  DECLARE_INSTRUCTION(Float32x4Sqrt)
+  virtual CompileType ComputeType() const;
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const {
+    return op_kind() == other->AsFloat32x4Sqrt()->op_kind();
+  }
+
+ private:
+  const MethodRecognizer::Kind op_kind_;
+
+  DISALLOW_COPY_AND_ASSIGN(Float32x4SqrtInstr);
 };
 
 
@@ -4374,17 +4714,6 @@ class BinaryMintOpInstr : public TemplateDefinition<2> {
     return (op_kind() == Token::kADD) || (op_kind() == Token::kSUB);
   }
 
-  virtual bool HasSideEffect() const { return false; }
-
-  virtual bool AffectedBySideEffect() const { return false; }
-
-  virtual bool AttributesEqual(Instruction* other) const {
-    ASSERT(other->IsBinaryMintOp());
-    return op_kind() == other->AsBinaryMintOp()->op_kind();
-  }
-
-  virtual CompileType ComputeType() const;
-
   virtual Representation representation() const {
     return kUnboxedMint;
   }
@@ -4403,6 +4732,15 @@ class BinaryMintOpInstr : public TemplateDefinition<2> {
   virtual Definition* Canonicalize(FlowGraphOptimizer* optimizer);
 
   DECLARE_INSTRUCTION(BinaryMintOp)
+  virtual CompileType ComputeType() const;
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const {
+    ASSERT(other->IsBinaryMintOp());
+    return op_kind() == other->AsBinaryMintOp()->op_kind();
+  }
 
  private:
   const Token::Kind op_kind_;
@@ -4434,14 +4772,6 @@ class ShiftMintOpInstr : public TemplateDefinition<2> {
 
   virtual bool CanDeoptimize() const { return true; }
 
-  virtual bool HasSideEffect() const { return false; }
-
-  virtual bool AffectedBySideEffect() const { return false; }
-
-  virtual bool AttributesEqual(Instruction* other) const {
-    return op_kind() == other->AsShiftMintOp()->op_kind();
-  }
-
   virtual CompileType ComputeType() const;
 
   virtual Representation representation() const {
@@ -4460,6 +4790,13 @@ class ShiftMintOpInstr : public TemplateDefinition<2> {
   }
 
   DECLARE_INSTRUCTION(ShiftMintOp)
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const {
+    return op_kind() == other->AsShiftMintOp()->op_kind();
+  }
 
  private:
   const Token::Kind op_kind_;
@@ -4487,16 +4824,6 @@ class UnaryMintOpInstr : public TemplateDefinition<1> {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool HasSideEffect() const { return false; }
-
-  virtual bool AffectedBySideEffect() const { return false; }
-
-  virtual bool AttributesEqual(Instruction* other) const {
-    return op_kind() == other->AsUnaryMintOp()->op_kind();
-  }
-
-  virtual CompileType ComputeType() const;
-
   virtual Representation representation() const {
     return kUnboxedMint;
   }
@@ -4513,6 +4840,14 @@ class UnaryMintOpInstr : public TemplateDefinition<1> {
   }
 
   DECLARE_INSTRUCTION(UnaryMintOp)
+  virtual CompileType ComputeType() const;
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const {
+    return op_kind() == other->AsUnaryMintOp()->op_kind();
+  }
 
  private:
   const Token::Kind op_kind_;
@@ -4545,27 +4880,22 @@ class BinarySmiOpInstr : public TemplateDefinition<2> {
 
   const ICData* ic_data() const { return instance_call()->ic_data(); }
 
+  void set_overflow(bool overflow) { overflow_ = overflow; }
+
+  void set_is_truncating(bool value) { is_truncating_ = value; }
+  bool is_truncating() const { return is_truncating_; }
+
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   DECLARE_INSTRUCTION(BinarySmiOp)
-
   virtual CompileType ComputeType() const;
 
   virtual bool CanDeoptimize() const;
 
-  virtual bool HasSideEffect() const { return false; }
-
-  virtual bool AffectedBySideEffect() const { return false; }
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const;
-
-  void set_overflow(bool overflow) {
-    overflow_ = overflow;
-  }
-
-  void set_is_truncating(bool value) {
-    is_truncating_ = value;
-  }
-  bool is_truncating() const { return is_truncating_; }
 
   void PrintTo(BufferFormatter* f) const;
 
@@ -4609,7 +4939,12 @@ class UnarySmiOpInstr : public TemplateDefinition<1> {
 
   virtual bool CanDeoptimize() const { return op_kind() == Token::kNEGATE; }
 
-  virtual bool HasSideEffect() const { return false; }
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const {
+    return other->AsUnarySmiOp()->op_kind() == op_kind();
+  }
 
  private:
   const Token::Kind op_kind_;
@@ -4631,7 +4966,7 @@ class CheckStackOverflowInstr : public TemplateInstruction<0> {
 
   virtual bool CanDeoptimize() const { return true; }
 
-  virtual bool HasSideEffect() const { return false; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
 
  private:
   const intptr_t token_pos_;
@@ -4640,25 +4975,31 @@ class CheckStackOverflowInstr : public TemplateInstruction<0> {
 };
 
 
-class SmiToDoubleInstr : public TemplateDefinition<0> {
+class SmiToDoubleInstr : public TemplateDefinition<1> {
  public:
-  explicit SmiToDoubleInstr(InstanceCallInstr* instance_call)
-      : instance_call_(instance_call) { }
+  explicit SmiToDoubleInstr(Value* value) {
+    SetInputAt(0, value);
+  }
 
-  InstanceCallInstr* instance_call() const { return instance_call_; }
+  Value* value() const { return inputs_[0]; }
 
   DECLARE_INSTRUCTION(SmiToDouble)
   virtual CompileType ComputeType() const;
 
+  virtual Representation representation() const {
+    return kUnboxedDouble;
+  }
+
   virtual intptr_t ArgumentCount() const { return 1; }
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool HasSideEffect() const { return false; }
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
 
  private:
-  InstanceCallInstr* instance_call_;
-
   DISALLOW_COPY_AND_ASSIGN(SmiToDoubleInstr);
 };
 
@@ -4680,7 +5021,7 @@ class DoubleToIntegerInstr : public TemplateDefinition<1> {
 
   virtual bool CanDeoptimize() const { return true; }
 
-  virtual bool HasSideEffect() const { return false; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
 
  private:
   InstanceCallInstr* instance_call_;
@@ -4705,14 +5046,14 @@ class DoubleToSmiInstr : public TemplateDefinition<1> {
 
   virtual bool CanDeoptimize() const { return true; }
 
-  virtual bool HasSideEffect() const { return false; }
-
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT(idx == 0);
     return kUnboxedDouble;
   }
 
   virtual intptr_t DeoptimizationTarget() const { return deopt_id_; }
+
+  virtual EffectSet Effects() const { return EffectSet::None(); }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(DoubleToSmiInstr);
@@ -4738,8 +5079,6 @@ class DoubleToDoubleInstr : public TemplateDefinition<1> {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool HasSideEffect() const { return false; }
-
   virtual Representation representation() const {
     return kUnboxedDouble;
   }
@@ -4750,6 +5089,13 @@ class DoubleToDoubleInstr : public TemplateDefinition<1> {
   }
 
   virtual intptr_t DeoptimizationTarget() const { return deopt_id_; }
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const {
+    return other->AsDoubleToDouble()->recognized_kind() == recognized_kind();
+  }
 
  private:
   const MethodRecognizer::Kind recognized_kind_;
@@ -4775,8 +5121,6 @@ class InvokeMathCFunctionInstr : public Definition {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
-
-  virtual bool HasSideEffect() const { return false; }
 
   virtual Representation representation() const {
     return kUnboxedDouble;
@@ -4806,6 +5150,14 @@ class InvokeMathCFunctionInstr : public Definition {
     return locs_;
   }
 
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const {
+    InvokeMathCFunctionInstr* other_invoke = other->AsInvokeMathCFunction();
+    return other_invoke->recognized_kind() == recognized_kind();
+  }
+
  private:
   virtual void RawSetInputAt(intptr_t i, Value* value) {
     (*inputs_)[i] = value;
@@ -4833,12 +5185,6 @@ class CheckClassInstr : public TemplateInstruction<1> {
 
   virtual bool CanDeoptimize() const { return true; }
 
-  virtual bool HasSideEffect() const { return false; }
-
-  virtual bool AttributesEqual(Instruction* other) const;
-
-  virtual bool AffectedBySideEffect() const;
-
   Value* value() const { return inputs_[0]; }
 
   const ICData& unary_checks() const { return unary_checks_; }
@@ -4850,6 +5196,11 @@ class CheckClassInstr : public TemplateInstruction<1> {
   void set_null_check(bool flag) { null_check_ = flag; }
 
   bool null_check() const { return null_check_; }
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const;
+  virtual bool AttributesEqual(Instruction* other) const;
 
  private:
   const ICData& unary_checks_;
@@ -4868,21 +5219,20 @@ class CheckSmiInstr : public TemplateInstruction<1> {
     deopt_id_ = original_deopt_id;
   }
 
+  Value* value() const { return inputs_[0]; }
+
   DECLARE_INSTRUCTION(CheckSmi)
 
   virtual intptr_t ArgumentCount() const { return 0; }
 
   virtual bool CanDeoptimize() const { return true; }
 
-  virtual bool HasSideEffect() const { return false; }
-
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  virtual bool AffectedBySideEffect() const { return false; }
-
   virtual Instruction* Canonicalize(FlowGraphOptimizer* optimizer);
 
-  Value* value() const { return inputs_[0]; }
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(CheckSmiInstr);
@@ -4901,22 +5251,16 @@ class CheckArrayBoundInstr : public TemplateInstruction<2> {
     deopt_id_ = instance_call->deopt_id();
   }
 
+  Value* length() const { return inputs_[0]; }
+  Value* index() const { return inputs_[1]; }
+
+  intptr_t array_type() const { return array_type_; }
+
   DECLARE_INSTRUCTION(CheckArrayBound)
 
   virtual intptr_t ArgumentCount() const { return 0; }
 
   virtual bool CanDeoptimize() const { return true; }
-
-  virtual bool HasSideEffect() const { return false; }
-
-  virtual bool AttributesEqual(Instruction* other) const;
-
-  virtual bool AffectedBySideEffect() const { return false; }
-
-  Value* length() const { return inputs_[0]; }
-  Value* index() const { return inputs_[1]; }
-
-  intptr_t array_type() const { return array_type_; }
 
   bool IsRedundant(RangeBoundary length);
 
@@ -4924,6 +5268,11 @@ class CheckArrayBoundInstr : public TemplateInstruction<2> {
   static intptr_t LengthOffsetFor(intptr_t class_id);
 
   static bool IsFixedLengthArrayType(intptr_t class_id);
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const;
 
  private:
   intptr_t array_type_;

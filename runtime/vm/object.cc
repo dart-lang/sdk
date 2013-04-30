@@ -24,6 +24,7 @@
 #include "vm/deopt_instructions.h"
 #include "vm/double_conversion.h"
 #include "vm/exceptions.h"
+#include "vm/flow_graph_builder.h"
 #include "vm/growable_array.h"
 #include "vm/heap.h"
 #include "vm/intermediate_language.h"
@@ -676,31 +677,6 @@ void Object::RegisterPrivateClass(const Class& cls,
 }
 
 
-#define LOAD_LIBRARY(name, raw_name)                                           \
-  url = Symbols::Dart##name().raw();                                           \
-  lib = Library::LookupLibrary(url);                                           \
-  if (lib.IsNull()) {                                                          \
-    lib = Library::NewLibraryHelper(url, true);                                \
-    lib.Register();                                                            \
-  }                                                                            \
-  isolate->object_store()->set_##raw_name##_library(lib);                      \
-
-#define INIT_LIBRARY(name, raw_name, has_patch)                                \
-  LOAD_LIBRARY(name, raw_name)                                                 \
-  script = Bootstrap::Load##name##Script(false);                               \
-  error = Bootstrap::Compile(lib, script);                                     \
-  if (!error.IsNull()) {                                                       \
-    return error.raw();                                                        \
-  }                                                                            \
-  if (has_patch) {                                                             \
-    script = Bootstrap::Load##name##Script(true);                              \
-    error = lib.Patch(script);                                                 \
-    if (!error.IsNull()) {                                                     \
-      return error.raw();                                                      \
-    }                                                                          \
-  }                                                                            \
-
-
 RawError* Object::Init(Isolate* isolate) {
   TIMERSCOPE(time_bootstrap);
   ObjectStore* object_store = isolate->object_store();
@@ -708,10 +684,7 @@ RawError* Object::Init(Isolate* isolate) {
   Class& cls = Class::Handle();
   Type& type = Type::Handle();
   Array& array = Array::Handle();
-  String& url = String::Handle();
   Library& lib = Library::Handle();
-  Script& script = Script::Handle();
-  Error& error = Error::Handle();
 
   // All RawArray fields will be initialized to an empty array, therefore
   // initialize array class first.
@@ -842,13 +815,14 @@ RawError* Object::Init(Isolate* isolate) {
   pending_classes.Add(cls, Heap::kOld);
 
   // Initialize the base interfaces used by the core VM classes.
-  script = Bootstrap::LoadCoreScript(false);
 
   // Allocate and initialize the pre-allocated classes in the core library.
+  // The script and token index of these pre-allocated classes is set up in
+  // the parser when the corelib script is compiled (see
+  // Parser::ParseClassDefinition).
   cls = Class::New<Instance>(kInstanceCid);
   object_store->set_object_class(cls);
   cls.set_name(Symbols::Object());
-  cls.set_script(script);
   cls.set_is_prefinalized();
   core_lib.AddClass(cls);
   pending_classes.Add(cls, Heap::kOld);
@@ -899,7 +873,13 @@ RawError* Object::Init(Isolate* isolate) {
 
   // Pre-register the typed_data library so the native class implementations
   // can be hooked up before compiling it.
-  LOAD_LIBRARY(TypedData, typed_data);
+  lib = Library::LookupLibrary(Symbols::DartTypedData());
+  if (lib.IsNull()) {
+    lib = Library::NewLibraryHelper(Symbols::DartTypedData(), true);
+    lib.Register();
+    isolate->object_store()->set_bootstrap_library(ObjectStore::kTypedData,
+                                                   lib);
+  }
   ASSERT(!lib.IsNull());
   ASSERT(lib.raw() == Library::TypedDataLibrary());
   const intptr_t typed_data_class_array_length =
@@ -945,15 +925,14 @@ RawError* Object::Init(Isolate* isolate) {
   object_store->set_uint32x4_class(cls);
   RegisterPrivateClass(cls, Symbols::_Uint32x4(), lib);
 
-  cls = Class::New<Instance>(Symbols::Float32x4(), script,
-                             Scanner::kDummyTokenIndex);
+  cls = Class::New<Instance>(kIllegalCid);
   RegisterClass(cls, Symbols::Float32x4(), lib);
   pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_float32x4_type(type);
 
-  cls = Class::New<Instance>(Symbols::Uint32x4(), script,
-                             Scanner::kDummyTokenIndex);
+  cls = Class::New<Instance>(kIllegalCid);
+  RegisterClass(cls, Symbols::Uint32x4(), lib);
   pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_uint32x4_type(type);
@@ -979,30 +958,26 @@ RawError* Object::Init(Isolate* isolate) {
   type = Type::NewNonParameterizedType(cls);
   object_store->set_number_type(type);
 
-  cls = Class::New<Instance>(Symbols::Int(), script, Scanner::kDummyTokenIndex);
+  cls = Class::New<Instance>(kIllegalCid);
   RegisterClass(cls, Symbols::Int(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_int_type(type);
 
-  cls = Class::New<Instance>(Symbols::Double(),
-                             script,
-                             Scanner::kDummyTokenIndex);
+  cls = Class::New<Instance>(kIllegalCid);
   RegisterClass(cls, Symbols::Double(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_double_type(type);
 
   name = Symbols::New("String");
-  cls = Class::New<Instance>(name, script, Scanner::kDummyTokenIndex);
+  cls = Class::New<Instance>(kIllegalCid);
   RegisterClass(cls, name, core_lib);
   pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_string_type(type);
 
-  cls = Class::New<Instance>(Symbols::List(),
-                             script,
-                             Scanner::kDummyTokenIndex);
+  cls = Class::New<Instance>(kIllegalCid);
   RegisterClass(cls, Symbols::List(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
   object_store->set_list_class(cls);
@@ -1041,21 +1016,10 @@ RawError* Object::Init(Isolate* isolate) {
 
   // Finish the initialization by compiling the bootstrap scripts containing the
   // base interfaces and the implementation of the internal classes.
-  INIT_LIBRARY(Core, core, true);
-
-  INIT_LIBRARY(Async, async, true);
-  INIT_LIBRARY(Collection, collection, true);
-  INIT_LIBRARY(CollectionDev, collection_dev, true);
-  INIT_LIBRARY(Crypto, crypto, false);
-  INIT_LIBRARY(Isolate, isolate, true);
-  INIT_LIBRARY(Json, json, true);
-  INIT_LIBRARY(Math, math, true);
-  INIT_LIBRARY(Mirrors, mirrors, true);
-  INIT_LIBRARY(TypedData, typed_data, true);
-  INIT_LIBRARY(Utf, utf, false);
-  INIT_LIBRARY(Uri, uri, false);
-
-  Bootstrap::SetupNativeResolver();
+  const Error& error = Error::Handle(Bootstrap::LoadandCompileScripts());
+  if (!error.IsNull()) {
+    return error.raw();
+  }
 
   // Remove the Object superclass cycle by setting the super type to null (not
   // to the type of null).
@@ -1840,22 +1804,13 @@ RawClass* Class::New(intptr_t index) {
 }
 
 
-template <class FakeInstance>
 RawClass* Class::New(const String& name,
                      const Script& script,
                      intptr_t token_pos) {
-  Class& result = Class::Handle(New<FakeInstance>(kIllegalCid));
+  Class& result = Class::Handle(New<Instance>(kIllegalCid));
   result.set_name(name);
   result.set_script(script);
   result.set_token_pos(token_pos);
-  return result.raw();
-}
-
-
-RawClass* Class::New(const String& name,
-                     const Script& script,
-                     intptr_t token_pos) {
-  Class& result = Class::Handle(New<Instance>(name, script, token_pos));
   return result.raw();
 }
 
@@ -1864,7 +1819,7 @@ RawClass* Class::NewSignatureClass(const String& name,
                                    const Function& signature_function,
                                    const Script& script,
                                    intptr_t token_pos) {
-  const Class& result = Class::Handle(New<Instance>(name, script, token_pos));
+  const Class& result = Class::Handle(New(name, script, token_pos));
   const Type& super_type = Type::Handle(Type::ObjectType());
   ASSERT(!super_type.IsNull());
   // Instances of a signature class can only be closures.
@@ -1919,7 +1874,7 @@ RawClass* Class::NewNativeWrapper(const Library& library,
                                   int field_count) {
   Class& cls = Class::Handle(library.LookupClass(name));
   if (cls.IsNull()) {
-    cls = New<Instance>(name, Script::Handle(), Scanner::kDummyTokenIndex);
+    cls = New(name, Script::Handle(), Scanner::kDummyTokenIndex);
     cls.SetFields(Object::empty_array());
     cls.SetFunctions(Object::empty_array());
     // Set super class to Object.
@@ -2664,6 +2619,14 @@ bool AbstractTypeArguments::IsUninstantiatedIdentity() const {
 }
 
 
+bool AbstractTypeArguments::CanShareInstantiatorTypeArguments(
+      const Class& instantiator_class) const {
+  // AbstractTypeArguments is an abstract class.
+  UNREACHABLE();
+  return false;
+}
+
+
 bool AbstractTypeArguments::IsBounded() const {
   // AbstractTypeArguments is an abstract class.
   UNREACHABLE();
@@ -2893,7 +2856,7 @@ bool TypeArguments::IsInstantiated() const {
 bool TypeArguments::IsUninstantiatedIdentity() const {
   ASSERT(!IsInstantiated());
   AbstractType& type = AbstractType::Handle();
-  intptr_t num_types = Length();
+  const intptr_t num_types = Length();
   for (intptr_t i = 0; i < num_types; i++) {
     type = TypeAt(i);
     if (!type.IsTypeParameter()) {
@@ -2911,6 +2874,62 @@ bool TypeArguments::IsUninstantiatedIdentity() const {
     const AbstractType& bound = AbstractType::Handle(type_param.bound());
     ASSERT(bound.IsResolved());
     if (!bound.IsObjectType() && !bound.IsDynamicType()) {
+      return false;
+    }
+  }
+  return true;
+  // Note that it is not necessary to verify at runtime that the instantiator
+  // type vector is long enough, since this uninstantiated vector contains as
+  // many different type parameters as it is long.
+}
+
+
+bool TypeArguments::CanShareInstantiatorTypeArguments(
+      const Class& instantiator_class) const {
+  ASSERT(!IsInstantiated());
+  const intptr_t num_instantiator_type_args =
+      instantiator_class.NumTypeArguments();
+  const intptr_t num_instantiator_type_params =
+      instantiator_class.NumTypeParameters();
+  const intptr_t num_super_instantiator_type_args =
+      num_instantiator_type_args - num_instantiator_type_params;
+  const intptr_t num_type_args = Length();
+  // As a first requirement in order to share the instantiator type argument
+  // vector, this type argument vector must refer to the type parameters of the
+  // instantiator class in declaration order. It does not need to contain all
+  // type parameters.
+  if (num_type_args < num_super_instantiator_type_args) {
+    return false;
+  }
+  AbstractType& type_arg = AbstractType::Handle();
+  for (intptr_t i = num_super_instantiator_type_args; i < num_type_args; i++) {
+    type_arg = TypeAt(i);
+    if (!type_arg.IsTypeParameter()) {
+      return false;
+    }
+    const TypeParameter& type_param = TypeParameter::Cast(type_arg);
+    ASSERT(type_param.IsFinalized());
+    if ((type_param.index() != i)) {
+      return false;
+    }
+  }
+  // As a second requirement, the type arguments corresponding to the super type
+  // must be identical.
+  if (num_super_instantiator_type_args == 0) {
+    return true;
+  }
+  AbstractType& super_type = AbstractType::Handle(
+      instantiator_class.super_type());
+  const AbstractTypeArguments& super_type_args = AbstractTypeArguments::Handle(
+      super_type.arguments());
+  if (super_type_args.IsNull()) {
+    return false;
+  }
+  AbstractType& super_type_arg = AbstractType::Handle();
+  for (intptr_t i = 0; i < num_super_instantiator_type_args; i++) {
+    type_arg = TypeAt(i);
+    super_type_arg = super_type_args.TypeAt(i);
+    if (!type_arg.Equals(super_type_arg)) {
       return false;
     }
   }
@@ -6445,7 +6464,7 @@ void Library::InitCoreLibrary(Isolate* isolate) {
   const Library& core_lib =
       Library::Handle(Library::NewLibraryHelper(core_lib_url, false));
   core_lib.Register();
-  isolate->object_store()->set_core_library(core_lib);
+  isolate->object_store()->set_bootstrap_library(ObjectStore::kCore, core_lib);
   isolate->object_store()->set_root_library(Library::Handle());
 
   // Hook up predefined classes without setting their library pointers. These
@@ -6868,11 +6887,13 @@ RawError* Library::CompileAll() {
   return error.raw();
 }
 
+
 struct FpDiff {
   FpDiff(int32_t old_, int32_t new_): old_fp(old_), new_fp(new_) {}
   int32_t old_fp;
   int32_t new_fp;
 };
+
 
 void Library::CheckFunctionFingerprints() {
   GrowableArray<FpDiff> collected_fp_diffs;
@@ -6918,6 +6939,21 @@ void Library::CheckFunctionFingerprints() {
   TYPED_DATA_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
 
 #undef CHECK_FINGERPRINTS
+
+#define CHECK_FACTORY_FINGERPRINTS(factory_symbol, cid, fp)                    \
+  cls = Isolate::Current()->class_table()->At(cid);                            \
+  func = cls.LookupFunctionAllowPrivate(Symbols::factory_symbol());            \
+  ASSERT(!func.IsNull());                                                      \
+  if (func.SourceFingerprint() != fp) {                                        \
+    has_errors = true;                                                         \
+    OS::Print("Wrong fingerprint for '%s': expecting %d found %d\n",           \
+        func.ToFullyQualifiedCString(), fp, func.SourceFingerprint());         \
+    collected_fp_diffs.Add(FpDiff(fp, func.SourceFingerprint()));              \
+  }                                                                            \
+
+  RECOGNIZED_LIST_FACTORY_LIST(CHECK_FACTORY_FINGERPRINTS);
+
+#undef CHECK_FACTORY_FINGERPRINTS
   if (has_errors) {
     for (intptr_t i = 0; i < collected_fp_diffs.length(); i++) {
       OS::Print("s/%d/%d/\n",

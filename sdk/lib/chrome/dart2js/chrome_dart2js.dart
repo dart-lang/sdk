@@ -253,7 +253,7 @@ class Event {
                 [void callback(List<Rule> rules)]) {
     // proxy the callback
     void __proxy_callback(List rules) {
-      if (?callback) {
+      if (callback != null) {
         List<Rule> __proxy_rules = new List<Rule>();
 
         for (Object o in rules)
@@ -282,7 +282,7 @@ class Event {
                                    void callback(List<Rule> rules)]) {
     // proxy the callback
     void __proxy_callback(List rules) {
-      if (?callback) {
+      if (callback != null) {
         List<Rule> __proxy_rules = new List<Rule>();
 
         for (Object o in rules)
@@ -398,43 +398,43 @@ class AppWindowCreateWindowOptions extends ChromeObject {
    * Public constructor
    */
   AppWindowCreateWindowOptions({String id, int defaultWidth, int defaultHeight, int defaultLeft, int defaultTop, int width, int height, int left, int top, int minWidth, int minHeight, int maxWidth, int maxHeight, String type, String frame, AppWindowBounds bounds, bool transparentBackground, bool hidden, bool singleton}) {
-    if (?id)
+    if (id != null)
       this.id = id;
-    if (?defaultWidth)
+    if (defaultWidth != null)
       this.defaultWidth = defaultWidth;
-    if (?defaultHeight)
+    if (defaultHeight != null)
       this.defaultHeight = defaultHeight;
-    if (?defaultLeft)
+    if (defaultLeft != null)
       this.defaultLeft = defaultLeft;
-    if (?defaultTop)
+    if (defaultTop != null)
       this.defaultTop = defaultTop;
-    if (?width)
+    if (width != null)
       this.width = width;
-    if (?height)
+    if (height != null)
       this.height = height;
-    if (?left)
+    if (left != null)
       this.left = left;
-    if (?top)
+    if (top != null)
       this.top = top;
-    if (?minWidth)
+    if (minWidth != null)
       this.minWidth = minWidth;
-    if (?minHeight)
+    if (minHeight != null)
       this.minHeight = minHeight;
-    if (?maxWidth)
+    if (maxWidth != null)
       this.maxWidth = maxWidth;
-    if (?maxHeight)
+    if (maxHeight != null)
       this.maxHeight = maxHeight;
-    if (?type)
+    if (type != null)
       this.type = type;
-    if (?frame)
+    if (frame != null)
       this.frame = frame;
-    if (?bounds)
+    if (bounds != null)
       this.bounds = bounds;
-    if (?transparentBackground)
+    if (transparentBackground != null)
       this.transparentBackground = transparentBackground;
-    if (?hidden)
+    if (hidden != null)
       this.hidden = hidden;
-    if (?singleton)
+    if (singleton != null)
       this.singleton = singleton;
   }
 
@@ -601,13 +601,13 @@ class AppWindowBounds extends ChromeObject {
    * Public constructor
    */
   AppWindowBounds({int left, int top, int width, int height}) {
-    if (?left)
+    if (left != null)
       this.left = left;
-    if (?top)
+    if (top != null)
       this.top = top;
-    if (?width)
+    if (width != null)
       this.width = width;
-    if (?height)
+    if (height != null)
       this.height = height;
   }
 
@@ -835,7 +835,7 @@ class API_app_window {
               [AppWindowCreateWindowOptions options,
               void callback(AppWindowAppWindow created_window)]) {
     void __proxy_callback(created_window) {
-      if (?callback)
+      if (callback != null)
         callback(new AppWindowAppWindow._proxy(created_window));
     }
     JS('void', '#.create(#, #, #)', this._jsObject, url, convertArgument(options),
@@ -923,9 +923,9 @@ class AppRuntimeLaunchItem extends ChromeObject {
    * Public constructor
    */
   AppRuntimeLaunchItem({FileEntry entry, String type}) {
-    if (?entry)
+    if (entry != null)
       this.entry = entry;
-    if (?type)
+    if (type != null)
       this.type = type;
   }
 
@@ -958,11 +958,11 @@ class AppRuntimeLaunchData extends ChromeObject {
    * Public constructor
    */
   AppRuntimeLaunchData({AppRuntimeIntent intent, String id, List<AppRuntimeLaunchItem> items}) {
-    if (?intent)
+    if (intent != null)
       this.intent = intent;
-    if (?id)
+    if (id != null)
       this.id = id;
-    if (?items)
+    if (items != null)
       this.items = items;
   }
 
@@ -1006,11 +1006,11 @@ class AppRuntimeIntentResponse extends ChromeObject {
    * Public constructor
    */
   AppRuntimeIntentResponse({int intentId, bool success, Object data}) {
-    if (?intentId)
+    if (intentId != null)
       this.intentId = intentId;
-    if (?success)
+    if (success != null)
       this.success = success;
-    if (?data)
+    if (data != null)
       this.data = data;
   }
 
@@ -1054,7 +1054,7 @@ class AppRuntimeIntentResponse extends ChromeObject {
 class Event_app_runtime_onLaunched extends Event {
   void addListener(void callback(AppRuntimeLaunchData launchData)) {
     void __proxy_callback(launchData) {
-      if (?callback) {
+      if (callback != null) {
         callback(new AppRuntimeLaunchData._proxy(launchData));
       }
     }
@@ -1063,7 +1063,7 @@ class Event_app_runtime_onLaunched extends Event {
 
   void removeListener(void callback(AppRuntimeLaunchData launchData)) {
     void __proxy_callback(launchData) {
-      if (?callback) {
+      if (callback != null) {
         callback(new AppRuntimeLaunchData._proxy(launchData));
       }
     }
@@ -1072,7 +1072,7 @@ class Event_app_runtime_onLaunched extends Event {
 
   bool hasListener(void callback(AppRuntimeLaunchData launchData)) {
     void __proxy_callback(launchData) {
-      if (?callback) {
+      if (callback != null) {
         callback(new AppRuntimeLaunchData._proxy(launchData));
       }
     }

@@ -245,6 +245,11 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
       optimizer.SelectRepresentations();
       DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
+      if (FLAG_common_subexpression_elimination ||
+          FLAG_loop_invariant_code_motion) {
+        flow_graph->ComputeBlockEffects();
+      }
+
       if (FLAG_common_subexpression_elimination) {
         if (DominatorBasedCSE::Optimize(flow_graph)) {
           DEBUG_ASSERT(flow_graph->VerifyUseLists());

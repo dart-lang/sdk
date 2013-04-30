@@ -380,7 +380,7 @@ class DirectoryTest {
   }
 
   static void testCurrent() {
-    Directory current = new Directory.current();
+    Directory current = Directory.current;
     if (Platform.operatingSystem != "windows") {
       Expect.equals("/", current.path.substring(0, 1));
     }

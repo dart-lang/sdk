@@ -105,7 +105,7 @@ part of intl;
  *      new DateFormat("yMd")            -> 07/10/1996
  *      new DateFormat.yMMMMd("en_US")   -> July 10, 1996
  *      new DateFormat("Hm", "en_US")    -> 12:08 PM
- *      new DateFormat.yMd().Hm()        -> 07/10/1996 12:08 PM
+ *      new DateFormat.yMd().add_Hm()        -> 07/10/1996 12:08 PM
  *
  * Explicit Pattern Syntax: Formats can also be specified with a pattern string.
  * The skeleton forms will resolve to explicit patterns of this form, but will

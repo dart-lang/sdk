@@ -709,68 +709,80 @@ class Assembler : public ValueObject {
     bne(rd, CMPRES, l);
   }
 
-  void BranchGreater(Register rd, int32_t value, Label* l) {
-    if (Utils::IsInt(kImmBits, -value)) {
-      addiu(CMPRES, rd, Immediate(-value));
-      bgtz(CMPRES, l);
-    } else {
-      LoadImmediate(CMPRES, value);
-      subu(CMPRES, rd, CMPRES);
-      bgtz(CMPRES, l);
-    }
+  void BranchSignedGreater(Register rd, Register rs, Label* l) {
+    slt(CMPRES, rs, rd);  // CMPRES = rd > rs ? 1 : 0.
+    bne(CMPRES, ZR, l);
   }
 
-  void BranchGreater(Register rd, Register rs, Label* l) {
-    subu(CMPRES, rd, rs);
-    bgtz(CMPRES, l);
+  void BranchSignedGreater(Register rd, int32_t value, Label* l) {
+    LoadImmediate(CMPRES, value);
+    BranchSignedGreater(rd, CMPRES, l);
   }
 
-  void BranchGreaterEqual(Register rd, int32_t value, Label* l) {
-    if (Utils::IsInt(kImmBits, -value)) {
-      addiu(CMPRES, rd, Immediate(-value));
-      bgez(CMPRES, l);
-    } else {
-      LoadImmediate(CMPRES, value);
-      subu(CMPRES, rd, CMPRES);
-      bgez(CMPRES, l);
-    }
+  void BranchUnsignedGreater(Register rd, Register rs, Label* l) {
+    sltu(CMPRES, rs, rd);
+    bne(CMPRES, ZR, l);
   }
 
-  void BranchGreaterEqual(Register rd, Register rs, Label* l) {
-    subu(CMPRES, rd, rs);
-    bgez(CMPRES, l);
+  void BranchUnsignedGreater(Register rd, int32_t value, Label* l) {
+    LoadImmediate(CMPRES, value);
+    BranchUnsignedGreater(rd, CMPRES, l);
   }
 
-  void BranchLess(Register rd, int32_t value, Label* l) {
-    if (Utils::IsInt(kImmBits, -value)) {
-      addiu(CMPRES, rd, Immediate(-value));
-      bltz(CMPRES, l);
-    } else {
-      LoadImmediate(CMPRES, value);
-      subu(CMPRES, rd, CMPRES);
-      bltz(CMPRES, l);
-    }
+  void BranchSignedGreaterEqual(Register rd, Register rs, Label* l) {
+    slt(CMPRES, rd, rs);  // CMPRES = rd < rs ? 1 : 0.
+    beq(CMPRES, ZR, l);  // If CMPRES = 0, then rd >= rs.
   }
 
-  void BranchLess(Register rd, Register rs, Label* l) {
-    subu(CMPRES, rd, rs);
-    bltz(CMPRES, l);
+  void BranchSignedGreaterEqual(Register rd, int32_t value, Label* l) {
+    LoadImmediate(CMPRES, value);
+    BranchSignedGreaterEqual(rd, CMPRES, l);
   }
 
-  void BranchLessEqual(Register rd, int32_t value, Label* l) {
-    if (Utils::IsInt(kImmBits, -value)) {
-      addiu(CMPRES, rd, Immediate(-value));
-      blez(CMPRES, l);
-    } else {
-      LoadImmediate(CMPRES, value);
-      subu(CMPRES, rd, CMPRES);
-      blez(CMPRES, l);
-    }
+  void BranchUnsignedGreaterEqual(Register rd, Register rs, Label* l) {
+    sltu(CMPRES, rd, rs);  // CMPRES = rd < rs ? 1 : 0.
+    beq(CMPRES, ZR, l);
   }
 
-  void BranchLessEqual(Register rd, Register rs, Label* l) {
-    subu(CMPRES, rd, rs);
-    blez(CMPRES, l);
+  void BranchUnsignedGreaterEqual(Register rd, int32_t value, Label* l) {
+    LoadImmediate(CMPRES, value);
+    BranchUnsignedGreaterEqual(rd, CMPRES, l);
+  }
+
+  void BranchSignedLess(Register rd, Register rs, Label* l) {
+    BranchSignedGreater(rs, rd, l);
+  }
+
+  void BranchSignedLess(Register rd, int32_t value, Label* l) {
+    LoadImmediate(CMPRES, value);
+    BranchSignedGreater(CMPRES, rd, l);
+  }
+
+  void BranchUnsignedLess(Register rd, Register rs, Label* l) {
+    BranchUnsignedGreater(rs, rd, l);
+  }
+
+  void BranchUnsignedLess(Register rd, int32_t value, Label* l) {
+    LoadImmediate(CMPRES, value);
+    BranchUnsignedGreater(CMPRES, rd, l);
+  }
+
+  void BranchSignedLessEqual(Register rd, Register rs, Label* l) {
+    BranchSignedGreaterEqual(rs, rd, l);
+  }
+
+  void BranchSignedLessEqual(Register rd, int32_t value, Label* l) {
+    LoadImmediate(CMPRES, value);
+    BranchSignedGreaterEqual(CMPRES, rd, l);
+  }
+
+  void BranchUnsignedLessEqual(Register rd, Register rs, Label* l) {
+    BranchUnsignedGreaterEqual(rs, rd, l);
+  }
+
+  void BranchUnsignedLessEqual(Register rd, int32_t value, Label* l) {
+    LoadImmediate(CMPRES, value);
+    BranchUnsignedGreaterEqual(CMPRES, rd, l);
   }
 
   void Push(Register rt) {

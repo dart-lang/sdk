@@ -20,7 +20,6 @@ cc/Sleep: Pass, Fail  # Flaky on buildbot. Issue 5133.
 
 # The following section refers to the dart vm tests which live under
 # runtime/tests/vm/dart.
-
 [ $system == windows ]
 cc/Dart2JSCompileAll: Skip
 cc/ExternalizeConstantStrings: Skip
@@ -72,7 +71,6 @@ dart/*: Skip
 # Tests missing code generation support.
 cc/CorelibCompileAll: Skip
 cc/Dart2JSCompileAll: Skip
-cc/Debug_InterruptIsolate: Skip
 # Tests needing Dart execution.
 dart/*: Skip
 

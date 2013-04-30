@@ -11,6 +11,10 @@
     'third_party/jscre/jscre.gypi',
   ],
   'variables': {
+    # TODO(zra): LIB_DIR is not defined by the ninja generator on Windows.
+    # Also, LIB_DIR is not toolset specific on Mac. If we want to do a ninja
+    # build on Windows, or cross-compile on Mac, we'll have to find some other
+    # way of getting generated source files into toolset specific locations.
     'gen_source_dir': '<(LIB_DIR)',
     'version_in_cc_file': 'vm/version_in.cc',
     'version_cc_file': '<(gen_source_dir)/version.cc',
@@ -18,6 +22,8 @@
     # Disable the OpenGLUI embedder by default on desktop OSes.  Note,
     # to build this on the desktop, you need GLUT installed.
     'enable_openglui%': 0,
+    'libdart_deps': ['libdart_lib_withcore', 'libdart_lib', 'libdart_vm',
+                     'libjscre', 'libdouble_conversion',],
   },
   'conditions': [
     ['OS=="android" or enable_openglui==1', {
@@ -64,7 +70,8 @@
       'type': 'none',
       'toolsets':['target','host'],
       'dependencies': [
-        'libdart_dependency_helper',
+        'libdart_dependency_helper.target#target',
+        'libdart_dependency_helper.host#host',
       ],
       'actions': [
         {
@@ -78,7 +85,8 @@
             '<(version_in_cc_file)',
             # Depend on libdart_dependency_helper to track the libraries it
             # depends on.
-            '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)libdart_dependency_helper<(EXECUTABLE_SUFFIX)',
+            '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)libdart_dependency_helper.target<(EXECUTABLE_SUFFIX)',
+            '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)libdart_dependency_helper.host<(EXECUTABLE_SUFFIX)',
           ],
           'outputs': [
             '<(version_cc_file)',
@@ -94,18 +102,23 @@
       ],
     },
     {
-      'target_name': 'libdart_dependency_helper',
+      'target_name': 'libdart_dependency_helper.target',
       'type': 'executable',
-      'toolsets':['target','host'],
+      'toolsets':['target'],
       # The dependencies here are the union of the dependencies of libdart and
       # libdart_withcore.
-      'dependencies': [
-        'libdart_lib_withcore',
-        'libdart_lib',
-        'libdart_vm',
-        'libjscre',
-        'libdouble_conversion',
+      'dependencies': ['<@(libdart_deps)'],
+      'sources': [
+        'vm/libdart_dependency_helper.cc',
       ],
+    },
+    {
+      'target_name': 'libdart_dependency_helper.host',
+      'type': 'executable',
+      'toolsets':['host'],
+      # The dependencies here are the union of the dependencies of libdart and
+      # libdart_withcore.
+      'dependencies': ['<@(libdart_deps)'],
       'sources': [
         'vm/libdart_dependency_helper.cc',
       ],

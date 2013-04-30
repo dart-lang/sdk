@@ -12,6 +12,7 @@ import "dart:async";
 import "dart:io";
 import "dart:isolate";
 
+const HOST_IP = "127.0.0.1";
 const HOST_NAME = "localhost";
 const CERTIFICATE = "localhost_cert";
 
@@ -36,7 +37,8 @@ const CERTIFICATE = "localhost_cert";
 // server will not happen until the first TLS handshake data has been
 // received from the client. This argument only takes effect when
 // handshakeBeforeSecure is true.
-void test(bool handshakeBeforeSecure,
+void test(bool hostnameInConnect,
+          bool handshakeBeforeSecure,
           [bool postponeSecure = false]) {
   ReceivePort port = new ReceivePort();
 
@@ -150,17 +152,30 @@ void test(bool handshakeBeforeSecure,
   }
 
   Future<SecureSocket> connectClient(int port) {
+    var host = hostnameInConnect ? HOST_NAME : HOST_IP;
     if (!handshakeBeforeSecure) {
-      return Socket.connect(HOST_NAME, port).then((socket) {
-        return SecureSocket.secure(socket).then((secureSocket) {
+      return Socket.connect(host, port).then((socket) {
+        var future;
+        if (hostnameInConnect) {
+          future = SecureSocket.secure(socket);
+        } else {
+          future = SecureSocket.secure(socket, host: HOST_NAME);
+        }
+        return future.then((secureSocket) {
           Expect.throws(() => socket.add([0]));
           return secureSocket;
         });
       });
     } else {
-      return Socket.connect(HOST_NAME, port).then((socket) {
+      return Socket.connect(host, port).then((socket) {
         return runClientHandshake(socket).then((_) {
-            return SecureSocket.secure(socket).then((secureSocket) {
+            var future;
+            if (hostnameInConnect) {
+              future = SecureSocket.secure(socket);
+            } else {
+              future = SecureSocket.secure(socket, host: HOST_NAME);
+            }
+            return future.then((secureSocket) {
               Expect.throws(() => socket.add([0]));
               return secureSocket;
             });
@@ -203,7 +218,10 @@ main() {
   SecureSocket.initialize(database: certificateDatabase.toNativePath(),
                           password: 'dartdart',
                           useBuiltinRoots: false);
-  test(false);
-  test(true);
+  test(false, false);
+  test(true, false);
+  test(false, true);
   test(true, true);
+  test(false, true, true);
+  test(true, true, true);
 }

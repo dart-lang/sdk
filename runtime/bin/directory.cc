@@ -32,6 +32,28 @@ void FUNCTION_NAME(Directory_Current)(Dart_NativeArguments args) {
 }
 
 
+void FUNCTION_NAME(Directory_SetCurrent)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  int argc = Dart_GetNativeArgumentCount(args);
+  Dart_Handle path;
+  if (argc == 1) {
+    path = Dart_GetNativeArgument(args, 0);
+  }
+  if (argc != 1 || !Dart_IsString(path)) {
+    Dart_SetReturnValue(args, DartUtils::NewDartArgumentError(NULL));
+  } else {
+    if (Directory::SetCurrent(DartUtils::GetStringValue(path))) {
+      Dart_SetReturnValue(args, Dart_True());
+    } else {
+      Dart_Handle err = DartUtils::NewDartOSError();
+      if (Dart_IsError(err)) Dart_PropagateError(err);
+      Dart_SetReturnValue(args, err);
+    }
+  }
+  Dart_ExitScope();
+}
+
+
 void FUNCTION_NAME(Directory_Exists)(Dart_NativeArguments args) {
   static const int kExists = 1;
   static const int kDoesNotExist = 0;

@@ -60,12 +60,18 @@ abstract class SecureSocket implements Socket {
    * [:pause:] on this subscription before starting TLS handshake is
    * the right thing to do.
    *
+   * If the [host] argument is passed it will be used as the host name
+   * for the TLS handshake. If [host] is not passed the host name from
+   * the [socket] will be used. The [host] can be either a [String] or
+   * an [InternetAddress].
+   *
    * See [connect] for more information on the arguments.
    *
    */
   static Future<SecureSocket> secure(
       Socket socket,
-      {bool sendClientCertificate: false,
+      {host,
+       bool sendClientCertificate: false,
        String certificateName,
        bool onBadCertificate(X509Certificate certificate)}) {
     var completer = new Completer();
@@ -74,6 +80,7 @@ abstract class SecureSocket implements Socket {
           return RawSecureSocket.secure(
             detachedRaw[0],
             subscription: detachedRaw[1],
+            host: host,
             sendClientCertificate: sendClientCertificate,
             onBadCertificate: onBadCertificate);
           })
@@ -240,11 +247,14 @@ abstract class RawSecureSocket implements RawSocket {
   static Future<RawSecureSocket> secure(
       RawSocket socket,
       {StreamSubscription subscription,
+       host,
        bool sendClientCertificate: false,
        String certificateName,
        bool onBadCertificate(X509Certificate certificate)}) {
+    socket.readEventsEnabled = false;
+    socket.writeEventsEnabled = false;
     return  _RawSecureSocket.connect(
-        socket.address,
+        host != null ? host : socket.address,
         socket.port,
         certificateName,
         is_server: false,
@@ -282,6 +292,8 @@ abstract class RawSecureSocket implements RawSocket {
        List<int> carryOverData,
        bool requestClientCertificate: false,
        bool requireClientCertificate: false}) {
+    socket.readEventsEnabled = false;
+    socket.writeEventsEnabled = false;
     return _RawSecureSocket.connect(
         socket.remoteHost,
         socket.remotePort,
@@ -449,7 +461,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
         _socketSubscription.onDone(_doneHandler);
       }
       _connectPending = true;
-      _secureFilter.connect(rawSocket.address.host,
+      _secureFilter.connect(address.host,
                             port,
                             is_server,
                             certificateName,

@@ -108,6 +108,7 @@
 library mock;
 
 import 'dart:mirrors' show MirrorSystem;
+import 'dart:collection' show LinkedHashMap;
 
 import 'matcher.dart';
 
@@ -1237,7 +1238,7 @@ class Mock {
   final String name;
 
   /** The set of [Behavior]s supported. */
-  Map<String,Behavior> _behaviors;
+  LinkedHashMap<String,Behavior> _behaviors;
 
   /** The [log] of calls made. Only used if [name] is null. */
   LogEntryList log;
@@ -1262,7 +1263,7 @@ class Mock {
    */
   Mock() : _throwIfNoBehavior = false, log = null, name = null {
     logging = true;
-    _behaviors = new Map<String,Behavior>();
+    _behaviors = new LinkedHashMap<String,Behavior>();
   }
 
   /**
@@ -1281,7 +1282,7 @@ class Mock {
       throw new Exception("Mocks with shared logs must have a name.");
     }
     logging = enableLogging;
-    _behaviors = new Map<String,Behavior>();
+    _behaviors = new LinkedHashMap<String,Behavior>();
   }
 
   /**
