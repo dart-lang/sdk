@@ -661,4 +661,62 @@ main() {
     expect(m.foo(alice), true);
     expect(m.foo(bob), false);
   });
+
+  test("Behavior ordering", () {
+    // This is distinct from value ordering, i.e.
+    //
+    // m.when(...).thenReturn(1).thenReturn(2)
+    // 
+    // Here we want to test using distinct matchers being
+    // applied in order, so we have a single call that
+    // matches 3 different behaviors, and test that 
+    // the behaviors are applied in the order they are
+    // defined.
+    var m = new Mock();
+    m.when(callsTo("foo")).thenReturn("A");
+    m.when(callsTo("foo", "bar")).thenReturn("B");
+    m.when(callsTo("foo", "bar", "mock")).alwaysReturn("C");
+    expect(m.foo("bar", "mock"), "A");
+    expect(m.foo("bar", "mock"), "B");
+    expect(m.foo("bar", "mock"), "C");
+    expect(m.foo("bar", "mock"), "C");
+    m.resetBehavior();
+
+    m.when(callsTo("foo")).thenReturn("A");
+    m.when(callsTo("foo", "bar", "mock")).alwaysReturn("C");
+    m.when(callsTo("foo", "bar")).thenReturn("B");
+    expect(m.foo("bar", "mock"), "A");
+    expect(m.foo("bar", "mock"), "C");
+    expect(m.foo("bar", "mock"), "C");
+    expect(m.foo("bar", "mock"), "C");
+    m.resetBehavior();
+
+    m.when(callsTo("foo", "bar")).thenReturn("B");
+    m.when(callsTo("foo")).thenReturn("A");
+    m.when(callsTo("foo", "bar", "mock")).alwaysReturn("C");
+    expect(m.foo("bar", "mock"), "B");
+    expect(m.foo("bar", "mock"), "A");
+    expect(m.foo("bar", "mock"), "C");
+    expect(m.foo("bar", "mock"), "C");
+    m.resetBehavior();
+
+    m.when(callsTo("foo", "bar")).thenReturn("B");
+    m.when(callsTo("foo", "bar", "mock")).alwaysReturn("C");
+    m.when(callsTo("foo")).thenReturn("A");
+    expect(m.foo("bar", "mock"), "B");
+    expect(m.foo("bar", "mock"), "C");
+    expect(m.foo("bar", "mock"), "C");
+    expect(m.foo("bar", "mock"), "C");
+    m.resetBehavior();
+
+    m.when(callsTo("foo", "bar", "mock")).alwaysReturn("C");
+    m.when(callsTo("foo")).thenReturn("A");
+    m.when(callsTo("foo", "bar")).thenReturn("B");
+    expect(m.foo("bar", "mock"), "C");
+    expect(m.foo("bar", "mock"), "C");
+    expect(m.foo("bar", "mock"), "C");
+    expect(m.foo("bar", "mock"), "C");
+    m.resetBehavior();
+  });
 }
+
