@@ -8,6 +8,18 @@
 
 # This file is a modified copy of Chromium's src/net/third_party/nss/ssl.gyp.
 # Revision 169195 (this should agree with "nss_rev" in DEPS).
+
+# The following modification was made to make sure we have the same
+# xcode_settings on all configurations (otherwise we can't build with ninja):
+#   'configurations': {
+#     'Debug_Base': {
+# +     'inherit_from': ['Dart_Base'],
+#       'defines': [
+#         'DEBUG',
+#       ],
+#    },
+#  },
+
 {
   # Conditions section for ssl-bodge (Compiling SSL on linux using system
   # NSS and NSPR libraries) removed:
@@ -159,6 +171,7 @@
       ],
       'configurations': {
         'Debug_Base': {
+          'inherit_from': ['Dart_Base'],
           'defines': [
             'DEBUG',
           ],
