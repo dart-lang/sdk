@@ -201,16 +201,10 @@ class Database extends EventTarget {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  @DomName('IDBDatabase._transaction_1')
-  @DocsEditable
   Transaction _transaction_1(storeName_OR_storeNames, mode) native "IDBDatabase__transaction_1_Callback";
 
-  @DomName('IDBDatabase._transaction_2')
-  @DocsEditable
   Transaction _transaction_2(storeName_OR_storeNames, mode) native "IDBDatabase__transaction_2_Callback";
 
-  @DomName('IDBDatabase._transaction_3')
-  @DocsEditable
   Transaction _transaction_3(storeName_OR_storeNames, mode) native "IDBDatabase__transaction_3_Callback";
 
   @DomName('IDBDatabase.onabort')
@@ -323,12 +317,8 @@ class IdbFactory extends NativeFieldWrapperClass1 {
     return _open_2(name);
   }
 
-  @DomName('IDBFactory._open_1')
-  @DocsEditable
   OpenDBRequest _open_1(name, version) native "IDBFactory__open_1_Callback";
 
-  @DomName('IDBFactory._open_2')
-  @DocsEditable
   OpenDBRequest _open_2(name) native "IDBFactory__open_2_Callback";
 
   @DomName('IDBFactory.webkitGetDatabaseNames')
@@ -487,12 +477,8 @@ class Index extends NativeFieldWrapperClass1 {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  @DomName('IDBIndex._count_1')
-  @DocsEditable
   Request _count_1(key_OR_range) native "IDBIndex__count_1_Callback";
 
-  @DomName('IDBIndex._count_2')
-  @DocsEditable
   Request _count_2(key_OR_range) native "IDBIndex__count_2_Callback";
 
   Request $dom_get(key) {
@@ -505,12 +491,8 @@ class Index extends NativeFieldWrapperClass1 {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  @DomName('IDBIndex._get_1')
-  @DocsEditable
   Request _get_1(key) native "IDBIndex__get_1_Callback";
 
-  @DomName('IDBIndex._get_2')
-  @DocsEditable
   Request _get_2(key) native "IDBIndex__get_2_Callback";
 
   Request $dom_getKey(key) {
@@ -523,12 +505,8 @@ class Index extends NativeFieldWrapperClass1 {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  @DomName('IDBIndex._getKey_1')
-  @DocsEditable
   Request _getKey_1(key) native "IDBIndex__getKey_1_Callback";
 
-  @DomName('IDBIndex._getKey_2')
-  @DocsEditable
   Request _getKey_2(key) native "IDBIndex__getKey_2_Callback";
 
   Request $dom_openCursor([key_OR_range, String direction]) {
@@ -541,12 +519,8 @@ class Index extends NativeFieldWrapperClass1 {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  @DomName('IDBIndex._openCursor_1')
-  @DocsEditable
   Request _openCursor_1(key_OR_range, direction) native "IDBIndex__openCursor_1_Callback";
 
-  @DomName('IDBIndex._openCursor_2')
-  @DocsEditable
   Request _openCursor_2(key_OR_range, direction) native "IDBIndex__openCursor_2_Callback";
 
   Request $dom_openKeyCursor([key_OR_range, String direction]) {
@@ -559,12 +533,8 @@ class Index extends NativeFieldWrapperClass1 {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  @DomName('IDBIndex._openKeyCursor_1')
-  @DocsEditable
   Request _openKeyCursor_1(key_OR_range, direction) native "IDBIndex__openKeyCursor_1_Callback";
 
-  @DomName('IDBIndex._openKeyCursor_2')
-  @DocsEditable
   Request _openKeyCursor_2(key_OR_range, direction) native "IDBIndex__openKeyCursor_2_Callback";
 
 }
@@ -807,12 +777,8 @@ class ObjectStore extends NativeFieldWrapperClass1 {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  @DomName('IDBObjectStore._count_1')
-  @DocsEditable
   Request _count_1(key_OR_range) native "IDBObjectStore__count_1_Callback";
 
-  @DomName('IDBObjectStore._count_2')
-  @DocsEditable
   Request _count_2(key_OR_range) native "IDBObjectStore__count_2_Callback";
 
   Index $dom_createIndex(String name, keyPath, [Map options]) {
@@ -825,12 +791,8 @@ class ObjectStore extends NativeFieldWrapperClass1 {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  @DomName('IDBObjectStore._createIndex_1')
-  @DocsEditable
   Index _createIndex_1(name, keyPath, options) native "IDBObjectStore__createIndex_1_Callback";
 
-  @DomName('IDBObjectStore._createIndex_2')
-  @DocsEditable
   Index _createIndex_2(name, keyPath, options) native "IDBObjectStore__createIndex_2_Callback";
 
   Request $dom_delete(key_OR_keyRange) {
@@ -843,12 +805,8 @@ class ObjectStore extends NativeFieldWrapperClass1 {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  @DomName('IDBObjectStore._delete_1')
-  @DocsEditable
   Request _delete_1(key_OR_keyRange) native "IDBObjectStore__delete_1_Callback";
 
-  @DomName('IDBObjectStore._delete_2')
-  @DocsEditable
   Request _delete_2(key_OR_keyRange) native "IDBObjectStore__delete_2_Callback";
 
   @DomName('IDBObjectStore.deleteIndex')
@@ -865,12 +823,8 @@ class ObjectStore extends NativeFieldWrapperClass1 {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  @DomName('IDBObjectStore._get_1')
-  @DocsEditable
   Request _get_1(key) native "IDBObjectStore__get_1_Callback";
 
-  @DomName('IDBObjectStore._get_2')
-  @DocsEditable
   Request _get_2(key) native "IDBObjectStore__get_2_Callback";
 
   @DomName('IDBObjectStore.index')
@@ -887,12 +841,8 @@ class ObjectStore extends NativeFieldWrapperClass1 {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  @DomName('IDBObjectStore._openCursor_1')
-  @DocsEditable
   Request _openCursor_1(key_OR_range, direction) native "IDBObjectStore__openCursor_1_Callback";
 
-  @DomName('IDBObjectStore._openCursor_2')
-  @DocsEditable
   Request _openCursor_2(key_OR_range, direction) native "IDBObjectStore__openCursor_2_Callback";
 
   @DomName('IDBObjectStore.put')

@@ -426,6 +426,7 @@ class HtmlDartInterfaceGenerator(object):
     self._backend = backend
     self._interface_type_info = self._type_registry.TypeInfo(self._interface.id)
     self._library_name = self._renamer.GetLibraryName(self._interface)
+    self._metadata = options.metadata
 
   def Generate(self):
     if IsCustomType(self._interface.id):
@@ -518,9 +519,8 @@ class HtmlDartInterfaceGenerator(object):
     if implements:
       implements_str = ' implements ' + ', '.join(set(implements))
 
-    annotations = FormatAnnotationsAndComments(
-        GetAnnotationsAndComments(self._library_name,
-                                  self._interface.doc_js_name), '')
+    annotations = self._metadata.GetFormattedMetadata(
+        self._library_name, self._interface.doc_js_name, '')
 
     class_modifiers = ''
     if self._renamer.ShouldSuppressInterface(self._interface):
@@ -589,6 +589,7 @@ class Dart2JSBackend(HtmlDartGenerator):
     self._template_loader = options.templates
     self._type_registry = options.type_registry
     self._renamer = options.renamer
+    self._metadata = options.metadata
     self._interface_type_info = self._type_registry.TypeInfo(self._interface.id)
     self._current_secondary_parent = None
     self._library_name = self._renamer.GetLibraryName(self._interface)
@@ -773,14 +774,14 @@ class Dart2JSBackend(HtmlDartGenerator):
 
     output_type = self.SecureOutputType(attribute.type.id)
     input_type = self._NarrowInputType(attribute.type.id)
-    annotations = self._Annotations(attribute.type.id, attribute.id)
+    metadata = self._Metadata(attribute.type.id, attribute.id)
     rename = self._RenamingAnnotation(attribute.id, html_name)
     if not read_only:
       self._members_emitter.Emit(
-          '\n  $RENAME$ANNOTATIONS$TYPE $NAME;'
+          '\n  $RENAME$METADATA$TYPE $NAME;'
           '\n',
           RENAME=rename,
-          ANNOTATIONS=annotations,
+          METADATA=metadata,
           NAME=html_name,
           TYPE=output_type)
     else:
@@ -793,7 +794,7 @@ class Dart2JSBackend(HtmlDartGenerator):
       self._members_emitter.Emit(
           template,
           RENAME=rename,
-          ANNOTATIONS=annotations,
+          ANNOTATIONS=metadata,
           NAME=html_name,
           TYPE=output_type)
 
@@ -844,9 +845,9 @@ class Dart2JSBackend(HtmlDartGenerator):
     self._members_emitter.Emit(
         '\n  $RETURN_TYPE get $HTML_NAME => $CONVERT(this._get_$(HTML_NAME));'
         "\n  @JSName('$NAME')"
-        '\n  $(ANNOTATIONS)final $NATIVE_TYPE _get_$HTML_NAME;'
+        '\n  $(METADATA)final $NATIVE_TYPE _get_$HTML_NAME;'
         '\n',
-        ANNOTATIONS=self._Annotations(attr.type.id, html_name),
+        METADATA=self._Metadata(attr.type.id, html_name),
         CONVERT=conversion.function_name,
         HTML_NAME=html_name,
         NAME=attr.id,
@@ -893,9 +894,9 @@ class Dart2JSBackend(HtmlDartGenerator):
   def _AddDirectNativeOperation(self, info, html_name):
     self._members_emitter.Emit(
         '\n'
-        '  $RENAME$ANNOTATIONS$MODIFIERS$TYPE $NAME($PARAMS) native;\n',
+        '  $RENAME$METADATA$MODIFIERS$TYPE $NAME($PARAMS) native;\n',
         RENAME=self._RenamingAnnotation(info.declared_name, html_name),
-        ANNOTATIONS=self._Annotations(info.type_name, info.declared_name),
+        METADATA=self._Metadata(info.type_name, info.declared_name),
         MODIFIERS='static ' if info.IsStatic() else '',
         TYPE=self.SecureOutputType(info.type_name),
         NAME=html_name,
@@ -975,16 +976,16 @@ class Dart2JSBackend(HtmlDartGenerator):
       call_emitter.Emit(call)
 
       self._members_emitter.Emit(
-          '  $RENAME$ANNOTATIONS$MODIFIERS$TYPE$TARGET($PARAMS) native;\n',
+          '  $RENAME$METADATA$MODIFIERS$TYPE$TARGET($PARAMS) native;\n',
           RENAME=self._RenamingAnnotation(info.declared_name, target),
-          ANNOTATIONS=self._Annotations(info.type_name, info.declared_name),
+          METADATA=self._Metadata(info.type_name, info.declared_name),
           MODIFIERS='static ' if info.IsStatic() else '',
           TYPE=TypeOrNothing(native_return_type),
           TARGET=target,
           PARAMS=', '.join(target_parameters))
 
     declaration = '%s%s%s %s(%s)' % (
-        self._Annotations(info.type_name, info.declared_name),
+        self._Metadata(info.type_name, info.declared_name),
         'static ' if info.IsStatic() else '',
         return_type,
         html_name,
@@ -1032,13 +1033,12 @@ class Dart2JSBackend(HtmlDartGenerator):
       return  "@JSName('%s')\n  " % idl_name
     return ''
 
-  def _Annotations(self, idl_type, idl_member_name, indent='  '):
-    anns = FindDart2JSAnnotationsAndComments(idl_type, self._library_name,
-                                             self._interface.id,
-                                             idl_member_name)
+  def _Metadata(self, idl_type, idl_member_name, indent='  '):
+    anns = self._metadata.GetDart2JSMetadata(
+        idl_type, self._library_name, self._interface.id, idl_member_name)
 
-    if not AnyConversionAnnotations(idl_type, self._interface.id,
-                                  idl_member_name):
+    if not self._metadata.AnyConversionAnnotations(
+        idl_type, self._interface.id, idl_member_name):
       return_type = self.SecureOutputType(idl_type)
       native_type = self._NarrowToImplementationType(idl_type)
       if native_type != return_type:
@@ -1046,7 +1046,7 @@ class Dart2JSBackend(HtmlDartGenerator):
           "@Returns('%s')" % native_type,
           "@Creates('%s')" % native_type,
         ]
-    return FormatAnnotationsAndComments(anns, indent);
+    return self._metadata.FormatMetadata(anns, indent);
 
   def CustomJSMembers(self):
     return _js_custom_members

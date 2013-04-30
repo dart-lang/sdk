@@ -16,6 +16,7 @@ import os
 import shutil
 import subprocess
 import sys
+from dartmetadata import DartMetadata
 from generator import TypeRegistry
 from htmleventgenerator import HtmlEventGenerator
 from htmlrenamer import HtmlRenamer
@@ -31,11 +32,13 @@ import utils
 _logger = logging.getLogger('dartdomgenerator')
 
 class GeneratorOptions(object):
-  def __init__(self, templates, database, type_registry, renamer):
+  def __init__(self, templates, database, type_registry, renamer,
+      metadata):
     self.templates = templates
     self.database = database
     self.type_registry = type_registry
     self.renamer = renamer
+    self.metadata = metadata;
 
 def LoadDatabase(database_dir, use_database_cache):
   common_database = database.Database(database_dir)
@@ -68,14 +71,18 @@ def GenerateFromDatabase(common_database, dart2js_output_dir,
   emitters = multiemitter.MultiEmitter()
   renamer = HtmlRenamer(webkit_database)
   type_registry = TypeRegistry(webkit_database, renamer)
+  metadata = DartMetadata(
+      os.path.join(current_dir, '..', 'dom.json'),
+      os.path.join(current_dir, '..', 'docs', 'docs.json'))
 
   def RunGenerator(dart_libraries, dart_output_dir,
                    template_loader, backend_factory):
     options = GeneratorOptions(
-        template_loader, webkit_database, type_registry, renamer)
+        template_loader, webkit_database, type_registry, renamer,
+        metadata)
     dart_library_emitter = DartLibraryEmitter(
         emitters, dart_output_dir, dart_libraries)
-    event_generator = HtmlEventGenerator(webkit_database, renamer,
+    event_generator = HtmlEventGenerator(webkit_database, renamer, metadata,
         template_loader)
 
     def generate_interface(interface):
@@ -94,7 +101,8 @@ def GenerateFromDatabase(common_database, dart2js_output_dir,
                                      template_paths,
                                      {'DARTIUM': False, 'DART2JS': True})
     backend_options = GeneratorOptions(
-        template_loader, webkit_database, type_registry, renamer)
+        template_loader, webkit_database, type_registry, renamer,
+        metadata)
     backend_factory = lambda interface:\
         Dart2JSBackend(interface, backend_options)
 
@@ -111,7 +119,8 @@ def GenerateFromDatabase(common_database, dart2js_output_dir,
                                      template_paths,
                                      {'DARTIUM': True, 'DART2JS': False})
     backend_options = GeneratorOptions(
-        template_loader, webkit_database, type_registry, renamer)
+        template_loader, webkit_database, type_registry, renamer,
+        metadata)
     cpp_output_dir = os.path.join(dartium_output_dir, 'cpp')
     cpp_library_emitter = CPPLibraryEmitter(emitters, cpp_output_dir)
     backend_factory = lambda interface:\
@@ -131,6 +140,7 @@ def GenerateFromDatabase(common_database, dart2js_output_dir,
 
   _logger.info('Flush...')
   emitters.Flush()
+  metadata.Flush()
 
   monitored.FinishMonitoring(dart2js_output_dir)
 

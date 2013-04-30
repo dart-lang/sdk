@@ -1466,16 +1466,10 @@ class RenderingContext extends CanvasRenderingContext {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  @DomName('WebGLRenderingContext._bufferData_1')
-  @DocsEditable
   void _bufferData_1(target, data_OR_size, usage) native "WebGLRenderingContext__bufferData_1_Callback";
 
-  @DomName('WebGLRenderingContext._bufferData_2')
-  @DocsEditable
   void _bufferData_2(target, data_OR_size, usage) native "WebGLRenderingContext__bufferData_2_Callback";
 
-  @DomName('WebGLRenderingContext._bufferData_3')
-  @DocsEditable
   void _bufferData_3(target, data_OR_size, usage) native "WebGLRenderingContext__bufferData_3_Callback";
 
   void bufferSubData(int target, int offset, data) {
@@ -1490,12 +1484,8 @@ class RenderingContext extends CanvasRenderingContext {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  @DomName('WebGLRenderingContext._bufferSubData_1')
-  @DocsEditable
   void _bufferSubData_1(target, offset, data) native "WebGLRenderingContext__bufferSubData_1_Callback";
 
-  @DomName('WebGLRenderingContext._bufferSubData_2')
-  @DocsEditable
   void _bufferSubData_2(target, offset, data) native "WebGLRenderingContext__bufferSubData_2_Callback";
 
   @DomName('WebGLRenderingContext.checkFramebufferStatus')
@@ -1874,24 +1864,14 @@ class RenderingContext extends CanvasRenderingContext {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  @DomName('WebGLRenderingContext._texImage2D_1')
-  @DocsEditable
   void _texImage2D_1(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels) native "WebGLRenderingContext__texImage2D_1_Callback";
 
-  @DomName('WebGLRenderingContext._texImage2D_2')
-  @DocsEditable
   void _texImage2D_2(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext__texImage2D_2_Callback";
 
-  @DomName('WebGLRenderingContext._texImage2D_3')
-  @DocsEditable
   void _texImage2D_3(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext__texImage2D_3_Callback";
 
-  @DomName('WebGLRenderingContext._texImage2D_4')
-  @DocsEditable
   void _texImage2D_4(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext__texImage2D_4_Callback";
 
-  @DomName('WebGLRenderingContext._texImage2D_5')
-  @DocsEditable
   void _texImage2D_5(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext__texImage2D_5_Callback";
 
   @DomName('WebGLRenderingContext.texParameterf')
@@ -1926,24 +1906,14 @@ class RenderingContext extends CanvasRenderingContext {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  @DomName('WebGLRenderingContext._texSubImage2D_1')
-  @DocsEditable
   void _texSubImage2D_1(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels) native "WebGLRenderingContext__texSubImage2D_1_Callback";
 
-  @DomName('WebGLRenderingContext._texSubImage2D_2')
-  @DocsEditable
   void _texSubImage2D_2(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext__texSubImage2D_2_Callback";
 
-  @DomName('WebGLRenderingContext._texSubImage2D_3')
-  @DocsEditable
   void _texSubImage2D_3(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext__texSubImage2D_3_Callback";
 
-  @DomName('WebGLRenderingContext._texSubImage2D_4')
-  @DocsEditable
   void _texSubImage2D_4(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext__texSubImage2D_4_Callback";
 
-  @DomName('WebGLRenderingContext._texSubImage2D_5')
-  @DocsEditable
   void _texSubImage2D_5(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext__texSubImage2D_5_Callback";
 
   @DomName('WebGLRenderingContext.uniform1f')

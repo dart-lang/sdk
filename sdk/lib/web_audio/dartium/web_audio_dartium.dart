@@ -203,16 +203,10 @@ class AudioBufferSourceNode extends AudioSourceNode {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  @DomName('AudioBufferSourceNode._start_1')
-  @DocsEditable
   void _start_1(when) native "AudioBufferSourceNode__start_1_Callback";
 
-  @DomName('AudioBufferSourceNode._start_2')
-  @DocsEditable
   void _start_2(when, grainOffset) native "AudioBufferSourceNode__start_2_Callback";
 
-  @DomName('AudioBufferSourceNode._start_3')
-  @DocsEditable
   void _start_3(when, grainOffset, grainDuration) native "AudioBufferSourceNode__start_3_Callback";
 
   @DomName('AudioBufferSourceNode.stop')
@@ -278,12 +272,8 @@ class AudioContext extends EventTarget {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  @DomName('AudioContext._createBuffer_1')
-  @DocsEditable
   AudioBuffer _createBuffer_1(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, sampleRate) native "AudioContext__createBuffer_1_Callback";
 
-  @DomName('AudioContext._createBuffer_2')
-  @DocsEditable
   AudioBuffer _createBuffer_2(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames) native "AudioContext__createBuffer_2_Callback";
 
   @DomName('AudioContext.createBufferSource')
@@ -297,12 +287,8 @@ class AudioContext extends EventTarget {
     return _createChannelMerger_2();
   }
 
-  @DomName('AudioContext._createChannelMerger_1')
-  @DocsEditable
   ChannelMergerNode _createChannelMerger_1(numberOfInputs) native "AudioContext__createChannelMerger_1_Callback";
 
-  @DomName('AudioContext._createChannelMerger_2')
-  @DocsEditable
   ChannelMergerNode _createChannelMerger_2() native "AudioContext__createChannelMerger_2_Callback";
 
   ChannelSplitterNode createChannelSplitter([int numberOfOutputs]) {
@@ -312,12 +298,8 @@ class AudioContext extends EventTarget {
     return _createChannelSplitter_2();
   }
 
-  @DomName('AudioContext._createChannelSplitter_1')
-  @DocsEditable
   ChannelSplitterNode _createChannelSplitter_1(numberOfOutputs) native "AudioContext__createChannelSplitter_1_Callback";
 
-  @DomName('AudioContext._createChannelSplitter_2')
-  @DocsEditable
   ChannelSplitterNode _createChannelSplitter_2() native "AudioContext__createChannelSplitter_2_Callback";
 
   @DomName('AudioContext.createConvolver')
@@ -331,12 +313,8 @@ class AudioContext extends EventTarget {
     return _createDelay_2();
   }
 
-  @DomName('AudioContext._createDelay_1')
-  @DocsEditable
   DelayNode _createDelay_1(maxDelayTime) native "AudioContext__createDelay_1_Callback";
 
-  @DomName('AudioContext._createDelay_2')
-  @DocsEditable
   DelayNode _createDelay_2() native "AudioContext__createDelay_2_Callback";
 
   @DomName('AudioContext.createDynamicsCompressor')
@@ -377,16 +355,10 @@ class AudioContext extends EventTarget {
     return _createScriptProcessor_3(bufferSize);
   }
 
-  @DomName('AudioContext._createScriptProcessor_1')
-  @DocsEditable
   ScriptProcessorNode _createScriptProcessor_1(bufferSize, numberOfInputChannels, numberOfOutputChannels) native "AudioContext__createScriptProcessor_1_Callback";
 
-  @DomName('AudioContext._createScriptProcessor_2')
-  @DocsEditable
   ScriptProcessorNode _createScriptProcessor_2(bufferSize, numberOfInputChannels) native "AudioContext__createScriptProcessor_2_Callback";
 
-  @DomName('AudioContext._createScriptProcessor_3')
-  @DocsEditable
   ScriptProcessorNode _createScriptProcessor_3(bufferSize) native "AudioContext__createScriptProcessor_3_Callback";
 
   @DomName('AudioContext.createWaveShaper')
@@ -528,12 +500,8 @@ class AudioNode extends NativeFieldWrapperClass1 {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  @DomName('AudioNode._connect_1')
-  @DocsEditable
   void _connect_1(destination, output, input) native "AudioNode__connect_1_Callback";
 
-  @DomName('AudioNode._connect_2')
-  @DocsEditable
   void _connect_2(destination, output) native "AudioNode__connect_2_Callback";
 
   @DomName('AudioNode.disconnect')

@@ -672,20 +672,12 @@ class Blob extends NativeFieldWrapperClass1 {
     return _slice_4();
   }
 
-  @DomName('Blob._slice_1')
-  @DocsEditable
   Blob _slice_1(start, end, contentType) native "Blob__slice_1_Callback";
 
-  @DomName('Blob._slice_2')
-  @DocsEditable
   Blob _slice_2(start, end) native "Blob__slice_2_Callback";
 
-  @DomName('Blob._slice_3')
-  @DocsEditable
   Blob _slice_3(start) native "Blob__slice_3_Callback";
 
-  @DomName('Blob._slice_4')
-  @DocsEditable
   Blob _slice_4() native "Blob__slice_4_Callback";
 
 }
@@ -1381,12 +1373,8 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
     return;
   }
 
-  @DomName('CanvasRenderingContext2D._clip_1')
-  @DocsEditable
   void _clip_1(winding) native "CanvasRenderingContext2D__clip_1_Callback";
 
-  @DomName('CanvasRenderingContext2D._clip_2')
-  @DocsEditable
   void _clip_2() native "CanvasRenderingContext2D__clip_2_Callback";
 
   @DomName('CanvasRenderingContext2D.closePath')
@@ -1415,12 +1403,8 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  @DomName('CanvasRenderingContext2D._createPattern_1')
-  @DocsEditable
   CanvasPattern _createPattern_1(canvas_OR_image, repetitionType) native "CanvasRenderingContext2D__createPattern_1_Callback";
 
-  @DomName('CanvasRenderingContext2D._createPattern_2')
-  @DocsEditable
   CanvasPattern _createPattern_2(canvas_OR_image, repetitionType) native "CanvasRenderingContext2D__createPattern_2_Callback";
 
   @DomName('CanvasRenderingContext2D.createRadialGradient')
@@ -1467,40 +1451,22 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  @DomName('CanvasRenderingContext2D._drawImage_1')
-  @DocsEditable
   void _drawImage_1(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y) native "CanvasRenderingContext2D__drawImage_1_Callback";
 
-  @DomName('CanvasRenderingContext2D._drawImage_2')
-  @DocsEditable
   void _drawImage_2(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) native "CanvasRenderingContext2D__drawImage_2_Callback";
 
-  @DomName('CanvasRenderingContext2D._drawImage_3')
-  @DocsEditable
   void _drawImage_3(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D__drawImage_3_Callback";
 
-  @DomName('CanvasRenderingContext2D._drawImage_4')
-  @DocsEditable
   void _drawImage_4(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y) native "CanvasRenderingContext2D__drawImage_4_Callback";
 
-  @DomName('CanvasRenderingContext2D._drawImage_5')
-  @DocsEditable
   void _drawImage_5(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) native "CanvasRenderingContext2D__drawImage_5_Callback";
 
-  @DomName('CanvasRenderingContext2D._drawImage_6')
-  @DocsEditable
   void _drawImage_6(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D__drawImage_6_Callback";
 
-  @DomName('CanvasRenderingContext2D._drawImage_7')
-  @DocsEditable
   void _drawImage_7(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y) native "CanvasRenderingContext2D__drawImage_7_Callback";
 
-  @DomName('CanvasRenderingContext2D._drawImage_8')
-  @DocsEditable
   void _drawImage_8(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh) native "CanvasRenderingContext2D__drawImage_8_Callback";
 
-  @DomName('CanvasRenderingContext2D._drawImage_9')
-  @DocsEditable
   void _drawImage_9(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D__drawImage_9_Callback";
 
   void fill([String winding]) {
@@ -1512,12 +1478,8 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
     return;
   }
 
-  @DomName('CanvasRenderingContext2D._fill_1')
-  @DocsEditable
   void _fill_1(winding) native "CanvasRenderingContext2D__fill_1_Callback";
 
-  @DomName('CanvasRenderingContext2D._fill_2')
-  @DocsEditable
   void _fill_2() native "CanvasRenderingContext2D__fill_2_Callback";
 
   @DomName('CanvasRenderingContext2D.fillRect')
@@ -1533,12 +1495,8 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
     return;
   }
 
-  @DomName('CanvasRenderingContext2D._fillText_1')
-  @DocsEditable
   void _fillText_1(text, x, y, maxWidth) native "CanvasRenderingContext2D__fillText_1_Callback";
 
-  @DomName('CanvasRenderingContext2D._fillText_2')
-  @DocsEditable
   void _fillText_2(text, x, y) native "CanvasRenderingContext2D__fillText_2_Callback";
 
   @DomName('CanvasRenderingContext2D.getImageData')
@@ -1556,12 +1514,8 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
     return _isPointInPath_2(x, y);
   }
 
-  @DomName('CanvasRenderingContext2D._isPointInPath_1')
-  @DocsEditable
   bool _isPointInPath_1(x, y, winding) native "CanvasRenderingContext2D__isPointInPath_1_Callback";
 
-  @DomName('CanvasRenderingContext2D._isPointInPath_2')
-  @DocsEditable
   bool _isPointInPath_2(x, y) native "CanvasRenderingContext2D__isPointInPath_2_Callback";
 
   @DomName('CanvasRenderingContext2D.isPointInStroke')
@@ -1592,12 +1546,8 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  @DomName('CanvasRenderingContext2D._putImageData_1')
-  @DocsEditable
   void _putImageData_1(imagedata, dx, dy) native "CanvasRenderingContext2D__putImageData_1_Callback";
 
-  @DomName('CanvasRenderingContext2D._putImageData_2')
-  @DocsEditable
   void _putImageData_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native "CanvasRenderingContext2D__putImageData_2_Callback";
 
   @DomName('CanvasRenderingContext2D.quadraticCurveTo')
@@ -1645,12 +1595,8 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
     return;
   }
 
-  @DomName('CanvasRenderingContext2D._strokeRect_1')
-  @DocsEditable
   void _strokeRect_1(x, y, width, height, lineWidth) native "CanvasRenderingContext2D__strokeRect_1_Callback";
 
-  @DomName('CanvasRenderingContext2D._strokeRect_2')
-  @DocsEditable
   void _strokeRect_2(x, y, width, height) native "CanvasRenderingContext2D__strokeRect_2_Callback";
 
   void strokeText(String text, num x, num y, [num maxWidth]) {
@@ -1662,12 +1608,8 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
     return;
   }
 
-  @DomName('CanvasRenderingContext2D._strokeText_1')
-  @DocsEditable
   void _strokeText_1(text, x, y, maxWidth) native "CanvasRenderingContext2D__strokeText_1_Callback";
 
-  @DomName('CanvasRenderingContext2D._strokeText_2')
-  @DocsEditable
   void _strokeText_2(text, x, y) native "CanvasRenderingContext2D__strokeText_2_Callback";
 
   @DomName('CanvasRenderingContext2D.transform')
@@ -1697,12 +1639,8 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  @DomName('CanvasRenderingContext2D._webkitPutImageDataHD_1')
-  @DocsEditable
   void _webkitPutImageDataHD_1(imagedata, dx, dy) native "CanvasRenderingContext2D__webkitPutImageDataHD_1_Callback";
 
-  @DomName('CanvasRenderingContext2D._webkitPutImageDataHD_2')
-  @DocsEditable
   void _webkitPutImageDataHD_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native "CanvasRenderingContext2D__webkitPutImageDataHD_2_Callback";
 
 
@@ -5808,12 +5746,8 @@ class CssStyleSheet extends StyleSheet {
     return _addRule_2(selector, style);
   }
 
-  @DomName('CSSStyleSheet._addRule_1')
-  @DocsEditable
   int _addRule_1(selector, style, index) native "CSSStyleSheet__addRule_1_Callback";
 
-  @DomName('CSSStyleSheet._addRule_2')
-  @DocsEditable
   int _addRule_2(selector, style) native "CSSStyleSheet__addRule_2_Callback";
 
   @DomName('CSSStyleSheet.deleteRule')
@@ -6072,12 +6006,8 @@ class DataTransferItemList extends NativeFieldWrapperClass1 {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  @DomName('DataTransferItemList._add_1')
-  @DocsEditable
   void _add_1(data_OR_file) native "DataTransferItemList__add_1_Callback";
 
-  @DomName('DataTransferItemList._add_2')
-  @DocsEditable
   void _add_2(data_OR_file, type) native "DataTransferItemList__add_2_Callback";
 
   @DomName('DataTransferItemList.clear')
@@ -6639,12 +6569,8 @@ class Document extends Node
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  @DomName('Document._createElement_1')
-  @DocsEditable
   Element _createElement_1(localName_OR_tagName) native "Document__createElement_1_Callback";
 
-  @DomName('Document._createElement_2')
-  @DocsEditable
   Element _createElement_2(localName_OR_tagName, typeExtension) native "Document__createElement_2_Callback";
 
   Element $dom_createElementNS(String namespaceURI, String qualifiedName, [String typeExtension]) {
@@ -6657,12 +6583,8 @@ class Document extends Node
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  @DomName('Document._createElementNS_1')
-  @DocsEditable
   Element _createElementNS_1(namespaceURI, qualifiedName) native "Document__createElementNS_1_Callback";
 
-  @DomName('Document._createElementNS_2')
-  @DocsEditable
   Element _createElementNS_2(namespaceURI, qualifiedName, typeExtension) native "Document__createElementNS_2_Callback";
 
   @DomName('Document.createEvent')
@@ -8336,12 +8258,8 @@ class DomTokenList extends NativeFieldWrapperClass1 {
     return _toggle_2(token);
   }
 
-  @DomName('DOMTokenList._toggle_1')
-  @DocsEditable
   bool _toggle_1(token, force) native "DOMTokenList__toggle_1_Callback";
 
-  @DomName('DOMTokenList._toggle_2')
-  @DocsEditable
   bool _toggle_2(token) native "DOMTokenList__toggle_2_Callback";
 
 }
@@ -9287,12 +9205,8 @@ abstract class Element extends Node implements ElementTraversal {
     return;
   }
 
-  @DomName('Element._scrollIntoView_1')
-  @DocsEditable
   void _scrollIntoView_1(alignWithTop) native "Element__scrollIntoView_1_Callback";
 
-  @DomName('Element._scrollIntoView_2')
-  @DocsEditable
   void _scrollIntoView_2() native "Element__scrollIntoView_2_Callback";
 
   void $dom_scrollIntoViewIfNeeded([bool centerIfNeeded]) {
@@ -9304,12 +9218,8 @@ abstract class Element extends Node implements ElementTraversal {
     return;
   }
 
-  @DomName('Element._scrollIntoViewIfNeeded_1')
-  @DocsEditable
   void _scrollIntoViewIfNeeded_1(centerIfNeeded) native "Element__scrollIntoViewIfNeeded_1_Callback";
 
-  @DomName('Element._scrollIntoViewIfNeeded_2')
-  @DocsEditable
   void _scrollIntoViewIfNeeded_2() native "Element__scrollIntoViewIfNeeded_2_Callback";
 
   @DomName('Element.setAttribute')
@@ -9858,12 +9768,8 @@ class Entry extends NativeFieldWrapperClass1 {
     return;
   }
 
-  @DomName('Entry._copyTo_1')
-  @DocsEditable
   void _copyTo_1(parent, name, successCallback, errorCallback) native "Entry__copyTo_1_Callback";
 
-  @DomName('Entry._copyTo_2')
-  @DocsEditable
   void _copyTo_2(parent) native "Entry__copyTo_2_Callback";
 
   Future<Entry> copyTo(DirectoryEntry parent, {String name}) {
@@ -9907,12 +9813,8 @@ class Entry extends NativeFieldWrapperClass1 {
     return;
   }
 
-  @DomName('Entry._moveTo_1')
-  @DocsEditable
   void _moveTo_1(parent, name, successCallback, errorCallback) native "Entry__moveTo_1_Callback";
 
-  @DomName('Entry._moveTo_2')
-  @DocsEditable
   void _moveTo_2(parent) native "Entry__moveTo_2_Callback";
 
   Future<Entry> moveTo(DirectoryEntry parent, {String name}) {
@@ -10869,12 +10771,8 @@ class FileReader extends EventTarget {
     return;
   }
 
-  @DomName('FileReader._readAsText_1')
-  @DocsEditable
   void _readAsText_1(blob, encoding) native "FileReader__readAsText_1_Callback";
 
-  @DomName('FileReader._readAsText_2')
-  @DocsEditable
   void _readAsText_2(blob) native "FileReader__readAsText_2_Callback";
 
   @DomName('FileReader.removeEventListener')
@@ -13561,12 +13459,8 @@ class InputElement extends _Element_Merged implements
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  @DomName('HTMLInputElement._setRangeText_1')
-  @DocsEditable
   void _setRangeText_1(replacement) native "HTMLInputElement__setRangeText_1_Callback";
 
-  @DomName('HTMLInputElement._setRangeText_2')
-  @DocsEditable
   void _setRangeText_2(replacement, start, end, selectionMode) native "HTMLInputElement__setRangeText_2_Callback";
 
   @DomName('HTMLInputElement.setSelectionRange')
@@ -13582,12 +13476,8 @@ class InputElement extends _Element_Merged implements
     return;
   }
 
-  @DomName('HTMLInputElement._stepDown_1')
-  @DocsEditable
   void _stepDown_1(n) native "HTMLInputElement__stepDown_1_Callback";
 
-  @DomName('HTMLInputElement._stepDown_2')
-  @DocsEditable
   void _stepDown_2() native "HTMLInputElement__stepDown_2_Callback";
 
   void stepUp([int n]) {
@@ -13599,12 +13489,8 @@ class InputElement extends _Element_Merged implements
     return;
   }
 
-  @DomName('HTMLInputElement._stepUp_1')
-  @DocsEditable
   void _stepUp_1(n) native "HTMLInputElement__stepUp_1_Callback";
 
-  @DomName('HTMLInputElement._stepUp_2')
-  @DocsEditable
   void _stepUp_2() native "HTMLInputElement__stepUp_2_Callback";
 
   @DomName('HTMLInputElement.onwebkitSpeechChange')
@@ -15113,16 +14999,10 @@ class MediaElement extends _Element_Merged {
     return _addTextTrack_3(kind);
   }
 
-  @DomName('HTMLMediaElement._addTextTrack_1')
-  @DocsEditable
   TextTrack _addTextTrack_1(kind, label, language) native "HTMLMediaElement__addTextTrack_1_Callback";
 
-  @DomName('HTMLMediaElement._addTextTrack_2')
-  @DocsEditable
   TextTrack _addTextTrack_2(kind, label) native "HTMLMediaElement__addTextTrack_2_Callback";
 
-  @DomName('HTMLMediaElement._addTextTrack_3')
-  @DocsEditable
   TextTrack _addTextTrack_3(kind) native "HTMLMediaElement__addTextTrack_3_Callback";
 
   @DomName('HTMLMediaElement.canPlayType')
@@ -15150,12 +15030,8 @@ class MediaElement extends _Element_Merged {
     return;
   }
 
-  @DomName('HTMLMediaElement._webkitAddKey_1')
-  @DocsEditable
   void _webkitAddKey_1(keySystem, key, initData, sessionId) native "HTMLMediaElement__webkitAddKey_1_Callback";
 
-  @DomName('HTMLMediaElement._webkitAddKey_2')
-  @DocsEditable
   void _webkitAddKey_2(keySystem, key) native "HTMLMediaElement__webkitAddKey_2_Callback";
 
   @DomName('HTMLMediaElement.webkitCancelKeyRequest')
@@ -15174,12 +15050,8 @@ class MediaElement extends _Element_Merged {
     return;
   }
 
-  @DomName('HTMLMediaElement._webkitGenerateKeyRequest_1')
-  @DocsEditable
   void _webkitGenerateKeyRequest_1(keySystem, initData) native "HTMLMediaElement__webkitGenerateKeyRequest_1_Callback";
 
-  @DomName('HTMLMediaElement._webkitGenerateKeyRequest_2')
-  @DocsEditable
   void _webkitGenerateKeyRequest_2(keySystem) native "HTMLMediaElement__webkitGenerateKeyRequest_2_Callback";
 
   @DomName('HTMLMediaElement.oncanplay')
@@ -18957,20 +18829,12 @@ class RtcDataChannel extends EventTarget {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  @DomName('RTCDataChannel._send_1')
-  @DocsEditable
   void _send_1(data) native "RTCDataChannel__send_1_Callback";
 
-  @DomName('RTCDataChannel._send_2')
-  @DocsEditable
   void _send_2(data) native "RTCDataChannel__send_2_Callback";
 
-  @DomName('RTCDataChannel._send_3')
-  @DocsEditable
   void _send_3(data) native "RTCDataChannel__send_3_Callback";
 
-  @DomName('RTCDataChannel._send_4')
-  @DocsEditable
   void _send_4(data) native "RTCDataChannel__send_4_Callback";
 
   @DomName('RTCDataChannel.onclose')
@@ -19064,16 +18928,10 @@ class RtcDtmfSender extends EventTarget {
     return;
   }
 
-  @DomName('RTCDTMFSender._insertDTMF_1')
-  @DocsEditable
   void _insertDTMF_1(tones, duration, interToneGap) native "RTCDTMFSender__insertDTMF_1_Callback";
 
-  @DomName('RTCDTMFSender._insertDTMF_2')
-  @DocsEditable
   void _insertDTMF_2(tones, duration) native "RTCDTMFSender__insertDTMF_2_Callback";
 
-  @DomName('RTCDTMFSender._insertDTMF_3')
-  @DocsEditable
   void _insertDTMF_3(tones) native "RTCDTMFSender__insertDTMF_3_Callback";
 
   @DomName('RTCDTMFSender.removeEventListener')
@@ -20562,12 +20420,8 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
     return;
   }
 
-  @DomName('SpeechGrammarList._addFromString_1')
-  @DocsEditable
   void _addFromString_1(string, weight) native "SpeechGrammarList__addFromString_1_Callback";
 
-  @DomName('SpeechGrammarList._addFromString_2')
-  @DocsEditable
   void _addFromString_2(string) native "SpeechGrammarList__addFromString_2_Callback";
 
   void addFromUri(String src, [num weight]) {
@@ -20579,12 +20433,8 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
     return;
   }
 
-  @DomName('SpeechGrammarList._addFromUri_1')
-  @DocsEditable
   void _addFromUri_1(src, weight) native "SpeechGrammarList__addFromUri_1_Callback";
 
-  @DomName('SpeechGrammarList._addFromUri_2')
-  @DocsEditable
   void _addFromUri_2(src) native "SpeechGrammarList__addFromUri_2_Callback";
 
   @DomName('SpeechGrammarList.item')
@@ -21807,12 +21657,8 @@ class TextAreaElement extends _Element_Merged {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  @DomName('HTMLTextAreaElement._setRangeText_1')
-  @DocsEditable
   void _setRangeText_1(replacement) native "HTMLTextAreaElement__setRangeText_1_Callback";
 
-  @DomName('HTMLTextAreaElement._setRangeText_2')
-  @DocsEditable
   void _setRangeText_2(replacement, start, end, selectionMode) native "HTMLTextAreaElement__setRangeText_2_Callback";
 
   void setSelectionRange(int start, int end, [String direction]) {
@@ -21824,12 +21670,8 @@ class TextAreaElement extends _Element_Merged {
     return;
   }
 
-  @DomName('HTMLTextAreaElement._setSelectionRange_1')
-  @DocsEditable
   void _setSelectionRange_1(start, end, direction) native "HTMLTextAreaElement__setSelectionRange_1_Callback";
 
-  @DomName('HTMLTextAreaElement._setSelectionRange_2')
-  @DocsEditable
   void _setSelectionRange_2(start, end) native "HTMLTextAreaElement__setSelectionRange_2_Callback";
 
 }
@@ -23317,16 +23159,10 @@ class Url extends NativeFieldWrapperClass1 {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  @DomName('DOMURL._createObjectURL_1')
-  @DocsEditable
   static String _createObjectURL_1(blob_OR_source_OR_stream) native "DOMURL__createObjectURL_1_Callback";
 
-  @DomName('DOMURL._createObjectURL_2')
-  @DocsEditable
   static String _createObjectURL_2(blob_OR_source_OR_stream) native "DOMURL__createObjectURL_2_Callback";
 
-  @DomName('DOMURL._createObjectURL_3')
-  @DocsEditable
   static String _createObjectURL_3(blob_OR_source_OR_stream) native "DOMURL__createObjectURL_3_Callback";
 
   @DomName('DOMURL.revokeObjectURL')
@@ -23681,16 +23517,10 @@ class WebSocket extends EventTarget {
     return;
   }
 
-  @DomName('WebSocket._close_1')
-  @DocsEditable
   void _close_1(code, reason) native "WebSocket__close_1_Callback";
 
-  @DomName('WebSocket._close_2')
-  @DocsEditable
   void _close_2(code) native "WebSocket__close_2_Callback";
 
-  @DomName('WebSocket._close_3')
-  @DocsEditable
   void _close_3() native "WebSocket__close_3_Callback";
 
   @DomName('WebSocket.dispatchEvent')
