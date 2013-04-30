@@ -114,10 +114,6 @@ unittest/test/mock_stepwise_negative_test: Fail
 [ $compiler == dart2js ]
 unittest/test/instance_test: Skip
 
-
-[ $compiler == dart2js && $runtime == drt ]
-intl/test/date_time_format_uninitialized_test: Pass, Fail # http://dartbug.com/9000
-
 [ $compiler == dart2js && $minified ]
 # The unittest package relies on getting the original (non-minified) method
 # names in Invocation.  You can't get that when minifying.
