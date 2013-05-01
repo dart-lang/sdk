@@ -838,7 +838,7 @@ abstract class HttpResponse implements IOSink {
  * provided which provides access to the headers and body of the response.
  *
  *     HttpClient client = new HttpClient();
- *     client.getUrl(new Uri.fromString("http://www.example.com/"))
+ *     client.getUrl(Uri.parse("http://www.example.com/"))
  *         .then((HttpClientRequest request) {
  *           // Prepare the request then call close on it to send it.
  *           return request.close();

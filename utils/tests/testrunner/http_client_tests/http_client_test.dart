@@ -13,7 +13,7 @@ main() {
   var get = (String what, int code, String text) {
     var c = new Completer();
     HttpClient client = new HttpClient();
-    client.getUrl(new Uri.fromString("http://127.0.0.1:3456/$what"))
+    client.getUrl(Uri.parse("http://127.0.0.1:3456/$what"))
     .then((HttpClientRequest request) {
       // Prepare the request then call close on it to send it.
       return request.close();

@@ -85,7 +85,7 @@ class Frame {
       throw new FormatException("Couldn't parse stack trace line '$frame'.");
     }
 
-    var uri = new Uri.fromString(match[2]);
+    var uri = Uri.parse(match[2]);
     var member = match[1].replaceAll("<anonymous closure>", "<fn>");
     return new Frame(uri, int.parse(match[3]), int.parse(match[4]), member);
   }

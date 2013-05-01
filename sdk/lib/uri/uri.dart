@@ -12,8 +12,13 @@ part 'helpers.dart';
 
 /**
  * A parsed URI, inspired by Closure's [URI][] class. Implements [RFC-3986][].
- * [uri]: http://closure-library.googlecode.com/svn/docs/class_goog_Uri.html
+ * The domain component can either be a hostname, a IPv4 address or an IPv6
+ * address, contained in '[' and ']', following [RFC-2732][]. If the domain
+ * component contains a ':', the String returned from [toString] will have
+ * '[' and ']' around the domain part.
+ * [URI]: http://closure-library.googlecode.com/svn/docs/class_goog_Uri.html
  * [RFC-3986]: http://tools.ietf.org/html/rfc3986#section-4.3)
+ * [RFC-2732]: http://www.ietf.org/rfc/rfc2732.txt
  */
 class Uri {
   final String scheme;
@@ -24,17 +29,13 @@ class Uri {
   final String query;
   final String fragment;
 
-  /**
-   * Deprecated. Please use [parse] instead.
-   */
-  Uri.fromString(String uri) : this._fromMatch(_splitRe.firstMatch(uri));
-
   static Uri parse(String uri) => new Uri._fromMatch(_splitRe.firstMatch(uri));
 
   Uri._fromMatch(Match m) :
     this.fromComponents(scheme: _emptyIfNull(m[_COMPONENT_SCHEME]),
                         userInfo: _emptyIfNull(m[_COMPONENT_USER_INFO]),
-                        domain: _emptyIfNull(m[_COMPONENT_DOMAIN]),
+                        domain: _eitherOf(
+                            m[_COMPONENT_DOMAIN], m[_COMPONENT_DOMAIN_IPV6]),
                         port: _parseIntOrZero(m[_COMPONENT_PORT]),
                         path: _emptyIfNull(m[_COMPONENT_PATH]),
                         query: _emptyIfNull(m[_COMPONENT_QUERY_DATA]),
@@ -48,7 +49,7 @@ class Uri {
                             this.query: "",
                             this.fragment: ""});
 
-  Uri(String uri) : this.fromString(uri);
+  factory Uri(String uri) => parse(uri);
 
   static String _emptyIfNull(String val) => val != null ? val : '';
 
@@ -58,6 +59,12 @@ class Uri {
     } else {
       return 0;
     }
+  }
+
+  static String _eitherOf(String val1, String val2) {
+    if (val1 != null) return val1;
+    if (val2 != null) return val2;
+    return '';
   }
 
   // NOTE: This code was ported from: closure-library/closure/goog/uri/utils.js
@@ -70,24 +77,31 @@ class Uri {
       ':)?'
       '(?://'
         '(?:([^/?#]*)@)?'               // userInfo
-        '([\\w\\d\\-\\u0100-\\uffff.%]*)'
+        '(?:'
+          r'([\w\d\-\u0100-\uffff.%]*)'
                                         // domain - restrict to letters,
                                         // digits, dashes, dots, percent
                                         // escapes, and unicode characters.
+          '|'
+          // TODO(ajohnsen): Only allow a max number of parts?
+          r'\[([A-Fa-f0-9:.]*)\])'
+                                        // IPv6 domain - restrict to hex,
+                                        // dot and colon.
         '(?::([0-9]+))?'                // port
       ')?'
-      '([^?#]+)?'                       // path
-      '(?:\\?([^#]*))?'                 // query
+      r'([^?#[]+)?'                     // path
+      r'(?:\?([^#]*))?'                 // query
       '(?:#(.*))?'                      // fragment
-      '\$');
+      r'$');
 
   static const _COMPONENT_SCHEME = 1;
   static const _COMPONENT_USER_INFO = 2;
   static const _COMPONENT_DOMAIN = 3;
-  static const _COMPONENT_PORT = 4;
-  static const _COMPONENT_PATH = 5;
-  static const _COMPONENT_QUERY_DATA = 6;
-  static const _COMPONENT_FRAGMENT = 7;
+  static const _COMPONENT_DOMAIN_IPV6 = 4;
+  static const _COMPONENT_PORT = 5;
+  static const _COMPONENT_PATH = 6;
+  static const _COMPONENT_QUERY_DATA = 7;
+  static const _COMPONENT_FRAGMENT = 8;
 
   /**
    * Returns `true` if the URI is absolute.
@@ -222,7 +236,8 @@ class Uri {
     if (hasAuthority || (scheme == "file")) {
       sb.write("//");
       _addIfNonEmpty(sb, userInfo, userInfo, "@");
-      sb.write(domain == null ? "null" : domain);
+      sb.write(domain == null ? "null" :
+          domain.contains(':') ? '[$domain]' : domain);
       if (port != 0) {
         sb.write(":");
         sb.write(port.toString());
