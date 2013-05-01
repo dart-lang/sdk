@@ -10,6 +10,8 @@
  * on how we can make this class work with as many international keyboards as
  * possible. Bugs welcome!
  */
+part of html;
+
 class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   /** The parent KeyboardEvent that this KeyEvent is wrapping and "fixing". */
   KeyboardEvent _parent;
