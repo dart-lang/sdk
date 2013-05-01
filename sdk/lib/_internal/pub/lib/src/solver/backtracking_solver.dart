@@ -192,29 +192,7 @@ class BacktrackingSolver {
     var dependers = failure.dependencies.map((dep) => dep.depender).toSet();
 
     while (!_selected.isEmpty) {
-      // Look for a relevant selection to jump back to.
-      for (var i = _selected.length - 1; i >= 0; i--) {
-        // Can't jump to a package that has no more alternatives.
-        if (_selected[i].length == 1) continue;
-
-        var selected = _selected[i].first;
-
-        // If we find the package itself that failed, jump to it.
-        if (selected.name == failure.package) {
-          logSolve('jump to selected package ${failure.package}');
-          _selected.removeRange(i + 1, _selected.length);
-          break;
-        }
-
-        // See if this package directly or indirectly depends on [package].
-        var path = _getDependencyPath(selected, failure.package);
-        if (path != null) {
-          logSolve('backjump to ${selected.name} because it depends on '
-                   '${failure.package}  by $path');
-          _selected.removeRange(i + 1, _selected.length);
-          break;
-        }
-      }
+      _backjump(failure);
 
       // Advance past the current version of the leaf-most package.
       var previous = _selected.last.removeFirst();
@@ -230,6 +208,44 @@ class BacktrackingSolver {
     }
 
     return false;
+  }
+
+  /// Walks the selected packages from most to least recent to determine which
+  /// ones can be ignored and jumped over by the backtracker. The only packages
+  /// we need to backtrack to are ones that have other versions to try and that
+  /// led (possibly indirectly) to the failure. Everything else can be skipped.
+  void _backjump(SolveFailure failure) {
+    for (var i = _selected.length - 1; i >= 0; i--) {
+      // Each queue will never be empty since it gets discarded by _backtrack()
+      // when that happens.
+      var selected = _selected[i].first;
+
+      // If the package has no more versions, we can jump over it.
+      if (_selected[i].length == 1) continue;
+
+      // If we get to the package that failed, backtrack to here.
+      if (selected.name == failure.package) {
+        logSolve('backjump to failed package ${selected.name}');
+        _selected.removeRange(i + 1, _selected.length);
+        return;
+      }
+
+      // If we get to a package that depends on the failing package, backtrack
+      // to here.
+      var path = _getDependencyPath(selected, failure.package);
+      if (path != null) {
+        logSolve('backjump to ${selected.name} because it depends on '
+                 '${failure.package} along $path');
+        _selected.removeRange(i + 1, _selected.length);
+        return;
+      }
+    }
+
+    // If we got here, we walked the entire list without finding a package that
+    // could lead to another solution, so discard everything. This will happen
+    // if every package that led to the failure has no other versions that it
+    // can try to select.
+    _selected.removeRange(1, _selected.length);
   }
 
   /// Determines if [depender] has a direct or indirect dependency on
@@ -592,7 +608,7 @@ void _validateSdkConstraint(Pubspec pubspec) {
 
   if (pubspec.environment.sdkVersion.allows(sdk.version)) return;
 
-  throw new CouldNotSolveException(
+  throw new BadSdkVersionException(pubspec.name,
       'Package ${pubspec.name} requires SDK version '
       '${pubspec.environment.sdkVersion} but the current SDK is '
       '${sdk.version}.');

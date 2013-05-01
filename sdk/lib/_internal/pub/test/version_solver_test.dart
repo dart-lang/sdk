@@ -10,6 +10,7 @@ import 'dart:io';
 import 'package:unittest/unittest.dart';
 
 import '../lib/src/lock_file.dart';
+import '../lib/src/log.dart' as log;
 import '../lib/src/package.dart';
 import '../lib/src/pubspec.dart';
 import '../lib/src/sdk.dart' as sdk;
@@ -26,6 +27,9 @@ MockSource source2;
 
 main() {
   initConfig();
+
+  // Uncomment this to debug failing tests.
+  // log.showSolver();
 
   // Since this test isn't run from the SDK, it can't find the "version" file
   // to load. Instead, just manually inject a version.
@@ -484,6 +488,111 @@ backtracking() {
     'c': '1.0.0'
   }, maxTries: 2);
 
+  // Tests that the backjumper will jump past unrelated selections when a
+  // source conflict occurs. This test selects, in order:
+  // - myapp -> a
+  // - myapp -> b
+  // - myapp -> c (1 of 5)
+  // - b -> a
+  // It selects a and b first because they have fewer versions than c. It
+  // traverses b's dependency on a after selecting a version of c because
+  // dependencies are traversed breadth-first (all of myapps's immediate deps
+  // before any other their deps).
+  //
+  // This means it doesn't discover the source conflict until after selecting
+  // c. When that happens, it should backjump past c instead of trying older
+  // versions of it since they aren't related to the conflict.
+  testResolve('backjump to conflicting source', {
+    'myapp 0.0.0': {
+      'a': 'any',
+      'b': 'any',
+      'c': 'any'
+    },
+    'a 1.0.0': {},
+    'a 1.0.0 from mock2': {},
+    'b 1.0.0': {
+      'a': 'any'
+    },
+    'b 2.0.0': {
+      'a from mock2': 'any'
+    },
+    'c 1.0.0': {},
+    'c 2.0.0': {},
+    'c 3.0.0': {},
+    'c 4.0.0': {},
+    'c 5.0.0': {},
+  }, result: {
+    'myapp from root': '0.0.0',
+    'a': '1.0.0',
+    'b': '1.0.0',
+    'c': '5.0.0'
+  }, maxTries: 2);
+
+  // Like the above test, but for a conflicting description.
+  testResolve('backjump to conflicting description', {
+    'myapp 0.0.0': {
+      'a-x': 'any',
+      'b': 'any',
+      'c': 'any'
+    },
+    'a-x 1.0.0': {},
+    'a-y 1.0.0': {},
+    'b 1.0.0': {
+      'a-x': 'any'
+    },
+    'b 2.0.0': {
+      'a-y': 'any'
+    },
+    'c 1.0.0': {},
+    'c 2.0.0': {},
+    'c 3.0.0': {},
+    'c 4.0.0': {},
+    'c 5.0.0': {},
+  }, result: {
+    'myapp from root': '0.0.0',
+    'a': '1.0.0',
+    'b': '1.0.0',
+    'c': '5.0.0'
+  }, maxTries: 2);
+
+  // Similar to the above two tests but where there is no solution. It should
+  // fail in this case with no backtracking.
+  testResolve('backjump to conflicting source', {
+    'myapp 0.0.0': {
+      'a': 'any',
+      'b': 'any',
+      'c': 'any'
+    },
+    'a 1.0.0': {},
+    'a 1.0.0 from mock2': {},
+    'b 1.0.0': {
+      'a from mock2': 'any'
+    },
+    'c 1.0.0': {},
+    'c 2.0.0': {},
+    'c 3.0.0': {},
+    'c 4.0.0': {},
+    'c 5.0.0': {},
+  }, error: sourceMismatch('myapp', 'b'), maxTries: 1);
+
+  testResolve('backjump to conflicting description', {
+    'myapp 0.0.0': {
+      'a-x': 'any',
+      'b': 'any',
+      'c': 'any'
+    },
+    'a-x 1.0.0': {},
+    'a-y 1.0.0': {},
+    'b 1.0.0': {
+      'a-y': 'any'
+    },
+    'c 1.0.0': {},
+    'c 2.0.0': {},
+    'c 3.0.0': {},
+    'c 4.0.0': {},
+    'c 5.0.0': {},
+  }, error: descriptionMismatch('myapp', 'b'), maxTries: 1);
+
   // Dependencies are ordered so that packages with fewer versions are tried
   // first. Here, there are two valid solutions (either a or b must be
   // downgraded once). The chosen one depends on which dep is traversed first.
@@ -619,13 +728,31 @@ sdkConstraint() {
   }, useBleedingEdgeSdkVersion: true);
 }
 
-testResolve(description, packages,
-            {lockfile, result, FailMatcherBuilder error, int maxTries,
+testResolve(description, packages, {
+             lockfile, result, FailMatcherBuilder error, int maxTries,
+             bool useBleedingEdgeSdkVersion}) {
+  _testResolve(test, description, packages, lockfile: lockfile, result: result,
+      error: error, maxTries: maxTries,
+      useBleedingEdgeSdkVersion: useBleedingEdgeSdkVersion);
+}
+
+solo_testResolve(description, packages, {
+             lockfile, result, FailMatcherBuilder error, int maxTries,
+             bool useBleedingEdgeSdkVersion}) {
+  log.showSolver();
+  _testResolve(solo_test, description, packages, lockfile: lockfile,
+      result: result, error: error, maxTries: maxTries,
+      useBleedingEdgeSdkVersion: useBleedingEdgeSdkVersion);
+}
+
+_testResolve(void testFn(String description, Function body),
+             description, packages, {
+             lockfile, result, FailMatcherBuilder error, int maxTries,
              bool useBleedingEdgeSdkVersion}) {
   if (maxTries == null) maxTries = 1;
   if (useBleedingEdgeSdkVersion == null) useBleedingEdgeSdkVersion = false;
 
-  test(description, () {
+  testFn(description, () {
     var cache = new SystemCache('.');
     source1 = new MockSource('mock1');
     source2 = new MockSource('mock2');
