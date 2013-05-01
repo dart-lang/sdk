@@ -2233,32 +2233,16 @@ class CodeEmitterTask extends CompilerTask {
       DartType objectType = objectClass.computeType(compiler);
 
       for (Selector selector in selectors) {
-        // Introduce a helper function that determines if the given
-        // class has a member that matches the current name and
-        // selector (grabbed from the scope).
-        bool hasMatchingMember(ClassElement holder) {
-          Element element = holder.lookupSelector(selector);
-          return (element != null)
-              ? selector.applies(element, compiler)
-              : false;
-        }
-
         // If the selector is typed, we check to see if that type may
         // have a user-defined noSuchMethod implementation. If not, we
         // skip the selector altogether.
 
-        // TODO(kasperl): This shouldn't depend on the internals of
-        // the type mask. Move more of this code to the type mask.
-        ClassElement receiverClass = objectClass;
         TypeMask mask = selector.mask;
-        if (mask != null) {
-          // If the mask is empty it doesn't contain a noSuchMethod
-          // handler -- not even if it is nullable.
-          if (mask.isEmpty) continue;
-          receiverClass = mask.base.element;
+        if (mask == null) {
+          mask = new TypeMask.subclass(compiler.objectClass.rawType);
         }
 
-        // If the receiver class is guaranteed to have a member that
+        // If the receiver is guaranteed to have a member that
         // matches what we're looking for, there's no need to
         // introduce a noSuchMethod handler. It will never be called.
         //
@@ -2273,7 +2257,6 @@ class CodeEmitterTask extends CompilerTask {
         // because objects of type B implement foo. On the other hand,
         // if we end up calling foo on something of type C we have to
         // add a handler for it.
-        if (hasMatchingMember(receiverClass)) continue;
 
         // If the holders of all user-defined noSuchMethod
         // implementations that might be applicable to the receiver
@@ -2300,9 +2283,7 @@ class CodeEmitterTask extends CompilerTask {
         // If we're calling bar on an object of type A we do need the
         // handler because we may have to call B.noSuchMethod since B
         // does not implement bar.
-        Iterable<ClassElement> holders =
-            compiler.world.locateNoSuchMethodHolders(selector);
-        if (holders.every(hasMatchingMember)) continue;
+        if (mask.willHit(selector, compiler)) continue;
         String jsName = namer.invocationMirrorInternalName(selector);
         addedJsNames[jsName] = selector;
       }

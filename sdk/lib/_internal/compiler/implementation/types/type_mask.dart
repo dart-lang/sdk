@@ -4,12 +4,99 @@
 
 part of types;
 
+abstract class TypeMask {
+  factory TypeMask(DartType base, int kind, bool isNullable)
+      => new FlatTypeMask(base, kind, isNullable);
+
+  factory TypeMask.empty() => new FlatTypeMask.empty();
+
+  factory TypeMask.exact(DartType base) => new FlatTypeMask.exact(base);
+  factory TypeMask.subclass(DartType base) => new FlatTypeMask.subclass(base);
+  factory TypeMask.subtype(DartType base) => new FlatTypeMask.subtype(base);
+
+  factory TypeMask.nonNullEmpty()
+      => new FlatTypeMask.nonNullEmpty();
+  factory TypeMask.nonNullExact(DartType base)
+      => new FlatTypeMask.nonNullExact(base);
+  factory TypeMask.nonNullSubclass(DartType base)
+      => new FlatTypeMask.nonNullSubclass(base);
+  factory TypeMask.nonNullSubtype(DartType base)
+      => new FlatTypeMask.nonNullSubtype(base);
+
+  /**
+   * Returns a nullable variant of [this] type mask.
+   */
+  TypeMask nullable();
+
+  /**
+   * Returns a non-nullable variant of [this] type mask.
+   */
+  TypeMask nonNullable();
+
+  bool get isEmpty;
+  bool get isNullable;
+  bool get isExact;
+
+  bool containsOnlyInt(Compiler compiler);
+  bool containsOnlyDouble(Compiler compiler);
+  bool containsOnlyNum(Compiler compiler);
+  bool containsOnlyNull(Compiler compiler);
+  bool containsOnlyBool(Compiler compiler);
+  bool containsOnlyString(Compiler compiler);
+  bool containsOnly(ClassElement element);
+
+  /**
+   * Returns whether or not this type mask contains the given type.
+   */
+  bool contains(DartType type, Compiler compiler);
+
+  /**
+   * Returns whether or not this type mask contains all types.
+   */
+  bool containsAll(Compiler compiler);
+
+  /**
+   * Returns the [ClassElement] if this type represents a single class,
+   * otherwise returns `null`.  This method is conservative.
+   */
+  ClassElement singleClass(Compiler compiler);
+
+  /**
+   * Returns a type mask representing the union of [this] and [other].
+   */
+  TypeMask union(TypeMask other, Compiler compiler);
+
+  /**
+   * Returns a type mask representing the intersection of [this] and [other].
+   */
+  TypeMask intersection(TypeMask other, Compiler compiler);
+
+  /**
+   * Returns whether a [selector] call will hit a method at runtime,
+   * and not go through [noSuchMethod].
+   */
+  bool willHit(Selector selector, Compiler compiler);
+
+  /**
+   * Returns whether [element] is a potential target when being
+   * invoked on this type mask. [selector] is used to ensure library
+   * privacy is taken into account.
+   */
+  bool canHit(Element element, Selector selector, Compiler compiler);
+
+  /**
+   * Returns the [element] that is known to always be hit at runtime
+   * on this mask. Returns null if there is none.
+   */
+  Element locateSingleElement(Selector selector, Compiler compiler);
+}
+
 /**
  * A type mask represents a set of contained classes, but the
  * operations on it are not guaranteed to be precise and they may
  * yield conservative answers that contain too many classes.
  */
-class TypeMask {
+class FlatTypeMask implements TypeMask {
 
   static const int EMPTY    = 0;
   static const int EXACT    = 1;
@@ -19,28 +106,28 @@ class TypeMask {
   final DartType base;
   final int flags;
 
-  TypeMask(DartType base, int kind, bool isNullable)
+  FlatTypeMask(DartType base, int kind, bool isNullable)
       : this.internal(base, (kind << 1) | (isNullable ? 1 : 0));
 
-  TypeMask.empty()
+  FlatTypeMask.empty()
       : this.internal(null, (EMPTY << 1) | 1);
-  TypeMask.exact(DartType base)
+  FlatTypeMask.exact(DartType base)
       : this.internal(base, (EXACT << 1) | 1);
-  TypeMask.subclass(DartType base)
+  FlatTypeMask.subclass(DartType base)
       : this.internal(base, (SUBCLASS << 1) | 1);
-  TypeMask.subtype(DartType base)
+  FlatTypeMask.subtype(DartType base)
       : this.internal(base, (SUBTYPE << 1) | 1);
 
-  TypeMask.nonNullEmpty()
+  FlatTypeMask.nonNullEmpty()
       : this.internal(null, EMPTY << 1);
-  TypeMask.nonNullExact(DartType base)
+  FlatTypeMask.nonNullExact(DartType base)
       : this.internal(base, EXACT << 1);
-  TypeMask.nonNullSubclass(DartType base)
+  FlatTypeMask.nonNullSubclass(DartType base)
       : this.internal(base, SUBCLASS << 1);
-  TypeMask.nonNullSubtype(DartType base)
+  FlatTypeMask.nonNullSubtype(DartType base)
       : this.internal(base, SUBTYPE << 1);
 
-  TypeMask.internal(DartType base, this.flags)
+  FlatTypeMask.internal(DartType base, this.flags)
       : this.base = transformBase(base);
 
   // TODO(kasperl): We temporarily transform the base to be the raw
@@ -68,25 +155,14 @@ class TypeMask {
   bool get isSubclass => (flags >> 1) == SUBCLASS;
   bool get isSubtype => (flags >> 1) == SUBTYPE;
 
-  DartType get exactType => isExact ? base : null;
-
-  /**
-   * Returns a nullable variant of [this] type mask.
-   */
   TypeMask nullable() {
-    return isNullable ? this : new TypeMask.internal(base, flags | 1);
+    return isNullable ? this : new FlatTypeMask.internal(base, flags | 1);
   }
 
-  /**
-   * Returns a non-nullable variant of [this] type mask.
-   */
   TypeMask nonNullable() {
-    return isNullable ? new TypeMask.internal(base, flags & ~1) : this;
+    return isNullable ? new FlatTypeMask.internal(base, flags & ~1) : this;
   }
 
-  /**
-   * Returns whether or not this type mask contains the given type.
-   */
   bool contains(DartType type, Compiler compiler) {
     if (isEmpty) {
       return false;
@@ -100,6 +176,40 @@ class TypeMask {
       assert(isSubtype);
       return isSubtypeOf(type, base, compiler);
     }
+  }
+
+  bool containsOnlyInt(Compiler compiler) {
+    return base.element == compiler.intClass
+        || base.element == compiler.backend.intImplementation;
+  }
+
+  bool containsOnlyDouble(Compiler compiler) {
+    return base.element == compiler.doubleClass
+        || base.element == compiler.backend.doubleImplementation;
+  }
+
+  bool containsOnlyNum(Compiler compiler) {
+    return base.element == compiler.numClass
+        || base.element == compiler.backend.numImplementation;
+  }
+
+  bool containsOnlyNull(Compiler compiler) {
+    return base.element == compiler.nullClass
+        || base.element == compiler.backend.nullImplementation;
+  }
+
+  bool containsOnlyBool(Compiler compiler) {
+    return base.element == compiler.boolClass
+        || base.element == compiler.backend.boolImplementation;
+  }
+
+  bool containsOnlyString(Compiler compiler) {
+    return base.element == compiler.stringClass
+        || base.element == compiler.backend.stringImplementation;
+  }
+
+  bool containsOnly(ClassElement cls) {
+    return base.element == cls;
   }
 
   /**
@@ -129,7 +239,7 @@ class TypeMask {
         || identical(base.element, compiler.dynamicClass);
   }
 
-  TypeMask union(TypeMask other, Compiler compiler) {
+  TypeMask union(FlatTypeMask other, Compiler compiler) {
     if (isEmpty) {
       return isNullable ? other.nullable() : other;
     } else if (other.isEmpty) {
@@ -149,7 +259,7 @@ class TypeMask {
     }
   }
 
-  TypeMask unionSame(TypeMask other, Compiler compiler) {
+  TypeMask unionSame(FlatTypeMask other, Compiler compiler) {
     assert(base == other.base);
     // The two masks share the base type, so we must chose the least
     // constraining kind (the highest) of the two. If either one of
@@ -162,11 +272,11 @@ class TypeMask {
     } else if (other.flags == combined) {
       return other;
     } else {
-      return new TypeMask.internal(base, combined);
+      return new FlatTypeMask.internal(base, combined);
     }
   }
 
-  TypeMask unionSubclass(TypeMask other, Compiler compiler) {
+  TypeMask unionSubclass(FlatTypeMask other, Compiler compiler) {
     assert(isSubclassOf(other.base, base, compiler));
     int combined;
     if (isExact && other.isExact) {
@@ -183,22 +293,22 @@ class TypeMask {
           : other.flags | (flags & 1);
     }
     return (flags != combined)
-        ? new TypeMask.internal(base, combined)
+        ? new FlatTypeMask.internal(base, combined)
         : this;
   }
 
-  TypeMask unionSubtype(TypeMask other, Compiler compiler) {
+  TypeMask unionSubtype(FlatTypeMask other, Compiler compiler) {
     assert(isSubtypeOf(other.base, base, compiler));
     // Since the other mask is a subtype of this mask, we need the
     // resulting union to be a subtype too. If either one of the masks
     // are nullable the result should be nullable too.
     int combined = (SUBTYPE << 1) | ((flags | other.flags) & 1);
     return (flags != combined)
-        ? new TypeMask.internal(base, combined)
+        ? new FlatTypeMask.internal(base, combined)
         : this;
   }
 
-  TypeMask unionDisjoint(TypeMask other, Compiler compiler) {
+  TypeMask unionDisjoint(FlatTypeMask other, Compiler compiler) {
     assert(base != other.base);
     assert(!isSubtypeOf(base, other.base, compiler));
     assert(!isSubtypeOf(other.base, base, compiler));
@@ -253,7 +363,7 @@ class TypeMask {
                         isNullable || other.isNullable);
   }
 
-  TypeMask intersection(TypeMask other, Compiler compiler) {
+  TypeMask intersection(FlatTypeMask other, Compiler compiler) {
     if (isEmpty) {
       return other.isNullable ? this : nonNullable();
     } else if (other.isEmpty) {
@@ -273,7 +383,7 @@ class TypeMask {
     }
   }
 
-  TypeMask intersectionSame(TypeMask other, Compiler compiler) {
+  TypeMask intersectionSame(FlatTypeMask other, Compiler compiler) {
     assert(base == other.base);
     // The two masks share the base type, so we must chose the most
     // constraining kind (the lowest) of the two. Only if both masks
@@ -286,11 +396,11 @@ class TypeMask {
     } else if (other.flags == combined) {
       return other;
     } else {
-      return new TypeMask.internal(base, combined);
+      return new FlatTypeMask.internal(base, combined);
     }
   }
 
-  TypeMask intersectionSubclass(TypeMask other, Compiler compiler) {
+  TypeMask intersectionSubclass(FlatTypeMask other, Compiler compiler) {
     assert(isSubclassOf(other.base, base, compiler));
     // If this mask isn't at least a subclass mask, then the
     // intersection with the other mask is empty.
@@ -302,11 +412,11 @@ class TypeMask {
     if (other.flags == combined) {
       return other;
     } else {
-      return new TypeMask.internal(other.base, combined);
+      return new FlatTypeMask.internal(other.base, combined);
     }
   }
 
-  TypeMask intersectionSubtype(TypeMask other, Compiler compiler) {
+  TypeMask intersectionSubtype(FlatTypeMask other, Compiler compiler) {
     assert(isSubtypeOf(other.base, base, compiler));
     // If this mask isn't a subtype mask, then the intersection with
     // the other mask is empty.
@@ -318,11 +428,11 @@ class TypeMask {
     if (other.flags == combined) {
       return other;
     } else {
-      return new TypeMask.internal(other.base, combined);
+      return new FlatTypeMask.internal(other.base, combined);
     }
   }
 
-  TypeMask intersectionDisjoint(TypeMask other, Compiler compiler) {
+  TypeMask intersectionDisjoint(FlatTypeMask other, Compiler compiler) {
     assert(base != other.base);
     assert(!isSubtypeOf(base, other.base, compiler));
     assert(!isSubtypeOf(other.base, base, compiler));
@@ -358,13 +468,13 @@ class TypeMask {
     int combined = (kind << 1) | (flags & other.flags & 1);
     TypeMask result;
     for (ClassElement each in candidates) {
-      TypeMask mask = new TypeMask.internal(each.rawType, combined);
+      TypeMask mask = new FlatTypeMask.internal(each.rawType, combined);
       result = (result == null) ? mask : result.union(mask, compiler);
     }
     return result;
   }
 
-  TypeMask intersectionEmpty(TypeMask other) {
+  TypeMask intersectionEmpty(FlatTypeMask other) {
     return new TypeMask(null, EMPTY, isNullable && other.isNullable);
   }
 
@@ -491,8 +601,21 @@ class TypeMask {
            });
   }
 
+  Element locateSingleElement(Selector selector, Compiler compiler) {
+    if (isEmpty) return null;
+    Iterable<Element> targets = compiler.world.allFunctions.filter(selector);
+    if (targets.length != 1) return null;
+    Element result = targets.first;
+    ClassElement enclosing = result.getEnclosingClass();
+    // We only return the found element if it is guaranteed to be
+    // implemented on the exact receiver type. It could be found in a
+    // subclass or in an inheritance-wise unrelated class in case of
+    // subtype selectors.
+    return (base.element.isSubclassOf(enclosing)) ? result : null;
+  }
+
   bool operator ==(var other) {
-    if (other is !TypeMask) return false;
+    if (other is !FlatTypeMask) return false;
     TypeMask otherMask = other;
     return (flags == otherMask.flags) && (base == otherMask.base);
   }
@@ -526,7 +649,8 @@ class TypeMask {
     return (subtypes != null) ? subtypes.contains(xElement) : false;
   }
 
-  static Set<ClassElement> commonContainedClasses(TypeMask x, TypeMask y,
+  static Set<ClassElement> commonContainedClasses(FlatTypeMask x,
+                                                  FlatTypeMask y,
                                                   Compiler compiler) {
     Set<ClassElement> xSubset = x.containedClasses(compiler);
     if (xSubset == null) return null;

@@ -422,8 +422,6 @@ class TypedSelector extends Selector {
               selector.library,
               selector.argumentCount,
               selector.namedArguments) {
-    // Invariant: Typed selector can not be based on a malformed type.
-    assert(mask.isEmpty || !identical(mask.base.kind, TypeKind.MALFORMED_TYPE));
     assert(asUntyped.mask == null);
   }
 
@@ -436,7 +434,6 @@ class TypedSelector extends Selector {
   TypedSelector.subtype(DartType base, Selector selector)
       : this(new TypeMask.subtype(base), selector);
 
-  bool get hasExactMask => mask.isExact;
 
   bool appliesUnnamed(Element element, Compiler compiler) {
     assert(sameNameHack(element, compiler));
