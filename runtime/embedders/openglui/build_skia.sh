@@ -72,7 +72,7 @@ if [ ${DO_ANDROID} != 0 ] ; then
   if [ ${CLEAN} != 0 ] ; then
     ../android/bin/android_make -d $TARGET_ARCH -j clean
   else
-    env -i BUILDTYPE=$BUILD ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT}" ../android/bin/android_make BUILDTYPE=$BUILD -d $TARGET_ARCH -j --debug=j
+    env -i BUILDTYPE=$BUILD ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT}" PATH="${PATH}:${DART_DIR}/third_party/gsutil" ../android/bin/android_make BUILDTYPE=$BUILD -d $TARGET_ARCH -j --debug=j
   fi
 
 else
