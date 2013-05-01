@@ -12,7 +12,6 @@ import "dart:async";
 import "dart:io";
 import "dart:isolate";
 
-const HOST_IP = "127.0.0.1";
 const HOST_NAME = "localhost";
 const CERTIFICATE = "localhost_cert";
 
@@ -152,9 +151,8 @@ void test(bool hostnameInConnect,
   }
 
   Future<SecureSocket> connectClient(int port) {
-    var host = hostnameInConnect ? HOST_NAME : HOST_IP;
     if (!handshakeBeforeSecure) {
-      return Socket.connect(host, port).then((socket) {
+      return Socket.connect(HOST_NAME, port).then((socket) {
         var future;
         if (hostnameInConnect) {
           future = SecureSocket.secure(socket);
@@ -167,7 +165,7 @@ void test(bool hostnameInConnect,
         });
       });
     } else {
-      return Socket.connect(host, port).then((socket) {
+      return Socket.connect(HOST_NAME, port).then((socket) {
         return runClientHandshake(socket).then((_) {
             var future;
             if (hostnameInConnect) {

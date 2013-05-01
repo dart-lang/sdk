@@ -295,7 +295,7 @@ abstract class RawSecureSocket implements RawSocket {
     socket.readEventsEnabled = false;
     socket.writeEventsEnabled = false;
     return _RawSecureSocket.connect(
-        socket.remoteHost,
+        socket.address,
         socket.remotePort,
         certificateName,
         is_server: true,
@@ -461,7 +461,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
         _socketSubscription.onDone(_doneHandler);
       }
       _connectPending = true;
-      _secureFilter.connect(rawSocket.address.host,
+      _secureFilter.connect(address.host,
                             port,
                             is_server,
                             certificateName,
