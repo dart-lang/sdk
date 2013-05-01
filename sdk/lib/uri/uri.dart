@@ -49,7 +49,7 @@ class Uri {
                             this.query: "",
                             this.fragment: ""});
 
-  factory Uri(String uri) => parse(uri);
+  Uri(String uri) : this._fromMatch(_splitRe.firstMatch(uri));
 
   static String _emptyIfNull(String val) => val != null ? val : '';
 
