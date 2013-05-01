@@ -900,38 +900,34 @@ DebuggerStackTrace* Debugger::CollectStackTrace() {
   Code& code = Code::Handle(isolate);
   StackFrameIterator iterator(false);
   StackFrame* frame = iterator.NextFrame();
+  ActivationFrame* callee_activation = NULL;
   bool optimized_frame_found = false;
   while (frame != NULL) {
     ASSERT(frame->IsValid());
     if (frame->IsDartFrame()) {
       code = frame->LookupDartCode();
-      ActivationFrame* activation = new ActivationFrame(frame->pc(),
-                                                        frame->fp(),
-                                                        frame->sp(),
-                                                        code);
+      ActivationFrame* activation =
+          new ActivationFrame(frame->pc(), frame->fp(), frame->sp(), code);
       // If this activation frame called a closure, the function has
       // saved its context before the call.
-      if (stack_trace->Length() > 0) {
-        ActivationFrame* callee_frame =
-            stack_trace->ActivationFrameAt(stack_trace->Length() - 1);
-        if (callee_frame->function().IsClosureFunction()) {
-          ctx = activation->GetSavedCurrentContext();
-          if (FLAG_verbose_debug && ctx.IsNull()) {
-            const Function& caller = activation->function();
-            const Function& callee = callee_frame->function();
-            const Script& script =
-                Script::Handle(Class::Handle(caller.Owner()).script());
-            intptr_t line, col;
-            script.GetTokenLocation(activation->TokenPos(), &line, &col);
-            printf("CollectStackTrace error: no saved context in function "
-                "'%s' which calls closure '%s' "
-                " in line %"Pd" column %"Pd"\n",
-                caller.ToFullyQualifiedCString(),
-                callee.ToFullyQualifiedCString(),
-                line, col);
-          }
-          ASSERT(!ctx.IsNull());
+      if ((callee_activation != NULL) &&
+          (callee_activation->function().IsClosureFunction())) {
+        ctx = activation->GetSavedCurrentContext();
+        if (FLAG_verbose_debug && ctx.IsNull()) {
+          const Function& caller = activation->function();
+          const Function& callee = callee_activation->function();
+          const Script& script =
+              Script::Handle(Class::Handle(caller.Owner()).script());
+          intptr_t line, col;
+          script.GetTokenLocation(activation->TokenPos(), &line, &col);
+          OS::Print("CollectStackTrace error: no saved context in function "
+              "'%s' which calls closure '%s' "
+              " in line %"Pd" column %"Pd"\n",
+              caller.ToFullyQualifiedCString(),
+              callee.ToFullyQualifiedCString(),
+              line, col);
         }
+        ASSERT(!ctx.IsNull());
       }
       if (optimized_frame_found || code.is_optimized()) {
         // Set context to null, to avoid returning bad context variable values.
@@ -941,10 +937,12 @@ DebuggerStackTrace* Debugger::CollectStackTrace() {
         activation->SetContext(ctx);
       }
       stack_trace->AddActivation(activation);
+      callee_activation = activation;
       // Get caller's context if this function saved it on entry.
       ctx = activation->GetSavedEntryContext(ctx);
     } else if (frame->IsEntryFrame()) {
       ctx = reinterpret_cast<EntryFrame*>(frame)->SavedContext();
+      callee_activation = NULL;
     }
     frame = iterator.NextFrame();
   }
