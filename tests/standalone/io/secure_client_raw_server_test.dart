@@ -17,7 +17,6 @@ const CERTIFICATE = "localhost_cert";
 Future<RawSecureServerSocket> startEchoServer() {
   return RawSecureServerSocket.bind(HOST_NAME,
                                     0,
-                                    5,
                                     CERTIFICATE).then((server) {
     server.listen((RawSecureSocket client) {
       List<List<int>> readChunks = <List<int>>[];

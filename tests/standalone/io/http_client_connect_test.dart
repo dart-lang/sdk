@@ -13,7 +13,7 @@ import 'dart:io';
 import 'dart:isolate';
 
 void testGetEmptyRequest() {
-  HttpServer.bind().then((server) {
+  HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen((request) {
       request.pipe(request.response);
     });
@@ -30,7 +30,7 @@ void testGetEmptyRequest() {
 }
 
 void testGetDataRequest() {
-  HttpServer.bind().then((server) {
+  HttpServer.bind("127.0.0.1", 0).then((server) {
     var data = "lalala".codeUnits;
     server.listen((request) {
       request.response.add(data);
@@ -63,7 +63,7 @@ void testGetInvalidHost() {
 }
 
 void testGetServerClose() {
-  HttpServer.bind().then((server) {
+  HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen((request) {
       server.close();
     });
@@ -82,7 +82,7 @@ void testGetServerClose() {
 
 void testGetDataServerClose() {
   var completer = new Completer();
-  HttpServer.bind().then((server) {
+  HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen((request) {
       request.response.contentLength = 100;
       request.response.write("data");
@@ -110,7 +110,7 @@ void testGetDataServerClose() {
 }
 
 void testPostEmptyRequest() {
-  HttpServer.bind().then((server) {
+  HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen((request) {
       request.pipe(request.response);
     });

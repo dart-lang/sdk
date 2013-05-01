@@ -14,7 +14,6 @@ void testClientCertificate() {
   ReceivePort port = new ReceivePort();
   SecureServerSocket.bind(HOST_NAME,
                           0,
-                          5,
                           CERTIFICATE,
                           requestClientCertificate: true).then((server) {
     var clientEndFuture = SecureSocket.connect(HOST_NAME,
@@ -43,7 +42,6 @@ void testRequiredClientCertificate() {
   ReceivePort port = new ReceivePort();
   SecureServerSocket.bind(HOST_NAME,
                           0,
-                          5,
                           CERTIFICATE,
                           requireClientCertificate: true).then((server) {
     var clientEndFuture = SecureSocket.connect(HOST_NAME,
@@ -72,7 +70,6 @@ void testNoClientCertificate() {
   ReceivePort port = new ReceivePort();
   SecureServerSocket.bind(HOST_NAME,
                           0,
-                          5,
                           CERTIFICATE,
                           requestClientCertificate: true).then((server) {
     var clientEndFuture = SecureSocket.connect(HOST_NAME,
@@ -95,7 +92,6 @@ void testNoRequiredClientCertificate() {
   bool clientError = false;
   SecureServerSocket.bind(HOST_NAME,
                           0,
-                          5,
                           CERTIFICATE,
                           requireClientCertificate: true).then((server) {
     Future clientDone = SecureSocket.connect(HOST_NAME, server.port)

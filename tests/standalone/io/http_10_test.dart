@@ -16,7 +16,7 @@ import "dart:io";
 // server sets a content length but still needs to close the
 // connection as there is no keep alive.
 void testHttp10NoKeepAlive() {
-  HttpServer.bind().then((server) {
+  HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen(
         (HttpRequest request) {
           Expect.isNull(request.headers.value('content-length'));
@@ -71,7 +71,7 @@ void testHttp10NoKeepAlive() {
 // content length so it has to close the connection to mark the end of
 // the response.
 void testHttp10ServerClose() {
-  HttpServer.bind().then((server) {
+  HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen(
         (HttpRequest request) {
           Expect.isNull(request.headers.value('content-length'));
@@ -124,7 +124,7 @@ void testHttp10ServerClose() {
 // server sets a content length so the persistent connection can be
 // used.
 void testHttp10KeepAlive() {
-  HttpServer.bind().then((server) {
+  HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen(
         (HttpRequest request) {
           Expect.isNull(request.headers.value('content-length'));
@@ -180,7 +180,7 @@ void testHttp10KeepAlive() {
 // server does not set a content length so it cannot honor connection
 // keep alive.
 void testHttp10KeepAliveServerCloses() {
-  HttpServer.bind().then((server) {
+  HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen(
         (HttpRequest request) {
           Expect.isNull(request.headers.value('content-length'));

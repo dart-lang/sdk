@@ -9,7 +9,7 @@ import "dart:io";
 import "dart:uri";
 
 void testHttp10Close(bool closeRequest) {
-  HttpServer.bind().then((server) {
+  HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen((request) {
       request.response.close();
     });
@@ -29,7 +29,7 @@ void testHttp10Close(bool closeRequest) {
 }
 
 void testHttp11Close(bool closeRequest) {
-  HttpServer.bind().then((server) {
+  HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen((request) {
      request.response.close();
     });
@@ -50,7 +50,7 @@ void testHttp11Close(bool closeRequest) {
 }
 
 void testStreamResponse() {
-  HttpServer.bind().then((server) {
+  HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen((request) {
       var timer = new Timer.periodic(const Duration(milliseconds: 0), (_) {
         request.response.write(

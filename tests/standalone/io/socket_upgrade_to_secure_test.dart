@@ -209,7 +209,7 @@ void test(bool hostnameInConnect,
     });
   }
 
-  ServerSocket.bind(HOST_NAME, 0, 5).then(serverReady);
+  ServerSocket.bind(HOST_NAME, 0).then(serverReady);
 }
 
 main() {

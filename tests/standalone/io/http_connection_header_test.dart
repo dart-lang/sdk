@@ -32,7 +32,7 @@ void checkExpectedConnectionHeaders(HttpHeaders headers,
 }
 
 void test(int totalConnections, bool clientPersistentConnection) {
-  HttpServer.bind().then((server) {
+  HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen((HttpRequest request) {
       // Check expected request.
       Expect.equals(clientPersistentConnection, request.persistentConnection);

@@ -20,12 +20,25 @@ class SecureServerSocket extends Stream<SecureSocket> implements ServerSocket {
    * completes the server socket is bound to the given [address] and
    * [port] and has started listening on it.
    *
-   * If [port] has the value [:0:] (the default) an ephemeral port will
-   * be chosen by the system. The actual port used can be retrieved
-   * using the [port] getter.
+   * The [address] can either be a [String] or an
+   * [InternetAddress]. If [address] is a [String], [bind] will
+   * perform a [InternetAddress.lookup] and use the first value in the
+   * list. To listen on the loopback adapter, which will allow only
+   * incoming connections from the local host, use the value
+   * [InternetAddress.LOOPBACK_IP_V4] or
+   * [InternetAddress.LOOPBACK_IP_V6]. To allow for incoming
+   * connection from the network use either one of the values
+   * [InternetAddress.ANY_IP_V4] or [InternetAddress.ANY_IP_V6] to
+   * bind to all interfaces or the IP address of a specific interface.
    *
-   * If [backlog] has the value of [:0:] a reasonable value will be
-   * chosen by the system.
+   * If [port] has the value [:0:] an ephemeral port will be chosen by
+   * the system. The actual port used can be retrieved using the
+   * [port] getter.
+   *
+   * The optional argument [backlog] can be used to specify the listen
+   * backlog for the underlying OS listen setup. If [backlog] has the
+   * value of [:0:] (the default) a reasonable value will be chosen by
+   * the system.
    *
    * Incoming client connections are promoted to secure connections, using
    * the server certificate given by [certificateName].
@@ -47,17 +60,17 @@ class SecureServerSocket extends Stream<SecureSocket> implements ServerSocket {
    * was received, the result will be null.
    */
   static Future<SecureServerSocket> bind(
-      String address,
+      address,
       int port,
-      int backlog,
       String certificateName,
-      {bool requestClientCertificate: false,
+      {int backlog: 0,
+       bool requestClientCertificate: false,
        bool requireClientCertificate: false}) {
     return RawSecureServerSocket.bind(
         address,
         port,
-        backlog,
         certificateName,
+        backlog: backlog,
         requestClientCertificate: requestClientCertificate,
         requireClientCertificate: requireClientCertificate).then(
             (serverSocket) => new SecureServerSocket._(serverSocket));
@@ -118,12 +131,25 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
    * completes the server socket is bound to the given [address] and
    * [port] and has started listening on it.
    *
-   * If [port] has the value [:0:] (the default) an ephemeral port will
-   * be chosen by the system. The actual port used can be retrieved
-   * using the [port] getter.
+   * The [address] can either be a [String] or an
+   * [InternetAddress]. If [address] is a [String], [bind] will
+   * perform a [InternetAddress.lookup] and use the first value in the
+   * list. To listen on the loopback adapter, which will allow only
+   * incoming connections from the local host, use the value
+   * [InternetAddress.LOOPBACK_IP_V4] or
+   * [InternetAddress.LOOPBACK_IP_V6]. To allow for incoming
+   * connection from the network use either one of the values
+   * [InternetAddress.ANY_IP_V4] or [InternetAddress.ANY_IP_V6] to
+   * bind to all interfaces or the IP address of a specific interface.
    *
-   * If [backlog] has the value of [:0:] a reasonable value will be
-   * chosen by the system.
+   * If [port] has the value [:0:] an ephemeral port will be chosen by
+   * the system. The actual port used can be retrieved using the
+   * [port] getter.
+   *
+   * The optional argument [backlog] can be used to specify the listen
+   * backlog for the underlying OS listen setup. If [backlog] has the
+   * value of [:0:] (the default) a reasonable value will be chosen by
+   * the system.
    *
    * Incoming client connections are promoted to secure connections,
    * using the server certificate given by [certificateName].
@@ -146,11 +172,11 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
   static Future<RawSecureServerSocket> bind(
       String address,
       int port,
-      int backlog,
       String certificateName,
-      {bool requestClientCertificate: false,
+      {int backlog: 0,
+       bool requestClientCertificate: false,
        bool requireClientCertificate: false}) {
-    return RawServerSocket.bind(address, port, backlog)
+    return RawServerSocket.bind(address, port, backlog: backlog)
         .then((serverSocket) => new RawSecureServerSocket._(
             serverSocket,
             certificateName,

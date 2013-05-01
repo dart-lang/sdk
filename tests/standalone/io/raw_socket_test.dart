@@ -15,12 +15,12 @@ import "dart:isolate";
 void testArguments() {
   Expect.throws(() => RawServerSocket.bind("127.0.0.1", 65536));
   Expect.throws(() => RawServerSocket.bind("127.0.0.1", -1));
-  Expect.throws(() => RawServerSocket.bind("127.0.0.1", 0, -1));
+  Expect.throws(() => RawServerSocket.bind("127.0.0.1", 0, backlog: -1));
 }
 
 void testSimpleBind() {
   ReceivePort port = new ReceivePort();
-  RawServerSocket.bind().then((s) {
+  RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((s) {
     Expect.isTrue(s.port > 0);
     port.close();
   });
@@ -32,7 +32,7 @@ void testInvalidBind() {
   port.receive((_, __) { count++; if (count == 3) port.close(); });
 
   // Bind to a unknown DNS name.
-  RawServerSocket.bind("ko.faar.__hest__")
+  RawServerSocket.bind("ko.faar.__hest__", 0)
       .then((_) { Expect.fail("Failure expected"); } )
       .catchError((error) {
         Expect.isTrue(error is SocketIOException);
@@ -40,7 +40,7 @@ void testInvalidBind() {
       });
 
   // Bind to an unavaliable IP-address.
-  RawServerSocket.bind("8.8.8.8")
+  RawServerSocket.bind("8.8.8.8", 0)
       .then((_) { Expect.fail("Failure expected"); } )
       .catchError((error) {
         Expect.isTrue(error is SocketIOException);
@@ -51,9 +51,9 @@ void testInvalidBind() {
   // Either an error or a successful bind is allowed.
   // Windows platforms allow multiple binding to the same socket, with
   // unpredictable results.
-  RawServerSocket.bind("127.0.0.1")
+  RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0)
       .then((s) {
-        RawServerSocket.bind("127.0.0.1", s.port)
+          RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, s.port)
             .then((t) {
               Expect.equals('windows', Platform.operatingSystem);
               Expect.equals(s.port, t.port);
@@ -69,7 +69,7 @@ void testInvalidBind() {
 
 void testSimpleConnect() {
   ReceivePort port = new ReceivePort();
-  RawServerSocket.bind().then((server) {
+  RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
     server.listen((_) { });
     RawSocket.connect("127.0.0.1", server.port).then((_) {
       server.close();
@@ -87,7 +87,7 @@ void testCloseOneEnd(String toClose) {
       .then((_) {
         port.close();
       });
-  RawServerSocket.bind().then((server) {
+  RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
     server.listen((serverConnection) {
       serverConnection.listen((event) {
         if (toClose == "server" || event == RawSocketEvent.READ_CLOSED) {
@@ -117,7 +117,7 @@ void testCloseOneEnd(String toClose) {
 
 void testServerListenAfterConnect() {
   ReceivePort port = new ReceivePort();
-  RawServerSocket.bind().then((server) {
+  RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
     Expect.isTrue(server.port > 0);
     RawSocket.connect("127.0.0.1", server.port).then((_) {
       server.listen((_) {
@@ -153,7 +153,7 @@ void testSimpleReadWrite() {
     }
   }
 
-  RawServerSocket.bind().then((server) {
+  RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
     server.listen((client) {
       int bytesRead = 0;
       int bytesWritten = 0;
@@ -235,7 +235,7 @@ testPauseServerSocket() {
 
   ReceivePort port = new ReceivePort();
 
-  RawServerSocket.bind().then((server) {
+  RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
     Expect.isTrue(server.port > 0);
     var subscription = server.listen((_) {
       Expect.isTrue(resumed);
@@ -276,7 +276,7 @@ void testPauseSocket() {
 
   ReceivePort port = new ReceivePort();
 
-  RawServerSocket.bind().then((server) {
+  RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
     Expect.isTrue(server.port > 0);
     server.listen((client) {
       List<int> data = new List<int>.filled(messageSize, 0);

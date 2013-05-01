@@ -100,8 +100,9 @@ abstract class InternetAddress {
 }
 
 /**
- * The RawServerSocket is a server socket, providing a stream of low-level
- * [RawSocket]s.
+ * A [RawServerSocket] represents a listening socket, and provides a
+ * stream of low-level [RawSocket] objects, one for each connection
+ * made to the listening socket.
  *
  * See [RawSocket] for more info.
  */
@@ -111,13 +112,23 @@ abstract class RawServerSocket implements Stream<RawSocket> {
    * completes the server socket is bound to the given [address] and
    * [port] and has started listening on it.
    *
-   * The default value for [address] is 127.0.0.1, which will allow
-   * only incoming connections from the local host. To allow for
-   * incoming connection from the network use either the value 0.0.0.0
-   * to bind to all interfaces or the IP address of a specific
-   * interface.
+   * The [address] can either be a [String] or an
+   * [InternetAddress]. If [address] is a [String], [bind] will
+   * perform a [InternetAddress.lookup] and use the first value in the
+   * list. To listen on the loopback adapter, which will allow only
+   * incoming connections from the local host, use the value
+   * [InternetAddress.LOOPBACK_IP_V4] or
+   * [InternetAddress.LOOPBACK_IP_V6]. To allow for incoming
+   * connection from the network use either one of the values
+   * [InternetAddress.ANY_IP_V4] or [InternetAddress.ANY_IP_V6] to
+   * bind to all interfaces or the IP address of a specific interface.
    *
-   * If [port] has the value [:0:] (the default) an ephemeral port will
+   * If an IP version 6 (IPv6) address is used, both IP version 6
+   * (IPv6) and version 4 (IPv4) connections will be accepted. To
+   * restrict this to version 6 (IPv6) only, use [setOption] to set
+   * version 6 only.
+   *
+   * If [port] has the value [:0:] an ephemeral port will
    * be chosen by the system. The actual port used can be retrieved
    * using the [:port:] getter.
    *
@@ -126,9 +137,9 @@ abstract class RawServerSocket implements Stream<RawSocket> {
    * value of [:0:] (the default) a reasonable value will be chosen by
    * the system.
    */
-  external static Future<RawServerSocket> bind([address = "127.0.0.1",
-                                                int port = 0,
-                                                int backlog = 0]);
+  external static Future<RawServerSocket> bind(address,
+                                               int port,
+                                               {int backlog: 0});
 
   /**
    * Returns the port used by this socket.
@@ -143,8 +154,9 @@ abstract class RawServerSocket implements Stream<RawSocket> {
 
 
 /**
- * The [ServerSocket] is server socket, providing a stream of high-level
- * [Socket]s.
+ * A [ServerSocket] represents a listening socket, and provides a
+ * stream of [Socket] objects, one for each connection made to the
+ * listening socket.
  *
  * See [Socket] for more info.
  */
@@ -154,24 +166,34 @@ abstract class ServerSocket implements Stream<Socket> {
    * completes the server socket is bound to the given [address] and
    * [port] and has started listening on it.
    *
-   * The default value for [address] is 127.0.0.1, which will allow
-   * only incoming connections from the local host. To allow for
-   * incoming connection from the network use either the value 0.0.0.0
-   * to bind to all interfaces or the IP address of a specific
-   * interface.
+   * The [address] can either be a [String] or an
+   * [InternetAddress]. If [address] is a [String], [bind] will
+   * perform a [InternetAddress.lookup] and use the first value in the
+   * list. To listen on the loopback adapter, which will allow only
+   * incoming connections from the local host, use the value
+   * [InternetAddress.LOOPBACK_IP_V4] or
+   * [InternetAddress.LOOPBACK_IP_V6]. To allow for incoming
+   * connection from the network use either one of the values
+   * [InternetAddress.ANY_IP_V4] or [InternetAddress.ANY_IP_V6] to
+   * bind to all interfaces or the IP address of a specific interface.
    *
-   * If [port] has the value [:0:] (the default) an ephemeral port will
-   * be chosen by the system. The actual port used can be retrieved
-   * using the [port] getter.
+   * If an IP version 6 (IPv6) address is used, both IP version 6
+   * (IPv6) and version 4 (IPv4) connections will be accepted. To
+   * restrict this to version 6 (IPv6) only, use [setOption] to set
+   * version 6 only.
+   *
+   * If [port] has the value [:0:] an ephemeral port will be chosen by
+   * the system. The actual port used can be retrieved using the
+   * [port] getter.
    *
    * The optional argument [backlog] can be used to specify the listen
    * backlog for the underlying OS listen setup. If [backlog] has the
    * value of [:0:] (the default) a reasonable value will be chosen by
    * the system.
    */
-  external static Future<ServerSocket> bind([address = "127.0.0.1",
-                                             int port = 0,
-                                             int backlog = 0]);
+  external static Future<ServerSocket> bind(address,
+                                            int port,
+                                            {int backlog: 0});
 
   /**
    * Returns the port used by this socket.

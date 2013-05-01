@@ -10,7 +10,7 @@ const ANY = InternetAddressType.ANY;
 void testIPv6toIPv6() {
   InternetAddress.lookup("::0", type: ANY).then((serverAddr) {
     InternetAddress.lookup("::1", type: ANY).then((clientAddr) {
-      ServerSocket.bind(serverAddr.first).then((server) {
+        ServerSocket.bind(serverAddr.first, 0).then((server) {
         server.listen((socket) {
           socket.destroy();
           server.close();
@@ -25,7 +25,7 @@ void testIPv6toIPv6() {
 
 void testIPv4toIPv6() {
   InternetAddress.lookup("::0", type: ANY).then((serverAddr) {
-    ServerSocket.bind(serverAddr.first).then((server) {
+      ServerSocket.bind(serverAddr.first, 0).then((server) {
       server.listen((socket) {
         socket.destroy();
         server.close();
@@ -39,7 +39,7 @@ void testIPv4toIPv6() {
 
 void testIPv6toIPv4() {
   InternetAddress.lookup("::1", type: ANY).then((clientAddr) {
-    ServerSocket.bind("127.0.0.1").then((server) {
+      ServerSocket.bind("127.0.0.1", 0).then((server) {
       server.listen((socket) {
         throw "Unexpected socket";
       });
@@ -51,7 +51,7 @@ void testIPv6toIPv4() {
 }
 
 void testIPv4toIPv4() {
-  ServerSocket.bind("127.0.0.1").then((server) {
+  ServerSocket.bind("127.0.0.1", 0).then((server) {
     server.listen((socket) {
       socket.destroy();
       server.close();

@@ -6,7 +6,7 @@ import "package:expect/expect.dart";
 import "dart:io";
 
 void testHostAndPort() {
-  ServerSocket.bind().then((server) {
+  ServerSocket.bind("127.0.0.1", 0).then((server) {
 
     Socket.connect("127.0.0.1", server.port).then((clientSocket) {
       server.listen((socket) {

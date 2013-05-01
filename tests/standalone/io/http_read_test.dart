@@ -126,7 +126,7 @@ class TestServer {
   void dispatch(message, SendPort replyTo) {
     if (message.isStart) {
       try {
-        HttpServer.bind().then((server) {
+        HttpServer.bind("127.0.0.1", 0).then((server) {
           _server = server;
           _server.listen(_requestReceivedHandler);
           replyTo.send(

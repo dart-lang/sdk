@@ -13,7 +13,7 @@ import "dart:io";
 
 void test1(int totalConnections) {
   // Server which just closes immediately.
-  HttpServer.bind().then((server) {
+  HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen((HttpRequest request) {
       request.response.close();
     });
@@ -39,7 +39,7 @@ void test1(int totalConnections) {
 
 void test2(int totalConnections, int outputStreamWrites) {
   // Server which responds without waiting for request body.
-  HttpServer.bind().then((server) {
+  HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen((HttpRequest request) {
       request.response.write("!dlrow ,olleH");
       request.response.close();
@@ -83,7 +83,7 @@ void test2(int totalConnections, int outputStreamWrites) {
 
 void test3(int totalConnections) {
   // Server which responds when request body has been received.
-  HttpServer.bind().then((server) {
+  HttpServer.bind("127.0.0.1", 0).then((server) {
 
   server.listen((HttpRequest request) {
     request.listen((_) {}, onDone: () {
@@ -117,7 +117,7 @@ void test3(int totalConnections) {
 
 
 void test4() {
-  HttpServer.bind().then((server) {
+  HttpServer.bind("127.0.0.1", 0).then((server) {
 
   server.listen((var request) {
     request.listen((_) {}, onDone: () {
@@ -145,7 +145,7 @@ void test4() {
 
 
 void test5(int totalConnections) {
-  HttpServer.bind().then((server) {
+  HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen(
         (request) {
           request.listen(

@@ -339,7 +339,7 @@ class SocketCloseServer {
       _closeEvents = 0;
       _iterations = 0;
       _mode = message;
-      ServerSocket.bind().then((server) {
+      ServerSocket.bind("127.0.0.1", 0).then((server) {
         _server = server;
         _server.listen(
           (socket) {

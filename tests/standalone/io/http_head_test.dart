@@ -6,7 +6,7 @@ import "package:expect/expect.dart";
 import "dart:io";
 
 void testHEAD(int totalConnections) {
-  HttpServer.bind().then((server) {
+  HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen((request) {
         var response = request.response;
         if (request.uri.path == "/test100") {

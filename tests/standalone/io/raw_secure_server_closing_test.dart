@@ -24,7 +24,7 @@ void testCloseOneEnd(String toClose) {
       .then((_) {
         port.close();
       });
-  RawSecureServerSocket.bind(HOST_NAME, 0, 5, CERTIFICATE).then((server) {
+  RawSecureServerSocket.bind(HOST_NAME, 0, CERTIFICATE).then((server) {
     server.listen((serverConnection) {
       serverConnection.listen((event) {
         if (toClose == "server" || event == RawSocketEvent.READ_CLOSED) {
@@ -54,7 +54,7 @@ void testCloseOneEnd(String toClose) {
 
 void testCloseBothEnds() {
   ReceivePort port = new ReceivePort();
-  RawSecureServerSocket.bind(HOST_NAME, 0, 5, CERTIFICATE).then((server) {
+  RawSecureServerSocket.bind(HOST_NAME, 0, CERTIFICATE).then((server) {
     var clientEndFuture = RawSecureSocket.connect(HOST_NAME, server.port);
     server.listen((serverEnd) {
       clientEndFuture.then((clientEnd) {
@@ -76,8 +76,8 @@ testPauseServerSocket() {
 
   RawSecureServerSocket.bind(HOST_NAME,
                              0,
-                             2 * socketCount,
-                             CERTIFICATE).then((server) {
+                             CERTIFICATE,
+                             backlog: 2 * socketCount).then((server) {
     Expect.isTrue(server.port > 0);
     var subscription;
     subscription = server.listen((connection) {
@@ -116,7 +116,7 @@ testCloseServer() {
   ReceivePort port = new ReceivePort();
   List ends = [];
 
-  RawSecureServerSocket.bind(HOST_NAME, 0, 15, CERTIFICATE).then((server) {
+  RawSecureServerSocket.bind(HOST_NAME, 0, CERTIFICATE).then((server) {
     Expect.isTrue(server.port > 0);
     void checkDone() {
       if (ends.length < 2 * socketCount) return;

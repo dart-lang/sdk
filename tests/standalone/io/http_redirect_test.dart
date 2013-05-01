@@ -10,7 +10,7 @@ import "dart:uri";
 
 Future<HttpServer> setupServer() {
   Completer completer = new Completer();
-  HttpServer.bind().then((server) {
+  HttpServer.bind("127.0.0.1", 0).then((server) {
 
     var handlers = new Map<String, Function>();
     addRequestHandler(String path, void handler(HttpRequest request,

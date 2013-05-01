@@ -64,32 +64,63 @@ abstract class HttpServer implements Stream<HttpRequest> {
    * Starts listening for HTTP requests on the specified [address] and
    * [port].
    *
-   * The default value for [address] is 127.0.0.1, which will allow
-   * only incoming connections from the local host. To allow for
-   * incoming connection from the network use either the value 0.0.0.0
-   * to bind to all interfaces or the IP address of a specific
-   * interface.
+   * The [address] can either be a [String] or an
+   * [InternetAddress]. If [address] is a [String], [bind] will
+   * perform a [InternetAddress.lookup] and use the first value in the
+   * list. To listen on the loopback adapter, which will allow only
+   * incoming connections from the local host, use the value
+   * [InternetAddress.LOOPBACK_IP_V4] or
+   * [InternetAddress.LOOPBACK_IP_V6]. To allow for incoming
+   * connection from the network use either one of the values
+   * [InternetAddress.ANY_IP_V4] or [InternetAddress.ANY_IP_V6] to
+   * bind to all interfaces or the IP address of a specific interface.
    *
-   * If [port] has the value [:0:] (the default) an ephemeral port
-   * will be chosen by the system. The actual port used can be
-   * retrieved using the [:port:] getter.
+   * If an IP version 6 (IPv6) address is used, both IP version 6
+   * (IPv6) and version 4 (IPv4) connections will be accepted. To
+   * restrict this to version 6 (IPv6) only, use [HttpServer.listenOn]
+   * with a [ServerSocket] configured for IP version 6 connections
+   * only.
+   *
+   * If [port] has the value [:0:] an ephemeral port will be chosen by
+   * the system. The actual port used can be retrieved using the
+   * [port] getter.
    *
    * The optional argument [backlog] can be used to specify the listen
    * backlog for the underlying OS listen setup. If [backlog] has the
    * value of [:0:] (the default) a reasonable value will be chosen by
    * the system.
    */
-  static Future<HttpServer> bind([String address = "127.0.0.1",
-                                  int port = 0,
-                                  int backlog = 0])
+  static Future<HttpServer> bind(address,
+                                 int port,
+                                 {int backlog: 0})
       => _HttpServer.bind(address, port, backlog);
 
   /**
-   * Starts listening for HTTPS requests on the specified [address] and
-   * [port]. If a [port] of 0 is specified the server will choose an
-   * ephemeral port. The optional argument [backlog] can be used to
-   * specify the listen backlog for the underlying OS listen
-   * setup.
+   * The [address] can either be a [String] or an
+   * [InternetAddress]. If [address] is a [String], [bind] will
+   * perform a [InternetAddress.lookup] and use the first value in the
+   * list. To listen on the loopback adapter, which will allow only
+   * incoming connections from the local host, use the value
+   * [InternetAddress.LOOPBACK_IP_V4] or
+   * [InternetAddress.LOOPBACK_IP_V6]. To allow for incoming
+   * connection from the network use either one of the values
+   * [InternetAddress.ANY_IP_V4] or [InternetAddress.ANY_IP_V6] to
+   * bind to all interfaces or the IP address of a specific interface.
+   *
+   * If an IP version 6 (IPv6) address is used, both IP version 6
+   * (IPv6) and version 4 (IPv4) connections will be accepted. To
+   * restrict this to version 6 (IPv6) only, use [HttpServer.listenOn]
+   * with a [ServerSocket] configured for IP version 6 connections
+   * only.
+   *
+   * If [port] has the value [:0:] an ephemeral port will be chosen by
+   * the system. The actual port used can be retrieved using the
+   * [port] getter.
+   *
+   * The optional argument [backlog] can be used to specify the listen
+   * backlog for the underlying OS listen setup. If [backlog] has the
+   * value of [:0:] (the default) a reasonable value will be chosen by
+   * the system.
    *
    * The certificate with Distinguished Name [certificateName] is looked
    * up in the certificate database, and is used as the server certificate.
@@ -97,7 +128,7 @@ abstract class HttpServer implements Stream<HttpRequest> {
    * to authenticate with a client certificate.
    */
 
-  static Future<HttpServer> bindSecure(String address,
+  static Future<HttpServer> bindSecure(address,
                                        int port,
                                        {int backlog: 0,
                                         String certificateName,
@@ -697,7 +728,8 @@ abstract class HttpRequest implements Stream<List<int>> {
 
 
 /**
- * HTTP response to be send back to the client.
+ * An [HttpResponse] represents the headers and data to be returned to
+ * a client in response to an HTTP request.
  *
  * This object has a number of properties for setting up the HTTP
  * header of the response. When the header has been set up the methods

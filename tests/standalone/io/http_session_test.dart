@@ -37,7 +37,7 @@ Future<String> connectGetSession(
 
 void testSessions(int sessionCount) {
   var client = new HttpClient();
-  HttpServer.bind().then((server) {
+  HttpServer.bind("127.0.0.1", 0).then((server) {
     var sessions = new Set();
     server.listen((request) {
       sessions.add(request.session.id);
@@ -67,7 +67,7 @@ void testSessions(int sessionCount) {
 
 void testTimeout(int sessionCount) {
   var client = new HttpClient();
-  HttpServer.bind().then((server) {
+  HttpServer.bind("127.0.0.1", 0).then((server) {
     server.sessionTimeout = 0;
     var timeouts = [];
     server.listen((request) {
@@ -103,7 +103,7 @@ void testTimeout(int sessionCount) {
 }
 
 void testSessionsData() {
-  HttpServer.bind().then((server) {
+  HttpServer.bind("127.0.0.1", 0).then((server) {
     bool firstHit = false;
     bool secondHit = false;
     server.listen((request) {

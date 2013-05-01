@@ -14,7 +14,7 @@ import "dart:typed_data";
 
 
 void testClientAndServerCloseNoListen(int connections) {
-  HttpServer.bind().then((server) {
+  HttpServer.bind("127.0.0.1", 0).then((server) {
     int closed = 0;
     server.listen((request) {
       request.response.close();
@@ -40,7 +40,7 @@ void testClientAndServerCloseNoListen(int connections) {
 
 
 void testClientCloseServerListen(int connections) {
-  HttpServer.bind().then((server) {
+  HttpServer.bind("127.0.0.1", 0).then((server) {
     int closed = 0;
     void check() {
       closed++;
@@ -70,7 +70,7 @@ void testClientCloseServerListen(int connections) {
 
 
 void testClientCloseSendingResponse(int connections) {
-  HttpServer.bind().then((server) {
+  HttpServer.bind("127.0.0.1", 0).then((server) {
     int closed = 0;
     void check() {
       closed++;

@@ -12,7 +12,7 @@ import "dart:io";
 import "dart:isolate";
 
 void testServerDetachSocket() {
-  HttpServer.bind().then((server) {
+  HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen((request) {
       var response = request.response;
       response.contentLength = 0;
@@ -48,7 +48,7 @@ void testServerDetachSocket() {
 }
 
 void testBadServerDetachSocket() {
-  HttpServer.bind().then((server) {
+  HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen((request) {
       var response = request.response;
       response.contentLength = 0;
@@ -68,7 +68,7 @@ void testBadServerDetachSocket() {
 }
 
 void testClientDetachSocket() {
-  ServerSocket.bind().then((server) {
+  ServerSocket.bind("127.0.0.1", 0).then((server) {
     server.listen((socket) {
       socket.write("HTTP/1.1 200 OK\r\n"
                        "\r\n"

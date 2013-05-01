@@ -1634,22 +1634,22 @@ class _HttpConnection {
 // HTTP server waiting for socket connections.
 class _HttpServer extends Stream<HttpRequest> implements HttpServer {
 
-  static Future<HttpServer> bind(String host, int port, int backlog) {
-    return ServerSocket.bind(host, port, backlog).then((socket) {
+  static Future<HttpServer> bind(address, int port, int backlog) {
+    return ServerSocket.bind(address, port, backlog: backlog).then((socket) {
       return new _HttpServer._(socket, true);
     });
   }
 
-  static Future<HttpServer> bindSecure(String host,
+  static Future<HttpServer> bindSecure(address,
                                        int port,
                                        int backlog,
                                        String certificate_name,
                                        bool requestClientCertificate) {
     return SecureServerSocket.bind(
-        host,
+        address,
         port,
-        backlog,
         certificate_name,
+        backlog: backlog,
         requestClientCertificate: requestClientCertificate)
         .then((socket) {
           return new _HttpServer._(socket, true);

@@ -15,7 +15,7 @@ const SERVER_ADDRESS = "127.0.0.1";
 
 void testWriteDestroyServer() {
   int WROTE = 100000;
-  RawServerSocket.bind(SERVER_ADDRESS).then((server) {
+  RawServerSocket.bind(SERVER_ADDRESS, 0).then((server) {
     server.listen((socket) {
       socket.writeEventsEnabled = false;
 
@@ -54,7 +54,7 @@ void testWriteDestroyServer() {
 
 void testWriteDestroyClient() {
   int WROTE = 100000;
-  RawServerSocket.bind(SERVER_ADDRESS).then((server) {
+  RawServerSocket.bind(SERVER_ADDRESS, 0).then((server) {
     server.listen((socket) {
       var bytes = 0;
       socket.listen((e) {

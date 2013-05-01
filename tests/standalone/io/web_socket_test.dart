@@ -32,7 +32,7 @@ class SecurityConfiguration {
                                      certificateName: CERT_NAME)
              : HttpServer.bind(HOST_NAME,
                                0,
-                               backlog);
+                               backlog: backlog);
 
   Future<WebSocket> createClient(int port) =>
     WebSocket.connect('${secure ? "wss" : "ws"}://$HOST_NAME:$port/');

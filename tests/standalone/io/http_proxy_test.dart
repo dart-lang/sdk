@@ -23,7 +23,7 @@ class Server {
     Future f = secure
         ? HttpServer.bindSecure(
             "localhost", 0, certificateName: 'localhost_cert')
-        : HttpServer.bind("localhost");
+        : HttpServer.bind("localhost", 0);
     return f.then((s) {
       server = s;
       x.complete(this);
@@ -97,7 +97,7 @@ class ProxyServer {
 
   Future<ProxyServer> start() {
     var x = new Completer();
-    HttpServer.bind("localhost").then((s) {
+    HttpServer.bind("localhost", 0).then((s) {
       server = s;
       x.complete(this);
       server.listen((HttpRequest request) {

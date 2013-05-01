@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 patch class RawServerSocket  {
-  /* patch */ static Future<RawServerSocket> bind([address = "127.0.0.1",
-                                                   int port = 0,
-                                                   int backlog = 0]) {
+  /* patch */ static Future<RawServerSocket> bind(address,
+                                                  int port,
+                                                  {int backlog: 0}) {
     return _RawServerSocket.bind(address, port, backlog);
   }
 }
@@ -737,9 +737,9 @@ class _RawSocket extends Stream<RawSocketEvent>
 
 
 patch class ServerSocket {
-  /* patch */ static Future<ServerSocket> bind([address = "127.0.0.1",
-                                                int port = 0,
-                                                int backlog = 0]) {
+  /* patch */ static Future<ServerSocket> bind(address,
+                                               int port,
+                                               {int backlog: 0}) {
     return _ServerSocket.bind(address, port, backlog);
   }
 }

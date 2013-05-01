@@ -21,7 +21,7 @@ void testCancelResubscribeServerSocket(int socketCount, int backlog) {
 
   ReceivePort port = new ReceivePort();
 
-  RawServerSocket.bind("127.0.0.1", 0, backlog).then((server) {
+  RawServerSocket.bind("127.0.0.1", 0, backlog: backlog).then((server) {
     Expect.isTrue(server.port > 0);
 
     void checkDone() {

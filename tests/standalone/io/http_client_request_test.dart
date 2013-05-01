@@ -8,7 +8,7 @@ import "dart:isolate";
 import "dart:typed_data";
 
 void testClientRequest(void handler(request)) {
-  HttpServer.bind().then((server) {
+  HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen((request) {
       request.listen((_) {}, onDone: () {
         request.response.close();

@@ -39,7 +39,7 @@ void testListenOn() {
   }
 
   // Test two connection after each other.
-  ServerSocket.bind().then((s) {
+  ServerSocket.bind("127.0.0.1", 0).then((s) {
     socket = s;
     server = new HttpServer.listenOn(socket);
     ReceivePort serverPort = new ReceivePort();
