@@ -209,7 +209,7 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
 
   void _onData(RawSocket connection) {
     _RawSecureSocket.connect(
-        connection.remoteHost,
+        connection.address,
         connection.remotePort,
         certificateName,
         is_server: true,
