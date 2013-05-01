@@ -853,6 +853,14 @@ class Printer implements NodeVisitor {
     outLn(node.code);
   }
 
+  visitJSExpression(JSExpression node) {
+    compiler.internalError('JSPrinter should never see a JSExpression');
+  }
+
+  visitInterpolatedExpression(InterpolatedExpression node) {
+    visit(node.value);
+  }
+
   void visitComment(Comment node) {
     if (shouldCompressOutput) return;
     String comment = node.comment.trim();

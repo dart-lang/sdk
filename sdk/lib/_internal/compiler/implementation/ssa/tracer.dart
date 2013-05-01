@@ -368,7 +368,7 @@ class HInstructionStringifier implements HVisitor<String> {
   }
 
   String visitForeign(HForeign foreign) {
-    return visitGenericInvoke("Foreign", "${foreign.code}", foreign.inputs);
+    return visitGenericInvoke("Foreign", "${foreign.codeAst}", foreign.inputs);
   }
 
   String visitForeignNew(HForeignNew node) {
