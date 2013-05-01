@@ -461,7 +461,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
         _socketSubscription.onDone(_doneHandler);
       }
       _connectPending = true;
-      _secureFilter.connect(address.host,
+      _secureFilter.connect(rawSocket.address.host,
                             port,
                             is_server,
                             certificateName,
