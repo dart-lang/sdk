@@ -1011,6 +1011,26 @@ CompileType Float32x4SqrtInstr::ComputeType() const {
 }
 
 
+CompileType Float32x4ZeroArgInstr::ComputeType() const {
+  return CompileType::FromCid(kFloat32x4Cid);
+}
+
+
+CompileType Float32x4ClampInstr::ComputeType() const {
+  return CompileType::FromCid(kFloat32x4Cid);
+}
+
+
+CompileType Float32x4WithInstr::ComputeType() const {
+  return CompileType::FromCid(kFloat32x4Cid);
+}
+
+
+CompileType Float32x4ToUint32x4Instr::ComputeType() const {
+  return CompileType::FromCid(kUint32x4Cid);
+}
+
+
 CompileType MathSqrtInstr::ComputeType() const {
   return CompileType::FromCid(kDoubleCid);
 }

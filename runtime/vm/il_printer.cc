@@ -664,6 +664,32 @@ void Float32x4ScaleInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
+void Float32x4ZeroArgInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s, ", MethodRecognizer::KindToCString(op_kind()));
+  left()->PrintTo(f);
+}
+
+
+void Float32x4ClampInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("Float32x4.clamp, ");
+  left()->PrintTo(f);
+}
+
+
+void Float32x4WithInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s, ", MethodRecognizer::KindToCString(op_kind()));
+  left()->PrintTo(f);
+  f->Print(", ");
+  replacement()->PrintTo(f);
+}
+
+
+void Float32x4ToUint32x4Instr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("Float32x4.toUint32x4 ");
+  left()->PrintTo(f);
+}
+
+
 void BinaryMintOpInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s, ", Token::Str(op_kind()));
   left()->PrintTo(f);

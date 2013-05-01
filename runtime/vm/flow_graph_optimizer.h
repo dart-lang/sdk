@@ -81,6 +81,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                                const ICData& unary_ic_data);
 
   bool TryInlineInstanceMethod(InstanceCallInstr* call);
+  bool TryInlineFloat32x4Method(InstanceCallInstr* call,
+                                MethodRecognizer::Kind recognized_kind);
   void ReplaceWithInstanceOf(InstanceCallInstr* instr);
   void ReplaceWithTypeCast(InstanceCallInstr* instr);
 

@@ -1738,85 +1738,160 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
   }
 
   if ((class_ids[0] == kFloat32x4Cid) && (ic_data.NumberOfChecks() == 1)) {
-    switch (recognized_kind) {
-      case MethodRecognizer::kFloat32x4Equal:
-      case MethodRecognizer::kFloat32x4GreaterThan:
-      case MethodRecognizer::kFloat32x4GreaterThanOrEqual:
-      case MethodRecognizer::kFloat32x4LessThan:
-      case MethodRecognizer::kFloat32x4LessThanOrEqual:
-      case MethodRecognizer::kFloat32x4NotEqual: {
-        Definition* left = call->ArgumentAt(0);
-        Definition* right = call->ArgumentAt(1);
-        // Type check left.
-        AddCheckClass(left,
-                      ICData::ZoneHandle(
-                          call->ic_data()->AsUnaryClassChecksForArgNr(0)),
-                      call->deopt_id(),
-                      call->env(),
-                      call);
-        // Replace call.
-        Float32x4ComparisonInstr* cmp =
-            new Float32x4ComparisonInstr(recognized_kind, new Value(left),
-                                         new Value(right), call);
-        ReplaceCall(call, cmp);
-        return true;
-      }
-      case MethodRecognizer::kFloat32x4Min:
-      case MethodRecognizer::kFloat32x4Max: {
-        Definition* left = call->ArgumentAt(0);
-        Definition* right = call->ArgumentAt(1);
-        // Type check left.
-        AddCheckClass(left,
-                      ICData::ZoneHandle(
-                          call->ic_data()->AsUnaryClassChecksForArgNr(0)),
-                      call->deopt_id(),
-                      call->env(),
-                      call);
-        Float32x4MinMaxInstr* minmax =
-            new Float32x4MinMaxInstr(recognized_kind, new Value(left),
-                                     new Value(right), call);
-        ReplaceCall(call, minmax);
-        return true;
-      }
-      case MethodRecognizer::kFloat32x4Scale: {
-        Definition* left = call->ArgumentAt(0);
-        Definition* right = call->ArgumentAt(1);
-        // Type check left.
-        AddCheckClass(left,
-                      ICData::ZoneHandle(
-                          call->ic_data()->AsUnaryClassChecksForArgNr(0)),
-                      call->deopt_id(),
-                      call->env(),
-                      call);
-        // Left and right values are swapped when handed to the instruction,
-        // this is done so that the double value is loaded into the output
-        // register and can be destroyed.
-        Float32x4ScaleInstr* scale =
-            new Float32x4ScaleInstr(recognized_kind, new Value(right),
-                                    new Value(left), call);
-        ReplaceCall(call, scale);
-        return true;
-      }
-      case MethodRecognizer::kFloat32x4Sqrt:
-      case MethodRecognizer::kFloat32x4ReciprocalSqrt:
-      case MethodRecognizer::kFloat32x4Reciprocal: {
-        Definition* left = call->ArgumentAt(0);
-        AddCheckClass(left,
-              ICData::ZoneHandle(
-                  call->ic_data()->AsUnaryClassChecksForArgNr(0)),
-              call->deopt_id(),
-              call->env(),
-              call);
-        Float32x4SqrtInstr* sqrt =
-            new Float32x4SqrtInstr(recognized_kind, new Value(left), call);
-        ReplaceCall(call, sqrt);
-        return true;
-      }
-      default:
-        return false;
-    }
+    return TryInlineFloat32x4Method(call, recognized_kind);
   }
   return false;
+}
+
+
+bool FlowGraphOptimizer::TryInlineFloat32x4Method(
+    InstanceCallInstr* call,
+    MethodRecognizer::Kind recognized_kind) {
+  ASSERT(call->HasICData());
+  switch (recognized_kind) {
+    case MethodRecognizer::kFloat32x4Equal:
+    case MethodRecognizer::kFloat32x4GreaterThan:
+    case MethodRecognizer::kFloat32x4GreaterThanOrEqual:
+    case MethodRecognizer::kFloat32x4LessThan:
+    case MethodRecognizer::kFloat32x4LessThanOrEqual:
+    case MethodRecognizer::kFloat32x4NotEqual: {
+      Definition* left = call->ArgumentAt(0);
+      Definition* right = call->ArgumentAt(1);
+      // Type check left.
+      AddCheckClass(left,
+                    ICData::ZoneHandle(
+                        call->ic_data()->AsUnaryClassChecksForArgNr(0)),
+                    call->deopt_id(),
+                    call->env(),
+                    call);
+      // Replace call.
+      Float32x4ComparisonInstr* cmp =
+          new Float32x4ComparisonInstr(recognized_kind, new Value(left),
+                                       new Value(right), call);
+      ReplaceCall(call, cmp);
+      return true;
+    }
+    case MethodRecognizer::kFloat32x4Min:
+    case MethodRecognizer::kFloat32x4Max: {
+      Definition* left = call->ArgumentAt(0);
+      Definition* right = call->ArgumentAt(1);
+      // Type check left.
+      AddCheckClass(left,
+                    ICData::ZoneHandle(
+                        call->ic_data()->AsUnaryClassChecksForArgNr(0)),
+                    call->deopt_id(),
+                    call->env(),
+                    call);
+      Float32x4MinMaxInstr* minmax =
+          new Float32x4MinMaxInstr(recognized_kind, new Value(left),
+                                   new Value(right), call);
+      ReplaceCall(call, minmax);
+      return true;
+    }
+    case MethodRecognizer::kFloat32x4Scale: {
+      Definition* left = call->ArgumentAt(0);
+      Definition* right = call->ArgumentAt(1);
+      // Type check left.
+      AddCheckClass(left,
+                    ICData::ZoneHandle(
+                        call->ic_data()->AsUnaryClassChecksForArgNr(0)),
+                    call->deopt_id(),
+                    call->env(),
+                    call);
+      // Left and right values are swapped when handed to the instruction,
+      // this is done so that the double value is loaded into the output
+      // register and can be destroyed.
+      Float32x4ScaleInstr* scale =
+          new Float32x4ScaleInstr(recognized_kind, new Value(right),
+                                  new Value(left), call);
+      ReplaceCall(call, scale);
+      return true;
+    }
+    case MethodRecognizer::kFloat32x4Sqrt:
+    case MethodRecognizer::kFloat32x4ReciprocalSqrt:
+    case MethodRecognizer::kFloat32x4Reciprocal: {
+      Definition* left = call->ArgumentAt(0);
+      AddCheckClass(left,
+                    ICData::ZoneHandle(
+                        call->ic_data()->AsUnaryClassChecksForArgNr(0)),
+                    call->deopt_id(),
+                    call->env(),
+                    call);
+      Float32x4SqrtInstr* sqrt =
+          new Float32x4SqrtInstr(recognized_kind, new Value(left), call);
+      ReplaceCall(call, sqrt);
+      return true;
+    }
+    case MethodRecognizer::kFloat32x4WithX:
+    case MethodRecognizer::kFloat32x4WithY:
+    case MethodRecognizer::kFloat32x4WithZ:
+    case MethodRecognizer::kFloat32x4WithW: {
+      Definition* left = call->ArgumentAt(0);
+      Definition* right = call->ArgumentAt(1);
+      // Type check left.
+      AddCheckClass(left,
+                    ICData::ZoneHandle(
+                        call->ic_data()->AsUnaryClassChecksForArgNr(0)),
+                    call->deopt_id(),
+                    call->env(),
+                    call);
+      Float32x4WithInstr* with = new Float32x4WithInstr(recognized_kind,
+                                                        new Value(left),
+                                                        new Value(right),
+                                                        call);
+      ReplaceCall(call, with);
+      return true;
+    }
+    case MethodRecognizer::kFloat32x4Absolute:
+    case MethodRecognizer::kFloat32x4Negate: {
+      Definition* left = call->ArgumentAt(0);
+      // Type check left.
+      AddCheckClass(left,
+                    ICData::ZoneHandle(
+                        call->ic_data()->AsUnaryClassChecksForArgNr(0)),
+                    call->deopt_id(),
+                    call->env(),
+                    call);
+      Float32x4ZeroArgInstr* zeroArg =
+          new Float32x4ZeroArgInstr(recognized_kind, new Value(left), call);
+      ReplaceCall(call, zeroArg);
+      return true;
+    }
+    case MethodRecognizer::kFloat32x4Clamp: {
+      Definition* left = call->ArgumentAt(0);
+      Definition* lower = call->ArgumentAt(1);
+      Definition* upper = call->ArgumentAt(2);
+      // Type check left.
+      AddCheckClass(left,
+                    ICData::ZoneHandle(
+                        call->ic_data()->AsUnaryClassChecksForArgNr(0)),
+                    call->deopt_id(),
+                    call->env(),
+                    call);
+      Float32x4ClampInstr* clamp = new Float32x4ClampInstr(new Value(left),
+                                                           new Value(lower),
+                                                           new Value(upper),
+                                                           call);
+      ReplaceCall(call, clamp);
+      return true;
+    }
+    case MethodRecognizer::kFloat32x4ToUint32x4: {
+      Definition* left = call->ArgumentAt(0);
+      // Type check left.
+      AddCheckClass(left,
+                    ICData::ZoneHandle(
+                        call->ic_data()->AsUnaryClassChecksForArgNr(0)),
+                    call->deopt_id(),
+                    call->env(),
+                    call);
+      Float32x4ToUint32x4Instr* cast =
+          new Float32x4ToUint32x4Instr(new Value(left), call);
+      ReplaceCall(call, cast);
+      return true;
+    }
+    default:
+      return false;
+  }
 }
 
 
@@ -4933,6 +5008,27 @@ void ConstantPropagator::VisitFloat32x4Scale(Float32x4ScaleInstr* instr) {
 
 
 void ConstantPropagator::VisitFloat32x4Sqrt(Float32x4SqrtInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitFloat32x4ZeroArg(Float32x4ZeroArgInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitFloat32x4Clamp(Float32x4ClampInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitFloat32x4With(Float32x4WithInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitFloat32x4ToUint32x4(
+    Float32x4ToUint32x4Instr* instr) {
   SetValue(instr, non_constant_);
 }
 

@@ -3166,6 +3166,139 @@ void Float32x4SqrtInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* Float32x4ZeroArgInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_out(Location::SameAsFirstInput());
+  return summary;
+}
+
+
+void Float32x4ZeroArgInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  XmmRegister left = locs()->in(0).fpu_reg();
+
+  ASSERT(locs()->out().fpu_reg() == left);
+  switch (op_kind()) {
+    case MethodRecognizer::kFloat32x4Negate:
+      __ negateps(left);
+      break;
+    case MethodRecognizer::kFloat32x4Absolute:
+      __ absps(left);
+      break;
+    default: UNREACHABLE();
+  }
+}
+
+
+LocationSummary* Float32x4ClampInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 3;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_in(1, Location::RequiresFpuRegister());
+  summary->set_in(2, Location::RequiresFpuRegister());
+  summary->set_out(Location::SameAsFirstInput());
+  return summary;
+}
+
+
+void Float32x4ClampInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  XmmRegister left = locs()->in(0).fpu_reg();
+  XmmRegister lower = locs()->in(1).fpu_reg();
+  XmmRegister upper = locs()->in(2).fpu_reg();
+  ASSERT(locs()->out().fpu_reg() == left);
+  __ minps(left, upper);
+  __ maxps(left, lower);
+}
+
+
+LocationSummary* Float32x4WithInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_in(1, Location::RequiresFpuRegister());
+  summary->set_out(Location::SameAsFirstInput());
+  return summary;
+}
+
+void Float32x4WithInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  XmmRegister replacement = locs()->in(0).fpu_reg();
+  XmmRegister value = locs()->in(1).fpu_reg();
+
+  ASSERT(locs()->out().fpu_reg() == replacement);
+
+  switch (op_kind()) {
+    case MethodRecognizer::kFloat32x4WithX:
+      __ cvtsd2ss(replacement, replacement);
+      __ subl(ESP, Immediate(16));
+      // Move value to stack.
+      __ movups(Address(ESP, -16), value);
+      // Write over X value.
+      __ movss(Address(ESP, -16), replacement);
+      // Move updated value into output register.
+      __ movups(replacement, Address(ESP, -16));
+      __ addl(ESP, Immediate(16));
+      break;
+    case MethodRecognizer::kFloat32x4WithY:
+      __ cvtsd2ss(replacement, replacement);
+      __ subl(ESP, Immediate(16));
+      // Move value to stack.
+      __ movups(Address(ESP, -16), value);
+      // Write over Y value.
+      __ movss(Address(ESP, -12), replacement);
+      // Move updated value into output register.
+      __ movups(replacement, Address(ESP, -16));
+      __ addl(ESP, Immediate(16));
+      break;
+    case MethodRecognizer::kFloat32x4WithZ:
+      __ cvtsd2ss(replacement, replacement);
+      __ subl(ESP, Immediate(16));
+      // Move value to stack.
+      __ movups(Address(ESP, -16), value);
+      // Write over Z value.
+      __ movss(Address(ESP, -8), replacement);
+      // Move updated value into output register.
+      __ movups(replacement, Address(ESP, -16));
+      __ addl(ESP, Immediate(16));
+      break;
+    case MethodRecognizer::kFloat32x4WithW:
+      __ cvtsd2ss(replacement, replacement);
+      __ subl(ESP, Immediate(16));
+      // Move value to stack.
+      __ movups(Address(ESP, -16), value);
+      // Write over W value.
+      __ movss(Address(ESP, -4), replacement);
+      // Move updated value into output register.
+      __ movups(replacement, Address(ESP, -16));
+      __ addl(ESP, Immediate(16));
+      break;
+    default: UNREACHABLE();
+  }
+}
+
+
+LocationSummary* Float32x4ToUint32x4Instr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_out(Location::SameAsFirstInput());
+  return summary;
+}
+
+
+void Float32x4ToUint32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  // NOP.
+}
+
+
 LocationSummary* MathSqrtInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
