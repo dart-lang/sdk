@@ -5,10 +5,11 @@
 import 'package:expect/expect.dart';
 import 'mock_compiler.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/js/js.dart' as jsAst;
-import '../../../sdk/lib/_internal/compiler/implementation/js/js.dart' show js;
+import '../../../sdk/lib/_internal/compiler/implementation/js/js.dart'
+    show MiniJsParser;
 
 void testExpression(String expression, [String expect = ""]) {
-  jsAst.Node node = js(expression);
+  jsAst.Node node = new MiniJsParser(expression).expression();
   MockCompiler compiler = new MockCompiler();
   String jsText =
       jsAst.prettyPrint(node,
@@ -26,7 +27,7 @@ void testError(String expression, [String expect = ""]) {
     Expect.isTrue(exception.toString().contains(expect));
     return true;
   }
-  Expect.throws(() => js(expression), doCheck);
+  Expect.throws(() => new MiniJsParser(expression).expression(), doCheck);
 }
     
 

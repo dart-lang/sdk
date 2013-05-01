@@ -853,6 +853,10 @@ class Printer implements NodeVisitor {
     outLn(node.code);
   }
 
+  visitInterpolatedExpression(InterpolatedExpression node) {
+    visit(node.value);
+  }
+
   void visitComment(Comment node) {
     if (shouldCompressOutput) return;
     String comment = node.comment.trim();
