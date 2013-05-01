@@ -35,6 +35,7 @@ void chainToCompleter(Future future, Completer completer) {
 /// Prepends each line in [text] with [prefix]. If [firstPrefix] is passed, the
 /// first line is prefixed with that instead.
 String prefixLines(String text, {String prefix: '| ', String firstPrefix}) {
+  if (text == null) return '';
   var lines = text.split('\n');
   if (firstPrefix == null) {
     return lines.map((line) => '$prefix$line').join('\n');
