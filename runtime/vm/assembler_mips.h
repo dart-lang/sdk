@@ -171,6 +171,9 @@ class Assembler : public ValueObject {
   // a stub frame.
   void EnterStubFrame(bool uses_pp = false);
   void LeaveStubFrame(bool uses_pp = false);
+  // A separate macro for when a Ret immediately follows, so that we can use
+  // the branch delay slot.
+  void LeaveStubFrameAndReturn(Register ra = RA, bool uses_pp = false);
 
   // Instruction pattern from entrypoint is used in dart frame prologs
   // to set up the frame and save a PC which can be used to figure out the

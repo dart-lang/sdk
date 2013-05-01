@@ -91,14 +91,19 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateCallSubtypeTestStub(
   const SubtypeTestCache& type_test_cache =
       SubtypeTestCache::ZoneHandle(SubtypeTestCache::New());
   __ LoadObject(A2, type_test_cache);
+  intptr_t null = reinterpret_cast<intptr_t>(Object::null());
+  uint16_t null_lo = Utils::Low16Bits(null);
+  uint16_t null_hi = Utils::High16Bits(null);
   if (test_kind == kTestTypeOneArg) {
     ASSERT(type_arguments_reg == kNoRegister);
-    __ LoadImmediate(A1, reinterpret_cast<intptr_t>(Object::null()));
+    __ lui(A1, Immediate(null_hi));
     __ BranchLink(&StubCode::Subtype1TestCacheLabel());
+    __ delay_slot()->ori(A1, A1, Immediate(null_lo));
   } else if (test_kind == kTestTypeTwoArgs) {
     ASSERT(type_arguments_reg == kNoRegister);
-    __ LoadImmediate(A1, reinterpret_cast<intptr_t>(Object::null()));
+    __ lui(A1, Immediate(null_hi));
     __ BranchLink(&StubCode::Subtype2TestCacheLabel());
+    __ delay_slot()->ori(A1, A1, Immediate(null_lo));
   } else if (test_kind == kTestTypeThreeArgs) {
     ASSERT(type_arguments_reg == A1);
     __ BranchLink(&StubCode::Subtype3TestCacheLabel());
@@ -469,10 +474,11 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
   // Preserve instantiator and its type arguments.
   __ addiu(SP, SP, Immediate(-2 * kWordSize));
   __ sw(A2, Address(SP, 1 * kWordSize));
-  __ sw(A1, Address(SP, 0 * kWordSize));
+
   // A null object is always assignable and is returned as result.
   Label is_assignable, runtime_call;
   __ BranchEqual(A0, reinterpret_cast<int32_t>(Object::null()), &is_assignable);
+  __ delay_slot()->sw(A1, Address(SP, 0 * kWordSize));
 
   if (!FLAG_eliminate_type_checks) {
     // If type checks are not eliminated during the graph building then
@@ -626,20 +632,17 @@ void FlowGraphCompiler::CopyParameters() {
   __ AddImmediate(T0, FP, (kFirstLocalSlotIndex + 1) * kWordSize);
   __ sll(T2, T2, 1);  // T2 is a Smi.
 
-  Label loop, loop_condition;
-  __ b(&loop_condition);
+  Label loop, loop_exit;
+  __ blez(T2, &loop_exit);
   __ delay_slot()->subu(T0, T0, T2);
-  // We do not use the final allocation index of the variable here, i.e.
-  // scope->VariableAt(i)->index(), because captured variables still need
-  // to be copied to the context that is not yet allocated.
   __ Bind(&loop);
   __ addu(T4, T1, T2);
-  __ addu(T5, T0, T2);
-  __ lw(T3, Address(T4));
-  __ sw(T3, Address(T5));
-  __ Bind(&loop_condition);
+  __ lw(T3, Address(T4, -kWordSize));
   __ addiu(T2, T2, Immediate(-kWordSize));
-  __ bgez(T2, &loop);
+  __ addu(T5, T0, T2);
+  __ bgtz(T2, &loop);
+  __ delay_slot()->sw(T3, Address(T5));
+  __ Bind(&loop_exit);
 
   // Copy or initialize optional named arguments.
   Label all_arguments_processed;
@@ -792,23 +795,21 @@ void FlowGraphCompiler::CopyParameters() {
   // implicitly final, since garbage collecting the unmodified value is not
   // an issue anymore.
 
+  __ LoadImmediate(T0, reinterpret_cast<intptr_t>(Object::null()));
+
   // S4 : arguments descriptor array.
   __ lw(T2, FieldAddress(S4, ArgumentsDescriptor::count_offset()));
   __ sll(T2, T2, 1);  // T2 is a Smi.
 
-  __ LoadImmediate(T0, reinterpret_cast<intptr_t>(Object::null()));
-  Label null_args_loop, null_args_loop_condition;
-
-  __ b(&null_args_loop_condition);
+  Label null_args_loop, null_args_loop_exit;
+  __ blez(T2, &null_args_loop_exit);
   __ delay_slot()->addiu(T1, FP, Immediate(kLastParamSlotIndex * kWordSize));
-
   __ Bind(&null_args_loop);
-  __ addu(T3, T1, T2);
-  __ sw(T0, Address(T3));
-
-  __ Bind(&null_args_loop_condition);
   __ addiu(T2, T2, Immediate(-kWordSize));
-  __ bgez(T2, &null_args_loop);
+  __ addu(T3, T1, T2);
+  __ bgtz(T2, &null_args_loop);
+  __ delay_slot()->sw(T0, Address(T3));
+  __ Bind(&null_args_loop_exit);
 }
 
 
@@ -830,8 +831,12 @@ void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
   __ lw(T0, Address(SP, 1 * kWordSize));  // Receiver.
   __ lw(T1, Address(SP, 0 * kWordSize));  // Value.
   __ StoreIntoObject(T0, FieldAddress(T0, offset), T1);
-  __ LoadImmediate(V0, reinterpret_cast<intptr_t>(Object::null()));
+  intptr_t null = reinterpret_cast<intptr_t>(Object::null());
+  uint16_t null_lo = Utils::Low16Bits(null);
+  uint16_t null_hi = Utils::High16Bits(null);
+  __ lui(V0, Immediate(null_hi));
   __ Ret();
+  __ delay_slot()->ori(V0, V0, Immediate(null_lo));
 }
 
 
@@ -1205,8 +1210,8 @@ void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
     __ addiu(SP, SP, Immediate(-2 * kWordSize));
     __ sw(reg, Address(SP, 1 * kWordSize));
     __ LoadObject(TMP1, obj);
-    __ sw(TMP1, Address(SP, 0 * kWordSize));
     __ BranchLink(&StubCode::IdenticalWithNumberCheckLabel());
+    __ delay_slot()->sw(TMP1, Address(SP, 0 * kWordSize));
     __ lw(reg, Address(SP, 1 * kWordSize));  // Restore 'reg'.
     __ addiu(SP, SP, Immediate(2 * kWordSize));  // Discard constant.
     return;
@@ -1222,8 +1227,8 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
   if (needs_number_check) {
     __ addiu(SP, SP, Immediate(-2 * kWordSize));
     __ sw(left, Address(SP, 1 * kWordSize));
-    __ sw(right, Address(SP, 0 * kWordSize));
     __ BranchLink(&StubCode::IdenticalWithNumberCheckLabel());
+    __ delay_slot()->sw(right, Address(SP, 0 * kWordSize));
     __ TraceSimMsg("EqualityRegRegCompare return");
     // Stub returns result in CMPRES. If it is 0, then left and right are equal.
     __ lw(right, Address(SP, 0 * kWordSize));

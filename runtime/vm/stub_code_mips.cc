@@ -81,10 +81,11 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ addiu(A2, A2, Immediate(kWordSize));  // Set argv in NativeArguments.
 
   ASSERT(retval_offset == 3 * kWordSize);
-  __ addiu(A3, A2, Immediate(kWordSize));  // Retval is next to 1st argument.
 
   // Call runtime or redirection via simulator.
   __ jalr(S5);
+  // Retval is next to 1st argument.
+  __ delay_slot()->addiu(A3, A2, Immediate(kWordSize));
   __ TraceSimMsg("CallToRuntimeStub return");
 
   // Reset exit frame information in Isolate structure.
@@ -175,10 +176,9 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ sw(A1, Address(SP, 1 * kWordSize));
   __ sw(A0, Address(SP, 0 * kWordSize));
 
-  __ mov(A0, SP);  // Pass the pointer to the NativeArguments.
-
   // Call native function or redirection via simulator.
   __ jalr(T5);
+  __ delay_slot()->mov(A0, SP);  // Pass the pointer to the NativeArguments.
   __ TraceSimMsg("CallNativeCFunctionStub return");
 
   // Reset exit frame information in Isolate structure.
@@ -222,12 +222,11 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
   __ lw(S4, Address(SP, 1 * kWordSize));
   __ addiu(SP, SP, Immediate(2 * kWordSize));
 
-  // Remove the stub frame as we are about to jump to the dart function.
-  __ LeaveStubFrame();
-
   __ lw(T0, FieldAddress(T0, Code::instructions_offset()));
   __ AddImmediate(T0, Instructions::HeaderSize() - kHeapObjectTag);
-  __ jr(T0);
+
+  // Remove the stub frame as we are about to jump to the dart function.
+  __ LeaveStubFrameAndReturn(T0);
 }
 
 
@@ -248,12 +247,13 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
   __ lw(T0, Address(SP, 0 * kWordSize));
   __ lw(S4, Address(SP, 1 * kWordSize));
   __ addiu(SP, SP, Immediate(2 * kWordSize));
-  // Remove the stub frame.
-  __ LeaveStubFrame();
+
   // Jump to the dart function.
   __ lw(T0, FieldAddress(T0, Code::instructions_offset()));
   __ AddImmediate(T0, T0, Instructions::HeaderSize() - kHeapObjectTag);
-  __ jr(T0);
+
+  // Remove the stub frame.
+  __ LeaveStubFrameAndReturn(T0);
 }
 
 
@@ -274,19 +274,21 @@ static void PushArgumentsArray(Assembler* assembler) {
   __ sll(T1, A1, 1);
   __ addu(T1, FP, T1);
   __ AddImmediate(T1, (kLastParamSlotIndex - 1) * kWordSize);
-  __ AddImmediate(T2, V0, Array::data_offset() - kHeapObjectTag);
   // T1: address of first argument on stack.
   // T2: address of first argument in array.
-  Label loop, loop_condition;
-  __ b(&loop_condition);
+
+  Label loop, loop_exit;
+  __ blez(A1, &loop_exit);
+  __ delay_slot()->addiu(T2, V0,
+                         Immediate(Array::data_offset() - kHeapObjectTag));
   __ Bind(&loop);
   __ lw(TMP, Address(T1));
-  __ sw(TMP, Address(T2));
-  __ AddImmediate(T1, -kWordSize);
-  __ AddImmediate(T2, kWordSize);
-  __ Bind(&loop_condition);
-  __ AddImmediate(A1, -Smi::RawValue(1));  // A1 is Smi.
-  __ BranchSignedGreaterEqual(A1, ZR, &loop);
+  __ addiu(A1, A1, Immediate(-Smi::RawValue(1)));
+  __ addiu(T1, T1, Immediate(-kWordSize));
+  __ addiu(T2, T2, Immediate(kWordSize));
+  __ bgez(A1, &loop);
+  __ delay_slot()->sw(TMP, Address(T2, -kWordSize));
+  __ Bind(&loop_exit);
 }
 
 
@@ -333,11 +335,11 @@ void StubCode::GenerateInstanceFunctionLookupStub(Assembler* assembler) {
   // TOS + 8: last argument of caller.
   // ....
   __ CallRuntime(kInstanceFunctionLookupRuntimeEntry);
-  // Remove arguments.
-  __ lw(V0, Address(SP, 4 * kWordSize));
-  __ addiu(SP, SP, Immediate(5 * kWordSize));  // Get result into V0.
-  __ LeaveStubFrame();
-  __ Ret();
+
+  __ lw(V0, Address(SP, 4 * kWordSize));  // Get result into V0.
+  __ addiu(SP, SP, Immediate(5 * kWordSize));    // Remove arguments.
+
+  __ LeaveStubFrameAndReturn();
 }
 
 
@@ -452,8 +454,8 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   if (preserve_result) {
     __ Pop(V0);  // Restore result.
   }
-  __ LeaveStubFrame();
-  __ Ret();
+
+  __ LeaveStubFrameAndReturn();
 }
 
 
@@ -570,17 +572,21 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     // T2: new object end address.
     // A1: Array length as Smi.
     __ AddImmediate(T3, V0, Array::data_offset() - kHeapObjectTag);
-    // R1: iterator which initially points to the start of the variable
+    // T3: iterator which initially points to the start of the variable
     // data area to be initialized.
-    __ LoadImmediate(TMP1, reinterpret_cast<intptr_t>(Object::null()));
-    Label loop, test;
-    __ b(&test);
+
+    Label loop, loop_exit;
+    intptr_t null = reinterpret_cast<intptr_t>(Object::null());
+    uint16_t null_lo = Utils::Low16Bits(null);
+    uint16_t null_hi = Utils::High16Bits(null);
+    __ lui(TMP1, Immediate(null_hi));
+    __ BranchUnsignedGreaterEqual(T3, T2, &loop_exit);
+    __ delay_slot()->ori(TMP1, TMP1, Immediate(null_lo));
     __ Bind(&loop);
-    // TODO(cshapiro): StoreIntoObjectNoBarrier
-    __ sw(TMP1, Address(T3, 0));
-    __ AddImmediate(T3, kWordSize);
-    __ Bind(&test);
+    __ addiu(T3, T3, Immediate(kWordSize));
     __ bne(T3, T2, &loop);
+    __ delay_slot()->sw(TMP1, Address(T3, -kWordSize));
+    __ Bind(&loop_exit);
 
     // Done allocating and initializing the array.
     // V0: new object.
@@ -609,8 +615,8 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   __ lw(T3, Address(SP, 0 * kWordSize));
   __ addiu(SP, SP, Immediate(3 * kWordSize));
   __ mov(V0, TMP1);
-  __ LeaveStubFrame();
-  __ Ret();
+
+  __ LeaveStubFrameAndReturn();
 }
 
 
@@ -725,8 +731,7 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   __ addiu(SP, SP, Immediate(3 * kWordSize));  // Remove arguments.
 
   // Remove the stub frame as we are about to return.
-  __ LeaveStubFrame();
-  __ Ret();
+  __ LeaveStubFrameAndReturn();
 }
 
 
@@ -795,12 +800,13 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Compute address of 'arguments array' data area into A2.
   __ lw(A2, Address(A2, VMHandles::kOffsetOfRawPtrInHandle));
-  __ AddImmediate(A2, Array::data_offset() - kHeapObjectTag);
 
   // Set up arguments for the Dart call.
   Label push_arguments;
   Label done_push_arguments;
   __ beq(T1, ZR, &done_push_arguments);  // check if there are arguments.
+  __ delay_slot()->addiu(A2, A2,
+                         Immediate(Array::data_offset() - kHeapObjectTag));
   __ mov(A1, ZR);
   __ Bind(&push_arguments);
   __ lw(A3, Address(A2));
@@ -843,8 +849,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ addiu(SP, SP, Immediate((3 + kAbiPreservedCpuRegCount) * kWordSize));
 
   // Restore the frame pointer and return.
-  __ LeaveStubFrame();
-  __ Ret();
+  __ LeaveStubFrameAndReturn();
 }
 
 
@@ -927,26 +932,24 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // T2: isolate, not an object.
     __ sw(T2, FieldAddress(V0, Context::isolate_offset()));
 
-    // Setup the parent field.
-    // V0: new object.
-    // T1: number of context variables.
     __ LoadImmediate(T2, reinterpret_cast<intptr_t>(Object::null()));
-    __ sw(T2, FieldAddress(V0, Context::parent_offset()));
 
     // Initialize the context variables.
     // V0: new object.
     // T1: number of context variables.
     // T2: raw null.
-    Label loop, loop_test;
+    Label loop, loop_exit;
+    __ blez(T1, &loop_exit);
+    // Setup the parent field.
+    __ delay_slot()->sw(T2, FieldAddress(V0, Context::parent_offset()));
     __ AddImmediate(T3, V0, Context::variable_offset(0) - kHeapObjectTag);
-    __ b(&loop_test);
-    __ delay_slot()->sll(T1, T1, 2);
+    __ sll(T1, T1, 2);
     __ Bind(&loop);
-    __ addu(TMP1, T3, T1);
-    __ sw(T2, Address(TMP1));
-    __ Bind(&loop_test);
     __ addiu(T1, T1, Immediate(-kWordSize));
-    __ bne(T1, ZR, &loop);  // Loop if R1 not zero.
+    __ addu(TMP1, T3, T1);
+    __ bgtz(T1, &loop);
+    __ delay_slot()->sw(T2, Address(TMP1));
+    __ Bind(&loop_exit);
 
     // Done allocating and initializing the context.
     // V0: new object.
@@ -969,8 +972,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
 
   // V0: new object
   // Restore the frame pointer.
-  __ LeaveStubFrame();
-  __ Ret();
+  __ LeaveStubFrameAndReturn();
 }
 
 
@@ -1152,14 +1154,13 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
       // T3: next object start.
       // T4: next word to be initialized.
       // T1: new object type arguments (if is_cls_parameterized).
-      Label init_loop;
-      Label done;
-      __ Bind(&init_loop);
-      __ BranchUnsignedGreaterEqual(T4, T3, &done);  // Done if T4 >= T3.
-      __ sw(T0, Address(T4));
-      __ AddImmediate(T4, kWordSize);
-      __ b(&init_loop);
-      __ Bind(&done);
+      Label loop, loop_exit;
+      __ BranchUnsignedGreaterEqual(T4, T3, &loop_exit);
+      __ Bind(&loop);
+      __ addiu(T4, T4, Immediate(kWordSize));
+      __ bne(T4, T3, &loop);
+      __ delay_slot()->sw(T0, Address(T4, -kWordSize));
+      __ Bind(&loop_exit);
     }
     if (is_cls_parameterized) {
       // R1: new object type arguments.
@@ -1203,9 +1204,8 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   __ lw(V0, Address(SP, 3 * kWordSize));
   __ addiu(SP, SP, Immediate(4 * kWordSize));  // Pop arguments.
   // V0: new object
-  // Restore the frame pointer.
-  __ LeaveStubFrame(true);
-  __ Ret();
+  // Restore the frame pointer and return.
+  __ LeaveStubFrameAndReturn(RA, true);
 }
 
 
@@ -1320,8 +1320,8 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
     // Done allocating and initializing the instance.
     // V0: new object.
     __ addiu(V0, T2, Immediate(kHeapObjectTag));
-    __ LeaveStubFrame(true);
-    __ Ret();
+
+    __ LeaveStubFrameAndReturn(RA, true);
 
     __ Bind(&slow_case);
   }
@@ -1367,8 +1367,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
 
   // V0: new object
   // Restore the frame pointer.
-  __ LeaveStubFrame(true);
-  __ Ret();
+  __ LeaveStubFrameAndReturn(RA, true);
 }
 
 
@@ -1611,6 +1610,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   __ lw(T3, FieldAddress(T3, Code::instructions_offset()));
   __ AddImmediate(T3, Instructions::HeaderSize() - kHeapObjectTag);
   __ jr(T3);
+  __ delay_slot()->addiu(T3, T3,
+      Immediate(Instructions::HeaderSize() - kHeapObjectTag));
 
   // Instance in T3, return its class-id in T3 as Smi.
   __ Bind(&get_class_id_as_smi);
@@ -1618,13 +1619,13 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   // Test if Smi -> load Smi class for comparison.
   __ andi(TMP1, T3, Immediate(kSmiTagMask));
   __ bne(TMP1, ZR, &not_smi);
-  __ LoadImmediate(T3, Smi::RawValue(kSmiCid));
   __ jr(RA);
+  __ delay_slot()->addiu(T3, ZR, Immediate(Smi::RawValue(kSmiCid)));
 
   __ Bind(&not_smi);
   __ LoadClassId(T3, T3);
-  __ SmiTag(T3);
   __ jr(RA);
+  __ delay_slot()->SmiTag(T3);
 }
 
 
@@ -1825,12 +1826,17 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     }
   }
   __ Bind(&next_iteration);
-  __ AddImmediate(T2, kWordSize * SubtypeTestCache::kTestEntryLength);
   __ b(&loop);
+  __ delay_slot()->addiu(T2, T2,
+      Immediate(kWordSize * SubtypeTestCache::kTestEntryLength));
   // Fall through to not found.
   __ Bind(&not_found);
-  __ LoadImmediate(V0, reinterpret_cast<intptr_t>(Object::null()));
+  intptr_t null = reinterpret_cast<intptr_t>(Object::null());
+  uint16_t null_lo = Utils::Low16Bits(null);
+  uint16_t null_hi = Utils::High16Bits(null);
+  __ lui(V0, Immediate(null_hi));
   __ Ret();
+  __ delay_slot()->ori(V0, V0, Immediate(null_lo));
 
   __ Bind(&found);
   __ Ret();
@@ -1893,8 +1899,8 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   __ mov(V0, A3);  // Exception object.
   __ lw(V1, Address(SP, 0));  // StackTrace object.
   __ mov(FP, A2);  // Frame_pointer.
-  __ mov(SP, A1);  // Stack pointer.
   __ jr(A0);  // Jump to the exception handler code.
+  __ delay_slot()->mov(SP, A1);  // Stack pointer.
 }
 
 
@@ -1939,8 +1945,14 @@ void StubCode::GenerateEqualityWithNullArgStub(Assembler* assembler) {
   __ beq(T2, T3, &found);  // Class id match?
   __ Bind(&no_match);
   // Next check group.
-  __ AddImmediate(T6, kWordSize * ICData::TestEntryLengthFor(kNumArgsTested));
-  __ BranchNotEqual(T3, Smi::RawValue(kIllegalCid), &loop);  // Done?
+  intptr_t entry_bytes = kWordSize * ICData::TestEntryLengthFor(kNumArgsTested);
+  if (Utils::IsInt(kImmBits, entry_bytes)) {
+    __ BranchNotEqual(T3, Smi::RawValue(kIllegalCid), &loop);  // Done?
+    __ delay_slot()->addiu(T6, T6, Immediate(entry_bytes));
+  } else {
+    __ AddImmediate(T6, entry_bytes);
+    __ BranchNotEqual(T3, Smi::RawValue(kIllegalCid), &loop);  // Done?
+  }
 
   Label update_ic_data;
   __ b(&update_ic_data);
@@ -1963,8 +1975,7 @@ void StubCode::GenerateEqualityWithNullArgStub(Assembler* assembler) {
   __ subu(CMPRES, A0, A1);
   __ movz(V0, TMP1, CMPRES);
   __ movn(V0, TMP2, CMPRES);
-  __ LeaveStubFrame();
-  __ Ret();
+  __ LeaveStubFrameAndReturn();
 
   __ Bind(&get_class_id_as_smi);
   // Test if Smi -> load Smi class for comparison.
@@ -2014,8 +2025,7 @@ void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
 
   __ lw(T0, FieldAddress(T0, Code::instructions_offset()));
   __ AddImmediate(T0, Instructions::HeaderSize() - kHeapObjectTag);
-  __ LeaveStubFrame();
-  __ jr(T0);
+  __ LeaveStubFrameAndReturn(T0);
   __ break_(0);
 }
 

@@ -517,7 +517,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     __ cmp(R1, ShifterOperand(R7));
     __ str(IP, Address(R1, 0), CC);  // Store if unsigned lower.
     __ AddImmediate(R1, kWordSize, CC);
-    __ b(&loop, CS);
+    __ b(&loop, CC);  // Loop until R1 == R7.
 
     // Done allocating and initializing the array.
     // R0: new object.

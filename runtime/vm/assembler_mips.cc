@@ -371,6 +371,24 @@ void Assembler::LeaveStubFrame(bool uses_pp) {
 }
 
 
+void Assembler::LeaveStubFrameAndReturn(Register ra, bool uses_pp) {
+  if (uses_pp) {
+    addiu(SP, FP, Immediate(-1 * kWordSize));
+    lw(RA, Address(SP, 2 * kWordSize));
+    lw(FP, Address(SP, 1 * kWordSize));
+    lw(PP, Address(SP, 0 * kWordSize));
+    jr(ra);
+    delay_slot()->addiu(SP, SP, Immediate(4 * kWordSize));
+  } else {
+    mov(SP, FP);
+    lw(RA, Address(SP, 1 * kWordSize));
+    lw(FP, Address(SP, 0 * kWordSize));
+    jr(ra);
+    delay_slot()->addiu(SP, SP, Immediate(3 * kWordSize));
+  }
+}
+
+
 void Assembler::CallRuntime(const RuntimeEntry& entry) {
   entry.Call(this);
 }
