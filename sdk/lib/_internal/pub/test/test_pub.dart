@@ -96,7 +96,7 @@ void serve([List<d.Descriptor> contents]) {
 
   schedule(() {
     return _closeServer().then((_) {
-      return SafeHttpServer.bind("127.0.0.1", 0).then((server) {
+      return SafeHttpServer.bind("localhost", 0).then((server) {
         _server = server;
         server.listen((request) {
           var response = request.response;
