@@ -18,37 +18,43 @@ abstract class HType {
       return isNullable ? HType.NULL : HType.CONFLICTING;
     }
 
-    if (mask.containsOnlyInt(compiler)) {
+    Element element = mask.base.element;
+    JavaScriptBackend backend = compiler.backend;
+    if (element == compiler.intClass || element == backend.jsIntClass) {
       return isNullable ? HType.INTEGER_OR_NULL : HType.INTEGER;
-    } else if (mask.containsOnlyDouble(compiler)) {
-      return isNullable ? HType.DOUBLE_OR_NULL : HType.DOUBLE;
-    } else if (mask.containsOnlyNum(compiler)) {
+    } else if (element == compiler.numClass
+               || element == backend.jsNumberClass) {
       return isNullable ? HType.NUMBER_OR_NULL : HType.NUMBER;
-    } else if (mask.containsOnlyString(compiler)) {
+    } else if (element == compiler.doubleClass
+               || element == backend.jsDoubleClass) {
+      return isNullable ? HType.DOUBLE_OR_NULL : HType.DOUBLE;
+    } else if (element == compiler.stringClass
+               || element == backend.jsStringClass) {
       return isNullable ? HType.STRING_OR_NULL : HType.STRING;
-    } else if (mask.containsOnlyBool(compiler)) {
+    } else if (element == compiler.boolClass
+               || element == backend.jsBoolClass) {
       return isNullable ? HType.BOOLEAN_OR_NULL : HType.BOOLEAN;
-    } else if (mask.containsOnlyNull(compiler)) {
+    } else if (element == compiler.nullClass
+               || element == backend.jsNullClass) {
       return HType.NULL;
     }
 
     // TODO(kasperl): A lot of the code in the system currently
     // expects the top type to be 'unknown'. I'll rework this.
-    if (mask.containsAll(compiler)) {
+    if (element == compiler.objectClass || element == compiler.dynamicClass) {
       return isNullable ? HType.UNKNOWN : HType.NON_NULL;
     }
 
-    JavaScriptBackend backend = compiler.backend;
     if (!isNullable) {
-      if (mask.containsOnly(backend.jsIndexableClass)) {
+      if (element == backend.jsIndexableClass) {
         return HType.INDEXABLE_PRIMITIVE;
-      } else if (mask.containsOnly(backend.jsArrayClass)) {
+      } else if (element == backend.jsArrayClass) {
         return HType.READABLE_ARRAY;
-      } else if (mask.containsOnly(backend.jsMutableArrayClass)) {
+      } else if (element == backend.jsMutableArrayClass) {
         return HType.MUTABLE_ARRAY;
-      } else if (mask.containsOnly(backend.jsFixedArrayClass)) {
+      } else if (element == backend.jsFixedArrayClass) {
         return HType.FIXED_ARRAY;
-      } else if (mask.containsOnly(backend.jsExtendableArrayClass)) {
+      } else if (element == backend.jsExtendableArrayClass) {
         return HType.EXTENDABLE_ARRAY;
       }
     }

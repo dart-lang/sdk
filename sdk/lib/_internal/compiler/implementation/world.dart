@@ -148,10 +148,20 @@ class World {
   }
 
   Element locateSingleElement(Selector selector) {
-    ti.TypeMask mask = selector.mask == null
-        ? new ti.TypeMask.subclass(compiler.objectClass.rawType)
-        : selector.mask;
-    return mask.locateSingleElement(selector, compiler);
+    Iterable<Element> targets = allFunctions.filter(selector);
+    if (targets.length != 1) return null;
+    Element result = targets.first;
+    ClassElement enclosing = result.getEnclosingClass();
+    // TODO(kasperl): Move this code to the type mask.
+    ti.TypeMask mask = selector.mask;
+    ClassElement receiverTypeElement = (mask == null || mask.base == null)
+        ? compiler.objectClass
+        : mask.base.element;
+    // We only return the found element if it is guaranteed to be
+    // implemented on the exact receiver type. It could be found in a
+    // subclass or in an inheritance-wise unrelated class in case of
+    // subtype selectors.
+    return (receiverTypeElement.isSubclassOf(enclosing)) ? result : null;
   }
 
   bool hasSingleMatch(Selector selector) {
