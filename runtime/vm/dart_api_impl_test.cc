@@ -5653,7 +5653,7 @@ TEST_CASE(LoadSource) {
   const char* kLibrary1Chars =
       "library library1_name;";
   const char* kSourceChars =
-      "// Something innocuous";
+      "part of library1_name;\n// Something innocuous";
   const char* kBadSourceChars =
       ")";
   Dart_Handle error = Dart_Error("incoming error");
@@ -5739,6 +5739,7 @@ TEST_CASE(LoadSource_LateLoad) {
       "  foo() => 'foo';\n"
       "}\n";
   const char* kSourceChars =
+      "part of library1_name;\n"
       "class NewClass extends OldClass{\n"
       "  bar() => 'bar';\n"
       "}\n";
@@ -5781,6 +5782,7 @@ TEST_CASE(LoadPatch) {
   const char* kLibrary1Chars =
       "library library1_name;";
   const char* kSourceChars =
+      "part of library1_name;\n"
       "external int foo();";
   const char* kPatchChars =
       "patch int foo() => 42;";
@@ -7515,6 +7517,7 @@ TEST_CASE(ExternalizeConstantStrings) {
 
 TEST_CASE(LazyLoadDeoptimizes) {
   const char* kLoadFirst =
+      "library L;\n"
       "start(a) {\n"
       "  var obj = (a == 1) ? createB() : new A();\n"
       "  for (int i = 0; i < 4000; i++) {\n"
@@ -7531,6 +7534,7 @@ TEST_CASE(LazyLoadDeoptimizes) {
       "  goo() => 2;\n"
       "}\n";
   const char* kLoadSecond =
+      "part of L;"
       "class B extends A {\n"
       "  goo() => 1;\n"
       "}\n";

@@ -287,7 +287,7 @@ CODEGEN_TEST_GENERATE(StaticCallCodegen, test) {
   String& source = String::Handle(String::New(kScriptChars));
   Script& script = Script::Handle(Script::New(url,
                                               source,
-                                              RawScript::kSourceTag));
+                                              RawScript::kScriptTag));
   Library& lib = MakeTestLibrary("TestLib");
   EXPECT(CompilerTest::TestCompileScript(lib, script));
   EXPECT(ClassFinalizer::FinalizePendingClasses());
@@ -334,7 +334,7 @@ CODEGEN_TEST_GENERATE(InstanceCallCodegen, test) {
   String& source = String::Handle(String::New(kScriptChars));
   Script& script = Script::Handle(Script::New(url,
                                               source,
-                                              RawScript::kSourceTag));
+                                              RawScript::kScriptTag));
   Library& lib = MakeTestLibrary("TestLib");
   EXPECT(CompilerTest::TestCompileScript(lib, script));
   EXPECT(ClassFinalizer::FinalizePendingClasses());
@@ -521,7 +521,7 @@ CODEGEN_TEST_GENERATE(AllocateNewObjectCodegen, test) {
   String& source = String::Handle(String::New(kScriptChars));
   Script& script = Script::Handle(Script::New(url,
                                               source,
-                                              RawScript::kSourceTag));
+                                              RawScript::kScriptTag));
   Library& lib = MakeTestLibrary("TestLib");
   EXPECT(CompilerTest::TestCompileScript(lib, script));
   EXPECT(ClassFinalizer::FinalizePendingClasses());
