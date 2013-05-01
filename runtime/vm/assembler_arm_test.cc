@@ -789,9 +789,7 @@ ASSEMBLER_TEST_RUN(Rsb, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Ldrh, assembler) {
-  Label Test1;
-  Label Test2;
-  Label Done;
+  Label Test1, Test2, Test3, Done;
 
   __ mov(R1, ShifterOperand(0x11));
   __ mov(R2, ShifterOperand(SP));
@@ -803,14 +801,24 @@ ASSEMBLER_TEST_GENERATE(Ldrh, assembler) {
   __ b(&Done);
   __ Bind(&Test1);
 
-  __ mov(R0, ShifterOperand(0));
+  __ mov(R0, ShifterOperand(0x22));
   __ strh(R0, Address(R2, (-kWordSize * 30)));
   __ ldrh(R1, Address(R2, (-kWordSize * 30)));
-  __ cmp(R1, ShifterOperand(0));
+  __ cmp(R1, ShifterOperand(0x22));
   __ b(&Test2, EQ);
   __ mov(R0, ShifterOperand(1));
   __ b(&Done);
   __ Bind(&Test2);
+
+  __ mov(R0, ShifterOperand(0));
+  __ AddImmediate(R2, (-kWordSize * 30));
+  __ strh(R0, Address(R2));
+  __ ldrh(R1, Address(R2));
+  __ cmp(R1, ShifterOperand(0));
+  __ b(&Test3, EQ);
+  __ mov(R0, ShifterOperand(1));
+  __ b(&Done);
+  __ Bind(&Test3);
 
   __ mov(R0, ShifterOperand(0));
   __ Bind(&Done);

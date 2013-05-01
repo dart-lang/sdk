@@ -216,7 +216,8 @@ class Address : public ValueObject {
  public:
   enum OffsetKind {
     Immediate,
-    ShiftedRegister,
+    IndexRegister,
+    ScaledIndexRegister,
   };
 
   // Memory operand addressing mode
@@ -255,7 +256,11 @@ class Address : public ValueObject {
           Shift shift = LSL, uint32_t shift_imm = 0, Mode am = Offset) {
     ShifterOperand so(rm, shift, shift_imm);
 
-    kind_ = ShiftedRegister;
+    if ((shift == LSL) && (shift_imm == 0)) {
+      kind_ = IndexRegister;
+    } else {
+      kind_ = ScaledIndexRegister;
+    }
     encoding_ = so.encoding() | am | (static_cast<uint32_t>(rn) << kRnShift);
   }
 

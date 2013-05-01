@@ -100,10 +100,14 @@ enum {
 
 
 uint32_t Address::encoding3() const {
-  ASSERT(kind_ == Immediate);
-  uint32_t offset = encoding_ & kOffset12Mask;
-  ASSERT(offset < 256);
-  return (encoding_ & ~kOffset12Mask) | ((offset & 0xf0) << 4) | (offset & 0xf);
+  if (kind_ == Immediate) {
+    uint32_t offset = encoding_ & kOffset12Mask;
+    ASSERT(offset < 256);
+    return (encoding_ & ~kOffset12Mask) | B22 |
+           ((offset & 0xf0) << 4) | (offset & 0xf);
+  }
+  ASSERT(kind_ == IndexRegister);
+  return encoding_;
 }
 
 
@@ -192,7 +196,6 @@ void Assembler::EmitMemOpAddressMode3(Condition cond,
   ASSERT(rd != kNoRegister);
   ASSERT(cond != kNoCondition);
   int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) |
-                     B22  |
                      mode |
                      (static_cast<int32_t>(rd) << kRdShift) |
                      ad.encoding3();
