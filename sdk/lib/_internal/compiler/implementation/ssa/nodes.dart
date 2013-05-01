@@ -1531,11 +1531,11 @@ class HLocalSet extends HFieldAccess {
 }
 
 class HForeign extends HInstruction {
-  final js.Node codeAst;
+  final DartString code;
   final bool isStatement;
   final bool isSideEffectFree;
 
-  HForeign(this.codeAst,
+  HForeign(this.code,
            HType type,
            List<HInstruction> inputs,
            {this.isStatement: false,
@@ -1548,8 +1548,8 @@ class HForeign extends HInstruction {
     instructionType = type;
   }
 
-  HForeign.statement(codeAst, List<HInstruction> inputs)
-      : this(codeAst, HType.UNKNOWN, inputs, isStatement: true);
+  HForeign.statement(code, List<HInstruction> inputs)
+      : this(code, HType.UNKNOWN, inputs, isStatement: true);
 
   accept(HVisitor visitor) => visitor.visitForeign(this);
 
@@ -1560,7 +1560,7 @@ class HForeign extends HInstruction {
 class HForeignNew extends HForeign {
   ClassElement element;
   HForeignNew(this.element, HType type, List<HInstruction> inputs)
-      : super(null, type, inputs);
+      : super(const LiteralDartString("new"), type, inputs);
   accept(HVisitor visitor) => visitor.visitForeignNew(this);
 }
 

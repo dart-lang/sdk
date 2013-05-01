@@ -1703,27 +1703,33 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitForeign(HForeign node) {
+    String code = node.code.slowToString();
     List<HInstruction> inputs = node.inputs;
     if (node.isJsStatement()) {
       if (!inputs.isEmpty) {
-        compiler.internalError("foreign statement with inputs",
+        compiler.internalError("foreign statement with inputs: $code",
                                instruction: node);
       }
-      pushStatement(node.codeAst, node);
+      pushStatement(new js.LiteralStatement(code), node);
     } else {
+      List<js.Expression> interpolatedExpressions;
       if (!inputs.isEmpty) {
-        List<js.Expression> interpolatedExpressions = <js.Expression>[];
+        interpolatedExpressions = <js.Expression>[];
         for (int i = 0; i < inputs.length; i++) {
           use(inputs[i]);
           interpolatedExpressions.add(pop());
         }
-        var visitor = new js.UninterpolateJSExpression(interpolatedExpressions);
-        push(visitor.visit(node.codeAst), node);
+      }
+      // We can parse simple JS with the mini parser.  At the moment we can't
+      // handle JSON literals and function literals, both of which contain "{".
+      if (!code.contains("{") && !code.startsWith("throw ")) {
+        js.Expression codeAst = js.js(code, interpolatedExpressions);
+        push(codeAst, node);
       } else {
-        push(node.codeAst, node);
+        push(new js.LiteralExpression.withData(code, interpolatedExpressions),
+             node);
       }
     }
-
     registerForeignType(node.instructionType);
     // TODO(sra): Tell world.nativeEnqueuer about the types created here.
   }

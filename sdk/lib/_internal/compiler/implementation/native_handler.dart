@@ -15,7 +15,6 @@ import 'scanner/scannerlib.dart';
 import 'ssa/ssa.dart';
 import 'tree/tree.dart';
 import 'util/util.dart';
-import 'js/js.dart' as js;
 
 
 /// This class is a temporary work-around until we get a more powerful DartType.
@@ -536,9 +535,9 @@ class NativeBehavior {
   /// [DartType]s or [SpecialType]s instantiated by the native element.
   final List typesInstantiated = [];
 
-  // If this behavior is for a JS expression, [codeAst] contains the
-  // parsed tree.
-  js.Expression codeAst;
+  static final NativeBehavior NONE = new NativeBehavior();
+
+  //NativeBehavior();
 
   static NativeBehavior ofJsCall(Send jsCall, Compiler compiler, resolver) {
     // The first argument of a JS-call is a string encoding various attributes
@@ -553,38 +552,33 @@ class NativeBehavior {
       compiler.cancel("JS expression has no type", node: jsCall);
     }
 
-    var code = argNodes.tail.head;
-    if (code is !StringNode || code.isInterpolation) {
-      compiler.cancel('JS code must be a string literal', node: code);
-    }
-
-    LiteralString specLiteral = argNodes.head.asLiteralString();
-    if (specLiteral == null) {
-      // TODO(sra): We could accept a type identifier? e.g. JS(bool, '1<2').  It
-      // is not very satisfactory because it does not work for void, dynamic.
-      compiler.cancel("Unexpected JS first argument", node: firstArg);
-    }
-
-    var behavior = new NativeBehavior();
-    behavior.codeAst = js.js(code.dartString.slowToString());
-
-    String specString = specLiteral.dartString.slowToString();
-    // Various things that are not in fact types.
-    if (specString == 'void') return behavior;
-    if (specString == '' || specString == 'var') {
-      behavior.typesReturned.add(compiler.objectClass.computeType(compiler));
-      behavior.typesReturned.add(compiler.nullClass.computeType(compiler));
+    var firstArg = argNodes.head;
+    LiteralString specLiteral = firstArg.asLiteralString();
+    if (specLiteral != null) {
+      String specString = specLiteral.dartString.slowToString();
+      // Various things that are not in fact types.
+      if (specString == 'void') return NativeBehavior.NONE;
+      if (specString == '' || specString == 'var') {
+        var behavior = new NativeBehavior();
+        behavior.typesReturned.add(compiler.objectClass.computeType(compiler));
+        behavior.typesReturned.add(compiler.nullClass.computeType(compiler));
+        return behavior;
+      }
+      var behavior = new NativeBehavior();
+      for (final typeString in specString.split('|')) {
+        var type = _parseType(typeString, compiler,
+            (name) => resolver.resolveTypeFromString(name),
+            jsCall);
+        behavior.typesInstantiated.add(type);
+        behavior.typesReturned.add(type);
+      }
       return behavior;
     }
-    for (final typeString in specString.split('|')) {
-      var type = _parseType(typeString, compiler,
-          (name) => resolver.resolveTypeFromString(name),
-          jsCall);
-      behavior.typesInstantiated.add(type);
-      behavior.typesReturned.add(type);
-    }
 
-    return behavior;
+    // TODO(sra): We could accept a type identifier? e.g. JS(bool, '1<2').  It
+    // is not very satisfactory because it does not work for void, dynamic.
+
+    compiler.cancel("Unexpected JS first argument", node: firstArg);
   }
 
   static NativeBehavior ofMethod(FunctionElement method, Compiler compiler) {
@@ -917,7 +911,8 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
                                      element: element);
     }
 
-    builder.push(new HForeign(js.js(nativeMethodCall), HType.UNKNOWN, inputs));
+    DartString jsCode = new DartString.literal(nativeMethodCall);
+    builder.push(new HForeign(jsCode, HType.UNKNOWN, inputs));
     builder.close(new HReturn(builder.pop())).addSuccessor(builder.graph.exit);
   } else {
     if (parameters.parameterCount != 0) {
@@ -926,8 +921,6 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
           node: nativeBody);
     }
     LiteralString jsCode = nativeBody.asLiteralString();
-    builder.push(new HForeign.statement(
-        new js.LiteralStatement(jsCode.dartString.slowToString()),
-        <HInstruction>[]));
+    builder.push(new HForeign.statement(jsCode.dartString, <HInstruction>[]));
   }
 }

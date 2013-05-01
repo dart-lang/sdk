@@ -162,7 +162,7 @@ class LocalsHandler {
   HInstruction createBox() {
     // TODO(floitsch): Clean up this hack. Should we create a box-object by
     // just creating an empty object literal?
-    HInstruction box = new HForeign(new js.ObjectInitializer([]),
+    HInstruction box = new HForeign(const LiteralDartString("{}"),
                                     HType.UNKNOWN,
                                     <HInstruction>[]);
     builder.add(box);
@@ -2689,7 +2689,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                          HType type,
                          List<HInstruction> inputs,
                          {bool isSideEffectFree: false}) {
-    return new HForeign(js.js(code),
+    return new HForeign(new LiteralDartString(code),
                         type,
                         inputs,
                         isSideEffectFree: isSideEffectFree);
@@ -2992,15 +2992,23 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       compiler.cancel('At least two arguments expected',
                       node: node.argumentsNode);
     }
-    native.NativeBehavior nativeBehavior =
-        compiler.enqueuer.resolution.nativeEnqueuer.getNativeBehaviorOf(node);
-
     List<HInstruction> inputs = <HInstruction>[];
+    Node type = link.head;
+    Node code = link.tail.head;
     addGenericSendArgumentsToList(link.tail.tail, inputs);
 
+    native.NativeBehavior nativeBehavior =
+        compiler.enqueuer.resolution.nativeEnqueuer.getNativeBehaviorOf(node);
     HType ssaType = new HType.fromNativeBehavior(nativeBehavior, compiler);
-    push(new HForeign(nativeBehavior.codeAst, ssaType, inputs));
-    return;
+    if (code is StringNode) {
+      StringNode codeString = code;
+      if (!codeString.isInterpolation) {
+        // codeString may not be an interpolation, but may be a juxtaposition.
+        push(new HForeign(codeString.dartString, ssaType, inputs));
+        return;
+      }
+    }
+    compiler.cancel('JS code must be a string literal', node: code);
   }
 
   void handleForeignJsCurrentIsolate(Send node) {
@@ -3011,9 +3019,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     if (!compiler.hasIsolateSupport()) {
       // If the isolate library is not used, we just generate code
-      // to fetch the current isolate.
+      // to fetch the Leg's current isolate.
       String name = backend.namer.CURRENT_ISOLATE;
-      push(new HForeign(new js.LiteralString(name),
+      push(new HForeign(new DartString.literal(name),
                         HType.UNKNOWN,
                         <HInstruction>[]));
     } else {
@@ -3086,7 +3094,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     List<HInstruction> inputs = <HInstruction>[pop()];
     String invocationName = backend.namer.invocationName(
         new Selector.callClosure(params.requiredParameterCount));
-    push(new HForeign(js.js('#.$invocationName'),
+    push(new HForeign(new DartString.literal('#.$invocationName'),
                       HType.UNKNOWN,
                       inputs));
   }
@@ -3098,7 +3106,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     visit(node.arguments.head);
     String isolateName = backend.namer.CURRENT_ISOLATE;
-    push(new HForeign(js.js("$isolateName = #"),
+    push(new HForeign(new DartString.literal("$isolateName = #"),
                       HType.UNKNOWN,
                       <HInstruction>[pop()]));
   }
@@ -3109,7 +3117,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                       node: node.argumentsNode);
     }
     String constructorName = backend.namer.isolateName;
-    push(new HForeign(js.js("new $constructorName()"),
+    push(new HForeign(new DartString.literal("new $constructorName()"),
                       HType.UNKNOWN,
                       <HInstruction>[]));
   }
@@ -3119,7 +3127,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       compiler.cancel('Too many arguments', node: node.argumentsNode);
     }
     String jsClassReference = backend.namer.isolateAccess(compiler.objectClass);
-    push(new HForeign(new js.LiteralString(jsClassReference),
+    push(new HForeign(new DartString.literal(jsClassReference),
                       HType.UNKNOWN,
                       <HInstruction>[]));
   }

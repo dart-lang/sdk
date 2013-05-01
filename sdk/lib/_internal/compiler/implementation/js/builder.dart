@@ -14,30 +14,15 @@ class JsBuilder {
   // You can provide an expression or a list of expressions, which will be
   // interpolated into the source at the '#' signs.
   Expression call(String source, [var expression]) {
-    // We can parse simple JS with the mini parser.  At the moment we can't
-    // handle JSON literals and function literals, both of which contain "{".
-    if (source.contains("{") || source.startsWith("throw ")) {
-      assert(expression == null);
-      return new LiteralExpression(source);
-    }
-
-    var result = new MiniJsParser(source).expression();
-    if (expression == null) return result;
-
     List<Expression> expressions;
-    if (expression is List) {
-      expressions = expression;
-    } else {
-      expressions = <Expression>[expression];
+    if (expression != null) {
+      if (expression is List) {
+        expressions = expression;
+      } else {
+        expressions = <Expression>[expression];
+      }
     }
-    if (expressions.length != result.interpolatedExpressions.length) {
-      throw "Unmatched number of interpolated expressions";
-    }
-    for (int i = 0; i < expressions.length; i++) {
-      result.interpolatedExpressions[i].value = expressions[i];
-    }
-
-    return result.value;
+    return new MiniJsParser(source, expressions).expression();
   }
 
   LiteralString string(String value) => new LiteralString('"$value"');
@@ -196,11 +181,12 @@ class MiniJsParserError {
 /// allowed in string and regexp literals because the machinery for checking
 /// their correctness is rather involved.
 class MiniJsParser {
-  MiniJsParser(this.src)
+  MiniJsParser(this.src, this.interpolatedValues)
       : lastCategory = NONE,
         lastToken = null,
         lastPosition = 0,
-        position = 0 {
+        position = 0,
+        valuesUsed = 0 {
     getToken();
   }
 
@@ -208,9 +194,9 @@ class MiniJsParser {
   String lastToken;
   int lastPosition;
   int position;
+  int valuesUsed;
   String src;
-  final List<InterpolatedExpression> interpolatedValues =
-      <InterpolatedExpression>[];
+  List<Expression> interpolatedValues;
 
   static const NONE = -1;
   static const ALPHA = 0;
@@ -473,9 +459,11 @@ class MiniJsParser {
       Expression expression = new RegExpLiteral(regexp + flags);
       return expression;
     } else if (acceptCategory(HASH)) {
-      InterpolatedExpression expression = new InterpolatedExpression(null);
-      interpolatedValues.add(expression);
-      return expression;
+      if (interpolatedValues == null ||
+          valuesUsed >= interpolatedValues.length) {
+        error("Too few values for '#'s");
+      }
+      return interpolatedValues[valuesUsed++];
     } else {
       error("Expected primary expression");
     }
@@ -650,141 +638,9 @@ class MiniJsParser {
     if (lastCategory != NONE || position != src.length) {
       error("Unparsed junk: ${categoryToString(lastCategory)}");
     }
-    if (!interpolatedValues.isEmpty) {
-      return new JSExpression(expression, interpolatedValues);
+    if (interpolatedValues != null && valuesUsed != interpolatedValues.length) {
+      error("Too many values for #es");
     }
     return expression;
-  }
-}
-
-/**
- * Clone a JSExpression node into an expression where all children
- * have been cloned, and [InterpolatedExpression]s have been replaced
- * with real [Expression].
- */
-class UninterpolateJSExpression extends BaseVisitor<Node> {
-  final List<Expression> arguments;
-  int argumentIndex = 0;
-
-  UninterpolateJSExpression(this.arguments);
-
-  void error(message) {
-    throw message;
-  }
-
-  Node visitNode(Node node) {
-    error('Cannot handle $node');
-  }
-
-  Node copyPosition(Node oldNode, Node newNode) {
-    newNode.sourcePosition = oldNode.sourcePosition;
-    newNode.endSourcePosition = oldNode.endSourcePosition;
-    return newNode;
-  }
-
-  Node visit(Node node) {
-    return node == null ? null : node.accept(this);
-  }
-
-  List<Node> visitList(List<Node> list) {
-    return list.map((e) => visit(e)).toList();
-  }
-
-  Node visitLiteralString(LiteralString node) {
-    return node;
-  }
-
-  Node visitVariableUse(VariableUse node) {
-    return node;
-  }
-
-  Node visitAccess(PropertyAccess node) {
-    return copyPosition(node,
-        new PropertyAccess(visit(node.receiver), visit(node.selector)));
-  }
-
-  Node visitCall(Call node) {
-    return copyPosition(node,
-        new Call(visit(node.target), visitList(node.arguments)));
-  }
-
-  Node visitInterpolatedExpression(InterpolatedExpression expression) {
-    return arguments[argumentIndex++];
-  }
-
-  Node visitJSExpression(JSExpression expression) {
-    assert(argumentIndex == 0);
-    Node result = visit(expression.value);
-    if (argumentIndex != arguments.length) {
-      error("Invalid number of arguments");
-    }
-    assert(result is! JSExpression);
-    return result;
-  }
-
-  Node visitLiteralExpression(LiteralExpression node) {
-    assert(argumentIndex == 0);
-    return copyPosition(node,
-        new LiteralExpression.withData(node.template, arguments));
-  }
-
-  Node visitAssignment(Assignment node) {
-    return copyPosition(node,
-        new Assignment._internal(visit(node.leftHandSide),
-                                 visit(node.compoundTarget),
-                                 visit(node.value)));
-  }
-
-  Node visitRegExpLiteral(RegExpLiteral node) {
-    return node;
-  }
-
-  Node visitLiteralNumber(LiteralNumber node) {
-    return node;
-  }
-
-  Node visitBinary(Binary node) {
-    return copyPosition(node,
-        new Binary(node.op, visit(node.left), visit(node.right)));
-  }
-
-  Node visitPrefix(Prefix node) {
-    return copyPosition(node,
-        new Prefix(node.op, visit(node.argument)));
-  }
-
-  Node visitPostfix(Postfix node) {
-    return copyPosition(node,
-        new Postfix(node.op, visit(node.argument)));
-  }
-
-  Node visitNew(New node) {
-    return copyPosition(node,
-        new New(visit(node.target), visitList(node.arguments)));
-  }
-
-  Node visitArrayInitializer(ArrayInitializer node) {
-    return copyPosition(node,
-        new ArrayInitializer(node.length, visitList(node.elements)));
-  }
-
-  Node visitArrayElement(ArrayElement node) {
-    return copyPosition(node,
-        new ArrayElement(node.index, visit(node.value)));
-  }
-
-  Node visitConditional(Conditional node) {
-    return copyPosition(node,
-        new Conditional(visit(node.condition),
-                        visit(node.then),
-                        visit(node.otherwise)));
-  }
-
-  Node visitLiteralNull(LiteralNull node) {
-    return node;
-  }
-
-  Node visitLiteralBool(LiteralBool node) {
-    return node;
   }
 }

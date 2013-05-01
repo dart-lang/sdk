@@ -61,9 +61,6 @@ abstract class NodeVisitor<T> {
   T visitRegExpLiteral(RegExpLiteral node);
 
   T visitComment(Comment node);
-
-  T visitInterpolatedExpression(InterpolatedExpression node);
-  T visitJSExpression(JSExpression node);
 }
 
 class BaseVisitor<T> implements NodeVisitor<T> {
@@ -146,10 +143,6 @@ class BaseVisitor<T> implements NodeVisitor<T> {
   T visitObjectInitializer(ObjectInitializer node) => visitExpression(node);
   T visitProperty(Property node) => visitNode(node);
   T visitRegExpLiteral(RegExpLiteral node) => visitExpression(node);
-
-  T visitInterpolatedExpression(InterpolatedExpression node)
-      => visitExpression(node);
-  T visitJSExpression(JSExpression node) => visitExpression(node);
 
   // Ignore comments by default.
   T visitComment(Comment node) {}
@@ -576,11 +569,9 @@ class Assignment extends Expression {
   final VariableReference compoundTarget;
   final Expression value;  // May be null, for [VariableInitialization]s.
 
-  Assignment(leftHandSide, value)
-      : this._internal(leftHandSide, null, value);
-  Assignment.compound(leftHandSide, String op, value)
-      : this._internal(leftHandSide, new VariableUse(op), value);
-  Assignment._internal(this.leftHandSide, this.compoundTarget, this.value);
+  Assignment(this.leftHandSide, this.value) : compoundTarget = null;
+  Assignment.compound(this.leftHandSide, String op, this.value)
+      : compoundTarget = new VariableUse(op);
 
   int get precedenceLevel => ASSIGNMENT;
 
@@ -924,38 +915,6 @@ class Property extends Node {
     name.accept(visitor);
     value.accept(visitor);
   }
-}
-
-class InterpolatedExpression extends Expression {
-  Expression value;
-
-  InterpolatedExpression(this.value);
-
-  accept(NodeVisitor visitor) => visitor.visitInterpolatedExpression(this);
-
-  void visitChildren(NodeVisitor visitor) {
-    value.accept(visitor);
-  }
-
-  int get precedenceLevel => value.precedenceLevel;
-}
-
-class JSExpression extends Expression {
-  Expression value;
-  List<InterpolatedExpression> interpolatedExpressions;
-
-  JSExpression(this.value, this.interpolatedExpressions);
-
-  accept(NodeVisitor visitor) => visitor.visitJSExpression(this);
-
-  void visitChildren(NodeVisitor visitor) {
-    value.accept(visitor);
-    for (InterpolatedExpression expression in interpolatedExpressions) {
-      expression.accept(visitor);
-    }
-  }
-
-  int get precedenceLevel => value.precedenceLevel;
 }
 
 /**
