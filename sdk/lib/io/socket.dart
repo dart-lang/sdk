@@ -96,7 +96,7 @@ abstract class InternetAddress {
    * change over time.
    */
   external static Future<List<InternetAddress>> lookup(
-      String host, {InternetAddressType type: InternetAddressType.IP_V4});
+      String host, {InternetAddressType type: InternetAddressType.ANY});
 }
 
 /**

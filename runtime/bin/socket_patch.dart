@@ -36,7 +36,7 @@ patch class InternetAddress {
   }
 
   /* patch */ static Future<List<InternetAddress>> lookup(
-      String host, {InternetAddressType type: InternetAddressType.IP_V4}) {
+      String host, {InternetAddressType type: InternetAddressType.ANY}) {
     return _NativeSocket.lookup(host, type: type);
   }
 }
@@ -158,7 +158,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   static SendPort socketService;
 
   static Future<List<InternetAddress>> lookup(
-      String host, {InternetAddressType type: InternetAddressType.IP_V4}) {
+      String host, {InternetAddressType type: InternetAddressType.ANY}) {
     ensureSocketService();
     return socketService.call([HOST_NAME_LOOKUP, host, type._value])
         .then((response) {
