@@ -111,14 +111,6 @@ class Schedule {
   /// The timer for keeping track of task timeouts. This may be null.
   Timer _timeoutTimer;
 
-  /// If `true`, then new [Task]s will capture the current stack trace before
-  /// running. This can be set to `false` to speed up running tests since
-  /// capturing stack traces is currently quite slow. Even when set to `false`,
-  /// stack traces from *thrown* exceptions will be caught. This only disables
-  /// the eager collection of stack traces *before* an error occurs. Defaults
-  /// to `true`.
-  bool captureStackTraces = true;
-
   /// Creates a new schedule with empty task queues.
   Schedule() {
     _tasks = new TaskQueue._("tasks", this);
@@ -354,10 +346,6 @@ class TaskQueue {
   /// The name of the queue, for debugging purposes.
   final String name;
 
-  /// If `true`, then new [Task]s in this queue will capture the current stack
-  /// trace before running.
-  bool get captureStackTraces => _schedule.captureStackTraces;
-
   /// The [Schedule] that created this queue.
   final Schedule _schedule;
 
@@ -379,9 +367,9 @@ class TaskQueue {
 
   /// The descriptions of all callbacks that are blocking the completion of
   /// [this].
-  List<String> get pendingCallbacks =>
-      new UnmodifiableListView<String>(_pendingCallbacks);
-  final _pendingCallbacks = new Queue<String>();
+  List<PendingCallback> get pendingCallbacks =>
+      new UnmodifiableListView<PendingCallback>(_pendingCallbacks);
+  final _pendingCallbacks = new Queue<PendingCallback>();
 
   /// A completer that will be completed once [_pendingCallbacks] becomes empty
   /// after the queue finishes running its tasks.
@@ -505,18 +493,19 @@ class TaskQueue {
     bool _timedOut() =>
       _schedule.currentQueue != this || pendingCallbacks.isEmpty;
 
-    if (description == null) {
-      description = "Out-of-band operation #${_totalCallbacks}";
-    }
-
-    if (captureStackTraces) {
-      var stackString = prefixLines(terseTraceString(new Trace.current()));
-      description += "\n\nStack trace:\n$stackString";
-    }
-
     _totalCallbacks++;
+    var trace = new Trace.current();
+    var pendingCallback = new PendingCallback._(() {
+      var fullDescription = description;
+      if (fullDescription == null) {
+        fullDescription = "Out-of-band operation #${_totalCallbacks}";
+      }
 
-    _pendingCallbacks.add(description);
+      var stackString = prefixLines(terseTraceString(trace));
+      fullDescription += "\n\nStack trace:\n$stackString";
+    });
+    _pendingCallbacks.add(pendingCallback);
+
     return (arg) {
       try {
         return fn(arg);
@@ -531,7 +520,7 @@ class TaskQueue {
       } finally {
         if (_timedOut()) return;
 
-        _pendingCallbacks.remove(description);
+        _pendingCallbacks.remove(pendingCallback);
         if (_pendingCallbacks.isEmpty && !isRunningTasks) {
           _noPendingCallbacksCompleter.complete();
         }
@@ -604,4 +593,23 @@ class TaskQueue {
       return taskString;
     }).join("\n");
   }
+}
+
+/// A thunk for lazily resolving the description of a [PendingCallback].
+typedef String _DescriptionThunk();
+
+/// An identifier for an out-of-band callback running during a schedule.
+class PendingCallback {
+  final _DescriptionThunk _thunk;
+  String _description;
+
+  /// The string description of the callback.
+  String get description {
+    if (_description == null) _description = _thunk();
+    return _description;
+  }
+
+  String toString() => description;
+
+  PendingCallback._(this._thunk);
 }

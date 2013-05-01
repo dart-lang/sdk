@@ -33,7 +33,7 @@ class ScheduleError {
 
   /// The descriptions of out-of-band callbacks that were pending when this
   /// error occurred.
-  final Iterable<String> pendingCallbacks;
+  final Iterable<PendingCallback> pendingCallbacks;
 
   /// The state of the schedule at the time the error was detected.
   final ScheduleState _stateWhenDetected;
@@ -54,10 +54,7 @@ class ScheduleError {
       stackTrace = attachedTrace;
     }
 
-    if (schedule.captureStackTraces && stackTrace == null) {
-      stackTrace = new Trace.current();
-    }
-
+    if (stackTrace == null) stackTrace = new Trace.current();
     return new ScheduleError(schedule, error, stackTrace);
   }
 
@@ -69,7 +66,7 @@ class ScheduleError {
         schedule = schedule,
         task = schedule.currentTask,
         queue = schedule.currentQueue,
-        pendingCallbacks = schedule.currentQueue == null ? <String>[]
+        pendingCallbacks = schedule.currentQueue == null ? <PendingCallback>[]
             : schedule.currentQueue.pendingCallbacks.toList(),
         _stateWhenDetected = schedule.state;
 
@@ -112,7 +109,7 @@ class ScheduleError {
       result.write("\n\n");
       result.writeln("Pending out-of-band callbacks:");
       for (var callback in pendingCallbacks) {
-        result.writeln(prefixLines(callback, firstPrefix: "* "));
+        result.writeln(prefixLines(callback.toString(), firstPrefix: "* "));
       }
     }
 
