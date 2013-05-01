@@ -9,8 +9,7 @@ dart:html APIs from the IDL database."""
 import emitter
 from generator import AnalyzeOperation, ConstantOutputOrder, \
     DartDomNameOfAttribute, FindMatchingAttribute, IsDartCollectionType, \
-    IsPureInterface, TypeOrNothing, GetAnnotationsAndComments, \
-    FormatAnnotationsAndComments, ConvertToFuture, GetCallbackInfo
+    IsPureInterface, TypeOrNothing, ConvertToFuture, GetCallbackInfo
 from htmlrenamer import convert_to_future_members
 
 # Types that are accessible cross-frame in a limited fashion.
@@ -35,6 +34,7 @@ class HtmlDartGenerator(object):
     self._type_registry = options.type_registry
     self._interface_type_info = self._type_registry.TypeInfo(self._interface.id)
     self._renamer = options.renamer
+    self._metadata = options.metadata
     self._library_name = self._renamer.GetLibraryName(self._interface)
 
   def EmitSupportCheck(self):
@@ -345,9 +345,8 @@ class HtmlDartGenerator(object):
     if self.GenerateCustomFactory(constructor_info):
       return
 
-    annotations = FormatAnnotationsAndComments(
-        GetAnnotationsAndComments(self._library_name, self._interface.id,
-                                  self._interface.id), '  ')
+    metadata = self._metadata.GetFormattedMetadata(
+        self._library_name, self._interface.id, self._interface.id, '  ')
 
     if not factory_constructor_name:
       factory_constructor_name = '_create'
@@ -364,19 +363,19 @@ class HtmlDartGenerator(object):
 
       if not has_optional:
         self._members_emitter.Emit(
-            '\n  $(ANNOTATIONS)'
+            '\n  $(METADATA)'
             'factory $CTOR($PARAMS) => '
             '$FACTORY.$CTOR_FACTORY_NAME($FACTORY_PARAMS);\n',
             CTOR=constructor_info._ConstructorFullName(self._DartType),
             PARAMS=constructor_info.ParametersDeclaration(self._DartType),
             FACTORY=factory_name,
-            ANNOTATIONS=annotations,
+            METADATA=metadata,
             CTOR_FACTORY_NAME=factory_constructor_name,
             FACTORY_PARAMS=factory_parameters)
       else:
         if has_factory_provider:
           dispatcher_emitter = self._members_emitter.Emit(
-              '\n  $(ANNOTATIONS)'
+              '\n  $(METADATA)'
               'factory $CTOR($PARAMS) {\n'
               '$!DISPATCHER'
               '    return $FACTORY._create($FACTORY_PARAMS);\n'
@@ -384,7 +383,7 @@ class HtmlDartGenerator(object):
               CTOR=constructor_info._ConstructorFullName(self._DartType),
               PARAMS=constructor_info.ParametersDeclaration(self._DartType),
               FACTORY=factory_name,
-              ANNOTATIONS=annotations,
+              METADATA=metadata,
               FACTORY_PARAMS=constructor_info.ParametersAsArgumentList())
 
           for index, param_info in enumerate(constructor_info.param_infos):
@@ -398,14 +397,14 @@ class HtmlDartGenerator(object):
                 FACTORY_PARAMS=constructor_info.ParametersAsArgumentList(index))
         else:
           inits = self._members_emitter.Emit(
-              '\n  $(ANNOTATIONS)'
+              '\n  $(METADATA)'
               'factory $CONSTRUCTOR($PARAMS) {\n'
               '    var e = $FACTORY.$CTOR_FACTORY_NAME($FACTORY_PARAMS);\n'
               '$!INITS'
               '    return e;\n'
               '  }\n',
               CONSTRUCTOR=constructor_info._ConstructorFullName(self._DartType),
-              ANNOTATIONS=annotations,
+              METADATA=metadata,
               FACTORY=factory_name,
               CTOR_FACTORY_NAME=factory_constructor_name,
               PARAMS=constructor_info.ParametersDeclaration(self._DartType),
@@ -438,12 +437,12 @@ class HtmlDartGenerator(object):
           constructor_info.idl_args,
           False,
           [info.name for info in constructor_info.param_infos],
-          emitter.Format('$(ANNOTATIONS)$FACTORY_KEYWORD $CTOR($PARAMS)',
+          emitter.Format('$(METADATA)$FACTORY_KEYWORD $CTOR($PARAMS)',
             FACTORY_KEYWORD=('factory' if not custom_factory_ctr else
                 'static %s' % constructor_full_name),
             CTOR=(('' if not custom_factory_ctr else '_factory')
                 + constructor_full_name),
-            ANNOTATIONS=annotations,
+            METADATA=metadata,
             PARAMS=constructor_info.ParametersDeclaration(self._DartType)),
           GenerateCall,
           IsOptional)
@@ -457,13 +456,13 @@ class HtmlDartGenerator(object):
         self._database.GetInterface(info.callback_args[0].type_id))
 
     param_list = info.ParametersAsArgumentList()
-    annotations = ''
+    metadata = ''
     if '_RenamingAnnotation' in dir(self):
-      annotations = (self._RenamingAnnotation(info.declared_name, html_name) +
-          self._Annotations(info.type_name, info.declared_name))
+      metadata = (self._RenamingAnnotation(info.declared_name, html_name) +
+          self._Metadata(info.type_name, info.declared_name))
     self._members_emitter.Emit(
         '\n'
-        '  $ANNOTATIONS$MODIFIERS$TYPE$FUTURE_GENERIC $NAME($PARAMS) {\n'
+        '  $METADATA$MODIFIERS$TYPE$FUTURE_GENERIC $NAME($PARAMS) {\n'
         '    var completer = new Completer$(FUTURE_GENERIC)();\n'
         '    $ORIGINAL_FUNCTION($PARAMS_LIST\n'
         '        $NAMED_PARAM($VARIABLE_NAME) { '
@@ -471,7 +470,7 @@ class HtmlDartGenerator(object):
         '$ERROR_CALLBACK);\n'
         '    return completer.future;\n'
         '  }\n',
-        ANNOTATIONS=annotations,
+        METADATA=metadata,
         MODIFIERS='static ' if info.IsStatic() else '',
         TYPE=self.SecureOutputType(info.type_name),
         NAME=html_name[1:],

@@ -9,6 +9,7 @@ import 'dart:uri';
 import 'dart:math' as math;
 
 import 'frame.dart';
+import 'lazy_trace.dart';
 
 final _patchRegExp = new RegExp(r"-patch$");
 
@@ -42,7 +43,7 @@ class Trace implements StackTrace {
       throw '';
     } catch (_, nativeTrace) {
       var trace = new Trace.from(nativeTrace);
-      return new Trace(trace.frames.skip(level + 1));
+      return new LazyTrace(() => new Trace(trace.frames.skip(level + 1)));
     }
   }
 
@@ -52,7 +53,7 @@ class Trace implements StackTrace {
   /// a [Trace], it will be returned as-is.
   factory Trace.from(StackTrace trace) {
     if (trace is Trace) return trace;
-    return new Trace.parse(trace.toString());
+    return new LazyTrace(() => new Trace.parse(trace.toString()));
   }
 
   /// Parses a string representation of a stack trace.

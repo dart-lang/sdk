@@ -25,12 +25,6 @@ void createHttpClient() {
   httpClient = new ExpectClient();
 }
 
-void expectFutureThrows(future, predicate) {
-  future.catchError(expectAsync1((error) {
-    expect(predicate(error), isTrue);
-  }));
-}
-
 void main() {
   group('with expired credentials', () {
     setUp(createHttpClient);
@@ -42,8 +36,8 @@ void main() {
       var client = new oauth2.Client('identifier', 'secret', credentials,
           httpClient: httpClient);
 
-      expectFutureThrows(client.get(requestUri),
-                         (e) => e is oauth2.ExpirationException);
+      expect(client.get(requestUri),
+          throwsA(new isInstanceOf<oauth2.ExpirationException>()));
     });
 
     test("that can be refreshed refreshes the credentials and sends the "
@@ -123,8 +117,7 @@ void main() {
       var client = new oauth2.Client('identifier', 'secret', credentials,
           httpClient: httpClient);
 
-      expectFutureThrows(client.refreshCredentials(),
-                         (e) => e is StateError);
+      expect(client.refreshCredentials(), throwsA(isStateError));
     });
   });
 
@@ -148,8 +141,8 @@ void main() {
                 headers: {'www-authenticate': authenticate}));
       });
 
-      expectFutureThrows(client.read(requestUri),
-                         (e) => e is oauth2.AuthorizationException);
+      expect(client.read(requestUri),
+          throwsA(new isInstanceOf<oauth2.AuthorizationException>()));
     });
 
     test('passes through a 401 response without www-authenticate', () {

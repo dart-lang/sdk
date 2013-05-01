@@ -218,13 +218,12 @@ class SolveFailure implements Exception {
       "depends on version ${dep.constraint}";
 }
 
-/// Exception thrown when the [VersionSolver] fails to find a solution after a
-/// certain number of iterations.
-class CouldNotSolveException extends SolveFailure {
-  CouldNotSolveException([String message])
-      : super(null, null),
-        _message = (message != null) ? message :
-            "Could not find a solution that met all constraints.";
+/// Exception thrown when the current SDK's version does not match a package's
+/// constraint on it.
+class BadSdkVersionException extends SolveFailure {
+  BadSdkVersionException(String package, String message)
+      : super(package, null),
+        _message = message;
 
   /// A message describing the specific kind of solve failure.
   final String _message;

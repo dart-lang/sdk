@@ -339,17 +339,35 @@ intptr_t ActivationFrame::ContextLevel() {
 }
 
 
-RawContext* ActivationFrame::GetSavedContext(const Context& ctx) {
+// Get the caller's context, or return ctx if the function does not
+// save the caller's context on entry.
+RawContext* ActivationFrame::GetSavedEntryContext(const Context& ctx) {
   GetVarDescriptors();
   intptr_t var_desc_len = var_descriptors_.Length();
   for (int i = 0; i < var_desc_len; i++) {
     RawLocalVarDescriptors::VarInfo var_info;
     var_descriptors_.GetInfo(i, &var_info);
-    if (var_info.kind == RawLocalVarDescriptors::kContextChain) {
+    if (var_info.kind == RawLocalVarDescriptors::kSavedEntryContext) {
       return reinterpret_cast<RawContext*>(GetLocalVarValue(var_info.index));
     }
   }
   return ctx.raw();
+}
+
+
+// Get the saved context if the callee of this activation frame is a
+// closure function.
+RawContext* ActivationFrame::GetSavedCurrentContext() {
+  GetVarDescriptors();
+  intptr_t var_desc_len = var_descriptors_.Length();
+  for (int i = 0; i < var_desc_len; i++) {
+    RawLocalVarDescriptors::VarInfo var_info;
+    var_descriptors_.GetInfo(i, &var_info);
+    if (var_info.kind == RawLocalVarDescriptors::kSavedCurrentContext) {
+      return reinterpret_cast<RawContext*>(GetLocalVarValue(var_info.index));
+    }
+  }
+  return Context::null();
 }
 
 
@@ -891,15 +909,40 @@ DebuggerStackTrace* Debugger::CollectStackTrace() {
                                                         frame->fp(),
                                                         frame->sp(),
                                                         code);
+      // If this activation frame called a closure, the function has
+      // saved its context before the call.
+      if (stack_trace->Length() > 0) {
+        ActivationFrame* callee_frame =
+            stack_trace->ActivationFrameAt(stack_trace->Length() - 1);
+        if (callee_frame->function().IsClosureFunction()) {
+          ctx = activation->GetSavedCurrentContext();
+          if (FLAG_verbose_debug && ctx.IsNull()) {
+            const Function& caller = activation->function();
+            const Function& callee = callee_frame->function();
+            const Script& script =
+                Script::Handle(Class::Handle(caller.Owner()).script());
+            intptr_t line, col;
+            script.GetTokenLocation(activation->TokenPos(), &line, &col);
+            printf("CollectStackTrace error: no saved context in function "
+                "'%s' which calls closure '%s' "
+                " in line %"Pd" column %"Pd"\n",
+                caller.ToFullyQualifiedCString(),
+                callee.ToFullyQualifiedCString(),
+                line, col);
+          }
+          ASSERT(!ctx.IsNull());
+        }
+      }
       if (optimized_frame_found || code.is_optimized()) {
         // Set context to null, to avoid returning bad context variable values.
         activation->SetContext(Context::Handle());
         optimized_frame_found = true;
       } else {
         activation->SetContext(ctx);
-        ctx = activation->GetSavedContext(ctx);
       }
       stack_trace->AddActivation(activation);
+      // Get caller's context if this function saved it on entry.
+      ctx = activation->GetSavedEntryContext(ctx);
     } else if (frame->IsEntryFrame()) {
       ctx = reinterpret_cast<EntryFrame*>(frame)->SavedContext();
     }
@@ -1641,7 +1684,6 @@ CodeBreakpoint* Debugger::GetCodeBreakpoint(uword breakpoint_address) {
 // Remove and delete the source breakpoint bpt and its associated
 // code breakpoints.
 void Debugger::RemoveBreakpoint(intptr_t bp_id) {
-  ASSERT(src_breakpoints_ != NULL);
   SourceBreakpoint* prev_bpt = NULL;
   SourceBreakpoint* curr_bpt = src_breakpoints_;
   while (curr_bpt != NULL) {

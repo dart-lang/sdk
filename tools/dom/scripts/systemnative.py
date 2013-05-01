@@ -25,6 +25,7 @@ class DartiumBackend(HtmlDartGenerator):
     self._template_loader = options.templates
     self._type_registry = options.type_registry
     self._interface_type_info = self._type_registry.TypeInfo(self._interface.id)
+    self._metadata = options.metadata
 
   def ImplementsMergedMembers(self):
     # We could not add merged functions to implementation class because
@@ -520,7 +521,7 @@ class DartiumBackend(HtmlDartGenerator):
           overload_name, argument_list)
       cpp_callback_name = self._GenerateNativeBinding(
           overload_name, (0 if operation.is_static else 1) + argument_count,
-          dart_declaration, 'Callback', False)
+          dart_declaration, 'Callback', False, False)
       self._GenerateOperationNativeCallback(operation, operation.arguments[:argument_count], cpp_callback_name)
 
     self._GenerateDispatcherBody(
@@ -817,18 +818,19 @@ class DartiumBackend(HtmlDartGenerator):
         TO_DART_CONVERSION=to_dart_conversion)
 
   def _GenerateNativeBinding(self, idl_name, argument_count, dart_declaration,
-      native_suffix, is_custom):
-    annotations = FormatAnnotationsAndComments(
-        GetAnnotationsAndComments(self._renamer.GetLibraryName(self._interface),
-                                  self._interface.id, idl_name),
-                                  '  ')
+      native_suffix, is_custom, emit_metadata=True):
+    metadata = []
+    if emit_metadata:
+      metadata = self._metadata.GetFormattedMetadata(
+          self._renamer.GetLibraryName(self._interface),
+          self._interface.id, idl_name, '  ')
 
     native_binding = '%s_%s_%s' % (self._interface.id, idl_name, native_suffix)
     self._members_emitter.Emit(
         '\n'
-        '  $ANNOTATIONS$DART_DECLARATION native "$NATIVE_BINDING";\n',
+        '  $METADATA$DART_DECLARATION native "$NATIVE_BINDING";\n',
         DOMINTERFACE=self._interface.id,
-        ANNOTATIONS=annotations,
+        METADATA=metadata,
         DART_DECLARATION=dart_declaration,
         NATIVE_BINDING=native_binding)
 

@@ -850,6 +850,8 @@ void FlowGraphCompiler::CopyParameters() {
   // ECX : ic-data.
   // EDX : arguments descriptor array.
   __ call(&StubCode::CallNoSuchMethodFunctionLabel());
+  // Emit descriptors in order to provide correct postion in stacktrace.
+  AddCurrentDescriptor(PcDescriptors::kOther, -1, function.token_pos());
   if (is_optimizing()) {
     stackmap_table_builder_->AddEntry(assembler()->CodeSize(),
                                       empty_stack_bitmap,
@@ -1009,6 +1011,8 @@ void FlowGraphCompiler::CompileGraph() {
         // ECX : ic-data.
         // EDX : arguments descriptor array.
         __ call(&StubCode::CallNoSuchMethodFunctionLabel());
+        // Emit descriptors in order to provide correct postion in stacktrace.
+        AddCurrentDescriptor(PcDescriptors::kOther, -1, function.token_pos());
         if (is_optimizing()) {
           stackmap_table_builder_->AddEntry(assembler()->CodeSize(),
                                             empty_stack_bitmap,

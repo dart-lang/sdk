@@ -3240,6 +3240,7 @@ StaticCallInstr* EffectGraphVisitor::BuildThrowNoSuchMethodError(
       Smi::ZoneHandle(Smi::New(invocation_type))));
   arguments->Add(PushArgument(invocation_type_value));
   // List arguments.
+  // TODO(regis): Pass arguments.
   Value* arguments_value = Bind(new ConstantInstr(Array::ZoneHandle()));
   arguments->Add(PushArgument(arguments_value));
   // List argumentNames.

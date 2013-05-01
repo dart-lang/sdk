@@ -7,7 +7,6 @@
 
 import logging
 import monitored
-from generator import GetAnnotationsAndComments, FormatAnnotationsAndComments
 
 _logger = logging.getLogger('dartgenerator')
 
@@ -215,10 +214,11 @@ _html_explicit_event_classes = set(['DocumentFragment'])
 
 class HtmlEventGenerator(object):
 
-  def __init__(self, database, renamer, template_loader):
+  def __init__(self, database, renamer, metadata, template_loader):
     self._event_classes = set()
     self._database = database
     self._renamer = renamer
+    self._metadata = metadata
     self._template_loader = template_loader
 
   def EmitStreamProviders(self, interface, custom_events,
@@ -235,9 +235,9 @@ class HtmlEventGenerator(object):
       if self._GetEventRedirection(interface, html_name, event_type):
         continue
 
-      annotations = FormatAnnotationsAndComments(
-          GetAnnotationsAndComments(library_name, interface.id,
-                                    annotation_name), '  ')
+      annotations = self._metadata.FormatMetadata(
+          self._metadata.GetMetadata(library_name, interface.id,
+              annotation_name, 'on' + dom_name), '  ')
 
       members_emitter.Emit(
           "\n"
@@ -266,9 +266,8 @@ class HtmlEventGenerator(object):
       else:
         provider = html_name + 'Event'
 
-      annotations = FormatAnnotationsAndComments(
-          GetAnnotationsAndComments(library_name, interface.id,
-                                    annotation_name), '  ')
+      annotations = self._metadata.GetFormattedMetadata(
+          library_name, interface.id, annotation_name, '  ')
 
       members_emitter.Emit(
           "\n"

@@ -72,7 +72,7 @@ class Task {
 
   Task._(fn(), this.description, TaskQueue queue, this.parent, this._id)
       : queue = queue,
-        stackTrace = queue.captureStackTraces ? new Trace.current() : null {
+        stackTrace = new Trace.current() {
     this.fn = () {
       if (state != TaskState.WAITING) {
         throw new StateError("Can't run $state task '$this'.");

@@ -6756,7 +6756,22 @@ AstNode* Parser::ThrowNoSuchMethodError(intptr_t call_pos,
   // List argumentNames.
   arguments->Add(new LiteralNode(call_pos, Array::ZoneHandle()));
   // List existingArgumentNames.
-  arguments->Add(new LiteralNode(call_pos, Array::ZoneHandle()));
+  // Check if there exists a function with the same name.
+  Function& function =
+     Function::Handle(cls.LookupStaticFunction(function_name));
+  if (function.IsNull()) {
+    // TODO(srdjan): Store argument values into the argument list.
+    arguments->Add(new LiteralNode(call_pos, Array::ZoneHandle()));
+  } else {
+    const int total_num_parameters = function.NumParameters();
+    Array& array = Array::ZoneHandle(Array::New(total_num_parameters));
+    array ^= array.Canonicalize();
+    // Skip receiver.
+    for (int i = 0; i < total_num_parameters; i++) {
+      array.SetAt(i, String::Handle(function.ParameterNameAt(i)));
+    }
+    arguments->Add(new LiteralNode(call_pos, array));
+  }
   return MakeStaticCall(Symbols::NoSuchMethodError(),
                         PrivateCoreLibName(Symbols::ThrowNew()),
                         arguments);
