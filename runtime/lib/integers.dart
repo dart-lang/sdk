@@ -221,6 +221,32 @@ class _Smi extends _IntegerImplementation implements int {
   int operator ~() native "Smi_bitNegate";
   int _shrFromInt(int other) native "Smi_shrFromInt";
   int _shlFromInt(int other) native "Smi_shlFromInt";
+
+  String toString() {
+    if (this == 0) return "0";
+    var reversed = new List();
+    var val = this < 0 ? -this : this;
+    while (val > 0) {
+      reversed.add((val % 10) + 0x30);
+      val = val ~/ 10;
+    }
+    final int numDigits = reversed.length;
+    List digits;
+    int i;
+    if (this < 0) {
+      digits = new List(numDigits + 1);
+      digits[0] = 0x2D;  // '-'.
+      i = 1;
+    } else {
+      digits = new List(numDigits);
+      i = 0;
+    }
+    int ri = reversed.length - 1;
+    for (; i < digits.length; i++, ri--) {
+      digits[i] = reversed[ri];
+    }
+    return _StringBase.createFromCharCodes(digits);
+  }
 }
 
 // Represents integers that cannot be represented by Smi but fit into 64bits.
