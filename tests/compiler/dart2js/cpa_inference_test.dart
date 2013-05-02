@@ -780,6 +780,26 @@ testArithmeticOperators() {
   }
 }
 
+testBooleanOperators() {
+  String source(op) {
+    return """
+        main() {
+          var a = true $op null;
+          var b = null $op true;
+          var c = 1 $op true;
+          var d = true $op "a";
+          a; b; c; d;
+        }""";
+  }
+  for (String op in ['&&', '||']) {
+    AnalysisResult result = analyze(source(op));
+    result.checkNodeHasType('a', [result.bool]);
+    result.checkNodeHasType('b', [result.bool]);
+    result.checkNodeHasType('c', [result.bool]);
+    result.checkNodeHasType('d', [result.bool]);
+  }
+}
+
 testOperators() {
   final String source = r"""
       class A {
@@ -1329,6 +1349,7 @@ void main() {
   testReturn();
   // testNoReturn(); // right now we infer the empty type instead of null
   testArithmeticOperators();
+  testBooleanOperators();
   testOperators();
   testCompoundOperators1();
   testCompoundOperators2();

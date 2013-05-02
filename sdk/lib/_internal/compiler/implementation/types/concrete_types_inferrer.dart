@@ -2037,6 +2037,8 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
       return returnType.isEmpty()
           ? returnType
           : inferrer.singletonConcreteType(inferrer.baseTypes.boolBaseType);
+    } else if (name.stringValue == '&&' || name.stringValue == '||'){
+      return inferrer.singletonConcreteType(inferrer.baseTypes.boolBaseType);
     } else {
       return analyzeDynamicSend(elements.getSelector(node),
                                 receiverType, name, argumentsTypes);
