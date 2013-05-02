@@ -133,9 +133,16 @@ String createTempDir([dir = '']) {
 /// The returned paths are guaranteed to begin with [dir].
 List<String> listDir(String dir, {bool recursive: false,
     bool includeHidden: false}) {
-  Set<String> visited = new Set<String>();
-  List<String> doList(String dir) {
+  List<String> doList(String dir, Set<String> listedDirectories) {
     var contents = <String>[];
+
+    // Avoid recursive symlinks.
+    var resolvedPath = new File(dir).fullPathSync();
+    if (listedDirectories.contains(resolvedPath)) return [];
+
+    listedDirectories = new Set<String>.from(listedDirectories);
+    listedDirectories.add(resolvedPath);
+
     log.io("Listing directory $dir.");
 
     var children = <String>[];
@@ -144,23 +151,14 @@ List<String> listDir(String dir, {bool recursive: false,
         continue;
       }
 
-      // Filter out duplicate entries caused by recursive symlinks. We check
-      // for duplicate entities instead of looking for the symlink cycle itself
-      // because [identicalSync] does not consider a link identical to its
-      // target. That means a directory and the recursive symlink to it will
-      // show up as different entities.
-      if (visited.any((previous) =>
-          FileSystemEntity.identicalSync(previous, entity.path))) {
-        continue;
-      }
-      visited.add(entity.path);
-
       contents.add(entity.path);
       if (entity is Directory) {
         // TODO(nweiz): don't manually recurse once issue 4794 is fixed.
         // Note that once we remove the manual recursion, we'll need to
         // explicitly filter out files in hidden directories.
-        if (recursive) children.addAll(doList(entity.path));
+        if (recursive) {
+          children.addAll(doList(entity.path, listedDirectories));
+        }
       }
     }
 
@@ -169,7 +167,7 @@ List<String> listDir(String dir, {bool recursive: false,
     return contents;
   }
 
-  return doList(dir);
+  return doList(dir, new Set<String>());
 }
 
 /// Returns whether [dir] exists on the file system. This will return `true` for

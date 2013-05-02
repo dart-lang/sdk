@@ -14,4 +14,5 @@ test/oauth2/with_server_rejected_credentials_authenticates_again_test: Pass, Fai
 *: Skip
 
 [ $system == windows ]
+test/io_test: Fail # Issue 7505
 test/install/hosted/fail_gracefully_on_url_resolve_test: Pass, Fail # Issue 9503
