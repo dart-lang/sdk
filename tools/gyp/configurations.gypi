@@ -8,15 +8,12 @@
       '-Wall',
       '-Wextra', # Also known as -W.
       '-Wno-unused-parameter',
-      # TODO(v8-team): Fix V8 build.
+      # TODO(vm-team): Convert old style casts to C++ casts.
       #'-Wold-style-cast',
     ],
 
     # Default value.  This may be overridden in a containing project gyp.
     'target_arch%': 'ia32',
-
-    # Don't use separate host toolset for compiling V8.
-    'want_separate_host_toolset': 0,
 
   'conditions': [
     ['"<(target_arch)"=="ia32"', { 'dart_target_arch': 'IA32', }],

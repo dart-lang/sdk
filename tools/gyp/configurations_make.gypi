@@ -17,8 +17,7 @@
           '-Wnon-virtual-dtor',
           '-Wvla',
           '-Wno-conversion-null',
-          # TODO(v8-team): Fix V8 build.
-          #'-Woverloaded-virtual',
+          '-Woverloaded-virtual',
           '-g3',
           '-ggdb3',
           # TODO(iposva): Figure out if we need to pass anything else.

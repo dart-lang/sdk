@@ -4,8 +4,7 @@
 
 # The purpose of this file and others in this directory is to simulate
 # the Chromium build enviroment. This file is included in all GYP
-# files that are used by the Dart project. This includes V8's GYP
-# files.
+# files that are used by the Dart project.
 
 # READ BEFORE EDITING:
 # Do not add Dart VM specific configuration to this file. Instead,
