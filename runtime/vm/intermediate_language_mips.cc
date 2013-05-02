@@ -102,8 +102,7 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // This sequence is patched by a debugger breakpoint. There is no need for
   // extra NOP instructions here because the sequence patched in for a
   // breakpoint is shorter than the sequence here.
-  __ LeaveDartFrame();
-  __ Ret();
+  __ LeaveDartFrameAndReturn();
   compiler->AddCurrentDescriptor(PcDescriptors::kReturn,
                                  Isolate::kNoDeoptId,
                                  token_pos());
@@ -1247,13 +1246,13 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     } else if (value_cid == kNullCid) {
       // TODO(regis): TMP1 may conflict. Revisit.
       __ lw(TMP1, field_nullability_operand);
-      __ LoadImmediate(TMP2, value_cid);
-      __ subu(CMPRES, TMP1, TMP2);
+      __ LoadImmediate(CMPRES, value_cid);
+      __ subu(CMPRES, TMP1, CMPRES);
     } else {
       // TODO(regis): TMP1 may conflict. Revisit.
       __ lw(TMP1, field_cid_operand);
-      __ LoadImmediate(TMP2, value_cid);
-      __ subu(CMPRES, TMP1, TMP2);
+      __ LoadImmediate(CMPRES, value_cid);
+      __ subu(CMPRES, TMP1, CMPRES);
     }
     __ beq(CMPRES, ZR, &ok);
 
@@ -1502,9 +1501,9 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
     // A runtime call to instantiate the type arguments is required.
     __ addiu(SP, SP, Immediate(-3 * kWordSize));
     __ LoadObject(TMP1, Object::ZoneHandle());
-    __ LoadObject(TMP2, type_arguments());
     __ sw(TMP1, Address(SP, 2 * kWordSize));  // Make room for the result.
-    __ sw(TMP2, Address(SP, 1 * kWordSize));
+    __ LoadObject(TMP1, type_arguments());
+    __ sw(TMP1, Address(SP, 1 * kWordSize));
     // Push instantiator type arguments.
     __ sw(instantiator_reg, Address(SP, 0 * kWordSize));
 
@@ -1678,10 +1677,10 @@ void CatchEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         Address(FP, stacktrace_var().index() * kWordSize));
 
   Label next;
-  __ mov(TMP1, RA);  // Save return adress.
+  __ mov(T0, RA);  // Save return adress.
   // Restore the pool pointer.
   __ bal(&next);  // Branch and link to next instruction to get PC in RA.
-  __ delay_slot()->mov(TMP2, RA);  // Save PC of the following mov.
+  __ delay_slot()->mov(T1, RA);  // Save PC of the following mov.
 
   // Calculate offset of pool pointer from the PC.
   const intptr_t object_pool_pc_dist =
@@ -1689,8 +1688,8 @@ void CatchEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
      compiler->assembler()->CodeSize();
 
   __ Bind(&next);
-  __ mov(RA, TMP1);  // Restore return address.
-  __ lw(PP, Address(TMP2, -object_pool_pc_dist));
+  __ mov(RA, T0);  // Restore return address.
+  __ lw(PP, Address(T1, -object_pool_pc_dist));
 }
 
 
@@ -1758,6 +1757,10 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary() const {
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
     summary->set_in(0, Location::RequiresRegister());
     summary->set_in(1, Location::RegisterOrSmiConstant(right()));
+    if (op_kind() == Token::kADD) {
+      // Need an extra temp for the overflow detection code.
+      summary->set_temp(0, Location::RequiresRegister());
+    }
     // We make use of 3-operand instructions by not requiring result register
     // to be identical to first input register as on Intel.
     summary->set_out(Location::RequiresRegister());
@@ -1799,7 +1802,8 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         if (deopt == NULL) {
           __ AddImmediate(result, left, imm);
         } else {
-          __ AddImmediateDetectOverflow(result, left, imm, CMPRES);
+          Register temp = locs()->temp(0).reg();
+          __ AddImmediateDetectOverflow(result, left, imm, CMPRES, temp);
           __ bltz(CMPRES, deopt);
         }
         break;
@@ -1825,8 +1829,8 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
             __ mflo(result);
             __ mfhi(TMP1);
           }
-          __ sra(TMP2, result, 31);
-          __ bne(TMP1, TMP2, deopt);
+          __ sra(CMPRES, result, 31);
+          __ bne(TMP1, CMPRES, deopt);
         }
         break;
       }
@@ -1882,7 +1886,8 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       if (deopt == NULL) {
         __ addu(result, left, right);
       } else {
-        __ AdduDetectOverflow(result, left, right, CMPRES);
+        Register temp = locs()->temp(0).reg();
+        __ AdduDetectOverflow(result, left, right, CMPRES, temp);
         __ bltz(CMPRES, deopt);
       }
       break;

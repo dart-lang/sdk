@@ -81,7 +81,7 @@ void Assembler::LoadWordFromPoolOffset(Register rd, int32_t offset) {
 
 
 void Assembler::AdduDetectOverflow(Register rd, Register rs, Register rt,
-                                   Register ro) {
+                                   Register ro, Register scratch) {
   ASSERT(rd != ro);
   ASSERT(rd != TMP1);
   ASSERT(ro != TMP1);
@@ -89,12 +89,14 @@ void Assembler::AdduDetectOverflow(Register rd, Register rs, Register rt,
   ASSERT(ro != rt);
 
   if ((rs == rt) && (rd == rs)) {
-    ASSERT(rd != TMP2);
-    ASSERT(ro != TMP2);
-    ASSERT(rs != TMP2);
-    ASSERT(rt != TMP2);
-    mov(TMP2, rt);
-    rt = TMP2;
+    ASSERT(scratch != kNoRegister);
+    ASSERT(scratch != TMP1);
+    ASSERT(rd != scratch);
+    ASSERT(ro != scratch);
+    ASSERT(rs != scratch);
+    ASSERT(rt != scratch);
+    mov(scratch, rt);
+    rt = scratch;
   }
 
   if (rd == rs) {
@@ -236,8 +238,8 @@ void Assembler::StoreIntoObjectFilter(Register object,
   sll(TMP1, value, kObjectAlignmentLog2 - 1);
   and_(TMP1, value, TMP1);
   // And the result with the negated space bit of the object.
-  nor(TMP2, ZR, object);
-  and_(TMP1, TMP1, TMP2);
+  nor(CMPRES, ZR, object);
+  and_(TMP1, TMP1, CMPRES);
   andi(TMP1, TMP1, Immediate(kNewObjectAlignmentOffset));
   beq(TMP1, ZR, no_update);
 }
@@ -438,15 +440,16 @@ void Assembler::EnterDartFrame(intptr_t frame_size) {
 }
 
 
-void Assembler::LeaveDartFrame() {
+void Assembler::LeaveDartFrameAndReturn() {
   addiu(SP, FP, Immediate(-kWordSize));
 
   lw(RA, Address(SP, 2 * kWordSize));
   lw(FP, Address(SP, 1 * kWordSize));
   lw(PP, Address(SP, 0 * kWordSize));
 
-  // Adjust SP for PC pushed in EnterDartFrame.
-  addiu(SP, SP, Immediate(4 * kWordSize));
+  // Adjust SP for PC pushed in EnterDartFrame, and return.
+  Ret();
+  delay_slot()->addiu(SP, SP, Immediate(4 * kWordSize));
 }
 
 

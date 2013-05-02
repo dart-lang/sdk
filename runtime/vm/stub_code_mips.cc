@@ -94,9 +94,11 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   // Load Context pointer from Isolate structure into A2.
   __ lw(A2, Address(CTX, Isolate::top_context_offset()));
 
+  // Reload NULLREG.
+  __ LoadImmediate(NULLREG, reinterpret_cast<intptr_t>(Object::null()));
+
   // Reset Context pointer in Isolate structure.
-  __ LoadImmediate(A3, reinterpret_cast<intptr_t>(Object::null()));
-  __ sw(A3, Address(CTX, Isolate::top_context_offset()));
+  __ sw(NULLREG, Address(CTX, Isolate::top_context_offset()));
 
   // Cache Context pointer into CTX while executing Dart code.
   __ mov(CTX, A2);
@@ -187,9 +189,11 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   // Load Context pointer from Isolate structure into A2.
   __ lw(A2, Address(CTX, Isolate::top_context_offset()));
 
+  // Reload NULLREG.
+  __ LoadImmediate(NULLREG, reinterpret_cast<intptr_t>(Object::null()));
+
   // Reset Context pointer in Isolate structure.
-  __ LoadImmediate(A3, reinterpret_cast<intptr_t>(Object::null()));
-  __ sw(A3, Address(CTX, Isolate::top_context_offset()));
+  __ sw(NULLREG, Address(CTX, Isolate::top_context_offset()));
 
   // Cache Context pointer into CTX while executing Dart code.
   __ mov(CTX, A2);
@@ -208,11 +212,10 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
   __ TraceSimMsg("CallStaticFunctionStub");
   __ EnterStubFrame();
   // Setup space on stack for return value and preserve arguments descriptor.
-  __ LoadImmediate(T0, reinterpret_cast<intptr_t>(Object::null()));
 
   __ addiu(SP, SP, Immediate(-2 * kWordSize));
   __ sw(S4, Address(SP, 1 * kWordSize));
-  __ sw(T0, Address(SP, 0 * kWordSize));
+  __ sw(NULLREG, Address(SP, 0 * kWordSize));
 
   __ CallRuntime(kPatchStaticCallRuntimeEntry);
   __ TraceSimMsg("CallStaticFunctionStub return");
@@ -238,10 +241,9 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
   // calling into the runtime.
   __ EnterStubFrame();
   // Setup space on stack for return value and preserve arguments descriptor.
-  __ LoadImmediate(T0, reinterpret_cast<intptr_t>(Object::null()));
   __ addiu(SP, SP, Immediate(-2 * kWordSize));
   __ sw(S4, Address(SP, 1 * kWordSize));
-  __ sw(T0, Address(SP, 0 * kWordSize));
+  __ sw(NULLREG, Address(SP, 0 * kWordSize));
   __ CallRuntime(kFixCallersTargetRuntimeEntry);
   // Get Code object result and restore arguments descriptor array.
   __ lw(T0, Address(SP, 0 * kWordSize));
@@ -263,7 +265,7 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
 static void PushArgumentsArray(Assembler* assembler) {
   __ TraceSimMsg("PushArgumentsArray");
   // Allocate array to store arguments of caller.
-  __ LoadImmediate(A0, reinterpret_cast<intptr_t>(Object::null()));
+  __ mov(A0, NULLREG);
   // A0: Null element type for raw Array.
   // A1: Smi-tagged argument count, may be zero.
   __ BranchLink(&StubCode::AllocateArrayLabel());
@@ -312,9 +314,8 @@ void StubCode::GenerateInstanceFunctionLookupStub(Assembler* assembler) {
   // Push the receiver.
   // Push TMP1 data object.
   // Push arguments descriptor array.
-  __ LoadImmediate(TMP1, reinterpret_cast<intptr_t>(Object::null()));
   __ addiu(SP, SP, Immediate(-4 * kWordSize));
-  __ sw(TMP1, Address(SP, 3 * kWordSize));
+  __ sw(NULLREG, Address(SP, 3 * kWordSize));
   __ sw(T1, Address(SP, 2 * kWordSize));
   __ sw(S5, Address(SP, 1 * kWordSize));
   __ sw(S4, Address(SP, 0 * kWordSize));
@@ -556,11 +557,11 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     // T3: array size.
     const intptr_t shift = RawObject::kSizeTagBit - kObjectAlignmentLog2;
     // If no size tag overflow, shift T3 left, else set T3 to zero.
-    __ LoadImmediate(TMP2, RawObject::SizeTag::kMaxSizeTag);
-    __ sltu(CMPRES, TMP2, T3);  // CMPRES = TMP2 < T3 ? 1 : 0
+    __ LoadImmediate(T4, RawObject::SizeTag::kMaxSizeTag);
+    __ sltu(CMPRES, T4, T3);  // CMPRES = T4 < T3 ? 1 : 0
     __ sll(TMP1, T3, shift);  // TMP1 = T3 << shift;
-    __ movz(T3, TMP1, CMPRES);  // T3 = TMP2 >= T3 ? 0 : T3
-    __ movn(T3, ZR, CMPRES);  // T3 = TMP2 < T3 ? TMP1 : T3
+    __ movz(T3, TMP1, CMPRES);  // T3 = T4 >= T3 ? 0 : T3
+    __ movn(T3, ZR, CMPRES);  // T3 = T4 < T3 ? TMP1 : T3
 
     // Get the class index and insert it into the tags.
     __ LoadImmediate(TMP1, RawObject::ClassIdTag::encode(kArrayCid));
@@ -576,16 +577,11 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     // data area to be initialized.
 
     Label loop, loop_exit;
-    intptr_t null = reinterpret_cast<intptr_t>(Object::null());
-    uint16_t null_lo = Utils::Low16Bits(null);
-    uint16_t null_hi = Utils::High16Bits(null);
-    __ lui(TMP1, Immediate(null_hi));
     __ BranchUnsignedGreaterEqual(T3, T2, &loop_exit);
-    __ delay_slot()->ori(TMP1, TMP1, Immediate(null_lo));
     __ Bind(&loop);
     __ addiu(T3, T3, Immediate(kWordSize));
     __ bne(T3, T2, &loop);
-    __ delay_slot()->sw(TMP1, Address(T3, -kWordSize));
+    __ delay_slot()->sw(NULLREG, Address(T3, -kWordSize));
     __ Bind(&loop_exit);
 
     // Done allocating and initializing the array.
@@ -600,11 +596,10 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
   __ EnterStubFrame();
-  __ LoadImmediate(TMP1, reinterpret_cast<intptr_t>(Object::null()));
   // Setup space on stack for return value.
   // Push array length as Smi and element type.
   __ addiu(SP, SP, Immediate(-3 * kWordSize));
-  __ sw(TMP1, Address(SP, 2 * kWordSize));
+  __ sw(NULLREG, Address(SP, 2 * kWordSize));
   __ sw(A1, Address(SP, 1 * kWordSize));
   __ sw(T3, Address(SP, 0 * kWordSize));
   __ CallRuntime(kAllocateArrayRuntimeEntry);
@@ -643,9 +638,8 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   // Verify that T1 is a closure by checking its class.
   Label not_closure;
 
-  __ LoadImmediate(T7, reinterpret_cast<intptr_t>(Object::null()));
   // See if it is not a closure, but null object.
-  __ beq(T1, T7, &not_closure);
+  __ beq(T1, NULLREG, &not_closure);
 
   __ andi(CMPRES, T1, Immediate(kSmiTagMask));
   __ beq(CMPRES, ZR, &not_closure);  // Not a closure, but a smi.
@@ -656,7 +650,7 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   __ lw(T0, FieldAddress(T0, Class::signature_function_offset()));
 
   // See if actual class is not a closure class.
-  __ beq(T0, T7, &not_closure);
+  __ beq(T0, NULLREG, &not_closure);
 
   // T0 is just the signature function. Load the actual closure function.
   __ lw(T2, FieldAddress(T1, Closure::function_offset()));
@@ -667,7 +661,7 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   Label function_compiled;
   // Load closure function code in T0.
   __ lw(T0, FieldAddress(T2, Function::code_offset()));
-  __ bne(T0, T7, &function_compiled);
+  __ bne(T0, NULLREG, &function_compiled);
 
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
@@ -710,7 +704,8 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
 
   // Setup space on stack for result from error reporting.
   __ addiu(SP, SP, Immediate(2 * kWordSize));
-  __ sw(T7, Address(SP, 1 * kWordSize));  // Arguments descriptor and raw null.
+  // Arguments descriptor and raw null.
+  __ sw(NULLREG, Address(SP, 1 * kWordSize));
   __ sw(S4, Address(SP, 0 * kWordSize));
 
   // Load smi-tagged arguments array length, including the non-closure.
@@ -800,6 +795,9 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Compute address of 'arguments array' data area into A2.
   __ lw(A2, Address(A2, VMHandles::kOffsetOfRawPtrInHandle));
+
+  // Load the null Object into NULLREG for easy comparisons.
+  __ LoadImmediate(NULLREG, reinterpret_cast<intptr_t>(Object::null()));
 
   // Set up arguments for the Dart call.
   Label push_arguments;
@@ -910,7 +908,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     __ LoadImmediate(TMP1, RawObject::SizeTag::kMaxSizeTag);
     __ sltu(CMPRES, TMP1, T2);  // CMPRES = T2 > TMP1 ? 1 : 0.
     __ movn(T2, ZR, CMPRES);  // T2 = CMPRES != 0 ? 0 : T2.
-    __ sll(TMP1, T2, shift);  // TMP2 = T2 << shift.
+    __ sll(TMP1, T2, shift);  // TMP1 = T2 << shift.
     __ movz(T2, TMP1, CMPRES);  // T2 = CMPRES == 0 ? TMP1 : T2.
 
     // Get the class index and insert it into the tags.
@@ -932,23 +930,20 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // T2: isolate, not an object.
     __ sw(T2, FieldAddress(V0, Context::isolate_offset()));
 
-    __ LoadImmediate(T2, reinterpret_cast<intptr_t>(Object::null()));
-
     // Initialize the context variables.
     // V0: new object.
     // T1: number of context variables.
-    // T2: raw null.
     Label loop, loop_exit;
     __ blez(T1, &loop_exit);
     // Setup the parent field.
-    __ delay_slot()->sw(T2, FieldAddress(V0, Context::parent_offset()));
+    __ delay_slot()->sw(NULLREG, FieldAddress(V0, Context::parent_offset()));
     __ AddImmediate(T3, V0, Context::variable_offset(0) - kHeapObjectTag);
     __ sll(T1, T1, 2);
     __ Bind(&loop);
     __ addiu(T1, T1, Immediate(-kWordSize));
     __ addu(TMP1, T3, T1);
     __ bgtz(T1, &loop);
-    __ delay_slot()->sw(T2, Address(TMP1));
+    __ delay_slot()->sw(NULLREG, Address(TMP1));
     __ Bind(&loop_exit);
 
     // Done allocating and initializing the context.
@@ -961,10 +956,9 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
   // calling into the runtime.
   __ EnterStubFrame();
   // Setup space on stack for return value.
-  __ LoadImmediate(T2, reinterpret_cast<intptr_t>(Object::null()));
   __ SmiTag(T1);
   __ addiu(SP, SP, Immediate(-2 * kWordSize));
-  __ sw(T2, Address(SP, 1 * kWordSize));
+  __ sw(NULLREG, Address(SP, 1 * kWordSize));
   __ sw(T1, Address(SP, 0 * kWordSize));
   __ CallRuntime(kAllocateContextRuntimeEntry);  // Allocate context.
   __ lw(V0, Address(SP, 1 * kWordSize));  // Get the new context.
@@ -1131,9 +1125,6 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     __ sw(T0, Address(T2, Instance::tags_offset()));
 
     // Initialize the remaining words of the object.
-    __ LoadImmediate(T0, reinterpret_cast<intptr_t>(Object::null()));
-
-    // T0: raw null.
     // T2: new object start.
     // T3: next object start.
     // T1: new object type arguments (if is_cls_parameterized).
@@ -1144,12 +1135,11 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
       for (intptr_t current_offset = sizeof(RawObject);
            current_offset < instance_size;
            current_offset += kWordSize) {
-        __ sw(T0, Address(T2, current_offset));
+        __ sw(NULLREG, Address(T2, current_offset));
       }
     } else {
       __ addiu(T4, T2, Immediate(sizeof(RawObject)));
       // Loop until the whole object is initialized.
-      // T0: raw null.
       // T2: new object.
       // T3: next object start.
       // T4: next word to be initialized.
@@ -1159,7 +1149,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
       __ Bind(&loop);
       __ addiu(T4, T4, Immediate(kWordSize));
       __ bne(T4, T3, &loop);
-      __ delay_slot()->sw(T0, Address(T4, -kWordSize));
+      __ delay_slot()->sw(NULLREG, Address(T4, -kWordSize));
       __ Bind(&loop_exit);
     }
     if (is_cls_parameterized) {
@@ -1181,11 +1171,11 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
   __ EnterStubFrame(true);  // Uses pool pointer to pass cls to runtime.
-  __ LoadImmediate(T2, reinterpret_cast<intptr_t>(Object::null()));
   __ LoadObject(TMP1, cls);
 
   __ addiu(SP, SP, Immediate(-4 * kWordSize));
-  __ sw(T2, Address(SP, 3 * kWordSize));  // Space on stack for return value.
+  // Space on stack for return value.
+  __ sw(NULLREG, Address(SP, 3 * kWordSize));
   __ sw(TMP1, Address(SP, 2 * kWordSize));  // Class of object to be allocated.
 
   if (is_cls_parameterized) {
@@ -1195,7 +1185,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
   } else {
     // Push null type arguments and kNoInstantiator.
     __ LoadImmediate(T1, Smi::RawValue(StubCode::kNoInstantiator));
-    __ sw(T2, Address(SP, 1 * kWordSize));
+    __ sw(NULLREG, Address(SP, 1 * kWordSize));
     __ sw(T1, Address(SP, 0 * kWordSize));
   }
   __ CallRuntime(kAllocateObjectRuntimeEntry);  // Allocate object.
@@ -1299,8 +1289,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
       __ sw(T0, Address(T4, Context::isolate_offset()));
 
       // Set the parent to null.
-      __ LoadImmediate(T0, reinterpret_cast<intptr_t>(Object::null()));
-      __ sw(T0, Address(T4, Context::parent_offset()));
+      __ sw(NULLREG, Address(T4, Context::parent_offset()));
 
       // Initialize the context variable to the receiver.
       __ lw(T0, Address(FP, kReceiverFPOffset));
@@ -1333,10 +1322,9 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
     num_slots = is_implicit_instance_closure ? 4 : 3;
   }
   __ addiu(SP, SP, Immediate(-num_slots * kWordSize));
-  __ LoadImmediate(V0, reinterpret_cast<intptr_t>(Object::null()));
   __ LoadObject(TMP1, func);
   // Setup space on stack for return value.
-  __ sw(V0, Address(SP, (num_slots - 1) * kWordSize));
+  __ sw(NULLREG, Address(SP, (num_slots - 1) * kWordSize));
   __ sw(TMP1, Address(SP, (num_slots - 2) * kWordSize));
   if (is_implicit_static_closure) {
     __ CallRuntime(kAllocateImplicitStaticClosureRuntimeEntry);
@@ -1345,7 +1333,7 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
     if (is_implicit_instance_closure) {
       __ lw(T1, Address(FP, kReceiverFPOffset));
       __ sw(T1, Address(SP, (num_slots - 3) * kWordSize));  // Receiver.
-      __ sw(V0, Address(SP, (num_slots - 4) * kWordSize));  // Push null.
+      __ sw(NULLREG, Address(SP, (num_slots - 4) * kWordSize));  // Push null.
     }
     if (has_type_arguments) {
       __ lw(V0, Address(FP, kTypeArgumentsFPOffset));
@@ -1543,14 +1531,13 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
   __ EnterStubFrame();
-  __ LoadImmediate(T3, reinterpret_cast<intptr_t>(Object::null()));
   // Preserve IC data object and arguments descriptor array and
   // setup space on stack for result (target code object).
   int num_slots = num_args + 5;
   __ addiu(SP, SP, Immediate(-num_slots * kWordSize));
   __ sw(S5, Address(SP, (num_slots - 1) * kWordSize));
   __ sw(S4, Address(SP, (num_slots - 2) * kWordSize));
-  __ sw(T3, Address(SP, (num_slots - 3) * kWordSize));
+  __ sw(NULLREG, Address(SP, (num_slots - 3) * kWordSize));
   // Push call arguments.
   for (intptr_t i = 0; i < num_args; i++) {
     __ lw(TMP1, Address(T1, -i * kWordSize));
@@ -1580,14 +1567,14 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   __ addiu(SP, SP, Immediate(num_slots * kWordSize));
   __ LeaveStubFrame();
   Label call_target_function;
-  __ BranchNotEqual(T3, reinterpret_cast<intptr_t>(Object::null()),
-                    &call_target_function);
+  __ bne(T3, NULLREG, &call_target_function);
+
   // NoSuchMethod or closure.
   // Mark IC call that it may be a closure call that does not collect
   // type feedback.
-  __ LoadImmediate(TMP2, 1);
+  __ LoadImmediate(TMP1, 1);
   __ Branch(&StubCode::InstanceFunctionLookupLabel());
-  __ delay_slot()->sb(TMP2, FieldAddress(S5, ICData::is_closure_call_offset()));
+  __ delay_slot()->sb(TMP1, FieldAddress(S5, ICData::is_closure_call_offset()));
 
   __ Bind(&found);
   // T0: Pointer to an IC data check group.
@@ -1596,7 +1583,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   __ lw(T3, Address(T0, target_offset));
   __ lw(T4, Address(T0, count_offset));
 
-  __ AddImmediateDetectOverflow(T4, T4, Smi::RawValue(1), T5);
+  __ AddImmediateDetectOverflow(T4, T4, Smi::RawValue(1), T5, T6);
 
   __ bgez(T5, &call_target_function);  // No overflow.
   __ delay_slot()->sw(T4, Address(T0, count_offset));
@@ -1696,11 +1683,10 @@ void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
   __ EnterStubFrame();
-  __ LoadImmediate(T0, reinterpret_cast<intptr_t>(Object::null()));
   // Preserve arguments descriptor and make room for result.
   __ addiu(SP, SP, Immediate(-2 * kWordSize));
   __ sw(S4, Address(SP, 1 * kWordSize));
-  __ sw(T0, Address(SP, 0 * kWordSize));
+  __ sw(NULLREG, Address(SP, 0 * kWordSize));
   __ CallRuntime(kBreakpointStaticHandlerRuntimeEntry);
   // Pop code object result and restore arguments descriptor.
   __ lw(T0, Address(SP, 0 * kWordSize));
@@ -1729,8 +1715,7 @@ void StubCode::GenerateBreakpointReturnStub(Assembler* assembler) {
 
   // Instead of returning to the patched Dart function, emulate the
   // smashed return code pattern and return to the function's caller.
-  __ LeaveDartFrame();
-  __ Ret();
+  __ LeaveDartFrameAndReturn();
 }
 
 
@@ -1783,7 +1768,6 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     __ LoadClass(T0, A0);
     // Compute instance type arguments into R4.
     Label has_no_type_arguments;
-    __ LoadImmediate(T1, reinterpret_cast<intptr_t>(Object::null()));
     __ lw(T2, FieldAddress(T0,
         Class::type_arguments_field_offset_in_words_offset()));
     __ BranchEqual(T2, Class::kNoTypeArguments, &has_no_type_arguments);
@@ -1808,7 +1792,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   __ SmiTag(T0);
   __ Bind(&loop);
   __ lw(T3, Address(T2, kWordSize * SubtypeTestCache::kInstanceClassId));
-  __ BranchEqual(T3, reinterpret_cast<intptr_t>(Object::null()), &not_found);
+  __ beq(T3, NULLREG, &not_found);
 
   if (n == 1) {
     __ beq(T3, T0, &found);
@@ -1831,12 +1815,8 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
       Immediate(kWordSize * SubtypeTestCache::kTestEntryLength));
   // Fall through to not found.
   __ Bind(&not_found);
-  intptr_t null = reinterpret_cast<intptr_t>(Object::null());
-  uint16_t null_lo = Utils::Low16Bits(null);
-  uint16_t null_hi = Utils::High16Bits(null);
-  __ lui(V0, Immediate(null_hi));
   __ Ret();
-  __ delay_slot()->ori(V0, V0, Immediate(null_lo));
+  __ delay_slot()->mov(V0, NULLREG);
 
   __ Bind(&found);
   __ Ret();
@@ -1962,7 +1942,7 @@ void StubCode::GenerateEqualityWithNullArgStub(Assembler* assembler) {
       ICData::CountIndexFor(kNumArgsTested) * kWordSize;
   Label no_overflow;
   __ lw(T1, Address(T6, count_offset));
-  __ AddImmediateDetectOverflow(T1, T1, Smi::RawValue(1), CMPRES);
+  __ AddImmediateDetectOverflow(T1, T1, Smi::RawValue(1), CMPRES, T6);
   __ bgez(CMPRES, &no_overflow);
   __ LoadImmediate(TMP1, Smi::RawValue(Smi::kMaxValue));
   __ sw(TMP1, Address(T6, count_offset));  // If overflow.
@@ -1970,11 +1950,11 @@ void StubCode::GenerateEqualityWithNullArgStub(Assembler* assembler) {
 
   Label compute_result;
   __ Bind(&compute_result);
-  __ LoadObject(TMP1, Bool::True());
-  __ LoadObject(TMP2, Bool::False());
+  __ LoadObject(T4, Bool::True());
+  __ LoadObject(T5, Bool::False());
   __ subu(CMPRES, A0, A1);
-  __ movz(V0, TMP1, CMPRES);
-  __ movn(V0, TMP2, CMPRES);
+  __ movz(V0, T4, CMPRES);
+  __ movn(V0, T5, CMPRES);
   __ LeaveStubFrameAndReturn();
 
   __ Bind(&get_class_id_as_smi);
@@ -2014,8 +1994,7 @@ void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
   __ addiu(SP, SP, Immediate(-3 * kWordSize));
   __ sw(S4, Address(SP, 2 * kWordSize));
   // Setup space on stack for return value.
-  __ LoadImmediate(TMP, reinterpret_cast<intptr_t>(Object::null()));
-  __ sw(TMP1, Address(SP, 1 * kWordSize));
+  __ sw(NULLREG, Address(SP, 1 * kWordSize));
   __ sw(T0, Address(SP, 0 * kWordSize));
   __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry);
   __ TraceSimMsg("OptimizeFunctionStub return");
@@ -2047,8 +2026,8 @@ DECLARE_LEAF_RUNTIME_ENTRY(intptr_t,
 void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler) {
   __ TraceSimMsg("IdenticalWithNumberCheckStub");
   const Register ret = CMPRES;
-  const Register temp1 = TMP1;
-  const Register temp2 = TMP2;
+  const Register temp1 = T2;
+  const Register temp2 = T3;
   const Register left = T1;
   const Register right = T0;
   // Preserve left, right.

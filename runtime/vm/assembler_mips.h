@@ -574,16 +574,21 @@ class Assembler : public ValueObject {
 
   // Addition of rs and rt with the result placed in rd.
   // After, ro < 0 if there was signed overflow, ro >= 0 otherwise.
-  // rd and ro must not be TMP1 or TMP2.
+  // rd and ro must not be TMP1.
   // ro must be different from all the other registers.
-  void AdduDetectOverflow(Register rd, Register rs, Register rt, Register ro);
+  // If rd, rs, and rt are the same register, then a scratch register different
+  // from the other registers is needed.
+  void AdduDetectOverflow(Register rd, Register rs, Register rt, Register ro,
+                          Register scratch = kNoRegister);
 
   // ro must be different from rd and rs.
-  // rd and ro must not be TMP1 or TMP2
+  // rd and ro must not be TMP1.
+  // If rd and rs are the same, a scratch register different from the other
+  // registers is needed.
   void AddImmediateDetectOverflow(Register rd, Register rs, int32_t imm,
-                                  Register ro) {
+                                  Register ro, Register scratch = kNoRegister) {
     LoadImmediate(rd, imm);
-    AdduDetectOverflow(rd, rs, rd, ro);
+    AdduDetectOverflow(rd, rs, rd, ro, scratch);
   }
 
   // Subtraction of rt from rs (rs - rt) with the result placed in rd.
@@ -848,7 +853,7 @@ class Assembler : public ValueObject {
   // enable easy access to the RawInstruction object of code corresponding
   // to this frame.
   void EnterDartFrame(intptr_t frame_size);
-  void LeaveDartFrame();
+  void LeaveDartFrameAndReturn();
 
  private:
   AssemblerBuffer buffer_;

@@ -1595,7 +1595,6 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     __ LoadClass(R3, R0, R4);
     // Compute instance type arguments into R4.
     Label has_no_type_arguments;
-    __ LoadImmediate(R4, reinterpret_cast<intptr_t>(Object::null()));
     __ ldr(R5, FieldAddress(R3,
         Class::type_arguments_field_offset_in_words_offset()));
     __ CompareImmediate(R5, Class::kNoTypeArguments);

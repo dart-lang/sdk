@@ -785,8 +785,7 @@ void FlowGraphCompiler::CopyParameters() {
                                       0);  // No registers.
   }
   // The noSuchMethod call may return.
-  __ LeaveDartFrame();
-  __ Ret();
+  __ LeaveDartFrameAndReturn();
 
   __ Bind(&all_arguments_processed);
   // Nullify originally passed arguments only after they have been copied and
@@ -999,8 +998,7 @@ void FlowGraphCompiler::CompileGraph() {
                                             0);  // No registers.
         }
         // The noSuchMethod call may return.
-        __ LeaveDartFrame();
-        __ Ret();
+        __ LeaveDartFrameAndReturn();
       } else {
         __ Stop("Wrong number of arguments");
       }

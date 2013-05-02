@@ -1060,6 +1060,7 @@ ASSEMBLER_TEST_GENERATE(AddOverflow_detect, assembler) {
   Register right = T1;
   Register result = T2;
   Register overflow = T3;
+  Register scratch = T4;
   Label error, done;
 
   __ LoadImmediate(V0, 1);  // Success value.
@@ -1094,7 +1095,7 @@ ASSEMBLER_TEST_GENERATE(AddOverflow_detect, assembler) {
   __ bgez(overflow, &error);  // INT_MIN - 1 overflows.
 
   // result has 0x7fffffff.
-  __ AdduDetectOverflow(result, result, result, overflow);
+  __ AdduDetectOverflow(result, result, result, overflow, scratch);
   __ bgez(overflow, &error);  // INT_MAX + INT_MAX overflows.
 
   __ LoadImmediate(left, 0x80000000);
