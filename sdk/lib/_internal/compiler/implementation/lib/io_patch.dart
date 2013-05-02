@@ -215,7 +215,8 @@ patch class InternetAddress {
 patch class RawServerSocket {
   patch static Future<RawServerSocket> bind(address,
                                             int port,
-                                            {int backlog: 0}) {
+                                            {int backlog: 0,
+                                             bool v6Only}) {
     throw new UnsupportedError("RawServerSocket.bind");
   }
 }
@@ -223,7 +224,8 @@ patch class RawServerSocket {
 patch class ServerSocket {
   patch static Future<ServerSocket> bind(address,
                                          int port,
-                                         {int backlog: 0}) {
+                                         {int backlog: 0,
+                                          bool v6Only}) {
     throw new UnsupportedError("ServerSocket.bind");
   }
 }
