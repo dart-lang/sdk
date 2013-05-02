@@ -91,9 +91,12 @@ class TypesTask extends CompilerTask {
    */
   TypeMask best(var type1, var type2, [element]) {
     final result = _best(type1, type2);
-    similar() {
-      if (type1 == null) return type2 == null;
-      if (type2 == null) return false;
+    // Tests type1 and type2 for equality modulo normalization of native types.
+    // Only called when DUMP_SURPRISING_RESULTS is true.
+    bool similar() {
+      if (type1 == null || type2 == null || type1.isEmpty || type2.isEmpty) {
+        return type1 == type2;
+      }
       return same(type1.base, type2.base);
     }
     if (DUMP_SURPRISING_RESULTS && result == type1 && !similar()) {
