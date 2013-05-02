@@ -3425,7 +3425,8 @@ class AllocateObjectInstr : public TemplateDefinition<0> {
                       ZoneGrowableArray<PushArgumentInstr*>* arguments)
       : ast_node_(*node),
         arguments_(arguments),
-        cid_(Class::Handle(node->constructor().Owner()).id()) {
+        cid_(Class::Handle(node->constructor().Owner()).id()),
+        identity_(kUnknown) {
     // Either no arguments or one type-argument and one instantiator.
     ASSERT(arguments->is_empty() || (arguments->length() == 2));
   }
@@ -3447,10 +3448,23 @@ class AllocateObjectInstr : public TemplateDefinition<0> {
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
+  // If the result of the allocation is not stored into any field, passed
+  // as an argument or used in a phi then it can't alias with any other
+  // SSA value.
+  enum Identity {
+    kUnknown,
+    kAliased,
+    kNotAliased
+  };
+
+  Identity identity() const { return identity_; }
+  void set_identity(Identity identity) { identity_ = identity; }
+
  private:
   const ConstructorCallNode& ast_node_;
   ZoneGrowableArray<PushArgumentInstr*>* const arguments_;
   const intptr_t cid_;
+  Identity identity_;
 
   DISALLOW_COPY_AND_ASSIGN(AllocateObjectInstr);
 };
@@ -3592,7 +3606,7 @@ class LoadUntaggedInstr : public TemplateDefinition<1> {
 
 class LoadFieldInstr : public TemplateDefinition<1> {
  public:
-  LoadFieldInstr(Value* value,
+  LoadFieldInstr(Value* instance,
                  intptr_t offset_in_bytes,
                  const AbstractType& type,
                  bool immutable = false)
@@ -3604,10 +3618,10 @@ class LoadFieldInstr : public TemplateDefinition<1> {
         field_name_(NULL),
         field_(NULL) {
     ASSERT(type.IsZoneHandle());  // May be null if field is not an instance.
-    SetInputAt(0, value);
+    SetInputAt(0, instance);
   }
 
-  Value* value() const { return inputs_[0]; }
+  Value* instance() const { return inputs_[0]; }
   intptr_t offset_in_bytes() const { return offset_in_bytes_; }
   const AbstractType& type() const { return type_; }
   void set_result_cid(intptr_t value) { result_cid_ = value; }
@@ -3616,8 +3630,8 @@ class LoadFieldInstr : public TemplateDefinition<1> {
   void set_field_name(const char* name) { field_name_ = name; }
   const char* field_name() const { return field_name_; }
 
-  Field* field() const { return field_; }
-  void set_field(Field* field) { field_ = field; }
+  const Field* field() const { return field_; }
+  void set_field(const Field* field) { field_ = field; }
 
   void set_recognized_kind(MethodRecognizer::Kind kind) {
     recognized_kind_ = kind;
@@ -3658,7 +3672,7 @@ class LoadFieldInstr : public TemplateDefinition<1> {
   MethodRecognizer::Kind recognized_kind_;
 
   const char* field_name_;
-  Field* field_;
+  const Field* field_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadFieldInstr);
 };
@@ -3956,6 +3970,8 @@ class BoxDoubleInstr : public TemplateDefinition<1> {
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
+  Definition* Canonicalize(FlowGraphOptimizer* optimizer);
+
  private:
   DISALLOW_COPY_AND_ASSIGN(BoxDoubleInstr);
 };
@@ -4070,6 +4086,8 @@ class UnboxDoubleInstr : public TemplateDefinition<1> {
   virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  Definition* Canonicalize(FlowGraphOptimizer* optimizer);
 
  private:
   DISALLOW_COPY_AND_ASSIGN(UnboxDoubleInstr);

@@ -2634,6 +2634,7 @@ void EffectGraphVisitor::VisitLoadInstanceFieldNode(
       for_instance.value(),
       node->field().Offset(),
       AbstractType::ZoneHandle(node->field().type()));
+  load->set_field(&node->field());
   ReturnDefinition(load);
 }
 

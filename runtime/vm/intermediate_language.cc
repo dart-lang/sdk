@@ -1196,7 +1196,7 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
   // For fixed length arrays if the array is the result of a known constructor
   // call we can replace the length load with the length argument passed to
   // the constructor.
-  StaticCallInstr* call = value()->definition()->AsStaticCall();
+  StaticCallInstr* call = instance()->definition()->AsStaticCall();
   if ((call != NULL) &&
       call->is_known_list_constructor() &&
       IsFixedLengthArrayCid(call->Type()->ToCid())) {
@@ -1242,6 +1242,29 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
     instantiator_type_arguments()->BindTo(null_constant);
   }
   return this;
+}
+
+
+Definition* BoxDoubleInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
+  if (input_use_list() == NULL) {
+    // Environments can accomodate any representation. No need to box.
+    return value()->definition();
+  }
+
+  // Fold away BoxDouble(UnboxDouble(v)) if value is known to be double.
+  UnboxDoubleInstr* defn = value()->definition()->AsUnboxDouble();
+  if ((defn != NULL) && (defn->value()->Type()->ToCid() == kDoubleCid)) {
+    return defn->value()->definition();
+  }
+
+  return this;
+}
+
+
+Definition* UnboxDoubleInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
+  // Fold away UnboxDouble(BoxDouble(v)).
+  BoxDoubleInstr* defn = value()->definition()->AsBoxDouble();
+  return (defn != NULL) ? defn->value()->definition() : this;
 }
 
 

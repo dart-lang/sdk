@@ -891,7 +891,7 @@ CompileType LoadFieldInstr::ComputeType() const {
     return CompileType::FromAbstractType(type());
   }
 
-  if (field_ != NULL) {
+  if (field_ != NULL && (field_->guarded_cid() != kIllegalCid)) {
     return CompileType::CreateNullable(field_->is_nullable(),
                                        field_->guarded_cid());
   }

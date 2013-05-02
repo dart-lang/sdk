@@ -17,7 +17,7 @@ class ParsedFunction;
 class FlowGraphOptimizer : public FlowGraphVisitor {
  public:
   FlowGraphOptimizer(FlowGraph* flow_graph,
-                     GrowableArray<Field*>* guarded_fields)
+                     GrowableArray<const Field*>* guarded_fields)
       : FlowGraphVisitor(flow_graph->reverse_postorder()),
         flow_graph_(flow_graph),
         guarded_fields_(guarded_fields) { }
@@ -35,7 +35,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   // shift can be a truncating Smi shift-left and result is always Smi.
   void TryOptimizeLeftShiftWithBitAndPattern();
 
-  void Canonicalize();
+  // Returns true if any instructions were canonicalized away.
+  bool Canonicalize();
 
   void EliminateDeadPhis();
 
@@ -170,10 +171,10 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                                     Definition* left_instr,
                                     Definition* right_instr);
 
-  void AddToGuardedFields(Field* field);
+  void AddToGuardedFields(const Field& field);
 
   FlowGraph* flow_graph_;
-  GrowableArray<Field*>* guarded_fields_;
+  GrowableArray<const Field*>* guarded_fields_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphOptimizer);
 };

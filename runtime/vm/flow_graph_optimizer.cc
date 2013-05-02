@@ -302,7 +302,8 @@ static void ReplaceCurrentInstruction(ForwardInstructionIterator* iterator,
 }
 
 
-void FlowGraphOptimizer::Canonicalize() {
+bool FlowGraphOptimizer::Canonicalize() {
+  bool changed = false;
   for (intptr_t i = 0; i < block_order_.length(); ++i) {
     BlockEntryInstr* entry = block_order_[i];
     entry->Accept(this);
@@ -314,9 +315,11 @@ void FlowGraphOptimizer::Canonicalize() {
         // this.
         ASSERT((replacement == NULL) || current->IsDefinition());
         ReplaceCurrentInstruction(&it, current, replacement, flow_graph_);
+        changed = true;
       }
     }
   }
+  return changed;
 }
 
 
@@ -1240,17 +1243,17 @@ bool FlowGraphOptimizer::MethodExtractorNeedsClassCheck(
 }
 
 
-void FlowGraphOptimizer::AddToGuardedFields(Field* field) {
-  if ((field->guarded_cid() == kDynamicCid) ||
-      (field->guarded_cid() == kIllegalCid)) {
+void FlowGraphOptimizer::AddToGuardedFields(const Field& field) {
+  if ((field.guarded_cid() == kDynamicCid) ||
+      (field.guarded_cid() == kIllegalCid)) {
     return;
   }
   for (intptr_t j = 0; j < guarded_fields_->length(); j++) {
-    if ((*guarded_fields_)[j]->raw() == field->raw()) {
+    if ((*guarded_fields_)[j]->raw() == field.raw()) {
       return;
     }
   }
-  guarded_fields_->Add(field);
+  guarded_fields_->Add(&field);
 }
 
 
@@ -1264,7 +1267,7 @@ void FlowGraphOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
   // Inline implicit instance getter.
   const String& field_name =
       String::Handle(Field::NameFromGetter(call->function_name()));
-  const Field& field = Field::Handle(GetField(class_ids[0], field_name));
+  const Field& field = Field::ZoneHandle(GetField(class_ids[0], field_name));
   ASSERT(!field.IsNull());
 
   if (InstanceCallNeedsClassCheck(call)) {
@@ -1275,13 +1278,12 @@ void FlowGraphOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
       field.Offset(),
       AbstractType::ZoneHandle(field.type()),
       field.is_final());
+  load->set_field(&field);
   if (field.guarded_cid() != kIllegalCid) {
     if (!field.is_nullable() || (field.guarded_cid() == kNullCid)) {
       load->set_result_cid(field.guarded_cid());
     }
-    Field* the_field = &Field::ZoneHandle(field.raw());
-    load->set_field(the_field);
-    AddToGuardedFields(the_field);
+    AddToGuardedFields(field);
   }
   load->set_field_name(String::Handle(field.name()).ToCString());
 
@@ -3290,20 +3292,21 @@ class Alias : public ValueObject {
     return Alias(kIndexesAlias);
   }
 
-  // Field load/stores alias each other when field offset matches.
-  // TODO(vegorov): use field information to disambiguate load/stores into
-  // different fields that by accident share offset.
-  static Alias Field(intptr_t offset_in_bytes) {
+  // Field load/stores alias each other only when they access the same field.
+  // AliasedSet assigns ids to a combination of instance and field during
+  // the optimization phase.
+  static Alias Field(intptr_t id) {
+    ASSERT(id >= kFirstFieldAlias);
+    return Alias(id * 2 + 1);
+  }
+
+  // VMField load/stores alias each other when field offset matches.
+  // TODO(vegorov) storing a context variable does not alias loading array
+  // length.
+  static Alias VMField(intptr_t offset_in_bytes) {
     const intptr_t idx = offset_in_bytes / kWordSize;
     ASSERT(idx >= kFirstFieldAlias);
     return Alias(idx * 2);
-  }
-
-  // Static field load/stores alias each other.
-  // AliasedSet assigns ids to static fields during optimization phase.
-  static Alias StaticField(intptr_t id) {
-    ASSERT(id >= kFirstFieldAlias);
-    return Alias(id * 2 + 1);
   }
 
   // Current context load/stores alias each other.
@@ -3358,7 +3361,12 @@ class AliasedSet : public ZoneAllocated {
 
     LoadFieldInstr* load_field = defn->AsLoadField();
     if (load_field != NULL) {
-      return Alias::Field(load_field->offset_in_bytes());
+      if (load_field->field() != NULL) {
+        Definition* instance = load_field->instance()->definition();
+        return Alias::Field(GetInstanceFieldId(instance, *load_field->field()));
+      } else {
+        return Alias::VMField(load_field->offset_in_bytes());
+      }
     }
 
     if (defn->IsCurrentContext()) {
@@ -3367,7 +3375,7 @@ class AliasedSet : public ZoneAllocated {
 
     LoadStaticFieldInstr* load_static_field = defn->AsLoadStaticField();
     if (load_static_field != NULL) {
-      return Alias::StaticField(GetFieldId(load_static_field->field()));
+      return Alias::Field(GetFieldId(kAnyInstance, load_static_field->field()));
     }
 
     UNREACHABLE();
@@ -3382,12 +3390,14 @@ class AliasedSet : public ZoneAllocated {
     StoreInstanceFieldInstr* store_instance_field =
         instr->AsStoreInstanceField();
     if (store_instance_field != NULL) {
-      return Alias::Field(store_instance_field->field().Offset());
+      Definition* instance = store_instance_field->instance()->definition();
+      return Alias::Field(GetInstanceFieldId(instance,
+                                             store_instance_field->field()));
     }
 
     StoreVMFieldInstr* store_vm_field = instr->AsStoreVMField();
     if (store_vm_field != NULL) {
-      return Alias::Field(store_vm_field->offset_in_bytes());
+      return Alias::VMField(store_vm_field->offset_in_bytes());
     }
 
     if (instr->IsStoreContext() || instr->IsChainContext()) {
@@ -3396,7 +3406,7 @@ class AliasedSet : public ZoneAllocated {
 
     StoreStaticFieldInstr* store_static_field = instr->AsStoreStaticField();
     if (store_static_field != NULL) {
-      return Alias::StaticField(GetFieldId(store_static_field->field()));
+      return Alias::Field(GetStaticFieldId(store_static_field->field()));
     }
 
     return Alias::None();
@@ -3438,18 +3448,86 @@ class AliasedSet : public ZoneAllocated {
 
   // Get id assigned to the given field. Assign a new id if the field is seen
   // for the first time.
-  intptr_t GetFieldId(const Field& field) {
-    intptr_t id = field_ids_.Lookup(&field);
+  intptr_t GetFieldId(intptr_t instance_id, const Field& field) {
+    intptr_t id = field_ids_.Lookup(FieldIdPair::Key(instance_id, &field));
     if (id == 0) {
       id = ++max_field_id_;
-      field_ids_.Insert(FieldIdPair(&field, id));
+      field_ids_.Insert(FieldIdPair(FieldIdPair::Key(instance_id, &field), id));
     }
     return id;
   }
 
+  enum {
+    kAnyInstance = -1
+  };
+
+  // Get or create an identifier for an instance field belonging to the
+  // given instance.
+  // The space of identifiers assigned to instance fields is split into
+  // parts based on the instance that contains the field.
+  // If compiler can prove that instance has a single SSA name in the compiled
+  // function then we use that SSA name to distinguish fields of this object
+  // from the same fields in other objects.
+  // If multiple SSA names can point to the same object then we use
+  // kAnyInstance instead of a concrete SSA name.
+  intptr_t GetInstanceFieldId(Definition* defn, const Field& field) {
+    ASSERT(!field.is_static());
+
+    intptr_t instance_id = kAnyInstance;
+
+    AllocateObjectInstr* alloc = defn->AsAllocateObject();
+    if ((alloc != NULL) && !CanBeAliased(alloc)) {
+      instance_id = alloc->ssa_temp_index();
+      ASSERT(instance_id != kAnyInstance);
+    }
+
+    return GetFieldId(instance_id, field);
+  }
+
+  // Get or create an identifier for a static field.
+  intptr_t GetStaticFieldId(const Field& field) {
+    ASSERT(field.is_static());
+    return GetFieldId(kAnyInstance, field);
+  }
+
+  // Returns true if the result of AllocateObject can be aliased by some
+  // other SSA variable and false otherwise. Currently simply checks if
+  // this value is stored in a field, escapes to another function or
+  // participates in a phi.
+  bool CanBeAliased(AllocateObjectInstr* alloc) {
+    if (alloc->identity() == AllocateObjectInstr::kUnknown) {
+      bool escapes = false;
+      for (Value* use = alloc->input_use_list();
+           use != NULL;
+           use = use->next_use()) {
+        Instruction* instr = use->instruction();
+        if (instr->IsPushArgument() ||
+            (instr->IsStoreVMField() && (use->use_index() != 0)) ||
+            (instr->IsStoreInstanceField() && (use->use_index() != 0)) ||
+            (instr->IsStoreStaticField()) ||
+            (instr->IsPhi())) {
+          escapes = true;
+          break;
+        }
+
+        alloc->set_identity(escapes ? AllocateObjectInstr::kAliased
+                                    : AllocateObjectInstr::kNotAliased);
+      }
+    }
+
+    return alloc->identity() != AllocateObjectInstr::kNotAliased;
+  }
+
   class FieldIdPair {
    public:
-    typedef const Field* Key;
+    struct Key {
+      Key(intptr_t instance_id, const Field* field)
+          : instance_id_(instance_id), field_(field) { }
+
+      intptr_t instance_id_;
+      const Field* field_;
+    };
+
     typedef intptr_t Value;
     typedef FieldIdPair Pair;
 
@@ -3464,11 +3542,12 @@ class AliasedSet : public ZoneAllocated {
     }
 
     static intptr_t Hashcode(Key key) {
-      return String::Handle(key->name()).Hash();
+      return String::Handle(key.field_->name()).Hash();
     }
 
     static inline bool IsKeyEqual(Pair kv, Key key) {
-      return KeyOf(kv)->raw() == key->raw();
+      return (KeyOf(kv).field_->raw() == key.field_->raw()) &&
+          (KeyOf(kv).instance_id_ == key.instance_id_);
     }
 
    private:
@@ -3541,7 +3620,7 @@ class LoadKeyValueTrait {
       location = store_indexed->index()->definition()->ssa_temp_index();
     } else if (key->IsLoadField()) {
       LoadFieldInstr* load_field = key->AsLoadField();
-      object = load_field->value()->definition()->ssa_temp_index();
+      object = load_field->instance()->definition()->ssa_temp_index();
       location = load_field->offset_in_bytes();
     } else if (key->IsStoreInstanceField()) {
       StoreInstanceFieldInstr* store_field = key->AsStoreInstanceField();
@@ -3597,11 +3676,11 @@ class LoadKeyValueTrait {
     LoadFieldInstr* load_field = kv->AsLoadField();
     if (key->IsStoreVMField()) {
       StoreVMFieldInstr* store_field = key->AsStoreVMField();
-      return load_field->value()->Equals(store_field->dest()) &&
+      return load_field->instance()->Equals(store_field->dest()) &&
              (load_field->offset_in_bytes() == store_field->offset_in_bytes());
     } else if (key->IsStoreInstanceField()) {
       StoreInstanceFieldInstr* store_field = key->AsStoreInstanceField();
-      return load_field->value()->Equals(store_field->instance()) &&
+      return load_field->instance()->Equals(store_field->instance()) &&
              (load_field->offset_in_bytes() == store_field->field().Offset());
     }
 
@@ -4727,16 +4806,16 @@ void ConstantPropagator::VisitLoadUntagged(LoadUntaggedInstr* instr) {
 
 void ConstantPropagator::VisitLoadField(LoadFieldInstr* instr) {
   if ((instr->recognized_kind() == MethodRecognizer::kObjectArrayLength) &&
-      (instr->value()->definition()->IsCreateArray())) {
+      (instr->instance()->definition()->IsCreateArray())) {
     const intptr_t length =
-        instr->value()->definition()->AsCreateArray()->num_elements();
+        instr->instance()->definition()->AsCreateArray()->num_elements();
     const Object& result = Smi::ZoneHandle(Smi::New(length));
     SetValue(instr, result);
     return;
   }
 
   if (instr->IsImmutableLengthLoad()) {
-    ConstantInstr* constant = instr->value()->definition()->AsConstant();
+    ConstantInstr* constant = instr->instance()->definition()->AsConstant();
     if (constant != NULL) {
       if (constant->value().IsString()) {
         SetValue(instr, Smi::ZoneHandle(

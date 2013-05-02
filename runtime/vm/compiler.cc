@@ -170,7 +170,7 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
     // Collect all instance fields that are loaded in the graph and
     // have non-generic type feedback attached to them that can
     // potentially affect optimizations.
-    GrowableArray<Field*> guarded_fields(10);
+    GrowableArray<const Field*> guarded_fields(10);
     if (optimized) {
       TimerScope timer(FLAG_compiler_stats,
                        &CompilerStats::graphoptimizer_timer,
@@ -291,7 +291,14 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
         propagator.Propagate();
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
       }
-      optimizer.Canonicalize();
+      if (optimizer.Canonicalize()) {
+        // To fully remove redundant boxing (e.g. BoxDouble used only in
+        // environments and UnboxDouble instructions) instruction we
+        // first need to replace all their uses and then fold them away.
+        // For now we just repeat Canonicalize twice to do that.
+        // TODO(vegorov): implement a separate representation folding pass.
+        optimizer.Canonicalize();
+      }
       DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
       // Perform register allocation on the SSA graph.

@@ -514,7 +514,7 @@ void CreateClosureInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void LoadFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
-  value()->PrintTo(f);
+  instance()->PrintTo(f);
   f->Print(", %"Pd, offset_in_bytes());
 
   if (field_name_ != NULL) {

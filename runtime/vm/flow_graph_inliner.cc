@@ -24,7 +24,7 @@ DEFINE_FLAG(charp, inlining_filter, NULL, "Inline only in named function");
 // Flags for inlining heuristics.
 DEFINE_FLAG(int, inlining_depth_threshold, 3,
     "Inline function calls up to threshold nesting depth");
-DEFINE_FLAG(int, inlining_size_threshold, 20,
+DEFINE_FLAG(int, inlining_size_threshold, 22,
     "Always inline functions that have threshold or fewer instructions");
 DEFINE_FLAG(int, inlining_callee_call_sites_threshold, 1,
     "Always inline functions containing threshold or fewer calls.");
@@ -292,7 +292,8 @@ class CallSites : public FlowGraphVisitor {
 
 class CallSiteInliner : public ValueObject {
  public:
-  CallSiteInliner(FlowGraph* flow_graph, GrowableArray<Field*>* guarded_fields)
+  CallSiteInliner(FlowGraph* flow_graph,
+                  GrowableArray<const Field*>* guarded_fields)
       : caller_graph_(flow_graph),
         inlined_(false),
         initial_size_(flow_graph->InstructionCount()),
@@ -869,7 +870,7 @@ class CallSiteInliner : public ValueObject {
   CallSites* collected_call_sites_;
   CallSites* inlining_call_sites_;
   GrowableArray<ParsedFunction*> function_cache_;
-  GrowableArray<Field*>* guarded_fields_;
+  GrowableArray<const Field*>* guarded_fields_;
 
   DISALLOW_COPY_AND_ASSIGN(CallSiteInliner);
 };
