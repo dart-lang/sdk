@@ -1371,7 +1371,7 @@ class HInvokeSuper extends HInvokeStatic {
   final ClassElement caller;
   final bool isSetter;
 
-  HInvokeSuper(this.caller, inputs, {this.isSetter: false})
+  HInvokeSuper(this.caller, inputs, {this.isSetter})
       : super(inputs, HType.UNKNOWN);
   toString() => 'invoke super: ${element.name}';
   accept(HVisitor visitor) => visitor.visitInvokeSuper(this);
