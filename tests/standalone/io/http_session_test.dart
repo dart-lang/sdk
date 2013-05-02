@@ -150,8 +150,51 @@ void testSessionsData() {
   });
 }
 
+void testSessionsDestroy() {
+  HttpServer.bind("127.0.0.1", 0).then((server) {
+    bool firstHit = false;
+    server.listen((request) {
+      var session = request.session;
+      if (session.isNew) {
+        Expect.isFalse(firstHit);
+        firstHit = true;
+      } else {
+        Expect.isTrue(firstHit);
+        session.destroy();
+        var session2 = request.session;
+        Expect.notEquals(session.id, session2.id);
+      };
+      request.response.close();
+    });
+
+    var client = new HttpClient();
+    client.get("127.0.0.1", server.port, "/")
+      .then((request) => request.close())
+      .then((response) {
+        response.listen((_) {}, onDone: () {
+          var id = getSessionId(response.cookies);
+          Expect.isNotNull(id);
+          client.get("127.0.0.1", server.port, "/")
+            .then((request) {
+              request.cookies.add(new Cookie(SESSION_ID, id));
+              return request.close();
+            })
+            .then((response) {
+              response.listen((_) {}, onDone: () {
+                Expect.isTrue(firstHit);
+                Expect.notEquals(id, getSessionId(response.cookies));
+                server.close();
+                client.close();
+              });
+            });
+        });
+      });
+  });
+}
+
 void main() {
   testSessions(1);
   testTimeout(5);
   testSessionsData();
+  testSessionsDestroy();
 }

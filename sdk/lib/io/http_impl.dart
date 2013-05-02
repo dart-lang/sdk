@@ -128,6 +128,12 @@ class _HttpRequest extends _HttpInboundMessage implements HttpRequest {
 
   HttpSession get session {
     if (_session != null) {
+      if (_session._destroyed) {
+        // It's destroyed, clear it.
+        _session = null;
+        // Create new session object by calling recursive.
+        return session;
+      }
       // It's already mapped, use it.
       return _session;
     }
