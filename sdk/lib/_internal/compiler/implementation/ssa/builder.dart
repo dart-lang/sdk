@@ -2679,8 +2679,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   HForeign createForeign(String code,
                          HType type,
-                         List<HInstruction> inputs) {
-    return new HForeign(js.js.parseForeignJS(code), type, inputs);
+                         List<HInstruction> inputs,
+                         {bool isSideEffectFree: false}) {
+    return new HForeign(js.js.parseForeignJS(code),
+                        type,
+                        inputs,
+                        isSideEffectFree: isSideEffectFree);
   }
 
   HInstruction getRuntimeTypeInfo(HInstruction target) {
@@ -2987,8 +2991,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     addGenericSendArgumentsToList(link.tail.tail, inputs);
 
     HType ssaType = new HType.fromNativeBehavior(nativeBehavior, compiler);
-    push(new HForeign(nativeBehavior.codeAst, ssaType, inputs,
-                      effects: nativeBehavior.sideEffects));
+    push(new HForeign(nativeBehavior.codeAst, ssaType, inputs));
     return;
   }
 
@@ -3305,7 +3308,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       inputs.add(addTypeVariableReference(variable));
     });
 
-    HInstruction result = createForeign(template, HType.STRING, inputs);
+    HInstruction result = createForeign(
+        template, HType.STRING, inputs, isSideEffectFree: true);
     add(result);
     return result;
   }

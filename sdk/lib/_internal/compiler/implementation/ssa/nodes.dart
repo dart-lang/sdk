@@ -1471,27 +1471,28 @@ class HLocalSet extends HFieldAccess {
 class HForeign extends HInstruction {
   final js.Node codeAst;
   final bool isStatement;
+  final bool isSideEffectFree;
 
   HForeign(this.codeAst,
            HType type,
            List<HInstruction> inputs,
            {this.isStatement: false,
-            SideEffects effects})
+            this.isSideEffectFree: false})
       : super(inputs) {
-    if (effects != null) sideEffects.add(effects);
+    if (!isSideEffectFree) {
+      sideEffects.setAllSideEffects();
+      sideEffects.setDependsOnSomething();
+    }
     instructionType = type;
   }
 
-  HForeign.statement(codeAst, List<HInstruction> inputs, SideEffects effects)
-      : this(codeAst, HType.UNKNOWN, inputs, isStatement: true,
-             effects: effects);
+  HForeign.statement(codeAst, List<HInstruction> inputs)
+      : this(codeAst, HType.UNKNOWN, inputs, isStatement: true);
 
   accept(HVisitor visitor) => visitor.visitForeign(this);
 
   bool isJsStatement() => isStatement;
-  bool canThrow() {
-    return !sideEffects.hasSideEffects() && !sideEffects.dependsOnSomething();
-  }
+  bool canThrow() => !isSideEffectFree;
 }
 
 class HForeignNew extends HForeign {

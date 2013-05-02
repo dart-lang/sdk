@@ -934,7 +934,7 @@ class InterpolatedExpression extends Expression {
   accept(NodeVisitor visitor) => visitor.visitInterpolatedExpression(this);
 
   void visitChildren(NodeVisitor visitor) {
-    if (value != null) value.accept(visitor);
+    value.accept(visitor);
   }
 
   int get precedenceLevel => value.precedenceLevel;

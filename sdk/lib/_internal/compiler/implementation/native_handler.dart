@@ -14,7 +14,6 @@ import 'resolution/resolution.dart' show ResolverVisitor;
 import 'scanner/scannerlib.dart';
 import 'ssa/ssa.dart';
 import 'tree/tree.dart';
-import 'universe/universe.dart' show SideEffects;
 import 'util/util.dart';
 import 'js/js.dart' as js;
 
@@ -499,72 +498,6 @@ void maybeEnableNative(Compiler compiler,
   }
 }
 
-class SideEffectsVisitor extends js.BaseVisitor {
-  final SideEffects sideEffects;
-  SideEffectsVisitor(this.sideEffects);
-
-  void visit(js.Node node) {
-    node.accept(this);
-  }
-
-  void visitLiteralExpression(js.LiteralExpression node) {
-    sideEffects.setAllSideEffects();
-    sideEffects.setDependsOnSomething();
-    node.visitChildren(this);
-  }
-
-  void visitLiteralStatement(js.LiteralStatement node) {
-    sideEffects.setAllSideEffects();
-    sideEffects.setDependsOnSomething();
-    node.visitChildren(this);
-  }
-
-  void visitAssignment(js.Assignment node) {
-    sideEffects.setChangesStaticProperty();
-    sideEffects.setChangesInstanceProperty();
-    sideEffects.setChangesIndex();
-    node.visitChildren(this);
-  }
-
-  void visitVariableInitialization(js.VariableInitialization node) {
-    node.visitChildren(this);
-  }
-
-  void visitCall(js.Call node) {
-    sideEffects.setAllSideEffects();
-    sideEffects.setDependsOnSomething();
-    node.visitChildren(this);
-  }
-
-  void visitBinary(js.Binary node) {
-    node.visitChildren(this);
-  }
-
-  void visitNew(js.New node) {
-    node.visitChildren(this);
-  }
-
-  void visitPrefix(js.Prefix node) {
-    if (node.op == 'delete') {
-      sideEffects.setChangesStaticProperty();
-      sideEffects.setChangesInstanceProperty();
-      sideEffects.setChangesIndex();
-    }
-    node.visitChildren(this);
-  }
-
-  void visitPostfix(js.Postfix node) {
-    node.visitChildren(this);
-  }
-
-  void visitAccess(js.PropertyAccess node) {
-    sideEffects.setDependsOnIndexStore();
-    sideEffects.setDependsOnInstancePropertyStore();
-    sideEffects.setDependsOnStaticPropertyStore();
-    node.visitChildren(this);
-  }
-}
-
 /**
  * A summary of the behavior of a native element.
  *
@@ -607,8 +540,6 @@ class NativeBehavior {
   // parsed tree.
   js.Expression codeAst;
 
-  final SideEffects sideEffects = new SideEffects.empty();
-
   static NativeBehavior ofJsCall(Send jsCall, Compiler compiler, resolver) {
     // The first argument of a JS-call is a string encoding various attributes
     // of the code.
@@ -636,7 +567,6 @@ class NativeBehavior {
 
     var behavior = new NativeBehavior();
     behavior.codeAst = js.js.parseForeignJS(code.dartString.slowToString());
-    new SideEffectsVisitor(behavior.sideEffects).visit(behavior.codeAst);
 
     String specString = specLiteral.dartString.slowToString();
     // Various things that are not in fact types.
@@ -987,8 +917,7 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
                                      element: element);
     }
 
-    builder.push(new HForeign(js.js(nativeMethodCall), HType.UNKNOWN,
-                              inputs, effects: new SideEffects()));
+    builder.push(new HForeign(js.js(nativeMethodCall), HType.UNKNOWN, inputs));
     builder.close(new HReturn(builder.pop())).addSuccessor(builder.graph.exit);
   } else {
     if (parameters.parameterCount != 0) {
@@ -999,7 +928,6 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
     LiteralString jsCode = nativeBody.asLiteralString();
     builder.push(new HForeign.statement(
         new js.LiteralStatement(jsCode.dartString.slowToString()),
-        <HInstruction>[],
-        new SideEffects()));
+        <HInstruction>[]));
   }
 }
