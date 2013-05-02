@@ -176,7 +176,8 @@ class ServerSocket {
   //   -5: invalid bindAddress
   static intptr_t CreateBindListen(RawAddr addr,
                                    intptr_t port,
-                                   intptr_t backlog);
+                                   intptr_t backlog,
+                                   bool v6_only = false);
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(ServerSocket);

@@ -125,7 +125,7 @@ abstract class RawServerSocket implements Stream<RawSocket> {
    *
    * If an IP version 6 (IPv6) address is used, both IP version 6
    * (IPv6) and version 4 (IPv4) connections will be accepted. To
-   * restrict this to version 6 (IPv6) only, use [setOption] to set
+   * restrict this to version 6 (IPv6) only, use [v6Only] to set
    * version 6 only.
    *
    * If [port] has the value [:0:] an ephemeral port will
@@ -139,7 +139,8 @@ abstract class RawServerSocket implements Stream<RawSocket> {
    */
   external static Future<RawServerSocket> bind(address,
                                                int port,
-                                               {int backlog: 0});
+                                               {int backlog: 0,
+                                                bool v6Only: false});
 
   /**
    * Returns the port used by this socket.
@@ -179,7 +180,7 @@ abstract class ServerSocket implements Stream<Socket> {
    *
    * If an IP version 6 (IPv6) address is used, both IP version 6
    * (IPv6) and version 4 (IPv4) connections will be accepted. To
-   * restrict this to version 6 (IPv6) only, use [setOption] to set
+   * restrict this to version 6 (IPv6) only, use [v6Only] to set
    * version 6 only.
    *
    * If [port] has the value [:0:] an ephemeral port will be chosen by
@@ -193,7 +194,8 @@ abstract class ServerSocket implements Stream<Socket> {
    */
   external static Future<ServerSocket> bind(address,
                                             int port,
-                                            {int backlog: 0});
+                                            {int backlog: 0,
+                                             bool v6Only: false});
 
   /**
    * Returns the port used by this socket.
@@ -232,6 +234,7 @@ class SocketOption {
    * TCP_NODELAY is disabled by default.
    */
   static const SocketOption TCP_NODELAY = const SocketOption._(0);
+
   const SocketOption._(this._value);
   final _value;
 }

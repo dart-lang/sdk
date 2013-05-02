@@ -88,6 +88,21 @@ void testIPv4Lookup() {
   });
 }
 
+void testIPv4toIPv6_IPV6Only() {
+  InternetAddress.lookup("::0", type: ANY)
+      .then((serverAddr) {
+        ServerSocket.bind(serverAddr.first, 0, v6Only: true)
+            .then((server) {
+              server.listen((socket) {
+                throw "Unexpcted socket";
+              });
+              Socket.connect("127.0.0.1", server.port).catchError((error) {
+                server.close();
+              });
+            });
+      });
+}
+
 void main() {
   testIPv6toIPv6();
   testIPv4toIPv6();
@@ -95,4 +110,6 @@ void main() {
   testIPv4toIPv4();
   testIPv6Lookup();
   testIPv4Lookup();
+
+  testIPv4toIPv6_IPV6Only();
 }

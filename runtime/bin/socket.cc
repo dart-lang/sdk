@@ -383,12 +383,15 @@ void FUNCTION_NAME(ServerSocket_CreateBindListen)(Dart_NativeArguments args) {
   Dart_Handle result = GetSockAddr(host_obj, &addr);
   Dart_Handle port_obj = Dart_GetNativeArgument(args, 2);
   Dart_Handle backlog_obj = Dart_GetNativeArgument(args, 3);
+  Dart_Handle v6_only_obj = Dart_GetNativeArgument(args, 4);
+  bool v6_only = DartUtils::GetBooleanValue(v6_only_obj);
   int64_t port = 0;
   int64_t backlog = 0;
   if (!Dart_IsError(result) &&
       DartUtils::GetInt64Value(port_obj, &port) &&
       DartUtils::GetInt64Value(backlog_obj, &backlog)) {
-    intptr_t socket = ServerSocket::CreateBindListen(addr, port, backlog);
+    intptr_t socket = ServerSocket::CreateBindListen(
+        addr, port, backlog, v6_only);
     OSError error;
     Dart_TypedDataReleaseData(host_obj);
     if (socket >= 0) {

@@ -239,7 +239,8 @@ SocketAddresses* Socket::LookupAddress(const char* host,
 
 intptr_t ServerSocket::CreateBindListen(RawAddr addr,
                                         intptr_t port,
-                                        intptr_t backlog) {
+                                        intptr_t backlog,
+                                        bool v6_only) {
   SOCKET s = socket(addr.ss.ss_family, SOCK_STREAM, IPPROTO_TCP);
   if (s == INVALID_SOCKET) {
     return -1;
@@ -259,7 +260,7 @@ intptr_t ServerSocket::CreateBindListen(RawAddr addr,
   }
 
   if (addr.ss.ss_family == AF_INET6) {
-    optval = false;
+    optval = v6_only;
     setsockopt(s,
                IPPROTO_IPV6,
                IPV6_V6ONLY,

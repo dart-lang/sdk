@@ -64,6 +64,7 @@ class SecureServerSocket extends Stream<SecureSocket> implements ServerSocket {
       int port,
       String certificateName,
       {int backlog: 0,
+       bool v6Only: false,
        bool requestClientCertificate: false,
        bool requireClientCertificate: false}) {
     return RawSecureServerSocket.bind(
@@ -71,6 +72,7 @@ class SecureServerSocket extends Stream<SecureSocket> implements ServerSocket {
         port,
         certificateName,
         backlog: backlog,
+        v6Only: v6Only,
         requestClientCertificate: requestClientCertificate,
         requireClientCertificate: requireClientCertificate).then(
             (serverSocket) => new SecureServerSocket._(serverSocket));
@@ -174,9 +176,10 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
       int port,
       String certificateName,
       {int backlog: 0,
+       bool v6Only: false,
        bool requestClientCertificate: false,
        bool requireClientCertificate: false}) {
-    return RawServerSocket.bind(address, port, backlog: backlog)
+    return RawServerSocket.bind(address, port, backlog: backlog, v6Only: v6Only)
         .then((serverSocket) => new RawSecureServerSocket._(
             serverSocket,
             certificateName,

@@ -41,7 +41,7 @@ namespace bin {
   V(Process_Exit, 1)                                                           \
   V(Process_Sleep, 1)                                                          \
   V(Process_Pid, 1)                                                            \
-  V(ServerSocket_CreateBindListen, 4)                                          \
+  V(ServerSocket_CreateBindListen, 5)                                          \
   V(ServerSocket_Accept, 2)                                                    \
   V(Socket_CreateConnect, 3)                                                   \
   V(Socket_Available, 1)                                                       \
