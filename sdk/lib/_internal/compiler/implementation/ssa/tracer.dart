@@ -81,8 +81,8 @@ class HTracer extends HGraphVisitor implements Tracer {
          instruction = instruction.next) {
       int bci = 0;
       int uses = instruction.usedBy.length;
-      String changes = instruction.hasSideEffects() ? '!' : ' ';
-      String depends = instruction.dependsOnSomething() ? '?' : '';
+      String changes = instruction.sideEffects.hasSideEffects() ? '!' : ' ';
+      String depends = instruction.sideEffects.dependsOnSomething() ? '?' : '';
       addIndent();
       String temporaryId = stringifier.temporaryId(instruction);
       String instructionString = stringifier.visit(instruction);
