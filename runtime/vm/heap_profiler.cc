@@ -336,9 +336,11 @@ void HeapProfiler::WriteHeader() {
   uint32_t size = htonl(kObjectIdSize);
   Write(&size, sizeof(size));
   uint64_t milliseconds = OS::GetCurrentTimeMillis();
-  uint32_t hi = htonl((uint32_t)((milliseconds >> 32) & 0x00000000FFFFFFFF));
+  uint32_t hi = htonl(
+      static_cast<uint32_t>((milliseconds >> 32) & 0x00000000FFFFFFFF));
   Write(&hi, sizeof(hi));
-  uint32_t lo = htonl((uint32_t)(milliseconds & 0x00000000FFFFFFFF));
+  uint32_t lo = htonl(
+      static_cast<uint32_t>(milliseconds & 0x00000000FFFFFFFF));
   Write(&lo, sizeof(lo));
 }
 

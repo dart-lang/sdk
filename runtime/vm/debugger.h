@@ -378,7 +378,7 @@ class Debugger {
   // be run as a side effect of getting values of fields.
   bool ignore_breakpoints_;
 
-  intptr_t exc_pause_info_;
+  Dart_ExceptionPauseInfo exc_pause_info_;
 
   static BreakpointHandler* bp_handler_;
   static EventHandler* event_handler_;

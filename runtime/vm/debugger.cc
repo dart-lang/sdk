@@ -959,7 +959,7 @@ void Debugger::SetExceptionPauseInfo(Dart_ExceptionPauseInfo pause_info) {
 
 
 Dart_ExceptionPauseInfo Debugger::GetExceptionPauseInfo() {
-  return (Dart_ExceptionPauseInfo)exc_pause_info_;
+  return exc_pause_info_;
 }
 
 

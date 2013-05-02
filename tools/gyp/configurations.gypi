@@ -8,8 +8,6 @@
       '-Wall',
       '-Wextra', # Also known as -W.
       '-Wno-unused-parameter',
-      # TODO(vm-team): Convert old style casts to C++ casts.
-      #'-Wold-style-cast',
     ],
 
     # Default value.  This may be overridden in a containing project gyp.
