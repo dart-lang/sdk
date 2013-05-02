@@ -12,7 +12,7 @@ import '../elements/elements.dart';
 import '../native_handler.dart' as native;
 import '../tree/tree.dart';
 import '../util/util.dart' show Link;
-import 'types.dart' show TypesInferrer, TypeMask;
+import 'types.dart' show TypesInferrer, FlatTypeMask, TypeMask;
 
 // BUG(8802): There's a bug in the analyzer that makes the re-export
 // of Selector from dart2jslib.dart fail. For now, we work around that
@@ -100,7 +100,7 @@ class ClassInfoForFinalFields {
  * A sentinel type mask class used by the inferrer for the give up
  * type, and the dynamic type.
  */
-class SentinelTypeMask extends TypeMask {
+class SentinelTypeMask extends FlatTypeMask {
   final String name;
 
   SentinelTypeMask(this.name) : super(null, 0, false);
@@ -261,7 +261,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
    * Sentinel used by the inferrer to notify that it does not know
    * the type of a specific element.
    */
-  final TypeMask dynamicType = new SentinelTypeMask('dynamic');
+  TypeMask dynamicType = new SentinelTypeMask('dynamic');
   bool isDynamicType(TypeMask type) => identical(type, dynamicType);
 
   TypeMask nullType;
@@ -712,6 +712,8 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
         mappedType = nullType;
       } else if (type.isVoid) {
         mappedType = nullType;
+      } else if (type.isDynamic) {
+        return dynamicType;
       } else if (compiler.world.hasAnySubclass(type.element)) {
         mappedType = new TypeMask.nonNullSubclass(rawTypeOf(type.element));
       } else if (compiler.world.hasAnySubtype(type.element)) {

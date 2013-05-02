@@ -89,7 +89,7 @@ class TypesTask extends CompilerTask {
    * exactness, subclassing, subtyping and nullability. The [element] parameter
    * is for debugging purposes only and can be omitted.
    */
-  TypeMask best(TypeMask type1, TypeMask type2, [element]) {
+  TypeMask best(var type1, var type2, [element]) {
     final result = _best(type1, type2);
     similar() {
       if (type1 == null) return type2 == null;
@@ -103,7 +103,7 @@ class TypesTask extends CompilerTask {
   }
 
   /// Helper method for [best].
-  TypeMask _best(TypeMask type1, TypeMask type2) {
+  TypeMask _best(var type1, var type2) {
     if (type1 == null) return type2;
     if (type2 == null) return type1;
     if (type1.isExact) {

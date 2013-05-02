@@ -833,6 +833,8 @@ class ConcreteTypesInferrer extends TypesInferrer {
       if (element != null) {
         if (element == compiler.numClass) {
           return new TypeMask.nonNullSubclass(compiler.numClass.rawType);
+        } else if (element == compiler.dynamicClass) {
+          return new TypeMask.nonNullSubclass(compiler.objectClass.rawType);
         } else {
           return new TypeMask.nonNullExact(element.rawType);
         }
