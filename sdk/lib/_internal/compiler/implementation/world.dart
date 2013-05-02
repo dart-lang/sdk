@@ -10,6 +10,7 @@ class World {
   final Map<ClassElement, Set<ClassElement>> typesImplementedBySubclasses;
   final FullFunctionSet allFunctions;
   final Set<Element> functionsCalledInLoop = new Set<Element>();
+  final Map<Element, SideEffects> sideEffects = new Map<Element, SideEffects>();
 
   // We keep track of subtype and subclass relationships in four
   // distinct sets to make class hierarchy analysis faster.
@@ -183,10 +184,39 @@ class World {
   }
 
   void addFunctionCalledInLoop(Element element) {
-    functionsCalledInLoop.add(element);
+    functionsCalledInLoop.add(element.declaration);
   }
 
   bool isCalledInLoop(Element element) {
-    return functionsCalledInLoop.contains(element);
+    return functionsCalledInLoop.contains(element.declaration);
+  }
+
+  SideEffects getSideEffectsOfElement(Element element) {
+    return sideEffects.putIfAbsent(element.declaration, () {
+      return new SideEffects();
+    });
+  }
+
+  void registerSideEffects(Element element, SideEffects effects) {
+    sideEffects[element.declaration] = effects;
+  }
+
+  SideEffects getSideEffectsOfSelector(Selector selector) {
+    // We're not tracking side effects of closures.
+    if (selector.isClosureCall()) {
+      return new SideEffects();
+    }
+    SideEffects sideEffects = new SideEffects.empty();
+    for (Element e in allFunctions.filter(selector)) {
+      if (e.isField()) {
+        if (selector.isGetter()) {
+          sideEffects.setDependsOnInstancePropertyStore();
+        } else if (selector.isSetter()) {
+          sideEffects.setChangesInstanceProperty();
+        }
+      }
+      sideEffects.add(getSideEffectsOfElement(e));
+    }
+    return sideEffects;
   }
 }

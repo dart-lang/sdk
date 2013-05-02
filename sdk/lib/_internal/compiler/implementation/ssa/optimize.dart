@@ -1003,7 +1003,7 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   SsaDeadCodeEliminator();
 
   bool isDeadCode(HInstruction instruction) {
-    return !instruction.hasSideEffects()
+    return !instruction.sideEffects.hasSideEffects()
            && !instruction.canThrow()
            && instruction.usedBy.isEmpty
            && instruction is !HTypeGuard
@@ -1168,13 +1168,13 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
                                       int changesFlags) {
     assert(block.parentLoopHeader == loopHeader);
     HBasicBlock preheader = loopHeader.predecessors[0];
-    int dependsFlags = HInstruction.computeDependsOnFlags(changesFlags);
+    int dependsFlags = SideEffects.computeDependsOnFlags(changesFlags);
     HInstruction instruction = block.first;
     while (instruction != null) {
       HInstruction next = instruction.next;
       if (instruction.useGvn()
           && (instruction is !HCheck)
-          && (instruction.flags & dependsFlags) == 0) {
+          && !instruction.sideEffects.dependsOn(dependsFlags)) {
         bool loopInvariantInputs = true;
         List<HInstruction> inputs = instruction.inputs;
         for (int i = 0, length = inputs.length; i < length; i++) {
@@ -1192,9 +1192,9 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
         }
       }
       int oldChangesFlags = changesFlags;
-      changesFlags |= instruction.getChangesFlags();
+      changesFlags |= instruction.sideEffects.getChangesFlags();
       if (oldChangesFlags != changesFlags) {
-        dependsFlags = HInstruction.computeDependsOnFlags(changesFlags);
+        dependsFlags = SideEffects.computeDependsOnFlags(changesFlags);
       }
       instruction = next;
     }
@@ -1213,7 +1213,7 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
     }
     while (instruction != null) {
       HInstruction next = instruction.next;
-      int flags = instruction.getChangesFlags();
+      int flags = instruction.sideEffects.getChangesFlags();
       assert(flags == 0 || !instruction.useGvn());
       values.kill(flags);
       if (instruction.useGvn()) {
@@ -1268,7 +1268,7 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
       int changesFlags = 0;
       HInstruction instruction = block.first;
       while (instruction != null) {
-        changesFlags |= instruction.getChangesFlags();
+        changesFlags |= instruction.sideEffects.getChangesFlags();
         instruction = instruction.next;
       }
       assert(blockChangesFlags[id] == null);
@@ -1379,8 +1379,8 @@ class SsaCodeMotion extends HBaseVisitor implements OptimizationPhase {
     HInstruction instruction = block.first;
     int flags = 0;
     while (instruction != null) {
-      int dependsFlags = HInstruction.computeDependsOnFlags(flags);
-      flags |= instruction.getChangesFlags();
+      int dependsFlags = SideEffects.computeDependsOnFlags(flags);
+      flags |= instruction.sideEffects.getChangesFlags();
 
       HInstruction current = instruction;
       instruction = instruction.next;
@@ -1389,7 +1389,7 @@ class SsaCodeMotion extends HBaseVisitor implements OptimizationPhase {
       // not have flags to express 'Gvn'able', but not movable.
       if (current is HCheck) continue;
       if (!current.useGvn()) continue;
-      if ((current.flags & dependsFlags) != 0) continue;
+      if (current.sideEffects.dependsOn(dependsFlags)) continue;
 
       bool canBeMoved = true;
       for (final HInstruction input in current.inputs) {

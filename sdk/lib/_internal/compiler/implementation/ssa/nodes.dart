@@ -754,26 +754,9 @@ abstract class HInstruction implements Spannable {
   HBasicBlock block;
   HInstruction previous = null;
   HInstruction next = null;
-  int flags = 0;
 
-  // Changes flags.
-  static const int FLAG_CHANGES_INDEX = 0;
-  static const int FLAG_CHANGES_INSTANCE_PROPERTY = FLAG_CHANGES_INDEX + 1;
-  static const int FLAG_CHANGES_STATIC_PROPERTY
-      = FLAG_CHANGES_INSTANCE_PROPERTY + 1;
-  static const int FLAG_CHANGES_COUNT = FLAG_CHANGES_STATIC_PROPERTY + 1;
-
-  // Depends flags (one for each changes flag).
-  static const int FLAG_DEPENDS_ON_INDEX_STORE = FLAG_CHANGES_COUNT;
-  static const int FLAG_DEPENDS_ON_INSTANCE_PROPERTY_STORE =
-      FLAG_DEPENDS_ON_INDEX_STORE + 1;
-  static const int FLAG_DEPENDS_ON_STATIC_PROPERTY_STORE =
-      FLAG_DEPENDS_ON_INSTANCE_PROPERTY_STORE + 1;
-  static const int FLAG_DEPENDS_ON_COUNT =
-      FLAG_DEPENDS_ON_STATIC_PROPERTY_STORE + 1;
-
-  // Other flags.
-  static const int FLAG_USE_GVN = FLAG_DEPENDS_ON_COUNT;
+  SideEffects sideEffects = new SideEffects.empty();
+  bool _useGvn = false;
 
   // Type codes.
   static const int UNDEFINED_TYPECODE = -1;
@@ -812,54 +795,8 @@ abstract class HInstruction implements Spannable {
 
   int get hashCode => id;
 
-  bool getFlag(int position) => (flags & (1 << position)) != 0;
-  void setFlag(int position) { flags |= (1 << position); }
-  void clearFlag(int position) { flags &= ~(1 << position); }
-
-  static int computeDependsOnFlags(int flags) => flags << FLAG_CHANGES_COUNT;
-
-  int getChangesFlags() => flags & ((1 << FLAG_CHANGES_COUNT) - 1);
-  int getDependsOnFlags() {
-    return (flags & ((1 << FLAG_DEPENDS_ON_COUNT) - 1)) >> FLAG_CHANGES_COUNT;
-  }
-
-  bool hasSideEffects() => getChangesFlags() != 0;
-  bool dependsOnSomething() => getDependsOnFlags() != 0;
-
-  void setAllSideEffects() { flags |= ((1 << FLAG_CHANGES_COUNT) - 1); }
-  void clearAllSideEffects() { flags &= ~((1 << FLAG_CHANGES_COUNT) - 1); }
-
-  void setDependsOnSomething() {
-    int count = FLAG_DEPENDS_ON_COUNT - FLAG_CHANGES_COUNT;
-    flags |= (((1 << count) - 1) << FLAG_CHANGES_COUNT);
-  }
-  void clearAllDependencies() {
-    int count = FLAG_DEPENDS_ON_COUNT - FLAG_CHANGES_COUNT;
-    flags &= ~(((1 << count) - 1) << FLAG_CHANGES_COUNT);
-  }
-
-  bool dependsOnStaticPropertyStore() {
-    return getFlag(FLAG_DEPENDS_ON_STATIC_PROPERTY_STORE);
-  }
-  void setDependsOnStaticPropertyStore() {
-    setFlag(FLAG_DEPENDS_ON_STATIC_PROPERTY_STORE);
-  }
-  void setChangesStaticProperty() { setFlag(FLAG_CHANGES_STATIC_PROPERTY); }
-
-  bool dependsOnIndexStore() => getFlag(FLAG_DEPENDS_ON_INDEX_STORE);
-  void setDependsOnIndexStore() { setFlag(FLAG_DEPENDS_ON_INDEX_STORE); }
-  void setChangesIndex() { setFlag(FLAG_CHANGES_INDEX); }
-
-  bool dependsOnInstancePropertyStore() {
-    return getFlag(FLAG_DEPENDS_ON_INSTANCE_PROPERTY_STORE);
-  }
-  void setDependsOnInstancePropertyStore() {
-    setFlag(FLAG_DEPENDS_ON_INSTANCE_PROPERTY_STORE);
-  }
-  void setChangesInstanceProperty() { setFlag(FLAG_CHANGES_INSTANCE_PROPERTY); }
-
-  bool useGvn() => getFlag(FLAG_USE_GVN);
-  void setUseGvn() { setFlag(FLAG_USE_GVN); }
+  bool useGvn() => _useGvn;
+  void setUseGvn() { _useGvn = true; }
 
   void updateInput(int i, HInstruction insn) {
     inputs[i] = insn;
@@ -870,7 +807,11 @@ abstract class HInstruction implements Spannable {
    * effect, nor any dependency. They can be moved anywhere in the
    * graph.
    */
-  bool isPure() => !hasSideEffects() && !dependsOnSomething() && !canThrow();
+  bool isPure() {
+    return !sideEffects.hasSideEffects()
+        && !sideEffects.dependsOnSomething()
+        && !canThrow();
+  }
 
   // Can this node throw an exception?
   bool canThrow() => false;
@@ -932,11 +873,11 @@ abstract class HInstruction implements Spannable {
 
   bool gvnEquals(HInstruction other) {
     assert(useGvn() && other.useGvn());
-    // Check that the type and the flags match.
+    // Check that the type and the sideEffects match.
     bool hasSameType = typeEquals(other);
     assert(hasSameType == (typeCode() == other.typeCode()));
     if (!hasSameType) return false;
-    if (flags != other.flags) return false;
+    if (sideEffects != other.sideEffects) return false;
     // Check that the inputs match.
     final int inputsLength = inputs.length;
     final List<HInstruction> otherInputs = other.inputs;
@@ -1162,7 +1103,6 @@ abstract class HInstruction implements Spannable {
 
 class HBoolify extends HInstruction {
   HBoolify(HInstruction value) : super(<HInstruction>[value]) {
-    assert(!hasSideEffects());
     setUseGvn();
     instructionType = HType.BOOLEAN;
   }
@@ -1182,7 +1122,6 @@ class HBoolify extends HInstruction {
  */
 abstract class HCheck extends HInstruction {
   HCheck(inputs) : super(inputs) {
-    assert(!hasSideEffects());
     setUseGvn();
   }
   HInstruction get checkedInput => inputs[0];
@@ -1198,7 +1137,6 @@ class HBailoutTarget extends HInstruction {
   // bailout function.
   List<int> padding;
   HBailoutTarget(this.state) : super(<HInstruction>[]) {
-    assert(!hasSideEffects());
     setUseGvn();
   }
 
@@ -1299,8 +1237,8 @@ abstract class HInvoke extends HInstruction {
     * to the invocation.
     */
   HInvoke(List<HInstruction> inputs) : super(inputs) {
-    setAllSideEffects();
-    setDependsOnSomething();
+    sideEffects.setAllSideEffects();
+    sideEffects.setDependsOnSomething();
   }
   static const int ARGUMENTS_OFFSET = 1;
   bool canThrow() => true;
@@ -1387,13 +1325,13 @@ abstract class HInvokeDynamicField extends HInvokeDynamic {
 class HInvokeDynamicGetter extends HInvokeDynamicField {
   HInvokeDynamicGetter(selector, element, inputs, isSideEffectFree)
     : super(selector, element, inputs, isSideEffectFree) {
-    clearAllSideEffects();
+    sideEffects.clearAllSideEffects();
     if (isSideEffectFree) {
       setUseGvn();
-      setDependsOnInstancePropertyStore();
+      sideEffects.setDependsOnInstancePropertyStore();
     } else {
-      setDependsOnSomething();
-      setAllSideEffects();
+      sideEffects.setDependsOnSomething();
+      sideEffects.setAllSideEffects();
     }
   }
   toString() => 'invoke dynamic getter: $selector';
@@ -1403,12 +1341,12 @@ class HInvokeDynamicGetter extends HInvokeDynamicField {
 class HInvokeDynamicSetter extends HInvokeDynamicField {
   HInvokeDynamicSetter(selector, element, inputs, isSideEffectFree)
     : super(selector, element, inputs, isSideEffectFree) {
-    clearAllSideEffects();
+    sideEffects.clearAllSideEffects();
     if (isSideEffectFree) {
-      setChangesInstanceProperty();
+      sideEffects.setChangesInstanceProperty();
     } else {
-      setAllSideEffects();
-      setDependsOnSomething();
+      sideEffects.setAllSideEffects();
+      sideEffects.setDependsOnSomething();
     }
   }
   toString() => 'invoke dynamic setter: $selector';
@@ -1462,10 +1400,10 @@ class HFieldGet extends HFieldAccess {
             ? isAssignable
             : element.isAssignable(),
         super(element, <HInstruction>[receiver]) {
-    clearAllSideEffects();
+    sideEffects.clearAllSideEffects();
     setUseGvn();
     if (this.isAssignable) {
-      setDependsOnInstancePropertyStore();
+      sideEffects.setDependsOnInstancePropertyStore();
     }
   }
 
@@ -1495,8 +1433,8 @@ class HFieldSet extends HFieldAccess {
             HInstruction receiver,
             HInstruction value)
       : super(element, <HInstruction>[receiver, value]) {
-    clearAllSideEffects();
-    setChangesInstanceProperty();
+    sideEffects.clearAllSideEffects();
+    sideEffects.setChangesInstanceProperty();
   }
 
   bool canThrow() => receiver.canBeNull();
@@ -1542,8 +1480,8 @@ class HForeign extends HInstruction {
             this.isSideEffectFree: false})
       : super(inputs) {
     if (!isSideEffectFree) {
-      setAllSideEffects();
-      setDependsOnSomething();
+      sideEffects.setAllSideEffects();
+      sideEffects.setDependsOnSomething();
     }
     instructionType = type;
   }
@@ -1568,7 +1506,7 @@ abstract class HInvokeBinary extends HInstruction {
   final Selector selector;
   HInvokeBinary(HInstruction left, HInstruction right, this.selector)
       : super(<HInstruction>[left, right]) {
-    clearAllSideEffects();
+    sideEffects.clearAllSideEffects();
     setUseGvn();
   }
 
@@ -1706,7 +1644,7 @@ abstract class HInvokeUnary extends HInstruction {
   final Selector selector;
   HInvokeUnary(HInstruction input, this.selector)
       : super(<HInstruction>[input]) {
-    clearAllSideEffects();
+    sideEffects.clearAllSideEffects();
     setUseGvn();
   }
 
@@ -2046,9 +1984,9 @@ class HStatic extends HInstruction {
   HStatic(this.element) : super(<HInstruction>[]) {
     assert(element != null);
     assert(invariant(this, element.isDeclaration));
-    clearAllSideEffects();
+    sideEffects.clearAllSideEffects();
     if (element.isAssignable()) {
-      setDependsOnStaticPropertyStore();
+      sideEffects.setDependsOnStaticPropertyStore();
     }
     setUseGvn();
   }
@@ -2066,7 +2004,7 @@ class HInterceptor extends HInstruction {
   Set<ClassElement> interceptedClasses;
   HInterceptor(this.interceptedClasses, HInstruction receiver)
       : super(<HInstruction>[receiver]) {
-    clearAllSideEffects();
+    sideEffects.clearAllSideEffects();
     setUseGvn();
   }
   String toString() => 'interceptor on $interceptedClasses';
@@ -2113,8 +2051,8 @@ class HLazyStatic extends HInstruction {
   HLazyStatic(this.element) : super(<HInstruction>[]) {
     // TODO(4931): The first access has side-effects, but we afterwards we
     // should be able to GVN.
-    setAllSideEffects();
-    setDependsOnSomething();
+    sideEffects.setAllSideEffects();
+    sideEffects.setDependsOnSomething();
   }
 
   toString() => 'lazy static ${element.name}';
@@ -2130,8 +2068,8 @@ class HStaticStore extends HInstruction {
   Element element;
   HStaticStore(this.element, HInstruction value)
       : super(<HInstruction>[value]) {
-    clearAllSideEffects();
-    setChangesStaticProperty();
+    sideEffects.clearAllSideEffects();
+    sideEffects.setChangesStaticProperty();
   }
   toString() => 'static store ${element.name}';
   accept(HVisitor visitor) => visitor.visitStaticStore(this);
@@ -2158,8 +2096,8 @@ class HIndex extends HInstruction {
   final Selector selector;
   HIndex(HInstruction receiver, HInstruction index, this.selector)
       : super(<HInstruction>[receiver, index]) {
-    clearAllSideEffects();
-    setDependsOnIndexStore();
+    sideEffects.clearAllSideEffects();
+    sideEffects.setDependsOnIndexStore();
     setUseGvn();
   }
 
@@ -2185,8 +2123,8 @@ class HIndexAssign extends HInstruction {
                HInstruction value,
                this.selector)
       : super(<HInstruction>[receiver, index, value]) {
-    clearAllSideEffects();
-    setChangesIndex();
+    sideEffects.clearAllSideEffects();
+    sideEffects.setChangesIndex();
   }
   String toString() => 'index assign operator';
   accept(HVisitor visitor) => visitor.visitIndexAssign(this);
@@ -2305,7 +2243,7 @@ class HStringConcat extends HInstruction {
     // TODO(sra): Until Issue 9293 is fixed, this false dependency keeps the
     // concats bunched with stringified inputs for much better looking code with
     // fewer temps.
-    setDependsOnSomething();
+    sideEffects.setDependsOnSomething();
     instructionType = HType.STRING;
   }
 
@@ -2323,8 +2261,8 @@ class HStringConcat extends HInstruction {
 class HStringify extends HInstruction {
   final Node node;
   HStringify(HInstruction input, this.node) : super(<HInstruction>[input]) {
-    setAllSideEffects();
-    setDependsOnSomething();
+    sideEffects.setAllSideEffects();
+    sideEffects.setDependsOnSomething();
     instructionType = HType.STRING;
   }
 

@@ -2518,9 +2518,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         HInstruction instruction = new HStatic(element.declaration);
         if (element.isGetter()) {
           add(instruction);
-          push(new HInvokeStatic(
-              <HInstruction>[instruction],
-              new HType.inferredReturnTypeForElement(element, compiler)));
+          instruction = buildInvokeStatic(<HInstruction>[instruction]);
+          push(instruction);
         } else {
           instruction.instructionType =
               new HType.inferredTypeForElement(element, compiler);
@@ -2581,9 +2580,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       if (element.isSetter()) {
         HStatic target = new HStatic(element);
         add(target);
-        addWithPosition(
-            new HInvokeStatic(<HInstruction>[target, value], HType.UNKNOWN),
-            location);
+        var instruction = buildInvokeStatic(
+            <HInstruction>[target, value], HType.UNKNOWN);
+        addWithPosition(instruction, location);
       } else {
         value = potentiallyCheckType(value, element.computeType(compiler));
         addWithPosition(new HStaticStore(element, value), location);
@@ -2623,16 +2622,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     HInstruction reference = new HStatic(helper);
     add(reference);
     List<HInstruction> inputs = <HInstruction>[reference];
-    HInstruction result = new HInvokeStatic(inputs, type);
-    push(result);
+    push(buildInvokeStatic(inputs, type));
   }
 
   void pushInvokeHelper1(Element helper, HInstruction a0, HType type) {
     HInstruction reference = new HStatic(helper);
     add(reference);
     List<HInstruction> inputs = <HInstruction>[reference, a0];
-    HInstruction result = new HInvokeStatic(inputs, type);
-    push(result);
+    push(buildInvokeStatic(inputs, type));
   }
 
   void pushInvokeHelper2(Element helper,
@@ -2642,8 +2639,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     HInstruction reference = new HStatic(helper);
     add(reference);
     List<HInstruction> inputs = <HInstruction>[reference, a0, a1];
-    HInstruction result = new HInvokeStatic(inputs, type);
-    push(result);
+    push(buildInvokeStatic(inputs, type));
   }
 
   void pushInvokeHelper3(Element helper,
@@ -2654,8 +2650,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     HInstruction reference = new HStatic(helper);
     add(reference);
     List<HInstruction> inputs = <HInstruction>[reference, a0, a1, a2];
-    HInstruction result = new HInvokeStatic(inputs, type);
-    push(result);
+    push(buildInvokeStatic(inputs, type));
   }
 
   void pushInvokeHelper4(Element helper,
@@ -2667,8 +2662,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     HInstruction reference = new HStatic(helper);
     add(reference);
     List<HInstruction> inputs = <HInstruction>[reference, a0, a1, a2, a3];
-    HInstruction result = new HInvokeStatic(inputs, type);
-    push(result);
+    push(buildInvokeStatic(inputs, type));
   }
 
   void pushInvokeHelper5(Element helper,
@@ -2681,8 +2675,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     HInstruction reference = new HStatic(helper);
     add(reference);
     List<HInstruction> inputs = <HInstruction>[reference, a0, a1, a2, a3, a4];
-    HInstruction result = new HInvokeStatic(inputs, type);
-    push(result);
+    push(buildInvokeStatic(inputs, type));
   }
 
   HForeign createForeign(String code,
@@ -2789,7 +2782,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       add(helperCall);
       List<HInstruction> inputs = <HInstruction>[helperCall, expression,
                                                  runtimeType];
-      HInstruction call = new HInvokeStatic(inputs, HType.BOOLEAN);
+      HInstruction call = buildInvokeStatic(inputs, HType.BOOLEAN);
       add(call);
       instruction = new HIs(type, <HInstruction>[expression, call],
                             HIs.VARIABLE_CHECK);
@@ -2813,7 +2806,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                                  isFieldName,
                                                  representations,
                                                  asFieldName];
-      HInstruction call = new HInvokeStatic(inputs, HType.BOOLEAN);
+      HInstruction call = buildInvokeStatic(inputs, HType.BOOLEAN);
       add(call);
       instruction = new HIs(type, <HInstruction>[expression, call],
                             HIs.COMPOUND_CHECK);
@@ -3050,7 +3043,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       add(target);
       List<HInstruction> inputs = <HInstruction>[target];
       addGenericSendArgumentsToList(link, inputs);
-      push(new HInvokeStatic(inputs, HType.UNKNOWN));
+      push(buildInvokeStatic(inputs, HType.UNKNOWN));
     }
   }
 
@@ -3228,11 +3221,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       return generateSuperNoSuchMethodSend(node, selector, arguments);
     }
     List<HInstruction> inputs = buildSuperAccessorInputs(element);
+    SideEffects sideEffects = compiler.world.getSideEffectsOfElement(element);
     if (node.isPropertyAccess) {
       HInstruction invokeSuper =
           new HInvokeSuper(currentNonClosureClass, inputs);
       invokeSuper.instructionType =
           new HType.inferredTypeForElement(element, compiler);
+      invokeSuper.sideEffects = sideEffects;
       push(invokeSuper);
     } else if (element.isFunction() || element.isGenerativeConstructor()) {
       // TODO(5347): Try to avoid the need for calling [implementation] before
@@ -3247,10 +3242,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
             new HInvokeSuper(currentNonClosureClass, inputs);
         invokeSuper.instructionType =
             new HType.inferredReturnTypeForElement(element, compiler);
+        invokeSuper.sideEffects = sideEffects;
         push(invokeSuper);
       }
     } else {
       HInstruction target = new HInvokeSuper(currentNonClosureClass, inputs);
+      target.sideEffects = sideEffects;
       target.instructionType =
           new HType.inferredTypeForElement(element, compiler);
       add(target);
@@ -3366,7 +3363,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     Element typeInfoSetterElement = backend.getSetRuntimeTypeInfo();
     HInstruction typeInfoSetter = new HStatic(typeInfoSetterElement);
     add(typeInfoSetter);
-    add(new HInvokeStatic(
+    add(buildInvokeStatic(
         <HInstruction>[typeInfoSetter, newObject, typeInfo], HType.UNKNOWN));
   }
 
@@ -3456,7 +3453,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       compiler.enqueuer.codegen.registerFactoryWithTypeArguments(elements);
     }
     HType elementType = computeType(constructor);
-    HInstruction newInstance = new HInvokeStatic(inputs, elementType);
+    HInstruction newInstance = buildInvokeStatic(inputs, elementType);
     pushWithPosition(newInstance, node);
 
     // The List constructor forwards to a Dart static method that does
@@ -3513,7 +3510,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         return;
       }
 
-      HInvokeStatic instruction = new HInvokeStatic(inputs, HType.UNKNOWN);
+      HInvokeStatic instruction = buildInvokeStatic(inputs, HType.UNKNOWN);
       HType returnType =
           new HType.inferredReturnTypeForElement(element, compiler);
       if (returnType.isUnknown()) {
@@ -3524,6 +3521,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                 currentElement, element);
       }
       if (returnType != null) instruction.instructionType = returnType;
+
       pushWithPosition(instruction, node);
     } else {
       generateGetter(node, element);
@@ -3727,6 +3725,18 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     } else {
       return new HInvokeDynamicMethod(selector, inputs, isIntercepted);
     }
+  }
+
+  HInstruction buildInvokeStatic(List<HInstruction> inputs,
+                                 [HType type = null]) {
+    HStatic staticInstruction = inputs[0];
+    Element element = staticInstruction.element;
+    if (type == null) {
+      type = new HType.inferredReturnTypeForElement(element, compiler);
+    }
+    HInstruction instruction = new HInvokeStatic(inputs, type);
+    instruction.sideEffects = compiler.world.getSideEffectsOfElement(element);
+    return instruction;
   }
 
   void handleComplexOperatorSend(SendSet node,
