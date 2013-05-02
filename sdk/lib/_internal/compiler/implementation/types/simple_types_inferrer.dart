@@ -17,7 +17,7 @@ import 'types.dart' show TypesInferrer, TypeMask;
 // BUG(8802): There's a bug in the analyzer that makes the re-export
 // of Selector from dart2jslib.dart fail. For now, we work around that
 // by importing universe.dart explicitly and disabling the re-export.
-import '../dart2jslib.dart' hide Selector;
+import '../dart2jslib.dart' hide Selector, TypedSelector;
 import '../universe/universe.dart' show Selector, TypedSelector;
 
 /**

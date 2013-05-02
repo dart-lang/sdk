@@ -939,7 +939,7 @@ class ConcreteTypesInferrer extends TypesInferrer {
     }
 
     if (selector != null && receiverType != null) {
-      TypeMask receiverMask = new TypeMask.exact(receiverType.rawType);
+      TypeMask receiverMask = new TypeMask.nonNullExact(receiverType.rawType);
       TypeMask resultMask = concreteTypeToTypeMask(result);
       augmentInferredSelectorType(selector, receiverMask, resultMask);
     }

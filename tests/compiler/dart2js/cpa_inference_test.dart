@@ -1221,7 +1221,7 @@ testConcreteTypeToTypeMask() {
 
   for (ClassElement cls in [a, b, c, d]) {
     Expect.equals(convert(singleton(cls)),
-                  new TypeMask.exact(cls.rawType).nonNullable());
+                  new TypeMask.nonNullExact(cls.rawType));
   }
 
   for (ClassElement cls in [a, b, c, d]) {
@@ -1230,13 +1230,76 @@ testConcreteTypeToTypeMask() {
   }
 
   Expect.equals(convert(singleton(a).union(singleton(b))),
-                new TypeMask.subclass(a.rawType).nonNullable());
+                new TypeMask.nonNullSubclass(a.rawType));
 
   Expect.equals(convert(singleton(a).union(singleton(b)).union(nullSingleton)),
                 new TypeMask.subclass(a.rawType));
 
   Expect.equals(convert(singleton(b).union(singleton(d))),
-                new TypeMask.subtype(a.rawType).nonNullable());
+                new TypeMask.nonNullSubtype(a.rawType));
+}
+
+testSelectors() {
+  final String source = r"""
+      // ABC <--- A
+      //       `- BC <--- B
+      //               `- C
+
+      class ABC {}
+      class A extends ABC {}
+      class BC extends ABC {}
+      class B extends BC {}
+      class C extends BC {}
+
+      class XY {}
+      class X extends XY { foo() => new B(); }
+      class Y extends XY { foo() => new C(); }
+      class Z { foo() => new A(); }
+
+      main() {
+        new X().foo();
+        new Y().foo();
+        new Z().foo();
+      }
+      """;
+  AnalysisResult result = analyze(source);
+
+  inferredType(Selector selector) {
+    return result.compiler.typesTask.concreteTypesInferrer
+        .getTypeOfSelector(selector);
+  }
+
+  ClassElement abc = findElement(result.compiler, 'ABC');
+  ClassElement bc = findElement(result.compiler, 'BC');
+  ClassElement a = findElement(result.compiler, 'A');
+  ClassElement b = findElement(result.compiler, 'B');
+  ClassElement c = findElement(result.compiler, 'C');
+  ClassElement xy = findElement(result.compiler, 'XY');
+  ClassElement x = findElement(result.compiler, 'X');
+  ClassElement y = findElement(result.compiler, 'Y');
+  ClassElement z = findElement(result.compiler, 'Z');
+
+  Selector foo = new Selector.call(buildSourceString("foo"), null, 0);
+
+  Expect.equals(
+      inferredType(foo),
+      new TypeMask.nonNullSubclass(abc.rawType));
+  Expect.equals(
+      inferredType(new TypedSelector.subclass(x.rawType, foo)),
+      new TypeMask.nonNullExact(b.rawType));
+  Expect.equals(
+      inferredType(new TypedSelector.subclass(y.rawType, foo)),
+      new TypeMask.nonNullExact(c.rawType));
+  Expect.equals(
+      inferredType(new TypedSelector.subclass(z.rawType, foo)),
+      new TypeMask.nonNullExact(a.rawType));
+  Expect.equals(
+      inferredType(new TypedSelector.subclass(xy.rawType, foo)),
+      new TypeMask.nonNullSubclass(bc.rawType));
+
+  Selector bar = new Selector.call(buildSourceString("bar"), null, 0);
+
+  Expect.isNull(inferredType(bar));
 }
 
 void main() {
@@ -1287,4 +1350,5 @@ void main() {
   testGoodGuys();
   testIntDoubleNum();
   testConcreteTypeToTypeMask();
+  testSelectors();
 }

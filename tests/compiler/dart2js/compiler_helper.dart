@@ -23,6 +23,7 @@ export '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
             Message,
             MessageKind,
             Selector,
+            TypedSelector,
             SourceSpan;
 
 import '../../../sdk/lib/_internal/compiler/implementation/ssa/ssa.dart' as ssa;
