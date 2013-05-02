@@ -216,7 +216,7 @@ patch class RawServerSocket {
   patch static Future<RawServerSocket> bind(address,
                                             int port,
                                             {int backlog: 0,
-                                             bool v6Only}) {
+                                             bool v6Only: false}) {
     throw new UnsupportedError("RawServerSocket.bind");
   }
 }
@@ -225,7 +225,7 @@ patch class ServerSocket {
   patch static Future<ServerSocket> bind(address,
                                          int port,
                                          {int backlog: 0,
-                                          bool v6Only}) {
+                                          bool v6Only: false}) {
     throw new UnsupportedError("ServerSocket.bind");
   }
 }
