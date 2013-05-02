@@ -62,6 +62,11 @@ abstract class TypeMask {
   ClassElement singleClass(Compiler compiler);
 
   /**
+   * Returns the set of classes this type mask can be.
+   */
+  Set<ClassElement> containedClasses(Compiler compiler);
+
+  /**
    * Returns a type mask representing the union of [this] and [other].
    */
   TypeMask union(TypeMask other, Compiler compiler);
@@ -617,12 +622,13 @@ class FlatTypeMask implements TypeMask {
     // implemented on the exact receiver type. It could be found in a
     // subclass or in an inheritance-wise unrelated class in case of
     // subtype selectors.
-    return (base.element.isSubclassOf(enclosing)) ? result : null;
+    ClassElement cls = base.element;
+    return (cls.isSubclassOf(enclosing)) ? result : null;
   }
 
   bool operator ==(var other) {
     if (other is !FlatTypeMask) return false;
-    TypeMask otherMask = other;
+    FlatTypeMask otherMask = other;
     return (flags == otherMask.flags) && (base == otherMask.base);
   }
 
