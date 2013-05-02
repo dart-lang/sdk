@@ -128,6 +128,15 @@ List<String> _buildFailureOutput(TestCase test,
   return output;
 }
 
+String _buildSummaryEnd(int failedTests) {
+    if (failedTests == 0) {
+      return '\n===\n=== All tests succeeded\n===\n';
+    } else {
+      var pluralSuffix = failedTests != 1 ? 's' : '';
+      return '\n===\n=== ${failedTests} test$pluralSuffix failed\n===\n';
+    }
+}
+
 
 class EventListener {
   void testAdded() { }
@@ -324,12 +333,14 @@ class TestFailurePrinter extends EventListener {
   bool _printSummary;
   var _formatter;
   var _failureSummary = <String>[];
+  var _failedTests= 0;
 
   TestFailurePrinter(this._printSummary,
                      [this._formatter = const Formatter()]);
 
   void done(TestCase test) {
     if (test.lastCommandOutput.unexpectedOutput) {
+      _failedTests++;
       var lines = _buildFailureOutput(test, _formatter);
       for (var line in lines) {
         print(line);
@@ -350,6 +361,8 @@ class TestFailurePrinter extends EventListener {
           print(line);
         }
         print('');
+
+        print(_buildSummaryEnd(_failedTests));
       }
     }
   }
@@ -397,27 +410,8 @@ class ProgressIndicator extends EventListener {
     _allTestsKnown = true;
   }
 
-  void allDone() {
-    _printStatus();
-  }
-
   void _printStartProgress(TestCase test) {}
   void _printDoneProgress(TestCase test) {}
-
-  void _printStatus() {
-    if (_failedTests == 0) {
-      print('\n===');
-      print('=== All tests succeeded');
-      print('===\n');
-    } else {
-      var pluralSuffix = _failedTests != 1 ? 's' : '';
-      print('\n===');
-      print('=== ${_failedTests} test$pluralSuffix failed');
-      print('===\n');
-    }
-  }
-
-  int get numFailedTests => _failedTests;
 
   int _completedTests() => _passedTests + _failedTests;
 
@@ -521,6 +515,6 @@ class BuildbotProgressIndicator extends ProgressIndicator {
       }
       print('');
     }
-    super.allDone();
+    print(_buildSummaryEnd(_failedTests));
   }
 }
