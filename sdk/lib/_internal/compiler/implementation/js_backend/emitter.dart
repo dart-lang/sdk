@@ -351,7 +351,7 @@ class CodeEmitterTask extends CompilerTask {
 
     return [
       js('var $supportsProtoName = false'),
-      js('var tmp = defineClass("c", "c", ["f?"], {}).prototype'),
+      js('var tmp = defineClass("c", "c", ["f<"], {}).prototype'),
 
       js.if_(js('tmp.__proto__'), [
         js('tmp.__proto__ = {}'),
