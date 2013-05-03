@@ -885,7 +885,7 @@ class Parser {
 
   /**
    * Returns the token after the type which is expected to begin at [token].
-   * If [token] is not the start of a type, [Listener.unexpectedType] is called.
+   * If [token] is not the start of a type, [Listener.expectedType] is called.
    */
   Token peekAfterExpectedType(Token token) {
     if (!identical('void', token.stringValue) && !token.isIdentifier()) {

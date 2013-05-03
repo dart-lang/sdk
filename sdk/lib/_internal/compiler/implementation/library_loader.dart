@@ -728,7 +728,7 @@ class LibraryDependencyNode {
  * Helper class used for computing the possibly cyclic import/export scopes of
  * a set of libraries.
  *
- * This class is used by [ScannerTask.loadLibrary] to collect all newly loaded
+ * This class is used by [ScannerTask.scanLibrary] to collect all newly loaded
  * libraries and to compute their import/export scopes through a fixed-point
  * algorithm.
  */

@@ -11,7 +11,7 @@
  *
  * We have taken great care to ensure AST nodes can be cached between
  * compiler instances.  Part of this is requires that we always access
- * resolution results through [TreeElements].
+ * resolution results through TreeElements.
  *
  * So please, do not add additional elements to this library, and do
  * not import it.
@@ -29,7 +29,7 @@ abstract class TreeElementMixin {
 
 /**
  * Do not call this method directly.  Instead, use an instance of
- * [TreeElements].
+ * TreeElements.
  *
  * Using [Object] as return type to thwart code completion.
  */
@@ -39,7 +39,7 @@ Object getTreeElement(TreeElementMixin node) {
 
 /**
  * Do not call this method directly.  Instead, use an instance of
- * [TreeElements].
+ * TreeElements.
  */
 void setTreeElement(TreeElementMixin node, Object value) {
   node._element = value;

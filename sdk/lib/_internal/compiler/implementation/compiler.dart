@@ -1298,8 +1298,9 @@ class SourceSpan {
 }
 
 /**
- * Throws an [InvariantException] if [condition] is [:false:]. [condition] must
- * be either a [:bool:] or a no-arg function returning a [:bool:].
+ * Throws a [SpannableAssertionFailure] if [condition] is
+ * [:false:]. [condition] must be either a [:bool:] or a no-arg
+ * function returning a [:bool:].
  *
  * Use this method to provide better information for assertion by calling
  * [invariant] as the argument to an [:assert:] statement:
