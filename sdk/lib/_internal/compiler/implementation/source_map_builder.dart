@@ -57,7 +57,7 @@ class SourceMapBuilder {
     entries.add(new SourceMapEntry(sourceLocation, targetOffset));
   }
 
-  void printStringListOn(Iterable<String> strings, StringBuffer buffer) {
+  void printStringListOn(List<String> strings, StringBuffer buffer) {
     bool first = true;
     buffer.write('[');
     for (String string in strings) {
@@ -81,7 +81,8 @@ class SourceMapBuilder {
     buffer.write('  "sources": ');
     if (uri != null) {
       sourceUrlList =
-          sourceUrlList.map((url) => relativize(uri, Uri.parse(url), false));
+          sourceUrlList.map((url) => relativize(uri, Uri.parse(url), false))
+              .toList();
     }
     printStringListOn(sourceUrlList, buffer);
     buffer.write(',\n');
