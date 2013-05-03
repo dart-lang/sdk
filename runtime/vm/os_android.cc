@@ -50,7 +50,7 @@ class PerfCodeObserver : public CodeObserver {
     intptr_t len = OS::SNPrint(NULL, 0, format, pid);
     char* filename = new char[len + 1];
     OS::SNPrint(filename, len + 1, format, pid);
-    out_file_ = (*file_open)(filename);
+    out_file_ = (*file_open)(filename, true);
   }
 
   ~PerfCodeObserver() {
@@ -111,7 +111,7 @@ class PprofCodeObserver : public CodeObserver {
       return;
     }
     const char* filename = FLAG_generate_pprof_symbols;
-    void* out_file = (*file_open)(filename);
+    void* out_file = (*file_open)(filename, true);
     ASSERT(out_file != NULL);
     DebugInfo::ByteBuffer* debug_region = new DebugInfo::ByteBuffer();
     ASSERT(debug_region != NULL);

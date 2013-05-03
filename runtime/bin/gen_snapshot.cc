@@ -466,7 +466,10 @@ int main(int argc, char** argv) {
   // Note: We don't expect isolates to be created from dart code during
   // snapshot generation.
   if (!Dart_Initialize(NULL, NULL, NULL, NULL,
-                       NULL, NULL, NULL)) {
+                       DartUtils::OpenFile,
+                       DartUtils::ReadFile,
+                       DartUtils::WriteFile,
+                       DartUtils::CloseFile)) {
     Log::PrintErr("VM initialization failed\n");
     return 255;
   }
