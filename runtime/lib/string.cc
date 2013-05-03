@@ -121,6 +121,23 @@ DEFINE_NATIVE_ENTRY(OneByteString_splitWithCharCode, 2) {
 }
 
 
+DEFINE_NATIVE_ENTRY(OneByteString_allocate, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, length_obj, arguments->NativeArgAt(0));
+  return OneByteString::New(length_obj.Value(), Heap::kNew);
+}
+
+
+DEFINE_NATIVE_ENTRY(OneByteString_setAt, 3) {
+  GET_NON_NULL_NATIVE_ARGUMENT(String, receiver, arguments->NativeArgAt(0));
+  ASSERT(receiver.IsOneByteString());
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, index_obj, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, code_point_obj, arguments->NativeArgAt(2));
+  ASSERT((0 <= code_point_obj.Value()) && (code_point_obj.Value() <= 0xFF));
+  OneByteString::SetCharAt(receiver, index_obj.Value(), code_point_obj.Value());
+  return Object::null();
+}
+
+
 DEFINE_NATIVE_ENTRY(String_getHashCode, 1) {
   const String& receiver = String::CheckedHandle(arguments->NativeArgAt(0));
   intptr_t hash_val = receiver.Hash();

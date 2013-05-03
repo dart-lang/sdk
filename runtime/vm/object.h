@@ -4422,6 +4422,9 @@ class OneByteString : public AllStatic {
     return *CharAddr(str, index);
   }
 
+  static void SetCharAt(const String& str, intptr_t index, uint8_t code_point) {
+    *CharAddr(str, index) = code_point;
+  }
   static RawOneByteString* EscapeSpecialCharacters(const String& str);
 
   // We use the same maximum elements for all strings.

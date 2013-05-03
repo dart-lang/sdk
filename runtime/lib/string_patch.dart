@@ -27,13 +27,32 @@ class _StringBase {
    *  [codePoints].
    */
   static String createFromCharCodes(Iterable<int> charCodes) {
-    // TODO(srdjan): Also skip copying of typed arrays.
-    if (charCodes is! _ObjectArray &&
-        charCodes is! _GrowableObjectArray &&
-        charCodes is! _ImmutableArray) {
-      charCodes = new List<int>.from(charCodes, growable: false);
-    }
+    if (charCodes != null) {
+      // TODO(srdjan): Also skip copying of typed arrays.
+      if (charCodes is! _ObjectArray &&
+          charCodes is! _GrowableObjectArray &&
+          charCodes is! _ImmutableArray) {
+        charCodes = new List<int>.from(charCodes, growable: false);
+      }
 
+      bool isOneByteString = true;
+      for (int i = 0; i < charCodes.length; i++) {
+        int e = charCodes[i];
+        if (e is! int) throw new ArgumentError(e);
+        // Is e Latin1?
+        if ((e < 0) || (e > 0xFF)) {
+          isOneByteString = false;
+          break;
+        }
+      }
+      if (isOneByteString) {
+        var s = _OneByteString._allocate(charCodes.length);
+        for (int i = 0; i < charCodes.length; i++) {
+          s._setAt(i, charCodes[i]);
+        }
+        return s;
+      }
+    }
     return _createFromCodePoints(charCodes);
   }
 
@@ -466,6 +485,13 @@ class _OneByteString extends _StringBase implements String {
     }
     return super.split(pattern);
   }
+
+  // Allocates a string of given length, expecting its content to be
+  // set using _setAt.
+  static _OneByteString _allocate(int length) native "OneByteString_allocate";
+
+  // Code point value must be a valid Latin1 (0..0xFF). Index must be valid.
+  void _setAt(int index, int codePoint) native "OneByteString_setAt";
 }
 
 
