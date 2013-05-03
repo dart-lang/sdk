@@ -891,7 +891,7 @@ CompileType LoadFieldInstr::ComputeType() const {
     return CompileType::FromAbstractType(type());
   }
 
-  if (field_ != NULL) {
+  if (field_ != NULL && (field_->guarded_cid() != kIllegalCid)) {
     return CompileType::CreateNullable(field_->is_nullable(),
                                        field_->guarded_cid());
   }
@@ -1008,6 +1008,26 @@ CompileType Float32x4ScaleInstr::ComputeType() const {
 
 CompileType Float32x4SqrtInstr::ComputeType() const {
   return CompileType::FromCid(kFloat32x4Cid);
+}
+
+
+CompileType Float32x4ZeroArgInstr::ComputeType() const {
+  return CompileType::FromCid(kFloat32x4Cid);
+}
+
+
+CompileType Float32x4ClampInstr::ComputeType() const {
+  return CompileType::FromCid(kFloat32x4Cid);
+}
+
+
+CompileType Float32x4WithInstr::ComputeType() const {
+  return CompileType::FromCid(kFloat32x4Cid);
+}
+
+
+CompileType Float32x4ToUint32x4Instr::ComputeType() const {
+  return CompileType::FromCid(kUint32x4Cid);
 }
 
 

@@ -3,14 +3,13 @@
 # BSD-style license that can be found in the LICENSE file.
 
 # A set of variables needed to build some of the Chrome based subparts of the
-# Dart project (e.g. V8). This is in no way a complete list of variables being
-# defined by Chrome, but just the minimally needed subset.
+# Dart project. This is in no way a complete list of variables being defined
+# by Chrome, but just the minimally needed subset.
 {
   'variables': {
     'library': 'static_library',
     'component': 'static_library',
     'target_arch': 'ia32',
-    'v8_location': '<(DEPTH)/third_party/v8',
     # Flag that tells us whether to build native support for dart:io.
     'dart_io_support': 1,
   },

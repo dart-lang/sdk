@@ -58,6 +58,15 @@ class SsaInstructionMerger extends HBaseVisitor {
             // between do not prevent making it generate at use site.
             input.moveBefore(user);
             pureInputs.add(input);
+            // Previous computations done on [input] are now invalid
+            // because we moved [input] to another place. So all
+            // non code motion invariant instructions need
+            // to be removed from the [generateAtUseSite] set.
+            input.inputs.forEach((instruction) {
+              if (!instruction.isCodeMotionInvariant()) {
+                generateAtUseSite.remove(instruction);
+              }
+            });
             // Visit the pure input now so that the expected inputs
             // are after the expected inputs of [user].
             input.accept(this);
@@ -160,7 +169,6 @@ class SsaInstructionMerger extends HBaseVisitor {
     }
 
     block.last.accept(this);
-    bool dontVisitPure = false;
     for (HInstruction instruction = block.last.previous;
          instruction != null;
          instruction = instruction.previous) {

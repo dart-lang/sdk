@@ -41,10 +41,10 @@ void main() {
 ''');
 
     expect(trace.frames[0].uri,
-        equals(new Uri.fromString("file:///home/nweiz/code/stuff.dart")));
-    expect(trace.frames[1].uri, equals(new Uri.fromString("dart:async")));
+        equals(Uri.parse("file:///home/nweiz/code/stuff.dart")));
+    expect(trace.frames[1].uri, equals(Uri.parse("dart:async")));
     expect(trace.frames[2].uri,
-        equals(new Uri.fromString("http://pub.dartlang.org/thing.dart")));
+        equals(Uri.parse("http://pub.dartlang.org/thing.dart")));
   });
 
   test('parses a real stack trace correctly', () {

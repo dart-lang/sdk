@@ -71,22 +71,14 @@ class _FileStream extends Stream<List<int>> {
     // Don't start a new read if one is already in progress.
     if (_readInProgress) return;
     _readInProgress = true;
-    _openedFile.length()
-      .then((length) {
-        if (_position >= length) {
-          _readInProgress = false;
+    _openedFile.read(_BLOCK_SIZE)
+      .then((block) {
+        _readInProgress = false;
+        if (block.length == 0) {
           if (!_unsubscribed) {
             _closeFile().then((_) { _controller.close(); });
             _unsubscribed = true;
           }
-          return null;
-        } else {
-          return _openedFile.read(_BLOCK_SIZE);
-        }
-      })
-      .then((block) {
-        _readInProgress = false;
-        if (block == null || _unsubscribed) {
           return;
         }
         _position += block.length;

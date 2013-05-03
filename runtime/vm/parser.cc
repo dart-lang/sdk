@@ -4439,28 +4439,23 @@ void Parser::ParseLibraryDefinition() {
 
 
 void Parser::ParsePartHeader() {
-  intptr_t metadata_pos = TokenPos();
   SkipMetadata();
-  // TODO(hausner): Once support for old #source directive is removed
-  // from the compiler, add an error message here if we don't find
-  // a 'part of' directive.
-  if (CurrentToken() == Token::kPART) {
-    ConsumeToken();
-    if (!IsLiteral("of")) {
-      ErrorMsg("'part of' expected");
-    }
-    ConsumeToken();
-    // The VM is not required to check that the library name matches the
-    // name of the current library, so we ignore it.
-    ExpectIdentifier("library name expected");
-    while (CurrentToken() == Token::kPERIOD) {
-      ConsumeToken();
-      ExpectIdentifier("malformed library name");
-    }
-    ExpectSemicolon();
-  } else {
-    SetPosition(metadata_pos);
+  if (CurrentToken() != Token::kPART) {
+    ErrorMsg("'part of' expected");
   }
+  ConsumeToken();
+  if (!IsLiteral("of")) {
+    ErrorMsg("'part of' expected");
+  }
+  ConsumeToken();
+  // The VM is not required to check that the library name matches the
+  // name of the current library, so we ignore it.
+  ExpectIdentifier("library name expected");
+  while (CurrentToken() == Token::kPERIOD) {
+    ConsumeToken();
+    ExpectIdentifier("malformed library name");
+  }
+  ExpectSemicolon();
 }
 
 

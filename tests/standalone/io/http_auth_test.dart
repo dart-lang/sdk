@@ -16,7 +16,7 @@ class Server {
 
   Future<Server> start() {
     var completer = new Completer();
-    HttpServer.bind().then((s) {
+    HttpServer.bind("127.0.0.1", 0).then((s) {
       server = s;
       server.listen((HttpRequest request) {
         var response = request.response;

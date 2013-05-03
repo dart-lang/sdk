@@ -32,7 +32,7 @@ class SecurityConfiguration {
                                      certificateName: CERT_NAME)
              : HttpServer.bind(HOST_NAME,
                                0,
-                               backlog);
+                               backlog: backlog);
 
   Future<WebSocket> createClient(int port) =>
     WebSocket.connect('${secure ? "wss" : "ws"}://$HOST_NAME:$port/');
@@ -365,7 +365,7 @@ class SecurityConfiguration {
                                onDone: completer.complete);
             });
 
-        futures.add(client.openUrl("GET", new Uri.fromString('${baseHttpUrl}'))
+        futures.add(client.openUrl("GET", Uri.parse('${baseHttpUrl}'))
              .then((request) => request.close())
              .then((response) {
                response.listen((_) { });

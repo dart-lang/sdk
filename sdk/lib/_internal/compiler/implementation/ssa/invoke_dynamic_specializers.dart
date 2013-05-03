@@ -267,8 +267,8 @@ abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
       // Even if there is no builtin equivalent instruction, we know
       // the instruction does not have any side effect, and that it
       // can be GVN'ed.
-      instruction.clearAllSideEffects();
-      instruction.clearAllDependencies();
+      instruction.sideEffects.clearAllSideEffects();
+      instruction.sideEffects.clearAllDependencies();
       instruction.setUseGvn();
     }
     return null;

@@ -57,11 +57,6 @@ async/timer_not_available_test: Fail, OK # only meant to test when there is no w
 # Skip until we stabilize language tests.
 *: Skip
 
-[ $compiler == dartc ]
-# lib issue 6322
-crypto/hmac_sha1_test: Fail
-crypto/hmac_sha256_test: Fail
-
 [ $runtime == safari]
  # Bug in JSC: the test only passes when being debugged.
 crypto/hmac_md5_test: Fail, Pass

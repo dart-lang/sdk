@@ -48,7 +48,7 @@ class ScheduledServer {
 
     var scheduledServer;
     scheduledServer = new ScheduledServer._(schedule(() {
-      return SafeHttpServer.bind("127.0.0.1", 0).then((server) {
+      return SafeHttpServer.bind("localhost", 0).then((server) {
         server.listen(scheduledServer._handleRequest,
             onError: (e) => currentSchedule.signalError(e));
         currentSchedule.onComplete.schedule(server.close);

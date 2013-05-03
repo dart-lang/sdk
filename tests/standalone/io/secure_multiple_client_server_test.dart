@@ -17,7 +17,6 @@ const CERTIFICATE = "localhost_cert";
 Future<SecureServerSocket> startServer() {
   return SecureServerSocket.bind(HOST_NAME,
                                  0,
-                                 5,
                                  CERTIFICATE).then((server) {
     server.listen((SecureSocket client) {
       client.fold(<int>[], (message, data) => message..addAll(data))

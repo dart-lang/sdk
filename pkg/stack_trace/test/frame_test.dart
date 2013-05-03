@@ -31,8 +31,7 @@ void main() {
   test('parses a stack frame correctly', () {
     var frame = new Frame.parse("#1      Foo._bar "
         "(file:///home/nweiz/code/stuff.dart:42:21)");
-    expect(frame.uri,
-        equals(new Uri.fromString("file:///home/nweiz/code/stuff.dart")));
+    expect(frame.uri, equals(Uri.parse("file:///home/nweiz/code/stuff.dart")));
     expect(frame.line, equals(42));
     expect(frame.column, equals(21));
     expect(frame.member, equals('Foo._bar'));

@@ -43,7 +43,7 @@ export 'scanner/scannerlib.dart' show SourceString,
                                       isBinaryOperator,
                                       isTernaryOperator,
                                       isMinusOperator;
-export 'universe/universe.dart' show Selector;
+export 'universe/universe.dart' show Selector, TypedSelector;
 
 part 'code_buffer.dart';
 part 'compile_time_constants.dart';

@@ -1963,7 +1963,7 @@ TEST_CASE(Script) {
   const String& source = String::Handle(String::New(source_chars));
   const Script& script = Script::Handle(Script::New(url,
                                                     source,
-                                                    RawScript::kSourceTag));
+                                                    RawScript::kScriptTag));
   EXPECT(!script.IsNull());
   EXPECT(script.IsScript());
   String& str = String::Handle(script.url());
@@ -2018,7 +2018,7 @@ TEST_CASE(EmbeddedScript) {
   const String& url = String::Handle(String::New(url_chars));
   const String& source = String::Handle(String::New(src_chars));
   const Script& script = Script::Handle(
-      Script::New(url, source, RawScript::kSourceTag));
+      Script::New(url, source, RawScript::kScriptTag));
   script.SetLocationOffset(line_offset, col_offset);
 
   String& str = String::Handle();

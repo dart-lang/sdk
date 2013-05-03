@@ -21,7 +21,7 @@ abstract class TestingServer {
 
   void dispatch(message, SendPort replyTo) {
     if (message == INIT) {
-      ServerSocket.bind(HOST, 0, 10).then((server) {
+      ServerSocket.bind(HOST, 0).then((server) {
         _server = server;
         _server.listen(
             onConnection,

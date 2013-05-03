@@ -738,6 +738,9 @@ class DartiumBackend(HtmlDartGenerator):
         if argument.ext_attrs.get('TreatNullAs') == 'NullString':
           return True
 
+        if argument.type.nullable:
+          return True
+
         if isinstance(argument, IDLArgument):
           if IsOptional(argument) and not self._IsArgumentOptionalInWebCore(node, argument):
             return True

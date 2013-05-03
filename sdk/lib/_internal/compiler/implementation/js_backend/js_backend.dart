@@ -12,7 +12,7 @@ import '../elements/elements.dart';
 import '../elements/modelx.dart' show FunctionElementX;
 
 // TODO(ahe): There seems to be a bug in the VM, so we have to hide "js".
-import '../dart2jslib.dart' hide Selector, js;
+import '../dart2jslib.dart' hide Selector, TypedSelector, js;
 import '../dart_types.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js; // TODO(ahe): VM bug, see above.

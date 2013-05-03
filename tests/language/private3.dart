@@ -4,6 +4,8 @@
 
 // Dart test for testing access to private fields.
 
+part of PrivateOther;
+
 class LibOther3 {
   static accessFieldA3(var a) => a.fieldA;
   static accessFieldB3(var b) => b._fieldB;

@@ -7,4 +7,6 @@
 
 // A top-level variable being accessed both from the library and the importer.
 
+part of HelloScriptLib;
+
 var x;

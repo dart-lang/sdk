@@ -295,7 +295,7 @@ abstract class RawSecureSocket implements RawSocket {
     socket.readEventsEnabled = false;
     socket.writeEventsEnabled = false;
     return _RawSecureSocket.connect(
-        socket.remoteHost,
+        socket.address,
         socket.remotePort,
         certificateName,
         is_server: true,

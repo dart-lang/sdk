@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program testing overridden messageNotUnderstood.
 
+part of OverriddenNoSuchMethodTest.dart;
+
 class GetName {
   foo(a, b) => "foo";
 }

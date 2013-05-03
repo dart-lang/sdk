@@ -135,7 +135,7 @@ testEarlyClose2() {
 }
 
 void testEarlyClose3() {
-  HttpServer.bind().then((server) {
+  HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen((request) {
       var subscription;
       subscription = request.listen(

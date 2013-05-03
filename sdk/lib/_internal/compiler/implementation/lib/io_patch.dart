@@ -207,23 +207,25 @@ patch class InternetAddress {
     throw new UnsupportedError("InternetAddress.ANY_IP_V6");
   }
   patch static Future<List<InternetAddress>> lookup(
-      String host, {InternetAddressType type: InternetAddressType.IP_V4}) {
+      String host, {InternetAddressType type: InternetAddressType.ANY}) {
     throw new UnsupportedError("InternetAddress.lookup");
   }
 }
 
 patch class RawServerSocket {
-  patch static Future<RawServerSocket> bind([String address = "127.0.0.1",
-                                             int port = 0,
-                                             int backlog = 0]) {
+  patch static Future<RawServerSocket> bind(address,
+                                            int port,
+                                            {int backlog: 0,
+                                             bool v6Only: false}) {
     throw new UnsupportedError("RawServerSocket.bind");
   }
 }
 
 patch class ServerSocket {
-  patch static Future<ServerSocket> bind([String address = "127.0.0.1",
-                                          int port = 0,
-                                          int backlog = 0]) {
+  patch static Future<ServerSocket> bind(address,
+                                         int port,
+                                         {int backlog: 0,
+                                          bool v6Only: false}) {
     throw new UnsupportedError("ServerSocket.bind");
   }
 }

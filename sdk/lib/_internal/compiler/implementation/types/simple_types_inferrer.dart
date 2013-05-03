@@ -12,13 +12,13 @@ import '../elements/elements.dart';
 import '../native_handler.dart' as native;
 import '../tree/tree.dart';
 import '../util/util.dart' show Link;
-import 'types.dart' show TypesInferrer, TypeMask;
+import 'types.dart' show TypesInferrer, FlatTypeMask, TypeMask;
 
 // BUG(8802): There's a bug in the analyzer that makes the re-export
 // of Selector from dart2jslib.dart fail. For now, we work around that
 // by importing universe.dart explicitly and disabling the re-export.
-import '../dart2jslib.dart' hide Selector;
-import '../universe/universe.dart' show Selector, TypedSelector;
+import '../dart2jslib.dart' hide Selector, TypedSelector;
+import '../universe/universe.dart' show Selector, SideEffects, TypedSelector;
 
 /**
  * A work queue that ensures there are no duplicates, and adds and
@@ -100,7 +100,7 @@ class ClassInfoForFinalFields {
  * A sentinel type mask class used by the inferrer for the give up
  * type, and the dynamic type.
  */
-class SentinelTypeMask extends TypeMask {
+class SentinelTypeMask extends FlatTypeMask {
   final String name;
 
   SentinelTypeMask(this.name) : super(null, 0, false);
@@ -261,7 +261,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
    * Sentinel used by the inferrer to notify that it does not know
    * the type of a specific element.
    */
-  final TypeMask dynamicType = new SentinelTypeMask('dynamic');
+  TypeMask dynamicType = new SentinelTypeMask('dynamic');
   bool isDynamicType(TypeMask type) => identical(type, dynamicType);
 
   TypeMask nullType;
@@ -712,6 +712,8 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
         mappedType = nullType;
       } else if (type.isVoid) {
         mappedType = nullType;
+      } else if (type.isDynamic) {
+        return dynamicType;
       } else if (compiler.world.hasAnySubclass(type.element)) {
         mappedType = new TypeMask.nonNullSubclass(rawTypeOf(type.element));
       } else if (compiler.world.hasAnySubtype(type.element)) {
@@ -817,6 +819,31 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
     return existing != arguments;
   }
 
+  void updateSideEffects(SideEffects sideEffects,
+                         Selector selector,
+                         Element callee) {
+    if (callee.isField()) {
+      if (callee.isInstanceMember()) {
+        if (selector.isSetter()) {
+          sideEffects.setChangesInstanceProperty();
+        } else if (selector.isGetter()) {
+          sideEffects.setDependsOnInstancePropertyStore();
+        }
+      } else {
+        if (selector.isSetter()) {
+          sideEffects.setChangesStaticProperty();
+        } else if (selector.isGetter()) {
+          sideEffects.setDependsOnStaticPropertyStore();
+        }
+      }
+    } else if (callee.isGetter() && !selector.isGetter()) {
+      sideEffects.setAllSideEffects();
+      sideEffects.setDependsOnSomething();
+    } else {
+      sideEffects.add(compiler.world.getSideEffectsOfElement(callee));
+    }
+  }
+
   /**
    * Registers that [caller] calls [callee] with the given
    * [arguments]. [constraint] is a setter constraint (see
@@ -828,6 +855,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
                              Element callee,
                              ArgumentsTypes arguments,
                              Selector constraint,
+                             SideEffects sideEffects,
                              bool inLoop) {
     // Bailout for closure calls. We're not tracking types of
     // arguments for closures.
@@ -847,6 +875,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
       }
     }
 
+    updateSideEffects(sideEffects, selector, callee);
     assert(isNotClosure(caller));
     callee = callee.implementation;
     if (!analyzeCount.containsKey(caller)) {
@@ -1011,6 +1040,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
                                   Element caller,
                                   ArgumentsTypes arguments,
                                   Selector constraint,
+                                  SideEffects sideEffects,
                                   bool inLoop) {
     TypeMask result;
     iterateOverElements(selector.asUntyped, (Element element) {
@@ -1018,7 +1048,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
       if (isTargetFor(receiverType, selector, element)) {
         registerCalledElement(
             node, selector, caller, element, arguments,
-            constraint, inLoop);
+            constraint, sideEffects, inLoop);
 
         if (!selector.isSetter()) {
           TypeMask type = handleIntrisifiedSelector(selector, arguments);
@@ -1378,6 +1408,7 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
   bool visitingInitializers = false;
   bool isConstructorRedirect = false;
   int loopLevel = 0;
+  SideEffects sideEffects = new SideEffects.empty();
 
   bool get inLoop => loopLevel > 0;
   bool get isThisExposed => locals.isThisExposed;
@@ -1528,6 +1559,7 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
       });
       // TODO(ngeoffray): Re-analyze method if [changed]?
     }
+    compiler.world.registerSideEffects(analyzedElement, sideEffects);    
     return returnType;
   }
 
@@ -1936,6 +1968,8 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
   }
 
   TypeMask handleForeignSend(Send node) {
+    // TODO(ngeoffray): Analyze JS expressions.
+    sideEffects.setAllSideEffects();    
     node.visitChildren(this);
     Selector selector = elements.getSelector(node);
     SourceString name = selector.name;
@@ -2053,7 +2087,8 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
                         ArgumentsTypes arguments) {
     if (Elements.isUnresolved(element)) return;
     inferrer.registerCalledElement(
-        node, selector, outermostElement, element, arguments, null, inLoop);
+        node, selector, outermostElement, element, arguments, null,
+        sideEffects, inLoop);
   }
 
   void updateSelectorInTree(Node node, Selector selector) {
@@ -2085,7 +2120,7 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
     }
     return inferrer.registerCalledSelector(
         node, selector, receiver, outermostElement, arguments,
-        constraint, inLoop);
+        constraint, sideEffects, inLoop);
   }
 
   TypeMask visitDynamicSend(Send node) {

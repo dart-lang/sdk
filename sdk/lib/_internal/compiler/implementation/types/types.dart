@@ -6,7 +6,7 @@ library types;
 
 import 'dart:collection' show Queue, IterableBase;
 
-import '../dart2jslib.dart' hide Selector;
+import '../dart2jslib.dart' hide Selector, TypedSelector;
 import '../js_backend/js_backend.dart' show JavaScriptBackend;
 import '../tree/tree.dart';
 import '../elements/elements.dart';
@@ -89,11 +89,14 @@ class TypesTask extends CompilerTask {
    * exactness, subclassing, subtyping and nullability. The [element] parameter
    * is for debugging purposes only and can be omitted.
    */
-  TypeMask best(TypeMask type1, TypeMask type2, [element]) {
+  TypeMask best(var type1, var type2, [element]) {
     final result = _best(type1, type2);
-    similar() {
-      if (type1 == null) return type2 == null;
-      if (type2 == null) return false;
+    // Tests type1 and type2 for equality modulo normalization of native types.
+    // Only called when DUMP_SURPRISING_RESULTS is true.
+    bool similar() {
+      if (type1 == null || type2 == null || type1.isEmpty || type2.isEmpty) {
+        return type1 == type2;
+      }
       return same(type1.base, type2.base);
     }
     if (DUMP_SURPRISING_RESULTS && result == type1 && !similar()) {
@@ -103,7 +106,7 @@ class TypesTask extends CompilerTask {
   }
 
   /// Helper method for [best].
-  TypeMask _best(TypeMask type1, TypeMask type2) {
+  TypeMask _best(var type1, var type2) {
     if (type1 == null) return type2;
     if (type2 == null) return type1;
     if (type1.isExact) {

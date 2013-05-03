@@ -179,7 +179,10 @@ def render(idl_node, indent_str='  '):
       wsp(node.ext_attrs)
       if (node.optional):
         w('optional ')
-      w('%s %s' % (node.type.id, node.id))
+      w(node.type.id)
+      if node.type.nullable:
+        w('?')
+      w(' %s' % node.id)
     else:
       raise TypeError("Expected str or IDLNode but %s found" %
         type(node))

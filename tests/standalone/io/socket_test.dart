@@ -15,12 +15,12 @@ import "dart:isolate";
 void testArguments() {
   Expect.throws(() => ServerSocket.bind("127.0.0.1", 65536));
   Expect.throws(() => ServerSocket.bind("127.0.0.1", -1));
-  Expect.throws(() => ServerSocket.bind("127.0.0.1", 0, -1));
+  Expect.throws(() => ServerSocket.bind("127.0.0.1", 0, backlog: -1));
 }
 
 void testSimpleBind() {
   ReceivePort port = new ReceivePort();
-  ServerSocket.bind().then((s) {
+  ServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((s) {
     Expect.isTrue(s.port > 0);
     port.close();
   });
@@ -32,7 +32,7 @@ void testInvalidBind() {
   port.receive((_, __) { count++; if (count == 3) port.close(); });
 
   // Bind to a unknown DNS name.
-  ServerSocket.bind("ko.faar.__hest__")
+  ServerSocket.bind("ko.faar.__hest__", 0)
       .then((_) { Expect.fail("Failure expected"); } )
       .catchError((error) {
         Expect.isTrue(error is SocketIOException);
@@ -40,7 +40,7 @@ void testInvalidBind() {
       });
 
   // Bind to an unavaliable IP-address.
-  ServerSocket.bind("8.8.8.8")
+  ServerSocket.bind("8.8.8.8", 0)
       .then((_) { Expect.fail("Failure expected"); } )
       .catchError((error) {
         Expect.isTrue(error is SocketIOException);
@@ -51,7 +51,7 @@ void testInvalidBind() {
   // Either an error or a successful bind is allowed.
   // Windows platforms allow multiple binding to the same socket, with
   // unpredictable results.
-  ServerSocket.bind("127.0.0.1")
+  ServerSocket.bind("127.0.0.1", 0)
       .then((s) {
         ServerSocket.bind("127.0.0.1", s.port)
             .then((t) {
@@ -69,7 +69,7 @@ void testInvalidBind() {
 
 void testConnectNoDestroy() {
   ReceivePort port = new ReceivePort();
-  ServerSocket.bind().then((server) {
+  ServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
     server.listen((_) { });
     Socket.connect("127.0.0.1", server.port).then((_) {
       server.close();
@@ -80,7 +80,7 @@ void testConnectNoDestroy() {
 
 void testConnectImmediateDestroy() {
   ReceivePort port = new ReceivePort();
-  ServerSocket.bind().then((server) {
+  ServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
     server.listen((_) { });
     Socket.connect("127.0.0.1", server.port).then((socket) {
       socket.destroy();
@@ -94,7 +94,7 @@ void testConnectConsumerClose() {
   // Connect socket then immediate close the consumer without
   // listening on the stream.
   ReceivePort port = new ReceivePort();
-  ServerSocket.bind().then((server) {
+  ServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
     server.listen((_) { });
     Socket.connect("127.0.0.1", server.port).then((socket) {
       socket.close();
@@ -111,7 +111,7 @@ void testConnectConsumerWriteClose() {
   // Connect socket write some data immediate close the consumer
   // without listening on the stream.
   ReceivePort port = new ReceivePort();
-  ServerSocket.bind().then((server) {
+  ServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
     server.listen((_) { });
     Socket.connect("127.0.0.1", server.port).then((socket) {
       socket.add([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
@@ -129,7 +129,7 @@ void testConnectStreamClose() {
   // Connect socket and listen on the stream. The server closes
   // immediately so only a done event is received.
   ReceivePort port = new ReceivePort();
-  ServerSocket.bind().then((server) {
+  ServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
     server.listen((client) {
                     client.close();
                     client.done.then((_) => client.destroy());
@@ -153,7 +153,7 @@ void testConnectStreamDataClose(bool useDestroy) {
   // and then closes so both data and a done event is received.
   List<int> sendData = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
   ReceivePort port = new ReceivePort();
-  ServerSocket.bind().then((server) {
+  ServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
     server.listen(
         (client) {
           client.add(sendData);
@@ -184,7 +184,7 @@ void testConnectStreamDataClose(bool useDestroy) {
 void testConnectStreamDataCloseCancel(bool useDestroy) {
   List<int> sendData = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
   ReceivePort port = new ReceivePort();
-  ServerSocket.bind().then((server) {
+  ServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0).then((server) {
     server.listen(
         (client) {
           client.add(sendData);

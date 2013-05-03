@@ -1693,43 +1693,35 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void registerForeignType(HType type) {
-    // TODO(kasperl): This looks shaky. It makes sense if the type is
-    // exact, but otherwise we should be registering more types as
-    // instantiated. We should find a way of using something along the
-    // lines of the NativeEnqueuerBase.processNativeBehavior method.
     if (type.isUnknown()) return;
     TypeMask mask = type.computeMask(compiler);
-    world.registerInstantiatedClass(mask.base.element, work.resolutionTree);
+    for (ClassElement cls in mask.containedClasses(compiler)) {
+      world.registerInstantiatedClass(cls, work.resolutionTree);
+    }
   }
 
   visitForeign(HForeign node) {
-    String code = node.code.slowToString();
     List<HInstruction> inputs = node.inputs;
     if (node.isJsStatement()) {
       if (!inputs.isEmpty) {
-        compiler.internalError("foreign statement with inputs: $code",
+        compiler.internalError("foreign statement with inputs",
                                instruction: node);
       }
-      pushStatement(new js.LiteralStatement(code), node);
+      pushStatement(node.codeAst, node);
     } else {
-      List<js.Expression> interpolatedExpressions;
       if (!inputs.isEmpty) {
-        interpolatedExpressions = <js.Expression>[];
+        List<js.Expression> interpolatedExpressions = <js.Expression>[];
         for (int i = 0; i < inputs.length; i++) {
           use(inputs[i]);
           interpolatedExpressions.add(pop());
         }
-      }
-      // We can parse simple JS with the mini parser.  At the moment we can't
-      // handle JSON literals and function literals, both of which contain "{".
-      if (!code.contains("{") && !code.startsWith("throw ")) {
-        js.Expression codeAst = js.js(code, interpolatedExpressions);
-        push(codeAst, node);
+        var visitor = new js.UninterpolateJSExpression(interpolatedExpressions);
+        push(visitor.visit(node.codeAst), node);
       } else {
-        push(new js.LiteralExpression.withData(code, interpolatedExpressions),
-             node);
+        push(node.codeAst, node);
       }
     }
+
     registerForeignType(node.instructionType);
     // TODO(sra): Tell world.nativeEnqueuer about the types created here.
   }

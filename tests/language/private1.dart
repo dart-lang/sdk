@@ -4,6 +4,8 @@
 
 // Dart test for testing access to private fields.
 
+part of PrivateTest.dart; 
+
 main() {
   testPrivateTopLevel();
   testPrivateClasses();

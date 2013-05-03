@@ -31,21 +31,19 @@ RawInstance* ActivationFrame::GetInstanceCallReceiver(
 
 
 void CodeBreakpoint::PatchFunctionReturn() {
-  Instr* instr1 = Instr::At(pc_ - 6 * Instr::kInstrSize);
-  Instr* instr2 = Instr::At(pc_ - 5 * Instr::kInstrSize);
-  Instr* instr3 = Instr::At(pc_ - 4 * Instr::kInstrSize);
-  Instr* instr4 = Instr::At(pc_ - 3 * Instr::kInstrSize);
-  Instr* instr5 = Instr::At(pc_ - 2 * Instr::kInstrSize);
-  Instr* instr6 = Instr::At(pc_ - 1 * Instr::kInstrSize);
+  Instr* instr1 = Instr::At(pc_ - 5 * Instr::kInstrSize);
+  Instr* instr2 = Instr::At(pc_ - 4 * Instr::kInstrSize);
+  Instr* instr3 = Instr::At(pc_ - 3 * Instr::kInstrSize);
+  Instr* instr4 = Instr::At(pc_ - 2 * Instr::kInstrSize);
+  Instr* instr5 = Instr::At(pc_ - 1 * Instr::kInstrSize);
 
 #if defined(DEBUG)
 
   instr1->AssertIsImmInstr(LW, SP, RA, 2 * kWordSize);
   instr2->AssertIsImmInstr(LW, SP, FP, 1 * kWordSize);
   instr3->AssertIsImmInstr(LW, SP, PP, 0 * kWordSize);
-  instr4->AssertIsImmInstr(ADDIU, SP, SP, 4 * kWordSize);
-  instr5->AssertIsSpecialInstr(JR, RA, ZR, ZR);
-  ASSERT(instr6->InstructionBits() == Instr::kNopInstruction);
+  instr4->AssertIsSpecialInstr(JR, RA, ZR, ZR);
+  instr5->AssertIsImmInstr(ADDIU, SP, SP, 4 * kWordSize);
 #endif  // defined(DEBUG)
 
   // Smash code with call instruction and target address.
@@ -57,34 +55,31 @@ void CodeBreakpoint::PatchFunctionReturn() {
   // than the sequence we are replacing. We pad at the top with nops so that
   // the end of the new sequence is lined up with the code descriptor.
   instr1->SetInstructionBits(Instr::kNopInstruction);
-  instr2->SetInstructionBits(Instr::kNopInstruction);
-  instr3->SetImmInstrBits(LUI, ZR, TMP1, target_hi);
-  instr4->SetImmInstrBits(ORI, TMP1, TMP1, target_lo);
-  instr5->SetSpecialInstrBits(JALR, TMP1, ZR, RA);
-  instr6->SetInstructionBits(Instr::kNopInstruction);
+  instr2->SetImmInstrBits(LUI, ZR, TMP1, target_hi);
+  instr3->SetImmInstrBits(ORI, TMP1, TMP1, target_lo);
+  instr4->SetSpecialInstrBits(JALR, TMP1, ZR, RA);
+  instr5->SetInstructionBits(Instr::kNopInstruction);
 
-  CPU::FlushICache(pc_ - 6 * Instr::kInstrSize, 6 * Instr::kInstrSize);
+  CPU::FlushICache(pc_ - 5 * Instr::kInstrSize, 5 * Instr::kInstrSize);
 }
 
 
 void CodeBreakpoint::RestoreFunctionReturn() {
-  Instr* instr1 = Instr::At(pc_ - 6 * Instr::kInstrSize);
-  Instr* instr2 = Instr::At(pc_ - 5 * Instr::kInstrSize);
-  Instr* instr3 = Instr::At(pc_ - 4 * Instr::kInstrSize);
-  Instr* instr4 = Instr::At(pc_ - 3 * Instr::kInstrSize);
-  Instr* instr5 = Instr::At(pc_ - 2 * Instr::kInstrSize);
-  Instr* instr6 = Instr::At(pc_ - 1 * Instr::kInstrSize);
+  Instr* instr1 = Instr::At(pc_ - 5 * Instr::kInstrSize);
+  Instr* instr2 = Instr::At(pc_ - 4 * Instr::kInstrSize);
+  Instr* instr3 = Instr::At(pc_ - 3 * Instr::kInstrSize);
+  Instr* instr4 = Instr::At(pc_ - 2 * Instr::kInstrSize);
+  Instr* instr5 = Instr::At(pc_ - 1 * Instr::kInstrSize);
 
-  ASSERT(instr3->OpcodeField() == LUI && instr3->RtField() == TMP1);
+  ASSERT(instr2->OpcodeField() == LUI && instr2->RtField() == TMP1);
 
   instr1->SetImmInstrBits(LW, SP, RA, 2 * kWordSize);
   instr2->SetImmInstrBits(LW, SP, FP, 1 * kWordSize);
   instr3->SetImmInstrBits(LW, SP, PP, 0 * kWordSize);
-  instr4->SetImmInstrBits(ADDIU, SP, SP, 4 * kWordSize);
-  instr5->SetSpecialInstrBits(JR, RA, ZR, ZR);
-  instr6->SetInstructionBits(Instr::kNopInstruction);
+  instr4->SetSpecialInstrBits(JR, RA, ZR, ZR);
+  instr5->SetImmInstrBits(ADDIU, SP, SP, 4 * kWordSize);
 
-  CPU::FlushICache(pc_ - 6 * Instr::kInstrSize, 6 * Instr::kInstrSize);
+  CPU::FlushICache(pc_ - 5 * Instr::kInstrSize, 5 * Instr::kInstrSize);
 }
 
 }  // namespace dart

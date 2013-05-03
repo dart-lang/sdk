@@ -166,9 +166,10 @@ void FUNCTION_NAME(Filter_End)(Dart_NativeArguments args) {
 
 Dart_Handle Filter::SetFilterPointerNativeField(Dart_Handle filter,
                                                 Filter* filter_pointer) {
-  return Dart_SetNativeInstanceField(filter,
-                                     kFilterPointerNativeField,
-                                     (intptr_t)filter_pointer);
+  return Dart_SetNativeInstanceField(
+      filter,
+      kFilterPointerNativeField,
+      reinterpret_cast<intptr_t>(filter_pointer));
 }
 
 

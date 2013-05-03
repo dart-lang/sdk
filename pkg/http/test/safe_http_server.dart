@@ -21,9 +21,9 @@ import 'dart:uri';
 class SafeHttpServer extends StreamView<HttpRequest> implements HttpServer {
   final HttpServer _inner;
 
-  static Future<SafeHttpServer> bind([String host = "127.0.0.1",
+  static Future<SafeHttpServer> bind([String host = "localhost",
       int port = 0, int backlog = 0]) {
-    return HttpServer.bind(host, port, backlog)
+    return HttpServer.bind(host, port, backlog: backlog)
         .then((server) => new SafeHttpServer(server));
   }
 

@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for loading several dart files and resolving superclasses lazily.
 
+part of MultiPassTest.dart;
+
 class B extends A {
   B(v) : super(v) {}
 }

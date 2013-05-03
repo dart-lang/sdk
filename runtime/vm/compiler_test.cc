@@ -25,7 +25,7 @@ TEST_CASE(CompileScript) {
   String& source = String::Handle(String::New(kScriptChars));
   Script& script = Script::Handle(Script::New(url,
                                               source,
-                                              RawScript::kSourceTag));
+                                              RawScript::kScriptTag));
   Library& lib = Library::Handle(Library::CoreLibrary());
   EXPECT(CompilerTest::TestCompileScript(lib, script));
 }
@@ -43,7 +43,7 @@ TEST_CASE(CompileFunction) {
   String& source = String::Handle(String::New(kScriptChars));
   Script& script = Script::Handle(Script::New(url,
                                               source,
-                                              RawScript::kSourceTag));
+                                              RawScript::kScriptTag));
   Library& lib = Library::Handle(Library::CoreLibrary());
   EXPECT(CompilerTest::TestCompileScript(lib, script));
   EXPECT(ClassFinalizer::FinalizePendingClasses());

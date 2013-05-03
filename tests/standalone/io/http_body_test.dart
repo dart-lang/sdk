@@ -13,7 +13,7 @@ void testHttpClientResponseBody() {
             dynamic expectedBody,
             String type,
             [bool shouldFail = false]) {
-    HttpServer.bind().then((server) {
+    HttpServer.bind("127.0.0.1", 0).then((server) {
       server.listen((request) {
         request.listen(
             (_) {},
@@ -91,7 +91,7 @@ void testHttpServerRequestBody() {
             dynamic expectedBody,
             String type,
             [bool shouldFail = false]) {
-    HttpServer.bind().then((server) {
+    HttpServer.bind("127.0.0.1", 0).then((server) {
       server.transform(new HttpBodyHandler())
           .listen((body) {
             if (shouldFail) Expect.fail("Error expected");

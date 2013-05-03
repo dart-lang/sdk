@@ -19,7 +19,6 @@ DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 1) {
     args.SetAt(0, list);
     Exceptions::ThrowByType(Exceptions::kArgument, args);
   }
-  // TODO(srdjan): Check that parameterized type is an int.
 
   Array& a = Array::Handle();
   intptr_t array_len;

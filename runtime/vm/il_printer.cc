@@ -514,7 +514,7 @@ void CreateClosureInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void LoadFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
-  value()->PrintTo(f);
+  instance()->PrintTo(f);
   f->Print(", %"Pd, offset_in_bytes());
 
   if (field_name_ != NULL) {
@@ -661,6 +661,32 @@ void Float32x4ScaleInstr::PrintOperandsTo(BufferFormatter* f) const {
   left()->PrintTo(f);
   f->Print(", ");
   right()->PrintTo(f);
+}
+
+
+void Float32x4ZeroArgInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s, ", MethodRecognizer::KindToCString(op_kind()));
+  left()->PrintTo(f);
+}
+
+
+void Float32x4ClampInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("Float32x4.clamp, ");
+  left()->PrintTo(f);
+}
+
+
+void Float32x4WithInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s, ", MethodRecognizer::KindToCString(op_kind()));
+  left()->PrintTo(f);
+  f->Print(", ");
+  replacement()->PrintTo(f);
+}
+
+
+void Float32x4ToUint32x4Instr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("Float32x4.toUint32x4 ");
+  left()->PrintTo(f);
 }
 
 

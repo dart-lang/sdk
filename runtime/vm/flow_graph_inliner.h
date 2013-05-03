@@ -15,7 +15,8 @@ template <typename T> class GrowableArray;
 
 class FlowGraphInliner : ValueObject {
  public:
-  FlowGraphInliner(FlowGraph* flow_graph, GrowableArray<Field*>* guarded_fields)
+  FlowGraphInliner(FlowGraph* flow_graph,
+                   GrowableArray<const Field*>* guarded_fields)
       : flow_graph_(flow_graph), guarded_fields_(guarded_fields) {}
 
   // The flow graph is destructively updated upon inlining.
@@ -25,7 +26,7 @@ class FlowGraphInliner : ValueObject {
 
  private:
   FlowGraph* flow_graph_;
-  GrowableArray<Field*>* guarded_fields_;
+  GrowableArray<const Field*>* guarded_fields_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphInliner);
 };

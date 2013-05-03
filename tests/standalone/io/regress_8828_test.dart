@@ -11,7 +11,7 @@ import "package:expect/expect.dart";
 import 'dart:io';
 
 void main() {
-  HttpServer.bind().then((server) {
+  HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen((request) {
       request.response
         ..writeln("first line")

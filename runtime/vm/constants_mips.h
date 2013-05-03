@@ -139,7 +139,6 @@ const FpuRegister kNoFpuRegister = kNoFRegister;
 
 // Register aliases.
 const Register TMP1 = AT;  // Used as scratch register by assembler.
-const Register TMP2 = T9;  // Used as scratch register by assembler.
 const Register TMP = TMP1;  // Arch independent flow graph compiler needs a
                             // Register called TMP.
 const Register CTX = S6;  // Caches current context in generated code.
@@ -147,10 +146,17 @@ const Register PP = S7;  // Caches object pool pointer in generated code.
 const Register SPREG = SP;  // Stack pointer register.
 const Register FPREG = FP;  // Frame pointer register.
 
+// NULLREG holds reinterpret_cast<intptr_t>(Object::null()).
+// TODO(zra): Is it worthwhile to devote a register to this? Investigate
+// performance effects when we are running on real hardware. Same with
+// CMPRES. Try moving CTX and PP to T8 and T9 and shifting kLastCpuRegister
+// down to S7.
+const Register NULLREG = T8;
+
 // The code that generates a comparison can be far away from the code that
 // generates the branch that uses the result of that comparison. In this case,
 // CMPRES is used for the result of the comparison.
-const Register CMPRES = T8;
+const Register CMPRES = T9;
 
 // Exception object is passed in this register to the catch handlers when an
 // exception is thrown.

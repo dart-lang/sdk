@@ -47,6 +47,8 @@ class SourceFileProvider {
         relativize(cwd, resourceUri, isWindows), source);
     return new Future.value(source);
   }
+
+  Future<String> call(Uri resourceUri) => readStringFromUri(resourceUri);
 }
 
 class FormattingDiagnosticHandler {
@@ -61,7 +63,9 @@ class FormattingDiagnosticHandler {
   final int INFO =
       api.Diagnostic.INFO.ordinal | api.Diagnostic.VERBOSE_INFO.ordinal;
 
-  FormattingDiagnosticHandler(SourceFileProvider this.provider);
+  FormattingDiagnosticHandler([SourceFileProvider provider])
+      : this.provider =
+          (provider == null) ? new SourceFileProvider() : provider;
 
   void info(var message, [api.Diagnostic kind = api.Diagnostic.VERBOSE_INFO]) {
     if (!verbose && identical(kind, api.Diagnostic.VERBOSE_INFO)) return;
@@ -116,6 +120,8 @@ class FormattingDiagnosticHandler {
       throw new AbortLeg(message);
     }
   }
+
+  void call(Uri uri, int begin, int end, String message, api.Diagnostic kind) {
+    return diagnosticHandler(uri, begin, end, message, kind);
+  }
 }
-
-

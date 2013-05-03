@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// VMOptions=--optimization_counter_threshold=10
+
 import "package:expect/expect.dart";
 
 // This test tries to verify that we produce the correct stack trace when
@@ -50,7 +52,7 @@ class Test {
     return result;
   }
   int func5(var i) {
-    if (i >= 1030) throw "show me inlined functions";
+    if (i >= 520) throw "show me inlined functions";
     return i;
   }
 }
@@ -64,7 +66,7 @@ main() {
   Expect.isTrue(result.contains("Test.func3"));
   Expect.isTrue(result.contains("Test.func4"));
   Expect.isTrue(result.contains("Test.func"));
-  for (var i = 0; i <= 200; i++) {
+  for (var i = 0; i <= 10; i++) {
     result = x.func1(i);
   }
   Expect.isTrue(result.contains("show me inlined functions"));

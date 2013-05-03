@@ -209,6 +209,7 @@ Future<MirrorSystem> analyze(List<Uri> libraries,
   options.add('--analyze-only');
   options.add('--analyze-signatures-only');
   options.add('--analyze-all');
+  options.add('--categories=Client,Server');
 
   bool compilationFailed = false;
   void internalDiagnosticHandler(Uri uri, int begin, int end,
@@ -549,6 +550,8 @@ class Dart2JsLibraryMirror extends Dart2JsContainerMirror
       _members = <String, MemberMirror>{};
       _library.forEachLocalMember((Element e) {
         if (!e.isClass() && !e.isTypedef()) {
+          // TODO(ahe): I think it is incorrect to filter out classes
+          // and typedefs.  See http://dartbug.com/10371.
           for (var member in _convertElementMemberToMemberMirrors(this, e)) {
             assert(!_members.containsKey(member.simpleName));
             _members[member.simpleName] = member;
@@ -1680,5 +1683,56 @@ class Dart2JsCommentInstanceMirror implements CommentInstanceMirror {
     }
     // TODO(johnniwinther): Which exception/error should be thrown here?
     throw new UnsupportedError('InstanceMirror does not have a reflectee');
+  }
+}
+
+_convertElementToMembers(Dart2JsLibraryMirror library, Element e) {
+  // TODO(ahe): This method creates new mirror objects which is not correct.
+  if (e.isClass()) {
+    ClassElement classElement = e;
+    classElement.ensureResolved(library.mirrors.compiler);
+    return [new Dart2JsClassMirror.fromLibrary(library, classElement)];
+  } else if (e.isTypedef()) {
+    return [new Dart2JsTypedefMirror.fromLibrary(
+          library, e.computeType(library.mirrors.compiler))];
+  } else {
+    return _convertElementMemberToMemberMirrors(library, e);
+  }
+}
+
+/**
+ * Experimental API for accessing compilation units defined in a
+ * library.
+ */
+// TODO(ahe): Superclasses? Is this really a mirror?
+class Dart2JsCompilationUnitMirror extends Dart2JsMirror {
+  final Dart2JsLibraryMirror _library;
+  final CompilationUnitElement _element;
+
+  Dart2JsCompilationUnitMirror(this._element, this._library);
+
+  Dart2JsMirrorSystem get mirrors => _library.mirrors;
+
+  List<DeclarationMirror> get members {
+    // TODO(ahe): Should return an immutable List.
+    return _element.localMembers.toList().map(
+        (m) => _convertElementToMembers(_library, m))
+      .fold([], (a, b) => a..addAll(b)).toList();
+  }
+
+  Uri get uri => _element.script.uri;
+}
+
+/**
+ * Transitional class that allows access to features that have not yet
+ * made it to the mirror API.
+ *
+ * All API in this class is experimental.
+ */
+class BackDoor {
+  /// Return the compilation units comprising [library].
+  static List<Mirror> compilationUnitsOf(Dart2JsLibraryMirror library) {
+    return library._element.compilationUnits.toList().map(
+        (cu) => new Dart2JsCompilationUnitMirror(cu, library)).toList();
   }
 }

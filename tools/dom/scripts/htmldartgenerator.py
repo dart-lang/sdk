@@ -147,7 +147,7 @@ class HtmlDartGenerator(object):
     dom_name = DartDomNameOfAttribute(attribute)
     attr_name = self._renamer.RenameMember(
       self._interface.id, attribute, dom_name, 'get:')
-    if not attr_name or self._IsPrivate(attr_name):
+    if not attr_name:
       return
 
     html_setter_name = self._renamer.RenameMember(
@@ -597,6 +597,3 @@ class HtmlDartGenerator(object):
 
   def _DartType(self, type_name):
     return self._type_registry.DartType(type_name)
-
-  def _IsPrivate(self, name):
-    return name.startswith('_')

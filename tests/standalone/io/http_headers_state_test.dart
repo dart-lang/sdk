@@ -8,7 +8,7 @@ import "dart:isolate";
 import "dart:io";
 
 void test(int totalConnections, [String body]) {
-  HttpServer.bind().then((server) {
+  HttpServer.bind("127.0.0.1", 0).then((server) {
 
     server.listen((HttpRequest request) {
       HttpResponse response = request.response;

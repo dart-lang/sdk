@@ -120,7 +120,6 @@ implicit_this_test/none: Fail # should not warn about allocating SubAbstract2
 metadata_test: Fail
 const_locals_test: Fail
 const_nested_test: Fail
-application_negative_test: Fail # Runtime only test, rewrite as multitest
 assign_instance_method_negative_test: Fail # Runtime only test, rewrite as multitest
 body_less_constructor_wrong_arg_negative_test: Fail # Runtime only test, rewrite as multitest
 call_nonexistent_static_test/03: Fail # Unresolved static calls are no longer errors.
@@ -178,11 +177,9 @@ library2_negative_test: Fail # still a valid test? Issue 3649
 library4_negative_test: Fail # still a valid test? Issue 3530
 library6_negative_test: Fail # still a valid test? Issue 3650
 named_parameters_with_object_property_names_test: Fail # Issue 2137
-many_overridden_no_such_method_test: Fail
 no_such_method_negative_test: Fail # Runtime only test, rewrite as multitest
 override_field_test/03: Fail # still a valid test? Issue 3894
 override_field_method6_negative_test: Fail, OK # test issue 5249
-overridden_no_such_method_test: Fail
 parameter_initializer6_negative_test: Fail # language change 4288
 prefix1_negative_test : Fail # language change 1031
 prefix4_negative_test : Fail # language change 1031
@@ -223,23 +220,6 @@ bad_constructor_test/05: Fail, OK
 # test issue 5529
 interface_test/none: Fail, OK
 
-# test issue 6338
-application_negative_test: Pass
-application_test: Fail, OK
-generic_instanceof_test: Fail, OK
-hello_script_test: Fail, OK
-lazy_static6_test: Fail, OK
-library1_test: Fail, OK
-library_prefixes_test: Fail, OK
-many_generic_instanceof_test: Fail, OK
-multi_pass2_test: Fail, OK
-multi_pass_test: Fail, OK
-private2_test: Fail, OK
-private3_test: Fail, OK
-private_test: Fail, OK
-top_level_entry_test: Fail, OK
-top_level_multiple_files_test: Fail, OK
-top_level_non_prefixed_library_test: Fail, OK
 
 prefix6_negative_test: Fail
 

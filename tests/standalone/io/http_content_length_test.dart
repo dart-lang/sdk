@@ -9,7 +9,7 @@ import "dart:io";
 
 void testNoBody(int totalConnections, bool explicitContentLength) {
   var errors = 0;
-  HttpServer.bind("127.0.0.1", 0, totalConnections).then((server) {
+  HttpServer.bind("127.0.0.1", 0, backlog: totalConnections).then((server) {
     server.listen(
         (HttpRequest request) {
           Expect.equals("0", request.headers.value('content-length'));
@@ -75,7 +75,7 @@ void testNoBody(int totalConnections, bool explicitContentLength) {
 }
 
 void testBody(int totalConnections, bool useHeader) {
-  HttpServer.bind("127.0.0.1", 0, totalConnections).then((server) {
+  HttpServer.bind("127.0.0.1", 0, backlog: totalConnections).then((server) {
     int serverCount = 0;
     server.listen(
         (HttpRequest request) {
@@ -153,7 +153,7 @@ void testBody(int totalConnections, bool useHeader) {
 }
 
 void testBodyChunked(int totalConnections, bool useHeader) {
-  HttpServer.bind("127.0.0.1", 0, totalConnections).then((server) {
+  HttpServer.bind("127.0.0.1", 0, backlog: totalConnections).then((server) {
     server.listen(
         (HttpRequest request) {
           Expect.isNull(request.headers.value('content-length'));
@@ -229,7 +229,7 @@ void testBodyChunked(int totalConnections, bool useHeader) {
 }
 
 void testSetContentLength() {
-  HttpServer.bind().then((server) {
+  HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen(
         (HttpRequest request) {
           var response = request.response;

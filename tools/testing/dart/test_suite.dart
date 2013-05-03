@@ -188,16 +188,6 @@ abstract class TestSuite {
     }
   }
 
-  /**
-   * The file name of the d8 executable.
-   */
-  String get d8FileName {
-    var suffix = getExecutableSuffix('d8');
-    var d8 = '$buildDir/d8$suffix';
-    TestUtils.ensureExists(d8, configuration);
-    return d8;
-  }
-
   String get dartShellFileName {
     var name = configuration['dart'];
     if (name == '') {
@@ -206,6 +196,14 @@ abstract class TestSuite {
 
     TestUtils.ensureExists(name, configuration);
     return name;
+  }
+
+  String get d8FileName {
+    var suffix = getExecutableSuffix('d8');
+    var d8Dir = '${TestUtils.dartDir()}/third_party/d8';
+    var d8 = '$d8Dir/${Platform.operatingSystem}/d8$suffix';
+    TestUtils.ensureExists(d8, configuration);
+    return d8;
   }
 
   String get jsShellFileName {

@@ -3,10 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 patch class RawServerSocket  {
-  /* patch */ static Future<RawServerSocket> bind([address = "127.0.0.1",
-                                                   int port = 0,
-                                                   int backlog = 0]) {
-    return _RawServerSocket.bind(address, port, backlog);
+  /* patch */ static Future<RawServerSocket> bind(address,
+                                                  int port,
+                                                  {int backlog: 0,
+                                                   bool v6Only: false}) {
+    return _RawServerSocket.bind(address, port, backlog, v6Only);
   }
 }
 
@@ -36,7 +37,7 @@ patch class InternetAddress {
   }
 
   /* patch */ static Future<List<InternetAddress>> lookup(
-      String host, {InternetAddressType type: InternetAddressType.IP_V4}) {
+      String host, {InternetAddressType type: InternetAddressType.ANY}) {
     return _NativeSocket.lookup(host, type: type);
   }
 }
@@ -158,7 +159,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   static SendPort socketService;
 
   static Future<List<InternetAddress>> lookup(
-      String host, {InternetAddressType type: InternetAddressType.IP_V4}) {
+      String host, {InternetAddressType type: InternetAddressType.ANY}) {
     ensureSocketService();
     return socketService.call([HOST_NAME_LOOKUP, host, type._value])
         .then((response) {
@@ -215,7 +216,8 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
 
   static Future<_NativeSocket> bind(host,
                                     int port,
-                                    int backlog) {
+                                    int backlog,
+                                    bool v6Only) {
     return new Future.value(host)
         .then((host) {
           if (host is _InternetAddress) return host;
@@ -232,7 +234,8 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
           socket.address = address;
           var result = socket.nativeCreateBindListen(address._sockaddr_storage,
                                                      port,
-                                                     backlog);
+                                                     backlog,
+                                                     v6Only);
           if (result is OSError) {
             throw new SocketIOException(
                 "Failed to create server socket", result);
@@ -526,7 +529,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
       native "Socket_WriteList";
   nativeCreateConnect(List<int> addr,
                       int port) native "Socket_CreateConnect";
-  nativeCreateBindListen(List<int> addr, int port, int backlog)
+  nativeCreateBindListen(List<int> addr, int port, int backlog, bool v6Only)
       native "ServerSocket_CreateBindListen";
   nativeAccept(_NativeSocket socket) native "ServerSocket_Accept";
   int nativeGetPort() native "Socket_GetPort";
@@ -545,11 +548,12 @@ class _RawServerSocket extends Stream<RawSocket>
 
   static Future<_RawServerSocket> bind(address,
                                        int port,
-                                       int backlog) {
+                                       int backlog,
+                                       bool v6Only) {
     if (port < 0 || port > 0xFFFF)
       throw new ArgumentError("Invalid port $port");
     if (backlog < 0) throw new ArgumentError("Invalid backlog $backlog");
-    return _NativeSocket.bind(address, port, backlog)
+    return _NativeSocket.bind(address, port, backlog, v6Only)
         .then((socket) => new _RawServerSocket(socket));
   }
 
@@ -602,6 +606,7 @@ class _RawServerSocket extends Stream<RawSocket>
       close();
     }
   }
+
   void _onPauseStateChange() {
     if (_controller.isPaused) {
       _pause();
@@ -737,10 +742,11 @@ class _RawSocket extends Stream<RawSocketEvent>
 
 
 patch class ServerSocket {
-  /* patch */ static Future<ServerSocket> bind([address = "127.0.0.1",
-                                                int port = 0,
-                                                int backlog = 0]) {
-    return _ServerSocket.bind(address, port, backlog);
+  /* patch */ static Future<ServerSocket> bind(address,
+                                               int port,
+                                               {int backlog: 0,
+                                                bool v6Only: false}) {
+    return _ServerSocket.bind(address, port, backlog, v6Only);
   }
 }
 
@@ -750,8 +756,9 @@ class _ServerSocket extends Stream<Socket>
 
   static Future<_ServerSocket> bind(address,
                                     int port,
-                                    int backlog) {
-    return _RawServerSocket.bind(address, port, backlog)
+                                    int backlog,
+                                    bool v6Only) {
+    return _RawServerSocket.bind(address, port, backlog, v6Only)
         .then((socket) => new _ServerSocket(socket));
   }
 

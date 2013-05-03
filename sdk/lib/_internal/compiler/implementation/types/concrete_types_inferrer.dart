@@ -833,6 +833,8 @@ class ConcreteTypesInferrer extends TypesInferrer {
       if (element != null) {
         if (element == compiler.numClass) {
           return new TypeMask.nonNullSubclass(compiler.numClass.rawType);
+        } else if (element == compiler.dynamicClass) {
+          return new TypeMask.nonNullSubclass(compiler.objectClass.rawType);
         } else {
           return new TypeMask.nonNullExact(element.rawType);
         }
@@ -939,7 +941,7 @@ class ConcreteTypesInferrer extends TypesInferrer {
     }
 
     if (selector != null && receiverType != null) {
-      TypeMask receiverMask = new TypeMask.exact(receiverType.rawType);
+      TypeMask receiverMask = new TypeMask.nonNullExact(receiverType.rawType);
       TypeMask resultMask = concreteTypeToTypeMask(result);
       augmentInferredSelectorType(selector, receiverMask, resultMask);
     }
@@ -2035,6 +2037,8 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
       return returnType.isEmpty()
           ? returnType
           : inferrer.singletonConcreteType(inferrer.baseTypes.boolBaseType);
+    } else if (name.stringValue == '&&' || name.stringValue == '||'){
+      return inferrer.singletonConcreteType(inferrer.baseTypes.boolBaseType);
     } else {
       return analyzeDynamicSend(elements.getSelector(node),
                                 receiverType, name, argumentsTypes);

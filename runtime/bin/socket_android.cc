@@ -195,7 +195,8 @@ SocketAddresses* Socket::LookupAddress(const char* host,
 
 intptr_t ServerSocket::CreateBindListen(RawAddr addr,
                                         intptr_t port,
-                                        intptr_t backlog) {
+                                        intptr_t backlog,
+                                        bool v6_only) {
   intptr_t fd;
 
   fd = TEMP_FAILURE_RETRY(socket(addr.ss.ss_family, SOCK_STREAM, 0));
@@ -208,7 +209,7 @@ intptr_t ServerSocket::CreateBindListen(RawAddr addr,
       setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)));
 
   if (addr.ss.ss_family == AF_INET6) {
-    optval = 0;
+    optval = v6_only ? 1 : 0;
     TEMP_FAILURE_RETRY(
         setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, &optval, sizeof(optval)));
   }

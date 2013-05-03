@@ -50,11 +50,11 @@ class ValueSet {
 
   void kill(int flags) {
     if (flags == 0) return;
-    int depends = HInstruction.computeDependsOnFlags(flags);
+    int depends = SideEffects.computeDependsOnFlags(flags);
     // Kill in the hash table.
     for (int index = 0, length = table.length; index < length; index++) {
       HInstruction instruction = table[index];
-      if (instruction != null && (instruction.flags & depends) != 0) {
+      if (instruction != null && instruction.sideEffects.dependsOn(depends)) {
         table[index] = null;
         size--;
       }
@@ -65,7 +65,7 @@ class ValueSet {
     while (current != null) {
       ValueSetNode next = current.next;
       HInstruction cached = current.value;
-      if ((cached.flags & depends) != 0) {
+      if (cached.sideEffects.dependsOn(depends)) {
         if (previous == null) {
           collisions = next;
         } else {

@@ -27,9 +27,13 @@ class _StringBase {
    *  [codePoints].
    */
   static String createFromCharCodes(Iterable<int> charCodes) {
-    if (charCodes is! _ObjectArray && charCodes is! _GrowableObjectArray) {
+    // TODO(srdjan): Also skip copying of typed arrays.
+    if (charCodes is! _ObjectArray &&
+        charCodes is! _GrowableObjectArray &&
+        charCodes is! _ImmutableArray) {
       charCodes = new List<int>.from(charCodes, growable: false);
     }
+
     return _createFromCodePoints(charCodes);
   }
 
@@ -314,7 +318,7 @@ class _StringBase {
    */
   static String _interpolate(List values) {
     int numValues = values.length;
-    var stringList = new List(numValues);
+    _ObjectArray stringList = new List(numValues);
     for (int i = 0; i < numValues; i++) {
       stringList[i] = values[i].toString();
     }
@@ -428,7 +432,7 @@ class _StringBase {
     return _concatAll(stringsArray);
   }
 
-  static String _concatAll(List<String> strings)
+  static String _concatAll(_ObjectArray<String> strings)
       native "Strings_concatAll";
 }
 

@@ -25,7 +25,7 @@ testSocketCreation(host, port) {
 }
 
 testAdd(buffer) {
-  ServerSocket.bind("127.0.0.1", 0, 5).then((server) {
+  ServerSocket.bind("127.0.0.1", 0).then((server) {
     server.listen((socket) => socket.destroy());
     Socket.connect("127.0.0.1", server.port).then((socket) {
       int errors = 0;
@@ -49,7 +49,7 @@ testServerSocketCreation(address, port, backlog) {
   var server;
   var port = new ReceivePort();
   try {
-    ServerSocket.bind(address, port, backlog)
+    ServerSocket.bind(address, port, backlog: backlog)
         .then((_) { Expect.fail("ServerSocket bound"); });
   } catch (e) {
     port.close();

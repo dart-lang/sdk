@@ -517,7 +517,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
     __ cmp(R1, ShifterOperand(R7));
     __ str(IP, Address(R1, 0), CC);  // Store if unsigned lower.
     __ AddImmediate(R1, kWordSize, CC);
-    __ b(&loop, CS);
+    __ b(&loop, CC);  // Loop until R1 == R7.
 
     // Done allocating and initializing the array.
     // R0: new object.
@@ -1595,7 +1595,6 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     __ LoadClass(R3, R0, R4);
     // Compute instance type arguments into R4.
     Label has_no_type_arguments;
-    __ LoadImmediate(R4, reinterpret_cast<intptr_t>(Object::null()));
     __ ldr(R5, FieldAddress(R3,
         Class::type_arguments_field_offset_in_words_offset()));
     __ CompareImmediate(R5, Class::kNoTypeArguments);

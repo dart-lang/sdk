@@ -110,7 +110,6 @@
       'target_name': 'dart2js',
       'type': 'none',
       'dependencies': [
-        'third_party/v8/src/d8.gyp:d8',
         'utils/compiler/compiler.gyp:dart2js',
       ],
     },
@@ -150,7 +149,6 @@
       'target_name': 'dart2js_bot',
       'type': 'none',
       'dependencies': [
-        'third_party/v8/src/d8.gyp:d8',
         'create_sdk',
         'packages',
       ],

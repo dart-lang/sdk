@@ -14,7 +14,7 @@ import "dart:uri";
 void main() {
   final int REQUEST_COUNT = 100;
   int count = 0;
-  HttpServer.bind().then((server) {
+  HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen((HttpRequest request) {
       count++;
       request.response.write(request.uri.path);

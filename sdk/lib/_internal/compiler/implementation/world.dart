@@ -10,6 +10,7 @@ class World {
   final Map<ClassElement, Set<ClassElement>> typesImplementedBySubclasses;
   final FullFunctionSet allFunctions;
   final Set<Element> functionsCalledInLoop = new Set<Element>();
+  final Map<Element, SideEffects> sideEffects = new Map<Element, SideEffects>();
 
   // We keep track of subtype and subclass relationships in four
   // distinct sets to make class hierarchy analysis faster.
@@ -148,20 +149,10 @@ class World {
   }
 
   Element locateSingleElement(Selector selector) {
-    Iterable<Element> targets = allFunctions.filter(selector);
-    if (targets.length != 1) return null;
-    Element result = targets.first;
-    ClassElement enclosing = result.getEnclosingClass();
-    // TODO(kasperl): Move this code to the type mask.
-    ti.TypeMask mask = selector.mask;
-    ClassElement receiverTypeElement = (mask == null || mask.base == null)
-        ? compiler.objectClass
-        : mask.base.element;
-    // We only return the found element if it is guaranteed to be
-    // implemented on the exact receiver type. It could be found in a
-    // subclass or in an inheritance-wise unrelated class in case of
-    // subtype selectors.
-    return (receiverTypeElement.isSubclassOf(enclosing)) ? result : null;
+    ti.TypeMask mask = selector.mask == null
+        ? new ti.TypeMask.subclass(compiler.objectClass.rawType)
+        : selector.mask;
+    return mask.locateSingleElement(selector, compiler);
   }
 
   bool hasSingleMatch(Selector selector) {
@@ -183,10 +174,39 @@ class World {
   }
 
   void addFunctionCalledInLoop(Element element) {
-    functionsCalledInLoop.add(element);
+    functionsCalledInLoop.add(element.declaration);
   }
 
   bool isCalledInLoop(Element element) {
-    return functionsCalledInLoop.contains(element);
+    return functionsCalledInLoop.contains(element.declaration);
+  }
+
+  SideEffects getSideEffectsOfElement(Element element) {
+    return sideEffects.putIfAbsent(element.declaration, () {
+      return new SideEffects();
+    });
+  }
+
+  void registerSideEffects(Element element, SideEffects effects) {
+    sideEffects[element.declaration] = effects;
+  }
+
+  SideEffects getSideEffectsOfSelector(Selector selector) {
+    // We're not tracking side effects of closures.
+    if (selector.isClosureCall()) {
+      return new SideEffects();
+    }
+    SideEffects sideEffects = new SideEffects.empty();
+    for (Element e in allFunctions.filter(selector)) {
+      if (e.isField()) {
+        if (selector.isGetter()) {
+          sideEffects.setDependsOnInstancePropertyStore();
+        } else if (selector.isSetter()) {
+          sideEffects.setChangesInstanceProperty();
+        }
+      }
+      sideEffects.add(getSideEffectsOfElement(e));
+    }
+    return sideEffects;
   }
 }

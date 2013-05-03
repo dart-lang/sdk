@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -7,10 +7,12 @@ part of js_backend;
 /// For each class, stores the possible class subtype tests that could succeed.
 abstract class TypeChecks {
   /// Get the set of checks required for class [element].
-  Iterable<ClassElement> operator[](ClassElement element);
+  Iterable<TypeCheck> operator[](ClassElement element);
   /// Get the iterator for all classes that need type checks.
   Iterator<ClassElement> get iterator;
 }
+
+typedef String VariableSubstitution(TypeVariableType variable);
 
 class RuntimeTypes {
   final Compiler compiler;
@@ -31,9 +33,9 @@ class RuntimeTypes {
         rtiDependencies = new Map<ClassElement, Set<ClassElement>>(),
         classesUsingTypeVariableExpression = new Set<ClassElement>();
 
-  /// Contains the classes of all arguments that have been used in
-  /// instantiations and checks.
-  Set<ClassElement> cachedAllArguments;
+  Set<ClassElement> directlyInstantiatedArguments;
+  Set<ClassElement> allInstantiatedArguments;
+  Set<ClassElement> checkedArguments;
 
   bool isJsNative(Element element) {
     return (element == compiler.intClass ||
@@ -42,14 +44,6 @@ class RuntimeTypes {
             element == compiler.doubleClass ||
             element == compiler.stringClass ||
             element == compiler.listClass);
-  }
-
-  Set<ClassElement> get allArguments {
-    if (cachedRequiredChecks == null) {
-      computeRequiredChecks();
-    }
-    assert(cachedAllArguments != null);
-    return cachedAllArguments;
   }
 
   void registerRtiDependency(Element element, Element dependency) {
@@ -174,42 +168,45 @@ class RuntimeTypes {
   TypeChecks cachedRequiredChecks;
 
   TypeChecks get requiredChecks {
+    if (cachedRequiredChecks == null) {
+      computeRequiredChecks();
+    }
     assert(cachedRequiredChecks != null);
     return cachedRequiredChecks;
   }
 
-  void computeRequiredChecks() {
-    // Get all types used in type arguments of instantiated types.
-    Set<ClassElement> instantiatedArguments =
-        getInstantiatedArguments(compiler.codegenWorld);
-
-    // Collect all type arguments used in is-checks.
-    Set<ClassElement> checkedArguments =
-        getCheckedArguments(compiler.codegenWorld);
-
-    // Precompute the set of all seen type arguments for use in the emitter.
-    cachedAllArguments = new Set<ClassElement>.from(instantiatedArguments)
-        ..addAll(checkedArguments);
-
-    // Finally, run through the combination of instantiated and checked
+  /// Compute the required type checkes and substitutions for the given
+  /// instantitated and checked classes.
+  TypeChecks computeChecks(Set<ClassElement> instantiated,
+                           Set<ClassElement> checked) {
+    // Run through the combination of instantiated and checked
     // arguments and record all combination where the element of a checked
     // argument is a superclass of the element of an instantiated type.
-    TypeCheckMapping requiredChecks = new TypeCheckMapping();
-    for (ClassElement element in instantiatedArguments) {
+    TypeCheckMapping result = new TypeCheckMapping();
+    for (ClassElement element in instantiated) {
       if (element == compiler.dynamicClass) continue;
-      if (checkedArguments.contains(element)) {
-        requiredChecks.add(element, element);
+      if (checked.contains(element)) {
+        result.add(element, element, null);
       }
-      // Find all supertypes of [element] in [checkedArguments] and add checks.
+      // Find all supertypes of [element] in [checkedArguments] and add checks
+      // and precompute the substitutions for them.
       for (DartType supertype in element.allSupertypes) {
         ClassElement superelement = supertype.element;
-        if (checkedArguments.contains(superelement)) {
-          requiredChecks.add(element, superelement);
+        if (checked.contains(superelement)) {
+          Substitution substitution =
+              computeSubstitution(element, superelement);
+          result.add(element, superelement, substitution);
         }
       }
     }
+    return result;
+  }
 
-    cachedRequiredChecks = requiredChecks;
+  void computeRequiredChecks() {
+    computeInstantiatedArguments(compiler.codegenWorld);
+    computeCheckedArguments(compiler.codegenWorld);
+    cachedRequiredChecks =
+        computeChecks(allInstantiatedArguments, checkedArguments);
   }
 
   /**
@@ -219,30 +216,58 @@ class RuntimeTypes {
    * have a type check against this supertype that includes a check against
    * the type arguments.
    */
-  Set<ClassElement> getInstantiatedArguments(Universe universe) {
-    ArgumentCollector collector = new ArgumentCollector(backend);
+  void computeInstantiatedArguments(Universe universe) {
+    ArgumentCollector superCollector = new ArgumentCollector(backend);
+    ArgumentCollector directCollector = new ArgumentCollector(backend);
     for (DartType type in universe.instantiatedTypes) {
-      collector.collect(type);
+      directCollector.collect(type);
       ClassElement cls = type.element;
       for (DartType supertype in cls.allSupertypes) {
-        collector.collect(supertype);
+        superCollector.collect(supertype);
       }
     }
-    for (ClassElement cls in collector.classes.toList()) {
+    for (ClassElement cls in superCollector.classes.toList()) {
       for (DartType supertype in cls.allSupertypes) {
-        collector.collect(supertype);
+        superCollector.collect(supertype);
       }
     }
-    return collector.classes;
+    directlyInstantiatedArguments = directCollector.classes;
+    allInstantiatedArguments =
+        superCollector.classes..addAll(directlyInstantiatedArguments);
   }
 
   /// Collects all type arguments used in is-checks.
-  Set<ClassElement> getCheckedArguments(Universe universe) {
+  void computeCheckedArguments(Universe universe) {
     ArgumentCollector collector = new ArgumentCollector(backend);
     for (DartType type in universe.isChecks) {
       collector.collect(type);
     }
-    return collector.classes;
+    checkedArguments = collector.classes;
+  }
+
+  Set<ClassElement> getClassesUsedInSubstitutions(JavaScriptBackend backend,
+                                                  TypeChecks checks) {
+    Set<ClassElement> instantiated = new Set<ClassElement>();
+    ArgumentCollector collector = new ArgumentCollector(backend);
+    for (ClassElement target in checks) {
+      instantiated.add(target);
+      for (TypeCheck check in checks[target]) {
+        Substitution substitution = check.substitution;
+        if (substitution != null) {
+          collector.collectAll(substitution.arguments);
+        }
+      }
+    }
+    return instantiated..addAll(collector.classes);
+  }
+
+  Set<ClassElement> getRequiredArgumentClasses(JavaScriptBackend backend) {
+    Set<ClassElement> requiredArgumentClasses =
+        new Set<ClassElement>.from(
+            getClassesUsedInSubstitutions(backend, requiredChecks));
+    return requiredArgumentClasses
+        ..addAll(directlyInstantiatedArguments)
+        ..addAll(checkedArguments);
   }
 
   /// Return the unique name for the element as an unquoted string.
@@ -314,9 +339,30 @@ class RuntimeTypes {
    */
   String getSupertypeSubstitution(ClassElement cls, ClassElement check,
                                   {bool alwaysGenerateFunction: false}) {
+    Substitution substitution = getSubstitution(cls, check);
+    if (substitution != null) {
+      return substitution.getCode(this, alwaysGenerateFunction);
+    } else {
+      return null;
+    }
+  }
+
+  Substitution getSubstitution(ClassElement cls, ClassElement other) {
+    // Look for a precomputed check.
+    for (TypeCheck check in cachedRequiredChecks[cls]) {
+      if (check.cls == other) {
+        return check.substitution;
+      }
+    }
+    // There is no precomputed check for this pair (because the check is not
+    // done on type arguments only.  Compute a new substitution.
+    return computeSubstitution(cls, other);
+  }
+
+  Substitution computeSubstitution(ClassElement cls, ClassElement check,
+                                   { bool alwaysGenerateFunction: false }) {
     if (isTrivialSubstitution(cls, check)) return null;
 
-    // TODO(karlklose): maybe precompute this value and store it in typeChecks?
     bool usesTypeVariables = false;
     String onVariable(TypeVariableType v) {
       usesTypeVariables = true;
@@ -324,16 +370,19 @@ class RuntimeTypes {
     };
     InterfaceType type = cls.computeType(compiler);
     InterfaceType target = type.asInstanceOf(check);
-    String substitution = target.typeArguments.toList()
-        .map((type) => _getTypeRepresentation(type, onVariable))
-        .join(', ');
-    substitution = '[$substitution]';
-    if (!usesTypeVariables && !alwaysGenerateFunction) {
-      return substitution;
+    if (cls.typeVariables.isEmpty && !alwaysGenerateFunction) {
+      return new Substitution.list(target.typeArguments);
     } else {
-      String parameters = cls.typeVariables.toList().join(', ');
-      return 'function ($parameters) { return $substitution; }';
+      return new Substitution.function(target.typeArguments, cls.typeVariables);
     }
+  }
+
+  String getSubstitutionRepresentation(Link<DartType> types,
+                                       VariableSubstitution variableName) {
+    String code = types.toList(growable: false)
+        .map((type) => _getTypeRepresentation(type, variableName))
+        .join(', ');
+    return '[$code]';
   }
 
   String getTypeRepresentation(DartType type, void onVariable(variable)) {
@@ -346,7 +395,8 @@ class RuntimeTypes {
   }
 
   // TODO(karlklose): rewrite to use js.Expressions.
-  String _getTypeRepresentation(DartType type, String onVariable(variable)) {
+  String _getTypeRepresentation(DartType type,
+                                VariableSubstitution onVariable) {
     return representationGenerator.getTypeRepresentation(type, onVariable);
   }
 
@@ -477,18 +527,19 @@ class TypeRepresentationGenerator extends DartTypeVisitor {
   }
 }
 
-class TypeCheckMapping implements TypeChecks {
-  final Map<ClassElement, Set<ClassElement>> map =
-      new Map<ClassElement, Set<ClassElement>>();
 
-  Iterable<ClassElement> operator[](ClassElement element) {
-    Set<ClassElement> result = map[element];
-    return result != null ? result : const <ClassElement>[];
+class TypeCheckMapping implements TypeChecks {
+  final Map<ClassElement, Set<TypeCheck>> map =
+      new Map<ClassElement, Set<TypeCheck>>();
+
+  Iterable<TypeCheck> operator[](ClassElement element) {
+    Set<TypeCheck> result = map[element];
+    return result != null ? result : const <TypeCheck>[];
   }
 
-  void add(ClassElement cls, ClassElement check) {
-    map.putIfAbsent(cls, () => new Set<ClassElement>());
-    map[cls].add(check);
+  void add(ClassElement cls, ClassElement check, Substitution substitution) {
+    map.putIfAbsent(cls, () => new Set<TypeCheck>());
+    map[cls].add(new TypeCheck(check, substitution));
   }
 
   Iterator<ClassElement> get iterator => map.keys.iterator;
@@ -515,6 +566,14 @@ class ArgumentCollector extends DartTypeVisitor {
     type.accept(this, false);
   }
 
+  /// Collect all types in the list as if they were arguments of an
+  /// InterfaceType.
+  collectAll(Link<DartType> types) {
+    for (Link<DartType> link = types; !link.isEmpty; link = link.tail) {
+      link.head.accept(this, true);
+    }
+  }
+
   visitType(DartType type, _) {
     // Do nothing.
   }
@@ -533,4 +592,53 @@ class ArgumentCollector extends DartTypeVisitor {
   visitFunctionType(FunctionType type, _) {
     type.visitChildren(this, true);
   }
+}
+
+/**
+ * Representation of the substitution of type arguments
+ * when going from the type of a class to one of its supertypes.
+ *
+ * For [:class B<T> extends A<List<T>, int>:], the substitution is
+ * the representation of [: (T) => [<List, T>, int] :].  For more details
+ * of the representation consult the documentation of
+ * [getSupertypeSubstitution].
+ */
+class Substitution {
+  final bool isFunction;
+  final Link<DartType> arguments;
+  final Link<TypeVariableType> parameters;
+
+  Substitution.list(this.arguments)
+      : isFunction = false,
+        parameters = const Link<TypeVariableType>();
+
+  Substitution.function(this.arguments, this.parameters)
+      : isFunction = true;
+
+  String getCode(RuntimeTypes rti, bool ensureIsFunction) {
+    String variableName(TypeVariableType variable) {
+      return variable.name.slowToString();
+    }
+
+    String code = rti.getSubstitutionRepresentation(arguments, variableName);
+    if (isFunction) {
+      String formals = parameters.toList().map(variableName).join(', ');
+      return 'function ($formals) { return $code; }';
+    } else if (ensureIsFunction) {
+      return 'function() { return $code; }';
+    } else {
+      return code;
+    }
+  }
+}
+
+/**
+ * A pair of a class that we need a check against and the type argument
+ * substition for this check.
+ */
+class TypeCheck {
+  final ClassElement cls;
+  final Substitution substitution;
+
+  TypeCheck(this.cls, this.substitution);
 }

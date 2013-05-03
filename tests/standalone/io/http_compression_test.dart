@@ -13,7 +13,7 @@ import 'dart:typed_data';
 
 void testServerCompress() {
   void test(List<int> data) {
-    HttpServer.bind().then((server) {
+    HttpServer.bind("127.0.0.1", 0).then((server) {
       server.listen((request) {
         request.response.add(data);
         request.response.close();
@@ -49,7 +49,7 @@ void testServerCompress() {
 
 void testAcceptEncodingHeader() {
   void test(String encoding, bool valid) {
-    HttpServer.bind().then((server) {
+    HttpServer.bind("127.0.0.1", 0).then((server) {
       server.listen((request) {
         request.response.write("data");
         request.response.close();

@@ -351,7 +351,7 @@ class CodeEmitterTask extends CompilerTask {
 
     return [
       js('var $supportsProtoName = false'),
-      js('var tmp = defineClass("c", "c", ["f?"], {}).prototype'),
+      js('var tmp = defineClass("c", "c", ["f<"], {}).prototype'),
 
       js.if_(js('tmp.__proto__'), [
         js('tmp.__proto__ = {}'),
@@ -1251,11 +1251,14 @@ class CodeEmitterTask extends CompilerTask {
     // Add checks to the constructors of instantiated classes.
     for (ClassElement cls in typeChecks) {
       String holder = namer.isolateAccess(backend.getImplementationClass(cls));
-      for (ClassElement check in typeChecks[cls]) {
-        buffer.write('$holder.${namer.operatorIs(check)}$_=${_}true$N');
-        String body = rti.getSupertypeSubstitution(cls, check);
-        if (body != null) {
-          buffer.write('$holder.${namer.substitutionName(check)}$_=${_}$body$N');
+      for (TypeCheck check in typeChecks[cls]) {
+        ClassElement cls = check.cls;
+        buffer.write('$holder.${namer.operatorIs(check.cls)}$_=${_}true$N');
+        buffer.write('$holder.${namer.operatorIs(cls)}$_=${_}true$N');
+        Substitution substitution = check.substitution;
+        if (substitution != null) {
+          String body = substitution.getCode(rti, false);
+          buffer.write('$holder.${namer.substitutionName(cls)}$_=${_}$body$N');
         }
       };
     }
@@ -2233,32 +2236,16 @@ class CodeEmitterTask extends CompilerTask {
       DartType objectType = objectClass.computeType(compiler);
 
       for (Selector selector in selectors) {
-        // Introduce a helper function that determines if the given
-        // class has a member that matches the current name and
-        // selector (grabbed from the scope).
-        bool hasMatchingMember(ClassElement holder) {
-          Element element = holder.lookupSelector(selector);
-          return (element != null)
-              ? selector.applies(element, compiler)
-              : false;
-        }
-
         // If the selector is typed, we check to see if that type may
         // have a user-defined noSuchMethod implementation. If not, we
         // skip the selector altogether.
 
-        // TODO(kasperl): This shouldn't depend on the internals of
-        // the type mask. Move more of this code to the type mask.
-        ClassElement receiverClass = objectClass;
         TypeMask mask = selector.mask;
-        if (mask != null) {
-          // If the mask is empty it doesn't contain a noSuchMethod
-          // handler -- not even if it is nullable.
-          if (mask.isEmpty) continue;
-          receiverClass = mask.base.element;
+        if (mask == null) {
+          mask = new TypeMask.subclass(compiler.objectClass.rawType);
         }
 
-        // If the receiver class is guaranteed to have a member that
+        // If the receiver is guaranteed to have a member that
         // matches what we're looking for, there's no need to
         // introduce a noSuchMethod handler. It will never be called.
         //
@@ -2273,7 +2260,6 @@ class CodeEmitterTask extends CompilerTask {
         // because objects of type B implement foo. On the other hand,
         // if we end up calling foo on something of type C we have to
         // add a handler for it.
-        if (hasMatchingMember(receiverClass)) continue;
 
         // If the holders of all user-defined noSuchMethod
         // implementations that might be applicable to the receiver
@@ -2300,9 +2286,7 @@ class CodeEmitterTask extends CompilerTask {
         // If we're calling bar on an object of type A we do need the
         // handler because we may have to call B.noSuchMethod since B
         // does not implement bar.
-        Iterable<ClassElement> holders =
-            compiler.world.locateNoSuchMethodHolders(selector);
-        if (holders.every(hasMatchingMember)) continue;
+        if (mask.willHit(selector, compiler)) continue;
         String jsName = namer.invocationMirrorInternalName(selector);
         addedJsNames[jsName] = selector;
       }
@@ -2597,37 +2581,53 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
         compiler.codegenWorld.instantiatedClasses.where(computeClassFilter())
             .toSet();
 
-    RuntimeTypes rti = backend.rti;
-
-    // We need to generate classes that are instantiated or used as a type
-    // arguments.
-    neededClasses.addAll(instantiatedClasses);
-    rti.allArguments.forEach((ClassElement c) {
-      // Types that we represent with JS native types (like int and String) do
-      // not need a class definition as we use the interceptor classes instead.
-      if (!rti.isJsNative(c)) {
-        neededClasses.add(c);
-      }
-    });
-
-    // Then add all superclasses of these classes.
-    for (ClassElement element in neededClasses.toList() /* copy */) {
-      for (ClassElement superclass = element.superclass;
+    void addClassWithSuperclasses(ClassElement cls) {
+      neededClasses.add(cls);
+      for (ClassElement superclass = cls.superclass;
           superclass != null;
           superclass = superclass.superclass) {
-        if (neededClasses.contains(superclass)) break;
         neededClasses.add(superclass);
       }
     }
 
-    // Then add all classes used as mixins.
+    void addClassesWithSuperclasses(Iterable<ClassElement> classes) {
+      for (ClassElement cls in classes) {
+        addClassWithSuperclasses(cls);
+      }
+    }
+
+    // 1. We need to generate all classes that are instantiated.
+    addClassesWithSuperclasses(instantiatedClasses);
+
+    // 2. Add all classes used as mixins.
     Set<ClassElement> mixinClasses = neededClasses
         .where((ClassElement element) => element.isMixinApplication)
         .map(computeMixinClass)
         .toSet();
     neededClasses.addAll(mixinClasses);
 
-    // Finally, sort the classes.
+    // 3a. Add classes that are referenced by type arguments or substitutions in
+    //     argument checks.
+    // TODO(karlklose): merge this case with 3b when unifying argument and
+    // object checks.
+    RuntimeTypes rti = backend.rti;
+    backend.rti.getRequiredArgumentClasses(backend).forEach((ClassElement c) {
+      // Types that we represent with JS native types (like int and String) do
+      // not need a class definition as we use the interceptor classes instead.
+      if (!rti.isJsNative(c)) {
+        addClassWithSuperclasses(c);
+      }
+    });
+
+    // 3b. Add classes that are referenced by substitutions in object checks and
+    //     their superclasses.
+    TypeChecks requiredChecks =
+        backend.rti.computeChecks(neededClasses, checkedClasses);
+    Set<ClassElement> classesUsedInSubstitutions =
+        rti.getClassesUsedInSubstitutions(backend, requiredChecks);
+    addClassesWithSuperclasses(classesUsedInSubstitutions);
+
+    // 4. Finally, sort the classes.
     List<ClassElement> sortedClasses = Elements.sortedByPosition(neededClasses);
 
     // If we need noSuchMethod support, we run through all needed

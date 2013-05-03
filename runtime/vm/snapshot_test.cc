@@ -815,7 +815,7 @@ TEST_CASE(SerializeScript) {
   String& source = String::Handle(String::New(kScriptChars));
   Script& script = Script::Handle(Script::New(url,
                                               source,
-                                              RawScript::kSourceTag));
+                                              RawScript::kScriptTag));
   const String& lib_url = String::Handle(Symbols::New("TestLib"));
   Library& lib = Library::Handle(Library::New(lib_url));
   lib.Register();

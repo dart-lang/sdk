@@ -15,7 +15,7 @@ class SocketExceptionTest {
     bool exceptionCaught = false;
     bool wrongExceptionCaught = false;
 
-    ServerSocket.bind().then((server) {
+    ServerSocket.bind("127.0.0.1", 0).then((server) {
       Expect.isNotNull(server);
       server.close();
       try {
@@ -29,7 +29,7 @@ class SocketExceptionTest {
       Expect.equals(true, !wrongExceptionCaught);
 
       // Test invalid host.
-      ServerSocket.bind("__INVALID_HOST__")
+      ServerSocket.bind("__INVALID_HOST__", 0)
         .then((server) { })
         .catchError((e) => e is SocketIOException);
     });
@@ -37,7 +37,7 @@ class SocketExceptionTest {
 
   static void serverSocketCloseListenTest() {
     var port = new ReceivePort();
-    ServerSocket.bind().then((server) {
+    ServerSocket.bind("127.0.0.1", 0).then((server) {
       Socket.connect("127.0.0.1", server.port).then((socket) {
         server.close();
         server.listen(
@@ -49,7 +49,7 @@ class SocketExceptionTest {
 
   static void serverSocketListenCloseTest() {
     var port = new ReceivePort();
-    ServerSocket.bind().then((server) {
+    ServerSocket.bind("127.0.0.1", 0).then((server) {
       Socket.connect("127.0.0.1", server.port).then((socket) {
         server.listen(
           (incoming) => server.close(),
@@ -62,7 +62,7 @@ class SocketExceptionTest {
     bool exceptionCaught = false;
     bool wrongExceptionCaught = false;
 
-    ServerSocket.bind().then((server) {
+    ServerSocket.bind("127.0.0.1", 0).then((server) {
       Expect.isNotNull(server);
      int port = server.port;
       Socket.connect("127.0.0.1", port).then((client) {
@@ -104,7 +104,7 @@ class SocketExceptionTest {
   }
 
   static void clientSocketDestroyNoErrorTest() {
-    ServerSocket.bind().then((server) {
+    ServerSocket.bind("127.0.0.1", 0).then((server) {
       server.listen((socket) {
         socket.pipe(socket);
       });
@@ -116,7 +116,7 @@ class SocketExceptionTest {
   }
 
   static void clientSocketAddDestroyNoErrorTest() {
-    ServerSocket.bind().then((server) {
+    ServerSocket.bind("127.0.0.1", 0).then((server) {
       server.listen((socket) {
         // Passive block data by not sobscribing to socket.
       });
@@ -129,7 +129,7 @@ class SocketExceptionTest {
   }
 
   static void clientSocketAddCloseNoErrorTest() {
-    ServerSocket.bind().then((server) {
+    ServerSocket.bind("127.0.0.1", 0).then((server) {
       var completer = new Completer();
       server.listen((socket) {
         // The socket is 'paused' until the future completes.
@@ -153,7 +153,7 @@ class SocketExceptionTest {
   }
 
   static void clientSocketAddCloseErrorTest() {
-    ServerSocket.bind().then((server) {
+    ServerSocket.bind("127.0.0.1", 0).then((server) {
       var completer = new Completer();
       server.listen((socket) {
         completer.future.then((_) => socket.destroy());
@@ -192,7 +192,7 @@ class SocketExceptionTest {
   }
 
   static void clientSocketAddCloseResultErrorTest() {
-    ServerSocket.bind().then((server) {
+    ServerSocket.bind("127.0.0.1", 0).then((server) {
       var completer = new Completer();
       server.listen((socket) {
         completer.future.then((_) => socket.destroy());
