@@ -34,8 +34,8 @@ class FileSystemEntityType {
 abstract class FileSystemEntity {
   String get path;
 
-  external static int _getType(String path, bool followLinks);
-  external static bool _identical(String path1, String path2);
+  external static _getType(String path, bool followLinks);
+  external static _identical(String path1, String path2);
 
   static int _getTypeSync(String path, bool followLinks) {
     var result = _getType(path, followLinks);
@@ -43,8 +43,21 @@ abstract class FileSystemEntity {
     return result;
   }
 
-  static Future<int> _getTypeAsync(String path, bool followLinks) =>
-      new Future(() => _getTypeSync(path, followLinks));
+  static Future<int> _getTypeAsync(String path, bool followLinks) {
+    // Get a new file service port for each request.  We could also cache one.
+    var service = _FileUtils._newServicePort();
+    List request = new List(3);
+    request[0] = _TYPE_REQUEST;
+    request[1] = path;
+    request[2] = followLinks;
+    return service.call(request).then((response) {
+      if (_isErrorResponse(response)) {
+        throw _exceptionFromResponse(response,
+                                     "Error getting type of '$_path'");
+      }
+      return response;
+    });
+  }
 
   /**
    * Do two paths refer to the same object in the file system?
@@ -56,8 +69,22 @@ abstract class FileSystemEntity {
    * exist.
    * The target of a link can be compared by first getting it with Link.target.
    */
-  static Future<bool> identical(String path1, String path2) =>
-      new Future<bool>(() => identicalSync(path1, path2));
+  static Future<bool> identical(String path1, String path2) {
+    // Get a new file service port for each request.  We could also cache one.
+    var service = _FileUtils._newServicePort();
+    List request = new List(3);
+    request[0] = _IDENTICAL_REQUEST;
+    request[1] = path1;
+    request[2] = path2;
+    return service.call(request).then((response) {
+      if (_isErrorResponse(response)) {
+        throw _exceptionFromResponse(response,
+            "Error in FileSystemEntity.identical($path1, $path2)");
+      }
+      return response;
+    });
+  }
+
 
   /**
    * Do two paths refer to the same object in the file system?
@@ -71,14 +98,13 @@ abstract class FileSystemEntity {
    */
   static bool identicalSync(String path1, String path2) {
     var result = _identical(path1, path2);
-    _throwIfError(result, 'Error in FileSystemEntity.identical');
+    _throwIfError(result, 'Error in FileSystemEntity.identicalSync');
     return result;
   }
 
   static Future<FileSystemEntityType> type(String path,
                                            {bool followLinks: true})
-      => new Future<FileSystemEntityType>(
-          () => typeSync(path, followLinks: followLinks));
+      => _getTypeAsync(path, followLinks).then(FileSystemEntityType._lookup);
 
   static FileSystemEntityType typeSync(String path, {bool followLinks: true})
       => FileSystemEntityType._lookup(_getTypeSync(path, followLinks));

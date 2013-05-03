@@ -1089,6 +1089,39 @@ static CObject* FileLinkTargetRequest(const CObjectArray& request) {
 }
 
 
+static CObject* FileTypeRequest(const CObjectArray& request) {
+  if (request.Length() == 3 &&
+      request[1]->IsString() &&
+      request[2]->IsBool()) {
+    CObjectString path(request[1]);
+    CObjectBool follow_links(request[2]);
+    File::Type type = File::GetType(path.CString(), follow_links.Value());
+    return new CObjectInt32(CObject::NewInt32(type));
+  }
+  return CObject::IllegalArgumentError();
+}
+
+
+static CObject* FileIdenticalRequest(const CObjectArray& request) {
+  if (request.Length() == 3 &&
+      request[1]->IsString() &&
+      request[2]->IsString()) {
+    CObjectString path1(request[1]);
+    CObjectString path2(request[2]);
+    File::Identical result = File::AreIdentical(path1.CString(),
+                                                path2.CString());
+    if (result == File::kError) {
+      return CObject::NewOSError();
+    } else if (result == File::kIdentical) {
+      return CObject::True();
+    } else {
+      return CObject::False();
+    }
+  }
+  return CObject::IllegalArgumentError();
+}
+
+
 static void FileService(Dart_Port dest_port_id,
                  Dart_Port reply_port_id,
                  Dart_CObject* message) {
@@ -1163,6 +1196,12 @@ static void FileService(Dart_Port dest_port_id,
           break;
         case File::kLinkTargetRequest:
           response = FileLinkTargetRequest(request);
+          break;
+        case File::kTypeRequest:
+          response = FileTypeRequest(request);
+          break;
+        case File::kIdenticalRequest:
+          response = FileIdenticalRequest(request);
           break;
         default:
           UNREACHABLE();

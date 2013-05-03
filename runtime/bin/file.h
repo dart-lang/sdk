@@ -83,7 +83,9 @@ class File {
     kWriteFromRequest = 18,
     kCreateLinkRequest = 19,
     kDeleteLinkRequest = 20,
-    kLinkTargetRequest = 21
+    kLinkTargetRequest = 21,
+    kTypeRequest = 22,
+    kIdenticalRequest = 23
   };
 
   ~File();

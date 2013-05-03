@@ -130,6 +130,39 @@ void testWriteStringInvalidArgs(string, encoding) {
   });
 }
 
+Future futureThrows(Future result) {
+  return result.then((value) {
+    throw new ExpectException(
+        "futureThrows received $value instead of an exception");
+    },
+    onError: (_) => null
+  );
+}
+
+void testFileSystemEntity() {
+  Expect.throws(() => FileSystemEntity.typeSync([1,2,3]));
+  Expect.throws(() =>
+      FileSystemEntity.typeSync(".", followLinks: "why not?"));
+  Expect.throws(() => FileSystemEntity.identicalSync([1,2,3], "."));
+  Expect.throws(() => FileSystemEntity.identicalSync("."));
+  Expect.throws(() => FileSystemEntity.identicalSync(".", 52));
+  Expect.throws(() => FileSystemEntity.isLinkSync(52));
+  Expect.throws(() => FileSystemEntity.isFileSync(52));
+  Expect.throws(() => FileSystemEntity.isDirectorySync(52));
+
+  ReceivePort keepAlive = new ReceivePort();
+  futureThrows(FileSystemEntity.type([1,2,3]))
+  .then((_) => futureThrows(
+      FileSystemEntity.type(".", followLinks: "why not?")))
+  .then((_) => futureThrows(FileSystemEntity.identical([1,2,3], ".")))
+  .then((_) => Expect.throws(() =>FileSystemEntity.identical(".")))
+  .then((_) => futureThrows(FileSystemEntity.identical(".", 52)))
+  .then((_) => futureThrows(FileSystemEntity.isLink(52)))
+  .then((_) => futureThrows(FileSystemEntity.isFile(52)))
+  .then((_) => futureThrows(FileSystemEntity.isDirectory(52)))
+  .then((_) => keepAlive.close());
+}
+
 String getFilename(String path) {
   return new File(path).existsSync() ? path : 'runtime/$path';
 }
@@ -144,4 +177,5 @@ main() {
   testWriteFromInvalidArgs(new List(10), '0', 1);
   testWriteFromInvalidArgs(new List(10), 0, '1');
   testWriteStringInvalidArgs("Hello, world", 42);
+  testFileSystemEntity();
 }

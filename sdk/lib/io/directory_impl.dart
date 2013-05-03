@@ -12,10 +12,6 @@ class _Directory implements Directory {
   static const LIST_REQUEST = 4;
   static const RENAME_REQUEST = 5;
 
-  static const SUCCESS_RESPONSE = 0;
-  static const ILLEGAL_ARGUMENT_RESPONSE = 1;
-  static const OSERROR_RESPONSE = 2;
-
   _Directory(String this._path);
   _Directory.fromPath(Path path) : this(path.toNativePath());
 

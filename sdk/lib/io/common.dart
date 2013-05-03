@@ -14,6 +14,30 @@ const int _ERROR_RESPONSE_ERROR_TYPE = 0;
 const int _OSERROR_RESPONSE_ERROR_CODE = 1;
 const int _OSERROR_RESPONSE_MESSAGE = 2;
 
+// Functions used to receive exceptions from native ports.
+bool _isErrorResponse(response) {
+  return response is List && response[0] != _SUCCESS_RESPONSE;
+}
+
+/**
+ * Returns an Exception or an Error
+ */
+_exceptionFromResponse(response, String message) {
+  assert(_isErrorResponse(response));
+  switch (response[_ERROR_RESPONSE_ERROR_TYPE]) {
+    case _ILLEGAL_ARGUMENT_RESPONSE:
+      return new ArgumentError();
+    case _OSERROR_RESPONSE:
+      var err = new OSError(response[_OSERROR_RESPONSE_MESSAGE],
+                            response[_OSERROR_RESPONSE_ERROR_CODE]);
+      return new FileIOException(message, err);
+    case _FILE_CLOSED_RESPONSE:
+      return new FileIOException("File closed");
+    default:
+      return new Exception("Unknown error");
+  }
+}
+
 /**
   * An [OSError] object holds information about an error from the
   * operating system.
