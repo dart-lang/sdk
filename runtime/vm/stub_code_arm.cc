@@ -884,27 +884,40 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Save values being destroyed.
   __ PushList((1 << R1) | (1 << R2) | (1 << R3));
 
+  Label add_to_buffer;
+  // Check whether this object has already been remembered. Skip adding to the
+  // store buffer if the object is in the store buffer already.
+  // Spilled: R1, R2, R3
+  // R0: Address being stored
+  __ ldr(R2, FieldAddress(R0, Object::tags_offset()));
+  __ tst(R2, ShifterOperand(1 << RawObject::kRememberedBit));
+  __ b(&add_to_buffer, EQ);
+  __ PopList((1 << R1) | (1 << R2) | (1 << R3));
+  __ Ret();
+
+  __ Bind(&add_to_buffer);
+  __ orr(R2, R2, ShifterOperand(1 << RawObject::kRememberedBit));
+  __ str(R2, FieldAddress(R0, Object::tags_offset()));
+
   // Load the isolate out of the context.
   // Spilled: R1, R2, R3.
   // R0: address being stored.
   __ ldr(R1, FieldAddress(CTX, Context::isolate_offset()));
 
-  // Load top_ out of the StoreBufferBlock and add the address to the pointers_.
+  // Load the StoreBuffer block out of the isolate. Then load top_ out of the
+  // StoreBufferBlock and add the address to the pointers_.
   // R1: isolate.
-  intptr_t store_buffer_offset = Isolate::store_buffer_block_offset();
-  __ LoadFromOffset(kLoadWord, R2, R1,
-                    store_buffer_offset + StoreBufferBlock::top_offset());
+  __ ldr(R1, Address(R1, Isolate::store_buffer_offset()));
+  __ ldr(R2, Address(R1, StoreBufferBlock::top_offset()));
   __ add(R3, R1, ShifterOperand(R2, LSL, 2));
-  __ StoreToOffset(kStoreWord, R0, R3,
-                   store_buffer_offset + StoreBufferBlock::pointers_offset());
+  __ str(R0, Address(R3, StoreBufferBlock::pointers_offset()));
 
   // Increment top_ and check for overflow.
   // R2: top_.
-  // R1: isolate.
+  // R1: StoreBufferBlock.
   Label L;
   __ add(R2, R2, ShifterOperand(1));
-  __ StoreToOffset(kStoreWord, R2, R1,
-                   store_buffer_offset + StoreBufferBlock::top_offset());
+  __ str(R2, Address(R1, StoreBufferBlock::top_offset()));
   __ CompareImmediate(R2, StoreBufferBlock::kSize);
   // Restore values.
   __ PopList((1 << R1) | (1 << R2) | (1 << R3));

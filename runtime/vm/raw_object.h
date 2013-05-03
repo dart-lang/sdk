@@ -223,8 +223,9 @@ class RawObject {
     kMarkBit = 1,
     kCanonicalBit = 2,
     kFromSnapshotBit = 3,
-    kReservedTagBit = 4,  // kReservedBit{1K, 10K,100K,1M,10M}
-    kReservedTagSize = 4,
+    kRememberedBit = 4,
+    kReservedTagBit = 5,  // kReservedBit{10K,100K,1M,10M}
+    kReservedTagSize = 3,
     kSizeTagBit = 8,
     kSizeTagSize = 8,
     kClassIdTagBit = kSizeTagBit + kSizeTagSize,
@@ -329,6 +330,20 @@ class RawObject {
     ptr()->tags_ = CreatedFromSnapshotTag::update(true, tags);
   }
 
+  // Support for GC remembered bit.
+  bool IsRemembered() const {
+    return RememberedBit::decode(ptr()->tags_);
+  }
+  void SetRememberedBit() {
+    ASSERT(!IsRemembered());
+    uword tags = ptr()->tags_;
+    ptr()->tags_ = RememberedBit::update(true, tags);
+  }
+  void ClearRememberedBit() {
+    uword tags = ptr()->tags_;
+    ptr()->tags_ = RememberedBit::update(false, tags);
+  }
+
   bool IsDartInstance() {
     return (!IsHeapObject() || (GetClassId() >= kInstanceCid));
   }
@@ -388,6 +403,8 @@ class RawObject {
   class WatchedBit : public BitField<bool, kWatchedBit, 1> {};
 
   class MarkBit : public BitField<bool, kMarkBit, 1> {};
+
+  class RememberedBit : public BitField<bool, kRememberedBit, 1> {};
 
   class CanonicalObjectTag : public BitField<bool, kCanonicalBit, 1> {};
 

@@ -440,9 +440,10 @@ class Object {
     *addr = value;
     // Filter stores based on source and target.
     if (!value->IsHeapObject()) return;
-    if (value->IsNewObject() && raw()->IsOldObject()) {
-      uword ptr = reinterpret_cast<uword>(raw());
-      Isolate::Current()->store_buffer()->AddPointer(ptr);
+    if (value->IsNewObject() && raw()->IsOldObject() &&
+        !raw()->IsRemembered()) {
+      raw()->SetRememberedBit();
+      Isolate::Current()->store_buffer()->AddObject(raw());
     }
   }
 
@@ -4973,9 +4974,10 @@ class GrowableObjectArray : public Instance {
     *addr = value;
     // Filter stores based on source and target.
     if (!value->IsHeapObject()) return;
-    if (value->IsNewObject() && data()->IsOldObject()) {
-      uword ptr = reinterpret_cast<uword>(data());
-      Isolate::Current()->store_buffer()->AddPointer(ptr);
+    if (value->IsNewObject() && data()->IsOldObject() &&
+        !data()->IsRemembered()) {
+      data()->SetRememberedBit();
+      Isolate::Current()->store_buffer()->AddObject(data());
     }
   }
 

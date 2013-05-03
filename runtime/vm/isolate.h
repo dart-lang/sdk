@@ -158,12 +158,10 @@ class Isolate : public BaseIsolate {
   void VisitWeakPersistentHandles(HandleVisitor* visit,
                                   bool visit_prologue_weak_persistent_handles);
 
-  StoreBufferBlock* store_buffer_block() { return &store_buffer_block_; }
-  static intptr_t store_buffer_block_offset() {
-    return OFFSET_OF(Isolate, store_buffer_block_);
-  }
-
   StoreBuffer* store_buffer() { return &store_buffer_; }
+  static intptr_t store_buffer_offset() {
+    return OFFSET_OF(Isolate, store_buffer_);
+  }
 
   ClassTable* class_table() { return &class_table_; }
   static intptr_t class_table_offset() {
@@ -472,7 +470,6 @@ class Isolate : public BaseIsolate {
   char* DoStacktraceInterrupt(Dart_IsolateInterruptCallback cb);
 
   static ThreadLocalKey isolate_key;
-  StoreBufferBlock store_buffer_block_;
   StoreBuffer store_buffer_;
   ClassTable class_table_;
   MegamorphicCacheTable megamorphic_cache_table_;

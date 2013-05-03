@@ -959,31 +959,43 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ pushl(EDX);
   __ pushl(ECX);
 
+  Label add_to_buffer;
+  // Check whether this object has already been remembered. Skip adding to the
+  // store buffer if the object is in the store buffer already.
+  // Spilled: EDX, ECX
+  // EAX: Address being stored
+  __ movl(ECX, FieldAddress(EAX, Object::tags_offset()));
+  __ testl(ECX, Immediate(1 << RawObject::kRememberedBit));
+  __ j(EQUAL, &add_to_buffer, Assembler::kNearJump);
+  __ popl(ECX);
+  __ popl(EDX);
+  __ ret();
+
+  __ Bind(&add_to_buffer);
+  __ orl(ECX, Immediate(1 << RawObject::kRememberedBit));
+  __ movl(FieldAddress(EAX, Object::tags_offset()), ECX);
+
   // Load the isolate out of the context.
   // Spilled: EDX, ECX
   // EAX: Address being stored
   __ movl(EDX, FieldAddress(CTX, Context::isolate_offset()));
 
-  // Load top_ out of the StoreBufferBlock and add the address to the pointers_.
+  // Load the StoreBuffer block out of the isolate. Then load top_ out of the
+  // StoreBufferBlock and add the address to the pointers_.
   // Spilled: EDX, ECX
   // EAX: Address being stored
   // EDX: Isolate
-  intptr_t store_buffer_offset = Isolate::store_buffer_block_offset();
-  __ movl(ECX,
-          Address(EDX, store_buffer_offset + StoreBufferBlock::top_offset()));
-  __ movl(Address(EDX,
-                  ECX, TIMES_4,
-                  store_buffer_offset + StoreBufferBlock::pointers_offset()),
-          EAX);
+  __ movl(EDX, Address(EDX, Isolate::store_buffer_offset()));
+  __ movl(ECX, Address(EDX, StoreBufferBlock::top_offset()));
+  __ movl(Address(EDX, ECX, TIMES_4, StoreBufferBlock::pointers_offset()), EAX);
 
   // Increment top_ and check for overflow.
   // Spilled: EDX, ECX
   // ECX: top_
-  // EDX: Isolate
+  // EDX: StoreBufferBlock
   Label L;
   __ incl(ECX);
-  __ movl(Address(EDX, store_buffer_offset + StoreBufferBlock::top_offset()),
-          ECX);
+  __ movl(Address(EDX, StoreBufferBlock::top_offset()), ECX);
   __ cmpl(ECX, Immediate(StoreBufferBlock::kSize));
   // Restore values.
   // Spilled: EDX, ECX

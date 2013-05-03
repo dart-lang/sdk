@@ -175,6 +175,7 @@ class MarkingVisitor : public ObjectPointerVisitor {
     ASSERT(!raw_obj->IsMarked());
     RawClass* raw_class = isolate()->class_table()->At(raw_obj->GetClassId());
     raw_obj->SetMarkBit();
+    raw_obj->ClearRememberedBit();
     if (raw_obj->IsWatched()) {
       std::pair<DelaySet::iterator, DelaySet::iterator> ret;
       // Visit all elements with a key equal to raw_obj.
@@ -201,10 +202,11 @@ class MarkingVisitor : public ObjectPointerVisitor {
     // Skip over new objects, but verify consistency of heap while at it.
     if (raw_obj->IsNewObject()) {
       // TODO(iposva): Add consistency check.
-      if (visiting_old_object_ != NULL) {
+      if ((visiting_old_object_ != NULL) &&
+          !visiting_old_object_->IsRemembered()) {
         ASSERT(p != NULL);
-        isolate()->store_buffer()->AddPointer(
-            reinterpret_cast<uword>(visiting_old_object_));
+        visiting_old_object_->SetRememberedBit();
+        isolate()->store_buffer()->AddObjectGC(visiting_old_object_);
       }
       return;
     }
@@ -263,7 +265,6 @@ void GCMarker::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
   }
   // The store buffers will be rebuilt as part of marking, reset them now.
   isolate->store_buffer()->Reset();
-  isolate->store_buffer_block()->Reset();
 }
 
 

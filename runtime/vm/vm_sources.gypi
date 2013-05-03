@@ -168,7 +168,6 @@
     'handles_test.cc',
     'hash_map.h',
     'hash_map_test.cc',
-    'hash_set.h',
     'heap.cc',
     'heap.h',
     'heap_profiler.cc',

@@ -312,8 +312,7 @@ void DeferredUint32x4::Materialize() {
 
 
 Isolate::Isolate()
-    : store_buffer_block_(),
-      store_buffer_(),
+    : store_buffer_(),
       message_notify_callback_(NULL),
       name_(NULL),
       start_time_(OS::GetCurrentTimeMicros()),

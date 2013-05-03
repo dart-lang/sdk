@@ -10,97 +10,67 @@
 namespace dart {
 
 DEFINE_LEAF_RUNTIME_ENTRY(void, StoreBufferBlockProcess, Isolate* isolate) {
-  isolate->store_buffer_block()->ProcessBuffer(isolate);
+  StoreBuffer* buffer = isolate->store_buffer();
+  buffer->Expand(true);
 }
 END_LEAF_RUNTIME_ENTRY
 
 
-void StoreBufferBlock::ProcessBuffer() {
-  ProcessBuffer(Isolate::Current());
-}
-
-
-void StoreBufferBlock::ProcessBuffer(Isolate* isolate) {
-  isolate->store_buffer()->ProcessBlock(this);
-}
-
-
-bool StoreBufferBlock::Contains(uword pointer) {
-  for (int32_t i = 0; i < top_; i++) {
-    if (pointers_[i] == pointer) {
-      return true;
-    }
-  }
-  return false;
-}
-
-
 StoreBuffer::~StoreBuffer() {
-  DedupSet* current = dedup_sets_;
-  dedup_sets_ = NULL;
-  while (current != NULL) {
-    DedupSet* next = current->next();
-    delete current;
-    current = next;
+  StoreBufferBlock* block = blocks_;
+  blocks_ = NULL;
+  while (block != NULL) {
+    StoreBufferBlock* next = block->next();
+    delete block;
+    block = next;
   }
 }
 
 
 void StoreBuffer::Reset() {
-  DedupSet* current = DedupSets();
-  while (current != NULL) {
-    DedupSet* next = current->next();
-    delete current;
-    current = next;
+  StoreBufferBlock* block = blocks_->next_;
+  while (block != NULL) {
+    StoreBufferBlock* next = block->next_;
+    delete block;
+    block = next;
   }
+  blocks_->next_ = NULL;
+  blocks_->top_ = 0;
+  full_count_ = 0;
 }
 
 
-bool StoreBuffer::AddPointerInternal(uword address) {
-  ASSERT(dedup_sets_ != NULL);
-  ASSERT(Isolate::Current()->heap()->OldContains(address));
-  ASSERT((address & kSmiTagMask) != kSmiTag);
-  if (!dedup_sets_->set()->Add(address)) {
-    // Add a new DedupSet.
-    dedup_sets_ = new DedupSet(dedup_sets_);
-    count_++;
-    return true;
+bool StoreBuffer::Contains(RawObject* raw) {
+  StoreBufferBlock* block = blocks_;
+  while (block != NULL) {
+    intptr_t count = block->Count();
+    for (intptr_t i = 0; i < count; i++) {
+      if (block->At(i) == raw) {
+        return true;
+      }
+    }
+    block = block->next_;
   }
   return false;
 }
 
 
-void StoreBuffer::AddPointer(uword address) {
-  if (AddPointerInternal(address)) {
-    // Had to create a new DedupSet.
+void StoreBuffer::Expand(bool check) {
+  ASSERT(blocks_->Count() == StoreBufferBlock::kSize);
+  blocks_ = new StoreBufferBlock(blocks_);
+  full_count_++;
+  if (check) {
     CheckThreshold();
   }
-}
-
-
-bool StoreBuffer::DrainBlock(StoreBufferBlock* block) {
-  const intptr_t old_count = count_;
-  intptr_t entries = block->Count();
-  for (intptr_t i = 0; i < entries; i++) {
-    AddPointerInternal(block->At(i));
-  }
-  block->Reset();
-  return (count_ > old_count);
 }
 
 
 void StoreBuffer::CheckThreshold() {
-  // Schedule an interrupt if we have run over the max number of DedupSets.
+  // Schedule an interrupt if we have run over the max number of
+  // StoreBufferBlocks.
   // TODO(iposva): Fix magic number.
-  if (count_ > 100) {
+  if (full_count_ > 100) {
     Isolate::Current()->ScheduleInterrupts(Isolate::kStoreBufferInterrupt);
-  }
-}
-
-
-void StoreBuffer::ProcessBlock(StoreBufferBlock* block) {
-  if (DrainBlock(block)) {
-    CheckThreshold();
   }
 }
 
