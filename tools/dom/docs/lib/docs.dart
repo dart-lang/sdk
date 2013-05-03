@@ -12,6 +12,7 @@ library docs;
 
 import '../../../../sdk/lib/_internal/dartdoc/lib/src/dart2js_mirrors.dart';
 import '../../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors.dart';
+import '../../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.dart';
 import '../../../../sdk/lib/_internal/dartdoc/lib/dartdoc.dart';
 import '../../../../sdk/lib/_internal/dartdoc/lib/src/json_serializer.dart';
 import '../../../../utils/apidoc/lib/metadata.dart';
@@ -87,7 +88,7 @@ Map _generateJsonFromLibraries(MirrorSystem mirrors) {
         y.uri.toString().toUpperCase()));
 
   for (LibraryMirror libMirror in sortedLibraries) {
-    print('Extracting documentation from ${libMirror.displayName}.');
+    print('Extracting documentation from ${libMirror.simpleName}.');
 
     var libraryJson = {};
     var sortedClasses = _sortAndFilterMirrors(
@@ -134,7 +135,7 @@ Map _generateJsonFromLibraries(MirrorSystem mirrors) {
     }
 
     if (!libraryJson.isEmpty) {
-      convertedJson.putIfAbsent(libMirror.displayName, () =>
+      convertedJson.putIfAbsent(libMirror.simpleName, () =>
           libraryJson);
     }
   }
@@ -152,7 +153,7 @@ List<DeclarationMirror> _sortAndFilterMirrors(List<DeclarationMirror> mirrors,
 
   var filteredMirrors = mirrors.where((DeclarationMirror c) =>
       !domNames(c).isEmpty &&
-      !c.displayName.startsWith('_') &&
+      !displayName(c).startsWith('_') &&
       (!ignoreDocsEditable ? (findMetadata(c.metadata, 'DocsEditable') != null)
           : true))
       .toList();
