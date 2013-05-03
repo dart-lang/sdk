@@ -2679,12 +2679,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   HForeign createForeign(String code,
                          HType type,
-                         List<HInstruction> inputs,
-                         {bool isSideEffectFree: false}) {
-    return new HForeign(js.js.parseForeignJS(code),
-                        type,
-                        inputs,
-                        isSideEffectFree: isSideEffectFree);
+                         List<HInstruction> inputs) {
+    return new HForeign(js.js.parseForeignJS(code), type, inputs);
   }
 
   HInstruction getRuntimeTypeInfo(HInstruction target) {
@@ -2991,7 +2987,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     addGenericSendArgumentsToList(link.tail.tail, inputs);
 
     HType ssaType = new HType.fromNativeBehavior(nativeBehavior, compiler);
-    push(new HForeign(nativeBehavior.codeAst, ssaType, inputs));
+    push(new HForeign(nativeBehavior.codeAst, ssaType, inputs,
+                      effects: nativeBehavior.sideEffects));
     return;
   }
 
@@ -3090,9 +3087,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     visit(node.arguments.head);
     String isolateName = backend.namer.CURRENT_ISOLATE;
+    SideEffects sideEffects = new SideEffects.empty();
+    sideEffects.setAllSideEffects();
     push(new HForeign(js.js("$isolateName = #"),
                       HType.UNKNOWN,
-                      <HInstruction>[pop()]));
+                      <HInstruction>[pop()],
+                      effects: sideEffects));
   }
 
   void handleForeignCreateIsolate(Send node) {
@@ -3308,8 +3308,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       inputs.add(addTypeVariableReference(variable));
     });
 
-    HInstruction result = createForeign(
-        template, HType.STRING, inputs, isSideEffectFree: true);
+    HInstruction result = createForeign(template, HType.STRING, inputs);
     add(result);
     return result;
   }
