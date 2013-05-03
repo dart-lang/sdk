@@ -1102,6 +1102,16 @@ abstract class HttpClient {
  */
 abstract class HttpClientRequest implements IOSink {
   /**
+   * The method of the request.
+   */
+  String get method;
+
+  /**
+   * The uri of the request.
+   */
+  Uri get uri;
+
+  /**
    * Gets and sets the content length of the request. If the size of
    * the request is not known in advance set content length to -1,
    * which is also the default.
@@ -1282,7 +1292,10 @@ abstract class HttpClientBasicCredentials extends HttpClientCredentials {
 
 
 /**
- * Represents credentials for digest authentication.
+ * Represents credentials for digest authentication. Digest
+ * authentication is only supported for servers using the MD5
+ * algorithm and quality of protection (qop) of either "none" or
+ * "auth".
  */
 abstract class HttpClientDigestCredentials extends HttpClientCredentials {
   factory HttpClientDigestCredentials(String username, String password) =>
