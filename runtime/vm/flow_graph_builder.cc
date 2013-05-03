@@ -17,6 +17,7 @@
 #include "vm/os.h"
 #include "vm/parser.h"
 #include "vm/resolver.h"
+#include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
 

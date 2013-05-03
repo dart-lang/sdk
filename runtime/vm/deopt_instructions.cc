@@ -9,6 +9,7 @@
 #include "vm/intermediate_language.h"
 #include "vm/locations.h"
 #include "vm/parser.h"
+#include "vm/stack_frame.h"
 
 namespace dart {
 

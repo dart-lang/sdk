@@ -9,6 +9,18 @@
 #include "vm/object.h"
 #include "vm/stub_code.h"
 
+#if defined(TARGET_ARCH_IA32)
+#include "vm/stack_frame_ia32.h"
+#elif defined(TARGET_ARCH_X64)
+#include "vm/stack_frame_x64.h"
+#elif defined(TARGET_ARCH_ARM)
+#include "vm/stack_frame_arm.h"
+#elif defined(TARGET_ARCH_MIPS)
+#include "vm/stack_frame_mips.h"
+#else
+#error Unknown architecture.
+#endif
+
 namespace dart {
 
 // Forward declarations.
@@ -272,3 +284,4 @@ class InlinedFunctionsIterator : public ValueObject {
 }  // namespace dart
 
 #endif  // VM_STACK_FRAME_H_
+

@@ -202,31 +202,6 @@ const FRegister kDartLastVolatileFpuReg = F19;
 const int kDartVolatileFpuRegCount = 20;
 
 
-// TODO(regis): Move these constants to stack_frame_mips.h.
-// Dart stack frame layout.
-static const int kLastParamSlotIndex = 3;  // From fp.
-static const int kFirstLocalSlotIndex = -2;  // From fp.
-static const int kPcSlotIndexFromSp = -2;
-
-/* MIPS Dart Frame Layout
-
-               |                   | <- TOS
-Callee frame   | ...               |
-               | current RA        |    (PC of current frame)
-               | PC Marker         |    (callee's frame code entry)
-               +-------------------+
-Current frame  | ...               | <- SP of current frame
-               | first local       |
-               | caller's PP       |
-               | caller's FP       | <- FP of current frame
-               | caller's RA       |    (PC of caller frame)
-               | PC Marker         |    (current frame's code entry)
-               +-------------------+
-Caller frame   | last parameter    |
-               |  ...              |
-*/
-
-
 // Values for the condition field.
 // There is no condition field on MIPS, but Conditions are used and passed
 // around by the intermediate language, so we need them here, too.

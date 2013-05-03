@@ -99,29 +99,6 @@ const Register kExceptionObjectReg = RAX;
 const Register kStackTraceObjectReg = RDX;
 
 
-// TODO(regis): Move these constants to stack_frame_x64.h.
-// Dart stack frame layout.
-static const int kLastParamSlotIndex = 2;  // From fp.
-static const int kFirstLocalSlotIndex = -2;  // From fp.
-static const int kPcSlotIndexFromSp = -1;
-
-/* X64 Dart Frame Layout
-
-               |                   | <- TOS
-Callee frame   | ...               |
-               | current ret addr  |    (PC of current frame)
-               +-------------------+
-Current frame  | ...               | <- RSP of current frame
-               | first local       |
-               | PC Marker         |    (current frame's code entry)
-               | caller's RBP      | <- RBP of current frame
-               | caller's ret addr |    (PC of caller frame)
-               +-------------------+
-Caller frame   | last parameter    |
-               |  ...              |
-*/
-
-
 enum ScaleFactor {
   TIMES_1 = 0,
   TIMES_2 = 1,
