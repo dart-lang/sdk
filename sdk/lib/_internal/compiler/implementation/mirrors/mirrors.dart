@@ -68,14 +68,6 @@ abstract class DeclarationMirror implements Mirror {
   String get simpleName;
 
   /**
-   * The display name is the normal representation of the entity name. In most
-   * cases the display name is the simple name, but for a setter 'foo=' the
-   * display name is simply 'foo' and for the unary minus operator the display
-   * name is 'operator -'. The display name is not unique.
-   */
-  String get displayName;
-
-  /**
    * Returns the name of this entity qualified by is enclosing context. For
    * instance, the qualified name of a method 'method' in class 'Class' in
    * library 'library' is 'library.Class.method'.
@@ -611,12 +603,6 @@ abstract class MethodMirror implements MemberMirror {
    * Is [:true:] if this method is an operator method.
    */
   bool get isOperator;
-
-  /**
-   * Returns the operator name for operator methods, e.g. [:'<':] for
-   * [:operator <:]
-   */
-  String get operatorName;
 }
 
 /**

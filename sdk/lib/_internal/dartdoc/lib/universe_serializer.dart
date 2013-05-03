@@ -151,7 +151,7 @@ class LibraryElement extends Element {
    */
   LibraryElement(LibraryMirror mirror,
       {MdnComment lookupMdnComment(Mirror), Set<String> includedChildren})
-      : super(mirror, 'library', _libraryName(mirror), mirror.displayName,
+      : super(mirror, 'library', _libraryName(mirror), mirror.simpleName,
           computeComment(mirror), lookupMdnComment) {
     var requiredDependencies;
     // We don't need to track our required dependencies when generating a
@@ -506,7 +506,7 @@ class Reference {
   List<Reference> arguments;
 
   Reference(Mirror mirror)
-      : name = mirror.displayName,
+      : name = displayName(mirror),
         refId = getId(mirror) {
     if (mirror is ClassMirror) {
       if (mirror is !TypedefMirror && !mirror.typeArguments.isEmpty) {

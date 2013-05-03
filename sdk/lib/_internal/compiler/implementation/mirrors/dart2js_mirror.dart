@@ -291,8 +291,6 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
 
   String get simpleName => _element.name.slowToString();
 
-  String get displayName => simpleName;
-
   /**
    * Computes the first token for this declaration using the begin token of the
    * element node or element position as indicator.
@@ -1298,17 +1296,13 @@ class Dart2JsMethodMirror extends Dart2JsMemberMirror
     implements MethodMirror {
   final Dart2JsContainerMirror _objectMirror;
   final String simpleName;
-  final String displayName;
   final String constructorName;
-  final String operatorName;
   final Dart2JsMethodKind _kind;
 
   Dart2JsMethodMirror._internal(Dart2JsContainerMirror objectMirror,
       FunctionElement function,
       String this.simpleName,
-      String this.displayName,
       String this.constructorName,
-      String this.operatorName,
       Dart2JsMethodKind this._kind)
       : this._objectMirror = objectMirror,
         super(objectMirror.mirrors, function);
@@ -1320,16 +1314,12 @@ class Dart2JsMethodMirror extends Dart2JsMemberMirror
     // Elements.operatorNameToIdentifier.
     String simpleName =
         Elements.operatorNameToIdentifier(function.name).slowToString();
-    String displayName;
     String constructorName = null;
-    String operatorName = null;
     Dart2JsMethodKind kind;
     if (function.kind == ElementKind.GETTER) {
       kind = Dart2JsMethodKind.GETTER;
-      displayName = simpleName;
     } else if (function.kind == ElementKind.SETTER) {
       kind = Dart2JsMethodKind.SETTER;
-      displayName = simpleName;
       simpleName = '$simpleName=';
     } else if (function.kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
       // TODO(johnniwinther): Support detection of redirecting constructors.
@@ -1348,7 +1338,6 @@ class Dart2JsMethodMirror extends Dart2JsMemberMirror
       } else {
         kind = Dart2JsMethodKind.GENERATIVE;
       }
-      displayName = simpleName;
     } else if (function.modifiers.isFactory()) {
       kind = Dart2JsMethodKind.FACTORY;
       constructorName = '';
@@ -1358,30 +1347,20 @@ class Dart2JsMethodMirror extends Dart2JsMemberMirror
         simpleName = simpleName.substring(0, dollarPos);
         simpleName = '$simpleName.$constructorName';
       }
-      // Simple name is TypeName.constructorName.
-      displayName = simpleName;
     } else if (realName == 'unary-') {
       kind = Dart2JsMethodKind.OPERATOR;
-      operatorName = '-';
       // Simple name is 'unary-'.
       simpleName = Mirror.UNARY_MINUS;
-      // Display name is 'operator operatorName'.
-      displayName = 'operator -';
     } else if (simpleName.startsWith('operator\$')) {
       String str = simpleName.substring(9);
       simpleName = 'operator';
       kind = Dart2JsMethodKind.OPERATOR;
-      operatorName = _getOperatorFromOperatorName(str);
-      // Simple name is 'operator operatorName'.
-      simpleName = operatorName;
-      // Display name is 'operator operatorName'.
-      displayName = 'operator $operatorName';
+      simpleName = _getOperatorFromOperatorName(str);
     } else {
       kind = Dart2JsMethodKind.REGULAR;
-      displayName = simpleName;
     }
     return new Dart2JsMethodMirror._internal(objectMirror, function,
-        simpleName, displayName, constructorName, operatorName, kind);
+        simpleName, constructorName, kind);
   }
 
   FunctionElement get _function => _element;

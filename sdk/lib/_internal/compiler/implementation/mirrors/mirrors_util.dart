@@ -13,6 +13,64 @@ import 'mirrors.dart';
 // Utility functions for using the Mirror API
 //------------------------------------------------------------------------------
 
+
+/**
+ * Return the display name for [mirror].
+ *
+ * The display name is the normal representation of the entity name. In most
+ * cases the display name is the simple name, but for a setter 'foo=' the
+ * display name is simply 'foo' and for the unary minus operator the display
+ * name is 'operator -'. For 'dart:' libraries the display name is the URI and
+ * not the library name, for instance 'dart:core' instead of 'dart.core'.
+ *
+ * The display name is not unique.
+ */
+String displayName(DeclarationMirror mirror) {
+  if (mirror is LibraryMirror) {
+    LibraryMirror library = mirror;
+    if (library.uri.scheme == 'dart') {
+      return library.uri.toString();
+    }
+  } else if (mirror is MethodMirror) {
+    MethodMirror methodMirror = mirror;
+    String simpleName = methodMirror.simpleName;
+    if (methodMirror.isSetter) {
+      // Remove trailing '='.
+      return simpleName.substring(0, simpleName.length-1);
+    } else if (methodMirror.isOperator) {
+      return 'operator ${operatorName(methodMirror)}';
+    } else if (methodMirror.isConstructor) {
+      // TODO(johnniwinther): Remove this when [simpleName] is
+      // [constructorName].
+      simpleName = methodMirror.constructorName;
+      String className = displayName(methodMirror.owner);
+      if (simpleName == '') {
+        return className;
+      } else {
+        return '$className.$simpleName';
+      }
+    }
+  }
+  return mirror.simpleName;
+}
+
+/**
+ * Returns the operator name if [methodMirror] is an operator method,
+ * for instance [:'<':] for [:operator <:] and [:'-':] for the unary minus
+ * operator. Return [:null:] if [methodMirror] is not an operator method.
+ */
+String operatorName(MethodMirror methodMirror) {
+  String simpleName = methodMirror.simpleName;
+  if (methodMirror.isOperator) {
+    if (simpleName == Mirror.UNARY_MINUS) {
+      return '-';
+    } else {
+      return simpleName;
+    }
+  }
+  return null;
+}
+
 /**
  * Returns an iterable over the type declarations directly inheriting from
  * the declaration of this type.
