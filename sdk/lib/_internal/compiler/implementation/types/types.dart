@@ -17,6 +17,7 @@ import 'simple_types_inferrer.dart' show SimpleTypesInferrer;
 import '../dart_types.dart';
 
 part 'concrete_types_inferrer.dart';
+part 'flat_type_mask.dart';
 part 'type_mask.dart';
 
 /**
