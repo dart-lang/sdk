@@ -191,52 +191,11 @@ Dart_Handle DartUtils::CanonicalizeURL(CommandLineOptions* url_mapping,
 }
 
 
-void* DartUtils::OpenFile(const char* name, bool write) {
-  File* file = File::Open(name, write ? File::kWriteTruncate : File::kRead);
-  return reinterpret_cast<void*>(file);
-}
-
-
-void DartUtils::ReadFile(const uint8_t** data,
-                         intptr_t* file_len,
-                         void* stream) {
-  ASSERT(data != NULL);
-  ASSERT(file_len != NULL);
-  ASSERT(stream != NULL);
-  File* file_stream = reinterpret_cast<File*>(stream);
-  *file_len = file_stream->Length();
-  ASSERT(*file_len > 0);
-  uint8_t* text_buffer = reinterpret_cast<uint8_t*>(malloc(*file_len));
-  ASSERT(text_buffer != NULL);
-  if (!file_stream->ReadFully(text_buffer, *file_len)) {
-    *data = NULL;
-    *file_len = -1;  // Indicates read was not successful.
-    return;
-  }
-  *data = text_buffer;
-}
-
-
-void DartUtils::WriteFile(const void* buffer,
-                          intptr_t num_bytes,
-                          void* stream) {
-  ASSERT(stream != NULL);
-  File* file_stream = reinterpret_cast<File*>(stream);
-  bool bytes_written = file_stream->WriteFully(buffer, num_bytes);
-  ASSERT(bytes_written);
-}
-
-
-void DartUtils::CloseFile(void* stream) {
-  delete reinterpret_cast<File*>(stream);
-}
-
-
-static const uint8_t* ReadFileFully(const char* filename,
-                                    intptr_t* file_len,
-                                    const char** error_msg) {
-  void* stream = DartUtils::OpenFile(filename, false);
-  if (stream == NULL) {
+static const uint8_t* ReadFile(const char* filename,
+                               intptr_t* file_len,
+                               const char** error_msg) {
+  File* file = File::Open(filename, File::kRead);
+  if (file == NULL) {
     const char* format = "Unable to open file: %s";
     intptr_t len = snprintf(NULL, 0, format, filename);
     // TODO(iposva): Allocate from the zone instead of leaking error string
@@ -246,14 +205,20 @@ static const uint8_t* ReadFileFully(const char* filename,
     *error_msg = msg;
     return NULL;
   }
-  *file_len = -1;
-  const uint8_t* text_buffer = NULL;
-  DartUtils::ReadFile(&text_buffer, file_len, stream);
-  if (text_buffer == NULL || *file_len == -1) {
-    *error_msg = "Unable to read file contents";
-    text_buffer = NULL;
+  *file_len = file->Length();
+  uint8_t* text_buffer = reinterpret_cast<uint8_t*>(malloc(*file_len));
+  if (text_buffer == NULL) {
+    delete file;
+    *error_msg = "Unable to allocate buffer";
+    return NULL;
   }
-  DartUtils::CloseFile(stream);
+  if (!file->ReadFully(text_buffer, *file_len)) {
+    delete file;
+    free(text_buffer);
+    *error_msg = "Unable to fully read contents";
+    return NULL;
+  }
+  delete file;
   return text_buffer;
 }
 
@@ -261,7 +226,7 @@ static const uint8_t* ReadFileFully(const char* filename,
 Dart_Handle DartUtils::ReadStringFromFile(const char* filename) {
   const char* error_msg = NULL;
   intptr_t len;
-  const uint8_t* text_buffer = ReadFileFully(filename, &len, &error_msg);
+  const uint8_t* text_buffer = ReadFile(filename, &len, &error_msg);
   if (text_buffer == NULL) {
     return Dart_Error(error_msg);
   }
@@ -419,9 +384,7 @@ Dart_Handle DartUtils::LoadScript(const char* script_uri,
   Dart_StringToCString(script_path, &script_path_cstr);
   const char* error_msg = NULL;
   intptr_t len;
-  const uint8_t* text_buffer = ReadFileFully(script_path_cstr,
-                                             &len,
-                                             &error_msg);
+  const uint8_t* text_buffer = ReadFile(script_path_cstr, &len, &error_msg);
   if (text_buffer == NULL) {
     return Dart_Error(error_msg);
   }

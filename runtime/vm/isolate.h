@@ -381,20 +381,15 @@ class Isolate : public BaseIsolate {
   }
 
   static void SetFileCallbacks(Dart_FileOpenCallback file_open,
-                               Dart_FileReadCallback file_read,
                                Dart_FileWriteCallback file_write,
                                Dart_FileCloseCallback file_close) {
     file_open_callback_ = file_open;
-    file_read_callback_ = file_read;
     file_write_callback_ = file_write;
     file_close_callback_ = file_close;
   }
 
   static Dart_FileOpenCallback file_open_callback() {
     return file_open_callback_;
-  }
-  static Dart_FileReadCallback file_read_callback() {
-    return file_read_callback_;
   }
   static Dart_FileWriteCallback file_write_callback() {
     return file_write_callback_;
@@ -525,7 +520,6 @@ class Isolate : public BaseIsolate {
   static Dart_IsolateUnhandledExceptionCallback unhandled_exception_callback_;
   static Dart_IsolateShutdownCallback shutdown_callback_;
   static Dart_FileOpenCallback file_open_callback_;
-  static Dart_FileReadCallback file_read_callback_;
   static Dart_FileWriteCallback file_write_callback_;
   static Dart_FileCloseCallback file_close_callback_;
   static Dart_IsolateInterruptCallback vmstats_callback_;

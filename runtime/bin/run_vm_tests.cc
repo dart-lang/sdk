@@ -8,9 +8,7 @@
 
 #include "vm/benchmark_test.h"
 #include "vm/dart.h"
-#include "bin/dartutils.h"
 #include "vm/unit_test.h"
-
 
 // TODO(iposva, asiva): This is a placeholder for the real unittest framework.
 namespace dart {
@@ -106,10 +104,7 @@ static int Main(int argc, const char** argv) {
                                                              dart_argv);
   ASSERT(set_vm_flags_success);
   const char* err_msg = Dart::InitOnce(NULL, NULL, NULL, NULL,
-                                       dart::bin::DartUtils::OpenFile,
-                                       dart::bin::DartUtils::ReadFile,
-                                       dart::bin::DartUtils::WriteFile,
-                                       dart::bin::DartUtils::CloseFile);
+                                       NULL, NULL, NULL);
   ASSERT(err_msg == NULL);
   // Apply the filter to all registered tests.
   TestCaseBase::RunAll();

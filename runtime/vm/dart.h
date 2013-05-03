@@ -25,7 +25,6 @@ class Dart : public AllStatic {
       Dart_IsolateUnhandledExceptionCallback unhandled,
       Dart_IsolateShutdownCallback shutdown,
       Dart_FileOpenCallback file_open,
-      Dart_FileReadCallback file_read,
       Dart_FileWriteCallback file_write,
       Dart_FileCloseCallback file_close);
 

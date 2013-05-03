@@ -46,7 +46,7 @@ class LowLevelProfileCodeObserver : public CodeObserver {
       return;
     }
     const char* filename = "v8.log.ll";
-    log_file_ = (*file_open)(filename, true);
+    log_file_ = (*file_open)(filename);
 #if defined(TARGET_ARCH_IA32)
     const char arch[] = "ia32";
 #elif defined(TARGET_ARCH_X64)
@@ -134,7 +134,7 @@ class PerfCodeObserver : public CodeObserver {
     intptr_t len = OS::SNPrint(NULL, 0, format, pid);
     char* filename = new char[len + 1];
     OS::SNPrint(filename, len + 1, format, pid);
-    out_file_ = (*file_open)(filename, true);
+    out_file_ = (*file_open)(filename);
   }
 
   ~PerfCodeObserver() {
@@ -195,7 +195,7 @@ class PprofCodeObserver : public CodeObserver {
       return;
     }
     const char* filename = FLAG_generate_pprof_symbols;
-    void* out_file = (*file_open)(filename, true);
+    void* out_file = (*file_open)(filename);
     ASSERT(out_file != NULL);
     DebugInfo::ByteBuffer* debug_region = new DebugInfo::ByteBuffer();
     ASSERT(debug_region != NULL);

@@ -646,38 +646,7 @@ typedef void (*Dart_IsolateUnhandledExceptionCallback)(Dart_Handle error);
  */
 typedef void (*Dart_IsolateShutdownCallback)(void* callback_data);
 
-/**
- * Callbacks provided by the embedder for file operations. If the
- * embedder does not allow file operations these callbacks can be
- * NULL.
- *
- * Dart_FileOpenCallback - opens a file for reading or writing.
- * \param name The name of the file to open.
- * \param write A boolean variable which indicates if the file is to
- *   opened for writing. If there is an existing file it needs to truncated.
- *
- * Dart_FileReadCallback - Read contents of file.
- * \param data Buffer allocated in the callback into which the contents
- *   of the file are read into. It is the responsibility of the caller to
- *   free this buffer.
- * \param file_length A variable into which the length of the file is returned.
- *   In the case of an error this value would be -1.
- * \param stream Handle to the opened file.
- *
- * Dart_FileWriteCallback - Write data into file.
- * \param data Buffer which needs to be written into the file.
- * \param length Length of the buffer.
- * \param stream Handle to the opened file.
- *
- * Dart_FileCloseCallback - Closes the opened file.
- * \param stream Handle to the opened file.
- *
- */
-typedef void* (*Dart_FileOpenCallback)(const char* name, bool write);
-
-typedef void (*Dart_FileReadCallback)(const uint8_t** data,
-                                      intptr_t* file_length,
-                                      void* stream);
+typedef void* (*Dart_FileOpenCallback)(const char* name);
 
 typedef void (*Dart_FileWriteCallback)(const void* data,
                                        intptr_t length,
@@ -706,7 +675,6 @@ DART_EXPORT bool Dart_Initialize(
     Dart_IsolateUnhandledExceptionCallback unhandled_exception,
     Dart_IsolateShutdownCallback shutdown,
     Dart_FileOpenCallback file_open,
-    Dart_FileReadCallback file_read,
     Dart_FileWriteCallback file_write,
     Dart_FileCloseCallback file_close);
 

@@ -17,30 +17,27 @@ class Bootstrap : public AllStatic {
   static RawError* LoadandCompileScripts();
   static void SetupNativeResolver();
 
-  // Source path mapping for library URI and 'parts'.
-  static const char* async_source_paths_[];
-  static const char* corelib_source_paths_[];
-  static const char* collection_source_paths_[];
-  static const char* collection_dev_source_paths_[];
-  static const char* crypto_source_paths_[];
-  static const char* isolate_source_paths_[];
-  static const char* json_source_paths_[];
-  static const char* math_source_paths_[];
-  static const char* mirrors_source_paths_[];
-  static const char* typed_data_source_paths_[];
-  static const char* uri_source_paths_[];
-  static const char* utf_source_paths_[];
-
-  // Patch sources for libaries (concatenated source).
+  static const char async_source_[];
   static const char async_patch_[];
+  static const char corelib_source_[];
   static const char corelib_patch_[];
+  static const char collection_source_[];
   static const char collection_patch_[];
+  static const char collection_dev_source_[];
   static const char collection_dev_patch_[];
+  static const char crypto_source_[];
+  static const char isolate_source_[];
   static const char isolate_patch_[];
+  static const char json_source_[];
   static const char json_patch_[];
+  static const char math_source_[];
   static const char math_patch_[];
+  static const char mirrors_source_[];
   static const char mirrors_patch_[];
+  static const char typed_data_source_[];
   static const char typed_data_patch_[];
+  static const char uri_source_[];
+  static const char utf_source_[];
 };
 
 }  // namespace dart

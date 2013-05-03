@@ -341,9 +341,6 @@ PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_INDEX)
   static const String& Backtick() {
     return *(symbol_handles_[kNullCharId + '`']);
   }
-  static const String& Slash() {
-    return *(symbol_handles_[kNullCharId + '/']);
-  }
 
   // Access methods for symbol handles stored in the vm isolate.
 #define DEFINE_SYMBOL_HANDLE_ACCESSOR(symbol, literal)                         \

@@ -25,7 +25,7 @@ DEFINE_FLAG(bool, print_bootstrap, false, "Print the bootstrap source.");
 typedef struct {
   intptr_t index_;
   const char* uri_;
-  const char** source_paths_;
+  const char* source_;
   const char* patch_uri_;
   const char* patch_source_;
 } bootstrap_lib_props;
@@ -34,171 +34,73 @@ typedef struct {
 static bootstrap_lib_props bootstrap_libraries[] = {
   INIT_LIBRARY(ObjectStore::kCore,
                core,
-               Bootstrap::corelib_source_paths_,
+               Bootstrap::corelib_source_,
                Bootstrap::corelib_patch_),
   INIT_LIBRARY(ObjectStore::kAsync,
                async,
-               Bootstrap::async_source_paths_,
+               Bootstrap::async_source_,
                Bootstrap::async_patch_),
   INIT_LIBRARY(ObjectStore::kCollection,
                collection,
-               Bootstrap::collection_source_paths_,
+               Bootstrap::collection_source_,
                Bootstrap::collection_patch_),
   INIT_LIBRARY(ObjectStore::kCollectionDev,
                _collection-dev,
-               Bootstrap::collection_dev_source_paths_,
+               Bootstrap::collection_dev_source_,
                Bootstrap::collection_dev_patch_),
   INIT_LIBRARY(ObjectStore::kCrypto,
                crypto,
-               Bootstrap::crypto_source_paths_,
+               Bootstrap::crypto_source_,
                NULL),
   INIT_LIBRARY(ObjectStore::kIsolate,
                isolate,
-               Bootstrap::isolate_source_paths_,
+               Bootstrap::isolate_source_,
                Bootstrap::isolate_patch_),
   INIT_LIBRARY(ObjectStore::kJson,
                json,
-               Bootstrap::json_source_paths_,
+               Bootstrap::json_source_,
                Bootstrap::json_patch_),
   INIT_LIBRARY(ObjectStore::kMath,
                math,
-               Bootstrap::math_source_paths_,
+               Bootstrap::math_source_,
                Bootstrap::math_patch_),
   INIT_LIBRARY(ObjectStore::kMirrors,
                mirrors,
-               Bootstrap::mirrors_source_paths_,
+               Bootstrap::mirrors_source_,
                Bootstrap::mirrors_patch_),
   INIT_LIBRARY(ObjectStore::kTypedData,
                typed_data,
-               Bootstrap::typed_data_source_paths_,
+               Bootstrap::typed_data_source_,
                Bootstrap::typed_data_patch_),
   INIT_LIBRARY(ObjectStore::kUtf,
                utf,
-               Bootstrap::utf_source_paths_,
+               Bootstrap::utf_source_,
                NULL),
   INIT_LIBRARY(ObjectStore::kUri,
                uri,
-               Bootstrap::uri_source_paths_,
+               Bootstrap::uri_source_,
                NULL),
 
   { ObjectStore::kNone, NULL, NULL, NULL, NULL }
 };
 
 
-static RawString* GetLibrarySource(const Library& lib,
-                                   const String& uri,
-                                   bool patch) {
-  // First check if this is a valid boot strap library and find it's index
-  // in the 'bootstrap_libraries' table above.
-  intptr_t index = 0;
-  const String& lib_uri = String::Handle(lib.url());
-  while (bootstrap_libraries[index].index_ != ObjectStore::kNone) {
-    if (lib_uri.Equals(bootstrap_libraries[index].uri_)) {
-      break;
-    }
-    index += 1;
-  }
-  if (bootstrap_libraries[index].index_ == ObjectStore::kNone) {
-    return String::null();  // Library is not a boot strap library.
-  }
-
-  if (patch) {
-    // TODO(asiva): Replace with actual read of the source file.
-    const char* source = bootstrap_libraries[index].patch_source_;
-    ASSERT(source != NULL);
-    return String::New(source, Heap::kOld);
-  }
-
-  // Try to read the source using the path specified for the uri.
-  const char** source_paths = bootstrap_libraries[index].source_paths_;
-  if (source_paths == NULL) {
-    return String::null();  // No path mapping information exists for library.
-  }
-  intptr_t i = 0;
-  const char* source_path = NULL;
-  while (source_paths[i] != NULL) {
-    if (uri.Equals(source_paths[i])) {
-      source_path = source_paths[i + 1];
-      break;
-    }
-    i += 2;
-  }
-  if (source_path == NULL) {
-    return String::null();  // Uri does not exist in path mapping information.
-  }
-
-  Dart_FileOpenCallback file_open = Isolate::file_open_callback();
-  Dart_FileReadCallback file_read = Isolate::file_read_callback();
-  Dart_FileCloseCallback file_close = Isolate::file_close_callback();
-  if (file_open == NULL || file_read == NULL || file_close == NULL) {
-    return String::null();  // File operations are not supported.
-  }
-
-  void* stream = (*file_open)(source_path, false);
-  if (stream == NULL) {
-    return String::null();
-  }
-
-  const uint8_t* utf8_array = NULL;
-  intptr_t file_length = -1;
-  (*file_read)(&utf8_array, &file_length, stream);
-  if (file_length == -1) {
-    return String::null();
-  }
-  ASSERT(utf8_array != NULL);
-
-  (*file_close)(stream);
-
-  return String::FromUTF8(utf8_array, file_length);
-}
-
-
-static RawError* Compile(const Library& library, const Script& script) {
-  if (FLAG_print_bootstrap) {
-    OS::Print("Bootstrap source '%s':\n%s\n",
-              String::Handle(script.url()).ToCString(),
-              String::Handle(script.Source()).ToCString());
-  }
-  bool update_lib_status = (script.kind() == RawScript::kScriptTag ||
-                            script.kind() == RawScript::kLibraryTag);
-  if (update_lib_status) {
-    library.SetLoadInProgress();
-  }
-  const Error& error = Error::Handle(Compiler::Compile(library, script));
-  if (update_lib_status) {
-    if (error.IsNull()) {
-      library.SetLoaded();
-    } else {
-      library.SetLoadError();
-    }
-  }
-  return error.raw();
+static RawString* GetLibrarySource(intptr_t index, bool patch) {
+  // TODO(asiva): Replace with actual read of the source file.
+  const char* source = patch ? bootstrap_libraries[index].patch_source_ :
+                               bootstrap_libraries[index].source_;
+  ASSERT(source != NULL);
+  return String::New(source, Heap::kOld);
 }
 
 
 static Dart_Handle LoadPartSource(Isolate* isolate,
                                   const Library& lib,
                                   const String& uri) {
-  const String& part_source = String::Handle(
-      isolate, GetLibrarySource(lib, uri, false));
-  const String& lib_uri = String::Handle(isolate, lib.url());
-  if (part_source.IsNull()) {
-    return Dart_NewApiError("Unable to read part file '%s' of library '%s'",
-                            uri.ToCString(), lib_uri.ToCString());
-  }
-
-  // Prepend the library URI to form a unique script URI for the part.
-  const Array& strings = Array::Handle(isolate, Array::New(3));
-  strings.SetAt(0, lib_uri);
-  strings.SetAt(1, Symbols::Slash());
-  strings.SetAt(2, uri);
-  const String& part_uri = String::Handle(isolate, String::ConcatAll(strings));
-
-  // Create a script object and compile the part.
-  const Script& part_script = Script::Handle(
-      isolate, Script::New(part_uri, part_source, RawScript::kSourceTag));
-  const Error& error = Error::Handle(isolate, Compile(lib, part_script));
-  return Api::NewHandle(isolate, error.raw());
+  // TODO(asiva): For now we return an error here, once we start
+  // loading libraries from the real source this would have to call the
+  // file read callback here and invoke Compiler::Compile on it.
+  return Dart_NewApiError("Unable to load source '%s' ", uri.ToCString());
 }
 
 
@@ -212,12 +114,18 @@ static Dart_Handle BootstrapLibraryTagHandler(Dart_LibraryTag tag,
   if (!Dart_IsString(uri)) {
     return Dart_NewApiError("uri is not a string");
   }
-  if (tag == kCanonicalizeUrl) {
-    // In the boot strap loader we do not try and do any canonicalization.
-    return uri;
-  }
   const String& uri_str = Api::UnwrapStringHandle(isolate, uri);
   ASSERT(!uri_str.IsNull());
+  bool is_dart_scheme_uri = uri_str.StartsWith(Symbols::DartScheme());
+  if (!is_dart_scheme_uri) {
+    // The bootstrap tag handler can only handle dart scheme uris.
+    return Dart_NewApiError("Do not know how to load '%s' ",
+                            uri_str.ToCString());
+  }
+  if (tag == kCanonicalizeUrl) {
+    // Dart Scheme URIs do not need any canonicalization.
+    return uri;
+  }
   if (tag == kImportTag) {
     // We expect the core bootstrap libraries to only import other
     // core bootstrap libraries.
@@ -231,6 +139,23 @@ static Dart_Handle BootstrapLibraryTagHandler(Dart_LibraryTag tag,
   const Library& lib = Api::UnwrapLibraryHandle(isolate, library);
   ASSERT(!lib.IsNull());
   return LoadPartSource(isolate, lib, uri_str);
+}
+
+
+static RawError* Compile(const Library& library, const Script& script) {
+  if (FLAG_print_bootstrap) {
+    OS::Print("Bootstrap source '%s':\n%s\n",
+              String::Handle(script.url()).ToCString(),
+              String::Handle(script.Source()).ToCString());
+  }
+  library.SetLoadInProgress();
+  const Error& error = Error::Handle(Compiler::Compile(library, script));
+  if (error.IsNull()) {
+    library.SetLoaded();
+  } else {
+    library.SetLoadError();
+  }
+  return error.raw();
 }
 
 
@@ -272,13 +197,7 @@ RawError* Bootstrap::LoadandCompileScripts() {
     uri = Symbols::New(bootstrap_libraries[i].uri_);
     lib = Library::LookupLibrary(uri);
     ASSERT(!lib.IsNull());
-    source = GetLibrarySource(lib, uri, false);
-    if (source.IsNull()) {
-      error ^= Api::UnwrapErrorHandle(
-          isolate, Api::NewError("Unable to find dart source for %s",
-                                 uri.ToCString())).raw();
-      break;
-    }
+    source = GetLibrarySource(i, false);
     script = Script::New(uri, source, RawScript::kLibraryTag);
     error = Compile(lib, script);
     if (!error.IsNull()) {
@@ -288,13 +207,7 @@ RawError* Bootstrap::LoadandCompileScripts() {
     if (bootstrap_libraries[i].patch_source_ != NULL) {
       patch_uri = String::New(bootstrap_libraries[i].patch_uri_,
                               Heap::kOld);
-      source = GetLibrarySource(lib, uri, true);
-      if (source.IsNull()) {
-        error ^= Api::UnwrapErrorHandle(
-            isolate, Api::NewError("Unable to find dart patch source for %s",
-                                   uri.ToCString())).raw();
-        break;
-      }
+      source = GetLibrarySource(i, true);
       script = Script::New(patch_uri, source, RawScript::kPatchTag);
       error = lib.Patch(script);
       if (!error.IsNull()) {
