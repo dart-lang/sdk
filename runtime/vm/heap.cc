@@ -321,7 +321,7 @@ void Heap::ProfileToFile(const char* reason) const {
   intptr_t len = OS::SNPrint(NULL, 0, format, isolate->name(), reason);
   char* filename = isolate->current_zone()->Alloc<char>(len + 1);
   OS::SNPrint(filename, len + 1, format, isolate->name(), reason);
-  void* file = (*file_open)(filename);
+  void* file = (*file_open)(filename, true);
   if (file != NULL) {
     Profile(file_write, file);
     (*file_close)(file);

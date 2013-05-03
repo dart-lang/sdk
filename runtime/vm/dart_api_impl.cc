@@ -745,10 +745,12 @@ DART_EXPORT bool Dart_Initialize(
     Dart_IsolateUnhandledExceptionCallback unhandled,
     Dart_IsolateShutdownCallback shutdown,
     Dart_FileOpenCallback file_open,
+    Dart_FileReadCallback file_read,
     Dart_FileWriteCallback file_write,
     Dart_FileCloseCallback file_close) {
   const char* err_msg = Dart::InitOnce(create, interrupt, unhandled, shutdown,
-                                       file_open, file_write, file_close);
+                                       file_open, file_read, file_write,
+                                       file_close);
   if (err_msg != NULL) {
     OS::PrintErr("Dart_Initialize: %s\n", err_msg);
     return false;
