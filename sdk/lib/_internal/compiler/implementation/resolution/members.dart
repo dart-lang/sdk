@@ -308,7 +308,7 @@ class ResolverTask extends CompilerTask {
         visitor.useElement(tree, element);
         visitor.setupFunction(tree, element);
 
-        if (isConstructor) {
+        if (isConstructor && !element.isForwardingConstructor) {
           // Even if there is no initializer list we still have to do the
           // resolution in case there is an implicit super constructor call.
           InitializerResolver resolver = new InitializerResolver(visitor);
@@ -317,6 +317,8 @@ class ResolverTask extends CompilerTask {
           if (redirection != null) {
             resolveRedirectingConstructor(resolver, tree, element, redirection);
           }
+        } else if (element.isForwardingConstructor) {
+          // Initializers will be checked on the original constructor.
         } else if (tree.initializers != null) {
           error(tree, MessageKind.FUNCTION_WITH_INITIALIZER);
         }
@@ -2575,7 +2577,11 @@ class ResolverVisitor extends MappingVisitor<Element> {
       compiler.backend.registerThrowNoSuchMethod(mapping);
     }
     compiler.withCurrentElement(constructor, () {
-      FunctionExpression tree = constructor.parseNode(compiler);
+      FunctionElement target = constructor;
+      if (constructor.isForwardingConstructor) {
+        target = constructor.targetConstructor;
+      }
+      FunctionExpression tree = target.parseNode(compiler);
       compiler.resolver.resolveConstructorImplementation(constructor, tree);
     });
 
@@ -3279,15 +3285,38 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     return mixinApplication.computeType(compiler);
   }
 
+  bool isDefaultConstructor(FunctionElement constructor) {
+    return constructor.name == constructor.getEnclosingClass().name &&
+        constructor.computeSignature(compiler).parameterCount == 0;
+  }
+
+  FunctionElement createForwardingConstructor(FunctionElement constructor,
+                                              ClassElement target) {
+    ClassElement cls = constructor.getEnclosingClass();
+    SourceString constructorName;
+    if (constructor.name == cls.name) {
+      constructorName = target.name;
+    } else {
+      SourceString selector =
+          Elements.deconstructConstructorName(constructor.name, cls);
+      constructorName =
+          Elements.constructConstructorName(target.name, selector);
+    }
+    return new SynthesizedConstructorElementX.forwarding(constructorName,
+                                                         constructor,
+                                                         target);
+  }
+
   void doApplyMixinTo(MixinApplicationElement mixinApplication,
                       DartType supertype,
                       DartType mixinType) {
     assert(mixinApplication.supertype == null);
     mixinApplication.supertype = supertype;
 
+    Node node = mixinApplication.parseNode(compiler);
     // Named mixin application may have an 'implements' clause.
     NamedMixinApplication namedMixinApplication =
-        mixinApplication.parseNode(compiler).asNamedMixinApplication();
+        node.asNamedMixinApplication();
     Link<DartType> interfaces = (namedMixinApplication != null)
         ? resolveInterfaces(namedMixinApplication.interfaces,
                             namedMixinApplication.superclass)
@@ -3302,6 +3331,24 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
 
     assert(mixinApplication.mixin == null);
     mixinApplication.mixin = resolveMixinFor(mixinApplication, mixinType);
+
+    // Create forwarding constructors for constructor defined in the superclass
+    // because they are now hidden by the mixin application.
+    ClassElement superclass = supertype.element;
+    superclass.forEachLocalMember((Element member) {
+      if (!member.isConstructor()) return;
+      if (member.isSynthesized && !member.isForwardingConstructor) return;
+      if (isDefaultConstructor(member)) return;
+      assert(invariant(node, !member.isFactoryConstructor(),
+             message: 'mixins cannot have factory constructors'));
+      // Skip forwarding constructors and use their target.
+      FunctionElement constructor =
+          member.isForwardingConstructor ? member.targetConstructor : member;
+      assert(invariant(node, !constructor.isForwardingConstructor));
+      FunctionElement forwarder =
+          createForwardingConstructor(constructor, mixinApplication);
+      mixinApplication.addConstructor(forwarder);
+    });
     mixinApplication.addDefaultConstructorIfNeeded(compiler);
     calculateAllSupertypes(mixinApplication);
   }

@@ -280,7 +280,9 @@ class DartBackend extends Backend {
     // field names used as named optionals into [fixedMemberNames].
     for (final element in resolvedElements.keys) {
       if (!element.isConstructor()) continue;
-      for (final optional in element.functionSignature.optionalParameters) {
+      Link<Element> optionalParameters =
+          element.functionSignature.optionalParameters;
+      for (final optional in optionalParameters) {
         if (optional.kind != ElementKind.FIELD_PARAMETER) continue;
         fixedMemberNames.add(optional.name.slowToString());
       }

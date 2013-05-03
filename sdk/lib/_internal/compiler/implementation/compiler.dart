@@ -947,6 +947,7 @@ abstract class Compiler implements DiagnosticListener {
 
   TreeElements analyzeElement(Element element) {
     assert(invariant(element, element.isDeclaration));
+    assert(!element.isForwardingConstructor);
     TreeElements elements = enqueuer.resolution.getCachedElements(element);
     if (elements != null) return elements;
     assert(parser != null);

@@ -1305,9 +1305,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
       // Build the initializers in the context of the new constructor.
       TreeElements oldElements = elements;
+      if (constructor.isForwardingConstructor) {
+        constructor = constructor.targetConstructor;
+      }
       elements =
           compiler.enqueuer.resolution.getCachedElements(constructor);
-
       ClosureClassMap oldClosureData = localsHandler.closureData;
       Node node = constructor.parseNode(compiler);
       ClosureClassMap newClosureData =
@@ -2879,6 +2881,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       return pop();
     }
 
+    if (element.isForwardingConstructor) {
+      element = element.targetConstructor;
+    }
+
     return selector.addArgumentsToList(arguments,
                                        list,
                                        element,
@@ -3374,6 +3380,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     Element constructor = elements[node];
     Selector selector = elements.getSelector(node);
+    if (constructor.isForwardingConstructor) {
+      compiler.unimplemented('forwarded constructor in named mixin application',
+                             element: constructor.getEnclosingClass());
+    }
     if (compiler.enqueuer.resolution.getCachedElements(constructor) == null) {
       compiler.internalError("Unresolved element: $constructor", node: node);
     }

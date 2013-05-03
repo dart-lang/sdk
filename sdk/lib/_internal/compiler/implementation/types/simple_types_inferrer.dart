@@ -576,6 +576,9 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
   }
 
   bool analyze(Element element) {
+    if (element.isForwardingConstructor) {
+      element = element.targetConstructor;
+    }
     SimpleTypeInferrerVisitor visitor =
         new SimpleTypeInferrerVisitor(element, compiler, this);
     TypeMask returnType = visitor.run();

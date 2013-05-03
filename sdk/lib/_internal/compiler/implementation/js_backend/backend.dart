@@ -1005,19 +1005,20 @@ class JavaScriptBackend extends Backend {
     if (enqueuer.isResolutionQueue) {
       cls.ensureResolved(compiler);
       cls.forEachMember((ClassElement classElement, Element member) {
-          // All methods on [Object] are shadowed by [Interceptor].
-          if (classElement == compiler.objectClass) return;
-          Set<Element> set = interceptedElements.putIfAbsent(
-              member.name, () => new Set<Element>());
-          set.add(member);
-          if (classElement == jsInterceptorClass) return;
-          if (!classElement.isNative()) {
-            MixinApplicationElement mixinApplication = classElement;
-            assert(member.getEnclosingClass() == mixinApplication.mixin);
-            classesMixedIntoNativeClasses.add(mixinApplication.mixin);
-          }
-        },
-        includeSuperMembers: true);
+        if (member.isSynthesized) return;
+        // All methods on [Object] are shadowed by [Interceptor].
+        if (classElement == compiler.objectClass) return;
+        Set<Element> set = interceptedElements.putIfAbsent(
+            member.name, () => new Set<Element>());
+        set.add(member);
+        if (classElement == jsInterceptorClass) return;
+        if (!classElement.isNative()) {
+          MixinApplicationElement mixinApplication = classElement;
+          assert(member.getEnclosingClass() == mixinApplication.mixin);
+          classesMixedIntoNativeClasses.add(mixinApplication.mixin);
+        }
+      },
+      includeSuperMembers: true);
     }
   }
 

@@ -132,6 +132,8 @@ class ElementX implements Element {
 
   bool get isSynthesized => false;
 
+  bool get isForwardingConstructor => false;
+
   /**
    * Returns the element which defines the implementation for the entity of this
    * element.
@@ -270,6 +272,8 @@ class ElementX implements Element {
 
   bool isAbstract(Compiler compiler) => modifiers.isAbstract();
   bool isForeign(Compiler compiler) => getLibrary() == compiler.foreignLibrary;
+
+  FunctionElement get targetConstructor => null;
 }
 
 /**
@@ -1264,15 +1268,29 @@ class ConstructorBodyElementX extends FunctionElementX
   Token position() => constructor.position();
 }
 
+/**
+ * A constructor that is not defined in the source code but rather implied by
+ * the language semantics.
+ *
+ * This class is used to represent default constructors and forwarding
+ * constructors for mixin applications.
+ */
 class SynthesizedConstructorElementX extends FunctionElementX {
+  /// The target constructor if this synthetic constructor is a forwarding
+  /// constructor in a mixin application.
+  final FunctionElement target;
+
   SynthesizedConstructorElementX(Element enclosing)
-    : super(enclosing.name, ElementKind.GENERATIVE_CONSTRUCTOR,
-            Modifiers.EMPTY, enclosing);
+      : super(enclosing.name, ElementKind.GENERATIVE_CONSTRUCTOR,
+              Modifiers.EMPTY, enclosing),
+        target = null;
 
   SynthesizedConstructorElementX.forDefault(Element enclosing,
                                             Compiler compiler)
-    : super(enclosing.name, ElementKind.GENERATIVE_CONSTRUCTOR,
-            Modifiers.EMPTY, enclosing) {
+      : super(enclosing.name, ElementKind.GENERATIVE_CONSTRUCTOR,
+              Modifiers.EMPTY, enclosing),
+        target = null {
+    // TODO(karlklose): get rid of the fake AST.
     type = new FunctionType(this,
         compiler.types.voidType,
         const Link<DartType>(),
@@ -1286,9 +1304,40 @@ class SynthesizedConstructorElementX extends FunctionElementX {
         null, Modifiers.EMPTY, null, null);
   }
 
-  bool get isSynthesized => true;
+  /**
+   * Create synthetic constructor that directly forwards to a constructor in the
+   * super class of a mixin application.
+   *
+   * In a mixin application `Base with M`, any constructor defined in `Base` is
+   * available as if they were a constructor defined in the mixin application
+   * with the same formal parameters that calls the constructor in the super
+   * class via a `super` initializer (see Ch. 9.1 in the specification).
+   */
+  SynthesizedConstructorElementX.forwarding(SourceString name, this.target,
+                                            Element enclosing)
+    : super(name, ElementKind.GENERATIVE_CONSTRUCTOR, Modifiers.EMPTY,
+            enclosing);
 
   Token position() => enclosingElement.position();
+
+  bool get isSynthesized => true;
+
+  bool get isForwardingConstructor => target != null;
+
+  FunctionElement get targetConstructor => target;
+
+  FunctionSignature computeSignature(compiler) {
+    if (target != null) {
+      return target.computeSignature(compiler);
+    } else {
+      assert(cachedNode != null);
+      return super.computeSignature(compiler);
+    }
+  }
+
+  get declaration => this;
+  get implementation => this;
+  get defaultImplementation => this;
 }
 
 class VoidElementX extends ElementX {
@@ -1840,7 +1889,8 @@ class MixinApplicationElementX extends BaseClassElementX
   final Node node;
   final Modifiers modifiers;
 
-  FunctionElement constructor;
+  Link<FunctionElement> constructors = new Link<FunctionElement>();
+
   ClassElement mixin;
 
   // TODO(kasperl): The analyzer complains when I don't have these two
@@ -1853,15 +1903,25 @@ class MixinApplicationElementX extends BaseClassElementX
       : super(name, enclosing, id, STATE_NOT_STARTED);
 
   bool get isMixinApplication => true;
-  bool get hasConstructor => constructor != null;
-  bool get hasLocalScopeMembers => false;
+  bool get hasConstructor => !constructors.isEmpty;
+  bool get hasLocalScopeMembers => !constructors.isEmpty;
 
   Token position() => node.getBeginToken();
 
   Node parseNode(DiagnosticListener listener) => node;
 
+  FunctionElement lookupLocalConstructor(SourceString name) {
+    for (Link<Element> link = constructors;
+         !link.isEmpty;
+         link = link.tail) {
+      if (link.head.name == name) return link.head;
+    }
+    return null;
+  }
+
   Element localLookup(SourceString name) {
-    if (this.name == name) return constructor;
+    Element constructor = lookupLocalConstructor(name);
+    if (constructor != null) return constructor;
     if (mixin == null) return null;
     Element mixedInElement = mixin.localLookup(name);
     if (mixedInElement == null) return null;
@@ -1869,6 +1929,7 @@ class MixinApplicationElementX extends BaseClassElementX
   }
 
   void forEachLocalMember(void f(Element member)) {
+    constructors.forEach(f);
     if (mixin != null) mixin.forEachLocalMember((Element mixedInElement) {
       if (mixedInElement.isInstanceMember()) f(mixedInElement);
     });
@@ -1879,12 +1940,16 @@ class MixinApplicationElementX extends BaseClassElementX
   }
 
   void addToScope(Element element, DiagnosticListener listener) {
-    throw new UnsupportedError("cannot add to scope of $this");
+    listener.internalError('cannot add to scope of $this', element: this);
+  }
+
+  void addConstructor(FunctionElement constructor) {
+    constructors = constructors.prepend(constructor);
   }
 
   void setDefaultConstructor(FunctionElement constructor, Compiler compiler) {
     assert(!hasConstructor);
-    this.constructor = constructor;
+    addConstructor(constructor);
   }
 
   Link<DartType> computeTypeParameters(Compiler compiler) {
