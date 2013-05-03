@@ -24,5 +24,8 @@ void testReadStdio() {
 }
 
 void main() {
-  testReadStdio();
+  // Special unix devices do not exist on Windows.
+  if (Platform.operatingSystem != 'windows') {
+    testReadStdio();
+  }
 }

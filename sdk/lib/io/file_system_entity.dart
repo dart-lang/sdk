@@ -43,6 +43,22 @@ abstract class FileSystemEntity {
     return result;
   }
 
+  static Future<int> _getTypeAsync(String path, bool followLinks) =>
+      new Future(() => _getTypeSync(path, followLinks));
+
+  /**
+   * Do two paths refer to the same object in the file system?
+   * Links are not identical to their targets, and two links
+   * are not identical just because they point to identical targets.
+   * Links in intermediate directories in the paths are followed, though.
+   *
+   * Throws an error if one of the paths points to an object that does not
+   * exist.
+   * The target of a link can be compared by first getting it with Link.target.
+   */
+  static Future<bool> identical(String path1, String path2) =>
+      new Future<bool>(() => identicalSync(path1, path2));
+
   /**
    * Do two paths refer to the same object in the file system?
    * Links are not identical to their targets, and two links
@@ -59,8 +75,22 @@ abstract class FileSystemEntity {
     return result;
   }
 
+  static Future<FileSystemEntityType> type(String path,
+                                           {bool followLinks: true})
+      => new Future<FileSystemEntityType>(
+          () => typeSync(path, followLinks: followLinks));
+
   static FileSystemEntityType typeSync(String path, {bool followLinks: true})
       => FileSystemEntityType._lookup(_getTypeSync(path, followLinks));
+
+  static Future<bool> isLink(String path) => _getTypeAsync(path, false)
+      .then((type) => (type == FileSystemEntityType.LINK._type));
+
+  static Future<bool> isFile(String path) => _getTypeAsync(path, true)
+      .then((type) => (type == FileSystemEntityType.FILE._type));
+
+  static Future<bool> isDirectory(String path) => _getTypeAsync(path, true)
+      .then((type) => (type == FileSystemEntityType.DIRECTORY._type));
 
   static bool isLinkSync(String path) =>
       (_getTypeSync(path, false) == FileSystemEntityType.LINK._type);

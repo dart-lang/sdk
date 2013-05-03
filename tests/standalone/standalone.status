@@ -47,10 +47,6 @@ io/directory_non_ascii_sync_test: Pass, Fail
 io/directory_non_ascii_test: Pass, Fail
 io/process_non_ascii_test: Pass, Fail
 
-[ $runtime == vm && $system == windows ]
-io/file_system_links_test: Skip  # No links on Windows.
-io/file_read_special_device_test: Skip  # No special unix devices on Windows.
-
 [ $compiler == none && $runtime == drt ]
 typed_data_isolate_test: Skip # This test uses dart:io
 io/*: Skip # Don't run tests using dart:io in the browser

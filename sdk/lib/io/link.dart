@@ -204,8 +204,17 @@ class _Link extends FileSystemEntity implements Link {
   }
 
   Future<String> target() {
-    // TODO(whesse): Replace with asynchronous version.
-    return new Future.sync(targetSync);
+    _ensureFileService();
+    List request = new List(2);
+    request[0] = _LINK_TARGET_REQUEST;
+    request[1] = path;
+    return _fileService.call(request).then((response) {
+      if (_isErrorResponse(response)) {
+        throw _exceptionFromResponse(response,
+            "Cannot get target of link '$path'");
+      }
+      return response;
+    });
   }
 
   String targetSync() {

@@ -1061,10 +1061,26 @@ static CObject* FileCreateLinkRequest(const CObjectArray& request) {
 
 static CObject* FileDeleteLinkRequest(const CObjectArray& request) {
   if (request.Length() == 2 && request[1]->IsString()) {
-    CObjectString filename(request[1]);
-    bool result = File::DeleteLink(filename.CString());
+    CObjectString link_path(request[1]);
+    bool result = File::DeleteLink(link_path.CString());
     if (result) {
       return CObject::True();
+    } else {
+      return CObject::NewOSError();
+    }
+  }
+  return CObject::IllegalArgumentError();
+}
+
+
+static CObject* FileLinkTargetRequest(const CObjectArray& request) {
+  if (request.Length() == 2 && request[1]->IsString()) {
+    CObjectString link_path(request[1]);
+    char* target = File::LinkTarget(link_path.CString());
+    if (target != NULL) {
+      CObject* result = new CObjectString(CObject::NewString(target));
+      free(target);
+      return result;
     } else {
       return CObject::NewOSError();
     }
@@ -1144,6 +1160,9 @@ static void FileService(Dart_Port dest_port_id,
           break;
         case File::kCreateLinkRequest:
           response = FileCreateLinkRequest(request);
+          break;
+        case File::kLinkTargetRequest:
+          response = FileLinkTargetRequest(request);
           break;
         default:
           UNREACHABLE();
