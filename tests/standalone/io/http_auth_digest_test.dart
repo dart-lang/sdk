@@ -12,14 +12,23 @@ import 'dart:utf';
 
 class Server {
   HttpServer server;
-  bool passwordChanged = false;
+  int unauthCount = 0;  // Counter of the 401 responses.
+  int successCount = 0;  // Counter of the successful responses.
+  int nonceCount = 0;  // Counter of use of current nonce.
   var ha1;
 
-  static Future<Server> start(String algorithm, String qop) {
-    return new Server()._start(algorithm, qop);
+  static Future<Server> start(String algorithm,
+                              String qop,
+                              {int nonceStaleAfter,
+                               bool useNextNonce: false}) {
+    return new Server()._start(algorithm, qop, nonceStaleAfter, useNextNonce);
   }
 
-  Future<Server> _start(String serverAlgorithm, String serverQop) {
+  Future<Server> _start(String serverAlgorithm,
+                        String serverQop,
+                        int nonceStaleAfter,
+                        bool useNextNonce) {
+    Set ncs = new Set();
     // Calculate ha1.
     String realm = "test";
     String username = "dart";
@@ -28,25 +37,26 @@ class Server {
     hasher.add("${username}:${realm}:${password}".codeUnits);
     ha1 = CryptoUtils.bytesToHex(hasher.close());
 
+    var nonce = "12345678";  // No need for random nonce in test.
+
     var completer = new Completer();
     HttpServer.bind("127.0.0.1", 0).then((s) {
       server = s;
       server.listen((HttpRequest request) {
-          // Just use a fixed nonce.
-        var nonce = "12345678";
-
-        sendUnauthorizedResponse(HttpResponse response) {
+        sendUnauthorizedResponse(HttpResponse response, {stale: false}) {
           response.statusCode = HttpStatus.UNAUTHORIZED;
           StringBuffer authHeader = new StringBuffer();
           authHeader.write('Digest');
           authHeader.write(', realm="$realm"');
           authHeader.write(', nonce="$nonce"');
+          if (stale) authHeader.write(', stale="true"');
           if (serverAlgorithm != null) {
             authHeader.write(', algorithm=$serverAlgorithm');
           }
           authHeader.write(', domain="/digest/"');
           if (serverQop != null) authHeader.write(', qop="$serverQop"');
           response.headers.set(HttpHeaders.WWW_AUTHENTICATE, authHeader);
+          unauthCount++;
         }
 
         var response = request.response;
@@ -59,6 +69,10 @@ class Server {
                   authorization, parameterSeparator: ",");
           if (header.value == "basic") {
             sendUnauthorizedResponse(response);
+          } else if (!useNextNonce && nonceCount == nonceStaleAfter) {
+            nonce = "87654321";
+            nonceCount = 0;
+            sendUnauthorizedResponse(response, stale: true);
           } else {
             var uri = header.parameters["uri"];
             var qop = header.parameters["qop"];
@@ -76,6 +90,8 @@ class Server {
               Expect.equals("auth", header.parameters["qop"]);
               Expect.isNotNull(cnonce);
               Expect.isNotNull(nc);
+              Expect.isFalse(ncs.contains(nc));
+              ncs.add(nc);
             } else {
               Expect.isNull(cnonce);
               Expect.isNull(nc);
@@ -96,11 +112,18 @@ class Server {
             Expect.equals(CryptoUtils.bytesToHex(hasher.close()),
                           header.parameters["response"]);
 
+            successCount++;
+            nonceCount++;
+
             // Add a bogus Authentication-Info for testing.
             var info = 'rspauth="77180d1ab3d6c9de084766977790f482", '
                        'cnonce="8f971178", '
                        'nc=000002c74, '
                        'qop=auth';
+            if (useNextNonce && nonceCount == nonceStaleAfter) {
+              nonce = "abcdef01";
+              info += ', nextnonce="$nonce"';
+            }
             response.headers.set("Authentication-Info", info);
           }
         } else {
@@ -190,7 +213,7 @@ void testCredentials(String algorithm, String qop) {
   });
 }
 
-void testBasicAuthenticateCallback(String algorithm, String qop) {
+void testAuthenticateCallback(String algorithm, String qop) {
   Server.start(algorithm, qop).then((server) {
     HttpClient client = new HttpClient();
 
@@ -231,6 +254,71 @@ void testBasicAuthenticateCallback(String algorithm, String qop) {
   });
 }
 
+void testStaleNonce() {
+  Server.start("MD5", "auth", nonceStaleAfter: 2).then((server) {
+    HttpClient client = new HttpClient();
+
+    Future makeRequest(Uri url) {
+      return client.getUrl(url)
+        .then((HttpClientRequest request) => request.close())
+        .then((HttpClientResponse response) {
+            Expect.equals(HttpStatus.OK, response.statusCode);
+            Expect.equals(1, response.headers["Authentication-Info"].length);
+          return response.fold(null, (x, y) {});
+        });
+    }
+
+    Uri uri = Uri.parse("http://127.0.0.1:${server.port}/digest");
+    var credentials = new HttpClientDigestCredentials("dart", "password");
+    client.addCredentials(uri, "test", credentials);
+
+    makeRequest(uri)
+        .then((_) => makeRequest(uri))
+        .then((_) => makeRequest(uri))
+        .then((_) => makeRequest(uri))
+        .then((_) {
+          Expect.equals(2, server.unauthCount);
+          Expect.equals(4, server.successCount);
+          server.shutdown();
+          client.close();
+        });
+  });
+}
+
+void testNextNonce() {
+  Server.start("MD5",
+               "auth",
+               nonceStaleAfter: 2,
+               useNextNonce: true).then((server) {
+    HttpClient client = new HttpClient();
+
+    Future makeRequest(Uri url) {
+      return client.getUrl(url)
+        .then((HttpClientRequest request) => request.close())
+        .then((HttpClientResponse response) {
+            Expect.equals(HttpStatus.OK, response.statusCode);
+            Expect.equals(1, response.headers["Authentication-Info"].length);
+          return response.fold(null, (x, y) {});
+        });
+    }
+
+    Uri uri = Uri.parse("http://127.0.0.1:${server.port}/digest");
+    var credentials = new HttpClientDigestCredentials("dart", "password");
+    client.addCredentials(uri, "test", credentials);
+
+    makeRequest(uri)
+        .then((_) => makeRequest(uri))
+        .then((_) => makeRequest(uri))
+        .then((_) => makeRequest(uri))
+        .then((_) {
+          Expect.equals(1, server.unauthCount);
+          Expect.equals(4, server.successCount);
+          server.shutdown();
+          client.close();
+        });
+  });
+}
+
 // An Apache virtual directory configuration like this can be used for
 // running the local server tests.
 //
@@ -241,7 +329,10 @@ void testBasicAuthenticateCallback(String algorithm, String qop) {
 //    Allow from 127.0.0.0/255.0.0.0 ::1/128
 //    AuthType Digest
 //    AuthName "test"
-//   AuthDigestDomain /digest/
+//    AuthDigestDomain /digest/
+//    AuthDigestAlgorithm MD5
+//    AuthDigestQop auth
+//    AuthDigestNonceLifetime 10
 //    AuthDigestProvider file
 //    AuthUserFile /usr/local/prj/apache/passwd/digest-passwd
 //    Require valid-user
@@ -249,12 +340,15 @@ void testBasicAuthenticateCallback(String algorithm, String qop) {
 //
 
 void testLocalServerDigest() {
+  int count = 0;
   HttpClient client = new HttpClient();
 
   Future makeRequest() {
     return client.getUrl(Uri.parse("http://127.0.0.1/digest/test"))
         .then((HttpClientRequest request) => request.close())
         .then((HttpClientResponse response) {
+            count++;
+            if (count % 100 == 0) print(count);
             Expect.equals(HttpStatus.OK, response.statusCode);
             return response.fold(null, (x, y) {});
         });
@@ -287,10 +381,12 @@ main() {
   testCredentials("MD5", null);
   testCredentials("MD5", "auth");
   testCredentials("MD5", "auth-int");
-  testBasicAuthenticateCallback(null, null);
-  testBasicAuthenticateCallback("MD5", null);
-  testBasicAuthenticateCallback("MD5", "auth");
-  testBasicAuthenticateCallback("MD5", "auth-int");
+  testAuthenticateCallback(null, null);
+  testAuthenticateCallback("MD5", null);
+  testAuthenticateCallback("MD5", "auth");
+  testAuthenticateCallback("MD5", "auth-int");
+  testStaleNonce();
+  testNextNonce();
   // These teste are not normally run. They can be used for locally
   // testing with another web server (e.g. Apache).
   //testLocalServerDigest();

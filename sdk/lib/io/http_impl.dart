@@ -311,18 +311,24 @@ class _HttpClientResponse
       if (cr.scheme == _AuthenticationScheme.DIGEST &&
           (header.parameters["algorithm"] == null ||
            header.parameters["algorithm"].toLowerCase() == "md5")) {
-        // If the nonce is not set then this is the first authenticate
-        // response for these credentials.
-        // TODO(sgjesse): Check for changed nonce.
-        if (cr.nonce == null) {
-          // Set up authentication state.
+        if (cr.nonce == null || cr.nonce == header.parameters["nonce"]) {
+          // If the nonce is not set then this is the first authenticate
+          // response for these credentials. Set up authentication state.
+          if (cr.nonce == null) {
+            cr.nonce = header.parameters["nonce"];
+            cr.algorithm = "MD5";
+            cr.qop = header.parameters["qop"];
+            cr.nonceCount = 0;
+          }
+          // Credentials where found, prepare for retrying the request.
+          return retryWithCredentials(cr);
+        } else if (header.parameters["stale"] != null &&
+                   header.parameters["stale"].toLowerCase() == "true") {
+          // If stale is true retry with new nonce.
           cr.nonce = header.parameters["nonce"];
-          cr.algorithm = "MD5";
-          cr.qop = header.parameters["qop"];
-          cr.nonceCount = 0;
+          // Credentials where found, prepare for retrying the request.
+          return retryWithCredentials(cr);
         }
-        // Credentials where found, prepare for retrying the request.
-        return retryWithCredentials(cr);
       }
     }
 
@@ -1114,6 +1120,7 @@ class _HttpClientConnection {
   _HttpClientRequest send(Uri uri, int port, String method, _Proxy proxy) {
     // Start with pausing the parser.
     _subscription.pause();
+    _Credentials cr;  // Credentials used to authorize this request.
     var outgoing = new _HttpOutgoing(_socket);
     // Create new request object, wrapping the outgoing connection.
     var request = new _HttpClientRequest(outgoing,
@@ -1145,7 +1152,7 @@ class _HttpClientConnection {
       request.headers.set(HttpHeaders.AUTHORIZATION, "Basic $auth");
     } else {
       // Look for credentials.
-      _Credentials cr = _httpClient._findCredentials(uri);
+      cr = _httpClient._findCredentials(uri);
       if (cr != null) {
         cr.authorize(request);
       }
@@ -1172,6 +1179,18 @@ class _HttpClientConnection {
                     destroy();
                   }
                 });
+                // For digest authentication check if the server
+                // requests the client to start using a new nonce.
+                if (cr != null && cr.scheme == _AuthenticationScheme.DIGEST) {
+                  var authInfo = incoming.headers["authentication-info"];
+                  if (authInfo != null && authInfo.length == 1) {
+                    var header =
+                        new _HeaderValue.fromString(
+                            authInfo[0], parameterSeparator: ',');
+                    var nextnonce = header.parameters["nextnonce"];
+                    if (nextnonce != null) cr.nonce = nextnonce;
+                  }
+                }
                 request._onIncoming(incoming);
               })
               // If we see a state error, we failed to get the 'first'
