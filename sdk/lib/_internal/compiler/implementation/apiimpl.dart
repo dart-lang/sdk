@@ -52,12 +52,15 @@ class Compiler extends leg.Compiler {
             checkDeprecationInSdk:
                 hasOption(options,
                           '--report-sdk-use-of-deprecated-language-features'),
-            strips: getStrips(options),
+            strips: extractCsvOption(options, '--force-strip='),
             enableConcreteTypeInference:
                 hasOption(options, '--enable-concrete-type-inference'),
             preserveComments: hasOption(options, '--preserve-comments'),
             verbose: hasOption(options, '--verbose'),
-            buildId: getBuildId(options)) {
+            sourceMapUri: extractSourceMapUri(options),
+            buildId: extractStringOption(
+                options, '--build-id=',
+                "build number could not be determined")) {
     if (!libraryRoot.path.endsWith("/")) {
       throw new ArgumentError("libraryRoot must end with a /");
     }
@@ -66,34 +69,40 @@ class Compiler extends leg.Compiler {
     }
   }
 
-  static String getBuildId(List<String> options) {
+  static String extractStringOption(List<String> options,
+                                    String prefix,
+                                    String defaultValue) {
     for (String option in options) {
-      if (option.startsWith('--build-id=')) {
-        return option.substring('--build-id='.length);
+      if (option.startsWith(prefix)) {
+        return option.substring(prefix.length);
       }
     }
-    return "build number could not be determined";
+    return defaultValue;
   }
 
-  static List<String> getStrips(List<String> options) {
+  static Uri extractSourceMapUri(List<String> options) {
+    var option = extractStringOption(options, '--source-map=', null);
+    return (option == null) ? null : Uri.parse(option);
+  }
+
+  // CSV: Comma separated values.
+  static List<String> extractCsvOption(List<String> options, String prefix) {
     for (String option in options) {
-      if (option.startsWith('--force-strip=')) {
-        return option.substring('--force-strip='.length).split(',');
+      if (option.startsWith(prefix)) {
+        return option.substring(prefix.length).split(',');
       }
     }
     return const <String>[];
   }
 
   static Set<String> getAllowedLibraryCategories(List<String> options) {
-    for (String option in options) {
-      if (option.startsWith('--categories=')) {
-        var result = option.substring('--categories='.length).split(',');
-        result.add('Shared');
-        result.add('Internal');
-        return new Set<String>.from(result);
-      }
+    var result = extractCsvOption(options, '--categories=');
+    if (result.isEmpty) {
+      result = ['Client'];
     }
-    return new Set<String>.from(['Client', 'Shared', 'Internal']);
+    result.add('Shared');
+    result.add('Internal');
+    return new Set<String>.from(result);
   }
 
   static bool hasOption(List<String> options, String option) {

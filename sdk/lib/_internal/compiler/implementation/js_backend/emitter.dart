@@ -2898,6 +2898,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
     jsAst.FunctionDeclaration decl = new jsAst.FunctionDeclaration(
         new jsAst.VariableDeclaration('init'), fun);
     buffer.write(jsAst.prettyPrint(decl, compiler).getText());
+    if (compiler.enableMinification) buffer.write('\n');
   }
 
   String assembleProgram() {
@@ -3056,7 +3057,8 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
   }
 
   String buildSourceMap(CodeBuffer buffer, SourceFile compiledFile) {
-    SourceMapBuilder sourceMapBuilder = new SourceMapBuilder();
+    SourceMapBuilder sourceMapBuilder =
+        new SourceMapBuilder(compiler.sourceMapUri);
     buffer.forEachSourceLocation(sourceMapBuilder.addMapping);
     return sourceMapBuilder.build(compiledFile);
   }

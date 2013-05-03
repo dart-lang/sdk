@@ -226,7 +226,8 @@ class TokenMap {
 }
 
 abstract class Compiler implements DiagnosticListener {
-  final Map<String, LibraryElement> libraries;
+  final Map<String, LibraryElement> libraries =
+    new Map<String, LibraryElement>();
   final Stopwatch totalCompileTime = new Stopwatch();
   int nextFreeClassId = 0;
   World world;
@@ -276,6 +277,12 @@ abstract class Compiler implements DiagnosticListener {
    * Is the compiler in verbose mode.
    */
   final bool verbose;
+
+  /**
+   * URI of the main source map if the compiler is generating source
+   * maps.
+   */
+  final Uri sourceMapUri;
 
   final api.CompilerOutputProvider outputProvider;
 
@@ -418,7 +425,7 @@ abstract class Compiler implements DiagnosticListener {
   bool enabledFunctionApply = false;
   bool enabledInvokeOn = false;
 
-  Stopwatch progress;
+  Stopwatch progress = new Stopwatch()..start();
 
   static const int PHASE_SCANNING = 0;
   static const int PHASE_RESOLVING = 1;
@@ -430,47 +437,33 @@ abstract class Compiler implements DiagnosticListener {
 
   bool hasCrashed = false;
 
-  Compiler({Tracer tracer: const Tracer(),
-            bool enableTypeAssertions: false,
-            bool enableUserAssertions: false,
-            bool enableConcreteTypeInference: false,
-            int maxConcreteTypeSize: 5,
-            bool enableMinification: false,
-            bool enableNativeLiveTypeAnalysis: false,
+  Compiler({this.tracer: const Tracer(),
+            this.enableTypeAssertions: false,
+            this.enableUserAssertions: false,
+            this.enableConcreteTypeInference: false,
+            this.maxConcreteTypeSize: 5,
+            this.enableMinification: false,
+            this.enableNativeLiveTypeAnalysis: false,
             bool emitJavaScript: true,
             bool generateSourceMap: true,
             bool disallowUnsafeEval: false,
-            bool analyzeAll: false,
+            this.analyzeAll: false,
             bool analyzeOnly: false,
             bool analyzeSignaturesOnly: false,
-            bool rejectDeprecatedFeatures: false,
-            bool checkDeprecationInSdk: false,
-            bool preserveComments: false,
-            bool verbose: false,
-            String this.buildId: "build number could not be determined",
+            this.rejectDeprecatedFeatures: false,
+            this.checkDeprecationInSdk: false,
+            this.preserveComments: false,
+            this.verbose: false,
+            this.sourceMapUri: null,
+            this.buildId: "build number could not be determined",
             outputProvider,
             List<String> strips: const []})
-      : tracer = tracer,
-        enableTypeAssertions = enableTypeAssertions,
-        enableUserAssertions = enableUserAssertions,
-        enableConcreteTypeInference = enableConcreteTypeInference,
-        maxConcreteTypeSize = maxConcreteTypeSize,
-        enableMinification = enableMinification,
-        enableNativeLiveTypeAnalysis = enableNativeLiveTypeAnalysis,
-        analyzeAll = analyzeAll,
-        rejectDeprecatedFeatures = rejectDeprecatedFeatures,
-        checkDeprecationInSdk = checkDeprecationInSdk,
-        preserveComments = preserveComments,
-        verbose = verbose,
-        libraries = new Map<String, LibraryElement>(),
-        progress = new Stopwatch(),
-        this.analyzeOnly = analyzeOnly || analyzeSignaturesOnly,
+      : this.analyzeOnly = analyzeOnly || analyzeSignaturesOnly,
         this.analyzeSignaturesOnly = analyzeSignaturesOnly,
         this.outputProvider =
             (outputProvider == null) ? NullSink.outputProvider : outputProvider
 
   {
-    progress.start();
     world = new World(this);
 
     closureMapping.ClosureNamer closureNamer;

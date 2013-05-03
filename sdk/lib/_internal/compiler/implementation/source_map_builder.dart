@@ -4,9 +4,12 @@
 
 library source_map_builder;
 
+import 'dart:uri';
+
 import 'util/util.dart';
 import 'scanner/scannerlib.dart' show Token;
 import 'source_file.dart';
+import 'util/uri_extras.dart' show relativize;
 
 class SourceMapBuilder {
   static const int VLQ_BASE_SHIFT = 5;
@@ -15,6 +18,8 @@ class SourceMapBuilder {
   static const int VLQ_CONTINUATION_MASK = 1 << 5;
   static const String BASE64_DIGITS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmn'
                                       'opqrstuvwxyz0123456789+/';
+
+  final Uri uri;
 
   List<SourceMapEntry> entries;
 
@@ -31,7 +36,7 @@ class SourceMapBuilder {
   int previousSourceNameIndex;
   bool firstEntryInLine;
 
-  SourceMapBuilder() {
+  SourceMapBuilder(this.uri) {
     entries = new List<SourceMapEntry>();
 
     sourceUrlMap = new Map<String, int>();
@@ -52,7 +57,7 @@ class SourceMapBuilder {
     entries.add(new SourceMapEntry(sourceLocation, targetOffset));
   }
 
-  void printStringListOn(List<String> strings, StringBuffer buffer) {
+  void printStringListOn(Iterable<String> strings, StringBuffer buffer) {
     bool first = true;
     buffer.write('[');
     for (String string in strings) {
@@ -74,7 +79,9 @@ class SourceMapBuilder {
     buffer.write('  "version": 3,\n');
     buffer.write('  "sourceRoot": "",\n');
     buffer.write('  "sources": ');
-    printStringListOn(sourceUrlList, buffer);
+    printStringListOn(
+        sourceUrlList.map((url) => relativize(uri, Uri.parse(url), false)),
+        buffer);
     buffer.write(',\n');
     buffer.write('  "names": ');
     printStringListOn(sourceNameList, buffer);
