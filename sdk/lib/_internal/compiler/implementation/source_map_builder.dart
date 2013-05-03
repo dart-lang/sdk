@@ -79,9 +79,11 @@ class SourceMapBuilder {
     buffer.write('  "version": 3,\n');
     buffer.write('  "sourceRoot": "",\n');
     buffer.write('  "sources": ');
-    printStringListOn(
-        sourceUrlList.map((url) => relativize(uri, Uri.parse(url), false)),
-        buffer);
+    if (uri != null) {
+      sourceUrlList =
+          sourceUrlList.map((url) => relativize(uri, Uri.parse(url), false));
+    }
+    printStringListOn(sourceUrlList, buffer);
     buffer.write(',\n');
     buffer.write('  "names": ');
     printStringListOn(sourceNameList, buffer);
