@@ -75,9 +75,27 @@ const Register kExceptionObjectReg = EAX;
 const Register kStackTraceObjectReg = EDX;
 
 
+// TODO(regis): Move these constants to stack_frame_ia32.h.
 // Dart stack frame layout.
-static const int kLastParamSlotIndex = 2;
-static const int kFirstLocalSlotIndex = -2;
+static const int kLastParamSlotIndex = 2;  // From fp.
+static const int kFirstLocalSlotIndex = -2;  // From fp.
+static const int kPcSlotIndexFromSp = -1;
+
+/* IA32 Dart Frame Layout
+
+               |                   | <- TOS
+Callee frame   | ...               |
+               | current ret addr  |    (PC of current frame)
+               +-------------------+
+Current frame  | ...               | <- ESP of current frame
+               | first local       |
+               | PC Marker         |    (current frame's code entry)
+               | caller's EBP      | <- EBP of current frame
+               | caller's ret addr |    (PC of caller frame)
+               +-------------------+
+Caller frame   | last parameter    |
+               |  ...              |
+*/
 
 
 enum ScaleFactor {

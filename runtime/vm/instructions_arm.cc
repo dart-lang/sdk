@@ -149,24 +149,38 @@ void CallPattern::SetTargetAddress(uword target_address) const {
 }
 
 
+void CallPattern::InsertAt(uword pc, uword target_address) {
+  uint16_t target_lo = target_address & 0xffff;
+  uint16_t target_hi = target_address >> 16;
+  uword movw_ip = 0xe300c000 | ((target_lo >> 12) << 16) | (target_lo & 0xfff);
+  uword movt_ip = 0xe340c000 | ((target_hi >> 12) << 16) | (target_hi & 0xfff);
+  uword blx_ip = 0xe12fff3c;
+  *reinterpret_cast<uword*>(pc + (0 * Instr::kInstrSize)) = movw_ip;
+  *reinterpret_cast<uword*>(pc + (1 * Instr::kInstrSize)) = movt_ip;
+  *reinterpret_cast<uword*>(pc + (2 * Instr::kInstrSize)) = blx_ip;
+  ASSERT(kFixedLengthInBytes == 3 * Instr::kInstrSize);
+  CPU::FlushICache(pc, kFixedLengthInBytes);
+}
+
+
 JumpPattern::JumpPattern(uword pc) : pc_(pc) { }
 
 
 bool JumpPattern::IsValid() const {
-  Instr* movw = Instr::At(pc_ + (0 * Instr::kInstrSize));  // movw ip, target_lo
-  Instr* movt = Instr::At(pc_ + (1 * Instr::kInstrSize));  // movw ip, target_lo
-  Instr* bxip = Instr::At(pc_ + (2 * Instr::kInstrSize));  // bx ip
-  return (movw->InstructionBits() & 0xfff0f000) == 0xe300c000 &&
-         (movt->InstructionBits() & 0xfff0f000) == 0xe340c000 &&
-         (bxip->InstructionBits() & 0xffffffff) == 0xe12fff1c;
+  Instr* movw_ip = Instr::At(pc_ + (0 * Instr::kInstrSize));  // target_lo
+  Instr* movt_ip = Instr::At(pc_ + (1 * Instr::kInstrSize));  // target_hi
+  Instr* bx_ip = Instr::At(pc_ + (2 * Instr::kInstrSize));
+  return (movw_ip->InstructionBits() & 0xfff0f000) == 0xe300c000 &&
+         (movt_ip->InstructionBits() & 0xfff0f000) == 0xe340c000 &&
+         (bx_ip->InstructionBits() & 0xffffffff) == 0xe12fff1c;
 }
 
 
 uword JumpPattern::TargetAddress() const {
-  Instr* movw = Instr::At(pc_ + (0 * Instr::kInstrSize));  // movw ip, target_lo
-  Instr* movt = Instr::At(pc_ + (1 * Instr::kInstrSize));  // movw ip, target_lo
-  uint16_t target_lo = movw->MovwField();
-  uint16_t target_hi = movt->MovwField();
+  Instr* movw_ip = Instr::At(pc_ + (0 * Instr::kInstrSize));  // target_lo
+  Instr* movt_ip = Instr::At(pc_ + (1 * Instr::kInstrSize));  // target_hi
+  uint16_t target_lo = movw_ip->MovwField();
+  uint16_t target_hi = movt_ip->MovwField();
   return (target_hi << 16) | target_lo;
 }
 
@@ -174,10 +188,10 @@ uword JumpPattern::TargetAddress() const {
 void JumpPattern::SetTargetAddress(uword target_address) const {
   uint16_t target_lo = target_address & 0xffff;
   uint16_t target_hi = target_address >> 16;
-  uword movw = 0xe300c000 | ((target_lo >> 12) << 16) | (target_lo & 0xfff);
-  uword movt = 0xe340c000 | ((target_hi >> 12) << 16) | (target_hi & 0xfff);
-  *reinterpret_cast<uword*>(pc_ + (0 * Instr::kInstrSize)) = movw;
-  *reinterpret_cast<uword*>(pc_ + (1 * Instr::kInstrSize)) = movt;
+  uword movw_ip = 0xe300c000 | ((target_lo >> 12) << 16) | (target_lo & 0xfff);
+  uword movt_ip = 0xe340c000 | ((target_hi >> 12) << 16) | (target_hi & 0xfff);
+  *reinterpret_cast<uword*>(pc_ + (0 * Instr::kInstrSize)) = movw_ip;
+  *reinterpret_cast<uword*>(pc_ + (1 * Instr::kInstrSize)) = movt_ip;
   CPU::FlushICache(pc_, 2 * Instr::kInstrSize);
 }
 

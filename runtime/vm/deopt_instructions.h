@@ -20,8 +20,8 @@ class Value;
 class DeoptimizationContext : public ValueObject {
  public:
   // 'to_frame_start' points to the return address just below the frame's
-  // stack pointer. 'num_args' is 0 if there are no arguments or if there
-  // are optional arguments.
+  // stack pointer (kPcAddressOffsetFromSp). 'num_args' is 0 if there are no
+  // arguments or if there are optional arguments.
   DeoptimizationContext(intptr_t* to_frame_start,
                         intptr_t to_frame_size,
                         const Array& object_table,

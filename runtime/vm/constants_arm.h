@@ -182,10 +182,29 @@ const DRegister kDartLastVolatileFpuReg = D7;
 const int kDartVolatileFpuRegCount = 8;
 
 
+// TODO(regis): Move these constants to stack_frame_arm.h.
 // Dart stack frame layout.
-static const int kLastParamSlotIndex = 3;
-static const int kFirstLocalSlotIndex = -2;
+static const int kLastParamSlotIndex = 3;  // From fp.
+static const int kFirstLocalSlotIndex = -2;  // From fp.
+static const int kPcSlotIndexFromSp = -2;
 
+/* ARM Dart Frame Layout
+
+               |                   | <- TOS
+Callee frame   | ...               |
+               | current LR        |    (PC of current frame)
+               | PC Marker         |    (callee's frame code entry)
+               +-------------------+
+Current frame  | ...               | <- SP of current frame
+               | first local       |
+               | caller's PP       |
+               | caller's FP       | <- FP of current frame
+               | caller's LR       |    (PC of caller frame)
+               | PC Marker         |    (current frame's code entry)
+               +-------------------+
+Caller frame   | last parameter    |
+               |  ...              |
+*/
 
 // Values for the condition field as defined in section A3.2.
 enum Condition {

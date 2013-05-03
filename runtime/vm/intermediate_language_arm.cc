@@ -1035,8 +1035,32 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 Representation StoreIndexedInstr::RequiredInputRepresentation(
     intptr_t idx) const {
-  UNIMPLEMENTED();
-  return kTagged;
+  // Array can be a Dart object or a pointer to external data.
+  if (idx == 0)  return kNoRepresentation;  // Flexible input representation.
+  if (idx == 1) return kTagged;  // Index is a smi.
+  ASSERT(idx == 2);
+  switch (class_id_) {
+    case kArrayCid:
+    case kTypedDataInt8ArrayCid:
+    case kTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid:
+    case kTypedDataInt16ArrayCid:
+    case kTypedDataUint16ArrayCid:
+      return kTagged;
+    case kTypedDataInt32ArrayCid:
+    case kTypedDataUint32ArrayCid:
+      return value()->IsSmiValue() ? kTagged : kUnboxedMint;
+    case kTypedDataFloat32ArrayCid:
+    case kTypedDataFloat64ArrayCid:
+      return kUnboxedDouble;
+    case kTypedDataFloat32x4ArrayCid:
+      return kUnboxedFloat32x4;
+    default:
+      UNIMPLEMENTED();
+      return kTagged;
+  }
 }
 
 
@@ -1061,14 +1085,22 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary() const {
     case kTypedDataInt8ArrayCid:
     case kTypedDataUint8ArrayCid:
     case kTypedDataUint8ClampedArrayCid:
+      locs->set_in(2, Location::RegisterOrSmiConstant(value()));
+      break;
     case kTypedDataInt16ArrayCid:
     case kTypedDataUint16ArrayCid:
     case kTypedDataInt32ArrayCid:
     case kTypedDataUint32ArrayCid:
+      locs->set_in(2, Location::RequiresRegister());
+      break;
     case kTypedDataFloat32ArrayCid:
-    case kTypedDataFloat64ArrayCid:
+      // TODO(regis): Verify.
+      // Need temp register for float-to-double conversion.
+      locs->AddTemp(Location::RequiresFpuRegister());
+      // Fall through.
+    case kTypedDataFloat64ArrayCid:  // TODO(srdjan): Support Float64 constants.
     case kTypedDataFloat32x4ArrayCid:
-      UNIMPLEMENTED();
+      locs->set_in(2, Location::RequiresFpuRegister());
       break;
     default:
       UNREACHABLE();
@@ -1135,13 +1167,64 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     case kTypedDataInt8ArrayCid:
     case kTypedDataUint8ArrayCid:
-    case kExternalTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ArrayCid: {
+      if (locs()->in(2).IsConstant()) {
+        const Smi& constant = Smi::Cast(locs()->in(2).constant());
+        __ LoadImmediate(IP, static_cast<int8_t>(constant.Value()));
+        __ strb(IP, element_address);
+      } else {
+        Register value = locs()->in(2).reg();
+        __ SmiUntag(value);
+        __ strb(value, element_address);
+      }
+      break;
+    }
     case kTypedDataUint8ClampedArrayCid:
-    case kExternalTypedDataUint8ClampedArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid: {
+      if (locs()->in(2).IsConstant()) {
+        const Smi& constant = Smi::Cast(locs()->in(2).constant());
+        intptr_t value = constant.Value();
+        // Clamp to 0x0 or 0xFF respectively.
+        if (value > 0xFF) {
+          value = 0xFF;
+        } else if (value < 0) {
+          value = 0;
+        }
+        __ LoadImmediate(IP, static_cast<int8_t>(value));
+        __ strb(IP, element_address);
+      } else {
+        Register value = locs()->in(2).reg();
+        Label store_value;
+        __ SmiUntag(value);
+        __ cmp(value, ShifterOperand(0xFF));
+        // Clamp to 0x00 or 0xFF respectively.
+        __ b(&store_value, LS);
+        __ mov(value, ShifterOperand(0x00), LE);
+        __ mov(value, ShifterOperand(0xFF), GT);
+        __ Bind(&store_value);
+        __ strb(value, element_address);
+      }
+      break;
+    }
     case kTypedDataInt16ArrayCid:
-    case kTypedDataUint16ArrayCid:
+    case kTypedDataUint16ArrayCid: {
+      Register value = locs()->in(2).reg();
+      __ SmiUntag(value);
+      __ strh(value, element_address);
+      break;
+    }
     case kTypedDataInt32ArrayCid:
-    case kTypedDataUint32ArrayCid:
+    case kTypedDataUint32ArrayCid: {
+      if (value()->IsSmiValue()) {
+        ASSERT(RequiredInputRepresentation(2) == kTagged);
+        Register value = locs()->in(2).reg();
+        __ SmiUntag(value);
+        __ str(value, element_address);
+      } else {
+        UNIMPLEMENTED();
+      }
+      break;
+    }
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
     case kTypedDataFloat32x4ArrayCid:

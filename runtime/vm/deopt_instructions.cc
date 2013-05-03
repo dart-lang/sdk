@@ -40,12 +40,12 @@ DeoptimizationContext::DeoptimizationContext(intptr_t* to_frame_start,
 
 
 intptr_t DeoptimizationContext::GetFromFp() const {
-  return from_frame_[from_frame_size_ - 1 - num_args_ - 1];
+  return from_frame_[from_frame_size_ - num_args_ - kLastParamSlotIndex];
 }
 
 
 intptr_t DeoptimizationContext::GetFromPc() const {
-  return from_frame_[from_frame_size_ - 1 - num_args_];
+  return from_frame_[from_frame_size_ - num_args_ + kPcSlotIndexFromSp];
 }
 
 intptr_t DeoptimizationContext::GetCallerFp() const {

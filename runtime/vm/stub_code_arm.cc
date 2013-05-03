@@ -333,19 +333,24 @@ DECLARE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp);
 //   +------------------+
 //   | Saved FP         | <- TOS
 //   +------------------+
-//   | return-address   |  (deoptimization point)
+//   | Saved LR         |  (deoptimization point)
 //   +------------------+
-//   | optimized frame  |
+//   | stub pc marker   |  (necessary to keep constant offset SP - Saved LR.
+//   +------------------+
+//   | optimized frame  | <- SP of optimized code
 //   |  ...             |
 //
 // Parts of the code cannot GC, part of the code can GC.
 static void GenerateDeoptimizationSequence(Assembler* assembler,
                                            bool preserve_result) {
-  __ EnterFrame((1 << FP) | (1 << LR), 0);
+  __ EnterStubFrame();  // Do not save pp (implicit saved regs to fp offset).
   // The code in this frame may not cause GC. kDeoptimizeCopyFrameRuntimeEntry
   // and kDeoptimizeFillFrameRuntimeEntry are leaf runtime calls.
   const intptr_t saved_r0_offset_from_fp = -(kNumberOfCpuRegisters - R0);
   // Result in R0 is preserved as part of pushing all registers below.
+
+  // TODO(regis): Should we align the stack before pushing the fpu registers?
+  // If we do, saved_r0_offset_from_fp is not constant anymore.
 
   // Push registers in their enumeration order: lowest register number at
   // lowest address.
@@ -363,10 +368,10 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
     __ ldr(R1, Address(FP, saved_r0_offset_from_fp * kWordSize));
   }
 
-  __ LeaveFrame((1 << FP) | (1 << LR));
+  __ LeaveStubFrame();  // Restores FP and LR from stack.
   __ sub(SP, FP, ShifterOperand(R0));
 
-  __ EnterFrame((1 << FP) | (1 << LR), 0);
+  __ EnterStubFrame();
   __ mov(R0, ShifterOperand(SP));  // Get last FP address.
   if (preserve_result) {
     __ Push(R1);  // Preserve result.
@@ -379,7 +384,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
     __ ldr(R1, Address(FP, -1 * kWordSize));
   }
   // Code above cannot cause GC.
-  __ LeaveFrame((1 << FP) | (1 << LR));
+  __ LeaveStubFrame();
   __ mov(FP, ShifterOperand(R0));
 
   // Frame is fully rewritten at this point and it is safe to perform a GC.
@@ -399,7 +404,10 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
 
 
 void StubCode::GenerateDeoptimizeLazyStub(Assembler* assembler) {
-  __ Unimplemented("DeoptimizeLazy stub");
+  // Correct return address to point just after the call that is being
+  // deoptimized.
+  __ AddImmediate(LR, -CallPattern::kFixedLengthInBytes);
+  GenerateDeoptimizationSequence(assembler, true);  // Preserve R0.
 }
 
 
