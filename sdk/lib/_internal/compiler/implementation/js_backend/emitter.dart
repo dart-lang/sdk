@@ -2365,25 +2365,6 @@ class CodeEmitterTask extends CompilerTask {
     return "${namer.isolateAccess(isolateMain)}($mainAccess)";
   }
 
-  String get nameOfDispatchPropertyInitializer => 'initializeDispatchProperty';
-
-  jsAst.Expression generateDispatchPropertyInitialization() {
-    String ref(Element element) {
-      return '${namer.CURRENT_ISOLATE}.${namer.getName(element)}';
-    }
-
-    return js(ref(backend.initializeDispatchPropertyMethod))([
-        js.fun(['a'], [ js('${ref(backend.getDispatchPropertyMethod)} = a')]),
-        js.string(generateDispatchPropertyName(0)),
-        js('${ref(backend.jsInterceptorClass)}.prototype')
-      ]);
-  }
-
-  String generateDispatchPropertyName(int seed) {
-    // TODO(sra): MD5 of contributing source code or URIs?
-    return '___dart_dispatch_record_ZxYxX_${seed}_';
-  }
-
   emitMain(CodeBuffer buffer) {
     if (compiler.isMockCompilation) return;
     Element main = compiler.mainApp.find(Compiler.MAIN);
@@ -2395,12 +2376,6 @@ class CodeEmitterTask extends CompilerTask {
     } else {
       mainCall = '${namer.isolateAccess(main)}()';
     }
-    if (backend.needToInitializeDispatchProperty) {
-      buffer.write(
-          jsAst.prettyPrint(generateDispatchPropertyInitialization(),
-                            compiler));
-    }
-    buffer.write(N);
     addComment('BEGIN invoke [main].', buffer);
     buffer.write("""
 if (typeof document !== "undefined" && document.readyState !== "complete") {

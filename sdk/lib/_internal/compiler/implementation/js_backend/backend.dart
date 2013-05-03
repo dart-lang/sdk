@@ -680,8 +680,6 @@ class JavaScriptBackend extends Backend {
   Element defineNativeMethodsFinishMethod;
   Element getDispatchPropertyMethod;
   Element setDispatchPropertyMethod;
-  Element initializeDispatchPropertyMethod;
-  bool needToInitializeDispatchProperty = false;
 
   bool seenAnyClass = false;
 
@@ -897,9 +895,6 @@ class JavaScriptBackend extends Backend {
         compiler.findInterceptor(const SourceString('setDispatchProperty'));
     getNativeInterceptorMethod =
         compiler.findInterceptor(const SourceString('getNativeInterceptor'));
-    initializeDispatchPropertyMethod =
-        compiler.findInterceptor(
-            new SourceString(emitter.nameOfDispatchPropertyInitializer));
     defineNativeMethodsFinishMethod =
         compiler.findHelper(const SourceString('defineNativeMethodsFinish'));
 
@@ -1072,9 +1067,6 @@ class JavaScriptBackend extends Backend {
         // native classes.
         enqueuer.registerStaticUse(getNativeInterceptorMethod);
         enqueuer.registerStaticUse(defineNativeMethodsFinishMethod);
-        enqueuer.registerStaticUse(initializeDispatchPropertyMethod);
-        enqueuer.registerInstantiatedClass(jsInterceptorClass,
-                                           compiler.globalDependencies);
       }
     }
 
@@ -1151,10 +1143,6 @@ class JavaScriptBackend extends Backend {
     // classes.
     enqueuer.registerStaticUse(getNativeInterceptorMethod);
     enqueuer.registerStaticUse(defineNativeMethodsFinishMethod);
-    enqueuer.registerStaticUse(initializeDispatchPropertyMethod);
-    TreeElements elements = compiler.globalDependencies;
-    enqueuer.registerInstantiatedClass(jsInterceptorClass, elements);
-    needToInitializeDispatchProperty = true;
   }
 
   JavaScriptItemCompilationContext createItemCompilationContext() {
