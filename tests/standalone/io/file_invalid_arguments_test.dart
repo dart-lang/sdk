@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:async";
 import "package:expect/expect.dart";
 import "dart:io";
 import "dart:isolate";
@@ -140,26 +141,28 @@ Future futureThrows(Future result) {
 }
 
 void testFileSystemEntity() {
-  Expect.throws(() => FileSystemEntity.typeSync([1,2,3]));
-  Expect.throws(() =>
-      FileSystemEntity.typeSync(".", followLinks: "why not?"));
-  Expect.throws(() => FileSystemEntity.identicalSync([1,2,3], "."));
-  Expect.throws(() => FileSystemEntity.identicalSync("."));
-  Expect.throws(() => FileSystemEntity.identicalSync(".", 52));
-  Expect.throws(() => FileSystemEntity.isLinkSync(52));
-  Expect.throws(() => FileSystemEntity.isFileSync(52));
-  Expect.throws(() => FileSystemEntity.isDirectorySync(52));
+  Expect.throws(() => ((x) => FileSystemEntity.typeSync(x))([1,2,3]));
+  Expect.throws(() => ((x, y) =>
+      FileSystemEntity.typeSync(x, followLinks: y))(".", "why not?"));
+  Expect.throws(() => ((x, y) =>
+      FileSystemEntity.identicalSync(x, y))([1,2,3], "."));
+  Expect.throws(() => ((x, y) =>
+                       FileSystemEntity.identicalSync(x, y))(".", 52));
+  Expect.throws(() => ((x) => FileSystemEntity.isLinkSync(x))(52));
+  Expect.throws(() => ((x) => FileSystemEntity.isFileSync(x))(52));
+  Expect.throws(() => ((x) => FileSystemEntity.isDirectorySync(x))(52));
 
   ReceivePort keepAlive = new ReceivePort();
-  futureThrows(FileSystemEntity.type([1,2,3]))
-  .then((_) => futureThrows(
-      FileSystemEntity.type(".", followLinks: "why not?")))
-  .then((_) => futureThrows(FileSystemEntity.identical([1,2,3], ".")))
-  .then((_) => Expect.throws(() =>FileSystemEntity.identical(".")))
-  .then((_) => futureThrows(FileSystemEntity.identical(".", 52)))
-  .then((_) => futureThrows(FileSystemEntity.isLink(52)))
-  .then((_) => futureThrows(FileSystemEntity.isFile(52)))
-  .then((_) => futureThrows(FileSystemEntity.isDirectory(52)))
+  futureThrows(((x) => FileSystemEntity.type(x))([1,2,3]))
+  .then((_) => futureThrows(((x, y) =>
+       FileSystemEntity.type(x, followLinks: y))(".", "why not?")))
+  .then((_) => futureThrows(((x, y) =>
+       FileSystemEntity.identical(x, y))([1,2,3], ".")))
+  .then((_) => futureThrows(((x, y) =>
+       FileSystemEntity.identical(x, y))(".", 52)))
+  .then((_) => futureThrows(((x) => FileSystemEntity.isLink(x))(52)))
+  .then((_) => futureThrows(((x) => FileSystemEntity.isFile(x))(52)))
+  .then((_) => futureThrows(((x) => FileSystemEntity.isDirectory(x))(52)))
   .then((_) => keepAlive.close());
 }
 

@@ -53,7 +53,7 @@ abstract class FileSystemEntity {
     return service.call(request).then((response) {
       if (_isErrorResponse(response)) {
         throw _exceptionFromResponse(response,
-                                     "Error getting type of '$_path'");
+                                     "Error getting type of '$path'");
       }
       return response;
     });
