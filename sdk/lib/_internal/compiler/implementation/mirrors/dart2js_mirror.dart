@@ -827,8 +827,6 @@ class Dart2JsClassMirror extends Dart2JsContainerMirror
 
   bool get isClass => true;
 
-  bool get isInterface => false;
-
   bool get isAbstract => _class.modifiers.isAbstract();
 
   bool get isOriginalDeclaration => true;
@@ -848,13 +846,6 @@ class Dart2JsClassMirror extends Dart2JsContainerMirror
       }
     }
     return _typeVariables;
-  }
-
-  /**
-   * Returns the default type for this interface.
-   */
-  ClassMirror get defaultFactory {
-    return null;
   }
 
   bool operator ==(Object other) {
@@ -934,8 +925,6 @@ class Dart2JsTypedefMirror extends Dart2JsTypeElementMirror
   List<ClassMirror> get superinterfaces => const <ClassMirror>[];
 
   bool get isClass => false;
-
-  bool get isInterface => false;
 
   bool get isOriginalDeclaration => true;
 
@@ -1042,8 +1031,6 @@ abstract class Dart2JsTypeElementMirror extends Dart2JsElementMirror
   Map<String, MethodMirror> get setters => const <String, MethodMirror>{};
 
   Map<String, VariableMirror> get variables => const <String, VariableMirror>{};
-
-  ClassMirror get defaultFactory => null;
 }
 
 class Dart2JsInterfaceTypeMirror extends Dart2JsTypeElementMirror
@@ -1075,8 +1062,6 @@ class Dart2JsInterfaceTypeMirror extends Dart2JsTypeElementMirror
   List<ClassMirror> get superinterfaces => originalDeclaration.superinterfaces;
 
   bool get isClass => originalDeclaration.isClass;
-
-  bool get isInterface => originalDeclaration.isInterface;
 
   bool get isAbstract => originalDeclaration.isAbstract;
 
@@ -1117,9 +1102,6 @@ class Dart2JsInterfaceTypeMirror extends Dart2JsTypeElementMirror
 
   // TODO(johnniwinther): Substitute type arguments for type variables.
   Map<String, VariableMirror> get variables => originalDeclaration.variables;
-
-  // TODO(johnniwinther): Substitute type arguments for type variables?
-  ClassMirror get defaultFactory => originalDeclaration.defaultFactory;
 
   bool operator ==(Object other) {
     if (identical(this, other)) {
@@ -1193,8 +1175,6 @@ class Dart2JsFunctionTypeMirror extends Dart2JsTypeElementMirror
   List<ClassMirror> get superinterfaces => originalDeclaration.superinterfaces;
 
   bool get isClass => originalDeclaration.isClass;
-
-  bool get isInterface => originalDeclaration.isInterface;
 
   bool get isPrivate => originalDeclaration.isPrivate;
 

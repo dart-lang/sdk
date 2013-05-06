@@ -134,7 +134,6 @@ void testFoo(MirrorSystem system, LibraryMirror helperLibrary,
 
   Expect.isTrue(fooClass.isClass, "Class is not class");
   Expect.isFalse(fooClass.isAbstract);
-  Expect.isFalse(fooClass.isInterface, "Class is interface");
   Expect.isFalse(fooClass.isPrivate, "Class is private");
 
   var objectType = fooClass.superclass;
@@ -162,8 +161,6 @@ void testFoo(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isNotNull(fooClassTypeVariables, "Type variable list is null");
   Expect.isTrue(fooClassTypeVariables.isEmpty,
                 "Type variable list is not empty");
-
-  Expect.isNull(fooClass.defaultFactory);
 
   var fooClassMembers = fooClass.members;
   Expect.isNotNull(fooClassMembers, "Declared members map is null");
@@ -450,7 +447,6 @@ void testBar(MirrorSystem system, LibraryMirror helperLibrary,
 
   Expect.isTrue(barClass.isClass);
   Expect.isTrue(barClass.isAbstract);
-  Expect.isFalse(barClass.isInterface);
   Expect.isFalse(barClass.isPrivate, "Interface is private");
 
   var objectType = barClass.superclass;
@@ -486,8 +482,6 @@ void testBar(MirrorSystem system, LibraryMirror helperLibrary,
   var barE = barInterfaceTypeVariables[0];
   Expect.isNotNull(barE, "Type variable is null");
   Expect.isTrue(barE.isTypeVariable, "Type variable is not type variable");
-
-  Expect.isNull(barClass.defaultFactory);
 
   var barInterfaceMembers = barClass.members;
   Expect.isNotNull(barInterfaceMembers, "Declared members map is null");
@@ -544,7 +538,6 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
 
   Expect.isTrue(bazClass.isClass, "Class is not class");
   Expect.isFalse(bazClass.isAbstract);
-  Expect.isFalse(bazClass.isInterface, "Class is interface");
   Expect.isFalse(bazClass.isPrivate, "Class is private");
 
   var objectType = bazClass.superclass;
@@ -606,8 +599,6 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isFalse(bazFbound.isOriginalDeclaration);
   Expect.stringEquals("mirrors_helper.Foo", bazFbound.qualifiedName,
                       "Bound is not Foo");
-
-  Expect.isNull(bazClass.defaultFactory);
 
   var bazClassMembers = bazClass.members;
   Expect.isNotNull(bazClassMembers, "Declared members map is null");
@@ -828,9 +819,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   // declaration:
   Expect.isTrue(funcTypedef.isOriginalDeclaration);
   Expect.isFalse(funcTypedef.isClass, "Typedef is class");
-  Expect.isFalse(funcTypedef.isInterface, "Typedef is interface");
   Expect.isFalse(funcTypedef.isPrivate, "Typedef is private");
-  Expect.isNull(funcTypedef.defaultFactory);
   // TODO(johnniwinther): Should not throw an exception since the type should
   // not be the original declaration.
   Expect.throws(() => funcTypedef.typeArguments,

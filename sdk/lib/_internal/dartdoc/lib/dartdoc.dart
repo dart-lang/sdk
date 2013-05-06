@@ -837,8 +837,6 @@ class Dartdoc {
       typeInfo[NAME] = displayName(type);
       if (type.isClass) {
         typeInfo[KIND] = CLASS;
-      } else if (type.isInterface) {
-        typeInfo[KIND] = INTERFACE;
       } else {
         assert(type.isTypedef);
         typeInfo[KIND] = TYPEDEF;
@@ -992,7 +990,6 @@ class Dartdoc {
     docMembers(library);
 
     // Document the types.
-    final interfaces = <ClassMirror>[];
     final abstractClasses = <ClassMirror>[];
     final classes = <ClassMirror>[];
     final typedefs = <TypedefMirror>[];
@@ -1010,8 +1007,6 @@ class Dartdoc {
         } else {
           classes.add(type);
         }
-      } else if (type.isInterface){
-        interfaces.add(type);
       } else if (type is TypedefMirror) {
         typedefs.add(type);
       } else {
@@ -1019,7 +1014,6 @@ class Dartdoc {
       }
     }
 
-    docTypes(interfaces, 'Interfaces');
     docTypes(abstractClasses, 'Abstract Classes');
     docTypes(classes, 'Classes');
     docTypes(typedefs, 'Typedefs');
@@ -1063,10 +1057,11 @@ class Dartdoc {
 
     startFile(typeUrl(type));
 
-    var kind = 'interface';
+    var kind;
     if (type.isTypedef) {
       kind = 'typedef';
-    } else if (type.isClass) {
+    } else {
+      assert(type.isClass);
       if (type.isAbstract) {
         kind = 'abstract class';
       } else {
@@ -1140,6 +1135,7 @@ class Dartdoc {
     // Don't show the inheritance details for Object. It doesn't have any base
     // class (obviously) and it has too many subclasses to be useful.
     if (type.isObject) return;
+    if (type.isTypedef) return;
 
     // Writes an unordered list of references to types with an optional header.
     listTypes(types, header) {
@@ -1173,56 +1169,30 @@ class Dartdoc {
       subtypes.add(subtype);
     }
     subtypes.sort((x, y) => x.simpleName.compareTo(y.simpleName));
-    if (type.isClass) {
-      // Show the chain of superclasses.
-      if (!type.superclass.isObject) {
-        final supertypes = [];
-        var thisType = type.superclass;
-        // As a sanity check, only show up to five levels of nesting, otherwise
-        // the box starts to get hideous.
-        do {
-          supertypes.add(thisType);
-          thisType = thisType.superclass;
-        } while (!thisType.isObject);
 
-        writeln('<h3>Extends</h3>');
-        writeln('<p>');
-        for (var i = supertypes.length - 1; i >= 0; i--) {
-          typeSpan(supertypes[i]);
-          write('&nbsp;&gt;&nbsp;');
-        }
+    // Show the chain of superclasses.
+    if (!type.superclass.isObject) {
+      final supertypes = [];
+      var thisType = type.superclass;
+      do {
+        supertypes.add(thisType);
+        thisType = thisType.superclass;
+      } while (!thisType.isObject);
 
-        // Write this class.
-        typeSpan(type);
-        writeln('</p>');
+      writeln('<h3>Extends</h3>');
+      writeln('<p>');
+      for (var i = supertypes.length - 1; i >= 0; i--) {
+        typeSpan(supertypes[i]);
+        write('&nbsp;&gt;&nbsp;');
       }
 
-      listTypes(subtypes, 'Subclasses');
-      listTypes(type.superinterfaces, 'Implements');
-    } else {
-      // Show the default class.
-      if (type.defaultFactory != null) {
-        listTypes([type.defaultFactory], 'Default class');
-      }
-
-      // List extended interfaces.
-      listTypes(type.superinterfaces, 'Extends');
-
-      // List subinterfaces and implementing classes.
-      final subinterfaces = [];
-      final implementing = [];
-
-      for (final subtype in subtypes) {
-        if (subtype.isClass) {
-          implementing.add(subtype);
-        } else {
-          subinterfaces.add(subtype);
-        }
-      }
-
-      listTypes(subinterfaces, 'Subinterfaces');
-      listTypes(implementing, 'Implemented by');
+      // Write this class.
+      typeSpan(type);
+      writeln('</p>');
     }
+
+    listTypes(subtypes, 'Subclasses');
+    listTypes(type.superinterfaces, 'Implements');
   }
 
   /**

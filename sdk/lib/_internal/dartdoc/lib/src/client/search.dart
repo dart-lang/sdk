@@ -120,7 +120,7 @@ class Result {
       sb.write('set ');
     }
     sb.write(match.toHtml());
-    if (kind == CLASS || kind == INTERFACE || kind == TYPEDEF) {
+    if (kind == CLASS || kind == TYPEDEF) {
       sb.write(args);
     } else if (kind == CONSTRUCTOR || kind == METHOD) {
       if (noargs) {
