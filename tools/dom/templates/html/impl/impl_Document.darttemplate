@@ -32,7 +32,7 @@ $!MEMBERS
    * For details about CSS selector syntax, see the
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
-  List<Element> queryAll(String selectors) {
+  ElementList queryAll(String selectors) {
     return new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
   }
 }
