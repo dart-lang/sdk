@@ -6938,7 +6938,7 @@ class Document extends Node
    * For details about CSS selector syntax, see the
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
-  List<Element> queryAll(String selectors) {
+  ElementList queryAll(String selectors) {
     return new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
   }
 }
@@ -8401,11 +8401,32 @@ class _ChildrenElementList extends ListBase<Element> {
   }
 }
 
+/** 
+ * An immutable list containing HTML elements. This list contains some
+ * additional methods for ease of CSS manipulation on a group of elements.
+ */
+abstract class ElementList<T extends Element> extends ListBase<T> {
+  /**
+   * The union of all CSS classes applied to the elements in this list.
+   *
+   * This set makes it easy to add, remove or toggle (add if not present, remove
+   * if present) the classes applied to a collection of elements.
+   *
+   *     htmlList.classes.add('selected');
+   *     htmlList.classes.toggle('isOnline');
+   *     htmlList.classes.remove('selected');
+   */
+  CssClassSet get classes;
+
+  /** Replace the classes with `value` for every element in this list. */
+  set classes(Iterable<String> value);
+}
+
 // TODO(jacobr): this is an inefficient implementation but it is hard to see
 // a better option given that we cannot quite force NodeList to be an
 // ElementList as there are valid cases where a NodeList JavaScript object
 // contains Node objects that are not Elements.
-class _FrozenElementList<T extends Element> extends ListBase<T> {
+class _FrozenElementList<T extends Element> extends ListBase<T> implements ElementList {
   final List<Node> _nodeList;
 
   _FrozenElementList._wrap(this._nodeList);
@@ -8431,30 +8452,12 @@ class _FrozenElementList<T extends Element> extends ListBase<T> {
   Element get last => _nodeList.last;
 
   Element get single => _nodeList.single;
-}
 
-class _ElementCssClassSet extends CssClassSet {
+  CssClassSet get classes => new _MultiElementCssClassSet(
+      _nodeList.where((e) => e is Element));
 
-  final Element _element;
-
-  _ElementCssClassSet(this._element);
-
-  Set<String> readClasses() {
-    var s = new LinkedHashSet<String>();
-    var classname = _element.$dom_className;
-
-    for (String name in classname.split(' ')) {
-      String trimmed = name.trim();
-      if (!trimmed.isEmpty) {
-        s.add(trimmed);
-      }
-    }
-    return s;
-  }
-
-  void writeClasses(Set<String> s) {
-    List list = new List.from(s);
-    _element.$dom_className = s.join(' ');
+  void set classes(Iterable<String> value) {
+    _nodeList.where((e) => e is Element).forEach((e) => e.classes = value);
   }
 }
 
@@ -8554,7 +8557,7 @@ abstract class Element extends Node implements ElementTraversal {
    *
    *     var items = element.query('.itemClassName');
    */
-  List<Element> queryAll(String selectors) =>
+  ElementList queryAll(String selectors) =>
     new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
 
   /**
@@ -28199,78 +28202,28 @@ abstract class HistoryBase {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/** A Set that stores the CSS class names for an element. */
 abstract class CssClassSet implements Set<String> {
-
-  String toString() {
-    return readClasses().join(' ');
-  }
 
   /**
    * Adds the class [value] to the element if it is not on it, removes it if it
    * is.
    */
-  bool toggle(String value) {
-    Set<String> s = readClasses();
-    bool result = false;
-    if (s.contains(value)) {
-      s.remove(value);
-    } else {
-      s.add(value);
-      result = true;
-    }
-    writeClasses(s);
-    return result;
-  }
+  bool toggle(String value);
 
   /**
    * Returns [:true:] if classes cannot be added or removed from this
    * [:CssClassSet:].
    */
-  bool get frozen => false;
+  bool get frozen;
 
-  // interface Iterable - BEGIN
-  Iterator<String> get iterator => readClasses().iterator;
-  // interface Iterable - END
-
-  // interface Collection - BEGIN
-  void forEach(void f(String element)) {
-    readClasses().forEach(f);
-  }
-
-  String join([String separator = ""]) => readClasses().join(separator);
-
-  Iterable map(f(String element)) => readClasses().map(f);
-
-  Iterable<String> where(bool f(String element)) => readClasses().where(f);
-
-  Iterable expand(Iterable f(String element)) => readClasses().expand(f);
-
-  bool every(bool f(String element)) => readClasses().every(f);
-
-  bool any(bool f(String element)) => readClasses().any(f);
-
-  bool get isEmpty => readClasses().isEmpty;
-
-  int get length => readClasses().length;
-
-  String reduce(String combine(String value, String element)) {
-    return readClasses().reduce(combine);
-  }
-
-  dynamic fold(dynamic initialValue,
-      dynamic combine(dynamic previousValue, String element)) {
-    return readClasses().fold(initialValue, combine);
-  }
-  // interface Collection - END
-
-  // interface Set - BEGIN
   /**
    * Determine if this element contains the class [value].
    *
    * This is the Dart equivalent of jQuery's
    * [hasClass](http://api.jquery.com/hasClass/).
    */
-  bool contains(String value) => readClasses().contains(value);
+  bool contains(String value);
 
   /**
    * Add the class [value] to element.
@@ -28278,11 +28231,7 @@ abstract class CssClassSet implements Set<String> {
    * This is the Dart equivalent of jQuery's
    * [addClass](http://api.jquery.com/addClass/).
    */
-  void add(String value) {
-    // TODO - figure out if we need to do any validation here
-    // or if the browser natively does enough.
-    _modify((s) => s.add(value));
-  }
+  void add(String value);
 
   /**
    * Remove the class [value] from element, and return true on successful
@@ -28291,13 +28240,7 @@ abstract class CssClassSet implements Set<String> {
    * This is the Dart equivalent of jQuery's
    * [removeClass](http://api.jquery.com/removeClass/).
    */
-  bool remove(Object value) {
-    if (value is! String) return false;
-    Set<String> s = readClasses();
-    bool result = s.remove(value);
-    writeClasses(s);
-    return result;
-  }
+  bool remove(Object value);
 
   /**
    * Add all classes specified in [iterable] to element.
@@ -28305,10 +28248,7 @@ abstract class CssClassSet implements Set<String> {
    * This is the Dart equivalent of jQuery's
    * [addClass](http://api.jquery.com/addClass/).
    */
-  void addAll(Iterable<String> iterable) {
-    // TODO - see comment above about validation.
-    _modify((s) => s.addAll(iterable));
-  }
+  void addAll(Iterable<String> iterable);
 
   /**
    * Remove all classes specified in [iterable] from element.
@@ -28316,9 +28256,7 @@ abstract class CssClassSet implements Set<String> {
    * This is the Dart equivalent of jQuery's
    * [removeClass](http://api.jquery.com/removeClass/).
    */
-  void removeAll(Iterable<String> iterable) {
-    _modify((s) => s.removeAll(iterable));
-  }
+  void removeAll(Iterable<String> iterable);
 
   /**
    * Toggles all classes specified in [iterable] on element.
@@ -28327,58 +28265,34 @@ abstract class CssClassSet implements Set<String> {
    * remove it if it is. This is the Dart equivalent of jQuery's
    * [toggleClass](http://api.jquery.com/toggleClass/).
    */
-  void toggleAll(Iterable<String> iterable) {
-    iterable.forEach(toggle);
+  void toggleAll(Iterable<String> iterable);
+}
+
+/**
+ * A set (union) of the CSS classes that are present in a set of elements.
+ * Implemented separately from _ElementCssClassSet for performance.
+ */
+class _MultiElementCssClassSet extends CssClassSetImpl {
+  final Iterable<Element> _elementIterable;
+  Iterable<_ElementCssClassSet> _elementCssClassSetIterable;
+
+  _MultiElementCssClassSet(this._elementIterable) {
+    _elementCssClassSetIterable = new List.from(_elementIterable).map(
+        (e) => new _ElementCssClassSet(e));
   }
 
-  void retainAll(Iterable<String> iterable) {
-    _modify((s) => s.retainAll(iterable));
+  Set<String> readClasses() {
+    var s = new LinkedHashSet<String>();
+    _elementCssClassSetIterable.forEach((e) => s.addAll(e.readClasses()));
+    return s;
   }
 
-  void removeWhere(bool test(String name)) {
-    _modify((s) => s.removeWhere(test));
+  void writeClasses(Set<String> s) {
+    var classes = new List.from(s).join(' ');
+    for (Element e in _elementIterable) {
+      e.$dom_className = classes;
+    }
   }
-
-  void retainWhere(bool test(String name)) {
-    _modify((s) => s.retainWhere(test));
-  }
-
-  bool containsAll(Iterable<String> collection) =>
-    readClasses().containsAll(collection);
-
-  Set<String> intersection(Set<String> other) =>
-    readClasses().intersection(other);
-
-  Set<String> union(Set<String> other) =>
-    readClasses().union(other);
-
-  Set<String> difference(Set<String> other) =>
-    readClasses().difference(other);
-
-  String get first => readClasses().first;
-  String get last => readClasses().last;
-  String get single => readClasses().single;
-  List<String> toList({ bool growable: true }) =>
-      readClasses().toList(growable: growable);
-  Set<String> toSet() => readClasses().toSet();
-  Iterable<String> take(int n) => readClasses().take(n);
-  Iterable<String> takeWhile(bool test(String value)) =>
-      readClasses().takeWhile(test);
-  Iterable<String> skip(int n) => readClasses().skip(n);
-  Iterable<String> skipWhile(bool test(String value)) =>
-      readClasses().skipWhile(test);
-  String firstWhere(bool test(String value), { String orElse() }) =>
-      readClasses().firstWhere(test, orElse: orElse);
-  String lastWhere(bool test(String value), {String orElse()}) =>
-      readClasses().lastWhere(test, orElse: orElse);
-  String singleWhere(bool test(String value)) =>
-      readClasses().singleWhere(test);
-  String elementAt(int index) => readClasses().elementAt(index);
-
-  void clear() {
-    _modify((s) => s.clear());
-  }
-  // interface Set - END
 
   /**
    * Helper method used to modify the set of css classes on this element.
@@ -28389,25 +28303,53 @@ abstract class CssClassSet implements Set<String> {
    *   After f returns, the modified set is written to the
    *       className property of this element.
    */
-  void _modify( f(Set<String> s)) {
-    Set<String> s = readClasses();
-    f(s);
-    writeClasses(s);
+  void modify( f(Set<String> s)) {
+    _elementCssClassSetIterable.forEach((e) => e.modify(f));
   }
 
   /**
-   * Read the class names from the Element class property,
-   * and put them into a set (duplicates are discarded).
-   * This is intended to be overridden by specific implementations.
+   * Adds the class [value] to the element if it is not on it, removes it if it
+   * is.
    */
-  Set<String> readClasses();
+  bool toggle(String value) =>
+      _modifyWithReturnValue((e) => e.toggle(value));
 
   /**
-   * Join all the elements of a set into one string and write
-   * back to the element.
-   * This is intended to be overridden by specific implementations.
+   * Remove the class [value] from element, and return true on successful
+   * removal.
+   *
+   * This is the Dart equivalent of jQuery's
+   * [removeClass](http://api.jquery.com/removeClass/).
    */
-  void writeClasses(Set<String> s);
+  bool remove(Object value) => _modifyWithReturnValue((e) => e.remove(value));
+
+  bool _modifyWithReturnValue(f) => _elementCssClassSetIterable.fold(
+      false, (prevValue, element) => f(element) || prevValue);
+}
+
+class _ElementCssClassSet extends CssClassSetImpl {
+
+  final Element _element;
+
+  _ElementCssClassSet(this._element);
+
+  Set<String> readClasses() {
+    var s = new LinkedHashSet<String>();
+    var classname = _element.$dom_className;
+
+    for (String name in classname.split(' ')) {
+      String trimmed = name.trim();
+      if (!trimmed.isEmpty) {
+        s.add(trimmed);
+      }
+    }
+    return s;
+  }
+
+  void writeClasses(Set<String> s) {
+    List list = new List.from(s);
+    _element.$dom_className = s.join(' ');
+  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
