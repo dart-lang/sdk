@@ -4,7 +4,7 @@
 
 part of $LIBRARYNAME;
 
-class _AttributeClassSet extends CssClassSetImpl {
+class _AttributeClassSet extends CssClassSet {
   final Element _element;
 
   _AttributeClassSet(this._element);
