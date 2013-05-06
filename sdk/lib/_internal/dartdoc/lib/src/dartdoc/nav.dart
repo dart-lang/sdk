@@ -17,7 +17,7 @@ library dartdoc_nav;
  *     TypeInfo = {
  *         String NAME, // Type name.
  *         String ARGS, // Type variables, e.g. "<K,V>". Optional.
- *         String KIND, // One of CLASS or TYPEDEF.
+ *         String KIND, // One of CLASS, INTERFACE, or TYPEDEF.
  *         List<MemberInfo> MEMBERS, // Type fields and methods.
  *     };
  *     MemberInfo = {
@@ -34,6 +34,7 @@ library dartdoc_nav;
 
 const String LIBRARY = 'library';
 const String CLASS = 'class';
+const String INTERFACE = 'interface';
 const String TYPEDEF = 'typedef';
 const String MEMBERS = 'members';
 const String TYPES = 'types';
@@ -57,6 +58,8 @@ String kindToString(String kind) {
     return 'library';
   } else if (kind == CLASS) {
     return 'class';
+  } else if (kind == INTERFACE) {
+    return 'interface';
   } else if (kind == TYPEDEF) {
     return 'typedef';
   } else if (kind == FIELD) {
