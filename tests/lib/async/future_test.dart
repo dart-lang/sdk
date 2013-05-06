@@ -76,15 +76,17 @@ testCompleteWithSuccessHandlerBeforeComplete() {
   final completer = new Completer<int>();
   final future = completer.future;
 
-  int value;
-  future.then((int v) { value = v; });
-  Expect.isNull(value);
+  int after;
 
-  Expect.isFalse(completer.isCompleted);
+  var port = new ReceivePort();
+  future.then((int v) { after = v; })
+    .then((_) {
+      Expect.equals(3, after);
+      port.close();
+    });
+
   completer.complete(3);
-  Expect.isTrue(completer.isCompleted);
-
-  Expect.equals(3, value);
+  Expect.isNull(after);
 }
 
 testCompleteWithSuccessHandlerAfterComplete() {

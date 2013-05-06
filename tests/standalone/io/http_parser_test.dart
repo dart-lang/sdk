@@ -275,13 +275,13 @@ class HttpParserTest {
   }
 
   static void _testParseInvalidResponse(String response, [bool close = false]) {
-    _HttpParser httpParser;
-    bool errorCalled;
-    StreamController controller;
+    void testWrite(List<int> requestData, [int chunkSize = -1]) {
+      _HttpParser httpParser = new _HttpParser.responseParser();
+      StreamController controller = new StreamController();
+      bool errorCalled = false;;
 
-    void reset() {
-      httpParser = new _HttpParser.responseParser();
-      controller = new StreamController();
+      if (chunkSize == -1) chunkSize = requestData.length;
+
       var port = new ReceivePort();
       controller.stream.pipe(httpParser);
       var subscription = httpParser.listen((incoming) {
@@ -300,12 +300,8 @@ class HttpParserTest {
         port.close();
         Expect.isTrue(errorCalled);
       });
-      errorCalled = false;
-    }
 
-    void testWrite(List<int> requestData, [int chunkSize = -1]) {
-      if (chunkSize == -1) chunkSize = requestData.length;
-      reset();
+      errorCalled = false;
       for (int pos = 0;
            pos < requestData.length && !errorCalled;
            pos += chunkSize) {

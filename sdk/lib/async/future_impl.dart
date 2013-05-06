@@ -7,17 +7,19 @@ part of dart.async;
 deprecatedFutureValue(_FutureImpl future) =>
   future._isComplete ? future._resultOrListeners : null;
 
-class _CompleterImpl<T> implements Completer<T> {
+abstract class _Completer<T> implements Completer<T> {
   final Future<T> future;
   bool _isComplete = false;
 
-  _CompleterImpl() : future = new _FutureImpl<T>();
+  _Completer() : future = new _FutureImpl<T>();
+
+  void _setFutureValue(T value);
+  void _setFutureError(error);
 
   void complete([T value]) {
     if (_isComplete) throw new StateError("Future already completed");
     _isComplete = true;
-    _FutureImpl future = this.future;
-    future._setValue(value);
+    _setFutureValue(value);
   }
 
   void completeError(Object error, [Object stackTrace = null]) {
@@ -27,11 +29,32 @@ class _CompleterImpl<T> implements Completer<T> {
       // Force the stack trace onto the error, even if it already had one.
       _attachStackTrace(error, stackTrace);
     }
-    _FutureImpl future = this.future;
-    future._setError(error);
+    _setFutureError(error);
   }
 
   bool get isCompleted => _isComplete;
+}
+
+class _AsyncCompleter<T> extends _Completer<T> {
+  void _setFutureValue(T value) {
+    _FutureImpl future = this.future;
+    runAsync(() { future._setValue(value); });
+  }
+
+  void _setFutureError(error) {
+    _FutureImpl future = this.future;
+    runAsync(() { future._setError(error); });
+  }
+}
+
+class _SyncCompleter<T> extends _Completer<T> {
+  void _setFutureValue(T value) {
+    future._setValue(value);
+  }
+
+  void _setFutureError(error) {
+    future._setError(error);
+  }
 }
 
 /**

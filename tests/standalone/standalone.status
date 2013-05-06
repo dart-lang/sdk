@@ -17,6 +17,7 @@ io/raw_socket_test: Pass, Fail # Issue 8901
 [ $runtime == vm ]
 package/package_isolate_test: Fail # http://dartbug.com/7520.
 io/raw_server_socket_cancel_test: Pass, Fail, Timeout # Issue 8675
+io/http_server_early_client_close2_test: Fail # http://dartbug.com/10408
 
 [ $runtime == vm && $checked ]
 # These tests have type errors on purpose.

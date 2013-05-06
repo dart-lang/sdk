@@ -199,36 +199,31 @@ abstract class _LocalObjectMirrorImpl extends _LocalVMObjectMirrorImpl
       var arg = positionalArguments[i];
       _validateArgument(i, arg);
     }
-    Completer<InstanceMirror> completer = new Completer<InstanceMirror>();
     try {
-      completer.complete(
+      return new Future<InstanceMirror>.value(
           _invoke(this, _n(memberName), positionalArguments, true));
     } catch (exception, s) {
-      completer.completeError(exception, s);
+      return new Future<InstanceMirror>.error(exception, s);
     }
-    return completer.future;
   }
 
   Future<InstanceMirror> getFieldAsync(Symbol fieldName) {
-    Completer<InstanceMirror> completer = new Completer<InstanceMirror>();
     try {
-      completer.complete(_getField(this, _n(fieldName)));
+      return new Future<InstanceMirror>.value(_getField(this, _n(fieldName)));
     } catch (exception, s) {
-      completer.completeError(exception, s);
+      return new Future<InstanceMirror>.error(exception, s);
     }
-    return completer.future;
   }
 
   Future<InstanceMirror> setFieldAsync(Symbol fieldName, Object arg) {
     _validateArgument(0, arg);
 
-    Completer<InstanceMirror> completer = new Completer<InstanceMirror>();
     try {
-      completer.complete(_setField(this, _n(fieldName), arg, true));
+      return new Future<InstanceMirror>.value(
+          _setField(this, _n(fieldName), arg, true));
     } catch (exception, s) {
-      completer.completeError(exception, s);
+      return new Future<InstanceMirror>.error(exception, s);
     }
-    return completer.future;
   }
 
   static _validateArgument(int i, Object arg)
@@ -388,14 +383,12 @@ class _LocalClosureMirrorImpl extends _LocalInstanceMirrorImpl
       var arg = positionalArguments[i];
       _LocalObjectMirrorImpl._validateArgument(i, arg);
     }
-    Completer<InstanceMirror> completer = new Completer<InstanceMirror>();
     try {
-      completer.complete(
+      return new Future<InstanceMirror>.value(
           _apply(this, positionalArguments, true));
     } catch (exception) {
-      completer.completeError(exception);
+      return new Future<InstanceMirror>.error(exception);
     }
-    return completer.future;
   }
 
   Future<InstanceMirror> findInContext(Symbol name) {
@@ -598,17 +591,15 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
       var arg = positionalArguments[i];
       _LocalObjectMirrorImpl._validateArgument(i, arg);
     }
-    Completer<InstanceMirror> completer = new Completer<InstanceMirror>();
     try {
-      completer.complete(
+      return new Future<InstanceMirror>.value(
           _invokeConstructor(this,
                              _n(constructorName),
                              positionalArguments,
                              true));
     } catch (exception) {
-      completer.completeError(exception);
+      return new Future<InstanceMirror>.error(exception);
     }
-    return completer.future;
   }
 
   static _invokeConstructor(ref, constructorName, positionalArguments, async)
@@ -1046,20 +1037,18 @@ class _Mirrors {
   }
 
   static Future<MirrorSystem> mirrorSystemOf(SendPort port) {
-    Completer<MirrorSystem> completer = new Completer<MirrorSystem>();
     if (isLocalPort(port)) {
       // Make a local mirror system.
       try {
-        completer.complete(currentMirrorSystem());
+        return new Future<MirrorSystem>.value(currentMirrorSystem());
       } catch (exception) {
-        completer.completeError(exception);
+        return new Future<MirrorSystem>.error(exception);
       }
     } else {
       // Make a remote mirror system
       throw new UnimplementedError(
           'Remote mirror support is not implemented');
     }
-    return completer.future;
   }
 
   // Creates a new local InstanceMirror

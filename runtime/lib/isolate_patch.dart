@@ -136,7 +136,7 @@ class _SendPortImpl implements SendPort {
   }
 
   Future call(var message) {
-    final completer = new Completer();
+    final completer = new Completer.sync();
     final port = new _ReceivePortImpl();
     send(message, port.toSendPort());
     port.receive((value, ignoreReplyTo) {

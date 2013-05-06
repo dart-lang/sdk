@@ -343,7 +343,38 @@ abstract class Future<T> {
  */
 abstract class Completer<T> {
 
-  factory Completer() => new _CompleterImpl<T>();
+  factory Completer() => new _AsyncCompleter<T>();
+
+  /**
+   * Completes the future synchronously.
+   *
+   * This constructor should be avoided unless the completion of the future is
+   * known to be the final result of another asynchronous operation. If in doubt
+   * use the default [Completer] constructor.
+   *
+   * Example:
+   *
+   *     var completer = new Completer.sync();
+   *     // The completion is the result of the asynchronous onDone event.
+   *     // No other operation is performed after the completion. It is safe
+   *     // to use the Completer.sync constructor.
+   *     stream.listen(print, onDone: () { completer.complete("done"); });
+   *
+   * Bad example. Do not use this code. Only for illustrative purposes:
+   *
+   *     var completer = new Completer.sync();
+   *     // The completion is the result of the asynchronous onDone event.
+   *     // However, there is still code executed after the completion. This
+   *     // operation is *not* safe.
+   *     stream.listen(print, onDone: () {
+   *       completer.complete("done");
+   *       foo();  // This operation follows the completion.
+   *     });
+   *
+   * *WARNING* This constructor is experimental and could disappear or change
+   * behavior.
+   */
+  factory Completer.sync() => new _SyncCompleter<T>();
 
   /** The future that will contain the result provided to this completer. */
   Future get future;

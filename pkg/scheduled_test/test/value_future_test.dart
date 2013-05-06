@@ -98,30 +98,39 @@ void main() {
     });
 
     test('.value is the result of the future', () {
-      expect(future.value, equals(12));
+      future.then(expectAsync1((_) {
+        expect(future.value, equals(12));
+      }));
     });
 
     test('.hasValue is true', () {
-      expect(future.hasValue, isTrue);
+      future.then(expectAsync1((_) {
+        expect(future.hasValue, isTrue);
+      }));
     });
   });
 
   group('after an error completion', () {
     var future;
+    var safeFuture;
 
     setUp(() {
       var completer = new Completer();
       future = new ValueFuture(completer.future);
-      future.catchError((e) {});
+      safeFuture = future.catchError((e) {});
       completer.completeError('bad');
     });
 
     test('.value is null', () {
-      expect(future.value, isNull);
+      safeFuture.then(expectAsync1((_) {
+        expect(future.value, isNull);
+      }));
     });
 
     test('.hasValue is false', () {
-      expect(future.hasValue, isFalse);
+      safeFuture.then(expectAsync1((_) {
+        expect(future.hasValue, isFalse);
+      }));
     });
   });
 }

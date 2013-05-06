@@ -11,7 +11,6 @@ import 'dart:uri';
 import '../../sdk/lib/_internal/compiler/compiler.dart';
 
 Future<String> provider(Uri uri) {
-  Completer<String> completer = new Completer<String>();
   String source;
   if (uri.scheme == "main") {
     source = "main() {}";
@@ -80,8 +79,7 @@ Future<String> provider(Uri uri) {
   } else {
    throw "unexpected URI $uri";
   }
-  completer.complete(source);
-  return completer.future;
+  return new Future.value(source);
 }
 
 void handler(Uri uri, int begin, int end, String message, Diagnostic kind) {

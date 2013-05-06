@@ -537,6 +537,11 @@ LibTest/async/Completer/completeError_A01_t01: Fail # No AsyncError anymore. Iss
 LibTest/async/Future/Future.immediateError_A01_t01: Fail # No AsyncError anymore. Issue 407
 LibTest/async/Future/catchError_A02_t01: Fail # No AsyncError anymore. Issue 407
 
+LibTest/async/Completer/complete_A01_t03: Fail # Completer is now asynchronous. Issue TODO
+LibTest/async/Completer/complete_A01_t04: Fail # Completer is now asynchronous. Issue TODO
+LibTest/async/Future/then_A01_t01: Fail # Completer is now asynchronous. Issue TODO
+LibTest/async/Future/then_A01_t04: Fail # Completer is now asynchronous. Issue TODO
+
 Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A01_t02: Fail, OK # co19 issue 409
 Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t02: Fail, OK # co19 issue 409
 Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t03: Fail, OK # co19 issue 409
