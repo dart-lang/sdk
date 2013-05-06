@@ -233,10 +233,6 @@ class ClassNode extends Node {
     if (body != null) body.accept(visitor);
   }
 
-  bool get isInterface => identical(beginToken.stringValue, 'interface');
-
-  bool get isClass => !isInterface;
-
   Token getBeginToken() => beginToken;
 
   Token getEndToken() => endToken;

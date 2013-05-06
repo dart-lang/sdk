@@ -924,9 +924,6 @@ abstract class Compiler implements DiagnosticListener {
       }
       if (identical(e.kind, ElementKind.GENERATIVE_CONSTRUCTOR)) {
         ClassElement enclosingClass = e.getEnclosingClass();
-        if (enclosingClass.isInterface()) {
-          resolved.remove(e);
-        }
         resolved.remove(e);
 
       }

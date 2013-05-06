@@ -61,8 +61,6 @@ class PartialClassElement extends ClassElementX {
   // TODO(johnniwinther): Ensure that modifiers are always available.
   Modifiers get modifiers =>
       cachedNode != null ? cachedNode.modifiers : Modifiers.EMPTY;
-
-  bool isInterface() => identical(beginToken.stringValue, "interface");
 }
 
 class MemberListener extends NodeListener {
