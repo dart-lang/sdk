@@ -3928,7 +3928,7 @@ TEST_CASE(InvokeNoSuchMethod) {
       "    }\n"
       "    TestClass.fld1 += 1;\n"
       "  }\n"
-      "  static void testMain() {\n"
+      "  static TestClass testMain() {\n"
       "    return new TestClass();\n"
       "  }\n"
       "}\n";
