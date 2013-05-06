@@ -291,7 +291,7 @@ class _HttpClientResponse
     List<String> challenge = headers[HttpHeaders.WWW_AUTHENTICATE];
     assert(challenge != null || challenge.length == 1);
     _HeaderValue header =
-        new _HeaderValue.fromString(challenge[0], parameterSeparator: ",");
+        _HeaderValue.parse(challenge[0], parameterSeparator: ",");
     _AuthenticationScheme scheme =
         new _AuthenticationScheme.fromString(header.value);
     String realm = header.parameters["realm"];
@@ -371,7 +371,7 @@ class _HttpClientResponse
     List<String> challenge = headers[HttpHeaders.PROXY_AUTHENTICATE];
     assert(challenge != null || challenge.length == 1);
     _HeaderValue header =
-        new _HeaderValue.fromString(challenge[0], parameterSeparator: ",");
+        _HeaderValue.parse(challenge[0], parameterSeparator: ",");
     _AuthenticationScheme scheme =
         new _AuthenticationScheme.fromString(header.value);
     String realm = header.parameters["realm"];
@@ -1185,7 +1185,7 @@ class _HttpClientConnection {
                   var authInfo = incoming.headers["authentication-info"];
                   if (authInfo != null && authInfo.length == 1) {
                     var header =
-                        new _HeaderValue.fromString(
+                        _HeaderValue.parse(
                             authInfo[0], parameterSeparator: ',');
                     var nextnonce = header.parameters["nextnonce"];
                     if (nextnonce != null) cr.nonce = nextnonce;

@@ -451,12 +451,12 @@ abstract class HttpHeaders {
  *     request.headers.add(HttpHeaders.ACCEPT, v);
  *     request.headers.add(HttpHeaders.ACCEPT, "text/html");
  *
- * To parse the header values use the [:fromString:] constructor.
+ * To parse the header values use the [:parse:] static method.
  *
  *     HttpRequest request = ...;
  *     List<String> values = request.headers[HttpHeaders.ACCEPT];
  *     values.forEach((value) {
- *       HeaderValue v = new HeaderValue.fromString(value);
+ *       HeaderValue v = HeaderValue.parse(value);
  *       // Use v.value and v.parameters
  *     });
  *
@@ -474,10 +474,9 @@ abstract class HeaderValue {
    * Creates a new header value object from parsing a header value
    * string with both value and optional parameters.
    */
-  factory HeaderValue.fromString(String value,
-                                 {String parameterSeparator: ";"}) {
-    return new _HeaderValue.fromString(
-        value, parameterSeparator: parameterSeparator);
+  static HeaderValue parse(String value,
+                           {String parameterSeparator: ";"}) {
+    return _HeaderValue.parse(value, parameterSeparator: parameterSeparator);
   }
 
   /**
@@ -552,8 +551,8 @@ abstract class ContentType implements HeaderValue {
    * will create a content type object with primary type [:text:], sub
    * type [:html:] and parameter [:charset:] with value [:utf-8:].
    */
-  factory ContentType.fromString(String value) {
-    return new _ContentType.fromString(value);
+  static ContentType parse(String value) {
+    return _ContentType.parse(value);
   }
 
   /**

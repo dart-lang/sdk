@@ -154,7 +154,7 @@ class Request extends BaseRequest {
   ContentType get _contentType {
     var contentType = headers[HttpHeaders.CONTENT_TYPE];
     if (contentType == null) return null;
-    return new ContentType.fromString(contentType);
+    return ContentType.parse(contentType);
   }
 
   set _contentType(ContentType value) {

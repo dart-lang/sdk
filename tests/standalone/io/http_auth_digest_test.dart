@@ -65,7 +65,7 @@ class Server {
           String authorization =
             request.headers[HttpHeaders.AUTHORIZATION][0];
           HeaderValue header =
-              new HeaderValue.fromString(
+              HeaderValue.parse(
                   authorization, parameterSeparator: ",");
           if (header.value == "basic") {
             sendUnauthorizedResponse(response);

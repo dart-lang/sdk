@@ -97,7 +97,7 @@ class PubHttpClient extends http.BaseClient {
     if (request.method == 'POST') {
       var contentTypeString = request.headers[HttpHeaders.CONTENT_TYPE];
       if (contentTypeString == null) contentTypeString = '';
-      var contentType = new ContentType.fromString(contentTypeString);
+      var contentType = ContentType.parse(contentTypeString);
       if (request is http.MultipartRequest) {
         requestLog.writeln();
         requestLog.writeln("Body fields:");

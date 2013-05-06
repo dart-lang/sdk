@@ -19,7 +19,7 @@ void testHttpClientResponseBody() {
             (_) {},
             onDone: () {
               request.response.headers.contentType =
-                  new ContentType.fromString(mimeType);
+                  ContentType.parse(mimeType);
               request.response.add(content);
               request.response.close();
             });
@@ -125,7 +125,7 @@ void testHttpServerRequestBody() {
           .then((request) {
             if (mimeType != null) {
               request.headers.contentType =
-                  new ContentType.fromString(mimeType);
+                  ContentType.parse(mimeType);
             }
             request.add(content);
             return request.close();

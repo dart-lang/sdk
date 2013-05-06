@@ -33,7 +33,7 @@ Credentials handleAccessTokenResponse(
 
   var contentType = response.headers['content-type'];
   if (contentType != null) {
-    contentType = new ContentType.fromString(contentType);
+    contentType = ContentType.parse(contentType);
   }
   validate(contentType != null && contentType.value == "application/json",
       'content-type was "$contentType", expected "application/json"');
@@ -103,7 +103,7 @@ void _handleErrorResponse(http.Response response, Uri tokenEndpoint) {
 
   var contentType = response.headers['content-type'];
   if (contentType != null) {
-    contentType = new ContentType.fromString(contentType);
+    contentType = ContentType.parse(contentType);
   }
   validate(contentType != null && contentType.value == "application/json",
       'content-type was "$contentType", expected "application/json"');

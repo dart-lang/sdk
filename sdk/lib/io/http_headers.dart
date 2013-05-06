@@ -196,7 +196,7 @@ class _HttpHeaders implements HttpHeaders {
   ContentType get contentType {
     var values = _headers["content-type"];
     if (values != null) {
-      return new ContentType.fromString(values[0]);
+      return ContentType.parse(values[0]);
     } else {
       return null;
     }
@@ -477,9 +477,11 @@ class _HeaderValue implements HeaderValue {
 
   _HeaderValue([String this._value = "", this._parameters]);
 
-  _HeaderValue.fromString(String value, {parameterSeparator: ";"}) {
+  static _HeaderValue parse(String value, {parameterSeparator: ";"}) {
     // Parse the string.
-    _parse(value, parameterSeparator);
+    var result = new _HeaderValue();
+    result._parse(value, parameterSeparator);
+    return result;
   }
 
   String get value => _value;
@@ -621,15 +623,20 @@ class _ContentType extends _HeaderValue implements ContentType {
     }
   }
 
-  _ContentType.fromString(String value) : super.fromString(value) {
-    int index = _value.indexOf("/");
-    if (index == -1 || index == (_value.length - 1)) {
-      _primaryType = _value.trim().toLowerCase();
-      _subType = "";
+  _ContentType._();
+
+  static _ContentType parse(String value) {
+    var result = new _ContentType._();
+    result._parse(value, ";");
+    int index = result._value.indexOf("/");
+    if (index == -1 || index == (result._value.length - 1)) {
+      result._primaryType = result._value.trim().toLowerCase();
+      result._subType = "";
     } else {
-      _primaryType = _value.substring(0, index).trim().toLowerCase();
-      _subType = _value.substring(index + 1).trim().toLowerCase();
+      result._primaryType = result._value.substring(0, index).trim().toLowerCase();
+      result._subType = result._value.substring(index + 1).trim().toLowerCase();
     }
+    return result;
   }
 
   String get mimeType => '$primaryType/$subType';
