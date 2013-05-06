@@ -23,7 +23,8 @@
 namespace dart {
 namespace bin {
 
-static const int kBufferSize = 32 * 1024;
+static const int kBufferSize = 64 * 1024;
+static const int kStdioBufferSize = 16 * 1024;
 
 static const int kInfinityTimeout = -1;
 static const int kTimeoutId = -1;
@@ -212,10 +213,16 @@ static unsigned int __stdcall ReadFileThread(void* args) {
 
 void Handle::ReadSyncCompleteAsync() {
   ASSERT(pending_read_ != NULL);
+  ASSERT(pending_read_->GetBufferSize() >= kStdioBufferSize);
+
+  DWORD buffer_size = pending_read_->GetBufferSize();
+  if (GetFileType(handle_) == FILE_TYPE_CHAR) {
+    buffer_size = kStdioBufferSize;
+  }
   DWORD bytes_read = 0;
   BOOL ok = ReadFile(handle_,
                      pending_read_->GetBufferStart(),
-                     pending_read_->GetBufferSize(),
+                     buffer_size,
                      &bytes_read,
                      NULL);
   if (!ok) {
