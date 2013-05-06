@@ -3755,7 +3755,8 @@ TEST_CASE(Invoke) {
 
   // Instance method, wrong arg count.
   EXPECT_ERROR(Dart_Invoke(instance, name, 2, bad_args),
-               "did not find instance method 'Methods.instanceMethod'");
+               "Class 'Methods' has no instance method 'instanceMethod'"
+               " with matching arguments");
 
   name = PrivateLibName(lib, "_instanceMethod");
   EXPECT(Dart_IsError(Dart_Invoke(lib, name, 1, args)));
@@ -3888,15 +3889,77 @@ TEST_CASE(Invoke_Null) {
   EXPECT_VALID(Dart_StringToCString(result, &value));
   EXPECT_STREQ("null", value);
 
-  // Should throw a NullPointerException. Disabled due to bug 5415268.
-  /*
-    Dart_Handle function_name2 = NewString("NoNoNo");
-    result = Dart_Invoke(null_receiver,
-    function_name2,
-    number_of_arguments,
-    dart_arguments);
-    EXPECT(Dart_IsError(result));
-    EXPECT(Dart_ErrorHasException(result)); */
+  Dart_Handle function_name = NewString("NoNoNo");
+  result = Dart_Invoke(Dart_Null(),
+                       function_name,
+                       0,
+                       NULL);
+  EXPECT(Dart_IsError(result));
+  EXPECT(Dart_ErrorHasException(result));
+}
+
+
+TEST_CASE(InvokeNoSuchMethod) {
+  const char* kScriptChars =
+      "import 'dart:_collection-dev' as _collection_dev;\n"
+      "class Expect {\n"
+      "  static equals(a, b) {\n"
+      "    if (a != b) {\n"
+      "      throw 'not equal. expected: $a, got: $b';\n"
+      "    }\n"
+      "  }\n"
+      "}\n"
+      "class TestClass {\n"
+      "  static int fld1 = 0;\n"
+      "  void noSuchMethod(Invocation invocation) {\n"
+      "    var name = _collection_dev.Symbol.getName(invocation.memberName);\n"
+      "    if (name == 'fld') {\n"
+      "      Expect.equals(true, invocation.isGetter);\n"
+      "      Expect.equals(false, invocation.isMethod);\n"
+      "      Expect.equals(false, invocation.isSetter);\n"
+      "    } else if (name == 'setfld') {\n"
+      "      Expect.equals(true, invocation.isSetter);\n"
+      "      Expect.equals(false, invocation.isMethod);\n"
+      "      Expect.equals(false, invocation.isGetter);\n"
+      "    } else if (name == 'method') {\n"
+      "      Expect.equals(true, invocation.isMethod);\n"
+      "      Expect.equals(false, invocation.isSetter);\n"
+      "      Expect.equals(false, invocation.isGetter);\n"
+      "    }\n"
+      "    TestClass.fld1 += 1;\n"
+      "  }\n"
+      "  static void testMain() {\n"
+      "    return new TestClass();\n"
+      "  }\n"
+      "}\n";
+  Dart_Handle result;
+  Dart_Handle instance;
+  // Create a test library and Load up a test script in it.
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle cls = Dart_GetClass(lib, NewString("TestClass"));
+  EXPECT_VALID(cls);
+
+  // Invoke a function which returns an object.
+  instance = Dart_Invoke(cls, NewString("testMain"), 0, NULL);
+  EXPECT_VALID(instance);
+
+  // Try to get a field that does not exist, should call noSuchMethod.
+  result = Dart_GetField(instance, NewString("fld"));
+  EXPECT_VALID(result);
+
+  // Try to set a field that does not exist, should call noSuchMethod.
+  result = Dart_SetField(instance, NewString("setfld"), Dart_NewInteger(13));
+  EXPECT_VALID(result);
+
+  // Try to invoke a method that does not exist, should call noSuchMethod.
+  result = Dart_Invoke(instance, NewString("method"), 0, NULL);
+  EXPECT_VALID(result);
+
+  result = Dart_GetField(cls, NewString("fld1"));
+  EXPECT_VALID(result);
+  int64_t value = 0;
+  result = Dart_IntegerToInt64(result, &value);
+  EXPECT_EQ(3, value);
 }
 
 

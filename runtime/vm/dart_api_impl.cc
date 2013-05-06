@@ -3805,7 +3805,7 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
   }
 
   if (obj.IsNull() || obj.IsInstance()) {
-    Instance& instance = Instance::Handle(isolate);
+    Instance& instance = Instance::Handle();
     instance ^= obj.raw();
     const Function& function = Function::Handle(
         isolate,
@@ -3813,16 +3813,16 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
                                  function_name,
                                  (number_of_arguments + 1),
                                  Resolver::kIsQualified));
-    // TODO(5415268): Invoke noSuchMethod instead of failing.
-    if (function.IsNull()) {
-      const Type& type = Type::Handle(isolate, instance.GetType());
-      const String& cls_name = String::Handle(isolate, type.ClassName());
-      return Api::NewError("%s: did not find instance method '%s.%s'.",
-                           CURRENT_FUNC,
-                           cls_name.ToCString(),
-                           function_name.ToCString());
-    }
     args.SetAt(0, instance);
+    if (function.IsNull()) {
+      const Array& args_descriptor =
+          Array::Handle(ArgumentsDescriptor::New(args.Length()));
+      return Api::NewHandle(isolate,
+                            DartEntry::InvokeNoSuchMethod(instance,
+                                                          function_name,
+                                                          args,
+                                                          args_descriptor));
+    }
     return Api::NewHandle(isolate, DartEntry::InvokeFunction(function, args));
 
   } else if (obj.IsClass()) {
@@ -3933,9 +3933,9 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
     // field.
     const Instance& instance = Instance::Cast(obj);
     Class& cls = Class::Handle(isolate, instance.clazz());
+    String& getter_name =
+        String::Handle(isolate, Field::GetterName(field_name));
     while (!cls.IsNull()) {
-      String& getter_name =
-          String::Handle(isolate, Field::GetterName(field_name));
       getter = cls.LookupDynamicFunctionAllowPrivate(getter_name);
       if (!getter.IsNull()) {
         break;
@@ -3943,15 +3943,19 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
       cls = cls.SuperClass();
     }
 
-    if (getter.IsNull()) {
-      return Api::NewError("%s: did not find instance field '%s'.",
-                           CURRENT_FUNC, field_name.ToCString());
-    }
-
     // Invoke the getter and return the result.
     const int kNumArgs = 1;
     const Array& args = Array::Handle(isolate, Array::New(kNumArgs));
     args.SetAt(0, instance);
+    if (getter.IsNull()) {
+      const Array& args_descriptor =
+          Array::Handle(ArgumentsDescriptor::New(args.Length()));
+      return Api::NewHandle(isolate,
+                            DartEntry::InvokeNoSuchMethod(instance,
+                                                          getter_name,
+                                                          args,
+                                                          args_descriptor));
+    }
     return Api::NewHandle(isolate, DartEntry::InvokeFunction(getter, args));
 
   } else if (obj.IsClass()) {
@@ -4055,14 +4059,14 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
     // field.
     const Instance& instance = Instance::Cast(obj);
     Class& cls = Class::Handle(isolate, instance.clazz());
+    String& setter_name =
+        String::Handle(isolate, Field::SetterName(field_name));
     while (!cls.IsNull()) {
       field = cls.LookupInstanceField(field_name);
       if (!field.IsNull() && field.is_final()) {
         return Api::NewError("%s: cannot set final field '%s'.",
                              CURRENT_FUNC, field_name.ToCString());
       }
-      String& setter_name =
-          String::Handle(isolate, Field::SetterName(field_name));
       setter = cls.LookupDynamicFunctionAllowPrivate(setter_name);
       if (!setter.IsNull()) {
         break;
@@ -4070,16 +4074,20 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
       cls = cls.SuperClass();
     }
 
-    if (setter.IsNull()) {
-      return Api::NewError("%s: did not find instance field '%s'.",
-                           CURRENT_FUNC, field_name.ToCString());
-    }
-
     // Invoke the setter and return the result.
     const int kNumArgs = 2;
     const Array& args = Array::Handle(isolate, Array::New(kNumArgs));
     args.SetAt(0, instance);
     args.SetAt(1, value_instance);
+    if (setter.IsNull()) {
+      const Array& args_descriptor =
+          Array::Handle(ArgumentsDescriptor::New(args.Length()));
+      return Api::NewHandle(isolate,
+                            DartEntry::InvokeNoSuchMethod(instance,
+                                                          setter_name,
+                                                          args,
+                                                          args_descriptor));
+    }
     return Api::NewHandle(isolate, DartEntry::InvokeFunction(setter, args));
 
   } else if (obj.IsClass()) {
