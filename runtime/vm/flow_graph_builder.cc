@@ -97,6 +97,15 @@ void InlineExitCollector::AddExit(ReturnInstr* exit) {
 }
 
 
+void InlineExitCollector::Union(const InlineExitCollector* other) {
+  // It doesn't make sense to combine different calls or calls from
+  // different graphs.
+  ASSERT(caller_graph_ == other->caller_graph_);
+  ASSERT(call_ == other->call_);
+  exits_.AddArray(other->exits_);
+}
+
+
 int InlineExitCollector::LowestBlockIdFirst(const Data* a, const Data* b) {
   return (a->exit_block->block_id() - b->exit_block->block_id());
 }
@@ -133,7 +142,7 @@ Definition* InlineExitCollector::JoinReturns(BlockEntryInstr** exit_block,
     caller_graph_->set_max_block_id(join_id);
     JoinEntryInstr* join =
         new JoinEntryInstr(join_id, CatchClauseNode::kInvalidTryIndex);
-    join->InheritDeoptTarget(call_);
+    join->InheritDeoptTargetAfter(call_);
 
     // The dominator set of the join is the intersection of the dominator
     // sets of all the predecessors.  If we keep the dominator sets ordered
@@ -180,7 +189,8 @@ Definition* InlineExitCollector::JoinReturns(BlockEntryInstr** exit_block,
             // We either exhausted the dominators for this block before
             // exhausting the current intersection, or else we found a block
             // on the path from the root of the tree that is not in common.
-            ASSERT(j >= 2);
+            // I.e., there cannot be an empty set of dominators.
+            ASSERT(j > 0);
             join_dominators.TruncateTo(j);
             break;
           }
@@ -189,7 +199,6 @@ Definition* InlineExitCollector::JoinReturns(BlockEntryInstr** exit_block,
     }
     // The immediate dominator of the join is the last one in the ordered
     // intersection.
-    join->set_dominator(join_dominators.Last());
     join_dominators.Last()->AddDominatedBlock(join);
     *exit_block = join;
     *last_instruction = join;
@@ -273,7 +282,6 @@ void InlineExitCollector::ReplaceCall(TargetEntryInstr* callee_entry) {
     ASSERT(callee_exit->dominated_blocks().is_empty());
     for (intptr_t i = 0; i < call_block->dominated_blocks().length(); ++i) {
       BlockEntryInstr* block = call_block->dominated_blocks()[i];
-      block->set_dominator(callee_exit);
       callee_exit->AddDominatedBlock(block);
     }
     // The call block is now the immediate dominator of blocks whose
@@ -281,7 +289,6 @@ void InlineExitCollector::ReplaceCall(TargetEntryInstr* callee_entry) {
     call_block->ClearDominatedBlocks();
     for (intptr_t i = 0; i < callee_entry->dominated_blocks().length(); ++i) {
       BlockEntryInstr* block = callee_entry->dominated_blocks()[i];
-      block->set_dominator(call_block);
       call_block->AddDominatedBlock(block);
     }
   }

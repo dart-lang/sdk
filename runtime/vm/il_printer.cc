@@ -735,7 +735,7 @@ void InvokeMathCFunctionInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 void GraphEntryInstr::PrintTo(BufferFormatter* f) const {
   const GrowableArray<Definition*>& defns = initial_definitions_;
-  f->Print("B%"Pd"[graph]", block_id());
+  f->Print("B%"Pd"[graph]:%"Pd, block_id(), GetDeoptId());
   if (defns.length() > 0) {
     f->Print(" {");
     for (intptr_t i = 0; i < defns.length(); ++i) {
@@ -749,7 +749,7 @@ void GraphEntryInstr::PrintTo(BufferFormatter* f) const {
 
 
 void JoinEntryInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("B%"Pd"[join] pred(", block_id());
+  f->Print("B%"Pd"[join]:%"Pd" pred(", block_id(), GetDeoptId());
   for (intptr_t i = 0; i < predecessors_.length(); ++i) {
     if (i > 0) f->Print(", ");
     f->Print("B%"Pd, predecessors_[i]->block_id());
@@ -800,7 +800,7 @@ void ParameterInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void TargetEntryInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("B%"Pd"[target]", block_id());
+  f->Print("B%"Pd"[target]:%"Pd, block_id(), GetDeoptId());
   if (HasParallelMove()) {
     f->Print(" ");
     parallel_move()->PrintTo(f);

@@ -497,6 +497,7 @@ class EmbeddedArray<T, 0> {
   M(TargetEntry)                                                               \
   M(CatchBlockEntry)                                                           \
   M(Phi)                                                                       \
+  M(Redefinition)                                                              \
   M(Parameter)                                                                 \
   M(ParallelMove)                                                              \
   M(PushArgument)                                                              \
@@ -534,6 +535,7 @@ class EmbeddedArray<T, 0> {
   M(LoadField)                                                                 \
   M(StoreVMField)                                                              \
   M(LoadUntagged)                                                              \
+  M(LoadClassId)                                                               \
   M(InstantiateTypeArguments)                                                  \
   M(ExtractConstructorTypeArguments)                                           \
   M(ExtractConstructorInstantiator)                                            \
@@ -876,6 +878,10 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class TargetEntryInstr;
   friend class JoinEntryInstr;
   friend class InstanceOfInstr;
+  friend class PolymorphicInstanceCallInstr;
+  friend class SmiToDoubleInstr;
+  friend class DoubleToIntegerInstr;
+  friend class BranchSimplifier;
 
   virtual void RawSetInputAt(intptr_t i, Value* value) = 0;
 
@@ -1044,13 +1050,13 @@ class BlockEntryInstr : public Instruction {
   intptr_t end_pos() const { return end_pos_; }
 
   BlockEntryInstr* dominator() const { return dominator_; }
-  void set_dominator(BlockEntryInstr* instr) { dominator_ = instr; }
 
   const GrowableArray<BlockEntryInstr*>& dominated_blocks() {
     return dominated_blocks_;
   }
 
   void AddDominatedBlock(BlockEntryInstr* block) {
+    block->set_dominator(this);
     dominated_blocks_.Add(block);
   }
   void ClearDominatedBlocks() { dominated_blocks_.Clear(); }
@@ -1150,6 +1156,8 @@ class BlockEntryInstr : public Instruction {
 
   virtual void ClearPredecessors() = 0;
   virtual void AddPredecessor(BlockEntryInstr* predecessor) = 0;
+
+  void set_dominator(BlockEntryInstr* instr) { dominator_ = instr; }
 
   intptr_t block_id_;
   const intptr_t try_index_;
@@ -1309,6 +1317,7 @@ class JoinEntryInstr : public BlockEntryInstr {
   // Classes that have access to predecessors_ when inlining.
   friend class BlockEntryInstr;
   friend class InlineExitCollector;
+  friend class PolymorphicInliner;
 
   // Direct access to phis_ in order to resize it due to phi elimination.
   friend class ConstantPropagator;
@@ -2000,7 +2009,7 @@ class StoreContextInstr : public TemplateInstruction<1> {
     SetInputAt(0, value);
   }
 
-  DECLARE_INSTRUCTION(StoreContext);
+  DECLARE_INSTRUCTION(StoreContext)
 
   virtual intptr_t ArgumentCount() const { return 0; }
 
@@ -2043,6 +2052,28 @@ class TemplateDefinition : public Definition {
   }
 
   LocationSummary* locs_;
+};
+
+
+class RedefinitionInstr : public TemplateDefinition<1> {
+ public:
+  explicit RedefinitionInstr(Value* value) {
+    SetInputAt(0, value);
+  }
+
+  DECLARE_INSTRUCTION(Redefinition)
+
+  Value* value() const { return inputs_[0]; }
+
+  virtual CompileType ComputeType() const;
+  virtual bool RecomputeType();
+
+  virtual bool CanDeoptimize() const { return false; }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(RedefinitionInstr);
 };
 
 
@@ -2546,6 +2577,7 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0> {
         ic_data_(ic_data),
         with_checks_(with_checks) {
     ASSERT(instance_call_ != NULL);
+    deopt_id_ = instance_call->deopt_id();
   }
 
   InstanceCallInstr* instance_call() const { return instance_call_; }
@@ -3152,7 +3184,7 @@ class LoadStaticFieldInstr : public TemplateDefinition<0> {
  public:
   explicit LoadStaticFieldInstr(const Field& field) : field_(field) {}
 
-  DECLARE_INSTRUCTION(LoadStaticField);
+  DECLARE_INSTRUCTION(LoadStaticField)
   virtual CompileType ComputeType() const;
 
   const Field& field() const { return field_; }
@@ -3181,7 +3213,7 @@ class StoreStaticFieldInstr : public TemplateDefinition<1> {
     SetInputAt(0, value);
   }
 
-  DECLARE_INSTRUCTION(StoreStaticField);
+  DECLARE_INSTRUCTION(StoreStaticField)
   virtual CompileType* ComputeInitialType() const;
 
   const Field& field() const { return field_; }
@@ -3574,7 +3606,7 @@ class CreateClosureInstr : public TemplateDefinition<0> {
 
 class LoadUntaggedInstr : public TemplateDefinition<1> {
  public:
-  explicit LoadUntaggedInstr(Value* object, intptr_t offset) : offset_(offset) {
+  LoadUntaggedInstr(Value* object, intptr_t offset) : offset_(offset) {
     SetInputAt(0, object);
   }
 
@@ -3601,6 +3633,34 @@ class LoadUntaggedInstr : public TemplateDefinition<1> {
   intptr_t offset_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadUntaggedInstr);
+};
+
+
+class LoadClassIdInstr : public TemplateDefinition<1> {
+ public:
+  explicit LoadClassIdInstr(Value* object) {
+    SetInputAt(0, object);
+  }
+
+  virtual Representation representation() const {
+    return kTagged;
+  }
+  DECLARE_INSTRUCTION(LoadClassId)
+  virtual CompileType ComputeType() const;
+
+  Value* object() const { return inputs_[0]; }
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const {
+    return EffectSet::Externalization();
+  }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(LoadClassIdInstr);
 };
 
 
@@ -3824,7 +3884,7 @@ class AllocateContextInstr : public TemplateDefinition<0> {
       : token_pos_(token_pos),
         num_context_variables_(num_context_variables) {}
 
-  DECLARE_INSTRUCTION(AllocateContext);
+  DECLARE_INSTRUCTION(AllocateContext)
   virtual CompileType ComputeType() const;
 
   intptr_t token_pos() const { return token_pos_; }
@@ -4136,8 +4196,6 @@ class UnboxUint32x4Instr : public TemplateDefinition<1> {
   virtual bool CanDeoptimize() const {
     return (value()->Type()->ToCid() != kUint32x4Cid);
   }
-
-  virtual bool HasSideEffect() const { return false; }
 
   virtual Representation representation() const {
     return kUnboxedUint32x4;
@@ -5233,6 +5291,7 @@ class DoubleToIntegerInstr : public TemplateDefinition<1> {
   DoubleToIntegerInstr(Value* value, InstanceCallInstr* instance_call)
       : instance_call_(instance_call) {
     SetInputAt(0, value);
+    deopt_id_ = instance_call->deopt_id();
   }
 
   Value* value() const { return inputs_[0]; }

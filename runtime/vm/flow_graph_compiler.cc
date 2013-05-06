@@ -1125,6 +1125,12 @@ bool FlowGraphCompiler::TypeCheckAsClassEquality(const AbstractType& type) {
 }
 
 
+static int HighestCountFirst(const CidTarget* a, const CidTarget* b) {
+  // Negative if 'a' should sort before 'b'.
+  return b->count - a->count;
+}
+
+
 // Returns 'sorted' array in decreasing count order.
 // The expected number of elements to sort is less than 10.
 void FlowGraphCompiler::SortICDataByCount(const ICData& ic_data,
@@ -1138,20 +1144,7 @@ void FlowGraphCompiler::SortICDataByCount(const ICData& ic_data,
                           &Function::ZoneHandle(ic_data.GetTargetAt(i)),
                           ic_data.GetCountAt(i)));
   }
-  for (int i = 0; i < len; i++) {
-    intptr_t largest_ix = i;
-    for (int k = i + 1; k < len; k++) {
-      if ((*sorted)[largest_ix].count < (*sorted)[k].count) {
-        largest_ix = k;
-      }
-    }
-    if (i != largest_ix) {
-      // Swap.
-      CidTarget temp = (*sorted)[i];
-      (*sorted)[i] = (*sorted)[largest_ix];
-      (*sorted)[largest_ix] = temp;
-    }
-  }
+  sorted->Sort(HighestCountFirst);
 }
 
 }  // namespace dart

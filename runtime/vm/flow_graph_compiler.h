@@ -452,6 +452,10 @@ class FlowGraphCompiler : public ValueObject {
                                                    Register array,
                                                    Register index);
 
+  // Returns 'sorted' array in decreasing count order.
+  static void SortICDataByCount(const ICData& ic_data,
+                                GrowableArray<CidTarget>* sorted);
+
  private:
   friend class CheckStackOverflowSlowPath;  // For pending_deoptimization_env_.
 
@@ -540,11 +544,6 @@ class FlowGraphCompiler : public ValueObject {
   intptr_t reverse_index(intptr_t index) const {
     return block_order_.length() - index - 1;
   }
-
-  // Returns 'sorted' array in decreasing count order.
-  // The expected number of elements to sort is less than 10.
-  static void SortICDataByCount(const ICData& ic_data,
-                                GrowableArray<CidTarget>* sorted);
 
   void CompactBlock(BlockEntryInstr* block);
   void CompactBlocks();

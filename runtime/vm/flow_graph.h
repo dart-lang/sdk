@@ -98,6 +98,7 @@ class FlowGraph : public ZoneAllocated {
 
   intptr_t max_block_id() const { return max_block_id_; }
   void set_max_block_id(intptr_t id) { max_block_id_ = id; }
+  intptr_t allocate_block_id() { return ++max_block_id_; }
 
   GraphEntryInstr* graph_entry() const {
     return graph_entry_;
@@ -145,6 +146,9 @@ class FlowGraph : public ZoneAllocated {
   // discover side-effect free paths.
   void ComputeBlockEffects();
   BlockEffects* block_effects() const { return block_effects_; }
+
+  // Remove the redefinition instructions inserted to inhibit code motion.
+  void RemoveRedefinitions();
 
  private:
   friend class IfConverter;

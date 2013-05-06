@@ -46,6 +46,8 @@ class InlineExitCollector: public ZoneAllocated {
 
   void AddExit(ReturnInstr* exit);
 
+  void Union(const InlineExitCollector* other);
+
   // Before replacing a call with a graph, the outer environment needs to be
   // attached to each instruction in the callee graph and the caller graph
   // needs to have its block and instruction ID state updated.

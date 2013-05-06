@@ -499,12 +499,16 @@ void Value::RemoveFromUseList() {
 }
 
 
+// True if the definition has a single input use and is used only in
+// environments at the same instruction as that input use.
 bool Definition::HasOnlyUse(Value* use) const {
-  return (input_use_list() == use) &&
-     (use->next_use() == NULL) &&
-     ((env_use_list() == NULL) ||
-      ((env_use_list()->instruction() == use->instruction()) &&
-       (env_use_list()->next_use() == NULL)));
+  if ((input_use_list() != use) || (use->next_use() != NULL)) return false;
+
+  Instruction* target = use->instruction();
+  for (Value::Iterator it(env_use_list()); !it.Done(); it.Advance()) {
+    if (it.Current()->instruction() != target) return false;
+  }
+  return true;
 }
 
 
@@ -1490,6 +1494,17 @@ LocationSummary* PhiInstr::MakeLocationSummary() const {
 
 
 void PhiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNREACHABLE();
+}
+
+
+LocationSummary* RedefinitionInstr::MakeLocationSummary() const {
+  UNREACHABLE();
+  return NULL;
+}
+
+
+void RedefinitionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNREACHABLE();
 }
 

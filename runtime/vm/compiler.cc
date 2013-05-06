@@ -267,6 +267,7 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
         licm.Optimize();
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
       }
+      flow_graph->RemoveRedefinitions();
 
       if (FLAG_range_analysis) {
         // We have to perform range analysis after LICM because it

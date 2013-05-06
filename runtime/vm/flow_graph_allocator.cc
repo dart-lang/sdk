@@ -2187,7 +2187,10 @@ bool FlowGraphAllocator::UnallocatedIsSorted() {
   for (intptr_t i = unallocated_.length() - 1; i >= 1; i--) {
     LiveRange* a = unallocated_[i];
     LiveRange* b = unallocated_[i - 1];
-    if (!ShouldBeAllocatedBefore(a, b)) return false;
+    if (!ShouldBeAllocatedBefore(a, b)) {
+      UNREACHABLE();
+      return false;
+    }
   }
   return true;
 }

@@ -8,6 +8,7 @@
 #include "vm/flags.h"
 #include "vm/flow_graph.h"
 #include "vm/flow_graph_builder.h"
+#include "vm/flow_graph_compiler.h"
 #include "vm/flow_graph_optimizer.h"
 #include "vm/il_printer.h"
 #include "vm/intrinsifier.h"
@@ -135,7 +136,6 @@ static ConstantInstr* GetDefaultValue(intptr_t i,
 
 // Pair of an argument name and its value.
 struct NamedArgument {
- public:
   String* name;
   Value* value;
   NamedArgument(String* name, Value* value)
@@ -290,6 +290,51 @@ class CallSites : public FlowGraphVisitor {
 };
 
 
+struct InlinedCallData {
+  InlinedCallData(Definition* call, GrowableArray<Value*>* arguments)
+      : call(call),
+        arguments(arguments),
+        callee_graph(NULL),
+        parameter_stubs(NULL),
+        exit_collector(NULL) { }
+
+  Definition* call;
+  GrowableArray<Value*>* arguments;
+  FlowGraph* callee_graph;
+  ZoneGrowableArray<Definition*>* parameter_stubs;
+  InlineExitCollector* exit_collector;
+};
+
+
+class CallSiteInliner;
+
+class PolymorphicInliner : public ValueObject {
+ public:
+  PolymorphicInliner(CallSiteInliner* owner,
+                     PolymorphicInstanceCallInstr* call);
+
+  void Inline();
+
+ private:
+  bool CheckInlinedDuplicate(const Function& target);
+  bool CheckNonInlinedDuplicate(const Function& target);
+
+  bool TryInlining(const Function& target);
+
+  TargetEntryInstr* BuildDecisionGraph();
+
+  CallSiteInliner* const owner_;
+  PolymorphicInstanceCallInstr* const call_;
+  const intptr_t num_variants_;
+  GrowableArray<CidTarget> variants_;
+
+  GrowableArray<CidTarget> inlined_variants_;
+  GrowableArray<CidTarget> non_inlined_variants_;
+  GrowableArray<BlockEntryInstr*> inlined_entries_;
+  InlineExitCollector* exit_collector_;
+};
+
+
 class CallSiteInliner : public ValueObject {
  public:
   CallSiteInliner(FlowGraph* flow_graph,
@@ -303,6 +348,8 @@ class CallSiteInliner : public ValueObject {
         inlining_call_sites_(NULL),
         function_cache_(),
         guarded_fields_(guarded_fields) { }
+
+  FlowGraph* caller_graph() const { return caller_graph_; }
 
   // Inlining heuristics based on Cooper et al. 2008.
   bool ShouldWeInline(intptr_t instr_count,
@@ -358,23 +405,6 @@ class CallSiteInliner : public ValueObject {
     return static_cast<double>(inlined_size_) /
         static_cast<double>(initial_size_);
   }
-
- private:
-  struct InlinedCallData {
-   public:
-    InlinedCallData(Definition* call, GrowableArray<Value*>* arguments)
-        : call(call),
-          arguments(arguments),
-          callee_graph(NULL),
-          parameter_stubs(NULL),
-          exit_collector(NULL) { }
-
-    Definition* call;
-    GrowableArray<Value*>* arguments;
-    FlowGraph* callee_graph;
-    ZoneGrowableArray<Definition*>* parameter_stubs;
-    InlineExitCollector* exit_collector;
-  };
 
   bool TryInlining(const Function& function,
                    const Array& argument_names,
@@ -603,6 +633,7 @@ class CallSiteInliner : public ValueObject {
     }
   }
 
+ private:
   void InlineCall(InlinedCallData* call_data) {
     TimerScope timer(FLAG_compiler_stats,
                      &CompilerStats::graphinliner_subst_timer,
@@ -739,24 +770,22 @@ class CallSiteInliner : public ValueObject {
         inlining_call_sites_->instance_calls();
     TRACE_INLINING(OS::Print("  Polymorphic Instance Calls (%d)\n",
                              call_info.length()));
-    for (intptr_t i = 0; i < call_info.length(); ++i) {
-      PolymorphicInstanceCallInstr* call = call_info[i].call;
-      const ICData& ic_data = call->ic_data();
-      const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(0));
+    for (intptr_t call_idx = 0; call_idx < call_info.length(); ++call_idx) {
+      PolymorphicInstanceCallInstr* call = call_info[call_idx].call;
       if (call->with_checks()) {
-        TRACE_INLINING(OS::Print(
-            "  => %s (deopt count %d)\n     Bailout: %"Pd" checks\n",
-            target.ToCString(),
-            target.deoptimization_counter(),
-            ic_data.NumberOfChecks()));
+        PolymorphicInliner inliner(this, call);
+        inliner.Inline();
         continue;
       }
-      if ((call_info[i].ratio * 100) < FLAG_inlining_hotness) {
+
+      const ICData& ic_data = call->ic_data();
+      const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(0));
+      if ((call_info[call_idx].ratio * 100) < FLAG_inlining_hotness) {
         TRACE_INLINING(OS::Print(
             "  => %s (deopt count %d)\n     Bailout: cold %f\n",
             target.ToCString(),
             target.deoptimization_counter(),
-            call_info[i].ratio));
+            call_info[call_idx].ratio));
         continue;
       }
       GrowableArray<Value*> arguments(call->ArgumentCount());
@@ -874,6 +903,384 @@ class CallSiteInliner : public ValueObject {
 
   DISALLOW_COPY_AND_ASSIGN(CallSiteInliner);
 };
+
+
+PolymorphicInliner::PolymorphicInliner(CallSiteInliner* owner,
+                                       PolymorphicInstanceCallInstr* call)
+    : owner_(owner),
+      call_(call),
+      num_variants_(call->ic_data().NumberOfChecks()),
+      variants_(num_variants_),
+      inlined_variants_(num_variants_),
+      non_inlined_variants_(num_variants_),
+      inlined_entries_(num_variants_),
+      exit_collector_(new InlineExitCollector(owner->caller_graph(), call)) {
+}
+
+
+// Inlined bodies are shared if two different class ids have the same
+// inlined target.  This sharing is represented by using three different
+// types of entries in the inlined_entries_ array:
+//
+//   * GraphEntry: the inlined body is not shared.
+//
+//   * TargetEntry: the inlined body is shared and this is the first variant.
+//
+//   * JoinEntry: the inlined body is shared and this is a subsequent variant.
+bool PolymorphicInliner::CheckInlinedDuplicate(const Function& target) {
+  for (intptr_t i = 0; i < inlined_variants_.length(); ++i) {
+    if (target.raw() == inlined_variants_[i].target->raw()) {
+      // The call target is shared with a previous inlined variant.  Share
+      // the graph.  This requires a join block at the entry, and edge-split
+      // form requires a target for each branch.
+      //
+      // Represent the sharing by recording a fresh target for the first
+      // variant and the shared join for all later variants.
+      if (inlined_entries_[i]->IsGraphEntry()) {
+        // Convert the old target entry to a new join entry.
+        TargetEntryInstr* old_target =
+            inlined_entries_[i]->AsGraphEntry()->normal_entry();
+        JoinEntryInstr* new_join = BranchSimplifier::ToJoinEntry(old_target);
+        old_target->ReplaceAsPredecessorWith(new_join);
+        for (intptr_t j = 0; j < old_target->dominated_blocks().length(); ++j) {
+          BlockEntryInstr* block = old_target->dominated_blocks()[j];
+          new_join->AddDominatedBlock(block);
+        }
+        // Create a new target with the join as unconditional successor.
+        TargetEntryInstr* new_target =
+            new TargetEntryInstr(owner_->caller_graph()->allocate_block_id(),
+                                 old_target->try_index());
+        new_target->InheritDeoptTarget(new_join);
+        GotoInstr* new_goto = new GotoInstr(new_join);
+        new_goto->InheritDeoptTarget(new_join);
+        new_target->LinkTo(new_goto);
+        new_target->set_last_instruction(new_goto);
+        new_join->predecessors_.Add(new_target);
+
+        // Record the new target for the first variant.
+        inlined_entries_[i] = new_target;
+      }
+      ASSERT(inlined_entries_[i]->IsTargetEntry());
+      // Record the shared join for this variant.
+      BlockEntryInstr* join =
+          inlined_entries_[i]->last_instruction()->SuccessorAt(0);
+      ASSERT(join->IsJoinEntry());
+      inlined_entries_.Add(join);
+      return true;
+    }
+  }
+
+  return false;
+}
+
+
+bool PolymorphicInliner::CheckNonInlinedDuplicate(const Function& target) {
+  for (intptr_t i = 0; i < non_inlined_variants_.length(); ++i) {
+    if (target.raw() == non_inlined_variants_[i].target->raw()) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+
+bool PolymorphicInliner::TryInlining(const Function& target) {
+  GrowableArray<Value*> arguments(call_->ArgumentCount());
+  for (int i = 0; i < call_->ArgumentCount(); ++i) {
+    arguments.Add(call_->PushArgumentAt(i)->value());
+  }
+  InlinedCallData call_data(call_, &arguments);
+  if (!owner_->TryInlining(target,
+                           call_->instance_call()->argument_names(),
+                           &call_data)) {
+    return false;
+  }
+
+  FlowGraph* callee_graph = call_data.callee_graph;
+  call_data.exit_collector->PrepareGraphs(callee_graph);
+  inlined_entries_.Add(callee_graph->graph_entry());
+  exit_collector_->Union(call_data.exit_collector);
+
+  // Replace parameter stubs and constants.  Replace the receiver argument
+  // with a redefinition to prevent code from the inlined body from being
+  // hoisted above the inlined entry.
+  ASSERT(arguments.length() > 0);
+  Value* actual = arguments[0];
+  RedefinitionInstr* redefinition = new RedefinitionInstr(actual->Copy());
+  redefinition->set_ssa_temp_index(
+      owner_->caller_graph()->alloc_ssa_temp_index());
+  redefinition->InsertAfter(callee_graph->graph_entry()->normal_entry());
+  Definition* stub = (*call_data.parameter_stubs)[0];
+  stub->ReplaceUsesWith(redefinition);
+
+  for (intptr_t i = 1; i < arguments.length(); ++i) {
+    actual = arguments[i];
+    if (actual != NULL) {
+      stub = (*call_data.parameter_stubs)[i];
+      stub->ReplaceUsesWith(actual->definition());
+    }
+  }
+  GrowableArray<Definition*>* defns =
+      callee_graph->graph_entry()->initial_definitions();
+  for (intptr_t i = 0; i < defns->length(); ++i) {
+    ConstantInstr* constant = (*defns)[i]->AsConstant();
+    if ((constant != NULL) && constant->HasUses()) {
+      constant->ReplaceUsesWith(
+          owner_->caller_graph()->AddConstantToInitialDefinitions(
+              constant->value()));
+    }
+  }
+  return true;
+}
+
+
+static Instruction* AppendInstruction(Instruction* first,
+                                      Instruction* second) {
+  for (intptr_t i = second->InputCount() - 1; i >= 0; --i) {
+    Value* input = second->InputAt(i);
+    input->definition()->AddInputUse(input);
+  }
+  first->LinkTo(second);
+  return second;
+}
+
+
+// Build a DAG to dispatch to the inlined function bodies.  Load the class
+// id of the receiver and make explicit comparisons for each inlined body,
+// in frequency order.  If all variants are inlined, the entry to the last
+// inlined body is guarded by a CheckClassId instruction which can deopt.
+// If not all variants are inlined, we add a PolymorphicInstanceCall
+// instruction to handle the non-inlined variants.
+TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
+  // Start with a fresh target entry.
+  TargetEntryInstr* entry =
+      new TargetEntryInstr(owner_->caller_graph()->allocate_block_id(),
+                           call_->GetBlock()->try_index());
+  entry->InheritDeoptTarget(call_);
+
+  // This function uses a cursor (a pointer to the 'current' instruction) to
+  // build the graph.  The next instruction will be inserted after the
+  // cursor.
+  TargetEntryInstr* current_block = entry;
+  Instruction* cursor = entry;
+
+  Definition* receiver = call_->ArgumentAt(0);
+  // There are at least two variants including non-inlined ones, so we have
+  // at least one branch on the class id.
+  LoadClassIdInstr* load_cid = new LoadClassIdInstr(new Value(receiver));
+  load_cid->set_ssa_temp_index(owner_->caller_graph()->alloc_ssa_temp_index());
+  cursor = AppendInstruction(cursor, load_cid);
+  for (intptr_t i = 0; i < inlined_variants_.length(); ++i) {
+    // 1. Guard the body with a class id check.
+    if ((i == (inlined_variants_.length() - 1)) &&
+        non_inlined_variants_.is_empty()) {
+      // If it is the last variant use a check class or check smi
+      // instruction which can deoptimize, followed unconditionally by the
+      // body.
+      if (inlined_variants_[i].cid == kSmiCid) {
+        CheckSmiInstr* check_smi =
+            new CheckSmiInstr(new Value(receiver), call_->deopt_id());
+        check_smi->InheritDeoptTarget(call_);
+        cursor = AppendInstruction(cursor, check_smi);
+      } else {
+        const ICData& old_checks = call_->ic_data();
+        const ICData& new_checks = ICData::ZoneHandle(
+            ICData::New(Function::Handle(old_checks.function()),
+                        String::Handle(old_checks.target_name()),
+                        old_checks.deopt_id(),
+                        1));  // Number of args tested.
+        new_checks.AddReceiverCheck(inlined_variants_[i].cid,
+                                    *inlined_variants_[i].target);
+        CheckClassInstr* check_class =
+            new CheckClassInstr(new Value(receiver),
+                                call_->deopt_id(),
+                                new_checks);
+        check_class->InheritDeoptTarget(call_);
+        cursor = AppendInstruction(cursor, check_class);
+      }
+      // The next instruction is the first instruction of the inlined body.
+      // Handle the two possible cases (unshared and shared subsequent
+      // predecessors) separately.
+      BlockEntryInstr* callee_entry = inlined_entries_[i];
+      if (callee_entry->IsGraphEntry()) {
+        // Unshared.  Graft the normal entry on after the check class
+        // instruction.
+        TargetEntryInstr* target =
+            callee_entry->AsGraphEntry()->normal_entry();
+        cursor->LinkTo(target->next());
+        target->ReplaceAsPredecessorWith(current_block);
+        // All blocks that were dominated by the normal entry are now
+        // dominated by the current block.
+        for (intptr_t j = 0;
+             j < target->dominated_blocks().length();
+             ++j) {
+          BlockEntryInstr* block = target->dominated_blocks()[j];
+          current_block->AddDominatedBlock(block);
+        }
+      } else if (callee_entry->IsJoinEntry()) {
+        // Shared inlined body and this is a subsequent entry.  We have
+        // already constructed a join and set its dominator.  Add a jump to
+        // the join.
+        JoinEntryInstr* join = callee_entry->AsJoinEntry();
+        ASSERT(join->dominator() != NULL);
+        GotoInstr* goto_join = new GotoInstr(join);
+        goto_join->InheritDeoptTarget(join);
+        cursor->LinkTo(goto_join);
+        current_block->set_last_instruction(goto_join);
+      } else {
+        // There is no possibility of a TargetEntry (the first entry to a
+        // shared inlined body) because this is the last inlined entry.
+        UNREACHABLE();
+      }
+      cursor = NULL;
+    } else {
+      // For all variants except the last, use a branch on the loaded class
+      // id.
+      const Smi& cid = Smi::ZoneHandle(Smi::New(inlined_variants_[i].cid));
+      ConstantInstr* cid_constant = new ConstantInstr(cid);
+      cid_constant->set_ssa_temp_index(
+          owner_->caller_graph()->alloc_ssa_temp_index());
+      StrictCompareInstr* compare =
+          new StrictCompareInstr(Token::kEQ_STRICT,
+                                 new Value(load_cid),
+                                 new Value(cid_constant));
+      BranchInstr* branch = new BranchInstr(compare);
+      branch->InheritDeoptTarget(call_);
+      AppendInstruction(AppendInstruction(cursor, cid_constant), branch);
+      current_block->set_last_instruction(branch);
+      cursor = NULL;
+
+      // 2. Handle a match by linking to the inlined body.  There are three
+      // cases (unshared, shared first predecessor, and shared subsequent
+      // predecessors).
+      BlockEntryInstr* callee_entry = inlined_entries_[i];
+      TargetEntryInstr* true_target = NULL;
+      if (callee_entry->IsGraphEntry()) {
+        // Unshared.
+        true_target = callee_entry->AsGraphEntry()->normal_entry();
+      } else if (callee_entry->IsTargetEntry()) {
+        // Shared inlined body and this is the first entry.  We have already
+        // constructed a join and this target jumps to it.
+        true_target = callee_entry->AsTargetEntry();
+        BlockEntryInstr* join =
+            true_target->last_instruction()->SuccessorAt(0);
+        current_block->AddDominatedBlock(join);
+      } else {
+        // Shared inlined body and this is a subsequent entry.  We have
+        // already constructed a join.  We need a fresh target that jumps to
+        // the join.
+        JoinEntryInstr* join = callee_entry->AsJoinEntry();
+        ASSERT(join != NULL);
+        ASSERT(join->dominator() != NULL);
+        true_target =
+            new TargetEntryInstr(owner_->caller_graph()->allocate_block_id(),
+                                 call_->GetBlock()->try_index());
+        true_target->InheritDeoptTarget(join);
+        GotoInstr* goto_join = new GotoInstr(join);
+        goto_join->InheritDeoptTarget(join);
+        true_target->LinkTo(goto_join);
+        true_target->set_last_instruction(goto_join);
+      }
+      *branch->true_successor_address() = true_target;
+      current_block->AddDominatedBlock(true_target);
+
+      // 3. Prepare to handle a match failure on the next iteration or the
+      // fall-through code below for non-inlined variants.
+      TargetEntryInstr* false_target =
+          new TargetEntryInstr(owner_->caller_graph()->allocate_block_id(),
+                               call_->GetBlock()->try_index());
+      false_target->InheritDeoptTarget(call_);
+      *branch->false_successor_address() = false_target;
+      current_block->AddDominatedBlock(false_target);
+      cursor = current_block = false_target;
+    }
+  }
+
+  // Handle any non-inlined variants.
+  if (!non_inlined_variants_.is_empty()) {
+    // Move push arguments of the call.
+    for (intptr_t i = 0; i < call_->ArgumentCount(); ++i) {
+      PushArgumentInstr* push = call_->PushArgumentAt(i);
+      push->ReplaceUsesWith(push->value()->definition());
+      push->previous()->LinkTo(push->next());
+      cursor->LinkTo(push);
+      cursor = push;
+    }
+    const ICData& old_checks = call_->ic_data();
+    const ICData& new_checks = ICData::ZoneHandle(
+        ICData::New(Function::Handle(old_checks.function()),
+                    String::Handle(old_checks.target_name()),
+                    old_checks.deopt_id(),
+                    1));  // Number of args tested.
+    for (intptr_t i = 0; i < non_inlined_variants_.length(); ++i) {
+      new_checks.AddReceiverCheck(non_inlined_variants_[i].cid,
+                                  *non_inlined_variants_[i].target,
+                                  non_inlined_variants_[i].count);
+    }
+    PolymorphicInstanceCallInstr* fallback_call =
+        new PolymorphicInstanceCallInstr(call_->instance_call(),
+                                         new_checks,
+                                         true);  // With checks.
+    fallback_call->set_ssa_temp_index(
+        owner_->caller_graph()->alloc_ssa_temp_index());
+    fallback_call->InheritDeoptTarget(call_);
+    ReturnInstr* fallback_return =
+        new ReturnInstr(call_->instance_call()->token_pos(),
+                        new Value(fallback_call));
+    fallback_return->InheritDeoptTargetAfter(call_);
+    AppendInstruction(AppendInstruction(cursor, fallback_call),
+                      fallback_return);
+    exit_collector_->AddExit(fallback_return);
+    cursor = NULL;
+  } else {
+    // Remove push arguments of the call.
+    for (intptr_t i = 0; i < call_->ArgumentCount(); ++i) {
+      PushArgumentInstr* push = call_->PushArgumentAt(i);
+      push->ReplaceUsesWith(push->value()->definition());
+      push->RemoveFromGraph();
+    }
+  }
+  return entry;
+}
+
+
+void PolymorphicInliner::Inline() {
+  // Consider the polymorphic variants in order by frequency.
+  FlowGraphCompiler::SortICDataByCount(call_->ic_data(), &variants_);
+  for (intptr_t var_idx = 0; var_idx < variants_.length(); ++var_idx) {
+    const Function& target = *variants_[var_idx].target;
+
+    // First check if this is the same target as an earlier inlined variant.
+    if (CheckInlinedDuplicate(target)) {
+      inlined_variants_.Add(variants_[var_idx]);
+      continue;
+    }
+
+    // Also check if this is the same target as an earlier non-inlined
+    // variant.  If so and since inlining decisions are costly, do not try
+    // to inline this variant.
+    if (CheckNonInlinedDuplicate(target)) {
+      non_inlined_variants_.Add(variants_[var_idx]);
+      continue;
+    }
+
+    // Make an inlining decision.
+    if (TryInlining(target)) {
+      inlined_variants_.Add(variants_[var_idx]);
+    } else {
+      non_inlined_variants_.Add(variants_[var_idx]);
+    }
+  }
+
+  // If there are no inlined variants, leave the call in place.
+  if (inlined_variants_.is_empty()) return;
+
+  // Now build a decision tree (a DAG because of shared inline variants) and
+  // inline it at the call site.
+  TargetEntryInstr* entry = BuildDecisionGraph();
+  exit_collector_->ReplaceCall(entry);
+}
 
 
 void FlowGraphInliner::CollectGraphInfo(FlowGraph* flow_graph) {

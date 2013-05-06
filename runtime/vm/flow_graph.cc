@@ -522,7 +522,6 @@ void FlowGraph::ComputeDominators(
       dom_index = idom[dom_index];
     }
     idom[block_index] = dom_index;
-    preorder_[block_index]->set_dominator(preorder_[dom_index]);
     preorder_[dom_index]->AddDominatedBlock(preorder_[block_index]);
   }
 
@@ -843,6 +842,28 @@ void FlowGraph::RemoveDeadPhis(GrowableArray<PhiInstr*>* live_phis) {
   for (BlockIterator it(postorder_iterator()); !it.Done(); it.Advance()) {
     JoinEntryInstr* join = it.Current()->AsJoinEntry();
     if (join != NULL) join->RemoveDeadPhis(constant_null());
+  }
+}
+
+
+void FlowGraph::RemoveRedefinitions() {
+  // Remove redefinition instructions inserted to inhibit hoisting.
+  for (BlockIterator block_it = reverse_postorder_iterator();
+       !block_it.Done();
+       block_it.Advance()) {
+    for (ForwardInstructionIterator instr_it(block_it.Current());
+         !instr_it.Done();
+         instr_it.Advance()) {
+      RedefinitionInstr* redefinition = instr_it.Current()->AsRedefinition();
+      if (redefinition != NULL) {
+        Definition* original;
+        do {
+          original = redefinition->value()->definition();
+        } while (original->IsRedefinition());
+        redefinition->ReplaceUsesWith(original);
+        instr_it.RemoveCurrentFromGraph();
+      }
+    }
   }
 }
 

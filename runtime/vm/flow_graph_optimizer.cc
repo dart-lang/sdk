@@ -3238,8 +3238,7 @@ void LICM::Optimize() {
            !it.Done();
            it.Advance()) {
         Instruction* current = it.Current();
-        if (!current->IsPushArgument() &&
-            current->AllowsCSE() &&
+        if (current->AllowsCSE() &&
             flow_graph()->block_effects()->CanBeMovedTo(current, pre_header)) {
           bool inputs_loop_invariant = true;
           for (int i = 0; i < current->InputCount(); ++i) {
@@ -4530,6 +4529,11 @@ void ConstantPropagator::VisitPhi(PhiInstr* instr) {
 }
 
 
+void ConstantPropagator::VisitRedefinition(RedefinitionInstr* instr) {
+  SetValue(instr, instr->value()->definition()->constant_value());
+}
+
+
 void ConstantPropagator::VisitParameter(ParameterInstr* instr) {
   SetValue(instr, non_constant_);
 }
@@ -4800,6 +4804,11 @@ void ConstantPropagator::VisitAllocateObjectWithBoundsCheck(
 
 
 void ConstantPropagator::VisitLoadUntagged(LoadUntaggedInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitLoadClassId(LoadClassIdInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
@@ -5578,7 +5587,35 @@ void BranchSimplifier::Simplify(FlowGraph* flow_graph) {
         Value* new_left = phi->InputAt(i)->Copy();
         Value* new_right = new Value(new_constant);
         BranchInstr* new_branch = CloneBranch(branch, new_left, new_right);
-        new_branch->InheritDeoptTarget(old_goto);
+        if (branch->env() == NULL) {
+          new_branch->InheritDeoptTarget(old_goto);
+        } else {
+          // Take the environment from the branch if it has one.
+          new_branch->InheritDeoptTarget(branch);
+          // InheritDeoptTarget gave the new branch's comparison the same
+          // deopt id that it gave the new branch.  The id should be the
+          // deopt id of the original comparison.
+          new_branch->comparison()->SetDeoptId(comparison->GetDeoptId());
+          // The phi and constant can be used in the branch's environment.
+          // Rename such uses.
+          for (Environment::DeepIterator it(new_branch->env());
+               !it.Done();
+               it.Advance()) {
+            Value* use = it.CurrentValue();
+            Definition* replacement = NULL;
+            if (use->definition() == phi) {
+              replacement = phi->InputAt(i)->definition();
+            } else if (use->definition() == constant) {
+              replacement = new_constant;
+            }
+            if (replacement != NULL) {
+              use->RemoveFromUseList();
+              use->set_definition(replacement);
+              replacement->AddEnvUse(use);
+            }
+          }
+        }
+
         new_branch->InsertBefore(old_goto);
         new_branch->set_next(NULL);  // Detaching the goto from the graph.
         old_goto->UnuseAllInputs();
@@ -5616,6 +5653,8 @@ void BranchSimplifier::Simplify(FlowGraph* flow_graph) {
       phi->UnuseAllInputs();
       branch->UnuseAllInputs();
       block->UnuseAllInputs();
+      ASSERT(!phi->HasUses());
+      ASSERT(!constant->HasUses());
     }
   }
 

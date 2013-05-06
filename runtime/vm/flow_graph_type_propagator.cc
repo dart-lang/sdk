@@ -645,6 +645,16 @@ bool PhiInstr::RecomputeType() {
 }
 
 
+CompileType RedefinitionInstr::ComputeType() const {
+  return CompileType::None();
+}
+
+
+bool RedefinitionInstr::RecomputeType() {
+  return UpdateType(*value()->Type());
+}
+
+
 CompileType IfThenElseInstr::ComputeType() const {
   ASSERT(InputCount() == 2);
   return CompileType::FromCid(kSmiCid);
@@ -876,6 +886,11 @@ CompileType AllocateObjectInstr::ComputeType() const {
 
 CompileType LoadUntaggedInstr::ComputeType() const {
   return CompileType::Dynamic();
+}
+
+
+CompileType LoadClassIdInstr::ComputeType() const {
+  return CompileType::FromCid(kSmiCid);
 }
 
 

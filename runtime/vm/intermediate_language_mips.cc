@@ -858,6 +858,17 @@ void LoadUntaggedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* LoadClassIdInstr::MakeLocationSummary() const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void LoadClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
 CompileType LoadIndexedInstr::ComputeType() const {
   switch (class_id_) {
     case kArrayCid:
@@ -2274,7 +2285,7 @@ LocationSummary* PolymorphicInstanceCallInstr::MakeLocationSummary() const {
 
 void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ TraceSimMsg("PolymorphicInstanceCallInstr");
-  Label* deopt = compiler->AddDeoptStub(instance_call()->deopt_id(),
+  Label* deopt = compiler->AddDeoptStub(deopt_id(),
                                         kDeoptPolymorphicInstanceCallTestFail);
   if (ic_data().NumberOfChecks() == 0) {
     __ b(deopt);
@@ -2284,7 +2295,7 @@ void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!with_checks()) {
     ASSERT(ic_data().HasOneTarget());
     const Function& target = Function::ZoneHandle(ic_data().GetTargetAt(0));
-    compiler->GenerateStaticCall(instance_call()->deopt_id(),
+    compiler->GenerateStaticCall(deopt_id(),
                                  instance_call()->token_pos(),
                                  target,
                                  instance_call()->ArgumentCount(),
@@ -2304,7 +2315,7 @@ void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                             instance_call()->ArgumentCount(),
                             instance_call()->argument_names(),
                             deopt,
-                            instance_call()->deopt_id(),
+                            deopt_id(),
                             instance_call()->token_pos(),
                             locs());
 }
@@ -2820,4 +2831,3 @@ void CreateClosureInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_MIPS
-
