@@ -31,7 +31,7 @@ main() {
     if (uri.scheme != "main") return dummy.provider(uri);
     String source = TEST_SOURCE[uri.path];
     Expect.isNotNull(source);
-    return (new Completer<String>()..complete(source)).future;
+    return new Future<String>.value(source);
   }
 
   String code = deprecatedFutureValue(

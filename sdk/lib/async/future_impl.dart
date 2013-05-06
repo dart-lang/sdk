@@ -49,10 +49,12 @@ class _AsyncCompleter<T> extends _Completer<T> {
 
 class _SyncCompleter<T> extends _Completer<T> {
   void _setFutureValue(T value) {
+    _FutureImpl future = this.future;
     future._setValue(value);
   }
 
   void _setFutureError(error) {
+    _FutureImpl future = this.future;
     future._setError(error);
   }
 }
