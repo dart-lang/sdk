@@ -332,9 +332,7 @@ class FlatTypeMask implements TypeMask {
 
   TypeMask intersectionSubtype(FlatTypeMask other, Compiler compiler) {
     assert(isSubtypeOf(other.base, base, compiler));
-    // If this mask isn't a subtype mask, then the intersection with
-    // the other mask is empty.
-    if (!isSubtype) return intersectionEmpty(other);
+    if (!isSubtype) return intersectionHelper(other, compiler);
     // Only the other mask puts constraints on the intersection mask,
     // so base the combined flags on the other mask. Only if both
     // masks are nullable, will the result be nullable too.
@@ -350,6 +348,13 @@ class FlatTypeMask implements TypeMask {
     assert(base != other.base);
     assert(!isSubtypeOf(base, other.base, compiler));
     assert(!isSubtypeOf(other.base, base, compiler));
+    return intersectionHelper(other, compiler);
+  }
+
+  TypeMask intersectionHelper(FlatTypeMask other, Compiler compiler) {
+    assert(base != other.base);
+    assert(!isSubclassOf(base, other.base, compiler));
+    assert(!isSubclassOf(other.base, base, compiler));
     // If one of the masks are exact or if both of them are subclass
     // masks, then the intersection is empty.
     if (isExact || other.isExact) return intersectionEmpty(other);
