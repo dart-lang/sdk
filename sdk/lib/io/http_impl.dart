@@ -1412,6 +1412,29 @@ class _HttpClient implements HttpClient {
   Future<HttpClientRequest> _openUrlFromRequest(String method,
                                                 Uri uri,
                                                 _HttpClientRequest previous) {
+    // If the new URI is relative (to either '/' or some sub-path),
+    // construct a full URI from the previous one.
+    // See http://tools.ietf.org/html/rfc3986#section-4.2
+    replaceComponents({scheme, domain, port, path}) {
+      uri = new Uri.fromComponents(
+          scheme: scheme != null ? scheme : uri.scheme,
+          domain: domain != null ? domain : uri.domain,
+          port: port != null ? port : uri.port,
+          path: path != null ? path : uri.path,
+          query: uri.query,
+          fragment: uri.fragment);
+    }
+    if (uri.domain == '') {
+      replaceComponents(domain: previous.uri.domain, port: previous.uri.port);
+    }
+    if (uri.scheme == '') {
+      replaceComponents(scheme: previous.uri.scheme);
+    }
+    if (!uri.path.startsWith('/') && previous.uri.path.startsWith('/')) {
+      var absolute = new Path.raw(previous.uri.path).directoryPath;
+      absolute = absolute.join(new Path.raw(uri.path));
+      replaceComponents(path: absolute.canonicalize().toString());
+    }
     return openUrl(method, uri).then((_HttpClientRequest request) {
           // Only follow redirects if initial request did.
           request.followRedirects = previous.followRedirects;
