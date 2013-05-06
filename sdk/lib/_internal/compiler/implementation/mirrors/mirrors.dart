@@ -358,11 +358,6 @@ abstract class ClassMirror implements TypeMirror, ContainerMirror {
   bool get isClass;
 
   /**
-   * Is [:true:] iff this type is an interface.
-   */
-  bool get isInterface;
-
-  /**
    * Is this the original declaration of this type?
    *
    * For most classes, they are their own original declaration.  For
@@ -430,11 +425,6 @@ abstract class ClassMirror implements TypeMirror, ContainerMirror {
    * declarations for this type.
    */
   Map<String, MethodMirror> get constructors;
-
-  /**
-   * Returns the default type for this interface.
-   */
-  ClassMirror get defaultFactory;
 }
 
 /**
