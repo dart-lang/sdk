@@ -358,4 +358,41 @@ class _HttpUtils {
 
     return new DateTime.utc(year, month, dayOfMonth, hour, minute, second, 0);
   }
+
+  // Parse a string with HTTP entities. Returns null if the string ends in the
+  // middle of a http entity.
+  static String parseHttpEntityString(String input) {
+    int amp = input.lastIndexOf('&');
+    if (amp < 0) return input;
+    int end = input.lastIndexOf(';');
+    if (end < amp) return null;
+
+    var buffer = new StringBuffer();
+    int offset = 0;
+
+    parse(amp, end) {
+      switch (input[amp + 1]) {
+        case '#':
+          if (input[amp + 2] == 'x') {
+            buffer.writeCharCode(
+                int.parse(input.substring(amp + 3, end), radix: 16));
+          } else {
+            buffer.writeCharCode(int.parse(input.substring(amp + 2, end)));
+          }
+          break;
+
+        default:
+          throw new HttpException('Unhandled HTTP entity token');
+      }
+    }
+
+    while ((amp = input.indexOf('&', offset)) >= 0) {
+      buffer.write(input.substring(offset, amp));
+      int end = input.indexOf(';', amp);
+      parse(amp, end);
+      offset = end + 1;
+    }
+    buffer.write(input.substring(offset));
+    return buffer.toString();
+  }
 }

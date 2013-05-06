@@ -525,7 +525,7 @@ class _HeaderValue implements HeaderValue {
             s[index] == parameterSeparator) break;
         index++;
       }
-      return s.substring(start, index).toLowerCase();
+      return s.substring(start, index);
     }
 
     void expect(String expected) {

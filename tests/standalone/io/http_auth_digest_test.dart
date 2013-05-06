@@ -67,7 +67,7 @@ class Server {
           HeaderValue header =
               HeaderValue.parse(
                   authorization, parameterSeparator: ",");
-          if (header.value == "basic") {
+          if (header.value.toLowerCase() == "basic") {
             sendUnauthorizedResponse(response);
           } else if (!useNextNonce && nonceCount == nonceStaleAfter) {
             nonce = "87654321";
@@ -78,7 +78,7 @@ class Server {
             var qop = header.parameters["qop"];
             var cnonce = header.parameters["cnonce"];
             var nc = header.parameters["nc"];
-            Expect.equals("digest", header.value);
+            Expect.equals("digest", header.value.toLowerCase());
             Expect.equals("dart", header.parameters["username"]);
             Expect.equals(realm, header.parameters["realm"]);
             Expect.equals("MD5", header.parameters["algorithm"]);
