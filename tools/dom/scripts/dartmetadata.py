@@ -14,7 +14,7 @@ import monitored
 import os
 import re
 from generator import ConstantOutputOrder
-from htmlrenamer import renamed_html_members
+from htmlrenamer import renamed_html_members, html_interface_renames
 
 _logger = logging.getLogger('DartMetadata')
 
@@ -444,6 +444,10 @@ class DartMetadata(object):
 
     if key in _annotations:
       annotations.extend(_annotations[key])
+
+    if (not member_name and interface_name.startswith('WebKit') and
+        interface_name not in html_interface_renames):
+      annotations.extend(_webkit_experimental_annotations)
 
     if (member_name and member_name.startswith('webkit') and
         key not in renamed_html_members):

@@ -262,6 +262,9 @@ class AnchorElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('WebKitAnimationEvent')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
 class AnimationEvent extends Event {
   AnimationEvent.internal() : super.internal();
 
@@ -1189,11 +1192,11 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
 
   @DomName('CanvasRenderingContext2D.currentPath')
   @DocsEditable
-  DomPath get currentPath native "CanvasRenderingContext2D_currentPath_Getter";
+  Path get currentPath native "CanvasRenderingContext2D_currentPath_Getter";
 
   @DomName('CanvasRenderingContext2D.currentPath')
   @DocsEditable
-  void set currentPath(DomPath value) native "CanvasRenderingContext2D_currentPath_Setter";
+  void set currentPath(Path value) native "CanvasRenderingContext2D_currentPath_Setter";
 
   @DomName('CanvasRenderingContext2D.fillStyle')
   @DocsEditable
@@ -2208,6 +2211,26 @@ class CssCharsetRule extends CssRule {
 
 
 @DocsEditable
+@DomName('WebKitCSSFilterRule')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
+class CssFilterRule extends CssRule {
+  CssFilterRule.internal() : super.internal();
+
+  @DomName('WebKitCSSFilterRule.style')
+  @DocsEditable
+  CssStyleDeclaration get style native "WebKitCSSFilterRule_style_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
 @DomName('CSSFontFaceLoadEvent')
 class CssFontFaceLoadEvent extends Event {
   CssFontFaceLoadEvent.internal() : super.internal();
@@ -2299,6 +2322,9 @@ class CssImportRule extends CssRule {
 
 @DocsEditable
 @DomName('WebKitCSSKeyframeRule')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
 class CssKeyframeRule extends CssRule {
   CssKeyframeRule.internal() : super.internal();
 
@@ -2324,6 +2350,9 @@ class CssKeyframeRule extends CssRule {
 
 @DocsEditable
 @DomName('WebKitCSSKeyframesRule')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
 class CssKeyframesRule extends CssRule {
   CssKeyframesRule.internal() : super.internal();
 
@@ -2404,6 +2433,26 @@ class CssPageRule extends CssRule {
   @DomName('CSSPageRule.style')
   @DocsEditable
   CssStyleDeclaration get style native "CSSPageRule_style_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('WebKitCSSRegionRule')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
+class CssRegionRule extends CssRule {
+  CssRegionRule.internal() : super.internal();
+
+  @DomName('WebKitCSSRegionRule.cssRules')
+  @DocsEditable
+  List<CssRule> get cssRules native "WebKitCSSRegionRule_cssRules_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6474,7 +6523,7 @@ class Document extends Node
 
   @DomName('Document.securityPolicy')
   @DocsEditable
-  DomSecurityPolicy get securityPolicy native "Document_securityPolicy_Getter";
+  SecurityPolicy get securityPolicy native "Document_securityPolicy_Getter";
 
   @DomName('Document.selectedStylesheetSet')
   @DocsEditable
@@ -6718,7 +6767,7 @@ class Document extends Node
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
-  DomNamedFlowCollection getNamedFlows() native "Document_webkitGetNamedFlows_Callback";
+  NamedFlowCollection getNamedFlows() native "Document_webkitGetNamedFlows_Callback";
 
   @DomName('Document.webkitRegister')
   @DocsEditable
@@ -7142,285 +7191,6 @@ class DomImplementation extends NativeFieldWrapperClass1 {
 
 
 @DocsEditable
-@DomName('MimeType')
-class DomMimeType extends NativeFieldWrapperClass1 {
-  DomMimeType.internal();
-
-  @DomName('DOMMimeType.description')
-  @DocsEditable
-  String get description native "DOMMimeType_description_Getter";
-
-  @DomName('DOMMimeType.enabledPlugin')
-  @DocsEditable
-  DomPlugin get enabledPlugin native "DOMMimeType_enabledPlugin_Getter";
-
-  @DomName('DOMMimeType.suffixes')
-  @DocsEditable
-  String get suffixes native "DOMMimeType_suffixes_Getter";
-
-  @DomName('DOMMimeType.type')
-  @DocsEditable
-  String get type native "DOMMimeType_type_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('MimeTypeArray')
-class DomMimeTypeArray extends NativeFieldWrapperClass1 implements List<DomMimeType> {
-  DomMimeTypeArray.internal();
-
-  @DomName('DOMMimeTypeArray.length')
-  @DocsEditable
-  int get length native "DOMMimeTypeArray_length_Getter";
-
-  DomMimeType operator[](int index) native "DOMMimeTypeArray_item_Callback";
-
-  void operator[]=(int index, DomMimeType value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<DomMimeType> mixins.
-  // DomMimeType is the element type.
-
-  // From Iterable<DomMimeType>:
-
-  Iterator<DomMimeType> get iterator {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<DomMimeType>(this);
-  }
-
-  DomMimeType reduce(DomMimeType combine(DomMimeType value, DomMimeType element)) {
-    return IterableMixinWorkaround.reduce(this, combine);
-  }
-
-  dynamic fold(dynamic initialValue,
-               dynamic combine(dynamic previousValue, DomMimeType element)) {
-    return IterableMixinWorkaround.fold(this, initialValue, combine);
-  }
-
-  bool contains(DomMimeType element) => IterableMixinWorkaround.contains(this, element);
-
-  void forEach(void f(DomMimeType element)) => IterableMixinWorkaround.forEach(this, f);
-
-  String join([String separator = ""]) =>
-      IterableMixinWorkaround.joinList(this, separator);
-
-  Iterable map(f(DomMimeType element)) =>
-      IterableMixinWorkaround.mapList(this, f);
-
-  Iterable<DomMimeType> where(bool f(DomMimeType element)) =>
-      IterableMixinWorkaround.where(this, f);
-
-  Iterable expand(Iterable f(DomMimeType element)) =>
-      IterableMixinWorkaround.expand(this, f);
-
-  bool every(bool f(DomMimeType element)) => IterableMixinWorkaround.every(this, f);
-
-  bool any(bool f(DomMimeType element)) => IterableMixinWorkaround.any(this, f);
-
-  List<DomMimeType> toList({ bool growable: true }) =>
-      new List<DomMimeType>.from(this, growable: growable);
-
-  Set<DomMimeType> toSet() => new Set<DomMimeType>.from(this);
-
-  bool get isEmpty => this.length == 0;
-
-  Iterable<DomMimeType> take(int n) => IterableMixinWorkaround.takeList(this, n);
-
-  Iterable<DomMimeType> takeWhile(bool test(DomMimeType value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
-  }
-
-  Iterable<DomMimeType> skip(int n) => IterableMixinWorkaround.skipList(this, n);
-
-  Iterable<DomMimeType> skipWhile(bool test(DomMimeType value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
-  }
-
-  DomMimeType firstWhere(bool test(DomMimeType value), { DomMimeType orElse() }) {
-    return IterableMixinWorkaround.firstWhere(this, test, orElse);
-  }
-
-  DomMimeType lastWhere(bool test(DomMimeType value), {DomMimeType orElse()}) {
-    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
-  }
-
-  DomMimeType singleWhere(bool test(DomMimeType value)) {
-    return IterableMixinWorkaround.singleWhere(this, test);
-  }
-
-  DomMimeType elementAt(int index) {
-    return this[index];
-  }
-
-  // From Collection<DomMimeType>:
-
-  void add(DomMimeType value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Iterable<DomMimeType> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  // From List<DomMimeType>:
-  void set length(int value) {
-    throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  void clear() {
-    throw new UnsupportedError("Cannot clear immutable List.");
-  }
-
-  Iterable<DomMimeType> get reversed {
-    return IterableMixinWorkaround.reversedList(this);
-  }
-
-  void sort([int compare(DomMimeType a, DomMimeType b)]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(DomMimeType element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(DomMimeType element, [int start]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
-  DomMimeType get first {
-    if (this.length > 0) return this[0];
-    throw new StateError("No elements");
-  }
-
-  DomMimeType get last {
-    if (this.length > 0) return this[this.length - 1];
-    throw new StateError("No elements");
-  }
-
-  DomMimeType get single {
-    if (length == 1) return this[0];
-    if (length == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  void insert(int index, DomMimeType element) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void insertAll(int index, Iterable<DomMimeType> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void setAll(int index, Iterable<DomMimeType> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  DomMimeType removeAt(int pos) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  DomMimeType removeLast() {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  bool remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeWhere(bool test(DomMimeType element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainWhere(bool test(DomMimeType element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void setRange(int start, int end, Iterable<DomMimeType> iterable, [int skipCount=0]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int end) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void replaceRange(int start, int end, Iterable<DomMimeType> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  void fillRange(int start, int end, [DomMimeType fillValue]) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  Iterable<DomMimeType> getRange(int start, int end) =>
-    IterableMixinWorkaround.getRangeList(this, start, end);
-
-  List<DomMimeType> sublist(int start, [int end]) {
-    if (end == null) end = length;
-    return Lists.getRange(this, start, end, <DomMimeType>[]);
-  }
-
-  Map<int, DomMimeType> asMap() =>
-    IterableMixinWorkaround.asMapList(this);
-
-  String toString() {
-    StringBuffer buffer = new StringBuffer('[');
-    buffer.writeAll(this, ', ');
-    buffer.write(']');
-    return buffer.toString();
-  }
-
-  // -- end List<DomMimeType> mixins.
-
-  @DomName('DOMMimeTypeArray.item')
-  @DocsEditable
-  DomMimeType item(int index) native "DOMMimeTypeArray_item_Callback";
-
-  @DomName('DOMMimeTypeArray.namedItem')
-  @DocsEditable
-  DomMimeType namedItem(String name) native "DOMMimeTypeArray_namedItem_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('WebKitNamedFlowCollection')
-class DomNamedFlowCollection extends NativeFieldWrapperClass1 {
-  DomNamedFlowCollection.internal();
-
-  @DomName('DOMNamedFlowCollection.length')
-  @DocsEditable
-  int get length native "DOMNamedFlowCollection_length_Getter";
-
-  @DomName('DOMNamedFlowCollection.item')
-  @DocsEditable
-  NamedFlow item(int index) native "DOMNamedFlowCollection_item_Callback";
-
-  @DomName('DOMNamedFlowCollection.namedItem')
-  @DocsEditable
-  NamedFlow namedItem(String name) native "DOMNamedFlowCollection_namedItem_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
 @DomName('DOMParser')
 class DomParser extends NativeFieldWrapperClass1 {
   DomParser.internal();
@@ -7437,531 +7207,6 @@ class DomParser extends NativeFieldWrapperClass1 {
   @DomName('DOMParser.parseFromString')
   @DocsEditable
   Document parseFromString(String str, String contentType) native "DOMParser_parseFromString_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('Path')
-class DomPath extends NativeFieldWrapperClass1 {
-  DomPath.internal();
-
-  @DomName('DOMPath.DOMPath')
-  @DocsEditable
-  factory DomPath([path_OR_text]) {
-    if (!?path_OR_text) {
-      return DomPath._create_1();
-    }
-    if ((path_OR_text is DomPath || path_OR_text == null)) {
-      return DomPath._create_2(path_OR_text);
-    }
-    if ((path_OR_text is String || path_OR_text == null)) {
-      return DomPath._create_3(path_OR_text);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
-  @DocsEditable
-  static DomPath _create_1() native "DOMPath__create_1constructorCallback";
-
-  @DocsEditable
-  static DomPath _create_2(path_OR_text) native "DOMPath__create_2constructorCallback";
-
-  @DocsEditable
-  static DomPath _create_3(path_OR_text) native "DOMPath__create_3constructorCallback";
-
-  @DomName('DOMPath.arc')
-  @DocsEditable
-  void arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) native "DOMPath_arc_Callback";
-
-  @DomName('DOMPath.arcTo')
-  @DocsEditable
-  void arcTo(num x1, num y1, num x2, num y2, num radius) native "DOMPath_arcTo_Callback";
-
-  @DomName('DOMPath.bezierCurveTo')
-  @DocsEditable
-  void bezierCurveTo(num cp1x, num cp1y, num cp2x, num cp2y, num x, num y) native "DOMPath_bezierCurveTo_Callback";
-
-  @DomName('DOMPath.closePath')
-  @DocsEditable
-  void closePath() native "DOMPath_closePath_Callback";
-
-  @DomName('DOMPath.lineTo')
-  @DocsEditable
-  void lineTo(num x, num y) native "DOMPath_lineTo_Callback";
-
-  @DomName('DOMPath.moveTo')
-  @DocsEditable
-  void moveTo(num x, num y) native "DOMPath_moveTo_Callback";
-
-  @DomName('DOMPath.quadraticCurveTo')
-  @DocsEditable
-  void quadraticCurveTo(num cpx, num cpy, num x, num y) native "DOMPath_quadraticCurveTo_Callback";
-
-  @DomName('DOMPath.rect')
-  @DocsEditable
-  void rect(num x, num y, num width, num height) native "DOMPath_rect_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('Plugin')
-class DomPlugin extends NativeFieldWrapperClass1 {
-  DomPlugin.internal();
-
-  @DomName('DOMPlugin.description')
-  @DocsEditable
-  String get description native "DOMPlugin_description_Getter";
-
-  @DomName('DOMPlugin.filename')
-  @DocsEditable
-  String get filename native "DOMPlugin_filename_Getter";
-
-  @DomName('DOMPlugin.length')
-  @DocsEditable
-  int get length native "DOMPlugin_length_Getter";
-
-  @DomName('DOMPlugin.name')
-  @DocsEditable
-  String get name native "DOMPlugin_name_Getter";
-
-  @DomName('DOMPlugin.item')
-  @DocsEditable
-  DomMimeType item(int index) native "DOMPlugin_item_Callback";
-
-  @DomName('DOMPlugin.namedItem')
-  @DocsEditable
-  DomMimeType namedItem(String name) native "DOMPlugin_namedItem_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('PluginArray')
-class DomPluginArray extends NativeFieldWrapperClass1 implements List<DomPlugin> {
-  DomPluginArray.internal();
-
-  @DomName('DOMPluginArray.length')
-  @DocsEditable
-  int get length native "DOMPluginArray_length_Getter";
-
-  DomPlugin operator[](int index) native "DOMPluginArray_item_Callback";
-
-  void operator[]=(int index, DomPlugin value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<DomPlugin> mixins.
-  // DomPlugin is the element type.
-
-  // From Iterable<DomPlugin>:
-
-  Iterator<DomPlugin> get iterator {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<DomPlugin>(this);
-  }
-
-  DomPlugin reduce(DomPlugin combine(DomPlugin value, DomPlugin element)) {
-    return IterableMixinWorkaround.reduce(this, combine);
-  }
-
-  dynamic fold(dynamic initialValue,
-               dynamic combine(dynamic previousValue, DomPlugin element)) {
-    return IterableMixinWorkaround.fold(this, initialValue, combine);
-  }
-
-  bool contains(DomPlugin element) => IterableMixinWorkaround.contains(this, element);
-
-  void forEach(void f(DomPlugin element)) => IterableMixinWorkaround.forEach(this, f);
-
-  String join([String separator = ""]) =>
-      IterableMixinWorkaround.joinList(this, separator);
-
-  Iterable map(f(DomPlugin element)) =>
-      IterableMixinWorkaround.mapList(this, f);
-
-  Iterable<DomPlugin> where(bool f(DomPlugin element)) =>
-      IterableMixinWorkaround.where(this, f);
-
-  Iterable expand(Iterable f(DomPlugin element)) =>
-      IterableMixinWorkaround.expand(this, f);
-
-  bool every(bool f(DomPlugin element)) => IterableMixinWorkaround.every(this, f);
-
-  bool any(bool f(DomPlugin element)) => IterableMixinWorkaround.any(this, f);
-
-  List<DomPlugin> toList({ bool growable: true }) =>
-      new List<DomPlugin>.from(this, growable: growable);
-
-  Set<DomPlugin> toSet() => new Set<DomPlugin>.from(this);
-
-  bool get isEmpty => this.length == 0;
-
-  Iterable<DomPlugin> take(int n) => IterableMixinWorkaround.takeList(this, n);
-
-  Iterable<DomPlugin> takeWhile(bool test(DomPlugin value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
-  }
-
-  Iterable<DomPlugin> skip(int n) => IterableMixinWorkaround.skipList(this, n);
-
-  Iterable<DomPlugin> skipWhile(bool test(DomPlugin value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
-  }
-
-  DomPlugin firstWhere(bool test(DomPlugin value), { DomPlugin orElse() }) {
-    return IterableMixinWorkaround.firstWhere(this, test, orElse);
-  }
-
-  DomPlugin lastWhere(bool test(DomPlugin value), {DomPlugin orElse()}) {
-    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
-  }
-
-  DomPlugin singleWhere(bool test(DomPlugin value)) {
-    return IterableMixinWorkaround.singleWhere(this, test);
-  }
-
-  DomPlugin elementAt(int index) {
-    return this[index];
-  }
-
-  // From Collection<DomPlugin>:
-
-  void add(DomPlugin value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Iterable<DomPlugin> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  // From List<DomPlugin>:
-  void set length(int value) {
-    throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  void clear() {
-    throw new UnsupportedError("Cannot clear immutable List.");
-  }
-
-  Iterable<DomPlugin> get reversed {
-    return IterableMixinWorkaround.reversedList(this);
-  }
-
-  void sort([int compare(DomPlugin a, DomPlugin b)]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(DomPlugin element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(DomPlugin element, [int start]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
-  DomPlugin get first {
-    if (this.length > 0) return this[0];
-    throw new StateError("No elements");
-  }
-
-  DomPlugin get last {
-    if (this.length > 0) return this[this.length - 1];
-    throw new StateError("No elements");
-  }
-
-  DomPlugin get single {
-    if (length == 1) return this[0];
-    if (length == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  void insert(int index, DomPlugin element) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void insertAll(int index, Iterable<DomPlugin> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void setAll(int index, Iterable<DomPlugin> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  DomPlugin removeAt(int pos) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  DomPlugin removeLast() {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  bool remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeWhere(bool test(DomPlugin element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainWhere(bool test(DomPlugin element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void setRange(int start, int end, Iterable<DomPlugin> iterable, [int skipCount=0]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int end) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void replaceRange(int start, int end, Iterable<DomPlugin> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  void fillRange(int start, int end, [DomPlugin fillValue]) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  Iterable<DomPlugin> getRange(int start, int end) =>
-    IterableMixinWorkaround.getRangeList(this, start, end);
-
-  List<DomPlugin> sublist(int start, [int end]) {
-    if (end == null) end = length;
-    return Lists.getRange(this, start, end, <DomPlugin>[]);
-  }
-
-  Map<int, DomPlugin> asMap() =>
-    IterableMixinWorkaround.asMapList(this);
-
-  String toString() {
-    StringBuffer buffer = new StringBuffer('[');
-    buffer.writeAll(this, ', ');
-    buffer.write(']');
-    return buffer.toString();
-  }
-
-  // -- end List<DomPlugin> mixins.
-
-  @DomName('DOMPluginArray.item')
-  @DocsEditable
-  DomPlugin item(int index) native "DOMPluginArray_item_Callback";
-
-  @DomName('DOMPluginArray.namedItem')
-  @DocsEditable
-  DomPlugin namedItem(String name) native "DOMPluginArray_namedItem_Callback";
-
-  @DomName('DOMPluginArray.refresh')
-  @DocsEditable
-  void refresh(bool reload) native "DOMPluginArray_refresh_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('SecurityPolicy')
-class DomSecurityPolicy extends NativeFieldWrapperClass1 {
-  DomSecurityPolicy.internal();
-
-  @DomName('DOMSecurityPolicy.allowsEval')
-  @DocsEditable
-  bool get allowsEval native "DOMSecurityPolicy_allowsEval_Getter";
-
-  @DomName('DOMSecurityPolicy.allowsInlineScript')
-  @DocsEditable
-  bool get allowsInlineScript native "DOMSecurityPolicy_allowsInlineScript_Getter";
-
-  @DomName('DOMSecurityPolicy.allowsInlineStyle')
-  @DocsEditable
-  bool get allowsInlineStyle native "DOMSecurityPolicy_allowsInlineStyle_Getter";
-
-  @DomName('DOMSecurityPolicy.isActive')
-  @DocsEditable
-  bool get isActive native "DOMSecurityPolicy_isActive_Getter";
-
-  @DomName('DOMSecurityPolicy.reportURIs')
-  @DocsEditable
-  List<String> get reportURIs native "DOMSecurityPolicy_reportURIs_Getter";
-
-  @DomName('DOMSecurityPolicy.allowsConnectionTo')
-  @DocsEditable
-  bool allowsConnectionTo(String url) native "DOMSecurityPolicy_allowsConnectionTo_Callback";
-
-  @DomName('DOMSecurityPolicy.allowsFontFrom')
-  @DocsEditable
-  bool allowsFontFrom(String url) native "DOMSecurityPolicy_allowsFontFrom_Callback";
-
-  @DomName('DOMSecurityPolicy.allowsFormAction')
-  @DocsEditable
-  bool allowsFormAction(String url) native "DOMSecurityPolicy_allowsFormAction_Callback";
-
-  @DomName('DOMSecurityPolicy.allowsFrameFrom')
-  @DocsEditable
-  bool allowsFrameFrom(String url) native "DOMSecurityPolicy_allowsFrameFrom_Callback";
-
-  @DomName('DOMSecurityPolicy.allowsImageFrom')
-  @DocsEditable
-  bool allowsImageFrom(String url) native "DOMSecurityPolicy_allowsImageFrom_Callback";
-
-  @DomName('DOMSecurityPolicy.allowsMediaFrom')
-  @DocsEditable
-  bool allowsMediaFrom(String url) native "DOMSecurityPolicy_allowsMediaFrom_Callback";
-
-  @DomName('DOMSecurityPolicy.allowsObjectFrom')
-  @DocsEditable
-  bool allowsObjectFrom(String url) native "DOMSecurityPolicy_allowsObjectFrom_Callback";
-
-  @DomName('DOMSecurityPolicy.allowsPluginType')
-  @DocsEditable
-  bool allowsPluginType(String type) native "DOMSecurityPolicy_allowsPluginType_Callback";
-
-  @DomName('DOMSecurityPolicy.allowsScriptFrom')
-  @DocsEditable
-  bool allowsScriptFrom(String url) native "DOMSecurityPolicy_allowsScriptFrom_Callback";
-
-  @DomName('DOMSecurityPolicy.allowsStyleFrom')
-  @DocsEditable
-  bool allowsStyleFrom(String url) native "DOMSecurityPolicy_allowsStyleFrom_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('Selection')
-class DomSelection extends NativeFieldWrapperClass1 {
-  DomSelection.internal();
-
-  @DomName('DOMSelection.anchorNode')
-  @DocsEditable
-  Node get anchorNode native "DOMSelection_anchorNode_Getter";
-
-  @DomName('DOMSelection.anchorOffset')
-  @DocsEditable
-  int get anchorOffset native "DOMSelection_anchorOffset_Getter";
-
-  @DomName('DOMSelection.baseNode')
-  @DocsEditable
-  Node get baseNode native "DOMSelection_baseNode_Getter";
-
-  @DomName('DOMSelection.baseOffset')
-  @DocsEditable
-  int get baseOffset native "DOMSelection_baseOffset_Getter";
-
-  @DomName('DOMSelection.extentNode')
-  @DocsEditable
-  Node get extentNode native "DOMSelection_extentNode_Getter";
-
-  @DomName('DOMSelection.extentOffset')
-  @DocsEditable
-  int get extentOffset native "DOMSelection_extentOffset_Getter";
-
-  @DomName('DOMSelection.focusNode')
-  @DocsEditable
-  Node get focusNode native "DOMSelection_focusNode_Getter";
-
-  @DomName('DOMSelection.focusOffset')
-  @DocsEditable
-  int get focusOffset native "DOMSelection_focusOffset_Getter";
-
-  @DomName('DOMSelection.isCollapsed')
-  @DocsEditable
-  bool get isCollapsed native "DOMSelection_isCollapsed_Getter";
-
-  @DomName('DOMSelection.rangeCount')
-  @DocsEditable
-  int get rangeCount native "DOMSelection_rangeCount_Getter";
-
-  @DomName('DOMSelection.type')
-  @DocsEditable
-  String get type native "DOMSelection_type_Getter";
-
-  @DomName('DOMSelection.addRange')
-  @DocsEditable
-  void addRange(Range range) native "DOMSelection_addRange_Callback";
-
-  @DomName('DOMSelection.collapse')
-  @DocsEditable
-  void collapse(Node node, int index) native "DOMSelection_collapse_Callback";
-
-  @DomName('DOMSelection.collapseToEnd')
-  @DocsEditable
-  void collapseToEnd() native "DOMSelection_collapseToEnd_Callback";
-
-  @DomName('DOMSelection.collapseToStart')
-  @DocsEditable
-  void collapseToStart() native "DOMSelection_collapseToStart_Callback";
-
-  @DomName('DOMSelection.containsNode')
-  @DocsEditable
-  bool containsNode(Node node, bool allowPartial) native "DOMSelection_containsNode_Callback";
-
-  @DomName('DOMSelection.deleteFromDocument')
-  @DocsEditable
-  void deleteFromDocument() native "DOMSelection_deleteFromDocument_Callback";
-
-  @DomName('DOMSelection.empty')
-  @DocsEditable
-  void empty() native "DOMSelection_empty_Callback";
-
-  @DomName('DOMSelection.extend')
-  @DocsEditable
-  void extend(Node node, int offset) native "DOMSelection_extend_Callback";
-
-  @DomName('DOMSelection.getRangeAt')
-  @DocsEditable
-  Range getRangeAt(int index) native "DOMSelection_getRangeAt_Callback";
-
-  @DomName('DOMSelection.modify')
-  @DocsEditable
-  void modify(String alter, String direction, String granularity) native "DOMSelection_modify_Callback";
-
-  @DomName('DOMSelection.removeAllRanges')
-  @DocsEditable
-  void removeAllRanges() native "DOMSelection_removeAllRanges_Callback";
-
-  @DomName('DOMSelection.selectAllChildren')
-  @DocsEditable
-  void selectAllChildren(Node node) native "DOMSelection_selectAllChildren_Callback";
-
-  @DomName('DOMSelection.setBaseAndExtent')
-  @DocsEditable
-  void setBaseAndExtent(Node baseNode, int baseOffset, Node extentNode, int extentOffset) native "DOMSelection_setBaseAndExtent_Callback";
-
-  @DomName('DOMSelection.setPosition')
-  @DocsEditable
-  void setPosition(Node node, int offset) native "DOMSelection_setPosition_Callback";
-
-  @DomName('DOMSelection.toString')
-  @DocsEditable
-  String toString() native "DOMSelection_toString_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15959,6 +15204,260 @@ class MeterElement extends _Element_Merged {
 
 
 @DocsEditable
+@DomName('MimeType')
+class MimeType extends NativeFieldWrapperClass1 {
+  MimeType.internal();
+
+  @DomName('DOMMimeType.description')
+  @DocsEditable
+  String get description native "DOMMimeType_description_Getter";
+
+  @DomName('DOMMimeType.enabledPlugin')
+  @DocsEditable
+  Plugin get enabledPlugin native "DOMMimeType_enabledPlugin_Getter";
+
+  @DomName('DOMMimeType.suffixes')
+  @DocsEditable
+  String get suffixes native "DOMMimeType_suffixes_Getter";
+
+  @DomName('DOMMimeType.type')
+  @DocsEditable
+  String get type native "DOMMimeType_type_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('MimeTypeArray')
+class MimeTypeArray extends NativeFieldWrapperClass1 implements List<MimeType> {
+  MimeTypeArray.internal();
+
+  @DomName('DOMMimeTypeArray.length')
+  @DocsEditable
+  int get length native "DOMMimeTypeArray_length_Getter";
+
+  MimeType operator[](int index) native "DOMMimeTypeArray_item_Callback";
+
+  void operator[]=(int index, MimeType value) {
+    throw new UnsupportedError("Cannot assign element of immutable List.");
+  }
+  // -- start List<MimeType> mixins.
+  // MimeType is the element type.
+
+  // From Iterable<MimeType>:
+
+  Iterator<MimeType> get iterator {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new FixedSizeListIterator<MimeType>(this);
+  }
+
+  MimeType reduce(MimeType combine(MimeType value, MimeType element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
+  }
+
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, MimeType element)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
+  bool contains(MimeType element) => IterableMixinWorkaround.contains(this, element);
+
+  void forEach(void f(MimeType element)) => IterableMixinWorkaround.forEach(this, f);
+
+  String join([String separator = ""]) =>
+      IterableMixinWorkaround.joinList(this, separator);
+
+  Iterable map(f(MimeType element)) =>
+      IterableMixinWorkaround.mapList(this, f);
+
+  Iterable<MimeType> where(bool f(MimeType element)) =>
+      IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(MimeType element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
+  bool every(bool f(MimeType element)) => IterableMixinWorkaround.every(this, f);
+
+  bool any(bool f(MimeType element)) => IterableMixinWorkaround.any(this, f);
+
+  List<MimeType> toList({ bool growable: true }) =>
+      new List<MimeType>.from(this, growable: growable);
+
+  Set<MimeType> toSet() => new Set<MimeType>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  Iterable<MimeType> take(int n) => IterableMixinWorkaround.takeList(this, n);
+
+  Iterable<MimeType> takeWhile(bool test(MimeType value)) {
+    return IterableMixinWorkaround.takeWhile(this, test);
+  }
+
+  Iterable<MimeType> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+
+  Iterable<MimeType> skipWhile(bool test(MimeType value)) {
+    return IterableMixinWorkaround.skipWhile(this, test);
+  }
+
+  MimeType firstWhere(bool test(MimeType value), { MimeType orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
+  }
+
+  MimeType lastWhere(bool test(MimeType value), {MimeType orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
+  }
+
+  MimeType singleWhere(bool test(MimeType value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
+  }
+
+  MimeType elementAt(int index) {
+    return this[index];
+  }
+
+  // From Collection<MimeType>:
+
+  void add(MimeType value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addAll(Iterable<MimeType> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  // From List<MimeType>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
+
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  Iterable<MimeType> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
+
+  void sort([int compare(MimeType a, MimeType b)]) {
+    throw new UnsupportedError("Cannot sort immutable List.");
+  }
+
+  int indexOf(MimeType element, [int start = 0]) =>
+      Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(MimeType element, [int start]) {
+    if (start == null) start = length - 1;
+    return Lists.lastIndexOf(this, element, start);
+  }
+
+  MimeType get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
+
+  MimeType get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  MimeType get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  void insert(int index, MimeType element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void insertAll(int index, Iterable<MimeType> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<MimeType> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  MimeType removeAt(int pos) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  MimeType removeLast() {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  bool remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeWhere(bool test(MimeType element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainWhere(bool test(MimeType element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void setRange(int start, int end, Iterable<MimeType> iterable, [int skipCount=0]) {
+    throw new UnsupportedError("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int end) {
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void replaceRange(int start, int end, Iterable<MimeType> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [MimeType fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  Iterable<MimeType> getRange(int start, int end) =>
+    IterableMixinWorkaround.getRangeList(this, start, end);
+
+  List<MimeType> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <MimeType>[]);
+  }
+
+  Map<int, MimeType> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
+
+  // -- end List<MimeType> mixins.
+
+  @DomName('DOMMimeTypeArray.item')
+  @DocsEditable
+  MimeType item(int index) native "DOMMimeTypeArray_item_Callback";
+
+  @DomName('DOMMimeTypeArray.namedItem')
+  @DocsEditable
+  MimeType namedItem(String name) native "DOMMimeTypeArray_namedItem_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
 @DomName('HTMLModElement')
 class ModElement extends _Element_Merged {
   ModElement.internal() : super.internal();
@@ -16329,6 +15828,9 @@ class MutationRecord extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('WebKitNamedFlow')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
 class NamedFlow extends EventTarget {
   NamedFlow.internal() : super.internal();
 
@@ -16367,6 +15869,34 @@ class NamedFlow extends EventTarget {
   @DomName('NamedFlow.removeEventListener')
   @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "NamedFlow_removeEventListener_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('WebKitNamedFlowCollection')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
+class NamedFlowCollection extends NativeFieldWrapperClass1 {
+  NamedFlowCollection.internal();
+
+  @DomName('DOMNamedFlowCollection.length')
+  @DocsEditable
+  int get length native "DOMNamedFlowCollection_length_Getter";
+
+  @DomName('DOMNamedFlowCollection.item')
+  @DocsEditable
+  NamedFlow item(int index) native "DOMNamedFlowCollection_item_Callback";
+
+  @DomName('DOMNamedFlowCollection.namedItem')
+  @DocsEditable
+  NamedFlow namedItem(String name) native "DOMNamedFlowCollection_namedItem_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -16465,7 +15995,7 @@ class Navigator extends NativeFieldWrapperClass1 {
 
   @DomName('Navigator.mimeTypes')
   @DocsEditable
-  DomMimeTypeArray get mimeTypes native "Navigator_mimeTypes_Getter";
+  MimeTypeArray get mimeTypes native "Navigator_mimeTypes_Getter";
 
   @DomName('Navigator.onLine')
   @DocsEditable
@@ -16477,7 +16007,7 @@ class Navigator extends NativeFieldWrapperClass1 {
 
   @DomName('Navigator.plugins')
   @DocsEditable
-  DomPluginArray get plugins native "Navigator_plugins_Getter";
+  PluginArray get plugins native "Navigator_plugins_Getter";
 
   @DomName('Navigator.product')
   @DocsEditable
@@ -17960,6 +17490,75 @@ class ParamElement extends _Element_Merged {
 
 
 @DocsEditable
+@DomName('Path')
+class Path extends NativeFieldWrapperClass1 {
+  Path.internal();
+
+  @DomName('DOMPath.DOMPath')
+  @DocsEditable
+  factory Path([path_OR_text]) {
+    if (!?path_OR_text) {
+      return Path._create_1();
+    }
+    if ((path_OR_text is Path || path_OR_text == null)) {
+      return Path._create_2(path_OR_text);
+    }
+    if ((path_OR_text is String || path_OR_text == null)) {
+      return Path._create_3(path_OR_text);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  @DocsEditable
+  static Path _create_1() native "DOMPath__create_1constructorCallback";
+
+  @DocsEditable
+  static Path _create_2(path_OR_text) native "DOMPath__create_2constructorCallback";
+
+  @DocsEditable
+  static Path _create_3(path_OR_text) native "DOMPath__create_3constructorCallback";
+
+  @DomName('DOMPath.arc')
+  @DocsEditable
+  void arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) native "DOMPath_arc_Callback";
+
+  @DomName('DOMPath.arcTo')
+  @DocsEditable
+  void arcTo(num x1, num y1, num x2, num y2, num radius) native "DOMPath_arcTo_Callback";
+
+  @DomName('DOMPath.bezierCurveTo')
+  @DocsEditable
+  void bezierCurveTo(num cp1x, num cp1y, num cp2x, num cp2y, num x, num y) native "DOMPath_bezierCurveTo_Callback";
+
+  @DomName('DOMPath.closePath')
+  @DocsEditable
+  void closePath() native "DOMPath_closePath_Callback";
+
+  @DomName('DOMPath.lineTo')
+  @DocsEditable
+  void lineTo(num x, num y) native "DOMPath_lineTo_Callback";
+
+  @DomName('DOMPath.moveTo')
+  @DocsEditable
+  void moveTo(num x, num y) native "DOMPath_moveTo_Callback";
+
+  @DomName('DOMPath.quadraticCurveTo')
+  @DocsEditable
+  void quadraticCurveTo(num cpx, num cpy, num x, num y) native "DOMPath_quadraticCurveTo_Callback";
+
+  @DomName('DOMPath.rect')
+  @DocsEditable
+  void rect(num x, num y, num width, num height) native "DOMPath_rect_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
 @DomName('Performance')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
@@ -18311,6 +17910,272 @@ class PerformanceTiming extends NativeFieldWrapperClass1 {
   @DomName('PerformanceTiming.unloadEventStart')
   @DocsEditable
   int get unloadEventStart native "PerformanceTiming_unloadEventStart_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('Plugin')
+class Plugin extends NativeFieldWrapperClass1 {
+  Plugin.internal();
+
+  @DomName('DOMPlugin.description')
+  @DocsEditable
+  String get description native "DOMPlugin_description_Getter";
+
+  @DomName('DOMPlugin.filename')
+  @DocsEditable
+  String get filename native "DOMPlugin_filename_Getter";
+
+  @DomName('DOMPlugin.length')
+  @DocsEditable
+  int get length native "DOMPlugin_length_Getter";
+
+  @DomName('DOMPlugin.name')
+  @DocsEditable
+  String get name native "DOMPlugin_name_Getter";
+
+  @DomName('DOMPlugin.item')
+  @DocsEditable
+  MimeType item(int index) native "DOMPlugin_item_Callback";
+
+  @DomName('DOMPlugin.namedItem')
+  @DocsEditable
+  MimeType namedItem(String name) native "DOMPlugin_namedItem_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('PluginArray')
+class PluginArray extends NativeFieldWrapperClass1 implements List<Plugin> {
+  PluginArray.internal();
+
+  @DomName('DOMPluginArray.length')
+  @DocsEditable
+  int get length native "DOMPluginArray_length_Getter";
+
+  Plugin operator[](int index) native "DOMPluginArray_item_Callback";
+
+  void operator[]=(int index, Plugin value) {
+    throw new UnsupportedError("Cannot assign element of immutable List.");
+  }
+  // -- start List<Plugin> mixins.
+  // Plugin is the element type.
+
+  // From Iterable<Plugin>:
+
+  Iterator<Plugin> get iterator {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new FixedSizeListIterator<Plugin>(this);
+  }
+
+  Plugin reduce(Plugin combine(Plugin value, Plugin element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
+  }
+
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, Plugin element)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
+  bool contains(Plugin element) => IterableMixinWorkaround.contains(this, element);
+
+  void forEach(void f(Plugin element)) => IterableMixinWorkaround.forEach(this, f);
+
+  String join([String separator = ""]) =>
+      IterableMixinWorkaround.joinList(this, separator);
+
+  Iterable map(f(Plugin element)) =>
+      IterableMixinWorkaround.mapList(this, f);
+
+  Iterable<Plugin> where(bool f(Plugin element)) =>
+      IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(Plugin element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
+  bool every(bool f(Plugin element)) => IterableMixinWorkaround.every(this, f);
+
+  bool any(bool f(Plugin element)) => IterableMixinWorkaround.any(this, f);
+
+  List<Plugin> toList({ bool growable: true }) =>
+      new List<Plugin>.from(this, growable: growable);
+
+  Set<Plugin> toSet() => new Set<Plugin>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  Iterable<Plugin> take(int n) => IterableMixinWorkaround.takeList(this, n);
+
+  Iterable<Plugin> takeWhile(bool test(Plugin value)) {
+    return IterableMixinWorkaround.takeWhile(this, test);
+  }
+
+  Iterable<Plugin> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+
+  Iterable<Plugin> skipWhile(bool test(Plugin value)) {
+    return IterableMixinWorkaround.skipWhile(this, test);
+  }
+
+  Plugin firstWhere(bool test(Plugin value), { Plugin orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
+  }
+
+  Plugin lastWhere(bool test(Plugin value), {Plugin orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
+  }
+
+  Plugin singleWhere(bool test(Plugin value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
+  }
+
+  Plugin elementAt(int index) {
+    return this[index];
+  }
+
+  // From Collection<Plugin>:
+
+  void add(Plugin value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addAll(Iterable<Plugin> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  // From List<Plugin>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
+
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  Iterable<Plugin> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
+
+  void sort([int compare(Plugin a, Plugin b)]) {
+    throw new UnsupportedError("Cannot sort immutable List.");
+  }
+
+  int indexOf(Plugin element, [int start = 0]) =>
+      Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(Plugin element, [int start]) {
+    if (start == null) start = length - 1;
+    return Lists.lastIndexOf(this, element, start);
+  }
+
+  Plugin get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
+
+  Plugin get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  Plugin get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  void insert(int index, Plugin element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void insertAll(int index, Iterable<Plugin> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<Plugin> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  Plugin removeAt(int pos) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  Plugin removeLast() {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  bool remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeWhere(bool test(Plugin element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainWhere(bool test(Plugin element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void setRange(int start, int end, Iterable<Plugin> iterable, [int skipCount=0]) {
+    throw new UnsupportedError("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int end) {
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void replaceRange(int start, int end, Iterable<Plugin> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [Plugin fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  Iterable<Plugin> getRange(int start, int end) =>
+    IterableMixinWorkaround.getRangeList(this, start, end);
+
+  List<Plugin> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <Plugin>[]);
+  }
+
+  Map<int, Plugin> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
+
+  // -- end List<Plugin> mixins.
+
+  @DomName('DOMPluginArray.item')
+  @DocsEditable
+  Plugin item(int index) native "DOMPluginArray_item_Callback";
+
+  @DomName('DOMPluginArray.namedItem')
+  @DocsEditable
+  Plugin namedItem(String name) native "DOMPluginArray_namedItem_Callback";
+
+  @DomName('DOMPluginArray.refresh')
+  @DocsEditable
+  void refresh(bool reload) native "DOMPluginArray_refresh_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19550,6 +19415,79 @@ class ScriptProfileNode extends NativeFieldWrapperClass1 {
 
 
 @DocsEditable
+@DomName('SecurityPolicy')
+class SecurityPolicy extends NativeFieldWrapperClass1 {
+  SecurityPolicy.internal();
+
+  @DomName('DOMSecurityPolicy.allowsEval')
+  @DocsEditable
+  bool get allowsEval native "DOMSecurityPolicy_allowsEval_Getter";
+
+  @DomName('DOMSecurityPolicy.allowsInlineScript')
+  @DocsEditable
+  bool get allowsInlineScript native "DOMSecurityPolicy_allowsInlineScript_Getter";
+
+  @DomName('DOMSecurityPolicy.allowsInlineStyle')
+  @DocsEditable
+  bool get allowsInlineStyle native "DOMSecurityPolicy_allowsInlineStyle_Getter";
+
+  @DomName('DOMSecurityPolicy.isActive')
+  @DocsEditable
+  bool get isActive native "DOMSecurityPolicy_isActive_Getter";
+
+  @DomName('DOMSecurityPolicy.reportURIs')
+  @DocsEditable
+  List<String> get reportURIs native "DOMSecurityPolicy_reportURIs_Getter";
+
+  @DomName('DOMSecurityPolicy.allowsConnectionTo')
+  @DocsEditable
+  bool allowsConnectionTo(String url) native "DOMSecurityPolicy_allowsConnectionTo_Callback";
+
+  @DomName('DOMSecurityPolicy.allowsFontFrom')
+  @DocsEditable
+  bool allowsFontFrom(String url) native "DOMSecurityPolicy_allowsFontFrom_Callback";
+
+  @DomName('DOMSecurityPolicy.allowsFormAction')
+  @DocsEditable
+  bool allowsFormAction(String url) native "DOMSecurityPolicy_allowsFormAction_Callback";
+
+  @DomName('DOMSecurityPolicy.allowsFrameFrom')
+  @DocsEditable
+  bool allowsFrameFrom(String url) native "DOMSecurityPolicy_allowsFrameFrom_Callback";
+
+  @DomName('DOMSecurityPolicy.allowsImageFrom')
+  @DocsEditable
+  bool allowsImageFrom(String url) native "DOMSecurityPolicy_allowsImageFrom_Callback";
+
+  @DomName('DOMSecurityPolicy.allowsMediaFrom')
+  @DocsEditable
+  bool allowsMediaFrom(String url) native "DOMSecurityPolicy_allowsMediaFrom_Callback";
+
+  @DomName('DOMSecurityPolicy.allowsObjectFrom')
+  @DocsEditable
+  bool allowsObjectFrom(String url) native "DOMSecurityPolicy_allowsObjectFrom_Callback";
+
+  @DomName('DOMSecurityPolicy.allowsPluginType')
+  @DocsEditable
+  bool allowsPluginType(String type) native "DOMSecurityPolicy_allowsPluginType_Callback";
+
+  @DomName('DOMSecurityPolicy.allowsScriptFrom')
+  @DocsEditable
+  bool allowsScriptFrom(String url) native "DOMSecurityPolicy_allowsScriptFrom_Callback";
+
+  @DomName('DOMSecurityPolicy.allowsStyleFrom')
+  @DocsEditable
+  bool allowsStyleFrom(String url) native "DOMSecurityPolicy_allowsStyleFrom_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
 @DomName('SecurityPolicyViolationEvent')
 class SecurityPolicyViolationEvent extends Event {
   SecurityPolicyViolationEvent.internal() : super.internal();
@@ -19738,6 +19676,123 @@ class SelectElement extends _Element_Merged {
 
 
 @DocsEditable
+@DomName('Selection')
+class Selection extends NativeFieldWrapperClass1 {
+  Selection.internal();
+
+  @DomName('DOMSelection.anchorNode')
+  @DocsEditable
+  Node get anchorNode native "DOMSelection_anchorNode_Getter";
+
+  @DomName('DOMSelection.anchorOffset')
+  @DocsEditable
+  int get anchorOffset native "DOMSelection_anchorOffset_Getter";
+
+  @DomName('DOMSelection.baseNode')
+  @DocsEditable
+  Node get baseNode native "DOMSelection_baseNode_Getter";
+
+  @DomName('DOMSelection.baseOffset')
+  @DocsEditable
+  int get baseOffset native "DOMSelection_baseOffset_Getter";
+
+  @DomName('DOMSelection.extentNode')
+  @DocsEditable
+  Node get extentNode native "DOMSelection_extentNode_Getter";
+
+  @DomName('DOMSelection.extentOffset')
+  @DocsEditable
+  int get extentOffset native "DOMSelection_extentOffset_Getter";
+
+  @DomName('DOMSelection.focusNode')
+  @DocsEditable
+  Node get focusNode native "DOMSelection_focusNode_Getter";
+
+  @DomName('DOMSelection.focusOffset')
+  @DocsEditable
+  int get focusOffset native "DOMSelection_focusOffset_Getter";
+
+  @DomName('DOMSelection.isCollapsed')
+  @DocsEditable
+  bool get isCollapsed native "DOMSelection_isCollapsed_Getter";
+
+  @DomName('DOMSelection.rangeCount')
+  @DocsEditable
+  int get rangeCount native "DOMSelection_rangeCount_Getter";
+
+  @DomName('DOMSelection.type')
+  @DocsEditable
+  String get type native "DOMSelection_type_Getter";
+
+  @DomName('DOMSelection.addRange')
+  @DocsEditable
+  void addRange(Range range) native "DOMSelection_addRange_Callback";
+
+  @DomName('DOMSelection.collapse')
+  @DocsEditable
+  void collapse(Node node, int index) native "DOMSelection_collapse_Callback";
+
+  @DomName('DOMSelection.collapseToEnd')
+  @DocsEditable
+  void collapseToEnd() native "DOMSelection_collapseToEnd_Callback";
+
+  @DomName('DOMSelection.collapseToStart')
+  @DocsEditable
+  void collapseToStart() native "DOMSelection_collapseToStart_Callback";
+
+  @DomName('DOMSelection.containsNode')
+  @DocsEditable
+  bool containsNode(Node node, bool allowPartial) native "DOMSelection_containsNode_Callback";
+
+  @DomName('DOMSelection.deleteFromDocument')
+  @DocsEditable
+  void deleteFromDocument() native "DOMSelection_deleteFromDocument_Callback";
+
+  @DomName('DOMSelection.empty')
+  @DocsEditable
+  void empty() native "DOMSelection_empty_Callback";
+
+  @DomName('DOMSelection.extend')
+  @DocsEditable
+  void extend(Node node, int offset) native "DOMSelection_extend_Callback";
+
+  @DomName('DOMSelection.getRangeAt')
+  @DocsEditable
+  Range getRangeAt(int index) native "DOMSelection_getRangeAt_Callback";
+
+  @DomName('DOMSelection.modify')
+  @DocsEditable
+  void modify(String alter, String direction, String granularity) native "DOMSelection_modify_Callback";
+
+  @DomName('DOMSelection.removeAllRanges')
+  @DocsEditable
+  void removeAllRanges() native "DOMSelection_removeAllRanges_Callback";
+
+  @DomName('DOMSelection.selectAllChildren')
+  @DocsEditable
+  void selectAllChildren(Node node) native "DOMSelection_selectAllChildren_Callback";
+
+  @DomName('DOMSelection.setBaseAndExtent')
+  @DocsEditable
+  void setBaseAndExtent(Node baseNode, int baseOffset, Node extentNode, int extentOffset) native "DOMSelection_setBaseAndExtent_Callback";
+
+  @DomName('DOMSelection.setPosition')
+  @DocsEditable
+  void setPosition(Node node, int offset) native "DOMSelection_setPosition_Callback";
+
+  @DomName('DOMSelection.toString')
+  @DocsEditable
+  String toString() native "DOMSelection_toString_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
 @DomName('HTMLShadowElement')
 @SupportedBrowser(SupportedBrowser.CHROME, '26')
 @Experimental
@@ -19823,7 +19878,7 @@ class ShadowRoot extends DocumentFragment {
 
   @DomName('ShadowRoot.getSelection')
   @DocsEditable
-  DomSelection getSelection() native "ShadowRoot_getSelection_Callback";
+  Selection getSelection() native "ShadowRoot_getSelection_Callback";
 
   static bool get supported => _Utils.shadowRootSupported(window.document);
 }
@@ -23344,40 +23399,6 @@ typedef void VoidCallback();
 
 
 @DocsEditable
-@DomName('WebKitCSSFilterRule')
-class WebKitCssFilterRule extends CssRule {
-  WebKitCssFilterRule.internal() : super.internal();
-
-  @DomName('WebKitCSSFilterRule.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "WebKitCSSFilterRule_style_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('WebKitCSSRegionRule')
-class WebKitCssRegionRule extends CssRule {
-  WebKitCssRegionRule.internal() : super.internal();
-
-  @DomName('WebKitCSSRegionRule.cssRules')
-  @DocsEditable
-  List<CssRule> get cssRules native "WebKitCSSRegionRule_cssRules_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
 /**
  * Use the WebSocket interface to connect to a WebSocket,
  * and to send and receive data on that WebSocket.
@@ -24110,7 +24131,7 @@ class Window extends EventTarget implements WindowBase {
 
   @DomName('DOMWindow.getSelection')
   @DocsEditable
-  DomSelection getSelection() native "DOMWindow_getSelection_Callback";
+  Selection getSelection() native "DOMWindow_getSelection_Callback";
 
   @DomName('DOMWindow.matchMedia')
   @DocsEditable
@@ -25717,6 +25738,9 @@ abstract class _DirectoryReaderSync extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('WebKitPoint')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
