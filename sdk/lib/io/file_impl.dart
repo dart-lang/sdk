@@ -228,7 +228,8 @@ class _File implements File {
     request[1] = _path;
     return _fileService.call(request).then((response) {
       if (_isErrorResponse(response)) {
-        throw _exceptionFromResponse(response, "Cannot open file '$_path'");
+        throw _exceptionFromResponse(response,
+                                     "Cannot check existence of file '$_path'");
       }
       return response;
     });
