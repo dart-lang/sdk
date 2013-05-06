@@ -12,7 +12,7 @@ void fail(message) {
 }
 
 Future<SqlTransaction> transaction(SqlDatabase db) {
-  final completer = new Completer<SqlTransaction>();
+  final completer = new Completer<SqlTransaction>.sync();
 
   db.transaction((SqlTransaction transaction) {
     completer.complete(transaction);
@@ -25,7 +25,7 @@ Future<SqlTransaction> transaction(SqlDatabase db) {
 
 Future<SqlResultSet> createTable(SqlTransaction transaction, String tableName,
     String columnName) {
-  final completer = new Completer<SqlResultSet>();
+  final completer = new Completer<SqlResultSet>.sync();
 
   final sql = 'CREATE TABLE $tableName ($columnName)';
   transaction.executeSql(sql, [],
@@ -41,7 +41,7 @@ Future<SqlResultSet> createTable(SqlTransaction transaction, String tableName,
 
 Future<SqlResultSet> insert(SqlTransaction transaction, String tableName,
     String columnName, value) {
-  final completer = new Completer<SqlResultSet>();
+  final completer = new Completer<SqlResultSet>.sync();
 
   final sql = 'INSERT INTO $tableName ($columnName) VALUES (?)';
   transaction.executeSql(sql, [value],
@@ -56,7 +56,7 @@ Future<SqlResultSet> insert(SqlTransaction transaction, String tableName,
 }
 
 Future<SqlResultSet> queryTable(SqlTransaction transaction, String tableName) {
-  final completer = new Completer<SqlResultSet>();
+  final completer = new Completer<SqlResultSet>.sync();
 
   final sql = 'SELECT * FROM $tableName';
   transaction.executeSql(sql, [],
@@ -72,7 +72,7 @@ Future<SqlResultSet> queryTable(SqlTransaction transaction, String tableName) {
 
 Future<SqlResultSet> dropTable(SqlTransaction transaction, String tableName,
     [bool ignoreFailure = false]) {
-  final completer = new Completer<SqlResultSet>();
+  final completer = new Completer<SqlResultSet>.sync();
 
   final sql = 'DROP TABLE $tableName';
   transaction.executeSql(sql, [],
