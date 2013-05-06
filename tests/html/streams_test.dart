@@ -112,7 +112,7 @@ main() {
     helper.pulse();
     expect(callCount, 2);
 
-    var completer = new Completer<int>();
+    var completer = new Completer<int>.sync();
     subscription.pause(completer.future);
     helper.pulse();
     expect(callCount, 2);
