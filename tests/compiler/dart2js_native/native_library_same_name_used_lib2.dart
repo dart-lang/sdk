@@ -5,9 +5,9 @@
 // Native implementation.
 
 library lib2;
-import 'native_library_same_name_used_lib1.dart';  // To get interface I.
+import 'native_library_same_name_used_lib1.dart';  // To get abstract class I.
 
-// Native impl has same name as interface.
+// Native impl has same name as abstract class.
 class Impl implements I native "I" {
   Impl read() native;
   write(Impl x) native;

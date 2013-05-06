@@ -266,10 +266,10 @@ void testMethodInvocationArgumentCount() {
 void testMethodInvocations() {
   compiler.parseScript(CLASS_WITH_METHODS);
   final String header = """{
-      ClassWithMethods c; 
-      SubClass d; 
-      var e; 
-      int i; 
+      ClassWithMethods c;
+      SubClass d;
+      var e;
+      int i;
       int j;
       int localMethod(String str) { return 0; }
       """;
@@ -431,8 +431,8 @@ testNewExpression() {
 //    "  Foo.foo() {}\n" +
 //    "  Foo.bar([int i = null]) {}\n" +
 //    "}\n" +
-//    "interface Bar<T> factory Baz {\n" +
-//    "  Bar.make();\n" +
+//    "abstract class Bar<T> {\n" +
+//    "  factory Bar.make() => new Baz<T>.make();\n" +
 //    "}\n" +
 //    "class Baz {\n" +
 //    "  factory Bar<S>.make(S x) { return null; }\n" +
