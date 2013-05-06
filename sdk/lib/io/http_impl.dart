@@ -273,17 +273,14 @@ class _HttpClientResponse
 
   Future<HttpClientResponse> _authenticate() {
     Future<HttpClientResponse> retryWithCredentials(_Credentials cr) {
-      if (cr != null) {
-        // TODO(sgjesse): Support digest.
-        if (cr.scheme == _AuthenticationScheme.BASIC) {
-          // Drain body and retry.
-          return fold(null, (x, y) {}).then((_) {
-              return _httpClient._openUrlFromRequest(_httpRequest.method,
-                                                     _httpRequest.uri,
-                                                     _httpRequest)
-                  .then((request) => request.close());
-            });
-        }
+      if (cr != null && cr.scheme != _AuthenticationScheme.UNKNOWN) {
+        // Drain body and retry.
+        return fold(null, (x, y) {}).then((_) {
+            return _httpClient._openUrlFromRequest(_httpRequest.method,
+                                                   _httpRequest.uri,
+                                                   _httpRequest)
+                .then((request) => request.close());
+          });
       }
 
       // Fall through to here to perform normal response handling if
@@ -294,17 +291,45 @@ class _HttpClientResponse
     List<String> challenge = headers[HttpHeaders.WWW_AUTHENTICATE];
     assert(challenge != null || challenge.length == 1);
     _HeaderValue header =
-        new _HeaderValue.fromString(challenge[0], parameterSeparator: ",");
+        _HeaderValue.parse(challenge[0], parameterSeparator: ",");
     _AuthenticationScheme scheme =
         new _AuthenticationScheme.fromString(header.value);
     String realm = header.parameters["realm"];
 
-    // See if any credentials are available.
+    // See if any matching credentials are available.
     _Credentials cr = _httpClient._findCredentials(_httpRequest.uri, scheme);
+    if (cr != null) {
+      // For basic authentication don't retry already used credentials
+      // as they must have already been added to the request causing
+      // this authenticate response.
+      if (cr.scheme == _AuthenticationScheme.BASIC && !cr.used) {
+        // Credentials where found, prepare for retrying the request.
+        return retryWithCredentials(cr);
+      }
 
-    if (cr != null && !cr.used) {
-      // If credentials found prepare for retrying the request.
-      return retryWithCredentials(cr);
+      // Digest authentication only supports the MD5 algorithm.
+      if (cr.scheme == _AuthenticationScheme.DIGEST &&
+          (header.parameters["algorithm"] == null ||
+           header.parameters["algorithm"].toLowerCase() == "md5")) {
+        if (cr.nonce == null || cr.nonce == header.parameters["nonce"]) {
+          // If the nonce is not set then this is the first authenticate
+          // response for these credentials. Set up authentication state.
+          if (cr.nonce == null) {
+            cr.nonce = header.parameters["nonce"];
+            cr.algorithm = "MD5";
+            cr.qop = header.parameters["qop"];
+            cr.nonceCount = 0;
+          }
+          // Credentials where found, prepare for retrying the request.
+          return retryWithCredentials(cr);
+        } else if (header.parameters["stale"] != null &&
+                   header.parameters["stale"].toLowerCase() == "true") {
+          // If stale is true retry with new nonce.
+          cr.nonce = header.parameters["nonce"];
+          // Credentials where found, prepare for retrying the request.
+          return retryWithCredentials(cr);
+        }
+      }
     }
 
     // Ask for more credentials if none found or the one found has
@@ -346,7 +371,7 @@ class _HttpClientResponse
     List<String> challenge = headers[HttpHeaders.PROXY_AUTHENTICATE];
     assert(challenge != null || challenge.length == 1);
     _HeaderValue header =
-        new _HeaderValue.fromString(challenge[0], parameterSeparator: ",");
+        _HeaderValue.parse(challenge[0], parameterSeparator: ",");
     _AuthenticationScheme scheme =
         new _AuthenticationScheme.fromString(header.value);
     String realm = header.parameters["realm"];
@@ -1095,6 +1120,7 @@ class _HttpClientConnection {
   _HttpClientRequest send(Uri uri, int port, String method, _Proxy proxy) {
     // Start with pausing the parser.
     _subscription.pause();
+    _Credentials cr;  // Credentials used to authorize this request.
     var outgoing = new _HttpOutgoing(_socket);
     // Create new request object, wrapping the outgoing connection.
     var request = new _HttpClientRequest(outgoing,
@@ -1126,7 +1152,7 @@ class _HttpClientConnection {
       request.headers.set(HttpHeaders.AUTHORIZATION, "Basic $auth");
     } else {
       // Look for credentials.
-      _Credentials cr = _httpClient._findCredentials(uri);
+      cr = _httpClient._findCredentials(uri);
       if (cr != null) {
         cr.authorize(request);
       }
@@ -1153,6 +1179,18 @@ class _HttpClientConnection {
                     destroy();
                   }
                 });
+                // For digest authentication check if the server
+                // requests the client to start using a new nonce.
+                if (cr != null && cr.scheme == _AuthenticationScheme.DIGEST) {
+                  var authInfo = incoming.headers["authentication-info"];
+                  if (authInfo != null && authInfo.length == 1) {
+                    var header =
+                        _HeaderValue.parse(
+                            authInfo[0], parameterSeparator: ',');
+                    var nextnonce = header.parameters["nextnonce"];
+                    if (nextnonce != null) cr.nonce = nextnonce;
+                  }
+                }
                 request._onIncoming(incoming);
               })
               // If we see a state error, we failed to get the 'first'
@@ -1374,6 +1412,29 @@ class _HttpClient implements HttpClient {
   Future<HttpClientRequest> _openUrlFromRequest(String method,
                                                 Uri uri,
                                                 _HttpClientRequest previous) {
+    // If the new URI is relative (to either '/' or some sub-path),
+    // construct a full URI from the previous one.
+    // See http://tools.ietf.org/html/rfc3986#section-4.2
+    replaceComponents({scheme, domain, port, path}) {
+      uri = new Uri.fromComponents(
+          scheme: scheme != null ? scheme : uri.scheme,
+          domain: domain != null ? domain : uri.domain,
+          port: port != null ? port : uri.port,
+          path: path != null ? path : uri.path,
+          query: uri.query,
+          fragment: uri.fragment);
+    }
+    if (uri.domain == '') {
+      replaceComponents(domain: previous.uri.domain, port: previous.uri.port);
+    }
+    if (uri.scheme == '') {
+      replaceComponents(scheme: previous.uri.scheme);
+    }
+    if (!uri.path.startsWith('/') && previous.uri.path.startsWith('/')) {
+      var absolute = new Path.raw(previous.uri.path).directoryPath;
+      absolute = absolute.join(new Path.raw(uri.path));
+      replaceComponents(path: absolute.canonicalize().toString());
+    }
     return openUrl(method, uri).then((_HttpClientRequest request) {
           // Only follow redirects if initial request did.
           request.followRedirects = previous.followRedirects;
@@ -1948,7 +2009,24 @@ class _AuthenticationScheme {
 
 
 class _Credentials {
-  _Credentials(this.uri, this.realm, this.credentials);
+  _Credentials(this.uri, this.realm, this.credentials) {
+    if (credentials.scheme == _AuthenticationScheme.DIGEST) {
+      // Calculate the H(A1) value once. There is no mentioning of
+      // username/password encoding in RFC 2617. However there is an
+      // open draft for adding an additional accept-charset parameter to
+      // the WWW-Authenticate and Proxy-Authenticate headers, see
+      // http://tools.ietf.org/html/draft-reschke-basicauth-enc-06. For
+      // now always use UTF-8 encoding.
+      _HttpClientDigestCredentials creds = credentials;
+      var hasher = new MD5();
+      hasher.add(_encodeString(creds.username));
+      hasher.add([_CharCode.COLON]);
+      hasher.add(realm.codeUnits);
+      hasher.add([_CharCode.COLON]);
+      hasher.add(_encodeString(creds.password));
+      ha1 = CryptoUtils.bytesToHex(hasher.close());
+    }
+  }
 
   _AuthenticationScheme get scheme => credentials.scheme;
 
@@ -1963,6 +2041,12 @@ class _Credentials {
   }
 
   void authorize(HttpClientRequest request) {
+    // Digest credentials cannot be used without a nonce from the
+    // server.
+    if (credentials.scheme == _AuthenticationScheme.DIGEST &&
+        nonce == null) {
+      return;
+    }
     credentials.authorize(this, request);
     used = true;
   }
@@ -1973,9 +2057,11 @@ class _Credentials {
   _HttpClientCredentials credentials;
 
   // Digest specific fields.
+  String ha1;
   String nonce;
   String algorithm;
   String qop;
+  int nonceCount;
 }
 
 
@@ -2047,9 +2133,60 @@ class _HttpClientDigestCredentials
 
   _AuthenticationScheme get scheme => _AuthenticationScheme.DIGEST;
 
+  String authorization(_Credentials credentials, HttpClientRequest request) {
+    MD5 hasher = new MD5();
+    hasher.add(request.method.codeUnits);
+    hasher.add([_CharCode.COLON]);
+    hasher.add(request.uri.path.codeUnits);
+    var ha2 = CryptoUtils.bytesToHex(hasher.close());
+
+    String qop;
+    String cnonce;
+    String nc;
+    var x;
+    hasher = new MD5();
+    hasher.add(credentials.ha1.codeUnits);
+    hasher.add([_CharCode.COLON]);
+    if (credentials.qop == "auth") {
+      qop = credentials.qop;
+      cnonce = CryptoUtils.bytesToHex(_IOCrypto.getRandomBytes(4));
+      ++credentials.nonceCount;
+      nc = credentials.nonceCount.toRadixString(16);
+      nc = "00000000".substring(0, 8 - nc.length + 1) + nc;
+      hasher.add(credentials.nonce.codeUnits);
+      hasher.add([_CharCode.COLON]);
+      hasher.add(nc.codeUnits);
+      hasher.add([_CharCode.COLON]);
+      hasher.add(cnonce.codeUnits);
+      hasher.add([_CharCode.COLON]);
+      hasher.add(credentials.qop.codeUnits);
+      hasher.add([_CharCode.COLON]);
+      hasher.add(ha2.codeUnits);
+    } else {
+      hasher.add(credentials.nonce.codeUnits);
+      hasher.add([_CharCode.COLON]);
+      hasher.add(ha2.codeUnits);
+    }
+    var response = CryptoUtils.bytesToHex(hasher.close());
+
+    StringBuffer buffer = new StringBuffer();
+    buffer.write('Digest ');
+    buffer.write('username="$username"');
+    buffer.write(', realm="${credentials.realm}"');
+    buffer.write(', nonce="${credentials.nonce}"');
+    buffer.write(', uri="${request.uri.path}"');
+    buffer.write(', algorithm="${credentials.algorithm}"');
+    if (qop == "auth") {
+      buffer.write(', qop="$qop"');
+      buffer.write(', cnonce="$cnonce"');
+      buffer.write(', nc="$nc"');
+    }
+    buffer.write(', response="$response"');
+    return buffer.toString();
+  }
+
   void authorize(_Credentials credentials, HttpClientRequest request) {
-    // TODO(sgjesse): Implement!!!
-    throw new UnsupportedError("Digest authentication not yet supported");
+    request.headers.set(HttpHeaders.AUTHORIZATION, authorization(credentials, request));
   }
 
   void authorizeProxy(_ProxyCredentials credentials,

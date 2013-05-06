@@ -94,15 +94,6 @@ void cleanOutputDirectory(Path path) {
 }
 
 /**
- * Returns the display name of the library. This is necessary to account for
- * dart: libraries.
- */
-String displayName(LibraryMirror library) {
-  var uri = library.uri.toString();
-  return uri.startsWith('dart:') ?  uri.toString() : library.simpleName;
-}
-
-/**
  * Copies all of the files in the directory [from] to [to]. Does *not*
  * recursively copy subdirectories.
  *
@@ -405,8 +396,9 @@ class Dartdoc {
         return true;
       }
     }
-    if (libraryName.startsWith('dart:')) {
-      String suffix = libraryName.substring('dart:'.length);
+    Uri uri = library.uri;
+    if (uri.scheme == 'dart') {
+      String suffix = uri.path;
       LibraryInfo info = LIBRARIES[suffix];
       if (info != null) {
         return info.documented && includeApi;
@@ -421,9 +413,9 @@ class Dartdoc {
    */
   bool shouldLinkToPublicApi(LibraryMirror library) {
     if (linkToApi) {
-      String libraryName = displayName(library);
-      if (libraryName.startsWith('dart:')) {
-        String suffix = libraryName.substring('dart:'.length);
+      Uri uri = library.uri;
+      if (uri.scheme == 'dart') {
+        String suffix = uri.path;
         LibraryInfo info = LIBRARIES[suffix];
         if (info != null) {
           return info.documented;
@@ -602,7 +594,7 @@ class Dartdoc {
 
         var library1 = _librariesByPath[export1.exporter];
         var library2 = _librariesByPath[export2.exporter];
-        return Comparable.compare(library1.displayName, library2.displayName);
+        return Comparable.compare(displayName(library1), displayName(library2));
       });
       hiddenLibraryExports[exporteePath] = exports;
     });
@@ -842,11 +834,9 @@ class Dartdoc {
       if (!showPrivate && type.isPrivate) continue;
 
       var typeInfo = {};
-      typeInfo[NAME] = type.displayName;
+      typeInfo[NAME] = displayName(type);
       if (type.isClass) {
         typeInfo[KIND] = CLASS;
-      } else if (type.isInterface) {
-        typeInfo[KIND] = INTERFACE;
       } else {
         assert(type.isTypedef);
         typeInfo[KIND] = TYPEDEF;
@@ -859,7 +849,7 @@ class Dartdoc {
       if (!type.originalDeclaration.typeVariables.isEmpty) {
         final typeVariables = [];
         for (final typeVariable in type.originalDeclaration.typeVariables) {
-          typeVariables.add(typeVariable.displayName);
+          typeVariables.add(displayName(typeVariable));
         }
         typeInfo[ARGS] = typeVariables.join(', ');
       }
@@ -895,7 +885,7 @@ class Dartdoc {
           memberInfo[NO_PARAMS] = true;
         }
       }
-      memberInfo[NAME] = member.displayName;
+      memberInfo[NAME] = displayName(member);
       var anchor = memberAnchor(member);
       if (anchor != memberInfo[NAME]) {
         memberInfo[LINK_NAME] = anchor;
@@ -1000,7 +990,6 @@ class Dartdoc {
     docMembers(library);
 
     // Document the types.
-    final interfaces = <ClassMirror>[];
     final abstractClasses = <ClassMirror>[];
     final classes = <ClassMirror>[];
     final typedefs = <TypedefMirror>[];
@@ -1018,8 +1007,6 @@ class Dartdoc {
         } else {
           classes.add(type);
         }
-      } else if (type.isInterface){
-        interfaces.add(type);
       } else if (type is TypedefMirror) {
         typedefs.add(type);
       } else {
@@ -1027,7 +1014,6 @@ class Dartdoc {
       }
     }
 
-    docTypes(interfaces, 'Interfaces');
     docTypes(abstractClasses, 'Abstract Classes');
     docTypes(classes, 'Classes');
     docTypes(typedefs, 'Typedefs');
@@ -1071,10 +1057,11 @@ class Dartdoc {
 
     startFile(typeUrl(type));
 
-    var kind = 'interface';
+    var kind;
     if (type.isTypedef) {
       kind = 'typedef';
-    } else if (type.isClass) {
+    } else {
+      assert(type.isClass);
       if (type.isAbstract) {
         kind = 'abstract class';
       } else {
@@ -1148,6 +1135,7 @@ class Dartdoc {
     // Don't show the inheritance details for Object. It doesn't have any base
     // class (obviously) and it has too many subclasses to be useful.
     if (type.isObject) return;
+    if (type.isTypedef) return;
 
     // Writes an unordered list of references to types with an optional header.
     listTypes(types, header) {
@@ -1181,56 +1169,30 @@ class Dartdoc {
       subtypes.add(subtype);
     }
     subtypes.sort((x, y) => x.simpleName.compareTo(y.simpleName));
-    if (type.isClass) {
-      // Show the chain of superclasses.
-      if (!type.superclass.isObject) {
-        final supertypes = [];
-        var thisType = type.superclass;
-        // As a sanity check, only show up to five levels of nesting, otherwise
-        // the box starts to get hideous.
-        do {
-          supertypes.add(thisType);
-          thisType = thisType.superclass;
-        } while (!thisType.isObject);
 
-        writeln('<h3>Extends</h3>');
-        writeln('<p>');
-        for (var i = supertypes.length - 1; i >= 0; i--) {
-          typeSpan(supertypes[i]);
-          write('&nbsp;&gt;&nbsp;');
-        }
+    // Show the chain of superclasses.
+    if (!type.superclass.isObject) {
+      final supertypes = [];
+      var thisType = type.superclass;
+      do {
+        supertypes.add(thisType);
+        thisType = thisType.superclass;
+      } while (!thisType.isObject);
 
-        // Write this class.
-        typeSpan(type);
-        writeln('</p>');
+      writeln('<h3>Extends</h3>');
+      writeln('<p>');
+      for (var i = supertypes.length - 1; i >= 0; i--) {
+        typeSpan(supertypes[i]);
+        write('&nbsp;&gt;&nbsp;');
       }
 
-      listTypes(subtypes, 'Subclasses');
-      listTypes(type.superinterfaces, 'Implements');
-    } else {
-      // Show the default class.
-      if (type.defaultFactory != null) {
-        listTypes([type.defaultFactory], 'Default class');
-      }
-
-      // List extended interfaces.
-      listTypes(type.superinterfaces, 'Extends');
-
-      // List subinterfaces and implementing classes.
-      final subinterfaces = [];
-      final implementing = [];
-
-      for (final subtype in subtypes) {
-        if (subtype.isClass) {
-          implementing.add(subtype);
-        } else {
-          subinterfaces.add(subtype);
-        }
-      }
-
-      listTypes(subinterfaces, 'Subinterfaces');
-      listTypes(implementing, 'Implemented by');
+      // Write this class.
+      typeSpan(type);
+      writeln('</p>');
     }
+
+    listTypes(subtypes, 'Subclasses');
+    listTypes(type.superinterfaces, 'Implements');
   }
 
   /**
@@ -1331,14 +1293,14 @@ class Dartdoc {
       if (host is LibraryMirror || member.isStatic) {
         if (member is MethodMirror) {
           if (member.isGetter) {
-            staticGetters[member.displayName] = member;
+            staticGetters[displayName(member)] = member;
           } else if (member.isSetter) {
-            staticSetters[member.displayName] = member;
+            staticSetters[displayName(member)] = member;
           } else {
             staticMethods.add(member);
           }
         } else if (member is VariableMirror) {
-          staticGetters[member.displayName] = member;
+          staticGetters[displayName(member)] = member;
         }
       }
     }
@@ -1384,12 +1346,12 @@ class Dartdoc {
     memberMap.forEach((_, MemberMirror member) {
       if (member is MethodMirror) {
         if (member.isGetter) {
-          instanceGetters[member.displayName] = member;
+          instanceGetters[displayName(member)] = member;
           if (_ownerFor(member) == host) {
             allPropertiesInherited = false;
           }
         } else if (member.isSetter) {
-          instanceSetters[member.displayName] = member;
+          instanceSetters[displayName(member)] = member;
           if (_ownerFor(member) == host) {
             allPropertiesInherited = false;
           }
@@ -1405,7 +1367,7 @@ class Dartdoc {
           }
         }
       } else if (member is VariableMirror) {
-        instanceGetters[member.displayName] = member;
+        instanceGetters[displayName(member)] = member;
         if (_ownerFor(member) == host) {
           allPropertiesInherited = false;
         }
@@ -1520,7 +1482,7 @@ class Dartdoc {
     _currentMember = member;
 
     bool isAbstract = false;
-    String name = member.displayName;
+    String name = displayName(member);
     if (member is VariableMirror) {
       if (asGetter) {
         // Getter.
@@ -2187,7 +2149,7 @@ class Dartdoc {
       if (exportedLibrary == null) return [];
       if (shouldIncludeLibrary(exportedLibrary)) return [];
       return fn(exportedLibrary).where((declaration) =>
-          export.isMemberVisible(declaration.displayName));
+          export.isMemberVisible(displayName(declaration)));
     }));
     return contents;
   }
@@ -2198,7 +2160,7 @@ class Dartdoc {
    * exporter.
    */
   LibraryMirror _libraryFor(TypeMirror type) =>
-    _visibleLibrary(type.library, type.displayName);
+    _visibleLibrary(type.library, displayName(type));
 
   /**
    * Returns the owner of [declaration]. If [declaration]'s owner is a hidden
@@ -2207,7 +2169,7 @@ class Dartdoc {
   DeclarationMirror _ownerFor(DeclarationMirror declaration) {
     var owner = declaration.owner;
     if (owner is! LibraryMirror) return owner;
-    return _visibleLibrary(owner, declaration.displayName);
+    return _visibleLibrary(owner, displayName(declaration));
   }
 
   /**

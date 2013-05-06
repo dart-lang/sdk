@@ -345,6 +345,16 @@ bool Intrinsifier::OneByteString_substringUnchecked(Assembler* assembler) {
   return false;
 }
 
+
+bool Intrinsifier::OneByteString_setAt(Assembler* assembler) {
+  return false;
+}
+
+
+bool Intrinsifier::OneByteString_allocate(Assembler* assembler) {
+  return false;
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_ARM

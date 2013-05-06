@@ -6,10 +6,10 @@
 
 import "package:expect/expect.dart";
 
-interface J {
+abstract class J {
 }
 
-interface I extends J {
+abstract class I extends J {
   I read();
   write(I x);
 }

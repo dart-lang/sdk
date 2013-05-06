@@ -203,14 +203,14 @@ void testHeaderValue() {
   }
 
   HeaderValue headerValue;
-  headerValue = new HeaderValue.fromString(
+  headerValue = HeaderValue.parse(
       "xxx; aaa=bbb; ccc=\"\\\";\\a\"; ddd=\"    \"");
   check(headerValue, "xxx", {"aaa": "bbb", "ccc": '\";a', "ddd": "    "});
   headerValue = new HeaderValue("xxx",
                                 {"aaa": "bbb", "ccc": '\";a', "ddd": "    "});
   check(headerValue, "xxx", {"aaa": "bbb", "ccc": '\";a', "ddd": "    "});
 
-  headerValue = new HeaderValue.fromString(
+  headerValue = HeaderValue.parse(
     "attachment; filename=genome.jpeg;"
     "modification-date=\"Wed, 12 February 1997 16:29:51 -0500\"");
   var parameters = {
@@ -220,7 +220,7 @@ void testHeaderValue() {
   check(headerValue, "attachment", parameters);
   headerValue = new HeaderValue("attachment", parameters);
   check(headerValue, "attachment", parameters);
-  headerValue = new HeaderValue.fromString(
+  headerValue = HeaderValue.parse(
     "  attachment  ;filename=genome.jpeg  ;"
     "modification-date = \"Wed, 12 February 1997 16:29:51 -0500\""  );
   check(headerValue, "attachment", parameters);
@@ -250,7 +250,7 @@ void testContentType() {
   Expect.equals("", contentType.subType);
   Expect.equals("/", contentType.value);
 
-  contentType = new ContentType.fromString("text/html");
+  contentType = ContentType.parse("text/html");
   check(contentType, "text", "html");
   Expect.equals("text/html", contentType.toString());
   contentType = new ContentType("text", "html", charset: "utf-8");
@@ -276,25 +276,25 @@ void testContentType() {
                       s == "text/html; xxx=yyy; charset=iso-8859-1");
   Expect.isTrue(expectedToString);
 
-  contentType = new ContentType.fromString("text/html");
+  contentType = ContentType.parse("text/html");
   check(contentType, "text", "html");
-  contentType = new ContentType.fromString(" text/html  ");
+  contentType = ContentType.parse(" text/html  ");
   check(contentType, "text", "html");
-  contentType = new ContentType.fromString("text/html; charset=utf-8");
+  contentType = ContentType.parse("text/html; charset=utf-8");
   check(contentType, "text", "html", {"charset": "utf-8"});
-  contentType = new ContentType.fromString(
+  contentType = ContentType.parse(
       "  text/html  ;  charset  =  utf-8  ");
   check(contentType, "text", "html", {"charset": "utf-8"});
-  contentType = new ContentType.fromString(
+  contentType = ContentType.parse(
       "text/html; charset=utf-8; xxx=yyy");
   check(contentType, "text", "html", {"charset": "utf-8", "xxx": "yyy"});
-  contentType = new ContentType.fromString(
+  contentType = ContentType.parse(
       "  text/html  ;  charset  =  utf-8  ;  xxx=yyy  ");
   check(contentType, "text", "html", {"charset": "utf-8", "xxx": "yyy"});
-  contentType = new ContentType.fromString(
+  contentType = ContentType.parse(
       'text/html; charset=utf-8; xxx="yyy"');
   check(contentType, "text", "html", {"charset": "utf-8", "xxx": "yyy"});
-  contentType = new ContentType.fromString(
+  contentType = ContentType.parse(
       "  text/html  ;  charset  =  utf-8  ;  xxx=yyy  ");
   check(contentType, "text", "html", {"charset": "utf-8", "xxx": "yyy"});
 }

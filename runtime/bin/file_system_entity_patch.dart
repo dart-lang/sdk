@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 patch class FileSystemEntity {
-  /* patch */ static int _getType(String path, bool followLinks)
+  /* patch */ static _getType(String path, bool followLinks)
       native "File_GetType";
-  /* patch */ static bool _identical(String path1, String path2)
+  /* patch */ static _identical(String path1, String path2)
       native "File_AreIdentical";
 }

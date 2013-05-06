@@ -5,79 +5,53 @@
 import "package:expect/expect.dart";
 import 'dart:async';
 import 'dart:math';
-
-part '../../../sdk/lib/io/io_sink.dart';
-part "../../../sdk/lib/io/http.dart";
-part "../../../sdk/lib/io/http_impl.dart";
-part "../../../sdk/lib/io/http_parser.dart";
-part "../../../sdk/lib/io/mime_multipart_parser.dart";
-part '../../../sdk/lib/io/socket.dart';
+import 'dart:io';
+import 'dart:isolate';
 
 void testParse(String message,
                String boundary,
                [List<Map> expectedHeaders,
-               List expectedParts]) {
-  _MimeMultipartParser parser;
-  int partCount;
-  Map headers;
-  List<int> currentPart;
-  bool lastPartCalled;
-
-  void reset() {
-    parser = new _MimeMultipartParser(boundary);
-    parser.partStart = (f, v) {
-    };
-    parser.headerReceived = (f, v) {
-      headers[f] = v;
-    };
-    parser.headersComplete = () {
-      if (expectedHeaders != null) {
-        expectedHeaders[partCount].forEach(
-            (String name, String value) {
-              Expect.equals(value, headers[name]);
-            });
-      }
-    };
-    parser.partDataReceived = (List<int> data) {
-      if (currentPart == null) currentPart = new List<int>();
-      currentPart.addAll(data);
-    };
-    parser.partEnd = (lastPart) {
-      Expect.isFalse(lastPartCalled);
-      lastPartCalled = lastPart;
-      if (expectedParts[partCount] != null) {
-        List<int> expectedPart;
-        if (expectedParts[partCount] is String) {
-          expectedPart = expectedParts[partCount].codeUnits;
-        } else {
-          expectedPart = expectedParts[partCount];
-        }
-        Expect.listEquals(expectedPart, currentPart);
-      }
-      currentPart = null;
-      partCount++;
-      if (lastPart) Expect.equals(expectedParts.length, partCount);
-    };
-
-    partCount = 0;
-    headers = new Map();
-    currentPart = null;
-    lastPartCalled = false;
-  }
-
+               List expectedParts,
+               bool expectError = false]) {
   void testWrite(List<int> data, [int chunkSize = -1]) {
+    StreamController controller = new StreamController();
+
+    var stream = controller.stream.transform(
+        new MimeMultipartTransformer(boundary));
+    int i = 0;
+    var port = new ReceivePort();
+    stream.listen((multipart) {
+      int part = i++;
+      if (expectedHeaders != null) {
+        Expect.mapEquals(expectedHeaders[part], multipart.headers);
+      }
+      var partPort = new ReceivePort();
+      multipart.fold([], (buffer, data) => buffer..addAll(data))
+          .then((data) {
+            if (expectedParts[part] != null) {
+              Expect.listEquals(expectedParts[part].codeUnits, data);
+            }
+            partPort.close();
+          });
+    }, onError: (error) {
+      if (!expectError) throw error;
+    }, onDone: () {
+      if (expectedParts != null) {
+        Expect.equals(expectedParts.length, i);
+      }
+      port.close();
+    });
+
     if (chunkSize == -1) chunkSize = data.length;
-    reset();
+
     int written = 0;
     for (int pos = 0; pos < data.length; pos += chunkSize) {
       int remaining = data.length - pos;
       int writeLength = min(chunkSize, remaining);
-      int parsed =
-          parser.update(data.sublist(pos, pos + writeLength), 0, writeLength);
-      Expect.equals(writeLength, parsed);
+      controller.add(data.sublist(pos, pos + writeLength));
       written += writeLength;
     }
-    Expect.isTrue(lastPartCalled);
+    controller.close();
   }
 
   // Test parsing the data three times delivering the data in
@@ -195,7 +169,7 @@ on\r
   body3 = "on";
   body4 = "on";
   testParse(message,
-            "----webkitformboundaryq3cgyamgrf8yoeyb",
+            "----WebKitFormBoundaryQ3cgYAmGRF8yOeYB",
             [headers1, headers2, headers3, headers4],
             [body1, body2, body3, body4]);
 
@@ -321,7 +295,7 @@ Body 1\r
 \r
 Body2\r
 --xxx--\r\n""";
-  Expect.throws(() => testParse(message, "xxx", null, [null, null]));
+  testParse(message, "xxx", null, ["\r\nBody2"]);
 
   // Missing end boundary.
   message = """
@@ -335,7 +309,7 @@ Body 1\r
 \r
 Body2\r
 --xxx\r\n""";
-  Expect.throws(() => testParse(message, "xxx", null, [null, null]));
+  testParse(message, "xxx", null, [null, null], true);
 }
 
 void main() {

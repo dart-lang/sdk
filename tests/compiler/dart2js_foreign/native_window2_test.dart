@@ -5,7 +5,7 @@
 import "package:expect/expect.dart";
 import 'native_metadata.dart';
 
-interface Window {
+abstract class Window {
   final int document;
 }
 

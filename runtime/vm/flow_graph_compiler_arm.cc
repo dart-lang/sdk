@@ -14,6 +14,7 @@
 #include "vm/locations.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
+#include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
 
@@ -1193,7 +1194,9 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
   // lowest address.
   const intptr_t cpu_registers = locs->live_registers()->cpu_registers();
   ASSERT((cpu_registers & ~kAllCpuRegistersList) == 0);
-  __ PushList(cpu_registers);
+  if (cpu_registers != 0) {
+    __ PushList(cpu_registers);
+  }
 }
 
 
@@ -1202,7 +1205,9 @@ void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
   // lowest address.
   const intptr_t cpu_registers = locs->live_registers()->cpu_registers();
   ASSERT((cpu_registers & ~kAllCpuRegistersList) == 0);
-  __ PopList(cpu_registers);
+  if (cpu_registers != 0) {
+    __ PopList(cpu_registers);
+  }
 
   const intptr_t fpu_registers = locs->live_registers()->fpu_registers();
   if (fpu_registers > 0) {

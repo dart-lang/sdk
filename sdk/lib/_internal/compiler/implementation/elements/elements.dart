@@ -229,6 +229,7 @@ abstract class Element implements Spannable {
   bool get isImplementation;
   bool get isDeclaration;
   bool get isSynthesized;
+  bool get isForwardingConstructor;
 
   Element get implementation;
   Element get declaration;
@@ -246,6 +247,11 @@ abstract class Element implements Spannable {
   void setFixedBackendName(String name);
 
   Scope buildScope();
+
+  /// If the element is a forwarding constructor, [targetConstructor] holds
+  /// the generative constructor that the forwarding constructor points to
+  /// (possibly via other forwarding constructors).
+  FunctionElement get targetConstructor;
 }
 
 class Elements {
@@ -763,11 +769,6 @@ abstract class ClassElement extends TypeDeclarationElement
   void set resolutionState(int value);
   void set nativeTagInfo(SourceString value);
 
-  // TODO(kasperl): These seem outdated.
-  bool isInterface();
-  DartType get defaultClass;
-  void set defaultClass(DartType value);
-
   bool isObject(Compiler compiler);
   bool isSubclassOf(ClassElement cls);
   bool implementsInterface(ClassElement intrface);
@@ -823,6 +824,7 @@ abstract class ClassElement extends TypeDeclarationElement
 abstract class MixinApplicationElement extends ClassElement {
   ClassElement get mixin;
   void set mixin(ClassElement value);
+  void addConstructor(FunctionElement constructor);
 }
 
 abstract class LabelElement extends Element {

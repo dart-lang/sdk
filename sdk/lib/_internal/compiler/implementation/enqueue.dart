@@ -59,6 +59,11 @@ abstract class Enqueuer {
     assert(invariant(element, element.isDeclaration));
     if (element.isForeign(compiler)) return;
 
+    if (element.isForwardingConstructor) {
+      addToWorkList(element.targetConstructor, elements);
+      return;
+    }
+
     if (!addElementToWorkList(element, elements)) return;
 
     // Enable runtime type support if we discover a getter called runtimeType.

@@ -89,6 +89,6 @@ Encoding _encodingForHeaders(Map<String, String> headers) =>
 /// `application/octet-stream`.
 ContentType _contentTypeForHeaders(Map<String, String> headers) {
   var contentType = headers[HttpHeaders.CONTENT_TYPE];
-  if (contentType != null) return new ContentType.fromString(contentType);
+  if (contentType != null) return ContentType.parse(contentType);
   return new ContentType("application", "octet-stream");
 }

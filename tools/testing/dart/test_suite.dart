@@ -200,8 +200,9 @@ abstract class TestSuite {
 
   String get d8FileName {
     var suffix = getExecutableSuffix('d8');
-    var d8Dir = '${TestUtils.dartDir()}/third_party/d8';
-    var d8 = '$d8Dir/${Platform.operatingSystem}/d8$suffix';
+    var d8Dir = TestUtils.dartDir().append('third_party/d8');
+    var d8Path = d8Dir.append('${Platform.operatingSystem}/d8$suffix');
+    var d8 = d8Path.toNativePath();
     TestUtils.ensureExists(d8, configuration);
     return d8;
   }

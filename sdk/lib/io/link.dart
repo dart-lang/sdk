@@ -128,10 +128,7 @@ class _Link extends FileSystemEntity implements Link {
 
   String toString() => "Link: '$path'";
 
-  Future<bool> exists() {
-    // TODO(whesse): Replace with asynchronous version.
-    return new Future.value(existsSync());
-  }
+  Future<bool> exists() => FileSystemEntity.isLink(path);
 
   bool existsSync() => FileSystemEntity.isLinkSync(path);
 
@@ -204,8 +201,17 @@ class _Link extends FileSystemEntity implements Link {
   }
 
   Future<String> target() {
-    // TODO(whesse): Replace with asynchronous version.
-    return new Future.sync(targetSync);
+    _ensureFileService();
+    List request = new List(2);
+    request[0] = _LINK_TARGET_REQUEST;
+    request[1] = path;
+    return _fileService.call(request).then((response) {
+      if (_isErrorResponse(response)) {
+        throw _exceptionFromResponse(response,
+            "Cannot get target of link '$path'");
+      }
+      return response;
+    });
   }
 
   String targetSync() {

@@ -4,7 +4,7 @@
 
 import "package:expect/expect.dart";
 
-interface Window {
+abstract class Window {
   final int document;
 }
 

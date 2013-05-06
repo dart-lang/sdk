@@ -81,6 +81,7 @@ testJunctionTypeDelete() {
 
 
 main() {
+  // Links on other platforms are tested by file_system_[async_]links_test.
   if (Platform.operatingSystem == 'windows') {
     testJunctionTypeDelete();
   }

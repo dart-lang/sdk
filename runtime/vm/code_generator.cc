@@ -1481,15 +1481,16 @@ static void CopyFrame(const Code& optimized_code, const StackFrame& frame) {
       function.HasOptionalParameters() ? 0 : function.num_fixed_parameters();
   // FP, PC-marker and return-address will be copied as well.
   const intptr_t frame_copy_size =
-      1  // Deoptimized function's return address: caller_frame->pc().
+      // Deoptimized function's return address: caller_frame->pc().
+      - kPcSlotIndexFromSp
       + ((frame.fp() - frame.sp()) / kWordSize)
-      + 1  // PC marker.
-      + 1  // Caller return address.
+      + kLastParamSlotIndex
       + num_args;
   intptr_t* frame_copy = new intptr_t[frame_copy_size];
   ASSERT(frame_copy != NULL);
   // Include the return address of optimized code.
-  intptr_t* start = reinterpret_cast<intptr_t*>(frame.sp() - kWordSize);
+  intptr_t* start = reinterpret_cast<intptr_t*>(
+      frame.sp() + (kPcSlotIndexFromSp * kWordSize));
   for (intptr_t i = 0; i < frame_copy_size; i++) {
     frame_copy[i] = *(start + i);
   }
@@ -1506,6 +1507,8 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
   HANDLESCOPE(isolate);
 
   // All registers have been saved below last-fp.
+  // Note that the deopt stub is not allowed to save any other values (pc
+  // marker, pool pointer, alignment, etc...) below last-fp.
   const uword last_fp = saved_registers_address +
                         kNumberOfCpuRegisters * kWordSize +
                         kNumberOfFpuRegisters * kFpuRegisterSize;
@@ -1517,7 +1520,6 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
   ASSERT(caller_frame != NULL);
   const Code& optimized_code = Code::Handle(caller_frame->LookupDartCode());
   ASSERT(optimized_code.is_optimized());
-
 
   intptr_t deopt_reason = kDeoptUnknown;
   const DeoptInfo& deopt_info = DeoptInfo::Handle(
@@ -1544,11 +1546,10 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
       function.HasOptionalParameters() ? 0 : function.num_fixed_parameters();
   intptr_t unoptimized_stack_size =
       + deopt_info.TranslationLength() - num_args
-      - 2;  // Subtract caller FP and PC.
+      - kLastParamSlotIndex;  // Subtract caller FP and PC (possibly pc marker).
   return unoptimized_stack_size * kWordSize;
 }
 END_LEAF_RUNTIME_ENTRY
-
 
 
 static intptr_t DeoptimizeWithDeoptInfo(const Code& code,
@@ -1561,14 +1562,15 @@ static intptr_t DeoptimizeWithDeoptInfo(const Code& code,
   ASSERT(!deopt_table.IsNull());
   deopt_info.ToInstructions(deopt_table, &deopt_instructions);
 
-  intptr_t* start = reinterpret_cast<intptr_t*>(caller_frame.sp() - kWordSize);
+  intptr_t* start = reinterpret_cast<intptr_t*>(
+      caller_frame.sp() + (kPcSlotIndexFromSp * kWordSize));
   const Function& function = Function::Handle(code.function());
   const intptr_t num_args =
       function.HasOptionalParameters() ? 0 : function.num_fixed_parameters();
-  intptr_t to_frame_size =
-      1  // Deoptimized function's return address.
+  const intptr_t to_frame_size =
+      - kPcSlotIndexFromSp  // Deoptimized function's return address.
       + (caller_frame.fp() - caller_frame.sp()) / kWordSize
-      + 3  // caller-fp, pc, pc-marker.
+      + kLastParamSlotIndex
       + num_args;
   DeoptimizationContext deopt_context(start,
                                       to_frame_size,

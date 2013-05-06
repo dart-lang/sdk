@@ -197,29 +197,9 @@ const int _READ_LIST_REQUEST = 17;
 const int _WRITE_LIST_REQUEST = 18;
 const int _CREATE_LINK_REQUEST = 19;
 const int _DELETE_LINK_REQUEST = 20;
-
-// Base class for _File and _RandomAccessFile with shared functions.
-class _FileBase {
-  bool _isErrorResponse(response) {
-    return response is List && response[0] != _SUCCESS_RESPONSE;
-  }
-
-  _exceptionFromResponse(response, String message) {
-    assert(_isErrorResponse(response));
-    switch (response[_ERROR_RESPONSE_ERROR_TYPE]) {
-      case _ILLEGAL_ARGUMENT_RESPONSE:
-        return new ArgumentError();
-      case _OSERROR_RESPONSE:
-        var err = new OSError(response[_OSERROR_RESPONSE_MESSAGE],
-                              response[_OSERROR_RESPONSE_ERROR_CODE]);
-        return new FileIOException(message, err);
-      case _FILE_CLOSED_RESPONSE:
-        return new FileIOException("File closed");
-      default:
-        return new Exception("Unknown error");
-    }
-  }
-}
+const int _LINK_TARGET_REQUEST = 21;
+const int _TYPE_REQUEST = 22;
+const int _IDENTICAL_REQUEST = 23;
 
 // TODO(ager): The only reason for this class is that the patching
 // mechanism doesn't seem to like patching a private top level
@@ -229,7 +209,7 @@ class _FileUtils {
 }
 
 // Class for encapsulating the native implementation of files.
-class _File extends _FileBase implements File {
+class _File implements File {
   // Constructor for file.
   _File(String this._path) {
     if (_path is! String) {
@@ -586,7 +566,7 @@ class _File extends _FileBase implements File {
 }
 
 
-class _RandomAccessFile extends _FileBase implements RandomAccessFile {
+class _RandomAccessFile implements RandomAccessFile {
   _RandomAccessFile(int this._id, String this._path);
 
   Future<RandomAccessFile> close() {

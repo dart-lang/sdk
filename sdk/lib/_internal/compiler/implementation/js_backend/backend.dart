@@ -680,6 +680,8 @@ class JavaScriptBackend extends Backend {
   Element defineNativeMethodsFinishMethod;
   Element getDispatchPropertyMethod;
   Element setDispatchPropertyMethod;
+  Element initializeDispatchPropertyMethod;
+  bool needToInitializeDispatchProperty = false;
 
   bool seenAnyClass = false;
 
@@ -895,6 +897,9 @@ class JavaScriptBackend extends Backend {
         compiler.findInterceptor(const SourceString('setDispatchProperty'));
     getNativeInterceptorMethod =
         compiler.findInterceptor(const SourceString('getNativeInterceptor'));
+    initializeDispatchPropertyMethod =
+        compiler.findInterceptor(
+            new SourceString(emitter.nameOfDispatchPropertyInitializer));
     defineNativeMethodsFinishMethod =
         compiler.findHelper(const SourceString('defineNativeMethodsFinish'));
 
@@ -1000,19 +1005,20 @@ class JavaScriptBackend extends Backend {
     if (enqueuer.isResolutionQueue) {
       cls.ensureResolved(compiler);
       cls.forEachMember((ClassElement classElement, Element member) {
-          // All methods on [Object] are shadowed by [Interceptor].
-          if (classElement == compiler.objectClass) return;
-          Set<Element> set = interceptedElements.putIfAbsent(
-              member.name, () => new Set<Element>());
-          set.add(member);
-          if (classElement == jsInterceptorClass) return;
-          if (!classElement.isNative()) {
-            MixinApplicationElement mixinApplication = classElement;
-            assert(member.getEnclosingClass() == mixinApplication.mixin);
-            classesMixedIntoNativeClasses.add(mixinApplication.mixin);
-          }
-        },
-        includeSuperMembers: true);
+        if (member.isSynthesized) return;
+        // All methods on [Object] are shadowed by [Interceptor].
+        if (classElement == compiler.objectClass) return;
+        Set<Element> set = interceptedElements.putIfAbsent(
+            member.name, () => new Set<Element>());
+        set.add(member);
+        if (classElement == jsInterceptorClass) return;
+        if (!classElement.isNative()) {
+          MixinApplicationElement mixinApplication = classElement;
+          assert(member.getEnclosingClass() == mixinApplication.mixin);
+          classesMixedIntoNativeClasses.add(mixinApplication.mixin);
+        }
+      },
+      includeSuperMembers: true);
     }
   }
 
@@ -1067,6 +1073,9 @@ class JavaScriptBackend extends Backend {
         // native classes.
         enqueuer.registerStaticUse(getNativeInterceptorMethod);
         enqueuer.registerStaticUse(defineNativeMethodsFinishMethod);
+        enqueuer.registerStaticUse(initializeDispatchPropertyMethod);
+        enqueuer.registerInstantiatedClass(jsInterceptorClass,
+                                           compiler.globalDependencies);
       }
     }
 
@@ -1143,6 +1152,10 @@ class JavaScriptBackend extends Backend {
     // classes.
     enqueuer.registerStaticUse(getNativeInterceptorMethod);
     enqueuer.registerStaticUse(defineNativeMethodsFinishMethod);
+    enqueuer.registerStaticUse(initializeDispatchPropertyMethod);
+    TreeElements elements = compiler.globalDependencies;
+    enqueuer.registerInstantiatedClass(jsInterceptorClass, elements);
+    needToInitializeDispatchProperty = true;
   }
 
   JavaScriptItemCompilationContext createItemCompilationContext() {

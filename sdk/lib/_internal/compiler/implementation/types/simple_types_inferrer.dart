@@ -576,6 +576,9 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
   }
 
   bool analyze(Element element) {
+    if (element.isForwardingConstructor) {
+      element = element.targetConstructor;
+    }
     SimpleTypeInferrerVisitor visitor =
         new SimpleTypeInferrerVisitor(element, compiler, this);
     TypeMask returnType = visitor.run();
@@ -1968,19 +1971,19 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
   }
 
   TypeMask handleForeignSend(Send node) {
-    // TODO(ngeoffray): Analyze JS expressions.
-    sideEffects.setAllSideEffects();    
     node.visitChildren(this);
     Selector selector = elements.getSelector(node);
     SourceString name = selector.name;
     if (name == const SourceString('JS')) {
       native.NativeBehavior nativeBehavior =
           compiler.enqueuer.resolution.nativeEnqueuer.getNativeBehaviorOf(node);
+      sideEffects.add(nativeBehavior.sideEffects);
       return inferrer.typeOfNativeBehavior(nativeBehavior);
     } else if (name == const SourceString('JS_OPERATOR_IS_PREFIX')
                || name == const SourceString('JS_OPERATOR_AS_PREFIX')) {
       return inferrer.stringType;
     } else {
+      sideEffects.setAllSideEffects();
       return inferrer.dynamicType;
     }
   }

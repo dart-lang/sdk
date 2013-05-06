@@ -10,8 +10,6 @@ import 'dart:io';
 
 
 const _BINARY_NAME = 'analyzer';
-const _SDK_ENV = 'com.google.dart.sdk';
-final _DEFAULT_SDK_LOCATION = Platform.environment[_SDK_ENV];
 
 /**
  * Analyzer commandline configuration options.
@@ -27,8 +25,11 @@ class CommandLineOptions {
   /** Whether to ignore unrecognized flags */
   final bool ignoreUnrecognizedFlags;
 
-  /** Whether to print metrics */
-  final bool showMetrics;
+  /** Whether to show package: warnings */
+  final bool showPackageWarnings;
+
+  /** Whether to show SDK warnings */
+  final bool showSdkWarnings;
 
   /** Whether to treat warnings as fatal */
   final bool warningsAreFatal;
@@ -46,22 +47,41 @@ class CommandLineOptions {
     : shouldBatch = args['batch'],
       machineFormat = args['machine_format'],
       ignoreUnrecognizedFlags = args['ignore_unrecognized_flags'],
-      showMetrics = args['metrics'],
+      showPackageWarnings = args['show_package_warnings'],
+      showSdkWarnings = args['show_sdk_warnings'],
       warningsAreFatal = args['fatal_warnings'],
       dartSdkPath = args['dart_sdk'],
       sourceFiles = args.rest;
 
   /**
    * Parse [args] into [CommandLineOptions] describing the specified
-   * analyzer options.  In case of a format error, [null] is returned.
+   * analyzer options. In case of a format error, prints error and exists.
    */
-  factory CommandLineOptions.parse(List<String> args) {
+  static CommandLineOptions parse(List<String> args) {
+    CommandLineOptions options = _parse(args);
+    // check SDK
+    {
+      var sdkPath = options.dartSdkPath;
+      // check that SDK is specified
+      if (sdkPath == null) {
+        print('Usage: $_BINARY_NAME: no Dart SDK found.');
+        exit(15);
+      }
+      // check that SDK is existing directory
+      if (!(new Directory(sdkPath)).existsSync()) {
+        print('Usage: $_BINARY_NAME: invalid Dart SDK path: $sdkPath');
+        exit(15);
+      }
+    }
+    // OK
+    return options;
+  }
 
+  static CommandLineOptions _parse(List<String> args) {
     var parser = new _CommandLineParser()
       ..addFlag('batch', abbr: 'b', help: 'Run in batch mode',
           defaultsTo: false, negatable: false)
-      ..addOption('dart_sdk', help: 'Specify path to the Dart sdk',
-          defaultsTo: _DEFAULT_SDK_LOCATION)
+      ..addOption('dart_sdk', help: 'Specify path to the Dart sdk')
       ..addFlag('machine_format', help: 'Specify whether errors '
         'should be in machine format',
           defaultsTo: false, negatable: false)
@@ -70,29 +90,44 @@ class CommandLineOptions {
           defaultsTo: false, negatable: false)
       ..addFlag('fatal_warnings', help: 'Treat non-type warnings as fatal',
           defaultsTo: false, negatable: false)
-       ..addFlag('metrics', help: 'Print metrics',
-          defaultsTo: false, negatable: false)
+      ..addFlag('show_package_warnings', help: 'Show warnings from package: imports',
+         defaultsTo: false, negatable: false)
+      ..addFlag('show_sdk_warnings', help: 'Show warnings from SDK imports',
+         defaultsTo: false, negatable: false)
       ..addFlag('help', abbr: 'h', help: 'Display this help message',
-          defaultsTo: false, negatable: false);
+         defaultsTo: false, negatable: false);
 
     try {
       var results = parser.parse(args);
-      if (results['help'] || results.rest.length == 0) {
+      // help requests
+      if (results['help']) {
         _showUsage(parser);
-        return null;
+        exit(0);
+      }
+      // batch mode and input files
+      if (results['batch']) {
+        if (results.rest.length != 0) {
+          print('No source files expected in the batch mode.');
+          _showUsage(parser);
+          exit(15);
+        }
+      } else {
+        if (results.rest.length == 0) {
+          _showUsage(parser);
+          exit(15);
+        }
       }
       return new CommandLineOptions._fromArgs(results);
     } on FormatException catch (e) {
       print(e.message);
       _showUsage(parser);
-      return null;
+      exit(15);
     }
 
   }
 
   static _showUsage(parser) {
-    print('Usage: ${_BINARY_NAME} [options...] '
-      '<libraries to analyze...>');
+    print('Usage: $_BINARY_NAME [options...] <libraries to analyze...>');
     print(parser.getUsage());
   }
 
@@ -194,6 +229,4 @@ class _CommandLineParser {
     }
     return i;
   }
-
 }
-

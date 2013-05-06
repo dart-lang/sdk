@@ -13,7 +13,7 @@ part of dart.core;
  *
  * Also see [Stopwatch] for means to measure time-spans.
  */
-class DateTime {
+class DateTime implements Comparable {
   // Weekday constants that are returned by [weekday] method:
   static const int MONDAY = 1;
   static const int TUESDAY = 2;

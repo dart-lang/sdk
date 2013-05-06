@@ -280,7 +280,9 @@ class DartBackend extends Backend {
     // field names used as named optionals into [fixedMemberNames].
     for (final element in resolvedElements.keys) {
       if (!element.isConstructor()) continue;
-      for (final optional in element.functionSignature.optionalParameters) {
+      Link<Element> optionalParameters =
+          element.functionSignature.optionalParameters;
+      for (final optional in optionalParameters) {
         if (optional.kind != ElementKind.FIELD_PARAMETER) continue;
         fixedMemberNames.add(optional.name.slowToString());
       }
@@ -554,18 +556,6 @@ class ReferencedElementCollector extends Visitor {
       this.newTypedefElementCallback, this.newClassElementCallback)
       : this.rootElement = (rootElement is VariableElement)
           ? (rootElement as VariableElement).variables : rootElement;
-
-  visitClassNode(ClassNode node) {
-    super.visitClassNode(node);
-    // Temporary hack which should go away once interfaces
-    // and default clauses are out.
-    if (node.defaultClause != null) {
-      // Resolver cannot resolve parameterized default clauses.
-      TypeAnnotation evilCousine = new TypeAnnotation(
-          node.defaultClause.typeName, null);
-      evilCousine.accept(this);
-    }
-  }
 
   visitNode(Node node) { node.visitChildren(this); }
 

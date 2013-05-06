@@ -718,5 +718,15 @@ main() {
     expect(m.foo("bar", "mock"), "C");
     m.resetBehavior();
   });
+
+  solo_test('Spys', () {
+    var real = new Foo();
+    var spy = new Mock.spy(real);
+    var sum = spy.sum(1, 2, 3);
+    expect(sum, 6);
+    expect(() => spy.total(1, 2, 3), throwsNoSuchMethodError);
+    spy.getLogs(callsTo('sum')).verify(happenedExactly(1));
+    spy.getLogs(callsTo('total')).verify(happenedExactly(1));
+  });
 }
 

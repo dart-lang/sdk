@@ -66,10 +66,6 @@ class Unparser implements Visitor {
       sb.write(' ');
       visit(node.interfaces);
     }
-    if (node.defaultClause != null) {
-      sb.write(' default ');
-      visit(node.defaultClause);
-    }
     sb.write('{');
     for (final member in members) {
       visit(member);

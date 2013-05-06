@@ -21,7 +21,8 @@ import '../elements/modelx.dart'
          LabelElementX,
          TargetElementX,
          MixinApplicationElementX,
-         TypedefElementX;
+         TypedefElementX,
+         SynthesizedConstructorElementX;
 import '../util/util.dart';
 import '../scanner/scannerlib.dart' show PartialMetadataAnnotation;
 

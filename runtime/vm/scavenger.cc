@@ -121,9 +121,11 @@ class ScavengerVisitor : public ObjectPointerVisitor {
     ASSERT(!heap_->CodeContains(ptr));
     ASSERT(heap_->Contains(ptr));
     // If the newly written object is not a new object, drop it immediately.
-    if (!obj->IsNewObject()) return;
-    isolate()->store_buffer()->AddPointer(
-        reinterpret_cast<uword>(visiting_old_object_));
+    if (!obj->IsNewObject() || visiting_old_object_->IsRemembered()) {
+      return;
+    }
+    visiting_old_object_->SetRememberedBit();
+    isolate()->store_buffer()->AddObjectGC(visiting_old_object_);
   }
 
   void ScavengePointer(RawObject** p) {
@@ -374,36 +376,23 @@ void Scavenger::Epilogue(Isolate* isolate, bool invoke_api_callbacks) {
 
 void Scavenger::IterateStoreBuffers(Isolate* isolate,
                                     ScavengerVisitor* visitor) {
-  // Drain store buffer block into store buffer to deduplicate it. It might be
-  // full of large objects repeated multiple times.
-  // Use DrainBlock directly instead of ProcessBlock because we are in the
-  // middle of a scavenge cycle and thus do not care if we are temporary
-  // running over the max number of deduplication sets.
-  StoreBufferBlock* block = isolate->store_buffer_block();
-  heap_->RecordData(kStoreBufferBlockEntries, block->Count());
-  isolate->store_buffer()->DrainBlock(block);
+  StoreBuffer* buffer = isolate->store_buffer();
+  heap_->RecordData(kStoreBufferBlockEntries, buffer->Count());
 
   // Iterating through the store buffers.
   // Grab the deduplication sets out of the store buffer.
-  StoreBuffer::DedupSet* pending = isolate->store_buffer()->DedupSets();
+  StoreBufferBlock* pending = isolate->store_buffer()->Blocks();
   intptr_t entries = 0;
   while (pending != NULL) {
-    StoreBuffer::DedupSet* next = pending->next();
-    HashSet* set = pending->set();
-    intptr_t count = set->Count();
-    intptr_t size = set->Size();
-    intptr_t handled = 0;
+    StoreBufferBlock* next = pending->next();
+    intptr_t count = pending->Count();
     entries += count;
-    for (intptr_t i = 0; i < size; i++) {
-      RawObject* raw_object = reinterpret_cast<RawObject*>(set->At(i));
-      if (raw_object != NULL) {
-        visitor->VisitingOldObject(raw_object);
-        raw_object->VisitPointers(visitor);
-        handled++;
-        if (handled == count) {
-          break;
-        }
-      }
+    for (intptr_t i = 0; i < count; i++) {
+      RawObject* raw_object = pending->At(i);
+      ASSERT(raw_object->IsRemembered());
+      raw_object->ClearRememberedBit();
+      visitor->VisitingOldObject(raw_object);
+      raw_object->VisitPointers(visitor);
     }
     delete pending;
     pending = next;
@@ -534,6 +523,7 @@ void Scavenger::ProcessToSpace(ScavengerVisitor* visitor) {
         // Resolve or copy all objects referred to by the current object. This
         // can potentially push more objects on this stack as well as add more
         // objects to be resolved in the to space.
+        ASSERT(!raw_object->IsRemembered());
         visitor->VisitingOldObject(raw_object);
         raw_object->VisitPointers(visitor);
       }

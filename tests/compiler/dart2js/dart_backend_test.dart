@@ -16,18 +16,18 @@ import '../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart';
 const coreLib = r'''
 library corelib;
 class Object {}
-interface bool {}
-interface num {}
-interface int extends num {}
-interface double extends num {}
+class bool {}
+class num {}
+class int extends num {}
+class double extends num {}
 abstract class String {}
-interface Function {}
-interface List<T> {}
-interface Map<K,V> {}
-interface Closure {}
-interface Dynamic_ {}
-interface Null {}
-interface TypeError {}
+class Function {}
+class List<T> {}
+class Map<K,V> {}
+class Closure {}
+class Dynamic_ {}
+class Null {}
+class TypeError {}
 class Type {}
 class LinkedHashMap {}
 class Math {
@@ -386,12 +386,6 @@ main() {
       continuation: (String result) { Expect.equals(expectedResult, result); });
 }
 
-testDefaultClassWithArgs() {
-  testDart2Dart('main(){var result=new IA<String>();}'
-      'interface IA<T> default A<T extends Object>{IA();}'
-      'class A<T extends Object> implements IA<T>{factory A(){}}');
-}
-
 testClassExtendsWithArgs() {
   testDart2Dart('main(){new B<Object>();}'
     'class A<T extends Object>{}'
@@ -469,33 +463,6 @@ main() {
   Expect.isTrue(fooPlaceholder.nodes.contains(fooNode.name));
 }
 
-testDefaultClassNamePlaceholder() {
-  var src = '''
-interface I default C{
-  I();
-}
-
-class C {
-  I() {}
-}
-
-main() {
-  new I();
-}
-''';
-  MockCompiler compiler = new MockCompiler();
-  compiler.parseScript(src);
-  ClassElement interfaceElement = compiler.mainApp.find(buildSourceString('I'));
-  interfaceElement.ensureResolved(compiler);
-  PlaceholderCollector collector =
-      collectPlaceholders(compiler, interfaceElement);
-  ClassNode interfaceNode = interfaceElement.parseNode(compiler);
-  Node defaultTypeNode = interfaceNode.defaultClause.typeName;
-  ClassElement classElement = compiler.mainApp.find(buildSourceString('C'));
-  // Check that 'C' in default clause of I gets into placeholders.
-  Expect.isTrue(collector.elementNodes[classElement].contains(defaultTypeNode));
-}
-
 testTypeVariablesAreRenamed() {
   // Somewhat a hack: we require all the references of the identifier
   // to be renamed in the same way for the whole library. Hence
@@ -544,14 +511,14 @@ testClassTypeArgumentBound() {
   var librarySrc = '''
 library mylib;
 
-interface I {}
+class I {}
 class A<T extends I> {}
 
 ''';
   var mainSrc = '''
 import 'mylib.dart' as mylib;
 
-interface I {}
+class I {}
 class A<T extends I> {}
 
 main() {
@@ -560,9 +527,9 @@ main() {
 }
 ''';
   var expectedResult =
-    'interface I{}'
+    'class I{}'
     'class A<T extends I>{}'
-    'interface p_I{}'
+    'class p_I{}'
     'class p_A<p_T extends p_I>{}'
     'main(){new p_A();new A();}';
   testDart2DartWithLibrary(mainSrc, librarySrc,
@@ -745,12 +712,10 @@ main() {
   testConflictSendsRename();
   testNoConflictSendsRename();
   testConflictLibraryClassRename();
-  testDefaultClassWithArgs();
   testClassExtendsWithArgs();
   testStaticInvocation();
   testLibraryGetSet();
   testFieldTypeOutput();
-  testDefaultClassNamePlaceholder();
   testTypeVariablesAreRenamed();
   testClassTypeArgumentBound();
   testDoubleMains();

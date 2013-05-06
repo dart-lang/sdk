@@ -463,8 +463,9 @@ testOneInterface() {
       compiler.errors[0].message);
   compiler.clearErrors();
 
-  // Add the interface to the world and make sure everything is setup correctly.
-  compiler.parseScript("interface Bar {}");
+  // Add the abstract class to the world and make sure everything is setup
+  // correctly.
+  compiler.parseScript("abstract class Bar {}");
 
   ResolverVisitor visitor =
       new ResolverVisitor(compiler, null, new CollectingTreeElements(null));
@@ -484,7 +485,7 @@ testOneInterface() {
 testTwoInterfaces() {
   MockCompiler compiler = new MockCompiler();
   compiler.parseScript(
-      "interface I1 {} interface I2 {} class C implements I1, I2 {}");
+      "abstract class I1 {} abstract class I2 {} class C implements I1, I2 {}");
   compiler.resolveStatement("Foo bar;");
 
   ClassElement c = compiler.mainApp.find(buildSourceString('C'));

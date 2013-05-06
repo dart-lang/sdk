@@ -45,7 +45,7 @@ abstract class NestedScope extends Scope {
  * [TypeDeclarationScope] defines the outer scope of a type declaration in
  * which the declared type variables and the entities in the enclosing scope are
  * available but where declared and inherited members are not available. This
- * scope is only used for class/interface declarations during resolution of the
+ * scope is only used for class declarations during resolution of the
  * class hierarchy. In all other cases [ClassScope] is used.
  */
 class TypeDeclarationScope extends NestedScope {

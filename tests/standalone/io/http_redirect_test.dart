@@ -57,6 +57,69 @@ Future<HttpServer> setupServer() {
        }
     );
 
+    // Setup redirects with relative url.
+    addRequestHandler(
+       "/redirectUrl",
+       (HttpRequest request, HttpResponse response) {
+         response.headers.set(HttpHeaders.LOCATION, "/some/relativeUrl");
+         response.statusCode = HttpStatus.MOVED_PERMANENTLY;
+         response.close();
+       }
+    );
+
+    addRequestHandler(
+       "/some/redirectUrl",
+       (HttpRequest request, HttpResponse response) {
+         response.headers.set(HttpHeaders.LOCATION, "relativeUrl");
+         response.statusCode = HttpStatus.MOVED_PERMANENTLY;
+         response.close();
+       }
+    );
+
+    addRequestHandler(
+       "/some/relativeUrl",
+       (HttpRequest request, HttpResponse response) {
+         response.close();
+       }
+    );
+
+    addRequestHandler(
+       "/redirectUrl2",
+       (HttpRequest request, HttpResponse response) {
+         response.headers.set(HttpHeaders.LOCATION, "location");
+         response.statusCode = HttpStatus.MOVED_PERMANENTLY;
+         response.close();
+       }
+    );
+
+    addRequestHandler(
+       "/redirectUrl3",
+       (HttpRequest request, HttpResponse response) {
+         response.headers.set(HttpHeaders.LOCATION, "./location");
+         response.statusCode = HttpStatus.MOVED_PERMANENTLY;
+         response.close();
+       }
+    );
+
+    addRequestHandler(
+       "/redirectUrl4",
+       (HttpRequest request, HttpResponse response) {
+         response.headers.set(HttpHeaders.LOCATION, "./a/b/../../location");
+         response.statusCode = HttpStatus.MOVED_PERMANENTLY;
+         response.close();
+       }
+    );
+
+    addRequestHandler(
+       "/redirectUrl5",
+       (HttpRequest request, HttpResponse response) {
+         response.headers.set(HttpHeaders.LOCATION,
+                              "//127.0.0.1:${server.port}/location");
+         response.statusCode = HttpStatus.MOVED_PERMANENTLY;
+         response.close();
+       }
+    );
+
     // Setup redirect chain.
     int n = 1;
     addRedirectHandler(n++, HttpStatus.MOVED_PERMANENTLY);
@@ -370,6 +433,34 @@ void testRedirectClosingConnection() {
   });
 }
 
+void testRedirectRelativeUrl() {
+  testPath(String path) {
+    setupServer().then((server) {
+      HttpClient client = new HttpClient();
+
+      print(path);
+      client.getUrl(Uri.parse("http://127.0.0.1:${server.port}$path"))
+          .then((request) => request.close())
+          .then((response) {
+            response.listen(
+                (_) {},
+                onDone: () {
+                  Expect.equals(HttpStatus.OK, response.statusCode);
+                  Expect.equals(1, response.redirects.length);
+                  server.close();
+                  client.close();
+                });
+            });
+    });
+  }
+  testPath("/redirectUrl");
+  testPath("/some/redirectUrl");
+  testPath("/redirectUrl2");
+  testPath("/redirectUrl3");
+  testPath("/redirectUrl4");
+  testPath("/redirectUrl5");
+}
+
 main() {
   testManualRedirect();
   testManualRedirectWithHeaders();
@@ -380,4 +471,5 @@ main() {
   testAutoRedirectLimit();
   testRedirectLoop();
   testRedirectClosingConnection();
+  testRedirectRelativeUrl();
 }

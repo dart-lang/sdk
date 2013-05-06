@@ -563,12 +563,14 @@ void Assembler::strd(Register rd, Address ad, Condition cond) {
 
 void Assembler::ldm(BlockAddressMode am, Register base, RegList regs,
                     Condition cond) {
+  ASSERT(regs != 0);
   EmitMultiMemOp(cond, am, true, base, regs);
 }
 
 
 void Assembler::stm(BlockAddressMode am, Register base, RegList regs,
                     Condition cond) {
+  ASSERT(regs != 0);
   EmitMultiMemOp(cond, am, false, base, regs);
 }
 
@@ -1155,9 +1157,9 @@ void Assembler::svc(uint32_t imm24, Condition cond) {
 }
 
 
-void Assembler::bkpt(uint16_t imm16, Condition cond) {
-  ASSERT(cond != kNoCondition);
-  int32_t encoding = (cond << kConditionShift) | B24 | B21 |
+void Assembler::bkpt(uint16_t imm16) {
+  // bkpt requires that the cond field is AL.
+  int32_t encoding = (AL << kConditionShift) | B24 | B21 |
                      ((imm16 >> 4) << 8) | B6 | B5 | B4 | (imm16 & 0xf);
   Emit(encoding);
 }

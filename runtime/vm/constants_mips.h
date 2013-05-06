@@ -201,10 +201,6 @@ const FRegister kDartFirstVolatileFpuReg = F0;
 const FRegister kDartLastVolatileFpuReg = F19;
 const int kDartVolatileFpuRegCount = 20;
 
-// Dart stack frame layout.
-static const int kLastParamSlotIndex = 3;
-static const int kFirstLocalSlotIndex = -2;
-
 
 // Values for the condition field.
 // There is no condition field on MIPS, but Conditions are used and passed

@@ -54,7 +54,6 @@ class Keyword extends IterableBase<int> implements SourceString {
       const Keyword("get", isBuiltIn: true),
       const Keyword("implements", isBuiltIn: true),
       const Keyword("import", isBuiltIn: true),
-      const Keyword("interface", isBuiltIn: true),
       const Keyword("library", isBuiltIn: true),
       const Keyword("operator", isBuiltIn: true),
       const Keyword("part", isBuiltIn: true),

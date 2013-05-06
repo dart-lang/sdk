@@ -572,14 +572,6 @@ class PlaceholderCollector extends Visitor {
     ClassElement classElement = currentElement;
     makeElementPlaceholder(node.name, classElement);
     node.visitChildren(this);
-    if (node.defaultClause != null) {
-      // Can't just visit class node's default clause because of the bug in the
-      // resolver, it just crashes when it meets type variable.
-      DartType defaultType = classElement.defaultClass;
-      assert(defaultType != null);
-      makeTypePlaceholder(node.defaultClause.typeName, defaultType);
-      visit(node.defaultClause.typeArguments);
-    }
   }
 
   visitNamedMixinApplication(NamedMixinApplication node) {
@@ -590,15 +582,6 @@ class PlaceholderCollector extends Visitor {
 
   bool tryResolveAndCollectTypeVariable(
       TypeDeclarationElement typeDeclaration, Identifier name) {
-    // Hack for case when interface and default class are in different
-    // libraries, try to resolve type variable to default class type arg.
-    // Example:
-    // lib1: interface I<K> default C<K> {...}
-    // lib2: class C<K> {...}
-    if (typeDeclaration is ClassElement
-        && (typeDeclaration as ClassElement).defaultClass != null) {
-      typeDeclaration = (typeDeclaration as ClassElement).defaultClass.element;
-    }
     // Another poor man type resolution.
     // Find this variable in enclosing type declaration parameters.
     for (DartType type in typeDeclaration.typeVariables) {

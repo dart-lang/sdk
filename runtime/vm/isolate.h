@@ -158,12 +158,10 @@ class Isolate : public BaseIsolate {
   void VisitWeakPersistentHandles(HandleVisitor* visit,
                                   bool visit_prologue_weak_persistent_handles);
 
-  StoreBufferBlock* store_buffer_block() { return &store_buffer_block_; }
-  static intptr_t store_buffer_block_offset() {
-    return OFFSET_OF(Isolate, store_buffer_block_);
-  }
-
   StoreBuffer* store_buffer() { return &store_buffer_; }
+  static intptr_t store_buffer_offset() {
+    return OFFSET_OF(Isolate, store_buffer_);
+  }
 
   ClassTable* class_table() { return &class_table_; }
   static intptr_t class_table_offset() {
@@ -381,15 +379,20 @@ class Isolate : public BaseIsolate {
   }
 
   static void SetFileCallbacks(Dart_FileOpenCallback file_open,
+                               Dart_FileReadCallback file_read,
                                Dart_FileWriteCallback file_write,
                                Dart_FileCloseCallback file_close) {
     file_open_callback_ = file_open;
+    file_read_callback_ = file_read;
     file_write_callback_ = file_write;
     file_close_callback_ = file_close;
   }
 
   static Dart_FileOpenCallback file_open_callback() {
     return file_open_callback_;
+  }
+  static Dart_FileReadCallback file_read_callback() {
+    return file_read_callback_;
   }
   static Dart_FileWriteCallback file_write_callback() {
     return file_write_callback_;
@@ -472,7 +475,6 @@ class Isolate : public BaseIsolate {
   char* DoStacktraceInterrupt(Dart_IsolateInterruptCallback cb);
 
   static ThreadLocalKey isolate_key;
-  StoreBufferBlock store_buffer_block_;
   StoreBuffer store_buffer_;
   ClassTable class_table_;
   MegamorphicCacheTable megamorphic_cache_table_;
@@ -520,6 +522,7 @@ class Isolate : public BaseIsolate {
   static Dart_IsolateUnhandledExceptionCallback unhandled_exception_callback_;
   static Dart_IsolateShutdownCallback shutdown_callback_;
   static Dart_FileOpenCallback file_open_callback_;
+  static Dart_FileReadCallback file_read_callback_;
   static Dart_FileWriteCallback file_write_callback_;
   static Dart_FileCloseCallback file_close_callback_;
   static Dart_IsolateInterruptCallback vmstats_callback_;

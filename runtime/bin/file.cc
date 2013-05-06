@@ -1061,12 +1061,61 @@ static CObject* FileCreateLinkRequest(const CObjectArray& request) {
 
 static CObject* FileDeleteLinkRequest(const CObjectArray& request) {
   if (request.Length() == 2 && request[1]->IsString()) {
-    CObjectString filename(request[1]);
-    bool result = File::DeleteLink(filename.CString());
+    CObjectString link_path(request[1]);
+    bool result = File::DeleteLink(link_path.CString());
     if (result) {
       return CObject::True();
     } else {
       return CObject::NewOSError();
+    }
+  }
+  return CObject::IllegalArgumentError();
+}
+
+
+static CObject* FileLinkTargetRequest(const CObjectArray& request) {
+  if (request.Length() == 2 && request[1]->IsString()) {
+    CObjectString link_path(request[1]);
+    char* target = File::LinkTarget(link_path.CString());
+    if (target != NULL) {
+      CObject* result = new CObjectString(CObject::NewString(target));
+      free(target);
+      return result;
+    } else {
+      return CObject::NewOSError();
+    }
+  }
+  return CObject::IllegalArgumentError();
+}
+
+
+static CObject* FileTypeRequest(const CObjectArray& request) {
+  if (request.Length() == 3 &&
+      request[1]->IsString() &&
+      request[2]->IsBool()) {
+    CObjectString path(request[1]);
+    CObjectBool follow_links(request[2]);
+    File::Type type = File::GetType(path.CString(), follow_links.Value());
+    return new CObjectInt32(CObject::NewInt32(type));
+  }
+  return CObject::IllegalArgumentError();
+}
+
+
+static CObject* FileIdenticalRequest(const CObjectArray& request) {
+  if (request.Length() == 3 &&
+      request[1]->IsString() &&
+      request[2]->IsString()) {
+    CObjectString path1(request[1]);
+    CObjectString path2(request[2]);
+    File::Identical result = File::AreIdentical(path1.CString(),
+                                                path2.CString());
+    if (result == File::kError) {
+      return CObject::NewOSError();
+    } else if (result == File::kIdentical) {
+      return CObject::True();
+    } else {
+      return CObject::False();
     }
   }
   return CObject::IllegalArgumentError();
@@ -1144,6 +1193,15 @@ static void FileService(Dart_Port dest_port_id,
           break;
         case File::kCreateLinkRequest:
           response = FileCreateLinkRequest(request);
+          break;
+        case File::kLinkTargetRequest:
+          response = FileLinkTargetRequest(request);
+          break;
+        case File::kTypeRequest:
+          response = FileTypeRequest(request);
+          break;
+        case File::kIdenticalRequest:
+          response = FileIdenticalRequest(request);
           break;
         default:
           UNREACHABLE();

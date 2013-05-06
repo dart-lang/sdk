@@ -7,54 +7,41 @@
 
 #include "platform/assert.h"
 #include "vm/globals.h"
-#include "vm/hash_set.h"
 
 namespace dart {
 
 // Forward declarations.
 class Isolate;
+class RawObject;
 
 class StoreBufferBlock {
  public:
   // Each block contains kSize pointers.
   static const int32_t kSize = 1024;
 
-  StoreBufferBlock() : top_(0) {}
+  explicit StoreBufferBlock(StoreBufferBlock* next) : next_(next), top_(0) {}
+
+  void Reset() { top_ = 0; }
+
+  StoreBufferBlock* next() const { return next_; }
+
+  intptr_t Count() const { return top_; }
+
+  RawObject* At(intptr_t i) const {
+    ASSERT(i >= 0);
+    ASSERT(i < top_);
+    return pointers_[i];
+  }
 
   static int top_offset() { return OFFSET_OF(StoreBufferBlock, top_); }
   static int pointers_offset() {
     return OFFSET_OF(StoreBufferBlock, pointers_);
   }
 
-  void Reset() { top_ = 0; }
-
-  intptr_t Count() const { return top_; }
-
-  uword At(intptr_t i) const {
-    ASSERT(i >= 0);
-    ASSERT(i < top_);
-    return pointers_[i];
-  }
-
-  // Add a pointer to the block of pointers. The buffer will be processed if it
-  // has been filled by this operation.
-  void AddPointer(uword pointer) {
-    ASSERT(top_ < kSize);
-    pointers_[top_++] = pointer;
-    if (top_ == kSize) {
-      ProcessBuffer();
-    }
-  }
-
-  // Process this store buffer and remember its contents in the heap.
-  void ProcessBuffer();
-  void ProcessBuffer(Isolate* isolate);
-
-  bool Contains(uword pointer);
-
  private:
+  StoreBufferBlock* next_;
   int32_t top_;
-  uword pointers_[kSize];
+  RawObject* pointers_[kSize];
 
   friend class StoreBuffer;
 
@@ -64,63 +51,54 @@ class StoreBufferBlock {
 
 class StoreBuffer {
  public:
-  // Simple linked list element containing a HashSet of old->new pointers.
-  class DedupSet {
-   public:
-    enum {
-      kSetSize = 1024,
-      kFillRatio = 75
-    };
-
-    explicit DedupSet(DedupSet* next)
-        : next_(next), set_(new HashSet(kSetSize, kFillRatio)) {}
-    ~DedupSet() {
-      delete set_;
-    }
-
-    DedupSet* next() const { return next_; }
-    HashSet* set() const { return set_; }
-
-   private:
-    DedupSet* next_;
-    HashSet* set_;
-
-    DISALLOW_COPY_AND_ASSIGN(DedupSet);
-  };
-
-  StoreBuffer() : dedup_sets_(new DedupSet(NULL)), count_(1) {}
+  StoreBuffer() : blocks_(new StoreBufferBlock(NULL)), full_count_(0) {}
   ~StoreBuffer();
+
+  intptr_t Count() const {
+    return blocks_->Count() + (full_count_ * StoreBufferBlock::kSize);
+  }
 
   void Reset();
 
-  void AddPointer(uword address);
+  void AddObject(RawObject* obj) {
+    StoreBufferBlock* block = blocks_;
+    ASSERT(block->top_ < StoreBufferBlock::kSize);
+    block->pointers_[block->top_++] = obj;
+    if (block->top_ == StoreBufferBlock::kSize) {
+      Expand(true);
+    }
+  }
 
-  // Drain StoreBufferBlock into deduplication sets.
-  // Returns true if new sets were created.
-  bool DrainBlock(StoreBufferBlock* block);
+  void AddObjectGC(RawObject* obj) {
+    StoreBufferBlock* block = blocks_;
+    ASSERT(block->top_ < StoreBufferBlock::kSize);
+    block->pointers_[block->top_++] = obj;
+    if (block->top_ == StoreBufferBlock::kSize) {
+      Expand(false);
+    }
+  }
 
-  // Drain StoreBufferBlock into deduplication sets.
-  // Schedule an interrupt if we run over the max number of deduplication sets.
-  void ProcessBlock(StoreBufferBlock* block);
-
-  DedupSet* DedupSets() {
-    DedupSet* result = dedup_sets_;
-    dedup_sets_ = new DedupSet(NULL);
-    count_ = 1;
+  StoreBufferBlock* Blocks() {
+    StoreBufferBlock* result = blocks_;
+    blocks_ = new StoreBufferBlock(NULL);
+    full_count_ = 0;
     return result;
   }
 
- private:
-  // Add pointer to deduplication sets. Returns true if the current set is full
-  // and a new set was created.
-  bool AddPointerInternal(uword address);
+  // Expand the storage and optionally check whethe to schedule an interrupt.
+  void Expand(bool check);
 
+  bool Contains(RawObject* raw);
+
+  static int blocks_offset() { return OFFSET_OF(StoreBuffer, blocks_); }
+
+ private:
   // Check if we run over the max number of deduplication sets.
   // If we did schedule an interrupt.
   void CheckThreshold();
 
-  DedupSet* dedup_sets_;
-  intptr_t count_;
+  StoreBufferBlock* blocks_;
+  intptr_t full_count_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreBuffer);
 };

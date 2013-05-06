@@ -229,13 +229,6 @@ class MyNodeListener extends NodeListener {
     ClassNode node = popNode(); // Discard ClassNode and assert the type.
   }
 
-  void endInterface(int supertypeCount, Token interfaceKeyword,
-                    Token extendsKeyword, Token endToken) {
-    super.endInterface(supertypeCount, interfaceKeyword, extendsKeyword,
-                       endToken);
-    ClassNode node = popNode(); // Discard ClassNode and assert the type.
-  }
-
   void endTopLevelFields(int count, Token beginToken, Token endToken) {
     super.endTopLevelFields(count, beginToken, endToken);
     VariableDefinitions node = popNode(); // Discard node and assert the type.

@@ -31,8 +31,7 @@ class _BodyMatches extends BaseMatcher {
 
     var future = item.finalize().toBytes().then((bodyBytes) {
       var body = decodeUtf8(bodyBytes);
-      var contentType = new ContentType.fromString(
-          item.headers['content-type']);
+      var contentType = ContentType.parse(item.headers['content-type']);
       var boundary = contentType.parameters['boundary'];
       var expected = cleanUpLiteral(_pattern)
           .replaceAll("\n", "\r\n")

@@ -182,11 +182,6 @@ const DRegister kDartLastVolatileFpuReg = D7;
 const int kDartVolatileFpuRegCount = 8;
 
 
-// Dart stack frame layout.
-static const int kLastParamSlotIndex = 3;
-static const int kFirstLocalSlotIndex = -2;
-
-
 // Values for the condition field as defined in section A3.2.
 enum Condition {
   kNoCondition = -1,

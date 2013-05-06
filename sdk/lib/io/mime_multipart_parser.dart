@@ -4,45 +4,84 @@
 
 part of dart.io;
 
+
+/**
+ * A Mime Multipart class representing each part parsed by
+ * [MimeMultipartTransformer]. The data is streamed in as it become available.
+ */
+abstract class MimeMultipart extends Stream<List<int>> {
+  Map<String, String> get headers;
+}
+
+class _MimeMultipartImpl extends MimeMultipart {
+  final Map<String, String> headers;
+  final Stream<List<int>> _stream;
+
+  _MimeMultipartImpl(this.headers, this._stream);
+
+  StreamSubscription<List<int>> listen(void onData(List<int> data),
+                                       {void onDone(),
+                                        void onError(error),
+                                        bool cancelOnError}) {
+    return _stream.listen(onData,
+                          onDone: onDone,
+                          onError: onError,
+                          cancelOnError: cancelOnError);
+  }
+}
+
 /**
  * Parser for MIME multipart types of data as described in RFC 2046
- * section 5.1.1. The data to parse is supplied through the [:update:]
- * method. As the data is parsed the following callbacks are called:
- *
- *   [:partStart;
- *   [:headerReceived;
- *   [:headersComplete;
- *   [:partDataReceived;
- *   [:partEnd;
- *   [:error:]
+ * section 5.1.1. The data is transformed into [MimeMultipart] objects, each
+ * of them streaming the multipart data.
  */
+class MimeMultipartTransformer
+    implements StreamTransformer<List<int>, MimeMultipart> {
+  static const int _START = 0;
+  static const int _FIRST_BOUNDARY_ENDING = 111;
+  static const int _FIRST_BOUNDARY_END = 112;
+  static const int _BOUNDARY_ENDING = 1;
+  static const int _BOUNDARY_END = 2;
+  static const int _HEADER_START = 3;
+  static const int _HEADER_FIELD = 4;
+  static const int _HEADER_VALUE_START = 5;
+  static const int _HEADER_VALUE = 6;
+  static const int _HEADER_VALUE_FOLDING_OR_ENDING = 7;
+  static const int _HEADER_VALUE_FOLD_OR_END = 8;
+  static const int _HEADER_ENDING = 9;
+  static const int _CONTENT = 10;
+  static const int _LAST_BOUNDARY_DASH2 = 11;
+  static const int _LAST_BOUNDARY_ENDING = 12;
+  static const int _LAST_BOUNDARY_END = 13;
+  static const int _DONE = 14;
+  static const int _FAILURE = 15;
 
-class _MimeMultipartParser {
-  const int _START = 0;
-  const int _FIRST_BOUNDARY_ENDING = 111;
-  const int _FIRST_BOUNDARY_END = 112;
-  const int _BOUNDARY_ENDING = 1;
-  const int _BOUNDARY_END = 2;
-  const int _HEADER_START = 3;
-  const int _HEADER_FIELD = 4;
-  const int _HEADER_VALUE_START = 5;
-  const int _HEADER_VALUE = 6;
-  const int _HEADER_VALUE_FOLDING_OR_ENDING = 7;
-  const int _HEADER_VALUE_FOLD_OR_END = 8;
-  const int _HEADER_ENDING = 9;
-  const int _CONTENT = 10;
-  const int _LAST_BOUNDARY_DASH2 = 11;
-  const int _LAST_BOUNDARY_ENDING = 12;
-  const int _LAST_BOUNDARY_END = 13;
-  const int _DONE = 14;
-  const int _FAILURE = 15;
+  StreamController _controller;
+  StreamSubscription _subscription;
 
-  // Construct a new MIME multipart parser with the boundary
-  // [boundary]. The boundary should be as specified in the content
-  // type parameter, that is without the -- prefix.
-  _MimeMultipartParser(String boundary) {
+  StreamController _multipartController;
+  Map<String, String> _headers;
+
+  List<int> _boundary;
+  int _state = _START;
+  int _boundaryIndex = 0;
+
+  // Current index in the data buffer. If index is negative then it
+  // is the index into the artificial prefix of the boundary string.
+  int _index;
+  List<int> _buffer;
+
+  StringBuffer _headerField = new StringBuffer();
+  StringBuffer _headerValue = new StringBuffer();
+
+  /**
+   * Construct a new MIME multipart parser with the boundary
+   * [boundary]. The boundary should be as specified in the content
+   * type parameter, that is without the -- prefix.
+   */
+  MimeMultipartTransformer(String boundary) {
     List<int> charCodes = boundary.codeUnits;
-    _boundary = new List<int>(4 + charCodes.length);
+    _boundary = new Uint8List(4 + charCodes.length);
     // Set-up the matching boundary preceding it with CRLF and two
     // dashes.
     _boundary[0] = _CharCode.CR;
@@ -50,15 +89,51 @@ class _MimeMultipartParser {
     _boundary[2] = _CharCode.DASH;
     _boundary[3] = _CharCode.DASH;
     _boundary.setRange(4, 4 + charCodes.length, charCodes);
-    _state = _START;
-    _headerField = new StringBuffer();
-    _headerValue = new StringBuffer();
   }
 
-  int update(List<int> buffer, int offset, int count) {
-    // Current index in the data buffer. If index is negative then it
-    // is the index into the artificial prefix of the boundary string.
-    int index;
+  void _resumeStream() {
+    _subscription.resume();
+  }
+
+  void _pauseStream() {
+    _subscription.pause();
+  }
+
+  Stream<MimeMultipart> bind(Stream<List<int>> stream) {
+    _controller = new StreamController(
+        onPause: () {
+          _pauseStream();
+        },
+        onResume: () {
+          _resumeStream();
+        },
+        onListen: () {
+          _subscription = stream.listen(
+              (data) {
+                assert(_buffer == null);
+                _pauseStream();
+                _buffer = data;
+                _index = 0;
+                _parse();
+              },
+              onDone: () {
+                if (_state != _DONE) {
+                  _controller.addError(
+                      new MimeParserException("Bad multipart ending"));
+                }
+                _controller.close();
+              },
+              onError: (error) {
+                _controller.addError(error);
+              });
+        },
+        onCancel: () {
+          _subscription.cancel();
+        });
+    return _controller.stream;
+  }
+
+  void _parse() {
     // Number of boundary bytes to artificially place before the supplied data.
     int boundaryPrefix = 0;
     // Position where content starts. Will be null if no known content
@@ -73,29 +148,24 @@ class _MimeMultipartParser {
     // prefix of the boundary both the content start index and index
     // can be negative.
     void reportData() {
-      if (partDataReceived == null) return;
-
       if (contentStartIndex < 0) {
-        var contentLength = boundaryPrefix + index - _boundaryIndex;
+        var contentLength = boundaryPrefix + _index - _boundaryIndex;
         if (contentLength <= boundaryPrefix) {
-          partDataReceived(
+          _multipartController.add(
               _boundary.sublist(0, contentLength));
         } else {
-          partDataReceived(
+          _multipartController.add(
               _boundary.sublist(0, boundaryPrefix));
-          partDataReceived(
-              buffer.sublist(0, contentLength - boundaryPrefix));
+          _multipartController.add(
+              _buffer.sublist(0, contentLength - boundaryPrefix));
         }
       } else {
-        var contentEndIndex = index - _boundaryIndex;
-        partDataReceived(
-            buffer.sublist(contentStartIndex, contentEndIndex));
+        var contentEndIndex = _index - _boundaryIndex;
+        _multipartController.add(
+            _buffer.sublist(contentStartIndex, contentEndIndex));
       }
     }
 
-    // Prepare for processing the buffer.
-    index = offset;
-    int lastIndex = offset + count;
     if (_state == _CONTENT && _boundaryIndex == 0) {
       contentStartIndex = 0;
     } else {
@@ -105,12 +175,15 @@ class _MimeMultipartParser {
     // partial match of the boundary.
     boundaryPrefix = _boundaryIndex;
 
-    while ((index < lastIndex) && _state != _FAILURE && _state != _DONE) {
+    while ((_index < _buffer.length) && _state != _FAILURE && _state != _DONE) {
+      if (_multipartController != null && _multipartController.isPaused) {
+        return;
+      }
       int byte;
-      if (index < 0) {
-        byte = _boundary[boundaryPrefix + index];
+      if (_index < 0) {
+        byte = _boundary[boundaryPrefix + _index];
       } else {
-        byte = buffer[index];
+        byte = _buffer[_index];
       }
       switch (_state) {
         case _START:
@@ -122,7 +195,7 @@ class _MimeMultipartParser {
             }
           } else {
             // Restart matching of the boundary.
-            index = index - _boundaryIndex;
+            _index = _index - _boundaryIndex;
             _boundaryIndex = 0;
           }
           break;
@@ -152,103 +225,112 @@ class _MimeMultipartParser {
 
         case _BOUNDARY_END:
           _expect(byte, _CharCode.LF);
-          if (partEnd != null) {
-            partEnd(false);
-          }
+          _multipartController.close();
+          _multipartController = null;
           _state = _HEADER_START;
           break;
 
         case _HEADER_START:
+          _headers = new Map<String, String>();
           if (byte == _CharCode.CR) {
             _state = _HEADER_ENDING;
+          } else {
+            // Start of new header field.
+            _headerField.writeCharCode(_toLowerCase(byte));
+            _state = _HEADER_FIELD;
+          }
+          break;
+
+        case _HEADER_FIELD:
+          if (byte == _CharCode.COLON) {
+            _state = _HEADER_VALUE_START;
+          } else {
+            if (!_isTokenChar(byte)) {
+              throw new MimeParserException("Invalid header field name");
+            }
+            _headerField.writeCharCode(_toLowerCase(byte));
+          }
+          break;
+
+        case _HEADER_VALUE_START:
+          if (byte == _CharCode.CR) {
+            _state = _HEADER_VALUE_FOLDING_OR_ENDING;
+          } else if (byte != _CharCode.SP && byte != _CharCode.HT) {
+            // Start of new header value.
+            _headerValue.writeCharCode(byte);
+            _state = _HEADER_VALUE;
+          }
+          break;
+
+        case _HEADER_VALUE:
+          if (byte == _CharCode.CR) {
+            _state = _HEADER_VALUE_FOLDING_OR_ENDING;
+          } else {
+            _headerValue.writeCharCode(byte);
+          }
+          break;
+
+        case _HEADER_VALUE_FOLDING_OR_ENDING:
+          _expect(byte, _CharCode.LF);
+          _state = _HEADER_VALUE_FOLD_OR_END;
+          break;
+
+        case _HEADER_VALUE_FOLD_OR_END:
+          if (byte == _CharCode.SP || byte == _CharCode.HT) {
+            _state = _HEADER_VALUE_START;
+          } else {
+            String headerField = _headerField.toString();
+            String headerValue =_headerValue.toString();
+            _headers[headerField] = headerValue;
+            _headerField = new StringBuffer();
+            _headerValue = new StringBuffer();
+            if (byte == _CharCode.CR) {
+              _state = _HEADER_ENDING;
             } else {
               // Start of new header field.
               _headerField.writeCharCode(_toLowerCase(byte));
               _state = _HEADER_FIELD;
             }
-            break;
+          }
+          break;
 
-          case _HEADER_FIELD:
-            if (byte == _CharCode.COLON) {
-              _state = _HEADER_VALUE_START;
-            } else {
-              if (!_isTokenChar(byte)) {
-                throw new MimeParserException("Invalid header field name");
+        case _HEADER_ENDING:
+          _expect(byte, _CharCode.LF);
+          _multipartController = new StreamController(
+              onPause: () {
+                _pauseStream();
+              },
+              onResume: () {
+                _resumeStream();
+                _parse();
+              });
+          _controller.add(
+              new _MimeMultipartImpl(_headers, _multipartController.stream));
+          _headers = null;
+          _state = _CONTENT;
+          contentStartIndex = _index + 1;
+          break;
+
+        case _CONTENT:
+          if (byte == _boundary[_boundaryIndex]) {
+            _boundaryIndex++;
+            if (_boundaryIndex == _boundary.length) {
+              if (contentStartIndex != null) {
+                _index++;
+                reportData();
+                _index--;
               }
-              _headerField.writeCharCode(_toLowerCase(byte));
-            }
-            break;
-
-          case _HEADER_VALUE_START:
-            if (byte == _CharCode.CR) {
-              _state = _HEADER_VALUE_FOLDING_OR_ENDING;
-            } else if (byte != _CharCode.SP && byte != _CharCode.HT) {
-              // Start of new header value.
-              _headerValue.writeCharCode(byte);
-              _state = _HEADER_VALUE;
-            }
-            break;
-
-          case _HEADER_VALUE:
-            if (byte == _CharCode.CR) {
-              _state = _HEADER_VALUE_FOLDING_OR_ENDING;
-            } else {
-              _headerValue.writeCharCode(byte);
-            }
-            break;
-
-          case _HEADER_VALUE_FOLDING_OR_ENDING:
-            _expect(byte, _CharCode.LF);
-            _state = _HEADER_VALUE_FOLD_OR_END;
-            break;
-
-          case _HEADER_VALUE_FOLD_OR_END:
-            if (byte == _CharCode.SP || byte == _CharCode.HT) {
-              _state = _HEADER_VALUE_START;
-            } else {
-              String headerField = _headerField.toString();
-              String headerValue =_headerValue.toString();
-              if (headerReceived != null) {
-                headerReceived(headerField, headerValue);
-              }
-              _headerField = new StringBuffer();
-              _headerValue = new StringBuffer();
-              if (byte == _CharCode.CR) {
-                _state = _HEADER_ENDING;
-              } else {
-                // Start of new header field.
-                _headerField.writeCharCode(_toLowerCase(byte));
-                _state = _HEADER_FIELD;
-              }
-            }
-            break;
-
-          case _HEADER_ENDING:
-            _expect(byte, _CharCode.LF);
-            if (headersComplete != null) headersComplete();
-            _state = _CONTENT;
-            contentStartIndex = index + 1;
-            break;
-
-          case _CONTENT:
-            if (_toLowerCase(byte) == _toLowerCase(_boundary[_boundaryIndex])) {
-              _boundaryIndex++;
-              if (_boundaryIndex == _boundary.length) {
-                if (contentStartIndex != null) {
-                  index++;
-                  reportData();
-                  index--;
-                }
-                _boundaryIndex = 0;
-                _state = _BOUNDARY_ENDING;
-              }
-            } else {
-              // Restart matching of the boundary.
-              index = index - _boundaryIndex;
-              if (contentStartIndex == null) contentStartIndex = index;
+              _multipartController.close();
               _boundaryIndex = 0;
+              _state = _BOUNDARY_ENDING;
             }
-            break;
+          } else {
+            // Restart matching of the boundary.
+            _index = _index - _boundaryIndex;
+            if (contentStartIndex == null) contentStartIndex = _index;
+            _boundaryIndex = 0;
+          }
+          break;
 
         case _LAST_BOUNDARY_DASH2:
           _expect(byte, _CharCode.DASH);
@@ -265,9 +347,8 @@ class _MimeMultipartParser {
 
         case _LAST_BOUNDARY_END:
           _expect(byte, _CharCode.LF);
-          if (partEnd != null) {
-            partEnd(true);
-          }
+          _multipartController.close();
+          _multipartController = null;
           _state = _DONE;
           break;
 
@@ -278,14 +359,20 @@ class _MimeMultipartParser {
       }
 
       // Move to the next byte.
-      index++;
+      _index++;
     }
 
     // Report any known content.
     if (_state == _CONTENT && contentStartIndex != null) {
       reportData();
     }
-    return index - offset;
+
+    // Resume if at end.
+    if (_index == _buffer.length) {
+      _buffer = null;
+      _index = null;
+      _resumeStream();
+    }
   }
 
   bool _isTokenChar(int byte) {
@@ -310,19 +397,6 @@ class _MimeMultipartParser {
       throw new MimeParserException("Failed to parse multipart mime 2");
     }
   }
-
-  List<int> _boundary;
-  int _state;
-  int _boundaryIndex = 0;
-
-  StringBuffer _headerField;
-  StringBuffer _headerValue;
-
-  Function partStart;
-  Function headerReceived;
-  Function headersComplete;
-  Function partDataReceived;
-  Function partEnd;
 }
 
 

@@ -984,26 +984,44 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ sw(T2, Address(SP, 1 * kWordSize));
   __ sw(T1, Address(SP, 0 * kWordSize));
 
+  Label add_to_buffer;
+  // Check whether this object has already been remembered. Skip adding to the
+  // store buffer if the object is in the store buffer already.
+  // Spilled: T1, T2, T3.
+  // T0: Address being stored.
+  __ lw(T2, FieldAddress(T0, Object::tags_offset()));
+  __ andi(T1, T2, Immediate(1 << RawObject::kRememberedBit));
+  __ beq(T1, ZR, &add_to_buffer);
+  __ lw(T1, Address(SP, 0 * kWordSize));
+  __ lw(T2, Address(SP, 1 * kWordSize));
+  __ lw(T3, Address(SP, 2 * kWordSize));
+  __ addiu(SP, SP, Immediate(3 * kWordSize));
+  __ Ret();
+
+  __ Bind(&add_to_buffer);
+  __ ori(T2, T2, Immediate(1 << RawObject::kRememberedBit));
+  __ sw(T2, FieldAddress(T0, Object::tags_offset()));
+
   // Load the isolate out of the context.
   // Spilled: T1, T2, T3.
   // T0: Address being stored.
   __ lw(T1, FieldAddress(CTX, Context::isolate_offset()));
 
-  // Load top_ out of the StoreBufferBlock and add the address to the pointers_.
+  // Load the StoreBuffer block out of the isolate. Then load top_ out of the
+  // StoreBufferBlock and add the address to the pointers_.
   // T1: Isolate.
-  intptr_t store_buffer_offset = Isolate::store_buffer_block_offset();
-  __ lw(T2, Address(T1, store_buffer_offset + StoreBufferBlock::top_offset()));
+  __ lw(T1, Address(T1, Isolate::store_buffer_offset()));
+  __ lw(T2, Address(T1, StoreBufferBlock::top_offset()));
   __ sll(T3, T2, 2);
   __ addu(T3, T1, T3);
-  __ sw(T0,
-        Address(T3, store_buffer_offset + StoreBufferBlock::pointers_offset()));
+  __ sw(T0, Address(T3, StoreBufferBlock::pointers_offset()));
 
   // Increment top_ and check for overflow.
   // T2: top_
-  // T1: Isolate
+  // T1: StoreBufferBlock
   Label L;
   __ AddImmediate(T2, 1);
-  __ sw(T2, Address(T1, store_buffer_offset + StoreBufferBlock::top_offset()));
+  __ sw(T2, Address(T1, StoreBufferBlock::top_offset()));
   __ addiu(CMPRES, T2, Immediate(-StoreBufferBlock::kSize));
   // Restore values.
   __ lw(T1, Address(SP, 0 * kWordSize));

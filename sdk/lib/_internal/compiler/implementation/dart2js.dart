@@ -262,6 +262,8 @@ void compile(List<String> argv) {
 
   int charactersWritten = 0;
 
+  options.add('--source-map=$sourceMapOut');
+
   compilationDone(String code) {
     if (analyzeOnly) return;
     if (code == null) {

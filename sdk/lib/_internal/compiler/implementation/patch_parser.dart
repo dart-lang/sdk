@@ -8,7 +8,7 @@
  * Three types of elements can be patched: [LibraryElement], [ClassElement],
  * [FunctionElement]. Patches are introduced in patch libraries which are loaded
  * together with the corresponding origin library. Which libraries that are
- * patched is determined by the [dart2jsPatchPath] field of [LibraryInfo] found
+ * patched is determined by the dart2jsPatchPath field of LibraryInfo found
  * in [:lib/_internal/libraries.dart:].
  *
  * Patch libraries are parsed like regular library and thus provided with their
@@ -103,9 +103,9 @@
  * - Worklist only contain declaration elements.
  * - Most maps and sets use declarations exclusively, and their individual
  *   invariants are stated in the field comments.
- * - [TreeElements] only map to patch elements from inside a patch library.
+ * - [tree.TreeElements] only map to patch elements from inside a patch library.
  *   TODO(johnniwinther): Simplify this invariant to use only declarations in
- *   [TreeElements].
+ *   [tree.TreeElements].
  * - Builders shift between declaration and implementation depending on usages.
  * - Compile-time constants use constructor implementation exclusively.
  * - Work on function parameters is performed on the declaration of the function

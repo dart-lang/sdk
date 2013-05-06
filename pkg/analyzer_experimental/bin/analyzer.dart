@@ -10,37 +10,117 @@ library analyzer;
 import 'dart:async';
 import 'dart:io';
 
+import 'package:analyzer_experimental/src/generated/java_io.dart';
+import 'package:analyzer_experimental/src/generated/engine.dart';
+import 'package:analyzer_experimental/src/generated/error.dart';
+import 'package:analyzer_experimental/src/generated/source_io.dart';
+import 'package:analyzer_experimental/src/generated/sdk.dart';
+import 'package:analyzer_experimental/src/generated/sdk_io.dart';
+import 'package:analyzer_experimental/src/generated/ast.dart';
+import 'package:analyzer_experimental/src/generated/element.dart';
 import 'package:analyzer_experimental/options.dart';
 
-// Exit status codes.
-const OK_EXIT = 0;
-const ERROR_EXIT = 1;
+part 'package:analyzer_experimental/analyzer.dart';
+part 'package:analyzer_experimental/error_formatter.dart';
 
 void main() {
-  run(new Options().arguments).then((result) {
-    exit(result.error ? ERROR_EXIT : OK_EXIT);
-  });
-}
-
-/** The result of an analysis. */
-class AnalysisResult {
-  final bool error;
-  AnalysisResult.forFailure() : error = true;
-  AnalysisResult.forSuccess() : error = false;
-}
-
-
-/**
- * Runs the dart analyzer with the command-line options in [args].
- * See [CommandLineOptions] for a list of valid arguments.
- */
-Future<AnalysisResult> run(List<String> args) {
-
-  var options = new CommandLineOptions.parse(args);
-  if (options == null) {
-    return new Future.value(new AnalysisResult.forFailure());
+  var args = new Options().arguments;
+  var options = CommandLineOptions.parse(args);
+  if (options.shouldBatch) {
+    BatchRunner.runAsBatch(args, (List<String> args) {
+      var options = CommandLineOptions.parse(args);
+      return _runAnalyzer(options);
+    });
+  } else {
+    ErrorSeverity result = _runAnalyzer(options);
+    exit(result.ordinal);
   }
+}
 
-  //TODO(pquitslund): call out to analyzer...
+ErrorSeverity _runAnalyzer(CommandLineOptions options) {
+  for (String sourcePath in options.sourceFiles) {
+    sourcePath = sourcePath.trim();
+    // check that file exists
+    if (!new File(sourcePath).existsSync()) {
+      print('File not found: $sourcePath');
+      return ErrorSeverity.ERROR;
+    }
+    // check that file is Dart file
+    if (!AnalysisEngine.isDartFileName(sourcePath)) {
+      print('$sourcePath is not a Dart file');
+      return ErrorSeverity.ERROR;
+    }
+    // start analysis
+    _ErrorFormatter formatter = new _ErrorFormatter(options.machineFormat ? stderr : stdout, options);
+    formatter.startAnalysis();
+    // do analyze
+    _AnalyzerImpl analyzer = new _AnalyzerImpl(options);
+    analyzer.analyze(sourcePath);
+    // pring errors
+    formatter.formatErrors(analyzer.errorInfos);
+    // prepare status
+    ErrorSeverity status = analyzer.maxErrorSeverity;
+    if (status == ErrorSeverity.WARNING && options.warningsAreFatal) {
+      status = ErrorSeverity.ERROR;
+    }
+    return status;
+  }
+}
 
+typedef ErrorSeverity BatchRunnerHandler(List<String> args);
+
+/// Provides a framework to read command line options from stdin and feed them to a callback.
+class BatchRunner {
+  /**
+   * Run the tool in 'batch' mode, receiving command lines through stdin and returning pass/fail
+   * status through stdout. This feature is intended for use in unit testing.
+   */
+  static ErrorSeverity runAsBatch(List<String> sharedArgs, BatchRunnerHandler handler) {
+    stdout.writeln('>>> BATCH START');
+    Stopwatch stopwatch = new Stopwatch();
+    stopwatch.start();
+    int testsFailed = 0;
+    int totalTests = 0;
+    ErrorSeverity batchResult = ErrorSeverity.NONE;
+    // read line from stdin
+    Stream cmdLine = stdin
+        .transform(new StringDecoder())
+        .transform(new LineTransformer());
+    var subscription = cmdLine.listen((String line) {
+      // may be finish
+      if (line.isEmpty) {
+        stdout.writeln('>>> BATCH END (${totalTests - testsFailed}/$totalTests) ${stopwatch.elapsedMilliseconds}ms');
+        exit(batchResult.ordinal);
+      }
+      // prepare aruments
+      var args;
+      {
+        var lineArgs = line.split(new RegExp('\\s+'));
+        args = new List<String>();
+        args.addAll(sharedArgs);
+        args.addAll(lineArgs);
+        args.remove('-b');
+        args.remove('--batch');
+      }
+      // analyze single set of arguments
+      try {
+        totalTests++;
+        ErrorSeverity result = handler(args);
+        bool resultPass = result != ErrorSeverity.ERROR;
+        if (!resultPass) {
+          testsFailed++;
+        }
+        batchResult = batchResult.max(result);
+        // Write stderr end token and flush.
+        stderr.writeln('>>> EOF STDERR');
+        String resultPassString = resultPass ? 'PASS' : 'FAIL';
+        stdout.writeln('>>> TEST $resultPassString ${stopwatch.elapsedMilliseconds}ms');
+      } catch (e, stackTrace) {
+        stderr.writeln(e);
+        stderr.writeln(stackTrace);
+        stderr.writeln('>>> EOF STDERR');
+        stdout.writeln('>>> TEST CRASH');
+      }
+    });
+  }
 }

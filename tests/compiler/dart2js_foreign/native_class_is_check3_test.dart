@@ -7,10 +7,10 @@
 import "package:expect/expect.dart";
 import 'native_metadata.dart';
 
-interface J {
+abstract class J {
 }
 
-interface I extends J {
+abstract class I extends J {
   I read();
   write(I x);
 }

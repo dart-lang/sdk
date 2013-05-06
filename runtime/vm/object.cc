@@ -1224,8 +1224,8 @@ class StoreBufferUpdateVisitor : public ObjectPointerVisitor {
     for (RawObject** curr = first; curr <= last; ++curr) {
       RawObject* raw_obj = *curr;
       if (raw_obj->IsHeapObject() && raw_obj->IsNewObject()) {
-        uword ptr = reinterpret_cast<uword>(old_obj_);
-        isolate()->store_buffer()->AddPointer(ptr);
+        old_obj_->SetRememberedBit();
+        isolate()->store_buffer()->AddObject(old_obj_);
         // Remembered this object. There is no need to continue searching.
         return;
       }
@@ -1256,7 +1256,7 @@ RawObject* Object::Clone(const Object& src, Heap::Space space) {
   RawObject* raw_obj = Object::Allocate(cls.id(), size, space);
   NoGCScope no_gc;
   memmove(raw_obj->ptr(), src.raw()->ptr(), size);
-  if (space == Heap::kOld) {
+  if ((space == Heap::kOld) && !raw_obj->IsRemembered()) {
     StoreBufferUpdateVisitor visitor(Isolate::Current(), raw_obj);
     raw_obj->VisitPointers(&visitor);
   }

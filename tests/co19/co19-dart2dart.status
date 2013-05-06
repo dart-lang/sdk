@@ -4,11 +4,6 @@
 
 [ $compiler == dart2dart ]
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t15: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/07_Classes/6_Constructors/2_Factories_A02_t01: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/07_Classes/6_Constructors/2_Factories_A02_t02: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/07_Classes/6_Constructors/2_Factories_A02_t03: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/07_Classes/6_Constructors/2_Factories_A02_t04: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/07_Classes/6_Constructors/2_Factories_A02_t05: Fail # TODO(dart2dart-team): Please triage this failure.
 Language/07_Classes/9_Superclasses/1_Inheritance_and_Overriding_A01_t03: Fail # TODO(dart2dart-team): Please triage this failure.
 Language/11_Expressions/01_Constants_A18_t06: Fail # TODO(dart2dart-team): Please triage this failure.
 Language/11_Expressions/11_Instance_Creation/2_Const_A03_t01: Fail # TODO(dart2dart-team): Please triage this failure.

@@ -1572,15 +1572,19 @@ bool Intrinsifier::OneByteString_getHashCode(Assembler* assembler) {
 
 
 // Allocates one-byte string of length 'end - start'. The content is not
-// initialized.
+// initialized. 'length-reg' contains tagged length.
+// Returns new string as tagged pointer in EAX.
 static void TryAllocateOnebyteString(Assembler* assembler,
+                                     Label* ok,
                                      Label* failure,
-                                     intptr_t start_index_offset,
-                                     intptr_t end_index_offset) {
-  __ movl(EDI, Address(ESP, + end_index_offset));
-  __ subl(EDI, Address(ESP, + start_index_offset));
-  const intptr_t fixed_size = sizeof(RawString) + kObjectAlignment - 1;
+                                     Register length_reg) {
+  if (length_reg != EDI) {
+    __ movl(EDI, length_reg);
+  }
+  Label pop_and_fail;
+  __ pushl(EDI);  // Preserve length.
   __ SmiUntag(EDI);
+  const intptr_t fixed_size = sizeof(RawString) + kObjectAlignment - 1;
   __ leal(EDI, Address(EDI, TIMES_1, fixed_size));  // EDI is a Smi.
   __ andl(EDI, Immediate(-kObjectAlignment));
 
@@ -1592,14 +1596,14 @@ static void TryAllocateOnebyteString(Assembler* assembler,
 
   // EDI: allocation size.
   __ addl(EBX, EDI);
-  __ j(CARRY, failure);
+  __ j(CARRY, &pop_and_fail, Assembler::kNearJump);
 
   // Check if the allocation fits into the remaining space.
   // EAX: potential new object start.
   // EBX: potential next object start.
   // EDI: allocation size.
   __ cmpl(EBX, Address::Absolute(heap->EndAddress()));
-  __ j(ABOVE_EQUAL, failure);
+  __ j(ABOVE_EQUAL, &pop_and_fail, Assembler::kNearJump);
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
@@ -1629,13 +1633,17 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   }
 
   // Set the length field.
-  __ movl(EDI, Address(ESP, + end_index_offset));
-  __ subl(EDI, Address(ESP, + start_index_offset));  // Length.
+  __ popl(EDI);
   __ StoreIntoObjectNoBarrier(EAX,
                               FieldAddress(EAX, String::length_offset()),
                               EDI);
   // Clear hash.
   __ movl(FieldAddress(EAX, String::hash_offset()), Immediate(0));
+  __ jmp(ok, Assembler::kNearJump);
+
+  __ Bind(&pop_and_fail);
+  __ popl(EDI);
+  __ jmp(failure);
 }
 
 
@@ -1647,9 +1655,11 @@ bool Intrinsifier::OneByteString_substringUnchecked(Assembler* assembler) {
   const intptr_t kStringOffset = 3 * kWordSize;
   const intptr_t kStartIndexOffset = 2 * kWordSize;
   const intptr_t kEndIndexOffset = 1 * kWordSize;
-  Label fall_through;
-  TryAllocateOnebyteString(
-      assembler, &fall_through, kStartIndexOffset, kEndIndexOffset);
+  Label fall_through, ok;
+  __ movl(EDI, Address(ESP, + kEndIndexOffset));
+  __ subl(EDI, Address(ESP, + kStartIndexOffset));
+  TryAllocateOnebyteString(assembler, &ok, &fall_through, EDI);
+  __ Bind(&ok);
   // EAX: new string as tagged pointer.
   // Copy string.
   __ movl(EDI, Address(ESP, + kStringOffset));
@@ -1677,6 +1687,32 @@ bool Intrinsifier::OneByteString_substringUnchecked(Assembler* assembler) {
   __ cmpl(EDX, ECX);
   __ j(LESS, &loop, Assembler::kNearJump);
   __ ret();
+  __ Bind(&fall_through);
+  return false;
+}
+
+
+bool Intrinsifier::OneByteString_setAt(Assembler* assembler) {
+  __ movl(ECX, Address(ESP, + 1 * kWordSize));  // Value.
+  __ movl(EBX, Address(ESP, + 2 * kWordSize));  // Index.
+  __ movl(EAX, Address(ESP, + 3 * kWordSize));  // OneByteString.
+  __ SmiUntag(EBX);
+  __ SmiUntag(ECX);
+  __ movb(FieldAddress(EAX, EBX, TIMES_1, OneByteString::data_offset()), CL);
+  __ ret();
+  return true;
+}
+
+
+bool Intrinsifier::OneByteString_allocate(Assembler* assembler) {
+  __ movl(EDI, Address(ESP, + 1 * kWordSize));  // Length.
+  Label fall_through, ok;
+  TryAllocateOnebyteString(assembler, &ok, &fall_through, EDI);
+  // EDI: Start address to copy from (untagged).
+
+  __ Bind(&ok);
+  __ ret();
+
   __ Bind(&fall_through);
   return false;
 }

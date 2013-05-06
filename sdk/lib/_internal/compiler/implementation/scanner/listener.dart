@@ -87,15 +87,6 @@ class Listener {
   void endExpressionStatement(Token token) {
   }
 
-  void beginDefaultClause(Token token) {
-  }
-
-  void handleNoDefaultClause(Token token) {
-  }
-
-  void endDefaultClause(Token defaultKeyword) {
-  }
-
   void beginFactoryMethod(Token token) {
   }
 
@@ -226,13 +217,6 @@ class Listener {
   }
 
   void handleNoInitializers() {
-  }
-
-  void beginInterface(Token token) {
-  }
-
-  void endInterface(int supertypeCount, Token interfaceKeyword,
-                    Token extendsKeyword, Token endToken) {
   }
 
   void handleLabel(Token token) {
@@ -813,31 +797,6 @@ class ElementListener extends Listener {
     }
   }
 
-  void endDefaultClause(Token defaultKeyword) {
-    NodeList typeParameters = popNode();
-    Node name = popNode();
-    pushNode(new TypeAnnotation(name, typeParameters));
-  }
-
-  void handleNoDefaultClause(Token token) {
-    pushNode(null);
-  }
-
-  void endInterface(int supertypeCount, Token interfaceKeyword,
-                    Token extendsKeyword, Token endToken) {
-    // TODO(ahe): Record the defaultClause.
-    Node defaultClause = popNode();
-    NodeList supertypes =
-        makeNodeList(supertypeCount, extendsKeyword, null, ",");
-    NodeList typeParameters = popNode();
-    Identifier name = popNode();
-    int id = idGenerator();
-    pushElement(new PartialClassElement(
-        name.source, interfaceKeyword, endToken, compilationUnitElement, id));
-    rejectBuiltInIdentifier(name);
-    listener.onDeprecatedFeature(interfaceKeyword, 'interface declarations');
-  }
-
   void endFunctionTypeAlias(Token typedefKeyword, Token endToken) {
     NodeList typeVariables = popNode(); // TOOD(karlklose): do not throw away.
     Identifier name = popNode();
@@ -1228,7 +1187,7 @@ class NodeListener extends ElementListener {
     Identifier name = popNode();
     Modifiers modifiers = popNode();
     pushNode(new ClassNode(modifiers, name, typeParameters, supertype,
-                           interfaces, null, beginToken, extendsKeyword, body,
+                           interfaces, beginToken, extendsKeyword, body,
                            endToken));
   }
 
@@ -1257,19 +1216,6 @@ class NodeListener extends ElementListener {
                                        modifiers, mixinApplication,
                                        interfaces,
                                        typedefKeyword, endToken));
-  }
-
-  void endInterface(int supertypeCount, Token interfaceKeyword,
-                    Token extendsKeyword, Token endToken) {
-    NodeList body = popNode();
-    TypeAnnotation defaultClause = popNode();
-    NodeList supertypes = makeNodeList(supertypeCount, extendsKeyword,
-                                       null, ',');
-    NodeList typeParameters = popNode();
-    Identifier name = popNode();
-    pushNode(new ClassNode(Modifiers.EMPTY, name, typeParameters, null,
-                           supertypes, defaultClause, interfaceKeyword, null,
-                           body, endToken));
   }
 
   void endClassBody(int memberCount, Token beginToken, Token endToken) {

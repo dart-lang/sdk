@@ -82,6 +82,8 @@ namespace dart {
   V(StringBuffer_createStringFromUint16Array, 3)                               \
   V(OneByteString_substringUnchecked, 3)                                       \
   V(OneByteString_splitWithCharCode, 2)                                        \
+  V(OneByteString_allocate, 1)                                                 \
+  V(OneByteString_setAt, 3)                                                    \
   V(String_getHashCode, 1)                                                     \
   V(String_getLength, 1)                                                       \
   V(String_charAt, 2)                                                          \

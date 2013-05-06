@@ -436,7 +436,7 @@ class Assembler : public ValueObject {
   void nop(Condition cond = AL);
 
   // Note that gdb sets breakpoints using the undefined instruction 0xe7f001f0.
-  void bkpt(uint16_t imm16, Condition cond = AL);
+  void bkpt(uint16_t imm16);
   void svc(uint32_t imm24, Condition cond = AL);
 
   // Floating point instructions (VFPv3-D16 and VFPv3-D32 profiles).

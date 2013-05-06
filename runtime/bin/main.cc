@@ -262,26 +262,6 @@ static bool ProcessMainOptions(const char* option) {
 }
 
 
-static void* OpenFile(const char* name) {
-  File* file = File::Open(name, File::kWriteTruncate);
-  ASSERT(file != NULL);
-  return reinterpret_cast<void*>(file);
-}
-
-
-static void WriteFile(const void* buffer, intptr_t num_bytes, void* stream) {
-  ASSERT(stream != NULL);
-  File* file_stream = reinterpret_cast<File*>(stream);
-  bool bytes_written = file_stream->WriteFully(buffer, num_bytes);
-  ASSERT(bytes_written);
-}
-
-
-static void CloseFile(void* stream) {
-  delete reinterpret_cast<File*>(stream);
-}
-
-
 // Convert all the arguments to UTF8. On Windows, the arguments are
 // encoded in the current code page and not UTF8.
 //
@@ -732,7 +712,10 @@ int main(int argc, char** argv) {
 
   // Initialize the Dart VM.
   if (!Dart_Initialize(CreateIsolateAndSetup, NULL, NULL, ShutdownIsolate,
-                       OpenFile, WriteFile, CloseFile)) {
+                       DartUtils::OpenFile,
+                       DartUtils::ReadFile,
+                       DartUtils::WriteFile,
+                       DartUtils::CloseFile)) {
     fprintf(stderr, "%s", "VM initialization failed\n");
     fflush(stderr);
     return kErrorExitCode;

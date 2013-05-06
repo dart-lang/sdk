@@ -80,13 +80,14 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
                            Dart_IsolateUnhandledExceptionCallback unhandled,
                            Dart_IsolateShutdownCallback shutdown,
                            Dart_FileOpenCallback file_open,
+                           Dart_FileReadCallback file_read,
                            Dart_FileWriteCallback file_write,
                            Dart_FileCloseCallback file_close) {
   // TODO(iposva): Fix race condition here.
   if (vm_isolate_ != NULL || !Flags::Initialized()) {
     return "VM already initialized.";
   }
-  Isolate::SetFileCallbacks(file_open, file_write, file_close);
+  Isolate::SetFileCallbacks(file_open, file_read, file_write, file_close);
   OS::InitOnce();
   VirtualMemory::InitOnce();
   Isolate::InitOnce();

@@ -20,6 +20,10 @@ if utils.IsWindows():
 else:
   dart_bin = os.path.join(dart_out_dir, 'dart')
 
+dart_dir = os.path.abspath(os.path.join(
+    os.path.dirname(os.path.realpath(__file__)),
+    os.path.pardir, os.path.pardir))
+
 def help():
   print('Helper script to make it easy to perform common tasks encountered '
      'during the life of a Dart DOM developer.\n'
@@ -166,13 +170,6 @@ def call(args):
     print error
   return pipe.returncode
 
-def init_dir():
-  ''' Makes sure that we're always rooted in the dart root folder.'''
-  dart_dir = os.path.abspath(os.path.join(
-      os.path.dirname(os.path.realpath(__file__)),
-      os.path.pardir, os.path.pardir))
-  os.chdir(dart_dir)
-
 commands = {
   'analyze': [analyze, 'Run the dart analyzer'],
   'build': [build, 'Build dart in release mode'],
@@ -201,7 +198,8 @@ def main():
     success = False
 
   while (argv):
-    init_dir()
+    # Make sure that we're always rooted in the dart root folder.
+    os.chdir(dart_dir)
     command = argv.pop(0)
 
     if not command in commands:

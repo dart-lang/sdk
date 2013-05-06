@@ -239,11 +239,14 @@ testDirectoryListingBrokenLink() {
 
 
 main() {
-  testFileExistsCreate();
-  testFileDelete();
-  testFileWriteRead();
-  testDirectoryExistsCreate();
-  testDirectoryDelete();
-  testDirectoryListing();
-  testDirectoryListingBrokenLink();
+  // Links on Windows are tested by windows_file_system_[async_]links_test.
+  if (Platform.operatingSystem != 'windows') {
+    testFileExistsCreate();
+    testFileDelete();
+    testFileWriteRead();
+    testDirectoryExistsCreate();
+    testDirectoryDelete();
+    testDirectoryListing();
+    testDirectoryListingBrokenLink();
+  }
 }

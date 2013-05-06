@@ -134,7 +134,11 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
   class ObjectInterceptor {
   }
   getInterceptor(x) {}
-  getNativeInterceptor(x) {}''';
+  getNativeInterceptor(x) {}
+  getDispatchProperty(o) {}
+  initializeDispatchProperty(f,p,i) {}
+  initializeDispatchPropertyCSP(f,p,i) {}
+''';
 
 const String DEFAULT_CORELIB = r'''
   print(var obj) {}

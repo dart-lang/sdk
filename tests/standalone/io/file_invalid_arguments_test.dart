@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:async";
 import "package:expect/expect.dart";
 import "dart:io";
 import "dart:isolate";
@@ -130,6 +131,41 @@ void testWriteStringInvalidArgs(string, encoding) {
   });
 }
 
+Future futureThrows(Future result) {
+  return result.then((value) {
+    throw new ExpectException(
+        "futureThrows received $value instead of an exception");
+    },
+    onError: (_) => null
+  );
+}
+
+void testFileSystemEntity() {
+  Expect.throws(() => ((x) => FileSystemEntity.typeSync(x))([1,2,3]));
+  Expect.throws(() => ((x, y) =>
+      FileSystemEntity.typeSync(x, followLinks: y))(".", "why not?"));
+  Expect.throws(() => ((x, y) =>
+      FileSystemEntity.identicalSync(x, y))([1,2,3], "."));
+  Expect.throws(() => ((x, y) =>
+                       FileSystemEntity.identicalSync(x, y))(".", 52));
+  Expect.throws(() => ((x) => FileSystemEntity.isLinkSync(x))(52));
+  Expect.throws(() => ((x) => FileSystemEntity.isFileSync(x))(52));
+  Expect.throws(() => ((x) => FileSystemEntity.isDirectorySync(x))(52));
+
+  ReceivePort keepAlive = new ReceivePort();
+  futureThrows(((x) => FileSystemEntity.type(x))([1,2,3]))
+  .then((_) => futureThrows(((x, y) =>
+       FileSystemEntity.type(x, followLinks: y))(".", "why not?")))
+  .then((_) => futureThrows(((x, y) =>
+       FileSystemEntity.identical(x, y))([1,2,3], ".")))
+  .then((_) => futureThrows(((x, y) =>
+       FileSystemEntity.identical(x, y))(".", 52)))
+  .then((_) => futureThrows(((x) => FileSystemEntity.isLink(x))(52)))
+  .then((_) => futureThrows(((x) => FileSystemEntity.isFile(x))(52)))
+  .then((_) => futureThrows(((x) => FileSystemEntity.isDirectory(x))(52)))
+  .then((_) => keepAlive.close());
+}
+
 String getFilename(String path) {
   return new File(path).existsSync() ? path : 'runtime/$path';
 }
@@ -144,4 +180,5 @@ main() {
   testWriteFromInvalidArgs(new List(10), '0', 1);
   testWriteFromInvalidArgs(new List(10), 0, '1');
   testWriteStringInvalidArgs("Hello, world", 42);
+  testFileSystemEntity();
 }

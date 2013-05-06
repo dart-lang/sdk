@@ -948,28 +948,40 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ pushq(RDX);
   __ pushq(RCX);
 
+  Label add_to_buffer;
+  // Check whether this object has already been remembered. Skip adding to the
+  // store buffer if the object is in the store buffer already.
+  // Spilled: RDX, RCX
+  // RAX: Address being stored
+  __ movq(RCX, FieldAddress(RAX, Object::tags_offset()));
+  __ testq(RCX, Immediate(1 << RawObject::kRememberedBit));
+  __ j(EQUAL, &add_to_buffer, Assembler::kNearJump);
+  __ popq(RCX);
+  __ popq(RDX);
+  __ ret();
+
+  __ Bind(&add_to_buffer);
+  __ orq(RCX, Immediate(1 << RawObject::kRememberedBit));
+  __ movq(FieldAddress(RAX, Object::tags_offset()), RCX);
+
   // Load the isolate out of the context.
   // RAX: Address being stored
   __ movq(RDX, FieldAddress(CTX, Context::isolate_offset()));
 
-  // Load top_ out of the StoreBufferBlock and add the address to the pointers_.
+  // Load the StoreBuffer block out of the isolate. Then load top_ out of the
+  // StoreBufferBlock and add the address to the pointers_.
   // RAX: Address being stored
   // RDX: Isolate
-  intptr_t store_buffer_offset = Isolate::store_buffer_block_offset();
-  __ movl(RCX,
-          Address(RDX, store_buffer_offset + StoreBufferBlock::top_offset()));
-  __ movq(Address(RDX,
-                  RCX, TIMES_8,
-                  store_buffer_offset + StoreBufferBlock::pointers_offset()),
-          RAX);
+  __ movq(RDX, Address(RDX, Isolate::store_buffer_offset()));
+  __ movl(RCX, Address(RDX, StoreBufferBlock::top_offset()));
+  __ movq(Address(RDX, RCX, TIMES_8, StoreBufferBlock::pointers_offset()), RAX);
 
   // Increment top_ and check for overflow.
   // RCX: top_
-  // RDX: Isolate
+  // RDX: StoreBufferBlock
   Label L;
   __ incq(RCX);
-  __ movl(Address(RDX, store_buffer_offset + StoreBufferBlock::top_offset()),
-          RCX);
+  __ movl(Address(RDX, StoreBufferBlock::top_offset()), RCX);
   __ cmpl(RCX, Immediate(StoreBufferBlock::kSize));
   // Restore values.
   __ popq(RCX);

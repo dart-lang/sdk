@@ -222,6 +222,11 @@ const String DEFAULT_CORELIB_WITH_LIST_INTERFACE = r'''
   bool identical(Object a, Object b) {}''';
 
 const String INTERCEPTORSLIB_WITH_MEMBERS = r'''
+  class Interceptor {
+    toString() {}
+    bool operator==(other) => identical(this, other);
+    noSuchMethod(im) { throw im; }
+  }
   abstract class JSIndexable {
     get length;
   }

@@ -312,8 +312,7 @@ void DeferredUint32x4::Materialize() {
 
 
 Isolate::Isolate()
-    : store_buffer_block_(),
-      store_buffer_(),
+    : store_buffer_(),
       message_notify_callback_(NULL),
       name_(NULL),
       start_time_(OS::GetCurrentTimeMicros()),
@@ -741,6 +740,7 @@ Dart_IsolateUnhandledExceptionCallback
     Isolate::unhandled_exception_callback_ = NULL;
 Dart_IsolateShutdownCallback Isolate::shutdown_callback_ = NULL;
 Dart_FileOpenCallback Isolate::file_open_callback_ = NULL;
+Dart_FileReadCallback Isolate::file_read_callback_ = NULL;
 Dart_FileWriteCallback Isolate::file_write_callback_ = NULL;
 Dart_FileCloseCallback Isolate::file_close_callback_ = NULL;
 Dart_IsolateInterruptCallback Isolate::vmstats_callback_ = NULL;
