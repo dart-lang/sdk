@@ -258,7 +258,7 @@ class Float32List extends TypedData implements JavaScriptIndexingBehavior, List<
 
   @DomName('Float32Array.fromBuffer')
   @DocsEditable
-  factory Float32List.view(ByteBuffer buffer, [int byteOffset, int length]) => 
+  factory Float32List.view(ByteBuffer buffer, [int byteOffset, int length]) =>
     _TypedArrayFactoryProvider.createFloat32List_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 4;
@@ -488,7 +488,7 @@ class Float64List extends TypedData implements JavaScriptIndexingBehavior, List<
 
   @DomName('Float64Array.fromBuffer')
   @DocsEditable
-  factory Float64List.view(ByteBuffer buffer, [int byteOffset, int length]) => 
+  factory Float64List.view(ByteBuffer buffer, [int byteOffset, int length]) =>
     _TypedArrayFactoryProvider.createFloat64List_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 8;
@@ -718,7 +718,7 @@ class Int16List extends TypedData implements JavaScriptIndexingBehavior, List<in
 
   @DomName('Int16Array.fromBuffer')
   @DocsEditable
-  factory Int16List.view(ByteBuffer buffer, [int byteOffset, int length]) => 
+  factory Int16List.view(ByteBuffer buffer, [int byteOffset, int length]) =>
     _TypedArrayFactoryProvider.createInt16List_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 2;
@@ -948,7 +948,7 @@ class Int32List extends TypedData implements JavaScriptIndexingBehavior, List<in
 
   @DomName('Int32Array.fromBuffer')
   @DocsEditable
-  factory Int32List.view(ByteBuffer buffer, [int byteOffset, int length]) => 
+  factory Int32List.view(ByteBuffer buffer, [int byteOffset, int length]) =>
     _TypedArrayFactoryProvider.createInt32List_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 4;
@@ -1178,7 +1178,7 @@ class Int8List extends TypedData implements JavaScriptIndexingBehavior, List<int
 
   @DomName('Int8Array.fromBuffer')
   @DocsEditable
-  factory Int8List.view(ByteBuffer buffer, [int byteOffset, int length]) => 
+  factory Int8List.view(ByteBuffer buffer, [int byteOffset, int length]) =>
     _TypedArrayFactoryProvider.createInt8List_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 1;
@@ -1408,7 +1408,7 @@ class Uint16List extends TypedData implements JavaScriptIndexingBehavior, List<i
 
   @DomName('Uint16Array.fromBuffer')
   @DocsEditable
-  factory Uint16List.view(ByteBuffer buffer, [int byteOffset, int length]) => 
+  factory Uint16List.view(ByteBuffer buffer, [int byteOffset, int length]) =>
     _TypedArrayFactoryProvider.createUint16List_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 2;
@@ -1638,7 +1638,7 @@ class Uint32List extends TypedData implements JavaScriptIndexingBehavior, List<i
 
   @DomName('Uint32Array.fromBuffer')
   @DocsEditable
-  factory Uint32List.view(ByteBuffer buffer, [int byteOffset, int length]) => 
+  factory Uint32List.view(ByteBuffer buffer, [int byteOffset, int length]) =>
     _TypedArrayFactoryProvider.createUint32List_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 4;
@@ -1868,7 +1868,7 @@ class Uint8ClampedList extends Uint8List implements JavaScriptIndexingBehavior, 
 
   @DomName('Uint8ClampedArray.fromBuffer')
   @DocsEditable
-  factory Uint8ClampedList.view(ByteBuffer buffer, [int byteOffset, int length]) => 
+  factory Uint8ClampedList.view(ByteBuffer buffer, [int byteOffset, int length]) =>
     _TypedArrayFactoryProvider.createUint8ClampedList_fromBuffer(buffer, byteOffset, length);
 
   // Use implementation from Uint8Array.
@@ -2095,7 +2095,7 @@ class Uint8List extends TypedData implements JavaScriptIndexingBehavior, List<in
 
   @DomName('Uint8Array.fromBuffer')
   @DocsEditable
-  factory Uint8List.view(ByteBuffer buffer, [int byteOffset, int length]) => 
+  factory Uint8List.view(ByteBuffer buffer, [int byteOffset, int length]) =>
     _TypedArrayFactoryProvider.createUint8List_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 1;
@@ -2328,16 +2328,16 @@ class Int64List extends TypedData implements JavaScriptIndexingBehavior, List<in
 
 
 class Uint64List extends TypedData implements JavaScriptIndexingBehavior, List<int> {
-  factory Int64List(int length) {
-    throw new UnsupportedError("Int64List not supported by dart2js.");
+  factory Uint64List(int length) {
+    throw new UnsupportedError("Uint64List not supported by dart2js.");
   }
 
-  factory Int64List.fromList(List<int> list) {
-    throw new UnsupportedError("Int64List not supported by dart2js.");
+  factory Uint64List.fromList(List<int> list) {
+    throw new UnsupportedError("Uint64List not supported by dart2js.");
   }
 
-  factory Int64List.view(ByteBuffer buffer, [int byteOffset, int length]) {
-    throw new UnsupportedError("Int64List not supported by dart2js.");
+  factory Uint64List.view(ByteBuffer buffer, [int byteOffset, int length]) {
+    throw new UnsupportedError("Uint64List not supported by dart2js.");
   }
 
   static const int BYTES_PER_ELEMENT = 8;

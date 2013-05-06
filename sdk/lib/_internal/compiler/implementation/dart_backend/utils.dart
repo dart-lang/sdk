@@ -44,7 +44,7 @@ class CloningVisitor implements Visitor<Node> {
 
   visitClassNode(ClassNode node) => new ClassNode(
       visit(node.modifiers), visit(node.name), visit(node.typeParameters),
-      visit(node.superclass), visit(node.interfaces), visit(node.defaultClause),
+      visit(node.superclass), visit(node.interfaces),
       node.beginToken, node.extendsKeyword, visit(node.body), node.endToken);
 
   visitConditional(Conditional node) => new Conditional(

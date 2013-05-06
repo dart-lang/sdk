@@ -769,11 +769,6 @@ abstract class ClassElement extends TypeDeclarationElement
   void set resolutionState(int value);
   void set nativeTagInfo(SourceString value);
 
-  // TODO(kasperl): These seem outdated.
-  bool isInterface();
-  DartType get defaultClass;
-  void set defaultClass(DartType value);
-
   bool isObject(Compiler compiler);
   bool isSubclassOf(ClassElement cls);
   bool implementsInterface(ClassElement intrface);

@@ -516,7 +516,7 @@ class ClassWithMethods {
 
   static int staticMethod(String str) {}
 }
-interface I {
+class I {
   int intMethod();
 }
 class SubClass extends ClassWithMethods implements I {}''';

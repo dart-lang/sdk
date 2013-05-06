@@ -6,7 +6,7 @@ import "package:expect/expect.dart";
 
 // Test for correct simple is-checks on hidden native classes.
 
-interface I {
+abstract class I {
   I read();
   write(I x);
 }

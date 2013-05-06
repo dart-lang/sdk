@@ -88,6 +88,7 @@ class MemberListener extends NodeListener {
     return enclosingElement.name == name;
   }
 
+  // TODO(johnniwinther): Remove this method.
   SourceString getMethodNameHack(Node methodName) {
     Send send = methodName.asSend();
     if (send == null) return methodName.asIdentifier().source;
@@ -106,7 +107,9 @@ class MemberListener extends NodeListener {
                         'implemented', node: send.receiver);
       }
       if (receiver.source != enclosingElement.name) {
-        listener.onDeprecatedFeature(receiver, 'interface factories');
+        listener.reportErrorCode(receiver,
+                                 MessageKind.INVALID_CONSTRUCTOR_NAME,
+                                 {'name': enclosingElement.name});
       }
       return Elements.constructConstructorName(receiver.source,
                                                selector.source);
@@ -143,7 +146,9 @@ class MemberListener extends NodeListener {
     Identifier singleIdentifierName = method.name.asIdentifier();
     if (singleIdentifierName != null && singleIdentifierName.source == name) {
       if (name != enclosingElement.name) {
-        listener.onDeprecatedFeature(method.name, 'interface factories');
+        listener.reportErrorCode(singleIdentifierName,
+                                 MessageKind.INVALID_UNNAMED_CONSTRUCTOR_NAME,
+                                 {'name': enclosingElement.name});
       }
     }
     ElementKind kind = ElementKind.FUNCTION;

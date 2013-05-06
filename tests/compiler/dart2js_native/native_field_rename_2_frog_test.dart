@@ -9,7 +9,7 @@
 import "package:expect/expect.dart";
 import 'dart:_js_helper' show JSName;
 
-interface I {
+abstract class I {
   int key;
 }
 

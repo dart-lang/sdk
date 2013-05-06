@@ -8,7 +8,7 @@ library native_library_same_name_used_lib1;
 
 import 'native_library_same_name_used_lib2.dart';
 
-interface I {
+abstract class I {
   I read();
   write(I x);
 }

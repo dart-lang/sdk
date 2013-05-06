@@ -48,9 +48,7 @@ class Parser {
   Token parseTopLevelDeclaration(Token token) {
     token = parseMetadataStar(token);
     final String value = token.stringValue;
-    if (identical(value, 'interface')) {
-      return parseInterface(token);
-    } else if ((identical(value, 'abstract')) || (identical(value, 'class'))) {
+    if ((identical(value, 'abstract')) || (identical(value, 'class'))) {
       return parseClass(token);
     } else if (identical(value, 'typedef')) {
       return parseTypedef(token);
@@ -235,31 +233,6 @@ class Parser {
     return token;
   }
 
-  Token parseInterface(Token token) {
-    Token interfaceKeyword = token;
-    listener.beginInterface(token);
-    token = parseIdentifier(token.next);
-    token = parseTypeVariablesOpt(token);
-    int supertypeCount = 0;
-    Token extendsKeyword = null;
-    if (optional('extends', token)) {
-      extendsKeyword = token;
-      do {
-        token = parseType(token.next);
-        ++supertypeCount;
-      } while (optional(',', token));
-    }
-    token = parseDefaultClauseOpt(token);
-    token = parseInterfaceBody(token);
-    listener.endInterface(supertypeCount, interfaceKeyword,
-                          extendsKeyword, token);
-    return token.next;
-  }
-
-  Token parseInterfaceBody(Token token) {
-    return parseClassBody(token);
-  }
-
   Token parseTypedef(Token token) {
     Token typedefKeyword = token;
     if (optional('=', peekAfterType(token.next))) {
@@ -409,21 +382,6 @@ class Parser {
           || (identical(value, 'void'));
     }
     return false;
-  }
-
-  Token parseDefaultClauseOpt(Token token) {
-    if (isDefaultKeyword(token)) {
-      // TODO(ahe): Remove support for 'factory' in this position.
-      Token defaultKeyword = token;
-      listener.beginDefaultClause(defaultKeyword);
-      token = parseIdentifier(token.next);
-      token = parseQualifiedRestOpt(token);
-      token = parseTypeVariablesOpt(token);
-      listener.endDefaultClause(defaultKeyword);
-    } else {
-      listener.handleNoDefaultClause(token);
-    }
-    return token;
   }
 
   Token parseQualified(Token token) {

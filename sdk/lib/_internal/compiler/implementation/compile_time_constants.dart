@@ -647,11 +647,6 @@ class CompileTimeConstantEvaluator extends Visitor {
     FunctionElement constructor = elements[send];
     constructor = constructor.redirectionTarget;
     ClassElement classElement = constructor.getEnclosingClass();
-    if (classElement.isInterface()) {
-      compiler.resolver.resolveMethodElement(constructor);
-      constructor = constructor.defaultImplementation;
-      classElement = constructor.getEnclosingClass();
-    }
     // The constructor must be an implementation to ensure that field
     // initializers are handled correctly.
     constructor = constructor.implementation;

@@ -825,9 +825,9 @@ class Dart2JsClassMirror extends Dart2JsContainerMirror
     return list;
   }
 
-  bool get isClass => !_class.isInterface();
+  bool get isClass => true;
 
-  bool get isInterface => _class.isInterface();
+  bool get isInterface => false;
 
   bool get isAbstract => _class.modifiers.isAbstract();
 
@@ -854,9 +854,6 @@ class Dart2JsClassMirror extends Dart2JsContainerMirror
    * Returns the default type for this interface.
    */
   ClassMirror get defaultFactory {
-    if (_class.defaultClass != null) {
-      return new Dart2JsInterfaceTypeMirror(mirrors, _class.defaultClass);
-    }
     return null;
   }
 

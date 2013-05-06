@@ -302,7 +302,6 @@ class ResolverTask extends CompilerTask {
           if (tree.returnType != null) {
             error(tree, MessageKind.CONSTRUCTOR_WITH_RETURN_TYPE);
           }
-          resolveConstructorImplementation(element, tree);
         }
         ResolverVisitor visitor = visitorFor(element);
         visitor.useElement(tree, element);
@@ -356,67 +355,6 @@ class ResolverTask extends CompilerTask {
   void visitBody(ResolverVisitor visitor, Statement body) {
     if (!compiler.analyzeSignaturesOnly) {
       visitor.visit(body);
-    }
-  }
-
-  void resolveConstructorImplementation(FunctionElement constructor,
-                                        FunctionExpression node) {
-    if (!identical(constructor.defaultImplementation, constructor)) return;
-    ClassElement intrface = constructor.getEnclosingClass();
-    if (!intrface.isInterface()) return;
-    DartType defaultType = intrface.defaultClass;
-    if (defaultType == null) {
-      error(node, MessageKind.NO_DEFAULT_CLASS,
-            {'interfaceName': intrface.name});
-    }
-    ClassElement defaultClass = defaultType.element;
-    defaultClass.ensureResolved(compiler);
-    assert(defaultClass.resolutionState == STATE_DONE);
-    assert(defaultClass.supertypeLoadState == STATE_DONE);
-    if (defaultClass.isInterface()) {
-      error(node, MessageKind.CANNOT_INSTANTIATE_INTERFACE,
-            {'interfaceName': defaultClass.name});
-    }
-    // We have now established the following:
-    // [intrface] is an interface, let's say "MyInterface".
-    // [defaultClass] is a class, let's say "MyClass".
-
-    Selector selector;
-    // If the default class implements the interface then we must use the
-    // default class' name. Otherwise we look for a factory with the name
-    // of the interface.
-    if (defaultClass.implementsInterface(intrface)) {
-      var constructorNameString = constructor.name.slowToString();
-      // Create selector based on constructor.name but where interface
-      // is replaced with default class name.
-      // TODO(ahe): Don't use string manipulations here.
-      int classNameSeparatorIndex = constructorNameString.indexOf('\$');
-      if (classNameSeparatorIndex < 0) {
-        selector = new Selector.callDefaultConstructor(
-            defaultClass.getLibrary());
-      } else {
-        selector = new Selector.callConstructor(
-            new SourceString(
-                constructorNameString.substring(classNameSeparatorIndex + 1)),
-            defaultClass.getLibrary());
-      }
-      constructor.defaultImplementation =
-          defaultClass.lookupConstructor(selector);
-    } else {
-      selector =
-          new Selector.callConstructor(constructor.name,
-                                       defaultClass.getLibrary());
-      constructor.defaultImplementation =
-          defaultClass.lookupFactoryConstructor(selector);
-    }
-    if (constructor.defaultImplementation == null) {
-      // We failed to find a constructor named either
-      // "MyInterface.name" or "MyClass.name".
-      // TODO(aprelev@gmail.com): Use constructorNameForDiagnostics in
-      // the error message below.
-      error(node,
-            MessageKind.CANNOT_FIND_CONSTRUCTOR2,
-            {'constructorName': selector.name, 'className': defaultClass.name});
     }
   }
 
@@ -568,7 +506,6 @@ class ResolverTask extends CompilerTask {
       element.computeType(compiler);
       // Copy class hiearchy from origin.
       element.supertype = element.origin.supertype;
-      element.defaultClass = element.origin.defaultClass;
       element.interfaces = element.origin.interfaces;
       element.allSupertypes = element.origin.allSupertypes;
       // Stepwise assignment to ensure invariant.
@@ -2576,24 +2513,8 @@ class ResolverVisitor extends MappingVisitor<Element> {
       warnArgumentMismatch(node.send, constructor);
       compiler.backend.registerThrowNoSuchMethod(mapping);
     }
-    compiler.withCurrentElement(constructor, () {
-      FunctionElement target = constructor;
-      if (constructor.isForwardingConstructor) {
-        target = constructor.targetConstructor;
-      }
-      FunctionExpression tree = target.parseNode(compiler);
-      compiler.resolver.resolveConstructorImplementation(constructor, tree);
-    });
 
-    if (constructor.defaultImplementation != constructor) {
-      // Support for deprecated interface support.
-      // TODO(ngeoffray): Remove once we remove such support.
-      world.registerStaticUse(constructor.declaration);
-      world.registerInstantiatedClass(
-          constructor.getEnclosingClass().declaration, mapping);
-      constructor = constructor.defaultImplementation;
-    }
-    // [constructor.defaultImplementation] might be the implementation element
+    // [constructor] might be the implementation element
     // and only declaration elements may be registered.
     world.registerStaticUse(constructor.declaration);
     ClassElement cls = constructor.getEnclosingClass();
@@ -3243,9 +3164,6 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     element.interfaces = resolveInterfaces(node.interfaces, node.superclass);
     calculateAllSupertypes(element);
 
-    if (node.defaultClause != null) {
-      element.defaultClass = visit(node.defaultClause);
-    }
     element.addDefaultConstructorIfNeeded(compiler);
     return element.computeType(compiler);
   }
@@ -3379,60 +3297,9 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     return mixin;
   }
 
-  // TODO(johnniwinther): Remove when default class is no longer supported.
-  DartType visitTypeAnnotation(TypeAnnotation node) {
-    return visit(node.typeName);
-  }
-
   DartType resolveType(TypeAnnotation node) {
     // TODO(johnniwinther): Report errors/warnings on resolution failures.
     return typeResolver.resolveTypeAnnotation(this, node);
-  }
-
-  // TODO(johnniwinther): Remove when default class is no longer supported.
-  DartType visitIdentifier(Identifier node) {
-    Element element = scope.lookup(node.source);
-    if (element == null) {
-      error(node, MessageKind.CANNOT_RESOLVE_TYPE,  {'typeName': node});
-      return null;
-    } else if (!element.impliesType() && !element.isTypeVariable()) {
-      error(node, MessageKind.NOT_A_TYPE, {'node': node});
-      return null;
-    } else {
-      if (element.isTypeVariable()) {
-        TypeVariableElement variableElement = element;
-        return variableElement.type;
-      } else if (element.isTypedef()) {
-        compiler.unimplemented('visitIdentifier for typedefs', node: node);
-      } else {
-        // TODO(ngeoffray): Use type variables.
-        return element.computeType(compiler);
-      }
-    }
-    return null;
-  }
-
-  // TODO(johnniwinther): Remove when default class is no longer supported.
-  DartType visitSend(Send node) {
-    Identifier prefix = node.receiver.asIdentifier();
-    if (prefix == null) {
-      error(node.receiver, MessageKind.NOT_A_PREFIX, {'node': node.receiver});
-      return null;
-    }
-    Element element = scope.lookup(prefix.source);
-    if (element == null || !identical(element.kind, ElementKind.PREFIX)) {
-      error(node.receiver, MessageKind.NOT_A_PREFIX, {'node': node.receiver});
-      return null;
-    }
-    PrefixElement prefixElement = element;
-    Identifier selector = node.selector.asIdentifier();
-    var e = prefixElement.lookupLocalMember(selector.source);
-    if (e == null || !e.impliesType()) {
-      error(node.selector, MessageKind.CANNOT_RESOLVE_TYPE,
-            {'typeName': node.selector});
-      return null;
-    }
-    return e.computeType(compiler);
   }
 
   DartType resolveSupertype(ClassElement cls, TypeAnnotation superclass) {
@@ -3966,13 +3833,6 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
     if (!Elements.isUnresolved(e) && e.isClass()) {
       ClassElement cls = e;
       cls.ensureResolved(compiler);
-      if (cls.isInterface() && (cls.defaultClass == null)) {
-        // TODO(ahe): Remove this check and error message when we
-        // don't have interfaces anymore.
-        error(diagnosticNode,
-              MessageKind.CANNOT_INSTANTIATE_INTERFACE,
-              {'interfaceName': cls.name});
-      }
       // The unnamed constructor may not exist, so [e] may become unresolved.
       e = lookupConstructor(cls, diagnosticNode, const SourceString(''));
     }
@@ -4002,11 +3862,6 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
     if (identical(e.kind, ElementKind.CLASS)) {
       ClassElement cls = e;
       cls.ensureResolved(compiler);
-      if (cls.isInterface() && (cls.defaultClass == null)) {
-        error(node.receiver,
-              MessageKind.CANNOT_INSTANTIATE_INTERFACE,
-              {'interfaceName': cls.name});
-      }
       return lookupConstructor(cls, name, name.source);
     } else if (identical(e.kind, ElementKind.PREFIX)) {
       PrefixElement prefix = e;

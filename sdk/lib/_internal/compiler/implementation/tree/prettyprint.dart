@@ -152,7 +152,6 @@ class PrettyPrinter implements Visitor {
     visitChildNode(node.superclass, "superclass");
     visitChildNode(node.interfaces, "interfaces");
     visitChildNode(node.typeParameters, "typeParameters");
-    visitChildNode(node.defaultClause, "defaultClause");
     closeNode();
   }
 

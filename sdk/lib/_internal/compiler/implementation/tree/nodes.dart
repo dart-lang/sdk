@@ -213,15 +213,12 @@ class ClassNode extends Node {
   final NodeList typeParameters;
   final NodeList body;
 
-  // TODO(ahe, karlklose): the default keyword is not recorded.
-  final TypeAnnotation defaultClause;
-
   final Token beginToken;
   final Token extendsKeyword;
   final Token endToken;
 
   ClassNode(this.modifiers, this.name, this.typeParameters, this.superclass,
-            this.interfaces, this.defaultClause, this.beginToken,
+            this.interfaces, this.beginToken,
             this.extendsKeyword, this.body, this.endToken);
 
   ClassNode asClassNode() => this;

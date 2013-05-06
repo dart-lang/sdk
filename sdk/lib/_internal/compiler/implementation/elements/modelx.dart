@@ -1092,19 +1092,15 @@ class FunctionElementX extends ElementX implements FunctionElement {
    * The patch should be parsed as if it was in the current scope. Its
    * signature must match this function's signature.
    */
-  // TODO(lrn): Consider using [defaultImplementation] to store the patch.
   FunctionElement patch = null;
   FunctionElement origin = null;
 
   /**
    * If this is a redirecting factory, [defaultImplementation] will be
-   * changed by the resolver to point to the redirection target.  If
-   * this is an interface constructor, [defaultImplementation] will be
-   * changed by the resolver to point to the default implementation.
+   * changed by the resolver to point to the redirection target.
    * Otherwise, [:identical(defaultImplementation, this):].
    */
-  // TODO(ahe): Rename this field to redirectionTarget and remove
-  // mention of interface constructors above.
+  // TODO(ahe): Rename this field to redirectionTarget.
   FunctionElement defaultImplementation;
 
   FunctionElementX(SourceString name,
@@ -1409,7 +1405,6 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
    */
   InterfaceType rawTypeCache;
   DartType supertype;
-  DartType defaultClass;
   Link<DartType> interfaces;
   SourceString nativeTagInfo;
   int supertypeLoadState;
@@ -1539,9 +1534,6 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
       // Static members are not inherited.
       if (e.modifiers.isStatic()) continue;
       return e;
-    }
-    if (isInterface()) {
-      return lookupSuperInterfaceMember(memberName, getLibrary());
     }
     return null;
   }
@@ -1807,7 +1799,6 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
     return false;
   }
 
-  bool isInterface() => false;
   bool isNative() => nativeTagInfo != null;
   void setNative(String name) {
     nativeTagInfo = new SourceString(name);

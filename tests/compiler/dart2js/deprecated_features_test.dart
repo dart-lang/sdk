@@ -43,7 +43,7 @@ main() {
     throw 'Compilation failed: ${messages}';
   }
   Expect.stringEquals(
-      // This string is comprised of lines of the following format:
+      // This string is composed of lines of the following format:
       //
       // offset<source>:path:kind: message
       //
@@ -56,20 +56,15 @@ main() {
       // short-term solution and should eventually changed to include
       // a symbolic reference to a MessageKind.
       "0<#library('test');>::${deprecatedMessage('# tags')}\n"
-      "38<interface>::${deprecatedMessage('interface declarations')}\n"
       "19<part 'part.dart';>::${deprecatedMessage('missing part-of tag')}\n"
       "0<>:/part.dart:info: Note: This file has no part-of tag, but it is being"
       " used as a part.\n"
-      "163<Fisk>::${deprecatedMessage('interface factories')}\n"
-
-      // TODO(ahe): Should be <Fisk.hest>.
-      "183<Fisk>::${deprecatedMessage('interface factories')}\n"
 
       // TODO(ahe): Should be <bar>.
-      "109<Foo>::${deprecatedMessage('conflicting constructor')}\n"
+      "52<Foo>::${deprecatedMessage('conflicting constructor')}\n"
 
-      "129<bar>::info: This member conflicts with a constructor.\n"
-      "205<()>::${deprecatedMessage('getter parameters')}\n",
+      "72<bar>::info: This member conflicts with a constructor.\n"
+      "103<()>::${deprecatedMessage('getter parameters')}\n",
       messages.toString());
 }
 
@@ -85,24 +80,15 @@ const Map<String, String> TEST_SOURCE =
 
 part 'part.dart';
 
-interface Fisk default Foo {
-  Fisk();
-  Fisk.hest();
-}
-
 class Foo {
   Foo.bar();
   static bar() => new Foo.bar();
-  factory Fisk() {}
-  factory Fisk.hest() {}
   get x() => null;
 }
 
 main() {
   var a = Foo.bar();
   var b = new Foo.bar();
-  new Fisk();
-  new Fisk.hest();
 }
 """,
     // TODO(ahe): Why isn't this 'part.dart'? Why the leading slash?

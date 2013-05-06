@@ -48,6 +48,10 @@ class MessageKind {
       'cannot resolve constructor #{constructorName}');
   static const CANNOT_RESOLVE_CONSTRUCTOR_FOR_IMPLICIT = const MessageKind(
       'cannot resolve constructor #{constructorName} for implicit super call');
+  static const INVALID_UNNAMED_CONSTRUCTOR_NAME = const MessageKind(
+      'Error: Unnamed constructor name must be #{name}.');
+  static const INVALID_CONSTRUCTOR_NAME = const MessageKind(
+      'Error: Constructor name must start with #{name}.');
   static const CANNOT_RESOLVE_TYPE = const MessageKind(
       'cannot resolve type #{typeName}');
   static const DUPLICATE_DEFINITION = const MessageKind(
@@ -64,8 +68,6 @@ class MessageKind {
       "'Object' does not have a superclass");
   static const CANNOT_FIND_CONSTRUCTOR = const MessageKind(
       'cannot find constructor #{constructorName}');
-  static const CANNOT_FIND_CONSTRUCTOR2 = const MessageKind(
-      'cannot find constructor #{constructorName} in #{className}');
   static const CYCLIC_CLASS_HIERARCHY = const MessageKind(
       '#{className} creates a cycle in the class hierarchy');
   static const INVALID_RECEIVER_IN_INITIALIZER = const MessageKind(
@@ -177,9 +179,6 @@ class MessageKind {
 
   static const NO_SUCH_LIBRARY_MEMBER = const MessageKind(
       '#{libraryName} has no member named #{memberName}');
-
-  static const CANNOT_INSTANTIATE_INTERFACE = const MessageKind(
-      "cannot instantiate interface '#{interfaceName}'");
 
   static const CANNOT_INSTANTIATE_TYPEDEF = const MessageKind(
       "cannot instantiate typedef '#{typedefName}'");
