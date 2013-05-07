@@ -171,18 +171,16 @@ class Entrypoint {
         isSelfLink: true, relative: true);
   }
 
-  /// If `bin/`, `test/`, or `example/` directories exist, symlink `packages/`
-  /// into them so that their entrypoints can be run. Do the same for any
-  /// subdirectories of `test/` and `example/`.
+  /// Add "packages" directories to the whitelist of directories that may
+  /// contain Dart entrypoints.
   void _linkSecondaryPackageDirs() {
+    // Only the main "bin" directory gets a "packages" directory, not its
+    // subdirectories.
     var binDir = path.join(root.dir, 'bin');
-    var exampleDir = path.join(root.dir, 'example');
-    var testDir = path.join(root.dir, 'test');
-    var toolDir = path.join(root.dir, 'tool');
-    var webDir = path.join(root.dir, 'web');
-
     if (dirExists(binDir)) _linkSecondaryPackageDir(binDir);
-    for (var dir in ['example', 'test', 'tool', 'web']) {
+
+    // The others get "packages" directories in subdirectories too.
+    for (var dir in ['benchmark', 'example', 'test', 'tool', 'web']) {
       _linkSecondaryPackageDirsRecursively(path.join(root.dir, dir));
     }
  }

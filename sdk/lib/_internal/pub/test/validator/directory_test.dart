@@ -35,7 +35,10 @@ main() {
       'named', () {
     setUp(d.validPackage.create);
 
-    var names = ["tools", "tests", "docs", "examples", "sample", "samples"];
+    var names = [
+      "benchmarks", "docs", "examples", "sample", "samples", "tests", "tools"
+    ];
+
     for (var name in names) {
       integration('"$name"', () {
         d.dir(appPath, [d.dir(name)]).create();
