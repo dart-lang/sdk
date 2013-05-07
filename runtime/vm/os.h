@@ -18,6 +18,9 @@ class Isolate;
 // Interface to the underlying OS platform.
 class OS {
  public:
+  // Returns the name of the given OS. For example "linux".
+  static const char* Name();
+
   // Returns the abbreviated time-zone name for the given instant.
   // For example "CET" or "CEST".
   static const char* GetTimeZoneName(int64_t seconds_since_epoch);

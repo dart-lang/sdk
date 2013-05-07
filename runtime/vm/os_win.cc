@@ -16,6 +16,11 @@
 
 namespace dart {
 
+const char* OS::Name() {
+  return "windows";
+}
+
+
 // As a side-effect sets the globals _timezone, _daylight and _tzname.
 static bool LocalTime(int64_t seconds_since_epoch, tm* tm_result) {
   time_t seconds = static_cast<time_t>(seconds_since_epoch);

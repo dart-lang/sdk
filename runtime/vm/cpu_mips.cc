@@ -30,7 +30,11 @@ void CPU::FlushICache(uword start, uword size) {
 
 
 const char* CPU::Id() {
-  return "mips";
+  return
+#if !defined(HOST_ARCH_MIPS)
+  "sim"
+#endif  // !defined(HOST_ARCH_MIPS)
+  "mips";
 }
 
 }  // namespace dart

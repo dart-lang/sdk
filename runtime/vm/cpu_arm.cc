@@ -32,7 +32,11 @@ void CPU::FlushICache(uword start, uword size) {
 
 
 const char* CPU::Id() {
-  return "arm";
+  return
+#if !defined(HOST_ARCH_ARM)
+  "sim"
+#endif  // !defined(HOST_ARCH_ARM)
+  "arm";
 }
 
 }  // namespace dart
