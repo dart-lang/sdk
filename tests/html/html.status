@@ -177,6 +177,7 @@ media_stream_test/supported_MediaStreamTrackEvent: Fail
 media_stream_test/supported_media: Fail
 mutationobserver_test/supported: Fail
 notifications_test/supported: Fail
+range_test/supported: Fail
 rtc_test/supported: Fail
 shadow_dom_test/supported: Fail
 speechrecognition_test/supported: Fail

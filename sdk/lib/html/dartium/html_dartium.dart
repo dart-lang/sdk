@@ -18567,6 +18567,15 @@ class Range extends NativeFieldWrapperClass1 {
   @DocsEditable
   String toString() native "Range_toString_Callback";
 
+
+  /**
+   * Checks if createContextualFragment is supported.
+   *
+   * See also:
+   *
+   * * [createContextualFragment]
+   */
+  static bool get supportsCreateContextualFragment => true;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

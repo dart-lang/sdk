@@ -17412,6 +17412,16 @@ class Range native "Range" {
   @DocsEditable
   String toString() native;
 
+
+  /**
+   * Checks if createContextualFragment is supported.
+   *
+   * See also:
+   *
+   * * [createContextualFragment]
+   */
+  static bool get supportsCreateContextualFragment =>
+      JS('bool', '("createContextualFragment" in window.Range.prototype)');
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

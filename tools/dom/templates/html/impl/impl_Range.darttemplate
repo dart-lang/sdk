@@ -10,4 +10,18 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   factory $CLASSNAME() => document.$dom_createRange();
 
 $!MEMBERS
+
+  /**
+   * Checks if createContextualFragment is supported.
+   *
+   * See also:
+   *
+   * * [createContextualFragment]
+   */
+$if DART2JS
+  static bool get supportsCreateContextualFragment =>
+      JS('bool', '("createContextualFragment" in window.Range.prototype)');
+$else
+  static bool get supportsCreateContextualFragment => true;
+$endif
 }
