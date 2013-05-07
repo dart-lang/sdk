@@ -301,10 +301,6 @@ class BranchSimplifier : public AllStatic {
   // for the patterns that are handled by this pass.
   static bool Match(JoinEntryInstr* block);
 
-  // Duplicate a constant, assigning it a new SSA name.
-  static ConstantInstr* CloneConstant(FlowGraph* flow_graph,
-                                      ConstantInstr* constant);
-
   // Duplicate a branch while replacing its comparison's left and right
   // inputs.
   static BranchInstr* CloneBranch(BranchInstr* branch,

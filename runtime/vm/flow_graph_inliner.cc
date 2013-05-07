@@ -670,8 +670,7 @@ class CallSiteInliner : public ValueObject {
       ConstantInstr* constant = (*defns)[i]->AsConstant();
       if ((constant != NULL) && constant->HasUses()) {
         constant->ReplaceUsesWith(
-            caller_graph_->AddConstantToInitialDefinitions(
-                constant->value()));
+            caller_graph_->GetConstant(constant->value()));
       }
     }
 
@@ -1027,8 +1026,7 @@ bool PolymorphicInliner::TryInlining(const Function& target) {
     ConstantInstr* constant = (*defns)[i]->AsConstant();
     if ((constant != NULL) && constant->HasUses()) {
       constant->ReplaceUsesWith(
-          owner_->caller_graph()->AddConstantToInitialDefinitions(
-              constant->value()));
+          owner_->caller_graph()->GetConstant(constant->value()));
     }
   }
   return true;

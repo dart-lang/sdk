@@ -112,7 +112,7 @@ class FlowGraph : public ZoneAllocated {
 
   intptr_t InstructionCount() const;
 
-  ConstantInstr* AddConstantToInitialDefinitions(const Object& object);
+  ConstantInstr* GetConstant(const Object& object);
   void AddToInitialDefinitions(Definition* defn);
 
   void InsertBefore(Instruction* next,

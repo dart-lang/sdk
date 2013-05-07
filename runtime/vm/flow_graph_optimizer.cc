@@ -306,10 +306,9 @@ bool FlowGraphOptimizer::Canonicalize() {
   bool changed = false;
   for (intptr_t i = 0; i < block_order_.length(); ++i) {
     BlockEntryInstr* entry = block_order_[i];
-    entry->Accept(this);
     for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
-      Instruction* replacement = current->Canonicalize(this);
+      Instruction* replacement = current->Canonicalize(flow_graph());
       if (replacement != current) {
         // For non-definitions Canonicalize should return either NULL or
         // this.
@@ -363,8 +362,7 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
       const double dbl_val = Smi::Cast(constant->value()).AsDoubleValue();
       const Double& dbl_obj =
           Double::ZoneHandle(Double::New(dbl_val, Heap::kOld));
-      ConstantInstr* double_const = new ConstantInstr(dbl_obj);
-      InsertBefore(insert_before, double_const, NULL, Definition::kValue);
+      ConstantInstr* double_const = flow_graph()->GetConstant(dbl_obj);
       converted = new UnboxDoubleInstr(new Value(double_const), deopt_id);
     } else {
       converted = new UnboxDoubleInstr(use->CopyWithType(), deopt_id);
@@ -1131,8 +1129,7 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
                  call->env(),
                  Definition::kEffect);
     ConstantInstr* constant =
-        new ConstantInstr(Smi::Handle(Smi::New(value - 1)));
-    InsertBefore(call, constant, NULL, Definition::kValue);
+        flow_graph()->GetConstant(Smi::Handle(Smi::New(value - 1)));
     BinarySmiOpInstr* bin_op =
         new BinarySmiOpInstr(Token::kBIT_AND, call,
                              new Value(left),
@@ -1178,8 +1175,7 @@ bool FlowGraphOptimizer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
              (op_kind == Token::kNEGATE)) {
     AddReceiverCheck(call);
     ConstantInstr* minus_one =
-        new ConstantInstr(Double::ZoneHandle(Double::NewCanonical(-1)));
-    InsertBefore(call, minus_one, NULL, Definition::kValue);
+        flow_graph()->GetConstant(Double::ZoneHandle(Double::NewCanonical(-1)));
     unary_op = new BinaryDoubleOpInstr(Token::kMUL,
                                        new Value(input),
                                        new Value(minus_one),
@@ -1372,9 +1368,7 @@ void FlowGraphOptimizer::InlineStringIsEmptyGetter(InstanceCallInstr* call) {
   LoadFieldInstr* load = BuildLoadStringLength(call->ArgumentAt(0));
   InsertBefore(call, load, NULL, Definition::kValue);
 
-  ConstantInstr* zero = new ConstantInstr(Smi::Handle(Smi::New(0)));
-  InsertBefore(call, zero, NULL, Definition::kValue);
-
+  ConstantInstr* zero = flow_graph()->GetConstant(Smi::Handle(Smi::New(0)));
   StrictCompareInstr* compare =
       new StrictCompareInstr(Token::kEQ_STRICT,
                              new Value(load),
@@ -2025,8 +2019,7 @@ void FlowGraphOptimizer::PrepareByteArrayViewOp(
   // len_in_bytes = length * kBytesPerElement(receiver)
   intptr_t element_size = FlowGraphCompiler::ElementSizeFor(receiver_cid);
   ConstantInstr* bytes_per_element =
-      new ConstantInstr(Smi::Handle(Smi::New(element_size)));
-  InsertBefore(call, bytes_per_element, NULL, Definition::kValue);
+      flow_graph()->GetConstant(Smi::Handle(Smi::New(element_size)));
   BinarySmiOpInstr* len_in_bytes =
       new BinarySmiOpInstr(Token::kMUL,
                            call,
@@ -2113,8 +2106,15 @@ void FlowGraphOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
       if (negate) {
         as_bool = Bool::Get(!as_bool.value());
       }
-      ConstantInstr* bool_const = new ConstantInstr(as_bool);
-      ReplaceCall(call, bool_const);
+      ConstantInstr* bool_const = flow_graph()->GetConstant(as_bool);
+      for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
+        PushArgumentInstr* push = call->PushArgumentAt(i);
+        push->ReplaceUsesWith(push->value()->definition());
+        push->RemoveFromGraph();
+      }
+      call->ReplaceUsesWith(bool_const);
+      ASSERT(current_iterator()->Current() == call);
+      current_iterator()->RemoveCurrentFromGraph();
       return;
     }
   }
@@ -2679,6 +2679,15 @@ void RangeAnalysis::Analyze() {
 
 
 void RangeAnalysis::CollectSmiValues() {
+  const GrowableArray<Definition*>& initial =
+      *flow_graph_->graph_entry()->initial_definitions();
+  for (intptr_t i = 0; i < initial.length(); ++i) {
+    Definition* current = initial[i];
+    if (current->Type()->ToCid() == kSmiCid) {
+      smi_values_.Add(current);
+    }
+  }
+
   for (BlockIterator block_it = flow_graph_->reverse_postorder_iterator();
        !block_it.Done();
        block_it.Advance()) {
@@ -2702,7 +2711,7 @@ void RangeAnalysis::CollectSmiValues() {
     if (join != NULL) {
       for (PhiIterator phi_it(join); !phi_it.Done(); phi_it.Advance()) {
         PhiInstr* current = phi_it.Current();
-        if ((current->Type()->ToCid() == kSmiCid)) {
+        if (current->Type()->ToCid() == kSmiCid) {
           smi_values_.Add(current);
         }
       }
@@ -3106,6 +3115,14 @@ void RangeAnalysis::InferRanges() {
   }
 
   // Infer initial values of ranges.
+  const GrowableArray<Definition*>& initial =
+      *flow_graph_->graph_entry()->initial_definitions();
+  for (intptr_t i = 0; i < initial.length(); ++i) {
+    Definition* definition = initial[i];
+    if (smi_definitions_->Contains(definition->ssa_temp_index())) {
+      definition->InferRange();
+    }
+  }
   InferRangesRecursive(flow_graph_->graph_entry());
 
   if (FLAG_trace_range_analysis) {
@@ -5359,7 +5376,9 @@ void ConstantPropagator::Transform() {
                     defn->ssa_temp_index(),
                     defn->constant_value().ToCString());
         }
-        defn->ReplaceWith(new ConstantInstr(defn->constant_value()), &i);
+        ConstantInstr* constant = graph_->GetConstant(defn->constant_value());
+        defn->ReplaceUsesWith(constant);
+        i.RemoveCurrentFromGraph();
       }
     }
 
@@ -5449,10 +5468,9 @@ bool BranchSimplifier::Match(JoinEntryInstr* block) {
   //   Branch(Comparison(kind, Phi, Constant))
   //
   // These are the branches produced by inlining in a test context.  Also,
-  // the phi and the constant have no other uses so they can simply be
-  // eliminated.  The block has no other phis and no instructions
-  // intervening between the phi, constant, and branch so the block can
-  // simply be eliminated.
+  // the phi has no other uses so they can simply be eliminated.  The block
+  // has no other phis and no instructions intervening between the phi and
+  // branch so the block can simply be eliminated.
   BranchInstr* branch = block->last_instruction()->AsBranch();
   ASSERT(branch != NULL);
   ComparisonInstr* comparison = branch->comparison();
@@ -5464,9 +5482,7 @@ bool BranchSimplifier::Match(JoinEntryInstr* block) {
       (constant != NULL) &&
       (phi->GetBlock() == block) &&
       PhiHasSingleUse(phi, left) &&
-      constant->HasOnlyUse(right) &&
-      (block->next() == constant) &&
-      (constant->next() == branch) &&
+      (block->next() == branch) &&
       (block->phis()->length() == 1);
 }
 
@@ -5482,14 +5498,6 @@ JoinEntryInstr* BranchSimplifier::ToJoinEntry(TargetEntryInstr* target) {
   join->set_last_instruction(target->last_instruction());
   target->UnuseAllInputs();
   return join;
-}
-
-
-ConstantInstr* BranchSimplifier::CloneConstant(FlowGraph* flow_graph,
-                                               ConstantInstr* constant) {
-  ConstantInstr* new_constant = new ConstantInstr(constant->value());
-  new_constant->set_ssa_temp_index(flow_graph->alloc_ssa_temp_index());
-  return new_constant;
 }
 
 
@@ -5578,14 +5586,10 @@ void BranchSimplifier::Simplify(FlowGraph* flow_graph) {
             block->PredecessorAt(i)->last_instruction()->AsGoto();
         ASSERT(old_goto != NULL);
 
-        // Insert a copy of the constant in all the predecessors.
-        ConstantInstr* new_constant = CloneConstant(flow_graph, constant);
-        new_constant->InsertBefore(old_goto);
-
         // Replace the goto in each predecessor with a rewritten branch,
         // rewritten to use the corresponding phi input instead of the phi.
         Value* new_left = phi->InputAt(i)->Copy();
-        Value* new_right = new Value(new_constant);
+        Value* new_right = new Value(constant);
         BranchInstr* new_branch = CloneBranch(branch, new_left, new_right);
         if (branch->env() == NULL) {
           new_branch->InheritDeoptTarget(old_goto);
@@ -5596,19 +5600,14 @@ void BranchSimplifier::Simplify(FlowGraph* flow_graph) {
           // deopt id that it gave the new branch.  The id should be the
           // deopt id of the original comparison.
           new_branch->comparison()->SetDeoptId(comparison->GetDeoptId());
-          // The phi and constant can be used in the branch's environment.
-          // Rename such uses.
+          // The phi can be used in the branch's environment.  Rename such
+          // uses.
           for (Environment::DeepIterator it(new_branch->env());
                !it.Done();
                it.Advance()) {
             Value* use = it.CurrentValue();
-            Definition* replacement = NULL;
             if (use->definition() == phi) {
-              replacement = phi->InputAt(i)->definition();
-            } else if (use->definition() == constant) {
-              replacement = new_constant;
-            }
-            if (replacement != NULL) {
+              Definition* replacement = phi->InputAt(i)->definition();
               use->RemoveFromUseList();
               use->set_definition(replacement);
               replacement->AddEnvUse(use);
@@ -5654,7 +5653,6 @@ void BranchSimplifier::Simplify(FlowGraph* flow_graph) {
       branch->UnuseAllInputs();
       block->UnuseAllInputs();
       ASSERT(!phi->HasUses());
-      ASSERT(!constant->HasUses());
     }
   }
 

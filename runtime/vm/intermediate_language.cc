@@ -1053,7 +1053,7 @@ static Definition* CanonicalizeCommutativeArithmetic(Token::Kind op,
 }
 
 
-Definition* BinaryDoubleOpInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
+Definition* BinaryDoubleOpInstr::Canonicalize(FlowGraph* flow_graph) {
   Definition* result = NULL;
 
   result = CanonicalizeCommutativeArithmetic(op_kind(),
@@ -1076,7 +1076,7 @@ Definition* BinaryDoubleOpInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
 }
 
 
-Definition* BinarySmiOpInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
+Definition* BinarySmiOpInstr::Canonicalize(FlowGraph* flow_graph) {
   Definition* result = NULL;
 
   result = CanonicalizeCommutativeArithmetic(op_kind(),
@@ -1099,7 +1099,7 @@ Definition* BinarySmiOpInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
 }
 
 
-Definition* BinaryMintOpInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
+Definition* BinaryMintOpInstr::Canonicalize(FlowGraph* flow_graph) {
   Definition* result = NULL;
 
   result = CanonicalizeCommutativeArithmetic(op_kind(),
@@ -1123,12 +1123,12 @@ Definition* BinaryMintOpInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
 
 
 // Optimizations that eliminate or simplify individual instructions.
-Instruction* Instruction::Canonicalize(FlowGraphOptimizer* optimizer) {
+Instruction* Instruction::Canonicalize(FlowGraph* flow_graph) {
   return this;
 }
 
 
-Definition* Definition::Canonicalize(FlowGraphOptimizer* optimizer) {
+Definition* Definition::Canonicalize(FlowGraph* flow_graph) {
   return this;
 }
 
@@ -1189,12 +1189,12 @@ bool LoadFieldInstr::IsFixedLengthArrayCid(intptr_t cid) {
 }
 
 
-Definition* ConstantInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
+Definition* ConstantInstr::Canonicalize(FlowGraph* flow_graph) {
   return HasUses() ? this : NULL;
 }
 
 
-Definition* LoadFieldInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
+Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
   if (!IsImmutableLengthLoad()) return this;
 
   // For fixed length arrays if the array is the result of a known constructor
@@ -1210,7 +1210,7 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
 }
 
 
-Definition* AssertBooleanInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
+Definition* AssertBooleanInstr::Canonicalize(FlowGraph* flow_graph) {
   if (FLAG_eliminate_type_checks && (value()->Type()->ToCid() == kBoolCid)) {
     return value()->definition();
   }
@@ -1219,7 +1219,7 @@ Definition* AssertBooleanInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
 }
 
 
-Definition* AssertAssignableInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
+Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
   if (FLAG_eliminate_type_checks &&
       value()->Type()->IsAssignableTo(dst_type())) {
     return value()->definition();
@@ -1239,17 +1239,14 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
     const AbstractType& new_dst_type = AbstractType::Handle(
         dst_type().InstantiateFrom(instantiator_type_args, NULL));
     set_dst_type(AbstractType::ZoneHandle(new_dst_type.Canonicalize()));
-    ConstantInstr* null_constant = new ConstantInstr(Object::ZoneHandle());
-    // It is ok to insert instructions before the current during
-    // forward iteration.
-    optimizer->InsertBefore(this, null_constant, NULL, Definition::kValue);
+    ConstantInstr* null_constant = flow_graph->constant_null();
     instantiator_type_arguments()->BindTo(null_constant);
   }
   return this;
 }
 
 
-Definition* BoxDoubleInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
+Definition* BoxDoubleInstr::Canonicalize(FlowGraph* flow_graph) {
   if (input_use_list() == NULL) {
     // Environments can accomodate any representation. No need to box.
     return value()->definition();
@@ -1265,17 +1262,17 @@ Definition* BoxDoubleInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
 }
 
 
-Definition* UnboxDoubleInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
+Definition* UnboxDoubleInstr::Canonicalize(FlowGraph* flow_graph) {
   // Fold away UnboxDouble(BoxDouble(v)).
   BoxDoubleInstr* defn = value()->definition()->AsBoxDouble();
   return (defn != NULL) ? defn->value()->definition() : this;
 }
 
 
-Instruction* BranchInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
+Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
   // Only handle strict-compares.
   if (comparison()->IsStrictCompare()) {
-    Definition* replacement = comparison()->Canonicalize(optimizer);
+    Definition* replacement = comparison()->Canonicalize(flow_graph);
     if ((replacement == comparison()) || (replacement == NULL)) {
       return this;
     }
@@ -1316,7 +1313,7 @@ Instruction* BranchInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
 }
 
 
-Definition* StrictCompareInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
+Definition* StrictCompareInstr::Canonicalize(FlowGraph* flow_graph) {
   if (!right()->BindsToConstant()) {
     return this;
   }
@@ -1346,7 +1343,7 @@ Definition* StrictCompareInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
 }
 
 
-Instruction* CheckClassInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
+Instruction* CheckClassInstr::Canonicalize(FlowGraph* flow_graph) {
   // TODO(vegorov): Replace class checks with null checks when ToNullableCid
   // matches.
 
@@ -1359,7 +1356,7 @@ Instruction* CheckClassInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
 }
 
 
-Instruction* GuardFieldInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
+Instruction* GuardFieldInstr::Canonicalize(FlowGraph* flow_graph) {
   if (field().guarded_cid() == kDynamicCid) {
     return NULL;  // Nothing to guard.
   }
@@ -1378,13 +1375,12 @@ Instruction* GuardFieldInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
 }
 
 
-Instruction* CheckSmiInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
+Instruction* CheckSmiInstr::Canonicalize(FlowGraph* flow_graph) {
   return (value()->Type()->ToCid() == kSmiCid) ?  NULL : this;
 }
 
 
-Instruction* CheckEitherNonSmiInstr::Canonicalize(
-    FlowGraphOptimizer* optimizer) {
+Instruction* CheckEitherNonSmiInstr::Canonicalize(FlowGraph* flow_graph) {
   if ((left()->Type()->ToCid() == kDoubleCid) ||
       (right()->Type()->ToCid() == kDoubleCid)) {
     return NULL;  // Remove from the graph.

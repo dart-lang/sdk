@@ -22,8 +22,8 @@ class ComparisonInstr;
 class ControlInstruction;
 class Definition;
 class Environment;
+class FlowGraph;
 class FlowGraphCompiler;
-class FlowGraphOptimizer;
 class FlowGraphVisitor;
 class Instruction;
 class LocalVariable;
@@ -766,7 +766,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   // Returns a replacement for the instruction or NULL if the instruction can
   // be eliminated.  By default returns the this instruction which means no
   // change.
-  virtual Instruction* Canonicalize(FlowGraphOptimizer* optimizer);
+  virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
   // Insert this instruction before 'next' after use lists are computed.
   // Instructions cannot be inserted before a block entry or any other
@@ -1551,7 +1551,7 @@ class Definition : public Instruction {
   // Definitions can be canonicalized only into definitions to ensure
   // this check statically we override base Canonicalize with a Canonicalize
   // returning Definition (return type is covariant).
-  virtual Definition* Canonicalize(FlowGraphOptimizer* optimizer);
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   static const intptr_t kReplacementMarker = -2;
 
@@ -1963,7 +1963,7 @@ class BranchInstr : public ControlInstruction {
   void ReplaceWith(ComparisonInstr* other,
                    ForwardInstructionIterator* ignored);
 
-  virtual Instruction* Canonicalize(FlowGraphOptimizer* optimizer);
+  virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
   virtual void PrintTo(BufferFormatter* f) const;
 
@@ -2306,7 +2306,7 @@ class ConstantInstr : public TemplateDefinition<0> {
   DECLARE_INSTRUCTION(Constant)
   virtual CompileType ComputeType() const;
 
-  virtual Definition* Canonicalize(FlowGraphOptimizer* optimizer);
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   const Object& value() const { return value_; }
 
@@ -2365,7 +2365,7 @@ class AssertAssignableInstr : public TemplateDefinition<3> {
 
   virtual bool CanDeoptimize() const { return true; }
 
-  virtual Definition* Canonicalize(FlowGraphOptimizer* optimizer);
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   virtual bool AllowsCSE() const { return true; }
   virtual EffectSet Effects() const { return EffectSet::None(); }
@@ -2398,7 +2398,7 @@ class AssertBooleanInstr : public TemplateDefinition<1> {
 
   virtual bool CanDeoptimize() const { return true; }
 
-  virtual Definition* Canonicalize(FlowGraphOptimizer* optimizer);
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   virtual bool AllowsCSE() const { return true; }
   virtual EffectSet Effects() const { return EffectSet::None(); }
@@ -2707,7 +2707,7 @@ class StrictCompareInstr : public ComparisonInstr {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual Definition* Canonicalize(FlowGraphOptimizer* optimizer);
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   virtual void EmitBranchCode(FlowGraphCompiler* compiler,
                               BranchInstr* branch);
@@ -3164,7 +3164,7 @@ class GuardFieldInstr : public TemplateInstruction<1> {
 
   virtual bool CanDeoptimize() const { return true; }
 
-  virtual Instruction* Canonicalize(FlowGraphOptimizer* optimizer);
+  virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -3712,7 +3712,7 @@ class LoadFieldInstr : public TemplateDefinition<1> {
 
   bool IsImmutableLengthLoad() const;
 
-  virtual Definition* Canonicalize(FlowGraphOptimizer* optimizer);
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   static MethodRecognizer::Kind RecognizedKindFromArrayCid(intptr_t cid);
 
@@ -3995,7 +3995,7 @@ class CheckEitherNonSmiInstr : public TemplateInstruction<2> {
 
   virtual bool CanDeoptimize() const { return true; }
 
-  virtual Instruction* Canonicalize(FlowGraphOptimizer* optimizer);
+  virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
   virtual bool AllowsCSE() const { return true; }
   virtual EffectSet Effects() const { return EffectSet::None(); }
@@ -4030,7 +4030,7 @@ class BoxDoubleInstr : public TemplateDefinition<1> {
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
-  Definition* Canonicalize(FlowGraphOptimizer* optimizer);
+  Definition* Canonicalize(FlowGraph* flow_graph);
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BoxDoubleInstr);
@@ -4147,7 +4147,7 @@ class UnboxDoubleInstr : public TemplateDefinition<1> {
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
-  Definition* Canonicalize(FlowGraphOptimizer* optimizer);
+  Definition* Canonicalize(FlowGraph* flow_graph);
 
  private:
   DISALLOW_COPY_AND_ASSIGN(UnboxDoubleInstr);
@@ -4324,7 +4324,7 @@ class BinaryDoubleOpInstr : public TemplateDefinition<2> {
   DECLARE_INSTRUCTION(BinaryDoubleOp)
   virtual CompileType ComputeType() const;
 
-  virtual Definition* Canonicalize(FlowGraphOptimizer* optimizer);
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   virtual bool AllowsCSE() const { return true; }
   virtual EffectSet Effects() const { return EffectSet::None(); }
@@ -5011,7 +5011,7 @@ class BinaryMintOpInstr : public TemplateDefinition<2> {
     return deopt_id_;
   }
 
-  virtual Definition* Canonicalize(FlowGraphOptimizer* optimizer);
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   DECLARE_INSTRUCTION(BinaryMintOp)
   virtual CompileType ComputeType() const;
@@ -5183,7 +5183,7 @@ class BinarySmiOpInstr : public TemplateDefinition<2> {
 
   virtual void InferRange();
 
-  virtual Definition* Canonicalize(FlowGraphOptimizer* optimizer);
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   // Returns true if right is a non-zero Smi constant which absolute value is
   // a power of two.
@@ -5472,7 +5472,7 @@ class CheckClassInstr : public TemplateInstruction<1> {
 
   const ICData& unary_checks() const { return unary_checks_; }
 
-  virtual Instruction* Canonicalize(FlowGraphOptimizer* optimizer);
+  virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -5510,7 +5510,7 @@ class CheckSmiInstr : public TemplateInstruction<1> {
 
   virtual bool CanDeoptimize() const { return true; }
 
-  virtual Instruction* Canonicalize(FlowGraphOptimizer* optimizer);
+  virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
   virtual bool AllowsCSE() const { return true; }
   virtual EffectSet Effects() const { return EffectSet::None(); }

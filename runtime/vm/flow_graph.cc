@@ -34,12 +34,11 @@ FlowGraph::FlowGraph(const FlowGraphBuilder& builder,
 }
 
 
-ConstantInstr* FlowGraph::AddConstantToInitialDefinitions(
-    const Object& object) {
+ConstantInstr* FlowGraph::GetConstant(const Object& object) {
   // Check if the constant is already in the pool.
-  for (intptr_t i = 0; i < graph_entry_->initial_definitions()->length(); ++i) {
-    ConstantInstr* constant =
-        (*graph_entry_->initial_definitions())[i]->AsConstant();
+  GrowableArray<Definition*>* pool = graph_entry_->initial_definitions();
+  for (intptr_t i = 0; i < pool->length(); ++i) {
+    ConstantInstr* constant = (*pool)[i]->AsConstant();
     if ((constant != NULL) && (constant->value().raw() == object.raw())) {
       return constant;
     }
@@ -50,6 +49,7 @@ ConstantInstr* FlowGraph::AddConstantToInitialDefinitions(
   AddToInitialDefinitions(constant);
   return constant;
 }
+
 
 void FlowGraph::AddToInitialDefinitions(Definition* defn) {
   // TODO(zerny): Set previous to the graph entry so it is accessible by
@@ -625,8 +625,7 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
   GrowableArray<Definition*> env(variable_count());
 
   // Add global constants to the initial definitions.
-  constant_null_ =
-      AddConstantToInitialDefinitions(Object::ZoneHandle());
+  constant_null_ = GetConstant(Object::ZoneHandle());
 
   // Add parameters to the initial definitions and renaming environment.
   if (inlining_parameters != NULL) {
@@ -698,7 +697,6 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
   AttachEnvironment(block_entry, env);
 
   // 2. Process normal instructions.
-
   for (ForwardInstructionIterator it(block_entry); !it.Done(); it.Advance()) {
     Instruction* current = it.Current();
 
@@ -708,18 +706,20 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
     }
 
     // 2a. Handle uses:
-    // Update expression stack environment for each use.
-    // For each use of a LoadLocal or StoreLocal: Replace it with the value
-    // from the environment.
+    // Update the expression stack renaming environment for each use by
+    // removing the renamed value.
+    // For each use of a LoadLocal, StoreLocal, or Constant: Replace it with
+    // the renamed value.
     for (intptr_t i = current->InputCount() - 1; i >= 0; --i) {
       Value* v = current->InputAt(i);
       // Update expression stack.
       ASSERT(env->length() > variable_count());
 
       Definition* reaching_defn = env->RemoveLast();
-
       Definition* input_defn = v->definition();
-      if (input_defn->IsLoadLocal() || input_defn->IsStoreLocal()) {
+      if (input_defn->IsLoadLocal() ||
+          input_defn->IsStoreLocal() ||
+          input_defn->IsConstant()) {
         // Remove the load/store from the graph.
         input_defn->RemoveFromGraph();
         // Assert we are not referencing nulls in the initial environment.
@@ -735,14 +735,13 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
       env->RemoveLast();
     }
 
-    // 2b. Handle LoadLocal and StoreLocal.
-    // For each LoadLocal: Remove it from the graph.
-    // For each StoreLocal: Remove it from the graph and update the environment.
+    // 2b. Handle LoadLocal, StoreLocal, and Constant.
     Definition* definition = current->AsDefinition();
     if (definition != NULL) {
       LoadLocalInstr* load = definition->AsLoadLocal();
       StoreLocalInstr* store = definition->AsStoreLocal();
-      if ((load != NULL) || (store != NULL)) {
+      ConstantInstr* constant = definition->AsConstant();
+      if ((load != NULL) || (store != NULL) || (constant != NULL)) {
         intptr_t index;
         Definition* result;
         if (store != NULL) {
@@ -755,7 +754,7 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
           } else {
             (*env)[index] = constant_null();
           }
-        } else {
+        } else if (load != NULL) {
           // The graph construction ensures we do not have an unused LoadLocal
           // computation.
           ASSERT(definition->is_used());
@@ -771,16 +770,21 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
           if (variable_liveness->IsLastLoad(block_entry, load)) {
             (*env)[index] = constant_null();
           }
+        } else {
+          ASSERT(definition->is_used());
+          result = GetConstant(constant->value());
         }
         // Update expression stack or remove from graph.
         if (definition->is_used()) {
+          ASSERT(result != NULL);
           env->Add(result);
-          // We remove load/store instructions when we find their use in 2a.
+          // We remove load/store/constant instructions when we find their
+          // use in 2a.
         } else {
           it.RemoveCurrentFromGraph();
         }
       } else {
-        // Not a load or store.
+        // Not a load, store, or constant.
         if (definition->is_used()) {
           // Assign fresh SSA temporary and update expression stack.
           definition->set_ssa_temp_index(alloc_ssa_temp_index());
