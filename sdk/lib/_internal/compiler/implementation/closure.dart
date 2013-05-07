@@ -585,22 +585,25 @@ class ClosureTranslator extends Visitor {
     Link<String> parts = const Link<String>();
     SourceString ownName = element.name;
     if (ownName == null || ownName.stringValue == "") {
-      parts = parts.prepend("anon");
+      parts = parts.prepend("closure");
     } else {
       parts = parts.prepend(ownName.slowToString());
     }
     for (Element enclosingElement = element.enclosingElement;
          enclosingElement != null &&
-             (identical(enclosingElement.kind,
-                        ElementKind.GENERATIVE_CONSTRUCTOR_BODY)
-              || identical(enclosingElement.kind, ElementKind.CLASS)
-              || identical(enclosingElement.kind, ElementKind.FUNCTION)
-              || identical(enclosingElement.kind, ElementKind.GETTER)
-              || identical(enclosingElement.kind, ElementKind.SETTER));
+             (enclosingElement.kind == ElementKind.GENERATIVE_CONSTRUCTOR_BODY
+              || enclosingElement.kind == ElementKind.GENERATIVE_CONSTRUCTOR
+              || enclosingElement.kind == ElementKind.CLASS
+              || enclosingElement.kind == ElementKind.FUNCTION
+              || enclosingElement.kind == ElementKind.GETTER
+              || enclosingElement.kind == ElementKind.SETTER);
          enclosingElement = enclosingElement.enclosingElement) {
       SourceString surroundingName =
           Elements.operatorNameToIdentifier(enclosingElement.name);
       parts = parts.prepend(surroundingName.slowToString());
+      // A generative constructors's parent is the class; the class name is
+      // already part of the generative constructor's name.
+      if (enclosingElement.kind == ElementKind.GENERATIVE_CONSTRUCTOR) break;
     }
     StringBuffer sb = new StringBuffer();
     parts.printOn(sb, '_');
