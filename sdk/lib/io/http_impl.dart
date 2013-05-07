@@ -914,6 +914,40 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
     _responseCompleter.completeError(error);
   }
 
+  // Generate the request URI based on the method and proxy.
+  String _requestUri() {
+    // Generate the request URI starting from the path component.
+    String uriStartingFromPath() {
+      String result = uri.path;
+      if (result.length == 0) result = "/";
+      if (uri.query != "") {
+        if (uri.fragment != "") {
+          result = "${result}?${uri.query}#${uri.fragment}";
+        } else {
+          result = "${result}?${uri.query}";
+        }
+      }
+      return result;
+    }
+
+    if (_proxy.isDirect) {
+      return uriStartingFromPath();
+    } else {
+      if (method == "CONNECT") {
+        // For the connect method the request URI is the host:port of
+        // the requested destination of the tunnel (see RFC 2817
+        // section 5.2)
+        return "${uri.domain}:${uri.port}";
+      } else {
+        if (_httpClientConnection._proxyTunnel) {
+          return uriStartingFromPath();
+        } else {
+          return uri.toString();
+        }
+      }
+    }
+  }
+
   void _writeHeader() {
     var buffer = new _BufferList();
 
@@ -921,42 +955,13 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
 
     writeCRLF() => buffer.add(const [_CharCode.CR, _CharCode.LF]);
 
-    void writePath() {
-      String path = uri.path;
-      if (path.length == 0) path = "/";
-      if (uri.query != "") {
-        if (uri.fragment != "") {
-          path = "${path}?${uri.query}#${uri.fragment}";
-        } else {
-          path = "${path}?${uri.query}";
-        }
-      }
-      buffer.add(path.codeUnits);
-    }
-
     // Write the request method.
     buffer.add(method.codeUnits);
     writeSP();
     // Write the request URI.
-    if (_proxy.isDirect) {
-      writePath();
-    } else {
-      if (method == "CONNECT") {
-        // For the connect method the request URI is the host:port of
-        // the requested destination of the tunnel (see RFC 2817
-        // section 5.2)
-        buffer.add(uri.domain.codeUnits);
-        buffer.add(const [_CharCode.COLON]);
-        buffer.add(uri.port.toString().codeUnits);
-      } else {
-        if (_httpClientConnection._proxyTunnel) {
-          writePath();
-        } else {
-          buffer.add(uri.toString().codeUnits);
-        }
-      }
-    }
+    buffer.add(_requestUri().codeUnits);
     writeSP();
+    // Write HTTP/1.1.
     buffer.add(_Const.HTTP11);
     writeCRLF();
 
@@ -2134,10 +2139,11 @@ class _HttpClientDigestCredentials
   _AuthenticationScheme get scheme => _AuthenticationScheme.DIGEST;
 
   String authorization(_Credentials credentials, HttpClientRequest request) {
+    String requestUri = request._requestUri();
     MD5 hasher = new MD5();
     hasher.add(request.method.codeUnits);
     hasher.add([_CharCode.COLON]);
-    hasher.add(request.uri.path.codeUnits);
+    hasher.add(requestUri.codeUnits);
     var ha2 = CryptoUtils.bytesToHex(hasher.close());
 
     String qop;
@@ -2174,7 +2180,7 @@ class _HttpClientDigestCredentials
     buffer.write('username="$username"');
     buffer.write(', realm="${credentials.realm}"');
     buffer.write(', nonce="${credentials.nonce}"');
-    buffer.write(', uri="${request.uri.path}"');
+    buffer.write(', uri="$requestUri"');
     buffer.write(', algorithm="${credentials.algorithm}"');
     if (qop == "auth") {
       buffer.write(', qop="$qop"');
