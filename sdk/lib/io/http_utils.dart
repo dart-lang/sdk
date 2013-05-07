@@ -359,9 +359,9 @@ class _HttpUtils {
     return new DateTime.utc(year, month, dayOfMonth, hour, minute, second, 0);
   }
 
-  // Parse a string with HTTP entities. Returns null if the string ends in the
+  // Decode a string with HTTP entities. Returns null if the string ends in the
   // middle of a http entity.
-  static String parseHttpEntityString(String input) {
+  static String decodeHttpEntityString(String input) {
     int amp = input.lastIndexOf('&');
     if (amp < 0) return input;
     int end = input.lastIndexOf(';');

@@ -41,7 +41,7 @@ class _HttpMultipartFormData extends Stream implements HttpMultipartFormData {
           .transform(new StringDecoder(encoding))
           .expand((data) {
             buffer.write(data);
-            var out = _HttpUtils.parseHttpEntityString(buffer.toString());
+            var out = _HttpUtils.decodeHttpEntityString(buffer.toString());
             if (out != null) {
               buffer = new StringBuffer();
               return [out];

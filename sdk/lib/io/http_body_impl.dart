@@ -110,6 +110,21 @@ class _HttpBodyHandler {
                                               "json",
                                               JSON.parse(body.body)));
 
+          case "x-www-form-urlencoded":
+            return asText(Encoding.ASCII)
+                .then((body) {
+                  var map = _HttpUtils.splitQueryString(body.body);
+                  var result = {};
+                  String parse(String s) {
+                    return _HttpUtils.decodeHttpEntityString(
+                        _HttpUtils.decodeUrlEncodedString(s));
+                  }
+                  for (var key in map.keys) {
+                    result[parse(key)] = parse(map[key]);
+                  }
+                  return new _HttpBody(contentType, "form", result);
+                });
+
           default:
             break;
         }

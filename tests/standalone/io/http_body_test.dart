@@ -113,7 +113,10 @@ void testHttpServerRequestBody() {
                 break;
 
               case "form":
-                Expect.equals(body.contentType.mimeType, 'multipart/form-data');
+                var mimeType = body.contentType.mimeType;
+                Expect.isTrue(
+                    mimeType == 'multipart/form-data' ||
+                    mimeType == 'application/x-www-form-urlencoded');
                 Expect.setEquals(expectedBody.keys.toSet(),
                                  body.body.keys.toSet());
                 for (var key in expectedBody.keys) {
@@ -239,6 +242,13 @@ File content\r
        { "files": { 'filename': 'myfile',
                     'contentType': 'application/json',
                     'content': 'File content'} },
+       "form");
+
+  test('application/x-www-form-urlencoded',
+       '%E5%B9%B3%3D%E4%BB%AE%E5%90%8D=%26%2324179%3B%26%2320206%3B%26%'
+       '2321517%3B&b=%26%2324179%3B%26%2320206%3B%26%2321517%3B'.codeUnits,
+       { 'b' : '平仮名',
+         '平=仮名' : '平仮名'},
        "form");
 }
 
