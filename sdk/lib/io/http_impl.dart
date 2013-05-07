@@ -1359,7 +1359,7 @@ class _HttpClient implements HttpClient {
   }
 
   void addCredentials(Uri url, String realm, HttpClientCredentials cr) {
-    _credentials.add(new _Credentials(url, realm, cr));
+    _credentials.add(new _SiteCredentials(url, realm, cr));
   }
 
   set authenticateProxy(
@@ -1532,10 +1532,10 @@ class _HttpClient implements HttpClient {
     return connect(new HttpException("No proxies given"));
   }
 
-  _Credentials _findCredentials(Uri url, [_AuthenticationScheme scheme]) {
+  _SiteCredentials _findCredentials(Uri url, [_AuthenticationScheme scheme]) {
     // Look for credentials.
-    _Credentials cr =
-        _credentials.fold(null, (_Credentials prev, _Credentials value) {
+    _SiteCredentials cr =
+        _credentials.fold(null, (prev, value) {
           if (value.applies(url, scheme)) {
             if (prev == null) return value;
             return value.uri.path.length > prev.uri.path.length ? value : prev;
@@ -2013,8 +2013,19 @@ class _AuthenticationScheme {
 }
 
 
-class _Credentials {
-  _Credentials(this.uri, this.realm, this.credentials) {
+abstract class _Credentials {
+  _HttpClientCredentials credentials;
+  String realm;
+  bool used = false;
+
+  // Digest specific fields.
+  String ha1;
+  String nonce;
+  String algorithm;
+  String qop;
+  int nonceCount;
+
+  _Credentials(this.realm, this.credentials) {
     if (credentials.scheme == _AuthenticationScheme.DIGEST) {
       // Calculate the H(A1) value once. There is no mentioning of
       // username/password encoding in RFC 2617. However there is an
@@ -2034,6 +2045,15 @@ class _Credentials {
   }
 
   _AuthenticationScheme get scheme => credentials.scheme;
+
+  void authorize(HttpClientRequest request);
+}
+
+class _SiteCredentials extends _Credentials {
+  Uri uri;
+
+  _SiteCredentials(this.uri, realm, _HttpClientCredentials creds)
+  : super(realm, creds);
 
   bool applies(Uri uri, _AuthenticationScheme scheme) {
     if (scheme != null && credentials.scheme != scheme) return false;
@@ -2055,38 +2075,33 @@ class _Credentials {
     credentials.authorize(this, request);
     used = true;
   }
-
-  bool used = false;
-  Uri uri;
-  String realm;
-  _HttpClientCredentials credentials;
-
-  // Digest specific fields.
-  String ha1;
-  String nonce;
-  String algorithm;
-  String qop;
-  int nonceCount;
 }
 
 
-class _ProxyCredentials {
-  _ProxyCredentials(this.host, this.port, this.realm, this.credentials);
+class _ProxyCredentials extends _Credentials {
+  String host;
+  int port;
 
-  _AuthenticationScheme get scheme => credentials.scheme;
+  _ProxyCredentials(this.host,
+                    this.port,
+                    realm,
+                    _HttpClientCredentials creds)
+  : super(realm, creds);
+
 
   bool applies(_Proxy proxy, _AuthenticationScheme scheme) {
     return proxy.host == host && proxy.port == port;
   }
 
   void authorize(HttpClientRequest request) {
+    // Digest credentials cannot be used without a nonce from the
+    // server.
+    if (credentials.scheme == _AuthenticationScheme.DIGEST &&
+        nonce == null) {
+      return;
+    }
     credentials.authorizeProxy(this, request);
   }
-
-  String host;
-  int port;
-  String realm;
-  _HttpClientCredentials credentials;
 }
 
 
@@ -2138,7 +2153,7 @@ class _HttpClientDigestCredentials
 
   _AuthenticationScheme get scheme => _AuthenticationScheme.DIGEST;
 
-  String authorization(_Credentials credentials, HttpClientRequest request) {
+  String authorization(_Credentials credentials, _HttpClientRequest request) {
     String requestUri = request._requestUri();
     MD5 hasher = new MD5();
     hasher.add(request.method.codeUnits);
@@ -2192,7 +2207,8 @@ class _HttpClientDigestCredentials
   }
 
   void authorize(_Credentials credentials, HttpClientRequest request) {
-    request.headers.set(HttpHeaders.AUTHORIZATION, authorization(credentials, request));
+    request.headers.set(HttpHeaders.AUTHORIZATION,
+                        authorization(credentials, request));
   }
 
   void authorizeProxy(_ProxyCredentials credentials,
