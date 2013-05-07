@@ -55,7 +55,9 @@ class MessageKind {
   static const CANNOT_RESOLVE_TYPE = const MessageKind(
       'cannot resolve type #{typeName}');
   static const DUPLICATE_DEFINITION = const MessageKind(
-      'duplicate definition of #{name}');
+      "Error: Duplicate definition of '#{name}'.");
+  static const EXISTING_DEFINITION = const MessageKind(
+      "Info: Existing definition of '#{name}'.");
   static const DUPLICATE_IMPORT = const MessageKind(
       'duplicate import of #{name}');
   static const DUPLICATE_EXPORT = const MessageKind(
