@@ -33,59 +33,119 @@ class _HttpBodyHandler {
 
   static Future<HttpBody> process(Stream<List<int>> stream,
                                   HttpHeaders headers) {
-    return stream.fold(
-        new _BufferList(),
-        (buffer, data) {
-          // TODO(ajohnsen): Add limit for POST data.
-          buffer.add(data);
-          return buffer;
-        })
-        .then((list) {
-          dynamic content = list.readBytes();
-          String type = "binary";
-          ContentType contentType = headers.contentType;
-          if (contentType == null) {
-            return new _HttpBody(null, type, content);
-          }
-          String asText(Encoding defaultEncoding) {
-            var encoding;
-            var charset = contentType.charset;
-            if (charset != null) encoding = Encoding.fromName(charset);
-            if (encoding == null) encoding = defaultEncoding;
-            return _decodeString(content, encoding);
-          }
-          switch (contentType.primaryType) {
-            case "text":
-              type = "text";
-              content = asText(Encoding.ASCII);
-              break;
+    ContentType contentType = headers.contentType;
 
-            case "application":
-              switch (contentType.subType) {
-                case "json":
-                  content = JSON.parse(asText(Encoding.UTF_8));
-                  type = "json";
-                  break;
+    Future<HttpBody> asBinary() {
+      return stream
+          .fold(new _BufferList(), (buffer, data) => buffer..add(data))
+          .then((buffer) => new _HttpBody(contentType,
+                                          "binary",
+                                          buffer.readBytes()));
+    }
 
-                default:
-                  break;
+    Future<HttpBody> asText(Encoding defaultEncoding) {
+      var encoding;
+      var charset = contentType.charset;
+      if (charset != null) encoding = Encoding.fromName(charset);
+      if (encoding == null) encoding = defaultEncoding;
+      return stream
+          .transform(new StringDecoder(encoding))
+          .fold(new StringBuffer(), (buffer, data) => buffer..write(data))
+          .then((buffer) => new _HttpBody(contentType,
+                                          "text",
+                                          buffer.toString()));
+    }
+
+    Future<HttpBody> asFormData() {
+      return stream
+          .transform(new MimeMultipartTransformer(
+                contentType.parameters['boundary']))
+          .map((HttpMultipartFormData.parse))
+          .map((multipart) {
+            var future;
+            if (multipart.isText) {
+              future = multipart
+                  .fold(new StringBuffer(), (b, s) => b..write(s))
+                  .then((b) => b.toString());
+            } else {
+              future = multipart
+                  .fold(new _BufferList(), (b, d) => b..add(d))
+                  .then((b) => b.readBytes());
+            }
+            return future.then((data) {
+              var filename =
+                  multipart.contentDisposition.parameters['filename'];
+              if (filename != null) {
+                data = new _HttpBodyFileUpload(multipart.contentType,
+                                               filename,
+                                               data);
               }
-              break;
+              return [multipart.contentDisposition.parameters['name'], data];
+            });
+          })
+          .fold([], (l, f) => l..add(f))
+          .then(Future.wait)
+          .then((parts) {
+            Map<String, dynamic> map = new Map<String, dynamic>();
+            for (var part in parts) {
+              map[part[0]] = part[1];  // Override existing entries.
+            }
+            return new _HttpBody(contentType, 'form', map);
+          });
+    }
 
-            default:
-              break;
-          }
-          return new _HttpBody(contentType.mimeType, type, content);
-        });
+    if (contentType == null) {
+      return asBinary();
+    }
+
+    switch (contentType.primaryType) {
+      case "text":
+        return asText(Encoding.ASCII);
+
+      case "application":
+        switch (contentType.subType) {
+          case "json":
+            return asText(Encoding.UTF_8)
+                .then((body) => new _HttpBody(contentType,
+                                              "json",
+                                              JSON.parse(body.body)));
+
+          default:
+            break;
+        }
+        break;
+
+      case "multipart":
+        switch (contentType.subType) {
+          case "form-data":
+            return asFormData();
+
+          default:
+            break;
+        }
+        break;
+
+      default:
+        break;
+    }
+
+    return asBinary();
   }
 }
 
+class _HttpBodyFileUpload implements HttpBodyFileUpload {
+  final ContentType contentType;
+  final String filename;
+  final dynamic content;
+  _HttpBodyFileUpload(this.contentType, this.filename, this.content);
+}
+
 class _HttpBody implements HttpBody {
-  final String mimeType;
+  final ContentType contentType;
   final String type;
   final dynamic body;
 
-  _HttpBody(String this.mimeType,
+  _HttpBody(ContentType this.contentType,
             String this.type,
             dynamic this.body);
 }
@@ -97,7 +157,7 @@ class _HttpRequestBody extends _HttpBody implements HttpRequestBody {
   final HttpResponse response;
 
   _HttpRequestBody(HttpRequest request, HttpBody body)
-      : super(body.mimeType, body.type, body.body),
+      : super(body.contentType, body.type, body.body),
         method = request.method,
         uri = request.uri,
         headers = request.headers,
@@ -109,7 +169,7 @@ class _HttpClientResponseBody
   final HttpClientResponse response;
 
   _HttpClientResponseBody(HttpClientResponse response, HttpBody body)
-      : super(body.mimeType, body.type, body.body),
+      : super(body.contentType, body.type, body.body),
         this.response = response;
 
   int get statusCode => response.statusCode;

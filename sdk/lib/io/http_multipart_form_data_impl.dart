@@ -27,7 +27,9 @@ class _HttpMultipartFormData extends Stream implements HttpMultipartFormData {
                               "${contentTransferEncoding.value}");
     }
 
-    if (contentType == null || contentType.primaryType == 'text') {
+    if (contentType == null ||
+        contentType.primaryType == 'text' ||
+        contentType.mimeType == 'application/json') {
       _isText = true;
       StringBuffer buffer = new StringBuffer();
       Encoding encoding;

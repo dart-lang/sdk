@@ -74,7 +74,7 @@ abstract class HttpBody {
    * The content type e.g. application/json, application/octet-stream,
    * application/x-www-form-urlencoded, text/plain.
    */
-  String get mimeType;
+  ContentType get contentType;
 
   /**
    * A high-level type value, that reflects how the body was parsed, e.g.
@@ -142,4 +142,27 @@ abstract class HttpRequestBody extends HttpBody {
    * The [HttpResponse] used for responding to the client.
    */
   HttpResponse get response;
+}
+
+
+/**
+ * A [HttpBodyFileUpload] object wraps a file upload, presenting a way for
+ * extracting filename, contentType and the data of the uploaded file.
+ */
+abstract class HttpBodyFileUpload {
+  /**
+   * The filename of the uploaded file.
+   */
+  String filename;
+
+  /**
+   * The [ContentType] of the uploaded file. For 'text/\*' and
+   * 'application/json' the [data] field will a String.
+   */
+  ContentType contentType;
+
+  /**
+   * The content of the file. Either a [String] or a [List<int>].
+   */
+  dynamic content;
 }
