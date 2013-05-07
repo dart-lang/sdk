@@ -160,6 +160,28 @@ class Configuration {
   }
   
   /**
+   * Format a test result.
+   */
+  String formatResult(TestCase testCase) {
+    var result = new StringBuffer();
+    result.write(testCase.result.toUpperCase());
+    result.write(": ");
+    result.write(testCase.description);
+    result.write("\n");
+
+    if (testCase.message != '') {
+      result.write(_indent(testCase.message));
+      result.write("\n");
+    }
+
+    if (testCase.stackTrace != null && testCase.stackTrace != '') {
+      result.write(_indent(testCase.stackTrace));
+      result.write("\n");
+    }
+    return result.toString();
+  }
+
+  /**
    * Called with the result of all test cases. The default implementation prints
    * the result summary using the built-in [print] command. Browser tests
    * commonly override this to reformat the output.
@@ -171,16 +193,7 @@ class Configuration {
       String uncaughtError) {
     // Print each test's result.
     for (final t in results) {
-      var resultString = "${t.result}".toUpperCase();
-      print('$resultString: ${t.description}');
-
-      if (t.message != '') {
-        print(_indent(t.message));
-      }
-
-      if (t.stackTrace != null && t.stackTrace != '') {
-        print(_indent(t.stackTrace));
-      }
+      print(formatResult(t));
     }
 
     // Show the summary.
