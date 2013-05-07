@@ -143,6 +143,7 @@ int VMGlue::InitializeVM() {
                        NULL,
                        NULL,
                        NULL,
+                       NULL,
                        NULL)) {
     LOGE("VM initialization failed\n");
     return -1;
