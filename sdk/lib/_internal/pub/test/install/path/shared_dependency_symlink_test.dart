@@ -10,10 +10,6 @@ import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
-  // new File().fullPathSync() does not resolve through NTFS junction points,
-  // so this feature does not work on Windows.
-  if (Platform.operatingSystem == "windows") return;
-
   initConfig();
   integration("shared dependency with symlink", () {
     d.dir("shared", [

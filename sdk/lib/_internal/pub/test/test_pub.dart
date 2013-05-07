@@ -355,7 +355,7 @@ ScheduledProcess startPub({List args, Future<Uri> tokenEndpoint}) {
   // If the executable looks like a path, get its full path. That way we
   // can still find it when we spawn it with a different working directory.
   if (dartBin.contains(Platform.pathSeparator)) {
-    dartBin = new File(dartBin).fullPathSync();
+    dartBin = path.absolute(dartBin);
   }
 
   // Find the main pub entrypoint.

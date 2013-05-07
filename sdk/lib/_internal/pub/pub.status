@@ -12,6 +12,3 @@ test/oauth2/with_server_rejected_credentials_authenticates_again_test: Pass, Fai
 # Pub only runs on the standalone VM, not the browser.
 [ $runtime == drt || $runtime == dartium || $runtime == opera ]
 *: Skip
-
-[ $system == windows ]
-test/io_test: Fail # Issue 7505

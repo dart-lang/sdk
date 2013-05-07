@@ -34,8 +34,8 @@ class PathSource extends Source {
   bool descriptionsEqual(description1, description2) {
     try {
       // Compare real paths after normalizing and resolving symlinks.
-      var path1 = new File(description1["path"]).fullPathSync();
-      var path2 = new File(description2["path"]).fullPathSync();
+      var path1 = canonicalize(description1["path"]);
+      var path2 = canonicalize(description2["path"]);
       return path1 == path2;
     } on FileIOException catch (ex) {
       // If either of the files couldn't be found, fall back to just comparing

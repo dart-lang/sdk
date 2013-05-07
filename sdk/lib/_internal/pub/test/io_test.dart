@@ -135,6 +135,125 @@ main() {
     });
   });
 
+  group('canonicalize', () {
+    test('resolves a non-link', () {
+      expect(withTempDir((temp) {
+        var filePath = path.join(temp, 'file');
+        writeTextFile(filePath, '');
+        expect(canonicalize(filePath), equals(filePath));
+      }), completes);
+    });
+
+    test('resolves a non-existent file', () {
+      expect(withTempDir((temp) {
+        expect(canonicalize(path.join(temp, 'nothing')),
+            equals(path.join(temp, 'nothing')));
+      }), completes);
+    });
+
+    test('resolves a symlink', () {
+      expect(withTempDir((temp) {
+        createDir(path.join(temp, 'linked-dir'));
+        createSymlink(
+            path.join(temp, 'linked-dir'),
+            path.join(temp, 'dir'));
+        expect(
+            canonicalize(path.join(temp, 'dir')),
+            equals(path.join(temp, 'linked-dir')));
+      }), completes);
+    });
+
+    test('resolves a relative symlink', () {
+      expect(withTempDir((temp) {
+        createDir(path.join(temp, 'linked-dir'));
+        createSymlink(
+            path.join(temp, 'linked-dir'),
+            path.join(temp, 'dir'),
+            relative: true);
+        expect(
+            canonicalize(path.join(temp, 'dir')),
+            equals(path.join(temp, 'linked-dir')));
+      }), completes);
+    });
+
+    test('resolves a single-level horizontally recursive symlink', () {
+      expect(withTempDir((temp) {
+        var linkPath = path.join(temp, 'foo');
+        createSymlink(linkPath, linkPath);
+        expect(canonicalize(linkPath), equals(linkPath));
+      }), completes);
+    });
+
+    test('resolves a multi-level horizontally recursive symlink', () {
+      expect(withTempDir((temp) {
+        var fooPath = path.join(temp, 'foo');
+        var barPath = path.join(temp, 'bar');
+        var bazPath = path.join(temp, 'baz');
+        createSymlink(barPath, fooPath);
+        createSymlink(bazPath, barPath);
+        createSymlink(fooPath, bazPath);
+        expect(canonicalize(fooPath), equals(fooPath));
+        expect(canonicalize(barPath), equals(barPath));
+        expect(canonicalize(bazPath), equals(bazPath));
+
+        createSymlink(fooPath, path.join(temp, 'outer'));
+        expect(canonicalize(path.join(temp, 'outer')), equals(fooPath));
+      }), completes);
+    });
+
+    test('resolves a broken symlink', () {
+      expect(withTempDir((temp) {
+        createSymlink(path.join(temp, 'nonexistent'), path.join(temp, 'foo'));
+        expect(
+            canonicalize(path.join(temp, 'foo')),
+            equals(path.join(temp, 'nonexistent')));
+      }), completes);
+    });
+
+    test('resolves multiple nested symlinks', () {
+      expect(withTempDir((temp) {
+        var dir1 = path.join(temp, 'dir1');
+        var dir2 = path.join(temp, 'dir2');
+        var subdir1 = path.join(dir1, 'subdir1');
+        var subdir2 = path.join(dir2, 'subdir2');
+        createDir(dir2);
+        createDir(subdir2);
+        createSymlink(dir2, dir1);
+        createSymlink(subdir2, subdir1);
+        expect(
+            canonicalize(path.join(subdir1, 'file')),
+            equals(path.join(subdir2, 'file')));
+      }), completes);
+    });
+
+    test('resolves a nested vertical symlink', () {
+      expect(withTempDir((temp) {
+        var dir1 = path.join(temp, 'dir1');
+        var dir2 = path.join(temp, 'dir2');
+        var subdir = path.join(dir1, 'subdir');
+        createDir(dir1);
+        createDir(dir2);
+        createSymlink(dir2, subdir);
+        expect(
+            canonicalize(path.join(subdir, 'file')),
+            equals(path.join(dir2, 'file')));
+      }), completes);
+    });
+
+    test('resolves a vertically recursive symlink', () {
+      expect(withTempDir((temp) {
+        var dir = path.join(temp, 'dir');
+        var subdir = path.join(dir, 'subdir');
+        createDir(dir);
+        createSymlink(dir, subdir);
+        expect(
+            canonicalize(path.join(temp, 'dir', 'subdir', 'subdir', 'subdir',
+                                   'subdir', 'file')),
+            equals(path.join(dir, 'file')));
+      }), completes);
+    });
+  });
+
   testExistencePredicate("entryExists", entryExists,
       forFile: true,
       forFileSymlink: true,

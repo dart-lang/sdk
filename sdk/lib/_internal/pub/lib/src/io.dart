@@ -40,6 +40,41 @@ bool linkExists(String link) => new Link(link).existsSync();
 /// for a symlink only if that symlink is unbroken and points to a file.
 bool fileExists(String file) => new File(file).existsSync();
 
+/// Returns the canonical path for [pathString]. This is the normalized,
+/// absolute path, with symlinks resolved. As in [transitiveTarget], broken or
+/// recursive symlinks will not be fully resolved.
+///
+/// This doesn't require [pathString] to point to a path that exists on the
+/// filesystem; nonexistent or unreadable path entries are treated as normal
+/// directories.
+String canonicalize(String pathString) {
+  var components = path.split(path.normalize(path.absolute(pathString)));
+  var newPath = components.removeAt(0);
+  // Rebuild the path one level at a time, resolving the symlinks for each level
+  // in turn.
+  for (var component in components) {
+    newPath = resolveLink(path.join(newPath, component));
+  }
+  return newPath;
+}
+
+/// Returns the transitive target of [link] (if A links to B which links to C,
+/// this will return C). If [link] is part of a symlink loop (e.g. A links to B
+/// which links back to A), this returns the path to the first repeated link (so
+/// `transitiveTarget("A")` would return `"A"` and `transitiveTarget("A")` would
+/// return `"B"`).
+///
+/// This accepts paths to non-links or broken links, and returns them as-is.
+String resolveLink(String link) {
+  var seen = new Set<String>();
+  while (linkExists(link) && !seen.contains(link)) {
+    seen.add(link);
+    link = path.normalize(path.join(
+        path.dirname(link), new Link(link).targetSync()));
+  }
+  return link;
+}
+
 /// Reads the contents of the text file [file].
 String readTextFile(String file) =>
     new File(file).readAsStringSync(encoding: Encoding.UTF_8);
@@ -137,7 +172,7 @@ List<String> listDir(String dir, {bool recursive: false,
     var contents = <String>[];
 
     // Avoid recursive symlinks.
-    var resolvedPath = new File(dir).fullPathSync();
+    var resolvedPath = canonicalize(dir);
     if (listedDirectories.contains(resolvedPath)) return [];
 
     listedDirectories = new Set<String>.from(listedDirectories);
